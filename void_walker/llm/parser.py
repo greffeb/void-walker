@@ -4,9 +4,14 @@ Void Walker - Response Parser.
 Handles parsing and validation of LLM responses.
 """
 
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 
 from pydantic import ValidationError
+
+if TYPE_CHECKING:
+    from void_walker.core.state import GameState
 
 from void_walker.core.state import (
     EnvironmentalClue,
@@ -68,6 +73,7 @@ def parse_game_response(response_text: str) -> GameResponse:
 def validate_game_response(
     response: GameResponse,
     progress: SessionProgress,
+    state: GameState | None = None,
 ) -> GameResponse:
     """
     Validate and potentially fix a game response.
@@ -77,6 +83,7 @@ def validate_game_response(
     Args:
         response: The parsed game response
         progress: Current session progress
+        state: Optional game state for context-aware suggestions
     
     Returns:
         Validated (and possibly modified) response
@@ -122,16 +129,65 @@ def validate_game_response(
     
     # Ensure suggestions list has reasonable content
     if not response.suggestions:
-        response.suggestions = [
-            "Explorer les environs",
-            "Examiner l'environnement",
-            "Avancer prudemment",
-        ]
+        response.suggestions = _generate_fallback_suggestions(state)
     
     # Limit suggestions to 3
     response.suggestions = response.suggestions[:3]
     
     return response
+
+
+def _generate_fallback_suggestions(state: GameState | None) -> list[str]:
+    """
+    Generate context-aware fallback suggestions.
+    
+    Uses scenario data when available to provide specific,
+    goal-oriented suggestions instead of generic ones.
+    
+    Args:
+        state: Optional game state for context
+    
+    Returns:
+        List of 3 suggestion strings
+    """
+    if state is None:
+        # No context available, use generic suggestions
+        return [
+            "Explorer les environs",
+            "Examiner l'environnement",
+            "Avancer prudemment",
+        ]
+    
+    suggestions = []
+    
+    # Suggestion 1: Objective-oriented
+    main_threat = state.scenario.main_threat
+    suggestions.append(f"Chercher des indices sur {main_threat}")
+    
+    # Suggestion 2: Location-based (prefer unvisited)
+    unvisited = state.get_unvisited_exits()
+    if unvisited:
+        suggestions.append(f"Explorer vers {unvisited[0]}")
+    else:
+        current_loc = state.scenario.get_location(state.current_location)
+        if current_loc and current_loc.connections:
+            exit_loc = state.scenario.get_location(current_loc.connections[0])
+            exit_name = exit_loc.name if exit_loc else current_loc.connections[0]
+            suggestions.append(f"Se diriger vers {exit_name}")
+        else:
+            suggestions.append("Examiner les alentours attentivement")
+    
+    # Suggestion 3: Interaction-based
+    current_loc = state.scenario.get_location(state.current_location)
+    if current_loc and current_loc.items:
+        item_name = current_loc.items[0].name
+        suggestions.append(f"Examiner {item_name}")
+    elif current_loc and current_loc.secrets:
+        suggestions.append("Fouiller la zone pour des indices")
+    else:
+        suggestions.append("Inspecter l'environnement")
+    
+    return suggestions
 
 
 def parse_scenario(response_text: str) -> Scenario:

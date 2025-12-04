@@ -28,36 +28,33 @@ DICE_FACES = {
 }
 
 
-def get_dice_display(value: int, spinning: bool = False) -> str:
+def get_dice_display(value: int, spinning: bool = False) -> Text:
     """
     Get ASCII art dice display.
-    
+
     For d20, we show a simplified representation.
     """
     # For d20, show the number in the center
     if spinning:
-        style = "[dim]"
-        end_style = "[/dim]"
+        style = "dim"
     else:
         if value == 20:
-            style = "[success bold]"
-            end_style = "[/success bold]"
+            style = "success bold"
         elif value == 1:
-            style = "[danger bold]"
-            end_style = "[/danger bold]"
+            style = "danger bold"
         else:
-            style = "[text.bright]"
-            end_style = "[/text.bright]"
-    
+            style = "text.bright"
+
     num_str = str(value).center(3)
-    
-    return f"""
-{style}┌─────────┐{end_style}
-{style}│         │{end_style}
-{style}│   {num_str}   │{end_style}
-{style}│         │{end_style}
-{style}└─────────┘{end_style}
-"""
+
+    dice_text = Text()
+    dice_text.append(f"┌─────────┐\n", style=style)
+    dice_text.append(f"│         │\n", style=style)
+    dice_text.append(f"│   {num_str}   │\n", style=style)
+    dice_text.append(f"│         │\n", style=style)
+    dice_text.append(f"└─────────┘", style=style)
+
+    return dice_text
 
 
 def create_roll_display(

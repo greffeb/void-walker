@@ -7,6 +7,7 @@ Contains all prompt templates for world generation and gameplay.
 from void_walker.config import SESSION_CONFIGS
 from void_walker.core.dice import CheckResult, DiceResult
 from void_walker.core.state import GameState, Scenario, SessionProgress
+from void_walker.core.guidance import GuidanceSystem
 
 
 # =============================================================================
@@ -304,6 +305,7 @@ SCÉNARIO:
 - Lieux visités: {visited_locations}
 
 {dice_context}
+{guidance_context}
 
 ACTION DU JOUEUR: {player_input}
 
@@ -371,6 +373,10 @@ def build_gameplay_prompt(
     # Build inventory string
     inventory_str = ", ".join(item.name for item in state.player.inventory.items) or "Vide"
     
+    # Build guidance context for stuck players
+    guidance = GuidanceSystem(state)
+    guidance_context = guidance.build_hint_context()
+    
     return GAMEPLAY_PROMPT_TEMPLATE.format(
         pacing_context=build_pacing_context(state.progress, state.scenario),
         location_name=location_name,
@@ -389,6 +395,7 @@ def build_gameplay_prompt(
         main_threat=state.scenario.main_threat,
         visited_locations=", ".join(state.visited_locations) or "Aucun",
         dice_context=build_dice_context(dice_result),
+        guidance_context=guidance_context,
         player_input=player_input,
     )
 

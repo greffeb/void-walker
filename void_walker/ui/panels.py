@@ -116,20 +116,20 @@ def create_map_panel(state: GameState) -> Panel:
 def create_suggestions_panel(suggestions: list[str]) -> Panel:
     """
     Create the suggestions panel.
-    
+
     Args:
         suggestions: List of suggested actions
-    
+
     Returns:
         Rich Panel with suggestions
     """
     content = Text()
-    
-    for suggestion in suggestions[:3]:
-        content.append("  • ", style="highlight")
+
+    for i, suggestion in enumerate(suggestions[:3], 1):
+        content.append(f"  {i}. ", style="highlight")
         content.append(suggestion, style="text")
         content.append("\n")
-    
+
     return Panel(
         content,
         title="[highlight]SUGGESTIONS[/highlight]",

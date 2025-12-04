@@ -140,7 +140,7 @@ def create_prompt_area() -> Panel:
 
 def create_help_bar() -> str:
     """Create the bottom help bar."""
-    return "[dim][TAB] Suggestions  │  [i] Inventaire  │  [m] Carte  │  [?] Aide[/dim]"
+    return "[dim]\\[1-3] Suggestions  │  \\[i] Inventaire  │  \\[m] Carte  │  \\[?] Aide[/dim]"
 
 
 def center_text(text: str, width: int | None = None) -> str:

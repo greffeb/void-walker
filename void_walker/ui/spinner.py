@@ -285,8 +285,6 @@ class CPUSpinner:
 
     def _animate(self) -> None:
         """Animation loop running in separate thread."""
-        max_line_length = 0
-
         while self.running:
             # Change flavor text every 4 seconds if using flavor texts
             if self.use_flavor_texts:
@@ -301,14 +299,10 @@ class CPUSpinner:
             # Build the output line with colors
             output = f"{Colors.CYAN}{frame}{Colors.RESET} {Colors.DIM}{self.message}…{Colors.RESET} {sound_viz}"
 
-            # Track the longest line to ensure proper clearing
-            # Account for ANSI codes by measuring visible characters
-            visible_length = len(frame) + len(self.message) + 2 + len(sound_viz)  # +2 for "… "
-            max_line_length = max(max_line_length, visible_length)
-
-            # Clear the line completely and write new output
-            sys.stdout.write("\r" + " " * (max_line_length + 50) + "\r")
-            sys.stdout.write(output)
+            # Use ANSI escape codes to:
+            # \r - Move cursor to start of line
+            # \033[K - Clear from cursor to end of line (EL - Erase in Line)
+            sys.stdout.write(f"\r{output}\033[K")
             sys.stdout.flush()
 
             self._frame_index += 1
@@ -327,8 +321,10 @@ class CPUSpinner:
             self.running = False
             if self.thread:
                 self.thread.join(timeout=0.5)
-            # Clear the spinner line completely
-            sys.stdout.write("\r" + " " * 200 + "\r")
+            # Clear the spinner line completely using ANSI escape codes
+            # \r - Move cursor to start of line
+            # \033[K - Clear from cursor to end of line
+            sys.stdout.write("\r\033[K")
             sys.stdout.flush()
 
     def __enter__(self):

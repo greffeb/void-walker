@@ -10,12 +10,13 @@ from enum import Enum, auto
 
 class CommandType(Enum):
     """Types of special commands."""
-    
+
     QUIT = auto()
     HELP = auto()
     INVENTORY = auto()
     MAP = auto()
     SUGGESTIONS = auto()
+    SUGGESTION_SELECT = auto()  # Player selected numbered suggestion
     ACTION = auto()  # Regular gameplay action
 
 
@@ -45,29 +46,39 @@ QUICK_COMMANDS: dict[str, CommandType] = {
     "m": CommandType.MAP,
     "map": CommandType.MAP,
     "carte": CommandType.MAP,
+    "s": CommandType.SUGGESTIONS,
+    "suggestions": CommandType.SUGGESTIONS,
 }
 
 
 def parse_input(raw_input: str) -> ParsedInput:
     """
     Parse player input into a command.
-    
+
     Args:
         raw_input: Raw input string from player
-    
+
     Returns:
         ParsedInput with command type and details
     """
     stripped = raw_input.strip()
     lower = stripped.lower()
-    
+
+    # Check for suggestion numbers (pure "1", "2", or "3")
+    if stripped in ("1", "2", "3"):
+        return ParsedInput(
+            command_type=CommandType.SUGGESTION_SELECT,
+            raw_input=raw_input,
+            action_text=stripped,  # Store the number for validation
+        )
+
     # Check for quick commands
     if lower in QUICK_COMMANDS:
         return ParsedInput(
             command_type=QUICK_COMMANDS[lower],
             raw_input=raw_input,
         )
-    
+
     # Tab key is handled separately at input level
     # Everything else is a gameplay action
     return ParsedInput(

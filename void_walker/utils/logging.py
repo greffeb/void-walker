@@ -171,6 +171,34 @@ class GameLogger:
             prompt_len=prompt_length,
             response_len=response_length,
         )
+    
+    def llm_response(self, model: str, raw_response: str, parsed_data: dict | None = None) -> None:
+        """Log raw LLM response and parsed data for debugging crashes."""
+        self._log(
+            logging.INFO,
+            "LLM_RESPONSE",
+            model=model,
+            raw_response=raw_response,
+            parsed_data=str(parsed_data) if parsed_data else None,
+        )
+    
+    def user_action(self, turn: int, action: str) -> None:
+        """Log full user action without truncation."""
+        self._log(
+            logging.INFO,
+            "USER_ACTION",
+            turn=turn,
+            action=action,
+        )
+    
+    def scenario_generated(self, scenario_title: str, scenario_json: str) -> None:
+        """Log full scenario JSON after generation."""
+        self._log(
+            logging.INFO,
+            "SCENARIO_GENERATED",
+            title=scenario_title,
+            scenario_json=scenario_json,
+        )
 
 
 # Global game logger instance

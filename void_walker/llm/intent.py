@@ -150,8 +150,6 @@ async def validate_player_intent(
             prompt,
             model_key="intent",
             max_retries=2,
-            temperature=0.3,  # Low temperature for more deterministic output
-            max_output_tokens=200,
         )
         
         matched_id, confidence = _parse_intent_response(response_text)

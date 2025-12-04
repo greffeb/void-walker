@@ -163,9 +163,16 @@ async def generate_scenario(session_type: str = "standard") -> Scenario:
     # Use world_gen model for scenario creation
     response = await call_llm(prompt, model_key="world_gen", max_retries=3)
     
+    # Log raw response immediately
+    from void_walker.utils import get_game_logger
+    game_logger = get_game_logger()
+    game_logger.llm_response("world_gen_raw", response)
+    
     try:
         logger.debug("Parsing scenario response...")
         scenario = parse_scenario(response)
+        # Log parsed scenario
+        game_logger.llm_response("world_gen_parsed", response, scenario.model_dump())
         logger.info(f"Scenario parsed: '{scenario.title}' with {len(scenario.locations)} locations")
         
         # Validate scenario has minimum content
@@ -178,6 +185,15 @@ async def generate_scenario(session_type: str = "standard") -> Scenario:
             # Log issues but don't fail - scenarios can still be playable
             for issue in issues:
                 logger.warning(f"Scenario validation: {issue}")
+        
+        # Save successfully generated scenario
+        from void_walker.utils.save import save_scenario
+        try:
+            scenario_path = save_scenario(scenario)
+            logger.info(f"Scenario saved to: {scenario_path}")
+        except Exception as e:
+            # Don't fail scenario generation if save fails
+            logger.warning(f"Failed to save scenario: {e}")
         
         return scenario
         

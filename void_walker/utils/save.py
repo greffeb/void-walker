@@ -10,8 +10,8 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from void_walker.config import SAVES_DIR
-from void_walker.core.state import GameState
+from void_walker.config import SAVES_DIR, SCENARIOS_DIR
+from void_walker.core.state import GameState, Scenario
 
 
 class SaveMetadata(BaseModel):
@@ -25,6 +25,17 @@ class SaveMetadata(BaseModel):
     saved_at: datetime
     hp: int
     max_hp: int
+
+
+class ScenarioMetadata(BaseModel):
+    """Metadata for a saved scenario file."""
+    
+    title: str
+    setting_type: str
+    estimated_difficulty: str  # "easy", "medium", "hard", or "Unknown"
+    location_count: int
+    saved_at: datetime
+    file_path: Path
 
 
 def get_save_path(session_id: str) -> Path:
@@ -48,8 +59,9 @@ def save_state(state: GameState) -> Path:
     # Convert state to dict, handling datetime and set
     state_dict = state.model_dump(mode="json")
     
-    # Convert set to list for JSON serialization
+    # Convert sets to lists for JSON serialization
     state_dict["visited_locations"] = list(state.visited_locations)
+    state_dict["hallucinated_locations"] = list(state.hallucinated_locations)
     
     # Add save timestamp
     state_dict["_saved_at"] = datetime.now().isoformat()
@@ -82,9 +94,11 @@ def load_state(session_id: str) -> GameState | None:
         # Remove metadata fields
         data.pop("_saved_at", None)
         
-        # Convert visited_locations back to set
+        # Convert lists back to sets for set fields
         if "visited_locations" in data:
             data["visited_locations"] = set(data["visited_locations"])
+        if "hallucinated_locations" in data:
+            data["hallucinated_locations"] = set(data["hallucinated_locations"])
         
         return GameState(**data)
         
@@ -149,8 +163,44 @@ def list_saves() -> list[SaveMetadata]:
     
     # Sort by save date, newest first
     saves.sort(key=lambda s: s.saved_at, reverse=True)
-    
     return saves
+
+
+def save_scenario(scenario: Scenario) -> Path:
+    """
+    Save a generated scenario to the scenarios directory.
+    
+    Args:
+        scenario: The scenario to save
+    
+    Returns:
+        Path to saved scenario file
+    """
+    SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Create filename from scenario title and current date
+    # Sanitize title for use in filename
+    safe_title = "".join(
+        c if c.isalnum() or c in " -_" else "_" 
+        for c in scenario.title
+    ).strip().replace(" ", "_")
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{safe_title}_{timestamp}.json"
+    
+    save_path = SCENARIOS_DIR / filename
+    
+    # Convert scenario to dict for JSON serialization
+    scenario_dict = scenario.model_dump(mode="json")
+    
+    # Add metadata
+    scenario_dict["_saved_at"] = datetime.now().isoformat()
+    scenario_dict["_scenario_name"] = scenario.title
+    
+    with open(save_path, "w", encoding="utf-8") as f:
+        json.dump(scenario_dict, f, indent=2, ensure_ascii=False, default=str)
+    
+    return save_path
 
 
 def create_session_id() -> str:
@@ -159,3 +209,94 @@ def create_session_id() -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     short_uuid = str(uuid.uuid4())[:8]
     return f"session_{timestamp}_{short_uuid}"
+
+
+def load_scenario(scenario_path: Path) -> Scenario:
+    """
+    Load a scenario from a JSON file.
+    
+    Args:
+        scenario_path: Path to the scenario JSON file
+    
+    Returns:
+        Loaded Scenario object
+    
+    Raises:
+        FileNotFoundError: If scenario file doesn't exist
+        ValueError: If scenario file is invalid
+    """
+    if not scenario_path.exists():
+        raise FileNotFoundError(f"Scenario file not found: {scenario_path}")
+    
+    try:
+        with open(scenario_path, encoding="utf-8") as f:
+            data = json.load(f)
+        
+        # Remove metadata fields that are not part of Scenario model
+        data.pop("_saved_at", None)
+        data.pop("_scenario_name", None)
+        
+        return Scenario(**data)
+        
+    except (json.JSONDecodeError, ValueError) as e:
+        raise ValueError(f"Failed to load scenario from {scenario_path}: {e}")
+
+
+def list_saved_scenarios(limit: int | None = None) -> list[ScenarioMetadata]:
+    """
+    List all saved scenario files with metadata.
+    
+    Args:
+        limit: Maximum number of scenarios to return (None = all)
+    
+    Returns:
+        List of scenario metadata, sorted by save date (newest first)
+    """
+    SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
+    
+    scenarios = []
+    
+    for scenario_file in SCENARIOS_DIR.glob("*.json"):
+        try:
+            with open(scenario_file, encoding="utf-8") as f:
+                data = json.load(f)
+            
+            # Extract metadata without full deserialization
+            title = data.get("title", "Unknown Scenario")
+            setting_type = data.get("setting_type", "unknown")
+            location_count = len(data.get("locations", []))
+            
+            # Get difficulty from validation field if present
+            validation = data.get("validation", {})
+            estimated_difficulty = validation.get("estimated_difficulty", "Unknown")
+            
+            # Parse saved_at timestamp
+            saved_at_str = data.get("_saved_at")
+            if saved_at_str:
+                saved_at = datetime.fromisoformat(saved_at_str)
+            else:
+                # Fallback to file modification time
+                saved_at = datetime.fromtimestamp(scenario_file.stat().st_mtime)
+            
+            metadata = ScenarioMetadata(
+                title=title,
+                setting_type=setting_type,
+                estimated_difficulty=estimated_difficulty,
+                location_count=location_count,
+                saved_at=saved_at,
+                file_path=scenario_file,
+            )
+            scenarios.append(metadata)
+            
+        except (json.JSONDecodeError, ValueError, KeyError):
+            # Skip invalid scenario files
+            continue
+    
+    # Sort by save date, newest first
+    scenarios.sort(key=lambda s: s.saved_at, reverse=True)
+    
+    # Apply limit if specified
+    if limit is not None:
+        scenarios = scenarios[:limit]
+    
+    return scenarios

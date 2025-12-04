@@ -433,6 +433,11 @@ class GameState(BaseModel):
     active_threats: list[str] = Field(default_factory=list)
     available_exits: list[str] = Field(default_factory=list)
     
+    # Guidance system - stagnation tracking
+    turns_since_progress: int = 0  # Resets when player makes meaningful progress
+    location_history: list[str] = Field(default_factory=list)  # Last 10 locations for wandering detection
+    hints_delivered: list[str] = Field(default_factory=list)  # Track delivered hints to avoid repetition
+    
     model_config = {"arbitrary_types_allowed": True}
     
     def add_event(self, event: str, max_events: int = 10) -> None:
@@ -543,4 +548,100 @@ class GameState(BaseModel):
         if changes.creative_solution:
             messages.append("Solution créative!")
         
+        # Update stagnation tracking
+        made_progress = new_valid_location or objective_completed or secret_found
+        if made_progress:
+            self.turns_since_progress = 0
+        else:
+            self.turns_since_progress += 1
+        
+        # Track location history (keep last 10)
+        self.location_history.append(self.current_location)
+        if len(self.location_history) > 10:
+            self.location_history = self.location_history[-10:]
+        
         return messages, new_valid_location, objective_completed, secret_found
+    
+    def get_unvisited_exits(self) -> list[str]:
+        """
+        Get names of unvisited locations accessible from current position.
+        
+        Returns:
+            List of location names (not IDs) that haven't been visited yet
+        """
+        current_loc = self.scenario.get_location(self.current_location)
+        if not current_loc:
+            return []
+        
+        unvisited = []
+        for conn_id in current_loc.connections:
+            if conn_id not in self.visited_locations:
+                conn_loc = self.scenario.get_location(conn_id)
+                if conn_loc:
+                    unvisited.append(conn_loc.name)
+        return unvisited
+    
+    def get_objective_progress(self) -> dict:
+        """
+        Check progress toward victory condition.
+        
+        Returns:
+            Dict with missing_items, missing_info, at_victory_location, victory_description
+        """
+        result = {
+            "missing_items": [],
+            "missing_info": [],
+            "at_victory_location": False,
+            "victory_description": self.scenario.get_victory_description(),
+        }
+        
+        if isinstance(self.scenario.victory_condition, VictoryCondition):
+            vc = self.scenario.victory_condition
+            
+            # Check required items
+            for item_id in vc.required_items:
+                # Check by ID or name in inventory
+                has_item = any(
+                    (item.id == item_id or item.name.lower() == item_id.lower())
+                    for item in self.player.inventory.items
+                )
+                if not has_item:
+                    result["missing_items"].append(item_id)
+            
+            # Check required info/secrets
+            for info_id in vc.required_info:
+                if info_id not in self.discovered_secrets:
+                    result["missing_info"].append(info_id)
+            
+            # Check if at victory location
+            if vc.required_location:
+                result["at_victory_location"] = (
+                    self.current_location == vc.required_location
+                )
+        
+        return result
+    
+    def get_undiscovered_secrets_in_location(self) -> list[Secret]:
+        """
+        Get secrets at current location that haven't been discovered yet.
+        
+        Returns:
+            List of Secret objects in current location not yet found
+        """
+        undiscovered = []
+        for secret in self.scenario.secrets:
+            if secret.location == self.current_location and secret.id not in self.discovered_secrets:
+                undiscovered.append(secret)
+        return undiscovered
+    
+    def get_npcs_with_knowledge(self) -> list[NPC]:
+        """
+        Get NPCs that have useful knowledge for the player.
+        
+        Returns:
+            List of NPCs with non-empty knowledge field
+        """
+        return [
+            npc for npc in self.scenario.npcs
+            if npc.knowledge and npc.is_alive
+        ]

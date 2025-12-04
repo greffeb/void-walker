@@ -25,6 +25,12 @@ from void_walker.core.dice import (
     roll_d20,
 )
 from void_walker.core.game import Game
+from void_walker.core.guidance import (
+    GuidanceSystem,
+    HINT_COOLDOWN,
+    STUCK_THRESHOLD,
+    WANDERING_THRESHOLD,
+)
 
 __all__ = [
     # State
@@ -49,6 +55,11 @@ __all__ = [
     "DiceResult",
     "roll_check",
     "roll_d20",
+    # Guidance
+    "GuidanceSystem",
+    "HINT_COOLDOWN",
+    "STUCK_THRESHOLD",
+    "WANDERING_THRESHOLD",
     # Game
     "Game",
 ]

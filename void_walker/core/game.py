@@ -15,6 +15,7 @@ from rich.panel import Panel
 from void_walker.config import SESSION_CONFIGS, get_settings
 from void_walker.content.classes import create_player, get_class_names, CLASSES
 from void_walker.core.dice import roll_check, DiceResult
+from void_walker.core.guidance import GuidanceSystem
 from void_walker.core.state import (
     GameResponse,
     GameState,
@@ -55,6 +56,8 @@ from void_walker.ui import (
 from void_walker.utils import (
     create_session_id,
     get_game_logger,
+    list_saved_scenarios,
+    load_scenario,
     save_state,
     setup_logging,
 )
@@ -222,10 +225,82 @@ class Game:
         
         return player
     
+    async def _show_scenario_selection_menu(self):
+        """Display scenario selection menu with last 4 scenarios."""
+        clear_screen()
+        
+        self.console.print("\n[text.bright]SÉLECTION DE SCÉNARIO[/text.bright]\n")
+        
+        # Get last 4 saved scenarios
+        scenarios = list_saved_scenarios(limit=4)
+        
+        if not scenarios:
+            # No scenarios available - only show generate option
+            self.console.print("[dim]Aucun scénario sauvegardé trouvé.[/dim]")
+            self.console.print("[text]Générez votre premier scénario !\n[/text]")
+            self.console.print("  [highlight]1[/highlight]. [text.bright]Générer un Nouveau Scénario[/text.bright]\n")
+            
+            while True:
+                choice = await get_player_input("Choix (1): ")
+                if choice.strip() == "1":
+                    return None  # Signal to generate new scenario
+                self.console.print("[danger]Choix invalide.[/danger]")
+        else:
+            # Display available scenarios
+            self.console.print("[text]Scénarios disponibles:\n[/text]")
+            
+            for i, scenario_meta in enumerate(scenarios, 1):
+                # Format timestamp as "Dec 4, 20:13"
+                time_str = scenario_meta.saved_at.strftime("%b %d, %H:%M")
+                
+                self.console.print(f"  [highlight]{i}[/highlight]. [text.bright]{scenario_meta.title}[/text.bright]")
+                self.console.print(
+                    f"     [dim]{scenario_meta.setting_type} | "
+                    f"{scenario_meta.location_count} locations | "
+                    f"Difficulté: {scenario_meta.estimated_difficulty} | "
+                    f"{time_str}[/dim]\n"
+                )
+            
+            # Add generate new option
+            generate_option = len(scenarios) + 1
+            self.console.print(f"  [highlight]{generate_option}[/highlight]. [text.bright]Générer un Nouveau Scénario[/text.bright]\n")
+            
+            # Get user choice
+            while True:
+                choice = await get_player_input(f"Choix (1-{generate_option}): ")
+                try:
+                    idx = int(choice.strip()) - 1
+                    if idx == len(scenarios):
+                        # Generate new scenario
+                        return None
+                    elif 0 <= idx < len(scenarios):
+                        # Load selected scenario
+                        return scenarios[idx]
+                except ValueError:
+                    pass
+                self.console.print("[danger]Choix invalide.[/danger]")
+    
     async def _generate_or_fallback_scenario(self):
-        """Generate scenario or use fallback."""
+        """Show scenario selection menu and generate/load scenario."""
         settings = get_settings()
-
+        
+        # Show scenario selection menu
+        selected_scenario = await self._show_scenario_selection_menu()
+        
+        if selected_scenario is not None:
+            # User selected an existing scenario - load it
+            try:
+                self.console.print(f"\n[dim]Chargement du scénario: {selected_scenario.title}...[/dim]")
+                scenario = load_scenario(selected_scenario.file_path)
+                self.console.print(f"[success]Scénario chargé ![/success]")
+                await asyncio.sleep(0.5)
+                return scenario
+            except Exception as e:
+                self.console.print(f"\n[danger]Erreur lors du chargement: {e}[/danger]")
+                self.console.print("[dim]Utilisation du scénario par défaut[/dim]")
+                return create_fallback_scenario()
+        
+        # User chose to generate new scenario
         if not settings.google_api_key:
             self.console.print("\n[dim]Pas de clé API - utilisation du scénario par défaut[/dim]")
             return create_fallback_scenario()
@@ -238,6 +313,11 @@ class Game:
             scenario = await generate_scenario(self.session_type)
             spinner.stop()
             self.console.print()  # Add newline after spinner
+            # Log generated scenario
+            self.logger.scenario_generated(
+                scenario.title,
+                scenario.model_dump_json(indent=2)
+            )
             return scenario
         except LLMError as e:
             spinner.stop()
@@ -257,8 +337,12 @@ class Game:
         self.console.print()
         self.console.print(f"[text]{scenario.premise}[/text]")
         self.console.print()
-        self.console.print(f"[highlight]Objectif: {scenario.victory_condition}[/highlight]")
-        self.console.print()
+
+        # Only show detailed objective in debug mode
+        if self.debug:
+            self.console.print(f"[highlight]Objectif: {scenario.victory_condition}[/highlight]")
+            self.console.print()
+
         self.console.print(create_divider())
         self.console.print()
         
@@ -288,6 +372,10 @@ class Game:
         if self.show_suggestions and self.current_suggestions:
             self.console.print(create_suggestions_panel(self.current_suggestions))
         
+        # Display shortcuts hint
+        self.console.print()
+        self.console.print(Align.center(create_help_bar()))
+
         # Get player input
         self.console.print()
         self.console.print("[highlight]Que faites-vous ?[/highlight]")
@@ -318,7 +406,29 @@ class Game:
         if parsed.command_type == CommandType.SUGGESTIONS:
             self.show_suggestions = True
             return
-        
+
+        # Handle suggestion selection
+        if parsed.command_type == CommandType.SUGGESTION_SELECT:
+            if not self.current_suggestions:
+                self.console.print("[danger]Aucune suggestion disponible.[/danger]")
+                return
+
+            try:
+                choice_idx = int(parsed.action_text) - 1
+                if 0 <= choice_idx < len(self.current_suggestions):
+                    # Execute the selected suggestion
+                    action = self.current_suggestions[choice_idx]
+                    self.console.print(f"[dim]> {action}[/dim]")  # Echo selection
+                    await self._process_action(action)
+                else:
+                    self.console.print(
+                        f"[danger]Choix invalide. Entrez 1-{len(self.current_suggestions)}.[/danger]"
+                    )
+            except ValueError:
+                # Should never happen due to parse_input validation
+                self.console.print("[danger]Erreur de saisie.[/danger]")
+            return
+
         # Handle gameplay action
         if parsed.command_type == CommandType.ACTION:
             action = parsed.action_text
@@ -336,21 +446,18 @@ class Game:
         current_loc = self.state.scenario.get_location(self.state.current_location)
         if current_loc:
             available_exits = current_loc.connections
-            # Get location names for clearer prompts
-            exit_names = []
+            # Build list of (location_id, location_name) tuples
+            exit_tuples = []
             for exit_id in available_exits:
                 exit_loc = self.state.scenario.get_location(exit_id)
-                exit_names.append(exit_loc.name if exit_loc else exit_id)
+                exit_name = exit_loc.name if exit_loc else exit_id
+                exit_tuples.append((exit_id, exit_name))
             
-            intent_result = await validate_player_intent(action, exit_names)
+            intent_result = await validate_player_intent(action, exit_tuples)
             
-            if intent_result.needs_clarification:
+            if intent_result.clarification_needed:
                 # Show numbered list of valid exits and ask for choice
-                clarification = format_clarification_prompt(
-                    action, 
-                    exit_names,
-                    intent_result.reason or "Je ne comprends pas cette destination."
-                )
+                clarification = format_clarification_prompt(exit_tuples)
                 self.console.print(f"\n[warning]{clarification}[/warning]")
                 
                 # Get clarified choice
@@ -368,15 +475,9 @@ class Game:
                     self.console.print("[dim]Action annulée.[/dim]")
                     return
             
-            elif intent_result.matched_location:
-                # Find the ID for the matched location name
-                matched_id = None
-                for exit_id, name in zip(available_exits, exit_names):
-                    if name.lower() == intent_result.matched_location.lower():
-                        matched_id = exit_id
-                        break
-                if matched_id:
-                    action = f"aller vers {matched_id}"
+            elif intent_result.matched_location_id:
+                # Use the matched location ID directly
+                action = f"aller vers {intent_result.matched_location_id}"
         
         self.state.turn_number += 1
         self.logger.turn(
@@ -384,14 +485,31 @@ class Game:
             action,
             self.state.current_location,
         )
+        # Log full user action
+        self.logger.user_action(self.state.turn_number, action)
         
         # First call: assess action and get narrative
         try:
             prompt = build_gameplay_prompt(self.state, action)
+            
+            # Log guidance hint if active
+            guidance = GuidanceSystem(self.state)
+            hint_level = guidance.get_hint_level()
+            if hint_level > 0:
+                self.logger.state_change(
+                    "guidance_hint",
+                    f"level={hint_level}, turns_since_progress={self.state.turns_since_progress}"
+                )
+            
             response_text = await call_llm(prompt, model_key="gameplay")
+            # Log raw response before parsing
+            self.logger.llm_response("gameplay", response_text)
             response = parse_game_response(response_text)
-            response = validate_game_response(response, self.state.progress)
+            # Log parsed data
+            self.logger.llm_response("gameplay_parsed", response_text, response.model_dump())
+            response = validate_game_response(response, self.state.progress, self.state)
         except (LLMError, ParseError) as e:
+            self.logger.error("llm_parse_error", str(e))
             self.console.print(f"[danger]Erreur: {e}[/danger]")
             return
         
@@ -407,9 +525,14 @@ class Game:
             try:
                 prompt = build_gameplay_prompt(self.state, action, dice_result)
                 response_text = await call_llm(prompt, model_key="gameplay")
+                # Log raw response before parsing
+                self.logger.llm_response("gameplay_dice", response_text)
                 response = parse_game_response(response_text)
-                response = validate_game_response(response, self.state.progress)
+                # Log parsed data
+                self.logger.llm_response("gameplay_dice_parsed", response_text, response.model_dump())
+                response = validate_game_response(response, self.state.progress, self.state)
             except (LLMError, ParseError) as e:
+                self.logger.error("llm_parse_error_dice", str(e))
                 self.console.print(f"[danger]Erreur: {e}[/danger]")
                 return
         
@@ -437,7 +560,7 @@ class Game:
             objective_completed=objective_completed,
             secret_found=secret_found,
         ):
-            self.logger.log("Scene advanced due to meaningful event")
+            self.logger.state_change("scene_advance", "Scene advanced due to meaningful event")
         
         # Check for ending
         if response.is_ending:
@@ -476,11 +599,37 @@ class Game:
         return result
     
     async def _display_narrative(self, text: str, tension: int) -> None:
-        """Display narrative text."""
-        formatted = format_narrative(text, tension)
-        self.console.print()
-        self.console.print(Align.center(formatted))
-        self.console.print()
+        """Display narrative text with typewriter effect."""
+        from void_walker.ui.layout import calculate_layout
+        from void_walker.ui.text import display_narrative_progressive
+
+        # Calculate responsive panel width constrained by terminal size
+        layout = calculate_layout()
+        terminal_width = self.console.size.width
+        ideal_width = layout.narrative_width + 8  # +8 for horizontal padding (4 left + 4 right)
+        panel_width = min(ideal_width, terminal_width - 4)  # Leave 2 chars margin each side
+        panel_width = max(panel_width, 40)  # Minimum 40 chars for readability
+
+        # Use progressive display (or instant in debug mode)
+        if self.debug:
+            # Keep current instant display behavior in debug mode
+            formatted = format_narrative(text, tension)
+            panel = Panel(
+                formatted,
+                width=panel_width,
+                padding=(1, 4),
+                border_style="border",
+            )
+            self.console.print()
+            self.console.print(Align.center(panel))
+            self.console.print()
+        else:
+            # Progressive typewriter effect
+            self.console.print()
+            await display_narrative_progressive(
+                text, tension, self.console, panel_width=panel_width
+            )
+            self.console.print()
     
     async def _display_status(self) -> None:
         """Display the status bar."""

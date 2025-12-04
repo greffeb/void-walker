@@ -6,7 +6,10 @@ Text effects, progressive display, and blinking alerts.
 
 import asyncio
 
+from rich.align import Align
 from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
 from rich.text import Text
 
 from void_walker.ui.terminal import ANSI, get_console
@@ -135,16 +138,16 @@ def format_narrative(
 ) -> Text:
     """
     Format narrative text with appropriate styling based on tension.
-    
+
     Args:
         narrative: The narrative text
         tension_level: Current tension level (1-10)
-    
+
     Returns:
         Formatted Rich Text
     """
     text = Text()
-    
+
     # Base style depends on tension
     if tension_level >= 8:
         base_style = "text.bright"
@@ -152,29 +155,125 @@ def format_narrative(
         base_style = "text"
     else:
         base_style = "dim"
-    
+
     # Split into sentences for potential highlighting
     sentences = narrative.replace("\n", " \n ").split(". ")
-    
+
     for i, sentence in enumerate(sentences):
         if not sentence.strip():
             continue
-        
+
         sentence = sentence.strip()
-        
+
         # Highlight danger words
         danger_words = ["danger", "menace", "mort", "sang", "blessure", "alerte", "attention"]
         has_danger = any(word in sentence.lower() for word in danger_words)
-        
+
         if has_danger and tension_level >= 6:
             text.append(sentence, style="danger")
         else:
             text.append(sentence, style=base_style)
-        
+
         if i < len(sentences) - 1:
             text.append(". ")
-    
+
     return text
+
+
+async def display_narrative_progressive(
+    narrative: str,
+    tension_level: int,
+    console: Console,
+    char_delay: float = 0.012,
+    panel_width: int = 80,
+) -> None:
+    """
+    Display narrative text progressively with typewriter effect.
+
+    Maintains all formatting (tension styling, danger highlighting)
+    while revealing text character by character using Rich's Live display.
+
+    Args:
+        narrative: The narrative text to display
+        tension_level: Current tension level (1-10)
+        console: Console to render to
+        char_delay: Delay between characters (default: 0.012s = ~80 chars/sec)
+        panel_width: Width of the panel
+    """
+    # Adjust speed based on text length for better UX
+    text_length = len(narrative)
+    if text_length < 100:
+        char_delay = 0.015  # Slower for short text (engaging)
+    elif text_length > 300:
+        char_delay = 0.008  # Faster for long text (avoid tedium)
+
+    # Determine base style based on tension
+    if tension_level >= 8:
+        base_style = "text.bright"
+    elif tension_level >= 5:
+        base_style = "text"
+    else:
+        base_style = "dim"
+
+    # Danger words for highlighting
+    danger_words = ["danger", "menace", "mort", "sang", "blessure", "alerte", "attention"]
+
+    # Build the text progressively
+    current_text = Text()
+    sentences = narrative.replace("\n", " \n ").split(". ")
+
+    # Create initial empty panel
+    panel = Panel(
+        current_text,
+        width=panel_width,
+        padding=(1, 4),
+        border_style="border",
+    )
+    centered_panel = Align.center(panel)
+
+    with Live(centered_panel, console=console, refresh_per_second=30, transient=False) as live:
+        char_count = 0
+
+        for sentence_idx, sentence in enumerate(sentences):
+            if not sentence.strip():
+                continue
+
+            sentence = sentence.strip()
+
+            # Check if sentence contains danger words
+            has_danger = any(word in sentence.lower() for word in danger_words)
+            style = "danger" if (has_danger and tension_level >= 6) else base_style
+
+            # Add characters one by one
+            for char in sentence:
+                current_text.append(char, style=style)
+                char_count += 1
+
+                # Only update display every few characters to reduce flicker
+                # But always update on important punctuation
+                if char_count % 2 == 0 or char in ".,!?;:":
+                    panel = Panel(
+                        current_text,
+                        width=panel_width,
+                        padding=(1, 4),
+                        border_style="border",
+                    )
+                    live.update(Align.center(panel))
+
+                await asyncio.sleep(char_delay)
+
+            # Add period and space after sentence (if not last)
+            if sentence_idx < len(sentences) - 1:
+                current_text.append(". ")
+
+            # Update display at end of sentence
+            panel = Panel(
+                current_text,
+                width=panel_width,
+                padding=(1, 4),
+                border_style="border",
+            )
+            live.update(Align.center(panel))
 
 
 def format_damage_message(amount: int, source: str) -> Text:

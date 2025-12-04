@@ -9,6 +9,7 @@ A terminal-based space horror RPG with AI-driven game mastering, procedural gene
 - **Meaningful Consequences**: D20-based dice system with real stakes
 - **Atmospheric Horror**: Environmental storytelling through datapads, radio transmissions, and evidence
 - **Flexible Sessions**: Play for 5 minutes or 2 hours
+- **Scenario Archive**: All successfully generated scenarios are automatically saved to `data/scenarios/` for future use
 
 ## Requirements
 
