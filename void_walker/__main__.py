@@ -38,6 +38,12 @@ def parse_args() -> argparse.Namespace:
         help="Show version and exit",
     )
     
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Fast playtest mode - skips menus and uses latest scenario",
+    )
+    
     return parser.parse_args()
 
 
@@ -54,6 +60,7 @@ def main() -> None:
         game = Game(
             session_type=args.session,
             debug=args.debug,
+            fast_mode=args.fast,
         )
         asyncio.run(game.run())
     except KeyboardInterrupt:

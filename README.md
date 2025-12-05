@@ -54,6 +54,9 @@ void-walker --session extended
 
 # Debug mode
 void-walker --debug
+
+# Fast playtest mode (skips menus, uses latest scenario)
+void-walker --fast
 ```
 
 ## Controls

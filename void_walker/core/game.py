@@ -70,6 +70,7 @@ class Game:
         self,
         session_type: str = "standard",
         debug: bool = False,
+        fast_mode: bool = False,
     ):
         """
         Initialize the game.
@@ -77,9 +78,11 @@ class Game:
         Args:
             session_type: Type of session (quick, standard, extended)
             debug: Enable debug mode
+            fast_mode: Skip menus and use defaults
         """
         self.session_type = session_type
         self.debug = debug
+        self.fast_mode = fast_mode
         self.console: Console | None = None
         self.state: GameState | None = None
         self.running = False
@@ -99,16 +102,24 @@ class Game:
             self.running = True
             self.start_time = datetime.now()
             
-            # Show title screen
-            await self._show_title_screen()
+            # Show title screen (skip in fast mode)
+            if not self.fast_mode:
+                await self._show_title_screen()
             
             # Character creation
-            player = await self._character_creation()
+            if self.fast_mode:
+                player = await self._fast_character_creation()
+            else:
+                player = await self._character_creation()
+            
             if player is None:
                 return
             
             # Generate scenario with spinner
-            scenario = await self._generate_or_fallback_scenario()
+            if self.fast_mode:
+                scenario = await self._fast_scenario_loading()
+            else:
+                scenario = await self._generate_or_fallback_scenario()
             
             # Initialize game state
             session_id = create_session_id()
@@ -224,6 +235,61 @@ class Game:
         await asyncio.sleep(1)
         
         return player
+    
+    async def _fast_character_creation(self):
+        """Fast character creation - uses Voyageur and first available class."""
+        clear_screen()
+        
+        name = "Voyageur"
+        class_names = get_class_names()
+        chosen_class = class_names[0]  # Default to first class (Technicien)
+        
+        # Create player
+        player = create_player(name, chosen_class)
+        
+        self.console.print(f"\n[success]FAST MODE: {name} le {chosen_class}[/success]")
+        
+        return player
+    
+    async def _fast_scenario_loading(self):
+        """Fast scenario loading - uses latest saved scenario or generates new."""
+        settings = get_settings()
+        
+        # Try to load the most recent scenario
+        scenarios = list_saved_scenarios(limit=1)
+        if scenarios:
+            try:
+                self.console.print(f"[dim]Chargement du dernier scénario: {scenarios[0].title}...[/dim]")
+                scenario = load_scenario(scenarios[0].file_path)
+                self.console.print(f"[success]Scénario chargé![/success]")
+                return scenario
+            except Exception as e:
+                self.console.print(f"[warning]Erreur lors du chargement: {e}[/warning]")
+        
+        # Try to generate new scenario if API key available
+        if settings.google_api_key:
+            self.console.print("[dim]Génération d'un nouveau scénario...[/dim]")
+            spinner = CPUSpinner()
+            spinner.start()
+            
+            try:
+                scenario = await generate_scenario(self.session_type)
+                spinner.stop()
+                self.console.print()  # Add newline after spinner
+                
+                # Log generated scenario
+                self.logger.scenario_generated(
+                    scenario.title,
+                    scenario.model_dump_json(indent=2)
+                )
+                return scenario
+            except LLMError as e:
+                spinner.stop()
+                self.console.print(f"[warning]Erreur de génération: {e}[/warning]")
+        
+        # Final fallback
+        self.console.print("[dim]Utilisation du scénario par défaut[/dim]")
+        return create_fallback_scenario()
     
     async def _show_scenario_selection_menu(self):
         """Display scenario selection menu with last 4 scenarios."""
