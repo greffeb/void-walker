@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from void_walker.config import SESSION_CONFIGS
 from void_walker.core.dice import CheckResult, DiceResult
-from void_walker.core.state import GameState, Scenario, SessionProgress
+from void_walker.core.state import GameState, NPC, Scenario, SessionProgress
 from void_walker.core.guidance import GuidanceSystem
 
 if TYPE_CHECKING:
@@ -545,10 +545,11 @@ def build_gameplay_prompt(
     inventory_str = ", ".join(item.name for item in state.player.inventory.items) or "Vide"
     
     # Build items context - list all items available in current location and nearby areas
+    # Include ID, name, and description to help LLM return proper item data
     items_in_location = []
     if location and location.items:
         items_in_location = [
-            f"  - {item.id}: {item.name}"
+            f"  - ID: {item.id} | Nom: {item.name} | {item.description or 'Pas de description'}"
             for item in location.items
         ]
     items_context = ""
@@ -646,3 +647,89 @@ def build_action_assessment_prompt(state: GameState, action: str) -> str:
         inventory=inventory_str,
         action=action,
     )
+
+
+# =============================================================================
+# NPC DIALOGUE PROMPT
+# =============================================================================
+
+NPC_DIALOGUE_PROMPT = """Tu génères un dialogue pour un PNJ dans un RPG d'horreur spatiale.
+
+INFORMATIONS SUR LE PNJ:
+- Nom: {npc_name}
+- Type: {npc_type}
+- Description: {npc_description}
+- Disposition: {disposition}
+- Ce qu'il/elle sait: {knowledge}
+- Condition de déclenchement: {trigger_condition}
+
+CONTEXTE DE LA SCÈNE:
+- Lieu: {location_name}
+- Action du joueur: {player_action}
+- Nom du joueur: {player_name}
+- Classe du joueur: {player_class}
+- Menace principale du scénario: {main_threat}
+
+{first_encounter_instruction}
+
+STYLE:
+- Écris en français, à la deuxième personne ("tu")
+- Le dialogue doit refléter la disposition du PNJ ({disposition})
+- Intègre subtilement les informations que le PNJ connaît si pertinent
+- 3-5 paragraphes maximum
+- Termine par une réplique du PNJ qui invite à l'interaction
+
+Réponds UNIQUEMENT avec le texte narratif, pas de JSON, pas de formatage spécial."""
+
+NPC_FIRST_ENCOUNTER_INSTRUCTION = """PREMIÈRE RENCONTRE:
+C'est la première fois que le joueur rencontre ce PNJ. Tu dois:
+1. Décrire son apparition de manière cinématique (d'où il/elle surgit, son apparence physique)
+2. Montrer son attitude corporelle et son état émotionnel
+3. Donner sa première réplique qui établit sa personnalité"""
+
+NPC_CONTINUED_ENCOUNTER_INSTRUCTION = """RENCONTRE CONTINUE:
+Le joueur a déjà rencontré ce PNJ. Continue le dialogue naturellement en répondant à l'action du joueur."""
+
+
+def build_npc_dialogue_prompt(
+    npc: NPC,
+    player_action: str,
+    state: GameState,
+    is_first_encounter: bool,
+) -> str:
+    """
+    Build prompt for NPC dialogue generation.
+    
+    Args:
+        npc: The NPC to generate dialogue for
+        player_action: What the player is doing/saying
+        state: Current game state
+        is_first_encounter: Whether this is the first time meeting this NPC
+    
+    Returns:
+        Complete prompt string for the dialogue LLM
+    """
+    location = state.scenario.get_location(state.current_location)
+    location_name = location.name if location else state.current_location
+    
+    # Choose instruction based on encounter type
+    encounter_instruction = (
+        NPC_FIRST_ENCOUNTER_INSTRUCTION if is_first_encounter 
+        else NPC_CONTINUED_ENCOUNTER_INSTRUCTION
+    )
+    
+    return NPC_DIALOGUE_PROMPT.format(
+        npc_name=npc.name,
+        npc_type=npc.npc_type,
+        npc_description=npc.description or "Aucune description disponible",
+        disposition=npc.disposition,
+        knowledge=npc.knowledge or "Rien de particulier",
+        trigger_condition=npc.trigger_condition or "Aucune",
+        location_name=location_name,
+        player_action=player_action,
+        player_name=state.player.name,
+        player_class=state.player.class_name,
+        main_threat=state.scenario.main_threat,
+        first_encounter_instruction=encounter_instruction,
+    )
+

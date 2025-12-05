@@ -38,6 +38,7 @@ MODELS: dict[str, str] = {
     "gameplay": "gemini-2.5-flash-lite",   # Turn-by-turn narration
     "fallback": "gemma-3-27b-it",          # If flash-lite quota exceeded
     "intent": "gemma-3-27b-it",            # Fast intent validation
+    "dialogue": "gemma-3-27b-it",          # NPC dialogue generation
 }
 
 # Rate limits per model

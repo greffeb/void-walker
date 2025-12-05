@@ -34,6 +34,7 @@ from void_walker.llm.prompts import (
     build_gameplay_prompt,
     build_environment_prompt,
     build_location_name_prompt,
+    build_npc_dialogue_prompt,
     get_exits_with_names,
 )
 from void_walker.llm.world_gen import create_fallback_scenario, generate_scenario
@@ -575,7 +576,7 @@ class Game:
             response_text = await call_llm(prompt, model_key="gameplay")
             # Log raw response before parsing
             self.logger.llm_response("gameplay", response_text)
-            response = parse_game_response(response_text)
+            response = parse_game_response(response_text, scenario=self.state.scenario)
             # Log parsed data
             self.logger.llm_response("gameplay_parsed", response_text, response.model_dump())
             response = validate_game_response(response, self.state.progress, self.state)
@@ -598,7 +599,7 @@ class Game:
                 response_text = await call_llm(prompt, model_key="gameplay")
                 # Log raw response before parsing
                 self.logger.llm_response("gameplay_dice", response_text)
-                response = parse_game_response(response_text)
+                response = parse_game_response(response_text, scenario=self.state.scenario)
                 # Log parsed data
                 self.logger.llm_response("gameplay_dice_parsed", response_text, response.model_dump())
                 response = validate_game_response(response, self.state.progress, self.state)
@@ -612,13 +613,36 @@ class Game:
             self.state.apply_state_changes(response.state_changes)
         )
         
-        # Generate environment description AFTER state changes (uses new location)
-        environment_text = await self._get_environment_description(response.scene_elements)
+        # Check for NPCs at current location and generate dialogue in parallel with environment
+        npcs_present = await self._get_npcs_at_location()
+        npc_dialogue: str | None = None
         
-        # Combine narrative with environment description
+        # Generate environment and NPC dialogue in parallel
+        if npcs_present:
+            # Pick first NPC for dialogue (could be extended to handle multiple)
+            npc = npcs_present[0]
+            
+            # Run both LLM calls in parallel
+            env_task = self._get_environment_description(response.scene_elements)
+            dialogue_task = self._generate_npc_dialogue(npc, action)
+            
+            environment_text, npc_dialogue = await asyncio.gather(
+                env_task, dialogue_task
+            )
+        else:
+            # No NPCs, just get environment
+            environment_text = await self._get_environment_description(response.scene_elements)
+        
+        # Combine narrative with NPC dialogue and environment description
         combined_narrative = response.narrative
+        
+        # Add NPC dialogue after the main narrative (before environment)
+        if npc_dialogue:
+            combined_narrative = f"{response.narrative}\n\n---\n\n{npc_dialogue}"
+        
+        # Add environment description at the end
         if environment_text:
-            combined_narrative = f"{response.narrative}\n\n{environment_text}"
+            combined_narrative = f"{combined_narrative}\n\n{environment_text}"
         
         # Display combined narrative
         clear_screen()
@@ -679,6 +703,52 @@ class Game:
                     self.console.print(f"[success]{stat} augmenté![/success]")
         
         return result
+    
+    async def _get_npcs_at_location(self) -> list:
+        """Get NPCs present at the current location."""
+        return [
+            npc for npc in self.state.scenario.npcs
+            if npc.location == self.state.current_location and npc.is_alive
+        ]
+    
+    async def _generate_npc_dialogue(
+        self,
+        npc,
+        player_action: str,
+    ) -> str | None:
+        """
+        Generate NPC dialogue, with cinematic introduction if first encounter.
+        
+        Args:
+            npc: The NPC to generate dialogue for
+            player_action: What the player is doing
+        
+        Returns:
+            NPC dialogue text, or None on error
+        """
+        is_first_encounter = not self.state.has_met_npc(npc.id)
+        
+        prompt = build_npc_dialogue_prompt(
+            npc=npc,
+            player_action=player_action,
+            state=self.state,
+            is_first_encounter=is_first_encounter,
+        )
+        
+        try:
+            dialogue = await call_llm(prompt, model_key="dialogue")
+            dialogue = dialogue.strip()
+            
+            # Mark NPC as encountered
+            if is_first_encounter:
+                self.state.mark_npc_encountered(npc.id)
+                self.logger.state_change("npc_encountered", f"First meeting with {npc.name}")
+            
+            self.logger.llm_response("npc_dialogue", dialogue)
+            return dialogue
+        except LLMError as e:
+            self.logger.error("npc_dialogue_error", str(e))
+            return None
     
     async def _display_narrative(self, text: str, tension: int) -> None:
         """Display narrative text with typewriter effect."""

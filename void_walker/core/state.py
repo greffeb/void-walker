@@ -425,7 +425,7 @@ class GameState(BaseModel):
     
     # History (for context)
     recent_events: list[str] = Field(default_factory=list)  # Last 10 narrations, summarized
-    key_npcs_met: list[str] = Field(default_factory=list)  # NPC names
+    npcs_encountered: set[str] = Field(default_factory=set)  # NPC IDs that player has met
     important_items_found: list[str] = Field(default_factory=list)
     
     # Meta
@@ -453,6 +453,14 @@ class GameState(BaseModel):
         self.recent_events.append(event)
         if len(self.recent_events) > max_events:
             self.recent_events = self.recent_events[-max_events:]
+    
+    def mark_npc_encountered(self, npc_id: str) -> None:
+        """Mark an NPC as encountered by the player."""
+        self.npcs_encountered.add(npc_id)
+    
+    def has_met_npc(self, npc_id: str) -> bool:
+        """Check if the player has already met an NPC."""
+        return npc_id in self.npcs_encountered
     
     def visit_location(self, location_id: str) -> bool:
         """
@@ -489,6 +497,51 @@ class GameState(BaseModel):
         """Check if player is currently in a hallucinated (non-existent) location."""
         return self.current_hallucinated_location is not None
     
+    def _enrich_item_from_scenario(self, item: InventoryItem) -> InventoryItem:
+        """
+        Enrich an item with data from the scenario if available.
+        
+        Looks up the item by ID or name in scenario locations and copies
+        the proper name, description, and other fields from the scenario item.
+        
+        Args:
+            item: The item to enrich
+        
+        Returns:
+            Enriched item (may be the same object if no match found)
+        """
+        from void_walker.llm.validators import FALLBACK_DESCRIPTIONS, normalize_id
+        
+        # Search all scenario locations for matching item
+        for location in self.scenario.locations:
+            for scenario_item in location.items:
+                # Try ID match (normalized)
+                if item.id and scenario_item.id:
+                    if normalize_id(item.id) == normalize_id(scenario_item.id):
+                        return scenario_item
+                # Try name match if ID didn't match
+                if item.name and scenario_item.name:
+                    if item.name.lower() == scenario_item.name.lower():
+                        return scenario_item
+        
+        # No scenario match found - ensure item has a description
+        if not item.description:
+            fallback_desc = FALLBACK_DESCRIPTIONS.get(
+                item.item_type or "misc", 
+                "Un objet"
+            )
+            # Return a copy with the fallback description
+            return InventoryItem(
+                id=item.id,
+                name=item.name,
+                description=fallback_desc,
+                item_type=item.item_type,
+                uses=item.uses,
+                stat_bonus=item.stat_bonus,
+            )
+        
+        return item
+    
     def apply_state_changes(self, changes: StateChanges) -> tuple[list[str], bool, bool, bool]:
         """
         Apply state changes and return messages plus event flags.
@@ -511,13 +564,14 @@ class GameState(BaseModel):
                 if healed > 0:
                     messages.append(f"+{healed} HP")
         
-        # Items added
+        # Items added - enrich with scenario data first
         for item in changes.items_added:
-            if self.player.inventory.add(item):
-                messages.append(f"Obtenu: {item.name}")
-                self.important_items_found.append(item.name)
+            enriched_item = self._enrich_item_from_scenario(item)
+            if self.player.inventory.add(enriched_item):
+                messages.append(f"Obtenu: {enriched_item.name}")
+                self.important_items_found.append(enriched_item.name)
             else:
-                messages.append(f"Inventaire plein, impossible de prendre: {item.name}")
+                messages.append(f"Inventaire plein, impossible de prendre: {enriched_item.name}")
         
         # Items removed
         for item_name in changes.items_removed:

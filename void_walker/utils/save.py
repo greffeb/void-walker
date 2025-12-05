@@ -62,6 +62,7 @@ def save_state(state: GameState) -> Path:
     # Convert sets to lists for JSON serialization
     state_dict["visited_locations"] = list(state.visited_locations)
     state_dict["hallucinated_locations"] = list(state.hallucinated_locations)
+    state_dict["npcs_encountered"] = list(state.npcs_encountered)
     
     # Add save timestamp
     state_dict["_saved_at"] = datetime.now().isoformat()
@@ -99,6 +100,8 @@ def load_state(session_id: str) -> GameState | None:
             data["visited_locations"] = set(data["visited_locations"])
         if "hallucinated_locations" in data:
             data["hallucinated_locations"] = set(data["hallucinated_locations"])
+        if "npcs_encountered" in data:
+            data["npcs_encountered"] = set(data["npcs_encountered"])
         
         return GameState(**data)
         

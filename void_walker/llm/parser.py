@@ -6,6 +6,7 @@ Handles parsing and validation of LLM responses.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, TYPE_CHECKING
 
 from pydantic import ValidationError
@@ -27,14 +28,21 @@ from void_walker.core.state import (
     VictoryCondition,
 )
 from void_walker.llm.client import ParseError, extract_json
+from void_walker.llm.validators import validate_items_batch
+
+logger = logging.getLogger("void_walker.parser")
 
 
-def parse_game_response(response_text: str) -> GameResponse:
+def parse_game_response(
+    response_text: str,
+    scenario: Scenario | None = None,
+) -> GameResponse:
     """
     Parse LLM response into GameResponse.
     
     Args:
         response_text: Raw text from LLM
+        scenario: Optional scenario for item validation
     
     Returns:
         Validated GameResponse
@@ -51,15 +59,25 @@ def parse_game_response(response_text: str) -> GameResponse:
     if "state_changes" in data and isinstance(data["state_changes"], dict):
         state_changes_data = data["state_changes"]
         
-        # Parse items_added if present
+        # Parse and validate items_added if present
         if "items_added" in state_changes_data:
-            items = []
-            for item_data in state_changes_data["items_added"]:
-                if isinstance(item_data, str):
-                    items.append(InventoryItem(name=item_data))
-                elif isinstance(item_data, dict):
-                    items.append(InventoryItem(**item_data))
-            state_changes_data["items_added"] = items
+            raw_items = state_changes_data["items_added"]
+            
+            if scenario:
+                # Validate items against scenario
+                validated_items, warnings = validate_items_batch(raw_items, scenario)
+                for warning in warnings:
+                    logger.warning(f"Item validation: {warning}")
+                state_changes_data["items_added"] = validated_items
+            else:
+                # No scenario provided, parse without validation (legacy behavior)
+                items = []
+                for item_data in raw_items:
+                    if isinstance(item_data, str):
+                        items.append(InventoryItem(name=item_data))
+                    elif isinstance(item_data, dict):
+                        items.append(InventoryItem(**item_data))
+                state_changes_data["items_added"] = items
         
         data["state_changes"] = StateChanges(**state_changes_data)
     
