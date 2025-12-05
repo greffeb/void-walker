@@ -304,6 +304,8 @@ SCÉNARIO:
 - Menace principale: {main_threat}
 - Lieux visités: {visited_locations}
 
+{items_context}
+
 {dice_context}
 {guidance_context}
 
@@ -318,10 +320,22 @@ RÈGLES DE RÉPONSE:
 6. Respecte ABSOLUMENT les résultats des dés fournis
 7. CRITIQUE: "is_ending" doit être FALSE sauf si la phase est "climax" ou "resolution"
 8. Ne JAMAIS terminer la partie pour une simple action d'exploration
+9. IMPORTANT POUR LA NARRATION: Marque les objets trouvés avec la syntaxe [ITEM:id_technique]description narrative du joueur[/ITEM]
+
+INSTRUMENTATION NARRATIVE:
+Si le joueur trouve des objets, intègre-les naturellement dans la narration EN LES ENTOURANT DE BALISES:
+- Exemple: "Tu découvres [ITEM:medkit]une trousse de secours scellée[/ITEM] dans les débris."
+- Exemple: "À l'intérieur du casier reposent [ITEM:journal]un vieux journal de bord[/ITEM] et [ITEM:boite_metallique]une boîte métallique rouillée[/ITEM]."
+- Les IDs techniques fournis ci-dessous DOIVENT être utilisés dans les balises
+- Le texte entre les balises doit décrire l'objet de manière immersive et narrative
+- Chaque objet mentionné dans le champ "items_added" DOIT être marqué avec ses balises
+
+OBJETS À TROUVER (si applicables):
+{items_list}
 
 JSON attendu:
 {{
-  "narrative": "string (2-4 phrases en français)",
+  "narrative": "string (2-4 phrases en français, avec marquage des items via [ITEM:id]...[/ITEM])",
   "action_type": "exploration|interaction|combat|skill_check|dialogue",
   "requires_roll": boolean,
   "difficulty": null ou 1-20,
@@ -373,6 +387,26 @@ def build_gameplay_prompt(
     # Build inventory string
     inventory_str = ", ".join(item.name for item in state.player.inventory.items) or "Vide"
     
+    # Build items context - list all items available in current location and nearby areas
+    items_in_location = []
+    if location and location.items:
+        items_in_location = [
+            f"  - {item['id']}: {item['name']}"
+            for item in location.items
+        ]
+    items_context = ""
+    if items_in_location:
+        items_context = f"Items disponibles à cet endroit:\n" + "\n".join(items_in_location)
+    else:
+        items_context = ""
+    
+    # Build items list for the prompt
+    items_list = ""
+    if items_in_location:
+        items_list = "Possible à trouver ici:\n" + "\n".join(items_in_location)
+    else:
+        items_list = "Aucun item spécifique défini pour cet endroit"
+    
     # Build guidance context for stuck players
     guidance = GuidanceSystem(state)
     guidance_context = guidance.build_hint_context()
@@ -394,6 +428,8 @@ def build_gameplay_prompt(
         recent_events=recent_events_str,
         main_threat=state.scenario.main_threat,
         visited_locations=", ".join(state.visited_locations) or "Aucun",
+        items_context=items_context,
+        items_list=items_list,
         dice_context=build_dice_context(dice_result),
         guidance_context=guidance_context,
         player_input=player_input,

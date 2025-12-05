@@ -610,8 +610,10 @@ class Game:
         messages, new_valid_location, objective_completed, secret_found = (
             self.state.apply_state_changes(response.state_changes)
         )
-        for msg in messages:
-            self.console.print(f"[info]{msg}[/info]")
+        # Only display "Obtenu:" messages in debug mode
+        if self.debug:
+            for msg in messages:
+                self.console.print(f"[info]{msg}[/info]")
         
         # Update state
         self.state.tension_level = response.tension_level
