@@ -37,7 +37,11 @@ from void_walker.llm.prompts import (
     build_npc_dialogue_prompt,
     get_exits_with_names,
 )
-from void_walker.llm.world_gen import create_fallback_scenario, generate_scenario
+from void_walker.llm.world_gen import (
+    create_fallback_scenario,
+    generate_scenario,
+    generate_validated_scenario,
+)
 from void_walker.ui import (
     CommandType,
     CPUSpinner,
@@ -279,7 +283,7 @@ class Game:
             spinner.start()
             
             try:
-                scenario = await generate_scenario(self.session_type)
+                scenario = await generate_validated_scenario(self.session_type)
                 spinner.stop()
                 self.console.print()  # Add newline after spinner
                 
@@ -382,7 +386,7 @@ class Game:
         spinner.start()
 
         try:
-            scenario = await generate_scenario(self.session_type)
+            scenario = await generate_validated_scenario(self.session_type)
             spinner.stop()
             self.console.print()  # Add newline after spinner
             # Log generated scenario
@@ -409,6 +413,11 @@ class Game:
         self.console.print()
         self.console.print(f"[text]{scenario.premise}[/text]")
         self.console.print()
+        
+        # Show validation warnings if any
+        if scenario.validation_warnings:
+            from void_walker.ui.panels import display_validation_warnings
+            display_validation_warnings(self.state, self.console)
 
         # Only show detailed objective in debug mode
         if self.debug:

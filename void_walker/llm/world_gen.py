@@ -13,30 +13,57 @@ from void_walker.core.state import Scenario, VictoryCondition
 from void_walker.llm.client import call_llm, LLMError
 from void_walker.llm.parser import parse_scenario, ParseError
 from void_walker.llm.prompts import build_world_gen_prompt
+from void_walker.llm.validators import (
+    ValidationSeverity,
+    IssueCategory,
+    ValidationIssue,
+    has_blocking_errors,
+    get_correctable_errors,
+    get_fatal_errors,
+    all_errors_correctable,
+    issues_to_warning_messages,
+)
 
 logger = logging.getLogger("void_walker.world_gen")
 
 
-def validate_scenario(scenario: Scenario) -> list[str]:
+def validate_scenario(scenario: Scenario) -> list[ValidationIssue]:
     """
     Check scenario for common issues and design problems.
+    
+    Returns structured ValidationIssue objects with severity and category
+    to determine if issues are correctable or require regeneration.
     
     Args:
         scenario: The scenario to validate
     
     Returns:
-        List of issue descriptions (empty if valid)
+        List of ValidationIssue objects (empty if valid)
     """
-    issues = []
+    issues: list[ValidationIssue] = []
     
     # Build location graph
     locations = {loc.id: loc for loc in scenario.locations}
     
-    # Check all locations are connected (no orphans)
-    if scenario.starting_location not in locations:
-        issues.append(f"Starting location '{scenario.starting_location}' does not exist")
+    # Check minimum location count
+    if len(scenario.locations) < 3:
+        issues.append(ValidationIssue(
+            severity=ValidationSeverity.ERROR,
+            category=IssueCategory.TOO_FEW_LOCATIONS,
+            message=f"Scénario a seulement {len(scenario.locations)} lieux (minimum 3 requis)",
+            affected_elements=[loc.id for loc in scenario.locations],
+        ))
     
-    # Check dead-ends have rewards
+    # Check starting location exists
+    if scenario.starting_location not in locations:
+        issues.append(ValidationIssue(
+            severity=ValidationSeverity.ERROR,
+            category=IssueCategory.NO_START_LOCATION,
+            message=f"Lieu de départ '{scenario.starting_location}' n'existe pas",
+            affected_elements=[scenario.starting_location],
+        ))
+    
+    # Check dead-ends have rewards (WARNING only)
     for loc in scenario.locations:
         is_dead_end = len(loc.connections) <= 1
         has_reward = (
@@ -47,7 +74,12 @@ def validate_scenario(scenario: Scenario) -> list[str]:
         )
         
         if is_dead_end and not has_reward:
-            issues.append(f"Dead-end '{loc.id}' has no rewards (items, secrets, or NPCs)")
+            issues.append(ValidationIssue(
+                severity=ValidationSeverity.WARNING,
+                category=IssueCategory.DEAD_END_NO_REWARD,
+                message=f"Impasse '{loc.name}' sans récompense (items, secrets, ou PNJ)",
+                affected_elements=[loc.id],
+            ))
     
     # Check victory path exists
     if isinstance(scenario.victory_condition, VictoryCondition):
@@ -55,8 +87,31 @@ def validate_scenario(scenario: Scenario) -> list[str]:
         start = scenario.starting_location
         goal = victory.required_location
         
-        if goal and not _path_exists(locations, start, goal):
-            issues.append(f"No path from starting location to victory location '{goal}'")
+        if goal and goal in locations and start in locations:
+            if not _path_exists(locations, start, goal):
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    category=IssueCategory.NO_VICTORY_PATH,
+                    message=f"Aucun chemin du départ vers le lieu de victoire '{goal}'",
+                    affected_elements=[start, goal],
+                ))
+            
+            # Check if victory path requires high danger areas (WARNING)
+            safe_path = _path_exists_with_max_danger(locations, start, goal, max_danger=7)
+            if not safe_path:
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    category=IssueCategory.HIGH_DANGER_VICTORY_PATH,
+                    message="Le chemin de victoire traverse des zones à danger élevé (8+)",
+                    affected_elements=[start, goal],
+                ))
+        elif goal and goal not in locations:
+            issues.append(ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                category=IssueCategory.MISSING_CONNECTION,
+                message=f"Lieu de victoire '{goal}' n'existe pas",
+                affected_elements=[goal],
+            ))
         
         # Check required items are placed
         for item_id in victory.required_items:
@@ -69,27 +124,71 @@ def validate_scenario(scenario: Scenario) -> list[str]:
                 found = any(npc.has_item == item_id for npc in scenario.npcs)
             
             if not found:
-                issues.append(f"Required item '{item_id}' not placed in any location or NPC")
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    category=IssueCategory.MISSING_ITEM,
+                    message=f"Item requis '{item_id}' absent du scénario",
+                    affected_elements=[item_id],
+                ))
+        
+        # Check required_info maps to secrets (WARNING)
+        secret_ids = {s.id for s in scenario.secrets}
+        secret_revelations = {s.revelation.lower() for s in scenario.secrets if s.revelation}
+        for info in victory.required_info:
+            info_lower = info.lower()
+            # Check if info matches a secret ID or is mentioned in revelations
+            found_in_secrets = (
+                info in secret_ids or
+                any(info_lower in rev for rev in secret_revelations)
+            )
+            if not found_in_secrets:
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    category=IssueCategory.REQUIRED_INFO_NOT_FOUND,
+                    message=f"Info requise '{info}' non trouvée dans les secrets",
+                    affected_elements=[info],
+                ))
     
     # Check hostile NPCs have weaknesses
     for npc in scenario.npcs:
         if npc.disposition == "hostile" and not npc.weakness:
-            issues.append(f"Hostile NPC '{npc.name}' has no weakness defined")
+            issues.append(ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                category=IssueCategory.MISSING_WEAKNESS,
+                message=f"PNJ hostile '{npc.name}' sans faiblesse définie",
+                affected_elements=[npc.id],
+            ))
     
     # Check for orphaned locations (not reachable from start)
-    reachable = _get_reachable_locations(locations, scenario.starting_location)
-    for loc_id in locations:
-        if loc_id not in reachable:
-            issues.append(f"Location '{loc_id}' is not reachable from starting location")
+    if scenario.starting_location in locations:
+        reachable = _get_reachable_locations(locations, scenario.starting_location)
+        for loc_id in locations:
+            if loc_id not in reachable:
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    category=IssueCategory.ORPHANED_LOCATION,
+                    message=f"Lieu '{locations[loc_id].name}' inaccessible depuis le départ",
+                    affected_elements=[loc_id, scenario.starting_location],
+                ))
     
     # Check connections are bidirectional
     for loc in scenario.locations:
         for conn in loc.connections:
             if conn in locations:
                 if loc.id not in locations[conn].connections:
-                    issues.append(f"One-way connection: '{loc.id}' -> '{conn}' (not bidirectional)")
+                    issues.append(ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category=IssueCategory.ONE_WAY_CONNECTION,
+                        message=f"Connexion unidirectionnelle: '{loc.name}' → '{locations[conn].name}'",
+                        affected_elements=[loc.id, conn],
+                    ))
             else:
-                issues.append(f"Location '{loc.id}' connects to non-existent '{conn}'")
+                issues.append(ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    category=IssueCategory.MISSING_CONNECTION,
+                    message=f"Lieu '{loc.name}' connecté à '{conn}' inexistant",
+                    affected_elements=[loc.id, conn],
+                ))
     
     return issues
 
@@ -115,6 +214,44 @@ def _path_exists(locations: dict, start: str, goal: str) -> bool:
             for neighbor in locations[current].connections:
                 if neighbor not in visited:
                     queue.append(neighbor)
+    
+    return False
+
+
+def _path_exists_with_max_danger(
+    locations: dict, 
+    start: str, 
+    goal: str, 
+    max_danger: int = 7,
+) -> bool:
+    """Check if a path exists that only passes through locations with danger_level <= max_danger."""
+    if start not in locations or goal not in locations:
+        return False
+    
+    visited = set()
+    queue = deque([start])
+    
+    while queue:
+        current = queue.popleft()
+        if current == goal:
+            return True
+        
+        if current in visited:
+            continue
+        visited.add(current)
+        
+        if current in locations:
+            current_loc = locations[current]
+            # Skip if current location is too dangerous (unless it's start or goal)
+            if current != start and current != goal and current_loc.danger_level > max_danger:
+                continue
+            
+            for neighbor in current_loc.connections:
+                if neighbor not in visited and neighbor in locations:
+                    neighbor_loc = locations[neighbor]
+                    # Only traverse safe paths or to the goal
+                    if neighbor == goal or neighbor_loc.danger_level <= max_danger:
+                        queue.append(neighbor)
     
     return False
 
@@ -201,12 +338,18 @@ async def generate_scenario(
         if len(scenario.locations) < 3:
             raise ParseError("Scenario has too few locations")
         
-        # Validate scenario coherence
+        # Validate scenario coherence (returns structured issues)
         issues = validate_scenario(scenario)
         if issues:
-            # Log issues but don't fail - scenarios can still be playable
+            # Log all issues
             for issue in issues:
-                logger.warning(f"Scenario validation: {issue}")
+                if issue.severity == ValidationSeverity.ERROR:
+                    logger.warning(f"Scenario validation ERROR: {issue.message}")
+                else:
+                    logger.info(f"Scenario validation WARNING: {issue.message}")
+            
+            # Store warnings for display
+            scenario.validation_warnings = issues_to_warning_messages(issues)
         
         # Save successfully generated scenario
         from void_walker.utils.save import save_scenario
@@ -223,6 +366,169 @@ async def generate_scenario(
         logger.error(f"Failed to parse scenario: {e}")
         logger.debug(f"Raw response was: {response[:500]}...")
         raise LLMError(f"Failed to generate valid scenario: {e}")
+
+
+async def _attempt_correction(
+    scenario: Scenario,
+    correctable_issues: list[ValidationIssue],
+) -> Scenario | None:
+    """
+    Attempt to correct a scenario by asking the LLM to fix specific issues.
+    
+    Args:
+        scenario: The scenario with issues
+        correctable_issues: List of correctable ValidationIssue objects
+    
+    Returns:
+        Corrected Scenario if successful, None if correction failed
+    """
+    from void_walker.llm.prompts import build_correction_prompt
+    
+    logger.info(f"Attempting to correct {len(correctable_issues)} issues via LLM")
+    
+    try:
+        # Build correction prompt with full scenario JSON
+        scenario_json = scenario.model_dump_json(indent=2)
+        correction_prompt = build_correction_prompt(scenario_json, correctable_issues)
+        
+        # Call LLM for correction
+        response = await call_llm(correction_prompt, model_key="world_gen", max_retries=2)
+        
+        # Log correction attempt
+        from void_walker.utils import get_game_logger
+        game_logger = get_game_logger()
+        game_logger.llm_response("scenario_correction_raw", response)
+        
+        # Parse corrected scenario
+        corrected = parse_scenario(response)
+        logger.info(f"Correction parsed: '{corrected.title}' with {len(corrected.locations)} locations")
+        
+        return corrected
+        
+    except (LLMError, ParseError) as e:
+        logger.warning(f"Correction attempt failed: {e}")
+        return None
+
+
+async def generate_validated_scenario(
+    session_type: str = "standard",
+    use_option_constraints: bool = True,
+    max_attempts: int = 3,
+) -> Scenario:
+    """
+    Generate a validated scenario with automatic correction and regeneration.
+    
+    Strategy:
+    1. Generate scenario
+    2. Validate - if only warnings, return with warnings stored
+    3. If correctable errors: attempt LLM correction, re-validate
+    4. If still errors or fatal errors: regenerate from scratch
+    5. Repeat up to max_attempts total generations
+    
+    Args:
+        session_type: Type of session ("quick", "standard", "extended")
+        use_option_constraints: If True, generate/use constrained options for variety
+        max_attempts: Maximum number of generation attempts (default 3)
+    
+    Returns:
+        Validated Scenario with warnings stored in validation_warnings field
+    
+    Raises:
+        LLMError: If all attempts fail to produce a valid scenario
+    """
+    last_error: Exception | None = None
+    best_scenario: Scenario | None = None
+    best_error_count: int = float('inf')
+    
+    for attempt in range(1, max_attempts + 1):
+        logger.info(f"Scenario generation attempt {attempt}/{max_attempts}")
+        
+        try:
+            # Generate new scenario
+            scenario = await generate_scenario(
+                session_type=session_type,
+                use_option_constraints=use_option_constraints,
+            )
+            
+            # Validate
+            issues = validate_scenario(scenario)
+            errors = [i for i in issues if i.severity == ValidationSeverity.ERROR]
+            warnings = [i for i in issues if i.severity == ValidationSeverity.WARNING]
+            
+            logger.info(f"Validation: {len(errors)} errors, {len(warnings)} warnings")
+            
+            # Track best scenario (fewest errors)
+            if len(errors) < best_error_count:
+                best_error_count = len(errors)
+                best_scenario = scenario
+            
+            # If no errors, store warnings and return
+            if not errors:
+                scenario.validation_warnings = issues_to_warning_messages(issues)
+                logger.info("Scenario validated successfully")
+                return scenario
+            
+            # Check if errors are correctable
+            fatal = get_fatal_errors(issues)
+            correctable = get_correctable_errors(issues)
+            
+            if fatal:
+                logger.warning(f"Fatal errors found, regeneration required: {[i.message for i in fatal]}")
+                continue  # Regenerate on next iteration
+            
+            if correctable and all_errors_correctable(issues):
+                # Attempt correction
+                corrected = await _attempt_correction(scenario, correctable)
+                
+                if corrected:
+                    # Re-validate corrected scenario
+                    corrected_issues = validate_scenario(corrected)
+                    corrected_errors = [i for i in corrected_issues if i.severity == ValidationSeverity.ERROR]
+                    
+                    if not corrected_errors:
+                        # Correction successful
+                        corrected.validation_warnings = issues_to_warning_messages(corrected_issues)
+                        logger.info("Scenario correction successful")
+                        
+                        # Save corrected scenario
+                        from void_walker.utils.save import save_scenario
+                        try:
+                            save_scenario(corrected)
+                        except Exception as e:
+                            logger.warning(f"Failed to save corrected scenario: {e}")
+                        
+                        return corrected
+                    else:
+                        logger.warning(f"Correction still has {len(corrected_errors)} errors, will regenerate")
+                        # Track if corrected is better
+                        if len(corrected_errors) < best_error_count:
+                            best_error_count = len(corrected_errors)
+                            best_scenario = corrected
+                else:
+                    logger.warning("Correction failed, will regenerate")
+            
+            # If we get here, need to regenerate on next iteration
+            
+        except (LLMError, ParseError) as e:
+            logger.error(f"Attempt {attempt} failed: {e}")
+            last_error = e
+    
+    # All attempts exhausted
+    if best_scenario is not None:
+        # Return best attempt even if it has errors
+        logger.warning(f"Returning best scenario with {best_error_count} unresolved errors")
+        issues = validate_scenario(best_scenario)
+        best_scenario.validation_warnings = [
+            f"⚠ Scénario généré avec des problèmes potentiels ({best_error_count} erreurs)",
+            *issues_to_warning_messages(issues),
+            *[i.message for i in issues if i.severity == ValidationSeverity.ERROR],
+        ]
+        return best_scenario
+    
+    raise LLMError(
+        f"Failed to generate valid scenario after {max_attempts} attempts. "
+        f"Last error: {last_error}"
+    )
 
 
 def create_fallback_scenario() -> Scenario:

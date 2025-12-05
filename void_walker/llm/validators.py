@@ -2,16 +2,125 @@
 Void Walker - Item and Response Validators.
 
 Validates LLM-generated items against scenario definitions to prevent hallucinations.
+Also provides scenario validation for winnability and map coherence.
 """
 
 import difflib
 import logging
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from void_walker.core.state import InventoryItem, Scenario
 
 logger = logging.getLogger("void_walker.validators")
+
+
+# =============================================================================
+# SCENARIO VALIDATION MODELS
+# =============================================================================
+
+
+class ValidationSeverity(Enum):
+    """Severity level for validation issues."""
+    
+    WARNING = "warning"  # Display but allow play
+    ERROR = "error"      # Must be fixed before play
+
+
+class IssueCategory(Enum):
+    """Category of validation issue - determines if LLM correction is possible."""
+    
+    # Correctable by LLM (can add/fix connections, items)
+    MISSING_CONNECTION = "missing_connection"
+    ORPHANED_LOCATION = "orphaned_location"
+    MISSING_ITEM = "missing_item"
+    ONE_WAY_CONNECTION = "one_way_connection"
+    MISSING_WEAKNESS = "missing_weakness"
+    
+    # Fatal - requires full regeneration
+    NO_VICTORY_PATH = "no_victory_path"
+    NO_START_LOCATION = "no_start_location"
+    TOO_FEW_LOCATIONS = "too_few_locations"
+    
+    # Warnings only - don't block play
+    DEAD_END_NO_REWARD = "dead_end_no_reward"
+    REQUIRED_INFO_NOT_FOUND = "required_info_not_found"
+    HIGH_DANGER_VICTORY_PATH = "high_danger_victory_path"
+
+
+# Categories that can be fixed by asking LLM to correct
+CORRECTABLE_CATEGORIES = {
+    IssueCategory.MISSING_CONNECTION,
+    IssueCategory.ORPHANED_LOCATION,
+    IssueCategory.MISSING_ITEM,
+    IssueCategory.ONE_WAY_CONNECTION,
+    IssueCategory.MISSING_WEAKNESS,
+}
+
+# Categories that require full regeneration
+FATAL_CATEGORIES = {
+    IssueCategory.NO_VICTORY_PATH,
+    IssueCategory.NO_START_LOCATION,
+    IssueCategory.TOO_FEW_LOCATIONS,
+}
+
+
+@dataclass
+class ValidationIssue:
+    """A single validation issue found in a scenario."""
+    
+    severity: ValidationSeverity
+    category: IssueCategory
+    message: str
+    affected_elements: list[str] = field(default_factory=list)
+    
+    def __str__(self) -> str:
+        """Human-readable representation."""
+        return f"[{self.severity.value.upper()}] {self.message}"
+    
+    @property
+    def is_correctable(self) -> bool:
+        """Check if this issue can be fixed by LLM correction."""
+        return self.category in CORRECTABLE_CATEGORIES
+    
+    @property
+    def is_fatal(self) -> bool:
+        """Check if this issue requires full regeneration."""
+        return self.category in FATAL_CATEGORIES
+
+
+def has_blocking_errors(issues: list[ValidationIssue]) -> bool:
+    """Check if issues list contains any ERROR-level issues."""
+    return any(issue.severity == ValidationSeverity.ERROR for issue in issues)
+
+
+def get_correctable_errors(issues: list[ValidationIssue]) -> list[ValidationIssue]:
+    """Get ERROR-level issues that can be fixed by LLM correction."""
+    return [
+        issue for issue in issues
+        if issue.severity == ValidationSeverity.ERROR and issue.is_correctable
+    ]
+
+
+def get_fatal_errors(issues: list[ValidationIssue]) -> list[ValidationIssue]:
+    """Get ERROR-level issues that require full regeneration."""
+    return [
+        issue for issue in issues
+        if issue.severity == ValidationSeverity.ERROR and issue.is_fatal
+    ]
+
+
+def all_errors_correctable(issues: list[ValidationIssue]) -> bool:
+    """Check if all ERROR-level issues are correctable (no fatal errors)."""
+    errors = [i for i in issues if i.severity == ValidationSeverity.ERROR]
+    return all(issue.is_correctable for issue in errors)
+
+
+def issues_to_warning_messages(issues: list[ValidationIssue]) -> list[str]:
+    """Convert WARNING-level issues to displayable messages."""
+    return [issue.message for issue in issues if issue.severity == ValidationSeverity.WARNING]
 
 
 # Item types that require strict validation against scenario

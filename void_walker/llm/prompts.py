@@ -33,12 +33,13 @@ SCENARIO DESIGN PRINCIPLES:
    - Dead-end locations MUST have high-value rewards (key items, major secrets) to justify the risk
    - The starting location should have 2-3 exits to give player choice
    - Create loops in the map when possible (multiple paths between areas)
+   - ALL connections must be BIDIRECTIONAL: if A connects to B, then B must connect to A
 
 2. VICTORY PATH
    - Victory must require 2-4 specific steps (find item X, get info from NPC Y, reach location Z)
    - All required elements must be reachable WITHOUT entering optional high-danger areas
    - Specify exactly what items/information/actions are needed to win
-   - Include at least one alternative approach (stealth vs combat, diplomacy vs force)
+   - Provide TWO victory conditions: a primary path and an alternative approach
 
 3. RISK/REWARD BALANCE
    - danger_level 1-3: Safe exploration, minor loot
@@ -65,11 +66,16 @@ Generate a JSON response with this EXACT structure:
   "main_threat": "The primary antagonist/danger",
   "threat_description": "How the threat behaves, what triggers it, its weakness",
   "victory_condition": {{
-    "description": "What the player must do to win, in French",
+    "description": "What the player must do to win (primary path), in French",
     "required_items": ["item_id list - can be empty if no items needed"],
     "required_info": ["What knowledge/codes/passwords are needed"],
-    "required_location": "location_id where victory is achieved",
-    "alternative_approach": "A different valid way to win"
+    "required_location": "location_id where victory is achieved"
+  }},
+  "alternative_victory": {{
+    "description": "Alternative way to win (different approach), in French",
+    "required_items": ["item_id list for alternative path"],
+    "required_info": ["What knowledge is needed for alternative"],
+    "required_location": "location_id where alternative victory is achieved (can be same or different)"
   }},
   "starting_location": "location_id",
   "locations": [
@@ -144,6 +150,7 @@ Before outputting, verify:
 - All required_items are placed in accessible locations
 - Hostile NPCs have defined weaknesses
 - The map has no orphaned locations (all connected to main graph)
+- ALL connections are bidirectional (if A→B then B→A)
 
 CRITICAL REQUIREMENTS:
 - Output ONLY valid JSON - no markdown, no code blocks, no explanation
@@ -184,6 +191,100 @@ def build_world_gen_prompt(
         scene_count=config["scenes"],
         complexity=config["complexity"],
         generation_constraints=generation_constraints,
+    )
+
+
+# =============================================================================
+# SCENARIO CORRECTION PROMPT
+# =============================================================================
+
+SCENARIO_CORRECTION_PROMPT = """You are correcting a scenario for a space horror RPG called "Void Walker".
+
+The following scenario was generated but has validation issues that need to be fixed.
+Make MINIMAL changes to fix ONLY the issues listed below.
+
+CURRENT SCENARIO:
+{scenario_json}
+
+ISSUES TO FIX:
+{issues_list}
+
+CORRECTION INSTRUCTIONS:
+{correction_instructions}
+
+RULES:
+1. Keep all existing content that is not related to the issues
+2. Make the smallest possible changes to fix each issue
+3. Maintain all French text and atmosphere
+4. Ensure connections are BIDIRECTIONAL after fixes
+5. Output the COMPLETE corrected scenario as valid JSON
+
+OUTPUT ONLY THE CORRECTED JSON - no explanations, no markdown:"""
+
+
+def build_correction_prompt(
+    scenario_json: str,
+    issues: list,
+) -> str:
+    """
+    Build a prompt to ask the LLM to correct specific scenario issues.
+    
+    Args:
+        scenario_json: The current scenario as JSON string
+        issues: List of ValidationIssue objects to fix
+    
+    Returns:
+        Complete correction prompt
+    """
+    from void_walker.llm.validators import IssueCategory
+    
+    # Format issues as a numbered list
+    issues_list = "\n".join(
+        f"{i+1}. [{issue.category.value}] {issue.message}"
+        for i, issue in enumerate(issues)
+    )
+    
+    # Build specific correction instructions based on issue categories
+    instructions = []
+    categories_seen = set()
+    
+    for issue in issues:
+        if issue.category in categories_seen:
+            continue
+        categories_seen.add(issue.category)
+        
+        if issue.category == IssueCategory.ONE_WAY_CONNECTION:
+            instructions.append(
+                "- For one-way connections: Add the missing reverse connection. "
+                "If location A has B in its connections, ensure B has A in its connections."
+            )
+        elif issue.category == IssueCategory.ORPHANED_LOCATION:
+            instructions.append(
+                "- For orphaned locations: Add connections to link them to the main map. "
+                "Connect them to the nearest logical location."
+            )
+        elif issue.category == IssueCategory.MISSING_ITEM:
+            instructions.append(
+                "- For missing items: Place the required item in an accessible location "
+                "(danger_level <= 7) or give it to an NPC."
+            )
+        elif issue.category == IssueCategory.MISSING_CONNECTION:
+            instructions.append(
+                "- For missing connections: Either add the missing location or remove "
+                "the reference to it from existing connections."
+            )
+        elif issue.category == IssueCategory.MISSING_WEAKNESS:
+            instructions.append(
+                "- For hostile NPCs without weakness: Add a 'weakness' field describing "
+                "how the NPC can be defeated or avoided."
+            )
+    
+    correction_instructions = "\n".join(instructions) if instructions else "Fix the issues listed above."
+    
+    return SCENARIO_CORRECTION_PROMPT.format(
+        scenario_json=scenario_json,
+        issues_list=issues_list,
+        correction_instructions=correction_instructions,
     )
 
 

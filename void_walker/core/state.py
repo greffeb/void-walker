@@ -242,12 +242,14 @@ class Scenario(BaseModel):
     main_threat: str
     threat_description: str = ""
     victory_condition: str | VictoryCondition  # String for backwards compat, or structured
+    alternative_victory: VictoryCondition | None = None  # Second win path (structured)
     starting_location: str
     locations: list[Location] = Field(default_factory=list)
     npcs: list[NPC] = Field(default_factory=list)
     secrets: list[Secret] = Field(default_factory=list)
     environmental_clues: list[str | EnvironmentalClue] = Field(default_factory=list)
     validation: ScenarioValidation | None = None  # Optional validation data
+    validation_warnings: list[str] = Field(default_factory=list)  # Displayable warnings
     
     def get_location(self, location_id: str) -> Location | None:
         """Get a location by ID."""
@@ -275,6 +277,15 @@ class Scenario(BaseModel):
         if isinstance(self.victory_condition, VictoryCondition):
             return self.victory_condition.description
         return self.victory_condition
+    
+    def get_alternative_victory_description(self) -> str | None:
+        """Get alternative victory condition as a string, if available."""
+        if self.alternative_victory:
+            return self.alternative_victory.description
+        # Fallback to alternative_approach field if it exists on primary victory
+        if isinstance(self.victory_condition, VictoryCondition):
+            return self.victory_condition.alternative_approach
+        return None
 
 
 class SessionProgress(BaseModel):

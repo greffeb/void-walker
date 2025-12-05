@@ -283,6 +283,12 @@ def parse_scenario(response_text: str) -> Scenario:
     else:
         victory_condition = victory_data
     
+    # Parse alternative victory condition if present
+    alternative_victory = None
+    alt_victory_data = data.get("alternative_victory")
+    if alt_victory_data and isinstance(alt_victory_data, dict):
+        alternative_victory = VictoryCondition(**alt_victory_data)
+    
     # Parse environmental clues (support both string list and structured)
     env_clues = []
     for clue_data in data.get("environmental_clues", []):
@@ -306,6 +312,7 @@ def parse_scenario(response_text: str) -> Scenario:
             main_threat=data.get("main_threat", "Unknown threat"),
             threat_description=data.get("threat_description", ""),
             victory_condition=victory_condition,
+            alternative_victory=alternative_victory,
             starting_location=data.get("starting_location", locations[0].id if locations else "start"),
             locations=locations,
             npcs=npcs,

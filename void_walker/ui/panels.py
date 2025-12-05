@@ -252,3 +252,55 @@ def create_scene_elements_panel(elements: list[str]) -> Panel:
         border_style="border",
         padding=(0, 2),
     )
+
+
+def create_validation_warnings_panel(warnings: list[str]) -> Panel | None:
+    """
+    Create panel showing validation warnings for the scenario.
+    
+    Args:
+        warnings: List of warning messages from scenario validation
+    
+    Returns:
+        Rich Panel with warnings, or None if no warnings
+    """
+    if not warnings:
+        return None
+    
+    content = Text()
+    content.append("Ce scénario a été généré avec des avertissements:\n\n", style="dim")
+    
+    for warning in warnings:
+        content.append("  ⚠ ", style="highlight")
+        content.append(warning, style="text")
+        content.append("\n")
+    
+    content.append("\nLe jeu reste jouable, mais certaines incohérences sont possibles.", style="dim")
+    
+    return Panel(
+        content,
+        title="[highlight]AVERTISSEMENTS[/highlight]",
+        border_style="highlight",
+        padding=(1, 2),
+    )
+
+
+def display_validation_warnings(state: GameState, console=None) -> None:
+    """
+    Display validation warnings for the current scenario.
+    
+    Args:
+        state: Current game state with scenario
+        console: Rich Console to use (imports global if None)
+    """
+    if console is None:
+        from void_walker.ui.terminal import get_console
+        console = get_console()
+    
+    warnings = state.scenario.validation_warnings
+    panel = create_validation_warnings_panel(warnings)
+    
+    if panel:
+        console.print()
+        console.print(panel)
+        console.print()
