@@ -57,7 +57,7 @@ Language: Python 3.11+
 
 **Core dependencies**:
 ```
-google-generativeai    # Gemini/Gemma API
+google-genai           # Gemini/Gemma API
 rich                   # Terminal UI, colors, panels, progress
 textual                # TUI framework (optional, for complex layouts)
 python-dotenv          # Environment config

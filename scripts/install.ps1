@@ -124,7 +124,7 @@ else {
 # Install the package with dev dependencies
 Write-Host ""
 Write-Host "[5/5] Installing Void Walker and dependencies..." -ForegroundColor Yellow
-Write-Host "  Installing: google-generativeai, rich, python-dotenv, pydantic, pydantic-settings" -ForegroundColor Gray
+Write-Host "  Installing: google-genai, rich, python-dotenv, pydantic, pydantic-settings" -ForegroundColor Gray
 Write-Host "  Dev tools: pytest, pytest-asyncio, ruff" -ForegroundColor Gray
 pip install -e ".[dev]" --quiet
 if ($LASTEXITCODE -eq 0) {

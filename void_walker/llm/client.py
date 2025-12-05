@@ -1,7 +1,7 @@
 """
 Void Walker - LLM Client.
 
-API wrapper for Google Generative AI with rate limiting and retry logic.
+API wrapper for Google GenAI with rate limiting and retry logic.
 """
 
 import asyncio
@@ -10,7 +10,8 @@ import logging
 import time
 from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from pydantic import BaseModel
 
 from void_walker.config import MODELS, RATE_LIMITS, get_settings
@@ -89,7 +90,7 @@ class RateLimiter:
 
 
 class LLMClient:
-    """Client for interacting with Google Generative AI."""
+    """Client for interacting with Google GenAI."""
     
     def __init__(self):
         """Initialize the LLM client."""
@@ -97,9 +98,7 @@ class LLMClient:
         if not settings.google_api_key:
             raise LLMError("GOOGLE_API_KEY not set in environment")
         
-        genai.configure(api_key=settings.google_api_key)
-        
-        self.models: dict[str, Any] = {}
+        self._client = genai.Client(api_key=settings.google_api_key)
         self.rate_limiters: dict[str, RateLimiter] = {}
         self.current_model: str = "gameplay"
         
@@ -110,16 +109,12 @@ class LLMClient:
                 rpd=limits["rpd"]
             )
     
-    def _get_model(self, model_key: str) -> Any:
-        """Get or create a model instance."""
-        if model_key not in self.models:
-            model_name = MODELS.get(model_key)
-            if not model_name:
-                raise LLMError(f"Unknown model key: {model_key}")
-            
-            self.models[model_key] = genai.GenerativeModel(model_name)
-        
-        return self.models[model_key]
+    def _get_model_name(self, model_key: str) -> str:
+        """Get the model name for a model key."""
+        model_name = MODELS.get(model_key)
+        if not model_name:
+            raise LLMError(f"Unknown model key: {model_key}")
+        return model_name
     
     def _get_rate_limiter(self, model_key: str) -> RateLimiter:
         """Get rate limiter for a model."""
@@ -150,7 +145,7 @@ class LLMClient:
         Returns:
             The model's response text
         """
-        model = self._get_model(model_key)
+        model_name = self._get_model_name(model_key)
         limiter = self._get_rate_limiter(model_key)
         
         # Use larger token limit for world generation
@@ -178,15 +173,15 @@ class LLMClient:
                 logger.debug(f"LLM REQUEST [{model_key}] (attempt {attempt + 1}/{max_retries}):")
                 logger.debug(f"--- PROMPT START ---\n{prompt}\n--- PROMPT END ---")
                 
-                generation_config = genai.GenerationConfig(
+                config = types.GenerateContentConfig(
                     temperature=temperature,
                     max_output_tokens=max_output_tokens,
                 )
                 
-                response = await asyncio.to_thread(
-                    model.generate_content,
-                    prompt,
-                    generation_config=generation_config,
+                response = await self._client.aio.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=config,
                 )
                 
                 if response.text:
