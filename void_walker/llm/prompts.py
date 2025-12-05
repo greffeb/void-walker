@@ -34,6 +34,8 @@ SCENARIO DESIGN PRINCIPLES:
    - The starting location should have 2-3 exits to give player choice
    - Create loops in the map when possible (multiple paths between areas)
    - ALL connections must be BIDIRECTIONAL: if A connects to B, then B must connect to A
+   - Use is_hidden=true for SECRET rooms (ventilation shafts, hidden access hatches, rooms behind false walls)
+   - Hidden rooms are invisible on the map until discovered via a linked secret (secret.unlocks = location_id)
 
 2. VICTORY PATH
    - Victory must require 2-4 specific steps (find item X, get info from NPC Y, reach location Z)
@@ -97,7 +99,8 @@ Generate a JSON response with this EXACT structure:
       "threats": ["specific dangers here"],
       "secrets": ["secret_ids discoverable here"],
       "is_dead_end": false,
-      "required_for_victory": false
+      "required_for_victory": false,
+      "is_hidden": false
     }}
   ],
   "npcs": [

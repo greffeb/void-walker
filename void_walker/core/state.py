@@ -202,6 +202,7 @@ class Location(BaseModel):
     secrets: list[str] = Field(default_factory=list)  # Secret IDs
     is_dead_end: bool = False  # True if only one connection
     required_for_victory: bool = False  # True if must visit to win
+    is_hidden: bool = False  # True for secret rooms (ventilation shafts, hidden access, etc.)
     visited: bool = False
 
 
@@ -270,6 +271,13 @@ class Scenario(BaseModel):
         for npc in self.npcs:
             if npc.id == npc_id:
                 return npc
+        return None
+    
+    def get_secret(self, secret_id: str) -> Secret | None:
+        """Get a secret by ID."""
+        for secret in self.secrets:
+            if secret.id == secret_id:
+                return secret
         return None
     
     def get_victory_description(self) -> str:
@@ -424,6 +432,7 @@ class GameState(BaseModel):
     current_location: str
     visited_locations: set[str] = Field(default_factory=set)
     discovered_secrets: list[str] = Field(default_factory=list)
+    discovered_locations: set[str] = Field(default_factory=set)  # Hidden rooms revealed via secrets
     
     # Hallucinated locations (LLM-invented, not in scenario)
     hallucinated_locations: set[str] = Field(default_factory=set)
@@ -605,6 +614,15 @@ class GameState(BaseModel):
                 self.progress.secrets_found += 1
                 secret_found = True
                 messages.append("Secret découvert!")
+                
+                # Check if secret unlocks a hidden location
+                secret = self.scenario.get_secret(secret_id)
+                if secret and secret.unlocks:
+                    # Check if unlocks refers to a hidden location
+                    location = self.scenario.get_location(secret.unlocks)
+                    if location and location.is_hidden:
+                        self.discovered_locations.add(secret.unlocks)
+                        messages.append(f"Nouveau lieu révélé: {location.name}")
         
         # Objective completed
         if changes.objective_completed:

@@ -59,51 +59,30 @@ def create_inventory_panel(inventory: Inventory) -> Panel:
 
 def create_map_panel(state: GameState) -> Panel:
     """
-    Create the map panel showing explored locations.
+    Create the map panel showing explored locations as a spatial grid.
+    
+    The map displays:
+    - █ Current location (where player is)
+    - ░ Visited locations (previously explored)
+    - ○ Adjacent locations (connected to visited, names visible)
+    - ? Unknown locations (beyond fog of war)
+    - ⚠ Danger indicator for locations with threats
+    
+    Hidden rooms (is_hidden=True) are not shown until discovered via secrets.
     
     Args:
         state: Current game state
     
     Returns:
-        Rich Panel with map display
+        Rich Panel with spatial map display
     """
-    content = Text()
+    from void_walker.utils.map_builder import build_map_grid, render_map_rich
     
-    # Get all locations
-    locations = state.scenario.locations
-    current = state.current_location
-    visited = state.visited_locations
+    # Build the spatial map grid
+    grid = build_map_grid(state)
     
-    # Simple text-based map representation
-    for loc in locations:
-        if loc.id == current:
-            # Current location
-            content.append("█ ", style="success")
-            content.append(loc.name, style="text.bright")
-            content.append(" ← Vous êtes ici\n", style="success")
-        elif loc.id in visited:
-            # Visited location
-            content.append("░ ", style="dim")
-            content.append(loc.name, style="text")
-            
-            # Show connections
-            if loc.threats:
-                content.append(" ⚠", style="danger")
-            content.append("\n")
-        else:
-            # Unknown location (only show if connected to visited)
-            is_adjacent = any(
-                loc.id in state.scenario.get_location(v).connections 
-                for v in visited 
-                if state.scenario.get_location(v)
-            )
-            if is_adjacent:
-                content.append("○ ", style="dim")
-                content.append("???", style="dim")
-                content.append("\n")
-    
-    content.append("\n")
-    content.append("█ Vous  ░ Visité  ○ Inconnu  ⚠ Danger", style="dim")
+    # Render as Rich Text with styling
+    content = render_map_rich(grid)
     
     return Panel(
         content,
