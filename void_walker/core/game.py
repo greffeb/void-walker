@@ -30,7 +30,12 @@ from void_walker.llm.parser import (
     validate_game_response,
     ParseError,
 )
-from void_walker.llm.prompts import build_gameplay_prompt
+from void_walker.llm.prompts import (
+    build_gameplay_prompt,
+    build_environment_prompt,
+    build_location_name_prompt,
+    get_exits_with_names,
+)
 from void_walker.llm.world_gen import create_fallback_scenario, generate_scenario
 from void_walker.ui import (
     CommandType,
@@ -602,14 +607,23 @@ class Game:
                 self.console.print(f"[danger]Erreur: {e}[/danger]")
                 return
         
-        # Display narrative
-        clear_screen()
-        await self._display_narrative(response.narrative, response.tension_level)
-        
-        # Apply state changes and get event flags
+        # Apply state changes FIRST (so location is updated before environment generation)
         messages, new_valid_location, objective_completed, secret_found = (
             self.state.apply_state_changes(response.state_changes)
         )
+        
+        # Generate environment description AFTER state changes (uses new location)
+        environment_text = await self._get_environment_description(response.scene_elements)
+        
+        # Combine narrative with environment description
+        combined_narrative = response.narrative
+        if environment_text:
+            combined_narrative = f"{response.narrative}\n\n{environment_text}"
+        
+        # Display combined narrative
+        clear_screen()
+        await self._display_narrative(combined_narrative, response.tension_level)
+        
         # Only display "Obtenu:" messages in debug mode
         if self.debug:
             for msg in messages:
@@ -699,18 +713,123 @@ class Game:
             )
             self.console.print()
     
+    async def _generate_hallucinated_location_name(self, location_id: str) -> str:
+        """
+        Generate a human-readable French name for a hallucinated location.
+        
+        Uses LLM to convert snake_case IDs to proper French names.
+        Caches the result for future use.
+        
+        Args:
+            location_id: The location ID to convert
+        
+        Returns:
+            Human-readable French name
+        """
+        # Check cache first
+        if location_id in self.state.hallucinated_location_names:
+            return self.state.hallucinated_location_names[location_id]
+        
+        try:
+            prompt = build_location_name_prompt(location_id)
+            name = await call_llm(prompt, model_key="gameplay")
+            name = name.strip().strip('"').strip("'")
+            
+            # Cache for future use
+            self.state.cache_hallucinated_location_name(location_id, name)
+            self.logger.llm_response("location_name", f"{location_id} -> {name}")
+            
+            return name
+        except LLMError as e:
+            self.logger.error("location_name_error", str(e))
+            # Fallback: basic cleanup of the ID
+            return location_id.replace('_', ' ').title()
+    
+    async def _get_location_display_name(self, location_id: str) -> str:
+        """
+        Get display name for a location, generating if needed for hallucinated ones.
+        
+        Args:
+            location_id: The location ID
+        
+        Returns:
+            Human-readable French name
+        """
+        # Check if it's a valid scenario location
+        location = self.state.scenario.get_location(location_id)
+        if location:
+            return location.name
+        
+        # It's a hallucinated location - generate name if needed
+        return await self._generate_hallucinated_location_name(location_id)
+    
+    async def _get_environment_description(self, scene_elements: list[str]) -> str | None:
+        """
+        Get environment description, using cache if valid.
+        
+        Generates a prose description of available exits and interactive elements.
+        Uses caching to avoid redundant LLM calls when nothing has changed.
+        
+        Args:
+            scene_elements: Scene elements from the current LLM response
+        
+        Returns:
+            Environment description prose in French, or None on error
+        """
+        # Check if cache is valid
+        if self.state.is_environment_cache_valid(scene_elements):
+            self.logger.state_change("environment_cache", "Using cached environment description")
+            return self.state.cached_environment_description
+        
+        # Get location info - use async display name for hallucinated locations
+        location_name = await self._get_location_display_name(self.state.current_location)
+        
+        # Get exits with readable names (handle hallucinated exits too)
+        exits_with_names = []
+        for exit_id in self.state.available_exits:
+            exit_name = await self._get_location_display_name(exit_id)
+            exits_with_names.append((exit_id, exit_name))
+        
+        # Get NPCs at current location
+        npcs_present = [
+            npc.name for npc in self.state.scenario.npcs
+            if npc.location == self.state.current_location and npc.is_alive
+        ]
+        
+        # Build and call environment prompt
+        prompt = build_environment_prompt(
+            location_name=location_name,
+            exits_with_names=exits_with_names,
+            scene_elements=scene_elements,
+            npcs_present=npcs_present,
+        )
+        
+        try:
+            environment_text = await call_llm(prompt, model_key="gameplay")
+            # Clean up response (remove any markdown or extra formatting)
+            environment_text = environment_text.strip()
+            if environment_text.startswith('"') and environment_text.endswith('"'):
+                environment_text = environment_text[1:-1]
+            
+            # Cache the result
+            self.state.update_environment_cache(environment_text, scene_elements)
+            self.logger.llm_response("environment", environment_text)
+            
+            return environment_text
+        except LLMError as e:
+            self.logger.error("environment_llm_error", str(e))
+            return None
+    
     async def _display_status(self) -> None:
         """Display the status bar."""
         elapsed = datetime.now() - self.start_time if self.start_time else datetime.now() - datetime.now()
         elapsed_str = f"{int(elapsed.total_seconds() // 60):02d}:{int(elapsed.total_seconds() % 60):02d}"
         
-        location = self.state.scenario.get_location(self.state.current_location)
-        location_name = location.name if location else self.state.current_location
+        # Use async method to ensure hallucinated location names are generated
+        location_name = await self._get_location_display_name(self.state.current_location)
         
         # Check if we're in a hallucinated location
         is_hallucinated = self.state.is_in_hallucinated_location
-        if is_hallucinated:
-            location_name = self.state.current_hallucinated_location or location_name
         
         status = create_status_bar(
             hp=self.state.player.hp,

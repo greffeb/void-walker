@@ -198,20 +198,20 @@ class GuidanceSystem:
             return ""
         
         content = self._get_dynamic_hint_content()
-        context_parts = ["\n🧭 GUIDANCE DU JOUEUR (le joueur semble perdu):"]
+        context_parts = ["\n🧭 PLAYER GUIDANCE (player seems lost):"]
         
         # Level 1: Subtle - just show unvisited locations
         if hint_level >= 1:
             unvisited = content["unvisited_exits"]
             if unvisited:
                 context_parts.append(
-                    f"- Lieux non explorés accessibles: {', '.join(unvisited)}"
+                    f"- Unexplored accessible locations: {', '.join(unvisited)}"
                 )
             
             if hint_level == 1:
                 context_parts.append(
-                    "DIRECTIVE: Mentionne subtilement une direction intéressante "
-                    "ou un détail attirant l'attention vers une zone non visitée."
+                    "DIRECTIVE: Subtly mention an interesting direction "
+                    "or detail that draws attention toward an unvisited area."
                 )
         
         # Level 2: Moderate - add NPC/secret hints
@@ -219,36 +219,36 @@ class GuidanceSystem:
             if content["npc_hint"]:
                 npc = content["npc_hint"]
                 context_parts.append(
-                    f"- PNJ avec info utile: {npc['name']} sait '{npc['knowledge']}'"
+                    f"- NPC with useful info: {npc['name']} knows '{npc['knowledge']}'"
                 )
             
             if content["secret_hint"]:
-                context_parts.append(f"- Indice manqué: {content['secret_hint']}")
+                context_parts.append(f"- Missed clue: {content['secret_hint']}")
             
             if hint_level == 2:
                 context_parts.append(
-                    "DIRECTIVE: Intègre un élément narratif qui oriente le joueur "
-                    "(bruit suspect, lumière clignotante, message radio partiel)."
+                    "DIRECTIVE: Include a narrative element that guides the player "
+                    "(suspicious noise, blinking light, partial radio message)."
                 )
         
         # Level 3: Direct - explicit objective guidance
         if hint_level >= 3:
             if content["objective_hint"]:
                 obj = content["objective_hint"]
-                context_parts.append(f"- Objectif: {obj['description']}")
+                context_parts.append(f"- Objective: {obj['description']}")
                 if obj["missing_items"]:
                     context_parts.append(
-                        f"- Objets manquants: {', '.join(obj['missing_items'])}"
+                        f"- Missing items: {', '.join(obj['missing_items'])}"
                     )
                 if obj["missing_info"]:
                     context_parts.append(
-                        f"- Informations manquantes: {', '.join(obj['missing_info'])}"
+                        f"- Missing information: {', '.join(obj['missing_info'])}"
                     )
             
             context_parts.append(
-                "DIRECTIVE: Un PNJ, enregistrement audio, message d'urgence ou "
-                "flashback du joueur donne un indice EXPLICITE sur la marche à suivre. "
-                "Le joueur a besoin d'aide directe pour progresser."
+                "DIRECTIVE: An NPC, audio recording, emergency message or "
+                "player flashback gives an EXPLICIT hint about what to do next. "
+                "The player needs direct help to progress."
             )
         
         # Track that we delivered a hint

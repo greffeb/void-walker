@@ -4,10 +4,17 @@ Void Walker - Prompt Templates.
 Contains all prompt templates for world generation and gameplay.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from void_walker.config import SESSION_CONFIGS
 from void_walker.core.dice import CheckResult, DiceResult
 from void_walker.core.state import GameState, Scenario, SessionProgress
 from void_walker.core.guidance import GuidanceSystem
+
+if TYPE_CHECKING:
+    from void_walker.llm.option_generator import GenerationOptions
 
 
 # =============================================================================
@@ -19,7 +26,7 @@ WORLD_GEN_PROMPT = """You are generating a scenario for a space horror RPG calle
 Create a unique, self-contained scenario with the following parameters:
 - Session length: {session_type} ({scene_count} scenes)
 - Complexity: {complexity}
-
+{generation_constraints}
 SCENARIO DESIGN PRINCIPLES:
 1. MAP COHERENCE
    - Every location must have at least ONE of: useful item, secret, required passage, or NPC
@@ -149,14 +156,34 @@ CRITICAL REQUIREMENTS:
 OUTPUT RAW JSON ONLY:"""
 
 
-def build_world_gen_prompt(session_type: str = "standard") -> str:
-    """Build the world generation prompt for a specific session type."""
+def build_world_gen_prompt(
+    session_type: str = "standard",
+    options: GenerationOptions | None = None,
+) -> str:
+    """
+    Build the world generation prompt for a specific session type.
+    
+    Args:
+        session_type: Type of session (quick/standard/extended)
+        options: Optional generation options to constrain the scenario
+    
+    Returns:
+        Complete world generation prompt
+    """
     config = SESSION_CONFIGS.get(session_type, SESSION_CONFIGS["standard"])
+    
+    # Build constraints section if options provided
+    if options is not None:
+        from void_walker.llm.option_generator import format_options_for_prompt
+        generation_constraints = format_options_for_prompt(options)
+    else:
+        generation_constraints = ""
     
     return WORLD_GEN_PROMPT.format(
         session_type=session_type,
         scene_count=config["scenes"],
         complexity=config["complexity"],
+        generation_constraints=generation_constraints,
     )
 
 
@@ -166,55 +193,58 @@ def build_world_gen_prompt(session_type: str = "standard") -> str:
 
 PACING_INSTRUCTIONS = {
     "intro": """
-PHASE: INTRODUCTION (scène {current}/{total})
+PHASE: INTRODUCTION (scene {current}/{total})
 DIRECTIVES:
-- Établis l'atmosphère et la situation initiale
-- Donne au joueur son objectif principal
-- Indices subtils sur la menace, pas de confrontation directe
-- Tension cible: 3-4/10
+- Establish the situation briefly and give the player their main objective
+- Subtle hints about the threat, no direct confrontation yet
+- Target tension: 3-4/10
+- Keep narrative CONCISE and ACTION-FOCUSED
 """,
     "rising": """
-PHASE: MONTÉE DRAMATIQUE (scène {current}/{total})
+PHASE: RISING ACTION (scene {current}/{total})
 DIRECTIVES:
-- Exploration et découvertes
-- Indices sur ce qui s'est passé (datapads, traces, messages)
-- Obstacles mineurs, premiers signes de la menace
-- Rencontres avec survivants/PNJ possibles
-- Tension cible: 4-6/10, augmente progressivement
+- Exploration and discoveries
+- Clues about what happened (datapads, traces, messages)
+- Minor obstacles, first signs of the threat
+- Possible encounters with survivors/NPCs
+- Target tension: 4-6/10, gradually increasing
+- Keep narrative CONCISE and ACTION-FOCUSED
 """,
     "midpoint": """
-PHASE: POINT MÉDIAN (scène {current}/{total})
+PHASE: MIDPOINT (scene {current}/{total})
 DIRECTIVES:
-- C'est le moment d'une RÉVÉLATION MAJEURE ou ESCALADE
-- Le joueur doit comprendre la vraie nature de la menace
-- Introduis un nouvel objectif ou une complication importante
-- Tension cible: 6-7/10
+- Time for a MAJOR REVELATION or ESCALATION
+- Player should understand the true nature of the threat
+- Introduce a new objective or important complication
+- Target tension: 6-7/10
+- Keep narrative CONCISE and ACTION-FOCUSED
 """,
     "escalation": """
-PHASE: ESCALADE (scène {current}/{total})
+PHASE: ESCALATION (scene {current}/{total})
 DIRECTIVES:
-- Confrontations directes avec la menace
-- Ressources limitées, pression temporelle
-- Les choix ont des conséquences lourdes
-- Prépare le terrain pour le climax
-- Tension cible: 7-8/10
+- Direct confrontations with the threat
+- Limited resources, time pressure
+- Choices have serious consequences
+- Set up the climax
+- Target tension: 7-8/10
+- Keep narrative CONCISE and ACTION-FOCUSED
 """,
     "climax": """
-PHASE: CLIMAX (scène {current}/{total})
+PHASE: CLIMAX (scene {current}/{total})
 DIRECTIVES:
-- Confrontation finale ou défi ultime
-- Le joueur doit utiliser ce qu'il a appris/trouvé
-- Difficultés élevées (DC 15+)
-- Possibilité de victoire OU défaite selon les actions
-- Tension cible: 9-10/10
+- Final confrontation or ultimate challenge
+- Player must use what they've learned/found
+- High difficulties (DC 15+)
+- Victory OR defeat possible based on actions
+- Target tension: 9-10/10
 """,
     "resolution": """
-PHASE: RÉSOLUTION (scène finale)
+PHASE: RESOLUTION (final scene)
 DIRECTIVES:
-- Narre l'épilogue basé sur le résultat des actions du joueur
-- Récapitule brièvement le parcours
-- Le champ "is_ending" DOIT être true
-- Choisis ending_type parmi: victory, defeat, escape, mystery_solved
+- Narrate the epilogue based on player's actions
+- Brief recap of the journey
+- Field "is_ending" MUST be true
+- Choose ending_type from: victory, defeat, escape, mystery_solved
 """,
 }
 
@@ -235,19 +265,19 @@ def build_pacing_context(progress: SessionProgress, scenario: Scenario) -> str:
     # Add objective tracking (handle both string and structured victory conditions)
     victory_desc = scenario.get_victory_description()
     context += f"""
-OBJECTIF PRINCIPAL: {victory_desc}
-OBJECTIFS COMPLÉTÉS: {', '.join(progress.objectives_completed) or 'Aucun'}
-SECRETS DÉCOUVERTS: {progress.secrets_found}/{len(scenario.secrets)}
+MAIN OBJECTIVE: {victory_desc}
+OBJECTIVES COMPLETED: {', '.join(progress.objectives_completed) or 'None'}
+SECRETS DISCOVERED: {progress.secrets_found}/{len(scenario.secrets)}
 """
     
     # Add proximity warnings for session end
     scenes_remaining = progress.scenes_remaining
     if scenes_remaining <= 3 and progress.story_beat != "resolution":
         context += f"""
-⚠️ FIN DE SESSION PROCHE ({scenes_remaining} scènes restantes)
-- Dirige activement l'histoire vers une conclusion
-- Prochaine phase recommandée: {"climax" if scenes_remaining > 1 else "resolution"}
-- Augmente la tension et les enjeux maintenant
+⚠️ SESSION END APPROACHING ({scenes_remaining} scenes remaining)
+- Actively steer the story toward a conclusion
+- Recommended next phase: {"climax" if scenes_remaining > 1 else "resolution"}
+- Increase tension and stakes now
 """
     
     return context
@@ -263,19 +293,19 @@ def build_dice_context(result: DiceResult | None) -> str:
         return ""
     
     outcome_map = {
-        CheckResult.CRITICAL_SUCCESS: "SUCCÈS CRITIQUE (20 naturel) - résultat exceptionnel",
-        CheckResult.SUCCESS: "SUCCÈS - l'action réussit",
-        CheckResult.FAILURE: "ÉCHEC - l'action échoue avec conséquences",
-        CheckResult.CRITICAL_FAILURE: "ÉCHEC CRITIQUE (1 naturel) - catastrophe",
+        CheckResult.CRITICAL_SUCCESS: "CRITICAL SUCCESS (natural 20) - exceptional result",
+        CheckResult.SUCCESS: "SUCCESS - action succeeds",
+        CheckResult.FAILURE: "FAILURE - action fails with consequences",
+        CheckResult.CRITICAL_FAILURE: "CRITICAL FAILURE (natural 1) - catastrophe",
     }
     
     return f"""
-RÉSULTAT DU DÉ:
-- Jet: {result.roll} (dé) + {result.stat_value} ({result.stat}) + {result.modifier} (mod) = {result.total}
-- Difficulté: {result.difficulty}
-- Résultat: {outcome_map[result.outcome]}
+DICE RESULT:
+- Roll: {result.roll} (die) + {result.stat_value} ({result.stat}) + {result.modifier} (mod) = {result.total}
+- Difficulty: {result.difficulty}
+- Outcome: {outcome_map[result.outcome]}
 
-IMPORTANT: Tu DOIS narrer un {result.outcome.value}. Pas de demi-succès sur un échec.
+IMPORTANT: You MUST narrate a {result.outcome.value}. No partial success on a failure.
 """
 
 
@@ -283,82 +313,209 @@ IMPORTANT: Tu DOIS narrer un {result.outcome.value}. Pas de demi-succès sur un 
 # GAMEPLAY PROMPT
 # =============================================================================
 
-GAMEPLAY_PROMPT_TEMPLATE = """Tu es le maître de jeu d'un RPG d'horreur spatiale "Void Walker".
+GAMEPLAY_PROMPT_TEMPLATE = """You are the game master of a space horror RPG called "Void Walker".
 
 {pacing_context}
 
-SITUATION ACTUELLE:
-- Lieu: {location_name} ({location_id})
-- PV: {hp}/{max_hp}
-- Menaces actives: {active_threats}
-- Sorties disponibles: {available_exits}
+CURRENT SITUATION:
+- Location: {location_name} ({location_id})
+- HP: {hp}/{max_hp}
+- Active threats: {active_threats}
+- Available exits: {available_exits}
 
-JOUEUR ({player_name}, {player_class}):
+PLAYER ({player_name}, {player_class}):
 - FOR {for_stat} | INT {int_stat} | CHA {cha_stat}
-- Inventaire: {inventory}
+- Inventory: {inventory}
 
-ÉVÉNEMENTS RÉCENTS:
+RECENT EVENTS:
 {recent_events}
 
-SCÉNARIO:
-- Menace principale: {main_threat}
-- Lieux visités: {visited_locations}
+SCENARIO:
+- Main threat: {main_threat}
+- Visited locations: {visited_locations}
 
 {items_context}
 
 {dice_context}
 {guidance_context}
 
-ACTION DU JOUEUR: {player_input}
+PLAYER ACTION: {player_input}
 
-RÈGLES DE RÉPONSE:
-1. Réponds UNIQUEMENT en JSON valide (pas de texte avant/après)
-2. Narration en français, 2-4 phrases, atmosphère horrifique
-3. Respecte les DIRECTIVES de la phase actuelle
-4. Évalue équitablement les actions créatives
-5. Si l'action nécessite un jet, définis difficulty (1-20)
-6. Respecte ABSOLUMENT les résultats des dés fournis
-7. CRITIQUE: "is_ending" doit être FALSE sauf si la phase est "climax" ou "resolution"
-8. Ne JAMAIS terminer la partie pour une simple action d'exploration
-9. IMPORTANT POUR LA NARRATION: Marque les objets trouvés avec la syntaxe [ITEM:id_technique]description narrative du joueur[/ITEM]
+RESPONSE RULES:
+1. Reply ONLY with valid JSON (no text before/after)
+2. Narrative in FRENCH, 1-2 sentences MAXIMUM, concise and action-focused (NOT atmospheric prose)
+3. Follow the DIRECTIVES for the current phase
+4. Fairly evaluate creative actions
+5. If action requires a roll, set difficulty (1-20)
+6. ABSOLUTELY respect dice results provided
+7. CRITICAL: "is_ending" must be FALSE unless phase is "climax" or "resolution"
+8. NEVER end the game for a simple exploration action
+9. IMPORTANT FOR NARRATIVE: Mark found items with syntax [ITEM:technical_id]narrative description[/ITEM]
 
-INSTRUMENTATION NARRATIVE:
-Si le joueur trouve des objets, intègre-les naturellement dans la narration EN LES ENTOURANT DE BALISES:
-- Exemple: "Tu découvres [ITEM:medkit]une trousse de secours scellée[/ITEM] dans les débris."
-- Exemple: "À l'intérieur du casier reposent [ITEM:journal]un vieux journal de bord[/ITEM] et [ITEM:boite_metallique]une boîte métallique rouillée[/ITEM]."
-- Les IDs techniques fournis ci-dessous DOIVENT être utilisés dans les balises
-- Le texte entre les balises doit décrire l'objet de manière immersive et narrative
-- Chaque objet mentionné dans le champ "items_added" DOIT être marqué avec ses balises
+NARRATIVE STYLE:
+- Be DIRECT and CONCISE. Describe what happens, not the atmosphere.
+- BAD: "L'odeur âcre de désinfectant flotte dans l'air, masquant une autre senteur plus subtile..."
+- GOOD: "Tu entres dans l'infirmerie. Des lits déserts s'alignent sous un éclairage vacillant."
+- Focus on RESULTS of actions, not sensory descriptions
 
-OBJETS À TROUVER (si applicables):
+ITEM TAGGING:
+If player finds items, integrate them naturally with tags:
+- Example: "Tu découvres [ITEM:medkit]une trousse de secours[/ITEM] dans les débris."
+- Technical IDs provided below MUST be used in tags
+- Every item in "items_added" MUST be tagged
+
+AVAILABLE ITEMS (if applicable):
 {items_list}
 
-JSON attendu:
+Expected JSON:
 {{
-  "narrative": "string (2-4 phrases en français, avec marquage des items via [ITEM:id]...[/ITEM])",
+  "narrative": "string (1-2 sentences in FRENCH, concise, with item tags via [ITEM:id]...[/ITEM])",
   "action_type": "exploration|interaction|combat|skill_check|dialogue",
   "requires_roll": boolean,
-  "difficulty": null ou 1-20,
-  "relevant_stat": null ou "FOR"|"INT"|"CHA",
-  "suggested_modifier": -5 à +5,
+  "difficulty": null or 1-20,
+  "relevant_stat": null or "FOR"|"INT"|"CHA",
+  "suggested_modifier": -5 to +5,
   "state_changes": {{
     "hp_change": 0,
     "items_added": [],
     "items_removed": [],
-    "location_change": null ou "location_id",
+    "location_change": null or "location_id",
     "secrets_discovered": [],
-    "objective_completed": null ou "string",
+    "objective_completed": null or "string",
     "enemy_defeated": false,
     "creative_solution": false
   }},
-  "scene_elements": ["éléments visibles/interactifs"],
+  "scene_elements": ["visible/interactive elements - include ALL interactive objects and exits"],
   "suggestions": ["suggestion 1", "suggestion 2", "suggestion 3"],
   "tension_level": 1-10,
   "is_ending": false,
   "ending_type": null
 }}
 
-IMPORTANT: Garde "is_ending": false pour cette scène. L'histoire continue!"""
+IMPORTANT: Keep "is_ending": false for this scene. The story continues!"""
+
+
+# =============================================================================
+# LOCATION NAME GENERATION PROMPT
+# =============================================================================
+
+LOCATION_NAME_PROMPT = """Convert this technical location ID into a proper French location name for a space horror game.
+
+Location ID: {location_id}
+
+Rules:
+- Output ONLY the French name, nothing else
+- Make it sound natural in French (e.g., "Salle de reproduction alien" not "Alien Breeding Room")
+- Keep it concise (2-5 words maximum)
+- Match the space horror atmosphere
+
+Examples:
+- "conduit_maintenance_interior" -> "Conduit de maintenance"
+- "alien_breeding_chamber" -> "Chambre d'incubation alien"
+- "cargo_bay_alpha" -> "Baie de chargement Alpha"
+- "hidden_laboratory" -> "Laboratoire secret"
+- "crew_quarters_deck_2" -> "Quartiers de l'équipage - Pont 2"
+- "vent_shaft_access" -> "Accès aux conduits de ventilation"
+- "reactor_overflow_tank" -> "Cuve de décharge du réacteur"
+
+Output the French name only:"""
+
+
+def build_location_name_prompt(location_id: str) -> str:
+    """Build prompt to generate a French name for a location ID."""
+    return LOCATION_NAME_PROMPT.format(location_id=location_id)
+
+
+# =============================================================================
+# ENVIRONMENT DESCRIPTION PROMPT
+# =============================================================================
+
+ENVIRONMENT_PROMPT = """You generate a brief environment description for a space horror RPG.
+
+CURRENT LOCATION: {location_name}
+AVAILABLE EXITS (with names):
+{exits_list}
+
+INTERACTIVE ELEMENTS IN SCENE:
+{scene_elements}
+
+NPCS PRESENT:
+{npcs_present}
+
+Generate a SHORT prose paragraph in FRENCH (2-3 sentences max) that:
+1. Mentions ALL available exits by their readable names (not IDs)
+2. Lists key interactive objects/elements the player can examine or use
+3. Notes any NPCs present
+
+STYLE:
+- Write as prose, not a list
+- Be direct and informative, not atmospheric
+- Help the player understand their options
+- Example: "Devant toi, le couloir mène vers l'infirmerie et la salle des serveurs. Tu remarques un terminal actif contre le mur et une trappe de ventilation entrouverte."
+
+Reply with ONLY the French prose paragraph, no JSON, no formatting."""
+
+
+def build_environment_prompt(
+    location_name: str,
+    exits_with_names: list[tuple[str, str]],
+    scene_elements: list[str],
+    npcs_present: list[str],
+) -> str:
+    """
+    Build prompt for environment description generation.
+    
+    Args:
+        location_name: Current location name
+        exits_with_names: List of (exit_id, exit_name) tuples
+        scene_elements: List of interactive elements from last LLM response
+        npcs_present: List of NPC names in current location
+    
+    Returns:
+        Complete prompt string
+    """
+    # Format exits - only show readable names, not IDs
+    if exits_with_names:
+        exits_list = "\n".join(f"- {name}" for exit_id, name in exits_with_names)
+    else:
+        exits_list = "- Aucune sortie visible"
+    
+    # Format scene elements
+    if scene_elements:
+        elements_str = "\n".join(f"- {elem}" for elem in scene_elements)
+    else:
+        elements_str = "- Rien de notable"
+    
+    # Format NPCs
+    if npcs_present:
+        npcs_str = "\n".join(f"- {npc}" for npc in npcs_present)
+    else:
+        npcs_str = "- Personne"
+    
+    return ENVIRONMENT_PROMPT.format(
+        location_name=location_name,
+        exits_list=exits_list,
+        scene_elements=elements_str,
+        npcs_present=npcs_str,
+    )
+
+
+def get_exits_with_names(state: GameState) -> list[tuple[str, str]]:
+    """
+    Get available exits with their human-readable names.
+    
+    Args:
+        state: Current game state
+    
+    Returns:
+        List of (exit_id, exit_name) tuples
+    """
+    exits_with_names = []
+    for exit_id in state.available_exits:
+        exit_loc = state.scenario.get_location(exit_id)
+        exit_name = exit_loc.name if exit_loc else exit_id
+        exits_with_names.append((exit_id, exit_name))
+    return exits_with_names
 
 
 def build_gameplay_prompt(
@@ -391,7 +548,7 @@ def build_gameplay_prompt(
     items_in_location = []
     if location and location.items:
         items_in_location = [
-            f"  - {item['id']}: {item['name']}"
+            f"  - {item.id}: {item.name}"
             for item in location.items
         ]
     items_context = ""
@@ -411,6 +568,10 @@ def build_gameplay_prompt(
     guidance = GuidanceSystem(state)
     guidance_context = guidance.build_hint_context()
     
+    # Build readable exit names
+    exits_with_names = get_exits_with_names(state)
+    available_exits_str = ", ".join(f"{name} ({eid})" for eid, name in exits_with_names) or "Aucune"
+    
     return GAMEPLAY_PROMPT_TEMPLATE.format(
         pacing_context=build_pacing_context(state.progress, state.scenario),
         location_name=location_name,
@@ -418,7 +579,7 @@ def build_gameplay_prompt(
         hp=state.player.hp,
         max_hp=state.player.max_hp,
         active_threats=", ".join(state.active_threats) or "Aucune",
-        available_exits=", ".join(state.available_exits) or "Aucune",
+        available_exits=available_exits_str,
         player_name=state.player.name,
         player_class=state.player.class_name,
         for_stat=state.player.get_stat("FOR"),

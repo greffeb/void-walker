@@ -438,6 +438,14 @@ class GameState(BaseModel):
     location_history: list[str] = Field(default_factory=list)  # Last 10 locations for wandering detection
     hints_delivered: list[str] = Field(default_factory=list)  # Track delivered hints to avoid repetition
     
+    # Environment description caching
+    cached_environment_description: str | None = None  # Cached environment prose
+    environment_cache_key: str | None = None  # Hash of location + scene_elements for cache invalidation
+    last_scene_elements: list[str] = Field(default_factory=list)  # Scene elements from last LLM response
+    
+    # Hallucinated location names (ID -> human-readable name in French)
+    hallucinated_location_names: dict[str, str] = Field(default_factory=dict)
+    
     model_config = {"arbitrary_types_allowed": True}
     
     def add_event(self, event: str, max_events: int = 10) -> None:
@@ -560,6 +568,16 @@ class GameState(BaseModel):
         if len(self.location_history) > 10:
             self.location_history = self.location_history[-10:]
         
+        # Invalidate environment cache if significant changes occurred
+        cache_invalidating_changes = (
+            new_valid_location or  # Location changed
+            len(changes.items_added) > 0 or  # Items picked up
+            len(changes.items_removed) > 0 or  # Items used/dropped
+            secret_found  # Secret discovered (might reveal new elements)
+        )
+        if cache_invalidating_changes:
+            self.invalidate_environment_cache()
+        
         return messages, new_valid_location, objective_completed, secret_found
     
     def get_unvisited_exits(self) -> list[str]:
@@ -645,3 +663,90 @@ class GameState(BaseModel):
             npc for npc in self.scenario.npcs
             if npc.knowledge and npc.is_alive
         ]
+    
+    def compute_environment_cache_key(self, scene_elements: list[str]) -> str:
+        """
+        Compute a cache key for environment description.
+        
+        The key changes when location or scene elements change.
+        
+        Args:
+            scene_elements: Current scene elements from LLM response
+        
+        Returns:
+            A string key for cache comparison
+        """
+        import hashlib
+        elements_str = "|".join(sorted(scene_elements))
+        combined = f"{self.current_location}:{elements_str}"
+        return hashlib.md5(combined.encode()).hexdigest()
+    
+    def is_environment_cache_valid(self, scene_elements: list[str]) -> bool:
+        """
+        Check if the cached environment description is still valid.
+        
+        Args:
+            scene_elements: Current scene elements from LLM response
+        
+        Returns:
+            True if cache is valid, False if needs refresh
+        """
+        if self.cached_environment_description is None:
+            return False
+        if self.environment_cache_key is None:
+            return False
+        
+        current_key = self.compute_environment_cache_key(scene_elements)
+        return current_key == self.environment_cache_key
+    
+    def update_environment_cache(self, description: str, scene_elements: list[str]) -> None:
+        """
+        Update the environment description cache.
+        
+        Args:
+            description: The new environment description prose
+            scene_elements: The scene elements used to generate it
+        """
+        self.cached_environment_description = description
+        self.environment_cache_key = self.compute_environment_cache_key(scene_elements)
+        self.last_scene_elements = scene_elements.copy()
+    
+    def invalidate_environment_cache(self) -> None:
+        """Invalidate the environment cache, forcing regeneration on next turn."""
+        self.cached_environment_description = None
+        self.environment_cache_key = None
+    
+    def get_location_display_name(self, location_id: str) -> str:
+        """
+        Get a human-readable display name for a location (sync version).
+        
+        For valid locations, returns the location's name.
+        For hallucinated locations, returns cached generated name or the ID.
+        
+        Args:
+            location_id: The location ID to get a name for
+        
+        Returns:
+            Human-readable location name in French, or ID if not yet generated
+        """
+        # Check if it's a valid scenario location
+        location = self.scenario.get_location(location_id)
+        if location:
+            return location.name
+        
+        # Check if we have a cached name for this hallucinated location
+        if location_id in self.hallucinated_location_names:
+            return self.hallucinated_location_names[location_id]
+        
+        # Return the ID as fallback (will be replaced by async generation)
+        return location_id
+    
+    def cache_hallucinated_location_name(self, location_id: str, name: str) -> None:
+        """
+        Cache a generated human-readable name for a hallucinated location.
+        
+        Args:
+            location_id: The location ID
+            name: The generated French name
+        """
+        self.hallucinated_location_names[location_id] = name

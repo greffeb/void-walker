@@ -1,0 +1,290 @@
+{
+  "title": "Le Silence qui Dévore",
+  "setting_type": "research_lab",
+  "setting_name": "Observatoire Ankou",
+  "premise": "Vous répondez à un appel de détresse de l'Observatoire Ankou, un site de recherche sur une faille dimensionnelle. La station est silencieuse, étrangement intacte, mais l'équipage a disparu. Vous devez découvrir ce qui s'est passé et survivre à une menace qui efface ses victimes de l'existence même.",
+  "main_threat": "conceptual_predator",
+  "threat_description": "Le prédateur, surnommé 'L'Écho', n'a pas de forme physique. Il est attiré par la pensée complexe, les souvenirs et les émotions fortes. Il attaque en 'consommant' les concepts liés à sa victime, l'effaçant progressivement de la réalité et de la mémoire. Sa faiblesse est le 'bruit conceptuel' : les paradoxes, les pensées illogiques ou les ondes psychiques brouillées le désorientent et le repoussent.",
+  "victory_condition": {
+    "description": "Fermer la faille dimensionnelle pour couper l'accès du prédateur à notre réalité. Il faut trouver le protocole de fermeture et la clé de résonance, puis les utiliser sur la console de contrôle dans la Chambre de la Faille.",
+    "required_items": [
+      "cle_de_resonance"
+    ],
+    "required_info": [
+      "protocole_de_fermeture"
+    ],
+    "required_location": "chambre_de_la_faille",
+    "alternative_approach": "Au lieu de fermer la faille, il est possible de l'utiliser pour piéger le prédateur. En créant un 'appât conceptuel' puissant (comme diffuser les recherches du Dr. Lenoir en boucle) depuis le laboratoire, on peut attirer la créature dans la chambre de la faille puis activer le champ de confinement d'urgence."
+  },
+  "starting_location": "sas_d_amarrage",
+  "locations": [
+    {
+      "id": "sas_d_amarrage",
+      "name": "Sas d'Amarrage",
+      "description": "Le sas est froid, stérile et silencieux. Les lumières de statut clignotent en vert, indiquant que tout est nominal. Une fine couche de poussière recouvre le sol, suggérant une inactivité prolongée.",
+      "connections": [
+        "corridor_principal",
+        "salle_de_securite"
+      ],
+      "danger_level": 1,
+      "items": [],
+      "threats": [],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "salle_de_securite",
+      "name": "Salle de Sécurité",
+      "description": "Une rangée d'écrans affiche des images statiques ou des boucles de couloirs vides. Une unique chaise est renversée devant la console principale. Une trousse de premiers secours est fixée au mur, son sceau brisé.",
+      "connections": [
+        "sas_d_amarrage"
+      ],
+      "danger_level": 3,
+      "items": [
+        {
+          "id": "stim_mnemonique",
+          "name": "Stim Mnémonique",
+          "description": "Un auto-injecteur contenant un nootropique puissant qui combat la confusion et la perte de mémoire à court terme.",
+          "item_type": "consumable",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "Risque d'attirer L'Écho en consultant les journaux de données intensifs."
+      ],
+      "secrets": [
+        "secret_log_rostova"
+      ],
+      "is_dead_end": true,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "corridor_principal",
+      "name": "Corridor Principal",
+      "description": "Un long couloir blanc, perturbé par des ombres qui semblent bouger quand on ne les regarde pas directement. Des noms sur les plaques de porte sont effacés ou incomplets. Un datapad abandonné gît sur le sol, son écran clignotant.",
+      "connections": [
+        "sas_d_amarrage",
+        "quartiers_d_equipage",
+        "laboratoire_principal"
+      ],
+      "danger_level": 4,
+      "items": [],
+      "threats": [
+        "Patrouilles de L'Écho, surtout si les joueurs pensent à des sujets complexes."
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "quartiers_d_equipage",
+      "name": "Quartiers d'Équipage",
+      "description": "Les couchettes sont faites, les effets personnels bien rangés, mais une absence palpable pèse dans l'air. Sur un mur, quelqu'un a griffonné des équations paradoxales et des boucles logiques, comme pour se protéger. Un casier est entrouvert.",
+      "connections": [
+        "corridor_principal"
+      ],
+      "danger_level": 5,
+      "items": [],
+      "threats": [
+        "Présence de l'NPC Aris Thorne, imprévisible."
+      ],
+      "secrets": [
+        "secret_paradoxe"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "laboratoire_principal",
+      "name": "Laboratoire Principal",
+      "description": "Des hologrammes de structures moléculaires complexes sont figés dans les airs. Des tableaux blancs sont couverts de formules à moitié effacées. Au centre de la pièce, une console de recherche est en veille, son écran émettant une douce lueur.",
+      "connections": [
+        "corridor_principal",
+        "bureau_du_chercheur",
+        "chambre_de_la_faille"
+      ],
+      "danger_level": 6,
+      "items": [
+        {
+          "id": "notes_de_recherche",
+          "name": "Notes de Recherche (Protocole)",
+          "description": "Un datapad contenant les recherches du Dr. Lenoir, incluant le protocole théorique pour inverser la polarité de la faille et la forcer à se refermer.",
+          "item_type": "data",
+          "uses": null,
+          "stat_bonus": {}
+        },
+        {
+          "id": "brouilleur_conceptuel_prototype",
+          "name": "Brouilleur Conceptuel (Prototype)",
+          "description": "Un appareil portable qui émet un 'bruit blanc' psychique. Repousse L'Écho mais a une batterie limitée et cause de légers maux de tête à l'utilisateur.",
+          "item_type": "tool",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "L'Écho est attiré par la concentration nécessaire pour comprendre les notes."
+      ],
+      "secrets": [
+        "secret_appat"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "visited": false
+    },
+    {
+      "id": "bureau_du_chercheur",
+      "name": "Bureau du Dr. Lenoir",
+      "description": "Ce bureau est le point focal de l'étrangeté. Les objets semblent flous, les livres sur l'étagère n'ont pas de titre. Un sentiment de vide et d'oubli est si puissant qu'il en est physiquement oppressant. Sur le bureau, un coffre-fort est ouvert.",
+      "connections": [
+        "laboratoire_principal"
+      ],
+      "danger_level": 9,
+      "items": [
+        {
+          "id": "cle_de_resonance",
+          "name": "Clé de Résonance",
+          "description": "Un diapason cristallin qui vibre avec une énergie étrange. Nécessaire pour calibrer la console de fermeture de la faille.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "'Nid' conceptuel de L'Écho. Présence quasi-constante et agressive."
+      ],
+      "secrets": [],
+      "is_dead_end": true,
+      "required_for_victory": true,
+      "visited": false
+    },
+    {
+      "id": "chambre_de_la_faille",
+      "name": "Chambre de la Faille",
+      "description": "Une immense sphère de verre blindé domine la salle. À l'intérieur, une déchirure dans l'espace scintille, une fenêtre sur un non-lieu de couleurs impossibles. Une console de contrôle se dresse devant, attendant des instructions.",
+      "connections": [
+        "laboratoire_principal"
+      ],
+      "danger_level": 7,
+      "items": [],
+      "threats": [
+        "Proximité avec la faille, causant une distorsion de la perception et attirant L'Écho lors de l'activation de la console."
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "visited": false
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_aris_thorne",
+      "name": "Aris Thorne",
+      "npc_type": "survivor",
+      "location": "quartiers_d_equipage",
+      "patrol_area": null,
+      "description": "Un ingénieur recroquevillé dans un casier. Ses yeux sont vides et il peine à former des phrases complètes, oubliant des mots et des concepts en plein milieu.",
+      "knowledge": "Il sait que le Dr. Lenoir s'est enfermée dans son bureau avec 'la clé de la musique' (la clé de résonance). Il sait aussi que le code du bureau est lié à 'la chose que Lenoir aimait plus que la science' (le nom de sa fille, 'ELARA').",
+      "has_item": null,
+      "disposition": "fearful",
+      "trigger_condition": "Approche brusque ou questions complexes le font paniquer. L'utilisation d'un Stim Mnémonique le calme et clarifie ses souvenirs.",
+      "weakness": null,
+      "can_be_neutralized": true,
+      "is_alive": true
+    },
+    {
+      "id": "npc_l_echo",
+      "name": "L'Écho",
+      "npc_type": "creature",
+      "location": "corridor_principal",
+      "patrol_area": [
+        "corridor_principal",
+        "laboratoire_principal",
+        "bureau_du_chercheur",
+        "chambre_de_la_faille"
+      ],
+      "description": "Une absence de perception, un trou dans la réalité. Sa présence se manifeste par des objets qui s'effacent, des souvenirs qui s'embrouillent et un sentiment de vide mental.",
+      "knowledge": "Aucun.",
+      "has_item": null,
+      "disposition": "hostile",
+      "trigger_condition": "Attiré par les joueurs qui restent immobiles pour réfléchir, qui consultent des données complexes, ou qui éprouvent des émotions fortes.",
+      "weakness": "Peut être repoussé par le Brouilleur Conceptuel. Les paradoxes et les pensées illogiques (comme réciter une poésie absurde) peuvent le 'désorienter' et le forcer à reculer temporairement.",
+      "can_be_neutralized": false,
+      "is_alive": true
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret_log_rostova",
+      "description": "Le dernier journal de la chef de la sécurité, Eva Rostova.",
+      "location": "salle_de_securite",
+      "discovery_method": "Hacker la console de sécurité (difficulté moyenne) et accéder aux journaux cryptés.",
+      "discovered": false,
+      "revelation": "Le journal révèle que la créature n'est pas physique. Rostova décrit comment ses agents oubliaient leurs ordres, puis leurs noms, avant de disparaître. Elle émet l'hypothèse que le bruit mental ou le chaos peut la perturber, ayant vu une de ses agents survivre plus longtemps en chantant une chanson d'enfant en boucle.",
+      "unlocks": "Fournit un indice majeur sur la faiblesse de L'Écho (le bruit conceptuel)."
+    },
+    {
+      "id": "secret_paradoxe",
+      "description": "Les graffitis sur le mur des quartiers d'équipage ne sont pas aléatoires.",
+      "location": "quartiers_d_equipage",
+      "discovery_method": "Examiner attentivement les murs (test d'Investigation).",
+      "discovered": false,
+      "revelation": "Les équations sont des paradoxes visuels et logiques connus (comme le paradoxe de Pénrose). Elles forment une sorte de 'répulsif' conceptuel. Rester près de ce mur offre une protection temporaire contre L'Écho.",
+      "unlocks": "Une zone de 'sécurité' temporaire dans la pièce."
+    },
+    {
+      "id": "secret_appat",
+      "description": "Une note de recherche secondaire sur la résonance de la faille.",
+      "location": "laboratoire_principal",
+      "discovery_method": "Rechercher spécifiquement des fichiers liés à 'l'amplification de signal' sur la console du laboratoire.",
+      "discovered": false,
+      "revelation": "La note explique comment la faille réagit aux schémas conceptuels complexes. Il est possible de transformer le système de communication de la station en un 'phare' conceptuel, capable d'attirer massivement la créature vers un point précis.",
+      "unlocks": "L'option de l'alternative_approach pour la victoire."
+    }
+  ],
+  "environmental_clues": [
+    {
+      "type": "datapad",
+      "location": "corridor_principal",
+      "content": "Le texte sur le datapad s'efface et se réécrit constamment. On peut y lire des fragments : '...ne pense pas à... elle a oublié mon... la porte... ne te souviens pas de la...'"
+    },
+    {
+      "type": "physical_evidence",
+      "location": "quartiers_d_equipage",
+      "content": "Une photo de famille est posée sur une couchette. Les visages dessus sont complètement flous, comme si l'appareil photo n'avait pas réussi à faire la mise au point sur eux."
+    },
+    {
+      "type": "wall_message",
+      "location": "laboratoire_principal",
+      "content": "Écrit sur un tableau blanc avec un marqueur presque sec : 'IL MANGE LES MOTS. IL MANGE LA LUMIÈRE. IL MANGE...'"
+    }
+  ],
+  "validation": {
+    "critical_path": [
+      "sas_d_amarrage",
+      "corridor_principal",
+      "quartiers_d_equipage",
+      "laboratoire_principal",
+      "bureau_du_chercheur",
+      "laboratoire_principal",
+      "chambre_de_la_faille"
+    ],
+    "required_checks": [
+      "Investigation (pour trouver des indices cruciaux)",
+      "Hacking/Intelligence (pour accéder aux logs et comprendre les notes)"
+    ],
+    "estimated_difficulty": "medium",
+    "dead_end_justification": {
+      "salle_de_securite": "Contient un indice vital sur la nature de la menace et un objet utile (Stim Mnémonique) pour interagir avec un PNJ clé.",
+      "bureau_du_chercheur": "Contient un objet absolument requis pour la victoire (Clé de Résonance). Le risque élevé est justifié par la nécessité."
+    }
+  },
+  "_saved_at": "2025-12-05T12:02:12.977434",
+  "_scenario_name": "Le Silence qui Dévore"
+}

@@ -141,12 +141,16 @@ def _get_reachable_locations(locations: dict, start: str) -> set[str]:
     return visited
 
 
-async def generate_scenario(session_type: str = "standard") -> Scenario:
+async def generate_scenario(
+    session_type: str = "standard",
+    use_option_constraints: bool = True,
+) -> Scenario:
     """
     Generate a new game scenario.
     
     Args:
         session_type: Type of session ("quick", "standard", "extended")
+        use_option_constraints: If True, generate/use constrained options for variety
     
     Returns:
         Generated Scenario
@@ -158,7 +162,25 @@ async def generate_scenario(session_type: str = "standard") -> Scenario:
         session_type = "standard"
     
     logger.info(f"Generating scenario for session type: {session_type}")
-    prompt = build_world_gen_prompt(session_type)
+    
+    # Generate or retrieve constrained options for variety
+    options = None
+    if use_option_constraints:
+        try:
+            from void_walker.utils.cache import get_or_generate_options
+            from void_walker.llm.option_generator import select_options
+            
+            # Get option pool (from cache or generate new)
+            option_pool = await get_or_generate_options()
+            
+            # Select random subset for this scenario
+            options = select_options(option_pool)
+            logger.info(f"Using constrained options: {options.locations[:2]}... / {options.threats[:2]}...")
+        except Exception as e:
+            logger.warning(f"Failed to generate options, using unconstrained: {e}")
+            options = None
+    
+    prompt = build_world_gen_prompt(session_type, options)
     
     # Use world_gen model for scenario creation
     response = await call_llm(prompt, model_key="world_gen", max_retries=3)
