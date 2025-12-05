@@ -151,13 +151,13 @@ async def animate_dice_roll(result: DiceResult, console: Console | None = None) 
             live.update(Align.center(display))
             await asyncio.sleep(delay)
         
-        # Phase 3: Final reveal (0.3 seconds)
+        # Phase 3: Final reveal
         await asyncio.sleep(0.3)
         display = create_roll_display(result, phase="result")
         live.update(Align.center(display))
-    
-    # Hold final result for a moment
-    await asyncio.sleep(1.0)
+        
+        # Hold final result for a moment (keep in Live context so it stays visible)
+        await asyncio.sleep(1.5)
 
 
 def display_dice_result_static(result: DiceResult, console: Console | None = None) -> None:
