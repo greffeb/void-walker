@@ -1,0 +1,395 @@
+{
+  "title": "Le Spectre Sombre",
+  "setting_type": "stealth_infiltrator",
+  "setting_name": "Infiltrateur S-3 'Spectre Sombre'",
+  "premise": "Vous vous réveillez de cryo-sommeil à bord du Spectre Sombre, un infiltrateur de reconnaissance à la dérive. Le pilote est mort, le silence est total, et une présence intangible semble hanter les couloirs, se nourrissant de vos peurs.",
+  "main_threat": "dream_hunter",
+  "threat_description": "Le 'Chasseur de Rêves' est une entité psychique non-corporelle qui se manifeste par des hallucinations auditives et visuelles, des baisses de température et des distorsions temporelles. Il est attiré par les émotions fortes (peur, colère) et la consultation des journaux de bord personnels. Sa faiblesse est une aversion pour les fréquences soniques de bas niveau et les agents neuro-suppresseurs.",
+  "victory_condition": {
+    "description": "Réactiver le Moteur Quantique et fuir le système avant que l'entité ne prenne le contrôle total du vaisseau et de vos esprits.",
+    "required_items": [
+      "quantum_drive_key",
+      "drive_restart_sequence"
+    ],
+    "required_info": [
+      "La séquence de redémarrage du moteur."
+    ],
+    "required_location": "bridge",
+    "alternative_approach": null
+  },
+  "alternative_victory": {
+    "description": "Purger l'atmosphère du vaisseau de l'entité psychique en utilisant le système de support-vie d'urgence, puis envoyer un signal de détresse.",
+    "required_items": [
+      "neuro_stabilizer_canister",
+      "medbay_override_codes"
+    ],
+    "required_info": [
+      "Les codes de dérogation du système de support-vie."
+    ],
+    "required_location": "life_support_control",
+    "alternative_approach": null
+  },
+  "starting_location": "cryo_bay",
+  "locations": [
+    {
+      "id": "cryo_bay",
+      "name": "Cryo-baie",
+      "description": "Les cryo-pods sont ouverts, une fine couche de givre recouvrant le sol. Le silence est oppressant, seulement brisé par le bourdonnement faible des systèmes de secours. L'un des pods est endommagé, une tache sombre gelée sur son panneau de contrôle.",
+      "connections": [
+        "main_corridor"
+      ],
+      "danger_level": 2,
+      "items": [],
+      "threats": [],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "main_corridor",
+      "name": "Couloir Principal",
+      "description": "Un long couloir métallique, où les lumières de secours clignotent de manière erratique. Des ombres dansent dans les coins, et un courant d'air glacial semble vous suivre. Des portes mènent aux différentes sections du vaisseau.",
+      "connections": [
+        "cryo_bay",
+        "bridge",
+        "mess_hall",
+        "crew_quarters",
+        "medbay",
+        "engine_room"
+      ],
+      "danger_level": 4,
+      "items": [],
+      "threats": [
+        "Patrouille de l'entité psychique"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "bridge",
+      "name": "Passerelle",
+      "description": "Le poste de pilotage est sombre, les écrans affichant des parasites statiques. Le corps du pilote est affalé sur la console, ses yeux grands ouverts fixant le vide. Une sensation de désespoir intense imprègne la pièce.",
+      "connections": [
+        "main_corridor"
+      ],
+      "danger_level": 8,
+      "items": [],
+      "threats": [
+        "Forte présence du Chasseur de Rêves",
+        "Échos psychiques du pilote"
+      ],
+      "secrets": [
+        "secret_entity_weakness"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "crew_quarters",
+      "name": "Quartiers de l'Équipage",
+      "description": "Les couchettes sont en désordre, des effets personnels abandonnés à la hâte. Sur la couchette du pilote, un datapad est ouvert. Un panneau mural semble mal ajusté.",
+      "connections": [
+        "main_corridor",
+        "hidden_pilots_safe_room"
+      ],
+      "danger_level": 5,
+      "items": [
+        {
+          "id": "pilot_safe_key",
+          "name": "Clé du coffre du pilote",
+          "description": "Une simple clé magnétique trouvée sous l'oreiller du pilote.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [],
+      "secrets": [
+        "secret_hidden_room"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "hidden_pilots_safe_room",
+      "name": "Cache du Pilote",
+      "description": "Un petit espace de rangement exigu, dissimulé derrière un faux mur. Une forte odeur d'ozone et de peur y stagne. Un petit coffre-fort est boulonné au sol.",
+      "connections": [
+        "crew_quarters"
+      ],
+      "danger_level": 3,
+      "items": [
+        {
+          "id": "quantum_drive_key",
+          "name": "Clé du Moteur Quantique",
+          "description": "La clé d'autorisation physique requise pour initier un saut quantique.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [],
+      "secrets": [],
+      "is_dead_end": true,
+      "required_for_victory": true,
+      "is_hidden": true,
+      "visited": false
+    },
+    {
+      "id": "mess_hall",
+      "name": "Mess",
+      "description": "Des plateaux de nourriture à moitié consommée sont figés sur les tables. Un bruit de ferraille provenant de la cuisine attenante trahit une présence.",
+      "connections": [
+        "main_corridor",
+        "galley"
+      ],
+      "danger_level": 3,
+      "items": [],
+      "threats": [],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "galley",
+      "name": "Cuisine",
+      "description": "L'équipement de cuisine est froid et inerte. Une forte odeur de nourriture brûlée persiste. Dans un casier de stockage d'urgence, un objet attire l'œil.",
+      "connections": [
+        "mess_hall"
+      ],
+      "danger_level": 6,
+      "items": [
+        {
+          "id": "sonic_emitter",
+          "name": "Émetteur Sonique de Nettoyage",
+          "description": "Un outil industriel utilisé pour nettoyer les conduits par vibrations. Il émet une fréquence basse désagréable.",
+          "item_type": "tool",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "Surtension électrique aléatoire"
+      ],
+      "secrets": [],
+      "is_dead_end": true,
+      "required_for_victory": false,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "medbay",
+      "name": "Infirmerie",
+      "description": "Des instruments chirurgicaux sont éparpillés sur le sol. Une stase médicale est active, son occupant se balançant doucement à l'intérieur. Les murs sont couverts de formules et de diagrammes paranoïaques griffonnés.",
+      "connections": [
+        "main_corridor"
+      ],
+      "danger_level": 7,
+      "items": [
+        {
+          "id": "neuro_stabilizer_canister",
+          "name": "Canister Neuro-Stabilisateur",
+          "description": "Un gaz expérimental conçu pour calmer l'activité neuronale anormale.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "Présence psychique concentrée"
+      ],
+      "secrets": [
+        "secret_medic_research"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "engine_room",
+      "name": "Salle des Machines",
+      "description": "Le cœur du réacteur palpite d'une lueur maladive. Le bourdonnement constant est presque hypnotique. Un terminal de diagnostic affiche un flux incessant de messages d'erreur.",
+      "connections": [
+        "main_corridor"
+      ],
+      "danger_level": 6,
+      "items": [
+        {
+          "id": "drive_restart_sequence",
+          "name": "Séquence de Redémarrage",
+          "description": "Données contenant la procédure exacte pour réamorcer le Moteur Quantique.",
+          "item_type": "data",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "Arcs électriques",
+        "Fuites de plasma mineures"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "is_hidden": false,
+      "visited": false
+    },
+    {
+      "id": "life_support_control",
+      "name": "Contrôle Support-Vie",
+      "description": "Une petite salle remplie de tuyaux et de jauges. Le sifflement de l'air recyclé est le seul son. Une console permet de contrôler la composition atmosphérique du vaisseau.",
+      "connections": [
+        "main_corridor"
+      ],
+      "danger_level": 5,
+      "items": [],
+      "threats": [],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "is_hidden": false,
+      "visited": false
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_cook",
+      "name": "Jacques 'Cookie' Moreau",
+      "npc_type": "survivor",
+      "location": "mess_hall",
+      "patrol_area": null,
+      "description": "Un homme corpulent et en sueur, caché derrière un comptoir. Il est terrifié et ne fait confiance à personne.",
+      "knowledge": "Il a vu le pilote devenir de plus en plus paranoïaque, parlant d'un 'passager clandestin' dans sa tête. Il sait que le pilote a aménagé une cachette dans ses quartiers.",
+      "has_item": null,
+      "disposition": "fearful",
+      "trigger_condition": "Se montrera si on lui offre de la nourriture ou si on le rassure avec un test de persuasion réussi.",
+      "weakness": "Sa peur panique le rend peu fiable dans une crise.",
+      "can_be_neutralized": true,
+      "is_alive": true
+    },
+    {
+      "id": "npc_medic",
+      "name": "Dr. Aris Thorne",
+      "npc_type": "survivor",
+      "location": "medbay",
+      "patrol_area": null,
+      "description": "Un médecin en état de choc, enfermé dans une stase médicale qu'il a activée lui-même. Il marmonne des fragments de phrases sur des fréquences et des schémas oniriques.",
+      "knowledge": "Il a étudié l'entité et a découvert sa nature psychique. Il connaît les codes pour purger l'atmosphère ('medbay_override_codes') et a synthétisé le neuro-stabilisateur comme contre-mesure.",
+      "has_item": "medbay_override_codes",
+      "disposition": "unpredictable",
+      "trigger_condition": "Pour le calmer et obtenir son aide, il faut lui administrer un sédatif ou réussir un test de médecine difficile pour le stabiliser psychologiquement.",
+      "weakness": "Mentalement instable, peut devenir hostile si effrayé.",
+      "can_be_neutralized": true,
+      "is_alive": true
+    },
+    {
+      "id": "npc_pilots_echo",
+      "name": "Écho du Pilote",
+      "npc_type": "creature",
+      "location": "bridge",
+      "patrol_area": [
+        "bridge",
+        "crew_quarters",
+        "main_corridor"
+      ],
+      "description": "Une manifestation spectrale et distordue du pilote décédé. Elle n'est pas tout à fait solide et apparaît et disparaît de manière imprévisible.",
+      "knowledge": "Aucun. C'est une marionnette psychique du Chasseur de Rêves.",
+      "has_item": null,
+      "disposition": "hostile",
+      "trigger_condition": "Apparaît lorsque les joueurs sont proches de la victoire ou lorsqu'ils accèdent aux biens personnels du pilote.",
+      "weakness": "Peut être temporairement dissipé par l'émetteur sonique ou des lumières stroboscopiques intenses.",
+      "can_be_neutralized": true,
+      "is_alive": false
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret_hidden_room",
+      "description": "Le pilote a construit une cachette secrète.",
+      "location": "crew_quarters",
+      "discovery_method": "Examiner le panneau mural mal ajusté près de la couchette du pilote (test d'Investigation).",
+      "discovered": false,
+      "revelation": "Vous découvrez une porte dissimulée menant à un petit espace de stockage sécurisé.",
+      "unlocks": "hidden_pilots_safe_room"
+    },
+    {
+      "id": "secret_entity_weakness",
+      "description": "L'entité a une faiblesse exploitable.",
+      "location": "bridge",
+      "discovery_method": "Réparer et analyser les journaux de capteurs à court terme sur la console du pilote (test de Science/Technologie).",
+      "discovered": false,
+      "revelation": "Les journaux montrent que l'entité recule et que sa signature énergétique faiblit en présence d'interférences soniques de basse fréquence, comme celles émises par les outils de nettoyage de la cuisine.",
+      "unlocks": "Connaissance de la faiblesse du Chasseur de Rêves."
+    },
+    {
+      "id": "secret_medic_research",
+      "description": "Le médecin avait un plan.",
+      "location": "medbay",
+      "discovery_method": "Accéder au terminal médical personnel du Dr. Thorne (test de Piratage).",
+      "discovered": false,
+      "revelation": "Le journal de recherche du médecin détaille sa théorie sur l'entité en tant que 'parasite mémétique' et décrit la création du gaz neuro-stabilisateur comme un 'antivirus' potentiel pour l'atmosphère du vaisseau.",
+      "unlocks": "Compréhension de l'utilité du 'neuro_stabilizer_canister' pour la victoire alternative."
+    }
+  ],
+  "environmental_clues": [
+    {
+      "type": "physical_evidence",
+      "location": "cryo_bay",
+      "content": "Le panneau de contrôle du pod du pilote est brisé de l'intérieur, comme si quelque chose avait essayé de sortir."
+    },
+    {
+      "type": "wall_message",
+      "location": "medbay",
+      "content": "Des équations complexes et la phrase 'IL N'AIME PAS LE BRUIT' sont griffonnées sur les murs avec un marqueur chirurgical."
+    },
+    {
+      "type": "audio_log",
+      "location": "crew_quarters",
+      "content": "Datapad du pilote : '...ça a commencé comme un murmure dans mes rêves. Maintenant, je l'entends même éveillé. Il connaît mes secrets. Il veut le vaisseau. Je dois cacher la clé...'"
+    },
+    {
+      "type": "physical_evidence",
+      "location": "main_corridor",
+      "content": "Des zones de froid intense se déplacent de manière anormale dans le couloir, non liées à une quelconque défaillance du système."
+    }
+  ],
+  "validation": {
+    "critical_path": [
+      "cryo_bay",
+      "main_corridor",
+      "crew_quarters",
+      "hidden_pilots_safe_room",
+      "main_corridor",
+      "engine_room",
+      "main_corridor",
+      "bridge"
+    ],
+    "required_checks": [
+      "Investigation (trouver la cachette)",
+      "Technologie (obtenir la séquence)",
+      "Pilotage (initier le saut)"
+    ],
+    "estimated_difficulty": "medium",
+    "dead_end_justification": {
+      "galley": "Contient l'émetteur sonique, un objet très utile pour contrer la menace principale, justifiant le risque.",
+      "hidden_pilots_safe_room": "Contient la 'quantum_drive_key', un objet indispensable pour la victoire primaire."
+    }
+  },
+  "validation_warnings": [
+    "Impasse 'Cryo-baie' sans récompense (items, secrets, ou PNJ)",
+    "Info requise 'La séquence de redémarrage du moteur.' non trouvée dans les secrets"
+  ],
+  "_saved_at": "2025-12-06T00:10:04.176008",
+  "_scenario_name": "Le Spectre Sombre"
+}
