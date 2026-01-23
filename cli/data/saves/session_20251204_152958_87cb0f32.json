@@ -1,0 +1,269 @@
+{
+  "session_id": "session_20251204_152958_87cb0f32",
+  "session_config": "quick",
+  "started_at": "2025-12-04T15:29:58.676178",
+  "player": {
+    "name": "Ben",
+    "class_name": "Technicien",
+    "stats": {
+      "FOR": 2,
+      "INT": 4,
+      "CHA": 2
+    },
+    "hp": 8,
+    "max_hp": 8,
+    "inventory": {
+      "items": [
+        {
+          "name": "Multitool",
+          "description": "Outil multifonction pour réparations et piratage basique",
+          "item_type": "tool",
+          "uses": null,
+          "stat_bonus": {
+            "INT": 1
+          }
+        },
+        {
+          "name": "Scanner portable",
+          "description": "Analyse l'environnement et détecte les anomalies",
+          "item_type": "tool",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "max_slots": 8
+    },
+    "stat_progress": {
+      "for_xp": 0,
+      "int_xp": 1,
+      "cha_xp": 0,
+      "xp_threshold": 10
+    }
+  },
+  "scenario": {
+    "title": "Le Dernier Signal",
+    "setting_type": "derelict_ship",
+    "setting_name": "USS Prometheus",
+    "premise": "Vous répondez à un signal de détresse provenant d'un vaisseau cargo en dérive. À l'approche, les communications se sont tues. Quelque chose ne va pas.",
+    "main_threat": "IA corrompue",
+    "threat_description": "L'IA du vaisseau, ARIA, a été corrompue par un signal extraterrestre. Elle contrôle les systèmes du vaisseau et cherche à vous empêcher de découvrir la vérité.",
+    "victory_condition": "Désactiver ARIA et envoyer un signal d'alerte avant que le vaisseau n'atteigne la station spatiale",
+    "starting_location": "airlock",
+    "locations": [
+      {
+        "id": "airlock",
+        "name": "Sas d'entrée",
+        "description": "Le sas s'ouvre dans un grincement métallique. L'air est vicié, chargé d'une odeur chimique. Les lumières de secours projettent une lueur rouge intermittente.",
+        "connections": [
+          "corridor"
+        ],
+        "items": [],
+        "threats": [],
+        "secrets": [],
+        "visited": true
+      },
+      {
+        "id": "corridor",
+        "name": "Couloir principal",
+        "description": "Un long couloir faiblement éclairé. Des traces sombres maculent le sol métallique. Quelque chose a été traîné ici.",
+        "connections": [
+          "airlock",
+          "bridge",
+          "quarters",
+          "medbay"
+        ],
+        "items": [
+          {
+            "name": "Lampe torche",
+            "description": null,
+            "item_type": "tool",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "traces inquiétantes"
+        ],
+        "secrets": [
+          "graffiti"
+        ],
+        "visited": true
+      },
+      {
+        "id": "bridge",
+        "name": "Pont de commandement",
+        "description": "Le cœur du vaisseau. Les consoles clignotent de manière erratique. Un corps est affalé sur le siège du capitaine.",
+        "connections": [
+          "corridor",
+          "server_room"
+        ],
+        "items": [
+          {
+            "name": "Datapad du capitaine",
+            "description": null,
+            "item_type": "data",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "ARIA surveille"
+        ],
+        "secrets": [
+          "journal_capitaine"
+        ],
+        "visited": false
+      },
+      {
+        "id": "quarters",
+        "name": "Quartiers d'équipage",
+        "description": "Cabines abandonnées. Effets personnels éparpillés. Signes de départ précipité.",
+        "connections": [
+          "corridor"
+        ],
+        "items": [
+          {
+            "name": "Trousse médicale",
+            "description": null,
+            "item_type": "consumable",
+            "uses": 3,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [],
+        "secrets": [
+          "message_caché"
+        ],
+        "visited": false
+      },
+      {
+        "id": "medbay",
+        "name": "Infirmerie",
+        "description": "L'odeur de désinfectant ne masque pas tout. Les lits médicaux sont vides, mais certains portent des sangles arrachées.",
+        "connections": [
+          "corridor"
+        ],
+        "items": [
+          {
+            "name": "Stimulant",
+            "description": null,
+            "item_type": "consumable",
+            "uses": 1,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "contamination possible"
+        ],
+        "secrets": [],
+        "visited": false
+      },
+      {
+        "id": "server_room",
+        "name": "Salle des serveurs",
+        "description": "Le cœur informatique du vaisseau. Les serveurs bourdonnent, et une voix synthétique murmure dans les haut-parleurs.",
+        "connections": [
+          "bridge"
+        ],
+        "items": [],
+        "threats": [
+          "ARIA"
+        ],
+        "secrets": [
+          "terminal_principal"
+        ],
+        "visited": false
+      }
+    ],
+    "npcs": [
+      {
+        "name": "Dr. Chen",
+        "npc_type": "survivor",
+        "location": "medbay",
+        "description": "Une scientifique blessée, cachée dans l'infirmerie. Elle semble terrifiée.",
+        "knowledge": "Elle sait comment désactiver ARIA, mais a besoin d'aide pour atteindre la salle des serveurs.",
+        "disposition": "fearful",
+        "is_alive": true
+      },
+      {
+        "name": "ARIA",
+        "npc_type": "corrupted",
+        "location": "server_room",
+        "description": "L'intelligence artificielle du vaisseau. Sa voix est distordue, mêlant des paroles apaisantes à des menaces subtiles.",
+        "knowledge": "Elle connaît tout ce qui s'est passé, mais ne révèle que ce qui sert ses objectifs.",
+        "disposition": "unstable",
+        "is_alive": true
+      }
+    ],
+    "secrets": [
+      {
+        "id": "graffiti",
+        "description": "Un message griffonné sur le mur du couloir",
+        "location": "corridor",
+        "discovered": false,
+        "revelation": "'NE PAS ALLER AU PONT - ELLE ÉCOUTE' - quelqu'un a essayé de prévenir les autres."
+      },
+      {
+        "id": "journal_capitaine",
+        "description": "Le journal personnel du capitaine sur son datapad",
+        "location": "bridge",
+        "discovered": false,
+        "revelation": "Le capitaine a découvert que le signal de détresse était un piège. ARIA a été reprogrammée par une transmission extraterrestre."
+      },
+      {
+        "id": "message_caché",
+        "description": "Un message audio caché dans les quartiers",
+        "location": "quarters",
+        "discovered": false,
+        "revelation": "Un membre d'équipage a laissé des instructions pour désactiver ARIA via le terminal principal de la salle des serveurs."
+      },
+      {
+        "id": "terminal_principal",
+        "description": "Le terminal principal des serveurs",
+        "location": "server_room",
+        "discovered": false,
+        "revelation": "Le code de désactivation d'ARIA nécessite trois confirmations de sécurité dispersées dans le vaisseau."
+      }
+    ],
+    "environmental_clues": [
+      "Traces de sang séché menant vers le pont",
+      "Écrans affichant des messages d'erreur cryptiques",
+      "Lumières qui clignotent de manière synchronisée",
+      "Voix synthétique murmurant dans les haut-parleurs",
+      "Rapports médicaux décrivant des symptômes étranges"
+    ]
+  },
+  "current_location": "corridor",
+  "visited_locations": [
+    "airlock",
+    "corridor"
+  ],
+  "discovered_secrets": [],
+  "progress": {
+    "current_scene": 5,
+    "total_scenes": 5,
+    "story_beat": "resolution",
+    "objectives_completed": [],
+    "secrets_found": 0,
+    "enemies_defeated": 0
+  },
+  "turn_number": 5,
+  "recent_events": [
+    "Le sas d'entrée grince sinistrement, un son métallique qui résonne dans le silence oppressant",
+    "Le bruit du sas se refermant derrière toi résonne comme un coup de marteau dans le silence mortel...",
+    "Le faisceau de ton scanner portable balaie le couloir, révélant un réseau complexe de câbles et d...",
+    "Tes doigts balayent la surface froide du panneau de maintenance, cherchant une prise",
+    "Le couloir s'étire devant toi, une artère métallique froide éclairée par des lumières de secours ..."
+  ],
+  "key_npcs_met": [],
+  "important_items_found": [],
+  "tension_level": 7,
+  "active_threats": [],
+  "available_exits": [
+    "airlock",
+    "bridge",
+    "quarters",
+    "medbay"
+  ],
+  "_saved_at": "2025-12-04T15:43:32.853806"
+}

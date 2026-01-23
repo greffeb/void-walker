@@ -1,0 +1,369 @@
+{
+  "session_id": "session_20251204_165818_1b9845e2",
+  "session_config": "quick",
+  "started_at": "2025-12-04T16:58:18.352783",
+  "player": {
+    "name": "ben1",
+    "class_name": "Médecin",
+    "stats": {
+      "FOR": 2,
+      "INT": 3,
+      "CHA": 3
+    },
+    "hp": 10,
+    "max_hp": 10,
+    "inventory": {
+      "items": [
+        {
+          "id": null,
+          "name": "Trousse médicale",
+          "description": "Équipement médical complet pour soins d'urgence",
+          "item_type": "consumable",
+          "uses": 5,
+          "stat_bonus": {}
+        },
+        {
+          "id": null,
+          "name": "Stimulants",
+          "description": "Booste temporairement les capacités physiques",
+          "item_type": "consumable",
+          "uses": 2,
+          "stat_bonus": {}
+        }
+      ],
+      "max_slots": 8
+    },
+    "stat_progress": {
+      "for_xp": 0,
+      "int_xp": 0,
+      "cha_xp": 0,
+      "xp_threshold": 10
+    }
+  },
+  "scenario": {
+    "title": "Le Silence Fongique",
+    "setting_type": "derelict_ship",
+    "setting_name": "USCS Sérénité",
+    "premise": "Vous êtes un pilleur d'épaves qui vient d'aborder le transport de recherche USCS Sérénité, silencieux depuis des mois. L'intérieur est étrangement chaud, humide et tapissé d'une croissance fongique bioluminescente. Les systèmes d'urgence clignotent, mais l'équipage est introuvable.",
+    "main_threat": "La Mycélium Conquérant",
+    "threat_description": "Une entité fongique parasite qui anime les cadavres de l'équipage. Les 'Sporifères' sont lents et presque aveugles, mais réagissent agressivement aux sons forts et aux sources de lumière vive. Leur faiblesse est une déshydratation rapide, causée par une chaleur intense ou des agents chimiques caustiques.",
+    "victory_condition": {
+      "description": "Pour s'échapper, il faut activer la procédure de purge thermique d'urgence depuis le pont, ce qui incinérera la biomasse fongique dans les sections principales et réactivera les systèmes de navigation.",
+      "required_items": [
+        "carte_acces_ingenieur"
+      ],
+      "required_info": [
+        "Code de dérogation de la purge (7-BETA-7)"
+      ],
+      "required_location": "pont",
+      "alternative_approach": "Libérer l'agent antifongique expérimental depuis le Contrôle Environnemental dans le système de ventilation. Cela neutralise la plupart des menaces mais ne redémarre pas les systèmes du vaisseau, obligeant le joueur à s'échapper avec un vaisseau endommagé."
+    },
+    "starting_location": "sas_arrimage",
+    "locations": [
+      {
+        "id": "sas_arrimage",
+        "name": "Sas d'Arrimage Gamma",
+        "description": "La jonction entre votre vaisseau et le Sérénité. Des câbles pendent du plafond, recouverts d'une moisissure duveteuse qui palpite faiblement. Une odeur de terre humide et de pourriture imprègne l'air.",
+        "connections": [
+          "couloir_principal",
+          "quartiers_equipage"
+        ],
+        "danger_level": 1,
+        "items": [
+          {
+            "id": "ruban_adhesif_industriel",
+            "name": "Ruban Adhésif Industriel",
+            "description": "Un rouleau de ruban haute résistance. Utile pour des réparations rapides ou pour immobiliser des objets.",
+            "item_type": "tool",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": true
+      },
+      {
+        "id": "couloir_principal",
+        "name": "Couloir Principal",
+        "description": "Un long couloir incurvé, faiblement éclairé par des lumières d'urgence et la lueur bleu-vert du champignon. Des portes mènent à l'infirmerie, à l'ingénierie et au contrôle environnemental. Un son de raclement humide se fait entendre au loin.",
+        "connections": [
+          "sas_arrimage",
+          "infirmerie",
+          "ingenierie",
+          "controle_environnemental"
+        ],
+        "danger_level": 5,
+        "items": [],
+        "threats": [
+          "Patrouille d'un Sporifère"
+        ],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": true
+      },
+      {
+        "id": "quartiers_equipage",
+        "name": "Quartiers de l'Équipage",
+        "description": "Les couchettes sont en désordre, recouvertes de la même croissance fongique. Des objets personnels sont éparpillés sur le sol, collés par des filaments de mycélium. Une des couchettes est occupée par une forme immobile.",
+        "connections": [
+          "sas_arrimage"
+        ],
+        "danger_level": 4,
+        "items": [
+          {
+            "id": "carte_acces_ingenieur",
+            "name": "Carte d'Accès de l'Ingénieur en Chef",
+            "description": "Ouvre les zones sécurisées du département d'ingénierie.",
+            "item_type": "key_item",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "Un Sporifère dormant qui s'éveille si on fait du bruit."
+        ],
+        "secrets": [
+          "journal_personnel"
+        ],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": false
+      },
+      {
+        "id": "infirmerie",
+        "name": "Infirmerie",
+        "description": "L'air est stérile, contrastant avec le reste du vaisseau. Des instruments chirurgicaux sont soigneusement rangés, mais une armoire de confinement biologique a été brisée de l'intérieur. Une silhouette se cache dans l'ombre.",
+        "connections": [
+          "couloir_principal"
+        ],
+        "danger_level": 3,
+        "items": [
+          {
+            "id": "stimpack",
+            "name": "Stimpack",
+            "description": "Injecteur médical pour une guérison rapide.",
+            "item_type": "consumable",
+            "uses": null,
+            "stat_bonus": {
+              "health": 25
+            }
+          }
+        ],
+        "threats": [],
+        "secrets": [
+          "origine_infection"
+        ],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": false
+      },
+      {
+        "id": "ingenierie",
+        "name": "Ingénierie",
+        "description": "Le cœur bourdonnant du vaisseau. La chaleur du réacteur a empêché la prolifération du champignon ici. Des consoles de maintenance clignotent, affichant des alertes système critiques.",
+        "connections": [
+          "couloir_principal",
+          "pont"
+        ],
+        "danger_level": 2,
+        "items": [],
+        "threats": [],
+        "secrets": [
+          "protocole_purge"
+        ],
+        "is_dead_end": false,
+        "required_for_victory": true,
+        "visited": false
+      },
+      {
+        "id": "pont",
+        "name": "Pont de Commandement",
+        "description": "La vue sur l'espace étoilé à travers le hublot principal est obscurcie par des vrilles fongiques. Le fauteuil du capitaine est occupé par une masse imposante de mycélium et de chair fusionnées, qui semble pulser en rythme avec le vaisseau.",
+        "connections": [
+          "ingenierie"
+        ],
+        "danger_level": 7,
+        "items": [],
+        "threats": [
+          "Le Capitaine Sporifère, une créature plus grande et plus résistante."
+        ],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": true,
+        "visited": false
+      },
+      {
+        "id": "controle_environnemental",
+        "name": "Contrôle Environnemental",
+        "description": "Des tuyaux et des conduits recouvrent les murs, tous froids au toucher. Une console de contrôle de la ventilation est en état d'alerte. Dans un casier de stockage, on peut voir un conteneur de danger biologique.",
+        "connections": [
+          "couloir_principal"
+        ],
+        "danger_level": 8,
+        "items": [
+          {
+            "id": "agent_antifongique",
+            "name": "Agent Antifongique Expérimental",
+            "description": "Un puissant agent chimique capable de détruire le mycélium. Hautement caustique.",
+            "item_type": "tool",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "Fuite de gaz cryogénique instable, causant des dégâts périodiques. Deux Sporifères rapides."
+        ],
+        "secrets": [],
+        "is_dead_end": true,
+        "required_for_victory": false,
+        "visited": false
+      }
+    ],
+    "npcs": [
+      {
+        "id": "sporifere_patrouilleur",
+        "name": "Sporifère Patrouilleur",
+        "npc_type": "hostile",
+        "location": "couloir_principal",
+        "patrol_area": [
+          "couloir_principal"
+        ],
+        "description": "Une silhouette dégingandée, autrefois un membre d'équipage, maintenant une marionnette de champignon. Sa tête est une masse de spores qui se contracte à chaque pas.",
+        "knowledge": "",
+        "has_item": null,
+        "disposition": "hostile",
+        "trigger_condition": "Détecte les bruits forts (course, tirs) ou la lumière directe d'une lampe torche.",
+        "weakness": "Peut être attiré par des leurres sonores. Vulnérable aux agents chimiques ou à la chaleur intense.",
+        "can_be_neutralized": true,
+        "is_alive": true
+      },
+      {
+        "id": "dr_elen_riley",
+        "name": "Dr. Elen Riley",
+        "npc_type": "survivor",
+        "location": "infirmerie",
+        "patrol_area": null,
+        "description": "La médecin du vaisseau, pâle et terrifiée. Elle s'est barricadée dans l'infirmerie.",
+        "knowledge": "Elle connaît la faiblesse du champignon à la chaleur et à la déshydratation. Elle sait qu'un agent antifongique expérimental se trouve au Contrôle Environnemental.",
+        "has_item": null,
+        "disposition": "fearful",
+        "trigger_condition": "Parle au joueur s'il approche sans arme levée. Se cachera ou paniquera si menacée.",
+        "weakness": null,
+        "can_be_neutralized": true,
+        "is_alive": true
+      },
+      {
+        "id": "capitaine_sporifere",
+        "name": "Capitaine Sporifère",
+        "npc_type": "hostile",
+        "location": "pont",
+        "patrol_area": null,
+        "description": "Le corps boursouflé du capitaine, intégré au fauteuil de commandement. Il protège la console de purge avec de longs appendices fongiques.",
+        "knowledge": "",
+        "has_item": null,
+        "disposition": "hostile",
+        "trigger_condition": "Attaque toute personne entrant sur le pont.",
+        "weakness": "Immobile. Possède des sacs de spores sur son dos qui explosent violemment s'ils sont ciblés, causant d'énormes dégâts à la créature.",
+        "can_be_neutralized": true,
+        "is_alive": true
+      }
+    ],
+    "secrets": [
+      {
+        "id": "journal_personnel",
+        "description": "Le datapad de l'ingénieur en chef.",
+        "location": "quartiers_equipage",
+        "discovery_method": "Fouiller le corps près de la couchette.",
+        "discovered": false,
+        "revelation": "Le journal mentionne que l'ingénieur a changé le code de dérogation de la purge thermique après une fausse alerte. Il note le nouveau code : 'Le numéro de ma couchette, suivi de BETA, suivi encore du numéro de ma couchette'. La couchette est la numéro 7.",
+        "unlocks": "Donne la connaissance du 'Code de dérogation de la purge (7-BETA-7)'."
+      },
+      {
+        "id": "origine_infection",
+        "description": "Un terminal de recherche médicale.",
+        "location": "infirmerie",
+        "discovery_method": "Hacker le terminal du médecin (difficulté faible).",
+        "discovered": false,
+        "revelation": "Les journaux révèlent que le champignon est un xéno-organisme ramené d'une lune glacée. Il était étudié pour ses propriétés régénératrices avant qu'une brèche de confinement ne se produise.",
+        "unlocks": "Information contextuelle sur la menace."
+      },
+      {
+        "id": "protocole_purge",
+        "description": "Une alerte sur une console de maintenance.",
+        "location": "ingenierie",
+        "discovery_method": "Examiner la console principale d'ingénierie.",
+        "discovered": false,
+        "revelation": "La console indique que la 'Procédure de Purge Thermique 7' est prête à être activée depuis le terminal du pont, mais nécessite un code de dérogation manuel pour outrepasser les sécurités.",
+        "unlocks": "Confirme que la victoire est possible depuis le pont."
+      }
+    ],
+    "environmental_clues": [
+      {
+        "type": "wall_message",
+        "location": "couloir_principal",
+        "content": "Un message griffonné avec du sang séché près de la porte de l'ingénierie : 'NE FAITES PAS DE BRUIT'."
+      },
+      {
+        "type": "audio_log",
+        "location": "pont",
+        "content": "Un enregistrement audio final du capitaine, interrompu par des cris et un son de déchirement : 'Activation de la quarantaine totale... Purge thermique... Code de dérogation... Trop tard ! Ça... ça me ronge ! ARGH !'"
+      }
+    ],
+    "validation": {
+      "critical_path": [
+        "sas_arrimage",
+        "quartiers_equipage",
+        "sas_arrimage",
+        "couloir_principal",
+        "ingenierie",
+        "pont"
+      ],
+      "required_checks": [
+        "Fouille (pour trouver la carte et le datapad dans les quartiers)",
+        "Interaction/Examen (pour lire la console en ingénierie et le datapad)"
+      ],
+      "estimated_difficulty": "easy",
+      "dead_end_justification": {
+        "controle_environnemental": "Contient l'agent antifongique, un objet puissant qui permet une approche de victoire alternative et peut être utilisé comme une arme puissante contre le boss final."
+      }
+    }
+  },
+  "current_location": "salle_de_controle",
+  "visited_locations": [
+    "couloir_principal",
+    "sas_arrimage",
+    "salle_de_controle"
+  ],
+  "discovered_secrets": [],
+  "progress": {
+    "current_scene": 5,
+    "total_scenes": 5,
+    "story_beat": "resolution",
+    "objectives_completed": [],
+    "secrets_found": 0,
+    "enemies_defeated": 0
+  },
+  "turn_number": 5,
+  "recent_events": [
+    "L'air du sas d'arrimage est lourd, chargé d'une odeur âcre de métal refroidi et d'une légère touc...",
+    "Vous pénétrez dans l'épave du 'Nostromo' et l'odeur âcre s'intensifie, mêlée à une puanteur organ...",
+    "Alors que vous parcourez le couloir principal, une texture visqueuse et translucide recouvre une ...",
+    "L'odeur s'intensifie, une symphonie nauséabonde de décomposition et de métal tordu",
+    "La porte de la salle de contrôle s'ouvre sur une obscurité oppressante, uniquement percée par les..."
+  ],
+  "key_npcs_met": [],
+  "important_items_found": [],
+  "tension_level": 7,
+  "active_threats": [],
+  "available_exits": [
+    "sas_arrimage",
+    "infirmerie",
+    "ingenierie",
+    "controle_environnemental"
+  ],
+  "_saved_at": "2025-12-04T17:04:31.124930"
+}

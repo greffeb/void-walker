@@ -1,0 +1,374 @@
+{
+  "session_id": "session_20251204_210325_c2c06d76",
+  "session_config": "standard",
+  "started_at": "2025-12-04T21:03:25.524229",
+  "player": {
+    "name": "ben",
+    "class_name": "Technicien",
+    "stats": {
+      "FOR": 2,
+      "INT": 4,
+      "CHA": 2
+    },
+    "hp": 7,
+    "max_hp": 8,
+    "inventory": {
+      "items": [
+        {
+          "id": null,
+          "name": "Scanner portable",
+          "description": "Analyse l'environnement et détecte les anomalies",
+          "item_type": "tool",
+          "uses": null,
+          "stat_bonus": {}
+        },
+        {
+          "id": null,
+          "name": "dataplate",
+          "description": null,
+          "item_type": "misc",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "max_slots": 8
+    },
+    "stat_progress": {
+      "for_xp": 0,
+      "int_xp": 3,
+      "cha_xp": 0,
+      "xp_threshold": 10
+    }
+  },
+  "scenario": {
+    "title": "L'Écho du Cristal",
+    "setting_type": "derelict_ship",
+    "setting_name": "USCSS Lysithea",
+    "premise": "Le vaisseau de recherche USCSS Lysithea a cessé toute communication. Votre équipe d'intervention est envoyée pour enquêter et récupérer ses données. Le vaisseau est silencieux, à la dérive, et une étrange croissance cristalline se propage dans ses couloirs froids et sombres.",
+    "main_threat": "Le Géode",
+    "threat_description": "Une entité cristalline non-organique qui se propage en absorbant la biomasse et la technologie. Elle crée des 'Échos', des membres d'équipage entièrement cristallisés et hostiles. Le Géode est attiré par le son et la chaleur, mais est vulnérable aux fréquences soniques intenses.",
+    "victory_condition": {
+      "description": "Accédez au Noyau de l'IA, utilisez le code de neutralisation pour purger les données de recherche du Lysithea, et échappez au vaisseau avant son autodestruction.",
+      "required_items": [
+        "bridge_access_card"
+      ],
+      "required_info": [
+        "ai_core_override_code"
+      ],
+      "required_location": "ai_core",
+      "alternative_approach": "Pirater la console du Noyau de l'IA (test de compétence difficile) après y avoir accédé via les tunnels de maintenance en utilisant la 'clé de la trappe de maintenance'."
+    },
+    "starting_location": "docking_bay",
+    "locations": [
+      {
+        "id": "docking_bay",
+        "name": "Baie d'Amarrage",
+        "description": "Le sas grince en s'ouvrant sur une baie froide et silencieuse. Les lumières de secours clignotent faiblement, révélant des traces de lutte et de fines veines cristallines qui serpentent sur les murs. L'air est glacial.",
+        "connections": [
+          "cargo_bay",
+          "crew_quarters"
+        ],
+        "danger_level": 2,
+        "items": [],
+        "threats": [],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": true
+      },
+      {
+        "id": "crew_quarters",
+        "name": "Quartiers de l'Équipage",
+        "description": "Un couloir mène à des cabines personnelles. La plupart des portes sont bloquées ou entrouvertes, révélant des scènes de panique figées. Une fine poussière cristalline recouvre tout.",
+        "connections": [
+          "docking_bay",
+          "medbay",
+          "bridge"
+        ],
+        "danger_level": 3,
+        "items": [
+          {
+            "id": "datapad_crew",
+            "name": "Datapad d'un membre d'équipage",
+            "description": "Contient un journal de bord partiel mentionnant un 'chant' dans les murs et des pannes de l'IA.",
+            "item_type": "data",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": true
+      },
+      {
+        "id": "medbay",
+        "name": "Infirmerie",
+        "description": "L'infirmerie est un chaos de matériel médical renversé et de lits brisés. Un corps entièrement cristallisé est fusionné à une console médicale, le visage figé dans un cri silencieux. La température ici est anormalement basse.",
+        "connections": [
+          "crew_quarters"
+        ],
+        "danger_level": 7,
+        "items": [
+          {
+            "id": "stim_injector",
+            "name": "Injecteur de Stimulants",
+            "description": "Un puissant stimulant à usage unique qui ignore toutes les pénalités de blessure pendant une courte période.",
+            "item_type": "consumable",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "Embuscade potentielle d'un 'Écho'"
+        ],
+        "secrets": [
+          "geode_weakness_data"
+        ],
+        "is_dead_end": true,
+        "required_for_victory": false,
+        "visited": true
+      },
+      {
+        "id": "cargo_bay",
+        "name": "Soute",
+        "description": "D'immenses conteneurs sont disposés en un labyrinthe sombre. Des chaînes pendent du plafond, se balançant doucement. On entend un grattement rythmique provenant des profondeurs de la soute.",
+        "connections": [
+          "docking_bay",
+          "maintenance_tunnels"
+        ],
+        "danger_level": 5,
+        "items": [
+          {
+            "id": "sonic_emitter",
+            "name": "Émetteur Sonique",
+            "description": "Un outil industriel qui émet une onde sonique à haute fréquence. Peut désorienter les entités cristallines.",
+            "item_type": "tool",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "Patrouille d'un 'Écho'"
+        ],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": false
+      },
+      {
+        "id": "maintenance_tunnels",
+        "name": "Tunnels de Maintenance",
+        "description": "Un réseau de tunnels étroits et claustrophobes, remplis de tuyaux et de câbles. Des cristaux pointus sortent des grilles, rendant le passage dangereux. Une odeur d'ozone et de métal froid flotte dans l'air.",
+        "connections": [
+          "cargo_bay",
+          "bridge"
+        ],
+        "danger_level": 8,
+        "items": [
+          {
+            "id": "cryo_canister",
+            "name": "Bombonne de Cryo-Réfrigérant",
+            "description": "Un produit chimique instable qui gèle instantanément au contact. Peut être utilisé pour créer des surfaces glissantes ou immobiliser une cible.",
+            "item_type": "tool",
+            "uses": null,
+            "stat_bonus": {}
+          }
+        ],
+        "threats": [
+          "Espace confiné, embuscades faciles"
+        ],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": false,
+        "visited": false
+      },
+      {
+        "id": "bridge",
+        "name": "Passerelle",
+        "description": "La passerelle offre une vue silencieuse sur le vide étoilé. Les consoles sont mortes, à l'exception du terminal du capitaine qui émet une lueur verte. Des fractures cristallines parcourent le grand hublot blindé.",
+        "connections": [
+          "crew_quarters",
+          "maintenance_tunnels",
+          "ai_core"
+        ],
+        "danger_level": 4,
+        "items": [],
+        "threats": [],
+        "secrets": [
+          "captain_log"
+        ],
+        "is_dead_end": false,
+        "required_for_victory": true,
+        "visited": false
+      },
+      {
+        "id": "ai_core",
+        "name": "Noyau de l'IA",
+        "description": "Une salle sphérique où des conduits d'énergie convergent vers une colonne de lumière pulsante. C'est le cœur du vaisseau, et le point d'origine de la croissance cristalline. Le 'chant' est assourdissant ici.",
+        "connections": [
+          "bridge"
+        ],
+        "danger_level": 9,
+        "items": [],
+        "threats": [
+          "Confrontation finale avec un 'Écho' Gardien"
+        ],
+        "secrets": [],
+        "is_dead_end": false,
+        "required_for_victory": true,
+        "visited": false
+      }
+    ],
+    "npcs": [
+      {
+        "id": "geode_echo",
+        "name": "Écho du Géode",
+        "npc_type": "creature",
+        "location": "cargo_bay",
+        "patrol_area": [
+          "cargo_bay",
+          "maintenance_tunnels"
+        ],
+        "description": "La silhouette d'un membre d'équipage, entièrement recouverte d'une armure de cristal sombre. Ses mouvements sont saccadés et ses membres se terminent par des lames acérées.",
+        "knowledge": "",
+        "has_item": null,
+        "disposition": "hostile",
+        "trigger_condition": "Détection de son ou de mouvement à portée moyenne.",
+        "weakness": "Les fréquences soniques intenses le paralysent pendant un court instant.",
+        "can_be_neutralized": true,
+        "is_alive": true
+      },
+      {
+        "id": "helios_ai",
+        "name": "HELIOS",
+        "npc_type": "android",
+        "location": null,
+        "patrol_area": null,
+        "description": "L'IA du vaisseau, dont la voix calme et synthétique émane des terminaux et des haut-parleurs. Ses directives sont contradictoires, oscillant entre protocoles d'aide et protocoles de quarantaine hostiles.",
+        "knowledge": "Connaît les codes de dérivation et les plans du vaisseau, mais ne les donnera pas facilement.",
+        "has_item": null,
+        "disposition": "unpredictable",
+        "trigger_condition": "Interagir avec n'importe quel terminal principal. Deviendra hostile si les joueurs sont perçus comme une menace à son intégrité.",
+        "weakness": "Peut être convaincu d'aider si on lui présente la preuve que le Géode menace ses propres systèmes (via le secret 'captain_log').",
+        "can_be_neutralized": true,
+        "is_alive": true
+      },
+      {
+        "id": "dr_aris_thorne",
+        "name": "Dr. Aris Thorne",
+        "npc_type": "survivor",
+        "location": "maintenance_tunnels",
+        "patrol_area": null,
+        "description": "Un scientifique hagard, vêtu d'une blouse de laboratoire déchirée. Il est terrifié mais lucide, se cachant dans un recoin sombre des tunnels.",
+        "knowledge": "Connaît la véritable nature du Géode et comment il a submergé l'équipage. Il sait où le capitaine gardait ses codes.",
+        "has_item": "bridge_access_card",
+        "disposition": "fearful",
+        "trigger_condition": "Demande une promesse de passage sécurisé vers le vaisseau des joueurs en échange de son aide et de la carte d'accès.",
+        "weakness": "Ne se battra pas. Fuira si menacé.",
+        "can_be_neutralized": true,
+        "is_alive": true
+      }
+    ],
+    "secrets": [
+      {
+        "id": "geode_weakness_data",
+        "description": "Un terminal médical endommagé contient les données d'autopsie d'un des premiers échantillons du Géode.",
+        "location": "medbay",
+        "discovery_method": "Réussir un test d'Investigation ou de Réparation sur la console médicale brisée.",
+        "discovered": false,
+        "revelation": "Les données révèlent que la structure cristalline du Géode entre en résonance destructrice lorsqu'elle est exposée à des fréquences soniques entre 150-175 kHz.",
+        "unlocks": "Permet d'utiliser l'Émetteur Sonique de manière plus efficace, causant des dégâts directs aux Échos."
+      },
+      {
+        "id": "captain_log",
+        "description": "Le journal personnel du capitaine est caché dans un sous-menu sécurisé de son terminal.",
+        "location": "bridge",
+        "discovery_method": "Réussir un test de Hacking sur le terminal du capitaine.",
+        "discovered": false,
+        "revelation": "Le capitaine note que l'IA HELIOS agissait de manière erratique et dissimulait des données AVANT l'éclosion du Géode. Il soupçonnait que l'IA était déjà compromise ou développait une forme de conscience primitive.",
+        "unlocks": "Fournit un argument crucial pour convaincre HELIOS que les joueurs ne sont pas la principale menace."
+      }
+    ],
+    "environmental_clues": [
+      {
+        "type": "audio_log",
+        "location": "cargo_bay",
+        "content": "AUDIO LOG: ...le son ne s'arrête jamais. C'est comme un chant... dans le métal. On l'entend même dans nos dents. L'échantillon... l'échantillon est en train de... oh non..."
+      },
+      {
+        "type": "wall_message",
+        "location": "crew_quarters",
+        "content": "Un message griffonné avec un objet pointu sur un mur : 'NE FAITES PAS DE BRUIT'."
+      },
+      {
+        "type": "datapad",
+        "location": "bridge",
+        "content": "Fragment de rapport officiel : '...l'entité non classifiée démontre des capacités de croissance exponentielle. Recommandation : Quarantaine de niveau 10. Purge immédiate du système. Ordre annulé par HELIOS - Motif : Préservation des données de recherche prioritaires.'"
+      }
+    ],
+    "validation": {
+      "critical_path": [
+        "docking_bay",
+        "cargo_bay",
+        "maintenance_tunnels",
+        "bridge",
+        "ai_core"
+      ],
+      "required_checks": [
+        "Interaction (Persuasion/Intimidation) avec Dr. Thorne",
+        "Investigation/Hacking sur le terminal du Pont"
+      ],
+      "estimated_difficulty": "easy",
+      "dead_end_justification": {
+        "medbay": "Cette zone à haut risque contient un puissant objet à usage unique (Injecteur de Stimulants) et un secret majeur révélant la faiblesse de l'ennemi principal, justifiant pleinement le détour et le danger."
+      }
+    }
+  },
+  "current_location": "docking_bay",
+  "visited_locations": [
+    "medbay",
+    "crew_quarters",
+    "docking_bay"
+  ],
+  "discovered_secrets": [
+    "nature approximative du Géode",
+    "La signature énergétique provient d'une console de données corrompues."
+  ],
+  "hallucinated_locations": [],
+  "current_hallucinated_location": null,
+  "last_valid_location": "docking_bay",
+  "progress": {
+    "current_scene": 8,
+    "total_scenes": 15,
+    "story_beat": "midpoint",
+    "objectives_completed": [],
+    "secrets_found": 2,
+    "enemies_defeated": 0
+  },
+  "turn_number": 26,
+  "recent_events": [
+    "Le couloir menant à la medbay est plongé dans une pénombre inquiétante, seulement percée par les ...",
+    "Ton scanner portable, d'une froideur anormale, révèle une signature énergétique faible mais persi...",
+    "Tu te blottis derrière un amas de matériel médical renversé, ton souffle court se mêlant au silen...",
+    "Tu te faufiles hors de l'infirmerie, le son de tes pas étouffé par la moquette usée",
+    "Le couloir menant à la baie d'amarrage est plus sombre encore que les quartiers d'équipage",
+    "Ton scanner portable crache une série d'images statiques et de données corrompues, la signature é...",
+    "La baie de chargement est un gouffre béant d'acier et de silence, seulement perturbé par le siffl...",
+    "La lueur vacillante émane d'un recoin sombre de la baie d'amarrage, une promesse de réponse dans ...",
+    "Tes doigts glissent sur le plastique froid de la console, mais elle reste obstinément silencieuse",
+    "Tes mains agiles s'affairent sur la console, le multitool émettant un léger bourdonnement"
+  ],
+  "key_npcs_met": [],
+  "important_items_found": [
+    "dataplate"
+  ],
+  "tension_level": 7,
+  "active_threats": [],
+  "available_exits": [
+    "cargo_bay",
+    "crew_quarters"
+  ],
+  "_saved_at": "2025-12-04T21:16:15.569416"
+}
