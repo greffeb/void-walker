@@ -96,10 +96,13 @@ export interface GameResponse {
   actionType: ActionType;
   requiresRoll: boolean;
   difficulty?: number; // 1-20
+  relevantStat?: StatName; // For dice rolls
+  suggestedModifier?: number; // -5 to +5
   stateChanges: StateChanges;
   suggestions: string[];
   tensionLevel: number; // 0-10
   isEnding: boolean;
+  endingType?: 'victory' | 'defeat' | 'escape' | 'mystery_solved';
 }
 
 export interface DiceResult {
