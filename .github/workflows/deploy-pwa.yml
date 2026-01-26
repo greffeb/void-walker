@@ -1,27 +1,26 @@
 name: Deploy PWA to GitHub Pages
 
-# Déclencher le workflow sur push vers cette branche spécifique
 on:
   push:
     branches:
-      - claude/fix-github-pages-deploy-ShuqM
-  workflow_dispatch: # Permet aussi de déclencher manuellement
+      - '**' # This captures EVERY branch created by Claude Code
+  workflow_dispatch:
 
-# Permissions nécessaires pour GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# N'autoriser qu'un seul déploiement à la fois
+# Optimized for solo dev: 
+# If you push a fix while a build is already running, 
+# it cancels the old one and starts the new one immediately.
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true 
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +51,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
