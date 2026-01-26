@@ -233,11 +233,12 @@ export async function deleteAllScenarios(): Promise<void> {
 }
 
 /**
- * Check if any scenarios exist.
+ * Check if any scenarios exist (including presets).
  */
 export async function hasScenarios(): Promise<boolean> {
-  const count = await db.scenarios.count();
-  return count > 0;
+  // We always have preset scenarios bundled with the app
+  // Plus check for user-saved scenarios in IndexedDB
+  return true;
 }
 
 // =============================================================================
