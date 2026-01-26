@@ -13,6 +13,7 @@ from void_walker.ui import clear_screen, create_divider, get_player_input
 from void_walker.utils import (
     ScenarioMetadata,
     delete_scenario,
+    list_preset_scenarios,
     list_saved_scenarios,
     load_scenario,
 )
@@ -23,10 +24,11 @@ async def show_scenario_manager(console: Console) -> Scenario | None:
     Show the scenario manager interface.
 
     Allows user to:
-    - Browse all saved scenarios
+    - Browse preset scenarios
+    - Browse saved scenarios
     - View scenario details
     - Load a scenario to play
-    - Delete scenarios
+    - Delete saved scenarios
     - Generate new scenario
 
     Args:
@@ -41,51 +43,68 @@ async def show_scenario_manager(console: Console) -> Scenario | None:
         console.print("\n[text.bright]GESTIONNAIRE DE SCÉNARIOS[/text.bright]\n")
         console.print(create_divider())
 
-        # List all saved scenarios
+        # List preset scenarios
+        presets = list_preset_scenarios()
+
+        # List user saved scenarios
         scenarios = list_saved_scenarios()
 
-        if not scenarios:
-            console.print("\n[dim]Aucun scénario sauvegardé trouvé.[/dim]")
+        # Build combined list with markers
+        all_scenarios = []
+        scenario_index_map = []  # Map display index to (type, actual_index)
+
+        # Add presets first
+        if presets:
+            console.print("\n[text.bright]📚 Scénarios Prédéfinis:[/text.bright]\n")
+            for i, meta in enumerate(presets):
+                display_idx = len(all_scenarios) + 1
+                all_scenarios.append(meta)
+                scenario_index_map.append(("preset", i, False))  # Not deletable
+
+                console.print(
+                    f"  [highlight]{display_idx:2d}[/highlight]. "
+                    f"[text.bright]{meta.title}[/text.bright] [dim](prédéfini)[/dim]"
+                )
+                console.print(
+                    f"      [dim]{meta.setting_type} | "
+                    f"{meta.location_count} lieux | "
+                    f"Difficulté: {meta.estimated_difficulty}[/dim]"
+                )
+            console.print()
+
+        # Add user scenarios
+        if scenarios:
+            console.print("[text.bright]💾 Vos Scénarios:[/text.bright]\n")
+            for i, meta in enumerate(scenarios):
+                display_idx = len(all_scenarios) + 1
+                all_scenarios.append(meta)
+                scenario_index_map.append(("user", i, True))  # Deletable
+
+                time_str = meta.saved_at.strftime("%d/%m/%Y %H:%M")
+                console.print(
+                    f"  [highlight]{display_idx:2d}[/highlight]. "
+                    f"[text.bright]{meta.title}[/text.bright]"
+                )
+                console.print(
+                    f"      [dim]{meta.setting_type} | "
+                    f"{meta.location_count} lieux | "
+                    f"Difficulté: {meta.estimated_difficulty} | "
+                    f"{time_str}[/dim]"
+                )
+            console.print()
+
+        if not all_scenarios:
+            console.print("\n[dim]Aucun scénario disponible.[/dim]")
             console.print("[text]Générez votre premier scénario !\n[/text]")
-            console.print("  [highlight]N[/highlight]. Générer un Nouveau Scénario\n")
-            console.print("  [highlight]Q[/highlight]. Retour\n")
-            console.print(create_divider())
 
-            choice = await get_player_input("\nChoix: ")
-            choice = choice.strip().lower()
-
-            if choice in ("n", "new", "nouveau"):
-                return None  # Signal to generate new
-            elif choice in ("q", "quit", "retour"):
-                return None
-            else:
-                console.print("[danger]Choix invalide.[/danger]")
-                await get_player_input("[dim]Appuyez sur Entrée...[/dim]")
-                continue
-
-        # Display scenarios
-        console.print(f"\n[text]Scénarios sauvegardés ({len(scenarios)} total):\n[/text]")
-
-        for i, meta in enumerate(scenarios, 1):
-            time_str = meta.saved_at.strftime("%d/%m/%Y %H:%M")
-
-            console.print(
-                f"  [highlight]{i:2d}[/highlight]. [text.bright]{meta.title}[/text.bright]"
-            )
-            console.print(
-                f"      [dim]{meta.setting_type} | "
-                f"{meta.location_count} lieux | "
-                f"Difficulté: {meta.estimated_difficulty} | "
-                f"{time_str}[/dim]"
-            )
-
-        console.print()
         console.print(create_divider())
         console.print()
         console.print("[text]Actions disponibles:[/text]")
-        console.print(
-            f"  [highlight]1-{len(scenarios)}[/highlight] - Sélectionner un scénario"
-        )
+        if all_scenarios:
+            console.print(
+                f"  [highlight]1-{len(all_scenarios)}[/highlight] - "
+                "Sélectionner un scénario"
+            )
         console.print("  [highlight]N[/highlight] - Générer un Nouveau Scénario")
         console.print("  [highlight]Q[/highlight] - Retour")
         console.print()
@@ -103,10 +122,13 @@ async def show_scenario_manager(console: Console) -> Scenario | None:
         # Handle scenario selection
         try:
             idx = int(choice) - 1
-            if 0 <= idx < len(scenarios):
-                selected = scenarios[idx]
+            if 0 <= idx < len(all_scenarios):
+                selected = all_scenarios[idx]
+                scenario_type, _, is_deletable = scenario_index_map[idx]
                 # Show scenario detail menu
-                result = await _show_scenario_detail(console, selected)
+                result = await _show_scenario_detail(
+                    console, selected, is_deletable
+                )
                 if result is not None:
                     return result  # User chose to play this scenario
                 # Otherwise loop back to main menu
@@ -121,6 +143,7 @@ async def show_scenario_manager(console: Console) -> Scenario | None:
 async def _show_scenario_detail(
     console: Console,
     meta: ScenarioMetadata,
+    is_deletable: bool = True,
 ) -> Scenario | None:
     """
     Show detailed view of a scenario with actions.
@@ -128,6 +151,7 @@ async def _show_scenario_detail(
     Args:
         console: Rich console for output
         meta: Scenario metadata
+        is_deletable: Whether the scenario can be deleted (False for presets)
 
     Returns:
         Loaded Scenario if user chose to play, None otherwise
@@ -192,8 +216,10 @@ async def _show_scenario_detail(
         console.print()
         console.print("[text]Actions:[/text]")
         console.print("  [highlight]P[/highlight] - Jouer avec ce scénario")
+        console.print("  [highlight]F[/highlight] - Lire le scénario complet (spoilers!)")
         console.print("  [highlight]V[/highlight] - Voir le JSON brut")
-        console.print("  [highlight]D[/highlight] - Supprimer ce scénario")
+        if is_deletable:
+            console.print("  [highlight]D[/highlight] - Supprimer ce scénario")
         console.print("  [highlight]R[/highlight] - Retour à la liste")
         console.print()
         console.print(create_divider())
@@ -203,9 +229,17 @@ async def _show_scenario_detail(
 
         if choice in ("p", "play", "jouer"):
             return scenario
+        elif choice in ("f", "full", "complet"):
+            await _show_full_scenario_details(console, scenario)
         elif choice in ("v", "view", "voir"):
             await _show_raw_json(console, meta.file_path)
         elif choice in ("d", "delete", "supprimer"):
+            if not is_deletable:
+                console.print(
+                    "\n[danger]Les scénarios prédéfinis ne peuvent pas être supprimés.[/danger]"
+                )
+                await get_player_input("[dim]Appuyez sur Entrée...[/dim]")
+                continue
             if await _confirm_delete(console, scenario.title):
                 if delete_scenario(meta.file_path):
                     console.print("\n[success]Scénario supprimé avec succès![/success]")
@@ -219,6 +253,95 @@ async def _show_scenario_detail(
         else:
             console.print("[danger]Choix invalide.[/danger]")
             await get_player_input("[dim]Appuyez sur Entrée...[/dim]")
+
+
+async def _show_full_scenario_details(console: Console, scenario: Scenario) -> None:
+    """
+    Display complete scenario details including all locations, NPCs, and secrets.
+
+    ⚠️ SPOILERS: This shows everything about the scenario!
+
+    Args:
+        console: Rich console for output
+        scenario: The scenario to display
+    """
+    clear_screen()
+
+    console.print("\n[text.bright]DÉTAILS COMPLETS DU SCÉNARIO[/text.bright]")
+    console.print("[danger]⚠️ ATTENTION: SPOILERS![/danger]\n")
+    console.print(create_divider())
+    console.print()
+
+    # Basic info
+    console.print(f"[text.bright]Titre:[/text.bright] {scenario.title}")
+    console.print(f"[text.bright]Lieu:[/text.bright] {scenario.setting_name}")
+    console.print(f"[text.bright]Type:[/text.bright] {scenario.setting_type}")
+    console.print(f"[text.bright]Menace:[/text.bright] {scenario.main_threat}")
+    console.print()
+
+    # Premise
+    console.print("[text.bright]Histoire:[/text.bright]")
+    console.print(f"[text]{scenario.premise}[/text]")
+    console.print()
+
+    # Victory condition
+    console.print("[text.bright]Condition de victoire:[/text.bright]")
+    if isinstance(scenario.victory_condition, dict):
+        victory = scenario.victory_condition.get("description", "Non définie")
+    else:
+        victory = (
+            scenario.victory_condition.description
+            if hasattr(scenario.victory_condition, "description")
+            else "Non définie"
+        )
+    console.print(f"[text]{victory}[/text]")
+    console.print()
+
+    console.print(create_divider())
+    console.print()
+
+    # Locations
+    console.print(f"[text.bright]LIEUX ({len(scenario.locations)}):[/text.bright]\n")
+    for i, location in enumerate(scenario.locations, 1):
+        console.print(f"[highlight]{i}. {location.name}[/highlight] [dim]({location.id})[/dim]")
+        console.print(f"   [text]{location.description[:150]}...[/text]")
+        console.print(f"   [dim]Connexions: {', '.join(location.connections)}[/dim]")
+        if location.items:
+            console.print(f"   [item]Items: {', '.join(location.items)}[/item]")
+        console.print()
+
+    console.print(create_divider())
+    console.print()
+
+    # NPCs
+    console.print(f"[text.bright]PNJs ({len(scenario.npcs)}):[/text.bright]\n")
+    for i, npc in enumerate(scenario.npcs, 1):
+        console.print(f"[highlight]{i}. {npc.name}[/highlight] [dim]({npc.id})[/dim]")
+        console.print(f"   [text]{npc.description}[/text]")
+        console.print(f"   [dim]Position: {npc.location} | État: {'Vivant' if npc.is_alive else 'Mort'}[/dim]")
+        if npc.motivation:
+            console.print(f"   [text]Motivation: {npc.motivation}[/text]")
+        if npc.knowledge:
+            console.print(f"   [info]Connaissances: {', '.join(npc.knowledge)}[/info]")
+        console.print()
+
+    console.print(create_divider())
+    console.print()
+
+    # Secrets
+    console.print(f"[text.bright]SECRETS ({len(scenario.secrets)}):[/text.bright]\n")
+    for i, secret in enumerate(scenario.secrets, 1):
+        console.print(f"[highlight]{i}. {secret.id}[/highlight]")
+        console.print(f"   [text]{secret.description}[/text]")
+        console.print(f"   [dim]Lieu: {secret.location}[/dim]")
+        if secret.discovery_method:
+            console.print(f"   [info]Méthode: {secret.discovery_method}[/info]")
+        if secret.rewards:
+            console.print(f"   [success]Récompenses: {', '.join(secret.rewards)}[/success]")
+        console.print()
+
+    console.print(create_divider())
+    await get_player_input("\n[dim]Appuyez sur Entrée pour retour...[/dim]")
 
 
 async def _show_raw_json(console: Console, scenario_path: Path) -> None:

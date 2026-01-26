@@ -10,7 +10,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from void_walker.config import SAVES_DIR, SCENARIOS_DIR
+from void_walker.config import SAVES_DIR, SCENARIOS_DIR, PRESETS_DIR
 from void_walker.core.state import GameState, Scenario
 
 
@@ -322,3 +322,56 @@ def delete_scenario(scenario_path: Path) -> bool:
         return False
     except (OSError, PermissionError):
         return False
+
+
+def list_preset_scenarios() -> list[ScenarioMetadata]:
+    """
+    List all preset scenario files.
+
+    Returns:
+        List of preset scenario metadata
+    """
+    PRESETS_DIR.mkdir(parents=True, exist_ok=True)
+
+    scenarios = []
+
+    for scenario_file in PRESETS_DIR.glob("*.json"):
+        try:
+            with open(scenario_file, encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Extract metadata without full deserialization
+            title = data.get("title", "Unknown Scenario")
+            setting_type = data.get("setting_type", "unknown")
+            location_count = len(data.get("locations", []))
+
+            # Get difficulty from validation field if present
+            validation = data.get("validation", {})
+            estimated_difficulty = validation.get("estimated_difficulty", "Unknown")
+
+            # Parse saved_at timestamp
+            saved_at_str = data.get("_saved_at")
+            if saved_at_str:
+                saved_at = datetime.fromisoformat(saved_at_str)
+            else:
+                # Fallback to file modification time
+                saved_at = datetime.fromtimestamp(scenario_file.stat().st_mtime)
+
+            metadata = ScenarioMetadata(
+                title=title,
+                setting_type=setting_type,
+                estimated_difficulty=estimated_difficulty,
+                location_count=location_count,
+                saved_at=saved_at,
+                file_path=scenario_file,
+            )
+            scenarios.append(metadata)
+
+        except (json.JSONDecodeError, ValueError, KeyError):
+            # Skip invalid scenario files
+            continue
+
+    # Sort by title for presets
+    scenarios.sort(key=lambda s: s.title)
+
+    return scenarios
