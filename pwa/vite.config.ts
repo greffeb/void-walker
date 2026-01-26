@@ -86,8 +86,8 @@ export default defineConfig({
             }
           },
           {
-            // Network-first strategy for the app itself
-            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.html'),
+            // Network-first strategy for HTML files
+            urlPattern: /\.html$/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'html-cache',
