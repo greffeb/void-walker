@@ -248,31 +248,31 @@ def load_scenario(scenario_path: Path) -> Scenario:
 def list_saved_scenarios(limit: int | None = None) -> list[ScenarioMetadata]:
     """
     List all saved scenario files with metadata.
-    
+
     Args:
         limit: Maximum number of scenarios to return (None = all)
-    
+
     Returns:
         List of scenario metadata, sorted by save date (newest first)
     """
     SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     scenarios = []
-    
+
     for scenario_file in SCENARIOS_DIR.glob("*.json"):
         try:
             with open(scenario_file, encoding="utf-8") as f:
                 data = json.load(f)
-            
+
             # Extract metadata without full deserialization
             title = data.get("title", "Unknown Scenario")
             setting_type = data.get("setting_type", "unknown")
             location_count = len(data.get("locations", []))
-            
+
             # Get difficulty from validation field if present
             validation = data.get("validation", {})
             estimated_difficulty = validation.get("estimated_difficulty", "Unknown")
-            
+
             # Parse saved_at timestamp
             saved_at_str = data.get("_saved_at")
             if saved_at_str:
@@ -280,7 +280,7 @@ def list_saved_scenarios(limit: int | None = None) -> list[ScenarioMetadata]:
             else:
                 # Fallback to file modification time
                 saved_at = datetime.fromtimestamp(scenario_file.stat().st_mtime)
-            
+
             metadata = ScenarioMetadata(
                 title=title,
                 setting_type=setting_type,
@@ -290,16 +290,35 @@ def list_saved_scenarios(limit: int | None = None) -> list[ScenarioMetadata]:
                 file_path=scenario_file,
             )
             scenarios.append(metadata)
-            
+
         except (json.JSONDecodeError, ValueError, KeyError):
             # Skip invalid scenario files
             continue
-    
+
     # Sort by save date, newest first
     scenarios.sort(key=lambda s: s.saved_at, reverse=True)
-    
+
     # Apply limit if specified
     if limit is not None:
         scenarios = scenarios[:limit]
-    
+
     return scenarios
+
+
+def delete_scenario(scenario_path: Path) -> bool:
+    """
+    Delete a saved scenario file.
+
+    Args:
+        scenario_path: Path to the scenario file to delete
+
+    Returns:
+        True if deleted successfully, False if file not found
+    """
+    try:
+        if scenario_path.exists():
+            scenario_path.unlink()
+            return True
+        return False
+    except (OSError, PermissionError):
+        return False

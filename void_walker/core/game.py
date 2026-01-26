@@ -62,6 +62,7 @@ from void_walker.ui import (
     setup_terminal,
     cleanup_terminal,
     validate_action,
+    show_scenario_manager,
 )
 from void_walker.utils import (
     create_session_id,
@@ -302,86 +303,32 @@ class Game:
         return create_fallback_scenario()
     
     async def _show_scenario_selection_menu(self):
-        """Display scenario selection menu with last 4 scenarios."""
-        clear_screen()
-        
-        self.console.print("\n[text.bright]SÉLECTION DE SCÉNARIO[/text.bright]\n")
-        
-        # Get last 4 saved scenarios
-        scenarios = list_saved_scenarios(limit=4)
-        
-        if not scenarios:
-            # No scenarios available - only show generate option
-            self.console.print("[dim]Aucun scénario sauvegardé trouvé.[/dim]")
-            self.console.print("[text]Générez votre premier scénario !\n[/text]")
-            self.console.print("  [highlight]1[/highlight]. [text.bright]Générer un Nouveau Scénario[/text.bright]\n")
-            
-            while True:
-                choice = await get_player_input("Choix (1): ")
-                if choice.strip() == "1":
-                    return None  # Signal to generate new scenario
-                self.console.print("[danger]Choix invalide.[/danger]")
-        else:
-            # Display available scenarios
-            self.console.print("[text]Scénarios disponibles:\n[/text]")
-            
-            for i, scenario_meta in enumerate(scenarios, 1):
-                # Format timestamp as "Dec 4, 20:13"
-                time_str = scenario_meta.saved_at.strftime("%b %d, %H:%M")
-                
-                self.console.print(f"  [highlight]{i}[/highlight]. [text.bright]{scenario_meta.title}[/text.bright]")
-                self.console.print(
-                    f"     [dim]{scenario_meta.setting_type} | "
-                    f"{scenario_meta.location_count} locations | "
-                    f"Difficulté: {scenario_meta.estimated_difficulty} | "
-                    f"{time_str}[/dim]\n"
-                )
-            
-            # Add generate new option
-            generate_option = len(scenarios) + 1
-            self.console.print(f"  [highlight]{generate_option}[/highlight]. [text.bright]Générer un Nouveau Scénario[/text.bright]\n")
-            
-            # Get user choice
-            while True:
-                choice = await get_player_input(f"Choix (1-{generate_option}): ")
-                try:
-                    idx = int(choice.strip()) - 1
-                    if idx == len(scenarios):
-                        # Generate new scenario
-                        return None
-                    elif 0 <= idx < len(scenarios):
-                        # Load selected scenario
-                        return scenarios[idx]
-                except ValueError:
-                    pass
-                self.console.print("[danger]Choix invalide.[/danger]")
+        """Display scenario selection menu using the scenario manager."""
+        return await show_scenario_manager(self.console)
     
     async def _generate_or_fallback_scenario(self):
         """Show scenario selection menu and generate/load scenario."""
         settings = get_settings()
-        
-        # Show scenario selection menu
+
+        # Show scenario manager (returns Scenario if user selected one, None to generate)
         selected_scenario = await self._show_scenario_selection_menu()
-        
+
         if selected_scenario is not None:
-            # User selected an existing scenario - load it
-            try:
-                self.console.print(f"\n[dim]Chargement du scénario: {selected_scenario.title}...[/dim]")
-                scenario = load_scenario(selected_scenario.file_path)
-                self.console.print(f"[success]Scénario chargé ![/success]")
-                await asyncio.sleep(0.5)
-                return scenario
-            except Exception as e:
-                self.console.print(f"\n[danger]Erreur lors du chargement: {e}[/danger]")
-                self.console.print("[dim]Utilisation du scénario par défaut[/dim]")
-                return create_fallback_scenario()
-        
+            # User selected an existing scenario from the manager
+            self.console.print(f"\n[success]Scénario '{selected_scenario.title}' sélectionné ![/success]")
+            await asyncio.sleep(0.5)
+            return selected_scenario
+
         # User chose to generate new scenario
         if not settings.google_api_key:
             self.console.print("\n[dim]Pas de clé API - utilisation du scénario par défaut[/dim]")
             return create_fallback_scenario()
 
         # Use spinner for scenario generation
+        clear_screen()
+        self.console.print("\n[text.bright]GÉNÉRATION DE SCÉNARIO[/text.bright]\n")
+        self.console.print("[dim]Création d'un nouveau scénario unique...[/dim]\n")
+
         spinner = CPUSpinner()
         spinner.start()
 
@@ -389,6 +336,9 @@ class Game:
             scenario = await generate_validated_scenario(self.session_type)
             spinner.stop()
             self.console.print()  # Add newline after spinner
+            self.console.print("[success]Scénario généré et sauvegardé ![/success]")
+            await asyncio.sleep(0.5)
+
             # Log generated scenario
             self.logger.scenario_generated(
                 scenario.title,

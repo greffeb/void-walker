@@ -1,11 +1,11 @@
 /**
  * Void Walker PWA - Storage Service
  *
- * IndexedDB persistence using Dexie.js for game saves and settings.
+ * IndexedDB persistence using Dexie.js for game saves, scenarios, and settings.
  */
 
 import Dexie, { type Table } from 'dexie';
-import type { GameState } from '../types/game';
+import type { GameState, Scenario } from '../types/game';
 
 // Types for storage
 export interface SaveMetadata {
@@ -24,6 +24,21 @@ export interface SaveMetadata {
 export interface SavedGame {
   sessionId: string;
   state: GameState;
+  savedAt: string;
+}
+
+export interface ScenarioMetadata {
+  id: string; // Generated unique ID
+  title: string;
+  settingType: string;
+  estimatedDifficulty: string;
+  locationCount: number;
+  savedAt: string;
+}
+
+export interface SavedScenario {
+  id: string; // Generated unique ID
+  scenario: Scenario;
   savedAt: string;
 }
 
@@ -48,13 +63,22 @@ const DEFAULT_SETTINGS: AppSettings = {
 // Database definition
 class VoidWalkerDB extends Dexie {
   saves!: Table<SavedGame, string>;
+  scenarios!: Table<SavedScenario, string>;
   settings!: Table<AppSettings, string>;
 
   constructor() {
     super('VoidWalkerDB');
 
+    // Version 1: Initial schema
     this.version(1).stores({
       saves: 'sessionId, savedAt',
+      settings: 'id',
+    });
+
+    // Version 2: Add scenarios table
+    this.version(2).stores({
+      saves: 'sessionId, savedAt',
+      scenarios: 'id, savedAt',
       settings: 'id',
     });
   }
@@ -134,6 +158,85 @@ export async function deleteAllSaves(): Promise<void> {
  */
 export async function hasSaves(): Promise<boolean> {
   const count = await db.saves.count();
+  return count > 0;
+}
+
+// =============================================================================
+// SCENARIOS
+// =============================================================================
+
+/**
+ * Generate a unique ID for a scenario.
+ */
+function generateScenarioId(): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `scenario_${timestamp}_${random}`;
+}
+
+/**
+ * Save a generated scenario for later use.
+ */
+export async function saveScenario(scenario: Scenario): Promise<string> {
+  const id = generateScenarioId();
+  const savedScenario: SavedScenario = {
+    id,
+    scenario,
+    savedAt: new Date().toISOString(),
+  };
+
+  await db.scenarios.put(savedScenario);
+  return id;
+}
+
+/**
+ * Load a scenario by ID.
+ */
+export async function loadScenario(id: string): Promise<Scenario | undefined> {
+  const saved = await db.scenarios.get(id);
+  return saved?.scenario;
+}
+
+/**
+ * Get metadata for all saved scenarios (for scenario browser UI).
+ */
+export async function listScenarios(): Promise<ScenarioMetadata[]> {
+  const scenarios = await db.scenarios.orderBy('savedAt').reverse().toArray();
+
+  return scenarios.map(saved => {
+    const scenario = saved.scenario;
+    const locationCount = Object.keys(scenario.locations || {}).length;
+
+    return {
+      id: saved.id,
+      title: scenario.title || 'Scénario sans titre',
+      settingType: scenario.setting || 'unknown',
+      estimatedDifficulty: 'medium', // Could be enhanced with validation data
+      locationCount,
+      savedAt: saved.savedAt,
+    };
+  });
+}
+
+/**
+ * Delete a saved scenario.
+ */
+export async function deleteScenario(id: string): Promise<void> {
+  await db.scenarios.delete(id);
+}
+
+/**
+ * Delete all saved scenarios.
+ */
+export async function deleteAllScenarios(): Promise<void> {
+  await db.scenarios.clear();
+}
+
+/**
+ * Check if any scenarios exist.
+ */
+export async function hasScenarios(): Promise<boolean> {
+  const count = await db.scenarios.count();
   return count > 0;
 }
 

@@ -54,6 +54,9 @@ from void_walker.ui.text import (
 from void_walker.ui.spinner import (
     CPUSpinner,
 )
+from void_walker.ui.scenario_manager import (
+    show_scenario_manager,
+)
 
 __all__ = [
     # Terminal
@@ -103,4 +106,6 @@ __all__ = [
     "typewriter_text",
     # Spinner
     "CPUSpinner",
+    # Scenario Manager
+    "show_scenario_manager",
 ]

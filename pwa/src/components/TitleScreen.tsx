@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../stores/gameStore';
-import { hasSaves } from '../services/storage';
+import { hasSaves, hasScenarios } from '../services/storage';
 import { SaveLoadModal } from './SaveLoadModal';
+import { ScenarioBrowserModal } from './ScenarioBrowserModal';
 import { OptionsMenu } from './OptionsMenu';
 import type { SessionType } from '../services/prompts';
 
@@ -14,15 +15,18 @@ export function TitleScreen() {
   const refreshSaves = useGameStore((state) => state.refreshSaves);
 
   const [hasSavedGames, setHasSavedGames] = useState(false);
+  const [hasSavedScenarios, setHasSavedScenarios] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showScenarioModal, setShowScenarioModal] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
 
   useEffect(() => {
     // Load API key from storage
     loadApiKey();
 
-    // Check for saved games
+    // Check for saved games and scenarios
     checkSaves();
+    checkScenarios();
   }, [loadApiKey]);
 
   const checkSaves = async () => {
@@ -31,6 +35,11 @@ export function TitleScreen() {
     if (exists) {
       refreshSaves();
     }
+  };
+
+  const checkScenarios = async () => {
+    const exists = await hasScenarios();
+    setHasSavedScenarios(exists);
   };
 
   const handleStart = () => {
@@ -111,6 +120,16 @@ export function TitleScreen() {
           </button>
         )}
 
+        {/* Browse Scenarios Button (if scenarios exist) */}
+        {hasSavedScenarios && (
+          <button
+            className="w-full btn bg-[var(--color-steel)] text-[var(--color-text)] px-8"
+            onClick={() => setShowScenarioModal(true)}
+          >
+            📚 Scénarios sauvegardés
+          </button>
+        )}
+
         {/* Options Button */}
         <button
           className="w-full btn bg-[var(--color-void)] text-[var(--color-text-dim)] text-sm"
@@ -136,6 +155,10 @@ export function TitleScreen() {
 
       {/* Modals */}
       <SaveLoadModal isOpen={showSaveModal} onClose={() => setShowSaveModal(false)} />
+      <ScenarioBrowserModal
+        isOpen={showScenarioModal}
+        onClose={() => setShowScenarioModal(false)}
+      />
       <OptionsMenu isOpen={showOptions} onClose={() => setShowOptions(false)} />
     </div>
   );
