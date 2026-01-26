@@ -9,8 +9,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['icons/*.svg'],
+      // Inject service worker registration into index.html
+      injectRegister: false, // We handle registration manually in registerSW.ts
       manifest: {
         name: 'Void Walker',
         short_name: 'VoidWalker',
@@ -41,9 +43,18 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // Clean up old caches on activation
+        cleanupOutdatedCaches: true,
+        // Handle SKIP_WAITING message from client
+        skipWaiting: true,
+        // Claim clients immediately
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Exclude certain files from precaching if needed
+        navigateFallback: null, // Don't use navigate fallback to avoid caching issues
         runtimeCaching: [
           {
+            // Never cache the Gemini API
             urlPattern: /^https:\/\/generativelanguage\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly',
             options: {
@@ -51,17 +62,19 @@ export default defineConfig({
             }
           },
           {
+            // Cache Google Fonts stylesheets
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'google-fonts-stylesheets',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               }
             }
           },
           {
+            // Cache Google Fonts files
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -69,6 +82,19 @@ export default defineConfig({
               expiration: {
                 maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              }
+            }
+          },
+          {
+            // Network-first strategy for the app itself
+            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.html'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 60 // 1 hour - short cache for HTML
               }
             }
           }
