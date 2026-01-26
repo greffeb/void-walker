@@ -19,8 +19,8 @@ export default defineConfig({
         background_color: '#0a0a0f',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/void_walker/',
-        start_url: '/void_walker/',
+        scope: '/void-walker/',
+        start_url: '/void-walker/',
         icons: [
           {
             src: 'icons/icon-192.svg',
@@ -80,5 +80,5 @@ export default defineConfig({
     host: true, // Allow access from mobile devices on same network
     port: 5173,
   },
-  base: '/void_walker/', // For GitHub Pages deployment
+  base: '/void-walker/', // For GitHub Pages deployment
 })
