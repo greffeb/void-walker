@@ -1,16 +1,35 @@
-import { defineConfig } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// Generate unique build ID on each build for cache busting
+const buildId = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+const buildTime = new Date().toISOString();
+
+console.log(`[Build] ID: ${buildId}, Time: ${buildTime}`);
+
+// Plugin to inject build ID into HTML
+function injectBuildIdPlugin(): Plugin {
+  return {
+    name: 'inject-build-id',
+    transformIndexHtml(html) {
+      return html
+        .replace('__BUILD_ID__', buildId)
+        .replace('__BUILD_TIME__', buildTime);
+    },
+  };
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    injectBuildIdPlugin(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icons/*.svg'],
+      includeAssets: ['icons/*.svg', 'scenarios/*.json'],
       // Inject service worker registration into index.html
       injectRegister: false, // We handle registration manually in registerSW.ts
       manifest: {
@@ -49,7 +68,7 @@ export default defineConfig({
         skipWaiting: true,
         // Claim clients immediately
         clientsClaim: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,json}'],
         // Exclude certain files from precaching if needed
         navigateFallback: null, // Don't use navigate fallback to avoid caching issues
         runtimeCaching: [
@@ -107,4 +126,8 @@ export default defineConfig({
     port: 5173,
   },
   base: '/void-walker/', // For GitHub Pages deployment
+  define: {
+    '__BUILD_ID__': JSON.stringify(buildId),
+    '__BUILD_TIME__': JSON.stringify(buildTime),
+  }
 })
