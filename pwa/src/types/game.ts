@@ -128,36 +128,36 @@ export interface CharacterClass {
 export const CHARACTER_CLASSES: CharacterClass[] = [
   {
     name: 'Technicien',
-    stats: { FOR: 2, INT: 5, CHA: 2 },
-    hp: 10,
+    stats: { FOR: 2, INT: 4, CHA: 2 },
+    hp: 8,
     description: 'Expert en systèmes et réparations',
     startingInventory: ['Multitool', 'Scanner portable']
   },
   {
     name: 'Marine',
-    stats: { FOR: 5, INT: 2, CHA: 2 },
-    hp: 14,
+    stats: { FOR: 4, INT: 2, CHA: 2 },
+    hp: 12,
     description: 'Combattant aguerri et endurant',
     startingInventory: ['Pistolet laser', 'Armure légère']
   },
   {
     name: 'Diplomate',
-    stats: { FOR: 2, INT: 2, CHA: 5 },
-    hp: 10,
+    stats: { FOR: 2, INT: 2, CHA: 4 },
+    hp: 8,
     description: 'Négociateur et manipulateur',
     startingInventory: ['Traducteur universel', 'Communicateur crypté']
   },
   {
     name: 'Médecin',
-    stats: { FOR: 2, INT: 4, CHA: 3 },
+    stats: { FOR: 2, INT: 3, CHA: 3 },
     hp: 10,
     description: 'Soigneur et scientifique',
     startingInventory: ['Kit médical', 'Stimulants']
   },
   {
     name: 'Pilote',
-    stats: { FOR: 3, INT: 3, CHA: 3 },
-    hp: 12,
+    stats: { FOR: 3, INT: 3, CHA: 2 },
+    hp: 10,
     description: 'Polyvalent et adaptable',
     startingInventory: ['Combinaison de vol', 'Balise de détresse']
   }

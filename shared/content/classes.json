@@ -1,0 +1,92 @@
+{
+  "Technicien": {
+    "stats": { "FOR": 2, "INT": 4, "CHA": 2 },
+    "hp": 8,
+    "description": "Expert en systèmes et réparations. Peut pirater des terminaux et réparer des équipements.",
+    "startingInventory": [
+      {
+        "name": "Multitool",
+        "description": "Outil multifonction pour réparations et piratage basique",
+        "itemType": "tool",
+        "statBonus": { "INT": 1 }
+      },
+      {
+        "name": "Scanner portable",
+        "description": "Analyse l'environnement et détecte les anomalies",
+        "itemType": "tool"
+      }
+    ]
+  },
+  "Marine": {
+    "stats": { "FOR": 4, "INT": 2, "CHA": 2 },
+    "hp": 12,
+    "description": "Soldat entraîné au combat. Résistant et dangereux en confrontation directe.",
+    "startingInventory": [
+      {
+        "name": "Pistolet laser",
+        "description": "Arme de service standard, fiable et efficace",
+        "itemType": "weapon",
+        "statBonus": { "FOR": 1 }
+      },
+      {
+        "name": "Gilet pare-balles",
+        "description": "Protection légère contre les projectiles",
+        "itemType": "tool"
+      }
+    ]
+  },
+  "Diplomate": {
+    "stats": { "FOR": 2, "INT": 2, "CHA": 4 },
+    "hp": 8,
+    "description": "Expert en négociation et manipulation. Peut convaincre ou tromper les PNJ.",
+    "startingInventory": [
+      {
+        "name": "Traducteur universel",
+        "description": "Facilite la communication avec toute forme d'intelligence",
+        "itemType": "tool",
+        "statBonus": { "CHA": 1 }
+      },
+      {
+        "name": "Dossier confidentiel",
+        "description": "Contient des informations sensibles pouvant servir de levier",
+        "itemType": "data"
+      }
+    ]
+  },
+  "Médecin": {
+    "stats": { "FOR": 2, "INT": 3, "CHA": 3 },
+    "hp": 10,
+    "description": "Spécialiste médical. Peut soigner les blessures et analyser les contaminations.",
+    "startingInventory": [
+      {
+        "name": "Trousse médicale",
+        "description": "Équipement médical complet pour soins d'urgence",
+        "itemType": "consumable",
+        "uses": 5
+      },
+      {
+        "name": "Stimulants",
+        "description": "Booste temporairement les capacités physiques",
+        "itemType": "consumable",
+        "uses": 2
+      }
+    ]
+  },
+  "Pilote": {
+    "stats": { "FOR": 3, "INT": 3, "CHA": 2 },
+    "hp": 10,
+    "description": "Pilote expérimenté. Connaît les vaisseaux et peut accéder aux zones de navigation.",
+    "startingInventory": [
+      {
+        "name": "Clés du vaisseau",
+        "description": "Accès aux systèmes de pilotage et de navigation",
+        "itemType": "key_item"
+      },
+      {
+        "name": "Combinaison EVA",
+        "description": "Protection pour les sorties extravéhiculaires",
+        "itemType": "tool"
+      }
+    ]
+  }
+}

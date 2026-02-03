@@ -1,0 +1,106 @@
+{
+  "tools": {
+    "lampe_torche": {
+      "name": "Lampe torche",
+      "description": "Éclaire les zones sombres",
+      "itemType": "tool",
+      "statBonus": { "INT": 1 }
+    },
+    "multitool": {
+      "name": "Multitool",
+      "description": "Outil multifonction pour réparations",
+      "itemType": "tool",
+      "statBonus": { "INT": 1 }
+    },
+    "scanner": {
+      "name": "Scanner portable",
+      "description": "Analyse l'environnement",
+      "itemType": "tool"
+    },
+    "combinaison_eva": {
+      "name": "Combinaison EVA",
+      "description": "Protection pour sorties dans le vide",
+      "itemType": "tool"
+    }
+  },
+  "weapons": {
+    "pistolet_laser": {
+      "name": "Pistolet laser",
+      "description": "Arme de service standard",
+      "itemType": "weapon",
+      "statBonus": { "FOR": 1 }
+    },
+    "barre_metal": {
+      "name": "Barre de métal",
+      "description": "Arme improvisée contondante",
+      "itemType": "weapon"
+    },
+    "couteau": {
+      "name": "Couteau utilitaire",
+      "description": "Lame polyvalente",
+      "itemType": "weapon"
+    }
+  },
+  "consumables": {
+    "trousse_medicale": {
+      "name": "Trousse médicale",
+      "description": "Soins d'urgence, restaure 4 HP",
+      "itemType": "consumable",
+      "uses": 3
+    },
+    "stimulant": {
+      "name": "Stimulant",
+      "description": "Boost temporaire de FOR",
+      "itemType": "consumable",
+      "uses": 1
+    },
+    "ration": {
+      "name": "Ration d'urgence",
+      "description": "Nourriture concentrée",
+      "itemType": "consumable",
+      "uses": 1
+    },
+    "ruban_adhesif": {
+      "name": "Ruban adhésif",
+      "description": "Mille et un usages",
+      "itemType": "consumable",
+      "uses": 3
+    }
+  },
+  "key_items": {
+    "carte_acces": {
+      "name": "Carte d'accès",
+      "description": "Ouvre certaines portes sécurisées",
+      "itemType": "key_item"
+    },
+    "cle_vaisseau": {
+      "name": "Clé du vaisseau",
+      "description": "Accès aux commandes principales",
+      "itemType": "key_item"
+    }
+  },
+  "data": {
+    "datapad": {
+      "name": "Datapad",
+      "description": "Terminal portable avec des données",
+      "itemType": "data"
+    },
+    "journal": {
+      "name": "Journal personnel",
+      "description": "Notes d'un membre d'équipage",
+      "itemType": "data"
+    }
+  },
+  "misc": {
+    "debris": {
+      "name": "Débris métallique",
+      "description": "Morceaux de métal récupérés",
+      "itemType": "misc"
+    },
+    "cable": {
+      "name": "Câble électrique",
+      "description": "Peut servir à des réparations",
+      "itemType": "misc"
+    }
+  }
+}

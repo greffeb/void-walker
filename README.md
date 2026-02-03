@@ -1,6 +1,6 @@
 # Void Walker
 
-A terminal-based space horror RPG with AI-driven game mastering, procedural generation, and creative player agency.
+A mobile-first Progressive Web App space horror RPG with AI-driven game mastering, procedural generation, and creative player agency.
 
 ## Features
 
@@ -9,65 +9,81 @@ A terminal-based space horror RPG with AI-driven game mastering, procedural gene
 - **Meaningful Consequences**: D20-based dice system with real stakes
 - **Atmospheric Horror**: Environmental storytelling through datapads, radio transmissions, and evidence
 - **Flexible Sessions**: Play for 5 minutes or 2 hours
-- **Scenario Archive**: All successfully generated scenarios are automatically saved to `data/scenarios/` for future use
+- **Offline Support**: Play saved scenarios offline
+- **Installable**: Add to home screen on mobile devices
+
+## Play Online
+
+Visit the deployed PWA at: `https://[your-username].github.io/void_walker/`
+
+Or run locally:
+
+```bash
+cd pwa
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173
 
 ## Requirements
 
-- Python 3.11+
-- Terminal with 120+ columns, Unicode support, 256 colors
-- Google AI API key (Gemini)
+- Modern browser (Chrome, Firefox, Safari, Edge)
+- Google AI API key (Gemini) - entered on first launch
+- Internet connection for new scenario generation
 
-## Installation
+## Development
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd void_walker
-
-# Create virtual environment
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-# source .venv/bin/activate  # Linux/Mac
+cd pwa
 
 # Install dependencies
-pip install -e ".[dev]"
+npm install
 
-# Configure API key
-cp .env.example .env
-# Edit .env and add your GOOGLE_API_KEY
+# Development server (hot reload)
+npm run dev
+
+# Run tests
+npm run test
+
+# Type checking
+npm run typecheck
+
+# Lint
+npm run lint
+
+# Build for production
+npm run build
 ```
 
-## Usage
+## Project Structure
 
-```bash
-# Start the game
-void-walker
-
-# Quick session (5 minutes)
-void-walker --session quick
-
-# Standard session (30 minutes)
-void-walker --session standard
-
-# Extended session (2 hours)
-void-walker --session extended
-
-# Debug mode
-void-walker --debug
-
-# Fast playtest mode (skips menus, uses latest scenario)
-void-walker --fast
+```
+void_walker/
+├── pwa/                      # Progressive Web App
+│   ├── src/
+│   │   ├── components/       # React UI components
+│   │   ├── controllers/      # Game logic
+│   │   ├── services/         # LLM client, storage
+│   │   ├── stores/           # Zustand state management
+│   │   ├── types/            # TypeScript interfaces
+│   │   └── utils/            # Dice, pacing, validators
+│   └── public/
+├── shared/                   # Shared content definitions
+│   └── content/              # Classes, items, settings (JSON)
+├── docs/                     # Documentation
+│   └── PWA_MISSING_FEATURES.md
+└── archived/                 # Archived CLI version (reference only)
 ```
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| `i` | Toggle inventory |
-| `m` | Toggle map |
-| `TAB` | Show suggestions |
-| `?` | Help |
-| `q` | Quit |
+| Action | How |
+|--------|-----|
+| Move/Act | Tap suggestion buttons or type custom action |
+| Inventory | Tap inventory icon |
+| Map | Tap map icon |
+| Save | Auto-saves or via Options menu |
 
 ## License
 
