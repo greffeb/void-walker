@@ -1,4 +1,5 @@
 import { useGameStore } from '../stores/gameStore';
+import { MapCanvas } from './MapCanvas';
 
 interface MapModalProps {
   isOpen: boolean;
@@ -11,98 +12,109 @@ export function MapModal({ isOpen, onClose }: MapModalProps) {
   if (!isOpen || !gameState) return null;
 
   const { scenario, currentLocation, visitedLocations } = gameState;
-  const locations = Object.values(scenario.locations);
+
+  // Get revealed locations (adjacent to visited locations)
+  const revealedLocations = Object.values(scenario.locations)
+    .filter(loc => loc.discovered)
+    .map(loc => loc.name);
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center"
+      className="fixed inset-0 bg-black/90 z-50 flex flex-col animate-fade-in"
       onClick={onClose}
     >
+      {/* Header */}
       <div
-        className="bg-[var(--color-steel)] w-full max-w-md max-h-[80vh] rounded-t-2xl overflow-hidden animate-fade-in"
+        className="flex items-center justify-between p-4 border-b border-[var(--color-panel)] bg-[var(--color-void)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[var(--color-panel)]">
-          <h2 className="text-lg font-bold">🗺️ Carte</h2>
-          <button
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--color-panel)]"
-            onClick={onClose}
+        <h2 className="text-lg font-bold text-[var(--color-text)]">Carte</h2>
+        <button
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--color-panel)] text-[var(--color-text)] hover:bg-[var(--color-steel)] transition-colors"
+          onClick={onClose}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            ✕
-          </button>
-        </div>
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
 
-        {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[60vh]">
-          <div className="space-y-2">
-            {locations.map((location) => {
-              const isCurrentLocation = location.name === currentLocation;
-              const isVisited = visitedLocations.includes(location.name);
-              const isDiscovered = location.discovered || isVisited;
+      {/* Map Canvas - Full height */}
+      <div
+        className="flex-1 min-h-0 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <MapCanvas
+          scenario={scenario}
+          currentLocation={currentLocation}
+          visitedLocations={visitedLocations}
+          revealedLocations={revealedLocations}
+        />
+      </div>
 
-              return (
-                <div
-                  key={location.name}
-                  className={`
-                    p-3 rounded-lg border transition-all
-                    ${isCurrentLocation
-                      ? 'bg-[var(--color-accent)]/20 border-[var(--color-accent)]'
-                      : isDiscovered
-                        ? 'bg-[var(--color-panel)] border-[var(--color-panel)]'
-                        : 'bg-[var(--color-void)] border-[var(--color-void)] opacity-50'}
-                  `}
-                >
-                  <div className="flex items-center gap-2">
-                    {isCurrentLocation && <span>📍</span>}
-                    {!isCurrentLocation && isVisited && <span className="text-[var(--color-success)]">✓</span>}
-                    {!isDiscovered && <span>❓</span>}
-                    <span className={`font-medium ${!isDiscovered ? 'text-[var(--color-text-dim)]' : ''}`}>
-                      {isDiscovered ? location.name : '???'}
-                    </span>
-                  </div>
-
-                  {isDiscovered && (
-                    <>
-                      <p className="text-sm text-[var(--color-text-dim)] mt-1">
-                        {location.description}
-                      </p>
-
-                      {/* Connections */}
-                      {location.connections.length > 0 && (
-                        <div className="mt-2 text-xs text-[var(--color-text-dim)]">
-                          <span>Connecté à : </span>
-                          {location.connections.map((conn, i) => (
-                            <span key={conn}>
-                              <span className={visitedLocations.includes(conn) ? 'text-[var(--color-success)]' : ''}>
-                                {conn}
-                              </span>
-                              {i < location.connections.length - 1 && ', '}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Dangers indicator */}
-                      {location.dangers.length > 0 && (
-                        <div className="mt-1 text-xs text-[var(--color-accent)]">
-                          ⚠️ Zone dangereuse
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
+      {/* Legend */}
+      <div
+        className="p-4 border-t border-[var(--color-panel)] bg-[var(--color-void)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[var(--color-text-dim)]">
+          <div className="flex items-center gap-2">
+            <span
+              className="w-4 h-4 rounded border-2"
+              style={{
+                backgroundColor: '#1a5c32',
+                borderColor: '#6bff9a'
+              }}
+            />
+            <span>Position actuelle</span>
           </div>
-
-          {/* Legend */}
-          <div className="mt-4 pt-4 border-t border-[var(--color-panel)] text-xs text-[var(--color-text-dim)]">
-            <div className="flex gap-4">
-              <span>📍 Position actuelle</span>
-              <span className="text-[var(--color-success)]">✓ Visité</span>
-              <span>❓ Inconnu</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-4 h-4 rounded border-2"
+              style={{
+                backgroundColor: '#1a5c32',
+                borderColor: '#2d9651'
+              }}
+            />
+            <span>Lieu explore</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-4 h-4 rounded border-2"
+              style={{
+                backgroundColor: '#141414',
+                borderColor: '#e6e6e6'
+              }}
+            />
+            <span>Lieu adjacent</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-4 h-4 rounded border-2"
+              style={{
+                backgroundColor: '#1a1a1a',
+                borderColor: '#303030'
+              }}
+            />
+            <span>Inconnu</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-3 h-3 rounded-sm"
+              style={{ backgroundColor: '#8f2d2d' }}
+            />
+            <span>Zone dangereuse</span>
           </div>
         </div>
       </div>
