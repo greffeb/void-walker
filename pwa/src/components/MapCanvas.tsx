@@ -42,7 +42,7 @@ export function MapCanvas({
     const { locations, displayNames, meta } = buildLocationGraphFromScenario(scenario);
     if (Object.keys(locations).length === 0) return null;
 
-    const result = generateLayoutWithConnectors(locations, { totalTries: 50 });
+    const result = generateLayoutWithConnectors(locations, { totalTries: 10 });
     return { result, displayNames, meta, locations };
   }, [scenario]);
 
@@ -91,7 +91,7 @@ export function MapCanvas({
     // Scale to fit container while maintaining aspect ratio
     const scaleX = width / canvasWidth;
     const scaleY = height / canvasHeight;
-    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
+    const scale = Math.min(scaleX, scaleY);
 
     // Clear canvas
     ctx.fillStyle = BACKGROUND_COLOR;

@@ -303,36 +303,6 @@ export function generateLayout(
 
   const positions = bestPositions || buildLayoutAttempt() || {};
 
-  // Center the hub in the grid by adding symmetric padding
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const [n, pos] of Object.entries(positions)) {
-    minX = Math.min(minX, pos.x);
-    minY = Math.min(minY, pos.y);
-    maxX = Math.max(maxX, pos.x);
-    maxY = Math.max(maxY, pos.y + (roomSizes[n].height - 1));
-  }
-
-  if (positions[hubName]) {
-    const hubPos = positions[hubName];
-    const leftDist = hubPos.x - minX;
-    const rightDist = maxX - hubPos.x;
-    const topDist = hubPos.y - minY;
-    const bottomDist = maxY - hubPos.y;
-
-    const targetHubX = Math.max(leftDist, rightDist);
-    const targetHubY = Math.max(topDist, bottomDist);
-    const offsetX = targetHubX - hubPos.x;
-    const offsetY = targetHubY - hubPos.y;
-
-    for (const pos of Object.values(positions)) {
-      pos.x += offsetX;
-      pos.y += offsetY;
-    }
-  }
-
   // Apply spacing to leave corridors between rooms
   if (scale !== 1) {
     for (const pos of Object.values(positions)) {
@@ -341,15 +311,27 @@ export function generateLayout(
     }
   }
 
-  // Calculate grid size without compacting (to leave margin for connectors)
-  maxX = 0;
-  maxY = 0;
+  // Compact: shift so the top-left occupied cell sits at (0,0)
+  let minX = Infinity;
+  let minY = Infinity;
+  for (const pos of Object.values(positions)) {
+    minX = Math.min(minX, pos.x);
+    minY = Math.min(minY, pos.y);
+  }
+  for (const pos of Object.values(positions)) {
+    pos.x -= minX;
+    pos.y -= minY;
+  }
+
+  // Tight bounding box + 1-cell border for connector routing
+  let maxX = 0;
+  let maxY = 0;
   for (const [n, pos] of Object.entries(positions)) {
     maxX = Math.max(maxX, pos.x);
     maxY = Math.max(maxY, pos.y + (roomSizes[n].height - 1));
   }
 
-  const GRID_PADDING = 2;
+  const GRID_PADDING = 1;
   for (const pos of Object.values(positions)) {
     pos.x += GRID_PADDING;
     pos.y += GRID_PADDING;
@@ -906,12 +888,16 @@ export function generateLayoutWithConnectors(
 // UTILITY: Normalize location name for comparison
 // ============================================================================
 
+const FRENCH_ARTICLES = new Set(['du', 'de', 'la', 'le', 'les', 'des', 'l', 'd']);
+
 export function normalizeLocationName(name: string): string {
   return String(name || '')
     .toLowerCase()
-    .replace(/[_\s]+/g, '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+    .replace(/[\u0300-\u036f]/g, '')   // strip diacritics first so é→e before splitting
+    .split(/[_\s'\u2019\u02bc]+/)      // split on separators incl. apostrophes
+    .filter(w => w && !FRENCH_ARTICLES.has(w))
+    .join('');
 }
 
 // ============================================================================

@@ -12,13 +12,6 @@
   --color-text-dim: #888;
 }
 
-@font-face {
-  font-family: 'JetBrains Mono';
-  src: url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.woff2') format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-
 * {
   box-sizing: border-box;
 }

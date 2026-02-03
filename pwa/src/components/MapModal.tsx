@@ -19,7 +19,7 @@ export function MapModal({ isOpen, onClose }: MapModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-[var(--color-steel)] w-full max-w-md max-h-[80vh] rounded-t-2xl overflow-hidden animate-fade-in flex flex-col"
+        className="bg-[var(--color-steel)] w-full max-w-md h-[80vh] rounded-t-2xl overflow-hidden animate-fade-in flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -34,7 +34,7 @@ export function MapModal({ isOpen, onClose }: MapModalProps) {
         </div>
 
         {/* Spatial map canvas */}
-        <div className="flex-1 min-h-[200px]">
+        <div className="flex-1 min-h-0">
           <MapCanvas
             scenario={scenario}
             currentLocation={currentLocation}

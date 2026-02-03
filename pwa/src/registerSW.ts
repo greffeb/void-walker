@@ -14,6 +14,10 @@ interface UpdateCallback {
 
 export function registerSW(callbacks?: UpdateCallback) {
   // Only register service worker in production
+  if (!import.meta.env.PROD) {
+    console.log('[SW] Skipping service worker registration in dev mode');
+    return;
+  }
   if (!('serviceWorker' in navigator)) {
     console.warn('Service Workers are not supported in this browser');
     return;
