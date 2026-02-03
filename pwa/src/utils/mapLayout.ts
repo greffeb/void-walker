@@ -826,6 +826,59 @@ export function computeConnectors(
 }
 
 // ============================================================================
+// POST-ROUTING TRIM: shrink grid to the occupied bounding box
+// ============================================================================
+
+function trimToOccupied(result: LayoutResult): LayoutResult {
+  const { layout, connectors, connectorRooms } = result;
+  const { positions, roomSizes } = layout;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  for (const [name, pos] of Object.entries(positions)) {
+    const h = roomSizes[name]?.height || 1;
+    minX = Math.min(minX, pos.x);
+    minY = Math.min(minY, pos.y);
+    maxX = Math.max(maxX, pos.x);
+    maxY = Math.max(maxY, pos.y + h - 1);
+  }
+  for (const cr of connectorRooms) {
+    minX = Math.min(minX, cr.cell.x);
+    minY = Math.min(minY, cr.cell.y);
+    maxX = Math.max(maxX, cr.cell.x);
+    maxY = Math.max(maxY, cr.cell.y);
+  }
+
+  if (minX === Infinity) return result;
+  if (minX === 0 && minY === 0 &&
+      maxX + 1 === layout.gridSize.cols &&
+      maxY + 1 === layout.gridSize.rows) return result;
+
+  const newPositions: Record<string, Position> = {};
+  for (const [name, pos] of Object.entries(positions)) {
+    newPositions[name] = { x: pos.x - minX, y: pos.y - minY };
+  }
+
+  const pxOffX = minX * MAP_CONFIG.CELL_SIZE;
+  const pxOffY = minY * MAP_CONFIG.CELL_SIZE;
+
+  return {
+    ...result,
+    layout: {
+      ...layout,
+      positions: newPositions,
+      gridSize: { cols: maxX - minX + 1, rows: maxY - minY + 1 }
+    },
+    connectors: connectors.map(c => ({
+      ...c,
+      path: c.path.map(p => ({ x: p.x - pxOffX, y: p.y - pxOffY })),
+      fromPoint: { ...c.fromPoint, x: c.fromPoint.x - pxOffX, y: c.fromPoint.y - pxOffY },
+      toPoint:   { ...c.toPoint,   x: c.toPoint.x   - pxOffX, y: c.toPoint.y   - pxOffY }
+    }))
+  };
+}
+
+// ============================================================================
 // COMBINED LAYOUT WITH CONNECTORS
 // ============================================================================
 
@@ -874,14 +927,14 @@ export function generateLayoutWithConnectors(
     }
   }
 
-  return bestResult || {
+  return trimToOccupied(bestResult || {
     layout: generateLayout(locations),
     connectors: [],
     connectorRooms: [],
     allConnected: false,
     spacing: 0,
     missingConnections: []
-  };
+  });
 }
 
 // ============================================================================
