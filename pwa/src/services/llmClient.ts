@@ -150,6 +150,8 @@ export class LLMClient {
     maxRetries: number = 3,
     temperature: number = 0.8,
     maxOutputTokens?: number
+    maxOutputTokens?: number,
+    timeoutMs?: number
   ): Promise<string> {
     if (!this.client) {
       throw new LLMError('API key not set. Call setApiKey() first.');
@@ -161,6 +163,9 @@ export class LLMClient {
     // Use larger token limit for world generation
     const tokens = maxOutputTokens ?? (modelKey === 'world_gen' ? 8192 : 2048);
 
+    // Default timeout: 120s for world_gen (large response), 30s for gameplay
+    const timeout = timeoutMs ?? (modelKey === 'world_gen' ? 120000 : 30000);
+
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         // Wait for rate limit if needed
@@ -171,7 +176,7 @@ export class LLMClient {
             const nextModel = FALLBACK_ORDER[modelKey];
             if (nextModel) {
               console.warn(`Rate limit exceeded for ${modelKey}, falling back to ${nextModel}`);
-              return this.call(prompt, nextModel, maxRetries, temperature, tokens);
+              return this.call(prompt, nextModel, maxRetries, temperature, tokens, timeout);
             }
             throw new RateLimitError(`All models exhausted, wait ${Math.round(waitTime / 1000)}s`);
           }
@@ -190,11 +195,19 @@ export class LLMClient {
           },
         });
 
-        const result = await model.generateContent(prompt);
+        console.log(`[LLM] Calling ${modelKey} (${modelName}) with ${timeout/1000}s timeout, attempt ${attempt + 1}/${maxRetries}`);
+
+        // Wrap API call in timeout promise
+        const result = await Promise.race([
+          model.generateContent(prompt),
+          this.createTimeoutPromise(timeout, `${modelKey} call timed out after ${timeout/1000}s`)
+        ]);
+
         const response = result.response;
         const text = response.text();
 
         if (text) {
+          console.log(`[LLM] Success: ${text.length} characters received`);
           return text;
         } else {
           console.warn(`Empty response from model ${modelKey}`);
@@ -202,14 +215,27 @@ export class LLMClient {
         }
       } catch (error) {
         const errorStr = String(error).toLowerCase();
-        console.error(`LLM error [${modelKey}] attempt ${attempt + 1}:`, error);
+        console.error(`[LLM] Error [${modelKey}] attempt ${attempt + 1}/${maxRetries}:`, error);
+
+        // Handle timeout errors specially
+        if (errorStr.includes('timeout') || errorStr.includes('timed out')) {
+          console.error(`[LLM] Timeout detected for ${modelKey}`);
+          if (attempt < maxRetries - 1) {
+            const backoff = Math.pow(2, attempt) * 2000; // Longer backoff for timeouts
+            console.log(`[LLM] Retrying after timeout in ${backoff}ms...`);
+            await this.sleep(backoff);
+            continue;
+          } else {
+            throw new LLMError(`Requête expirée après ${maxRetries} tentatives (${timeout/1000}s chacune). Vérifiez votre connexion.`);
+          }
+        }
 
         // Handle rate limit errors - use fallback chain
         if (errorStr.includes('rate') || errorStr.includes('quota') || errorStr.includes('429')) {
           const nextModel = FALLBACK_ORDER[modelKey];
           if (nextModel) {
             console.warn(`Rate limit hit for ${modelKey}, falling back to ${nextModel}`);
-            return this.call(prompt, nextModel, maxRetries, temperature, tokens);
+            return this.call(prompt, nextModel, maxRetries, temperature, tokens, timeout);
           }
           throw new RateLimitError(`All models exhausted: ${error}`);
         }
@@ -217,15 +243,24 @@ export class LLMClient {
         // Retry on other errors
         if (attempt < maxRetries - 1) {
           const backoff = Math.pow(2, attempt) * 1000;
-          console.log(`Retrying in ${backoff}ms...`);
+          console.log(`[LLM] Retrying in ${backoff}ms...`);
           await this.sleep(backoff);
         } else {
-          throw new LLMError(`Failed after ${maxRetries} attempts: ${error}`);
+          throw new LLMError(`Échec après ${maxRetries} tentatives: ${error}`);
         }
       }
     }
 
     throw new LLMError('Unexpected error in LLM call');
+  }
+
+  /**
+   * Create a promise that rejects after a timeout.
+   */
+  private createTimeoutPromise(ms: number, message: string): Promise<never> {
+    return new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(message)), ms);
+    });
   }
 
   /**

@@ -1,0 +1,329 @@
+{
+  "title": "Le Silence de l'Observatoire Kilo-7",
+  "setting_type": "space_station",
+  "setting_name": "Observatoire Kilo-7",
+  "premise": "L'Observatoire Kilo-7, un poste d'écoute lointain étudiant une anomalie spatiale unique, a cessé toute communication. Votre équipe est envoyée pour enquêter sur ce silence radio et découvrir le sort de l'équipage. La station est étrangement silencieuse, mais vous n'êtes pas seuls.",
+  "main_threat": "dimension_bleeder",
+  "threat_description": "The entity is a non-corporeal 'bleed' from another dimension, manifesting as a shimmering distortion of reality and a phantasmal echo of the station's late security chief, Kaito. It is drawn to energy sources and sound. Weakness: It cannot cross areas of intense, focused light and is disoriented by sudden sensory overload (e.g., holographic decoys, loud alarms).",
+  "victory_condition": {
+    "description": "Vous devez stabiliser la faille dimensionnelle. Pour ce faire, insérez la 'Tige de Contrôle du Stabilisateur' dans le projecteur de l'Anomalie sur le Pont d'Observation et entrez les 'Codes de Calibration' pour réaligner le champ de confinement.",
+    "required_items": [
+      "stabilizer_control_rod",
+      "calibration_codes"
+    ],
+    "required_info": [
+      "Le fait que le Dr. Thorne est le seul à connaître les codes.",
+      "L'emplacement de la tige de contrôle."
+    ],
+    "required_location": "observation_deck",
+    "alternative_approach": "Surcharger le réacteur de la station en utilisant la 'Clé de Surcharge du Réacteur'. Cela provoquera un effondrement de l'anomalie, mais détruira la station et tout ce qui s'y trouve."
+  },
+  "starting_location": "docking_bay",
+  "locations": [
+    {
+      "id": "docking_bay",
+      "name": "Baie d'Amarrage",
+      "description": "Les lumières de secours clignotent sur les murs métalliques froids de la baie. La porte de votre navette grince derrière vous, vous enfermant dans le silence oppressant de la station. Des caisses de fret sont renversées, et une fine couche de givre recouvre le sol.",
+      "connections": [
+        "living_quarters",
+        "corridor_a"
+      ],
+      "danger_level": 1,
+      "items": [
+        {
+          "id": "high_intensity_flare",
+          "name": "Fusée éclairante à haute intensité",
+          "description": "Produit une lumière aveuglante et de la chaleur pendant une courte période. Peut repousser les entités photophobes.",
+          "item_type": "consumable",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "living_quarters",
+      "name": "Quartiers de l'Équipage",
+      "description": "Plusieurs couchettes sont alignées, certaines défaites à la hâte. Des objets personnels sont éparpillés sur le sol, et un terminal affiche un message d'erreur statique. L'air est glacial, et on entend un léger bourdonnement provenant des murs.",
+      "connections": [
+        "docking_bay",
+        "medbay"
+      ],
+      "danger_level": 3,
+      "items": [],
+      "threats": [
+        "Possible patrol route for Phantasmal Kaito"
+      ],
+      "secrets": [
+        "secret_kaito_log"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "medbay",
+      "name": "Infirmerie",
+      "description": "Une odeur âcre d'antiseptique et d'ozone flotte dans l'air. Les lits médicaux sont vides, mais l'un d'eux est couvert de draps tachés d'une substance sombre et cristalline. Un casier de stockage médical est verrouillé par un clavier numérique.",
+      "connections": [
+        "living_quarters"
+      ],
+      "danger_level": 5,
+      "items": [
+        {
+          "id": "stabilizer_control_rod",
+          "name": "Tige de Contrôle du Stabilisateur",
+          "description": "Une tige de tungstène complexe, essentielle pour calibrer le projecteur de confinement de l'anomalie.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "Locked container requires code"
+      ],
+      "secrets": [],
+      "is_dead_end": true,
+      "required_for_victory": true,
+      "visited": false
+    },
+    {
+      "id": "corridor_a",
+      "name": "Corridor A",
+      "description": "Un long couloir faiblement éclairé. Des panneaux muraux pendent de leurs câbles, projetant des ombres dansantes. Au loin, un bruit de métal qui grince résonne périodiquement, et des fluctuations de réalité font scintiller les murs.",
+      "connections": [
+        "docking_bay",
+        "science_lab",
+        "observation_deck_access"
+      ],
+      "danger_level": 4,
+      "items": [],
+      "threats": [
+        "Main patrol route for Phantasmal Kaito"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "science_lab",
+      "name": "Laboratoire Scientifique",
+      "description": "Des consoles de données et des analyseurs holographiques sont éteints, recouverts de poussière. Des équations complexes sont griffonnées sur un tableau blanc, mais elles se tordent et se reforment lorsque vous ne les regardez pas directement. La porte a été barricadée de l'intérieur.",
+      "connections": [
+        "corridor_a"
+      ],
+      "danger_level": 2,
+      "items": [
+        {
+          "id": "holographic_decoy",
+          "name": "Leurre Holographique",
+          "description": "Un petit appareil qui projette une image humaine et un son de base pendant une minute. Utile pour les distractions.",
+          "item_type": "tool",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [],
+      "secrets": [
+        "secret_anomaly_data"
+      ],
+      "is_dead_end": true,
+      "required_for_victory": true,
+      "visited": false
+    },
+    {
+      "id": "observation_deck_access",
+      "name": "Accès au Pont d'Observation",
+      "description": "Ce carrefour est le point le plus instable de la station. Des murs transparents révèlent des étoiles qui n'existent pas, et des échos de voix chuchotent dans une langue inconnue. La température chute brusquement ici.",
+      "connections": [
+        "corridor_a",
+        "reactor_core",
+        "observation_deck"
+      ],
+      "danger_level": 6,
+      "items": [],
+      "threats": [
+        "Frequent reality glitches",
+        "High chance of encountering the threat"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "reactor_core",
+      "name": "Noyau du Réacteur",
+      "description": "La chaleur et le vrombissement d'un réacteur à fusion surchargé remplissent cette salle. La lumière du noyau bleu pulsant déforme l'air. Un terminal de contrôle d'urgence se trouve sur une passerelle précaire.",
+      "connections": [
+        "observation_deck_access"
+      ],
+      "danger_level": 8,
+      "items": [
+        {
+          "id": "reactor_overload_key",
+          "name": "Clé de Surcharge du Réacteur",
+          "description": "Une clé de sécurité physique requise pour initier une surcharge manuelle du réacteur.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "High energy attracts the Dimension Bleeder",
+        "Radiation hazard"
+      ],
+      "secrets": [
+        "secret_reactor_flaw"
+      ],
+      "is_dead_end": true,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "observation_deck",
+      "name": "Pont d'Observation",
+      "description": "Une immense baie vitrée domine la pièce, mais au lieu d'étoiles, elle montre une faille tourbillonnante de couleurs impossibles. Au centre se trouve le projecteur de l'anomalie, qui crépite d'énergie. L'air est si froid qu'il brûle les poumons.",
+      "connections": [
+        "observation_deck_access"
+      ],
+      "danger_level": 9,
+      "items": [],
+      "threats": [
+        "Epicenter of the dimensional bleed",
+        "The threat is permanently manifested here until the anomaly is stabilized"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "visited": false
+    }
+  ],
+  "npcs": [
+    {
+      "id": "dr_aris_thorne",
+      "name": "Dr. Aris Thorne",
+      "npc_type": "survivor",
+      "location": "science_lab",
+      "patrol_area": null,
+      "description": "Un scientifique hagard aux yeux fous, qui se cache derrière une console. Il sursaute au moindre bruit.",
+      "knowledge": "He is the only one who knows the final 'calibration_codes' for the anomaly projector.",
+      "has_item": "calibration_codes",
+      "disposition": "fearful",
+      "trigger_condition": "Il n'aidera que si les joueurs lui prouvent que l'officier Kaito est 'parti pour de bon', en lui apportant le datapad personnel de Kaito.",
+      "weakness": "His paranoia can be exploited or calmed with evidence.",
+      "can_be_neutralized": true,
+      "is_alive": true
+    },
+    {
+      "id": "phantasmal_kaito",
+      "name": "Kaito Fantomatique",
+      "npc_type": "hostile",
+      "location": "corridor_a",
+      "patrol_area": [
+        "corridor_a",
+        "living_quarters",
+        "observation_deck_access"
+      ],
+      "description": "Une silhouette scintillante et glitchée qui ressemble à un officier de sécurité. Elle se déplace sans bruit et son visage est un vide statique.",
+      "knowledge": "Its presence confirms the fate of the real Officer Kaito.",
+      "has_item": "security_officer_datapad",
+      "disposition": "hostile",
+      "trigger_condition": "Attacks any living being it detects via sight or loud noise.",
+      "weakness": "Is dispersed for several minutes by intense light (like a flare) or can be distracted by a holographic decoy.",
+      "can_be_neutralized": true,
+      "is_alive": false
+    },
+    {
+      "id": "unit_734",
+      "name": "UNITÉ 734",
+      "npc_type": "android",
+      "location": "medbay",
+      "patrol_area": null,
+      "description": "Un androïde de service endommagé, affalé contre un mur de l'infirmerie. Son optique clignote en rouge et il répète des fragments de protocoles d'urgence.",
+      "knowledge": "In its corrupted memory logs is the code to the medical storage locker (where the 'stabilizer_control_rod' is) which it saw Kaito use before the incident.",
+      "has_item": null,
+      "disposition": "neutral",
+      "trigger_condition": "Il ne peut communiquer de manière cohérente que si son noyau logique est réinitialisé avec un outil approprié.",
+      "weakness": null,
+      "can_be_neutralized": false,
+      "is_alive": false
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret_kaito_log",
+      "description": "A corrupted personal audio log from the real Officer Kaito.",
+      "location": "living_quarters",
+      "discovery_method": "Searching Officer Kaito's bunk and succeeding on a tech check to repair the datapad.",
+      "discovered": false,
+      "revelation": "Le journal révèle que Kaito se méfiait du Dr. Thorne, le croyant instable. Il a caché un composant critique du projet - la tige de contrôle - dans le casier médical sécurisé par précaution.",
+      "unlocks": "Provides a clue to the location of the 'stabilizer_control_rod' and a way to gain Dr. Thorne's trust."
+    },
+    {
+      "id": "secret_anomaly_data",
+      "description": "Fragmented research data on a terminal in the science lab.",
+      "location": "science_lab",
+      "discovery_method": "Hacking or repairing the main science terminal.",
+      "discovered": false,
+      "revelation": "Les données, une fois reconstituées, montrent que l'entité dimensionnelle est fortement attirée par les sources d'énergie concentrées. Cela explique pourquoi elle est plus agressive près du réacteur et du pont d'observation.",
+      "unlocks": "Tactical knowledge about the main threat's behavior."
+    },
+    {
+      "id": "secret_reactor_flaw",
+      "description": "A maintenance log detailing a design flaw in the reactor's safety protocols.",
+      "location": "reactor_core",
+      "discovery_method": "Accessing the emergency control terminal.",
+      "discovered": false,
+      "revelation": "Le journal explique une procédure de dérivation manuelle qui peut forcer une surcharge en cascade du noyau si une clé de sécurité physique est utilisée. C'est un suicide, mais cela pourrait effacer l'anomalie.",
+      "unlocks": "Enables the alternative victory condition."
+    }
+  ],
+  "environmental_clues": [
+    {
+      "type": "wall_message",
+      "location": "corridor_a",
+      "content": "Un message griffonné sur un mur avec une sorte de graisse industrielle : 'NE LE REGARDEZ PAS DANS LES YEUX'."
+    },
+    {
+      "type": "audio_log",
+      "location": "observation_deck_access",
+      "content": "Un journal audio grésillant du Commandant de la station : '...les murs... ils fondent. J'ai vu Eva dans le couloir, mais elle est en congé depuis deux semaines. Le temps ne s'écoule plus correctement... la chose du projecteur... elle nous regarde.'"
+    },
+    {
+      "type": "physical_evidence",
+      "location": "living_quarters",
+      "content": "Une tasse de café sur une table. Elle semble solide, mais lorsque vous la touchez, votre main la traverse comme un fantôme avant qu'elle ne redevienne solide une seconde plus tard."
+    }
+  ],
+  "validation": {
+    "critical_path": [
+      "docking_bay",
+      "corridor_a",
+      "science_lab",
+      "living_quarters",
+      "medbay",
+      "observation_deck_access",
+      "observation_deck"
+    ],
+    "required_checks": [
+      "Investigation (to find clues)",
+      "Persuasion/Intimidation (to deal with Dr. Thorne)",
+      "Stealth (to avoid the Phantasm)",
+      "Mechanics/Hacking (to access locked containers/systems)"
+    ],
+    "estimated_difficulty": "medium",
+    "dead_end_justification": {
+      "medbay": "Contient la 'Tige de Contrôle du Stabilisateur', un objet essentiel à la victoire principale.",
+      "science_lab": "Abri du Dr. Thorne, le seul PNJ connaissant les 'Codes de Calibration' nécessaires à la victoire.",
+      "reactor_core": "Contient la 'Clé de Surcharge du Réacteur', permettant la condition de victoire alternative."
+    }
+  },
+  "_saved_at": "2025-12-05T14:13:24.421009",
+  "_scenario_name": "Le Silence de l'Observatoire Kilo-7"
+}

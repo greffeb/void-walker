@@ -17,6 +17,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 SAVES_DIR = DATA_DIR / "saves"
 LOGS_DIR = DATA_DIR / "logs"
 SCENARIOS_DIR = DATA_DIR / "scenarios"
+PRESETS_DIR = SCENARIOS_DIR / "presets"
 
 
 class Settings(BaseSettings):

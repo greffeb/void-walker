@@ -177,6 +177,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // Parse the response into a Scenario
       const scenario = parseScenario(response);
 
+      // Auto-save the generated scenario
+      try {
+        const { saveScenario: saveScenarioToDb } = await import('../services/storage');
+        await saveScenarioToDb(scenario);
+        console.log('Scenario auto-saved:', scenario.title);
+      } catch (saveError) {
+        console.warn('Failed to auto-save scenario:', saveError);
+        // Don't fail scenario generation if save fails
+      }
+
       // Start the game with the generated scenario
       const startLocation = Object.keys(scenario.locations)[0];
 

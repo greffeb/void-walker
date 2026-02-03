@@ -1,0 +1,318 @@
+{
+  "title": "Le Chœur de l'Héphaïstos",
+  "setting_type": "asteroid_mine",
+  "setting_name": "Forge Stellaire 'Héphaïstos'",
+  "premise": "La Forge Stellaire 'Héphaïstos', une fonderie d'astéroïdes, a cessé toute communication. Votre équipe est envoyée pour enquêter sur ce silence radio. Vous découvrez une station étrangement calme, où les seuls sons sont des chuchotements dans le statique et des échos de pensées qui ne sont pas les vôtres.",
+  "main_threat": "telepathic_collective",
+  "threat_description": "Le 'Chœur' est une conscience collective formée à partir de l'équipage assimilé. Il ne cherche pas à tuer, mais à absorber. Il se manifeste par des hallucinations, des murmures télépathiques et des 'Échos' - des apparitions fantomatiques de l'équipage. Il devient hostile envers ceux qui résistent à son 'unité'. Faiblesse : sons stridents, flashs lumineux intenses, et tout ce qui perturbe la concentration psychique.",
+  "victory_condition": {
+    "description": "Surcharger l'antenne de communication principale avec une fréquence de brouillage psychique pour rompre la connexion du collectif.",
+    "required_items": [
+      "frequency_modulator"
+    ],
+    "required_info": [
+      "comms_override_protocol"
+    ],
+    "required_location": "comms_array",
+    "alternative_approach": null
+  },
+  "alternative_victory": {
+    "description": "Trouver la source du collectif, un artefact xénominéral au cœur de la fonderie, et le détruire avec des explosifs.",
+    "required_items": [
+      "industrial_demolition_charge"
+    ],
+    "required_info": [
+      "knowledge_of_artifact_location"
+    ],
+    "required_location": "smelter_core",
+    "alternative_approach": null
+  },
+  "starting_location": "docking_bay",
+  "locations": [
+    {
+      "id": "docking_bay",
+      "name": "Baie d'Amarrage 03",
+      "description": "L'air est froid et immobile. Les lumières de secours clignotent sur les murs métalliques, jetant de longues ombres. Une fine poussière d'astéroïde recouvre le sol, ne montrant aucune trace de pas récente.",
+      "connections": [
+        "crew_quarters",
+        "maintenance_corridor"
+      ],
+      "danger_level": 1,
+      "items": [],
+      "threats": [
+        "Occasional telepathic whispers"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "crew_quarters",
+      "name": "Quartiers de l'Équipage",
+      "description": "Les couchettes sont en désordre, avec des effets personnels éparpillés. Une faible berceuse semble émaner des murs eux-mêmes. Une barricade de fortune a été érigée puis démolie près d'une des portes.",
+      "connections": [
+        "docking_bay",
+        "medbay"
+      ],
+      "danger_level": 3,
+      "items": [
+        {
+          "id": "makeshift_weapon",
+          "name": "Arme improvisée (Pied de lit)",
+          "description": "Un pied de lit en métal, lourd et solide. Mieux que rien.",
+          "item_type": "weapon",
+          "uses": null,
+          "stat_bonus": {
+            "damage": 1
+          }
+        }
+      ],
+      "threats": [
+        "Reality glitches, strong sense of being watched"
+      ],
+      "secrets": [
+        "secret_last_stand"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "medbay",
+      "name": "Infirmerie",
+      "description": "L'odeur d'antiseptique est écrasante. Des instruments chirurgicaux sont soigneusement rangés, mais des taches d'un liquide iridescent recouvrent un bio-lit. Une unité médicale androïde se tient immobile au centre de la pièce.",
+      "connections": [
+        "crew_quarters"
+      ],
+      "danger_level": 5,
+      "items": [
+        {
+          "id": "frequency_modulator",
+          "name": "Modulateur de Fréquence",
+          "description": "Un appareil expérimental conçu pour émettre des fréquences subsoniques. Potentiellement utile pour perturber des signaux.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        },
+        {
+          "id": "sedative_patch",
+          "name": "Patch Sédatif",
+          "description": "Un patch transdermique à usage unique pour calmer les nerfs et induire le sommeil.",
+          "item_type": "consumable",
+          "uses": null,
+          "stat_bonus": {
+            "stress_relief": 5
+          }
+        }
+      ],
+      "threats": [],
+      "secrets": [
+        "secret_psychic_frequency"
+      ],
+      "is_dead_end": true,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "maintenance_corridor",
+      "name": "Couloir de Maintenance B-4",
+      "description": "Un couloir étroit et sombre, rempli de tuyaux qui gouttent un liquide inconnu. Le bourdonnement des systèmes de la station est plus fort ici, et des mots griffonnés à la hâte sur un mur disent 'NE NOUS ÉCOUTEZ PAS'.",
+      "connections": [
+        "docking_bay",
+        "control_room"
+      ],
+      "danger_level": 4,
+      "items": [
+        {
+          "id": "industrial_demolition_charge",
+          "name": "Charge de Démolition Industrielle",
+          "description": "Une charge explosive puissante utilisée pour fracturer les astéroïdes. Elle est dans un casier verrouillé.",
+          "item_type": "key_item",
+          "uses": null,
+          "stat_bonus": {}
+        }
+      ],
+      "threats": [
+        "Patrols of a Collective Echo"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "control_room",
+      "name": "Salle de Contrôle Principale",
+      "description": "Des écrans affichent des données statiques ou des boucles d'images déformées de l'équipage. Une grande baie vitrée donne sur le cœur incandescent de la fonderie. On ressent une immense pression mentale ici.",
+      "connections": [
+        "maintenance_corridor",
+        "smelter_core",
+        "comms_array"
+      ],
+      "danger_level": 6,
+      "items": [],
+      "threats": [
+        "Strong telepathic presence, frequent reality glitches"
+      ],
+      "secrets": [
+        "secret_artifact_origin"
+      ],
+      "is_dead_end": false,
+      "required_for_victory": false,
+      "visited": false
+    },
+    {
+      "id": "smelter_core",
+      "name": "Cœur de la Fonderie",
+      "description": "La chaleur est intense. Au centre de la chambre, flottant dans un champ de confinement, se trouve un astéroïde fracturé. En son cœur pulse une lumière violette maladive provenant d'un cristal qui ne ressemble à rien de connu.",
+      "connections": [
+        "control_room"
+      ],
+      "danger_level": 9,
+      "items": [],
+      "threats": [
+        "Constant psychic assault, physical manifestations of the Collective"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "visited": false
+    },
+    {
+      "id": "comms_array",
+      "name": "Antenne de Communication",
+      "description": "Une passerelle mène à une parabole massive orientée vers le vide. Le silence ici est assourdissant, brisé seulement par le crépitement de l'énergie de l'antenne. Le terminal de contrôle est prêt, attendant une commande.",
+      "connections": [
+        "control_room"
+      ],
+      "danger_level": 7,
+      "items": [],
+      "threats": [
+        "A final, focused psychic attack to prevent interference"
+      ],
+      "secrets": [],
+      "is_dead_end": false,
+      "required_for_victory": true,
+      "visited": false
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_medic_android",
+      "name": "Unité 734",
+      "npc_type": "android",
+      "location": "medbay",
+      "patrol_area": null,
+      "description": "Un androïde médical impeccable, dont les yeux optiques vacillent entre le bleu clinique et un violet perturbant. Il semble en proie à une boucle logique contradictoire.",
+      "knowledge": "Knows about the experimental frequency modulator and the crew's sudden, shared psychosis. It will not willingly help harm what it now considers its 'patient collective'.",
+      "has_item": null,
+      "disposition": "neutral",
+      "trigger_condition": "Demanding it helps harm the crew makes it uncooperative. Showing empathy and focusing on 'curing' the anomaly makes it helpful.",
+      "weakness": "Can be temporarily deactivated with a strong EMP or by hacking its ethical subroutines.",
+      "can_be_neutralized": true,
+      "is_alive": true
+    },
+    {
+      "id": "npc_collective_echo",
+      "name": "Écho d'Elias Thorne",
+      "npc_type": "hostile",
+      "location": "control_room",
+      "patrol_area": [
+        "control_room",
+        "maintenance_corridor"
+      ],
+      "description": "Une silhouette scintillante qui ressemble au chef ingénieur. Elle se déplace sans bruit, tendant la main et murmurant des offres d'unité et de paix éternelle.",
+      "knowledge": "It doesn't 'know' things, but its whispers might inadvertently reveal the Collective's fear of 'loud noises' or 'bright lights'.",
+      "has_item": null,
+      "disposition": "hostile",
+      "trigger_condition": "Approaching critical objectives (comms array, control terminal) or showing overt aggression.",
+      "weakness": "Flares, loud noises (like striking metal with a tool), or any sudden sensory overload will cause it to dissipate for a short time.",
+      "can_be_neutralized": true,
+      "is_alive": false
+    },
+    {
+      "id": "npc_shell_shocked_survivor",
+      "name": "Lena Petrova",
+      "npc_type": "survivor",
+      "location": "crew_quarters",
+      "patrol_area": null,
+      "description": "Une femme recroquevillée dans un casier de rangement, tremblante. Ses yeux sont larges de terreur et elle sursaute au moindre son.",
+      "knowledge": "She knows the 'singing stone' in the smelter is the cause. She saw them bring it in. She stole the key to the demolition charges locker, hoping to destroy it, but lost her nerve.",
+      "has_item": "demolition_charge_key",
+      "disposition": "fearful",
+      "trigger_condition": "She wants a sedative patch from the medbay to calm her panic attack. In exchange, she will give the key and information.",
+      "weakness": "Loud noises will send her into a catatonic state.",
+      "can_be_neutralized": false,
+      "is_alive": true
+    }
+  ],
+  "secrets": [
+    {
+      "id": "secret_psychic_frequency",
+      "description": "A researcher's datapad hidden under a bio-bed.",
+      "location": "medbay",
+      "discovery_method": "Searching the medbay thoroughly.",
+      "discovered": false,
+      "revelation": "Le datapad contient des notes sur une tentative de créer un 'brouilleur psychique' pour contrer les premiers symptômes. Il liste le protocole d'émission 'Omega-7' nécessaire pour configurer le modulateur de fréquence.",
+      "unlocks": "Provides the 'comms_override_protocol' info needed for the primary victory."
+    },
+    {
+      "id": "secret_artifact_origin",
+      "description": "A corrupted entry in the chief geologist's log on a control room terminal.",
+      "location": "control_room",
+      "discovery_method": "Hacking or repairing the terminal entry.",
+      "discovered": false,
+      "revelation": "Le journal décrit la découverte d'un 'xénominéral résonant' dans l'astéroïde AS-288. Le géologue note ses propriétés télépathiques inhabituelles et son emplacement actuel : le cœur de la fonderie.",
+      "unlocks": "Provides the 'knowledge_of_artifact_location' info needed for the alternative victory."
+    },
+    {
+      "id": "secret_last_stand",
+      "description": "Examining the destroyed barricade in the crew quarters reveals something hidden.",
+      "location": "crew_quarters",
+      "discovery_method": "Examining the debris of the barricade.",
+      "discovered": false,
+      "revelation": "Derrière un panneau métallique tordu, vous trouvez une photo déchirée de deux membres d'équipage souriants, et un pistolet à boulons vide. Ils ont essayé de se battre.",
+      "unlocks": "Atmospheric detail, potential for a small morale bonus/penalty depending on the system."
+    }
+  ],
+  "environmental_clues": [
+    {
+      "type": "audio_log",
+      "location": "crew_quarters",
+      "content": "(Fragment audio crépitant) ...ne peux plus sortir leurs voix de ma tête... nous sommes tous... en train de devenir un... la paix est si... proche..."
+    },
+    {
+      "type": "wall_message",
+      "location": "maintenance_corridor",
+      "content": "Griffonné avec un liquide de refroidissement qui goutte encore : 'NE NOUS ÉCOUTEZ PAS'"
+    },
+    {
+      "type": "datapad",
+      "location": "control_room",
+      "content": "Journal de l'Ingénieur en Chef Thorne : Fluctuations de puissance étranges provenant du cœur de la fonderie depuis que l'AS-288 a été installé. Les diagnostics sont négatifs. C'est comme si quelque chose... consommait l'énergie."
+    }
+  ],
+  "validation": {
+    "critical_path": [
+      "docking_bay",
+      "crew_quarters",
+      "medbay",
+      "maintenance_corridor",
+      "control_room",
+      "comms_array"
+    ],
+    "required_checks": [
+      "Search (medbay), Hack/Repair (control_room), Persuasion/Intimidation (NPCs)"
+    ],
+    "estimated_difficulty": "medium",
+    "dead_end_justification": {
+      "medbay": "Contains the 'frequency_modulator' (critical for primary victory), a key NPC, and the 'secret_psychic_frequency' clue. High value justifies the dead-end."
+    }
+  },
+  "validation_warnings": [
+    "Info requise 'comms_override_protocol' non trouvée dans les secrets"
+  ],
+  "_saved_at": "2025-12-05T15:48:43.259659",
+  "_scenario_name": "Le Chœur de l'Héphaïstos"
+}
