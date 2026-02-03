@@ -12,7 +12,6 @@ export function MapModal({ isOpen, onClose }: MapModalProps) {
   if (!isOpen || !gameState) return null;
 
   const { scenario, currentLocation, visitedLocations } = gameState;
-  const locations = Object.values(scenario.locations);
 
   return (
     <div
@@ -20,7 +19,7 @@ export function MapModal({ isOpen, onClose }: MapModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-[var(--color-steel)] w-full max-w-md max-h-[80vh] rounded-t-2xl overflow-hidden animate-fade-in"
+        className="bg-[var(--color-steel)] w-full max-w-md max-h-[80vh] rounded-t-2xl overflow-hidden animate-fade-in flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -34,77 +33,37 @@ export function MapModal({ isOpen, onClose }: MapModalProps) {
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[60vh]">
-          <div className="space-y-2">
-            {locations.map((location) => {
-              const isCurrentLocation = location.name === currentLocation;
-              const isVisited = visitedLocations.includes(location.name);
-              const isDiscovered = location.discovered || isVisited;
+        {/* Spatial map canvas */}
+        <div className="flex-1 min-h-[200px]">
+          <MapCanvas
+            scenario={scenario}
+            currentLocation={currentLocation}
+            visitedLocations={visitedLocations}
+          />
+        </div>
 
-              return (
-                <div
-                  key={location.name}
-                  className={`
-                    p-3 rounded-lg border transition-all
-                    ${isCurrentLocation
-                      ? 'bg-[var(--color-accent)]/20 border-[var(--color-accent)]'
-                      : isDiscovered
-                        ? 'bg-[var(--color-panel)] border-[var(--color-panel)]'
-                        : 'bg-[var(--color-void)] border-[var(--color-void)] opacity-50'}
-                  `}
-                >
-                  <div className="flex items-center gap-2">
-                    {isCurrentLocation && <span>📍</span>}
-                    {!isCurrentLocation && isVisited && <span className="text-[var(--color-success)]">✓</span>}
-                    {!isDiscovered && <span>❓</span>}
-                    <span className={`font-medium ${!isDiscovered ? 'text-[var(--color-text-dim)]' : ''}`}>
-                      {isDiscovered ? location.name : '???'}
-                    </span>
-                  </div>
-
-                  {isDiscovered && (
-                    <>
-                      <p className="text-sm text-[var(--color-text-dim)] mt-1">
-                        {location.description}
-                      </p>
-
-                      {/* Connections */}
-                      {location.connections.length > 0 && (
-                        <div className="mt-2 text-xs text-[var(--color-text-dim)]">
-                          <span>Connecté à : </span>
-                          {location.connections.map((conn, i) => (
-                            <span key={conn}>
-                              <span className={visitedLocations.includes(conn) ? 'text-[var(--color-success)]' : ''}>
-                                {conn}
-                              </span>
-                              {i < location.connections.length - 1 && ', '}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Dangers indicator */}
-                      {location.dangers.length > 0 && (
-                        <div className="mt-1 text-xs text-[var(--color-accent)]">
-                          ⚠️ Zone dangereuse
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Legend */}
-          <div className="mt-4 pt-4 border-t border-[var(--color-panel)] text-xs text-[var(--color-text-dim)]">
-            <div className="flex gap-4">
-              <span>📍 Position actuelle</span>
-              <span className="text-[var(--color-success)]">✓ Visité</span>
-              <span>❓ Inconnu</span>
-            </div>
-          </div>
+        {/* Legend */}
+        <div className="p-3 border-t border-[var(--color-panel)] text-xs text-[var(--color-text-dim)] flex gap-3 flex-wrap">
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 border-2 border-[#6bff9a] bg-[#1a5c32] rounded-sm" />
+            Position actuelle
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 border-2 border-[#2d9651] bg-[#1a5c32] rounded-sm" />
+            Visité
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 border-2 border-[#e6e6e6] bg-[#141414] rounded-sm" />
+            Adjacent
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-3 h-3 border border-[#303030] bg-[#1a1a1a] rounded-sm" />
+            Inconnu
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-2 h-2 bg-[#8f2d2d] rounded-sm" />
+            Danger
+          </span>
         </div>
       </div>
     </div>
