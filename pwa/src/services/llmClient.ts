@@ -149,7 +149,6 @@ export class LLMClient {
     modelKey: ModelKey = 'gameplay',
     maxRetries: number = 3,
     temperature: number = 0.8,
-    maxOutputTokens?: number
     maxOutputTokens?: number,
     timeoutMs?: number
   ): Promise<string> {

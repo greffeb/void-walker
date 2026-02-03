@@ -148,19 +148,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   generateScenario: async () => {
+    // Guard against double invocation (React StrictMode double-fires effects)
+    if (get().isGenerating) return;
+    set({ isGenerating: true, error: null });
+
     const { apiKey, sessionType, gameState } = get();
 
     if (!apiKey) {
-      set({ error: 'Clé API non configurée', phase: 'api-key-setup' });
+      set({ error: 'Clé API non configurée', phase: 'api-key-setup', isGenerating: false });
       return;
     }
 
     if (!gameState) {
-      set({ error: 'État de jeu non initialisé' });
+      set({ error: 'État de jeu non initialisé', isGenerating: false });
       return;
     }
-
-    set({ isGenerating: true, error: null });
 
     try {
       const client = getLLMClient();
