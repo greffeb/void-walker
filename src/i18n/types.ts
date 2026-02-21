@@ -508,7 +508,22 @@ export type StringKey =
   | 'env.supply_locker'
   | 'env.supply_locker.description'
   | 'env.exposed_wiring'
-  | 'env.exposed_wiring.description';
+  | 'env.exposed_wiring.description'
+  // Parser feedback (Phase 2)
+  | 'parser.reformulation.prompt'
+  | 'parser.reformulation.suggestion'
+  | 'parser.no_target'
+  | 'parser.absurd_attempt'
+  | 'parser.incompatible_hint'
+  | 'parser.creativity'
+  // Body parts
+  | 'bodypart.bras'
+  | 'bodypart.tete'
+  | 'bodypart.jambe'
+  | 'bodypart.griffe'
+  | 'bodypart.queue'
+  | 'bodypart.antenne'
+  | 'bodypart.torso';
 
 /** A locale translation record — maps every StringKey to its translated string */
 export type LocaleStrings = Readonly<Record<StringKey, string>>;

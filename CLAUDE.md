@@ -2,8 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Current Phase:** Phase 1 (COMPLETE) → Ready for Phase 2
-> **Last updated:** 2026-02-21
+> **Current Phase:** Phase 2 (COMPLETE) → Ready for Phase 3
+> **Last updated:** 2025-07-18
 
 ---
 
@@ -31,11 +31,12 @@ npm run playtest:debug          # Playtest with debug output
 
 **Phase 0 — Bootstrap + i18n Foundation** (COMPLETE)
 **Phase 1 — Properties, Verbs & Character Data** (COMPLETE)
+**Phase 2 — Parser & Action Resolution** (COMPLETE)
 
-Next: **Phase 2 — Parser & Action Resolution**
-- Read `docs/phases/PHASE_2_PARSER.md`
-- Read `docs/PARSER_DESIGN.md` (parser architecture)
-- Read `docs/GAME_SYSTEMS.md` Section 2 (action resolution)
+Next: **Phase 3 — Resolution & Combat**
+- Read `docs/phases/PHASE_3_RESOLUTION_COMBAT.md`
+- Read `docs/GAME_SYSTEMS.md` Section 3 (dice rolling, success/failure)
+- Read `docs/GAME_SYSTEMS.md` Section 4 (combat system)
 
 ---
 
@@ -132,6 +133,13 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - `GameState`: Complete immutable state object
 - `TurnResult`: Result of `processTurn(state, input)`
 - `BALANCE`: All balance constants from MASTERPLAN §7 + CONTEXT_MODIFIERS
+- `ParsedAction`: Parsed player action (verb, target, tool, verbMatch, creative)
+- `Reformulation`: Alternative interpretations when input is ambiguous
+- `ParseResult`: `ParsedAction | Reformulation`
+- `ResolvedTarget`: A resolved game entity (id, nameKey, properties, isVirtual, source)
+- `VerbMatch`: Which verb matched and how (strategy 1-6, confidence, isCompound)
+- `DifficultyBreakdown`: Full DC calculation breakdown
+- `SceneContext`: Lightweight scene view for parser/resolver
 
 ---
 

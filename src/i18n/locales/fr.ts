@@ -519,4 +519,19 @@ export const fr: LocaleStrings = {
   'env.supply_locker.description': 'Armoire métallique verrouillable contenant des fournitures.',
   'env.exposed_wiring': 'Câblage exposé',
   'env.exposed_wiring.description': 'Câbles endommagés encore sous tension. Dangereux.',
+  // Parser feedback (Phase 2)
+  'parser.reformulation.prompt': 'Que tentez-vous exactement ?',
+  'parser.reformulation.suggestion': 'Vouliez-vous dire :',
+  'parser.no_target': 'Vous cherchez du regard quelque chose...',
+  'parser.absurd_attempt': 'Une tentative audacieuse, mais...',
+  'parser.incompatible_hint': 'Vous n\'avez rien pour faire ça correctement...',
+  'parser.creativity': 'Créativité !',
+  // Body parts
+  'bodypart.bras': 'Bras',
+  'bodypart.tete': 'Tête',
+  'bodypart.jambe': 'Jambe',
+  'bodypart.griffe': 'Griffe',
+  'bodypart.queue': 'Queue',
+  'bodypart.antenne': 'Antenne',
+  'bodypart.torso': 'Torse',
 };

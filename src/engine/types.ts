@@ -267,3 +267,130 @@ export interface PlayerCreationResult {
   readonly hp: number;
   readonly inventory: readonly string[];
 }
+
+// === PARSER TYPES (Phase 2) ===
+
+/** Where a resolved target was found */
+export type TargetSource =
+  | 'inventory'
+  | 'location'
+  | 'npc'
+  | 'npc_part'
+  | 'environment'
+  | 'connected_location'
+  | 'abstract';
+
+/** A resolved target entity with its properties */
+export interface ResolvedTarget {
+  readonly id: string;
+  readonly nameKey: string;
+  readonly properties: readonly import('./properties').PropertyId[];
+  readonly isVirtual: boolean;
+  readonly source: TargetSource;
+}
+
+/** Which verb-matching strategy was used (1 = highest priority) */
+export type VerbMatchStrategy = 1 | 2 | 3 | 4 | 5 | 6;
+
+/** Result of verb matching in the parser */
+export interface VerbMatch {
+  readonly verb: import('./verbs').VerbId;
+  readonly strategy: VerbMatchStrategy;
+  readonly confidence: number;
+  readonly isCompound: boolean;
+  readonly compoundTokens?: readonly string[];
+}
+
+/** A fully parsed player action */
+export interface ParsedAction {
+  readonly verb: import('./verbs').VerbId;
+  readonly target: ResolvedTarget | null;
+  readonly tool: ResolvedTarget | null;
+  readonly rawInput: string;
+  readonly tokens: readonly string[];
+  readonly verbMatch: VerbMatch;
+  readonly creative: boolean;
+}
+
+/** An alternative interpretation offered when input is ambiguous */
+export interface Reformulation {
+  readonly type: 'reformulation';
+  readonly rawInput: string;
+  readonly interpretations: readonly ParsedAction[];
+  readonly prompt: string;
+}
+
+/** Type guard: is the parse result a reformulation? */
+export function isReformulation(result: ParseResult): result is Reformulation {
+  return (result as Reformulation).type === 'reformulation';
+}
+
+/** The result of parsing player input: either a clear action or a reformulation */
+export type ParseResult = ParsedAction | Reformulation;
+
+/** Breakdown of how difficulty was calculated */
+export interface DifficultyBreakdown {
+  readonly base: number;
+  readonly verbMod: number;
+  readonly compatibilityPenalty: number;
+  readonly contextMods: number;
+  readonly creativityMod: number;
+  readonly difficultyPresetMod: number;
+  readonly total: number;
+  readonly details: readonly string[];
+}
+
+/** Input to the difficulty calculator */
+export interface DifficultyInput {
+  readonly verb: import('./verbs').VerbId;
+  readonly target: ResolvedTarget | null;
+  readonly tool: ResolvedTarget | null;
+  readonly playerStats: StatBlock;
+  readonly difficultyLevel: DifficultyLevel;
+  readonly creative: boolean;
+  readonly environmentConditions?: readonly EnvironmentCondition[];
+  readonly playerConditions?: readonly string[];
+  readonly suggestions?: readonly ParsedAction[];
+}
+
+/** Environmental conditions that affect difficulty */
+export type EnvironmentCondition = 'dark' | 'zero_g' | 'time_pressure';
+
+/** Instance of an NPC in a scene (for the resolver) */
+export interface NpcInstance {
+  readonly id: string;
+  readonly definitionId: string;
+  readonly nameKey: string;
+  readonly aliases: readonly string[];
+  readonly properties: readonly import('./properties').PropertyId[];
+  readonly hp: number;
+  readonly bodyParts?: readonly BodyPartDefinition[];
+}
+
+/** A body part that can be targeted on an NPC */
+export interface BodyPartDefinition {
+  readonly id: string;
+  readonly nameKey: string;
+  readonly aliases: readonly string[];
+  readonly baseProperties: readonly import('./properties').PropertyId[];
+}
+
+/** Instance of an environment feature in a scene (for the resolver) */
+export interface EnvironmentFeatureInstance {
+  readonly id: string;
+  readonly definitionId: string;
+  readonly nameKey: string;
+  readonly aliases: readonly string[];
+  readonly properties: readonly import('./properties').PropertyId[];
+}
+
+/** Lightweight view of the current scene for the parser/resolver */
+export interface SceneContext {
+  readonly inventory: readonly ResolvedTarget[];
+  readonly locationItems: readonly ResolvedTarget[];
+  readonly npcs: readonly NpcInstance[];
+  readonly environmentFeatures: readonly EnvironmentFeatureInstance[];
+  readonly connectedLocations: readonly { readonly id: string; readonly aliases: readonly string[] }[];
+  readonly suggestions: readonly ParsedAction[];
+  readonly environmentConditions: readonly EnvironmentCondition[];
+}

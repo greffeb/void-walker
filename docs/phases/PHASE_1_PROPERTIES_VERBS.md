@@ -1,6 +1,6 @@
 # Phase 1 — Properties, Verbs & Character Data
 
-> **Status:** PENDING
+> **Status:** DONE
 > **Duration:** 1 week
 > **Prerequisites:** Phase 0 complete
 > **Reference docs:** `PARSER_DESIGN.md` (SS1-SS2), `GAME_SYSTEMS.md` (SS1)

@@ -519,4 +519,19 @@ export const en: LocaleStrings = {
   'env.supply_locker.description': 'Lockable metal cabinet containing supplies.',
   'env.exposed_wiring': 'Exposed Wiring',
   'env.exposed_wiring.description': 'Damaged cables still under power. Dangerous.',
+  // Parser feedback (Phase 2)
+  'parser.reformulation.prompt': 'What exactly are you trying to do?',
+  'parser.reformulation.suggestion': 'Did you mean:',
+  'parser.no_target': 'You look around for something...',
+  'parser.absurd_attempt': 'A bold attempt, but...',
+  'parser.incompatible_hint': 'You don\'t have the right tools for this...',
+  'parser.creativity': 'Creative!',
+  // Body parts
+  'bodypart.bras': 'Arm',
+  'bodypart.tete': 'Head',
+  'bodypart.jambe': 'Leg',
+  'bodypart.griffe': 'Claw',
+  'bodypart.queue': 'Tail',
+  'bodypart.antenne': 'Antenna',
+  'bodypart.torso': 'Torso',
 };
