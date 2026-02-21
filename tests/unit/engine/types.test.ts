@@ -8,6 +8,8 @@ import {
   PLAYER_CLASS_NAMES,
   DIFFICULTY_LEVELS,
   createInitialGameState,
+  validateAllocation,
+  createCharacterCreationState,
 } from '../../../src/engine/types';
 import type {
   StatId,
@@ -19,18 +21,18 @@ import type {
 import { BALANCE } from '../../../src/engine/constants';
 
 describe('StatId', () => {
-  test('has exactly 6 stats', () => {
-    expect(STAT_IDS).toHaveLength(6);
+  test('has exactly 7 stats', () => {
+    expect(STAT_IDS).toHaveLength(7);
   });
 
-  test('contains FOR, AGI, INT, PER, CHA, LCK', () => {
-    const expected: StatId[] = ['FOR', 'AGI', 'INT', 'PER', 'CHA', 'LCK'];
+  test('contains FOR, DEF, AGI, INT, PER, CHA, LCK', () => {
+    const expected: StatId[] = ['FOR', 'DEF', 'AGI', 'INT', 'PER', 'CHA', 'LCK'];
     expect([...STAT_IDS]).toEqual(expected);
   });
 
   test('stat block can be created with all stat IDs', () => {
     const stats: StatBlock = {
-      FOR: 3, AGI: 2, INT: 4, PER: 1, CHA: 3, LCK: 2,
+      FOR: 3, DEF: 2, AGI: 2, INT: 4, PER: 1, CHA: 3, LCK: 2,
     };
     for (const id of STAT_IDS) {
       expect(stats[id]).toBeGreaterThanOrEqual(0);
@@ -96,7 +98,7 @@ describe('BALANCE constants', () => {
     expect(BALANCE.STAT_MIN).toBe(0);
     expect(BALANCE.STAT_MAX).toBe(5);
     expect(BALANCE.BONUS_POINTS).toBe(2);
-    expect(BALANCE.TOTAL_CLASS_POINTS).toBe(15);
+    expect(BALANCE.TOTAL_CLASS_POINTS).toBe(18);
   });
 
   test('inventory slots are defined', () => {
@@ -137,5 +139,50 @@ describe('BALANCE constants', () => {
     expect(BALANCE.SAVE.SLOT_COUNT).toBe(3);
     expect(BALANCE.SAVE.AUTO_SAVE_INTERVAL_MS).toBe(30_000);
     expect(BALANCE.SAVE.BLACK_BOX_MAX_ENTRIES).toBe(20);
+  });
+});
+
+describe('validateAllocation()', () => {
+  const baseStats: StatBlock = {
+    FOR: 4, DEF: 3, AGI: 4, INT: 1, PER: 2, CHA: 1, LCK: 3,
+  };
+
+  test('valid allocation of 2 points returns true', () => {
+    expect(validateAllocation(baseStats, { LCK: 1, CHA: 1 })).toBe(true);
+  });
+
+  test('over-allocation returns false', () => {
+    expect(validateAllocation(baseStats, { LCK: 3 })).toBe(false);
+  });
+
+  test('under-allocation returns false', () => {
+    expect(validateAllocation(baseStats, { LCK: 1 })).toBe(false);
+  });
+
+  test('negative bonus returns false', () => {
+    expect(validateAllocation(baseStats, { LCK: 3, FOR: -1 })).toBe(false);
+  });
+
+  test('would exceed stat max returns false', () => {
+    // FOR is already 4, +2 would be 6 > 5
+    expect(validateAllocation(baseStats, { FOR: 2 })).toBe(false);
+  });
+
+  test('exactly at max is valid', () => {
+    // FOR is 4, +1 = 5 which equals STAT_MAX
+    expect(validateAllocation(baseStats, { FOR: 1, CHA: 1 })).toBe(true);
+  });
+
+  test('empty allocation returns false (must allocate all points)', () => {
+    expect(validateAllocation(baseStats, {})).toBe(false);
+  });
+});
+
+describe('createCharacterCreationState()', () => {
+  test('returns correct initial state', () => {
+    const state = createCharacterCreationState();
+    expect(state.selectedClass).toBeNull();
+    expect(state.bonusPointsRemaining).toBe(BALANCE.BONUS_POINTS);
+    expect(state.bonusAllocation).toEqual({});
   });
 });

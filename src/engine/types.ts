@@ -5,14 +5,16 @@
 // All game types and interfaces are defined here.
 // ---------------------------------------------------------------------------
 
+import { BALANCE } from './constants';
+
 // === STAT SYSTEM ===
 
-/** The 6 character stats */
-export type StatId = 'FOR' | 'AGI' | 'INT' | 'PER' | 'CHA' | 'LCK';
+/** The 7 character stats */
+export type StatId = 'FOR' | 'DEF' | 'AGI' | 'INT' | 'PER' | 'CHA' | 'LCK';
 
 /** All valid stat IDs as a runtime array */
 export const STAT_IDS: readonly StatId[] = [
-  'FOR', 'AGI', 'INT', 'PER', 'CHA', 'LCK',
+  'FOR', 'DEF', 'AGI', 'INT', 'PER', 'CHA', 'LCK',
 ] as const;
 
 /** A stat block mapping each stat to its numeric value (0–5) */
@@ -28,11 +30,16 @@ export const PLAYER_CLASS_NAMES: readonly PlayerClassName[] = [
   'marine', 'engineer', 'medic',
 ] as const;
 
+/** Passive ability effect identifiers */
+export type PassiveEffectId = 'COMBAT_DAMAGE_BONUS' | 'REPAIR_ALL_BROKEN' | 'HEALING_BONUS';
+
 /** A passive ability granted by the player's class */
 export interface PassiveAbility {
   readonly id: string;
   readonly nameKey: string;
   readonly descriptionKey: string;
+  readonly effect: PassiveEffectId;
+  readonly value: number | null;
 }
 
 /** Full definition of a player class */
@@ -162,4 +169,101 @@ export interface DiceResult {
   readonly success: boolean;
   readonly critical: boolean;
   readonly fumble: boolean;
+}
+
+// === ITEM TYPES ===
+
+/** Item archetype categories for property inheritance */
+export type ItemType = 'tool' | 'weapon' | 'consumable' | 'key_item' | 'data' | 'misc';
+
+/** All valid item types as a runtime array */
+export const ITEM_TYPES: readonly ItemType[] = [
+  'tool', 'weapon', 'consumable', 'key_item', 'data', 'misc',
+] as const;
+
+// === NPC TYPES ===
+
+/** NPC archetype categories for property inheritance */
+export type NPCType = 'human' | 'android' | 'robot' | 'creature' | 'corpse' | 'wreck';
+
+/** All valid NPC types as a runtime array */
+export const NPC_TYPES: readonly NPCType[] = [
+  'human', 'android', 'robot', 'creature', 'corpse', 'wreck',
+] as const;
+
+/** NPC behavior patterns in combat */
+export type AggressionPattern =
+  | 'aggressive'
+  | 'defensive'
+  | 'ambush'
+  | 'retreating'
+  | 'berserk';
+
+// === ENVIRONMENT FEATURE TYPES ===
+
+/** Environment feature categories for property inheritance */
+export type EnvironmentFeatureType =
+  | 'door'
+  | 'window'
+  | 'terminal'
+  | 'vent'
+  | 'pipe'
+  | 'panel'
+  | 'camera'
+  | 'airlock'
+  | 'container'
+  | 'wiring';
+
+/** All valid environment feature types as a runtime array */
+export const ENVIRONMENT_FEATURE_TYPES: readonly EnvironmentFeatureType[] = [
+  'door', 'window', 'terminal', 'vent', 'pipe',
+  'panel', 'camera', 'airlock', 'container', 'wiring',
+] as const;
+
+// === CHARACTER CREATION ===
+
+/** State of the character creation process */
+export interface CharacterCreationState {
+  readonly selectedClass: PlayerClassName | null;
+  readonly bonusPointsRemaining: number;
+  readonly bonusAllocation: Readonly<Partial<Record<StatId, number>>>;
+}
+
+/** Factory for initial character creation state */
+export function createCharacterCreationState(): CharacterCreationState {
+  return {
+    selectedClass: null,
+    bonusPointsRemaining: BALANCE.BONUS_POINTS,
+    bonusAllocation: {},
+  };
+}
+
+/**
+ * Validates a bonus point allocation against class base stats.
+ * Total bonus must equal BALANCE.BONUS_POINTS (2), no negative values,
+ * no final stat may exceed BALANCE.STAT_MAX (5).
+ */
+export function validateAllocation(
+  classStats: StatBlock,
+  bonus: Readonly<Partial<Record<StatId, number>>>,
+): boolean {
+  const totalBonus = Object.values(bonus).reduce<number>((a, b) => a + (b ?? 0), 0);
+  if (totalBonus !== BALANCE.BONUS_POINTS) return false;
+  for (const [stat, bonusVal] of Object.entries(bonus)) {
+    if (bonusVal === undefined || bonusVal < 0) return false;
+    const base = classStats[stat as StatId];
+    if (base === undefined) return false;
+    if (base + bonusVal > BALANCE.STAT_MAX) return false;
+  }
+  return true;
+}
+
+/** Result of completing character creation */
+export interface PlayerCreationResult {
+  readonly name: string;
+  readonly classId: PlayerClassName;
+  readonly stats: StatBlock;
+  readonly maxHp: number;
+  readonly hp: number;
+  readonly inventory: readonly string[];
 }

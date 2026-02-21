@@ -3,7 +3,7 @@
 > **Role:** Exhaustive reference for the action parser, verb taxonomy, property system, and resolution pipeline.
 > **Audience:** Claude Code during Phase 1, 2, 5.
 > **Rule:** Specs here are authoritative. Phase files reference sections; they do not duplicate them.
-> **Last updated:** 2026-02-21 | Status: **PRE-DEVELOPMENT**
+> **Last updated:** 2026-02-21 | Status: **Phase 1 COMPLETE — data layer built**
 
 ---
 
@@ -23,25 +23,25 @@
 
 The player must feel like they can do **anything**. Instead of hard-coding per-object actions, we use a property-based compatibility system: objects are tagged with properties, verbs check compatibility against those properties. Every new object automatically supports dozens of actions via its properties.
 
-### 1.2 Verb Categories (6-Stat System)
+### 1.2 Verb Categories (7-Stat System)
 
 Each verb belongs to a stat category. The stat governs the roll.
 
 | Category | Stat | Description |
 |----------|------|-------------|
-| PHYSICAL | ATK | Raw strength, melee force |
+| PHYSICAL | FOR | Raw strength, melee force |
 | DEFENSE | DEF | Blocking, shielding, fortifying |
 | TECHNICAL | INT | Knowledge, skill, precision |
+| PERCEPTION | PER | Observation, detection, sensory actions |
 | SOCIAL | CHA | Persuasion, intimidation, deception |
 | AGILITY | AGI | Speed, evasion, stealth, ranged accuracy |
-| INTERACTION | varies | Context-dependent (USE, OPEN, TAKE, etc.) |
-| CREATIVE | varies | Unorthodox -- stat depends on context |
+| INTERACTION | — | Auto or context-dependent (TAKE, DROP, USE, etc.) |
 
 ### 1.3 Complete Verb Registry
 
 Every verb has: ID, FR/EN aliases, required target properties, governing stat, and base difficulty modifier.
 
-#### ATK Verbs (Physical Force / Melee)
+#### FOR Verbs (Physical Force / Melee)
 
 | Verb ID | FR Aliases | EN Aliases | Required Props | Diff Mod |
 |---------|-----------|------------|---------------|----------|
@@ -67,11 +67,19 @@ Every verb has: ID, FR/EN aliases, required target properties, governing stat, a
 | `IMPROVISE_SHIELD` | utiliser comme bouclier, se proteger avec | use as shield, block with | `holdable` + `rigid` | +1 |
 | `BARRICADE` | barricader, bloquer, obstruer | barricade, block, obstruct | `openable` (doors) -- needs items | +1 |
 
-#### INT Verbs (Technical / Knowledge)
+#### PER Verbs (Perception / Sensory)
 
 | Verb ID | FR Aliases | EN Aliases | Required Props | Diff Mod |
 |---------|-----------|------------|---------------|----------|
 | `EXAMINE` | examiner, inspecter, observer, regarder, etudier, fouiller | examine, inspect, look at, study, analyze, search | `tangible` OR `visible` | -3 |
+| `LISTEN` | ecouter, tendre l'oreille | listen, hear, eavesdrop | — | -2 |
+| `SMELL` | sentir, renifler | smell, sniff | — | -2 |
+| `SCAN` | scanner, analyser, detecter | scan, analyze, detect | `tangible` — needs `scanner` tool | -1 |
+
+#### INT Verbs (Technical / Knowledge)
+
+| Verb ID | FR Aliases | EN Aliases | Required Props | Diff Mod |
+|---------|-----------|------------|---------------|----------|
 | `READ` | lire, dechiffrer, consulter | read, decipher, consult | `readable` | -2 |
 | `HACK` | pirater, hacker, cracker, bypasser | hack, crack, bypass, breach | `electronic` + `secured` | +3 |
 | `REPAIR` | reparer, rafistoler, bricoler, fixer | repair, fix, patch, mend, restore | `mechanical` OR `electronic` | +1 |
@@ -84,7 +92,6 @@ Every verb has: ID, FR/EN aliases, required target properties, governing stat, a
 | `UNLOCK` | deverrouiller, ouvrir, crocheter | unlock, pick lock, open | `locked` | +2 |
 | `WELD` | souder, fusionner, sceller | weld, fuse, seal shut | `metallic` -- needs `heat_source` | +2 |
 | `PLUG` | brancher, connecter, raccorder | plug in, connect, jack in | `electronic` + has `port` | 0 |
-| `SCAN` | scanner, analyser, detecter | scan, analyze, detect | `tangible` -- needs `scanner` tool | -1 |
 | `OVERRIDE` | court-circuiter, shunter, contourner | short-circuit, hotwire, override | `electronic` | +3 |
 | `SABOTAGE` | saboter, pieger, trafiquer | sabotage, rig, tamper, booby-trap | `mechanical` OR `electronic` | +2 |
 | `SET_TRAP` | pieger, tendre un piege | set trap, rig, plant | -- (location) -- needs items | +2 |
@@ -95,8 +102,6 @@ Every verb has: ID, FR/EN aliases, required target properties, governing stat, a
 | `ELECTRIFY` | electrifier, electrocuter | electrify, electrocute | `conductive` + `power_source` | +3 |
 | `TIE` | attacher, ligoter, nouer | tie, bind, lash, restrain | needs `flexible` item | +1 |
 | `COVER` | couvrir, recouvrir, masquer | cover, conceal, mask, obstruct | `coverable` target + item | 0 |
-| `LISTEN` | ecouter, tendre l'oreille | listen, hear, eavesdrop | -- | -2 |
-| `SMELL` | sentir, renifler | smell, sniff | -- | -2 |
 
 #### CHA Verbs (Social / Persuasion)
 
@@ -148,7 +153,7 @@ Every verb has: ID, FR/EN aliases, required target properties, governing stat, a
 | `WAIT` | attendre, patienter, rester | wait, stay, remain, hold | -- | -- | auto |
 | `TOUCH` | toucher, tater, palper | touch, feel, tap | `tangible` | -- | auto |
 
-**Total: 50+ verbs across 7 categories, mapped to 6 stats.**
+**Total: 77 verbs across 7 categories, mapped to 7 stats (FOR, DEF, INT, PER, CHA, AGI + auto interaction).**
 
 ---
 
@@ -364,7 +369,7 @@ const ITEM_DEFINITIONS = {
 
 ### 2.4 Combinatorial Explosion
 
-With 60+ properties, 50+ verbs, and type inheritance, each new item automatically supports dozens of verb interactions. A typical item with 8 properties is compatible with 15-25 verbs. Total combinatorial space: **~500,000+ unique verb-target-tool combinations**.
+With 71 properties, 77 verbs, and type inheritance, each new item automatically supports dozens of verb interactions. A typical item with 8 properties is compatible with 15-25 verbs. Total combinatorial space: **539,000+ unique verb-target-tool combinations** (stress-tested).
 
 ---
 
@@ -408,8 +413,8 @@ Step 5: DIFFICULTY CALCULATION
   -> Final DC: 16
 
 Step 6: STAT SELECTION
-  -> PULL -> ATK (from VERB_STATS)
-  -> Player rolls: D20 + ATK + floor(LCK/2) vs 16
+  -> PULL -> FOR (from VERB_STATS)
+  -> Player rolls: D20 + FOR + floor(LCK/2) vs 16
 
 Step 7: DICE ROLL
   -> D20 + stat + LCK bonus vs DC

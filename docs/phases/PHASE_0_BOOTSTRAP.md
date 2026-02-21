@@ -1,6 +1,6 @@
 # Phase 0 — Bootstrap + i18n Foundation
 
-> **Status:** PENDING
+> **Status:** DONE
 > **Duration:** 1 day
 > **Prerequisites:** None
 > **Reference docs:** None (self-contained)

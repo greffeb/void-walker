@@ -17,6 +17,7 @@ describe('t() function', () => {
 
   test('returns French for all stat names', () => {
     expect(t('stat.FOR')).toBe('Force');
+    expect(t('stat.DEF')).toBe('Défense');
     expect(t('stat.AGI')).toBe('Agilité');
     expect(t('stat.INT')).toBe('Intelligence');
     expect(t('stat.PER')).toBe('Perception');
@@ -86,7 +87,7 @@ describe('locale consistency', () => {
     // by checking a representative sample
     const keys: StringKey[] = [
       'ui.play', 'ui.newGame', 'ui.settings',
-      'stat.FOR', 'stat.AGI', 'stat.INT', 'stat.PER', 'stat.CHA', 'stat.LCK',
+      'stat.FOR', 'stat.DEF', 'stat.AGI', 'stat.INT', 'stat.PER', 'stat.CHA', 'stat.LCK',
       'class.marine', 'class.engineer', 'class.medic',
       'difficulty.explorer', 'difficulty.survivor', 'difficulty.nightmare',
       'game.hp', 'game.oxygen', 'game.success', 'game.failure',
