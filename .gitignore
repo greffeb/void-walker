@@ -1,4 +1,15 @@
-# Byte-compiled / optimized / DLL files
+# === Node.js ===
+node_modules/
+dist/
+dist-node/
+.vite/
+*.tsbuildinfo
+coverage/
+.env.local
+.env.*.local
+nul
+
+# === Byte-compiled / optimized / DLL files ===
 __pycache__/
 *.py[cod]
 *$py.class

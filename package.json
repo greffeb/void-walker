@@ -1,0 +1,55 @@
+{
+  "name": "void-walker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Space horror RPG — mobile-first PWA",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:stress": "vitest run --project stress",
+    "test:integration": "vitest run --project integration",
+    "test:all": "vitest run --project unit --project stress --project integration",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "check": "npm run typecheck && npm run lint && npm run test:all",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "playtest": "tsx tests/playtest/cli.ts",
+    "playtest:debug": "tsx tests/playtest/cli.ts --debug",
+    "playtest:god": "tsx tests/playtest/cli.ts --god",
+    "playtest:chaos": "tsx tests/playtest/cli.ts --chaos",
+    "playtest:auto": "tsx tests/playtest/autoplay.ts",
+    "playtest:auto:100": "tsx tests/playtest/autoplay.ts --runs 100 --report"
+  },
+  "dependencies": {
+    "dexie": "^4.0.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.7",
+    "@types/node": "^25.3.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@typescript-eslint/eslint-plugin": "^8.24.1",
+    "@typescript-eslint/parser": "^8.24.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^3.0.5",
+    "eslint": "^8.57.1",
+    "prettier": "^3.5.2",
+    "tailwindcss": "^4.0.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vite-plugin-pwa": "^0.21.1",
+    "vitest": "^3.0.5"
+  }
+}

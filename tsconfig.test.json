@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@engine/*": ["src/engine/*"],
+      "@content/*": ["src/content/*"],
+      "@i18n/*": ["src/i18n/*"],
+      "@narration/*": ["src/narration/*"],
+      "@ai/*": ["src/ai/*"],
+      "@ui/*": ["src/ui/*"],
+      "@stores/*": ["src/stores/*"],
+      "@services/*": ["src/services/*"]
+    }
+  },
+  "include": ["tests"]
+}
