@@ -14,6 +14,7 @@ export interface EnvironmentFeatureDefinition {
   readonly type: EnvironmentFeatureType;
   readonly nameKey: StringKey;
   readonly descriptionKey: StringKey;
+  readonly aliasesKey: StringKey;
   readonly extra_props: readonly PropertyId[];
   readonly powerState?: 'powered' | 'unpowered';
 }
@@ -26,6 +27,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'door',
     nameKey: 'env.blast_door',
     descriptionKey: 'env.blast_door.description',
+    aliasesKey: 'env.blast_door.aliases',
     extra_props: ['heavy', 'sealed', 'electronic', 'powered'],
     powerState: 'powered',
   },
@@ -34,6 +36,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'window',
     nameKey: 'env.observation_window',
     descriptionKey: 'env.observation_window.description',
+    aliasesKey: 'env.observation_window.aliases',
     extra_props: ['large', 'rigid'],
   },
   {
@@ -41,6 +44,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'terminal',
     nameKey: 'env.command_terminal',
     descriptionKey: 'env.command_terminal.description',
+    aliasesKey: 'env.command_terminal.aliases',
     extra_props: ['secured', 'powered', 'data_storage'],
     powerState: 'powered',
   },
@@ -49,6 +53,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'vent',
     nameKey: 'env.maintenance_vent',
     descriptionKey: 'env.maintenance_vent.description',
+    aliasesKey: 'env.maintenance_vent.aliases',
     extra_props: ['metallic', 'breakable'],
   },
   {
@@ -56,6 +61,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'pipe',
     nameKey: 'env.coolant_pipe',
     descriptionKey: 'env.coolant_pipe.description',
+    aliasesKey: 'env.coolant_pipe.aliases',
     extra_props: ['liquid_source', 'sealed', 'breakable'],
   },
   {
@@ -63,6 +69,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'panel',
     nameKey: 'env.access_panel',
     descriptionKey: 'env.access_panel.description',
+    aliasesKey: 'env.access_panel.aliases',
     extra_props: ['electronic', 'openable', 'lockable'],
     powerState: 'powered',
   },
@@ -71,6 +78,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'camera',
     nameKey: 'env.security_camera',
     descriptionKey: 'env.security_camera.description',
+    aliasesKey: 'env.security_camera.aliases',
     extra_props: ['powered', 'breakable', 'small'],
     powerState: 'powered',
   },
@@ -79,6 +87,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'airlock',
     nameKey: 'env.main_airlock',
     descriptionKey: 'env.main_airlock.description',
+    aliasesKey: 'env.main_airlock.aliases',
     extra_props: ['heavy', 'electronic', 'powered'],
     powerState: 'powered',
   },
@@ -87,6 +96,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'container',
     nameKey: 'env.supply_locker',
     descriptionKey: 'env.supply_locker.description',
+    aliasesKey: 'env.supply_locker.aliases',
     extra_props: ['metallic', 'lockable', 'breakable'],
   },
   {
@@ -94,6 +104,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     type: 'wiring',
     nameKey: 'env.exposed_wiring',
     descriptionKey: 'env.exposed_wiring.description',
+    aliasesKey: 'env.exposed_wiring.aliases',
     extra_props: ['powered', 'broken'],
     powerState: 'powered',
   },

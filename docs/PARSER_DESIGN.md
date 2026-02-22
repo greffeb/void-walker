@@ -296,18 +296,18 @@ Each specific item adds its own properties on top of type defaults:
 
 ```typescript
 const ITEM_DEFINITIONS = {
-  pistolet_laser: {
+  laser_pistol: {
     type: 'weapon',
     extra_props: ['electronic', 'heat_source', 'light_source', 'ranged'],
     damageBonus: 4,
   },
-  barre_metal: {
+  metal_bar: {
     type: 'weapon',
     extra_props: ['metallic', 'rigid', 'blunt', 'heavy', 'conductive'],
     remove_props: ['small'],
     damageBonus: 3,
   },
-  couteau: {
+  knife: {
     type: 'weapon',
     extra_props: ['sharp', 'metallic', 'small'],
     damageBonus: 2,
@@ -316,7 +316,7 @@ const ITEM_DEFINITIONS = {
     type: 'data',
     extra_props: ['electronic', 'flat', 'fragile', 'light_source', 'component'],
   },
-  ruban_adhesif: {
+  duct_tape: {
     type: 'consumable',
     extra_props: ['flexible', 'component', 'sticky'],
   },
@@ -329,7 +329,7 @@ const ITEM_DEFINITIONS = {
     extra_props: ['metallic', 'rigid', 'sharp', 'blunt', 'component', 'breakable'],
     damageBonus: 1,
   },
-  trousse_medicale: {
+  medical_kit: {
     type: 'consumable',
     extra_props: ['organic_compatible'],
   },
@@ -345,7 +345,7 @@ const ITEM_DEFINITIONS = {
     type: 'tool',
     extra_props: ['electronic', 'powered'],
   },
-  lampe_torche: {
+  flashlight: {
     type: 'tool',
     extra_props: ['electronic', 'light_source', 'blunt'],
   },
@@ -354,13 +354,13 @@ const ITEM_DEFINITIONS = {
     extra_props: ['mechanical', 'sharp', 'metallic', 'component'],
     damageBonus: 1,
   },
-  combinaison_eva: {
+  eva_suit: {
     type: 'tool',
     extra_props: ['equippable', 'sealed', 'heavy'],
     remove_props: ['small'],
     armorValue: 2,
   },
-  carte_acces: {
+  access_card: {
     type: 'key_item',
     extra_props: ['electronic', 'flat'],
   },

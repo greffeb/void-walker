@@ -14,7 +14,7 @@ export const CLASSES: Readonly<Record<PlayerClassName, PlayerClass>> = {
     flavorKey: 'class.marine.flavor',
     baseStats: { FOR: 4, DEF: 3, AGI: 4, INT: 1, PER: 2, CHA: 1, LCK: 3 },
     startingHp: 14,
-    startingItems: ['pistolet_laser', 'couteau', 'ration'],
+    startingItems: ['laser_pistol', 'knife', 'ration'],
     passiveAbility: {
       id: 'combat_instinct',
       nameKey: 'passive.combat_instinct',
@@ -46,7 +46,7 @@ export const CLASSES: Readonly<Record<PlayerClassName, PlayerClass>> = {
     flavorKey: 'class.medic.flavor',
     baseStats: { FOR: 2, DEF: 2, AGI: 2, INT: 3, PER: 3, CHA: 4, LCK: 2 },
     startingHp: 12,
-    startingItems: ['trousse_medicale', 'stimulant', 'scanner'],
+    startingItems: ['medical_kit', 'stimulant', 'scanner'],
     passiveAbility: {
       id: 'field_medic',
       nameKey: 'passive.field_medic',

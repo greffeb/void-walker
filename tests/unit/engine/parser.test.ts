@@ -335,7 +335,7 @@ describe('generateReformulation()', () => {
 describe('parseAction()', () => {
   const robot: NpcInstance = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic', 'electronic', 'metallic'] as PropertyId[]);
   const door: EnvironmentFeatureInstance = makeFeature('blast_door', ['porte', 'sas'], ['metallic', 'mechanical', 'openable', 'locked'] as PropertyId[]);
-  const pistolet: ResolvedTarget = makeTarget('pistolet_laser', ['ranged', 'electronic'] as PropertyId[], 'inventory');
+  const pistolet: ResolvedTarget = makeTarget('laser_pistol', ['ranged', 'electronic'] as PropertyId[], 'inventory');
 
   function testContext(overrides: Partial<SceneContext> = {}): SceneContext {
     return makeContext({

@@ -33,19 +33,19 @@ describe('resolveItemProperties', () => {
     }
   });
 
-  test('pistolet_laser has ranged and electronic', () => {
-    const props = resolveItemProperties('pistolet_laser');
+  test('laser_pistol has ranged and electronic', () => {
+    const props = resolveItemProperties('laser_pistol');
     expect(props).toContain('ranged');
     expect(props).toContain('electronic');
   });
 
-  test('barre_metal is not small', () => {
-    const props = resolveItemProperties('barre_metal');
+  test('metal_bar is not small', () => {
+    const props = resolveItemProperties('metal_bar');
     expect(props).not.toContain('small');
   });
 
-  test('couteau has bladed and sharp', () => {
-    const props = resolveItemProperties('couteau');
+  test('knife has bladed and sharp', () => {
+    const props = resolveItemProperties('knife');
     expect(props).toContain('bladed');
     expect(props).toContain('sharp');
   });

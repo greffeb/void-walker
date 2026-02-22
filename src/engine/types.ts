@@ -287,6 +287,7 @@ export interface ResolvedTarget {
   readonly properties: readonly import('./properties').PropertyId[];
   readonly isVirtual: boolean;
   readonly source: TargetSource;
+  readonly aliases?: readonly string[];
 }
 
 /** Which verb-matching strategy was used (1 = highest priority) */
@@ -393,4 +394,6 @@ export interface SceneContext {
   readonly connectedLocations: readonly { readonly id: string; readonly aliases: readonly string[] }[];
   readonly suggestions: readonly ParsedAction[];
   readonly environmentConditions: readonly EnvironmentCondition[];
+  /** Body part definitions with locale-aware aliases (injected by content layer) */
+  readonly bodyParts?: readonly BodyPartDefinition[];
 }

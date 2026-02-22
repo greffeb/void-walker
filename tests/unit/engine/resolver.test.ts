@@ -64,21 +64,21 @@ describe('BODY_PARTS', () => {
     for (const [_id, part] of BODY_PARTS) {
       expect(part.id).toBeTruthy();
       expect(part.nameKey).toBeTruthy();
-      expect(part.aliases.length).toBeGreaterThan(0);
+      expect(Array.isArray(part.aliases)).toBe(true);
       expect(Array.isArray(part.baseProperties)).toBe(true);
     }
   });
 
-  test('contains standard parts: bras, tete, jambe', () => {
-    expect(BODY_PARTS.has('bras')).toBe(true);
-    expect(BODY_PARTS.has('tete')).toBe(true);
-    expect(BODY_PARTS.has('jambe')).toBe(true);
+  test('contains standard parts: arm, head, leg', () => {
+    expect(BODY_PARTS.has('arm')).toBe(true);
+    expect(BODY_PARTS.has('head')).toBe(true);
+    expect(BODY_PARTS.has('leg')).toBe(true);
   });
 
-  test('alien parts: griffe, queue, antenne', () => {
-    expect(BODY_PARTS.has('griffe')).toBe(true);
-    expect(BODY_PARTS.has('queue')).toBe(true);
-    expect(BODY_PARTS.has('antenne')).toBe(true);
+  test('alien parts: claw, tail, antenna', () => {
+    expect(BODY_PARTS.has('claw')).toBe(true);
+    expect(BODY_PARTS.has('tail')).toBe(true);
+    expect(BODY_PARTS.has('antenna')).toBe(true);
   });
 });
 
@@ -88,16 +88,24 @@ describe('resolveBodyPart()', () => {
   const xenomorph = makeNpc('xenomorph', ['xenomorphe', 'alien', 'creature'], ['hostile', 'organic'] as PropertyId[]);
   const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic', 'metallic'] as PropertyId[]);
 
+  // Body parts with locale-enriched aliases (simulating what content layer injects)
+  const bodyPartDefs = [
+    { id: 'head', nameKey: 'bodypart.head', aliases: ['tete', 'crane', 'visage', 'face'], baseProperties: ['fragile'] as PropertyId[] },
+    { id: 'arm', nameKey: 'bodypart.arm', aliases: ['bras', 'main', 'poing'], baseProperties: ['blunt', 'holdable'] as PropertyId[] },
+    { id: 'claw', nameKey: 'bodypart.claw', aliases: ['griffe', 'griffes', 'serre'], baseProperties: ['sharp', 'bladed'] as PropertyId[] },
+    { id: 'torso', nameKey: 'bodypart.torso', aliases: ['torse', 'poitrine', 'corps'], baseProperties: ['large'] as PropertyId[] },
+  ];
+
   test('resolves "tete" of xenomorph', () => {
-    const result = resolveBodyPart(['tete', 'xenomorphe'], [xenomorph]);
+    const result = resolveBodyPart(['tete', 'xenomorphe'], [xenomorph], bodyPartDefs);
     expect(result).not.toBeNull();
-    expect(result?.id).toBe('xenomorph_tete');
+    expect(result?.id).toBe('xenomorph_head');
     expect(result?.isVirtual).toBe(true);
     expect(result?.source).toBe('npc_part');
   });
 
   test('virtual body part inherits NPC material properties', () => {
-    const result = resolveBodyPart(['bras', 'robot'], [robot]);
+    const result = resolveBodyPart(['bras', 'robot'], [robot], bodyPartDefs);
     expect(result).not.toBeNull();
     expect(result?.properties).toContain('metallic');
     expect(result?.properties).toContain('attached');
@@ -105,19 +113,19 @@ describe('resolveBodyPart()', () => {
   });
 
   test('returns null when no body part found', () => {
-    const result = resolveBodyPart(['robot'], [robot]);
+    const result = resolveBodyPart(['robot'], [robot], bodyPartDefs);
     expect(result).toBeNull();
   });
 
   test('returns null when no matching NPC', () => {
-    const result = resolveBodyPart(['tete', 'fantome'], [robot]);
+    const result = resolveBodyPart(['tete', 'fantome'], [robot], bodyPartDefs);
     expect(result).toBeNull();
   });
 
   test('alien body part "griffe" resolved on xenomorph', () => {
-    const result = resolveBodyPart(['griffe', 'alien'], [xenomorph]);
+    const result = resolveBodyPart(['griffe', 'alien'], [xenomorph], bodyPartDefs);
     expect(result).not.toBeNull();
-    expect(result?.id).toBe('xenomorph_griffe');
+    expect(result?.id).toBe('xenomorph_claw');
     expect(result?.properties).toContain('sharp');
     expect(result?.properties).toContain('organic');
   });
@@ -126,7 +134,7 @@ describe('resolveBodyPart()', () => {
 // === TARGET RESOLUTION ===
 
 describe('resolveTarget()', () => {
-  const pistolet = makeTarget('pistolet_laser', ['ranged', 'electronic'] as PropertyId[], 'inventory');
+  const pistolet = makeTarget('laser_pistol', ['ranged', 'electronic'] as PropertyId[], 'inventory');
   const medkit = makeTarget('kit_medical', ['healing'] as PropertyId[], 'location');
   const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic'] as PropertyId[]);
   const door = makeFeature('blast_door', ['porte', 'sas'], ['metallic', 'openable'] as PropertyId[]);
@@ -141,7 +149,7 @@ describe('resolveTarget()', () => {
   test('resolves inventory item by name', () => {
     const result = resolveTarget(['pistolet'], 'USE', ctx);
     expect(result).not.toBeNull();
-    expect(result?.id).toBe('pistolet_laser');
+    expect(result?.id).toBe('laser_pistol');
     expect(result?.source).toBe('inventory');
   });
 
@@ -203,5 +211,95 @@ describe('resolveTarget()', () => {
     const result = resolveTarget(['frapper', 'robot'], 'STRIKE', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_robot');
+  });
+
+  test('filters out conjugated verb forms from target matching', () => {
+    // "parle" is a conjugated form of "parler" (TALK alias) — should be stripped
+    const npcCtx = makeContext({ npcs: [robot] });
+    const result = resolveTarget(['parle', 'robot'], 'TALK', npcCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('security_robot');
+    expect(result?.source).toBe('npc');
+  });
+});
+
+// === FRENCH ALIAS RESOLUTION ===
+
+describe('resolveTarget() — French alias support', () => {
+  const ai = makeNpc('station_ai', ['ia', 'intelligence', 'artificielle', 'ordinateur', 'ordi', 'station'], []);
+  const crew = makeNpc('parasitized_crewmember', ['equipage', 'membre', 'parasite', 'infecte', 'mec', 'type', 'collegue', 'equipier'], ['hostile'] as PropertyId[]);
+  const android = makeNpc('wounded_android', ['androide', 'blesse', 'android', 'mec', 'type', 'robot', 'synthetique'], []);
+  const xenomorph = makeNpc('xenomorph', ['xenomorphe', 'alien', 'creature', 'monstre', 'bete', 'extraterrestre'], ['hostile'] as PropertyId[]);
+  const doorFeature = makeFeature('blast_door', ['porte', 'blindee', 'sas', 'portail', 'lourde'], ['metallic', 'openable'] as PropertyId[]);
+  const camera = makeFeature('security_camera', ['camera', 'securite', 'surveillance', 'cam'], []);
+  const casier = makeFeature('supply_locker', ['casier', 'ravitaillement', 'armoire', 'placard', 'coffre'], []);
+
+  const ctx = makeContext({
+    npcs: [ai, crew, android, xenomorph],
+    environmentFeatures: [doorFeature, camera, casier],
+  });
+
+  test('resolves "ia" to station_ai', () => {
+    const result = resolveTarget(['ia'], 'TALK', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('station_ai');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('resolves "membre equipage" to parasitized_crewmember', () => {
+    const result = resolveTarget(['membre', 'equipage'], 'TALK', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('parasitized_crewmember');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('resolves "mec" to an NPC (android or crewmember)', () => {
+    const result = resolveTarget(['mec'], 'TALK', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.source).toBe('npc');
+  });
+
+  test('resolves "alien" to xenomorph', () => {
+    const result = resolveTarget(['alien'], 'STRIKE', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('xenomorph');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('resolves "porte blindee" to blast_door', () => {
+    const result = resolveTarget(['porte', 'blindee'], 'OPEN', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('blast_door');
+    expect(result?.source).toBe('environment');
+  });
+
+  test('resolves "camera" to security_camera', () => {
+    const result = resolveTarget(['camera'], 'EXAMINE', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('security_camera');
+    expect(result?.source).toBe('environment');
+  });
+
+  test('resolves "armoire" to supply_locker', () => {
+    const result = resolveTarget(['armoire'], 'OPEN', ctx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('supply_locker');
+    expect(result?.source).toBe('environment');
+  });
+
+  test('resolves item with aliases field', () => {
+    const canister: ResolvedTarget = {
+      id: 'oxygen_canister',
+      nameKey: 'item.oxygen_canister',
+      properties: ['metallic', 'sealed'] as PropertyId[],
+      isVirtual: false,
+      source: 'inventory',
+      aliases: ['bouteille', 'oxygene', 'bonbonne', 'o2', 'recharge'],
+    };
+    const itemCtx = makeContext({ inventory: [canister] });
+    const result = resolveTarget(['bouteille'], 'USE', itemCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('oxygen_canister');
+    expect(result?.source).toBe('inventory');
   });
 });

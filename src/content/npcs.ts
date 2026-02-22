@@ -14,6 +14,7 @@ export interface NPCDefinition {
   readonly type: NPCType;
   readonly nameKey: StringKey;
   readonly descriptionKey: StringKey;
+  readonly aliasesKey: StringKey;
   readonly extra_props: readonly PropertyId[];
   readonly hp: number;
   readonly damage: number;
@@ -29,6 +30,7 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     type: 'robot',
     nameKey: 'npc.security_robot',
     descriptionKey: 'npc.security_robot.description',
+    aliasesKey: 'npc.security_robot.aliases',
     extra_props: ['hostile', 'ranged', 'heavy', 'breakable'],
     hp: 15,
     damage: 3,
@@ -40,6 +42,7 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     type: 'creature',
     nameKey: 'npc.xenomorph',
     descriptionKey: 'npc.xenomorph.description',
+    aliasesKey: 'npc.xenomorph.aliases',
     extra_props: ['hostile', 'sharp', 'toxic', 'heavy'],
     hp: 20,
     damage: 5,
@@ -51,6 +54,7 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     type: 'android',
     nameKey: 'npc.wounded_android',
     descriptionKey: 'npc.wounded_android.description',
+    aliasesKey: 'npc.wounded_android.aliases',
     extra_props: ['wounded', 'neutral', 'easily_repairable'],
     hp: 8,
     damage: 1,
@@ -62,6 +66,7 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     type: 'human',
     nameKey: 'npc.parasitized_crewmember',
     descriptionKey: 'npc.parasitized_crewmember.description',
+    aliasesKey: 'npc.parasitized_crewmember.aliases',
     extra_props: ['hostile', 'wounded', 'toxic'],
     hp: 10,
     damage: 3,
@@ -73,6 +78,7 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     type: 'robot',
     nameKey: 'npc.station_ai',
     descriptionKey: 'npc.station_ai.description',
+    aliasesKey: 'npc.station_ai.aliases',
     extra_props: ['programmable', 'secured', 'powered'],
     hp: 1,
     damage: 0,

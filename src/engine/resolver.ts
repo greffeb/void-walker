@@ -7,6 +7,7 @@
 
 import type { VerbId } from './verbs';
 import { VERB_REGISTRY } from './verbs';
+import { stemFr } from './snowball-fr';
 import type { PropertyId } from './properties';
 import type {
   ResolvedTarget,
@@ -20,46 +21,46 @@ import type {
 
 /** Standard body parts that can be targeted on NPCs */
 export const BODY_PARTS: ReadonlyMap<string, BodyPartDefinition> = new Map([
-  ['bras', {
-    id: 'bras',
-    nameKey: 'bodypart.bras',
-    aliases: ['bras', 'main', 'poing'],
+  ['arm', {
+    id: 'arm',
+    nameKey: 'bodypart.arm',
+    aliases: [],
     baseProperties: ['blunt', 'holdable'] as PropertyId[],
   }],
-  ['tete', {
-    id: 'tete',
-    nameKey: 'bodypart.tete',
-    aliases: ['tete', 'crane', 'visage', 'face'],
+  ['head', {
+    id: 'head',
+    nameKey: 'bodypart.head',
+    aliases: [],
     baseProperties: ['fragile'] as PropertyId[],
   }],
-  ['jambe', {
-    id: 'jambe',
-    nameKey: 'bodypart.jambe',
-    aliases: ['jambe', 'pied', 'genou'],
+  ['leg', {
+    id: 'leg',
+    nameKey: 'bodypart.leg',
+    aliases: [],
     baseProperties: ['blunt'] as PropertyId[],
   }],
-  ['griffe', {
-    id: 'griffe',
-    nameKey: 'bodypart.griffe',
-    aliases: ['griffe', 'griffes', 'serre', 'serres'],
+  ['claw', {
+    id: 'claw',
+    nameKey: 'bodypart.claw',
+    aliases: [],
     baseProperties: ['sharp', 'bladed'] as PropertyId[],
   }],
-  ['queue', {
-    id: 'queue',
-    nameKey: 'bodypart.queue',
-    aliases: ['queue'],
+  ['tail', {
+    id: 'tail',
+    nameKey: 'bodypart.tail',
+    aliases: [],
     baseProperties: ['blunt', 'flexible'] as PropertyId[],
   }],
-  ['antenne', {
-    id: 'antenne',
-    nameKey: 'bodypart.antenne',
-    aliases: ['antenne', 'antennes', 'capteur', 'capteurs', 'senseur'],
+  ['antenna', {
+    id: 'antenna',
+    nameKey: 'bodypart.antenna',
+    aliases: [],
     baseProperties: ['fragile', 'electronic'] as PropertyId[],
   }],
   ['torso', {
     id: 'torso',
     nameKey: 'bodypart.torso',
-    aliases: ['torse', 'poitrine', 'corps', 'ventre', 'abdomen'],
+    aliases: [],
     baseProperties: ['large'] as PropertyId[],
   }],
 ]);
@@ -110,13 +111,20 @@ function nameKeyToAliases(nameKey: string): string[] {
 /**
  * Detect possessive structure ("X du/de Y") and resolve body part + NPC.
  * Returns a virtual ResolvedTarget or null.
+ * Uses bodyPartDefs (locale-enriched) if provided, otherwise falls back to BODY_PARTS.
  */
 export function resolveBodyPart(
   tokens: readonly string[],
   npcs: readonly NpcInstance[],
+  bodyPartDefs?: readonly BodyPartDefinition[],
 ): ResolvedTarget | null {
+  // Build list of body parts to check: prefer locale-enriched defs, fall back to static BODY_PARTS
+  const parts: readonly BodyPartDefinition[] = bodyPartDefs && bodyPartDefs.length > 0
+    ? bodyPartDefs
+    : [...BODY_PARTS.values()];
+
   // Look for body part tokens
-  for (const [_partId, partDef] of BODY_PARTS) {
+  for (const partDef of parts) {
     const partAliases = partDef.aliases.map((a) =>
       a.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
     );
@@ -184,18 +192,25 @@ export function resolveTarget(
   if (tokens.length === 0) return null;
 
   // Filter out tokens that are verb aliases (don't match them as targets)
+  // Uses both exact match and stem comparison to catch conjugated forms
   const verbEntry = VERB_REGISTRY[verb];
   const verbAliasTokens = new Set<string>();
+  const verbAliasStems = new Set<string>();
   for (const alias of verbEntry.aliases.fr) {
     const normalizedAlias = alias
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '');
     for (const word of normalizedAlias.split(/\s+/)) {
-      if (word.length > 1) verbAliasTokens.add(word);
+      if (word.length > 1) {
+        verbAliasTokens.add(word);
+        verbAliasStems.add(stemFr(word));
+      }
     }
   }
-  const targetTokens = tokens.filter((t) => !verbAliasTokens.has(t));
+  const targetTokens = tokens.filter((t) =>
+    !verbAliasTokens.has(t) && !verbAliasStems.has(stemFr(t)),
+  );
 
   // If no target tokens remain, check if verb is intransitive
   if (targetTokens.length === 0) {
@@ -222,8 +237,12 @@ export function resolveTarget(
   let bestTarget: ResolvedTarget | null = null;
 
   for (const item of context.inventory) {
-    const aliases = nameKeyToAliases(item.nameKey);
-    const score = tokenMatchScore(searchTokens, [...aliases, item.id.replace(/_/g, ' ').split(' ')].flat());
+    const aliases = [
+      ...(item.aliases ?? []),
+      ...nameKeyToAliases(item.nameKey),
+      ...item.id.replace(/_/g, ' ').split(' '),
+    ];
+    const score = tokenMatchScore(searchTokens, aliases);
     if (score > bestScore) {
       bestScore = score;
       bestTarget = item;
@@ -237,8 +256,12 @@ export function resolveTarget(
   bestScore = 0;
   bestTarget = null;
   for (const item of context.locationItems) {
-    const aliases = nameKeyToAliases(item.nameKey);
-    const score = tokenMatchScore(searchTokens, [...aliases, item.id.replace(/_/g, ' ').split(' ')].flat());
+    const aliases = [
+      ...(item.aliases ?? []),
+      ...nameKeyToAliases(item.nameKey),
+      ...item.id.replace(/_/g, ' ').split(' '),
+    ];
+    const score = tokenMatchScore(searchTokens, aliases);
     if (score > bestScore) {
       bestScore = score;
       bestTarget = item;
@@ -274,7 +297,7 @@ export function resolveTarget(
   }
 
   // 4. NPC body parts (virtual objects)
-  const bodyPart = resolveBodyPart(searchTokens, context.npcs);
+  const bodyPart = resolveBodyPart(searchTokens, context.npcs, context.bodyParts);
   if (bodyPart) {
     return bodyPart;
   }

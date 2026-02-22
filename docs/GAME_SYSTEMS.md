@@ -127,7 +127,7 @@ const CLASSES: Record<string, PlayerClass> = {
     //         ATK  DEF  INT  CHA  AGI  LCK
     stats: { ATK: 4, DEF: 3, INT: 1, CHA: 1, AGI: 4, LCK: 2 },
     startingHp: 14,
-    startingItems: ['pistolet_laser', 'couteau', 'ration', 'lampe_torche'],
+    startingItems: ['laser_pistol', 'knife', 'ration', 'flashlight'],
     passiveAbility: {
       id: 'combat_instinct',
       name: { fr: 'Instinct de combat', en: 'Combat Instinct' },
@@ -150,7 +150,7 @@ const CLASSES: Record<string, PlayerClass> = {
     //         ATK  DEF  INT  CHA  AGI  LCK
     stats: { ATK: 1, DEF: 2, INT: 5, CHA: 2, AGI: 2, LCK: 3 },
     startingHp: 10,
-    startingItems: ['multitool', 'scanner', 'ruban_adhesif', 'cable', 'datapad'],
+    startingItems: ['multitool', 'scanner', 'duct_tape', 'cable', 'datapad'],
     passiveAbility: {
       id: 'jury_rig',
       name: { fr: 'Bricoleur ne', en: 'Jury-Rig' },
@@ -173,7 +173,7 @@ const CLASSES: Record<string, PlayerClass> = {
     //         ATK  DEF  INT  CHA  AGI  LCK
     stats: { ATK: 2, DEF: 2, INT: 3, CHA: 4, AGI: 2, LCK: 2 },
     startingHp: 12,
-    startingItems: ['trousse_medicale', 'stimulant', 'lampe_torche', 'ration'],
+    startingItems: ['medical_kit', 'stimulant', 'flashlight', 'ration'],
     passiveAbility: {
       id: 'field_medic',
       name: { fr: 'Medecin de terrain', en: 'Field Medic' },
@@ -399,9 +399,9 @@ interface ItemDefinition {
 }
 
 // Examples:
-// pistolet_laser:    damageBonus: 4
-// couteau:           damageBonus: 2
-// barre_metal:       damageBonus: 3
+// laser_pistol:      damageBonus: 4
+// knife:             damageBonus: 2
+// metal_bar:         damageBonus: 3
 // debris (improvised): damageBonus: 1
 // multitool:         damageBonus: 1
 // unarmed:           damageBonus: 0 (just ATK stat)
@@ -601,7 +601,7 @@ const CONDITIONS: Record<ConditionId, StatusCondition> = {
     hpDrainPerAction: 0,
     specialEffect: null,
     durationType: 'permanent_until_cured',
-    cureMethod: 'USE trousse_medicale OR USE stimulant',
+    cureMethod: 'USE medical_kit OR USE stimulant',
   },
   terrified: {
     id: 'terrified',
@@ -632,7 +632,7 @@ const CONDITIONS: Record<ConditionId, StatusCondition> = {
     hpDrainPerAction: 1,
     specialEffect: null,
     durationType: 'permanent_until_cured',
-    cureMethod: 'USE trousse_medicale OR USE antidote',
+    cureMethod: 'USE medical_kit OR USE antidote',
   },
   exhausted: {
     id: 'exhausted',

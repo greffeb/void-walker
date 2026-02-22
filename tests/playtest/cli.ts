@@ -18,12 +18,14 @@ import { VERB_REGISTRY, VERB_IDS, AUTO_VERBS } from '../../src/engine/verbs';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from '../../src/content/items';
 import { NPC_LIST, NPC_DEFINITIONS, resolveNPCProperties } from '../../src/content/npcs';
 import { ENVIRONMENT_FEATURE_LIST, ENVIRONMENT_FEATURE_DEFINITIONS, resolveEnvironmentProperties } from '../../src/content/environments';
+import { getEntityAliases } from '../../src/content/helpers';
 import { t } from '../../src/i18n';
 import type {
   SceneContext,
   ResolvedTarget,
   NpcInstance,
   EnvironmentFeatureInstance,
+  BodyPartDefinition,
   DifficultyLevel,
   StatBlock,
   ParsedAction,
@@ -66,6 +68,10 @@ function buildDefaultScene(): SceneContext {
       properties: resolveItemProperties(id),
       isVirtual: false,
       source: 'inventory' as const,
+      aliases: [
+        ...getEntityAliases(def.aliasesKey, def.nameKey),
+        ...id.replace(/_/g, ' ').split(' '),
+      ],
     }];
   });
 
@@ -79,6 +85,10 @@ function buildDefaultScene(): SceneContext {
       properties: resolveItemProperties(id),
       isVirtual: false,
       source: 'location' as const,
+      aliases: [
+        ...getEntityAliases(def.aliasesKey, def.nameKey),
+        ...id.replace(/_/g, ' ').split(' '),
+      ],
     }];
   });
 
@@ -91,6 +101,7 @@ function buildDefaultScene(): SceneContext {
       definitionId: npcDef.id,
       nameKey: def.nameKey,
       aliases: [
+        ...getEntityAliases(def.aliasesKey, def.nameKey),
         ...npcDef.id.replace(/_/g, ' ').split(' '),
       ],
       properties: resolveNPCProperties(npcDef.id),
@@ -107,11 +118,23 @@ function buildDefaultScene(): SceneContext {
       definitionId: fDef.id,
       nameKey: def.nameKey,
       aliases: [
+        ...getEntityAliases(def.aliasesKey, def.nameKey),
         ...fDef.id.replace(/_/g, ' ').split(' '),
       ],
       properties: resolveEnvironmentProperties(fDef.id),
     }];
   });
+
+  // Body parts with locale-aware aliases
+  const bodyParts: BodyPartDefinition[] = [...BODY_PARTS.entries()].map(([_id, def]) => ({
+    id: def.id,
+    nameKey: def.nameKey,
+    aliases: getEntityAliases(
+      `${def.nameKey}.aliases` as import('../../src/i18n/types').StringKey,
+      def.nameKey as import('../../src/i18n/types').StringKey,
+    ),
+    baseProperties: [...def.baseProperties],
+  }));
 
   return {
     inventory,
@@ -125,6 +148,7 @@ function buildDefaultScene(): SceneContext {
     ],
     suggestions: [],
     environmentConditions: [],
+    bodyParts,
   };
 }
 
