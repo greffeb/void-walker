@@ -576,4 +576,23 @@ export const en: LocaleStrings = {
   'bodypart.antenna.aliases': 'antenna,sensor,feeler',
   'bodypart.torso': 'Torso',
   'bodypart.torso.aliases': 'torso,chest,body,trunk,belly',
+  // Weak points (Phase 3)
+  'wp.cooling_module': 'Cooling module',
+  'wp.cooling_module.hint': 'The plates on its flank move differently — a joint, perhaps?',
+  'wp.cooling_module.exploit': 'You strike the exposed cooling module!',
+  'wp.acid_sac': 'Acid sac',
+  'wp.acid_sac.hint': 'Something pulses faintly under the carapace, on the belly side...',
+  'wp.acid_sac.exploit': 'You pierce the acid sac — corrosive liquid spills out!',
+  'wp.exposed_wiring_wp': 'Exposed wiring',
+  'wp.exposed_wiring_wp.hint': 'Wires dangle from its damaged arm.',
+  'wp.exposed_wiring_wp.exploit': 'You rip out the exposed cables — short circuit!',
+  'wp.parasite_node': 'Parasite node',
+  'wp.parasite_node.hint': 'A pulsing mass is visible under the skin of the neck.',
+  'wp.parasite_node.exploit': 'You strike the parasite node — the creature screams!',
+  // Conditions (Phase 3)
+  'condition.wounded': 'Wounded',
+  'condition.terrified': 'Terrified',
+  'condition.cold': 'Frozen',
+  'condition.poisoned': 'Poisoned',
+  'condition.exhausted': 'Exhausted',
 };

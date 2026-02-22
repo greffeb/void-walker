@@ -397,3 +397,146 @@ export interface SceneContext {
   /** Body part definitions with locale-aware aliases (injected by content layer) */
   readonly bodyParts?: readonly BodyPartDefinition[];
 }
+
+// === PHASE 3: RESOLUTION & COMBAT TYPES ===
+
+/** Injectable random number generator for testability. Returns [0, 1). */
+export type RngFn = () => number;
+
+/** Classified outcome of a dice roll */
+export type RollOutcome = 'crit_success' | 'success' | 'failure' | 'crit_failure';
+
+// === COMBAT TYPES ===
+
+/** Weak point on an NPC */
+export interface WeakPoint {
+  readonly id: string;
+  readonly nameKey: string;
+  readonly discoverMethod: 'examine' | 'scan' | 'combat_hint' | 'lore';
+  readonly targetVerbs: readonly import('./verbs').VerbId[];
+  readonly targetProperties: readonly import('./properties').PropertyId[];
+  readonly damageMultiplier: number;
+  readonly hintKey: string;
+  readonly exploitKey: string;
+}
+
+/** Runtime combat state for an NPC in an encounter */
+export interface CombatNPCState {
+  readonly definitionId: string;
+  readonly hp: number;
+  readonly maxHp: number;
+  readonly attack: number;
+  readonly defense: number;
+  readonly dodgeChance: number;
+  readonly fleeDC: number;
+  readonly aggressionPattern: AggressionPattern;
+  readonly weakPoint: WeakPoint | null;
+  readonly weakPointDiscovered: boolean;
+  readonly combatRound: number;
+}
+
+/** Result of a player attacking an NPC */
+export interface PlayerAttackResult {
+  readonly hit: boolean;
+  readonly npcDodged: boolean;
+  readonly damageDealt: number;
+  readonly weakPointHit: boolean;
+  readonly npcKilled: boolean;
+  readonly critical: boolean;
+  readonly itemBroke: boolean;
+  readonly bonusLoot: LootDrop | null;
+}
+
+/** Result of an NPC attacking the player */
+export interface NPCAttackResult {
+  readonly hit: boolean;
+  readonly dodged: boolean;
+  readonly damageDealt: number;
+  readonly berserkBonus: number;
+}
+
+/** Result of attempting to flee combat */
+export interface FleeResult {
+  readonly success: boolean;
+  readonly roll: DiceResult;
+  readonly npcFreeAttack: NPCAttackResult | null;
+}
+
+/** Result of attempting a partial retreat (back off without ending combat) */
+export interface RetreatResult {
+  readonly success: boolean;
+  readonly roll: DiceResult;
+}
+
+// === CONDITION TYPES ===
+
+/** Condition identifiers */
+export type ConditionId = 'wounded' | 'terrified' | 'cold' | 'poisoned' | 'exhausted';
+
+/** All valid condition IDs as a runtime array */
+export const CONDITION_IDS: readonly ConditionId[] = [
+  'wounded', 'terrified', 'cold', 'poisoned', 'exhausted',
+] as const;
+
+/** A condition definition (static data) */
+export interface ConditionDefinition {
+  readonly id: ConditionId;
+  readonly nameKey: string;
+  readonly statMalus: Readonly<Partial<Record<StatId, number>>>;
+  readonly hpDrainPerAction: number;
+  readonly specialEffect: string | null;
+  readonly durationType: 'permanent_until_cured' | 'timed';
+  readonly durationActions?: number;
+  readonly cureMethod: string;
+}
+
+/** Active condition on a player (runtime) */
+export interface ActiveCondition {
+  readonly id: ConditionId;
+  readonly remainingActions: number | null;
+}
+
+// === OXYGEN TYPES ===
+
+/** Atmosphere type for zones */
+export type AtmosphereType = 'pressurized' | 'low_oxygen' | 'depressurized' | 'toxic_atmosphere';
+
+// === STALKER CLOCK TYPES ===
+
+/** Stalker clock event type */
+export type StalkerEventType = 'warning' | 'threat_arrival' | 'kill';
+
+/** A stalker clock event */
+export interface StalkerEvent {
+  readonly type: StalkerEventType;
+}
+
+/** Stalker clock state */
+export interface StalkerClockState {
+  readonly actionsSinceLastProgression: number;
+  readonly warningIssued: boolean;
+  readonly threatArrivalIssued: boolean;
+}
+
+// === DURABILITY TYPES ===
+
+/** Item durability state (runtime per-item) */
+export interface ItemDurabilityState {
+  readonly broken: boolean;
+  readonly combatUses: number;
+}
+
+// === LOOT TYPES ===
+
+/** Loot drop from bonus loot on nat 20 */
+export interface LootDrop {
+  readonly itemId: string;
+  readonly source: 'combat' | 'search' | 'skill_check';
+  readonly isBonus: boolean;
+}
+
+/** Loot table entry */
+export interface LootTableEntry {
+  readonly itemId: string;
+  readonly weight: number;
+}

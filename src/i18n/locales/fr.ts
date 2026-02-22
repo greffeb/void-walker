@@ -576,4 +576,23 @@ export const fr: LocaleStrings = {
   'bodypart.antenna.aliases': 'antenne,capteur,senseur',
   'bodypart.torso': 'Torse',
   'bodypart.torso.aliases': 'torse,poitrine,corps,buste,ventre',
+  // Weak points (Phase 3)
+  'wp.cooling_module': 'Module de refroidissement',
+  'wp.cooling_module.hint': 'Les plaques sur son flanc bougent différemment — une jointure, peut-être ?',
+  'wp.cooling_module.exploit': 'Vous frappez le module de refroidissement exposé !',
+  'wp.acid_sac': 'Poche acide',
+  'wp.acid_sac.hint': 'Quelque chose pulse faiblement sous la carapace, côté ventre...',
+  'wp.acid_sac.exploit': 'Vous percez la poche acide — le liquide corrosif se répand !',
+  'wp.exposed_wiring_wp': 'Câblage exposé',
+  'wp.exposed_wiring_wp.hint': 'Des fils pendent le long de son bras endommagé.',
+  'wp.exposed_wiring_wp.exploit': 'Vous arrachez les câbles exposés — court-circuit !',
+  'wp.parasite_node': 'Nœud parasitaire',
+  'wp.parasite_node.hint': 'Une masse pulsante est visible sous la peau du cou.',
+  'wp.parasite_node.exploit': 'Vous frappez le nœud parasitaire — la créature hurle !',
+  // Conditions (Phase 3)
+  'condition.wounded': 'Blessé',
+  'condition.terrified': 'Terrifié',
+  'condition.cold': 'Gelé',
+  'condition.poisoned': 'Empoisonné',
+  'condition.exhausted': 'Épuisé',
 };

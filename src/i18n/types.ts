@@ -565,7 +565,26 @@ export type StringKey =
   | 'bodypart.antenna'
   | 'bodypart.antenna.aliases'
   | 'bodypart.torso'
-  | 'bodypart.torso.aliases';
+  | 'bodypart.torso.aliases'
+  // Weak points (Phase 3)
+  | 'wp.cooling_module'
+  | 'wp.cooling_module.hint'
+  | 'wp.cooling_module.exploit'
+  | 'wp.acid_sac'
+  | 'wp.acid_sac.hint'
+  | 'wp.acid_sac.exploit'
+  | 'wp.exposed_wiring_wp'
+  | 'wp.exposed_wiring_wp.hint'
+  | 'wp.exposed_wiring_wp.exploit'
+  | 'wp.parasite_node'
+  | 'wp.parasite_node.hint'
+  | 'wp.parasite_node.exploit'
+  // Conditions (Phase 3)
+  | 'condition.wounded'
+  | 'condition.terrified'
+  | 'condition.cold'
+  | 'condition.poisoned'
+  | 'condition.exhausted';
 
 /** A locale translation record — maps every StringKey to its translated string */
 export type LocaleStrings = Readonly<Record<StringKey, string>>;
