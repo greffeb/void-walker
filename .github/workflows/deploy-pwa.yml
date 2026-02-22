@@ -41,6 +41,8 @@ jobs:
 
       - name: Build PWA
         run: npm run build
+        env:
+          VITE_BASE_URL: /${{ github.event.repository.name }}/
 
       - name: Inject Build ID metadata
         run: |

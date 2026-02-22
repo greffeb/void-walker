@@ -69,5 +69,7 @@ export type {
   StalkerEventType, StalkerEvent, StalkerClockState,
   ItemDurabilityState,
   LootDrop, LootTableEntry,
+  // Action history
+  ActionRecord,
 } from './types';
 export { isReformulation, CONDITION_IDS } from './types';

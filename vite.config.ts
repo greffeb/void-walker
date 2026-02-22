@@ -8,12 +8,13 @@ const resolve = (p: string): string =>
   fileURLToPath(new URL(p, import.meta.url));
 
 export default defineConfig({
+  base: process.env.VITE_BASE_URL ?? '/',
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png'],
+      includeAssets: ['icons/*.svg', 'icons/*.png'],
       manifest: {
         name: 'Void Walker',
         short_name: 'Void Walker',
@@ -23,8 +24,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         icons: [
-          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+          { src: 'icons/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' },
         ],
       },
     }),

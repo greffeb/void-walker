@@ -130,6 +130,17 @@ export interface GameState {
   readonly stalkerClock: number;
   readonly sceneCount: number;
   readonly log: readonly string[];
+  readonly actionHistory: readonly ActionRecord[];
+}
+
+/** Structured record of a single player action (for history & bug reports) */
+export interface ActionRecord {
+  readonly input: string;
+  readonly parsedVerb: string | null;
+  readonly targetId: string | null;
+  readonly diceResult: DiceResult | null;
+  readonly outcome: string;
+  readonly timestamp: number;
 }
 
 /** Factory for a blank initial game state */
@@ -144,6 +155,7 @@ export function createInitialGameState(): GameState {
     stalkerClock: 0,
     sceneCount: 0,
     log: [],
+    actionHistory: [],
   };
 }
 
