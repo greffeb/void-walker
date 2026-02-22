@@ -216,10 +216,13 @@ function printVerbs(): void {
   console.log();
 }
 
-function printBodyParts(): void {
+function printBodyParts(scene: SceneContext): void {
   console.log(`${C.bold}Parties du corps ciblables:${C.reset}`);
-  for (const [id, part] of BODY_PARTS) {
-    console.log(`  ${C.yellow}${id}${C.reset}: aliases=[${part.aliases.join(', ')}] props=[${part.baseProperties.join(', ')}]`);
+  const parts = scene.bodyParts && scene.bodyParts.length > 0
+    ? scene.bodyParts
+    : [...BODY_PARTS.values()];
+  for (const part of parts) {
+    console.log(`  ${C.yellow}${part.id}${C.reset}: aliases=[${part.aliases.join(', ')}] props=[${part.baseProperties.join(', ')}]`);
   }
   console.log(`${C.dim}  Usage: "frapper la tête du robot", "couper les griffes de l'alien"${C.reset}`);
   console.log();
@@ -375,7 +378,7 @@ async function main(): Promise<void> {
           printItems(scene);
           break;
         case '/parts':
-          printBodyParts();
+          printBodyParts(scene);
           break;
         case '/quit':
         case '/exit':

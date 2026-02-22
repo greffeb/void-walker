@@ -68,8 +68,53 @@ export const BODY_PARTS: ReadonlyMap<string, BodyPartDefinition> = new Map([
 // === TOKEN MATCHING HELPERS ===
 
 /**
+ * Check if two strings are within edit distance 1 (one insertion, deletion, or substitution).
+ * Only called on strings of length >= 4 to avoid false positives on short words.
+ */
+function isEditDistance1(a: string, b: string): boolean {
+  const la = a.length;
+  const lb = b.length;
+  const diff = la - lb;
+  if (diff < -1 || diff > 1) return false;
+  if (diff === 0) {
+    // Substitution: exactly 1 char differs
+    let diffs = 0;
+    for (let i = 0; i < la; i++) {
+      if (a[i] !== b[i]) {
+        diffs++;
+        if (diffs > 1) return false;
+      }
+    }
+    return diffs === 1;
+  }
+  // Insertion/deletion: shorter must be a subsequence of longer with 1 gap
+  const shorter = diff < 0 ? a : b;
+  const longer = diff < 0 ? b : a;
+  let si = 0;
+  let li = 0;
+  let skipped = 0;
+  while (si < shorter.length && li < longer.length) {
+    if (shorter[si] === longer[li]) {
+      si++;
+      li++;
+    } else {
+      li++;
+      skipped++;
+      if (skipped > 1) return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Score how well a set of tokens matches a set of aliases.
  * Returns 0 for no match, higher for better match.
+ *
+ * Scoring tiers:
+ *   10 — exact match
+ *    5 — substring match (alias ≥3 chars)
+ *    4 — edit-distance-1 (typo tolerance, both ≥4 chars)
+ *    3 — 4-char prefix match
  */
 function tokenMatchScore(tokens: readonly string[], aliases: readonly string[]): number {
   let score = 0;
@@ -83,10 +128,12 @@ function tokenMatchScore(tokens: readonly string[], aliases: readonly string[]):
 
       if (normalizedAlias === token) {
         score += 10; // Exact match
-      } else if (normalizedAlias.includes(token) || token.includes(normalizedAlias)) {
-        score += 5; // Partial match
-      } else if (token.length >= 4 && normalizedAlias.startsWith(token.slice(0, 4))) {
-        score += 3; // Prefix match
+      } else if (normalizedAlias.length >= 3 && (normalizedAlias.includes(token) || token.includes(normalizedAlias))) {
+        score += 5; // Partial match (alias must be ≥3 chars to avoid 'ai' matching 'airlock')
+      } else if (token.length >= 6 && normalizedAlias.length >= 6 && isEditDistance1(token, normalizedAlias)) {
+        score += 5; // Edit-distance-1 (single typo in 6+ char words — avoids short-word false positives)
+      } else if (token.length >= 4 && normalizedAlias.length >= 4 && normalizedAlias.startsWith(token.slice(0, 4))) {
+        score += 3; // Prefix match (both must be ≥4 chars)
       }
     }
   }
@@ -176,8 +223,8 @@ export function resolveBodyPart(
  * Priority order:
  * 1. Player inventory items
  * 2. Location items
- * 3. NPCs (whole entity)
- * 4. NPC body parts (virtual objects)
+ * 3. NPC body parts (virtual objects) — before whole-NPC so body targeting wins
+ * 4. NPCs (whole entity)
  * 5. Environment features
  * 6. Connected locations (for movement verbs)
  * 7. Abstract/environment fallback
@@ -237,11 +284,11 @@ export function resolveTarget(
   let bestTarget: ResolvedTarget | null = null;
 
   for (const item of context.inventory) {
-    const aliases = [
+    const aliases = [...new Set([
       ...(item.aliases ?? []),
       ...nameKeyToAliases(item.nameKey),
       ...item.id.replace(/_/g, ' ').split(' '),
-    ];
+    ])];
     const score = tokenMatchScore(searchTokens, aliases);
     if (score > bestScore) {
       bestScore = score;
@@ -256,11 +303,11 @@ export function resolveTarget(
   bestScore = 0;
   bestTarget = null;
   for (const item of context.locationItems) {
-    const aliases = [
+    const aliases = [...new Set([
       ...(item.aliases ?? []),
       ...nameKeyToAliases(item.nameKey),
       ...item.id.replace(/_/g, ' ').split(' '),
-    ];
+    ])];
     const score = tokenMatchScore(searchTokens, aliases);
     if (score > bestScore) {
       bestScore = score;
@@ -271,19 +318,28 @@ export function resolveTarget(
     return bestTarget;
   }
 
-  // 3. NPCs
-  bestScore = 0;
-  let bestNpc: ResolvedTarget | null = null;
+  // 3. NPC body parts (virtual objects) — checked before whole-NPC so that
+  //    "frapper la tête du robot" → security_robot_head, not security_robot
+  const bodyPart = resolveBodyPart(searchTokens, context.npcs, context.bodyParts);
+  if (bodyPart) {
+    return bodyPart;
+  }
+
+  // 4+5. NPCs and environment features — global best-score comparison.
+  //   Prevents NPC aliases ("securite" on security_robot) from shadowing
+  //   higher-scoring environment entities ("camera"+"securite" on security_camera).
+  let npcBestScore = 0;
+  let npcBestTarget: ResolvedTarget | null = null;
   for (const npc of context.npcs) {
-    const aliases = [
+    const aliases = [...new Set([
       ...npc.aliases,
       ...nameKeyToAliases(npc.nameKey),
       ...npc.id.replace(/_/g, ' ').split(' '),
-    ];
+    ])];
     const score = tokenMatchScore(searchTokens, aliases);
-    if (score > bestScore) {
-      bestScore = score;
-      bestNpc = {
+    if (score > npcBestScore) {
+      npcBestScore = score;
+      npcBestTarget = {
         id: npc.id,
         nameKey: npc.nameKey,
         properties: npc.properties,
@@ -292,29 +348,19 @@ export function resolveTarget(
       };
     }
   }
-  if (bestNpc && bestScore >= 3) {
-    return bestNpc;
-  }
 
-  // 4. NPC body parts (virtual objects)
-  const bodyPart = resolveBodyPart(searchTokens, context.npcs, context.bodyParts);
-  if (bodyPart) {
-    return bodyPart;
-  }
-
-  // 5. Environment features
-  bestScore = 0;
-  bestTarget = null;
+  let envBestScore = 0;
+  let envBestTarget: ResolvedTarget | null = null;
   for (const feature of context.environmentFeatures) {
-    const aliases = [
+    const aliases = [...new Set([
       ...feature.aliases,
       ...nameKeyToAliases(feature.nameKey),
       ...feature.id.replace(/_/g, ' ').split(' '),
-    ];
+    ])];
     const score = tokenMatchScore(searchTokens, aliases);
-    if (score > bestScore) {
-      bestScore = score;
-      bestTarget = {
+    if (score > envBestScore) {
+      envBestScore = score;
+      envBestTarget = {
         id: feature.id,
         nameKey: feature.nameKey,
         properties: feature.properties,
@@ -323,18 +369,19 @@ export function resolveTarget(
       };
     }
   }
-  if (bestTarget && bestScore >= 3) {
-    return bestTarget;
-  }
 
-  // 6. Connected locations (for movement verbs)
+  // 6. Connected locations (for movement verbs) — checked BEFORE environment
+  //   to prevent "aller sas-b" from matching a partial alias on main_airlock.
   const movementVerbs: ReadonlySet<VerbId> = new Set(['MOVE_TO', 'RUN', 'CLIMB']);
   if (movementVerbs.has(verb)) {
+    let locBestScore = 0;
+    let locBestTarget: ResolvedTarget | null = null;
     for (const loc of context.connectedLocations) {
       const aliases = [...loc.aliases, ...loc.id.replace(/_/g, ' ').split(' ')];
       const score = tokenMatchScore(searchTokens, aliases);
-      if (score > 0) {
-        return {
+      if (score > locBestScore) {
+        locBestScore = score;
+        locBestTarget = {
           id: loc.id,
           nameKey: loc.id,
           properties: [],
@@ -343,7 +390,23 @@ export function resolveTarget(
         };
       }
     }
+    // Connected location wins if it scores at all and beats environment
+    if (locBestTarget && locBestScore > 0 && locBestScore >= envBestScore) {
+      return locBestTarget;
+    }
   }
+
+  // Return whichever of NPC / environment scores higher.
+  // NPCs require score ≥ 5; environment requires score ≥ 3.
+  // When both qualify, the higher scorer wins (breaks camera/robot confusion).
+  const npcQualifies = npcBestTarget !== null && npcBestScore >= 5;
+  const envQualifies = envBestTarget !== null && envBestScore >= 3;
+
+  if (npcQualifies && envQualifies) {
+    return envBestScore > npcBestScore ? envBestTarget : npcBestTarget;
+  }
+  if (npcQualifies) return npcBestTarget;
+  if (envQualifies) return envBestTarget;
 
   // 7. Abstract fallback — return null for intransitive verbs,
   // or an abstract environment target for transitive verbs

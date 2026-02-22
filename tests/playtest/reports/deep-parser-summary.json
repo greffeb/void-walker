@@ -1,0 +1,16 @@
+{
+  "totalCases": 523,
+  "passed": 463,
+  "failed": 60,
+  "reformulations": 18,
+  "avgParseMs": 0.5224279158699779,
+  "maxParseMs": 3.673500000000047,
+  "p95ParseMs": 1.3819999999999482,
+  "outlierThresholdMs": 8,
+  "severityCounts": {
+    "critical": 0,
+    "high": 2,
+    "medium": 58,
+    "low": 0
+  }
+}

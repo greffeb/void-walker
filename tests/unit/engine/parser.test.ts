@@ -129,6 +129,20 @@ describe('normalizeInput()', () => {
     expect(tokens.length).toBeGreaterThan(0);
     expect(tokens).toContain('frapper');
   });
+
+  // Bug D regression: pathological repeated-token input
+  test('deduplicates repeated tokens (regression: 1000× "robot")', () => {
+    const tokens = normalizeInput('frapper ' + 'robot '.repeat(1000));
+    expect(tokens).toContain('robot');
+    expect(tokens.filter((t) => t === 'robot').length).toBe(1);
+    expect(tokens.length).toBeLessThanOrEqual(30);
+  });
+
+  test('caps output at 30 tokens even for varied long input', () => {
+    const words = Array.from({ length: 50 }, (_, i) => `mot${i}`).join(' ');
+    const tokens = normalizeInput(words);
+    expect(tokens.length).toBeLessThanOrEqual(30);
+  });
 });
 
 describe('normalizeInputKeepPrepositions()', () => {
@@ -299,6 +313,26 @@ describe('matchVerb()', () => {
     const result = matchVerb(['frapper', 'examiner'], ['frapper', 'examiner']);
     expect(result).not.toBeNull();
     // Should match the FIRST token's verb
+    expect(result?.verb).toBe('STRIKE');
+  });
+
+  // Bug A regression: "attaquer" must not be caught by prefix match for TIE ('attacher')
+  test('strategy 2: "attaquer" → STRIKE (not TIE, regression)', () => {
+    const result = matchVerb(['attaquer'], ['attaquer']);
+    expect(result).not.toBeNull();
+    expect(result?.verb).toBe('STRIKE');
+    expect(result?.strategy).toBeLessThanOrEqual(2); // curated form or better
+  });
+
+  test('strategy 2: "attaque" → STRIKE', () => {
+    const result = matchVerb(['attaque'], ['attaque']);
+    expect(result).not.toBeNull();
+    expect(result?.verb).toBe('STRIKE');
+  });
+
+  test('strategy 2: "attaquez" → STRIKE', () => {
+    const result = matchVerb(['attaquez'], ['attaquez']);
+    expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
   });
 });

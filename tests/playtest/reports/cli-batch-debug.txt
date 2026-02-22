@@ -1,0 +1,273 @@
+
+[35m[1m╔═══════════════════════════════════════╗[0m
+[35m[1m║     VOID WALKER — Parser Playtest     ║[0m
+[35m[1m╚═══════════════════════════════════════╝[0m
+[2mPhase 2: Parser & Action Resolution[0m
+[33m[DEBUG MODE][0m
+
+[36m[1m── Scène ──[0m
+[36mInventaire:[0m laser_pistol, metal_bar, knife, metal_tube, datapad
+[36mAu sol:[0m duct_tape, cable, scanner, flashlight, multitool
+[36mPNJ:[0m security_robot, xenomorph, wounded_android, parasitized_crewmember, station_ai
+[36mEnvironnement:[0m blast_door, observation_window, command_terminal, maintenance_vent, coolant_pipe, access_panel, security_camera, main_airlock, supply_locker, exposed_wiring
+[36mSorties:[0m corridor_a, sas_b, infirmerie
+
+[1mCommandes spéciales:[0m
+  [36m/help[0m     Affiche cette aide
+  [36m/scene[0m    Affiche la scène actuelle
+  [36m/verbs[0m    Liste les 77 verbes disponibles
+  [36m/items[0m    Liste les objets
+  [36m/parts[0m    Liste les parties du corps ciblables
+  [36m/quit[0m     Quitte le REPL
+
+[2mTapez une action en français: "frapper le robot", "examiner la porte", etc.[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mSTRIKE[0m (Frapper)
+  [1mCible:[0m  [36msecurity_robot[0m (source: npc)
+  [2m  Props: [tangible, visible, robotic, electronic, mechanical, metallic, hostile, ranged, heavy, breakable][0m
+  [1mDC:[0m     [33m12[0m
+  [2mDétails:
+    Base: 10
+    Cible hostile: +3
+    FOR élevé: -1
+    Total: 12
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [frapper, robot, securite][0m
+
+[2m  Parse time: 3.1ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mSHOOT[0m (Tirer)
+  [1mCible:[0m  [36msecurity_robot[0m (source: npc)
+  [2m  Props: [tangible, visible, robotic, electronic, mechanical, metallic, hostile, ranged, heavy, breakable][0m
+  [1mDC:[0m     [31m20[0m
+  [2mDétails:
+    Base: 10
+    Incompatibilité: +5
+    Cible hostile: +3
+    Outil requis manquant (ranged): +5
+    Action absurde mais possible: -3
+    Total: 20
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 5 (motif composé)[0m
+  [2mConfiance: 90%[0m
+  [2mComposé: true[0m
+  [2mTokens composés: [tirer, sur][0m
+  [2mTokens: [tirer, sur, robot, securite][0m
+
+[2m  Parse time: 1.1ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mEXAMINE[0m (Examiner)
+  [1mCible:[0m  [36msecurity_robot[0m (source: npc)
+  [2m  Props: [tangible, visible, robotic, electronic, mechanical, metallic, hostile, ranged, heavy, breakable][0m
+  [1mDC:[0m     [33m10[0m
+  [2mDétails:
+    Base: 10
+    Verbe (EXAMINE): -3
+    Cible hostile: +3
+    Total: 10
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [examiner, camera, securite][0m
+
+[2m  Parse time: 1.9ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mUNLOCK[0m (Déverrouiller)
+  [1mCible:[0m  [36mblast_door[0m (source: environment)
+  [2m  Props: [tangible, visible, openable, lockable, mechanical, breakable, metallic, heavy, sealed, electronic, powered][0m
+  [1mDC:[0m     [33m14[0m
+  [2mDétails:
+    Base: 10
+    Verbe (UNLOCK): +2
+    Incompatibilité: +5 (locked)
+    Action absurde mais possible: -3
+    Total: 14
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [ouvrir, porte, blindee][0m
+
+[2m  Parse time: 2.1ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mTOUCH[0m (Toucher)
+  [1mCible:[0m  [36mcable[0m (source: location)
+  [2m  Props: [tangible, liftable, holdable, small, usable, flexible, conductive, synthetic][0m
+  [1mDC:[0m     [32mAUTO (pas de jet nécessaire)[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [toucher, cable][0m
+
+[2m  Parse time: 1.0ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mEXAMINE[0m (Examiner)
+  [1mCible:[0m  [36mcable[0m (source: location)
+  [2m  Props: [tangible, liftable, holdable, small, usable, flexible, conductive, synthetic][0m
+  [1mDC:[0m     [32m7[0m
+  [2mDétails:
+    Base: 10
+    Verbe (EXAMINE): -3
+    Total: 7
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [examiner, cable, puis, toucher][0m
+
+[2m  Parse time: 0.9ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mSTRIKE[0m (Frapper)
+  [1mCible:[0m  [36msecurity_robot_head[0m (source: npc_part) [35m[virtuel][0m
+  [2m  Props: [fragile, robotic, electronic, mechanical, metallic, attached, tangible, visible][0m
+  [1mDC:[0m     [33m12[0m
+  [2mDétails:
+    Base: 10
+    FOR élevé: -1
+    Cible attachée: +3
+    Total: 12
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 2 (forme conjuguée)[0m
+  [2mConfiance: 95%[0m
+  [2mComposé: false[0m
+  [2mTokens: [frappe, tete, robot, securite][0m
+
+[2m  Parse time: 1.5ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mMOVE_TO[0m (Se déplacer)
+  [1mCible:[0m  [36mcorridor_a[0m (source: connected_location)
+  [2m  Props: [][0m
+  [1mDC:[0m     [32mAUTO (pas de jet nécessaire)[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [aller, couloir][0m
+
+[2m  Parse time: 1.5ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mMOVE_TO[0m (Se déplacer)
+  [1mCible:[0m  [36mblast_door[0m (source: environment)
+  [2m  Props: [tangible, visible, openable, lockable, mechanical, breakable, metallic, heavy, sealed, electronic, powered][0m
+  [1mDC:[0m     [32mAUTO (pas de jet nécessaire)[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [aller, sas-b][0m
+
+[2m  Parse time: 1.6ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mEXAMINE[0m (Examiner)
+  [1mCible:[0m  [36msecurity_robot[0m (source: npc)
+  [2m  Props: [tangible, visible, robotic, electronic, mechanical, metallic, hostile, ranged, heavy, breakable][0m
+  [1mDC:[0m     [33m10[0m
+  [2mDétails:
+    Base: 10
+    Verbe (EXAMINE): -3
+    Cible hostile: +3
+    Total: 10
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 2 (forme conjuguée)[0m
+  [2mConfiance: 95%[0m
+  [2mComposé: false[0m
+  [2mTokens: [plait, examine, camera, securite, merci][0m
+
+[2m  Parse time: 2.4ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mEXAMINE[0m (Examiner)
+  [1mCible:[0m  [36mlaser_pistol[0m (source: inventory)
+  [2m  Props: [tangible, liftable, holdable, usable, electronic, ranged, light_source, small][0m
+  [1mDC:[0m     [32m7[0m
+  [2mDétails:
+    Base: 10
+    Verbe (EXAMINE): -3
+    Total: 7
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 4 (préfixe 4+ cars)[0m
+  [2mConfiance: 60%[0m
+  [2mComposé: false[0m
+  [2mTokens: [examner, pistolet, laser][0m
+
+[2m  Parse time: 2.6ms[0m
+
+[1m[35m> [0m
+[32m[1m✓ Action analysée[0m
+  [1mVerbe:[0m  [32mEXAMINE[0m (Examiner)
+  [1mCible:[0m  [36mlaser_pistol[0m (source: inventory)
+  [2m  Props: [tangible, liftable, holdable, usable, electronic, ranged, light_source, small][0m
+  [1mDC:[0m     [32m7[0m
+  [2mDétails:
+    Base: 10
+    Verbe (EXAMINE): -3
+    Total: 7
+[0m
+  [2m── Debug ──[0m
+  [2mStratégie: 1 (alias exact)[0m
+  [2mConfiance: 100%[0m
+  [2mComposé: false[0m
+  [2mTokens: [examiner, pistolet-laser][0m
+
+[2m  Parse time: 0.7ms[0m
+
+[1m[35m> [0m
+[33m[1m⚠ Reformulation nécessaire[0m
+[33m  Que tentez-vous exactement ?[0m
+[2m  Interprétations possibles:[0m
+    [36m1.[0m EXAMINE
+    [36m2.[0m STRIKE
+    [36m3.[0m USE
+
+[2m  Parse time: 0.5ms[0m
+
+[1m[35m> [0m
+[33m[1m⚠ Reformulation nécessaire[0m
+[33m  Que tentez-vous exactement ?[0m
+[2m  Interprétations possibles:[0m
+    [36m1.[0m EXAMINE → environment
+    [36m2.[0m STRIKE → environment
+    [36m3.[0m USE → environment
+
+[2m  Parse time: 5.9ms[0m
+
+[1m[35m> [0m[1m[35m> [0m
+[2mAu revoir, astronaute.[0m
+
+
+[2mSession terminée.[0m
+

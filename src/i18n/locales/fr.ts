@@ -563,7 +563,7 @@ export const fr: LocaleStrings = {
   'parser.creativity': 'Créativité !',
   // Body parts
   'bodypart.arm': 'Bras',
-  'bodypart.arm.aliases': 'bras,membre,avant-bras',
+  'bodypart.arm.aliases': 'bras,avant-bras',
   'bodypart.head': 'Tête',
   'bodypart.head.aliases': 'tete,crane,caboche,face,visage',
   'bodypart.leg': 'Jambe',

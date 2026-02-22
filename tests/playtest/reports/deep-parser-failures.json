@@ -1,0 +1,2571 @@
+[
+  {
+    "id": "C0014",
+    "input": "ne pas toucher pistolet laser",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "laser_pistol",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "laser_pistol",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "laser_pistol",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "pistolet",
+      "laser"
+    ],
+    "parseMs": 0.5740000000000123,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=laser_pistol; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=laser_pistol/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0015",
+    "input": "examiner pistolet laser puis toucher pistolet laser",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "laser_pistol",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "laser_pistol",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "laser_pistol",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "pistolet",
+      "laser",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.5850999999999544,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=laser_pistol; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=laser_pistol/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0029",
+    "input": "ne pas toucher barre metal",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "metal_bar",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "metal_bar",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "metal_bar",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "barre",
+      "metal"
+    ],
+    "parseMs": 0.38179999999999836,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=metal_bar; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=metal_bar/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0030",
+    "input": "examiner barre metal puis toucher barre metal",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "metal_bar",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "metal_bar",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "metal_bar",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "barre",
+      "metal",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4588000000000534,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=metal_bar; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=metal_bar/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0044",
+    "input": "ne pas toucher couteau",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "knife",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "knife",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "knife",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "couteau"
+    ],
+    "parseMs": 0.2968000000000188,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=knife; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=knife/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0045",
+    "input": "examiner couteau puis toucher couteau",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "knife",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "knife",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "knife",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "couteau",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4301999999999566,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=knife; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=knife/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0059",
+    "input": "ne pas toucher tube metallique",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "metal_tube",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "metal_tube",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "metal_tube",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "tube",
+      "metallique"
+    ],
+    "parseMs": 0.287399999999991,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=metal_tube; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=metal_tube/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0060",
+    "input": "examiner tube metallique puis toucher tube metallique",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "metal_tube",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "metal_tube",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "metal_tube",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "tube",
+      "metallique",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.3395999999999617,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=metal_tube; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=metal_tube/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0074",
+    "input": "ne pas toucher datapad",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "datapad",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "datapad",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "datapad",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "datapad"
+    ],
+    "parseMs": 0.321200000000033,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=datapad; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=datapad/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0075",
+    "input": "examiner datapad puis toucher datapad",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "datapad",
+    "elementType": "inventory",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "datapad",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "datapad",
+    "targetSource": "inventory",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "datapad",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.31110000000001037,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=datapad; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=datapad/inventory, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0089",
+    "input": "ne pas toucher ruban adhesif",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "duct_tape",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "duct_tape",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "duct_tape",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "ruban",
+      "adhesif"
+    ],
+    "parseMs": 0.3562000000000012,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=duct_tape; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=duct_tape/location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0090",
+    "input": "examiner ruban adhesif puis toucher ruban adhesif",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "duct_tape",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "duct_tape",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "duct_tape",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "ruban",
+      "adhesif",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4423999999999637,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=duct_tape; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=duct_tape/location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0103",
+    "input": "examiner cale",
+    "category": "element_edge",
+    "subcategory": "typo_target",
+    "elementId": "cable",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "cable",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "environment",
+    "targetSource": "abstract",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "cale"
+    ],
+    "parseMs": 0.6514999999999986,
+    "findings": [
+      {
+        "severity": "high",
+        "code": "WRONG_TARGET_ID",
+        "expected": "verb in [EXAMINE]; target=cable; non-abstract",
+        "actual": "verb=EXAMINE, target=environment/abstract, strategy=1, conf=1.00",
+        "whyWrong": "Wrong resolved entity id."
+      },
+      {
+        "severity": "high",
+        "code": "ABSTRACT_FALLBACK_ON_KNOWN_ENTITY",
+        "expected": "verb in [EXAMINE]; target=cable; non-abstract",
+        "actual": "verb=EXAMINE, target=environment/abstract, strategy=1, conf=1.00",
+        "whyWrong": "Known entity collapsed to abstract target."
+      }
+    ],
+    "severity": "high",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0104",
+    "input": "ne pas toucher cable",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "cable",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "cable",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "cable",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "cable"
+    ],
+    "parseMs": 0.27199999999999136,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=cable; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=cable/location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0105",
+    "input": "examiner cable puis toucher cable",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "cable",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "cable",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "cable",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "cable",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.2932999999999879,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=cable; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=cable/location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0119",
+    "input": "ne pas toucher scanner",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "scanner",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "scanner",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "scanner",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "scanner"
+    ],
+    "parseMs": 0.25420000000002574,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=scanner; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=scanner/location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0120",
+    "input": "examiner scanner puis toucher scanner",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "scanner",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "scanner",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "scanner",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "scanner",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.30049999999999955,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=scanner; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=scanner/location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0134",
+    "input": "ne pas toucher lampe torche",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "flashlight",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "flashlight",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "flashlight",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "lampe",
+      "torche"
+    ],
+    "parseMs": 0.47169999999999845,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=flashlight; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=flashlight/location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0135",
+    "input": "examiner lampe torche puis toucher lampe torche",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "flashlight",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "flashlight",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "flashlight",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "lampe",
+      "torche",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.5533999999999537,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=flashlight; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=flashlight/location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0149",
+    "input": "ne pas toucher multitool",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "multitool",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "multitool",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "multitool",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "multitool"
+    ],
+    "parseMs": 0.25890000000003965,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=multitool; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=multitool/location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0150",
+    "input": "examiner multitool puis toucher multitool",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "multitool",
+    "elementType": "location",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "multitool",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "multitool",
+    "targetSource": "location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "multitool",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.2998999999999796,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=multitool; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=multitool/location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0164",
+    "input": "ne pas toucher robot securite",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "security_robot",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "security_robot",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "security_robot",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "robot",
+      "securite"
+    ],
+    "parseMs": 0.5270000000000437,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=security_robot; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=security_robot/npc, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0165",
+    "input": "examiner robot securite puis toucher robot securite",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "security_robot",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "security_robot",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "security_robot",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "robot",
+      "securite",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 1.4066000000000258,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=security_robot; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=security_robot/npc, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0179",
+    "input": "ne pas toucher xenomorphe",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "xenomorph",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "xenomorph",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "xenomorph",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "xenomorphe"
+    ],
+    "parseMs": 0.49310000000002674,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=xenomorph; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=xenomorph/npc, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0180",
+    "input": "examiner xenomorphe puis toucher xenomorphe",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "xenomorph",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "xenomorph",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "xenomorph",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "xenomorphe",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.5432999999999879,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=xenomorph; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=xenomorph/npc, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0194",
+    "input": "ne pas toucher androide blesse",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "wounded_android",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "wounded_android",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "wounded_android",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "androide",
+      "blesse"
+    ],
+    "parseMs": 0.8692999999999529,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=wounded_android; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=wounded_android/npc, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0195",
+    "input": "examiner androide blesse puis toucher androide blesse",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "wounded_android",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "wounded_android",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "wounded_android",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "androide",
+      "blesse",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.9504999999999768,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=wounded_android; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=wounded_android/npc, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0209",
+    "input": "ne pas toucher membre equipage parasite",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "parasitized_crewmember",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "parasitized_crewmember",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "parasitized_crewmember",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "membre",
+      "equipage",
+      "parasite"
+    ],
+    "parseMs": 0.4408000000000243,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=parasitized_crewmember; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=parasitized_crewmember/npc, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0210",
+    "input": "examiner membre equipage parasite puis toucher membre equipage parasite",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "parasitized_crewmember",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "parasitized_crewmember",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "parasitized_crewmember",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "membre",
+      "equipage",
+      "parasite",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.6087999999999738,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=parasitized_crewmember; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=parasitized_crewmember/npc, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0224",
+    "input": "ne pas toucher ia station",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "station_ai",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "station_ai",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "station_ai",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "ia",
+      "station"
+    ],
+    "parseMs": 0.37999999999999545,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=station_ai; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=station_ai/npc, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0225",
+    "input": "examiner ia station puis toucher ia station",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "station_ai",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "station_ai",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "station_ai",
+    "targetSource": "npc",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "ia",
+      "station",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.5435999999999694,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=station_ai; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=station_ai/npc, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0239",
+    "input": "ne pas toucher porte blindee",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "blast_door",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "blast_door",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "blast_door",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "porte",
+      "blindee"
+    ],
+    "parseMs": 0.37690000000003465,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=blast_door; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=blast_door/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0240",
+    "input": "examiner porte blindee puis toucher porte blindee",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "blast_door",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "blast_door",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "blast_door",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "porte",
+      "blindee",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4782999999999902,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=blast_door; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=blast_door/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0254",
+    "input": "ne pas toucher baie vitree",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "observation_window",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "observation_window",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "observation_window",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "baie",
+      "vitree"
+    ],
+    "parseMs": 0.37479999999999336,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=observation_window; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=observation_window/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0255",
+    "input": "examiner baie vitree puis toucher baie vitree",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "observation_window",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "observation_window",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "observation_window",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "baie",
+      "vitree",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.8797000000000139,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=observation_window; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=observation_window/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0269",
+    "input": "ne pas toucher terminal commande",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "command_terminal",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "command_terminal",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "command_terminal",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "terminal",
+      "commande"
+    ],
+    "parseMs": 0.40440000000000964,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=command_terminal; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=command_terminal/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0270",
+    "input": "examiner terminal commande puis toucher terminal commande",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "command_terminal",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "command_terminal",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "command_terminal",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "terminal",
+      "commande",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.48059999999998126,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=command_terminal; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=command_terminal/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0284",
+    "input": "ne pas toucher bouche ventilation",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "maintenance_vent",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "maintenance_vent",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "maintenance_vent",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "bouche",
+      "ventilation"
+    ],
+    "parseMs": 0.3828999999999496,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=maintenance_vent; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=maintenance_vent/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0285",
+    "input": "examiner bouche ventilation puis toucher bouche ventilation",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "maintenance_vent",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "maintenance_vent",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "maintenance_vent",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "bouche",
+      "ventilation",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4776999999999134,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=maintenance_vent; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=maintenance_vent/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0299",
+    "input": "ne pas toucher conduite refroidissement",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "coolant_pipe",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "coolant_pipe",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "coolant_pipe",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "conduite",
+      "refroidissement"
+    ],
+    "parseMs": 0.44010000000002947,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=coolant_pipe; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=coolant_pipe/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0300",
+    "input": "examiner conduite refroidissement puis toucher conduite refroidissement",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "coolant_pipe",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "coolant_pipe",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "coolant_pipe",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "conduite",
+      "refroidissement",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4841000000000122,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=coolant_pipe; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=coolant_pipe/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0314",
+    "input": "ne pas toucher panneau acces",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "access_panel",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "access_panel",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "access_panel",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "panneau",
+      "acces"
+    ],
+    "parseMs": 0.7513999999999896,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=access_panel; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=access_panel/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0315",
+    "input": "examiner panneau acces puis toucher panneau acces",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "access_panel",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "access_panel",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "access_panel",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "panneau",
+      "acces",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4957999999999174,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=access_panel; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=access_panel/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0329",
+    "input": "ne pas toucher camera securite",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "security_camera",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "security_camera",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "security_camera",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "camera",
+      "securite"
+    ],
+    "parseMs": 0.44820000000004256,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=security_camera; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=security_camera/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0330",
+    "input": "examiner camera securite puis toucher camera securite",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "security_camera",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "security_camera",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "security_camera",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "camera",
+      "securite",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.5726999999999407,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=security_camera; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=security_camera/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0344",
+    "input": "ne pas toucher sas principal",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "main_airlock",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "main_airlock",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "main_airlock",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "sas",
+      "principal"
+    ],
+    "parseMs": 0.3752000000000635,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=main_airlock; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=main_airlock/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0345",
+    "input": "examiner sas principal puis toucher sas principal",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "main_airlock",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "main_airlock",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "main_airlock",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "sas",
+      "principal",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.5294000000000096,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=main_airlock; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=main_airlock/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0359",
+    "input": "ne pas toucher casier ravitaillement",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "supply_locker",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "supply_locker",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "supply_locker",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "casier",
+      "ravitaillement"
+    ],
+    "parseMs": 0.38049999999998363,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=supply_locker; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=supply_locker/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0360",
+    "input": "examiner casier ravitaillement puis toucher casier ravitaillement",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "supply_locker",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "supply_locker",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "supply_locker",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "casier",
+      "ravitaillement",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4823000000000093,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=supply_locker; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=supply_locker/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0374",
+    "input": "ne pas toucher cablage expose",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "exposed_wiring",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "exposed_wiring",
+      "negatedVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "TOUCH",
+    "verb": "TOUCH",
+    "isReformulation": false,
+    "targetId": "exposed_wiring",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "toucher",
+      "cablage",
+      "expose"
+    ],
+    "parseMs": 0.3805999999999585,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=exposed_wiring; negated!=TOUCH; non-abstract",
+        "actual": "verb=TOUCH, target=exposed_wiring/environment, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0375",
+    "input": "examiner cablage expose puis toucher cablage expose",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "exposed_wiring",
+    "elementType": "environment",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "EXAMINE"
+      ],
+      "targetId": "exposed_wiring",
+      "multiIntentSecondVerb": "TOUCH",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "EXAMINE",
+    "verb": "EXAMINE",
+    "isReformulation": false,
+    "targetId": "exposed_wiring",
+    "targetSource": "environment",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "examiner",
+      "cablage",
+      "expose",
+      "puis",
+      "toucher"
+    ],
+    "parseMs": 0.4814000000000078,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [EXAMINE]; target=exposed_wiring; secondary=TOUCH; non-abstract",
+        "actual": "verb=EXAMINE, target=exposed_wiring/environment, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0389",
+    "input": "ne pas aller couloir",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "corridor_a",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "corridor_a",
+      "targetSource": "connected_location",
+      "negatedVerb": "MOVE_TO",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "corridor_a",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "couloir"
+    ],
+    "parseMs": 0.705600000000004,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=corridor_a; source=connected_location; negated!=MOVE_TO; non-abstract",
+        "actual": "verb=MOVE_TO, target=corridor_a/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0390",
+    "input": "aller couloir puis attendre",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "corridor_a",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "MOVE_TO"
+      ],
+      "targetId": "corridor_a",
+      "targetSource": "connected_location",
+      "multiIntentSecondVerb": "WAIT",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "corridor_a",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "couloir",
+      "puis",
+      "attendre"
+    ],
+    "parseMs": 0.47929999999996653,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [MOVE_TO]; target=corridor_a; source=connected_location; secondary=WAIT; non-abstract",
+        "actual": "verb=MOVE_TO, target=corridor_a/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0403",
+    "input": "aller sa-b",
+    "category": "element_edge",
+    "subcategory": "typo_target",
+    "elementId": "sas_b",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "MOVE_TO"
+      ],
+      "targetId": "sas_b",
+      "targetSource": "connected_location",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "environment",
+    "targetSource": "abstract",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "sa-b"
+    ],
+    "parseMs": 0.32920000000001437,
+    "findings": [
+      {
+        "severity": "high",
+        "code": "WRONG_TARGET_ID",
+        "expected": "verb in [MOVE_TO]; target=sas_b; source=connected_location; non-abstract",
+        "actual": "verb=MOVE_TO, target=environment/abstract, strategy=1, conf=1.00",
+        "whyWrong": "Wrong resolved entity id."
+      },
+      {
+        "severity": "high",
+        "code": "WRONG_TARGET_SOURCE",
+        "expected": "verb in [MOVE_TO]; target=sas_b; source=connected_location; non-abstract",
+        "actual": "verb=MOVE_TO, target=environment/abstract, strategy=1, conf=1.00",
+        "whyWrong": "Wrong resolved target source."
+      },
+      {
+        "severity": "high",
+        "code": "ABSTRACT_FALLBACK_ON_KNOWN_ENTITY",
+        "expected": "verb in [MOVE_TO]; target=sas_b; source=connected_location; non-abstract",
+        "actual": "verb=MOVE_TO, target=environment/abstract, strategy=1, conf=1.00",
+        "whyWrong": "Known entity collapsed to abstract target."
+      }
+    ],
+    "severity": "high",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0404",
+    "input": "ne pas aller sas-b",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "sas_b",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "sas_b",
+      "targetSource": "connected_location",
+      "negatedVerb": "MOVE_TO",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "sas_b",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "sas-b"
+    ],
+    "parseMs": 0.34980000000007294,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=sas_b; source=connected_location; negated!=MOVE_TO; non-abstract",
+        "actual": "verb=MOVE_TO, target=sas_b/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0405",
+    "input": "aller sas-b puis attendre",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "sas_b",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "MOVE_TO"
+      ],
+      "targetId": "sas_b",
+      "targetSource": "connected_location",
+      "multiIntentSecondVerb": "WAIT",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "sas_b",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "sas-b",
+      "puis",
+      "attendre"
+    ],
+    "parseMs": 0.44060000000001764,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [MOVE_TO]; target=sas_b; source=connected_location; secondary=WAIT; non-abstract",
+        "actual": "verb=MOVE_TO, target=sas_b/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0419",
+    "input": "ne pas aller infirmerie",
+    "category": "element_edge",
+    "subcategory": "negation",
+    "elementId": "infirmerie",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "targetId": "infirmerie",
+      "targetSource": "connected_location",
+      "negatedVerb": "MOVE_TO",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "infirmerie",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "infirmerie"
+    ],
+    "parseMs": 0.3546999999999798,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "NEGATION_IGNORED",
+        "expected": "target=infirmerie; source=connected_location; negated!=MOVE_TO; non-abstract",
+        "actual": "verb=MOVE_TO, target=infirmerie/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Negation words were ignored."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0420",
+    "input": "aller infirmerie puis attendre",
+    "category": "element_edge",
+    "subcategory": "multi_intent",
+    "elementId": "infirmerie",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "MOVE_TO"
+      ],
+      "targetId": "infirmerie",
+      "targetSource": "connected_location",
+      "multiIntentSecondVerb": "WAIT",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "infirmerie",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "infirmerie",
+      "puis",
+      "attendre"
+    ],
+    "parseMs": 0.4540000000000646,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [MOVE_TO]; target=infirmerie; source=connected_location; secondary=WAIT; non-abstract",
+        "actual": "verb=MOVE_TO, target=infirmerie/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0484",
+    "input": "aller sas-b puis attendre",
+    "category": "multi_intent",
+    "subcategory": "move_then_wait",
+    "elementId": "sas_b",
+    "elementType": "exit",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "MOVE_TO"
+      ],
+      "targetId": "sas_b",
+      "targetSource": "connected_location",
+      "multiIntentSecondVerb": "WAIT",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "MOVE_TO",
+    "verb": "MOVE_TO",
+    "isReformulation": false,
+    "targetId": "sas_b",
+    "targetSource": "connected_location",
+    "strategy": 1,
+    "confidence": 1,
+    "isCompound": false,
+    "tokens": [
+      "aller",
+      "sas-b",
+      "puis",
+      "attendre"
+    ],
+    "parseMs": 0.42639999999994416,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [MOVE_TO]; target=sas_b; source=connected_location; secondary=WAIT; non-abstract",
+        "actual": "verb=MOVE_TO, target=sas_b/connected_location, strategy=1, conf=1.00",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  },
+  {
+    "id": "C0485",
+    "input": "tirer sur robot securite puis courir vers couloir",
+    "category": "multi_intent",
+    "subcategory": "combat_then_move",
+    "elementId": "security_robot",
+    "elementType": "npc",
+    "clearIntent": true,
+    "expected": {
+      "verbs": [
+        "SHOOT"
+      ],
+      "targetId": "security_robot",
+      "targetSource": "npc",
+      "expectCompound": true,
+      "multiIntentSecondVerb": "RUN",
+      "requireNonAbstract": true
+    },
+    "verbOrReformulation": "SHOOT",
+    "verb": "SHOOT",
+    "isReformulation": false,
+    "targetId": "security_robot",
+    "targetSource": "npc",
+    "strategy": 5,
+    "confidence": 0.9,
+    "isCompound": true,
+    "tokens": [
+      "tirer",
+      "sur",
+      "robot",
+      "securite",
+      "puis",
+      "courir",
+      "vers",
+      "couloir"
+    ],
+    "parseMs": 0.5089000000000397,
+    "findings": [
+      {
+        "severity": "medium",
+        "code": "MULTI_INTENT_SECONDARY_DROPPED",
+        "expected": "verb in [SHOOT]; target=security_robot; source=npc; compound=true; secondary=RUN; non-abstract",
+        "actual": "verb=SHOOT, target=security_robot/npc, strategy=5, conf=0.90",
+        "whyWrong": "Secondary intent in chain was dropped."
+      }
+    ],
+    "severity": "medium",
+    "passed": false,
+    "error": null
+  }
+]

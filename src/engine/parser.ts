@@ -69,7 +69,12 @@ export function normalizeInput(raw: string): string[] {
   // Remove stop words
   const tokens = filtered.filter((t) => !FRENCH_STOP_WORDS.has(t));
 
-  return tokens;
+  // Deduplicate and cap at 30 tokens to guard against pathological input.
+  // Keep both the first 15 and last 15 unique tokens so that suffix-pattern
+  // inputs like "<filler> tirer sur robot securite" still match correctly.
+  const deduped = [...new Set(tokens)];
+  if (deduped.length <= 30) return deduped;
+  return [...deduped.slice(0, 15), ...deduped.slice(-15)];
 }
 
 /**
@@ -102,6 +107,11 @@ export const CURATED_FORMS: ReadonlyMap<string, VerbId> = new Map<string, VerbId
   ['cogne', 'STRIKE'], ['cognez', 'STRIKE'], ['assomme', 'STRIKE'],
   ['assommez', 'STRIKE'], ['bats', 'STRIKE'], ['battez', 'STRIKE'],
   ['tabasse', 'STRIKE'], ['tabassez', 'STRIKE'],
+  ['attaque', 'STRIKE'], ['attaques', 'STRIKE'], ['attaquez', 'STRIKE'],
+  ['attaquons', 'STRIKE'], ['attaquer', 'STRIKE'], ['attaquais', 'STRIKE'],
+  ['attaquait', 'STRIKE'], ['attaquant', 'STRIKE'],
+  ['agresse', 'STRIKE'], ['agressez', 'STRIKE'], ['agressons', 'STRIKE'],
+  ['combats', 'STRIKE'], ['combattons', 'STRIKE'], ['combattre', 'STRIKE'],
   // PUSH
   ['pousse', 'PUSH'], ['poussez', 'PUSH'], ['poussons', 'PUSH'],
   ['repousse', 'PUSH'], ['repoussez', 'PUSH'], ['bouscule', 'PUSH'],
@@ -230,6 +240,7 @@ export const CURATED_FORMS: ReadonlyMap<string, VerbId> = new Map<string, VerbId
   ['regarde', 'EXAMINE'], ['regardez', 'EXAMINE'],
   ['etudie', 'EXAMINE'], ['etudiez', 'EXAMINE'],
   ['fouille', 'EXAMINE'], ['fouillez', 'EXAMINE'],
+  ['mate', 'EXAMINE'], ['mates', 'EXAMINE'], ['matez', 'EXAMINE'], // slang: "mater"
   // LISTEN
   ['ecoute', 'LISTEN'], ['ecoutez', 'LISTEN'],
   // SMELL
@@ -245,6 +256,7 @@ export const CURATED_FORMS: ReadonlyMap<string, VerbId> = new Map<string, VerbId
   ['parle', 'TALK'], ['parlez', 'TALK'],
   ['discute', 'TALK'], ['discutez', 'TALK'],
   ['dialogue', 'TALK'], ['dialoguez', 'TALK'],
+  ['papote', 'TALK'], ['papotes', 'TALK'], ['papotez', 'TALK'], // slang: "papoter"
   // PERSUADE
   ['persuade', 'PERSUADE'], ['persuadez', 'PERSUADE'],
   ['convaincs', 'PERSUADE'], ['convainquez', 'PERSUADE'],
@@ -350,7 +362,7 @@ export const CURATED_FORMS: ReadonlyMap<string, VerbId> = new Map<string, VerbId
   // DRINK
   ['bois', 'DRINK'], ['buvez', 'DRINK'],
   // MOVE_TO
-  ['vais', 'MOVE_TO'], ['allez', 'MOVE_TO'], ['allons', 'MOVE_TO'],
+  ['vais', 'MOVE_TO'], ['va', 'MOVE_TO'], ['allez', 'MOVE_TO'], ['allons', 'MOVE_TO'],
   ['deplace', 'MOVE_TO'], ['rends', 'MOVE_TO'],
   // WAIT
   ['attends', 'WAIT'], ['attendez', 'WAIT'],
@@ -392,10 +404,12 @@ export const COMPOUND_PATTERNS: readonly CompoundPattern[] = [
   { tokens: ['se', 'protege'], verb: 'BLOCK' },
   // "donner un coup de pied" → KICK
   { tokens: ['coup', 'pied'], verb: 'KICK' },
-  // "mettre le feu" → IGNITE
+  // "mettre le feu" / "foutre le feu" → IGNITE
   { tokens: ['mettre', 'feu'], verb: 'IGNITE' },
   { tokens: ['mets', 'feu'], verb: 'IGNITE' },
   { tokens: ['mettez', 'feu'], verb: 'IGNITE' },
+  { tokens: ['foutre', 'feu'], verb: 'IGNITE' },
+  { tokens: ['fous', 'feu'], verb: 'IGNITE' },
   // "utiliser comme arme" → IMPROVISE_WEAPON
   { tokens: ['utiliser', 'comme', 'arme'], verb: 'IMPROVISE_WEAPON' },
   { tokens: ['utilise', 'comme', 'arme'], verb: 'IMPROVISE_WEAPON' },
@@ -488,6 +502,40 @@ const INTENT_KEYWORDS: ReadonlyMap<string, VerbId> = new Map([
   ['utiliser', 'USE'], ['employer', 'USE'], ['servir', 'USE'],
 ]);
 
+// === ENTITY ALIAS COLLECTION ===
+
+/**
+ * Collect all normalized alias tokens from the scene context.
+ * Used to prevent entity-name tokens from hijacking verb matching.
+ * e.g. "scanner" (a location item) should not match verb SCAN.
+ */
+export function collectEntityAliasTokens(context: SceneContext): ReadonlySet<string> {
+  const tokenSet = new Set<string>();
+
+  const addAliasString = (alias: string): void => {
+    const norm = alias.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    for (const word of norm.split(/[\s_-]+/)) {
+      if (word.length > 1) tokenSet.add(word);
+    }
+  };
+
+  const addFromItem = (item: { readonly aliases?: readonly string[]; readonly nameKey: string; readonly id: string }): void => {
+    for (const alias of item.aliases ?? []) addAliasString(alias);
+    // nameKey parts (e.g. 'item.scanner' → 'scanner')
+    const namePart = item.nameKey.split('.').pop() ?? '';
+    for (const part of namePart.split('_')) { if (part.length > 1) tokenSet.add(part); }
+    // id parts
+    for (const part of item.id.split('_')) { if (part.length > 1) tokenSet.add(part); }
+  };
+
+  for (const item of context.inventory) addFromItem(item);
+  for (const item of context.locationItems) addFromItem(item);
+  for (const npc of context.npcs) addFromItem({ aliases: npc.aliases, nameKey: npc.nameKey, id: npc.id });
+  for (const feat of context.environmentFeatures) addFromItem({ aliases: feat.aliases, nameKey: feat.nameKey, id: feat.id });
+
+  return tokenSet;
+}
+
 // === VERB MATCHING ===
 
 /**
@@ -521,8 +569,16 @@ function matchCompound(fullTokens: readonly string[]): CompoundPattern | null {
  * 4. Prefix match (4+ chars)
  * 5. Compound action detection
  * 6. Semantic fallback (intent keywords)
+ *
+ * @param entityTokens - Optional set of entity alias tokens to skip for strategies 1-4.
+ *   This prevents entity names (e.g. "scanner" as a location item) from hijacking verb matching.
+ *   If all tokens are entity tokens, falls back to using all tokens.
  */
-export function matchVerb(tokens: readonly string[], fullTokens: readonly string[]): VerbMatch | null {
+export function matchVerb(
+  tokens: readonly string[],
+  fullTokens: readonly string[],
+  entityTokens?: ReadonlySet<string>,
+): VerbMatch | null {
   // Strategy 5 first: compound detection (highest specificity for multi-word patterns)
   const compound = matchCompound(fullTokens);
   if (compound) {
@@ -535,8 +591,16 @@ export function matchVerb(tokens: readonly string[], fullTokens: readonly string
     };
   }
 
-  // Strategy 1: Exact alias match
-  for (const token of tokens) {
+  // For strategies 1-4, prefer tokens that are NOT known entity aliases.
+  // This prevents "scanner" (item) → SCAN or "porte" (blast_door) → LIFT.
+  // Fall back to all tokens if filtering leaves nothing.
+  const verbPriorityTokens = entityTokens
+    ? tokens.filter((t) => !entityTokens.has(t))
+    : tokens;
+  const s14tokens = verbPriorityTokens.length > 0 ? verbPriorityTokens : tokens;
+
+  // Strategy 1: Exact alias match (entity-filtered tokens first)
+  for (const token of s14tokens) {
     for (const verbId of VERB_IDS) {
       const entry = VERB_REGISTRY[verbId];
       if (entry.aliases.fr.some((alias) => {
@@ -556,8 +620,8 @@ export function matchVerb(tokens: readonly string[], fullTokens: readonly string
     }
   }
 
-  // Strategy 2: Curated form table
-  for (const token of tokens) {
+  // Strategy 2: Curated form table (entity-filtered tokens first)
+  for (const token of s14tokens) {
     const verb = CURATED_FORMS.get(token);
     if (verb) {
       return {
@@ -569,8 +633,8 @@ export function matchVerb(tokens: readonly string[], fullTokens: readonly string
     }
   }
 
-  // Strategy 3: Snowball stem match
-  for (const token of tokens) {
+  // Strategy 3: Snowball stem match (entity-filtered tokens first)
+  for (const token of s14tokens) {
     const stemmed = stemFr(token);
     const verb = STEMMED_ALIAS_INDEX.get(stemmed);
     if (verb) {
@@ -583,8 +647,8 @@ export function matchVerb(tokens: readonly string[], fullTokens: readonly string
     }
   }
 
-  // Strategy 4: Prefix match (4+ chars)
-  for (const token of tokens) {
+  // Strategy 4: Prefix match (4+ chars, entity-filtered tokens first)
+  for (const token of s14tokens) {
     if (token.length < 4) continue;
     const prefix = token.slice(0, 4);
     for (const verbId of VERB_IDS) {
@@ -606,7 +670,7 @@ export function matchVerb(tokens: readonly string[], fullTokens: readonly string
     }
   }
 
-  // Strategy 6: Semantic fallback (intent keywords)
+  // Strategy 6: Semantic fallback (intent keywords — uses all tokens for broadest coverage)
   for (const token of tokens) {
     const verb = INTENT_KEYWORDS.get(token);
     if (verb) {
@@ -725,8 +789,12 @@ export function parseAction(rawInput: string, context: SceneContext): ParseResul
     return generateReformulation(rawInput, [], context);
   }
 
+  // Collect entity alias tokens so we can skip them when matching verbs.
+  // e.g. "scanner" is a location item alias → don't treat it as verb SCAN.
+  const entityTokens = collectEntityAliasTokens(context);
+
   // Match verb
-  const verbMatch = matchVerb(tokens, fullTokens);
+  const verbMatch = matchVerb(tokens, fullTokens, entityTokens);
 
   if (!verbMatch) {
     return generateReformulation(rawInput, tokens, context);

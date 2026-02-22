@@ -302,4 +302,79 @@ describe('resolveTarget() — French alias support', () => {
     expect(result?.id).toBe('oxygen_canister');
     expect(result?.source).toBe('inventory');
   });
+
+  // Bug B regression: short nameKey-derived alias 'ai' must not absorb 'airlock' via substring
+  test('resolves "airlock" to an airlock feature, not station_ai (regression)', () => {
+    const airlock = makeFeature('main_airlock', ['airlock', 'sas', 'ecluse'], ['metallic', 'openable'] as PropertyId[]);
+    const mixedCtx = makeContext({
+      npcs: [ai],
+      environmentFeatures: [airlock],
+    });
+    const result = resolveTarget(['airlock'], 'OPEN', mixedCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).not.toBe('station_ai');
+    expect(result?.id).toBe('main_airlock');
+  });
+
+  // Bug B regression: "securite" prefix must not match security_robot via nameKey token 'security'
+  test('resolves "camera securite" to security_camera, not security_robot (regression)', () => {
+    const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic', 'metallic'] as PropertyId[]);
+    const disambCtx = makeContext({
+      npcs: [robot],
+      environmentFeatures: [camera],
+    });
+    const result = resolveTarget(['camera', 'securite'], 'EXAMINE', disambCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).not.toBe('security_robot');
+    expect(result?.id).toBe('security_camera');
+  });
+});
+
+// === BODY-PART PRIORITY REGRESSION ===
+
+describe('resolveTarget() — body-part before NPC (regression)', () => {
+  const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic', 'metallic'] as PropertyId[]);
+  const xenomorph = makeNpc('xenomorph', ['alien', 'creature'], ['hostile', 'organic'] as PropertyId[]);
+
+  const headDef = {
+    id: 'head',
+    nameKey: 'bodypart.head' as const,
+    aliases: ['tete', 'crane', 'caboche'],
+    baseProperties: ['fragile'] as PropertyId[],
+  };
+  const clawDef = {
+    id: 'claw',
+    nameKey: 'bodypart.claw' as const,
+    aliases: ['griffe', 'serre', 'ongle'],
+    baseProperties: ['sharp', 'bladed'] as PropertyId[],
+  };
+
+  const bodyCtx = makeContext({
+    npcs: [robot, xenomorph],
+    bodyParts: [headDef, clawDef],
+  });
+
+  // Bug C regression: possessive body-part phrase must resolve to virtual part, not whole NPC
+  test('"tete robot" → security_robot_head (not security_robot)', () => {
+    const result = resolveTarget(['tete', 'robot'], 'STRIKE', bodyCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('security_robot_head');
+    expect(result?.source).toBe('npc_part');
+    expect(result?.isVirtual).toBe(true);
+  });
+
+  test('"griffe alien" → xenomorph_claw (not xenomorph)', () => {
+    const result = resolveTarget(['griffe', 'alien'], 'CUT', bodyCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('xenomorph_claw');
+    expect(result?.source).toBe('npc_part');
+  });
+
+  // Ensure plain NPC still resolves when no body-part token present
+  test('"robot" alone → security_robot (whole NPC)', () => {
+    const result = resolveTarget(['robot'], 'STRIKE', bodyCtx);
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe('security_robot');
+    expect(result?.source).toBe('npc');
+  });
 });
