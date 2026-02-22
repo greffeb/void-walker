@@ -5,7 +5,7 @@
 import { describe, test, expect } from 'vitest';
 import { detectCreativity, calculateDifficulty } from '../../../src/engine/difficulty';
 import { BALANCE } from '../../../src/engine/constants';
-import type { DifficultyInput, ParsedAction, ResolvedTarget, StatBlock, VerbMatch, VerbMatchStrategy } from '../../../src/engine/types';
+import type { DifficultyInput, ParsedAction, ResolvedTarget, StatBlock, VerbMatchStrategy } from '../../../src/engine/types';
 import type { VerbId } from '../../../src/engine/verbs';
 import type { PropertyId } from '../../../src/engine/properties';
 

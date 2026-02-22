@@ -14,12 +14,9 @@ import type {
   ParsedAction,
   Reformulation,
   ParseResult,
-  ResolvedTarget,
   SceneContext,
 } from './types';
-import { isReformulation } from './types';
 import { resolveTarget } from './resolver';
-import { checkCompatibility } from './compatibility';
 
 // === FRENCH STOP WORDS ===
 

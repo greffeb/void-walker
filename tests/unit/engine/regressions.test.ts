@@ -6,7 +6,6 @@
 import { describe, test, expect } from 'vitest';
 import { normalizeInput, matchVerb, parseAction } from '../../../src/engine/parser';
 import { resolveTarget } from '../../../src/engine/resolver';
-import type { VerbId } from '../../../src/engine/verbs';
 import type { SceneContext, NpcInstance, EnvironmentFeatureInstance } from '../../../src/engine/types';
 import type { PropertyId } from '../../../src/engine/properties';
 

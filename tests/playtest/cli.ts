@@ -10,8 +10,8 @@
 // ---------------------------------------------------------------------------
 
 import * as readline from 'node:readline';
-import { parseAction, normalizeInput, matchVerb, normalizeInputKeepPrepositions } from '../../src/engine/parser';
-import { resolveTarget, BODY_PARTS } from '../../src/engine/resolver';
+import { parseAction } from '../../src/engine/parser';
+import { BODY_PARTS } from '../../src/engine/resolver';
 import { calculateDifficulty } from '../../src/engine/difficulty';
 import { isReformulation } from '../../src/engine/types';
 import { VERB_REGISTRY, VERB_IDS, AUTO_VERBS } from '../../src/engine/verbs';
@@ -28,9 +28,7 @@ import type {
   BodyPartDefinition,
   DifficultyLevel,
   StatBlock,
-  ParsedAction,
 } from '../../src/engine/types';
-import type { PropertyId } from '../../src/engine/properties';
 
 // === CLI COLORS ===
 
@@ -333,7 +331,7 @@ function strategyName(s: number): string {
 
 // === MAIN REPL ===
 
-async function main(): Promise<void> {
+function main(): void {
   printBanner();
 
   let scene = CHAOS ? buildChaosScene() : buildDefaultScene();
@@ -420,7 +418,4 @@ async function main(): Promise<void> {
   });
 }
 
-main().catch((err) => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+main();

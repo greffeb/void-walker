@@ -14,8 +14,7 @@ import { VERB_IDS, VERB_REGISTRY } from '../../src/engine/verbs';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from '../../src/content/items';
 import { NPC_LIST, NPC_DEFINITIONS, resolveNPCProperties } from '../../src/content/npcs';
 import { ENVIRONMENT_FEATURE_LIST, ENVIRONMENT_FEATURE_DEFINITIONS, resolveEnvironmentProperties } from '../../src/content/environments';
-import type { SceneContext, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance, ParsedAction } from '../../src/engine/types';
-import type { PropertyId } from '../../src/engine/properties';
+import type { SceneContext, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from '../../src/engine/types';
 import type { VerbId } from '../../src/engine/verbs';
 
 // === SCENE FIXTURE ===
@@ -189,6 +188,8 @@ function generateFuzzInput(rand: () => number): string {
 const FUZZ_COUNT = 5000;
 const MAX_PARSE_TIME_MS = 50;
 const scene = buildTestScene();
+const errorToString = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
 describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
   const rand = seededRandom(42);
@@ -210,7 +211,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
           failures.push(`normalizeInput(${JSON.stringify(input.slice(0, 30))}) did not return array`);
         }
       } catch (e) {
-        failures.push(`normalizeInput(${JSON.stringify(input.slice(0, 30))}): ${e}`);
+        failures.push(`normalizeInput(${JSON.stringify(input.slice(0, 30))}): ${errorToString(e)}`);
       }
     }
     expect(failures).toEqual([]);
@@ -229,7 +230,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
           expect(Array.isArray(result.tokens)).toBe(true);
         }
       } catch (e) {
-        failures.push(`parseAction(${JSON.stringify(input.slice(0, 30))}): ${e}`);
+        failures.push(`parseAction(${JSON.stringify(input.slice(0, 30))}): ${errorToString(e)}`);
       }
     }
     expect(failures).toEqual([]);
@@ -262,7 +263,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
           }
         }
       } catch (e) {
-        failures.push(`resolveTarget(${JSON.stringify(input.slice(0, 30))}): ${e}`);
+        failures.push(`resolveTarget(${JSON.stringify(input.slice(0, 30))}): ${errorToString(e)}`);
       }
     }
     expect(failures).toEqual([]);
@@ -288,7 +289,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
           checked++;
         }
       } catch (e) {
-        failures.push(`calculateDifficulty(${JSON.stringify(input.slice(0, 30))}): ${e}`);
+        failures.push(`calculateDifficulty(${JSON.stringify(input.slice(0, 30))}): ${errorToString(e)}`);
       }
     }
     expect(failures).toEqual([]);

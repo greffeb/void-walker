@@ -77,10 +77,8 @@ describe('normalizeInput()', () => {
   });
 
   test('returns empty array for null/undefined input', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(normalizeInput(null as any)).toEqual([]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(normalizeInput(undefined as any)).toEqual([]);
+    expect(normalizeInput(null as unknown as string)).toEqual([]);
+    expect(normalizeInput(undefined as unknown as string)).toEqual([]);
   });
 
   test('lowercases and strips accents', () => {

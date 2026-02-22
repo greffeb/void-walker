@@ -3,7 +3,7 @@ name: Deploy PWA to GitHub Pages
 on:
   push:
     branches:
-      - '**' # This captures EVERY branch created by Claude Code
+      - '**' # Keep branch-preview behavior for Claude Code branches
   workflow_dispatch:
 
 permissions:
@@ -11,12 +11,12 @@ permissions:
   pages: write
   id-token: write
 
-# Optimized for solo dev: 
-# If you push a fix while a build is already running, 
+# Optimized for solo dev:
+# If you push a fix while a build is already running,
 # it cancels the old one and starts the new one immediately.
 concurrency:
   group: "pages"
-  cancel-in-progress: true 
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,20 +28,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-          cache-dependency-path: pwa/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./pwa
         run: npm ci
 
+      - name: Quality checks
+        run: |
+          npm run typecheck
+          npm run lint
+
       - name: Build PWA
-        working-directory: ./pwa
         run: npm run build
 
-      - name: Inject Build ID for cache busting
-        working-directory: ./pwa
+      - name: Inject Build ID metadata
         run: |
           BUILD_ID="${{ github.run_id }}-${{ github.run_number }}"
           BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -54,7 +55,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./pwa/dist
+          path: ./dist
 
   deploy:
     runs-on: ubuntu-latest
