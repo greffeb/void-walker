@@ -90,14 +90,11 @@ function saveFailedReport(report: FeedbackReport): void {
 async function sendFeedback(report: FeedbackReport): Promise<boolean> {
   if (!FEEDBACK_ENDPOINT) return false;
   try {
-    // mode: 'no-cors' avoids the CORS preflight issue with GAS redirects.
-    // The request IS sent and GAS executes it — we just can't read the response.
-    await fetch(FEEDBACK_ENDPOINT, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(report),
-    });
+    // GAS redirects POST /exec → GET, losing the body. Use GET with payload
+    // in query string instead — params survive the redirect, doGet fires correctly.
+    const url = new URL(FEEDBACK_ENDPOINT);
+    url.searchParams.set('payload', JSON.stringify(report));
+    await fetch(url.toString(), { mode: 'no-cors' });
     return true;
   } catch (err) {
     console.error('[FeedbackPanel] sendFeedback failed:', err);
