@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// src/ui/components/FeedbackPanel.tsx — Thumbs up/down + comment + GitHub issue
+// src/ui/components/FeedbackPanel.tsx — Thumbs up/down + comment + silent submit
 // ---------------------------------------------------------------------------
 
 import { useState, useRef, useEffect } from 'react';
@@ -17,11 +17,14 @@ const REPORT_COOLDOWN_MS = 30_000;
 const DEDUP_STORAGE_KEY = 'vw_report_hashes';
 /** Max stored hashes before pruning */
 const MAX_STORED_HASHES = 100;
+/** localStorage key for reports that failed to send (endpoint down) */
+const FAILED_REPORTS_KEY = 'vw_failed_reports';
+/** Max failed reports to store locally */
+const MAX_FAILED_REPORTS = 20;
 
-// === GITHUB ISSUE CONFIG ===
+// === FEEDBACK ENDPOINT ===
 
-const GITHUB_OWNER = 'greffeb';
-const GITHUB_REPO = 'void-walker';
+const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | undefined;
 
 // === HELPERS ===
 
@@ -55,7 +58,6 @@ function storeHash(hash: string): void {
   try {
     const hashes = getStoredHashes();
     hashes.push(hash);
-    // Prune if too many
     const trimmed = hashes.length > MAX_STORED_HASHES
       ? hashes.slice(-MAX_STORED_HASHES)
       : hashes;
@@ -65,50 +67,44 @@ function storeHash(hash: string): void {
   }
 }
 
-/** Generate a GitHub issue URL with pre-filled content */
-function generateIssueUrl(report: FeedbackReport): string {
-  const title = `[Playtest] ${report.thumbs === 'down' ? 'Bug/Issue' : 'Feedback'}: ${report.parsedVerb} sur ${report.parsedTarget}`;
+/** Save a failed report to localStorage for potential retry */
+function saveFailedReport(report: FeedbackReport): void {
+  try {
+    const raw = localStorage.getItem(FAILED_REPORTS_KEY);
+    const existing: FeedbackReport[] = raw ? (JSON.parse(raw) as FeedbackReport[]) : [];
+    existing.push(report);
+    const trimmed = existing.length > MAX_FAILED_REPORTS
+      ? existing.slice(-MAX_FAILED_REPORTS)
+      : existing;
+    localStorage.setItem(FAILED_REPORTS_KEY, JSON.stringify(trimmed));
+  } catch {
+    // silently skip
+  }
+}
 
-  const body = [
-    `## Rapport de playtest`,
-    ``,
-    `**Type:** ${report.thumbs === 'up' ? 'Pouce en haut' : 'Pouce en bas'}`,
-    `**Classe:** ${report.playerClass}`,
-    `**Date:** ${new Date(report.timestamp).toISOString()}`,
-    ``,
-    `### Situation`,
-    `- **Type:** ${report.situationType}`,
-    `- **Lieu:** ${report.locationName}`,
-    `- **Description:** ${report.situationDescription}`,
-    ``,
-    `### Action du joueur`,
-    `- **Commande:** \`${report.playerInput}\``,
-    `- **Verbe:** ${report.parsedVerb}`,
-    `- **Cible:** ${report.parsedTarget}`,
-    ``,
-    `### Resolution`,
-    `- **De (naturel):** ${report.diceNatural}`,
-    `- **Total:** ${report.diceTotal}`,
-    `- **DC:** ${report.dc}`,
-    `- **Resultat:** ${report.outcome}`,
-    ``,
-    report.comment ? `### Commentaire du joueur\n${report.comment}\n` : '',
-    `---`,
-    `*Genere automatiquement par le systeme de playtest Void Walker*`,
-  ].filter(Boolean).join('\n');
-
-  const labels = report.thumbs === 'down' ? 'playtest,bug' : 'playtest,feedback';
-
-  const params = new URLSearchParams({
-    title,
-    body,
-    labels,
-  });
-
-  return `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues/new?${params.toString()}`;
+/**
+ * Send a feedback report to the configured endpoint.
+ * Uses text/plain content-type to avoid CORS preflight with Google Apps Script.
+ * Returns true on success, false on failure (caller handles graceful degradation).
+ */
+async function sendFeedback(report: FeedbackReport): Promise<boolean> {
+  if (!FEEDBACK_ENDPOINT) return false;
+  try {
+    await fetch(FEEDBACK_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(report),
+    });
+    return true;
+  } catch (err) {
+    console.error('[FeedbackPanel] sendFeedback failed:', err);
+    return false;
+  }
 }
 
 // === COMPONENT ===
+
+type SubmitState = 'idle' | 'sending' | 'sent' | 'error';
 
 interface FeedbackPanelProps {
   readonly situation: Situation;
@@ -127,7 +123,7 @@ export function FeedbackPanel({
 }: FeedbackPanelProps): JSX.Element {
   const [thumbs, setThumbs] = useState<'up' | 'down' | null>(null);
   const [comment, setComment] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [showComment, setShowComment] = useState(false);
   const [spamWarning, setSpamWarning] = useState('');
   const lastReportTime = useRef(0);
@@ -144,19 +140,17 @@ export function FeedbackPanel({
   useEffect(() => {
     setThumbs(null);
     setComment('');
-    setSubmitted(false);
+    setSubmitState('idle');
     setShowComment(false);
     setSpamWarning('');
   }, [situation.id, resolution.input]);
 
   const checkAntiSpam = (): boolean => {
-    // Rate limit
     if (reportCount >= MAX_REPORTS_PER_SESSION) {
       setSpamWarning(`Limite atteinte (${MAX_REPORTS_PER_SESSION} rapports par session).`);
       return false;
     }
 
-    // Cooldown
     const now = Date.now();
     if (now - lastReportTime.current < REPORT_COOLDOWN_MS) {
       const remaining = Math.ceil((REPORT_COOLDOWN_MS - (now - lastReportTime.current)) / 1000);
@@ -164,7 +158,6 @@ export function FeedbackPanel({
       return false;
     }
 
-    // Dedup
     const hash = hashReport(situation.id, resolution.input);
     const stored = getStoredHashes();
     if (stored.includes(hash)) {
@@ -177,8 +170,28 @@ export function FeedbackPanel({
 
   const handleThumbsUp = (): void => {
     setThumbs('up');
-    setSubmitted(true);
+    setSubmitState('sent');
     onFeedback('up');
+
+    // Silent background ping — does not block UI
+    const report: FeedbackReport = {
+      situationId: situation.id,
+      situationType: situation.type,
+      situationDescription: situation.description,
+      locationName: situation.locationName,
+      playerInput: resolution.input,
+      parsedVerb: resolution.verb,
+      parsedTarget: resolution.targetId,
+      diceNatural: resolution.diceResult.natural,
+      diceTotal: resolution.diceResult.total,
+      dc: resolution.dc,
+      outcome: resolution.outcome,
+      playerClass: '',
+      thumbs: 'up',
+      comment: '',
+      timestamp: Date.now(),
+    };
+    void sendFeedback(report);
   };
 
   const handleThumbsDown = (): void => {
@@ -186,7 +199,7 @@ export function FeedbackPanel({
     setShowComment(true);
   };
 
-  const handleSubmitReport = (): void => {
+  const handleSubmitReport = async (): Promise<void> => {
     if (!checkAntiSpam()) return;
 
     const report: FeedbackReport = {
@@ -207,30 +220,40 @@ export function FeedbackPanel({
       timestamp: Date.now(),
     };
 
-    // Store dedup hash
+    // Store dedup hash before sending
     const hash = hashReport(situation.id, resolution.input);
     storeHash(hash);
     lastReportTime.current = Date.now();
 
-    // Open GitHub issue in new tab
-    const url = generateIssueUrl(report);
-    window.open(url, '_blank', 'noopener,noreferrer');
+    setSubmitState('sending');
+    const ok = await sendFeedback(report);
 
-    setSubmitted(true);
+    if (ok) {
+      setSubmitState('sent');
+    } else {
+      // Endpoint down or missing — save locally, still mark as done
+      saveFailedReport(report);
+      setSubmitState('error');
+    }
+
     onFeedback('down', comment);
   };
 
   const handleSkipReport = (): void => {
-    setSubmitted(true);
+    setSubmitState('sent');
     onFeedback('down', comment || undefined);
   };
 
   // Already submitted — show "next" button
-  if (submitted) {
+  if (submitState === 'sent' || submitState === 'error') {
     return (
       <div className="flex flex-col items-center gap-3 pt-3">
         <div className="font-mono text-xs text-gray-500">
-          {thumbs === 'up' ? 'Merci !' : 'Rapport enregistre.'}
+          {thumbs === 'up'
+            ? 'Merci !'
+            : submitState === 'error'
+              ? 'Erreur reseau — feedback sauvegarde localement.'
+              : 'Rapport envoye.'}
         </div>
         <button
           type="button"
@@ -264,15 +287,17 @@ export function FeedbackPanel({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={handleSubmitReport}
-            className="flex-1 rounded border border-red-700 bg-transparent px-3 py-2 font-mono text-xs font-bold text-red-400 transition-colors hover:bg-red-900/30 active:bg-red-800/50"
+            onClick={() => { void handleSubmitReport(); }}
+            disabled={submitState === 'sending'}
+            className="flex-1 rounded border border-red-700 bg-transparent px-3 py-2 font-mono text-xs font-bold text-red-400 transition-colors hover:bg-red-900/30 active:bg-red-800/50 disabled:opacity-50"
           >
-            SIGNALER SUR GITHUB
+            {submitState === 'sending' ? 'ENVOI...' : 'ENVOYER LE RAPPORT'}
           </button>
           <button
             type="button"
             onClick={handleSkipReport}
-            className="rounded border border-gray-700 bg-transparent px-3 py-2 font-mono text-xs text-gray-400 transition-colors hover:bg-gray-800/30"
+            disabled={submitState === 'sending'}
+            className="rounded border border-gray-700 bg-transparent px-3 py-2 font-mono text-xs text-gray-400 transition-colors hover:bg-gray-800/30 disabled:opacity-50"
           >
             PASSER
           </button>
