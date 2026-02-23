@@ -12,6 +12,7 @@ import type { StringKey } from '@i18n/types';
 import { CLASSES, CLASS_LIST } from '@content/classes';
 import { buildDefaultScene, buildChaosScene, NPC_DEFINITIONS } from '@content/sceneBuilder';
 import { ITEM_DEFINITIONS, type ItemDefinition } from '@content/items';
+import { buildParserLocaleData } from '@content/parserData';
 import {
   parseAction, calculateDifficulty, rollCheck, classifyOutcome,
   resolvePlayerAttack, attemptFlee, attemptRetreat,
@@ -424,7 +425,7 @@ function processExplorationInput(
 ): void {
   if (!state.character) return;
 
-  const parsed = parseAction(input, state.scene);
+  const parsed = parseAction(input, state.scene, buildParserLocaleData('fr'));
 
   // Reformulation
   if (isReformulation(parsed)) {
@@ -527,7 +528,7 @@ function processCombatInput(
   const char = state.character;
 
   // Parse the action
-  const parsed = parseAction(input, state.scene);
+  const parsed = parseAction(input, state.scene, buildParserLocaleData('fr'));
   if (isReformulation(parsed)) {
     emit(`Entrée ambiguë. Essayez : frapper, tirer, fuir, reculer, examiner...`, 'warning');
     return;

@@ -341,6 +341,35 @@ export function isReformulation(result: ParseResult): result is Reformulation {
 /** The result of parsing player input: either a clear action or a reformulation */
 export type ParseResult = ParsedAction | Reformulation;
 
+// === PARSER LOCALE DATA ===
+
+/** Multi-word pattern that overrides single-token verb matching */
+export interface CompoundPattern {
+  readonly tokens: readonly string[];
+  readonly verb: import('./verbs').VerbId;
+}
+
+/**
+ * Locale-specific linguistic data for the parser.
+ * Built from i18n by `content/parserData.ts` — never hardcoded in engine.
+ */
+export interface ParserLocaleData {
+  /** All recognized verb forms mapped to VerbId (aliases + conjugated forms) */
+  readonly verbForms: ReadonlyMap<string, import('./verbs').VerbId>;
+  /** Compound action patterns (sorted by token count desc) */
+  readonly compoundPatterns: readonly CompoundPattern[];
+  /** Stop words to filter from input */
+  readonly stopWords: ReadonlySet<string>;
+  /** Intent keywords for semantic fallback (strategy 6) */
+  readonly intentKeywords: ReadonlyMap<string, import('./verbs').VerbId>;
+  /** Pre-stemmed alias index for strategy 3 */
+  readonly stemmedIndex: ReadonlyMap<string, import('./verbs').VerbId>;
+  /** Prepositions that indicate the target (sur, vers, contre) */
+  readonly targetPrepositions: ReadonlySet<string>;
+  /** Prepositions that indicate the tool (avec) */
+  readonly toolPrepositions: ReadonlySet<string>;
+}
+
 /** Breakdown of how difficulty was calculated */
 export interface DifficultyBreakdown {
   readonly base: number;

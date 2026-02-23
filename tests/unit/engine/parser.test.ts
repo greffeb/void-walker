@@ -6,18 +6,19 @@ import { describe, test, expect } from 'vitest';
 import {
   normalizeInput,
   normalizeInputKeepPrepositions,
-  CURATED_FORMS,
-  COMPOUND_PATTERNS,
   matchVerb,
   generateReformulation,
   parseAction,
-  FRENCH_STOP_WORDS,
 } from '../../../src/engine/parser';
+import { buildParserLocaleData } from '../../../src/content/parserData';
 import type { VerbId } from '../../../src/engine/verbs';
 import { VERB_IDS } from '../../../src/engine/verbs';
-import type { SceneContext, ParsedAction, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from '../../../src/engine/types';
+import type { SceneContext, ParsedAction, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance, ParserLocaleData } from '../../../src/engine/types';
 import { isReformulation } from '../../../src/engine/types';
 import type { PropertyId } from '../../../src/engine/properties';
+
+// === LOCALE DATA (built once for all tests) ===
+const localeData: ParserLocaleData = buildParserLocaleData('fr');
 
 // === TEST HELPERS ===
 
@@ -107,8 +108,8 @@ describe('normalizeInput()', () => {
     expect(tokens.some((t) => t.includes('.'))).toBe(false);
   });
 
-  test('removes stop words', () => {
-    const tokens = normalizeInput('je frappe le robot');
+  test('removes stop words when stopWords provided', () => {
+    const tokens = normalizeInput('je frappe le robot', localeData.stopWords);
     expect(tokens).not.toContain('je');
     expect(tokens).not.toContain('le');
     expect(tokens).toContain('frappe');
@@ -156,74 +157,74 @@ describe('normalizeInputKeepPrepositions()', () => {
   });
 });
 
-// === STOP WORDS ===
+// === STOP WORDS (from locale data) ===
 
-describe('FRENCH_STOP_WORDS', () => {
+describe('localeData.stopWords', () => {
   test('contains common articles', () => {
-    expect(FRENCH_STOP_WORDS.has('le')).toBe(true);
-    expect(FRENCH_STOP_WORDS.has('la')).toBe(true);
-    expect(FRENCH_STOP_WORDS.has('les')).toBe(true);
-    expect(FRENCH_STOP_WORDS.has('un')).toBe(true);
-    expect(FRENCH_STOP_WORDS.has('une')).toBe(true);
+    expect(localeData.stopWords.has('le')).toBe(true);
+    expect(localeData.stopWords.has('la')).toBe(true);
+    expect(localeData.stopWords.has('les')).toBe(true);
+    expect(localeData.stopWords.has('un')).toBe(true);
+    expect(localeData.stopWords.has('une')).toBe(true);
   });
 
   test('contains common pronouns', () => {
-    expect(FRENCH_STOP_WORDS.has('je')).toBe(true);
-    expect(FRENCH_STOP_WORDS.has('tu')).toBe(true);
-    expect(FRENCH_STOP_WORDS.has('il')).toBe(true);
+    expect(localeData.stopWords.has('je')).toBe(true);
+    expect(localeData.stopWords.has('tu')).toBe(true);
+    expect(localeData.stopWords.has('il')).toBe(true);
   });
 
   test('does NOT contain useful verb particles', () => {
-    // "sur" and "avec" are useful for compound detection
-    expect(FRENCH_STOP_WORDS.has('sur')).toBe(false);
-    expect(FRENCH_STOP_WORDS.has('avec')).toBe(false);
-    expect(FRENCH_STOP_WORDS.has('pour')).toBe(false);
-    expect(FRENCH_STOP_WORDS.has('dans')).toBe(false);
+    // "sur" and "avec" are useful for compound detection and preposition splitting
+    expect(localeData.stopWords.has('sur')).toBe(false);
+    expect(localeData.stopWords.has('avec')).toBe(false);
+    expect(localeData.stopWords.has('pour')).toBe(false);
+    expect(localeData.stopWords.has('dans')).toBe(false);
   });
 });
 
-// === CURATED FORMS ===
+// === VERB FORMS (from locale data, replaces old CURATED_FORMS) ===
 
-describe('CURATED_FORMS', () => {
+describe('localeData.verbForms', () => {
   test('has at least 100 entries', () => {
-    expect(CURATED_FORMS.size).toBeGreaterThanOrEqual(100);
+    expect(localeData.verbForms.size).toBeGreaterThanOrEqual(100);
   });
 
   test('all values are valid VerbIds', () => {
     const verbSet = new Set<string>(VERB_IDS);
-    for (const [_form, verbId] of CURATED_FORMS) {
+    for (const [_form, verbId] of localeData.verbForms) {
       expect(verbSet.has(verbId)).toBe(true);
     }
   });
 
   test('maps "frappe" to STRIKE', () => {
-    expect(CURATED_FORMS.get('frappe')).toBe('STRIKE');
+    expect(localeData.verbForms.get('frappe')).toBe('STRIKE');
   });
 
   test('maps "examine" to EXAMINE', () => {
-    expect(CURATED_FORMS.get('examine')).toBe('EXAMINE');
+    expect(localeData.verbForms.get('examine')).toBe('EXAMINE');
   });
 
   test('maps "ouvre" to OPEN', () => {
-    expect(CURATED_FORMS.get('ouvre')).toBe('OPEN');
+    expect(localeData.verbForms.get('ouvre')).toBe('OPEN');
   });
 
   test('maps "pirate" to HACK', () => {
-    expect(CURATED_FORMS.get('pirate')).toBe('HACK');
+    expect(localeData.verbForms.get('pirate')).toBe('HACK');
   });
 });
 
-// === COMPOUND PATTERNS ===
+// === COMPOUND PATTERNS (from locale data) ===
 
-describe('COMPOUND_PATTERNS', () => {
+describe('localeData.compoundPatterns', () => {
   test('has at least 20 patterns', () => {
-    expect(COMPOUND_PATTERNS.length).toBeGreaterThanOrEqual(20);
+    expect(localeData.compoundPatterns.length).toBeGreaterThanOrEqual(20);
   });
 
   test('is sorted by token count descending', () => {
-    for (let i = 1; i < COMPOUND_PATTERNS.length; i++) {
-      const prev = COMPOUND_PATTERNS[i - 1];
-      const curr = COMPOUND_PATTERNS[i];
+    for (let i = 1; i < localeData.compoundPatterns.length; i++) {
+      const prev = localeData.compoundPatterns[i - 1];
+      const curr = localeData.compoundPatterns[i];
       if (prev && curr) {
         expect(prev.tokens.length).toBeGreaterThanOrEqual(curr.tokens.length);
       }
@@ -232,20 +233,20 @@ describe('COMPOUND_PATTERNS', () => {
 
   test('all verb values are valid VerbIds', () => {
     const verbSet = new Set<string>(VERB_IDS);
-    for (const pattern of COMPOUND_PATTERNS) {
+    for (const pattern of localeData.compoundPatterns) {
       expect(verbSet.has(pattern.verb)).toBe(true);
     }
   });
 
   test('contains "tirer sur" → SHOOT', () => {
-    const found = COMPOUND_PATTERNS.some(
+    const found = localeData.compoundPatterns.some(
       (p) => p.tokens.includes('tirer') && p.tokens.includes('sur') && p.verb === 'SHOOT',
     );
     expect(found).toBe(true);
   });
 
   test('contains "se cacher" → HIDE', () => {
-    const found = COMPOUND_PATTERNS.some(
+    const found = localeData.compoundPatterns.some(
       (p) => p.tokens.includes('se') && p.tokens.includes('cacher') && p.verb === 'HIDE',
     );
     expect(found).toBe(true);
@@ -256,24 +257,23 @@ describe('COMPOUND_PATTERNS', () => {
 
 describe('matchVerb()', () => {
   test('strategy 1: exact alias match for "frapper"', () => {
-    const result = matchVerb(['frapper'], ['frapper']);
+    const result = matchVerb(['frapper'], ['frapper'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
     expect(result?.strategy).toBe(1);
-    expect(result?.confidence).toBe(1.0);
+    expect(result?.confidence).toBe(0.95);
   });
 
-  test('strategy 2: curated form "frappe" → STRIKE', () => {
-    // "frappe" is in CURATED_FORMS but also might match alias depending on registry
-    // The point is it resolves to STRIKE
-    const result = matchVerb(['frappe'], ['frappe']);
+  test('strategy 1: form lookup "frappe" → STRIKE', () => {
+    // "frappe" is in verbForms (merged alias + conjugated forms)
+    const result = matchVerb(['frappe'], ['frappe'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
-    expect(result?.strategy).toBeLessThanOrEqual(2);
+    expect(result?.strategy).toBe(1);
   });
 
   test('strategy 5: compound "tirer sur" → SHOOT', () => {
-    const result = matchVerb(['tirer', 'sur', 'robot'], ['tirer', 'sur', 'le', 'robot']);
+    const result = matchVerb(['tirer', 'sur', 'robot'], ['tirer', 'sur', 'le', 'robot'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('SHOOT');
     expect(result?.strategy).toBe(5);
@@ -281,55 +281,55 @@ describe('matchVerb()', () => {
   });
 
   test('strategy 5: compound "se cacher" → HIDE', () => {
-    const result = matchVerb(['cacher'], ['se', 'cacher']);
+    const result = matchVerb(['cacher'], ['se', 'cacher'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('HIDE');
     expect(result?.strategy).toBe(5);
   });
 
   test('strategy 5: compound "faire feu" → SHOOT', () => {
-    const result = matchVerb(['faire', 'feu'], ['faire', 'feu']);
+    const result = matchVerb(['faire', 'feu'], ['faire', 'feu'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('SHOOT');
     expect(result?.strategy).toBe(5);
   });
 
   test('returns null for gibberish', () => {
-    const result = matchVerb(['xyzzy', 'qwerty'], ['xyzzy', 'qwerty']);
+    const result = matchVerb(['xyzzy', 'qwerty'], ['xyzzy', 'qwerty'], localeData);
     expect(result).toBeNull();
   });
 
   test('strategy 3 or 4: stemmed/prefix match for conjugated forms', () => {
     // "examinons" — conjugated form not in curated table but stem-matchable
-    const result = matchVerb(['examinons'], ['examinons']);
+    const result = matchVerb(['examinons'], ['examinons'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('EXAMINE');
   });
 
   test('first token wins when multiple verbs match', () => {
     // Two verbs in the input — first should win
-    const result = matchVerb(['frapper', 'examiner'], ['frapper', 'examiner']);
+    const result = matchVerb(['frapper', 'examiner'], ['frapper', 'examiner'], localeData);
     expect(result).not.toBeNull();
     // Should match the FIRST token's verb
     expect(result?.verb).toBe('STRIKE');
   });
 
   // Bug A regression: "attaquer" must not be caught by prefix match for TIE ('attacher')
-  test('strategy 2: "attaquer" → STRIKE (not TIE, regression)', () => {
-    const result = matchVerb(['attaquer'], ['attaquer']);
+  test('strategy 1: "attaquer" → STRIKE (not TIE, regression)', () => {
+    const result = matchVerb(['attaquer'], ['attaquer'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
-    expect(result?.strategy).toBeLessThanOrEqual(2); // curated form or better
+    expect(result?.strategy).toBe(1); // curated form or better
   });
 
-  test('strategy 2: "attaque" → STRIKE', () => {
-    const result = matchVerb(['attaque'], ['attaque']);
+  test('strategy 1: "attaque" → STRIKE', () => {
+    const result = matchVerb(['attaque'], ['attaque'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
   });
 
-  test('strategy 2: "attaquez" → STRIKE', () => {
-    const result = matchVerb(['attaquez'], ['attaquez']);
+  test('strategy 1: "attaquez" → STRIKE', () => {
+    const result = matchVerb(['attaquez'], ['attaquez'], localeData);
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
   });
@@ -340,7 +340,7 @@ describe('matchVerb()', () => {
 describe('generateReformulation()', () => {
   test('returns a reformulation object', () => {
     const context = makeContext();
-    const result = generateReformulation('blabla', ['blabla'], context);
+    const result = generateReformulation('blabla', ['blabla'], context, localeData);
     expect(result.type).toBe('reformulation');
     expect(result.rawInput).toBe('blabla');
     expect(result.interpretations.length).toBeGreaterThan(0);
@@ -349,14 +349,14 @@ describe('generateReformulation()', () => {
 
   test('produces fallback verbs when no partial match', () => {
     const context = makeContext();
-    const result = generateReformulation('xyzzy', ['xyzzy'], context);
+    const result = generateReformulation('xyzzy', ['xyzzy'], context, localeData);
     // Should suggest common verbs as fallback
     expect(result.interpretations.length).toBeGreaterThan(0);
   });
 
   test('has a French prompt', () => {
     const context = makeContext();
-    const result = generateReformulation('quoi', ['quoi'], context);
+    const result = generateReformulation('quoi', ['quoi'], context, localeData);
     expect(typeof result.prompt).toBe('string');
     expect(result.prompt.length).toBeGreaterThan(0);
   });
@@ -379,7 +379,7 @@ describe('parseAction()', () => {
   }
 
   test('parses "frapper le robot"', () => {
-    const result = parseAction('frapper le robot', testContext());
+    const result = parseAction('frapper le robot', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('STRIKE');
@@ -389,7 +389,7 @@ describe('parseAction()', () => {
   });
 
   test('parses "examiner la porte"', () => {
-    const result = parseAction('examiner la porte', testContext());
+    const result = parseAction('examiner la porte', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('EXAMINE');
@@ -399,7 +399,7 @@ describe('parseAction()', () => {
   });
 
   test('parses "ouvrir le sas" as OPEN or UNLOCK', () => {
-    const result = parseAction('ouvrir le sas', testContext());
+    const result = parseAction('ouvrir le sas', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       // "ouvrir" maps to either OPEN or UNLOCK depending on alias resolution order
@@ -408,7 +408,7 @@ describe('parseAction()', () => {
   });
 
   test('parses "tirer sur le robot" as SHOOT compound', () => {
-    const result = parseAction('tirer sur le robot', testContext());
+    const result = parseAction('tirer sur le robot', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('SHOOT');
@@ -418,7 +418,7 @@ describe('parseAction()', () => {
   });
 
   test('parses "attendre" as WAIT', () => {
-    const result = parseAction('attendre', testContext());
+    const result = parseAction('attendre', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('WAIT');
@@ -427,7 +427,7 @@ describe('parseAction()', () => {
   });
 
   test('parses "se cacher" as HIDE', () => {
-    const result = parseAction('se cacher', testContext());
+    const result = parseAction('se cacher', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('HIDE');
@@ -435,7 +435,7 @@ describe('parseAction()', () => {
   });
 
   test('returns reformulation for gibberish', () => {
-    const result = parseAction('xyzzy plugh', testContext());
+    const result = parseAction('xyzzy plugh', testContext(), localeData);
     expect(isReformulation(result)).toBe(true);
     if (isReformulation(result)) {
       expect(result.interpretations.length).toBeGreaterThan(0);
@@ -443,18 +443,18 @@ describe('parseAction()', () => {
   });
 
   test('returns reformulation for empty string', () => {
-    const result = parseAction('', testContext());
+    const result = parseAction('', testContext(), localeData);
     expect(isReformulation(result)).toBe(true);
   });
 
   test('returns reformulation for whitespace-only', () => {
-    const result = parseAction('   ', testContext());
+    const result = parseAction('   ', testContext(), localeData);
     expect(isReformulation(result)).toBe(true);
   });
 
   test('preserves rawInput in result', () => {
     const raw = 'Frapper le Robot!!!';
-    const result = parseAction(raw, testContext());
+    const result = parseAction(raw, testContext(), localeData);
     if (isReformulation(result)) {
       expect(result.rawInput).toBe(raw);
     } else {
@@ -463,7 +463,7 @@ describe('parseAction()', () => {
   });
 
   test('tokens are lowercase and accent-free', () => {
-    const result = parseAction('Détruire Ennemi', testContext());
+    const result = parseAction('Détruire Ennemi', testContext(), localeData);
     if (!isReformulation(result)) {
       for (const token of result.tokens) {
         expect(token).toBe(token.toLowerCase());
@@ -483,14 +483,14 @@ describe('parseAction()', () => {
       creative: false,
     };
     const ctx = testContext({ suggestions: [suggestion] });
-    const result = parseAction('frapper le robot', ctx);
+    const result = parseAction('frapper le robot', ctx, localeData);
     if (!isReformulation(result)) {
       expect(result.creative).toBe(true);
     }
   });
 
   test('parses "pirater la porte" as HACK', () => {
-    const result = parseAction('pirater la porte', testContext());
+    const result = parseAction('pirater la porte', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('HACK');
@@ -498,7 +498,7 @@ describe('parseAction()', () => {
   });
 
   test('handles accented input: "écouter"', () => {
-    const result = parseAction('écouter', testContext());
+    const result = parseAction('écouter', testContext(), localeData);
     expect(isReformulation(result)).toBe(false);
     if (!isReformulation(result)) {
       expect(result.verb).toBe('LISTEN');

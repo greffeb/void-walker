@@ -13,6 +13,9 @@ import * as readline from 'node:readline';
 import { parseAction } from '../../src/engine/parser';
 import { BODY_PARTS } from '../../src/engine/resolver';
 import { calculateDifficulty } from '../../src/engine/difficulty';
+import { buildParserLocaleData } from '../../src/content/parserData';
+
+const localeData = buildParserLocaleData('fr');
 import { isReformulation } from '../../src/engine/types';
 import { VERB_REGISTRY, VERB_IDS, AUTO_VERBS } from '../../src/engine/verbs';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from '../../src/content/items';
@@ -400,7 +403,7 @@ function main(): void {
 
     // Parse the action
     const start = performance.now();
-    const result = parseAction(input, scene);
+    const result = parseAction(input, scene, localeData);
     const elapsed = performance.now() - start;
 
     printResult(result, scene, stats, difficulty);

@@ -3,7 +3,8 @@
 // Phase 3: Dice, combat, conditions, oxygen, stalker clock, durability, loot
 
 // === Phase 2 ===
-export { parseAction, normalizeInput, matchVerb, CURATED_FORMS, FRENCH_STOP_WORDS } from './parser';
+export { parseAction, normalizeInput, matchVerb } from './parser';
+export type { CompoundPattern } from './parser';
 export { resolveTarget, resolveBodyPart, BODY_PARTS } from './resolver';
 export { calculateDifficulty, detectCreativity } from './difficulty';
 export { stemFr } from './snowball-fr';

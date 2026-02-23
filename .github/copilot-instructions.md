@@ -25,6 +25,7 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - **French** for all player-facing strings; **English** for internals, comments, variable names
 - `const` over `let`, never `var`
 - Components: PascalCase (`StatusBar.tsx`). Engine/content: camelCase (`properties.ts`). JSON: kebab-case
+- **No hardcoded natural language in engine code** — use the i18n system for all linguistic data (verb aliases, conjugated forms, parser patterns). Adding a new language = adding a locale file, not editing engine code
 - ESLint flat config + `typescript-eslint`. No Prettier — follow existing formatting
 - Reference patterns: [archived/pwa/src/stores/gameStore.ts](archived/pwa/src/stores/gameStore.ts) (Zustand), [archived/pwa/src/services/llmClient.ts](archived/pwa/src/services/llmClient.ts) (LLM fallback chain)
 

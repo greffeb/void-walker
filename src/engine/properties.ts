@@ -114,7 +114,7 @@ export const TYPE_BASE_PROPERTIES: TypeBaseProperties = {
   environment: {
     door:      ['tangible', 'visible', 'openable', 'lockable', 'mechanical', 'breakable', 'metallic'],
     window:    ['tangible', 'visible', 'transparent', 'breakable', 'fragile', 'sealed'],
-    terminal:  ['tangible', 'visible', 'electronic', 'readable', 'programmable'],
+    terminal:  ['tangible', 'visible', 'electronic', 'readable', 'programmable', 'usable'],
     vent:      ['tangible', 'visible', 'openable', 'climbable', 'cramped', 'hollow'],
     pipe:      ['tangible', 'visible', 'hollow', 'metallic', 'rigid'],
     panel:     ['tangible', 'visible', 'flat', 'metallic', 'breakable', 'component'],

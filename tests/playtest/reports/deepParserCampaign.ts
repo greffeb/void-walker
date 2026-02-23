@@ -3,6 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { parseAction } from '../../../src/engine/parser';
+import { buildParserLocaleData } from '../../../src/content/parserData';
+
+const localeData = buildParserLocaleData('fr');
 import { BODY_PARTS } from '../../../src/engine/resolver';
 import {
   isReformulation,
@@ -514,7 +517,7 @@ function main(): void {
     let parsed: ReturnType<typeof parseAction> | null = null;
     let err: string | null = null;
     const start = performance.now();
-    try { parsed = parseAction(tc.input, scene); } catch (e) { err = e instanceof Error ? e.stack ?? e.message : String(e); }
+    try { parsed = parseAction(tc.input, scene, localeData); } catch (e) { err = e instanceof Error ? e.stack ?? e.message : String(e); }
     const parseMs = performance.now() - start;
     const findings = evaluate(tc, parsed, err);
     results.push(toResult(tc, parseMs, parsed, err, findings));

@@ -82,6 +82,8 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - Default locale is French (`'fr'`); falls back to key string if missing
 - All locales are pre-loaded at import time (no async)
 - Player-facing strings: French. Internals/comments/variables: English
+- **No hardcoded natural-language strings in engine code** — all player-facing text, verb aliases, conjugated forms, compound patterns, stop words, and intent keywords MUST live in i18n locale files. Adding a new language = adding a locale file, not editing engine code.
+- Parser linguistic data lives in i18n locale files; `content/parserData.ts` bridges i18n → typed data for the engine via `buildParserLocaleData(locale)`
 
 ---
 

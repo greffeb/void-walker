@@ -11,6 +11,7 @@ import { resolveTarget } from '../../src/engine/resolver';
 import { calculateDifficulty } from '../../src/engine/difficulty';
 import { isReformulation } from '../../src/engine/types';
 import { VERB_IDS, VERB_REGISTRY } from '../../src/engine/verbs';
+import { buildParserLocaleData } from '../../src/content/parserData';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from '../../src/content/items';
 import { NPC_LIST, NPC_DEFINITIONS, resolveNPCProperties } from '../../src/content/npcs';
 import { ENVIRONMENT_FEATURE_LIST, ENVIRONMENT_FEATURE_DEFINITIONS, resolveEnvironmentProperties } from '../../src/content/environments';
@@ -188,6 +189,7 @@ function generateFuzzInput(rand: () => number): string {
 const FUZZ_COUNT = 5000;
 const MAX_PARSE_TIME_MS = 50;
 const scene = buildTestScene();
+const localeData = buildParserLocaleData('fr');
 const errorToString = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
@@ -221,7 +223,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
     const failures: string[] = [];
     for (const input of fuzzInputs) {
       try {
-        const result = parseAction(input, scene);
+        const result = parseAction(input, scene, localeData);
         if (isReformulation(result)) {
           expect(result.type).toBe('reformulation');
           expect(Array.isArray(result.interpretations)).toBe(true);
@@ -240,7 +242,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
     const slow: string[] = [];
     for (const input of fuzzInputs) {
       const start = performance.now();
-      parseAction(input, scene);
+      parseAction(input, scene, localeData);
       const elapsed = performance.now() - start;
       if (elapsed > MAX_PARSE_TIME_MS) {
         slow.push(`${elapsed.toFixed(1)}ms: ${JSON.stringify(input.slice(0, 40))}`);
@@ -274,7 +276,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
     let checked = 0;
     for (const input of fuzzInputs.slice(0, 1000)) {
       try {
-        const result = parseAction(input, scene);
+        const result = parseAction(input, scene, localeData);
         if (!isReformulation(result)) {
           const difficulty = calculateDifficulty({
             verb: result.verb,
@@ -311,7 +313,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
       const tokens = normalized.split(/\s+/).filter((t) => t.length > 1);
-      const match = matchVerb(tokens, tokens);
+      const match = matchVerb(tokens, tokens, localeData);
       if (!match) {
         unmatchable.push(`${verbId}: alias "${alias}" did not match`);
       }

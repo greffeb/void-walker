@@ -1,12 +1,16 @@
 // ---------------------------------------------------------------------------
-// src/engine/parser.ts — French natural language parser for player actions
+// src/engine/parser.ts — Natural language parser for player actions
 // ---------------------------------------------------------------------------
-// 6-strategy verb matching cascade, input normalization, compound detection,
-// semantic fallback, and reformulation prompt generation.
+// 5-strategy verb matching cascade, input normalization, compound detection,
+// semantic fallback, verb promotion, preposition-aware splitting, and
+// reformulation prompt generation.
+//
+// All linguistic data (verb forms, compounds, stop words, intents) comes from
+// ParserLocaleData, built by content/parserData.ts from i18n locale files.
+// No hardcoded natural-language strings in this module.
 // ---------------------------------------------------------------------------
 
 import type { VerbId } from './verbs';
-import { VERB_REGISTRY, VERB_IDS } from './verbs';
 import { stemFr } from './snowball-fr';
 import type {
   VerbMatch,
@@ -15,35 +19,25 @@ import type {
   Reformulation,
   ParseResult,
   SceneContext,
+  ParserLocaleData,
+  CompoundPattern,
+  ResolvedTarget,
 } from './types';
 import { resolveTarget } from './resolver';
 
-// === FRENCH STOP WORDS ===
-
-/** French stop words — articles, pronouns, prepositions (not verbs or verb particles) */
-export const FRENCH_STOP_WORDS: ReadonlySet<string> = new Set([
-  // Articles
-  'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'au', 'aux',
-  // Pronouns
-  'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles',
-  'me', 'te', 'se', 'ne', 'ce', 'sa', 'son', 'ma', 'mon', 'mes',
-  'ton', 'ta', 'tes', 'ses', 'nos', 'vos', 'leur', 'leurs',
-  // Common prepositions (keep "sur", "avec", "pour", "dans" — useful for compound detection)
-  'en', 'par', 'qui', 'que', 'pas', 'plus', 'aussi',
-  'et', 'ou', 'ni', 'si', 'car',
-  // Misc
-  'est', 'sont', 'etre', 'avoir', 'fait', 'tres', 'bien',
-  'tout', 'tous', 'toute', 'toutes', 'cette', 'ces', 'cet',
-]);
+// Re-export CompoundPattern for tests that reference it
+export type { CompoundPattern } from './types';
 
 // === INPUT NORMALIZATION ===
 
 /**
- * Normalize raw French input into clean tokens.
+ * Normalize raw input into clean tokens.
  * Pipeline: lowercase → strip accents → apostrophe→space → remove punct →
  * split on whitespace → drop single chars → remove stop words
+ *
+ * @param stopWords - Locale-specific stop words. If omitted, no stop word filtering.
  */
-export function normalizeInput(raw: string): string[] {
+export function normalizeInput(raw: string, stopWords?: ReadonlySet<string>): string[] {
   if (!raw || typeof raw !== 'string') return [];
 
   let text = raw.toLowerCase();
@@ -63,8 +57,10 @@ export function normalizeInput(raw: string): string[] {
   // Drop single-character tokens
   const filtered = rawTokens.filter((t) => t.length > 1);
 
-  // Remove stop words
-  const tokens = filtered.filter((t) => !FRENCH_STOP_WORDS.has(t));
+  // Remove stop words (if provided)
+  const tokens = stopWords
+    ? filtered.filter((t) => !stopWords.has(t))
+    : filtered;
 
   // Deduplicate and cap at 30 tokens to guard against pathological input.
   // Keep both the first 15 and last 15 unique tokens so that suffix-pattern
@@ -89,415 +85,6 @@ export function normalizeInputKeepPrepositions(raw: string): string[] {
   return text.split(/\s+/).filter((t) => t.length > 1);
 }
 
-// === CURATED FORM TABLE ===
-
-/**
- * Maps ~300 conjugated/slang French forms to their verb IDs.
- * Organized by verb category for maintainability.
- */
-export const CURATED_FORMS: ReadonlyMap<string, VerbId> = new Map<string, VerbId>([
-  // ── FOR verbs ─────────────────────────────────────────
-  // STRIKE
-  ['frappe', 'STRIKE'], ['frappes', 'STRIKE'], ['frappez', 'STRIKE'],
-  ['frappons', 'STRIKE'], ['frappais', 'STRIKE'], ['frappait', 'STRIKE'],
-  ['frappant', 'STRIKE'], ['tape', 'STRIKE'], ['tapez', 'STRIKE'],
-  ['cogne', 'STRIKE'], ['cognez', 'STRIKE'], ['assomme', 'STRIKE'],
-  ['assommez', 'STRIKE'], ['bats', 'STRIKE'], ['battez', 'STRIKE'],
-  ['tabasse', 'STRIKE'], ['tabassez', 'STRIKE'],
-  ['attaque', 'STRIKE'], ['attaques', 'STRIKE'], ['attaquez', 'STRIKE'],
-  ['attaquons', 'STRIKE'], ['attaquer', 'STRIKE'], ['attaquais', 'STRIKE'],
-  ['attaquait', 'STRIKE'], ['attaquant', 'STRIKE'],
-  ['agresse', 'STRIKE'], ['agressez', 'STRIKE'], ['agressons', 'STRIKE'],
-  ['combats', 'STRIKE'], ['combattons', 'STRIKE'], ['combattre', 'STRIKE'],
-  // PUSH
-  ['pousse', 'PUSH'], ['poussez', 'PUSH'], ['poussons', 'PUSH'],
-  ['repousse', 'PUSH'], ['repoussez', 'PUSH'], ['bouscule', 'PUSH'],
-  ['bousculez', 'PUSH'], ['deplace', 'PUSH'], ['deplacez', 'PUSH'],
-  // PULL
-  ['tire', 'PULL'], ['tirez', 'PULL'], ['tirons', 'PULL'],
-  ['arrache', 'PULL'], ['arrachez', 'PULL'], ['arrachons', 'PULL'],
-  ['extrais', 'PULL'], ['extrait', 'PULL'], ['extrayez', 'PULL'],
-  ['retire', 'PULL'], ['retirez', 'PULL'],
-  // LIFT
-  ['souleve', 'LIFT'], ['soulevez', 'LIFT'], ['soulevons', 'LIFT'],
-  ['porte', 'LIFT'], ['portez', 'LIFT'], ['leve', 'LIFT'], ['levez', 'LIFT'],
-  // KICK
-  ['shoote', 'KICK'], ['shootez', 'KICK'], ['botte', 'KICK'], ['bottez', 'KICK'],
-  // BREAK
-  ['casse', 'BREAK'], ['cassez', 'BREAK'], ['brise', 'BREAK'], ['brisez', 'BREAK'],
-  ['fracasse', 'BREAK'], ['fracassez', 'BREAK'], ['fracassant', 'BREAK'],
-  ['detruis', 'BREAK'], ['detruisez', 'BREAK'], ['defonce', 'BREAK'],
-  ['defoncez', 'BREAK'],
-  // BEND
-  ['tords', 'BEND'], ['tordez', 'BEND'], ['plie', 'BEND'], ['pliez', 'BEND'],
-  ['deforme', 'BEND'], ['deformez', 'BEND'],
-  // CUT
-  ['coupe', 'CUT'], ['coupez', 'CUT'], ['tranche', 'CUT'], ['tranchez', 'CUT'],
-  ['taille', 'CUT'], ['taillez', 'CUT'], ['decoupe', 'CUT'], ['decoupez', 'CUT'],
-  // FORCE_OPEN
-  ['force', 'FORCE_OPEN'], ['forcez', 'FORCE_OPEN'],
-  ['enfonce', 'FORCE_OPEN'], ['enfoncez', 'FORCE_OPEN'],
-  // BITE
-  ['mords', 'BITE'], ['mordez', 'BITE'], ['croque', 'BITE'], ['croquez', 'BITE'],
-  // SQUEEZE
-  ['serre', 'SQUEEZE'], ['serrez', 'SQUEEZE'], ['ecrase', 'SQUEEZE'],
-  ['ecrasez', 'SQUEEZE'], ['comprime', 'SQUEEZE'], ['comprimez', 'SQUEEZE'],
-  // IMPROVISE_WEAPON
-  ['improvise', 'IMPROVISE_WEAPON'],
-  // SACRIFICE
-  ['sacrifie', 'SACRIFICE'], ['sacrifiez', 'SACRIFICE'],
-  ['offre', 'SACRIFICE'], ['offrez', 'SACRIFICE'],
-
-  // ── DEF verbs ─────────────────────────────────────────
-  // BLOCK
-  ['bloque', 'BLOCK'], ['bloquez', 'BLOCK'], ['pare', 'BLOCK'], ['parez', 'BLOCK'],
-  ['protege', 'BLOCK'], ['protegez', 'BLOCK'],
-  // IMPROVISE_SHIELD — handled by multi-word alias
-  // BARRICADE
-  ['barricade', 'BARRICADE'], ['barricadez', 'BARRICADE'],
-  ['obstrue', 'BARRICADE'], ['obstruez', 'BARRICADE'],
-
-  // ── INT verbs ─────────────────────────────────────────
-  // READ
-  ['lis', 'READ'], ['lisez', 'READ'], ['dechiffre', 'READ'],
-  ['dechiffrez', 'READ'], ['consulte', 'READ'], ['consultez', 'READ'],
-  // HACK
-  ['pirate', 'HACK'], ['piratez', 'HACK'], ['hacke', 'HACK'],
-  ['hackez', 'HACK'], ['cracke', 'HACK'], ['crackez', 'HACK'],
-  ['bypasse', 'HACK'], ['bypassez', 'HACK'],
-  // REPAIR
-  ['repare', 'REPAIR'], ['reparez', 'REPAIR'], ['rafistole', 'REPAIR'],
-  ['rafistolez', 'REPAIR'], ['bricole', 'REPAIR'], ['bricolez', 'REPAIR'],
-  ['fixe', 'REPAIR'], ['fixez', 'REPAIR'],
-  // DISASSEMBLE
-  ['demonte', 'DISASSEMBLE'], ['demontez', 'DISASSEMBLE'],
-  ['desassemble', 'DISASSEMBLE'], ['desassemblez', 'DISASSEMBLE'],
-  // ASSEMBLE
-  ['assemble', 'ASSEMBLE'], ['assemblez', 'ASSEMBLE'],
-  ['combine', 'ASSEMBLE'], ['combinez', 'ASSEMBLE'],
-  ['construis', 'ASSEMBLE'], ['construisez', 'ASSEMBLE'],
-  ['fabrique', 'ASSEMBLE'], ['fabriquez', 'ASSEMBLE'],
-  // ACTIVATE
-  ['active', 'ACTIVATE'], ['activez', 'ACTIVATE'],
-  ['allume', 'ACTIVATE'], ['allumez', 'ACTIVATE'],
-  ['demarre', 'ACTIVATE'], ['demarrez', 'ACTIVATE'],
-  // DEACTIVATE
-  ['desactive', 'DEACTIVATE'], ['desactivez', 'DEACTIVATE'],
-  ['eteins', 'DEACTIVATE'], ['eteignez', 'DEACTIVATE'],
-  // REPROGRAM
-  ['reprogramme', 'REPROGRAM'], ['reprogrammez', 'REPROGRAM'],
-  ['reconfigure', 'REPROGRAM'], ['reconfigurez', 'REPROGRAM'],
-  // LOCK
-  ['verrouille', 'LOCK'], ['verrouillez', 'LOCK'],
-  // UNLOCK
-  ['deverrouille', 'UNLOCK'], ['deverrouillez', 'UNLOCK'],
-  ['crochete', 'UNLOCK'], ['crochetez', 'UNLOCK'],
-  // WELD
-  ['soude', 'WELD'], ['soudez', 'WELD'],
-  ['scelle', 'WELD'], ['scellez', 'WELD'],
-  // PLUG
-  ['branche', 'PLUG'], ['branchez', 'PLUG'],
-  ['connecte', 'PLUG'], ['connectez', 'PLUG'],
-  ['raccorde', 'PLUG'], ['raccordez', 'PLUG'],
-  // OVERRIDE
-  ['court-circuite', 'OVERRIDE'], ['shunt', 'OVERRIDE'], ['shuntez', 'OVERRIDE'],
-  ['contourne', 'OVERRIDE'], ['contournez', 'OVERRIDE'],
-  // SABOTAGE
-  ['sabote', 'SABOTAGE'], ['sabotez', 'SABOTAGE'],
-  ['trafique', 'SABOTAGE'], ['trafiquez', 'SABOTAGE'],
-  // SET_TRAP
-  ['piege', 'SET_TRAP'], ['piegez', 'SET_TRAP'],
-  // IMPROVISE_TOOL — handled by multi-word alias
-  // WEDGE
-  ['coince', 'WEDGE'], ['coincez', 'WEDGE'],
-  ['cale', 'WEDGE'], ['calez', 'WEDGE'],
-  // IGNITE
-  ['enflamme', 'IGNITE'], ['enflammez', 'IGNITE'],
-  ['brule', 'IGNITE'], ['brulez', 'IGNITE'],
-  // FLOOD
-  ['inonde', 'FLOOD'], ['inondez', 'FLOOD'],
-  ['noie', 'FLOOD'], ['noyez', 'FLOOD'],
-  // ELECTRIFY
-  ['electrifie', 'ELECTRIFY'], ['electrifiez', 'ELECTRIFY'],
-  ['electrocute', 'ELECTRIFY'], ['electrocutez', 'ELECTRIFY'],
-  // TIE
-  ['attache', 'TIE'], ['attachez', 'TIE'],
-  ['ligote', 'TIE'], ['ligotez', 'TIE'],
-  ['noue', 'TIE'], ['nouez', 'TIE'],
-  // COVER
-  ['couvre', 'COVER'], ['couvrez', 'COVER'],
-  ['recouvre', 'COVER'], ['recouvrez', 'COVER'],
-  ['masque', 'COVER'], ['masquez', 'COVER'],
-
-  // ── PER verbs ─────────────────────────────────────────
-  // EXAMINE
-  ['examine', 'EXAMINE'], ['examinez', 'EXAMINE'],
-  ['inspecte', 'EXAMINE'], ['inspectez', 'EXAMINE'],
-  ['observe', 'EXAMINE'], ['observez', 'EXAMINE'],
-  ['regarde', 'EXAMINE'], ['regardez', 'EXAMINE'],
-  ['etudie', 'EXAMINE'], ['etudiez', 'EXAMINE'],
-  ['fouille', 'EXAMINE'], ['fouillez', 'EXAMINE'],
-  ['mate', 'EXAMINE'], ['mates', 'EXAMINE'], ['matez', 'EXAMINE'], // slang: "mater"
-  // LISTEN
-  ['ecoute', 'LISTEN'], ['ecoutez', 'LISTEN'],
-  // SMELL
-  ['sens', 'SMELL'], ['sentez', 'SMELL'],
-  ['renifle', 'SMELL'], ['reniflez', 'SMELL'],
-  // SCAN
-  ['scanne', 'SCAN'], ['scannez', 'SCAN'],
-  ['analyse', 'SCAN'], ['analysez', 'SCAN'],
-  ['detecte', 'SCAN'], ['detectez', 'SCAN'],
-
-  // ── CHA verbs ─────────────────────────────────────────
-  // TALK
-  ['parle', 'TALK'], ['parlez', 'TALK'],
-  ['discute', 'TALK'], ['discutez', 'TALK'],
-  ['dialogue', 'TALK'], ['dialoguez', 'TALK'],
-  ['papote', 'TALK'], ['papotes', 'TALK'], ['papotez', 'TALK'], // slang: "papoter"
-  // PERSUADE
-  ['persuade', 'PERSUADE'], ['persuadez', 'PERSUADE'],
-  ['convaincs', 'PERSUADE'], ['convainquez', 'PERSUADE'],
-  // INTIMIDATE
-  ['intimide', 'INTIMIDATE'], ['intimidez', 'INTIMIDATE'],
-  ['menace', 'INTIMIDATE'], ['menacez', 'INTIMIDATE'],
-  // DECEIVE
-  ['trompe', 'DECEIVE'], ['trompez', 'DECEIVE'],
-  ['mens', 'DECEIVE'], ['mentez', 'DECEIVE'],
-  ['dupe', 'DECEIVE'], ['dupez', 'DECEIVE'],
-  // DISTRACT
-  ['distrais', 'DISTRACT'], ['distrayez', 'DISTRACT'],
-  ['detourne', 'DISTRACT'], ['detournez', 'DISTRACT'],
-  // BARTER
-  ['troque', 'BARTER'], ['troquez', 'BARTER'],
-  ['echange', 'BARTER'], ['echangez', 'BARTER'],
-  ['negocie', 'BARTER'], ['negociez', 'BARTER'],
-  // SEDUCE
-  ['seduis', 'SEDUCE'], ['seduisez', 'SEDUCE'],
-  ['charme', 'SEDUCE'], ['charmez', 'SEDUCE'],
-  // COMMAND
-  ['commande', 'COMMAND'], ['commandez', 'COMMAND'],
-  ['ordonne', 'COMMAND'], ['ordonnez', 'COMMAND'],
-  // CALM
-  ['calme', 'CALM'], ['calmez', 'CALM'],
-  ['apaise', 'CALM'], ['apaisez', 'CALM'],
-  // PROVOKE
-  ['provoque', 'PROVOKE'], ['provoquez', 'PROVOKE'],
-  ['enrage', 'PROVOKE'], ['enragez', 'PROVOKE'],
-  // PLEAD
-  ['supplie', 'PLEAD'], ['suppliez', 'PLEAD'],
-  ['implore', 'PLEAD'], ['implorez', 'PLEAD'],
-  // INTERROGATE
-  ['interroge', 'INTERROGATE'], ['interrogez', 'INTERROGATE'],
-  ['questionne', 'INTERROGATE'], ['questionnez', 'INTERROGATE'],
-  // SIGNAL
-  ['signale', 'SIGNAL'], ['signalez', 'SIGNAL'],
-  // LURE
-  ['attire', 'LURE'], ['attirez', 'LURE'],
-  ['appate', 'LURE'], ['appatez', 'LURE'],
-
-  // ── AGI verbs ─────────────────────────────────────────
-  // THROW
-  ['lance', 'THROW'], ['lancez', 'THROW'],
-  ['jette', 'THROW'], ['jetez', 'THROW'],
-  ['balance', 'THROW'], ['balancez', 'THROW'],
-  ['projette', 'THROW'], ['projetez', 'THROW'],
-  // SHOOT
-  ['vise', 'SHOOT'], ['visez', 'SHOOT'],
-  // CLIMB
-  ['grimpe', 'CLIMB'], ['grimpez', 'CLIMB'],
-  ['escalade', 'CLIMB'], ['escaladez', 'CLIMB'],
-  ['monte', 'CLIMB'], ['montez', 'CLIMB'],
-  // JUMP
-  ['saute', 'JUMP'], ['sautez', 'JUMP'],
-  ['bondis', 'JUMP'], ['bondissez', 'JUMP'],
-  ['enjambe', 'JUMP'], ['enjambez', 'JUMP'],
-  // DODGE
-  ['esquive', 'DODGE'], ['esquivez', 'DODGE'],
-  ['evite', 'DODGE'], ['evitez', 'DODGE'],
-  ['baisse', 'DODGE'],
-  // SWIM
-  ['nage', 'SWIM'], ['nagez', 'SWIM'],
-  ['plonge', 'SWIM'], ['plongez', 'SWIM'],
-  // RUN
-  ['cours', 'RUN'], ['courez', 'RUN'], ['courons', 'RUN'],
-  ['sprinte', 'RUN'], ['sprintez', 'RUN'],
-  ['fuis', 'RUN'], ['fuyez', 'RUN'], ['enfuis', 'RUN'],
-  // HIDE
-  ['cache', 'HIDE'], ['cachez', 'HIDE'],
-  ['planque', 'HIDE'], ['planquez', 'HIDE'],
-  ['dissimule', 'HIDE'], ['dissimulez', 'HIDE'],
-  // STACK
-  ['empile', 'STACK'], ['empilez', 'STACK'],
-  ['entasse', 'STACK'], ['entassez', 'STACK'],
-
-  // ── Interaction / Auto verbs ──────────────────────────
-  // USE
-  ['utilise', 'USE'], ['utilisez', 'USE'],
-  ['emploie', 'USE'], ['employez', 'USE'],
-  // OPEN
-  ['ouvre', 'OPEN'], ['ouvrez', 'OPEN'],
-  ['debloque', 'OPEN'], ['debloquez', 'OPEN'],
-  // CLOSE
-  ['ferme', 'CLOSE'], ['fermez', 'CLOSE'],
-  ['referme', 'CLOSE'], ['refermez', 'CLOSE'],
-  // TAKE
-  ['prends', 'TAKE'], ['prenez', 'TAKE'],
-  ['ramasse', 'TAKE'], ['ramassez', 'TAKE'],
-  ['recupere', 'TAKE'], ['recuperez', 'TAKE'],
-  // DROP
-  ['pose', 'DROP'], ['posez', 'DROP'],
-  ['lache', 'DROP'], ['lachez', 'DROP'],
-  ['depose', 'DROP'], ['deposez', 'DROP'],
-  // GIVE
-  ['donne', 'GIVE'], ['donnez', 'GIVE'],
-  // EQUIP
-  ['equipe', 'EQUIP'], ['equipez', 'EQUIP'],
-  // EAT
-  ['mange', 'EAT'], ['mangez', 'EAT'],
-  ['avale', 'EAT'], ['avalez', 'EAT'],
-  ['consomme', 'EAT'], ['consommez', 'EAT'],
-  // DRINK
-  ['bois', 'DRINK'], ['buvez', 'DRINK'],
-  // MOVE_TO
-  ['vais', 'MOVE_TO'], ['va', 'MOVE_TO'], ['allez', 'MOVE_TO'], ['allons', 'MOVE_TO'],
-  ['deplace', 'MOVE_TO'], ['rends', 'MOVE_TO'],
-  // WAIT
-  ['attends', 'WAIT'], ['attendez', 'WAIT'],
-  ['patiente', 'WAIT'], ['patientez', 'WAIT'],
-  // TOUCH
-  ['touche', 'TOUCH'], ['touchez', 'TOUCH'],
-  ['tate', 'TOUCH'], ['tatez', 'TOUCH'],
-  ['palpe', 'TOUCH'], ['palpez', 'TOUCH'],
-]);
-
-// === COMPOUND ACTION PATTERNS ===
-
-/** Multi-word patterns that override single-token verb matching */
-export interface CompoundPattern {
-  readonly tokens: readonly string[];
-  readonly verb: VerbId;
-}
-
-/**
- * Compound patterns checked before single-token matching.
- * Longer patterns are checked first (sorted by token count descending).
- */
-export const COMPOUND_PATTERNS: readonly CompoundPattern[] = [
-  // "tirer sur" → SHOOT (not PULL)
-  { tokens: ['tirer', 'sur'], verb: 'SHOOT' },
-  { tokens: ['tire', 'sur'], verb: 'SHOOT' },
-  { tokens: ['tirez', 'sur'], verb: 'SHOOT' },
-  { tokens: ['faire', 'feu'], verb: 'SHOOT' },
-  { tokens: ['fait', 'feu'], verb: 'SHOOT' },
-  // "se cacher" → HIDE
-  { tokens: ['se', 'cacher'], verb: 'HIDE' },
-  { tokens: ['se', 'cache'], verb: 'HIDE' },
-  { tokens: ['se', 'cachez'], verb: 'HIDE' },
-  { tokens: ['se', 'planquer'], verb: 'HIDE' },
-  { tokens: ['se', 'planque'], verb: 'HIDE' },
-  { tokens: ['se', 'dissimuler'], verb: 'HIDE' },
-  // "se proteger" → BLOCK
-  { tokens: ['se', 'proteger'], verb: 'BLOCK' },
-  { tokens: ['se', 'protege'], verb: 'BLOCK' },
-  // "donner un coup de pied" → KICK
-  { tokens: ['coup', 'pied'], verb: 'KICK' },
-  // "mettre le feu" / "foutre le feu" → IGNITE
-  { tokens: ['mettre', 'feu'], verb: 'IGNITE' },
-  { tokens: ['mets', 'feu'], verb: 'IGNITE' },
-  { tokens: ['mettez', 'feu'], verb: 'IGNITE' },
-  { tokens: ['foutre', 'feu'], verb: 'IGNITE' },
-  { tokens: ['fous', 'feu'], verb: 'IGNITE' },
-  // "utiliser comme arme" → IMPROVISE_WEAPON
-  { tokens: ['utiliser', 'comme', 'arme'], verb: 'IMPROVISE_WEAPON' },
-  { tokens: ['utilise', 'comme', 'arme'], verb: 'IMPROVISE_WEAPON' },
-  { tokens: ['utilisez', 'comme', 'arme'], verb: 'IMPROVISE_WEAPON' },
-  // "utiliser comme bouclier" → IMPROVISE_SHIELD
-  { tokens: ['utiliser', 'comme', 'bouclier'], verb: 'IMPROVISE_SHIELD' },
-  { tokens: ['utilise', 'comme', 'bouclier'], verb: 'IMPROVISE_SHIELD' },
-  { tokens: ['utilisez', 'comme', 'bouclier'], verb: 'IMPROVISE_SHIELD' },
-  // "utiliser comme outil" → IMPROVISE_TOOL
-  { tokens: ['utiliser', 'comme', 'outil'], verb: 'IMPROVISE_TOOL' },
-  { tokens: ['utilise', 'comme', 'outil'], verb: 'IMPROVISE_TOOL' },
-  // "tendre un piege" / "tendre piege" → SET_TRAP
-  { tokens: ['tendre', 'piege'], verb: 'SET_TRAP' },
-  { tokens: ['tends', 'piege'], verb: 'SET_TRAP' },
-  { tokens: ['tendez', 'piege'], verb: 'SET_TRAP' },
-  // "fermer a cle" → LOCK
-  { tokens: ['fermer', 'cle'], verb: 'LOCK' },
-  { tokens: ['ferme', 'cle'], verb: 'LOCK' },
-  { tokens: ['fermez', 'cle'], verb: 'LOCK' },
-  // "remplir d'eau" → FLOOD
-  { tokens: ['remplir', 'eau'], verb: 'FLOOD' },
-  { tokens: ['remplis', 'eau'], verb: 'FLOOD' },
-  // "se deplacer" → MOVE_TO
-  { tokens: ['se', 'deplacer'], verb: 'MOVE_TO' },
-  { tokens: ['se', 'rendre'], verb: 'MOVE_TO' },
-  // "s'enfuir" → RUN
-  { tokens: ['enfuir'], verb: 'RUN' },
-  // "se baisser" → DODGE
-  { tokens: ['se', 'baisser'], verb: 'DODGE' },
-  { tokens: ['se', 'baisse'], verb: 'DODGE' },
-  // "tendre l'oreille" → LISTEN
-  { tokens: ['tendre', 'oreille'], verb: 'LISTEN' },
-  // "detourner attention" → DISTRACT
-  { tokens: ['detourner', 'attention'], verb: 'DISTRACT' },
-  { tokens: ['detourne', 'attention'], verb: 'DISTRACT' },
-  // "faire signe" → SIGNAL
-  { tokens: ['faire', 'signe'], verb: 'SIGNAL' },
-  { tokens: ['fait', 'signe'], verb: 'SIGNAL' },
-  { tokens: ['faites', 'signe'], verb: 'SIGNAL' },
-  // "bloquer avec" → WEDGE (context-dependent)
-  { tokens: ['bloquer', 'avec'], verb: 'WEDGE' },
-].sort((a, b) => b.tokens.length - a.tokens.length) as unknown as readonly CompoundPattern[];
-
-// === PRE-STEMMED ALIAS INDEX ===
-
-/** Pre-stemmed verb aliases for strategy 3 (built once at module load) */
-const STEMMED_ALIAS_INDEX: ReadonlyMap<string, VerbId> = (() => {
-  const index = new Map<string, VerbId>();
-  for (const verbId of VERB_IDS) {
-    const entry = VERB_REGISTRY[verbId];
-    for (const alias of entry.aliases.fr) {
-      // Normalize the alias the same way we'll normalize input
-      const normalized = alias
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-      const stemmed = stemFr(normalized.split(/\s+/)[0] ?? '');
-      if (stemmed.length >= 3 && !index.has(stemmed)) {
-        index.set(stemmed, verbId);
-      }
-    }
-  }
-  return index;
-})();
-
-// === SEMANTIC INTENT CLASSIFICATION ===
-
-/** Keywords for semantic fallback (strategy 6) */
-const INTENT_KEYWORDS: ReadonlyMap<string, VerbId> = new Map([
-  // Aggressive
-  ['attaquer', 'STRIKE'], ['agresser', 'STRIKE'], ['combattre', 'STRIKE'],
-  ['frapper', 'STRIKE'], ['tuer', 'STRIKE'], ['eliminer', 'STRIKE'],
-  ['violence', 'STRIKE'], ['combat', 'STRIKE'], ['guerre', 'STRIKE'],
-  ['bagarre', 'STRIKE'], ['baston', 'STRIKE'],
-  // Movement
-  ['aller', 'MOVE_TO'], ['partir', 'MOVE_TO'], ['marcher', 'MOVE_TO'],
-  ['avancer', 'MOVE_TO'], ['reculer', 'MOVE_TO'], ['direction', 'MOVE_TO'],
-  // Inspection
-  ['voir', 'EXAMINE'], ['chercher', 'EXAMINE'], ['trouver', 'EXAMINE'],
-  ['verifier', 'EXAMINE'], ['explorer', 'EXAMINE'],
-  // Communication
-  ['demander', 'TALK'], ['appeler', 'TALK'], ['crier', 'TALK'],
-  ['hurler', 'TALK'], ['chuchoter', 'TALK'],
-  // Hiding
-  ['fuir', 'RUN'], ['echapper', 'RUN'], ['sauver', 'RUN'],
-  // Taking
-  ['recuperer', 'TAKE'], ['attraper', 'TAKE'], ['saisir', 'TAKE'],
-  ['voler', 'TAKE'],
-  // Using
-  ['utiliser', 'USE'], ['employer', 'USE'], ['servir', 'USE'],
-]);
 
 // === ENTITY ALIAS COLLECTION ===
 
@@ -539,8 +126,11 @@ export function collectEntityAliasTokens(context: SceneContext): ReadonlySet<str
  * Check for compound patterns in the full (non-stop-word-filtered) tokens.
  * Returns the matching compound or null.
  */
-function matchCompound(fullTokens: readonly string[]): CompoundPattern | null {
-  for (const pattern of COMPOUND_PATTERNS) {
+function matchCompound(
+  fullTokens: readonly string[],
+  compoundPatterns: readonly CompoundPattern[],
+): CompoundPattern | null {
+  for (const pattern of compoundPatterns) {
     // Check if all pattern tokens appear in order in the input
     let patternIdx = 0;
     for (const token of fullTokens) {
@@ -556,16 +146,19 @@ function matchCompound(fullTokens: readonly string[]): CompoundPattern | null {
 }
 
 /**
- * Match a verb from normalized tokens using the 6-strategy cascade.
- * Returns the best match or null if nothing matches.
+ * Match a verb from normalized tokens using a 5-strategy cascade.
+ * All linguistic data comes from localeData (built from i18n locale files).
  *
  * Strategies:
- * 1. Exact alias match
- * 2. Curated form table
- * 3. Snowball stem match
- * 4. Prefix match (4+ chars)
- * 5. Compound action detection
- * 6. Semantic fallback (intent keywords)
+ * 1. Direct form lookup (localeData.verbForms — merged alias + conjugated forms)
+ * 3. Snowball stem match (localeData.stemmedIndex)
+ * 4. Prefix match (4+ chars against localeData.verbForms)
+ * 5. Compound action detection (localeData.compoundPatterns)
+ * 6. Semantic fallback (localeData.intentKeywords)
+ *
+ * Strategy 5 is checked first despite its number, because compound patterns
+ * have the highest specificity for multi-word inputs. Numbering preserved
+ * for backward compatibility with existing test expectations.
  *
  * @param entityTokens - Optional set of entity alias tokens to skip for strategies 1-4.
  *   This prevents entity names (e.g. "scanner" as a location item) from hijacking verb matching.
@@ -574,10 +167,11 @@ function matchCompound(fullTokens: readonly string[]): CompoundPattern | null {
 export function matchVerb(
   tokens: readonly string[],
   fullTokens: readonly string[],
+  localeData: ParserLocaleData,
   entityTokens?: ReadonlySet<string>,
 ): VerbMatch | null {
   // Strategy 5 first: compound detection (highest specificity for multi-word patterns)
-  const compound = matchCompound(fullTokens);
+  const compound = matchCompound(fullTokens, localeData.compoundPatterns);
   if (compound) {
     return {
       verb: compound.verb,
@@ -596,44 +190,23 @@ export function matchVerb(
     : tokens;
   const s14tokens = verbPriorityTokens.length > 0 ? verbPriorityTokens : tokens;
 
-  // Strategy 1: Exact alias match (entity-filtered tokens first)
+  // Strategy 1: Direct form lookup from locale data
   for (const token of s14tokens) {
-    for (const verbId of VERB_IDS) {
-      const entry = VERB_REGISTRY[verbId];
-      if (entry.aliases.fr.some((alias) => {
-        const normalizedAlias = alias
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '');
-        return normalizedAlias === token;
-      })) {
-        return {
-          verb: verbId,
-          strategy: 1 as VerbMatchStrategy,
-          confidence: 1.0,
-          isCompound: false,
-        };
-      }
-    }
-  }
-
-  // Strategy 2: Curated form table (entity-filtered tokens first)
-  for (const token of s14tokens) {
-    const verb = CURATED_FORMS.get(token);
+    const verb = localeData.verbForms.get(token);
     if (verb) {
       return {
         verb,
-        strategy: 2 as VerbMatchStrategy,
+        strategy: 1 as VerbMatchStrategy,
         confidence: 0.95,
         isCompound: false,
       };
     }
   }
 
-  // Strategy 3: Snowball stem match (entity-filtered tokens first)
+  // Strategy 3: Snowball stem match
   for (const token of s14tokens) {
     const stemmed = stemFr(token);
-    const verb = STEMMED_ALIAS_INDEX.get(stemmed);
+    const verb = localeData.stemmedIndex.get(stemmed);
     if (verb) {
       return {
         verb,
@@ -644,19 +217,12 @@ export function matchVerb(
     }
   }
 
-  // Strategy 4: Prefix match (4+ chars, entity-filtered tokens first)
+  // Strategy 4: Prefix match (4+ chars)
   for (const token of s14tokens) {
     if (token.length < 4) continue;
     const prefix = token.slice(0, 4);
-    for (const verbId of VERB_IDS) {
-      const entry = VERB_REGISTRY[verbId];
-      if (entry.aliases.fr.some((alias) => {
-        const normalizedAlias = alias
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '');
-        return normalizedAlias.startsWith(prefix) && normalizedAlias.length >= 4;
-      })) {
+    for (const [form, verbId] of localeData.verbForms) {
+      if (form.startsWith(prefix) && form.length >= 4) {
         return {
           verb: verbId,
           strategy: 4 as VerbMatchStrategy,
@@ -669,7 +235,7 @@ export function matchVerb(
 
   // Strategy 6: Semantic fallback (intent keywords — uses all tokens for broadest coverage)
   for (const token of tokens) {
-    const verb = INTENT_KEYWORDS.get(token);
+    const verb = localeData.intentKeywords.get(token);
     if (verb) {
       return {
         verb,
@@ -680,7 +246,7 @@ export function matchVerb(
     }
     // Also try stemmed version against intent keywords
     const stemmed = stemFr(token);
-    for (const [keyword, verbId] of INTENT_KEYWORDS) {
+    for (const [keyword, verbId] of localeData.intentKeywords) {
       const stemmedKeyword = stemFr(keyword);
       if (stemmed === stemmedKeyword) {
         return {
@@ -696,6 +262,101 @@ export function matchVerb(
   return null;
 }
 
+// === VERB PROMOTION ===
+
+/**
+ * Promote generic verbs to specific ones based on target/tool properties.
+ * Pure engine logic — no linguistic data needed.
+ *
+ * Rules:
+ * - USE + target/tool has 'ranged' → SHOOT
+ * - USE + target/tool has 'bladed' → CUT
+ * - USE + target/tool has 'electronic' + 'programmable' → HACK
+ */
+function promoteVerb(
+  verb: VerbId,
+  target: ResolvedTarget | null,
+  tool: ResolvedTarget | null,
+): VerbId {
+  if (verb !== 'USE') return verb;
+
+  // Check both target and tool properties for promotion cues
+  const allProperties = new Set<string>();
+  if (target?.properties) {
+    for (const p of target.properties) allProperties.add(p);
+  }
+  if (tool?.properties) {
+    for (const p of tool.properties) allProperties.add(p);
+  }
+
+  if (allProperties.has('ranged')) return 'SHOOT';
+  if (allProperties.has('bladed')) return 'CUT';
+  if (allProperties.has('electronic') && allProperties.has('programmable')) return 'HACK';
+
+  return verb;
+}
+
+// === PREPOSITION-AWARE SPLITTING ===
+
+/**
+ * Split tokens around prepositions for target/tool detection.
+ *
+ * Example: "lance couteau sur membre equipage"
+ * → target preposition "sur" found → targetTokens: ["membre", "equipage"],
+ *   toolTokens: ["couteau"] (between verb and preposition)
+ *
+ * Example: "ouvre porte avec levier"
+ * → tool preposition "avec" found → targetTokens: ["porte"],
+ *   toolTokens: ["levier"]
+ *
+ * If no preposition found, returns all tokens as targetTokens.
+ */
+function splitOnPrepositions(
+  tokens: readonly string[],
+  fullTokens: readonly string[],
+  localeData: ParserLocaleData,
+): { targetTokens: readonly string[]; toolTokens: readonly string[] } {
+  // Search in fullTokens (which keeps prepositions) for splitting points
+  for (let i = 1; i < fullTokens.length; i++) {
+    const token = fullTokens[i];
+    if (!token) continue;
+
+    // Check for target prepositions (sur, vers, contre)
+    if (localeData.targetPrepositions.has(token)) {
+      // Tokens after the preposition = target
+      const afterPrep = fullTokens.slice(i + 1)
+        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+      // Tokens before the preposition (skip first = verb) = possible tool
+      const beforePrep = fullTokens.slice(1, i)
+        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+
+      if (afterPrep.length > 0) {
+        return { targetTokens: afterPrep, toolTokens: beforePrep };
+      }
+    }
+
+    // Check for tool prepositions (avec)
+    if (localeData.toolPrepositions.has(token)) {
+      // Tokens after the preposition = tool
+      const afterPrep = fullTokens.slice(i + 1)
+        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+      // Tokens before the preposition (skip first = verb) = target
+      const beforePrep = fullTokens.slice(1, i)
+        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+
+      if (afterPrep.length > 0) {
+        return {
+          targetTokens: beforePrep.length > 0 ? beforePrep : tokens,
+          toolTokens: afterPrep,
+        };
+      }
+    }
+  }
+
+  // No preposition found — all tokens are potential target tokens
+  return { targetTokens: tokens, toolTokens: [] };
+}
+
 // === REFORMULATION ===
 
 /**
@@ -706,21 +367,18 @@ export function generateReformulation(
   rawInput: string,
   tokens: readonly string[],
   context: SceneContext,
+  localeData: ParserLocaleData,
 ): Reformulation {
   const interpretations: ParsedAction[] = [];
 
   // Try to find partial verb matches and construct interpretations
   const candidateVerbs: VerbId[] = [];
 
-  // Check if any token partially matches a verb alias
+  // Check if any token partially matches a verb form
   for (const token of tokens) {
     if (token.length < 3) continue;
-    for (const verbId of VERB_IDS) {
-      const entry = VERB_REGISTRY[verbId];
-      if (entry.aliases.fr.some((alias) => {
-        const normalizedAlias = alias.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        return normalizedAlias.includes(token) || token.includes(normalizedAlias.slice(0, 3));
-      })) {
+    for (const [form, verbId] of localeData.verbForms) {
+      if (form.includes(token) || token.includes(form.slice(0, 3))) {
         if (!candidateVerbs.includes(verbId)) {
           candidateVerbs.push(verbId);
         }
@@ -765,25 +423,31 @@ export function generateReformulation(
 // === TOP-LEVEL PARSER ===
 
 /**
- * Parse raw French player input into a `ParsedAction` or `Reformulation`.
+ * Parse raw player input into a `ParsedAction` or `Reformulation`.
  *
  * Pipeline:
- * 1. Normalize input
- * 2. Match verb (6-strategy cascade)
+ * 1. Normalize input (with locale-specific stop words)
+ * 2. Match verb (5-strategy cascade from locale data)
  * 3. If no verb → generate reformulation
- * 4. Resolve target
- * 5. Assemble ParsedAction
+ * 4. Split on prepositions for target/tool separation
+ * 5. Resolve target and tool
+ * 6. Promote generic verbs (USE → SHOOT/CUT/HACK) based on properties
+ * 7. Assemble ParsedAction
  */
-export function parseAction(rawInput: string, context: SceneContext): ParseResult {
+export function parseAction(
+  rawInput: string,
+  context: SceneContext,
+  localeData: ParserLocaleData,
+): ParseResult {
   if (!rawInput || typeof rawInput !== 'string' || rawInput.trim().length === 0) {
-    return generateReformulation(rawInput ?? '', [], context);
+    return generateReformulation(rawInput ?? '', [], context, localeData);
   }
 
-  const tokens = normalizeInput(rawInput);
+  const tokens = normalizeInput(rawInput, localeData.stopWords);
   const fullTokens = normalizeInputKeepPrepositions(rawInput);
 
   if (tokens.length === 0) {
-    return generateReformulation(rawInput, [], context);
+    return generateReformulation(rawInput, [], context, localeData);
   }
 
   // Collect entity alias tokens so we can skip them when matching verbs.
@@ -791,28 +455,42 @@ export function parseAction(rawInput: string, context: SceneContext): ParseResul
   const entityTokens = collectEntityAliasTokens(context);
 
   // Match verb
-  const verbMatch = matchVerb(tokens, fullTokens, entityTokens);
+  const verbMatch = matchVerb(tokens, fullTokens, localeData, entityTokens);
 
   if (!verbMatch) {
-    return generateReformulation(rawInput, tokens, context);
+    return generateReformulation(rawInput, tokens, context, localeData);
   }
 
-  // Resolve target
-  const target = resolveTarget(tokens, verbMatch.verb, context);
+  // Split on prepositions for target/tool separation
+  const { targetTokens, toolTokens } = splitOnPrepositions(tokens, fullTokens, localeData);
+
+  // Resolve target from target-specific tokens (or all tokens if no preposition split)
+  const target = resolveTarget(targetTokens, verbMatch.verb, context);
+
+  // Resolve tool if we found tool tokens
+  const tool = toolTokens.length > 0
+    ? resolveTarget(toolTokens, verbMatch.verb, context)
+    : null;
+
+  // Verb promotion: upgrade generic verbs based on target/tool properties
+  const promotedVerb = promoteVerb(verbMatch.verb, target, tool);
+  const finalVerbMatch = promotedVerb !== verbMatch.verb
+    ? { ...verbMatch, verb: promotedVerb }
+    : verbMatch;
 
   // Detect creativity (is this different from suggestions?)
   const creative = context.suggestions.length > 0 &&
     !context.suggestions.some((s) =>
-      s.verb === verbMatch.verb && s.target?.id === target?.id,
+      s.verb === finalVerbMatch.verb && s.target?.id === target?.id,
     );
 
   const action: ParsedAction = {
-    verb: verbMatch.verb,
+    verb: finalVerbMatch.verb,
     target,
-    tool: null, // Tool resolution is context-dependent, simplified for Phase 2
+    tool,
     rawInput,
     tokens,
-    verbMatch,
+    verbMatch: finalVerbMatch,
     creative,
   };
 
