@@ -69,6 +69,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.playwright-mcp
 
 # IDE
 .vscode/
