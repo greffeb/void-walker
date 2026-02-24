@@ -101,6 +101,18 @@ export const BALANCE = {
   MAX_CASCADE_DEPTH: 5,
   FIRE_SPREAD_DELAY: 3,
 
+  // === FAILSAFE (anti-softlock) ===
+  FAILSAFE: {
+    /** Attempt threshold before failsafe activates (per difficulty) */
+    THRESHOLD: { explorer: 2, survivor: 4, nightmare: 6 } as const,
+    /** HP cost of a degraded_bypass intervention (per difficulty) */
+    COST: { explorer: 1, survivor: 3, nightmare: 5 } as const,
+    /** Whether failsafe can activate (Nightmare = threat escalation, not DC help) */
+    ENABLED: { explorer: true, survivor: true, nightmare: false } as const,
+    /** Base DC reduction applied at threshold (increases each extra attempt) */
+    BASE_DC_REDUCTION: 3,
+  },
+
   // === SAVE ===
   SAVE: {
     SLOT_COUNT: 3,

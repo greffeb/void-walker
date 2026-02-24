@@ -96,7 +96,13 @@ export interface CharacterState {
   readonly inventory: readonly string[];
   readonly equippedWeapon: string | null;
   readonly equippedArmor: string | null;
-  readonly conditions: readonly string[];
+  readonly conditions: readonly ActiveCondition[];
+  /** Per-item durability tracking (broken state, combat uses) */
+  readonly durability: Readonly<Record<string, ItemDurabilityState>>;
+  /** Actions spent in cold/depressurized zone (for cold condition trigger) */
+  readonly actionsInColdZone: number;
+  /** Actions since last rest (for exhaustion condition trigger) */
+  readonly actionsWithoutRest: number;
 }
 
 // === GAME STATE ===
@@ -127,10 +133,20 @@ export interface GameState {
   readonly turn: number;
   readonly scenarioId: string | null;
   readonly currentBeat: StoryBeat;
-  readonly stalkerClock: number;
+  /** Full stalker clock state (replaces the old `stalkerClock: number` field) */
+  readonly stalkerClockState: StalkerClockState;
   readonly sceneCount: number;
   readonly log: readonly string[];
   readonly actionHistory: readonly ActionRecord[];
+  // === Phase 4 additions ===
+  /** Environment marks created by failed actions (Ship Memory) */
+  readonly shipMemory: readonly EnvironmentMark[];
+  /** Obstacle attempt tracking keyed by `${locationId}:${targetId}` */
+  readonly obstacleAttempts: Readonly<Record<string, ObstacleState>>;
+  /** Whether the player has used their one Survivor second chance */
+  readonly secondChanceUsed: boolean;
+  /** Currently active combat encounter, or null if not in combat */
+  readonly activeCombat: ActiveCombatState | null;
 }
 
 /** Structured record of a single player action (for history & bug reports) */
@@ -152,10 +168,18 @@ export function createInitialGameState(): GameState {
     turn: 0,
     scenarioId: null,
     currentBeat: 'intro',
-    stalkerClock: 0,
+    stalkerClockState: {
+      actionsSinceLastProgression: 0,
+      warningIssued: false,
+      threatArrivalIssued: false,
+    },
     sceneCount: 0,
     log: [],
     actionHistory: [],
+    shipMemory: [],
+    obstacleAttempts: {},
+    secondChanceUsed: false,
+    activeCombat: null,
   };
 }
 
@@ -437,6 +461,11 @@ export interface SceneContext {
   readonly environmentConditions: readonly EnvironmentCondition[];
   /** Body part definitions with locale-aware aliases (injected by content layer) */
   readonly bodyParts?: readonly BodyPartDefinition[];
+  // === Phase 4 additions ===
+  /** Current zone atmosphere (drives O2 drain in processTurn) */
+  readonly atmosphere?: AtmosphereType;
+  /** Current location ID (used by Ship Memory and failsafe) */
+  readonly locationId?: string;
 }
 
 // === PHASE 3: RESOLUTION & COMBAT TYPES ===
@@ -580,4 +609,113 @@ export interface LootDrop {
 export interface LootTableEntry {
   readonly itemId: string;
   readonly weight: number;
+}
+
+// ===========================================================================
+// === PHASE 4: CONSEQUENCES & STATE ENGINE ===================================
+// ===========================================================================
+
+// === SHIP MEMORY ===
+
+/** The persistent effect a failed action leaves on a target */
+export interface EnvironmentMarkEffect {
+  readonly propertiesAdded?: readonly import('./properties').PropertyId[];
+  readonly propertiesRemoved?: readonly import('./properties').PropertyId[];
+  /** DC modifier for the same verb on this target again (negative = easier) */
+  readonly sameActionDCMod: number;
+  /** DC modifier for any other verb on this target (negative = easier) */
+  readonly otherActionDCMod: number;
+  /** Whether the noise alerts nearby NPCs */
+  readonly noiseGenerated: boolean;
+  /** Optional new feature ID that becomes visible as a result of this mark */
+  readonly newApproachRevealed?: string;
+}
+
+/** A Ship Memory mark — a failed action permanently marks the environment */
+export interface EnvironmentMark {
+  readonly locationId: string;
+  readonly targetId: string;
+  readonly verb: import('./verbs').VerbId;
+  readonly outcome: 'failure' | 'critical_failure';
+  readonly effect: EnvironmentMarkEffect;
+  readonly turn: number;
+}
+
+// === FAILSAFE ===
+
+/** The four types of anti-softlock intervention */
+export type FailsafeType =
+  | 'degraded_bypass'     // DC reduced, HP cost to bypass obstacle
+  | 'narrative_rescue'    // Story event opens alternate path
+  | 'threat_escalation'   // Threat arrives (Nightmare mode only)
+  | 'alternate_route';    // Hidden route revealed by mark
+
+/** Result of the failsafe check */
+export interface FailsafeResult {
+  readonly type: FailsafeType;
+  readonly activated: boolean;
+  /** DC reduction applied this turn (for degraded_bypass) */
+  readonly dcReduction?: number;
+  /** i18n key for the hint/event narrative */
+  readonly hintKey?: string;
+}
+
+/** Tracks all attempts on a single obstacle */
+export interface ObstacleState {
+  /** Composite key: `${locationId}:${targetId}` */
+  readonly obstacleKey: string;
+  readonly attemptCount: number;
+  readonly pathsAttempted: readonly import('./verbs').VerbId[];
+  readonly resolved: boolean;
+}
+
+// === CONSEQUENCES ===
+
+/** The types of state changes a consequence can produce */
+export type ConsequenceType =
+  | 'damage'
+  | 'heal'
+  | 'condition_add'
+  | 'condition_remove'
+  | 'inventory_add'
+  | 'inventory_remove'
+  | 'item_break'
+  | 'environment_change'    // e.g., room becomes on_fire
+  | 'ship_memory_mark'
+  | 'atmosphere_change'
+  | 'npc_killed'
+  | 'npc_flee';
+
+/** A single state-change instruction produced by an action outcome */
+export interface Consequence {
+  readonly type: ConsequenceType;
+  /** ID of the entity being affected (item, NPC, feature, or 'player') */
+  readonly targetId?: string;
+  /** Numeric amount (HP delta for damage/heal, etc.) */
+  readonly amount?: number;
+  readonly conditionId?: ConditionId;
+  readonly itemId?: string;
+  readonly atmosphereType?: AtmosphereType;
+  readonly propertyId?: import('./properties').PropertyId;
+}
+
+// === DEATH ===
+
+/** The three ways the game handles a player reaching 0 HP */
+export type DeathType = 'knockout' | 'second_chance' | 'permadeath';
+
+/** Result of the death check — how to handle the player's 0 HP state */
+export interface DeathResult {
+  readonly type: DeathType;
+  readonly hpRestored: number;
+}
+
+// === ACTIVE COMBAT ===
+
+/** State of the currently active combat encounter */
+export interface ActiveCombatState {
+  readonly npc: CombatNPCState;
+  /** ID of the NPC instance in the scene context */
+  readonly npcInstanceId: string;
+  readonly round: number;
 }

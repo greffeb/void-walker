@@ -1,6 +1,7 @@
 // src/engine/index.ts — Public API
 // Phase 2: Parser, resolver, and difficulty
 // Phase 3: Dice, combat, conditions, oxygen, stalker clock, durability, loot
+// Phase 4: Consequences, state, inventory, ship memory, failsafe, processTurn
 
 // === Phase 2 ===
 export { parseAction, normalizeInput, matchVerb } from './parser';
@@ -54,6 +55,33 @@ export {
   COMBAT_LOOT_TABLE, SEARCH_LOOT_TABLE,
 } from './loot';
 
+// === Phase 4: State helpers ===
+export { checkDeath, applyDeath, updateCharacterHp, clampHp } from './state';
+
+// === Phase 4: Inventory ===
+export {
+  canAddItem, addItem, removeItem,
+  equipItem, unequipItem, applyInventoryToState,
+} from './inventory';
+
+// === Phase 4: Ship Memory ===
+export {
+  createMark, addMark, getMarksForTarget,
+  getMarkDCModifier, getMarkPropertyChanges,
+} from './shipMemory';
+
+// === Phase 4: Failsafe ===
+export {
+  getObstacleKey, recordAttempt, resolveObstacle,
+  checkFailsafe, getFailsafeDCReduction,
+} from './failsafe';
+
+// === Phase 4: Consequences ===
+export { buildConsequences, applyConsequences } from './consequences';
+
+// === Phase 4: processTurn ===
+export { processTurn } from './processTurn';
+
 // === Types ===
 export type {
   // Phase 2
@@ -72,5 +100,12 @@ export type {
   LootDrop, LootTableEntry,
   // Action history
   ActionRecord,
+  // Phase 4
+  EnvironmentMark, EnvironmentMarkEffect,
+  FailsafeType, FailsafeResult, ObstacleState,
+  ConsequenceType, Consequence,
+  DeathType, DeathResult,
+  ActiveCombatState,
+  TurnResult,
 } from './types';
 export { isReformulation, CONDITION_IDS } from './types';
