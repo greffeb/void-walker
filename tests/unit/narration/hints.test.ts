@@ -4,12 +4,11 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { selectGameplayHint, adjustHintPriority, resetHintMemory } from '../../../src/narration/hints';
-import type { NarrativeContext, GameplayHint, NpcInfo, LocationInfo } from '../../../src/narration/types';
+import type { NarrativeContext, GameplayHint } from '../../../src/narration/types';
 import type { GrammaticalInfo } from '../../../src/i18n/grammar/interface';
 
 // === HELPERS ===
 
-const mascGrammar: GrammaticalInfo = { gender: 'M', startsWithVowel: false, plural: false };
 const femGrammar: GrammaticalInfo = { gender: 'F', startsWithVowel: false, plural: false };
 
 function makeCtx(overrides: Partial<NarrativeContext> = {}): NarrativeContext {

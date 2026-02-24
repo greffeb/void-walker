@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderTemplate, renderTemplateWithSlots, detectSelfReference, getGrammarEngine } from '../../../src/narration/templateEngine';
-import type { NarrativeContext, TargetInfo, ItemInfo, NpcInfo, LocationInfo } from '../../../src/narration/types';
+import type { NarrativeContext, TargetInfo, LocationInfo } from '../../../src/narration/types';
 import type { GrammaticalInfo } from '../../../src/i18n/grammar/interface';
 
 // === TEST HELPERS ===

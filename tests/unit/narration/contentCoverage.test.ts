@@ -59,7 +59,7 @@ describe('SENSORY_POOLS', () => {
 
   it('every snippet has required fields', () => {
     for (const [setting, pools] of Object.entries(SENSORY_POOLS)) {
-      for (const [condition, snippets] of Object.entries(pools)) {
+      for (const [_condition, snippets] of Object.entries(pools)) {
         for (const s of snippets) {
           expect(s.id).toBeTruthy();
           expect(s.setting).toBe(setting);

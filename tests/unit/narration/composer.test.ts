@@ -16,8 +16,7 @@ import {
   resetLocationOnEnvironmentChange,
 } from '../../../src/narration/composer';
 import type {
-  NarrativeContext, NarrativeSettings, TargetInfo, ItemInfo,
-  NpcInfo, LocationInfo, Outcome, VerbCategory,
+  NarrativeContext, Outcome, VerbCategory,
 } from '../../../src/narration/types';
 import { NARRATIVE_PRESETS } from '../../../src/narration/types';
 import type { GrammaticalInfo } from '../../../src/i18n/grammar/interface';
