@@ -507,6 +507,7 @@ export const en: LocaleStrings = {
   'parser.intents': 'STRIKE:attack,STRIKE:fight,STRIKE:kill,STRIKE:hit,MOVE_TO:go,MOVE_TO:walk,MOVE_TO:travel,EXAMINE:look,EXAMINE:search,EXAMINE:find,EXAMINE:check,TALK:ask,TALK:call,TALK:yell,RUN:flee,RUN:escape,TAKE:grab,TAKE:get,TAKE:steal,USE:use,USE:apply',
   'parser.prepositions.target': 'at,toward,towards,against',
   'parser.prepositions.tool': 'with,using',
+  'parser.genericNpcRefs': 'him,her,them,enemy,foe,target,creature,monster,beast,alien',
 
   // Items
   'item.laser_pistol': 'Laser Pistol',
