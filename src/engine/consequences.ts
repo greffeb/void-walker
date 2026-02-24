@@ -70,6 +70,17 @@ export function buildConsequences(
     }
   }
 
+  // General outcome consequences (only for non-combat actions with a real target)
+  if (!attackResult && target !== null) {
+    if (outcome === 'failure') {
+      consequences.push({ type: 'damage', targetId: 'player', amount: 1 });
+    } else if (outcome === 'crit_failure') {
+      consequences.push({ type: 'damage', targetId: 'player', amount: 2 });
+    } else if (outcome === 'crit_success') {
+      consequences.push({ type: 'heal', targetId: 'player', amount: 1 });
+    }
+  }
+
   return consequences;
 }
 

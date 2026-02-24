@@ -307,9 +307,21 @@ export function processTurn(
     // Condition triggers from this action's outcome
     const hp = current.character!.hp;
     const maxHp = current.character!.maxHp;
+    // Increment actionsWithoutRest (WAIT resets it; all other verbs increment)
+    const newActionsWithoutRest = action.verb === 'WAIT'
+      ? 0
+      : current.character!.actionsWithoutRest + 1;
+    current = {
+      ...current,
+      character: { ...current.character!, actionsWithoutRest: newActionsWithoutRest },
+    };
     const triggeredConditions = checkConditionTriggers(
       hp, maxHp, current.character!.conditions,
-      { criticalFailure: outcome === 'crit_failure' },
+      {
+        criticalFailure: outcome === 'crit_failure',
+        actionsWithoutRest: newActionsWithoutRest,
+        firstThreatEncounter: state.activeCombat?.round === 1,
+      },
       rng,
     );
     traceTriggeredConditions = triggeredConditions;

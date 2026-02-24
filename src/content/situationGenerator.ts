@@ -14,6 +14,7 @@ import type {
   NpcInstance,
   EnvironmentFeatureInstance,
   EnvironmentCondition,
+  ParsedAction,
 } from '@engine/types';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from './items';
 import { NPC_LIST, NPC_DEFINITIONS, resolveNPCProperties } from './npcs';
@@ -162,6 +163,45 @@ function resolveBodyParts(): BodyPartDefinition[] {
   }));
 }
 
+// === SUGGESTION BUILDER ===
+
+/** Build a minimal ParsedAction for use as a suggestion in the scene */
+function makeSuggestion(verb: ParsedAction['verb'], target: ResolvedTarget | null): ParsedAction {
+  return {
+    verb,
+    target,
+    tool: null,
+    rawInput: '',
+    tokens: [],
+    verbMatch: { verb, strategy: 1, confidence: 1, isCompound: false },
+    creative: false,
+  };
+}
+
+/** Convert an NpcInstance to a ResolvedTarget for suggestions */
+function npcToTarget(npc: NpcInstance): ResolvedTarget {
+  return {
+    id: npc.id,
+    nameKey: npc.nameKey,
+    properties: npc.properties,
+    isVirtual: false,
+    source: 'npc',
+    aliases: npc.aliases,
+  };
+}
+
+/** Convert an EnvironmentFeatureInstance to a ResolvedTarget for suggestions */
+function featureToTarget(f: EnvironmentFeatureInstance): ResolvedTarget {
+  return {
+    id: f.id,
+    nameKey: f.nameKey,
+    properties: f.properties,
+    isVirtual: false,
+    source: 'environment',
+    aliases: f.aliases,
+  };
+}
+
 // === SITUATION GENERATORS ===
 
 function generateExploration(inventoryIds: readonly string[]): Situation {
@@ -185,19 +225,25 @@ function generateExploration(inventoryIds: readonly string[]): Situation {
     .map((id) => resolveItem(id, 'inventory'))
     .filter((r): r is ResolvedTarget => r !== null);
 
+  const resolvedFeatures = features
+    .map((f) => resolveEnvFeature(f.id))
+    .filter((r): r is EnvironmentFeatureInstance => r !== null);
+
+  const suggestions: ParsedAction[] = [];
+  if (resolvedFeatures[0]) suggestions.push(makeSuggestion('EXAMINE', featureToTarget(resolvedFeatures[0])));
+  if (resolvedFeatures[1]) suggestions.push(makeSuggestion('SCAN', featureToTarget(resolvedFeatures[1])));
+
   const scene: SceneContext = {
     inventory: inventoryResolved,
     locationItems: locationItems
       .map((item) => resolveItem(item.id, 'location'))
       .filter((r): r is ResolvedTarget => r !== null),
     npcs: [],
-    environmentFeatures: features
-      .map((f) => resolveEnvFeature(f.id))
-      .filter((r): r is EnvironmentFeatureInstance => r !== null),
+    environmentFeatures: resolvedFeatures,
     connectedLocations: [
       { id: 'corridor_a', aliases: ['corridor', 'couloir'] },
     ],
-    suggestions: [],
+    suggestions,
     environmentConditions: [...location.conditions],
     bodyParts: resolveBodyParts(),
   };
@@ -235,19 +281,33 @@ function generateCombat(inventoryIds: readonly string[]): Situation {
     .filter((r): r is ResolvedTarget => r !== null);
 
   const npcInstance = resolveNPC(npcDef.id);
-  const features = pickN(ENVIRONMENT_FEATURE_LIST, 1);
+  const features = pickN(ENVIRONMENT_FEATURE_LIST, 2);
+  const combatItems = pickN(
+    ITEM_LIST.filter((i) => !inventoryIds.includes(i.id)),
+    2,
+  );
+
+  const resolvedFeatures = features
+    .map((f) => resolveEnvFeature(f.id))
+    .filter((r): r is EnvironmentFeatureInstance => r !== null);
+
+  const suggestions: ParsedAction[] = [];
+  if (npcInstance) {
+    suggestions.push(makeSuggestion('STRIKE', npcToTarget(npcInstance)));
+    suggestions.push(makeSuggestion('SHOOT', npcToTarget(npcInstance)));
+  }
 
   const scene: SceneContext = {
     inventory: inventoryResolved,
-    locationItems: [],
+    locationItems: combatItems
+      .map((item) => resolveItem(item.id, 'location'))
+      .filter((r): r is ResolvedTarget => r !== null),
     npcs: npcInstance ? [npcInstance] : [],
-    environmentFeatures: features
-      .map((f) => resolveEnvFeature(f.id))
-      .filter((r): r is EnvironmentFeatureInstance => r !== null),
+    environmentFeatures: resolvedFeatures,
     connectedLocations: [
       { id: 'corridor_a', aliases: ['corridor', 'couloir'] },
     ],
-    suggestions: [],
+    suggestions,
     environmentConditions: [...location.conditions],
     bodyParts: resolveBodyParts(),
   };
@@ -280,17 +340,30 @@ function generateEnvironmental(inventoryIds: readonly string[]): Situation {
     .map((id) => resolveItem(id, 'inventory'))
     .filter((r): r is ResolvedTarget => r !== null);
 
+  const resolvedEnvFeatures = features
+    .map((f) => resolveEnvFeature(f.id))
+    .filter((r): r is EnvironmentFeatureInstance => r !== null);
+
+  const envSuggestions: ParsedAction[] = [];
+  if (resolvedEnvFeatures[0]) envSuggestions.push(makeSuggestion('EXAMINE', featureToTarget(resolvedEnvFeatures[0])));
+  envSuggestions.push(makeSuggestion('MOVE_TO', {
+    id: 'corridor_a',
+    nameKey: 'env.corridor',
+    properties: [],
+    isVirtual: false,
+    source: 'connected_location',
+    aliases: ['corridor', 'couloir'],
+  }));
+
   const scene: SceneContext = {
     inventory: inventoryResolved,
     locationItems: [],
     npcs: [],
-    environmentFeatures: features
-      .map((f) => resolveEnvFeature(f.id))
-      .filter((r): r is EnvironmentFeatureInstance => r !== null),
+    environmentFeatures: resolvedEnvFeatures,
     connectedLocations: [
       { id: 'corridor_a', aliases: ['corridor', 'couloir'] },
     ],
-    suggestions: [],
+    suggestions: envSuggestions,
     environmentConditions: [hazard.condition, ...location.conditions.filter((c) => c !== hazard.condition)],
     bodyParts: resolveBodyParts(),
   };
@@ -327,6 +400,12 @@ function generateDiscovery(inventoryIds: readonly string[]): Situation {
   const itemTarget = resolveItem(item.id, 'location');
   const features = pickN(ENVIRONMENT_FEATURE_LIST, 1);
 
+  const discoverySuggestions: ParsedAction[] = [];
+  if (itemTarget) {
+    discoverySuggestions.push(makeSuggestion('TAKE', itemTarget));
+    discoverySuggestions.push(makeSuggestion('EXAMINE', itemTarget));
+  }
+
   const scene: SceneContext = {
     inventory: inventoryResolved,
     locationItems: itemTarget ? [itemTarget] : [],
@@ -337,7 +416,7 @@ function generateDiscovery(inventoryIds: readonly string[]): Situation {
     connectedLocations: [
       { id: 'corridor_a', aliases: ['corridor', 'couloir'] },
     ],
-    suggestions: [],
+    suggestions: discoverySuggestions,
     environmentConditions: [...location.conditions],
     bodyParts: resolveBodyParts(),
   };

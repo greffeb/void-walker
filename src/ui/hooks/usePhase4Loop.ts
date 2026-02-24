@@ -8,6 +8,7 @@
 import { useReducer, useCallback } from 'react';
 import { CLASSES, CLASS_LIST } from '@content/classes';
 import { ITEM_DEFINITIONS } from '@content/items';
+import { NPC_DEFINITIONS } from '@content/npcs';
 import { buildParserLocaleData } from '@content/parserData';
 import { generateSituation, type Situation } from '@content/situationGenerator';
 import { processTurn } from '@engine/processTurn';
@@ -15,7 +16,7 @@ import { createInitialGameState } from '@engine/types';
 import { BALANCE } from '@engine/constants';
 import type {
   GameState, CharacterState, TurnDebugTrace, DifficultyLevel, DiceResult,
-  PlayerClassName,
+  PlayerClassName, ActiveCombatState,
 } from '@engine/types';
 
 // === TYPES ===
@@ -47,6 +48,31 @@ export interface Phase4Loop {
   readonly submitInput: (input: string) => void;
   readonly nextSituation: () => void;
   readonly submitFeedback: (thumbs: 'up' | 'down', comment?: string) => void;
+}
+
+// === ACTIVE COMBAT BUILDER ===
+
+function buildActiveCombat(situation: Situation): ActiveCombatState | null {
+  if (situation.type !== 'combat' || !situation.npcId) return null;
+  const npcDef = NPC_DEFINITIONS[situation.npcId];
+  if (!npcDef) return null;
+  return {
+    npc: {
+      definitionId: npcDef.id,
+      hp: npcDef.hp,
+      maxHp: npcDef.hp,
+      attack: npcDef.attack ?? npcDef.damage,
+      defense: npcDef.defense ?? 0,
+      dodgeChance: npcDef.dodgeChance,
+      fleeDC: npcDef.fleeDC ?? 10,
+      aggressionPattern: npcDef.aggressionPattern,
+      weakPoint: npcDef.weakPoint ?? null,
+      weakPointDiscovered: false,
+      combatRound: 0,
+    },
+    npcInstanceId: npcDef.id,
+    round: 1,
+  };
 }
 
 // === CHARACTER CREATION ===
@@ -93,13 +119,14 @@ function loopReducer(state: Phase4LoopState, action: LoopAction): Phase4LoopStat
 
     case 'SELECT_CLASS': {
       const character = createCharacter(action.className, state.difficulty);
+      const situation = generateSituation(character.inventory);
       const gameState: GameState = {
         ...createInitialGameState(),
         phase: 'playing',
         difficulty: state.difficulty,
         character,
+        activeCombat: buildActiveCombat(situation),
       };
-      const situation = generateSituation(character.inventory);
       return {
         ...state,
         loopPhase: 'playing',
@@ -131,6 +158,10 @@ function loopReducer(state: Phase4LoopState, action: LoopAction): Phase4LoopStat
         ...state,
         loopPhase: 'playing',
         situation: action.situation,
+        gameState: {
+          ...state.gameState,
+          activeCombat: buildActiveCombat(action.situation),
+        },
         lastTrace: null,
         lastDiceRoll: null,
         lastInput: '',
