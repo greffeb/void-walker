@@ -73,9 +73,15 @@ describe('GameState', () => {
     expect(state.turn).toBe(0);
     expect(state.scenarioId).toBeNull();
     expect(state.currentBeat).toBe('intro');
-    expect(state.stalkerClock).toBe(0);
+    expect(state.stalkerClockState.actionsSinceLastProgression).toBe(0);
+    expect(state.stalkerClockState.warningIssued).toBe(false);
+    expect(state.stalkerClockState.threatArrivalIssued).toBe(false);
     expect(state.sceneCount).toBe(0);
     expect(state.log).toEqual([]);
+    expect(state.shipMemory).toEqual([]);
+    expect(state.obstacleAttempts).toEqual({});
+    expect(state.secondChanceUsed).toBe(false);
+    expect(state.activeCombat).toBeNull();
   });
 
   test('initial game state is a fresh object each call', () => {

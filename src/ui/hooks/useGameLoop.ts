@@ -159,6 +159,9 @@ function createCharacter(className: PlayerClassName): CharacterState {
     }) ?? null,
     equippedArmor: null,
     conditions: [],
+    durability: {},
+    actionsInColdZone: 0,
+    actionsWithoutRest: 0,
   };
 }
 
@@ -361,7 +364,7 @@ export function useGameLoop(): GameLoop {
       difficultyLevel: 'survivor',
       creative: action.creative,
       environmentConditions: state.situation.scene.environmentConditions,
-      playerConditions: [...state.character.conditions],
+      playerConditions: state.character.conditions.map(c => c.id),
       suggestions: [...state.situation.scene.suggestions],
     });
 

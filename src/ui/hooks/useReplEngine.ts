@@ -218,6 +218,9 @@ function createCharacter(className: PlayerClassName): CharacterState {
     }) ?? null,
     equippedArmor: null,
     conditions: [],
+    durability: {},
+    actionsInColdZone: 0,
+    actionsWithoutRest: 0,
   };
 }
 
@@ -357,7 +360,7 @@ function handleSlashCommand(
         { text: `FOR:${ch.stats.FOR} DEF:${ch.stats.DEF} AGI:${ch.stats.AGI} INT:${ch.stats.INT} PER:${ch.stats.PER} CHA:${ch.stats.CHA} LCK:${ch.stats.LCK}`, type: 'info' },
         { text: `Arme: ${ch.equippedWeapon ? ts(ITEM_DEFINITIONS[ch.equippedWeapon]?.nameKey ?? `item.${ch.equippedWeapon}`) : 'aucune'}`, type: 'info' },
         { text: `Inventaire: ${ch.inventory.map((id) => ts(ITEM_DEFINITIONS[id]?.nameKey ?? `item.${id}`)).join(', ')}`, type: 'info' },
-        { text: `Conditions: ${ch.conditions.length > 0 ? ch.conditions.join(', ') : 'aucune'}`, type: 'info' },
+        { text: `Conditions: ${ch.conditions.length > 0 ? ch.conditions.map(c => c.id).join(', ') : 'aucune'}`, type: 'info' },
       ]);
       break;
     }
@@ -462,7 +465,7 @@ function processExplorationInput(
     difficultyLevel: 'survivor',
     creative: action.creative,
     environmentConditions: state.scene.environmentConditions,
-    playerConditions: [...state.character.conditions],
+    playerConditions: state.character.conditions.map(c => c.id),
     suggestions: [...state.scene.suggestions],
   });
 
@@ -617,7 +620,7 @@ function processCombatInput(
     difficultyLevel: 'survivor',
     creative: action.creative,
     environmentConditions: state.scene.environmentConditions,
-    playerConditions: [...char.conditions],
+    playerConditions: char.conditions.map(c => c.id),
   });
 
   const roll: DiceResult = rollCheck(stat, statValue, char.stats.LCK, diff.total, 0);

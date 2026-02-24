@@ -2,8 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Current Phase:** Phase 2 (COMPLETE) → Ready for Phase 3
-> **Last updated:** 2025-07-18
+> **Current Phase:** Phase 4 (COMPLETE) → Ready for Phase 5
+> **Last updated:** 2026-02-24
 
 ---
 
@@ -32,11 +32,23 @@ npm run playtest:debug          # Playtest with debug output
 **Phase 0 — Bootstrap + i18n Foundation** (COMPLETE)
 **Phase 1 — Properties, Verbs & Character Data** (COMPLETE)
 **Phase 2 — Parser & Action Resolution** (COMPLETE)
+**Phase 3 — Resolution & Combat** (COMPLETE)
+**Phase 4 — Consequences & State Engine** (COMPLETE)
 
-Next: **Phase 3 — Resolution & Combat**
-- Read `docs/phases/PHASE_3_RESOLUTION_COMBAT.md`
-- Read `docs/GAME_SYSTEMS.md` Section 3 (dice rolling, success/failure)
-- Read `docs/GAME_SYSTEMS.md` Section 4 (combat system)
+Next: **Phase 5 — Narrative Composition**
+- Read `docs/phases/PHASE_5_NARRATIVE.md`
+- Read `docs/GAME_SYSTEMS.md` Section 10 (narrative composition, 7-layer model)
+- Read `docs/SCENARIO_DESIGN.md` Section 7 (narrative templates)
+
+**Phase 4 delivered:**
+- `src/engine/state.ts` — Immutable state helpers, death resolution (knockout/second_chance/permadeath)
+- `src/engine/inventory.ts` — Item add/remove/equip/unequip (8-slot cap)
+- `src/engine/shipMemory.ts` — 7 environment mark types, DC modifiers, property changes
+- `src/engine/failsafe.ts` — Anti-softlock: Explorer threshold 2, Survivor 4, Nightmare disabled
+- `src/engine/consequences.ts` — Consequence engine with chain reactions (max depth 5)
+- `src/engine/processTurn.ts` — 10-step turn orchestrator (wires all Phase 2-4 systems)
+- Types fixed: `CharacterState.conditions` → `ActiveCondition[]`, `stalkerClockState: StalkerClockState`
+- `GameState` extended with: `shipMemory`, `obstacleAttempts`, `secondChanceUsed`, `activeCombat`
 
 ---
 
