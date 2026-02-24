@@ -320,7 +320,7 @@ function DefeatScreen({ gameState, onRestart }: { readonly gameState: GameState;
 
 export function NarrativePlaytest(): JSX.Element {
   const {
-    state, classList, selectDifficulty, selectClass, submitInput, nextSituation, submitFeedback,
+    state, classList, selectDifficulty, selectClass, submitInput, retryInput, nextSituation, submitFeedback,
   } = useNarrativeLoop();
 
   const [inputValue, setInputValue] = useState('');
@@ -463,18 +463,72 @@ export function NarrativePlaytest(): JSX.Element {
 
               {/* Feedback + next situation */}
               {state.situation && (
-                <div className="rounded border border-gray-800 bg-[var(--color-void-dark)] p-3">
-                  <Phase4FeedbackPanel
-                    situation={state.situation}
-                    input={state.lastInput}
-                    gameState={state.gameState}
-                    trace={state.lastTrace}
-                    diceRoll={state.lastDiceRoll}
-                    onFeedback={submitFeedback}
-                    onNext={nextSituation}
-                    reportCount={state.feedbackCount}
-                  />
-                </div>
+                state.lastTrace.reformulated ? (
+                  /* Reformulation — let the player rephrase */
+                  <div className="flex flex-col gap-2 pt-2">
+                    <div className="font-mono text-xs text-yellow-400/80">
+                      Reformulez votre action :
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const trimmed = inputValue.trim();
+                            if (!trimmed) return;
+                            retryInput();
+                            // Small delay to let state transition to 'playing' before submitting
+                            setTimeout(() => { submitInput(trimmed); }, 0);
+                            setInputValue('');
+                          }
+                        }}
+                        placeholder="Reformulez votre action..."
+                        className="flex-1 rounded border border-yellow-700/50 bg-[var(--color-void-dark)] px-3 py-2 font-mono text-sm text-white outline-none placeholder:text-gray-600 focus:border-yellow-500"
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const trimmed = inputValue.trim();
+                          if (!trimmed) return;
+                          retryInput();
+                          setTimeout(() => { submitInput(trimmed); }, 0);
+                          setInputValue('');
+                        }}
+                        disabled={!inputValue.trim()}
+                        className="rounded border border-yellow-700 bg-transparent px-4 py-2 font-mono text-sm font-bold text-yellow-400 transition-colors hover:bg-yellow-900/30 disabled:opacity-40"
+                      >
+                        OK
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={nextSituation}
+                      className="font-mono text-xs text-gray-600 underline hover:text-gray-400"
+                    >
+                      Passer a la scene suivante
+                    </button>
+                  </div>
+                ) : (
+                  <div className="rounded border border-gray-800 bg-[var(--color-void-dark)] p-3">
+                    <Phase4FeedbackPanel
+                      situation={state.situation}
+                      input={state.lastInput}
+                      gameState={state.gameState}
+                      trace={state.lastTrace}
+                      diceRoll={state.lastDiceRoll}
+                      narration={state.lastNarration ?? ''}
+                      onFeedback={submitFeedback}
+                      onNext={nextSituation}
+                      reportCount={state.feedbackCount}
+                    />
+                  </div>
+                )
               )}
             </>
           )}

@@ -48,6 +48,7 @@ export interface NarrativeLoop {
   readonly selectDifficulty: (d: DifficultyLevel) => void;
   readonly selectClass: (c: PlayerClassName) => void;
   readonly submitInput: (input: string) => void;
+  readonly retryInput: () => void;
   readonly nextSituation: () => void;
   readonly submitFeedback: (thumbs: 'up' | 'down', comment?: string) => void;
 }
@@ -110,6 +111,7 @@ type LoopAction =
   | { type: 'SELECT_CLASS'; className: PlayerClassName }
   | { type: 'TURN_RESULT'; newGameState: GameState; trace: TurnDebugTrace; diceRoll: DiceResult | null; input: string; narration: string }
   | { type: 'NEXT_SITUATION'; situation: Situation }
+  | { type: 'RETRY_INPUT' }
   | { type: 'INCREMENT_FEEDBACK' }
   | { type: 'SET_ERROR'; error: string };
 
@@ -174,6 +176,17 @@ function loopReducer(state: NarrativeLoopState, action: LoopAction): NarrativeLo
 
     case 'INCREMENT_FEEDBACK':
       return { ...state, feedbackCount: state.feedbackCount + 1 };
+
+    case 'RETRY_INPUT':
+      return {
+        ...state,
+        loopPhase: 'playing',
+        lastTrace: null,
+        lastDiceRoll: null,
+        lastInput: '',
+        lastNarration: null,
+        error: null,
+      };
 
     case 'SET_ERROR':
       return { ...state, error: action.error };
@@ -259,6 +272,10 @@ export function useNarrativeLoop(): NarrativeLoop {
     dispatch({ type: 'NEXT_SITUATION', situation });
   }, [state.gameState.character]);
 
+  const retryInput = useCallback(() => {
+    dispatch({ type: 'RETRY_INPUT' });
+  }, []);
+
   const submitFeedback = useCallback((_thumbs: 'up' | 'down', _comment?: string) => {
     dispatch({ type: 'INCREMENT_FEEDBACK' });
   }, []);
@@ -269,6 +286,7 @@ export function useNarrativeLoop(): NarrativeLoop {
     selectDifficulty,
     selectClass,
     submitInput,
+    retryInput,
     nextSituation,
     submitFeedback,
   };

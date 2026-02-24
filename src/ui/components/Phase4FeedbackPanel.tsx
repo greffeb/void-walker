@@ -35,6 +35,7 @@ interface Phase4FeedbackReport {
   readonly diceTotal: number;
   readonly dc: number;
   readonly outcome: string;
+  readonly narration: string;
   readonly playerClass: string;
   readonly thumbs: 'up' | 'down';
   readonly comment: string;
@@ -122,6 +123,7 @@ interface Phase4FeedbackPanelProps {
   readonly gameState: GameState;
   readonly trace: TurnDebugTrace | null;
   readonly diceRoll: DiceResult | null;
+  readonly narration?: string;
   readonly onFeedback: (thumbs: 'up' | 'down', comment?: string) => void;
   readonly onNext: () => void;
   readonly reportCount: number;
@@ -137,6 +139,7 @@ export function Phase4FeedbackPanel({
   gameState,
   trace,
   diceRoll,
+  narration = '',
   onFeedback,
   onNext,
   reportCount,
@@ -180,6 +183,7 @@ export function Phase4FeedbackPanel({
       diceTotal: diceRoll?.total ?? 0,
       dc: trace?.effectiveDC ?? 0,
       outcome: trace?.outcome ?? '',
+      narration,
       playerClass: char?.className ?? '',
       thumbs: t,
       comment,
