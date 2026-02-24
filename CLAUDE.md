@@ -25,6 +25,8 @@ npm run playtest                # Interactive CLI playtest via tsx
 npm run playtest:debug          # Playtest with debug output
 ```
 
+**Pre-commit gate:** Always run `npm run check` (typecheck + lint + test:all) before any commit or push. Never commit with only `npm test` — ESLint errors and type issues will break CI. The full check command is the single source of truth for commit-readiness.
+
 ---
 
 ## Current Phase

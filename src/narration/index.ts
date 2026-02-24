@@ -6,17 +6,15 @@
 // the engine layer free of narration imports (dependency flows downward).
 // ---------------------------------------------------------------------------
 
-import type { TurnResult, SceneContext, RollOutcome, GameState } from '../engine/types';
+import type { TurnResult, SceneContext, GameState } from '../engine/types';
 import type { VerbId } from '../engine/verbs';
-import type { PropertyId } from '../engine/properties';
 import type { Locale } from '../i18n/types';
 import type {
   NarrativeContext, NarrativeSettings, Outcome, VerbCategory,
   TargetInfo, ItemInfo, NpcInfo, LocationInfo, StateChange,
-  ModuleType, BeatZone,
 } from './types';
 import { NARRATIVE_PRESETS } from './types';
-import { composeNarrative, getVerbCategory, resetComposer } from './composer';
+import { composeNarrative, getVerbCategory } from './composer';
 import { getLocale } from '../i18n/index';
 
 export { composeNarrative, resetComposer } from './composer';
@@ -51,7 +49,7 @@ export function buildNarrativeContext(
   state: GameState,
 ): NarrativeContext {
   const trace = result.trace;
-  const verb = (trace.parsedVerb ?? 'WAIT') as VerbId;
+  const verb: VerbId = trace.parsedVerb ?? 'WAIT';
   const verbCategory: VerbCategory = getVerbCategory(verb);
   const outcome: Outcome = mapOutcome(trace);
 
@@ -113,12 +111,12 @@ export function buildNarrativeContext(
     location: locationInfo,
     environmentConditions: envConditions,
     tension: beatToTension(state.currentBeat),
-    beat: state.currentBeat as BeatZone,
+    beat: state.currentBeat,
     settingId: state.scenarioId ?? 'derelict_ship',
     playerHpPercent,
     playerConditions,
     moduleId: '',
-    moduleType: 'exploration' as ModuleType,
+    moduleType: 'exploration',
     npcsPresent: npcs,
     recentEvents: trace.consequenceDetails,
     turnNumber: state.turn,
@@ -185,7 +183,7 @@ function buildTargetInfo(
     id: entity.id,
     name: entity.nameKey,
     type: entity.properties[0] ?? 'unknown',
-    properties: entity.properties as readonly PropertyId[],
+    properties: entity.properties,
     grammar: DEFAULT_GRAMMAR,
   };
 }

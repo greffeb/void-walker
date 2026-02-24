@@ -8,8 +8,7 @@
 import type {
   NarrativeContext, NarrativeSettings, ActionTemplate, ScoredLayer,
   LayerType, Outcome, TensionTier, VerbCategory, LocationNarrationState,
-  SensorySnippet, AtmosphereSnippet, PlayerStateSnippet, NpcReactionSnippet,
-  ConsequenceSnippet, ThreatHintSnippet, NarrativePreset,
+  PlayerStateSnippet,
 } from './types';
 import { tensionTier, NARRATIVE_PRESETS } from './types';
 import { renderTemplate, detectSelfReference, getGrammarEngine } from './templateEngine';
@@ -130,7 +129,7 @@ export function getVerbCategory(verb: VerbId): VerbCategory {
  */
 export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
   const tier = tensionTier(ctx.tension);
-  const targetType = ctx.target?.properties[0] as PropertyId | undefined;
+  const targetType: PropertyId | undefined = ctx.target?.properties[0];
 
   // PRIORITY 1: Specific — verb + target type + outcome + tension tier
   let template = findTemplate(ctx.verb, targetType ?? null, ctx.outcome, tier, ctx.verbCategory);

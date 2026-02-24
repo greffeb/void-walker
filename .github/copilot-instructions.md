@@ -47,6 +47,8 @@ npm run playtest      # Interactive CLI playtest via tsx
 
 **TDD workflow:** Write types → write failing tests → implement until green → run stress tests → verify coverage ≥ 90%.
 
+**Pre-commit gate:** Always run `npm run check` (typecheck + lint + test:all) before any commit or push. Never commit with only `npm test` — ESLint errors and type issues will break CI. The full check command is the single source of truth for commit-readiness.
+
 ## Project Conventions
 
 - **MASTERPLAN.md is the constitution** — every decision traces to [docs/MASTERPLAN.md](docs/MASTERPLAN.md)

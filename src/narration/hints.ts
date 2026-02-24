@@ -5,7 +5,7 @@
 // in the same location. Hints are observations, never instructions.
 // ---------------------------------------------------------------------------
 
-import type { NarrativeContext, GameplayHint, GameplayHintTemplate, HintCategory } from './types';
+import type { NarrativeContext, GameplayHint, HintCategory } from './types';
 import type { Locale } from '../i18n/types';
 import { getLocale } from '../i18n/index';
 import { NarrationMemory } from './memory';

@@ -7,7 +7,7 @@
 import type { GrammaticalInfo } from '../i18n/grammar/interface';
 import type { VerbId } from '../engine/verbs';
 import type { PropertyId } from '../engine/properties';
-import type { StoryBeat, RollOutcome, ConditionId } from '../engine/types';
+import type { StoryBeat, ConditionId } from '../engine/types';
 
 // === VERB CATEGORY ===
 

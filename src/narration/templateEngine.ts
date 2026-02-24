@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import type { GrammarEngine, GrammaticalInfo } from '../i18n/grammar/interface';
-import type { NarrativeContext, TargetInfo, ItemInfo, NpcInfo } from './types';
+import type { NarrativeContext } from './types';
 import type { Locale } from '../i18n/types';
 import { getLocale } from '../i18n/index';
 import { frenchGrammar } from '../i18n/grammar/fr';
