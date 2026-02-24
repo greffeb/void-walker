@@ -191,6 +191,59 @@ export interface TurnResult {
   readonly narrative: string;
   readonly diceRoll: DiceResult | null;
   readonly suggestions: readonly string[];
+  readonly trace: TurnDebugTrace;
+}
+
+/** Per-step debug trace populated by processTurn() for the playtest UI */
+export interface TurnDebugTrace {
+  // Step 1: Parse
+  readonly reformulated: boolean;
+  readonly reformulationPrompt: string | null;
+  readonly parsedVerb: import('./verbs').VerbId | null;
+  readonly parsedTarget: string | null;
+  readonly parsedTargetName: string | null;
+  readonly parseStrategy: number;
+  readonly parseCreative: boolean;
+
+  // Step 2: Creativity
+  readonly creativityMod: number;
+
+  // Step 3: Condition tick
+  readonly conditionHpDrain: number;
+  readonly conditionsExpired: readonly string[];
+
+  // Step 4: Oxygen tick
+  readonly atmosphere: string;
+  readonly o2Before: number;
+  readonly o2After: number;
+  readonly oxygenHpDrain: number;
+
+  // Step 5: Action resolution
+  readonly isAutoVerb: boolean;
+  readonly statId: StatId | null;
+  readonly effectiveStatValue: number;
+  readonly shipMemoryMod: number;
+  readonly failsafeActivated: boolean;
+  readonly failsafeDcReduction: number;
+  readonly difficultyBreakdown: DifficultyBreakdown | null;
+  readonly effectiveDC: number;
+  readonly outcome: RollOutcome | null;
+
+  // Step 6: Consequences
+  readonly consequenceTypes: readonly ConsequenceType[];
+  readonly consequenceDetails: readonly string[];
+  readonly triggeredConditions: readonly string[];
+  readonly deathResult: DeathType | null;
+
+  // Step 7: NPC reaction
+  readonly npcReacted: boolean;
+  readonly npcAttackHit: boolean;
+  readonly npcAttackDamage: number;
+
+  // Step 8: Stalker clock
+  readonly stalkerClockBefore: number;
+  readonly stalkerClockAfter: number;
+  readonly stalkerEventType: string | null;
 }
 
 /** Result of a single dice roll */

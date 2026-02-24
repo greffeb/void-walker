@@ -106,6 +106,6 @@ export type {
   ConsequenceType, Consequence,
   DeathType, DeathResult,
   ActiveCombatState,
-  TurnResult,
+  TurnResult, TurnDebugTrace,
 } from './types';
 export { isReformulation, CONDITION_IDS } from './types';

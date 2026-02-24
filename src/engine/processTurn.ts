@@ -16,8 +16,8 @@
 // ---------------------------------------------------------------------------
 
 import type {
-  GameState, TurnResult, SceneContext, ParserLocaleData, RngFn,
-  DiceResult, ActionRecord,
+  GameState, TurnResult, TurnDebugTrace, SceneContext, ParserLocaleData, RngFn,
+  DiceResult, ActionRecord, DifficultyBreakdown, Consequence, ConsequenceType,
 } from './types';
 import { defaultRng, classifyOutcome } from './dice';
 import { rollCheck } from './dice';
@@ -33,6 +33,70 @@ import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shipMemory';
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack } from './combat';
+
+// ---------------------------------------------------------------------------
+// Empty trace factory — used for early returns
+// ---------------------------------------------------------------------------
+
+function emptyTrace(atmosphere: string, o2: number): TurnDebugTrace {
+  return {
+    reformulated: false,
+    reformulationPrompt: null,
+    parsedVerb: null,
+    parsedTarget: null,
+    parsedTargetName: null,
+    parseStrategy: 0,
+    parseCreative: false,
+    creativityMod: 0,
+    conditionHpDrain: 0,
+    conditionsExpired: [],
+    atmosphere,
+    o2Before: o2,
+    o2After: o2,
+    oxygenHpDrain: 0,
+    isAutoVerb: false,
+    statId: null,
+    effectiveStatValue: 0,
+    shipMemoryMod: 0,
+    failsafeActivated: false,
+    failsafeDcReduction: 0,
+    difficultyBreakdown: null,
+    effectiveDC: 0,
+    outcome: null,
+    consequenceTypes: [],
+    consequenceDetails: [],
+    triggeredConditions: [],
+    deathResult: null,
+    npcReacted: false,
+    npcAttackHit: false,
+    npcAttackDamage: 0,
+    stalkerClockBefore: 0,
+    stalkerClockAfter: 0,
+    stalkerEventType: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Consequence detail formatter
+// ---------------------------------------------------------------------------
+
+function formatConsequenceDetail(c: Consequence): string {
+  switch (c.type) {
+    case 'damage': return `damage ${c.amount ?? '?'} to ${c.targetId ?? 'player'}`;
+    case 'heal': return `heal ${c.amount ?? '?'} to ${c.targetId ?? 'player'}`;
+    case 'condition_add': return `add condition: ${c.conditionId ?? '?'}`;
+    case 'condition_remove': return `remove condition: ${c.conditionId ?? '?'}`;
+    case 'inventory_add': return `add item: ${c.itemId ?? '?'}`;
+    case 'inventory_remove': return `remove item: ${c.itemId ?? '?'}`;
+    case 'item_break': return `item broken: ${c.targetId ?? '?'}`;
+    case 'environment_change': return `environment change on ${c.targetId ?? '?'}`;
+    case 'ship_memory_mark': return `ship memory mark on ${c.targetId ?? '?'}`;
+    case 'atmosphere_change': return `atmosphere → ${c.atmosphereType ?? '?'}`;
+    case 'npc_killed': return `npc killed: ${c.targetId ?? '?'}`;
+    case 'npc_flee': return `npc fled: ${c.targetId ?? '?'}`;
+    default: return c.type;
+  }
+}
 
 /**
  * Process a single player turn through the full 10-step execution order.
@@ -50,6 +114,10 @@ export function processTurn(
   parserData: ParserLocaleData,
   rng: RngFn = defaultRng,
 ): TurnResult {
+  const atmosphere = context.atmosphere ?? 'pressurized';
+  const locationId = context.locationId ?? '';
+  const o2Initial = state.character?.oxygen ?? 100;
+
   // Guard: can't process turns when game is not active
   if (state.phase === 'defeat' || state.phase === 'victory' || state.character === null) {
     return {
@@ -57,13 +125,12 @@ export function processTurn(
       narrative: '',
       diceRoll: null,
       suggestions: [],
+      trace: emptyTrace(atmosphere, o2Initial),
     };
   }
 
   // Convenience aliases
   const char = state.character;
-  const atmosphere = context.atmosphere ?? 'pressurized';
-  const locationId = context.locationId ?? '';
 
   // ─────────────────────────────────────────────────────────
   // STEP 1: Parse input → ParsedAction | Reformulation
@@ -77,6 +144,11 @@ export function processTurn(
       narrative: parseResult.prompt,
       diceRoll: null,
       suggestions: [],
+      trace: {
+        ...emptyTrace(atmosphere, o2Initial),
+        reformulated: true,
+        reformulationPrompt: parseResult.prompt,
+      },
     };
   }
 
@@ -85,12 +157,18 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   // STEP 2: Creativity check → DC modifier
   // ─────────────────────────────────────────────────────────
-  const _creativityMod = detectCreativity(action, context.suggestions);
+  const creativityMod = detectCreativity(action, context.suggestions);
 
   // ─────────────────────────────────────────────────────────
   // STEP 3: Condition tick → HP drain, timer decrement
   // ─────────────────────────────────────────────────────────
+  const prevConditionIds = new Set(char.conditions.map(c => c.id));
   const { updatedConditions, hpDrain: conditionHpDrain } = tickConditions(char.conditions);
+  const newConditionIds = new Set(updatedConditions.map(c => c.id));
+  const conditionsExpired = char.conditions
+    .filter(c => prevConditionIds.has(c.id) && !newConditionIds.has(c.id))
+    .map(c => c.id);
+
   let current: GameState = {
     ...state,
     character: { ...char, conditions: updatedConditions },
@@ -103,14 +181,16 @@ export function processTurn(
   // STEP 4: Oxygen tick → O2 drain, HP drain if O2 = 0
   // ─────────────────────────────────────────────────────────
   const hasEvaSuit = char.equippedArmor === 'eva_suit';
+  const o2Before = current.character!.oxygen;
   const { newOxygen, hpDrain: oxygenHpDrain } = tickOxygen(
-    { current: current.character!.oxygen, max: 100 },
+    { current: o2Before, max: 100 },
     atmosphere,
     hasEvaSuit,
   );
+  const o2After = newOxygen.current;
   current = {
     ...current,
-    character: { ...current.character!, oxygen: newOxygen.current },
+    character: { ...current.character!, oxygen: o2After },
   };
   if (oxygenHpDrain > 0) {
     current = updateCharacterHp(current, -oxygenHpDrain);
@@ -122,11 +202,27 @@ export function processTurn(
   const isAutoVerb = AUTO_VERBS.has(action.verb);
   let diceRoll: DiceResult | null = null;
 
+  // Trace data for step 5 (populated if not auto-verb)
+  let traceStatId: import('./types').StatId | null = null;
+  let traceStatValue = 0;
+  let traceShipMemoryMod = 0;
+  let traceFailsafeActivated = false;
+  let traceFailsafeDcReduction = 0;
+  let traceDifficultyBreakdown: DifficultyBreakdown | null = null;
+  let traceEffectiveDC = 0;
+  let traceOutcome: import('./types').RollOutcome | null = null;
+  let traceConsequences: readonly Consequence[] = [];
+  let traceTriggeredConditions: readonly string[] = [];
+  let traceDeathResult: string | null = null;
+
   if (!isAutoVerb) {
     const statId = VERB_STATS[action.verb] ?? 'FOR';
     const effectiveStats = applyConditionMalus(current.character!.stats, current.character!.conditions);
     const statValue = effectiveStats[statId] ?? 0;
     const lck = effectiveStats['LCK'] ?? 0;
+
+    traceStatId = statId;
+    traceStatValue = statValue;
 
     // Ship Memory DC modifier for this target
     const targetId = action.target?.id ?? '';
@@ -134,12 +230,15 @@ export function processTurn(
       ? getMarksForTarget(current.shipMemory, locationId, targetId)
       : [];
     const shipMemoryMod = getMarkDCModifier(targetMarks, action.verb);
+    traceShipMemoryMod = shipMemoryMod;
 
     // Failsafe DC reduction (if obstacle has been attempted enough times)
     const obstacleKey = getObstacleKey(locationId, targetId);
     const obstacle = locationId && targetId ? current.obstacleAttempts[obstacleKey] : undefined;
     const failsafeResult = checkFailsafe(obstacle, current.difficulty);
     const failsafeMod = failsafeResult?.dcReduction ? -failsafeResult.dcReduction : 0;
+    traceFailsafeActivated = failsafeResult?.activated ?? false;
+    traceFailsafeDcReduction = failsafeResult?.dcReduction ?? 0;
 
     // Calculate DC
     const breakdown = calculateDifficulty({
@@ -153,6 +252,7 @@ export function processTurn(
       playerConditions: current.character!.conditions.map(c => c.id),
       suggestions: context.suggestions,
     });
+    traceDifficultyBreakdown = breakdown;
 
     // Total DC with all modifiers (ship memory + failsafe)
     const conditionRollMod = current.character!.conditions.some(
@@ -161,6 +261,7 @@ export function processTurn(
 
     const totalDC = breakdown.total + shipMemoryMod + failsafeMod;
     const effectiveDC = Math.max(2, Math.min(25, totalDC));
+    traceEffectiveDC = effectiveDC;
 
     diceRoll = rollCheck(statId, statValue, lck, effectiveDC, conditionRollMod, rng);
 
@@ -168,7 +269,10 @@ export function processTurn(
     // STEP 6: Consequence application
     // ───────────────────────────────────────────────────────
     const outcome = classifyOutcome(diceRoll.natural, diceRoll.total, effectiveDC);
+    traceOutcome = outcome;
+
     const consequences = buildConsequences(action.verb, action.target, outcome);
+    traceConsequences = consequences;
     current = applyConsequences(current, consequences, context, rng);
 
     // Ship Memory: failed actions mark the environment
@@ -208,6 +312,7 @@ export function processTurn(
       { criticalFailure: outcome === 'crit_failure' },
       rng,
     );
+    traceTriggeredConditions = triggeredConditions;
     for (const condId of triggeredConditions) {
       current = {
         ...current,
@@ -226,9 +331,26 @@ export function processTurn(
       current.secondChanceUsed,
     );
     if (deathResult) {
+      traceDeathResult = deathResult.type;
       current = applyDeath(current, deathResult);
       if (current.phase === 'defeat') {
-        return buildResult(current, diceRoll, input, action.verb, action.target?.id ?? null, 'permadeath');
+        return buildResult(
+          current, diceRoll, input, action.verb, action.target?.id ?? null, 'permadeath',
+          buildFullTrace({
+            action, creativityMod, conditionHpDrain, conditionsExpired,
+            atmosphere, o2Before, o2After, oxygenHpDrain, isAutoVerb,
+            statId: traceStatId, statValue: traceStatValue,
+            shipMemoryMod: traceShipMemoryMod,
+            failsafeActivated: traceFailsafeActivated, failsafeDcReduction: traceFailsafeDcReduction,
+            breakdown: traceDifficultyBreakdown, effectiveDC: traceEffectiveDC,
+            outcome: traceOutcome, consequences: traceConsequences,
+            triggeredConditions: traceTriggeredConditions, deathResult: traceDeathResult,
+            npcReacted: false, npcAttackHit: false, npcAttackDamage: 0,
+            stalkerClockBefore: current.stalkerClockState.actionsSinceLastProgression,
+            stalkerClockAfter: current.stalkerClockState.actionsSinceLastProgression,
+            stalkerEventType: null,
+          }),
+        );
       }
     }
   }
@@ -236,12 +358,16 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   // STEP 7: NPC reaction (if activeCombat present)
   // ─────────────────────────────────────────────────────────
+  let npcReacted = false;
+  let npcAttackHit = false;
+  let npcAttackDamage = 0;
+
   if (current.activeCombat && current.character !== null) {
+    npcReacted = true;
     const combat = current.activeCombat;
     const npc = combat.npc;
 
-    // Determine NPC armor value from equippedArmor (simplified: 0 for now)
-    const armorValue = 0; // TODO: resolve from item definitions in content layer
+    const armorValue = 0;
     const difficultyMultiplier = current.difficulty === 'explorer' ? 0.5
       : current.difficulty === 'nightmare' ? 1.5 : 1.0;
 
@@ -256,11 +382,13 @@ export function processTurn(
       rng,
     );
 
+    npcAttackHit = npcAttack.hit;
+    npcAttackDamage = npcAttack.hit ? npcAttack.damageDealt : 0;
+
     if (npcAttack.hit) {
       current = updateCharacterHp(current, -npcAttack.damageDealt);
     }
 
-    // Update combat round
     current = {
       ...current,
       activeCombat: {
@@ -269,7 +397,6 @@ export function processTurn(
       },
     };
 
-    // Death check after NPC attack
     if (current.character !== null) {
       const deathResult2 = checkDeath(
         current.character.hp,
@@ -278,9 +405,26 @@ export function processTurn(
         current.secondChanceUsed,
       );
       if (deathResult2) {
+        traceDeathResult = deathResult2.type;
         current = applyDeath(current, deathResult2);
         if (current.phase === 'defeat') {
-          return buildResult(current, diceRoll, input, action.verb, action.target?.id ?? null, 'npc_attack');
+          return buildResult(
+            current, diceRoll, input, action.verb, action.target?.id ?? null, 'npc_attack',
+            buildFullTrace({
+              action, creativityMod, conditionHpDrain, conditionsExpired,
+              atmosphere, o2Before, o2After, oxygenHpDrain, isAutoVerb,
+              statId: traceStatId, statValue: traceStatValue,
+              shipMemoryMod: traceShipMemoryMod,
+              failsafeActivated: traceFailsafeActivated, failsafeDcReduction: traceFailsafeDcReduction,
+              breakdown: traceDifficultyBreakdown, effectiveDC: traceEffectiveDC,
+              outcome: traceOutcome, consequences: traceConsequences,
+              triggeredConditions: traceTriggeredConditions, deathResult: traceDeathResult,
+              npcReacted, npcAttackHit, npcAttackDamage,
+              stalkerClockBefore: current.stalkerClockState.actionsSinceLastProgression,
+              stalkerClockAfter: current.stalkerClockState.actionsSinceLastProgression,
+              stalkerEventType: null,
+            }),
+          );
         }
       }
     }
@@ -289,18 +433,19 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   // STEP 8: Stalker clock check
   // ─────────────────────────────────────────────────────────
+  const stalkerClockBefore = current.stalkerClockState.actionsSinceLastProgression;
   const newClockState = tickStalkerClock(current.stalkerClockState);
   const stalkerEvent = checkStalkerClock(newClockState, current.difficulty);
   const finalClockState = stalkerEvent
     ? applyStalkerEvent(newClockState, stalkerEvent)
     : newClockState;
+  const stalkerClockAfter = finalClockState.actionsSinceLastProgression;
 
   current = { ...current, stalkerClockState: finalClockState };
 
   // ─────────────────────────────────────────────────────────
   // STEP 9: Threat director check (placeholder — Phase 5)
   // ─────────────────────────────────────────────────────────
-  // Future: roll for random encounter based on beat + stalker state
 
   // ─────────────────────────────────────────────────────────
   // STEP 10: Narrative composition (placeholder — Phase 5)
@@ -321,17 +466,99 @@ export function processTurn(
   };
   current = { ...current, actionHistory: [...current.actionHistory, record] };
 
+  const trace = buildFullTrace({
+    action, creativityMod, conditionHpDrain, conditionsExpired,
+    atmosphere, o2Before, o2After, oxygenHpDrain, isAutoVerb,
+    statId: traceStatId, statValue: traceStatValue,
+    shipMemoryMod: traceShipMemoryMod,
+    failsafeActivated: traceFailsafeActivated, failsafeDcReduction: traceFailsafeDcReduction,
+    breakdown: traceDifficultyBreakdown, effectiveDC: traceEffectiveDC,
+    outcome: traceOutcome, consequences: traceConsequences,
+    triggeredConditions: traceTriggeredConditions, deathResult: traceDeathResult,
+    npcReacted, npcAttackHit, npcAttackDamage,
+    stalkerClockBefore, stalkerClockAfter,
+    stalkerEventType: stalkerEvent?.type ?? null,
+  });
+
   return {
     newState: current,
     narrative,
     diceRoll,
-    suggestions: [], // Phase 5: suggestion generation
+    suggestions: [],
+    trace,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Internal helper
+// Internal helpers
 // ---------------------------------------------------------------------------
+
+interface TraceInputs {
+  readonly action: ReturnType<typeof parseAction> extends infer R ? Exclude<R, { readonly prompt: string }> : never;
+  readonly creativityMod: number;
+  readonly conditionHpDrain: number;
+  readonly conditionsExpired: readonly string[];
+  readonly atmosphere: string;
+  readonly o2Before: number;
+  readonly o2After: number;
+  readonly oxygenHpDrain: number;
+  readonly isAutoVerb: boolean;
+  readonly statId: string | null;
+  readonly statValue: number;
+  readonly shipMemoryMod: number;
+  readonly failsafeActivated: boolean;
+  readonly failsafeDcReduction: number;
+  readonly breakdown: DifficultyBreakdown | null;
+  readonly effectiveDC: number;
+  readonly outcome: string | null;
+  readonly consequences: readonly Consequence[];
+  readonly triggeredConditions: readonly string[];
+  readonly deathResult: string | null;
+  readonly npcReacted: boolean;
+  readonly npcAttackHit: boolean;
+  readonly npcAttackDamage: number;
+  readonly stalkerClockBefore: number;
+  readonly stalkerClockAfter: number;
+  readonly stalkerEventType: string | null;
+}
+
+function buildFullTrace(t: TraceInputs): TurnDebugTrace {
+  return {
+    reformulated: false,
+    reformulationPrompt: null,
+    parsedVerb: t.action.verb,
+    parsedTarget: t.action.target?.id ?? null,
+    parsedTargetName: t.action.target?.nameKey ?? null,
+    parseStrategy: t.action.verbMatch.strategy,
+    parseCreative: t.action.creative,
+    creativityMod: t.creativityMod,
+    conditionHpDrain: t.conditionHpDrain,
+    conditionsExpired: t.conditionsExpired,
+    atmosphere: t.atmosphere,
+    o2Before: t.o2Before,
+    o2After: t.o2After,
+    oxygenHpDrain: t.oxygenHpDrain,
+    isAutoVerb: t.isAutoVerb,
+    statId: (t.statId as import('./types').StatId | null),
+    effectiveStatValue: t.statValue,
+    shipMemoryMod: t.shipMemoryMod,
+    failsafeActivated: t.failsafeActivated,
+    failsafeDcReduction: t.failsafeDcReduction,
+    difficultyBreakdown: t.breakdown,
+    effectiveDC: t.effectiveDC,
+    outcome: (t.outcome as import('./types').RollOutcome | null),
+    consequenceTypes: t.consequences.map(c => c.type) as readonly ConsequenceType[],
+    consequenceDetails: t.consequences.map(formatConsequenceDetail),
+    triggeredConditions: t.triggeredConditions,
+    deathResult: (t.deathResult as import('./types').DeathType | null),
+    npcReacted: t.npcReacted,
+    npcAttackHit: t.npcAttackHit,
+    npcAttackDamage: t.npcAttackDamage,
+    stalkerClockBefore: t.stalkerClockBefore,
+    stalkerClockAfter: t.stalkerClockAfter,
+    stalkerEventType: t.stalkerEventType,
+  };
+}
 
 function buildResult(
   state: GameState,
@@ -340,6 +567,7 @@ function buildResult(
   verb: string,
   targetId: string | null,
   outcome: string,
+  trace: TurnDebugTrace,
 ): TurnResult {
   const record: ActionRecord = {
     input,
@@ -354,5 +582,5 @@ function buildResult(
     turn: state.turn + 1,
     actionHistory: [...state.actionHistory, record],
   };
-  return { newState, narrative: '', diceRoll, suggestions: [] };
+  return { newState, narrative: '', diceRoll, suggestions: [], trace };
 }
