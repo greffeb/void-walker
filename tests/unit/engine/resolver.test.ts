@@ -378,3 +378,115 @@ describe('resolveTarget() — body-part before NPC (regression)', () => {
     expect(result?.source).toBe('npc');
   });
 });
+
+// === USER FEEDBACK REGRESSIONS (2026-02) ===
+
+describe('resolveTarget() — single-NPC contextual fallback', () => {
+  const xenomorph = makeNpc('xenomorph', ['xenomorphe', 'alien', 'creature'], []);
+
+  test('empty target tokens after verb alias filtering + single NPC → NPC (je le frappe)', () => {
+    // "je le frappe" → "le" stripped (stop word), "frappe" = STRIKE alias → filtered away → empty target
+    const ctx = makeContext({ npcs: [xenomorph] });
+    const result = resolveTarget(['frappe'], 'STRIKE', ctx);
+    expect(result?.id).toBe('xenomorph');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('no fallback when 0 NPCs in scene', () => {
+    const ctx = makeContext({ npcs: [] });
+    const result = resolveTarget(['frappe'], 'STRIKE', ctx);
+    // Falls through to abstract environment
+    expect(result?.source).toBe('abstract');
+  });
+
+  test('no fallback when 2+ NPCs in scene (ambiguous)', () => {
+    const robot = makeNpc('security_robot', ['robot'], []);
+    const ctx = makeContext({ npcs: [xenomorph, robot] });
+    const result = resolveTarget(['frappe'], 'STRIKE', ctx);
+    // Cannot determine which NPC → abstract fallback
+    expect(result?.source).toBe('abstract');
+  });
+
+  test('intransitive verbs still return null with empty target tokens', () => {
+    const ctx = makeContext({ npcs: [xenomorph] });
+    const result = resolveTarget([], 'WAIT', ctx);
+    expect(result).toBeNull();
+  });
+});
+
+describe('resolveTarget() — generic NPC reference words', () => {
+  const genericNpcRefs = new Set(['lui', 'elle', 'eux', 'ennemi', 'enemi', 'adversaire', 'cible', 'creature', 'monstre', 'bete', 'alien']);
+  const xenomorph = makeNpc('xenomorph', ['xenomorphe'], []);
+  const crew = makeNpc('parasitized_crewmember', ['membre', 'equipage', 'infecte'], []);
+
+  test('"ennemi" with single NPC + genericNpcRefs → resolves to NPC (j\'inspecte l\'ennemi)', () => {
+    const ctx = makeContext({ npcs: [xenomorph] });
+    const result = resolveTarget(['ennemi'], 'EXAMINE', ctx, genericNpcRefs);
+    expect(result?.id).toBe('xenomorph');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('"enemi" (typo) with single NPC + genericNpcRefs → resolves to NPC', () => {
+    const ctx = makeContext({ npcs: [crew] });
+    const result = resolveTarget(['enemi'], 'EXAMINE', ctx, genericNpcRefs);
+    expect(result?.id).toBe('parasitized_crewmember');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('"lui" pronoun with single NPC + genericNpcRefs → resolves to NPC (je lui lance un lit)', () => {
+    const ctx = makeContext({ npcs: [xenomorph] });
+    // "lit" (bed) doesn't match xenomorph, but "lui" is a generic ref
+    const result = resolveTarget(['lui', 'lit', 'dessus'], 'THROW', ctx, genericNpcRefs);
+    expect(result?.id).toBe('xenomorph');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('generic ref token ignored when NPC matches by alias (specific match wins)', () => {
+    // "alien" is both a generic ref AND a specific alias → NPC resolution happens first
+    const ctx = makeContext({ npcs: [xenomorph] });
+    const result = resolveTarget(['alien'], 'STRIKE', ctx, genericNpcRefs);
+    expect(result?.id).toBe('xenomorph');
+    expect(result?.source).toBe('npc');
+  });
+
+  test('generic ref without genericNpcRefs parameter → abstract fallback', () => {
+    // Without the optional param, no generic-ref resolution
+    const ctx = makeContext({ npcs: [xenomorph] });
+    const result = resolveTarget(['ennemi'], 'EXAMINE', ctx);
+    expect(result?.source).toBe('abstract');
+  });
+
+  test('generic ref with 2 NPCs → abstract fallback (ambiguous)', () => {
+    const robot = makeNpc('security_robot', ['robot'], []);
+    const ctx = makeContext({ npcs: [xenomorph, robot] });
+    const result = resolveTarget(['ennemi'], 'EXAMINE', ctx, genericNpcRefs);
+    // 2 NPCs → cannot determine which → fallback
+    expect(result?.source).toBe('abstract');
+  });
+});
+
+describe('resolveTarget() — adjacent transposition fuzzy matching', () => {
+  const ductTape: ResolvedTarget = {
+    id: 'duct_tape',
+    nameKey: 'item.duct_tape',
+    properties: [],
+    isVirtual: false,
+    source: 'inventory',
+    aliases: ['ruban', 'adhesif', 'scotch', 'rouleau'],
+  };
+
+  test('"rouelau" (adjacent transposition of "rouleau") resolves to duct_tape', () => {
+    const ctx = makeContext({ inventory: [ductTape] });
+    const result = resolveTarget(['rouelau'], 'TAKE', ctx);
+    expect(result?.id).toBe('duct_tape');
+    expect(result?.source).toBe('inventory');
+  });
+
+  test('double-substitution typo (edit distance 2) does not resolve', () => {
+    // "rxulbau" differs from "rouleau" at positions 1 AND 4 (not adjacent, not a swap)
+    const ctx = makeContext({ inventory: [ductTape] });
+    const result = resolveTarget(['rxulbau'], 'TAKE', ctx);
+    // edit distance 2, no adjacent swap → should not match
+    expect(result?.source).toBe('abstract');
+  });
+});

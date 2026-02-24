@@ -464,10 +464,12 @@ export function parseAction(
   // Split on prepositions for target/tool separation
   const { targetTokens, toolTokens } = splitOnPrepositions(tokens, fullTokens, localeData);
 
-  // Resolve target from target-specific tokens (or all tokens if no preposition split)
-  const target = resolveTarget(targetTokens, verbMatch.verb, context);
+  // Resolve target from target-specific tokens (or all tokens if no preposition split).
+  // Pass genericNpcRefs so pronoun/generic-reference tokens ("lui", "ennemi") resolve
+  // to the primary NPC when exactly one NPC is present in the scene.
+  const target = resolveTarget(targetTokens, verbMatch.verb, context, localeData.genericNpcRefs);
 
-  // Resolve tool if we found tool tokens
+  // Resolve tool if we found tool tokens (no genericNpcRefs — tools are physical items)
   const tool = toolTokens.length > 0
     ? resolveTarget(toolTokens, verbMatch.verb, context)
     : null;

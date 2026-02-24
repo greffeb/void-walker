@@ -497,6 +497,7 @@ export type StringKey =
   | 'parser.compounds'
   | 'parser.stopWords'
   | 'parser.intents'
+  | 'parser.genericNpcRefs'
   | 'parser.prepositions.target'
   | 'parser.prepositions.tool'
   // Items (20)

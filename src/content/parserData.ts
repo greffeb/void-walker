@@ -160,6 +160,22 @@ function buildPrepositions(key: StringKey, locale: Locale): ReadonlySet<string> 
   );
 }
 
+/**
+ * Build generic NPC reference tokens from i18n parser.genericNpcRefs key.
+ * These are pronouns and generic enemy words that resolve to the primary NPC
+ * when exactly one NPC is present in the scene.
+ */
+function buildGenericNpcRefs(locale: Locale): ReadonlySet<string> {
+  const raw = t('parser.genericNpcRefs', locale);
+  if (!raw || raw === 'parser.genericNpcRefs') return new Set();
+
+  return new Set(
+    raw.split(',')
+      .map((w) => normalizeForm(w))
+      .filter((w) => w.length > 0),
+  );
+}
+
 // === PUBLIC API ===
 
 /**
@@ -175,6 +191,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
   const intentKeywords = buildIntentKeywords(locale);
   const targetPrepositions = buildPrepositions('parser.prepositions.target', locale);
   const toolPrepositions = buildPrepositions('parser.prepositions.tool', locale);
+  const genericNpcRefs = buildGenericNpcRefs(locale);
 
   return {
     verbForms,
@@ -184,5 +201,6 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     stemmedIndex,
     targetPrepositions,
     toolPrepositions,
+    genericNpcRefs,
   };
 }

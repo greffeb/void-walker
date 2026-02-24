@@ -425,7 +425,7 @@ export const fr: LocaleStrings = {
 
   // Verb aliases — all recognizable forms (infinitives + conjugated + slang) per verb
   // Used by content/parserData.ts to build parser lookup tables
-  'verb.STRIKE.aliases': 'frapper,taper,cogner,battre,assommer,frappe,frappes,frappez,frappons,frappais,frappait,frappant,tape,tapez,cogne,cognez,assomme,assommez,bats,battez,tabasse,tabassez,attaque,attaques,attaquez,attaquons,attaquer,attaquais,attaquait,attaquant,agresse,agressez,agressons,combats,combattons,combattre,poignarder,poignarde,poignardez,lacerer,lacere,lacerez',
+  'verb.STRIKE.aliases': 'frapper,taper,cogner,battre,assommer,frappe,frappes,frappez,frappons,frappais,frappait,frappant,tape,tapez,cogne,cognez,assomme,assommez,bats,battez,tabasse,tabassez,attaque,attaques,attaquez,attaquons,attaquer,attaquais,attaquait,attaquant,agresse,agressez,agressons,combats,combattons,combattre,poignarder,poignarde,poignardez,lacerer,lacere,lacerez,buter,bute,butes,butez,butons,butais,butait,descendre,descends,descendez,descendons,zigouiller,zigouille,zigouillez,liquider,liquide,liquidez,tuer,tue,tues,tuez,tuons,tuais,tuait,abattre,abat,abattez,massacrer,massacre,massacrez',
   'verb.PUSH.aliases': 'pousser,repousser,bousculer,deplacer,pousse,poussez,poussons,repousse,repoussez,bouscule,bousculez,deplace,deplacez',
   'verb.PULL.aliases': 'tirer,arracher,extraire,retirer,tire,tirez,tirons,arrache,arrachez,arrachons,extrais,extrait,extrayez,retire,retirez',
   'verb.LIFT.aliases': 'soulever,porter,lever,souleve,soulevez,soulevons,porte,portez,leve,levez',
@@ -511,6 +511,9 @@ export const fr: LocaleStrings = {
   // Parser data — prepositions that indicate target vs tool
   'parser.prepositions.target': 'sur,vers,contre,a',
   'parser.prepositions.tool': 'avec',
+  // Generic NPC reference tokens — when matched and exactly one NPC in scene, resolve to that NPC.
+  // Covers pronouns ("lui") and generic enemy words ("ennemi") that players use instead of the NPC name.
+  'parser.genericNpcRefs': 'lui,elle,eux,ennemi,enemi,adversaire,cible,creature,monstre,bete,alien',
 
   // Items
   'item.laser_pistol': 'Pistolet laser',

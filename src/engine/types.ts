@@ -445,6 +445,12 @@ export interface ParserLocaleData {
   readonly targetPrepositions: ReadonlySet<string>;
   /** Prepositions that indicate the tool (avec) */
   readonly toolPrepositions: ReadonlySet<string>;
+  /**
+   * Generic NPC reference tokens (lui, ennemi, adversaire, etc.).
+   * When a target token matches one of these AND exactly one NPC is present,
+   * the resolver defaults to that NPC instead of the abstract environment fallback.
+   */
+  readonly genericNpcRefs: ReadonlySet<string>;
 }
 
 /** Breakdown of how difficulty was calculated */

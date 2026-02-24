@@ -107,13 +107,35 @@ function isEditDistance1(a: string, b: string): boolean {
 }
 
 /**
+ * Check if two same-length strings differ by exactly one adjacent transposition
+ * (Damerau-Levenshtein distance 1 for swaps).
+ * E.g. "rouelau" vs "rouleau" → positions 3-4 are swapped ('e'↔'l').
+ * Only called for strings of length ≥ 5.
+ */
+function isAdjacentTransposition(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  const diffs: number[] = [];
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      diffs.push(i);
+      if (diffs.length > 2) return false;
+    }
+  }
+  if (diffs.length !== 2) return false;
+  const i = diffs[0]!;
+  const j = diffs[1]!;
+  return j === i + 1 && a[i] === b[j] && a[j] === b[i];
+}
+
+/**
  * Score how well a set of tokens matches a set of aliases.
  * Returns 0 for no match, higher for better match.
  *
  * Scoring tiers:
  *   10 — exact match
  *    5 — substring match (alias ≥3 chars)
- *    4 — edit-distance-1 (typo tolerance, both ≥4 chars)
+ *    5 — edit-distance-1 (single typo, both ≥6 chars)
+ *    5 — adjacent transposition (swap of two adjacent chars, both ≥6 chars)
  *    3 — 4-char prefix match
  */
 function tokenMatchScore(tokens: readonly string[], aliases: readonly string[]): number {
@@ -132,6 +154,8 @@ function tokenMatchScore(tokens: readonly string[], aliases: readonly string[]):
         score += 5; // Partial match (alias must be ≥3 chars to avoid 'ai' matching 'airlock')
       } else if (token.length >= 6 && normalizedAlias.length >= 6 && isEditDistance1(token, normalizedAlias)) {
         score += 5; // Edit-distance-1 (single typo in 6+ char words — avoids short-word false positives)
+      } else if (token.length >= 6 && normalizedAlias.length >= 6 && isAdjacentTransposition(token, normalizedAlias)) {
+        score += 5; // Adjacent transposition typo (e.g. "rouelau" → "rouleau")
       } else if (token.length >= 4 && normalizedAlias.length >= 4 && normalizedAlias.startsWith(token.slice(0, 4))) {
         score += 3; // Prefix match (both must be ≥4 chars)
       }
@@ -227,16 +251,26 @@ export function resolveBodyPart(
  * 4. NPCs (whole entity)
  * 5. Environment features
  * 6. Connected locations (for movement verbs)
- * 7. Abstract/environment fallback
+ * 7. Single-NPC contextual default (when tokens are empty or contain generic refs)
+ * 8. Abstract/environment fallback
  *
  * Returns null for intransitive verbs (WAIT, LISTEN with no target).
+ *
+ * @param genericNpcRefs - Optional set of generic reference tokens (lui, ennemi, etc.)
+ *   that resolve to the primary NPC when exactly one NPC is present in the scene.
  */
 export function resolveTarget(
   tokens: readonly string[],
   verb: VerbId,
   context: SceneContext,
+  genericNpcRefs?: ReadonlySet<string>,
 ): ResolvedTarget | null {
   if (tokens.length === 0) return null;
+
+  const intransitiveVerbs: ReadonlySet<VerbId> = new Set([
+    'WAIT', 'LISTEN', 'SMELL', 'DODGE', 'RUN', 'HIDE', 'BLOCK',
+    'SIGNAL', 'JUMP', 'SWIM',
+  ]);
 
   // Filter out tokens that are verb aliases (don't match them as targets)
   // Uses both exact match and stem comparison to catch conjugated forms
@@ -259,21 +293,23 @@ export function resolveTarget(
     !verbAliasTokens.has(t) && !verbAliasStems.has(stemFr(t)),
   );
 
-  // If no target tokens remain, check if verb is intransitive
+  // If no target tokens remain after verb alias filtering...
   if (targetTokens.length === 0) {
-    const intransitiveVerbs: ReadonlySet<VerbId> = new Set([
-      'WAIT', 'LISTEN', 'SMELL', 'DODGE', 'RUN', 'HIDE', 'BLOCK',
-      'SIGNAL', 'JUMP', 'SWIM',
-    ]);
-    if (intransitiveVerbs.has(verb)) {
-      return null;
-    }
-    // For transitive verbs with no target tokens, try matching against the full tokens
-    // (the verb token itself might overlap with a target name)
-    if (tokens.length > 0) {
-      // Fall through to matching with original tokens
-    } else {
-      return null;
+    if (intransitiveVerbs.has(verb)) return null;
+    if (tokens.length === 0) return null;
+
+    // Single-NPC contextual default: player used a pronoun that was stripped as a stop
+    // word (e.g. "je le frappe" → "le" stripped → empty target tokens).
+    // When there is exactly one NPC in the scene, default to it.
+    if (context.npcs.length === 1) {
+      const npc = context.npcs[0]!;
+      return {
+        id: npc.id,
+        nameKey: npc.nameKey,
+        properties: npc.properties,
+        isVirtual: false,
+        source: 'npc' as TargetSource,
+      };
     }
   }
 
@@ -408,12 +444,26 @@ export function resolveTarget(
   if (npcQualifies) return npcBestTarget;
   if (envQualifies) return envBestTarget;
 
-  // 7. Abstract fallback — return null for intransitive verbs,
+  // 7. Single-NPC contextual default with generic reference words.
+  // Handles cases like "j'inspecte l'ennemi" or "je lui lance un lit dessus"
+  // where the target token is a generic reference word (ennemi, lui, adversaire…)
+  // that doesn't match any specific alias, but there is exactly one NPC present.
+  if (context.npcs.length === 1 && genericNpcRefs && genericNpcRefs.size > 0) {
+    const hasGenericRef = searchTokens.some((t) => genericNpcRefs.has(t));
+    if (hasGenericRef) {
+      const npc = context.npcs[0]!;
+      return {
+        id: npc.id,
+        nameKey: npc.nameKey,
+        properties: npc.properties,
+        isVirtual: false,
+        source: 'npc' as TargetSource,
+      };
+    }
+  }
+
+  // 8. Abstract fallback — return null for intransitive verbs,
   // or an abstract environment target for transitive verbs
-  const intransitiveVerbs: ReadonlySet<VerbId> = new Set([
-    'WAIT', 'LISTEN', 'SMELL', 'DODGE', 'RUN', 'HIDE', 'BLOCK',
-    'SIGNAL', 'JUMP', 'SWIM',
-  ]);
   if (intransitiveVerbs.has(verb)) {
     return null;
   }
