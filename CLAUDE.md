@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Current Phase:** Phase 4 (COMPLETE) → Ready for Phase 5
+> **Current Phase:** Phase 5 (COMPLETE) → Ready for Phase 6
 > **Last updated:** 2026-02-24
 
 ---
@@ -34,21 +34,32 @@ npm run playtest:debug          # Playtest with debug output
 **Phase 2 — Parser & Action Resolution** (COMPLETE)
 **Phase 3 — Resolution & Combat** (COMPLETE)
 **Phase 4 — Consequences & State Engine** (COMPLETE)
+**Phase 5 — Narrative Composition** (COMPLETE)
 
-Next: **Phase 5 — Narrative Composition**
-- Read `docs/phases/PHASE_5_NARRATIVE.md`
-- Read `docs/GAME_SYSTEMS.md` Section 10 (narrative composition, 7-layer model)
-- Read `docs/SCENARIO_DESIGN.md` Section 7 (narrative templates)
+Next: **Phase 6 — Scenarios & Victory Conditions**
+- Read `docs/phases/PHASE_6_SCENARIOS_VICTORY.md`
+- Read `docs/SCENARIO_DESIGN.md` (full document)
+- Read `docs/GAME_SYSTEMS.md` Section 11 (victory/defeat conditions)
 
-**Phase 4 delivered:**
-- `src/engine/state.ts` — Immutable state helpers, death resolution (knockout/second_chance/permadeath)
-- `src/engine/inventory.ts` — Item add/remove/equip/unequip (8-slot cap)
-- `src/engine/shipMemory.ts` — 7 environment mark types, DC modifiers, property changes
-- `src/engine/failsafe.ts` — Anti-softlock: Explorer threshold 2, Survivor 4, Nightmare disabled
-- `src/engine/consequences.ts` — Consequence engine with chain reactions (max depth 5)
-- `src/engine/processTurn.ts` — 10-step turn orchestrator (wires all Phase 2-4 systems)
-- Types fixed: `CharacterState.conditions` → `ActiveCondition[]`, `stalkerClockState: StalkerClockState`
-- `GameState` extended with: `shipMemory`, `obstacleAttempts`, `secondChanceUsed`, `activeCombat`
+**Phase 5 delivered:**
+- `src/i18n/grammar/interface.ts` — Abstract GrammarEngine contract (SlotModifier, GrammaticalInfo)
+- `src/i18n/grammar/fr.ts` — French grammar engine (articles, contractions, adjective agreement, elision, typography)
+- `src/i18n/grammar/en.ts` — English grammar placeholder
+- `src/narration/types.ts` — All narration types (NarrativeContext 12 dimensions, 8 template types, NarrativePresets)
+- `src/narration/templateEngine.ts` — Slot parser + grammar-aware rendering ({def_target}, {?conditionals}, {target_adj:})
+- `src/narration/memory.ts` — NarrationMemory anti-repetition (buffer size 10, LRU fallback, injectable RNG)
+- `src/narration/composer.ts` — 7-layer composition engine (priority cascade, budget system, location state tracking)
+- `src/narration/hints.ts` — Gameplay hint generator (6 categories, anti-softlock escalation after turn 5+)
+- `src/narration/index.ts` — Narration bridge: `narrateForTurn(result, sceneContext, state)` (engine→narration)
+- `src/content/templates/actionTemplates.ts` — ~900 action templates (verb × outcome × tension tier)
+- `src/content/templates/sensory.ts` — 3 settings × 5 conditions, ~75 sensory snippets
+- `src/content/templates/atmosphere.ts` — 3 settings × 4 tension tiers, ~38 atmosphere snippets
+- `src/content/templates/conditions.ts` — Player state snippets (low_hp, fatigue, 5 conditions)
+- `src/content/templates/npcReactions.ts` — 4 dispositions × outcomes, ~41 NPC reaction snippets
+- `src/content/templates/environmental.ts` — 20+ state change types, ~48 consequence snippets
+- `src/content/templates/threats.ts` — 6 story beats, ~28 threat hint snippets
+- `src/content/templates/hints.ts` — 6 hint categories, ~30 hint templates
+- `src/content/templates/secrets.ts` — 9 secret verbs, ~51 secret verb templates
 
 ---
 
@@ -96,6 +107,20 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - Player-facing strings: French. Internals/comments/variables: English
 - **No hardcoded natural-language strings in engine code** — all player-facing text, verb aliases, conjugated forms, compound patterns, stop words, and intent keywords MUST live in i18n locale files. Adding a new language = adding a locale file, not editing engine code.
 - Parser linguistic data lives in i18n locale files; `content/parserData.ts` bridges i18n → typed data for the engine via `buildParserLocaleData(locale)`
+- **Grammar engine** (`src/i18n/grammar/`): Abstract `GrammarEngine` interface with French (full) and English (placeholder) implementations. Handles articles, contractions, adjective agreement, elision, non-breaking spaces.
+
+---
+
+## Narrative System (Phase 5)
+
+- **7-layer composition:** Action Result (mandatory) + Sensory Detail + Consequence + Atmosphere/Hint + Player State + Threat Hint + NPC Reaction
+- **Template slots:** `{def_target}`, `{indef_target}`, `{de_target}`, `{a_target}`, `{part_target}`, conditionals `{?slot:yes|no}`, adjective agreement `{target_adj:adj}`
+- **Anti-repetition:** `NarrationMemory` with per-layer buffers (size 10), LRU fallback, injectable RNG
+- **3 narrative presets:** concise (3 layers), standard (5), immersive (7)
+- **Priority cascade:** verb+target+outcome+tension → verb+outcome → category+outcome → generic fallback
+- **Bridge pattern:** Engine never imports narration. `narrateForTurn(result, sceneContext, state)` in `src/narration/index.ts` builds `NarrativeContext` from `TurnResult` and calls `composeNarrative()`
+- **Location awareness:** Atmosphere fades after 4 turns, replaced by gameplay hints. Environment changes reset counters.
+- **Content:** 8 template files in `src/content/templates/` (~1200 French snippets total)
 
 ---
 
