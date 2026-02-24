@@ -1,5 +1,5 @@
-import { Phase4Playtest } from './screens/Phase4Playtest';
+import { NarrativePlaytest } from './screens/NarrativePlaytest';
 
 export function App(): JSX.Element {
-  return <Phase4Playtest />;
+  return <NarrativePlaytest />;
 }
