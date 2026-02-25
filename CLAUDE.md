@@ -13,16 +13,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm test                        # Unit tests (must pass before any commit)
 npm run test:watch              # Unit tests in watch mode
 npm run test:stress             # Stress tests (run before commit)
+npm run test:integration        # Integration tests (run before merge)
 npm run test:all                # Unit + stress + integration
+npm run test:coverage           # Unit tests with coverage report
 npx vitest run tests/unit/engine/types.test.ts  # Run a single test file
 npm run dev                     # Dev server at localhost:5173
 npm run build                   # Production build (tsc -b && vite build)
+npm run preview                 # Preview production build locally
 npm run check                   # typecheck + lint + test:all (gate for merges)
 npm run typecheck               # tsc --noEmit
 npm run lint                    # eslint src/ tests/
 npm run lint:fix                # eslint with auto-fix
 npm run playtest                # Interactive CLI playtest via tsx
 npm run playtest:debug          # Playtest with debug output
+npm run playtest:god            # Playtest with god mode (invincible player)
+npm run playtest:chaos          # Playtest with chaos mode (random actions)
+npm run playtest:auto           # Automated single playthrough
+npm run playtest:auto:100       # 100 automated playthroughs with report
 ```
 
 **Pre-commit gate:** Always run `npm run check` (typecheck + lint + test:all) before any commit or push. Never commit with only `npm test` — ESLint errors and type issues will break CI. The full check command is the single source of truth for commit-readiness.
@@ -42,7 +49,7 @@ npm run playtest:debug          # Playtest with debug output
 Next: **Phase 6B — Game Loop Integration**
 - Read `docs/phases/PHASE_6B_GAME_LOOP_INTEGRATION.md`
 - Extend `GameState` with Phase 6 fields (visitedLocations, npcStates, threatDirectorState, victoryResult, scenario)
-- Create `src/engine/game.ts`: `initGame()`, `isGameOver()`, `buildVictoryCheckContext()`
+- `src/engine/game.ts` exists: verify `initGame()`, `isGameOver()`, `buildVictoryCheckContext()` are complete
 - Wire `checkVictory`, `threatCheck`, and visit tracking into `processTurn`
 - Extend `getSceneContext()` with scenario-aware suggestions and exit exploration status
 - Complete deferred stress + integration tests (500 playthroughs, emergent victories, Black Box round-trip)

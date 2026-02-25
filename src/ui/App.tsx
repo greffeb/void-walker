@@ -1,5 +1,5 @@
-import { NarrativePlaytest } from './screens/NarrativePlaytest';
+import { PlaytestScreen } from './screens/PlaytestScreen';
 
 export function App(): JSX.Element {
-  return <NarrativePlaytest />;
+  return <PlaytestScreen />;
 }
