@@ -289,3 +289,51 @@ describe('REG-011: terminal type has usable property', () => {
     expect(TYPE_BASE_PROPERTIES.environment.terminal).toContain('usable');
   });
 });
+
+// ---------------------------------------------------------------------------
+// REG-012: "je lui tire dessus" → PULL instead of SHOOT
+// Issue: #25 | Filed: 2026-02-25 | Fixed: 2026-02-25
+// Root cause: compound SHOOT:tire+dessus was missing; "tire" alone mapped to PULL (first-wins).
+// Fix: added SHOOT:tire+dessus / tirer+dessus / tirez+dessus compounds (fr.ts).
+// ---------------------------------------------------------------------------
+describe('REG-012: "tire dessus" → SHOOT via compound, not PULL', () => {
+  const xenomorph = makeNpc('xenomorph', ['xenomorphe', 'alien', 'creature'], ['organic', 'hostile'] as PropertyId[]);
+  const ctxWithNpc = makeContext({ npcs: [xenomorph] });
+
+  test('matchVerb detects compound "tire+dessus" → SHOOT', () => {
+    const fullTokens = ['je', 'lui', 'tire', 'dessus'];
+    const tokens = ['tire', 'dessus'];
+    const result = matchVerb(tokens, fullTokens, localeData);
+    expect(result).not.toBeNull();
+    expect(result?.verb).toBe('SHOOT');
+    expect(result?.isCompound).toBe(true);
+  });
+
+  test('parseAction("je lui tire dessus") → verb SHOOT, target xenomorph', () => {
+    const result = parseAction('je lui tire dessus', ctxWithNpc, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('SHOOT');
+      expect(result.target?.id).toBe('xenomorph');
+    }
+  });
+
+  test('parseAction("je tire sur le xenomorphe") → verb SHOOT (existing compound)', () => {
+    const result = parseAction('je tire sur le xenomorphe', ctxWithNpc, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('SHOOT');
+    }
+  });
+
+  // Guard: pulling a physical object must not become SHOOT
+  test('parseAction("je tire la poignée") → verb PULL (no compound, first-wins)', () => {
+    const door = makeFeature('blast_door', ['porte', 'blindee', 'poignee'], ['metallic'] as PropertyId[]);
+    const ctxWithDoor = makeContext({ environmentFeatures: [door] });
+    const result = parseAction('je tire la poignée', ctxWithDoor, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('PULL');
+    }
+  });
+});

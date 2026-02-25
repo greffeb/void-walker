@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { renderTemplate, renderTemplateWithSlots, detectSelfReference, getGrammarEngine } from '../../../src/narration/templateEngine';
+import { selectActionTemplate } from '../../../src/narration/composer';
 import type { NarrativeContext, TargetInfo, LocationInfo } from '../../../src/narration/types';
 import type { GrammaticalInfo } from '../../../src/i18n/grammar/interface';
 
@@ -236,5 +237,115 @@ describe('detectSelfReference', () => {
   it('returns false when no target', () => {
     const ctx = makeCtx({ target: null });
     expect(detectSelfReference(ctx)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regression: conditional with nested {slot} reference (issues #22 #23 #24)
+// The old regex /\{\?(\w+):([^}]*?)\|([^}]*?)\}/ stopped at the first }
+// inside {def_tool}, leaving the conditional unresolved.
+// Fix: regex now allows one level of nested {…} in true/false branches.
+// ---------------------------------------------------------------------------
+describe('renderTemplate — nested slot inside conditional (issue #23 regression)', () => {
+  it('resolves {?tool_used: via {def_tool}|} when tool is present', () => {
+    const ctx = makeCtx({
+      target: makeTarget({ name: 'porte blindée', grammar: femGrammar }),
+      toolUsed: { id: 'laser_pistol', name: 'Pistolet laser', grammar: mascGrammar },
+    });
+    const result = renderTemplate(
+      'Vous forcez {def_target}{?tool_used: via {def_tool}|}.',
+      ctx, 'fr',
+    );
+    // Must not contain raw template syntax
+    expect(result).not.toMatch(/\{/);
+    expect(result).toContain('via le Pistolet laser');
+  });
+
+  it('resolves {?tool_used: via {def_tool}|} to empty when tool absent', () => {
+    const ctx = makeCtx({
+      target: makeTarget({ name: 'porte blindée', grammar: femGrammar }),
+      toolUsed: null,
+    });
+    const result = renderTemplate(
+      'Vous forcez {def_target}{?tool_used: via {def_tool}|}.',
+      ctx, 'fr',
+    );
+    expect(result).not.toMatch(/\{/);
+    expect(result).not.toContain('via');
+    expect(result).toContain('Vous forcez');
+  });
+
+  it('resolves {?tool_used: avec {def_tool}|} pattern used in BARRICADE/FORCE_OPEN templates', () => {
+    const ctx = makeCtx({
+      toolUsed: { id: 'multitool', name: 'Multitool', grammar: mascGrammar },
+    });
+    const result = renderTemplate(
+      'Action réussie{?tool_used: avec {def_tool}|}.',
+      ctx, 'fr',
+    );
+    expect(result).not.toMatch(/\{/);
+    expect(result).toContain('avec le Multitool');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regression: BARRICADE, FORCE_OPEN, RUN templates exist and are contextually
+// appropriate (issues #22, #23, #24)
+// ---------------------------------------------------------------------------
+describe('selectActionTemplate — BARRICADE / FORCE_OPEN / RUN have dedicated templates', () => {
+  function makeComposerCtx(verb: NarrativeContext['verb'], outcome: NarrativeContext['outcome']): NarrativeContext {
+    return makeCtx({ verb, verbCategory: 'physical', outcome, tension: 5 });
+  }
+
+  it('BARRICADE success does not select a physical fallback mentioning "appliquez votre force"', () => {
+    const ctx = makeComposerCtx('BARRICADE', 'success');
+    const tpl = selectActionTemplate(ctx);
+    expect(tpl.text.fr).not.toContain('appliquez votre force');
+    expect(tpl.verb).toBe('BARRICADE');
+  });
+
+  it('FORCE_OPEN success selects a dedicated FORCE_OPEN template', () => {
+    const ctx = makeComposerCtx('FORCE_OPEN', 'success');
+    const tpl = selectActionTemplate(ctx);
+    expect(tpl.verb).toBe('FORCE_OPEN');
+    expect(tpl.text.fr).not.toContain('appliquez votre force');
+  });
+
+  it('RUN success selects a dedicated RUN template', () => {
+    const ctx = makeComposerCtx('RUN', 'success');
+    const tpl = selectActionTemplate(ctx);
+    expect(tpl.verb).toBe('RUN');
+    expect(tpl.text.fr).not.toContain('appliquez votre force');
+  });
+
+  it('RUN crit_success renders without raw template syntax', () => {
+    const ctx = makeComposerCtx('RUN', 'crit_success');
+    const tpl = selectActionTemplate(ctx);
+    const rendered = renderTemplate(tpl.text.fr, ctx, 'fr');
+    expect(rendered).not.toMatch(/\{/);
+    expect(rendered.length).toBeGreaterThan(5);
+  });
+
+  it('BARRICADE failure renders without raw template syntax', () => {
+    const ctx = makeComposerCtx('BARRICADE', 'failure');
+    const tpl = selectActionTemplate(ctx);
+    const rendered = renderTemplate(tpl.text.fr, ctx, 'fr');
+    expect(rendered).not.toMatch(/\{/);
+  });
+
+  it('FORCE_OPEN with tool renders correctly via nested conditional', () => {
+    const ctx = makeCtx({
+      verb: 'FORCE_OPEN',
+      verbCategory: 'physical',
+      outcome: 'success',
+      tension: 5,
+      target: makeTarget({ name: 'Porte blindée', grammar: femGrammar }),
+      toolUsed: { id: 'multitool', name: 'Multitool', grammar: mascGrammar },
+    });
+    const tpl = selectActionTemplate(ctx);
+    const rendered = renderTemplate(tpl.text.fr, ctx, 'fr');
+    expect(rendered).not.toMatch(/\{/);
+    // When tool is present, template branch should mention it
+    expect(rendered).toContain('Multitool');
   });
 });
