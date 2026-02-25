@@ -12,7 +12,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { initGame, isGameOver } from '../../src/engine/game';
-import { getSceneContext, formatSuggestionAsInput, sceneHasHealingItem } from '../../src/engine/scene';
+import { getSceneContext } from '../../src/engine/scene';
 import { processTurn } from '../../src/engine/processTurn';
 import { assembleScenario } from '../../src/engine/pacing';
 import { buildParserLocaleData } from '../../src/content/parserData';
@@ -22,9 +22,9 @@ import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import { createSeededRng } from '../playtest/bots/index';
 import { randomBot } from '../playtest/bots/randomBot';
 import { goalBot } from '../playtest/bots/goalBot';
+import { toBotState, toBotScene } from '../playtest/botAdapters';
 import { StuckDetector } from '../playtest/stuckDetector';
 import type { GameState } from '../../src/engine/types';
-import type { BotState, BotScene } from '../playtest/bots/index';
 
 // ---------------------------------------------------------------------------
 // CONSTANTS
@@ -43,45 +43,6 @@ const DIFFICULTIES = ['survivor'] as const; // keep tests fast
 // ---------------------------------------------------------------------------
 
 const parserData = buildParserLocaleData('fr');
-
-// ---------------------------------------------------------------------------
-// STATE → BotState ADAPTER
-// ---------------------------------------------------------------------------
-
-function toBotState(state: GameState): BotState {
-  return {
-    playerHp: state.character?.hp ?? 0,
-    playerMaxHp: state.character?.maxHp ?? 1,
-    playerClassId: state.character?.className ?? 'marine',
-    playerLocationId: state.playerLocationId ?? '',
-    playerInventory: state.character?.inventory ?? [],
-    visitedLocationIds: Object.keys(state.visitedLocations),
-    turn: state.turn,
-    isGameOver: isGameOver(state),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// SCENE CONTEXT → BotScene ADAPTER
-// ---------------------------------------------------------------------------
-
-function toBotScene(state: GameState): BotScene {
-  const ctx = getSceneContext(state);
-  const suggestionStrings = (ctx.scenarioSuggestions ?? []).map(formatSuggestionAsInput);
-  const locationItemNames = ctx.locationItems.map(i => i.nameKey);
-  const locationItemIds = ctx.locationItems.map(i => i.id);
-
-  return {
-    suggestions: suggestionStrings,
-    locationItemNames,
-    locationItemIds,
-    npcIds: ctx.npcs.map(n => n.id),
-    connectedLocationIds: ctx.connectedLocations.map(l => l.id),
-    connectedLocationAliases: ctx.connectedLocations.map(l => l.aliases[0] ?? l.id),
-    hasHealingItem: sceneHasHealingItem(locationItemIds),
-    hasObstacle: false, // determined by obstacle resolution state
-  };
-}
 
 // ---------------------------------------------------------------------------
 // SINGLE PLAYTHROUGH

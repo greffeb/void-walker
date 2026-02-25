@@ -5,6 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import { randomBot } from '../../playtest/bots/randomBot';
 import { goalBot } from '../../playtest/bots/goalBot';
+import { explorerBot } from '../../playtest/bots/explorerBot';
+import { chaoticBot, CHAOTIC_ABSURD_VERBS } from '../../playtest/bots/chaoticBot';
 import { createSeededRng } from '../../playtest/bots/index';
 import type { BotState, BotScene } from '../../playtest/bots/index';
 
@@ -32,10 +34,14 @@ function makeScene(overrides: Partial<BotScene> = {}): BotScene {
     locationItemNames: ['kit médical', 'lance-flammes'],
     locationItemIds: ['medkit', 'flamethrower'],
     npcIds: [],
+    npcNames: [],
+    environmentFeatureIds: ['security_camera'],
+    environmentFeatureNames: ['camera de securite'],
     connectedLocationIds: ['room_b', 'room_c'],
     connectedLocationAliases: ['couloir nord', 'réservoir'],
     hasHealingItem: false,
     hasObstacle: false,
+    obstacleTargetId: null,
     ...overrides,
   };
 }
@@ -201,6 +207,166 @@ describe('goalBot', () => {
       const rng = createSeededRng(i);
       expect(() => goalBot.makeDecision(state, scene, rng)).not.toThrow();
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// EXPLORER BOT
+// ---------------------------------------------------------------------------
+
+describe('explorerBot', () => {
+  it('examines unseen entities before moving', () => {
+    const rng = createSeededRng(42);
+    const decision = explorerBot.makeDecision(
+      makeState({ turn: 1, visitedLocationIds: ['room_start'] }),
+      makeScene({
+        suggestions: [],
+        locationItemIds: ['captain_log'],
+        locationItemNames: ['captain_log'],
+        connectedLocationIds: ['room_b'],
+        connectedLocationAliases: ['couloir nord'],
+      }),
+      rng,
+    );
+    expect(decision).toBe('examiner captain_log');
+  });
+
+  it('talks to NPCs after examining them', () => {
+    const rng = createSeededRng(7);
+    const scene = makeScene({
+      suggestions: [],
+      locationItemIds: [],
+      locationItemNames: [],
+      environmentFeatureIds: [],
+      environmentFeatureNames: [],
+      npcIds: ['security_robot'],
+      npcNames: ['security_robot'],
+      connectedLocationIds: [],
+      connectedLocationAliases: [],
+    });
+
+    const first = explorerBot.makeDecision(makeState({ turn: 1 }), scene, rng);
+    const second = explorerBot.makeDecision(makeState({ turn: 2 }), scene, rng);
+
+    expect(first).toBe('examiner security_robot');
+    expect(second).toBe('parler security_robot');
+  });
+
+  it('explores unexplored exits when nothing else is pending', () => {
+    const rng = createSeededRng(13);
+    const decision = explorerBot.makeDecision(
+      makeState({ turn: 3, visitedLocationIds: ['room_start'] }),
+      makeScene({
+        suggestions: [],
+        locationItemIds: [],
+        locationItemNames: [],
+        environmentFeatureIds: [],
+        environmentFeatureNames: [],
+        npcIds: [],
+        npcNames: [],
+        connectedLocationIds: ['room_b'],
+        connectedLocationAliases: ['couloir nord'],
+      }),
+      rng,
+    );
+    expect(decision).toContain('aller');
+    expect(decision).toContain('room b');
+  });
+
+  it('resets session memory when turn returns to zero', () => {
+    const rng = createSeededRng(99);
+    const scene = makeScene({
+      suggestions: [],
+      locationItemIds: ['captain_log'],
+      locationItemNames: ['captain_log'],
+      environmentFeatureIds: [],
+      environmentFeatureNames: [],
+      npcIds: [],
+      npcNames: [],
+      connectedLocationIds: [],
+      connectedLocationAliases: [],
+    });
+
+    const first = explorerBot.makeDecision(makeState({ turn: 10 }), scene, rng);
+    const second = explorerBot.makeDecision(makeState({ turn: 11 }), scene, rng);
+    const afterReset = explorerBot.makeDecision(makeState({ turn: 0 }), scene, rng);
+
+    expect(first).toBe('examiner captain_log');
+    expect(second).toBe('prendre captain_log');
+    expect(afterReset).toBe('examiner captain_log');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CHAOTIC BOT
+// ---------------------------------------------------------------------------
+
+describe('chaoticBot', () => {
+  it('uses obstacle pressure commands on active obstacles', () => {
+    const rng = createSeededRng(42);
+    const decision = chaoticBot.makeDecision(
+      makeState({ turn: 1 }),
+      makeScene({
+        hasObstacle: true,
+        obstacleTargetId: 'sealed_airlock',
+        connectedLocationAliases: [],
+        connectedLocationIds: [],
+      }),
+      rng,
+    );
+
+    expect(decision.endsWith('sealed_airlock')).toBe(true);
+  });
+
+  it('forces movement periodically when exits exist', () => {
+    const rng = createSeededRng(42);
+    const decision = chaoticBot.makeDecision(
+      makeState({ turn: 8 }),
+      makeScene({
+        connectedLocationIds: ['room_b'],
+        connectedLocationAliases: ['couloir nord'],
+      }),
+      rng,
+    );
+    expect(decision).toBe('aller couloir nord');
+  });
+
+  it('handles empty scene gracefully', () => {
+    const rng = createSeededRng(123);
+    const decision = chaoticBot.makeDecision(
+      makeState({ turn: 1 }),
+      makeScene({
+        suggestions: [],
+        locationItemIds: [],
+        locationItemNames: [],
+        environmentFeatureIds: [],
+        environmentFeatureNames: [],
+        npcIds: [],
+        npcNames: [],
+        connectedLocationIds: [],
+        connectedLocationAliases: [],
+      }),
+      rng,
+    );
+    expect(typeof decision).toBe('string');
+    expect(decision.length).toBeGreaterThan(0);
+  });
+
+  it('produces deterministic decisions without throwing across many seeds', () => {
+    const state = makeState();
+    const scene = makeScene();
+    for (let i = 0; i < 200; i++) {
+      const rng = createSeededRng(i);
+      expect(() => chaoticBot.makeDecision(state, scene, rng)).not.toThrow();
+      const decision = chaoticBot.makeDecision(state, scene, rng);
+      const prefix = decision.split(' ')[0] ?? '';
+      expect(typeof decision).toBe('string');
+      expect(prefix.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps absurd verb surface available', () => {
+    expect(CHAOTIC_ABSURD_VERBS.length).toBeGreaterThanOrEqual(6);
   });
 });
 

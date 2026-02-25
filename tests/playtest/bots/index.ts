@@ -37,6 +37,12 @@ export interface BotScene {
   readonly locationItemIds: readonly string[];
   /** NPC IDs present in this location */
   readonly npcIds: readonly string[];
+  /** NPC names present in this location */
+  readonly npcNames: readonly string[];
+  /** IDs of environment features visible in this location */
+  readonly environmentFeatureIds: readonly string[];
+  /** Names of environment features visible in this location */
+  readonly environmentFeatureNames: readonly string[];
   /** IDs of connected locations */
   readonly connectedLocationIds: readonly string[];
   /** Names/aliases of connected locations (for text commands) */
@@ -45,6 +51,8 @@ export interface BotScene {
   readonly hasHealingItem: boolean;
   /** True if there is an unresolved obstacle in this location */
   readonly hasObstacle: boolean;
+  /** Target ID for the active obstacle (if any) */
+  readonly obstacleTargetId: string | null;
 }
 
 // ---------------------------------------------------------------------------
