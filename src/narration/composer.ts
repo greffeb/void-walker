@@ -159,23 +159,25 @@ function findTemplate(
   tension: TensionTier,
   _category: VerbCategory,
 ): ActionTemplate | null {
-  // Search through action templates
-  for (const t of ACTION_TEMPLATES) {
-    if (t.verb === verb &&
-        (targetType === null || t.targetType === null || t.targetType === targetType) &&
-        t.outcome === outcome &&
-        t.tension === tension) {
-      return composerMemory.select([t], 'action') ?? t;
-    }
+  // Collect ALL matching templates first, then let memory pick to avoid repetition
+  const exactCandidates = ACTION_TEMPLATES.filter(t =>
+    t.verb === verb &&
+    (targetType === null || t.targetType === null || t.targetType === targetType) &&
+    t.outcome === outcome &&
+    t.tension === tension
+  );
+  if (exactCandidates.length > 0) {
+    return composerMemory.select(exactCandidates, 'action');
   }
 
   // Try without tension tier constraint
-  for (const t of ACTION_TEMPLATES) {
-    if (t.verb === verb &&
-        (targetType === null || t.targetType === null || t.targetType === targetType) &&
-        t.outcome === outcome) {
-      return composerMemory.select([t], 'action') ?? t;
-    }
+  const relaxedCandidates = ACTION_TEMPLATES.filter(t =>
+    t.verb === verb &&
+    (targetType === null || t.targetType === null || t.targetType === targetType) &&
+    t.outcome === outcome
+  );
+  if (relaxedCandidates.length > 0) {
+    return composerMemory.select(relaxedCandidates, 'action');
   }
 
   return null;

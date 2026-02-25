@@ -26,6 +26,8 @@ export interface ItemDefinition {
   readonly id: string;
   readonly hidden?: boolean;       // Requires search to find
   readonly conditional?: string;   // Only present if this flag is set in state
+  /** What examining this item reveals (on success) */
+  readonly examineResult?: LocaleString;
 }
 
 /** An NPC placed in a scenario location */
@@ -33,12 +35,18 @@ export interface NpcDefinition {
   readonly id: string;
   readonly disposition?: 'hostile' | 'neutral' | 'friendly' | 'cooperative';
   readonly hpOverride?: number;
+  /** What the NPC says when TALK succeeds */
+  readonly talkSuccess?: LocaleString;
+  /** What the NPC says/does when TALK fails */
+  readonly talkFailure?: LocaleString;
 }
 
 /** An environment feature placed in a scenario location */
 export interface FeatureDefinition {
   readonly id: string;
   readonly initialState?: 'intact' | 'damaged' | 'broken' | 'locked' | 'open';
+  /** What examining this feature reveals (on success) */
+  readonly examineResult?: LocaleString;
 }
 
 // ---------------------------------------------------------------------------
@@ -228,6 +236,8 @@ export interface ObstacleDefinition {
   readonly paths: readonly ObstaclePath[];
   readonly failsafeType?: FailsafeType;
   readonly description: LocaleString;
+  /** What is revealed or what happens when the obstacle is overcome */
+  readonly resolveReveal?: LocaleString;
 }
 
 // ---------------------------------------------------------------------------

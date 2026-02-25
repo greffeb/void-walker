@@ -9,13 +9,14 @@
 import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from './types';
 import type { LocationNode, NarrativeSkin, LocationVisitState } from './scenario';
 import type { SuggestionCandidate } from './suggestions';
+import type { StringKey } from '../i18n/types';
 import { generateSuggestions } from './suggestions';
 import { getExitsWithStatus } from './backtracking';
 import { isItemAvailable, isObstacleResolved } from './backtracking';
+import { resolveProperties } from './properties';
 import { ITEM_DEFINITIONS } from '../content/items';
 import { ENVIRONMENT_FEATURE_DEFINITIONS } from '../content/environments';
 import { NPC_DEFINITIONS } from '../content/npcs';
-import { getScenarioNameFr } from '../content/scenarioNames';
 import { t } from '../i18n/index';
 
 // ---------------------------------------------------------------------------
@@ -144,7 +145,9 @@ function buildSuggestionCandidates(
     for (const path of node.obstacle.paths) {
       candidates.push({
         verbText: path.verbs[0] ?? 'examiner',
-        targetText: node.obstacle.description.fr,
+        targetText: node.obstacle.targetId
+          ? resolveDisplayName(`env.${node.obstacle.targetId}`, node.obstacle.targetId)
+          : node.obstacle.description.fr,
         stat: path.stat,
         category: 'obstacle',
       });
@@ -155,7 +158,7 @@ function buildSuggestionCandidates(
   for (const item of locationItems) {
     candidates.push({
       verbText: 'prendre',
-      targetText: item.nameKey,
+      targetText: t(item.nameKey as StringKey),
       stat: 'INT',
       category: 'item',
     });
@@ -165,7 +168,7 @@ function buildSuggestionCandidates(
   for (const npc of npcs) {
     candidates.push({
       verbText: 'examiner',
-      targetText: npc.nameKey,
+      targetText: t(npc.nameKey as StringKey),
       stat: 'PER',
       category: 'npc',
     });
@@ -225,21 +228,21 @@ function buildSceneDescription(
     .filter(item => !item.hidden && isItemAvailable(visitState, item.id))
     .map(item => {
       const def = ITEM_DEFINITIONS[item.id];
-      const name = def ? t(def.nameKey) : getScenarioNameFr(item.id);
+      const name = def ? t(def.nameKey) : resolveDisplayName(`item.${item.id}`, item.id);
       return { id: item.id, name };
     });
 
   // Environment features
   const visibleFeatures = node.features.map(feat => {
     const def = ENVIRONMENT_FEATURE_DEFINITIONS[feat.id];
-    const name = def ? t(def.nameKey) : getScenarioNameFr(feat.id);
+    const name = def ? t(def.nameKey) : resolveDisplayName(`env.${feat.id}`, feat.id);
     return { id: feat.id, name };
   });
 
   // NPCs present
   const visibleNpcs = (node.npcs ?? []).map(npc => {
     const def = NPC_DEFINITIONS[npc.id];
-    const name = def ? t(def.nameKey) : getScenarioNameFr(npc.id);
+    const name = def ? t(def.nameKey) : resolveDisplayName(`npc.${npc.id}`, npc.id);
     return { id: npc.id, name };
   });
 
@@ -261,48 +264,134 @@ function buildSceneDescription(
 
 // ---------------------------------------------------------------------------
 // HELPERS — convert scenario definitions to engine types
+// Checks content registries first (ITEM_DEFINITIONS, NPC_DEFINITIONS,
+// ENVIRONMENT_FEATURE_DEFINITIONS), then falls back to i18n keys for
+// scenario-only entities. Never returns raw IDs as nameKey.
 // ---------------------------------------------------------------------------
 
+/** Parse comma-separated aliases from an i18n key, returns empty if key missing */
+function parseAliases(aliasesKey: StringKey): readonly string[] {
+  const raw = t(aliasesKey);
+  if (!raw || raw === aliasesKey) return [];
+  return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+/** Get the French display name for an i18n key, falling back to humanized ID */
+function resolveDisplayName(i18nKey: string, id: string): string {
+  const resolved = t(i18nKey as StringKey);
+  // t() returns the key itself when missing — detect that
+  if (resolved === i18nKey) return id.replace(/_/g, ' ');
+  return resolved;
+}
+
 function itemDefToResolvedTarget(id: string): ResolvedTarget {
+  const def = ITEM_DEFINITIONS[id];
+  if (def) {
+    const frName = t(def.nameKey).toLowerCase();
+    const aliases = [id, frName, ...parseAliases(def.aliasesKey)];
+    const properties = resolveProperties({
+      objectCategory: 'item',
+      baseType: def.type,
+      extra_props: def.extra_props,
+      remove_props: def.remove_props,
+    });
+    return { id, nameKey: def.nameKey, properties, isVirtual: false, source: 'location', aliases };
+  }
+  // Scenario-only item → use i18n key
+  const nameKey = `item.${id}` as StringKey;
+  const frName = resolveDisplayName(nameKey, id);
   return {
     id,
-    nameKey: id,
-    properties: [],
+    nameKey,
+    properties: ['tangible', 'liftable', 'small'],
     isVirtual: false,
     source: 'location',
-    aliases: [id],
+    aliases: [id, frName.toLowerCase()],
   };
 }
 
 function inventoryItemToResolvedTarget(id: string): ResolvedTarget {
+  const def = ITEM_DEFINITIONS[id];
+  if (def) {
+    const frName = t(def.nameKey).toLowerCase();
+    const aliases = [id, frName, ...parseAliases(def.aliasesKey)];
+    const properties = resolveProperties({
+      objectCategory: 'item',
+      baseType: def.type,
+      extra_props: def.extra_props,
+      remove_props: def.remove_props,
+    });
+    return { id, nameKey: def.nameKey, properties, isVirtual: false, source: 'inventory', aliases };
+  }
+  const nameKey = `item.${id}` as StringKey;
+  const frName = resolveDisplayName(nameKey, id);
   return {
     id,
-    nameKey: id,
-    properties: [],
+    nameKey,
+    properties: ['tangible', 'liftable', 'small'],
     isVirtual: false,
     source: 'inventory',
-    aliases: [id],
+    aliases: [id, frName.toLowerCase()],
   };
 }
 
 function npcDefToNpcInstance(id: string): NpcInstance {
+  const def = NPC_DEFINITIONS[id];
+  if (def) {
+    const frName = t(def.nameKey).toLowerCase();
+    const aliases = [id, frName, ...parseAliases(def.aliasesKey)];
+    const properties = resolveProperties({
+      objectCategory: 'npc',
+      baseType: def.type,
+      extra_props: def.extra_props,
+    });
+    return {
+      id,
+      definitionId: id,
+      nameKey: def.nameKey,
+      aliases,
+      properties,
+      hp: def.hp,
+      bodyParts: [],
+    };
+  }
+  // Scenario-only NPC → use i18n key + aliases key
+  const nameKey = `npc.${id}` as StringKey;
+  const aliasesKey = `npc.${id}.aliases` as StringKey;
+  const frName = resolveDisplayName(nameKey, id);
+  const aliases = [id, frName.toLowerCase(), ...parseAliases(aliasesKey)];
   return {
     id,
     definitionId: id,
-    nameKey: id,
-    aliases: [id],
-    properties: [],
+    nameKey,
+    aliases,
+    properties: ['tangible', 'visible', 'alive'],
     hp: 10,
+    bodyParts: [],
   };
 }
 
 function featureDefToInstance(id: string): EnvironmentFeatureInstance {
+  const def = ENVIRONMENT_FEATURE_DEFINITIONS[id];
+  if (def) {
+    const frName = t(def.nameKey).toLowerCase();
+    const aliases = [id, frName, ...parseAliases(def.aliasesKey)];
+    const properties = resolveProperties({
+      objectCategory: 'environment',
+      baseType: def.type,
+      extra_props: def.extra_props,
+    });
+    return { id, definitionId: id, nameKey: def.nameKey, aliases, properties };
+  }
+  // Scenario-only feature → use i18n key
+  const nameKey = `env.${id}` as StringKey;
+  const frName = resolveDisplayName(nameKey, id);
   return {
     id,
     definitionId: id,
-    nameKey: id,
-    aliases: [id],
-    properties: [],
+    nameKey,
+    aliases: [id, frName.toLowerCase()],
+    properties: ['tangible', 'visible'],
   };
 }
 

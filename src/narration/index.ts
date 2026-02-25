@@ -9,6 +9,8 @@
 import type { TurnResult, SceneContext, SceneDescription, GameState } from '../engine/types';
 import type { VerbId } from '../engine/verbs';
 import type { Locale, StringKey } from '../i18n/types';
+import type { GrammaticalInfo } from '../i18n/grammar/interface';
+import type { LocationNode } from '../engine/scenario';
 import type {
   NarrativeContext, NarrativeSettings, Outcome, VerbCategory,
   TargetInfo, ItemInfo, NpcInfo, LocationInfo, StateChange,
@@ -35,7 +37,43 @@ function mapOutcome(trace: TurnResult['trace']): Outcome {
 
 // === DEFAULT GRAMMAR INFO ===
 
-const DEFAULT_GRAMMAR = { gender: 'M' as const, startsWithVowel: false, plural: false };
+const DEFAULT_GRAMMAR: GrammaticalInfo = { gender: 'M', startsWithVowel: false, plural: false };
+
+const VOWELS = new Set(['a', 'e', 'i', 'o', 'u', 'é', 'è', 'ê', 'ë', 'â', 'î', 'ô', 'û', 'ù']);
+const FEMININE_SUFFIXES = [
+  'tion', 'sion', 'ure', 'ée', 'ie', 'ise', 'ade', 'ande', 'ence', 'ance',
+  'esse', 'euse', 'trice', 'ette', 'elle', 'ine', 'ère',
+];
+const PLURAL_MARKERS = ['s', 'x'];
+
+/**
+ * Detect basic grammatical info from a French noun phrase.
+ * Not perfect but far better than always defaulting to masculine.
+ */
+function detectGrammar(frenchName: string): GrammaticalInfo {
+  if (!frenchName) return DEFAULT_GRAMMAR;
+  const lower = frenchName.toLowerCase().trim();
+  const firstChar = lower[0] ?? '';
+  const startsWithVowel = VOWELS.has(firstChar);
+
+  // Detect gender from the FIRST noun word (skip articles/adjectives)
+  const words = lower.split(/\s+/);
+  // In French compound names like "kit médical", the main noun is usually the first word
+  const mainWord = words[0] ?? '';
+  let gender: 'M' | 'F' = 'M';
+  for (const suffix of FEMININE_SUFFIXES) {
+    if (mainWord.endsWith(suffix)) {
+      gender = 'F';
+      break;
+    }
+  }
+
+  // Detect plural from the main word
+  const lastChar = mainWord[mainWord.length - 1] ?? '';
+  const plural = PLURAL_MARKERS.includes(lastChar) && mainWord.length > 2;
+
+  return { gender, startsWithVowel, plural };
+}
 
 // === CONTEXT BUILDER ===
 
@@ -170,21 +208,40 @@ function buildTargetInfo(
 
   const entity = allEntities.find(e => e.id === targetId);
   if (!entity) {
+    // Try i18n lookup for common entity prefixes before falling back to raw ID
+    for (const prefix of ['item', 'npc', 'env'] as const) {
+      const key = `${prefix}.${targetId}` as StringKey;
+      const resolved = t(key);
+      if (resolved !== key) {
+        const grammar = detectGrammar(resolved);
+        return {
+          id: targetId,
+          name: resolved,
+          type: 'unknown',
+          properties: [],
+          grammar,
+        };
+      }
+    }
+    // Final fallback: humanize the raw ID
     return {
       id: targetId,
-      name: targetId,
+      name: targetId.replace(/_/g, ' '),
       type: 'unknown',
       properties: [],
       grammar: DEFAULT_GRAMMAR,
     };
   }
 
+  const resolvedName = t(entity.nameKey as StringKey);
+  const grammar = detectGrammar(resolvedName);
+
   return {
     id: entity.id,
-    name: t(entity.nameKey as StringKey),
+    name: resolvedName,
     type: entity.properties[0] ?? 'unknown',
     properties: entity.properties,
-    grammar: DEFAULT_GRAMMAR,
+    grammar,
   };
 }
 
@@ -257,7 +314,24 @@ export function narrateForTurn(
   const effectiveSettings = settings ?? NARRATIVE_PRESETS.standard;
   const effectiveLocale = locale ?? getLocale();
 
-  return composeNarrative(ctx, effectiveSettings, undefined, effectiveLocale);
+  let narrative = composeNarrative(ctx, effectiveSettings, undefined, effectiveLocale);
+
+  // Append revelation content for EXAMINE/TALK on scenario entities
+  if (isSuccessful || result.trace.outcome === 'failure' || result.trace.outcome === 'crit_failure') {
+    const revealText = getRevealContent(
+      result.trace.parsedVerb ?? 'WAIT',
+      result.trace.parsedTarget ?? '',
+      isSuccessful,
+      sceneContext.locationId ?? '',
+      state,
+      effectiveLocale,
+    );
+    if (revealText) {
+      narrative = narrative ? `${narrative} ${revealText}` : revealText;
+    }
+  }
+
+  return narrative;
 }
 
 // === EXAMINE ENVIRONMENT — rich scene description ===
@@ -304,4 +378,86 @@ function buildExamineEnvironmentNarrative(scene: SceneDescription): string {
   }
 
   return parts.join(' ');
+}
+
+// === REVELATION SYSTEM — scenario-aware content reveals ===
+
+/** Verbs that trigger entity-specific revelation content */
+const EXAMINE_VERBS = new Set<VerbId>([
+  'EXAMINE', 'SCAN', 'READ', 'LISTEN', 'SMELL',
+]);
+
+const TALK_VERBS = new Set<VerbId>([
+  'TALK', 'PERSUADE', 'INTERROGATE', 'PLEAD', 'CALM',
+]);
+
+/**
+ * Get scenario-specific revelation content for EXAMINE/TALK actions.
+ * Searches the current location in the assembled scenario for the target
+ * entity and returns its examineResult or talkSuccess/talkFailure text.
+ */
+function getRevealContent(
+  verb: VerbId,
+  targetId: string,
+  isSuccessful: boolean,
+  locationId: string,
+  state: GameState,
+  locale: Locale,
+): string | null {
+  if (!targetId || !state.scenario) return null;
+
+  const node = findLocationNode(state.scenario.graph.nodes, locationId);
+  if (!node) return null;
+
+  const localeKey = locale === 'en' ? 'en' : 'fr';
+
+  // EXAMINE verbs → check items, features, obstacle target
+  if (EXAMINE_VERBS.has(verb) && isSuccessful) {
+    // Check items
+    const item = node.items.find(i => i.id === targetId);
+    if (item?.examineResult) {
+      return item.examineResult[localeKey] || item.examineResult.fr;
+    }
+
+    // Check features
+    const feature = node.features.find(f => f.id === targetId);
+    if (feature?.examineResult) {
+      return feature.examineResult[localeKey] || feature.examineResult.fr;
+    }
+
+    // Check obstacle target
+    if (node.obstacle && node.obstacle.targetId === targetId && node.obstacle.resolveReveal) {
+      return node.obstacle.resolveReveal[localeKey] || node.obstacle.resolveReveal.fr;
+    }
+
+    // Check NPCs (examining an NPC gives basic info)
+    const npc = (node.npcs ?? []).find(n => n.id === targetId);
+    if (npc?.talkSuccess) {
+      // EXAMINE on NPC gives a hint of dialogue potential
+      return null; // Only TALK reveals dialogue
+    }
+  }
+
+  // TALK verbs → check NPC dialogue
+  if (TALK_VERBS.has(verb)) {
+    const npc = (node.npcs ?? []).find(n => n.id === targetId);
+    if (npc) {
+      if (isSuccessful && npc.talkSuccess) {
+        return npc.talkSuccess[localeKey] || npc.talkSuccess.fr;
+      }
+      if (!isSuccessful && npc.talkFailure) {
+        return npc.talkFailure[localeKey] || npc.talkFailure.fr;
+      }
+    }
+  }
+
+  return null;
+}
+
+/** Find a LocationNode by ID in the scenario graph */
+function findLocationNode(
+  nodes: readonly LocationNode[],
+  locationId: string,
+): LocationNode | null {
+  return nodes.find(n => n.id === locationId) ?? null;
 }

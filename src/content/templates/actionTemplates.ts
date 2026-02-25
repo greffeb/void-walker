@@ -4378,6 +4378,400 @@ const RUN_TEMPLATES: readonly ActionTemplate[] = [
 ];
 
 // ============================================================================
+// TALK — social (CHA)
+// ============================================================================
+
+const TALK_TEMPLATES: readonly ActionTemplate[] = [
+  // --- auto_success ---
+  {
+    id: 'social_TALK_sentient_auto_success_low',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'social',
+    text: {
+      fr: '{actor} vous adressez à {def_target}. La conversation s\'engage dans le calme relatif du couloir.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_auto_success_mid',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: '{actor} interpellez {def_target}. Un échange tendu s\'amorce entre vous.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_auto_success_high',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'auto_success',
+    tension: 'high',
+    category: 'social',
+    text: {
+      fr: '{actor} tentez de communiquer avec {def_target} malgré la pression. Chaque mot compte.',
+      en: '',
+    },
+  },
+  // --- crit_success ---
+  {
+    id: 'social_TALK_sentient_crit_success_low',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'crit_success',
+    tension: 'low',
+    category: 'social',
+    text: {
+      fr: '{actor} trouvez les mots justes. {def_target} s\'ouvre complètement — confiances, secrets, tout sort dans un flot sincère.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_crit_success_mid',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: 'Vos paroles touchent une corde sensible chez {def_target}. Un lien de confiance inattendu se forme dans cette obscurité.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_crit_success_high',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'crit_success',
+    tension: 'high',
+    category: 'social',
+    text: {
+      fr: 'Malgré le chaos ambiant, vos mots percent le voile de peur de {def_target}. Une alliance forgée dans l\'urgence.',
+      en: '',
+    },
+  },
+  // --- success ---
+  {
+    id: 'social_TALK_sentient_success_low',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'success',
+    tension: 'low',
+    category: 'social',
+    text: {
+      fr: '{def_target} écoute attentivement et répond. L\'échange est productif, des informations sont partagées.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_success_mid',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'success',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: '{def_target} hésite un instant, puis accepte de parler. La conversation révèle des détails utiles.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_success_high',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'success',
+    tension: 'high',
+    category: 'social',
+    text: {
+      fr: 'Entre deux alarmes, {def_target} vous livre quelques mots. Peu, mais suffisant pour avancer.',
+      en: '',
+    },
+  },
+  // --- failure ---
+  {
+    id: 'social_TALK_sentient_failure_low',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'failure',
+    tension: 'low',
+    category: 'social',
+    text: {
+      fr: '{def_target} vous regarde avec méfiance et refuse de s\'engager davantage. Vos questions restent sans réponse.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_failure_mid',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: '{def_target} se ferme. Les mots ne suffisent pas — il faudra trouver un autre moyen.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_failure_high',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'failure',
+    tension: 'high',
+    category: 'social',
+    text: {
+      fr: '{def_target} ne vous écoute plus. La peur ou la rage ont pris le dessus — inutile d\'insister.',
+      en: '',
+    },
+  },
+  // --- crit_failure ---
+  {
+    id: 'social_TALK_sentient_crit_failure_low',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'crit_failure',
+    tension: 'low',
+    category: 'social',
+    text: {
+      fr: 'Vos mots tombent à plat. {def_target} se braque complètement — la situation s\'est détériorée.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_crit_failure_mid',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'crit_failure',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: 'Un malentendu fatal. {def_target} interprète vos paroles comme une menace et réagit avec hostilité.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_sentient_crit_failure_high',
+    verb: 'TALK',
+    targetType: 'sentient',
+    outcome: 'crit_failure',
+    tension: 'high',
+    category: 'social',
+    text: {
+      fr: 'Vos paroles provoquent l\'effet inverse — {def_target} panique et fait une erreur irréparable. Le bruit attire l\'attention.',
+      en: '',
+    },
+  },
+  // --- TALK with null target (generic) ---
+  {
+    id: 'social_TALK_any_auto_success_low',
+    verb: 'TALK',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'social',
+    text: {
+      fr: '{actor} vous adressez à {def_target}. Quelques mots dans le silence du vaisseau.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_any_success_mid',
+    verb: 'TALK',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: '{actor} engagez la conversation avec {def_target}. Un échange bref mais instructif.',
+      en: '',
+    },
+  },
+  {
+    id: 'social_TALK_any_failure_mid',
+    verb: 'TALK',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'social',
+    text: {
+      fr: '{def_target} ne semble pas disposé à communiquer. Votre tentative de dialogue reste sans suite.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
+// MOVE_TO — interaction (auto verb)
+// ============================================================================
+
+const MOVE_TO_TEMPLATES: readonly ActionTemplate[] = [
+  // --- auto_success ---
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_low',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: '{actor} vous déplacez vers {def_target}. Vos pas résonnent dans le couloir désert.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_low_2',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: 'Vous progressez prudemment vers {def_target}. Pas de mouvement suspect aux alentours.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_low_3',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: '{actor} gagnez {def_target} sans encombre. L\'air est lourd, mais le passage est libre.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_mid',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: '{actor} avancez vers {def_target}, l\'œil rivé sur les ombres. Chaque pas pourrait être le dernier.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_mid_2',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Vous rejoignez {def_target} en rasant les murs. Le métal grince sous vos bottes.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_mid_3',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Le trajet vers {def_target} est court mais éprouvant. Chaque recoin pourrait cacher une menace.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_high',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: '{actor} vous précipitez vers {def_target}. Des bruits de griffes résonnent derrière vous.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_high_2',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: 'Vous foncez vers {def_target} — il n\'y a plus de temps pour la prudence.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_auto_success_high_3',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: 'Une course effrénée vous mène jusqu\'à {def_target}. Le monstre est proche, vous le sentez.',
+      en: '',
+    },
+  },
+  // MOVE_TO can also succeed/fail when non-auto (e.g., blocked paths)
+  {
+    id: 'interaction_MOVE_TO_any_success_low',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: '{actor} parvenez à vous frayer un chemin vers {def_target}. Le passage était plus complexe que prévu.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_success_mid',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Avec effort, vous atteignez {def_target}. Le couloir derrière vous est désormais silencieux.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_failure_mid',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Le chemin vers {def_target} est bloqué. Il faut trouver une autre route.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_MOVE_TO_any_failure_high',
+    verb: 'MOVE_TO',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: 'Impossible de rejoindre {def_target} ! Un obstacle vous barre la route en pleine fuite.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
 // COMBINED EXPORT
 // ============================================================================
 
@@ -4401,6 +4795,8 @@ export const ACTION_TEMPLATES: readonly ActionTemplate[] = [
   ...BARRICADE_TEMPLATES,
   ...FORCE_OPEN_TEMPLATES,
   ...RUN_TEMPLATES,
+  ...TALK_TEMPLATES,
+  ...MOVE_TO_TEMPLATES,
   ...CATEGORY_FALLBACK_TEMPLATES,
   ...ABSURD_TEMPLATES,
 ] as const;
