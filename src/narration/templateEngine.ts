@@ -163,7 +163,8 @@ function processConditionals(
   grammar: GrammarEngine,
 ): string {
   // Pattern: {?slotName:trueText|falseText}
-  const conditionalRegex = /\{\?(\w+):([^}]*?)\|([^}]*?)\}/g;
+  // Allows one level of nested {slot} references inside trueText/falseText.
+  const conditionalRegex = /\{\?(\w+):((?:[^{}|]|\{[^}]*\})*)\|((?:[^{}]|\{[^}]*\})*)\}/g;
 
   return template.replace(conditionalRegex, (_match, slotName: string, trueText: string, falseText: string) => {
     const slotValue = resolveSimpleSlot(slotName, slots, grammar);

@@ -3889,6 +3889,495 @@ export const GENERIC_FALLBACKS: Record<Outcome, ActionTemplate> = {
 };
 
 // ============================================================================
+// BARRICADE — defensive (DEF)
+// ============================================================================
+
+const BARRICADE_TEMPLATES: readonly ActionTemplate[] = [
+  {
+    id: 'physical_BARRICADE_any_auto_success_low',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} barricadez rapidement le passage. Quelques secondes suffisent — la position est tenue.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_auto_success_mid',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} bloquez l\'accès sans effort. La barricade tient, pour l\'instant.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_crit_success_low',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: 'Position idéale. {actor} barricadez le passage avec une efficacité surprenante — personne ne passera sans bruit.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_crit_success_mid',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} improvisez une barricade solide. Elle ralentira n\'importe quoi — peut-être assez longtemps.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_crit_success_high',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'Dans un élan de survie, {actor} barricadez avec tout ce qui vous tombe sous la main. La construction est grossière mais solide. Quelque chose griffe de l\'autre côté. Ça tient.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_success_low',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} barricadez l\'accès. Ce n\'est pas parfait, mais ça devrait ralentir une intrusion.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_success_mid',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'Le passage est bloqué. {actor} reculez de quelques pas pour évaluer votre travail — ça tiendra.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_success_high',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} barricadez en catastrophe. Imparfait, bruyant — mais c\'est en place. Derrière vous, un bruit sourd. Quelque chose approche.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_partial_mid',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'La barricade est en place mais fragile — une poussée et elle cède. Il faudra faire mieux si quelque chose débarque vraiment.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_partial_high',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} bloquez partiellement le passage — de quoi gagner quelques secondes, pas plus. Dans le couloir, quelque chose grogne.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_failure_mid',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'Rien à barricader ici. L\'espace est trop ouvert, les surfaces trop lisses. {actor} ne trouvez aucun appui solide.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_failure_high',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'Impossible de barricader ici — le passage est trop large, rien de solide à portée. Une erreur tactique. Cherchez une autre sortie.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_BARRICADE_any_crit_failure_high',
+    verb: 'BARRICADE',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'La barricade s\'effondre dans un vacarme métallique. Ce n\'était pas discret. Dans le couloir, quelque chose a entendu.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
+// FORCE_OPEN — physical (FOR)
+// ============================================================================
+
+const FORCE_OPEN_TEMPLATES: readonly ActionTemplate[] = [
+  {
+    id: 'physical_FORCE_OPEN_any_auto_success_low',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{def_target} cède sans résistance{?tool_used: — {def_tool} fait le travail|}. Un couloir s\'ouvre derrière.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_auto_success_mid',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} forcez {def_target}{?tool_used: avec {def_tool}|}. L\'ouverture se fait dans un grincement sourd.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_crit_success_low',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{def_target} s\'ouvre d\'un seul geste précis{?tool_used: — {def_tool} glisse dans le mécanisme comme s\'il avait été conçu pour|}. Parfait.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_crit_success_mid',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'Un coup sec et {def_target} cède. {actor} avez trouvé le point faible{?tool_used: — {def_tool} a démultiplié votre force|}. Un courant d\'air froid s\'engouffre.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_crit_success_high',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'Dans un élan désespéré, {actor} arrachez {def_target} de ses gonds{?tool_used: à l\'aide de {def_tool}|}. Le vacarme se répercute dans tout le couloir — mais vous êtes passé.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_success_low',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} forcez {def_target}{?tool_used: avec {def_tool}|}. L\'effort est réel mais le résultat est là.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_success_mid',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{def_target} résiste, puis cède. {actor} foncez dans l\'ouverture{?tool_used:, {def_tool} encore en main|}.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_success_high',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} pesez de tout votre poids sur {def_target}{?tool_used: en vous aidant de {def_tool}|}. Ça grince, ça gémit — et ça s\'ouvre. Juste à temps.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_partial_mid',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} forcez {def_target}{?tool_used: avec {def_tool}|} — une ouverture partielle, juste assez large pour y glisser un bras, pas le corps. Il faudra insister.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_partial_high',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{def_target} s\'entrouvre à peine{?tool_used: malgré {def_tool}|}. Pas assez pour passer. Derrière vous, le bruit se rapproche.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_failure_mid',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{def_target} ne bouge pas. {actor} poussez, tirez, forcez{?tool_used: — même {def_tool} n\'y change rien|}. Le mécanisme résiste.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_failure_high',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'Impossible de forcer {def_target}{?tool_used: — même avec {def_tool}|}. Trop solide. Il faut trouver une autre issue.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_FORCE_OPEN_any_crit_failure_high',
+    verb: 'FORCE_OPEN',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{def_target} résiste et votre élan vous déséquilibre{?tool_used: — {def_tool} glisse et heurte une cloison|}. Le fracas résonne dans le couloir.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
+// RUN — agility (AGI)
+// ============================================================================
+
+const RUN_TEMPLATES: readonly ActionTemplate[] = [
+  {
+    id: 'physical_RUN_any_auto_success_low',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} quittez la zone d\'un pas vif. Rien ne vous retient ici.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_auto_success_mid',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} prenez vos jambes à votre cou. Le couloir défile. Distance gagnée.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_crit_success_low',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} disparaissez dans le couloir en un éclair. Personne ne vous a vu partir.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_crit_success_mid',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'Sprint parfait. {actor} couvrez la distance en quelques secondes — même ce couloir étroit ne vous ralentit pas.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_crit_success_high',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'L\'adrénaline vous propulse. {actor} semez la menace dans un couloir après l\'autre — un virage, deux, et le silence revient. Vous avez réussi.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_success_low',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} courez vers la sortie la plus proche. Rapide, efficace.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_success_mid',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} foncez sans regarder derrière vous. Les bottes claquent sur le métal. Vous prenez de la distance.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_success_high',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} fuyez à toute vitesse. Derrière vous, un grondement — mais la distance augmente. Pour l\'instant, ça suffit.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_partial_mid',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} gagnez du terrain, mais pas assez. La menace est toujours là, juste hors de portée — pour l\'instant.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_partial_high',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} courez mais quelque chose vous ralentit — un obstacle, un virage mal négocié. La créature gagne du terrain.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_failure_mid',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} tentez de fuir mais le passage est bloqué. Nulle part où aller — il faut faire face.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_failure_high',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} courez — et vous heurtez une impasse. Pas d\'issue. La menace se rapproche dans votre dos.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_RUN_any_crit_failure_high',
+    verb: 'RUN',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} trébuchez dans votre fuite — un câble, un débris, une mauvaise marche. Vous perdez de précieuses secondes. La créature est presque sur vous.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
 // COMBINED EXPORT
 // ============================================================================
 
@@ -3909,6 +4398,9 @@ export const ACTION_TEMPLATES: readonly ActionTemplate[] = [
   ...OPEN_TEMPLATES,
   ...TAKE_TEMPLATES,
   ...USE_TEMPLATES,
+  ...BARRICADE_TEMPLATES,
+  ...FORCE_OPEN_TEMPLATES,
+  ...RUN_TEMPLATES,
   ...CATEGORY_FALLBACK_TEMPLATES,
   ...ABSURD_TEMPLATES,
 ] as const;

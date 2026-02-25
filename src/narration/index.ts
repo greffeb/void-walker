@@ -8,14 +8,14 @@
 
 import type { TurnResult, SceneContext, GameState } from '../engine/types';
 import type { VerbId } from '../engine/verbs';
-import type { Locale } from '../i18n/types';
+import type { Locale, StringKey } from '../i18n/types';
 import type {
   NarrativeContext, NarrativeSettings, Outcome, VerbCategory,
   TargetInfo, ItemInfo, NpcInfo, LocationInfo, StateChange,
 } from './types';
 import { NARRATIVE_PRESETS } from './types';
 import { composeNarrative, getVerbCategory } from './composer';
-import { getLocale } from '../i18n/index';
+import { getLocale, t } from '../i18n/index';
 
 export { composeNarrative, resetComposer } from './composer';
 export { renderTemplate, renderTemplateWithSlots, getGrammarEngine, detectSelfReference } from './templateEngine';
@@ -76,7 +76,7 @@ export function buildNarrativeContext(
   // Build NPC info from scene context
   const npcs: NpcInfo[] = sceneContext.npcs.map(npc => ({
     id: npc.id,
-    name: npc.nameKey,
+    name: t(npc.nameKey as StringKey),
     disposition: 'neutral' as const,  // Default — will be overridden by scenario data
     grammar: DEFAULT_GRAMMAR,
   }));
@@ -181,7 +181,7 @@ function buildTargetInfo(
 
   return {
     id: entity.id,
-    name: entity.nameKey,
+    name: t(entity.nameKey as StringKey),
     type: entity.properties[0] ?? 'unknown',
     properties: entity.properties,
     grammar: DEFAULT_GRAMMAR,
@@ -201,7 +201,7 @@ function buildToolInfo(
 
   return {
     id: item.id,
-    name: item.nameKey,
+    name: t(item.nameKey as StringKey),
     grammar: DEFAULT_GRAMMAR,
   };
 }
