@@ -2,8 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Current Phase:** Phase 5 (COMPLETE) → Ready for Phase 6
-> **Last updated:** 2026-02-24
+> **Current Phase:** Phase 6 (COMPLETE) → Ready for Phase 7
+> **Last updated:** 2026-02-25
 
 ---
 
@@ -37,11 +37,30 @@ npm run playtest:debug          # Playtest with debug output
 **Phase 3 — Resolution & Combat** (COMPLETE)
 **Phase 4 — Consequences & State Engine** (COMPLETE)
 **Phase 5 — Narrative Composition** (COMPLETE)
+**Phase 6 — Scenarios & Victory Conditions** (COMPLETE)
 
-Next: **Phase 6 — Scenarios & Victory Conditions**
-- Read `docs/phases/PHASE_6_SCENARIOS_VICTORY.md`
-- Read `docs/SCENARIO_DESIGN.md` (full document)
-- Read `docs/GAME_SYSTEMS.md` Section 11 (victory/defeat conditions)
+Next: **Phase 7 — Game Loop Integration**
+- Read `docs/phases/PHASE_7_*.md` (when created)
+- Integrate AssembledScenario into GameState (add visitedLocations, scenario, victoryResult)
+- Wire `assembleScenario` into `initGame` / `processTurn` / `getSceneContext`
+- Connect victory/defeat checks, threat director, and suggestion engine to the turn loop
+- Build the full end-to-end playthrough (UI → Engine → Narration → Victory screen)
+
+**Phase 6 delivered:**
+- `src/engine/scenario.ts` — Full type system: CoreSkeleton (6-node), ScenarioModule, AssembledScenario, VictoryCondition (7 types), DefeatCondition (4 types), NarrativeSkin, LocationGraph, BlackBoxEntry, GameHistory
+- `src/content/settings.ts` — 3 launch settings (derelict_ship, space_station, alien_ruins) with location role compatibility matrix
+- `src/engine/pacing.ts` — `assembleScenario()`, `buildLocationGraph()`, `validateAssembledScenario()`, `isModuleCompatible()`, tension assignment + skin selection
+- `src/content/scenarios/` — 3 launch skeletons (escape, investigate, rescue) + index
+- `src/content/scenarios/modules/` — 15 modules: 5 universal + 5 category + 5 complex, all 10 module types, each with 3 narrative skins
+- `src/engine/victory.ts` — Pure victory/defeat checker: `evaluateVictoryCondition()`, `checkVictory()` (5-priority cascade), `checkAdditionalDefeat()`
+- `src/engine/threat.ts` — Threat Director state machine: 6-beat behaviors, encounter/hint/environmental pacing, creature learning (wounded → enraged)
+- `src/engine/backtracking.ts` — Immutable `LocationVisitState` transitions + exit exploration status
+- `src/engine/suggestions.ts` — 3-suggestion generator with class bias (marine/engineer/medic), skin priority weighting, category variety cap (max 2 per category)
+- `src/engine/blackbox.ts` — Death/victory journal generation from `GameHistory`; placement logic (80% death / 30% victory, +0.05 cross-skeleton bonus)
+- `tests/playtest/stuckDetector.ts` — Sliding-window stuck detection
+- `tests/playtest/bots/` — Random + goal-seeking playtest bots with seeded RNG
+- `tests/stress/scenarioCombinations.test.ts` — All 27 skeleton×setting×session combos
+- `tests/stress/scenarioAssembly.test.ts` — 100 random assemblies all pass graph validation
 
 **Phase 5 delivered:**
 - `src/i18n/grammar/interface.ts` — Abstract GrammarEngine contract (SlotModifier, GrammaticalInfo)
@@ -181,6 +200,24 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - `VerbMatch`: Which verb matched and how (strategy 1-6, confidence, isCompound)
 - `DifficultyBreakdown`: Full DC calculation breakdown
 - `SceneContext`: Lightweight scene view for parser/resolver
+
+## Key Types (src/engine/scenario.ts) — Phase 6
+
+- `CoreSkeleton`: 6-node story structure (start→unlock→reveal→escalation→boss→resolution)
+- `CoreNodeId`: `'start' | 'unlock' | 'reveal' | 'escalation' | 'boss' | 'resolution'`
+- `ScenarioModule`: Pluggable story segment (type, validSegments, tensionRange, 3 skins, obstacle)
+- `NarrativeSkin`: Per-tension-tier presentation (low/mid/high, dcModifier, suggestedPathPriority)
+- `VictoryCondition`: 7 types — reach_location, defeat_entity, activate_object, escort_alive, environmental_kill, containment, self_destruct
+- `DefeatCondition`: 4 types — player_death, npc_death, time_expired, objective_destroyed
+- `VictoryResult`: `{ type: VictoryType; skeletonId: string }` — result of per-turn victory check
+- `AssembledScenario`: `{ skeleton, modules, graph, setting, sessionLength }` — ready-to-play game
+- `LocationGraph`: `{ nodes: LocationNode[]; edges: LocationEdge[] }` — assembled navigation graph
+- `LocationVisitState`: Immutable per-location tracking (itemsTaken, featuresChanged, obstacleResolved)
+- `BlackBoxEntry`: Cross-skeleton death/victory journal persisted in IndexedDB
+- `GameHistory`: Snapshot for generating a BlackBoxEntry (playerName, classId, keyEvents, etc.)
+- `SettingDefinition`: Concrete names for abstract location roles (3 launch settings)
+- `SessionLength`: `'quick' | 'standard' | 'extended'` (0 / 3-5 / 8-12 modules)
+- `SuggestionCandidate`: Scored action suggestion (verbText, targetText, stat, category, score)
 
 ---
 
