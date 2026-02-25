@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Current Phase:** Phase 6 (COMPLETE) → Ready for Phase 7
+> **Current Phase:** Phase 6 (COMPLETE) → Ready for Phase 6B
 > **Last updated:** 2026-02-25
 
 ---
@@ -39,12 +39,16 @@ npm run playtest:debug          # Playtest with debug output
 **Phase 5 — Narrative Composition** (COMPLETE)
 **Phase 6 — Scenarios & Victory Conditions** (COMPLETE)
 
-Next: **Phase 7 — Game Loop Integration**
-- Read `docs/phases/PHASE_7_*.md` (when created)
-- Integrate AssembledScenario into GameState (add visitedLocations, scenario, victoryResult)
-- Wire `assembleScenario` into `initGame` / `processTurn` / `getSceneContext`
-- Connect victory/defeat checks, threat director, and suggestion engine to the turn loop
-- Build the full end-to-end playthrough (UI → Engine → Narration → Victory screen)
+Next: **Phase 6B — Game Loop Integration**
+- Read `docs/phases/PHASE_6B_GAME_LOOP_INTEGRATION.md`
+- Extend `GameState` with Phase 6 fields (visitedLocations, npcStates, threatDirectorState, victoryResult, scenario)
+- Create `src/engine/game.ts`: `initGame()`, `isGameOver()`, `buildVictoryCheckContext()`
+- Wire `checkVictory`, `threatCheck`, and visit tracking into `processTurn`
+- Extend `getSceneContext()` with scenario-aware suggestions and exit exploration status
+- Complete deferred stress + integration tests (500 playthroughs, emergent victories, Black Box round-trip)
+
+Then: **Phase 7 — UI (Mobile-First PWA)**
+- Read `docs/phases/PHASE_7_UI.md`
 
 **Phase 6 delivered:**
 - `src/engine/scenario.ts` — Full type system: CoreSkeleton (6-node), ScenarioModule, AssembledScenario, VictoryCondition (7 types), DefeatCondition (4 types), NarrativeSkin, LocationGraph, BlackBoxEntry, GameHistory
