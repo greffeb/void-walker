@@ -6,7 +6,6 @@
 // ---------------------------------------------------------------------------
 
 import type { StatId, StoryBeat, FailsafeType, AtmosphereType } from './types';
-import type { VerbId } from './verbs';
 
 // ---------------------------------------------------------------------------
 // LOCALE STRING — inline bilingual content (fr required, en post-launch)
@@ -213,8 +212,8 @@ export interface ObstaclePath {
   readonly stat: StatId;
   readonly dc: number;
   readonly description: LocaleString;
-  /** Which verbs can trigger this path */
-  readonly verbs: readonly VerbId[];
+  /** Verb aliases that hint which actions trigger this path */
+  readonly verbs: readonly string[];
   /** Whether this is a creative/unusual solution */
   readonly isCreative?: boolean;
   /** Whether this path requires a specific item */
