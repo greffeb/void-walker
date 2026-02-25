@@ -30,9 +30,14 @@ import { tickStalkerClock, checkStalkerClock, applyStalkerEvent } from './stalke
 import { VERB_STATS, AUTO_VERBS } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
 import { checkDeath, applyDeath, updateCharacterHp } from './state';
+import { addItem } from './inventory';
 import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shipMemory';
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack } from './combat';
+import { checkVictory, checkAdditionalDefeat } from './victory';
+import { threatCheck, transitionBeat } from './threat';
+import { createVisitState, markRevisit, markItemTaken } from './backtracking';
+import { buildVictoryCheckContext } from './game';
 
 // ---------------------------------------------------------------------------
 // Empty trace factory — used for early returns
@@ -456,8 +461,110 @@ export function processTurn(
   current = { ...current, stalkerClockState: finalClockState };
 
   // ─────────────────────────────────────────────────────────
-  // STEP 9: Threat director check (placeholder — Phase 5)
+  // STEP 9: Phase 6B — movement, visit tracking, victory/defeat, threat
   // ─────────────────────────────────────────────────────────
+
+  // 9a. Movement: if the action is MOVE_TO, update location and visit state
+  if (action.verb === 'MOVE_TO' && action.target?.source === 'connected_location') {
+    const newLocationId = action.target.id;
+    const existingVisit = current.visitedLocations[newLocationId];
+    const updatedVisit = existingVisit
+      ? markRevisit(existingVisit)
+      : createVisitState(current.turn);
+    current = {
+      ...current,
+      playerLocationId: newLocationId,
+      visitedLocations: {
+        ...current.visitedLocations,
+        [newLocationId]: updatedVisit,
+      },
+    };
+
+    // 9b. Beat transition when player reaches a new core node
+    if (current.scenario !== null) {
+      const destNode = current.scenario.graph.nodes.find(n => n.id === newLocationId);
+      if (destNode?.isCoreNode && destNode.beat !== current.currentBeat) {
+        current = {
+          ...current,
+          currentBeat: destNode.beat,
+          threatDirectorState: transitionBeat(current.threatDirectorState, destNode.beat),
+        };
+      }
+    }
+  }
+
+  // 9b-2. Item tracking: TAKE is an auto-verb — always succeeds immediately
+  if (
+    action.verb === 'TAKE' &&
+    action.target?.source === 'location' &&
+    action.target.id &&
+    current.playerLocationId !== null &&
+    current.character !== null
+  ) {
+    const itemId = action.target.id;
+    const locId = current.playerLocationId;
+    // Add to inventory (deduplication guard)
+    if (!current.character.inventory.includes(itemId)) {
+      const { inventory: newInventory } = addItem(current.character.inventory, itemId);
+      current = { ...current, character: { ...current.character, inventory: newInventory } };
+    }
+    // Mark item as taken in visit state so it no longer appears in the scene
+    const existingVisit = current.visitedLocations[locId];
+    if (existingVisit) {
+      current = {
+        ...current,
+        visitedLocations: {
+          ...current.visitedLocations,
+          [locId]: markItemTaken(existingVisit, itemId),
+        },
+        itemsUsedCount: current.itemsUsedCount + 1,
+      };
+    }
+  }
+
+  // 9c. Victory / defeat check (only when a scenario is active)
+  if (current.scenario !== null && current.victoryResult === null && current.defeatCondition === null) {
+    const victoryCtx = buildVictoryCheckContext(current);
+    const victoryResult = checkVictory(victoryCtx, current.scenario.skeleton);
+    if (victoryResult !== null) {
+      current = { ...current, victoryResult, phase: 'victory' };
+    } else {
+      const defeatCondition = checkAdditionalDefeat(
+        victoryCtx,
+        current.scenario.skeleton.additionalDefeatConditions ?? [],
+      );
+      if (defeatCondition !== null) {
+        current = { ...current, defeatCondition, phase: 'defeat' };
+      }
+    }
+  }
+
+  // 9d. Threat director check
+  if (current.scenario !== null && current.phase === 'playing') {
+    const currentNode = current.playerLocationId !== null
+      ? current.scenario.graph.nodes.find(n => n.id === current.playerLocationId)
+      : undefined;
+    const moduleHasThreat = currentNode?.moduleId !== undefined;
+
+    const threatRng = {
+      float: rng,
+      pick: <T>(arr: readonly T[]): T => arr[Math.floor(rng() * arr.length)]!,
+    };
+    const { updatedDirector, event } = threatCheck(
+      current.threatDirectorState,
+      moduleHasThreat,
+      threatRng,
+    );
+    current = {
+      ...current,
+      threatDirectorState: updatedDirector,
+      encounterCount: event?.type === 'encounter'
+        ? current.encounterCount + 1
+        : current.encounterCount,
+    };
+    // Threat event is surfaced via TurnResult (narrative layer handles rendering)
+    void event; // consumed by narrative layer (Phase 5/7)
+  }
 
   // ─────────────────────────────────────────────────────────
   // STEP 10: Narrative composition (placeholder — Phase 5)

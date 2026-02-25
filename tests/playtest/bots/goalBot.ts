@@ -25,19 +25,26 @@ export const goalBot: PlaytestBot = {
       return `prendre ${rng.pick(scene.locationItemNames)}`;
     }
 
-    // Priority 3: engage with obstacle via the best suggestion for this class
-    if (scene.suggestions.length > 0) {
-      // Use the first suggestion (highest-scored by the suggestions engine)
-      return scene.suggestions[0]!;
-    }
-
-    // Priority 4: move toward an unexplored connected location
+    // Priority 3: explore unexplored exits before engaging obstacles
     const unexploredIds = scene.connectedLocationIds.filter(
       id => !state.visitedLocationIds.includes(id),
     );
     if (unexploredIds.length > 0 && scene.connectedLocationAliases.length > 0) {
-      // Find an alias for an unexplored location (use any available alias as proxy)
-      return `aller ${rng.pick(scene.connectedLocationAliases)}`;
+      // Find aliases for unexplored locations specifically
+      const unexploredAliases = scene.connectedLocationAliases.filter((_, i) => {
+        const id = scene.connectedLocationIds[i];
+        return id !== undefined && !state.visitedLocationIds.includes(id);
+      });
+      const targets = unexploredAliases.length > 0 ? unexploredAliases : scene.connectedLocationAliases;
+      return `aller ${rng.pick(targets)}`;
+    }
+
+    // Priority 4: engage with obstacle — but force movement every 5 turns to avoid loops
+    if (scene.suggestions.length > 0) {
+      // Every 5th turn: skip obstacle and backtrack to avoid getting stuck
+      if (state.turn % 5 !== 0) {
+        return scene.suggestions[0]!;
+      }
     }
 
     // Priority 5: backtrack to any known location

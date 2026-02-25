@@ -147,6 +147,35 @@ export interface GameState {
   readonly secondChanceUsed: boolean;
   /** Currently active combat encounter, or null if not in combat */
   readonly activeCombat: ActiveCombatState | null;
+  // === Phase 6B additions ===
+  /** The fully assembled scenario for this game (null until game starts). */
+  readonly scenario: import('./scenario').AssembledScenario | null;
+  /** Per-location visit tracking (keys are LocationNode IDs). */
+  readonly visitedLocations: Readonly<Record<string, import('./scenario').LocationVisitState>>;
+  /** Per-NPC alive/location state (keys are NPC IDs). */
+  readonly npcStates: Readonly<Record<string, import('./victory').NpcState>>;
+  /** Object/feature IDs that have been activated (e.g. emergency_beacon). */
+  readonly activatedObjects: readonly string[];
+  /** Location IDs currently lethally hazardous. */
+  readonly lethalLocations: readonly string[];
+  /** Location IDs where ALL graph exits are currently sealed. */
+  readonly fullyContainedLocations: readonly string[];
+  /** Key objective IDs permanently destroyed. */
+  readonly destroyedObjectives: readonly string[];
+  /** Whether self-destruct has been activated and player is in a safe zone. */
+  readonly selfDestructActive: boolean;
+  /** The threat director state machine (persists across turns). */
+  readonly threatDirectorState: import('./scenario').ThreatDirectorState;
+  /** Victory result, set when checkVictory() returns non-null. */
+  readonly victoryResult: import('./scenario').VictoryResult | null;
+  /** Defeat condition that triggered game over, if any. */
+  readonly defeatCondition: import('./scenario').DefeatCondition | null;
+  /** Number of items used so far (for stress test reporting). */
+  readonly itemsUsedCount: number;
+  /** Total encounters triggered so far (for stress test reporting). */
+  readonly encounterCount: number;
+  /** Current location ID in the scenario graph (null before game starts). */
+  readonly playerLocationId: string | null;
 }
 
 /** Structured record of a single player action (for history & bug reports) */
@@ -180,6 +209,30 @@ export function createInitialGameState(): GameState {
     obstacleAttempts: {},
     secondChanceUsed: false,
     activeCombat: null,
+    // === Phase 6B defaults ===
+    scenario: null,
+    visitedLocations: {},
+    npcStates: {},
+    activatedObjects: [],
+    lethalLocations: [],
+    fullyContainedLocations: [],
+    destroyedObjectives: [],
+    selfDestructActive: false,
+    threatDirectorState: {
+      currentBeat: 'intro',
+      encounterCount: 0,
+      turnsSinceLastEncounter: 0,
+      turnsSinceLastHint: 0,
+      hintHistory: [],
+      creatureWounded: false,
+      creatureEnraged: false,
+      woundedCooldown: 0,
+    },
+    victoryResult: null,
+    defeatCondition: null,
+    itemsUsedCount: 0,
+    encounterCount: 0,
+    playerLocationId: null,
   };
 }
 
@@ -515,7 +568,12 @@ export interface SceneContext {
   readonly locationItems: readonly ResolvedTarget[];
   readonly npcs: readonly NpcInstance[];
   readonly environmentFeatures: readonly EnvironmentFeatureInstance[];
-  readonly connectedLocations: readonly { readonly id: string; readonly aliases: readonly string[] }[];
+  readonly connectedLocations: readonly {
+    readonly id: string;
+    readonly aliases: readonly string[];
+    /** Whether this location has already been visited (Phase 6B). */
+    readonly visited?: boolean;
+  }[];
   readonly suggestions: readonly ParsedAction[];
   readonly environmentConditions: readonly EnvironmentCondition[];
   /** Body part definitions with locale-aware aliases (injected by content layer) */
@@ -525,6 +583,11 @@ export interface SceneContext {
   readonly atmosphere?: AtmosphereType;
   /** Current location ID (used by Ship Memory and failsafe) */
   readonly locationId?: string;
+  // === Phase 6B additions ===
+  /** Scenario-aware suggestions from obstacle paths (display layer). */
+  readonly scenarioSuggestions?: readonly import('./suggestions').SuggestionCandidate[];
+  /** Whether the current location contains a Black Box journal. */
+  readonly hasBlackBox?: boolean;
 }
 
 // === PHASE 3: RESOLUTION & COMBAT TYPES ===

@@ -18,21 +18,21 @@ export const randomBot: PlaytestBot = {
   ): string {
     const roll = rng.float();
 
-    // 60%: pick a random suggestion (most likely to produce valid action)
-    if (roll < 0.60 && scene.suggestions.length > 0) {
+    // 40%: move to a random connected location (boosted to prevent stuck)
+    if (roll < 0.40 && scene.connectedLocationAliases.length > 0) {
+      return `aller ${rng.pick(scene.connectedLocationAliases)}`;
+    }
+
+    // 30%: pick a random suggestion
+    if (roll < 0.70 && scene.suggestions.length > 0) {
       return rng.pick(scene.suggestions);
     }
 
     // 20%: interact with a random visible item
-    if (roll < 0.80 && scene.locationItemNames.length > 0) {
+    if (roll < 0.90 && scene.locationItemNames.length > 0) {
       const itemName = rng.pick(scene.locationItemNames);
       const verb = rng.pick(['examiner', 'prendre', 'utiliser', 'pousser'] as const);
       return `${verb} ${itemName}`;
-    }
-
-    // 10%: move to a random connected location
-    if (roll < 0.90 && scene.connectedLocationAliases.length > 0) {
-      return `aller ${rng.pick(scene.connectedLocationAliases)}`;
     }
 
     // 10%: completely random/fuzz input

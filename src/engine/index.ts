@@ -82,6 +82,24 @@ export { buildConsequences, applyConsequences } from './consequences';
 // === Phase 4: processTurn ===
 export { processTurn } from './processTurn';
 
+// === Phase 6B: Game loop ===
+export { initGame, isGameOver, buildVictoryCheckContext } from './game';
+export { getSceneContext, formatSuggestionAsInput, sceneHasHealingItem } from './scene';
+export { checkVictory, checkAdditionalDefeat, evaluateVictoryCondition } from './victory';
+export {
+  createThreatDirector, transitionBeat, threatCheck, generateEncounter,
+  onCreatureWounded, onCreatureReturns,
+} from './threat';
+export {
+  createVisitState, markRevisit, markItemTaken, markFeatureChanged,
+  markObstacleResolved, hasBeenVisited, isItemAvailable, isFeatureChanged,
+  isObstacleResolved, getExitsWithStatus, categorizeExits,
+} from './backtracking';
+export {
+  generateSuggestions, scoreCandidate, selectTop3WithVariety,
+  isExcludedFromSuggestions, CLASS_PRIMARY_STATS,
+} from './suggestions';
+
 // === Types ===
 export type {
   // Phase 2
@@ -109,3 +127,18 @@ export type {
   TurnResult, TurnDebugTrace,
 } from './types';
 export { isReformulation, CONDITION_IDS } from './types';
+
+// === Phase 6B types ===
+export type { NpcState, VictoryCheckContext } from './victory';
+export type { SuggestionCandidate } from './suggestions';
+export type { ExitInfo } from './backtracking';
+export type { ThreatCheckResult } from './threat';
+export type {
+  AssembledScenario, CoreSkeleton, ScenarioModule, PlacedModule,
+  LocationGraph, LocationNode, LocationEdge, LocationVisitState,
+  VictoryCondition, DefeatCondition, VictoryResult, VictoryType,
+  ThreatDirectorState, ThreatEvent, ThreatBehavior,
+  NarrativeSkin, ObstacleDefinition, ObstaclePath,
+  BlackBoxEntry, GameHistory, KeyEvent, DangerHint,
+  SettingDefinition, SessionLength, CoreNodeId,
+} from './scenario';
