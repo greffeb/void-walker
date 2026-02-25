@@ -29,6 +29,11 @@ export type StringKey =
   | 'ui.loading'
   | 'ui.save'
   | 'ui.load'
+  | 'ui.scene.exits'
+  | 'ui.scene.explored'
+  | 'ui.scene.unexplored'
+  | 'ui.scene.you_notice'
+  | 'ui.scene.obstacle_hint'
   // Character creation
   | 'creation.title'
   | 'creation.chooseName'

@@ -588,6 +588,24 @@ export interface SceneContext {
   readonly scenarioSuggestions?: readonly import('./suggestions').SuggestionCandidate[];
   /** Whether the current location contains a Black Box journal. */
   readonly hasBlackBox?: boolean;
+  /** Structured scene description for UI display and narration enrichment. */
+  readonly sceneDescription?: SceneDescription;
+}
+
+/** Structured description of the current scene for UI display and narration. */
+export interface SceneDescription {
+  /** Location flavor text (entry or revisit description). */
+  readonly locationDescription: string;
+  /** Obstacle hint when unresolved, null otherwise. */
+  readonly obstacleHint: string | null;
+  /** Items visible in the location (not yet taken). */
+  readonly visibleItems: readonly { readonly id: string; readonly name: string }[];
+  /** Environment features in the location. */
+  readonly visibleFeatures: readonly { readonly id: string; readonly name: string }[];
+  /** NPCs present in the location. */
+  readonly visibleNpcs: readonly { readonly id: string; readonly name: string }[];
+  /** Connected locations with visit status. */
+  readonly exits: readonly { readonly name: string; readonly visited: boolean }[];
 }
 
 // === PHASE 3: RESOLUTION & COMBAT TYPES ===

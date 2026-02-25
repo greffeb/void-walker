@@ -6,12 +6,17 @@
 // Black Box flags. Pure function — no side effects.
 // ---------------------------------------------------------------------------
 
-import type { GameState, SceneContext, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from './types';
-import type { LocationNode, NarrativeSkin } from './scenario';
+import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from './types';
+import type { LocationNode, NarrativeSkin, LocationVisitState } from './scenario';
 import type { SuggestionCandidate } from './suggestions';
 import { generateSuggestions } from './suggestions';
 import { getExitsWithStatus } from './backtracking';
 import { isItemAvailable, isObstacleResolved } from './backtracking';
+import { ITEM_DEFINITIONS } from '../content/items';
+import { ENVIRONMENT_FEATURE_DEFINITIONS } from '../content/environments';
+import { NPC_DEFINITIONS } from '../content/npcs';
+import { getScenarioNameFr } from '../content/scenarioNames';
+import { t } from '../i18n/index';
 
 // ---------------------------------------------------------------------------
 // HEALING ITEM IDs — items that count as healing for bot scene detection
@@ -100,6 +105,9 @@ export function getSceneContext(state: GameState): SceneContext {
     playerClass,
   );
 
+  // --- Scene description for UI and narration ---
+  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations);
+
   return {
     inventory,
     locationItems,
@@ -112,6 +120,7 @@ export function getSceneContext(state: GameState): SceneContext {
     locationId: playerLocationId,
     scenarioSuggestions,
     hasBlackBox: node.hasBlackBox === true,
+    sceneDescription,
   };
 }
 
@@ -175,6 +184,79 @@ function buildSuggestionCandidates(
   }
 
   return generateSuggestions(candidates, playerClass, activeSkin);
+}
+
+// ---------------------------------------------------------------------------
+// SCENE DESCRIPTION — structured data for UI display and narration
+// ---------------------------------------------------------------------------
+
+function buildSceneDescription(
+  node: LocationNode,
+  visitState: LocationVisitState | undefined,
+  connectedLocations: readonly { id: string; aliases: readonly string[]; visited?: boolean }[],
+): SceneDescription {
+  const isFirstVisit = visitState === undefined || visitState.visitCount <= 1;
+  const obstacleResolved = isObstacleResolved(visitState);
+
+  // Location description from skin (entry/revisit) or core node descriptionKey
+  let locationDescription = '';
+  if (node.activeSkin) {
+    locationDescription = isFirstVisit
+      ? node.activeSkin.entryDescription.fr
+      : node.activeSkin.revisitDescription.fr;
+  }
+  // Fall back to core node descriptionKey if no skin or empty skin text
+  if (!locationDescription && node.coreNodeId) {
+    // Core nodes have descriptionKey from skeleton — already stored on the node
+    // The node doesn't carry descriptionKey directly; use nameKey as minimal fallback
+    locationDescription = node.nameKey.fr;
+  }
+  if (!locationDescription) {
+    locationDescription = node.nameKey.fr;
+  }
+
+  // Obstacle hint
+  const obstacleHint = (!obstacleResolved && node.obstacle)
+    ? node.obstacle.description.fr
+    : null;
+
+  // Visible items (not taken, not hidden)
+  const visibleItems = node.items
+    .filter(item => !item.hidden && isItemAvailable(visitState, item.id))
+    .map(item => {
+      const def = ITEM_DEFINITIONS[item.id];
+      const name = def ? t(def.nameKey) : getScenarioNameFr(item.id);
+      return { id: item.id, name };
+    });
+
+  // Environment features
+  const visibleFeatures = node.features.map(feat => {
+    const def = ENVIRONMENT_FEATURE_DEFINITIONS[feat.id];
+    const name = def ? t(def.nameKey) : getScenarioNameFr(feat.id);
+    return { id: feat.id, name };
+  });
+
+  // NPCs present
+  const visibleNpcs = (node.npcs ?? []).map(npc => {
+    const def = NPC_DEFINITIONS[npc.id];
+    const name = def ? t(def.nameKey) : getScenarioNameFr(npc.id);
+    return { id: npc.id, name };
+  });
+
+  // Exits
+  const exits = connectedLocations.map(loc => ({
+    name: loc.aliases[0] ?? loc.id,
+    visited: loc.visited ?? false,
+  }));
+
+  return {
+    locationDescription,
+    obstacleHint,
+    visibleItems,
+    visibleFeatures,
+    visibleNpcs,
+    exits,
+  };
 }
 
 // ---------------------------------------------------------------------------

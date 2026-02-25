@@ -17,6 +17,11 @@ export const fr: LocaleStrings = {
   'ui.loading': 'Chargement...',
   'ui.save': 'Sauvegarder',
   'ui.load': 'Charger',
+  'ui.scene.exits': 'Sorties',
+  'ui.scene.explored': 'exploré',
+  'ui.scene.unexplored': 'inexploré',
+  'ui.scene.you_notice': 'Vous remarquez',
+  'ui.scene.obstacle_hint': 'Obstacle',
 
   // Character creation
   'creation.title': 'Création de personnage',

@@ -299,7 +299,7 @@ export function PlaytestScreen(): JSX.Element {
   const {
     state, classList, selectDifficulty, selectClass,
     submitInput, submitSuggestion, markReported, restart,
-    suggestions, locationName,
+    suggestions, locationName, sceneDescription,
   } = useScenarioLoop();
 
   const [inputValue, setInputValue] = useState('');
@@ -400,14 +400,63 @@ export function PlaytestScreen(): JSX.Element {
         )}
       </div>
 
+      {/* Exit panel — always visible navigation context */}
+      {sceneDescription && sceneDescription.exits.length > 0 && (
+        <div className="shrink-0 border-b border-gray-800/50 px-3 py-1">
+          <div className="font-mono text-xs text-gray-500">
+            Sorties : {sceneDescription.exits.map((e, i) => (
+              <span key={i}>
+                {i > 0 && ' · '}
+                <span className={e.visited ? 'text-gray-500' : 'text-cyan-400/70'}>{e.name}</span>
+                {!e.visited && <span className="text-cyan-400/40"> ?</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Scrollable narrative history */}
       <div ref={contentRef} className="flex-1 overflow-y-auto p-3">
         <div className="mx-auto flex max-w-lg flex-col gap-3">
-          {/* Welcome message on first turn */}
+          {/* Welcome message on first turn — rich scene description */}
           {state.turnHistory.length === 0 && (
             <div className="rounded border border-gray-800 bg-gray-950/40 p-3 font-mono text-sm text-gray-300">
-              Vous reprenez conscience dans <span className="text-purple-400">{locationName}</span>.
-              L'air est charge d'une tension palpable. Que faites-vous ?
+              <div className="mb-2">
+                Vous reprenez conscience dans <span className="text-purple-400">{locationName}</span>.
+                {sceneDescription?.locationDescription && (
+                  <> {sceneDescription.locationDescription}</>
+                )}
+              </div>
+              {sceneDescription?.obstacleHint && (
+                <div className="mb-2 italic text-orange-400/80">{sceneDescription.obstacleHint}</div>
+              )}
+              {sceneDescription && sceneDescription.visibleItems.length > 0 && (
+                <div className="mb-1 text-gray-400">
+                  Vous remarquez : <span className="text-gray-200">{sceneDescription.visibleItems.map(i => i.name).join(', ')}</span>.
+                </div>
+              )}
+              {sceneDescription && sceneDescription.visibleFeatures.length > 0 && (
+                <div className="mb-1 text-gray-400">
+                  L'environnement : <span className="text-gray-200">{sceneDescription.visibleFeatures.map(f => f.name).join(', ')}</span>.
+                </div>
+              )}
+              {sceneDescription && sceneDescription.visibleNpcs.length > 0 && (
+                <div className="mb-1 text-gray-400">
+                  Presences : <span className="text-gray-200">{sceneDescription.visibleNpcs.map(n => n.name).join(', ')}</span>.
+                </div>
+              )}
+              {sceneDescription && sceneDescription.exits.length > 0 && (
+                <div className="mb-1 text-gray-400">
+                  Sorties : {sceneDescription.exits.map((e, i) => (
+                    <span key={i}>
+                      {i > 0 && ', '}
+                      <span className="text-cyan-400/80">{e.name}</span>
+                      <span className="text-gray-600"> [{e.visited ? 'explore' : 'inexplore'}]</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="mt-2 text-gray-500">Que faites-vous ?</div>
             </div>
           )}
 

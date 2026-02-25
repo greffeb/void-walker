@@ -20,7 +20,7 @@ import { createInitialGameState } from '@engine/types';
 import { narrateForTurn, NARRATIVE_PRESETS } from '@narration/index';
 import type {
   GameState, DifficultyLevel, PlayerClassName,
-  TurnDebugTrace, DiceResult, SceneContext, RngFn,
+  TurnDebugTrace, DiceResult, SceneContext, SceneDescription, RngFn,
 } from '@engine/types';
 import type { SuggestionCandidate } from '@engine/suggestions';
 
@@ -79,6 +79,7 @@ export interface ScenarioLoop {
   readonly restart: () => void;
   readonly suggestions: readonly SuggestionCandidate[];
   readonly locationName: string;
+  readonly sceneDescription: SceneDescription | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -186,10 +187,49 @@ function createInitialState(): ScenarioLoopState {
 // HOOK
 // ---------------------------------------------------------------------------
 
+/** Extract all element IDs from a SceneDescription. */
+function allSceneElementIds(desc: SceneDescription): Set<string> {
+  const ids = new Set<string>();
+  for (const item of desc.visibleItems) ids.add(item.id);
+  for (const feat of desc.visibleFeatures) ids.add(feat.id);
+  for (const npc of desc.visibleNpcs) ids.add(npc.id);
+  return ids;
+}
+
+/** Filter suggestions to only reference narrated elements (+ exits which are always allowed). */
+function filterSuggestionsByNarrated(
+  suggestions: readonly SuggestionCandidate[],
+  narratedIds: Set<string>,
+  scene: SceneDescription | undefined,
+): readonly SuggestionCandidate[] {
+  return suggestions.filter(s => {
+    // Movement suggestions are always allowed
+    if (s.category === 'movement') return true;
+    // Obstacle suggestions are always allowed (they are the room's main challenge)
+    if (s.category === 'obstacle') return true;
+    // For item/npc suggestions: check if the target ID has been narrated
+    // Match by checking if narrated set contains any item/npc/feature whose name matches
+    if (scene) {
+      const allEntities = [
+        ...scene.visibleItems,
+        ...scene.visibleFeatures,
+        ...scene.visibleNpcs,
+      ];
+      const entity = allEntities.find(e => e.name === s.targetText || e.id === s.targetText);
+      if (entity && narratedIds.has(entity.id)) return true;
+    }
+    return false;
+  });
+}
+
 export function useScenarioLoop(): ScenarioLoop {
   const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
   const rngRef = useRef<RngFn>(() => Math.random());
   const parserDataRef = useRef(buildParserLocaleData('fr'));
+  /** Tracks which element IDs have been narrated to the player in the current location. */
+  const narratedIdsRef = useRef<Set<string>>(new Set());
+  /** Tracks the current location ID to detect location changes. */
+  const currentLocationRef = useRef<string | null>(null);
 
   const selectDifficulty = useCallback((difficulty: DifficultyLevel) => {
     dispatch({ type: 'SELECT_DIFFICULTY', difficulty });
@@ -208,6 +248,12 @@ export function useScenarioLoop(): ScenarioLoop {
       const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
       const gameState = initGame(scenario, className, state.difficulty, 'Joueur', rng);
       const sceneContext = getSceneContext(gameState);
+
+      // Mark all starting location elements as narrated (welcome message lists them)
+      if (sceneContext.sceneDescription) {
+        narratedIdsRef.current = allSceneElementIds(sceneContext.sceneDescription);
+        currentLocationRef.current = sceneContext.locationId ?? null;
+      }
 
       dispatch({ type: 'START_GAME', gameState, sceneContext, seed });
     } catch (err) {
@@ -238,6 +284,31 @@ export function useScenarioLoop(): ScenarioLoop {
       }
 
       const newContext = getSceneContext(result.newState);
+
+      // Update narrated IDs based on what this turn revealed
+      const newLocationId = newContext.locationId ?? null;
+      if (newLocationId !== currentLocationRef.current) {
+        // Location changed: reset narrated IDs and mark all new location elements
+        if (newContext.sceneDescription) {
+          narratedIdsRef.current = allSceneElementIds(newContext.sceneDescription);
+        } else {
+          narratedIdsRef.current = new Set();
+        }
+        currentLocationRef.current = newLocationId;
+      } else {
+        // Same location: check if EXAMINE environment → narrate all elements
+        const isExamineEnv = result.trace.parsedVerb === 'EXAMINE'
+          && result.trace.parsedTarget === 'environment'
+          && (result.trace.outcome === 'success' || result.trace.outcome === 'crit_success' || result.trace.isAutoVerb);
+        if (isExamineEnv && newContext.sceneDescription) {
+          const allIds = allSceneElementIds(newContext.sceneDescription);
+          for (const id of allIds) narratedIdsRef.current.add(id);
+        } else if (result.trace.parsedTarget) {
+          // Only the action target becomes narrated
+          narratedIdsRef.current.add(result.trace.parsedTarget);
+        }
+      }
+
       const entry: TurnEntry = {
         id: result.newState.turn,
         input,
@@ -274,11 +345,14 @@ export function useScenarioLoop(): ScenarioLoop {
     dispatch({ type: 'RESTART' });
   }, []);
 
-  // Derive suggestions from scene context (top 2)
-  const suggestions: readonly SuggestionCandidate[] =
-    state.sceneContext?.scenarioSuggestions?.slice(0, 2) ?? [];
+  // Derive suggestions from scene context (top 2), filtered by narrated elements
+  const allSuggestions = state.sceneContext?.scenarioSuggestions ?? [];
+  const sceneDesc = state.sceneContext?.sceneDescription;
+  const filtered = filterSuggestionsByNarrated(allSuggestions, narratedIdsRef.current, sceneDesc);
+  const suggestions: readonly SuggestionCandidate[] = filtered.slice(0, 2);
 
   const locationName = getLocationName(state.gameState);
+  const sceneDescription = sceneDesc ?? null;
 
   return {
     state,
@@ -291,5 +365,6 @@ export function useScenarioLoop(): ScenarioLoop {
     restart,
     suggestions,
     locationName,
+    sceneDescription,
   };
 }

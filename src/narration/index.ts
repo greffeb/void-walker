@@ -6,7 +6,7 @@
 // the engine layer free of narration imports (dependency flows downward).
 // ---------------------------------------------------------------------------
 
-import type { TurnResult, SceneContext, GameState } from '../engine/types';
+import type { TurnResult, SceneContext, SceneDescription, GameState } from '../engine/types';
 import type { VerbId } from '../engine/verbs';
 import type { Locale, StringKey } from '../i18n/types';
 import type {
@@ -238,6 +238,18 @@ export function narrateForTurn(
     return result.narrative || '';
   }
 
+  // Special case: EXAMINE on abstract environment target → rich scene description
+  const isExamineEnvironment = result.trace.parsedVerb === 'EXAMINE'
+    && result.trace.parsedTarget === 'environment'
+    && sceneContext.sceneDescription;
+  const isSuccessful = result.trace.outcome === 'success'
+    || result.trace.outcome === 'crit_success'
+    || result.trace.isAutoVerb;
+
+  if (isExamineEnvironment && isSuccessful) {
+    return buildExamineEnvironmentNarrative(sceneContext.sceneDescription);
+  }
+
   // Build narrative context from turn data
   const ctx = buildNarrativeContext(result, sceneContext, state);
 
@@ -246,4 +258,50 @@ export function narrateForTurn(
   const effectiveLocale = locale ?? getLocale();
 
   return composeNarrative(ctx, effectiveSettings, undefined, effectiveLocale);
+}
+
+// === EXAMINE ENVIRONMENT — rich scene description ===
+
+/**
+ * Build a detailed scene description when the player examines the environment.
+ * Lists location flavor, obstacle, items, features, NPCs, and exits.
+ */
+function buildExamineEnvironmentNarrative(scene: SceneDescription): string {
+  const parts: string[] = [];
+
+  // Location flavor
+  parts.push(`Vous observez les lieux. ${scene.locationDescription}`);
+
+  // Obstacle hint
+  if (scene.obstacleHint) {
+    parts.push(scene.obstacleHint);
+  }
+
+  // Visible items
+  if (scene.visibleItems.length > 0) {
+    const itemNames = scene.visibleItems.map(i => i.name).join(', ');
+    parts.push(`Vous remarquez : ${itemNames}.`);
+  }
+
+  // Environment features
+  if (scene.visibleFeatures.length > 0) {
+    const featureNames = scene.visibleFeatures.map(f => f.name).join(', ');
+    parts.push(`L'environnement présente : ${featureNames}.`);
+  }
+
+  // NPCs
+  if (scene.visibleNpcs.length > 0) {
+    const npcNames = scene.visibleNpcs.map(n => n.name).join(', ');
+    parts.push(`Présences : ${npcNames}.`);
+  }
+
+  // Exits
+  if (scene.exits.length > 0) {
+    const exitDescs = scene.exits.map(e =>
+      e.visited ? `${e.name} [exploré]` : `${e.name} [inexploré]`,
+    );
+    parts.push(`Sorties : ${exitDescs.join(', ')}.`);
+  }
+
+  return parts.join(' ');
 }
