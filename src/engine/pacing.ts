@@ -378,22 +378,15 @@ function isReachableBefore(graph: LocationGraph, targetId: string, barrierId: st
 
 /** Get tension values for all nodes in order */
 function getNodeTensions(graph: LocationGraph): number[] {
-  // Return tensions in a reasonable traversal order (BFS from start)
-  const visited = new Set<string>();
-  const queue: string[] = ['start'];
-  const tensions: number[] = [];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    if (visited.has(current)) continue;
-    visited.add(current);
-    const node = graph.nodes.find(n => n.id === current);
-    if (node) tensions.push(node.tension);
-    const neighbors = graph.edges
-      .filter(e => e.from === current)
-      .map(e => e.to);
-    queue.push(...neighbors);
-  }
-  return tensions;
+  // Only check the 6 core nodes in their canonical order.
+  // Module nodes within a segment may vary freely within the segment's range —
+  // validating them in BFS order produces false positives when two modules in
+  // the same segment happen to be assigned in descending tension order.
+  const CORE_ORDER: CoreNodeId[] = ['start', 'unlock', 'reveal', 'escalation', 'boss', 'resolution'];
+  return CORE_ORDER
+    .map(id => graph.nodes.find(n => n.coreNodeId === id))
+    .filter((n): n is LocationNode => n !== undefined)
+    .map(n => n.tension);
 }
 
 /** Validate that the tension curve is monotonically non-decreasing to climax */
