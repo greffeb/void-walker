@@ -245,14 +245,17 @@ export function resolveBodyPart(
  * Resolve natural language tokens to a game target entity.
  *
  * Priority order:
- * 1. Player inventory items
- * 2. Location items
- * 3. NPC body parts (virtual objects) — before whole-NPC so body targeting wins
- * 4. NPCs (whole entity)
- * 5. Environment features
- * 6. Connected locations (for movement verbs)
- * 7. Single-NPC contextual default (when tokens are empty or contain generic refs)
- * 8. Abstract/environment fallback
+ * 1. Verb-specific shortcuts:
+ *    - MOVE_TO: connected locations first
+ *    - TAKE: location items before inventory
+ * 2. Player inventory items
+ * 3. Location items
+ * 4. NPC body parts (virtual objects) — before whole-NPC so body targeting wins
+ * 5. NPCs (whole entity)
+ * 6. Environment features
+ * 7. Connected locations (for movement-like verbs RUN/CLIMB)
+ * 8. Single-NPC contextual default (when tokens are empty or contain generic refs)
+ * 9. Abstract/environment fallback
  *
  * Returns null for intransitive verbs (WAIT, LISTEN with no target).
  *
@@ -315,43 +318,93 @@ export function resolveTarget(
 
   const searchTokens = targetTokens.length > 0 ? targetTokens : tokens;
 
+  // MOVE_TO should resolve exits before anything else. Otherwise inventory/item
+  // aliases can shadow movement targets and prevent actual movement.
+  if (verb === 'MOVE_TO') {
+    let locBestScore = 0;
+    let locBestTarget: ResolvedTarget | null = null;
+    for (const loc of context.connectedLocations) {
+      const aliases = [...loc.aliases, ...loc.id.replace(/_/g, ' ').split(' ')];
+      const score = tokenMatchScore(searchTokens, aliases);
+      if (score > locBestScore) {
+        locBestScore = score;
+        locBestTarget = {
+          id: loc.id,
+          nameKey: loc.id,
+          properties: [],
+          isVirtual: false,
+          source: 'connected_location' as TargetSource,
+        };
+      }
+    }
+    if (locBestTarget && locBestScore > 0) {
+      return locBestTarget;
+    }
+  }
+
+  // TAKE should prefer visible location items so we can correctly mark them as
+  // taken and remove them from the scene.
+  if (verb === 'TAKE') {
+    let takeBestScore = 0;
+    let takeBestTarget: ResolvedTarget | null = null;
+    for (const item of context.locationItems) {
+      const aliases = [...new Set([
+        ...(item.aliases ?? []),
+        ...nameKeyToAliases(item.nameKey),
+        ...item.id.replace(/_/g, ' ').split(' '),
+      ])];
+      const score = tokenMatchScore(searchTokens, aliases);
+      if (score > takeBestScore) {
+        takeBestScore = score;
+        takeBestTarget = item;
+      }
+    }
+    if (takeBestTarget && takeBestScore >= 5) {
+      return takeBestTarget;
+    }
+  }
+
   // 1. Inventory items
   let bestScore = 0;
   let bestTarget: ResolvedTarget | null = null;
 
-  for (const item of context.inventory) {
-    const aliases = [...new Set([
-      ...(item.aliases ?? []),
-      ...nameKeyToAliases(item.nameKey),
-      ...item.id.replace(/_/g, ' ').split(' '),
-    ])];
-    const score = tokenMatchScore(searchTokens, aliases);
-    if (score > bestScore) {
-      bestScore = score;
-      bestTarget = item;
+  if (verb !== 'MOVE_TO') {
+    for (const item of context.inventory) {
+      const aliases = [...new Set([
+        ...(item.aliases ?? []),
+        ...nameKeyToAliases(item.nameKey),
+        ...item.id.replace(/_/g, ' ').split(' '),
+      ])];
+      const score = tokenMatchScore(searchTokens, aliases);
+      if (score > bestScore) {
+        bestScore = score;
+        bestTarget = item;
+      }
     }
-  }
-  if (bestTarget && bestScore >= 5) {
-    return bestTarget;
+    if (bestTarget && bestScore >= 5) {
+      return bestTarget;
+    }
   }
 
   // 2. Location items
   bestScore = 0;
   bestTarget = null;
-  for (const item of context.locationItems) {
-    const aliases = [...new Set([
-      ...(item.aliases ?? []),
-      ...nameKeyToAliases(item.nameKey),
-      ...item.id.replace(/_/g, ' ').split(' '),
-    ])];
-    const score = tokenMatchScore(searchTokens, aliases);
-    if (score > bestScore) {
-      bestScore = score;
-      bestTarget = item;
+  if (verb !== 'MOVE_TO' && verb !== 'TAKE') {
+    for (const item of context.locationItems) {
+      const aliases = [...new Set([
+        ...(item.aliases ?? []),
+        ...nameKeyToAliases(item.nameKey),
+        ...item.id.replace(/_/g, ' ').split(' '),
+      ])];
+      const score = tokenMatchScore(searchTokens, aliases);
+      if (score > bestScore) {
+        bestScore = score;
+        bestTarget = item;
+      }
     }
-  }
-  if (bestTarget && bestScore >= 5) {
-    return bestTarget;
+    if (bestTarget && bestScore >= 5) {
+      return bestTarget;
+    }
   }
 
   // 3. NPC body parts (virtual objects) — checked before whole-NPC so that
@@ -408,7 +461,7 @@ export function resolveTarget(
 
   // 6. Connected locations (for movement verbs) — checked BEFORE environment
   //   to prevent "aller sas-b" from matching a partial alias on main_airlock.
-  const movementVerbs: ReadonlySet<VerbId> = new Set(['MOVE_TO', 'RUN', 'CLIMB']);
+  const movementVerbs: ReadonlySet<VerbId> = new Set(['RUN', 'CLIMB']);
   if (movementVerbs.has(verb)) {
     let locBestScore = 0;
     let locBestTarget: ResolvedTarget | null = null;

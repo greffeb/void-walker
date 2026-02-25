@@ -464,6 +464,17 @@ export function processTurn(
   // STEP 9: Phase 6B — movement, visit tracking, victory/defeat, threat
   // ─────────────────────────────────────────────────────────
 
+  const syncBeatFromCurrentLocation = (s: GameState): GameState => {
+    if (s.scenario === null || s.playerLocationId === null) return s;
+    const node = s.scenario.graph.nodes.find(n => n.id === s.playerLocationId);
+    if (!node?.isCoreNode || node.beat === s.currentBeat) return s;
+    return {
+      ...s,
+      currentBeat: node.beat,
+      threatDirectorState: transitionBeat(s.threatDirectorState, node.beat),
+    };
+  };
+
   // 9a. Movement: if the action is MOVE_TO, update location and visit state
   if (action.verb === 'MOVE_TO' && action.target?.source === 'connected_location') {
     const newLocationId = action.target.id;
@@ -479,19 +490,10 @@ export function processTurn(
         [newLocationId]: updatedVisit,
       },
     };
-
-    // 9b. Beat transition when player reaches a new core node
-    if (current.scenario !== null) {
-      const destNode = current.scenario.graph.nodes.find(n => n.id === newLocationId);
-      if (destNode?.isCoreNode && destNode.beat !== current.currentBeat) {
-        current = {
-          ...current,
-          currentBeat: destNode.beat,
-          threatDirectorState: transitionBeat(current.threatDirectorState, destNode.beat),
-        };
-      }
-    }
   }
+
+  // 9b. Keep beat/threat director aligned with the player's current core node.
+  current = syncBeatFromCurrentLocation(current);
 
   // 9b-2. Item tracking: TAKE is an auto-verb — always succeeds immediately
   if (

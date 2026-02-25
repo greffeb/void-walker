@@ -7,14 +7,13 @@
 
 import { describe, it, expect } from 'vitest';
 import { initGame, isGameOver, buildVictoryCheckContext } from '../../src/engine/game';
-import { getSceneContext, formatSuggestionAsInput } from '../../src/engine/scene';
+import { getSceneContext } from '../../src/engine/scene';
 import { processTurn } from '../../src/engine/processTurn';
 import { assembleScenario } from '../../src/engine/pacing';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
 import { LAUNCH_SETTINGS } from '../../src/content/settings';
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
-import { checkVictory } from '../../src/engine/victory';
 import type { GameState } from '../../src/engine/types';
 
 // ---------------------------------------------------------------------------
