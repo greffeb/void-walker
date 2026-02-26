@@ -295,6 +295,13 @@ export function narrateForTurn(
     return result.narrative || '';
   }
 
+  // C3-8: If a scenario interaction produced a narrative override, use it directly
+  if (result.trace.scenarioInteractionMatched && result.trace.scenarioNarrativeOverride) {
+    const override = result.trace.scenarioNarrativeOverride;
+    const effectiveLocale = locale ?? getLocale();
+    return effectiveLocale === 'fr' ? override.fr : (override.en || override.fr);
+  }
+
   // Special case: EXAMINE on abstract environment target → rich scene description
   const isExamineEnvironment = result.trace.parsedVerb === 'EXAMINE'
     && result.trace.parsedTarget === 'environment'

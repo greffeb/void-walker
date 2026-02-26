@@ -39,7 +39,7 @@ import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken } from './backtracking';
 import { buildVictoryCheckContext } from './game';
 import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
-import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag } from './featureState';
+import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
 import { isEnrichedItem } from './scenario';
 import { removeItem } from './inventory';
 
@@ -189,11 +189,29 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   // STEP 4: Oxygen tick → O2 drain, HP drain if O2 = 0
   // ─────────────────────────────────────────────────────────
-  const hasEvaSuit = char.equippedArmor === 'eva_suit';
+  const hasEvaSuit = char.equippedArmor === 'eva_suit'
+    || char.inventory.includes('eva_suit');
+
+  // Adjust effective atmosphere based on scenario flags (C3-6)
+  let effectiveAtmosphere = atmosphere;
+  if (state.scenario !== null) {
+    if (hasScenarioFlag(state, 'o2_stabilized')) {
+      // Life support repaired → zone becomes pressurized
+      effectiveAtmosphere = 'pressurized';
+    } else if (hasScenarioFlag(state, 'sections_sealed')) {
+      // Sections sealed → downgrade drain by one level
+      if (effectiveAtmosphere === 'depressurized') {
+        effectiveAtmosphere = 'low_oxygen';
+      } else if (effectiveAtmosphere === 'low_oxygen') {
+        effectiveAtmosphere = 'pressurized';
+      }
+    }
+  }
+
   const o2Before = current.character!.oxygen;
   const { newOxygen, hpDrain: oxygenHpDrain } = tickOxygen(
     { current: o2Before, max: 100 },
-    atmosphere,
+    effectiveAtmosphere,
     hasEvaSuit,
   );
   const o2After = newOxygen.current;
@@ -695,6 +713,8 @@ export function processTurn(
     npcReacted, npcAttackHit, npcAttackDamage,
     stalkerClockBefore, stalkerClockAfter,
     stalkerEventType: stalkerEvent?.type ?? null,
+    scenarioInteractionMatched: scenarioInteractionHandled,
+    scenarioNarrativeOverride: scenarioNarrativeOverride,
   });
 
   return {
@@ -737,6 +757,8 @@ interface TraceInputs {
   readonly stalkerClockBefore: number;
   readonly stalkerClockAfter: number;
   readonly stalkerEventType: string | null;
+  readonly scenarioInteractionMatched?: boolean;
+  readonly scenarioNarrativeOverride?: import('./scenario').LocaleString | null;
 }
 
 function buildFullTrace(t: TraceInputs): TurnDebugTrace {
@@ -774,6 +796,8 @@ function buildFullTrace(t: TraceInputs): TurnDebugTrace {
     stalkerClockBefore: t.stalkerClockBefore,
     stalkerClockAfter: t.stalkerClockAfter,
     stalkerEventType: t.stalkerEventType,
+    scenarioInteractionMatched: t.scenarioInteractionMatched,
+    scenarioNarrativeOverride: t.scenarioNarrativeOverride,
   };
 }
 

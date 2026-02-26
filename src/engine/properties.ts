@@ -31,7 +31,8 @@ export type PropertyId =
   | 'on_fire' | 'zero_g' | 'climbable' | 'cramped' | 'open_space'
   // Additional (implied by verb requirements and item definitions)
   | 'cuttable' | 'large' | 'bladed' | 'injectable' | 'organic_compatible'
-  | 'sticky' | 'broken' | 'attached' | 'port' | 'coverable' | 'easily_repairable';
+  | 'sticky' | 'broken' | 'attached' | 'port' | 'coverable' | 'easily_repairable'
+  | 'open' | 'active' | 'inactive' | 'damaged';
 
 /** All valid property IDs as a runtime array */
 export const PROPERTY_IDS: readonly PropertyId[] = [
@@ -58,6 +59,7 @@ export const PROPERTY_IDS: readonly PropertyId[] = [
   // Additional
   'cuttable', 'large', 'bladed', 'injectable', 'organic_compatible',
   'sticky', 'broken', 'attached', 'port', 'coverable', 'easily_repairable',
+  'open', 'active', 'inactive', 'damaged',
 ] as const;
 
 // === PROPERTY METADATA ===
@@ -120,8 +122,9 @@ export const TYPE_BASE_PROPERTIES: TypeBaseProperties = {
     panel:     ['tangible', 'visible', 'flat', 'metallic', 'breakable', 'component'],
     camera:    ['tangible', 'visible', 'electronic'],
     airlock:   ['tangible', 'visible', 'openable', 'lockable', 'mechanical', 'sealed'],
-    container: ['tangible', 'visible', 'openable', 'hollow', 'liftable'],
-    wiring:    ['tangible', 'visible', 'flexible', 'conductive', 'electronic', 'component', 'flammable'],
+    container:  ['tangible', 'visible', 'openable', 'hollow', 'liftable'],
+    wiring:     ['tangible', 'visible', 'flexible', 'conductive', 'electronic', 'component', 'flammable'],
+    mechanical: ['tangible', 'visible', 'mechanical', 'metallic', 'usable'],
   },
 } as const;
 

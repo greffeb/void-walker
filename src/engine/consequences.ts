@@ -224,6 +224,21 @@ function applySingleConsequence(
       // NPC state is managed by processTurn() using activeCombat
       return state;
 
+    case 'npc_relocate': {
+      const npcId = c.npcId ?? c.targetId;
+      const locationId = c.locationId;
+      if (!npcId || !locationId) return state;
+      const npcState = state.npcStates[npcId];
+      if (!npcState || !npcState.alive) return state;
+      return {
+        ...state,
+        npcStates: {
+          ...state.npcStates,
+          [npcId]: { ...npcState, locationId },
+        },
+      };
+    }
+
     default:
       return state;
   }

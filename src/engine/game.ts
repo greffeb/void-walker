@@ -14,6 +14,7 @@ import { createInitialGameState } from './types';
 import { createThreatDirector } from './threat';
 import { createVisitState } from './backtracking';
 import { CLASSES } from '../content/classes';
+import { mapScenarioFlags } from './scenarioFlagMapper';
 
 // ---------------------------------------------------------------------------
 // HP MULTIPLIERS BY DIFFICULTY
@@ -159,16 +160,35 @@ export function isGameOver(state: GameState): boolean {
 /**
  * Build the minimal VictoryCheckContext snapshot from the current GameState.
  * Called each turn before checkVictory() and checkAdditionalDefeat().
+ *
+ * Integrates scenarioFlags via mapScenarioFlags() (Chantier 3, C3-7):
+ * abstract flags like 'cargo_jettisoned' are mapped to mechanical effects
+ * (lethalLocations, activatedObjects, etc.) that the existing victory system
+ * already understands.
  */
 export function buildVictoryCheckContext(state: GameState): VictoryCheckContext {
+  const baseLethal = [...state.lethalLocations];
+  const baseContained = [...state.fullyContainedLocations];
+  const baseActivated = [...state.activatedObjects];
+  let selfDestruct = state.selfDestructActive;
+
+  // Map scenario flags to mechanical effects (C3-7)
+  if (state.scenarioFlags && state.scenarioId) {
+    const flagEffects = mapScenarioFlags(state.scenarioFlags, state.scenarioId);
+    baseLethal.push(...flagEffects.lethalLocations);
+    baseContained.push(...flagEffects.fullyContainedLocations);
+    baseActivated.push(...flagEffects.activatedObjects);
+    if (flagEffects.selfDestructActive) selfDestruct = true;
+  }
+
   return {
     playerLocationId: state.playerLocationId ?? '',
     playerInventory: state.character?.inventory ?? [],
     npcStates: state.npcStates,
-    activatedObjects: state.activatedObjects,
-    lethalLocations: state.lethalLocations,
-    fullyContainedLocations: state.fullyContainedLocations,
+    activatedObjects: baseActivated,
+    lethalLocations: baseLethal,
+    fullyContainedLocations: baseContained,
     destroyedObjectives: state.destroyedObjectives,
-    selfDestructActive: state.selfDestructActive,
+    selfDestructActive: selfDestruct,
   };
 }

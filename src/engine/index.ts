@@ -114,6 +114,9 @@ export {
 } from './interactionResolver';
 export type { InteractionResolution } from './interactionResolver';
 
+export { mapScenarioFlags } from './scenarioFlagMapper';
+export type { FlagEffects } from './scenarioFlagMapper';
+
 export {
   isEnrichedFeature, isEnrichedItem,
 } from './scenario';

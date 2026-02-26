@@ -98,7 +98,7 @@ function runProfileSession(seed: number, bot: PlaytestBot): ProfileSessionResult
 
   const totalNodes = state.scenario?.graph.nodes.length ?? 1;
   const allItemIds = new Set<string>(
-    (state.scenario?.graph.nodes ?? []).flatMap(node => node.items.map(item => item.id)),
+    (state.scenario?.graph.nodes ?? []).flatMap(node => node.items.filter(item => !item.hidden).map(item => item.id)),
   );
   const allFeatureIds = new Set<string>(
     (state.scenario?.graph.nodes ?? []).flatMap(node => node.features.map(feature => feature.id)),

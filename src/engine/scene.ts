@@ -404,23 +404,29 @@ function deriveStateProperties(
 ): { add: PropertyId[]; remove: PropertyId[] } {
   switch (state) {
     case 'locked':
-      return { add: ['locked'], remove: [] };
+      return { add: ['locked'], remove: ['open'] };
     case 'open':
-      return { add: ['openable'], remove: ['locked', 'sealed'] };
+      return { add: ['open', 'openable'], remove: ['locked', 'sealed'] };
     case 'closed':
-      return { add: ['openable'], remove: ['locked'] };
+      return { add: ['openable'], remove: ['open'] };
     case 'broken':
     case 'destroyed':
       return { add: ['broken'], remove: ['locked', 'sealed', 'powered'] };
     case 'active':
-      return { add: ['powered'], remove: ['unpowered'] };
+    case 'activated':
+      return { add: ['active', 'powered'], remove: ['inactive', 'unpowered'] };
     case 'inactive':
     case 'offline':
-      return { add: ['unpowered'], remove: ['powered'] };
+    case 'deactivated':
+      return { add: ['unpowered', 'inactive'], remove: ['powered', 'active'] };
     case 'damaged':
-      return { add: ['broken', 'easily_repairable'], remove: [] };
+      return { add: ['broken'], remove: [] };
     case 'empty':
-      return { add: ['openable'], remove: ['locked', 'sealed'] };
+      return { add: ['open'], remove: ['locked', 'sealed'] };
+    case 'repaired':
+      return { add: ['powered'], remove: ['broken', 'damaged'] };
+    case 'searched':
+      return { add: [], remove: ['secured'] };
     default:
       return { add: [], remove: [] };
   }

@@ -316,6 +316,10 @@ export interface TurnDebugTrace {
   readonly stalkerClockBefore: number;
   readonly stalkerClockAfter: number;
   readonly stalkerEventType: string | null;
+
+  // Step 4b: Scenario interaction (Chantier 3)
+  readonly scenarioInteractionMatched?: boolean;
+  readonly scenarioNarrativeOverride?: import('./scenario').LocaleString | null;
 }
 
 /** Result of a single dice roll */
@@ -373,12 +377,14 @@ export type EnvironmentFeatureType =
   | 'camera'
   | 'airlock'
   | 'container'
-  | 'wiring';
+  | 'wiring'
+  | 'mechanical';
 
 /** All valid environment feature types as a runtime array */
 export const ENVIRONMENT_FEATURE_TYPES: readonly EnvironmentFeatureType[] = [
   'door', 'window', 'terminal', 'vent', 'pipe',
   'panel', 'camera', 'airlock', 'container', 'wiring',
+  'mechanical',
 ] as const;
 
 // === CHARACTER CREATION ===
@@ -843,7 +849,8 @@ export type ConsequenceType =
   | 'ship_memory_mark'
   | 'atmosphere_change'
   | 'npc_killed'
-  | 'npc_flee';
+  | 'npc_flee'
+  | 'npc_relocate';
 
 /** A single state-change instruction produced by an action outcome */
 export interface Consequence {
@@ -856,6 +863,10 @@ export interface Consequence {
   readonly itemId?: string;
   readonly atmosphereType?: AtmosphereType;
   readonly propertyId?: import('./properties').PropertyId;
+  /** Target location for npc_relocate consequences. */
+  readonly locationId?: string;
+  /** NPC ID for npc_relocate consequences. */
+  readonly npcId?: string;
 }
 
 // === DEATH ===
