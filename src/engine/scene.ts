@@ -7,9 +7,10 @@
 // ---------------------------------------------------------------------------
 
 import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from './types';
-import type { LocationNode, NarrativeSkin, LocationVisitState } from './scenario';
+import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition, FeatureState } from './scenario';
 import type { SuggestionCandidate } from './suggestions';
 import type { StringKey } from '../i18n/types';
+import type { PropertyId } from './properties';
 import { generateSuggestions } from './suggestions';
 import { getExitsWithStatus } from './backtracking';
 import { isItemAvailable, isObstacleResolved } from './backtracking';
@@ -17,7 +18,9 @@ import { resolveProperties } from './properties';
 import { ITEM_DEFINITIONS } from '../content/items';
 import { ENVIRONMENT_FEATURE_DEFINITIONS } from '../content/environments';
 import { NPC_DEFINITIONS } from '../content/npcs';
-import { t } from '../i18n/index';
+import { t, getLocale } from '../i18n/index';
+import { isEnrichedFeature, isEnrichedItem } from './scenario';
+import { getFeatureState, isItemRevealed } from './featureState';
 
 // ---------------------------------------------------------------------------
 // HEALING ITEM IDs — items that count as healing for bot scene detection
@@ -56,11 +59,17 @@ export function getSceneContext(state: GameState): SceneContext {
   const node = graph.nodes.find(n => n.id === playerLocationId);
   if (!node) return buildEmptyContext();
 
-  // --- Items: exclude taken ones ---
+  // --- Items: exclude taken ones and unrevealed (revealedBy) items ---
   const visitState = state.visitedLocations[playerLocationId];
   const locationItems: ResolvedTarget[] = node.items
     .filter(item => isItemAvailable(visitState, item.id))
-    .map(item => itemDefToResolvedTarget(item.id));
+    .filter(item => {
+      if (isEnrichedItem(item) && item.revealedBy) {
+        return isItemRevealed(state, item);
+      }
+      return true;
+    })
+    .map(item => itemDefToResolvedTarget(item.id, item));
 
   // --- Inventory ---
   const inventory: ResolvedTarget[] = (state.character?.inventory ?? []).map(
@@ -77,7 +86,7 @@ export function getSceneContext(state: GameState): SceneContext {
 
   // --- Environment features ---
   const environmentFeatures: EnvironmentFeatureInstance[] = node.features.map(
-    feat => featureDefToInstance(feat.id),
+    feat => featureDefToInstance(feat.id, feat, getFeatureState(state, feat.id, feat)),
   );
 
   // --- Connected locations with exploration status ---
@@ -284,7 +293,7 @@ function resolveDisplayName(i18nKey: string, id: string): string {
   return resolved;
 }
 
-function itemDefToResolvedTarget(id: string): ResolvedTarget {
+function itemDefToResolvedTarget(id: string, scenarioDef?: ItemDefinition): ResolvedTarget {
   const def = ITEM_DEFINITIONS[id];
   if (def) {
     const frName = t(def.nameKey).toLowerCase();
@@ -297,7 +306,22 @@ function itemDefToResolvedTarget(id: string): ResolvedTarget {
     });
     return { id, nameKey: def.nameKey, properties, isVirtual: false, source: 'location', aliases };
   }
-  // Scenario-only item → use i18n key
+  // Scenario-only item — check for enriched definition
+  if (scenarioDef && isEnrichedItem(scenarioDef) && scenarioDef.itemType) {
+    const locale = getLocale();
+    const nameKey = `item.${id}` as StringKey;
+    const frName = resolveDisplayName(nameKey, id);
+    const aliasesFromDef = scenarioDef.aliases ? [...scenarioDef.aliases[locale]] : [];
+    const aliases = [id, frName.toLowerCase(), ...aliasesFromDef];
+    const properties = resolveProperties({
+      objectCategory: 'item',
+      baseType: scenarioDef.itemType,
+      extra_props: scenarioDef.extraProperties ?? [],
+      remove_props: scenarioDef.removeProperties ?? [],
+    });
+    return { id, nameKey, properties, isVirtual: false, source: 'location', aliases };
+  }
+  // Fallback: scenario-only item with no enriched data
   const nameKey = `item.${id}` as StringKey;
   const frName = resolveDisplayName(nameKey, id);
   return {
@@ -371,7 +395,43 @@ function npcDefToNpcInstance(id: string): NpcInstance {
   };
 }
 
-function featureDefToInstance(id: string): EnvironmentFeatureInstance {
+/**
+ * Derive property overrides from a feature's current runtime state.
+ * Returns add/remove lists to be merged with base properties.
+ */
+function deriveStateProperties(
+  state: FeatureState | undefined,
+): { add: PropertyId[]; remove: PropertyId[] } {
+  switch (state) {
+    case 'locked':
+      return { add: ['locked'], remove: [] };
+    case 'open':
+      return { add: ['openable'], remove: ['locked', 'sealed'] };
+    case 'closed':
+      return { add: ['openable'], remove: ['locked'] };
+    case 'broken':
+    case 'destroyed':
+      return { add: ['broken'], remove: ['locked', 'sealed', 'powered'] };
+    case 'active':
+      return { add: ['powered'], remove: ['unpowered'] };
+    case 'inactive':
+    case 'offline':
+      return { add: ['unpowered'], remove: ['powered'] };
+    case 'damaged':
+      return { add: ['broken', 'easily_repairable'], remove: [] };
+    case 'empty':
+      return { add: ['openable'], remove: ['locked', 'sealed'] };
+    default:
+      return { add: [], remove: [] };
+  }
+}
+
+function featureDefToInstance(
+  id: string,
+  scenarioDef?: FeatureDefinition,
+  currentState?: FeatureState,
+): EnvironmentFeatureInstance {
+  // 1. Check content registry first
   const def = ENVIRONMENT_FEATURE_DEFINITIONS[id];
   if (def) {
     const frName = t(def.nameKey).toLowerCase();
@@ -383,7 +443,33 @@ function featureDefToInstance(id: string): EnvironmentFeatureInstance {
     });
     return { id, definitionId: id, nameKey: def.nameKey, aliases, properties };
   }
-  // Scenario-only feature → use i18n key
+
+  // 2. Check if scenario definition is enriched
+  if (scenarioDef && isEnrichedFeature(scenarioDef) && scenarioDef.featureType) {
+    const locale = getLocale();
+    const nameKey = `env.${id}` as StringKey;
+    const frName = resolveDisplayName(nameKey, id);
+    const aliasesFromDef = scenarioDef.aliases ? [...scenarioDef.aliases[locale]] : [];
+    const aliases = [id, frName.toLowerCase(), ...aliasesFromDef];
+
+    // Resolve base properties from type, then apply state overrides
+    const baseProps = resolveProperties({
+      objectCategory: 'environment',
+      baseType: scenarioDef.featureType,
+      extra_props: scenarioDef.extraProperties ?? [],
+      remove_props: scenarioDef.removeProperties ?? [],
+    });
+    const { add, remove } = deriveStateProperties(currentState ?? scenarioDef.initialState);
+    const removeSet = new Set(remove);
+    const properties: PropertyId[] = [
+      ...baseProps.filter(p => !removeSet.has(p)),
+      ...add.filter(p => !baseProps.includes(p)),
+    ];
+
+    return { id, definitionId: id, nameKey, aliases, properties };
+  }
+
+  // 3. Fallback: scenario-only feature without enriched data
   const nameKey = `env.${id}` as StringKey;
   const frName = resolveDisplayName(nameKey, id);
   return {

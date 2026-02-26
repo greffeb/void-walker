@@ -176,6 +176,20 @@ export interface GameState {
   readonly encounterCount: number;
   /** Current location ID in the scenario graph (null before game starts). */
   readonly playerLocationId: string | null;
+  // === Chantier 1 additions ===
+  /** Per-feature mutable state. Key = featureId, value = current FeatureState.
+   *  Initialized from each feature's `initialState` at game start. */
+  readonly featureStates: Readonly<Record<string, string>>;
+  /** Items revealed by container openings or other interactions.
+   *  Key = itemId, value = true when revealed.
+   *  Items WITHOUT `revealedBy` in their definition are always visible. */
+  readonly revealedItems: Readonly<Record<string, boolean>>;
+  /** Exits unlocked by interactions.
+   *  Key = composite `${fromLocationId}:${toLocationId}`, value = true. */
+  readonly unlockedExits: Readonly<Record<string, boolean>>;
+  /** Scenario-wide flags set by interactions.
+   *  Key = flag name (string), value = true when set. */
+  readonly scenarioFlags: Readonly<Record<string, boolean>>;
 }
 
 /** Structured record of a single player action (for history & bug reports) */
@@ -233,6 +247,11 @@ export function createInitialGameState(): GameState {
     itemsUsedCount: 0,
     encounterCount: 0,
     playerLocationId: null,
+    // === Chantier 1 defaults ===
+    featureStates: {},
+    revealedItems: {},
+    unlockedExits: {},
+    scenarioFlags: {},
   };
 }
 

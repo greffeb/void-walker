@@ -100,6 +100,24 @@ export {
   isExcludedFromSuggestions, CLASS_PRIMARY_STATS,
 } from './suggestions';
 
+// === Chantier 1: Feature/Item State Engine ===
+export {
+  getFeatureState, setFeatureState, getFeatureDescription,
+  setScenarioFlag, unsetScenarioFlag, hasScenarioFlag,
+  revealItem, isItemRevealed,
+  unlockExit, isExitUnlocked,
+} from './featureState';
+
+export {
+  resolveScenarioInteraction, resolveItemUseOn,
+  NO_INTERACTION_MATCH,
+} from './interactionResolver';
+export type { InteractionResolution } from './interactionResolver';
+
+export {
+  isEnrichedFeature, isEnrichedItem,
+} from './scenario';
+
 // === Types ===
 export type {
   // Phase 2
@@ -141,4 +159,8 @@ export type {
   NarrativeSkin, ObstacleDefinition, ObstaclePath,
   BlackBoxEntry, GameHistory, KeyEvent, DangerHint,
   SettingDefinition, SessionLength, CoreNodeId,
+  // Chantier 1
+  FeatureState, ScenarioFeatureDefinition, ScenarioItemDefinition,
+  ScenarioInteraction, InteractionTrigger, InteractionResult,
+  ItemUseOnDefinition,
 } from './scenario';

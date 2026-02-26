@@ -38,6 +38,10 @@ import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken } from './backtracking';
 import { buildVictoryCheckContext } from './game';
+import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
+import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag } from './featureState';
+import { isEnrichedItem } from './scenario';
+import { removeItem } from './inventory';
 
 // ---------------------------------------------------------------------------
 // Empty trace factory — used for early returns
@@ -202,6 +206,97 @@ export function processTurn(
   }
 
   // ─────────────────────────────────────────────────────────
+  // STEP 4b: Scenario interaction check
+  // ─────────────────────────────────────────────────────────
+  // Called BEFORE standard resolution. If a ScenarioInteraction matches,
+  // its results are applied and steps 5-6 are skipped.
+  // ─────────────────────────────────────────────────────────
+  let scenarioNarrativeOverride: import('./scenario').LocaleString | null = null;
+  let scenarioInteractionHandled = false;
+
+  if (current.scenario !== null && action.target !== null) {
+    const targetId = action.target.id;
+    const node = current.playerLocationId !== null
+      ? current.scenario.graph.nodes.find(n => n.id === current.playerLocationId)
+      : undefined;
+
+    if (node) {
+      // Try "use item on target" first (USE <item> ON <target>)
+      let interactionResult = { matched: false } as import('./interactionResolver').InteractionResolution;
+
+      if (action.verb === 'USE' && action.tool) {
+        const toolId = action.tool.id;
+        // Look for the item definition in the scenario graph nodes
+        const toolItemDef = findItemDefInGraph(current, toolId);
+        if (toolItemDef && isEnrichedItem(toolItemDef)) {
+          interactionResult = resolveItemUseOn(
+            toolId, toolItemDef, targetId, current, locationId, rng,
+          );
+        }
+      }
+
+      // Fall through to feature interaction if useOn didn't match
+      if (!interactionResult.matched) {
+        const featureDef = node.features.find(f => f.id === targetId) ?? null;
+        interactionResult = resolveScenarioInteraction(
+          action.verb, targetId, featureDef, current, locationId, rng,
+        );
+      }
+
+      if (interactionResult.matched) {
+        scenarioInteractionHandled = true;
+        scenarioNarrativeOverride = interactionResult.narrativeOverride;
+
+        // Apply feature state change
+        if (interactionResult.newFeatureState !== null) {
+          current = setFeatureState(current, targetId, interactionResult.newFeatureState);
+        }
+
+        // Apply consequences (damage, heal, etc.)
+        if (interactionResult.consequences.length > 0) {
+          current = applyConsequences(current, interactionResult.consequences, context, rng);
+        }
+
+        // Reveal items
+        for (const itemId of interactionResult.itemsToReveal) {
+          current = revealItem(current, itemId);
+        }
+
+        // Unlock exit (stored in unlockedExits — key is locationId:exitId for now)
+        if (interactionResult.exitToUnlock !== null && current.playerLocationId !== null) {
+          current = unlockExit(current, current.playerLocationId, interactionResult.exitToUnlock);
+        }
+
+        // Set/unset flags
+        if (interactionResult.flagToSet !== null) {
+          current = setScenarioFlag(current, interactionResult.flagToSet);
+        }
+        if (interactionResult.flagToUnset !== null) {
+          current = unsetScenarioFlag(current, interactionResult.flagToUnset);
+        }
+
+        // Consume required item from inventory
+        if (interactionResult.itemToConsume !== null && current.character !== null) {
+          const { inventory: newInventory } = removeItem(
+            current.character.inventory, interactionResult.itemToConsume,
+          );
+          current = { ...current, character: { ...current.character, inventory: newInventory } };
+        }
+
+        // Death check after interaction consequences
+        if (current.character !== null) {
+          const interactionDeathResult = checkDeath(
+            current.character.hp, current.character.maxHp, current.difficulty, current.secondChanceUsed,
+          );
+          if (interactionDeathResult) {
+            current = applyDeath(current, interactionDeathResult);
+          }
+        }
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
   // STEP 5: Action resolution → D20 roll
   // ─────────────────────────────────────────────────────────
   const isAutoVerb = AUTO_VERBS.has(action.verb);
@@ -220,7 +315,7 @@ export function processTurn(
   let traceTriggeredConditions: readonly string[] = [];
   let traceDeathResult: string | null = null;
 
-  if (!isAutoVerb) {
+  if (!isAutoVerb && !scenarioInteractionHandled) {
     const statId = VERB_STATS[action.verb] ?? 'FOR';
     const effectiveStats = applyConditionMalus(current.character!.stats, current.character!.conditions);
     const statValue = effectiveStats[statId] ?? 0;
@@ -571,7 +666,8 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   // STEP 10: Narrative composition (placeholder — Phase 5)
   // ─────────────────────────────────────────────────────────
-  const narrative = ''; // Phase 5: 7-layer narrative composition
+  // If a scenario interaction provided a narrative override, use it; otherwise standard templates
+  const narrative = scenarioNarrativeOverride?.fr ?? ''; // Phase 5: 7-layer narrative composition
 
   // Increment turn counter
   current = { ...current, turn: current.turn + 1 };
@@ -679,6 +775,22 @@ function buildFullTrace(t: TraceInputs): TurnDebugTrace {
     stalkerClockAfter: t.stalkerClockAfter,
     stalkerEventType: t.stalkerEventType,
   };
+}
+
+/**
+ * Find an ItemDefinition for a given item ID anywhere in the assembled scenario graph.
+ * Searches all node item lists. Used by step 4b for USE <item> ON <target>.
+ */
+function findItemDefInGraph(
+  state: GameState,
+  itemId: string,
+): import('./scenario').ItemDefinition | null {
+  if (!state.scenario) return null;
+  for (const node of state.scenario.graph.nodes) {
+    const found = node.items.find(i => i.id === itemId);
+    if (found) return found;
+  }
+  return null;
 }
 
 function buildResult(

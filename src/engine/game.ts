@@ -102,6 +102,16 @@ export function initGame(
     [startLocationId]: createVisitState(0),
   };
 
+  // Initialize featureStates from all feature initialStates across the graph
+  const featureStates: Record<string, string> = {};
+  for (const node of scenario.graph.nodes) {
+    for (const feat of node.features) {
+      if (feat.initialState) {
+        featureStates[feat.id] = feat.initialState;
+      }
+    }
+  }
+
   const base = createInitialGameState();
   return {
     ...base,
@@ -118,6 +128,7 @@ export function initGame(
     threatDirectorState: createThreatDirector('intro'),
     victoryResult: null,
     defeatCondition: null,
+    featureStates,
   };
 }
 

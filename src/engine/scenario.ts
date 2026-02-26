@@ -5,7 +5,9 @@
 // CoreSkeleton (6-node structure) + ScenarioModule + AssembledScenario
 // ---------------------------------------------------------------------------
 
-import type { StatId, StoryBeat, FailsafeType, AtmosphereType } from './types';
+import type { StatId, StoryBeat, FailsafeType, AtmosphereType, EnvironmentFeatureType, ItemType, Consequence } from './types';
+import type { VerbId } from './verbs';
+import type { PropertyId } from './properties';
 
 // ---------------------------------------------------------------------------
 // LOCALE STRING — inline bilingual content (fr required, en post-launch)
@@ -41,10 +43,18 @@ export interface NpcDefinition {
   readonly talkFailure?: LocaleString;
 }
 
+/**
+ * State values for a scenario feature.
+ * Standard values: 'intact' | 'damaged' | 'broken' | 'destroyed' |
+ * 'locked' | 'open' | 'closed' | 'active' | 'inactive' | 'offline' | 'empty'
+ * Any other string is valid (extensible).
+ */
+export type FeatureState = string;
+
 /** An environment feature placed in a scenario location */
 export interface FeatureDefinition {
   readonly id: string;
-  readonly initialState?: 'intact' | 'damaged' | 'broken' | 'locked' | 'open';
+  readonly initialState?: FeatureState;
   /** What examining this feature reveals (on success) */
   readonly examineResult?: LocaleString;
 }
@@ -536,4 +546,177 @@ export interface GameHistory {
 export interface ValidationResult {
   readonly valid: boolean;
   readonly issues: readonly string[];
+}
+
+// ---------------------------------------------------------------------------
+// CHANTIER 1 — Feature/Item State Engine
+// ---------------------------------------------------------------------------
+
+// === SCENARIO INTERACTION ===
+
+/**
+ * Conditions that must ALL be met for an interaction to activate.
+ */
+export interface InteractionTrigger {
+  /** Verb(s) that trigger this interaction. */
+  readonly verb: VerbId | readonly VerbId[];
+  /** Required feature state. Only checked for feature interactions. */
+  readonly requiredState?: FeatureState;
+  /** Item ID that must be in the player's inventory. */
+  readonly requiredItem?: string;
+  /** Scenario flag that must be set in GameState.scenarioFlags. */
+  readonly requiredFlag?: string;
+  /** Stat used for the dice roll. When absent, defaults to the verb's standard stat. */
+  readonly stat?: StatId;
+  /** Difficulty class. null = auto-success (no roll needed). */
+  readonly dc: number | null;
+}
+
+/**
+ * The effects of a successful or failed interaction.
+ * All fields are optional — only specify what changes.
+ */
+export interface InteractionResult {
+  /** New state for the feature (mutates GameState.featureStates). */
+  readonly newState?: FeatureState;
+  /** Standard consequences to apply (damage, heal, inventory_add, etc.). */
+  readonly consequences?: readonly Consequence[];
+  /** Narrative text override. When absent, standard templates are used. */
+  readonly narrative?: LocaleString;
+  /** Item IDs that become visible in the current location. */
+  readonly revealsItems?: readonly string[];
+  /** Exit ID that becomes available from the current location. */
+  readonly revealsExit?: string;
+  /** Properties to ADD to the feature runtime property set. */
+  readonly addProperties?: readonly PropertyId[];
+  /** Properties to REMOVE from the feature runtime property set. */
+  readonly removeProperties?: readonly PropertyId[];
+  /** Scenario flag to set in GameState.scenarioFlags. */
+  readonly flagSet?: string;
+  /** Scenario flag to unset. */
+  readonly flagUnset?: string;
+  /** If true, the requiredItem is consumed (removed from inventory). */
+  readonly consumeItem?: boolean;
+}
+
+/**
+ * A declarative interaction rule attached to a scenario feature or item.
+ *
+ * Resolution order:
+ *   1. Check trigger.verb matches the parsed action's verb
+ *   2. Check trigger.requiredState matches current feature state (if specified)
+ *   3. Check trigger.requiredItem is in player inventory (if specified)
+ *   4. Check trigger.requiredFlag is set in scenarioFlags (if specified)
+ *   5. If trigger.dc is null → auto-success
+ *   6. If trigger.dc is a number → standard dice roll using trigger.stat
+ *   7. Apply onSuccess or onFailure based on outcome
+ *
+ * Multiple interactions can exist for the same feature. The FIRST one whose
+ * trigger conditions are ALL satisfied is used. Order matters.
+ */
+export interface ScenarioInteraction {
+  readonly trigger: InteractionTrigger;
+  readonly onSuccess: InteractionResult;
+  readonly onFailure?: InteractionResult;
+}
+
+// === SCENARIO FEATURE DEFINITION (enriched) ===
+
+/**
+ * Extended feature definition for scenario content.
+ * All new fields are OPTIONAL to maintain backward compatibility with
+ * existing FeatureDefinition instances in skeleton/module code.
+ */
+export interface ScenarioFeatureDefinition extends FeatureDefinition {
+  /** Environment feature type for property resolution. */
+  readonly featureType?: EnvironmentFeatureType;
+  /** Additional properties beyond type defaults. */
+  readonly extraProperties?: readonly PropertyId[];
+  /** Properties to remove from type defaults. */
+  readonly removeProperties?: readonly PropertyId[];
+  /** FR and EN aliases for parser recognition. */
+  readonly aliases?: {
+    readonly fr: readonly string[];
+    readonly en: readonly string[];
+  };
+  /** Per-state descriptions. Keys are FeatureState values.
+   *  When present, `examineResult` is used as fallback. */
+  readonly descriptions?: Readonly<Record<string, LocaleString>>;
+  /** Scenario interactions — declarative trigger→result rules. */
+  readonly interactions?: readonly ScenarioInteraction[];
+  /** Item IDs hidden inside this feature (revealed on state change). */
+  readonly contains?: readonly string[];
+  /** When this feature's state changes to a matching value, reveal this exit. */
+  readonly revealsExit?: {
+    readonly state: FeatureState;
+    readonly exitId: string;
+  };
+  /** Readable content shown when READ verb succeeds. */
+  readonly readableContent?: LocaleString;
+  /** If true, this feature is purely decorative (no mechanical interaction expected). */
+  readonly decorative?: boolean;
+}
+
+// === ITEM USE-ON DEFINITION ===
+
+/** Defines what happens when a scenario item is USED ON a specific target. */
+export interface ItemUseOnDefinition {
+  /** Target feature or item ID. */
+  readonly targetId: string;
+  /** The interaction to execute. */
+  readonly interaction: ScenarioInteraction;
+}
+
+// === SCENARIO ITEM DEFINITION (enriched) ===
+
+/**
+ * Extended item definition for scenario content.
+ * All new fields are OPTIONAL for backward compatibility.
+ */
+export interface ScenarioItemDefinition extends ItemDefinition {
+  /** Item type for property resolution. */
+  readonly itemType?: ItemType;
+  /** Additional properties beyond type defaults. */
+  readonly extraProperties?: readonly PropertyId[];
+  /** Properties to remove from type defaults. */
+  readonly removeProperties?: readonly PropertyId[];
+  /** FR and EN aliases for parser recognition. */
+  readonly aliases?: {
+    readonly fr: readonly string[];
+    readonly en: readonly string[];
+  };
+  /** Item description shown on EXAMINE. */
+  readonly description?: LocaleString;
+  /** Readable content for data items (datapads, notes, logs). */
+  readonly readableContent?: LocaleString;
+  /** Contextual USE interactions — "use this item ON that target". */
+  readonly useOn?: readonly ItemUseOnDefinition[];
+  /** Feature ID that must be in a specific state for this item to be visible. */
+  readonly revealedBy?: {
+    readonly featureId: string;
+    readonly requiredState: FeatureState;
+  };
+}
+
+// === TYPE GUARDS ===
+
+/** Type guard: does this FeatureDefinition have enriched scenario data? */
+export function isEnrichedFeature(
+  def: FeatureDefinition,
+): def is ScenarioFeatureDefinition {
+  const d = def as ScenarioFeatureDefinition;
+  return d.featureType !== undefined
+    || d.interactions !== undefined
+    || d.aliases !== undefined
+    || d.descriptions !== undefined;
+}
+
+/** Type guard: does this ItemDefinition have enriched scenario data? */
+export function isEnrichedItem(
+  def: ItemDefinition,
+): def is ScenarioItemDefinition {
+  const d = def as ScenarioItemDefinition;
+  return d.itemType !== undefined
+    || d.aliases !== undefined
+    || d.useOn !== undefined;
 }
