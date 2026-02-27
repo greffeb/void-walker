@@ -596,6 +596,8 @@ export interface SceneContext {
   readonly connectedLocations: readonly {
     readonly id: string;
     readonly aliases: readonly string[];
+    /** French display name for this location (from scenario nameKey). */
+    readonly displayName?: string;
     /** Whether this location has already been visited (Phase 6B). */
     readonly visited?: boolean;
   }[];

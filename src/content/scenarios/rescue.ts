@@ -1341,6 +1341,7 @@ export const RESCUE_SKELETON: CoreSkeleton = {
     },
     escalation: {
       locationRole: 'passage',
+      atmosphere: 'low_oxygen',
       items: [distraction_device],
       npcs: [
         {

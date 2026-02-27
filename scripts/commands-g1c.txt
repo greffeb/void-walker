@@ -1,0 +1,25 @@
+# Game 1: Continue - Turns 25+
+# Try to reroute energy to the door (selfish path)
+utiliser circuit d'alimentation porte
+# Try again more specifically
+activer circuit porte
+# Try interacting with the panel
+examiner panneau de distribution
+# Try using the panel
+utiliser panneau de distribution
+# Actually try what the suggestions say
+reroute panneau de distribution d'énergie
+# Go to unexplored exit
+aller infirmerie de recherche
+examiner environnement
+# Interact with what's there
+examiner éléments
+prendre objets visibles
+# Try to rest
+se reposer
+attendre
+# Use medkit
+utiliser kit médical
+# Continue exploring
+aller vers sortie inexploré
+examiner environnement

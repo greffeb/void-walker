@@ -41,7 +41,14 @@ export class NarrationMemory {
   select<T extends { readonly id: string }>(pool: readonly T[], layerKey: string): T | null {
     if (pool.length === 0) return null;
 
-    const buffer = this.buffers.get(layerKey) ?? [];
+    let buffer = this.buffers.get(layerKey) ?? [];
+
+    // Cap effective buffer to min(bufferSize, 60% of pool) so ≥40% is always available
+    // for random pick. This prevents cyclic repetition when pool is small (e.g., 3 snippets).
+    const effectiveMax = Math.min(this.bufferSize, Math.max(1, Math.floor(pool.length * 0.6)));
+    while (buffer.length > effectiveMax) {
+      buffer = buffer.slice(1);
+    }
 
     // Filter out recently used
     const available = pool.filter(t => !buffer.includes(t.id));
@@ -57,7 +64,7 @@ export class NarrationMemory {
 
     // Update buffer
     const newBuffer = [...buffer, chosen.id];
-    if (newBuffer.length > this.bufferSize) {
+    if (newBuffer.length > effectiveMax) {
       newBuffer.shift();
     }
     this.buffers.set(layerKey, newBuffer);

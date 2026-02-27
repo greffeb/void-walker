@@ -72,6 +72,8 @@ export interface NodeLocationDef {
   readonly features: readonly FeatureDefinition[];
   /** Connected node IDs */
   readonly exits: readonly string[];
+  /** Override atmosphere for this node (default: 'pressurized') */
+  readonly atmosphere?: AtmosphereType;
 }
 
 // ---------------------------------------------------------------------------

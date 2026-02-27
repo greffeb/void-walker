@@ -218,7 +218,7 @@ function createNodeFromSkeleton(
     items: locationDef.items,
     npcs: locationDef.npcs ?? [],
     features: locationDef.features,
-    atmosphere: 'pressurized',
+    atmosphere: locationDef.atmosphere ?? 'pressurized',
   };
 }
 

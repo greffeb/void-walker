@@ -292,7 +292,7 @@ const emergency_locker: ScenarioFeatureDefinition = {
   featureType: 'container',
   extraProperties: ['metallic', 'lockable'],
   aliases: {
-    fr: ['casier', 'casier d\'urgence', 'locker', 'placard', 'armoire', 'casier urgence', 'coffre'],
+    fr: ['casier', 'casier d\'urgence', 'casier de secours', 'locker', 'placard', 'armoire', 'casier urgence', 'coffre'],
     en: ['locker', 'emergency locker', 'cabinet', 'storage', 'emergency cabinet'],
   },
   contains: ['access_keycard', 'oxygen_canister'],
@@ -1341,6 +1341,7 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
     },
     escalation: {
       locationRole: 'engineering',
+      atmosphere: 'low_oxygen',
       items: [
         eva_suit,
         makeshift_weapon,
@@ -1355,6 +1356,7 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
     },
     boss: {
       locationRole: 'airlock',
+      atmosphere: 'depressurized',
       items: [],
       npcs: [
         {

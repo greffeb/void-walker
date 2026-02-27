@@ -17,6 +17,20 @@ import type {
   BodyPartDefinition,
 } from './types';
 
+// === GENERIC EXIT TOKENS ===
+// Vague movement words that should resolve to the best available connected location
+const GENERIC_EXIT_TOKENS = new Set([
+  'sortie', 'sorties', 'porte', 'portes', 'passage', 'passages',
+  'couloir', 'couloirs', 'inexplore', 'inexploree', 'suivant', 'suivante',
+  'autre', 'autres', 'prochain', 'prochaine', 'direction',
+]);
+
+// === BATCH TAKE TOKENS ===
+// Tokens that indicate "take all / take objects" — resolve to first available item
+const BATCH_TAKE_TOKENS = new Set([
+  'tout', 'tous', 'toute', 'toutes', 'objets', 'objet', 'items',
+]);
+
 // === BODY PART DEFINITIONS ===
 
 /** Standard body parts that can be targeted on NPCs */
@@ -330,7 +344,7 @@ export function resolveTarget(
         locBestScore = score;
         locBestTarget = {
           id: loc.id,
-          nameKey: loc.id,
+          nameKey: loc.displayName ?? loc.id,
           properties: [],
           isVirtual: false,
           source: 'connected_location' as TargetSource,
@@ -340,11 +354,32 @@ export function resolveTarget(
     if (locBestTarget && locBestScore > 0) {
       return locBestTarget;
     }
+
+    // Fallback: vague movement tokens ("sortie", "passage", "inexploré", etc.)
+    // Prefer unexplored locations to help stuck players progress.
+    const hasVagueToken = searchTokens.some(t => GENERIC_EXIT_TOKENS.has(t));
+    if (hasVagueToken && context.connectedLocations.length > 0) {
+      const unexplored = context.connectedLocations.filter(l => !l.visited);
+      const pick = unexplored.length > 0 ? unexplored[0]! : context.connectedLocations[0]!;
+      return {
+        id: pick.id,
+        nameKey: pick.displayName ?? pick.id,
+        properties: [],
+        isVirtual: false,
+        source: 'connected_location' as TargetSource,
+      };
+    }
   }
 
   // TAKE should prefer visible location items so we can correctly mark them as
   // taken and remove them from the scene.
   if (verb === 'TAKE') {
+    // "prendre tout" / "prendre objets" → pick first available location item
+    const hasBatchToken = searchTokens.some(t => BATCH_TAKE_TOKENS.has(t));
+    if (hasBatchToken && context.locationItems.length > 0) {
+      return context.locationItems[0]!;
+    }
+
     let takeBestScore = 0;
     let takeBestTarget: ResolvedTarget | null = null;
     for (const item of context.locationItems) {
@@ -472,7 +507,7 @@ export function resolveTarget(
         locBestScore = score;
         locBestTarget = {
           id: loc.id,
-          nameKey: loc.id,
+          nameKey: loc.displayName ?? loc.id,
           properties: [],
           isVirtual: false,
           source: 'connected_location' as TargetSource,
@@ -515,7 +550,14 @@ export function resolveTarget(
     }
   }
 
-  // 8. Abstract fallback — return null for intransitive verbs,
+  // 8. EXAMINE fallback: if no entity matched but environment features exist,
+  //    pick the best-scoring feature even with a low score (better than 'environment')
+  if ((verb === 'EXAMINE' || verb === 'SCAN' || verb === 'LISTEN' || verb === 'SMELL')
+      && envBestTarget && envBestScore > 0) {
+    return envBestTarget;
+  }
+
+  // 9. Abstract fallback — return null for intransitive verbs,
   // or an abstract environment target for transitive verbs
   if (intransitiveVerbs.has(verb)) {
     return null;

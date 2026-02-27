@@ -18,22 +18,24 @@
 import type {
   GameState, TurnResult, TurnDebugTrace, SceneContext, ParserLocaleData, RngFn,
   DiceResult, ActionRecord, DifficultyBreakdown, Consequence, ConsequenceType,
+  ActiveCombatState, CombatNPCState,
 } from './types';
 import { defaultRng, classifyOutcome } from './dice';
 import { rollCheck } from './dice';
 import { parseAction } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
 import { isReformulation } from './types';
-import { tickConditions, checkConditionTriggers, addCondition, applyConditionMalus } from './conditions';
+import { tickConditions, checkConditionTriggers, addCondition, removeCondition, applyConditionMalus } from './conditions';
 import { tickOxygen } from './oxygen';
 import { tickStalkerClock, checkStalkerClock, applyStalkerEvent } from './stalkerClock';
+import type { VerbId } from './verbs';
 import { VERB_STATS, AUTO_VERBS } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
 import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
 import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shipMemory';
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
-import { resolveNPCAttack } from './combat';
+import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken } from './backtracking';
@@ -42,6 +44,7 @@ import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResol
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
 import { isEnrichedItem } from './scenario';
 import { removeItem } from './inventory';
+import { NPC_DEFINITIONS } from '../content/npcs';
 
 // ---------------------------------------------------------------------------
 // Empty trace factory — used for early returns
@@ -240,9 +243,12 @@ export function processTurn(
 
     if (node) {
       // Try "use item on target" first (USE <item> ON <target>)
+      // Note: check action.tool presence, not action.verb === 'USE', because
+      // promoteVerb() may have already changed USE → HACK/SHOOT/CUT.
+      // Having a tool means the player wrote "utiliser X sur Y" or "verb X avec Y".
       let interactionResult = { matched: false } as import('./interactionResolver').InteractionResolution;
 
-      if (action.verb === 'USE' && action.tool) {
+      if (action.tool) {
         const toolId = action.tool.id;
         // Look for the item definition in the scenario graph nodes
         const toolItemDef = findItemDefInGraph(current, toolId);
@@ -332,8 +338,84 @@ export function processTurn(
   let traceConsequences: readonly Consequence[] = [];
   let traceTriggeredConditions: readonly string[] = [];
   let traceDeathResult: string | null = null;
+  let combatHandled = false;
 
-  if (!isAutoVerb && !scenarioInteractionHandled) {
+  // ── COMBAT INTERCEPT: Route combat verbs to combat system when in active combat ──
+  const COMBAT_ATTACK_VERBS: ReadonlySet<VerbId> = new Set([
+    'STRIKE', 'SHOOT', 'KICK', 'CUT', 'THROW', 'BITE',
+    'IMPROVISE_WEAPON', 'SABOTAGE', 'HACK', 'ELECTRIFY',
+  ]);
+
+  if (current.activeCombat && current.character !== null && !scenarioInteractionHandled) {
+    const combat = current.activeCombat;
+    const npc = combat.npc;
+    const effectiveStats = applyConditionMalus(current.character.stats, current.character.conditions);
+    const armorValue = 0;
+    const difficultyMultiplier = current.difficulty === 'explorer' ? 0.5
+      : current.difficulty === 'nightmare' ? 1.5 : 1.0;
+
+    if (COMBAT_ATTACK_VERBS.has(action.verb)) {
+      // Player attacks the NPC
+      combatHandled = true;
+      const statId = VERB_STATS[action.verb] ?? 'FOR';
+      const statValue = effectiveStats[statId] ?? 0;
+      const lck = effectiveStats['LCK'] ?? 0;
+      const dc = 10 + npc.defense; // Base DC 10 + NPC defense
+      const roll = rollCheck(statId, statValue, lck, dc, 0, rng);
+      diceRoll = roll;
+      traceStatId = statId;
+      traceStatValue = statValue;
+      traceEffectiveDC = dc;
+      traceOutcome = classifyOutcome(roll.natural, roll.total, dc);
+
+      const attackResult = resolvePlayerAttack(
+        effectiveStats, null, action.verb, npc,
+        roll, current.character.className === 'marine' ? 'COMBAT_DAMAGE_BONUS' : '',
+        current.character.className === 'marine' ? 1 : null, rng,
+      );
+
+      if (attackResult.hit) {
+        const newNpcHp = Math.max(0, npc.hp - attackResult.damageDealt);
+        if (attackResult.npcKilled || newNpcHp <= 0) {
+          // NPC killed → end combat
+          current = { ...current, activeCombat: null };
+        } else {
+          // Update NPC HP in combat state
+          current = {
+            ...current,
+            activeCombat: {
+              ...combat,
+              npc: { ...npc, hp: newNpcHp },
+            },
+          };
+        }
+      }
+    } else if (action.verb === 'RUN') {
+      // Player attempts to flee combat
+      combatHandled = true;
+      const fleeResult = attemptFlee(effectiveStats, npc, armorValue, difficultyMultiplier, rng);
+      diceRoll = fleeResult.roll;
+      traceStatId = 'AGI';
+      traceStatValue = effectiveStats['AGI'] ?? 0;
+      traceOutcome = classifyOutcome(fleeResult.roll.natural, fleeResult.roll.total, npc.fleeDC);
+
+      if (fleeResult.success) {
+        current = { ...current, activeCombat: null };
+      } else if (fleeResult.npcFreeAttack?.hit) {
+        current = updateCharacterHp(current, -fleeResult.npcFreeAttack.damageDealt);
+      }
+    } else if (action.verb === 'DODGE' || action.verb === 'BLOCK') {
+      // Player retreats / takes defensive stance
+      combatHandled = true;
+      const retreatResult = attemptRetreat(effectiveStats, npc, rng);
+      diceRoll = retreatResult.roll;
+      traceStatId = 'AGI';
+      traceStatValue = effectiveStats['AGI'] ?? 0;
+      traceOutcome = classifyOutcome(retreatResult.roll.natural, retreatResult.roll.total, retreatResult.roll.difficulty);
+    }
+  }
+
+  if (!isAutoVerb && !scenarioInteractionHandled && !combatHandled) {
     const statId = VERB_STATS[action.verb] ?? 'FOR';
     const effectiveStats = applyConditionMalus(current.character!.stats, current.character!.conditions);
     const statValue = effectiveStats[statId] ?? 0;
@@ -433,6 +515,16 @@ export function processTurn(
       ...current,
       character: { ...current.character!, actionsWithoutRest: newActionsWithoutRest },
     };
+    // WAIT cures exhaustion — remove the condition if present
+    if (action.verb === 'WAIT' && current.character!.conditions.some(c => c.id === 'exhausted')) {
+      current = {
+        ...current,
+        character: {
+          ...current.character!,
+          conditions: removeCondition(current.character!.conditions, 'exhausted'),
+        },
+      };
+    }
     const triggeredConditions = checkConditionTriggers(
       hp, maxHp, current.character!.conditions,
       {
@@ -573,6 +665,18 @@ export function processTurn(
 
   current = { ...current, stalkerClockState: finalClockState };
 
+  // Stalker event consequences: warning is atmospheric, kill deals HP damage
+  let stalkerNarrative = '';
+  if (stalkerEvent?.type === 'warning') {
+    stalkerNarrative = 'Un bruit derrière vous. Quelque chose se rapproche.';
+  } else if (stalkerEvent?.type === 'threat_arrival') {
+    stalkerNarrative = 'Une présence hostile se manifeste dans l\'ombre. Le danger est imminent.';
+    current = updateCharacterHp(current, -2);
+  } else if (stalkerEvent?.type === 'kill') {
+    stalkerNarrative = 'L\'ombre frappe sans prévenir. Une douleur fulgurante traverse votre corps.';
+    current = updateCharacterHp(current, -5);
+  }
+
   // ─────────────────────────────────────────────────────────
   // STEP 9: Phase 6B — movement, visit tracking, victory/defeat, threat
   // ─────────────────────────────────────────────────────────
@@ -607,6 +711,27 @@ export function processTurn(
 
   // 9b. Keep beat/threat director aligned with the player's current core node.
   current = syncBeatFromCurrentLocation(current);
+
+  // 9b-1. Time-based beat fallback: if stuck in same beat for too many turns,
+  // advance the beat to prevent the game from stalling (Issue #18).
+  const BEAT_STUCK_THRESHOLD = 15;
+  if (current.scenario !== null && current.turn > 0) {
+    const BEAT_ORDER: readonly import('./types').StoryBeat[] = [
+      'intro', 'rising', 'midpoint', 'escalation', 'climax', 'resolution',
+    ];
+    const currentBeatIdx = BEAT_ORDER.indexOf(current.currentBeat);
+    // Count turns since the beat last changed (approximate: use turn number / threshold)
+    const turnsSinceStart = current.turn;
+    const expectedBeat = Math.min(BEAT_ORDER.length - 1, Math.floor(turnsSinceStart / BEAT_STUCK_THRESHOLD));
+    if (expectedBeat > currentBeatIdx && currentBeatIdx < BEAT_ORDER.length - 1) {
+      const nextBeat = BEAT_ORDER[currentBeatIdx + 1]!;
+      current = {
+        ...current,
+        currentBeat: nextBeat,
+        threatDirectorState: transitionBeat(current.threatDirectorState, nextBeat),
+      };
+    }
+  }
 
   // 9b-2. Item tracking: TAKE is an auto-verb — always succeeds immediately
   if (
@@ -677,15 +802,29 @@ export function processTurn(
         ? current.encounterCount + 1
         : current.encounterCount,
     };
-    // Threat event is surfaced via TurnResult (narrative layer handles rendering)
-    void event; // consumed by narrative layer (Phase 5/7)
+    // Threat event → combat initiation for encounter subtypes that trigger combat.
+    // 'stalk' is atmospheric only (rounds = 0). 'ambush', 'hunt', 'pursue' start combat.
+    if (
+      event?.type === 'encounter' &&
+      event.subtype !== 'stalk' &&
+      current.activeCombat === null
+    ) {
+      const combat = buildCombatFromThreat(current, event.subtype);
+      if (combat) {
+        current = { ...current, activeCombat: combat };
+      }
+    }
   }
 
   // ─────────────────────────────────────────────────────────
   // STEP 10: Narrative composition (placeholder — Phase 5)
   // ─────────────────────────────────────────────────────────
   // If a scenario interaction provided a narrative override, use it; otherwise standard templates
-  const narrative = scenarioNarrativeOverride?.fr ?? ''; // Phase 5: 7-layer narrative composition
+  // Append stalker event narrative if present
+  const baseNarrative = scenarioNarrativeOverride?.fr ?? '';
+  const narrative = stalkerNarrative
+    ? (baseNarrative ? `${baseNarrative} ${stalkerNarrative}` : stalkerNarrative)
+    : baseNarrative;
 
   // Increment turn counter
   current = { ...current, turn: current.turn + 1 };
@@ -815,6 +954,72 @@ function findItemDefInGraph(
     if (found) return found;
   }
   return null;
+}
+
+/**
+ * Build an ActiveCombatState from a threat encounter event.
+ *
+ * Strategy:
+ * 1. Find the first hostile NPC placed anywhere in the scenario graph
+ * 2. Look up NPC_DEFINITIONS for its combat stats
+ * 3. If no hostile NPC found in scenario, fall back to 'xenomorph'
+ * 4. Apply hpOverride from scenario NpcDefinition if present
+ */
+function buildCombatFromThreat(
+  state: GameState,
+  _subtype: import('./scenario').EncounterSubtype,
+): ActiveCombatState | null {
+  if (!state.scenario) return null;
+
+  // Find a hostile NPC defined in the scenario graph
+  let hostileNpcId: string | null = null;
+  let hpOverride: number | undefined;
+  for (const node of state.scenario.graph.nodes) {
+    if (!node.npcs) continue;
+    for (const npc of node.npcs) {
+      if (npc.disposition === 'hostile') {
+        hostileNpcId = npc.id;
+        hpOverride = npc.hpOverride;
+        break;
+      }
+    }
+    if (hostileNpcId) break;
+  }
+
+  // Fall back to xenomorph if no hostile NPC in scenario
+  const definitionId = hostileNpcId ?? 'xenomorph';
+  const def = NPC_DEFINITIONS[definitionId] ?? NPC_DEFINITIONS['xenomorph'];
+  if (!def) return null;
+
+  const maxHp = hpOverride ?? def.hp;
+  const npcState: CombatNPCState = {
+    definitionId: def.id,
+    hp: maxHp,
+    maxHp,
+    attack: def.attack ?? def.damage,
+    defense: def.defense ?? 0,
+    dodgeChance: def.dodgeChance,
+    fleeDC: def.fleeDC ?? 12,
+    aggressionPattern: def.aggressionPattern,
+    weakPoint: def.weakPoint ? {
+      id: def.weakPoint.id,
+      nameKey: def.weakPoint.nameKey,
+      discoverMethod: def.weakPoint.discoverMethod,
+      targetVerbs: def.weakPoint.targetVerbs,
+      targetProperties: def.weakPoint.targetProperties,
+      damageMultiplier: def.weakPoint.damageMultiplier,
+      hintKey: def.weakPoint.hintKey,
+      exploitKey: def.weakPoint.exploitKey,
+    } : null,
+    weakPointDiscovered: false,
+    combatRound: 0,
+  };
+
+  return {
+    npc: npcState,
+    npcInstanceId: definitionId,
+    round: 1,
+  };
 }
 
 function buildResult(

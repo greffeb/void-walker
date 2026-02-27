@@ -3329,6 +3329,44 @@ const CATEGORY_FALLBACK_TEMPLATES: readonly ActionTemplate[] = [
     },
   },
 
+  // ========== WAIT (dedicated, no target reference) ==========
+  {
+    id: 'wait_auto_success_low',
+    verb: 'WAIT',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: 'Vous attendez, laissant passer le temps. Le silence vous enveloppe.',
+      en: '',
+    },
+  },
+  {
+    id: 'wait_auto_success_mid',
+    verb: 'WAIT',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Vous marquez une pause. L\'attente pèse, mais votre corps en avait besoin.',
+      en: '',
+    },
+  },
+  {
+    id: 'wait_auto_success_high',
+    verb: 'WAIT',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: 'Chaque seconde d\'immobilité est un risque calculé. Vous retenez votre souffle.',
+      en: '',
+    },
+  },
+
   // ========== interaction ==========
   {
     id: 'interaction_fallback_any_auto_success_low',

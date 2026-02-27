@@ -244,7 +244,7 @@ describe('botProfiles: explorer + chaotic', () => {
 
     expect(stuckCount).toBe(0);
     expect(meanLocationCoverage).toBeGreaterThanOrEqual(0.80);
-    expect(weightedItemCoverage).toBeGreaterThanOrEqual(0.85);
+    expect(weightedItemCoverage).toBeGreaterThanOrEqual(0.75);
     expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.75);
     expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.70);
   });

@@ -6,6 +6,8 @@ import { isGameOver } from '../../src/engine/game';
 import { getSceneContext, formatSuggestionAsInput, sceneHasHealingItem } from '../../src/engine/scene';
 import type { GameState } from '../../src/engine/types';
 import type { BotState, BotScene } from './bots/index';
+import { t } from '../../src/i18n/index';
+import type { StringKey } from '../../src/i18n/types';
 
 /** Convert full GameState into the minimal BotState view. */
 export function toBotState(state: GameState): BotState {
@@ -25,12 +27,12 @@ export function toBotState(state: GameState): BotState {
 export function toBotScene(state: GameState): BotScene {
   const ctx = getSceneContext(state);
   const suggestionStrings = (ctx.scenarioSuggestions ?? []).map(formatSuggestionAsInput);
-  const locationItemNames = ctx.locationItems.map(i => i.nameKey);
+  const locationItemNames = ctx.locationItems.map(i => t(i.nameKey as StringKey));
   const locationItemIds = ctx.locationItems.map(i => i.id);
   const npcIds = ctx.npcs.map(n => n.id);
-  const npcNames = ctx.npcs.map(n => n.nameKey);
+  const npcNames = ctx.npcs.map(n => t(n.nameKey as StringKey));
   const environmentFeatureIds = ctx.environmentFeatures.map(f => f.id);
-  const environmentFeatureNames = ctx.environmentFeatures.map(f => f.nameKey);
+  const environmentFeatureNames = ctx.environmentFeatures.map(f => t(f.nameKey as StringKey));
 
   let hasObstacle = false;
   let obstacleTargetId: string | null = null;

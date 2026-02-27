@@ -23,6 +23,23 @@ import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import { getFeatureState, isItemRevealed } from './featureState';
 
 // ---------------------------------------------------------------------------
+// OBSTACLE VERB → FRENCH DISPLAY NAME
+// ---------------------------------------------------------------------------
+
+/** Map English obstacle path verb to French display text for suggestions. */
+function obstaclVerbToFrench(verb: string): string {
+  // Try exact VerbId i18n lookup: "push" → verb.PUSH → "Pousser"
+  const key = `verb.${verb.toUpperCase()}` as StringKey;
+  const resolved = t(key);
+  if (resolved !== key) {
+    // Lowercase the first letter for suggestion context ("Pousser" → "pousser")
+    return resolved[0]!.toLowerCase() + resolved.slice(1);
+  }
+  // Fallback: return raw verb (shouldn't happen if verb data is correct)
+  return verb;
+}
+
+// ---------------------------------------------------------------------------
 // HEALING ITEM IDs — items that count as healing for bot scene detection
 // ---------------------------------------------------------------------------
 
@@ -97,6 +114,7 @@ export function getSceneContext(state: GameState): SceneContext {
     return {
       id: exit.locationId,
       aliases: exitNode ? getLocationAliases(exitNode) : [exit.locationId],
+      displayName: exitNode?.nameKey.fr ?? undefined,
       visited: exit.visited,
     };
   });
@@ -105,6 +123,14 @@ export function getSceneContext(state: GameState): SceneContext {
   const obstacleResolved = isObstacleResolved(visitState);
   const activeSkin = node.activeSkin ?? null;
   const playerClass = state.character?.className ?? 'marine';
+  // Derive combat NPC display name if in active combat
+  const combatNpcName = state.activeCombat
+    ? t((`npc.${state.activeCombat.npcInstanceId}`) as StringKey)
+    : undefined;
+  const activeCombatNpcName = combatNpcName && combatNpcName !== `npc.${state.activeCombat?.npcInstanceId}`
+    ? combatNpcName
+    : state.activeCombat ? state.activeCombat.npcInstanceId.replace(/_/g, ' ') : undefined;
+
   const scenarioSuggestions = buildSuggestionCandidates(
     node,
     obstacleResolved,
@@ -113,6 +139,7 @@ export function getSceneContext(state: GameState): SceneContext {
     npcs,
     activeSkin,
     playerClass,
+    activeCombatNpcName,
   );
 
   // --- Scene description for UI and narration ---
@@ -141,19 +168,30 @@ export function getSceneContext(state: GameState): SceneContext {
 function buildSuggestionCandidates(
   node: LocationNode,
   obstacleResolved: boolean,
-  connectedLocations: readonly { id: string; aliases: readonly string[]; visited?: boolean }[],
+  connectedLocations: readonly { id: string; aliases: readonly string[]; displayName?: string; visited?: boolean }[],
   locationItems: readonly ResolvedTarget[],
   npcs: readonly NpcInstance[],
   activeSkin: NarrativeSkin | null,
   playerClass: import('./types').PlayerClassName,
+  activeCombatNpcName?: string,
 ): readonly SuggestionCandidate[] {
+  // When in combat, suggest combat-specific actions
+  if (activeCombatNpcName) {
+    const combatCandidates: Omit<SuggestionCandidate, 'score'>[] = [
+      { verbText: 'frapper', targetText: activeCombatNpcName, stat: 'FOR', category: 'obstacle' },
+      { verbText: 'tirer sur', targetText: activeCombatNpcName, stat: 'AGI', category: 'obstacle' },
+      { verbText: 'fuir', targetText: '', stat: 'AGI', category: 'movement' },
+    ];
+    return generateSuggestions(combatCandidates, playerClass, activeSkin);
+  }
+
   const candidates: Omit<SuggestionCandidate, 'score'>[] = [];
 
   // Obstacle paths (highest priority)
   if (!obstacleResolved && node.obstacle) {
     for (const path of node.obstacle.paths) {
       candidates.push({
-        verbText: path.verbs[0] ?? 'examiner',
+        verbText: obstaclVerbToFrench(path.verbs[0] ?? 'examine'),
         targetText: node.obstacle.targetId
           ? resolveDisplayName(`env.${node.obstacle.targetId}`, node.obstacle.targetId)
           : node.obstacle.description.fr,
@@ -181,6 +219,20 @@ function buildSuggestionCandidates(
       stat: 'PER',
       category: 'npc',
     });
+  }
+
+  // Environment features — suggest examining/interacting with them
+  if (node.features) {
+    for (const feat of node.features) {
+      const def = ENVIRONMENT_FEATURE_DEFINITIONS[feat.id];
+      const name = def ? t(def.nameKey) : resolveDisplayName(`env.${feat.id}`, feat.id);
+      candidates.push({
+        verbText: 'examiner',
+        targetText: name,
+        stat: 'PER',
+        category: 'environment',
+      });
+    }
   }
 
   // Movement — unexplored exits first
@@ -489,7 +541,15 @@ function featureDefToInstance(
 
 function getLocationAliases(node: LocationNode): readonly string[] {
   const fr = node.nameKey.fr;
-  return fr ? [fr.toLowerCase()] : [node.id];
+  if (!fr) return [node.id];
+  const lower = fr.toLowerCase();
+  const aliases: string[] = [lower, node.id];
+  // Split compound names: "Soute principale" → ["soute principale", "soute", "principale"]
+  const words = lower.split(/\s+/).filter(w => w.length > 2);
+  for (const word of words) {
+    if (!aliases.includes(word)) aliases.push(word);
+  }
+  return aliases;
 }
 
 // ---------------------------------------------------------------------------

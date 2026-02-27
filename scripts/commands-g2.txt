@@ -1,0 +1,60 @@
+# Game 2: Investigate - Engineer - Space Station (seed 1234)
+# Initial room: grab items, examine features
+prendre scanner portable
+prendre trousse à outils standard
+examiner sas d'amarrage
+examiner terminal du manifeste cargo
+examiner pinces d'amarrage
+# Move to next room
+aller couloir de recherche
+examiner environnement
+# Grab whatever is there
+prendre datapad
+prendre kit
+prendre carte
+prendre clé
+# Examine features
+examiner terminal
+examiner panneau
+examiner porte
+# Try to interact with obstacles
+pirater terminal
+ouvrir porte
+forcer passage
+# Move to an exit
+aller vers sortie inexploré
+examiner environnement
+prendre objets
+# Continue exploring
+aller vers sortie inexploré
+examiner environnement
+prendre objets
+# Keep going
+aller vers sortie inexploré
+examiner environnement
+# Try talking to any NPC
+parler a quelqu'un
+examiner personne
+# Attendre pour reset fatigue
+attendre
+attendre
+attendre
+# Continue
+aller vers sortie inexploré
+examiner environnement
+aller vers sortie inexploré
+examiner environnement
+# Combat if we encounter anything
+tirer pistolet sur ennemi
+frapper ennemi
+fuir
+# More exploration
+aller vers sortie inexploré
+examiner environnement
+prendre tout
+aller vers sortie inexploré
+examiner environnement
+prendre tout
+aller vers sortie inexploré
+examiner environnement
+prendre tout

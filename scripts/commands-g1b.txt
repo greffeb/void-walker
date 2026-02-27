@@ -1,0 +1,21 @@
+# Game 1: Continue - Turns 11+
+# Explore features in current room
+examiner panneau de sécurité
+ouvrir porte blindée
+examiner grille de ventilation
+# Move deeper
+aller centre de gestion
+examiner environnement
+# Try interesting verbs
+pirater terminal
+fouiller zone
+# Keep exploring
+aller vers sortie inexploré
+examiner environnement
+prendre objets
+# Try combat-ready actions
+tirer pistolet
+frapper mur
+# Continue exploring
+aller vers sortie
+examiner environnement

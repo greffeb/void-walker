@@ -40,6 +40,16 @@ function mapOutcome(trace: TurnResult['trace']): Outcome {
 const DEFAULT_GRAMMAR: GrammaticalInfo = { gender: 'M', startsWithVowel: false, plural: false };
 
 const VOWELS = new Set(['a', 'e', 'i', 'o', 'u', 'é', 'è', 'ê', 'ë', 'â', 'î', 'ô', 'û', 'ù']);
+/** Aspirated-h words: no elision ("le hasard", not "l'hasard") */
+const ASPIRATED_H = new Set([
+  'hasard', 'haut', 'haute', 'hauts', 'hautes', 'hauteur',
+  'honte', 'hors', 'hurler', 'hibou', 'haricot', 'haricots',
+  'héros', 'hache', 'haches', 'hamac', 'hamacs', 'hangar', 'hangars',
+  'harpon', 'harpons', 'haine', 'hameau', 'hameaux', 'harpe',
+  'haie', 'haies', 'hall', 'halls', 'halte', 'hamster',
+  'handicap', 'harem', 'hareng', 'harengs', 'harnais',
+  'hussard', 'hutte', 'huttes', 'hublot', 'hublots',
+]);
 const FEMININE_SUFFIXES = [
   'tion', 'sion', 'ure', 'ée', 'ie', 'ise', 'ade', 'ande', 'ence', 'ance',
   'esse', 'euse', 'trice', 'ette', 'elle', 'ine', 'ère',
@@ -54,7 +64,10 @@ function detectGrammar(frenchName: string): GrammaticalInfo {
   if (!frenchName) return DEFAULT_GRAMMAR;
   const lower = frenchName.toLowerCase().trim();
   const firstChar = lower[0] ?? '';
-  const startsWithVowel = VOWELS.has(firstChar);
+  const firstWord = lower.split(/\s+/)[0] ?? '';
+  // Vowels elide; mute-h words elide too ("l'homme"), but aspirated-h words don't ("le hasard")
+  const startsWithVowel = VOWELS.has(firstChar)
+    || (firstChar === 'h' && !ASPIRATED_H.has(firstWord));
 
   // Detect gender from the FIRST noun word (skip articles/adjectives)
   const words = lower.split(/\s+/);

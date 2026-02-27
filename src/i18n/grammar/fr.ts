@@ -34,6 +34,17 @@ const IRREGULAR_ADJECTIVES: Readonly<Record<string, Readonly<Record<string, stri
   'bleu':    { ms: 'bleu',    fs: 'bleue',    mp: 'bleus',    fp: 'bleues' },
 };
 
+/** Common French words with aspirated h (no elision: "le hasard", NOT "l'hasard") */
+const ASPIRATED_H_WORDS = new Set([
+  'hasard', 'haut', 'haute', 'hauts', 'hautes', 'hauteur',
+  'honte', 'hors', 'hurler', 'hibou', 'haricot', 'haricots',
+  'héros', 'hache', 'haches', 'hamac', 'hamacs', 'hangar', 'hangars',
+  'harpon', 'harpons', 'haine', 'hameau', 'hameaux', 'harpe',
+  'haie', 'haies', 'hall', 'halls', 'halte', 'hamster',
+  'handicap', 'harem', 'hareng', 'harengs', 'harnais',
+  'hussard', 'hutte', 'huttes', 'hublot', 'hublots',
+]);
+
 function genderPluralKey(info: GrammaticalInfo): string {
   const g = info.gender === 'F' ? 'f' : 'm';
   const n = info.plural ? 'p' : 's';
@@ -147,9 +158,22 @@ export class FrenchGrammar implements GrammarEngine {
 
   postProcess(text: string): string {
     return text
+      // Mandatory contractions: "de le" → "du", "de les" → "des", "à le" → "au", "à les" → "aux"
+      .replace(/\bde le\b/gi, 'du')
+      .replace(/\bde les\b/gi, 'des')
+      .replace(/\bà le\b/gi, 'au')
+      .replace(/\bà les\b/gi, 'aux')
       // Elision: "le arbre" → "l'arbre" (catch any missed by slot resolution)
-      .replace(/\b(le|la|de|ne|se|je|me|te|que) ([aeéèêëiîïoôuûüyh])/gi,
+      // Note: 'h' excluded — aspirated-h handled by startsWithVowel flag in slot resolution
+      .replace(/\b(le|la|de|ne|se|je|me|te|que) ([aeéèêëiîïoôuûüy])/gi,
         (_, word: string, vowel: string) => `${word.slice(0, -1)}'${vowel}`)
+      // Elision for mute-h words (not in aspirated-h list)
+      .replace(/\b(le|la|de|ne|se|je|me|te|que) (h\w*)/gi,
+        (match, word: string, hWord: string) => {
+          const bare = hWord.toLowerCase().split(/\s/)[0] ?? '';
+          if (ASPIRATED_H_WORDS.has(bare)) return match; // Keep "le hasard"
+          return `${word.slice(0, -1)}'${hWord}`; // Elide "l'homme"
+        })
       // French typography: non-breaking space before ; : ! ?
       .replace(/ ?([;:!?])/g, '\u00A0$1')
       // Clean up double spaces

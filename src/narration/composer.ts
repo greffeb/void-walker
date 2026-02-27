@@ -497,8 +497,11 @@ export function composeNarrative(
   const selected = sorted.slice(0, budget - 1); // -1 because action already used
 
   for (const layer of selected) {
-    const text = layer.render();
-    if (text) parts.push(text);
+    const rawText = layer.render();
+    if (rawText) {
+      // Render template slots in layer snippets (e.g., {npc_name} in NPC reactions)
+      parts.push(renderTemplate(rawText, ctx, effectiveLocale));
+    }
   }
 
   const grammar = getGrammarEngine(effectiveLocale);

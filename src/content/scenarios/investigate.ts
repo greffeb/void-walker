@@ -1476,6 +1476,7 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
     },
     escalation: {
       locationRole: 'hazard_zone',
+      atmosphere: 'toxic_atmosphere',
       items: [],
       features: [
         reactor_core,
