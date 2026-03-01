@@ -55,6 +55,9 @@ export interface TurnEntry {
   readonly locationName: string;
   readonly reported: boolean;
   readonly sceneSnapshot: SceneSnapshot;
+  readonly resultScene: SceneDescription | null;
+  /** 'enter' = first visit, 'revisit' = returning, null = same room */
+  readonly introMode: 'enter' | 'revisit' | null;
 }
 
 export interface ScenarioLoopState {
@@ -287,7 +290,12 @@ export function useScenarioLoop(): ScenarioLoop {
 
       // Update narrated IDs based on what this turn revealed
       const newLocationId = newContext.locationId ?? null;
-      if (newLocationId !== currentLocationRef.current) {
+      const prevLocationId = currentLocationRef.current;
+      let introMode: 'enter' | 'revisit' | null = null;
+      if (newLocationId !== null && newLocationId !== prevLocationId) {
+        introMode = (newLocationId in state.gameState.visitedLocations) ? 'revisit' : 'enter';
+      }
+      if (newLocationId !== prevLocationId) {
         // Location changed: reset narrated IDs and mark all new location elements
         if (newContext.sceneDescription) {
           narratedIdsRef.current = allSceneElementIds(newContext.sceneDescription);
@@ -318,6 +326,8 @@ export function useScenarioLoop(): ScenarioLoop {
         locationName: getLocationName(result.newState),
         reported: false,
         sceneSnapshot: buildSceneSnapshot(context),
+        resultScene: newContext.sceneDescription ?? null,
+        introMode,
       };
 
       dispatch({ type: 'TURN_RESULT', gameState: result.newState, sceneContext: newContext, entry });

@@ -817,6 +817,7 @@ export type StringKey =
   | 'env.seal_point'
   // Scene narration prose templates (src/narration/scene.ts)
   | 'scene.intro_new'
+  | 'scene.intro_enter'
   | 'scene.intro_revisit'
   | 'scene.features_intro'
   | 'scene.items_intro'

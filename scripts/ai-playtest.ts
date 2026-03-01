@@ -104,7 +104,11 @@ function renderTokens(tokens: readonly SceneToken[]): string {
 // ---------------------------------------------------------------------------
 // Scene display — shows what a player would see
 // ---------------------------------------------------------------------------
-function displayScene(state: GameState, context: SceneContext, isNewGameIntro = false): void {
+function displayScene(
+  state: GameState,
+  context: SceneContext,
+  introMode: 'new_game' | 'enter' | 'revisit' = 'revisit',
+): void {
   const sd = context.sceneDescription;
   if (!sd) {
     console.log(state.playerLocationId ?? 'Lieu inconnu');
@@ -112,7 +116,7 @@ function displayScene(state: GameState, context: SceneContext, isNewGameIntro = 
     return;
   }
 
-  const scene = narrateScene(sd, isNewGameIntro, 'fr');
+  const scene = narrateScene(sd, introMode, 'fr');
 
   console.log('');
   if (scene.intro.length > 0)    console.log(renderTokens(scene.intro));
@@ -200,7 +204,13 @@ function playTurn(state: GameState, command: string, seed: number): GameState {
   // Show new scene
   if (newState.phase === 'playing') {
     const newContext = getSceneContext(newState);
-    displayScene(newState, newContext);
+    const prevLocationId = context.locationId ?? null;
+    const nextLocationId = newContext.locationId ?? null;
+    let introMode: 'new_game' | 'enter' | 'revisit' = 'revisit';
+    if (nextLocationId !== null && nextLocationId !== prevLocationId) {
+      introMode = (nextLocationId in state.visitedLocations) ? 'revisit' : 'enter';
+    }
+    displayScene(newState, newContext, introMode);
   }
 
   // Save state
@@ -242,7 +252,7 @@ function initializeGame(
 
   // Display initial scene
   const context = getSceneContext(state);
-  displayScene(state, context, true);
+  displayScene(state, context, 'new_game');
 
   saveState(state, seed);
   return state;

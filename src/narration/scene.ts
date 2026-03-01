@@ -8,8 +8,10 @@
 // ---------------------------------------------------------------------------
 
 import type { SceneDescription } from '../engine/types';
-import type { Locale } from '../i18n/types';
+import type { Locale, StringKey } from '../i18n/types';
 import { t } from '../i18n/index';
+
+export type SceneIntroMode = 'new_game' | 'enter' | 'revisit';
 
 // ---------------------------------------------------------------------------
 // TOKEN TYPES — structured output for multi-renderer support
@@ -126,9 +128,15 @@ function buildSentenceTokens(
  * @param isNewEntry — true on first visit (uses intro_new phrasing)
  * @param locale     — active locale ('fr' | 'en')
  */
+const INTRO_KEY: Record<SceneIntroMode, StringKey> = {
+  new_game: 'scene.intro_new',
+  enter:    'scene.intro_enter',
+  revisit:  'scene.intro_revisit',
+};
+
 export function narrateScene(
   sd: SceneDescription,
-  isNewEntry: boolean,
+  introMode: SceneIntroMode,
   locale: Locale,
 ): NarratedScene {
   // --- Article lookup tables (locale-specific, from i18n JSON strings) ---
@@ -136,9 +144,7 @@ export function narrateScene(
   const featureArticles = parseArticleMap(t('grammar.feature_articles', locale));
 
   // --- Intro sentence ---
-  const introPhrase = isNewEntry
-    ? t('scene.intro_new',     locale)
-    : t('scene.intro_revisit', locale);
+  const introPhrase = t(INTRO_KEY[introMode], locale);
 
   const locationName = sentenceCase(sd.locationDescription);
   const intro: SceneToken[] = [

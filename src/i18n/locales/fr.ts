@@ -844,6 +844,7 @@ export const fr: LocaleStrings = {
 
   // Scene narration prose templates
   'scene.intro_new':      'Vous reprenez conscience dans',
+  'scene.intro_enter':    'Vous pénétrez dans',
   'scene.intro_revisit':  'Vous revenez dans',
   'scene.features_intro': 'Vous voyez autour de vous',
   'scene.items_intro':    'Parmi les débris, vous remarquez',

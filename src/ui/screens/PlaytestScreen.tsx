@@ -241,6 +241,26 @@ function NarrativeCard({
         </div>
       )}
 
+      {/* Post-action scene — updated room state after the action */}
+      {entry.resultScene && (() => {
+        const scene = narrateScene(entry.resultScene, entry.introMode ?? 'revisit', 'fr');
+        const hasContent = scene.features.length > 0
+          || scene.items.length > 0 || scene.npcs.length > 0 || scene.exits.length > 0;
+        if (!hasContent) return null;
+        const showIntro = entry.introMode !== null && scene.intro.length > 0;
+        return (
+          <div className="mt-2 border-t border-gray-800/50 pt-2 font-mono text-sm leading-relaxed text-gray-300">
+            {showIntro && <ProseLine tokens={scene.intro} />}
+            {scene.features.length > 0 && <div className={showIntro ? 'mt-1' : ''}><ProseLine tokens={scene.features} /></div>}
+            {scene.items.length > 0    && <div className="mt-1"><ProseLine tokens={scene.items} /></div>}
+            {scene.npcs.length > 0     && <div className="mt-1"><ProseLine tokens={scene.npcs} /></div>}
+            {scene.exits.length > 0    && <div className="mt-1"><ProseLine tokens={scene.exits} /></div>}
+            {scene.obstacle            && <div className="mt-1 italic text-orange-400/80">{scene.obstacle}</div>}
+            <div className="mt-1 text-gray-500">{scene.prompt}</div>
+          </div>
+        );
+      })()}
+
       {/* Bug report */}
       <div className="flex justify-end">
         <BugReportButton
@@ -445,7 +465,7 @@ export function PlaytestScreen(): JSX.Element {
         <div className="mx-auto flex max-w-lg flex-col gap-3">
           {/* Welcome message on first turn — prose narration with highlighted tokens */}
           {state.turnHistory.length === 0 && sceneDescription && (() => {
-            const scene = narrateScene(sceneDescription, true, 'fr');
+            const scene = narrateScene(sceneDescription, 'new_game', 'fr');
             return (
               <div className="rounded border border-gray-800 bg-gray-950/40 p-3 font-mono text-sm leading-relaxed text-gray-300">
                 {scene.intro.length > 0    && <ProseLine tokens={scene.intro} />}
