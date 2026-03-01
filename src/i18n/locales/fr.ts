@@ -519,6 +519,8 @@ export const fr: LocaleStrings = {
   // Generic NPC reference tokens — when matched and exactly one NPC in scene, resolve to that NPC.
   // Covers pronouns ("lui") and generic enemy words ("ennemi") that players use instead of the NPC name.
   'parser.genericNpcRefs': 'lui,elle,eux,ennemi,enemi,adversaire,cible,creature,monstre,bete,alien',
+  // Obstacle path verbs: English authoring vocabulary → VerbId (same in all locales)
+  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:search,EXAMINE:loot,EXAMINE:look,EXAMINE:study,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot,TOUCH:pray',
 
   // Items
   'item.laser_pistol': 'Pistolet laser',

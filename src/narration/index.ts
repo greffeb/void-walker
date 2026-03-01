@@ -18,6 +18,7 @@ import type {
 import { NARRATIVE_PRESETS } from './types';
 import { composeNarrative, getVerbCategory } from './composer';
 import { getLocale, t } from '../i18n/index';
+import { narrationMemory } from './memory';
 
 export { composeNarrative, resetComposer } from './composer';
 export { renderTemplate, renderTemplateWithSlots, getGrammarEngine, detectSelfReference } from './templateEngine';
@@ -53,7 +54,20 @@ const ASPIRATED_H = new Set([
 const FEMININE_SUFFIXES = [
   'tion', 'sion', 'ure', 'ée', 'ie', 'ise', 'ade', 'ande', 'ence', 'ance',
   'esse', 'euse', 'trice', 'ette', 'elle', 'ine', 'ère',
+  'ule', 'mpe', 'sse', 'nce', 'che', 'rte', 'lle', 'tte', 'ive',
 ];
+/** Known feminine French nouns (first word of compound names).
+ * Covers common game objects not caught by suffix heuristic. */
+const KNOWN_FEMININE_NOUNS = new Set([
+  'capsule', 'lampe', 'salle', 'porte', 'armoire', 'valve', 'brèche',
+  'couchette', 'navette', 'trousse', 'combinaison', 'station', 'clé',
+  'torche', 'carte', 'console', 'entité', 'créature', 'inscription',
+  'baie', 'paroi', 'cloison', 'cabine', 'soute', 'passerelle',
+  'issue', 'sortie', 'entrée', 'zone', 'chambre', 'caverne',
+  'mine', 'grotte', 'fissure', 'table', 'chaise', 'boîte',
+  'caisse', 'coque', 'bouteille', 'fiole', 'seringue', 'pilule',
+  'antenne', 'alarme', 'sirène',
+]);
 const PLURAL_MARKERS = ['s', 'x'];
 
 /**
@@ -74,10 +88,15 @@ function detectGrammar(frenchName: string): GrammaticalInfo {
   // In French compound names like "kit médical", the main noun is usually the first word
   const mainWord = words[0] ?? '';
   let gender: 'M' | 'F' = 'M';
-  for (const suffix of FEMININE_SUFFIXES) {
-    if (mainWord.endsWith(suffix)) {
-      gender = 'F';
-      break;
+  // Check known feminine nouns first (exact match)
+  if (KNOWN_FEMININE_NOUNS.has(mainWord)) {
+    gender = 'F';
+  } else {
+    for (const suffix of FEMININE_SUFFIXES) {
+      if (mainWord.endsWith(suffix)) {
+        gender = 'F';
+        break;
+      }
     }
   }
 
@@ -118,7 +137,7 @@ export function buildNarrativeContext(
   // Build location info
   const locationInfo: LocationInfo = {
     id: sceneContext.locationId ?? '',
-    name: sceneContext.locationId ?? 'unknown',
+    name: sceneContext.sceneDescription?.locationDescription ?? sceneContext.locationId ?? 'unknown',
     description: '',
     features: sceneContext.environmentFeatures.map(f => f.nameKey),
     conditions: new Set(sceneContext.environmentConditions),
@@ -196,6 +215,21 @@ function buildTargetInfo(
   sceneContext: SceneContext,
 ): TargetInfo | null {
   if (!targetId) return null;
+
+  // Check connected locations first (for MOVE_TO targets)
+  const connectedLoc = sceneContext.connectedLocations.find(loc => loc.id === targetId);
+  if (connectedLoc) {
+    // Use displayName (French nameKey) if available, else first alias
+    const name = connectedLoc.displayName ?? connectedLoc.aliases[0] ?? targetId.replace(/_/g, ' ');
+    const grammar = detectGrammar(name);
+    return {
+      id: targetId,
+      name,
+      type: 'location',
+      properties: [],
+      grammar,
+    };
+  }
 
   // Search all scene entities for a match
   const allEntities = [
@@ -325,6 +359,17 @@ export function narrateForTurn(
 
   if (isExamineEnvironment && isSuccessful) {
     return buildExamineEnvironmentNarrative(sceneContext.sceneDescription);
+  }
+
+  // Anti-repetition: detect repeated EXAMINE/SCAN on same target
+  const EXAMINE_LIKE: ReadonlySet<VerbId> = new Set(['EXAMINE', 'SCAN', 'LISTEN', 'SMELL', 'READ']);
+  const parsedVerb = result.trace.parsedVerb ?? 'WAIT';
+  const parsedTarget = result.trace.parsedTarget ?? '';
+  if (EXAMINE_LIKE.has(parsedVerb) && parsedTarget) {
+    const isRepeat = narrationMemory.trackPair(parsedVerb, parsedTarget);
+    if (isRepeat) {
+      return 'Vous ne remarquez rien de nouveau.';
+    }
   }
 
   // Build narrative context from turn data

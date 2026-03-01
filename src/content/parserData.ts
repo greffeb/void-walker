@@ -147,6 +147,29 @@ function buildIntentKeywords(locale: Locale): ReadonlyMap<string, VerbId> {
 }
 
 /**
+ * Build obstacle verb map from i18n 'parser.obstacleVerbs' key.
+ * Format: "VERBID:englishVerb,..." — keys are lowercase English authoring verbs,
+ * values are VerbIds. Used by scene.ts to resolve obstacle path verbs to
+ * localized display names without any hardcoded strings in the engine.
+ */
+export function buildObstacleVerbMap(locale: Locale): ReadonlyMap<string, VerbId> {
+  const raw = t('parser.obstacleVerbs', locale);
+  if (!raw || raw === 'parser.obstacleVerbs') return new Map();
+
+  const map = new Map<string, VerbId>();
+  for (const entry of raw.split(',')) {
+    const colonIdx = entry.indexOf(':');
+    if (colonIdx < 0) continue;
+    const verb = entry.slice(0, colonIdx).trim() as VerbId;
+    const keyword = normalizeForm(entry.slice(colonIdx + 1));
+    if (keyword.length > 0 && VERB_IDS.includes(verb) && !map.has(keyword)) {
+      map.set(keyword, verb);
+    }
+  }
+  return map;
+}
+
+/**
  * Build preposition set from i18n key.
  */
 function buildPrepositions(key: StringKey, locale: Locale): ReadonlySet<string> {
@@ -192,6 +215,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
   const targetPrepositions = buildPrepositions('parser.prepositions.target', locale);
   const toolPrepositions = buildPrepositions('parser.prepositions.tool', locale);
   const genericNpcRefs = buildGenericNpcRefs(locale);
+  const obstacleVerbMap = buildObstacleVerbMap(locale);
 
   return {
     verbForms,
@@ -202,5 +226,6 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     targetPrepositions,
     toolPrepositions,
     genericNpcRefs,
+    obstacleVerbMap,
   };
 }

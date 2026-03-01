@@ -84,9 +84,31 @@ export class NarrationMemory {
     return result?.text ?? null;
   }
 
+  // ── Verb+Target pair tracking ──
+
+  private readonly recentVerbTargetPairs: string[] = [];
+  private readonly PAIR_MEMORY_SIZE = 5;
+
+  /**
+   * Track a (verb, target) pair. Returns true if this pair was already
+   * seen recently (meaning the narration should use a "nothing new" message).
+   */
+  trackPair(verb: string, targetId: string): boolean {
+    const pair = `${verb}:${targetId}`;
+    if (this.recentVerbTargetPairs.includes(pair)) {
+      return true; // Already seen recently
+    }
+    this.recentVerbTargetPairs.push(pair);
+    if (this.recentVerbTargetPairs.length > this.PAIR_MEMORY_SIZE) {
+      this.recentVerbTargetPairs.shift();
+    }
+    return false;
+  }
+
   /** Reset all buffers (e.g., new game) */
   reset(): void {
     this.buffers.clear();
+    this.recentVerbTargetPairs.length = 0;
   }
 
   /** Reset buffer for a specific layer (e.g., entering new setting) */

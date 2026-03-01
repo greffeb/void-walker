@@ -529,6 +529,12 @@ export interface ParserLocaleData {
    * the resolver defaults to that NPC instead of the abstract environment fallback.
    */
   readonly genericNpcRefs: ReadonlySet<string>;
+  /**
+   * Maps English obstacle path verbs to VerbIds for suggestion display.
+   * Sourced from 'parser.obstacleVerbs' i18n key. Keys are lowercase English
+   * authoring verbs (heal, hack, crawl…); values are VerbIds (USE, HACK, CLIMB…).
+   */
+  readonly obstacleVerbMap: ReadonlyMap<string, import('./verbs').VerbId>;
 }
 
 /** Breakdown of how difficulty was calculated */

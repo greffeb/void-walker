@@ -498,13 +498,14 @@ export type StringKey =
   | 'verb.MOVE_TO.aliases'
   | 'verb.WAIT.aliases'
   | 'verb.TOUCH.aliases'
-  // Parser locale data (compounds, stop words, intents, prepositions)
+  // Parser locale data (compounds, stop words, intents, prepositions, obstacle verbs)
   | 'parser.compounds'
   | 'parser.stopWords'
   | 'parser.intents'
   | 'parser.genericNpcRefs'
   | 'parser.prepositions.target'
   | 'parser.prepositions.tool'
+  | 'parser.obstacleVerbs'
   // Items (20)
   | 'item.laser_pistol'
   | 'item.laser_pistol.description'

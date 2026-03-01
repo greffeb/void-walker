@@ -151,8 +151,27 @@ export function processTurn(
 
   // If ambiguous → return reformulation prompt, no dice roll
   if (isReformulation(parseResult)) {
+    // Count reformulation as an obstacle attempt so failsafe triggers even
+    // when the player can't figure out the right command
+    let reformState = { ...state, turn: state.turn + 1 };
+    if (reformState.scenario !== null && reformState.playerLocationId !== null) {
+      const node = reformState.scenario.graph.nodes.find(
+        n => n.id === reformState.playerLocationId,
+      );
+      if (node?.obstacle && node.obstacle.targetId) {
+        reformState = {
+          ...reformState,
+          obstacleAttempts: recordAttempt(
+            reformState.obstacleAttempts,
+            reformState.playerLocationId,
+            node.obstacle.targetId,
+            'EXAMINE', // generic verb for reformulation counting
+          ),
+        };
+      }
+    }
     return {
-      newState: { ...state, turn: state.turn + 1 },
+      newState: reformState,
       narrative: parseResult.prompt,
       diceRoll: null,
       suggestions: [],
@@ -185,6 +204,7 @@ export function processTurn(
     ...state,
     character: { ...char, conditions: updatedConditions },
   };
+  let traceDeathResult: string | null = null;
   if (conditionHpDrain > 0) {
     current = updateCharacterHp(current, -conditionHpDrain);
   }
@@ -224,6 +244,44 @@ export function processTurn(
   };
   if (oxygenHpDrain > 0) {
     current = updateCharacterHp(current, -oxygenHpDrain);
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // STEP 4a: Death check after condition + oxygen drain
+  // ─────────────────────────────────────────────────────────
+  // This catches deaths caused by passive HP loss (conditions, O2 depletion)
+  // BEFORE the action is resolved, so dead players don't continue acting.
+  if (current.character !== null) {
+    const earlyDeathResult = checkDeath(
+      current.character.hp,
+      current.character.maxHp,
+      current.difficulty,
+      current.secondChanceUsed,
+    );
+    if (earlyDeathResult) {
+      traceDeathResult = earlyDeathResult.type;
+      current = applyDeath(current, earlyDeathResult);
+      if (current.phase === 'defeat') {
+        return buildResult(
+          current, null, input, action.verb, action.target?.id ?? null, 'condition_drain',
+          buildFullTrace({
+            action, creativityMod, conditionHpDrain, conditionsExpired,
+            atmosphere, o2Before, o2After, oxygenHpDrain, isAutoVerb: false,
+            statId: null, statValue: 0,
+            shipMemoryMod: 0,
+            failsafeActivated: false, failsafeDcReduction: 0,
+            breakdown: null, effectiveDC: 0,
+            outcome: null, consequences: [],
+            triggeredConditions: [], deathResult: traceDeathResult,
+            npcReacted: false, npcAttackHit: false, npcAttackDamage: 0,
+            stalkerClockBefore: current.stalkerClockState.actionsSinceLastProgression,
+            stalkerClockAfter: current.stalkerClockState.actionsSinceLastProgression,
+            stalkerEventType: null,
+          }),
+        );
+      }
+      // If second_chance/knockout: HP restored, continue to action resolution
+    }
   }
 
   // ─────────────────────────────────────────────────────────
@@ -337,7 +395,6 @@ export function processTurn(
   let traceOutcome: import('./types').RollOutcome | null = null;
   let traceConsequences: readonly Consequence[] = [];
   let traceTriggeredConditions: readonly string[] = [];
-  let traceDeathResult: string | null = null;
   let combatHandled = false;
 
   // ── COMBAT INTERCEPT: Route combat verbs to combat system when in active combat ──

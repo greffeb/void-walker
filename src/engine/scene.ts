@@ -21,21 +21,34 @@ import { NPC_DEFINITIONS } from '../content/npcs';
 import { t, getLocale } from '../i18n/index';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import { getFeatureState, isItemRevealed } from './featureState';
+import { buildObstacleVerbMap } from '../content/parserData';
 
 // ---------------------------------------------------------------------------
-// OBSTACLE VERB → FRENCH DISPLAY NAME
+// OBSTACLE VERB → LOCALIZED DISPLAY NAME
 // ---------------------------------------------------------------------------
 
-/** Map English obstacle path verb to French display text for suggestions. */
+/**
+ * Map an English obstacle path verb to a localized display string for suggestions.
+ * The mapping (English authoring verb → VerbId → localized name) lives in
+ * 'parser.obstacleVerbs' in the i18n locale files — no hardcoded strings here.
+ */
 function obstaclVerbToFrench(verb: string): string {
-  // Try exact VerbId i18n lookup: "push" → verb.PUSH → "Pousser"
-  const key = `verb.${verb.toUpperCase()}` as StringKey;
-  const resolved = t(key);
-  if (resolved !== key) {
-    // Lowercase the first letter for suggestion context ("Pousser" → "pousser")
-    return resolved[0]!.toLowerCase() + resolved.slice(1);
+  const lower = verb.toLowerCase();
+
+  // Step 1: Lookup in obstacleVerbMap → VerbId → localized name via t()
+  const verbId = buildObstacleVerbMap(getLocale()).get(lower);
+  if (verbId) {
+    const key = `verb.${verbId}` as StringKey;
+    const resolved = t(key);
+    if (resolved !== key) return resolved[0]!.toLowerCase() + resolved.slice(1);
   }
-  // Fallback: return raw verb (shouldn't happen if verb data is correct)
+
+  // Step 2: Direct VerbId i18n lookup (e.g. module uses "PUSH" verbatim)
+  const directKey = `verb.${verb.toUpperCase()}` as StringKey;
+  const directResolved = t(directKey);
+  if (directResolved !== directKey) return directResolved[0]!.toLowerCase() + directResolved.slice(1);
+
+  // Step 3: Return verb as-is
   return verb;
 }
 
@@ -140,6 +153,7 @@ export function getSceneContext(state: GameState): SceneContext {
     activeSkin,
     playerClass,
     activeCombatNpcName,
+    state.character?.conditions.map(c => c.id),
   );
 
   // --- Scene description for UI and narration ---
@@ -174,6 +188,7 @@ function buildSuggestionCandidates(
   activeSkin: NarrativeSkin | null,
   playerClass: import('./types').PlayerClassName,
   activeCombatNpcName?: string,
+  playerConditions?: readonly string[],
 ): readonly SuggestionCandidate[] {
   // When in combat, suggest combat-specific actions
   if (activeCombatNpcName) {
@@ -190,11 +205,27 @@ function buildSuggestionCandidates(
   // Obstacle paths (highest priority)
   if (!obstacleResolved && node.obstacle) {
     for (const path of node.obstacle.paths) {
+      // Resolve target display name — check NPCs first, then features, then fallback
+      let targetDisplayName: string;
+      if (node.obstacle.targetId) {
+        const npcMatch = (node.npcs ?? []).find(n => n.id === node.obstacle!.targetId);
+        if (npcMatch) {
+          const npcDef = NPC_DEFINITIONS[npcMatch.id];
+          targetDisplayName = npcDef ? t(npcDef.nameKey) : resolveDisplayName(`npc.${npcMatch.id}`, npcMatch.id);
+        } else {
+          const featDef = ENVIRONMENT_FEATURE_DEFINITIONS[node.obstacle.targetId];
+          if (featDef) {
+            targetDisplayName = t(featDef.nameKey);
+          } else {
+            targetDisplayName = resolveDisplayName(`env.${node.obstacle.targetId}`, node.obstacle.targetId);
+          }
+        }
+      } else {
+        targetDisplayName = node.obstacle.description.fr;
+      }
       candidates.push({
         verbText: obstaclVerbToFrench(path.verbs[0] ?? 'examine'),
-        targetText: node.obstacle.targetId
-          ? resolveDisplayName(`env.${node.obstacle.targetId}`, node.obstacle.targetId)
-          : node.obstacle.description.fr,
+        targetText: targetDisplayName,
         stat: path.stat,
         category: 'obstacle',
       });
@@ -244,6 +275,16 @@ function buildSuggestionCandidates(
       targetText: loc.aliases[0] ?? loc.id,
       stat: 'AGI',
       category: 'movement',
+    });
+  }
+
+  // Contextual: suggest WAIT when exhausted (WAIT cures exhaustion)
+  if (playerConditions?.includes('exhausted')) {
+    candidates.push({
+      verbText: 'se reposer',
+      targetText: '',
+      stat: 'DEF',
+      category: 'environment',
     });
   }
 

@@ -505,3 +505,60 @@ describe('parseAction()', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// obstacleVerbMap — i18n-driven obstacle verb → VerbId resolution
+// ---------------------------------------------------------------------------
+
+describe('buildParserLocaleData — obstacleVerbMap', () => {
+  const dataFr = buildParserLocaleData('fr');
+  const dataEn = buildParserLocaleData('en');
+
+  test('map is non-empty', () => {
+    expect(dataFr.obstacleVerbMap.size).toBeGreaterThan(0);
+  });
+
+  test('heal → USE', () => {
+    expect(dataFr.obstacleVerbMap.get('heal')).toBe('USE');
+  });
+
+  test('hack → HACK', () => {
+    expect(dataFr.obstacleVerbMap.get('hack')).toBe('HACK');
+  });
+
+  test('crawl → CLIMB', () => {
+    expect(dataFr.obstacleVerbMap.get('crawl')).toBe('CLIMB');
+  });
+
+  test('navigate → MOVE_TO', () => {
+    expect(dataFr.obstacleVerbMap.get('navigate')).toBe('MOVE_TO');
+  });
+
+  test('pray → TOUCH', () => {
+    expect(dataFr.obstacleVerbMap.get('pray')).toBe('TOUCH');
+  });
+
+  test('sneak → HIDE', () => {
+    expect(dataFr.obstacleVerbMap.get('sneak')).toBe('HIDE');
+  });
+
+  test('set → SET_TRAP', () => {
+    expect(dataFr.obstacleVerbMap.get('set')).toBe('SET_TRAP');
+  });
+
+  test('unknown verb returns undefined', () => {
+    expect(dataFr.obstacleVerbMap.get('invalidverb')).toBeUndefined();
+  });
+
+  test('fr and en locales produce the same mapping (authoring vocab is locale-independent)', () => {
+    expect(dataFr.obstacleVerbMap.get('hack')).toBe(dataEn.obstacleVerbMap.get('hack'));
+    expect(dataFr.obstacleVerbMap.get('crawl')).toBe(dataEn.obstacleVerbMap.get('crawl'));
+    expect(dataFr.obstacleVerbMap.size).toBe(dataEn.obstacleVerbMap.size);
+  });
+
+  test('all VerbId values are valid VerbIds', () => {
+    for (const [, verbId] of dataFr.obstacleVerbMap) {
+      expect(VERB_IDS).toContain(verbId);
+    }
+  });
+});
