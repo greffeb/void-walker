@@ -89,3 +89,5 @@ data/logs/*
 !data/logs/.gitkeep
 
 .claude/
+scripts/playtest*
+scripts/.ai-playtest-state.json
