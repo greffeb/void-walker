@@ -835,4 +835,19 @@ export const en: LocaleStrings = {
   'env.weakened_hull_section': 'Weakened hull section',
   'env.careful_path_markers': 'Safe path markers',
   'env.seal_point': 'Seal point',
+
+  // Scene narration prose templates
+  'scene.intro_new':      'You regain consciousness in',
+  'scene.intro_revisit':  'You return to',
+  'scene.features_intro': 'You see around you',
+  'scene.items_intro':    'Among the debris, you notice',
+  'scene.npcs_intro':     'You spot',
+  'scene.exits_new':      'You make out an exit toward',
+  'scene.exits_known':    'Known path toward',
+  'scene.prompt':         'What do you do?',
+
+  // Grammar — English has no gendered articles; articles are computed from the word ('a'/'an').
+  // These empty objects are intentional: the narration layer falls back to 'a' for unknown keys.
+  'grammar.item_articles':    '{}',
+  'grammar.feature_articles': '{}',
 };

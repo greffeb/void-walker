@@ -29,11 +29,10 @@ import { LAUNCH_SKELETONS } from '../src/content/scenarios/index';
 import { LAUNCH_SETTINGS } from '../src/content/settings';
 import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 import { narrateForTurn } from '../src/narration/index';
-import { t } from '../src/i18n/index';
-import type { StringKey } from '../src/i18n/types';
+import { narrateScene } from '../src/narration/scene';
+import type { SceneToken } from '../src/narration/scene';
 import type { GameState, SceneContext } from '../src/engine/types';
-import type { AssembledScenario } from '../src/engine/scenario';
-import type { SettingDefinition } from '../src/content/settings';
+import type { SettingDefinition } from '../src/engine/scenario';
 import type { PlayerClassName, DifficultyLevel } from '../src/engine/types';
 
 const STATE_FILE = path.join(__dirname, '.ai-playtest-state.json');
@@ -69,36 +68,59 @@ function loadState(): { state: GameState; seed: number } | null {
 }
 
 // ---------------------------------------------------------------------------
+// ANSI color helpers
+// ---------------------------------------------------------------------------
+const ANSI = {
+  reset:    '\x1b[0m',
+  bold:     '\x1b[1m',
+  dim:      '\x1b[2m',
+  yellow:   '\x1b[33m',
+  green:    '\x1b[32m',
+  cyan:     '\x1b[36m',
+  magenta:  '\x1b[35m',
+  white:    '\x1b[37m',
+} as const;
+
+function ansi(code: string, text: string): string {
+  return `${code}${text}${ANSI.reset}`;
+}
+
+/** Render a flat token array to a colored CLI string. */
+function renderTokens(tokens: readonly SceneToken[]): string {
+  return tokens.map(tok => {
+    switch (tok.kind) {
+      case 'text':     return tok.value;
+      case 'location': return ansi(ANSI.bold + ANSI.white, tok.value);
+      case 'feature':  return ansi(ANSI.yellow, tok.value);
+      case 'item':     return ansi(ANSI.green, tok.value);
+      case 'npc':      return ansi(ANSI.magenta, tok.value);
+      case 'exit':     return tok.visited
+        ? ansi(ANSI.dim + ANSI.cyan, tok.value)
+        : ansi(ANSI.cyan, tok.value);
+    }
+  }).join('');
+}
+
+// ---------------------------------------------------------------------------
 // Scene display — shows what a player would see
 // ---------------------------------------------------------------------------
 function displayScene(state: GameState, context: SceneContext, isNewGameIntro = false): void {
   const sd = context.sceneDescription;
-  const location = sd?.locationDescription
-    ?? (state.playerLocationId !== null ? t(`location.${state.playerLocationId}` as StringKey) : 'Lieu inconnu');
-
-  if (isNewGameIntro) {
-    console.log(`Vous reprenez conscience dans ${location}. ${location}`);
-  } else {
-    console.log(`\n${location}`);
+  if (!sd) {
+    console.log(state.playerLocationId ?? 'Lieu inconnu');
+    console.log('Que faites-vous ?');
+    return;
   }
 
-  const visibleItems = sd?.visibleItems ?? [];
-  const visibleFeatures = sd?.visibleFeatures ?? [];
+  const scene = narrateScene(sd, isNewGameIntro, 'fr');
 
-  if (visibleItems.length > 0) {
-    console.log(`Vous remarquez : ${visibleItems.map(i => i.name).join(', ')}.`);
-  }
-
-  if (visibleFeatures.length > 0) {
-    console.log(`L'environnement : ${visibleFeatures.map(f => f.name).join(', ')}.`);
-  }
-
-  const exits = sd?.exits ?? [];
-  if (exits.length > 0) {
-    console.log(`Sorties : ${exits.map(e => `${e.name} [${e.visited ? 'exploré' : 'inexplore'}]`).join(', ')}`);
-  }
-
-  console.log('Que faites-vous ?');
+  console.log('');
+  if (scene.intro.length > 0)    console.log(renderTokens(scene.intro));
+  if (scene.features.length > 0) console.log(renderTokens(scene.features));
+  if (scene.items.length > 0)    console.log(renderTokens(scene.items));
+  if (scene.npcs.length > 0)     console.log(renderTokens(scene.npcs));
+  if (scene.exits.length > 0)    console.log(renderTokens(scene.exits));
+  console.log(scene.prompt);
 }
 
 function getFlagValue(args: readonly string[], flag: string): string | undefined {

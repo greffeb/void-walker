@@ -814,7 +814,19 @@ export type StringKey =
   | 'env.physical_log_binder'
   | 'env.weakened_hull_section'
   | 'env.careful_path_markers'
-  | 'env.seal_point';
+  | 'env.seal_point'
+  // Scene narration prose templates (src/narration/scene.ts)
+  | 'scene.intro_new'
+  | 'scene.intro_revisit'
+  | 'scene.features_intro'
+  | 'scene.items_intro'
+  | 'scene.npcs_intro'
+  | 'scene.exits_new'
+  | 'scene.exits_known'
+  | 'scene.prompt'
+  // Grammar article data — locale-specific JSON (e.g. {"item.knife":"un","item.medical_kit":"une"})
+  | 'grammar.item_articles'
+  | 'grammar.feature_articles';
 
 /** A locale translation record — maps every StringKey to its translated string */
 export type LocaleStrings = Readonly<Record<StringKey, string>>;

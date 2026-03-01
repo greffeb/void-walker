@@ -12,6 +12,8 @@ import { CLASSES } from '@content/classes';
 import { ITEM_DEFINITIONS } from '@content/items';
 import { t } from '@i18n/index';
 import { formatSuggestionAsInput } from '@engine/scene';
+import { narrateScene } from '@narration/scene';
+import type { SceneToken } from '@narration/scene';
 import type { StringKey } from '@i18n/types';
 import type { DifficultyLevel, PlayerClassName, GameState } from '@engine/types';
 import type { SuggestionCandidate } from '@engine/suggestions';
@@ -66,6 +68,29 @@ function translateInventory(inventory: readonly string[]): string {
     const def = ITEM_DEFINITIONS[id];
     return def ? ts(def.nameKey) : id;
   }).join(', ');
+}
+
+// === SCENE TOKEN RENDERER ===
+
+function SceneTokenSpan({ token }: { readonly token: SceneToken }): JSX.Element {
+  switch (token.kind) {
+    case 'text':     return <>{token.value}</>;
+    case 'location': return <span className="font-bold text-white">{token.value}</span>;
+    case 'feature':  return <span className="text-yellow-400">{token.value}</span>;
+    case 'item':     return <span className="text-green-400">{token.value}</span>;
+    case 'npc':      return <span className="text-fuchsia-400">{token.value}</span>;
+    case 'exit':     return token.visited
+      ? <span className="text-gray-400">{token.value}</span>
+      : <span className="text-cyan-400">{token.value}</span>;
+  }
+}
+
+function ProseLine({ tokens }: { readonly tokens: readonly SceneToken[] }): JSX.Element {
+  return (
+    <div>
+      {tokens.map((tok, i) => <SceneTokenSpan key={i} token={tok} />)}
+    </div>
+  );
 }
 
 // === DIFFICULTY SELECT ===
@@ -418,47 +443,21 @@ export function PlaytestScreen(): JSX.Element {
       {/* Scrollable narrative history */}
       <div ref={contentRef} className="flex-1 overflow-y-auto p-3">
         <div className="mx-auto flex max-w-lg flex-col gap-3">
-          {/* Welcome message on first turn — rich scene description */}
-          {state.turnHistory.length === 0 && (
-            <div className="rounded border border-gray-800 bg-gray-950/40 p-3 font-mono text-sm text-gray-300">
-              <div className="mb-2">
-                Vous reprenez conscience dans <span className="text-purple-400">{locationName}</span>.
-                {sceneDescription?.locationDescription && (
-                  <> {sceneDescription.locationDescription}</>
-                )}
+          {/* Welcome message on first turn — prose narration with highlighted tokens */}
+          {state.turnHistory.length === 0 && sceneDescription && (() => {
+            const scene = narrateScene(sceneDescription, true, 'fr');
+            return (
+              <div className="rounded border border-gray-800 bg-gray-950/40 p-3 font-mono text-sm leading-relaxed text-gray-300">
+                {scene.intro.length > 0    && <ProseLine tokens={scene.intro} />}
+                {scene.features.length > 0 && <div className="mt-1"><ProseLine tokens={scene.features} /></div>}
+                {scene.items.length > 0    && <div className="mt-1"><ProseLine tokens={scene.items} /></div>}
+                {scene.npcs.length > 0     && <div className="mt-1"><ProseLine tokens={scene.npcs} /></div>}
+                {scene.exits.length > 0    && <div className="mt-1"><ProseLine tokens={scene.exits} /></div>}
+                {scene.obstacle            && <div className="mt-1 italic text-orange-400/80">{scene.obstacle}</div>}
+                <div className="mt-2 text-gray-500">{scene.prompt}</div>
               </div>
-              {sceneDescription?.obstacleHint && (
-                <div className="mb-2 italic text-orange-400/80">{sceneDescription.obstacleHint}</div>
-              )}
-              {sceneDescription && sceneDescription.visibleItems.length > 0 && (
-                <div className="mb-1 text-gray-400">
-                  Vous remarquez : <span className="text-gray-200">{sceneDescription.visibleItems.map(i => i.name).join(', ')}</span>.
-                </div>
-              )}
-              {sceneDescription && sceneDescription.visibleFeatures.length > 0 && (
-                <div className="mb-1 text-gray-400">
-                  L'environnement : <span className="text-gray-200">{sceneDescription.visibleFeatures.map(f => f.name).join(', ')}</span>.
-                </div>
-              )}
-              {sceneDescription && sceneDescription.visibleNpcs.length > 0 && (
-                <div className="mb-1 text-gray-400">
-                  Presences : <span className="text-gray-200">{sceneDescription.visibleNpcs.map(n => n.name).join(', ')}</span>.
-                </div>
-              )}
-              {sceneDescription && sceneDescription.exits.length > 0 && (
-                <div className="mb-1 text-gray-400">
-                  Sorties : {sceneDescription.exits.map((e, i) => (
-                    <span key={i}>
-                      {i > 0 && ', '}
-                      <span className="text-cyan-400/80">{e.name}</span>
-                      <span className="text-gray-600"> [{e.visited ? 'explore' : 'inexplore'}]</span>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div className="mt-2 text-gray-500">Que faites-vous ?</div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Turn history */}
           {state.turnHistory.map((entry) => (
