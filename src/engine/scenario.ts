@@ -601,6 +601,8 @@ export interface InteractionResult {
   readonly flagUnset?: string;
   /** If true, the requiredItem is consumed (removed from inventory). */
   readonly consumeItem?: boolean;
+  /** If true, marks this location's obstacle as resolved in visitedLocations. */
+  readonly resolveObstacle?: boolean;
 }
 
 /**

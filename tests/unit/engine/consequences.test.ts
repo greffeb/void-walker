@@ -274,6 +274,48 @@ describe('applyConsequences: multiple consequences', () => {
 });
 
 // ---------------------------------------------------------------------------
+// applyConsequences — npc_killed
+// ---------------------------------------------------------------------------
+
+describe('applyConsequences: npc_killed', () => {
+  it('sets npcStates[id].alive to false', () => {
+    const state: GameState = {
+      ...makeState(),
+      npcStates: { survivant_infirmerie: { id: 'survivant_infirmerie', locationId: null, alive: true } },
+    };
+    const cs: Consequence[] = [{ type: 'npc_killed', npcId: 'survivant_infirmerie' }];
+    const updated = applyConsequences(state, cs, baseContext, fixedRng(0.5));
+    expect(updated.npcStates['survivant_infirmerie']?.alive).toBe(false);
+  });
+
+  it('is a no-op for an unknown npcId', () => {
+    const state = makeState();
+    const cs: Consequence[] = [{ type: 'npc_killed', npcId: 'nonexistent_npc' }];
+    const updated = applyConsequences(state, cs, baseContext, fixedRng(0.5));
+    expect(updated.npcStates).toEqual(state.npcStates);
+  });
+
+  it('is a no-op when the NPC is already dead', () => {
+    const state: GameState = {
+      ...makeState(),
+      npcStates: { survivant_infirmerie: { id: 'survivant_infirmerie', locationId: null, alive: false } },
+    };
+    const cs: Consequence[] = [{ type: 'npc_killed', npcId: 'survivant_infirmerie' }];
+    const updated = applyConsequences(state, cs, baseContext, fixedRng(0.5));
+    expect(updated.npcStates['survivant_infirmerie']?.alive).toBe(false);
+    // State reference is unchanged (early return)
+    expect(updated.npcStates).toBe(state.npcStates);
+  });
+
+  it('is a no-op when npcId is missing from consequence', () => {
+    const state = makeState();
+    const cs: Consequence[] = [{ type: 'npc_killed' }];
+    const updated = applyConsequences(state, cs, baseContext, fixedRng(0.5));
+    expect(updated.npcStates).toEqual(state.npcStates);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Chain reactions — IGNITE → environment_change
 // ---------------------------------------------------------------------------
 

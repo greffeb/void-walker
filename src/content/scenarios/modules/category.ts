@@ -4,7 +4,8 @@
 // These modules work only in specific setting categories.
 // ---------------------------------------------------------------------------
 
-import type { ScenarioModule, NarrativeSkin } from '@engine/scenario';
+import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition } from '@engine/scenario';
+import type { VerbId } from '@engine/verbs';
 
 function ls(fr: string) { return { fr, en: '' }; }
 
@@ -267,17 +268,54 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
       role: 'control_room',
       onCriticalPath: true,
       features: [
-        { id: 'power_distribution_panel', initialState: 'damaged', examineResult: { fr: 'Panneau de distribution énergétique principal de la section. Deux circuits prioritaires : sas (évacuation) et infirmerie (survie du blessé). L\'énergie disponible ne suffit que pour l\'un des deux.', en: '' } },
+        {
+          id: 'power_distribution_panel',
+          initialState: 'damaged',
+          examineResult: { fr: 'Panneau de distribution énergétique principal de la section. Deux circuits prioritaires : sas (évacuation) et infirmerie (survie du blessé). L\'énergie disponible ne suffit que pour l\'un des deux.', en: '' },
+          interactions: [
+            {
+              trigger: { verb: ['HACK', 'IMPROVISE'] as VerbId[], stat: 'INT', dc: 16 },
+              onSuccess: {
+                newState: 'repaired',
+                flagSet: 'survivor_saved',
+                resolveObstacle: true,
+                narrative: { fr: 'Vous trouvez un compromis instable. Les deux circuits sont alimentés — pour l\'instant.', en: '' },
+              },
+              onFailure: {
+                narrative: { fr: 'Le panneau résiste à votre tentative de surcharge. Les circuits restent bloqués.', en: '' },
+              },
+            },
+          ],
+        } as ScenarioFeatureDefinition,
         { id: 'medbay_feed_circuit', initialState: 'intact', examineResult: { fr: 'Circuit d\'alimentation de l\'infirmerie. Alimenté, le matériel médical peut maintenir le survivant en vie. Déconnecté, les machines s\'arrêtent en 3 minutes.', en: '' } },
-        { id: 'door_feed_circuit', initialState: 'damaged', examineResult: { fr: 'Circuit d\'alimentation des portes de section. Endommagé mais réparable. S\'il est alimenté, les portes s\'ouvrent et votre chemin se débloque. Sinon, il faudra trouver un autre passage.', en: '' } },
+        {
+          id: 'door_feed_circuit',
+          initialState: 'damaged',
+          examineResult: { fr: 'Circuit d\'alimentation des portes de section. Endommagé mais réparable. S\'il est alimenté, les portes s\'ouvrent et votre chemin se débloque. Sinon, il faudra trouver un autre passage.', en: '' },
+          interactions: [
+            {
+              trigger: { verb: ['REPAIR', 'USE', 'HACK'] as VerbId[], stat: 'INT', dc: 11 },
+              onSuccess: {
+                newState: 'activated',
+                consequences: [{ type: 'npc_killed', npcId: 'survivant_infirmerie' }],
+                resolveObstacle: true,
+                narrative: { fr: 'Vous réacheminez l\'énergie vers les portes. Les machines de l\'infirmerie s\'éteignent en silence.', en: '' },
+              },
+              onFailure: {
+                narrative: { fr: 'Vous ne parvenez pas à réacheminer le circuit.', en: '' },
+              },
+            },
+          ],
+        } as ScenarioFeatureDefinition,
       ],
       items: [],
     },
   ],
   sideRooms: [],
+  npcs: [{ id: 'survivant_infirmerie', disposition: 'friendly' }],
   obstacle: {
     targetId: 'power_distribution_panel',
-    description: ls('Le panneau de distribution est endommagé. Vous pouvez réacheminer l\'énergie vers le sas (ouvre votre chemin, le survivant dans l\'infirmerie meurt) ou vers l\'infirmerie (sauve le survivant, votre chemin reste bloqué).'),
+    description: ls('Le panneau de distribution est endommagé. Des circuits prioritaires nécessitent votre attention.'),
     paths: [
       { id: 'reroute_to_doors', stat: 'INT', dc: 11, description: ls('Réacheminer vers les portes — votre chemin s\'ouvre'), verbs: ['reroute', 'use', 'repair', 'hack'] },
       { id: 'reroute_to_medbay', stat: 'INT', dc: 11, description: ls('Réacheminer vers l\'infirmerie — le survivant est sauvé'), verbs: ['reroute', 'use', 'repair', 'hack'] },

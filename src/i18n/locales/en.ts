@@ -726,6 +726,8 @@ export const en: LocaleStrings = {
   'npc.patrol_entity.aliases': 'entity,patrol,sentinel,guard,creature',
   'npc.trapped_survivor': 'Trapped survivor',
   'npc.trapped_survivor.aliases': 'survivor,trapped,prisoner,person',
+  'npc.survivant_infirmerie': 'Wounded survivor',
+  'npc.survivant_infirmerie.aliases': 'survivor,wounded,injured,patient',
 
   // Scenario features — escape skeleton
   'env.cryopod': 'Cryopod',

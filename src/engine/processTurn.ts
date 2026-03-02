@@ -38,7 +38,7 @@ import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
-import { createVisitState, markRevisit, markItemTaken, markItemDropped } from './backtracking';
+import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved } from './backtracking';
 import { buildVictoryCheckContext } from './game';
 import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
@@ -372,6 +372,22 @@ export function processTurn(
           );
           if (interactionDeathResult) {
             current = applyDeath(current, interactionDeathResult);
+          }
+        }
+
+        // Mark obstacle resolved if the interaction requests it
+        if (interactionResult.resolveObstacle && interactionResult.success
+            && current.playerLocationId !== null) {
+          const vsKey = current.playerLocationId;
+          const existing = current.visitedLocations[vsKey];
+          if (existing) {
+            current = {
+              ...current,
+              visitedLocations: {
+                ...current.visitedLocations,
+                [vsKey]: markObstacleResolved(existing),
+              },
+            };
           }
         }
       }

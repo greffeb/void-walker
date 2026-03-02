@@ -712,6 +712,8 @@ export type StringKey =
   | 'npc.patrol_entity.aliases'
   | 'npc.trapped_survivor'
   | 'npc.trapped_survivor.aliases'
+  | 'npc.survivant_infirmerie'
+  | 'npc.survivant_infirmerie.aliases'
   // Scenario environment features — escape skeleton
   | 'env.cryopod'
   | 'env.status_terminal'

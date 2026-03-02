@@ -51,6 +51,8 @@ export interface InteractionResolution {
   readonly propertiesToAdd: readonly PropertyId[];
   /** Properties to remove from feature runtime. */
   readonly propertiesToRemove: readonly PropertyId[];
+  /** Whether the interaction requests obstacle resolution. */
+  readonly resolveObstacle: boolean;
 }
 
 /** A "no match" result — signals processTurn to use the standard pipeline. */
@@ -69,6 +71,7 @@ export const NO_INTERACTION_MATCH: InteractionResolution = {
   itemToConsume: null,
   propertiesToAdd: [],
   propertiesToRemove: [],
+  resolveObstacle: false,
 };
 
 // ---------------------------------------------------------------------------
@@ -103,6 +106,7 @@ function buildResolution(
     itemToConsume: result.consumeItem === true ? (requiredItem ?? null) : null,
     propertiesToAdd: result.addProperties ?? [],
     propertiesToRemove: result.removeProperties ?? [],
+    resolveObstacle: result.resolveObstacle ?? false,
   };
 }
 

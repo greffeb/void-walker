@@ -220,9 +220,21 @@ function applySingleConsequence(
       // processTurn() uses these to update SceneContext or log narrative hints.
       return state;
 
-    case 'npc_killed':
+    case 'npc_killed': {
+      const npcId = c.npcId ?? c.targetId;
+      if (!npcId) return state;
+      const npcState = state.npcStates[npcId];
+      if (!npcState || !npcState.alive) return state;
+      return {
+        ...state,
+        npcStates: {
+          ...state.npcStates,
+          [npcId]: { ...npcState, alive: false },
+        },
+      };
+    }
+
     case 'npc_flee':
-      // NPC state is managed by processTurn() using activeCombat
       return state;
 
     case 'npc_relocate': {
