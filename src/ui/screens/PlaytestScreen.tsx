@@ -110,7 +110,16 @@ function DifficultySelect({ onSelect }: { readonly onSelect: (d: DifficultyLevel
       <h1 className="mb-2 font-mono text-3xl font-bold tracking-widest text-white">VOID WALKER</h1>
       <p className="mb-1 font-mono text-xs text-purple-400">PLAYTEST ALPHA</p>
       <p className="mb-8 font-mono text-xs text-gray-500">Choisissez la difficulte</p>
-      <p className="mb-8 font-mono text-[10px] text-gray-600/80">{APP_VERSION}</p>
+      <p className="mb-6 font-mono text-[10px] text-gray-600/80">{APP_VERSION}</p>
+      <div className="mb-6 w-full max-w-sm rounded border border-gray-800 bg-gray-900/50 p-3 font-mono text-xs leading-relaxed">
+        <p className="mb-1 text-white">Void Walker est un jeu de rôle narratif.</p>
+        <p className="mb-1 text-gray-400">Vous testez une version Alpha — le scénario est dans son état minimal.</p>
+        <p className="text-gray-500">
+          Si vous trouvez une erreur, un bug ou quelque chose d&apos;illogique, appuyez sur le bouton{' '}
+          <span className="font-bold text-purple-400">KO</span>{' '}
+          pour faire un retour.
+        </p>
+      </div>
       <div className="flex w-full max-w-sm flex-col gap-3">
         {options.map(opt => (
           <button
