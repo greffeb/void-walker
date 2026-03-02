@@ -103,6 +103,7 @@ const KNOWN_FLAGS = new Set([
   'final_lock_opened',
   'ai_lock_opened',
   'beacon_authorized',
+  'lock_bypass_found',
 ]);
 
 // ---------------------------------------------------------------------------

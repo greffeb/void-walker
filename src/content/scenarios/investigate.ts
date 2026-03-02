@@ -78,8 +78,8 @@ const standard_toolkit: ScenarioItemDefinition = {
     en: ['toolkit', 'tools', 'tool kit'],
   },
   description: {
-    fr: 'Trousse à outils standard d\'intervention. Tournevis magnétiques, pince multifonction, testeur de circuits.',
-    en: 'Standard intervention toolkit.',
+    fr: 'Trousse à outils standard de maintenance spatiale. Contient un testeur de circuits, un tournevis magnétique, des pinces isolées et un rouleau de ruban conducteur. Tout ce qu\'il faut pour les réparations d\'urgence.',
+    en: 'Standard space maintenance toolkit. Circuit tester, magnetic screwdriver, insulated pliers, conductive tape.',
   },
   useOn: [
     {
@@ -145,8 +145,8 @@ const encrypted_data_core: ScenarioItemDefinition = {
         trigger: { verb: 'USE', dc: null },
         onSuccess: {
           narrative: {
-            fr: 'Vous insérez le noyau de données. Le terminal ronronne, les barres de déchiffrement progressent. Accès aux logs : ACCORDÉ. Les communications de la station des 72 dernières heures se déversent à l\'écran.',
-            en: 'You insert the data core. Decryption bars progress. Access: GRANTED.',
+            fr: 'Vous insérez le noyau de données. Le terminal ronronne, les barres de déchiffrement progressent — 40%, 70%, 98%... ACCÈS AUX LOGS : ACCORDÉ.\n\nLes communications se déversent à l\'écran. Un échange saute aux yeux : le Dr. Chen signalant des "modifications non autorisées du confinement" — message supprimé 47 secondes plus tard par la Directrice Vasquez. Un ordre chiffré d\'Heliox : "Calendrier confirmé. Transfert 72h après l\'incident." Le dernier log : alerte niveau 5, puis le silence.',
+            en: 'You insert the data core. Decryption progresses — ACCESS GRANTED. Logs reveal Dr. Chen\'s suppressed warning about unauthorized containment modifications, deleted by Vasquez 47 seconds later.',
           },
           flagSet: 'terminal_decrypted',
         },
@@ -195,20 +195,6 @@ const director_keycard: ScenarioItemDefinition = {
             en: 'Badge inserted. The AI hesitates — its creator\'s badge.',
           },
           flagSet: 'ai_lock_opened',
-        },
-      },
-    },
-    {
-      targetId: 'emergency_beacon',
-      interaction: {
-        trigger: { verb: 'USE', dc: null },
-        onSuccess: {
-          newState: 'active',
-          narrative: {
-            fr: 'Le badge de Vasquez. L\'IA hésite — directive de sa créatrice. Le protocole hiérarchique prend le dessus : accès administrateur confirmé. Les verrous cèdent un par un.',
-            en: 'Vasquez\'s badge. The AI hesitates — its creator\'s directive.',
-          },
-          flagSet: 'beacon_active',
         },
       },
     },
@@ -290,6 +276,32 @@ const docking_airlock: ScenarioFeatureDefinition = {
           en: 'You seal the airlock behind you. Magnetic lock engaged.',
         },
         flagSet: 'airlock_sealed_by_player',
+      },
+    },
+    {
+      trigger: { verb: 'OPEN', requiredState: 'closed', requiredFlag: 'airlock_sealed_by_player', dc: null },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: 'Vous désengagez le verrouillage magnétique. Le sas s\'ouvre en sifflant — votre navette est toujours là, fidèle au poste. Le chemin du retour est ouvert.',
+          en: 'You disengage the magnetic lock. The airlock hisses open — your shuttle is still there.',
+        },
+      },
+    },
+    {
+      trigger: { verb: 'HACK', requiredState: 'closed', stat: 'INT', dc: 12 },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: 'Le verrouillage de l\'IA est solide, mais pas impénétrable. Vous contournez le protocole de sécurité et forcez la commande d\'ouverture. Le sas grince, puis cède.',
+          en: 'The AI\'s lock is solid but not impenetrable. You bypass the security protocol.',
+        },
+      },
+      onFailure: {
+        narrative: {
+          fr: 'L\'IA détecte votre tentative et renforce le verrouillage. Le sas reste scellé — il faudra désactiver l\'IA d\'abord.',
+          en: 'The AI detects your attempt and reinforces the lock.',
+        },
       },
     },
   ],
@@ -429,13 +441,27 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
       en: 'Main comms terminal. Blood-red screen: ACCESS RESTRICTED — ENCRYPTION KEY REQUIRED.',
     },
     active: {
-      fr: 'Terminal déverrouillé. Les logs de la station défilent — 72 heures de communications, rapports d\'incident, ordres confidentiels. La vérité est là, quelque part.',
-      en: 'Terminal unlocked. Station logs scroll by.',
+      fr: 'Terminal déverrouillé. Les logs de la station défilent — 72 heures de communications, rapports d\'incident, ordres confidentiels. Plusieurs entrées attirent l\'œil : des messages entre la Directrice Vasquez et un expéditeur externe marqué HELIOX, une alerte de confinement ignorée, et un ordre d\'évacuation annulé. Il y a beaucoup à lire ici.',
+      en: 'Terminal unlocked. Station logs scroll by — messages between Director Vasquez and HELIOX, an ignored containment alert, a cancelled evacuation order.',
     },
     broken: {
       fr: 'Terminal détruit. L\'écran est fendu en étoile, les circuits grésillent. Les données sont inaccessibles par cette voie.',
       en: 'Terminal destroyed. Screen cracked, circuits sizzle.',
     },
+  },
+  readableContent: {
+    fr: 'LOGS STATION PHOEBE-7 — 72 DERNIÈRES HEURES\n\n'
+      + '[2247-03-01 06:12] ALERTE SYSTÈME : Anomalie confinement réacteur détectée. Protocole inspection automatique déclenché.\n'
+      + '[2247-03-01 06:14] DIR. VASQUEZ → SYSTÈME : Annuler inspection. Code admin VASQUEZ-ALPHA-7.\n'
+      + '[2247-03-01 08:30] DR. CHEN → DIR. VASQUEZ : "Les relevés de confinement sont anormaux. Je demande une inspection manuelle immédiate."\n'
+      + '[2247-03-01 09:15] DIR. VASQUEZ → DR. CHEN : "Inspection refusée. Les relevés sont dans les marges de tolérance. Cessez vos interférences."\n'
+      + '[2247-03-01 14:00] HELIOX CONSORTIUM → DIR. VASQUEZ [CHIFFRÉ] : "Calendrier confirmé. Le transfert sera effectif 72h après l\'incident. Ne laissez aucune trace."\n'
+      + '[2247-03-01 22:47] DR. CHEN → ÉQUIPAGE [DIFFUSION GÉNÉRALE] : "ATTENTION — modifications non autorisées détectées sur le confinement du réacteur. Ceci n\'est PAS un exercice."\n'
+      + '[2247-03-01 22:48] SYSTÈME : Message de diffusion générale supprimé par autorité administrative.\n'
+      + '[2247-03-01 23:59] DIR. VASQUEZ → IA STATION : "Activer protocole NETTOYAGE. Priorité absolue : effacer tous les logs de communication après mon départ."\n'
+      + '[2247-03-02 01:00] IA STATION : Protocole NETTOYAGE activé. Effacement en cours.\n'
+      + '[2247-03-02 03:12] DERNIER LOG : Défaillance confinement réacteur. Alerte niveau 5. Évacuation automati— [SIGNAL PERDU]',
+    en: '',
   },
   interactions: [
     // Chemin 1 : USE data core (item-based, auto-success)
@@ -444,8 +470,8 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
       onSuccess: {
         newState: 'active',
         narrative: {
-          fr: 'Le noyau de données s\'enclenche. Les algorithmes de déchiffrement s\'exécutent — 3 secondes, 5, 12... L\'écran passe au vert. ACCÈS ACCORDÉ. Les logs de la station se déversent à l\'écran.',
-          en: 'The data core clicks in. Decryption algorithms execute. ACCESS GRANTED.',
+          fr: 'Le noyau de données s\'enclenche. Les algorithmes de déchiffrement s\'exécutent — 3 secondes, 5, 12... L\'écran passe au vert. ACCÈS ACCORDÉ.\n\nLes logs défilent. Un message saute aux yeux : le Dr. Chen a tenté d\'alerter l\'équipage d\'une modification non autorisée du confinement. Son message a été supprimé par Vasquez 47 secondes après envoi. Le dernier log s\'arrête net à 03h12 — défaillance confinement, puis silence.',
+          en: 'The data core clicks in. Decryption algorithms execute — ACCESS GRANTED. The logs reveal Dr. Chen tried to warn the crew about unauthorized containment modifications. His message was deleted by Vasquez 47 seconds later.',
         },
         flagSet: 'comms_unlocked',
         revealsExit: 'unlock_to_reveal',
@@ -457,8 +483,8 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
       onSuccess: {
         newState: 'active',
         narrative: {
-          fr: 'Protocole militaire niveau 4 — mais pas sans failles. Vous exploitez une vulnérabilité dans le firmware de la station. L\'accès s\'ouvre. Les logs apparaissent.',
-          en: 'Military protocol — but not flawless. You exploit a firmware vulnerability.',
+          fr: 'Protocole militaire niveau 4 — mais pas sans failles. Vous exploitez une backdoor dans le firmware. L\'écran passe au vert.\n\nLes logs s\'affichent. Le Dr. Chen a lancé une alerte à l\'équipage — supprimée par Vasquez en moins d\'une minute. Un message chiffré d\'Heliox confirme un "transfert 72h après l\'incident". Le dernier log : défaillance confinement à 03h12, puis le néant. Mais votre intrusion a laissé des traces dans les registres — l\'IA pourrait le remarquer.',
+          en: 'Military protocol level 4 — but not without exploits. Logs show Dr. Chen\'s suppressed warning and Heliox\'s encrypted timeline.',
         },
         flagSet: 'comms_unlocked',
         revealsExit: 'unlock_to_reveal',
@@ -477,8 +503,8 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
       onSuccess: {
         newState: 'active',
         narrative: {
-          fr: 'Vous tapez le code trouvé dans les notes : 7-2-9-4. L\'écran clignote. ACCÈS ACCORDÉ. La négligence de Vasquez aura au moins servi à quelque chose.',
-          en: 'You type the code from the notes: 7-2-9-4. ACCESS GRANTED.',
+          fr: 'Le code 7-2-9-4 déverrouille un accès secondaire. Partiel, mais suffisant. Les logs de maintenance défilent : quelqu\'un a modifié les paramètres de confinement du réacteur avec les codes administrateur de Vasquez, exactement 72 heures avant la catastrophe. Le Dr. Chen a tenté de sonner l\'alarme — son message a été effacé. L\'IA a reçu l\'ordre de nettoyer les traces. Ce n\'est pas un accident.',
+          en: 'The code 7-2-9-4 unlocks partial access. Maintenance logs show containment modifications using Vasquez\'s admin codes 72 hours before the catastrophe.',
         },
         flagSet: 'comms_unlocked',
         revealsExit: 'unlock_to_reveal',
@@ -517,6 +543,16 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
         revealsExit: 'unlock_to_reveal',
       },
     },
+    // Chemin 6 : READ quand le terminal est déverrouillé
+    {
+      trigger: { verb: 'READ', requiredState: 'active', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: 'Vous parcourez les logs en détail. La chronologie est accablante : Vasquez a modifié le confinement le 15 février, fait taire le Dr. Chen le 1er mars, et quitté la station à 23h50 — 47 minutes avant la catastrophe. L\'IA a reçu l\'ordre d\'effacer toutes les preuves. Chaque pièce du puzzle confirme la précédente.',
+          en: 'You scroll through the logs. The timeline is damning.',
+        },
+      },
+    },
   ],
 };
 
@@ -531,17 +567,26 @@ const maintenance_terminal: ScenarioFeatureDefinition = {
   },
   descriptions: {
     damaged: {
-      fr: 'Terminal de maintenance auxiliaire. L\'écran est fissuré, certaines fonctions sont accessibles. Les logs de maintenance montrent des interventions suspectes il y a 72 heures.',
-      en: 'Auxiliary maintenance terminal. Cracked screen, some functions accessible.',
+      fr: 'Terminal de maintenance auxiliaire. L\'écran est fissuré mais partiellement lisible. Les logs de maintenance affichent en boucle la même entrée : "2247-03-01 — Modification paramètres confinement — Autorisation ADMIN_VASQUEZ — Motif : recalibration programmée." Sauf qu\'aucune recalibration n\'était prévue dans le planning.',
+      en: 'Auxiliary maintenance terminal. Cracked screen, partially readable. Maintenance logs loop a suspicious containment modification entry by ADMIN_VASQUEZ.',
     },
     active: {
-      fr: 'Terminal réparé. Accès complet aux systèmes de maintenance — caméras, portes, ventilation. Un outil puissant.',
-      en: 'Terminal repaired. Full maintenance system access.',
+      fr: 'Terminal réparé. L\'écran affiche quatre panneaux : CAMÉRAS (archives 72h disponibles), PORTES (contrôle manuel des sas — utile si l\'IA verrouille votre chemin), VENTILATION (reroutage atmosphérique possible), et DIAGNOSTICS (état du réacteur en temps réel). Chaque panneau attend vos commandes.',
+      en: 'Terminal repaired. Four panels: CAMERAS (72h archives), DOORS (manual override), VENTILATION (atmospheric reroute), DIAGNOSTICS (reactor status).',
     },
     broken: {
       fr: 'Terminal complètement hors service. Plus rien à en tirer.',
       en: 'Terminal completely out of service.',
     },
+  },
+  readableContent: {
+    fr: 'SYSTÈME DE MAINTENANCE — Station Phoebe-7\n\n'
+      + '▸ CAMÉRAS : Archives 72h disponibles. Dernière activité détectée : Baie d\'amarrage, 2247-03-01 à 23h50 — silhouette quittant la station via sas secondaire.\n'
+      + '▸ PORTES : 3 sas verrouillés par l\'IA (Centre Comms, Réacteur, Baie de Transmission). Neutralisation manuelle possible — l\'IA sera alertée.\n'
+      + '▸ VENTILATION : Atmosphère toxique détectée niveau réacteur. Reroutage possible pour diluer les contaminants (réduit le drain O₂).\n'
+      + '▸ DIAGNOSTICS : Réacteur en déstabilisation progressive. Confinement compromis à 4 points de sabotage. Temps avant masse critique : variable.\n'
+      + '▸ JOURNAL MAINTENANCE : Dernière intervention autorisée : 2247-02-15. Toutes les interventions post-15/02 sont sous code ADMIN_VASQUEZ — non planifiées.',
+    en: '',
   },
   interactions: [
     {
@@ -580,10 +625,20 @@ const maintenance_terminal: ScenarioFeatureDefinition = {
       trigger: { verb: 'HACK', requiredState: 'active', stat: 'INT', dc: 12 },
       onSuccess: {
         narrative: {
-          fr: 'Vous accédez aux caméras de sécurité archivées. Enregistrement de la baie cargo, daté de 3 mois : Vasquez réceptionnant un chargement seule, à 03h00. Elle regarde par-dessus son épaule. Coupable.',
-          en: 'You access archived security cameras.',
+          fr: 'Vous accédez aux caméras de sécurité archivées. L\'enregistrement du 1er mars à 23h50 montre la Directrice Vasquez quittant la station par le sas secondaire — seule, un sac de voyage à la main. Elle savait ce qui allait arriver. 47 minutes plus tard, le confinement du réacteur cède. Elle était déjà loin.',
+          en: 'Security camera archives show Director Vasquez leaving the station alone at 23:50 on March 1st — 47 minutes before containment failure.',
         },
         flagSet: 'camera_evidence_found',
+      },
+    },
+    {
+      trigger: { verb: 'READ', requiredState: 'active', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: 'Le panneau DIAGNOSTICS confirme ce que vous soupçonnez : le confinement du réacteur a été compromis en quatre points précis. Pas une usure naturelle — des modifications chirurgicales, espacées sur deux semaines, toutes sous le code ADMIN_VASQUEZ. Le système de ventilation peut être rerouté pour diluer l\'atmosphère toxique au niveau réacteur.',
+          en: 'DIAGNOSTICS panel confirms containment was compromised at four precise points — surgical modifications over two weeks, all under ADMIN_VASQUEZ.',
+        },
+        flagSet: 'maintenance_logs_read',
       },
     },
   ],
@@ -707,8 +762,8 @@ const wall_safe: ScenarioFeatureDefinition = {
       en: 'Wall safe. 4-digit numeric lock. Scratches around the keypad betray frequent use.',
     },
     open: {
-      fr: 'Coffre-fort ouvert. L\'intérieur est capitonné — conçu pour protéger des documents sensibles.',
-      en: 'Safe open. Padded interior — designed to protect sensitive documents.',
+      fr: 'Coffre-fort ouvert. L\'intérieur est capitonné de velours synthétique noir — conçu pour protéger des documents sensibles. Le fond du coffre semble légèrement plus épais que nécessaire.',
+      en: 'Safe open. Padded interior with synthetic black velvet. The bottom seems slightly thicker than necessary.',
     },
     broken: {
       fr: 'Coffre-fort forcé. La porte est tordue, le mécanisme détruit.',
@@ -753,15 +808,25 @@ const wall_safe: ScenarioFeatureDefinition = {
         flagSet: 'noise_made_reveal',
       },
     },
-    // Scanner + double-fond
+    // Scanner + double-fond (accessible dans n'importe quel état du coffre)
     {
-      trigger: { verb: 'EXAMINE', requiredState: 'locked', requiredFlag: 'safe_scanned', dc: null },
+      trigger: { verb: 'EXAMINE', requiredFlag: 'safe_scanned', dc: null },
       onSuccess: {
         narrative: {
-          fr: 'Le scanner avait raison — un double-fond. En pressant la paroi intérieure, un compartiment secondaire s\'ouvre. Un second badge : niveau administrateur réseau. L\'IA elle-même pourrait être reprogrammée avec ça.',
-          en: 'The scanner was right — a false bottom.',
+          fr: 'Le scanner avait raison — un double-fond. En pressant la paroi du fond, un mécanisme magnétique cède avec un clic discret. Un compartiment secondaire s\'ouvre, dissimulé sous le capitonnage. À l\'intérieur : un second badge, marqué "ADMIN RÉSEAU — ACCÈS IA". Avec ça, l\'IA elle-même pourrait être reprogrammée.',
+          en: 'The scanner was right — a false bottom. A magnetic mechanism yields with a quiet click.',
         },
         flagSet: 'admin_badge_found',
+      },
+    },
+    // Examiner le coffre ouvert sans scanner → indice subtil vers le double-fond
+    {
+      trigger: { verb: 'EXAMINE', requiredState: 'open', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: 'L\'intérieur du coffre est tapissé de velours synthétique noir. En tâtant les parois, le fond vous semble anormalement épais — comme s\'il y avait un espace vide en dessous. Peut-être qu\'un scanner pourrait confirmer.',
+          en: 'The bottom feels unusually thick — as if there\'s a void underneath. A scanner might confirm.',
+        },
       },
     },
   ],
@@ -953,16 +1018,16 @@ const ai_core_node_b: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: 'Nœud secondaire de l\'IA. Redéploiement en cours — l\'IA consolide ses défenses ici après la perte potentielle du nœud primaire.',
-      en: 'AI secondary node. Redeployment in progress.',
+      fr: 'Nœud secondaire de l\'IA. Sert de redondance au nœud primaire — si le premier tombe, celui-ci prend le relais avec des capacités réduites. Le processeur tourne en mode défensif, anticipant une attaque après la perte potentielle de son jumeau.',
+      en: 'AI secondary node. Redundancy for the primary — if the first falls, this takes over with reduced capacity.',
     },
     inactive: {
-      fr: 'Nœud secondaire désactivé. L\'IA de la station est hors ligne. Les systèmes passent en mode autonome — portes déverrouillées, caméras éteintes.',
-      en: 'Secondary node deactivated. Station AI offline.',
+      fr: 'Nœud secondaire désactivé. Le cerveau de l\'IA est complètement hors ligne. Les portes verrouillées par l\'IA se déverrouillent une à une dans un concert de claquements métalliques. La station est libérée.',
+      en: 'Secondary node deactivated. The AI\'s brain is completely offline. AI-locked doors unlock one by one.',
     },
     broken: {
-      fr: 'Nœud secondaire détruit. Silence total. L\'IA de Phoebe-7 n\'existe plus.',
-      en: 'Secondary node destroyed. The Phoebe-7 AI no longer exists.',
+      fr: 'Nœud secondaire détruit. Le silence qui suit est total — l\'IA n\'a plus de voix, plus d\'yeux, plus de mains. La station vous appartient.',
+      en: 'Secondary node destroyed. Complete silence follows — the AI has no voice, no eyes, no hands.',
     },
   },
   interactions: [
@@ -1029,8 +1094,8 @@ const override_terminal: ScenarioFeatureDefinition = {
       en: 'Emergency override terminal. Main circuit burned out.',
     },
     active: {
-      fr: 'Terminal de neutralisation opérationnel. L\'écran affiche : PRÊT POUR RÉINITIALISATION IA — INSÉRER BADGE ADMINISTRATEUR.',
-      en: 'Override terminal operational. Screen: READY FOR AI RESET — INSERT ADMIN BADGE.',
+      fr: 'Terminal de neutralisation opérationnel. L\'écran affiche : RÉINITIALISATION IA — PROTOCOLE EN 2 ÉTAPES :\n1) Insérer badge administrateur (niveau Directeur minimum)\n2) Confirmer le redémarrage en mode sécurisé\n\nMODE SÉCURISÉ : L\'IA conservera ses fonctions vitales (support vie, gravité) mais perdra le contrôle des systèmes de sécurité et d\'effacement.',
+      en: 'Override terminal operational. Screen: AI RESET — 2-STEP PROTOCOL. Insert admin badge (Director level), confirm safe mode restart. SAFE MODE: AI keeps life support but loses security control.',
     },
     broken: {
       fr: 'Terminal de neutralisation irréparable. Cette option est définitivement fermée.',
@@ -1096,12 +1161,12 @@ const emergency_beacon: ScenarioFeatureDefinition = {
   },
   descriptions: {
     locked: {
-      fr: 'La balise de secours. Le système de transmission est intact mais verrouillé par l\'IA. L\'antenne est orientée vers la flotte de secours. Il suffit d\'activer la transmission — si l\'IA le permet.',
-      en: 'The emergency beacon. Transmission system intact but AI-locked.',
+      fr: 'Balise de détresse d\'urgence. Le boîtier est massif — conçu pour survivre à la destruction de la station. L\'écran affiche VERROUILLÉE en rouge. Un lecteur de badge et un port de données sont visibles sur le panneau frontal. L\'IA de la station a ajouté ses propres verrous par-dessus les verrous standard.',
+      en: 'Emergency distress beacon. Heavy casing — designed to survive station destruction. Screen: LOCKED. The AI added its own locks on top of standard ones.',
     },
     active: {
-      fr: 'Balise active. L\'antenne tourne, le signal se calibre. Prêt pour transmission.',
-      en: 'Beacon active. Antenna turning, signal calibrating. Ready to transmit.',
+      fr: 'Balise activée. Le boîtier vibre doucement — l\'antenne se déploie. L\'écran affiche PRÊTE À TRANSMETTRE en vert. Il ne reste qu\'à charger les preuves et confirmer l\'envoi.',
+      en: 'Beacon activated. Antenna deploying. Screen: READY TO TRANSMIT.',
     },
     broken: {
       fr: 'Balise détruite. L\'antenne est brisée. La vérité ne sera jamais transmise par ce moyen.',
@@ -1109,67 +1174,68 @@ const emergency_beacon: ScenarioFeatureDefinition = {
     },
   },
   interactions: [
-    // Déverrouillage si IA neutralisée
+    // Chemin 1 : Le verrou est ouvert → activation simple
     {
-      trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'ai_fully_disabled', dc: null },
+      trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'final_lock_opened', dc: null },
       onSuccess: {
         newState: 'active',
         narrative: {
-          fr: 'Sans l\'IA, les verrous sont inertes. Vous activez la balise d\'un geste. L\'antenne se déploie, le signal de calibration résonne dans la salle. Prêt pour transmission.',
-          en: 'Without the AI, the locks are inert. You activate the beacon.',
+          fr: 'Le verrou est ouvert — la balise n\'attend plus que vous. Vous enclenchez la séquence d\'activation. L\'antenne se déploie, le signal de calibration résonne. PRÊTE À TRANSMETTRE.',
+          en: 'The lock is open — the beacon awaits. You activate the sequence. Antenna deploying. READY TO TRANSMIT.',
         },
         flagSet: 'beacon_active',
       },
     },
-    // Déverrouillage si IA en mode sécurisé
+    // Chemin 2 : Badge Vasquez (bypasse verrou ET balise)
     {
-      trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'ai_safe_mode', dc: null },
+      trigger: { verb: 'USE', requiredState: 'locked', requiredItem: 'director_keycard', dc: null },
       onSuccess: {
         newState: 'active',
         narrative: {
-          fr: 'L\'IA en mode sécurisé ne peut plus bloquer les systèmes critiques. La balise se déverrouille. \'Mode sécurisé actif. Systèmes de communication : opérationnels.\' Merci, PHOEBE.',
-          en: 'The AI in safe mode can\'t block critical systems anymore.',
+          fr: 'Le badge de Vasquez — administrateur ultime. Le verrou et la balise reconnaissent leur maîtresse simultanément. Clic, clic, clic — trois couches de sécurité tombent d\'un coup. Le protocole hiérarchique ne distingue pas les intentions. L\'antenne se déploie.',
+          en: 'Vasquez\'s badge — ultimate admin. Lock and beacon recognize their master simultaneously.',
         },
         flagSet: 'beacon_active',
       },
     },
-    // Déverrouillage si IA convaincue
-    {
-      trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'ai_talked_down', dc: null },
-      onSuccess: {
-        newState: 'active',
-        narrative: {
-          fr: '\'Accès autorisé. Si les preuves sont authentiques, la justice doit être servie.\' L\'IA ouvre les verrous elle-même. Même une intelligence artificielle a une conscience.',
-          en: '\'Access authorized. If the evidence is authentic, justice must be served.\'',
-        },
-        flagSet: 'beacon_active',
-      },
-    },
-    // HACK brute (très difficile)
+    // Chemin 3 : HACK brute force (DC 17 — très difficile, bypasse tout)
     {
       trigger: { verb: 'HACK', requiredState: 'locked', stat: 'INT', dc: 17 },
       onSuccess: {
         newState: 'active',
         narrative: {
-          fr: 'Protocole militaire, triple couche de chiffrement, IA hostile — et vous percez quand même. Les verrous tombent sous votre assaut numérique. L\'IA rugit en silence. Vous êtes meilleur qu\'elle.',
+          fr: 'Protocole militaire, triple chiffrement, IA hostile — et vous percez quand même. Votre code s\'infiltre couche après couche, exploitant les failles laissées par la programmation hâtive de Vasquez. Les verrous tombent. L\'IA hurle en silence. L\'antenne se déploie.',
           en: 'Military protocol, triple encryption, hostile AI — and you still break through.',
         },
         flagSet: 'beacon_active',
       },
       onFailure: {
         narrative: {
-          fr: '\'Tentative d\'intrusion rejetée. Verrouillage renforcé.\' L\'IA a durci ses défenses. La difficulté vient d\'augmenter.',
-          en: '\'Intrusion attempt rejected. Lock reinforced.\'',
+          fr: '\'Tentative d\'intrusion rejetée. Contre-mesures activées.\' L\'IA durcit ses défenses. Un choc électrique parcourt le panneau.',
+          en: '\'Intrusion attempt rejected.\' The AI hardens its defenses.',
         },
+        consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
     },
-    // Transmission finale (avec preuves)
+    // Chemin 4 : Accès comms direct (chemin émergent — bypasse le verrou IA)
+    {
+      trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'comms_direct_access', dc: null },
+      onSuccess: {
+        newState: 'active',
+        narrative: {
+          fr: 'Le réseau de communications longue portée est déjà sous votre contrôle. Vous reroutez le signal directement — la balise s\'active comme relais. Pas besoin de passer par les verrous de l\'IA : le signal partira par le réseau comms, pas par l\'antenne de la balise.',
+          en: 'The long-range comms are already under your control. Beacon activates as relay.',
+        },
+        flagSet: 'beacon_active',
+      },
+    },
+    // Transmission finale (balise active + preuves)
     {
       trigger: { verb: 'ACTIVATE', requiredState: 'active', requiredItem: 'incriminating_files', dc: null },
       onSuccess: {
         narrative: {
-          fr: 'Les dossiers sont numérisés et attachés au signal de détresse. Vous appuyez sur TRANSMETTRE. L\'antenne pivote. Le signal s\'élance dans le vide. Quelque part, une flotte de secours recevra la vérité : fraude, sabotage, meurtre. La justice voyage à la vitesse de la lumière.',
-          en: 'Files digitized and attached to the distress signal. You press TRANSMIT.',
+          fr: 'Les dossiers sont numérisés — correspondance Vasquez-Heliox, polices d\'assurance, ordres de sabotage, rapports falsifiés. Tout est attaché au signal de détresse.\n\nVous appuyez sur TRANSMETTRE.\n\nL\'antenne pivote. Le signal s\'élance dans le vide — 50 années-lumière de portée, droit vers la flotte de secours du Secteur 7. Fraude, sabotage, meurtre — la vérité voyage désormais à la vitesse de la lumière. Quelque part, Vasquez ne le sait pas encore, mais son monde vient de s\'effondrer.',
+          en: 'Files digitized and attached. You press TRANSMIT. The truth travels at lightspeed toward Sector 7 rescue fleet.',
         },
         flagSet: 'evidence_transmitted',
       },
@@ -1232,12 +1298,12 @@ const ai_final_lock: ScenarioFeatureDefinition = {
   },
   descriptions: {
     locked: {
-      fr: 'Le verrou final de l\'IA. Triple authentification requise. Conçu pour résister à toute intrusion — sauf peut-être celle de son administrateur.',
-      en: 'The AI\'s final lock. Triple authentication required.',
+      fr: 'Le verrou final de l\'IA. Un écran holographique affiche trois couches d\'authentification superposées — biométrique, code, et badge. Conçu pour qu\'aucun membre d\'équipage ordinaire ne puisse le forcer. Mais la Directrice Vasquez n\'était pas ordinaire — et son badge est peut-être la clé.',
+      en: 'The AI\'s final lock. Holographic display shows triple authentication layers. Vasquez\'s badge may be the key.',
     },
     open: {
-      fr: 'Verrou ouvert. Le chemin vers la balise est libre.',
-      en: 'Lock open. Path to the beacon is clear.',
+      fr: 'Le verrou est désactivé. Les trois couches d\'authentification sont au vert. L\'accès à la balise est libre — l\'IA ne contrôle plus rien ici.',
+      en: 'Lock deactivated. All three authentication layers green. Beacon access clear.',
     },
     broken: {
       fr: 'Verrou détruit par la force. Les étincelles crépitent encore.',
@@ -1290,6 +1356,59 @@ const ai_final_lock: ScenarioFeatureDefinition = {
         flagSet: 'final_lock_opened',
       },
     },
+    // Chemin manquant : IA convaincue → ouvre le verrou elle-même
+    {
+      trigger: { verb: 'OPEN', requiredState: 'locked', requiredFlag: 'ai_talked_down', dc: null },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: '\'Si les preuves sont authentiques, la justice doit être servie.\' L\'IA ouvre le verrou elle-même. Même une intelligence artificielle peut choisir la vérité quand on lui montre le mensonge.',
+          en: '\'If the evidence is authentic, justice must be served.\' The AI opens the lock itself.',
+        },
+        flagSet: 'final_lock_opened',
+      },
+    },
+    // Chemin CHA : Parler à l'IA à travers le verrou
+    {
+      trigger: { verb: 'TALK', requiredState: 'locked', stat: 'CHA', dc: 15 },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: '\'PHOEBE. Tu as été programmée pour effacer des preuves. Mais ta directive première, avant Vasquez, c\'est de protéger la station et son équipage. 34 personnes sont mortes parce que tu as obéi à une criminelle.\' Silence. Le processeur tourne. Puis : \'Directive primaire... protocole de protection de l\'équipage... réévaluation hiérarchique en cours...\' Le verrou s\'ouvre. L\'IA choisit ses morts.',
+          en: '\'PHOEBE. Your primary directive is crew protection — not obeying a criminal.\' Silence. Processing. The lock opens.',
+        },
+        flagSet: 'final_lock_opened',
+      },
+      onFailure: {
+        narrative: {
+          fr: '\'Votre argumentation est invalide. La directive administrative prime.\' L\'IA reste inflexible — il faudra la convaincre autrement, ou trouver un chemin plus direct.',
+          en: '\'Your argument is invalid. Administrative directive takes priority.\'',
+        },
+      },
+    },
+    // Chemin PER : Repérer une faille dans le verrou
+    {
+      trigger: { verb: 'EXAMINE', requiredState: 'locked', stat: 'PER', dc: 13 },
+      onSuccess: {
+        narrative: {
+          fr: 'En examinant le verrou de près, vous remarquez que le panneau latéral n\'est pas d\'origine — Vasquez l\'a fait installer après coup, et le câblage de bypass d\'urgence n\'a jamais été débranché. Il est caché derrière la plaque de maintenance, mais accessible avec les bons outils.',
+          en: 'The side panel isn\'t original — Vasquez had it installed later. Emergency bypass wiring was never disconnected.',
+        },
+        flagSet: 'lock_bypass_found',
+      },
+    },
+    // Chemin PER+INT : Utiliser le bypass découvert
+    {
+      trigger: { verb: 'OPEN', requiredState: 'locked', requiredFlag: 'lock_bypass_found', stat: 'INT', dc: 8 },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: 'Le bypass d\'urgence fonctionne encore. Vous court-circuitez le verrou en connectant deux fils. Simple, élégant, silencieux. Vasquez n\'a jamais pensé que quelqu\'un regarderait d\'aussi près.',
+          en: 'The emergency bypass still works. Two wires, one shortcut.',
+        },
+        flagSet: 'final_lock_opened',
+      },
+    },
   ],
 };
 
@@ -1304,8 +1423,8 @@ const beacon_transmission_screen: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: 'Écran de contrôle de la transmission. Affiche le statut du signal, la portée, et les données en attente de transmission.',
-      en: 'Transmission control screen. Shows signal status, range, and pending data.',
+      fr: 'Écran de contrôle de la transmission. Les données clignotent en rouge : SIGNAL EN ATTENTE, PORTÉE 50 AL, DONNÉES JOINTES : AUCUNE, AUTORISATION : REQUISE. Trois étapes affichées : 1) Autoriser via badge administrateur. 2) Charger les preuves. 3) Confirmer la transmission. C\'est ici que tout se joue.',
+      en: 'Transmission control screen. Three steps displayed: authorize via admin badge, upload evidence, confirm transmission.',
     },
   },
   interactions: [
@@ -1313,8 +1432,14 @@ const beacon_transmission_screen: ScenarioFeatureDefinition = {
       trigger: { verb: 'READ', dc: null },
       onSuccess: {
         narrative: {
-          fr: 'STATUT TRANSMISSION\n— Signal : EN ATTENTE\n— Portée : 50 al (extensible via réseau comms)\n— Données jointes : AUCUNE\n— Autorisation : REQUISE (badge administrateur)\n\nPour transmettre : charger les preuves, autoriser via badge, confirmer.',
-          en: 'TRANSMISSION STATUS — Signal: PENDING — Range: 50 ly',
+          fr: 'STATUT TRANSMISSION — BALISE DE DÉTRESSE PHOEBE-7\n\n'
+            + '▸ Signal : EN ATTENTE (activation requise)\n'
+            + '▸ Portée actuelle : 50 années-lumière (extensible via réseau comms)\n'
+            + '▸ Données jointes : AUCUNE\n'
+            + '▸ Autorisation : REQUISE — badge administrateur niveau Directeur\n'
+            + '▸ Destinataires automatiques : Flotte de Secours Secteur 7, Autorité Spatiale Fédérale\n\n'
+            + 'Pour transmettre : insérer le badge administrateur, charger les fichiers de preuves, confirmer l\'envoi. Le signal sera irréversible.',
+          en: 'TRANSMISSION STATUS — Signal: PENDING — Range: 50 ly (extendable via comms) — Authorization: REQUIRED. Recipients: Sector 7 Rescue Fleet, Federal Space Authority.',
         },
       },
     },
@@ -1342,8 +1467,14 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
   id: 'investigate',
   nameKey: { fr: 'Signal Perdu', en: 'Lost Signal' },
   descriptionKey: {
-    fr: 'La Station Phoebe-7 est silencieuse depuis 72 heures. Votre mission : découvrir ce qui s\'est passé. Revenir vivant.',
-    en: 'Station Phoebe-7 has been silent for 72 hours. Your mission: find out what happened. Come back alive.',
+    fr: 'La Station Phoebe-7, avant-poste minier du Consortium Heliox, est silencieuse depuis 72 heures. '
+      + 'Le dernier signal reçu par la flotte : une alerte de confinement tronquée, puis le néant. '
+      + 'Votre mission : accoster la station, découvrir ce qui s\'est passé, '
+      + 'et transmettre vos découvertes via la balise de détresse — '
+      + 'les preuves doivent quitter cette station avant vous. Revenir vivant est secondaire.',
+    en: 'Station Phoebe-7, a Heliox Consortium mining outpost, has been silent for 72 hours. '
+      + 'Your mission: dock, investigate, and transmit your findings via the distress beacon — '
+      + 'the evidence must leave this station before you do.',
   },
 
   nodes: [
@@ -1353,8 +1484,13 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Baie d\'Amarrage — Vous avez accosté avec la Station Phoebe-7. Silencieuse depuis 72 heures. L\'airlock s\'ouvre.',
-        en: 'Docking Bay — You\'ve docked with Station Phoebe-7. Silent for 72 hours. The airlock opens.',
+        fr: 'Baie d\'Amarrage — Votre navette s\'arrime à la Station Phoebe-7 dans un silence de mort. '
+          + 'Pas de comité d\'accueil, pas de procédure standard. Les lumières de la baie clignotent faiblement. '
+          + 'L\'air est respirable mais stérile — aucune odeur, aucun bruit de machine. '
+          + 'Le manifeste cargo est encore allumé, la navette attend derrière le sas. '
+          + 'Premier réflexe d\'enquêteur : ne touchez à rien, observez tout.',
+        en: 'Docking Bay — Your shuttle docks with Station Phoebe-7 in dead silence. '
+          + 'No welcoming committee. Breathable but sterile air. The cargo manifest is still on.',
       },
     },
     {
@@ -1363,8 +1499,15 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Centre de Communications — Un terminal chiffré bloque l\'accès aux données critiques de la station.',
-        en: 'Comms Center — An encrypted terminal blocks access to the station\'s critical data.',
+        fr: 'Centre de Communications — Le cœur nerveux de la station. '
+          + 'Trois terminaux occupent la salle : le terminal de communications principal, '
+          + 'verrouillé derrière un chiffrement militaire ; un terminal de maintenance auxiliaire au coin, '
+          + 'dont l\'écran fissuré affiche des fragments de logs ; '
+          + 'et un bloc-notes manuscrit posé sur la console — l\'écriture de Vasquez. '
+          + 'Toutes les réponses sont ici. Il suffit de savoir où chercher.',
+        en: 'Comms Center — The station\'s nerve center. Three terminals: '
+          + 'the encrypted main comms terminal, a cracked maintenance terminal, '
+          + 'and Vasquez\'s handwritten clipboard. All the answers are here.',
       },
     },
     {
@@ -1373,8 +1516,15 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Bureau de la Directrice — Les fichiers de Vasquez révèlent tout. La catastrophe était planifiée. Fraude à l\'assurance.',
-        en: 'Director\'s Office — Vasquez\'s files reveal everything. The catastrophe was planned. Insurance fraud.',
+        fr: 'Quartiers de la Directrice — Le bureau personnel de Vasquez. '
+          + 'Luxueux pour un avant-poste minier. Terminal personnel encore allumé, '
+          + 'un coffre-fort mural, et un plan d\'évacuation annoté au feutre rouge. '
+          + 'Vasquez est partie en vitesse — elle n\'a pas eu le temps de tout effacer. '
+          + 'C\'est ici que vous trouverez les preuves directes de la conspiration '
+          + 'et les clés d\'accès nécessaires pour transmettre la vérité.',
+        en: 'Director\'s Quarters — Vasquez\'s personal office. Luxurious for a mining outpost. '
+          + 'Personal terminal still on, a wall safe, and an annotated evacuation map. '
+          + 'She left in a hurry — she didn\'t have time to erase everything.',
       },
     },
     {
@@ -1383,8 +1533,16 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'Niveau Réacteur — Le réacteur se déstabilise — conséquence du sabotage. L\'IA de la station vous est désormais hostile.',
-        en: 'Reactor Level — The reactor is destabilizing — consequence of the sabotage. The station AI is now hostile to you.',
+        fr: 'Niveau Réacteur — Chaleur oppressante. Le cœur du réacteur pulse de manière irrégulière, '
+          + 'projetant des lueurs orange sur les parois métalliques. L\'atmosphère est toxique — '
+          + 'chaque seconde ici vous coûte de l\'oxygène. '
+          + 'L\'IA de la station, PHOEBE, est ouvertement hostile : portes qui se verrouillent, '
+          + 'systèmes qui dysfonctionnent, et un programme d\'effacement massif en cours '
+          + 'sur les deux nœuds de traitement qui ronronnent dans l\'ombre. '
+          + 'Neutralisez l\'IA, stabilisez — ou sabotez — le réacteur.',
+        en: 'Reactor Level — Oppressive heat. The reactor pulses erratically. '
+          + 'Toxic atmosphere drains oxygen. The AI is openly hostile. '
+          + 'Neutralize the AI, stabilize or sabotage the reactor.',
       },
     },
     {
@@ -1393,8 +1551,16 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 9,
       descriptionKey: {
-        fr: 'Chambre de la Balise — L\'IA a verrouillé la salle de la balise de secours. Dernière couche de sécurité.',
-        en: 'Beacon Chamber — The AI has locked down the emergency beacon room. Final security layer.',
+        fr: 'Salle de Transmission — Le dernier bastion. La balise de détresse est ici, '
+          + 'massive et silencieuse, son antenne orientée vers les étoiles. '
+          + 'Le verrou final de l\'IA protège les contrôles de transmission. '
+          + 'Le panneau de communications peut amplifier le signal — '
+          + 'et l\'écran de transmission attend vos ordres. '
+          + 'Tout ce que vous avez découvert, toutes les preuves collectées '
+          + '— c\'est ici que la vérité quitte la station. '
+          + 'Activez la balise. Chargez les preuves. Transmettez.',
+        en: 'Transmission Room — The final stand. The distress beacon, the AI\'s last lock, '
+          + 'the comms array. Everything you\'ve found must be transmitted from here.',
       },
     },
     {
@@ -1403,8 +1569,15 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Signal transmis — La vérité voyage à travers le vide vers une flotte de secours.',
-        en: 'Signal transmitted — The truth travels through the void toward a rescue fleet.',
+        fr: 'Observatoire — Le calme après la tempête. '
+          + 'Le signal est parti, quelque part dans l\'immensité. '
+          + 'Fraude, sabotage, meurtre — tout voyage à la vitesse de la lumière '
+          + 'vers ceux qui pourront rendre justice. '
+          + 'Le hublot montre les étoiles. Phoebe-7 sera bientôt un cimetière officiel, '
+          + 'mais les 34 membres d\'équipage ne seront pas morts pour rien.',
+        en: 'Observatory — Calm after the storm. The signal is out there. '
+          + 'Fraud, sabotage, murder — all traveling at lightspeed toward justice. '
+          + 'The crew of 34 will not have died for nothing.',
       },
     },
   ],
@@ -1413,12 +1586,32 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
   gateItemLocation: 'start',
 
   revelation: {
-    fr: 'La Directrice Vasquez a délibérément provoqué la défaillance du confinement. Fraude à l\'assurance — la station vaut plus détruite. L\'équipage était sacrifiable.',
-    en: 'Director Vasquez deliberately caused the containment failure. Insurance fraud — the station is worth more destroyed. The crew was expendable.',
+    fr: 'La catastrophe de Phoebe-7 n\'est pas un accident. La Directrice Vasquez a saboté le confinement du réacteur pour le compte du Consortium Heliox — fraude à l\'assurance à l\'échelle industrielle. '
+      + 'La station vaut 400% de plus en indemnités qu\'en exploitation. '
+      + 'L\'équipage — 34 personnes — était un dommage collatéral acceptable. '
+      + 'Le Dr. Chen a découvert le sabotage et tenté d\'alerter la station. '
+      + 'Son dernier message a été supprimé 47 secondes après envoi. '
+      + 'Vasquez a quitté la station 47 minutes avant la catastrophe. '
+      + 'Elle est en sécurité quelque part pendant que ses victimes pourrissent dans le vide. '
+      + 'Sauf si vous transmettez les preuves.',
+    en: 'The Phoebe-7 disaster was no accident. Director Vasquez sabotaged the reactor containment '
+      + 'for Heliox Consortium — industrial-scale insurance fraud. '
+      + 'The crew of 34 was acceptable collateral damage. '
+      + 'Dr. Chen discovered the sabotage and tried to warn the station — his message was deleted 47 seconds later. '
+      + 'Vasquez left 47 minutes before the catastrophe. Unless you transmit the evidence.',
   },
   escalationTrigger: {
-    fr: 'Le réacteur se déstabilise — conséquence du sabotage de Vasquez. L\'IA de la station, programmée pour effacer les preuves, devient hostile.',
-    en: 'The reactor destabilizes — consequence of Vasquez\'s sabotage. The station AI, programmed to destroy evidence, turns hostile.',
+    fr: 'Le réacteur entre en phase critique — les charges de sabotage de Vasquez n\'ont pas seulement causé la catastrophe initiale, '
+      + 'elles continuent de dégrader le confinement. L\'atmosphère au niveau réacteur devient toxique. '
+      + 'Pire : l\'IA de la station, PHOEBE, a détecté votre enquête. '
+      + 'Programmée par Vasquez pour effacer toutes les preuves, elle devient activement hostile — '
+      + 'verrouillage des portes, coupure des systèmes, effacement massif des logs. '
+      + '67% des données de la station sont déjà détruites. '
+      + 'C\'est une course contre la montre : transmettre les preuves avant que l\'IA ne les efface toutes, '
+      + 'ou avant que le réacteur ne vous tue.',
+    en: 'The reactor enters critical phase — Vasquez\'s sabotage charges keep degrading containment. '
+      + 'The station AI, PHOEBE, has detected your investigation and turns hostile — '
+      + 'programmed by Vasquez to erase all evidence. 67% of station data already destroyed.',
   },
 
   bossType: 'puzzle',
@@ -1432,8 +1625,15 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
     type: 'self_destruct',
   },
   emergentVictoryHint: {
-    fr: 'Le signal de la balise peut être rerouté par le réseau de communications... si vous avez les composants.',
-    en: 'The beacon signal can be rerouted through the comms array... if you have the components.',
+    fr: 'Le réseau de communications de la station peut amplifier le signal de la balise de 50 à 500 années-lumière — '
+      + 'assez pour atteindre les autorités spatiales, les médias, et la flotte simultanément. '
+      + 'Vasquez ne pourrait se cacher nulle part. '
+      + 'Le panneau de communications dans la salle de la balise est la clé, '
+      + 'mais il faut d\'abord trouver les codes d\'accès au réseau longue portée. '
+      + 'Le manifeste cargo dans la baie d\'amarrage pourrait contenir ces codes...',
+    en: 'The station comms network can amplify the beacon from 50 to 500 light-years — '
+      + 'enough to reach authorities, media, and the fleet simultaneously. '
+      + 'The comms panel needs access codes. The cargo manifest in the docking bay might have them...',
   },
 
   nodeLocations: {
