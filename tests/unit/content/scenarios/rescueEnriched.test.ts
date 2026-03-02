@@ -80,9 +80,7 @@ const KNOWN_FLAGS = new Set([
   'detour_found',
   'noise_made_unlock',
   'okonkwo_found',
-  'okonkwo_trusts',
   'okonkwo_patched',
-  'okonkwo_stabilized',
   'escort_active',
   'acoustic_info_received',
   'project_hunter_read',
@@ -97,6 +95,7 @@ const KNOWN_FLAGS = new Set([
   'both_in_shuttle',
   'okonkwo_abandoned',
   'okonkwo_used_as_bait',
+  'bay_door_bypass_found',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -459,19 +458,19 @@ describe('RESCUE skeleton — enriched structural validation', () => {
   // =========================================================================
   // RESCUE-SPECIFIC: collapsed_corridor has 4+ interaction paths
   // =========================================================================
-  it('collapsed_corridor has at least 4 interaction paths', () => {
+  it('collapsed_corridor has at least 5 interaction paths', () => {
     const corridor = features.find(f => f.feature.id === 'collapsed_corridor');
     expect(corridor).toBeDefined();
-    expect(corridor!.feature.interactions?.length).toBeGreaterThanOrEqual(4);
+    expect(corridor!.feature.interactions?.length).toBeGreaterThanOrEqual(5);
   });
 
   // =========================================================================
   // RESCUE-SPECIFIC: moral choice at boss (shuttle_hatch)
   // =========================================================================
-  it('shuttle_hatch has at least 2 enter/use interactions (moral choice)', () => {
+  it('shuttle_hatch has at least 3 enter/use interactions (moral choice)', () => {
     const hatch = features.find(f => f.feature.id === 'shuttle_hatch');
     expect(hatch).toBeDefined();
-    expect(hatch!.feature.interactions?.length).toBeGreaterThanOrEqual(2);
+    expect(hatch!.feature.interactions?.length).toBeGreaterThanOrEqual(3);
   });
 
   // =========================================================================
@@ -483,5 +482,166 @@ describe('RESCUE skeleton — enriched structural validation', () => {
       d => d.type === 'npc_death');
     expect(npcDeath).toBeDefined();
     expect(npcDeath!.npcId).toBe('dr_okonkwo');
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: okonkwo_found flag is set by barricade interactions
+  // =========================================================================
+  it('survivor_barricade has TALK interaction that sets okonkwo_found', () => {
+    const barricade = features.find(f => f.feature.id === 'survivor_barricade');
+    expect(barricade).toBeDefined();
+    const talkInteraction = barricade!.feature.interactions?.find(
+      i => i.trigger.verb === 'TALK',
+    );
+    expect(talkInteraction).toBeDefined();
+    expect(talkInteraction!.onSuccess.flagSet).toBe('okonkwo_found');
+  });
+
+  it('survivor_barricade BREAK sets okonkwo_found', () => {
+    const barricade = features.find(f => f.feature.id === 'survivor_barricade');
+    expect(barricade).toBeDefined();
+    const breakInteraction = barricade!.feature.interactions?.find(
+      i => i.trigger.verb === 'BREAK',
+    );
+    expect(breakInteraction).toBeDefined();
+    expect(breakInteraction!.onSuccess.flagSet).toBe('okonkwo_found');
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: acoustic_info_received is settable
+  // =========================================================================
+  it('acoustic_walls has EXAMINE INT interaction that sets acoustic_info_received', () => {
+    const walls = features.find(f => f.feature.id === 'acoustic_walls');
+    expect(walls).toBeDefined();
+    const examineInt = walls!.feature.interactions?.find(
+      i => i.trigger.verb === 'EXAMINE' && i.trigger.stat === 'INT',
+    );
+    expect(examineInt).toBeDefined();
+    expect(examineInt!.onSuccess.flagSet).toBe('acoustic_info_received');
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: acoustic_trap_point accepts project_hunter_read as alt flag
+  // =========================================================================
+  it('acoustic_trap_point has USE interaction with project_hunter_read flag', () => {
+    const trap = features.find(f => f.feature.id === 'acoustic_trap_point');
+    expect(trap).toBeDefined();
+    const useWithResearch = trap!.feature.interactions?.find(
+      i => i.trigger.verb === 'USE' && i.trigger.requiredFlag === 'project_hunter_read',
+    );
+    expect(useWithResearch).toBeDefined();
+    expect(useWithResearch!.onSuccess.flagSet).toBe('creature_contained');
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: blast_door has at least 3 paths (FOR, tool, INT)
+  // =========================================================================
+  it('blast_door_partial has at least 3 interaction paths', () => {
+    const door = features.find(f => f.feature.id === 'blast_door_partial');
+    expect(door).toBeDefined();
+    expect(door!.feature.interactions?.length).toBeGreaterThanOrEqual(3);
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: collapsed_corridor has AGI failsafe
+  // =========================================================================
+  it('collapsed_corridor has AGI failsafe interaction', () => {
+    const corridor = features.find(f => f.feature.id === 'collapsed_corridor');
+    expect(corridor).toBeDefined();
+    const agiFallback = corridor!.feature.interactions?.find(
+      i => i.trigger.stat === 'AGI',
+    );
+    expect(agiFallback).toBeDefined();
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: shuttle_cockpit has conditional ACTIVATE variants
+  // =========================================================================
+  it('shuttle_cockpit has at least 4 ACTIVATE variants', () => {
+    const cockpit = features.find(f => f.feature.id === 'shuttle_cockpit');
+    expect(cockpit).toBeDefined();
+    expect(cockpit!.feature.interactions?.length).toBeGreaterThanOrEqual(4);
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: extraction_bay_door has PER path
+  // =========================================================================
+  it('extraction_bay_door has PER examine + bypass path', () => {
+    const door = features.find(f => f.feature.id === 'extraction_bay_door');
+    expect(door).toBeDefined();
+    const perExamine = door!.feature.interactions?.find(
+      i => i.trigger.stat === 'PER',
+    );
+    expect(perExamine).toBeDefined();
+    const bypassRepair = door!.feature.interactions?.find(
+      i => i.trigger.requiredFlag === 'bay_door_bypass_found',
+    );
+    expect(bypassRepair).toBeDefined();
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: shuttle_hatch bait has DC >= 10 (not auto-success)
+  // =========================================================================
+  it('shuttle_hatch bait USE has meaningful DC (not auto-success)', () => {
+    const hatch = features.find(f => f.feature.id === 'shuttle_hatch');
+    expect(hatch).toBeDefined();
+    const baitUse = hatch!.feature.interactions?.find(
+      i => i.onSuccess.flagSet === 'okonkwo_used_as_bait',
+    );
+    expect(baitUse).toBeDefined();
+    expect(baitUse!.trigger.dc).toBeGreaterThanOrEqual(10);
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: research_terminal has READ interaction for active state
+  // =========================================================================
+  it('research_terminal has READ interaction for active state', () => {
+    const terminal = features.find(f => f.feature.id === 'research_terminal');
+    expect(terminal).toBeDefined();
+    const readActive = terminal!.feature.interactions?.find(
+      i => i.trigger.verb === 'READ' && i.trigger.requiredState === 'active',
+    );
+    expect(readActive).toBeDefined();
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: medical_stabilizer sets escort_active
+  // =========================================================================
+  it('medical_stabilizer useOn dr_okonkwo sets escort_active', () => {
+    const stabilizer = items.find(i => i.item.id === 'medical_stabilizer');
+    expect(stabilizer).toBeDefined();
+    const useOnOkonkwo = stabilizer!.item.useOn?.find(u => u.targetId === 'dr_okonkwo');
+    expect(useOnOkonkwo).toBeDefined();
+    expect(useOnOkonkwo!.interaction.onSuccess.flagSet).toBe('escort_active');
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: plasma_cutter damage targets creature, not player
+  // =========================================================================
+  it('plasma_cutter useOn creature_hunter damages creature, not player', () => {
+    const cutter = items.find(i => i.item.id === 'plasma_cutter');
+    expect(cutter).toBeDefined();
+    const useOnCreature = cutter!.item.useOn?.find(u => u.targetId === 'creature_hunter');
+    expect(useOnCreature).toBeDefined();
+    const dmg = useOnCreature!.interaction.onSuccess.consequences?.find(
+      c => c.type === 'damage',
+    );
+    expect(dmg).toBeDefined();
+    expect(dmg!.targetId).toBe('creature_hunter');
+  });
+
+  // =========================================================================
+  // IMPROVEMENT PASS: first_aid_kit heals dr_okonkwo, not player
+  // =========================================================================
+  it('first_aid_kit useOn dr_okonkwo heals dr_okonkwo', () => {
+    const kit = items.find(i => i.item.id === 'first_aid_kit');
+    expect(kit).toBeDefined();
+    const useOnOkonkwo = kit!.item.useOn?.find(u => u.targetId === 'dr_okonkwo');
+    expect(useOnOkonkwo).toBeDefined();
+    const heal = useOnOkonkwo!.interaction.onSuccess.consequences?.find(
+      c => c.type === 'heal',
+    );
+    expect(heal).toBeDefined();
+    expect(heal!.targetId).toBe('dr_okonkwo');
   });
 });

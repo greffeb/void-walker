@@ -38,7 +38,7 @@ const first_aid_kit: ScenarioItemDefinition = {
             fr: "Vous appliquez les compresses sur ses plaies les plus visibles. Le garrot stoppe un saignement au bras. Ce n'est pas suffisant pour la stabiliser — il faut un stabilisateur medical — mais elle respire un peu mieux.",
             en: "You apply bandages to the worst wounds. Not enough to stabilize, but she breathes a bit easier.",
           },
-          consequences: [{ type: 'heal', amount: 2, targetId: 'player' }],
+          consequences: [{ type: 'heal', amount: 2, targetId: 'dr_okonkwo' }],
           consumeItem: true,
           flagSet: 'okonkwo_patched',
         },
@@ -75,7 +75,7 @@ const medical_stabilizer: ScenarioItemDefinition = {
             fr: "Vous activez le stabilisateur et le fixez sur sa blessure principale. Les moniteurs passent au vert. La Dr. Okonkwo ouvre les yeux plus grand, la douleur recule. 'Merci. Je... je peux marcher maintenant. Sortons d'ici — ensemble.'",
             en: "You activate the stabilizer. Her monitors turn green. 'Thank you. I can walk now. Let's get out — together.'",
           },
-          flagSet: 'okonkwo_stabilized',
+          flagSet: 'escort_active',
           consumeItem: true,
         },
       },
@@ -189,7 +189,7 @@ const plasma_cutter: ScenarioItemDefinition = {
             fr: "Le faisceau plasma touche la creature. Elle hurle — un son qui vous transperce — et recule, la chair cauterisee. Blessee, pas vaincue. Mais vous avez gagne un repit.",
             en: "The plasma beam hits the creature. It screams and recoils, cauterized.",
           },
-          consequences: [{ type: 'damage', amount: 4, targetId: 'player' }],
+          consequences: [{ type: 'damage', amount: 4, targetId: 'creature_hunter' }],
         },
       },
     },
@@ -249,7 +249,7 @@ const sonic_emitter_component: ScenarioItemDefinition = {
             fr: "Vous activez le composant sonique. Un hurlement ultrasonique — inaudible pour vous, devastateur pour la creature. Elle se tord de douleur, recule. Un repit precieux.",
             en: "You activate the sonic component. An ultrasonic shriek — devastating for the creature.",
           },
-          consequences: [{ type: 'damage', amount: 3, targetId: 'player' }],
+          consequences: [{ type: 'damage', amount: 3, targetId: 'creature_hunter' }],
           flagSet: 'creature_repelled_escalation',
         },
       },
@@ -358,11 +358,7 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
       en: "",
     },
     open: {
-      fr: "La soute de la navette est degagee. Les compartiments de rangement sont accessibles. Le moteur principal est definitivement hors service.",
-      en: "",
-    },
-    broken: {
-      fr: "L'epave est completement effondree. Plus rien a recuperer.",
+      fr: "La soute de la navette est dégagée. De la fumée s'échappe encore des circuits brûlés. Les compartiments de rangement sont ouverts — la plupart vides ou détruits. Le moteur principal est en miettes, le réservoir percé. Cette navette ne redécollera jamais.",
       en: "",
     },
   },
@@ -412,8 +408,8 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
       trigger: { verb: 'SCAN', requiredState: 'damaged', stat: 'PER', dc: 9 },
       onSuccess: {
         narrative: {
-          fr: "Fouillant les debris du cockpit, vous trouvez un outil de recuperation encore fonctionnel et la boite noire de la navette — intacte. Le compartiment medical reste bloque, mais l'outil pourrait aider.",
-          en: "Searching the cockpit debris, you find a salvage tool and the shuttle's black box.",
+          fr: "Fouillant les débris du cockpit, vous trouvez un outil de récupération encore fonctionnel. Le compartiment médical reste bloqué, mais l'outil pourrait aider à faire levier.",
+          en: "Searching the cockpit debris, you find a salvage tool still operational.",
         },
         revealsItems: ['salvage_tool'],
         flagSet: 'shuttle_searched',
@@ -675,6 +671,26 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
         flagSet: 'noise_made_unlock',
       },
     },
+    // Path 5: AGI failsafe — crawl through unstable rubble (anti-softlock)
+    {
+      trigger: { verb: 'CLIMB', requiredState: 'broken', stat: 'AGI', dc: 8 },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: "Vous rampez entre les poutres tordues. Le m\u00e9tal mord votre peau, les d\u00e9bris s'effondrent derri\u00e8re vous. Trois m\u00e8tres de terreur pure. Mais vous passez.",
+          en: "You crawl through the twisted beams. Metal bites your skin, debris collapses behind you. But you make it through.",
+        },
+        revealsExit: 'unlock_to_reveal',
+        consequences: [{ type: 'damage', amount: 3, targetId: 'player' }],
+      },
+      onFailure: {
+        narrative: {
+          fr: "Vous tentez de ramper dans les d\u00e9combres mais une poutre glisse, manquant de vous \u00e9craser. Trop instable — il faut une autre approche.",
+          en: "You try to crawl through but a beam shifts, nearly crushing you. Too unstable.",
+        },
+        consequences: [{ type: 'damage', amount: 1, targetId: 'player' }],
+      },
+    },
   ],
 };
 
@@ -794,6 +810,23 @@ const survivor_barricade: ScenarioFeatureDefinition = {
     en: "",
   },
   interactions: [
+    // TALK/KNOCK — CHA approach (sets okonkwo_found)
+    {
+      trigger: { verb: 'TALK', requiredState: 'intact', stat: 'CHA', dc: 8 },
+      onSuccess: {
+        narrative: {
+          fr: "\"Il y a quelqu'un ?\" Silence. Puis une voix, rauque, mefiante : \"Qui etes-vous ? Comment etes-vous arrive ici ?\" Des bruits de metal — la barricade s'entrouvre. Une femme blessee vous devisage. La Dr. Okonkwo.",
+          en: "\"Anyone there?\" Silence. Then a hoarse voice: \"Who are you?\" Metal scrapes — the barricade opens a crack.",
+        },
+        flagSet: 'okonkwo_found',
+      },
+      onFailure: {
+        narrative: {
+          fr: "\"Allez-vous en !\" La voix derriere la barricade est terrifiee, pas hostile. Mais elle refuse d'ouvrir. Il faudra insister — ou trouver un autre moyen.",
+          en: "\"Go away!\" The voice behind the barricade is terrified. She refuses to open.",
+        },
+      },
+    },
     {
       trigger: { verb: 'EXAMINE', dc: null },
       onSuccess: {
@@ -803,15 +836,16 @@ const survivor_barricade: ScenarioFeatureDefinition = {
         },
       },
     },
+    // BREAK — destructive approach (Okonkwo becomes hostile/scared)
     {
       trigger: { verb: 'BREAK', stat: 'FOR', dc: 8 },
       onSuccess: {
         newState: 'broken',
         narrative: {
-          fr: "Vous demontez la barricade pour recuperer les materiaux. Des plaques metalliques utiles et du cablage. La protection est perdue — mais vous n'en aurez plus besoin si vous bougez vite.",
-          en: "You dismantle the barricade for materials.",
+          fr: "Vous demontez la barricade a coups de pied. Le metal s'effondre dans un fracas assourdissant. Derriere, une femme blessee recule, terrifiee — la Dr. Okonkwo. Votre entree en force n'inspire pas confiance.",
+          en: "You kick down the barricade. Behind it, a wounded woman recoils in terror.",
         },
-        flagSet: 'barricade_dismantled',
+        flagSet: 'okonkwo_found',
       },
     },
   ],
@@ -866,6 +900,17 @@ const research_terminal: ScenarioFeatureDefinition = {
         flagSet: 'creature_learns_discovered',
       },
     },
+    // READ active state — full data review
+    {
+      trigger: { verb: 'READ', requiredState: 'active', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: "Les donnees completes du Projet Chasseur. Sequences genetiques, courbes d'adaptation, rapports d'incidents. Tout est la — la preuve que la corporation savait ce qu'elle faisait.",
+          en: "Full Project Hunter data. Gene sequences, adaptation curves, incident reports.",
+        },
+        flagSet: 'project_hunter_read',
+      },
+    },
   ],
 };
 
@@ -893,6 +938,18 @@ const acoustic_walls: ScenarioFeatureDefinition = {
     en: "",
   },
   interactions: [
+    // EXAMINE INT DC10 — scientific analysis reveals acoustic weakness (alt path to acoustic_info_received)
+    {
+      trigger: { verb: 'EXAMINE', stat: 'INT', dc: 10 },
+      onSuccess: {
+        narrative: {
+          fr: "Les panneaux sont calibres pour 15-20 kHz — frequence de resonance maximale. Vous comprenez : un emetteur sonique a cette frequence, dans cette geometrie, creerait une cage acoustique infranchissable. La faiblesse de la creature, amplifiee par l'architecture.",
+          en: "The panels are calibrated for 15-20 kHz. You understand: a sonic emitter here would create an impassable acoustic cage.",
+        },
+        flagSet: 'acoustic_info_received',
+      },
+    },
+    // EXAMINE auto — simple narrative observation
     {
       trigger: { verb: 'EXAMINE', dc: null },
       onSuccess: {
@@ -969,6 +1026,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     en: "",
   },
   interactions: [
+    // Path 1: FOR pure — brute force
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 13 },
       onSuccess: {
@@ -981,11 +1039,13 @@ const blast_door_partial: ScenarioFeatureDefinition = {
       },
       onFailure: {
         narrative: {
-          fr: "La porte refuse de bouger. Le mecanisme est solidement coince. Il faudrait un levier, un outil, ou une approche differente.",
-          en: "The door won't budge.",
+          fr: "La porte refuse de bouger. Le mecanisme est solidement coince. Le metal vous entaille les mains. Il faudrait un levier, un outil, ou une approche differente.",
+          en: "The door won't budge. The metal cuts your hands.",
         },
+        consequences: [{ type: 'damage', amount: 1, targetId: 'player' }],
       },
     },
+    // Path 2: FOR + salvage_tool — auto success
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
@@ -995,6 +1055,25 @@ const blast_door_partial: ScenarioFeatureDefinition = {
           en: "The salvage tool levers the mechanism. The door slides open.",
         },
         revealsExit: 'escalation_to_boss',
+        flagSet: 'blast_door_widened',
+      },
+    },
+    // Path 3: INT — repair the mechanism
+    {
+      trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: "Vous trouvez le mecanisme coince et realignez les rails. La porte coulisse — lentement, mais suffisamment.",
+          en: "You find the jammed mechanism and realign the rails. The door slides open.",
+        },
+        revealsExit: 'escalation_to_boss',
+      },
+      onFailure: {
+        narrative: {
+          fr: "Le mecanisme est trop endommage pour une reparation rapide. Les rails sont desalignes a un angle impossible.",
+          en: "The mechanism is too damaged for a quick repair.",
+        },
       },
     },
   ],
@@ -1051,19 +1130,25 @@ const shuttle_hatch: ScenarioFeatureDefinition = {
         revealsExit: 'boss_to_resolution',
       },
     },
-    // USE OKONKWO AS BAIT (very dark choice)
+    // USE OKONKWO AS BAIT (very dark choice — CHA DC14 to manipulate)
     {
-      trigger: { verb: 'USE', requiredFlag: 'escort_active', stat: 'CHA', dc: 0 },
+      trigger: { verb: ['USE', 'SACRIFICE'], requiredFlag: 'escort_active', stat: 'CHA', dc: 14 },
       onSuccess: {
         narrative: {
-          fr: "'Docteur, il faut distraire la creature. C'est vous qu'elle veut.' Le visage d'Okonkwo se decompose. Puis, lentement, elle acquiesce. 'Je l'ai creee. C'est... juste.' Elle s'eloigne vers le couloir, boitant.",
-          en: "'Doctor, the creature wants you.' Her face crumbles. Then she nods. 'I created it. It's... fair.'",
+          fr: "\"Docteur, il faut distraire la creature. C'est vous qu'elle veut.\" Le visage d'Okonkwo se decompose. La comprehension, puis la resignation. \"Je l'ai creee. C'est ma responsabilite.\" Elle s'avance vers l'ombre, boitant.",
+          en: "\"Doctor, the creature wants you.\" Her face crumbles. Understanding, then resignation. She limps toward the shadow.",
         },
         flagSet: 'okonkwo_used_as_bait',
         consequences: [
           { type: 'npc_relocate', npcId: 'dr_okonkwo', locationId: 'escalation' },
         ],
         flagUnset: 'escort_active',
+      },
+      onFailure: {
+        narrative: {
+          fr: "\"Non. NON ! Je refuse de mourir pour vos lachetees !\" Okonkwo recule, terrifiee. La manipulation a echoue — elle ne se sacrifiera pas volontairement.",
+          en: "\"No. NO! I refuse to die for your cowardice!\" Okonkwo recoils. The manipulation failed.",
+        },
       },
     },
   ],
@@ -1093,6 +1178,7 @@ const acoustic_trap_point: ScenarioFeatureDefinition = {
     en: "",
   },
   interactions: [
+    // USE sonic emitter with acoustic_info_received flag
     {
       trigger: { verb: 'USE', requiredItem: 'sonic_emitter_component', requiredFlag: 'acoustic_info_received', dc: null },
       onSuccess: {
@@ -1100,6 +1186,19 @@ const acoustic_trap_point: ScenarioFeatureDefinition = {
         narrative: {
           fr: "Vous fixez le composant au point optimal. Activation. Le son explose — inaudible pour vous, apocalyptique pour la creature. Les murs acoustiques amplifient le signal x100. Une cage de son invisible. Confinee. Neutralisee. Pour toujours.",
           en: "You attach the component to the optimal point. Activation. Sound explodes. The creature is trapped.",
+        },
+        flagSet: 'creature_contained',
+        consumeItem: true,
+      },
+    },
+    // USE sonic emitter with project_hunter_read flag (alternative path — read the research)
+    {
+      trigger: { verb: 'USE', requiredItem: 'sonic_emitter_component', requiredFlag: 'project_hunter_read', dc: null },
+      onSuccess: {
+        newState: 'activated',
+        narrative: {
+          fr: "Les notes de recherche vous ont appris la frequence exacte. Vous fixez le composant et calibrez l'emetteur. Le son explose — les murs acoustiques amplifient le signal x100. Une cage de resonance infranchissable. La creature est piegee. Pour toujours.",
+          en: "The research notes taught you the exact frequency. You attach the component. The creature is trapped forever.",
         },
         flagSet: 'creature_contained',
         consumeItem: true,
@@ -1163,6 +1262,29 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
         flagSet: 'extraction_door_opened',
       },
     },
+    // Path 3: PER — find maintenance bypass
+    {
+      trigger: { verb: 'EXAMINE', requiredState: 'damaged', stat: 'PER', dc: 10 },
+      onSuccess: {
+        narrative: {
+          fr: "Vous reperez un panneau de maintenance sur le cote. Les cables hydrauliques sont accessibles — un simple recablage et la porte devrait s'ouvrir.",
+          en: "You spot a maintenance panel on the side. The hydraulic cables are accessible.",
+        },
+        flagSet: 'bay_door_bypass_found',
+      },
+    },
+    // Path 3b: auto-REPAIR after finding bypass
+    {
+      trigger: { verb: 'REPAIR', requiredState: 'damaged', requiredFlag: 'bay_door_bypass_found', dc: null },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: "Le recablage fonctionne. La porte s'ouvre silencieusement — presque trop facilement.",
+          en: "The rewiring works. The door opens silently.",
+        },
+        flagSet: 'extraction_door_opened',
+      },
+    },
   ],
 };
 
@@ -1181,7 +1303,7 @@ const shuttle_cockpit: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: "Le cockpit de la navette. Systemes en ligne, moteurs prets. L'ecran affiche les coordonnees de retour vers la flotte. Un bouton : DECOLLAGE.",
+      fr: "Le cockpit de la navette d'evacuation. Systemes en ligne, moteurs prets. L'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s'est passe — qui est monte, qui est reste — depend entierement de vos choix.",
       en: "",
     },
   },
@@ -1190,6 +1312,57 @@ const shuttle_cockpit: ScenarioFeatureDefinition = {
     en: "",
   },
   interactions: [
+    // ACTIVATE with escort — best ending (saved Okonkwo)
+    {
+      trigger: { verb: 'ACTIVATE', requiredFlag: 'both_in_shuttle', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: "Vous appuyez sur DECOLLAGE. La Dr. Okonkwo s'agrippe au siege copilote. Les moteurs rugissent. La station s'eloigne — avec ses secrets, ses monstres. Mais pas ses survivants. Pas cette fois.",
+          en: "You press LAUNCH. Dr. Okonkwo grips the copilot seat. The station falls away — with its secrets, its monsters. But not its survivors. Not this time.",
+        },
+      },
+    },
+    // ACTIVATE with creature_contained — emergent victory (saved everyone, trapped creature)
+    {
+      trigger: { verb: 'ACTIVATE', requiredFlag: 'creature_contained', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: "Vous appuyez sur DECOLLAGE. La creature est confinee — le piege acoustique la retiendra pour toujours. La Dr. Okonkwo regarde la station s'eloigner. \"C'est fini\", murmure-t-elle. Pour la premiere fois, elle semble le croire.",
+          en: "You press LAUNCH. The creature is trapped forever. 'It's over,' Okonkwo whispers.",
+        },
+      },
+    },
+    // ACTIVATE alone (abandoned Okonkwo) — dark ending
+    {
+      trigger: { verb: 'ACTIVATE', requiredFlag: 'okonkwo_abandoned', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: "Vous appuyez sur DECOLLAGE. Seul dans le cockpit. La station s'eloigne. Quelque part en bas, une femme que vous avez laissee derriere hurle peut-etre encore. Vous ne le saurez jamais.",
+          en: "You press LAUNCH. Alone. Somewhere below, a woman you left behind may still be screaming. You'll never know.",
+        },
+      },
+    },
+    // ACTIVATE with bait used — darkest ending
+    {
+      trigger: { verb: 'ACTIVATE', requiredFlag: 'okonkwo_used_as_bait', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: "Vous appuyez sur DECOLLAGE. La Dr. Okonkwo a attire la creature — son sacrifice vous a ouvert la route. Les moteurs rugissent. La station s'eloigne. Vous etes vivant. C'est ce qui compte. N'est-ce pas ?",
+          en: "You press LAUNCH. Dr. Okonkwo drew the creature away — her sacrifice cleared your path. You're alive. That's what matters. Isn't it?",
+        },
+      },
+    },
+    // ACTIVATE with backup beacon active — additional narrative flavor
+    {
+      trigger: { verb: 'ACTIVATE', requiredFlag: 'backup_beacon_active', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: "Vous appuyez sur DECOLLAGE. Les moteurs rugissent. En arriere-plan, le signal de la balise pulse — des secours arriveront peut-etre. La station s'eloigne en dessous, avec ses secrets, ses monstres.",
+          en: "You press LAUNCH. The backup beacon pulses — help may come. The station falls away below.",
+        },
+      },
+    },
+    // ACTIVATE default fallback
     {
       trigger: { verb: 'ACTIVATE', dc: null },
       onSuccess: {
@@ -1210,8 +1383,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
   id: 'rescue',
   nameKey: { fr: 'Dernier Signal', en: 'Last Signal' },
   descriptionKey: {
-    fr: 'Un signal de detresse pulse depuis les profondeurs. Quelqu\'un est encore en vie. Allez le chercher.',
-    en: 'A distress signal pulses from the depths. Someone is still alive. Go get them.',
+    fr: 'Station Orbitale Calypso — le signal de detresse pulse depuis 72 heures. Votre navette s\'est ecrasee a l\'approche, la coque percee. Quelqu\'un est encore en vie la-dedans — la Dr. Okonkwo, chercheuse principale du Projet Chasseur. Mais quelque chose d\'autre vit aussi dans ces couloirs. Quelque chose qui chasse. Trouvez la survivante. Stabilisez-la. Sortez-la de la. Avant que le chasseur ne vous trouve tous les deux.',
+    en: 'Orbital Station Calypso — the distress signal has been pulsing for 72 hours. Your shuttle crashed on approach. Someone is still alive — Dr. Okonkwo, lead researcher on Project Hunter. But something else lives in those corridors. Something that hunts.',
   },
 
   nodes: [
@@ -1221,8 +1394,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Site de Crash — Votre navette s\'est ecrasee a l\'approche. Coque percee. Un signal de detresse pulse depuis l\'interieur.',
-        en: 'Crash Site — Your shuttle crashed on approach. Hull breached. A distress signal pulses from deeper inside.',
+        fr: 'Site de Crash. Votre navette s\'est ecrasee contre le dock d\'amarrage de la Station Calypso. La coque est percee, le cockpit deforme au-dela de toute reparation. De la fumee s\'echappe des circuits brules. La soute arriere contient peut-etre du materiel recuperable. Un signal de detresse pulse depuis les profondeurs de la station — regulier, insistant. Quelqu\'un est vivant la-dedans.',
+        en: 'Crash Site — Your shuttle crashed into Station Calypso\'s docking bay. Hull breached, cockpit destroyed. A distress signal pulses from deeper inside.',
       },
     },
     {
@@ -1231,8 +1404,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Point de Triage — Un couloir effondre bloque le passage. Il faut un stabilisateur medical pour soigner la survivante — et un chemin pour y arriver.',
-        en: 'Triage Point — A collapsed corridor blocks the way. Need a medical stabilizer to treat the survivor — and a path to reach her.',
+        fr: 'Point de Triage. Zone medicale devastee — civieres renversees, materiel chirurgical eparpille. Le couloir principal s\'est effondre sous le poids des poutres — des tonnes de metal bloquent le passage. Le signal de detresse est plus fort ici, juste de l\'autre cote. Une trappe de maintenance est visible au ras du sol. Un rack contient un decoupeur plasma industriel — puissant, mais le bruit attirerait l\'attention.',
+        en: 'Triage Point — Devastated medical zone. The main corridor collapsed. The distress signal is stronger here — just on the other side.',
       },
     },
     {
@@ -1241,8 +1414,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Emplacement de la Survivante — La Dr. Okonkwo. Blessee, consciente. Elle connait la faiblesse de la creature. Et l\'unique chemin de sortie traverse son territoire de chasse.',
-        en: 'Survivor\'s Location — Dr. Okonkwo. Wounded but conscious. She knows the creature\'s weakness. And the only exit goes through its hunting ground.',
+        fr: 'Laboratoire de la Dr. Okonkwo. Une barricade methodique bloque l\'entree — mobilier soude, plaques d\'acier. Derriere, une femme. Blessee. Consciente. Le terminal de recherche clignote a cote d\'elle, affichant des donnees fragmentaires du Projet Chasseur. Des rations vides indiquent qu\'elle survit ici depuis au moins 48 heures. Le chemin de sortie passe par le territoire de chasse de la creature.',
+        en: 'Dr. Okonkwo\'s Lab — A methodical barricade blocks the entrance. Behind it, a wounded woman. The research terminal flickers with Project Hunter data.',
       },
     },
     {
@@ -1251,8 +1424,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'La Traque — Vous escortez une blessee. Chaque deplacement est calcule. La creature a detecte le sang de la Dr. Okonkwo.',
-        en: 'The Hunt Begins — You\'re escorting a wounded NPC. Movement is calculated. The creature has detected Dr. Okonkwo\'s blood.',
+        fr: 'Zone de Traque. Les couloirs sont plus etroits ici — visibilite reduite, recoins sombres, points d\'embuscade. L\'air est plus mince. Les parois sont recouvertes de panneaux acoustiques — vestiges du laboratoire d\'Okonkwo. Un rack de diversion contient des grenades flash. Une porte blindee partiellement ouverte bloque le passage vers la baie d\'extraction. Des griffures profondes sur la porte — la creature est passee par la.',
+        en: 'The Hunt Zone — Narrow corridors, reduced visibility, ambush points. Acoustic panels line the walls. A blast door blocks the way to extraction.',
       },
     },
     {
@@ -1261,8 +1434,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 10,
       descriptionKey: {
-        fr: 'Point d\'Extraction — La navette est en vue. La creature vous coupe la route. Un choix impossible s\'impose.',
-        en: 'Exit Point — The shuttle is in sight. The creature cuts you off. An impossible choice looms.',
+        fr: 'Baie d\'Extraction. La navette de secours est la — cabossee mais fonctionnelle, l\'ecoutille ouverte, les moteurs en veille. La liberte est a portee de main. Mais la creature se dresse entre vous et la navette. Biomasse sombre, griffes d\'acier, yeux trop intelligents. La geometrie de la baie forme un entonnoir acoustique naturel — un detail qui pourrait tout changer si vous avez les bons outils. Un choix impossible s\'impose.',
+        en: 'Extraction Bay — The rescue shuttle is here. But the creature stands between you and freedom. An impossible choice looms.',
       },
     },
     {
@@ -1271,8 +1444,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Decollage — La navette decolle. Ce qui s\'est passe ensuite depend de vos choix.',
-        en: 'Liftoff — The shuttle takes off. What happened next depends on your choices.',
+        fr: 'Le cockpit de la navette d\'evacuation. Systemes en ligne, moteurs prets. L\'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s\'est passe ensuite — qui est monte, qui est reste, ce qui est arrive a la creature — depend entierement de vos choix.',
+        en: 'The evacuation shuttle cockpit. Systems online. One button: LAUNCH. What happens next depends entirely on your choices.',
       },
     },
   ],
@@ -1281,12 +1454,12 @@ export const RESCUE_SKELETON: CoreSkeleton = {
   gateItemLocation: 'start',
 
   revelation: {
-    fr: 'La Dr. Okonkwo est la chercheuse principale — et la creature etait son experience. Elle connait sa faiblesse : la sensibilite sonore. La culpabilite la rend prete a tout pour aider.',
-    en: 'Dr. Okonkwo is the lead researcher — and the creature was her experiment. She knows its weakness: sound sensitivity. Guilt makes her ready to help at any cost.',
+    fr: 'La Dr. Okonkwo n\'est pas une victime innocente — elle est la creatrice de la chose qui vous chasse. Projet Chasseur : un organisme synthetique a evolution acceleree, concu comme arme biologique. Elle connait sa faiblesse — les hautes frequences entre 15 et 20 kHz la desorientent, au-dessus de 20 kHz elle souffre. Mais la creature apprend. Elle s\'adapte aux stimuli repetes en 3 a 5 expositions. Okonkwo porte le poids de 47 morts sur les epaules. Sa culpabilite est votre meilleur atout — elle fera tout pour expier.',
+    en: 'Dr. Okonkwo is not an innocent victim — she created the thing hunting you. Project Hunter: a synthetic organism designed as a bioweapon. She knows its weakness: high frequencies. But the creature learns.',
   },
   escalationTrigger: {
-    fr: 'Vous escortez maintenant une blessee. Les deplacements sont ralentis. La creature a detecte l\'odeur du sang. La chasse commence.',
-    en: 'You\'re now escorting a wounded NPC. Movement is slower. The creature has detected the scent of blood. The hunt begins.',
+    fr: 'L\'escorte change tout. La Dr. Okonkwo peut marcher, mais lentement — chaque deplacement prend deux fois plus de temps. Le sang sur ses bandages laisse une piste olfactive que la creature suit comme un fil d\'Ariane. Vous l\'entendez maintenant — des griffes sur le metal, toujours un couloir derriere vous. Elle ne fonce plus aveuglement. Elle chasse. Elle apprend vos habitudes.',
+    en: 'The escort changes everything. Dr. Okonkwo can walk, but slowly. Blood on her bandages leaves a scent trail. You hear it now — claws on metal, always one corridor behind.',
   },
 
   bossType: 'choice',
@@ -1301,8 +1474,8 @@ export const RESCUE_SKELETON: CoreSkeleton = {
     locationId: 'resolution',
   },
   emergentVictoryHint: {
-    fr: 'L\'emetteur sonique combine avec l\'acoustique de la zone pourrait confiner la creature...',
-    en: 'The sonic emitter combined with the zone\'s acoustics could permanently trap the creature...',
+    fr: 'Le composant d\'emetteur sonique haute frequence, place au point de piege acoustique dans la baie d\'extraction, creerait une cage de resonance infranchissable pour la creature. Les parois acoustiques du laboratoire d\'Okonkwo amplifient le signal par un facteur 100. Il faut avoir compris la faiblesse sonore (via Okonkwo ou le terminal de recherche) ET avoir conserve le composant sans l\'utiliser sur la creature ou la balise. Le piege est permanent.',
+    en: 'The sonic emitter component, placed at the acoustic trap point in the extraction bay, would create an impassable resonance cage. You need to have learned the sonic weakness AND kept the component unused.',
   },
 
   nodeLocations: {
