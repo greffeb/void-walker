@@ -429,6 +429,8 @@ export interface LocationVisitState {
   /** Feature IDs that have been changed */
   readonly featuresChanged: readonly string[];
   readonly obstacleResolved: boolean;
+  /** Item IDs dropped/thrown by the player here (visible as loot) */
+  readonly droppedItems: readonly string[];
 }
 
 // ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@ import { ESCAPE_SKELETON } from '../../../src/content/scenarios/escape';
 import { LAUNCH_SETTINGS } from '../../../src/content/settings';
 import { ALL_MODULES } from '../../../src/content/scenarios/modules/index';
 import { createInitialGameState } from '../../../src/engine/types';
-import { markItemTaken, getExitsWithStatus, createVisitState } from '../../../src/engine/backtracking';
+import { markItemTaken, markItemDropped, getExitsWithStatus, createVisitState } from '../../../src/engine/backtracking';
 import type { AssembledScenario } from '../../../src/engine/scenario';
 import type { RngFn } from '../../../src/engine/types';
 
@@ -145,5 +145,59 @@ describe('getSceneContext() — with scenario', () => {
     if (backToStart) {
       expect(backToStart.visited).toBe(true);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Dropped loot visibility
+// ---------------------------------------------------------------------------
+
+describe('getSceneContext() — dropped items', () => {
+  it('includes dropped item in locationItems when not in inventory', () => {
+    const scenario = makeScenario();
+    let state = initGame(scenario, 'marine', 'survivor', 'T', fixedRng());
+    const locId = state.playerLocationId!;
+
+    // Drop a known item into this location
+    const updatedVisit = markItemDropped(
+      state.visitedLocations[locId] ?? createVisitState(1),
+      'medkit_basic',
+    );
+    state = {
+      ...state,
+      visitedLocations: { ...state.visitedLocations, [locId]: updatedVisit },
+    };
+
+    const ctx = getSceneContext(state);
+    expect(ctx.locationItems.map(i => i.id)).toContain('medkit_basic');
+  });
+
+  it('filters dropped item from locationItems when it is back in inventory', () => {
+    const scenario = makeScenario();
+    let state = initGame(scenario, 'marine', 'survivor', 'T', fixedRng());
+    const locId = state.playerLocationId!;
+
+    // Drop item into location AND also put it in inventory (player re-took it)
+    const updatedVisit = markItemDropped(
+      state.visitedLocations[locId] ?? createVisitState(1),
+      'medkit_basic',
+    );
+    state = {
+      ...state,
+      character: state.character
+        ? { ...state.character, inventory: [...state.character.inventory, 'medkit_basic'] }
+        : state.character,
+      visitedLocations: { ...state.visitedLocations, [locId]: updatedVisit },
+    };
+
+    const ctx = getSceneContext(state);
+    // Item is in inventory → should NOT appear as location loot
+    expect(ctx.locationItems.filter(i => i.id === 'medkit_basic' && i.source === 'location')
+      .every(i => state.character!.inventory.includes(i.id))).toBe(true);
+    // More directly: locationItems should not contain it
+    const locationOnly = ctx.locationItems.filter(
+      i => i.id === 'medkit_basic' && !state.character!.inventory.includes(i.id),
+    );
+    expect(locationOnly).toHaveLength(0);
   });
 });

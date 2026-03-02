@@ -70,8 +70,9 @@ export function buildConsequences(
     }
   }
 
-  // General outcome consequences (only for non-combat actions with a real target)
-  if (!attackResult && target !== null) {
+  // General outcome consequences (only for non-combat actions with a real target).
+  // THROW is excluded from self-damage: the thrown object was aimed outward, not at the player.
+  if (!attackResult && target !== null && verb !== 'THROW') {
     if (outcome === 'failure') {
       consequences.push({ type: 'damage', targetId: 'player', amount: 1 });
     } else if (outcome === 'crit_failure') {

@@ -7,6 +7,7 @@ import {
   createVisitState,
   markRevisit,
   markItemTaken,
+  markItemDropped,
   markFeatureChanged,
   markObstacleResolved,
   hasBeenVisited,
@@ -29,6 +30,7 @@ describe('createVisitState', () => {
     expect(state.itemsTaken).toHaveLength(0);
     expect(state.featuresChanged).toHaveLength(0);
     expect(state.obstacleResolved).toBe(false);
+    expect(state.droppedItems).toHaveLength(0);
   });
 });
 
@@ -87,6 +89,43 @@ describe('markItemTaken', () => {
     const s = createVisitState(1);
     markItemTaken(s, 'medkit');
     expect(s.itemsTaken).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// markItemDropped
+// ---------------------------------------------------------------------------
+
+describe('markItemDropped', () => {
+  it('adds item to droppedItems', () => {
+    const s = createVisitState(1);
+    const s2 = markItemDropped(s, 'flashlight');
+    expect(s2.droppedItems).toContain('flashlight');
+  });
+
+  it('is idempotent — no duplicates', () => {
+    const s = createVisitState(1);
+    const s2 = markItemDropped(markItemDropped(s, 'flashlight'), 'flashlight');
+    expect(s2.droppedItems.filter(i => i === 'flashlight')).toHaveLength(1);
+  });
+
+  it('returns same reference when already present', () => {
+    const s = createVisitState(1);
+    const s2 = markItemDropped(s, 'flashlight');
+    expect(markItemDropped(s2, 'flashlight')).toBe(s2);
+  });
+
+  it('does not mutate original', () => {
+    const s = createVisitState(1);
+    markItemDropped(s, 'flashlight');
+    expect(s.droppedItems).toHaveLength(0);
+  });
+
+  it('accumulates multiple different items', () => {
+    const s = createVisitState(1);
+    const s2 = markItemDropped(markItemDropped(s, 'flashlight'), 'medkit');
+    expect(s2.droppedItems).toContain('flashlight');
+    expect(s2.droppedItems).toContain('medkit');
   });
 });
 

@@ -95,6 +95,39 @@ describe('buildConsequences', () => {
     const envChange = cs.find(c => c.type === 'environment_change');
     expect(envChange).toBeUndefined();
   });
+
+  it('THROW failure with target → no player damage', () => {
+    const target = {
+      id: 'xenomorph', nameKey: 'npc.xenomorph',
+      properties: ['living', 'hostile'],
+      isVirtual: false, source: 'npc' as const,
+    };
+    const cs = buildConsequences('THROW', target, 'failure');
+    const playerDamage = cs.filter(c => c.type === 'damage' && c.targetId === 'player');
+    expect(playerDamage).toHaveLength(0);
+  });
+
+  it('THROW crit_failure with target → no player damage', () => {
+    const target = {
+      id: 'crate', nameKey: 'item.crate',
+      properties: ['tangible', 'heavy'],
+      isVirtual: false, source: 'location' as const,
+    };
+    const cs = buildConsequences('THROW', target, 'crit_failure');
+    const playerDamage = cs.filter(c => c.type === 'damage' && c.targetId === 'player');
+    expect(playerDamage).toHaveLength(0);
+  });
+
+  it('STRIKE failure with target → still produces player damage (regression)', () => {
+    const target = {
+      id: 'metal_door', nameKey: 'env.metal_door',
+      properties: ['metallic', 'rigid'],
+      isVirtual: false, source: 'environment' as const,
+    };
+    const cs = buildConsequences('STRIKE', target, 'failure');
+    const playerDamage = cs.filter(c => c.type === 'damage' && c.targetId === 'player');
+    expect(playerDamage).toHaveLength(1);
+  });
 });
 
 // ---------------------------------------------------------------------------

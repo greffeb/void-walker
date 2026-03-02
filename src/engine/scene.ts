@@ -91,7 +91,7 @@ export function getSceneContext(state: GameState): SceneContext {
 
   // --- Items: exclude taken ones and unrevealed (revealedBy) items ---
   const visitState = state.visitedLocations[playerLocationId];
-  const locationItems: ResolvedTarget[] = node.items
+  const staticLocationItems: ResolvedTarget[] = node.items
     .filter(item => isItemAvailable(visitState, item.id))
     .filter(item => {
       if (isEnrichedItem(item) && item.revealedBy) {
@@ -100,6 +100,14 @@ export function getSceneContext(state: GameState): SceneContext {
       return true;
     })
     .map(item => itemDefToResolvedTarget(item.id, item));
+
+  // Dropped loot: items thrown/dropped by the player that haven't been re-taken
+  const playerInventory = state.character?.inventory ?? [];
+  const droppedLoot: ResolvedTarget[] = (visitState?.droppedItems ?? [])
+    .filter(id => !playerInventory.includes(id))
+    .map(id => itemDefToResolvedTarget(id));
+
+  const locationItems: ResolvedTarget[] = [...staticLocationItems, ...droppedLoot];
 
   // --- Inventory ---
   const inventory: ResolvedTarget[] = (state.character?.inventory ?? []).map(
@@ -303,21 +311,15 @@ function buildSceneDescription(
   const isFirstVisit = visitState === undefined || visitState.visitCount <= 1;
   const obstacleResolved = isObstacleResolved(visitState);
 
-  // Location description from skin (entry/revisit) or core node descriptionKey
+  // Location name — always the actual location name from the node
+  const locationName = node.nameKey.fr;
+
+  // Location flavor text from skin (entry/revisit); empty string when no skin
   let locationDescription = '';
   if (node.activeSkin) {
     locationDescription = isFirstVisit
       ? node.activeSkin.entryDescription.fr
       : node.activeSkin.revisitDescription.fr;
-  }
-  // Fall back to core node descriptionKey if no skin or empty skin text
-  if (!locationDescription && node.coreNodeId) {
-    // Core nodes have descriptionKey from skeleton — already stored on the node
-    // The node doesn't carry descriptionKey directly; use nameKey as minimal fallback
-    locationDescription = node.nameKey.fr;
-  }
-  if (!locationDescription) {
-    locationDescription = node.nameKey.fr;
   }
 
   // Obstacle hint
@@ -326,13 +328,22 @@ function buildSceneDescription(
     : null;
 
   // Visible items (not taken, not hidden)
-  const visibleItems = node.items
+  const staticVisibleItems = node.items
     .filter(item => !item.hidden && isItemAvailable(visitState, item.id))
     .map(item => {
       const def = ITEM_DEFINITIONS[item.id];
       const name = def ? t(def.nameKey) : resolveDisplayName(`item.${item.id}`, item.id);
       return { id: item.id, name };
     });
+
+  // Dropped loot visible in scene description
+  const droppedVisible = (visitState?.droppedItems ?? []).map(id => {
+    const def = ITEM_DEFINITIONS[id];
+    const name = def ? t(def.nameKey) : resolveDisplayName(`item.${id}`, id);
+    return { id, name };
+  });
+
+  const visibleItems = [...staticVisibleItems, ...droppedVisible];
 
   // Environment features
   const visibleFeatures = node.features.map(feat => {
@@ -355,6 +366,7 @@ function buildSceneDescription(
   }));
 
   return {
+    locationName,
     locationDescription,
     obstacleHint,
     visibleItems,

@@ -216,6 +216,111 @@ describe('buildNarrativeContext', () => {
   });
 });
 
+describe('buildNarrativeContext — THROW self-projectile swap', () => {
+  it('THROW + inventory target (no tool) → swaps to toolUsed, target becomes env_throw_target', () => {
+    // Inventory has flashlight; player types "Je jette la lampe"
+    const scene = makeSceneContext({
+      inventory: [
+        {
+          id: 'flashlight',
+          nameKey: 'item.flashlight',
+          aliases: ['lampe'],
+          properties: ['small', 'tangible'],
+          isVirtual: false,
+          source: 'inventory' as const,
+        },
+      ],
+    });
+    const result = makeResult({
+      trace: makeTrace({ parsedVerb: 'THROW', parsedTarget: 'flashlight' }),
+    });
+    const state = makeGameState();
+
+    const ctx = buildNarrativeContext(result, scene, state);
+
+    expect(ctx.toolUsed).not.toBeNull();
+    expect(ctx.toolUsed?.id).toBe('flashlight');
+    expect(ctx.target?.id).toBe('env_throw_target');
+  });
+
+  it('THROW + location item target → no swap (item is in the scene, not inventory)', () => {
+    const scene = makeSceneContext({
+      // terminal_1 is in locationItems (not inventory)
+      inventory: [],
+    });
+    const result = makeResult({
+      trace: makeTrace({ parsedVerb: 'THROW', parsedTarget: 'terminal_1' }),
+    });
+    const ctx = buildNarrativeContext(result, scene, makeGameState());
+
+    // No swap: target stays as terminal_1, no toolUsed
+    expect(ctx.target?.id).toBe('terminal_1');
+    expect(ctx.toolUsed).toBeNull();
+  });
+
+  it('THROW + inventory item + equipped weapon → no swap (toolInfo is not null)', () => {
+    // When a weapon is already equipped, toolInfo is set → guard prevents swap
+    const scene = makeSceneContext({
+      inventory: [
+        {
+          id: 'flashlight',
+          nameKey: 'item.flashlight',
+          aliases: ['lampe'],
+          properties: ['small', 'tangible'],
+          isVirtual: false,
+          source: 'inventory' as const,
+        },
+        {
+          id: 'pistol',
+          nameKey: 'item.pistol',
+          aliases: ['pistolet'],
+          properties: ['weapon', 'ranged'],
+          isVirtual: false,
+          source: 'inventory' as const,
+        },
+      ],
+    });
+    const state = makeGameState({
+      character: {
+        ...makeGameState().character!,
+        inventory: ['flashlight', 'pistol'],
+        equippedWeapon: 'pistol',
+      },
+    });
+    const result = makeResult({
+      trace: makeTrace({ parsedVerb: 'THROW', parsedTarget: 'flashlight' }),
+    });
+
+    const ctx = buildNarrativeContext(result, scene, state);
+
+    // Weapon is equipped → toolInfo is 'pistol' → swap guard prevents reclassification
+    expect(ctx.toolUsed?.id).toBe('pistol');
+    expect(ctx.target?.id).toBe('flashlight');
+  });
+
+  it('non-THROW verb + inventory target → no swap', () => {
+    const scene = makeSceneContext({
+      inventory: [
+        {
+          id: 'flashlight',
+          nameKey: 'item.flashlight',
+          aliases: ['lampe'],
+          properties: ['small', 'tangible'],
+          isVirtual: false,
+          source: 'inventory' as const,
+        },
+      ],
+    });
+    const result = makeResult({
+      trace: makeTrace({ parsedVerb: 'EXAMINE', parsedTarget: 'flashlight' }),
+    });
+    const ctx = buildNarrativeContext(result, scene, makeGameState());
+
+    expect(ctx.target?.id).toBe('flashlight');
+    expect(ctx.toolUsed).toBeNull();
+  });
+});
+
 describe('narrateForTurn', () => {
   beforeEach(() => {
     resetComposer();

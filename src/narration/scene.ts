@@ -10,6 +10,8 @@
 import type { SceneDescription } from '../engine/types';
 import type { Locale, StringKey } from '../i18n/types';
 import { t } from '../i18n/index';
+import { detectGrammar } from './index';
+import { getGrammarEngine } from './templateEngine';
 
 export type SceneIntroMode = 'new_game' | 'enter' | 'revisit';
 
@@ -146,12 +148,17 @@ export function narrateScene(
   // --- Intro sentence ---
   const introPhrase = t(INTRO_KEY[introMode], locale);
 
-  const locationName = sentenceCase(sd.locationDescription);
+  const grammar = getGrammarEngine(locale);
+  const grammarInfo = detectGrammar(sd.locationName);
+  const articlePlusName = grammar.resolveSlot('def', sentenceCase(sd.locationName), grammarInfo);
   const intro: SceneToken[] = [
     { kind: 'text',     value: introPhrase + ' ' },
-    { kind: 'location', value: sentenceCase(locationName) },
+    { kind: 'location', value: articlePlusName },
     { kind: 'text',     value: '.' },
   ];
+  if (sd.locationDescription) {
+    intro.push({ kind: 'text', value: ' ' + sd.locationDescription });
+  }
 
   // --- Features sentence ---
   const featureIntro = t('scene.features_intro', locale);

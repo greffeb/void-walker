@@ -627,7 +627,9 @@ export interface SceneContext {
 
 /** Structured description of the current scene for UI display and narration. */
 export interface SceneDescription {
-  /** Location flavor text (entry or revisit description). */
+  /** Actual location name (from nameKey.fr) — used in intro sentence. */
+  readonly locationName: string;
+  /** Location flavor text (entry or revisit description from skin). */
   readonly locationDescription: string;
   /** Obstacle hint when unresolved, null otherwise. */
   readonly obstacleHint: string | null;

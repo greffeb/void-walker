@@ -19,7 +19,17 @@ export function createVisitState(firstVisited: number): LocationVisitState {
     itemsTaken: [],
     featuresChanged: [],
     obstacleResolved: false,
+    droppedItems: [],
   };
+}
+
+/** Record that the player dropped/threw an item in this location (becomes loot). */
+export function markItemDropped(
+  state: LocationVisitState,
+  itemId: string,
+): LocationVisitState {
+  if (state.droppedItems.includes(itemId)) return state;
+  return { ...state, droppedItems: [...state.droppedItems, itemId] };
 }
 
 /** Record a re-entry to a previously visited location. */

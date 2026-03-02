@@ -76,7 +76,7 @@ const PLURAL_MARKERS = ['s', 'x'];
  * Detect basic grammatical info from a French noun phrase.
  * Not perfect but far better than always defaulting to masculine.
  */
-function detectGrammar(frenchName: string): GrammaticalInfo {
+export function detectGrammar(frenchName: string): GrammaticalInfo {
   if (!frenchName) return DEFAULT_GRAMMAR;
   const lower = frenchName.toLowerCase().trim();
   const firstChar = lower[0] ?? '';
@@ -152,6 +152,27 @@ export function buildNarrativeContext(
   // Build tool info (first equipped weapon or null)
   const toolInfo = buildToolInfo(sceneContext, state);
 
+  // THROW self-projectile: "Je jette la lampe" (no preposition) puts the inventory
+  // item in parsedTarget. Reclassify: it is the thrown projectile, not the aim point.
+  let finalTarget: TargetInfo | null = targetInfo;
+  let finalTool: ItemInfo | null = toolInfo;
+
+  if (
+    verb === 'THROW'
+    && targetInfo !== null
+    && toolInfo === null
+    && sceneContext.inventory.some(i => i.id === trace.parsedTarget)
+  ) {
+    finalTool = { id: targetInfo.id, name: targetInfo.name, grammar: targetInfo.grammar };
+    finalTarget = {
+      id: 'env_throw_target',
+      name: 'cible',
+      type: 'abstract',
+      properties: [],
+      grammar: { gender: 'F', startsWithVowel: false, plural: false },
+    };
+  }
+
   // Build location info
   const locationInfo: LocationInfo = {
     id: sceneContext.locationId ?? '',
@@ -193,9 +214,9 @@ export function buildNarrativeContext(
     verbCategory,
     outcome,
     margin,
-    target: targetInfo,
+    target: finalTarget,
     targetDisposition: 'neutral',
-    toolUsed: toolInfo,
+    toolUsed: finalTool,
     location: locationInfo,
     environmentConditions: envConditions,
     tension: beatToTension(state.currentBeat),

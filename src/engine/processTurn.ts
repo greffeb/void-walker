@@ -38,7 +38,7 @@ import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
-import { createVisitState, markRevisit, markItemTaken } from './backtracking';
+import { createVisitState, markRevisit, markItemTaken, markItemDropped } from './backtracking';
 import { buildVictoryCheckContext } from './game';
 import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
@@ -403,6 +403,21 @@ export function processTurn(
     'IMPROVISE_WEAPON', 'SABOTAGE', 'HACK', 'ELECTRIFY',
   ]);
 
+  // Route combat verbs at visible NPCs into the combat system even before combat starts.
+  // This allows THROW (and other attack verbs) to deal NPC damage via the existing path.
+  if (
+    !current.activeCombat
+    && !scenarioInteractionHandled
+    && current.character !== null
+    && COMBAT_ATTACK_VERBS.has(action.verb)
+    && action.target?.source === 'npc'
+  ) {
+    const combat = buildCombatFromNpc(action.target.id, current);
+    if (combat) {
+      current = { ...current, activeCombat: combat };
+    }
+  }
+
   if (current.activeCombat && current.character !== null && !scenarioInteractionHandled) {
     const combat = current.activeCombat;
     const npc = combat.npc;
@@ -531,6 +546,29 @@ export function processTurn(
     const consequences = buildConsequences(action.verb, action.target, outcome);
     traceConsequences = consequences;
     current = applyConsequences(current, consequences, context, rng);
+
+    // THROW: remove thrown item from inventory and deposit as location loot.
+    // The thrown item is the inventory target (no preposition) or the tool (with preposition).
+    if (action.verb === 'THROW' && current.character && locationId) {
+      const thrownId =
+        action.target?.source === 'inventory' ? action.target.id
+        : action.tool?.source === 'inventory' ? action.tool.id
+        : null;
+
+      if (thrownId && current.character.inventory.includes(thrownId)) {
+        const { inventory } = removeItem(current.character.inventory, thrownId);
+        current = { ...current, character: { ...current.character, inventory } };
+
+        const vs = current.visitedLocations[locationId];
+        const updated = vs
+          ? markItemDropped(vs, thrownId)
+          : markItemDropped(createVisitState(current.turn), thrownId);
+        current = {
+          ...current,
+          visitedLocations: { ...current.visitedLocations, [locationId]: updated },
+        };
+      }
+    }
 
     // Ship Memory: failed actions mark the environment
     if ((outcome === 'failure' || outcome === 'crit_failure') && action.target && locationId) {
@@ -1077,6 +1115,52 @@ function buildCombatFromThreat(
     npcInstanceId: definitionId,
     round: 1,
   };
+}
+
+/**
+ * Build an ActiveCombatState from a specific NPC ID.
+ * Used when a combat verb (e.g. THROW) targets an NPC outside of active combat.
+ */
+function buildCombatFromNpc(npcId: string, state: GameState): ActiveCombatState | null {
+  const def = NPC_DEFINITIONS[npcId];
+  if (!def) return null;
+
+  let hpOverride: number | undefined;
+  if (state.scenario) {
+    for (const node of state.scenario.graph.nodes) {
+      const npcDef = node.npcs?.find(n => n.id === npcId);
+      if (npcDef?.hpOverride) {
+        hpOverride = npcDef.hpOverride;
+        break;
+      }
+    }
+  }
+
+  const maxHp = hpOverride ?? def.hp;
+  const npcState: CombatNPCState = {
+    definitionId: def.id,
+    hp: maxHp,
+    maxHp,
+    attack: def.attack ?? def.damage,
+    defense: def.defense ?? 0,
+    dodgeChance: def.dodgeChance,
+    fleeDC: def.fleeDC ?? 12,
+    aggressionPattern: def.aggressionPattern,
+    weakPoint: def.weakPoint ? {
+      id: def.weakPoint.id,
+      nameKey: def.weakPoint.nameKey,
+      discoverMethod: def.weakPoint.discoverMethod,
+      targetVerbs: def.weakPoint.targetVerbs,
+      targetProperties: def.weakPoint.targetProperties,
+      damageMultiplier: def.weakPoint.damageMultiplier,
+      hintKey: def.weakPoint.hintKey,
+      exploitKey: def.weakPoint.exploitKey,
+    } : null,
+    weakPointDiscovered: false,
+    combatRound: 0,
+  };
+
+  return { npc: npcState, npcInstanceId: npcId, round: 1 };
 }
 
 function buildResult(
