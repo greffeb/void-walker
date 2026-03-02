@@ -353,10 +353,9 @@ function selectConsequenceNarrative(ctx: NarrativeContext, locale: Locale): stri
   const candidates = CONSEQUENCE_SNIPPETS.filter(s => s.stateChangeType === changeType);
 
   if (candidates.length === 0) {
-    // Generic consequence
-    const allCandidates = CONSEQUENCE_SNIPPETS;
-    if (allCandidates.length === 0) return null;
-    const selected = composerMemory.select(allCandidates, 'consequence');
+    const genericCandidates = CONSEQUENCE_SNIPPETS.filter(s => s.stateChangeType === 'generic');
+    if (genericCandidates.length === 0) return null;
+    const selected = composerMemory.select(genericCandidates, 'consequence');
     return selected ? (locale === 'fr' ? selected.text.fr : selected.text.en) : null;
   }
 

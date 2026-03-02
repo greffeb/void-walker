@@ -6,7 +6,7 @@
 // the engine layer free of narration imports (dependency flows downward).
 // ---------------------------------------------------------------------------
 
-import type { TurnResult, SceneContext, SceneDescription, GameState } from '../engine/types';
+import type { TurnResult, SceneContext, SceneDescription, GameState, ConsequenceType } from '../engine/types';
 import type { VerbId } from '../engine/verbs';
 import type { Locale, StringKey } from '../i18n/types';
 import type { GrammaticalInfo } from '../i18n/grammar/interface';
@@ -107,6 +107,22 @@ function detectGrammar(frenchName: string): GrammaticalInfo {
   return { gender, startsWithVowel, plural };
 }
 
+// === CONSEQUENCE TYPE MAPPING ===
+
+/** Translate engine ConsequenceType to narration stateChangeType vocabulary. */
+function mapConsequenceType(type: ConsequenceType): string {
+  switch (type) {
+    case 'damage':           return 'hp_loss';
+    case 'heal':             return 'hp_gain';
+    case 'condition_add':    return 'condition_gained';
+    case 'condition_remove': return 'condition_removed';
+    case 'inventory_add':    return 'item_gained';
+    case 'inventory_remove': return 'item_lost';
+    case 'item_break':       return 'item_broken';
+    default:                 return 'generic';
+  }
+}
+
 // === CONTEXT BUILDER ===
 
 /**
@@ -153,7 +169,7 @@ export function buildNarrativeContext(
 
   // Build state changes from consequence trace
   const stateChanges: StateChange[] = trace.consequenceDetails.map((desc, i) => ({
-    type: trace.consequenceTypes[i] ?? 'generic',
+    type: mapConsequenceType(trace.consequenceTypes[i] ?? 'damage'),
     description: desc,
   }));
 

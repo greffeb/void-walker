@@ -189,7 +189,7 @@ describe('buildNarrativeContext', () => {
   it('builds state changes from consequence trace', () => {
     const result = makeResult({
       trace: makeTrace({
-        consequenceTypes: ['hp_loss'],
+        consequenceTypes: ['damage'],
         consequenceDetails: ['Vous perdez 3 PV'],
       }),
     });
