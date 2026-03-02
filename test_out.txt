@@ -1,0 +1,5 @@
+Testing types with tsc and vue-tsc is an experimental feature.
+Breaking changes might not follow SemVer, please pin Vitest's version when using it.
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/dev/void_walker[39m
+

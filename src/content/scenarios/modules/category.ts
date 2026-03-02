@@ -274,7 +274,7 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
           examineResult: { fr: 'Panneau de distribution énergétique principal de la section. Deux circuits prioritaires : sas (évacuation) et infirmerie (survie du blessé). L\'énergie disponible ne suffit que pour l\'un des deux.', en: '' },
           interactions: [
             {
-              trigger: { verb: ['HACK', 'IMPROVISE'] as VerbId[], stat: 'INT', dc: 16 },
+              trigger: { verb: ['HACK', 'IMPROVISE_TOOL'] as VerbId[], stat: 'INT', dc: 16 },
               onSuccess: {
                 newState: 'repaired',
                 flagSet: 'survivor_saved',
@@ -317,9 +317,9 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
     targetId: 'power_distribution_panel',
     description: ls('Le panneau de distribution est endommagé. Des circuits prioritaires nécessitent votre attention.'),
     paths: [
-      { id: 'reroute_to_doors', stat: 'INT', dc: 11, description: ls('Réacheminer vers les portes — votre chemin s\'ouvre'), verbs: ['reroute', 'use', 'repair', 'hack'] },
-      { id: 'reroute_to_medbay', stat: 'INT', dc: 11, description: ls('Réacheminer vers l\'infirmerie — le survivant est sauvé'), verbs: ['reroute', 'use', 'repair', 'hack'] },
-      { id: 'override_both', stat: 'INT', dc: 16, description: ls('Trouver un compromis instable (très difficile)'), verbs: ['hack', 'override', 'improvise'] },
+      { id: 'reroute_to_doors', stat: 'INT', dc: 11, description: ls('Réacheminer vers les portes — votre chemin s\'ouvre'), verbs: ['repair', 'use', 'hack'] },
+      { id: 'reroute_to_medbay', stat: 'INT', dc: 11, description: ls('Réacheminer vers l\'infirmerie — le survivant est sauvé'), verbs: ['repair', 'use', 'hack'] },
+      { id: 'override_both', stat: 'INT', dc: 16, description: ls('Trouver un compromis instable (très difficile)'), verbs: ['hack', 'override', 'improvise_tool'] },
     ],
     failsafeType: 'alternate_route',
   },
