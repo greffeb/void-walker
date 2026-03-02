@@ -645,8 +645,8 @@ const director_terminal: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: 'Le terminal personnel de Vasquez. L\'écran de veille montre le logo de la station — un phare dans les étoiles. Ironique.',
-      en: 'Vasquez\'s personal terminal. Screensaver shows the station logo.',
+      fr: 'Le terminal personnel de la Directrice Vasquez. L\'écran de veille affiche le logo de la station — serein, officiel. Mais la messagerie indique 47 messages non lus, tous marqués CONFIDENTIEL HELIOX. Il y a des choses à lire ici.',
+      en: 'Director Vasquez\'s personal terminal. Screensaver shows the station logo — serene, official. But the inbox shows 47 unread messages, all marked HELIOX CONFIDENTIAL.',
     },
     broken: {
       fr: 'Terminal détruit. Quelqu\'un — ou quelque chose — a voulu effacer les preuves avant vous.',

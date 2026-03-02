@@ -11,6 +11,8 @@ import type { VerbId } from '../engine/verbs';
 import type { Locale, StringKey } from '../i18n/types';
 import type { GrammaticalInfo } from '../i18n/grammar/interface';
 import type { LocationNode } from '../engine/scenario';
+import { isEnrichedFeature } from '../engine/scenario';
+import { getFeatureState } from '../engine/featureState';
 import type {
   NarrativeContext, NarrativeSettings, Outcome, VerbCategory,
   TargetInfo, ItemInfo, NpcInfo, LocationInfo, StateChange,
@@ -500,10 +502,19 @@ function getRevealContent(
       return item.examineResult[localeKey] || item.examineResult.fr;
     }
 
-    // Check features
+    // Check features — per-state description first, examineResult as fallback
     const feature = node.features.find(f => f.id === targetId);
-    if (feature?.examineResult) {
-      return feature.examineResult[localeKey] || feature.examineResult.fr;
+    if (feature) {
+      if (isEnrichedFeature(feature) && feature.descriptions) {
+        const currentState = getFeatureState(state, targetId, feature);
+        const stateDesc = feature.descriptions[currentState];
+        if (stateDesc) {
+          return stateDesc[localeKey] || stateDesc.fr;
+        }
+      }
+      if (feature.examineResult) {
+        return feature.examineResult[localeKey] || feature.examineResult.fr;
+      }
     }
 
     // Check obstacle target
