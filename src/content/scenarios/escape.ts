@@ -243,15 +243,61 @@ const status_terminal: ScenarioFeatureDefinition = {
       en: 'The screen flickers between data fragments: "CONTAINMENT ALERT — LEVEL 5"... "Crew: 0/47 active"... "Life support: CRITICAL".',
     },
     active: {
-      fr: 'Le terminal fonctionne de nouveau. Les données défilent : diagnostics système, journaux d\'alertes, carte du vaisseau partiellement corrompue.',
-      en: 'The terminal is working again. Data scrolls: system diagnostics, alert logs, partially corrupted ship map.',
+      fr: 'Le terminal fonctionne — l\'écran affiche le plan du vaisseau et les rapports système. '
+        + 'Le diagnostic montre 47 capsules cryogéniques : 46 en défaillance critique (alimentation coupée il y a 6 mois), '
+        + '1 éjectée en urgence (la vôtre). Le support vie est en mode minimal. '
+        + 'Le pont des pods d\'évasion est marqué au niveau inférieur — '
+        + 'mais un point de contrôle de sécurité bloque l\'accès.',
+      en: 'Terminal operational — ship layout and system reports on screen. '
+        + '47 cryopods: 46 in critical failure, 1 emergency-ejected (yours). '
+        + 'Escape pod deck marked on lower level — security checkpoint blocks access.',
     },
   },
   readableContent: {
-    fr: '[ JOURNAL SYSTÈME — ENTRÉE AUTOMATIQUE ]\nJ+0h : Coupure réacteur principal. Bascule sur auxiliaire.\nJ+2h : Brèche secteur 4. Équipe d\'endiguement dépêchée.\nJ+3h : Contact perdu avec équipe d\'endiguement.\nJ+4h : ALERTE CONFINEMENT NIVEAU 5 — toutes sections.\nJ+6h : Support vie — basculement mode dégradé.\nJ+168h (7j) : Dernière activité de l\'équipage détectée.\n[ FIN DES ENTRÉES ]',
-    en: '[ SYSTEM LOG — AUTO ENTRY ]\nT+0h: Main reactor failure. Switched to auxiliary.\nT+2h: Breach in sector 4. Containment team dispatched.\nT+3h: Lost contact with containment team.\nT+4h: CONTAINMENT ALERT LEVEL 5 — all sections.\nT+6h: Life support — degraded mode.\nT+168h (7d): Last crew activity detected.\n[ END OF ENTRIES ]',
+    fr: '[ RAPPORT SYSTÈME — USS MERIDIAN ]\n\n'
+      + 'CAPSULES CRYOGÉNIQUES : 46/47 en défaillance (coupure alimentation — 6 mois)\n'
+      + 'CAPSULE #17 (VOTRE CAPSULE) : éjection d\'urgence il y a 4h03\n'
+      + 'ÉQUIPAGE ACTIF : 0/47\n'
+      + 'SUPPORT VIE : MODE MINIMAL (37% capacité)\n'
+      + 'CONFINEMENT : NIVEAU 5 — ACTIF DEPUIS 6 MOIS\n'
+      + 'PONT INFÉRIEUR : PODS D\'ÉVASION (accès via point de contrôle — badge niv. 3 requis)\n\n'
+      + '[ DERNIÈRE ENTRÉE AUTOMATIQUE ]\n'
+      + '2247-09-15 03:41 — Alerte biologique niveau 5. Protocole ORACLE activé.\n'
+      + '2247-09-15 04:12 — Sections 4-7 scellées par le Capitaine Reeves.\n'
+      + '2247-09-15 04:58 — Perte de contact avec toutes les équipes de confinement.\n'
+      + '2247-09-15 05:30 — Support vie basculé en mode minimal automatique.\n'
+      + '[ Plus aucune entrée depuis 6 mois ]',
+    en: '[ SYSTEM REPORT — USS MERIDIAN ]\n\n'
+      + 'CRYOPODS: 46/47 critical failure (power cut — 6 months)\n'
+      + 'POD #17 (YOURS): emergency ejection 4h03 ago\n'
+      + 'ACTIVE CREW: 0/47\n'
+      + 'LIFE SUPPORT: MINIMAL MODE (37% capacity)\n'
+      + 'CONTAINMENT: LEVEL 5 — ACTIVE 6 MONTHS\n'
+      + 'LOWER DECK: ESCAPE PODS (access via checkpoint — level 3 badge required)\n\n'
+      + '[ LAST AUTO ENTRY ]\n'
+      + '2247-09-15 03:41 — Bio alert level 5. ORACLE protocol activated.\n'
+      + '2247-09-15 04:12 — Sections 4-7 sealed by Captain Reeves.\n'
+      + '2247-09-15 04:58 — Contact lost with all containment teams.\n'
+      + '2247-09-15 05:30 — Life support switched to auto minimal mode.\n'
+      + '[ No further entries for 6 months ]',
   },
   interactions: [
+    // READ active state — richer report narrative
+    {
+      trigger: { verb: ['READ', 'EXAMINE', 'SCAN'], requiredState: 'active', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: 'Le rapport système confirme le pire. 47 membres d\'équipage, aucun actif. '
+            + 'La dernière activité humaine remonte à 6 mois — une cascade d\'alertes biologiques, '
+            + 'des sections scellées, puis le silence. Le plan du vaisseau indique les pods d\'évasion '
+            + 'au pont inférieur, derrière un point de contrôle de sécurité.',
+          en: 'The system report confirms the worst. 47 crew, none active. Last human activity: 6 months ago — '
+            + 'a cascade of biological alerts, sealed sections, then silence. '
+            + 'The ship map shows escape pods on the lower deck, behind a security checkpoint.',
+        },
+        flagSet: 'terminal_read',
+      },
+    },
     // READ — auto-success, display content
     {
       trigger: { verb: ['READ', 'EXAMINE', 'HACK', 'SCAN'], dc: null },
@@ -302,12 +348,16 @@ const emergency_locker: ScenarioFeatureDefinition = {
       en: 'Standard emergency locker. The magnetic lock is active — a blinking red light confirms it. The lock seems weakened by the ship\'s vibrations. The right tool, brute force, or some ingenuity could break it open.',
     },
     open: {
-      fr: 'Le casier d\'urgence est ouvert. L\'intérieur est visible — éclairé par la faible lueur de l\'éclairage de secours.',
-      en: 'The emergency locker is open. The interior is visible — lit by the faint glow of emergency lighting.',
+      fr: 'Le casier d\'urgence est ouvert. L\'éclairage de secours éclaire l\'intérieur : '
+        + 'deux emplacements moulés — l\'un pour un badge d\'accès, l\'autre pour une bonbonne d\'oxygène. '
+        + 'L\'étiquette "URGENCE — NE PAS RETIRER SAUF ÉVACUATION" est à moitié décollée.',
+      en: 'Emergency locker open. Two molded slots inside — one for an access badge, one for an oxygen canister. '
+        + 'The label "EMERGENCY — DO NOT REMOVE EXCEPT DURING EVACUATION" is half peeled off.',
     },
     empty: {
-      fr: 'Le casier d\'urgence, grand ouvert. Il est vide maintenant.',
-      en: 'The emergency locker, wide open. It\'s empty now.',
+      fr: 'Le casier d\'urgence, grand ouvert et vide. Les emplacements moulés gardent la forme '
+        + 'du badge et de la bonbonne qui s\'y trouvaient. Plus rien d\'utile ici.',
+      en: 'Emergency locker, wide open and empty. The molded slots retain the shape of what was inside. Nothing useful here.',
     },
   },
   interactions: [
@@ -487,12 +537,21 @@ const bulkhead_door: ScenarioFeatureDefinition = {
   },
   descriptions: {
     locked: {
-      fr: 'Porte blindée de 15 centimètres d\'épaisseur. Verrouillage magnétique actif. Aucune force brute ne l\'ouvrira directement — le panneau de sécurité contrôle les verrous. Le conduit de ventilation à côté pourrait offrir un passage alternatif.',
-      en: 'Fifteen-centimeter thick armored door. Magnetic lock active. No brute force will open it directly — the security panel controls the locks. The vent duct nearby might offer an alternate passage.',
+      fr: 'Cloison blindée de sécurité. Épaisse d\'au moins 15 centimètres d\'acier renforcé. '
+        + 'Les verrous magnétiques sont engagés — le voyant du panneau adjacent indique '
+        + 'qu\'un badge de niveau 3 ou supérieur est requis. '
+        + 'Des griffures profondes marquent le métal côté couloir. '
+        + 'Quelque chose a essayé de passer. Quelque chose de gros.',
+      en: 'Armored security bulkhead. 15cm of reinforced steel. Magnetic locks engaged — '
+        + 'level 3+ badge required. Deep scratches on the corridor side. '
+        + 'Something tried to get through. Something large.',
     },
     open: {
-      fr: 'La porte blindée est ouverte. Les verrous magnétiques sont rétractés dans le cadre. Au-delà, le couloir mène vers les quartiers de l\'équipage.',
-      en: 'The bulkhead is open. Magnetic locks retracted into the frame. Beyond, the corridor leads to crew quarters.',
+      fr: 'La cloison blindée est ouverte — les verrous magnétiques sont rétractés. '
+        + 'Le couloir au-delà s\'enfonce dans l\'obscurité. L\'air qui en provient est '
+        + 'plus froid, plus sec. Un silence pesant règne de l\'autre côté.',
+      en: 'Bulkhead open — magnetic locks retracted. The corridor beyond stretches into darkness. '
+        + 'Colder, drier air. Heavy silence on the other side.',
     },
   },
   interactions: [
@@ -555,12 +614,23 @@ const vent_cover: ScenarioFeatureDefinition = {
   },
   descriptions: {
     intact: {
-      fr: 'Grille de ventilation standard. Les vis sont rouillées mais le passage derrière semble assez large pour s\'y glisser. Un courant d\'air froid en sort — il mène quelque part de l\'autre côté de la cloison.',
-      en: 'Standard ventilation grate. Rusted screws, but the passage behind seems wide enough to squeeze through. Cold air flows from it — leads somewhere past the bulkhead.',
+      fr: 'Grille de ventilation standard. Les vis sont oxydées — '
+        + 'le conduit derrière semble assez large pour s\'y faufiler. '
+        + 'Un courant d\'air froid en sort — il mène quelque part de l\'autre côté de la cloison. '
+        + 'Une alternative au point de contrôle de sécurité, pour ceux qui n\'ont pas peur '
+        + 'des espaces confinés.',
+      en: 'Standard vent cover. Oxidized screws — the duct behind looks wide enough to crawl through. '
+        + 'Cold air flows from it — leads past the bulkhead. '
+        + 'An alternative to the security checkpoint, for those unafraid of tight spaces.',
     },
     open: {
-      fr: 'La grille de ventilation a été retirée. Le conduit sombre s\'ouvre béant — assez large pour ramper, pas pour se tenir debout.',
-      en: 'The vent cover has been removed. The dark duct gapes open — wide enough to crawl, not to stand.',
+      fr: 'La grille de ventilation est ouverte. Le conduit s\'enfonce dans l\'obscurité — '
+        + 'étroit, poussiéreux, mais praticable. Des traces de griffures marquent les parois '
+        + 'du conduit. Vous n\'êtes pas le premier à passer par là. '
+        + 'Le passage mène de l\'autre côté de la cloison blindée.',
+      en: 'Vent cover removed. The duct stretches into darkness — narrow, dusty, but passable. '
+        + 'Scratch marks on the duct walls. You\'re not the first to come through here. '
+        + 'The passage leads past the armored bulkhead.',
     },
   },
   interactions: [
@@ -615,28 +685,6 @@ const vent_cover: ScenarioFeatureDefinition = {
         consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
     },
-    // CLIMB (AGI DC 10, if already open) — traverse the duct
-    {
-      trigger: {
-        verb: 'CLIMB',
-        requiredState: 'open',
-        stat: 'AGI',
-        dc: 10,
-      },
-      onSuccess: {
-        narrative: {
-          fr: 'Vous rampez dans le conduit de ventilation. Sombre. Étroit. Les parois métalliques résonnent sous vos mouvements. Après une dizaine de mètres, vous émergez de l\'autre côté de la cloison.',
-          en: 'You crawl through the vent duct. Dark. Tight. Metal walls echo your movements. After ten meters, you emerge on the other side of the bulkhead.',
-        },
-      },
-      onFailure: {
-        narrative: {
-          fr: 'Le conduit se rétrécit. Vous restez coincé un instant — la panique monte — avant de parvenir à reculer.',
-          en: 'The duct narrows. You get stuck for a moment — panic rises — before managing to back out.',
-        },
-        consequences: [{ type: 'condition_add', conditionId: 'terrified' }],
-      },
-    },
     // USE standard_toolkit (auto-success)
     {
       trigger: {
@@ -672,19 +720,61 @@ const captain_terminal: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: 'Le terminal du capitaine. L\'écran affiche le logo "PROJET ORACLE" en rouge — fichiers classifiés, rapports d\'incidents, journal personnel. Quelqu\'un a essayé d\'effacer les données, mais le processus a été interrompu.',
-      en: 'The captain\'s terminal. The screen shows the "PROJECT ORACLE" logo in red — classified files, incident reports, personal log. Someone tried to erase the data, but the process was interrupted.',
+      fr: 'Le terminal personnel du Capitaine Reeves. L\'écran affiche plusieurs entrées de journal — '
+        + 'datées des dernières 48 heures avant la catastrophe. Les entrées deviennent de plus en plus '
+        + 'frénétiques. La dernière mentionne un "Projet ORACLE" et un dossier classifié. '
+        + 'Le datapad du capitaine repose à côté, séparé du terminal.',
+      en: 'Captain Reeves\' personal terminal. Multiple log entries from the last 48 hours before the disaster. '
+        + 'The entries grow increasingly frantic. The last mentions a "Project ORACLE" and a classified file. '
+        + 'The captain\'s datapad rests beside it, separate from the terminal.',
     },
     searched: {
-      fr: 'Le terminal du capitaine, fouillé. Tous les fichiers accessibles ont été lus. Un tiroir sous la console est entrouvert.',
-      en: 'The captain\'s terminal, searched. All accessible files have been read. A drawer under the console is ajar.',
+      fr: 'Le terminal du Capitaine Reeves, fouillé. Les tiroirs ont été ouverts — '
+        + 'une petite clé magnétique a été trouvée sous des papiers froissés. '
+        + 'Les entrées de journal sont toujours lisibles à l\'écran. '
+        + 'Le Projet ORACLE hante chaque ligne.',
+      en: 'Captain Reeves\' terminal, searched. A small magnetic key found under crumpled papers. '
+        + 'The journal entries are still readable on screen. Project ORACLE haunts every line.',
     },
   },
   readableContent: {
-    fr: '[ PROJET ORACLE — DOSSIER CAPITAINE REEVES ]\n\nLe spécimen Alpha a été récupéré sur le site de fouilles d\'Éridani-IV.\nOrganisme unique — capacités de régénération cellulaire sans précédent.\nLe consortium veut un prototype d\'arme biologique avant la fin du trimestre.\n\nJ\'ai exprimé mes réserves. On m\'a dit de me taire.\n\n[ DERNIER RAPPORT ]\nLe spécimen s\'est libéré. Trois équipes de confinement éliminées en 6 heures.\nJ\'ai scellé les sections 4 à 7. Ça ne suffira pas.\nSi quelqu\'un lit ceci : fuyez. Ne tentez pas de la combattre. Fuyez.',
-    en: '[ PROJECT ORACLE — CAPTAIN REEVES FILE ]\n\nSpecimen Alpha was recovered from the Eridani-IV dig site.\nUnique organism — unprecedented cellular regeneration.\nThe consortium wants a bioweapon prototype by end of quarter.\n\nI raised concerns. Was told to shut up.\n\n[ FINAL REPORT ]\nThe specimen broke free. Three containment teams eliminated in 6 hours.\nI sealed sections 4 through 7. It won\'t be enough.\nIf anyone reads this: run. Don\'t try to fight it. Run.',
+    fr: '[ TERMINAL PERSONNEL — CAPITAINE REEVES ]\n\n'
+      + 'ENTRÉE 2247-09-14 : Projet ORACLE — Le spécimen Alpha a franchi le confinement de niveau 3. '
+      + 'Les biologistes disent que c\'est "prévu dans le protocole d\'adaptation". '
+      + 'Je n\'y crois plus. J\'ai ordonné le doublement des gardes.\n\n'
+      + 'ENTRÉE 2247-09-15 01:00 : L\'équipe de nuit ne répond plus. Sections 4 et 5 silencieuses. '
+      + 'Je vais sceller manuellement. Si ça ne suffit pas, les pods sont notre dernier recours.\n\n'
+      + 'ENTRÉE 2247-09-15 03:30 : C\'est une arme. Le spécimen Alpha n\'est pas un "sujet d\'étude" — '
+      + 'c\'est une arme biologique commandée par le Commandement. Dossier classifié ORACLE trouvé '
+      + 'dans les fichiers du Dr. Nakamura. Nous étions des cobayes. Tous.\n\n'
+      + 'ENTRÉE 2247-09-15 04:45 : [ENTRÉE FINALE — voir datapad]',
+    en: '[ PERSONAL TERMINAL — CAPTAIN REEVES ]\n\n'
+      + 'ENTRY 2247-09-14: Project ORACLE — Specimen Alpha breached level 3 containment. '
+      + 'Biologists say it\'s "expected in the adaptation protocol". I don\'t believe them anymore. '
+      + 'I ordered double guards.\n\n'
+      + 'ENTRY 2247-09-15 01:00: Night team isn\'t responding. Sections 4 and 5 silent. '
+      + 'Going to seal manually. If that\'s not enough, the pods are our last resort.\n\n'
+      + 'ENTRY 2247-09-15 03:30: It\'s a weapon. Specimen Alpha is not a "study subject" — '
+      + 'it\'s a bioweapon commissioned by Command. Classified ORACLE file found in Dr. Nakamura\'s files. '
+      + 'We were test subjects. All of us.\n\n'
+      + 'ENTRY 2247-09-15 04:45: [FINAL ENTRY — see datapad]',
   },
   interactions: [
+    // READ searched state — re-read ORACLE journal after finding EVA key
+    {
+      trigger: { verb: ['READ', 'EXAMINE', 'SCAN'], requiredState: 'searched', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: 'Vous relisez les entrées du terminal. Reeves avait compris : '
+            + 'le spécimen Alpha n\'était pas un sujet d\'étude mais une arme biologique '
+            + 'commandée par le Commandement. Projet ORACLE. L\'équipage entier servait de terrain de test. '
+            + 'La clé EVA que vous avez trouvée était son plan de secours.',
+          en: 'You re-read the terminal entries. Reeves had figured it out: Project ORACLE was a weapons program. '
+            + 'The entire crew was a test field. The EVA key you found was his backup plan.',
+        },
+        flagSet: 'oracle_revealed',
+      },
+    },
     // READ (auto-success) — read ORACLE files
     {
       trigger: { verb: ['READ', 'EXAMINE', 'SCAN'], dc: null },
@@ -760,12 +850,16 @@ const EVA_suit_locker: ScenarioFeatureDefinition = {
       en: 'EVA suit locker — locked. The lock takes a specific magnetic key. Through the glass, you can see an intact space suit.',
     },
     open: {
-      fr: 'Le casier EVA est ouvert. La combinaison spatiale est accessible.',
-      en: 'The EVA locker is open. The space suit is accessible.',
+      fr: 'Le casier EVA est ouvert. La combinaison spatiale blanche repose sur son support, '
+        + 'casque intégré et réserve d\'oxygène en place. L\'étiquette indique : '
+        + '"Autonomie 30 min — Pression : 1 ATM — Température : -40°C à +120°C".',
+      en: 'EVA locker open. White space suit on its mount, helmet and O₂ reserve in place. '
+        + 'Label reads: "Autonomy 30 min — Pressure: 1 ATM — Temp: -40°C to +120°C".',
     },
     empty: {
-      fr: 'Le casier EVA, vide. La combinaison a été prise.',
-      en: 'The EVA locker, empty. The suit has been taken.',
+      fr: 'Le casier EVA, vide. Le support de combinaison nu, les attaches ouvertes. '
+        + 'Des fragments de vitre craquent sous vos pieds si vous avez forcé l\'ouverture.',
+      en: 'EVA locker, empty. Bare suit mount, open clasps. Glass fragments crunch underfoot if you forced it open.',
     },
   },
   interactions: [
@@ -838,8 +932,12 @@ const life_support_panel: ScenarioFeatureDefinition = {
       en: 'The life support control panel is damaged — deep scratches tore out cables. The screen flickers: "O₂ SYSTEM — CRITICAL FAILURE". Repair seems possible but complex.',
     },
     repaired: {
-      fr: 'Le panneau de support vie a été réparé. L\'écran affiche "O₂ — STABILISÉ". Le système fonctionne en mode dégradé mais tient.',
-      en: 'The life support panel has been repaired. The screen shows "O₂ — STABILIZED". The system runs in degraded mode but holds.',
+      fr: 'Le panneau de support vie a été réparé. L\'écran affiche : '
+        + '"O₂ — STABILISÉ — 43% CAPACITÉ". Le ventilateur tourne, l\'air circule. '
+        + 'Ce n\'est pas idéal, mais la chute d\'oxygène est stoppée. '
+        + 'Vous avez gagné un répit précieux.',
+      en: 'Life support panel repaired. Screen shows "O₂ — STABILIZED — 43% CAPACITY". '
+        + 'The drop has stopped. You\'ve bought precious time.',
     },
   },
   interactions: [
@@ -864,6 +962,65 @@ const life_support_panel: ScenarioFeatureDefinition = {
         narrative: {
           fr: 'Un câble mal rebranché — étincelles. Le système crashe et redémarre. Toujours en défaillance. Vous toussez dans l\'air qui s\'appauvrit.',
           en: 'A misconnected cable — sparks. The system crashes and restarts. Still failing. You cough in the thinning air.',
+        },
+        consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+      },
+    },
+    // HACK / BYPASS (INT DC 12) — partial fix
+    {
+      trigger: {
+        verb: ['HACK', 'UNLOCK'],
+        requiredState: 'damaged',
+        stat: 'INT',
+        dc: 12,
+      },
+      onSuccess: {
+        newState: 'repaired',
+        narrative: {
+          fr: 'Vous ne pouvez pas réparer les câbles arrachés, mais vous pouvez contourner le circuit endommagé. '
+            + 'Le système redémarre en mode dégradé — 30% de capacité au lieu de 43%. '
+            + 'Mieux que rien. La chute d\'O₂ ralentit considérablement.',
+          en: 'You can\'t fix the torn cables, but you can bypass the damaged circuit. '
+            + 'The system restarts in degraded mode — 30% capacity instead of 43%. Better than nothing.',
+        },
+        flagSet: 'o2_stabilized',
+        removeProperties: ['broken'],
+      },
+      onFailure: {
+        narrative: {
+          fr: 'Le circuit est trop endommagé pour un bypass propre. Des étincelles jaillissent. '
+            + 'Il faudra une vraie réparation.',
+          en: 'The circuit is too damaged for a clean bypass. Sparks fly. Real repairs needed.',
+        },
+      },
+    },
+    // FORCE_OPEN / REPAIR (FOR DC 13) — brute reconnection
+    {
+      trigger: {
+        verb: ['FORCE_OPEN', 'REPAIR'],
+        requiredState: 'damaged',
+        stat: 'FOR',
+        dc: 13,
+      },
+      onSuccess: {
+        newState: 'repaired',
+        narrative: {
+          fr: 'Vous arrachez les câbles morts, dénudez les fils avec les dents, '
+            + 'et reconnectez le circuit à mains nues. Un arc électrique vous mord les doigts — '
+            + 'mais le ventilateur redémarre. L\'air afflue. Méthode brute, résultat efficace.',
+          en: 'You rip dead cables, strip wires with your teeth, reconnect the circuit bare-handed. '
+            + 'An electric arc bites your fingers — but the fan restarts. Air flows. Brutal method, effective result.',
+        },
+        flagSet: 'o2_stabilized',
+        removeProperties: ['broken'],
+        consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+      },
+      onFailure: {
+        narrative: {
+          fr: 'Les câbles résistent. Un choc électrique vous repousse — '
+            + 'le circuit de support vie est plus complexe qu\'il n\'y paraît.',
+          en: 'The cables resist. An electric shock pushes you back — '
+            + 'the life support circuit is more complex than it looks.',
         },
         consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
@@ -934,8 +1091,11 @@ const power_conduit: ScenarioFeatureDefinition = {
       en: 'Main power conduit — ripped open. Cables dangle and sparks fly intermittently. A metal bar looks salvageable from the debris.',
     },
     broken: {
-      fr: 'Le conduit est complètement détruit. Les câbles sont morts — plus d\'étincelles. La barre métallique a été arrachée.',
-      en: 'The conduit is completely destroyed. Cables are dead — no more sparks. The metal bar has been pulled out.',
+      fr: 'Le conduit est complètement détruit. Les câbles pendent, inertes — '
+        + 'plus d\'étincelles, plus de courant. L\'espace où la barre métallique était coincée '
+        + 'est vide. Le pont inférieur n\'a plus d\'alimentation de secours.',
+      en: 'Conduit completely destroyed. Dead cables hang — no sparks, no current. '
+        + 'The space where the metal bar was jammed is empty. The lower deck has no backup power.',
     },
   },
   interactions: [
@@ -1060,6 +1220,105 @@ const escape_pod_hatch: ScenarioFeatureDefinition = {
         revealsExit: 'resolution',
       },
     },
+    // TALK (CHA DC 14) — distract the creature
+    {
+      trigger: {
+        verb: 'TALK',
+        requiredState: 'locked',
+        stat: 'CHA',
+        dc: 14,
+      },
+      onSuccess: {
+        narrative: {
+          fr: 'Vous parlez. Pas des mots — des sons. Graves, réguliers, comme un battement de cœur. '
+            + 'La créature s\'immobilise. Ses yeux trop humains vous fixent avec une curiosité '
+            + 'terrifiante. Un instant de flottement — puis elle recule d\'un pas. '
+            + 'Juste assez pour que vous atteigniez l\'écoutille. '
+            + 'Elle ne vous laisse pas partir — elle vous observe partir.',
+          en: 'You speak. Not words — sounds. Low, rhythmic, like a heartbeat. '
+            + 'The creature freezes. Its too-human eyes watch with terrifying curiosity. '
+            + 'It steps back — just enough for you to reach the hatch.',
+        },
+        flagSet: 'creature_distracted',
+      },
+      onFailure: {
+        narrative: {
+          fr: 'La créature siffle et avance d\'un pas. Votre voix ne fait que l\'agiter. '
+            + 'Communiquer avec une arme biologique programmée pour tuer — '
+            + 'mauvaise idée, en fin de compte.',
+          en: 'The creature hisses and advances. Your voice only agitates it. '
+            + 'Communicating with a bioweapon built to kill — bad idea, in the end.',
+        },
+        consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+      },
+    },
+    // OPEN with creature_distracted (INT DC 8 — reduced because creature isn't interfering)
+    {
+      trigger: {
+        verb: ['OPEN', 'HACK', 'ACTIVATE'],
+        requiredState: 'locked',
+        requiredFlag: 'creature_distracted',
+        stat: 'INT',
+        dc: 8,
+      },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: 'La créature vous observe, immobile. Vos doigts tremblent sur le lecteur — '
+            + 'mais cette fois, pas d\'interférence. Le firmware cède. L\'écoutille s\'ouvre. '
+            + 'Vous ne regardez pas la créature en entrant dans le pod.',
+          en: 'The creature watches, motionless. Your fingers tremble on the reader — '
+            + 'but this time, no interference. The firmware yields. The hatch opens. '
+            + 'You don\'t look at the creature as you enter the pod.',
+        },
+        flagSet: 'pod_hatch_open',
+        removeProperties: ['locked', 'sealed'],
+        addProperties: ['open'],
+        revealsExit: 'resolution',
+      },
+    },
+    // EXAMINE (PER DC 12) — spot the maintenance bypass
+    {
+      trigger: {
+        verb: 'EXAMINE',
+        requiredState: 'locked',
+        stat: 'PER',
+        dc: 12,
+      },
+      onSuccess: {
+        narrative: {
+          fr: 'En examinant l\'écoutille de près, vous remarquez que le panneau de maintenance latéral '
+            + 'n\'est pas soudé — juste clipsé. Derrière, les câbles du mécanisme de verrouillage '
+            + 'sont accessibles. Un court-circuit bien placé suffirait.',
+          en: 'The side maintenance panel isn\'t welded — just clipped. '
+            + 'Behind it, the locking mechanism cables are accessible. A targeted short-circuit would do it.',
+        },
+        flagSet: 'hatch_bypass_found',
+      },
+    },
+    // OPEN with hatch_bypass_found (INT DC 6 — very easy once the bypass is spotted)
+    {
+      trigger: {
+        verb: ['OPEN', 'HACK', 'ACTIVATE'],
+        requiredState: 'locked',
+        requiredFlag: 'hatch_bypass_found',
+        stat: 'INT',
+        dc: 6,
+      },
+      onSuccess: {
+        newState: 'open',
+        narrative: {
+          fr: 'Le panneau de maintenance se déclipse. Deux fils, un court-circuit — '
+            + 'l\'écoutille s\'ouvre en silence. Pas besoin de badge quand on sait regarder.',
+          en: 'Maintenance panel unclips. Two wires, one short — the hatch opens silently. '
+            + 'No badge needed when you know where to look.',
+        },
+        flagSet: 'pod_hatch_open',
+        removeProperties: ['locked', 'sealed'],
+        addProperties: ['open'],
+        revealsExit: 'resolution',
+      },
+    },
   ],
 };
 
@@ -1107,6 +1366,36 @@ const cargo_jettison_lever: ScenarioFeatureDefinition = {
         },
       },
     },
+    // HACK / UNLOCK (INT DC 12) — bypass the safety cover electronically
+    {
+      trigger: {
+        verb: ['HACK', 'UNLOCK'],
+        requiredState: 'intact',
+        stat: 'INT',
+        dc: 12,
+      },
+      onSuccess: {
+        newState: 'activated',
+        narrative: {
+          fr: 'Le levier est mécanique, mais le cache de sécurité est électronique. '
+            + 'Vous court-circuitez le verrouillage du cache — il saute. '
+            + 'Ensuite, le levier tombe presque tout seul. '
+            + 'Les portes de la soute s\'ouvrent sur le vide. '
+            + 'La créature hurle — puis le silence.',
+          en: 'The lever is mechanical, but the safety cover is electronic. '
+            + 'You bypass the cover lock. The lever falls almost by itself. '
+            + 'Cargo bay doors open to the void. The creature screams — then silence.',
+        },
+        flagSet: 'cargo_jettisoned',
+      },
+      onFailure: {
+        narrative: {
+          fr: 'Le verrouillage du cache résiste à votre manipulation. '
+            + 'Le mécanisme de sécurité est plus robuste que prévu.',
+          en: 'The cover lock resists your attempt. The safety mechanism is more robust than expected.',
+        },
+      },
+    },
   ],
 };
 
@@ -1125,8 +1414,13 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
       en: 'Hull seal control panel. The screen shows pressurized and depressurized ship zones. An emergency protocol allows forcing a localized decompression.',
     },
     activated: {
-      fr: 'Le panneau affiche "DÉCOMPRESSION EN COURS — SOUTE". Les voyants clignotent en rouge. L\'air se raréfie dans la zone.',
-      en: 'The panel shows "DECOMPRESSION IN PROGRESS — CARGO BAY". Indicators flash red. Air is thinning in the area.',
+      fr: 'Le panneau affiche "DÉCOMPRESSION EN COURS — SOUTE" en rouge clignotant. '
+        + 'À travers les hublots, vous voyez les portes de soute s\'ouvrir — '
+        + 'l\'air, les débris, tout est aspiré dans le vide. '
+        + 'Si la créature était dans la soute, elle n\'y est plus.',
+      en: 'Panel flashes "DECOMPRESSION IN PROGRESS — CARGO BAY". Through the viewports, '
+        + 'cargo bay doors open — air and debris sucked into the void. '
+        + 'If the creature was in the bay, it\'s no longer there.',
     },
   },
   interactions: [
@@ -1141,8 +1435,16 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
       onSuccess: {
         newState: 'activated',
         narrative: {
-          fr: 'Vous reprogrammez le protocole d\'urgence pour forcer une brèche localisée dans la soute. Le sifflement de l\'air aspiré emplit la pièce. Dans la soute, la créature lutte contre le vide — puis est arrachée. Silence.',
-          en: 'You reprogram the emergency protocol to force a localized breach in the cargo bay. The hiss of escaping air fills the room. In the cargo bay, the creature fights the vacuum — then is torn away. Silence.',
+          fr: 'Le protocole de brèche s\'active — les joints de coque de la soute se fissurent volontairement. '
+            + 'Ce n\'est pas une éjection franche comme le levier — c\'est une hémorragie lente. '
+            + 'L\'air s\'échappe, la pression chute. Vous sentez vos oreilles se boucher. '
+            + 'La créature hurle — un son presque humain — avant d\'être aspirée centimètre par centimètre '
+            + 'vers la brèche. Ça prend plus longtemps. C\'est pire.',
+          en: 'Hull breach protocol activates — cargo bay seals crack deliberately. '
+            + 'Not a clean ejection like the lever — a slow hemorrhage. '
+            + 'Air escapes, pressure drops. Your ears pop. '
+            + 'The creature screams — almost human — before being drawn centimeter by centimeter toward the breach. '
+            + 'It takes longer. It\'s worse.',
         },
         flagSet: 'cargo_depressurized',
       },
@@ -1172,9 +1474,11 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
       },
       onFailure: {
         narrative: {
-          fr: 'Le panneau résiste à vos coups. Le boîtier est renforcé.',
-          en: 'The panel withstands your blows. The casing is reinforced.',
+          fr: 'Le panneau résiste à vos coups. Un fragment de métal se détache et vous entaille le bras. '
+            + 'Le boîtier est plus renforcé qu\'il n\'y paraît.',
+          en: 'The panel withstands your blows. A metal fragment cuts your arm. The casing is more reinforced than it looks.',
         },
+        consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
     },
   ],
@@ -1206,8 +1510,14 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
   id: 'escape',
   nameKey: { fr: 'Fuir l\'Épave', en: 'Escape the Wreck' },
   descriptionKey: {
-    fr: 'Réveillez-vous seul dans les ruines d\'un vaisseau mourant. Les alarmes hurlent. L\'éclairage de secours rougeoie. Survivez. Fuyez.',
-    en: 'Wake up alone in the ruins of a dying ship. Alarms scream. Emergency lighting glows red. Survive. Escape.',
+    fr: 'Vous vous réveillez seul dans les entrailles d\'un vaisseau-cargo en dérive, l\'USS Meridian. '
+      + 'Votre capsule cryogénique s\'est ouverte d\'urgence — les 46 autres sont mortes depuis 6 mois. '
+      + 'Les alarmes hurlent. L\'éclairage de secours peint les couloirs en rouge sang. '
+      + 'Quelque chose rôde dans les sections abandonnées — quelque chose qui a tué tout l\'équipage. '
+      + 'Trouvez un moyen d\'atteindre les pods d\'évasion. Fuyez. Ne regardez pas en arrière.',
+    en: 'You wake alone in a drifting cargo ship, the USS Meridian. '
+      + 'Your cryopod opened on emergency — the other 46 have been dead for 6 months. '
+      + 'Something roams the abandoned sections. Reach the escape pods. Run.',
   },
 
   nodes: [
@@ -1217,8 +1527,15 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Baie des Capsules Cryogéniques — Vous vous réveillez. Froide. Sombre. La capsule s\'est ouverte automatiquement. Pourquoi ?',
-        en: 'Cryopod Bay — You wake up. Cold. Dark. The pod opened automatically. Why?',
+        fr: 'Baie des Capsules Cryogéniques — Vous ouvrez les yeux. Froid mordant. Obscurité presque totale. '
+          + 'Le couvercle de votre capsule est ouvert — éjection d\'urgence. '
+          + 'Autour de vous, 46 autres capsules. Silencieuses. Leurs voyants sont morts depuis longtemps. '
+          + 'L\'éclairage de secours rougeoie faiblement. Un terminal de statut clignote contre le mur, '
+          + 'et un casier d\'urgence attend dans l\'ombre. '
+          + 'Vous êtes seul. Et quelque chose a coupé le courant il y a 4 heures.',
+        en: 'Cryopod Bay — You open your eyes. Biting cold. Near-total darkness. '
+          + '46 other pods, all dead. Emergency lighting glows faintly. '
+          + 'A status terminal flickers. An emergency locker waits in the shadows.',
       },
     },
     {
@@ -1227,8 +1544,15 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Point de Contrôle de Sécurité — Une cloison blindée bloque le passage. Il faut un badge d\'accès, ou une autre solution.',
-        en: 'Security Checkpoint — An armored bulkhead blocks the way. Need an access keycard, or another solution.',
+        fr: 'Point de Contrôle de Sécurité — Une cloison blindée barre le couloir, '
+          + 'épaisse comme un coffre-fort. Le panneau de sécurité adjacent exige un badge de niveau 3. '
+          + 'Des griffures profondes marquent le métal — quelque chose a tenté de forcer le passage '
+          + 'depuis l\'autre côté. Sans succès. Ou avec succès, justement — impossible de savoir. '
+          + 'Une grille de ventilation au plafond offre peut-être une alternative '
+          + 'pour ceux qui n\'ont pas peur du noir et des espaces confinés.',
+        en: 'Security Checkpoint — An armored bulkhead blocks the corridor. Badge reader demands level 3+. '
+          + 'Deep scratches on the metal from the other side. '
+          + 'A ceiling vent might offer an alternative route.',
       },
     },
     {
@@ -1237,8 +1561,16 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Quartiers du Capitaine — Le journal de bord révèle tout. Vous êtes le dernier survivant. La créature est une arme expérimentale.',
-        en: 'Captain\'s Quarters — The ship log reveals everything. You are the last survivor. The creature is an experimental weapon.',
+        fr: 'Quartiers du Capitaine — Le bureau personnel du Capitaine Reeves. '
+          + 'Des papiers froissés jonchent le sol. Le terminal personnel est encore allumé — '
+          + 'les dernières entrées de journal clignotent à l\'écran. '
+          + 'Un datapad repose sur le bureau, séparé du terminal, comme s\'il avait été posé là '
+          + 'délibérément pour que quelqu\'un le trouve. '
+          + 'Le hublot d\'observation montre l\'extérieur : le vaisseau dérive, des sections entières '
+          + 'arrachées et exposées au vide. L\'USS Meridian est en train de mourir.',
+        en: 'Captain\'s Quarters — Captain Reeves\' office. Crumpled papers on the floor. '
+          + 'Personal terminal still on. A datapad on the desk, deliberately placed. '
+          + 'Through the viewport: the ship drifts, sections torn away.',
       },
     },
     {
@@ -1247,8 +1579,17 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'Centre de Survie — La créature a endommagé le support vie. L\'O₂ baisse. Vous devez atteindre les pods d\'évasion avant d\'asphyxier.',
-        en: 'Life Support Hub — The creature damaged life support. O₂ is dropping. Reach the escape pods before you asphyxiate.',
+        fr: 'Centre de Survie — L\'air est rare. Chaque respiration compte. '
+          + 'Le panneau de support vie est en miettes — griffures profondes, câbles arrachés. '
+          + 'La créature est venue ici en premier. Elle savait ce qu\'elle faisait. '
+          + 'Un casier de combinaison EVA est verrouillé contre le mur — '
+          + 'la seule protection contre l\'asphyxie progressive. '
+          + 'La valve de reroutage O₂ et le conduit d\'énergie principal offrent '
+          + 'des options de survie pour ceux qui savent improviser. '
+          + 'Le passage vers le pont inférieur est droit devant. Chaque seconde ici vous coûte de l\'air.',
+        en: 'Life Support Hub — Air is thin. The life support panel is shredded. '
+          + 'An EVA suit locker, an O₂ valve, a power conduit — survival options for those who improvise. '
+          + 'The lower deck is straight ahead. Every second here costs air.',
       },
     },
     {
@@ -1257,8 +1598,17 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 10,
       descriptionKey: {
-        fr: 'Soute / Pont des Pods — La créature bloque le corridor des pods d\'évasion. C\'est elle ou vous.',
-        en: 'Cargo Bay / Pod Deck — The creature blocks the escape pod corridor. It\'s her or you.',
+        fr: 'Soute / Pont des Pods — L\'air est presque irrespirable. '
+          + 'L\'écoutille du pod d\'évasion est là, à portée de main — mais un lecteur de badge '
+          + 'contrôle l\'accès. Et entre vous et la sortie : la créature. '
+          + 'Le Spécimen Alpha, Projet ORACLE. Biomasse noire, griffes d\'acier organique, '
+          + 'et une intelligence terrifiante dans ses yeux trop humains. '
+          + 'Le levier de largage cargo est à votre gauche. '
+          + 'Le panneau de contrôle des joints de coque est à votre droite. '
+          + 'Le pod est droit devant. C\'est elle ou vous.',
+        en: 'Cargo Bay / Pod Deck — Air nearly gone. The escape pod hatch is right there — '
+          + 'but a badge reader controls access. And between you and the exit: the creature. '
+          + 'Jettison lever on the left. Hull breach panel on the right. Pod straight ahead.',
       },
     },
     {
@@ -1267,8 +1617,15 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Pod d\'Évasion / Vide — Depuis le hublot, vous regardez le vaisseau rapetisser dans l\'obscurité.',
-        en: 'Escape Pod / Void — Through the porthole, you watch the ship shrink into darkness.',
+        fr: 'Pod d\'Évasion — Le sas se referme derrière vous. Le silence. '
+          + 'Pas le silence de la mort — le silence de la sécurité. '
+          + 'Le pod s\'éjecte avec un souffle pneumatique. '
+          + 'Depuis le hublot, vous regardez l\'USS Meridian rapetisser dans l\'obscurité — '
+          + 'un point de lumière avalé par le noir de l\'espace. '
+          + 'Quelque part là-dedans, le Spécimen Alpha attend le prochain visiteur. '
+          + 'Mais pas vous. Plus jamais vous.',
+        en: 'Escape Pod — The airlock seals behind you. Silence — not death\'s silence, safety\'s silence. '
+          + 'Through the porthole, the USS Meridian shrinks into darkness.',
       },
     },
   ],
@@ -1277,12 +1634,30 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
   gateItemLocation: 'start',
 
   revelation: {
-    fr: 'La créature est une arme bio-expérimentale — Projet ORACLE. L\'équipage a tenté de la confiner. Échec. Vous êtes le seul survivant.',
-    en: 'The creature is a bio-experimental weapon — Project ORACLE. The crew tried to contain it. Failed. You are the last survivor.',
+    fr: 'La créature qui rôde dans le vaisseau n\'est pas un accident. '
+      + 'Projet ORACLE — programme d\'armement biologique classifié du Commandement Spatial. '
+      + 'Le "Spécimen Alpha" a été délibérément embarqué à bord de l\'USS Meridian '
+      + 'pour un test d\'adaptation en environnement confiné. L\'équipage de 47 personnes '
+      + 'servait de cobayes involontaires. Le Dr. Nakamura savait. Le Commandement savait. '
+      + 'Quand le spécimen a franchi le confinement, le Capitaine Reeves a compris — trop tard. '
+      + 'Il a scellé les sections, sacrifié les équipes piégées, '
+      + 'et laissé son journal comme dernier témoignage. '
+      + 'Vous n\'êtes pas un survivant par chance. Vous êtes le dernier sujet de test.',
+    en: 'The creature is no accident. Project ORACLE — classified bioweapons program. '
+      + 'Specimen Alpha was deliberately placed aboard the USS Meridian for a confined-environment adaptation test. '
+      + 'The crew of 47 were unwitting test subjects. You are the last one.',
   },
   escalationTrigger: {
-    fr: 'La créature a saboté le support vie. L\'O₂ chute dans tout le vaisseau. L\'éclairage s\'éteint par sections.',
-    en: 'The creature sabotaged life support. O₂ drops ship-wide. Lighting dies section by section.',
+    fr: 'La créature a appris. Ce n\'est plus un prédateur aveugle — c\'est un chasseur stratégique. '
+      + 'Elle a ciblé le système de support vie : les câbles d\'alimentation arrachés '
+      + 'avec une précision chirurgicale. L\'O₂ chute dans tout le vaisseau — 3% par minute. '
+      + 'L\'éclairage meurt section par section, plongeant les couloirs dans un noir absolu. '
+      + 'Votre lampe torche est désormais votre meilleur ami. '
+      + 'Il reste peut-être 20 minutes d\'air respirable. '
+      + 'Les pods d\'évasion sont au pont inférieur. La créature le sait aussi.',
+    en: 'The creature has learned. It targeted life support — cables torn with surgical precision. '
+      + 'O₂ drops 3% per minute. Lighting dies section by section. Maybe 20 minutes of breathable air left. '
+      + 'The escape pods are on the lower deck. The creature knows it too.',
   },
 
   bossType: 'escape',
@@ -1297,8 +1672,14 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
     entityId: 'creature_oracle',
   },
   emergentVictoryHint: {
-    fr: 'La soute peut être éjectée dans le vide. Si la créature est dedans...',
-    en: 'The cargo bay can be jettisoned into the void. If the creature is inside...',
+    fr: 'La soute possède un système de largage d\'urgence — un levier mécanique, '
+      + 'pas de l\'électronique. Mais il y a aussi le panneau de contrôle des joints de coque : '
+      + 'forcer une décompression localisée est possible si vous savez pirater le système. '
+      + 'Dans les deux cas, si la créature est dans la soute au moment de la manœuvre... '
+      + 'le vide spatial ne fait pas de prisonniers.',
+    en: 'The cargo bay has both a mechanical jettison lever and a hull breach control panel. '
+      + 'If the creature is in the bay when either activates... '
+      + 'the void of space takes no prisoners.',
   },
 
   nodeLocations: {

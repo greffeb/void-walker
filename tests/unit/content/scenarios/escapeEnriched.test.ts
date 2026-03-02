@@ -66,6 +66,8 @@ const KNOWN_FLAGS = new Set([
   'pod_hatch_open',
   'cargo_jettisoned',
   'cargo_depressurized',
+  'creature_distracted',
+  'hatch_bypass_found',
 ]);
 
 // ---------------------------------------------------------------------------
