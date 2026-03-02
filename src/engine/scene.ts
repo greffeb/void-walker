@@ -315,11 +315,18 @@ function buildSceneDescription(
   const locationName = node.nameKey.fr;
 
   // Location flavor text from skin (entry/revisit); empty string when no skin
+  // When the obstacle is resolved, the original skin entry (e.g. "darkness") no longer applies.
+  // Use revisit text instead, which is typically neutral (e.g. "De retour ici.").
   let locationDescription = '';
   if (node.activeSkin) {
-    locationDescription = isFirstVisit
-      ? node.activeSkin.entryDescription.fr
-      : node.activeSkin.revisitDescription.fr;
+    if (obstacleResolved && node.obstacle) {
+      // Obstacle has been dealt with — use the generic revisit description
+      locationDescription = node.activeSkin.revisitDescription.fr;
+    } else {
+      locationDescription = isFirstVisit
+        ? node.activeSkin.entryDescription.fr
+        : node.activeSkin.revisitDescription.fr;
+    }
   }
 
   // Obstacle hint

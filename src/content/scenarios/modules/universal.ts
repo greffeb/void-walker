@@ -4,7 +4,7 @@
 // These modules work in any setting (as long as role is supported).
 // ---------------------------------------------------------------------------
 
-import type { ScenarioModule, NarrativeSkin } from '@engine/scenario';
+import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition } from '@engine/scenario';
 
 function ls(fr: string) { return { fr, en: '' }; }
 
@@ -154,8 +154,70 @@ export const DARK_ROOM_01: ScenarioModule = {
       role: 'hub',
       onCriticalPath: true,
       features: [
-        { id: 'light_fixture', initialState: 'broken', examineResult: { fr: 'Plafonnier brisé. Le tube est éclaté et les fils pendent. Il ne fonctionnera plus, mais le réseau électrique derrière est peut-être intact.', en: '' } },
-        { id: 'power_relay', initialState: 'damaged', examineResult: { fr: 'Relais d\'alimentation auxiliaire. Endommagé mais pas détruit. Avec les bonnes manipulations, il pourrait alimenter le circuit d\'éclairage de cette section.', en: '' } },
+        {
+          id: 'light_fixture',
+          initialState: 'broken',
+          featureType: 'panel',
+          aliases: { fr: ['luminaire', 'plafonnier', 'lampe', 'lumiere', 'eclairage'], en: ['light', 'fixture', 'lamp'] },
+          examineResult: { fr: 'Plafonnier brisé. Le tube est éclaté et les fils pendent. Il ne fonctionnera plus, mais le réseau électrique derrière est peut-être intact.', en: '' },
+          descriptions: {
+            broken: { fr: 'Un plafonnier brisé pend du plafond. Le tube est éclaté.', en: '' },
+            functional: { fr: 'Le plafonnier diffuse une lumière blanche stable.', en: '' },
+          },
+          interactions: [
+            {
+              trigger: { verb: 'ACTIVATE', requiredState: 'broken', requiredFlag: 'power_relay_repaired', dc: null },
+              onSuccess: {
+                narrative: { fr: 'Vous actionnez l\'interrupteur. Le plafonnier grésille, puis s\'allume. La lumière blanche inonde la pièce — vous pouvez voir à nouveau.', en: '' },
+                newState: 'functional',
+                resolveObstacle: true,
+              },
+            },
+            {
+              trigger: { verb: 'ACTIVATE', requiredState: 'broken', dc: null },
+              onSuccess: {
+                narrative: { fr: 'L\'interrupteur ne répond pas. Le circuit d\'alimentation est coupé — il faudrait réparer le relais d\'énergie d\'abord.', en: '' },
+              },
+            },
+            {
+              trigger: { verb: 'REPAIR', requiredState: 'broken', stat: 'INT', dc: 12 },
+              onSuccess: {
+                narrative: { fr: 'Vous reconnectez les fils du plafonnier et remplacez le tube éclaté avec un segment de la bande d\'urgence. La lumière revient — faible mais suffisante.', en: '' },
+                newState: 'functional',
+                resolveObstacle: true,
+              },
+              onFailure: {
+                narrative: { fr: 'Les fils crépitent entre vos doigts. Le tube reste mort. Il faudrait peut-être d\'abord rétablir l\'alimentation.', en: '' },
+                consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+              },
+            },
+          ],
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
+        {
+          id: 'power_relay',
+          initialState: 'damaged',
+          featureType: 'wiring',
+          aliases: { fr: ['relais', 'relais énergie', 'relais alimentation', 'alimentation'], en: ['relay', 'power relay'] },
+          examineResult: { fr: 'Relais d\'alimentation auxiliaire. Endommagé mais pas détruit. Avec les bonnes manipulations, il pourrait alimenter le circuit d\'éclairage de cette section.', en: '' },
+          descriptions: {
+            damaged: { fr: 'Un relais d\'alimentation endommagé. Des câbles arrachés pendent.', en: '' },
+            functional: { fr: 'Le relais d\'alimentation ronronne doucement — circuit rétabli.', en: '' },
+          },
+          interactions: [
+            {
+              trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 10 },
+              onSuccess: {
+                narrative: { fr: 'Vous reconnectez les câbles arrachés du relais. Un cliquetis, puis un ronronnement stable. Le circuit d\'alimentation est rétabli — le luminaire peut être activé.', en: '' },
+                newState: 'functional',
+                flagSet: 'power_relay_repaired',
+              },
+              onFailure: {
+                narrative: { fr: 'Un arc électrique vous repousse. Le relais reste inerte. Il faudra réessayer.', en: '' },
+                consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+              },
+            },
+          ],
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
         { id: 'emergency_glow_strip', initialState: 'intact', examineResult: { fr: 'Bande luminescente d\'urgence au sol. Émet une faible lueur verte — suffisante pour voir vos pieds, pas pour explorer. Elle mène vers la sortie opposée.', en: '' } },
       ],
       items: [

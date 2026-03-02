@@ -40,6 +40,20 @@ const medkit_basic: ScenarioItemDefinition = {
     fr: 'Kit médical d\'urgence. Contient des bandages compressifs, un antiseptique et une dose d\'analgésique. Suffisant pour traiter une blessure légère.',
     en: 'Emergency medical kit. Contains compression bandages, antiseptic, and a painkiller dose. Enough for a minor wound.',
   },
+  useOn: [{
+    targetId: 'self',
+    interaction: {
+      trigger: { verb: 'USE', dc: null },
+      onSuccess: {
+        narrative: {
+          fr: 'Vous appliquez les bandages compressifs et l\'antiseptique sur vos blessures. La dose d\'analgésique atténue la douleur.',
+          en: 'You apply the compression bandages and antiseptic to your wounds. The painkiller dose eases the pain.',
+        },
+        consequences: [{ type: 'heal', targetId: 'player', amount: 4 }],
+        consumeItem: true,
+      },
+    },
+  }],
 };
 
 const access_keycard: ScenarioItemDefinition = {

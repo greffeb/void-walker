@@ -241,14 +241,16 @@ describe('ESCAPE skeleton — enriched structural validation', () => {
   // =========================================================================
   // 12. Each useOn.targetId references an existing feature
   // =========================================================================
-  it('12. each useOn.targetId references an existing feature', () => {
+  it('12. each useOn.targetId references an existing feature or special target', () => {
+    // 'self' is a special targetId for self-use items (e.g., medkit → heal player)
+    const specialTargets = new Set(['self']);
     for (const { nodeId, item } of items) {
       const enriched = item;
       if (!enriched.useOn) continue;
       for (const use of enriched.useOn) {
         expect(
-          featureIds.has(use.targetId),
-          `Item "${item.id}" in "${nodeId}" useOn target "${use.targetId}" doesn't exist as a feature`,
+          featureIds.has(use.targetId) || specialTargets.has(use.targetId),
+          `Item "${item.id}" in "${nodeId}" useOn target "${use.targetId}" doesn't exist as a feature or special target`,
         ).toBe(true);
       }
     }

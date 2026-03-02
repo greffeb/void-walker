@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type { VerbId } from './verbs';
-import { VERB_REGISTRY } from './verbs';
+import { VERB_REGISTRY, MOVEMENT_VERBS } from './verbs';
 import { stemFr } from './snowball-fr';
 import type { PropertyId } from './properties';
 import type {
@@ -496,8 +496,7 @@ export function resolveTarget(
 
   // 6. Connected locations (for movement verbs) — checked BEFORE environment
   //   to prevent "aller sas-b" from matching a partial alias on main_airlock.
-  const movementVerbs: ReadonlySet<VerbId> = new Set(['RUN', 'CLIMB']);
-  if (movementVerbs.has(verb)) {
+  if (MOVEMENT_VERBS.has(verb)) {
     let locBestScore = 0;
     let locBestTarget: ResolvedTarget | null = null;
     for (const loc of context.connectedLocations) {

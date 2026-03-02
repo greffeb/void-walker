@@ -72,11 +72,19 @@ export function buildConsequences(
 
   // General outcome consequences (only for non-combat actions with a real target).
   // THROW is excluded from self-damage: the thrown object was aimed outward, not at the player.
+  // Non-combat failure damage is nonLethal: it cannot reduce HP below 1.
+  // Combat/oxygen/scenario interactions handle lethal damage separately.
   if (!attackResult && target !== null && verb !== 'THROW') {
     if (outcome === 'failure') {
-      consequences.push({ type: 'damage', targetId: 'player', amount: 1 });
+      consequences.push({
+        type: 'damage', targetId: 'player',
+        amount: BALANCE.FAILURE_DAMAGE, nonLethal: true,
+      });
     } else if (outcome === 'crit_failure') {
-      consequences.push({ type: 'damage', targetId: 'player', amount: 2 });
+      consequences.push({
+        type: 'damage', targetId: 'player',
+        amount: BALANCE.CRIT_FAILURE_DAMAGE, nonLethal: true,
+      });
     } else if (outcome === 'crit_success') {
       consequences.push({ type: 'heal', targetId: 'player', amount: 1 });
     }
@@ -168,7 +176,12 @@ function applySingleConsequence(
     case 'damage': {
       if (c.targetId !== 'player') return state;
       const amount = c.amount ?? 0;
-      const newHp = clampHp(state.character.hp - amount, state.character.maxHp);
+      let newHp = clampHp(state.character.hp - amount, state.character.maxHp);
+      // nonLethal damage cannot reduce HP below 1 (exploration failures).
+      // Combat, oxygen, and scenario interactions handle lethal damage separately.
+      if (c.nonLethal && newHp < 1) {
+        newHp = 1;
+      }
       return { ...state, character: { ...state.character, hp: newHp } };
     }
 

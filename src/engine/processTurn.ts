@@ -29,7 +29,7 @@ import { tickConditions, checkConditionTriggers, addCondition, removeCondition, 
 import { tickOxygen } from './oxygen';
 import { tickStalkerClock, checkStalkerClock, applyStalkerEvent } from './stalkerClock';
 import type { VerbId } from './verbs';
-import { VERB_STATS, AUTO_VERBS } from './verbs';
+import { VERB_STATS, AUTO_VERBS, MOVEMENT_VERBS } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
 import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
@@ -325,6 +325,18 @@ export function processTurn(
         );
       }
 
+      // Self-use path: "utiliser <item>" where target is an inventory item.
+      // Try useOn with targetId 'self' to allow consumable self-heal etc.
+      if (!interactionResult.matched && !action.tool
+          && action.target?.source === 'inventory') {
+        const selfItemDef = findItemDefInGraph(current, targetId);
+        if (selfItemDef && isEnrichedItem(selfItemDef)) {
+          interactionResult = resolveItemUseOn(
+            targetId, selfItemDef, 'self', current, locationId, rng,
+          );
+        }
+      }
+
       if (interactionResult.matched) {
         scenarioInteractionHandled = true;
         scenarioNarrativeOverride = interactionResult.narrativeOverride;
@@ -489,6 +501,22 @@ export function processTurn(
 
       if (fleeResult.success) {
         current = { ...current, activeCombat: null };
+        // Also move the player if they fled toward a connected location
+        if (action.target?.source === 'connected_location') {
+          const fleeLocationId = action.target.id;
+          const existingFleeVisit = current.visitedLocations[fleeLocationId];
+          const updatedFleeVisit = existingFleeVisit
+            ? markRevisit(existingFleeVisit)
+            : createVisitState(current.turn);
+          current = {
+            ...current,
+            playerLocationId: fleeLocationId,
+            visitedLocations: {
+              ...current.visitedLocations,
+              [fleeLocationId]: updatedFleeVisit,
+            },
+          };
+        }
       } else if (fleeResult.npcFreeAttack?.hit) {
         current = updateCharacterHp(current, -fleeResult.npcFreeAttack.damageDealt);
       }
@@ -803,8 +831,8 @@ export function processTurn(
     };
   };
 
-  // 9a. Movement: if the action is MOVE_TO, update location and visit state
-  if (action.verb === 'MOVE_TO' && action.target?.source === 'connected_location') {
+  // 9a. Movement: if the action is a movement verb, update location and visit state
+  if (MOVEMENT_VERBS.has(action.verb) && action.target?.source === 'connected_location') {
     const newLocationId = action.target.id;
     const existingVisit = current.visitedLocations[newLocationId];
     const updatedVisit = existingVisit

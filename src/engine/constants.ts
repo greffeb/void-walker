@@ -100,6 +100,10 @@ export const BALANCE = {
   // === CONSEQUENCES ===
   MAX_CASCADE_DEPTH: 5,
   FIRE_SPREAD_DELAY: 3,
+  /** Damage dealt to player on non-combat action failure */
+  FAILURE_DAMAGE: 1,
+  /** Damage dealt to player on non-combat critical failure */
+  CRIT_FAILURE_DAMAGE: 2,
 
   // === FAILSAFE (anti-softlock) ===
   FAILSAFE: {

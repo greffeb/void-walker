@@ -877,6 +877,8 @@ export interface Consequence {
   readonly locationId?: string;
   /** NPC ID for npc_relocate consequences. */
   readonly npcId?: string;
+  /** When true, damage cannot reduce HP below 1 (exploration failures). */
+  readonly nonLethal?: boolean;
 }
 
 // === DEATH ===

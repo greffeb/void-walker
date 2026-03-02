@@ -842,6 +842,13 @@ export const VERB_STATS: Readonly<Record<string, StatId>> = {
   DODGE: 'AGI', SWIM: 'AGI', RUN: 'AGI', HIDE: 'AGI', STACK: 'AGI',
 } as const;
 
+// === MOVEMENT VERBS ===
+
+/** Verbs that cause location change when targeting a connected_location */
+export const MOVEMENT_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
+  'MOVE_TO', 'RUN', 'CLIMB',
+]);
+
 // === AUTO VERBS ===
 
 /** Verbs that resolve automatically without a dice roll */

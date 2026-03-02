@@ -217,12 +217,12 @@ export function matchVerb(
     }
   }
 
-  // Strategy 4: Prefix match (4+ chars)
+  // Strategy 4: Prefix match (4+ chars) — excludes multi-word forms (handled by compound matching)
   for (const token of s14tokens) {
     if (token.length < 4) continue;
     const prefix = token.slice(0, 4);
     for (const [form, verbId] of localeData.verbForms) {
-      if (form.startsWith(prefix) && form.length >= 4) {
+      if (form.startsWith(prefix) && form.length >= 4 && !form.includes(' ')) {
         return {
           verb: verbId,
           strategy: 4 as VerbMatchStrategy,
