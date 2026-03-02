@@ -18,6 +18,9 @@ import type { StringKey } from '@i18n/types';
 import type { DifficultyLevel, PlayerClassName, GameState } from '@engine/types';
 import type { SuggestionCandidate } from '@engine/suggestions';
 import type { AntiSpamState } from '../utils/feedback';
+import { getAppVersion } from '../utils/appVersion';
+
+const APP_VERSION = getAppVersion();
 
 // === HELPERS ===
 
@@ -107,6 +110,7 @@ function DifficultySelect({ onSelect }: { readonly onSelect: (d: DifficultyLevel
       <h1 className="mb-2 font-mono text-3xl font-bold tracking-widest text-white">VOID WALKER</h1>
       <p className="mb-1 font-mono text-xs text-purple-400">PLAYTEST ALPHA</p>
       <p className="mb-8 font-mono text-xs text-gray-500">Choisissez la difficulte</p>
+      <p className="mb-8 font-mono text-[10px] text-gray-600/80">{APP_VERSION}</p>
       <div className="flex w-full max-w-sm flex-col gap-3">
         {options.map(opt => (
           <button

@@ -30,6 +30,9 @@ const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | und
  * 5. The bug occurs at turn N with playerInput
  */
 export interface PlaytestReport {
+  /** App version identifier (build-<sha7>) */
+  readonly appVersion: string;
+
   // === REPRODUCIBILITY (most important for debugging) ===
   /** RNG seed used for this entire game session */
   readonly seed: number;

@@ -40,7 +40,10 @@ jobs:
           npm run lint
 
       - name: Build PWA
-        run: npm run build
+        run: |
+          APP_VERSION="build-$(echo '${{ github.sha }}' | cut -c1-7)"
+          echo "Building with app version: $APP_VERSION"
+          VITE_APP_VERSION="$APP_VERSION" npm run build
         env:
           VITE_BASE_URL: /${{ github.event.repository.name }}/
           VITE_FEEDBACK_ENDPOINT: ${{ secrets.VITE_FEEDBACK_ENDPOINT }}

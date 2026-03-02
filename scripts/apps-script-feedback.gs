@@ -7,7 +7,7 @@
 // L: Dice | M: DC | N: Outcome | O: Narration | P: Consequences
 // Q: HP | R: O2 | S: Conditions | T: Inventory | U: Scene Items
 // V: Scene NPCs | W: Scene Features | X: Scene Exits | Y: Beat
-// Z: Comment | AA: Input History
+// Z: Comment | AA: App Version | AB: Input History
 
 const GITHUB_OWNER = 'greffeb';
 const GITHUB_REPO = 'void-walker';
@@ -45,7 +45,8 @@ function doGet(e) {
       (data.sceneExits || []).join(', '),                    // X: Scene Exits
       data.currentBeat || '',                                // Y: Beat
       data.comment || '',                                    // Z: Comment
-      JSON.stringify(data.inputHistory || []),                // AA: Input History (JSON)
+      data.appVersion || '',                                 // AA: App Version
+      JSON.stringify(data.inputHistory || []),               // AB: Input History (JSON)
     ]);
 
     // 2. Create GitHub Issue only for KO (all reports are KO now)
@@ -106,6 +107,7 @@ function doGet(e) {
         '',
         '| Field | Value |',
         '|-------|-------|',
+        '| **App Version** | ' + (data.appVersion || 'build-unknown') + ' |',
         '| **Seed** | `' + data.seed + '` |',
         '| **Skeleton** | ' + (data.skeletonId || '?') + ' |',
         '| **Setting** | ' + (data.settingId || '?') + ' |',

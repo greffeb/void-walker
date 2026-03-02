@@ -2,13 +2,39 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
 import { fileURLToPath, URL } from 'node:url';
 
 const resolve = (p: string): string =>
   fileURLToPath(new URL(p, import.meta.url));
 
+function resolveAppVersion(): string {
+  const explicitVersion = process.env.VITE_APP_VERSION?.trim();
+  if (explicitVersion) {
+    return explicitVersion;
+  }
+
+  try {
+    const shortSha = execSync('git rev-parse --short=7 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+    if (shortSha) {
+      return `build-${shortSha}`;
+    }
+  } catch {
+    // ignore and fallback
+  }
+
+  return 'build-unknown';
+}
+
+const appVersion = resolveAppVersion();
+
 export default defineConfig({
   base: process.env.VITE_BASE_URL ?? '/',
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   plugins: [
     react(),
     tailwindcss(),

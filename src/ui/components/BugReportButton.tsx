@@ -16,6 +16,7 @@ import { narrateScene } from '@narration/scene';
 import type { SceneToken } from '@narration/scene';
 import { t } from '@i18n/index';
 import type { StringKey } from '@i18n/types';
+import { getAppVersion } from '../utils/appVersion';
 
 interface BugReportButtonProps {
   readonly entry: TurnEntry;
@@ -25,6 +26,8 @@ interface BugReportButtonProps {
 }
 
 type ReportState = 'idle' | 'open' | 'sending' | 'sent' | 'error';
+
+const APP_VERSION = getAppVersion();
 
 // ---------------------------------------------------------------------------
 // HELPERS — plain-text reconstruction of the full NarrativeCard content
@@ -151,6 +154,8 @@ export function BugReportButton({
       .map(t => t.input);
 
     const report: PlaytestReport = {
+      appVersion: APP_VERSION,
+
       // Reproducibility
       seed,
       skeletonId: gameState.scenarioId ?? '',
