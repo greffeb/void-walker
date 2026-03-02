@@ -12,6 +12,10 @@ import {
   sendReport, checkAntiSpam, hashReport, storeHash,
   type PlaytestReport, type AntiSpamState,
 } from '../utils/feedback';
+import { narrateScene } from '@narration/scene';
+import type { SceneToken } from '@narration/scene';
+import { t } from '@i18n/index';
+import type { StringKey } from '@i18n/types';
 
 interface BugReportButtonProps {
   readonly entry: TurnEntry;
@@ -21,6 +25,77 @@ interface BugReportButtonProps {
 }
 
 type ReportState = 'idle' | 'open' | 'sending' | 'sent' | 'error';
+
+// ---------------------------------------------------------------------------
+// HELPERS — plain-text reconstruction of the full NarrativeCard content
+// ---------------------------------------------------------------------------
+
+function tokensToText(tokens: readonly SceneToken[]): string {
+  return tokens.map(tok => tok.value).join('');
+}
+
+function outcomeLabel(outcome: string | null): string {
+  switch (outcome) {
+    case 'crit_success': return 'CRITIQUE !';
+    case 'success':      return 'SUCCES';
+    case 'partial':      return 'PARTIEL';
+    case 'failure':      return 'ECHEC';
+    case 'crit_failure': return 'FUMBLE !';
+    default:             return outcome ?? '';
+  }
+}
+
+/** Build the full player-visible text for a turn (mirrors NarrativeCard rendering). */
+function buildFullNarration(entry: TurnEntry): string {
+  const { narrative, trace, diceRoll, resultScene, introMode } = entry;
+  const parts: string[] = [];
+
+  // 1. Narrative text
+  if (narrative) parts.push(narrative);
+
+  // 2. Action / dice info (only when not reformulated)
+  if (!trace.reformulated) {
+    const header: string[] = [];
+    if (trace.parsedVerb) header.push(trace.parsedVerb);
+    if (trace.parsedTargetName) header.push(`sur ${t(trace.parsedTargetName as StringKey)}`);
+    if (header.length > 0) parts.push(header.join(' '));
+
+    if (trace.isAutoVerb) {
+      parts.push('— automatique');
+    } else if (diceRoll) {
+      let roll = `${trace.statId}(${trace.effectiveStatValue}) + D20(${diceRoll.natural})`;
+      if (diceRoll.modifier !== 0) roll += diceRoll.modifier > 0 ? `+${diceRoll.modifier}` : `${diceRoll.modifier}`;
+      roll += ` = ${diceRoll.total} vs DC ${trace.effectiveDC}`;
+      parts.push(roll);
+    }
+    if (trace.outcome) parts.push(outcomeLabel(trace.outcome));
+  }
+
+  // 3. Consequences
+  for (const d of trace.consequenceDetails) parts.push(d);
+
+  // 4. NPC attack
+  if (trace.npcAttackHit) parts.push(`Attaque recue: -${trace.npcAttackDamage} PV`);
+
+  // 5. Post-action scene description
+  if (resultScene) {
+    const scene = narrateScene(resultScene, introMode ?? 'revisit', 'fr');
+    const hasContent = scene.features.length > 0 || scene.items.length > 0
+      || scene.npcs.length > 0 || scene.exits.length > 0;
+    if (hasContent) {
+      const showIntro = introMode !== null && scene.intro.length > 0;
+      if (showIntro) parts.push(tokensToText(scene.intro));
+      if (scene.features.length > 0) parts.push(tokensToText(scene.features));
+      if (scene.items.length > 0)    parts.push(tokensToText(scene.items));
+      if (scene.npcs.length > 0)     parts.push(tokensToText(scene.npcs));
+      if (scene.exits.length > 0)    parts.push(tokensToText(scene.exits));
+      if (scene.obstacle)            parts.push(scene.obstacle);
+      parts.push(scene.prompt);
+    }
+  }
+
+  return parts.join('\n');
+}
 
 export function BugReportButton({
   entry,
@@ -122,7 +197,7 @@ export function BugReportButton({
       npcAttackDamage: trace.npcAttackDamage,
 
       // Narrative
-      narration: entry.narrative,
+      narration: buildFullNarration(entry),
 
       // Player state
       characterHp: char?.hp ?? 0,
