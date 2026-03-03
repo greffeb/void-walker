@@ -509,7 +509,7 @@ export function processTurn(
         if (current.npcStates[npcId]) {
           current = {
             ...current,
-            npcStates: { ...current.npcStates, [npcId]: { ...current.npcStates[npcId]!, alive: false } },
+            npcStates: { ...current.npcStates, [npcId]: { ...current.npcStates[npcId], alive: false } },
           };
         }
         const vsKeyObs = current.playerLocationId!;
