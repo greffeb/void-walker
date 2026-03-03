@@ -259,7 +259,7 @@ describe('RESCUE skeleton — enriched structural validation', () => {
   // 12. Each useOn.targetId references an existing feature OR NPC
   // =========================================================================
   it('12. each useOn.targetId references an existing feature or NPC', () => {
-    const validTargets = new Set([...featureIds, ...npcIds]);
+    const validTargets = new Set([...featureIds, ...npcIds, 'self']);
     for (const { nodeId, item } of items) {
       if (!item.useOn) continue;
       for (const use of item.useOn) {

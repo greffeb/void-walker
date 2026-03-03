@@ -30,6 +30,20 @@ const first_aid_kit: ScenarioItemDefinition = {
   },
   useOn: [
     {
+      targetId: 'self',
+      interaction: {
+        trigger: { verb: 'USE', dc: null },
+        onSuccess: {
+          narrative: {
+            fr: "Vous appliquez les compresses et le desinfectant sur vos blessures. Le garrot ralentit un saignement. Ce n'est pas grand chose, mais suffisant pour tenir.",
+            en: "You apply the bandages and antiseptic to your wounds. The tourniquet slows the bleeding. Not much, but enough to keep going.",
+          },
+          consequences: [{ type: 'heal', amount: 3, targetId: 'player' }],
+          consumeItem: true,
+        },
+      },
+    },
+    {
       targetId: 'dr_okonkwo',
       interaction: {
         trigger: { verb: 'USE', dc: null },
