@@ -795,6 +795,7 @@ export const fr: LocaleStrings = {
   'env.vent_hatch': 'Trappe de ventilation',
   'env.security_panel_local': 'Panneau de sécurité local',
   'env.medical_cabinet': 'Armoire médicale',
+  'env.medical_cabinet.aliases': 'armoire,armoire medicale,placard medical,meuble medical',
   'env.cot': 'Couchette',
   'env.light_fixture': 'Luminaire',
   'env.power_relay': 'Relais d\'énergie',

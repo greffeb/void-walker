@@ -401,6 +401,12 @@ export function processTurn(
               },
             };
           }
+          // Also update the feature state to 'open' when an OPEN-like verb
+          // resolved the obstacle, so EXAMINE shows the updated description.
+          const OPEN_VERBS: ReadonlySet<VerbId> = new Set(['OPEN', 'UNLOCK', 'FORCE_OPEN', 'BREAK']);
+          if (OPEN_VERBS.has(action.verb) && action.target?.source === 'environment') {
+            current = setFeatureState(current, targetId, 'open');
+          }
         }
       }
     }
@@ -590,6 +596,16 @@ export function processTurn(
     const consequences = buildConsequences(action.verb, action.target, outcome);
     traceConsequences = consequences;
     current = applyConsequences(current, consequences, context, rng);
+
+    // When an OPEN-like verb succeeds on an environment target via D20 roll,
+    // update the feature state to 'open' so EXAMINE reflects the change.
+    if ((outcome === 'success' || outcome === 'crit_success')
+        && action.target?.source === 'environment') {
+      const OPEN_VERBS_D20: ReadonlySet<VerbId> = new Set(['OPEN', 'UNLOCK', 'FORCE_OPEN', 'BREAK']);
+      if (OPEN_VERBS_D20.has(action.verb)) {
+        current = setFeatureState(current, action.target.id, 'open');
+      }
+    }
 
     // THROW: remove thrown item from inventory and deposit as location loot.
     // The thrown item is the inventory target (no preposition) or the tool (with preposition).

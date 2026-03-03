@@ -7,7 +7,6 @@
 
 import type { GameState } from './types';
 import type { FeatureState, FeatureDefinition } from './scenario';
-import { isEnrichedFeature } from './scenario';
 
 // ---------------------------------------------------------------------------
 // FEATURE STATE
@@ -58,13 +57,13 @@ export function getFeatureDescription(
   currentState: FeatureState,
   locale: 'fr' | 'en',
 ): string | null {
-  if (isEnrichedFeature(featureDef)) {
-    if (featureDef.descriptions) {
-      const stateDesc = featureDef.descriptions[currentState];
-      if (stateDesc) return stateDesc[locale];
-      const defaultDesc = featureDef.descriptions['default'];
-      if (defaultDesc) return defaultDesc[locale];
-    }
+  // Check for per-state descriptions (works on both enriched and basic features
+  // that carry a descriptions record — e.g. supply_container).
+  if (featureDef.descriptions) {
+    const stateDesc = featureDef.descriptions[currentState];
+    if (stateDesc) return stateDesc[locale];
+    const defaultDesc = featureDef.descriptions['default'];
+    if (defaultDesc) return defaultDesc[locale];
   }
   if (featureDef.examineResult) {
     return featureDef.examineResult[locale];

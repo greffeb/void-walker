@@ -789,6 +789,7 @@ export const en: LocaleStrings = {
   'env.vent_hatch': 'Vent hatch',
   'env.security_panel_local': 'Local security panel',
   'env.medical_cabinet': 'Medical cabinet',
+  'env.medical_cabinet.aliases': 'cabinet,medical cabinet,medicine cabinet',
   'env.cot': 'Cot',
   'env.light_fixture': 'Light fixture',
   'env.power_relay': 'Power relay',

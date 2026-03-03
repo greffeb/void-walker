@@ -590,11 +590,13 @@ function featureDefToInstance(
   // 3. Fallback: scenario-only feature without enriched data
   const nameKey = `env.${id}` as StringKey;
   const frName = resolveDisplayName(nameKey, id);
+  // Check if i18n has aliases for this feature (env.X.aliases)
+  const i18nAliases = parseAliases(`env.${id}.aliases` as StringKey);
   return {
     id,
     definitionId: id,
     nameKey,
-    aliases: [id, frName.toLowerCase()],
+    aliases: [id, frName.toLowerCase(), ...i18nAliases],
     properties: ['tangible', 'visible'],
   };
 }

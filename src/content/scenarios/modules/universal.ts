@@ -268,7 +268,7 @@ export const SUPPLY_CACHE_01: ScenarioModule = {
       role: 'storage',
       onCriticalPath: true,
       features: [
-        { id: 'supply_container', initialState: 'locked', examineResult: { fr: 'Conteneur de ravitaillement d\'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.', en: '' } },
+        { id: 'supply_container', initialState: 'locked', examineResult: { fr: 'Conteneur de ravitaillement d\'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.', en: '' }, descriptions: { locked: { fr: 'Conteneur de ravitaillement d\'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.', en: '' }, open: { fr: 'Le conteneur est ouvert. Les compartiments internes sont accessibles — rations entamées, emplacements vides, quelques fournitures éparses. Quelqu\'un est passé avant vous.', en: '' } } },
         { id: 'inventory_manifest', initialState: 'intact', examineResult: { fr: 'Manifeste d\'inventaire affiché sur le côté. Liste le contenu : rations, médicaments, outils, et... une entrée barrée à l\'encre noire. Quelqu\'un a retiré quelque chose avant vous.', en: '' } },
       ],
       items: [],

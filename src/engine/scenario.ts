@@ -57,6 +57,8 @@ export interface FeatureDefinition {
   readonly initialState?: FeatureState;
   /** What examining this feature reveals (on success) */
   readonly examineResult?: LocaleString;
+  /** Per-state descriptions (e.g. locked vs open text). Takes priority over examineResult. */
+  readonly descriptions?: Readonly<Record<string, LocaleString>>;
 }
 
 // ---------------------------------------------------------------------------

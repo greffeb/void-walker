@@ -1109,6 +1109,79 @@ const EXAMINE_TEMPLATES: readonly ActionTemplate[] = [
       en: '',
     },
   },
+  // --- container-specific (openable) EXAMINE — search-style wording ---
+  {
+    id: 'perception_EXAMINE_openable_success_low',
+    verb: 'EXAMINE',
+    targetType: 'openable',
+    outcome: 'success',
+    tension: 'low',
+    category: 'perception',
+    text: {
+      fr: '{actor} fouillez {def_target}. L\'intérieur révèle quelques éléments intéressants.',
+      en: '',
+    },
+  },
+  {
+    id: 'perception_EXAMINE_openable_success_mid',
+    verb: 'EXAMINE',
+    targetType: 'openable',
+    outcome: 'success',
+    tension: 'mid',
+    category: 'perception',
+    text: {
+      fr: '{actor} inspectez le contenu de {def_target}. Parmi les objets entassés, certains détails retiennent votre attention.',
+      en: '',
+    },
+  },
+  {
+    id: 'perception_EXAMINE_openable_success_high',
+    verb: 'EXAMINE',
+    targetType: 'openable',
+    outcome: 'success',
+    tension: 'high',
+    category: 'perception',
+    text: {
+      fr: '{actor} fouillez {def_target} à la hâte, les mains tremblantes. Chaque seconde compte.',
+      en: '',
+    },
+  },
+  {
+    id: 'perception_EXAMINE_openable_failure_low',
+    verb: 'EXAMINE',
+    targetType: 'openable',
+    outcome: 'failure',
+    tension: 'low',
+    category: 'perception',
+    text: {
+      fr: '{actor} fouillez {def_target}, mais rien d\'utile n\'apparaît. Le contenu est banal, décevant.',
+      en: '',
+    },
+  },
+  {
+    id: 'perception_EXAMINE_openable_failure_mid',
+    verb: 'EXAMINE',
+    targetType: 'openable',
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'perception',
+    text: {
+      fr: 'L\'intérieur de {def_target} ne révèle rien d\'exploitable. Si quelque chose était caché ici, c\'est bien dissimulé.',
+      en: '',
+    },
+  },
+  {
+    id: 'perception_EXAMINE_openable_failure_high',
+    verb: 'EXAMINE',
+    targetType: 'openable',
+    outcome: 'failure',
+    tension: 'high',
+    category: 'perception',
+    text: {
+      fr: '{actor} retournez le contenu de {def_target} — rien. Le temps perdu pèse comme du plomb.',
+      en: '',
+    },
+  },
 ];
 
 // ============================================================================
@@ -2404,7 +2477,7 @@ const TAKE_TEMPLATES: readonly ActionTemplate[] = [
     tension: 'mid',
     category: 'interaction',
     text: {
-      fr: '{def_target} passe de la surface froide du sol à vos mains. Un geste rapide{?tool_used:, {def_tool} libérant l\'objet de son support|}.',
+      fr: '{actor} récupérez {def_target}. Un geste rapide, du sol à vos mains{?tool_used:, {def_tool} libérant l\'objet de son support|}.',
       en: '',
     },
   },
@@ -2735,6 +2808,345 @@ const USE_TEMPLATES: readonly ActionTemplate[] = [
     category: 'interaction',
     text: {
       fr: 'L\'activation de {def_target}{?tool_used: via {def_tool}|} déclenche un retour catastrophique. Une surcharge d\'énergie pulse dans le module — les lumières s\'éteignent une seconde avant de revenir en rouge sang.',
+      en: '',
+    },
+  },
+  // --- NPC-specific USE templates (alive targets) ---
+  {
+    id: 'interaction_USE_alive_auto_success_low',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: '{actor} prodiguez des soins à {def_target}. Les gestes sont sûrs, méthodiques. Le blessé se détend visiblement.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_auto_success_mid',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: '{actor} appliquez les premiers soins sur {def_target}. Compresses, désinfectant, bandage — la procédure standard. Ça devrait aider.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_success_low',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'success',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: '{actor} traitez les blessures de {def_target} avec les moyens du bord. Le blessé respire un peu mieux.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_success_mid',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: '{def_target} grimace mais se laisse faire. Les soins stabilisent la blessure — temporairement du moins.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_success_high',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'success',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: '{actor} travaillez vite sur les plaies de {def_target}. Pas le temps pour la douceur — efficacité avant confort.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_partial_mid',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'partial',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Vos soins sur {def_target} sont approximatifs — le saignement ralentit sans s\'arrêter complètement. C\'est mieux que rien.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_failure_low',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'failure',
+    tension: 'low',
+    category: 'interaction',
+    text: {
+      fr: '{def_target} repousse votre aide d\'un geste faible. Les blessures sont trop profondes pour ce que vous avez à disposition.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_failure_mid',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Vos soins s\'avèrent insuffisants pour {def_target}. Le blessé a besoin de plus que ce que vous pouvez offrir ici.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_failure_high',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'failure',
+    tension: 'high',
+    category: 'interaction',
+    text: {
+      fr: '{def_target} ne réagit pas à vos soins. Le pouls faiblit — il faudrait un véritable bloc opératoire, pas vos mains tremblantes.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_crit_failure_mid',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'crit_failure',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Votre intervention sur {def_target} aggrave la situation. Un faux mouvement, une artère comprimée au mauvais endroit — le blessé hurle de douleur.',
+      en: '',
+    },
+  },
+  {
+    id: 'interaction_USE_alive_crit_success_mid',
+    verb: 'USE',
+    targetType: 'alive',
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'interaction',
+    text: {
+      fr: 'Vos gestes sont précis, presque chirurgicaux. {def_target} se stabilise rapidement — votre formation médicale fait la différence.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
+// READ — technical (INT)
+// ============================================================================
+
+const READ_TEMPLATES: readonly ActionTemplate[] = [
+  // --- auto_success ---
+  {
+    id: 'technical_READ_any_auto_success_low',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'low',
+    category: 'technical',
+    text: {
+      fr: '{actor} parcourez {def_target}. Les informations sont claires, lisibles — un luxe rare ici.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_auto_success_mid',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'auto_success',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: '{actor} lisez {def_target} à la lumière vacillante. Les mots s\'alignent malgré les conditions.',
+      en: '',
+    },
+  },
+  // --- success ---
+  {
+    id: 'technical_READ_any_success_low',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'success',
+    tension: 'low',
+    category: 'technical',
+    text: {
+      fr: '{actor} déchiffrez {def_target} sans difficulté. Le contenu est instructif — des détails qui pourraient servir.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_success_mid',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: 'La lecture de {def_target} révèle des informations intéressantes. Quelqu\'un a pris la peine de consigner ces données — et vous comprenez pourquoi.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_success_high',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'success',
+    tension: 'high',
+    category: 'technical',
+    text: {
+      fr: '{actor} survolez {def_target} à toute vitesse. L\'essentiel saute aux yeux — pas le temps de savourer la prose.',
+      en: '',
+    },
+  },
+  // --- crit_success ---
+  {
+    id: 'technical_READ_any_crit_success_mid',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: '{def_target} contient plus que prévu. Entre les lignes, un message caché — notes dans la marge, passages soulignés, un schéma révélateur.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_crit_success_high',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'high',
+    category: 'technical',
+    text: {
+      fr: 'En parcourant {def_target}, une pièce du puzzle se met en place. Ce que ces lignes décrivent change tout.',
+      en: '',
+    },
+  },
+  // --- partial ---
+  {
+    id: 'technical_READ_any_partial_mid',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: '{def_target} est partiellement illisible — taches, déchirures, encre effacée. {actor} en tirez quelques fragments utiles, mais le reste échappe à la lecture.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_partial_high',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'partial',
+    tension: 'high',
+    category: 'technical',
+    text: {
+      fr: '{actor} n\'avez le temps de lire que la moitié de {def_target}. Ce que vous retenez est incomplet mais potentiellement crucial.',
+      en: '',
+    },
+  },
+  // --- failure ---
+  {
+    id: 'technical_READ_any_failure_low',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'low',
+    category: 'technical',
+    text: {
+      fr: '{def_target} est illisible. Encre effacée, langage technique incompréhensible, ou simplement une écriture indéchiffrable.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_failure_mid',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: 'Les pages de {def_target} sont trop abîmées. Humidité, sang ou acide — la dégradation a eu raison du contenu.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_failure_high',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'high',
+    category: 'technical',
+    text: {
+      fr: '{actor} n\'arrivez pas à déchiffrer {def_target}. La lumière manque, le temps presse, et les mots se brouillent devant vos yeux.',
+      en: '',
+    },
+  },
+  // --- crit_failure ---
+  {
+    id: 'technical_READ_any_crit_failure_mid',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: 'En manipulant {def_target}, le document se déchire. Les fragments restants sont inexploitables — l\'information est perdue.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_any_crit_failure_high',
+    verb: 'READ',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'high',
+    category: 'technical',
+    text: {
+      fr: '{def_target} vous échappe des mains et tombe dans une flaque de liquide corrosif. Ce qui restait de lisible disparaît en quelques secondes.',
+      en: '',
+    },
+  },
+  // --- electronic-specific READ (screens, terminals, datapads) ---
+  {
+    id: 'technical_READ_electronic_success_mid',
+    verb: 'READ',
+    targetType: 'electronic',
+    outcome: 'success',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: 'L\'écran de {def_target} affiche ses données. {actor} faites défiler les entrées — chaque ligne apporte de nouvelles questions.',
+      en: '',
+    },
+  },
+  {
+    id: 'technical_READ_electronic_failure_mid',
+    verb: 'READ',
+    targetType: 'electronic',
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'technical',
+    text: {
+      fr: 'L\'écran de {def_target} clignote puis s\'éteint. Alimentation instable ou fichier corrompu — les données sont inaccessibles.',
       en: '',
     },
   },
@@ -4835,6 +5247,7 @@ export const ACTION_TEMPLATES: readonly ActionTemplate[] = [
   ...RUN_TEMPLATES,
   ...TALK_TEMPLATES,
   ...MOVE_TO_TEMPLATES,
+  ...READ_TEMPLATES,
   ...CATEGORY_FALLBACK_TEMPLATES,
   ...ABSURD_TEMPLATES,
 ] as const;

@@ -399,9 +399,11 @@ export function resolveTarget(
     }
   }
 
-  // 1. Inventory items
-  let bestScore = 0;
-  let bestTarget: ResolvedTarget | null = null;
+  // 1. Inventory items — collect best but DON'T return yet.
+  //    Environment features may score higher (e.g. "armoire médicale" feature
+  //    vs "médical" alias on an inventory medkit). We compare at the end.
+  let invBestScore = 0;
+  let invBestTarget: ResolvedTarget | null = null;
 
   if (verb !== 'MOVE_TO') {
     for (const item of context.inventory) {
@@ -411,19 +413,16 @@ export function resolveTarget(
         ...item.id.replace(/_/g, ' ').split(' '),
       ])];
       const score = tokenMatchScore(searchTokens, aliases);
-      if (score > bestScore) {
-        bestScore = score;
-        bestTarget = item;
+      if (score > invBestScore) {
+        invBestScore = score;
+        invBestTarget = item;
       }
-    }
-    if (bestTarget && bestScore >= 5) {
-      return bestTarget;
     }
   }
 
   // 2. Location items
-  bestScore = 0;
-  bestTarget = null;
+  let locItemBestScore = 0;
+  let locItemBestTarget: ResolvedTarget | null = null;
   if (verb !== 'MOVE_TO' && verb !== 'TAKE') {
     for (const item of context.locationItems) {
       const aliases = [...new Set([
@@ -432,13 +431,10 @@ export function resolveTarget(
         ...item.id.replace(/_/g, ' ').split(' '),
       ])];
       const score = tokenMatchScore(searchTokens, aliases);
-      if (score > bestScore) {
-        bestScore = score;
-        bestTarget = item;
+      if (score > locItemBestScore) {
+        locItemBestScore = score;
+        locItemBestTarget = item;
       }
-    }
-    if (bestTarget && bestScore >= 5) {
-      return bestTarget;
     }
   }
 
@@ -519,17 +515,25 @@ export function resolveTarget(
     }
   }
 
-  // Return whichever of NPC / environment scores higher.
-  // NPCs require score ≥ 5; environment requires score ≥ 3.
-  // When both qualify, the higher scorer wins (breaks camera/robot confusion).
+  // Compare ALL scored categories — inventory, location items, NPC, environment.
+  // The highest scorer wins. Ties: inventory > location items > NPC > environment.
+  // Minimum thresholds: inventory ≥ 5, location items ≥ 5, NPC ≥ 5, environment ≥ 3.
+  const invQualifies = invBestTarget !== null && invBestScore >= 5;
+  const locItemQualifies = locItemBestTarget !== null && locItemBestScore >= 5;
   const npcQualifies = npcBestTarget !== null && npcBestScore >= 5;
   const envQualifies = envBestTarget !== null && envBestScore >= 3;
 
-  if (npcQualifies && envQualifies) {
-    return envBestScore > npcBestScore ? envBestTarget : npcBestTarget;
+  // Build candidates array ordered by score (desc), with priority as tiebreaker
+  const candidates: Array<{ target: ResolvedTarget; score: number; priority: number }> = [];
+  if (invQualifies) candidates.push({ target: invBestTarget!, score: invBestScore, priority: 0 });
+  if (locItemQualifies) candidates.push({ target: locItemBestTarget!, score: locItemBestScore, priority: 1 });
+  if (npcQualifies) candidates.push({ target: npcBestTarget!, score: npcBestScore, priority: 2 });
+  if (envQualifies) candidates.push({ target: envBestTarget!, score: envBestScore, priority: 3 });
+
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => b.score - a.score || a.priority - b.priority);
+    return candidates[0]!.target;
   }
-  if (npcQualifies) return npcBestTarget;
-  if (envQualifies) return envBestTarget;
 
   // 7. Single-NPC contextual default with generic reference words.
   // Handles cases like "j'inspecte l'ennemi" or "je lui lance un lit dessus"

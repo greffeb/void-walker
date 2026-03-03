@@ -771,6 +771,7 @@ export type StringKey =
   | 'env.vent_hatch'
   | 'env.security_panel_local'
   | 'env.medical_cabinet'
+  | 'env.medical_cabinet.aliases'
   | 'env.cot'
   | 'env.light_fixture'
   | 'env.power_relay'

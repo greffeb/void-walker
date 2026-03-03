@@ -14,6 +14,10 @@ import { buildConsequences, applyConsequences } from '../../../src/engine/conseq
 import { resolveItemUseOn } from '../../../src/engine/interactionResolver';
 import { isEnrichedItem } from '../../../src/engine/scenario';
 import { BALANCE } from '../../../src/engine/constants';
+import { getFeatureDescription } from '../../../src/engine/featureState';
+import { ACTION_TEMPLATES } from '../../../src/content/templates/actionTemplates';
+import { ATMOSPHERE_SNIPPETS } from '../../../src/content/templates/atmosphere';
+import { THREAT_HINT_SNIPPETS } from '../../../src/content/templates/threats';
 
 const localeData = buildParserLocaleData('fr');
 
@@ -535,5 +539,98 @@ describe('REG-017: exploration failure damage is nonLethal', () => {
       ctx, rng,
     );
     expect(result.character.hp).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-009: "armoire médicale" resolved to item.medical_kit instead of env feature
+// Filed: 2026-02-25 | Fixed: 2026-02-25 | resolver.ts unified candidate comparison
+// ---------------------------------------------------------------------------
+describe('REG-009: armoire médicale → env feature, not inventory medical_kit', () => {
+  test('resolveTarget prefers env feature over inventory item when env scores higher', () => {
+    const ctx = makeContext({
+      inventory: [{ id: 'medical_kit', definitionId: 'medical_kit', nameKey: 'item.medical_kit', aliases: ['kit', 'trousse', 'kit médical', 'kit medical', 'trousse médicale', 'trousse medicale', 'trousse de soins', 'kit de soins', 'medkit'], properties: ['medical' as PropertyId, 'consumable' as PropertyId], quantity: 1 }],
+      environmentFeatures: [makeFeature('medical_cabinet', ['armoire', 'armoire medicale', 'placard medical', 'meuble medical'], ['openable' as PropertyId, 'container' as PropertyId])],
+    });
+    const result = resolveTarget(['armoire', 'medicale'], 'EXAMINE', ctx);
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe('medical_cabinet');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-010: Container still described as "scellé" after OPEN
+// Filed: 2026-02-25 | Fixed: 2026-02-25 | featureState.ts + processTurn.ts
+// ---------------------------------------------------------------------------
+describe('REG-010: getFeatureDescription returns open-state text after state change', () => {
+  test('supply_container shows different text for locked vs open', () => {
+    // Simulate a basic feature with descriptions
+    const featureDef = {
+      id: 'supply_container',
+      descriptions: {
+        locked: { fr: 'Un conteneur scellé.', en: '' },
+        open: { fr: 'Le conteneur est ouvert.', en: '' },
+      },
+    };
+    const lockedText = getFeatureDescription(featureDef, 'locked', 'fr');
+    const openText = getFeatureDescription(featureDef, 'open', 'fr');
+    expect(lockedText).toContain('scellé');
+    expect(openText).toContain('ouvert');
+    expect(lockedText).not.toBe(openText);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-011: No READ templates exist (falls to tech category fallback)
+// Filed: 2026-02-25 | Fixed: 2026-02-25 | actionTemplates.ts READ_TEMPLATES
+// ---------------------------------------------------------------------------
+describe('REG-011: READ templates exist for all outcomes', () => {
+  test('ACTION_TEMPLATES includes READ templates for key outcomes', () => {
+    const readTemplates = ACTION_TEMPLATES.filter(t => t.verb === 'READ');
+    expect(readTemplates.length).toBeGreaterThanOrEqual(10);
+    const outcomes = new Set(readTemplates.map(t => t.outcome));
+    expect(outcomes.has('success')).toBe(true);
+    expect(outcomes.has('failure')).toBe(true);
+    expect(outcomes.has('auto_success')).toBe(true);
+    expect(outcomes.has('crit_success')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-012: USE on NPC shows "batterie morte" (tech-device narration)
+// Filed: 2026-02-25 | Fixed: 2026-02-25 | actionTemplates.ts alive USE templates
+// ---------------------------------------------------------------------------
+describe('REG-012: USE templates with alive targetType exist', () => {
+  test('ACTION_TEMPLATES includes USE templates with alive targetType', () => {
+    const aliveUseTemplates = ACTION_TEMPLATES.filter(
+      t => t.verb === 'USE' && t.targetType === 'alive'
+    );
+    expect(aliveUseTemplates.length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-013: Atmosphere/threat snippet pools too small for anti-repetition
+// Filed: 2026-02-25 | Fixed: 2026-02-25 | atmosphere.ts, threats.ts expanded
+// ---------------------------------------------------------------------------
+describe('REG-013: expanded atmosphere and threat snippet pools', () => {
+  test('each setting has ≥7 atmosphere snippets per tension tier (low/mid/high)', () => {
+    for (const setting of ['derelict_ship', 'alien_ruins', 'space_station'] as const) {
+      for (const tier of ['low', 'mid', 'high'] as const) {
+        const pool = ATMOSPHERE_SNIPPETS.filter(
+          s => s.setting === setting && s.tensionTier === tier
+        );
+        expect(pool.length, `${setting}/${tier}`).toBeGreaterThanOrEqual(7);
+      }
+    }
+  });
+
+  test('each beat has ≥6 threat hint snippets', () => {
+    for (const beat of ['intro', 'rising', 'midpoint', 'escalation', 'climax', 'resolution'] as const) {
+      const pool = THREAT_HINT_SNIPPETS.filter(
+        s => s.beat === beat
+      );
+      expect(pool.length, `beat:${beat}`).toBeGreaterThanOrEqual(6);
+    }
   });
 });
