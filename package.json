@@ -26,7 +26,8 @@
     "playtest:god": "tsx tests/playtest/cli.ts --god",
     "playtest:chaos": "tsx tests/playtest/cli.ts --chaos",
     "playtest:auto": "tsx tests/playtest/autoplay.ts",
-    "playtest:auto:100": "tsx tests/playtest/autoplay.ts --runs 100 --report"
+    "playtest:auto:100": "tsx tests/playtest/autoplay.ts --runs 100 --report",
+    "testModule": "tsx scripts/testModule.ts"
   },
   "dependencies": {
     "dexie": "^4.0.11",
