@@ -373,7 +373,7 @@ function selectThreatHint(ctx: NarrativeContext, locale: Locale): string | null 
   const candidates = THREAT_HINT_SNIPPETS.filter(s => s.beat === ctx.beat);
   if (candidates.length === 0) return null;
 
-  const selected = composerMemory.select(candidates, 'threat');
+  const selected = composerMemory.select(candidates, `threat_${ctx.beat}`);
   return selected ? (locale === 'fr' ? selected.text.fr : selected.text.en) : null;
 }
 
