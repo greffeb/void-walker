@@ -22,6 +22,7 @@ export const fr: LocaleStrings = {
   'ui.scene.unexplored': 'inexploré',
   'ui.scene.you_notice': 'Vous remarquez',
   'ui.scene.obstacle_hint': 'Obstacle',
+  'ui.scene.obstacle_blocks_movement': 'Un obstacle vous empêche d\'avancer. Vous devez d\'abord trouver un moyen de passer.',
 
   // Character creation
   'creation.title': 'Création de personnage',

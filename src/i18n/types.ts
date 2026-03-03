@@ -34,6 +34,7 @@ export type StringKey =
   | 'ui.scene.unexplored'
   | 'ui.scene.you_notice'
   | 'ui.scene.obstacle_hint'
+  | 'ui.scene.obstacle_blocks_movement'
   // Character creation
   | 'creation.title'
   | 'creation.chooseName'

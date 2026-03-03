@@ -155,6 +155,13 @@ export const explorerBot: PlaytestBot = {
       return `parler ${unseenNpcForTalk}`;
     }
 
+    // 5b) Resolve obstacles — obstacles block forward progress, so the explorer
+    // must interact with them after examining the current room's content.
+    if (scene.hasObstacle && scene.obstacleTargetId !== null) {
+      const obstacleVerbs = ['pousser', 'forcer', 'ouvrir', 'hacker', 'utiliser'];
+      return `${rng.pick(obstacleVerbs)} ${scene.obstacleTargetId.replace(/_/g, ' ')}`;
+    }
+
     // Emergency anti-loop guard: move periodically before repeating local
     // interactions forever.
     if (

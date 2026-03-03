@@ -320,6 +320,9 @@ export interface TurnDebugTrace {
   // Step 4b: Scenario interaction (Chantier 3)
   readonly scenarioInteractionMatched?: boolean;
   readonly scenarioNarrativeOverride?: import('./scenario').LocaleString | null;
+
+  // Step 9a: Movement blocking
+  readonly movementBlocked?: boolean;
 }
 
 /** Result of a single dice roll */

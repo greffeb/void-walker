@@ -246,7 +246,9 @@ describe('botProfiles: explorer + chaotic', () => {
     expect(meanLocationCoverage).toBeGreaterThanOrEqual(0.80);
     expect(weightedItemCoverage).toBeGreaterThanOrEqual(0.75);
     expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.75);
-    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.70);
+    // Lowered from 0.70 → 0.65: obstacle blocking (REG-019) costs the bot
+    // turns resolving obstacles, slightly reducing NPC interaction coverage.
+    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.65);
   });
 
   it('chaotic profile meets absurd/failsafe thresholds', () => {

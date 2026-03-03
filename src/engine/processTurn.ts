@@ -38,13 +38,15 @@ import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
-import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved } from './backtracking';
+import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved } from './backtracking';
 import { buildVictoryCheckContext } from './game';
 import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
 import { isEnrichedItem } from './scenario';
 import { removeItem } from './inventory';
 import { NPC_DEFINITIONS } from '../content/npcs';
+import { buildObstacleVerbMap } from '../content/parserData';
+import { getLocale } from '../i18n/index';
 
 // ---------------------------------------------------------------------------
 // Empty trace factory — used for early returns
@@ -435,6 +437,7 @@ export function processTurn(
   let traceConsequences: readonly Consequence[] = [];
   let traceTriggeredConditions: readonly string[] = [];
   let combatHandled = false;
+  let featureObstacleHandled = false;
 
   // Propagate scenario interaction dice roll to trace (Issue #51).
   // resolveScenarioInteraction rolls internally but processTurn never copied
@@ -445,6 +448,94 @@ export function processTurn(
     traceStatValue = scenarioInteractionDiceRoll.statValue;
     traceEffectiveDC = scenarioInteractionDiceRoll.difficulty;
     traceOutcome = scenarioInteractionSuccess ? 'success' : 'failure';
+  }
+
+  // ── FEATURE-OBSTACLE INTERCEPT (Issue #47) ────────────────────────────────
+  // For environment features that ARE the location's obstacle target (e.g.
+  // blocked_door), match the player's verb against the obstacle's defined
+  // paths and use the obstacle DC instead of the generic D20 resolution.
+  // On success, mark the obstacle resolved and set feature state to 'open'.
+  // This mirrors the NPC-obstacle intercept (Issue #49) inside the combat
+  // block but handles non-NPC obstacle targets.
+  // ──────────────────────────────────────────────────────────────────────────
+  if (
+    !scenarioInteractionHandled
+    && !current.activeCombat
+    && current.character !== null
+    && current.scenario !== null
+    && current.playerLocationId !== null
+    && (action.target?.source === 'environment' || action.target?.source === 'npc')
+  ) {
+    const featureObstacleNode = current.scenario.graph.nodes.find(
+      n => n.id === current.playerLocationId,
+    );
+    const featureNodeObstacle = featureObstacleNode?.obstacle;
+    // Build obstacle verb map to translate authoring verbs (e.g. 'attack') to VerbIds (e.g. 'STRIKE')
+    const obstacleVerbMap = buildObstacleVerbMap(getLocale());
+    const featureMatchedPath = featureNodeObstacle && action.target.id === featureNodeObstacle.targetId
+      ? featureNodeObstacle.paths.find(
+          p => p.verbs.some(v => obstacleVerbMap.get(v.toLowerCase()) === action.verb),
+        )
+      : undefined;
+
+    if (featureMatchedPath) {
+      featureObstacleHandled = true;
+      const effectiveStats = applyConditionMalus(current.character.stats, current.character.conditions);
+      const statId = featureMatchedPath.stat;
+      const statValue = effectiveStats[statId] ?? 0;
+      const lck = effectiveStats['LCK'] ?? 0;
+
+      // Failsafe DC reduction for repeated attempts
+      const featureObstacleKey = getObstacleKey(current.playerLocationId, featureNodeObstacle!.targetId);
+      const featureObstacleRecord = current.obstacleAttempts[featureObstacleKey];
+      const featureFailsafe = checkFailsafe(featureObstacleRecord, current.difficulty);
+      const featureFailsafeMod = featureFailsafe?.dcReduction ? -featureFailsafe.dcReduction : 0;
+      traceFailsafeActivated = featureFailsafe?.activated ?? false;
+      traceFailsafeDcReduction = featureFailsafe?.dcReduction ?? 0;
+
+      const effectiveDC = Math.max(2, featureMatchedPath.dc + featureFailsafeMod);
+      const roll = rollCheck(statId, statValue, lck, effectiveDC, 0, rng);
+      diceRoll = roll;
+      traceStatId = statId;
+      traceStatValue = statValue;
+      traceEffectiveDC = effectiveDC;
+      traceOutcome = classifyOutcome(roll.natural, roll.total, effectiveDC);
+
+      if (roll.success) {
+        // Obstacle resolved — mark visit state + set feature to 'open' (or neutralize NPC)
+        const vsKeyFeat = current.playerLocationId;
+        const existingFeat = current.visitedLocations[vsKeyFeat];
+        if (existingFeat) {
+          current = {
+            ...current,
+            visitedLocations: {
+              ...current.visitedLocations,
+              [vsKeyFeat]: markObstacleResolved(existingFeat),
+            },
+          };
+        }
+        // NPC-obstacle: neutralize the NPC on success
+        if (action.target.source === 'npc') {
+          const npcId = action.target.id;
+          if (current.npcStates[npcId]) {
+            current = {
+              ...current,
+              npcStates: { ...current.npcStates, [npcId]: { ...current.npcStates[npcId], alive: false } },
+            };
+          }
+        } else {
+          current = setFeatureState(current, action.target.id, 'open');
+        }
+      } else {
+        // Failed — record attempt for failsafe tracking
+        current = {
+          ...current,
+          obstacleAttempts: recordAttempt(
+            current.obstacleAttempts, current.playerLocationId, featureNodeObstacle!.targetId, action.verb,
+          ),
+        };
+      }
+    }
   }
 
   // ── COMBAT INTERCEPT: Route combat verbs to combat system when in active combat ──
@@ -583,18 +674,31 @@ export function processTurn(
         // Also move the player if they fled toward a connected location
         if (action.target?.source === 'connected_location') {
           const fleeLocationId = action.target.id;
-          const existingFleeVisit = current.visitedLocations[fleeLocationId];
-          const updatedFleeVisit = existingFleeVisit
-            ? markRevisit(existingFleeVisit)
-            : createVisitState(current.turn);
-          current = {
-            ...current,
-            playerLocationId: fleeLocationId,
-            visitedLocations: {
-              ...current.visitedLocations,
-              [fleeLocationId]: updatedFleeVisit,
-            },
-          };
+
+          // Obstacle gate: block flee to unvisited location through unresolved obstacle
+          const fleeNode = current.scenario?.graph.nodes.find(n => n.id === current.playerLocationId);
+          const fleeVisitState = current.playerLocationId
+            ? current.visitedLocations[current.playerLocationId]
+            : undefined;
+          const fleeObstacleBlocks = fleeNode?.obstacle !== undefined
+            && !isObstacleResolved(fleeVisitState)
+            && !current.visitedLocations[fleeLocationId];
+
+          if (!fleeObstacleBlocks) {
+            const existingFleeVisit = current.visitedLocations[fleeLocationId];
+            const updatedFleeVisit = existingFleeVisit
+              ? markRevisit(existingFleeVisit)
+              : createVisitState(current.turn);
+            current = {
+              ...current,
+              playerLocationId: fleeLocationId,
+              visitedLocations: {
+                ...current.visitedLocations,
+                [fleeLocationId]: updatedFleeVisit,
+              },
+            };
+          }
+          // If obstacle blocks, combat ends but player stays in same location
         }
       } else if (fleeResult.npcFreeAttack?.hit) {
         current = updateCharacterHp(current, -fleeResult.npcFreeAttack.damageDealt);
@@ -610,7 +714,7 @@ export function processTurn(
     }
   }
 
-  if (!isAutoVerb && !scenarioInteractionHandled && !combatHandled) {
+  if (!isAutoVerb && !scenarioInteractionHandled && !combatHandled && !featureObstacleHandled) {
     const statId = VERB_STATS[action.verb] ?? 'FOR';
     const effectiveStats = applyConditionMalus(current.character!.stats, current.character!.conditions);
     const statValue = effectiveStats[statId] ?? 0;
@@ -924,23 +1028,44 @@ export function processTurn(
   // RUN out of combat requires a successful roll — skip movement on failure (Issue #52).
   // In-combat RUN already handles movement inside the combat block (line ~524) and sets
   // combatHandled = true, so traceOutcome is null here for that path (no double-move risk).
+  let movementBlocked = false;
   const isFailedOutOfCombatRun = action.verb === 'RUN'
     && (traceOutcome === 'failure' || traceOutcome === 'crit_failure');
   if (MOVEMENT_VERBS.has(action.verb) && action.target?.source === 'connected_location'
       && !isFailedOutOfCombatRun) {
     const newLocationId = action.target.id;
-    const existingVisit = current.visitedLocations[newLocationId];
-    const updatedVisit = existingVisit
-      ? markRevisit(existingVisit)
-      : createVisitState(current.turn);
-    current = {
-      ...current,
-      playerLocationId: newLocationId,
-      visitedLocations: {
-        ...current.visitedLocations,
-        [newLocationId]: updatedVisit,
-      },
-    };
+
+    // Obstacle gate: if current location has an unresolved obstacle and the
+    // destination has never been visited, block the movement entirely.
+    const currentNode = current.scenario?.graph.nodes.find(n => n.id === current.playerLocationId);
+    const currentVisitState = current.playerLocationId
+      ? current.visitedLocations[current.playerLocationId]
+      : undefined;
+    const hasUnresolvedObstacle = currentNode?.obstacle !== undefined
+      && !isObstacleResolved(currentVisitState);
+    const destinationNeverVisited = !current.visitedLocations[newLocationId];
+
+    if (hasUnresolvedObstacle && destinationNeverVisited) {
+      // Block movement — player must resolve the obstacle first
+      movementBlocked = true;
+      scenarioNarrativeOverride = {
+        fr: "Un obstacle vous empêche d'avancer. Vous devez d'abord trouver un moyen de passer.",
+        en: 'An obstacle blocks your path. You must find a way through first.',
+      };
+    } else {
+      const existingVisit = current.visitedLocations[newLocationId];
+      const updatedVisit = existingVisit
+        ? markRevisit(existingVisit)
+        : createVisitState(current.turn);
+      current = {
+        ...current,
+        playerLocationId: newLocationId,
+        visitedLocations: {
+          ...current.visitedLocations,
+          [newLocationId]: updatedVisit,
+        },
+      };
+    }
   }
 
   // 9b. Keep beat/threat director aligned with the player's current core node.
@@ -1103,6 +1228,7 @@ export function processTurn(
     stalkerEventType: stalkerEvent?.type ?? null,
     scenarioInteractionMatched: scenarioInteractionHandled,
     scenarioNarrativeOverride: scenarioNarrativeOverride,
+    movementBlocked,
   });
 
   return {
@@ -1147,6 +1273,7 @@ interface TraceInputs {
   readonly stalkerEventType: string | null;
   readonly scenarioInteractionMatched?: boolean;
   readonly scenarioNarrativeOverride?: import('./scenario').LocaleString | null;
+  readonly movementBlocked?: boolean;
 }
 
 function buildFullTrace(t: TraceInputs): TurnDebugTrace {
@@ -1186,6 +1313,7 @@ function buildFullTrace(t: TraceInputs): TurnDebugTrace {
     stalkerEventType: t.stalkerEventType,
     scenarioInteractionMatched: t.scenarioInteractionMatched,
     scenarioNarrativeOverride: t.scenarioNarrativeOverride,
+    movementBlocked: t.movementBlocked,
   };
 }
 

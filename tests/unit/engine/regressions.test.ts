@@ -6,7 +6,7 @@
 import { describe, test, expect } from 'vitest';
 import { normalizeInput, matchVerb, parseAction } from '../../../src/engine/parser';
 import { resolveTarget } from '../../../src/engine/resolver';
-import { buildParserLocaleData } from '../../../src/content/parserData';
+import { buildParserLocaleData, buildObstacleVerbMap } from '../../../src/content/parserData';
 import type { SceneContext, NpcInstance, EnvironmentFeatureInstance } from '../../../src/engine/types';
 import type { PropertyId } from '../../../src/engine/properties';
 import { MOVEMENT_VERBS } from '../../../src/engine/verbs';
@@ -18,6 +18,15 @@ import { getFeatureDescription } from '../../../src/engine/featureState';
 import { ACTION_TEMPLATES } from '../../../src/content/templates/actionTemplates';
 import { ATMOSPHERE_SNIPPETS } from '../../../src/content/templates/atmosphere';
 import { THREAT_HINT_SNIPPETS } from '../../../src/content/templates/threats';
+import { createSeededRng } from '../../../src/engine/rng';
+import { getSkeletonById } from '../../../src/content/scenarios';
+import { getSettingById } from '../../../src/content/settings';
+import { ALL_MODULES } from '../../../src/content/scenarios/modules';
+import { assembleScenario } from '../../../src/engine/pacing';
+import { initGame } from '../../../src/engine/game';
+import { getSceneContext } from '../../../src/engine/scene';
+import { processTurn } from '../../../src/engine/processTurn';
+import { isObstacleResolved } from '../../../src/engine/backtracking';
 
 const localeData = buildParserLocaleData('fr');
 
@@ -632,5 +641,408 @@ describe('REG-013: expanded atmosphere and threat snippet pools', () => {
       );
       expect(pool.length, `beat:${beat}`).toBeGreaterThanOrEqual(6);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-018: PUSH on env.blocked_door succeeds but obstacle not resolved
+// Filed: 2026-03-03 | Issue #47 | processTurn.ts — feature-obstacle intercept
+// The obstacle path intercept only existed inside the activeCombat block
+// (Issue #49 NPC-obstacle). Feature-type obstacles like blocked_door fell
+// through to the generic D20 path which used a wrong DC and never marked
+// the obstacle resolved nor changed the feature state.
+// ---------------------------------------------------------------------------
+describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
+  test('successful PUSH on blocked_door marks obstacle resolved and feature open', () => {
+    // Use the exact seed from Issue #47
+    const rng = createSeededRng(1541823379);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('alien_ruins')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    const parserData = buildParserLocaleData('fr');
+
+    // Turn 1: move to the location with the blocked door
+    const ctx1 = getSceneContext(state);
+    const r1 = processTurn(state, 'aller passage de membranes', ctx1, parserData, rng);
+    state = r1.newState;
+
+    // Verify we are at a location with the blocked_door obstacle
+    expect(state.playerLocationId).not.toBeNull();
+    const currentNode = state.scenario!.graph.nodes.find(
+      n => n.id === state.playerLocationId,
+    );
+    expect(currentNode?.obstacle?.targetId).toBe('blocked_door');
+
+    // Turn 2: push the blocked door
+    const ctx2 = getSceneContext(state);
+    const r2 = processTurn(state, 'pousser Porte bloquée', ctx2, parserData, rng);
+    state = r2.newState;
+
+    // The obstacle DC should be 12 (from the path definition), not the generic 7
+    expect(r2.trace.effectiveDC).toBe(12);
+    // Stat should be FOR (the force path stat)
+    expect(r2.trace.statId).toBe('FOR');
+
+    // If the roll succeeded, the obstacle must be resolved and feature state 'open'
+    if (r2.trace.outcome === 'success' || r2.trace.outcome === 'crit_success') {
+      const vs = state.visitedLocations[state.playerLocationId!];
+      expect(vs?.obstacleResolved).toBe(true);
+      // Feature state should be 'open'
+      const featureStates = state.featureStates ?? {};
+      expect(featureStates['blocked_door']).toBe('open');
+    }
+  });
+
+  test('feature-obstacle path uses the obstacle DC, not the generic DC', () => {
+    // Use the exact seed from Issue #47 — verifies the DC is from the obstacle
+    // definition (12 for the 'force' path) rather than a generic DC.
+    // We already checked this above, but this test isolates the DC concern:
+    // the blocked_passage_01 module defines force path DC=12.
+    const rng = createSeededRng(1541823379);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('alien_ruins')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    const parserData = buildParserLocaleData('fr');
+
+    // Move to the blocked door location
+    const ctx1 = getSceneContext(state);
+    const r1 = processTurn(state, 'aller passage de membranes', ctx1, parserData, rng);
+    state = r1.newState;
+
+    // Verify the obstacle exists
+    const node = state.scenario!.graph.nodes.find(n => n.id === state.playerLocationId);
+    const forcePath = node?.obstacle?.paths.find(p => p.id === 'force');
+    expect(forcePath).toBeDefined();
+    expect(forcePath!.dc).toBe(12);
+
+    // Push the door — the trace DC must match the obstacle path, not generic
+    const ctx2 = getSceneContext(state);
+    const r2 = processTurn(state, 'pousser Porte bloquée', ctx2, parserData, rng);
+    expect(r2.trace.effectiveDC).toBe(12);
+    expect(r2.trace.statId).toBe('FOR');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-019: Unresolved obstacles must block movement to unvisited locations
+// Filed: 2026-03-03 | scene.ts, processTurn.ts — obstacle gate
+// Obstacles were purely cosmetic: getSceneContext() showed all exits and
+// processTurn() allowed unconditional movement. Now:
+// - getSceneContext() hides unvisited exits when obstacle is unresolved
+// - processTurn() blocks movement to unvisited locations through obstacles
+// - Backtracking to already-visited locations is always allowed
+// ---------------------------------------------------------------------------
+describe('REG-019: Obstacles block movement to unvisited locations', () => {
+  test('getSceneContext hides unvisited exits when obstacle is unresolved', () => {
+    const rng = createSeededRng(1541823379);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('alien_ruins')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    const parserData = buildParserLocaleData('fr');
+
+    // Move to the location with the blocked_door obstacle
+    const ctx1 = getSceneContext(state);
+    const r1 = processTurn(state, 'aller passage de membranes', ctx1, parserData, rng);
+    state = r1.newState;
+
+    // Confirm we are at a node with an obstacle
+    const node = state.scenario!.graph.nodes.find(n => n.id === state.playerLocationId);
+    expect(node?.obstacle).toBeDefined();
+    expect(isObstacleResolved(state.visitedLocations[state.playerLocationId!])).toBe(false);
+
+    // Scene context should only show visited (backtrack) exits, not unvisited forward exits
+    const ctx2 = getSceneContext(state);
+    const connectedIds = ctx2.connectedLocations.map(l => l.id);
+    for (const loc of connectedIds) {
+      // Every shown exit should be an already-visited location
+      expect(state.visitedLocations[loc]).toBeDefined();
+    }
+  });
+
+  test('processTurn blocks movement to unvisited location through obstacle (defense-in-depth)', () => {
+    const rng = createSeededRng(1541823379);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('alien_ruins')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    const parserData = buildParserLocaleData('fr');
+
+    // Move to the obstacle location
+    const ctx1 = getSceneContext(state);
+    const r1 = processTurn(state, 'aller passage de membranes', ctx1, parserData, rng);
+    state = r1.newState;
+
+    // Find an unvisited connected location (a forward exit beyond the obstacle)
+    const allEdges = state.scenario!.graph.edges.filter(
+      e => e.from === state.playerLocationId || e.to === state.playerLocationId,
+    );
+    const unvisitedNeighbor = allEdges
+      .map(e => e.from === state.playerLocationId ? e.to : e.from)
+      .find(id => !state.visitedLocations[id]);
+
+    if (unvisitedNeighbor) {
+      // Get the node for the unvisited neighbor
+      const neighborNode = state.scenario!.graph.nodes.find(n => n.id === unvisitedNeighbor);
+      expect(neighborNode).toBeDefined();
+
+      // Build a context that artificially includes the hidden exit.
+      // This simulates defense-in-depth: scene filter is layer 1, engine block is layer 2.
+      const ctx2 = getSceneContext(state);
+      const spoofedCtx: SceneContext = {
+        ...ctx2,
+        connectedLocations: [
+          ...ctx2.connectedLocations,
+          { id: unvisitedNeighbor, aliases: [neighborNode!.id], visited: false },
+        ],
+      };
+      const r2 = processTurn(state, `aller ${neighborNode!.id}`, spoofedCtx, parserData, rng);
+
+      // Movement should be blocked — player stays at the same location
+      expect(r2.newState.playerLocationId).toBe(state.playerLocationId);
+      expect(r2.trace.movementBlocked).toBe(true);
+    }
+  });
+
+  test('backtracking to visited location is allowed even with unresolved obstacle', () => {
+    const rng = createSeededRng(1541823379);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('alien_ruins')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    const parserData = buildParserLocaleData('fr');
+
+    // Remember the start location
+    const startLocationId = state.playerLocationId;
+
+    // Move to the obstacle location
+    const ctx1 = getSceneContext(state);
+    const r1 = processTurn(state, 'aller passage de membranes', ctx1, parserData, rng);
+    state = r1.newState;
+    const obstacleLocationId = state.playerLocationId;
+
+    // Obstacle should be unresolved
+    expect(isObstacleResolved(state.visitedLocations[obstacleLocationId!])).toBe(false);
+
+    // Backtrack to the start location (which IS visited)
+    const ctx2 = getSceneContext(state);
+    // The start location should appear in connected locations
+    const startVisible = ctx2.connectedLocations.some(l => l.id === startLocationId);
+    expect(startVisible).toBe(true);
+
+    // Actually attempt to move back - should succeed
+    const r2 = processTurn(state, `aller ${startLocationId}`, ctx2, parserData, rng);
+    expect(r2.newState.playerLocationId).toBe(startLocationId);
+    // movementBlocked should NOT be set
+    expect(r2.trace.movementBlocked).not.toBe(true);
+  });
+
+  test('after resolving obstacle, forward exits become available', () => {
+    const rng = createSeededRng(42);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('alien_ruins')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    const parserData = buildParserLocaleData('fr');
+
+    // Move to the obstacle location
+    const ctx1 = getSceneContext(state);
+    const r1 = processTurn(state, 'aller passage de membranes', ctx1, parserData, rng);
+    state = r1.newState;
+
+    const obstacleNode = state.scenario!.graph.nodes.find(n => n.id === state.playerLocationId);
+    if (!obstacleNode?.obstacle) return; // skip if this seed doesn't produce an obstacle node
+
+    // Count exits before resolving
+    const ctxBefore = getSceneContext(state);
+    const exitsBefore = ctxBefore.connectedLocations.length;
+
+    // Try to resolve the obstacle multiple times until success
+    for (let i = 0; i < 10; i++) {
+      if (isObstacleResolved(state.visitedLocations[state.playerLocationId!])) break;
+      const ctx = getSceneContext(state);
+      const r = processTurn(state, 'pousser la porte', ctx, parserData, rng);
+      state = r.newState;
+    }
+
+    // If obstacle is now resolved, forward exits should be available
+    if (isObstacleResolved(state.visitedLocations[state.playerLocationId!])) {
+      const ctxAfter = getSceneContext(state);
+      expect(ctxAfter.connectedLocations.length).toBeGreaterThanOrEqual(exitsBefore);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-020: NPC-obstacle intercept — targeting an NPC that is an obstacle targetId
+// Filed: 2026-03-03 | Fixed: 2026-03-03 | processTurn.ts feature-obstacle intercept extended
+// When an obstacle's targetId is an NPC (e.g. malfunctioning_android), actions on that
+// NPC should trigger obstacle path matching, and on success, neutralize the NPC.
+// ---------------------------------------------------------------------------
+describe('REG-020: NPC-obstacle intercept resolves obstacle and neutralizes NPC', () => {
+  // Map from VerbId to a French verb the parser will understand
+  const VERB_ID_TO_FRENCH: Record<string, string> = {
+    USE: 'utiliser',
+    TALK: 'parler',
+    PERSUADE: 'persuader',
+    CALM: 'calmer',
+    INTIMIDATE: 'intimider',
+    STRIKE: 'attaquer',
+    SHOOT: 'tirer',
+    HACK: 'pirater',
+    EXAMINE: 'examiner',
+    SEARCH: 'chercher',
+    RUN: 'fuir',
+    ACTIVATE: 'activer',
+    DECEIVE: 'bluffer',
+    THROW: 'lancer',
+    DISTRACT: 'distraire',
+  };
+
+  // Create a minimal scenario with exactly one NPC-obstacle node
+  function createNpcObstacleScenario(): ReturnType<typeof assembleScenario> {
+    const rng = createSeededRng(20260303);
+    const skeleton = getSkeletonById('investigate')!;
+    const setting = getSettingById('space_station')!;
+    return assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+  }
+
+  function findNpcObstacleNode(scenario: ReturnType<typeof assembleScenario>): {
+    nodeId: string;
+    npcId: string;
+    obstacle: { targetId: string; paths: Array<{ stat: string; dc: number; verbs: string[] }> };
+  } | undefined {
+    for (const node of scenario.graph.nodes) {
+      if (node.obstacle && node.npcs?.some(n => n.id === node.obstacle!.targetId)) {
+        return { nodeId: node.id, npcId: node.obstacle.targetId, obstacle: node.obstacle };
+      }
+    }
+    return undefined;
+  }
+
+  test('action on NPC-obstacle target triggers obstacle path matching', () => {
+    const scenario = createNpcObstacleScenario();
+    const npcObstacle = findNpcObstacleNode(scenario);
+    if (!npcObstacle) return; // Skip if this scenario doesn't have an NPC obstacle
+
+    let state = initGame(scenario, 'engineer', 'explorer', 'Technicien', createSeededRng(20260303));
+    const parserData = buildParserLocaleData('fr');
+    const obstacleVerbMap = buildObstacleVerbMap('fr');
+
+    // Teleport player to the NPC-obstacle node
+    state = { ...state, playerLocationId: npcObstacle.nodeId };
+    // Initialize visit state
+    state = {
+      ...state,
+      visitedLocations: {
+        ...state.visitedLocations,
+        [npcObstacle.nodeId]: { obstacleResolved: false, itemsTaken: [], featuresChanged: {} },
+      },
+    };
+
+    // Find a path whose verb can be mapped to a French parser verb
+    let matchedPath: typeof npcObstacle.obstacle.paths[number] | undefined;
+    let frenchVerb: string | undefined;
+    for (const path of npcObstacle.obstacle.paths) {
+      for (const v of path.verbs) {
+        const verbId = obstacleVerbMap.get(v.toLowerCase());
+        if (verbId && VERB_ID_TO_FRENCH[verbId]) {
+          matchedPath = path;
+          frenchVerb = VERB_ID_TO_FRENCH[verbId];
+          break;
+        }
+      }
+      if (matchedPath) break;
+    }
+
+    if (!matchedPath || !frenchVerb) return; // Skip if no usable path found
+
+    const ctx = getSceneContext(state);
+    const result = processTurn(state, `${frenchVerb} ${npcObstacle.npcId}`, ctx, parserData, createSeededRng(999));
+
+    // The action should have been routed to obstacle handling
+    // Either succeeded or failed (dice-dependent), but NOT generic D20
+    expect(result.trace.statId).toBe(matchedPath.stat);
+    expect(result.trace.effectiveDC).toBe(matchedPath.dc);
+  });
+
+  test('successful NPC-obstacle path resolution neutralizes NPC', () => {
+    const scenario = createNpcObstacleScenario();
+    const npcObstacle = findNpcObstacleNode(scenario);
+    if (!npcObstacle) return;
+
+    const parserData = buildParserLocaleData('fr');
+    const obstacleVerbMap = buildObstacleVerbMap('fr');
+    const rng = createSeededRng(20260303);
+    let state = initGame(scenario, 'marine', 'explorer', 'Soldat', rng);
+
+    // Teleport player to the NPC-obstacle node
+    state = { ...state, playerLocationId: npcObstacle.nodeId };
+    state = {
+      ...state,
+      visitedLocations: {
+        ...state.visitedLocations,
+        [npcObstacle.nodeId]: { obstacleResolved: false, itemsTaken: [], featuresChanged: {} },
+      },
+    };
+
+    // Find the lowest DC path that maps to a French verb
+    const sortedPaths = [...npcObstacle.obstacle.paths].sort((a, b) => a.dc - b.dc);
+    let frenchVerb: string | undefined;
+    let usablePath: typeof sortedPaths[number] | undefined;
+    for (const path of sortedPaths) {
+      for (const v of path.verbs) {
+        const verbId = obstacleVerbMap.get(v.toLowerCase());
+        if (verbId && VERB_ID_TO_FRENCH[verbId]) {
+          frenchVerb = VERB_ID_TO_FRENCH[verbId];
+          usablePath = path;
+          break;
+        }
+      }
+      if (usablePath) break;
+    }
+    if (!usablePath || !frenchVerb) return; // Skip if no usable path
+
+    const npcId = npcObstacle.npcId;
+
+    let success = false;
+    for (let i = 0; i < 30 && !success; i++) {
+      const ctx = getSceneContext(state);
+      const attemptRng = createSeededRng(i * 12345);
+      const result = processTurn(state, `${frenchVerb} ${npcId}`, ctx, parserData, attemptRng);
+
+      if (result.trace.outcome === 'success' || result.trace.outcome === 'crit_success') {
+        success = true;
+        state = result.newState;
+        // Verify NPC is neutralized
+        expect(state.npcStates[npcId]?.alive).toBe(false);
+        // Verify obstacle is resolved
+        expect(isObstacleResolved(state.visitedLocations[npcObstacle.nodeId])).toBe(true);
+      } else {
+        state = result.newState;
+      }
+    }
+
+    // At least one attempt should have succeeded
+    expect(success).toBe(true);
+  });
+
+  test('all 4 malfunctioning_android paths are recognized', () => {
+    // Directly test that MALFUNCTIONING_ANDROID_01 module has all expected paths
+    const module = ALL_MODULES.find(m => m.id === 'malfunctioning_android_01');
+    expect(module).toBeDefined();
+    expect(module!.obstacle).toBeDefined();
+
+    const pathIds = module!.obstacle.paths.map(p => `${p.stat}:${p.verbs.join(',')}`);
+    // reason: CHA (talk/persuade/calm)
+    expect(pathIds.some(p => p.includes('CHA') && p.includes('talk'))).toBe(true);
+    // disable: INT (hack/disable/use)
+    expect(pathIds.some(p => p.includes('INT') && p.includes('hack'))).toBe(true);
+    // fight: FOR (attack/fight/smash)
+    expect(pathIds.some(p => p.includes('FOR') && p.includes('attack'))).toBe(true);
+    // code: PER (search/examine/look)
+    expect(pathIds.some(p => p.includes('PER') && p.includes('examine'))).toBe(true);
   });
 });

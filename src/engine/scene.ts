@@ -130,7 +130,7 @@ export function getSceneContext(state: GameState): SceneContext {
   // --- Connected locations with exploration status ---
   const visitedIds = Object.keys(state.visitedLocations);
   const exits = getExitsWithStatus(playerLocationId, graph.edges, visitedIds);
-  const connectedLocations = exits.map(exit => {
+  const allConnectedLocations = exits.map(exit => {
     const exitNode = graph.nodes.find(n => n.id === exit.locationId);
     return {
       id: exit.locationId,
@@ -140,8 +140,16 @@ export function getSceneContext(state: GameState): SceneContext {
     };
   });
 
-  // --- Scenario suggestions from obstacle paths ---
+  // --- Obstacle gate: hide unvisited exits when obstacle is unresolved ---
+  // When the current node has an unresolved obstacle, the player must deal
+  // with it before progressing. Only already-visited locations (backtracking)
+  // remain accessible. This filters exits for the parser, suggestions, and
+  // scene description simultaneously.
   const obstacleResolved = isObstacleResolved(visitState);
+  const hasUnresolvedObstacle = !obstacleResolved && !!node.obstacle;
+  const connectedLocations = hasUnresolvedObstacle
+    ? allConnectedLocations.filter(loc => loc.visited)
+    : allConnectedLocations;
   const activeSkin = node.activeSkin ?? null;
   const playerClass = state.character?.className ?? 'marine';
   // Derive combat NPC display name if in active combat
