@@ -1,0 +1,168 @@
+/* ---------------------------------------------------------------------------
+ * src/ui/styles/globals.css — Global styles for Void Walker
+ * ---------------------------------------------------------------------------
+ * Cassette Futurism Ambre theme. Loaded once in main.tsx.
+ * ---------------------------------------------------------------------------*/
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Orbitron:wght@700&display=swap');
+
+/* === CSS CUSTOM PROPERTIES === */
+:root {
+  --bg-deep: #050505;
+  --bg-panel: #0A0A0F;
+  --bg-surface: #111116;
+  --bg-input: #0D0D12;
+
+  --amber-glow: #FFB000;
+  --amber-mid: #CC8800;
+  --amber-dim: #805500;
+  --amber-bg: #1A1200;
+
+  --success: #00FF41;
+  --success-dim: #00802A;
+  --danger: #FF2020;
+  --danger-dim: #801010;
+  --warning: #FF6600;
+  --crit-gold: #FFD700;
+
+  --text-primary: #FFB000;
+  --text-secondary: #998052;
+  --text-narrative: #E0A030;
+  --text-system: #666666;
+
+  --font-title: 'Orbitron', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius: 2px;
+}
+
+/* === RESET === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--amber-glow);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === SCROLLBAR (minimal) === */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--amber-dim);
+  border-radius: 2px;
+}
+
+/* === CRT TEXT GLOW === */
+.crt-glow {
+  text-shadow: 0 0 4px rgba(255, 176, 0, 0.4);
+}
+
+.crt-glow-strong {
+  text-shadow: 0 0 8px rgba(255, 176, 0, 0.6), 0 0 16px rgba(255, 176, 0, 0.2);
+}
+
+/* === SCANLINES === */
+.scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 3px
+  );
+  opacity: 0.3;
+}
+
+/* === BUTTON BASE === */
+.btn-console {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #1A1500 0%, #0D0A00 100%);
+  border: 1px solid var(--amber-dim);
+  border-radius: var(--radius);
+  color: var(--amber-glow);
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.btn-console:hover:not(:disabled) {
+  border-color: var(--amber-glow);
+  box-shadow: 0 0 8px rgba(255, 176, 0, 0.15);
+}
+
+.btn-console:active:not(:disabled) {
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.btn-console:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Primary variant */
+.btn-console-primary {
+  composes: btn-console;
+  border-color: var(--amber-glow);
+  background: linear-gradient(180deg, #2A2000 0%, #1A1200 100%);
+}
+
+/* Danger variant */
+.btn-console-danger {
+  composes: btn-console;
+  border-color: var(--danger-dim);
+  color: var(--danger);
+}
+.btn-console-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  box-shadow: 0 0 8px rgba(255, 32, 32, 0.15);
+}
+
+/* === TITLE FONT === */
+.font-title {
+  font-family: var(--font-title);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* === SELECTION === */
+::selection {
+  background: rgba(255, 176, 0, 0.3);
+  color: var(--amber-glow);
+}

@@ -1,112 +1,64 @@
 // ---------------------------------------------------------------------------
-// src/ui/components/BugReportButton.tsx — Per-turn bug report button
+// src/ui/components/BugReportButton.tsx — Discreet KO button per turn card
 // ---------------------------------------------------------------------------
-// Discreet KO button on each narrative card. Expands to comment field
-// + send button on click. Report includes full reproducibility data:
-// seed, skeleton, setting, class, difficulty, full input history.
+// Expands to comment field + ENVOYER button on click.
+// Report includes full reproducibility data: seed, skeleton, setting,
+// class, difficulty, complete input history up to that turn.
+// Sends to Google Apps Script endpoint (VITE_FEEDBACK_ENDPOINT).
 // ---------------------------------------------------------------------------
 
 import { useState, useRef, useEffect } from 'react';
-import type { TurnEntry, ScenarioLoopState } from '../hooks/useScenarioLoop';
+import { useGameStore } from '@stores/gameStore';
+import type { TurnEntry } from '@stores/gameStore';
 import {
   sendReport, checkAntiSpam, hashReport, storeHash,
-  type PlaytestReport, type AntiSpamState,
 } from '../utils/feedback';
-import { narrateScene } from '@narration/scene';
-import type { SceneToken } from '@narration/scene';
-import { t } from '@i18n/index';
-import type { StringKey } from '@i18n/types';
 import { getAppVersion } from '../utils/appVersion';
-
-interface BugReportButtonProps {
-  readonly entry: TurnEntry;
-  readonly loopState: ScenarioLoopState;
-  readonly antiSpam: AntiSpamState;
-  readonly onReported: (turnId: number) => void;
-}
-
-type ReportState = 'idle' | 'open' | 'sending' | 'sent' | 'error';
+import type { SceneToken } from '@narration/scene';
 
 const APP_VERSION = getAppVersion();
 
+// Module-level session anti-spam (resets on page reload).
+let _reportCount = 0;
+let _lastReportTime = 0;
+
 // ---------------------------------------------------------------------------
-// HELPERS — plain-text reconstruction of the full NarrativeCard content
+// HELPERS
 // ---------------------------------------------------------------------------
 
-function tokensToText(tokens: readonly SceneToken[]): string {
-  return tokens.map(tok => tok.value).join('');
+function tokensOfKind(tokens: readonly SceneToken[], kind: string): string[] {
+  return tokens.filter(t => t.kind === kind).map(t => t.value);
 }
 
-function outcomeLabel(outcome: string | null): string {
-  switch (outcome) {
-    case 'crit_success': return 'CRITIQUE !';
-    case 'success':      return 'SUCCES';
-    case 'partial':      return 'PARTIEL';
-    case 'failure':      return 'ECHEC';
-    case 'crit_failure': return 'FUMBLE !';
-    default:             return outcome ?? '';
-  }
-}
-
-/** Build the full player-visible text for a turn (mirrors NarrativeCard rendering). */
-function buildFullNarration(entry: TurnEntry): string {
-  const { narrative, trace, diceRoll, resultScene, introMode } = entry;
+function buildNarration(entry: TurnEntry): string {
   const parts: string[] = [];
-
-  // 1. Narrative text
-  if (narrative) parts.push(narrative);
-
-  // 2. Action / dice info (only when not reformulated)
-  if (!trace.reformulated) {
-    const header: string[] = [];
-    if (trace.parsedVerb) header.push(trace.parsedVerb);
-    if (trace.parsedTargetName) header.push(`sur ${t(trace.parsedTargetName as StringKey)}`);
-    if (header.length > 0) parts.push(header.join(' '));
-
-    if (trace.isAutoVerb) {
-      parts.push('— automatique');
-    } else if (diceRoll) {
-      let roll = `${trace.statId}(${trace.effectiveStatValue}) + D20(${diceRoll.natural})`;
-      if (diceRoll.modifier !== 0) roll += diceRoll.modifier > 0 ? `+${diceRoll.modifier}` : `${diceRoll.modifier}`;
-      roll += ` = ${diceRoll.total} vs DC ${trace.effectiveDC}`;
-      parts.push(roll);
-    }
-    if (trace.outcome) parts.push(outcomeLabel(trace.outcome));
+  if (entry.narrative) parts.push(entry.narrative);
+  if (entry.sceneIntro) {
+    const scene = entry.sceneIntro;
+    const showIntro = entry.introMode !== null;
+    const sections = [
+      ...(showIntro ? [scene.intro] : []),
+      scene.features, scene.items, scene.npcs, scene.exits,
+    ].filter(s => s.length > 0);
+    for (const tokens of sections) parts.push(tokens.map(t => t.value).join(''));
+    if (scene.obstacle) parts.push(scene.obstacle);
+    parts.push(scene.prompt);
   }
-
-  // 3. Consequences
-  for (const d of trace.consequenceDetails) parts.push(d);
-
-  // 4. NPC attack
-  if (trace.npcAttackHit) parts.push(`Attaque recue: -${trace.npcAttackDamage} PV`);
-
-  // 5. Post-action scene description
-  if (resultScene) {
-    const scene = narrateScene(resultScene, introMode ?? 'revisit', 'fr');
-    const hasContent = scene.features.length > 0 || scene.items.length > 0
-      || scene.npcs.length > 0 || scene.exits.length > 0;
-    if (hasContent) {
-      const showIntro = introMode !== null && scene.intro.length > 0;
-      if (showIntro) parts.push(tokensToText(scene.intro));
-      if (scene.features.length > 0) parts.push(tokensToText(scene.features));
-      if (scene.items.length > 0)    parts.push(tokensToText(scene.items));
-      if (scene.npcs.length > 0)     parts.push(tokensToText(scene.npcs));
-      if (scene.exits.length > 0)    parts.push(tokensToText(scene.exits));
-      if (scene.obstacle)            parts.push(scene.obstacle);
-      parts.push(scene.prompt);
-    }
-  }
-
   return parts.join('\n');
 }
 
-export function BugReportButton({
-  entry,
-  loopState,
-  antiSpam,
-  onReported,
-}: BugReportButtonProps): JSX.Element {
-  const [reportState, setReportState] = useState<ReportState>(entry.reported ? 'sent' : 'idle');
+// ---------------------------------------------------------------------------
+// COMPONENT
+// ---------------------------------------------------------------------------
+
+type ReportState = 'idle' | 'open' | 'sending' | 'sent' | 'error';
+
+interface BugReportButtonProps {
+  readonly entry: TurnEntry;
+}
+
+export function BugReportButton({ entry }: BugReportButtonProps): JSX.Element {
+  const [reportState, setReportState] = useState<ReportState>('idle');
   const [comment, setComment] = useState('');
   const [warning, setWarning] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -119,7 +71,9 @@ export function BugReportButton({
 
   if (reportState === 'sent') {
     return (
-      <span className="font-mono text-[10px] text-gray-600">rapport envoye</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--text-system)' }}>
+        rapport envoyé
+      </span>
     );
   }
 
@@ -128,37 +82,65 @@ export function BugReportButton({
       <button
         type="button"
         onClick={() => setReportState('open')}
-        className="rounded px-1.5 py-0.5 font-mono text-xs text-gray-600 transition-colors hover:bg-red-950/30 hover:text-red-400"
-        title="Signaler un probleme"
+        title="Signaler un problème"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '9px',
+          color: 'var(--text-system)',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '0 2px',
+          letterSpacing: '0.05em',
+          opacity: 0.5,
+          transition: 'opacity 150ms, color 150ms',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.opacity = '1';
+          (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.opacity = '0.5';
+          (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-system)';
+        }}
       >
         KO
       </button>
     );
   }
 
-  const { gameState, seed, turnHistory } = loopState;
-  const char = gameState.character;
-  const { trace, diceRoll, sceneSnapshot } = entry;
+  if (reportState === 'error') {
+    return (
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--warning)' }}>
+        erreur réseau
+      </span>
+    );
+  }
 
   const handleSend = async (): Promise<void> => {
     const hash = hashReport(entry.locationName, entry.input, entry.id);
-    const check = checkAntiSpam(antiSpam, hash);
+    const check = checkAntiSpam({ reportCount: _reportCount, lastReportTime: _lastReportTime }, hash);
     if (!check.allowed) {
       setWarning(check.warning);
       return;
     }
 
-    // Build full input history for replay (all turns up to and including this one)
+    // Read store state at submission time (no subscription needed).
+    const { seed, gameState, turnHistory } = useGameStore.getState();
+    const char = gameState.character;
+    const { trace, diceRoll } = entry;
+
     const inputHistory = turnHistory
       .filter(t => t.id <= entry.id)
       .map(t => t.input);
 
-    const report: PlaytestReport = {
+    const sceneIntro = entry.sceneIntro;
+    const report = {
       appVersion: APP_VERSION,
 
       // Reproducibility
       seed,
-      skeletonId: gameState.scenarioId ?? '',
+      skeletonId: gameState.scenario?.skeleton.id ?? gameState.scenarioId ?? '',
       settingId: gameState.scenario?.setting.id ?? '',
       playerClass: char?.className ?? '',
       difficulty: gameState.difficulty,
@@ -166,7 +148,7 @@ export function BugReportButton({
       inputHistory,
 
       // Context
-      locationId: sceneSnapshot.locationId,
+      locationId: entry.locationName,
       locationName: entry.locationName,
       playerInput: entry.input,
 
@@ -202,7 +184,7 @@ export function BugReportButton({
       npcAttackDamage: trace.npcAttackDamage,
 
       // Narrative
-      narration: buildFullNarration(entry),
+      narration: buildNarration(entry),
 
       // Player state
       characterHp: char?.hp ?? 0,
@@ -211,13 +193,13 @@ export function BugReportButton({
       conditions: char?.conditions.map(c => c.id) ?? [],
       inventory: char?.inventory ?? [],
 
-      // Scene
-      sceneItems: sceneSnapshot.items,
-      sceneNpcs: sceneSnapshot.npcs,
-      sceneFeatures: sceneSnapshot.features,
-      sceneExits: sceneSnapshot.exits,
-      sceneConditions: sceneSnapshot.conditions,
-      sceneSuggestions: sceneSnapshot.suggestions,
+      // Scene (extracted from sceneIntro tokens)
+      sceneItems: sceneIntro ? tokensOfKind(sceneIntro.items, 'item') : [],
+      sceneNpcs: sceneIntro ? tokensOfKind(sceneIntro.npcs, 'npc') : [],
+      sceneFeatures: sceneIntro ? tokensOfKind(sceneIntro.features, 'feature') : [],
+      sceneExits: sceneIntro ? tokensOfKind(sceneIntro.exits, 'exit') : [],
+      sceneConditions: [] as readonly string[],
+      sceneSuggestions: [] as readonly string[],
 
       // Game progress
       stalkerClockValue: gameState.stalkerClockState.actionsSinceLastProgression,
@@ -229,42 +211,88 @@ export function BugReportButton({
     };
 
     storeHash(hash);
+    _reportCount++;
+    _lastReportTime = Date.now();
+
     setReportState('sending');
     const ok = await sendReport(report);
     setReportState(ok ? 'sent' : 'error');
-    onReported(entry.id);
   };
 
-  if (reportState === 'error') {
-    return (
-      <span className="font-mono text-[10px] text-yellow-500">erreur reseau — sauvegarde local</span>
-    );
-  }
-
+  // 'open' or 'sending' state — show form
   return (
-    <div className="mt-2 flex flex-col gap-1.5 border-t border-gray-800/50 pt-2">
+    <div
+      style={{
+        marginTop: '8px',
+        padding: '8px',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--danger-dim)',
+        borderRadius: 'var(--radius)',
+      }}
+      onClick={e => e.stopPropagation()}
+    >
       <textarea
         ref={textareaRef}
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        className="min-h-[40px] rounded border border-gray-700 bg-[var(--color-void-dark)] px-2 py-1 font-mono text-xs text-white outline-none placeholder:text-gray-600 focus:border-red-600"
+        onChange={e => setComment(e.target.value)}
         placeholder="Qu'est-ce qui ne va pas ?"
         maxLength={500}
+        style={{
+          width: '100%',
+          minHeight: '40px',
+          background: 'var(--bg-input)',
+          border: '1px solid var(--text-system)',
+          borderRadius: 'var(--radius)',
+          color: 'var(--text-narrative)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '11px',
+          padding: '4px 8px',
+          outline: 'none',
+          resize: 'vertical',
+          boxSizing: 'border-box',
+        }}
+        onFocus={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = 'var(--danger)'; }}
+        onBlur={e => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = 'var(--text-system)'; }}
       />
-      {warning && <div className="font-mono text-[10px] text-yellow-400">{warning}</div>}
-      <div className="flex gap-2">
+      {warning && (
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--warning)', marginTop: '4px' }}>
+          {warning}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
         <button
           type="button"
           onClick={() => { void handleSend(); }}
           disabled={reportState === 'sending'}
-          className="rounded border border-red-700 bg-transparent px-2 py-1 font-mono text-[10px] font-bold text-red-400 transition-colors hover:bg-red-900/30 disabled:opacity-50"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            color: 'var(--danger)',
+            background: 'none',
+            border: '1px solid var(--danger-dim)',
+            borderRadius: 'var(--radius)',
+            padding: '4px 10px',
+            cursor: reportState === 'sending' ? 'not-allowed' : 'pointer',
+            opacity: reportState === 'sending' ? 0.5 : 1,
+            transition: 'border-color 150ms',
+          }}
+          onMouseEnter={e => { if (reportState !== 'sending') (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger-dim)'; }}
         >
-          {reportState === 'sending' ? 'ENVOI...' : 'ENVOYER'}
+          {reportState === 'sending' ? 'ENVOI…' : 'ENVOYER'}
         </button>
         <button
           type="button"
           onClick={() => { setReportState('idle'); setComment(''); setWarning(''); }}
-          className="rounded px-2 py-1 font-mono text-[10px] text-gray-500 transition-colors hover:text-gray-300"
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '10px',
+            color: 'var(--text-system)',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px 6px',
+          }}
         >
           ANNULER
         </button>

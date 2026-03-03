@@ -6,8 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import { useRef, useEffect, useState, type KeyboardEvent } from 'react';
-import { useScenarioLoop, type TurnEntry, type ScenarioLoopState } from '../hooks/useScenarioLoop';
-import { BugReportButton } from '../components/BugReportButton';
+import { useScenarioLoop, type TurnEntry } from '../hooks/useScenarioLoop';
 import { CLASSES } from '@content/classes';
 import { ITEM_DEFINITIONS } from '@content/items';
 import { t } from '@i18n/index';
@@ -17,7 +16,6 @@ import type { SceneToken } from '@narration/scene';
 import type { StringKey } from '@i18n/types';
 import type { DifficultyLevel, PlayerClassName, GameState } from '@engine/types';
 import type { SuggestionCandidate } from '@engine/suggestions';
-import type { AntiSpamState } from '../utils/feedback';
 import { getAppVersion } from '../utils/appVersion';
 
 const APP_VERSION = getAppVersion();
@@ -191,14 +189,8 @@ function ClassSelect({
 
 function NarrativeCard({
   entry,
-  loopState,
-  antiSpam,
-  onReported,
 }: {
   readonly entry: TurnEntry;
-  readonly loopState: ScenarioLoopState;
-  readonly antiSpam: AntiSpamState;
-  readonly onReported: (turnId: number) => void;
 }): JSX.Element {
   const { trace, diceRoll, narrative } = entry;
   const borderColor = trace.reformulated
@@ -274,15 +266,6 @@ function NarrativeCard({
         );
       })()}
 
-      {/* Bug report */}
-      <div className="flex justify-end">
-        <BugReportButton
-          entry={entry}
-          loopState={loopState}
-          antiSpam={antiSpam}
-          onReported={onReported}
-        />
-      </div>
     </div>
   );
 }
@@ -356,20 +339,13 @@ function GameOverScreen({
 export function PlaytestScreen(): JSX.Element {
   const {
     state, classList, selectDifficulty, selectClass,
-    submitInput, submitSuggestion, markReported, restart,
+    submitInput, submitSuggestion, restart,
     suggestions, locationName, sceneDescription,
   } = useScenarioLoop();
 
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const lastReportTimeRef = useRef(0);
-
-  // Anti-spam state for bug reports
-  const antiSpam: AntiSpamState = {
-    reportCount: state.feedbackCount,
-    lastReportTime: lastReportTimeRef.current,
-  };
 
   // Auto-scroll on new turn
   useEffect(() => {
@@ -402,11 +378,6 @@ export function PlaytestScreen(): JSX.Element {
   const handleSuggestion = (s: SuggestionCandidate): void => {
     submitSuggestion(s);
     setInputValue('');
-  };
-
-  const handleReported = (turnId: number): void => {
-    lastReportTimeRef.current = Date.now();
-    markReported(turnId);
   };
 
   // === PHASE ROUTING ===
@@ -497,9 +468,6 @@ export function PlaytestScreen(): JSX.Element {
             <NarrativeCard
               key={entry.id}
               entry={entry}
-              loopState={state}
-              antiSpam={antiSpam}
-              onReported={handleReported}
             />
           ))}
 
