@@ -494,7 +494,7 @@ export const fr: LocaleStrings = {
   'verb.DODGE.aliases': 'esquiver,eviter,se baisser,esquive,esquivez,evite,evitez,baisse',
   'verb.SWIM.aliases': 'nager,plonger,nage,nagez,plonge,plongez',
   'verb.RUN.aliases': 'courir,sprinter,fuir,s\'enfuir,cours,courez,courons,sprinte,sprintez,fuis,fuyez,enfuis',
-  'verb.HIDE.aliases': 'se cacher,se planquer,se dissimuler,se mettre a couvert,cache,cachez,planque,planquez,dissimule,dissimulez,couvert',
+  'verb.HIDE.aliases': 'se cacher,se planquer,se dissimuler,se mettre a couvert,cache,cachez,planque,planquez,dissimule,dissimulez,couvert,voler,derober,pickpocket,faire les poches,subtiliser',
   'verb.STACK.aliases': 'empiler,entasser,empile,empilez,entasse,entassez',
   'verb.USE.aliases': 'utiliser,employer,utilise,utilisez,emploie,employez,soigner,soigne,soignez,guerir,gueris,guerissez,panser,panse,pansez',
   'verb.OPEN.aliases': 'ouvrir,debloquer,ouvre,ouvrez,debloque,debloquez',
@@ -524,7 +524,7 @@ export const fr: LocaleStrings = {
   'parser.batchTakeTokens': 'tout,tous,toute,toutes,objets,objet,items',
   'parser.take.noTarget': 'Que souhaitez-vous récupérer ?',
   // Obstacle path verbs: English authoring vocabulary → VerbId (same in all locales)
-  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:search,EXAMINE:loot,EXAMINE:look,EXAMINE:study,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot,TOUCH:pray',
+  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,USE:bandage,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,HIDE:loot,HIDE:pickpocket,HIDE:steal,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:look,EXAMINE:study,EXAMINE:search,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot,TOUCH:pray',
 
   // Items
   'item.laser_pistol': 'Pistolet laser',
@@ -983,7 +983,7 @@ export const fr: LocaleStrings = {
     'env.vent_hatch':                'une',
     'env.security_panel_local':      'un',
     'env.medical_cabinet':           'une',
-    'env.cot':                       'une',
+    'env.cot':                       'un',
     'env.light_fixture':             'un',
     'env.power_relay':               'un',
     'env.emergency_glow_strip':      'une',

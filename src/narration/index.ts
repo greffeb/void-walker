@@ -545,11 +545,14 @@ function getRevealContent(
       return node.obstacle.resolveReveal[localeKey] || node.obstacle.resolveReveal.fr;
     }
 
-    // Check NPCs (examining an NPC gives basic info)
+    // Check NPCs — examineResult for EXAMINE, otherwise hints
     const npc = (node.npcs ?? []).find(n => n.id === targetId);
-    if (npc?.talkSuccess) {
-      // EXAMINE on NPC gives a hint of dialogue potential
-      return null; // Only TALK reveals dialogue
+    if (npc) {
+      if (npc.examineResult) {
+        return npc.examineResult[localeKey] || npc.examineResult.fr;
+      }
+      // No examineResult: return null (generic narration will be used)
+      return null;
     }
   }
 

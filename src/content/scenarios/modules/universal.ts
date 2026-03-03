@@ -225,14 +225,60 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
       role: 'medical',
       onCriticalPath: true,
       features: [
-        { id: 'medical_cabinet', initialState: 'locked', examineResult: { fr: 'Armoire médicale standard. Verrouillée par un code — mais le panneau est fissuré. Contient probablement des fournitures de premier secours et peut-être de la morphine.', en: '' } },
-        { id: 'cot', initialState: 'intact', examineResult: { fr: 'Lit de camp pliant taché de sang. Quelqu\'un a été soigné ici — ou a essayé. Les draps sont trempés mais les signes sont récents.', en: '' } },
+        {
+          id: 'medical_cabinet',
+          featureType: 'container',
+          aliases: { fr: ['armoire', 'armoire medicale', 'placard', 'placard medical'], en: ['cabinet', 'medical cabinet'] },
+          initialState: 'locked',
+          descriptions: {
+            locked: { fr: 'armoire médicale verrouillée par un digicode', en: '' },
+            open: { fr: 'armoire médicale ouverte', en: '' },
+          },
+          examineResult: { fr: 'Armoire médicale standard. Verrouillée par un code — mais le panneau est fissuré. Contient probablement des fournitures de premier secours et peut-être de la morphine.', en: '' },
+          interactions: [
+            {
+              trigger: { verb: 'HACK', requiredState: 'locked', stat: 'INT', dc: 9 },
+              onSuccess: {
+                narrative: { fr: 'Vous contournez le digicode en court-circuitant le panneau fissuré. L\'armoire s\'ouvre avec un déclic.', en: '' },
+                newState: 'open',
+              },
+              onFailure: {
+                narrative: { fr: 'Le panneau grésille mais le verrou tient bon.', en: '' },
+              },
+            },
+            {
+              trigger: { verb: 'FORCE_OPEN', requiredState: 'locked', stat: 'FOR', dc: 11 },
+              onSuccess: {
+                narrative: { fr: 'Vous arrachez la porte de l\'armoire. Le métal cède sous votre force.', en: '' },
+                newState: 'open',
+              },
+              onFailure: {
+                narrative: { fr: 'L\'armoire résiste. Construction militaire.', en: '' },
+              },
+            },
+          ],
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
+        {
+          id: 'cot',
+          aliases: { fr: ['lit', 'couchette', 'lit de camp', 'brancard'], en: ['cot', 'bed'] },
+          initialState: 'intact',
+          descriptions: {
+            intact: { fr: 'lit de camp taché de sang', en: '' },
+          },
+          examineResult: { fr: 'Lit de camp pliant taché de sang. Quelqu\'un a été soigné ici — ou a essayé. Les draps sont trempés mais les signes sont récents.', en: '' },
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
       ],
       items: [
         { id: 'medkit_basic', examineResult: { fr: 'Kit médical de base. Compresses hémostatiques, désinfectant, seringue d\'adrénaline. Suffisant pour stabiliser un blessé léger.', en: '' } },
       ],
       npcs: [
-        { id: 'wounded_crew_member', disposition: 'neutral', talkSuccess: { fr: '"Merci... merci. Je m\'appelle Torres. Technicien de maintenance. Écoutez — j\'ai vu ce qui s\'est passé. La créature... elle vient des labos inférieurs. Elle chasse par le son. Les conduits de ventilation — c\'est son territoire. Évitez-les si vous pouvez. Et... le capitaine. Il savait. Il savait depuis le début."', en: '' }, talkFailure: { fr: 'Le blessé recule en grimaçant. "Laissez-moi tranquille ! Vous êtes l\'un d\'entre eux ? Non... non, je ne dirai rien. Soignez-moi d\'abord. Après, on parlera." La confiance se mérite ici.', en: '' } },
+        {
+          id: 'wounded_crew_member',
+          disposition: 'neutral',
+          examineResult: { fr: 'Un membre d\'équipage en mauvais état. Blessures aux côtes, peut-être une fracture. Il respire difficilement mais reste conscient. Ses yeux suivent vos mouvements avec méfiance. Il possède visiblement des informations — si vous pouvez gagner sa confiance. Le soigner ou lui parler seraient les approches les plus directes.', en: '' },
+          talkSuccess: { fr: '"Merci... merci. Je m\'appelle Torres. Technicien de maintenance. Écoutez — j\'ai vu ce qui s\'est passé. La créature... elle vient des labos inférieurs. Elle chasse par le son. Les conduits de ventilation — c\'est son territoire. Évitez-les si vous pouvez. Et... le capitaine. Il savait. Il savait depuis le début."', en: '' },
+          talkFailure: { fr: 'Le blessé recule en grimaçant. "Laissez-moi tranquille ! Vous êtes l\'un d\'entre eux ? Non... non, je ne dirai rien. Soignez-moi d\'abord. Après, on parlera." La confiance se mérite ici.', en: '' },
+        },
       ],
     },
   ],
@@ -241,10 +287,10 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
     targetId: 'wounded_crew_member',
     description: ls('Un membre d\'équipage blessé. Entre la peur et la souffrance, il possède des informations critiques — si vous pouvez établir le contact.'),
     paths: [
-      { id: 'heal', stat: 'INT', dc: 10, description: ls('Soigner le blessé'), verbs: ['heal', 'use', 'treat'] },
+      { id: 'heal', stat: 'INT', dc: 10, description: ls('Soigner le blessé'), verbs: ['heal', 'treat', 'bandage'] },
       { id: 'persuade', stat: 'CHA', dc: 11, description: ls('Persuader pour obtenir des informations'), verbs: ['talk', 'persuade', 'calm'] },
       { id: 'intimidate', stat: 'CHA', dc: 13, description: ls('Intimider pour des réponses rapides'), verbs: ['intimidate', 'threaten'] },
-      { id: 'loot', stat: 'AGI', dc: 9, description: ls('Fouiller discrètement et partir'), verbs: ['search', 'loot', 'take'] },
+      { id: 'loot', stat: 'AGI', dc: 9, description: ls('Fouiller discrètement ses poches'), verbs: ['loot', 'pickpocket', 'steal', 'sneak'] },
     ],
     failsafeType: 'narrative_rescue',
   },

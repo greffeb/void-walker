@@ -37,6 +37,8 @@ export interface NpcDefinition {
   readonly id: string;
   readonly disposition?: 'hostile' | 'neutral' | 'friendly' | 'cooperative';
   readonly hpOverride?: number;
+  /** What examining this NPC reveals (hints, appearance, etc). */
+  readonly examineResult?: LocaleString;
   /** What the NPC says when TALK succeeds */
   readonly talkSuccess?: LocaleString;
   /** What the NPC says/does when TALK fails */
