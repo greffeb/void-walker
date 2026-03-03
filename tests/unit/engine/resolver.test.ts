@@ -471,22 +471,24 @@ describe('resolveTarget() — adjacent transposition fuzzy matching', () => {
     nameKey: 'item.duct_tape',
     properties: [],
     isVirtual: false,
-    source: 'inventory',
+    source: 'location',
     aliases: ['ruban', 'adhesif', 'scotch', 'rouleau'],
   };
 
   test('"rouelau" (adjacent transposition of "rouleau") resolves to duct_tape', () => {
-    const ctx = makeContext({ inventory: [ductTape] });
+    // TAKE resolves from locationItems, not inventory
+    const ctx = makeContext({ locationItems: [ductTape] });
     const result = resolveTarget(['rouelau'], 'TAKE', ctx);
     expect(result?.id).toBe('duct_tape');
-    expect(result?.source).toBe('inventory');
+    expect(result?.source).toBe('location');
   });
 
   test('double-substitution typo (edit distance 2) does not resolve', () => {
     // "rxulbau" differs from "rouleau" at positions 1 AND 4 (not adjacent, not a swap)
-    const ctx = makeContext({ inventory: [ductTape] });
+    // With multiple unmatched items in scene, TAKE returns null (not abstract)
+    const ctx = makeContext({ locationItems: [ductTape, { ...ductTape, id: 'other' }] });
     const result = resolveTarget(['rxulbau'], 'TAKE', ctx);
-    // edit distance 2, no adjacent swap → should not match
-    expect(result?.source).toBe('abstract');
+    // edit distance 2, no adjacent swap → no match, multiple items → null
+    expect(result).toBeNull();
   });
 });

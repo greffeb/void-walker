@@ -504,6 +504,7 @@ export type StringKey =
   | 'parser.intents'
   | 'parser.genericNpcRefs'
   | 'parser.batchTakeTokens'
+  | 'parser.take.noTarget'
   | 'parser.prepositions.target'
   | 'parser.prepositions.tool'
   | 'parser.obstacleVerbs'

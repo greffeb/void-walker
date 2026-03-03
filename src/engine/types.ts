@@ -540,6 +540,8 @@ export interface ParserLocaleData {
    * authoring verbs (heal, hack, crawl…); values are VerbIds (USE, HACK, CLIMB…).
    */
   readonly obstacleVerbMap: ReadonlyMap<string, import('./verbs').VerbId>;
+  /** Prompt shown when TAKE is used with no identifiable target. */
+  readonly takeNoTargetPrompt: string;
 }
 
 /** Breakdown of how difficulty was calculated */

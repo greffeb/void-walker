@@ -228,6 +228,10 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
   const genericNpcRefs = buildGenericNpcRefs(locale);
   const batchTakeTokens = buildBatchTakeTokens(locale);
   const obstacleVerbMap = buildObstacleVerbMap(locale);
+  const rawTakeNoTarget = t('parser.take.noTarget', locale);
+  const takeNoTargetPrompt = rawTakeNoTarget && rawTakeNoTarget !== 'parser.take.noTarget'
+    ? rawTakeNoTarget
+    : 'Que souhaitez-vous récupérer ?';
 
   return {
     verbForms,
@@ -240,5 +244,6 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     genericNpcRefs,
     batchTakeTokens,
     obstacleVerbMap,
+    takeNoTargetPrompt,
   };
 }

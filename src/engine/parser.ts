@@ -474,6 +474,18 @@ export function parseAction(
     ? resolveTarget(toolTokens, verbMatch.verb, context)
     : null;
 
+  // TAKE with no identifiable target → ask the player to specify.
+  // The resolver returns null (0 or multiple unmatched items) rather than the
+  // abstract environment fallback for TAKE, so we can catch it cleanly here.
+  if (verbMatch.verb === 'TAKE' && (target === null || target.source === 'abstract')) {
+    return {
+      type: 'reformulation',
+      rawInput,
+      interpretations: [],
+      prompt: localeData.takeNoTargetPrompt,
+    };
+  }
+
   // Verb promotion: upgrade generic verbs based on target/tool properties
   const promotedVerb = promoteVerb(verbMatch.verb, target, tool);
   const finalVerbMatch = promotedVerb !== verbMatch.verb

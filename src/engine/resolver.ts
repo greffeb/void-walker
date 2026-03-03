@@ -394,6 +394,12 @@ export function resolveTarget(
     if (takeBestTarget && takeBestScore >= 5) {
       return takeBestTarget;
     }
+    // No specific item matched. Auto-pick when unambiguous (1 item in scene),
+    // otherwise return null — the parser will ask the player to specify.
+    if (context.locationItems.length === 1) {
+      return context.locationItems[0]!;
+    }
+    return null;
   }
 
   // 1. Inventory items — collect best but DON'T return yet.
@@ -420,7 +426,7 @@ export function resolveTarget(
   // 2. Location items
   let locItemBestScore = 0;
   let locItemBestTarget: ResolvedTarget | null = null;
-  if (verb !== 'MOVE_TO' && verb !== 'TAKE') {
+  if (verb !== 'MOVE_TO') {
     for (const item of context.locationItems) {
       const aliases = [...new Set([
         ...(item.aliases ?? []),
