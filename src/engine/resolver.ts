@@ -25,11 +25,6 @@ const GENERIC_EXIT_TOKENS = new Set([
   'autre', 'autres', 'prochain', 'prochaine', 'direction',
 ]);
 
-// === BATCH TAKE TOKENS ===
-// Tokens that indicate "take all / take objects" — resolve to first available item
-const BATCH_TAKE_TOKENS = new Set([
-  'tout', 'tous', 'toute', 'toutes', 'objets', 'objet', 'items',
-]);
 
 // === BODY PART DEFINITIONS ===
 
@@ -281,6 +276,7 @@ export function resolveTarget(
   verb: VerbId,
   context: SceneContext,
   genericNpcRefs?: ReadonlySet<string>,
+  batchTakeTokens?: ReadonlySet<string>,
 ): ResolvedTarget | null {
   if (tokens.length === 0) return null;
 
@@ -375,7 +371,8 @@ export function resolveTarget(
   // taken and remove them from the scene.
   if (verb === 'TAKE') {
     // "prendre tout" / "prendre objets" → pick first available location item
-    const hasBatchToken = searchTokens.some(t => BATCH_TAKE_TOKENS.has(t));
+    const activeBatchTokens = batchTakeTokens ?? new Set<string>();
+    const hasBatchToken = searchTokens.some(t => activeBatchTokens.has(t));
     if (hasBatchToken && context.locationItems.length > 0) {
       return context.locationItems[0]!;
     }

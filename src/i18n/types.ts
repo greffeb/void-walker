@@ -503,6 +503,7 @@ export type StringKey =
   | 'parser.stopWords'
   | 'parser.intents'
   | 'parser.genericNpcRefs'
+  | 'parser.batchTakeTokens'
   | 'parser.prepositions.target'
   | 'parser.prepositions.tool'
   | 'parser.obstacleVerbs'

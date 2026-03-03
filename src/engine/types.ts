@@ -530,6 +530,11 @@ export interface ParserLocaleData {
    */
   readonly genericNpcRefs: ReadonlySet<string>;
   /**
+   * Tokens that signal "take all items" intent (tout, tous, everything, etc.).
+   * Sourced from 'parser.batchTakeTokens' i18n key.
+   */
+  readonly batchTakeTokens: ReadonlySet<string>;
+  /**
    * Maps English obstacle path verbs to VerbIds for suggestion display.
    * Sourced from 'parser.obstacleVerbs' i18n key. Keys are lowercase English
    * authoring verbs (heal, hack, crawl…); values are VerbIds (USE, HACK, CLIMB…).

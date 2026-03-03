@@ -199,6 +199,17 @@ function buildGenericNpcRefs(locale: Locale): ReadonlySet<string> {
   );
 }
 
+function buildBatchTakeTokens(locale: Locale): ReadonlySet<string> {
+  const raw = t('parser.batchTakeTokens', locale);
+  if (!raw || raw === 'parser.batchTakeTokens') return new Set();
+
+  return new Set(
+    raw.split(',')
+      .map((w) => normalizeForm(w))
+      .filter((w) => w.length > 0),
+  );
+}
+
 // === PUBLIC API ===
 
 /**
@@ -215,6 +226,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
   const targetPrepositions = buildPrepositions('parser.prepositions.target', locale);
   const toolPrepositions = buildPrepositions('parser.prepositions.tool', locale);
   const genericNpcRefs = buildGenericNpcRefs(locale);
+  const batchTakeTokens = buildBatchTakeTokens(locale);
   const obstacleVerbMap = buildObstacleVerbMap(locale);
 
   return {
@@ -226,6 +238,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     targetPrepositions,
     toolPrepositions,
     genericNpcRefs,
+    batchTakeTokens,
     obstacleVerbMap,
   };
 }

@@ -467,7 +467,7 @@ export function parseAction(
   // Resolve target from target-specific tokens (or all tokens if no preposition split).
   // Pass genericNpcRefs so pronoun/generic-reference tokens ("lui", "ennemi") resolve
   // to the primary NPC when exactly one NPC is present in the scene.
-  const target = resolveTarget(targetTokens, verbMatch.verb, context, localeData.genericNpcRefs);
+  const target = resolveTarget(targetTokens, verbMatch.verb, context, localeData.genericNpcRefs, localeData.batchTakeTokens);
 
   // Resolve tool if we found tool tokens (no genericNpcRefs — tools are physical items)
   const tool = toolTokens.length > 0

@@ -22,7 +22,7 @@ import type {
 } from './types';
 import { defaultRng, classifyOutcome } from './dice';
 import { rollCheck } from './dice';
-import { parseAction } from './parser';
+import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
 import { isReformulation } from './types';
 import { tickConditions, checkConditionTriggers, addCondition, removeCondition, applyConditionMalus } from './conditions';
@@ -975,24 +975,39 @@ export function processTurn(
     current.playerLocationId !== null &&
     current.character !== null
   ) {
-    const itemId = action.target.id;
     const locId = current.playerLocationId;
-    // Add to inventory (deduplication guard)
-    if (!current.character.inventory.includes(itemId)) {
-      const { inventory: newInventory } = addItem(current.character.inventory, itemId);
-      current = { ...current, character: { ...current.character, inventory: newInventory } };
+
+    // Detect "take all" intent ("tout", "tous", "objets", etc.)
+    const inputTokens = normalizeInput(input);
+    const isBatchTake = inputTokens.some(t => parserData.batchTakeTokens.has(t));
+
+    // Collect items to take: the resolved item first, then all remaining
+    // location items when batch-take is detected.
+    const itemsToTake: string[] = [action.target.id];
+    if (isBatchTake) {
+      for (const loc of context.locationItems) {
+        if (loc.id !== action.target.id) itemsToTake.push(loc.id);
+      }
     }
-    // Mark item as taken in visit state so it no longer appears in the scene
-    const existingVisit = current.visitedLocations[locId];
-    if (existingVisit) {
-      current = {
-        ...current,
-        visitedLocations: {
-          ...current.visitedLocations,
-          [locId]: markItemTaken(existingVisit, itemId),
-        },
-        itemsUsedCount: current.itemsUsedCount + 1,
-      };
+
+    for (const itemId of itemsToTake) {
+      // Add to inventory (deduplication guard)
+      if (!current.character!.inventory.includes(itemId)) {
+        const { inventory: newInventory } = addItem(current.character!.inventory, itemId);
+        current = { ...current, character: { ...current.character!, inventory: newInventory } };
+      }
+      // Mark item as taken in visit state so it no longer appears in the scene
+      const existingVisit = current.visitedLocations[locId];
+      if (existingVisit) {
+        current = {
+          ...current,
+          visitedLocations: {
+            ...current.visitedLocations,
+            [locId]: markItemTaken(existingVisit, itemId),
+          },
+          itemsUsedCount: current.itemsUsedCount + 1,
+        };
+      }
     }
   }
 
