@@ -51,9 +51,134 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
       role: 'passage',
       onCriticalPath: true,
       features: [
-        { id: 'blocked_door', initialState: 'locked', examineResult: { fr: 'Une porte renforcée en alliage. Le mécanisme d\'ouverture est bloqué — grippage mécanique ou verrouillage de sécurité. Des marques de griffes entourent le cadre.', en: '' } },
-        { id: 'vent_hatch', initialState: 'intact', examineResult: { fr: 'Trappe de ventilation au ras du sol. Étroite mais praticable pour quelqu\'un de souple. De l\'air circule — elle mène bien de l\'autre côté.', en: '' } },
-        { id: 'security_panel_local', initialState: 'damaged', examineResult: { fr: 'Panneau de contrôle endommagé. Certains circuits sont encore actifs — un technicien compétent pourrait court-circuiter le verrouillage de la porte.', en: '' } },
+        {
+          id: 'blocked_door',
+          featureType: 'door',
+          initialState: 'locked',
+          aliases: {
+            fr: ['porte', 'porte bloquée', 'porte bloquee', 'porte renforcée', 'porte renforcee'],
+            en: ['door', 'blocked door', 'reinforced door'],
+          },
+          examineResult: { fr: 'Une porte renforcée en alliage. Le mécanisme d\'ouverture est bloqué — grippage mécanique ou verrouillage de sécurité. Des marques de griffes entourent le cadre. Le panneau de contrôle adjacent semble encore alimenté. En bas, une trappe de ventilation pourrait offrir une alternative.', en: '' },
+          descriptions: {
+            locked: { fr: 'porte bloquée', en: '' },
+            open: { fr: 'porte ouverte', en: '' },
+          },
+          interactions: [
+            // OPEN when panel has been bypassed → auto-success
+            {
+              trigger: { verb: 'OPEN', requiredState: 'locked', requiredFlag: 'panel_bypassed', dc: null },
+              onSuccess: {
+                newState: 'open',
+                resolveObstacle: true,
+                narrative: { fr: 'Grâce au panneau court-circuité, la porte s\'ouvre sans résistance. Le passage est libre.', en: '' },
+              },
+            },
+            // OPEN without flag → hint to use other methods
+            {
+              trigger: { verb: 'OPEN', requiredState: 'locked', dc: null },
+              onSuccess: {
+                narrative: { fr: 'La porte est verrouillée. Le mécanisme refuse de répondre. Il faudrait forcer le passage, pirater le panneau de sécurité, ou trouver une autre voie.', en: '' },
+              },
+            },
+            {
+              trigger: { verb: ['PUSH', 'FORCE_OPEN', 'BREAK'], requiredState: 'locked', stat: 'FOR', dc: 12 },
+              onSuccess: {
+                newState: 'open',
+                resolveObstacle: true,
+                narrative: { fr: 'Vous forcez la porte avec un grognement d\'effort. Le métal cède dans un crissement strident. Le passage est libre.', en: '' },
+              },
+              onFailure: {
+                narrative: { fr: 'La porte résiste. Vos muscles brûlent mais elle ne bouge pas d\'un millimètre. Il faudra une autre approche.', en: '' },
+              },
+            },
+            {
+              trigger: { verb: ['HACK', 'USE', 'REPAIR'], requiredState: 'locked', stat: 'INT', dc: 11 },
+              onSuccess: {
+                newState: 'open',
+                resolveObstacle: true,
+                narrative: { fr: 'Vous court-circuitez le panneau de sécurité. Un déclic, puis la porte coulisse lentement. Le chemin s\'ouvre.', en: '' },
+              },
+              onFailure: {
+                narrative: { fr: 'Les circuits crépitent mais le verrouillage tient bon. Le système de sécurité est plus robuste que prévu.', en: '' },
+              },
+            },
+          ],
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
+        {
+          id: 'vent_hatch',
+          featureType: 'vent',
+          initialState: 'closed',
+          aliases: {
+            fr: ['trappe', 'trappe ventilation', 'trappe de ventilation', 'ventilation', 'conduit', 'conduit ventilation', 'aeration', 'bouche'],
+            en: ['hatch', 'vent', 'vent hatch', 'ventilation', 'duct'],
+          },
+          examineResult: { fr: 'Trappe de ventilation au ras du sol. Étroite mais praticable pour quelqu\'un de souple. De l\'air circule — elle mène bien de l\'autre côté.', en: '' },
+          descriptions: {
+            closed: { fr: 'trappe de ventilation', en: '' },
+            open: { fr: 'trappe de ventilation ouverte', en: '' },
+          },
+          interactions: [
+            {
+              trigger: { verb: 'OPEN', requiredState: 'closed', dc: null },
+              onSuccess: {
+                newState: 'open',
+                narrative: { fr: 'Vous ouvrez la trappe de ventilation. Un courant d\'air frais s\'échappe du conduit sombre qui s\'ouvre devant vous.', en: '' },
+              },
+            },
+            {
+              trigger: { verb: 'CLIMB', requiredState: 'open', stat: 'AGI', dc: 10 },
+              onSuccess: {
+                resolveObstacle: true,
+                narrative: { fr: 'Vous vous glissez dans le conduit de ventilation. L\'espace est étroit, mais vous parvenez à ramper jusqu\'à l\'autre côté.', en: '' },
+              },
+              onFailure: {
+                narrative: { fr: 'Le conduit est trop étroit. Vous vous coincez un instant avant de reculer, griffé par les parois métalliques.', en: '' },
+                consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+              },
+            },
+            {
+              trigger: { verb: 'CLIMB', requiredState: 'closed', dc: null },
+              onSuccess: {
+                narrative: { fr: 'La trappe est fermée. Il faudrait d\'abord l\'ouvrir.', en: '' },
+              },
+            },
+          ],
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
+        {
+          id: 'security_panel_local',
+          featureType: 'panel',
+          initialState: 'damaged',
+          aliases: {
+            fr: ['panneau', 'panneau securite', 'panneau de securite', 'panneau controle', 'panneau de controle', 'controle', 'securite'],
+            en: ['panel', 'security panel', 'control panel'],
+          },
+          examineResult: { fr: 'Panneau de contrôle endommagé. Certains circuits sont encore actifs — un technicien compétent pourrait court-circuiter le verrouillage de la porte.', en: '' },
+          descriptions: {
+            damaged: { fr: 'panneau de sécurité local', en: '' },
+            bypassed: { fr: 'panneau de sécurité court-circuité', en: '' },
+          },
+          interactions: [
+            {
+              trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'damaged', stat: 'INT', dc: 11 },
+              onSuccess: {
+                newState: 'bypassed',
+                flagSet: 'panel_bypassed',
+                narrative: { fr: 'Vous court-circuitez le panneau de sécurité. Un voyant passe au vert — le verrouillage de la porte est désactivé. Vous pouvez maintenant l\'ouvrir.', en: '' },
+              },
+              onFailure: {
+                narrative: { fr: 'Les circuits crépitent sous vos doigts mais le système résiste. Le verrouillage reste actif.', en: '' },
+                consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
+              },
+            },
+            {
+              trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'bypassed', dc: null },
+              onSuccess: {
+                narrative: { fr: 'Le panneau est déjà court-circuité. La porte devrait s\'ouvrir maintenant.', en: '' },
+              },
+            },
+          ],
+        } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
       ],
       items: [],
     },
@@ -63,8 +188,8 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
     targetId: 'blocked_door',
     description: ls('Une porte massive bloque le passage. Les mécanismes d\'ouverture sont grippés ou verrouillés.'),
     paths: [
-      { id: 'force', stat: 'FOR', dc: 12, description: ls('Forcer la porte'), verbs: ['push', 'break', 'smash'] },
-      { id: 'hack', stat: 'INT', dc: 11, description: ls('Pirater le panneau de sécurité'), verbs: ['hack', 'use', 'examine'] },
+      { id: 'force', stat: 'FOR', dc: 12, description: ls('Forcer la porte'), verbs: ['push', 'break', 'smash', 'force'] },
+      { id: 'hack', stat: 'INT', dc: 11, description: ls('Pirater le panneau de sécurité'), verbs: ['hack', 'repair', 'override'] },
       { id: 'vent', stat: 'AGI', dc: 10, description: ls('Ramper dans le conduit de maintenance'), verbs: ['crawl', 'climb', 'squeeze'] },
     ],
     failsafeType: 'degraded_bypass',

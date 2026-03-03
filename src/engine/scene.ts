@@ -173,7 +173,7 @@ export function getSceneContext(state: GameState): SceneContext {
   );
 
   // --- Scene description for UI and narration ---
-  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations);
+  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations, state.featureStates ?? {});
 
   return {
     inventory,
@@ -315,6 +315,7 @@ function buildSceneDescription(
   node: LocationNode,
   visitState: LocationVisitState | undefined,
   connectedLocations: readonly { id: string; aliases: readonly string[]; visited?: boolean }[],
+  featureStates: Readonly<Record<string, FeatureState>>,
 ): SceneDescription {
   const isFirstVisit = visitState === undefined || visitState.visitCount <= 1;
   const obstacleResolved = isObstacleResolved(visitState);
@@ -360,8 +361,18 @@ function buildSceneDescription(
 
   const visibleItems = [...staticVisibleItems, ...droppedVisible];
 
-  // Environment features
+  // Environment features (use state-based description when available)
   const visibleFeatures = node.features.map(feat => {
+    // Get current feature state (from featureStates, fallback to initialState, fallback to 'intact')
+    const currentState = featureStates[feat.id] ?? feat.initialState ?? 'intact';
+
+    // Check if the feature definition has a state-based description
+    if (feat.descriptions && feat.descriptions[currentState]) {
+      // Use the state-based description (e.g. "conduit de ventilation ouvert")
+      return { id: feat.id, name: feat.descriptions[currentState].fr };
+    }
+
+    // Fall back to registry definition name, then i18n
     const def = ENVIRONMENT_FEATURE_DEFINITIONS[feat.id];
     const name = def ? t(def.nameKey) : resolveDisplayName(`env.${feat.id}`, feat.id);
     return { id: feat.id, name };

@@ -523,18 +523,20 @@ function getRevealContent(
       return item.examineResult[localeKey] || item.examineResult.fr;
     }
 
-    // Check features — per-state description first, examineResult as fallback
+    // Check features — examineResult first (detailed description), state-description as fallback
     const feature = node.features.find(f => f.id === targetId);
     if (feature) {
+      // Always prefer examineResult for EXAMINE actions (detailed description)
+      if (feature.examineResult) {
+        return feature.examineResult[localeKey] || feature.examineResult.fr;
+      }
+      // Fall back to state-based description if no examineResult
       if (isEnrichedFeature(feature) && feature.descriptions) {
         const currentState = getFeatureState(state, targetId, feature);
         const stateDesc = feature.descriptions[currentState];
         if (stateDesc) {
           return stateDesc[localeKey] || stateDesc.fr;
         }
-      }
-      if (feature.examineResult) {
-        return feature.examineResult[localeKey] || feature.examineResult.fr;
       }
     }
 
