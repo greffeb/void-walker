@@ -292,6 +292,8 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   let scenarioNarrativeOverride: import('./scenario').LocaleString | null = null;
   let scenarioInteractionHandled = false;
+  let scenarioInteractionDiceRoll: DiceResult | null = null;
+  let scenarioInteractionSuccess = false;
 
   if (current.scenario !== null && action.target !== null) {
     const targetId = action.target.id;
@@ -340,6 +342,9 @@ export function processTurn(
       if (interactionResult.matched) {
         scenarioInteractionHandled = true;
         scenarioNarrativeOverride = interactionResult.narrativeOverride;
+        // Capture dice roll for trace propagation after variable declarations (Issue #51).
+        scenarioInteractionDiceRoll = interactionResult.diceRoll;
+        scenarioInteractionSuccess = interactionResult.success;
 
         // Apply feature state change
         if (interactionResult.newFeatureState !== null) {
@@ -431,6 +436,17 @@ export function processTurn(
   let traceTriggeredConditions: readonly string[] = [];
   let combatHandled = false;
 
+  // Propagate scenario interaction dice roll to trace (Issue #51).
+  // resolveScenarioInteraction rolls internally but processTurn never copied
+  // the result into the trace variables — the playtest report showed stat=0/DC=0.
+  if (scenarioInteractionDiceRoll !== null) {
+    diceRoll = scenarioInteractionDiceRoll;
+    traceStatId = scenarioInteractionDiceRoll.stat;
+    traceStatValue = scenarioInteractionDiceRoll.statValue;
+    traceEffectiveDC = scenarioInteractionDiceRoll.difficulty;
+    traceOutcome = scenarioInteractionSuccess ? 'success' : 'failure';
+  }
+
   // ── COMBAT INTERCEPT: Route combat verbs to combat system when in active combat ──
   const COMBAT_ATTACK_VERBS: ReadonlySet<VerbId> = new Set([
     'STRIKE', 'SHOOT', 'KICK', 'CUT', 'THROW', 'BITE',
@@ -460,7 +476,64 @@ export function processTurn(
     const difficultyMultiplier = current.difficulty === 'explorer' ? 0.5
       : current.difficulty === 'nightmare' ? 1.5 : 1.0;
 
-    if (COMBAT_ATTACK_VERBS.has(action.verb)) {
+    // ── Obstacle-path intercept (Issue #49) ─────────────────────────────────
+    // If the player uses a verb that matches an obstacle path on the current NPC
+    // target (e.g. HACK on malfunctioning_android with path verbs:['hack']),
+    // route to obstacle resolution instead of generic combat damage.
+    const obstacleNode = current.playerLocationId !== null
+      ? current.scenario?.graph.nodes.find(n => n.id === current.playerLocationId)
+      : undefined;
+    const nodeObstacle = obstacleNode?.obstacle;
+    const matchedObstaclePath = nodeObstacle && action.target?.id === nodeObstacle.targetId
+      ? nodeObstacle.paths.find(
+          p => p.verbs.some(v => v.toUpperCase() === action.verb),
+        )
+      : undefined;
+
+    if (matchedObstaclePath) {
+      combatHandled = true;
+      const statId = matchedObstaclePath.stat;
+      const statValue = effectiveStats[statId] ?? 0;
+      const lck = effectiveStats['LCK'] ?? 0;
+      const roll = rollCheck(statId, statValue, lck, matchedObstaclePath.dc, 0, rng);
+      diceRoll = roll;
+      traceStatId = statId;
+      traceStatValue = statValue;
+      traceEffectiveDC = matchedObstaclePath.dc;
+      traceOutcome = classifyOutcome(roll.natural, roll.total, matchedObstaclePath.dc);
+
+      if (roll.success) {
+        // Obstacle resolved — end combat and mark NPC as neutralised
+        current = { ...current, activeCombat: null };
+        const npcId = action.target!.id;
+        if (current.npcStates[npcId]) {
+          current = {
+            ...current,
+            npcStates: { ...current.npcStates, [npcId]: { ...current.npcStates[npcId]!, alive: false } },
+          };
+        }
+        const vsKeyObs = current.playerLocationId!;
+        const existingObs = current.visitedLocations[vsKeyObs];
+        if (existingObs) {
+          current = {
+            ...current,
+            visitedLocations: { ...current.visitedLocations, [vsKeyObs]: markObstacleResolved(existingObs) },
+          };
+        }
+      } else {
+        // Failed — NPC gets a free attack
+        current = updateCharacterHp(current, -1);
+        // Record failed attempt for failsafe tracking
+        if (current.playerLocationId !== null && nodeObstacle) {
+          current = {
+            ...current,
+            obstacleAttempts: recordAttempt(
+              current.obstacleAttempts, current.playerLocationId, nodeObstacle.targetId, action.verb,
+            ),
+          };
+        }
+      }
+    } else if (COMBAT_ATTACK_VERBS.has(action.verb)) {
       // Player attacks the NPC
       combatHandled = true;
       const statId = VERB_STATS[action.verb] ?? 'FOR';
@@ -847,8 +920,14 @@ export function processTurn(
     };
   };
 
-  // 9a. Movement: if the action is a movement verb, update location and visit state
-  if (MOVEMENT_VERBS.has(action.verb) && action.target?.source === 'connected_location') {
+  // 9a. Movement: if the action is a movement verb, update location and visit state.
+  // RUN out of combat requires a successful roll — skip movement on failure (Issue #52).
+  // In-combat RUN already handles movement inside the combat block (line ~524) and sets
+  // combatHandled = true, so traceOutcome is null here for that path (no double-move risk).
+  const isFailedOutOfCombatRun = action.verb === 'RUN'
+    && (traceOutcome === 'failure' || traceOutcome === 'crit_failure');
+  if (MOVEMENT_VERBS.has(action.verb) && action.target?.source === 'connected_location'
+      && !isFailedOutOfCombatRun) {
     const newLocationId = action.target.id;
     const existingVisit = current.visitedLocations[newLocationId];
     const updatedVisit = existingVisit

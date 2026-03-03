@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { ITEM_DEFINITIONS } from '@content/items';
+import { SCENARIO_NAMES_FR } from '@content/scenarioNames';
 import { t } from '@i18n/index';
 import type { StringKey } from '@i18n/types';
 import type { ConditionId } from '@engine/types';
@@ -35,7 +36,8 @@ export function statBar(value: number, max = 6): string {
 /** Translate an inventory item ID to its French name. */
 export function itemName(id: string): string {
   const def = ITEM_DEFINITIONS[id];
-  return def ? ts(def.nameKey) : id;
+  if (def) return ts(def.nameKey);
+  return SCENARIO_NAMES_FR[id] ?? id;
 }
 
 /** Condition emoji map. */

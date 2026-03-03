@@ -9,6 +9,7 @@
 import { useGameStore } from '@stores/gameStore';
 import { ITEM_DEFINITIONS } from '@content/items';
 import type { ItemDefinition } from '@content/items';
+import { SCENARIO_NAMES_FR } from '@content/scenarioNames';
 import { Modal } from './Modal';
 import { ts, itemName } from '../utils/formatters';
 import type { ItemDurabilityState, ItemType } from '@engine/types';
@@ -48,16 +49,18 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
   const equippedWeapon = character.equippedWeapon;
   const equippedArmor = character.equippedArmor;
 
-  // Group items by type
-  const groupedItems = new Map<ItemType, { id: string; def: ItemDefinition; dur: ItemDurabilityState | undefined }[]>();
+  // Group items by type.
+  // Scenario items (e.g. standard_toolkit) have no ITEM_DEFINITIONS entry — fall back to
+  // SCENARIO_NAMES_FR for the display name and treat them as 'misc' (Issue #48).
+  const groupedItems = new Map<ItemType, { id: string; def: ItemDefinition | null; dur: ItemDurabilityState | undefined }[]>();
   for (const type of TYPE_ORDER) groupedItems.set(type, []);
 
   for (const itemId of inventory) {
-    const def = ITEM_DEFINITIONS[itemId];
-    if (!def) continue;
-    const group = groupedItems.get(def.type) ?? [];
+    const def = ITEM_DEFINITIONS[itemId] ?? null;
+    const type: ItemType = def?.type ?? 'misc';
+    const group = groupedItems.get(type) ?? [];
     group.push({ id: itemId, def, dur: durability[itemId] });
-    groupedItems.set(def.type, group);
+    groupedItems.set(type, group);
   }
 
   const isEmpty = inventory.length === 0;
@@ -126,7 +129,7 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {items.map(({ id, def, dur }) => {
-                const name = ts(def.nameKey);
+                const name = def ? ts(def.nameKey) : (SCENARIO_NAMES_FR[id] ?? id);
                 const isBroken = dur?.broken === true;
                 const isEquipped = id === equippedWeapon || id === equippedArmor;
 
@@ -163,7 +166,7 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
 
                     {/* Action buttons */}
                     <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                      {def.type === 'consumable' && (
+                      {def?.type === 'consumable' && (
                         <button
                           type="button"
                           className="btn-console"
@@ -182,7 +185,7 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
                       >
                         EXAM.
                       </button>
-                      {def.type !== 'key_item' && (
+                      {def?.type !== 'key_item' && (
                         <button
                           type="button"
                           className="btn-console"

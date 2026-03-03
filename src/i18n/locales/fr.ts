@@ -446,7 +446,7 @@ export const fr: LocaleStrings = {
   'verb.BLOCK.aliases': 'bloquer,parer,se proteger,bloque,bloquez,pare,parez,protege,protegez',
   'verb.IMPROVISE_SHIELD.aliases': 'utiliser comme bouclier,se proteger avec',
   'verb.BARRICADE.aliases': 'barricader,obstruer,barricade,barricadez,obstrue,obstruez',
-  'verb.READ.aliases': 'lire,dechiffrer,consulter,lis,lisez,dechiffre,dechiffrez,consulte,consultez',
+  'verb.READ.aliases': 'lire,dechiffrer,consulter,lis,lit,lisez,dechiffre,dechiffrez,consulte,consultez',
   'verb.HACK.aliases': 'pirater,hacker,cracker,bypasser,pirate,piratez,hacke,hackez,cracke,crackez,bypasse,bypassez,acceder,accede,accedez',
   'verb.REPAIR.aliases': 'reparer,rafistoler,bricoler,fixer,repare,reparez,rafistole,rafistolez,bricole,bricolez,fixe,fixez',
   'verb.DISASSEMBLE.aliases': 'demonter,desassembler,demonte,demontez,desassemble,desassemblez',
