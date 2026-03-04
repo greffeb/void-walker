@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,7 +43,7 @@ jobs:
 
       - name: Build PWA
         run: |
-          APP_VERSION="build-$(echo '${{ github.sha }}' | cut -c1-7)"
+          APP_VERSION="#$(git rev-list --count HEAD)-$(echo '${{ github.sha }}' | cut -c1-7)"
           echo "Building with app version: $APP_VERSION"
           VITE_APP_VERSION="$APP_VERSION" npm run build
         env:

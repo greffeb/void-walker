@@ -15,11 +15,11 @@ function resolveAppVersion(): string {
   }
 
   try {
-    const shortSha = execSync('git rev-parse --short=7 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
-      .toString()
-      .trim();
-    if (shortSha) {
-      return `build-${shortSha}`;
+    const gitOpts = { stdio: ['ignore', 'pipe', 'ignore'] as ['ignore', 'pipe', 'ignore'] };
+    const shortSha = execSync('git rev-parse --short=7 HEAD', gitOpts).toString().trim();
+    const commitCount = execSync('git rev-list --count HEAD', gitOpts).toString().trim();
+    if (shortSha && commitCount) {
+      return `#${commitCount}-${shortSha}`;
     }
   } catch {
     // ignore and fallback
