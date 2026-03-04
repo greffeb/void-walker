@@ -6,7 +6,10 @@ import { useEffect } from 'react';
 import { useGameStore } from '@stores/gameStore';
 import { useSaveLoad } from '../hooks/useGame';
 import { formatTimestamp } from '../utils/formatters';
+import { getAppVersion } from '../utils/appVersion';
 import '../styles/globals.css';
+
+const APP_VERSION = getAppVersion();
 
 const CLASS_LABELS: Record<string, string> = {
   marine: 'Marine',
@@ -169,7 +172,7 @@ export function TitleScreen(): JSX.Element {
           fontFamily: 'var(--font-mono)',
         }}
       >
-        v0.7.0
+        {APP_VERSION}
       </p>
     </div>
   );
