@@ -129,7 +129,10 @@ export function getVerbCategory(verb: VerbId): VerbCategory {
  */
 export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
   const tier = tensionTier(ctx.tension);
-  const targetType: PropertyId | undefined = ctx.target?.properties[0];
+  // Prefer 'alive' so NPC-specific templates (USE/alive, etc.) take priority
+  const targetType: PropertyId | undefined = ctx.target?.properties.includes('alive')
+    ? 'alive'
+    : ctx.target?.properties[0];
 
   // PRIORITY 1: Specific — verb + target type + outcome + tension tier
   let template = findTemplate(ctx.verb, targetType ?? null, ctx.outcome, tier, ctx.verbCategory);

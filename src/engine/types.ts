@@ -274,6 +274,8 @@ export interface TurnDebugTrace {
   readonly parsedVerb: import('./verbs').VerbId | null;
   readonly parsedTarget: string | null;
   readonly parsedTargetName: string | null;
+  readonly parsedTool: string | null;
+  readonly parsedToolName: string | null;
   readonly parseStrategy: number;
   readonly parseCreative: boolean;
 

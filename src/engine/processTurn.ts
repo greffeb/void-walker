@@ -59,6 +59,8 @@ function emptyTrace(atmosphere: string, o2: number): TurnDebugTrace {
     parsedVerb: null,
     parsedTarget: null,
     parsedTargetName: null,
+    parsedTool: null,
+    parsedToolName: null,
     parseStrategy: 0,
     parseCreative: false,
     creativityMod: 0,
@@ -494,7 +496,10 @@ export function processTurn(
       traceFailsafeDcReduction = featureFailsafe?.dcReduction ?? 0;
 
       const effectiveDC = Math.max(2, featureMatchedPath.dc + featureFailsafeMod);
-      const roll = rollCheck(statId, statValue, lck, effectiveDC, 0, rng);
+      const toolMod = featureMatchedPath.toolBonus && action.tool?.id === featureMatchedPath.toolBonus.toolId
+        ? featureMatchedPath.toolBonus.bonus
+        : 0;
+      const roll = rollCheck(statId, statValue, lck, effectiveDC, toolMod, rng);
       diceRoll = roll;
       traceStatId = statId;
       traceStatValue = statValue;
@@ -586,7 +591,10 @@ export function processTurn(
       const statId = matchedObstaclePath.stat;
       const statValue = effectiveStats[statId] ?? 0;
       const lck = effectiveStats['LCK'] ?? 0;
-      const roll = rollCheck(statId, statValue, lck, matchedObstaclePath.dc, 0, rng);
+      const combatToolMod = matchedObstaclePath.toolBonus && action.tool?.id === matchedObstaclePath.toolBonus.toolId
+        ? matchedObstaclePath.toolBonus.bonus
+        : 0;
+      const roll = rollCheck(statId, statValue, lck, matchedObstaclePath.dc, combatToolMod, rng);
       diceRoll = roll;
       traceStatId = statId;
       traceStatValue = statValue;
@@ -1042,6 +1050,7 @@ export function processTurn(
       ? current.visitedLocations[current.playerLocationId]
       : undefined;
     const hasUnresolvedObstacle = currentNode?.obstacle !== undefined
+      && (currentNode.obstacle.blocksExit !== false)
       && !isObstacleResolved(currentVisitState);
     const destinationNeverVisited = !current.visitedLocations[newLocationId];
 
@@ -1283,6 +1292,8 @@ function buildFullTrace(t: TraceInputs): TurnDebugTrace {
     parsedVerb: t.action.verb,
     parsedTarget: t.action.target?.id ?? null,
     parsedTargetName: t.action.target?.nameKey ?? null,
+    parsedTool: t.action.tool?.id ?? null,
+    parsedToolName: t.action.tool?.nameKey ?? null,
     parseStrategy: t.action.verbMatch.strategy,
     parseCreative: t.action.creative,
     creativityMod: t.creativityMod,

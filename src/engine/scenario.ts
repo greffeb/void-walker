@@ -242,6 +242,8 @@ export interface ObstaclePath {
   readonly isCreative?: boolean;
   /** Whether this path requires a specific item */
   readonly requiredItem?: string;
+  /** Bonus added to the roll when the player uses a specific tool on this path */
+  readonly toolBonus?: { readonly toolId: string; readonly bonus: number };
 }
 
 /** The obstacle in a module (the challenge players must resolve) */
@@ -254,6 +256,11 @@ export interface ObstacleDefinition {
   readonly description: LocaleString;
   /** What is revealed or what happens when the obstacle is overcome */
   readonly resolveReveal?: LocaleString;
+  /**
+   * If false, the obstacle is optional — exits are never blocked.
+   * Defaults to true (blocking) when omitted.
+   */
+  readonly blocksExit?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -728,5 +735,6 @@ export function isEnrichedItem(
   const d = def as ScenarioItemDefinition;
   return d.itemType !== undefined
     || d.aliases !== undefined
-    || d.useOn !== undefined;
+    || d.useOn !== undefined
+    || d.revealedBy !== undefined;
 }

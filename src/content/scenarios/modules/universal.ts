@@ -4,7 +4,7 @@
 // These modules work in any setting (as long as role is supported).
 // ---------------------------------------------------------------------------
 
-import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition } from '@engine/scenario';
+import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition, ScenarioItemDefinition } from '@engine/scenario';
 
 function ls(fr: string) { return { fr, en: '' }; }
 
@@ -239,7 +239,7 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
             {
               trigger: { verb: 'HACK', requiredState: 'locked', stat: 'INT', dc: 9 },
               onSuccess: {
-                narrative: { fr: 'Vous contournez le digicode en court-circuitant le panneau fissuré. L\'armoire s\'ouvre avec un déclic.', en: '' },
+                narrative: { fr: 'Vous contournez le digicode en court-circuitant le panneau fissuré. L\'armoire s\'ouvre avec un déclic. À l\'intérieur, un kit médical.', en: '' },
                 newState: 'open',
               },
               onFailure: {
@@ -249,7 +249,7 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
             {
               trigger: { verb: 'FORCE_OPEN', requiredState: 'locked', stat: 'FOR', dc: 11 },
               onSuccess: {
-                narrative: { fr: 'Vous arrachez la porte de l\'armoire. Le métal cède sous votre force.', en: '' },
+                narrative: { fr: 'Vous arrachez la porte de l\'armoire. Le métal cède sous votre force. Un kit médical tombe sur le sol.', en: '' },
                 newState: 'open',
               },
               onFailure: {
@@ -269,7 +269,7 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
         } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
       ],
       items: [
-        { id: 'medkit_basic', examineResult: { fr: 'Kit médical de base. Compresses hémostatiques, désinfectant, seringue d\'adrénaline. Suffisant pour stabiliser un blessé léger.', en: '' } },
+        { id: 'medkit_basic', revealedBy: { featureId: 'medical_cabinet', requiredState: 'open' }, examineResult: { fr: 'Kit médical de base. Compresses hémostatiques, désinfectant, seringue d\'adrénaline. Suffisant pour stabiliser un blessé léger.', en: '' } } satisfies ScenarioItemDefinition as ScenarioItemDefinition,
       ],
       npcs: [
         {
@@ -285,9 +285,10 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
   sideRooms: [],
   obstacle: {
     targetId: 'wounded_crew_member',
+    blocksExit: false,
     description: ls('Un membre d\'équipage blessé. Entre la peur et la souffrance, il possède des informations critiques — si vous pouvez établir le contact.'),
     paths: [
-      { id: 'heal', stat: 'INT', dc: 10, description: ls('Soigner le blessé'), verbs: ['heal', 'treat', 'bandage'] },
+      { id: 'heal', stat: 'INT', dc: 10, description: ls('Soigner le blessé'), verbs: ['heal', 'treat', 'bandage'], toolBonus: { toolId: 'medkit_basic', bonus: 10 } },
       { id: 'persuade', stat: 'CHA', dc: 11, description: ls('Persuader pour obtenir des informations'), verbs: ['talk', 'persuade', 'calm'] },
       { id: 'intimidate', stat: 'CHA', dc: 13, description: ls('Intimider pour des réponses rapides'), verbs: ['intimidate', 'threaten'] },
       { id: 'loot', stat: 'AGI', dc: 9, description: ls('Fouiller discrètement ses poches'), verbs: ['loot', 'pickpocket', 'steal', 'sneak'] },
@@ -332,8 +333,8 @@ export const DARK_ROOM_01: ScenarioModule = {
           aliases: { fr: ['luminaire', 'plafonnier', 'lampe', 'lumiere', 'eclairage'], en: ['light', 'fixture', 'lamp'] },
           examineResult: { fr: 'Plafonnier brisé. Le tube est éclaté et les fils pendent. Il ne fonctionnera plus, mais le réseau électrique derrière est peut-être intact.', en: '' },
           descriptions: {
-            broken: { fr: 'Un plafonnier brisé pend du plafond. Le tube est éclaté.', en: '' },
-            functional: { fr: 'Le plafonnier diffuse une lumière blanche stable.', en: '' },
+            broken: { fr: 'plafonnier brisé pendant du plafond. Le tube est éclaté.', en: '' },
+            functional: { fr: 'plafonnier diffusant une lumière blanche stable.', en: '' },
           },
           interactions: [
             {
@@ -371,8 +372,8 @@ export const DARK_ROOM_01: ScenarioModule = {
           aliases: { fr: ['relais', 'relais énergie', 'relais alimentation', 'alimentation'], en: ['relay', 'power relay'] },
           examineResult: { fr: 'Relais d\'alimentation auxiliaire. Endommagé mais pas détruit. Avec les bonnes manipulations, il pourrait alimenter le circuit d\'éclairage de cette section.', en: '' },
           descriptions: {
-            damaged: { fr: 'Un relais d\'alimentation endommagé. Des câbles arrachés pendent.', en: '' },
-            functional: { fr: 'Le relais d\'alimentation ronronne doucement — circuit rétabli.', en: '' },
+            damaged: { fr: 'relais d\'alimentation endommagé. Des câbles arrachés pendent.', en: '' },
+            functional: { fr: 'relais d\'alimentation ronronnant doucement — circuit rétabli.', en: '' },
           },
           interactions: [
             {

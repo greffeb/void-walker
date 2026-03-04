@@ -149,8 +149,10 @@ export function buildNarrativeContext(
   // Build target info from scene context
   const targetInfo = buildTargetInfo(trace.parsedTarget, sceneContext);
 
-  // Build tool info (first equipped weapon or null)
-  const toolInfo = buildToolInfo(sceneContext, state);
+  // Build tool info: prefer parsed tool from input, fall back to equipped weapon
+  const toolInfo = trace.parsedTool
+    ? buildToolInfoFromId(trace.parsedTool, sceneContext)
+    : buildToolInfo(sceneContext, state);
 
   // THROW self-projectile: "Je jette la lampe" (no preposition) puts the inventory
   // item in parsedTarget. Reclassify: it is the thrown projectile, not the aim point.
@@ -329,6 +331,17 @@ function buildTargetInfo(
     properties: entity.properties,
     grammar,
   };
+}
+
+/** Build tool info from a parsed tool ID (inventory or location items) */
+function buildToolInfoFromId(
+  toolId: string,
+  sceneContext: SceneContext,
+): ItemInfo | null {
+  const item = [...sceneContext.inventory, ...sceneContext.locationItems].find(i => i.id === toolId);
+  if (!item) return null;
+  const name = t(item.nameKey as StringKey);
+  return { id: item.id, name, grammar: detectGrammar(name) };
 }
 
 /** Build tool info from the currently equipped tool */
@@ -566,6 +579,14 @@ function getRevealContent(
       if (!isSuccessful && npc.talkFailure) {
         return npc.talkFailure[localeKey] || npc.talkFailure.fr;
       }
+    }
+  }
+
+  // USE verb on NPC target → successful use (e.g., healing) triggers talkSuccess
+  if (verb === 'USE' && isSuccessful) {
+    const npc = (node.npcs ?? []).find(n => n.id === targetId);
+    if (npc?.talkSuccess) {
+      return npc.talkSuccess[localeKey] || npc.talkSuccess.fr;
     }
   }
 

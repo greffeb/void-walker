@@ -343,9 +343,15 @@ function buildSceneDescription(
     ? node.obstacle.description.fr
     : null;
 
-  // Visible items (not taken, not hidden)
+  // Visible items (not taken, not hidden, not behind a locked revealedBy gate)
   const staticVisibleItems = node.items
-    .filter(item => !item.hidden && isItemAvailable(visitState, item.id))
+    .filter(item => {
+      if (!isItemAvailable(visitState, item.id)) return false;
+      if (isEnrichedItem(item) && item.revealedBy) {
+        return featureStates[item.revealedBy.featureId] === item.revealedBy.requiredState;
+      }
+      return !item.hidden;
+    })
     .map(item => {
       const def = ITEM_DEFINITIONS[item.id];
       const name = def ? t(def.nameKey) : resolveDisplayName(`item.${item.id}`, item.id);
