@@ -361,8 +361,34 @@ export function processTurn(
         }
 
         // Reveal items
+        // Issue #46: when TAKE triggers a container interaction (e.g. "prendre
+        // découpeur plasma" targeting a rack), also auto-add revealed items to
+        // inventory so the player doesn't need a second TAKE command.
         for (const itemId of interactionResult.itemsToReveal) {
           current = revealItem(current, itemId);
+          if (
+            action.verb === 'TAKE'
+            && current.character !== null
+            && current.playerLocationId !== null
+          ) {
+            // Capture narrowed values before any spread-reassignment of `current`
+            const autoLocId: string = current.playerLocationId;
+            if (!current.character.inventory.includes(itemId)) {
+              const { inventory: autoInventory } = addItem(current.character.inventory, itemId);
+              current = { ...current, character: { ...current.character, inventory: autoInventory } };
+            }
+            const autoVisit = current.visitedLocations[autoLocId];
+            if (autoVisit) {
+              current = {
+                ...current,
+                visitedLocations: {
+                  ...current.visitedLocations,
+                  [autoLocId]: markItemTaken(autoVisit, itemId),
+                },
+                itemsUsedCount: current.itemsUsedCount + 1,
+              };
+            }
+          }
         }
 
         // Unlock exit (stored in unlockedExits — key is locationId:exitId for now)

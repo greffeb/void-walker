@@ -399,6 +399,36 @@ export function resolveTarget(
     if (context.locationItems.length === 1) {
       return context.locationItems[0]!;
     }
+
+    // Issue #46: container-feature fallback.
+    // When no items are available (e.g. the item is hidden inside a rack),
+    // check environment features — the player may be targeting a container
+    // feature that has a TAKE interaction (e.g. "prendre découpeur plasma"
+    // → plasma_cutter_rack feature whose TAKE interaction reveals the item).
+    let featBestScore = 0;
+    let featBestTarget: ResolvedTarget | null = null;
+    for (const feature of context.environmentFeatures) {
+      const aliases = [...new Set([
+        ...feature.aliases,
+        ...nameKeyToAliases(feature.nameKey),
+        ...feature.id.replace(/_/g, ' ').split(' '),
+      ])];
+      const score = tokenMatchScore(searchTokens, aliases);
+      if (score > featBestScore) {
+        featBestScore = score;
+        featBestTarget = {
+          id: feature.id,
+          nameKey: feature.nameKey,
+          properties: feature.properties,
+          isVirtual: false,
+          source: 'environment' as TargetSource,
+        };
+      }
+    }
+    if (featBestTarget && featBestScore >= 5) {
+      return featBestTarget;
+    }
+
     return null;
   }
 

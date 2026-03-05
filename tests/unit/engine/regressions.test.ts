@@ -1046,3 +1046,74 @@ describe('REG-020: NPC-obstacle intercept resolves obstacle and neutralizes NPC'
     expect(pathIds.some(p => p.includes('PER') && p.includes('examine'))).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// REG-021: TAKE on container feature auto-adds revealed item to inventory (Issue #46)
+// Bug: "prendre découpeur plasma industriel" targets plasma_cutter_rack (container
+// feature) instead of the hidden plasma_cutter item. The rack's TAKE interaction
+// correctly reveals the item but didn't add it to inventory — requiring a second TAKE.
+// Fix: when a TAKE-triggered scenario interaction reveals items, auto-add them to
+// inventory immediately.
+// ---------------------------------------------------------------------------
+
+describe('REG-021: container TAKE auto-adds revealed item to inventory (Issue #46)', () => {
+  function buildRescueAtUnlockNode() {
+    const rng = createSeededRng(46);
+    const skeleton = getSkeletonById('rescue')!;
+    const setting = getSettingById('derelict_ship')!;
+    const scenario = assembleScenario(skeleton, 'quick', setting, ALL_MODULES, rng);
+
+    // Find the node that has plasma_cutter_rack
+    const unlockNode = scenario.graph.nodes.find(
+      n => n.features.some(f => f.id === 'plasma_cutter_rack'),
+    );
+    expect(unlockNode).toBeDefined();
+
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    // Teleport to the node containing plasma_cutter_rack
+    state = {
+      ...state,
+      playerLocationId: unlockNode!.id,
+      visitedLocations: {
+        ...state.visitedLocations,
+        [unlockNode!.id]: { obstacleResolved: false, itemsTaken: [], featuresChanged: {} },
+      },
+    };
+    return { state, nodeId: unlockNode!.id };
+  }
+
+  test('plasma_cutter ends up in inventory after single TAKE command', () => {
+    const { state } = buildRescueAtUnlockNode();
+    const parserData = buildParserLocaleData('fr');
+    const rng = createSeededRng(46);
+
+    const ctx = getSceneContext(state);
+    const result = processTurn(state, 'prendre découpeur plasma', ctx, parserData, rng);
+
+    // plasma_cutter must be in inventory — no second TAKE required
+    expect(result.newState.character!.inventory).toContain('plasma_cutter');
+  });
+
+  test('"découpeur plasma industriel" also adds plasma_cutter to inventory', () => {
+    const { state } = buildRescueAtUnlockNode();
+    const parserData = buildParserLocaleData('fr');
+    const rng = createSeededRng(46);
+
+    const ctx = getSceneContext(state);
+    const result = processTurn(state, 'prendre découpeur plasma industriel', ctx, parserData, rng);
+
+    expect(result.newState.character!.inventory).toContain('plasma_cutter');
+  });
+
+  test('plasma_cutter is not visible in scene after TAKE (marked as taken)', () => {
+    const { state, nodeId } = buildRescueAtUnlockNode();
+    const parserData = buildParserLocaleData('fr');
+    const rng = createSeededRng(46);
+
+    const ctx = getSceneContext(state);
+    const result = processTurn(state, 'prendre découpeur plasma', ctx, parserData, rng);
+
+    const visitState = result.newState.visitedLocations[nodeId];
+    expect(visitState?.itemsTaken).toContain('plasma_cutter');
+  });
+});
