@@ -342,7 +342,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         _narratedIds = allSceneElementIds(sceneContext.sceneDescription);
         _currentLocationId = sceneContext.locationId ?? null;
         try {
-          welcomeNarrative = narrateScene(sceneContext.sceneDescription, 'enter', 'fr');
+          welcomeNarrative = narrateScene(sceneContext.sceneDescription, 'new_game', 'fr');
         } catch {
           // Narration failure should not block game start
         }

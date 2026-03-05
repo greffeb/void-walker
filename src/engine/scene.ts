@@ -172,8 +172,20 @@ export function getSceneContext(state: GameState): SceneContext {
     state.character?.conditions.map(c => c.id),
   );
 
+  // --- Skeleton node description (first visit only) ---
+  // CoreSkeletonNode.descriptionKey contains rich scene-setting text for each story beat.
+  // Inject it on the first visit to skeleton nodes so the player gets narrative context.
+  let skeletonDescription: string | undefined;
+  if (node.coreNodeId) {
+    const visitCount = visitState?.visitCount ?? 0;
+    if (visitCount <= 1) {
+      const skeletonNode = scenario.skeleton.nodes.find(n => n.id === node.coreNodeId);
+      skeletonDescription = skeletonNode?.descriptionKey.fr;
+    }
+  }
+
   // --- Scene description for UI and narration ---
-  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations, state.featureStates ?? {});
+  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations, state.featureStates ?? {}, skeletonDescription);
 
   return {
     inventory,
@@ -316,6 +328,7 @@ function buildSceneDescription(
   visitState: LocationVisitState | undefined,
   connectedLocations: readonly { id: string; aliases: readonly string[]; visited?: boolean }[],
   featureStates: Readonly<Record<string, FeatureState>>,
+  skeletonDescription?: string,
 ): SceneDescription {
   const isFirstVisit = visitState === undefined || visitState.visitCount <= 1;
   const obstacleResolved = isObstacleResolved(visitState);
@@ -323,11 +336,12 @@ function buildSceneDescription(
   // Location name — always the actual location name from the node
   const locationName = node.nameKey.fr;
 
-  // Location flavor text from skin (entry/revisit); empty string when no skin
-  // When the obstacle is resolved, the original skin entry (e.g. "darkness") no longer applies.
-  // Use revisit text instead, which is typically neutral (e.g. "De retour ici.").
+  // Location flavor text: on first visit to a skeleton node, use the skeleton's rich description.
+  // Otherwise use the skin's entry/revisit description.
   let locationDescription = '';
-  if (node.activeSkin) {
+  if (skeletonDescription) {
+    locationDescription = skeletonDescription;
+  } else if (node.activeSkin) {
     if (obstacleResolved && node.obstacle) {
       // Obstacle has been dealt with — use the generic revisit description
       locationDescription = node.activeSkin.revisitDescription.fr;
