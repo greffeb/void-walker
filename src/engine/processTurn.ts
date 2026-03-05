@@ -42,7 +42,7 @@ import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObst
 import { buildVictoryCheckContext } from './game';
 import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
-import { isEnrichedItem } from './scenario';
+import { isEnrichedItem, isEnrichedFeature } from './scenario';
 import { removeItem } from './inventory';
 import { NPC_DEFINITIONS } from '../content/npcs';
 import { buildObstacleVerbMap } from '../content/parserData';
@@ -815,6 +815,22 @@ export function processTurn(
       const OPEN_VERBS_D20: ReadonlySet<VerbId> = new Set(['OPEN', 'UNLOCK', 'FORCE_OPEN', 'BREAK']);
       if (OPEN_VERBS_D20.has(action.verb)) {
         current = setFeatureState(current, action.target.id, 'open');
+        // Issue #53: reveal items contained in the feature when it is opened
+        // via D20 (no scenario interaction matched). Without this, the
+        // feature state changes to 'open' but `contains` items never appear.
+        if (current.playerLocationId !== null && current.scenario !== null) {
+          const openNode = current.scenario.graph.nodes.find(
+            n => n.id === current.playerLocationId,
+          );
+          const openedFeatureDef = openNode?.features.find(
+            f => f.id === action.target!.id,
+          ) ?? null;
+          if (openedFeatureDef !== null && isEnrichedFeature(openedFeatureDef)) {
+            for (const containedItemId of openedFeatureDef.contains ?? []) {
+              current = revealItem(current, containedItemId);
+            }
+          }
+        }
       }
     }
 

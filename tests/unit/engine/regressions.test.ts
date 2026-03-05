@@ -1117,3 +1117,74 @@ describe('REG-021: container TAKE auto-adds revealed item to inventory (Issue #4
     expect(visitState?.itemsTaken).toContain('plasma_cutter');
   });
 });
+
+// ---------------------------------------------------------------------------
+// REG-022: OPEN on container feature via D20 does not reveal contained items (Issue #53)
+// Bug: "j'ouvre le coffre fort" targets wall_safe (seed 474751722, turn 20).
+// No scenario interaction matched (player lacked password_found flag), so the
+// standard D20 pipeline handled OPEN. It set featureState to 'open' but never
+// called revealItem for the feature's `contains` list → director_keycard
+// stayed hidden and no content description appeared.
+// Fix: in processTurn's D20 OPEN branch, when the feature is an enriched
+// container, call revealItem for each item in `contains`.
+// ---------------------------------------------------------------------------
+
+describe('REG-022: OPEN on container feature via D20 reveals contained items (Issue #53)', () => {
+  function buildStateAtWallSafe() {
+    // Use marine/explorer for high FOR (5) and low DC to ensure D20 success
+    const rng = createSeededRng(474751722);
+    const skeleton = getSkeletonById('investigate')!;
+    const setting = getSettingById('space_station')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+
+    // Find the node containing wall_safe
+    const wallSafeNode = scenario.graph.nodes.find(
+      n => n.features.some(f => f.id === 'wall_safe'),
+    );
+    expect(wallSafeNode).toBeDefined();
+
+    // Init as marine/explorer for high FOR and low DC
+    let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+    // Teleport player to wall_safe node, without password_found flag
+    state = {
+      ...state,
+      playerLocationId: wallSafeNode!.id,
+      scenarioFlags: {},  // no password_found → forces D20 fallback
+      visitedLocations: {
+        ...state.visitedLocations,
+        [wallSafeNode!.id]: { obstacleResolved: false, itemsTaken: [], featuresChanged: {} },
+      },
+    };
+    return { state, nodeId: wallSafeNode!.id };
+  }
+
+  test('director_keycard is revealed when OPEN on wall_safe succeeds via D20', () => {
+    const { state } = buildStateAtWallSafe();
+    const parserData = buildParserLocaleData('fr');
+    const rng = createSeededRng(474751722);
+
+    const ctx = getSceneContext(state);
+    const result = processTurn(state, 'ouvrir le coffre', ctx, parserData, rng);
+
+    // If the D20 succeeded, director_keycard must be revealed (Issue #53 fix)
+    if (result.trace.outcome === 'success' || result.trace.outcome === 'crit_success') {
+      expect(result.newState.revealedItems['director_keycard']).toBe(true);
+      expect(result.newState.featureStates['wall_safe']).toBe('open');
+    }
+  });
+
+  test('wall_safe OPEN via scenario interaction (password_found) still reveals keycard', () => {
+    const { state } = buildStateAtWallSafe();
+    const parserData = buildParserLocaleData('fr');
+    const rng = createSeededRng(474751722);
+
+    // Set password_found flag → scenario interaction fires (dc: null, auto-success)
+    const stateWithPassword = { ...state, scenarioFlags: { password_found: true } };
+    const ctx = getSceneContext(stateWithPassword);
+    const result = processTurn(stateWithPassword, 'ouvrir le coffre', ctx, parserData, rng);
+
+    // Scenario interaction is auto-success → items must be revealed
+    expect(result.newState.revealedItems['director_keycard']).toBe(true);
+    expect(result.newState.featureStates['wall_safe']).toBe('open');
+  });
+});
