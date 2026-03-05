@@ -132,7 +132,7 @@ export function EndScreen(): JSX.Element {
               gap: '6px',
               fontFamily: 'var(--font-mono)',
               fontSize: '10px',
-              color: 'var(--amber-dim)',
+              color: 'var(--danger)',
               justifyContent: 'center',
             }}
           >

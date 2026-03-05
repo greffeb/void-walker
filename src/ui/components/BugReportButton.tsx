@@ -86,22 +86,20 @@ export function BugReportButton({ entry }: BugReportButtonProps): JSX.Element {
         style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '9px',
-          color: 'var(--text-system)',
+          color: 'var(--danger)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
           padding: '0 2px',
           letterSpacing: '0.05em',
-          opacity: 0.5,
-          transition: 'opacity 150ms, color 150ms',
+          opacity: 0.7,
+          transition: 'opacity 150ms',
         }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLButtonElement).style.opacity = '1';
-          (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)';
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLButtonElement).style.opacity = '0.5';
-          (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-system)';
+          (e.currentTarget as HTMLButtonElement).style.opacity = '0.7';
         }}
       >
         KO
