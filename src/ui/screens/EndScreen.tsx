@@ -2,9 +2,11 @@
 // src/ui/screens/EndScreen.tsx — Game Over / Victory screen
 // ---------------------------------------------------------------------------
 // Shows victory or defeat recap, stats summary, and navigation buttons.
+// On death, shows a KO bug report button so players can report weird deaths.
 // ---------------------------------------------------------------------------
 
 import { useGameStore } from '@stores/gameStore';
+import { BugReportButton } from '../components/BugReportButton';
 import type { VictoryResult, DefeatCondition } from '@engine/scenario';
 
 export function EndScreen(): JSX.Element {
@@ -16,6 +18,8 @@ export function EndScreen(): JSX.Element {
   const character = gameState.character;
   const victoryResult = gameState.victoryResult;
   const defeatCondition = gameState.defeatCondition;
+
+  const lastEntry = turnHistory.length > 0 ? turnHistory[turnHistory.length - 1]! : null;
 
   const accentColor = isVictory ? 'var(--success)' : 'var(--danger)';
   const title = isVictory ? 'MISSION ACCOMPLIE' : 'FIN DE TRANSMISSION';
@@ -115,6 +119,26 @@ export function EndScreen(): JSX.Element {
           {gameState.itemsUsedCount > 0 && (
             <StatRow label="Objets utilisés" value={String(gameState.itemsUsedCount)} />
           )}
+        </div>
+      )}
+
+      {/* KO bug report (death screen only) */}
+      {!isVictory && lastEntry && (
+        <div style={{ width: '100%', maxWidth: '320px', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '10px',
+              color: 'var(--amber-dim)',
+              justifyContent: 'center',
+            }}
+          >
+            <span>Mort suspecte ?</span>
+            <BugReportButton entry={lastEntry} />
+          </div>
         </div>
       )}
 
