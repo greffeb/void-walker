@@ -279,9 +279,9 @@ Chaque obstacle doit offrir au moins 2-3 voies :
 **Objectif :** Établir un contact avec un membre d'équipage blessé pour obtenir des informations.
 
 **Features :**
-- `medical_cabinet` : Armoire médicale verrouillée
-- `cot` : Lit de camp taché de sang
-- `wounded_crew_member` : PNJ blessé (disposition neutre)
+- `medical_cabinet` : Armoire médicale verrouillée (ScenarioFeatureDefinition avec HACK/FORCE_OPEN)
+- `cot` : Lit de camp taché de sang (ScenarioFeatureDefinition)
+- `wounded_crew_member` : PNJ blessé (disposition neutre, examineResult défini)
 
 #### Tests de résolution
 
@@ -290,7 +290,7 @@ Chaque obstacle doit offrir au moins 2-3 voies :
 | 1 | `soigner le blessé` / `utiliser medkit sur blessé` | Jet INT DC10, si réussi → confiance gagnée | INT |
 | 2 | `parler au blessé` / `persuader Torres` | Jet CHA DC11, si réussi → informations obtenues | CHA |
 | 3 | `intimider le blessé` / `menacer Torres` | Jet CHA DC13, si réussi → informations rapides | CHA |
-| 4 | `fouiller discrètement` / `prendre objets` | Jet AGI DC9, si réussi → loot + partir | AGI |
+| 4 | `voler le blessé` / `fouiller discrètement` | Jet AGI DC9, si réussi → loot + partir | AGI |
 
 #### Tests d'examen
 
@@ -298,7 +298,29 @@ Chaque obstacle doit offrir au moins 2-3 voies :
 |---|--------|------------------|
 | 1 | `examiner armoire` | Description de l'armoire verrouillée, indices sur contenu médical |
 | 2 | `examiner lit` | Description du lit taché, soins récents |
-| 3 | `regarder le blessé` | État visible, pas de résolution |
+| 3 | `regarder le blessé` | État visible, examineResult affiché |
+
+#### ✅ Résultat des tests (2026-03-02)
+
+**Status :** PASSÉ
+
+**Corrections appliquées :**
+1. Features converties en ScenarioFeatureDefinition (medical_cabinet, cot)
+2. `examineResult` ajouté à l'interface NpcDefinition + implémenté pour le PNJ
+3. parser.obstacleVerbs : EXAMINE:loot → HIDE:loot (correction du mapping)
+4. Descriptions sans articles (corrige "une une armoire")
+5. grammar.feature_articles['env.cot'] : 'une' → 'un' (lit = masculin)
+6. Synchronisation FR/EN des obstacleVerbs
+
+**Résolution testée :**
+- ✓ `soigner le blesse` → INT DC10, sorties révélées après succès
+- ✓ `parler au blesse` → CHA DC11, talkFailure affiché si échec
+- ✓ `intimider le blesse` → CHA DC13
+- ✓ `voler le blesse` → AGI DC9 (via verb HIDE)
+- ✓ Navigation post-résolution fonctionnelle
+
+**Issue connue (hors scope module) :**
+- La narration affiche "Vous utilisez le Membre d'équipage blessé" au lieu de "Vous soignez..." car `soigner` est mappé sur verb USE. Templates HEAL à créer (Phase narrative future).
 
 ---
 
@@ -330,6 +352,23 @@ Chaque obstacle doit offrir au moins 2-3 voies :
 | 1 | réparer relais → activer plafonnier | Lumière rétablie (2 étapes) |
 | 2 | réparer plafonnier directement | Possible mais DC12 |
 | 3 | trouver lampe → utiliser | Alternative sans réparation |
+
+#### ✅ Résultat des tests (2026-03-03)
+
+**Status :** PASSÉ
+
+**Corrections appliquées :**
+1. Descriptions sans articles (corrige "un un plafonnier", "un un relais")
+
+**Résolution testée :**
+- ✓ `reparer relais` + `activer plafonnier` → chain INT DC10 + auto → obstacle résolu, sorties révélées
+- ✓ `reparer plafonnier` direct → INT DC12 → obstacle résolu
+- ✓ `chercher lumiere` → PER DC10 → obstacle résolu
+- ✓ Navigation post-résolution fonctionnelle
+
+**Issues connues (hors scope module) :**
+- Les paths intransitifs (`traverser`, `avancer en force`) ciblent "environment" virtuel et ne résolvent pas l'obstacle. Architecture des obstacle.paths à revoir pour actions sans cible explicite.
+- Description post-résolution parfois tronquée ("un luminaire" au lieu de description complète)
 
 ---
 
