@@ -476,15 +476,32 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       const allSuggestions = newContext.scenarioSuggestions ?? [];
       const filtered = filterSuggestionsByNarrated(allSuggestions, _narratedIds, newContext.sceneDescription);
 
-      // Determine if dice animation should play
+      // Determine if dice animation should play.
+      // Always show the animation for any non-auto-verb dice roll.
+      // When the engine path (scenario interaction, combat) doesn't produce a
+      // full DifficultyBreakdown, we create a minimal one so the overlay always
+      // mounts and onDiceAnimationComplete always fires (prevents deadlock).
       const hasDice = result.diceRoll !== null && !result.trace.isAutoVerb;
+      const effectiveBreakdown: DifficultyBreakdown | null = hasDice && result.diceRoll
+        ? (result.trace.difficultyBreakdown ?? {
+            base: result.diceRoll.difficulty,
+            verbMod: 0,
+            compatibilityPenalty: 0,
+            contextMods: 0,
+            creativityMod: 0,
+            difficultyPresetMod: 0,
+            total: result.diceRoll.difficulty,
+            details: [],
+            namedLines: [],
+          })
+        : null;
 
-      if (hasDice) {
+      if (hasDice && effectiveBreakdown) {
         // Dice animation pipeline: show dice first, narrative after
         set({
           isDiceAnimating: true,
           pendingDiceResult: result.diceRoll,
-          pendingDifficultyBreakdown: result.trace.difficultyBreakdown,
+          pendingDifficultyBreakdown: effectiveBreakdown,
           pendingNarrative: narrative,
           pendingTurnEntry: entry,
           gameState: result.newState,
@@ -525,16 +542,17 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   onDiceAnimationComplete: () => {
     const { pendingNarrative, pendingTurnEntry, turnHistory, gameState } = get();
     const gameOver = isGameOver(gameState);
+    const narrative = pendingNarrative ?? '';
     set({
       isDiceAnimating: false,
       pendingDiceResult: null,
       pendingDifficultyBreakdown: null,
       hasSeenFullAnimation: true,
       turnHistory: pendingTurnEntry ? [...turnHistory, pendingTurnEntry] : turnHistory,
-      currentNarrative: pendingNarrative ?? '',
+      currentNarrative: narrative,
       pendingNarrative: null,
       pendingTurnEntry: null,
-      typewriterComplete: false,
+      typewriterComplete: narrative.length === 0,
       screen: gameOver ? 'end' : get().screen,
     });
   },
