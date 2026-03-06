@@ -183,12 +183,20 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
       </div>
 
       {/* Dice result (compact) */}
-      {entry.diceRoll && !entry.trace.isAutoVerb && (
-        <div style={{ fontSize: '10px', color: outcomeColor(entry.trace.outcome), marginBottom: '4px' }}>
-          🎲 {entry.diceRoll.natural}+{entry.diceRoll.modifier} = {entry.diceRoll.total} vs DC {entry.diceRoll.difficulty}
-          {' '}{outcomeLabel(entry.trace.outcome)}
-        </div>
-      )}
+      {entry.diceRoll && !entry.trace.isAutoVerb && (() => {
+        const dr = entry.diceRoll!;
+        const bonusParts: string[] = [];
+        if (dr.statValue !== 0) bonusParts.push(`${dr.stat}(${dr.statValue > 0 ? '+' : ''}${dr.statValue})`);
+        if (dr.luckBonus !== 0) bonusParts.push(`LCK(${dr.luckBonus > 0 ? '+' : ''}${dr.luckBonus})`);
+        if (dr.modifier !== 0) bonusParts.push(`${dr.modifier > 0 ? '+' : ''}${dr.modifier}`);
+        const bonusStr = bonusParts.length > 0 ? ' ' + bonusParts.join(' ') : '';
+        return (
+          <div style={{ fontSize: '10px', color: outcomeColor(entry.trace.outcome), marginBottom: '4px' }}>
+            🎲 D20({dr.natural}){bonusStr} = {dr.total} vs DC {dr.difficulty}
+            {' '}{outcomeLabel(entry.trace.outcome)}
+          </div>
+        );
+      })()}
 
       {/* Narrative text */}
       {entry.narrative && (
