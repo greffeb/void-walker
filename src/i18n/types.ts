@@ -836,7 +836,33 @@ export type StringKey =
   | 'scene.prompt'
   // Grammar article data — locale-specific JSON (e.g. {"item.knife":"un","item.medical_kit":"une"})
   | 'grammar.item_articles'
-  | 'grammar.feature_articles';
+  | 'grammar.feature_articles'
+  // --- Dice roll UI — DC modifiers ---
+  | 'dice.modifier.incompatible'
+  | 'dice.modifier.noTool'
+  | 'dice.modifier.toolAdapted'
+  | 'dice.modifier.toolWrong'
+  | 'dice.modifier.dark'
+  | 'dice.modifier.zeroG'
+  | 'dice.modifier.timePressure'
+  | 'dice.modifier.targetHostile'
+  | 'dice.modifier.targetArmored'
+  | 'dice.modifier.targetCooperative'
+  | 'dice.modifier.targetAttached'
+  | 'dice.modifier.wounded'
+  | 'dice.modifier.terrified'
+  | 'dice.modifier.highStat'
+  | 'dice.modifier.creative'
+  | 'dice.modifier.shipMemory'
+  // --- Dice roll UI — structural labels ---
+  | 'dice.dc.toBeat'
+  | 'dice.roll.luck'
+  | 'dice.roll.total'
+  // --- Dice roll UI — results ---
+  | 'dice.result.success'
+  | 'dice.result.failure'
+  | 'dice.result.critSuccess'
+  | 'dice.result.critFailure';
 
 /** A locale translation record — maps every StringKey to its translated string */
 export type LocaleStrings = Readonly<Record<StringKey, string>>;
