@@ -788,15 +788,11 @@ export function processTurn(
     traceDifficultyBreakdown = breakdown;
 
     // Total DC with all modifiers (ship memory + failsafe)
-    const conditionRollMod = current.character!.conditions.some(
-      c => c.id === 'terrified',
-    ) ? -1 : 0;
-
     const totalDC = breakdown.total + shipMemoryMod + failsafeMod;
     const effectiveDC = Math.max(2, Math.min(25, totalDC));
     traceEffectiveDC = effectiveDC;
 
-    diceRoll = rollCheck(statId, statValue, lck, effectiveDC, conditionRollMod, rng);
+    diceRoll = rollCheck(statId, statValue, lck, effectiveDC, 0, rng);
 
     // ───────────────────────────────────────────────────────
     // STEP 6: Consequence application

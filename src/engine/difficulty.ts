@@ -182,6 +182,12 @@ function getPlayerConditionMods(
     details.push('Joueur blessé');
   }
 
+  // Terrified penalty (DC +1) — replaces the roll modifier in processTurn
+  if (playerConditions.includes('terrified')) {
+    mod += BALANCE.CONTEXT_MODIFIERS.TERRIFIED_PLAYER;
+    details.push('terrified');
+  }
+
   // High relevant stat bonus
   const statId = VERB_STATS[verb] as StatId | undefined;
   if (statId) {
