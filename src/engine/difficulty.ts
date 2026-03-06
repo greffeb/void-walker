@@ -222,6 +222,7 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
       difficultyPresetMod: 0,
       total: 0,
       details: ['Action automatique (DC 0)'],
+      namedLines: [],
     };
   }
 
@@ -349,5 +350,6 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     difficultyPresetMod,
     total,
     details,
+    namedLines: [],
   };
 }

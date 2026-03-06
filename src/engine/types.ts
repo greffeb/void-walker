@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import { BALANCE } from './constants';
+import type { StringKey } from '@i18n/types';
 
 // === STAT SYSTEM ===
 
@@ -549,6 +550,21 @@ export interface ParserLocaleData {
   readonly takeNoTargetPrompt: string;
 }
 
+/** A single named line in the DC decomposition, for UI display */
+export interface DifficultyLine {
+  /**
+   * i18n key — never hardcoded text.
+   * For the base line, use VERB_REGISTRY[verb].nameKey.
+   */
+  labelKey: StringKey;
+  /** Optional params for interpolation. Ex: { stat: 'INT' } for 'dice.modifier.highStat' */
+  labelParams?: Record<string, string>;
+  /** Signed value (+2, -3). Lines with value === 0 are omitted by the UI. */
+  value: number;
+  /** Determines color styling in the UI */
+  category: 'base' | 'penalty' | 'bonus';
+}
+
 /** Breakdown of how difficulty was calculated */
 export interface DifficultyBreakdown {
   readonly base: number;
@@ -559,6 +575,8 @@ export interface DifficultyBreakdown {
   readonly difficultyPresetMod: number;
   readonly total: number;
   readonly details: readonly string[];
+  /** Named lines for the dice choreography UI. Populated by calculateDifficulty(). */
+  readonly namedLines: readonly DifficultyLine[];
 }
 
 /** Input to the difficulty calculator */
