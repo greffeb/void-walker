@@ -13,8 +13,8 @@ import type { VerbId } from '../../../src/engine/verbs';
 import { STAT_IDS } from '../../../src/engine/types';
 
 describe('VerbId', () => {
-  test('has exactly 77 verbs', () => {
-    expect(VERB_IDS).toHaveLength(77);
+  test('has exactly 78 verbs', () => {
+    expect(VERB_IDS).toHaveLength(78);
   });
 
   test('all verb IDs are uppercase strings', () => {
@@ -106,8 +106,8 @@ describe('VERB_STATS', () => {
     }
   });
 
-  test('has exactly 65 stat-mapped verbs', () => {
-    expect(Object.keys(VERB_STATS)).toHaveLength(65);
+  test('has exactly 66 stat-mapped verbs', () => {
+    expect(Object.keys(VERB_STATS)).toHaveLength(66);
   });
 });
 

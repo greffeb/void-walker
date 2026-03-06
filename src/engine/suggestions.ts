@@ -50,6 +50,7 @@ export const CLASS_PRIMARY_STATS: Readonly<Record<PlayerClassName, readonly Stat
 export const SUGGESTION_EXCLUDED_VERB_IDS = new Set([
   'WAIT',       // Easter-egg use; always available but not prompted
   'SACRIFICE',  // High-stakes, should be discovered organically
+  'SELF_HARM',  // Easter-egg only — must never appear as a prompted suggestion
 ]);
 
 /** Returns true if a verb ID should be excluded from suggestions. */

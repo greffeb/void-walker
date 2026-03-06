@@ -5222,6 +5222,161 @@ const MOVE_TO_TEMPLATES: readonly ActionTemplate[] = [
 ];
 
 // ============================================================================
+// SELF_HARM — physical (FOR)
+// ============================================================================
+
+const SELF_HARM_TEMPLATES: readonly ActionTemplate[] = [
+  // --- crit_success ---
+  {
+    id: 'physical_SELF_HARM_any_crit_success_low',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: 'D\'un geste... définitif, {actor} mettez fin à vos souffrances. Le silence du vide spatial vous accueille enfin.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_crit_success_mid',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'D\'un geste mécanique et résolu, {actor} accomplissez l\'impensable. Le métal froid du vaisseau est la dernière chose que vous sentez.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_crit_success_high',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'crit_success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} profitez d\'un bref répit dans le chaos pour commettre l\'irréparable. Tout s\'arrête.',
+      en: '',
+    },
+  },
+  // --- success ---
+  {
+    id: 'physical_SELF_HARM_any_success_low',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'success',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} y parvenez, contre toute logique. Votre corps s\'effondre sur le sol métallique froid. L\'aventure s\'arrête ici.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_success_mid',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'success',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: 'Méthodiquement, {actor} mettez votre plan à exécution. Un dernier souffle, puis plus rien.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_success_high',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'success',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'Dans la panique ambiante, {actor} trouvez le moyen de mettre fin à tout. Le chaos continue sans vous.',
+      en: '',
+    },
+  },
+  // --- failure ---
+  {
+    id: 'physical_SELF_HARM_any_failure_low',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} tentez de vous faire du mal... mais votre instinct de survie est plus têtu que votre désespoir. Peut-être que l\'univers n\'en a pas fini avec vous.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_failure_mid',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} hésitez au dernier moment. Votre main tremble, refuse d\'obéir. Une égratignure superficielle, rien de plus. Pathétique... ou rassurant ?',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_failure_high',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: 'Ce n\'est vraiment pas le moment. L\'adrénaline qui coule dans vos veines refuse catégoriquement de vous laisser abandonner. {actor} vous infligez une égratignure pathétique.',
+      en: '',
+    },
+  },
+  // --- crit_failure ---
+  {
+    id: 'physical_SELF_HARM_any_crit_failure_low',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'low',
+    category: 'physical',
+    text: {
+      fr: '{actor} essayez de vous faire du mal mais glissez lamentablement. C\'est presque vexant de rater même ça.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_crit_failure_mid',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'mid',
+    category: 'physical',
+    text: {
+      fr: '{actor} tentez le geste fatal et... ratez. Complètement. Votre corps refuse obstinément de coopérer. Au moins, vos réflexes fonctionnent.',
+      en: '',
+    },
+  },
+  {
+    id: 'physical_SELF_HARM_any_crit_failure_high',
+    verb: 'SELF_HARM',
+    targetType: null,
+    outcome: 'crit_failure',
+    tension: 'high',
+    category: 'physical',
+    text: {
+      fr: '{actor} trébuchez dans votre tentative et vous rattrapez de justesse. Ironiquement, vos réflexes n\'ont jamais été aussi aiguisés.',
+      en: '',
+    },
+  },
+];
+
+// ============================================================================
 // COMBINED EXPORT
 // ============================================================================
 
@@ -5250,4 +5405,5 @@ export const ACTION_TEMPLATES: readonly ActionTemplate[] = [
   ...READ_TEMPLATES,
   ...CATEGORY_FALLBACK_TEMPLATES,
   ...ABSURD_TEMPLATES,
+  ...SELF_HARM_TEMPLATES,
 ] as const;

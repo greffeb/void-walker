@@ -64,8 +64,8 @@ describe('isExcludedFromSuggestions', () => {
     expect(isExcludedFromSuggestions('TALK')).toBe(false);
   });
 
-  it('has exactly 2 excluded verbs', () => {
-    expect(SUGGESTION_EXCLUDED_VERB_IDS.size).toBe(2);
+  it('has exactly 3 excluded verbs', () => {
+    expect(SUGGESTION_EXCLUDED_VERB_IDS.size).toBe(3);
   });
 });
 

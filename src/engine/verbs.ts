@@ -13,7 +13,7 @@ export type VerbId =
   // FOR (13)
   | 'STRIKE' | 'PUSH' | 'PULL' | 'LIFT' | 'KICK'
   | 'BREAK' | 'BEND' | 'CUT' | 'FORCE_OPEN' | 'BITE'
-  | 'SQUEEZE' | 'IMPROVISE_WEAPON' | 'SACRIFICE'
+  | 'SQUEEZE' | 'IMPROVISE_WEAPON' | 'SACRIFICE' | 'SELF_HARM'
   // DEF (3)
   | 'BLOCK' | 'IMPROVISE_SHIELD' | 'BARRICADE'
   // INT (22)
@@ -41,7 +41,7 @@ export const VERB_IDS: readonly VerbId[] = [
   // FOR (13)
   'STRIKE', 'PUSH', 'PULL', 'LIFT', 'KICK',
   'BREAK', 'BEND', 'CUT', 'FORCE_OPEN', 'BITE',
-  'SQUEEZE', 'IMPROVISE_WEAPON', 'SACRIFICE',
+  'SQUEEZE', 'IMPROVISE_WEAPON', 'SACRIFICE', 'SELF_HARM',
   // DEF (3)
   'BLOCK', 'IMPROVISE_SHIELD', 'BARRICADE',
   // INT (22)
@@ -219,6 +219,15 @@ export const VERB_REGISTRY: VerbRegistry = {
     },
     requirements: { targetProps: [], requiredToolProp: null },
     difficultyMod: 0, auto: false,
+  },
+  SELF_HARM: {
+    nameKey: 'verb.SELF_HARM', descriptionKey: 'verb.SELF_HARM.description',
+    aliases: {
+      fr: ['se tuer', 'se suicider', 'se poignarder', 'se planter un couteau', 'se trancher', 'se tirer dessus', 'en finir', 'mettre fin a mes jours'],
+      en: ['kill myself', 'commit suicide', 'end it all', 'hurt myself'],
+    },
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 8, auto: false,
   },
 
   // ── DEF (3) ───────────────────────────────────────────────────────────
@@ -818,7 +827,7 @@ export const VERB_STATS: Readonly<Record<string, StatId>> = {
   STRIKE: 'FOR', PUSH: 'FOR', PULL: 'FOR', LIFT: 'FOR',
   KICK: 'FOR', BREAK: 'FOR', BEND: 'FOR', CUT: 'FOR',
   FORCE_OPEN: 'FOR', BITE: 'FOR', SQUEEZE: 'FOR',
-  IMPROVISE_WEAPON: 'FOR', SACRIFICE: 'FOR',
+  IMPROVISE_WEAPON: 'FOR', SACRIFICE: 'FOR', SELF_HARM: 'FOR',
   // DEF (3)
   BLOCK: 'DEF', IMPROVISE_SHIELD: 'DEF', BARRICADE: 'DEF',
   // INT (22)

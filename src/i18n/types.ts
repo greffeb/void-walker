@@ -287,6 +287,8 @@ export type StringKey =
   | 'verb.IMPROVISE_WEAPON.description'
   | 'verb.SACRIFICE'
   | 'verb.SACRIFICE.description'
+  | 'verb.SELF_HARM'
+  | 'verb.SELF_HARM.description'
   // Verbs — DEF (3)
   | 'verb.BLOCK'
   | 'verb.BLOCK.description'
@@ -435,6 +437,7 @@ export type StringKey =
   | 'verb.SQUEEZE.aliases'
   | 'verb.IMPROVISE_WEAPON.aliases'
   | 'verb.SACRIFICE.aliases'
+  | 'verb.SELF_HARM.aliases'
   | 'verb.BLOCK.aliases'
   | 'verb.IMPROVISE_SHIELD.aliases'
   | 'verb.BARRICADE.aliases'

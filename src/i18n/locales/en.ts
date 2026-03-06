@@ -288,6 +288,8 @@ export const en: LocaleStrings = {
   'verb.IMPROVISE_WEAPON.description': 'Use an object as a makeshift weapon',
   'verb.SACRIFICE': 'Sacrifice',
   'verb.SACRIFICE.description': 'Offer an item or sacrifice yourself',
+  'verb.SELF_HARM': 'Hurt yourself',
+  'verb.SELF_HARM.description': 'Attempt to harm yourself. A terrible idea.',
 
   // Verbs — DEF (3)
   'verb.BLOCK': 'Block',
@@ -443,6 +445,7 @@ export const en: LocaleStrings = {
   'verb.SQUEEZE.aliases': 'squeeze,crush,compress',
   'verb.IMPROVISE_WEAPON.aliases': 'use as weapon,wield,weaponize',
   'verb.SACRIFICE.aliases': 'sacrifice,offer,give up',
+  'verb.SELF_HARM.aliases': 'kill myself,commit suicide,suicide,hurt myself,stab myself,shoot myself,end it all,end my life',
   'verb.BLOCK.aliases': 'block,parry,shield,guard,defend',
   'verb.IMPROVISE_SHIELD.aliases': 'use as shield,block with',
   'verb.BARRICADE.aliases': 'barricade,obstruct,fortify',

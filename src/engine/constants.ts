@@ -104,6 +104,8 @@ export const BALANCE = {
   FAILURE_DAMAGE: 1,
   /** Damage dealt to player on non-combat critical failure */
   CRIT_FAILURE_DAMAGE: 2,
+  /** Damage dealt to player on successful SELF_HARM (instant kill) */
+  SELF_HARM_LETHAL_DAMAGE: 999,
 
   // === FAILSAFE (anti-softlock) ===
   FAILSAFE: {

@@ -70,6 +70,23 @@ export function buildConsequences(
     }
   }
 
+  // SELF_HARM: success = lethal self-damage, failure = 1 HP nonLethal
+  if (verb === 'SELF_HARM') {
+    if (outcome === 'crit_success' || outcome === 'success') {
+      consequences.push({
+        type: 'damage', targetId: 'player',
+        amount: BALANCE.SELF_HARM_LETHAL_DAMAGE,
+      });
+    } else if (outcome === 'failure') {
+      consequences.push({
+        type: 'damage', targetId: 'player',
+        amount: BALANCE.FAILURE_DAMAGE, nonLethal: true,
+      });
+    }
+    // crit_failure: no damage at all
+    return consequences;
+  }
+
   // General outcome consequences (only for non-combat actions with a real target).
   // THROW is excluded from self-damage: the thrown object was aimed outward, not at the player.
   // Non-combat failure damage is nonLethal: it cannot reduce HP below 1.

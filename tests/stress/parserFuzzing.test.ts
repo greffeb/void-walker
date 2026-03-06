@@ -298,7 +298,7 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
     expect(checked).toBeGreaterThan(0);
   });
 
-  test('all 77 verbs are matchable via at least one input strategy', () => {
+  test('all 78 verbs are matchable via at least one input strategy', () => {
     const unmatchable: string[] = [];
     for (const verbId of VERB_IDS) {
       const entry = VERB_REGISTRY[verbId];

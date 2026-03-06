@@ -88,7 +88,7 @@ const VERB_CATEGORY_MAP: Readonly<Record<VerbId, VerbCategory>> = {
   STRIKE: 'physical', PUSH: 'physical', PULL: 'physical', LIFT: 'physical',
   KICK: 'physical', BREAK: 'physical', BEND: 'physical', CUT: 'physical',
   FORCE_OPEN: 'physical', BITE: 'physical', SQUEEZE: 'physical',
-  IMPROVISE_WEAPON: 'physical', SACRIFICE: 'physical',
+  IMPROVISE_WEAPON: 'physical', SACRIFICE: 'physical', SELF_HARM: 'physical',
   // DEF — physical
   BLOCK: 'physical', IMPROVISE_SHIELD: 'physical', BARRICADE: 'physical',
   // INT — technical
