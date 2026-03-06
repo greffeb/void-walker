@@ -4,8 +4,15 @@
 
 /* Cursor blink (typewriter) */
 @keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 .animate-cursor-blink {
@@ -14,8 +21,15 @@
 
 /* Pulse amber (active elements) */
 @keyframes pulse-amber {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .animate-pulse-amber {
@@ -24,23 +38,68 @@
 
 /* Glitch slice (NAT 1) */
 @keyframes glitch-slice {
-  0% { clip-path: inset(0 0 0 0); }
-  10% { clip-path: inset(20% 0 60% 0); transform: translateX(-3px); }
-  20% { clip-path: inset(60% 0 10% 0); transform: translateX(3px); }
-  30% { clip-path: inset(40% 0 30% 0); transform: translateX(-2px); }
-  40% { clip-path: inset(0 0 80% 0); transform: translateX(4px); }
-  50% { clip-path: inset(70% 0 5% 0); transform: translateX(-1px); }
-  60% { clip-path: inset(15% 0 50% 0); transform: translateX(2px); }
-  70%, 100% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+  0% {
+    clip-path: inset(0 0 0 0);
+  }
+
+  10% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translateX(-3px);
+  }
+
+  20% {
+    clip-path: inset(60% 0 10% 0);
+    transform: translateX(3px);
+  }
+
+  30% {
+    clip-path: inset(40% 0 30% 0);
+    transform: translateX(-2px);
+  }
+
+  40% {
+    clip-path: inset(0 0 80% 0);
+    transform: translateX(4px);
+  }
+
+  50% {
+    clip-path: inset(70% 0 5% 0);
+    transform: translateX(-1px);
+  }
+
+  60% {
+    clip-path: inset(15% 0 50% 0);
+    transform: translateX(2px);
+  }
+
+  70%,
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+  }
 }
 
 /* Glitch RGB split */
 @keyframes glitch-rgb {
-  0% { text-shadow: 2px 0 #ff0000, -2px 0 #0000ff; }
-  25% { text-shadow: -2px 0 #ff0000, 2px 0 #0000ff; }
-  50% { text-shadow: 1px 1px #ff0000, -1px -1px #0000ff; }
-  75% { text-shadow: -1px 0 #ff0000, 1px 0 #0000ff; }
-  100% { text-shadow: 0 0 transparent; }
+  0% {
+    text-shadow: 2px 0 #ff0000, -2px 0 #0000ff;
+  }
+
+  25% {
+    text-shadow: -2px 0 #ff0000, 2px 0 #0000ff;
+  }
+
+  50% {
+    text-shadow: 1px 1px #ff0000, -1px -1px #0000ff;
+  }
+
+  75% {
+    text-shadow: -1px 0 #ff0000, 1px 0 #0000ff;
+  }
+
+  100% {
+    text-shadow: 0 0 transparent;
+  }
 }
 
 .animate-glitch {
@@ -53,9 +112,17 @@
 
 /* Flash success (green glow from edges) */
 @keyframes flash-success {
-  0% { box-shadow: inset 0 0 0 0 transparent; }
-  30% { box-shadow: inset 0 0 60px 10px rgba(0, 255, 65, 0.15); }
-  100% { box-shadow: inset 0 0 0 0 transparent; }
+  0% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+
+  30% {
+    box-shadow: inset 0 0 60px 10px rgba(0, 255, 65, 0.15);
+  }
+
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
 }
 
 .animate-flash-success {
@@ -64,9 +131,17 @@
 
 /* Flash failure (red glow from edges) */
 @keyframes flash-failure {
-  0% { box-shadow: inset 0 0 0 0 transparent; }
-  30% { box-shadow: inset 0 0 60px 10px rgba(255, 32, 32, 0.15); }
-  100% { box-shadow: inset 0 0 0 0 transparent; }
+  0% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+
+  30% {
+    box-shadow: inset 0 0 60px 10px rgba(255, 32, 32, 0.15);
+  }
+
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
 }
 
 .animate-flash-failure {
@@ -75,9 +150,17 @@
 
 /* Flash crit success (golden glow) */
 @keyframes flash-crit-success {
-  0% { box-shadow: inset 0 0 0 0 transparent; }
-  30% { box-shadow: inset 0 0 80px 15px rgba(255, 215, 0, 0.25); }
-  100% { box-shadow: inset 0 0 0 0 transparent; }
+  0% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+
+  30% {
+    box-shadow: inset 0 0 80px 15px rgba(255, 215, 0, 0.25);
+  }
+
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
 }
 
 .animate-flash-crit {
@@ -86,8 +169,13 @@
 
 /* Fade in */
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .animate-fade-in {
@@ -96,8 +184,13 @@
 
 /* Slide up (modals) */
 @keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-up {
@@ -106,8 +199,15 @@
 
 /* Dice number pulse */
 @keyframes dice-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
 }
 
 .animate-dice-pulse {
@@ -116,11 +216,27 @@
 
 /* Shake (crit text) */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(3px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
 }
 
 .animate-shake {
@@ -129,8 +245,17 @@
 
 /* HP low pulse */
 @keyframes hp-low-pulse {
-  0%, 100% { color: var(--danger); opacity: 0.7; }
-  50% { color: var(--danger); opacity: 1; }
+
+  0%,
+  100% {
+    color: var(--danger);
+    opacity: 0.7;
+  }
+
+  50% {
+    color: var(--danger);
+    opacity: 1;
+  }
 }
 
 .animate-hp-low {
@@ -139,16 +264,31 @@
 
 /* Title typewriter reveal */
 @keyframes title-reveal {
-  from { width: 0; }
-  to { width: 100%; }
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
 }
 
-/* Reformat on commit (typewriter → history entry) */
-@keyframes reformat-in {
-  from { font-size: 15px; opacity: 0.7; }
-  to   { font-size: 13px; opacity: 1; }
-}
-
+/* Reformat on commit (typewriter → history entry) obsolete */
 .animate-reformat-in {
-  animation: reformat-in 300ms ease-out;
+  animation: fade-in 300ms ease-out;
+}
+
+/* CRT Scanlines scroll */
+@keyframes crt-scanlines {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(3px);
+  }
+}
+
+.animate-scanlines {
+  animation: crt-scanlines 5s linear infinite;
 }

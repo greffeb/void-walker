@@ -190,16 +190,16 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
         </div>
       )}
 
-      {/* Narrative text — animates from 15px→13px on commit */}
+      {/* Narrative text */}
       {entry.narrative && (
-        <div className="animate-reformat-in" style={{ color: 'var(--text-narrative)', fontSize: '13px', lineHeight: 1.6 }}>
+        <div className="animate-fade-in crt-text" style={{ color: 'var(--text-narrative)', fontSize: '15px', lineHeight: 1.6, textShadow: '0 0 4px rgba(224, 160, 48, 0.4)' }}>
           {entry.narrative}
         </div>
       )}
 
-      {/* Scene state after turn — animates from 15px→13px on commit */}
+      {/* Scene state after turn */}
       {entry.sceneIntro && (
-        <div className="animate-reformat-in">
+        <div className="animate-fade-in" style={{ fontSize: '15px' }}>
           <NarratedSceneBlock scene={entry.sceneIntro} showIntro={entry.introMode !== null} />
         </div>
       )}
@@ -282,9 +282,9 @@ export function NarrativePanel({
       style={{
         flex: 1,
         overflow: 'auto',
-        padding: '12px',
+        padding: '16px',
         fontFamily: 'var(--font-mono)',
-        fontSize: '13px',
+        fontSize: '15px',
         lineHeight: 1.6,
         cursor: isComplete ? 'default' : 'pointer',
       }}

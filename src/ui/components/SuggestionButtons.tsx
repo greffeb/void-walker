@@ -38,21 +38,45 @@ export function SuggestionButtons({
               flex: 1,
               padding: '8px 10px',
               fontFamily: 'var(--font-mono)',
-              fontSize: '11px',
+              fontSize: '12px',
+              fontWeight: 600,
               color: disabled ? 'var(--text-system)' : 'var(--amber-mid)',
               background: 'var(--bg-surface)',
-              border: '1px solid var(--amber-dim)',
-              borderRadius: 'var(--radius)',
+              border: '2px solid var(--amber-dim)',
+              borderBottomWidth: disabled ? '2px' : '3px',
+              borderRadius: 0,
               cursor: disabled ? 'not-allowed' : 'pointer',
               opacity: disabled ? 0.5 : 1,
               textOverflow: 'ellipsis',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              transition: 'border-color 150ms',
-              textTransform: 'none',
+              transition: 'all 100ms',
+              textTransform: 'uppercase',
             }}
-            onMouseEnter={e => { if (!disabled) (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-glow)'; }}
-            onMouseLeave={e => { (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-dim)'; }}
+            onMouseEnter={e => {
+              if (!disabled) {
+                (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-glow)';
+                (e.target as HTMLButtonElement).style.backgroundColor = 'var(--bg-input)';
+              }
+            }}
+            onMouseLeave={e => {
+              (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-dim)';
+              (e.target as HTMLButtonElement).style.backgroundColor = 'var(--bg-surface)';
+              (e.target as HTMLButtonElement).style.borderBottomWidth = '3px';
+              (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+            }}
+            onMouseDown={e => {
+              if (!disabled) {
+                (e.target as HTMLButtonElement).style.borderBottomWidth = '2px';
+                (e.target as HTMLButtonElement).style.transform = 'translateY(1px)';
+              }
+            }}
+            onMouseUp={e => {
+              if (!disabled) {
+                (e.target as HTMLButtonElement).style.borderBottomWidth = '3px';
+                (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+              }
+            }}
           >
             {label}
           </button>
