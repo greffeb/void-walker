@@ -1,3 +1,6 @@
+# === Git Worktrees ===
+.worktrees/
+
 # === Node.js ===
 node_modules/
 dist/
