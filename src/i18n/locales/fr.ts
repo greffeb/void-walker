@@ -863,6 +863,31 @@ export const fr: LocaleStrings = {
   'scene.exits_known':    'Chemin connu vers',
   'scene.prompt':         'Que faites-vous ?',
 
+  // Dice choreography
+  'dice.modifier.incompatible':      'Action incompatible',
+  'dice.modifier.noTool':            'Outil absent',
+  'dice.modifier.toolAdapted':       'Outil adapté',
+  'dice.modifier.toolWrong':         'Mauvais outil',
+  'dice.modifier.dark':              'Obscurité',
+  'dice.modifier.zeroG':             'Apesanteur',
+  'dice.modifier.timePressure':      'Pression temporelle',
+  'dice.modifier.targetHostile':     'Cible hostile',
+  'dice.modifier.targetArmored':     'Cible blindée',
+  'dice.modifier.targetCooperative': 'Cible coopérative',
+  'dice.modifier.targetAttached':    'Membre attaché',
+  'dice.modifier.wounded':           'Blessé',
+  'dice.modifier.terrified':         'Terrifié',
+  'dice.modifier.highStat':          '{stat} élevé',
+  'dice.modifier.creative':          'Créatif',
+  'dice.modifier.shipMemory':        'Mémoire du vaisseau',
+  'dice.dc.toBeat':                  'À battre',
+  'dice.roll.luck':                  'Chance',
+  'dice.roll.total':                 'Total',
+  'dice.result.success':             'SUCCÈS',
+  'dice.result.failure':             'ÉCHEC',
+  'dice.result.critSuccess':         'CRITIQUE !',
+  'dice.result.critFailure':         'FUMBLE !',
+
   // Grammar — indefinite articles for items (JSON object: nameKey → article)
   'grammar.item_articles': JSON.stringify({
     'item.laser_pistol':            'un',
