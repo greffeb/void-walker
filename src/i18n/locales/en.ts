@@ -857,6 +857,31 @@ export const en: LocaleStrings = {
   'scene.exits_known':    'Known path toward',
   'scene.prompt':         'What do you do?',
 
+  // Dice choreography
+  'dice.modifier.incompatible':      'Incompatible action',
+  'dice.modifier.noTool':            'No tool',
+  'dice.modifier.toolAdapted':       'Right tool',
+  'dice.modifier.toolWrong':         'Wrong tool',
+  'dice.modifier.dark':              'Darkness',
+  'dice.modifier.zeroG':             'Zero gravity',
+  'dice.modifier.timePressure':      'Time pressure',
+  'dice.modifier.targetHostile':     'Hostile target',
+  'dice.modifier.targetArmored':     'Armored target',
+  'dice.modifier.targetCooperative': 'Cooperative target',
+  'dice.modifier.targetAttached':    'Attached limb',
+  'dice.modifier.wounded':           'Wounded',
+  'dice.modifier.terrified':         'Terrified',
+  'dice.modifier.highStat':          'High {stat}',
+  'dice.modifier.creative':          'Creative',
+  'dice.modifier.shipMemory':        'Ship memory',
+  'dice.dc.toBeat':                  'To beat',
+  'dice.roll.luck':                  'Luck',
+  'dice.roll.total':                 'Total',
+  'dice.result.success':             'SUCCESS',
+  'dice.result.failure':             'FAILURE',
+  'dice.result.critSuccess':         'CRITICAL!',
+  'dice.result.critFailure':         'FUMBLE!',
+
   // Grammar — English has no gendered articles; articles are computed from the word ('a'/'an').
   // These empty objects are intentional: the narration layer falls back to 'a' for unknown keys.
   'grammar.item_articles':    '{}',
