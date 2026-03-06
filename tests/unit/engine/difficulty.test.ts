@@ -5,6 +5,7 @@
 import { describe, test, expect } from 'vitest';
 import { detectCreativity, calculateDifficulty } from '../../../src/engine/difficulty';
 import { BALANCE } from '../../../src/engine/constants';
+import { VERB_REGISTRY } from '../../../src/engine/verbs';
 import type { DifficultyInput, ParsedAction, ResolvedTarget, StatBlock, VerbMatchStrategy } from '../../../src/engine/types';
 import type { VerbId } from '../../../src/engine/verbs';
 import type { PropertyId } from '../../../src/engine/properties';
@@ -212,5 +213,93 @@ describe('calculateDifficulty()', () => {
     const withResult = calculateDifficulty(withTool);
     const withoutResult = calculateDifficulty(withoutTool);
     expect(withResult.total).toBeLessThan(withoutResult.total);
+  });
+});
+
+// === NAMED LINES ===
+
+describe('namedLines', () => {
+  const baseInput = (): DifficultyInput => ({
+    verb: 'HACK' as VerbId,
+    target: null,
+    tool: null,
+    playerStats: { FOR: 2, DEF: 2, AGI: 2, INT: 2, PER: 2, CHA: 2, LCK: 2 },
+    difficultyLevel: 'survivor',
+    creative: false,
+    environmentConditions: [],
+    playerConditions: [],
+  });
+
+  test('terrified increases DC by TERRIFIED_PLAYER', () => {
+    const without = calculateDifficulty(baseInput());
+    const with_ = calculateDifficulty({ ...baseInput(), playerConditions: ['terrified'] });
+    expect(with_.total).toBeGreaterThan(without.total);
+    expect(with_.total - without.total).toBe(BALANCE.CONTEXT_MODIFIERS.TERRIFIED_PLAYER);
+  });
+
+  test('terrified appears in namedLines', () => {
+    const result = calculateDifficulty({ ...baseInput(), playerConditions: ['terrified'] });
+    const line = result.namedLines.find(l => l.labelKey === 'dice.modifier.terrified');
+    expect(line).toBeDefined();
+    expect(line!.value).toBe(BALANCE.CONTEXT_MODIFIERS.TERRIFIED_PLAYER);
+    expect(line!.category).toBe('penalty');
+  });
+
+  test('namedLines contains only non-zero value lines', () => {
+    const result = calculateDifficulty(baseInput());
+    for (const line of result.namedLines) {
+      expect(line.value).not.toBe(0);
+    }
+  });
+
+  test('first namedLine is the base verb line', () => {
+    const result = calculateDifficulty(baseInput());
+    expect(result.namedLines[0]?.labelKey).toBe(VERB_REGISTRY['HACK' as VerbId].nameKey);
+    expect(result.namedLines[0]?.category).toBe('base');
+  });
+
+  test('appropriate tool → bonus line (toolAdapted)', () => {
+    const result = calculateDifficulty({
+      ...baseInput(),
+      verb: 'SHOOT' as VerbId,
+      tool: makeTarget('gun', ['ranged'] as PropertyId[], 'inventory'),
+    });
+    const line = result.namedLines.find(l => l.labelKey === 'dice.modifier.toolAdapted');
+    expect(line).toBeDefined();
+    expect(line!.category).toBe('bonus');
+    expect(line!.value).toBeLessThan(0);
+  });
+
+  test('no tool when needed → penalty line', () => {
+    const result = calculateDifficulty({ ...baseInput(), verb: 'SHOOT' as VerbId, tool: null });
+    const line = result.namedLines.find(
+      l => l.labelKey === 'dice.modifier.noTool' || l.labelKey === 'dice.modifier.toolWrong',
+    );
+    expect(line).toBeDefined();
+    expect(line!.category).toBe('penalty');
+  });
+
+  test('darkness → penalty line', () => {
+    const result = calculateDifficulty({ ...baseInput(), environmentConditions: ['dark'] });
+    const line = result.namedLines.find(l => l.labelKey === 'dice.modifier.dark');
+    expect(line).toBeDefined();
+    expect(line!.value).toBe(BALANCE.CONTEXT_MODIFIERS.IN_DARKNESS);
+  });
+
+  test('high INT stat → bonus line with labelParams', () => {
+    const result = calculateDifficulty({
+      ...baseInput(),
+      verb: 'HACK' as VerbId,
+      playerStats: { FOR: 2, DEF: 2, AGI: 2, INT: 5, PER: 2, CHA: 2, LCK: 2 },
+    });
+    const line = result.namedLines.find(l => l.labelKey === 'dice.modifier.highStat');
+    expect(line).toBeDefined();
+    expect(line!.labelParams).toEqual({ stat: 'INT' });
+    expect(line!.category).toBe('bonus');
+  });
+
+  test('auto verb → namedLines is empty', () => {
+    const result = calculateDifficulty({ ...baseInput(), verb: 'TAKE' as VerbId });
+    expect(result.namedLines).toHaveLength(0);
   });
 });

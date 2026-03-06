@@ -27,7 +27,7 @@ import {
 import type { SaveSlotInfo, SaveMeta } from '@services/storage';
 import type {
   GameState, DifficultyLevel, PlayerClassName, StatId,
-  RngFn, DiceResult, SceneContext, SceneDescription, TurnDebugTrace,
+  RngFn, DiceResult, DifficultyBreakdown, SceneContext, SceneDescription, TurnDebugTrace,
   ParserLocaleData,
 } from '@engine/types';
 import type { SuggestionCandidate } from '@engine/suggestions';
@@ -94,6 +94,8 @@ export interface GameStore {
   isProcessingTurn: boolean;
   isDiceAnimating: boolean;
   pendingDiceResult: DiceResult | null;
+  pendingDifficultyBreakdown: DifficultyBreakdown | null;
+  hasSeenFullAnimation: boolean;
   pendingNarrative: string | null;
   pendingTurnEntry: TurnEntry | null;
   activeModal: 'map' | 'inventory' | 'settings' | null;
@@ -279,6 +281,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   isProcessingTurn: false,
   isDiceAnimating: false,
   pendingDiceResult: null,
+  pendingDifficultyBreakdown: null,
+  hasSeenFullAnimation: false,
   pendingNarrative: null,
   pendingTurnEntry: null,
   activeModal: null,
@@ -480,6 +484,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         set({
           isDiceAnimating: true,
           pendingDiceResult: result.diceRoll,
+          pendingDifficultyBreakdown: result.trace.difficultyBreakdown,
           pendingNarrative: narrative,
           pendingTurnEntry: entry,
           gameState: result.newState,
@@ -523,6 +528,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     set({
       isDiceAnimating: false,
       pendingDiceResult: null,
+      pendingDifficultyBreakdown: null,
+      hasSeenFullAnimation: true,
       turnHistory: pendingTurnEntry ? [...turnHistory, pendingTurnEntry] : turnHistory,
       currentNarrative: pendingNarrative ?? '',
       pendingNarrative: null,
@@ -597,6 +604,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       typewriterComplete: true,
       isProcessingTurn: false,
       isDiceAnimating: false,
+      pendingDifficultyBreakdown: null,
+      hasSeenFullAnimation: false,
       seed: record.seed,
       error: null,
     });
@@ -626,6 +635,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       isProcessingTurn: false,
       isDiceAnimating: false,
       pendingDiceResult: null,
+      pendingDifficultyBreakdown: null,
+      hasSeenFullAnimation: false,
       pendingNarrative: null,
       pendingTurnEntry: null,
       activeModal: null,

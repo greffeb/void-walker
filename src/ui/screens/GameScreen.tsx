@@ -22,6 +22,8 @@ export function GameScreen(): JSX.Element {
     isProcessingTurn,
     isDiceAnimating,
     pendingDiceResult,
+    pendingDifficultyBreakdown,
+    hasSeenFullAnimation,
     pendingTurnEntry,
     typewriterComplete,
     activeModal,
@@ -139,9 +141,11 @@ export function GameScreen(): JSX.Element {
       </div>
 
       {/* Dice Animation Overlay */}
-      {isDiceAnimating && pendingDiceResult && (
+      {isDiceAnimating && pendingDiceResult && pendingDifficultyBreakdown && (
         <DiceAnimation
           diceResult={pendingDiceResult}
+          difficultyBreakdown={pendingDifficultyBreakdown}
+          canSkip={hasSeenFullAnimation}
           onComplete={onDiceAnimationComplete}
         />
       )}

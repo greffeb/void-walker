@@ -14,12 +14,14 @@ import type {
   DifficultyBreakdown,
   DifficultyInput,
   DifficultyLevel,
+  DifficultyLine,
   ParsedAction,
   ResolvedTarget,
   StatBlock,
   StatId,
   EnvironmentCondition,
 } from './types';
+import type { StringKey } from '@i18n/types';
 
 // === DIFFICULTY PRESET MODIFIERS ===
 
@@ -347,6 +349,121 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
 
   details.push(`Total: ${total}`);
 
+  // === NAMED LINES FOR UI DECOMPOSITION ===
+  const namedLines: DifficultyLine[] = [];
+
+  // 1. Base line: verb nameKey + combined base+verbMod+preset
+  const baseTotal = base + verbMod + difficultyPresetMod;
+  namedLines.push({
+    labelKey: VERB_REGISTRY[input.verb].nameKey,
+    value: baseTotal,
+    category: 'base',
+  });
+
+  // 2. Incompatibility
+  if (compatibilityPenalty > 0) {
+    namedLines.push({
+      labelKey: 'dice.modifier.incompatible',
+      value: compatibilityPenalty,
+      category: 'penalty',
+    });
+  }
+
+  // 3. Tool
+  if (toolResult.mod !== 0) {
+    const toolKey: StringKey = toolResult.mod < 0
+      ? 'dice.modifier.toolAdapted'
+      : toolResult.mod >= 5
+        ? 'dice.modifier.noTool'
+        : 'dice.modifier.toolWrong';
+    namedLines.push({
+      labelKey: toolKey,
+      value: toolResult.mod,
+      category: toolResult.mod < 0 ? 'bonus' : 'penalty',
+    });
+  }
+
+  // 4. Environment — one line per active condition
+  const envKeyMap: Partial<Record<EnvironmentCondition, StringKey>> = {
+    dark:          'dice.modifier.dark',
+    zero_g:        'dice.modifier.zeroG',
+    time_pressure: 'dice.modifier.timePressure',
+  };
+  for (const condition of input.environmentConditions ?? []) {
+    const key = envKeyMap[condition];
+    if (key) {
+      const singleMod =
+        condition === 'dark'         ? BALANCE.CONTEXT_MODIFIERS.IN_DARKNESS
+        : condition === 'zero_g'     ? BALANCE.CONTEXT_MODIFIERS.ZERO_GRAVITY
+        : BALANCE.CONTEXT_MODIFIERS.TIME_PRESSURE;
+      namedLines.push({ labelKey: key, value: singleMod, category: 'penalty' });
+    }
+  }
+
+  // 5. Target disposition
+  if (disposition.mod !== 0) {
+    const normalizedDetail = disposition.detail.toLowerCase();
+    let dispKey: StringKey = 'dice.modifier.targetHostile';
+    if (normalizedDetail.includes('coopérative') || normalizedDetail.includes('cooperative')) {
+      dispKey = 'dice.modifier.targetCooperative';
+    } else if (normalizedDetail.includes('fortifié') || normalizedDetail.includes('fortified') || normalizedDetail.includes('blindée') || normalizedDetail.includes('armored')) {
+      dispKey = 'dice.modifier.targetArmored';
+    }
+    namedLines.push({
+      labelKey: dispKey,
+      value: disposition.mod,
+      category: disposition.mod > 0 ? 'penalty' : 'bonus',
+    });
+  }
+
+  // 6. Attached target (body parts)
+  if (input.target?.properties.includes('attached' as PropertyId)) {
+    namedLines.push({
+      labelKey: 'dice.modifier.targetAttached',
+      value: 3,
+      category: 'penalty',
+    });
+  }
+
+  // 7. Player conditions
+  if (input.playerConditions?.includes('wounded')) {
+    namedLines.push({
+      labelKey: 'dice.modifier.wounded',
+      value: BALANCE.CONTEXT_MODIFIERS.WOUNDED_PLAYER,
+      category: 'penalty',
+    });
+  }
+  if (input.playerConditions?.includes('terrified')) {
+    namedLines.push({
+      labelKey: 'dice.modifier.terrified',
+      value: BALANCE.CONTEXT_MODIFIERS.TERRIFIED_PLAYER,
+      category: 'penalty',
+    });
+  }
+
+  // 8. High stat bonus
+  const nlStatId = VERB_STATS[input.verb] as StatId | undefined;
+  if (nlStatId && input.playerStats[nlStatId] >= BALANCE.CONTEXT_MODIFIERS.HIGH_RELEVANT_STAT_THRESHOLD) {
+    namedLines.push({
+      labelKey: 'dice.modifier.highStat',
+      labelParams: { stat: nlStatId },
+      value: BALANCE.CONTEXT_MODIFIERS.HIGH_RELEVANT_STAT_BONUS,
+      category: 'bonus',
+    });
+  }
+
+  // 9. Creativity
+  if (creativityMod !== 0) {
+    namedLines.push({
+      labelKey: 'dice.modifier.creative',
+      value: creativityMod,
+      category: 'bonus',
+    });
+  }
+
+  // NOTE: Ship Memory injected AFTER calculateDifficulty() in processTurn.ts
+  // NOTE: Failsafe is NEVER shown in the UI
+
   return {
     base,
     verbMod,
@@ -356,6 +473,6 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     difficultyPresetMod,
     total,
     details,
-    namedLines: [],
+    namedLines,
   };
 }

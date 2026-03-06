@@ -47,6 +47,7 @@ import { removeItem } from './inventory';
 import { NPC_DEFINITIONS } from '../content/npcs';
 import { buildObstacleVerbMap } from '../content/parserData';
 import { getLocale } from '../i18n/index';
+import type { StringKey } from '@i18n/types';
 
 // ---------------------------------------------------------------------------
 // Empty trace factory — used for early returns
@@ -786,6 +787,21 @@ export function processTurn(
       suggestions: context.suggestions,
     });
     traceDifficultyBreakdown = breakdown;
+
+    // Inject Ship Memory into namedLines (not done in calculateDifficulty since it needs targetId)
+    if (shipMemoryMod !== 0) {
+      traceDifficultyBreakdown = {
+        ...breakdown,
+        namedLines: [
+          ...breakdown.namedLines,
+          {
+            labelKey: 'dice.modifier.shipMemory' as StringKey,
+            value: shipMemoryMod,
+            category: 'bonus' as const,
+          },
+        ],
+      };
+    }
 
     // Total DC with all modifiers (ship memory + failsafe)
     const totalDC = breakdown.total + shipMemoryMod + failsafeMod;

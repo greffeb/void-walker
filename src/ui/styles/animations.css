@@ -292,3 +292,149 @@
 .animate-scanlines {
   animation: crt-scanlines 5s linear infinite;
 }
+
+/* === DICE CHOREOGRAPHY ANIMATIONS === */
+
+/* Impact small — each DC/bonus line appearing */
+@keyframes impact-small {
+  0%   { transform: scale(1.06); opacity: 0.7; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.animate-impact-small {
+  animation: impact-small 120ms ease-out;
+}
+
+/* Impact large — DC total + result */
+@keyframes impact-large {
+  0%   { transform: scale(1.15); opacity: 0.5; }
+  50%  { transform: scale(1.02); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.animate-impact-large {
+  animation: impact-large 300ms ease-out;
+}
+
+/* Flash crit (gold) */
+@keyframes flash-crit {
+  0%   { box-shadow: inset 0 0 0 3px var(--crit-gold); }
+  50%  { box-shadow: inset 0 0 60px 10px var(--crit-gold); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+.animate-flash-crit {
+  animation: flash-crit 600ms ease-out;
+}
+
+/* Flash success (green) */
+@keyframes flash-success {
+  0%   { box-shadow: inset 0 0 0 3px var(--success); }
+  50%  { box-shadow: inset 0 0 40px 8px var(--success); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+.animate-flash-success {
+  animation: flash-success 500ms ease-out;
+}
+
+/* Flash failure (red) */
+@keyframes flash-failure {
+  0%   { box-shadow: inset 0 0 0 3px var(--danger); }
+  50%  { box-shadow: inset 0 0 40px 8px var(--danger); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+.animate-flash-failure {
+  animation: flash-failure 500ms ease-out;
+}
+
+/* === DICE OVERLAY LAYOUT === */
+
+.dice-overlay {
+  position: absolute;
+  inset: 0;
+  top: 48px; /* below StatusBar */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(5, 5, 5, 0.94);
+  z-index: 100;
+  font-family: var(--font-mono);
+  padding: 24px 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  cursor: pointer;
+}
+
+.dice-section {
+  width: 100%;
+  max-width: 320px;
+}
+
+.dc-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  padding: 2px 0;
+  letter-spacing: 0.05em;
+}
+
+.dc-line--base {
+  font-size: 15px;
+  color: var(--amber-glow);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.dc-line--penalty .dc-value { color: var(--danger); }
+.dc-line--bonus   .dc-value { color: var(--success); }
+
+.dc-total {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--amber-glow);
+  text-shadow: 0 0 12px var(--amber-glow);
+  letter-spacing: 0.1em;
+}
+
+.dc-separator {
+  border: none;
+  border-top: 1px solid var(--text-system);
+  margin: 6px 0;
+  opacity: 0.4;
+}
+
+.dc-reminder {
+  font-size: 12px;
+  color: var(--text-system);
+  opacity: 0.5;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.dice-number {
+  font-size: 48px;
+  font-family: var(--font-display);
+  color: var(--amber-glow);
+  text-align: center;
+  text-shadow: 0 0 20px var(--amber-glow);
+  margin: 12px 0;
+}
+
+.dice-result {
+  font-size: 24px;
+  font-family: var(--font-display);
+  text-align: center;
+  letter-spacing: 0.15em;
+  margin-top: 12px;
+}
+
+.dice-result--success { color: var(--success); text-shadow: 0 0 10px var(--success); }
+.dice-result--failure { color: var(--danger);  text-shadow: 0 0 10px var(--danger); }
+.dice-result--crit    { color: var(--crit-gold); text-shadow: 0 0 20px var(--crit-gold); }
+.dice-result--fumble  { color: var(--danger);  text-shadow: 0 0 20px var(--danger); }
+
+.dice-result-margin {
+  font-size: 14px;
+  opacity: 0.6;
+  margin-left: 8px;
+}

@@ -1,174 +1,169 @@
 // ---------------------------------------------------------------------------
-// src/ui/components/DiceAnimation.tsx — Full dice roll animation sequence
+// src/ui/components/DiceAnimation.tsx — 4-act cinematic dice roll sequence
 // ---------------------------------------------------------------------------
 
 import { useDiceAnimation } from '../hooks/useDiceAnimation';
 import { GlitchEffect } from './GlitchEffect';
-import type { DiceResult } from '@engine/types';
+import { t } from '@i18n/index';
+import type { DiceResult, DifficultyBreakdown, DifficultyLine } from '@engine/types';
+import type { StringKey } from '@i18n/types';
 
 interface DiceAnimationProps {
   readonly diceResult: DiceResult;
+  readonly difficultyBreakdown: DifficultyBreakdown;
+  readonly canSkip: boolean;
   readonly onComplete: () => void;
 }
 
-const STAT_LABELS: Record<string, string> = {
-  FOR: 'FORCE',
-  DEF: 'DÉFENSE',
-  AGI: 'AGILITÉ',
-  INT: 'INTELLIGENCE',
-  PER: 'PERCEPTION',
-  CHA: 'CHARISME',
-  LCK: 'CHANCE',
-};
+/** Resolve a DifficultyLine label with optional param interpolation */
+function resolveLabel(line: DifficultyLine): string {
+  const raw = t(line.labelKey);
+  if (!line.labelParams) return raw;
+  return Object.entries(line.labelParams).reduce(
+    (s, [k, v]) => s.replace(`{${k}}`, v),
+    raw,
+  );
+}
 
-export function DiceAnimation({ diceResult, onComplete }: DiceAnimationProps): JSX.Element {
-  const { phase, displayedNumber } = useDiceAnimation({
-    diceResult,
-    onComplete,
-  });
-
-  const { stat, modifier, difficulty, natural, success, critical, fumble } = diceResult;
-  const statLabel = STAT_LABELS[stat] ?? stat;
-  const modStr = modifier >= 0 ? `+ ${modifier}` : `− ${Math.abs(modifier)}`;
-
-  // Colors based on result
-  let numberColor = 'var(--amber-glow)';
-  let flashClass = '';
-  let resultText = '';
-
-  if (phase === 'result') {
-    if (critical) {
-      numberColor = 'var(--crit-gold)';
-      flashClass = 'animate-flash-crit';
-      resultText = 'CRITIQUE !';
-    } else if (fumble) {
-      numberColor = 'var(--danger)';
-      flashClass = 'animate-flash-failure';
-      resultText = 'FUMBLE !';
-    } else if (success) {
-      numberColor = 'var(--success)';
-      flashClass = 'animate-flash-success';
-      resultText = 'SUCCÈS';
-    } else {
-      numberColor = 'var(--danger)';
-      flashClass = 'animate-flash-failure';
-      resultText = 'ÉCHEC';
-    }
-  }
-
-  const isFumble = phase === 'result' && fumble;
+/** Single modifier line (DC side or bonus side) */
+function DcLine({ line, isNew }: { line: DifficultyLine; isNew: boolean }) {
+  const label = resolveLabel(line);
+  const sign = line.value > 0 ? '+' : '';
+  const colorClass =
+    line.category === 'penalty' ? 'dc-line--penalty'
+    : line.category === 'bonus'  ? 'dc-line--bonus'
+    : 'dc-line--base';
 
   return (
-    <GlitchEffect active={isFumble} duration={500}>
+    <div className={`dc-line ${colorClass} ${isNew ? 'animate-impact-small' : ''}`}>
+      <span className="dc-label">{label}</span>
+      <span className="dc-value">{sign}{line.value}</span>
+    </div>
+  );
+}
+
+export function DiceAnimation({
+  diceResult, difficultyBreakdown, canSkip, onComplete,
+}: DiceAnimationProps): JSX.Element {
+  const {
+    phase, visibleDcLines, showDcTotal, displayedDieNumber,
+    visibleRollLines, showResult, handleSkipTap,
+  } = useDiceAnimation({ diceResult, difficultyBreakdown, canSkip, onComplete });
+
+  // DC lines (filter zero-value lines)
+  const dcLines = difficultyBreakdown.namedLines.filter(l => l.value !== 0);
+
+  // Roll bonus lines: stat + luck
+  const rollLines: DifficultyLine[] = [
+    {
+      labelKey: `stat.${diceResult.stat}` as StringKey,
+      value: diceResult.statValue,
+      category: 'bonus',
+    },
+  ];
+  if (diceResult.luckBonus > 0) {
+    rollLines.push({
+      labelKey: 'dice.roll.luck',
+      value: diceResult.luckBonus,
+      category: 'bonus',
+    });
+  }
+
+  const effectiveDC = diceResult.difficulty;
+  const displayTotal = diceResult.total > 20 ? '≥ 20' : String(diceResult.total);
+
+  const isCrit = diceResult.critical;
+  const isFumble = diceResult.fumble;
+  const isSuccess = diceResult.success;
+
+  let resultKey: StringKey;
+  let resultColorClass: string;
+  let flashClass = '';
+
+  if (isCrit) {
+    resultKey = 'dice.result.critSuccess';
+    resultColorClass = 'dice-result--crit';
+    flashClass = 'animate-flash-crit';
+  } else if (isFumble) {
+    resultKey = 'dice.result.critFailure';
+    resultColorClass = 'dice-result--fumble';
+    flashClass = 'animate-flash-failure';
+  } else if (isSuccess) {
+    resultKey = 'dice.result.success';
+    resultColorClass = 'dice-result--success';
+    flashClass = 'animate-flash-success';
+  } else {
+    resultKey = 'dice.result.failure';
+    resultColorClass = 'dice-result--failure';
+    flashClass = 'animate-flash-failure';
+  }
+
+  const isRolling = phase === 'rolling' || phase === 'roll_lines' || phase === 'result';
+  const showBonusLines = (phase === 'roll_lines' || phase === 'result') && !isCrit && !isFumble;
+
+  return (
+    <GlitchEffect active={isFumble && showResult} duration={500}>
       <div
-        className={flashClass}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          top: '48px', // Below StatusBar
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(5, 5, 5, 0.92)',
-          zIndex: 100,
-          fontFamily: 'var(--font-mono)',
-        }}
+        className={`dice-overlay ${showResult ? flashClass : ''}`}
+        onClick={handleSkipTap}
+        role="button"
+        tabIndex={0}
+        aria-label="Skip dice animation"
       >
-        {/* Phase 1: DC Display */}
-        {phase === 'dc_display' && (
-          <div className="animate-fade-in" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '13px', color: 'var(--amber-mid)', marginBottom: '8px', letterSpacing: '0.1em' }}>
-              {statLabel} {modStr}
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '16px', textTransform: 'uppercase' }}>
-              DIFFICULTÉ
-            </div>
-            <div
-              className="crt-glow-strong"
-              style={{
-                fontFamily: 'var(--font-title)',
-                fontSize: '64px',
-                fontWeight: 700,
-                color: 'var(--amber-glow)',
-                letterSpacing: '0.1em',
-              }}
-            >
-              {difficulty}
+        {/* === ACT 1+2: DC Section === */}
+        <div className="dice-section dice-section--dc">
+          {dcLines.slice(0, visibleDcLines).map((line, i) => (
+            <DcLine key={i} line={line} isNew={i === visibleDcLines - 1} />
+          ))}
+
+          {showDcTotal && (
+            <>
+              <hr className="dc-separator" />
+              <div className="dc-line dc-total animate-impact-large">
+                <span>{t('dice.dc.toBeat')}</span>
+                <span>{effectiveDC}</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* === ACT 3: Die === */}
+        {isRolling && (
+          <div className="dice-section dice-section--roll">
+            <div className="dc-reminder">DC: {effectiveDC}</div>
+            <div className={`dice-number ${showResult ? resultColorClass : ''} ${isCrit && showResult ? 'animate-dice-pulse' : ''} ${isFumble && showResult ? 'animate-glitch-rgb' : ''}`}>
+              🎲 {displayedDieNumber}
             </div>
           </div>
         )}
 
-        {/* Phase 2: Rolling */}
-        {phase === 'rolling' && (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-              DIFFICULTÉ: {difficulty}
-            </div>
-            <div
-              style={{
-                width: '100px',
-                height: '100px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '2px solid var(--amber-dim)',
-                borderRadius: '4px',
-                margin: '0 auto 16px',
-              }}
-              className="animate-pulse-amber"
-            >
-              <span
-                className="crt-glow"
-                style={{
-                  fontFamily: 'var(--font-title)',
-                  fontSize: '48px',
-                  fontWeight: 700,
-                  color: 'var(--amber-glow)',
-                }}
-              >
-                {displayedNumber}
+        {/* === ACT 4: Roll bonus lines === */}
+        {showBonusLines && (
+          <div className="dice-section dice-section--bonuses">
+            {rollLines.slice(0, visibleRollLines).map((line, i) => (
+              <DcLine key={i} line={line} isNew={i === visibleRollLines - 1} />
+            ))}
+            {visibleRollLines >= rollLines.length && (
+              <>
+                <hr className="dc-separator" />
+                <div className="dc-line dc-total">
+                  <span>{t('dice.roll.total')}</span>
+                  <span>{displayTotal}</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* === RESULT === */}
+        {showResult && (
+          <div className={`dice-result ${resultColorClass} ${isCrit ? 'animate-shake' : ''}`}>
+            {t(resultKey)}
+            {!isCrit && !isFumble && (
+              <span className="dice-result-margin">
+                ({isSuccess ? '+' : ''}{diceResult.total - effectiveDC})
               </span>
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--amber-mid)' }}>
-              {statLabel} {modStr}
-            </div>
-          </div>
-        )}
-
-        {/* Phase 3: Result */}
-        {phase === 'result' && (
-          <div style={{ textAlign: 'center' }} className="animate-fade-in">
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-              DIFFICULTÉ: {difficulty}
-            </div>
-            <div
-              className={`crt-glow-strong ${critical ? 'animate-dice-pulse' : ''} ${fumble ? 'animate-glitch-rgb' : ''}`}
-              style={{
-                fontFamily: 'var(--font-title)',
-                fontSize: '64px',
-                fontWeight: 700,
-                color: numberColor,
-                marginBottom: '12px',
-              }}
-            >
-              {natural}
-            </div>
-            <div
-              className={critical ? 'animate-shake' : ''}
-              style={{
-                fontSize: '18px',
-                fontWeight: 600,
-                color: numberColor,
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {resultText}
-            </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-system)', marginTop: '8px' }}>
-              {natural} {modStr} = {natural + modifier} vs {difficulty}
-            </div>
+            )}
           </div>
         )}
       </div>
