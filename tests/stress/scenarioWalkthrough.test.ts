@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // tests/stress/scenarioWalkthrough.test.ts — Phase 6B: 500 auto-playthroughs
 // ---------------------------------------------------------------------------
+/* eslint-disable no-console */
 // Verifies that 500 seeded playthroughs all end (victory or defeat) with
 // ZERO stuck games. Uses both random bot and goal-seeking bot.
 //

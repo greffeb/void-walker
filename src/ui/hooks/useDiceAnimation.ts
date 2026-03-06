@@ -100,11 +100,11 @@ export function useDiceAnimation({
 
     let cancelled = false;
 
-    const delay = (ms: number) => new Promise<void>(resolve => {
+    const delay = (ms: number): Promise<void> => new Promise<void>(resolve => {
       timerRef.current = setTimeout(() => { if (!cancelled) resolve(); }, ms);
     });
 
-    async function run() {
+    async function run(): Promise<void> {
       // Captured non-null at effect entry — guaranteed by the outer guard
       const result = diceResult;
       const breakdown = difficultyBreakdown;
@@ -135,7 +135,7 @@ export function useDiceAnimation({
       const rollStart = Date.now();
 
       await new Promise<void>(resolve => {
-        function tick() {
+        function tick(): void {
           if (cancelled) { resolve(); return; }
           const elapsed = Date.now() - rollStart;
           if (elapsed >= TIMING.ROLL_DURATION) {

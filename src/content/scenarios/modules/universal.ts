@@ -6,7 +6,7 @@
 
 import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition, ScenarioItemDefinition } from '@engine/scenario';
 
-function ls(fr: string) { return { fr, en: '' }; }
+function ls(fr: string): { fr: string; en: string } { return { fr, en: '' }; }
 
 // ---------------------------------------------------------------------------
 // SHARED SKIN FACTORIES

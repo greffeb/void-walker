@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 // ---------------------------------------------------------------------------
 // tests/playtest/cli.ts — Interactive REPL for Phase 2 parser testing
 // ---------------------------------------------------------------------------

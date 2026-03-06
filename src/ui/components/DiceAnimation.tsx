@@ -26,7 +26,7 @@ function resolveLabel(line: DifficultyLine): string {
 }
 
 /** Single modifier line (DC side or bonus side) */
-function DcLine({ line, isNew }: { line: DifficultyLine; isNew: boolean }) {
+function DcLine({ line, isNew }: { line: DifficultyLine; isNew: boolean }): JSX.Element {
   const label = resolveLabel(line);
   const sign = line.value > 0 ? '+' : '';
   const colorClass =

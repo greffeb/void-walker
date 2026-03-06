@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+/* eslint-disable no-console */
 // ---------------------------------------------------------------------------
 // tests/playtest/autoplay.ts — CLI runner for bot playthrough sessions
 // ---------------------------------------------------------------------------

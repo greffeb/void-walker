@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // tests/stress/botProfiles.test.ts — Explorer/Chaotic profile stress tests
 // ---------------------------------------------------------------------------
+/* eslint-disable no-console */
 
 import { describe, it, expect } from 'vitest';
 import { initGame, isGameOver } from '../../src/engine/game';

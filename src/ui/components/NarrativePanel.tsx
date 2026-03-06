@@ -184,7 +184,7 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
 
       {/* Dice result (compact) */}
       {entry.diceRoll && !entry.trace.isAutoVerb && (() => {
-        const dr = entry.diceRoll!;
+        const dr = entry.diceRoll;
         const bonusParts: string[] = [];
         if (dr.statValue !== 0) bonusParts.push(`${dr.stat}(${dr.statValue > 0 ? '+' : ''}${dr.statValue})`);
         if (dr.luckBonus !== 0) bonusParts.push(`LCK(${dr.luckBonus > 0 ? '+' : ''}${dr.luckBonus})`);

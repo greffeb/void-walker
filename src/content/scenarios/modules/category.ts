@@ -7,7 +7,7 @@
 import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition } from '@engine/scenario';
 import type { VerbId } from '@engine/verbs';
 
-function ls(fr: string) { return { fr, en: '' }; }
+function ls(fr: string): { fr: string; en: string } { return { fr, en: '' }; }
 
 function makeSkins(
   lowEntry: string, midEntry: string, highEntry: string,
