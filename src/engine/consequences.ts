@@ -17,6 +17,41 @@ import { BALANCE } from './constants';
 import { addCondition, removeCondition } from './conditions';
 import { addItem, removeItem } from './inventory';
 import { clampHp } from './state';
+import { ITEM_DEFINITIONS } from '../content/items';
+
+// ---------------------------------------------------------------------------
+// EAT tier detection — used by both consequences and narration
+// ---------------------------------------------------------------------------
+
+/** Priority-ordered tier for an EAT action based on target properties */
+export type EatTier =
+  | 'edible'
+  | 'drinkable'
+  | 'alive'
+  | 'oversized'
+  | 'toxic'
+  | 'sharp'
+  | 'inorganic'
+  | 'dead_organic'
+  | 'generic';
+
+/**
+ * Determine what "kind" of object is being eaten.
+ * Priority order is intentional: edible first, then safety concerns, then material.
+ */
+export function getEatTier(target: ResolvedTarget | null): EatTier {
+  if (!target) return 'generic';
+  const props = target.properties;
+  if (props.includes('edible')) return 'edible';
+  if (props.includes('drinkable')) return 'drinkable';
+  if (props.includes('alive') || props.includes('sentient')) return 'alive';
+  if (props.includes('heavy') && !props.includes('small')) return 'oversized';
+  if (props.includes('toxic') || props.includes('corrosive') || props.includes('radioactive')) return 'toxic';
+  if (props.includes('sharp') || props.includes('bladed') || props.includes('pointed')) return 'sharp';
+  if (props.includes('metallic') || props.includes('synthetic') || props.includes('electronic')) return 'inorganic';
+  if (props.includes('dead') && props.includes('organic')) return 'dead_organic';
+  return 'generic';
+}
 
 // ---------------------------------------------------------------------------
 // Consequence building — translate verb × target × outcome → Consequence[]
@@ -68,6 +103,25 @@ export function buildConsequences(
     if (verb === 'FLOOD' && target) {
       consequences.push({ type: 'environment_change', targetId: target.id });
     }
+  }
+
+  // EAT: tier-based consequences (heal for food, damage for dangerous items)
+  if (verb === 'EAT') {
+    const tier = getEatTier(target);
+    if (tier === 'edible') {
+      const itemDef = target ? ITEM_DEFINITIONS[target.id] : undefined;
+      const healAmount = itemDef?.healingValue ?? 1;
+      consequences.push({ type: 'heal', targetId: 'player', amount: healAmount });
+      if (target?.id) {
+        consequences.push({ type: 'inventory_remove', itemId: target.id });
+      }
+    } else if (tier === 'toxic') {
+      consequences.push({ type: 'damage', targetId: 'player', amount: BALANCE.EAT_TOXIC_DAMAGE, nonLethal: true });
+    } else if (tier === 'sharp') {
+      consequences.push({ type: 'damage', targetId: 'player', amount: BALANCE.EAT_SHARP_DAMAGE, nonLethal: true });
+    }
+    // drinkable, alive, oversized, inorganic, dead_organic, generic: no mechanical consequence
+    return consequences;
   }
 
   // SELF_HARM: success = lethal self-damage, failure = 1 HP nonLethal

@@ -106,6 +106,10 @@ export const BALANCE = {
   CRIT_FAILURE_DAMAGE: 2,
   /** Damage dealt to player on successful SELF_HARM (instant kill) */
   SELF_HARM_LETHAL_DAMAGE: 999,
+  /** Damage dealt when player tries to eat a sharp/bladed/pointed object */
+  EAT_SHARP_DAMAGE: 1,
+  /** Damage dealt when player tries to eat a toxic/corrosive/radioactive object */
+  EAT_TOXIC_DAMAGE: 3,
 
   // === FAILSAFE (anti-softlock) ===
   FAILSAFE: {

@@ -778,7 +778,7 @@ export const VERB_REGISTRY: VerbRegistry = {
       fr: ['manger', 'avaler', 'consommer'],
       en: ['eat', 'consume', 'devour'],
     },
-    requirements: { targetProps: [['edible'], ['small']], requiredToolProp: null },
+    requirements: { targetProps: [['edible']], requiredToolProp: null },
     difficultyMod: 0, auto: true,
   },
   DRINK: {

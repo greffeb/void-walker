@@ -5377,6 +5377,198 @@ const SELF_HARM_TEMPLATES: readonly ActionTemplate[] = [
 ];
 
 // ============================================================================
+// ============================================================================
+// EAT TEMPLATES
+// ============================================================================
+// 9 tiers × 3 tension tiers + null fallback × 3 tension tiers = 30 templates
+// All use outcome 'auto_success' (EAT is an auto verb).
+// Mechanical effects (heal, damage) are handled separately by consequences.ts.
+// targetType maps to EatTier: edible, drinkable, alive, heavy, toxic, sharp, metallic, dead, null
+// ============================================================================
+
+const EAT_TEMPLATES: readonly ActionTemplate[] = [
+  // --- edible (success — food!) ---
+  {
+    id: 'interaction_EAT_edible_auto_success_low',
+    verb: 'EAT', targetType: 'edible', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} mangez {def_target}. Une chaleur familière se diffuse dans votre poitrine — l\'énergie revient.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_edible_auto_success_mid',
+    verb: 'EAT', targetType: 'edible', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: '{actor} avalez {def_target} à la hâte. Pas le moment de faire le difficile — chaque calorie compte.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_edible_auto_success_high',
+    verb: 'EAT', targetType: 'edible', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: '{actor} engloutissez {def_target} sans même y goûter. Survivre d\'abord, savourer plus tard.', en: '' },
+  },
+
+  // --- drinkable (redirect — se boit, pas se mange) ---
+  {
+    id: 'interaction_EAT_drinkable_auto_success_low',
+    verb: 'EAT', targetType: 'drinkable', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} portez {def_target} à vos lèvres — c\'est un liquide, ça se boit plutôt que se mange. Vous en profitez quand même.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_drinkable_auto_success_mid',
+    verb: 'EAT', targetType: 'drinkable', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: '{def_target|capitalize} se boit. Vous ajustez et avalez le liquide rapidement.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_drinkable_auto_success_high',
+    verb: 'EAT', targetType: 'drinkable', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'On ne mange pas un liquide. {actor} le buvez d\'un trait, sans cérémonie.', en: '' },
+  },
+
+  // --- alive (rejet moral — on ne mange pas quelque chose de vivant) ---
+  {
+    id: 'interaction_EAT_alive_auto_success_low',
+    verb: 'EAT', targetType: 'alive', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{def_target|capitalize} vous regarde. {actor} ne pouvez pas vous résoudre à ça — pas encore.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_alive_auto_success_mid',
+    verb: 'EAT', targetType: 'alive', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'Aussi affamé que vous soyez, {actor} n\'allez pas mordre quelque chose de vivant. Certaines lignes ne se franchissent pas.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_alive_auto_success_high',
+    verb: 'EAT', targetType: 'alive', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'Non. Même ici, même maintenant — {actor} ne ferez pas ça. Pas à quelque chose de vivant.', en: '' },
+  },
+
+  // --- heavy (rejet absurde — trop grand pour entrer dans la bouche) ---
+  {
+    id: 'interaction_EAT_heavy_auto_success_low',
+    verb: 'EAT', targetType: 'heavy', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} contemplez {def_target}. C\'est... trop grand. Beaucoup trop grand. Votre bouche ne serait d\'aucun secours ici.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_heavy_auto_success_mid',
+    verb: 'EAT', targetType: 'heavy', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'Manger {def_target} ? L\'idée est aussi absurde que la situation. Ça ne rentrerait même pas dans votre bouche.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_heavy_auto_success_high',
+    verb: 'EAT', targetType: 'heavy', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'Impossible. {def_target|capitalize} pèse plus lourd que le sens commun. Cherchez de la vraie nourriture.', en: '' },
+  },
+
+  // --- toxic (brûlure chimique — dégâts EAT_TOXIC_DAMAGE) ---
+  {
+    id: 'interaction_EAT_toxic_auto_success_low',
+    verb: 'EAT', targetType: 'toxic', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} portez {def_target} à vos lèvres par curiosité malsaine. Une brûlure chimique immédiate remonte dans votre gorge. Erreur.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_toxic_auto_success_mid',
+    verb: 'EAT', targetType: 'toxic', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'La substance entre en contact avec votre muqueuse. Ça brûle. Fort. {actor} recrachez aussitôt, mais le mal est fait.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_toxic_auto_success_high',
+    verb: 'EAT', targetType: 'toxic', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: '{def_target|capitalize}. Vous l\'avalez. Une douleur chimique acide vous ronge l\'œsophage. L\'adrénaline masque le reste — pour l\'instant.', en: '' },
+  },
+
+  // --- sharp (coupure — dégâts EAT_SHARP_DAMAGE) ---
+  {
+    id: 'interaction_EAT_sharp_auto_success_low',
+    verb: 'EAT', targetType: 'sharp', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} mordez dans {def_target}. La lame vous taillade aussitôt les lèvres. Vous recrachez en grimaçant — ça ne se mange pas.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_sharp_auto_success_mid',
+    verb: 'EAT', targetType: 'sharp', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'Contact. {def_target|capitalize} vous entaille la commissure des lèvres. {actor} lâchez un juron et abandonnez l\'idée.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_sharp_auto_success_high',
+    verb: 'EAT', targetType: 'sharp', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'Tranchant. {actor} vous en rendez compte trop tard — un filet de sang sur la lèvre. Ce n\'était clairement pas de la nourriture.', en: '' },
+  },
+
+  // --- metallic / inorganic (dégoût — pas de dégâts) ---
+  {
+    id: 'interaction_EAT_metallic_auto_success_low',
+    verb: 'EAT', targetType: 'metallic', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} portez {def_target} à vos lèvres. Le métal froid, ça n\'a pas de goût — et pas de valeur nutritive non plus. Ce n\'est pas comestible.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_metallic_auto_success_mid',
+    verb: 'EAT', targetType: 'metallic', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'Mordre dans {def_target} ? Le métal résiste. {actor} renoncez — ça ne se mange pas.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_metallic_auto_success_high',
+    verb: 'EAT', targetType: 'metallic', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'Pas comestible. {actor} le saviez déjà, mais l\'estomac ne raisonne pas. Trouvez de vraie nourriture.', en: '' },
+  },
+
+  // --- dead + organic (horreur — cadavre) ---
+  {
+    id: 'interaction_EAT_dead_auto_success_low',
+    verb: 'EAT', targetType: 'dead', outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} vous arrêtez net. Manger {def_target} ? Non. Il y a des limites que la faim ne franchit pas. Pas encore.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_dead_auto_success_mid',
+    verb: 'EAT', targetType: 'dead', outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'L\'idée vous traverse l\'esprit et vous répugne aussitôt. {actor} reculez. Vous trouverez autre chose.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_dead_auto_success_high',
+    verb: 'EAT', targetType: 'dead', outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'Non. Même dans ce chaos, même à bout de forces — {actor} ne ferez pas ça. La ligne ne sera pas franchie.', en: '' },
+  },
+
+  // --- generic fallback (rien de spécial — pas comestible) ---
+  {
+    id: 'interaction_EAT_generic_auto_success_low',
+    verb: 'EAT', targetType: null, outcome: 'auto_success', tension: 'low',
+    category: 'interaction',
+    text: { fr: '{actor} examinez {def_target} sous tous les angles. Ce n\'est clairement pas de la nourriture.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_generic_auto_success_mid',
+    verb: 'EAT', targetType: null, outcome: 'auto_success', tension: 'mid',
+    category: 'interaction',
+    text: { fr: 'Manger {def_target} ? L\'instinct de survie contredit l\'instinct de survie. Ce n\'est pas comestible.', en: '' },
+  },
+  {
+    id: 'interaction_EAT_generic_auto_success_high',
+    verb: 'EAT', targetType: null, outcome: 'auto_success', tension: 'high',
+    category: 'interaction',
+    text: { fr: 'Ça ne se mange pas. Point. {actor} le saviez en posant la question.', en: '' },
+  },
+];
+
+// ============================================================================
 // COMBINED EXPORT
 // ============================================================================
 
@@ -5406,4 +5598,5 @@ export const ACTION_TEMPLATES: readonly ActionTemplate[] = [
   ...CATEGORY_FALLBACK_TEMPLATES,
   ...ABSURD_TEMPLATES,
   ...SELF_HARM_TEMPLATES,
+  ...EAT_TEMPLATES,
 ] as const;

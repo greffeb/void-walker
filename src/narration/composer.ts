@@ -127,12 +127,31 @@ export function getVerbCategory(verb: VerbId): VerbCategory {
  * Find a template matching the given criteria.
  * Uses priority cascade: specific → verb+outcome → category+outcome → generic fallback.
  */
+/**
+ * For EAT verb, pick the best PropertyId to use as targetType for template selection.
+ * Mirrors getEatTier() in consequences.ts but returns the PropertyId used in templates.
+ */
+function selectEatTargetProperty(properties: readonly PropertyId[]): PropertyId | undefined {
+  if (properties.includes('edible')) return 'edible';
+  if (properties.includes('drinkable')) return 'drinkable';
+  if (properties.includes('alive') || properties.includes('sentient')) return 'alive';
+  if (properties.includes('heavy') && !properties.includes('small')) return 'heavy';
+  if (properties.includes('toxic') || properties.includes('corrosive') || properties.includes('radioactive')) return 'toxic';
+  if (properties.includes('sharp') || properties.includes('bladed') || properties.includes('pointed')) return 'sharp';
+  if (properties.includes('metallic') || properties.includes('synthetic') || properties.includes('electronic')) return 'metallic';
+  if (properties.includes('dead') && properties.includes('organic')) return 'dead';
+  return undefined;
+}
+
 export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
   const tier = tensionTier(ctx.tension);
-  // Prefer 'alive' so NPC-specific templates (USE/alive, etc.) take priority
-  const targetType: PropertyId | undefined = ctx.target?.properties.includes('alive')
-    ? 'alive'
-    : ctx.target?.properties[0];
+  // EAT uses tier-based property selection for precise template matching
+  // Other verbs: prefer 'alive' so NPC-specific templates take priority
+  const targetType: PropertyId | undefined = ctx.verb === 'EAT'
+    ? selectEatTargetProperty(ctx.target?.properties ?? [])
+    : ctx.target?.properties.includes('alive')
+      ? 'alive'
+      : ctx.target?.properties[0];
 
   // PRIORITY 1: Specific — verb + target type + outcome + tension tier
   let template = findTemplate(ctx.verb, targetType ?? null, ctx.outcome, tier, ctx.verbCategory);
@@ -165,7 +184,7 @@ function findTemplate(
   // Collect ALL matching templates first, then let memory pick to avoid repetition
   const exactCandidates = ACTION_TEMPLATES.filter(t =>
     t.verb === verb &&
-    (targetType === null || t.targetType === null || t.targetType === targetType) &&
+    (t.targetType === null || t.targetType === targetType) &&
     t.outcome === outcome &&
     t.tension === tension
   );
@@ -176,7 +195,7 @@ function findTemplate(
   // Try without tension tier constraint
   const relaxedCandidates = ACTION_TEMPLATES.filter(t =>
     t.verb === verb &&
-    (targetType === null || t.targetType === null || t.targetType === targetType) &&
+    (t.targetType === null || t.targetType === targetType) &&
     t.outcome === outcome
   );
   if (relaxedCandidates.length > 0) {
