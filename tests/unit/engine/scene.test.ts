@@ -251,7 +251,7 @@ describe('SceneDescription — scenarioIntro field', () => {
 
     // Move the player to a non-start node
     const nonStartNode = scenario.graph.nodes.find(n => n.coreNodeId !== 'start');
-    if (!nonStartNode) return; // skip if no non-start node exists
+    if (!nonStartNode) throw new Error('Test setup: no non-start node found in assembled scenario');
 
     state = {
       ...state,

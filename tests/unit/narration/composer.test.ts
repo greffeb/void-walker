@@ -18,8 +18,9 @@ import {
 import type {
   NarrativeContext, Outcome, VerbCategory,
 } from '../../../src/narration/types';
-import { NARRATIVE_PRESETS } from '../../../src/narration/types';
+import { NARRATIVE_PRESETS, LAYER_ORDER } from '../../../src/narration/types';
 import type { GrammaticalInfo } from '../../../src/i18n/grammar/interface';
+import { getInfinitiveVerbText, getDirectVerbText } from '../../../src/content/templates/actionPhrases';
 
 // === HELPERS ===
 
@@ -177,7 +178,7 @@ describe('scoreLayerRelevance', () => {
       target: { id: 'npc_1', name: 'Kira', type: 'npc', properties: [], grammar: femGrammar },
       npcsPresent: [{ id: 'npc_1', name: 'Kira', disposition: 'friendly', grammar: femGrammar }],
     });
-    expect(scoreLayerRelevance('npc_reaction', ctx)).toBe(75);
+    expect(scoreLayerRelevance('npc_reaction', ctx)).toBe(80);
   });
 });
 
@@ -297,5 +298,55 @@ describe('location narration state', () => {
     resetAllLocationStates();
     expect(getLocationNarrationState('loc_1').turnsSpentHere).toBe(0);
     expect(getLocationNarrationState('loc_2').turnsSpentHere).toBe(0);
+  });
+});
+
+describe('LAYER_ORDER', () => {
+  it('exports LAYER_ORDER in narrative position order', () => {
+    expect(LAYER_ORDER).toEqual([
+      'action_result', 'sensory', 'consequence',
+      'npc_reaction', 'atmosphere', 'player_state', 'threat',
+    ]);
+  });
+});
+
+describe('actionPhrases', () => {
+  it('getInfinitiveVerbText returns French infinitive for HACK', () => {
+    expect(getInfinitiveVerbText('HACK', 'fr')).toBe('pirater');
+  });
+  it('getDirectVerbText returns French conjugated form for TAKE', () => {
+    expect(getDirectVerbText('TAKE', 'fr')).toBe('ramassez');
+  });
+  it('getInfinitiveVerbText returns English infinitive for EXAMINE', () => {
+    expect(getInfinitiveVerbText('EXAMINE', 'en')).toBe('examine');
+  });
+  it('getDirectVerbText falls back gracefully for unknown input', () => {
+    expect(typeof getDirectVerbText('WAIT', 'fr')).toBe('string');
+  });
+});
+
+describe('composer action phrase (Layer 1)', () => {
+  beforeEach(() => {
+    resetComposer();
+    resetAllLocationStates();
+  });
+
+  it('output starts with action phrase before action result for rolled action', () => {
+    const ctx = makeCtx({ verb: 'HACK' as NarrativeContext['verb'], outcome: 'success' });
+    const result = composeNarrative(ctx, NARRATIVE_PRESETS.standard, fixedRng(0.1), 'fr');
+    expect(result).toMatch(/^Vous tentez de pirater/);
+  });
+
+  it('auto-success uses direct form (not "tentez de")', () => {
+    const ctx = makeCtx({ verb: 'TAKE' as NarrativeContext['verb'], outcome: 'auto_success' });
+    const result = composeNarrative(ctx, NARRATIVE_PRESETS.standard, fixedRng(0.1), 'fr');
+    expect(result).toMatch(/^Vous ramassez/);
+    expect(result).not.toContain('tentez');
+  });
+
+  it('no target: action phrase still produces valid output', () => {
+    const ctx = makeCtx({ verb: 'WAIT' as NarrativeContext['verb'], target: null, outcome: 'auto_success' });
+    const result = composeNarrative(ctx, NARRATIVE_PRESETS.standard, fixedRng(0.1), 'fr');
+    expect(result).toMatch(/^Vous attendez/);
   });
 });

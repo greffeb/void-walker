@@ -60,14 +60,26 @@ export type HintCategory =
 
 // === LAYER TYPES ===
 
-/** The 6 optional layer types (Layer 1: action is always mandatory) */
+/** All 7 layer types including action_result (mandatory, always first) */
 export type LayerType =
+  | 'action_result'
   | 'sensory'
   | 'consequence'
+  | 'npc_reaction'
   | 'atmosphere'
   | 'player_state'
-  | 'threat'
-  | 'npc_reaction';
+  | 'threat';
+
+/** Canonical narrative position order for all layers */
+export const LAYER_ORDER: readonly LayerType[] = [
+  'action_result',
+  'sensory',
+  'consequence',
+  'npc_reaction',
+  'atmosphere',
+  'player_state',
+  'threat',
+] as const;
 
 // === TARGET INFO ===
 

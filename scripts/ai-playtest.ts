@@ -119,7 +119,28 @@ function displayScene(
   const scene = narrateScene(sd, introMode, 'fr');
 
   console.log('');
-  if (scene.intro.length > 0)    console.log(renderTokens(scene.intro));
+
+  // Scenario intro (new_game only)
+  if (scene.scenarioIntro) {
+    console.log(scene.scenarioIntro);
+    console.log('');
+  }
+
+  // Intro: location name + optional em-dash + locationDescription
+  if (scene.intro.length > 0) {
+    const introText = renderTokens(scene.intro);
+    if (scene.locationDescription && introMode !== 'revisit') {
+      console.log(`${introText}${ANSI.dim} — ${scene.locationDescription}${ANSI.reset}`);
+    } else {
+      console.log(introText);
+    }
+  }
+
+  // Obstacle hint (before interactive elements, matches flattenSceneToText order)
+  if (scene.obstacle) {
+    console.log(`${ANSI.yellow}⚠ ${scene.obstacle}${ANSI.reset}`);
+  }
+
   if (scene.features.length > 0) console.log(renderTokens(scene.features));
   if (scene.items.length > 0)    console.log(renderTokens(scene.items));
   if (scene.npcs.length > 0)     console.log(renderTokens(scene.npcs));

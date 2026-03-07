@@ -10,7 +10,7 @@ import type {
   LayerType, Outcome, TensionTier, VerbCategory, LocationNarrationState,
   PlayerStateSnippet,
 } from './types';
-import { tensionTier, NARRATIVE_PRESETS } from './types';
+import { tensionTier, NARRATIVE_PRESETS, LAYER_ORDER } from './types';
 import { renderTemplate, detectSelfReference, getGrammarEngine } from './templateEngine';
 import { NarrationMemory } from './memory';
 import { selectGameplayHint } from './hints';
@@ -18,6 +18,7 @@ import type { Locale } from '../i18n/types';
 import { getLocale } from '../i18n/index';
 import type { VerbId } from '../engine/verbs';
 import type { PropertyId } from '../engine/properties';
+import { getInfinitiveVerbText, getDirectVerbText } from '../content/templates/actionPhrases';
 
 // === TEMPLATE IMPORTS ===
 
@@ -252,6 +253,7 @@ function getGenericFallback(outcome: Outcome): ActionTemplate {
 /** Score how relevant a layer is to the current context */
 export function scoreLayerRelevance(layer: LayerType, ctx: NarrativeContext): number {
   switch (layer) {
+    case 'action_result': return 100; // mandatory — always included
     case 'consequence':
       return (ctx.stateChanges?.length ?? 0) > 0 ? 100 : 0;
     case 'sensory':
@@ -266,7 +268,7 @@ export function scoreLayerRelevance(layer: LayerType, ctx: NarrativeContext): nu
       return hasThreatHint(ctx) ? 70 : 0;
     case 'npc_reaction': {
       const directlyInvolved = ctx.npcsPresent.some(npc => npc.id === ctx.target?.id);
-      return directlyInvolved ? 75 : 40;
+      return directlyInvolved ? 80 : 40;
     }
   }
 }
@@ -399,6 +401,33 @@ function selectThreatHint(ctx: NarrativeContext, locale: Locale): string | null 
   return selected ? (locale === 'fr' ? selected.text.fr : selected.text.en) : null;
 }
 
+// === ACTION PHRASE (LAYER 1) ===
+
+/**
+ * Build the action phrase (Layer 1) — always shown first, before the action result.
+ *
+ * Auto-success: "Vous [direct] [def_target]."
+ * Rolled action: "Vous tentez de [infinitive] [def_target]."
+ * No target: "Vous [direct/infinitive]."
+ */
+function buildActionPhrase(ctx: NarrativeContext, locale: Locale): string {
+  const grammar = getGrammarEngine(locale);
+  const targetName = ctx.target?.name ?? '';
+
+  if (ctx.outcome === 'auto_success') {
+    const verbText = getDirectVerbText(ctx.verb, locale);
+    if (!targetName) return `Vous ${verbText}.`;
+    const targetWithArticle = grammar.resolveSlot('def', targetName, ctx.target!.grammar);
+    return `Vous ${verbText} ${targetWithArticle}.`;
+  }
+
+  // Rolled action
+  const verbText = getInfinitiveVerbText(ctx.verb, locale);
+  if (!targetName) return `Vous tentez de ${verbText}.`;
+  const targetWithArticle = grammar.resolveSlot('def', targetName, ctx.target!.grammar);
+  return `Vous tentez de ${verbText} ${targetWithArticle}.`;
+}
+
 // === MAIN COMPOSITION FUNCTION ===
 
 /**
@@ -426,14 +455,18 @@ export function composeNarrative(
   incrementLocationTurn(ctx.location.id);
   const locationState = getLocationNarrationState(ctx.location.id);
 
-  // ── LAYER 1: ACTION RESULT (mandatory, always included) ──
+  // ── LAYER 1: ACTION PHRASE (mandatory, always first) ──
+  const actionPhrase = buildActionPhrase(ctx, effectiveLocale);
+  const parts: string[] = [actionPhrase];
+
+  // ── LAYER 2: ACTION RESULT (mandatory, always second) ──
   const actionTemplate = selectActionTemplate(ctx);
   const actionText = effectiveLocale === 'fr' ? actionTemplate.text.fr : actionTemplate.text.en;
-  const parts: string[] = [renderTemplate(actionText, ctx, effectiveLocale)];
+  parts.push(renderTemplate(actionText, ctx, effectiveLocale));
 
   // ── Score all optional layers ──
 
-  // Layer 2: SENSORY DETAIL
+  // Layer 3: SENSORY DETAIL
   const sensoryProb = ctx.outcome === 'auto_success' ? 0.50 : 0.90;
   if (effectiveRng() < sensoryProb) {
     candidates.push({
@@ -443,7 +476,7 @@ export function composeNarrative(
     });
   }
 
-  // Layer 3: CONSEQUENCE
+  // Layer 4: CONSEQUENCE
   if (ctx.stateChanges && ctx.stateChanges.length > 0) {
     candidates.push({
       layer: 'consequence',
@@ -452,7 +485,7 @@ export function composeNarrative(
     });
   }
 
-  // Layer 4: ATMOSPHERE or GAMEPLAY HINT
+  // Layer 5: ATMOSPHERE or GAMEPLAY HINT
   const atmosProb = ctx.beat === 'climax' ? 0.95 : 0.3 + ctx.tension * 0.05;
   const effectiveAtmosProb = locationState.turnsSpentHere >= 4
     ? atmosProb * 0.5
@@ -477,7 +510,7 @@ export function composeNarrative(
     }
   }
 
-  // Layer 5: PLAYER STATE
+  // Layer 6: PLAYER STATE
   const stateProb = ctx.playerHpPercent < 0.30 ? 0.80
     : ctx.playerHpPercent < 0.50 ? 0.30
     : ctx.playerConditions.size > 0 ? 0.50
@@ -490,7 +523,7 @@ export function composeNarrative(
     });
   }
 
-  // Layer 6: THREAT HINT
+  // Layer 7: THREAT HINT
   if (hasThreatHint(ctx)) {
     candidates.push({
       layer: 'threat',
@@ -499,7 +532,7 @@ export function composeNarrative(
     });
   }
 
-  // Layer 7: NPC REACTION
+  // Layer 8: NPC REACTION
   if (ctx.npcsPresent.length > 0 && !detectSelfReference(ctx)) {
     const directlyInvolved = ctx.npcsPresent.some(npc => npc.id === ctx.target?.id);
     const isCrit = ctx.outcome === 'crit_success' || ctx.outcome === 'crit_failure';
@@ -514,10 +547,16 @@ export function composeNarrative(
   }
 
   // ── Select top layers within budget ──
+  // -2 because action phrase + action result are already included as mandatory parts
   const sorted = [...candidates].sort((a, b) => b.score - a.score);
-  const selected = sorted.slice(0, budget - 1); // -1 because action already used
+  const selected = sorted.slice(0, budget - 2);
 
-  for (const layer of selected) {
+  // ── Reorder selected layers into narrative position order ──
+  const ordered = [...selected].sort(
+    (a, b) => LAYER_ORDER.indexOf(a.layer) - LAYER_ORDER.indexOf(b.layer),
+  );
+
+  for (const layer of ordered) {
     const rawText = layer.render();
     if (rawText) {
       // Render template slots in layer snippets (e.g., {npc_name} in NPC reactions)

@@ -33,6 +33,8 @@ import type {
 import type { SuggestionCandidate } from '@engine/suggestions';
 import type { NarratedScene } from '@narration/scene';
 import { createInitialGameState } from '@engine/types';
+import { flattenSceneToText, flattenSceneReminder } from './sceneHelpers';
+export { flattenSceneToText, flattenSceneReminder } from './sceneHelpers';
 
 // ---------------------------------------------------------------------------
 // TYPES
@@ -199,20 +201,8 @@ function randomName(): string {
   return RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)] ?? 'Joueur';
 }
 
-/** Flatten NarratedScene tokens to a plain text string for the typewriter. */
-function flattenSceneToText(scene: NarratedScene, showIntro: boolean): string {
-  const sections = [
-    ...(showIntro ? [scene.intro] : []),
-    scene.features,
-    scene.items,
-    scene.npcs,
-    scene.exits,
-  ].filter(s => s.length > 0);
-  const lines = sections.map(tokens => tokens.map(t => t.value).join(''));
-  if (scene.obstacle) lines.push(scene.obstacle);
-  lines.push(scene.prompt);
-  return lines.join('\n');
-}
+// flattenSceneToText and flattenSceneReminder are exported from ./sceneHelpers
+// and re-exported above at import time.
 
 // ---------------------------------------------------------------------------
 // STORE CREATION
@@ -512,10 +502,15 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         });
       } else {
         // No dice: typewriter plays first, entry commits to history when done
-        const sceneText = sceneIntro
-          ? flattenSceneToText(sceneIntro, introMode !== null)
-          : '';
-        const fullNarrative = sceneText ? `${narrative}\n\n${sceneText}` : narrative;
+        let fullNarrative: string;
+        if (introMode !== null) {
+          // Location change: full scene (intro + description + elements)
+          fullNarrative = sceneIntro ? flattenSceneToText(sceneIntro, true) : narrative;
+        } else {
+          // Same location: narrative + element reminder
+          const reminder = sceneIntro ? flattenSceneReminder(sceneIntro) : '';
+          fullNarrative = reminder ? `${narrative}\n\n${reminder}` : narrative;
+        }
         const gameOver = isGameOver(result.newState);
         set({
           pendingTurnEntry: entry,
@@ -543,16 +538,30 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const { pendingNarrative, pendingTurnEntry, turnHistory, gameState } = get();
     const gameOver = isGameOver(gameState);
     const narrative = pendingNarrative ?? '';
+
+    // After dice animation, assemble the full narrative the same way submitAction does
+    let fullNarrative: string;
+    const sceneIntro = pendingTurnEntry?.sceneIntro ?? null;
+    const introMode = pendingTurnEntry?.introMode ?? null;
+    if (introMode !== null) {
+      // Location change: full scene (intro + description + elements)
+      fullNarrative = sceneIntro ? flattenSceneToText(sceneIntro, true) : narrative;
+    } else {
+      // Same location: narrative + element reminder
+      const reminder = sceneIntro ? flattenSceneReminder(sceneIntro) : '';
+      fullNarrative = reminder ? `${narrative}\n\n${reminder}` : narrative;
+    }
+
     set({
       isDiceAnimating: false,
       pendingDiceResult: null,
       pendingDifficultyBreakdown: null,
       hasSeenFullAnimation: true,
       turnHistory: pendingTurnEntry ? [...turnHistory, pendingTurnEntry] : turnHistory,
-      currentNarrative: narrative,
+      currentNarrative: fullNarrative,
       pendingNarrative: null,
       pendingTurnEntry: null,
-      typewriterComplete: narrative.length === 0,
+      typewriterComplete: fullNarrative.length === 0,
       screen: gameOver ? 'end' : get().screen,
     });
   },

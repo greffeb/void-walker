@@ -95,9 +95,25 @@ function displayFullScene(state: GameState, introMode: SceneIntroMode): void {
 
   console.log(`\n${C.cyan}${dash}${C.reset}`);
 
-  // Intro (location + description)
+  // Scenario intro (new_game only)
+  if (scene.scenarioIntro) {
+    console.log(`  ${C.white}${scene.scenarioIntro}${C.reset}`);
+    console.log('');
+  }
+
+  // Intro (location name + optional em-dash + locationDescription)
   if (scene.intro.length > 0) {
-    console.log(`  ${renderTokens(scene.intro)}`);
+    const introText = renderTokens(scene.intro);
+    if (scene.locationDescription && introMode !== 'revisit') {
+      console.log(`  ${introText}${C.dim} — ${C.reset}${C.dim}${scene.locationDescription}${C.reset}`);
+    } else {
+      console.log(`  ${introText}`);
+    }
+  }
+
+  // Obstacle hint (before interactive elements)
+  if (scene.obstacle) {
+    console.log(`\n  ${C.yellow}⚠ ${scene.obstacle}${C.reset}`);
   }
 
   // Features
@@ -118,11 +134,6 @@ function displayFullScene(state: GameState, introMode: SceneIntroMode): void {
   // Exits
   if (scene.exits.length > 0) {
     console.log(`  ${renderTokens(scene.exits)}`);
-  }
-
-  // Obstacle hint
-  if (scene.obstacle) {
-    console.log(`\n  ${C.yellow}⚠ ${scene.obstacle}${C.reset}`);
   }
 
   console.log(`${C.cyan}${dash}${C.reset}`);

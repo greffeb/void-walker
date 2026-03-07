@@ -8,7 +8,7 @@
 // ---------------------------------------------------------------------------
 
 import type { SceneDescription } from '../engine/types';
-import type { Locale, StringKey } from '../i18n/types';
+import type { Locale } from '../i18n/types';
 import { t } from '../i18n/index';
 import { detectGrammar } from './index';
 import { getGrammarEngine } from './templateEngine';
@@ -28,8 +28,12 @@ export type SceneToken =
   | { readonly kind: 'exit';     readonly value: string; readonly visited: boolean };
 
 export interface NarratedScene {
-  /** "Vous reprenez conscience dans [location]." or "[location]." on revisit */
+  /** Scenario intro shown ONCE at new_game. null otherwise. */
+  readonly scenarioIntro: string | null;
+  /** Location intro tokens: just the name for enter/new_game, "Vous revenez dans [lieu]." for revisit. */
   readonly intro:    readonly SceneToken[];
+  /** Rich flavour text for the location. null on revisit. */
+  readonly locationDescription: string | null;
   /** "Vous voyez autour de vous [feature], [feature] ainsi qu'[feature]." */
   readonly features: readonly SceneToken[];
   /** "Parmi les débris, vous remarquez [item] ainsi qu'[item]." */
@@ -126,16 +130,10 @@ function buildSentenceTokens(
 /**
  * Convert a SceneDescription into a NarratedScene of structured tokens.
  *
- * @param sd         — the raw scene description from getSceneContext()
- * @param isNewEntry — true on first visit (uses intro_new phrasing)
- * @param locale     — active locale ('fr' | 'en')
+ * @param sd        — the raw scene description from getSceneContext()
+ * @param introMode — 'new_game' | 'enter' | 'revisit'
+ * @param locale    — active locale ('fr' | 'en')
  */
-const INTRO_KEY: Record<SceneIntroMode, StringKey> = {
-  new_game: 'scene.intro_new',
-  enter:    'scene.intro_enter',
-  revisit:  'scene.intro_revisit',
-};
-
 export function narrateScene(
   sd: SceneDescription,
   introMode: SceneIntroMode,
@@ -145,19 +143,35 @@ export function narrateScene(
   const itemArticles    = parseArticleMap(t('grammar.item_articles',    locale));
   const featureArticles = parseArticleMap(t('grammar.feature_articles', locale));
 
-  // --- Intro sentence ---
-  const introPhrase = t(INTRO_KEY[introMode], locale);
-
   const grammar = getGrammarEngine(locale);
   const grammarInfo = detectGrammar(sd.locationName);
-  const articlePlusName = grammar.resolveSlot('def', sentenceCase(sd.locationName), grammarInfo);
-  const intro: SceneToken[] = [
-    { kind: 'text',     value: introPhrase + ' ' },
-    { kind: 'location', value: articlePlusName },
-    { kind: 'text',     value: '.' },
-  ];
-  if (sd.locationDescription) {
-    intro.push({ kind: 'text', value: ' ' + sd.locationDescription });
+
+  // --- Scenario intro (only on new_game) ---
+  const scenarioIntro: string | null = (introMode === 'new_game' && sd.scenarioIntro !== null && sd.scenarioIntro !== undefined)
+    ? sd.scenarioIntro
+    : null;
+
+  // --- Location description (null on revisit) ---
+  const locationDescription: string | null = introMode !== 'revisit' && sd.locationDescription
+    ? sd.locationDescription
+    : null;
+
+  // --- Intro tokens ---
+  let intro: SceneToken[];
+  if (introMode === 'revisit') {
+    // "Vous revenez dans [article+lieu]."
+    const revisitPhrase = t('scene.intro_revisit', locale);
+    const articlePlusName = grammar.resolveSlot('def', sentenceCase(sd.locationName), grammarInfo);
+    intro = [
+      { kind: 'text',     value: revisitPhrase + ' ' },
+      { kind: 'location', value: articlePlusName },
+      { kind: 'text',     value: '.' },
+    ];
+  } else {
+    // new_game or enter: just the bare location name token
+    intro = [
+      { kind: 'location', value: sd.locationName },
+    ];
   }
 
   // --- Features sentence ---
@@ -231,7 +245,9 @@ export function narrateScene(
   }
 
   return {
+    scenarioIntro,
     intro,
+    locationDescription,
     features,
     items,
     npcs,
