@@ -208,6 +208,7 @@ describe('getSceneContext() — dropped items', () => {
 
 describe('SceneDescription — scenarioIntro field', () => {
   it('SceneDescription accepts scenarioIntro field', () => {
+    // Type-level guard: verifies the interface accepts the field
     const sd: SceneDescription = {
       locationName: 'Test',
       locationDescription: 'A room.',
@@ -222,6 +223,7 @@ describe('SceneDescription — scenarioIntro field', () => {
   });
 
   it('SceneDescription scenarioIntro is optional', () => {
+    // Type-level guard: verifies the field can be omitted
     const sd: SceneDescription = {
       locationName: 'Test',
       locationDescription: 'A room.',
@@ -232,5 +234,15 @@ describe('SceneDescription — scenarioIntro field', () => {
       exits: [],
     };
     expect(sd.scenarioIntro).toBeUndefined();
+  });
+
+  it('getSceneContext() currently returns undefined scenarioIntro (population implemented in Task 2)', () => {
+    // Runtime assertion: getSceneContext() does not yet populate scenarioIntro.
+    // Population of this field is deferred to Task 2 (scenario-aware narration).
+    // This test will fail when Task 2 lands, serving as a reminder to update it.
+    const scenario = makeScenario();
+    const state = initGame(scenario, 'marine', 'survivor', 'T', fixedRng());
+    const ctx = getSceneContext(state);
+    expect(ctx.sceneDescription?.scenarioIntro).toBeUndefined();
   });
 });
