@@ -58,6 +58,8 @@ export interface TurnEntry {
   readonly sceneIntro: NarratedScene | null;
   /** 'enter' = first visit, 'revisit' = returning, null = same room */
   readonly introMode: 'enter' | 'revisit' | null;
+  /** HP change this turn: negative = damage, positive = healing, null = no change */
+  readonly hpDelta: number | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -402,8 +404,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     set({ isProcessingTurn: true, error: null });
 
     try {
+      const oldHp = store.gameState.character?.hp ?? 0;
       const context = getSceneContext(store.gameState);
       const result = processTurn(store.gameState, trimmed, context, _parserData, _rng);
+      const rawHpDelta = (result.newState.character?.hp ?? 0) - oldHp;
 
       let narrative = '';
       try {
@@ -460,6 +464,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         locationName: getLocationName(result.newState),
         sceneIntro,
         introMode,
+        hpDelta: rawHpDelta !== 0 ? rawHpDelta : null,
       };
 
       // Filter suggestions

@@ -35,6 +35,8 @@ export type StringKey =
   | 'ui.scene.you_notice'
   | 'ui.scene.obstacle_hint'
   | 'ui.scene.obstacle_blocks_movement'
+  | 'ui.hp_lost'
+  | 'ui.hp_gained'
   // Character creation
   | 'creation.title'
   | 'creation.chooseName'

@@ -23,6 +23,8 @@ export const fr: LocaleStrings = {
   'ui.scene.you_notice': 'Vous remarquez',
   'ui.scene.obstacle_hint': 'Obstacle',
   'ui.scene.obstacle_blocks_movement': 'Un obstacle vous empêche d\'avancer. Vous devez d\'abord trouver un moyen de passer.',
+  'ui.hp_lost':   'Vous perdez {n}PV.',
+  'ui.hp_gained': 'Vous récupérez {n}PV.',
 
   // Character creation
   'creation.title': 'Création de personnage',

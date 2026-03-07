@@ -7,6 +7,7 @@ import { useTypewriter } from '../hooks/useTypewriter';
 import type { TurnEntry } from '@stores/gameStore';
 import type { NarratedScene, SceneToken } from '@narration/scene';
 import { BugReportButton } from './BugReportButton';
+import { t } from '@i18n/index';
 
 // ---------------------------------------------------------------------------
 // SCENE TOKEN RENDERER
@@ -304,6 +305,18 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
       {entry.narrative && (
         <div className="animate-fade-in crt-text" style={{ color: 'var(--text-narrative)', fontSize: '15px', lineHeight: 1.6, textShadow: '0 0 4px rgba(224, 160, 48, 0.4)' }}>
           {entry.narrative}
+        </div>
+      )}
+
+      {/* HP delta */}
+      {entry.hpDelta !== null && entry.hpDelta < 0 && (
+        <div className="animate-fade-in" style={{ color: 'var(--danger)', fontSize: '13px', fontFamily: 'var(--font-mono, monospace)', marginTop: '4px', letterSpacing: '0.05em' }}>
+          {t('ui.hp_lost', 'fr').replace('{n}', String(Math.abs(entry.hpDelta)))}
+        </div>
+      )}
+      {entry.hpDelta !== null && entry.hpDelta > 0 && (
+        <div className="animate-fade-in" style={{ color: 'var(--success)', fontSize: '13px', fontFamily: 'var(--font-mono, monospace)', marginTop: '4px', letterSpacing: '0.05em' }}>
+          {t('ui.hp_gained', 'fr').replace('{n}', String(entry.hpDelta))}
         </div>
       )}
 
