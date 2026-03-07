@@ -14,7 +14,7 @@ import { BugReportButton } from './BugReportButton';
 
 const TOKEN_COLORS: Record<string, string> = {
   location: 'var(--amber-glow)',
-  feature: 'var(--amber-mid)',
+  feature: 'var(--cyan)',
   item: 'var(--success)',
   npc: 'var(--warning)',
   exit: 'var(--text-secondary)',
