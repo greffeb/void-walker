@@ -661,6 +661,8 @@ export interface SceneDescription {
   readonly locationName: string;
   /** Location flavor text (entry or revisit description from skin). */
   readonly locationDescription: string;
+  /** Rich scenario intro text (skeleton description) — shown ONCE at new_game only. */
+  readonly scenarioIntro?: string;
   /** Obstacle hint when unresolved, null otherwise. */
   readonly obstacleHint: string | null;
   /** Items visible in the location (not yet taken). */

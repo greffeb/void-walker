@@ -12,7 +12,7 @@ import { ALL_MODULES } from '../../../src/content/scenarios/modules/index';
 import { createInitialGameState } from '../../../src/engine/types';
 import { markItemTaken, markItemDropped, getExitsWithStatus, createVisitState } from '../../../src/engine/backtracking';
 import type { AssembledScenario } from '../../../src/engine/scenario';
-import type { RngFn } from '../../../src/engine/types';
+import type { RngFn, SceneDescription } from '../../../src/engine/types';
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -199,5 +199,38 @@ describe('getSceneContext() — dropped items', () => {
       i => i.id === 'medkit_basic' && !state.character!.inventory.includes(i.id),
     );
     expect(locationOnly).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SceneDescription type — scenarioIntro field
+// ---------------------------------------------------------------------------
+
+describe('SceneDescription — scenarioIntro field', () => {
+  it('SceneDescription accepts scenarioIntro field', () => {
+    const sd: SceneDescription = {
+      locationName: 'Test',
+      locationDescription: 'A room.',
+      scenarioIntro: 'The world ends.',
+      obstacleHint: null,
+      visibleItems: [],
+      visibleFeatures: [],
+      visibleNpcs: [],
+      exits: [],
+    };
+    expect(sd.scenarioIntro).toBe('The world ends.');
+  });
+
+  it('SceneDescription scenarioIntro is optional', () => {
+    const sd: SceneDescription = {
+      locationName: 'Test',
+      locationDescription: 'A room.',
+      obstacleHint: null,
+      visibleItems: [],
+      visibleFeatures: [],
+      visibleNpcs: [],
+      exits: [],
+    };
+    expect(sd.scenarioIntro).toBeUndefined();
   });
 });
