@@ -184,8 +184,17 @@ export function getSceneContext(state: GameState): SceneContext {
     }
   }
 
+  // --- Scenario intro: shown once, on first visit to start node only ---
+  let scenarioIntro: string | undefined;
+  if (node.coreNodeId === 'start') {
+    const visitCount = visitState?.visitCount ?? 0;
+    if (visitCount <= 1) {
+      scenarioIntro = scenario.skeleton.descriptionKey?.fr;
+    }
+  }
+
   // --- Scene description for UI and narration ---
-  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations, state.featureStates ?? {}, skeletonDescription);
+  const sceneDescription = buildSceneDescription(node, visitState, connectedLocations, state.featureStates ?? {}, skeletonDescription, scenarioIntro);
 
   return {
     inventory,
@@ -329,6 +338,7 @@ function buildSceneDescription(
   connectedLocations: readonly { id: string; aliases: readonly string[]; visited?: boolean }[],
   featureStates: Readonly<Record<string, FeatureState>>,
   skeletonDescription?: string,
+  scenarioIntro?: string,
 ): SceneDescription {
   const isFirstVisit = visitState === undefined || visitState.visitCount <= 1;
   const obstacleResolved = isObstacleResolved(visitState);
@@ -414,6 +424,7 @@ function buildSceneDescription(
   return {
     locationName,
     locationDescription,
+    scenarioIntro,
     obstacleHint,
     visibleItems,
     visibleFeatures,

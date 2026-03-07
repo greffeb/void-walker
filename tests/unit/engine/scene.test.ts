@@ -236,12 +236,32 @@ describe('SceneDescription — scenarioIntro field', () => {
     expect(sd.scenarioIntro).toBeUndefined();
   });
 
-  it('getSceneContext() currently returns undefined scenarioIntro (population implemented in Task 2)', () => {
-    // Runtime assertion: getSceneContext() does not yet populate scenarioIntro.
-    // Population of this field is deferred to Task 2 (scenario-aware narration).
-    // This test will fail when Task 2 lands, serving as a reminder to update it.
+  it('getSceneContext() populates scenarioIntro on first visit to start node', () => {
     const scenario = makeScenario();
     const state = initGame(scenario, 'marine', 'survivor', 'T', fixedRng());
+    // initGame places the player at the start node with visitCount = 1
+    const ctx = getSceneContext(state);
+    expect(ctx.sceneDescription?.scenarioIntro).toBeDefined();
+    expect(typeof ctx.sceneDescription?.scenarioIntro).toBe('string');
+  });
+
+  it('getSceneContext() omits scenarioIntro when not at start node', () => {
+    const scenario = makeScenario();
+    let state = initGame(scenario, 'marine', 'survivor', 'T', fixedRng());
+
+    // Move the player to a non-start node
+    const nonStartNode = scenario.graph.nodes.find(n => n.coreNodeId !== 'start');
+    if (!nonStartNode) return; // skip if no non-start node exists
+
+    state = {
+      ...state,
+      playerLocationId: nonStartNode.id,
+      visitedLocations: {
+        ...state.visitedLocations,
+        [nonStartNode.id]: { visitCount: 1, itemsTaken: [], droppedItems: [], featuresChanged: {}, obstacleResolved: false },
+      },
+    };
+
     const ctx = getSceneContext(state);
     expect(ctx.sceneDescription?.scenarioIntro).toBeUndefined();
   });
