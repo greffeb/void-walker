@@ -512,7 +512,7 @@ export const en: LocaleStrings = {
   'verb.EQUIP.aliases': 'equip,wear,wield',
   'verb.EAT.aliases': 'eat,consume,devour',
   'verb.DRINK.aliases': 'drink,sip,gulp',
-  'verb.MOVE_TO.aliases': 'go,move to,walk to',
+  'verb.MOVE_TO.aliases': 'go,move to,walk to,leave,depart',
   'verb.WAIT.aliases': 'wait,stay,hold',
   'verb.TOUCH.aliases': 'touch,feel,poke',
   // Parser data
@@ -525,6 +525,8 @@ export const en: LocaleStrings = {
   // Tokens that signal "take all items" intent (take everything, grab all, etc.)
   'parser.batchTakeTokens': 'everything,all,items,objects,stuff',
   'parser.take.noTarget': 'What do you want to pick up?',
+  'parser.move.noTarget': 'Where do you want to go?',
+  'parser.move.noExit': 'There is nowhere to go from here.',
   // Obstacle path verbs: English authoring vocabulary → VerbId (same in all locales)
   'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,USE:bandage,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,HIDE:loot,HIDE:pickpocket,HIDE:steal,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:look,EXAMINE:study,EXAMINE:search,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot,TOUCH:pray',
 

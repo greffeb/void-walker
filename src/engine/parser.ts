@@ -11,6 +11,7 @@
 // ---------------------------------------------------------------------------
 
 import type { VerbId } from './verbs';
+import { MOVEMENT_VERBS } from './verbs';
 import { stemFr } from './snowball-fr';
 import type {
   VerbMatch,
@@ -509,6 +510,41 @@ export function parseAction(
       interpretations: [],
       prompt: localeData.takeNoTargetPrompt,
     };
+  }
+
+  // MOVE_TO / movement verb with no specific destination.
+  // "je m'en vais", "partir", "je pars" → verb matches MOVE_TO but the
+  // resolver finds no connected location target (falls back to abstract).
+  // Fix: auto-resolve to the single exit, or prompt for clarification.
+  if (MOVEMENT_VERBS.has(verbMatch.verb)
+      && (target === null || target.source === 'abstract')) {
+    if (context.connectedLocations.length === 1) {
+      // Single exit → auto-resolve to that location
+      const loc = context.connectedLocations[0]!;
+      target = {
+        id: loc.id,
+        nameKey: loc.displayName ?? loc.id,
+        properties: [],
+        isVirtual: false,
+        source: 'connected_location' as import('./types').TargetSource,
+      };
+    } else if (context.connectedLocations.length > 1) {
+      // Multiple exits → ask the player where they want to go
+      return {
+        type: 'reformulation',
+        rawInput,
+        interpretations: [],
+        prompt: localeData.moveNoTargetPrompt,
+      };
+    } else {
+      // No exits → tell the player there's nowhere to go
+      return {
+        type: 'reformulation',
+        rawInput,
+        interpretations: [],
+        prompt: localeData.moveNoExitPrompt,
+      };
+    }
   }
 
   // Verb promotion: upgrade generic verbs based on target/tool properties

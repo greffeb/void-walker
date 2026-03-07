@@ -233,6 +233,16 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     ? rawTakeNoTarget
     : 'Que souhaitez-vous récupérer ?';
 
+  const rawMoveNoTarget = t('parser.move.noTarget', locale);
+  const moveNoTargetPrompt = rawMoveNoTarget && rawMoveNoTarget !== 'parser.move.noTarget'
+    ? rawMoveNoTarget
+    : 'Où voulez-vous aller ?';
+
+  const rawMoveNoExit = t('parser.move.noExit', locale);
+  const moveNoExitPrompt = rawMoveNoExit && rawMoveNoExit !== 'parser.move.noExit'
+    ? rawMoveNoExit
+    : 'Il n\'y a nulle part où aller depuis ici.';
+
   return {
     verbForms,
     compoundPatterns,
@@ -245,5 +255,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     batchTakeTokens,
     obstacleVerbMap,
     takeNoTargetPrompt,
+    moveNoTargetPrompt,
+    moveNoExitPrompt,
   };
 }

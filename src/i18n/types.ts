@@ -513,6 +513,8 @@ export type StringKey =
   | 'parser.genericNpcRefs'
   | 'parser.batchTakeTokens'
   | 'parser.take.noTarget'
+  | 'parser.move.noTarget'
+  | 'parser.move.noExit'
   | 'parser.prepositions.target'
   | 'parser.prepositions.tool'
   | 'parser.obstacleVerbs'

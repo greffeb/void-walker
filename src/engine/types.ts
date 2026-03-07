@@ -548,6 +548,10 @@ export interface ParserLocaleData {
   readonly obstacleVerbMap: ReadonlyMap<string, import('./verbs').VerbId>;
   /** Prompt shown when TAKE is used with no identifiable target. */
   readonly takeNoTargetPrompt: string;
+  /** Prompt shown when MOVE_TO is used with no specific destination and multiple exits exist. */
+  readonly moveNoTargetPrompt: string;
+  /** Prompt shown when MOVE_TO is used but there are no exits from the current location. */
+  readonly moveNoExitPrompt: string;
 }
 
 /** A single named line in the DC decomposition, for UI display */

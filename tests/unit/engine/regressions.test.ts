@@ -1348,3 +1348,115 @@ describe('REG-026: "je me tire une balle" → SHOOT → self-target (Issue #66)'
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// REG-027: "je m'en vais" / "je pars" / "partir" → no movement
+// Issue #58: Departure phrases correctly match MOVE_TO but the resolver found
+// no specific destination (target=environment/abstract). Movement step 9a
+// requires source=connected_location so the player stayed in place.
+// Fix: After MOVE_TO is matched with no specific destination, auto-resolve to
+// the single exit (1 exit), prompt "Où voulez-vous aller ?" (2+ exits), or
+// "Il n'y a nulle part où aller" (0 exits). Also added "pars", "partez",
+// "partons", "partir", "part" to MOVE_TO aliases + compound patterns for
+// "en+vais", "en+aller", etc.
+// ---------------------------------------------------------------------------
+describe('REG-027: departure phrases trigger movement (Issue #58)', () => {
+  test('"je m\'en vais" matches MOVE_TO verb', () => {
+    const ctx = makeContext({
+      connectedLocations: [{ id: 'corridor_a', aliases: ['corridor'], visited: false }],
+    });
+    const result = parseAction("je m'en vais", ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('MOVE_TO');
+    }
+  });
+
+  test('"je pars" matches MOVE_TO verb', () => {
+    const ctx = makeContext({
+      connectedLocations: [{ id: 'corridor_a', aliases: ['corridor'], visited: false }],
+    });
+    const result = parseAction('je pars', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('MOVE_TO');
+    }
+  });
+
+  test('"partir" matches MOVE_TO verb', () => {
+    const ctx = makeContext({
+      connectedLocations: [{ id: 'corridor_a', aliases: ['corridor'], visited: false }],
+    });
+    const result = parseAction('partir', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('MOVE_TO');
+    }
+  });
+
+  test('single exit → auto-resolves to that exit', () => {
+    const ctx = makeContext({
+      connectedLocations: [{ id: 'corridor_a', aliases: ['corridor'], visited: false }],
+    });
+    const result = parseAction("je m'en vais", ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('MOVE_TO');
+      expect(result.target?.id).toBe('corridor_a');
+      expect(result.target?.source).toBe('connected_location');
+    }
+  });
+
+  test('multiple exits → reformulation asking where to go', () => {
+    const ctx = makeContext({
+      connectedLocations: [
+        { id: 'corridor_a', aliases: ['corridor'], visited: false },
+        { id: 'corridor_b', aliases: ['couloir'], visited: true },
+      ],
+    });
+    const result = parseAction("je m'en vais", ctx, localeData);
+    expect('type' in result && result.type === 'reformulation').toBe(true);
+    if ('prompt' in result) {
+      expect(result.prompt).toBe('Où voulez-vous aller ?');
+    }
+  });
+
+  test('no exits → reformulation saying nowhere to go', () => {
+    const ctx = makeContext({ connectedLocations: [] });
+    const result = parseAction("je m'en vais", ctx, localeData);
+    expect('type' in result && result.type === 'reformulation').toBe(true);
+    if ('prompt' in result) {
+      expect(result.prompt).toContain('nulle part');
+    }
+  });
+
+  test('"je pars" with single exit → auto-resolves', () => {
+    const ctx = makeContext({
+      connectedLocations: [{ id: 'room_b', aliases: ['salle'], visited: false }],
+    });
+    const result = parseAction('je pars', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('MOVE_TO');
+      expect(result.target?.id).toBe('room_b');
+      expect(result.target?.source).toBe('connected_location');
+    }
+  });
+
+  test('full game integration: "je m\'en vais" moves player with single exit', () => {
+    const rng = createSeededRng(58);
+    const skeleton = getSkeletonById('escape')!;
+    const setting = getSettingById('derelict_ship')!;
+    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
+
+    const ctx = getSceneContext(state);
+    // Start location typically has exactly one exit
+    if (ctx.connectedLocations.length === 1) {
+      const result = processTurn(state, "je m'en vais", ctx, localeData, rng);
+      expect(result.newState.playerLocationId).not.toBe(state.playerLocationId);
+      expect(result.trace.parsedVerb).toBe('MOVE_TO');
+      expect(result.trace.parsedTarget).toBe(ctx.connectedLocations[0]!.id);
+    }
+  });
+});
