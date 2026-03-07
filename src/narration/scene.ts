@@ -70,6 +70,20 @@ function articleFor(iKey: string, map: Readonly<Record<string, string>>): string
   return map[iKey] ?? 'un';
 }
 
+/**
+ * Returns true if the name already starts with a French determiner or possessive,
+ * so that we skip prepending a separate indefinite article.
+ */
+const FRENCH_DETERMINERS = new Set([
+  'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses',
+  'notre', 'nos', 'votre', 'vos', 'leur', 'leurs',
+  'le', 'la', 'les', "l'",
+]);
+function startsWithDeterminer(name: string): boolean {
+  const first = name.toLowerCase().split(' ')[0] ?? '';
+  return FRENCH_DETERMINERS.has(first);
+}
+
 /** Lowercase the first letter of a string (for use within a sentence). */
 function sentenceCase(s: string): string {
   if (s.length === 0) return s;
@@ -177,9 +191,11 @@ export function narrateScene(
   // --- Features sentence ---
   const featureIntro = t('scene.features_intro', locale);
   const featureSegments = sd.visibleFeatures.map(f => {
-    const article = articleFor(`env.${f.id}`, featureArticles);
     const seg: SceneToken[] = [];
-    seg.push({ kind: 'text',    value: article + ' ' });
+    if (!startsWithDeterminer(f.name)) {
+      const article = articleFor(`env.${f.id}`, featureArticles);
+      seg.push({ kind: 'text', value: article + ' ' });
+    }
     seg.push({ kind: 'feature', value: sentenceCase(f.name) });
     return seg as readonly SceneToken[];
   });
@@ -191,9 +207,11 @@ export function narrateScene(
   // --- Items sentence ---
   const itemIntro = t('scene.items_intro', locale);
   const itemSegments = sd.visibleItems.map(i => {
-    const article = articleFor(`item.${i.id}`, itemArticles);
     const seg: SceneToken[] = [];
-    seg.push({ kind: 'text', value: article + ' ' });
+    if (!startsWithDeterminer(i.name)) {
+      const article = articleFor(`item.${i.id}`, itemArticles);
+      seg.push({ kind: 'text', value: article + ' ' });
+    }
     seg.push({ kind: 'item', value: sentenceCase(i.name) });
     return seg as readonly SceneToken[];
   });

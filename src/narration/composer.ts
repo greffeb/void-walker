@@ -455,9 +455,11 @@ export function composeNarrative(
   incrementLocationTurn(ctx.location.id);
   const locationState = getLocationNarrationState(ctx.location.id);
 
-  // ── LAYER 1: ACTION PHRASE (mandatory, always first) ──
-  const actionPhrase = buildActionPhrase(ctx, effectiveLocale);
-  const parts: string[] = [actionPhrase];
+  // ── LAYER 1: ACTION PHRASE (rolled actions only — auto_success templates already start with the action) ──
+  const parts: string[] = [];
+  if (ctx.outcome !== 'auto_success') {
+    parts.push(buildActionPhrase(ctx, effectiveLocale));
+  }
 
   // ── LAYER 2: ACTION RESULT (mandatory, always second) ──
   const actionTemplate = selectActionTemplate(ctx);
