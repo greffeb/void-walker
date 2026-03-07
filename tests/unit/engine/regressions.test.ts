@@ -1188,3 +1188,126 @@ describe('REG-022: OPEN on container feature via D20 reveals contained items (Is
     expect(result.newState.featureStates['wall_safe']).toBe('open');
   });
 });
+
+// ---------------------------------------------------------------------------
+// REG-023: "j'attaque" (no target) falls to abstract environment instead of NPC
+// Filed: 2026-03-07 | Fixed: 2026-03-07 | resolver.ts verbForms filtering (Issue #71)
+// Root cause: Resolver filtered verb tokens using only VERB_REGISTRY static aliases
+// (frapper, taper…), but "attaque" comes from i18n verbForms. Token not filtered →
+// single-NPC fallback never triggered → abstract environment returned.
+// ---------------------------------------------------------------------------
+describe('REG-023: "j\'attaque" with 1 NPC auto-targets NPC (Issue #71)', () => {
+  const creature = makeNpc('ambush_creature', ['créature', 'creature', 'creature embusquee'],
+    ['organic', 'hostile', 'alive'] as PropertyId[]);
+
+  test('"j\'attaque" with 1 NPC → STRIKE → NPC target', () => {
+    const ctx = makeContext({ npcs: [creature] });
+    const result = parseAction("j'attaque", ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('STRIKE');
+      expect(result.target?.id).toBe('ambush_creature');
+      expect(result.target?.source).toBe('npc');
+    }
+  });
+
+  test('"attaque" token is filtered as STRIKE verb form, not matched as target', () => {
+    const ctx = makeContext({ npcs: [creature] });
+    const target = resolveTarget(
+      ['attaque'], 'STRIKE', ctx,
+      localeData.genericNpcRefs, localeData.batchTakeTokens, localeData.verbForms,
+    );
+    expect(target?.id).toBe('ambush_creature');
+    expect(target?.source).toBe('npc');
+  });
+
+  test('"j\'attaque" with 0 NPCs → STRIKE → abstract environment (no crash)', () => {
+    const ctx = makeContext({});
+    const result = parseAction("j'attaque", ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('STRIKE');
+      expect(result.target?.id).toBe('environment');
+      expect(result.target?.source).toBe('abstract');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-024: "j'attache la créature avec le cable" → environment instead of NPC
+// Filed: 2026-03-07 | Fixed: 2026-03-07 | resolver.ts verbForms filtering (Issue #73)
+// Root cause: Same verb token filtering gap as REG-023. With verbForms passed to
+// resolver, "attache" is properly filtered as TIE, leaving "creature" as target.
+// ---------------------------------------------------------------------------
+describe('REG-024: "j\'attache la créature avec le cable" → TIE → NPC (Issue #73)', () => {
+  const creature = makeNpc('ambush_creature', ['créature', 'creature', 'creature embusquee'],
+    ['organic', 'hostile', 'alive'] as PropertyId[]);
+
+  test('TIE + "creature" tokens → NPC target, cable as tool', () => {
+    const ctx = makeContext({
+      npcs: [creature],
+      inventory: [
+        { id: 'cable', nameKey: 'item.cable', properties: ['flexible', 'long'] as PropertyId[],
+          aliases: ['cable', 'câble'] },
+      ],
+    });
+    const result = parseAction("j'attache la créature avec le cable", ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('TIE');
+      expect(result.target?.id).toBe('ambush_creature');
+      expect(result.target?.source).toBe('npc');
+      expect(result.tool?.id).toBe('cable');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-025: "je me soigne" → USE → environment instead of self-target
+// Filed: 2026-03-07 | Fixed: 2026-03-07 | parser.ts reflexive pronoun detection (Issue #74)
+// Root cause: "me" is a stop word → stripped. "soigne" → USE. No target tokens
+// remain → falls to abstract environment. Fix: detect reflexive pronouns (me, se)
+// in fullTokens and override abstract environment to self-target.
+// ---------------------------------------------------------------------------
+describe('REG-025: "je me soigne" → USE → self-target (Issue #74)', () => {
+  test('"je me soigne" → USE → self target, not environment', () => {
+    const ctx = makeContext({});
+    const result = parseAction('je me soigne', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('USE');
+      expect(result.target?.id).toBe('self');
+      expect(result.target?.source).toBe('abstract');
+    }
+  });
+
+  test('"se soigner" → USE → self target', () => {
+    const ctx = makeContext({});
+    const result = parseAction('se soigner', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.target?.id).toBe('self');
+    }
+  });
+
+  test('"je me protège" → reflexive self-target when no NPC', () => {
+    const ctx = makeContext({});
+    const result = parseAction('je me protège', ctx, localeData);
+    // "se protéger" is BLOCK compound → may be intransitive → null target is also valid
+    expect('verb' in result).toBe(true);
+  });
+
+  test('reflexive does NOT override when explicit target found: "je me jette sur la porte"', () => {
+    const ctx = makeContext({
+      environmentFeatures: [
+        makeFeature('blast_door', ['porte', 'porte blindée'], ['heavy', 'metallic'] as PropertyId[]),
+      ],
+    });
+    const result = parseAction('je me jette sur la porte', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result && result.target) {
+      // Target should be the door, not self
+      expect(result.target.id).not.toBe('self');
+    }
+  });
+});

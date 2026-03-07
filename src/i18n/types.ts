@@ -59,6 +59,8 @@ export type StringKey =
   | 'stat.PER.description'
   | 'stat.CHA.description'
   | 'stat.LCK.description'
+  // Player
+  | 'player.self'
   // Classes
   | 'class.marine'
   | 'class.engineer'

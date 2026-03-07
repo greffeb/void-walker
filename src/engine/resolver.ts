@@ -277,6 +277,7 @@ export function resolveTarget(
   context: SceneContext,
   genericNpcRefs?: ReadonlySet<string>,
   batchTakeTokens?: ReadonlySet<string>,
+  verbForms?: ReadonlyMap<string, VerbId>,
 ): ResolvedTarget | null {
   if (tokens.length === 0) return null;
 
@@ -286,7 +287,9 @@ export function resolveTarget(
   ]);
 
   // Filter out tokens that are verb aliases (don't match them as targets)
-  // Uses both exact match and stem comparison to catch conjugated forms
+  // Uses both exact match and stem comparison to catch conjugated forms.
+  // Also checks verbForms (i18n-sourced) for comprehensive coverage —
+  // e.g. "attaque" maps to STRIKE in i18n but isn't in VERB_REGISTRY aliases.
   const verbEntry = VERB_REGISTRY[verb];
   const verbAliasTokens = new Set<string>();
   const verbAliasStems = new Set<string>();
@@ -302,9 +305,13 @@ export function resolveTarget(
       }
     }
   }
-  const targetTokens = tokens.filter((t) =>
-    !verbAliasTokens.has(t) && !verbAliasStems.has(stemFr(t)),
-  );
+  const targetTokens = tokens.filter((t) => {
+    // Check VERB_REGISTRY aliases (static infinitive set)
+    if (verbAliasTokens.has(t) || verbAliasStems.has(stemFr(t))) return false;
+    // Check i18n verbForms (conjugated forms, synonyms — e.g. "attaque" → STRIKE)
+    if (verbForms && verbForms.get(t) === verb) return false;
+    return true;
+  });
 
   // If no target tokens remain after verb alias filtering...
   if (targetTokens.length === 0) {

@@ -467,12 +467,37 @@ export function parseAction(
   // Resolve target from target-specific tokens (or all tokens if no preposition split).
   // Pass genericNpcRefs so pronoun/generic-reference tokens ("lui", "ennemi") resolve
   // to the primary NPC when exactly one NPC is present in the scene.
-  const target = resolveTarget(targetTokens, verbMatch.verb, context, localeData.genericNpcRefs, localeData.batchTakeTokens);
+  // Pass verbForms so the resolver can filter i18n verb forms (e.g. "attaque" for STRIKE)
+  // in addition to VERB_REGISTRY static aliases.
+  let target = resolveTarget(
+    targetTokens, verbMatch.verb, context,
+    localeData.genericNpcRefs, localeData.batchTakeTokens, localeData.verbForms,
+  );
 
   // Resolve tool if we found tool tokens (no genericNpcRefs — tools are physical items)
   const tool = toolTokens.length > 0
     ? resolveTarget(toolTokens, verbMatch.verb, context)
     : null;
+
+  // Reflexive pronoun detection: "je me soigne", "se protéger", etc.
+  // When fullTokens contain a reflexive pronoun (me, se, nous) and the resolver
+  // fell back to abstract environment (no explicit target found), override to self.
+  // This prevents "je me soigne" → USE → environment, producing USE → self instead.
+  const REFLEXIVE_PRONOUNS: ReadonlySet<string> = new Set(['me', 'se', 'nous']);
+  if (
+    target !== null
+    && target.id === 'environment'
+    && target.source === 'abstract'
+    && fullTokens.some(t => REFLEXIVE_PRONOUNS.has(t))
+  ) {
+    target = {
+      id: 'self',
+      nameKey: 'player.self',
+      properties: [],
+      isVirtual: false,
+      source: 'abstract' as import('./types').TargetSource,
+    };
+  }
 
   // TAKE with no identifiable target → ask the player to specify.
   // The resolver returns null (0 or multiple unmatched items) rather than the

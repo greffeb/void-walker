@@ -344,6 +344,25 @@ export function processTurn(
         }
       }
 
+      // Reflexive self-target path: "je me soigne" → target.id === 'self'.
+      // Auto-find an inventory healing item and use it on self (Issue #74).
+      if (!interactionResult.matched && !action.tool
+          && targetId === 'self' && action.target?.source === 'abstract'
+          && current.character !== null) {
+        const HEALING_IDS = new Set([
+          'medkit_basic', 'medical_kit', 'stimulant', 'first_aid_kit', 'health_pack',
+        ]);
+        const healingItemId = current.character.inventory.find(id => HEALING_IDS.has(id));
+        if (healingItemId) {
+          const healItemDef = findItemDefInGraph(current, healingItemId);
+          if (healItemDef && isEnrichedItem(healItemDef)) {
+            interactionResult = resolveItemUseOn(
+              healingItemId, healItemDef, 'self', current, locationId, rng,
+            );
+          }
+        }
+      }
+
       if (interactionResult.matched) {
         scenarioInteractionHandled = true;
         scenarioNarrativeOverride = interactionResult.narrativeOverride;

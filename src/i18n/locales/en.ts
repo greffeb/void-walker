@@ -34,6 +34,9 @@ export const en: LocaleStrings = {
   'creation.bonusPoints': 'Bonus points',
   'creation.start': 'Start',
 
+  // Player
+  'player.self': 'yourself',
+
   // Stats
   'stat.FOR': 'Strength',
   'stat.DEF': 'Defense',
