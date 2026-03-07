@@ -26,6 +26,7 @@ interface UseDiceAnimationReturn {
   readonly visibleDcLines: number;
   readonly showDcTotal: boolean;
   readonly displayedDieNumber: number;
+  readonly rollProgress: number;  // 0–1, drives the progress bar
   readonly visibleRollLines: number;
   readonly showResult: boolean;
   readonly handleSkipTap: () => void;
@@ -54,6 +55,7 @@ export function useDiceAnimation({
   const [displayedDieNumber, setDisplayedDieNumber] = useState(1);
   const [visibleRollLines, setVisibleRollLines] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [rollProgress, setRollProgress] = useState(0);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -78,6 +80,7 @@ export function useDiceAnimation({
     setVisibleDcLines(filteredDcLines.length);
     setShowDcTotal(true);
     setDisplayedDieNumber(diceResult?.natural ?? 1);
+    setRollProgress(1);
     setVisibleRollLines(rollLineCount);
     setShowResult(true);
     setPhase('result');
@@ -97,6 +100,7 @@ export function useDiceAnimation({
     setDisplayedDieNumber(1);
     setVisibleRollLines(0);
     setShowResult(false);
+    setRollProgress(0);
 
     let cancelled = false;
 
@@ -138,8 +142,11 @@ export function useDiceAnimation({
         function tick(): void {
           if (cancelled) { resolve(); return; }
           const elapsed = Date.now() - rollStart;
+          const progress = Math.min(elapsed / TIMING.ROLL_DURATION, 1);
+          setRollProgress(progress);
           if (elapsed >= TIMING.ROLL_DURATION) {
             setDisplayedDieNumber(result!.natural);
+            setRollProgress(1);
             haptic(30);
             resolve();
             return;
@@ -209,6 +216,7 @@ export function useDiceAnimation({
     visibleDcLines,
     showDcTotal,
     displayedDieNumber,
+    rollProgress,
     visibleRollLines,
     showResult,
     handleSkipTap,

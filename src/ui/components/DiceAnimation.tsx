@@ -1,6 +1,10 @@
 // ---------------------------------------------------------------------------
 // src/ui/components/DiceAnimation.tsx — 4-act cinematic dice roll sequence
 // ---------------------------------------------------------------------------
+// Terminal-style dice overlay matching the CRT mockup aesthetic:
+//   Orange border + bright corner brackets, big glowing center number,
+//   scanlines, progress bar, DC & bonus modifier lines.
+// ---------------------------------------------------------------------------
 
 import { useDiceAnimation } from '../hooks/useDiceAnimation';
 import { GlitchEffect } from './GlitchEffect';
@@ -25,19 +29,28 @@ function resolveLabel(line: DifficultyLine): string {
   );
 }
 
+/** Format a signed value for display (uses minus sign − for negatives) */
+function formatValue(value: number): string {
+  if (value > 0) return `+${value}`;
+  if (value < 0) return `−${Math.abs(value)}`;
+  return String(value);
+}
+
 /** Single modifier line (DC side or bonus side) */
-function DcLine({ line, isNew }: { line: DifficultyLine; isNew: boolean }): JSX.Element {
+function ModifierLine({ line, visible }: {
+  readonly line: DifficultyLine;
+  readonly visible: boolean;
+}): JSX.Element {
   const label = resolveLabel(line);
-  const sign = line.value > 0 ? '+' : '';
   const colorClass =
-    line.category === 'penalty' ? 'dc-line--penalty'
-    : line.category === 'bonus'  ? 'dc-line--bonus'
-    : 'dc-line--base';
+    line.category === 'penalty' ? 'dice-mod--penalty'
+    : line.category === 'bonus'  ? 'dice-mod--bonus'
+    : 'dice-mod--base';
 
   return (
-    <div className={`dc-line ${colorClass} ${isNew ? 'animate-impact-small' : ''}`}>
-      <span className="dc-label">{label}</span>
-      <span className="dc-value">{sign}{line.value}</span>
+    <div className={`dice-mod ${colorClass} ${visible ? 'dice-mod--visible' : ''}`}>
+      <span className="dice-mod__label">{label}</span>
+      <span className="dice-mod__value">{line.category === 'base' ? String(line.value) : formatValue(line.value)}</span>
     </div>
   );
 }
@@ -47,7 +60,7 @@ export function DiceAnimation({
 }: DiceAnimationProps): JSX.Element {
   const {
     phase, visibleDcLines, showDcTotal, displayedDieNumber,
-    visibleRollLines, showResult, handleSkipTap,
+    rollProgress, visibleRollLines, showResult, handleSkipTap,
   } = useDiceAnimation({ diceResult, difficultyBreakdown, canSkip, onComplete });
 
   // DC lines (filter zero-value lines)
@@ -76,96 +89,148 @@ export function DiceAnimation({
   const isFumble = diceResult.fumble;
   const isSuccess = diceResult.success;
 
+  // Result classification
   let resultKey: StringKey;
-  let resultColorClass: string;
-  let flashClass = '';
+  let verdictClass: string;
 
   if (isCrit) {
     resultKey = 'dice.result.critSuccess';
-    resultColorClass = 'dice-result--crit';
-    flashClass = 'animate-flash-crit';
+    verdictClass = 'dice-verdict--crit';
   } else if (isFumble) {
     resultKey = 'dice.result.critFailure';
-    resultColorClass = 'dice-result--fumble';
-    flashClass = 'animate-flash-failure';
+    verdictClass = 'dice-verdict--fumble';
   } else if (isSuccess) {
     resultKey = 'dice.result.success';
-    resultColorClass = 'dice-result--success';
-    flashClass = 'animate-flash-success';
+    verdictClass = 'dice-verdict--success';
   } else {
     resultKey = 'dice.result.failure';
-    resultColorClass = 'dice-result--failure';
-    flashClass = 'animate-flash-failure';
+    verdictClass = 'dice-verdict--fail';
   }
+
+  // Die number color class
+  const dieColorClass =
+    isCrit && showResult  ? 'dice-die--crit'
+    : isFumble && showResult ? 'dice-die--fumble'
+    : '';
 
   const isRolling = phase === 'rolling' || phase === 'roll_lines' || phase === 'result';
   const showBonusLines = (phase === 'roll_lines' || phase === 'result') && !isCrit && !isFumble;
 
+  // Status text
+  let statusText = '';
+  let statusClass = '';
+  if (phase === 'rolling') {
+    statusText = t('dice.status.rolling');
+    statusClass = 'dice-status--rolling';
+  } else if (showResult && isCrit) {
+    statusText = 'Nat 20 !';
+    statusClass = 'dice-status--crit';
+  } else if (showResult && isFumble) {
+    statusText = 'Nat 1...';
+    statusClass = 'dice-status--fumble';
+  } else if (showResult && isSuccess) {
+    statusText = `${diceResult.total} ≥ ${effectiveDC}`;
+    statusClass = 'dice-status--success';
+  } else if (showResult) {
+    statusText = `${diceResult.total} < ${effectiveDC}`;
+    statusClass = 'dice-status--fail';
+  }
+
   return (
     <GlitchEffect active={isFumble && showResult} duration={500}>
       <div
-        className={`dice-overlay ${showResult ? flashClass : ''}`}
+        className="dice-overlay"
         onClick={handleSkipTap}
         role="button"
         tabIndex={0}
         aria-label="Skip dice animation"
       >
-        {/* === ACT 1+2: DC Section === */}
-        <div className="dice-section dice-section--dc">
-          {dcLines.slice(0, visibleDcLines).map((line, i) => (
-            <DcLine key={i} line={line} isNew={i === visibleDcLines - 1} />
-          ))}
+        {/* CRT vignette inside the overlay */}
+        <div className="dice-overlay__vignette" />
 
-          {showDcTotal && (
-            <>
-              <hr className="dc-separator" />
-              <div className="dc-line dc-total animate-impact-large">
-                <span>{t('dice.dc.toBeat')}</span>
-                <span>{effectiveDC}</span>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Terminal box */}
+        <div className="dice-terminal">
+          {/* Corner brackets */}
+          <div className="dice-terminal__corner dice-terminal__corner--tl" />
+          <div className="dice-terminal__corner dice-terminal__corner--tr" />
+          <div className="dice-terminal__corner dice-terminal__corner--bl" />
+          <div className="dice-terminal__corner dice-terminal__corner--br" />
 
-        {/* === ACT 3: Die === */}
-        {isRolling && (
-          <div className="dice-section dice-section--roll">
-            <div className="dc-reminder">DC: {effectiveDC}</div>
-            <div className={`dice-number ${showResult ? resultColorClass : ''} ${isCrit && showResult ? 'animate-dice-pulse' : ''} ${isFumble && showResult ? 'animate-glitch-rgb' : ''}`}>
-              🎲 {displayedDieNumber}
-            </div>
-          </div>
-        )}
-
-        {/* === ACT 4: Roll bonus lines === */}
-        {showBonusLines && (
-          <div className="dice-section dice-section--bonuses">
-            {rollLines.slice(0, visibleRollLines).map((line, i) => (
-              <DcLine key={i} line={line} isNew={i === visibleRollLines - 1} />
+          {/* === ACT 1+2: DC Section (top) === */}
+          <div className="dice-section dice-section--dc">
+            {dcLines.map((line, i) => (
+              <ModifierLine key={i} line={line} visible={i < visibleDcLines} />
             ))}
-            {visibleRollLines >= rollLines.length && (
+
+            {showDcTotal && (
               <>
-                <hr className="dc-separator" />
-                <div className="dc-line dc-total">
-                  <span>{t('dice.roll.total')}</span>
-                  <span>{displayTotal}</span>
+                <hr className="dice-sep dice-sep--visible" />
+                <div className="dice-total dice-total--dc dice-total--visible">
+                  <span className="dice-total__label">{t('dice.dc.toBeat')}</span>
+                  <span className="dice-total__value">{effectiveDC}</span>
                 </div>
               </>
             )}
           </div>
-        )}
 
-        {/* === RESULT === */}
-        {showResult && (
-          <div className={`dice-result ${resultColorClass} ${isCrit ? 'animate-shake' : ''}`}>
-            {t(resultKey)}
-            {!isCrit && !isFumble && (
-              <span className="dice-result-margin">
-                ({isSuccess ? '+' : ''}{diceResult.total - effectiveDC})
-              </span>
-            )}
-          </div>
-        )}
+          {/* === ACT 3: Die roll (center) === */}
+          {isRolling && (
+            <div className="dice-section dice-section--roll">
+              <div className={`dice-dc-reminder ${showDcTotal ? 'dice-dc-reminder--visible' : ''}`}>
+                DC: {effectiveDC}
+              </div>
+              <div className="dice-die-wrap">
+                <div className={`dice-die ${phase === 'rolling' ? 'dice-die--rolling' : ''} ${dieColorClass} ${isCrit && showResult ? 'dice-die--pulse' : ''}`}>
+                  {displayedDieNumber}
+                </div>
+                {isCrit && showResult && (
+                  <div className="dice-die-glitch dice-die-glitch--active">
+                    {displayedDieNumber}
+                  </div>
+                )}
+              </div>
+
+              {/* Progress bar (visible during roll) */}
+              <div className={`dice-bar ${phase === 'rolling' ? 'dice-bar--visible' : ''}`}>
+                <div className="dice-bar__fill" style={{ width: `${rollProgress * 100}%` }} />
+              </div>
+              <div className={`dice-status ${statusClass} ${isRolling ? 'dice-status--visible' : ''}`}>
+                <span className="dice-status__msg">{statusText}</span>
+                {showResult && <span className="dice-status__info">×20</span>}
+              </div>
+            </div>
+          )}
+
+          {/* === ACT 4: Roll bonus lines (bottom) === */}
+          {showBonusLines && (
+            <div className="dice-section dice-section--bonuses">
+              {rollLines.map((line, i) => (
+                <ModifierLine key={i} line={line} visible={i < visibleRollLines} />
+              ))}
+              {visibleRollLines >= rollLines.length && (
+                <>
+                  <hr className="dice-sep dice-sep--visible" />
+                  <div className="dice-total dice-total--bonus dice-total--visible">
+                    <span className="dice-total__label">{t('dice.roll.total')}</span>
+                    <span className="dice-total__value">{displayTotal}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* === RESULT verdict === */}
+          {showResult && (
+            <div className={`dice-verdict ${verdictClass} ${isCrit ? 'dice-verdict--shake' : ''}`}>
+              {t(resultKey)}
+              {!isCrit && !isFumble && (
+                <span className="dice-verdict__margin">
+                  ({isSuccess ? '+' : ''}{diceResult.total - effectiveDC})
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </GlitchEffect>
   );

@@ -344,97 +344,338 @@
   animation: flash-failure 500ms ease-out;
 }
 
-/* === DICE OVERLAY LAYOUT === */
+/* === DICE OVERLAY — CRT Terminal Aesthetic === */
 
 .dice-overlay {
   position: absolute;
   inset: 0;
   top: 48px; /* below StatusBar */
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  background: rgba(5, 5, 5, 0.94);
+  background: rgba(5, 5, 5, 0.96);
   z-index: 100;
   font-family: var(--font-mono);
-  padding: 24px 20px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   cursor: pointer;
+  overflow: hidden;
 }
 
+/* CRT vignette inside the overlay */
+.dice-overlay__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.65) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --- Terminal box (the orange-bordered card) --- */
+.dice-terminal {
+  position: relative;
+  z-index: 2;
+  width: min(480px, calc(100vw - 32px));
+  padding: 28px 36px;
+  border: 1px solid var(--amber-glow);
+  box-shadow:
+    0 0 0 1px var(--amber-dim),
+    0 0 20px rgba(232, 160, 48, 0.2),
+    inset 0 0 40px rgba(0, 0, 0, 0.6);
+  background: var(--bg-panel);
+}
+
+/* Corner brackets */
+.dice-terminal__corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+}
+.dice-terminal__corner--tl {
+  top: -1px; left: -1px;
+  border-top: 2px solid #ffcc66;
+  border-left: 2px solid #ffcc66;
+}
+.dice-terminal__corner--tr {
+  top: -1px; right: -1px;
+  border-top: 2px solid #ffcc66;
+  border-right: 2px solid #ffcc66;
+}
+.dice-terminal__corner--bl {
+  bottom: -1px; left: -1px;
+  border-bottom: 2px solid #ffcc66;
+  border-left: 2px solid #ffcc66;
+}
+.dice-terminal__corner--br {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid #ffcc66;
+  border-right: 2px solid #ffcc66;
+}
+
+/* --- Sections --- */
 .dice-section {
   width: 100%;
-  max-width: 320px;
 }
 
-.dc-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: 13px;
-  padding: 2px 0;
-  letter-spacing: 0.05em;
-}
-
-.dc-line--base {
-  font-size: 15px;
-  color: var(--amber-glow);
-  font-weight: bold;
+.dice-section--dc {
+  min-height: 20px;
   margin-bottom: 4px;
 }
 
-.dc-line--penalty .dc-value { color: var(--danger); }
-.dc-line--bonus   .dc-value { color: var(--success); }
-
-.dc-total {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--amber-glow);
-  text-shadow: 0 0 12px var(--amber-glow);
-  letter-spacing: 0.1em;
+.dice-section--roll {
+  margin: 8px 0;
 }
 
-.dc-separator {
-  border: none;
-  border-top: 1px solid var(--text-system);
-  margin: 6px 0;
-  opacity: 0.4;
+.dice-section--bonuses {
+  min-height: 20px;
+  margin-top: 4px;
 }
 
-.dc-reminder {
+/* --- Modifier lines (DC & bonus) --- */
+.dice-mod {
+  display: flex;
+  justify-content: space-between;
   font-size: 12px;
-  color: var(--text-system);
-  opacity: 0.5;
-  text-align: center;
-  margin-bottom: 8px;
+  letter-spacing: 0.08em;
+  padding: 3px 0;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+.dice-mod--visible {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.dice-number {
-  font-size: 48px;
-  font-family: var(--font-display);
-  color: var(--amber-glow);
-  text-align: center;
-  text-shadow: 0 0 20px var(--amber-glow);
-  margin: 12px 0;
+.dice-mod__label {
+  color: #888;
+}
+.dice-mod__value {
+  font-weight: bold;
 }
 
-.dice-result {
-  font-size: 24px;
-  font-family: var(--font-display);
+.dice-mod--base .dice-mod__value   { color: var(--amber-glow); }
+.dice-mod--penalty .dice-mod__value { color: #ff6666; }
+.dice-mod--bonus .dice-mod__value  { color: #88ffcc; }
+
+/* --- Separator --- */
+.dice-sep {
+  border: none;
+  border-top: 1px solid #2a2a38;
+  margin: 4px 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.dice-sep--visible {
+  opacity: 1;
+}
+
+/* --- Totals (DC total & bonus total) --- */
+.dice-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 0;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+.dice-total--visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.dice-total--dc .dice-total__label { color: var(--amber-glow); font-weight: bold; }
+.dice-total--dc .dice-total__value { color: var(--amber-glow); font-weight: bold; font-size: 15px; }
+
+.dice-total--bonus .dice-total__label { color: #88ffcc; font-weight: bold; }
+.dice-total--bonus .dice-total__value { color: #88ffcc; font-weight: bold; font-size: 15px; }
+
+/* --- DC reminder (small, during roll) --- */
+.dice-dc-reminder {
   text-align: center;
+  font-size: 10px;
   letter-spacing: 0.15em;
-  margin-top: 12px;
+  color: #555;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.dice-dc-reminder--visible {
+  opacity: 1;
 }
 
-.dice-result--success { color: var(--success); text-shadow: 0 0 10px var(--success); }
-.dice-result--failure { color: var(--danger);  text-shadow: 0 0 10px var(--danger); }
-.dice-result--crit    { color: var(--crit-gold); text-shadow: 0 0 20px var(--crit-gold); }
-.dice-result--fumble  { color: var(--danger);  text-shadow: 0 0 20px var(--danger); }
+/* --- Big die number --- */
+.dice-die-wrap {
+  position: relative;
+  text-align: center;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
+}
 
-.dice-result-margin {
+.dice-die {
+  font-size: 80px;
+  font-weight: bold;
+  color: #ffdd88;
+  text-shadow:
+    0 0 10px rgba(255, 200, 80, 0.8),
+    0 0 30px rgba(255, 180, 40, 0.4),
+    0 0 60px rgba(255, 160, 0, 0.2);
+  line-height: 1;
+  letter-spacing: -2px;
+  font-family: var(--font-mono);
+}
+
+.dice-die--rolling {
+  color: var(--amber-glow);
+  text-shadow:
+    0 0 6px rgba(232, 160, 48, 0.6),
+    0 0 20px rgba(232, 160, 48, 0.3);
+}
+
+.dice-die--crit {
+  color: #88ffcc;
+  text-shadow:
+    0 0 10px rgba(100, 255, 200, 0.9),
+    0 0 40px rgba(80, 220, 160, 0.5);
+}
+
+.dice-die--fumble {
+  color: #ff6666;
+  text-shadow:
+    0 0 10px rgba(255, 80, 80, 0.9),
+    0 0 40px rgba(200, 40, 40, 0.5);
+}
+
+@keyframes dice-crit-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+.dice-die--pulse {
+  animation: dice-crit-pulse 0.8s ease-in-out 3;
+}
+
+/* Glitch overlay for crit success */
+.dice-die-glitch {
+  position: absolute;
+  inset: 0;
+  color: #88ffcc;
+  font-size: 80px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  letter-spacing: -2px;
+  pointer-events: none;
+  opacity: 0;
+  font-family: var(--font-mono);
+}
+
+@keyframes dice-glitch {
+  0%   { clip-path: inset(0 0 95% 0); transform: translateX(-4px); }
+  10%  { clip-path: inset(30% 0 50% 0); transform: translateX(4px); }
+  20%  { clip-path: inset(70% 0 10% 0); transform: translateX(-2px); }
+  30%  { clip-path: inset(10% 0 80% 0); transform: translateX(2px); }
+  40%  { clip-path: inset(50% 0 30% 0); transform: translateX(-4px); }
+  50%  { clip-path: inset(80% 0 5% 0);  transform: translateX(0); }
+  100% { clip-path: inset(0 0 0 0);     transform: translateX(0); }
+}
+.dice-die-glitch--active {
+  animation: dice-glitch 0.4s steps(1) forwards;
+  opacity: 1;
+}
+
+/* --- Progress bar --- */
+.dice-bar {
+  height: 4px;
+  background: #1a1a22;
+  border: 1px solid #333;
+  overflow: hidden;
+  margin: 8px 0 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.dice-bar--visible {
+  opacity: 1;
+}
+
+.dice-bar__fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--amber-dim), #ffcc44, #fff8cc);
+  box-shadow: 0 0 8px rgba(255, 200, 80, 0.6);
+  transition: width 0.05s linear;
+}
+
+/* --- Status line --- */
+.dice-status {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #666;
+  text-transform: uppercase;
+  height: 16px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.dice-status--visible {
+  opacity: 1;
+}
+
+.dice-status__msg  { color: #aaa; }
+.dice-status__info { color: #555; }
+
+.dice-status--rolling .dice-status__msg { color: var(--amber-glow); }
+.dice-status--crit .dice-status__msg    { color: #88ffcc; }
+.dice-status--fumble .dice-status__msg  { color: #ff6666; }
+.dice-status--success .dice-status__msg { color: var(--amber-glow); }
+.dice-status--fail .dice-status__msg    { color: #ff6666; }
+
+/* --- Result verdict --- */
+.dice-verdict {
+  text-align: center;
   font-size: 14px;
-  opacity: 0.6;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  min-height: 20px;
+  margin-top: 8px;
+  opacity: 0;
+  transform: scale(0.8);
+  animation: dice-verdict-in 0.3s ease-out forwards;
+}
+
+@keyframes dice-verdict-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dice-verdict--success { color: #88ffcc; }
+.dice-verdict--fail    { color: #ff6666; }
+.dice-verdict--crit    { color: #88ffcc; text-shadow: 0 0 12px rgba(100, 255, 200, 0.6); }
+.dice-verdict--fumble  { color: #ff6666; text-shadow: 0 0 12px rgba(255, 80, 80, 0.6); }
+
+@keyframes dice-verdict-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-3px); }
+  40%      { transform: translateX(3px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+.dice-verdict--shake {
+  animation: dice-verdict-in 0.3s ease-out forwards, dice-verdict-shake 0.4s 0.3s ease-in-out;
+}
+
+.dice-verdict__margin {
+  font-size: 11px;
+  opacity: 0.7;
   margin-left: 8px;
 }

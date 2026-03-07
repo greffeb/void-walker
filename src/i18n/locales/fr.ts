@@ -883,6 +883,7 @@ export const fr: LocaleStrings = {
   'dice.dc.toBeat':                  'À battre',
   'dice.roll.luck':                  'Chance',
   'dice.roll.total':                 'Total',
+  'dice.status.rolling':             'Lancer D20…',
   'dice.result.success':             'SUCCÈS',
   'dice.result.failure':             'ÉCHEC',
   'dice.result.critSuccess':         'CRITIQUE !',

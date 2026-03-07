@@ -858,6 +858,7 @@ export type StringKey =
   | 'dice.dc.toBeat'
   | 'dice.roll.luck'
   | 'dice.roll.total'
+  | 'dice.status.rolling'
   // --- Dice roll UI — results ---
   | 'dice.result.success'
   | 'dice.result.failure'

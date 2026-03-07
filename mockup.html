@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    overflow: hidden;
+  }
+
+  /* CRT scanlines overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* CRT vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  .terminal {
+    width: 480px;
+    padding: 32px 40px;
+    border: 1px solid #e8a030;
+    box-shadow:
+      0 0 0 1px #b07010,
+      0 0 20px rgba(232,160,48,0.2),
+      inset 0 0 40px rgba(0,0,0,0.6);
+    position: relative;
+    background: #0c0c10;
+  }
+
+  /* Corner brackets */
+  .terminal::before, .terminal::after {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+  }
+  .terminal::before {
+    top: -1px; left: -1px;
+    border-top: 2px solid #ffcc66;
+    border-left: 2px solid #ffcc66;
+  }
+  .terminal::after {
+    bottom: -1px; right: -1px;
+    border-bottom: 2px solid #ffcc66;
+    border-right: 2px solid #ffcc66;
+  }
+
+  .corner-br { position:absolute; top:-1px; right:-1px; width:12px; height:12px; border-top:2px solid #ffcc66; border-right:2px solid #ffcc66; }
+  .corner-bl { position:absolute; bottom:-1px; left:-1px; width:12px; height:12px; border-bottom:2px solid #ffcc66; border-left:2px solid #ffcc66; }
+
+  /* --- DC & Bonus line rows --- */
+  .dc-section, .bonus-section {
+    min-height: 20px;
+  }
+
+  .dc-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 3px 0;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  .dc-line.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .dc-label { color: #888; }
+  .dc-value { font-weight: bold; }
+
+  .dc-line--base .dc-value   { color: #e8a030; }
+  .dc-line--penalty .dc-value { color: #ff6666; }
+  .dc-line--bonus .dc-value  { color: #88ffcc; }
+
+  .dc-separator {
+    border: none;
+    border-top: 1px solid #2a2a38;
+    margin: 4px 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .dc-separator.show { opacity: 1; }
+
+  .dc-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 0;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .dc-total.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .dc-total .dc-label { color: #e8a030; font-weight: bold; }
+  .dc-total .dc-value { color: #e8a030; font-weight: bold; font-size: 15px; }
+
+  .bonus-total .dc-label { color: #88ffcc; }
+  .bonus-total .dc-value { color: #88ffcc; font-size: 15px; }
+
+  /* DC reminder (small, during roll) */
+  .dc-reminder {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .dc-reminder.show { opacity: 1; }
+
+  /* Big dice number */
+  .dice-display {
+    text-align: center;
+    margin: 12px 0 16px;
+    position: relative;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dice-number {
+    font-size: 80px;
+    font-weight: bold;
+    color: #ffdd88;
+    text-shadow:
+      0 0 10px rgba(255,200,80,0.8),
+      0 0 30px rgba(255,180,40,0.4),
+      0 0 60px rgba(255,160,0,0.2);
+    transition: color 0.05s;
+    line-height: 1;
+    letter-spacing: -2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .dice-number.visible { opacity: 1; }
+
+  .dice-number.rolling {
+    color: #e8a030;
+    text-shadow:
+      0 0 6px rgba(232,160,48,0.6),
+      0 0 20px rgba(232,160,48,0.3);
+  }
+
+  .dice-number.crit-success {
+    color: #88ffcc;
+    text-shadow: 0 0 10px rgba(100,255,200,0.9), 0 0 40px rgba(80,220,160,0.5);
+  }
+
+  .dice-number.crit-fail {
+    color: #ff6666;
+    text-shadow: 0 0 10px rgba(255,80,80,0.9), 0 0 40px rgba(200,40,40,0.5);
+  }
+
+  /* Progress bar */
+  .bar-wrap {
+    margin: 8px 0 4px;
+    height: 4px;
+    background: #1a1a22;
+    border: 1px solid #333;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .bar-wrap.show { opacity: 1; }
+
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #b07010, #ffcc44, #fff8cc);
+    box-shadow: 0 0 8px rgba(255,200,80,0.6);
+    transition: width 0.05s linear;
+  }
+
+  /* Status line */
+  .status {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    height: 16px;
+    display: flex;
+    justify-content: space-between;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .status.show { opacity: 1; }
+  .status .msg { color: #aaa; }
+  .status.rolling .msg { color: #e8a030; }
+  .status.done-crit .msg { color: #88ffcc; }
+  .status.done-fail .msg { color: #ff6666; }
+  .status.done-success .msg { color: #e8a030; }
+
+  /* Result verdict */
+  .verdict {
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    min-height: 20px;
+    margin-top: 8px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .verdict.show { opacity: 1; transform: scale(1); }
+  .verdict.normal { color: #e8a030; }
+  .verdict.success { color: #88ffcc; }
+  .verdict.crit { color: #88ffcc; text-shadow: 0 0 12px rgba(100,255,200,0.6); }
+  .verdict.fail { color: #ff6666; }
+  .verdict.fumble { color: #ff6666; text-shadow: 0 0 12px rgba(255,80,80,0.6); }
+
+  .result-margin {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-left: 8px;
+  }
+
+  /* Glitch effect on crit */
+  @keyframes glitch {
+    0%   { clip-path: inset(0 0 95% 0); transform: translateX(-4px); }
+    10%  { clip-path: inset(30% 0 50% 0); transform: translateX(4px); }
+    20%  { clip-path: inset(70% 0 10% 0); transform: translateX(-2px); }
+    30%  { clip-path: inset(10% 0 80% 0); transform: translateX(2px); }
+    40%  { clip-path: inset(50% 0 30% 0); transform: translateX(-4px); }
+    50%  { clip-path: inset(80% 0 5% 0);  transform: translateX(0); }
+    100% { clip-path: inset(0 0 0 0);     transform: translateX(0); }
+  }
+
+  .glitch-overlay {
+    position: absolute;
+    inset: 0;
+    color: #88ffcc;
+    font-size: 80px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    letter-spacing: -2px;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .glitch-overlay.active {
+    animation: glitch 0.4s steps(1) forwards;
+    opacity: 1;
+  }
+
+  @keyframes pulse-crit {
+    0%, 100% { transform: scale(1); }
+    50%  { transform: scale(1.06); }
+  }
+  .dice-number.pulse { animation: pulse-crit 0.8s ease-in-out 3; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-3px); }
+    40% { transform: translateX(3px); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+  }
+  .verdict.shake { animation: shake 0.4s ease-in-out; }
+
+  /* Replay button (small, bottom corner) */
+  .replay-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    background: none;
+    border: 1px solid #333;
+    color: #555;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .replay-btn:hover { border-color: #e8a030; color: #e8a030; }
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="corner-br"></div>
+  <div class="corner-bl"></div>
+
+  <!-- ACT 1+2: DC Section -->
+  <div class="dc-section" id="dcSection">
+    <div class="dc-line dc-line--base" id="dcLine0">
+      <span class="dc-label">Examiner</span>
+      <span class="dc-value">12</span>
+    </div>
+    <div class="dc-line dc-line--penalty" id="dcLine1">
+      <span class="dc-label">Obscurité</span>
+      <span class="dc-value">+3</span>
+    </div>
+    <div class="dc-line dc-line--bonus" id="dcLine2">
+      <span class="dc-label">Outil adapté</span>
+      <span class="dc-value">−2</span>
+    </div>
+    <div class="dc-line dc-line--penalty" id="dcLine3">
+      <span class="dc-label">Cauchemar</span>
+      <span class="dc-value">+2</span>
+    </div>
+    <hr class="dc-separator" id="dcSep">
+    <div class="dc-total" id="dcTotal">
+      <span class="dc-label">À battre</span>
+      <span class="dc-value">15</span>
+    </div>
+  </div>
+
+  <!-- ACT 3: Die roll -->
+  <div class="dc-reminder" id="dcReminder">DC: 15</div>
+  <div class="dice-display">
+    <div class="dice-number" id="diceNum">—</div>
+    <div class="glitch-overlay" id="glitch"></div>
+  </div>
+
+  <div class="bar-wrap" id="barWrap"><div class="bar-fill" id="bar"></div></div>
+  <div class="status" id="status">
+    <span class="msg" id="statusMsg"></span>
+    <span id="rollInfo"></span>
+  </div>
+
+  <!-- ACT 4: Bonus lines -->
+  <div class="bonus-section" id="bonusSection">
+    <div class="dc-line dc-line--bonus" id="bonusLine0">
+      <span class="dc-label">INT</span>
+      <span class="dc-value">+3</span>
+    </div>
+    <div class="dc-line dc-line--bonus" id="bonusLine1">
+      <span class="dc-label">Chance</span>
+      <span class="dc-value">+1</span>
+    </div>
+    <hr class="dc-separator" id="bonusSep">
+    <div class="dc-total bonus-total" id="bonusTotal">
+      <span class="dc-label">Total</span>
+      <span class="dc-value">17</span>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="verdict" id="verdict"></div>
+
+  <button class="replay-btn" id="replayBtn" onclick="startDemo()">↻ replay</button>
+</div>
+
+<script>
+  // === Demo data: simulates a real DiceResult + DifficultyBreakdown ===
+
+  const DEMO_SCENARIOS = [
+    { // Normal success
+      dcLines: [
+        { label: 'Examiner',     value: 12, display: '12',  category: 'base' },
+        { label: 'Obscurité',    value: 3,  display: '+3',  category: 'penalty' },
+        { label: 'Outil adapté', value: -2, display: '−2',  category: 'bonus' },
+        { label: 'Cauchemar',    value: 2,  display: '+2',  category: 'penalty' },
+      ],
+      dcTotal: 15,
+      natural: 13,
+      stat: 'INT', statValue: 3, luckBonus: 1,
+      total: 17,
+      success: true, critical: false, fumble: false,
+    },
+    { // Critical success (nat 20)
+      dcLines: [
+        { label: 'Forcer',       value: 14, display: '14',  category: 'base' },
+        { label: 'Verrouillé',   value: 4,  display: '+4',  category: 'penalty' },
+      ],
+      dcTotal: 18,
+      natural: 20,
+      stat: 'FOR', statValue: 4, luckBonus: 0,
+      total: 24,
+      success: true, critical: true, fumble: false,
+    },
+    { // Fumble (nat 1)
+      dcLines: [
+        { label: 'Pirater',      value: 10, display: '10',  category: 'base' },
+        { label: 'Toxique',      value: 2,  display: '+2',  category: 'penalty' },
+      ],
+      dcTotal: 12,
+      natural: 1,
+      stat: 'INT', statValue: 3, luckBonus: 0,
+      total: 4,
+      success: false, critical: false, fumble: true,
+    },
+    { // Normal failure
+      dcLines: [
+        { label: 'Soigner',      value: 12, display: '12',  category: 'base' },
+        { label: 'Blessé',       value: 3,  display: '+3',  category: 'penalty' },
+        { label: 'Médecin',      value: -3, display: '−3',  category: 'bonus' },
+      ],
+      dcTotal: 12,
+      natural: 5,
+      stat: 'INT', statValue: 2, luckBonus: 0,
+      total: 7,
+      success: false, critical: false, fumble: false,
+    },
+  ];
+
+  let currentScenario = 0;
+  let running = false;
+
+  // === Timing (matches useDiceAnimation.ts) ===
+  const TIMING = {
+    LINE_DELAY: 300,
+    PAUSE_AFTER_DC_LINES: 600,
+    DC_TOTAL_HOLD: 600,
+    ROLL_DURATION: 2000,
+    PAUSE_AFTER_ROLL_LINES: 600,
+    RESULT_DELAY: 300,
+    RESULT_HOLD: 2000,
+    CRIT_HOLD: 4000,
+  };
+
+  function delay(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  function resetAll() {
+    // Hide all DC lines
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById('dcLine' + i);
+      if (el) { el.classList.remove('show'); el.style.display = 'none'; }
+    }
+    document.getElementById('dcSep').classList.remove('show');
+    document.getElementById('dcTotal').classList.remove('show');
+
+    // Hide die
+    const numEl = document.getElementById('diceNum');
+    numEl.className = 'dice-number';
+    numEl.textContent = '—';
+
+    // Hide bar
+    document.getElementById('barWrap').classList.remove('show');
+    document.getElementById('bar').style.width = '0%';
+
+    // Hide status
+    document.getElementById('status').classList.remove('show');
+    document.getElementById('status').className = 'status';
+    document.getElementById('statusMsg').textContent = '';
+    document.getElementById('rollInfo').textContent = '';
+
+    // Hide DC reminder
+    document.getElementById('dcReminder').classList.remove('show');
+
+    // Hide bonus lines
+    for (let i = 0; i < 2; i++) {
+      const el = document.getElementById('bonusLine' + i);
+      if (el) { el.classList.remove('show'); el.style.display = 'none'; }
+    }
+    document.getElementById('bonusSep').classList.remove('show');
+    document.getElementById('bonusTotal').classList.remove('show');
+
+    // Hide verdict
+    const v = document.getElementById('verdict');
+    v.className = 'verdict';
+    v.textContent = '';
+
+    // Hide glitch
+    document.getElementById('glitch').className = 'glitch-overlay';
+  }
+
+  async function startDemo() {
+    if (running) return;
+    running = true;
+
+    const sc = DEMO_SCENARIOS[currentScenario % DEMO_SCENARIOS.length];
+    currentScenario++;
+
+    resetAll();
+    await delay(200);
+
+    // Populate DC lines from scenario
+    sc.dcLines.forEach((line, i) => {
+      const el = document.getElementById('dcLine' + i);
+      if (!el) return;
+      el.style.display = 'flex';
+      el.className = 'dc-line dc-line--' + line.category;
+      el.querySelector('.dc-label').textContent = line.label;
+      el.querySelector('.dc-value').textContent = line.display;
+    });
+
+    // Update DC total
+    document.getElementById('dcTotal').querySelector('.dc-value').textContent = sc.dcTotal;
+
+    // Update bonus lines
+    const bonusLine0 = document.getElementById('bonusLine0');
+    bonusLine0.querySelector('.dc-label').textContent = sc.stat;
+    bonusLine0.querySelector('.dc-value').textContent = '+' + sc.statValue;
+
+    const bonusLine1 = document.getElementById('bonusLine1');
+    if (sc.luckBonus > 0) {
+      bonusLine1.querySelector('.dc-value').textContent = '+' + sc.luckBonus;
+    }
+
+    // Update bonus total
+    const bonusTotalDisplay = sc.total > 20 ? '≥ 20' : String(sc.total);
+    document.getElementById('bonusTotal').querySelector('.dc-value').textContent = bonusTotalDisplay;
+
+    // Update DC reminder
+    document.getElementById('dcReminder').textContent = 'DC: ' + sc.dcTotal;
+
+    // === ACT 1: DC lines appear one by one ===
+    for (let i = 0; i < sc.dcLines.length; i++) {
+      await delay(TIMING.LINE_DELAY);
+      document.getElementById('dcLine' + i).classList.add('show');
+    }
+    await delay(TIMING.PAUSE_AFTER_DC_LINES);
+
+    // === ACT 2: DC total ===
+    document.getElementById('dcSep').classList.add('show');
+    document.getElementById('dcTotal').classList.add('show');
+    await delay(TIMING.DC_TOTAL_HOLD);
+
+    // === ACT 3: Rolling ===
+    const numEl = document.getElementById('diceNum');
+    numEl.className = 'dice-number rolling visible';
+
+    document.getElementById('dcReminder').classList.add('show');
+    document.getElementById('barWrap').classList.add('show');
+    const statusEl = document.getElementById('status');
+    statusEl.classList.add('show', 'rolling');
+    document.getElementById('statusMsg').textContent = 'Lancer D20...';
+
+    const rollStart = Date.now();
+    await new Promise(resolve => {
+      function tick() {
+        const elapsed = Date.now() - rollStart;
+        const progress = Math.min(elapsed / TIMING.ROLL_DURATION, 1);
+        document.getElementById('bar').style.width = (progress * 100) + '%';
+
+        if (elapsed >= TIMING.ROLL_DURATION) {
+          numEl.textContent = String(sc.natural).padStart(2, ' ');
+          resolve();
+          return;
+        }
+        const remaining = TIMING.ROLL_DURATION - elapsed;
+        if (remaining > 200) {
+          numEl.textContent = String(Math.floor(Math.random() * 20) + 1).padStart(2, ' ');
+        } else {
+          numEl.textContent = String(sc.natural).padStart(2, ' ');
+        }
+        const nextDelay = elapsed < 800 ? 50 : elapsed < 1400 ? 100 : 200;
+        setTimeout(tick, nextDelay);
+      }
+      tick();
+    });
+
+    // === Nat 20 / Nat 1: skip bonus lines ===
+    if (sc.critical || sc.fumble) {
+      const verdict = document.getElementById('verdict');
+
+      if (sc.critical) {
+        numEl.className = 'dice-number crit-success visible pulse';
+        document.getElementById('glitch').textContent = numEl.textContent;
+        document.getElementById('glitch').className = 'glitch-overlay active';
+        setTimeout(() => { document.getElementById('glitch').className = 'glitch-overlay'; }, 450);
+
+        statusEl.className = 'status show done-crit';
+        document.getElementById('statusMsg').textContent = 'Nat 20 !';
+        verdict.className = 'verdict crit show shake';
+        verdict.textContent = '✦ SUCCÈS CRITIQUE ✦';
+      } else {
+        numEl.className = 'dice-number crit-fail visible';
+        statusEl.className = 'status show done-fail';
+        document.getElementById('statusMsg').textContent = 'Nat 1...';
+        verdict.className = 'verdict fumble show shake';
+        verdict.textContent = '✕ ÉCHEC CRITIQUE ✕';
+      }
+
+      await delay(TIMING.CRIT_HOLD);
+      running = false;
+      return;
+    }
+
+    // === ACT 4: Bonus lines ===
+    numEl.className = 'dice-number visible';
+    statusEl.className = 'status show';
+    document.getElementById('statusMsg').textContent = 'D20 → ' + sc.natural;
+    document.getElementById('rollInfo').textContent = '';
+
+    bonusLine0.style.display = 'flex';
+    await delay(TIMING.LINE_DELAY);
+    bonusLine0.classList.add('show');
+
+    if (sc.luckBonus > 0) {
+      bonusLine1.style.display = 'flex';
+      await delay(TIMING.LINE_DELAY);
+      bonusLine1.classList.add('show');
+    }
+
+    await delay(TIMING.PAUSE_AFTER_ROLL_LINES);
+    document.getElementById('bonusSep').classList.add('show');
+    document.getElementById('bonusTotal').classList.add('show');
+
+    await delay(TIMING.RESULT_DELAY);
+
+    // === RESULT ===
+    const verdict = document.getElementById('verdict');
+    const margin = sc.total - sc.dcTotal;
+
+    if (sc.success) {
+      verdict.className = 'verdict success show';
+      verdict.innerHTML = '◆ Succès <span class="result-margin">(+' + margin + ')</span>';
+      statusEl.className = 'status show done-success';
+      document.getElementById('statusMsg').textContent = sc.total + ' ≥ ' + sc.dcTotal;
+    } else {
+      verdict.className = 'verdict fail show';
+      verdict.innerHTML = '✕ Échec <span class="result-margin">(' + margin + ')</span>';
+      statusEl.className = 'status show done-fail';
+      document.getElementById('statusMsg').textContent = sc.total + ' < ' + sc.dcTotal;
+    }
+
+    await delay(TIMING.RESULT_HOLD);
+    running = false;
+  }
+
+  // Auto-start on load
+  setTimeout(startDemo, 400);
+</script>
+</body>
+</html>
