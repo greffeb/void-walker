@@ -1311,3 +1311,40 @@ describe('REG-025: "je me soigne" → USE → self-target (Issue #74)', () => {
     }
   });
 });
+
+// REG-026: "je me tire une balle dans la tête" → PULL → environment
+// Issue #66: "tirer" matched PULL (tirer=to pull) instead of SHOOT.
+// Fix: Added compound pattern SHOOT:tire+balle so "tirer une balle" → SHOOT.
+// Combined with reflexive pronoun detection, "je me tire une balle" → SHOOT → self.
+describe('REG-026: "je me tire une balle" → SHOOT → self-target (Issue #66)', () => {
+  test('"je me tire une balle dans la tête" → SHOOT (not PULL)', () => {
+    const ctx = makeContext({});
+    const result = parseAction('je me tire une balle dans la tête', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('SHOOT');
+      expect(result.verbMatch.isCompound).toBe(true);
+    }
+  });
+
+  test('"je me tire une balle" → self-target via reflexive pronoun', () => {
+    const ctx = makeContext({});
+    const result = parseAction('je me tire une balle', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('SHOOT');
+      expect(result.target?.id).toBe('self');
+      expect(result.target?.source).toBe('abstract');
+    }
+  });
+
+  test('"tire une balle" without reflexive → SHOOT (no self-target override)', () => {
+    const ctx = makeContext({});
+    const result = parseAction('tire une balle', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('SHOOT');
+      expect(result.target?.id).not.toBe('self');
+    }
+  });
+});
