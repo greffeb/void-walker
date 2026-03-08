@@ -243,9 +243,10 @@ function renderClippedScene(
   if (cursor && elements.length > 0) {
     const lastIdx = elements.length - 1;
     const lastElem = elements[lastIdx]!;
+    const lastProps = lastElem.props as { style?: React.CSSProperties; children?: React.ReactNode };
     elements[lastIdx] = (
-      <div key={lastElem.key} style={lastElem.props.style}>
-        {lastElem.props.children}{cursor}
+      <div key={lastElem.key} style={lastProps.style}>
+        {lastProps.children}{cursor}
       </div>
     );
   } else if (cursor) {

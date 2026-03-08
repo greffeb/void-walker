@@ -7,7 +7,7 @@
 
 import type { MicroModule } from '../../engine/scenario';
 
-const ls = (fr: string) => ({ fr, en: '' });
+const ls = (fr: string): { fr: string; en: string } => ({ fr, en: '' });
 
 /** All encounter micro-modules */
 export const ENCOUNTER_MICRO_MODULES: readonly MicroModule[] = [

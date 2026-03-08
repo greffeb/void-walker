@@ -6,7 +6,7 @@
 
 import type { MicroModule } from '../../engine/scenario';
 
-const ls = (fr: string) => ({ fr, en: '' });
+const ls = (fr: string): { fr: string; en: string } => ({ fr, en: '' });
 
 /** All loot micro-modules */
 export const LOOT_MICRO_MODULES: readonly MicroModule[] = [
