@@ -33,6 +33,8 @@ import type {
 import type { SuggestionCandidate } from '@engine/suggestions';
 import type { NarratedScene } from '@narration/scene';
 import { createInitialGameState } from '@engine/types';
+import type { MapLayoutResult } from '@ui/utils/mapLayout';
+import { buildMapLocations, generateMapLayout } from '@ui/utils/mapLayout';
 import { flattenSceneToText, flattenSceneReminder } from './sceneHelpers';
 export { flattenSceneToText, flattenSceneReminder } from './sceneHelpers';
 
@@ -111,6 +113,11 @@ export interface GameStore {
 
   // === SAVE SLOTS ===
   saveSlots: SaveSlotInfo[];
+
+  // === MAP LAYOUT (computed once per game) ===
+  mapLayout: MapLayoutResult | null;
+  /** Flat location data for visibility checks */
+  mapLocations: Record<string, { connections: readonly string[]; name: string }> | null;
 
   // === SEED (exposed for bug reports) ===
   seed: number;
@@ -287,6 +294,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   // === SAVE SLOTS ===
   saveSlots: [],
 
+  // === MAP LAYOUT ===
+  mapLayout: null,
+  mapLocations: null,
+
   // === SEED ===
   seed: 0,
 
@@ -332,6 +343,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
       const sceneContext = getSceneContext(finalState);
 
+      // Compute spatial map layout (once per game)
+      const mapLocations = buildMapLocations(scenario.graph, 'fr');
+      const mapLayout = generateMapLayout(mapLocations, { layoutMode: 'vertical', totalTries: 50 });
+
       // Build welcome narrative
       let welcomeNarrative: NarratedScene | null = null;
       if (sceneContext.sceneDescription) {
@@ -359,6 +374,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         currentNarrative: '',
         typewriterComplete: true,
         isProcessingTurn: false,
+        mapLayout,
+        mapLocations,
         seed: _seed,
         error: null,
       });
@@ -621,6 +638,14 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     }
     _currentLocationId = sceneContext.locationId ?? null;
 
+    // Recompute map layout from saved scenario graph
+    let mapLayout: MapLayoutResult | null = null;
+    let mapLocations: Record<string, { connections: readonly string[]; name: string }> | null = null;
+    if (record.gameState.scenario?.graph) {
+      mapLocations = buildMapLocations(record.gameState.scenario.graph, 'fr');
+      mapLayout = generateMapLayout(mapLocations, { layoutMode: 'vertical', totalTries: 50 });
+    }
+
     const allSuggestions = sceneContext.scenarioSuggestions ?? [];
     const filtered = filterSuggestionsByNarrated(allSuggestions, _narratedIds, sceneContext.sceneDescription);
 
@@ -638,6 +663,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       isDiceAnimating: false,
       pendingDifficultyBreakdown: null,
       hasSeenFullAnimation: false,
+      mapLayout,
+      mapLocations,
       seed: record.seed,
       error: null,
     });
@@ -674,6 +701,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       activeModal: null,
       typewriterComplete: true,
       suggestions: [],
+      mapLayout: null,
+      mapLocations: null,
       error: null,
     });
   },
