@@ -20,7 +20,6 @@ import { ATMOSPHERE_SNIPPETS } from '../../../src/content/templates/atmosphere';
 import { THREAT_HINT_SNIPPETS } from '../../../src/content/templates/threats';
 import { createSeededRng } from '../../../src/engine/rng';
 import { getSkeletonById } from '../../../src/content/scenarios';
-import { getSettingById } from '../../../src/content/settings';
 import { ALL_MODULES } from '../../../src/content/scenarios/modules';
 import { assembleScenario } from '../../../src/engine/pacing';
 import { initGame } from '../../../src/engine/game';
@@ -657,8 +656,7 @@ describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
     // Use the exact seed from Issue #47
     const rng = createSeededRng(1541823379);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('alien_ruins')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
     const parserData = buildParserLocaleData('fr');
 
@@ -701,8 +699,7 @@ describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
     // the blocked_passage_01 module defines force path DC=12.
     const rng = createSeededRng(1541823379);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('alien_ruins')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
     const parserData = buildParserLocaleData('fr');
 
@@ -738,8 +735,7 @@ describe('REG-019: Obstacles block movement to unvisited locations', () => {
   test('getSceneContext hides unvisited exits when obstacle is unresolved', () => {
     const rng = createSeededRng(1541823379);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('alien_ruins')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
     const parserData = buildParserLocaleData('fr');
 
@@ -765,8 +761,7 @@ describe('REG-019: Obstacles block movement to unvisited locations', () => {
   test('processTurn blocks movement to unvisited location through obstacle (defense-in-depth)', () => {
     const rng = createSeededRng(1541823379);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('alien_ruins')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
     const parserData = buildParserLocaleData('fr');
 
@@ -809,8 +804,7 @@ describe('REG-019: Obstacles block movement to unvisited locations', () => {
   test('backtracking to visited location is allowed even with unresolved obstacle', () => {
     const rng = createSeededRng(1541823379);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('alien_ruins')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
     const parserData = buildParserLocaleData('fr');
 
@@ -842,8 +836,7 @@ describe('REG-019: Obstacles block movement to unvisited locations', () => {
   test('after resolving obstacle, forward exits become available', () => {
     const rng = createSeededRng(42);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('alien_ruins')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
     const parserData = buildParserLocaleData('fr');
 
@@ -905,8 +898,7 @@ describe('REG-020: NPC-obstacle intercept resolves obstacle and neutralizes NPC'
   function createNpcObstacleScenario(): ReturnType<typeof assembleScenario> {
     const rng = createSeededRng(20260303);
     const skeleton = getSkeletonById('investigate')!;
-    const setting = getSettingById('space_station')!;
-    return assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    return assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
   }
 
   function findNpcObstacleNode(scenario: ReturnType<typeof assembleScenario>): {
@@ -1060,8 +1052,7 @@ describe('REG-021: container TAKE auto-adds revealed item to inventory (Issue #4
   function buildRescueAtUnlockNode() {
     const rng = createSeededRng(46);
     const skeleton = getSkeletonById('rescue')!;
-    const setting = getSettingById('derelict_ship')!;
-    const scenario = assembleScenario(skeleton, 'quick', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, rng);
 
     // Find the node that has plasma_cutter_rack
     const unlockNode = scenario.graph.nodes.find(
@@ -1134,8 +1125,7 @@ describe('REG-022: OPEN on container feature via D20 reveals contained items (Is
     // Use marine/explorer for high FOR (5) and low DC to ensure D20 success
     const rng = createSeededRng(474751722);
     const skeleton = getSkeletonById('investigate')!;
-    const setting = getSettingById('space_station')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
 
     // Find the node containing wall_safe
     const wallSafeNode = scenario.graph.nodes.find(
@@ -1446,8 +1436,7 @@ describe('REG-027: departure phrases trigger movement (Issue #58)', () => {
   test('full game integration: "je m\'en vais" moves player with single exit', () => {
     const rng = createSeededRng(58);
     const skeleton = getSkeletonById('escape')!;
-    const setting = getSettingById('derelict_ship')!;
-    const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
     const state = initGame(scenario, 'marine', 'explorer', 'Joueur', rng);
 
     const ctx = getSceneContext(state);

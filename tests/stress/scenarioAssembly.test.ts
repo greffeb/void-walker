@@ -9,7 +9,6 @@ import { describe, it, expect } from 'vitest';
 import { assembleScenario, validateAssembledScenario } from '../../src/engine/pacing';
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../../src/content/settings';
 import type { SessionLength } from '../../src/engine/scenario';
 
 const SESSION_LENGTHS: readonly SessionLength[] = ['quick', 'standard', 'extended'];
@@ -43,15 +42,14 @@ describe('scenarioAssembly: 100 random assemblies all pass validation', () => {
     for (let i = 0; i < RUNS; i++) {
       const rng = createSeededRng(BASE_SEED + i);
       const skeleton = rngPick(rng, LAUNCH_SKELETONS);
-      const setting = rngPick(rng, LAUNCH_SETTINGS);
       const sessionLength = rngPick(rng, SESSION_LENGTHS);
 
-      const scenario = assembleScenario(skeleton, sessionLength, setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, sessionLength, ALL_MODULES, rng);
       const validation = validateAssembledScenario(scenario.graph, scenario.skeleton);
 
       if (!validation.valid) {
         failures.push(
-          `Run ${i} (seed ${BASE_SEED + i}, ${skeleton.id}×${setting.id}×${sessionLength}): ` +
+          `Run ${i} (seed ${BASE_SEED + i}, ${skeleton.id}×${sessionLength}): ` +
           validation.issues.join('; '),
         );
       }
@@ -73,8 +71,7 @@ describe('graph structural invariants across 50 random assemblies', () => {
     for (let i = 0; i < 50; i++) {
       const rng = createSeededRng(9000 + i);
       const skeleton = rngPick(rng, LAUNCH_SKELETONS);
-      const setting = rngPick(rng, LAUNCH_SETTINGS);
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
 
       const hasStart = scenario.graph.nodes.some(n => n.coreNodeId === 'start');
       expect(hasStart).toBe(true);
@@ -85,8 +82,7 @@ describe('graph structural invariants across 50 random assemblies', () => {
     for (let i = 0; i < 50; i++) {
       const rng = createSeededRng(8000 + i);
       const skeleton = rngPick(rng, LAUNCH_SKELETONS);
-      const setting = rngPick(rng, LAUNCH_SETTINGS);
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
 
       const hasBoss = scenario.graph.nodes.some(n => n.coreNodeId === 'boss');
       expect(hasBoss).toBe(true);
@@ -97,8 +93,7 @@ describe('graph structural invariants across 50 random assemblies', () => {
     for (let i = 0; i < 50; i++) {
       const rng = createSeededRng(7000 + i);
       const skeleton = rngPick(rng, LAUNCH_SKELETONS);
-      const setting = rngPick(rng, LAUNCH_SETTINGS);
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
 
       for (const edge of scenario.graph.edges) {
         if (edge.bidirectional) {
@@ -116,8 +111,7 @@ describe('graph structural invariants across 50 random assemblies', () => {
     for (let i = 0; i < 50; i++) {
       const rng = createSeededRng(6000 + i);
       const skeleton = rngPick(rng, LAUNCH_SKELETONS);
-      const setting = rngPick(rng, LAUNCH_SETTINGS);
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
 
       const ids = scenario.graph.nodes.map(n => n.id);
       const uniqueIds = new Set(ids);
@@ -129,8 +123,7 @@ describe('graph structural invariants across 50 random assemblies', () => {
     for (let i = 0; i < 50; i++) {
       const rng = createSeededRng(5000 + i);
       const skeleton = rngPick(rng, LAUNCH_SKELETONS);
-      const setting = rngPick(rng, LAUNCH_SETTINGS);
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
 
       for (const node of scenario.graph.nodes) {
         expect(node.nameKey.fr, `Node ${node.id} missing fr name`).toBeTruthy();

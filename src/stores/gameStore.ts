@@ -7,7 +7,7 @@
 
 import { create } from 'zustand';
 import { LAUNCH_SKELETONS } from '@content/scenarios';
-import { LAUNCH_SETTINGS } from '@content/settings';
+
 import { ALL_MODULES } from '@content/scenarios/modules';
 import { CLASSES } from '@content/classes';
 import { buildParserLocaleData } from '@content/parserData';
@@ -313,8 +313,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       _parserData = buildParserLocaleData('fr');
 
       const skeleton = LAUNCH_SKELETONS[Math.floor(_rng() * LAUNCH_SKELETONS.length)]!;
-      const setting = LAUNCH_SETTINGS[Math.floor(_rng() * LAUNCH_SETTINGS.length)]!;
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, _rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, _rng);
 
       // Apply bonus points to base stats
       const classDef = CLASSES[selectedClass];

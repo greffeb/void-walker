@@ -7,7 +7,6 @@ import { initGame, isGameOver, buildVictoryCheckContext } from '../../../src/eng
 import { createInitialGameState } from '../../../src/engine/types';
 import { assembleScenario } from '../../../src/engine/pacing';
 import { ESCAPE_SKELETON } from '../../../src/content/scenarios/escape';
-import { LAUNCH_SETTINGS } from '../../../src/content/settings';
 import { ALL_MODULES } from '../../../src/content/scenarios/modules/index';
 import type { AssembledScenario } from '../../../src/engine/scenario';
 import type { GameState, RngFn } from '../../../src/engine/types';
@@ -19,8 +18,7 @@ import type { GameState, RngFn } from '../../../src/engine/types';
 function fixedRng(v = 0.5): RngFn { return () => v; }
 
 function makeScenario(): AssembledScenario {
-  const setting = LAUNCH_SETTINGS[0]!;
-  return assembleScenario(ESCAPE_SKELETON, 'quick', setting, ALL_MODULES, fixedRng());
+  return assembleScenario(ESCAPE_SKELETON, 'quick', ALL_MODULES, fixedRng());
 }
 
 // ---------------------------------------------------------------------------

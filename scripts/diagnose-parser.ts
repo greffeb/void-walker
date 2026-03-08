@@ -7,14 +7,13 @@ import { parseAction } from '../src/engine/parser';
 import { buildParserLocaleData } from '../src/content/parserData';
 import { assembleScenario } from '../src/engine/pacing';
 import { ESCAPE_SKELETON } from '../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../src/content/settings';
+
 import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 import { isReformulation } from '../src/engine/types';
 
 const parserData = buildParserLocaleData('fr');
 const rng = () => 0.5;
-const setting = LAUNCH_SETTINGS[0]!;
-const scenario = assembleScenario(ESCAPE_SKELETON, 'quick', setting, ALL_MODULES, rng);
+const scenario = assembleScenario(ESCAPE_SKELETON, 'quick', ALL_MODULES, rng);
 const state = initGame(scenario, 'marine', 'survivor', 'TestPlayer', rng);
 const ctx = getSceneContext(state);
 

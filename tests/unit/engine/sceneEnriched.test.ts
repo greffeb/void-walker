@@ -64,13 +64,13 @@ function makeScenario(nodes: LocationNode[]): AssembledScenario {
     skeleton: {
       id: 'escape',
       name: { fr: 'Test', en: 'Test' },
+      theme: { id: 'derelict_ship', nameKey: { fr: 'Test', en: 'Test' }, supportedRoles: [], locationNames: {}, features: [], preferredItems: [] },
       nodes: [],
       victoryConditions: [],
       additionalDefeatConditions: [],
     },
     modules: [],
     graph: { nodes, edges } as LocationGraph,
-    setting: { id: 'derelict_ship', name: { fr: 'Test', en: 'Test' }, locationNames: {} } as unknown as import('../../../src/engine/scenario').SettingDefinition,
     sessionLength: 'quick',
   } as AssembledScenario;
 }

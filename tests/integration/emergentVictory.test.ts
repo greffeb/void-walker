@@ -12,7 +12,6 @@ import { processTurn } from '../../src/engine/processTurn';
 import { assembleScenario } from '../../src/engine/pacing';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../../src/content/settings';
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import type { GameState } from '../../src/engine/types';
 
@@ -34,7 +33,7 @@ function stepTurn(state: GameState, rng: () => number): GameState {
 
 function makeState(seed = 1): GameState {
   const rng = seededRng(seed);
-  const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', LAUNCH_SETTINGS[0]!, ALL_MODULES, rng);
+  const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', ALL_MODULES, rng);
   return initGame(scenario, 'marine', 'survivor', 'T', rng);
 }
 

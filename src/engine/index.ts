@@ -161,7 +161,7 @@ export type {
   ThreatDirectorState, ThreatEvent, ThreatBehavior,
   NarrativeSkin, ObstacleDefinition, ObstaclePath,
   BlackBoxEntry, GameHistory, KeyEvent, DangerHint,
-  SettingDefinition, SessionLength, CoreNodeId,
+  SkeletonTheme, SessionLength, CoreNodeId,
   // Chantier 1
   FeatureState, ScenarioFeatureDefinition, ScenarioItemDefinition,
   ScenarioInteraction, InteractionTrigger, InteractionResult,

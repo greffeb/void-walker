@@ -7,7 +7,6 @@ import { getSceneContext } from '../../../src/engine/scene';
 import { initGame } from '../../../src/engine/game';
 import { assembleScenario } from '../../../src/engine/pacing';
 import { ESCAPE_SKELETON } from '../../../src/content/scenarios/escape';
-import { LAUNCH_SETTINGS } from '../../../src/content/settings';
 import { ALL_MODULES } from '../../../src/content/scenarios/modules/index';
 import { createInitialGameState } from '../../../src/engine/types';
 import { markItemTaken, markItemDropped, getExitsWithStatus, createVisitState } from '../../../src/engine/backtracking';
@@ -21,7 +20,7 @@ import type { RngFn, SceneDescription } from '../../../src/engine/types';
 function fixedRng(v = 0.5): RngFn { return () => v; }
 
 function makeScenario(): AssembledScenario {
-  return assembleScenario(ESCAPE_SKELETON, 'quick', LAUNCH_SETTINGS[0]!, ALL_MODULES, fixedRng());
+  return assembleScenario(ESCAPE_SKELETON, 'quick', ALL_MODULES, fixedRng());
 }
 
 // ---------------------------------------------------------------------------

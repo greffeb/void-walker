@@ -10,7 +10,6 @@ import type {
   CoreSkeleton,
   CoreNodeId,
   ScenarioModule,
-  SettingDefinition,
   SessionLength,
   SegmentId,
   PlacedModule,
@@ -110,27 +109,22 @@ export function selectSkin(module: ScenarioModule, assignedTension: number): Nar
 // COMPATIBILITY CHECK
 // ---------------------------------------------------------------------------
 
-/** Check if a module is compatible with a given setting */
-export function isModuleCompatible(module: ScenarioModule, setting: SettingDefinition): boolean {
+/** Check if a module is compatible with a given skeleton */
+export function isModuleCompatible(module: ScenarioModule, skeleton: CoreSkeleton): boolean {
   const compat = module.compatibility;
 
   // Layer 1: compatibility filter
   if (!compat.universal) {
-    if (compat.settingIds && !compat.settingIds.includes(setting.id)) return false;
-    if (compat.categories) {
-      const hasCategory = compat.categories.some(c => setting.categories.includes(c));
-      if (!hasCategory) return false;
-    }
-    if (!compat.settingIds && !compat.categories) return false; // no filter defined
+    if (!compat.skeletons?.includes(skeleton.id)) return false;
   }
 
-  // Layer 2: every location role the module needs must exist in the setting
+  // Layer 2: every location role the module needs must exist in the skeleton's theme
   const allRoles = [
     ...module.locations.map(l => l.role),
     ...module.sideRooms.map(l => l.role),
   ];
   for (const role of allRoles) {
-    if (!setting.supportedRoles.includes(role)) return false;
+    if (!skeleton.theme.supportedRoles.includes(role)) return false;
   }
 
   return true;
@@ -156,14 +150,14 @@ export function assignTensionValues(
 // LOCATION NAME RESOLUTION
 // ---------------------------------------------------------------------------
 
-/** Resolve an abstract location role to a setting-specific name */
+/** Resolve an abstract location role to a theme-specific name */
 export function resolveLocationName(
   role: string,
-  setting: SettingDefinition,
+  skeleton: CoreSkeleton,
   rng: RngFn,
   usedNames: Set<string>,
 ): LocaleString {
-  const pool = setting.locationNames[role];
+  const pool = skeleton.theme.locationNames[role];
   if (!pool || pool.length === 0) {
     return { fr: `Zone inconnue (${role})`, en: '' };
   }
@@ -198,13 +192,12 @@ function beatFromSegment(segment: SegmentId): StoryBeat {
 function createNodeFromSkeleton(
   skeleton: CoreSkeleton,
   nodeId: CoreNodeId,
-  setting: SettingDefinition,
   rng: RngFn,
   usedNames: Set<string>,
 ): LocationNode {
   const nodeDef = skeleton.nodes.find(n => n.id === nodeId)!;
   const locationDef = skeleton.nodeLocations[nodeId];
-  const name = resolveLocationName(locationDef.locationRole, setting, rng, usedNames);
+  const name = resolveLocationName(locationDef.locationRole, skeleton, rng, usedNames);
 
   return {
     id: nodeId,
@@ -227,11 +220,11 @@ function createNodeFromModule(
   loc: ModuleLocationDef,
   pm: PlacedModule,
   moduleIndex: number,
-  setting: SettingDefinition,
+  skeleton: CoreSkeleton,
   rng: RngFn,
   usedNames: Set<string>,
 ): LocationNode {
-  const name = resolveLocationName(loc.role, setting, rng, usedNames);
+  const name = resolveLocationName(loc.role, skeleton, rng, usedNames);
   const beat = beatFromSegment(pm.segment);
 
   return {
@@ -256,7 +249,6 @@ function createNodeFromModule(
 export function buildLocationGraph(
   skeleton: CoreSkeleton,
   modules: readonly PlacedModule[],
-  setting: SettingDefinition,
   rng: RngFn,
 ): LocationGraph {
   const nodes: LocationNode[] = [];
@@ -267,7 +259,7 @@ export function buildLocationGraph(
   for (const segment of SEGMENTS) {
     // Add the segment's start core node (if not already added by previous segment's end)
     if (!nodes.some(n => n.id === segment.startNode)) {
-      nodes.push(createNodeFromSkeleton(skeleton, segment.startNode, setting, rng, usedNames));
+      nodes.push(createNodeFromSkeleton(skeleton, segment.startNode, rng, usedNames));
     }
 
     const segmentModules = modules
@@ -281,7 +273,7 @@ export function buildLocationGraph(
 
       // Add critical path locations
       for (const loc of pm.module.locations.filter(l => l.onCriticalPath)) {
-        const node = createNodeFromModule(loc, pm, pm.index, setting, rng, usedNames);
+        const node = createNodeFromModule(loc, pm, pm.index, skeleton, rng, usedNames);
         nodes.push(node);
         // Bidirectional edge to previous
         edges.push({ from: prevNodeId, to: node.id, bidirectional: true });
@@ -293,7 +285,7 @@ export function buildLocationGraph(
       // Add side rooms (connected to first critical path node, or module's first location)
       const anchorId = firstCriticalPathId ?? prevNodeId;
       for (const side of pm.module.sideRooms) {
-        const sideNode = createNodeFromModule(side, pm, pm.index, setting, rng, usedNames);
+        const sideNode = createNodeFromModule(side, pm, pm.index, skeleton, rng, usedNames);
         nodes.push(sideNode);
         edges.push({ from: anchorId, to: sideNode.id, bidirectional: true });
         edges.push({ from: sideNode.id, to: anchorId, bidirectional: true });
@@ -301,7 +293,7 @@ export function buildLocationGraph(
 
       // Also add non-critical-path locations in module (if any)
       for (const loc of pm.module.locations.filter(l => !l.onCriticalPath)) {
-        const node = createNodeFromModule(loc, pm, pm.index, setting, rng, usedNames);
+        const node = createNodeFromModule(loc, pm, pm.index, skeleton, rng, usedNames);
         nodes.push(node);
         edges.push({ from: anchorId, to: node.id, bidirectional: true });
         edges.push({ from: node.id, to: anchorId, bidirectional: true });
@@ -310,7 +302,7 @@ export function buildLocationGraph(
 
     // Ensure end node exists and is connected
     if (!nodes.some(n => n.id === segment.endNode)) {
-      nodes.push(createNodeFromSkeleton(skeleton, segment.endNode, setting, rng, usedNames));
+      nodes.push(createNodeFromSkeleton(skeleton, segment.endNode, rng, usedNames));
     }
     // Connect last module/node to segment end (if not already there)
     if (prevNodeId !== segment.endNode && !edges.some(e => e.from === prevNodeId && e.to === segment.endNode)) {
@@ -321,7 +313,7 @@ export function buildLocationGraph(
 
   // Add the resolution node (final 6th node)
   if (!nodes.some(n => n.id === 'resolution')) {
-    nodes.push(createNodeFromSkeleton(skeleton, 'resolution', setting, rng, usedNames));
+    nodes.push(createNodeFromSkeleton(skeleton, 'resolution', rng, usedNames));
   }
   // Connect boss → resolution
   if (!edges.some(e => e.from === 'boss' && e.to === 'resolution')) {
@@ -466,11 +458,10 @@ export function validateAssembledScenario(
 // MAIN ASSEMBLY
 // ---------------------------------------------------------------------------
 
-/** Assemble a full scenario from skeleton + setting + session length */
+/** Assemble a full scenario from skeleton + session length */
 export function assembleScenario(
   skeleton: CoreSkeleton,
   sessionLength: SessionLength,
-  setting: SettingDefinition,
   allModules: readonly ScenarioModule[],
   rng: RngFn,
 ): AssembledScenario {
@@ -479,7 +470,7 @@ export function assembleScenario(
   const moduleCount = rngIntBetween(rng, countRange.min, countRange.max);
 
   // 2. Get compatible module pool
-  const pool = allModules.filter(m => isModuleCompatible(m, setting));
+  const pool = allModules.filter(m => isModuleCompatible(m, skeleton));
 
   // 3. Distribute modules across segments (weighted)
   const placed: PlacedModule[] = [];
@@ -509,13 +500,12 @@ export function assembleScenario(
   const placedWithTension = assignTensionValues(placed, rng) as PlacedModule[];
 
   // 5. Build location graph
-  const graph = buildLocationGraph(skeleton, placedWithTension, setting, rng);
+  const graph = buildLocationGraph(skeleton, placedWithTension, rng);
 
   return {
     skeleton,
     modules: placedWithTension,
     graph,
-    setting,
     sessionLength,
   };
 }

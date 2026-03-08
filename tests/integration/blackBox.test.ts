@@ -22,8 +22,8 @@ function makeHistory(overrides: Partial<GameHistory> = {}): GameHistory {
     className: 'Marine',
     classId: 'marine',
     skeletonId: 'escape',
-    settingId: 'derelict_ship',
-    settingName: 'l\'Épave',
+    themeId: 'derelict_ship',
+    themeName: 'l\'Épave',
     difficulty: 'survivor',
     turnsPlayed: 18,
     keyEvents: [
@@ -57,7 +57,7 @@ describe('BlackBox: death journal generation', () => {
     expect(entry.playerName).toBe('Soldat Perdu');
     expect(entry.classId).toBe('marine');
     expect(entry.skeletonId).toBe('escape');
-    expect(entry.settingId).toBe('derelict_ship');
+    expect(entry.themeId).toBe('derelict_ship');
     expect(entry.outcome).toBe('death');
     expect(entry.turnsPlayed).toBe(18);
     expect(entry.causeOfDeath).toBe('Asphyxiation dans le couloir dépressurisé.');
@@ -126,7 +126,7 @@ describe('BlackBox: placement logic', () => {
     playerName: 'Ancien Soldat',
     classId: 'marine',
     skeletonId: 'escape',
-    settingId: 'derelict_ship',
+    themeId: 'derelict_ship',
     difficulty: 'survivor',
     outcome: 'death',
     turnsPlayed: 15,
@@ -181,7 +181,7 @@ describe('BlackBox: placement logic', () => {
 describe('BlackBox: full round-trip', () => {
   beforeEach(() => resetEntryCounter());
 
-  it('entry ID encodes skeleton and setting', () => {
+  it('entry ID encodes skeleton and theme', () => {
     const history = makeHistory();
     const entry = generateBlackBoxJournal(history, 'death');
     expect(entry.id).toContain('escape');

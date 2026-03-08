@@ -8,18 +8,17 @@ import { parseAction } from '../src/engine/parser';
 import { buildParserLocaleData } from '../src/content/parserData';
 import { assembleScenario } from '../src/engine/pacing';
 import { ESCAPE_SKELETON, INVESTIGATE_SKELETON } from '../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../src/content/settings';
+
 import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 import { isReformulation } from '../src/engine/types';
 import type { GameState } from '../src/engine/types';
 
 const parserData = buildParserLocaleData('fr');
 const rng = () => 0.5;
-const setting = LAUNCH_SETTINGS[0]!;
 
 // ===== ESCAPE: Try to complete the game step by step =====
 console.log('\n===== TRYING TO WIN ESCAPE SCENARIO =====');
-const escScenario = assembleScenario(ESCAPE_SKELETON, 'quick', setting, ALL_MODULES, rng);
+const escScenario = assembleScenario(ESCAPE_SKELETON, 'quick', ALL_MODULES, rng);
 let state: GameState = initGame(escScenario, 'marine', 'survivor', 'TestPlayer', rng);
 
 function doAction(s: GameState, input: string): GameState {
@@ -61,7 +60,7 @@ console.log('  ★ Phase:', state.phase, 'VictoryResult:', state.victoryResult);
 
 // ===== INVESTIGATE: Try to complete primary victory =====
 console.log('\n===== TRYING TO WIN INVESTIGATE SCENARIO =====');
-const invScenario = assembleScenario(INVESTIGATE_SKELETON, 'quick', setting, ALL_MODULES, rng);
+const invScenario = assembleScenario(INVESTIGATE_SKELETON, 'quick', ALL_MODULES, rng);
 let invState: GameState = initGame(invScenario, 'engineer', 'survivor', 'TestPlayer', rng);
 
 // Take items from start

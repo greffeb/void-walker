@@ -168,6 +168,19 @@ export interface CoreSkeleton {
 
   /** Defeat conditions beyond standard player_death */
   readonly additionalDefeatConditions?: readonly DefeatCondition[];
+
+  /** Theme data embedded in this skeleton (replaces SettingDefinition) */
+  readonly theme: SkeletonTheme;
+}
+
+/** Theme data embedded in a skeleton (replaces SettingDefinition) */
+export interface SkeletonTheme {
+  readonly id: string;
+  readonly nameKey: LocaleString;
+  readonly supportedRoles: readonly string[];
+  readonly locationNames: Readonly<Record<string, readonly LocaleString[]>>;
+  readonly features: readonly string[];
+  readonly preferredItems: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -218,12 +231,8 @@ export type ModuleType =
 
 /** Compatibility filter for a scenario module */
 export interface ModuleCompatibility {
-  /** If set, module works in any setting */
   readonly universal?: true;
-  /** If set, module requires a setting in these categories */
-  readonly categories?: readonly SettingCategory[];
-  /** If set, module only works in these specific settings */
-  readonly settingIds?: readonly string[];
+  readonly skeletons?: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -327,28 +336,6 @@ export interface ScenarioModule {
 }
 
 // ---------------------------------------------------------------------------
-// SETTING DEFINITIONS
-// ---------------------------------------------------------------------------
-
-/** Category tags for settings */
-export type SettingCategory = 'space_vessel' | 'facility' | 'alien';
-
-/** A game setting (provides concrete names for abstract location roles) */
-export interface SettingDefinition {
-  readonly id: string;
-  readonly nameKey: LocaleString;
-  readonly categories: readonly SettingCategory[];
-  /** Abstract roles this setting supports */
-  readonly supportedRoles: readonly string[];
-  /** Maps each role to 20+ location name variants */
-  readonly locationNames: Readonly<Record<string, readonly LocaleString[]>>;
-  /** Setting-specific environmental features */
-  readonly features: readonly string[];
-  /** Items more commonly found in this setting */
-  readonly preferredItems: readonly string[];
-}
-
-// ---------------------------------------------------------------------------
 // SESSION LENGTH
 // ---------------------------------------------------------------------------
 
@@ -420,7 +407,6 @@ export interface AssembledScenario {
   readonly skeleton: CoreSkeleton;
   readonly modules: readonly PlacedModule[];
   readonly graph: LocationGraph;
-  readonly setting: SettingDefinition;
   readonly sessionLength: SessionLength;
   /** Black Box placement, if a previous journal was found */
   readonly blackBoxLocationId?: string;
@@ -528,7 +514,7 @@ export interface BlackBoxEntry {
   readonly playerName: string;
   readonly classId: string;
   readonly skeletonId: string;
-  readonly settingId: string;
+  readonly themeId: string;
   readonly difficulty: string;
   readonly outcome: 'victory' | 'death';
   readonly turnsPlayed: number;
@@ -544,8 +530,8 @@ export interface GameHistory {
   readonly className: string;
   readonly classId: string;
   readonly skeletonId: string;
-  readonly settingId: string;
-  readonly settingName: string;
+  readonly themeId: string;
+  readonly themeName: string;
   readonly difficulty: string;
   readonly turnsPlayed: number;
   readonly causeOfDeath?: string;

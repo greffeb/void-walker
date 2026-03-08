@@ -12,7 +12,6 @@ import { processTurn } from '../../src/engine/processTurn';
 import { assembleScenario } from '../../src/engine/pacing';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../../src/content/settings';
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import type { GameState } from '../../src/engine/types';
 
@@ -44,8 +43,7 @@ describe('scenarioCompletion: victory check wired into processTurn', () => {
   it('victory is detected when player reaches win condition', () => {
     const rng = seededRng(1);
     const skeleton = LAUNCH_SKELETONS[0]!; // escape
-    const setting = LAUNCH_SETTINGS[0]!;
-    const scenario = assembleScenario(skeleton, 'quick', setting, ALL_MODULES, rng);
+    const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'survivor', 'TestBot', rng);
 
     // Manually force a victory condition: place player at the resolution node
@@ -82,7 +80,7 @@ describe('scenarioCompletion: victory check wired into processTurn', () => {
 
   it('buildVictoryCheckContext matches game state after initGame', () => {
     const rng = seededRng(2);
-    const scenario = assembleScenario(LAUNCH_SKELETONS[1]!, 'quick', LAUNCH_SETTINGS[1]!, ALL_MODULES, rng);
+    const scenario = assembleScenario(LAUNCH_SKELETONS[1]!, 'quick', ALL_MODULES, rng);
     const state = initGame(scenario, 'engineer', 'survivor', 'T', rng);
     const ctx = buildVictoryCheckContext(state);
 
@@ -94,7 +92,7 @@ describe('scenarioCompletion: victory check wired into processTurn', () => {
   it('all 3 skeletons produce a valid game state after initGame', () => {
     for (const skeleton of LAUNCH_SKELETONS) {
       const rng = seededRng(skeleton.id.length * 7);
-      const scenario = assembleScenario(skeleton, 'quick', LAUNCH_SETTINGS[0]!, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, rng);
       const state = initGame(scenario, 'medic', 'survivor', 'T', rng);
 
       expect(state.phase).toBe('playing');
@@ -108,7 +106,7 @@ describe('scenarioCompletion: victory check wired into processTurn', () => {
 
   it('processTurn does not crash on any valid input across 20 turns', () => {
     const rng = seededRng(99);
-    const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', LAUNCH_SETTINGS[0]!, ALL_MODULES, rng);
+    const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'survivor', 'T', rng);
 
     const inputs = [
@@ -134,7 +132,7 @@ describe('scenarioCompletion: victory check wired into processTurn', () => {
 describe('scenarioCompletion: threat director wired into processTurn', () => {
   it('threat director state updates after turns', () => {
     const rng = seededRng(7);
-    const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', LAUNCH_SETTINGS[0]!, ALL_MODULES, rng);
+    const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'survivor', 'T', rng);
     const initialDirector = state.threatDirectorState;
 
@@ -153,7 +151,7 @@ describe('scenarioCompletion: threat director wired into processTurn', () => {
 
   it('beat transitions happen when player moves to core nodes', () => {
     const rng = seededRng(13);
-    const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', LAUNCH_SETTINGS[0]!, ALL_MODULES, rng);
+    const scenario = assembleScenario(LAUNCH_SKELETONS[0]!, 'quick', ALL_MODULES, rng);
     let state = initGame(scenario, 'marine', 'survivor', 'T', rng);
 
     // Initial beat should be 'intro'

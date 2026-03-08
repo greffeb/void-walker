@@ -8,7 +8,9 @@
 // and ScenarioItemDefinition — mechanical interactions, properties, aliases.
 // ---------------------------------------------------------------------------
 
-import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition } from '@engine/scenario';
+import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
+
+function ls(fr: string): LocaleString { return { fr, en: '' }; }
 
 // ============================= ITEMS ========================================
 
@@ -1787,4 +1789,119 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
   additionalDefeatConditions: [
     { type: 'time_expired', resource: 'o2' },
   ],
+
+  theme: {
+    id: 'derelict_ship',
+    nameKey: { fr: 'Épave Stellaire', en: 'Derelict Ship' },
+    supportedRoles: [
+      'passage', 'control_room', 'storage', 'medical', 'quarters',
+      'hub', 'dead_end', 'hazard_zone', 'engineering', 'airlock',
+    ],
+    locationNames: {
+      passage: [
+        ls('Coursive principale'), ls('Coursive latérale'), ls('Couloir de service'),
+        ls('Couloir résidentiel'), ls('Passage étroit'), ls('Conduit de maintenance'),
+        ls('Coursive arrière'), ls('Passerelle suspendue'), ls('Tunnel de câbles'),
+        ls('Coursive pressurisée'), ls('Corridor est'), ls('Corridor ouest'),
+        ls('Couloir d\'accès'), ls('Passage de secours'), ls('Coursive commerciale'),
+        ls('Couloir technique'), ls('Passerelle de communication'), ls('Passage blindé'),
+        ls('Coursive de fuite'), ls('Tunnel de survie'), ls('Corridor principal'),
+        ls('Passerelle inférieure'),
+      ],
+      control_room: [
+        ls('Passerelle de commandement'), ls('Salle de contrôle principale'),
+        ls('Poste de pilotage'), ls('Centre de navigation'), ls('Salle des opérations'),
+        ls('Poste de commandement'), ls('Salle de surveillance'), ls('Centre de contrôle'),
+        ls('Tableau de bord principal'), ls('Poste de vigie'), ls('Salle de coordination'),
+        ls('Centre de gestion'), ls('Poste de contrôle auxiliaire'), ls('Salle des instruments'),
+        ls('Centre de commandement tactique'), ls('Poste de navigation avancé'),
+        ls('Salle de contrôle de secours'), ls('Centre d\'opérations'),
+        ls('Poste de pilotage secondaire'), ls('Salle de contrôle des moteurs'),
+        ls('Centre de coordination du vaisseau'), ls('Poste de commandement arrière'),
+      ],
+      storage: [
+        ls('Soute principale'), ls('Soute secondaire'), ls('Cale à provisions'),
+        ls('Entrepôt de fret'), ls('Soute de fret'), ls('Compartiment de stockage'),
+        ls('Réserve d\'équipement'), ls('Soute d\'armement'), ls('Cale arrière'),
+        ls('Soute sous pression'), ls('Entrepôt d\'urgence'), ls('Dépôt de matériel'),
+        ls('Soute réfrigérée'), ls('Cale de chargement'), ls('Soute de ravitaillement'),
+        ls('Compartiment de réserve'), ls('Dépôt de composants'), ls('Soute avant'),
+        ls('Cale à outils'), ls('Soute de matériel médical'), ls('Entrepôt de fret lourd'),
+        ls('Cale de stockage secondaire'),
+      ],
+      medical: [
+        ls('Infirmerie principale'), ls('Infirmerie de bord'), ls('Salle de soins'),
+        ls('Infirmerie d\'urgence'), ls('Centre médical'), ls('Salle d\'opérations médicales'),
+        ls('Poste de premiers secours'), ls('Infirmerie secondaire'), ls('Salle de cryogénie médicale'),
+        ls('Centre de traumatologie'), ls('Infirmerie chirurgicale'), ls('Salle de triage'),
+        ls('Infirmerie de quarantaine'), ls('Centre de décontamination'), ls('Salle de soins intensifs'),
+        ls('Infirmerie de recherche'), ls('Compartiment médical'), ls('Poste de soin d\'urgence'),
+        ls('Salle de diagnostic'), ls('Centre de soins avancé'), ls('Infirmerie principale de pont'),
+        ls('Salle de médecine d\'urgence'),
+      ],
+      quarters: [
+        ls('Cabines de l\'équipage'), ls('Cabines résidentielles'), ls('Dortoirs de l\'équipage'),
+        ls('Quartiers d\'officiers'), ls('Cabines de couchage'), ls('Zone de vie de l\'équipage'),
+        ls('Module résidentiel'), ls('Compartiments de repos'), ls('Quartiers du personnel'),
+        ls('Cabines de navigation'), ls('Quartiers du capitaine'), ls('Cabines de l\'ingénierie'),
+        ls('Quartiers médicaux'), ls('Module de repos'), ls('Cabines visiteurs'),
+        ls('Compartiments résidentiels'), ls('Zone de récupération'), ls('Cabines de garde'),
+        ls('Quartiers de sécurité'), ls('Module de vie'), ls('Cabines de pont supérieur'),
+        ls('Quartiers d\'équipage arrière'),
+      ],
+      hub: [
+        ls('Carrefour des coursives'), ls('Jonction centrale'), ls('Nœud de distribution'),
+        ls('Carrefour principal'), ls('Intersection des couloirs'), ls('Carrefour de service'),
+        ls('Jonction de maintenance'), ls('Nœud de circulation'), ls('Carrefour d\'urgence'),
+        ls('Jonction de sécurité'), ls('Centre de distribution'), ls('Carrefour technique'),
+        ls('Nœud central de navigation'), ls('Carrefour des sections'), ls('Jonction des systèmes'),
+        ls('Carrefour de commandement'), ls('Nœud d\'aiguillage'), ls('Carrefour de fuite'),
+        ls('Jonction pressurisée'), ls('Centre de communication'), ls('Nœud de jonction principal'),
+        ls('Carrefour des modules'),
+      ],
+      dead_end: [
+        ls('Cul-de-sac de maintenance'), ls('Impasse technique'), ls('Compartiment sans issue'),
+        ls('Alcôve de service'), ls('Renfoncement de câbles'), ls('Cul-de-sac arrière'),
+        ls('Impasse blindée'), ls('Compartiment isolé'), ls('Alcôve de stockage'),
+        ls('Cul-de-sac résidentiel'), ls('Impasse de service'), ls('Compartiment de secours'),
+        ls('Alcôve d\'urgence'), ls('Renfoncement de sécurité'), ls('Cul-de-sac technique'),
+        ls('Impasse de navigation'), ls('Compartiment verrouillé'), ls('Alcôve de maintenance'),
+        ls('Impasse pressurisée'), ls('Renfoncement aveugle'), ls('Cul-de-sac de câblage'),
+        ls('Compartiment de dérivation'),
+      ],
+      hazard_zone: [
+        ls('Salle des moteurs'), ls('Chambre de réacteur'), ls('Compartiment de propulsion'),
+        ls('Zone de radiation'), ls('Salle de générateur'), ls('Chambre de fusion'),
+        ls('Zone de carburant'), ls('Compartiment de refroidissement'), ls('Salle des turbines'),
+        ls('Zone d\'explosion'), ls('Chambre de fission'), ls('Zone de décompression'),
+        ls('Salle de pression critique'), ls('Compartiment de plasma'), ls('Zone de fuite de carburant'),
+        ls('Chambre de combustion'), ls('Zone de haute tension'), ls('Salle de réfrigération critique'),
+        ls('Compartiment de radioactivité'), ls('Zone de risque chimique'),
+        ls('Salle des propulseurs principaux'), ls('Chambre d\'éjection des déchets'),
+      ],
+      engineering: [
+        ls('Compartiment technique principal'), ls('Salle de maintenance'), ls('Zone de réparation'),
+        ls('Atelier de l\'ingénierie'), ls('Compartiment des systèmes'), ls('Salle des machines'),
+        ls('Zone d\'entretien'), ls('Atelier de mécanique'), ls('Compartiment électrique'),
+        ls('Salle de l\'ingénierie avancée'), ls('Zone de diagnostic technique'), ls('Atelier de soudure'),
+        ls('Compartiment des circuits'), ls('Salle de contrôle des systèmes'),
+        ls('Zone de maintenance préventive'), ls('Atelier d\'assemblage'),
+        ls('Compartiment de réparation d\'urgence'), ls('Salle des équipements'),
+        ls('Zone de mécanique avancée'), ls('Atelier de navigation'),
+        ls('Compartiment de l\'ingénierie secondaire'), ls('Salle de diagnostic des pannes'),
+      ],
+      airlock: [
+        ls('Sas principal'), ls('Sas de secours'), ls('Sas d\'embarquement'),
+        ls('Sas EVA'), ls('Sas de décontamination'), ls('Sas d\'urgence'),
+        ls('Sas de transfert'), ls('Sas d\'amarrage'), ls('Sas secondaire'),
+        ls('Sas de fret'), ls('Sas de maintenance extérieure'), ls('Sas de sortie'),
+        ls('Sas blindé'), ls('Sas de quarantaine'), ls('Sas de convoyage'),
+        ls('Sas d\'accès extérieur'), ls('Sas de pressurisation'), ls('Sas de survie'),
+        ls('Sas arrière'), ls('Sas central'), ls('Sas d\'évacuation'),
+        ls('Sas de départ EVA'),
+      ],
+    },
+    features: ['airlock', 'viewport', 'hull_panel', 'life_support', 'cryopod', 'emergency_locker', 'status_terminal'],
+    preferredItems: ['EVA_suit', 'plasma_cutter', 'access_keycard', 'welding_torch', 'emergency_flashlight', 'medkit_basic'],
+  },
 };

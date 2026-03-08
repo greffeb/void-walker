@@ -27,8 +27,8 @@ function makeHistory(overrides: Partial<GameHistory> = {}): GameHistory {
     className: 'Marine',
     classId: 'marine',
     skeletonId: 'escape_the_derelict',
-    settingId: 'derelict_ship',
-    settingName: 'le Vaisseau Dérelict',
+    themeId: 'derelict_ship',
+    themeName: 'le Vaisseau Dérelict',
     difficulty: 'survivor',
     turnsPlayed: 12,
     keyEvents: [],
@@ -51,7 +51,7 @@ function makeBlackBoxEntry(overrides: Partial<BlackBoxEntry> = {}): BlackBoxEntr
     playerName: 'Vasquez',
     classId: 'marine',
     skeletonId: 'escape_the_derelict',
-    settingId: 'derelict_ship',
+    themeId: 'derelict_ship',
     difficulty: 'survivor',
     outcome: 'death',
     turnsPlayed: 12,
@@ -203,7 +203,7 @@ describe('generateEntryId', () => {
     expect(generateEntryId(1, 'escape_the_derelict', 'derelict_ship')).toMatch(/^bb_/);
   });
 
-  it('includes entry number, skeletonId, and settingId', () => {
+  it('includes entry number, skeletonId, and themeId', () => {
     const id = generateEntryId(42, 'my_skeleton', 'my_setting');
     expect(id).toBe('bb_42_my_skeleton_my_setting');
   });
@@ -404,8 +404,8 @@ describe('BLACK_BOX_PLACEMENT_CONFIG', () => {
     expect(BLACK_BOX_PLACEMENT_CONFIG.maxEntries).toBe(20);
   });
 
-  it('matchBy is "setting"', () => {
-    expect(BLACK_BOX_PLACEMENT_CONFIG.matchBy).toBe('setting');
+  it('matchBy is "theme"', () => {
+    expect(BLACK_BOX_PLACEMENT_CONFIG.matchBy).toBe('theme');
   });
 
   it('placementSegments includes start-unlock and unlock-reveal', () => {

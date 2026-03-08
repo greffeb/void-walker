@@ -94,14 +94,14 @@ export function generateDangerHints(history: GameHistory): readonly DangerHint[]
 
 /**
  * Generate a unique Black Box journal entry ID.
- * Format: bb_{counter}_{skeletonId}_{settingId}
+ * Format: bb_{counter}_{skeletonId}_{themeId}
  */
 export function generateEntryId(
   entryNum: number,
   skeletonId: string,
-  settingId: string,
+  themeId: string,
 ): string {
-  return `bb_${entryNum}_${skeletonId}_${settingId}`;
+  return `bb_${entryNum}_${skeletonId}_${themeId}`;
 }
 
 /**
@@ -121,7 +121,7 @@ export function buildDeathJournal(
   return {
     fr:
       `Entrée #${entryNum} — ${history.className} ${history.playerName}. ` +
-      `Arrivé dans ${history.settingName}, j'ai survécu ${history.turnsPlayed} cycles. ` +
+      `Arrivé dans ${history.themeName}, j'ai survécu ${history.turnsPlayed} cycles. ` +
       (eventSummary ? `${eventSummary}. ` : '') +
       causeClause +
       `Méfiez-vous de ${hintClause}.`,
@@ -173,12 +173,12 @@ export function generateBlackBoxJournal(
       : buildVictoryJournal(history, num, keyEvents, hints);
 
   return {
-    id: generateEntryId(num, history.skeletonId, history.settingId),
+    id: generateEntryId(num, history.skeletonId, history.themeId),
     timestamp: Date.now(),
     playerName: history.playerName,
     classId: history.classId,
     skeletonId: history.skeletonId,
-    settingId: history.settingId,
+    themeId: history.themeId,
     difficulty: history.difficulty,
     outcome,
     turnsPlayed: history.turnsPlayed,
@@ -195,8 +195,8 @@ export function generateBlackBoxJournal(
 
 /** Black Box placement configuration (used by assembly + storage layers). */
 export const BLACK_BOX_PLACEMENT_CONFIG = {
-  /** Match by setting, not skeleton — enables cross-skeleton lore */
-  matchBy: 'setting' as const,
+  /** Match by theme, not skeleton — enables cross-skeleton lore */
+  matchBy: 'theme' as const,
   /** Prefer different skeleton for more interesting cross-lore */
   preferDifferentSkeleton: true,
   /** 80% chance to place a death journal */

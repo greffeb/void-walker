@@ -6,7 +6,9 @@
 // Enriched in Chantier 5: features, items, NPCs with full interactions.
 // ---------------------------------------------------------------------------
 
-import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition } from '@engine/scenario';
+import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
+
+function ls(fr: string): LocaleString { return { fr, en: '' }; }
 
 // =====================================================================
 // ITEMS — START node
@@ -1578,4 +1580,111 @@ export const RESCUE_SKELETON: CoreSkeleton = {
   additionalDefeatConditions: [
     { type: 'npc_death', npcId: 'dr_okonkwo' },
   ],
+
+  theme: {
+    id: 'alien_ruins',
+    nameKey: { fr: 'Ruines Extraterrestres', en: 'Alien Ruins' },
+    supportedRoles: [
+      'passage', 'control_room', 'hub', 'dead_end', 'hazard_zone',
+      'ritual_chamber', 'organic_growth', 'crystal_cave', 'gravity_well',
+    ],
+    locationNames: {
+      passage: [
+        ls('Tunnel organique'), ls('Couloir de spores'), ls('Passage de cristaux'),
+        ls('Tunnel de bioluminescence'), ls('Couloir extraterrestre'), ls('Passage de membranes'),
+        ls('Tunnel de lianes'), ls('Couloir de pulsations'), ls('Passage de filaments'),
+        ls('Tunnel de sang noir'), ls('Couloir de nervures'), ls('Passage de spires'),
+        ls('Tunnel de mycètes'), ls('Couloir de résine'), ls('Passage de cheiropodes'),
+        ls('Tunnel de membranes pulsantes'), ls('Couloir de chairs'), ls('Passage de cristaux noirs'),
+        ls('Tunnel d\'ossements'), ls('Couloir de plaques'), ls('Passage de spores denses'),
+        ls('Tunnel de biovaisseaux'),
+      ],
+      control_room: [
+        ls('Nexus de contrôle'), ls('Chambre de commandement extraterrestre'), ls('Nexus de pulsation'),
+        ls('Salle du grand nexus'), ls('Centre de contrôle alien'), ls('Nexus de distribution'),
+        ls('Chambre de relais'), ls('Nexus de communication'), ls('Centre de pulsation principale'),
+        ls('Chambre de gouvernance'), ls('Nexus d\'énergie primaire'), ls('Salle de contrôle des flux'),
+        ls('Chambre de commandement suprême'), ls('Nexus de fusion'), ls('Centre de calcul alien'),
+        ls('Chambre de l\'entité'), ls('Nexus de contrôle secondaire'), ls('Salle de navigation alien'),
+        ls('Centre de coordination psionique'), ls('Nexus de transmission'),
+        ls('Chambre de la conscience'), ls('Nexus de l\'ancienne technologie'),
+      ],
+      hub: [
+        ls('Chambre centrale'), ls('Carrefour alien'), ls('Nœud de distribution'),
+        ls('Chambre de jonction'), ls('Centre de convergence'), ls('Carrefour des tunnels'),
+        ls('Chambre de bifurcation'), ls('Nœud central'), ls('Centre de croisement'),
+        ls('Carrefour de cristaux'), ls('Chambre d\'intersection'), ls('Nœud de dispersion'),
+        ls('Centre de la ruche'), ls('Carrefour de membranes'), ls('Chambre de communication'),
+        ls('Nœud de coordination'), ls('Centre biologique'), ls('Carrefour de spores'),
+        ls('Chambre de convergence'), ls('Nœud central de la ruche'), ls('Carrefour des flux'),
+        ls('Chambre de distribution alien'),
+      ],
+      dead_end: [
+        ls('Alcôve cristalline'), ls('Impasse organique'), ls('Chambre aveugle'),
+        ls('Alcôve de cristaux noirs'), ls('Impasse de membranes'), ls('Chambre dormante'),
+        ls('Alcôve de spores'), ls('Impasse de filaments'), ls('Chambre d\'incubation'),
+        ls('Alcôve pulsante'), ls('Impasse de chair'), ls('Chambre de gestation'),
+        ls('Alcôve de bioluminescence'), ls('Impasse de cristaux'), ls('Chambre d\'absorption'),
+        ls('Alcôve de mycorhizes'), ls('Impasse de résine'), ls('Chambre de stockage biologique'),
+        ls('Alcôve de capsules'), ls('Impasse de membranes dormantes'),
+        ls('Alcôve de cristaux de mémoire'), ls('Chambre d\'œufs'),
+      ],
+      hazard_zone: [
+        ls('Puits gravitationnel'), ls('Zone de distorsion gravitationnelle'), ls('Puits de gravité aberrante'),
+        ls('Chambre de flux gravitationnel'), ls('Zone de singularité'), ls('Puits de compression'),
+        ls('Zone de déchirement spatial'), ls('Chambre de vide gravitationnel'), ls('Puits de torsion'),
+        ls('Zone de gravité inversée'), ls('Puits de collapse'), ls('Zone de trou noir localisé'),
+        ls('Chambre de pesanteur nulle'), ls('Puits d\'énergie sombre'), ls('Zone de flux incontrôlé'),
+        ls('Chambre de déchirement temporel'), ls('Puits de radiation alien'), ls('Zone de dissolution matière'),
+        ls('Chambre de singularité locale'), ls('Puits de néant'), ls('Zone de gravité variable'),
+        ls('Puits d\'énergie alien'),
+      ],
+      ritual_chamber: [
+        ls('Sanctuaire principal'), ls('Chambre rituelle'), ls('Sanctuaire de la ruche'),
+        ls('Chambre de cérémonie'), ls('Sanctuaire alien primordial'), ls('Chambre de pulsation sacrée'),
+        ls('Sanctuaire du grand œil'), ls('Chambre de communion'), ls('Sanctuaire de transformation'),
+        ls('Chambre de l\'entité centrale'), ls('Sanctuaire de chair et de cristal'),
+        ls('Chambre de vénération'), ls('Sanctuaire de mémoire alien'), ls('Chambre du sacrifice'),
+        ls('Sanctuaire de cristaux vivants'), ls('Chambre de la conscience collective'),
+        ls('Sanctuaire de l\'embryon'), ls('Chambre de régénération'), ls('Sanctuaire des anciens'),
+        ls('Chambre de la reine'), ls('Sanctuaire de l\'éveil'), ls('Chambre d\'invocation'),
+      ],
+      organic_growth: [
+        ls('Zone organique principale'), ls('Chambre de prolifération'), ls('Zone de croissance biologique'),
+        ls('Masse de chairs pulsantes'), ls('Zone de prolifération mycologique'),
+        ls('Chambre d\'expansion organique'), ls('Zone de tissus vivants'), ls('Masse de spores géantes'),
+        ls('Zone de racines pulsantes'), ls('Chambre de progression biologique'),
+        ls('Zone de membranes épaisses'), ls('Masse de filaments'), ls('Zone de pulsations biologiques'),
+        ls('Chambre de croissance rapide'), ls('Zone de nodules vivants'), ls('Masse d\'organismes coloniaux'),
+        ls('Zone de transformation biologique'), ls('Chambre de matière vivante'),
+        ls('Zone de prolifération cellulaire'), ls('Masse d\'organismes entrelacés'),
+        ls('Zone de chair active'), ls('Chambre de croissance exponentielle'),
+      ],
+      crystal_cave: [
+        ls('Grotte cristalline'), ls('Caverne de cristaux noirs'), ls('Grotte de formation minérale alien'),
+        ls('Caverne de géodes vivants'), ls('Grotte de cristaux pulsants'), ls('Caverne de cristaux translucides'),
+        ls('Grotte de formations étranges'), ls('Caverne de cristaux lumineux'), ls('Grotte de formations inconnues'),
+        ls('Caverne de cristaux géants'), ls('Grotte de cristaux de plasma'), ls('Caverne de structures cristallines'),
+        ls('Grotte de formations minérales vivantes'), ls('Caverne de cristaux de mémoire'),
+        ls('Grotte de formations de lumière'), ls('Caverne de cristaux sonar'),
+        ls('Grotte de cristaux fractals'), ls('Caverne de formations prismatiques'),
+        ls('Grotte de cristaux temporels'), ls('Caverne de cristaux dormants'),
+        ls('Grotte de cristaux harmoniques'), ls('Caverne de cristaux vivants'),
+      ],
+      gravity_well: [
+        ls('Puits de gravité central'), ls('Chambre de gravité aberrante'), ls('Puits de singularité locale'),
+        ls('Zone de distorsion gravitationnelle intense'), ls('Puits de compression spatiale'),
+        ls('Chambre de gravité inversée'), ls('Puits d\'attraction centrale'),
+        ls('Zone de déchirement gravitationnel'), ls('Puits de force locale'),
+        ls('Chambre de flux gravitationnel concentré'), ls('Puits d\'énergie sombre'),
+        ls('Zone de gradient gravitationnel'), ls('Puits de torsion espace-temps'),
+        ls('Chambre de singularité résiduelle'), ls('Puits de néant gravitationnel'),
+        ls('Zone d\'écrasement spatial'), ls('Puits de condensation gravitationnelle'),
+        ls('Chambre de vortex'), ls('Puits de champ de gravité alien'), ls('Zone de gravité variable'),
+        ls('Puits de singularité en formation'), ls('Chambre de distorsion focalisée'),
+      ],
+    },
+    features: ['crystal_node', 'organic_wall', 'alien_terminal', 'gravity_well', 'bioluminescence', 'psionic_amplifier'],
+    preferredItems: ['translator_device', 'void_shard', 'psionic_amplifier', 'ancient_key', 'sonic_emitter', 'research_notes'],
+  },
 };

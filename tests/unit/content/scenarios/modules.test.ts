@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { ALL_MODULES, getModuleById } from '../../../../src/content/scenarios/modules/index';
 import { isModuleCompatible } from '../../../../src/engine/pacing';
-import { LAUNCH_SETTINGS } from '../../../../src/content/settings';
+import { ESCAPE_SKELETON, INVESTIGATE_SKELETON, RESCUE_SKELETON } from '../../../../src/content/scenarios/index';
 import type { ScenarioModule } from '../../../../src/engine/scenario';
 
 // ---------------------------------------------------------------------------
@@ -117,9 +117,9 @@ describe('ALL_MODULES', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('has 5 universal modules', () => {
+  it('has 8 universal modules', () => {
     const universals = ALL_MODULES.filter(m => m.compatibility.universal);
-    expect(universals).toHaveLength(5);
+    expect(universals).toHaveLength(8);
   });
 
   it('has modules for all 10 module types represented', () => {
@@ -142,56 +142,52 @@ describe('ALL_MODULES', () => {
 // COMPATIBILITY TESTS
 // ---------------------------------------------------------------------------
 
-describe('Module × Setting compatibility', () => {
-  const derelictShip = LAUNCH_SETTINGS.find(s => s.id === 'derelict_ship')!;
-  const spaceStation = LAUNCH_SETTINGS.find(s => s.id === 'space_station')!;
-  const alienRuins = LAUNCH_SETTINGS.find(s => s.id === 'alien_ruins')!;
-
-  it('alien_mechanism_01 is NOT compatible with derelict_ship', () => {
+describe('Module × Skeleton compatibility', () => {
+  it('alien_mechanism_01 is NOT compatible with escape (derelict_ship)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'alien_mechanism_01')!;
-    expect(isModuleCompatible(mod, derelictShip)).toBe(false);
+    expect(isModuleCompatible(mod, ESCAPE_SKELETON)).toBe(false);
   });
 
-  it('alien_mechanism_01 IS compatible with alien_ruins', () => {
+  it('alien_mechanism_01 IS compatible with rescue (alien_ruins)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'alien_mechanism_01')!;
-    expect(isModuleCompatible(mod, alienRuins)).toBe(true);
+    expect(isModuleCompatible(mod, RESCUE_SKELETON)).toBe(true);
   });
 
-  it('terminal_decrypt_01 (server_room role) is NOT compatible with alien_ruins', () => {
+  it('terminal_decrypt_01 (server_room role) is NOT compatible with rescue (alien_ruins)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'terminal_decrypt_01')!;
-    expect(isModuleCompatible(mod, alienRuins)).toBe(false);
+    expect(isModuleCompatible(mod, RESCUE_SKELETON)).toBe(false);
   });
 
-  it('terminal_decrypt_01 IS compatible with space_station', () => {
+  it('terminal_decrypt_01 IS compatible with investigate (space_station)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'terminal_decrypt_01')!;
-    expect(isModuleCompatible(mod, spaceStation)).toBe(true);
+    expect(isModuleCompatible(mod, INVESTIGATE_SKELETON)).toBe(true);
   });
 
-  it('containment_breach_01 (facility only) is NOT compatible with derelict_ship', () => {
+  it('containment_breach_01 (facility only) is NOT compatible with escape (derelict_ship)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'containment_breach_01')!;
-    expect(isModuleCompatible(mod, derelictShip)).toBe(false);
+    expect(isModuleCompatible(mod, ESCAPE_SKELETON)).toBe(false);
   });
 
-  it('containment_breach_01 IS compatible with space_station', () => {
+  it('containment_breach_01 IS compatible with investigate (space_station)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'containment_breach_01')!;
-    expect(isModuleCompatible(mod, spaceStation)).toBe(true);
+    expect(isModuleCompatible(mod, INVESTIGATE_SKELETON)).toBe(true);
   });
 
-  it('airlock_malfunction_01 IS compatible with derelict_ship', () => {
+  it('airlock_malfunction_01 IS compatible with escape (derelict_ship)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'airlock_malfunction_01')!;
-    expect(isModuleCompatible(mod, derelictShip)).toBe(true);
+    expect(isModuleCompatible(mod, ESCAPE_SKELETON)).toBe(true);
   });
 
-  it('airlock_malfunction_01 is NOT compatible with alien_ruins (no airlock role)', () => {
+  it('airlock_malfunction_01 is NOT compatible with rescue (alien_ruins, no airlock role)', () => {
     const mod = ALL_MODULES.find(m => m.id === 'airlock_malfunction_01')!;
-    expect(isModuleCompatible(mod, alienRuins)).toBe(false);
+    expect(isModuleCompatible(mod, RESCUE_SKELETON)).toBe(false);
   });
 
-  it('blocked_passage_01 (universal, passage role) is compatible with all 3 settings', () => {
+  it('blocked_passage_01 (universal, passage role) is compatible with all 3 skeletons', () => {
     const mod = ALL_MODULES.find(m => m.id === 'blocked_passage_01')!;
-    expect(isModuleCompatible(mod, derelictShip)).toBe(true);
-    expect(isModuleCompatible(mod, spaceStation)).toBe(true);
-    expect(isModuleCompatible(mod, alienRuins)).toBe(true);
+    expect(isModuleCompatible(mod, ESCAPE_SKELETON)).toBe(true);
+    expect(isModuleCompatible(mod, INVESTIGATE_SKELETON)).toBe(true);
+    expect(isModuleCompatible(mod, RESCUE_SKELETON)).toBe(true);
   });
 });
 

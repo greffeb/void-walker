@@ -16,7 +16,7 @@ import { parseAction } from '../../src/engine/parser';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { assembleScenario } from '../../src/engine/pacing';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../../src/content/settings';
+
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import { isReformulation } from '../../src/engine/types';
 import { createSeededRng } from './bots/index';
@@ -45,7 +45,7 @@ interface SessionResult {
   seed: number;
   bot: string;
   skeletonId: string;
-  settingId: string;
+  themeId: string;
   sessionLength: string;
   playerClass: string;
   outcome: SessionOutcome;
@@ -122,20 +122,19 @@ function parseArgs(argv: readonly string[]): CliOptions {
 function runSession(seed: number, options: CliOptions, forceTrace: boolean): SessionResult {
   const rng = createSeededRng(seed);
   const skeleton = rng.pick(LAUNCH_SKELETONS);
-  const setting = rng.pick(LAUNCH_SETTINGS);
   const sessionLength = rng.pick(SESSION_LENGTHS);
   const playerClass = rng.pick(PLAYER_CLASSES);
   const difficulty = rng.pick(DIFFICULTIES);
   const bot = selectBot(options.bot, rng);
   const engineRng = () => rng.float();
 
-  const scenario = assembleScenario(skeleton, sessionLength, setting, ALL_MODULES, engineRng);
+  const scenario = assembleScenario(skeleton, sessionLength, ALL_MODULES, engineRng);
   let state = initGame(scenario, playerClass, difficulty, 'Bot', engineRng);
   const stuckDetector = new StuckDetector(options.stuckThreshold);
   let turns = 0;
 
   if (forceTrace) {
-    console.log(`\n=== Session seed=${seed} bot=${bot.name} skeleton=${skeleton.id} setting=${setting.id} class=${playerClass} length=${sessionLength} ===`);
+    console.log(`\n=== Session seed=${seed} bot=${bot.name} skeleton=${skeleton.id} theme=${skeleton.theme.id} class=${playerClass} length=${sessionLength} ===`);
   }
 
   while (!isGameOver(state) && turns < options.maxTurns) {
@@ -174,7 +173,7 @@ function runSession(seed: number, options: CliOptions, forceTrace: boolean): Ses
         seed,
         bot: bot.name,
         skeletonId: skeleton.id,
-        settingId: setting.id,
+        themeId: skeleton.theme.id,
         sessionLength,
         playerClass,
         outcome: 'stuck',
@@ -197,7 +196,7 @@ function runSession(seed: number, options: CliOptions, forceTrace: boolean): Ses
     seed,
     bot: bot.name,
     skeletonId: skeleton.id,
-    settingId: setting.id,
+    themeId: skeleton.theme.id,
     sessionLength,
     playerClass,
     outcome,
@@ -264,7 +263,7 @@ function main(): void {
     printSummary(results, baseSeed);
   } else {
     const r = results[0]!;
-    console.log(`seed=${r.seed} (base=${baseSeed}) bot=${r.bot} outcome=${r.outcome} turns=${r.turns} skeleton=${r.skeletonId} setting=${r.settingId} class=${r.playerClass}`);
+    console.log(`seed=${r.seed} (base=${baseSeed}) bot=${r.bot} outcome=${r.outcome} turns=${r.turns} skeleton=${r.skeletonId} theme=${r.themeId} class=${r.playerClass}`);
   }
 }
 

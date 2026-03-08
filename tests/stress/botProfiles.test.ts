@@ -10,7 +10,6 @@ import { processTurn } from '../../src/engine/processTurn';
 import { assembleScenario } from '../../src/engine/pacing';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../../src/content/settings';
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import { createSeededRng } from '../playtest/bots/index';
 import { explorerBot } from '../playtest/bots/explorerBot';
@@ -62,14 +61,13 @@ function isAbsurdInput(input: string): boolean {
 function runProfileSession(seed: number, bot: PlaytestBot): ProfileSessionResult {
   const rng = createSeededRng(seed);
   const skeleton = rng.pick(LAUNCH_SKELETONS);
-  const setting = rng.pick(LAUNCH_SETTINGS);
   const sessionLength = rng.pick(SESSION_LENGTHS);
   const playerClass = rng.pick(PLAYER_CLASSES);
   const engineRng = () => rng.float();
 
   let state: GameState;
   try {
-    const scenario = assembleScenario(skeleton, sessionLength, setting, ALL_MODULES, engineRng);
+    const scenario = assembleScenario(skeleton, sessionLength, ALL_MODULES, engineRng);
     state = initGame(scenario, playerClass, DIFFICULTY, 'Bot', engineRng);
   } catch {
     return {

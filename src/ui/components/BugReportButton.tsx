@@ -139,7 +139,7 @@ export function BugReportButton({ entry }: BugReportButtonProps): JSX.Element {
       // Reproducibility
       seed,
       skeletonId: gameState.scenario?.skeleton.id ?? gameState.scenarioId ?? '',
-      settingId: gameState.scenario?.setting.id ?? '',
+      settingId: gameState.scenario?.skeleton.theme.id ?? '',
       playerClass: char?.className ?? '',
       difficulty: gameState.difficulty,
       turn: entry.id,

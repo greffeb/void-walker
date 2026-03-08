@@ -18,7 +18,6 @@ import { processTurn } from '../../src/engine/processTurn';
 import { assembleScenario } from '../../src/engine/pacing';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { LAUNCH_SKELETONS } from '../../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../../src/content/settings';
 import { ALL_MODULES } from '../../src/content/scenarios/modules/index';
 import { createSeededRng } from '../playtest/bots/index';
 import { randomBot } from '../playtest/bots/randomBot';
@@ -76,7 +75,6 @@ interface PlaythroughResult {
 function runPlaythrough(seed: number, captureTrace = false): PlaythroughResult {
   const rng = createSeededRng(seed);
   const skeleton = rng.pick(LAUNCH_SKELETONS);
-  const setting = rng.pick(LAUNCH_SETTINGS);
   const sessionLength = rng.pick(SESSION_LENGTHS);
   const playerClass = rng.pick(PLAYER_CLASSES);
   const difficulty = rng.pick(DIFFICULTIES);
@@ -86,12 +84,12 @@ function runPlaythrough(seed: number, captureTrace = false): PlaythroughResult {
 
   let state: GameState;
   try {
-    const scenario = assembleScenario(skeleton, sessionLength, setting, ALL_MODULES, engineRng);
+    const scenario = assembleScenario(skeleton, sessionLength, ALL_MODULES, engineRng);
     state = initGame(scenario, playerClass, difficulty, 'Bot', engineRng);
   } catch {
     // Assembly failures should not happen (validated by scenarioCombinations test)
     return {
-      seed, botName: bot.name, skeletonId: skeleton.id, settingId: setting.id,
+      seed, botName: bot.name, skeletonId: skeleton.id, settingId: skeleton.theme.id,
       sessionLength, playerClass, outcome: 'defeat', turns: 0,
     };
   }
@@ -129,7 +127,7 @@ function runPlaythrough(seed: number, captureTrace = false): PlaythroughResult {
     stuckDetector.update(state.playerLocationId ?? 'unknown');
     if (stuckDetector.isStuck()) {
       return {
-        seed, botName: bot.name, skeletonId: skeleton.id, settingId: setting.id,
+        seed, botName: bot.name, skeletonId: skeleton.id, settingId: skeleton.theme.id,
         sessionLength, playerClass, outcome: 'stuck', turns,
         stuckTrace: captureTrace ? [...traceHistory] : undefined,
       };
@@ -148,7 +146,7 @@ function runPlaythrough(seed: number, captureTrace = false): PlaythroughResult {
   }
 
   return {
-    seed, botName: bot.name, skeletonId: skeleton.id, settingId: setting.id,
+    seed, botName: bot.name, skeletonId: skeleton.id, settingId: skeleton.theme.id,
     sessionLength, playerClass, outcome, turns,
   };
 }

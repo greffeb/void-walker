@@ -7,16 +7,15 @@ import { processTurn } from '../src/engine/processTurn';
 import { buildParserLocaleData } from '../src/content/parserData';
 import { assembleScenario } from '../src/engine/pacing';
 import { ESCAPE_SKELETON, INVESTIGATE_SKELETON } from '../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../src/content/settings';
+
 import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 
 const parserData = buildParserLocaleData('fr');
 const rng = () => 0.5;
-const setting = LAUNCH_SETTINGS[0]!; // derelict_ship
 
 // --- ESCAPE scenario ---
 console.log('\n========== ESCAPE SKELETON ==========');
-const escScenario = assembleScenario(ESCAPE_SKELETON, 'quick', setting, ALL_MODULES, rng);
+const escScenario = assembleScenario(ESCAPE_SKELETON, 'quick', ALL_MODULES, rng);
 let escState = initGame(escScenario, 'marine', 'survivor', 'TestPlayer', rng);
 
 // Inspect graph nodes

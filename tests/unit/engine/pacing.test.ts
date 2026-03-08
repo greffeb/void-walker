@@ -12,7 +12,7 @@ import type { RngFn } from '../../../src/engine/types';
 import type {
   CoreSkeleton,
   ScenarioModule,
-  SettingDefinition,
+  SkeletonTheme,
   PlacedModule,
   NarrativeSkin,
   LocaleString,
@@ -93,7 +93,7 @@ function makeModule(id: string, overrides: Partial<ScenarioModule> = {}): Scenar
 
 function makeStationModule(id: string): ScenarioModule {
   return makeModule(id, {
-    compatibility: { categories: ['facility'] },
+    compatibility: { skeletons: ['investigate'] },
     locations: [{ id: 'main', role: 'server_room', onCriticalPath: true, features: [], items: [] }],
     locationRole: 'server_room',
   });
@@ -101,16 +101,15 @@ function makeStationModule(id: string): ScenarioModule {
 
 function makeAlienModule(id: string): ScenarioModule {
   return makeModule(id, {
-    compatibility: { categories: ['alien'] },
+    compatibility: { skeletons: ['rescue'] },
     locations: [{ id: 'main', role: 'ritual_chamber', onCriticalPath: true, features: [], items: [] }],
     locationRole: 'ritual_chamber',
   });
 }
 
-const MINIMAL_SETTING: SettingDefinition = {
+const MINIMAL_THEME: SkeletonTheme = {
   id: 'derelict_ship',
   nameKey: ls('Épave Stellaire'),
-  categories: ['space_vessel'],
   supportedRoles: ['passage', 'control_room', 'storage', 'medical', 'quarters', 'hub', 'dead_end', 'hazard_zone', 'engineering', 'airlock'],
   locationNames: {
     passage: Array.from({ length: 22 }, (_, i) => ls(`Passage ${i + 1}`)),
@@ -128,10 +127,9 @@ const MINIMAL_SETTING: SettingDefinition = {
   preferredItems: ['plasma_cutter', 'access_keycard'],
 };
 
-const ALIEN_SETTING: SettingDefinition = {
+const ALIEN_THEME: SkeletonTheme = {
   id: 'alien_ruins',
   nameKey: ls('Ruines Extraterrestres'),
-  categories: ['alien'],
   supportedRoles: ['passage', 'control_room', 'hub', 'dead_end', 'hazard_zone', 'ritual_chamber', 'organic_growth', 'crystal_cave', 'gravity_well'],
   locationNames: {
     passage: Array.from({ length: 22 }, (_, i) => ls(`Tunnel ${i + 1}`)),
@@ -160,11 +158,12 @@ function makeSkeletonLocations() {
   return result;
 }
 
-function makeSkeleton(): CoreSkeleton {
+function makeSkeleton(theme: SkeletonTheme = MINIMAL_THEME): CoreSkeleton {
   return {
     id: 'escape',
     nameKey: ls('Fuir l\'Épave'),
     descriptionKey: ls('Réveillez-vous et survivez.'),
+    theme,
     nodes: [
       { id: 'start', role: 'entry', beat: 'intro', tension: 2, descriptionKey: ls('Début') },
       { id: 'unlock', role: 'gate', beat: 'rising', tension: 4, descriptionKey: ls('Verrou') },
@@ -212,41 +211,46 @@ describe('selectSkin()', () => {
 // ---------------------------------------------------------------------------
 
 describe('isModuleCompatible()', () => {
-  it('universal module with passage role is compatible with derelict_ship', () => {
+  const escapeSkeleton = makeSkeleton(MINIMAL_THEME);
+  const rescueSkeleton = makeSkeleton(ALIEN_THEME);
+  // Override id for rescue so skeleton-restricted modules match
+  const rescueSkeletonWithId = { ...rescueSkeleton, id: 'rescue' };
+
+  it('universal module with passage role is compatible with escape skeleton', () => {
     const mod = makeModule('universal');
-    expect(isModuleCompatible(mod, MINIMAL_SETTING)).toBe(true);
+    expect(isModuleCompatible(mod, escapeSkeleton)).toBe(true);
   });
 
-  it('universal module with passage role is compatible with alien_ruins (which has passage)', () => {
+  it('universal module with passage role is compatible with rescue skeleton (which has passage)', () => {
     const mod = makeModule('u1');
-    expect(isModuleCompatible(mod, ALIEN_SETTING)).toBe(true);
+    expect(isModuleCompatible(mod, rescueSkeletonWithId)).toBe(true);
   });
 
-  it('station module (server_room role) is NOT compatible with derelict_ship (no server_room)', () => {
+  it('station module (server_room role) is NOT compatible with escape skeleton (no server_room)', () => {
     const mod = makeStationModule('station_01');
-    expect(isModuleCompatible(mod, MINIMAL_SETTING)).toBe(false);
+    expect(isModuleCompatible(mod, escapeSkeleton)).toBe(false);
   });
 
-  it('station module is NOT compatible with alien_ruins', () => {
+  it('station module is NOT compatible with rescue skeleton', () => {
     const mod = makeStationModule('station_01');
-    expect(isModuleCompatible(mod, ALIEN_SETTING)).toBe(false);
+    expect(isModuleCompatible(mod, rescueSkeletonWithId)).toBe(false);
   });
 
-  it('alien module (ritual_chamber) is NOT compatible with derelict_ship', () => {
+  it('alien module (ritual_chamber) is NOT compatible with escape skeleton', () => {
     const mod = makeAlienModule('alien_01');
-    expect(isModuleCompatible(mod, MINIMAL_SETTING)).toBe(false);
+    expect(isModuleCompatible(mod, escapeSkeleton)).toBe(false);
   });
 
-  it('alien module is compatible with alien_ruins', () => {
+  it('alien module is compatible with rescue skeleton', () => {
     const mod = makeAlienModule('alien_01');
-    expect(isModuleCompatible(mod, ALIEN_SETTING)).toBe(true);
+    expect(isModuleCompatible(mod, rescueSkeletonWithId)).toBe(true);
   });
 
-  it('category-filtered module without matching category is rejected', () => {
-    const mod = makeModule('cat_mod', {
-      compatibility: { categories: ['facility'] },
+  it('skeleton-filtered module without matching skeleton id is rejected', () => {
+    const mod = makeModule('skel_mod', {
+      compatibility: { skeletons: ['investigate'] },
     });
-    expect(isModuleCompatible(mod, MINIMAL_SETTING)).toBe(false); // ship is space_vessel not facility
+    expect(isModuleCompatible(mod, escapeSkeleton)).toBe(false);
   });
 });
 
@@ -308,21 +312,21 @@ describe('assignTensionValues()', () => {
 describe('resolveLocationName()', () => {
   it('returns a name for a valid role', () => {
     const used = new Set<string>();
-    const name = resolveLocationName('passage', MINIMAL_SETTING, fixedRng(0), used);
+    const name = resolveLocationName('passage', makeSkeleton(), fixedRng(0), used);
     expect(name.fr).toBeTruthy();
   });
 
   it('returns fallback for unknown role', () => {
     const used = new Set<string>();
-    const name = resolveLocationName('unknown_role', MINIMAL_SETTING, fixedRng(0), used);
+    const name = resolveLocationName('unknown_role', makeSkeleton(), fixedRng(0), used);
     expect(name.fr).toContain('unknown_role');
   });
 
   it('avoids reusing names', () => {
     const used = new Set<string>();
     const rng = sequenceRng([0.0, 0.0, 0.0]);
-    resolveLocationName('passage', MINIMAL_SETTING, rng, used);
-    resolveLocationName('passage', MINIMAL_SETTING, rng, used);
+    resolveLocationName('passage', makeSkeleton(), rng, used);
+    resolveLocationName('passage', makeSkeleton(), rng, used);
     // Both valid, names tracked in used set
     expect(used.size).toBeGreaterThanOrEqual(1);
   });
@@ -336,7 +340,7 @@ describe('buildLocationGraph()', () => {
   const skeleton = makeSkeleton();
 
   it('always includes all 6 core nodes', () => {
-    const graph = buildLocationGraph(skeleton, [], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [], fixedRng(0.3));
     const coreIds = ['start', 'unlock', 'reveal', 'escalation', 'boss', 'resolution'];
     for (const id of coreIds) {
       expect(graph.nodes.some(n => n.id === id), `Missing core node: ${id}`).toBe(true);
@@ -344,7 +348,7 @@ describe('buildLocationGraph()', () => {
   });
 
   it('with no modules: has exactly 6 nodes', () => {
-    const graph = buildLocationGraph(skeleton, [], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [], fixedRng(0.3));
     expect(graph.nodes).toHaveLength(6);
   });
 
@@ -356,7 +360,7 @@ describe('buildLocationGraph()', () => {
       assignedTension: 3,
       activeSkin: LOW_SKIN,
     };
-    const graph = buildLocationGraph(skeleton, [pm], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [pm], fixedRng(0.3));
     expect(graph.nodes).toHaveLength(7);
   });
 
@@ -371,12 +375,12 @@ describe('buildLocationGraph()', () => {
       assignedTension: 5,
       activeSkin: MID_SKIN,
     };
-    const graph = buildLocationGraph(skeleton, [pm], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [pm], fixedRng(0.3));
     expect(graph.nodes).toHaveLength(8);
   });
 
   it('all critical path nodes are bidirectionally connected', () => {
-    const graph = buildLocationGraph(skeleton, [], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [], fixedRng(0.3));
     const criticalIds = graph.nodes.filter(n => n.onCriticalPath).map(n => n.id);
 
     for (const nodeId of criticalIds) {
@@ -390,7 +394,7 @@ describe('buildLocationGraph()', () => {
 
   it('all nodes have a valid beat', () => {
     const validBeats = new Set(['intro', 'rising', 'midpoint', 'escalation', 'climax', 'resolution']);
-    const graph = buildLocationGraph(skeleton, [], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [], fixedRng(0.3));
     for (const node of graph.nodes) {
       expect(validBeats.has(node.beat), `Node ${node.id} has invalid beat: ${node.beat}`).toBe(true);
     }
@@ -405,7 +409,7 @@ describe('validateAssembledScenario()', () => {
   const skeleton = makeSkeleton();
 
   it('base scenario (no modules) passes all 6 checks', () => {
-    const graph = buildLocationGraph(skeleton, [], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [], fixedRng(0.3));
     const result = validateAssembledScenario(graph, skeleton);
     expect(result.valid, result.issues.join('\n')).toBe(true);
     expect(result.issues).toHaveLength(0);
@@ -419,13 +423,13 @@ describe('validateAssembledScenario()', () => {
       assignedTension: 5,
       activeSkin: MID_SKIN,
     };
-    const graph = buildLocationGraph(skeleton, [pm], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [pm], fixedRng(0.3));
     const result = validateAssembledScenario(graph, skeleton);
     expect(result.valid, result.issues.join('\n')).toBe(true);
   });
 
   it('fails when boss node is orphaned', () => {
-    const graph = buildLocationGraph(skeleton, [], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [], fixedRng(0.3));
     // Artificially remove all edges to boss
     const brokenGraph = {
       ...graph,
@@ -455,7 +459,7 @@ describe('validateAssembledScenario()', () => {
       assignedTension: 3,
       activeSkin: LOW_SKIN,
     };
-    const graph = buildLocationGraph(skeleton, [pm], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [pm], fixedRng(0.3));
     const result = validateAssembledScenario(graph, skeleton);
     expect(result.valid).toBe(false);
     expect(result.issues.some(i => i.includes('paths'))).toBe(true);
@@ -471,37 +475,36 @@ describe('assembleScenario()', () => {
   const allModules = Array.from({ length: 15 }, (_, i) => makeModule(`m${i + 1}`));
 
   it('quick session produces 0 modules', () => {
-    const result = assembleScenario(skeleton, 'quick', MINIMAL_SETTING, allModules, fixedRng(0.5));
+    const result = assembleScenario(skeleton, 'quick', allModules, fixedRng(0.5));
     expect(result.modules).toHaveLength(0);
   });
 
   it('standard session produces 3-5 modules', () => {
     const rng = sequenceRng([0.5, 0.2, 0.7, 0.1, 0.9, 0.3, 0.5, 0.2, 0.7, 0.1, 0.9, 0.3, 0.5, 0.2, 0.7, 0.1, 0.9]);
-    const result = assembleScenario(skeleton, 'standard', MINIMAL_SETTING, allModules, rng);
+    const result = assembleScenario(skeleton, 'standard', allModules, rng);
     expect(result.modules.length).toBeGreaterThanOrEqual(3);
     expect(result.modules.length).toBeLessThanOrEqual(5);
   });
 
   it('extended session produces 8-12 modules', () => {
     const rng = sequenceRng(Array.from({ length: 100 }, (_, i) => ((i * 0.137) % 1)));
-    const result = assembleScenario(skeleton, 'extended', MINIMAL_SETTING, allModules, rng);
+    const result = assembleScenario(skeleton, 'extended', allModules, rng);
     expect(result.modules.length).toBeGreaterThanOrEqual(8);
     expect(result.modules.length).toBeLessThanOrEqual(12);
   });
 
   it('no duplicate modules are placed', () => {
     const rng = sequenceRng(Array.from({ length: 50 }, (_, i) => ((i * 0.137) % 1)));
-    const result = assembleScenario(skeleton, 'standard', MINIMAL_SETTING, allModules, rng);
+    const result = assembleScenario(skeleton, 'standard', allModules, rng);
     const ids = result.modules.map(pm => pm.module.id);
     const unique = new Set(ids);
     expect(unique.size).toBe(ids.length);
   });
 
-  it('assembled scenario has skeleton, graph, and setting', () => {
-    const result = assembleScenario(skeleton, 'quick', MINIMAL_SETTING, allModules, fixedRng(0.5));
+  it('assembled scenario has skeleton, graph, and sessionLength', () => {
+    const result = assembleScenario(skeleton, 'quick', allModules, fixedRng(0.5));
     expect(result.skeleton).toBeDefined();
     expect(result.graph).toBeDefined();
-    expect(result.setting).toBeDefined();
     expect(result.sessionLength).toBe('quick');
   });
 
@@ -509,20 +512,20 @@ describe('assembleScenario()', () => {
     const stationMod = makeStationModule('station_only');
     const mixedModules = [...allModules, stationMod];
     const rng = sequenceRng(Array.from({ length: 50 }, (_, i) => ((i * 0.137) % 1)));
-    const result = assembleScenario(skeleton, 'extended', MINIMAL_SETTING, mixedModules, rng);
+    const result = assembleScenario(skeleton, 'extended', mixedModules, rng);
     const placedIds = result.modules.map(pm => pm.module.id);
     expect(placedIds).not.toContain('station_only');
   });
 
   it('quick session graph validates correctly', () => {
-    const result = assembleScenario(skeleton, 'quick', MINIMAL_SETTING, allModules, fixedRng(0.5));
+    const result = assembleScenario(skeleton, 'quick', allModules, fixedRng(0.5));
     const validation = validateAssembledScenario(result.graph, skeleton);
     expect(validation.valid, validation.issues.join('\n')).toBe(true);
   });
 
   it('standard session graph validates correctly', () => {
     const rng = sequenceRng(Array.from({ length: 50 }, (_, i) => ((i * 0.137) % 1)));
-    const result = assembleScenario(skeleton, 'standard', MINIMAL_SETTING, allModules, rng);
+    const result = assembleScenario(skeleton, 'standard', allModules, rng);
     const validation = validateAssembledScenario(result.graph, skeleton);
     expect(validation.valid, validation.issues.join('\n')).toBe(true);
   });
@@ -538,7 +541,7 @@ describe('module segment beat assignment', () => {
       activeSkin: LOW_SKIN,
     };
     const skeleton = makeSkeleton();
-    const graph = buildLocationGraph(skeleton, [pm], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [pm], fixedRng(0.3));
     const modNode = graph.nodes.find(n => n.moduleId === 'mod_a');
     expect(modNode?.beat).toBe('rising');
   });
@@ -552,7 +555,7 @@ describe('module segment beat assignment', () => {
       activeSkin: HIGH_SKIN,
     };
     const skeleton = makeSkeleton();
-    const graph = buildLocationGraph(skeleton, [pm], MINIMAL_SETTING, fixedRng(0.3));
+    const graph = buildLocationGraph(skeleton, [pm], fixedRng(0.3));
     const modNode = graph.nodes.find(n => n.moduleId === 'mod_d');
     expect(modNode?.beat).toBe('climax');
   });

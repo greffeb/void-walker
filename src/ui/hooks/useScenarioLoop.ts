@@ -7,7 +7,7 @@
 
 import { useReducer, useCallback, useRef } from 'react';
 import { LAUNCH_SKELETONS } from '@content/scenarios';
-import { LAUNCH_SETTINGS } from '@content/settings';
+
 import { ALL_MODULES } from '@content/scenarios/modules';
 import { CLASS_LIST } from '@content/classes';
 import { buildParserLocaleData } from '@content/parserData';
@@ -244,11 +244,10 @@ export function useScenarioLoop(): ScenarioLoop {
     rngRef.current = rng;
 
     try {
-      // Pick random skeleton and setting
+      // Pick random skeleton
       const skeleton = LAUNCH_SKELETONS[Math.floor(rng() * LAUNCH_SKELETONS.length)]!;
-      const setting = LAUNCH_SETTINGS[Math.floor(rng() * LAUNCH_SETTINGS.length)]!;
 
-      const scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng);
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
       const gameState = initGame(scenario, className, state.difficulty, 'Joueur', rng);
       const sceneContext = getSceneContext(gameState);
 

@@ -26,7 +26,7 @@ import { processTurn } from '../src/engine/processTurn';
 import { buildParserLocaleData } from '../src/content/parserData';
 import { assembleScenario } from '../src/engine/pacing';
 import { LAUNCH_SKELETONS } from '../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../src/content/settings';
+
 import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 import { narrateForTurn } from '../src/narration/index';
 import { narrateScene } from '../src/narration/scene';
@@ -387,7 +387,6 @@ type FoundScenario = {
 
 function findScenarioWithModule(entry: ModuleEntry, maxSeeds = 300): FoundScenario | null {
   const skeleton = LAUNCH_SKELETONS[0]!;  // ESCAPE — la plus simple
-  const setting  = LAUNCH_SETTINGS[0]!;   // derelict_ship
 
   for (let seedOffset = 0; seedOffset < maxSeeds; seedOffset++) {
     const gameSeed = 1000 + seedOffset;
@@ -396,7 +395,7 @@ function findScenarioWithModule(entry: ModuleEntry, maxSeeds = 300): FoundScenar
     const rng1 = mulberry32(gameSeed);
     let scenario: ReturnType<typeof assembleScenario>;
     try {
-      scenario = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng1);
+      scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng1);
     } catch {
       continue;
     }
@@ -421,7 +420,7 @@ function findScenarioWithModule(entry: ModuleEntry, maxSeeds = 300): FoundScenar
     const rng2 = mulberry32(gameSeed);
     let scenario2: ReturnType<typeof assembleScenario>;
     try {
-      scenario2 = assembleScenario(skeleton, 'standard', setting, ALL_MODULES, rng2);
+      scenario2 = assembleScenario(skeleton, 'standard', ALL_MODULES, rng2);
     } catch {
       continue;
     }

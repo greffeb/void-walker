@@ -1,11 +1,12 @@
 // ---------------------------------------------------------------------------
-// src/content/scenarios/modules/category.ts — 5 Category Modules
+// src/content/scenarios/modules/exclusive.ts — 5 Exclusive Modules
 // ---------------------------------------------------------------------------
-// These modules work only in specific setting categories.
+// These modules work only in specific skeletons.
 // ---------------------------------------------------------------------------
 
 import type { ScenarioModule, NarrativeSkin, ScenarioFeatureDefinition } from '@engine/scenario';
 import type { VerbId } from '@engine/verbs';
+// Note: VerbId is still used in interaction triggers below (power_reroute_dilemma_01)
 
 function ls(fr: string): { fr: string; en: string } { return { fr, en: '' }; }
 
@@ -41,7 +42,7 @@ export const AIRLOCK_MALFUNCTION_01: ScenarioModule = {
   type: 'environmental',
   validSegments: ['unlock-reveal', 'reveal-escalation'],
   tensionRange: [4, 8],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { skeletons: ['escape', 'investigate'] },
   locations: [
     {
       id: 'main',
@@ -91,7 +92,7 @@ export const MALFUNCTIONING_ANDROID_01: ScenarioModule = {
   type: 'npc_encounter',
   validSegments: ['start-unlock', 'unlock-reveal'],
   tensionRange: [3, 7],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { skeletons: ['escape', 'investigate'] },
   locations: [
     {
       id: 'main',
@@ -146,7 +147,7 @@ export const ALIEN_MECHANISM_01: ScenarioModule = {
   type: 'terminal_puzzle',
   validSegments: ['unlock-reveal', 'reveal-escalation'],
   tensionRange: [4, 8],
-  compatibility: { categories: ['alien'] },
+  compatibility: { skeletons: ['rescue'] },
   locations: [
     {
       id: 'main',
@@ -211,7 +212,7 @@ export const CONTAINMENT_BREACH_01: ScenarioModule = {
   type: 'environmental',
   validSegments: ['reveal-escalation', 'escalation-boss'],
   tensionRange: [6, 9],
-  compatibility: { categories: ['facility'] },
+  compatibility: { skeletons: ['investigate'] },
   locations: [
     {
       id: 'main',
@@ -261,7 +262,7 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
   type: 'moral_choice',
   validSegments: ['unlock-reveal'],
   tensionRange: [4, 7],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { universal: true },
   locations: [
     {
       id: 'main',

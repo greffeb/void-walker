@@ -5,7 +5,7 @@
 // Usage:
 //   npx tsx scripts/ai-playtest.ts new-game --seed=1234 --class=explorer --difficulty=explorer
 //   npx tsx scripts/ai-playtest.ts --input="je ramasse la trousse"
-//   npx tsx scripts/ai-playtest.ts --init [--skeleton escape|investigate|rescue] [--seed N] [--class marine|engineer|medic] [--setting derelict_ship|space_station|alien_ruins]
+//   npx tsx scripts/ai-playtest.ts --init [--skeleton escape|investigate|rescue] [--seed N] [--class marine|engineer|medic]
 //   npx tsx scripts/ai-playtest.ts --cmd "examiner environnement"
 //   npx tsx scripts/ai-playtest.ts --cmd "aller soute principale"
 //   npx tsx scripts/ai-playtest.ts --batch commands.txt
@@ -26,13 +26,11 @@ import { processTurn } from '../src/engine/processTurn';
 import { buildParserLocaleData } from '../src/content/parserData';
 import { assembleScenario } from '../src/engine/pacing';
 import { LAUNCH_SKELETONS } from '../src/content/scenarios/index';
-import { LAUNCH_SETTINGS } from '../src/content/settings';
 import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 import { narrateForTurn } from '../src/narration/index';
 import { narrateScene } from '../src/narration/scene';
 import type { SceneToken } from '../src/narration/scene';
 import type { GameState, SceneContext } from '../src/engine/types';
-import type { SettingDefinition } from '../src/engine/scenario';
 import type { PlayerClassName, DifficultyLevel } from '../src/engine/types';
 
 const STATE_FILE = path.join(__dirname, '.ai-playtest-state.json');
@@ -245,7 +243,6 @@ function playTurn(state: GameState, command: string, seed: number): GameState {
 // ---------------------------------------------------------------------------
 function initializeGame(
   skeletonId: string | undefined,
-  settingId: string | undefined,
   classId: string,
   difficulty: string,
   seed: number,
@@ -258,15 +255,8 @@ function initializeGame(
     console.error(`Unknown skeleton: ${skeletonId}. Available: ${LAUNCH_SKELETONS.map(s => s.id).join(', ')}`);
     process.exit(1);
   }
-  const setting = settingId === undefined
-    ? LAUNCH_SETTINGS[Math.floor(rng() * LAUNCH_SETTINGS.length)]
-    : LAUNCH_SETTINGS.find(s => s.id === settingId);
-  if (!setting) {
-    console.error(`Unknown setting: ${settingId}. Available: ${LAUNCH_SETTINGS.map(s => s.id).join(', ')}`);
-    process.exit(1);
-  }
 
-  const scenario = assembleScenario(skeleton, 'standard', setting as SettingDefinition, ALL_MODULES, rng);
+  const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
   const normalizedClass = normalizeClassId(classId);
   const normalizedDifficulty = normalizeDifficulty(difficulty);
   const state = initGame(scenario, normalizedClass, normalizedDifficulty, 'Joueur', rng);
@@ -317,12 +307,11 @@ function main(): void {
 
   if (args.includes('--init') || primaryCommand === 'new-game') {
     const skeleton = getFlagValue(args, '--skeleton');
-    const setting = getFlagValue(args, '--setting');
     const classId = getFlagValue(args, '--class') ?? 'marine';
     const difficulty = getFlagValue(args, '--difficulty') ?? 'survivor';
     const seedRaw = getFlagValue(args, '--seed') ?? String(Date.now() % 100000);
     const seed = Number.parseInt(seedRaw, 10);
-    initializeGame(skeleton, setting, classId, difficulty, Number.isNaN(seed) ? 0 : seed);
+    initializeGame(skeleton, classId, difficulty, Number.isNaN(seed) ? 0 : seed);
     return;
   }
 

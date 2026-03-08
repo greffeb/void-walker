@@ -40,7 +40,7 @@ export const PATROL_ENTITY_01: ScenarioModule = {
   type: 'patrol_enemy',
   validSegments: ['reveal-escalation', 'escalation-boss'],
   tensionRange: [6, 10],
-  compatibility: { categories: ['space_vessel', 'facility', 'alien'] },
+  compatibility: { universal: true },
   locations: [
     {
       id: 'main',
@@ -95,7 +95,7 @@ export const FLOODED_SECTION_01: ScenarioModule = {
   type: 'environmental',
   validSegments: ['reveal-escalation', 'escalation-boss'],
   tensionRange: [6, 9],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { skeletons: ['escape', 'investigate'] },
   locations: [
     {
       id: 'main',
@@ -147,7 +147,7 @@ export const SURVIVOR_RESCUE_01: ScenarioModule = {
   type: 'rescue',
   validSegments: ['unlock-reveal', 'reveal-escalation'],
   tensionRange: [5, 8],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { universal: true },
   locations: [
     {
       id: 'main',
@@ -199,7 +199,7 @@ export const TERMINAL_DECRYPT_01: ScenarioModule = {
   type: 'terminal_puzzle',
   validSegments: ['unlock-reveal', 'reveal-escalation'],
   tensionRange: [4, 8],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { skeletons: ['investigate'] },
   locations: [
     {
       id: 'main',
@@ -262,7 +262,7 @@ export const EXPLOSIVE_DECOMPRESSION_RISK_01: ScenarioModule = {
   type: 'blocked_passage',
   validSegments: ['reveal-escalation', 'escalation-boss'],
   tensionRange: [7, 10],
-  compatibility: { categories: ['space_vessel', 'facility'] },
+  compatibility: { skeletons: ['escape', 'investigate'] },
   locations: [
     {
       id: 'main',
