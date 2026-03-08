@@ -60,8 +60,8 @@ export function TitleScreen(): JSX.Element {
         className="crt-glow-strong"
         style={{
           fontFamily: 'var(--font-title)',
-          fontSize: 'clamp(24px, 8vw, 48px)',
-          fontWeight: 700,
+          fontSize: 'clamp(32px, 10vw, 64px)',
+          fontWeight: 400,
           letterSpacing: '0.15em',
           textTransform: 'uppercase',
           color: 'var(--amber-glow)',
@@ -76,12 +76,12 @@ export function TitleScreen(): JSX.Element {
       <p
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
+          fontSize: '18px',
           fontStyle: 'italic',
           color: 'var(--amber-dim)',
           marginBottom: '40px',
           textAlign: 'center',
-          maxWidth: '300px',
+          maxWidth: '400px',
           lineHeight: 1.6,
         }}
       >
@@ -89,7 +89,7 @@ export function TitleScreen(): JSX.Element {
       </p>
 
       {/* Buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '300px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '360px' }}>
         <button
           type="button"
           className="btn-console"
@@ -97,7 +97,6 @@ export function TitleScreen(): JSX.Element {
           style={{
             width: '100%',
             padding: '14px',
-            fontSize: '13px',
             borderColor: 'var(--amber-glow)',
           }}
         >
@@ -108,10 +107,10 @@ export function TitleScreen(): JSX.Element {
           type="button"
           className="btn-console"
           onClick={handleQuickStart}
-          style={{ width: '100%', padding: '14px', fontSize: '13px' }}
+          style={{ width: '100%', padding: '14px' }}
         >
           DÉMARRAGE RAPIDE
-          <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+          <span style={{ display: 'block', fontSize: '16px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             classe + stats aléatoires
           </span>
         </button>
@@ -121,11 +120,11 @@ export function TitleScreen(): JSX.Element {
           className="btn-console"
           onClick={handleContinue}
           disabled={!autoSave}
-          style={{ width: '100%', padding: '14px', fontSize: '13px' }}
+          style={{ width: '100%', padding: '14px' }}
         >
           CONTINUER
           {autoSave && (
-            <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+            <span style={{ display: 'block', fontSize: '16px', color: 'var(--text-secondary)', marginTop: '4px' }}>
               {autoSave.meta.playerName} — {CLASS_LABELS[autoSave.meta.className] ?? autoSave.meta.className}
               {' '}— Tour {autoSave.meta.turn}
             </span>
@@ -135,13 +134,12 @@ export function TitleScreen(): JSX.Element {
         {hasSaves && saveSlots.length > 1 && (
           <div
             style={{
-              border: '1px solid var(--amber-dim)',
-              borderRadius: 'var(--radius)',
+              border: '2px solid var(--amber-dim)',
               background: 'var(--bg-panel)',
-              padding: '8px',
+              padding: '10px',
             }}
           >
-            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '16px', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               CHARGER PARTIE
             </div>
             {saveSlots.map(slot => (
@@ -150,10 +148,10 @@ export function TitleScreen(): JSX.Element {
                 type="button"
                 className="btn-console"
                 onClick={() => void loadGameFromSlot(slot.slot)}
-                style={{ width: '100%', marginBottom: '4px', padding: '8px', fontSize: '11px', textAlign: 'left' }}
+                style={{ width: '100%', marginBottom: '4px', padding: '8px', textAlign: 'left' }}
               >
                 Slot {slot.slot} — {slot.meta.playerName} ({CLASS_LABELS[slot.meta.className] ?? slot.meta.className})
-                <span style={{ display: 'block', fontSize: '9px', color: 'var(--text-system)' }}>
+                <span style={{ display: 'block', fontSize: '14px', color: 'var(--text-system)' }}>
                   Tour {slot.meta.turn} — {formatTimestamp(slot.timestamp)}
                 </span>
               </button>
@@ -167,7 +165,7 @@ export function TitleScreen(): JSX.Element {
         style={{
           position: 'absolute',
           bottom: '16px',
-          fontSize: '10px',
+          fontSize: '14px',
           color: 'var(--text-system)',
           fontFamily: 'var(--font-mono)',
         }}

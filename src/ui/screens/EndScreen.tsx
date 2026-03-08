@@ -42,7 +42,7 @@ export function EndScreen(): JSX.Element {
       {/* Icon */}
       <div
         style={{
-          fontSize: '48px',
+          fontSize: '64px',
           color: accentColor,
           marginBottom: '12px',
           animation: isVictory ? 'pulse-amber 2s ease-in-out infinite' : undefined,
@@ -55,7 +55,7 @@ export function EndScreen(): JSX.Element {
       <h1
         className="font-title"
         style={{
-          fontSize: '24px',
+          fontSize: '32px',
           letterSpacing: '0.15em',
           color: accentColor,
           marginBottom: '8px',
@@ -68,10 +68,10 @@ export function EndScreen(): JSX.Element {
       <p
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '12px',
+          fontSize: '18px',
           color: 'var(--amber-dim)',
           marginBottom: '24px',
-          maxWidth: '320px',
+          maxWidth: '400px',
         }}
       >
         {isVictory
@@ -84,9 +84,8 @@ export function EndScreen(): JSX.Element {
         <div
           style={{
             width: '100%',
-            maxWidth: '320px',
-            border: `1px solid ${accentColor}`,
-            borderRadius: '4px',
+            maxWidth: '380px',
+            border: `2px solid ${accentColor}`,
             padding: '16px',
             marginBottom: '24px',
             background: 'var(--bg-panel)',
@@ -94,12 +93,12 @@ export function EndScreen(): JSX.Element {
         >
           <div
             style={{
-              fontSize: '10px',
+              fontSize: '16px',
               letterSpacing: '0.15em',
               color: 'var(--amber-dim)',
               fontFamily: 'var(--font-title)',
               marginBottom: '12px',
-              borderBottom: '1px solid var(--amber-dim)',
+              borderBottom: '2px solid var(--amber-dim)',
               paddingBottom: '4px',
             }}
           >
@@ -124,14 +123,14 @@ export function EndScreen(): JSX.Element {
 
       {/* KO bug report (death screen only) */}
       {!isVictory && lastEntry && (
-        <div style={{ width: '100%', maxWidth: '320px', marginBottom: '16px' }}>
+        <div style={{ width: '100%', maxWidth: '380px', marginBottom: '16px' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               fontFamily: 'var(--font-mono)',
-              fontSize: '10px',
+              fontSize: '16px',
               color: 'var(--danger)',
               justifyContent: 'center',
             }}
@@ -143,7 +142,7 @@ export function EndScreen(): JSX.Element {
       )}
 
       {/* Buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '280px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '340px' }}>
         <button
           type="button"
           className="btn-console"
@@ -152,8 +151,7 @@ export function EndScreen(): JSX.Element {
           }}
           style={{
             padding: '12px 20px',
-            fontSize: '13px',
-            border: `1px solid ${accentColor}`,
+            border: `2px solid ${accentColor}`,
             color: accentColor,
           }}
         >
@@ -165,7 +163,6 @@ export function EndScreen(): JSX.Element {
           onClick={restart}
           style={{
             padding: '10px 20px',
-            fontSize: '12px',
           }}
         >
           MENU PRINCIPAL
@@ -176,7 +173,7 @@ export function EndScreen(): JSX.Element {
       <div
         style={{
           marginTop: '32px',
-          fontSize: '10px',
+          fontSize: '14px',
           color: 'var(--amber-dim)',
           fontFamily: 'var(--font-mono)',
           opacity: 0.5,
@@ -198,13 +195,14 @@ function StatRow({ label, value }: { label: string; value: string }): JSX.Elemen
       style={{
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '3px 0',
+        padding: '4px 0',
         fontFamily: 'var(--font-mono)',
-        fontSize: '11px',
+        fontSize: '18px',
+        borderBottom: '1px dashed #333',
       }}
     >
       <span style={{ color: 'var(--amber-dim)' }}>{label}</span>
-      <span style={{ color: 'var(--amber-glow)' }}>{value}</span>
+      <span style={{ color: 'var(--crt-cyan)' }}>{value}</span>
     </div>
   );
 }

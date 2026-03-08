@@ -36,8 +36,8 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
 
   if (!character) {
     return (
-      <Modal title="INVENTAIRE" icon="◫" onClose={onClose}>
-        <p style={{ color: 'var(--amber-dim)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+      <Modal title="INVENTAIRE" icon="▫" onClose={onClose}>
+        <p style={{ color: 'var(--amber-dim)', fontFamily: 'var(--font-mono)', fontSize: '18px' }}>
           Aucun personnage.
         </p>
       </Modal>
@@ -71,19 +71,18 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
   }
 
   return (
-    <Modal title="INVENTAIRE" icon="◫" onClose={onClose}>
+    <Modal title="BASE DE DONNÉES MATÉRIELLE" icon="▤" onClose={onClose}>
       {/* Equipped summary */}
       <div
         style={{
           display: 'flex',
           gap: '16px',
           marginBottom: '16px',
-          padding: '8px 10px',
-          background: 'rgba(255, 176, 0, 0.05)',
-          border: '1px solid var(--amber-dim)',
-          borderRadius: '2px',
+          padding: '10px',
+          border: '2px solid var(--amber-glow)',
+          background: 'var(--bg-panel)',
           fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
+          fontSize: '18px',
         }}
       >
         <div>
@@ -92,16 +91,14 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
             {equippedWeapon ? itemName(equippedWeapon) : '—'}
           </span>
         </div>
-        <div>
-          <span style={{ color: 'var(--amber-dim)' }}>ARMURE: </span>
-          <span style={{ color: equippedArmor ? 'var(--amber-glow)' : 'var(--amber-dim)' }}>
-            {equippedArmor ? itemName(equippedArmor) : '—'}
-          </span>
+        <div style={{ marginLeft: 'auto' }}>
+          <span style={{ color: 'var(--amber-dim)' }}>CAPACITÉ: </span>
+          <span style={{ color: 'var(--amber-glow)' }}>{inventory.length}/10</span>
         </div>
       </div>
 
       {isEmpty && (
-        <p style={{ color: 'var(--amber-dim)', fontFamily: 'var(--font-mono)', fontSize: '12px', textAlign: 'center', padding: '20px 0' }}>
+        <p style={{ color: 'var(--amber-dim)', fontFamily: 'var(--font-mono)', fontSize: '18px', textAlign: 'center', padding: '20px 0' }}>
           Inventaire vide.
         </p>
       )}
@@ -115,13 +112,13 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
           <div key={type} style={{ marginBottom: '14px' }}>
             <div
               style={{
-                fontSize: '10px',
+                fontSize: '16px',
                 letterSpacing: '0.15em',
                 color: 'var(--amber-dim)',
                 fontFamily: 'var(--font-title)',
                 marginBottom: '6px',
-                borderBottom: '1px solid var(--amber-dim)',
-                paddingBottom: '2px',
+                borderBottom: '2px solid var(--amber-dim)',
+                paddingBottom: '4px',
               }}
             >
               {TYPE_LABELS[type]}
@@ -140,25 +137,25 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      padding: '6px 8px',
+                      padding: '8px',
                       background: isEquipped ? 'rgba(255, 176, 0, 0.08)' : 'transparent',
-                      borderRadius: '2px',
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '12px',
+                      fontSize: '18px',
+                      borderBottom: '1px solid #333',
                     }}
                   >
                     {/* Name + status */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ color: isBroken ? 'var(--danger)' : 'var(--amber-glow)' }}>
+                      <span style={{ color: isBroken ? 'var(--danger)' : 'var(--crt-cyan)' }}>
                         {name}
                       </span>
                       {isBroken && (
-                        <span style={{ color: 'var(--danger)', fontSize: '10px', marginLeft: '6px' }}>
+                        <span style={{ color: 'var(--danger)', fontSize: '14px', marginLeft: '6px' }}>
                           [CASSÉ]
                         </span>
                       )}
                       {isEquipped && (
-                        <span style={{ color: 'var(--success)', fontSize: '10px', marginLeft: '6px' }}>
+                        <span style={{ color: 'var(--success)', fontSize: '14px', marginLeft: '6px' }}>
                           [ÉQUIPÉ]
                         </span>
                       )}
@@ -169,9 +166,8 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
                       {def?.type === 'consumable' && (
                         <button
                           type="button"
-                          className="btn-console"
+                          className="btn-small"
                           onClick={() => handleAction('utiliser', name)}
-                          style={{ padding: '2px 8px', fontSize: '9px' }}
                           disabled={isBroken}
                         >
                           UTIL.
@@ -179,18 +175,16 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
                       )}
                       <button
                         type="button"
-                        className="btn-console"
+                        className="btn-small"
                         onClick={() => handleAction('examiner', name)}
-                        style={{ padding: '2px 8px', fontSize: '9px' }}
                       >
                         EXAM.
                       </button>
                       {def?.type !== 'key_item' && (
                         <button
                           type="button"
-                          className="btn-console"
+                          className="btn-small"
                           onClick={() => handleAction('jeter', name)}
-                          style={{ padding: '2px 8px', fontSize: '9px' }}
                         >
                           JETER
                         </button>

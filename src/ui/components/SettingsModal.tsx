@@ -57,14 +57,14 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
             className="btn-console"
             onClick={() => void handleSave()}
             disabled={saveStatus === 'saving'}
-            style={{ width: '100%', padding: '10px', fontSize: '12px' }}
+            style={{ width: '100%', padding: '10px' }}
           >
-            {saveStatus === 'idle' && '💾 SAUVEGARDER'}
+            {saveStatus === 'idle' && '▸ SAUVEGARDER'}
             {saveStatus === 'saving' && '⏳ SAUVEGARDE…'}
             {saveStatus === 'saved' && '✓ SAUVEGARDÉ'}
             {saveStatus === 'error' && '✕ ERREUR'}
           </button>
-          <p style={{ fontSize: '10px', color: 'var(--amber-dim)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+          <p style={{ fontSize: '16px', color: 'var(--amber-dim)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
             Sauvegarde dans l'emplacement automatique (slot 0).
           </p>
         </Section>
@@ -76,10 +76,11 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '6px 0',
+              padding: '8px 0',
               fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
+              fontSize: '18px',
               color: 'var(--amber-dim)',
+              borderBottom: '1px dashed #333',
             }}
           >
             <span>Effets sonores</span>
@@ -90,9 +91,9 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '6px 0',
+              padding: '8px 0',
               fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
+              fontSize: '18px',
               color: 'var(--amber-dim)',
             }}
           >
@@ -107,7 +108,7 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
             type="button"
             className="btn-console btn-danger"
             onClick={handleQuit}
-            style={{ width: '100%', padding: '10px', fontSize: '12px' }}
+            style={{ width: '100%', padding: '10px' }}
           >
             {confirmQuit ? '⚠ CONFIRMER — QUITTER SANS SAUVEGARDER' : '✕ RETOUR AU MENU'}
           </button>
@@ -116,7 +117,7 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
               type="button"
               className="btn-console"
               onClick={() => setConfirmQuit(false)}
-              style={{ width: '100%', padding: '8px', fontSize: '11px', marginTop: '6px' }}
+              style={{ width: '100%', padding: '8px', marginTop: '6px' }}
             >
               ANNULER
             </button>
@@ -133,16 +134,25 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
   return (
-    <div>
+    <div
+      style={{
+        border: '2px solid var(--amber-dim)',
+        padding: '12px',
+        position: 'relative',
+        marginTop: '8px',
+      }}
+    >
       <div
         style={{
-          fontSize: '10px',
+          position: 'absolute',
+          top: '-12px',
+          left: '10px',
+          background: 'var(--bg-deep)',
+          padding: '0 6px',
+          fontSize: '16px',
           letterSpacing: '0.15em',
-          color: 'var(--amber-dim)',
+          color: 'var(--amber-glow)',
           fontFamily: 'var(--font-title)',
-          marginBottom: '8px',
-          borderBottom: '1px solid var(--amber-dim)',
-          paddingBottom: '2px',
         }}
       >
         {title}
@@ -158,13 +168,14 @@ function InfoRow({ label, value }: { label: string; value: string }): JSX.Elemen
       style={{
         display: 'flex',
         justifyContent: 'space-between',
-        padding: '4px 0',
+        padding: '6px 0',
         fontFamily: 'var(--font-mono)',
-        fontSize: '12px',
+        fontSize: '18px',
+        borderBottom: '1px dashed #333',
       }}
     >
       <span style={{ color: 'var(--amber-dim)' }}>{label}</span>
-      <span style={{ color: 'var(--amber-glow)' }}>{value}</span>
+      <span style={{ color: 'var(--crt-cyan)' }}>{value}</span>
     </div>
   );
 }

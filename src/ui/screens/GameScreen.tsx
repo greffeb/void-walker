@@ -102,41 +102,105 @@ export function GameScreen(): JSX.Element {
         onSubmit={submitAction}
       />
 
-      {/* Action Bar (modals) */}
+      {/* Navigation Bar (modals) */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: '12px',
-          padding: '6px 12px 10px',
-          background: 'var(--bg-panel)',
-          borderTop: '1px solid var(--amber-dim)',
+          gap: '40px',
+          padding: '8px 12px 12px',
           flexShrink: 0,
         }}
       >
         <button
           type="button"
-          className="btn-console"
           onClick={() => openModal('map')}
-          style={{ padding: '6px 14px', fontSize: '10px' }}
+          style={{
+            background: 'transparent',
+            color: activeModal === 'map' ? 'var(--amber-glow)' : 'var(--amber-dim)',
+            border: '2px solid',
+            borderColor: activeModal === 'map' ? 'var(--amber-glow)' : 'var(--amber-dim)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '18px',
+            padding: '6px 16px',
+            cursor: 'pointer',
+            transition: 'all 100ms',
+            textShadow: activeModal === 'map' ? '0 0 5px var(--amber-glow)' : 'none',
+          }}
+          onMouseEnter={e => {
+            (e.target as HTMLButtonElement).style.color = 'var(--amber-glow)';
+            (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-glow)';
+            (e.target as HTMLButtonElement).style.background = 'rgba(255, 176, 0, 0.1)';
+          }}
+          onMouseLeave={e => {
+            if (activeModal !== 'map') {
+              (e.target as HTMLButtonElement).style.color = 'var(--amber-dim)';
+              (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-dim)';
+            }
+            (e.target as HTMLButtonElement).style.background = 'transparent';
+          }}
         >
-          ◈ CARTE
+          ❖ CARTE
         </button>
         <button
           type="button"
-          className="btn-console"
           onClick={() => openModal('inventory')}
-          style={{ padding: '6px 14px', fontSize: '10px' }}
+          style={{
+            background: 'transparent',
+            color: activeModal === 'inventory' ? 'var(--amber-glow)' : 'var(--amber-dim)',
+            border: '2px solid',
+            borderColor: activeModal === 'inventory' ? 'var(--amber-glow)' : 'var(--amber-dim)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '18px',
+            padding: '6px 16px',
+            cursor: 'pointer',
+            transition: 'all 100ms',
+            textShadow: activeModal === 'inventory' ? '0 0 5px var(--amber-glow)' : 'none',
+          }}
+          onMouseEnter={e => {
+            (e.target as HTMLButtonElement).style.color = 'var(--amber-glow)';
+            (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-glow)';
+            (e.target as HTMLButtonElement).style.background = 'rgba(255, 176, 0, 0.1)';
+          }}
+          onMouseLeave={e => {
+            if (activeModal !== 'inventory') {
+              (e.target as HTMLButtonElement).style.color = 'var(--amber-dim)';
+              (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-dim)';
+            }
+            (e.target as HTMLButtonElement).style.background = 'transparent';
+          }}
         >
-          ◫ INV
+          ▤ INV
         </button>
         <button
           type="button"
-          className="btn-console"
           onClick={() => openModal('settings')}
-          style={{ padding: '6px 14px', fontSize: '10px' }}
+          style={{
+            background: 'transparent',
+            color: activeModal === 'settings' ? 'var(--amber-glow)' : 'var(--amber-dim)',
+            border: '2px solid',
+            borderColor: activeModal === 'settings' ? 'var(--amber-glow)' : 'var(--amber-dim)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '18px',
+            padding: '6px 16px',
+            cursor: 'pointer',
+            transition: 'all 100ms',
+            textShadow: activeModal === 'settings' ? '0 0 5px var(--amber-glow)' : 'none',
+          }}
+          onMouseEnter={e => {
+            (e.target as HTMLButtonElement).style.color = 'var(--amber-glow)';
+            (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-glow)';
+            (e.target as HTMLButtonElement).style.background = 'rgba(255, 176, 0, 0.1)';
+          }}
+          onMouseLeave={e => {
+            if (activeModal !== 'settings') {
+              (e.target as HTMLButtonElement).style.color = 'var(--amber-dim)';
+              (e.target as HTMLButtonElement).style.borderColor = 'var(--amber-dim)';
+            }
+            (e.target as HTMLButtonElement).style.background = 'transparent';
+          }}
         >
-          ⚙
+          ⚙ SYS
         </button>
       </div>
 

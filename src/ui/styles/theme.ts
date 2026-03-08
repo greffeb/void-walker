@@ -9,18 +9,25 @@ export const THEME = {
   colors: {
     // Fond / Structure
     bgDeep: '#050505',
-    bgPanel: '#0A0A0F',
-    bgSurface: '#111116',
+    bgPanel: '#111111',
+    bgPanelLight: '#1a1a1a',
+    bgSurface: '#1a1a1a',
     bgInput: '#0D0D12',
 
     // Ambre (couleur principale — Nostromo)
     amberGlow: '#FFB000',
     amberMid: '#CC8800',
-    amberDim: '#805500',
+    amberDim: '#8A6100',
     amberBg: '#1A1200',
 
+    // CRT accent colors (mockup palette)
+    crtCyan: '#60A3B5',
+    crtGreen: '#52C155',
+    crtBeige: '#D4B483',
+    crtOrange: '#E65A22',
+
     // Statut
-    success: '#00FF41',
+    success: '#52C155',
     successDim: '#00802A',
     danger: '#FF2020',
     dangerDim: '#801010',
@@ -35,8 +42,8 @@ export const THEME = {
   },
 
   fonts: {
-    title: "'Orbitron', sans-serif",
-    mono: "'IBM Plex Mono', monospace",
+    title: "'VT323', monospace",
+    mono: "'VT323', monospace",
   },
 
   spacing: {
@@ -51,13 +58,13 @@ export const THEME = {
     fast: '150ms',
     normal: '300ms',
     slow: '500ms',
-    typewriterSpeed: 15,
+    typewriterSpeed: 20,
     dicePhase1Duration: 1000,
     dicePhase2Duration: 2000,
     dicePhase3Duration: 500,
   },
 
-  borderRadius: '2px',
+  borderRadius: '0px',
 } as const;
 
 /** Type helper */

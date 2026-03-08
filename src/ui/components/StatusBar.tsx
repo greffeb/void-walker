@@ -22,9 +22,9 @@ export function StatusBar({ character, turn, inCombat }: StatusBarProps): JSX.El
       style={{
         padding: '8px 12px',
         background: 'var(--bg-panel)',
-        borderBottom: '1px solid var(--amber-dim)',
+        borderBottom: '2px solid var(--amber-glow)',
         fontFamily: 'var(--font-mono)',
-        fontSize: '11px',
+        fontSize: '18px',
         flexShrink: 0,
       }}
     >
@@ -32,19 +32,19 @@ export function StatusBar({ character, turn, inCombat }: StatusBarProps): JSX.El
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         {/* HP */}
         <span style={{ color: hpColor(hp, maxHp) }} className={lowHp ? 'animate-hp-low' : undefined}>
-          ♥ {hp}/{maxHp} {hpBar(hp, maxHp, 8)}
+          ▼ {hp}/{maxHp} {hpBar(hp, maxHp, 10)}
         </span>
 
         {/* O2 */}
         {showO2 && (
-          <span style={{ color: oxygen <= 20 ? 'var(--danger)' : 'var(--amber-mid)' }}>
+          <span style={{ color: oxygen <= 20 ? 'var(--danger)' : 'var(--crt-orange)' }}>
             O₂ {o2Bar(oxygen)} {oxygen}%
           </span>
         )}
 
         {/* Combat indicator */}
         {inCombat && (
-          <span style={{ color: 'var(--danger)', fontWeight: 600 }}>⚔ COMBAT</span>
+          <span style={{ color: 'var(--danger)' }}>⚔ COMBAT</span>
         )}
 
         {/* Turn */}
@@ -58,12 +58,11 @@ export function StatusBar({ character, turn, inCombat }: StatusBarProps): JSX.El
             <span
               key={c.id}
               style={{
-                fontSize: '10px',
-                color: 'var(--warning)',
-                background: 'rgba(255, 102, 0, 0.1)',
+                fontSize: '16px',
+                color: 'var(--crt-orange)',
+                background: 'rgba(230, 90, 34, 0.1)',
                 padding: '1px 6px',
-                borderRadius: '2px',
-                border: '1px solid rgba(255, 102, 0, 0.2)',
+                border: '1px solid rgba(230, 90, 34, 0.3)',
               }}
             >
               {conditionEmoji(c.id)} {ts(`condition.${c.id}`)}
@@ -71,7 +70,7 @@ export function StatusBar({ character, turn, inCombat }: StatusBarProps): JSX.El
             </span>
           ))}
           {conditions.length > 3 && (
-            <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '16px', color: 'var(--text-secondary)' }}>
               +{conditions.length - 3}
             </span>
           )}

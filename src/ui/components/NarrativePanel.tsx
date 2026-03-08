@@ -14,11 +14,11 @@ import { t } from '@i18n/index';
 // ---------------------------------------------------------------------------
 
 const TOKEN_COLORS: Record<string, string> = {
-  location: 'var(--amber-glow)',
-  feature: 'var(--cyan)',
-  item: 'var(--success)',
-  npc: 'var(--warning)',
-  exit: 'var(--text-secondary)',
+  location: 'var(--crt-beige)',
+  feature: 'var(--crt-cyan)',
+  item: 'var(--crt-green)',
+  npc: 'var(--crt-orange)',
+  exit: 'var(--crt-beige)',
   text: 'var(--text-narrative)',
 };
 
@@ -109,8 +109,9 @@ function renderClippedScene(
   scene: NarratedScene,
   showIntro: boolean,
   maxChars: number,
+  cursor?: JSX.Element | null,
 ): JSX.Element | null {
-  if (maxChars <= 0) return null;
+  if (maxChars <= 0) return cursor ? <>{cursor}</> : null;
 
   // Build allLines in EXACTLY the same order as flattenSceneToText()
   const allLines: RenderLine[] = [];
@@ -238,6 +239,19 @@ function renderClippedScene(
     }
   }
 
+  // Append cursor inline at end of last element
+  if (cursor && elements.length > 0) {
+    const lastIdx = elements.length - 1;
+    const lastElem = elements[lastIdx]!;
+    elements[lastIdx] = (
+      <div key={lastElem.key} style={lastElem.props.style}>
+        {lastElem.props.children}{cursor}
+      </div>
+    );
+  } else if (cursor) {
+    elements.push(<span key="cursor">{cursor}</span>);
+  }
+
   return <div style={{ lineHeight: 1.6 }}>{elements}</div>;
 }
 
@@ -274,14 +288,14 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
     <div style={{ marginBottom: '16px' }}>
       {/* Separator + KO button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <div style={{ color: 'var(--text-system)', fontSize: '10px' }}>
+        <div style={{ color: 'var(--text-system)', fontSize: '18px' }}>
           ── Tour {entry.id} ──────────
         </div>
         <BugReportButton entry={entry} />
       </div>
 
       {/* Player input */}
-      <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '4px' }}>
+      <div style={{ color: 'var(--text-secondary)', fontSize: '18px', marginBottom: '4px' }}>
         &gt; {entry.input}
       </div>
 
@@ -294,7 +308,7 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
         if (dr.modifier !== 0) bonusParts.push(`${dr.modifier > 0 ? '+' : ''}${dr.modifier}`);
         const bonusStr = bonusParts.length > 0 ? ' ' + bonusParts.join(' ') : '';
         return (
-          <div style={{ fontSize: '10px', color: outcomeColor(entry.trace.outcome), marginBottom: '4px' }}>
+          <div style={{ fontSize: '16px', color: outcomeColor(entry.trace.outcome), marginBottom: '4px' }}>
             🎲 D20({dr.natural}){bonusStr} = {dr.total} vs DC {dr.difficulty}
             {' '}{outcomeLabel(entry.trace.outcome)}
           </div>
@@ -303,26 +317,26 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
 
       {/* Narrative text */}
       {entry.narrative && (
-        <div className="animate-fade-in crt-text" style={{ color: 'var(--text-narrative)', fontSize: '15px', lineHeight: 1.6, textShadow: '0 0 4px rgba(224, 160, 48, 0.4)' }}>
+        <div className="animate-fade-in crt-text" style={{ color: 'var(--text-narrative)', fontSize: '22px', lineHeight: 1.5, textShadow: '0 0 4px rgba(224, 160, 48, 0.4)' }}>
           {entry.narrative}
         </div>
       )}
 
       {/* HP delta */}
       {entry.hpDelta !== null && entry.hpDelta < 0 && (
-        <div className="animate-fade-in" style={{ color: 'var(--danger)', fontSize: '13px', fontFamily: 'var(--font-mono, monospace)', marginTop: '4px', letterSpacing: '0.05em' }}>
+        <div className="animate-fade-in" style={{ color: 'var(--danger)', fontSize: '18px', fontFamily: 'var(--font-mono, monospace)', marginTop: '4px', letterSpacing: '0.05em' }}>
           {t('ui.hp_lost', 'fr').replace('{n}', String(Math.abs(entry.hpDelta)))}
         </div>
       )}
       {entry.hpDelta !== null && entry.hpDelta > 0 && (
-        <div className="animate-fade-in" style={{ color: 'var(--success)', fontSize: '13px', fontFamily: 'var(--font-mono, monospace)', marginTop: '4px', letterSpacing: '0.05em' }}>
+        <div className="animate-fade-in" style={{ color: 'var(--success)', fontSize: '18px', fontFamily: 'var(--font-mono, monospace)', marginTop: '4px', letterSpacing: '0.05em' }}>
           {t('ui.hp_gained', 'fr').replace('{n}', String(entry.hpDelta))}
         </div>
       )}
 
       {/* Scene state after turn */}
       {entry.sceneIntro && (
-        <div className="animate-fade-in" style={{ fontSize: '15px' }}>
+        <div className="animate-fade-in" style={{ fontSize: '22px' }}>
           <NarratedSceneBlock scene={entry.sceneIntro} showIntro={entry.introMode !== null} />
         </div>
       )}
@@ -428,8 +442,8 @@ export function NarrativePanel({
         overflow: 'auto',
         padding: '16px',
         fontFamily: 'var(--font-mono)',
-        fontSize: '15px',
-        lineHeight: 1.6,
+        fontSize: '22px',
+        lineHeight: 1.5,
         cursor: isComplete ? 'default' : 'pointer',
       }}
     >
@@ -443,20 +457,24 @@ export function NarrativePanel({
         <TurnCard key={entry.id} entry={entry} />
       ))}
 
-      {/* Typewriter: narrative (plain amber) + scene (colored tokens), both at 15px */}
-      {!isFirstTurn && displayedText && (
-        <div style={{ fontSize: '15px', lineHeight: 1.6 }}>
-          {narrativeVisible && (
-            <div style={{ color: 'var(--text-narrative)', whiteSpace: 'pre-line' }}>
-              {narrativeVisible}
-            </div>
-          )}
-          {sceneIntro !== null && renderClippedScene(sceneIntro, showSceneIntro, charsInScene)}
-          {!isComplete && (
-            <span className="animate-cursor-blink" style={{ color: 'var(--amber-glow)' }}>█</span>
-          )}
-        </div>
-      )}
+      {/* Typewriter: narrative (plain amber) + scene (colored tokens), both at 22px */}
+      {!isFirstTurn && displayedText && (() => {
+        const cursorEl = !isComplete
+          ? <span className="animate-cursor-blink" style={{ color: 'var(--amber-glow)' }}>█</span>
+          : null;
+        const hasScene = sceneIntro !== null && charsInScene > 0;
+        return (
+          <div style={{ fontSize: '22px', lineHeight: 1.5 }}>
+            {narrativeVisible && (
+              <div style={{ color: 'var(--text-narrative)', whiteSpace: 'pre-line' }}>
+                {narrativeVisible}{!hasScene && cursorEl}
+              </div>
+            )}
+            {sceneIntro !== null && renderClippedScene(sceneIntro, showSceneIntro, charsInScene, cursorEl)}
+            {!narrativeVisible && !hasScene && cursorEl}
+          </div>
+        );
+      })()}
     </div>
   );
 }

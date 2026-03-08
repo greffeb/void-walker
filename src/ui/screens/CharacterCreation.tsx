@@ -41,7 +41,7 @@ function CreationLayout({
       <h2
         style={{
           fontFamily: 'var(--font-title)',
-          fontSize: '14px',
+          fontSize: '22px',
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           color: 'var(--amber-glow)',
@@ -136,19 +136,18 @@ function DifficultyStep(): JSX.Element {
                 textAlign: 'left',
                 padding: '16px',
                 background: selected ? 'var(--amber-bg)' : 'var(--bg-panel)',
-                border: `1px solid ${selected ? 'var(--amber-glow)' : 'var(--amber-dim)'}`,
-                borderRadius: 'var(--radius)',
+                border: `2px solid ${selected ? 'var(--amber-glow)' : 'var(--amber-dim)'}`,
                 color: 'var(--amber-glow)',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
                 transition: 'border-color 150ms',
               }}
             >
-              <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 400, marginBottom: '4px' }}>
                 {selected ? '▸ ' : '  '}{d.label}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--amber-mid)' }}>{d.desc}</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>{d.detail}</div>
+              <div style={{ fontSize: '16px', color: 'var(--amber-mid)' }}>{d.desc}</div>
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '2px' }}>{d.detail}</div>
             </button>
           );
         })}
@@ -186,21 +185,20 @@ function ClassStep(): JSX.Element {
                 textAlign: 'left',
                 padding: '14px',
                 background: selected ? 'var(--amber-bg)' : 'var(--bg-panel)',
-                border: `1px solid ${selected ? 'var(--amber-glow)' : 'var(--amber-dim)'}`,
-                borderRadius: 'var(--radius)',
+                border: `2px solid ${selected ? 'var(--amber-glow)' : 'var(--amber-dim)'}`,
                 color: 'var(--amber-glow)',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
                 transition: 'border-color 150ms',
               }}
             >
-              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 400, marginBottom: '6px' }}>
                 {ts(cls.nameKey).toUpperCase()}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+              <div style={{ fontSize: '16px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                 {ts(cls.descriptionKey)}
               </div>
-              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', lineHeight: 1.8 }}>
+              <div style={{ fontSize: '16px', fontFamily: 'var(--font-mono)', lineHeight: 1.8 }}>
                 {DISPLAY_STATS.map(stat => (
                   <div key={stat} style={{ color: 'var(--amber-mid)' }}>
                     {stat} {statBar(cls.baseStats[stat])}
@@ -254,11 +252,11 @@ function BonusStep(): JSX.Element {
                 gap: '12px',
                 marginBottom: '12px',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '13px',
+                fontSize: '18px',
               }}
             >
-              <span style={{ width: '36px', color: 'var(--amber-glow)' }}>{stat}</span>
-              <span style={{ flex: 1, color: 'var(--amber-mid)', fontSize: '11px' }}>
+              <span style={{ width: '40px', color: 'var(--amber-glow)' }}>{stat}</span>
+              <span style={{ flex: 1, color: 'var(--amber-mid)', fontSize: '16px' }}>
                 {statBar(total)}
               </span>
               <button
@@ -266,7 +264,7 @@ function BonusStep(): JSX.Element {
                 className="btn-console"
                 onClick={() => setBonusPoint(stat, -1)}
                 disabled={!canSub}
-                style={{ padding: '6px 10px', fontSize: '12px', minWidth: '32px' }}
+                style={{ padding: '6px 10px', minWidth: '32px' }}
               >
                 −
               </button>
@@ -275,7 +273,7 @@ function BonusStep(): JSX.Element {
                 className="btn-console"
                 onClick={() => setBonusPoint(stat, 1)}
                 disabled={!canAdd}
-                style={{ padding: '6px 10px', fontSize: '12px', minWidth: '32px' }}
+                style={{ padding: '6px 10px', minWidth: '32px' }}
               >
                 +
               </button>
@@ -283,7 +281,7 @@ function BonusStep(): JSX.Element {
           );
         })}
 
-        <p style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '16px', textAlign: 'center' }}>
+        <p style={{ fontSize: '16px', color: 'var(--text-secondary)', marginTop: '16px', textAlign: 'center' }}>
           Max par stat : {BALANCE.STAT_MAX}
         </p>
       </div>
@@ -321,7 +319,7 @@ function NameStep(): JSX.Element {
         <label
           style={{
             display: 'block',
-            fontSize: '11px',
+            fontSize: '16px',
             color: 'var(--text-secondary)',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
@@ -340,11 +338,10 @@ function NameStep(): JSX.Element {
             width: '100%',
             padding: '12px',
             fontFamily: 'var(--font-mono)',
-            fontSize: '16px',
+            fontSize: '22px',
             color: 'var(--amber-glow)',
             background: 'var(--bg-input)',
-            border: '1px solid var(--amber-dim)',
-            borderRadius: 'var(--radius)',
+            border: '2px solid var(--amber-dim)',
             outline: 'none',
             textAlign: 'center',
           }}
@@ -356,7 +353,7 @@ function NameStep(): JSX.Element {
           type="button"
           className="btn-console"
           onClick={randomize}
-          style={{ marginTop: '16px', padding: '10px 20px', fontSize: '11px' }}
+          style={{ marginTop: '16px', padding: '10px 20px' }}
         >
           NOM ALÉATOIRE ⟳
         </button>

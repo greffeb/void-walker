@@ -1,26 +1,32 @@
 /* ---------------------------------------------------------------------------
  * src/ui/styles/globals.css — Global styles for Void Walker
  * ---------------------------------------------------------------------------
- * Cassette Futurism Ambre theme. Loaded once in main.tsx.
+ * Cassette Futurism Ambre theme — CRT terminal aesthetic.
+ * Loaded once in main.tsx.
  * ---------------------------------------------------------------------------*/
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Orbitron:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /* === CSS CUSTOM PROPERTIES === */
 :root {
   --bg-deep: #050505;
-  --bg-panel: #0A0A0F;
-  --bg-surface: #111116;
+  --bg-panel: #111111;
+  --bg-panel-light: #1a1a1a;
+  --bg-surface: #1a1a1a;
   --bg-input: #0D0D12;
 
   --amber-glow: #FFB000;
   --amber-mid: #CC8800;
-  --amber-dim: #805500;
+  --amber-dim: #8A6100;
   --amber-bg: #1A1200;
 
-  --cyan: #00CFCF;
+  --crt-cyan: #60A3B5;
+  --crt-green: #52C155;
+  --crt-beige: #D4B483;
+  --crt-orange: #E65A22;
+  --cyan: #60A3B5;
 
-  --success: #00FF41;
+  --success: #52C155;
   --success-dim: #00802A;
   --danger: #FF2020;
   --danger-dim: #801010;
@@ -32,10 +38,13 @@
   --text-narrative: #E0A030;
   --text-system: #666666;
 
-  --font-title: 'Orbitron', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
+  --font-title: 'VT323', monospace;
+  --font-mono: 'VT323', monospace;
 
-  --radius: 2px;
+  --radius: 0px;
+  --glow-spread: 4px;
+  --border-chunky: 2px solid var(--amber-glow);
+  --border-dim: 2px solid var(--amber-dim);
 }
 
 /* === RESET === */
@@ -48,7 +57,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 22px;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -56,11 +65,14 @@ body {
   background: var(--bg-deep);
   color: var(--amber-glow);
   font-family: var(--font-mono);
+  font-size: 22px;
+  line-height: 1.5;
   overflow: hidden;
   height: 100dvh;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-shadow: 0 0 var(--glow-spread) rgba(255, 176, 0, 0.4);
 }
 
 #root {
@@ -69,28 +81,35 @@ body {
   flex-direction: column;
 }
 
-/* === SCROLLBAR (minimal) === */
+/* === SCROLLBAR (CRT thick) === */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--bg-deep);
+  border-left: 1px solid var(--amber-dim);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--amber-dim);
-  border-radius: 2px;
 }
 
-/* === CRT TEXT GLOW === */
+/* === CRT TEXT GLOW UTILITIES === */
 .crt-glow {
-  text-shadow: 0 0 4px rgba(255, 176, 0, 0.4);
+  text-shadow: 0 0 var(--glow-spread) rgba(255, 176, 0, 0.4);
 }
 
 .crt-glow-strong {
   text-shadow: 0 0 8px rgba(255, 176, 0, 0.6), 0 0 16px rgba(255, 176, 0, 0.2);
 }
+
+/* Color utility classes matching mockup */
+.t-cyan { color: var(--crt-cyan); text-shadow: 0 0 var(--glow-spread) rgba(96, 163, 181, 0.5); }
+.t-green { color: var(--crt-green); text-shadow: 0 0 var(--glow-spread) rgba(82, 193, 85, 0.5); }
+.t-beige { color: var(--crt-beige); text-shadow: 0 0 var(--glow-spread) rgba(212, 180, 131, 0.5); }
+.t-orange { color: var(--crt-orange); text-shadow: 0 0 var(--glow-spread) rgba(230, 90, 34, 0.6); }
+.t-dim { color: var(--amber-dim); text-shadow: none; }
 
 /* === SCANLINES === */
 .scanlines::after {
@@ -99,43 +118,45 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  background: repeating-linear-gradient(0deg,
-      transparent 0px,
-      transparent 2px,
-      rgba(0, 0, 0, 0.12) 2px,
-      rgba(0, 0, 0, 0.12) 3px);
-  opacity: 0.3;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  opacity: 1;
 }
 
-/* === BUTTON BASE === */
+/* === BUTTON BASE — CRT Console Style === */
 .btn-console {
   font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 20px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  background: var(--bg-surface);
-  border: 2px solid var(--amber-dim);
+  background: var(--bg-panel);
+  border: 2px solid var(--amber-glow);
   border-bottom-width: 4px;
   border-radius: 0;
   color: var(--amber-glow);
-  padding: 10px 16px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: all 100ms ease-out;
   user-select: none;
   -webkit-user-select: none;
+  box-shadow: inset 0 0 8px rgba(255, 176, 0, 0.1);
+  text-shadow: 0 0 var(--glow-spread) rgba(255, 176, 0, 0.4);
 }
 
 .btn-console:hover:not(:disabled) {
+  background: var(--amber-glow);
+  color: var(--bg-deep);
   border-color: var(--amber-glow);
-  background: var(--bg-input);
-  box-shadow: 0 0 8px rgba(255, 176, 0, 0.2);
+  box-shadow: 0 0 15px rgba(255, 176, 0, 0.5);
+  text-shadow: none;
 }
 
 .btn-console:active:not(:disabled) {
   border-bottom-width: 2px;
   transform: translateY(2px);
-  background: var(--amber-bg);
+  background: var(--amber-mid);
+  color: var(--bg-deep);
+  text-shadow: none;
 }
 
 .btn-console:disabled {
@@ -143,6 +164,7 @@ body {
   cursor: not-allowed;
   border-bottom-width: 2px;
   transform: translateY(2px);
+  border-color: var(--amber-dim);
 }
 
 /* Primary variant */
@@ -159,15 +181,76 @@ body {
 
 .btn-console.danger:hover:not(:disabled) {
   border-color: var(--danger);
-  box-shadow: 0 0 8px rgba(255, 32, 32, 0.2);
+  background: var(--danger);
+  color: var(--bg-deep);
+  box-shadow: 0 0 15px rgba(255, 32, 32, 0.5);
+}
+
+/* Small button variant (inventory actions, etc.) */
+.btn-small {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  background: transparent;
+  border: 1px solid var(--amber-glow);
+  color: var(--amber-glow);
+  padding: 4px 10px;
+  cursor: pointer;
+  text-shadow: 0 0 var(--glow-spread) rgba(255, 176, 0, 0.4);
+  transition: all 100ms ease-out;
+}
+
+.btn-small:hover:not(:disabled) {
+  background: var(--amber-glow);
+  color: var(--bg-deep);
+  text-shadow: none;
 }
 
 /* === TITLE FONT === */
 .font-title {
   font-family: var(--font-title);
-  font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
+}
+
+/* === RETRO RANGE INPUT (sliders) === */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 200px;
+  background: transparent;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-deep);
+  border: 1px solid var(--amber-dim);
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  width: 10px;
+  background: var(--amber-glow);
+  margin-top: -7px;
+  cursor: pointer;
+}
+
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-deep);
+  border: 1px solid var(--amber-dim);
+}
+
+input[type=range]::-moz-range-thumb {
+  height: 20px;
+  width: 10px;
+  background: var(--amber-glow);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
 }
 
 /* === SELECTION === */

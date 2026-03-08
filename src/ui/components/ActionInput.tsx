@@ -31,13 +31,14 @@ export function ActionInput({ disabled, onSubmit }: ActionInputProps): JSX.Eleme
     <div
       style={{
         display: 'flex',
-        gap: '8px',
-        padding: '8px 12px',
+        border: '2px solid var(--amber-glow)',
         background: 'var(--bg-panel)',
-        borderTop: '1px solid var(--amber-dim)',
+        padding: '5px 10px',
+        margin: '0 12px 8px',
         flexShrink: 0,
       }}
     >
+      <span style={{ marginRight: '10px', color: 'var(--amber-glow)', fontSize: '22px', lineHeight: '40px' }}>&gt;</span>
       <input
         ref={inputRef}
         type="text"
@@ -45,40 +46,23 @@ export function ActionInput({ disabled, onSubmit }: ActionInputProps): JSX.Eleme
         onChange={e => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        placeholder="Que faites-vous ?"
+        placeholder="_"
         autoComplete="off"
         autoCapitalize="off"
         spellCheck={false}
         style={{
           flex: 1,
-          padding: '10px 12px',
+          padding: '8px 0',
           fontFamily: 'var(--font-mono)',
-          fontSize: '15px',
+          fontSize: '22px',
           color: disabled ? 'var(--text-system)' : 'var(--amber-glow)',
-          background: 'var(--bg-deep)',
-          border: '2px solid var(--amber-dim)',
-          borderRadius: 0,
+          background: 'transparent',
+          border: 'none',
           outline: 'none',
           opacity: disabled ? 0.5 : 1,
-          transition: 'border-color 150ms',
+          textShadow: '0 0 4px rgba(255, 176, 0, 0.4)',
         }}
-        onFocus={e => { if (!disabled) e.target.style.borderColor = 'var(--amber-glow)'; }}
-        onBlur={e => { e.target.style.borderColor = 'var(--amber-dim)'; }}
       />
-
-      <button
-        type="button"
-        className="btn-console"
-        onClick={handleSubmit}
-        disabled={disabled || !value.trim()}
-        style={{
-          padding: '10px 16px',
-          fontSize: '14px',
-          flexShrink: 0,
-        }}
-      >
-        ▸
-      </button>
     </div>
   );
 }

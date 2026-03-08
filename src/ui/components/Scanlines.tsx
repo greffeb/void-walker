@@ -1,28 +1,22 @@
 // ---------------------------------------------------------------------------
-// src/ui/components/Scanlines.tsx — CRT scanlines overlay
+// src/ui/components/Scanlines.tsx — CRT scanlines overlay (mockup aesthetic)
 // ---------------------------------------------------------------------------
 
 export function Scanlines(): JSX.Element {
   return (
     <>
+      {/* Scanlines — static horizontal lines matching mockup */}
       <div
-        className="animate-scanlines"
         aria-hidden="true"
         style={{
           position: 'fixed',
-          inset: '-10%', /* Oversize to prevent showing edges during animation */
-          width: '120%',
-          height: '120%',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
           pointerEvents: 'none',
           zIndex: 9998,
-          background: `repeating-linear-gradient(
-            0deg,
-            transparent 0px,
-            transparent 2px,
-            rgba(0, 0, 0, 0.3) 2px,
-            rgba(0, 0, 0, 0.3) 4px
-          )`,
-          opacity: 0.6,
+          background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%)',
+          backgroundSize: '100% 4px',
         }}
       />
       {/* Vignette effect */}

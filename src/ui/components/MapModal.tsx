@@ -88,26 +88,26 @@ function computeHiddenExits(state: GameState): ReadonlySet<string> {
 
 const PALETTE = {
   // Background
-  bg: '#0a0a0c',
+  bg: '#111111',
   gridLine: 'rgba(255, 176, 0, 0.04)',
   // Rooms
   currentFill: 'rgba(255, 176, 0, 0.15)',
   currentBorder: '#FFB000',
   currentText: '#FFB000',
-  visitedFill: 'rgba(0, 255, 65, 0.06)',
-  visitedBorder: '#00FF41',
-  visitedText: '#00FF41',
-  adjacentFill: 'rgba(255, 102, 0, 0.05)',
-  adjacentBorder: '#FF6600',
-  adjacentText: '#FF6600',
+  visitedFill: 'rgba(82, 193, 85, 0.08)',
+  visitedBorder: '#52C155',
+  visitedText: '#52C155',
+  adjacentFill: 'rgba(212, 180, 131, 0.06)',
+  adjacentBorder: '#8A6100',
+  adjacentText: '#D4B483',
   // Connectors
-  connectorVisited: '#00FF41',
-  connectorAdjacent: 'rgba(255, 102, 0, 0.25)',
+  connectorVisited: '#52C155',
+  connectorAdjacent: 'rgba(138, 97, 0, 0.3)',
   // You-are-here
   pulseColor: '#FFB000',
   // Font
-  fontMono: '"IBM Plex Mono", monospace',
-  fontTitle: '"Orbitron", sans-serif',
+  fontMono: '"VT323", monospace',
+  fontTitle: '"VT323", monospace',
 } as const;
 
 // ---------------------------------------------------------------------------
