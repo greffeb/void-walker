@@ -32,7 +32,7 @@ npm run playtest:auto           # Automated single playthrough
 npm run playtest:auto:100       # 100 automated playthroughs with report
 ```
 
-**Pre-commit gate:** Always run `npm run check` (typecheck + lint + test:all) before any commit or push. Never commit with only `npm test` — ESLint errors and type issues will break CI. The full check command is the single source of truth for commit-readiness.
+**Pre-commit gate:** Always run `npm run check` (typecheck + lint + test:all) before any commit or push. Never commit with only `npm test` — ESLint errors and type issues will break CI. The full check command is the single source of truth for commit-readiness. Fix **all** errors AND warnings before committing — warnings in CI are treated as errors.
 
 ---
 
