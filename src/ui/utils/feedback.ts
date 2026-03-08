@@ -24,7 +24,7 @@ const FEEDBACK_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT as string | und
  *
  * Reproduction steps for Claude Code:
  * 1. createSeededRng(seed) → rng
- * 2. assembleScenario(getSkeletonById(skeletonId), 'standard', getSettingById(settingId), ALL_MODULES, rng)
+ * 2. assembleScenario(getSkeletonById(skeletonId), 'standard', ALL_MODULES, rng)
  * 3. initGame(scenario, playerClass, difficulty, 'Joueur', rng)
  * 4. Replay turnHistory[0..turn-1] via processTurn()
  * 5. The bug occurs at turn N with playerInput

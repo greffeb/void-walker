@@ -1448,4 +1448,39 @@ describe('REG-027: departure phrases trigger movement (Issue #58)', () => {
       expect(result.trace.parsedTarget).toBe(ctx.connectedLocations[0]!.id);
     }
   });
+
+  // Issue #76: rescue skeleton nodeLocations used roles (medical, airlock)
+  // not present in theme.supportedRoles/locationNames → fallback "Zone inconnue (role)"
+  test('GH-76: all skeleton core node roles must have location names in theme', () => {
+    const skeletonIds = ['escape', 'investigate', 'rescue'] as const;
+    for (const skId of skeletonIds) {
+      const skeleton = getSkeletonById(skId)!;
+      for (const [nodeId, locDef] of Object.entries(skeleton.nodeLocations)) {
+        const role = (locDef as { locationRole: string }).locationRole;
+        expect(
+          skeleton.theme.supportedRoles,
+          `${skId}: core node "${nodeId}" uses role "${role}" not in supportedRoles`,
+        ).toContain(role);
+        const names = skeleton.theme.locationNames[role];
+        expect(
+          names && names.length > 0,
+          `${skId}: core node "${nodeId}" uses role "${role}" with no names in locationNames`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  test('GH-76: no assembled scenario produces fallback "Zone inconnue" names', () => {
+    const skeletonIds = ['escape', 'investigate', 'rescue'] as const;
+    for (const skId of skeletonIds) {
+      const rng = createSeededRng(1012452977);
+      const skeleton = getSkeletonById(skId)!;
+      const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
+      const badNodes = scenario.graph.nodes.filter(n => n.nameKey.fr.includes('Zone inconnue'));
+      expect(
+        badNodes.map(n => n.nameKey.fr),
+        `${skId}: found fallback location names`,
+      ).toEqual([]);
+    }
+  });
 });

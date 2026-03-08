@@ -55,7 +55,6 @@ Le script doit rejouer exactement les mêmes inputs jusqu'au tour incriminé, pu
 ```typescript
 import { createSeededRng } from "@engine/rng";
 import { getSkeletonById } from "@content/scenarios";
-import { getSettingById } from "@content/settings";
 import { ALL_MODULES } from "@content/scenarios/modules";
 import { assembleScenario } from "@engine/pacing";
 import { initGame } from "@engine/game";
@@ -66,8 +65,7 @@ import { buildParserLocaleData } from "@content/parserData";
 // ── Reproduction issue #XX ──────────────────────────────────────────────────
 const rng    = createSeededRng(/* seed de l'issue */);
 const skeleton = getSkeletonById(/* skeleton */)!;
-const setting  = getSettingById(/* setting */)!;
-const scenario = assembleScenario(skeleton, "standard", setting, ALL_MODULES, rng);
+const scenario = assembleScenario(skeleton, "standard", ALL_MODULES, rng);
 let state = initGame(scenario, /* class */, /* difficulty */, "Joueur", rng);
 const parserData = buildParserLocaleData("fr");
 
