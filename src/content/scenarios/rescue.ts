@@ -6,7 +6,7 @@
 // Enriched in Chantier 5: features, items, NPCs with full interactions.
 // ---------------------------------------------------------------------------
 
-import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
+import type { CoreSkeleton, LoreFragment, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
 
 function ls(fr: string): LocaleString { return { fr, en: '' }; }
 
@@ -1391,6 +1391,120 @@ const shuttle_cockpit: ScenarioFeatureDefinition = {
   ],
 };
 
+
+// ---------------------------------------------------------------------------
+// Lore Pool — 15 fragments for lore micro-modules
+// ---------------------------------------------------------------------------
+
+const RESCUE_LORE_POOL: readonly LoreFragment[] = [
+  {
+    id: 'res_lore_expedition_log',
+    text: ls('Journal d\'expédition, Dr. Okonkwo : "Les ruines sont plus anciennes que prévu — au moins 50 000 ans. La structure est organique. Elle semble... croître."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['intro', 'rising'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_alien_builders',
+    text: ls('Les glyphes racontent l\'histoire des Bâtisseurs : une espèce qui a fusionné biologie et architecture. Leurs structures ne sont pas construites — elles sont cultivées.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_entity_origin',
+    text: ls('Les inscriptions décrivent une "Présence" scellée au cœur de la structure. Les Bâtisseurs l\'ont emprisonnée ici il y a des millénaires. Les sceaux s\'affaiblissent.'),
+    compatibleSupports: ['environmental_trace', 'data_terminal'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_crystal_resonance',
+    text: ls('Les cristaux résonnent à une fréquence que les instruments humains ne peuvent pas mesurer. Quand deux cristaux sont proches, ils "chantent" ensemble. L\'effet est... hypnotique.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'res_lore_missing_team',
+    text: ls('Dernier message de l\'équipe Gamma : "La structure a changé de configuration pendant la nuit. Le passage de retour n\'existe plus. On continue en avant. Envoyez de l\'aide."'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_absorbed_explorer',
+    text: ls('Un visage humain émerge du mur organique, figé dans une expression de surprise. Les yeux semblent suivre votre mouvement. La paroi pulse autour du visage — elle le digère lentement.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_gravity_research',
+    text: ls('Notes de terrain : "Les puits de gravité ne sont pas naturels. Ils sont des organes de la structure — comme des cœurs qui pompent la gravité au lieu du sang. Fascinant et terrifiant."'),
+    compatibleSupports: ['physical_document', 'data_terminal'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'res_lore_psionic_interference',
+    text: ls('"Jour 8 — Tout le monde fait le même rêve : un œil immense qui nous observe depuis le centre de la structure. Dr. Okonkwo dit que c\'est l\'interférence psionique. Elle a peur."'),
+    compatibleSupports: ['physical_document', 'npc_testimony'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_organic_growth_study',
+    text: ls('Analyse biologique : la croissance organique est un réseau neural. Chaque filament est un neurone. La structure entière est un cerveau — et il est en train de se réveiller.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_rescue_beacon',
+    text: ls('La balise de détresse du Dr. Okonkwo émet depuis le cœur de la structure. Le signal est stable mais présente des modulations étranges — comme si la structure le relayait volontairement.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'res_lore_builder_warning',
+    text: ls('Un glyphe massif traduit par l\'IA du vaisseau : "CE QUI DORT ICI NE DOIT PAS ÊTRE RÉVEILLÉ. SI VOUS LISEZ CECI, IL EST DÉJÀ TROP TARD. COUREZ."'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_okonkwo_research',
+    text: ls('Dr. Okonkwo, rapport audio : "La Présence communique par les cristaux. Elle n\'est pas hostile — elle est seule. Depuis 50 000 ans. Elle veut juste... parler. Mais son langage nous brise."'),
+    compatibleSupports: ['data_terminal', 'npc_testimony'],
+    validBeats: ['escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_cocoon_analysis',
+    text: ls('Analyse du cocon : l\'organisme à l\'intérieur est en cours de transformation. ADN humain mêlé à des séquences inconnues. Le sujet est vivant — son rythme cardiaque est régulier.'),
+    compatibleSupports: ['data_terminal', 'environmental_trace'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'res_lore_ancient_tech',
+    text: ls('La technologie alien n\'utilise ni électricité ni mécanique. Tout fonctionne par résonance cristalline — des vibrations à des fréquences précises activent les systèmes. Comme de la musique.'),
+    compatibleSupports: ['environmental_trace', 'data_terminal'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'res_lore_final_seal',
+    text: ls('Le dernier sceau des Bâtisseurs est intact — mais il émet une lueur de plus en plus faible. À ce rythme, il cédera dans les prochaines heures. Ce qu\'il retient n\'a pas de nom dans nos langues.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+];
+
+
 // =====================================================================
 // SKELETON DEFINITION
 // =====================================================================
@@ -1687,4 +1801,6 @@ export const RESCUE_SKELETON: CoreSkeleton = {
     features: ['crystal_node', 'organic_wall', 'alien_terminal', 'gravity_well', 'bioluminescence', 'psionic_amplifier'],
     preferredItems: ['translator_device', 'void_shard', 'psionic_amplifier', 'ancient_key', 'sonic_emitter', 'research_notes'],
   },
+
+  lorePool: RESCUE_LORE_POOL,
 };

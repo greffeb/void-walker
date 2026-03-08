@@ -171,6 +171,9 @@ export interface CoreSkeleton {
 
   /** Theme data embedded in this skeleton (replaces SettingDefinition) */
   readonly theme: SkeletonTheme;
+
+  /** Pool of lore fragments for micro-module placement (optional, added Phase MM) */
+  readonly lorePool?: readonly LoreFragment[];
 }
 
 /** Theme data embedded in a skeleton (replaces SettingDefinition) */
@@ -383,6 +386,13 @@ export interface LocationNode {
   readonly activeSkin?: NarrativeSkin;
   /** Whether this location contains a Black Box journal */
   readonly hasBlackBox?: boolean;
+  // === Micro-Module fields ===
+  /** Whether this node is a micro-module (optional dead-end side room) */
+  readonly isMicroModule?: boolean;
+  /** Source MicroModule ID (if isMicroModule) */
+  readonly microModuleId?: string;
+  /** Parent node ID that this micro-module connects to (if isMicroModule) */
+  readonly parentNodeId?: string;
 }
 
 /** A directed edge in the location graph */
@@ -410,6 +420,8 @@ export interface AssembledScenario {
   readonly sessionLength: SessionLength;
   /** Black Box placement, if a previous journal was found */
   readonly blackBoxLocationId?: string;
+  /** Micro-modules placed into the scenario graph */
+  readonly placedMicroModules: readonly PlacedMicroModule[];
 }
 
 // ---------------------------------------------------------------------------
@@ -428,6 +440,145 @@ export interface LocationVisitState {
   readonly obstacleResolved: boolean;
   /** Item IDs dropped/thrown by the player here (visible as loot) */
   readonly droppedItems: readonly string[];
+}
+
+// ---------------------------------------------------------------------------
+// MICRO-MODULES — optional dead-end side rooms
+// ---------------------------------------------------------------------------
+
+/** The 4 micro-module archetypes */
+export type MicroModuleType = 'loot' | 'lore' | 'encounter' | 'ambiance';
+
+/** Support type for lore micro-modules */
+export type LoreSupportType = 'data_terminal' | 'physical_document' | 'environmental_trace' | 'npc_testimony';
+
+/** Mini-obstacle guarding entry to a micro-module (simpler than full ObstacleDefinition) */
+export interface MiniObstacle {
+  readonly type: 'locked_door' | 'jammed_panel' | 'debris' | 'sealed_container';
+  /** 2 paths (vs 3+ for critical-path obstacles). No failsafe — failure = can't enter. */
+  readonly paths: readonly [ObstaclePath, ObstaclePath];
+  readonly description: LocaleString;
+}
+
+/** Lore data attached to a lore-type micro-module */
+export interface MicroModuleLoreData {
+  readonly supportType: LoreSupportType;
+  /** Stat required to access the content (null if free, e.g. physical_document) */
+  readonly accessStat?: StatId;
+  /** DC of the access check (null if free) */
+  readonly accessDC?: number;
+  /** The lore text on success */
+  readonly loreText: LocaleString;
+  /** Partial text on failure (player knows something is there but can't read it) */
+  readonly failureText?: LocaleString;
+  /** Whether this fragment feeds the Black Box journal */
+  readonly feedsBlackBox: boolean;
+}
+
+/** Creature ambush data for encounter/ambiance micro-modules */
+export interface CreatureAmbushData {
+  /** Minimum threat director level to activate the ambush (4–6) */
+  readonly minThreatLevel: number;
+  /** Type of confrontation if the player enters */
+  readonly confrontationType: 'combat' | 'flee' | 'hide';
+  /** DC of the confrontation roll */
+  readonly confrontationDC: number;
+  /** Stat used for the confrontation */
+  readonly confrontationStat: StatId;
+  /** Consequence on failure */
+  readonly failureConsequence: 'damage' | 'item_loss' | 'status_effect';
+  /** Damage amount if failureConsequence === 'damage' */
+  readonly damageAmount?: number;
+}
+
+/** Locale strings for a micro-module */
+export interface MicroModuleLocaleData {
+  /** Description on first visit */
+  readonly description: string;
+  /** Hint visible from the parent room when hidden + detected */
+  readonly hintText: string;
+  /** Description when the player returns */
+  readonly revisitDescription: string;
+  /** Sound/visual hint when creature is in ambush (from parent room) */
+  readonly creatureWarningHint?: string;
+}
+
+/** A pre-written micro-module definition (content data) */
+export interface MicroModule {
+  readonly id: string;
+  readonly type: MicroModuleType;
+
+  // === Context filters ===
+  /** Parent room roles this micro-module can attach to */
+  readonly validParentRoles: readonly string[];
+  /** Story beats where this micro-module can appear */
+  readonly validBeats: readonly StoryBeat[];
+  /** Restrict to specific skeletons (empty/omitted = all) */
+  readonly validSkeletons?: readonly string[];
+
+  // === Visibility ===
+  readonly visibility: 'open' | 'hidden';
+  /** DC for passive Perception check if hidden (omitted if open) */
+  readonly hiddenDC?: number;
+
+  // === Location content ===
+  /** Abstract location role (resolved by skeleton theme) */
+  readonly locationRole: string;
+  readonly features: readonly FeatureDefinition[];
+  readonly items?: readonly ItemDefinition[];
+  readonly npcs?: readonly NpcDefinition[];
+  readonly atmosphere?: AtmosphereType;
+
+  // === Mini-obstacle (optional) ===
+  readonly entryObstacle?: MiniObstacle | null;
+
+  // === Lore data (if type === 'lore') ===
+  readonly loreData?: MicroModuleLoreData;
+
+  // === Creature ambush (if type === 'encounter' or 'ambiance') ===
+  readonly creatureAmbush?: CreatureAmbushData;
+
+  // === Narration ===
+  readonly locale: {
+    readonly fr: MicroModuleLocaleData;
+  };
+}
+
+/** A micro-module placed into a specific parent node */
+export interface PlacedMicroModule {
+  readonly microModule: MicroModule;
+  readonly parentNodeId: string;
+  readonly assignedLoreFragment?: LoreFragment;
+  readonly creatureActive: boolean;
+}
+
+/** A standalone lore fragment from a skeleton's lore pool */
+export interface LoreFragment {
+  readonly id: string;
+  /** The fragment text */
+  readonly text: LocaleString;
+  /** Compatible support types for display */
+  readonly compatibleSupports: readonly LoreSupportType[];
+  /** Beats where this fragment can appear */
+  readonly validBeats: readonly StoryBeat[];
+  /** Whether this fragment feeds the Black Box journal */
+  readonly feedsBlackBox: boolean;
+}
+
+/** Runtime state of a placed micro-module (stored in GameState) */
+export interface MicroModuleState {
+  /** ID of the source MicroModule */
+  readonly microModuleId: string;
+  /** Has the micro-module been revealed to the player? (always true for open) */
+  readonly revealed: boolean;
+  /** Has the player visited this micro-module? */
+  readonly visited: boolean;
+  /** Has the passive Perception check been attempted for this micro-module? */
+  readonly passiveCheckDone: boolean;
+  /** Is the creature currently in ambush inside this micro-module? */
+  readonly creatureActive: boolean;
+  /** Turns remaining before creature leaves (decremented each turn) */
+  readonly creatureTurnsRemaining: number;
 }
 
 // ---------------------------------------------------------------------------

@@ -21,7 +21,12 @@ import type {
   ValidationResult,
   ModuleLocationDef,
   LocaleString,
+  MicroModule,
 } from './scenario';
+import {
+  fillMicroModuleSlots,
+  buildMicroModuleNodes,
+} from './microModules';
 
 // ---------------------------------------------------------------------------
 // CONSTANTS
@@ -464,6 +469,7 @@ export function assembleScenario(
   sessionLength: SessionLength,
   allModules: readonly ScenarioModule[],
   rng: RngFn,
+  allMicroModules: readonly MicroModule[] = [],
 ): AssembledScenario {
   // 1. Determine module count
   const countRange = MODULE_COUNTS[sessionLength];
@@ -502,10 +508,28 @@ export function assembleScenario(
   // 5. Build location graph
   const graph = buildLocationGraph(skeleton, placedWithTension, rng);
 
+  // 6. Place micro-modules into slots across the graph
+  const placedMicroModules = fillMicroModuleSlots(
+    graph, skeleton, allMicroModules, sessionLength, rng,
+  );
+
+  // 7. Build micro-module graph nodes and edges
+  const usedNames = new Set<string>(graph.nodes.map(n => n.nameKey.fr));
+  const mmGraph = buildMicroModuleNodes(
+    placedMicroModules, skeleton, graph.nodes, rng, usedNames,
+  );
+
+  // 8. Merge micro-module nodes/edges into the main graph
+  const mergedGraph: LocationGraph = {
+    nodes: [...graph.nodes, ...mmGraph.nodes],
+    edges: [...graph.edges, ...mmGraph.edges],
+  };
+
   return {
     skeleton,
     modules: placedWithTension,
-    graph,
+    graph: mergedGraph,
     sessionLength,
+    placedMicroModules,
   };
 }

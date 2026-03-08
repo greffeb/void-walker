@@ -8,7 +8,7 @@
 // and ScenarioItemDefinition — mechanical interactions, properties, aliases.
 // ---------------------------------------------------------------------------
 
-import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
+import type { CoreSkeleton, LoreFragment, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
 
 function ls(fr: string): LocaleString { return { fr, en: '' }; }
 
@@ -1520,6 +1520,120 @@ const pod_viewport: ScenarioFeatureDefinition = {
   decorative: true,
 };
 
+
+// ---------------------------------------------------------------------------
+// Lore Pool — 15 fragments for lore micro-modules
+// ---------------------------------------------------------------------------
+
+const ESCAPE_LORE_POOL: readonly LoreFragment[] = [
+  {
+    id: 'esc_lore_cargo_manifest',
+    text: ls('Le manifeste de cargaison révèle un conteneur non déclaré en cale 7. Dimensions incompatibles avec du fret standard. Signature thermique : biologique.'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['intro', 'rising'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_crew_rotation',
+    text: ls('Les rotations d\'équipage montrent que la cale 7 a été interdite d\'accès trois jours avant le dernier port. Seul le capitaine avait l\'autorisation.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_bioscanner_readings',
+    text: ls('Les lectures du bioscanner montrent une forme de vie inconnue dans le système de ventilation. La signature est dispersée — elle est partout à la fois.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_evacuation_order',
+    text: ls('Ordre d\'évacuation #447-B : "Toutes les navettes sont parties. Il reste 12 membres d\'équipage. Les pods de sauvetage 3 à 7 sont hors service. Bonne chance."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'esc_lore_ventilation_scratches',
+    text: ls('Des griffures profondes à l\'intérieur du conduit de ventilation. Quelque chose de lourd s\'est déplacé ici. Les griffures vont dans les deux directions.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_engineers_note',
+    text: ls('"J\'ai soudé les accès du pont inférieur. Ça ne tiendra pas longtemps. Si vous lisez ça, prenez le chalumeau dans l\'atelier et foncez vers le sas 7." — Eng. Torres'),
+    compatibleSupports: ['physical_document'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'esc_lore_corporate_directive',
+    text: ls('Directive Weyland-Mori #WM-2847 : "L\'échantillon biologique est priorité absolue. L\'équipage est considéré comme remplaçable. Ne contactez pas les autorités."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_cryopod_malfunction',
+    text: ls('Rapport technique : 46 pods cryogéniques ont subi une défaillance simultanée. Cause : surtension électrique d\'origine inconnue. Un seul pod a résisté — le vôtre.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['intro', 'rising'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_acid_damage',
+    text: ls('Le métal du sol est rongé par un acide puissant. Les traces forment un chemin — comme si quelque chose de blessé avait rampé ici en perdant du sang corrosif.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_final_transmission',
+    text: ls('"Mayday. Ici USCSS Meridian. Coordonnées envoyées. La créature est intelligente. Elle apprend. Si vous recevez ce message... ne venez pas nous chercher. Détruisez le vaisseau."'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_weapon_marks',
+    text: ls('Des impacts d\'armes à feu sur les murs. Quelqu\'un a vidé un chargeur entier dans le couloir. Pas de sang humain visible — mais des traces d\'un liquide noir et visqueux.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'esc_lore_medical_report',
+    text: ls('Rapport médical, Dr. Vasquez : "Patient C — morsure abdominale. Infection rapide. Transformation cellulaire en 4h. J\'ai dû... le patient n\'est plus humain. Euthanasie pratiquée."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_barricade_supplies',
+    text: ls('Derrière une barricade de fortune : des rations pour une semaine, un tournevis, un plan du vaisseau annoté. Quelqu\'un a planifié une évasion mais n\'est jamais parti.'),
+    compatibleSupports: ['physical_document', 'environmental_trace'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: false,
+  },
+  {
+    id: 'esc_lore_security_footage',
+    text: ls('Séquence de vidéosurveillance : une silhouette sombre se déplace dans le couloir B-7. Trop rapide pour être humaine. Image suivante : le couloir est vide. La caméra est arrachée.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'esc_lore_lifeboat_sabotage',
+    text: ls('Les câbles de lancement du canot de sauvetage #3 ont été sectionnés chirurgicalement. Pas avec un outil humain — les coupes sont trop nettes, trop précises.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+];
+
+
 // ============================= SKELETON =====================================
 
 export const ESCAPE_SKELETON: CoreSkeleton = {
@@ -1904,4 +2018,6 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
     features: ['airlock', 'viewport', 'hull_panel', 'life_support', 'cryopod', 'emergency_locker', 'status_terminal'],
     preferredItems: ['EVA_suit', 'plasma_cutter', 'access_keycard', 'welding_torch', 'emergency_flashlight', 'medkit_basic'],
   },
+
+  lorePool: ESCAPE_LORE_POOL,
 };

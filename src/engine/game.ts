@@ -13,6 +13,7 @@ import type { VictoryCheckContext, NpcState } from './victory';
 import { createInitialGameState } from './types';
 import { createThreatDirector } from './threat';
 import { createVisitState } from './backtracking';
+import { initMicroModuleStates } from './microModules';
 import { CLASSES } from '../content/classes';
 import { mapScenarioFlags } from './scenarioFlagMapper';
 
@@ -113,6 +114,9 @@ export function initGame(
     }
   }
 
+  // Initialize micro-module states from placed micro-modules
+  const microModuleStates = initMicroModuleStates(scenario.placedMicroModules);
+
   const base = createInitialGameState();
   return {
     ...base,
@@ -130,6 +134,7 @@ export function initGame(
     victoryResult: null,
     defeatCondition: null,
     featureStates,
+    microModuleStates,
   };
 }
 

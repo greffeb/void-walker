@@ -40,6 +40,15 @@ import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved } from './backtracking';
 import { buildVictoryCheckContext } from './game';
+import {
+  processPassivePerceptionCheck,
+  processActivePerceptionCheck,
+  activateCreatureAmbush,
+  resolveCreatureConfrontation,
+  markMicroModuleVisited,
+  checkHintReveal,
+  tickCreatureAmbush,
+} from './microModules';
 import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
 import { isEnrichedItem, isEnrichedFeature } from './scenario';
@@ -1150,6 +1159,39 @@ export function processTurn(
     }
   }
 
+  // 9a-mm. Micro-module integration on movement
+  if (!movementBlocked && current.playerLocationId !== null && current.scenario !== null) {
+    const movedToNode = current.scenario.graph.nodes.find(n => n.id === current.playerLocationId);
+
+    if (movedToNode?.isMicroModule && movedToNode.microModuleId) {
+      // Entering a micro-module: mark visited
+      current = markMicroModuleVisited(current, movedToNode.microModuleId);
+
+      // Check for creature ambush
+      const mmState = (current.microModuleStates ?? {})[movedToNode.microModuleId];
+      if (mmState?.creatureActive) {
+        const confrontation = resolveCreatureConfrontation(
+          current, movedToNode.microModuleId, rng,
+        );
+        current = confrontation.newState;
+      } else {
+        // Activate creature if this micro-module has an ambush definition
+        const placed = (current.scenario!.placedMicroModules ?? []).find(
+          pm => pm.microModule.id === movedToNode.microModuleId,
+        );
+        if (placed?.microModule.creatureAmbush) {
+          current = activateCreatureAmbush(current, movedToNode.microModuleId);
+        }
+      }
+    } else if (movedToNode && !movedToNode.isMicroModule) {
+      // Entering a regular node: passive PER check for hidden micro-modules
+      const perStat = current.character?.stats.PER ?? 0;
+      current = processPassivePerceptionCheck(
+        current, movedToNode.id, perStat, rng,
+      );
+    }
+  }
+
   // 9b. Keep beat/threat director aligned with the player's current core node.
   current = syncBeatFromCurrentLocation(current);
 
@@ -1270,6 +1312,26 @@ export function processTurn(
         current = { ...current, activeCombat: combat };
       }
     }
+  }
+
+  // 9e. Micro-module: active PER check on EXAMINE/SEARCH, hint reveal, creature tick
+  if (current.scenario !== null && current.playerLocationId !== null) {
+    // Active perception check: EXAMINE triggers search for hidden micro-modules
+    const SEARCH_VERBS: ReadonlySet<string> = new Set(['EXAMINE', 'SEARCH', 'INSPECT', 'LOOK']);
+    if (SEARCH_VERBS.has(action.verb) && !action.target) {
+      const perStat = current.character?.stats.PER ?? 0;
+      const { newState } = processActivePerceptionCheck(
+        current, current.playerLocationId, perStat, rng,
+      );
+      current = newState;
+    }
+
+    // Hint reveal: auto-reveal hidden micro-modules after N turns in same location
+    const { newState: hintState } = checkHintReveal(current, current.playerLocationId!);
+    current = hintState;
+
+    // Creature ambush tick: decrement timers on all active creatures
+    current = tickCreatureAmbush(current);
   }
 
   // ─────────────────────────────────────────────────────────

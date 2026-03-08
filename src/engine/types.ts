@@ -191,6 +191,9 @@ export interface GameState {
   /** Scenario-wide flags set by interactions.
    *  Key = flag name (string), value = true when set. */
   readonly scenarioFlags: Readonly<Record<string, boolean>>;
+  // === Micro-Module additions ===
+  /** Per-micro-module runtime state. Key = microModuleId. */
+  readonly microModuleStates: Readonly<Record<string, import('./scenario').MicroModuleState>>;
 }
 
 /** Structured record of a single player action (for history & bug reports) */
@@ -253,6 +256,8 @@ export function createInitialGameState(): GameState {
     revealedItems: {},
     unlockedExits: {},
     scenarioFlags: {},
+    // === Micro-Module defaults ===
+    microModuleStates: {},
   };
 }
 

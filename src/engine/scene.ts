@@ -138,7 +138,14 @@ export function getSceneContext(state: GameState): SceneContext {
       displayName: exitNode?.nameKey.fr ?? undefined,
       visited: exit.visited,
     };
-  });
+  })
+    // Filter out hidden micro-module exits that are not yet revealed
+    .filter(loc => {
+      const exitNode = graph.nodes.find(n => n.id === loc.id);
+      if (!exitNode?.isMicroModule || !exitNode.microModuleId) return true;
+      const mmState = (state.microModuleStates ?? {})[exitNode.microModuleId];
+      return mmState?.revealed ?? false;
+    });
 
   // --- Obstacle gate: hide unvisited exits when obstacle is unresolved ---
   // When the current node has an unresolved obstacle, the player must deal

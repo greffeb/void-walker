@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cassette Futurism - OS Complet</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        /* =========================================
+           PALETTE DE COULEURS & VARIABLES
+           ========================================= */
+        :root {
+            --bg-deep: #050505;
+            --bg-panel: #111111;
+            --bg-panel-light: #1a1a1a;
+            
+            --crt-amber: #FFB000;
+            --crt-amber-dim: #8A6100;
+            --crt-cyan: #60A3B5;
+            --crt-green: #52C155;
+            --crt-beige: #D4B483;
+            --crt-orange: #E65A22;
+            
+            --border-chunky: 2px solid var(--crt-amber);
+            --border-dim: 2px solid var(--crt-amber-dim);
+            --glow-spread: 4px;
+        }
+
+        /* =========================================
+           BASE ET EFFETS CRT
+           ========================================= */
+        body, html {
+            margin: 0; padding: 0; height: 100vh;
+            background-color: var(--bg-deep);
+            color: var(--crt-amber);
+            font-family: 'VT323', monospace;
+            font-size: 22px; line-height: 1.5;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none; z-index: 100;
+        }
+
+        .terminal {
+            width: 100%; max-width: 950px; height: 95vh;
+            display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box;
+            position: relative; z-index: 10;
+            text-shadow: 0 0 var(--glow-spread) rgba(255, 176, 0, 0.4);
+        }
+
+        /* Utilitaires de texte */
+        .t-cyan { color: var(--crt-cyan); text-shadow: 0 0 var(--glow-spread) rgba(96, 163, 181, 0.5); }
+        .t-green { color: var(--crt-green); text-shadow: 0 0 var(--glow-spread) rgba(82, 193, 85, 0.5); }
+        .t-beige { color: var(--crt-beige); text-shadow: 0 0 var(--glow-spread) rgba(212, 180, 131, 0.5); }
+        .t-orange { color: var(--crt-orange); text-shadow: 0 0 var(--glow-spread) rgba(230, 90, 34, 0.6); }
+        .t-dim { color: var(--crt-amber-dim); text-shadow: none; }
+
+        /* =========================================
+           GESTION DES VUES (ONGLETS)
+           ========================================= */
+        .view { display: none; flex-grow: 1; flex-direction: column; overflow: hidden; margin-bottom: 20px;}
+        .view.active { display: flex; }
+
+        /* HEADER COMMUN */
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: var(--border-chunky); padding-bottom: 8px; margin-bottom: 20px;
+        }
+        
+        .view-title { font-size: 28px; font-weight: bold; text-transform: uppercase; }
+        .close-btn { background: transparent; border: var(--border-dim); color: var(--crt-amber-dim); cursor: pointer; font-family: inherit; font-size: 18px; padding: 2px 10px; }
+        .close-btn:hover { border-color: var(--crt-amber); color: var(--crt-amber); }
+
+        /* =========================================
+           1. VUE NARRATIVE (Base)
+           ========================================= */
+        .log-window { flex-grow: 1; overflow-y: auto; padding-right: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .log-window::-webkit-scrollbar { width: 12px; }
+        .log-window::-webkit-scrollbar-track { background: var(--bg-deep); border-left: 1px solid var(--crt-amber-dim); }
+        .log-window::-webkit-scrollbar-thumb { background: var(--crt-amber-dim); }
+
+        .action-panel { display: flex; gap: 15px; margin-top: 15px; }
+        .btn {
+            flex: 1; background: var(--bg-panel); color: var(--crt-amber); border: var(--border-chunky);
+            font-family: inherit; font-size: 20px; padding: 12px; text-transform: uppercase; cursor: pointer;
+            box-shadow: inset 0 0 8px rgba(255, 176, 0, 0.1); transition: 0.1s;
+        }
+        .btn:hover { background: var(--crt-amber); color: var(--bg-deep); box-shadow: 0 0 15px rgba(255, 176, 0, 0.5); text-shadow: none; }
+
+        .command-line { display: flex; border: var(--border-chunky); background: var(--bg-panel); padding: 5px 10px; margin-top: 15px; }
+        .cmd-input { flex-grow: 1; background: transparent; border: none; color: var(--crt-amber); font-family: inherit; font-size: 22px; outline: none; }
+
+        /* =========================================
+           2. VUE CARTE
+           ========================================= */
+        .map-container {
+            flex-grow: 1; position: relative; background: radial-gradient(circle, var(--bg-panel) 0%, var(--bg-deep) 100%);
+            border: var(--border-dim); overflow: hidden; display: flex; justify-content: center; align-items: center;
+        }
+        
+        /* Grille de fond subtile */
+        .map-container::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(var(--crt-amber-dim) 1px, transparent 1px), linear-gradient(90deg, var(--crt-amber-dim) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.05;
+        }
+
+        .map-node {
+            position: absolute; width: 140px; height: 100px; display: flex; justify-content: center; align-items: center; text-align: center;
+            font-size: 18px; padding: 10px; box-sizing: border-box; background: var(--bg-deep); box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .node-visited { border: 2px solid var(--crt-green); color: var(--crt-green); }
+        .node-current { border: 2px solid var(--crt-orange); color: var(--crt-orange); box-shadow: 0 0 15px rgba(230, 90, 34, 0.2); }
+        .node-adjacent { border: 2px dashed var(--crt-amber-dim); color: var(--crt-amber-dim); }
+
+        /* Animation de pulsation du joueur */
+        @keyframes pulse {
+            0% { transform: scale(0.5); opacity: 0.5; box-shadow: 0 0 0 0 rgba(230, 90, 34, 0.7); }
+            70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 10px rgba(230, 90, 34, 0); }
+            100% { transform: scale(0.5); opacity: 0.5; box-shadow: 0 0 0 0 rgba(230, 90, 34, 0); }
+        }
+        .player-blip {
+            position: absolute; width: 12px; height: 12px; background: var(--crt-orange); border-radius: 50%;
+            top: 15px; left: 50%; margin-left: -6px; animation: pulse 2s infinite;
+        }
+
+        /* Liens de la carte */
+        .map-link { position: absolute; background: var(--crt-green); }
+        .link-v { width: 4px; height: 30px; }
+        .link-h { width: 30px; height: 4px; }
+        .link-dashed { background: transparent; border-left: 4px dashed var(--crt-amber-dim); }
+
+        .map-legend { display: flex; gap: 20px; padding-top: 15px; font-size: 18px; }
+
+        /* =========================================
+           3. VUE INVENTAIRE
+           ========================================= */
+        .inv-layout { display: flex; flex-direction: column; flex-grow: 1; gap: 20px; }
+        .inv-header-box { border: var(--border-chunky); padding: 10px; background: var(--bg-panel); display: flex; justify-content: space-between; }
+        
+        .inv-table { width: 100%; border-collapse: collapse; }
+        .inv-table th { text-align: left; border-bottom: var(--border-dim); padding: 10px; color: var(--crt-amber-dim); }
+        .inv-table td { padding: 15px 10px; border-bottom: 1px solid #333; }
+        .inv-table tr:hover td { background: var(--bg-panel-light); }
+        
+        .inv-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-small { background: transparent; border: 1px solid var(--crt-amber); color: var(--crt-amber); font-family: inherit; font-size: 16px; padding: 5px 10px; cursor: pointer; }
+        .btn-small:hover { background: var(--crt-amber); color: var(--bg-deep); }
+
+        /* =========================================
+           4. VUE PARAMÈTRES (SYSTEM)
+           ========================================= */
+        .sys-grid { display: grid; grid-template-columns: 1fr; gap: 30px; overflow-y: auto; flex-grow: 1;}
+        .sys-section { border: var(--border-chunky); padding: 20px; position: relative; background: var(--bg-panel); }
+        .sys-section::before { content: attr(data-title); position: absolute; top: -14px; left: 15px; background: var(--bg-deep); padding: 0 10px; color: var(--crt-amber-dim); font-weight: bold; }
+        
+        .sys-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
+        .sys-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        /* Style des range inputs (Sliders) retro */
+        input[type=range] { -webkit-appearance: none; width: 200px; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: var(--bg-deep); border: 1px solid var(--crt-amber-dim); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 10px; background: var(--crt-amber); margin-top: -7px; cursor: pointer; }
+
+        /* =========================================
+           MODAL LANCÉ DE DÉ
+           ========================================= */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 5, 0.9); display: none; /* Masqué par défaut */
+            justify-content: center; align-items: center; z-index: 50; backdrop-filter: blur(2px);
+        }
+        .modal-overlay.active { display: flex; }
+
+        .dice-box { background: var(--bg-panel); border: 4px solid var(--crt-amber); padding: 30px; width: 450px; text-align: center; box-shadow: 0 0 30px rgba(255, 176, 0, 0.3); }
+        .dice-header { display: flex; justify-content: space-between; border-bottom: var(--border-dim); padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }
+        .dice-result { font-size: 120px; margin: 10px 0; line-height: 1; text-shadow: 0 0 15px var(--crt-amber), 0 0 30px var(--crt-amber); }
+        .dice-stats { text-align: left; border-bottom: var(--border-dim); padding-bottom: 10px; margin-bottom: 10px; }
+        .dice-stat-row { display: flex; justify-content: space-between; }
+        .dice-success { margin-top: 20px; font-size: 32px; letter-spacing: 2px; }
+
+        /* =========================================
+           NAVIGATION (FOOTER)
+           ========================================= */
+        .sys-nav { display: flex; justify-content: center; gap: 40px; margin-top: auto; padding-top: 15px;}
+        .sys-nav-btn { background: transparent; color: var(--crt-amber-dim); border: var(--border-dim); font-family: inherit; font-size: 18px; padding: 6px 16px; cursor: pointer; transition: 0.1s;}
+        .sys-nav-btn:hover, .sys-nav-btn.active { color: var(--crt-amber); border-color: var(--crt-amber); background: rgba(255, 176, 0, 0.1); text-shadow: 0 0 5px var(--crt-amber); }
+
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div class="terminal">
+        
+        <div class="status-bar" id="global-header">
+            <div>▼ 13/13 <span class="t-green">██████████</span> <span class="t-orange">O₂ ◉◉○○○○ 35%</span></div>
+            <div>T:3</div>
+        </div>
+
+        <div id="view-narrative" class="view active">
+            <div class="log-window">
+                <div class="t-dim">> aller sas blindé<br>Vous avancez vers les Sas blindé, l'œil rivé sur les ombres. Les caméras ont cessé de fonctionner.</div>
+                <div style="text-align: center; color: var(--crt-amber-dim);">--- TOUR 3 ---</div>
+                <div><strong class="t-beige">Sas blindé</strong> – Le sas présente une brèche active. L'O₂ fuit.</div>
+                <div class="t-orange" style="font-style: italic;">Une brèche dans l'airlock. L'air s'échappe. Si vous ne la colmatez pas, l'atmosphère va se raréfier rapidement.</div>
+                <div>Vous voyez autour de vous une <span class="t-cyan">brèche du sas</span>, un <span class="t-cyan">point de soudure</span> ainsi qu'un <span class="t-cyan">panneau de neutralisation</span>.</div>
+                <div>Chemin connu vers <span class="t-beige">salle de contrôle principale</span>.</div>
+                <div class="t-dim" style="font-style: italic; margin-top: 10px;">Que faites-vous ?</div>
+            </div>
+
+            <div class="action-panel">
+                <button class="btn" onclick="openModal('dice-modal')">Pirater brèche du sas</button>
+                <button class="btn" onclick="openModal('dice-modal')">Équiper brèche du sas</button>
+            </div>
+
+            <div class="command-line">
+                <span style="margin-right: 10px;">></span>
+                <input type="text" class="cmd-input" placeholder="_" autofocus>
+            </div>
+        </div>
+
+        <div id="view-map" class="view">
+            <div class="status-bar" style="border:none; margin-bottom: 0;">
+                <div class="view-title t-beige">❖ Cartographie Spatiale</div>
+                <button class="close-btn" onclick="switchView('view-narrative')">[X] FERMER</button>
+            </div>
+            
+            <div class="map-container">
+                <div class="map-node node-visited" style="top: 20%; left: 30%;">
+                    Nœud central<br>de navigation
+                </div>
+                
+                <div class="map-link link-v" style="top: calc(20% + 100px); left: calc(30% + 70px - 2px);"></div>
+                
+                <div class="map-node node-visited" style="top: 55%; left: 30%;">
+                    Salle de<br>contrôle princ.
+                </div>
+
+                <div class="map-link link-h" style="top: calc(55% + 50px - 2px); left: calc(30% + 140px);"></div>
+
+                <div class="map-node node-current" style="top: 55%; left: 55%;">
+                    <div class="player-blip"></div> Sas blindé
+                </div>
+
+                <div class="map-link link-v link-dashed" style="top: calc(55% + 100px); left: calc(55% + 70px - 2px);"></div>
+
+                <div class="map-node node-adjacent" style="top: 85%; left: 55%;">
+                    Dortoirs de<br>l'équipage
+                </div>
+            </div>
+
+            <div class="map-legend t-dim">
+                <span><span style="color:var(--crt-orange)">■</span> Actuel</span>
+                <span><span style="color:var(--crt-green)">■</span> Visité</span>
+                <span><span style="border: 1px dashed var(--crt-amber-dim); display:inline-block; width:10px; height:10px;"></span> Adjacent</span>
+            </div>
+        </div>
+
+        <div id="view-inventory" class="view">
+             <div class="status-bar" style="border:none; margin-bottom: 0;">
+                <div class="view-title t-green">▤ Base de Données Matérielle</div>
+                <button class="close-btn" onclick="switchView('view-narrative')">[X] FERMER</button>
+            </div>
+
+            <div class="inv-layout">
+                <div class="inv-header-box t-dim">
+                    <span>ÉQUIPEMENT ACTIF : ARME [-] / ARMURE [-]</span>
+                    <span>CAPACITÉ : 3/10</span>
+                </div>
+
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th>CATÉGORIE</th>
+                            <th>DÉSIGNATION</th>
+                            <th style="text-align: right;">ROUTINES (ACTIONS)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="t-dim">OUTIL</td>
+                            <td class="t-cyan">Multitool</td>
+                            <td class="inv-actions"><button class="btn-small">EXAM.</button> <button class="btn-small">JETER</button></td>
+                        </tr>
+                        <tr>
+                            <td class="t-dim">DONNÉE</td>
+                            <td class="t-cyan">Datapad</td>
+                            <td class="inv-actions"><button class="btn-small">EXAM.</button> <button class="btn-small">JETER</button></td>
+                        </tr>
+                        <tr>
+                            <td class="t-dim">COMPOSANT</td>
+                            <td class="t-cyan">Câble renforcé</td>
+                            <td class="inv-actions"><button class="btn-small">EXAM.</button> <button class="btn-small">JETER</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-system" class="view">
+             <div class="status-bar" style="border:none; margin-bottom: 0;">
+                <div class="view-title">⚙ Système Central</div>
+                <button class="close-btn" onclick="switchView('view-narrative')">[X] FERMER</button>
+            </div>
+
+            <div class="sys-grid">
+                <div class="sys-section" data-title="DONNÉES DE SESSION">
+                    <div class="sys-row"><span class="t-dim">Difficulté</span> <span class="t-beige">Explorateur</span></div>
+                    <div class="sys-row"><span class="t-dim">Sujet actif</span> <span class="t-cyan">Darius</span></div>
+                    <button class="btn" style="width: 100%; margin-top: 15px;">[ SAUVEGARDER L'ÉTAT ]</button>
+                </div>
+
+                <div class="sys-section" data-title="MODULE AUDIO">
+                    <div class="sys-row">
+                        <span>Fréquence SFX</span>
+                        <input type="range" min="0" max="100" value="80">
+                    </div>
+                    <div class="sys-row">
+                        <span>Synthèse Musicale</span>
+                        <input type="range" min="0" max="100" value="40">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="dice-modal" class="modal-overlay" onclick="closeModal(event, 'dice-modal')">
+            <div class="dice-box" onclick="event.stopPropagation();"> <div class="dice-header">
+                    <span>RÉSISTANCE</span>
+                    <span class="t-orange">12</span>
+                </div>
+                
+                <div class="dice-result">10</div>
+                
+                <div class="dice-stats t-dim">
+                    <div class="dice-stat-row"><span>Lancé de base (d20)</span></div>
+                    <div class="dice-stat-row"><span>Modificateur (Intelligence)</span> <span class="t-green">+5</span></div>
+                </div>
+                
+                <div class="dice-stat-row" style="font-size: 24px; font-weight: bold;">
+                    <span>TOTAL EFFECTIF</span> <span class="t-cyan">15</span>
+                </div>
+                
+                <div class="dice-success t-green">ACCÈS AUTORISÉ</div>
+                
+                <button class="btn-small" style="margin-top: 20px;" onclick="closeModalDirect('dice-modal')">CONTINUER</button>
+            </div>
+        </div>
+
+        <div class="sys-nav">
+            <button class="sys-nav-btn" onclick="switchView('view-map')">❖ CARTE</button>
+            <button class="sys-nav-btn" onclick="switchView('view-inventory')">▤ INV</button>
+            <button class="sys-nav-btn" onclick="switchView('view-system')">⚙ SYS</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Fonction pour changer d'onglet
+        function switchView(viewId) {
+            // Cacher toutes les vues
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            // Cacher le header global si on n'est pas sur la vue narrative
+            if(viewId !== 'view-narrative') {
+                document.getElementById('global-header').style.display = 'none';
+            } else {
+                document.getElementById('global-header').style.display = 'flex';
+            }
+            // Afficher la vue demandée
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // Fonctions pour gérer le modal de dé
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(event, modalId) {
+            // Ferme le modal si on clique à l'extérieur de la boite
+            if (event.target.id === modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+        }
+
+        function closeModalDirect(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+    </script>
+</body>
+</html>

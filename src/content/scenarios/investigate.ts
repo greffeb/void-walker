@@ -8,7 +8,7 @@
 // and ScenarioItemDefinition — mechanical interactions, properties, aliases.
 // ---------------------------------------------------------------------------
 
-import type { CoreSkeleton, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
+import type { CoreSkeleton, LoreFragment, ScenarioFeatureDefinition, ScenarioItemDefinition, LocaleString } from '@engine/scenario';
 
 function ls(fr: string): LocaleString { return { fr, en: '' }; }
 
@@ -1463,6 +1463,120 @@ const resolution_viewport: ScenarioFeatureDefinition = {
   },
 };
 
+
+// ---------------------------------------------------------------------------
+// Lore Pool — 15 fragments for lore micro-modules
+// ---------------------------------------------------------------------------
+
+const INVESTIGATE_LORE_POOL: readonly LoreFragment[] = [
+  {
+    id: 'inv_lore_protocol_lazarus',
+    text: ls('Protocole Lazarus — Phase 3 : "Sujets 1 à 6 ont montré une régénération complète. Sujet 7 a développé des capacités anomales. Sujet 8 reste en stase. NE PAS réveiller Sujet 8."'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_ethics_complaint',
+    text: ls('Plainte éthique déposée par Dr. Chen : "Les sujets de test sont des membres d\'équipage exposés involontairement. Demande de cessation immédiate." Statut : REJETÉE par le Directeur Park.'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_security_logs',
+    text: ls('Logs de sécurité : 14 "accidents" en 6 mois. Tous dans les zones de recherche. Tous classés sans suite. Le responsable sécurité a démissionné. Son remplaçant est arrivé de la maison mère.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['rising', 'midpoint'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_mutation_photos',
+    text: ls('Des photos médicales montrent une progression de mutations : Jour 1, sujet normal. Jour 7, croissance osseuse anormale. Jour 14, le sujet n\'est plus reconnaissable comme humain.'),
+    compatibleSupports: ['physical_document', 'data_terminal'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_containment_specs',
+    text: ls('Spécifications du confinement : murs en acier renforcé de 30cm, champ magnétique de 5 Tesla, surveillance 24/7. Note manuscrite en marge : "Insuffisant pour Sujet 8."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_encrypted_comm',
+    text: ls('Communication cryptée, maison mère → Directeur Park : "Résultats prometteurs. Applications militaires évidentes. Budget doublé. Aucune limite éthique. Pas de témoins."'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_subject8_notes',
+    text: ls('Notes de recherche sur Sujet 8 : "Capacités psioniques confirmées. Le sujet communique par... impressions mentales. L\'équipe de recherche fait des cauchemars identiques depuis 3 nuits."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_whistleblower_drive',
+    text: ls('Disque de sauvegarde marqué "ASSURANCE" : copies de tous les rapports falsifiés, les vrais résultats d\'autopsie, et une liste de noms — les "volontaires" qui ne l\'étaient pas.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_quarantine_breach',
+    text: ls('Alerte de quarantaine horodatée à 03:47 : "Brèche de confinement niveau 4. Sujet 8 est éveillé. Évacuation du secteur R. Protocole Omega ignoré par directive du Directeur."'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_scratched_wall_message',
+    text: ls('Gravé dans le mur d\'une cellule : "ILS SAVENT CE QU\'ILS FONT. ILS S\'EN FICHENT. TROUVEZ LE SERVEUR B7." Les lettres sont tracées avec un ongle cassé.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_lab_cleanup',
+    text: ls('Traces de nettoyage industriel dans le labo 4B. Sous la lumière UV : éclaboussures de sang sur 3 murs et le plafond. Quelqu\'un a essayé de faire disparaître les preuves.'),
+    compatibleSupports: ['environmental_trace'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_survivor_testimony',
+    text: ls('"J\'étais technicien, pas cobaye. Ils m\'ont dit que c\'était un simple bilan de santé. Quand je me suis réveillé... mes mains avaient changé. Regardez. REGARDEZ." Le survivant montre des doigts allongés, aux articulations supplémentaires.'),
+    compatibleSupports: ['npc_testimony'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_park_personal_log',
+    text: ls('Journal personnel du Directeur Park : "Sujet 8 m\'a parlé. Pas avec des mots. Je sais ce qu\'il veut. Et je commence à penser qu\'il a raison. L\'humanité est un brouillon."'),
+    compatibleSupports: ['data_terminal', 'physical_document'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_deleted_records',
+    text: ls('Des fichiers supprimés récupérés : rapports d\'autopsie de 6 membres d\'équipage officiellement "transférés". Cause réelle de décès : "Rejet de mutation de Stade 4."'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['midpoint', 'escalation'],
+    feedsBlackBox: true,
+  },
+  {
+    id: 'inv_lore_emergency_beacon',
+    text: ls('La balise d\'urgence a été désactivée manuellement il y a 72 heures. Code d\'accès utilisé : celui du Directeur Park. Il ne voulait pas que quelqu\'un vienne.'),
+    compatibleSupports: ['data_terminal'],
+    validBeats: ['escalation', 'climax'],
+    feedsBlackBox: true,
+  },
+];
+
+
 // ============================= SKELETON =====================================
 
 export const INVESTIGATE_SKELETON: CoreSkeleton = {
@@ -1858,4 +1972,6 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
     features: ['blast_door', 'observation_deck', 'tram_system', 'containment_field', 'security_terminal', 'emergency_beacon'],
     preferredItems: ['security_badge', 'research_terminal', 'containment_tool', 'access_keycard', 'encrypted_data_core', 'incriminating_files'],
   },
+
+  lorePool: INVESTIGATE_LORE_POOL,
 };

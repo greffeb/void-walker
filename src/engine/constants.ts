@@ -152,6 +152,36 @@ export const BALANCE = {
   // === AI ===
   AI_TIMEOUT_MS: 5_000,
   AI_MAX_REQUESTS_PER_SESSION: 100,
+
+  // === MICRO-MODULES ===
+  MICRO_MODULES: {
+    /** DC reduction for active EXAMINE/SEARCH check (vs passive) */
+    ACTIVE_PER_DC_REDUCTION: 2,
+    /** Turns in parent node before hint system auto-reveals hidden micro-modules */
+    HINT_REVEAL_TURN_THRESHOLD: 4,
+    /** Turns a creature lingers in a micro-module if the player doesn't enter */
+    CREATURE_LINGER_TURNS: 3,
+    /** Expected micro-module count ranges per session length */
+    SLOT_COUNTS: {
+      quick: { min: 1, max: 2 },
+      standard: { min: 6, max: 10 },
+      extended: { min: 12, max: 18 },
+    },
+    /** Type weight reduction when a type is over-represented */
+    OVERREP_HEAVY_THRESHOLD: 3,
+    OVERREP_HEAVY_FACTOR: 0.3,
+    OVERREP_LIGHT_THRESHOLD: 2,
+    OVERREP_LIGHT_FACTOR: 0.6,
+    /** Base weights per beat for each micro-module type */
+    TYPE_WEIGHTS: {
+      intro:      { loot: 2, lore: 3, encounter: 1, ambiance: 4 },
+      rising:     { loot: 3, lore: 3, encounter: 2, ambiance: 2 },
+      midpoint:   { loot: 2, lore: 4, encounter: 2, ambiance: 2 },
+      escalation: { loot: 3, lore: 2, encounter: 3, ambiance: 2 },
+      climax:     { loot: 1, lore: 1, encounter: 3, ambiance: 1 },
+      resolution: { loot: 1, lore: 2, encounter: 1, ambiance: 3 },
+    },
+  },
 } as const;
 
 /** Type helper for the BALANCE object */
