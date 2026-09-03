@@ -1,6 +1,8 @@
 # Project Guidelines — Void Walker
 
-> Space horror RPG rewrite. **Status: PRE-DEVELOPMENT.** All existing code is in `archived/` as reference only. The rewrite starts fresh at root following `docs/MASTERPLAN.md`.
+> Space horror RPG. The game is playable end to end; Phases 0–7 are delivered.
+> **Current state, priorities and open problems live in [docs/STATUS.md](../docs/STATUS.md)** — read it first.
+> `archived/` holds the pre-rewrite code, kept as reference patterns only.
 
 ## Architecture
 
@@ -27,7 +29,7 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - Components: PascalCase (`StatusBar.tsx`). Engine/content: camelCase (`properties.ts`). JSON: kebab-case
 - **No hardcoded natural language in engine code** — use the i18n system for all linguistic data (verb aliases, conjugated forms, parser patterns). Adding a new language = adding a locale file, not editing engine code
 - ESLint flat config + `typescript-eslint`. No Prettier — follow existing formatting
-- Reference patterns: [archived/pwa/src/stores/gameStore.ts](archived/pwa/src/stores/gameStore.ts) (Zustand), [archived/pwa/src/services/llmClient.ts](archived/pwa/src/services/llmClient.ts) (LLM fallback chain)
+- Reference patterns: [archived/pwa/src/stores/gameStore.ts](../archived/pwa/src/stores/gameStore.ts) (Zustand), [archived/pwa/src/services/llmClient.ts](../archived/pwa/src/services/llmClient.ts) (LLM fallback chain)
 
 ## Build and Test
 
@@ -51,10 +53,11 @@ npm run playtest      # Interactive CLI playtest via tsx
 
 ## Project Conventions
 
-- **MASTERPLAN.md is the constitution** — every decision traces to [docs/MASTERPLAN.md](docs/MASTERPLAN.md)
-- **Phase-driven development** — 10 phases (0–9). Read the phase spec at `docs/phases/PHASE_X_*.md` before starting work
+- **STATUS.md is the map** — current state and priorities live in [docs/STATUS.md](../docs/STATUS.md). Read it before picking up work
+- **MASTERPLAN.md is the constitution** — every decision traces to [docs/reference/MASTERPLAN.md](../docs/reference/MASTERPLAN.md)
+- **`docs/archive/` is history, not a plan** — those documents describe delivered work. Following them means redoing it
 - **Regression tests never deleted** — bugs get a test in `tests/unit/engine/regressions.test.ts` that stays forever
-- **6-stat system:** FOR (Force), AGI (Agilité), INT (Intelligence), PER (Perception), CHA (Charisme), LCK (Chance)
+- **7-stat system:** FOR (Force), DEF (Défense), AGI (Agilité), INT (Intelligence), PER (Perception), CHA (Charisme), LCK (Chance)
 - **3 player classes:** Marine (combat), Engineer (technical), Medic (support)
 - **Balance constants** defined in `MASTERPLAN.md` §7 — do not hardcode magic numbers, import from constants
 - Game uses D20 rolls; dice results are sacred (never fudged)
@@ -63,17 +66,20 @@ npm run playtest      # Interactive CLI playtest via tsx
 
 ## Integration Points
 
-- **Gemini Flash** via Cloudflare Worker proxy (Phase 8) — enhances narration, never controls game logic
+- **Gemini Flash** via Cloudflare Worker proxy — Phase 8, **not started**; `src/ai/` does not exist yet
 - **IndexedDB** via Dexie.js — offline persistence for saves, scenarios, settings
-- **GitHub Pages** — deployment via `.github/workflows/` (existing workflow needs path updates)
+- **GitHub Pages** — deployed by `.github/workflows/deploy-pwa.yml` (branch previews enabled)
 - **vite-plugin-pwa** + Workbox — service worker, install prompt, offline caching
 
 ## Reference Documents
 
 | When working on... | Read |
 |---------------------|------|
-| Game mechanics | [docs/GAME_SYSTEMS.md](docs/GAME_SYSTEMS.md) (1495 lines, 13 sections) |
-| Parser & properties | [docs/PARSER_DESIGN.md](docs/PARSER_DESIGN.md) (685 lines, verb taxonomy, property system) |
-| Scenarios & content | [docs/SCENARIO_DESIGN.md](docs/SCENARIO_DESIGN.md) (958 lines, modular architecture) |
-| Any phase | [docs/phases/PHASE_N_*.md](docs/phases/) + MASTERPLAN §5 for which reference docs to read |
-| Archived code reference | [archived/pwa/src/](archived/pwa/src/) (working PWA, old architecture) |
+| **Anything — start here** | [docs/STATUS.md](../docs/STATUS.md) (state, priorities, known problems) |
+| Overall vision | [docs/reference/MASTERPLAN.md](../docs/reference/MASTERPLAN.md) (the constitution) |
+| Game mechanics | [docs/reference/GAME_SYSTEMS.md](../docs/reference/GAME_SYSTEMS.md) (13 sections) |
+| Parser & properties | [docs/reference/PARSER_DESIGN.md](../docs/reference/PARSER_DESIGN.md) (verb taxonomy, property system) |
+| Scenarios & content | [docs/reference/SCENARIO_DESIGN.md](../docs/reference/SCENARIO_DESIGN.md) (modular architecture) |
+| Narrative layer order | [docs/specs/NARRATION_STRUCTURE.md](../docs/specs/NARRATION_STRUCTURE.md) (partially applied) |
+| Working practices | [docs/process/](../docs/process/) (issue resolution, module testing, playtests) |
+| Archived code reference | [archived/pwa/src/](../archived/pwa/src/) (working PWA, old architecture) |
