@@ -109,7 +109,7 @@ de production de contenu, pas de code.
 
 Deux causes mécaniques, indépendantes, qui se cumulent :
 
-1. **`src/engine/consequences.ts:146`** — les dégâts d'échec hors combat sont `nonLethal` :
+1. **`src/engine/consequences.ts:169`** — les dégâts d'échec hors combat sont `nonLethal` :
    ils ne peuvent pas faire descendre les PV sous 1. Donc **à 1 PV, rater est littéralement
    gratuit**.
 2. **`src/engine/failsafe.ts` + `BALANCE.FAILSAFE`** — au-delà du seuil (2 tentatives en
@@ -148,7 +148,7 @@ regroupent en ~6-7 causes racines :
 | SELF_HARM → environment | #64, #65, #69 |
 | EXAMINE → item.multitool | #61, #77 |
 | SHOOT → environment | #79, #80 |
-| **USE trousse médicale : succès mais 0 PV gagné** | **#85** |
+| ~~USE trousse médicale : succès mais 0 PV gagné~~ ✅ corrigé | ~~#85~~ |
 | Parser / UI divers | #60, #72, #75, #81, #84 |
 
 **Une seule est un bug de gameplay** (#85). Les autres sont cosmétiques ou liées au parser.
@@ -164,10 +164,16 @@ L'ordre compte : chaque chantier dépend de l'état laissé par le précédent.
 Création de ce fichier, réorganisation des 30 documents, réécriture de `CLAUDE.md`,
 nettoyage des déchets à la racine.
 
-### P1 — Le bug #85, et le triage · ~1 j
+### P1 — Le bug #85, et le triage · ~1 j · *#85 corrigé le 2026-09-03*
 
-Corriger #85 (le soin qui ne soigne pas), puis regrouper les 15 autres issues en causes
-racines et étiqueter.
+✅ **#85 corrigé** : le verbe `USE` sur un consommable de soin (`healingValue`) applique
+désormais une conséquence `heal` et consomme l'item sur succès. La cause racine était que
+seul `EAT` (items `edible`) lisait `healingValue` ; les kits `injectable` employés via `USE`
+tombaient dans le bloc générique où seul un `crit_success` soignait (+1). Fix dans
+`src/engine/consequences.ts`, gardes de régression dans `tests/unit/engine/useHeal.test.ts`
+et `tests/integration/useHeal.integration.test.ts`.
+
+Triage des 15 autres issues → causes racines regroupées au §4.4 (aucun étiquetage GitHub).
 
 **Pourquoi maintenant :** tant que le soin est cassé, l'équilibrage de la survie est
 inobservable — donc P3 est infaisable. Ce n'est pas une correction de bug, c'est une

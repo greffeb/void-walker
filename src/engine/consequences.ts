@@ -141,6 +141,23 @@ export function buildConsequences(
     return consequences;
   }
 
+  // USE a healing consumable (medical kit, stimulant, ration…) → restore HP.
+  // healingValue is authored on the item definition. On success the item is
+  // consumed; a fumbled use keeps the kit so the player can retry. Fixes #85:
+  // previously USE fell through to the generic block and only crit_success
+  // healed a flat +1, so a plain "functional" success restored nothing.
+  if (verb === 'USE' && target) {
+    const itemDef = ITEM_DEFINITIONS[target.id];
+    const healAmount = itemDef?.healingValue ?? 0;
+    if (healAmount > 0) {
+      if (outcome === 'crit_success' || outcome === 'success') {
+        consequences.push({ type: 'heal', targetId: 'player', amount: healAmount });
+        consequences.push({ type: 'inventory_remove', itemId: target.id });
+      }
+      return consequences;
+    }
+  }
+
   // General outcome consequences (only for non-combat actions with a real target).
   // THROW is excluded from self-damage: the thrown object was aimed outward, not at the player.
   // Non-combat failure damage is nonLethal: it cannot reduce HP below 1.
