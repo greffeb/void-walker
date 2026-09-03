@@ -43,6 +43,23 @@ describe('ACTION_TEMPLATES', () => {
       expect(GENERIC_FALLBACKS[outcome].text.fr).toBeTruthy();
     }
   });
+
+  // P2 — the anti-repetition memory can only work if each cell holds a pool.
+  it('every cell of the twelve most-played verbs has at least 3 variants', () => {
+    const CORE_VERBS = [
+      'MOVE_TO', 'EXAMINE', 'STRIKE', 'TAKE', 'USE', 'HACK',
+      'OPEN', 'TALK', 'REPAIR', 'CUT', 'SHOOT', 'BREAK',
+    ];
+    const cells = new Map<string, number>();
+    for (const t of ACTION_TEMPLATES) {
+      if (t.verb === null || !CORE_VERBS.includes(t.verb)) continue;
+      const key = `${t.verb}|${t.targetType ?? 'any'}|${t.outcome}|${t.tension}`;
+      cells.set(key, (cells.get(key) ?? 0) + 1);
+    }
+    expect(cells.size).toBeGreaterThan(0);
+    const thin = [...cells.entries()].filter(([, n]) => n < 3).map(([key]) => key);
+    expect(thin).toEqual([]);
+  });
 });
 
 describe('SENSORY_POOLS', () => {

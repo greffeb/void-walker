@@ -35,8 +35,8 @@ l'échec, ergonomie du texte.
 |---|---|
 | `npm run typecheck` | ✅ |
 | `npm run lint` | ✅ 0 erreur, 0 warning |
-| `npm test` (unitaires) | ✅ **1 716 tests / 64 fichiers**, 8,7 s |
-| `npm run check` (suite complète) | ✅ **1 837 tests / 82 fichiers** (unit + stress + integration), 22 s |
+| `npm test` (unitaires) | ✅ **1 717 tests / 64 fichiers** |
+| `npm run check` (suite complète) | ✅ **1 843 tests / 84 fichiers** (unit + stress + integration) |
 | Taille de `src/` | 45 274 lignes |
 | CI | `test.yml` (typecheck + lint + test:all) · `deploy-pwa.yml` (GitHub Pages, toutes branches) |
 
@@ -54,7 +54,7 @@ technique bloquante à rembourser avant de reprendre.
 | 2 — Parser | ✅ Livré | `parser.ts`, `resolver.ts`, 6 stratégies de matching |
 | 3 — Résolution & combat | ✅ Livré | `dice.ts`, `difficulty.ts`, `combat.ts` |
 | 4 — Conséquences & état | ✅ Livré | `consequences.ts`, `state.ts`, chaînes de cascade |
-| 5 — Narration | ✅ Livré | composition 7 couches, `composer.ts` — **mais contenu insuffisant, cf. P2** |
+| 5 — Narration | ✅ Livré | composition 7 couches, `composer.ts` — contenu porté à 3 variantes/cellule sur les 12 verbes principaux (P2) |
 | 6 — Scénarios & victoire | ✅ Livré | 3 skeletons, 15 modules, `victory.ts`, `threat.ts` |
 | 6B — Boucle de jeu | ✅ Livré | `checkVictory` / `threatCheck` / `visitedLocations` câblés dans `processTurn` |
 | 7 — UI PWA | ✅ Livré | 8 écrans, 14 composants, thème CRT, carte canvas, chorégraphie de dés, PWA |
@@ -81,7 +81,7 @@ technique bloquante à rembourser avant de reprendre.
 | Micro-modules | 46 |
 | Items | 20 |
 | NPCs | 5 |
-| Templates d'action | 443 |
+| Templates d'action | 1 003 |
 | Clés i18n | 809 (FR + EN) |
 
 ---
@@ -91,19 +91,34 @@ technique bloquante à rembourser avant de reprendre.
 Ces quatre constats viennent d'une analyse du code, pas d'une impression. Ils justifient
 l'ordre des chantiers du §5.
 
-### 4.1 La narration se répète — déficit de contenu, pas d'architecture
+### 4.1 ~~La narration se répète~~ ✅ résolu par P2 — *2026-09-03*
 
-Les templates sont indexés par cellule `(verbe × outcome × tension)` :
+Les templates sont indexés par cellule `(verbe × type de cible × outcome × tension)` —
+c'est la clé que `selectActionTemplate()` utilise réellement pour filtrer.
 
-- **443 templates** couvrant **306 cellules**
-- **280 cellules sur 306 (91 %) n'ont qu'un seul template**
-- moyenne : **1,16 variante par cellule**
-- **24 verbes sur 78** ont des templates dédiés — les 54 autres tombent sur les fallbacks
-  de catégorie
+| Mesure | Avant P2 | Après P2 |
+|---|---|---|
+| Templates d'action | 443 | **1 003** |
+| Cellules couvertes | 425 | 525 |
+| Moyenne de variantes / cellule | 1,04 | **1,91** |
+| Cellules à une seule variante | 411 (97 %) | 231 (44 %) |
+| Verbes avec templates dédiés | 24 / 78 | **39 / 78** |
+| Moyenne sur les 12 verbes principaux | 1,03 | **3,00** |
 
-`NarrationMemory` (buffer 10, fallback LRU) fonctionne correctement, mais **un système
-anti-répétition ne peut rien faire quand le pool contient un seul élément**. C'est un problème
-de production de contenu, pas de code.
+`NarrationMemory` (buffer 10, fallback LRU) fonctionnait déjà correctement : le problème
+était un pool à un seul élément, pas le code. Les 12 verbes les plus joués — mesurés sur
+60 parties automatisées : `MOVE_TO`, `EXAMINE`, `STRIKE`, `TAKE`, `USE`, `HACK`, `OPEN`,
+`TALK`, `REPAIR`, `CUT`, `SHOOT`, `BREAK` — ont désormais exactement 3 variantes par
+cellule, garanti par un test unitaire (`tests/unit/narration/contentCoverage.test.ts`).
+
+Quinze verbes qui tombaient sur les fallbacks de catégorie ont reçu des templates dédiés
+(2 variantes / cellule) : `PUSH`, `PULL`, `ACTIVATE`, `DEACTIVATE`, `SCAN`, `LISTEN`,
+`SMELL`, `JUMP`, `DODGE`, `DISTRACT`, `DECEIVE`, `DROP`, `EQUIP`, `DRINK`, `TOUCH`.
+
+**Reste à faire (non bloquant) :** 9 verbes secondaires restent à 1 variante par cellule
+(`READ`, `PERSUADE`, `INTIMIDATE`, `THROW`, `CLIMB`, `HIDE`, `BARRICADE`, `FORCE_OPEN`,
+`RUN`), ainsi que `EAT`, `WAIT` et `SELF_HARM`. Reproduire les chiffres :
+`npx tsx scripts/analyze-templates.ts`.
 
 ### 4.2 L'échec n'a pas de poids — le joueur peut spammer
 
@@ -182,17 +197,25 @@ condition préalable à la mesure.
 **Ne pas aller plus loin sur les bugs.** Les 15 autres n'expliquent aucune des frustrations
 de jeu identifiées au §4.
 
-### P2 — Variété narrative · 2-3 j, incrémental
+### ✅ P2 — Variété narrative · *fait le 2026-09-03*
 
-Porter les cellules à 3-4 variantes sur les 12 verbes les plus joués (~500 templates à
-écrire), et couvrir les verbes fréquents aujourd'hui sans templates dédiés.
+560 nouveaux templates répartis en deux fichiers :
 
-**Pourquoi ici :** meilleur ratio effort/impact du projet. Aucune architecture touchée, aucun
-risque de régression, effet immédiat et massif sur le ressenti. Livrable par lots, le progrès
-est visible à chaque commit.
+- `src/content/templates/actionVariants.ts` — +2 variantes sur chacune des 183 cellules des
+  12 verbes les plus joués, portant chaque pool à 3 ;
+- `src/content/templates/actionCoverage.ts` — templates dédiés pour 15 verbes qui tombaient
+  jusqu'ici sur les fallbacks de catégorie.
 
-**Mesure de succès :** moyenne ≥ 3,0 variantes/cellule sur les 12 verbes principaux
-(actuellement 1,16 global).
+Correction annexe : 5 templates `EAT` utilisaient `{def_target|capitalize}`, un modificateur
+que `templateEngine.ts` ne connaît pas — le slot était remplacé par une chaîne vide. Les
+textes ont été reformulés (le support du modificateur relève de P4a).
+
+**Mesure de succès atteinte :** 3,00 variantes/cellule sur les 12 verbes principaux
+(1,03 avant), verrouillé par un test unitaire. Chiffres complets au §4.1.
+
+**Règle apprise :** ne jamais commencer une phrase par `{def_target}` ou `{def_tool}` —
+le slot rend l'article défini en minuscule (« le sas »), ce qui produit une minuscule après
+un point. Le corpus antérieur contient encore ce défaut ; c'est le périmètre de P4a.
 
 ### P3 — Poids de l'échec et progression · 3-5 j, conception d'abord
 
@@ -209,8 +232,11 @@ de #85 corrigé (P1) pour être mesurable.
 
 ### P4 — UX de la narration · à découper
 
-- **P4a** (~1 j, à grouper avec P2) : articles, majuscules, redondance action/résultat, mots
-  mis en avant. Bugs de `templateEngine` et du moteur de grammaire.
+- **P4a** (~1 j) : articles, majuscules, redondance action/résultat, mots
+  mis en avant. Bugs de `templateEngine` et du moteur de grammaire. Deux défauts précis
+  identifiés pendant P2 : le modificateur `|capitalize` n'existe pas dans `templateEngine.ts`,
+  et `postProcess` contracte « de le » → « du » même dans du texte français légitime
+  (« impossible de le déloger » → « impossible du déloger »).
 - **P4b** (gros) : ordre des tronçons et propositions d'action. Repartir de
   `docs/specs/NARRATION_STRUCTURE.md`.
 

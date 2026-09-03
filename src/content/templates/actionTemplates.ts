@@ -12,6 +12,8 @@
 
 import type { ActionTemplate } from '../../narration/types';
 import type { Outcome } from '../../narration/types';
+import { ACTION_VARIANT_TEMPLATES } from './actionVariants';
+import { ACTION_COVERAGE_TEMPLATES } from './actionCoverage';
 
 // ============================================================================
 // STRIKE — physical (FOR)
@@ -5418,7 +5420,7 @@ const EAT_TEMPLATES: readonly ActionTemplate[] = [
     id: 'interaction_EAT_drinkable_auto_success_mid',
     verb: 'EAT', targetType: 'drinkable', outcome: 'auto_success', tension: 'mid',
     category: 'interaction',
-    text: { fr: '{def_target|capitalize} se boit. Vous ajustez et avalez le liquide rapidement.', en: '' },
+    text: { fr: 'Ça se boit plutôt que ça ne se mange. Vous ajustez et avalez le liquide rapidement.', en: '' },
   },
   {
     id: 'interaction_EAT_drinkable_auto_success_high',
@@ -5432,7 +5434,7 @@ const EAT_TEMPLATES: readonly ActionTemplate[] = [
     id: 'interaction_EAT_alive_auto_success_low',
     verb: 'EAT', targetType: 'alive', outcome: 'auto_success', tension: 'low',
     category: 'interaction',
-    text: { fr: '{def_target|capitalize} vous regarde. {actor} ne pouvez pas vous résoudre à ça — pas encore.', en: '' },
+    text: { fr: 'Deux yeux se posent sur vous depuis {def_target}. {actor} ne pouvez pas vous résoudre à ça — pas encore.', en: '' },
   },
   {
     id: 'interaction_EAT_alive_auto_success_mid',
@@ -5464,7 +5466,7 @@ const EAT_TEMPLATES: readonly ActionTemplate[] = [
     id: 'interaction_EAT_heavy_auto_success_high',
     verb: 'EAT', targetType: 'heavy', outcome: 'auto_success', tension: 'high',
     category: 'interaction',
-    text: { fr: 'Impossible. {def_target|capitalize} pèse plus lourd que le sens commun. Cherchez de la vraie nourriture.', en: '' },
+    text: { fr: 'Impossible : {def_target} pèse plus lourd que le sens commun. Cherchez de la vraie nourriture.', en: '' },
   },
 
   // --- toxic (brûlure chimique — dégâts EAT_TOXIC_DAMAGE) ---
@@ -5484,7 +5486,7 @@ const EAT_TEMPLATES: readonly ActionTemplate[] = [
     id: 'interaction_EAT_toxic_auto_success_high',
     verb: 'EAT', targetType: 'toxic', outcome: 'auto_success', tension: 'high',
     category: 'interaction',
-    text: { fr: '{def_target|capitalize}. Vous l\'avalez. Une douleur chimique acide vous ronge l\'œsophage. L\'adrénaline masque le reste — pour l\'instant.', en: '' },
+    text: { fr: 'Vous avalez {def_target}. Une douleur chimique acide vous ronge l\'œsophage. L\'adrénaline masque le reste — pour l\'instant.', en: '' },
   },
 
   // --- sharp (coupure — dégâts EAT_SHARP_DAMAGE) ---
@@ -5498,7 +5500,7 @@ const EAT_TEMPLATES: readonly ActionTemplate[] = [
     id: 'interaction_EAT_sharp_auto_success_mid',
     verb: 'EAT', targetType: 'sharp', outcome: 'auto_success', tension: 'mid',
     category: 'interaction',
-    text: { fr: 'Contact. {def_target|capitalize} vous entaille la commissure des lèvres. {actor} lâchez un juron et abandonnez l\'idée.', en: '' },
+    text: { fr: 'Contact. Le tranchant de {def_target} vous entaille la commissure des lèvres. {actor} lâchez un juron et abandonnez l\'idée.', en: '' },
   },
   {
     id: 'interaction_EAT_sharp_auto_success_high',
@@ -5599,4 +5601,6 @@ export const ACTION_TEMPLATES: readonly ActionTemplate[] = [
   ...ABSURD_TEMPLATES,
   ...SELF_HARM_TEMPLATES,
   ...EAT_TEMPLATES,
+  ...ACTION_VARIANT_TEMPLATES,
+  ...ACTION_COVERAGE_TEMPLATES,
 ] as const;
