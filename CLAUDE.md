@@ -2,8 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Current Phase:** Phase 6 (COMPLETE) → Ready for Phase 6B
-> **Last updated:** 2026-02-25
+> **Where the project stands, what to work on next, and why:** read
+> [`docs/STATUS.md`](docs/STATUS.md). It is the single source of truth.
+> This file covers only *how* to work in the repo — commands, architecture, conventions.
+>
+> **Do not treat `docs/archive/` as a plan.** Those documents describe work already
+> delivered. Following them means redoing finished work — the main trap in this repo.
 
 ---
 
@@ -36,65 +40,6 @@ npm run playtest:auto:100       # 100 automated playthroughs with report
 
 ---
 
-## Current Phase
-
-**Phase 0 — Bootstrap + i18n Foundation** (COMPLETE)
-**Phase 1 — Properties, Verbs & Character Data** (COMPLETE)
-**Phase 2 — Parser & Action Resolution** (COMPLETE)
-**Phase 3 — Resolution & Combat** (COMPLETE)
-**Phase 4 — Consequences & State Engine** (COMPLETE)
-**Phase 5 — Narrative Composition** (COMPLETE)
-**Phase 6 — Scenarios & Victory Conditions** (COMPLETE)
-
-Next: **Phase 6B — Game Loop Integration**
-- Read `docs/phases/PHASE_6B_GAME_LOOP_INTEGRATION.md`
-- Extend `GameState` with Phase 6 fields (visitedLocations, npcStates, threatDirectorState, victoryResult, scenario)
-- `src/engine/game.ts` exists: verify `initGame()`, `isGameOver()`, `buildVictoryCheckContext()` are complete
-- Wire `checkVictory`, `threatCheck`, and visit tracking into `processTurn`
-- Extend `getSceneContext()` with scenario-aware suggestions and exit exploration status
-- Complete deferred stress + integration tests (500 playthroughs, emergent victories, Black Box round-trip)
-
-Then: **Phase 7 — UI (Mobile-First PWA)**
-- Read `docs/phases/PHASE_7_UI.md`
-
-**Phase 6 delivered:**
-- `src/engine/scenario.ts` — Full type system: CoreSkeleton (6-node), ScenarioModule, AssembledScenario, VictoryCondition (7 types), DefeatCondition (4 types), NarrativeSkin, LocationGraph, BlackBoxEntry, GameHistory
-- `src/content/settings.ts` — 3 launch settings (derelict_ship, space_station, alien_ruins) with location role compatibility matrix
-- `src/engine/pacing.ts` — `assembleScenario()`, `buildLocationGraph()`, `validateAssembledScenario()`, `isModuleCompatible()`, tension assignment + skin selection
-- `src/content/scenarios/` — 3 launch skeletons (escape, investigate, rescue) + index
-- `src/content/scenarios/modules/` — 15 modules: 5 universal + 5 category + 5 complex, all 10 module types, each with 3 narrative skins
-- `src/engine/victory.ts` — Pure victory/defeat checker: `evaluateVictoryCondition()`, `checkVictory()` (5-priority cascade), `checkAdditionalDefeat()`
-- `src/engine/threat.ts` — Threat Director state machine: 6-beat behaviors, encounter/hint/environmental pacing, creature learning (wounded → enraged)
-- `src/engine/backtracking.ts` — Immutable `LocationVisitState` transitions + exit exploration status
-- `src/engine/suggestions.ts` — 3-suggestion generator with class bias (marine/engineer/medic), skin priority weighting, category variety cap (max 2 per category)
-- `src/engine/blackbox.ts` — Death/victory journal generation from `GameHistory`; placement logic (80% death / 30% victory, +0.05 cross-skeleton bonus)
-- `tests/playtest/stuckDetector.ts` — Sliding-window stuck detection
-- `tests/playtest/bots/` — Random + goal-seeking playtest bots with seeded RNG
-- `tests/stress/scenarioCombinations.test.ts` — All 27 skeleton×setting×session combos
-- `tests/stress/scenarioAssembly.test.ts` — 100 random assemblies all pass graph validation
-
-**Phase 5 delivered:**
-- `src/i18n/grammar/interface.ts` — Abstract GrammarEngine contract (SlotModifier, GrammaticalInfo)
-- `src/i18n/grammar/fr.ts` — French grammar engine (articles, contractions, adjective agreement, elision, typography)
-- `src/i18n/grammar/en.ts` — English grammar placeholder
-- `src/narration/types.ts` — All narration types (NarrativeContext 12 dimensions, 8 template types, NarrativePresets)
-- `src/narration/templateEngine.ts` — Slot parser + grammar-aware rendering ({def_target}, {?conditionals}, {target_adj:})
-- `src/narration/memory.ts` — NarrationMemory anti-repetition (buffer size 10, LRU fallback, injectable RNG)
-- `src/narration/composer.ts` — 7-layer composition engine (priority cascade, budget system, location state tracking)
-- `src/narration/hints.ts` — Gameplay hint generator (6 categories, anti-softlock escalation after turn 5+)
-- `src/narration/index.ts` — Narration bridge: `narrateForTurn(result, sceneContext, state)` (engine→narration)
-- `src/content/templates/actionTemplates.ts` — ~900 action templates (verb × outcome × tension tier)
-- `src/content/templates/sensory.ts` — 3 settings × 5 conditions, ~75 sensory snippets
-- `src/content/templates/atmosphere.ts` — 3 settings × 4 tension tiers, ~38 atmosphere snippets
-- `src/content/templates/conditions.ts` — Player state snippets (low_hp, fatigue, 5 conditions)
-- `src/content/templates/npcReactions.ts` — 4 dispositions × outcomes, ~41 NPC reaction snippets
-- `src/content/templates/environmental.ts` — 20+ state change types, ~48 consequence snippets
-- `src/content/templates/threats.ts` — 6 story beats, ~28 threat hint snippets
-- `src/content/templates/hints.ts` — 6 hint categories, ~30 hint templates
-- `src/content/templates/secrets.ts` — 9 secret verbs, ~51 secret verb templates
-
----
-
 ## Architecture
 
 ```
@@ -102,7 +47,7 @@ src/engine/    → Pure game logic (no DOM, no side effects, 100% testable in No
 src/content/   → Game data as TypeScript constants
 src/i18n/      → Synchronous t() function, French primary
 src/narration/ → Template-based text generation (no AI needed)
-src/ai/        → Optional Gemini Flash enhancement
+src/ai/        → Optional Gemini Flash enhancement (NOT STARTED — see docs/roadmap/)
 src/ui/        → React 18 + Zustand (ONLY layer touching DOM)
 src/stores/    → Zustand store (single source of truth)
 src/services/  → IndexedDB (Dexie.js), PWA service worker
@@ -133,7 +78,7 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 ## i18n System
 
 - Custom synchronous `t(key, locale?)` function in `src/i18n/index.ts` — no external library
-- `StringKey` is a compile-time union type of all valid keys (currently ~400+)
+- `StringKey` is a compile-time union type of all valid keys (809 keys, FR + EN)
 - Default locale is French (`'fr'`); falls back to key string if missing
 - All locales are pre-loaded at import time (no async)
 - Player-facing strings: French. Internals/comments/variables: English
@@ -143,16 +88,20 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 
 ---
 
-## Narrative System (Phase 5)
+## Narrative System
 
 - **7-layer composition:** Action Result (mandatory) + Sensory Detail + Consequence + Atmosphere/Hint + Player State + Threat Hint + NPC Reaction
+- **Layer order** is hardcoded in `src/narration/types.ts` (`LAYER_ORDER`)
 - **Template slots:** `{def_target}`, `{indef_target}`, `{de_target}`, `{a_target}`, `{part_target}`, conditionals `{?slot:yes|no}`, adjective agreement `{target_adj:adj}`
 - **Anti-repetition:** `NarrationMemory` with per-layer buffers (size 10), LRU fallback, injectable RNG
 - **3 narrative presets:** concise (3 layers), standard (5), immersive (7)
 - **Priority cascade:** verb+target+outcome+tension → verb+outcome → category+outcome → generic fallback
 - **Bridge pattern:** Engine never imports narration. `narrateForTurn(result, sceneContext, state)` in `src/narration/index.ts` builds `NarrativeContext` from `TurnResult` and calls `composeNarrative()`
 - **Location awareness:** Atmosphere fades after 4 turns, replaced by gameplay hints. Environment changes reset counters.
-- **Content:** 8 template files in `src/content/templates/` (~1200 French snippets total)
+- **Content:** 10 template files in `src/content/templates/`, 443 action templates
+
+> ⚠️ Template coverage is thin: 91% of `(verb × outcome × tension)` cells hold a single
+> variant, so the anti-repetition system has nothing to choose from. See `docs/STATUS.md` §4.1.
 
 ---
 
@@ -164,6 +113,7 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 | Tests | camelCase matching source | `properties.test.ts` |
 | React components | PascalCase | `StatusBar.tsx` |
 | JSON data | kebab-case | `escape-derelict.json` |
+| Docs | see `docs/STATUS.md` §6 — every doc carries a `> **Statut :**` banner |
 
 ---
 
@@ -199,8 +149,8 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - `StatId`: `'FOR' | 'DEF' | 'AGI' | 'INT' | 'PER' | 'CHA' | 'LCK'` (7 stats)
 - `PlayerClassName`: `'marine' | 'engineer' | 'medic'`
 - `DifficultyLevel`: `'explorer' | 'survivor' | 'nightmare'`
-- `PropertyId`: ~71 string literals (physical, material, functional, entity, environmental)
-- `VerbId`: 77 string literals (13 FOR + 3 DEF + 22 INT + 4 PER + 14 CHA + 9 AGI + 12 interaction)
+- `PropertyId`: 85 string literals (physical, material, functional, entity, environmental)
+- `VerbId`: 78 string literals
 - `GameState`: Complete immutable state object
 - `TurnResult`: Result of `processTurn(state, input)`
 - `BALANCE`: All balance constants from MASTERPLAN §7 + CONTEXT_MODIFIERS
@@ -209,24 +159,27 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - `ParseResult`: `ParsedAction | Reformulation`
 - `ResolvedTarget`: A resolved game entity (id, nameKey, properties, isVirtual, source)
 - `VerbMatch`: Which verb matched and how (strategy 1-6, confidence, isCompound)
-- `DifficultyBreakdown`: Full DC calculation breakdown
+- `DifficultyBreakdown`: Full DC calculation breakdown (+ `namedLines` for dice choreography)
 - `SceneContext`: Lightweight scene view for parser/resolver
 
-## Key Types (src/engine/scenario.ts) — Phase 6
+## Key Types (src/engine/scenario.ts)
 
 - `CoreSkeleton`: 6-node story structure (start→unlock→reveal→escalation→boss→resolution)
 - `CoreNodeId`: `'start' | 'unlock' | 'reveal' | 'escalation' | 'boss' | 'resolution'`
+- `SkeletonTheme`: Concrete names for abstract location roles, embedded in `CoreSkeleton`
 - `ScenarioModule`: Pluggable story segment (type, validSegments, tensionRange, 3 skins, obstacle)
 - `NarrativeSkin`: Per-tension-tier presentation (low/mid/high, dcModifier, suggestedPathPriority)
+- `ScenarioFeatureDefinition` / `ScenarioItemDefinition`: Scenario elements as first-class engine citizens
+- `ScenarioInteraction`: Declarative trigger→result rule (`newState`, `revealsItems`, exit unlocking)
+- `MicroModule`: Optional side room attached to a core node (`loot` | `lore` | `encounter` | `ambiance`)
 - `VictoryCondition`: 7 types — reach_location, defeat_entity, activate_object, escort_alive, environmental_kill, containment, self_destruct
 - `DefeatCondition`: 4 types — player_death, npc_death, time_expired, objective_destroyed
 - `VictoryResult`: `{ type: VictoryType; skeletonId: string }` — result of per-turn victory check
-- `AssembledScenario`: `{ skeleton, modules, graph, setting, sessionLength }` — ready-to-play game
+- `AssembledScenario`: `{ skeleton, modules, graph, sessionLength }` — ready-to-play game
 - `LocationGraph`: `{ nodes: LocationNode[]; edges: LocationEdge[] }` — assembled navigation graph
 - `LocationVisitState`: Immutable per-location tracking (itemsTaken, featuresChanged, obstacleResolved)
 - `BlackBoxEntry`: Cross-skeleton death/victory journal persisted in IndexedDB
 - `GameHistory`: Snapshot for generating a BlackBoxEntry (playerName, classId, keyEvents, etc.)
-- `SettingDefinition`: Concrete names for abstract location roles (3 launch settings)
 - `SessionLength`: `'quick' | 'standard' | 'extended'` (0 / 3-5 / 8-12 modules)
 - `SuggestionCandidate`: Scored action suggestion (verbText, targetText, stat, category, score)
 
@@ -236,9 +189,13 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 
 | When working on... | Read |
 |---------------------|------|
-| Any phase | `docs/phases/PHASE_N_*.md` + MASTERPLAN §5 |
-| Game mechanics | `docs/GAME_SYSTEMS.md` (13 sections) |
-| Parser & properties | `docs/PARSER_DESIGN.md` (verb taxonomy, property system) |
-| Scenarios & content | `docs/SCENARIO_DESIGN.md` (modular architecture) |
-| Overall vision | `docs/MASTERPLAN.md` (the constitution) |
+| **Anything — start here** | [`docs/STATUS.md`](docs/STATUS.md) |
+| Overall vision | `docs/reference/MASTERPLAN.md` (the constitution) |
+| Game mechanics | `docs/reference/GAME_SYSTEMS.md` (13 sections) |
+| Parser & properties | `docs/reference/PARSER_DESIGN.md` (verb taxonomy, property system) |
+| Scenarios & content | `docs/reference/SCENARIO_DESIGN.md` (modular architecture) |
+| Narrative layer order | `docs/specs/NARRATION_STRUCTURE.md` (partially applied) |
+| Fixing a playtest issue | `docs/process/ISSUE_RESOLUTION_METHODOLOGY.md` |
+| Building/testing a module | `docs/process/MODULE_TESTING_METHODOLOGY.md` |
+| Running an automated playtest | `docs/process/AI_PLAYTEST_INSTRUCTIONS.md` |
 | Archived code patterns | `archived/pwa/src/` (Zustand store, LLM fallback chain) |
