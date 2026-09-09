@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { getSceneContext } from '../../../src/engine/scene';
+import { makeEntityState } from '../../../src/engine/entityState';
 import { createInitialGameState } from '../../../src/engine/types';
 import type { GameState } from '../../../src/engine/types';
 import type {
@@ -126,7 +127,7 @@ describe('C3-1: scene.ts enriched feature resolution', () => {
       scenario,
       playerLocationId: 'start',
       visitedLocations: { start: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], obstacleResolved: false } },
-      featureStates: { door: 'locked' },
+      featureStates: { door: makeEntityState('locked') },
     });
 
     const ctx = getSceneContext(state);
@@ -144,7 +145,7 @@ describe('C3-1: scene.ts enriched feature resolution', () => {
       scenario,
       playerLocationId: 'start',
       visitedLocations: { start: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], obstacleResolved: false } },
-      featureStates: { door: 'open' },
+      featureStates: { door: makeEntityState('open') },
     });
 
     const ctx = getSceneContext(state);
@@ -244,7 +245,7 @@ describe('C3-2: scene.ts item filtering by revealedBy', () => {
       scenario,
       playerLocationId: 'start',
       visitedLocations: { start: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], obstacleResolved: false } },
-      featureStates: { locker: 'locked' },
+      featureStates: { locker: makeEntityState('locked') },
     });
 
     const ctx = getSceneContext(state);
@@ -258,7 +259,7 @@ describe('C3-2: scene.ts item filtering by revealedBy', () => {
       scenario,
       playerLocationId: 'start',
       visitedLocations: { start: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], obstacleResolved: false } },
-      featureStates: { locker: 'open' },
+      featureStates: { locker: makeEntityState('open') },
     });
 
     const ctx = getSceneContext(state);
@@ -272,7 +273,7 @@ describe('C3-2: scene.ts item filtering by revealedBy', () => {
       scenario,
       playerLocationId: 'start',
       visitedLocations: { start: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], obstacleResolved: false } },
-      featureStates: { locker: 'locked' },  // NOT open
+      featureStates: { locker: makeEntityState('locked') },  // NOT open
       revealedItems: { locker: true },        // But revealedItems says yes
     });
 

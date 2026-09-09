@@ -178,9 +178,9 @@ export interface GameState {
   /** Current location ID in the scenario graph (null before game starts). */
   readonly playerLocationId: string | null;
   // === Chantier 1 additions ===
-  /** Per-feature mutable state. Key = featureId, value = current FeatureState.
+  /** Per-feature mutable state. Key = featureId.
    *  Initialized from each feature's `initialState` at game start. */
-  readonly featureStates: Readonly<Record<string, import('./entityState').StateId>>;
+  readonly featureStates: Readonly<Record<string, import('./entityState').EntityState>>;
   /** Items revealed by container openings or other interactions.
    *  Key = itemId, value = true when revealed.
    *  Items WITHOUT `revealedBy` in their definition are always visible. */

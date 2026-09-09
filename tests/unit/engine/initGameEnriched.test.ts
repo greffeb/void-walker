@@ -24,11 +24,11 @@ describe('C3-9: initGame populates featureStates', () => {
   const state = initGame(scenario, 'marine', 'survivor', 'Test', fixedRng());
 
   it('emergency_locker starts as "locked"', () => {
-    expect(state.featureStates['emergency_locker']).toBe('locked');
+    expect(state.featureStates['emergency_locker']?.lock).toBe('locked');
   });
 
   it('cryopod starts as "broken"', () => {
-    expect(state.featureStates['cryopod']).toBe('broken');
+    expect(state.featureStates['cryopod']?.integrity).toBe('broken');
   });
 
   it('revealedItems, unlockedExits, scenarioFlags are empty objects', () => {

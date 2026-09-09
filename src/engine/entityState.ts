@@ -13,24 +13,21 @@ export type ActivityState = 'active' | 'inactive';
 export type IntegrityState = 'intact' | 'damaged' | 'broken';
 export type ContentsState = 'full' | 'searched' | 'empty';
 
-/** One value on every axis. */
+/**
+ * One value per axis. An absent axis means "not applicable or never stated":
+ * a rock has no lock, and a door nobody powered has no power state.
+ */
 export interface EntityState {
-  readonly openness: OpennessState;
-  readonly lock: LockState;
-  readonly power: PowerState;
-  readonly activity: ActivityState;
-  readonly integrity: IntegrityState;
-  readonly contents: ContentsState;
+  readonly openness?: OpennessState;
+  readonly lock?: LockState;
+  readonly power?: PowerState;
+  readonly activity?: ActivityState;
+  readonly integrity?: IntegrityState;
+  readonly contents?: ContentsState;
 }
 
-export const DEFAULT_ENTITY_STATE: EntityState = {
-  openness: 'closed',
-  lock: 'unlocked',
-  power: 'powered',
-  activity: 'inactive',
-  integrity: 'intact',
-  contents: 'full',
-};
+/** Nothing stated yet. */
+export const DEFAULT_ENTITY_STATE: EntityState = {};
 
 /** Every token content may write in `initialState` or `newState`. */
 export type StateId =
@@ -100,6 +97,34 @@ export function matchesState(state: EntityState, query: Partial<EntityState>): b
   }
   return true;
 }
+
+/** The axis each token belongs to. */
+const TOKEN_AXIS: Readonly<Record<StateId, keyof EntityState>> = {
+  open: 'openness', closed: 'openness',
+  locked: 'lock', unlocked: 'lock',
+  powered: 'power', unpowered: 'power',
+  active: 'activity', inactive: 'activity',
+  intact: 'integrity', damaged: 'integrity', broken: 'integrity',
+  full: 'contents', searched: 'contents', empty: 'contents',
+};
+
+/** True when the token describes the entity's current value on its own axis. */
+export function stateMatchesToken(state: EntityState, token: StateId): boolean {
+  return state[TOKEN_AXIS[token]] === token;
+}
+
+/**
+ * Tokens ordered by narrative salience: a broken door is described as broken
+ * rather than closed, so the first matching token wins when picking a description.
+ */
+export const STATE_TOKEN_SALIENCE: readonly StateId[] = [
+  'broken', 'damaged',
+  'locked', 'open',
+  'active', 'inactive',
+  'empty', 'searched',
+  'unpowered', 'powered',
+  'closed', 'intact', 'unlocked', 'full',
+];
 
 /** True when something physically prevents the entity from being opened. */
 export function resistsOpening(state: EntityState): boolean {

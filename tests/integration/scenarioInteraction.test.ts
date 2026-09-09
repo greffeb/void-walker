@@ -10,6 +10,8 @@ import { processTurn } from '../../src/engine/processTurn';
 import { getSceneContext } from '../../src/engine/scene';
 import { createInitialGameState } from '../../src/engine/types';
 import { getFeatureState, hasScenarioFlag, isItemRevealed, isExitUnlocked } from '../../src/engine/featureState';
+import { makeEntityState } from '../../src/engine/entityState';
+import type { EntityState } from '../../src/engine/entityState';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import type { GameState, CharacterState } from '../../src/engine/types';
 import type {
@@ -190,9 +192,9 @@ function makeGameStateWithScenario(
   const base = createInitialGameState();
 
   // Build initial featureStates
-  const featureStates: Record<string, string> = {};
+  const featureStates: Record<string, EntityState> = {};
   for (const f of features) {
-    if (f.initialState) featureStates[f.id] = f.initialState;
+    if (f.initialState) featureStates[f.id] = makeEntityState(f.initialState);
   }
 
   return {
@@ -220,14 +222,14 @@ describe('Chantier 1 Integration: scenario interactions', () => {
   it('1. OPEN locked container (success) → items revealed', () => {
     const state = makeGameStateWithScenario([emergencyLocker], [oxygenCanister]);
     // Verify locker starts locked
-    expect(getFeatureState(state, 'emergency_locker')).toBe('locked');
+    expect(getFeatureState(state, 'emergency_locker').lock).toBe('locked');
 
     // Run interaction via processTurn with "ouvrir armoire" and always-success RNG
     const context = getSceneContext(state);
     const result = processTurn(state, 'ouvrir armoire', context, parserData, alwaysSucceedRng);
     const newState = result.newState;
 
-    expect(getFeatureState(newState, 'emergency_locker')).toBe('open');
+    expect(getFeatureState(newState, 'emergency_locker').openness).toBe('open');
     expect(newState.revealedItems['oxygen_canister']).toBe(true);
   });
 
@@ -236,12 +238,12 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     const ctx1 = getSceneContext(state);
     const afterOpen = processTurn(state, 'ouvrir armoire', ctx1, parserData, alwaysSucceedRng).newState;
 
-    expect(getFeatureState(afterOpen, 'emergency_locker')).toBe('open');
+    expect(getFeatureState(afterOpen, 'emergency_locker').openness).toBe('open');
 
     // Examine on next turn — state should still be 'open'
     const ctx2 = getSceneContext(afterOpen);
     const afterExamine = processTurn(afterOpen, 'examiner armoire', ctx2, parserData, alwaysSucceedRng).newState;
-    expect(getFeatureState(afterExamine, 'emergency_locker')).toBe('open');
+    expect(getFeatureState(afterExamine, 'emergency_locker').openness).toBe('open');
   });
 
   it('3. Use item on target → flag set', () => {
@@ -282,7 +284,7 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     const context = getSceneContext(state);
     const result = processTurn(state, 'ouvrir armoire', context, parserData, alwaysFailRng);
     // On failure: locker stays locked, player takes damage
-    expect(getFeatureState(result.newState, 'emergency_locker')).toBe('locked');
+    expect(getFeatureState(result.newState, 'emergency_locker').lock).toBe('locked');
     expect(result.newState.character!.hp).toBeLessThan(hpBefore);
   });
 
@@ -290,7 +292,7 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     const state = makeGameStateWithScenario([ventCover], []);
     const context = getSceneContext(state);
     const result = processTurn(state, 'ouvrir grille', context, parserData, alwaysSucceedRng);
-    expect(getFeatureState(result.newState, 'vent_cover')).toBe('open');
+    expect(getFeatureState(result.newState, 'vent_cover').openness).toBe('open');
     expect(isExitUnlocked(result.newState, 'loc_start', 'vent_passage')).toBe(true);
   });
 
@@ -310,7 +312,7 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     const state = makeGameStateWithScenario([emergencyLocker], [oxygenCanister]);
     const stateWithOpenLocker = {
       ...state,
-      featureStates: { emergency_locker: 'open' },
+      featureStates: { emergency_locker: makeEntityState('open') },
       revealedItems: { oxygen_canister: true },
     };
     const context = getSceneContext(stateWithOpenLocker);
@@ -330,7 +332,7 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     const result = processTurn(state, 'examiner panneau', context, parserData, alwaysSucceedRng);
     expect(result.newState).toBeDefined();
     // Feature state unchanged (no interactions)
-    expect(getFeatureState(result.newState, 'old_panel')).toBe('intact');
+    expect(getFeatureState(result.newState, 'old_panel').integrity).toBe('intact');
   });
 
   it('11. isItemRevealed: item with revealedBy is not visible until state matches', () => {
@@ -339,7 +341,7 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     // Initially locked — not revealed
     expect(isItemRevealed(state, enriched)).toBe(false);
     // After unlock
-    const opened = { ...state, featureStates: { emergency_locker: 'open' } };
+    const opened = { ...state, featureStates: { emergency_locker: makeEntityState('open') } };
     expect(isItemRevealed(opened, enriched)).toBe(true);
   });
 

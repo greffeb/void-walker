@@ -26,9 +26,8 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   // --- Decision C, slice 1: state axes, consumed by slices C2 and C3. The
   // stale-entry test below forces these lines to be removed once wired.
   STATE_IDS: 'C — scaffolding, wired in C2',
-  makeEntityState: 'C — scaffolding, wired in C2',
-  matchesState: 'C — scaffolding, wired in C3',
-  resistsOpening: 'C — scaffolding, wired in C3',
+  matchesState: 'C — scaffolding, wired in C3b',
+  resistsOpening: 'C — scaffolding, wired in C3b',
 
   // --- Durability: the whole Phase 3 module (deliverables 4-6) is never called.
   // Items never break on a fumble, improvised weapons never degrade, and the

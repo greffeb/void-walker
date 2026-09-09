@@ -14,6 +14,7 @@ import type {
 } from './scenario';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import { getFeatureState, hasScenarioFlag } from './featureState';
+import { stateMatchesToken } from './entityState';
 import { rollCheck } from './dice';
 import { getVerbStat } from './verbs';
 
@@ -143,7 +144,7 @@ export function resolveScenarioInteraction(
     if (!verbMatches(trigger.verb, verb)) continue;
 
     // 2. Required state check
-    if (trigger.requiredState !== undefined && currentState !== trigger.requiredState) continue;
+    if (trigger.requiredState !== undefined && !stateMatchesToken(currentState, trigger.requiredState)) continue;
 
     // 3. Required item check
     if (trigger.requiredItem !== undefined) {

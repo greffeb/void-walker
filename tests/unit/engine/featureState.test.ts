@@ -12,6 +12,7 @@ import {
 } from '../../../src/engine/featureState';
 import type { FeatureDefinition } from '../../../src/engine/scenario';
 import type { ScenarioFeatureDefinition, ScenarioItemDefinition } from '../../../src/engine/scenario';
+import { makeEntityState } from '../../../src/engine/entityState';
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -33,7 +34,6 @@ const enrichedLockerDef: ScenarioFeatureDefinition = {
   descriptions: {
     locked: { fr: 'L\'armoire est verrouillée.', en: 'The locker is locked.' },
     open: { fr: 'L\'armoire est ouverte.', en: 'The locker is open.' },
-    default: { fr: 'Une armoire de secours.', en: 'An emergency locker.' },
   },
 };
 
@@ -47,19 +47,20 @@ const legacyDef: FeatureDefinition = {
 // ---------------------------------------------------------------------------
 
 describe('getFeatureState', () => {
-  it('returns initialState when no runtime state exists', () => {
+  it('derives the state from initialState when nothing has changed yet', () => {
     const state = makeState();
-    expect(getFeatureState(state, 'emergency_locker', lockedLockerDef)).toBe('locked');
+    expect(getFeatureState(state, 'emergency_locker', lockedLockerDef))
+      .toEqual({ lock: 'locked', openness: 'closed' });
   });
 
   it('returns runtime state when it exists', () => {
-    const state = makeState({ featureStates: { emergency_locker: 'open' } });
-    expect(getFeatureState(state, 'emergency_locker', lockedLockerDef)).toBe('open');
+    const state = makeState({ featureStates: { emergency_locker: makeEntityState('open') } });
+    expect(getFeatureState(state, 'emergency_locker', lockedLockerDef).openness).toBe('open');
   });
 
-  it("returns 'intact' as ultimate fallback when no def or runtime state", () => {
+  it('returns an empty state when nothing is known about the feature', () => {
     const state = makeState();
-    expect(getFeatureState(state, 'unknown_feature')).toBe('intact');
+    expect(getFeatureState(state, 'unknown_feature')).toEqual({});
   });
 });
 
@@ -71,7 +72,7 @@ describe('setFeatureState', () => {
   it('returns new GameState with updated feature state', () => {
     const state = makeState();
     const newState = setFeatureState(state, 'emergency_locker', 'open');
-    expect(newState.featureStates['emergency_locker']).toBe('open');
+    expect(newState.featureStates['emergency_locker']?.openness).toBe('open');
   });
 
   it('does not mutate the original state', () => {
@@ -82,10 +83,18 @@ describe('setFeatureState', () => {
   });
 
   it('preserves other feature states', () => {
-    const state = makeState({ featureStates: { terminal: 'active' } });
+    const state = makeState({ featureStates: { terminal: makeEntityState('active') } });
     const newState = setFeatureState(state, 'emergency_locker', 'open');
-    expect(newState.featureStates['terminal']).toBe('active');
-    expect(newState.featureStates['emergency_locker']).toBe('open');
+    expect(newState.featureStates['terminal']?.activity).toBe('active');
+    expect(newState.featureStates['emergency_locker']?.openness).toBe('open');
+  });
+
+  // The single-string model erased every other axis on each transition.
+  it('preserves the axes the token does not speak about', () => {
+    const state = makeState({ featureStates: { hatch: makeEntityState('damaged') } });
+    const newState = setFeatureState(state, 'hatch', 'open');
+    expect(newState.featureStates['hatch']?.openness).toBe('open');
+    expect(newState.featureStates['hatch']?.integrity).toBe('damaged');
   });
 });
 
@@ -95,28 +104,28 @@ describe('setFeatureState', () => {
 
 describe('getFeatureDescription', () => {
   it('returns state-specific description from enriched feature', () => {
-    const desc = getFeatureDescription(enrichedLockerDef, 'locked', 'fr');
+    const desc = getFeatureDescription(enrichedLockerDef, makeEntityState('locked'), 'fr');
     expect(desc).toBe("L'armoire est verrouillée.");
   });
 
   it('returns different description for different state', () => {
-    const desc = getFeatureDescription(enrichedLockerDef, 'open', 'fr');
+    const desc = getFeatureDescription(enrichedLockerDef, makeEntityState('open'), 'fr');
     expect(desc).toBe("L'armoire est ouverte.");
   });
 
-  it("falls back to 'default' description when state has no specific entry", () => {
-    const desc = getFeatureDescription(enrichedLockerDef, 'broken', 'fr');
-    expect(desc).toBe('Une armoire de secours.');
+  it('returns null when the current state has no description entry', () => {
+    const desc = getFeatureDescription(enrichedLockerDef, makeEntityState('broken'), 'fr');
+    expect(desc).toBeNull();
   });
 
   it('falls back to examineResult for legacy feature definition', () => {
-    const desc = getFeatureDescription(legacyDef, 'intact', 'fr');
+    const desc = getFeatureDescription(legacyDef, makeEntityState('intact'), 'fr');
     expect(desc).toBe('Vieux panneau.');
   });
 
   it('returns null when no description is available', () => {
     const def: FeatureDefinition = { id: 'bare_wall' };
-    expect(getFeatureDescription(def, 'intact', 'fr')).toBeNull();
+    expect(getFeatureDescription(def, makeEntityState('intact'), 'fr')).toBeNull();
   });
 });
 
@@ -179,7 +188,7 @@ describe('revealItem / isItemRevealed', () => {
   });
 
   it('isItemRevealed returns true when featureState matches requiredState', () => {
-    const state = makeState({ featureStates: { emergency_locker: 'open' } });
+    const state = makeState({ featureStates: { emergency_locker: makeEntityState('open') } });
     expect(isItemRevealed(state, constrainedItem)).toBe(true);
   });
 });

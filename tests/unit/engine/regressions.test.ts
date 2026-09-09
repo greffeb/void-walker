@@ -15,6 +15,7 @@ import { resolveItemUseOn } from '../../../src/engine/interactionResolver';
 import { isEnrichedItem } from '../../../src/engine/scenario';
 import { BALANCE } from '../../../src/engine/constants';
 import { getFeatureDescription } from '../../../src/engine/featureState';
+import { makeEntityState } from '../../../src/engine/entityState';
 import { ACTION_TEMPLATES } from '../../../src/content/templates/actionTemplates';
 import { ITEM_DEFINITIONS } from '../../../src/content/items';
 import { ATMOSPHERE_SNIPPETS } from '../../../src/content/templates/atmosphere';
@@ -581,8 +582,8 @@ describe('REG-010: getFeatureDescription returns open-state text after state cha
         open: { fr: 'Le conteneur est ouvert.', en: '' },
       },
     };
-    const lockedText = getFeatureDescription(featureDef, 'locked', 'fr');
-    const openText = getFeatureDescription(featureDef, 'open', 'fr');
+    const lockedText = getFeatureDescription(featureDef, makeEntityState('locked'), 'fr');
+    const openText = getFeatureDescription(featureDef, makeEntityState('open'), 'fr');
     expect(lockedText).toContain('scellé');
     expect(openText).toContain('ouvert');
     expect(lockedText).not.toBe(openText);
@@ -689,7 +690,7 @@ describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
       expect(vs?.obstacleResolved).toBe(true);
       // Feature state should be 'open'
       const featureStates = state.featureStates ?? {};
-      expect(featureStates['blocked_door']).toBe('open');
+      expect(featureStates['blocked_door']?.openness).toBe('open');
     }
   });
 
@@ -1160,7 +1161,7 @@ describe('REG-022: OPEN on container feature via D20 reveals contained items (Is
     // If the D20 succeeded, director_keycard must be revealed (Issue #53 fix)
     if (result.trace.outcome === 'success' || result.trace.outcome === 'crit_success') {
       expect(result.newState.revealedItems['director_keycard']).toBe(true);
-      expect(result.newState.featureStates['wall_safe']).toBe('open');
+      expect(result.newState.featureStates['wall_safe']?.openness).toBe('open');
     }
   });
 
@@ -1176,7 +1177,7 @@ describe('REG-022: OPEN on container feature via D20 reveals contained items (Is
 
     // Scenario interaction is auto-success → items must be revealed
     expect(result.newState.revealedItems['director_keycard']).toBe(true);
-    expect(result.newState.featureStates['wall_safe']).toBe('open');
+    expect(result.newState.featureStates['wall_safe']?.openness).toBe('open');
   });
 });
 

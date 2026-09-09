@@ -12,6 +12,8 @@ import {
   revealItem,
 } from '../../src/engine/featureState';
 import { resolveScenarioInteraction } from '../../src/engine/interactionResolver';
+import { stateMatchesToken } from '../../src/engine/entityState';
+import type { StateId } from '../../src/engine/entityState';
 import type { ScenarioFeatureDefinition } from '../../src/engine/scenario';
 import type { GameState, CharacterState } from '../../src/engine/types';
 
@@ -66,7 +68,7 @@ const complexFeature: ScenarioFeatureDefinition = {
 };
 
 const VALID_VERBS = ['OPEN', 'HACK', 'USE', 'EXAMINE', 'FORCE_OPEN', 'READ', 'TAKE'] as const;
-const VALID_STATES = ['locked', 'open', 'broken', 'intact', 'damaged', 'empty', 'inactive'];
+const VALID_STATES: readonly StateId[] = ['locked', 'open', 'broken', 'intact', 'damaged', 'empty', 'inactive'];
 
 // ---------------------------------------------------------------------------
 // STRESS TESTS
@@ -74,7 +76,7 @@ const VALID_STATES = ['locked', 'open', 'broken', 'intact', 'damaged', 'empty', 
 
 describe('Chantier 1 Stress: 500 random interactions — no state corruption', () => {
 
-  it('feature states remain valid strings after 500 setFeatureState calls', () => {
+  it('feature states stay consistent after 500 setFeatureState calls', () => {
     const rng = seededRng(42);
     let state: GameState = {
       ...createInitialGameState(),
@@ -89,15 +91,13 @@ describe('Chantier 1 Stress: 500 random interactions — no state corruption', (
 
       // Invariants
       const readBack = getFeatureState(state, featureId);
-      expect(typeof readBack).toBe('string');
-      expect(readBack.length).toBeGreaterThan(0);
-      expect(readBack).toBe(newStateValue);
+      expect(stateMatchesToken(readBack, newStateValue)).toBe(true);
     }
 
-    // All featureStates values are strings
+    // Every stored value is a state object with at least one axis set
     for (const [key, val] of Object.entries(state.featureStates)) {
       expect(typeof key).toBe('string');
-      expect(typeof val).toBe('string');
+      expect(Object.keys(val).length).toBeGreaterThan(0);
     }
   });
 
@@ -140,9 +140,9 @@ describe('Chantier 1 Stress: 500 random interactions — no state corruption', (
     state = setFeatureState(state, 'test_door', 'open');
     const after2 = state.featureStates['test_door'];
 
-    expect(after1).toBe('open');
-    expect(after2).toBe('open');
-    expect(after1).toBe(after2);
+    expect(after1?.openness).toBe('open');
+    expect(after2?.openness).toBe('open');
+    expect(after1).toEqual(after2);
   });
 
   it('GameState is never mutated (immutability check across 500 interactions)', () => {

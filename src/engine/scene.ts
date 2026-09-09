@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from './types';
-import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition, FeatureState } from './scenario';
+import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition } from './scenario';
 import type { SuggestionCandidate } from './suggestions';
 import type { StringKey } from '../i18n/types';
 import type { PropertyId } from './properties';
@@ -20,7 +20,10 @@ import { ENVIRONMENT_FEATURE_DEFINITIONS } from '../content/environments';
 import { NPC_DEFINITIONS } from '../content/npcs';
 import { t, getLocale } from '../i18n/index';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
-import { getFeatureState, isItemRevealed } from './featureState';
+import type { EntityState } from './entityState';
+import { makeEntityState, stateMatchesToken, STATE_TOKEN_SALIENCE } from './entityState';
+import type { StateId } from './entityState';
+import { getFeatureState, isItemRevealed, pickStateDescription } from './featureState';
 import { buildObstacleVerbMap } from '../content/parserData';
 
 // ---------------------------------------------------------------------------
@@ -343,7 +346,7 @@ function buildSceneDescription(
   node: LocationNode,
   visitState: LocationVisitState | undefined,
   connectedLocations: readonly { id: string; aliases: readonly string[]; visited?: boolean }[],
-  featureStates: Readonly<Record<string, FeatureState>>,
+  featureStates: Readonly<Record<string, EntityState>>,
   skeletonDescription?: string,
   scenarioIntro?: string,
 ): SceneDescription {
@@ -379,7 +382,8 @@ function buildSceneDescription(
     .filter(item => {
       if (!isItemAvailable(visitState, item.id)) return false;
       if (isEnrichedItem(item) && item.revealedBy) {
-        return featureStates[item.revealedBy.featureId] === item.revealedBy.requiredState;
+        const gate = featureStates[item.revealedBy.featureId];
+        return gate !== undefined && stateMatchesToken(gate, item.revealedBy.requiredState);
       }
       return !item.hidden;
     })
@@ -400,13 +404,10 @@ function buildSceneDescription(
 
   // Environment features (use state-based description when available)
   const visibleFeatures = node.features.map(feat => {
-    // Get current feature state (from featureStates, fallback to initialState, fallback to 'intact')
-    const currentState = featureStates[feat.id] ?? feat.initialState ?? 'intact';
-
-    // Check if the feature definition has a state-based description
-    if (feat.descriptions && feat.descriptions[currentState]) {
-      // Use the state-based description (e.g. "conduit de ventilation ouvert")
-      return { id: feat.id, name: feat.descriptions[currentState].fr };
+    const currentState = featureStates[feat.id] ?? makeEntityState(feat.initialState);
+    const stateDescription = pickStateDescription(feat.descriptions, currentState);
+    if (stateDescription) {
+      return { id: feat.id, name: stateDescription.fr };
     }
 
     // Fall back to registry definition name, then i18n
@@ -568,10 +569,20 @@ function npcDefToNpcInstance(id: string): NpcInstance {
  * Derive property overrides from a feature's current runtime state.
  * Returns add/remove lists to be merged with base properties.
  */
+/** Pseudo-properties still exposed to compatibility until decision C3b lands. */
 function deriveStateProperties(
-  state: FeatureState | undefined,
+  state: EntityState,
 ): { add: PropertyId[]; remove: PropertyId[] } {
-  switch (state) {
+  for (const token of STATE_TOKEN_SALIENCE) {
+    if (stateMatchesToken(state, token)) return derivePropertiesForToken(token);
+  }
+  return { add: [], remove: [] };
+}
+
+function derivePropertiesForToken(
+  token: StateId,
+): { add: PropertyId[]; remove: PropertyId[] } {
+  switch (token) {
     case 'locked':
       return { add: ['locked'], remove: ['open'] };
     case 'open':
@@ -598,7 +609,7 @@ function deriveStateProperties(
 function featureDefToInstance(
   id: string,
   scenarioDef?: FeatureDefinition,
-  currentState?: FeatureState,
+  currentState: EntityState = {},
 ): EnvironmentFeatureInstance {
   // 1. Check content registry first
   const def = ENVIRONMENT_FEATURE_DEFINITIONS[id];
@@ -628,7 +639,7 @@ function featureDefToInstance(
       extra_props: scenarioDef.extraProperties ?? [],
       remove_props: scenarioDef.removeProperties ?? [],
     });
-    const { add, remove } = deriveStateProperties(currentState ?? scenarioDef.initialState);
+    const { add, remove } = deriveStateProperties(currentState);
     const removeSet = new Set(remove);
     const properties: PropertyId[] = [
       ...baseProps.filter(p => !removeSet.has(p)),
