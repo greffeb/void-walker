@@ -13,8 +13,8 @@ import type { PropertyId } from '../../../src/engine/properties';
 import { ITEM_TYPES, NPC_TYPES, ENVIRONMENT_FEATURE_TYPES } from '../../../src/engine/types';
 
 describe('PropertyId', () => {
-  test('has at least 70 properties', () => {
-    expect(PROPERTY_IDS.length).toBeGreaterThanOrEqual(70);
+  test('has at least 65 properties', () => {
+    expect(PROPERTY_IDS.length).toBeGreaterThanOrEqual(65);
   });
 
   test('every property id is a non-empty string', () => {
@@ -78,13 +78,13 @@ describe('TYPE_BASE_PROPERTIES — items', () => {
 });
 
 describe('TYPE_BASE_PROPERTIES — npcs', () => {
-  test('human npc inherits sentient, alive, organic, tangible, visible', () => {
+  test('human npc inherits sentient, organic, tangible, visible — vitality is state', () => {
     const props = TYPE_BASE_PROPERTIES.npc.human;
     expect(props).toContain('sentient');
-    expect(props).toContain('alive');
     expect(props).toContain('organic');
     expect(props).toContain('tangible');
     expect(props).toContain('visible');
+    expect(props).not.toContain('alive');
   });
 
   test('all npc types have base properties', () => {
@@ -130,12 +130,12 @@ describe('resolveProperties()', () => {
     const resolved = resolveProperties({
       objectCategory: 'item',
       baseType: 'tool',
-      extra_props: ['electronic', 'powered'],
+      extra_props: ['electronic', 'conductive'],
     });
     expect(resolved).toContain('tangible');
     expect(resolved).toContain('usable');
     expect(resolved).toContain('electronic');
-    expect(resolved).toContain('powered');
+    expect(resolved).toContain('conductive');
   });
 
   test('remove_props removes a property from the base set', () => {
@@ -175,20 +175,20 @@ describe('resolveProperties()', () => {
     const resolved = resolveProperties({
       objectCategory: 'npc',
       baseType: 'human',
-      extra_props: ['hostile'],
+      extra_props: ['toxic'],
     });
     expect(resolved).toContain('sentient');
-    expect(resolved).toContain('hostile');
+    expect(resolved).toContain('toxic');
   });
 
   test('works for environment type', () => {
     const resolved = resolveProperties({
       objectCategory: 'environment',
       baseType: 'terminal',
-      extra_props: ['powered'],
+      extra_props: ['power_source'],
     });
     expect(resolved).toContain('electronic');
     expect(resolved).toContain('readable');
-    expect(resolved).toContain('powered');
+    expect(resolved).toContain('power_source');
   });
 });

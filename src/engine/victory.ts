@@ -14,7 +14,13 @@ import type { CoreSkeleton, VictoryCondition, DefeatCondition, VictoryResult } f
 export interface NpcState {
   readonly id: string;
   readonly locationId: string | null;
-  readonly alive: boolean;
+  /** Vitality and stance. `alive` is read off the vitality axis, not stored twice. */
+  readonly state: import('./entityState').EntityState;
+}
+
+/** An NPC still in the fight. Anything but a corpse counts. */
+export function isNpcAlive(npc: NpcState | undefined): boolean {
+  return npc !== undefined && npc.state.vitality !== 'dead';
 }
 
 // ---------------------------------------------------------------------------
@@ -65,7 +71,7 @@ export function evaluateVictoryCondition(
 
     case 'defeat_entity': {
       const npc = ctx.npcStates[condition.entityId];
-      return npc !== undefined && !npc.alive;
+      return npc !== undefined && !isNpcAlive(npc);
     }
 
     case 'activate_object':
@@ -76,13 +82,13 @@ export function evaluateVictoryCondition(
 
     case 'escort_alive': {
       const npc = ctx.npcStates[condition.npcId];
-      return npc?.alive === true && npc.locationId === condition.locationId;
+      return isNpcAlive(npc) && npc?.locationId === condition.locationId;
     }
 
     case 'environmental_kill': {
       const npc = ctx.npcStates[condition.entityId];
       return (
-        npc?.alive === true &&
+        isNpcAlive(npc) && npc !== undefined &&
         npc.locationId !== null &&
         ctx.lethalLocations.includes(npc.locationId) &&
         // Player must not be in the same room (or they'd die too)
@@ -93,7 +99,7 @@ export function evaluateVictoryCondition(
     case 'containment': {
       const npc = ctx.npcStates[condition.entityId];
       return (
-        npc?.alive === true &&
+        isNpcAlive(npc) && npc !== undefined &&
         npc.locationId !== null &&
         ctx.fullyContainedLocations.includes(npc.locationId)
       );
@@ -122,7 +128,7 @@ export function evaluateDefeatCondition(
 
     case 'npc_death': {
       const npc = ctx.npcStates[condition.npcId];
-      return npc !== undefined && !npc.alive;
+      return npc !== undefined && !isNpcAlive(npc);
     }
 
     case 'time_expired':
@@ -165,7 +171,7 @@ export function checkVictory(
   // Any living entity in a lethal location (when player is not there) counts.
   for (const npc of Object.values(ctx.npcStates)) {
     if (
-      npc.alive &&
+      isNpcAlive(npc) &&
       npc.locationId !== null &&
       ctx.lethalLocations.includes(npc.locationId) &&
       ctx.playerLocationId !== npc.locationId
@@ -177,7 +183,7 @@ export function checkVictory(
   // 4. Emergent: containment
   for (const npc of Object.values(ctx.npcStates)) {
     if (
-      npc.alive &&
+      isNpcAlive(npc) &&
       npc.locationId !== null &&
       ctx.fullyContainedLocations.includes(npc.locationId)
     ) {

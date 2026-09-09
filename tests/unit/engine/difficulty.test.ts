@@ -19,13 +19,19 @@ function makeStats(overrides: Partial<StatBlock> = {}): StatBlock {
   };
 }
 
-function makeTarget(id: string, props: PropertyId[] = [], source: 'inventory' | 'location' | 'npc' | 'environment' | 'abstract' = 'npc'): ResolvedTarget {
+function makeTarget(
+  id: string,
+  props: PropertyId[] = [],
+  source: 'inventory' | 'location' | 'npc' | 'environment' | 'abstract' = 'npc',
+  state?: import('../../../src/engine/entityState').EntityState,
+): ResolvedTarget {
   return {
     id,
     nameKey: `item.${id}`,
     properties: props,
     isVirtual: false,
     source,
+    ...(state !== undefined ? { state } : {}),
   };
 }
 
@@ -44,7 +50,7 @@ function makeAction(verb: VerbId, target: ResolvedTarget | null = null): ParsedA
 function makeInput(overrides: Partial<DifficultyInput> = {}): DifficultyInput {
   return {
     verb: 'STRIKE' as VerbId,
-    target: makeTarget('robot', ['hostile', 'robotic'] as PropertyId[]),
+    target: makeTarget('robot', ['robotic'] as PropertyId[], 'npc', { disposition: 'hostile' }),
     tool: null,
     playerStats: makeStats(),
     difficultyLevel: 'survivor',
@@ -131,7 +137,7 @@ describe('calculateDifficulty()', () => {
 
   test('hostile target increases difficulty', () => {
     const hostile = makeInput({
-      target: makeTarget('robot', ['hostile'] as PropertyId[]),
+      target: makeTarget('robot', [] as PropertyId[], 'npc', { disposition: 'hostile' }),
     });
     const neutral = makeInput({
       target: makeTarget('robot', [] as PropertyId[]),
@@ -143,7 +149,7 @@ describe('calculateDifficulty()', () => {
 
   test('friendly target decreases difficulty', () => {
     const friendly = makeInput({
-      target: makeTarget('npc', ['friendly'] as PropertyId[]),
+      target: makeTarget('npc', [] as PropertyId[], 'npc', { disposition: 'friendly' }),
     });
     const neutral = makeInput({
       target: makeTarget('npc', [] as PropertyId[]),

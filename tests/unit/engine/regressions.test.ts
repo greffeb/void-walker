@@ -1011,7 +1011,7 @@ describe('REG-020: NPC-obstacle intercept resolves obstacle and neutralizes NPC'
         success = true;
         state = result.newState;
         // Verify NPC is neutralized
-        expect(state.npcStates[npcId]?.alive).toBe(false);
+        expect(state.npcStates[npcId]?.state.vitality).toBe('dead');
         // Verify obstacle is resolved
         expect(isObstacleResolved(state.visitedLocations[npcObstacle.nodeId])).toBe(true);
       } else {

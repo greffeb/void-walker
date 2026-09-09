@@ -354,7 +354,7 @@ export const VERB_REGISTRY: VerbRegistry = {
   },
   BARTER: {
     nameKey: 'verb.BARTER', descriptionKey: 'verb.BARTER.description',
-    requirements: { targetProps: [['sentient', 'willing']], requiredToolProp: null },
+    requirements: { targetProps: [['sentient']], requiredToolProp: null },
     difficultyMod: 1, auto: false,
   },
   SEDUCE: {

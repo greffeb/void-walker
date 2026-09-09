@@ -9,7 +9,7 @@ import type {
   GameState, PlayerClassName, DifficultyLevel, RngFn, CharacterState,
 } from './types';
 import type { AssembledScenario } from './scenario';
-import type { EntityState } from './entityState';
+import type { EntityState, DispositionState } from './entityState';
 import { makeEntityState } from './entityState';
 import type { LocationState } from './locationState';
 import { locationStateFromAtmosphere } from './locationState';
@@ -19,6 +19,7 @@ import { createThreatDirector } from './threat';
 import { createVisitState } from './backtracking';
 import { initMicroModuleStates } from './microModules';
 import { CLASSES } from '../content/classes';
+import { NPC_DEFINITIONS } from '../content/npcs';
 import { mapScenarioFlags } from './scenarioFlagMapper';
 
 // ---------------------------------------------------------------------------
@@ -30,6 +31,22 @@ const HP_MULTIPLIERS: Readonly<Record<DifficultyLevel, number>> = {
   survivor:  1.0,
   nightmare: 0.75,
 };
+
+/**
+ * Seed an NPC's mutable state: alive unless said otherwise, with the stance the
+ * scenario placed it in taking precedence over the archetype's default.
+ */
+function initialNpcState(
+  definitionId: string,
+  scenarioDisposition: DispositionState | undefined,
+): EntityState {
+  const base = NPC_DEFINITIONS[definitionId]?.initialState ?? {};
+  return {
+    vitality: 'alive',
+    ...base,
+    ...(scenarioDisposition !== undefined ? { disposition: scenarioDisposition } : {}),
+  };
+}
 
 // ---------------------------------------------------------------------------
 // initGame — single entry point for starting a new game
@@ -85,7 +102,7 @@ export function initGame(
       npcStates[npcDef.id] = {
         id: npcDef.id,
         locationId: node.id,
-        alive: true,
+        state: initialNpcState(npcDef.id, npcDef.disposition),
       };
     }
   }
@@ -97,7 +114,7 @@ export function initGame(
         npcStates[npcDef.id] = {
           id: npcDef.id,
           locationId: null,
-          alive: true,
+          state: initialNpcState(npcDef.id, npcDef.disposition),
         };
       }
     }

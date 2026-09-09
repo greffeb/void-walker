@@ -23,8 +23,7 @@ const SEARCH_DIRS = ['src'];
  * Each group names the audit decision that will resolve it.
  */
 const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
-  // --- Decision C: STATE_IDS is the runtime mirror of the StateId union.
-  STATE_IDS: 'runtime mirror of a union type, test-only',
+  // --- Runtime mirrors of union types, used by tests only.
   LOCATION_STATE_IDS: 'runtime mirror of a union type, test-only',
 
   // --- Decision F: runtime mirrors and the totality guard for the family table.
@@ -132,6 +131,7 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   // Nothing displays property names, which is why the 4 missing i18n keys of
   // audit finding P1-4 went unnoticed.
   PROPERTY_REGISTRY: 'P1-4 — property metadata never displayed',
+  STATE_REGISTRY: 'compile-time guard forcing i18n keys for every state token',
 };
 
 // ---------------------------------------------------------------------------

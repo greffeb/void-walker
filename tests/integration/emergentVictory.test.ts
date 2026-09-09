@@ -51,7 +51,7 @@ describe('emergentVictory: environmental_kill', () => {
       ...state,
       playerLocationId: 'start',
       npcStates: {
-        creature: { id: 'creature', locationId: 'boss_room', alive: true },
+        creature: { id: 'creature', locationId: 'boss_room', state: { vitality: 'alive' } },
       },
       lethalLocations: ['boss_room'],
     };
@@ -71,7 +71,7 @@ describe('emergentVictory: environmental_kill', () => {
       ...state,
       playerLocationId: 'boss_room',
       npcStates: {
-        creature: { id: 'creature', locationId: 'boss_room', alive: true },
+        creature: { id: 'creature', locationId: 'boss_room', state: { vitality: 'alive' } },
       },
       lethalLocations: ['boss_room'],
     };
@@ -90,7 +90,7 @@ describe('emergentVictory: environmental_kill', () => {
       ...state,
       playerLocationId: 'start',
       npcStates: {
-        creature: { id: 'creature', locationId: 'boss_room', alive: false },
+        creature: { id: 'creature', locationId: 'boss_room', state: { vitality: 'dead' } },
       },
       lethalLocations: ['boss_room'],
     };
@@ -113,7 +113,7 @@ describe('emergentVictory: containment', () => {
       ...state,
       playerLocationId: 'start',
       npcStates: {
-        creature: { id: 'creature', locationId: 'sealed_room', alive: true },
+        creature: { id: 'creature', locationId: 'sealed_room', state: { vitality: 'alive' } },
       },
       fullyContainedLocations: ['sealed_room'],
     };
@@ -132,7 +132,7 @@ describe('emergentVictory: containment', () => {
       ...state,
       playerLocationId: 'start',
       npcStates: {
-        creature: { id: 'creature', locationId: 'sealed_room', alive: false },
+        creature: { id: 'creature', locationId: 'sealed_room', state: { vitality: 'dead' } },
       },
       fullyContainedLocations: ['sealed_room'],
     };

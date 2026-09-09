@@ -6,12 +6,17 @@
 // still closed — something a single free-form state string could not express.
 // ---------------------------------------------------------------------------
 
+import type { StringKey } from '@i18n/types';
+
 export type OpennessState = 'open' | 'closed';
 export type LockState = 'locked' | 'unlocked';
 export type PowerState = 'powered' | 'unpowered';
 export type ActivityState = 'active' | 'inactive';
 export type IntegrityState = 'intact' | 'damaged' | 'broken';
 export type ContentsState = 'full' | 'searched' | 'empty';
+/** Decision C-bis: what a creature is, and how it stands towards the player. */
+export type VitalityState = 'alive' | 'wounded' | 'unconscious' | 'dead';
+export type DispositionState = 'hostile' | 'neutral' | 'friendly' | 'willing';
 
 /**
  * One value per axis. An absent axis means "not applicable or never stated":
@@ -24,6 +29,8 @@ export interface EntityState {
   readonly activity?: ActivityState;
   readonly integrity?: IntegrityState;
   readonly contents?: ContentsState;
+  readonly vitality?: VitalityState;
+  readonly disposition?: DispositionState;
 }
 
 /** Nothing stated yet. */
@@ -36,7 +43,9 @@ export type StateId =
   | PowerState
   | ActivityState
   | IntegrityState
-  | ContentsState;
+  | ContentsState
+  | VitalityState
+  | DispositionState;
 
 export const STATE_IDS: readonly StateId[] = [
   'open', 'closed',
@@ -45,6 +54,8 @@ export const STATE_IDS: readonly StateId[] = [
   'active', 'inactive',
   'intact', 'damaged', 'broken',
   'full', 'searched', 'empty',
+  'alive', 'wounded', 'unconscious', 'dead',
+  'hostile', 'neutral', 'friendly', 'willing',
 ] as const;
 
 /**
@@ -81,6 +92,23 @@ export function applyStateToken(state: EntityState, token: StateId): EntityState
       return { ...state, contents: 'searched' };
     case 'empty':
       return { ...state, contents: 'empty' };
+    case 'alive':
+      return { ...state, vitality: 'alive' };
+    case 'wounded':
+      return { ...state, vitality: 'wounded' };
+    case 'unconscious':
+      return { ...state, vitality: 'unconscious' };
+    // Death ends every negotiation: a corpse has no stance left to take.
+    case 'dead':
+      return { ...state, vitality: 'dead', disposition: undefined };
+    case 'hostile':
+      return { ...state, disposition: 'hostile' };
+    case 'neutral':
+      return { ...state, disposition: 'neutral' };
+    case 'friendly':
+      return { ...state, disposition: 'friendly' };
+    case 'willing':
+      return { ...state, disposition: 'willing' };
   }
 }
 
@@ -106,6 +134,8 @@ const TOKEN_AXIS: Readonly<Record<StateId, keyof EntityState>> = {
   active: 'activity', inactive: 'activity',
   intact: 'integrity', damaged: 'integrity', broken: 'integrity',
   full: 'contents', searched: 'contents', empty: 'contents',
+  alive: 'vitality', wounded: 'vitality', unconscious: 'vitality', dead: 'vitality',
+  hostile: 'disposition', neutral: 'disposition', friendly: 'disposition', willing: 'disposition',
 };
 
 /** True when the token describes the entity's current value on its own axis. */
@@ -118,15 +148,37 @@ export function stateMatchesToken(state: EntityState, token: StateId): boolean {
  * rather than closed, so the first matching token wins when picking a description.
  */
 export const STATE_TOKEN_SALIENCE: readonly StateId[] = [
+  'dead', 'unconscious', 'wounded',
   'broken', 'damaged',
+  'hostile', 'friendly', 'willing',
   'locked', 'open',
   'active', 'inactive',
   'empty', 'searched',
   'unpowered', 'powered',
   'closed', 'intact', 'unlocked', 'full',
+  'alive', 'neutral',
 ];
 
 /** True when something physically prevents the entity from being opened. */
 export function resistsOpening(state: EntityState): boolean {
   return state.lock === 'locked' || state.integrity === 'broken';
 }
+
+// === REGISTRY ===
+
+/** Metadata for a single state token, mirroring the property registry. */
+export interface StateMeta {
+  readonly nameKey: StringKey;
+  readonly descriptionKey: StringKey;
+}
+
+/**
+ * Every state token must carry i18n keys. No cast here on purpose: a token
+ * without translations is a compile error, not a raw key shown to the player.
+ */
+export const STATE_REGISTRY: Readonly<Record<StateId, StateMeta>> = Object.fromEntries(
+  STATE_IDS.map(id => [id, {
+    nameKey: `state.${id}`,
+    descriptionKey: `state.${id}.description`,
+  } satisfies StateMeta]),
+) as Readonly<Record<StateId, StateMeta>>;

@@ -113,26 +113,26 @@ describe('natureOf', () => {
   });
 
   it('reads a body before a device: an infected crew member is organic', () => {
-    expect(natureOf(['organic', 'alive', 'electronic'])).toBe('organic');
+    expect(natureOf(['organic', 'electronic'])).toBe('organic');
   });
 });
 
 describe('canBear', () => {
   it('accepts what the nature supports', () => {
-    expect(canBear(['organic', 'alive'], 'edible')).toBe(true);
+    expect(canBear(['organic'], 'edible')).toBe(true);
     expect(canBear(['electronic', 'mechanical'], 'programmable')).toBe(true);
   });
 
   it('refuses what the nature cannot support', () => {
     expect(canBear(['mechanical', 'metallic', 'openable'], 'edible')).toBe(false);
-    expect(canBear(['organic', 'alive'], 'programmable')).toBe(false);
+    expect(canBear(['organic'], 'programmable')).toBe(false);
   });
 
   it('accepts anything in a family the target already exhibits', () => {
-    // An android is a machine, and machines do not bear `being` properties —
-    // but this one is already sentient, so willingness is merely absent.
-    expect(canBear(['electronic', 'mechanical', 'sentient'], 'willing')).toBe(true);
+    // A robot is a machine, and machines do not bear `being` properties — but
+    // this one is already robotic, so sentience is merely absent.
+    expect(canBear(['electronic', 'mechanical', 'robotic'], 'sentient')).toBe(true);
     // A door exhibits nothing of the kind.
-    expect(canBear(['mechanical', 'metallic', 'openable'], 'willing')).toBe(false);
+    expect(canBear(['mechanical', 'metallic', 'openable'], 'sentient')).toBe(false);
   });
 });

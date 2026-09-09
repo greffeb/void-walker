@@ -46,16 +46,17 @@ describe('resolveNPCProperties', () => {
     }
   });
 
-  test('security_robot has robotic and hostile', () => {
+  test('security_robot is robotic by nature and hostile by stance', () => {
     const props = resolveNPCProperties('security_robot');
     expect(props).toContain('robotic');
-    expect(props).toContain('hostile');
+    expect(props).not.toContain('hostile');
+    expect(NPC_DEFINITIONS['security_robot']?.initialState?.disposition).toBe('hostile');
   });
 
-  test('xenomorph has organic and hostile', () => {
+  test('xenomorph is organic by nature and hostile by stance', () => {
     const props = resolveNPCProperties('xenomorph');
     expect(props).toContain('organic');
-    expect(props).toContain('hostile');
+    expect(NPC_DEFINITIONS['xenomorph']?.initialState?.disposition).toBe('hostile');
   });
 
   test('unknown NPC returns empty array', () => {

@@ -18,6 +18,8 @@ import { addCondition, removeCondition } from './conditions';
 import { addItem, removeItem } from './inventory';
 import { clampHp } from './state';
 import { ITEM_DEFINITIONS } from '../content/items';
+import { applyStateToken } from './entityState';
+import { isNpcAlive } from './victory';
 
 // ---------------------------------------------------------------------------
 // EAT tier detection — used by both consequences and narration
@@ -42,14 +44,16 @@ export type EatTier =
 export function getEatTier(target: ResolvedTarget | null): EatTier {
   if (!target) return 'generic';
   const props = target.properties;
+  const vitality = target.state?.vitality;
   if (props.includes('edible')) return 'edible';
   if (props.includes('drinkable')) return 'drinkable';
-  if (props.includes('alive') || props.includes('sentient')) return 'alive';
+  if (vitality !== undefined && vitality !== 'dead') return 'alive';
+  if (props.includes('sentient')) return 'alive';
   if (props.includes('heavy') && !props.includes('small')) return 'oversized';
   if (props.includes('toxic') || props.includes('corrosive') || props.includes('radioactive')) return 'toxic';
   if (props.includes('sharp') || props.includes('bladed') || props.includes('pointed')) return 'sharp';
   if (props.includes('metallic') || props.includes('synthetic') || props.includes('electronic')) return 'inorganic';
-  if (props.includes('dead') && props.includes('organic')) return 'dead_organic';
+  if (vitality === 'dead' && props.includes('organic')) return 'dead_organic';
   return 'generic';
 }
 
@@ -325,12 +329,12 @@ function applySingleConsequence(
       const npcId = c.npcId ?? c.targetId;
       if (!npcId) return state;
       const npcState = state.npcStates[npcId];
-      if (!npcState || !npcState.alive) return state;
+      if (npcState === undefined || !isNpcAlive(npcState)) return state;
       return {
         ...state,
         npcStates: {
           ...state.npcStates,
-          [npcId]: { ...npcState, alive: false },
+          [npcId]: { ...npcState, state: applyStateToken(npcState.state, 'dead') },
         },
       };
     }
@@ -343,7 +347,7 @@ function applySingleConsequence(
       const locationId = c.locationId;
       if (!npcId || !locationId) return state;
       const npcState = state.npcStates[npcId];
-      if (!npcState || !npcState.alive) return state;
+      if (npcState === undefined || !isNpcAlive(npcState)) return state;
       return {
         ...state,
         npcStates: {

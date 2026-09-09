@@ -5,6 +5,7 @@
 import type { NPCType, AggressionPattern } from '../engine/types';
 import type { VerbId } from '../engine/verbs';
 import type { PropertyId } from '../engine/properties';
+import type { EntityState } from '../engine/entityState';
 import { resolveProperties } from '../engine/properties';
 import type { StringKey } from '../i18n/types';
 
@@ -30,6 +31,8 @@ export interface NPCDefinition {
   readonly descriptionKey: StringKey;
   readonly aliasesKey: StringKey;
   readonly extra_props: readonly PropertyId[];
+  /** Starting vitality and stance. Mutable at runtime, unlike extra_props. */
+  readonly initialState?: EntityState;
   readonly hp: number;
   readonly damage: number;
   readonly dodgeChance: number;
@@ -53,7 +56,8 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     nameKey: 'npc.security_robot',
     descriptionKey: 'npc.security_robot.description',
     aliasesKey: 'npc.security_robot.aliases',
-    extra_props: ['hostile', 'ranged', 'heavy', 'breakable'],
+    extra_props: ['ranged', 'heavy', 'breakable'],
+    initialState: { disposition: 'hostile' },
     hp: 15,
     damage: 3,
     attack: 4,
@@ -78,7 +82,8 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     nameKey: 'npc.xenomorph',
     descriptionKey: 'npc.xenomorph.description',
     aliasesKey: 'npc.xenomorph.aliases',
-    extra_props: ['hostile', 'sharp', 'toxic', 'heavy'],
+    extra_props: ['sharp', 'toxic', 'heavy'],
+    initialState: { disposition: 'hostile', vitality: 'alive' },
     hp: 20,
     damage: 5,
     attack: 7,
@@ -103,7 +108,8 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     nameKey: 'npc.wounded_android',
     descriptionKey: 'npc.wounded_android.description',
     aliasesKey: 'npc.wounded_android.aliases',
-    extra_props: ['wounded', 'neutral', 'easily_repairable'],
+    extra_props: ['easily_repairable'],
+    initialState: { disposition: 'neutral', vitality: 'wounded' },
     hp: 8,
     damage: 1,
     attack: 2,
@@ -128,7 +134,8 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     nameKey: 'npc.parasitized_crewmember',
     descriptionKey: 'npc.parasitized_crewmember.description',
     aliasesKey: 'npc.parasitized_crewmember.aliases',
-    extra_props: ['hostile', 'wounded', 'toxic'],
+    extra_props: ['toxic'],
+    initialState: { disposition: 'hostile', vitality: 'wounded' },
     hp: 10,
     damage: 3,
     attack: 5,

@@ -23,9 +23,9 @@ export type PropertyId =
   | 'data_storage' | 'usable' | 'equippable' | 'edible' | 'drinkable'
   | 'component' | 'heat_source' | 'light_source' | 'liquid' | 'liquid_source'
   | 'power_source' | 'ranged'
-  // Entity (10)
-  | 'sentient' | 'alive' | 'robotic' | 'hostile' | 'neutral'
-  | 'friendly' | 'willing' | 'wounded' | 'dead' | 'unconscious'
+  // Entity (2) — what a creature *is*. Its vitality and its stance towards the
+  // player are state, not property: see EntityState (decision C-bis).
+  | 'sentient' | 'robotic'
   // Environmental (10)
   | 'dark' | 'lit' | 'pressurized' | 'depressurized' | 'flooded'
   | 'on_fire' | 'zero_g' | 'climbable' | 'cramped' | 'open_space'
@@ -50,8 +50,7 @@ export const PROPERTY_IDS: readonly PropertyId[] = [
   'component', 'heat_source', 'light_source', 'liquid', 'liquid_source',
   'power_source', 'ranged',
   // Entity
-  'sentient', 'alive', 'robotic', 'hostile', 'neutral',
-  'friendly', 'willing', 'wounded', 'dead', 'unconscious',
+  'sentient', 'robotic',
   // Environmental
   'dark', 'lit', 'pressurized', 'depressurized', 'flooded',
   'on_fire', 'zero_g', 'climbable', 'cramped', 'open_space',
@@ -106,12 +105,12 @@ export const TYPE_BASE_PROPERTIES: TypeBaseProperties = {
     misc:       ['tangible', 'liftable'],
   },
   npc: {
-    human:    ['tangible', 'visible', 'sentient', 'alive', 'organic'],
+    human:    ['tangible', 'visible', 'sentient', 'organic'],
     android:  ['tangible', 'visible', 'sentient', 'robotic', 'electronic', 'mechanical', 'metallic'],
     robot:    ['tangible', 'visible', 'robotic', 'electronic', 'mechanical', 'metallic'],
-    creature: ['tangible', 'visible', 'alive', 'organic'],
-    corpse:   ['tangible', 'visible', 'dead', 'organic', 'heavy'],
-    wreck:    ['tangible', 'visible', 'dead', 'metallic', 'heavy', 'component'],
+    creature: ['tangible', 'visible', 'organic'],
+    corpse:   ['tangible', 'visible', 'organic', 'heavy'],
+    wreck:    ['tangible', 'visible', 'metallic', 'heavy', 'component'],
   },
   environment: {
     door:      ['tangible', 'visible', 'openable', 'lockable', 'mechanical', 'breakable', 'metallic'],

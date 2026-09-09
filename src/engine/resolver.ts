@@ -323,6 +323,7 @@ export function resolveTarget(
         properties: npc.properties,
         isVirtual: false,
         source: 'npc' as TargetSource,
+        state: npc.state,
       };
     }
   }
@@ -499,6 +500,7 @@ export function resolveTarget(
         properties: npc.properties,
         isVirtual: false,
         source: 'npc' as TargetSource,
+        state: npc.state,
       };
     }
   }
@@ -583,6 +585,7 @@ export function resolveTarget(
         properties: npc.properties,
         isVirtual: false,
         source: 'npc' as TargetSource,
+        state: npc.state,
       };
     }
   }

@@ -278,14 +278,14 @@ describe('applyConsequences: multiple consequences', () => {
 // ---------------------------------------------------------------------------
 
 describe('applyConsequences: npc_killed', () => {
-  it('sets npcStates[id].alive to false', () => {
+  it('moves the NPC onto the dead end of the vitality axis', () => {
     const state: GameState = {
       ...makeState(),
-      npcStates: { survivant_infirmerie: { id: 'survivant_infirmerie', locationId: null, alive: true } },
+      npcStates: { survivant_infirmerie: { id: 'survivant_infirmerie', locationId: null, state: { vitality: 'alive' } } },
     };
     const cs: Consequence[] = [{ type: 'npc_killed', npcId: 'survivant_infirmerie' }];
     const updated = applyConsequences(state, cs, baseContext, fixedRng(0.5));
-    expect(updated.npcStates['survivant_infirmerie']?.alive).toBe(false);
+    expect(updated.npcStates['survivant_infirmerie']?.state.vitality).toBe('dead');
   });
 
   it('is a no-op for an unknown npcId', () => {
@@ -298,11 +298,11 @@ describe('applyConsequences: npc_killed', () => {
   it('is a no-op when the NPC is already dead', () => {
     const state: GameState = {
       ...makeState(),
-      npcStates: { survivant_infirmerie: { id: 'survivant_infirmerie', locationId: null, alive: false } },
+      npcStates: { survivant_infirmerie: { id: 'survivant_infirmerie', locationId: null, state: { vitality: 'dead' } } },
     };
     const cs: Consequence[] = [{ type: 'npc_killed', npcId: 'survivant_infirmerie' }];
     const updated = applyConsequences(state, cs, baseContext, fixedRng(0.5));
-    expect(updated.npcStates['survivant_infirmerie']?.alive).toBe(false);
+    expect(updated.npcStates['survivant_infirmerie']?.state.vitality).toBe('dead');
     // State reference is unchanged (early return)
     expect(updated.npcStates).toBe(state.npcStates);
   });

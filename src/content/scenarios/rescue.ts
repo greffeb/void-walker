@@ -1627,7 +1627,7 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       npcs: [
         {
           id: 'dr_okonkwo',
-          disposition: 'cooperative',
+          disposition: 'willing',
           hpOverride: 4,
           talkSuccess: {
             fr: '"Merci d\'etre venu. Je suis la Dr. Okonkwo — chercheuse principale. C\'est ma creature. Mon experience. Je sais, c\'est ma faute. Mais je connais sa faiblesse : les hautes frequences. Le son la desoriente. Il y a un composant d\'emetteur sonique dans mon labo. Utilisez-le. Et par pitie, sortez-moi d\'ici."',

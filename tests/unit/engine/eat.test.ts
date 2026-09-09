@@ -9,13 +9,17 @@ import type { ResolvedTarget } from '../../../src/engine/types';
 
 // === HELPERS ===
 
-function makeTarget(props: string[]): ResolvedTarget {
+function makeTarget(
+  props: string[],
+  state?: import('../../../src/engine/entityState').EntityState,
+): ResolvedTarget {
   return {
     id: 'test_item',
     nameKey: 'item.test' as import('../../../src/i18n/types').StringKey,
     properties: props as import('../../../src/engine/properties').PropertyId[],
     isVirtual: false,
     source: 'inventory',
+    ...(state !== undefined ? { state } : {}),
   };
 }
 
@@ -41,11 +45,11 @@ describe('getEatTier', () => {
   });
 
   test('alive → alive tier', () => {
-    expect(getEatTier(makeTarget(['tangible', 'alive', 'organic']))).toBe('alive');
+    expect(getEatTier(makeTarget(['tangible', 'organic'], { vitality: 'alive' }))).toBe('alive');
   });
 
   test('sentient → alive tier', () => {
-    expect(getEatTier(makeTarget(['tangible', 'sentient', 'alive']))).toBe('alive');
+    expect(getEatTier(makeTarget(['tangible', 'sentient']))).toBe('alive');
   });
 
   test('heavy without small → oversized tier', () => {
@@ -98,11 +102,11 @@ describe('getEatTier', () => {
   });
 
   test('dead+organic → dead_organic tier', () => {
-    expect(getEatTier(makeTarget(['tangible', 'dead', 'organic']))).toBe('dead_organic');
+    expect(getEatTier(makeTarget(['tangible', 'organic'], { vitality: 'dead' }))).toBe('dead_organic');
   });
 
   test('dead without organic → generic (not dead_organic)', () => {
-    expect(getEatTier(makeTarget(['tangible', 'dead', 'metallic']))).toBe('inorganic');
+    expect(getEatTier(makeTarget(['tangible', 'metallic'], { vitality: 'dead' }))).toBe('inorganic');
   });
 
   test('no special properties → generic tier', () => {
@@ -140,7 +144,7 @@ describe('buildConsequences EAT', () => {
   });
 
   test('eating alive entity has no damage consequences', () => {
-    const target = makeTarget(['tangible', 'alive', 'organic']);
+    const target = makeTarget(['tangible', 'organic'], { vitality: 'alive' });
     const result = buildConsequences('EAT', target, 'auto_success');
     expect(result.find(c => c.type === 'damage')).toBeUndefined();
   });
@@ -206,7 +210,7 @@ describe('buildConsequences EAT', () => {
   });
 
   test('eating dead organic has no consequences', () => {
-    const target = makeTarget(['tangible', 'dead', 'organic']);
+    const target = makeTarget(['tangible', 'organic'], { vitality: 'dead' });
     const result = buildConsequences('EAT', target, 'auto_success');
     expect(result.find(c => c.type === 'damage')).toBeUndefined();
     expect(result.find(c => c.type === 'heal')).toBeUndefined();

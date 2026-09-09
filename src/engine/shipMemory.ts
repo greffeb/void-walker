@@ -50,7 +50,7 @@ const MARK_CATALOG: Readonly<Partial<Record<VerbId, MarkTemplate>>> = {
     },
   },
   STRIKE: {
-    requiredProperties: ['alive', 'robotic', 'hostile', 'neutral', 'sentient'],
+    requiredProperties: ['robotic', 'sentient', 'organic'],
     effect: {
       sameActionDCMod: 0,
       otherActionDCMod: -1,

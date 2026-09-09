@@ -67,14 +67,14 @@ describe('evaluateVictoryCondition — defeat_entity', () => {
   it('true when entity exists and is not alive', () => {
     const cond: VictoryCondition = { type: 'defeat_entity', entityId: 'boss' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { boss: { id: 'boss', locationId: 'boss_room', alive: false } },
+      npcStates: { boss: { id: 'boss', locationId: 'boss_room', state: { vitality: 'dead' } } },
     }))).toBe(true);
   });
 
   it('false when entity is still alive', () => {
     const cond: VictoryCondition = { type: 'defeat_entity', entityId: 'boss' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { boss: { id: 'boss', locationId: 'boss_room', alive: true } },
+      npcStates: { boss: { id: 'boss', locationId: 'boss_room', state: { vitality: 'alive' } } },
     }))).toBe(false);
   });
 
@@ -117,21 +117,21 @@ describe('evaluateVictoryCondition — escort_alive', () => {
   it('true when NPC alive at target location', () => {
     const cond: VictoryCondition = { type: 'escort_alive', npcId: 'dr_okonkwo', locationId: 'resolution' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'resolution', alive: true } },
+      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'resolution', state: { vitality: 'alive' } } },
     }))).toBe(true);
   });
 
   it('false when NPC alive but at wrong location', () => {
     const cond: VictoryCondition = { type: 'escort_alive', npcId: 'dr_okonkwo', locationId: 'resolution' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'boss_room', alive: true } },
+      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'boss_room', state: { vitality: 'alive' } } },
     }))).toBe(false);
   });
 
   it('false when NPC dead at target location', () => {
     const cond: VictoryCondition = { type: 'escort_alive', npcId: 'dr_okonkwo', locationId: 'resolution' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'resolution', alive: false } },
+      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'resolution', state: { vitality: 'dead' } } },
     }))).toBe(false);
   });
 });
@@ -141,7 +141,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
     const cond: VictoryCondition = { type: 'environmental_kill', entityId: 'creature_oracle' };
     expect(evaluateVictoryCondition(cond, makeCtx({
       playerLocationId: 'safe_room',
-      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', alive: true } },
+      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } } },
       lethalLocations: ['cargo_bay'],
     }))).toBe(true);
   });
@@ -150,7 +150,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
     const cond: VictoryCondition = { type: 'environmental_kill', entityId: 'creature_oracle' };
     expect(evaluateVictoryCondition(cond, makeCtx({
       playerLocationId: 'cargo_bay',
-      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', alive: true } },
+      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } } },
       lethalLocations: ['cargo_bay'],
     }))).toBe(false);
   });
@@ -159,7 +159,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
     const cond: VictoryCondition = { type: 'environmental_kill', entityId: 'creature_oracle' };
     expect(evaluateVictoryCondition(cond, makeCtx({
       playerLocationId: 'safe_room',
-      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', alive: true } },
+      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } } },
       lethalLocations: [],
     }))).toBe(false);
   });
@@ -168,7 +168,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
     const cond: VictoryCondition = { type: 'environmental_kill', entityId: 'creature_oracle' };
     expect(evaluateVictoryCondition(cond, makeCtx({
       playerLocationId: 'safe_room',
-      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', alive: false } },
+      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'dead' } } },
       lethalLocations: ['cargo_bay'],
     }))).toBe(false);
   });
@@ -178,7 +178,7 @@ describe('evaluateVictoryCondition — containment', () => {
   it('true when entity alive in fully contained location', () => {
     const cond: VictoryCondition = { type: 'containment', entityId: 'creature_oracle' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'boss_room', alive: true } },
+      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'boss_room', state: { vitality: 'alive' } } },
       fullyContainedLocations: ['boss_room'],
     }))).toBe(true);
   });
@@ -186,7 +186,7 @@ describe('evaluateVictoryCondition — containment', () => {
   it('false when entity location not contained', () => {
     const cond: VictoryCondition = { type: 'containment', entityId: 'creature_oracle' };
     expect(evaluateVictoryCondition(cond, makeCtx({
-      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'boss_room', alive: true } },
+      npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'boss_room', state: { vitality: 'alive' } } },
       fullyContainedLocations: [],
     }))).toBe(false);
   });
@@ -217,14 +217,14 @@ describe('evaluateDefeatCondition', () => {
   it('npc_death: true when NPC exists and is dead', () => {
     const cond: DefeatCondition = { type: 'npc_death', npcId: 'dr_okonkwo' };
     expect(evaluateDefeatCondition(cond, makeCtx({
-      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: null, alive: false } },
+      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: null, state: { vitality: 'dead' } } },
     }))).toBe(true);
   });
 
   it('npc_death: false when NPC is still alive', () => {
     const cond: DefeatCondition = { type: 'npc_death', npcId: 'dr_okonkwo' };
     expect(evaluateDefeatCondition(cond, makeCtx({
-      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'reveal', alive: true } },
+      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: 'reveal', state: { vitality: 'alive' } } },
     }))).toBe(false);
   });
 
@@ -274,7 +274,7 @@ describe('checkVictory', () => {
     const ctx = makeCtx({
       playerLocationId: 'start',  // Not at resolution
       npcStates: {
-        creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', alive: true },
+        creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } },
       },
       lethalLocations: ['cargo_bay'],
     });
@@ -294,7 +294,7 @@ describe('checkVictory', () => {
     const ctx = makeCtx({
       playerLocationId: 'safe_room',
       npcStates: {
-        boss_entity: { id: 'boss_entity', locationId: 'fire_room', alive: true },
+        boss_entity: { id: 'boss_entity', locationId: 'fire_room', state: { vitality: 'alive' } },
       },
       lethalLocations: ['fire_room'],
     });
@@ -311,7 +311,7 @@ describe('checkVictory', () => {
 
     const ctx = makeCtx({
       npcStates: {
-        boss_entity: { id: 'boss_entity', locationId: 'sealed_room', alive: true },
+        boss_entity: { id: 'boss_entity', locationId: 'sealed_room', state: { vitality: 'alive' } },
       },
       fullyContainedLocations: ['sealed_room'],
     });
@@ -337,7 +337,7 @@ describe('checkVictory', () => {
       playerLocationId: 'resolution',
       playerInventory: ['access_keycard'],
       npcStates: {
-        creature_oracle: { id: 'creature_oracle', locationId: 'fire_room', alive: true },
+        creature_oracle: { id: 'creature_oracle', locationId: 'fire_room', state: { vitality: 'alive' } },
       },
       lethalLocations: ['fire_room'],
     });
@@ -362,7 +362,7 @@ describe('checkAdditionalDefeat', () => {
 
   it('returns first triggered condition', () => {
     const ctx = makeCtx({
-      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: null, alive: false } },
+      npcStates: { dr_okonkwo: { id: 'dr_okonkwo', locationId: null, state: { vitality: 'dead' } } },
     });
     const result = checkAdditionalDefeat(ctx, conditions);
     expect(result?.type).toBe('npc_death');

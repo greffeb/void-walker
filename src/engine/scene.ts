@@ -23,6 +23,7 @@ import type { EntityState } from './entityState';
 import { makeEntityState, stateMatchesToken } from './entityState';
 import { getFeatureState, isItemRevealed, pickStateDescription } from './featureState';
 import { deriveConditions, locationStateFromAtmosphere } from './locationState';
+import { isNpcAlive } from './victory';
 import { buildObstacleVerbMap } from '../content/parserData';
 
 // ---------------------------------------------------------------------------
@@ -120,9 +121,9 @@ export function getSceneContext(state: GameState): SceneContext {
   const npcs: NpcInstance[] = (node.npcs ?? [])
     .filter(npcDef => {
       const npcState = state.npcStates[npcDef.id];
-      return npcState === undefined || (npcState.alive && npcState.locationId === playerLocationId);
+      return npcState === undefined || (isNpcAlive(npcState) && npcState.locationId === playerLocationId);
     })
-    .map(npcDef => npcDefToNpcInstance(npcDef.id));
+    .map(npcDef => npcDefToNpcInstance(npcDef.id, state.npcStates[npcDef.id]?.state ?? {}));
 
   // --- Environment features ---
   const environmentFeatures: EnvironmentFeatureInstance[] = node.features.map(
@@ -530,7 +531,7 @@ function inventoryItemToResolvedTarget(id: string): ResolvedTarget {
   };
 }
 
-function npcDefToNpcInstance(id: string): NpcInstance {
+function npcDefToNpcInstance(id: string, currentState: EntityState = {}): NpcInstance {
   const def = NPC_DEFINITIONS[id];
   if (def) {
     const frName = t(def.nameKey).toLowerCase();
@@ -546,6 +547,7 @@ function npcDefToNpcInstance(id: string): NpcInstance {
       nameKey: def.nameKey,
       aliases,
       properties,
+      state: currentState,
       hp: def.hp,
       bodyParts: [],
     };
@@ -560,7 +562,8 @@ function npcDefToNpcInstance(id: string): NpcInstance {
     definitionId: id,
     nameKey,
     aliases,
-    properties: ['tangible', 'visible', 'alive'],
+    properties: ['tangible', 'visible'],
+    state: currentState,
     hp: 10,
     bodyParts: [],
   };

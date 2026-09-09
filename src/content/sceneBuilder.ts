@@ -79,6 +79,7 @@ function resolveAllNPCs(): NpcInstance[] {
         ...npcDef.id.replace(/_/g, ' ').split(' '),
       ],
       properties: resolveNPCProperties(npcDef.id),
+      state: def.initialState ?? { vitality: 'alive' },
       hp: def.hp,
     }];
   });

@@ -81,13 +81,14 @@ function getTargetDispositionMod(
   if (!target) return { mod: 0, detail: '' };
 
   const props = new Set(target.properties);
+  const disposition = target.state?.disposition;
 
-  if (props.has('friendly') || props.has('willing')) {
+  if (disposition === 'friendly' || disposition === 'willing') {
     return { mod: BALANCE.CONTEXT_MODIFIERS.COOPERATIVE_TARGET, detail: 'Cible coopérative' };
   }
   // An NPC you are striking is already priced by its defense; charging the
   // hostility surcharge on top would bill the same thing twice.
-  if (props.has('hostile') && targetDefense === undefined) {
+  if (disposition === 'hostile' && targetDefense === undefined) {
     return { mod: BALANCE.CONTEXT_MODIFIERS.HOSTILE_TARGET, detail: 'Cible hostile' };
   }
   if (props.has('secured') && target.state?.lock === 'locked') {

@@ -81,9 +81,7 @@ export const PROPERTY_FAMILY: Readonly<Record<PropertyId, PropertyFamily>> = {
   organic_compatible: 'sustenance', liquid_source: 'sustenance',
 
   // being
-  sentient: 'being', alive: 'being', robotic: 'being', hostile: 'being',
-  neutral: 'being', friendly: 'being', willing: 'being', wounded: 'being',
-  dead: 'being', unconscious: 'being',
+  sentient: 'being', robotic: 'being',
 
   // place
   dark: 'place', lit: 'place', pressurized: 'place', depressurized: 'place',
@@ -99,7 +97,7 @@ export const PROPERTY_FAMILY: Readonly<Record<PropertyId, PropertyFamily>> = {
  */
 const NATURE_SIGNATURES: readonly { readonly nature: Nature; readonly markers: readonly PropertyId[] }[] = [
   { nature: 'space',   markers: ['open_space', 'cramped'] },
-  { nature: 'organic', markers: ['organic', 'alive', 'edible', 'drinkable'] },
+  { nature: 'organic', markers: ['organic', 'edible', 'drinkable'] },
   { nature: 'machine', markers: ['electronic', 'mechanical', 'robotic', 'programmable', 'power_source'] },
   { nature: 'data',    markers: ['data_storage'] },
 ];

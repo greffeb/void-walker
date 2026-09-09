@@ -10,6 +10,8 @@ import {
   makeEntityState,
   matchesState,
   resistsOpening,
+  stateMatchesToken,
+  STATE_TOKEN_SALIENCE,
   type EntityState,
 } from '../../../src/engine/entityState';
 
@@ -88,5 +90,34 @@ describe('resistsOpening', () => {
     expect(resistsOpening(makeEntityState('locked'))).toBe(true);
     expect(resistsOpening(makeEntityState('broken'))).toBe(true);
     expect(resistsOpening(makeEntityState('closed'))).toBe(false);
+  });
+});
+
+// === DECISION C-BIS: CREATURES ===
+
+describe('vitality and disposition axes', () => {
+  test('vitality and disposition are independent', () => {
+    const state = applyStateToken(makeEntityState('wounded'), 'hostile');
+    expect(state.vitality).toBe('wounded');
+    expect(state.disposition).toBe('hostile');
+  });
+
+  test('death clears the stance — a corpse has nothing left to negotiate', () => {
+    const state = applyStateToken(makeEntityState('friendly'), 'dead');
+    expect(state.vitality).toBe('dead');
+    expect(state.disposition).toBeUndefined();
+  });
+
+  test('a stance change does not heal, and a wound does not turn hostile', () => {
+    const calmed = applyStateToken(makeEntityState('wounded'), 'neutral');
+    expect(calmed.vitality).toBe('wounded');
+    const hurt = applyStateToken(makeEntityState('friendly'), 'wounded');
+    expect(hurt.disposition).toBe('friendly');
+  });
+
+  test('death outranks every other token when describing a creature', () => {
+    const state = applyStateToken(applyStateToken({}, 'broken'), 'dead');
+    const salient = STATE_TOKEN_SALIENCE.find(token => stateMatchesToken(state, token));
+    expect(salient).toBe('dead');
   });
 });

@@ -8,7 +8,7 @@
 import type { StatId, StoryBeat, FailsafeType, AtmosphereType, EnvironmentFeatureType, ItemType, Consequence } from './types';
 import type { VerbId } from './verbs';
 import type { PropertyId } from './properties';
-import type { StateId } from './entityState';
+import type { StateId, DispositionState } from './entityState';
 
 // ---------------------------------------------------------------------------
 // LOCALE STRING — inline bilingual content (fr required, en post-launch)
@@ -36,7 +36,7 @@ export interface ItemDefinition {
 /** An NPC placed in a scenario location */
 export interface NpcDefinition {
   readonly id: string;
-  readonly disposition?: 'hostile' | 'neutral' | 'friendly' | 'cooperative';
+  readonly disposition?: DispositionState;
   readonly hpOverride?: number;
   /** What examining this NPC reveals (hints, appearance, etc). */
   readonly examineResult?: LocaleString;

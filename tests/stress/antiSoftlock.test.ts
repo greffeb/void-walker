@@ -95,7 +95,7 @@ describe('stress: anti-softlock', () => {
       { verb: 'FORCE_OPEN', props: ['openable', 'secured'] },
       { verb: 'HACK', props: ['electronic', 'programmable'] },
       { verb: 'BREAK', props: ['breakable', 'transparent'] },
-      { verb: 'STRIKE', props: ['alive', 'hostile'] },
+      { verb: 'STRIKE', props: ['organic', 'sentient'] },
       { verb: 'REPAIR', props: ['electronic', 'mechanical'] },
       { verb: 'UNLOCK', props: ['lockable', 'secured'] },
       { verb: 'CLIMB', props: ['climbable'] },

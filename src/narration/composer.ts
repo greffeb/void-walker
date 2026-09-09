@@ -20,6 +20,7 @@ import { getLocale } from '../i18n/index';
 import type { VerbId } from '../engine/verbs';
 import type { PropertyId } from '../engine/properties';
 import { STATE_TOKEN_SALIENCE, stateMatchesToken } from '../engine/entityState';
+import type { EntityState } from '../engine/entityState';
 import { getInfinitiveVerbText, getDirectVerbText } from '../content/templates/actionPhrases';
 
 // === TEMPLATE IMPORTS ===
@@ -131,18 +132,22 @@ export function getVerbCategory(verb: VerbId): VerbCategory {
  * Uses priority cascade: specific → verb+outcome → category+outcome → generic fallback.
  */
 /**
- * For EAT verb, pick the best PropertyId to use as targetType for template selection.
- * Mirrors getEatTier() in consequences.ts but returns the PropertyId used in templates.
+ * For EAT verb, pick the best tag to use as targetType for template selection.
+ * Mirrors getEatTier() in consequences.ts but returns the tag used in templates.
  */
-function selectEatTargetProperty(properties: readonly PropertyId[]): PropertyId | undefined {
+function selectEatTargetProperty(
+  properties: readonly PropertyId[],
+  state: EntityState | undefined,
+): TargetTag | undefined {
+  const vitality = state?.vitality;
   if (properties.includes('edible')) return 'edible';
   if (properties.includes('drinkable')) return 'drinkable';
-  if (properties.includes('alive') || properties.includes('sentient')) return 'alive';
+  if ((vitality !== undefined && vitality !== 'dead') || properties.includes('sentient')) return 'alive';
   if (properties.includes('heavy') && !properties.includes('small')) return 'heavy';
   if (properties.includes('toxic') || properties.includes('corrosive') || properties.includes('radioactive')) return 'toxic';
   if (properties.includes('sharp') || properties.includes('bladed') || properties.includes('pointed')) return 'sharp';
   if (properties.includes('metallic') || properties.includes('synthetic') || properties.includes('electronic')) return 'metallic';
-  if (properties.includes('dead') && properties.includes('organic')) return 'dead';
+  if (vitality === 'dead' && properties.includes('organic')) return 'dead';
   return undefined;
 }
 
@@ -154,11 +159,8 @@ export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
     ? STATE_TOKEN_SALIENCE.find(token => stateMatchesToken(ctx.target!.state!, token))
     : undefined;
   const targetType: TargetTag | undefined = ctx.verb === 'EAT'
-    ? selectEatTargetProperty(ctx.target?.properties ?? [])
-    : salientState
-      ?? (ctx.target?.properties.includes('alive')
-        ? 'alive'
-        : ctx.target?.properties[0]);
+    ? selectEatTargetProperty(ctx.target?.properties ?? [], ctx.target?.state)
+    : salientState ?? ctx.target?.properties[0];
 
   // PRIORITY 1: Specific — verb + target type + outcome + tension tier
   let template = findTemplate(ctx.verb, targetType ?? null, ctx.outcome, tier, ctx.verbCategory);

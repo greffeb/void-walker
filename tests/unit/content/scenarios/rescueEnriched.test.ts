@@ -442,11 +442,11 @@ describe('RESCUE skeleton — enriched structural validation', () => {
   // =========================================================================
   // RESCUE-SPECIFIC: NPC Dr. Okonkwo has cooperative disposition (hp 4)
   // =========================================================================
-  it('dr_okonkwo is cooperative with hp 4', () => {
+  it('dr_okonkwo is willing with hp 4', () => {
     for (const [, loc] of allNodes) {
       for (const npc of loc.npcs ?? []) {
         if (npc.id === 'dr_okonkwo') {
-          expect(npc.disposition).toBe('cooperative');
+          expect(npc.disposition).toBe('willing');
           expect(npc.hpOverride).toBe(4);
           return;
         }

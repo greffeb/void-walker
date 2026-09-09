@@ -132,6 +132,7 @@ function resolveNPC(npcId: string): NpcInstance | null {
       ...npcId.replace(/_/g, ' ').split(' '),
     ],
     properties: resolveNPCProperties(npcId),
+    state: def.initialState ?? { vitality: 'alive' },
     hp: def.hp,
   };
 }
@@ -265,7 +266,7 @@ function generateCombat(inventoryIds: readonly string[]): Situation {
   const location = pick(LOCATIONS);
   const hostileNpcs = NPC_LIST.filter((n) => {
     const def = NPC_DEFINITIONS[n.id];
-    return def && (def.extra_props.includes('hostile') || def.aggressionPattern === 'aggressive');
+    return def && (def.initialState?.disposition === 'hostile' || def.aggressionPattern === 'aggressive');
   });
   const npcDef = pick(hostileNpcs.length > 0 ? hostileNpcs : NPC_LIST);
   const npcName = ts(npcDef.nameKey);

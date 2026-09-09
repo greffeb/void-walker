@@ -22,6 +22,7 @@ import type {
 } from './types';
 import { defaultRng } from './dice';
 import { rollCheck, outcomeOf } from './dice';
+import { applyStateToken } from './entityState';
 import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
 import { isReformulation } from './types';
@@ -589,10 +590,14 @@ export function processTurn(
         // NPC-obstacle: neutralize the NPC on success
         if (action.target.source === 'npc') {
           const npcId = action.target.id;
-          if (current.npcStates[npcId]) {
+          const obstacleNpcState = current.npcStates[npcId];
+          if (obstacleNpcState) {
             current = {
               ...current,
-              npcStates: { ...current.npcStates, [npcId]: { ...current.npcStates[npcId], alive: false } },
+              npcStates: {
+                ...current.npcStates,
+                [npcId]: { ...obstacleNpcState, state: applyStateToken(obstacleNpcState.state, 'dead') },
+              },
             };
           }
         } else {
@@ -687,10 +692,14 @@ export function processTurn(
         // Obstacle resolved — end combat and mark NPC as neutralised
         current = { ...current, activeCombat: null };
         const npcId = action.target!.id;
-        if (current.npcStates[npcId]) {
+        const defeatedNpcState = current.npcStates[npcId];
+        if (defeatedNpcState) {
           current = {
             ...current,
-            npcStates: { ...current.npcStates, [npcId]: { ...current.npcStates[npcId], alive: false } },
+            npcStates: {
+              ...current.npcStates,
+              [npcId]: { ...defeatedNpcState, state: applyStateToken(defeatedNpcState.state, 'dead') },
+            },
           };
         }
         const vsKeyObs = current.playerLocationId!;

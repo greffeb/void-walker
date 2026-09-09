@@ -631,6 +631,8 @@ export interface NpcInstance {
   readonly nameKey: string;
   readonly aliases: readonly string[];
   readonly properties: readonly import('./properties').PropertyId[];
+  /** Vitality and stance. Mutable, unlike properties (decision C-bis). */
+  readonly state: import('./entityState').EntityState;
   readonly hp: number;
   readonly bodyParts?: readonly BodyPartDefinition[];
 }

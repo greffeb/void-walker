@@ -59,7 +59,7 @@ describe('initGame()', () => {
     const state = initGame(scenario, 'marine', 'survivor', 'Test', fixedRng());
     // All NPCs in the graph start alive
     for (const npcState of Object.values(state.npcStates)) {
-      expect(npcState.alive).toBe(true);
+      expect(npcState.state.vitality).toBe('alive');
     }
   });
 
@@ -204,9 +204,9 @@ describe('buildVictoryCheckContext()', () => {
   it('extracts npcStates', () => {
     const state: GameState = {
       ...createInitialGameState(),
-      npcStates: { creature: { id: 'creature', locationId: 'boss', alive: true } },
+      npcStates: { creature: { id: 'creature', locationId: 'boss', state: { vitality: 'alive' } } },
     };
-    expect(buildVictoryCheckContext(state).npcStates['creature']?.alive).toBe(true);
+    expect(buildVictoryCheckContext(state).npcStates['creature']?.state.vitality).toBe('alive');
   });
 
   it('extracts all boolean/array fields', () => {
