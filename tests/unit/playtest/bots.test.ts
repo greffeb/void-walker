@@ -42,6 +42,8 @@ function makeScene(overrides: Partial<BotScene> = {}): BotScene {
     hasHealingItem: false,
     hasObstacle: false,
     obstacleTargetId: null,
+    closedFeatureNames: [],
+    carriedKeyNames: [],
     ...overrides,
   };
 }
@@ -167,6 +169,58 @@ describe('goalBot', () => {
     });
     const decision = goalBot.makeDecision(state, scene, rng);
     expect(decision).toBe('examiner le terminal');
+  });
+
+  it('opens what is shut — the gate item is behind a locked lid', () => {
+    // Until lot 8 the bot walked past every container it could force, which is
+    // why the gate item was obtained in 0 of 200 runs.
+    const rng = createSeededRng(42);
+    const state = makeState({ turn: 1, playerLocationId: 'start' });
+    const scene = makeScene({
+      locationItemNames: [],
+      locationItemIds: [],
+      suggestions: [],
+      closedFeatureNames: ['casier de secours'],
+    });
+    const decision = goalBot.makeDecision(state, scene, rng);
+    expect(decision).toContain('casier de secours');
+    expect(['ouvrir', 'forcer'].some(v => decision.startsWith(v))).toBe(true);
+  });
+
+  it('gives up on a lid that will not budge', () => {
+    // A player who cannot open a locker walks away; hammering it stalls the run.
+    const rng = createSeededRng(42);
+    const scene = makeScene({
+      locationItemNames: [],
+      locationItemIds: [],
+      suggestions: [],
+      closedFeatureNames: ['casier de secours'],
+      connectedLocationIds: ['room_b'],
+      connectedLocationAliases: ['couloir nord'],
+    });
+    const decisions: string[] = [];
+    for (let turn = 1; turn <= 6; turn++) {
+      decisions.push(goalBot.makeDecision(makeState({ turn, playerLocationId: 'start' }), scene, rng));
+    }
+    const onTheLocker = decisions.filter(d => d.includes('casier')).length;
+    expect(onTheLocker).toBeLessThanOrEqual(2);
+    expect(decisions.some(d => d.startsWith('aller'))).toBe(true);
+  });
+
+  it('uses the key it carries on what is shut', () => {
+    const rng = createSeededRng(3);
+    const scene = makeScene({
+      locationItemNames: [],
+      locationItemIds: [],
+      suggestions: [],
+      closedFeatureNames: ['sas de la capsule'],
+      carriedKeyNames: ['badge d\'acces'],
+    });
+    const decisions: string[] = [];
+    for (let turn = 1; turn <= 2; turn++) {
+      decisions.push(goalBot.makeDecision(makeState({ turn, playerLocationId: 'boss' }), scene, rng));
+    }
+    expect(decisions.every(d => d.includes('sas de la capsule'))).toBe(true);
   });
 
   it('priority 4: explores unexplored locations', () => {

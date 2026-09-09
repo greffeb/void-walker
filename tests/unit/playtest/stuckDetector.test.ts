@@ -6,8 +6,8 @@ import { describe, it, expect } from 'vitest';
 import { StuckDetector, readProgress, type ProgressSnapshot } from '../../playtest/stuckDetector';
 import type { GameState } from '../../../src/engine/types';
 
-function progress(locationsVisited: number, obstaclesResolved = 0): ProgressSnapshot {
-  return { locationsVisited, obstaclesResolved };
+function progress(locationsVisited: number, obstaclesResolved = 0, featuresChanged = 0): ProgressSnapshot {
+  return { locationsVisited, obstaclesResolved, featuresChanged };
 }
 
 describe('StuckDetector', () => {
@@ -41,6 +41,16 @@ describe('StuckDetector', () => {
     expect(d.turnsSinceProgress).toBe(0);
   });
 
+  it('forcing something open resets the stall counter', () => {
+    // A run spent opening the very container that holds the gate item is not
+    // a stalled run.
+    const d = new StuckDetector(3);
+    d.update(progress(4, 1, 0));
+    d.update(progress(4, 1, 0));
+    d.update(progress(4, 1, 1));
+    expect(d.turnsSinceProgress).toBe(0);
+  });
+
   // The whole point of the rewrite: position-based detection missed this case.
   it('detects a bot ping-ponging between two already-visited rooms', () => {
     const d = new StuckDetector(4);
@@ -62,20 +72,20 @@ describe('StuckDetector', () => {
 });
 
 describe('readProgress', () => {
-  it('counts visited locations and resolved obstacles', () => {
+  it('counts visited locations, resolved obstacles and changed features', () => {
     const state = {
       visitedLocations: {
-        start: { obstacleResolved: false },
-        unlock: { obstacleResolved: true },
-        reveal: { obstacleResolved: true },
+        start: { obstacleResolved: false, featuresChanged: ['emergency_locker'] },
+        unlock: { obstacleResolved: true, featuresChanged: [] },
+        reveal: { obstacleResolved: true, featuresChanged: ['captain_terminal'] },
       },
     } as unknown as GameState;
 
-    expect(readProgress(state)).toEqual({ locationsVisited: 3, obstaclesResolved: 2 });
+    expect(readProgress(state)).toEqual({ locationsVisited: 3, obstaclesResolved: 2, featuresChanged: 2 });
   });
 
   it('returns zeros on a fresh state', () => {
     const state = { visitedLocations: {} } as unknown as GameState;
-    expect(readProgress(state)).toEqual({ locationsVisited: 0, obstaclesResolved: 0 });
+    expect(readProgress(state)).toEqual({ locationsVisited: 0, obstaclesResolved: 0, featuresChanged: 0 });
   });
 });

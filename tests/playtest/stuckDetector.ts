@@ -11,22 +11,31 @@ import type { GameState } from '../../src/engine/types';
 export interface ProgressSnapshot {
   readonly locationsVisited: number;
   readonly obstaclesResolved: number;
+  /**
+   * Things the player changed the state of: a locker forced, a door unlocked.
+   * Without this, a run that spends its turns opening the very container
+   * holding the gate item is scored as stalled, and killed before it can win.
+   */
+  readonly featuresChanged: number;
 }
 
 /** Read the current progression counters from a game state. */
 export function readProgress(state: GameState): ProgressSnapshot {
   const visits = Object.values(state.visitedLocations);
   let obstaclesResolved = 0;
+  let featuresChanged = 0;
   for (const visit of visits) {
     if (visit.obstacleResolved) obstaclesResolved++;
+    featuresChanged += visit.featuresChanged.length;
   }
-  return { locationsVisited: visits.length, obstaclesResolved };
+  return { locationsVisited: visits.length, obstaclesResolved, featuresChanged };
 }
 
 function hasProgressed(before: ProgressSnapshot, after: ProgressSnapshot): boolean {
   return (
     after.locationsVisited > before.locationsVisited ||
-    after.obstaclesResolved > before.obstaclesResolved
+    after.obstaclesResolved > before.obstaclesResolved ||
+    after.featuresChanged > before.featuresChanged
   );
 }
 

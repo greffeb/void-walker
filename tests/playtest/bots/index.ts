@@ -53,6 +53,10 @@ export interface BotScene {
   readonly hasObstacle: boolean;
   /** Target ID for the active obstacle (if any) */
   readonly obstacleTargetId: string | null;
+  /** Features here that are shut: locked, sealed or simply closed. */
+  readonly closedFeatureNames: readonly string[];
+  /** Key items the player carries, by display name. */
+  readonly carriedKeyNames: readonly string[];
 }
 
 // ---------------------------------------------------------------------------

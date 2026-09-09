@@ -82,14 +82,27 @@ const TARGET = {
  *    these figures are a new reference, not a comparison with the line above.
  *    Defeats 250 → 232 and stuck 250 → 268: the same eighteen runs, no longer
  *    dying. Coverage rose to 67.0 %, obstacles held at 0.68.
+ *  - Lot 8: **the first victories ever measured.** They were at 0 % since the
+ *    net was laid, and the cause was the instrument, not the game: neither bot
+ *    ever opened a container, so the gate item — sealed in the emergency locker
+ *    — was obtained in 0 of 200 runs. Proven separately by
+ *    `tests/integration/winByPlaying.test.ts`, which wins by typing.
+ *    The goal bot now forces what is shut and uses what it carries, two tries
+ *    per thing; forcing a lid costs HP, which is why defeats rise with it.
+ *    Every figure below is a new reference: 0 % → 4.0 % victories (goal bot
+ *    8.0 %), stuck 268 → 212, defeats 232 → 268, coverage 67.0 % → 61.0 %,
+ *    obstacles 0.68 → 0.63. The two progression ratchets fall because turns
+ *    spent forcing a locker are turns not spent walking — and they are what
+ *    buys the wins.
  */
 const BASELINE = {
-  maxStuck: 268,
+  maxStuck: 212,
   maxTimeouts: 0,
-  minVictories: 0,
+  /** No longer zero. It may only ever go up. */
+  minVictories: 20,
   /** Progression, which early death can only ever lower. */
-  minAvgObstaclesResolved: 0.67,
-  minAvgLocationCoverage: 0.665,
+  minAvgObstaclesResolved: 0.63,
+  minAvgLocationCoverage: 0.60,
 } as const;
 
 // ---------------------------------------------------------------------------

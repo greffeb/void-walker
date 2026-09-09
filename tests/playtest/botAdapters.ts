@@ -7,6 +7,7 @@ import { getSceneContext, formatSuggestionAsInput, sceneHasHealingItem } from '.
 import type { GameState } from '../../src/engine/types';
 import type { BotState, BotScene } from './bots/index';
 import { t } from '../../src/i18n/index';
+import { ITEM_DEFINITIONS } from '../../src/content/items';
 import type { StringKey } from '../../src/i18n/types';
 
 /** Convert full GameState into the minimal BotState view. */
@@ -34,6 +35,18 @@ export function toBotScene(state: GameState): BotScene {
   const environmentFeatureIds = ctx.environmentFeatures.map(f => f.id);
   const environmentFeatureNames = ctx.environmentFeatures.map(f => t(f.nameKey as StringKey));
 
+  // What a player sees as "shut": a lock, a seal, or a closed lid.
+  const closedFeatureNames = ctx.environmentFeatures
+    .filter(f => f.state?.lock === 'locked'
+      || f.state?.openness === 'closed'
+      || f.properties.includes('sealed'))
+    .map(f => t(f.nameKey as StringKey));
+
+  const carriedKeyNames = (state.character?.inventory ?? [])
+    .filter(id => ITEM_DEFINITIONS[id] === undefined)
+    .map(id => t(`item.${id}` as StringKey))
+    .filter(name => !name.startsWith('item.'));
+
   let hasObstacle = false;
   let obstacleTargetId: string | null = null;
   if (state.scenario !== null && state.playerLocationId !== null) {
@@ -59,5 +72,7 @@ export function toBotScene(state: GameState): BotScene {
     hasHealingItem: sceneHasHealingItem(locationItemIds),
     hasObstacle,
     obstacleTargetId,
+    closedFeatureNames,
+    carriedKeyNames,
   };
 }
