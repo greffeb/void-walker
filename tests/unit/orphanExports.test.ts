@@ -25,6 +25,13 @@ const SEARCH_DIRS = ['src'];
 const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   // --- Decision C: STATE_IDS is the runtime mirror of the StateId union.
   STATE_IDS: 'runtime mirror of a union type, test-only',
+  LOCATION_STATE_IDS: 'runtime mirror of a union type, test-only',
+
+  // --- Decision V, scaffolding for lot 4. applyLocationToken is what decision U
+  // will call from the consequence engine; isLethalLocation is what decision Y
+  // will read instead of the hardcoded scenarioFlagMapper switch.
+  applyLocationToken: 'U — consequences must drive location state',
+  isLethalLocation: 'Y — emergent victory must read world state, not flags',
 
   // --- Durability: the whole Phase 3 module (deliverables 4-6) is never called.
   // Items never break on a fumble, improvised weapons never degrade, and the

@@ -22,6 +22,7 @@ import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import type { EntityState } from './entityState';
 import { makeEntityState, stateMatchesToken } from './entityState';
 import { getFeatureState, isItemRevealed, pickStateDescription } from './featureState';
+import { deriveConditions, locationStateFromAtmosphere } from './locationState';
 import { buildObstacleVerbMap } from '../content/parserData';
 
 // ---------------------------------------------------------------------------
@@ -211,7 +212,9 @@ export function getSceneContext(state: GameState): SceneContext {
     environmentFeatures,
     connectedLocations,
     suggestions: [],           // ParsedAction[] remains empty; parser uses its own resolution
-    environmentConditions: node.atmosphere === 'depressurized' ? ['zero_g'] : [],
+    environmentConditions: deriveConditions(
+      state.locationStates?.[node.id] ?? locationStateFromAtmosphere(node.atmosphere),
+    ),
     atmosphere: node.atmosphere,
     locationId: playerLocationId,
     scenarioSuggestions,

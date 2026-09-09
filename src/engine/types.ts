@@ -181,6 +181,8 @@ export interface GameState {
   /** Per-feature mutable state. Key = featureId.
    *  Initialized from each feature's `initialState` at game start. */
   readonly featureStates: Readonly<Record<string, import('./entityState').EntityState>>;
+  /** Per-location environment state: fire, flooding, pressure, light, gravity. */
+  readonly locationStates: Readonly<Record<string, import('./locationState').LocationState>>;
   /** Items revealed by container openings or other interactions.
    *  Key = itemId, value = true when revealed.
    *  Items WITHOUT `revealedBy` in their definition are always visible. */
@@ -253,6 +255,7 @@ export function createInitialGameState(): GameState {
     playerLocationId: null,
     // === Chantier 1 defaults ===
     featureStates: {},
+    locationStates: {},
     revealedItems: {},
     unlockedExits: {},
     scenarioFlags: {},
@@ -604,7 +607,13 @@ export interface DifficultyInput {
 }
 
 /** Environmental conditions that affect difficulty */
-export type EnvironmentCondition = 'dark' | 'zero_g' | 'time_pressure';
+export type EnvironmentCondition =
+  | 'dark'
+  | 'zero_g'
+  | 'time_pressure'
+  | 'on_fire'
+  | 'flooded'
+  | 'depressurized';
 
 /** Instance of an NPC in a scene (for the resolver) */
 export interface NpcInstance {

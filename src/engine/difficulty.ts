@@ -161,6 +161,18 @@ function getEnvironmentMods(
         mod += BALANCE.CONTEXT_MODIFIERS.TIME_PRESSURE;
         details.push('Pression temporelle');
         break;
+      case 'on_fire':
+        mod += BALANCE.CONTEXT_MODIFIERS.ON_FIRE;
+        details.push('Incendie');
+        break;
+      case 'flooded':
+        mod += BALANCE.CONTEXT_MODIFIERS.FLOODED;
+        details.push('Inondation');
+        break;
+      case 'depressurized':
+        mod += BALANCE.CONTEXT_MODIFIERS.DEPRESSURIZED;
+        details.push('Dépressurisation');
+        break;
     }
   }
 
@@ -388,15 +400,22 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     dark:          'dice.modifier.dark',
     zero_g:        'dice.modifier.zeroG',
     time_pressure: 'dice.modifier.timePressure',
+    on_fire:       'dice.modifier.onFire',
+    flooded:       'dice.modifier.flooded',
+    depressurized: 'dice.modifier.depressurized',
+  };
+  const envModMap: Readonly<Record<EnvironmentCondition, number>> = {
+    dark:          BALANCE.CONTEXT_MODIFIERS.IN_DARKNESS,
+    zero_g:        BALANCE.CONTEXT_MODIFIERS.ZERO_GRAVITY,
+    time_pressure: BALANCE.CONTEXT_MODIFIERS.TIME_PRESSURE,
+    on_fire:       BALANCE.CONTEXT_MODIFIERS.ON_FIRE,
+    flooded:       BALANCE.CONTEXT_MODIFIERS.FLOODED,
+    depressurized: BALANCE.CONTEXT_MODIFIERS.DEPRESSURIZED,
   };
   for (const condition of input.environmentConditions ?? []) {
     const key = envKeyMap[condition];
     if (key) {
-      const singleMod =
-        condition === 'dark'         ? BALANCE.CONTEXT_MODIFIERS.IN_DARKNESS
-        : condition === 'zero_g'     ? BALANCE.CONTEXT_MODIFIERS.ZERO_GRAVITY
-        : BALANCE.CONTEXT_MODIFIERS.TIME_PRESSURE;
-      namedLines.push({ labelKey: key, value: singleMod, category: 'penalty' });
+      namedLines.push({ labelKey: key, value: envModMap[condition], category: 'penalty' });
     }
   }
 

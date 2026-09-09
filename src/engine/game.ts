@@ -11,6 +11,8 @@ import type {
 import type { AssembledScenario } from './scenario';
 import type { EntityState } from './entityState';
 import { makeEntityState } from './entityState';
+import type { LocationState } from './locationState';
+import { locationStateFromAtmosphere } from './locationState';
 import type { VictoryCheckContext, NpcState } from './victory';
 import { createInitialGameState } from './types';
 import { createThreatDirector } from './threat';
@@ -119,6 +121,11 @@ export function initGame(
   // Initialize micro-module states from placed micro-modules
   const microModuleStates = initMicroModuleStates(scenario.placedMicroModules);
 
+  const locationStates: Record<string, LocationState> = {};
+  for (const node of scenario.graph.nodes) {
+    locationStates[node.id] = locationStateFromAtmosphere(node.atmosphere);
+  }
+
   const base = createInitialGameState();
   return {
     ...base,
@@ -136,6 +143,7 @@ export function initGame(
     victoryResult: null,
     defeatCondition: null,
     featureStates,
+    locationStates,
     microModuleStates,
   };
 }
