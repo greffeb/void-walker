@@ -39,6 +39,7 @@ import { addItem } from './inventory';
 import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shipMemory';
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat, canDiscoverWeakPoint, checkWeakPointAutoDiscover, shouldNPCAttack } from './combat';
+import { passiveEffectOf, passiveValueOf } from './passives';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved, isMovementOnlyPath } from './backtracking';
@@ -640,6 +641,7 @@ export function processTurn(
         suggestions: context.suggestions,
         baseOverride: featureMatchedPath.dc,
         vouchedByScenario: true,
+        playerClass: obstacleCharacter.className,
       });
       traceDifficultyBreakdown = obstacleBreakdown;
 
@@ -787,6 +789,7 @@ export function processTurn(
         suggestions: context.suggestions,
         baseOverride: matchedObstaclePath.dc,
         vouchedByScenario: true,
+        playerClass: combatCharacter.className,
       });
       traceDifficultyBreakdown = npcObstacleBreakdown;
       const obstacleDC = Math.max(
@@ -858,6 +861,7 @@ export function processTurn(
         playerConditions: combatCharacter.conditions.map(c => c.id),
         suggestions: context.suggestions,
         targetDefense: npc.defense,
+        playerClass: combatCharacter.className,
       });
       const combatMarks = locationId && action.target
         ? getMarksForTarget(current.shipMemory, locationId, action.target.id)
@@ -881,8 +885,8 @@ export function processTurn(
 
       const attackResult = resolvePlayerAttack(
         effectiveStats, null, action.verb, npc,
-        roll, combatCharacter.className === 'marine' ? 'COMBAT_DAMAGE_BONUS' : '',
-        combatCharacter.className === 'marine' ? 1 : null, rng,
+        roll, passiveEffectOf(combatCharacter.className),
+        passiveValueOf(combatCharacter.className), rng,
       );
 
       if (attackResult.hit) {
@@ -1006,6 +1010,7 @@ export function processTurn(
       environmentConditions: context.environmentConditions,
       playerConditions: current.character!.conditions.map(c => c.id),
       suggestions: context.suggestions,
+      playerClass: current.character!.className,
       ...(typeof interactionTrigger?.dc === 'number' ? { baseOverride: interactionTrigger.dc } : {}),
       ...(interactionMatch !== null ? { vouchedByScenario: true } : {}),
     });

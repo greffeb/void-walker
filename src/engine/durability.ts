@@ -68,14 +68,14 @@ export function canRepairItem(
 
 /**
  * Calculate repair DC for an item.
- * Non-engineers get a penalty.
+ * Non-engineers get a penalty — the same one the generic REPAIR check applies,
+ * priced once in `passives.ts` (decision G).
  */
 export function getRepairDC(passiveEffect: PassiveEffectId): number {
   const base = BALANCE.DURABILITY.REPAIR_BASE_DC;
-  const penalty = passiveEffect === 'REPAIR_ALL_BROKEN'
+  return base + (passiveEffect === 'REPAIR_ALL_BROKEN'
     ? 0
-    : BALANCE.DURABILITY.NON_ENGINEER_REPAIR_PENALTY;
-  return base + penalty;
+    : BALANCE.DURABILITY.NON_ENGINEER_REPAIR_PENALTY);
 }
 
 /**

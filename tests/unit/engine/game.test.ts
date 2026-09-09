@@ -3,13 +3,18 @@
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from 'vitest';
-import { initGame, isGameOver, buildVictoryCheckContext } from '../../../src/engine/game';
+import { initGame, isGameOver, buildVictoryCheckContext, rollBonusAllocation } from '../../../src/engine/game';
 import { createInitialGameState } from '../../../src/engine/types';
 import { assembleScenario } from '../../../src/engine/pacing';
 import { ESCAPE_SKELETON } from '../../../src/content/scenarios/escape';
 import { ALL_MODULES } from '../../../src/content/scenarios/modules/index';
+import { CLASSES } from '../../../src/content/classes';
+import { BALANCE } from '../../../src/engine/constants';
+import { createSeededRng } from '../../../src/engine/rng';
 import type { AssembledScenario } from '../../../src/engine/scenario';
-import type { GameState, RngFn } from '../../../src/engine/types';
+import type { GameState, RngFn, StatId } from '../../../src/engine/types';
+
+const STAT_IDS: readonly StatId[] = ['FOR', 'DEF', 'AGI', 'INT', 'PER', 'CHA', 'LCK'];
 
 // ---------------------------------------------------------------------------
 // TEST UTILITIES
@@ -65,12 +70,69 @@ describe('initGame()', () => {
 
   it('builds character with correct class stats', () => {
     const scenario = makeScenario();
-    const state = initGame(scenario, 'engineer', 'survivor', 'Eng', fixedRng());
+    const state = initGame(scenario, 'engineer', 'survivor', 'Eng', fixedRng(), { PER: 1, CHA: 1 });
     expect(state.character).not.toBeNull();
     expect(state.character!.className).toBe('engineer');
     expect(state.character!.stats.INT).toBe(5);
   });
+});
 
+// ---------------------------------------------------------------------------
+// Bonus point allocation (decision H)
+// ---------------------------------------------------------------------------
+
+describe('initGame() — nobody starts on raw class stats', () => {
+  it('spends the player\'s own allocation', () => {
+    const state = initGame(makeScenario(), 'medic', 'survivor', 'M', fixedRng(), { CHA: 1, LCK: 1 });
+    expect(state.character!.stats.CHA).toBe(CLASSES.medic.baseStats.CHA + 1);
+    expect(state.character!.stats.LCK).toBe(CLASSES.medic.baseStats.LCK + 1);
+  });
+
+  it('rolls a valid allocation when the caller supplies none', () => {
+    // An automated playthrough allocates like a player would.
+    const state = initGame(makeScenario(), 'marine', 'survivor', 'B', createSeededRng(7));
+    const spent = STAT_IDS.reduce(
+      (sum, stat) => sum + (state.character!.stats[stat] - CLASSES.marine.baseStats[stat]),
+      0,
+    );
+    expect(spent).toBe(BALANCE.BONUS_POINTS);
+  });
+
+  it('a rolled allocation never breaks the stat cap', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const state = initGame(makeScenario(), 'marine', 'survivor', 'B', createSeededRng(seed));
+      for (const stat of STAT_IDS) {
+        expect(state.character!.stats[stat]).toBeLessThanOrEqual(BALANCE.STAT_MAX);
+      }
+    }
+  });
+
+  it('the same seed gives the same character', () => {
+    const a = initGame(makeScenario(), 'engineer', 'survivor', 'B', createSeededRng(42));
+    const b = initGame(makeScenario(), 'engineer', 'survivor', 'B', createSeededRng(42));
+    expect(a.character!.stats).toEqual(b.character!.stats);
+  });
+
+  it('refuses an allocation that does not spend every point', () => {
+    expect(() => initGame(makeScenario(), 'marine', 'survivor', 'X', fixedRng(), {}))
+      .toThrow(/allocation/);
+    expect(() => initGame(makeScenario(), 'marine', 'survivor', 'X', fixedRng(), { LCK: 1 }))
+      .toThrow(/allocation/);
+  });
+
+  it('refuses an allocation that breaks the stat cap', () => {
+    // Marine FOR is 4, +2 would be 6.
+    expect(() => initGame(makeScenario(), 'marine', 'survivor', 'X', fixedRng(), { FOR: 2 }))
+      .toThrow(/allocation/);
+  });
+
+  it('rollBonusAllocation stops when every stat is capped', () => {
+    const capped = { FOR: 5, DEF: 5, AGI: 5, INT: 5, PER: 5, CHA: 5, LCK: 5 };
+    expect(rollBonusAllocation(capped, fixedRng())).toEqual({});
+  });
+});
+
+describe('initGame() — remaining', () => {
   it('applies HP multiplier for explorer difficulty', () => {
     const scenario = makeScenario();
     const survivor = initGame(scenario, 'marine', 'survivor', 'T', fixedRng());

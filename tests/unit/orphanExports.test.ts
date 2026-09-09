@@ -95,10 +95,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   // --- Decision W: secret verb content written, mechanic never built (P5-1).
   SECRET_VERB_TEMPLATES: 'W — wire secret verbs into the verb registry',
 
-  // --- Decision H: character creation lives in the UI store, not the engine.
-  validateAllocation: 'H — move bonus allocation into initGame',
-  createCharacterCreationState: 'H — move bonus allocation into initGame',
-
   // --- Assorted engine helpers with no caller.
   getConditionRollModifier: 'conditions: roll modifier never applied',
   resetStalkerClock: 'stalker clock never reset on node progression',

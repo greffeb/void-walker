@@ -9,7 +9,6 @@ import {
   DIFFICULTY_LEVELS,
   createInitialGameState,
   validateAllocation,
-  createCharacterCreationState,
 } from '../../../src/engine/types';
 import type {
   StatId,
@@ -180,14 +179,5 @@ describe('validateAllocation()', () => {
 
   test('empty allocation returns false (must allocate all points)', () => {
     expect(validateAllocation(baseStats, {})).toBe(false);
-  });
-});
-
-describe('createCharacterCreationState()', () => {
-  test('returns correct initial state', () => {
-    const state = createCharacterCreationState();
-    expect(state.selectedClass).toBeNull();
-    expect(state.bonusPointsRemaining).toBe(BALANCE.BONUS_POINTS);
-    expect(state.bonusAllocation).toEqual({});
   });
 });

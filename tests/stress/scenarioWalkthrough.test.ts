@@ -77,9 +77,14 @@ const TARGET = {
  *    66.3 % → 66.5 % coverage) while defeats fell again (254 → 250). Those four
  *    runs did not get worse — they stopped dying and started wandering, which is
  *    the exact way `maxStuck` misleads.
+ *  - Lot 6: the bonus points are spent inside `initGame` (decision H), so every
+ *    character carries two more points and every seed draws a different game —
+ *    these figures are a new reference, not a comparison with the line above.
+ *    Defeats 250 → 232 and stuck 250 → 268: the same eighteen runs, no longer
+ *    dying. Coverage rose to 67.0 %, obstacles held at 0.68.
  */
 const BASELINE = {
-  maxStuck: 250,
+  maxStuck: 268,
   maxTimeouts: 0,
   minVictories: 0,
   /** Progression, which early death can only ever lower. */

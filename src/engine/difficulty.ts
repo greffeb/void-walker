@@ -11,6 +11,7 @@ import type { PropertyId } from './properties';
 import { checkCompatibility } from './compatibility';
 import type { ActionSeverity } from './compatibility';
 import { BALANCE } from './constants';
+import { repairDifficultyModifier } from './passives';
 import type {
   DifficultyBreakdown,
   DifficultyInput,
@@ -326,6 +327,15 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
   if (targetDefense !== 0) {
     contextMods += targetDefense;
     details.push(`Défense de la cible: +${targetDefense}`);
+  }
+
+  // Class passive (decision G) — the Engineer's training, priced once here.
+  if (input.verb === 'REPAIR' && input.playerClass !== undefined) {
+    const repairMod = repairDifficultyModifier(input.playerClass);
+    if (repairMod !== 0) {
+      contextMods += repairMod;
+      details.push(`Réparation sans formation: +${repairMod}`);
+    }
   }
 
   // Creativity modifier

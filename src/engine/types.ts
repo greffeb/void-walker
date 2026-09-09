@@ -406,26 +406,12 @@ export const ENVIRONMENT_FEATURE_TYPES: readonly EnvironmentFeatureType[] = [
 
 // === CHARACTER CREATION ===
 
-/** State of the character creation process */
-export interface CharacterCreationState {
-  readonly selectedClass: PlayerClassName | null;
-  readonly bonusPointsRemaining: number;
-  readonly bonusAllocation: Readonly<Partial<Record<StatId, number>>>;
-}
-
-/** Factory for initial character creation state */
-export function createCharacterCreationState(): CharacterCreationState {
-  return {
-    selectedClass: null,
-    bonusPointsRemaining: BALANCE.BONUS_POINTS,
-    bonusAllocation: {},
-  };
-}
-
 /**
  * Validates a bonus point allocation against class base stats.
  * Total bonus must equal BALANCE.BONUS_POINTS (2), no negative values,
  * no final stat may exceed BALANCE.STAT_MAX (5).
+ *
+ * Read by `initGame`, which refuses to build a character on an illegal spend.
  */
 export function validateAllocation(
   classStats: StatBlock,
@@ -440,16 +426,6 @@ export function validateAllocation(
     if (base + bonusVal > BALANCE.STAT_MAX) return false;
   }
   return true;
-}
-
-/** Result of completing character creation */
-export interface PlayerCreationResult {
-  readonly name: string;
-  readonly classId: PlayerClassName;
-  readonly stats: StatBlock;
-  readonly maxHp: number;
-  readonly hp: number;
-  readonly inventory: readonly string[];
 }
 
 // === PARSER TYPES (Phase 2) ===
@@ -647,6 +623,11 @@ export interface DifficultyInput {
    * relevance, so the compatibility grading is skipped — but nothing else is.
    */
   readonly vouchedByScenario?: boolean;
+  /**
+   * Who is acting. Only class passives read it (decision G): repairing is
+   * harder for anyone the Engineer's training did not cover.
+   */
+  readonly playerClass?: PlayerClassName;
 }
 
 /** Environmental conditions that affect difficulty */

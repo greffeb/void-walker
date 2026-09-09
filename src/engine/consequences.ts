@@ -22,6 +22,7 @@ import { applyStateToken } from './entityState';
 import type { LocationStateId } from './locationState';
 import { applyLocationToken, atmosphereToken } from './locationState';
 import { isNpcAlive } from './victory';
+import { applyHealingPassive } from './passives';
 
 // ---------------------------------------------------------------------------
 // EAT tier detection — used by both consequences and narration
@@ -294,7 +295,7 @@ function applySingleConsequence(
 
     case 'heal': {
       if (c.targetId !== 'player') return state;
-      const amount = c.amount ?? 0;
+      const amount = applyHealingPassive(c.amount ?? 0, state.character.className);
       const newHp = clampHp(state.character.hp + amount, state.character.maxHp);
       return { ...state, character: { ...state.character, hp: newHp } };
     }

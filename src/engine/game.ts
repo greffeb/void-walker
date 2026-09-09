@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type {
-  GameState, PlayerClassName, DifficultyLevel, RngFn, CharacterState, StoryBeat,
+  GameState, PlayerClassName, DifficultyLevel, RngFn, CharacterState, StoryBeat, StatBlock, StatId,
 } from './types';
 import type { AssembledScenario } from './scenario';
 import type { EntityState, DispositionState } from './entityState';
@@ -14,10 +14,11 @@ import { makeEntityState } from './entityState';
 import type { LocationState } from './locationState';
 import { locationStateFromAtmosphere, isLethalLocation, isEstablishedLethal } from './locationState';
 import type { VictoryCheckContext, NpcState } from './victory';
-import { createInitialGameState } from './types';
+import { createInitialGameState, validateAllocation } from './types';
 import { createThreatDirector } from './threat';
 import { createVisitState } from './backtracking';
 import { initMicroModuleStates } from './microModules';
+import { BALANCE } from './constants';
 import { CLASSES } from '../content/classes';
 import { NPC_DEFINITIONS } from '../content/npcs';
 import { mapScenarioFlags } from './scenarioFlagMapper';
@@ -49,6 +50,51 @@ function initialNpcState(
 }
 
 // ---------------------------------------------------------------------------
+// BONUS POINT ALLOCATION
+// ---------------------------------------------------------------------------
+
+/** Every stat, in display order. */
+const ALLOCATABLE_STATS: readonly StatId[] = ['FOR', 'DEF', 'AGI', 'INT', 'PER', 'CHA', 'LCK'];
+
+/**
+ * Spend the bonus points at random, one at a time, on a stat the cap leaves room
+ * for. Decision H: nobody starts a run on raw class stats — an automated
+ * playtest allocates like a player would, and the injected RNG keeps it
+ * reproducible from the seed.
+ */
+export function rollBonusAllocation(
+  baseStats: StatBlock,
+  rng: RngFn,
+): Readonly<Partial<Record<StatId, number>>> {
+  const allocation: Partial<Record<StatId, number>> = {};
+  let remaining = BALANCE.BONUS_POINTS;
+  const room = (stat: StatId): number =>
+    BALANCE.STAT_MAX - (baseStats[stat] + (allocation[stat] ?? 0));
+
+  while (remaining > 0) {
+    const open = ALLOCATABLE_STATS.filter(s => room(s) > 0);
+    if (open.length === 0) break;
+    const stat = open[Math.floor(rng() * open.length)] ?? open[0]!;
+    allocation[stat] = (allocation[stat] ?? 0) + 1;
+    remaining--;
+  }
+  return allocation;
+}
+
+/** Class stats once the bonus points are spent. */
+function applyAllocation(
+  baseStats: StatBlock,
+  allocation: Readonly<Partial<Record<StatId, number>>>,
+): StatBlock {
+  const stats = { ...baseStats };
+  for (const stat of ALLOCATABLE_STATS) {
+    const bonus = allocation[stat];
+    if (bonus !== undefined && bonus > 0) stats[stat] = stats[stat] + bonus;
+  }
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
 // initGame — single entry point for starting a new game
 // ---------------------------------------------------------------------------
 
@@ -60,16 +106,27 @@ function initialNpcState(
  * @param playerClass The chosen player class
  * @param difficulty  The chosen difficulty level
  * @param playerName  The player's chosen name
- * @param rng         Injectable RNG (for future use in randomized starting state)
+ * @param rng         Injectable RNG — also rolls the bonus points when the
+ *                    caller does not supply an allocation
+ * @param bonusAllocation The player's own spending of BALANCE.BONUS_POINTS.
+ *   Omitted, the points are rolled: a character never starts on raw class stats,
+ *   and no caller may patch `stats` afterwards (decision H).
+ * @throws if the allocation is not a legal one
  */
 export function initGame(
   scenario: AssembledScenario,
   playerClass: PlayerClassName,
   difficulty: DifficultyLevel,
   playerName: string,
-  _rng: RngFn,
+  rng: RngFn,
+  bonusAllocation?: Readonly<Partial<Record<StatId, number>>>,
 ): GameState {
   const classDef = CLASSES[playerClass];
+
+  const allocation = bonusAllocation ?? rollBonusAllocation(classDef.baseStats, rng);
+  if (!validateAllocation(classDef.baseStats, allocation)) {
+    throw new Error(`initGame: illegal bonus allocation ${JSON.stringify(allocation)}`);
+  }
 
   // Build character state
   const hpMultiplier = HP_MULTIPLIERS[difficulty];
@@ -77,7 +134,7 @@ export function initGame(
   const character: CharacterState = {
     name: playerName,
     className: playerClass,
-    stats: classDef.baseStats,
+    stats: applyAllocation(classDef.baseStats, allocation),
     hp: maxHp,
     maxHp,
     oxygen: 100,

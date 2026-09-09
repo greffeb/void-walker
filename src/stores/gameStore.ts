@@ -12,7 +12,7 @@ import { ALL_MODULES } from '@content/scenarios/modules';
 import { CLASSES } from '@content/classes';
 import { buildParserLocaleData } from '@content/parserData';
 import { assembleScenario } from '@engine/pacing';
-import { initGame, isGameOver } from '@engine/game';
+import { initGame, isGameOver, rollBonusAllocation } from '@engine/game';
 import { getSceneContext, formatSuggestionAsInput } from '@engine/scene';
 import { processTurn } from '@engine/processTurn';
 import { createSeededRng } from '@engine/rng';
@@ -315,30 +315,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       const skeleton = LAUNCH_SKELETONS[Math.floor(_rng() * LAUNCH_SKELETONS.length)]!;
       const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, _rng);
 
-      // Apply bonus points to base stats
-      const classDef = CLASSES[selectedClass];
-      const baseStats = { ...classDef.baseStats };
-      for (const [stat, bonus] of Object.entries(bonusPoints)) {
-        if (bonus && bonus > 0) {
-          baseStats[stat as StatId] = (baseStats[stat as StatId] ?? 0) + bonus;
-        }
-      }
-
+      // The allocation goes in, not on top: initGame owns the final stats and
+      // refuses an illegal spend (decision H).
       const name = playerName.trim() || 'Joueur';
-      const gameState = initGame(scenario, selectedClass, difficulty, name, _rng);
-
-      // Apply custom bonus stats to the game state
-      const totalBonusUsed = Object.values(bonusPoints).reduce<number>((a, b) => a + (b ?? 0), 0);
-      let finalState = gameState;
-      if (totalBonusUsed > 0 && finalState.character) {
-        finalState = {
-          ...finalState,
-          character: {
-            ...finalState.character,
-            stats: baseStats,
-          },
-        };
-      }
+      const finalState = initGame(scenario, selectedClass, difficulty, name, _rng, bonusPoints);
 
       const sceneContext = getSceneContext(finalState);
 
@@ -393,17 +373,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
     // Distribute bonus points randomly within stat cap
     const classDef = CLASSES[selectedClass];
-    const stats: StatId[] = ['FOR', 'DEF', 'AGI', 'INT', 'PER', 'CHA', 'LCK'];
-    const bonusPoints: Partial<Record<StatId, number>> = {};
-    let remaining = BALANCE.BONUS_POINTS;
-    while (remaining > 0) {
-      const stat = stats[Math.floor(Math.random() * stats.length)]!;
-      const current = bonusPoints[stat] ?? 0;
-      if (classDef.baseStats[stat] + current < BALANCE.STAT_MAX) {
-        bonusPoints[stat] = current + 1;
-        remaining--;
-      }
-    }
+    const bonusPoints = rollBonusAllocation(classDef.baseStats, Math.random);
 
     set({ difficulty, selectedClass, playerName, bonusPoints });
     get().startNewGame();
