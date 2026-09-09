@@ -1184,7 +1184,7 @@ const acoustic_trap_point: ScenarioFeatureDefinition = {
       fr: "Point ideal pour un piege acoustique. La geometrie concentre les ondes sonores comme un amplificateur naturel.",
       en: "",
     },
-    activated: {
+    active: {
       fr: "Le piege acoustique est actif. Un mur de son invisible confine la creature. Piegee.",
       en: "",
     },

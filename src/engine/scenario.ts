@@ -793,9 +793,9 @@ export interface ScenarioFeatureDefinition extends FeatureDefinition {
     readonly fr: readonly string[];
     readonly en: readonly string[];
   };
-  /** Per-state descriptions. Keys are FeatureState values.
-   *  When present, `examineResult` is used as fallback. */
-  readonly descriptions?: Readonly<Record<string, LocaleString>>;
+  /** Per-state descriptions. When absent for the current state,
+   *  `examineResult` is used as fallback. */
+  readonly descriptions?: Readonly<Partial<Record<StateId, LocaleString>>>;
   /** Scenario interactions — declarative trigger→result rules. */
   readonly interactions?: readonly ScenarioInteraction[];
   /** Item IDs hidden inside this feature (revealed on state change). */

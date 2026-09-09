@@ -485,7 +485,7 @@ const security_panel: ScenarioFeatureDefinition = {
       fr: 'Le panneau de sécurité affiche un lecteur de badge et un digicode. Le système accepte les badges de niveau 3 ou supérieur. Des griffures profondes marquent le métal autour — quelque chose a essayé de l\'arracher.',
       en: 'The security panel shows a badge reader and keypad. The system accepts level 3+ badges. Deep scratches mark the surrounding metal — something tried to tear it off.',
     },
-    deactivated: {
+    inactive: {
       fr: 'Le panneau de sécurité est éteint. Le lecteur de badge ne répond plus. Mais les verrous de la cloison se sont rétractés.',
       en: 'The security panel is dark. The badge reader is dead. But the bulkhead locks have retracted.',
     },
@@ -947,7 +947,7 @@ const life_support_panel: ScenarioFeatureDefinition = {
       fr: 'Le panneau de contrôle du support vie est endommagé — des griffures profondes ont arraché des câbles. L\'écran clignote : "O₂ SYSTÈME — DÉFAILLANCE CRITIQUE". La réparation semble possible mais complexe.',
       en: 'The life support control panel is damaged — deep scratches tore out cables. The screen flickers: "O₂ SYSTEM — CRITICAL FAILURE". Repair seems possible but complex.',
     },
-    repaired: {
+    intact: {
       fr: 'Le panneau de support vie a été réparé. L\'écran affiche : '
         + '"O₂ — STABILISÉ — 43% CAPACITÉ". Le ventilateur tourne, l\'air circule. '
         + 'Ce n\'est pas idéal, mais la chute d\'oxygène est stoppée. '
@@ -1353,7 +1353,7 @@ const cargo_jettison_lever: ScenarioFeatureDefinition = {
       fr: 'Levier de largage d\'urgence de la soute. Protégé par un cache de sécurité rouge. Si la créature est dans la soute quand vous tirez... la soute entière est éjectée dans le vide.',
       en: 'Emergency cargo jettison lever. Protected by a red safety cover. If the creature is in the cargo bay when you pull... the entire bay is ejected into the void.',
     },
-    activated: {
+    active: {
       fr: 'Le levier est en position basse. Les portes de la soute se sont ouvertes sur le vide — tout ce qui n\'était pas arrimé a été aspiré.',
       en: 'The lever is in the down position. The cargo bay doors opened to the void — everything unsecured was sucked out.',
     },
@@ -1429,7 +1429,7 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
       fr: 'Panneau de contrôle des joints de coque. L\'écran affiche les zones pressurisées et dépressurisées du vaisseau. Un protocole d\'urgence permet de forcer une décompression localisée.',
       en: 'Hull seal control panel. The screen shows pressurized and depressurized ship zones. An emergency protocol allows forcing a localized decompression.',
     },
-    activated: {
+    active: {
       fr: 'Le panneau affiche "DÉCOMPRESSION EN COURS — SOUTE" en rouge clignotant. '
         + 'À travers les hublots, vous voyez les portes de soute s\'ouvrir — '
         + 'l\'air, les débris, tout est aspiré dans le vide. '

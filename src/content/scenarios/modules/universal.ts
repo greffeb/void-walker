@@ -156,7 +156,7 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
           examineResult: { fr: 'Panneau de contrôle endommagé. Certains circuits sont encore actifs — un technicien compétent pourrait court-circuiter le verrouillage de la porte.', en: '' },
           descriptions: {
             damaged: { fr: 'panneau de sécurité local', en: '' },
-            bypassed: { fr: 'panneau de sécurité court-circuité', en: '' },
+            open: { fr: 'panneau de sécurité court-circuité', en: '' },
           },
           interactions: [
             {
@@ -334,7 +334,7 @@ export const DARK_ROOM_01: ScenarioModule = {
           examineResult: { fr: 'Plafonnier brisé. Le tube est éclaté et les fils pendent. Il ne fonctionnera plus, mais le réseau électrique derrière est peut-être intact.', en: '' },
           descriptions: {
             broken: { fr: 'plafonnier brisé pendant du plafond. Le tube est éclaté.', en: '' },
-            functional: { fr: 'plafonnier diffusant une lumière blanche stable.', en: '' },
+            intact: { fr: 'plafonnier diffusant une lumière blanche stable.', en: '' },
           },
           interactions: [
             {
@@ -373,7 +373,7 @@ export const DARK_ROOM_01: ScenarioModule = {
           examineResult: { fr: 'Relais d\'alimentation auxiliaire. Endommagé mais pas détruit. Avec les bonnes manipulations, il pourrait alimenter le circuit d\'éclairage de cette section.', en: '' },
           descriptions: {
             damaged: { fr: 'relais d\'alimentation endommagé. Des câbles arrachés pendent.', en: '' },
-            functional: { fr: 'relais d\'alimentation ronronnant doucement — circuit rétabli.', en: '' },
+            intact: { fr: 'relais d\'alimentation ronronnant doucement — circuit rétabli.', en: '' },
           },
           interactions: [
             {

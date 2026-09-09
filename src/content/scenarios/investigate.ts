@@ -380,7 +380,7 @@ const docking_clamps: ScenarioFeatureDefinition = {
       fr: 'Les pinces sont détruites. Votre navette dérive lentement — le câble de secours la retient encore, mais pas pour longtemps.',
       en: 'Clamps destroyed. Your shuttle drifts slowly.',
     },
-    deactivated: {
+    inactive: {
       fr: 'Les pinces se sont rétractées. Votre navette est libre de manœuvrer — le chemin du retour est ouvert.',
       en: 'Clamps retracted. Your shuttle is free to maneuver.',
     },
@@ -889,7 +889,7 @@ const reactor_core: ScenarioFeatureDefinition = {
       fr: 'Le cœur du réacteur pulse de manière erratique. Orange, rouge, orange. Les instruments indiquent une déstabilisation progressive. Temps avant masse critique : indéterminé mais limité.',
       en: 'The reactor core pulses erratically. Instruments indicate progressive destabilization.',
     },
-    repaired: {
+    intact: {
       fr: 'Le réacteur pulse régulièrement — stabilisé. Les niveaux de confinement sont revenus à la normale. Mais l\'IA est toujours active.',
       en: 'The reactor pulses steadily — stabilized. Containment levels normalized.',
     },
@@ -1258,10 +1258,6 @@ const comms_array_panel: ScenarioFeatureDefinition = {
     active: {
       fr: 'Panneau de contrôle du réseau de communications. Le système de relais est opérationnel — il pourrait amplifier un signal ou le rerouter.',
       en: 'Comms network control panel. Relay system operational.',
-    },
-    reprogrammed: {
-      fr: 'Réseau de communications reprogrammé. L\'antenne longue portée est synchronisée avec la balise de secours — signal amplifié x10.',
-      en: 'Comms network reprogrammed. Long-range antenna synced with the beacon — signal amplified x10.',
     },
   },
   interactions: [
