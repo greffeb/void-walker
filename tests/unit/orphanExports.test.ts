@@ -27,6 +27,11 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   STATE_IDS: 'runtime mirror of a union type, test-only',
   LOCATION_STATE_IDS: 'runtime mirror of a union type, test-only',
 
+  // --- Decision F: runtime mirrors and the totality guard for the family table.
+  NATURES: 'runtime mirror of a union type, test-only',
+  PROPERTY_FAMILIES: 'runtime mirror of a union type, test-only',
+  findUnclassifiedProperties: 'guard asserting PROPERTY_FAMILY stays total',
+
   // --- Decision V, scaffolding for lot 4. applyLocationToken is what decision U
   // will call from the consequence engine; isLethalLocation is what decision Y
   // will read instead of the hardcoded scenarioFlagMapper switch.

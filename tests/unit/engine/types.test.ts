@@ -97,7 +97,6 @@ describe('BALANCE constants', () => {
     expect(BALANCE.MIN_DIFFICULTY).toBeLessThan(BALANCE.MAX_DIFFICULTY);
     expect(BALANCE.BASE_DIFFICULTY).toBeGreaterThanOrEqual(BALANCE.MIN_DIFFICULTY);
     expect(BALANCE.BASE_DIFFICULTY).toBeLessThanOrEqual(BALANCE.MAX_DIFFICULTY);
-    expect(BALANCE.ABSURD_DIFFICULTY_FLOOR).toBeLessThanOrEqual(BALANCE.MAX_DIFFICULTY);
   });
 
   test('stat range is valid', () => {

@@ -13,7 +13,7 @@ export { checkCompatibility } from './compatibility';
 
 // === Phase 3: Dice ===
 export {
-  rollD20, rollLuckBonus, rollCheck, classifyOutcome,
+  rollD20, rollLuckNegation, critThreshold, rollCheck, classifyOutcome,
   rollDodge, rollPassiveDodge, defaultRng,
 } from './dice';
 

@@ -899,13 +899,13 @@ export const fr: LocaleStrings = {
   'dice.modifier.creative':          'Créatif',
   'dice.modifier.shipMemory':        'Mémoire du vaisseau',
   'dice.dc.toBeat':                  'À battre',
-  'dice.roll.luck':                  'Chance',
   'dice.roll.total':                 'Total',
   'dice.status.rolling':             'Lancer D20…',
   'dice.result.success':             'SUCCÈS',
   'dice.result.failure':             'ÉCHEC',
   'dice.result.critSuccess':         'CRITIQUE !',
   'dice.result.critFailure':         'FUMBLE !',
+  'dice.result.fumbleNegated':       'Nat 1 — la chance vous épargne',
 
   // Grammar — indefinite articles for items (JSON object: nameKey → article)
   'grammar.item_articles': JSON.stringify({

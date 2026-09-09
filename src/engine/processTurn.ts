@@ -20,8 +20,8 @@ import type {
   DiceResult, ActionRecord, DifficultyBreakdown, Consequence, ConsequenceType,
   ActiveCombatState, CombatNPCState,
 } from './types';
-import { defaultRng, classifyOutcome } from './dice';
-import { rollCheck } from './dice';
+import { defaultRng } from './dice';
+import { rollCheck, outcomeOf } from './dice';
 import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
 import { isReformulation } from './types';
@@ -571,7 +571,7 @@ export function processTurn(
       traceStatId = statId;
       traceStatValue = statValue;
       traceEffectiveDC = effectiveDC;
-      traceOutcome = classifyOutcome(roll.natural, roll.total, effectiveDC);
+      traceOutcome = outcomeOf(roll);
 
       if (roll.success) {
         // Obstacle resolved — mark visit state + set feature to 'open' (or neutralize NPC)
@@ -665,7 +665,7 @@ export function processTurn(
       traceStatId = statId;
       traceStatValue = statValue;
       traceEffectiveDC = matchedObstaclePath.dc;
-      traceOutcome = classifyOutcome(roll.natural, roll.total, matchedObstaclePath.dc);
+      traceOutcome = outcomeOf(roll);
 
       if (roll.success) {
         // Obstacle resolved — end combat and mark NPC as neutralised
@@ -710,7 +710,7 @@ export function processTurn(
       traceStatId = statId;
       traceStatValue = statValue;
       traceEffectiveDC = dc;
-      traceOutcome = classifyOutcome(roll.natural, roll.total, dc);
+      traceOutcome = outcomeOf(roll);
 
       const attackResult = resolvePlayerAttack(
         effectiveStats, null, action.verb, npc,
@@ -741,7 +741,7 @@ export function processTurn(
       diceRoll = fleeResult.roll;
       traceStatId = 'AGI';
       traceStatValue = effectiveStats['AGI'] ?? 0;
-      traceOutcome = classifyOutcome(fleeResult.roll.natural, fleeResult.roll.total, npc.fleeDC);
+      traceOutcome = outcomeOf(fleeResult.roll);
 
       if (fleeResult.success) {
         current = { ...current, activeCombat: null };
@@ -784,7 +784,7 @@ export function processTurn(
       diceRoll = retreatResult.roll;
       traceStatId = 'AGI';
       traceStatValue = effectiveStats['AGI'] ?? 0;
-      traceOutcome = classifyOutcome(retreatResult.roll.natural, retreatResult.roll.total, retreatResult.roll.difficulty);
+      traceOutcome = outcomeOf(retreatResult.roll);
     }
   }
 
@@ -847,12 +847,12 @@ export function processTurn(
     const effectiveDC = Math.max(2, Math.min(25, totalDC));
     traceEffectiveDC = effectiveDC;
 
-    diceRoll = rollCheck(statId, statValue, lck, effectiveDC, 0, rng);
+    diceRoll = rollCheck(statId, statValue, lck, effectiveDC, 0, rng, breakdown.requiresCritical);
 
     // ───────────────────────────────────────────────────────
     // STEP 6: Consequence application
     // ───────────────────────────────────────────────────────
-    const outcome = classifyOutcome(diceRoll.natural, diceRoll.total, effectiveDC);
+    const outcome = outcomeOf(diceRoll);
     traceOutcome = outcome;
 
     const consequences = buildConsequences(action.verb, action.target, outcome);

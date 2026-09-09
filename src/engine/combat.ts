@@ -9,7 +9,7 @@ import type {
 import type { VerbId } from './verbs';
 import type { ItemDefinition } from '../content/items';
 import { BALANCE } from './constants';
-import { rollCheck, rollD20, rollDodge, rollPassiveDodge, rollLuckBonus, defaultRng } from './dice';
+import { rollCheck, rollD20, rollDodge, rollPassiveDodge, rollLuckNegation, defaultRng } from './dice';
 import { checkBonusLoot } from './loot';
 
 // === PLAYER ATTACK ===
@@ -197,13 +197,17 @@ export function resolveNPCAttack(
   const berserkBonus = calculateBerserkBonus(npcPattern, npcHp, npcMaxHp);
   const npcTotal = npcRoll + npcAttack + berserkBonus;
 
-  const luckBonus = rollLuckBonus(playerStats.LCK, rng);
   const playerDefense = BALANCE.COMBAT.NPC_HIT_BASE_DC +
-    playerStats.AGI + playerStats.DEF + luckBonus;
+    playerStats.AGI + playerStats.DEF;
 
   // NPC must beat (strict >) player defense
   if (npcTotal <= playerDefense) {
     return { hit: false, dodged: false, damageDealt: 0, berserkBonus };
+  }
+
+  // LCK never raises the defense score; it negates the hit outright.
+  if (rollLuckNegation(playerStats.LCK, rng)) {
+    return { hit: false, dodged: true, damageDealt: 0, berserkBonus };
   }
 
   // Passive dodge check

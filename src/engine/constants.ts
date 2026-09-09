@@ -10,7 +10,6 @@ export const BALANCE = {
   BASE_DIFFICULTY: 10,
   MIN_DIFFICULTY: 2,
   MAX_DIFFICULTY: 25,
-  ABSURD_DIFFICULTY_FLOOR: 23,
 
   /** Multiplier applied to damage the player takes, per difficulty preset. */
   DIFFICULTY_DAMAGE_MULTIPLIER: {
@@ -25,6 +24,15 @@ export const BALANCE = {
   BONUS_POINTS: 2,
   TOTAL_CLASS_POINTS: 18,
   INVENTORY_SLOTS: 8,
+
+  // === LUCK ===
+  // LCK adds nothing to any total. It only bends the extremes of the die.
+  LUCK: {
+    /** Crit window widens by floor(LCK / this): LCK 5 → crit on 18-20. */
+    CRIT_WINDOW_DIVISOR: 2,
+    /** A bad extreme (natural 1, incoming hit) is negated with probability LCK/this. */
+    NEGATION_DENOMINATOR: 20,
+  },
 
   // === COMBAT ===
   COMBAT: {
@@ -61,7 +69,6 @@ export const BALANCE = {
   CREATIVITY: {
     DIFFERENT_FROM_SUGGESTIONS_BONUS: -2,
     NOVEL_COMBO_BONUS: -1,
-    ABSURD_BUT_POSSIBLE_BONUS: -3,
   },
 
   // === OXYGEN ===
@@ -155,8 +162,8 @@ export const BALANCE = {
     TERRIFIED_PLAYER: 1,
     HIGH_RELEVANT_STAT_THRESHOLD: 4,
     HIGH_RELEVANT_STAT_BONUS: -1,
-    ABSURD_MIN_BONUS: 5,
-    ABSURD_MAX_BONUS: 15,
+    /** DC surcharge per property the target lacks but could conceivably have. */
+    UNSUITED_PER_MISSING_PROPERTY: 3,
   },
 
   // === AI ===

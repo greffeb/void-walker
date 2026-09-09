@@ -504,6 +504,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
             total: result.diceRoll.difficulty,
             details: [],
             namedLines: [],
+            severity: 'compatible',
+            requiresCritical: false,
           })
         : null;
 

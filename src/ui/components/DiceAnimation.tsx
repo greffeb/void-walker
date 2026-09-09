@@ -66,7 +66,7 @@ export function DiceAnimation({
   // DC lines (filter zero-value lines)
   const dcLines = difficultyBreakdown.namedLines.filter(l => l.value !== 0);
 
-  // Roll bonus lines: stat + luck
+  // Roll bonus lines: stat only — LCK adds no number to the total (decision A3)
   const rollLines: DifficultyLine[] = [
     {
       labelKey: `stat.${diceResult.stat}` as StringKey,
@@ -74,13 +74,6 @@ export function DiceAnimation({
       category: 'bonus',
     },
   ];
-  if (diceResult.luckBonus > 0) {
-    rollLines.push({
-      labelKey: 'dice.roll.luck',
-      value: diceResult.luckBonus,
-      category: 'bonus',
-    });
-  }
 
   const effectiveDC = diceResult.difficulty;
   const displayTotal = diceResult.total > 20 ? '≥ 20' : String(diceResult.total);
@@ -123,11 +116,14 @@ export function DiceAnimation({
     statusText = t('dice.status.rolling');
     statusClass = 'dice-status--rolling';
   } else if (showResult && isCrit) {
-    statusText = 'Nat 20 !';
+    statusText = `Nat ${diceResult.natural} !`;
     statusClass = 'dice-status--crit';
   } else if (showResult && isFumble) {
     statusText = 'Nat 1...';
     statusClass = 'dice-status--fumble';
+  } else if (showResult && diceResult.fumbleNegated) {
+    statusText = t('dice.result.fumbleNegated');
+    statusClass = 'dice-status--fail';
   } else if (showResult && isSuccess) {
     statusText = `${diceResult.total} ≥ ${effectiveDC}`;
     statusClass = 'dice-status--success';

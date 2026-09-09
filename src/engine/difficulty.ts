@@ -9,6 +9,7 @@ import type { VerbId } from './verbs';
 import { VERB_REGISTRY, AUTO_VERBS, VERB_STATS } from './verbs';
 import type { PropertyId } from './properties';
 import { checkCompatibility } from './compatibility';
+import type { ActionSeverity } from './compatibility';
 import { BALANCE } from './constants';
 import type {
   DifficultyBreakdown,
@@ -39,7 +40,6 @@ const DIFFICULTY_PRESET_MODS: Readonly<Record<DifficultyLevel, number>> = {
  *
  * - Different verb+target from all suggestions: DIFFERENT_FROM_SUGGESTIONS_BONUS (-2)
  * - Novel verb+target combo never seen: NOVEL_COMBO_BONUS (-1)
- * - Absurd but possible: ABSURD_BUT_POSSIBLE_BONUS (-3)
  */
 export function detectCreativity(
   action: ParsedAction,
@@ -69,17 +69,6 @@ export function detectCreativity(
   }
 
   return bonus;
-}
-
-/** Check if an action is absurd (incompatible verb+target with high penalty) */
-function isAbsurdAction(verb: VerbId, target: ResolvedTarget | null): boolean {
-  if (!target || target.source === 'abstract') return true;
-  const compat = checkCompatibility({
-    verbId: verb,
-    targetProps: target.properties,
-    playerToolProps: [],
-  });
-  return compat.difficultyPenalty >= BALANCE.CONTEXT_MODIFIERS.ABSURD_MIN_BONUS;
 }
 
 // === TARGET DISPOSITION ===
@@ -243,6 +232,8 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
       total: 0,
       details: ['Action automatique (DC 0)'],
       namedLines: [],
+      severity: 'compatible',
+      requiresCritical: false,
     };
   }
 
@@ -255,15 +246,23 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
 
   // Compatibility penalty
   let compatibilityPenalty = 0;
+  let requiresCritical = false;
+  let compatSeverity: ActionSeverity = 'compatible';
   if (input.target && input.target.source !== 'abstract') {
     const compat = checkCompatibility({
       verbId: input.verb,
       targetProps: input.target.properties,
       playerToolProps: input.tool?.properties ?? [],
+      targetState: input.target.state,
     });
     compatibilityPenalty = compat.difficultyPenalty;
+    requiresCritical = compat.requiresCritical;
+    compatSeverity = compat.severity;
     if (compatibilityPenalty > 0) {
       details.push(`Incompatibilité: +${compatibilityPenalty}${compat.failedClause ? ` (${compat.failedClause})` : ''}`);
+    }
+    if (requiresCritical) {
+      details.push(`Action absurde (${compat.nature}) : seul un critique peut la porter`);
     }
   }
 
@@ -333,11 +332,10 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     }
   }
 
-  // Absurd action check
-  if (isAbsurdAction(input.verb, input.target)) {
-    const absurdBonus = BALANCE.CREATIVITY.ABSURD_BUT_POSSIBLE_BONUS;
-    creativityMod += absurdBonus;
-    details.push(`Action absurde mais possible: ${absurdBonus}`);
+  // Absurd actions carry no DC surcharge: the critical requirement is the whole
+  // cost. Piling a penalty on top would punish the same thing twice.
+  if (requiresCritical) {
+    compatibilityPenalty = 0;
   }
 
   // Difficulty preset modifier
@@ -493,5 +491,7 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     total,
     details,
     namedLines,
+    severity: compatSeverity,
+    requiresCritical,
   };
 }

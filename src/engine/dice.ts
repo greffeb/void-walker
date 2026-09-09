@@ -1,8 +1,9 @@
 // ---------------------------------------------------------------------------
-// src/engine/dice.ts — Dice rolling, LCK bonus, outcome classification
+// src/engine/dice.ts — Dice rolling, LCK effects, outcome classification
 // ---------------------------------------------------------------------------
-// Foundation for all resolution: D20 + stat + random LCK vs DC.
-// All functions are pure with injectable RNG for testability.
+// Foundation for all resolution: D20 + stat vs DC.
+// LCK never adds to a total (decision A3): it widens the critical window and
+// can negate a natural 1. All functions are pure with injectable RNG.
 // ---------------------------------------------------------------------------
 
 import type { StatId, DiceResult, RollOutcome, RngFn } from './types';
@@ -19,31 +20,44 @@ export function rollD20(rng: RngFn = defaultRng): number {
 }
 
 /**
- * Roll a random LCK bonus from 0 to lck inclusive.
- * LCK is swingy: expected value = lck/2, preserving balance while adding variance.
- * LCK 0 always returns 0. LCK 3 returns 0, 1, 2, or 3 uniformly.
+ * Lowest natural roll that counts as a critical success.
+ * LCK 0 → 20 (only a nat 20). LCK 5 → 18.
  */
-export function rollLuckBonus(lck: number, rng: RngFn = defaultRng): number {
-  if (lck <= 0) return 0;
-  return Math.floor(rng() * (lck + 1));
+export function critThreshold(lck: number): number {
+  const widening = Math.floor(Math.max(0, lck) / BALANCE.LUCK.CRIT_WINDOW_DIVISOR);
+  return 20 - widening;
+}
+
+/**
+ * Roll LCK's chance to negate a bad extreme — a natural 1, or an incoming hit.
+ * Probability is lck / NEGATION_DENOMINATOR. LCK 0 never negates.
+ */
+export function rollLuckNegation(lck: number, rng: RngFn = defaultRng): boolean {
+  if (lck <= 0) return false;
+  return rng() < lck / BALANCE.LUCK.NEGATION_DENOMINATOR;
 }
 
 /**
  * Classify the outcome of a roll based on natural value and total vs DC.
- * Natural 20 = crit_success (regardless of total vs DC).
- * Natural 1 = crit_failure (regardless of total vs DC).
- * Otherwise success/failure based on total >= difficulty.
+ * A natural at or above `threshold` is a critical success regardless of total.
+ * A natural 1 is a critical failure unless LCK negated it.
  */
-export function classifyOutcome(natural: number, total: number, difficulty: number): RollOutcome {
-  if (natural === 20) return 'crit_success';
-  if (natural === 1) return 'crit_failure';
+export function classifyOutcome(
+  natural: number,
+  total: number,
+  difficulty: number,
+  threshold: number = 20,
+  fumbleNegated: boolean = false,
+): RollOutcome {
+  if (natural >= threshold) return 'crit_success';
+  if (natural === 1 && !fumbleNegated) return 'crit_failure';
   if (total >= difficulty) return 'success';
   return 'failure';
 }
 
 /**
- * Perform a full skill check: D20 + statValue + randomLCK + modifier vs DC.
- * Returns a complete DiceResult.
+ * Perform a full skill check: D20 + statValue + modifier vs DC.
+ * LCK is spent on the crit window and on negating a natural 1, never on the total.
  */
 export function rollCheck(
   stat: StatId,
@@ -52,24 +66,42 @@ export function rollCheck(
   difficulty: number,
   modifier: number = 0,
   rng: RngFn = defaultRng,
+  requiresCritical: boolean = false,
 ): DiceResult {
   const natural = rollD20(rng);
-  const luckBonus = rollLuckBonus(lck, rng);
-  const total = natural + statValue + luckBonus + modifier;
-  const outcome = classifyOutcome(natural, total, difficulty);
+  const threshold = critThreshold(lck);
+  // Only consume RNG on the roll that can actually be negated, so a change of
+  // luck never shifts the rest of the sequence for an unrelated roll.
+  const fumbleNegated = natural === 1 && rollLuckNegation(lck, rng);
+  const total = natural + statValue + modifier;
+  const outcome = classifyOutcome(natural, total, difficulty, threshold, fumbleNegated);
+  const critical = outcome === 'crit_success';
 
   return {
     natural,
     stat,
     statValue,
-    luckBonus,
+    critThreshold: threshold,
+    fumbleNegated,
     modifier,
     total,
     difficulty,
-    success: outcome === 'crit_success' || outcome === 'success',
-    critical: natural === 20,
-    fumble: natural === 1,
+    // An absurd action can only be carried by a critical: the total is irrelevant.
+    success: requiresCritical ? critical : (critical || outcome === 'success'),
+    critical,
+    fumble: outcome === 'crit_failure',
   };
+}
+
+/**
+ * Read the verdict back off a completed roll.
+ * The only correct way to classify a DiceResult: it already carries the crit
+ * window, the fumble reprieve and any critical-only requirement.
+ */
+export function outcomeOf(roll: DiceResult): RollOutcome {
+  if (roll.critical) return 'crit_success';
+  if (roll.fumble) return 'crit_failure';
+  return roll.success ? 'success' : 'failure';
 }
 
 /**

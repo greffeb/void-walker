@@ -42,8 +42,8 @@ function makeNpc(overrides: Partial<CombatNPCState> = {}): CombatNPCState {
 
 function makeDice(overrides: Partial<DiceResult> = {}): DiceResult {
   return {
-    natural: 15, stat: 'FOR', statValue: 3, luckBonus: 1,
-    modifier: 0, total: 19, difficulty: 13, success: true,
+    natural: 15, stat: 'FOR', statValue: 3, critThreshold: 20, fumbleNegated: false,
+    modifier: 0, total: 18, difficulty: 13, success: true,
     critical: false, fumble: false,
     ...overrides,
   };
@@ -235,45 +235,49 @@ describe('shouldNPCAttack', () => {
 describe('resolveNPCAttack', () => {
   it('NPC misses when roll too low', () => {
     // NPC roll: floor(0.05 * 20) + 1 = 2, total = 2 + 4 = 6
-    // Player defense: 10 + 3 + 3 + luckBonus(rng=0.5, LCK=2 → floor(0.5*3)=1) = 17
+    // Player defense: 10 + AGI 3 + DEF 3 = 16 — LCK adds nothing (decision A3)
     const rng = sequenceRng([0.05, 0.5]);
     const result = resolveNPCAttack(4, 'aggressive', 15, 15, makeStats(), 0, 1.0, rng);
     expect(result.hit).toBe(false);
   });
 
   it('NPC hits when roll high enough', () => {
-    // NPC roll: floor(0.95 * 20) + 1 = 20, total = 20 + 4 = 24
-    // Player defense: 10 + 3 + 3 + luck(0→0) = 16
-    // 24 > 16 → hit
-    // Passive dodge: AGI 3 >= 3 → check, rng 0.99 → no dodge
-    const rng = sequenceRng([0.95, 0, 0.99]);
+    // NPC roll: 20, total 24 > defense 16
+    // Luck negation: 0.99 >= LCK 2 / 20 → no reprieve. Passive dodge: 0.99 → no dodge.
+    const rng = sequenceRng([0.95, 0.99, 0.99]);
     const result = resolveNPCAttack(4, 'aggressive', 15, 15, makeStats(), 0, 1.0, rng);
     expect(result.hit).toBe(true);
     expect(result.damageDealt).toBeGreaterThan(0);
   });
 
+  it('LCK can negate an otherwise landed hit', () => {
+    // Same roll, but the negation draw lands under LCK 2 / 20 = 0.10
+    const rng = sequenceRng([0.95, 0.05, 0.99]);
+    const result = resolveNPCAttack(4, 'aggressive', 15, 15, makeStats(), 0, 1.0, rng);
+    expect(result.hit).toBe(false);
+    expect(result.dodged).toBe(true);
+  });
+
   it('armor reduces damage', () => {
-    // NPC roll: 20, total = 24
-    // Player def: 10 + 3 + 3 + 0 = 16
-    // damage = max(1, 4 - 3 - 2) = max(1, -1) = 1
-    const rng = sequenceRng([0.95, 0, 0.99]);
+    // damage = max(1, 4 - DEF 3 - armor 2) = 1
+    const rng = sequenceRng([0.95, 0.99, 0.99]);
     const result = resolveNPCAttack(4, 'aggressive', 15, 15, makeStats(), 2, 1.0, rng);
     expect(result.damageDealt).toBe(1);
   });
 
   it('berserk bonus increases damage', () => {
     // Berserk at 50% HP = +2 bonus
-    const rng = sequenceRng([0.95, 0, 0.99]);
+    const rng = sequenceRng([0.95, 0.99, 0.99]);
     const result = resolveNPCAttack(4, 'berserk', 10, 20, makeStats({ DEF: 0, AGI: 0 }), 0, 1.0, rng);
     expect(result.berserkBonus).toBe(2);
     expect(result.damageDealt).toBeGreaterThanOrEqual(4 + 2); // attack + berserk
   });
 
   it('difficulty multiplier scales damage', () => {
-    const rng1 = sequenceRng([0.95, 0, 0.99]);
+    const rng1 = sequenceRng([0.95, 0.99, 0.99]);
     const normal = resolveNPCAttack(4, 'aggressive', 15, 15, makeStats({ DEF: 0, AGI: 0, LCK: 0 }), 0, 1.0, rng1);
 
-    const rng2 = sequenceRng([0.95, 0, 0.99]);
+    const rng2 = sequenceRng([0.95, 0.99, 0.99]);
     const nightmare = resolveNPCAttack(4, 'aggressive', 15, 15, makeStats({ DEF: 0, AGI: 0, LCK: 0 }), 0, 1.5, rng2);
 
     expect(nightmare.damageDealt).toBeGreaterThan(normal.damageDealt);

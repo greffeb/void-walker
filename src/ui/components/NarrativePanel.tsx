@@ -305,7 +305,7 @@ function TurnCard({ entry }: { readonly entry: TurnEntry }): JSX.Element {
         const dr = entry.diceRoll;
         const bonusParts: string[] = [];
         if (dr.statValue !== 0) bonusParts.push(`${dr.stat}(${dr.statValue > 0 ? '+' : ''}${dr.statValue})`);
-        if (dr.luckBonus !== 0) bonusParts.push(`LCK(${dr.luckBonus > 0 ? '+' : ''}${dr.luckBonus})`);
+        if (dr.fumbleNegated) bonusParts.push('LCK(nat 1 annulé)');
         if (dr.modifier !== 0) bonusParts.push(`${dr.modifier > 0 ? '+' : ''}${dr.modifier}`);
         const bonusStr = bonusParts.length > 0 ? ' ' + bonusParts.join(' ') : '';
         return (

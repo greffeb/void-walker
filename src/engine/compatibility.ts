@@ -5,11 +5,16 @@
 import type { PropertyId } from './properties';
 import type { EntityState } from './entityState';
 import { matchesState } from './entityState';
+import type { Nature } from './nature';
+import { natureOf, canBear } from './nature';
 import type { VerbId } from './verbs';
 import { VERB_REGISTRY, AUTO_VERBS } from './verbs';
 import { BALANCE } from './constants';
 
 // === TYPES ===
+
+/** How far the target is from what the verb needs (decision F) */
+export type ActionSeverity = 'compatible' | 'unsuited' | 'absurd';
 
 /** Input to the compatibility checker */
 export interface CompatibilityInput {
@@ -26,23 +31,47 @@ export interface CompatibilityResult {
   readonly toolBlocking: boolean;
   readonly difficultyPenalty: number;
   readonly failedClause: string | null;
+  readonly severity: ActionSeverity;
+  /** True when only a critical can carry the action — never an outright refusal. */
+  readonly requiresCritical: boolean;
+  readonly nature: Nature;
 }
 
 // === CONSTANTS ===
 
-const INCOMPATIBLE_PROPS_PENALTY = 5;
 const MISSING_TOOL_PENALTY = 5;
 
 // === CHECKER ===
 
+/** The clause the target is closest to satisfying, and what it still lacks. */
+function nearestClause(
+  clauses: readonly (readonly PropertyId[])[],
+  targetSet: ReadonlySet<PropertyId>,
+): readonly PropertyId[] {
+  let best: readonly PropertyId[] = [];
+  let bestCount = Number.POSITIVE_INFINITY;
+
+  for (const clause of clauses) {
+    const missing = clause.filter(prop => !targetSet.has(prop));
+    if (missing.length < bestCount) {
+      bestCount = missing.length;
+      best = missing;
+      if (bestCount === 0) break;
+    }
+  }
+
+  return best;
+}
+
 /**
  * Checks whether a verb can be applied to a target given the player's tools.
- * Never throws — always returns a valid result.
+ * Never throws, and never refuses — an inconceivable action becomes one that
+ * only a critical can carry.
  *
  * - compatible: true if all property requirements AND tool requirements are met
  * - auto: true if the verb requires no dice roll
  * - toolBlocking: true if the verb requires a tool the player doesn't have
- * - difficultyPenalty: additional DC penalty for incompatible actions (0 if compatible)
+ * - difficultyPenalty: DC surcharge, proportional to how much the target lacks
  * - failedClause: human-readable description of what failed (null if compatible)
  */
 export function checkCompatibility(input: CompatibilityInput): CompatibilityResult {
@@ -51,31 +80,27 @@ export function checkCompatibility(input: CompatibilityInput): CompatibilityResu
   const isAuto = AUTO_VERBS.has(input.verbId);
   const targetSet = new Set(input.targetProps);
   const toolSet = new Set(input.playerToolProps);
+  const nature = natureOf(input.targetProps);
 
   const { targetProps: clauses, requiredToolProp, requiredState } = verb.requirements;
 
   // Check target property requirements (OR between clauses, AND within)
-  let propsSatisfied = false;
+  const missing = clauses.length === 0 ? [] : nearestClause(clauses, targetSet);
+  let propsSatisfied = missing.length === 0;
+  let severity: ActionSeverity = 'compatible';
   let failedClause: string | null = null;
 
-  if (clauses.length === 0) {
-    propsSatisfied = true;
-  } else {
-    for (const clause of clauses) {
-      if (clause.every((prop: PropertyId) => targetSet.has(prop))) {
-        propsSatisfied = true;
-        break;
-      }
-    }
-    if (!propsSatisfied) {
-      failedClause = clauses.map((c: readonly PropertyId[]) => c.join('+')).join(' OR ');
-    }
+  if (!propsSatisfied) {
+    failedClause = clauses.map((c: readonly PropertyId[]) => c.join('+')).join(' OR ');
+    const conceivable = missing.every(prop => canBear(input.targetProps, prop, nature));
+    severity = conceivable ? 'unsuited' : 'absurd';
   }
 
   // Wrong state is a different failure from wrong nature: unlocking an already
   // unlocked door is pointless, not absurd.
   if (propsSatisfied && requiredState !== undefined && !matchesState(input.targetState ?? {}, requiredState)) {
     propsSatisfied = false;
+    severity = 'unsuited';
     failedClause = Object.entries(requiredState).map(([axis, value]) => `${axis}=${String(value)}`).join('+');
   }
 
@@ -85,8 +110,10 @@ export function checkCompatibility(input: CompatibilityInput): CompatibilityResu
   const compatible = propsSatisfied && !toolBlocking;
   let penalty = 0;
 
-  if (!propsSatisfied) {
-    penalty += INCOMPATIBLE_PROPS_PENALTY;
+  if (severity === 'unsuited') {
+    // Distance, not a flat verdict: one missing property is a stretch, three is a leap.
+    penalty += BALANCE.CONTEXT_MODIFIERS.UNSUITED_PER_MISSING_PROPERTY
+      * Math.max(1, missing.length);
   }
   if (toolBlocking) {
     penalty += MISSING_TOOL_PENALTY;
@@ -102,5 +129,8 @@ export function checkCompatibility(input: CompatibilityInput): CompatibilityResu
     toolBlocking,
     difficultyPenalty: penalty,
     failedClause,
+    severity,
+    requiresCritical: severity === 'absurd',
+    nature,
   };
 }

@@ -68,10 +68,8 @@ export function useDiceAnimation({
   // Filtered DC lines (only non-zero values)
   const filteredDcLines = difficultyBreakdown?.namedLines.filter(l => l.value !== 0) ?? [];
 
-  // Roll bonus lines count: stat value + luck (if non-zero)
-  const rollLineCount = diceResult
-    ? (diceResult.luckBonus > 0 ? 2 : 1)
-    : 0;
+  // Roll bonus lines count: the stat only — LCK contributes no number (decision A3)
+  const rollLineCount = diceResult ? 1 : 0;
 
   const handleSkipTap = useCallback(() => {
     if (!canSkip || phase === 'idle' || phase === 'result') return;
@@ -169,8 +167,9 @@ export function useDiceAnimation({
 
       if (cancelled) return;
 
-      // NAT 20 or NAT 1 — skip Act 4
-      if (result.natural === 20 || result.natural === 1) {
+      // Critical either way — skip Act 4. A natural 1 negated by LCK is an
+      // ordinary failure and keeps its decomposition.
+      if (result.critical || result.fumble) {
         haptic(80);
         setShowResult(true);
         setPhase('result');
@@ -182,7 +181,7 @@ export function useDiceAnimation({
 
       // === ACT 4: Roll bonus lines ===
       setPhase('roll_lines');
-      const bonusLineCount = result.luckBonus > 0 ? 2 : 1;
+      const bonusLineCount = 1;
       for (let i = 0; i < bonusLineCount; i++) {
         await delay(TIMING.LINE_DELAY);
         if (cancelled) return;

@@ -873,14 +873,14 @@ export type StringKey =
   | 'dice.modifier.shipMemory'
   // --- Dice roll UI — structural labels ---
   | 'dice.dc.toBeat'
-  | 'dice.roll.luck'
   | 'dice.roll.total'
   | 'dice.status.rolling'
   // --- Dice roll UI — results ---
   | 'dice.result.success'
   | 'dice.result.failure'
   | 'dice.result.critSuccess'
-  | 'dice.result.critFailure';
+  | 'dice.result.critFailure'
+  | 'dice.result.fumbleNegated';
 
 /** A locale translation record — maps every StringKey to its translated string */
 export type LocaleStrings = Readonly<Record<StringKey, string>>;

@@ -4,6 +4,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { checkCompatibility } from '../../../src/engine/compatibility';
+import type { PropertyId } from '../../../src/engine/properties';
 import { BALANCE } from '../../../src/engine/constants';
 
 describe('checkCompatibility()', () => {
@@ -18,14 +19,14 @@ describe('checkCompatibility()', () => {
     expect(result.auto).toBe(false);
   });
 
-  test('HACK on non-electronic target: INCOMPATIBLE with penalty', () => {
+  test('HACK on non-electronic target: INCOMPATIBLE', () => {
     const result = checkCompatibility({
       verbId: 'HACK',
       targetProps: ['tangible', 'visible'],
       playerToolProps: [],
     });
     expect(result.compatible).toBe(false);
-    expect(result.difficultyPenalty).toBeGreaterThanOrEqual(5);
+    expect(result.requiresCritical).toBe(true);
   });
 
   test('THROW on liftable target: COMPATIBLE via first OR clause', () => {
@@ -103,14 +104,14 @@ describe('checkCompatibility()', () => {
     expect(result.compatible).toBe(true);
   });
 
-  test('TALK on non-sentient target: INCOMPATIBLE with penalty', () => {
+  test('TALK on non-sentient target: INCOMPATIBLE', () => {
     const result = checkCompatibility({
       verbId: 'TALK',
       targetProps: ['tangible', 'metallic'],
       playerToolProps: [],
     });
     expect(result.compatible).toBe(false);
-    expect(result.difficultyPenalty).toBeGreaterThan(0);
+    expect(result.severity).toBe('absurd');
   });
 
   test('incompatible penalty never exceeds max', () => {
@@ -169,6 +170,91 @@ describe('checkCompatibility()', () => {
     });
     expect(result.compatible).toBe(false);
     expect(result.toolBlocking).toBe(true);
-    expect(result.difficultyPenalty).toBe(10); // 5 + 5
+    // one missing property (3) + missing tool (5)
+    expect(result.difficultyPenalty).toBe(8);
+  });
+});
+
+// === DECISION F: THE THREE DEGREES ===
+
+describe('action severity', () => {
+  const DOOR: readonly PropertyId[] =
+    ['tangible', 'visible', 'openable', 'lockable', 'mechanical', 'breakable', 'metallic'];
+  const CORPSE: readonly PropertyId[] = ['tangible', 'visible', 'dead', 'organic', 'heavy'];
+  const ROBOT: readonly PropertyId[] =
+    ['tangible', 'visible', 'robotic', 'electronic', 'mechanical', 'metallic'];
+
+  test('a satisfied clause is compatible and costs nothing', () => {
+    const result = checkCompatibility({ verbId: 'OPEN', targetProps: DOOR, playerToolProps: [] });
+    expect(result.severity).toBe('compatible');
+    expect(result.difficultyPenalty).toBe(0);
+    expect(result.requiresCritical).toBe(false);
+  });
+
+  test('eating a corpse is unsuited, not absurd — a body could be edible', () => {
+    const result = checkCompatibility({ verbId: 'EAT', targetProps: CORPSE, playerToolProps: [] });
+    expect(result.severity).toBe('unsuited');
+    expect(result.requiresCritical).toBe(false);
+    expect(result.difficultyPenalty).toBeGreaterThan(0);
+  });
+
+  test('eating a door is absurd — and still allowed, on a critical', () => {
+    const result = checkCompatibility({ verbId: 'EAT', targetProps: DOOR, playerToolProps: [] });
+    expect(result.severity).toBe('absurd');
+    expect(result.requiresCritical).toBe(true);
+  });
+
+  test('seducing a robot is unsuited: something about it is already a being', () => {
+    const result = checkCompatibility({ verbId: 'SEDUCE', targetProps: ROBOT, playerToolProps: [] });
+    expect(result.severity).toBe('unsuited');
+  });
+
+  test('seducing a door is absurd: nothing about it is a being', () => {
+    const result = checkCompatibility({ verbId: 'SEDUCE', targetProps: DOOR, playerToolProps: [] });
+    expect(result.severity).toBe('absurd');
+  });
+
+  test('an absurd action carries no DC surcharge — the critical is the cost', () => {
+    const result = checkCompatibility({ verbId: 'EAT', targetProps: DOOR, playerToolProps: [] });
+    expect(result.difficultyPenalty).toBe(0);
+  });
+
+  test('the penalty grows with the number of missing properties', () => {
+    // HACK wants electronic AND secured.
+    const one = checkCompatibility({
+      verbId: 'HACK', targetProps: ['tangible', 'electronic'], playerToolProps: [],
+    });
+    const two = checkCompatibility({
+      verbId: 'HACK', targetProps: ['tangible', 'programmable'], playerToolProps: [],
+    });
+    expect(one.severity).toBe('unsuited');
+    expect(two.severity).toBe('unsuited');
+    expect(two.difficultyPenalty).toBeGreaterThan(one.difficultyPenalty);
+    expect(one.difficultyPenalty).toBe(BALANCE.CONTEXT_MODIFIERS.UNSUITED_PER_MISSING_PROPERTY);
+  });
+
+  test('the nearest clause wins: distance is measured on the closest reading', () => {
+    // REPAIR accepts mechanical OR electronic; a door satisfies the first outright.
+    const result = checkCompatibility({ verbId: 'REPAIR', targetProps: DOOR, playerToolProps: [] });
+    expect(result.severity).toBe('compatible');
+  });
+
+  test('a wrong state is unsuited, never absurd', () => {
+    // FORCE_OPEN wants an openable target that is locked; this one is open.
+    const result = checkCompatibility({
+      verbId: 'FORCE_OPEN',
+      targetProps: DOOR,
+      playerToolProps: [],
+      targetState: { openness: 'open', lock: 'unlocked' },
+    });
+    expect(result.severity).toBe('unsuited');
+    expect(result.requiresCritical).toBe(false);
+  });
+
+  test('reports the nature it judged on', () => {
+    expect(checkCompatibility({ verbId: 'OPEN', targetProps: DOOR, playerToolProps: [] }).nature)
+      .toBe('machine');
+    expect(checkCompatibility({ verbId: 'OPEN', targetProps: CORPSE, playerToolProps: [] }).nature)
+      .toBe('organic');
   });
 });

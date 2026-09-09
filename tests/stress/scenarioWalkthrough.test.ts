@@ -49,9 +49,13 @@ const TARGET = {
 /**
  * Measured baseline. The run is fully seeded, so these are exact.
  * Ratchet rule: tighten these as fixes land, never loosen them.
+ *
+ * Loosened once, deliberately, for decision A3: LCK stopped adding to roll
+ * totals, which removes an average +1 from every check in the game. The cost
+ * is paid back by the crit window and the natural-1 reprieve, not by the DC.
  */
 const BASELINE = {
-  maxStuck: 214,
+  maxStuck: 220,
   maxTimeouts: 0,
   minVictories: 0,
 } as const;

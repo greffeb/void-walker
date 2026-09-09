@@ -893,13 +893,13 @@ export const en: LocaleStrings = {
   'dice.modifier.creative':          'Creative',
   'dice.modifier.shipMemory':        'Ship memory',
   'dice.dc.toBeat':                  'To beat',
-  'dice.roll.luck':                  'Luck',
   'dice.roll.total':                 'Total',
   'dice.status.rolling':             'Rolling D20…',
   'dice.result.success':             'SUCCESS',
   'dice.result.failure':             'FAILURE',
   'dice.result.critSuccess':         'CRITICAL!',
   'dice.result.critFailure':         'FUMBLE!',
+  'dice.result.fumbleNegated':       'Nat 1 — luck spares you',
 
   // Grammar — English has no gendered articles; articles are computed from the word ('a'/'an').
   // These empty objects are intentional: the narration layer falls back to 'a' for unknown keys.

@@ -341,7 +341,10 @@ export interface DiceResult {
   readonly natural: number;
   readonly stat: StatId;
   readonly statValue: number;
-  readonly luckBonus: number;
+  /** Lowest natural that crits, widened by LCK. 20 when LCK is 0. */
+  readonly critThreshold: number;
+  /** True when LCK demoted a natural 1 from critical failure to plain failure. */
+  readonly fumbleNegated: boolean;
   readonly modifier: number;
   readonly total: number;
   readonly difficulty: number;
@@ -591,6 +594,10 @@ export interface DifficultyBreakdown {
   readonly details: readonly string[];
   /** Named lines for the dice choreography UI. Populated by calculateDifficulty(). */
   readonly namedLines: readonly DifficultyLine[];
+  /** How far the target is from what the verb needs (decision F). */
+  readonly severity: import('./compatibility').ActionSeverity;
+  /** True when only a critical can carry the action. */
+  readonly requiresCritical: boolean;
 }
 
 /** Input to the difficulty calculator */
