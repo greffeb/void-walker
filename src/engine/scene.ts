@@ -471,13 +471,20 @@ function resolveDisplayName(i18nKey: string, id: string): string {
 function itemDefToResolvedTarget(id: string, scenarioDef?: ItemDefinition): ResolvedTarget {
   const def = ITEM_DEFINITIONS[id];
   if (def) {
+    // Decision AA: the two registries merge instead of one silently winning.
+    // The generic entry gives the type and the i18n keys; a scenario placing it
+    // may still add its own aliases and properties.
+    const enriched = scenarioDef !== undefined && isEnrichedItem(scenarioDef) ? scenarioDef : undefined;
     const frName = t(def.nameKey).toLowerCase();
-    const aliases = [id, frName, ...parseAliases(def.aliasesKey)];
+    const aliases = [
+      id, frName, ...parseAliases(def.aliasesKey),
+      ...(enriched?.aliases ? enriched.aliases[getLocale()] : []),
+    ];
     const properties = resolveProperties({
       objectCategory: 'item',
       baseType: def.type,
-      extra_props: def.extra_props,
-      remove_props: def.remove_props,
+      extra_props: [...def.extra_props, ...(enriched?.extraProperties ?? [])],
+      remove_props: [...(def.remove_props ?? []), ...(enriched?.removeProperties ?? [])],
     });
     return { id, nameKey: def.nameKey, properties, isVirtual: false, source: 'location', aliases };
   }
@@ -580,12 +587,19 @@ function featureDefToInstance(
   // 1. Check content registry first
   const def = ENVIRONMENT_FEATURE_DEFINITIONS[id];
   if (def) {
+    // Decision AA: merge, do not override. A scenario placing a generic feature
+    // may still add aliases and properties of its own.
+    const enriched = scenarioDef !== undefined && isEnrichedFeature(scenarioDef) ? scenarioDef : undefined;
     const frName = t(def.nameKey).toLowerCase();
-    const aliases = [id, frName, ...parseAliases(def.aliasesKey)];
+    const aliases = [
+      id, frName, ...parseAliases(def.aliasesKey),
+      ...(enriched?.aliases ? enriched.aliases[getLocale()] : []),
+    ];
     const properties = resolveProperties({
       objectCategory: 'environment',
       baseType: def.type,
-      extra_props: def.extra_props,
+      extra_props: [...def.extra_props, ...(enriched?.extraProperties ?? [])],
+      remove_props: enriched?.removeProperties ?? [],
     });
     return { id, definitionId: id, nameKey: def.nameKey, aliases, properties, state: currentState };
   }

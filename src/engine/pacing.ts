@@ -27,6 +27,7 @@ import {
   fillMicroModuleSlots,
   buildMicroModuleNodes,
 } from './microModules';
+import { dedupeGraphEntities } from './registryCheck';
 
 // ---------------------------------------------------------------------------
 // CONSTANTS
@@ -519,11 +520,12 @@ export function assembleScenario(
     placedMicroModules, skeleton, graph.nodes, rng, usedNames,
   );
 
-  // 8. Merge micro-module nodes/edges into the main graph
-  const mergedGraph: LocationGraph = {
+  // 8. Merge micro-module nodes/edges into the main graph, then make sure no
+  // name resolves to two different things (decision AA).
+  const mergedGraph: LocationGraph = dedupeGraphEntities({
     nodes: [...graph.nodes, ...mmGraph.nodes],
     edges: [...graph.edges, ...mmGraph.edges],
-  };
+  });
 
   return {
     skeleton,

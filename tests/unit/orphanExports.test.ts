@@ -30,6 +30,7 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   NATURES: 'runtime mirror of a union type, test-only',
   PROPERTY_FAMILIES: 'runtime mirror of a union type, test-only',
   findUnclassifiedProperties: 'guard asserting PROPERTY_FAMILY stays total',
+  findRegistryConflicts: 'guard asserting the shipped content has one namespace',
 
   // --- Durability: the whole Phase 3 module (deliverables 4-6) is never called.
   // Items never break on a fumble, improvised weapons never degrade, and the

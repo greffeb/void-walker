@@ -64,13 +64,15 @@ const TARGET = {
  *    progress, including on features that ARE the location's gate. They are
  *    checks now, so `obstaclesResolved` measures real resolutions for the first
  *    time. The old 0.73 counted bypasses.
+ *  - Lot 4: the world reacts and the player survives it. Defeats keep falling
+ *    (286 → 254), and a run that does not end in death ends in wandering.
  */
 const BASELINE = {
-  maxStuck: 244,
+  maxStuck: 246,
   maxTimeouts: 0,
   minVictories: 0,
   /** Progression, which early death can only ever lower. */
-  minAvgObstaclesResolved: 0.64,
+  minAvgObstaclesResolved: 0.66,
   minAvgLocationCoverage: 0.66,
 } as const;
 
