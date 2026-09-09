@@ -6,13 +6,13 @@
 // ---------------------------------------------------------------------------
 
 import type {
-  GameState, PlayerClassName, DifficultyLevel, RngFn, CharacterState,
+  GameState, PlayerClassName, DifficultyLevel, RngFn, CharacterState, StoryBeat,
 } from './types';
 import type { AssembledScenario } from './scenario';
 import type { EntityState, DispositionState } from './entityState';
 import { makeEntityState } from './entityState';
 import type { LocationState } from './locationState';
-import { locationStateFromAtmosphere } from './locationState';
+import { locationStateFromAtmosphere, isLethalLocation, isEstablishedLethal } from './locationState';
 import type { VictoryCheckContext, NpcState } from './victory';
 import { createInitialGameState } from './types';
 import { createThreatDirector } from './threat';
@@ -198,20 +198,44 @@ export function isGameOver(state: GameState): boolean {
  * (lethalLocations, activatedObjects, etc.) that the existing victory system
  * already understands.
  */
+/**
+ * The furthest point the story has reached. A player who walks back from the
+ * escalation node has not un-escalated the situation, so the emergent §5.2 gate
+ * reads this rather than the beat of the room they happen to stand in.
+ */
+function furthestBeatReached(state: GameState): StoryBeat {
+  const BEAT_ORDER: readonly StoryBeat[] = [
+    'intro', 'rising', 'midpoint', 'escalation', 'climax', 'resolution',
+  ];
+  let best = BEAT_ORDER.indexOf(state.currentBeat);
+  for (const node of state.scenario?.graph.nodes ?? []) {
+    if (!node.isCoreNode) continue;
+    if (state.visitedLocations[node.id] === undefined) continue;
+    best = Math.max(best, BEAT_ORDER.indexOf(node.beat));
+  }
+  return BEAT_ORDER[Math.max(0, best)]!;
+}
+
 export function buildVictoryCheckContext(state: GameState): VictoryCheckContext {
   const baseLethal = [...state.lethalLocations];
+  const establishedLethal: string[] = [];
   const baseContained = [...state.fullyContainedLocations];
   const baseActivated = [...state.activatedObjects];
   let selfDestruct = state.selfDestructActive;
 
-  // Map scenario flags to mechanical effects (C3-7)
-  if (state.scenarioFlags && state.scenarioId) {
-    const flagEffects = mapScenarioFlags(state.scenarioFlags, state.scenarioId);
-    baseLethal.push(...flagEffects.lethalLocations);
-    baseContained.push(...flagEffects.fullyContainedLocations);
-    baseActivated.push(...flagEffects.activatedObjects);
-    if (flagEffects.selfDestructActive) selfDestruct = true;
+  // A room is deadly because its state says so, not because a flag says it
+  // should be (decision Y). The engine reads the world, not scenario vocabulary.
+  for (const [locationId, locationState] of Object.entries(state.locationStates)) {
+    if (!isLethalLocation(locationState)) continue;
+    baseLethal.push(locationId);
+    if (isEstablishedLethal(locationState, state.turn)) establishedLethal.push(locationId);
   }
+
+  // What the skeleton itself declared its flags to mean
+  const flagEffects = mapScenarioFlags(state.scenarioFlags, state.scenario?.skeleton.flagEffects);
+  baseContained.push(...flagEffects.fullyContainedLocations);
+  baseActivated.push(...flagEffects.activatedObjects);
+  if (flagEffects.selfDestructActive) selfDestruct = true;
 
   return {
     playerLocationId: state.playerLocationId ?? '',
@@ -219,8 +243,10 @@ export function buildVictoryCheckContext(state: GameState): VictoryCheckContext 
     npcStates: state.npcStates,
     activatedObjects: baseActivated,
     lethalLocations: baseLethal,
+    establishedLethalLocations: establishedLethal,
     fullyContainedLocations: baseContained,
     destroyedObjectives: state.destroyedObjectives,
     selfDestructActive: selfDestruct,
+    beat: furthestBeatReached(state),
   };
 }

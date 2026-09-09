@@ -25,6 +25,8 @@ export interface LocationState {
   readonly air?: AirState;
   /** Turn the fire started, so it can spread on a delay rather than instantly. */
   readonly fireSince?: number;
+  /** Turn the room turned deadly, so an emergent kill cannot be same-turn. */
+  readonly lethalSince?: number;
 }
 
 /** Every token content or consequences may write. */
@@ -55,6 +57,15 @@ export function applyLocationToken(
   token: LocationStateId,
   turn = 0,
 ): LocationState {
+  const next = writeAxis(state, token, turn);
+  const wasLethal = isLethalLocation(state);
+  const isNow = isLethalLocation(next);
+  if (isNow && !wasLethal) return { ...next, lethalSince: turn };
+  if (!isNow && wasLethal) return { ...next, lethalSince: undefined };
+  return next;
+}
+
+function writeAxis(state: LocationState, token: LocationStateId, turn: number): LocationState {
   switch (token) {
     case 'pressurized':
       return { ...state, pressure: 'pressurized' };
@@ -99,6 +110,17 @@ export function deriveConditions(state: LocationState): EnvironmentCondition[] {
 /** True when the location is lethal to an unprotected player. */
 export function isLethalLocation(state: LocationState): boolean {
   return state.pressure === 'depressurized' || state.fire === 'burning';
+}
+
+/**
+ * True when the room has been deadly long enough for an emergent kill to count.
+ * §5.2 safeguard, in two parts: a room that was *born* lethal is scenery, not a
+ * trap you set, and a trap must not spring on the turn it was armed.
+ */
+export function isEstablishedLethal(state: LocationState, turn: number): boolean {
+  if (!isLethalLocation(state)) return false;
+  if (state.lethalSince === undefined) return false;
+  return turn - state.lethalSince >= BALANCE.EMERGENT_VICTORY_MIN_TURNS;
 }
 
 /** Starting state of a location, from the atmosphere its node declares. */

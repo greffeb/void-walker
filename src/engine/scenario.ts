@@ -125,6 +125,21 @@ export type DefeatCondition =
 /** Boss encounter type */
 export type BossType = 'combat' | 'puzzle' | 'escape' | 'choice';
 
+/**
+ * What a scenario flag means mechanically (decision Y).
+ * Declared by the skeleton, never by the engine: `src/engine/` must not know
+ * that a flag is called `evidence_transmitted`.
+ */
+export interface ScenarioFlagEffect {
+  /** Every one of these flags must be set. */
+  readonly requiresAll: readonly string[];
+  /** ...and at least one of these, when the list is present. */
+  readonly requiresAny?: readonly string[];
+  readonly activatesObjects?: readonly string[];
+  readonly containsLocations?: readonly string[];
+  readonly triggersSelfDestruct?: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // CORE SKELETON
 // ---------------------------------------------------------------------------
@@ -162,6 +177,9 @@ export interface CoreSkeleton {
   readonly alternativeVictory: VictoryCondition;
   /** Optional extra emergent victory path */
   readonly emergentVictoryHint?: LocaleString;
+
+  /** What this scenario's flags mean mechanically (decision Y). */
+  readonly flagEffects?: readonly ScenarioFlagEffect[];
 
   /** Per-node location definitions (abstract roles, setting provides concrete names) */
   readonly nodeLocations: Readonly<Record<CoreNodeId, NodeLocationDef>>;

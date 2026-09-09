@@ -1736,6 +1736,15 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
   alternativeVictory: {
     type: 'self_destruct',
   },
+
+  flagEffects: [
+    { requiresAll: ['evidence_transmitted'], activatesObjects: ['emergency_beacon'] },
+    {
+      requiresAll: ['reactor_killed'],
+      requiresAny: ['shuttle_released', 'clamps_sabotaged'],
+      triggersSelfDestruct: true,
+    },
+  ],
   emergentVictoryHint: {
     fr: 'Le réseau de communications de la station peut amplifier le signal de la balise de 50 à 500 années-lumière — '
       + 'assez pour atteindre les autorités spatiales, les médias, et la flotte simultanément. '

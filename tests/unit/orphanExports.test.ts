@@ -31,9 +31,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   PROPERTY_FAMILIES: 'runtime mirror of a union type, test-only',
   findUnclassifiedProperties: 'guard asserting PROPERTY_FAMILY stays total',
 
-  // --- Decision V, scaffolding still waiting on decision Y.
-  isLethalLocation: 'Y — emergent victory must read world state, not flags',
-
   // --- Durability: the whole Phase 3 module (deliverables 4-6) is never called.
   // Items never break on a fumble, improvised weapons never degrade, and the
   // Engineer repair passive is unreachable.

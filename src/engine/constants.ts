@@ -116,6 +116,8 @@ export const BALANCE = {
   // === CONSEQUENCES ===
   MAX_CASCADE_DEPTH: 5,
   FIRE_SPREAD_DELAY: 3,
+  /** Turns a trap must have been armed before an emergent kill counts (§5.2). */
+  EMERGENT_VICTORY_MIN_TURNS: 1,
   /** Damage dealt to player on non-combat action failure */
   FAILURE_DAMAGE: 1,
   /** Damage dealt to player on non-combat critical failure */

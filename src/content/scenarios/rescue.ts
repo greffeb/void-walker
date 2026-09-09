@@ -1603,6 +1603,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
     type: 'reach_location',
     locationId: 'resolution',
   },
+
+  flagEffects: [
+    { requiresAll: ['creature_contained'], containsLocations: ['boss'] },
+  ],
   emergentVictoryHint: {
     fr: 'Le composant d\'emetteur sonique haute frequence, place au point de piege acoustique dans la baie d\'extraction, creerait une cage de resonance infranchissable pour la creature. Les parois acoustiques du laboratoire d\'Okonkwo amplifient le signal par un facteur 100. Il faut avoir compris la faiblesse sonore (via Okonkwo ou le terminal de recherche) ET avoir conserve le composant sans l\'utiliser sur la creature ou la balise. Le piege est permanent.',
     en: 'The sonic emitter component, placed at the acoustic trap point in the extraction bay, would create an impassable resonance cage. You need to have learned the sonic weakness AND kept the component unused.',

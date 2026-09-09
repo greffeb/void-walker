@@ -1,75 +1,61 @@
 // ---------------------------------------------------------------------------
-// src/engine/scenarioFlagMapper.ts — Chantier 3: Scenario flag → mechanic mapping
+// src/engine/scenarioFlagMapper.ts — Scenario flags → mechanical effects
 // ---------------------------------------------------------------------------
-// Converts abstract scenario flags into mechanical effects that existing
-// systems (victory, defeat) understand. Each skeleton defines its own mappings.
-// Pure function — no side effects.
+// Decision Y: the engine must not know that a flag is called
+// `cargo_jettisoned`. Each skeleton declares what its own flags mean, and this
+// module only reads that declaration. Pure function — no side effects.
 // ---------------------------------------------------------------------------
+
+import type { ScenarioFlagEffect } from './scenario';
 
 /**
  * Mechanical effects derived from scenario flags.
  * These are merged into VictoryCheckContext by buildVictoryCheckContext().
  */
 export interface FlagEffects {
-  readonly lethalLocations: readonly string[];
   readonly fullyContainedLocations: readonly string[];
   readonly activatedObjects: readonly string[];
   readonly selfDestructActive: boolean;
 }
 
 const EMPTY_EFFECTS: FlagEffects = {
-  lethalLocations: [],
   fullyContainedLocations: [],
   activatedObjects: [],
   selfDestructActive: false,
 };
 
+function isSatisfied(
+  effect: ScenarioFlagEffect,
+  flags: Readonly<Record<string, boolean>>,
+): boolean {
+  if (!effect.requiresAll.every(flag => flags[flag] === true)) return false;
+  if (effect.requiresAny === undefined) return true;
+  return effect.requiresAny.some(flag => flags[flag] === true);
+}
+
 /**
- * Map scenario flags to mechanical effects for the victory/defeat check.
- *
- * Each skeleton can define its own flag→effect mappings.
+ * Read the skeleton's own flag declarations into mechanical effects.
  * Called by buildVictoryCheckContext() each turn.
  *
- * @param flags      Current scenario flags (from GameState.scenarioFlags)
- * @param skeletonId Current skeleton ID (from GameState.scenarioId)
- * @returns Mechanical effects to merge into VictoryCheckContext
+ * Lethality is deliberately absent: a room kills because its state says so, not
+ * because a flag says it should. That is what locationStates is for.
  */
 export function mapScenarioFlags(
   flags: Readonly<Record<string, boolean>> | undefined,
-  skeletonId: string | null,
+  effects: readonly ScenarioFlagEffect[] | undefined,
 ): FlagEffects {
-  if (!flags || !skeletonId) return EMPTY_EFFECTS;
+  if (!flags || !effects || effects.length === 0) return EMPTY_EFFECTS;
 
-  const lethalLocations: string[] = [];
   const fullyContainedLocations: string[] = [];
   const activatedObjects: string[] = [];
   let selfDestructActive = false;
 
-  switch (skeletonId) {
-    case 'escape':
-      if (flags['cargo_jettisoned'] || flags['cargo_depressurized']) {
-        lethalLocations.push('boss');
-      }
-      break;
-
-    case 'investigate':
-      // Primary victory: evidence transmitted via beacon
-      if (flags['evidence_transmitted']) {
-        activatedObjects.push('emergency_beacon');
-      }
-      // Alternative victory: reactor killed + shuttle escape route
-      if (flags['reactor_killed'] && (flags['shuttle_released'] || flags['clamps_sabotaged'])) {
-        selfDestructActive = true;
-      }
-      break;
-
-    case 'rescue':
-      // Emergent victory: creature contained via sonic emitter + acoustic trap
-      if (flags['creature_contained']) {
-        fullyContainedLocations.push('boss');
-      }
-      break;
+  for (const effect of effects) {
+    if (!isSatisfied(effect, flags)) continue;
+    if (effect.containsLocations) fullyContainedLocations.push(...effect.containsLocations);
+    if (effect.activatesObjects) activatedObjects.push(...effect.activatesObjects);
+    if (effect.triggersSelfDestruct === true) selfDestructActive = true;
   }
 
-  return { lethalLocations, fullyContainedLocations, activatedObjects, selfDestructActive };
+  return { fullyContainedLocations, activatedObjects, selfDestructActive };
 }

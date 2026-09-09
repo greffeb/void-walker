@@ -24,9 +24,11 @@ function makeCtx(overrides: Partial<VictoryCheckContext> = {}): VictoryCheckCont
     npcStates: {},
     activatedObjects: [],
     lethalLocations: [],
+    establishedLethalLocations: [],
     fullyContainedLocations: [],
     destroyedObjectives: [],
     selfDestructActive: false,
+    beat: 'escalation',
     ...overrides,
   };
 }
@@ -143,6 +145,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
       playerLocationId: 'safe_room',
       npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } } },
       lethalLocations: ['cargo_bay'],
+      establishedLethalLocations: ['cargo_bay'],
     }))).toBe(true);
   });
 
@@ -152,6 +155,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
       playerLocationId: 'cargo_bay',
       npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } } },
       lethalLocations: ['cargo_bay'],
+      establishedLethalLocations: ['cargo_bay'],
     }))).toBe(false);
   });
 
@@ -170,6 +174,7 @@ describe('evaluateVictoryCondition — environmental_kill', () => {
       playerLocationId: 'safe_room',
       npcStates: { creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'dead' } } },
       lethalLocations: ['cargo_bay'],
+      establishedLethalLocations: ['cargo_bay'],
     }))).toBe(false);
   });
 });
@@ -277,6 +282,7 @@ describe('checkVictory', () => {
         creature_oracle: { id: 'creature_oracle', locationId: 'cargo_bay', state: { vitality: 'alive' } },
       },
       lethalLocations: ['cargo_bay'],
+      establishedLethalLocations: ['cargo_bay'],
     });
     const result = checkVictory(ctx, ESCAPE_SKELETON);
     // ESCAPE's alternativeVictory IS an environmental_kill — triggered as designed path → 'alternative'
@@ -297,6 +303,7 @@ describe('checkVictory', () => {
         boss_entity: { id: 'boss_entity', locationId: 'fire_room', state: { vitality: 'alive' } },
       },
       lethalLocations: ['fire_room'],
+      establishedLethalLocations: ['fire_room'],
     });
     const result = checkVictory(ctx, skeleton);
     expect(result?.type).toBe('emergent_environmental_kill');
@@ -340,6 +347,7 @@ describe('checkVictory', () => {
         creature_oracle: { id: 'creature_oracle', locationId: 'fire_room', state: { vitality: 'alive' } },
       },
       lethalLocations: ['fire_room'],
+      establishedLethalLocations: ['fire_room'],
     });
     const result = checkVictory(ctx, ESCAPE_SKELETON);
     expect(result?.type).toBe('primary');

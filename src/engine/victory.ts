@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type { CoreSkeleton, VictoryCondition, DefeatCondition, VictoryResult } from './scenario';
+import type { StoryBeat } from './types';
 
 // ---------------------------------------------------------------------------
 // NPC STATE — minimal view of an NPC needed for victory checks
@@ -42,6 +43,11 @@ export interface VictoryCheckContext {
   readonly activatedObjects: readonly string[];
   /** Location IDs currently lethally hazardous (depressurized, toxic, etc.) */
   readonly lethalLocations: readonly string[];
+  /**
+   * Lethal locations that were already lethal on a previous turn. §5.2: an
+   * emergent kill must not be the same action that armed the trap.
+   */
+  readonly establishedLethalLocations: readonly string[];
   /** Location IDs where ALL graph exits are currently sealed */
   readonly fullyContainedLocations: readonly string[];
   /** Key objective IDs that have been permanently destroyed */
@@ -51,7 +57,12 @@ export interface VictoryCheckContext {
    * the player has reached a safe zone. This encodes both triggers.
    */
   readonly selfDestructActive: boolean;
+  /** §5.2: no emergent victory before the story has escalated. */
+  readonly beat: StoryBeat;
 }
+
+/** Beats at which the ship is dangerous enough for an accident to end the story. */
+const EMERGENT_BEATS: ReadonlySet<StoryBeat> = new Set(['escalation', 'climax', 'resolution']);
 
 // ---------------------------------------------------------------------------
 // EVALUATE SINGLE VICTORY CONDITION
@@ -90,7 +101,7 @@ export function evaluateVictoryCondition(
       return (
         isNpcAlive(npc) && npc !== undefined &&
         npc.locationId !== null &&
-        ctx.lethalLocations.includes(npc.locationId) &&
+        ctx.establishedLethalLocations.includes(npc.locationId) &&
         // Player must not be in the same room (or they'd die too)
         ctx.playerLocationId !== npc.locationId
       );
@@ -167,13 +178,17 @@ export function checkVictory(
     return { type: 'alternative', skeletonId: skeleton.id };
   }
 
+  // 3-5. Emergent victories. §5.2: the ship only kills for you once the story
+  // has escalated, and never on the same turn the trap was armed.
+  if (!EMERGENT_BEATS.has(ctx.beat)) return null;
+
   // 3. Emergent: environmental kill
   // Any living entity in a lethal location (when player is not there) counts.
   for (const npc of Object.values(ctx.npcStates)) {
     if (
       isNpcAlive(npc) &&
       npc.locationId !== null &&
-      ctx.lethalLocations.includes(npc.locationId) &&
+      ctx.establishedLethalLocations.includes(npc.locationId) &&
       ctx.playerLocationId !== npc.locationId
     ) {
       return { type: 'emergent_environmental_kill', skeletonId: skeleton.id };

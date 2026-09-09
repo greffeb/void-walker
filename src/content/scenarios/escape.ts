@@ -1349,6 +1349,7 @@ const cargo_jettison_lever: ScenarioFeatureDefinition = {
           en: 'You rip off the safety cover and pull the lever with all your strength. A deafening rumble — the cargo bay doors open to the void. Everything is sucked out — including the creature. Its screams are lost in the silence of space.',
         },
         flagSet: 'cargo_jettisoned',
+        consequences: [{ type: 'environment_change', locationId: 'boss', locationState: 'depressurized' }],
       },
       onFailure: {
         narrative: {
@@ -1378,6 +1379,7 @@ const cargo_jettison_lever: ScenarioFeatureDefinition = {
             + 'Cargo bay doors open to the void. The creature screams — then silence.',
         },
         flagSet: 'cargo_jettisoned',
+        consequences: [{ type: 'environment_change', locationId: 'boss', locationState: 'depressurized' }],
       },
       onFailure: {
         narrative: {
@@ -1438,6 +1440,7 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
             + 'It takes longer. It\'s worse.',
         },
         flagSet: 'cargo_depressurized',
+        consequences: [{ type: 'environment_change', locationId: 'boss', locationState: 'depressurized' }],
       },
       onFailure: {
         narrative: {
@@ -1461,7 +1464,10 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
           en: 'You smash the panel. Exposed circuits short — triggering the breach protocol. The cargo bay depressurizes violently.',
         },
         flagSet: 'cargo_depressurized',
-        consequences: [{ type: 'damage', targetId: 'player', amount: 2 }],
+        consequences: [
+          { type: 'environment_change', locationId: 'boss', locationState: 'depressurized' },
+          { type: 'damage', targetId: 'player', amount: 2 },
+        ],
       },
       onFailure: {
         narrative: {
@@ -1776,6 +1782,10 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
     type: 'environmental_kill',
     entityId: 'creature_oracle',
   },
+
+  // Jettisoning the bay is not a flag the engine reads: it depressurizes the
+  // room, and the room does the rest (decision Y).
+  flagEffects: [],
   emergentVictoryHint: {
     fr: 'La soute possède un système de largage d\'urgence — un levier mécanique, '
       + 'pas de l\'électronique. Mais il y a aussi le panneau de contrôle des joints de coque : '
