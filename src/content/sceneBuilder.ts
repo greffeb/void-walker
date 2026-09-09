@@ -155,18 +155,6 @@ export function buildDefaultScene(): SceneContext {
 }
 
 /**
- * Build a scene with random environment conditions (dark, zero-g, time pressure).
- */
-export function buildChaosScene(): SceneContext {
-  const scene = buildDefaultScene();
-  const conditions: EnvironmentCondition[] = [];
-  if (Math.random() > 0.5) conditions.push('dark');
-  if (Math.random() > 0.7) conditions.push('zero_g');
-  if (Math.random() > 0.6) conditions.push('time_pressure');
-  return { ...scene, environmentConditions: conditions };
-}
-
-/**
  * Build a scene from specific inventory/location item IDs (for custom scenarios).
  */
 export function buildCustomScene(options: {

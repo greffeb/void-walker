@@ -5,12 +5,10 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildDefaultScene,
-  buildChaosScene,
   buildCustomScene,
   ITEM_LIST,
   NPC_LIST,
 } from '../../../src/content/sceneBuilder';
-import type { SceneContext } from '../../../src/engine/types';
 
 describe('buildDefaultScene', () => {
   it('returns a valid SceneContext', () => {
@@ -71,37 +69,6 @@ describe('buildDefaultScene', () => {
     const scene = buildDefaultScene();
     expect(scene.connectedLocations.length).toBe(3);
     expect(scene.connectedLocations[0]!.id).toBe('corridor_a');
-  });
-});
-
-describe('buildChaosScene', () => {
-  it('returns a valid SceneContext (possibly with environment conditions)', () => {
-    // Run several times to catch randomness
-    const scenes: SceneContext[] = [];
-    for (let i = 0; i < 20; i++) {
-      scenes.push(buildChaosScene());
-    }
-
-    for (const scene of scenes) {
-      expect(scene.inventory.length).toBeGreaterThan(0);
-      expect(scene.npcs.length).toBeGreaterThan(0);
-      // Conditions are from a known set
-      for (const cond of scene.environmentConditions) {
-        expect(['dark', 'zero_g', 'time_pressure']).toContain(cond);
-      }
-    }
-  });
-
-  it('eventually generates at least one condition', () => {
-    let hasConditions = false;
-    for (let i = 0; i < 100; i++) {
-      const scene = buildChaosScene();
-      if (scene.environmentConditions.length > 0) {
-        hasConditions = true;
-        break;
-      }
-    }
-    expect(hasConditions).toBe(true);
   });
 });
 

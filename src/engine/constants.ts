@@ -12,6 +12,13 @@ export const BALANCE = {
   MAX_DIFFICULTY: 25,
   ABSURD_DIFFICULTY_FLOOR: 23,
 
+  /** Multiplier applied to damage the player takes, per difficulty preset. */
+  DIFFICULTY_DAMAGE_MULTIPLIER: {
+    explorer: 0.5,
+    survivor: 1.0,
+    nightmare: 1.5,
+  } as const,
+
   // === STATS ===
   STAT_MIN: 0,
   STAT_MAX: 5,

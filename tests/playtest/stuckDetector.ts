@@ -1,45 +1,71 @@
 // ---------------------------------------------------------------------------
 // tests/playtest/stuckDetector.ts — Phase 6: Stuck detection for playtest bots
 // ---------------------------------------------------------------------------
-// Detects when a bot is stuck in the same location for too many turns.
+// Stuck means "no narrative progress", not "did not move": a bot ping-ponging
+// between two already-visited rooms makes no progress and must be caught.
 // ---------------------------------------------------------------------------
 
+import type { GameState } from '../../src/engine/types';
+
+/** Monotonic progression counters — both only ever increase during a run. */
+export interface ProgressSnapshot {
+  readonly locationsVisited: number;
+  readonly obstaclesResolved: number;
+}
+
+/** Read the current progression counters from a game state. */
+export function readProgress(state: GameState): ProgressSnapshot {
+  const visits = Object.values(state.visitedLocations);
+  let obstaclesResolved = 0;
+  for (const visit of visits) {
+    if (visit.obstacleResolved) obstaclesResolved++;
+  }
+  return { locationsVisited: visits.length, obstaclesResolved };
+}
+
+function hasProgressed(before: ProgressSnapshot, after: ProgressSnapshot): boolean {
+  return (
+    after.locationsVisited > before.locationsVisited ||
+    after.obstaclesResolved > before.obstaclesResolved
+  );
+}
+
 /**
- * Detects when a bot has been in the same location for N consecutive turns.
- * Used by the stress test runner to break infinite loops.
+ * Detects when a bot has made no narrative progress for N consecutive turns.
+ * Progress = reaching a new location OR resolving an obstacle.
  */
 export class StuckDetector {
-  private readonly history: string[] = [];
   private readonly threshold: number;
+  private last: ProgressSnapshot | null = null;
+  private turnsWithoutProgress = 0;
 
   constructor(threshold: number) {
     this.threshold = threshold;
   }
 
-  /** Record the player's current location this turn. */
-  update(locationId: string): void {
-    this.history.push(locationId);
-    if (this.history.length > this.threshold) {
-      this.history.shift();
+  /** Record this turn's progression counters. */
+  update(progress: ProgressSnapshot): void {
+    if (this.last !== null && !hasProgressed(this.last, progress)) {
+      this.turnsWithoutProgress++;
+    } else {
+      this.turnsWithoutProgress = 0;
     }
+    this.last = progress;
   }
 
-  /**
-   * Returns true if the bot has been in the same location for the full
-   * threshold duration without moving.
-   */
+  /** Returns true once the bot has stalled for the full threshold. */
   isStuck(): boolean {
-    if (this.history.length < this.threshold) return false;
-    return this.history.every(id => id === this.history[0]);
+    return this.turnsWithoutProgress >= this.threshold;
   }
 
-  /** Reset the detector (e.g. when the bot moves to a new location). */
+  /** Reset the detector (e.g. when entering a context where stalling is expected). */
   reset(): void {
-    this.history.length = 0;
+    this.last = null;
+    this.turnsWithoutProgress = 0;
   }
 
-  /** How many turns have been recorded so far. */
-  get recordedTurns(): number {
-    return this.history.length;
+  /** Consecutive turns without progress. */
+  get turnsSinceProgress(): number {
+    return this.turnsWithoutProgress;
   }
 }

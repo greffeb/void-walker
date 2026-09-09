@@ -15,7 +15,7 @@ import type {
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import { getFeatureState, hasScenarioFlag } from './featureState';
 import { rollCheck } from './dice';
-import { VERB_STATS } from './verbs';
+import { getVerbStat } from './verbs';
 
 // ---------------------------------------------------------------------------
 // RESULT TYPE
@@ -204,7 +204,7 @@ function resolveInteraction(
   }
 
   // Dice roll
-  const statId = trigger.stat ?? (VERB_STATS[trigger.verb as string] ?? 'FOR');
+  const statId = trigger.stat ?? getVerbStat(trigger.verb as VerbId);
   const statValue = state.character?.stats[statId] ?? 0;
   const lck = state.character?.stats['LCK'] ?? 0;
 

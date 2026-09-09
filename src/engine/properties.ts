@@ -77,9 +77,11 @@ export type PropertyRegistry = Readonly<Record<PropertyId, PropertyMeta>>;
 function buildRegistry(): PropertyRegistry {
   const registry: Record<string, PropertyMeta> = {};
   for (const id of PROPERTY_IDS) {
+    // No cast: the template literal must be a member of StringKey, so a property
+    // without i18n keys is a compile error rather than a raw key shown in the UI.
     registry[id] = {
-      nameKey: `property.${id}` as StringKey,
-      descriptionKey: `property.${id}.description` as StringKey,
+      nameKey: `property.${id}`,
+      descriptionKey: `property.${id}.description`,
     };
   }
   return registry as PropertyRegistry;

@@ -7,7 +7,7 @@ import { describe, test, expect } from 'vitest';
 import { normalizeInput, matchVerb, parseAction } from '../../../src/engine/parser';
 import { resolveTarget } from '../../../src/engine/resolver';
 import { buildParserLocaleData, buildObstacleVerbMap } from '../../../src/content/parserData';
-import type { SceneContext, NpcInstance, EnvironmentFeatureInstance } from '../../../src/engine/types';
+import type { SceneContext, NpcInstance, EnvironmentFeatureInstance, GameState } from '../../../src/engine/types';
 import type { PropertyId } from '../../../src/engine/properties';
 import { MOVEMENT_VERBS } from '../../../src/engine/verbs';
 import { buildConsequences, applyConsequences } from '../../../src/engine/consequences';
@@ -16,6 +16,7 @@ import { isEnrichedItem } from '../../../src/engine/scenario';
 import { BALANCE } from '../../../src/engine/constants';
 import { getFeatureDescription } from '../../../src/engine/featureState';
 import { ACTION_TEMPLATES } from '../../../src/content/templates/actionTemplates';
+import { ITEM_DEFINITIONS } from '../../../src/content/items';
 import { ATMOSPHERE_SNIPPETS } from '../../../src/content/templates/atmosphere';
 import { THREAT_HINT_SNIPPETS } from '../../../src/content/templates/threats';
 import { createSeededRng } from '../../../src/engine/rng';
@@ -1482,5 +1483,58 @@ describe('REG-027: departure phrases trigger movement (Issue #58)', () => {
         `${skId}: found fallback location names`,
       ).toEqual([]);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-028: equipped armor was hardcoded to 0 in processTurn (audit P3-3)
+// ---------------------------------------------------------------------------
+// The correct lookup only existed in the unrouted playtest hooks, so wearing
+// the EVA suit reduced no damage at all in the shipped game.
+
+describe('REG-028: equipped armor reduces damage taken', () => {
+  // Constant RNG: both runs roll identically, so the only variable is armor.
+  const constantRng = (): number => 0.99;
+
+  function combatGame(equippedArmor: string | null): GameState {
+    const skeleton = getSkeletonById('escape')!;
+    const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, createSeededRng(28));
+    const base = initGame(scenario, 'marine', 'survivor', 'Test', createSeededRng(28));
+    return {
+      ...base,
+      character: {
+        ...base.character!,
+        equippedArmor,
+        inventory: equippedArmor !== null ? [equippedArmor] : [],
+      },
+      activeCombat: {
+        npc: {
+          definitionId: 'security_robot',
+          hp: 20, maxHp: 20, attack: 10, defense: 2,
+          dodgeChance: 0, fleeDC: 12,
+          aggressionPattern: 'aggressive',
+          weakPoint: null, weakPointDiscovered: false, combatRound: 1,
+        },
+        npcInstanceId: 'security_robot',
+        round: 1,
+      },
+    };
+  }
+
+  test('EVA suit absorbs exactly its armorValue on an identical NPC attack', () => {
+    const parserData = buildParserLocaleData('fr');
+
+    const bare = combatGame(null);
+    const armored = combatGame('eva_suit');
+
+    const bareResult = processTurn(bare, 'attendre', getSceneContext(bare), parserData, constantRng);
+    const armoredResult = processTurn(armored, 'attendre', getSceneContext(armored), parserData, constantRng);
+
+    const bareDamage = bare.character!.hp - bareResult.newState.character!.hp;
+    const armoredDamage = armored.character!.hp - armoredResult.newState.character!.hp;
+
+    expect(bareDamage).toBeGreaterThan(0);
+    expect(armoredDamage).toBeLessThan(bareDamage);
+    expect(bareDamage - armoredDamage).toBe(ITEM_DEFINITIONS.eva_suit!.armorValue);
   });
 });

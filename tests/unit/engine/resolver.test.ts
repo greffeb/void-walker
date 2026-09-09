@@ -4,8 +4,13 @@
 
 import { describe, test, expect } from 'vitest';
 import { resolveTarget, resolveBodyPart, BODY_PARTS } from '../../../src/engine/resolver';
+import { buildParserLocaleData } from '../../../src/content/parserData';
 import type { SceneContext, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from '../../../src/engine/types';
 import type { PropertyId } from '../../../src/engine/properties';
+
+// Verb wording lives in the locale files, so the resolver needs them to know
+// which tokens are verbs rather than targets.
+const verbForms = buildParserLocaleData('fr').verbForms;
 
 // === TEST HELPERS ===
 
@@ -385,16 +390,16 @@ describe('resolveTarget() — single-NPC contextual fallback', () => {
   const xenomorph = makeNpc('xenomorph', ['xenomorphe', 'alien', 'creature'], []);
 
   test('empty target tokens after verb alias filtering + single NPC → NPC (je le frappe)', () => {
-    // "je le frappe" → "le" stripped (stop word), "frappe" = STRIKE alias → filtered away → empty target
+    // "je le frappe" → "le" stripped (stop word), "frappe" = STRIKE form → filtered away → empty target
     const ctx = makeContext({ npcs: [xenomorph] });
-    const result = resolveTarget(['frappe'], 'STRIKE', ctx);
+    const result = resolveTarget(['frappe'], 'STRIKE', ctx, undefined, undefined, verbForms);
     expect(result?.id).toBe('xenomorph');
     expect(result?.source).toBe('npc');
   });
 
   test('no fallback when 0 NPCs in scene', () => {
     const ctx = makeContext({ npcs: [] });
-    const result = resolveTarget(['frappe'], 'STRIKE', ctx);
+    const result = resolveTarget(['frappe'], 'STRIKE', ctx, undefined, undefined, verbForms);
     // Falls through to abstract environment
     expect(result?.source).toBe('abstract');
   });

@@ -18,10 +18,11 @@ function makeMedicAtLowHp(): GameState {
   const character: CharacterState = {
     name: 'Medic',
     className: 'medic',
-    // FOR is deliberately high so the USE check succeeds deterministically:
-    // Issue #85 is about a *successful* use that still healed nothing, so the
-    // regression must exercise the success path regardless of the RNG seed.
-    stats: { FOR: 20, DEF: 2, AGI: 3, INT: 4, PER: 3, CHA: 2, LCK: 5 },
+    // INT is deliberately high so the USE check succeeds deterministically:
+    // an injectable kit is an Intelligence check. Issue #85 is about a
+    // *successful* use that still healed nothing, so the regression must
+    // exercise the success path regardless of the RNG seed.
+    stats: { FOR: 2, DEF: 2, AGI: 3, INT: 20, PER: 3, CHA: 2, LCK: 5 },
     hp: 1,
     maxHp: 15,
     oxygen: 79,

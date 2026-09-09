@@ -26,10 +26,11 @@ import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
 import { isReformulation } from './types';
 import { tickConditions, checkConditionTriggers, addCondition, removeCondition, applyConditionMalus } from './conditions';
+import { BALANCE } from './constants';
 import { tickOxygen } from './oxygen';
 import { tickStalkerClock, checkStalkerClock, applyStalkerEvent } from './stalkerClock';
 import type { VerbId } from './verbs';
-import { VERB_STATS, AUTO_VERBS, MOVEMENT_VERBS } from './verbs';
+import { MOVEMENT_VERBS, getVerbStat, isAutoVerb as isAutoVerb_ } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
 import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
@@ -54,9 +55,20 @@ import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenario
 import { isEnrichedItem, isEnrichedFeature } from './scenario';
 import { removeItem } from './inventory';
 import { NPC_DEFINITIONS } from '../content/npcs';
+import { ITEM_DEFINITIONS } from '../content/items';
 import { buildObstacleVerbMap } from '../content/parserData';
 import { getLocale } from '../i18n/index';
 import type { StringKey } from '@i18n/types';
+
+// ---------------------------------------------------------------------------
+// Equipped armor
+// ---------------------------------------------------------------------------
+
+/** Damage reduction granted by the equipped armor, stacked with DEF in combat. */
+function getEquippedArmorValue(equippedArmor: string | null): number {
+  if (equippedArmor === null) return 0;
+  return ITEM_DEFINITIONS[equippedArmor]?.armorValue ?? 0;
+}
 
 // ---------------------------------------------------------------------------
 // Empty trace factory — used for early returns
@@ -479,7 +491,7 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   // STEP 5: Action resolution → D20 roll
   // ─────────────────────────────────────────────────────────
-  const isAutoVerb = AUTO_VERBS.has(action.verb);
+  const isAutoVerb = isAutoVerb_(action.verb, action.target?.properties ?? []);
   let diceRoll: DiceResult | null = null;
 
   // Trace data for step 5 (populated if not auto-verb)
@@ -623,9 +635,8 @@ export function processTurn(
     const combat = current.activeCombat;
     const npc = combat.npc;
     const effectiveStats = applyConditionMalus(current.character.stats, current.character.conditions);
-    const armorValue = 0;
-    const difficultyMultiplier = current.difficulty === 'explorer' ? 0.5
-      : current.difficulty === 'nightmare' ? 1.5 : 1.0;
+    const armorValue = getEquippedArmorValue(current.character.equippedArmor);
+    const difficultyMultiplier = BALANCE.DIFFICULTY_DAMAGE_MULTIPLIER[current.difficulty];
 
     // ── Obstacle-path intercept (Issue #49) ─────────────────────────────────
     // If the player uses a verb that matches an obstacle path on the current NPC
@@ -690,7 +701,7 @@ export function processTurn(
     } else if (COMBAT_ATTACK_VERBS.has(action.verb)) {
       // Player attacks the NPC
       combatHandled = true;
-      const statId = VERB_STATS[action.verb] ?? 'FOR';
+      const statId = getVerbStat(action.verb, action.target?.properties ?? []);
       const statValue = effectiveStats[statId] ?? 0;
       const lck = effectiveStats['LCK'] ?? 0;
       const dc = 10 + npc.defense; // Base DC 10 + NPC defense
@@ -778,7 +789,7 @@ export function processTurn(
   }
 
   if (!isAutoVerb && !scenarioInteractionHandled && !combatHandled && !featureObstacleHandled) {
-    const statId = VERB_STATS[action.verb] ?? 'FOR';
+    const statId = getVerbStat(action.verb, action.target?.properties ?? []);
     const effectiveStats = applyConditionMalus(current.character!.stats, current.character!.conditions);
     const statValue = effectiveStats[statId] ?? 0;
     const lck = effectiveStats['LCK'] ?? 0;
@@ -1011,9 +1022,8 @@ export function processTurn(
     const combat = current.activeCombat;
     const npc = combat.npc;
 
-    const armorValue = 0;
-    const difficultyMultiplier = current.difficulty === 'explorer' ? 0.5
-      : current.difficulty === 'nightmare' ? 1.5 : 1.0;
+    const armorValue = getEquippedArmorValue(current.character.equippedArmor);
+    const difficultyMultiplier = BALANCE.DIFFICULTY_DAMAGE_MULTIPLIER[current.difficulty];
 
     const npcAttack = resolveNPCAttack(
       npc.attack,

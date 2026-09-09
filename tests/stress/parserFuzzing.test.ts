@@ -10,7 +10,7 @@ import { normalizeInput, matchVerb, parseAction } from '../../src/engine/parser'
 import { resolveTarget } from '../../src/engine/resolver';
 import { calculateDifficulty } from '../../src/engine/difficulty';
 import { isReformulation } from '../../src/engine/types';
-import { VERB_IDS, VERB_REGISTRY } from '../../src/engine/verbs';
+import { VERB_IDS } from '../../src/engine/verbs';
 import { buildParserLocaleData } from '../../src/content/parserData';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from '../../src/content/items';
 import { NPC_LIST, NPC_DEFINITIONS, resolveNPCProperties } from '../../src/content/npcs';
@@ -99,6 +99,16 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+const localeData = buildParserLocaleData('fr');
+
+/** Verb wording comes from the locale files, not from the engine registry. */
+const FORMS_BY_VERB = new Map<VerbId, string[]>();
+for (const [form, verbId] of localeData.verbForms) {
+  const forms = FORMS_BY_VERB.get(verbId);
+  if (forms) forms.push(form);
+  else FORMS_BY_VERB.set(verbId, [form]);
+}
+
 const FUZZ_CHARS = 'abcdefghijklmnopqrstuvwxyz éèêëàâîïôùûç\'-.!?,;:0123456789';
 const FRENCH_WORDS = [
   'frapper', 'examiner', 'ouvrir', 'fermer', 'pirater', 'tirer', 'courir',
@@ -131,13 +141,12 @@ function generateFuzzInput(rand: () => number): string {
   }
 
   if (strategy < 0.5) {
-    // Verb alias + random target
+    // Verb form + random target
     const verbIdx = Math.floor(rand() * VERB_IDS.length);
     const verbId = VERB_IDS[verbIdx];
     if (verbId) {
-      const entry = VERB_REGISTRY[verbId];
-      const aliasIdx = Math.floor(rand() * entry.aliases.fr.length);
-      const alias = entry.aliases.fr[aliasIdx] ?? verbId.toLowerCase();
+      const forms = FORMS_BY_VERB.get(verbId) ?? [verbId.toLowerCase()];
+      const alias = forms[Math.floor(rand() * forms.length)] ?? verbId.toLowerCase();
       const targetIdx = Math.floor(rand() * FRENCH_WORDS.length);
       return `${alias} ${FRENCH_WORDS[targetIdx] ?? ''}`;
     }
@@ -189,7 +198,6 @@ function generateFuzzInput(rand: () => number): string {
 const FUZZ_COUNT = 5000;
 const MAX_PARSE_TIME_MS = 50;
 const scene = buildTestScene();
-const localeData = buildParserLocaleData('fr');
 const errorToString = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
@@ -298,24 +306,23 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
     expect(checked).toBeGreaterThan(0);
   });
 
-  test('all 78 verbs are matchable via at least one input strategy', () => {
+  test('all 78 verbs are matchable via at least one i18n form', () => {
+    const firstFormOf = new Map<VerbId, string>();
+    for (const [form, verbId] of localeData.verbForms) {
+      if (!firstFormOf.has(verbId)) firstFormOf.set(verbId, form);
+    }
+
     const unmatchable: string[] = [];
     for (const verbId of VERB_IDS) {
-      const entry = VERB_REGISTRY[verbId];
-      // Try the first French alias
-      const alias = entry.aliases.fr[0];
-      if (!alias) {
-        unmatchable.push(`${verbId}: no FR alias`);
+      const form = firstFormOf.get(verbId);
+      if (form === undefined) {
+        unmatchable.push(`${verbId}: no i18n form`);
         continue;
       }
-      const normalized = alias
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
-      const tokens = normalized.split(/\s+/).filter((t) => t.length > 1);
+      const tokens = form.split(/\s+/).filter((t) => t.length > 1);
       const match = matchVerb(tokens, tokens, localeData);
       if (!match) {
-        unmatchable.push(`${verbId}: alias "${alias}" did not match`);
+        unmatchable.push(`${verbId}: form "${form}" did not match`);
       }
     }
     expect(unmatchable).toEqual([]);

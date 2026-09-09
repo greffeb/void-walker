@@ -3,66 +3,79 @@
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from 'vitest';
-import { StuckDetector } from '../../playtest/stuckDetector';
+import { StuckDetector, readProgress, type ProgressSnapshot } from '../../playtest/stuckDetector';
+import type { GameState } from '../../../src/engine/types';
+
+function progress(locationsVisited: number, obstaclesResolved = 0): ProgressSnapshot {
+  return { locationsVisited, obstaclesResolved };
+}
 
 describe('StuckDetector', () => {
-  it('is not stuck when fewer than threshold turns recorded', () => {
+  it('is not stuck before the threshold of stalled turns is reached', () => {
     const d = new StuckDetector(5);
-    d.update('room_a');
-    d.update('room_a');
-    d.update('room_a');
+    for (let i = 0; i < 4; i++) d.update(progress(1));
     expect(d.isStuck()).toBe(false);
   });
 
-  it('detects stuck after threshold identical locations', () => {
+  it('detects stuck after threshold turns without progress', () => {
     const d = new StuckDetector(5);
-    for (let i = 0; i < 5; i++) d.update('room_a');
+    for (let i = 0; i < 6; i++) d.update(progress(1));
     expect(d.isStuck()).toBe(true);
   });
 
-  it('is NOT stuck when player moved at least once in the window', () => {
-    const d = new StuckDetector(5);
-    d.update('room_a');
-    d.update('room_a');
-    d.update('room_b'); // moved!
-    d.update('room_a');
-    d.update('room_a');
+  it('reaching a new location resets the stall counter', () => {
+    const d = new StuckDetector(3);
+    d.update(progress(1));
+    d.update(progress(1));
+    d.update(progress(1));
+    d.update(progress(2)); // new location — progress!
     expect(d.isStuck()).toBe(false);
+    expect(d.turnsSinceProgress).toBe(0);
   });
 
-  it('sliding window — forgets old history beyond threshold', () => {
+  it('resolving an obstacle resets the stall counter', () => {
     const d = new StuckDetector(3);
-    d.update('room_a'); // turn 1 — will be forgotten
-    d.update('room_b'); // turn 2 — will be forgotten
-    d.update('room_c'); // now in window: [c]
-    d.update('room_c'); // window: [c, c]
-    d.update('room_c'); // window: [c, c, c] — stuck!
+    d.update(progress(4, 0));
+    d.update(progress(4, 0));
+    d.update(progress(4, 1)); // obstacle resolved — progress!
+    expect(d.turnsSinceProgress).toBe(0);
+  });
+
+  // The whole point of the rewrite: position-based detection missed this case.
+  it('detects a bot ping-ponging between two already-visited rooms', () => {
+    const d = new StuckDetector(4);
+    d.update(progress(2)); // in room A
+    for (let i = 0; i < 10; i++) {
+      d.update(progress(2)); // A → B → A → B … no NEW location
+    }
     expect(d.isStuck()).toBe(true);
   });
 
-  it('threshold of 1 detects stuck after single turn', () => {
-    const d = new StuckDetector(1);
-    d.update('room_a');
-    expect(d.isStuck()).toBe(true);
-  });
-
-  it('recordedTurns increments but caps at threshold', () => {
-    const d = new StuckDetector(5);
-    expect(d.recordedTurns).toBe(0);
-    d.update('a');
-    expect(d.recordedTurns).toBe(1);
-    for (let i = 0; i < 10; i++) d.update('a');
-    expect(d.recordedTurns).toBe(5); // capped at threshold
-  });
-
-  it('reset clears history and isStuck returns false', () => {
-    const d = new StuckDetector(3);
-    d.update('room_a');
-    d.update('room_a');
-    d.update('room_a');
+  it('reset clears the stall counter', () => {
+    const d = new StuckDetector(2);
+    for (let i = 0; i < 5; i++) d.update(progress(1));
     expect(d.isStuck()).toBe(true);
     d.reset();
     expect(d.isStuck()).toBe(false);
-    expect(d.recordedTurns).toBe(0);
+    expect(d.turnsSinceProgress).toBe(0);
+  });
+});
+
+describe('readProgress', () => {
+  it('counts visited locations and resolved obstacles', () => {
+    const state = {
+      visitedLocations: {
+        start: { obstacleResolved: false },
+        unlock: { obstacleResolved: true },
+        reveal: { obstacleResolved: true },
+      },
+    } as unknown as GameState;
+
+    expect(readProgress(state)).toEqual({ locationsVisited: 3, obstaclesResolved: 2 });
+  });
+
+  it('returns zeros on a fresh state', () => {
+    const state = { visitedLocations: {} } as unknown as GameState;
+    expect(readProgress(state)).toEqual({ locationsVisited: 0, obstaclesResolved: 0 });
   });
 });

@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type { VerbId } from './verbs';
-import { VERB_REGISTRY, MOVEMENT_VERBS } from './verbs';
+import { MOVEMENT_VERBS } from './verbs';
 import { stemFr } from './snowball-fr';
 import type { PropertyId } from './properties';
 import type {
@@ -286,30 +286,24 @@ export function resolveTarget(
     'SIGNAL', 'JUMP', 'SWIM',
   ]);
 
-  // Filter out tokens that are verb aliases (don't match them as targets)
-  // Uses both exact match and stem comparison to catch conjugated forms.
-  // Also checks verbForms (i18n-sourced) for comprehensive coverage —
-  // e.g. "attaque" maps to STRIKE in i18n but isn't in VERB_REGISTRY aliases.
-  const verbEntry = VERB_REGISTRY[verb];
+  // Filter out tokens that are verb aliases (don't match them as targets).
+  // The i18n locale files are the single source of verb wording; the stem set
+  // catches conjugated forms the exact map may not list.
   const verbAliasTokens = new Set<string>();
   const verbAliasStems = new Set<string>();
-  for (const alias of verbEntry.aliases.fr) {
-    const normalizedAlias = alias
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-    for (const word of normalizedAlias.split(/\s+/)) {
-      if (word.length > 1) {
-        verbAliasTokens.add(word);
-        verbAliasStems.add(stemFr(word));
+  if (verbForms) {
+    for (const [form, formVerb] of verbForms) {
+      if (formVerb !== verb) continue;
+      for (const word of form.split(/\s+/)) {
+        if (word.length > 1) {
+          verbAliasTokens.add(word);
+          verbAliasStems.add(stemFr(word));
+        }
       }
     }
   }
   const targetTokens = tokens.filter((t) => {
-    // Check VERB_REGISTRY aliases (static infinitive set)
     if (verbAliasTokens.has(t) || verbAliasStems.has(stemFr(t))) return false;
-    // Check i18n verbForms (conjugated forms, synonyms — e.g. "attaque" → STRIKE)
-    if (verbForms && verbForms.get(t) === verb) return false;
     return true;
   });
 

@@ -395,7 +395,7 @@ export function generateReformulation(
 
   // Build interpretations (max 3)
   for (const verbId of candidateVerbs.slice(0, 3)) {
-    const target = resolveTarget(tokens, verbId, context);
+    const target = resolveTarget(tokens, verbId, context, undefined, undefined, localeData.verbForms);
     const verbMatch: VerbMatch = {
       verb: verbId,
       strategy: 6 as VerbMatchStrategy,
@@ -477,7 +477,7 @@ export function parseAction(
 
   // Resolve tool if we found tool tokens (no genericNpcRefs — tools are physical items)
   const tool = toolTokens.length > 0
-    ? resolveTarget(toolTokens, verbMatch.verb, context)
+    ? resolveTarget(toolTokens, verbMatch.verb, context, undefined, undefined, localeData.verbForms)
     : null;
 
   // Reflexive pronoun detection: "je me soigne", "se protéger", etc.

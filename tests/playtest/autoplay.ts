@@ -26,7 +26,7 @@ import { explorerBot } from './bots/explorerBot';
 import { chaoticBot } from './bots/chaoticBot';
 import { selectBot } from './bots/registry';
 import { toBotState, toBotScene } from './botAdapters';
-import { StuckDetector } from './stuckDetector';
+import { StuckDetector, readProgress } from './stuckDetector';
 import type { BotMode } from './bots/registry';
 
 type SessionOutcome = 'victory' | 'defeat' | 'stuck' | 'timeout';
@@ -164,7 +164,7 @@ function runSession(seed: number, options: CliOptions, forceTrace: boolean): Ses
       console.log(`  items=${JSON.stringify(botScene.locationItemIds)} exits=${JSON.stringify(botScene.connectedLocationAliases)}`);
     }
 
-    stuckDetector.update(locationAfter);
+    stuckDetector.update(readProgress(state));
     if (stuckDetector.isStuck()) {
       if (forceTrace) {
         console.log(`OUTCOME: stuck after ${turns} turns`);

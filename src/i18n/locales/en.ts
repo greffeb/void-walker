@@ -265,6 +265,14 @@ export const en: LocaleStrings = {
   'property.coverable.description': 'Can be covered or concealed',
   'property.easily_repairable': 'Easily Repairable',
   'property.easily_repairable.description': 'Can be repaired without technical expertise',
+  'property.open': 'Open',
+  'property.open.description': 'Currently open',
+  'property.active': 'Active',
+  'property.active.description': 'Currently running',
+  'property.inactive': 'Inactive',
+  'property.inactive.description': 'Currently shut down',
+  'property.damaged': 'Damaged',
+  'property.damaged.description': 'Impaired but still partly functional',
 
   // Verbs — FOR (13)
   'verb.STRIKE': 'Strike',

@@ -275,14 +275,14 @@ export function scoreLayerRelevance(layer: LayerType, ctx: NarrativeContext): nu
 
 // === SENSORY DETAIL SELECTION ===
 
-function selectSensoryDetail(ctx: NarrativeContext, locale: Locale): string | null {
+function selectSensoryDetail(ctx: NarrativeContext, locale: Locale, rng: ComposerRngFn): string | null {
   const settingPool = SENSORY_POOLS[ctx.settingId];
   if (!settingPool) return null;
 
   // If an environmental condition is active, pick from the condition pool
   const activeConditions = [...ctx.environmentConditions];
   if (activeConditions.length > 0) {
-    const conditionKey = activeConditions[Math.floor(Math.random() * activeConditions.length)];
+    const conditionKey = activeConditions[Math.floor(rng() * activeConditions.length)];
     if (conditionKey !== undefined) {
       const conditionPool = settingPool[conditionKey];
       if (conditionPool && conditionPool.length > 0) {
@@ -474,7 +474,7 @@ export function composeNarrative(
     candidates.push({
       layer: 'sensory',
       score: scoreLayerRelevance('sensory', ctx),
-      render: () => selectSensoryDetail(ctx, effectiveLocale),
+      render: () => selectSensoryDetail(ctx, effectiveLocale, effectiveRng),
     });
   }
 
