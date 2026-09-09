@@ -40,8 +40,8 @@ describe('stress: anti-softlock', () => {
     const below = simulateFailures('FORCE_OPEN', threshold - 1);
     const at = simulateFailures('FORCE_OPEN', threshold);
 
-    expect(checkFailsafe(below, 'explorer')).toBeNull();
-    const result = checkFailsafe(at, 'explorer');
+    expect(checkFailsafe({ obstacle: below, difficulty: 'explorer' })).toBeNull();
+    const result = checkFailsafe({ obstacle: at, difficulty: 'explorer' });
     expect(result).not.toBeNull();
     expect(result!.activated).toBe(true);
   });
@@ -51,15 +51,17 @@ describe('stress: anti-softlock', () => {
     const below = simulateFailures('HACK', threshold - 1);
     const at = simulateFailures('HACK', threshold);
 
-    expect(checkFailsafe(below, 'survivor')).toBeNull();
-    const result = checkFailsafe(at, 'survivor');
+    expect(checkFailsafe({ obstacle: below, difficulty: 'survivor' })).toBeNull();
+    const result = checkFailsafe({ obstacle: at, difficulty: 'survivor' });
     expect(result!.activated).toBe(true);
   });
 
-  it('Nightmare: failsafe NEVER activates (regardless of attempts)', () => {
+  it('Nightmare: the obstacle is never softened, however long you hammer it', () => {
     for (let n = 0; n <= 20; n++) {
       const obstacle = simulateFailures('FORCE_OPEN', n);
-      expect(checkFailsafe(obstacle, 'nightmare')).toBeNull();
+      const result = checkFailsafe({ obstacle, difficulty: 'nightmare' });
+      expect(result?.dcReduction).toBeUndefined();
+      expect(result?.unblocksExit).toBeUndefined();
     }
   });
 

@@ -6,7 +6,7 @@
 // instead of DC reductions.
 // ---------------------------------------------------------------------------
 
-import type { ObstacleState, FailsafeResult, DifficultyLevel } from './types';
+import type { ObstacleState, FailsafeResult, FailsafeType, DifficultyLevel } from './types';
 import type { VerbId } from './verbs';
 import { BALANCE } from './constants';
 
@@ -73,23 +73,29 @@ export function getFailsafeDCReduction(attemptCount: number, threshold: number):
   return BALANCE.FAILSAFE.BASE_DC_REDUCTION + extra;
 }
 
+/** What the failsafe check needs to know. */
+export interface FailsafeInput {
+  readonly obstacle: ObstacleState | undefined;
+  readonly difficulty: DifficultyLevel;
+  /** The intervention the module author chose. Defaults to degraded_bypass. */
+  readonly failsafeType?: FailsafeType;
+  /** Obstacle paths the player has not tried yet — the raw material of alternate_route. */
+  readonly untriedPathIds?: readonly string[];
+}
+
 /**
  * Check whether the failsafe should activate for a given obstacle.
  *
- * Returns null if:
- * - difficulty is 'nightmare' (failsafe disabled; stalker clock escalates instead)
- * - obstacle is undefined (never attempted)
- * - obstacle is resolved (already bypassed)
- * - attempt count is below threshold
+ * Returns null if the obstacle was never attempted, is already resolved, or the
+ * attempt count is still below the difficulty's threshold.
  *
- * Otherwise returns a FailsafeResult describing the intervention.
+ * Past the threshold, the intervention is the one the module declared. The four
+ * kinds do genuinely different things: one lowers the bar and charges blood for
+ * it, one hands you a handle you had not tried, one opens the way without
+ * giving you the prize, and one answers your noise with a predator.
  */
-export function checkFailsafe(
-  obstacle: ObstacleState | undefined,
-  difficulty: DifficultyLevel,
-): FailsafeResult | null {
-  // Nightmare: failsafe never activates
-  if (!BALANCE.FAILSAFE.ENABLED[difficulty]) return null;
+export function checkFailsafe(input: FailsafeInput): FailsafeResult | null {
+  const { obstacle, difficulty } = input;
 
   if (!obstacle) return null;
   if (obstacle.resolved) return null;
@@ -97,12 +103,49 @@ export function checkFailsafe(
   const threshold = BALANCE.FAILSAFE.THRESHOLD[difficulty];
   if (obstacle.attemptCount < threshold) return null;
 
-  const dcReduction = getFailsafeDCReduction(obstacle.attemptCount, threshold);
+  // Nightmare never softens an obstacle. Persistence is answered, not rewarded.
+  const type: FailsafeType = BALANCE.FAILSAFE.ENABLED[difficulty]
+    ? (input.failsafeType ?? 'degraded_bypass')
+    : 'threat_escalation';
+
+  switch (type) {
+    case 'alternate_route': {
+      const revealedPathId = input.untriedPathIds?.[0];
+      // Nothing left to reveal: fall back to lowering the bar.
+      if (revealedPathId === undefined) break;
+      return {
+        type: 'alternate_route',
+        activated: true,
+        revealedPathId,
+        hintKey: 'failsafe.alternate_route.hint',
+      };
+    }
+
+    case 'narrative_rescue':
+      return {
+        type: 'narrative_rescue',
+        activated: true,
+        unblocksExit: true,
+        hintKey: 'failsafe.narrative_rescue.hint',
+      };
+
+    case 'threat_escalation':
+      return {
+        type: 'threat_escalation',
+        activated: true,
+        escalatesThreat: true,
+        hintKey: 'failsafe.threat_escalation.hint',
+      };
+
+    case 'degraded_bypass':
+      break;
+  }
 
   return {
     type: 'degraded_bypass',
     activated: true,
-    dcReduction,
+    dcReduction: getFailsafeDCReduction(obstacle.attemptCount, threshold),
+    hpCost: BALANCE.FAILSAFE.COST[difficulty],
     hintKey: 'failsafe.degraded_bypass.hint',
   };
 }

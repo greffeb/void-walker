@@ -890,6 +890,12 @@ export const fr: LocaleStrings = {
   'scene.exits_known':    'Chemin connu vers',
   'scene.prompt':         'Que faites-vous ?',
 
+  // Anti-softlock interventions
+  'failsafe.degraded_bypass.hint':   'Vous forcez le passage à vos dépens. Quelque chose cède — vous aussi.',
+  'failsafe.alternate_route.hint':   'En reculant, vous voyez ce que l\'entêtement vous cachait : il y a une autre prise.',
+  'failsafe.narrative_rescue.hint':  'Le vaisseau tranche pour vous : une secousse, un craquement, et la voie s\'ouvre. Vous n\'avez rien gagné — vous pouvez passer.',
+  'failsafe.threat_escalation.hint': 'Votre acharnement s\'entend de loin. Quelque chose a cessé de vous ignorer.',
+
   // Dice choreography
   'dice.modifier.incompatible':      'Action incompatible',
   'dice.modifier.noTool':            'Outil absent',

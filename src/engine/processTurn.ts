@@ -58,7 +58,7 @@ import { removeItem } from './inventory';
 import { NPC_DEFINITIONS } from '../content/npcs';
 import { ITEM_DEFINITIONS } from '../content/items';
 import { buildObstacleVerbMap } from '../content/parserData';
-import { getLocale } from '../i18n/index';
+import { getLocale, t } from '../i18n/index';
 import type { StringKey } from '@i18n/types';
 
 // ---------------------------------------------------------------------------
@@ -385,8 +385,7 @@ export function processTurn(
   }
 
   /** Effects of the matched rule, applied in STEP 5b once the die has spoken. */
-  const applyMatchedInteraction = (success: boolean): void => {
-    if (interactionMatch === null || interactionSubjectId === null) return;
+  const applyMatchedInteraction = (success: boolean): void => {    if (interactionMatch === null || interactionSubjectId === null) return;
     const targetId = interactionSubjectId;
     const interactionResult = applyInteractionOutcome(interactionMatch, success);
     {
@@ -512,6 +511,66 @@ export function processTurn(
   let combatHandled = false;
   let featureObstacleHandled = false;
 
+  // ── ANTI-SOFTLOCK INTERVENTIONS (decision T) ──────────────────────────────
+  // The four declared failsafe types now do four different things. Until this
+  // lot, every module got a silent DC reduction whatever it had asked for.
+  // ──────────────────────────────────────────────────────────────────────────
+  let failsafeHintKey: StringKey | null = null;
+  let failsafeRevealedPath: import('./scenario').ObstaclePath | undefined;
+  let failsafeHpCostOnSuccess = 0;
+
+  const applyFailsafe = (
+    obstacleDef: import('./scenario').ObstacleDefinition,
+    locId: string,
+  ): number => {
+    const record = current.obstacleAttempts[getObstacleKey(locId, obstacleDef.targetId)];
+    const verbMap = buildObstacleVerbMap(getLocale());
+    const untried = obstacleDef.paths.filter(p => !p.verbs.some(
+      v => record?.pathsAttempted.includes(verbMap.get(v.toLowerCase()) as VerbId) ?? false,
+    ));
+    const result = checkFailsafe({
+      obstacle: record,
+      difficulty: current.difficulty,
+      failsafeType: obstacleDef.failsafeType,
+      untriedPathIds: untried.map(p => p.id),
+    });
+
+    traceFailsafeActivated = result?.activated ?? false;
+    traceFailsafeDcReduction = result?.dcReduction ?? 0;
+    if (!result) return 0;
+
+    failsafeHintKey = result.hintKey ?? null;
+    failsafeHpCostOnSuccess = result.hpCost ?? 0;
+
+    if (result.revealedPathId !== undefined) {
+      failsafeRevealedPath = obstacleDef.paths.find(p => p.id === result.revealedPathId);
+    }
+
+    // The way opens without the obstacle being beaten: no loot, no reveal.
+    if (result.unblocksExit === true) {
+      const visit = current.visitedLocations[locId];
+      if (visit) {
+        current = {
+          ...current,
+          visitedLocations: { ...current.visitedLocations, [locId]: markObstacleResolved(visit) },
+        };
+      }
+    }
+
+    if (result.escalatesThreat === true) {
+      current = {
+        ...current,
+        stalkerClockState: {
+          ...current.stalkerClockState,
+          actionsSinceLastProgression: current.stalkerClockState.actionsSinceLastProgression
+            + BALANCE.FAILSAFE.THREAT_ESCALATION_TICKS,
+        },
+      };
+    }
+
+    return result.dcReduction ? -result.dcReduction : 0;
+  };
+
   // ── FEATURE-OBSTACLE INTERCEPT (Issue #47) ────────────────────────────────
   // For environment features that ARE the location's obstacle target (e.g.
   // blocked_door), match the player's verb against the obstacle's defined
@@ -541,19 +600,15 @@ export function processTurn(
 
     if (featureMatchedPath) {
       featureObstacleHandled = true;
+      const obstacleLocationId = current.playerLocationId;
       const obstacleCharacter = current.character;
       const effectiveStats = applyConditionMalus(obstacleCharacter.stats, obstacleCharacter.conditions);
       const statId = featureMatchedPath.stat;
       const statValue = effectiveStats[statId] ?? 0;
       const lck = effectiveStats['LCK'] ?? 0;
 
-      // Failsafe DC reduction for repeated attempts
-      const featureObstacleKey = getObstacleKey(current.playerLocationId, featureNodeObstacle!.targetId);
-      const featureObstacleRecord = current.obstacleAttempts[featureObstacleKey];
-      const featureFailsafe = checkFailsafe(featureObstacleRecord, current.difficulty);
-      const featureFailsafeMod = featureFailsafe?.dcReduction ? -featureFailsafe.dcReduction : 0;
-      traceFailsafeActivated = featureFailsafe?.activated ?? false;
-      traceFailsafeDcReduction = featureFailsafe?.dcReduction ?? 0;
+      // Failsafe intervention for repeated attempts
+      const featureFailsafeMod = applyFailsafe(featureNodeObstacle!, obstacleLocationId);
 
       // The authored path DC anchors the base; context still applies (P6-5).
       const obstacleBreakdown = calculateDifficulty({
@@ -590,9 +645,14 @@ export function processTurn(
       // A scenario rule on the same feature contributes its text and effects.
       applyMatchedInteraction(roll.success);
 
+      // A lowered bar is not a gift: forcing through costs blood.
+      if (roll.success && failsafeHpCostOnSuccess > 0) {
+        current = updateCharacterHp(current, -failsafeHpCostOnSuccess);
+      }
+
       if (roll.success) {
         // Obstacle resolved — mark visit state + set feature to 'open' (or neutralize NPC)
-        const vsKeyFeat = current.playerLocationId;
+        const vsKeyFeat = obstacleLocationId;
         const existingFeat = current.visitedLocations[vsKeyFeat];
         if (existingFeat) {
           current = {
@@ -624,7 +684,7 @@ export function processTurn(
         current = {
           ...current,
           obstacleAttempts: recordAttempt(
-            current.obstacleAttempts, current.playerLocationId, featureNodeObstacle!.targetId, action.verb,
+            current.obstacleAttempts, obstacleLocationId, featureNodeObstacle!.targetId, action.verb,
           ),
         };
       }
@@ -909,13 +969,13 @@ export function processTurn(
     const shipMemoryMod = getMarkDCModifier(targetMarks, action.verb);
     traceShipMemoryMod = shipMemoryMod;
 
-    // Failsafe DC reduction (if obstacle has been attempted enough times)
-    const obstacleKey = getObstacleKey(locationId, targetId);
-    const obstacle = locationId && targetId ? current.obstacleAttempts[obstacleKey] : undefined;
-    const failsafeResult = checkFailsafe(obstacle, current.difficulty);
-    const failsafeMod = failsafeResult?.dcReduction ? -failsafeResult.dcReduction : 0;
-    traceFailsafeActivated = failsafeResult?.activated ?? false;
-    traceFailsafeDcReduction = failsafeResult?.dcReduction ?? 0;
+    // Failsafe intervention when this target is the location's obstacle
+    const genericObstacleDef = locationId && targetId && current.scenario
+      ? current.scenario.graph.nodes.find(n => n.id === locationId)?.obstacle
+      : undefined;
+    const failsafeMod = genericObstacleDef && genericObstacleDef.targetId === targetId
+      ? applyFailsafe(genericObstacleDef, locationId)
+      : 0;
 
     // Calculate DC. An authored scenario DC anchors the base; every context
     // modifier still applies on top, so a DC 14 lock is harder in the dark.
@@ -965,6 +1025,11 @@ export function processTurn(
     // STEP 5b: a matched scenario rule now learns what the die decided, and
     // contributes its text and effects on top of the generic ones.
     applyMatchedInteraction(diceRoll.success);
+
+    // A lowered bar is not a gift: forcing through costs blood.
+    if (diceRoll.success && failsafeHpCostOnSuccess > 0) {
+      current = updateCharacterHp(current, -failsafeHpCostOnSuccess);
+    }
 
     const consequences = buildConsequences(action.verb, action.target, outcome);
     traceConsequences = consequences;
@@ -1461,9 +1526,13 @@ export function processTurn(
   // If a scenario interaction provided a narrative override, use it; otherwise standard templates
   // Append stalker event narrative if present
   const baseNarrative = scenarioNarrativeOverride?.fr ?? '';
-  const narrative = stalkerNarrative
-    ? (baseNarrative ? `${baseNarrative} ${stalkerNarrative}` : stalkerNarrative)
-    : baseNarrative;
+  // An intervention the player never sees is indistinguishable from luck: say it.
+  const failsafeNarrative = failsafeHintKey !== null
+    ? [t(failsafeHintKey), failsafeRevealedPath?.description.fr].filter(Boolean).join(' ')
+    : '';
+  const narrative = [baseNarrative, failsafeNarrative, stalkerNarrative]
+    .filter(part => part !== '')
+    .join(' ');
 
   // Increment turn counter
   current = { ...current, turn: current.turn + 1 };

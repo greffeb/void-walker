@@ -138,13 +138,13 @@ describe('checkFailsafe', () => {
 
   // --- Explorer (threshold = 2) ---
   it('explorer: below threshold → null', () => {
-    const result = checkFailsafe(makeObstacle(1), 'explorer');
+    const result = checkFailsafe({ obstacle: makeObstacle(1), difficulty: 'explorer' });
     expect(result).toBeNull();
   });
 
   it('explorer: at threshold → activates degraded_bypass', () => {
     const threshold = BALANCE.FAILSAFE.THRESHOLD.explorer;
-    const result = checkFailsafe(makeObstacle(threshold), 'explorer');
+    const result = checkFailsafe({ obstacle: makeObstacle(threshold), difficulty: 'explorer' });
     expect(result).not.toBeNull();
     expect(result!.activated).toBe(true);
     expect(result!.type).toBe('degraded_bypass');
@@ -153,42 +153,120 @@ describe('checkFailsafe', () => {
 
   it('explorer: beyond threshold → still activates with increasing reduction', () => {
     const threshold = BALANCE.FAILSAFE.THRESHOLD.explorer;
-    const r1 = checkFailsafe(makeObstacle(threshold), 'explorer');
-    const r2 = checkFailsafe(makeObstacle(threshold + 2), 'explorer');
+    const r1 = checkFailsafe({ obstacle: makeObstacle(threshold), difficulty: 'explorer' });
+    const r2 = checkFailsafe({ obstacle: makeObstacle(threshold + 2), difficulty: 'explorer' });
     expect(r2!.dcReduction!).toBeGreaterThan(r1!.dcReduction!);
   });
 
   // --- Survivor (threshold = 4) ---
   it('survivor: below threshold → null', () => {
-    const result = checkFailsafe(makeObstacle(3), 'survivor');
+    const result = checkFailsafe({ obstacle: makeObstacle(3), difficulty: 'survivor' });
     expect(result).toBeNull();
   });
 
   it('survivor: at threshold → activates', () => {
     const threshold = BALANCE.FAILSAFE.THRESHOLD.survivor;
-    const result = checkFailsafe(makeObstacle(threshold), 'survivor');
+    const result = checkFailsafe({ obstacle: makeObstacle(threshold), difficulty: 'survivor' });
     expect(result!.activated).toBe(true);
     expect(result!.type).toBe('degraded_bypass');
   });
 
-  // --- Nightmare (failsafe DISABLED) ---
-  it('nightmare: never activates regardless of attempts', () => {
-    expect(checkFailsafe(makeObstacle(1), 'nightmare')).toBeNull();
-    expect(checkFailsafe(makeObstacle(10), 'nightmare')).toBeNull();
-    expect(checkFailsafe(makeObstacle(100), 'nightmare')).toBeNull();
+  // --- Nightmare answers persistence instead of easing it (decision T) ---
+  it('nightmare: never softens the obstacle — it sends the predator', () => {
+    const below = BALANCE.FAILSAFE.THRESHOLD.nightmare - 1;
+    expect(checkFailsafe({ obstacle: makeObstacle(below), difficulty: 'nightmare' })).toBeNull();
+
+    const past = checkFailsafe({ obstacle: makeObstacle(100), difficulty: 'nightmare' });
+    expect(past!.type).toBe('threat_escalation');
+    expect(past!.escalatesThreat).toBe(true);
+    expect(past!.dcReduction).toBeUndefined();
+  });
+
+  it('nightmare ignores whatever the module asked for', () => {
+    const result = checkFailsafe({
+      obstacle: makeObstacle(100),
+      difficulty: 'nightmare',
+      failsafeType: 'narrative_rescue',
+    });
+    expect(result!.type).toBe('threat_escalation');
   });
 
   // --- Already resolved ---
   it('resolved obstacle → null (no further intervention)', () => {
     const threshold = BALANCE.FAILSAFE.THRESHOLD.explorer;
-    const result = checkFailsafe(makeObstacle(threshold, true), 'explorer');
+    const result = checkFailsafe({ obstacle: makeObstacle(threshold, true), difficulty: 'explorer' });
     expect(result).toBeNull();
   });
 
   // --- Undefined obstacle (first attempt) ---
   it('undefined obstacle → null (not enough attempts yet)', () => {
-    expect(checkFailsafe(undefined, 'explorer')).toBeNull();
-    expect(checkFailsafe(undefined, 'survivor')).toBeNull();
-    expect(checkFailsafe(undefined, 'nightmare')).toBeNull();
+    expect(checkFailsafe({ obstacle: undefined, difficulty: 'explorer' })).toBeNull();
+    expect(checkFailsafe({ obstacle: undefined, difficulty: 'survivor' })).toBeNull();
+    expect(checkFailsafe({ obstacle: undefined, difficulty: 'nightmare' })).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// DECISION T — the four declared types finally do four different things
+// ---------------------------------------------------------------------------
+
+describe('failsafe types', () => {
+  const past: ObstacleState = {
+    obstacleKey: 'room_a:door_01',
+    attemptCount: 99,
+    pathsAttempted: [],
+    resolved: false,
+  };
+
+  it('degraded_bypass lowers the bar and charges blood for it', () => {
+    const result = checkFailsafe({ obstacle: past, difficulty: 'survivor', failsafeType: 'degraded_bypass' });
+    expect(result!.dcReduction).toBeGreaterThan(0);
+    expect(result!.hpCost).toBe(BALANCE.FAILSAFE.COST.survivor);
+    expect(result!.unblocksExit).toBeUndefined();
+  });
+
+  it('alternate_route hands over a path the player has not tried', () => {
+    const result = checkFailsafe({
+      obstacle: past,
+      difficulty: 'survivor',
+      failsafeType: 'alternate_route',
+      untriedPathIds: ['vent', 'hack'],
+    });
+    expect(result!.type).toBe('alternate_route');
+    expect(result!.revealedPathId).toBe('vent');
+    // A hint, not a gift: no DC relief, and the obstacle still stands.
+    expect(result!.dcReduction).toBeUndefined();
+    expect(result!.unblocksExit).toBeUndefined();
+  });
+
+  it('alternate_route degrades to a lowered bar when every path has been tried', () => {
+    const result = checkFailsafe({
+      obstacle: past,
+      difficulty: 'survivor',
+      failsafeType: 'alternate_route',
+      untriedPathIds: [],
+    });
+    expect(result!.type).toBe('degraded_bypass');
+    expect(result!.dcReduction).toBeGreaterThan(0);
+  });
+
+  it('narrative_rescue opens the way without granting the win', () => {
+    const result = checkFailsafe({ obstacle: past, difficulty: 'survivor', failsafeType: 'narrative_rescue' });
+    expect(result!.unblocksExit).toBe(true);
+    expect(result!.dcReduction).toBeUndefined();
+    expect(result!.hpCost).toBeUndefined();
+  });
+
+  it('every type names an i18n hint — an unseen intervention is indistinguishable from luck', () => {
+    const types = ['degraded_bypass', 'alternate_route', 'narrative_rescue', 'threat_escalation'] as const;
+    for (const failsafeType of types) {
+      const result = checkFailsafe({
+        obstacle: past,
+        difficulty: 'survivor',
+        failsafeType,
+        untriedPathIds: ['vent'],
+      });
+      expect(result!.hintKey).toBe(`failsafe.${failsafeType}.hint`);
+    }
   });
 });

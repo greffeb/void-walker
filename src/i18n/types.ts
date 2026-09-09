@@ -860,6 +860,11 @@ export type StringKey =
   | 'scene.exits_new'
   | 'scene.exits_known'
   | 'scene.prompt'
+  // --- Anti-softlock interventions ---
+  | 'failsafe.degraded_bypass.hint'
+  | 'failsafe.alternate_route.hint'
+  | 'failsafe.narrative_rescue.hint'
+  | 'failsafe.threat_escalation.hint'
   // Grammar article data — locale-specific JSON (e.g. {"item.knife":"un","item.medical_kit":"une"})
   | 'grammar.item_articles'
   | 'grammar.feature_articles'

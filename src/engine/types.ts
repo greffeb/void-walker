@@ -906,8 +906,16 @@ export interface FailsafeResult {
   readonly activated: boolean;
   /** DC reduction applied this turn (for degraded_bypass) */
   readonly dcReduction?: number;
+  /** HP paid when the lowered bar actually carries the player through. */
+  readonly hpCost?: number;
+  /** Obstacle path handed to the player, for alternate_route. */
+  readonly revealedPathId?: string;
+  /** The way opens without the obstacle being beaten, for narrative_rescue. */
+  readonly unblocksExit?: boolean;
+  /** Persistence draws the predator instead of easing the lock. */
+  readonly escalatesThreat?: boolean;
   /** i18n key for the hint/event narrative */
-  readonly hintKey?: string;
+  readonly hintKey?: StringKey;
 }
 
 /** Tracks all attempts on a single obstacle */

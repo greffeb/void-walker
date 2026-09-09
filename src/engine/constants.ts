@@ -137,6 +137,8 @@ export const BALANCE = {
     ENABLED: { explorer: true, survivor: true, nightmare: false } as const,
     /** Base DC reduction applied at threshold (increases each extra attempt) */
     BASE_DC_REDUCTION: 3,
+    /** Turns the stalker clock jumps when persistence draws attention instead. */
+    THREAT_ESCALATION_TICKS: 3,
   },
 
   // === SAVE ===

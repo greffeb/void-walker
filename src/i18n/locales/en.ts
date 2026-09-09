@@ -884,6 +884,12 @@ export const en: LocaleStrings = {
   'scene.exits_known':    'Known path toward',
   'scene.prompt':         'What do you do?',
 
+  // Anti-softlock interventions
+  'failsafe.degraded_bypass.hint':   'You force your way through at a price. Something gives — so do you.',
+  'failsafe.alternate_route.hint':   'Stepping back, you see what stubbornness was hiding: there is another handhold.',
+  'failsafe.narrative_rescue.hint':  'The ship decides for you: a lurch, a crack, and the way opens. You have won nothing — you may pass.',
+  'failsafe.threat_escalation.hint': 'Your hammering carries. Something has stopped ignoring you.',
+
   // Dice choreography
   'dice.modifier.incompatible':      'Incompatible action',
   'dice.modifier.noTool':            'No tool',
