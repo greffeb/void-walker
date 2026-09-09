@@ -74,15 +74,23 @@ export type LayerType =
   | 'player_state'
   | 'threat';
 
-/** Canonical narrative position order for all layers */
+/**
+ * Canonical narrative position order (decision X).
+ *
+ * `npc_reaction` sat fourth and cut the paragraph in two: the witness spoke
+ * between the act and what the act changed. Judged on real output rather than on
+ * the table — see the trial recorded with this change — a reaction reads as a
+ * closing beat, which is also where both the phase 5 table and
+ * NARRATION_STRUCTURE.md §1.4 put it.
+ */
 export const LAYER_ORDER: readonly LayerType[] = [
   'action_result',
   'sensory',
   'consequence',
-  'npc_reaction',
   'atmosphere',
   'player_state',
   'threat',
+  'npc_reaction',
 ] as const;
 
 // === TARGET INFO ===

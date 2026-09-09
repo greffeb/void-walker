@@ -302,10 +302,10 @@ describe('location narration state', () => {
 });
 
 describe('LAYER_ORDER', () => {
-  it('exports LAYER_ORDER in narrative position order', () => {
+  it('closes on the witness, as both specs say (decision X)', () => {
     expect(LAYER_ORDER).toEqual([
       'action_result', 'sensory', 'consequence',
-      'npc_reaction', 'atmosphere', 'player_state', 'threat',
+      'atmosphere', 'player_state', 'threat', 'npc_reaction',
     ]);
   });
 });
