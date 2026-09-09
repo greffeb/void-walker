@@ -67,6 +67,25 @@ export function calculateBaseDamage(
 }
 
 /**
+ * Chance that the NPC slips a blow, given how cleanly the attack landed.
+ * A hit that barely clears the DC is the one you can twist away from; a
+ * critical cannot be dodged at all (decision Q).
+ *
+ * The declared dodgeChance is the ceiling, reached on a margin of 0. It decays
+ * to nothing over DODGE_MARGIN_RANGE points of margin.
+ */
+export function dodgeChanceForMargin(
+  baseDodgeChance: number,
+  margin: number,
+  critical: boolean,
+): number {
+  if (critical) return 0;
+  if (margin >= BALANCE.COMBAT.DODGE_MARGIN_RANGE) return 0;
+  const decay = 1 - Math.max(0, margin) / BALANCE.COMBAT.DODGE_MARGIN_RANGE;
+  return baseDodgeChance * decay;
+}
+
+/**
  * Resolve a full player attack against an NPC.
  */
 export function resolvePlayerAttack(
@@ -88,8 +107,9 @@ export function resolvePlayerAttack(
   // Miss
   if (!rollResult.success) return miss;
 
-  // NPC dodge
-  if (rollDodge(npc.dodgeChance, rng)) {
+  // NPC dodge — narrower the harder the blow lands, impossible on a critical
+  const margin = rollResult.total - rollResult.difficulty;
+  if (rollDodge(dodgeChanceForMargin(npc.dodgeChance, margin, rollResult.critical), rng)) {
     return { ...miss, npcDodged: true };
   }
 

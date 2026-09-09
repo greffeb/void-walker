@@ -866,6 +866,7 @@ export type StringKey =
   | 'dice.modifier.targetArmored'
   | 'dice.modifier.targetCooperative'
   | 'dice.modifier.targetAttached'
+  | 'dice.modifier.targetDefense'
   | 'dice.modifier.wounded'
   | 'dice.modifier.terrified'
   | 'dice.modifier.highStat'

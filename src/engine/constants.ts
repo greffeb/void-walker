@@ -51,6 +51,8 @@ export const BALANCE = {
     AMBUSH_FIRST_ROUND_BONUS: 3,
     EXPLOIT_INT_MULTIPLIER: 1.0,
     RETREAT_DC_REDUCTION: 5,
+    /** Margin above the DC at which a blow can no longer be dodged. */
+    DODGE_MARGIN_RANGE: 8,
   },
 
   // === BONUS LOOT ===

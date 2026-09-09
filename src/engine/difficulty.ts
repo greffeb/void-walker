@@ -74,7 +74,10 @@ export function detectCreativity(
 // === TARGET DISPOSITION ===
 
 /** Get target disposition modifier based on properties */
-function getTargetDispositionMod(target: ResolvedTarget | null): { mod: number; detail: string } {
+function getTargetDispositionMod(
+  target: ResolvedTarget | null,
+  targetDefense: number | undefined,
+): { mod: number; detail: string } {
   if (!target) return { mod: 0, detail: '' };
 
   const props = new Set(target.properties);
@@ -82,7 +85,9 @@ function getTargetDispositionMod(target: ResolvedTarget | null): { mod: number; 
   if (props.has('friendly') || props.has('willing')) {
     return { mod: BALANCE.CONTEXT_MODIFIERS.COOPERATIVE_TARGET, detail: 'Cible coopérative' };
   }
-  if (props.has('hostile')) {
+  // An NPC you are striking is already priced by its defense; charging the
+  // hostility surcharge on top would bill the same thing twice.
+  if (props.has('hostile') && targetDefense === undefined) {
     return { mod: BALANCE.CONTEXT_MODIFIERS.HOSTILE_TARGET, detail: 'Cible hostile' };
   }
   if (props.has('secured') && target.state?.lock === 'locked') {
@@ -255,7 +260,9 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
       playerToolProps: input.tool?.properties ?? [],
       targetState: input.target.state,
     });
-    compatibilityPenalty = compat.difficultyPenalty;
+    // The missing tool is priced once, by getToolMod, which tells apart an
+    // appropriate tool, a wrong one and none at all.
+    compatibilityPenalty = compat.propertyPenalty;
     requiresCritical = compat.requiresCritical;
     compatSeverity = compat.severity;
     if (compatibilityPenalty > 0) {
@@ -270,7 +277,7 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
   let contextMods = 0;
 
   // Target disposition
-  const disposition = getTargetDispositionMod(input.target);
+  const disposition = getTargetDispositionMod(input.target, input.targetDefense);
   if (disposition.mod !== 0) {
     contextMods += disposition.mod;
     details.push(`${disposition.detail}: ${disposition.mod > 0 ? '+' : ''}${disposition.mod}`);
@@ -310,6 +317,13 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     const attachedBonus = 3;
     contextMods += attachedBonus;
     details.push(`Cible attachée: +${attachedBonus}`);
+  }
+
+  // NPC defense — combat is not a separate DC system (decision S)
+  const targetDefense = input.targetDefense ?? 0;
+  if (targetDefense !== 0) {
+    contextMods += targetDefense;
+    details.push(`Défense de la cible: +${targetDefense}`);
   }
 
   // Creativity modifier
@@ -438,6 +452,15 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     namedLines.push({
       labelKey: 'dice.modifier.targetAttached',
       value: 3,
+      category: 'penalty',
+    });
+  }
+
+  // 6b. NPC defense
+  if (targetDefense !== 0) {
+    namedLines.push({
+      labelKey: 'dice.modifier.targetDefense',
+      value: targetDefense,
       category: 'penalty',
     });
   }

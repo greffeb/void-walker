@@ -611,6 +611,8 @@ export interface DifficultyInput {
   readonly environmentConditions?: readonly EnvironmentCondition[];
   readonly playerConditions?: readonly string[];
   readonly suggestions?: readonly ParsedAction[];
+  /** Defense of an NPC being attacked. Combat goes through the same formula. */
+  readonly targetDefense?: number;
 }
 
 /** Environmental conditions that affect difficulty */

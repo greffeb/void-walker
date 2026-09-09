@@ -36,7 +36,7 @@ import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
 import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shipMemory';
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
-import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat } from './combat';
+import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat, canDiscoverWeakPoint, checkWeakPointAutoDiscover } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved } from './backtracking';
@@ -633,10 +633,26 @@ export function processTurn(
 
   if (current.activeCombat && current.character !== null && !scenarioInteractionHandled) {
     const combat = current.activeCombat;
-    const npc = combat.npc;
-    const effectiveStats = applyConditionMalus(current.character.stats, current.character.conditions);
+    const combatCharacter = current.character;
+    const effectiveStats = applyConditionMalus(combatCharacter.stats, combatCharacter.conditions);
     const armorValue = getEquippedArmorValue(current.character.equippedArmor);
     const difficultyMultiplier = BALANCE.DIFFICULTY_DAMAGE_MULTIPLIER[current.difficulty];
+
+    // ── WEAK POINT DISCOVERY (Phase 3 deliverable 9) ───────────────────────
+    // Looking at a thing long enough, or looking at it deliberately, tells you
+    // where it breaks. Without this the weak point on every NPC is unreachable.
+    let npc = combat.npc;
+    if (npc.weakPoint !== null && !npc.weakPointDiscovered) {
+      const hasScanner = combatCharacter.inventory.includes('scanner')
+        || action.tool?.id === 'scanner';
+      const discovered = checkWeakPointAutoDiscover(combat.round)
+        || (action.target?.id === combat.npcInstanceId
+            && canDiscoverWeakPoint(action.verb, npc.weakPoint, hasScanner));
+      if (discovered) {
+        npc = { ...npc, weakPointDiscovered: true };
+        current = { ...current, activeCombat: { ...combat, npc } };
+      }
+    }
 
     // ── Obstacle-path intercept (Issue #49) ─────────────────────────────────
     // If the player uses a verb that matches an obstacle path on the current NPC
@@ -704,8 +720,35 @@ export function processTurn(
       const statId = getVerbStat(action.verb, action.target?.properties ?? []);
       const statValue = effectiveStats[statId] ?? 0;
       const lck = effectiveStats['LCK'] ?? 0;
-      const dc = 10 + npc.defense; // Base DC 10 + NPC defense
-      const roll = rollCheck(statId, statValue, lck, dc, 0, rng);
+
+      // Combat is not a DC system of its own (decision S): darkness, zero-g,
+      // the difficulty preset and ship memory reach the blade too.
+      const combatBreakdown = calculateDifficulty({
+        verb: action.verb,
+        target: action.target,
+        tool: action.tool,
+        playerStats: effectiveStats,
+        difficultyLevel: current.difficulty,
+        creative: action.creative,
+        environmentConditions: context.environmentConditions,
+        playerConditions: combatCharacter.conditions.map(c => c.id),
+        suggestions: context.suggestions,
+        targetDefense: npc.defense,
+      });
+      const combatMarks = locationId && action.target
+        ? getMarksForTarget(current.shipMemory, locationId, action.target.id)
+        : [];
+      const combatMemoryMod = getMarkDCModifier(combatMarks, action.verb);
+      traceShipMemoryMod = combatMemoryMod;
+      traceDifficultyBreakdown = combatBreakdown;
+
+      const dc = Math.max(
+        BALANCE.MIN_DIFFICULTY,
+        Math.min(BALANCE.MAX_DIFFICULTY, combatBreakdown.total + combatMemoryMod),
+      );
+      const roll = rollCheck(
+        statId, statValue, lck, dc, 0, rng, combatBreakdown.requiresCritical,
+      );
       diceRoll = roll;
       traceStatId = statId;
       traceStatValue = statValue;
@@ -714,8 +757,8 @@ export function processTurn(
 
       const attackResult = resolvePlayerAttack(
         effectiveStats, null, action.verb, npc,
-        roll, current.character.className === 'marine' ? 'COMBAT_DAMAGE_BONUS' : '',
-        current.character.className === 'marine' ? 1 : null, rng,
+        roll, combatCharacter.className === 'marine' ? 'COMBAT_DAMAGE_BONUS' : '',
+        combatCharacter.className === 'marine' ? 1 : null, rng,
       );
 
       if (attackResult.hit) {

@@ -29,7 +29,13 @@ export interface CompatibilityResult {
   readonly compatible: boolean;
   readonly auto: boolean;
   readonly toolBlocking: boolean;
+  /** Total surcharge for a standalone reading: properties + missing tool. */
   readonly difficultyPenalty: number;
+  /**
+   * Surcharge owed to the target alone. The DC calculator uses this one and
+   * prices the tool itself, which it does more finely.
+   */
+  readonly propertyPenalty: number;
   readonly failedClause: string | null;
   readonly severity: ActionSeverity;
   /** True when only a critical can carry the action — never an outright refusal. */
@@ -108,26 +114,28 @@ export function checkCompatibility(input: CompatibilityInput): CompatibilityResu
   const toolBlocking = requiredToolProp !== null && !toolSet.has(requiredToolProp);
 
   const compatible = propsSatisfied && !toolBlocking;
-  let penalty = 0;
+  let propertyPenalty = 0;
 
   if (severity === 'unsuited') {
     // Distance, not a flat verdict: one missing property is a stretch, three is a leap.
-    penalty += BALANCE.CONTEXT_MODIFIERS.UNSUITED_PER_MISSING_PROPERTY
+    propertyPenalty = BALANCE.CONTEXT_MODIFIERS.UNSUITED_PER_MISSING_PROPERTY
       * Math.max(1, missing.length);
-  }
-  if (toolBlocking) {
-    penalty += MISSING_TOOL_PENALTY;
   }
 
   // Cap penalty at maximum possible
   const maxPenalty = BALANCE.MAX_DIFFICULTY - BALANCE.BASE_DIFFICULTY;
-  penalty = Math.min(penalty, maxPenalty);
+  propertyPenalty = Math.min(propertyPenalty, maxPenalty);
+  const difficultyPenalty = Math.min(
+    propertyPenalty + (toolBlocking ? MISSING_TOOL_PENALTY : 0),
+    maxPenalty,
+  );
 
   return {
     compatible,
     auto: isAuto,
     toolBlocking,
-    difficultyPenalty: penalty,
+    difficultyPenalty,
+    propertyPenalty,
     failedClause,
     severity,
     requiresCritical: severity === 'absurd',

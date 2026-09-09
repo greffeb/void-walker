@@ -893,6 +893,7 @@ export const fr: LocaleStrings = {
   'dice.modifier.targetArmored':     'Cible blindée',
   'dice.modifier.targetCooperative': 'Cible coopérative',
   'dice.modifier.targetAttached':    'Membre attaché',
+  'dice.modifier.targetDefense':     'Défense de la cible',
   'dice.modifier.wounded':           'Blessé',
   'dice.modifier.terrified':         'Terrifié',
   'dice.modifier.highStat':          '{stat} élevé',

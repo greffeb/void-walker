@@ -50,14 +50,23 @@ const TARGET = {
  * Measured baseline. The run is fully seeded, so these are exact.
  * Ratchet rule: tighten these as fixes land, never loosen them.
  *
- * Loosened once, deliberately, for decision A3: LCK stopped adding to roll
- * totals, which removes an average +1 from every check in the game. The cost
- * is paid back by the crit window and the natural-1 reprieve, not by the DC.
+ * `maxStuck` alone is a treacherous metric: a run that dies on turn 5 is not
+ * counted as stuck, so making the player survive longer *raises* it. That is
+ * why the progression ratchets below exist — dying early lowers them, so they
+ * cannot be gamed the way the stuck count can.
+ *
+ * Loosened twice, deliberately:
+ *  - A3: LCK stopped adding to roll totals, one point harder on every check.
+ *  - S + weak points + Q: combat became survivable, so 23 runs moved from
+ *    "died" to "wandered". Defeats fell from 286 to 263.
  */
 const BASELINE = {
-  maxStuck: 220,
+  maxStuck: 237,
   maxTimeouts: 0,
   minVictories: 0,
+  /** Progression, which early death can only ever lower. */
+  minAvgObstaclesResolved: 0.73,
+  minAvgLocationCoverage: 0.67,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -278,6 +287,12 @@ describe('scenarioWalkthrough: 500 auto-playthroughs', () => {
     expect(timeouts.length).toBeLessThanOrEqual(BASELINE.maxTimeouts);
     expect(avg(coverage)).toBeGreaterThanOrEqual(TARGET.minLocationCoverage);
     expect(victories.length).toBeGreaterThanOrEqual(BASELINE.minVictories);
+
+    // Progression ratchets — these are the ones that cannot be satisfied by
+    // dying sooner.
+    expect(avg(results.map(r => r.obstaclesResolved)))
+      .toBeGreaterThanOrEqual(BASELINE.minAvgObstaclesResolved);
+    expect(avg(coverage)).toBeGreaterThanOrEqual(BASELINE.minAvgLocationCoverage);
   });
 
   // The acceptance targets of PHASE_6B §6. They are NOT met: the goal bot wins

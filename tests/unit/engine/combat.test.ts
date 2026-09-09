@@ -10,6 +10,7 @@ import {
   calculateBerserkBonus,
   shouldNPCAttack,
   resolveNPCAttack,
+  dodgeChanceForMargin,
   attemptFlee,
   attemptRetreat,
   isExploitVerb,
@@ -113,11 +114,37 @@ describe('resolvePlayerAttack', () => {
 
   it('NPC dodge prevents hit', () => {
     const result = resolvePlayerAttack(
-      makeStats(), null, 'STRIKE', makeNpc({ dodgeChance: 1.0 }), makeDice(),
+      makeStats(), null, 'STRIKE', makeNpc({ dodgeChance: 1.0 }),
+      makeDice({ total: 13, difficulty: 13 }), // scraped past the DC — fully dodgeable
       '', null, fixedRng(0.5), // rng < 1.0 → dodge
     );
     expect(result.hit).toBe(false);
     expect(result.npcDodged).toBe(true);
+  });
+
+  it('a critical cannot be dodged, whatever the NPC agility', () => {
+    const result = resolvePlayerAttack(
+      makeStats(), null, 'STRIKE', makeNpc({ dodgeChance: 1.0, defense: 0 }),
+      makeDice({ natural: 20, critical: true, total: 13, difficulty: 13 }),
+      '', null, fixedRng(0), // any rng would dodge if dodging were possible
+    );
+    expect(result.npcDodged).toBe(false);
+    expect(result.hit).toBe(true);
+  });
+
+  it('a blow that lands cleanly is harder to slip than one that scrapes by', () => {
+    const scraped = resolvePlayerAttack(
+      makeStats(), null, 'STRIKE', makeNpc({ dodgeChance: 1.0 }),
+      makeDice({ total: 14, difficulty: 13 }),
+      '', null, fixedRng(0.5),
+    );
+    const clean = resolvePlayerAttack(
+      makeStats(), null, 'STRIKE', makeNpc({ dodgeChance: 1.0, defense: 0 }),
+      makeDice({ total: 21, difficulty: 13 }),
+      '', null, fixedRng(0.5),
+    );
+    expect(scraped.npcDodged).toBe(true);
+    expect(clean.npcDodged).toBe(false);
   });
 
   it('deals damage on hit', () => {
@@ -232,8 +259,32 @@ describe('shouldNPCAttack', () => {
   });
 });
 
-describe('resolveNPCAttack', () => {
-  it('NPC misses when roll too low', () => {
+describe('dodgeChanceForMargin', () => {
+  it('is at its declared maximum when the blow barely lands', () => {
+    expect(dodgeChanceForMargin(0.4, 0, false)).toBeCloseTo(0.4);
+  });
+
+  it('decays to nothing as the margin grows', () => {
+    const range = BALANCE.COMBAT.DODGE_MARGIN_RANGE;
+    expect(dodgeChanceForMargin(0.4, range / 2, false)).toBeCloseTo(0.2);
+    expect(dodgeChanceForMargin(0.4, range, false)).toBe(0);
+    expect(dodgeChanceForMargin(0.4, range + 10, false)).toBe(0);
+  });
+
+  it('is zero on a critical, whatever the margin', () => {
+    expect(dodgeChanceForMargin(1, 0, true)).toBe(0);
+  });
+
+  it('never goes negative and never exceeds the declared chance', () => {
+    for (let margin = -5; margin <= 20; margin++) {
+      const chance = dodgeChanceForMargin(0.5, margin, false);
+      expect(chance).toBeGreaterThanOrEqual(0);
+      expect(chance).toBeLessThanOrEqual(0.5);
+    }
+  });
+});
+
+describe('resolveNPCAttack', () => {  it('NPC misses when roll too low', () => {
     // NPC roll: floor(0.05 * 20) + 1 = 2, total = 2 + 4 = 6
     // Player defense: 10 + AGI 3 + DEF 3 = 16 — LCK adds nothing (decision A3)
     const rng = sequenceRng([0.05, 0.5]);

@@ -887,6 +887,7 @@ export const en: LocaleStrings = {
   'dice.modifier.targetArmored':     'Armored target',
   'dice.modifier.targetCooperative': 'Cooperative target',
   'dice.modifier.targetAttached':    'Attached limb',
+  'dice.modifier.targetDefense':     'Target defense',
   'dice.modifier.wounded':           'Wounded',
   'dice.modifier.terrified':         'Terrified',
   'dice.modifier.highStat':          'High {stat}',

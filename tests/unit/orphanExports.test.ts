@@ -63,9 +63,7 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   // unrouted playtest hooks deleted under decision R, so in the shipped game a
   // weak point can never be discovered and its damage multiplier never applies.
   // Re-wire in lot 3, alongside the combat rework of decision S.
-  canDiscoverWeakPoint: 'P3 #9 — weak point discovery only ever lived in dead code',
-  checkWeakPointAutoDiscover: 'P3 #9 — round-3 auto-discovery only ever lived in dead code',
-  shouldShowWeakPointHint: 'P3 #9 — weak point hinting only ever lived in dead code',
+  shouldShowWeakPointHint: 'P3 #9 — weak point hinting belongs to the narration lot',
 
   // --- Scene/class helpers whose only consumers were the deleted playtest screens.
   CLASS_LIST: 'only consumed by the deleted playtest screens',

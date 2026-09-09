@@ -251,7 +251,10 @@ describe('botProfiles: explorer + chaotic', () => {
     expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.75);
     // Lowered from 0.70 → 0.65: obstacle blocking (REG-019) costs the bot
     // turns resolving obstacles, slightly reducing NPC interaction coverage.
-    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.65);
+    // Lowered again 0.65 → 0.64 for decision A3: without the LCK bonus every
+    // check is one point harder, so the bot dies a little earlier and meets
+    // one NPC fewer. Tighten once the resolution lot lands.
+    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.64);
   });
 
   it('chaotic profile meets absurd/failsafe thresholds', () => {
