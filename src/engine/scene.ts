@@ -10,7 +10,7 @@ import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInst
 import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition } from './scenario';
 import type { SuggestionCandidate } from './suggestions';
 import type { StringKey } from '../i18n/types';
-import { generateSuggestions } from './suggestions';
+import { generateSuggestions, isExcludedFromSuggestions } from './suggestions';
 import { getExitsWithStatus } from './backtracking';
 import { isItemAvailable, isObstacleResolved, isMovementOnlyPath } from './backtracking';
 import { resolveProperties } from './properties';
@@ -74,9 +74,12 @@ function pickSuggestionVerb(verbs: readonly string[]): { verbText: string; names
   }
   for (const verb of verbs) {
     const verbId = map.get(verb.toLowerCase());
-    if (verbId !== undefined && !MOVEMENT_VERBS.has(verbId)) {
-      return { verbText: obstaclVerbToFrench(verb), namesTarget: true };
-    }
+    if (verbId === undefined) continue;
+    if (MOVEMENT_VERBS.has(verbId)) continue;
+    // A verb the game never proposes stays unproposed, even when a module
+    // names it on a path (decision W).
+    if (isExcludedFromSuggestions(verbId)) continue;
+    return { verbText: obstaclVerbToFrench(verb), namesTarget: true };
   }
   const first = verbs[0] ?? 'examine';
   return { verbText: obstaclVerbToFrench(first), namesTarget: true };

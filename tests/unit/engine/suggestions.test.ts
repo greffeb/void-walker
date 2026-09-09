@@ -15,6 +15,7 @@ import {
   SUGGESTION_EXCLUDED_VERB_IDS,
 } from '../../../src/engine/suggestions';
 import type { SuggestionCandidate } from '../../../src/engine/suggestions';
+import { SECRET_VERBS } from '../../../src/engine/verbs';
 import type { NarrativeSkin } from '../../../src/engine/scenario';
 
 // ---------------------------------------------------------------------------
@@ -64,8 +65,11 @@ describe('isExcludedFromSuggestions', () => {
     expect(isExcludedFromSuggestions('TALK')).toBe(false);
   });
 
-  it('has exactly 3 excluded verbs', () => {
-    expect(SUGGESTION_EXCLUDED_VERB_IDS.size).toBe(3);
+  it('excludes the three special verbs plus every secret one', () => {
+    expect(SUGGESTION_EXCLUDED_VERB_IDS.size).toBe(3 + SECRET_VERBS.size);
+    for (const verb of SECRET_VERBS) {
+      expect(isExcludedFromSuggestions(verb)).toBe(true);
+    }
   });
 });
 

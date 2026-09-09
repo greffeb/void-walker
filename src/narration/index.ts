@@ -21,6 +21,7 @@ import { NARRATIVE_PRESETS } from './types';
 import { composeNarrative, getVerbCategory } from './composer';
 import { getLocale, t } from '../i18n/index';
 import { narrationMemory } from './memory';
+import { selectSecretVerbText } from './secretVerbs';
 
 export { composeNarrative, resetComposer } from './composer';
 export { renderTemplate, renderTemplateWithSlots, getGrammarEngine, detectSelfReference } from './templateEngine';
@@ -399,6 +400,19 @@ export function narrateForTurn(
     const override = result.trace.scenarioNarrativeOverride;
     const effectiveLocale = locale ?? getLocale();
     return effectiveLocale === 'fr' ? override.fr : (override.en || override.fr);
+  }
+
+  // A secret verb has its own voice, and its own way of tiring (decision W).
+  const secretTier = result.trace.secretVerbTier;
+  if (secretTier !== null && secretTier !== undefined && result.trace.parsedVerb !== null) {
+    const secretText = selectSecretVerbText(
+      result.trace.parsedVerb,
+      secretTier,
+      locale ?? getLocale(),
+      Math.random,
+      result.newState.scenario?.skeleton.theme.id,
+    );
+    if (secretText !== null) return secretText;
   }
 
   // Special case: EXAMINE on abstract environment target → rich scene description

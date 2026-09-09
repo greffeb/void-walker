@@ -99,6 +99,14 @@ const VERB_FORMS: Readonly<Record<VerbId, VerbForms>> = {
   MOVE_TO:          { infinitive: { fr: 'vous diriger vers',         en: 'move to' },           direct: { fr: 'vous dirigez vers',         en: 'move to' } },
   WAIT:             { infinitive: { fr: 'attendre',                  en: 'wait' },              direct: { fr: 'attendez',                  en: 'wait' } },
   TOUCH:            { infinitive: { fr: 'toucher',                   en: 'touch' },             direct: { fr: 'touchez',                   en: 'touch' } },
+  // Secret verbs
+  PRAY:             { infinitive: { fr: 'prier',                     en: 'pray' },              direct: { fr: 'priez',                     en: 'pray' } },
+  DANCE:            { infinitive: { fr: 'danser',                    en: 'dance' },             direct: { fr: 'dansez',                    en: 'dance' } },
+  NAME:             { infinitive: { fr: 'nommer',                    en: 'name' },              direct: { fr: 'nommez',                    en: 'name' } },
+  SING:             { infinitive: { fr: 'chanter',                   en: 'sing' },              direct: { fr: 'chantez',                   en: 'sing' } },
+  APOLOGIZE:        { infinitive: { fr: 'vous excuser',              en: 'apologize' },         direct: { fr: 'vous excusez',              en: 'apologize' } },
+  WHISPER:          { infinitive: { fr: 'chuchoter',                 en: 'whisper' },           direct: { fr: 'chuchotez',                 en: 'whisper' } },
+  REMEMBER:         { infinitive: { fr: 'vous souvenir',             en: 'remember' },          direct: { fr: 'vous souvenez',             en: 'remember' } },
 };
 
 /** Returns the infinitive form for "Vous tentez de [inf] [target]." */

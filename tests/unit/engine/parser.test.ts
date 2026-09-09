@@ -625,8 +625,8 @@ describe('buildParserLocaleData — obstacleVerbMap', () => {
     expect(dataFr.obstacleVerbMap.get('navigate')).toBe('MOVE_TO');
   });
 
-  test('pray → TOUCH', () => {
-    expect(dataFr.obstacleVerbMap.get('pray')).toBe('TOUCH');
+  test('"pray" is no longer routed to TOUCH — PRAY is a verb now (decision W)', () => {
+    expect(dataFr.obstacleVerbMap.get('pray')).toBeUndefined();
   });
 
   test('sneak → HIDE', () => {

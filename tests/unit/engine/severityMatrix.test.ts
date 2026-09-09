@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 // tests/unit/engine/severityMatrix.test.ts — Decision F: the frozen grid
 // ---------------------------------------------------------------------------
-// The full 78 verbs x 5 natures severity grid, reviewed once and frozen here.
+// The full 85 verbs x 5 natures severity grid, reviewed once and frozen here.
 // Regenerate with: npx tsx scripts/severity-matrix.ts
 // A diff in this table is a deliberate design change, never a side effect.
 // ---------------------------------------------------------------------------
@@ -104,6 +104,15 @@ const FROZEN: Readonly<Record<VerbId, string>> = {
   MOVE_TO: 'ccccc',
   WAIT: 'ccccc',
   TOUCH: 'ccccc',
+  // Secret verbs: gestures addressed to the room, with no requirement on any
+  // target, so nothing about them can ever be unsuited (decision W).
+  PRAY: 'ccccc',
+  DANCE: 'ccccc',
+  NAME: 'ccccc',
+  SING: 'ccccc',
+  APOLOGIZE: 'ccccc',
+  WHISPER: 'ccccc',
+  REMEMBER: 'ccccc',
 };
 
 function rowFor(verb: VerbId): string {
@@ -115,7 +124,7 @@ function rowFor(verb: VerbId): string {
 }
 
 describe('severity matrix', () => {
-  it('matches the reviewed grid for all 78 verbs', () => {
+  it('matches the reviewed grid for all 85 verbs', () => {
     const drift: string[] = [];
     for (const verb of VERB_IDS) {
       const actual = rowFor(verb);

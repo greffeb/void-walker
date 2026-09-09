@@ -455,6 +455,20 @@ export const en: LocaleStrings = {
   'verb.WAIT.description': 'Wait and observe',
   'verb.TOUCH': 'Touch',
   'verb.TOUCH.description': 'Touch an object or surface',
+  'verb.PRAY': 'Pray',
+  'verb.PRAY.description': 'Send a prayer into the void',
+  'verb.DANCE': 'Dance',
+  'verb.DANCE.description': 'Dance, against all reason',
+  'verb.NAME': 'Name',
+  'verb.NAME.description': 'Give a name to what has none',
+  'verb.SING': 'Sing',
+  'verb.SING.description': 'Sing into the silence',
+  'verb.APOLOGIZE': 'Apologize',
+  'verb.APOLOGIZE.description': 'Offer an apology, to whoever is owed one',
+  'verb.WHISPER': 'Whisper',
+  'verb.WHISPER.description': 'Murmur to yourself, or almost',
+  'verb.REMEMBER': 'Remember',
+  'verb.REMEMBER.description': 'Let a memory surface',
 
   // Verb aliases — all recognizable English forms per verb
   'verb.STRIKE.aliases': 'hit,strike,punch,beat,bash,slam,attack,stab',
@@ -535,6 +549,13 @@ export const en: LocaleStrings = {
   'verb.MOVE_TO.aliases': 'go,move to,walk to,leave,depart',
   'verb.WAIT.aliases': 'wait,stay,hold',
   'verb.TOUCH.aliases': 'touch,feel,poke',
+  'verb.PRAY.aliases': 'pray,prays,praying,beseech,implore',
+  'verb.DANCE.aliases': 'dance,dances,dancing,waltz',
+  'verb.NAME.aliases': 'name,names,naming,christen,baptize',
+  'verb.SING.aliases': 'sing,sings,singing,hum,hums',
+  'verb.APOLOGIZE.aliases': 'apologize,apologise,apologies,sorry,repent',
+  'verb.WHISPER.aliases': 'whisper,whispers,whispering,murmur,mutter',
+  'verb.REMEMBER.aliases': 'remember,remembers,remembering,recall,reminisce',
   // Parser data
   'parser.compounds': 'SHOOT:shoot+at,SHOOT:fire+at,HIDE:hide,BLOCK:defend,KICK:kick,IGNITE:set+fire,IMPROVISE_WEAPON:use+as+weapon,IMPROVISE_SHIELD:use+as+shield,IMPROVISE_TOOL:use+as+tool,SET_TRAP:set+trap,SET_TRAP:lay+trap,LOCK:lock+up,MOVE_TO:go+to,MOVE_TO:walk+to,RUN:run+away,DODGE:duck+down,LISTEN:listen+for,DISTRACT:draw+away,SIGNAL:wave+at,WEDGE:jam+with,STRIKE:punch,CUT:stab+with',
   'parser.stopWords': 'the,a,an,of,in,on,at,to,and,or,is,are,be,my,your,his,her,its,our,their,i,you,he,she,it,we,they,me,him,us,them,this,that,these,those,do,does,did,will,would,can,could,shall,should,may,might,very,just,also,too',
@@ -549,7 +570,7 @@ export const en: LocaleStrings = {
   'parser.move.noTarget': 'Where do you want to go?',
   'parser.move.noExit': 'There is nowhere to go from here.',
   // Obstacle path verbs: English authoring vocabulary → VerbId (same in all locales)
-  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,USE:bandage,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,HIDE:loot,HIDE:pickpocket,HIDE:steal,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:look,EXAMINE:study,EXAMINE:search,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot,TOUCH:pray',
+  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,USE:bandage,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,HIDE:loot,HIDE:pickpocket,HIDE:steal,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:look,EXAMINE:study,EXAMINE:search,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot',
 
   // Items
   'item.laser_pistol': 'Laser Pistol',

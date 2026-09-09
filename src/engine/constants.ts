@@ -143,6 +143,14 @@ export const BALANCE = {
     THREAT_ESCALATION_TICKS: 3,
   },
 
+  // === SECRET VERBS (decision W) ===
+  SECRET_VERB: {
+    /** Uses that still read as a real gesture before the game starts tiring of it. */
+    EFFECT_USES: 3,
+    /** Uses after which the game stops playing along entirely. */
+    BLOCKED_USES: 5,
+  },
+
   // === SAVE ===
   SAVE: {
     SLOT_COUNT: 3,

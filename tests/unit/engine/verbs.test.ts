@@ -16,8 +16,8 @@ import { buildParserLocaleData } from '../../../src/content/parserData';
 import { STAT_IDS } from '../../../src/engine/types';
 
 describe('VerbId', () => {
-  test('has exactly 78 verbs', () => {
-    expect(VERB_IDS).toHaveLength(78);
+  test('has exactly 85 verbs — 78 ordinary and 7 secret', () => {
+    expect(VERB_IDS).toHaveLength(85);
   });
 
   test('all verb IDs are uppercase strings', () => {

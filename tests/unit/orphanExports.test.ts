@@ -93,7 +93,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   markFeatureChanged: 'U — consequences must be the only channel for world change',
 
   // --- Decision W: secret verb content written, mechanic never built (P5-1).
-  SECRET_VERB_TEMPLATES: 'W — wire secret verbs into the verb registry',
 
   // --- Assorted engine helpers with no caller.
   getConditionRollModifier: 'conditions: roll modifier never applied',
@@ -103,7 +102,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   isFeatureChanged: 'backtracking helper unused',
   isExitUnlocked: 'backtracking helper unused',
   categorizeExits: 'backtracking helper unused',
-  isExcludedFromSuggestions: 'suggestions helper unused',
   sceneHasHealingItem: 'scene helper unused',
   getFeatureDescription: 'feature description helper unused',
   buildCustomScene: 'scene builder helper unused',

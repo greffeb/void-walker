@@ -455,6 +455,20 @@ export const fr: LocaleStrings = {
   'verb.WAIT.description': 'Patienter et observer',
   'verb.TOUCH': 'Toucher',
   'verb.TOUCH.description': 'Toucher un objet ou une surface',
+  'verb.PRAY': 'Prier',
+  'verb.PRAY.description': 'Adresser une prière au vide',
+  'verb.DANCE': 'Danser',
+  'verb.DANCE.description': 'Danser, contre toute raison',
+  'verb.NAME': 'Nommer',
+  'verb.NAME.description': 'Donner un nom à ce qui n’en a pas',
+  'verb.SING': 'Chanter',
+  'verb.SING.description': 'Chanter dans le silence',
+  'verb.APOLOGIZE': 'S’excuser',
+  'verb.APOLOGIZE.description': 'Présenter des excuses, à qui de droit',
+  'verb.WHISPER': 'Chuchoter',
+  'verb.WHISPER.description': 'Murmurer pour soi, ou presque',
+  'verb.REMEMBER': 'Se souvenir',
+  'verb.REMEMBER.description': 'Laisser remonter un souvenir',
 
   // Verb aliases — all recognizable forms (infinitives + conjugated + slang) per verb
   // Used by content/parserData.ts to build parser lookup tables
@@ -536,6 +550,13 @@ export const fr: LocaleStrings = {
   'verb.MOVE_TO.aliases': 'aller,se deplacer,se rendre,vais,va,allez,allons,rends,partir,pars,partez,partons,part',
   'verb.WAIT.aliases': 'attendre,patienter,attends,attendez,patiente,patientez,reposer,repos,dormir,dors,dormez,dormons',
   'verb.TOUCH.aliases': 'toucher,tater,palper,touche,touchez,tate,tatez,palpe,palpez',
+  'verb.PRAY.aliases': 'prier,prie,priez,prions,implorer,implore,implorez,supplier,supplie',
+  'verb.DANCE.aliases': 'danser,danse,dansez,dansons,valser,valse',
+  'verb.NAME.aliases': 'nommer,nomme,nommez,nommons,baptiser,baptise,baptisez',
+  'verb.SING.aliases': 'chanter,chante,chantez,chantons,fredonner,fredonne,fredonnez',
+  'verb.APOLOGIZE.aliases': 'excuser,excuse,excusez,pardon,desoler,desole,repentir',
+  'verb.WHISPER.aliases': 'chuchoter,chuchote,chuchotez,murmurer,murmure,murmurez,souffler',
+  'verb.REMEMBER.aliases': 'souvenir,souviens,souvenez,rappeler,rappelle,rappelez,remembrer,memoire',
   // Parser data — compound patterns (VERB:token1+token2, sorted by token count)
   'parser.compounds': 'SHOOT:tirer+sur,SHOOT:tire+sur,SHOOT:tirez+sur,SHOOT:tirer+dessus,SHOOT:tire+dessus,SHOOT:tirez+dessus,SHOOT:faire+feu,SHOOT:fait+feu,SHOOT:tirer+balle,SHOOT:tire+balle,SHOOT:tirez+balle,HIDE:se+cacher,HIDE:se+cache,HIDE:se+cachez,HIDE:se+planquer,HIDE:se+planque,HIDE:se+dissimuler,HIDE:se+mettre+couvert,HIDE:mettre+couvert,HIDE:mets+couvert,HIDE:mettez+couvert,BLOCK:se+proteger,BLOCK:se+protege,KICK:coup+pied,IGNITE:mettre+feu,IGNITE:mets+feu,IGNITE:mettez+feu,IGNITE:foutre+feu,IGNITE:fous+feu,IMPROVISE_WEAPON:utiliser+comme+arme,IMPROVISE_WEAPON:utilise+comme+arme,IMPROVISE_WEAPON:utilisez+comme+arme,IMPROVISE_SHIELD:utiliser+comme+bouclier,IMPROVISE_SHIELD:utilise+comme+bouclier,IMPROVISE_SHIELD:utilisez+comme+bouclier,IMPROVISE_TOOL:utiliser+comme+outil,IMPROVISE_TOOL:utilise+comme+outil,SET_TRAP:tendre+piege,SET_TRAP:tends+piege,SET_TRAP:tendez+piege,LOCK:fermer+cle,LOCK:ferme+cle,LOCK:fermez+cle,FLOOD:remplir+eau,FLOOD:remplis+eau,MOVE_TO:se+deplacer,MOVE_TO:deplace+toi,MOVE_TO:deplacez+vous,MOVE_TO:me+deplacer,MOVE_TO:me+deplace,MOVE_TO:se+rendre,MOVE_TO:en+aller,MOVE_TO:en+vais,MOVE_TO:en+va,MOVE_TO:en+allons,MOVE_TO:en+allez,RUN:enfuir,DODGE:se+baisser,DODGE:se+baisse,LISTEN:tendre+oreille,DISTRACT:detourner+attention,DISTRACT:detourne+attention,SIGNAL:faire+signe,SIGNAL:fait+signe,SIGNAL:faites+signe,WEDGE:bloquer+avec,CUT:donne+coup+couteau,CUT:donnez+coup+couteau,CUT:donner+coup+couteau,CUT:coup+couteau,STRIKE:donne+coup+poing,STRIKE:coup+poing,STRIKE:donne+coup,STRIKE:donnez+coup,STRIKE:donner+coup,WAIT:se+reposer,CLIMB:passer+par,CLIMB:passe+par,CLIMB:passez+par,CLIMB:ramper+dans,CLIMB:rampe+dans,CLIMB:rampez+dans,CLIMB:se+faufiler,CLIMB:se+faufile,CLIMB:entrer+dans,CLIMB:entre+dans,CLIMB:entrez+dans,CLIMB:rentrer+dans,CLIMB:rentre+dans,CLIMB:rentrez+dans,SELF_HARM:se+tuer,SELF_HARM:me+tue,SELF_HARM:se+suicider,SELF_HARM:me+suicide,SELF_HARM:se+poignarder,SELF_HARM:me+poignarde,SELF_HARM:se+planter+couteau,SELF_HARM:me+plante+couteau,SELF_HARM:se+trancher,SELF_HARM:me+tranche,SELF_HARM:se+tirer+dessus,SELF_HARM:me+tire+dessus,SELF_HARM:en+finir,SELF_HARM:mettre+fin+jours,SELF_HARM:se+faire+mal,SELF_HARM:me+fais+mal,SELF_HARM:se+blesser,SELF_HARM:me+blesse,SELF_HARM:tue+moi,SELF_HARM:tuez+moi',
   // Parser data — stop words to filter from input
@@ -555,7 +576,7 @@ export const fr: LocaleStrings = {
   'parser.move.noTarget': 'Où voulez-vous aller ?',
   'parser.move.noExit': 'Il n\'y a nulle part où aller depuis ici.',
   // Obstacle path verbs: English authoring vocabulary → VerbId (same in all locales)
-  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,USE:bandage,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,HIDE:loot,HIDE:pickpocket,HIDE:steal,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:look,EXAMINE:study,EXAMINE:search,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot,TOUCH:pray',
+  'parser.obstacleVerbs': 'USE:heal,USE:treat,USE:cure,USE:use,USE:turn,USE:focus,USE:concentrate,USE:bandage,TALK:talk,PERSUADE:persuade,PERSUADE:negotiate,PERSUADE:trade,CALM:calm,INTIMIDATE:intimidate,INTIMIDATE:threaten,DECEIVE:bluff,PUSH:push,PUSH:charge,PUSH:press,PULL:pull,BREAK:break,BREAK:pry,STRIKE:smash,STRIKE:attack,STRIKE:fight,FORCE_OPEN:force,LIFT:lift,HACK:hack,HACK:disable,REPAIR:repair,REPAIR:fix,REPAIR:reroute,REPAIR:restore,REPROGRAM:reprogram,OVERRIDE:override,ACTIVATE:activate,ACTIVATE:trigger,DEACTIVATE:deactivate,WELD:weld,WELD:seal,PLUG:plug,IMPROVISE_TOOL:improvise,CLIMB:crawl,CLIMB:climb,CLIMB:squeeze,SWIM:swim,SWIM:wade,RUN:cross,RUN:flee,RUN:run,RUN:escape,RUN:evacuate,DODGE:dodge,JUMP:jump,HIDE:sneak,HIDE:hide,HIDE:loot,HIDE:pickpocket,HIDE:steal,MOVE_TO:move,MOVE_TO:go,MOVE_TO:navigate,EXAMINE:examine,EXAMINE:look,EXAMINE:study,EXAMINE:search,READ:decipher,TAKE:take,CLOSE:close,OPEN:open,UNLOCK:unlock,EQUIP:wear,EQUIP:equip,SET_TRAP:set,SET_TRAP:prepare,SET_TRAP:trap,DISTRACT:distract,LURE:lure,THROW:throw,SIGNAL:call,SIGNAL:signal,SHOOT:shoot',
 
   // Items
   'item.laser_pistol': 'Pistolet laser',

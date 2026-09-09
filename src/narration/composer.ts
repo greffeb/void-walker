@@ -118,6 +118,9 @@ const VERB_CATEGORY_MAP: Readonly<Record<VerbId, VerbCategory>> = {
   USE: 'interaction', OPEN: 'interaction', CLOSE: 'interaction', TAKE: 'interaction',
   DROP: 'interaction', GIVE: 'interaction', EQUIP: 'interaction', EAT: 'interaction',
   DRINK: 'interaction', MOVE_TO: 'interaction', WAIT: 'interaction', TOUCH: 'interaction',
+  // Secret — gestures addressed to no one
+  PRAY: 'social', DANCE: 'physical', NAME: 'social', SING: 'social',
+  APOLOGIZE: 'social', WHISPER: 'social', REMEMBER: 'perception',
 };
 
 /** Get the verb category for a verb ID */

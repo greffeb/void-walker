@@ -287,7 +287,9 @@ describe('botProfiles: explorer + chaotic', () => {
 
     // No stuck assertion: the chaotic bot types absurd input on purpose, so
     // stalling is its expected behaviour. The count is reported, not enforced.
-    expect(absurdInputShare).toBeGreaterThanOrEqual(0.65);
+    // 0.65 → 0.649: some fuzz inputs ("chanter doucement") used to parse to
+    // nothing and now name a secret verb, which shortens those runs (decision W).
+    expect(absurdInputShare).toBeGreaterThanOrEqual(0.649);
     expect(concreteTargetRate).toBeGreaterThanOrEqual(0.45);
     expect(failsafeSessionRate).toBeGreaterThanOrEqual(0.25);
     expect(uniqueParsedVerbs).toBeGreaterThanOrEqual(10);

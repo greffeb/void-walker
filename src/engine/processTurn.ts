@@ -40,6 +40,7 @@ import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shi
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat, canDiscoverWeakPoint, checkWeakPointAutoDiscover, shouldNPCAttack } from './combat';
 import { passiveEffectOf, passiveValueOf } from './passives';
+import { isSecretVerb, useSecretVerb } from './secretVerbs';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved, isMovementOnlyPath } from './backtracking';
@@ -331,6 +332,32 @@ export function processTurn(
   // find out whether one applies; the roll happens in STEP 5 like any other
   // action, and STEP 5b applies the rule's effects afterwards.
   // ─────────────────────────────────────────────────────────
+  let secretVerbTier: import('./secretVerbs').SecretVerbTier | null = null;
+  if (isSecretVerb(action.verb)) {
+    // A gesture, not an attempt: no roll, no consequence, only how tired of it
+    // the world has grown (decision W).
+    const used = useSecretVerb(current, action.verb);
+    secretVerbTier = used.tier;
+    current = { ...used.state, turn: used.state.turn + 1 };
+    return buildResult(
+      current, null, input, action.verb, action.target?.id ?? null, 'secret_verb',
+      buildFullTrace({
+        action, creativityMod, conditionHpDrain, conditionsExpired,
+        atmosphere, o2Before, o2After, oxygenHpDrain, isAutoVerb: true,
+        statId: null, statValue: 0, shipMemoryMod: 0,
+        failsafeActivated: false, failsafeDcReduction: 0,
+        breakdown: null, effectiveDC: 0,
+        outcome: 'success', consequences: [],
+        triggeredConditions: [], deathResult: null,
+        npcReacted: false, npcAttackHit: false, npcAttackDamage: 0,
+        stalkerClockBefore: current.stalkerClockState.actionsSinceLastProgression,
+        stalkerClockAfter: current.stalkerClockState.actionsSinceLastProgression,
+        stalkerEventType: null,
+        secretVerbTier,
+      }),
+    );
+  }
+
   let scenarioNarrativeOverride: import('./scenario').LocaleString | null = null;
   let scenarioInteractionHandled = false;
   let interactionMatch: import('./interactionResolver').InteractionMatch | null = null;
@@ -1654,6 +1681,7 @@ interface TraceInputs {
   readonly scenarioInteractionMatched?: boolean;
   readonly scenarioNarrativeOverride?: import('./scenario').LocaleString | null;
   readonly movementBlocked?: boolean;
+  readonly secretVerbTier?: import('./secretVerbs').SecretVerbTier | null;
 }
 
 function buildFullTrace(t: TraceInputs): TurnDebugTrace {
@@ -1696,6 +1724,7 @@ function buildFullTrace(t: TraceInputs): TurnDebugTrace {
     scenarioInteractionMatched: t.scenarioInteractionMatched,
     scenarioNarrativeOverride: t.scenarioNarrativeOverride,
     movementBlocked: t.movementBlocked,
+    secretVerbTier: t.secretVerbTier ?? null,
   };
 }
 

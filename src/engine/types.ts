@@ -193,6 +193,8 @@ export interface GameState {
   /** Scenario-wide flags set by interactions.
    *  Key = flag name (string), value = true when set. */
   readonly scenarioFlags: Readonly<Record<string, boolean>>;
+  /** How many times each secret verb has been tried (decision W). */
+  readonly secretVerbUses: Readonly<Partial<Record<import('./verbs').VerbId, number>>>;
   // === Micro-Module additions ===
   /** Per-micro-module runtime state. Key = microModuleId. */
   readonly microModuleStates: Readonly<Record<string, import('./scenario').MicroModuleState>>;
@@ -259,6 +261,7 @@ export function createInitialGameState(): GameState {
     revealedItems: {},
     unlockedExits: {},
     scenarioFlags: {},
+    secretVerbUses: {},
     // === Micro-Module defaults ===
     microModuleStates: {},
   };
@@ -334,6 +337,9 @@ export interface TurnDebugTrace {
 
   // Step 9a: Movement blocking
   readonly movementBlocked?: boolean;
+
+  /** How tired of this gesture the world has grown (decision W). */
+  readonly secretVerbTier?: import('./secretVerbs').SecretVerbTier | null;
 }
 
 /** Result of a single dice roll */

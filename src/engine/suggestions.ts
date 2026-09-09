@@ -8,6 +8,7 @@
 
 import type { StatId, PlayerClassName } from './types';
 import type { NarrativeSkin } from './scenario';
+import { SECRET_VERBS } from './verbs';
 
 // ---------------------------------------------------------------------------
 // SUGGESTION CANDIDATE
@@ -47,10 +48,11 @@ export const CLASS_PRIMARY_STATS: Readonly<Record<PlayerClassName, readonly Stat
  * These are Easter-egg / special verbs that reward player curiosity,
  * not prompted interaction.
  */
-export const SUGGESTION_EXCLUDED_VERB_IDS = new Set([
+export const SUGGESTION_EXCLUDED_VERB_IDS: ReadonlySet<string> = new Set<string>([
   'WAIT',       // Easter-egg use; always available but not prompted
   'SACRIFICE',  // High-stakes, should be discovered organically
   'SELF_HARM',  // Easter-egg only — must never appear as a prompted suggestion
+  ...SECRET_VERBS,
 ]);
 
 /** Returns true if a verb ID should be excluded from suggestions. */

@@ -37,7 +37,10 @@ export type VerbId =
   // Interaction / Auto (12)
   | 'USE' | 'OPEN' | 'CLOSE' | 'TAKE' | 'DROP'
   | 'GIVE' | 'EQUIP' | 'EAT' | 'DRINK' | 'MOVE_TO'
-  | 'WAIT' | 'TOUCH';
+  | 'WAIT' | 'TOUCH'
+  // Secret (7) — never suggested, discovered by curiosity alone (decision W)
+  | 'PRAY' | 'DANCE' | 'NAME' | 'SING' | 'APOLOGIZE'
+  | 'WHISPER' | 'REMEMBER';
 
 /** All valid verb IDs as a runtime array */
 export const VERB_IDS: readonly VerbId[] = [
@@ -66,6 +69,9 @@ export const VERB_IDS: readonly VerbId[] = [
   'USE', 'OPEN', 'CLOSE', 'TAKE', 'DROP',
   'GIVE', 'EQUIP', 'EAT', 'DRINK', 'MOVE_TO',
   'WAIT', 'TOUCH',
+  // Secret (7)
+  'PRAY', 'DANCE', 'NAME', 'SING', 'APOLOGIZE',
+  'WHISPER', 'REMEMBER',
 ] as const;
 
 // === VERB REQUIREMENTS ===
@@ -95,6 +101,8 @@ export interface VerbEntry {
   readonly requirements: VerbRequirements;
   readonly difficultyMod: number;
   readonly auto: boolean;
+  /** Never suggested, never required. The player has to think of it. */
+  readonly secret?: boolean;
 }
 
 /** Registry mapping every verb to its definition */
@@ -506,7 +514,51 @@ export const VERB_REGISTRY: VerbRegistry = {
     requirements: { targetProps: [['tangible']], requiredToolProp: null },
     difficultyMod: 0, auto: true,
   },
+
+  // ── Secret (7) ────────────────────────────────────────────────────────
+  // Gestures, not attempts: they always work, they change nothing, and the
+  // game never proposes them (decision W).
+  PRAY: {
+    nameKey: 'verb.PRAY', descriptionKey: 'verb.PRAY.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
+  DANCE: {
+    nameKey: 'verb.DANCE', descriptionKey: 'verb.DANCE.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
+  NAME: {
+    nameKey: 'verb.NAME', descriptionKey: 'verb.NAME.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
+  SING: {
+    nameKey: 'verb.SING', descriptionKey: 'verb.SING.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
+  APOLOGIZE: {
+    nameKey: 'verb.APOLOGIZE', descriptionKey: 'verb.APOLOGIZE.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
+  WHISPER: {
+    nameKey: 'verb.WHISPER', descriptionKey: 'verb.WHISPER.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
+  REMEMBER: {
+    nameKey: 'verb.REMEMBER', descriptionKey: 'verb.REMEMBER.description',
+    requirements: { targetProps: [], requiredToolProp: null },
+    difficultyMod: 0, auto: true, secret: true,
+  },
 } as const;
+
+/** Verbs the game never proposes: the player has to think of them. */
+export const SECRET_VERBS: ReadonlySet<VerbId> = new Set(
+  VERB_IDS.filter(v => VERB_REGISTRY[v].secret === true),
+);
 
 // === VERB-TO-STAT MAPPING ===
 
@@ -546,6 +598,9 @@ export const VERB_STATS: Readonly<Record<VerbId, StatId>> = {
   USE: 'INT', OPEN: 'FOR', CLOSE: 'FOR',
   TAKE: 'AGI', DROP: 'AGI', GIVE: 'CHA', EQUIP: 'AGI',
   EAT: 'FOR', DRINK: 'FOR', MOVE_TO: 'AGI', WAIT: 'PER', TOUCH: 'PER',
+  // Secret (7) — never rolled, but the table must stay total.
+  PRAY: 'CHA', DANCE: 'AGI', NAME: 'CHA', SING: 'CHA',
+  APOLOGIZE: 'CHA', WHISPER: 'CHA', REMEMBER: 'INT',
 } as const;
 
 /**
