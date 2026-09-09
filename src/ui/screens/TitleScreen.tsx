@@ -20,13 +20,16 @@ const CLASS_LABELS: Record<string, string> = {
 export function TitleScreen(): JSX.Element {
   const setScreen = useGameStore(s => s.setScreen);
   const quickStart = useGameStore(s => s.quickStart);
+  const loadSettings = useGameStore(s => s.loadSettings);
   const { saveSlots, loadGameFromSlot, refreshSaveSlots } = useSaveLoad();
 
   useEffect(() => {
     void refreshSaveSlots();
-  }, [refreshSaveSlots]);
+    void loadSettings();
+  }, [refreshSaveSlots, loadSettings]);
 
   const autoSave = saveSlots.find(s => s.slot === 0);
+  const canContinue = autoSave !== undefined && autoSave.finished !== true;
   const hasSaves = saveSlots.length > 0;
 
   const handleNewGame = (): void => {
@@ -38,7 +41,7 @@ export function TitleScreen(): JSX.Element {
   };
 
   const handleContinue = (): void => {
-    if (autoSave) {
+    if (canContinue) {
       void loadGameFromSlot(0);
     }
   };
@@ -119,14 +122,15 @@ export function TitleScreen(): JSX.Element {
           type="button"
           className="btn-console"
           onClick={handleContinue}
-          disabled={!autoSave}
+          disabled={!canContinue}
           style={{ width: '100%', padding: '14px' }}
         >
           CONTINUER
           {autoSave && (
             <span style={{ display: 'block', fontSize: '16px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              {autoSave.meta.playerName} — {CLASS_LABELS[autoSave.meta.className] ?? autoSave.meta.className}
-              {' '}— Tour {autoSave.meta.turn}
+              {autoSave.finished === true
+                ? `${autoSave.meta.playerName} — partie terminée`
+                : `${autoSave.meta.playerName} — ${CLASS_LABELS[autoSave.meta.className] ?? autoSave.meta.className} — Tour ${autoSave.meta.turn}`}
             </span>
           )}
         </button>
@@ -148,11 +152,14 @@ export function TitleScreen(): JSX.Element {
                 type="button"
                 className="btn-console"
                 onClick={() => void loadGameFromSlot(slot.slot)}
+                disabled={slot.finished === true}
                 style={{ width: '100%', marginBottom: '4px', padding: '8px', textAlign: 'left' }}
               >
                 Slot {slot.slot} — {slot.meta.playerName} ({CLASS_LABELS[slot.meta.className] ?? slot.meta.className})
                 <span style={{ display: 'block', fontSize: '14px', color: 'var(--text-system)' }}>
-                  Tour {slot.meta.turn} — {formatTimestamp(slot.timestamp)}
+                  {slot.finished === true
+                    ? `Terminée au tour ${slot.meta.turn} — ${formatTimestamp(slot.timestamp)}`
+                    : `Tour ${slot.meta.turn} — ${formatTimestamp(slot.timestamp)}`}
                 </span>
               </button>
             ))}

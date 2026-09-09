@@ -17,13 +17,17 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
   const saveGameToSlot = useGameStore((s) => s.saveGameToSlot);
   const restart = useGameStore((s) => s.restart);
   const gameState = useGameStore((s) => s.gameState);
+  const narrativePreset = useGameStore((s) => s.narrativePreset);
+  const setNarrativePreset = useGameStore((s) => s.setNarrativePreset);
+  const locale = useGameStore((s) => s.locale);
+  const setLocale = useGameStore((s) => s.setLocale);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [confirmQuit, setConfirmQuit] = useState(false);
 
-  async function handleSave(): Promise<void> {
+  async function handleSave(slot: number): Promise<void> {
     setSaveStatus('saving');
     try {
-      await saveGameToSlot(0);
+      await saveGameToSlot(slot);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch {
@@ -52,21 +56,53 @@ export function SettingsModal({ onClose }: Props): JSX.Element {
 
         {/* Save */}
         <Section title="SAUVEGARDE">
-          <button
-            type="button"
-            className="btn-console"
-            onClick={() => void handleSave()}
-            disabled={saveStatus === 'saving'}
-            style={{ width: '100%', padding: '10px' }}
-          >
-            {saveStatus === 'idle' && '▸ SAUVEGARDER'}
-            {saveStatus === 'saving' && '⏳ SAUVEGARDE…'}
-            {saveStatus === 'saved' && '✓ SAUVEGARDÉ'}
-            {saveStatus === 'error' && '✕ ERREUR'}
-          </button>
-          <p style={{ fontSize: '16px', color: 'var(--amber-dim)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-            Sauvegarde dans l'emplacement automatique (slot 0).
+          <p style={{ fontSize: '16px', color: 'var(--amber-dim)', marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>
+            La partie est sauvegardée automatiquement à chaque tour.
           </p>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[1, 2].map(slot => (
+              <button
+                key={slot}
+                type="button"
+                className="btn-console"
+                onClick={() => void handleSave(slot)}
+                disabled={saveStatus === 'saving'}
+                style={{ flex: 1, padding: '10px' }}
+              >
+                ▸ EMPLACEMENT {slot}
+              </button>
+            ))}
+          </div>
+          {saveStatus !== 'idle' && (
+            <p style={{ fontSize: '16px', color: 'var(--amber-dim)', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+              {saveStatus === 'saving' && '⏳ SAUVEGARDE…'}
+              {saveStatus === 'saved' && '✓ SAUVEGARDÉ'}
+              {saveStatus === 'error' && '✕ ERREUR'}
+            </p>
+          )}
+        </Section>
+
+        {/* Narration */}
+        <Section title="NARRATION">
+          <Choice
+            label="Longueur"
+            options={[
+              { value: 'concise', label: 'BRÈVE' },
+              { value: 'standard', label: 'STANDARD' },
+              { value: 'immersive', label: 'AMPLE' },
+            ]}
+            selected={narrativePreset}
+            onSelect={(v) => setNarrativePreset(v as typeof narrativePreset)}
+          />
+          <Choice
+            label="Langue"
+            options={[
+              { value: 'fr', label: 'FRANÇAIS' },
+              { value: 'en', label: 'ENGLISH' },
+            ]}
+            selected={locale}
+            onSelect={(v) => setLocale(v as typeof locale)}
+          />
         </Section>
 
         {/* Audio placeholder */}
@@ -187,4 +223,40 @@ function difficultyLabel(d: string): string {
     case 'nightmare': return 'Cauchemar';
     default: return d;
   }
+}
+
+function Choice({
+  label, options, selected, onSelect,
+}: {
+  label: string;
+  options: readonly { readonly value: string; readonly label: string }[];
+  selected: string;
+  onSelect: (value: string) => void;
+}): JSX.Element {
+  return (
+    <div style={{ padding: '6px 0' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', color: 'var(--amber-dim)', marginBottom: '6px' }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            className="btn-console"
+            onClick={() => onSelect(opt.value)}
+            style={{
+              flex: 1,
+              padding: '8px',
+              fontSize: '16px',
+              borderColor: opt.value === selected ? 'var(--amber-glow)' : 'var(--amber-dim)',
+              color: opt.value === selected ? 'var(--amber-glow)' : 'var(--text-secondary)',
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }

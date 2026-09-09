@@ -23,8 +23,14 @@ import {
   saveGame as saveToDb,
   loadGame as loadFromDb,
   listSaveSlots,
+  getSettings,
+  saveSettings,
 } from '@services/storage';
 import type { SaveSlotInfo, SaveMeta } from '@services/storage';
+import { createAutoSaver } from '@services/autoSave';
+import type { AutoSaver } from '@services/autoSave';
+import type { Locale } from '@i18n/types';
+import type { NarrativePreset } from '@narration/types';
 import type {
   GameState, DifficultyLevel, PlayerClassName, StatId,
   RngFn, DiceResult, DifficultyBreakdown, SceneContext, SceneDescription, TurnDebugTrace,
@@ -122,6 +128,10 @@ export interface GameStore {
   // === SEED (exposed for bug reports) ===
   seed: number;
 
+  // === SETTINGS ===
+  narrativePreset: NarrativePreset;
+  locale: Locale;
+
   // === ACTIONS ===
   startNewGame: () => void;
   quickStart: () => void;
@@ -135,6 +145,9 @@ export interface GameStore {
   saveGameToSlot: (slot: number) => Promise<void>;
   loadGameFromSlot: (slot: number) => Promise<void>;
   refreshSaveSlots: () => Promise<void>;
+  loadSettings: () => Promise<void>;
+  setNarrativePreset: (p: NarrativePreset) => void;
+  setLocale: (l: Locale) => void;
   restart: () => void;
 }
 
@@ -164,6 +177,28 @@ function buildSaveMeta(state: GameState): SaveMeta {
 let _rng: RngFn = () => Math.random();
 let _seed = 0;
 let _parserData: ParserLocaleData = buildParserLocaleData('fr');
+
+/** Auto-save slot. 1 and 2 are the player's own. */
+const AUTO_SAVE_SLOT = 0;
+const AUTO_SAVE_DEBOUNCE_MS = 1000;
+let _autoSave: AutoSaver | null = null;
+
+/** The one auto-saver, writing whatever the latest state is when it fires. */
+function autoSaver(get: () => GameStore): AutoSaver {
+  _autoSave ??= createAutoSaver(async () => {
+    const { gameState } = get();
+    await saveToDb({
+      slot: AUTO_SAVE_SLOT,
+      gameState,
+      seed: _seed,
+      timestamp: Date.now(),
+      meta: buildSaveMeta(gameState),
+      ...(isGameOver(gameState) ? { finished: true } : {}),
+    });
+    await get().refreshSaveSlots();
+  }, AUTO_SAVE_DEBOUNCE_MS);
+  return _autoSave;
+}
 
 /** Track narrated element IDs per location for suggestion filtering */
 let _narratedIds = new Set<string>();
@@ -294,6 +329,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   // === SAVE SLOTS ===
   saveSlots: [],
 
+  // === SETTINGS ===
+  narrativePreset: 'standard',
+  locale: 'fr',
+
   // === MAP LAYOUT ===
   mapLayout: null,
   mapLocations: null,
@@ -397,7 +436,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
       let narrative = '';
       try {
-        narrative = narrateForTurn(result, context, store.gameState, NARRATIVE_PRESETS.standard, 'fr');
+        narrative = narrateForTurn(
+          result, context, store.gameState,
+          NARRATIVE_PRESETS[store.narrativePreset], store.locale,
+        );
       } catch {
         // Narration failure should not block
       }
@@ -517,6 +559,13 @@ export const useGameStore = create<GameStore>()((set, get) => ({
           screen: gameOver ? 'end' : store.screen,
         });
       }
+
+      // Decision AD: the run is written after every turn. Decision AE: once it
+      // ends, the slot is sealed — dying in nightmare used to be undone by
+      // reloading.
+      const finished = isGameOver(result.newState);
+      if (finished) void autoSaver(get).flush();
+      else autoSaver(get).schedule();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       set({ isProcessingTurn: false, error: `Erreur moteur: ${msg}` });
@@ -644,6 +693,22 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   refreshSaveSlots: async () => {
     const slots = await listSaveSlots();
     set({ saveSlots: slots });
+  },
+
+  loadSettings: async () => {
+    const settings = await getSettings();
+    set({ narrativePreset: settings.narrativePreset, locale: settings.locale });
+  },
+
+  setNarrativePreset: (p) => {
+    set({ narrativePreset: p });
+    void saveSettings({ narrativePreset: p });
+  },
+
+  setLocale: (l) => {
+    set({ locale: l });
+    _parserData = buildParserLocaleData(l);
+    void saveSettings({ locale: l });
   },
 
   restart: () => {
