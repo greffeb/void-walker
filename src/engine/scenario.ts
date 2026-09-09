@@ -8,6 +8,7 @@
 import type { StatId, StoryBeat, FailsafeType, AtmosphereType, EnvironmentFeatureType, ItemType, Consequence } from './types';
 import type { VerbId } from './verbs';
 import type { PropertyId } from './properties';
+import type { StateId } from './entityState';
 
 // ---------------------------------------------------------------------------
 // LOCALE STRING — inline bilingual content (fr required, en post-launch)
@@ -46,12 +47,11 @@ export interface NpcDefinition {
 }
 
 /**
- * State values for a scenario feature.
- * Standard values: 'intact' | 'damaged' | 'broken' | 'destroyed' |
- * 'locked' | 'open' | 'closed' | 'active' | 'inactive' | 'offline' | 'empty'
- * Any other string is valid (extensible).
+ * State values a scenario may write. Closed on purpose: a free-form string let
+ * `newState: 'opne'` compile and fail silently, and allowed synonyms
+ * (repaired/functional/intact) that no consumer agreed on.
  */
-export type FeatureState = string;
+export type FeatureState = StateId;
 
 /** An environment feature placed in a scenario location */
 export interface FeatureDefinition {

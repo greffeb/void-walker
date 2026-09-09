@@ -579,21 +579,15 @@ function deriveStateProperties(
     case 'closed':
       return { add: ['openable'], remove: ['open'] };
     case 'broken':
-    case 'destroyed':
       return { add: ['broken'], remove: ['locked', 'sealed', 'powered'] };
     case 'active':
-    case 'activated':
       return { add: ['active', 'powered'], remove: ['inactive', 'unpowered'] };
     case 'inactive':
-    case 'offline':
-    case 'deactivated':
       return { add: ['unpowered', 'inactive'], remove: ['powered', 'active'] };
     case 'damaged':
       return { add: ['broken'], remove: [] };
     case 'empty':
       return { add: ['open'], remove: ['locked', 'sealed'] };
-    case 'repaired':
-      return { add: ['powered'], remove: ['broken', 'damaged'] };
     case 'searched':
       return { add: [], remove: ['secured'] };
     default:

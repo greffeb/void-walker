@@ -1198,7 +1198,7 @@ const acoustic_trap_point: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredItem: 'sonic_emitter_component', requiredFlag: 'acoustic_info_received', dc: null },
       onSuccess: {
-        newState: 'activated',
+        newState: 'active',
         narrative: {
           fr: "Vous fixez le composant au point optimal. Activation. Le son explose — inaudible pour vous, apocalyptique pour la creature. Les murs acoustiques amplifient le signal x100. Une cage de son invisible. Confinee. Neutralisee. Pour toujours.",
           en: "You attach the component to the optimal point. Activation. Sound explodes. The creature is trapped.",
@@ -1211,7 +1211,7 @@ const acoustic_trap_point: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredItem: 'sonic_emitter_component', requiredFlag: 'project_hunter_read', dc: null },
       onSuccess: {
-        newState: 'activated',
+        newState: 'active',
         narrative: {
           fr: "Les notes de recherche vous ont appris la frequence exacte. Vous fixez le composant et calibrez l'emetteur. Le son explose — les murs acoustiques amplifient le signal x100. Une cage de resonance infranchissable. La creature est piegee. Pour toujours.",
           en: "The research notes taught you the exact frequency. You attach the component. The creature is trapped forever.",

@@ -9,6 +9,7 @@ import type {
   GameState, PlayerClassName, DifficultyLevel, RngFn, CharacterState,
 } from './types';
 import type { AssembledScenario } from './scenario';
+import type { StateId } from './entityState';
 import type { VictoryCheckContext, NpcState } from './victory';
 import { createInitialGameState } from './types';
 import { createThreatDirector } from './threat';
@@ -105,7 +106,7 @@ export function initGame(
   };
 
   // Initialize featureStates from all feature initialStates across the graph
-  const featureStates: Record<string, string> = {};
+  const featureStates: Record<string, StateId> = {};
   for (const node of scenario.graph.nodes) {
     for (const feat of node.features) {
       if (feat.initialState) {

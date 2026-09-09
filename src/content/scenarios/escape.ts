@@ -500,7 +500,7 @@ const security_panel: ScenarioFeatureDefinition = {
         dc: 12,
       },
       onSuccess: {
-        newState: 'deactivated',
+        newState: 'inactive',
         narrative: {
           fr: 'Vos doigts courent sur le digicode. Combinaison après combinaison — jusqu\'à trouver une faille dans le firmware. Le voyant passe au vert. Les verrous de la cloison claquent en s\'ouvrant.',
           en: 'Your fingers race across the keypad. Combination after combination — until you find a firmware exploit. The indicator turns green. The bulkhead locks slam open.',
@@ -524,7 +524,7 @@ const security_panel: ScenarioFeatureDefinition = {
         dc: 14,
       },
       onSuccess: {
-        newState: 'deactivated',
+        newState: 'inactive',
         narrative: {
           fr: 'Vous arrachez la plaque frontale du panneau. Les fils exposés — un court-circuit volontaire. Étincelles. Le verrou magnétique perd son alimentation. La cloison se déverrouille par défaut.',
           en: 'You rip off the panel\'s face plate. Exposed wires — a deliberate short circuit. Sparks. The magnetic lock loses power. The bulkhead defaults to unlocked.',
@@ -966,7 +966,7 @@ const life_support_panel: ScenarioFeatureDefinition = {
         dc: 14,
       },
       onSuccess: {
-        newState: 'repaired',
+        newState: 'intact',
         narrative: {
           fr: 'Câble par câble, vous reconnectez le système. Le ventilateur redémarre — l\'air frais afflue. L\'écran affiche "O₂ STABILISÉ". Vous avez gagné du temps.',
           en: 'Cable by cable, you reconnect the system. The fan restarts — fresh air flows. Screen reads "O₂ STABILIZED". You\'ve bought time.',
@@ -991,7 +991,7 @@ const life_support_panel: ScenarioFeatureDefinition = {
         dc: 12,
       },
       onSuccess: {
-        newState: 'repaired',
+        newState: 'intact',
         narrative: {
           fr: 'Vous ne pouvez pas réparer les câbles arrachés, mais vous pouvez contourner le circuit endommagé. '
             + 'Le système redémarre en mode dégradé — 30% de capacité au lieu de 43%. '
@@ -1019,7 +1019,7 @@ const life_support_panel: ScenarioFeatureDefinition = {
         dc: 13,
       },
       onSuccess: {
-        newState: 'repaired',
+        newState: 'intact',
         narrative: {
           fr: 'Vous arrachez les câbles morts, dénudez les fils avec les dents, '
             + 'et reconnectez le circuit à mains nues. Un arc électrique vous mord les doigts — '
@@ -1368,7 +1368,7 @@ const cargo_jettison_lever: ScenarioFeatureDefinition = {
         dc: 10,
       },
       onSuccess: {
-        newState: 'activated',
+        newState: 'active',
         narrative: {
           fr: 'Vous arrachez le cache de sécurité et tirez le levier de toutes vos forces. Un grondement assourdissant — les portes de la soute s\'ouvrent sur le vide. Tout est aspiré — y compris la créature. Ses hurlements se perdent dans le silence de l\'espace.',
           en: 'You rip off the safety cover and pull the lever with all your strength. A deafening rumble — the cargo bay doors open to the void. Everything is sucked out — including the creature. Its screams are lost in the silence of space.',
@@ -1391,7 +1391,7 @@ const cargo_jettison_lever: ScenarioFeatureDefinition = {
         dc: 12,
       },
       onSuccess: {
-        newState: 'activated',
+        newState: 'active',
         narrative: {
           fr: 'Le levier est mécanique, mais le cache de sécurité est électronique. '
             + 'Vous court-circuitez le verrouillage du cache — il saute. '
@@ -1449,7 +1449,7 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
         dc: 15,
       },
       onSuccess: {
-        newState: 'activated',
+        newState: 'active',
         narrative: {
           fr: 'Le protocole de brèche s\'active — les joints de coque de la soute se fissurent volontairement. '
             + 'Ce n\'est pas une éjection franche comme le levier — c\'est une hémorragie lente. '
@@ -1480,7 +1480,7 @@ const hull_breach_panel: ScenarioFeatureDefinition = {
         dc: 13,
       },
       onSuccess: {
-        newState: 'activated',
+        newState: 'active',
         narrative: {
           fr: 'Vous fracassez le panneau. Les circuits exposés court-circuitent — et déclenchent le protocole de brèche. La soute se dépressurise violemment.',
           en: 'You smash the panel. Exposed circuits short — triggering the breach protocol. The cargo bay depressurizes violently.',

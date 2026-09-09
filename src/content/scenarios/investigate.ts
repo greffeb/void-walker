@@ -415,7 +415,7 @@ const docking_clamps: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'ACTIVATE', requiredState: 'active', stat: 'INT', dc: 8 },
       onSuccess: {
-        newState: 'deactivated',
+        newState: 'inactive',
         narrative: {
           fr: 'Largage exécuté. Les pinces se rétractent proprement. Votre navette s\'écarte de quelques mètres — prête pour un départ rapide.',
           en: 'Release executed. Clamps retract cleanly.',
@@ -902,7 +902,7 @@ const reactor_core: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 14 },
       onSuccess: {
-        newState: 'repaired',
+        newState: 'intact',
         narrative: {
           fr: 'Vous recalibrez les régulateurs de confinement. Le réacteur ralentit, se stabilise. Le pouls orange se calme en un bleu régulier. La station respire à nouveau — mais l\'IA n\'a pas abandonné.',
           en: 'You recalibrate the containment regulators. The reactor stabilizes.',
@@ -1268,7 +1268,7 @@ const comms_array_panel: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'HACK', stat: 'INT', dc: 14, requiredFlag: 'beacon_active' },
       onSuccess: {
-        newState: 'reprogrammed',
+        newState: 'active',
         narrative: {
           fr: 'Vous reroutez le réseau de communications pour amplifier le signal de la balise. La portée passe de 50 à 500 années-lumière. La flotte de secours, mais aussi les autorités spatiales, les médias, tout le secteur recevra le signal. Vasquez ne pourra plus se cacher nulle part.',
           en: 'You reroute the comms network to amplify the beacon signal.',

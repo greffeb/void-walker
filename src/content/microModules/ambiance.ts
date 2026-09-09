@@ -159,7 +159,7 @@ export const AMBIANCE_MICRO_MODULES: readonly MicroModule[] = [
     visibility: 'open',
     locationRole: 'lab',
     features: [
-      { id: 'mm_empty_cage', initialState: 'destroyed', examineResult: ls('Une cage en acier renforcé, ouverte de l\'intérieur. Les barreaux sont pliés vers l\'extérieur.') },
+      { id: 'mm_empty_cage', initialState: 'broken', examineResult: ls('Une cage en acier renforcé, ouverte de l\'intérieur. Les barreaux sont pliés vers l\'extérieur.') },
     ],
     locale: {
       fr: {

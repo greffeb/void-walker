@@ -277,7 +277,7 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
             {
               trigger: { verb: ['HACK', 'IMPROVISE_TOOL'] as VerbId[], stat: 'INT', dc: 16 },
               onSuccess: {
-                newState: 'repaired',
+                newState: 'intact',
                 flagSet: 'survivor_saved',
                 resolveObstacle: true,
                 narrative: { fr: 'Vous trouvez un compromis instable. Les deux circuits sont alimentés — pour l\'instant.', en: '' },
@@ -297,7 +297,7 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
             {
               trigger: { verb: ['REPAIR', 'USE', 'HACK'] as VerbId[], stat: 'INT', dc: 11 },
               onSuccess: {
-                newState: 'activated',
+                newState: 'active',
                 consequences: [{ type: 'npc_killed', npcId: 'survivant_infirmerie' }],
                 resolveObstacle: true,
                 narrative: { fr: 'Vous réacheminez l\'énergie vers les portes. Les machines de l\'infirmerie s\'éteignent en silence.', en: '' },

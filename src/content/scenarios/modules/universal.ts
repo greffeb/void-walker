@@ -162,7 +162,7 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
             {
               trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'damaged', stat: 'INT', dc: 11 },
               onSuccess: {
-                newState: 'bypassed',
+                newState: 'open',
                 flagSet: 'panel_bypassed',
                 narrative: { fr: 'Vous court-circuitez le panneau de sécurité. Un voyant passe au vert — le verrouillage de la porte est désactivé. Vous pouvez maintenant l\'ouvrir.', en: '' },
               },
@@ -172,7 +172,7 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
               },
             },
             {
-              trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'bypassed', dc: null },
+              trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'open', dc: null },
               onSuccess: {
                 narrative: { fr: 'Le panneau est déjà court-circuité. La porte devrait s\'ouvrir maintenant.', en: '' },
               },
@@ -341,7 +341,7 @@ export const DARK_ROOM_01: ScenarioModule = {
               trigger: { verb: 'ACTIVATE', requiredState: 'broken', requiredFlag: 'power_relay_repaired', dc: null },
               onSuccess: {
                 narrative: { fr: 'Vous actionnez l\'interrupteur. Le plafonnier grésille, puis s\'allume. La lumière blanche inonde la pièce — vous pouvez voir à nouveau.', en: '' },
-                newState: 'functional',
+                newState: 'intact',
                 resolveObstacle: true,
               },
             },
@@ -355,7 +355,7 @@ export const DARK_ROOM_01: ScenarioModule = {
               trigger: { verb: 'REPAIR', requiredState: 'broken', stat: 'INT', dc: 12 },
               onSuccess: {
                 narrative: { fr: 'Vous reconnectez les fils du plafonnier et remplacez le tube éclaté avec un segment de la bande d\'urgence. La lumière revient — faible mais suffisante.', en: '' },
-                newState: 'functional',
+                newState: 'intact',
                 resolveObstacle: true,
               },
               onFailure: {
@@ -380,7 +380,7 @@ export const DARK_ROOM_01: ScenarioModule = {
               trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 10 },
               onSuccess: {
                 narrative: { fr: 'Vous reconnectez les câbles arrachés du relais. Un cliquetis, puis un ronronnement stable. Le circuit d\'alimentation est rétabli — le luminaire peut être activé.', en: '' },
-                newState: 'functional',
+                newState: 'intact',
                 flagSet: 'power_relay_repaired',
               },
               onFailure: {

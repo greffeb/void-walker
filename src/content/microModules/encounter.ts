@@ -201,7 +201,7 @@ export const ENCOUNTER_MICRO_MODULES: readonly MicroModule[] = [
     hiddenDC: 12,
     locationRole: 'hazard_zone',
     features: [
-      { id: 'mm_broken_containment', initialState: 'destroyed', examineResult: ls('Une cellule de confinement fracturée de l\'intérieur. Du verre renforcé brisé jonche le sol.') },
+      { id: 'mm_broken_containment', initialState: 'broken', examineResult: ls('Une cellule de confinement fracturée de l\'intérieur. Du verre renforcé brisé jonche le sol.') },
     ],
     creatureAmbush: {
       minThreatLevel: 5,
