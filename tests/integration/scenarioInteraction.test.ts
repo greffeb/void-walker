@@ -355,3 +355,71 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     expect(lockerFeature!.aliases).toContain('armoire de secours');
   });
 });
+
+// ---------------------------------------------------------------------------
+// DECISION Z — a scenario rule enriches the pipeline, it does not replace it
+// ---------------------------------------------------------------------------
+
+describe('decision Z: scenario interactions go through the generic pipeline', () => {
+  it('anchors the DC on the authored value and still applies the difficulty preset', () => {
+    const state = makeGameStateWithScenario([emergencyLocker], [oxygenCanister]);
+    const context = getSceneContext(state);
+
+    const survivor = processTurn(
+      { ...state, difficulty: 'survivor' }, 'ouvrir armoire', context, parserData, alwaysSucceedRng,
+    );
+    const nightmare = processTurn(
+      { ...state, difficulty: 'nightmare' }, 'ouvrir armoire', context, parserData, alwaysSucceedRng,
+    );
+
+    // The locker's OPEN interaction declares dc: 8 — that is the base, not 10.
+    expect(survivor.trace.difficultyBreakdown?.base).toBe(8);
+    expect(nightmare.trace.difficultyBreakdown?.base).toBe(8);
+    // ...and the preset still reaches it, which the old short-circuit never allowed.
+    expect(nightmare.trace.effectiveDC).toBeGreaterThan(survivor.trace.effectiveDC);
+  });
+
+  it('rolls the die: a matched rule no longer decides the outcome by itself', () => {
+    const state = makeGameStateWithScenario([emergencyLocker], [oxygenCanister]);
+    const context = getSceneContext(state);
+    const result = processTurn(state, 'ouvrir armoire', context, parserData, alwaysSucceedRng);
+
+    expect(result.diceRoll).not.toBeNull();
+    expect(result.trace.isAutoVerb).toBe(false);
+    expect(result.trace.outcome).toBe('crit_success');
+  });
+
+  it('records the failed attempt — proof the generic pipeline ran', () => {
+    const state = makeGameStateWithScenario([emergencyLocker], [oxygenCanister]);
+    const context = getSceneContext(state);
+    const result = processTurn(state, 'ouvrir armoire', context, parserData, alwaysFailRng);
+
+    expect(result.trace.outcome).toBe('crit_failure');
+    // The failsafe ledger only ever saw generic-path failures before decision Z.
+    expect(Object.keys(result.newState.obstacleAttempts)).toHaveLength(1);
+    // The rule's own onFailure still fires, on top of the generic consequences.
+    expect(result.newState.character!.hp).toBeLessThan(state.character!.hp);
+  });
+
+  it('a rule vouches for its action: no incompatibility surcharge is charged', () => {
+    // HACK on a container would normally be graded, but the locker declares a
+    // HACK rule, so the author has already said it makes sense here.
+    const state = makeGameStateWithScenario([emergencyLocker], [oxygenCanister]);
+    const context = getSceneContext(state);
+    const result = processTurn(state, 'pirater armoire', context, parserData, alwaysSucceedRng);
+
+    expect(result.trace.difficultyBreakdown?.base).toBe(6);
+    expect(result.trace.difficultyBreakdown?.compatibilityPenalty).toBe(0);
+    expect(result.trace.difficultyBreakdown?.requiresCritical).toBe(false);
+  });
+
+  it('an observing rule with no declared DC stays guaranteed', () => {
+    const state = makeGameStateWithScenario([statusTerminal], []);
+    const context = getSceneContext(state);
+    const result = processTurn(state, 'lire terminal', context, parserData, alwaysFailRng);
+
+    // READ meets no resistance: the authored beat is delivered even on bad luck.
+    expect(result.diceRoll).toBeNull();
+    expect(result.narrative).toContain('SYSTÈMES NOMINAUX');
+  });
+});

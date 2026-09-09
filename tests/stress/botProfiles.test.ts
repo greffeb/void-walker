@@ -246,15 +246,14 @@ describe('botProfiles: explorer + chaotic', () => {
     // Ratchet, not a target. Since stuck means "no narrative progress", the
     // explorer bot stalls on 74/120 runs. Target is 0 — lower this as fixes land.
     expect(stuckCount).toBeLessThanOrEqual(EXPLORER_STUCK_BASELINE);
-    expect(meanLocationCoverage).toBeGreaterThanOrEqual(0.80);
+    expect(meanLocationCoverage).toBeGreaterThanOrEqual(0.85);
     expect(weightedItemCoverage).toBeGreaterThanOrEqual(0.75);
-    expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.75);
+    expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.80);
     // Lowered from 0.70 → 0.65: obstacle blocking (REG-019) costs the bot
     // turns resolving obstacles, slightly reducing NPC interaction coverage.
-    // Lowered again 0.65 → 0.64 for decision A3: without the LCK bonus every
-    // check is one point harder, so the bot dies a little earlier and meets
-    // one NPC fewer. Tighten once the resolution lot lands.
-    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.64);
+    // Raised back to 0.66 by decision Z: feature state now reaches the resolver,
+    // so targets resolve correctly and the bot meets more of the crew.
+    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.66);
   });
 
   it('chaotic profile meets absurd/failsafe thresholds', () => {

@@ -613,6 +613,17 @@ export interface DifficultyInput {
   readonly suggestions?: readonly ParsedAction[];
   /** Defense of an NPC being attacked. Combat goes through the same formula. */
   readonly targetDefense?: number;
+  /**
+   * Difficulty the scenario author declared for this specific act. Replaces
+   * BASE_DIFFICULTY only — every context modifier still applies on top, so an
+   * authored DC 14 lock is still harder in the dark (decision Z).
+   */
+  readonly baseOverride?: number;
+  /**
+   * A scenario rule matched this action. The author has vouched for its
+   * relevance, so the compatibility grading is skipped — but nothing else is.
+   */
+  readonly vouchedByScenario?: boolean;
 }
 
 /** Environmental conditions that affect difficulty */

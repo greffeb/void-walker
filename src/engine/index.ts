@@ -109,10 +109,9 @@ export {
 } from './featureState';
 
 export {
-  resolveScenarioInteraction, resolveItemUseOn,
-  NO_INTERACTION_MATCH,
+  findScenarioInteraction, findItemUseOn, applyInteractionOutcome,
 } from './interactionResolver';
-export type { InteractionResolution } from './interactionResolver';
+export type { InteractionResolution, InteractionMatch } from './interactionResolver';
 
 export { mapScenarioFlags } from './scenarioFlagMapper';
 export type { FlagEffects } from './scenarioFlagMapper';

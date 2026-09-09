@@ -223,7 +223,7 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
   const details: string[] = [];
 
   // Base difficulty
-  const base = BALANCE.BASE_DIFFICULTY;
+  const base = input.baseOverride ?? BALANCE.BASE_DIFFICULTY;
   details.push(`Base: ${base}`);
 
   // Auto verbs have DC 0
@@ -250,11 +250,12 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
     details.push(`Verbe (${input.verb}): ${verbMod > 0 ? '+' : ''}${verbMod}`);
   }
 
-  // Compatibility penalty
+  // Compatibility penalty. A scenario rule that matched is compatible by
+  // construction: the author already decided this act means something here.
   let compatibilityPenalty = 0;
   let requiresCritical = false;
   let compatSeverity: ActionSeverity = 'compatible';
-  if (input.target && input.target.source !== 'abstract') {
+  if (input.target && input.target.source !== 'abstract' && input.vouchedByScenario !== true) {
     const compat = checkCompatibility({
       verbId: input.verb,
       targetProps: input.target.properties,

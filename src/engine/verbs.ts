@@ -613,3 +613,22 @@ export function isAutoVerb(
   if (resistsOpening(targetState)) return false;
   return !targetProps.includes('sealed') && !targetProps.includes('secured');
 }
+
+/** Verbs that only observe. They meet no resistance, so they cannot be refused. */
+const OBSERVING_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
+  'EXAMINE', 'READ', 'SCAN', 'LISTEN', 'SMELL',
+]);
+
+/**
+ * Whether nothing can stand in the way of this verb on this target.
+ * Used to requalify scenario rules written with `dc: null` (decision Z): a beat
+ * that only delivers information stays guaranteed, an act that overcomes
+ * something gets a real check.
+ */
+export function isUnresistedVerb(
+  verb: VerbId,
+  targetProps: readonly PropertyId[] = [],
+  targetState: EntityState = {},
+): boolean {
+  return OBSERVING_VERBS.has(verb) || isAutoVerb(verb, targetProps, targetState);
+}

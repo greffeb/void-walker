@@ -11,7 +11,7 @@ import type { SceneContext, NpcInstance, EnvironmentFeatureInstance, GameState }
 import type { PropertyId } from '../../../src/engine/properties';
 import { MOVEMENT_VERBS } from '../../../src/engine/verbs';
 import { buildConsequences, applyConsequences } from '../../../src/engine/consequences';
-import { resolveItemUseOn } from '../../../src/engine/interactionResolver';
+import { findItemUseOn, applyInteractionOutcome } from '../../../src/engine/interactionResolver';
 import { isEnrichedItem } from '../../../src/engine/scenario';
 import { BALANCE } from '../../../src/engine/constants';
 import { getFeatureDescription } from '../../../src/engine/featureState';
@@ -450,7 +450,7 @@ describe('REG-016: medkit_basic has useOn self-heal interaction', () => {
     expect(isEnrichedItem(medkit!)).toBe(true);
   });
 
-  test('resolveItemUseOn matches medkit self-use with dc:null auto-success', () => {
+  test('findItemUseOn matches medkit self-use and heals on success', () => {
     // Import the medkit definition directly from escape skeleton
     // Build a minimal enriched item for the test
     const medkitDef = {
@@ -469,15 +469,10 @@ describe('REG-016: medkit_basic has useOn self-heal interaction', () => {
       }],
     };
 
-    const mockState = {
-      character: { hp: 5, maxHp: 10, stats: {}, inventory: ['medkit_basic'], conditions: [] },
-    } as unknown as import('../../../src/engine/types').GameState;
-
-    const rng = () => 0.5;
-    const result = resolveItemUseOn('medkit_basic', medkitDef, 'self', mockState, 'loc1', rng);
-    expect(result.matched).toBe(true);
+    const match = findItemUseOn('medkit_basic', medkitDef, 'self');
+    expect(match).not.toBeNull();
+    const result = applyInteractionOutcome(match!, true);
     expect(result.success).toBe(true);
-    expect(result.diceRoll).toBeNull(); // auto-success
     expect(result.consequences).toEqual([{ type: 'heal', targetId: 'player', amount: 4 }]);
     expect(result.itemToConsume).toBe('medkit_basic');
   });
@@ -679,8 +674,10 @@ describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
     const r2 = processTurn(state, 'pousser Porte bloquée', ctx2, parserData, rng);
     state = r2.newState;
 
-    // The obstacle DC should be 12 (from the path definition), not the generic 7
-    expect(r2.trace.effectiveDC).toBe(12);
+    // The obstacle path DC anchors the base (12); context modifiers still
+    // apply on top, so the effective DC is not the raw authored number.
+    expect(r2.trace.difficultyBreakdown?.base).toBe(12);
+    expect(r2.trace.effectiveDC).toBeGreaterThan(0);
     // Stat should be FOR (the force path stat)
     expect(r2.trace.statId).toBe('FOR');
 
@@ -694,11 +691,9 @@ describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
     }
   });
 
-  test('feature-obstacle path uses the obstacle DC, not the generic DC', () => {
-    // Use the exact seed from Issue #47 — verifies the DC is from the obstacle
-    // definition (12 for the 'force' path) rather than a generic DC.
-    // We already checked this above, but this test isolates the DC concern:
-    // the blocked_passage_01 module defines force path DC=12.
+  test('feature-obstacle path anchors the DC on the authored value', () => {
+    // Use the exact seed from Issue #47 — verifies the base comes from the
+    // obstacle definition (12 for the 'force' path) rather than BASE_DIFFICULTY.
     const rng = createSeededRng(1541823379);
     const skeleton = getSkeletonById('rescue')!;
     const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
@@ -716,10 +711,12 @@ describe('REG-018: PUSH on blocked_door resolves obstacle (Issue #47)', () => {
     expect(forcePath).toBeDefined();
     expect(forcePath!.dc).toBe(12);
 
-    // Push the door — the trace DC must match the obstacle path, not generic
+    // Push the door — the base must come from the obstacle path, and the
+    // difficulty preset must still reach it (decision Z, constat P6-5).
     const ctx2 = getSceneContext(state);
     const r2 = processTurn(state, 'pousser Porte bloquée', ctx2, parserData, rng);
-    expect(r2.trace.effectiveDC).toBe(12);
+    expect(r2.trace.difficultyBreakdown?.base).toBe(12);
+    expect(r2.trace.difficultyBreakdown?.difficultyPresetMod).toBe(-2);
     expect(r2.trace.statId).toBe('FOR');
   });
 });
@@ -959,7 +956,8 @@ describe('REG-020: NPC-obstacle intercept resolves obstacle and neutralizes NPC'
     // The action should have been routed to obstacle handling
     // Either succeeded or failed (dice-dependent), but NOT generic D20
     expect(result.trace.statId).toBe(matchedPath.stat);
-    expect(result.trace.effectiveDC).toBe(matchedPath.dc);
+    // The authored path DC anchors the base; context modifiers apply on top.
+    expect(result.trace.difficultyBreakdown?.base).toBe(matchedPath.dc);
   });
 
   test('successful NPC-obstacle path resolution neutralizes NPC', () => {

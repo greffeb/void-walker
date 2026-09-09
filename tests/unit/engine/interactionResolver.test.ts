@@ -1,17 +1,19 @@
 // ---------------------------------------------------------------------------
-// tests/unit/engine/interactionResolver.test.ts — Chantier 1
+// tests/unit/engine/interactionResolver.test.ts — Decision Z
+// ---------------------------------------------------------------------------
+// The resolver matches rules. It never decides an outcome: the engine rolls,
+// then hands the verdict back through applyInteractionOutcome.
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from 'vitest';
 import { createInitialGameState } from '../../../src/engine/types';
 import {
-  resolveScenarioInteraction,
-  resolveItemUseOn,
-  NO_INTERACTION_MATCH,
+  findScenarioInteraction,
+  findItemUseOn,
+  applyInteractionOutcome,
 } from '../../../src/engine/interactionResolver';
 import type { ScenarioFeatureDefinition, ScenarioItemDefinition, ScenarioInteraction } from '../../../src/engine/scenario';
 import { setFeatureState, setScenarioFlag } from '../../../src/engine/featureState';
-import { defaultRng } from '../../../src/engine/dice';
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -107,157 +109,139 @@ const priorityLocker: ScenarioFeatureDefinition = {
 };
 
 // ---------------------------------------------------------------------------
-// TESTS
+// MATCHING
 // ---------------------------------------------------------------------------
 
-describe('resolveScenarioInteraction', () => {
-  it('returns NO_INTERACTION_MATCH when targetDef is null', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('OPEN', 'anything', null, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
-    expect(result).toBe(NO_INTERACTION_MATCH);
+describe('findScenarioInteraction', () => {
+  it('finds nothing when targetDef is null', () => {
+    expect(findScenarioInteraction('OPEN', 'anything', null, makeState())).toBeNull();
   });
 
-  it('returns NO_INTERACTION_MATCH when targetDef has no interactions', () => {
-    const state = makeState();
+  it('finds nothing when targetDef has no interactions', () => {
     const def: ScenarioFeatureDefinition = { id: 'plain', featureType: 'panel' };
-    const result = resolveScenarioInteraction('EXAMINE', 'plain', def, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
+    expect(findScenarioInteraction('EXAMINE', 'plain', def, makeState())).toBeNull();
   });
 
   it('matches interaction by verb', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('OPEN', 'emergency_locker', lockedLocker, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    expect(result.success).toBe(true);
-    expect(result.newFeatureState).toBe('open');
+    const match = findScenarioInteraction('OPEN', 'emergency_locker', lockedLocker, makeState());
+    expect(match?.interaction).toBe(autoSuccessInteraction);
   });
 
   it('matches interaction with verb array (OPEN)', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('OPEN', 'locker2', lockerWithVerbArray, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
+    expect(findScenarioInteraction('OPEN', 'locker2', lockerWithVerbArray, makeState())).not.toBeNull();
   });
 
   it('matches interaction with verb array (HACK)', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('HACK', 'locker2', lockerWithVerbArray, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
+    expect(findScenarioInteraction('HACK', 'locker2', lockerWithVerbArray, makeState())).not.toBeNull();
   });
 
-  it('returns NO_INTERACTION_MATCH when verb does not match', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('EXAMINE', 'emergency_locker', lockedLocker, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
+  it('finds nothing when verb does not match', () => {
+    expect(findScenarioInteraction('EXAMINE', 'emergency_locker', lockedLocker, makeState())).toBeNull();
   });
 
   it('respects requiredState condition — matches when state matches', () => {
     const state = setFeatureState(makeState(), 'statelocker', 'open');
-    const result = resolveScenarioInteraction('TAKE', 'statelocker', stateGuardedLocker, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    expect(result.itemsToReveal).toContain('medkit');
+    const match = findScenarioInteraction('TAKE', 'statelocker', stateGuardedLocker, state);
+    expect(match).not.toBeNull();
+    expect(applyInteractionOutcome(match!, true).itemsToReveal).toContain('medkit');
   });
 
   it('respects requiredState condition — no match when state differs', () => {
-    const state = makeState(); // statelocker is 'intact' by default
-    const result = resolveScenarioInteraction('TAKE', 'statelocker', stateGuardedLocker, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
+    expect(findScenarioInteraction('TAKE', 'statelocker', stateGuardedLocker, makeState())).toBeNull();
   });
 
   it('respects requiredItem condition — matches when item in inventory', () => {
     const state = makeState({ character: { ...makeState().character!, inventory: ['access_keycard'] } });
-    const result = resolveScenarioInteraction('USE', 'security_panel', panel, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    expect(result.flagToSet).toBe('door_unlocked');
+    const match = findScenarioInteraction('USE', 'security_panel', panel, state);
+    expect(match).not.toBeNull();
+    expect(applyInteractionOutcome(match!, true).flagToSet).toBe('door_unlocked');
   });
 
   it('respects requiredItem condition — no match when item missing', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('USE', 'security_panel', panel, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
+    expect(findScenarioInteraction('USE', 'security_panel', panel, makeState())).toBeNull();
   });
 
   it('respects requiredFlag condition — matches when flag set', () => {
     const state = setScenarioFlag(makeState(), 'power_on');
-    const result = resolveScenarioInteraction('ACTIVATE', 'reactor', flagPanel, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    expect(result.newFeatureState).toBe('active');
+    const match = findScenarioInteraction('ACTIVATE', 'reactor', flagPanel, state);
+    expect(match).not.toBeNull();
+    expect(applyInteractionOutcome(match!, true).newFeatureState).toBe('active');
   });
 
   it('respects requiredFlag condition — no match when flag unset', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('ACTIVATE', 'reactor', flagPanel, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
-  });
-
-  it('auto-success when dc is null', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('OPEN', 'emergency_locker', lockedLocker, state, 'loc1', defaultRng);
-    expect(result.success).toBe(true);
-    expect(result.diceRoll).toBeNull();
-  });
-
-  it('performs dice roll when dc is a number', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('FORCE_OPEN', 'heavy_locker', lockerWithDC, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    expect(result.diceRoll).not.toBeNull();
-  });
-
-  it('returns onSuccess result on success (dc=null)', () => {
-    const state = makeState();
-    const result = resolveScenarioInteraction('OPEN', 'emergency_locker', lockedLocker, state, 'loc1', defaultRng);
-    expect(result.newFeatureState).toBe('open');
-    expect(result.itemsToReveal).toContain('oxygen_canister');
-  });
-
-  it('returns onFailure result on failure with perfect-fail rng', () => {
-    const failRng = () => 0.0001; // always rolls 1 on D20 → fumble
-    const state = makeState();
-    const result = resolveScenarioInteraction('FORCE_OPEN', 'heavy_locker', lockerWithDC, state, 'loc1', failRng);
-    // Even on failure, matched should be true
-    expect(result.matched).toBe(true);
-    if (!result.success) {
-      expect(result.consequences.length).toBeGreaterThan(0);
-    }
-  });
-
-  it('returns empty result when onFailure absent and roll fails', () => {
-    const noFailureInteraction: ScenarioInteraction = {
-      trigger: { verb: 'FORCE_OPEN', stat: 'FOR', dc: 25 }, // very hard
-      onSuccess: { newState: 'open' },
-      // no onFailure
-    };
-    const def: ScenarioFeatureDefinition = { id: 'hard_lock', interactions: [noFailureInteraction] };
-    const failRng = () => 0.0001;
-    const state = makeState();
-    const result = resolveScenarioInteraction('FORCE_OPEN', 'hard_lock', def, state, 'loc1', failRng);
-    expect(result.matched).toBe(true);
-    if (!result.success) {
-      expect(result.consequences.length).toBe(0);
-      expect(result.newFeatureState).toBeNull();
-    }
+    expect(findScenarioInteraction('ACTIVATE', 'reactor', flagPanel, makeState())).toBeNull();
   });
 
   it('first matching interaction wins (priority order)', () => {
     const state = makeState({ character: { ...makeState().character!, inventory: ['master_key'] } });
-    const result = resolveScenarioInteraction('OPEN', 'priority_locker', priorityLocker, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    // Should have matched the key-based one (flagSet = 'used_key'), not the brute-force one
-    expect(result.flagToSet).toBe('used_key');
-    expect(result.diceRoll).toBeNull(); // auto-success
+    const match = findScenarioInteraction('OPEN', 'priority_locker', priorityLocker, state);
+    expect(applyInteractionOutcome(match!, true).flagToSet).toBe('used_key');
   });
 
   it('falls through to second interaction when first conditions not met', () => {
-    const state = makeState(); // no master_key in inventory
-    const result = resolveScenarioInteraction('OPEN', 'priority_locker', priorityLocker, state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
-    // Should have used the dc-based second interaction
-    expect(result.diceRoll).not.toBeNull();
+    const match = findScenarioInteraction('OPEN', 'priority_locker', priorityLocker, makeState());
+    expect(match?.interaction.trigger.dc).toBe(12);
+  });
+
+  it('never rolls: repeated calls are identical and carry no outcome', () => {
+    const a = findScenarioInteraction('FORCE_OPEN', 'heavy_locker', lockerWithDC, makeState());
+    const b = findScenarioInteraction('FORCE_OPEN', 'heavy_locker', lockerWithDC, makeState());
+    expect(a).toEqual(b);
+    expect(a?.interaction).toBe(dcInteraction);
   });
 });
 
-describe('resolveItemUseOn', () => {
+// ---------------------------------------------------------------------------
+// APPLYING — the engine decides, the rule reacts
+// ---------------------------------------------------------------------------
+
+describe('applyInteractionOutcome', () => {
+  it('returns the onSuccess result on success', () => {
+    const match = findScenarioInteraction('OPEN', 'emergency_locker', lockedLocker, makeState())!;
+    const result = applyInteractionOutcome(match, true);
+    expect(result.newFeatureState).toBe('open');
+    expect(result.itemsToReveal).toContain('oxygen_canister');
+  });
+
+  it('returns the onFailure result on failure', () => {
+    const match = findScenarioInteraction('FORCE_OPEN', 'heavy_locker', lockerWithDC, makeState())!;
+    const result = applyInteractionOutcome(match, false);
+    expect(result.success).toBe(false);
+    expect(result.consequences.length).toBeGreaterThan(0);
+    expect(result.newFeatureState).toBeNull();
+  });
+
+  it('returns an inert result when onFailure is absent', () => {
+    const def: ScenarioFeatureDefinition = {
+      id: 'hard_lock',
+      interactions: [{ trigger: { verb: 'FORCE_OPEN', stat: 'FOR', dc: 25 }, onSuccess: { newState: 'open' } }],
+    };
+    const match = findScenarioInteraction('FORCE_OPEN', 'hard_lock', def, makeState())!;
+    const result = applyInteractionOutcome(match, false);
+    expect(result.consequences).toHaveLength(0);
+    expect(result.newFeatureState).toBeNull();
+  });
+
+  it('consumes the required item only when the rule asks for it', () => {
+    const def: ScenarioFeatureDefinition = {
+      id: 'slot',
+      interactions: [{
+        trigger: { verb: 'USE', requiredItem: 'fuse', dc: null },
+        onSuccess: { consumeItem: true },
+      }],
+    };
+    const state = makeState({ character: { ...makeState().character!, inventory: ['fuse'] } });
+    const match = findScenarioInteraction('USE', 'slot', def, state)!;
+    expect(applyInteractionOutcome(match, true).itemToConsume).toBe('fuse');
+    expect(applyInteractionOutcome(match, false).itemToConsume).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ITEM USE ON
+// ---------------------------------------------------------------------------
+
+describe('findItemUseOn', () => {
   const keycard: ScenarioItemDefinition = {
     id: 'access_keycard',
     itemType: 'key_item',
@@ -273,23 +257,18 @@ describe('resolveItemUseOn', () => {
   };
 
   it('matches useOn definition for correct target', () => {
-    const state = makeState();
-    const result = resolveItemUseOn('access_keycard', keycard, 'security_panel', state, 'loc1', defaultRng);
-    expect(result.matched).toBe(true);
+    const match = findItemUseOn('access_keycard', keycard, 'security_panel');
+    expect(match).not.toBeNull();
+    const result = applyInteractionOutcome(match!, true);
     expect(result.flagToSet).toBe('bulkhead_unlocked');
     expect(result.exitToUnlock).toBe('escape_corridor');
   });
 
-  it('returns NO_MATCH when no useOn for the given target', () => {
-    const state = makeState();
-    const result = resolveItemUseOn('access_keycard', keycard, 'wrong_target', state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
+  it('finds nothing when no useOn for the given target', () => {
+    expect(findItemUseOn('access_keycard', keycard, 'wrong_target')).toBeNull();
   });
 
-  it('returns NO_MATCH for non-enriched item def', () => {
-    const plainItem = { id: 'plain_item' };
-    const state = makeState();
-    const result = resolveItemUseOn('plain_item', plainItem, 'any_target', state, 'loc1', defaultRng);
-    expect(result.matched).toBe(false);
+  it('finds nothing for non-enriched item def', () => {
+    expect(findItemUseOn('plain_item', { id: 'plain_item' }, 'any_target')).toBeNull();
   });
 });

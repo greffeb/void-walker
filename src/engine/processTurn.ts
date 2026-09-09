@@ -31,7 +31,7 @@ import { BALANCE } from './constants';
 import { tickOxygen } from './oxygen';
 import { tickStalkerClock, checkStalkerClock, applyStalkerEvent } from './stalkerClock';
 import type { VerbId } from './verbs';
-import { MOVEMENT_VERBS, getVerbStat, isAutoVerb as isAutoVerb_ } from './verbs';
+import { MOVEMENT_VERBS, getVerbStat, isAutoVerb as isAutoVerb_, isUnresistedVerb } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
 import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
@@ -51,7 +51,7 @@ import {
   checkHintReveal,
   tickCreatureAmbush,
 } from './microModules';
-import { resolveScenarioInteraction, resolveItemUseOn } from './interactionResolver';
+import { findScenarioInteraction, findItemUseOn, applyInteractionOutcome } from './interactionResolver';
 import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
 import { isEnrichedItem, isEnrichedFeature } from './scenario';
 import { removeItem } from './inventory';
@@ -312,15 +312,17 @@ export function processTurn(
   }
 
   // ─────────────────────────────────────────────────────────
-  // STEP 4b: Scenario interaction check
+  // STEP 4b: Scenario interaction — MATCHING ONLY
   // ─────────────────────────────────────────────────────────
-  // Called BEFORE standard resolution. If a ScenarioInteraction matches,
-  // its results are applied and steps 5-6 are skipped.
+  // Decision Z: a scenario rule no longer decides the outcome. Here we only
+  // find out whether one applies; the roll happens in STEP 5 like any other
+  // action, and STEP 5b applies the rule's effects afterwards.
   // ─────────────────────────────────────────────────────────
   let scenarioNarrativeOverride: import('./scenario').LocaleString | null = null;
   let scenarioInteractionHandled = false;
-  let scenarioInteractionDiceRoll: DiceResult | null = null;
-  let scenarioInteractionSuccess = false;
+  let interactionMatch: import('./interactionResolver').InteractionMatch | null = null;
+  /** The id the matched rule keys its effects on — the target, or the used item. */
+  let interactionSubjectId: string | null = null;
 
   if (current.scenario !== null && action.target !== null) {
     const targetId = action.target.id;
@@ -333,42 +335,34 @@ export function processTurn(
       // Note: check action.tool presence, not action.verb === 'USE', because
       // promoteVerb() may have already changed USE → HACK/SHOOT/CUT.
       // Having a tool means the player wrote "utiliser X sur Y" or "verb X avec Y".
-      let interactionResult = { matched: false } as import('./interactionResolver').InteractionResolution;
-
       if (action.tool) {
         const toolId = action.tool.id;
         // Look for the item definition in the scenario graph nodes
         const toolItemDef = findItemDefInGraph(current, toolId);
         if (toolItemDef && isEnrichedItem(toolItemDef)) {
-          interactionResult = resolveItemUseOn(
-            toolId, toolItemDef, targetId, current, locationId, rng,
-          );
+          interactionMatch = findItemUseOn(toolId, toolItemDef, targetId);
         }
       }
 
       // Fall through to feature interaction if useOn didn't match
-      if (!interactionResult.matched) {
+      if (interactionMatch === null) {
         const featureDef = node.features.find(f => f.id === targetId) ?? null;
-        interactionResult = resolveScenarioInteraction(
-          action.verb, targetId, featureDef, current, locationId, rng,
-        );
+        interactionMatch = findScenarioInteraction(action.verb, targetId, featureDef, current);
       }
 
       // Self-use path: "utiliser <item>" where target is an inventory item.
       // Try useOn with targetId 'self' to allow consumable self-heal etc.
-      if (!interactionResult.matched && !action.tool
+      if (interactionMatch === null && !action.tool
           && action.target?.source === 'inventory') {
         const selfItemDef = findItemDefInGraph(current, targetId);
         if (selfItemDef && isEnrichedItem(selfItemDef)) {
-          interactionResult = resolveItemUseOn(
-            targetId, selfItemDef, 'self', current, locationId, rng,
-          );
+          interactionMatch = findItemUseOn(targetId, selfItemDef, 'self');
         }
       }
 
       // Reflexive self-target path: "je me soigne" → target.id === 'self'.
       // Auto-find an inventory healing item and use it on self (Issue #74).
-      if (!interactionResult.matched && !action.tool
+      if (interactionMatch === null && !action.tool
           && targetId === 'self' && action.target?.source === 'abstract'
           && current.character !== null) {
         const HEALING_IDS = new Set([
@@ -378,19 +372,26 @@ export function processTurn(
         if (healingItemId) {
           const healItemDef = findItemDefInGraph(current, healingItemId);
           if (healItemDef && isEnrichedItem(healItemDef)) {
-            interactionResult = resolveItemUseOn(
-              healingItemId, healItemDef, 'self', current, locationId, rng,
-            );
+            interactionMatch = findItemUseOn(healingItemId, healItemDef, 'self');
           }
         }
       }
 
-      if (interactionResult.matched) {
+      if (interactionMatch !== null) {
         scenarioInteractionHandled = true;
+        interactionSubjectId = targetId;
+      }
+    }
+  }
+
+  /** Effects of the matched rule, applied in STEP 5b once the die has spoken. */
+  const applyMatchedInteraction = (success: boolean): void => {
+    if (interactionMatch === null || interactionSubjectId === null) return;
+    const targetId = interactionSubjectId;
+    const interactionResult = applyInteractionOutcome(interactionMatch, success);
+    {
+      {
         scenarioNarrativeOverride = interactionResult.narrativeOverride;
-        // Capture dice roll for trace propagation after variable declarations (Issue #51).
-        scenarioInteractionDiceRoll = interactionResult.diceRoll;
-        scenarioInteractionSuccess = interactionResult.success;
 
         // Apply feature state change
         if (interactionResult.newFeatureState !== null) {
@@ -487,12 +488,14 @@ export function processTurn(
         }
       }
     }
-  }
+  };
 
   // ─────────────────────────────────────────────────────────
   // STEP 5: Action resolution → D20 roll
   // ─────────────────────────────────────────────────────────
-  const isAutoVerb = isAutoVerb_(action.verb, action.target?.properties ?? []);
+  const isAutoVerb = isAutoVerb_(
+    action.verb, action.target?.properties ?? [], action.target?.state,
+  );
   let diceRoll: DiceResult | null = null;
 
   // Trace data for step 5 (populated if not auto-verb)
@@ -509,17 +512,6 @@ export function processTurn(
   let combatHandled = false;
   let featureObstacleHandled = false;
 
-  // Propagate scenario interaction dice roll to trace (Issue #51).
-  // resolveScenarioInteraction rolls internally but processTurn never copied
-  // the result into the trace variables — the playtest report showed stat=0/DC=0.
-  if (scenarioInteractionDiceRoll !== null) {
-    diceRoll = scenarioInteractionDiceRoll;
-    traceStatId = scenarioInteractionDiceRoll.stat;
-    traceStatValue = scenarioInteractionDiceRoll.statValue;
-    traceEffectiveDC = scenarioInteractionDiceRoll.difficulty;
-    traceOutcome = scenarioInteractionSuccess ? 'success' : 'failure';
-  }
-
   // ── FEATURE-OBSTACLE INTERCEPT (Issue #47) ────────────────────────────────
   // For environment features that ARE the location's obstacle target (e.g.
   // blocked_door), match the player's verb against the obstacle's defined
@@ -529,8 +521,7 @@ export function processTurn(
   // block but handles non-NPC obstacle targets.
   // ──────────────────────────────────────────────────────────────────────────
   if (
-    !scenarioInteractionHandled
-    && !current.activeCombat
+    !current.activeCombat
     && current.character !== null
     && current.scenario !== null
     && current.playerLocationId !== null
@@ -550,7 +541,8 @@ export function processTurn(
 
     if (featureMatchedPath) {
       featureObstacleHandled = true;
-      const effectiveStats = applyConditionMalus(current.character.stats, current.character.conditions);
+      const obstacleCharacter = current.character;
+      const effectiveStats = applyConditionMalus(obstacleCharacter.stats, obstacleCharacter.conditions);
       const statId = featureMatchedPath.stat;
       const statValue = effectiveStats[statId] ?? 0;
       const lck = effectiveStats['LCK'] ?? 0;
@@ -563,16 +555,40 @@ export function processTurn(
       traceFailsafeActivated = featureFailsafe?.activated ?? false;
       traceFailsafeDcReduction = featureFailsafe?.dcReduction ?? 0;
 
-      const effectiveDC = Math.max(2, featureMatchedPath.dc + featureFailsafeMod);
+      // The authored path DC anchors the base; context still applies (P6-5).
+      const obstacleBreakdown = calculateDifficulty({
+        verb: action.verb,
+        target: action.target,
+        tool: action.tool,
+        playerStats: effectiveStats,
+        difficultyLevel: current.difficulty,
+        creative: action.creative,
+        environmentConditions: context.environmentConditions,
+        playerConditions: obstacleCharacter.conditions.map(c => c.id),
+        suggestions: context.suggestions,
+        baseOverride: featureMatchedPath.dc,
+        vouchedByScenario: true,
+      });
+      traceDifficultyBreakdown = obstacleBreakdown;
+
+      const effectiveDC = Math.max(
+        BALANCE.MIN_DIFFICULTY,
+        Math.min(BALANCE.MAX_DIFFICULTY, obstacleBreakdown.total + featureFailsafeMod),
+      );
       const toolMod = featureMatchedPath.toolBonus && action.tool?.id === featureMatchedPath.toolBonus.toolId
         ? featureMatchedPath.toolBonus.bonus
         : 0;
-      const roll = rollCheck(statId, statValue, lck, effectiveDC, toolMod, rng);
+      const roll = rollCheck(
+        statId, statValue, lck, effectiveDC, toolMod, rng, obstacleBreakdown.requiresCritical,
+      );
       diceRoll = roll;
       traceStatId = statId;
       traceStatValue = statValue;
       traceEffectiveDC = effectiveDC;
       traceOutcome = outcomeOf(roll);
+
+      // A scenario rule on the same feature contributes its text and effects.
+      applyMatchedInteraction(roll.success);
 
       if (roll.success) {
         // Obstacle resolved — mark visit state + set feature to 'open' (or neutralize NPC)
@@ -681,11 +697,33 @@ export function processTurn(
       const combatToolMod = matchedObstaclePath.toolBonus && action.tool?.id === matchedObstaclePath.toolBonus.toolId
         ? matchedObstaclePath.toolBonus.bonus
         : 0;
-      const roll = rollCheck(statId, statValue, lck, matchedObstaclePath.dc, combatToolMod, rng);
+      // The authored path DC anchors the base; context still applies (P6-5).
+      const npcObstacleBreakdown = calculateDifficulty({
+        verb: action.verb,
+        target: action.target,
+        tool: action.tool,
+        playerStats: effectiveStats,
+        difficultyLevel: current.difficulty,
+        creative: action.creative,
+        environmentConditions: context.environmentConditions,
+        playerConditions: combatCharacter.conditions.map(c => c.id),
+        suggestions: context.suggestions,
+        baseOverride: matchedObstaclePath.dc,
+        vouchedByScenario: true,
+      });
+      traceDifficultyBreakdown = npcObstacleBreakdown;
+      const obstacleDC = Math.max(
+        BALANCE.MIN_DIFFICULTY,
+        Math.min(BALANCE.MAX_DIFFICULTY, npcObstacleBreakdown.total),
+      );
+      const roll = rollCheck(
+        statId, statValue, lck, obstacleDC, combatToolMod, rng,
+        npcObstacleBreakdown.requiresCritical,
+      );
       diceRoll = roll;
       traceStatId = statId;
       traceStatValue = statValue;
-      traceEffectiveDC = matchedObstaclePath.dc;
+      traceEffectiveDC = obstacleDC;
       traceOutcome = outcomeOf(roll);
 
       if (roll.success) {
@@ -840,8 +878,22 @@ export function processTurn(
     }
   }
 
-  if (!isAutoVerb && !scenarioInteractionHandled && !combatHandled && !featureObstacleHandled) {
-    const statId = getVerbStat(action.verb, action.target?.properties ?? []);
+  // An auto verb resolves without a roll. A scenario rule attached to one still
+  // fires — that is the requalification of `dc: null` demanded by decision Z:
+  // a beat that only delivers information stays guaranteed, an act that
+  // overcomes something gets a real check.
+  const interactionIsGuaranteed = interactionMatch !== null
+    && interactionMatch.interaction.trigger.dc === null
+    && isUnresistedVerb(action.verb, action.target?.properties ?? [], action.target?.state);
+
+  if (isAutoVerb || interactionIsGuaranteed) {
+    applyMatchedInteraction(true);
+  }
+
+  if (!isAutoVerb && !interactionIsGuaranteed && !combatHandled && !featureObstacleHandled) {
+    const interactionTrigger = interactionMatch?.interaction.trigger;
+    const statId = interactionTrigger?.stat
+      ?? getVerbStat(action.verb, action.target?.properties ?? []);
     const effectiveStats = applyConditionMalus(current.character!.stats, current.character!.conditions);
     const statValue = effectiveStats[statId] ?? 0;
     const lck = effectiveStats['LCK'] ?? 0;
@@ -865,7 +917,8 @@ export function processTurn(
     traceFailsafeActivated = failsafeResult?.activated ?? false;
     traceFailsafeDcReduction = failsafeResult?.dcReduction ?? 0;
 
-    // Calculate DC
+    // Calculate DC. An authored scenario DC anchors the base; every context
+    // modifier still applies on top, so a DC 14 lock is harder in the dark.
     const breakdown = calculateDifficulty({
       verb: action.verb,
       target: action.target,
@@ -876,6 +929,8 @@ export function processTurn(
       environmentConditions: context.environmentConditions,
       playerConditions: current.character!.conditions.map(c => c.id),
       suggestions: context.suggestions,
+      ...(typeof interactionTrigger?.dc === 'number' ? { baseOverride: interactionTrigger.dc } : {}),
+      ...(interactionMatch !== null ? { vouchedByScenario: true } : {}),
     });
     traceDifficultyBreakdown = breakdown;
 
@@ -906,6 +961,10 @@ export function processTurn(
     // ───────────────────────────────────────────────────────
     const outcome = outcomeOf(diceRoll);
     traceOutcome = outcome;
+
+    // STEP 5b: a matched scenario rule now learns what the die decided, and
+    // contributes its text and effects on top of the generic ones.
+    applyMatchedInteraction(diceRoll.success);
 
     const consequences = buildConsequences(action.verb, action.target, outcome);
     traceConsequences = consequences;

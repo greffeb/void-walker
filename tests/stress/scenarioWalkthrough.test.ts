@@ -55,18 +55,23 @@ const TARGET = {
  * why the progression ratchets below exist — dying early lowers them, so they
  * cannot be gamed the way the stuck count can.
  *
- * Loosened twice, deliberately:
+ * Loosened three times, deliberately:
  *  - A3: LCK stopped adding to roll totals, one point harder on every check.
  *  - S + weak points + Q: combat became survivable, so 23 runs moved from
  *    "died" to "wandered". Defeats fell from 286 to 263.
+ *  - Z: scenario rules stopped short-circuiting the pipeline. 61 interactions
+ *    written with `dc: null` on acts that meet resistance used to hand out free
+ *    progress, including on features that ARE the location's gate. They are
+ *    checks now, so `obstaclesResolved` measures real resolutions for the first
+ *    time. The old 0.73 counted bypasses.
  */
 const BASELINE = {
-  maxStuck: 237,
+  maxStuck: 244,
   maxTimeouts: 0,
   minVictories: 0,
   /** Progression, which early death can only ever lower. */
-  minAvgObstaclesResolved: 0.73,
-  minAvgLocationCoverage: 0.67,
+  minAvgObstaclesResolved: 0.64,
+  minAvgLocationCoverage: 0.66,
 } as const;
 
 // ---------------------------------------------------------------------------

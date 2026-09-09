@@ -1,35 +1,39 @@
 // ---------------------------------------------------------------------------
-// src/engine/interactionResolver.ts — Chantier 1: Scenario interaction resolution
+// src/engine/interactionResolver.ts — Scenario interaction matching
 // ---------------------------------------------------------------------------
-// Resolves declarative ScenarioInteraction rules against parsed actions.
-// Called by processTurn BEFORE the standard action resolution pipeline.
+// Decision Z: a ScenarioInteraction supplies the *text and the effects*. It no
+// longer decides whether the action succeeds — compatibility, DC and the die
+// stay with the generic engine. These functions only answer "does a rule apply
+// here?", and later "what does it do now that we know the outcome?".
 // ---------------------------------------------------------------------------
 
-import type { GameState, RngFn, Consequence, DiceResult } from './types';
+import type { GameState } from './types';
 import type { VerbId } from './verbs';
 import type { PropertyId } from './properties';
 import type {
   ScenarioInteraction, InteractionResult, FeatureState,
   FeatureDefinition, ItemDefinition,
 } from './scenario';
+import type { Consequence } from './types';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import { getFeatureState, hasScenarioFlag } from './featureState';
 import { stateMatchesToken } from './entityState';
-import { rollCheck } from './dice';
-import { getVerbStat } from './verbs';
 
 // ---------------------------------------------------------------------------
-// RESULT TYPE
+// RESULT TYPES
 // ---------------------------------------------------------------------------
 
-/** Result of attempting to resolve a scenario interaction. */
+/** A scenario rule that applies to the current action, before any roll. */
+export interface InteractionMatch {
+  readonly interaction: ScenarioInteraction;
+  /** Item the trigger required, and which onSuccess may consume. */
+  readonly requiredItem: string | undefined;
+}
+
+/** What a matched interaction does, once the engine has decided the outcome. */
 export interface InteractionResolution {
-  /** Whether an interaction was found and resolved. */
-  readonly matched: boolean;
   /** Whether the action succeeded (true) or failed (false). */
   readonly success: boolean;
-  /** The dice roll result, if a roll was made. Null for auto-success. */
-  readonly diceRoll: DiceResult | null;
   /** The InteractionResult to apply (onSuccess or onFailure). */
   readonly result: InteractionResult;
   /** Narrative override text, if any. Null = use standard templates. */
@@ -56,25 +60,6 @@ export interface InteractionResolution {
   readonly resolveObstacle: boolean;
 }
 
-/** A "no match" result — signals processTurn to use the standard pipeline. */
-export const NO_INTERACTION_MATCH: InteractionResolution = {
-  matched: false,
-  success: false,
-  diceRoll: null,
-  result: {},
-  narrativeOverride: null,
-  newFeatureState: null,
-  consequences: [],
-  itemsToReveal: [],
-  exitToUnlock: null,
-  flagToSet: null,
-  flagToUnset: null,
-  itemToConsume: null,
-  propertiesToAdd: [],
-  propertiesToRemove: [],
-  resolveObstacle: false,
-};
-
 // ---------------------------------------------------------------------------
 // HELPERS
 // ---------------------------------------------------------------------------
@@ -86,54 +71,25 @@ function verbMatches(trigger: VerbId | readonly VerbId[], verb: VerbId): boolean
   return trigger === verb;
 }
 
-function buildResolution(
-  success: boolean,
-  diceRoll: DiceResult | null,
-  result: InteractionResult,
-  requiredItem?: string,
-): InteractionResolution {
-  return {
-    matched: true,
-    success,
-    diceRoll,
-    result,
-    narrativeOverride: result.narrative ?? null,
-    newFeatureState: result.newState ?? null,
-    consequences: result.consequences ?? [],
-    itemsToReveal: result.revealsItems ?? [],
-    exitToUnlock: result.revealsExit ?? null,
-    flagToSet: result.flagSet ?? null,
-    flagToUnset: result.flagUnset ?? null,
-    itemToConsume: result.consumeItem === true ? (requiredItem ?? null) : null,
-    propertiesToAdd: result.addProperties ?? [],
-    propertiesToRemove: result.removeProperties ?? [],
-    resolveObstacle: result.resolveObstacle ?? false,
-  };
-}
-
 // ---------------------------------------------------------------------------
-// MAIN RESOLUTION FUNCTIONS
+// MATCHING — does a scenario rule apply to this action?
 // ---------------------------------------------------------------------------
 
 /**
- * Attempt to resolve a parsed action against scenario interactions on a feature.
- *
- * Called by processTurn BEFORE the standard action resolution pipeline.
- * Returns NO_INTERACTION_MATCH if no interaction applies.
+ * Find the scenario interaction that applies to a verb on a feature.
+ * Returns null when the generic pipeline should run unassisted.
  */
-export function resolveScenarioInteraction(
+export function findScenarioInteraction(
   verb: VerbId,
   targetId: string,
   targetDef: FeatureDefinition | ItemDefinition | null,
   state: GameState,
-  _locationId: string,
-  rng: RngFn,
-): InteractionResolution {
-  if (targetDef === null) return NO_INTERACTION_MATCH;
-  if (!isEnrichedFeature(targetDef)) return NO_INTERACTION_MATCH;
+): InteractionMatch | null {
+  if (targetDef === null) return null;
+  if (!isEnrichedFeature(targetDef)) return null;
 
   const interactions = targetDef.interactions;
-  if (!interactions || interactions.length === 0) return NO_INTERACTION_MATCH;
+  if (!interactions || interactions.length === 0) return null;
 
   const currentState = getFeatureState(state, targetId, targetDef);
 
@@ -157,66 +113,58 @@ export function resolveScenarioInteraction(
       if (!hasScenarioFlag(state, trigger.requiredFlag)) continue;
     }
 
-    // All conditions met — resolve
-    return resolveInteraction(interaction, trigger.requiredItem, state, rng);
+    return { interaction, requiredItem: trigger.requiredItem };
   }
 
-  return NO_INTERACTION_MATCH;
+  return null;
 }
 
 /**
- * Attempt to resolve a "use item on target" interaction.
+ * Find the interaction for "use item on target".
  * Called when the parser identifies USE <item> ON <target>.
  */
-export function resolveItemUseOn(
+export function findItemUseOn(
   itemId: string,
   itemDef: ItemDefinition,
   targetId: string,
-  state: GameState,
-  _locationId: string,
-  rng: RngFn,
-): InteractionResolution {
-  if (!isEnrichedItem(itemDef)) return NO_INTERACTION_MATCH;
+): InteractionMatch | null {
+  if (!isEnrichedItem(itemDef)) return null;
 
   const useOnList = itemDef.useOn;
-  if (!useOnList || useOnList.length === 0) return NO_INTERACTION_MATCH;
+  if (!useOnList || useOnList.length === 0) return null;
 
   const match = useOnList.find(u => u.targetId === targetId);
-  if (!match) return NO_INTERACTION_MATCH;
+  if (!match) return null;
 
-  return resolveInteraction(match.interaction, itemId, state, rng);
+  return { interaction: match.interaction, requiredItem: itemId };
 }
 
 // ---------------------------------------------------------------------------
-// INTERNAL — resolve a single matched interaction
+// APPLYING — what the matched rule does, given the engine's verdict
 // ---------------------------------------------------------------------------
 
-function resolveInteraction(
-  interaction: ScenarioInteraction,
-  requiredItem: string | undefined,
-  state: GameState,
-  rng: RngFn,
+/** Translate a matched interaction into effects, once the die has spoken. */
+export function applyInteractionOutcome(
+  match: InteractionMatch,
+  success: boolean,
 ): InteractionResolution {
-  const { trigger, onSuccess, onFailure } = interaction;
+  const result: InteractionResult = success
+    ? match.interaction.onSuccess
+    : match.interaction.onFailure ?? {};
 
-  // Auto-success
-  if (trigger.dc === null) {
-    return buildResolution(true, null, onSuccess, requiredItem);
-  }
-
-  // Dice roll
-  const statId = trigger.stat ?? getVerbStat(trigger.verb as VerbId);
-  const statValue = state.character?.stats[statId] ?? 0;
-  const lck = state.character?.stats['LCK'] ?? 0;
-
-  const diceRoll = rollCheck(statId, statValue, lck, trigger.dc, 0, rng);
-  const success = diceRoll.success;
-
-  if (success) {
-    return buildResolution(true, diceRoll, onSuccess, requiredItem);
-  }
-
-  // Failure — use onFailure or empty result
-  const failureResult: InteractionResult = onFailure ?? {};
-  return buildResolution(false, diceRoll, failureResult, requiredItem);
+  return {
+    success,
+    result,
+    narrativeOverride: result.narrative ?? null,
+    newFeatureState: result.newState ?? null,
+    consequences: result.consequences ?? [],
+    itemsToReveal: result.revealsItems ?? [],
+    exitToUnlock: result.revealsExit ?? null,
+    flagToSet: result.flagSet ?? null,
+    flagToUnset: result.flagUnset ?? null,
+    itemToConsume: result.consumeItem === true ? (match.requiredItem ?? null) : null,
+    propertiesToAdd: result.addProperties ?? [],
+    propertiesToRemove: result.removeProperties ?? [],
+    resolveObstacle: result.resolveObstacle ?? false,
+  };
 }

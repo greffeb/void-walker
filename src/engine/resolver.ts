@@ -424,6 +424,7 @@ export function resolveTarget(
           properties: feature.properties,
           isVirtual: false,
           source: 'environment' as TargetSource,
+          state: feature.state,
         };
       }
     }
@@ -522,6 +523,7 @@ export function resolveTarget(
         properties: feature.properties,
         isVirtual: false,
         source: 'environment' as TargetSource,
+        state: feature.state,
       };
     }
   }

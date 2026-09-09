@@ -11,7 +11,7 @@ import {
   setScenarioFlag,
   revealItem,
 } from '../../src/engine/featureState';
-import { resolveScenarioInteraction } from '../../src/engine/interactionResolver';
+import { findScenarioInteraction } from '../../src/engine/interactionResolver';
 import { stateMatchesToken } from '../../src/engine/entityState';
 import type { StateId } from '../../src/engine/entityState';
 import type { ScenarioFeatureDefinition } from '../../src/engine/scenario';
@@ -160,10 +160,8 @@ describe('Chantier 1 Stress: 500 random interactions — no state corruption', (
 
     for (let i = 0; i < 500; i++) {
       const verb = VALID_VERBS[Math.floor(rng() * VALID_VERBS.length)]!;
-      current = resolveScenarioInteraction(
-        verb, 'stress_locker', complexFeature, current, 'test_loc', rng,
-      ).matched
-        ? setFeatureState(current, 'stress_locker', getFeatureState(current, 'stress_locker'))
+      current = findScenarioInteraction(verb, 'stress_locker', complexFeature, current) !== null
+        ? setFeatureState(current, 'stress_locker', 'open')
         : current;
 
       if (i % 50 === 0) {
