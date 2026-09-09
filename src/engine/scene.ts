@@ -10,7 +10,6 @@ import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInst
 import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition } from './scenario';
 import type { SuggestionCandidate } from './suggestions';
 import type { StringKey } from '../i18n/types';
-import type { PropertyId } from './properties';
 import { generateSuggestions } from './suggestions';
 import { getExitsWithStatus } from './backtracking';
 import { isItemAvailable, isObstacleResolved } from './backtracking';
@@ -21,8 +20,7 @@ import { NPC_DEFINITIONS } from '../content/npcs';
 import { t, getLocale } from '../i18n/index';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import type { EntityState } from './entityState';
-import { makeEntityState, stateMatchesToken, STATE_TOKEN_SALIENCE } from './entityState';
-import type { StateId } from './entityState';
+import { makeEntityState, stateMatchesToken } from './entityState';
 import { getFeatureState, isItemRevealed, pickStateDescription } from './featureState';
 import { buildObstacleVerbMap } from '../content/parserData';
 
@@ -565,47 +563,6 @@ function npcDefToNpcInstance(id: string): NpcInstance {
   };
 }
 
-/**
- * Derive property overrides from a feature's current runtime state.
- * Returns add/remove lists to be merged with base properties.
- */
-/** Pseudo-properties still exposed to compatibility until decision C3b lands. */
-function deriveStateProperties(
-  state: EntityState,
-): { add: PropertyId[]; remove: PropertyId[] } {
-  for (const token of STATE_TOKEN_SALIENCE) {
-    if (stateMatchesToken(state, token)) return derivePropertiesForToken(token);
-  }
-  return { add: [], remove: [] };
-}
-
-function derivePropertiesForToken(
-  token: StateId,
-): { add: PropertyId[]; remove: PropertyId[] } {
-  switch (token) {
-    case 'locked':
-      return { add: ['locked'], remove: ['open'] };
-    case 'open':
-      return { add: ['open', 'openable'], remove: ['locked', 'sealed'] };
-    case 'closed':
-      return { add: ['openable'], remove: ['open'] };
-    case 'broken':
-      return { add: ['broken'], remove: ['locked', 'sealed', 'powered'] };
-    case 'active':
-      return { add: ['active', 'powered'], remove: ['inactive', 'unpowered'] };
-    case 'inactive':
-      return { add: ['unpowered', 'inactive'], remove: ['powered', 'active'] };
-    case 'damaged':
-      return { add: ['broken'], remove: [] };
-    case 'empty':
-      return { add: ['open'], remove: ['locked', 'sealed'] };
-    case 'searched':
-      return { add: [], remove: ['secured'] };
-    default:
-      return { add: [], remove: [] };
-  }
-}
-
 function featureDefToInstance(
   id: string,
   scenarioDef?: FeatureDefinition,
@@ -621,7 +578,7 @@ function featureDefToInstance(
       baseType: def.type,
       extra_props: def.extra_props,
     });
-    return { id, definitionId: id, nameKey: def.nameKey, aliases, properties };
+    return { id, definitionId: id, nameKey: def.nameKey, aliases, properties, state: currentState };
   }
 
   // 2. Check if scenario definition is enriched
@@ -632,21 +589,15 @@ function featureDefToInstance(
     const aliasesFromDef = scenarioDef.aliases ? [...scenarioDef.aliases[locale]] : [];
     const aliases = [id, frName.toLowerCase(), ...aliasesFromDef];
 
-    // Resolve base properties from type, then apply state overrides
-    const baseProps = resolveProperties({
+    // Properties describe what the feature is; its state travels separately.
+    const properties = resolveProperties({
       objectCategory: 'environment',
       baseType: scenarioDef.featureType,
       extra_props: scenarioDef.extraProperties ?? [],
       remove_props: scenarioDef.removeProperties ?? [],
     });
-    const { add, remove } = deriveStateProperties(currentState);
-    const removeSet = new Set(remove);
-    const properties: PropertyId[] = [
-      ...baseProps.filter(p => !removeSet.has(p)),
-      ...add.filter(p => !baseProps.includes(p)),
-    ];
 
-    return { id, definitionId: id, nameKey, aliases, properties };
+    return { id, definitionId: id, nameKey, aliases, properties, state: currentState };
   }
 
   // 3. Fallback: scenario-only feature without enriched data
@@ -660,6 +611,7 @@ function featureDefToInstance(
     nameKey,
     aliases: [id, frName.toLowerCase(), ...i18nAliases],
     properties: ['tangible', 'visible'],
+    state: currentState,
   };
 }
 

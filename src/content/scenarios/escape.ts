@@ -229,7 +229,7 @@ const cryopod: ScenarioFeatureDefinition = {
   id: 'cryopod',
   initialState: 'broken',
   featureType: 'container',
-  extraProperties: ['electronic', 'large', 'broken'],
+  extraProperties: ['electronic', 'large'],
   removeProperties: ['openable', 'lockable'],
   aliases: {
     fr: ['capsule', 'capsule cryogenique', 'cryopod', 'pod', 'cryo', 'capsule cryo', 'lit', 'caisson'],
@@ -392,8 +392,6 @@ const emergency_locker: ScenarioFeatureDefinition = {
           en: 'The metal gives way with a screech. The magnetic lock breaks — the locker opens. Inside: an access keycard and an emergency oxygen canister.',
         },
         revealsItems: ['access_keycard', 'oxygen_canister'],
-        removeProperties: ['locked'],
-        addProperties: ['open'],
       },
       onFailure: {
         narrative: {
@@ -417,8 +415,6 @@ const emergency_locker: ScenarioFeatureDefinition = {
           en: 'You short-circuit the magnetic lock terminals. Click. The locker opens smoothly. An access keycard and an oxygen canister sit inside.',
         },
         revealsItems: ['access_keycard', 'oxygen_canister'],
-        removeProperties: ['locked'],
-        addProperties: ['open'],
       },
       onFailure: {
         narrative: {
@@ -443,8 +439,6 @@ const emergency_locker: ScenarioFeatureDefinition = {
           en: 'The toolkit does the job. Three screws, an improvised lever, and the lock gives way. The locker holds an access keycard and an oxygen canister.',
         },
         revealsItems: ['access_keycard', 'oxygen_canister'],
-        removeProperties: ['locked'],
-        addProperties: ['open'],
       },
     },
     // USE knife (auto-success)
@@ -462,8 +456,6 @@ const emergency_locker: ScenarioFeatureDefinition = {
           en: 'The knife blade slides into the lock slot. A sharp twist — the mechanism gives. The locker opens.',
         },
         revealsItems: ['access_keycard', 'oxygen_canister'],
-        removeProperties: ['locked'],
-        addProperties: ['open'],
       },
     },
   ],
@@ -475,7 +467,7 @@ const security_panel: ScenarioFeatureDefinition = {
   id: 'security_panel',
   initialState: 'active',
   featureType: 'panel',
-  extraProperties: ['electronic', 'secured', 'powered'],
+  extraProperties: ['electronic', 'secured'],
   aliases: {
     fr: ['panneau', 'panneau de securite', 'lecteur', 'lecteur de badge', 'digicode', 'panneau securite', 'terminal de securite'],
     en: ['panel', 'security panel', 'badge reader', 'keypad', 'security terminal'],
@@ -585,8 +577,7 @@ const bulkhead_door: ScenarioFeatureDefinition = {
           fr: 'Les verrous ont été désactivés. La porte blindée coulisse lourdement sur ses rails, révélant le couloir au-delà.',
           en: 'The locks have been deactivated. The bulkhead slides heavily along its rails, revealing the corridor beyond.',
         },
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'reveal',
       },
     },
@@ -604,8 +595,7 @@ const bulkhead_door: ScenarioFeatureDefinition = {
           fr: 'Par un effort surhumain, vous parvenez à tordre suffisamment le cadre pour vous faufiler. Le métal grince et proteste — votre corps aussi.',
           en: 'Through superhuman effort, you manage to bend the frame enough to squeeze through. The metal groans and protests — so does your body.',
         },
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'reveal',
         consequences: [{ type: 'damage', targetId: 'player', amount: 3 }],
       },
@@ -665,7 +655,6 @@ const vent_cover: ScenarioFeatureDefinition = {
           en: 'The rusted screws give way one by one. The grate clangs to the floor. The ventilation duct opens before you — narrow, dark, but passable.',
         },
         removeProperties: ['sealed'],
-        addProperties: ['open'],
         revealsExit: 'reveal',
       },
       onFailure: {
@@ -690,7 +679,6 @@ const vent_cover: ScenarioFeatureDefinition = {
           en: 'A well-placed kick. The grate bends and detaches from the wall. Noisy — but effective. The duct is open.',
         },
         removeProperties: ['sealed'],
-        addProperties: ['open'],
         revealsExit: 'reveal',
       },
       onFailure: {
@@ -716,7 +704,6 @@ const vent_cover: ScenarioFeatureDefinition = {
           en: 'The toolkit\'s screwdriver pops the rusted screws effortlessly. The grate comes off cleanly.',
         },
         removeProperties: ['sealed'],
-        addProperties: ['open'],
         revealsExit: 'reveal',
       },
     },
@@ -894,8 +881,6 @@ const EVA_suit_locker: ScenarioFeatureDefinition = {
           en: 'The locker glass shatters. You clear the shards — the EVA suit inside is intact.',
         },
         revealsItems: ['eva_suit'],
-        removeProperties: ['locked'],
-        addProperties: ['open', 'broken'],
         consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
       onFailure: {
@@ -920,8 +905,6 @@ const EVA_suit_locker: ScenarioFeatureDefinition = {
           en: 'The electronic lock yields. The locker opens — the EVA suit awaits.',
         },
         revealsItems: ['eva_suit'],
-        removeProperties: ['locked'],
-        addProperties: ['open'],
       },
       onFailure: {
         narrative: {
@@ -937,7 +920,7 @@ const life_support_panel: ScenarioFeatureDefinition = {
   id: 'life_support_panel',
   initialState: 'damaged',
   featureType: 'panel',
-  extraProperties: ['electronic', 'broken', 'powered'],
+  extraProperties: ['electronic'],
   aliases: {
     fr: ['panneau', 'panneau support vie', 'support vie', 'systeme o2', 'panneau o2', 'controle oxygene'],
     en: ['panel', 'life support', 'life support panel', 'o2 system', 'oxygen control'],
@@ -972,7 +955,6 @@ const life_support_panel: ScenarioFeatureDefinition = {
           en: 'Cable by cable, you reconnect the system. The fan restarts — fresh air flows. Screen reads "O₂ STABILIZED". You\'ve bought time.',
         },
         flagSet: 'o2_stabilized',
-        removeProperties: ['broken'],
       },
       onFailure: {
         narrative: {
@@ -1000,7 +982,6 @@ const life_support_panel: ScenarioFeatureDefinition = {
             + 'The system restarts in degraded mode — 30% capacity instead of 43%. Better than nothing.',
         },
         flagSet: 'o2_stabilized',
-        removeProperties: ['broken'],
       },
       onFailure: {
         narrative: {
@@ -1028,7 +1009,6 @@ const life_support_panel: ScenarioFeatureDefinition = {
             + 'An electric arc bites your fingers — but the fan restarts. Air flows. Brutal method, effective result.',
         },
         flagSet: 'o2_stabilized',
-        removeProperties: ['broken'],
         consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
       onFailure: {
@@ -1095,7 +1075,7 @@ const power_conduit: ScenarioFeatureDefinition = {
   id: 'power_conduit',
   initialState: 'damaged',
   featureType: 'pipe',
-  extraProperties: ['conductive', 'broken', 'large'],
+  extraProperties: ['conductive', 'large'],
   aliases: {
     fr: ['conduit', 'conduit d\'energie', 'tuyau', 'canalisation', 'cable', 'conduit electrique'],
     en: ['conduit', 'power conduit', 'pipe', 'cable', 'power line'],
@@ -1179,8 +1159,7 @@ const escape_pod_hatch: ScenarioFeatureDefinition = {
           en: 'The reader firmware yields to your expert fingers. The hatch unlocks — pneumatic seals hiss. The escape pod awaits.',
         },
         flagSet: 'pod_hatch_open',
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'resolution',
       },
       onFailure: {
@@ -1205,8 +1184,7 @@ const escape_pod_hatch: ScenarioFeatureDefinition = {
           en: 'The seals give under titanic effort. The hatch opens with a screech of tortured metal. The pod is accessible.',
         },
         flagSet: 'pod_hatch_open',
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'resolution',
         consequences: [{ type: 'damage', targetId: 'player', amount: 2 }],
       },
@@ -1231,8 +1209,7 @@ const escape_pod_hatch: ScenarioFeatureDefinition = {
           fr: 'Le badge a déjà déverrouillé l\'écoutille. Vous poussez — elle s\'ouvre. Le pod d\'évasion est là.',
           en: 'The badge already unlocked the hatch. You push — it opens. The escape pod is there.',
         },
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'resolution',
       },
     },
@@ -1288,8 +1265,7 @@ const escape_pod_hatch: ScenarioFeatureDefinition = {
             + 'You don\'t look at the creature as you enter the pod.',
         },
         flagSet: 'pod_hatch_open',
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'resolution',
       },
     },
@@ -1330,8 +1306,7 @@ const escape_pod_hatch: ScenarioFeatureDefinition = {
             + 'No badge needed when you know where to look.',
         },
         flagSet: 'pod_hatch_open',
-        removeProperties: ['locked', 'sealed'],
-        addProperties: ['open'],
+        removeProperties: ['sealed'],
         revealsExit: 'resolution',
       },
     },

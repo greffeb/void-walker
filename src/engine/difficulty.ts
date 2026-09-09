@@ -96,7 +96,7 @@ function getTargetDispositionMod(target: ResolvedTarget | null): { mod: number; 
   if (props.has('hostile')) {
     return { mod: BALANCE.CONTEXT_MODIFIERS.HOSTILE_TARGET, detail: 'Cible hostile' };
   }
-  if (props.has('secured') && props.has('locked')) {
+  if (props.has('secured') && target.state?.lock === 'locked') {
     return { mod: BALANCE.CONTEXT_MODIFIERS.FORTIFIED_TARGET, detail: 'Cible fortifiée' };
   }
 

@@ -169,7 +169,7 @@ const plasma_cutter: ScenarioItemDefinition = {
   itemType: 'tool',
   hidden: true,
   revealedBy: { featureId: 'plasma_cutter_rack', requiredState: 'empty' },
-  extraProperties: ['electronic', 'large', 'powered', 'ranged'],
+  extraProperties: ['electronic', 'large', 'ranged'],
   aliases: {
     fr: ['decoupeur', 'decoupeur plasma', 'plasma', 'chalumeau'],
     en: ['cutter', 'plasma cutter', 'plasma'],
@@ -362,7 +362,7 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
   id: 'crashed_shuttle',
   featureType: 'container',
   initialState: 'damaged',
-  extraProperties: ['metallic', 'large', 'damaged'],
+  extraProperties: ['metallic', 'large'],
   contains: ['medical_stabilizer'],
   aliases: {
     fr: ['navette', 'shuttle', 'vaisseau', 'navette ecrasee', 'epave'],
@@ -555,7 +555,7 @@ const emergency_beacon_broken: ScenarioFeatureDefinition = {
   id: 'emergency_beacon_broken',
   featureType: 'terminal',
   initialState: 'broken',
-  extraProperties: ['electronic', 'broken', 'easily_repairable'],
+  extraProperties: ['electronic', 'easily_repairable'],
   aliases: {
     fr: ['balise', 'balise detresse', 'balise cassee', 'emetteur'],
     en: ['beacon', 'emergency beacon', 'broken beacon', 'transmitter'],
@@ -612,7 +612,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
   id: 'collapsed_corridor',
   featureType: 'door',
   initialState: 'broken',
-  extraProperties: ['metallic', 'large', 'broken'],
+  extraProperties: ['metallic', 'large'],
   aliases: {
     fr: ['couloir', 'couloir effondre', 'debris', 'passage', 'effondrement', 'decombres'],
     en: ['corridor', 'collapsed corridor', 'debris', 'passage', 'rubble'],
@@ -871,7 +871,7 @@ const research_terminal: ScenarioFeatureDefinition = {
   id: 'research_terminal',
   featureType: 'terminal',
   initialState: 'damaged',
-  extraProperties: ['electronic', 'damaged', 'readable', 'easily_repairable'],
+  extraProperties: ['electronic', 'readable', 'easily_repairable'],
   aliases: {
     fr: ['terminal', 'terminal recherche', 'ordinateur', 'console'],
     en: ['terminal', 'research terminal', 'computer', 'console'],
@@ -1022,7 +1022,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
   id: 'blast_door_partial',
   featureType: 'door',
   initialState: 'damaged',
-  extraProperties: ['metallic', 'large', 'damaged', 'rigid', 'openable'],
+  extraProperties: ['metallic', 'large', 'rigid', 'openable'],
   aliases: {
     fr: ['porte blindee', 'porte', 'porte endommagee', 'blast door'],
     en: ['blast door', 'door', 'damaged door'],
@@ -1236,7 +1236,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
   id: 'extraction_bay_door',
   featureType: 'door',
   initialState: 'damaged',
-  extraProperties: ['metallic', 'large', 'damaged', 'easily_repairable'],
+  extraProperties: ['metallic', 'large', 'easily_repairable'],
   aliases: {
     fr: ['porte extraction', 'porte baie', 'baie extraction'],
     en: ['bay door', 'extraction door'],

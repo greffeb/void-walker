@@ -5,6 +5,8 @@
 
 import type { StatId } from './types';
 import type { PropertyId } from './properties';
+import type { EntityState } from './entityState';
+import { resistsOpening } from './entityState';
 import type { StringKey } from '@i18n/types';
 
 // === VERB ID UNION ===
@@ -80,6 +82,8 @@ export interface VerbRequirements {
   readonly targetProps: readonly RequirementClause[];
   /** Player must have an item with this property (null = no tool needed) */
   readonly requiredToolProp: PropertyId | null;
+  /** Axes the target must currently be on, e.g. UNLOCK needs a locked target. */
+  readonly requiredState?: Partial<EntityState>;
 }
 
 // === VERB ENTRY ===
@@ -142,7 +146,7 @@ export const VERB_REGISTRY: VerbRegistry = {
   },
   FORCE_OPEN: {
     nameKey: 'verb.FORCE_OPEN', descriptionKey: 'verb.FORCE_OPEN.description',
-    requirements: { targetProps: [['openable', 'locked']], requiredToolProp: null },
+    requirements: { targetProps: [['openable']], requiredToolProp: null, requiredState: { lock: 'locked' } },
     difficultyMod: 3, auto: false,
   },
   BITE: {
@@ -236,7 +240,7 @@ export const VERB_REGISTRY: VerbRegistry = {
   },
   UNLOCK: {
     nameKey: 'verb.UNLOCK', descriptionKey: 'verb.UNLOCK.description',
-    requirements: { targetProps: [['locked']], requiredToolProp: null },
+    requirements: { targetProps: [['lockable']], requiredToolProp: null, requiredState: { lock: 'locked' } },
     difficultyMod: 2, auto: false,
   },
   WELD: {
@@ -595,15 +599,17 @@ export const AUTO_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
   'MOVE_TO', 'WAIT', 'TOUCH',
 ]);
 
-/** Properties that make an openable target resist a plain OPEN/CLOSE. */
-const RESISTS_OPENING: readonly PropertyId[] = ['locked', 'sealed', 'secured', 'broken'];
-
 /**
  * Whether a verb resolves without a roll against this particular target.
  * OPEN and CLOSE are automatic unless something actually holds the target shut.
  */
-export function isAutoVerb(verb: VerbId, targetProps: readonly PropertyId[] = []): boolean {
+export function isAutoVerb(
+  verb: VerbId,
+  targetProps: readonly PropertyId[] = [],
+  targetState: EntityState = {},
+): boolean {
   if (AUTO_VERBS.has(verb)) return true;
   if (verb !== 'OPEN' && verb !== 'CLOSE') return false;
-  return !RESISTS_OPENING.some(p => targetProps.includes(p));
+  if (resistsOpening(targetState)) return false;
+  return !targetProps.includes('sealed') && !targetProps.includes('secured');
 }

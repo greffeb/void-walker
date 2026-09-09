@@ -303,8 +303,8 @@ describe('Chantier 1 Integration: scenario interactions', () => {
     expect(lockerFeature).toBeDefined();
     // container featureType should give tangible, metallic, etc.
     expect(lockerFeature!.properties).toContain('tangible');
-    // locked state should add 'locked' property
-    expect(lockerFeature!.properties).toContain('locked');
+    // being locked is a state, not a property
+    expect(lockerFeature!.state.lock).toBe('locked');
   });
 
   it('9. Scene.ts resolves enriched item with properties from itemType', () => {

@@ -102,6 +102,7 @@ function resolveAllEnvironmentFeatures(): EnvironmentFeatureInstance[] {
         ...fDef.id.replace(/_/g, ' ').split(' '),
       ],
       properties: resolveEnvironmentProperties(fDef.id),
+    state: {},
     }];
   });
 }

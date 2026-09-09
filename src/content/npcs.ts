@@ -153,7 +153,7 @@ const NPCS_ARRAY: readonly NPCDefinition[] = [
     nameKey: 'npc.station_ai',
     descriptionKey: 'npc.station_ai.description',
     aliasesKey: 'npc.station_ai.aliases',
-    extra_props: ['programmable', 'secured', 'powered'],
+    extra_props: ['programmable', 'secured'],
     hp: 1,
     damage: 0,
     attack: 0,

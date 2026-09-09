@@ -119,7 +119,7 @@ describe('C3-1: scene.ts enriched feature resolution', () => {
     expect(resolved!.properties).toContain('openable');
   });
 
-  it('feature in "locked" state has locked property, not open', () => {
+  it('feature in "locked" state carries the lock axis, not a pseudo-property', () => {
     const feat = makeFeature({ id: 'door', featureType: 'door', initialState: 'locked' });
     const node = makeNode({ id: 'start', features: [feat], items: [] });
     const scenario = makeScenario([node]);
@@ -133,11 +133,11 @@ describe('C3-1: scene.ts enriched feature resolution', () => {
     const ctx = getSceneContext(state);
     const resolved = ctx.environmentFeatures.find(f => f.id === 'door');
     expect(resolved).toBeDefined();
-    expect(resolved!.properties).toContain('locked');
-    expect(resolved!.properties).not.toContain('open');
+    expect(resolved!.state.lock).toBe('locked');
+    expect(resolved!.state.openness).not.toBe('open');
   });
 
-  it('feature in "open" state has open property, not locked', () => {
+  it('feature in "open" state carries the openness axis', () => {
     const feat = makeFeature({ id: 'door', featureType: 'door', initialState: 'locked' });
     const node = makeNode({ id: 'start', features: [feat], items: [] });
     const scenario = makeScenario([node]);
@@ -151,8 +151,8 @@ describe('C3-1: scene.ts enriched feature resolution', () => {
     const ctx = getSceneContext(state);
     const resolved = ctx.environmentFeatures.find(f => f.id === 'door');
     expect(resolved).toBeDefined();
-    expect(resolved!.properties).toContain('open');
-    expect(resolved!.properties).not.toContain('locked');
+    expect(resolved!.state.openness).toBe('open');
+    expect(resolved!.state.lock).not.toBe('locked');
   });
 
   it('enriched item with itemType:"weapon" resolves weapon properties', () => {

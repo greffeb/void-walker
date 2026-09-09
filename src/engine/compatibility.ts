@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------------------
 
 import type { PropertyId } from './properties';
+import type { EntityState } from './entityState';
+import { matchesState } from './entityState';
 import type { VerbId } from './verbs';
 import { VERB_REGISTRY, AUTO_VERBS } from './verbs';
 import { BALANCE } from './constants';
@@ -14,6 +16,7 @@ export interface CompatibilityInput {
   readonly verbId: VerbId;
   readonly targetProps: readonly PropertyId[];
   readonly playerToolProps: readonly PropertyId[];
+  readonly targetState?: EntityState;
 }
 
 /** Result of a compatibility check */
@@ -49,7 +52,7 @@ export function checkCompatibility(input: CompatibilityInput): CompatibilityResu
   const targetSet = new Set(input.targetProps);
   const toolSet = new Set(input.playerToolProps);
 
-  const { targetProps: clauses, requiredToolProp } = verb.requirements;
+  const { targetProps: clauses, requiredToolProp, requiredState } = verb.requirements;
 
   // Check target property requirements (OR between clauses, AND within)
   let propsSatisfied = false;
@@ -67,6 +70,13 @@ export function checkCompatibility(input: CompatibilityInput): CompatibilityResu
     if (!propsSatisfied) {
       failedClause = clauses.map((c: readonly PropertyId[]) => c.join('+')).join(' OR ');
     }
+  }
+
+  // Wrong state is a different failure from wrong nature: unlocking an already
+  // unlocked door is pointless, not absurd.
+  if (propsSatisfied && requiredState !== undefined && !matchesState(input.targetState ?? {}, requiredState)) {
+    propsSatisfied = false;
+    failedClause = Object.entries(requiredState).map(([axis, value]) => `${axis}=${String(value)}`).join('+');
   }
 
   // Check tool requirement

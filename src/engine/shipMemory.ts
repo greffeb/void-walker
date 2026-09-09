@@ -58,7 +58,7 @@ const MARK_CATALOG: Readonly<Partial<Record<VerbId, MarkTemplate>>> = {
     },
   },
   REPAIR: {
-    requiredProperties: ['electronic', 'mechanical', 'broken', 'powered'],
+    requiredProperties: ['electronic', 'mechanical'],
     effect: {
       sameActionDCMod: -1,
       otherActionDCMod: -2,
@@ -67,7 +67,7 @@ const MARK_CATALOG: Readonly<Partial<Record<VerbId, MarkTemplate>>> = {
     },
   },
   UNLOCK: {
-    requiredProperties: ['lockable', 'secured', 'locked'],
+    requiredProperties: ['lockable', 'secured'],
     effect: {
       sameActionDCMod: -1,
       otherActionDCMod: 0,

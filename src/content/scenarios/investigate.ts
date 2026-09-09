@@ -19,7 +19,7 @@ function ls(fr: string): LocaleString { return { fr, en: '' }; }
 const scanner_device: ScenarioItemDefinition = {
   id: 'scanner_device',
   itemType: 'tool',
-  extraProperties: ['electronic', 'small', 'powered', 'usable'],
+  extraProperties: ['electronic', 'small', 'usable'],
   aliases: {
     fr: ['scanner', 'detecteur', 'appareil', 'scanner portable'],
     en: ['scanner', 'detector', 'device'],
@@ -313,7 +313,7 @@ const cargo_manifest_terminal: ScenarioFeatureDefinition = {
   id: 'cargo_manifest_terminal',
   featureType: 'terminal',
   initialState: 'active',
-  extraProperties: ['electronic', 'readable', 'powered', 'programmable'],
+  extraProperties: ['electronic', 'readable', 'programmable'],
   aliases: {
     fr: ['manifeste', 'terminal cargo', 'terminal manifeste', 'ecran cargo'],
     en: ['manifest', 'cargo terminal'],
@@ -432,7 +432,7 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
   id: 'encrypted_terminal',
   featureType: 'terminal',
   initialState: 'locked',
-  extraProperties: ['electronic', 'locked', 'data_storage', 'powered', 'programmable'],
+  extraProperties: ['electronic', 'data_storage', 'programmable'],
   aliases: {
     fr: ['terminal chiffre', 'terminal crypte', 'terminal principal', 'terminal verrouille', 'console chiffree'],
     en: ['encrypted terminal', 'locked terminal', 'main terminal'],
@@ -562,7 +562,7 @@ const maintenance_terminal: ScenarioFeatureDefinition = {
   id: 'maintenance_terminal',
   featureType: 'terminal',
   initialState: 'damaged',
-  extraProperties: ['electronic', 'damaged', 'powered', 'programmable', 'easily_repairable'],
+  extraProperties: ['electronic', 'programmable', 'easily_repairable'],
   aliases: {
     fr: ['terminal maintenance', 'terminal auxiliaire', 'terminal secondaire', 'console maintenance'],
     en: ['maintenance terminal', 'auxiliary terminal'],
@@ -695,7 +695,7 @@ const director_terminal: ScenarioFeatureDefinition = {
   id: 'director_terminal',
   featureType: 'terminal',
   initialState: 'active',
-  extraProperties: ['electronic', 'readable', 'powered', 'programmable'],
+  extraProperties: ['electronic', 'readable', 'programmable'],
   aliases: {
     fr: ['terminal directrice', 'terminal vasquez', 'ordinateur', 'poste travail'],
     en: ['director terminal', 'vasquez terminal', 'computer'],
@@ -752,7 +752,7 @@ const wall_safe: ScenarioFeatureDefinition = {
   id: 'wall_safe',
   featureType: 'container',
   initialState: 'locked',
-  extraProperties: ['metallic', 'locked', 'hollow', 'rigid'],
+  extraProperties: ['metallic', 'hollow', 'rigid'],
   contains: ['director_keycard'],
   aliases: {
     fr: ['coffre', 'coffre-fort', 'coffre mural', 'safe'],
@@ -879,7 +879,7 @@ const reactor_core: ScenarioFeatureDefinition = {
   id: 'reactor_core',
   featureType: 'panel',
   initialState: 'damaged',
-  extraProperties: ['electronic', 'toxic', 'easily_repairable', 'powered'],
+  extraProperties: ['electronic', 'toxic', 'easily_repairable'],
   aliases: {
     fr: ['reacteur', 'coeur', 'coeur reacteur', 'reacteur nucleaire'],
     en: ['reactor', 'core', 'reactor core'],
@@ -946,7 +946,7 @@ const ai_core_node_a: ScenarioFeatureDefinition = {
   id: 'ai_core_node_a',
   featureType: 'terminal',
   initialState: 'active',
-  extraProperties: ['electronic', 'powered', 'programmable'],
+  extraProperties: ['electronic', 'programmable'],
   aliases: {
     fr: ['noeud', 'noeud primaire', 'noeud ia', 'processeur'],
     en: ['node', 'primary node', 'AI node'],
@@ -1013,7 +1013,7 @@ const ai_core_node_b: ScenarioFeatureDefinition = {
   id: 'ai_core_node_b',
   featureType: 'terminal',
   initialState: 'active',
-  extraProperties: ['electronic', 'powered', 'programmable', 'rigid'],
+  extraProperties: ['electronic', 'programmable', 'rigid'],
   aliases: {
     fr: ['noeud secondaire', 'second noeud', 'noeud b', 'backup'],
     en: ['secondary node', 'node B', 'backup node'],
@@ -1085,7 +1085,7 @@ const override_terminal: ScenarioFeatureDefinition = {
   id: 'override_terminal',
   featureType: 'terminal',
   initialState: 'damaged',
-  extraProperties: ['electronic', 'damaged', 'easily_repairable'],
+  extraProperties: ['electronic', 'easily_repairable'],
   aliases: {
     fr: ['terminal neutralisation', 'terminal override', 'terminal urgence'],
     en: ['override terminal', 'emergency terminal'],
@@ -1156,7 +1156,7 @@ const emergency_beacon: ScenarioFeatureDefinition = {
   id: 'emergency_beacon',
   featureType: 'terminal',
   initialState: 'locked',
-  extraProperties: ['electronic', 'locked', 'powered', 'rigid'],
+  extraProperties: ['electronic', 'rigid'],
   aliases: {
     fr: ['balise', 'balise secours', 'balise detresse', 'transmetteur'],
     en: ['beacon', 'emergency beacon', 'transmitter'],
@@ -1249,7 +1249,7 @@ const comms_array_panel: ScenarioFeatureDefinition = {
   id: 'comms_array_panel',
   featureType: 'terminal',
   initialState: 'active',
-  extraProperties: ['electronic', 'powered', 'programmable'],
+  extraProperties: ['electronic', 'programmable'],
   aliases: {
     fr: ['panneau comms', 'communications', 'antenne', 'reseau comms', 'tableau comms'],
     en: ['comms panel', 'communications', 'array'],
@@ -1289,7 +1289,7 @@ const ai_final_lock: ScenarioFeatureDefinition = {
   id: 'ai_final_lock',
   featureType: 'panel',
   initialState: 'locked',
-  extraProperties: ['electronic', 'locked', 'rigid'],
+  extraProperties: ['electronic', 'rigid'],
   aliases: {
     fr: ['verrou', 'verrou ia', 'serrure', 'verrou final'],
     en: ['lock', 'AI lock', 'final lock'],
@@ -1414,7 +1414,7 @@ const beacon_transmission_screen: ScenarioFeatureDefinition = {
   id: 'beacon_transmission_screen',
   featureType: 'terminal',
   initialState: 'active',
-  extraProperties: ['electronic', 'readable', 'powered'],
+  extraProperties: ['electronic', 'readable'],
   aliases: {
     fr: ['ecran transmission', 'moniteur', 'ecran balise'],
     en: ['transmission screen', 'monitor', 'beacon screen'],

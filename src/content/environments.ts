@@ -28,7 +28,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     nameKey: 'env.blast_door',
     descriptionKey: 'env.blast_door.description',
     aliasesKey: 'env.blast_door.aliases',
-    extra_props: ['heavy', 'sealed', 'electronic', 'powered'],
+    extra_props: ['heavy', 'sealed', 'electronic'],
     powerState: 'powered',
   },
   {
@@ -45,7 +45,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     nameKey: 'env.command_terminal',
     descriptionKey: 'env.command_terminal.description',
     aliasesKey: 'env.command_terminal.aliases',
-    extra_props: ['secured', 'powered', 'data_storage'],
+    extra_props: ['secured', 'data_storage'],
     powerState: 'powered',
   },
   {
@@ -79,7 +79,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     nameKey: 'env.security_camera',
     descriptionKey: 'env.security_camera.description',
     aliasesKey: 'env.security_camera.aliases',
-    extra_props: ['powered', 'breakable', 'small'],
+    extra_props: ['breakable', 'small'],
     powerState: 'powered',
   },
   {
@@ -88,7 +88,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     nameKey: 'env.main_airlock',
     descriptionKey: 'env.main_airlock.description',
     aliasesKey: 'env.main_airlock.aliases',
-    extra_props: ['heavy', 'electronic', 'powered'],
+    extra_props: ['heavy', 'electronic'],
     powerState: 'powered',
   },
   {
@@ -105,7 +105,7 @@ const FEATURES_ARRAY: readonly EnvironmentFeatureDefinition[] = [
     nameKey: 'env.exposed_wiring',
     descriptionKey: 'env.exposed_wiring.description',
     aliasesKey: 'env.exposed_wiring.aliases',
-    extra_props: ['powered', 'broken'],
+    extra_props: ['conductive'],
     powerState: 'powered',
   },
 ] as const;

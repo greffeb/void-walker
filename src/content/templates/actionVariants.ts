@@ -13,13 +13,13 @@
 // Never start a sentence with {def_target} — it renders lowercase ("le sas").
 // ---------------------------------------------------------------------------
 
-import type { PropertyId } from '../../engine/properties';
+import type { TargetTag } from '../../narration/types';
 import type { VerbId } from '../../engine/verbs';
 import type { ActionTemplate, Outcome, TensionTier, VerbCategory } from '../../narration/types';
 
 /** One cell plus the two extra texts filling it. */
 type VariantSpec = readonly [
-  targetType: PropertyId | null,
+  targetType: TargetTag | null,
   outcome: Outcome,
   tension: TensionTier,
   texts: readonly [string, string],

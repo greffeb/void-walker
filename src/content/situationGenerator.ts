@@ -148,6 +148,7 @@ function resolveEnvFeature(featureId: string): EnvironmentFeatureInstance | null
       ...featureId.replace(/_/g, ' ').split(' '),
     ],
     properties: resolveEnvironmentProperties(featureId),
+    state: {},
   };
 }
 

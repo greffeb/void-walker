@@ -11,6 +11,7 @@ import type {
   PlayerStateSnippet,
 } from './types';
 import { tensionTier, NARRATIVE_PRESETS, LAYER_ORDER } from './types';
+import type { TargetTag } from './types';
 import { renderTemplate, detectSelfReference, getGrammarEngine } from './templateEngine';
 import { NarrationMemory } from './memory';
 import { selectGameplayHint } from './hints';
@@ -18,6 +19,7 @@ import type { Locale } from '../i18n/types';
 import { getLocale } from '../i18n/index';
 import type { VerbId } from '../engine/verbs';
 import type { PropertyId } from '../engine/properties';
+import { STATE_TOKEN_SALIENCE, stateMatchesToken } from '../engine/entityState';
 import { getInfinitiveVerbText, getDirectVerbText } from '../content/templates/actionPhrases';
 
 // === TEMPLATE IMPORTS ===
@@ -146,13 +148,17 @@ function selectEatTargetProperty(properties: readonly PropertyId[]): PropertyId 
 
 export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
   const tier = tensionTier(ctx.tension);
-  // EAT uses tier-based property selection for precise template matching
-  // Other verbs: prefer 'alive' so NPC-specific templates take priority
-  const targetType: PropertyId | undefined = ctx.verb === 'EAT'
+  // A broken door reads better as broken than as metallic, so a salient state
+  // outranks the target's properties when picking a template.
+  const salientState = ctx.target?.state
+    ? STATE_TOKEN_SALIENCE.find(token => stateMatchesToken(ctx.target!.state!, token))
+    : undefined;
+  const targetType: TargetTag | undefined = ctx.verb === 'EAT'
     ? selectEatTargetProperty(ctx.target?.properties ?? [])
-    : ctx.target?.properties.includes('alive')
-      ? 'alive'
-      : ctx.target?.properties[0];
+    : salientState
+      ?? (ctx.target?.properties.includes('alive')
+        ? 'alive'
+        : ctx.target?.properties[0]);
 
   // PRIORITY 1: Specific — verb + target type + outcome + tension tier
   let template = findTemplate(ctx.verb, targetType ?? null, ctx.outcome, tier, ctx.verbCategory);
@@ -177,7 +183,7 @@ export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
 
 function findTemplate(
   verb: VerbId,
-  targetType: PropertyId | null,
+  targetType: TargetTag | null,
   outcome: Outcome,
   tension: TensionTier,
   _category: VerbCategory,

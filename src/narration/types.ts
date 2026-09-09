@@ -7,6 +7,7 @@
 import type { GrammaticalInfo } from '../i18n/grammar/interface';
 import type { VerbId } from '../engine/verbs';
 import type { PropertyId } from '../engine/properties';
+import type { EntityState, StateId } from '../engine/entityState';
 import type { StoryBeat, ConditionId } from '../engine/types';
 
 // === VERB CATEGORY ===
@@ -60,6 +61,9 @@ export type HintCategory =
 
 // === LAYER TYPES ===
 
+/** What an action template can key on: what the target is, or what state it is in. */
+export type TargetTag = PropertyId | StateId;
+
 /** All 7 layer types including action_result (mandatory, always first) */
 export type LayerType =
   | 'action_result'
@@ -88,6 +92,7 @@ export interface TargetInfo {
   readonly name: string;
   readonly type: string;              // Property tag(s) like 'electronic', 'breakable'
   readonly properties: readonly PropertyId[];
+  readonly state?: EntityState;
   readonly bodyPart?: string;
   readonly grammar: GrammaticalInfo;
 }
@@ -214,7 +219,7 @@ export const NARRATIVE_PRESETS: Readonly<Record<NarrativePreset, NarrativeSettin
 export interface ActionTemplate {
   readonly id: string;
   readonly verb: VerbId | null;        // null = category-level fallback
-  readonly targetType: PropertyId | null; // null = any target
+  readonly targetType: TargetTag | null; // null = any target
   readonly outcome: Outcome;
   readonly tension: TensionTier;
   readonly category: VerbCategory;

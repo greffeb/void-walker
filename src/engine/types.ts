@@ -466,6 +466,8 @@ export interface ResolvedTarget {
   readonly isVirtual: boolean;
   readonly source: TargetSource;
   readonly aliases?: readonly string[];
+  /** Mutable state, when the target has one. Absent for items and NPCs. */
+  readonly state?: import('./entityState').EntityState;
 }
 
 /** Which verb-matching strategy was used (1 = highest priority) */
@@ -630,6 +632,7 @@ export interface EnvironmentFeatureInstance {
   readonly nameKey: string;
   readonly aliases: readonly string[];
   readonly properties: readonly import('./properties').PropertyId[];
+  readonly state: import('./entityState').EntityState;
 }
 
 /** Lightweight view of the current scene for the parser/resolver */

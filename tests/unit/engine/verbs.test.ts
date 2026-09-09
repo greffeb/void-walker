@@ -144,7 +144,8 @@ describe('isAutoVerb', () => {
   });
 
   test('OPEN requires a roll when the target is locked, sealed or secured', () => {
-    expect(isAutoVerb('OPEN', ['openable', 'locked'])).toBe(false);
+    expect(isAutoVerb('OPEN', ['openable'], { lock: 'locked' })).toBe(false);
+    expect(isAutoVerb('OPEN', ['openable'], { integrity: 'broken' })).toBe(false);
     expect(isAutoVerb('OPEN', ['openable', 'sealed'])).toBe(false);
     expect(isAutoVerb('OPEN', ['openable', 'secured'])).toBe(false);
   });

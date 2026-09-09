@@ -17,9 +17,9 @@ export type PropertyId =
   // Material (8)
   | 'metallic' | 'organic' | 'synthetic' | 'conductive'
   | 'flammable' | 'corrosive' | 'toxic' | 'radioactive'
-  // Functional (22)
-  | 'electronic' | 'mechanical' | 'programmable' | 'powered' | 'unpowered'
-  | 'secured' | 'locked' | 'openable' | 'lockable' | 'readable'
+  // Functional (20)
+  | 'electronic' | 'mechanical' | 'programmable'
+  | 'secured' | 'openable' | 'lockable' | 'readable'
   | 'data_storage' | 'usable' | 'equippable' | 'edible' | 'drinkable'
   | 'component' | 'heat_source' | 'light_source' | 'liquid' | 'liquid_source'
   | 'power_source' | 'ranged'
@@ -31,8 +31,7 @@ export type PropertyId =
   | 'on_fire' | 'zero_g' | 'climbable' | 'cramped' | 'open_space'
   // Additional (implied by verb requirements and item definitions)
   | 'cuttable' | 'large' | 'bladed' | 'injectable' | 'organic_compatible'
-  | 'sticky' | 'broken' | 'attached' | 'port' | 'coverable' | 'easily_repairable'
-  | 'open' | 'active' | 'inactive' | 'damaged';
+  | 'sticky' | 'attached' | 'port' | 'coverable' | 'easily_repairable';
 
 /** All valid property IDs as a runtime array */
 export const PROPERTY_IDS: readonly PropertyId[] = [
@@ -45,8 +44,8 @@ export const PROPERTY_IDS: readonly PropertyId[] = [
   'metallic', 'organic', 'synthetic', 'conductive',
   'flammable', 'corrosive', 'toxic', 'radioactive',
   // Functional
-  'electronic', 'mechanical', 'programmable', 'powered', 'unpowered',
-  'secured', 'locked', 'openable', 'lockable', 'readable',
+  'electronic', 'mechanical', 'programmable',
+  'secured', 'openable', 'lockable', 'readable',
   'data_storage', 'usable', 'equippable', 'edible', 'drinkable',
   'component', 'heat_source', 'light_source', 'liquid', 'liquid_source',
   'power_source', 'ranged',
@@ -58,8 +57,7 @@ export const PROPERTY_IDS: readonly PropertyId[] = [
   'on_fire', 'zero_g', 'climbable', 'cramped', 'open_space',
   // Additional
   'cuttable', 'large', 'bladed', 'injectable', 'organic_compatible',
-  'sticky', 'broken', 'attached', 'port', 'coverable', 'easily_repairable',
-  'open', 'active', 'inactive', 'damaged',
+  'sticky', 'attached', 'port', 'coverable', 'easily_repairable',
 ] as const;
 
 // === PROPERTY METADATA ===
