@@ -88,6 +88,7 @@ export class NarrationMemory {
 
   private readonly recentVerbTargetPairs: string[] = [];
   private readonly PAIR_MEMORY_SIZE = 5;
+  private readonly pairCounts: Map<string, number> = new Map();
 
   /**
    * Track a (verb, target) pair. Returns true if this pair was already
@@ -105,10 +106,23 @@ export class NarrationMemory {
     return false;
   }
 
+  /**
+   * How many times this pair was narrated before now — 0 on first sight.
+   * Grades how insistent the player is being, which `trackPair`'s boolean
+   * could not express.
+   */
+  countPair(verb: string, targetId: string): number {
+    const pair = `${verb}:${targetId}`;
+    const seen = this.pairCounts.get(pair) ?? 0;
+    this.pairCounts.set(pair, seen + 1);
+    return seen;
+  }
+
   /** Reset all buffers (e.g., new game) */
   reset(): void {
     this.buffers.clear();
     this.recentVerbTargetPairs.length = 0;
+    this.pairCounts.clear();
   }
 
   /** Reset buffer for a specific layer (e.g., entering new setting) */

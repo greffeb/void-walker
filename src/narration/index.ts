@@ -22,6 +22,7 @@ import { composeNarrative, getVerbCategory } from './composer';
 import { getLocale, t } from '../i18n/index';
 import { narrationMemory } from './memory';
 import { selectSecretVerbText } from './secretVerbs';
+import { selectReexaminationText, OBSERVING_VERBS } from './reexamination';
 
 export { composeNarrative, resetComposer } from './composer';
 export { renderTemplate, renderTemplateWithSlots, getGrammarEngine, detectSelfReference } from './templateEngine';
@@ -427,14 +428,15 @@ export function narrateForTurn(
     return buildExamineEnvironmentNarrative(sceneContext.sceneDescription);
   }
 
-  // Anti-repetition: detect repeated EXAMINE/SCAN on same target
-  const EXAMINE_LIKE: ReadonlySet<VerbId> = new Set(['EXAMINE', 'SCAN', 'LISTEN', 'SMELL', 'READ']);
+  // Anti-repetition: looking at the same thing again says so, and says it
+  // differently each time (the bridge used to answer with one fixed sentence,
+  // which made it the most repeated text in the game).
   const parsedVerb = result.trace.parsedVerb ?? 'WAIT';
   const parsedTarget = result.trace.parsedTarget ?? '';
-  if (EXAMINE_LIKE.has(parsedVerb) && parsedTarget) {
-    const isRepeat = narrationMemory.trackPair(parsedVerb, parsedTarget);
-    if (isRepeat) {
-      return 'Vous ne remarquez rien de nouveau.';
+  if (OBSERVING_VERBS.has(parsedVerb) && parsedTarget) {
+    const previousLooks = narrationMemory.countPair(parsedVerb, parsedTarget);
+    if (previousLooks > 0) {
+      return selectReexaminationText(parsedVerb, previousLooks, locale ?? getLocale(), narrationMemory);
     }
   }
 

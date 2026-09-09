@@ -14,11 +14,15 @@ const HOSTILE_REACTIONS: readonly NpcReactionSnippet[] = [
   { id: 'npc_h_s_01', disposition: 'hostile', outcome: 'success', text: { fr: "{npc_name} observe votre succès avec une hostilité à peine contenue.", en: '' } },
   { id: 'npc_h_s_02', disposition: 'hostile', outcome: 'success', text: { fr: "Les yeux de {npc_name} se plissent. Votre compétence le met mal à l'aise.", en: '' } },
   { id: 'npc_h_p_01', disposition: 'hostile', outcome: 'partial', text: { fr: "{npc_name} ricane à mi-voix. Pas assez bien, semble-t-il dire.", en: '' } },
+  { id: 'npc_h_p_02', disposition: 'hostile', outcome: 'partial', text: { fr: "{npc_name} incline la tête, presque déçu que ça n'ait pas mieux marché — le spectacle aurait été meilleur.", en: '' } },
   { id: 'npc_h_f_01', disposition: 'hostile', outcome: 'failure', text: { fr: "Un sourire mauvais étire les lèvres de {npc_name}. Votre échec le réjouit.", en: '' } },
   { id: 'npc_h_f_02', disposition: 'hostile', outcome: 'failure', text: { fr: "{npc_name} éclate d'un rire cruel.", en: '' } },
   { id: 'npc_h_cf_01', disposition: 'hostile', outcome: 'crit_failure', text: { fr: "{npc_name} savoure votre échec avec une joie non dissimulée.", en: '' } },
   { id: 'npc_h_cf_02', disposition: 'hostile', outcome: 'crit_failure', text: { fr: "Votre désastre arrache un sourire satisfait à {npc_name}.", en: '' } },
   { id: 'npc_h_as_01', disposition: 'hostile', outcome: 'auto_success', text: { fr: "{npc_name} vous observe avec méfiance.", en: '' } },
+  { id: 'npc_h_as_02', disposition: 'hostile', outcome: 'auto_success', text: { fr: "{npc_name} ne bouge pas. Son regard, lui, ne vous lâche pas.", en: '' } },
+  { id: 'npc_h_as_03', disposition: 'hostile', outcome: 'auto_success', text: { fr: "Quelque chose se tend dans la posture de {npc_name}.", en: '' } },
+  { id: 'npc_h_as_04', disposition: 'hostile', outcome: 'auto_success', text: { fr: "{npc_name} suit chacun de vos gestes, sans en manquer un seul.", en: '' } },
 ];
 
 // === NEUTRAL ===
@@ -29,10 +33,17 @@ const NEUTRAL_REACTIONS: readonly NpcReactionSnippet[] = [
   { id: 'npc_n_s_01', disposition: 'neutral', outcome: 'success', text: { fr: "{npc_name} observe le résultat sans commenter.", en: '' } },
   { id: 'npc_n_s_02', disposition: 'neutral', outcome: 'success', text: { fr: "{npc_name} acquiesce silencieusement.", en: '' } },
   { id: 'npc_n_p_01', disposition: 'neutral', outcome: 'partial', text: { fr: "{npc_name} penche la tête, évaluant votre résultat mitigé.", en: '' } },
+  { id: 'npc_n_p_02', disposition: 'neutral', outcome: 'partial', text: { fr: "{npc_name} attend la suite, sans se prononcer.", en: '' } },
   { id: 'npc_n_f_01', disposition: 'neutral', outcome: 'failure', text: { fr: "{npc_name} détourne le regard. Pas de commentaire.", en: '' } },
   { id: 'npc_n_f_02', disposition: 'neutral', outcome: 'failure', text: { fr: "Le visage de {npc_name} reste impassible face à votre échec.", en: '' } },
   { id: 'npc_n_cf_01', disposition: 'neutral', outcome: 'crit_failure', text: { fr: "{npc_name} grimace imperceptiblement.", en: '' } },
-  { id: 'npc_n_as_01', disposition: 'neutral', outcome: 'auto_success', text: { fr: "{npc_name} ne montre aucune réaction particulière.", en: '' } },
+  { id: 'npc_n_cf_02', disposition: 'neutral', outcome: 'crit_failure', text: { fr: "{npc_name} recule d'un pas, par prudence plus que par jugement.", en: '' } },
+  // auto_success closes the paragraph since decision X, so a flat non-reaction
+  // is the last thing the player reads. These say something instead.
+  { id: 'npc_n_as_01', disposition: 'neutral', outcome: 'auto_success', text: { fr: "{npc_name} vous regarde faire, sans un mot.", en: '' } },
+  { id: 'npc_n_as_02', disposition: 'neutral', outcome: 'auto_success', text: { fr: "Le regard de {npc_name} vous accompagne, puis se détourne.", en: '' } },
+  { id: 'npc_n_as_03', disposition: 'neutral', outcome: 'auto_success', text: { fr: "{npc_name} enregistre le geste et n'en fait rien.", en: '' } },
+  { id: 'npc_n_as_04', disposition: 'neutral', outcome: 'auto_success', text: { fr: "{npc_name} attend, immobile, que vous ayez fini.", en: '' } },
 ];
 
 // === FRIENDLY ===
@@ -49,19 +60,26 @@ const FRIENDLY_REACTIONS: readonly NpcReactionSnippet[] = [
   { id: 'npc_f_cf_01', disposition: 'friendly', outcome: 'crit_failure', text: { fr: "{npc_name} se précipite vers vous, inquiet.", en: '' } },
   { id: 'npc_f_cf_02', disposition: 'friendly', outcome: 'crit_failure', text: { fr: "Le visage de {npc_name} se décompose. « Ça va ? »", en: '' } },
   { id: 'npc_f_as_01', disposition: 'friendly', outcome: 'auto_success', text: { fr: "{npc_name} vous suit du regard avec bienveillance.", en: '' } },
+  { id: 'npc_f_as_02', disposition: 'friendly', outcome: 'auto_success', text: { fr: "{npc_name} vous laisse faire, rassuré de vous voir occupé.", en: '' } },
+  { id: 'npc_f_as_03', disposition: 'friendly', outcome: 'auto_success', text: { fr: "« Prenez votre temps », souffle {npc_name}, sans y croire tout à fait.", en: '' } },
 ];
 
 // === FRIGHTENED ===
 
 const FRIGHTENED_REACTIONS: readonly NpcReactionSnippet[] = [
   { id: 'npc_fr_cs_01', disposition: 'frightened', outcome: 'crit_success', text: { fr: "{npc_name} écarquille les yeux, partagé entre le soulagement et la stupeur.", en: '' } },
+  { id: 'npc_fr_cs_02', disposition: 'frightened', outcome: 'crit_success', text: { fr: "Pour la première fois, {npc_name} vous regarde comme on regarde une sortie.", en: '' } },
   { id: 'npc_fr_s_01', disposition: 'frightened', outcome: 'success', text: { fr: "{npc_name} laisse échapper un soupir de soulagement.", en: '' } },
   { id: 'npc_fr_s_02', disposition: 'frightened', outcome: 'success', text: { fr: "Les mains tremblantes de {npc_name} se détendent légèrement.", en: '' } },
   { id: 'npc_fr_p_01', disposition: 'frightened', outcome: 'partial', text: { fr: "{npc_name} se recroqueville davantage. Ce n'est pas assez pour se sentir en sécurité.", en: '' } },
+  { id: 'npc_fr_p_02', disposition: 'frightened', outcome: 'partial', text: { fr: "{npc_name} vous regarde sans oser espérer.", en: '' } },
   { id: 'npc_fr_f_01', disposition: 'frightened', outcome: 'failure', text: { fr: "La panique dans les yeux de {npc_name} s'intensifie.", en: '' } },
   { id: 'npc_fr_f_02', disposition: 'frightened', outcome: 'failure', text: { fr: "{npc_name} gémit doucement, au bord de la panique.", en: '' } },
   { id: 'npc_fr_cf_01', disposition: 'frightened', outcome: 'crit_failure', text: { fr: "{npc_name} pousse un cri de terreur et recule contre le mur.", en: '' } },
+  { id: 'npc_fr_cf_02', disposition: 'frightened', outcome: 'crit_failure', text: { fr: "{npc_name} se bouche les oreilles, comme si ne pas entendre suffisait.", en: '' } },
   { id: 'npc_fr_as_01', disposition: 'frightened', outcome: 'auto_success', text: { fr: "{npc_name} surveille nerveusement les environs.", en: '' } },
+  { id: 'npc_fr_as_02', disposition: 'frightened', outcome: 'auto_success', text: { fr: "{npc_name} ne vous quitte pas des yeux, comme si vous alliez disparaître.", en: '' } },
+  { id: 'npc_fr_as_03', disposition: 'frightened', outcome: 'auto_success', text: { fr: "Le souffle de {npc_name} reste court, en attente du prochain bruit.", en: '' } },
 ];
 
 /** All NPC reaction snippets */
