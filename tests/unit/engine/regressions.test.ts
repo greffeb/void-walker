@@ -5,9 +5,10 @@
 
 import { describe, test, expect } from 'vitest';
 import { normalizeInput, matchVerb, parseAction } from '../../../src/engine/parser';
-import { resolveTarget } from '../../../src/engine/resolver';
+import { resolveTargets } from '../../../src/engine/resolver';
 import { buildParserLocaleData, buildObstacleVerbMap } from '../../../src/content/parserData';
-import type { SceneContext, NpcInstance, EnvironmentFeatureInstance, GameState } from '../../../src/engine/types';
+import type { SceneContext, NpcInstance, EnvironmentFeatureInstance, GameState, ResolvedTarget } from '../../../src/engine/types';
+import type { VerbId } from '../../../src/engine/verbs';
 import type { PropertyId } from '../../../src/engine/properties';
 import { MOVEMENT_VERBS } from '../../../src/engine/verbs';
 import { buildConsequences, applyConsequences } from '../../../src/engine/consequences';
@@ -30,6 +31,23 @@ import { processTurn } from '../../../src/engine/processTurn';
 import { isObstacleResolved } from '../../../src/engine/backtracking';
 
 const localeData = buildParserLocaleData('fr');
+
+/**
+ * These regressions were written against `resolveTarget`, which returned one
+ * value for three different answers. Decision N split it; the helper keeps the
+ * original assertions readable by flattening "resolved" back to a target.
+ */
+function resolveTarget(
+  tokens: readonly string[],
+  verb: VerbId,
+  context: SceneContext,
+  genericNpcRefs?: ReadonlySet<string>,
+  batchTakeTokens?: ReadonlySet<string>,
+  forms?: ReadonlyMap<string, VerbId>,
+): ResolvedTarget | null {
+  const resolution = resolveTargets(tokens, verb, context, genericNpcRefs, batchTakeTokens, forms);
+  return resolution.kind === 'resolved' ? resolution.target : null;
+}
 
 function makeNpc(id: string, aliases: string[], props: PropertyId[] = []): NpcInstance {
   return { id, definitionId: id, nameKey: `npc.${id}`, aliases, properties: props, hp: 10 };
@@ -198,7 +216,29 @@ describe('REG-006: USE + ranged weapon → SHOOT promotion', () => {
     }
   });
 
-  test('parseAction("utiliser le couteau") → verb promoted to CUT', () => {
+  test('parseAction("utiliser le couteau") → CUT with the knife as instrument', () => {
+    // Decision M (2026-09-10) rewrote the second half of this regression.
+    // The original fix promoted the verb but left the knife as the *target*, so
+    // the player cut their own knife. Promotion now moves the object into the
+    // role it plays: the knife is the instrument, the alien is what gets cut.
+    const knife = {
+      id: 'knife', nameKey: 'item.knife',
+      properties: ['metallic', 'sharp', 'bladed', 'small'] as PropertyId[],
+      isVirtual: false as const, source: 'inventory' as const, aliases: ['couteau'],
+    };
+    const alien = makeNpc('xenomorph', ['xenomorphe', 'alien'], ['organic'] as PropertyId[]);
+    const ctx2 = makeContext({ inventory: [knife], npcs: [alien] });
+    const result = parseAction('utiliser le couteau', ctx2, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('CUT');
+      expect(result.tool?.id).toBe('knife');
+      expect(result.target?.id).toBe('xenomorph');
+    }
+  });
+
+  test('parseAction("utiliser le couteau") with nothing to cut stays a plain USE', () => {
+    // Rather than invent a victim — or cut the knife, which was the bug.
     const knife = {
       id: 'knife', nameKey: 'item.knife',
       properties: ['metallic', 'sharp', 'bladed', 'small'] as PropertyId[],
@@ -208,7 +248,8 @@ describe('REG-006: USE + ranged weapon → SHOOT promotion', () => {
     const result = parseAction('utiliser le couteau', ctx2, localeData);
     expect('verb' in result).toBe(true);
     if ('verb' in result) {
-      expect(result.verb).toBe('CUT');
+      expect(result.verb).toBe('USE');
+      expect(result.target?.id).toBe('knife');
     }
   });
 });
@@ -1211,14 +1252,16 @@ describe('REG-023: "j\'attaque" with 1 NPC auto-targets NPC (Issue #71)', () => 
     expect(target?.source).toBe('npc');
   });
 
-  test('"j\'attaque" with 0 NPCs → STRIKE → abstract environment (no crash)', () => {
+  test('"j\'attaque" with 0 NPCs → STRIKE with no target (no crash)', () => {
+    // Decision N (2026-09-10): "there is no one here" is its own answer. It used
+    // to be dressed up as a successful resolution onto a target called
+    // 'environment', which the parser then had to detect and undo.
     const ctx = makeContext({});
     const result = parseAction("j'attaque", ctx, localeData);
     expect('verb' in result).toBe(true);
     if ('verb' in result) {
       expect(result.verb).toBe('STRIKE');
-      expect(result.target?.id).toBe('environment');
-      expect(result.target?.source).toBe('abstract');
+      expect(result.target).toBeNull();
     }
   });
 });

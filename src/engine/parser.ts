@@ -24,7 +24,7 @@ import type {
   CompoundPattern,
   ResolvedTarget,
 } from './types';
-import { resolveTarget } from './resolver';
+import { resolveTargets } from './resolver';
 
 // Re-export CompoundPattern for tests that reference it
 export type { CompoundPattern } from './types';
@@ -37,8 +37,13 @@ export type { CompoundPattern } from './types';
  * split on whitespace → drop single chars → remove stop words
  *
  * @param stopWords - Locale-specific stop words. If omitted, no stop word filtering.
+ * @param negationWords - Removed too, but only after the caller has read them.
  */
-export function normalizeInput(raw: string, stopWords?: ReadonlySet<string>): string[] {
+export function normalizeInput(
+  raw: string,
+  stopWords?: ReadonlySet<string>,
+  negationWords?: ReadonlySet<string>,
+): string[] {
   if (!raw || typeof raw !== 'string') return [];
 
   let text = raw.toLowerCase();
@@ -55,12 +60,18 @@ export function normalizeInput(raw: string, stopWords?: ReadonlySet<string>): st
   // Split on whitespace
   const rawTokens = text.split(/\s+/).filter((t) => t.length > 0);
 
+  // A hyphen may join a real compound ("sas-b") or be leftover punctuation
+  // ("tube-metallique"). Keep both readings and let scoring decide.
+  const expanded = rawTokens.flatMap(t =>
+    t.includes('-') ? [t, ...t.split('-')] : [t],
+  );
+
   // Drop single-character tokens
-  const filtered = rawTokens.filter((t) => t.length > 1);
+  const filtered = expanded.filter((t) => t.length > 1);
 
   // Remove stop words (if provided)
   const tokens = stopWords
-    ? filtered.filter((t) => !stopWords.has(t))
+    ? filtered.filter((t) => !stopWords.has(t) && !(negationWords?.has(t) ?? false))
     : filtered;
 
   // Deduplicate and cap at 30 tokens to guard against pathological input.
@@ -74,16 +85,26 @@ export function normalizeInput(raw: string, stopWords?: ReadonlySet<string>): st
 /**
  * Normalize with stop words preserved (for compound detection where
  * prepositions like "sur" matter).
+ *
+ * @param prepositions - Declared prepositions. Single-character tokens are dropped
+ *   as noise unless a locale declares them (French "a" in "aller a la passerelle");
+ *   without this, `parser.prepositions.target` could declare a preposition the
+ *   engine then threw away.
  */
-export function normalizeInputKeepPrepositions(raw: string): string[] {
+export function normalizeInputKeepPrepositions(
+  raw: string,
+  prepositions?: ReadonlySet<string>,
+): string[] {
   if (!raw || typeof raw !== 'string') return [];
 
   let text = raw.toLowerCase();
   text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  text = text.replace(/[''ʼ`]/g, ' ');
+  text = text.replace(/['’ʼ`]/g, ' ');
   text = text.replace(/[^\w\s-]/g, '');
 
-  return text.split(/\s+/).filter((t) => t.length > 1);
+  return text
+    .split(/\s+/)
+    .filter((t) => t.length > 1 || (t.length === 1 && (prepositions?.has(t) ?? false)));
 }
 
 
@@ -147,13 +168,75 @@ function matchCompound(
 }
 
 /**
+ * Bounded Levenshtein distance. Returns `max + 1` as soon as the budget is blown,
+ * so callers can compare against `max` without paying for the full matrix.
+ */
+function boundedDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i, ...new Array<number>(b.length).fill(0)];
+    let best = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const value = Math.min((row[j - 1] ?? 0) + 1, (prev[j] ?? 0) + 1, (prev[j - 1] ?? 0) + cost);
+      row[j] = value;
+      if (value < best) best = value;
+    }
+    if (best > max) return max + 1;
+    prev = row;
+  }
+  return prev[b.length] ?? max + 1;
+}
+
+/**
+ * Strategy 4 — the player did not write a known form, but came close.
+ *
+ * Two distinct accidents are covered, both measured as a distance:
+ *  - **typo**: "examner" for "examiner" → Levenshtein distance, budget 1 below
+ *    6 characters, 2 beyond;
+ *  - **truncation**: "interro" for "interroger" → the form starts with the token,
+ *    distance = the number of characters the player did not type.
+ *
+ * The nearest form wins. **A tie between two different verbs is a refusal**, not a
+ * coin toss: "atta" is 4 characters away from both "attaquer" (STRIKE) and
+ * "attacher" (TIE), so it resolves to nothing and the input is reformulated.
+ * This is what separates this strategy from the previous one, which returned the
+ * first hit in the insertion order of the form Map.
+ */
+function nearestVerbForm(token: string, verbForms: ReadonlyMap<string, VerbId>): VerbId | null {
+  if (token.length < 4) return null;
+  const typoBudget = token.length < 6 ? 1 : token.length < 9 ? 2 : 3;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  let bestVerb: VerbId | null = null;
+  let tied = false;
+
+  for (const [form, verbId] of verbForms) {
+    if (form.length < 4 || form.includes(' ')) continue;
+    const distance = form.startsWith(token)
+      ? form.length - token.length
+      : boundedDistance(token, form, typoBudget);
+    if (distance > typoBudget && !form.startsWith(token)) continue;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestVerb = verbId;
+      tied = false;
+    } else if (distance === bestDistance && verbId !== bestVerb) {
+      tied = true;
+    }
+  }
+
+  return tied ? null : bestVerb;
+}
+
+/**
  * Match a verb from normalized tokens using a 5-strategy cascade.
  * All linguistic data comes from localeData (built from i18n locale files).
  *
  * Strategies:
  * 1. Direct form lookup (localeData.verbForms — merged alias + conjugated forms)
  * 3. Snowball stem match (localeData.stemmedIndex)
- * 4. Prefix match (4+ chars against localeData.verbForms)
+ * 4. Nearest known form (typo or truncation, ties refused)
  * 5. Compound action detection (localeData.compoundPatterns)
  * 6. Semantic fallback (localeData.intentKeywords)
  *
@@ -177,7 +260,6 @@ export function matchVerb(
     return {
       verb: compound.verb,
       strategy: 5 as VerbMatchStrategy,
-      confidence: 0.9,
       isCompound: true,
       compoundTokens: compound.tokens,
     };
@@ -198,7 +280,6 @@ export function matchVerb(
       return {
         verb,
         strategy: 1 as VerbMatchStrategy,
-        confidence: 0.95,
         isCompound: false,
       };
     }
@@ -212,25 +293,20 @@ export function matchVerb(
       return {
         verb,
         strategy: 3 as VerbMatchStrategy,
-        confidence: 0.8,
         isCompound: false,
       };
     }
   }
 
-  // Strategy 4: Prefix match (4+ chars) — excludes multi-word forms (handled by compound matching)
+  // Strategy 4: nearest known form (typo or truncation), deterministic.
   for (const token of s14tokens) {
-    if (token.length < 4) continue;
-    const prefix = token.slice(0, 4);
-    for (const [form, verbId] of localeData.verbForms) {
-      if (form.startsWith(prefix) && form.length >= 4 && !form.includes(' ')) {
-        return {
-          verb: verbId,
-          strategy: 4 as VerbMatchStrategy,
-          confidence: 0.6,
-          isCompound: false,
-        };
-      }
+    const verb = nearestVerbForm(token, localeData.verbForms);
+    if (verb) {
+      return {
+        verb,
+        strategy: 4 as VerbMatchStrategy,
+        isCompound: false,
+      };
     }
   }
 
@@ -241,7 +317,6 @@ export function matchVerb(
       return {
         verb,
         strategy: 6 as VerbMatchStrategy,
-        confidence: 0.4,
         isCompound: false,
       };
     }
@@ -253,7 +328,6 @@ export function matchVerb(
         return {
           verb: verbId,
           strategy: 6 as VerbMatchStrategy,
-          confidence: 0.3,
           isCompound: false,
         };
       }
@@ -265,36 +339,97 @@ export function matchVerb(
 
 // === VERB PROMOTION ===
 
+/** What the player meant, once the object in their hand is taken into account. */
+interface Promotion {
+  readonly verb: VerbId;
+  readonly target: ResolvedTarget | null;
+  readonly tool: ResolvedTarget | null;
+}
+
 /**
- * Promote generic verbs to specific ones based on target/tool properties.
- * Pure engine logic — no linguistic data needed.
+ * Property cues that turn a generic USE into a specific act.
  *
- * Rules:
- * - USE + target/tool has 'ranged' → SHOOT
- * - USE + target/tool has 'bladed' → CUT
- * - USE + target/tool has 'electronic' + 'programmable' → HACK
+ * `role` says what the object carrying the cue actually is:
+ *  - `instrument` — you act *with* it (a gun, a blade), so it becomes the tool
+ *    and the act needs someone to point it at;
+ *  - `object` — you act *on* it (a terminal), so it stays the target and the
+ *    promotion changes nothing but the verb.
+ * Without this distinction, "utiliser le terminal" either shot at the terminal
+ * or stayed a plain USE for want of a victim.
+ */
+const PROMOTION_CUES: readonly {
+  readonly needs: readonly string[];
+  readonly verb: VerbId;
+  readonly role: 'instrument' | 'object';
+}[] = [
+  { needs: ['ranged'], verb: 'SHOOT', role: 'instrument' },
+  { needs: ['bladed'], verb: 'CUT', role: 'instrument' },
+  { needs: ['electronic', 'programmable'], verb: 'HACK', role: 'object' },
+];
+
+function cueFor(
+  properties: readonly string[] | undefined,
+  role?: 'instrument' | 'object',
+): VerbId | null {
+  if (!properties) return null;
+  const set = new Set(properties);
+  for (const cue of PROMOTION_CUES) {
+    if (role !== undefined && cue.role !== role) continue;
+    if (cue.needs.every(p => set.has(p))) return cue.verb;
+  }
+  return null;
+}
+
+/**
+ * Promote a generic USE to the specific act the object affords.
+ *
+ * Decision M: promotion must move the object into the role it actually plays.
+ * "utiliser le pistolet" is not "tirer sur le pistolet" — the pistol is the
+ * instrument, and the target is whatever is in front of you. The old version
+ * changed the verb and left the object as the target, so a player asking to use
+ * their gun shot at it.
+ *
+ * A complement the player wrote themselves is never overruled.
  */
 function promoteVerb(
   verb: VerbId,
   target: ResolvedTarget | null,
   tool: ResolvedTarget | null,
-): VerbId {
-  if (verb !== 'USE') return verb;
+  context: SceneContext,
+): Promotion {
+  if (verb !== 'USE') return { verb, target, tool };
 
-  // Check both target and tool properties for promotion cues
-  const allProperties = new Set<string>();
-  if (target?.properties) {
-    for (const p of target.properties) allProperties.add(p);
-  }
-  if (tool?.properties) {
-    for (const p of tool.properties) allProperties.add(p);
-  }
+  // The player named an instrument: promote on it, leave the roles alone.
+  const toolCue = cueFor(tool?.properties, 'instrument');
+  if (toolCue !== null) return { verb: toolCue, target, tool };
+  if (tool !== null) return { verb, target, tool };
 
-  if (allProperties.has('ranged')) return 'SHOOT';
-  if (allProperties.has('bladed')) return 'CUT';
-  if (allProperties.has('electronic') && allProperties.has('programmable')) return 'HACK';
+  if (target === null) return { verb, target, tool };
 
-  return verb;
+  // Acting *on* the object: only the verb changes. You do not break into your
+  // own device, so a datapad in your pack stays a plain USE.
+  const objectCue = target.source === 'inventory'
+    ? null
+    : cueFor(target.properties, 'object');
+  if (objectCue !== null) return { verb: objectCue, target, tool };
+
+  // The cue is on the object itself, with no complement written: the object
+  // becomes the instrument, and the act needs a new object.
+  const targetCue = cueFor(target.properties, 'instrument');
+  if (targetCue === null) return { verb, target, tool };
+
+  const onlyNpc = context.npcs.length === 1 ? context.npcs[0] : undefined;
+  const newTarget: ResolvedTarget | null = onlyNpc !== undefined
+    ? {
+        id: onlyNpc.id, nameKey: onlyNpc.nameKey, properties: onlyNpc.properties,
+        isVirtual: false, source: 'npc' as import('./types').TargetSource, state: onlyNpc.state,
+      }
+    : null;
+
+  // Nothing to point it at: leave the plain USE rather than invent a victim.
+  if (newTarget === null) return { verb, target, tool };
+
+  return { verb: targetCue, target: newTarget, tool: target };
 }
 
 // === PREPOSITION-AWARE SPLITTING ===
@@ -395,16 +530,15 @@ export function generateReformulation(
 
   // Build interpretations (max 3)
   for (const verbId of candidateVerbs.slice(0, 3)) {
-    const target = resolveTarget(tokens, verbId, context, undefined, undefined, localeData.verbForms);
+    const resolution = resolveTargets(tokens, verbId, context, undefined, undefined, localeData.verbForms);
     const verbMatch: VerbMatch = {
       verb: verbId,
       strategy: 6 as VerbMatchStrategy,
-      confidence: 0.2,
       isCompound: false,
     };
     interpretations.push({
       verb: verbId,
-      target,
+      target: resolution.kind === 'resolved' ? resolution.target : null,
       tool: null,
       rawInput,
       tokens,
@@ -417,7 +551,7 @@ export function generateReformulation(
     type: 'reformulation',
     rawInput,
     interpretations,
-    prompt: 'Que tentez-vous exactement ?',
+    prompt: localeData.reformulationPrompt,
   };
 }
 
@@ -444,8 +578,21 @@ export function parseAction(
     return generateReformulation(rawInput ?? '', [], context, localeData);
   }
 
-  const tokens = normalizeInput(rawInput, localeData.stopWords);
-  const fullTokens = normalizeInputKeepPrepositions(rawInput);
+  const tokens = normalizeInput(rawInput, localeData.stopWords, localeData.negationWords);
+  const fullTokens = normalizeInputKeepPrepositions(
+    rawInput,
+    new Set([...localeData.targetPrepositions, ...localeData.toolPrepositions]),
+  );
+
+  // "ne pas toucher l'androïde" used to reach the engine as "toucher
+  // l'androïde", because the negation sat in the stop word list (P2-13).
+  if (fullTokens.some(t => localeData.negationWords.has(t))) {
+    return {
+      type: 'refusal',
+      rawInput,
+      message: localeData.negationAcknowledged,
+    };
+  }
 
   if (tokens.length === 0) {
     return generateReformulation(rawInput, [], context, localeData);
@@ -466,29 +613,44 @@ export function parseAction(
   const { targetTokens, toolTokens } = splitOnPrepositions(tokens, fullTokens, localeData);
 
   // Resolve target from target-specific tokens (or all tokens if no preposition split).
-  // Pass genericNpcRefs so pronoun/generic-reference tokens ("lui", "ennemi") resolve
-  // to the primary NPC when exactly one NPC is present in the scene.
-  // Pass verbForms so the resolver can filter i18n verb forms (e.g. "attaque" for STRIKE)
-  // in addition to VERB_REGISTRY static aliases.
-  let target = resolveTarget(
+  const resolution = resolveTargets(
     targetTokens, verbMatch.verb, context,
     localeData.genericNpcRefs, localeData.batchTakeTokens, localeData.verbForms,
   );
 
+  // The player named something the scene offers twice. Ask, do not guess (N).
+  if (resolution.kind === 'ambiguous') {
+    return {
+      type: 'reformulation',
+      rawInput,
+      interpretations: resolution.candidates.map(candidate => ({
+        verb: verbMatch.verb,
+        target: candidate,
+        tool: null,
+        rawInput,
+        tokens,
+        verbMatch,
+        creative: false,
+      })),
+      prompt: localeData.reformulationPrompt,
+    };
+  }
+
+  let target: ResolvedTarget | null = resolution.kind === 'resolved' ? resolution.target : null;
+
   // Resolve tool if we found tool tokens (no genericNpcRefs — tools are physical items)
-  const tool = toolTokens.length > 0
-    ? resolveTarget(toolTokens, verbMatch.verb, context, undefined, undefined, localeData.verbForms)
+  const toolResolution = toolTokens.length > 0
+    ? resolveTargets(toolTokens, verbMatch.verb, context, undefined, undefined, localeData.verbForms)
     : null;
+  const tool = toolResolution?.kind === 'resolved' ? toolResolution.target : null;
 
   // Reflexive pronoun detection: "je me soigne", "se protéger", etc.
-  // When fullTokens contain a reflexive pronoun (me, se, nous) and the resolver
-  // fell back to abstract environment (no explicit target found), override to self.
-  // This prevents "je me soigne" → USE → environment, producing USE → self instead.
+  // Not for movement: "se déplacer" is simply moving, and reading the player as
+  // the thing being moved turned the suggestion into a no-op.
   const REFLEXIVE_PRONOUNS: ReadonlySet<string> = new Set(['me', 'se', 'nous']);
   if (
-    target !== null
-    && target.id === 'environment'
-    && target.source === 'abstract'
+    target === null
+    && !MOVEMENT_VERBS.has(verbMatch.verb)
     && fullTokens.some(t => REFLEXIVE_PRONOUNS.has(t))
   ) {
     target = {
@@ -501,9 +663,7 @@ export function parseAction(
   }
 
   // TAKE with no identifiable target → ask the player to specify.
-  // The resolver returns null (0 or multiple unmatched items) rather than the
-  // abstract environment fallback for TAKE, so we can catch it cleanly here.
-  if (verbMatch.verb === 'TAKE' && (target === null || target.source === 'abstract')) {
+  if (verbMatch.verb === 'TAKE' && target === null) {
     return {
       type: 'reformulation',
       rawInput,
@@ -512,12 +672,30 @@ export function parseAction(
     };
   }
 
+  // P2-7: the player named the room they are already in.
+  if (target !== null && target.source === 'current_location') {
+    return {
+      type: 'reformulation',
+      rawInput,
+      interpretations: [],
+      prompt: localeData.alreadyHerePrompt,
+    };
+  }
+
   // MOVE_TO / movement verb with no specific destination.
   // "je m'en vais", "partir", "je pars" → verb matches MOVE_TO but the
-  // resolver finds no connected location target (falls back to abstract).
-  // Fix: auto-resolve to the single exit, or prompt for clarification.
-  if (MOVEMENT_VERBS.has(verbMatch.verb)
-      && (target === null || target.source === 'abstract')) {
+  // resolver finds no connected location target.
+  //
+  // A room still gated by its obstacle keeps only the way the player came in.
+  // Walking them back out is not what "je me déplace" means there, so the
+  // destination is left open and the engine reads the move as an attempt to get
+  // through — which is the only way a path worded entirely in movement verbs
+  // ("traverser à tâtons") can ever be tried.
+  const gatedRoom = context.sceneDescription?.obstacleHint !== null
+    && context.sceneDescription?.obstacleHint !== undefined
+    && context.connectedLocations.length > 0
+    && context.connectedLocations.every(l => l.visited === true);
+  if (MOVEMENT_VERBS.has(verbMatch.verb) && target === null && !gatedRoom) {
     if (context.connectedLocations.length === 1) {
       // Single exit → auto-resolve to that location
       const loc = context.connectedLocations[0]!;
@@ -547,22 +725,23 @@ export function parseAction(
     }
   }
 
-  // Verb promotion: upgrade generic verbs based on target/tool properties
-  const promotedVerb = promoteVerb(verbMatch.verb, target, tool);
-  const finalVerbMatch = promotedVerb !== verbMatch.verb
-    ? { ...verbMatch, verb: promotedVerb }
+  // Verb promotion: a generic USE becomes the act the object affords, and the
+  // object takes the role it actually plays (decision M).
+  const promotion = promoteVerb(verbMatch.verb, target, tool, context);
+  const finalVerbMatch = promotion.verb !== verbMatch.verb
+    ? { ...verbMatch, verb: promotion.verb }
     : verbMatch;
 
   // Detect creativity (is this different from suggestions?)
   const creative = context.suggestions.length > 0 &&
     !context.suggestions.some((s) =>
-      s.verb === finalVerbMatch.verb && s.target?.id === target?.id,
+      s.verb === finalVerbMatch.verb && s.target?.id === promotion.target?.id,
     );
 
   const action: ParsedAction = {
     verb: finalVerbMatch.verb,
-    target,
-    tool,
+    target: promotion.target,
+    tool: promotion.tool,
     rawInput,
     tokens,
     verbMatch: finalVerbMatch,

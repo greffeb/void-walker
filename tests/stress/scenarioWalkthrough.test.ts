@@ -66,14 +66,25 @@ const TARGET = {
  *    time. The old 0.73 counted bypasses.
  *  - Lot 4: the world reacts and the player survives it. Defeats keep falling
  *    (286 → 254), and a run that does not end in death ends in wandering.
+ *  - Lot 5: the parser stopped guessing (N, O). Three things the old resolver
+ *    hid came out at once and were fixed at the source: the opponent of an
+ *    active combat was absent from the scene, so "frapper <its name>" named
+ *    nobody; an item's displayed name was stored as one multi-word alias, so
+ *    typing exactly what the screen showed scored below an unrelated item whose
+ *    English id contained "kit"; and an obstacle path worded only in movement
+ *    verbs was unreachable, since the intercept demanded the obstacle's object.
+ *    Net effect: both progression ratchets rose (0.67 → 0.68 obstacles,
+ *    66.3 % → 66.5 % coverage) while defeats fell again (254 → 250). Those four
+ *    runs did not get worse — they stopped dying and started wandering, which is
+ *    the exact way `maxStuck` misleads.
  */
 const BASELINE = {
-  maxStuck: 246,
+  maxStuck: 250,
   maxTimeouts: 0,
   minVictories: 0,
   /** Progression, which early death can only ever lower. */
-  minAvgObstaclesResolved: 0.66,
-  minAvgLocationCoverage: 0.66,
+  minAvgObstaclesResolved: 0.67,
+  minAvgLocationCoverage: 0.665,
 } as const;
 
 // ---------------------------------------------------------------------------

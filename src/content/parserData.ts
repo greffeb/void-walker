@@ -122,6 +122,22 @@ function buildStopWords(locale: Locale): ReadonlySet<string> {
 }
 
 /**
+ * Words that reverse the player's intent. They used to sit in the stop word
+ * list, so "ne pas toucher l'androide" reached the engine as "toucher
+ * l'androide" and the game did the opposite of what was written (P2-13).
+ */
+function buildNegationWords(locale: Locale): ReadonlySet<string> {
+  const raw = t('parser.negationWords', locale);
+  if (!raw || raw === 'parser.negationWords') return new Set();
+
+  return new Set(
+    raw.split(',')
+      .map((w) => normalizeForm(w))
+      .filter((w) => w.length > 0),
+  );
+}
+
+/**
  * Build intent keywords map from i18n parser.intents key.
  * Format: "VERB:keyword,VERB:keyword,..."
  */
@@ -222,6 +238,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
   const stemmedIndex = buildStemmedIndex(verbForms);
   const compoundPatterns = buildCompoundPatterns(locale);
   const stopWords = buildStopWords(locale);
+  const negationWords = buildNegationWords(locale);
   const intentKeywords = buildIntentKeywords(locale);
   const targetPrepositions = buildPrepositions('parser.prepositions.target', locale);
   const toolPrepositions = buildPrepositions('parser.prepositions.tool', locale);
@@ -247,6 +264,7 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     verbForms,
     compoundPatterns,
     stopWords,
+    negationWords,
     intentKeywords,
     stemmedIndex,
     targetPrepositions,
@@ -257,5 +275,8 @@ export function buildParserLocaleData(locale: Locale = 'fr'): ParserLocaleData {
     takeNoTargetPrompt,
     moveNoTargetPrompt,
     moveNoExitPrompt,
+    reformulationPrompt: t('parser.reformulation.prompt', locale),
+    alreadyHerePrompt: t('parser.alreadyHere', locale),
+    negationAcknowledged: t('parser.negationAcknowledged', locale),
   };
 }

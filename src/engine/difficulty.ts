@@ -338,7 +338,7 @@ export function calculateDifficulty(input: DifficultyInput): DifficultyBreakdown
         tool: input.tool,
         rawInput: '',
         tokens: [],
-        verbMatch: { verb: input.verb, strategy: 1, confidence: 1, isCompound: false },
+        verbMatch: { verb: input.verb, strategy: 1, isCompound: false },
         creative: true,
       },
       input.suggestions,

@@ -10,6 +10,7 @@ const localeData = buildParserLocaleData('fr');
 import { BODY_PARTS } from '../../../src/engine/resolver';
 import {
   isReformulation,
+  isRefusal,
   type SceneContext,
   type ResolvedTarget,
   type NpcInstance,
@@ -84,7 +85,6 @@ interface CaseResult {
   targetId: string | null;
   targetSource: TargetSource | null;
   strategy: number | null;
-  confidence: number | null;
   isCompound: boolean | null;
   tokens: readonly string[];
   parseMs: number;
@@ -402,12 +402,13 @@ function buildCases(): CampaignCase[] {
 function actualSummary(result: ReturnType<typeof parseAction> | null, error: string | null): string {
   if (error) return `error=${error}`;
   if (!result) return 'result=null';
+  if (isRefusal(result)) return `refusal (${result.rawInput})`;
   if (isReformulation(result)) {
     const ints = result.interpretations.map((i) => `${i.verb}${i.target ? `->${i.target.id}` : ''}`).join(', ');
     return `reformulation (${ints})`;
   }
   const t = result.target ? `${result.target.id}/${result.target.source}` : 'null';
-  return `verb=${result.verb}, target=${t}, strategy=${result.verbMatch.strategy}, conf=${result.verbMatch.confidence.toFixed(2)}`;
+  return `verb=${result.verb}, target=${t}, strategy=${result.verbMatch.strategy}`;
 }
 
 function evaluate(tc: CampaignCase, result: ReturnType<typeof parseAction> | null, error: string | null): Finding[] {
@@ -416,6 +417,13 @@ function evaluate(tc: CampaignCase, result: ReturnType<typeof parseAction> | nul
   const actual = actualSummary(result, error);
   if (error) return [{ severity: 'critical', code: 'PARSE_THROW', expected: expectationToString(exp), actual, whyWrong: 'Parser threw error.' }];
   if (!result) return [{ severity: 'critical', code: 'PARSE_NULL', expected: expectationToString(exp), actual, whyWrong: 'Parser returned null-like result.' }];
+  // Decision P: a negation is answered by declining, not by reformulating.
+  if (isRefusal(result)) {
+    if (exp.negatedVerb === undefined && (tc.clearIntent || exp.verbs)) {
+      findings.push({ severity: 'medium', code: 'UNEXPECTED_REFUSAL', expected: expectationToString(exp), actual, whyWrong: 'Input was read as a refusal.' });
+    }
+    return findings;
+  }
   if (exp.expectReformulation) {
     if (!isReformulation(result)) findings.push({ severity: 'medium', code: 'EXPECTED_REFORMULATION', expected: expectationToString(exp), actual, whyWrong: 'Noise-like input should reformulate.' });
     return findings;
@@ -432,8 +440,8 @@ function evaluate(tc: CampaignCase, result: ReturnType<typeof parseAction> | nul
   if (exp.requireNonAbstract && result.target?.source === 'abstract') findings.push({ severity: tc.clearIntent ? 'high' : 'medium', code: 'ABSTRACT_FALLBACK_ON_KNOWN_ENTITY', expected: expectationToString(exp), actual, whyWrong: 'Known entity collapsed to abstract target.' });
   if (exp.negatedVerb && result.verb === exp.negatedVerb) findings.push({ severity: 'medium', code: 'NEGATION_IGNORED', expected: expectationToString(exp), actual, whyWrong: 'Negation words were ignored.' });
   if (exp.multiIntentSecondVerb) findings.push({ severity: 'medium', code: 'MULTI_INTENT_SECONDARY_DROPPED', expected: expectationToString(exp), actual, whyWrong: 'Secondary intent in chain was dropped.' });
-  if (tc.clearIntent && result.verbMatch.strategy === 6 && result.verbMatch.confidence <= 0.4) findings.push({ severity: 'medium', code: 'LOW_CONFIDENCE_FALLBACK', expected: expectationToString(exp), actual, whyWrong: 'Semantic fallback selected on clear intent.' });
-  if (tc.clearIntent && (exp.verbs?.includes(result.verb) ?? false) && result.verbMatch.confidence < 0.6) findings.push({ severity: 'medium', code: 'SUSPICIOUS_LOW_CONFIDENCE', expected: expectationToString(exp), actual, whyWrong: 'Expected verb matched but confidence is low.' });
+  if (tc.clearIntent && result.verbMatch.strategy === 6) findings.push({ severity: 'medium', code: 'SEMANTIC_FALLBACK_ON_CLEAR_INTENT', expected: expectationToString(exp), actual, whyWrong: 'Semantic fallback selected on clear intent.' });
+ 
   return findings;
 }
 
@@ -441,12 +449,15 @@ function toResult(tc: CampaignCase, parseMs: number, parsed: ReturnType<typeof p
   const severity = highestSeverity(findings);
   const passed = findings.length === 0;
   if (error || !parsed) {
-    return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: 'error', verb: null, isReformulation: false, targetId: null, targetSource: null, strategy: null, confidence: null, isCompound: null, tokens: [], parseMs, findings, severity, passed, error };
+    return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: 'error', verb: null, isReformulation: false, targetId: null, targetSource: null, strategy: null, isCompound: null, tokens: [], parseMs, findings, severity, passed, error };
+  }
+  if (isRefusal(parsed)) {
+    return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: 'refusal', verb: null, isReformulation: false, targetId: null, targetSource: null, strategy: null, isCompound: null, tokens: [], parseMs, findings, severity, passed, error: null };
   }
   if (isReformulation(parsed)) {
-    return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: 'reformulation', verb: null, isReformulation: true, targetId: null, targetSource: null, strategy: null, confidence: null, isCompound: null, tokens: [], parseMs, findings, severity, passed, error: null };
+    return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: 'reformulation', verb: null, isReformulation: true, targetId: null, targetSource: null, strategy: null, isCompound: null, tokens: [], parseMs, findings, severity, passed, error: null };
   }
-  return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: parsed.verb, verb: parsed.verb, isReformulation: false, targetId: parsed.target?.id ?? null, targetSource: parsed.target?.source ?? null, strategy: parsed.verbMatch.strategy, confidence: parsed.verbMatch.confidence, isCompound: parsed.verbMatch.isCompound, tokens: parsed.tokens, parseMs, findings, severity, passed, error: null };
+  return { id: tc.id, input: tc.input, category: tc.category, subcategory: tc.subcategory, elementId: tc.elementId ?? null, elementType: tc.elementType ?? null, clearIntent: tc.clearIntent, expected: tc.expectation, verbOrReformulation: parsed.verb, verb: parsed.verb, isReformulation: false, targetId: parsed.target?.id ?? null, targetSource: parsed.target?.source ?? null, strategy: parsed.verbMatch.strategy, isCompound: parsed.verbMatch.isCompound, tokens: parsed.tokens, parseMs, findings, severity, passed, error: null };
 }
 
 function summarize(results: readonly CaseResult[]) {

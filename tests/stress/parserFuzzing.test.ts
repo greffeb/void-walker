@@ -2,12 +2,12 @@
 // tests/stress/parserFuzzing.test.ts — 5000 fuzzed inputs, 0 throws, <50ms each
 // ---------------------------------------------------------------------------
 // Stress test for the Phase 2 parser pipeline: normalizeInput, matchVerb,
-// resolveTarget, parseAction. No input should cause a crash.
+// resolveTargets, parseAction. No input should cause a crash.
 // ---------------------------------------------------------------------------
 
 import { describe, test, expect } from 'vitest';
 import { normalizeInput, matchVerb, parseAction } from '../../src/engine/parser';
-import { resolveTarget } from '../../src/engine/resolver';
+import { resolveTargets } from '../../src/engine/resolver';
 import { calculateDifficulty } from '../../src/engine/difficulty';
 import { isReformulation } from '../../src/engine/types';
 import { VERB_IDS } from '../../src/engine/verbs';
@@ -260,20 +260,23 @@ describe(`stress: ${FUZZ_COUNT} fuzzed parser inputs`, () => {
     expect(slow.length).toBeLessThan(FUZZ_COUNT * 0.01);
   });
 
-  test('resolveTarget never throws on any fuzzed input', () => {
+  test('resolveTargets never throws on any fuzzed input', () => {
     const failures: string[] = [];
     for (const input of fuzzInputs) {
       try {
         const tokens = normalizeInput(input);
         for (const verbId of ['STRIKE', 'EXAMINE', 'MOVE_TO', 'WAIT'] as VerbId[]) {
-          const result = resolveTarget(tokens, verbId, scene);
-          if (result !== null) {
-            expect(typeof result.id).toBe('string');
-            expect(typeof result.source).toBe('string');
+          const resolution = resolveTargets(tokens, verbId, scene);
+          if (resolution.kind === 'resolved') {
+            expect(typeof resolution.target.id).toBe('string');
+            expect(typeof resolution.target.source).toBe('string');
+          } else if (resolution.kind === 'ambiguous') {
+            // An ambiguity the player must settle is never a single silent pick.
+            expect(resolution.candidates.length).toBeGreaterThan(1);
           }
         }
       } catch (e) {
-        failures.push(`resolveTarget(${JSON.stringify(input.slice(0, 30))}): ${errorToString(e)}`);
+        failures.push(`resolveTargets(${JSON.stringify(input.slice(0, 30))}): ${errorToString(e)}`);
       }
     }
     expect(failures).toEqual([]);

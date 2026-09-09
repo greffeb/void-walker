@@ -6,7 +6,6 @@
 // ---------------------------------------------------------------------------
 
 import type { VerbId } from './verbs';
-import { MOVEMENT_VERBS } from './verbs';
 import { stemFr } from './snowball-fr';
 import type { PropertyId } from './properties';
 import type {
@@ -137,10 +136,12 @@ function isAdjacentTransposition(a: string, b: string): boolean {
 }
 
 /**
- * Score how well a set of tokens matches a set of aliases.
- * Returns 0 for no match, higher for better match.
+ * Score how well a set of tokens designates an entity.
+ * Each token contributes its *best* alias match, not the sum over aliases —
+ * otherwise an entity that lists many overlapping aliases outranks the one
+ * actually named, and "examiner câble" reaches the wiring instead of the cable.
  *
- * Scoring tiers:
+ * Scoring tiers, per token:
  *   10 — exact match
  *    5 — substring match (alias ≥3 chars)
  *    5 — edit-distance-1 (single typo, both ≥6 chars)
@@ -150,6 +151,7 @@ function isAdjacentTransposition(a: string, b: string): boolean {
 function tokenMatchScore(tokens: readonly string[], aliases: readonly string[]): number {
   let score = 0;
   for (const token of tokens) {
+    let best = 0;
     for (const alias of aliases) {
       // Normalize alias for matching
       const normalizedAlias = alias
@@ -157,18 +159,21 @@ function tokenMatchScore(tokens: readonly string[], aliases: readonly string[]):
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
 
+      let here = 0;
       if (normalizedAlias === token) {
-        score += 10; // Exact match
+        here = 10; // Exact match
       } else if (normalizedAlias.length >= 3 && (normalizedAlias.includes(token) || token.includes(normalizedAlias))) {
-        score += 5; // Partial match (alias must be ≥3 chars to avoid 'ai' matching 'airlock')
+        here = 5; // Partial match (alias must be ≥3 chars to avoid 'ai' matching 'airlock')
       } else if (token.length >= 6 && normalizedAlias.length >= 6 && isEditDistance1(token, normalizedAlias)) {
-        score += 5; // Edit-distance-1 (single typo in 6+ char words — avoids short-word false positives)
+        here = 5; // Edit-distance-1 (single typo in 6+ char words)
       } else if (token.length >= 6 && normalizedAlias.length >= 6 && isAdjacentTransposition(token, normalizedAlias)) {
-        score += 5; // Adjacent transposition typo (e.g. "rouelau" → "rouleau")
+        here = 5; // Adjacent transposition typo (e.g. "rouelau" → "rouleau")
       } else if (token.length >= 4 && normalizedAlias.length >= 4 && normalizedAlias.startsWith(token.slice(0, 4))) {
-        score += 3; // Prefix match (both must be ≥4 chars)
+        here = 3; // Prefix match (both must be ≥4 chars)
       }
+      if (here > best) best = here;
     }
+    score += best;
   }
   return score;
 }
@@ -251,44 +256,197 @@ export function resolveBodyPart(
 // === MAIN TARGET RESOLVER ===
 
 /**
- * Resolve natural language tokens to a game target entity.
+ * What the resolver concluded (decision N).
  *
- * Priority order:
- * 1. Verb-specific shortcuts:
- *    - MOVE_TO: connected locations first
- *    - TAKE: location items before inventory
- * 2. Player inventory items
- * 3. Location items
- * 4. NPC body parts (virtual objects) — before whole-NPC so body targeting wins
- * 5. NPCs (whole entity)
- * 6. Environment features
- * 7. Connected locations (for movement-like verbs RUN/CLIMB)
- * 8. Single-NPC contextual default (when tokens are empty or contain generic refs)
- * 9. Abstract/environment fallback
- *
- * Returns null for intransitive verbs (WAIT, LISTEN with no target).
- *
- * @param genericNpcRefs - Optional set of generic reference tokens (lui, ennemi, etc.)
- *   that resolve to the primary NPC when exactly one NPC is present in the scene.
+ * The old signature returned `ResolvedTarget | null`, which conflated three
+ * different answers into two values: "I found it", "there is nothing to find",
+ * and "the player named something vague, here is the room". The third was
+ * encoded as an abstract target that three separate blocks in the parser then
+ * had to detect and undo.
  */
-export function resolveTarget(
+export type TargetResolution =
+  | { readonly kind: 'resolved'; readonly target: ResolvedTarget }
+  | { readonly kind: 'ambiguous'; readonly candidates: readonly ResolvedTarget[] }
+  | { readonly kind: 'none' };
+
+/** Where a candidate came from. */
+export type TargetPool =
+  | 'inventory' | 'location_item' | 'npc' | 'environment' | 'exit' | 'here';
+
+/**
+ * How a verb looks for its object. Data, not branches: the old resolver had a
+ * block per verb, each added by a playtest issue (decision O).
+ */
+interface TargetPolicy {
+  /** Pools searched. Best score wins; earlier pools win ties. */
+  readonly pools: readonly TargetPool[];
+  /** When nothing scores, take the only entry of this pool if there is exactly one. */
+  readonly soleFallback?: TargetPool;
+  /** The verb takes no object at all. */
+  readonly intransitive?: boolean;
+}
+
+const EVERYTHING_HERE: readonly TargetPool[] =
+  ['inventory', 'location_item', 'npc', 'environment', 'here'];
+
+const DEFAULT_POLICY: TargetPolicy = { pools: EVERYTHING_HERE };
+
+const MOVEMENT_POLICY: TargetPolicy = { pools: ['exit', 'here'] };
+
+const TARGET_POLICIES: Partial<Record<VerbId, TargetPolicy>> = {
+  MOVE_TO: MOVEMENT_POLICY,
+  RUN: MOVEMENT_POLICY,
+  CLIMB: { pools: ['environment', 'exit', 'here'] },
+  // Taking reaches for what is lying here, or for the container holding it.
+  // Inventory comes last: it is how "prends la lampe" answers "you have it".
+  TAKE: { pools: ['location_item', 'environment', 'inventory'], soleFallback: 'location_item' },
+  // Verbs that act on the player, not on a thing.
+  WAIT: { pools: [], intransitive: true },
+  LISTEN: { pools: [], intransitive: true },
+  SMELL: { pools: [], intransitive: true },
+  DODGE: { pools: [], intransitive: true },
+  HIDE: { pools: [], intransitive: true },
+  BLOCK: { pools: [], intransitive: true },
+  SIGNAL: { pools: [], intransitive: true },
+  JUMP: { pools: [], intransitive: true },
+  SWIM: { pools: [], intransitive: true },
+};
+
+/** Below this, a match is a coincidence rather than a designation (P2-5). */
+const MIN_MATCH_SCORE = 5;
+
+/** Two candidates this close are not distinguishable — ask instead of guessing. */
+const AMBIGUITY_MARGIN = 0;
+
+interface Candidate {
+  readonly target: ResolvedTarget;
+  readonly score: number;
+  readonly pool: TargetPool;
+  /** The token is the entity's own name, not merely one of its aliases. */
+  readonly nameExact: boolean;
+}
+
+function aliasesOf(entity: {
+  readonly id: string;
+  readonly nameKey: string;
+  readonly aliases?: readonly string[];
+}): { readonly name: readonly string[]; readonly all: readonly string[] } {
+  const name = [
+    ...nameKeyToAliases(entity.nameKey),
+    ...entity.id.replace(/_/g, ' ').split(' '),
+  ];
+  // The display name is stored as one multi-word alias ("kit médical basique").
+  // Kept whole, each of its words could only ever score a substring match, so a
+  // player typing the exact name they read on screen scored less than an
+  // unrelated item whose English id happened to contain "kit".
+  const declared = entity.aliases ?? [];
+  const words = declared.flatMap(a => (a.includes(' ') ? a.split(/\s+/) : []));
+  return { name, all: [...new Set([...declared, ...words, ...name])] };
+}
+
+function scoreEntity(
+  tokens: readonly string[],
+  entity: { readonly id: string; readonly nameKey: string; readonly aliases?: readonly string[] },
+): { score: number; nameExact: boolean } {
+  const { name, all } = aliasesOf(entity);
+  return {
+    score: tokenMatchScore(tokens, all),
+    nameExact: tokenMatchScore(tokens, name) >= 10,
+  };
+}
+
+function collectCandidates(
+  tokens: readonly string[],
+  pools: readonly TargetPool[],
+  context: SceneContext,
+): Candidate[] {
+  const found: Candidate[] = [];
+
+  const consider = (
+    pool: TargetPool,
+    entity: { readonly id: string; readonly nameKey: string; readonly aliases?: readonly string[] },
+    build: () => ResolvedTarget,
+  ): void => {
+    const { score, nameExact } = scoreEntity(tokens, entity);
+    if (score < MIN_MATCH_SCORE) return;
+    found.push({ target: build(), score, pool, nameExact });
+  };
+
+  for (const pool of pools) {
+    switch (pool) {
+      case 'inventory':
+        for (const item of context.inventory) consider(pool, item, () => item);
+        break;
+
+      case 'location_item':
+        for (const item of context.locationItems) consider(pool, item, () => item);
+        break;
+
+      case 'npc':
+        for (const npc of context.npcs) {
+          consider(pool, npc, () => ({
+            id: npc.id, nameKey: npc.nameKey, properties: npc.properties,
+            isVirtual: false, source: 'npc' as TargetSource, state: npc.state,
+          }));
+        }
+        break;
+
+      case 'environment':
+        for (const feature of context.environmentFeatures) {
+          consider(pool, feature, () => ({
+            id: feature.id, nameKey: feature.nameKey, properties: feature.properties,
+            isVirtual: false, source: 'environment' as TargetSource, state: feature.state,
+          }));
+        }
+        break;
+
+      case 'exit':
+        for (const loc of context.connectedLocations) {
+          consider(pool, { id: loc.id, nameKey: loc.displayName ?? loc.id, aliases: loc.aliases }, () => ({
+            id: loc.id, nameKey: loc.displayName ?? loc.id, properties: [],
+            isVirtual: false, source: 'connected_location' as TargetSource,
+          }));
+        }
+        break;
+
+      // P2-7: the room you are standing in is nameable. Without it, "aller au
+      // sas" while in the airlock silently walked you somewhere else.
+      case 'here': {
+        const here = context.locationId;
+        if (here === undefined) break;
+        const name = context.sceneDescription?.locationName ?? here;
+        consider(pool, { id: here, nameKey: name, aliases: [name] }, () => ({
+          id: here, nameKey: name, properties: [],
+          isVirtual: false, source: 'current_location' as TargetSource,
+        }));
+        break;
+      }
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Resolve natural language tokens to a game entity.
+ *
+ * Three stages, in order: collect every entity the verb may look at, score each
+ * against the tokens, then arbitrate. Which pools a verb looks at is data
+ * (TARGET_POLICIES), not a branch.
+ */
+export function resolveTargets(
   tokens: readonly string[],
   verb: VerbId,
   context: SceneContext,
   genericNpcRefs?: ReadonlySet<string>,
   batchTakeTokens?: ReadonlySet<string>,
   verbForms?: ReadonlyMap<string, VerbId>,
-): ResolvedTarget | null {
-  if (tokens.length === 0) return null;
+): TargetResolution {
+  const policy = TARGET_POLICIES[verb] ?? DEFAULT_POLICY;
+  if (policy.intransitive === true) return { kind: 'none' };
+  if (tokens.length === 0) return { kind: 'none' };
 
-  const intransitiveVerbs: ReadonlySet<VerbId> = new Set([
-    'WAIT', 'LISTEN', 'SMELL', 'DODGE', 'RUN', 'HIDE', 'BLOCK',
-    'SIGNAL', 'JUMP', 'SWIM',
-  ]);
-
-  // Filter out tokens that are verb aliases (don't match them as targets).
-  // The i18n locale files are the single source of verb wording; the stem set
-  // catches conjugated forms the exact map may not list.
+  // Words that name the verb cannot also name its object.
   const verbAliasTokens = new Set<string>();
   const verbAliasStems = new Set<string>();
   if (verbForms) {
@@ -302,315 +460,90 @@ export function resolveTarget(
       }
     }
   }
-  const targetTokens = tokens.filter((t) => {
-    if (verbAliasTokens.has(t) || verbAliasStems.has(stemFr(t))) return false;
-    return true;
-  });
-
-  // If no target tokens remain after verb alias filtering...
-  if (targetTokens.length === 0) {
-    if (intransitiveVerbs.has(verb)) return null;
-    if (tokens.length === 0) return null;
-
-    // Single-NPC contextual default: player used a pronoun that was stripped as a stop
-    // word (e.g. "je le frappe" → "le" stripped → empty target tokens).
-    // When there is exactly one NPC in the scene, default to it.
-    if (context.npcs.length === 1) {
-      const npc = context.npcs[0]!;
-      return {
-        id: npc.id,
-        nameKey: npc.nameKey,
-        properties: npc.properties,
-        isVirtual: false,
-        source: 'npc' as TargetSource,
-        state: npc.state,
-      };
-    }
-  }
-
+  const targetTokens = tokens.filter(
+    t => !verbAliasTokens.has(t) && !verbAliasStems.has(stemFr(t)),
+  );
   const searchTokens = targetTokens.length > 0 ? targetTokens : tokens;
 
-  // MOVE_TO should resolve exits before anything else. Otherwise inventory/item
-  // aliases can shadow movement targets and prevent actual movement.
-  if (verb === 'MOVE_TO') {
-    let locBestScore = 0;
-    let locBestTarget: ResolvedTarget | null = null;
-    for (const loc of context.connectedLocations) {
-      const aliases = [...loc.aliases, ...loc.id.replace(/_/g, ' ').split(' ')];
-      const score = tokenMatchScore(searchTokens, aliases);
-      if (score > locBestScore) {
-        locBestScore = score;
-        locBestTarget = {
-          id: loc.id,
-          nameKey: loc.displayName ?? loc.id,
-          properties: [],
-          isVirtual: false,
-          source: 'connected_location' as TargetSource,
-        };
-      }
-    }
-    if (locBestTarget && locBestScore > 0) {
-      return locBestTarget;
-    }
+  // A body part is a compound designation ("la tête du robot"), not a pool.
+  if (policy.pools.includes('npc')) {
+    const bodyPart = resolveBodyPart(searchTokens, context.npcs, context.bodyParts);
+    if (bodyPart) return { kind: 'resolved', target: bodyPart };
+  }
 
-    // Fallback: vague movement tokens ("sortie", "passage", "inexploré", etc.)
-    // Prefer unexplored locations to help stuck players progress.
-    const hasVagueToken = searchTokens.some(t => GENERIC_EXIT_TOKENS.has(t));
-    if (hasVagueToken && context.connectedLocations.length > 0) {
-      const unexplored = context.connectedLocations.filter(l => !l.visited);
-      const pick = unexplored.length > 0 ? unexplored[0]! : context.connectedLocations[0]!;
-      return {
-        id: pick.id,
-        nameKey: pick.displayName ?? pick.id,
-        properties: [],
-        isVirtual: false,
-        source: 'connected_location' as TargetSource,
-      };
+  // "prendre tout" reaches for whatever is here.
+  if (verb === 'TAKE' && batchTakeTokens !== undefined && context.locationItems.length > 0) {
+    if (searchTokens.some(t => batchTakeTokens.has(t))) {
+      return { kind: 'resolved', target: context.locationItems[0]! };
     }
   }
 
-  // TAKE should prefer visible location items so we can correctly mark them as
-  // taken and remove them from the scene.
-  if (verb === 'TAKE') {
-    // "prendre tout" / "prendre objets" → pick first available location item
-    const activeBatchTokens = batchTakeTokens ?? new Set<string>();
-    const hasBatchToken = searchTokens.some(t => activeBatchTokens.has(t));
-    if (hasBatchToken && context.locationItems.length > 0) {
-      return context.locationItems[0]!;
-    }
-
-    let takeBestScore = 0;
-    let takeBestTarget: ResolvedTarget | null = null;
-    for (const item of context.locationItems) {
-      const aliases = [...new Set([
-        ...(item.aliases ?? []),
-        ...nameKeyToAliases(item.nameKey),
-        ...item.id.replace(/_/g, ' ').split(' '),
-      ])];
-      const score = tokenMatchScore(searchTokens, aliases);
-      if (score > takeBestScore) {
-        takeBestScore = score;
-        takeBestTarget = item;
-      }
-    }
-    if (takeBestTarget && takeBestScore >= 5) {
-      return takeBestTarget;
-    }
-    // No specific item matched. Auto-pick when unambiguous (1 item in scene),
-    // otherwise return null — the parser will ask the player to specify.
-    if (context.locationItems.length === 1) {
-      return context.locationItems[0]!;
-    }
-
-    // Issue #46: container-feature fallback.
-    // When no items are available (e.g. the item is hidden inside a rack),
-    // check environment features — the player may be targeting a container
-    // feature that has a TAKE interaction (e.g. "prendre découpeur plasma"
-    // → plasma_cutter_rack feature whose TAKE interaction reveals the item).
-    let featBestScore = 0;
-    let featBestTarget: ResolvedTarget | null = null;
-    for (const feature of context.environmentFeatures) {
-      const aliases = [...new Set([
-        ...feature.aliases,
-        ...nameKeyToAliases(feature.nameKey),
-        ...feature.id.replace(/_/g, ' ').split(' '),
-      ])];
-      const score = tokenMatchScore(searchTokens, aliases);
-      if (score > featBestScore) {
-        featBestScore = score;
-        featBestTarget = {
-          id: feature.id,
-          nameKey: feature.nameKey,
-          properties: feature.properties,
-          isVirtual: false,
-          source: 'environment' as TargetSource,
-          state: feature.state,
-        };
-      }
-    }
-    if (featBestTarget && featBestScore >= 5) {
-      return featBestTarget;
-    }
-
-    return null;
-  }
-
-  // 1. Inventory items — collect best but DON'T return yet.
-  //    Environment features may score higher (e.g. "armoire médicale" feature
-  //    vs "médical" alias on an inventory medkit). We compare at the end.
-  let invBestScore = 0;
-  let invBestTarget: ResolvedTarget | null = null;
-
-  if (verb !== 'MOVE_TO') {
-    for (const item of context.inventory) {
-      const aliases = [...new Set([
-        ...(item.aliases ?? []),
-        ...nameKeyToAliases(item.nameKey),
-        ...item.id.replace(/_/g, ' ').split(' '),
-      ])];
-      const score = tokenMatchScore(searchTokens, aliases);
-      if (score > invBestScore) {
-        invBestScore = score;
-        invBestTarget = item;
-      }
-    }
-  }
-
-  // 2. Location items
-  let locItemBestScore = 0;
-  let locItemBestTarget: ResolvedTarget | null = null;
-  if (verb !== 'MOVE_TO') {
-    for (const item of context.locationItems) {
-      const aliases = [...new Set([
-        ...(item.aliases ?? []),
-        ...nameKeyToAliases(item.nameKey),
-        ...item.id.replace(/_/g, ' ').split(' '),
-      ])];
-      const score = tokenMatchScore(searchTokens, aliases);
-      if (score > locItemBestScore) {
-        locItemBestScore = score;
-        locItemBestTarget = item;
-      }
-    }
-  }
-
-  // 3. NPC body parts (virtual objects) — checked before whole-NPC so that
-  //    "frapper la tête du robot" → security_robot_head, not security_robot
-  const bodyPart = resolveBodyPart(searchTokens, context.npcs, context.bodyParts);
-  if (bodyPart) {
-    return bodyPart;
-  }
-
-  // 4+5. NPCs and environment features — global best-score comparison.
-  //   Prevents NPC aliases ("securite" on security_robot) from shadowing
-  //   higher-scoring environment entities ("camera"+"securite" on security_camera).
-  let npcBestScore = 0;
-  let npcBestTarget: ResolvedTarget | null = null;
-  for (const npc of context.npcs) {
-    const aliases = [...new Set([
-      ...npc.aliases,
-      ...nameKeyToAliases(npc.nameKey),
-      ...npc.id.replace(/_/g, ' ').split(' '),
-    ])];
-    const score = tokenMatchScore(searchTokens, aliases);
-    if (score > npcBestScore) {
-      npcBestScore = score;
-      npcBestTarget = {
-        id: npc.id,
-        nameKey: npc.nameKey,
-        properties: npc.properties,
-        isVirtual: false,
-        source: 'npc' as TargetSource,
-        state: npc.state,
-      };
-    }
-  }
-
-  let envBestScore = 0;
-  let envBestTarget: ResolvedTarget | null = null;
-  for (const feature of context.environmentFeatures) {
-    const aliases = [...new Set([
-      ...feature.aliases,
-      ...nameKeyToAliases(feature.nameKey),
-      ...feature.id.replace(/_/g, ' ').split(' '),
-    ])];
-    const score = tokenMatchScore(searchTokens, aliases);
-    if (score > envBestScore) {
-      envBestScore = score;
-      envBestTarget = {
-        id: feature.id,
-        nameKey: feature.nameKey,
-        properties: feature.properties,
-        isVirtual: false,
-        source: 'environment' as TargetSource,
-        state: feature.state,
-      };
-    }
-  }
-
-  // 6. Connected locations (for movement verbs) — checked BEFORE environment
-  //   to prevent "aller sas-b" from matching a partial alias on main_airlock.
-  if (MOVEMENT_VERBS.has(verb)) {
-    let locBestScore = 0;
-    let locBestTarget: ResolvedTarget | null = null;
-    for (const loc of context.connectedLocations) {
-      const aliases = [...loc.aliases, ...loc.id.replace(/_/g, ' ').split(' ')];
-      const score = tokenMatchScore(searchTokens, aliases);
-      if (score > locBestScore) {
-        locBestScore = score;
-        locBestTarget = {
-          id: loc.id,
-          nameKey: loc.displayName ?? loc.id,
-          properties: [],
-          isVirtual: false,
-          source: 'connected_location' as TargetSource,
-        };
-      }
-    }
-    // Connected location wins if it scores at all and beats environment
-    if (locBestTarget && locBestScore > 0 && locBestScore >= envBestScore) {
-      return locBestTarget;
-    }
-  }
-
-  // Compare ALL scored categories — inventory, location items, NPC, environment.
-  // The highest scorer wins. Ties: inventory > location items > NPC > environment.
-  // Minimum thresholds: inventory ≥ 5, location items ≥ 5, NPC ≥ 5, environment ≥ 3.
-  const invQualifies = invBestTarget !== null && invBestScore >= 5;
-  const locItemQualifies = locItemBestTarget !== null && locItemBestScore >= 5;
-  const npcQualifies = npcBestTarget !== null && npcBestScore >= 5;
-  const envQualifies = envBestTarget !== null && envBestScore >= 3;
-
-  // Build candidates array ordered by score (desc), with priority as tiebreaker
-  const candidates: Array<{ target: ResolvedTarget; score: number; priority: number }> = [];
-  if (invQualifies) candidates.push({ target: invBestTarget!, score: invBestScore, priority: 0 });
-  if (locItemQualifies) candidates.push({ target: locItemBestTarget!, score: locItemBestScore, priority: 1 });
-  if (npcQualifies) candidates.push({ target: npcBestTarget!, score: npcBestScore, priority: 2 });
-  if (envQualifies) candidates.push({ target: envBestTarget!, score: envBestScore, priority: 3 });
+  const candidates = collectCandidates(searchTokens, policy.pools, context);
 
   if (candidates.length > 0) {
-    candidates.sort((a, b) => b.score - a.score || a.priority - b.priority);
-    return candidates[0]!.target;
+    const poolRank = (pool: TargetPool): number => policy.pools.indexOf(pool);
+    candidates.sort((a, b) =>
+      b.score - a.score
+      || Number(b.nameExact) - Number(a.nameExact)
+      || poolRank(a.pool) - poolRank(b.pool),
+    );
+
+    const best = candidates[0]!;
+    // An entity called by its own name beats one that merely lists the word as
+    // an alias; otherwise an exact tie is a genuine question, not a coin flip.
+    // A rival from a *lower-priority pool* is not a question: the order declared
+    // in TARGET_POLICIES is precisely the author's answer (TAKE reaches for the
+    // floor before the pack). Only a tie inside one pool is worth asking about.
+    const rivals = candidates.filter(c =>
+      c.target.id !== best.target.id
+      && c.pool === best.pool
+      && best.score - c.score <= AMBIGUITY_MARGIN
+      && c.nameExact === best.nameExact,
+    );
+    if (rivals.length > 0) {
+      return { kind: 'ambiguous', candidates: [best.target, ...rivals.map(r => r.target)] };
+    }
+    return { kind: 'resolved', target: best.target };
   }
 
-  // 7. Single-NPC contextual default with generic reference words.
-  // Handles cases like "j'inspecte l'ennemi" or "je lui lance un lit dessus"
-  // where the target token is a generic reference word (ennemi, lui, adversaire…)
-  // that doesn't match any specific alias, but there is exactly one NPC present.
-  if (context.npcs.length === 1 && genericNpcRefs && genericNpcRefs.size > 0) {
-    const hasGenericRef = searchTokens.some((t) => genericNpcRefs.has(t));
-    if (hasGenericRef) {
-      const npc = context.npcs[0]!;
+  // Vague movement words: head somewhere new rather than refuse. Only somewhere
+  // *new*: sending the player back the way they came is not "moving on", and in
+  // a room gated by an obstacle it walked them out instead of letting them try.
+  if (policy.pools.includes('exit') && searchTokens.some(t => GENERIC_EXIT_TOKENS.has(t))) {
+    const unexplored = context.connectedLocations.filter(l => !l.visited);
+    const pick = unexplored[0];
+    if (pick !== undefined) {
       return {
-        id: npc.id,
-        nameKey: npc.nameKey,
-        properties: npc.properties,
-        isVirtual: false,
-        source: 'npc' as TargetSource,
-        state: npc.state,
+        kind: 'resolved',
+        target: {
+          id: pick.id, nameKey: pick.displayName ?? pick.id, properties: [],
+          isVirtual: false, source: 'connected_location' as TargetSource,
+        },
       };
     }
   }
 
-  // 8. EXAMINE fallback: if no entity matched but environment features exist,
-  //    pick the best-scoring feature even with a low score (better than 'environment')
-  if ((verb === 'EXAMINE' || verb === 'SCAN' || verb === 'LISTEN' || verb === 'SMELL')
-      && envBestTarget && envBestScore > 0) {
-    return envBestTarget;
+  // A generic reference works when there is only one thing it could mean.
+  if (context.npcs.length === 1 && policy.pools.includes('npc')) {
+    const npc = context.npcs[0]!;
+    const referred = genericNpcRefs !== undefined
+      && searchTokens.some(t => genericNpcRefs.has(t));
+    // A pronoun stripped as a stop word leaves no target tokens at all.
+    if (referred || targetTokens.length === 0) {
+      return {
+        kind: 'resolved',
+        target: {
+          id: npc.id, nameKey: npc.nameKey, properties: npc.properties,
+          isVirtual: false, source: 'npc' as TargetSource, state: npc.state,
+        },
+      };
+    }
   }
 
-  // 9. Abstract fallback — return null for intransitive verbs,
-  // or an abstract environment target for transitive verbs
-  if (intransitiveVerbs.has(verb)) {
-    return null;
+  if (policy.soleFallback !== undefined) {
+    const pool = policy.soleFallback === 'location_item' ? context.locationItems : [];
+    if (pool.length === 1) return { kind: 'resolved', target: pool[0]! };
   }
 
-  // Return abstract environment target
-  return {
-    id: 'environment',
-    nameKey: 'environment',
-    properties: [],
-    isVirtual: false,
-    source: 'abstract' as TargetSource,
-  };
+  return { kind: 'none' };
 }

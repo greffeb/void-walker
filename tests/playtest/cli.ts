@@ -17,7 +17,7 @@ import { calculateDifficulty } from '../../src/engine/difficulty';
 import { buildParserLocaleData } from '../../src/content/parserData';
 
 const localeData = buildParserLocaleData('fr');
-import { isReformulation } from '../../src/engine/types';
+import { isReformulation, isRefusal } from '../../src/engine/types';
 import { VERB_REGISTRY, VERB_IDS, AUTO_VERBS } from '../../src/engine/verbs';
 import { ITEM_LIST, ITEM_DEFINITIONS, resolveItemProperties } from '../../src/content/items';
 import { NPC_LIST, NPC_DEFINITIONS, resolveNPCProperties } from '../../src/content/npcs';
@@ -244,6 +244,10 @@ function printItems(scene: SceneContext): void {
 }
 
 function printResult(result: ReturnType<typeof parseAction>, scene: SceneContext, stats: StatBlock, difficulty: DifficultyLevel): void {
+  if (isRefusal(result)) {
+    console.log(`\n${C.yellow}${result.message}${C.reset}\n`);
+    return;
+  }
   if (isReformulation(result)) {
     console.log(`\n${C.yellow}${C.bold}⚠ Reformulation nécessaire${C.reset}`);
     console.log(`${C.yellow}  ${result.prompt}${C.reset}`);

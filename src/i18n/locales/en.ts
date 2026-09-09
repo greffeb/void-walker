@@ -537,7 +537,8 @@ export const en: LocaleStrings = {
   'verb.TOUCH.aliases': 'touch,feel,poke',
   // Parser data
   'parser.compounds': 'SHOOT:shoot+at,SHOOT:fire+at,HIDE:hide,BLOCK:defend,KICK:kick,IGNITE:set+fire,IMPROVISE_WEAPON:use+as+weapon,IMPROVISE_SHIELD:use+as+shield,IMPROVISE_TOOL:use+as+tool,SET_TRAP:set+trap,SET_TRAP:lay+trap,LOCK:lock+up,MOVE_TO:go+to,MOVE_TO:walk+to,RUN:run+away,DODGE:duck+down,LISTEN:listen+for,DISTRACT:draw+away,SIGNAL:wave+at,WEDGE:jam+with,STRIKE:punch,CUT:stab+with',
-  'parser.stopWords': 'the,a,an,of,in,on,at,to,and,or,is,are,be,my,your,his,her,its,our,their,i,you,he,she,it,we,they,me,him,us,them,this,that,these,those,not,no,do,does,did,will,would,can,could,shall,should,may,might,very,just,also,too',
+  'parser.stopWords': 'the,a,an,of,in,on,at,to,and,or,is,are,be,my,your,his,her,its,our,their,i,you,he,she,it,we,they,me,him,us,them,this,that,these,those,do,does,did,will,would,can,could,shall,should,may,might,very,just,also,too',
+  'parser.negationWords': 'not,no,never,none,dont,don t,nothing',
   'parser.intents': 'STRIKE:attack,STRIKE:fight,STRIKE:kill,STRIKE:hit,MOVE_TO:go,MOVE_TO:walk,MOVE_TO:travel,EXAMINE:look,EXAMINE:search,EXAMINE:find,EXAMINE:check,TALK:ask,TALK:call,TALK:yell,RUN:flee,RUN:escape,TAKE:grab,TAKE:get,TAKE:steal,USE:use,USE:apply',
   'parser.prepositions.target': 'at,toward,towards,against',
   'parser.prepositions.tool': 'with,using',
@@ -683,6 +684,8 @@ export const en: LocaleStrings = {
   'env.exposed_wiring.aliases': 'wiring,exposed,wires,cables,sparks',
   // Parser feedback (Phase 2)
   'parser.reformulation.prompt': 'What exactly are you trying to do?',
+  'parser.alreadyHere': 'You are already here.',
+  'parser.negationAcknowledged': 'Very well. You leave it alone.',
   'parser.reformulation.suggestion': 'Did you mean:',
   'parser.no_target': 'You look around for something...',
   'parser.absurd_attempt': 'A bold attempt, but...',

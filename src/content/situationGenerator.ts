@@ -175,7 +175,7 @@ function makeSuggestion(verb: ParsedAction['verb'], target: ResolvedTarget | nul
     tool: null,
     rawInput: '',
     tokens: [],
-    verbMatch: { verb, strategy: 1, confidence: 1, isCompound: false },
+    verbMatch: { verb, strategy: 1, isCompound: false },
     creative: false,
   };
 }

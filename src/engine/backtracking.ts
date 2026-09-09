@@ -6,6 +6,27 @@
 // ---------------------------------------------------------------------------
 
 import type { LocationVisitState } from './scenario';
+import { MOVEMENT_VERBS } from './verbs';
+import type { VerbId } from './verbs';
+
+/**
+ * A path whose every wording is a movement verb is crossed, not manipulated.
+ *
+ * `verbs: ['move', 'go', 'navigate']` on a dark room means "feel your way
+ * across". Such a path can never be attempted by naming the obstacle's object —
+ * "se deplacer <luminaire>" is not French for anything — so both the suggestion
+ * builder and the obstacle intercept treat it as targetless.
+ */
+export function isMovementOnlyPath(
+  verbs: readonly string[],
+  verbMap: ReadonlyMap<string, VerbId>,
+): boolean {
+  if (verbs.length === 0) return false;
+  return verbs.every(v => {
+    const id = verbMap.get(v.toLowerCase());
+    return id !== undefined && MOVEMENT_VERBS.has(id);
+  });
+}
 
 // ---------------------------------------------------------------------------
 // VISIT STATE FACTORY & TRANSITIONS

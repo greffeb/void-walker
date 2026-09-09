@@ -42,7 +42,7 @@ function makeAction(verb: VerbId, target: ResolvedTarget | null = null): ParsedA
     tool: null,
     rawInput: '',
     tokens: [],
-    verbMatch: { verb, strategy: 1 as VerbMatchStrategy, confidence: 1, isCompound: false },
+    verbMatch: { verb, strategy: 1 as VerbMatchStrategy, isCompound: false },
     creative: false,
   };
 }

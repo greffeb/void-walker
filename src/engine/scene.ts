@@ -12,7 +12,7 @@ import type { SuggestionCandidate } from './suggestions';
 import type { StringKey } from '../i18n/types';
 import { generateSuggestions } from './suggestions';
 import { getExitsWithStatus } from './backtracking';
-import { isItemAvailable, isObstacleResolved } from './backtracking';
+import { isItemAvailable, isObstacleResolved, isMovementOnlyPath } from './backtracking';
 import { resolveProperties } from './properties';
 import { ITEM_DEFINITIONS } from '../content/items';
 import { ENVIRONMENT_FEATURE_DEFINITIONS } from '../content/environments';
@@ -25,6 +25,7 @@ import { getFeatureState, isItemRevealed, pickStateDescription } from './feature
 import { deriveConditions, locationStateFromAtmosphere, atmosphereOf } from './locationState';
 import { isNpcAlive } from './victory';
 import { buildObstacleVerbMap } from '../content/parserData';
+import { MOVEMENT_VERBS } from './verbs';
 
 // ---------------------------------------------------------------------------
 // OBSTACLE VERB → LOCALIZED DISPLAY NAME
@@ -53,6 +54,32 @@ function obstaclVerbToFrench(verb: string): string {
 
   // Step 3: Return verb as-is
   return verb;
+}
+
+/**
+ * Pick the verb a suggestion should display for an obstacle path, and say
+ * whether it may name the obstacle's target.
+ *
+ * A path lists several wordings of the same attempt, and the first one is not
+ * always usable as an instruction. `verbs: ['move', 'go', 'navigate']` describes
+ * feeling your way across a dark room; paired with the obstacle's target it read
+ * "se deplacer Luminaire", which the parser rightly takes as walking — so the
+ * suggestion could never reach the obstacle it was advertising.
+ */
+function pickSuggestionVerb(verbs: readonly string[]): { verbText: string; namesTarget: boolean } {
+  const map = buildObstacleVerbMap(getLocale());
+  if (isMovementOnlyPath(verbs, map)) {
+    // Every wording is a movement: keep it, but do not point it at an object.
+    return { verbText: obstaclVerbToFrench(verbs[0] ?? 'examine'), namesTarget: false };
+  }
+  for (const verb of verbs) {
+    const verbId = map.get(verb.toLowerCase());
+    if (verbId !== undefined && !MOVEMENT_VERBS.has(verbId)) {
+      return { verbText: obstaclVerbToFrench(verb), namesTarget: true };
+    }
+  }
+  const first = verbs[0] ?? 'examine';
+  return { verbText: obstaclVerbToFrench(first), namesTarget: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +151,14 @@ export function getSceneContext(state: GameState): SceneContext {
       return npcState === undefined || (isNpcAlive(npcState) && npcState.locationId === playerLocationId);
     })
     .map(npcDef => npcDefToNpcInstance(npcDef.id, state.npcStates[npcDef.id]?.state ?? {}));
+
+  // The thing you are fighting is here, whatever the node declares. Combat can
+  // be opened by the threat director against an entity no node lists, and the
+  // scene then offered "frapper <name>" for someone the player could not name.
+  const fighting = state.activeCombat?.npcInstanceId;
+  if (fighting !== undefined && !npcs.some(n => n.id === fighting)) {
+    npcs.push(npcDefToNpcInstance(fighting, state.npcStates[fighting]?.state ?? {}));
+  }
 
   // --- Environment features ---
   const environmentFeatures: EnvironmentFeatureInstance[] = node.features.map(
@@ -275,9 +310,10 @@ function buildSuggestionCandidates(
       } else {
         targetDisplayName = node.obstacle.description.fr;
       }
+      const suggestionVerb = pickSuggestionVerb(path.verbs);
       candidates.push({
-        verbText: obstaclVerbToFrench(path.verbs[0] ?? 'examine'),
-        targetText: targetDisplayName,
+        verbText: suggestionVerb.verbText,
+        targetText: suggestionVerb.namesTarget ? targetDisplayName : '',
         stat: path.stat,
         category: 'obstacle',
       });

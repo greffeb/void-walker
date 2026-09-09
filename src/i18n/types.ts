@@ -669,6 +669,9 @@ export type StringKey =
   | 'env.exposed_wiring.aliases'
   // Parser feedback (Phase 2)
   | 'parser.reformulation.prompt'
+  | 'parser.alreadyHere'
+  | 'parser.negationWords'
+  | 'parser.negationAcknowledged'
   | 'parser.reformulation.suggestion'
   | 'parser.no_target'
   | 'parser.absurd_attempt'

@@ -26,7 +26,7 @@ import { applyStateToken } from './entityState';
 import { tickLocationStates } from './locationState';
 import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
-import { isReformulation } from './types';
+import { isReformulation, isRefusal } from './types';
 import { tickConditions, checkConditionTriggers, addCondition, removeCondition, applyConditionMalus } from './conditions';
 import { BALANCE } from './constants';
 import { tickOxygen } from './oxygen';
@@ -41,7 +41,7 @@ import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
 import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat, canDiscoverWeakPoint, checkWeakPointAutoDiscover, shouldNPCAttack } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
-import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved } from './backtracking';
+import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved, isMovementOnlyPath } from './backtracking';
 import { buildVictoryCheckContext } from './game';
 import {
   processPassivePerceptionCheck,
@@ -175,6 +175,18 @@ export function processTurn(
   // STEP 1: Parse input → ParsedAction | Reformulation
   // ─────────────────────────────────────────────────────────
   const parseResult = parseAction(input, context, parserData);
+
+  // The player asked for something *not* to happen. Declining to act is not an
+  // act: no roll, no attempt recorded, no turn spent (decision P).
+  if (isRefusal(parseResult)) {
+    return {
+      newState: state,
+      narrative: parseResult.message,
+      diceRoll: null,
+      suggestions: [],
+      trace: { ...emptyTrace(atmosphere, o2Initial) },
+    };
+  }
 
   // If ambiguous → return reformulation prompt, no dice roll
   if (isReformulation(parseResult)) {
@@ -584,7 +596,7 @@ export function processTurn(
     && current.character !== null
     && current.scenario !== null
     && current.playerLocationId !== null
-    && (action.target?.source === 'environment' || action.target?.source === 'npc')
+    && (action.target?.source === 'environment' || action.target?.source === 'npc' || action.target === null)
   ) {
     const featureObstacleNode = current.scenario.graph.nodes.find(
       n => n.id === current.playerLocationId,
@@ -592,10 +604,15 @@ export function processTurn(
     const featureNodeObstacle = featureObstacleNode?.obstacle;
     // Build obstacle verb map to translate authoring verbs (e.g. 'attack') to VerbIds (e.g. 'STRIKE')
     const obstacleVerbMap = buildObstacleVerbMap(getLocale());
-    const featureMatchedPath = featureNodeObstacle && action.target.id === featureNodeObstacle.targetId
-      ? featureNodeObstacle.paths.find(
-          p => p.verbs.some(v => obstacleVerbMap.get(v.toLowerCase()) === action.verb),
-        )
+    const featureMatchedPath = featureNodeObstacle
+      ? featureNodeObstacle.paths.find(p => {
+          if (!p.verbs.some(v => obstacleVerbMap.get(v.toLowerCase()) === action.verb)) return false;
+          // A path crossed on foot is attempted by moving, not by naming the
+          // obstacle's object — which is why it was unreachable until now.
+          return isMovementOnlyPath(p.verbs, obstacleVerbMap)
+            ? action.target === null
+            : action.target?.id === featureNodeObstacle.targetId;
+        })
       : undefined;
 
     if (featureMatchedPath) {
@@ -664,7 +681,7 @@ export function processTurn(
           };
         }
         // NPC-obstacle: neutralize the NPC on success
-        if (action.target.source === 'npc') {
+        if (action.target?.source === 'npc') {
           const npcId = action.target.id;
           const obstacleNpcState = current.npcStates[npcId];
           if (obstacleNpcState) {
@@ -676,7 +693,7 @@ export function processTurn(
               },
             };
           }
-        } else {
+        } else if (action.target !== null) {
           current = setFeatureState(current, action.target.id, 'open');
         }
       } else {
@@ -1603,7 +1620,7 @@ export function processTurn(
 // ---------------------------------------------------------------------------
 
 interface TraceInputs {
-  readonly action: ReturnType<typeof parseAction> extends infer R ? Exclude<R, { readonly prompt: string }> : never;
+  readonly action: import('./types').ParsedAction;
   readonly creativityMod: number;
   readonly conditionHpDrain: number;
   readonly conditionsExpired: readonly string[];

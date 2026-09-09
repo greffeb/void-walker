@@ -14,7 +14,7 @@ import { buildParserLocaleData } from '../../../src/content/parserData';
 import type { VerbId } from '../../../src/engine/verbs';
 import { VERB_IDS } from '../../../src/engine/verbs';
 import type { SceneContext, ParsedAction, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance, ParserLocaleData } from '../../../src/engine/types';
-import { isReformulation } from '../../../src/engine/types';
+import { isReformulation, isRefusal } from '../../../src/engine/types';
 import type { PropertyId } from '../../../src/engine/properties';
 
 // === LOCALE DATA (built once for all tests) ===
@@ -261,7 +261,6 @@ describe('matchVerb()', () => {
     expect(result).not.toBeNull();
     expect(result?.verb).toBe('STRIKE');
     expect(result?.strategy).toBe(1);
-    expect(result?.confidence).toBe(0.95);
   });
 
   test('strategy 1: form lookup "frappe" → STRIKE', () => {
@@ -479,7 +478,7 @@ describe('parseAction()', () => {
       tool: null,
       rawInput: 'examiner porte',
       tokens: ['examiner', 'porte'],
-      verbMatch: { verb: 'EXAMINE' as VerbId, strategy: 1, confidence: 1, isCompound: false },
+      verbMatch: { verb: 'EXAMINE' as VerbId, strategy: 1, isCompound: false },
       creative: false,
     };
     const ctx = testContext({ suggestions: [suggestion] });
@@ -503,6 +502,98 @@ describe('parseAction()', () => {
     if (!isReformulation(result)) {
       expect(result.verb).toBe('LISTEN');
     }
+  });
+});
+
+// === VERB PROMOTION (decision M) ===
+
+describe('parseAction() — verb promotion moves the object into its real role', () => {
+  const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic'] as PropertyId[]);
+  const pistol: ResolvedTarget = {
+    ...makeTarget('laser_pistol', ['ranged', 'electronic'] as PropertyId[], 'inventory'),
+    aliases: ['pistolet', 'arme', 'blaster'],
+  };
+  const knife: ResolvedTarget = {
+    ...makeTarget('combat_knife', ['bladed', 'sharp'] as PropertyId[], 'inventory'),
+    aliases: ['couteau', 'lame'],
+  };
+  const terminal = makeFeature('command_terminal', ['terminal'], ['electronic', 'programmable'] as PropertyId[]);
+
+  test('"utiliser le pistolet" shoots AT the robot, not at the pistol', () => {
+    // The bug this decision closes: the promoted verb kept the instrument as target.
+    const ctx = makeContext({ inventory: [pistol], npcs: [robot] });
+    const result = parseAction('utiliser le pistolet', ctx, localeData);
+    expect(isReformulation(result)).toBe(false);
+    if (isReformulation(result) || isRefusal(result)) return;
+    expect(result.verb).toBe('SHOOT');
+    expect(result.tool?.id).toBe('laser_pistol');
+    expect(result.target?.id).toBe('security_robot');
+  });
+
+  test('a blade promotes to CUT and becomes the instrument', () => {
+    const ctx = makeContext({ inventory: [knife], npcs: [robot] });
+    const result = parseAction('utiliser le couteau', ctx, localeData);
+    if (isReformulation(result) || isRefusal(result)) throw new Error('expected an action');
+    expect(result.verb).toBe('CUT');
+    expect(result.tool?.id).toBe('combat_knife');
+  });
+
+  test('a complement the player wrote is never overruled', () => {
+    // "utiliser le pistolet sur le robot" already says who the target is.
+    const ctx = makeContext({ inventory: [pistol], npcs: [robot] });
+    const result = parseAction('utiliser le pistolet sur le robot', ctx, localeData);
+    if (isReformulation(result) || isRefusal(result)) throw new Error('expected an action');
+    expect(result.verb).toBe('SHOOT');
+    expect(result.target?.id).toBe('security_robot');
+  });
+
+  test('no promotion without a cue property', () => {
+    const rag = makeTarget('rag', ['flexible'] as PropertyId[], 'inventory');
+    const ctx = makeContext({ inventory: [rag] });
+    const result = parseAction('utiliser le chiffon', ctx, localeData);
+    if (isReformulation(result) || isRefusal(result)) return;
+    expect(result.verb).toBe('USE');
+  });
+
+  test('promotion leaves other verbs alone', () => {
+    const ctx = makeContext({ inventory: [pistol], npcs: [robot] });
+    const result = parseAction('examiner le pistolet', ctx, localeData);
+    if (isReformulation(result) || isRefusal(result)) throw new Error('expected an action');
+    expect(result.verb).toBe('EXAMINE');
+    expect(result.target?.id).toBe('laser_pistol');
+  });
+
+  test('a programmable object in the room promotes USE to HACK', () => {
+    const ctx = makeContext({ environmentFeatures: [terminal] });
+    const result = parseAction('utiliser le terminal', ctx, localeData);
+    if (isReformulation(result) || isRefusal(result)) throw new Error('expected an action');
+    expect(result.verb).toBe('HACK');
+  });
+});
+
+// === NEGATION (decision P) ===
+
+describe('parseAction() — a negation is declined, not executed', () => {
+  const android = makeNpc('wounded_android', ['androide', 'android'], []);
+
+  test('"ne pas toucher l\'androide" does not touch the android (P2-13)', () => {
+    // "ne" and "pas" sat in the stop word list, so the engine read "toucher
+    // l'androide" and did exactly what the player refused.
+    const result = parseAction("ne pas toucher l'androide", makeContext({ npcs: [android] }), localeData);
+    expect(isRefusal(result)).toBe(true);
+  });
+
+  test('the refusal carries the raw input and an answer', () => {
+    const result = parseAction('je ne touche pas au cable', makeContext(), localeData);
+    expect(isRefusal(result)).toBe(true);
+    if (!isRefusal(result)) return;
+    expect(result.rawInput).toBe('je ne touche pas au cable');
+    expect(result.message.length).toBeGreaterThan(0);
+  });
+
+  test('a plain action is not mistaken for a negation', () => {
+    const result = parseAction("toucher l'androide", makeContext({ npcs: [android] }), localeData);
+    expect(isRefusal(result)).toBe(false);
   });
 });
 

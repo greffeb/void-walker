@@ -6,7 +6,8 @@
 // === Phase 2 ===
 export { parseAction, normalizeInput, matchVerb } from './parser';
 export type { CompoundPattern } from './parser';
-export { resolveTarget, resolveBodyPart, BODY_PARTS } from './resolver';
+export { resolveTargets, resolveBodyPart, BODY_PARTS } from './resolver';
+export type { TargetResolution, TargetPool } from './resolver';
 export { calculateDifficulty, detectCreativity } from './difficulty';
 export { stemFr } from './snowball-fr';
 export { checkCompatibility } from './compatibility';

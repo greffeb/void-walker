@@ -462,6 +462,7 @@ export type TargetSource =
   | 'npc_part'
   | 'environment'
   | 'connected_location'
+  | 'current_location'
   | 'abstract';
 
 /** A resolved target entity with its properties */
@@ -483,7 +484,6 @@ export type VerbMatchStrategy = 1 | 2 | 3 | 4 | 5 | 6;
 export interface VerbMatch {
   readonly verb: import('./verbs').VerbId;
   readonly strategy: VerbMatchStrategy;
-  readonly confidence: number;
   readonly isCompound: boolean;
   readonly compoundTokens?: readonly string[];
 }
@@ -507,13 +507,28 @@ export interface Reformulation {
   readonly prompt: string;
 }
 
+/**
+ * The player asked for something *not* to happen. Nothing is attempted, and no
+ * turn passes: declining to act is not an act (decision P).
+ */
+export interface Refusal {
+  readonly type: 'refusal';
+  readonly rawInput: string;
+  readonly message: string;
+}
+
 /** Type guard: is the parse result a reformulation? */
 export function isReformulation(result: ParseResult): result is Reformulation {
   return (result as Reformulation).type === 'reformulation';
 }
 
-/** The result of parsing player input: either a clear action or a reformulation */
-export type ParseResult = ParsedAction | Reformulation;
+/** Type guard: did the player decline to act? */
+export function isRefusal(result: ParseResult): result is Refusal {
+  return (result as Refusal).type === 'refusal';
+}
+
+/** The result of parsing player input */
+export type ParseResult = ParsedAction | Reformulation | Refusal;
 
 // === PARSER LOCALE DATA ===
 
@@ -534,6 +549,8 @@ export interface ParserLocaleData {
   readonly compoundPatterns: readonly CompoundPattern[];
   /** Stop words to filter from input */
   readonly stopWords: ReadonlySet<string>;
+  /** Words that reverse the intent. Filtered out of tokens, but never ignored. */
+  readonly negationWords: ReadonlySet<string>;
   /** Intent keywords for semantic fallback (strategy 6) */
   readonly intentKeywords: ReadonlyMap<string, import('./verbs').VerbId>;
   /** Pre-stemmed alias index for strategy 3 */
@@ -565,6 +582,12 @@ export interface ParserLocaleData {
   readonly moveNoTargetPrompt: string;
   /** Prompt shown when MOVE_TO is used but there are no exits from the current location. */
   readonly moveNoExitPrompt: string;
+  /** Prompt shown when the input is ambiguous or unparsed. */
+  readonly reformulationPrompt: string;
+  /** Prompt shown when the player names the room they are standing in. */
+  readonly alreadyHerePrompt: string;
+  /** Reply when the player asked for something *not* to happen. */
+  readonly negationAcknowledged: string;
 }
 
 /** A single named line in the DC decomposition, for UI display */

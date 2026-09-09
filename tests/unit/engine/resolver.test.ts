@@ -3,14 +3,33 @@
 // ---------------------------------------------------------------------------
 
 import { describe, test, expect } from 'vitest';
-import { resolveTarget, resolveBodyPart, BODY_PARTS } from '../../../src/engine/resolver';
+import { resolveTargets, resolveBodyPart, BODY_PARTS } from '../../../src/engine/resolver';
 import { buildParserLocaleData } from '../../../src/content/parserData';
 import type { SceneContext, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from '../../../src/engine/types';
+import type { VerbId } from '../../../src/engine/verbs';
 import type { PropertyId } from '../../../src/engine/properties';
 
 // Verb wording lives in the locale files, so the resolver needs them to know
 // which tokens are verbs rather than targets.
 const verbForms = buildParserLocaleData('fr').verbForms;
+
+/**
+ * Most tests here only care about "which entity did we land on". The resolver
+ * now answers on three registers (resolved / ambiguous / none), so this helper
+ * flattens the answer the way the old single-return `resolveTarget` did.
+ * Tests that care about ambiguity call `resolveTargets` directly.
+ */
+function resolveOne(
+  tokens: readonly string[],
+  verb: VerbId,
+  context: SceneContext,
+  genericNpcRefs?: ReadonlySet<string>,
+  batchTakeTokens?: ReadonlySet<string>,
+  forms?: ReadonlyMap<string, VerbId>,
+): ResolvedTarget | null {
+  const resolution = resolveTargets(tokens, verb, context, genericNpcRefs, batchTakeTokens, forms);
+  return resolution.kind === 'resolved' ? resolution.target : null;
+}
 
 // === TEST HELPERS ===
 
@@ -138,7 +157,7 @@ describe('resolveBodyPart()', () => {
 
 // === TARGET RESOLUTION ===
 
-describe('resolveTarget()', () => {
+describe('resolveTargets()', () => {
   const pistolet = makeTarget('laser_pistol', ['ranged', 'electronic'] as PropertyId[], 'inventory');
   const medkit = makeTarget('kit_medical', ['healing'] as PropertyId[], 'location');
   const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic'] as PropertyId[]);
@@ -152,41 +171,43 @@ describe('resolveTarget()', () => {
   });
 
   test('resolves inventory item by name', () => {
-    const result = resolveTarget(['pistolet'], 'USE', ctx);
+    const result = resolveOne(['pistolet'], 'USE', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('laser_pistol');
     expect(result?.source).toBe('inventory');
   });
 
   test('resolves NPC by alias', () => {
-    const result = resolveTarget(['robot'], 'STRIKE', ctx);
+    const result = resolveOne(['robot'], 'STRIKE', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_robot');
     expect(result?.source).toBe('npc');
   });
 
   test('resolves environment feature by alias', () => {
-    const result = resolveTarget(['porte'], 'OPEN', ctx);
+    const result = resolveOne(['porte'], 'OPEN', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('blast_door');
     expect(result?.source).toBe('environment');
   });
 
   test('resolves environment feature by secondary alias', () => {
-    const result = resolveTarget(['sas'], 'OPEN', ctx);
+    const result = resolveOne(['sas'], 'OPEN', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('blast_door');
   });
 
   test('returns null for intransitive verb with no tokens', () => {
-    const result = resolveTarget([], 'WAIT', ctx);
+    const result = resolveOne([], 'WAIT', ctx);
     expect(result).toBeNull();
   });
 
-  test('falls back to abstract target for unrecognized transitive verb target', () => {
-    const result = resolveTarget(['fantome'], 'STRIKE', ctx);
-    expect(result).not.toBeNull();
-    expect(result?.source).toBe('abstract');
+  test('reports "none" for an unrecognized transitive verb target', () => {
+    // Decision N: "I found nothing" is its own answer. It used to be encoded as a
+    // successful resolution onto an abstract target, which parseAction then had to
+    // undo in three places.
+    const resolution = resolveTargets(['fantome'], 'STRIKE', ctx);
+    expect(resolution.kind).toBe('none');
   });
 
   test('inventory takes priority over location items with same name', () => {
@@ -196,7 +217,7 @@ describe('resolveTarget()', () => {
       inventory: [invItem],
       locationItems: [locItem],
     });
-    const result = resolveTarget(['ration'], 'EAT', ctxDup);
+    const result = resolveOne(['ration'], 'EAT', ctxDup);
     expect(result).not.toBeNull();
     expect(result?.source).toBe('inventory');
   });
@@ -205,7 +226,7 @@ describe('resolveTarget()', () => {
     const ctxWithLoc = makeContext({
       connectedLocations: [{ id: 'corridor_b', aliases: ['corridor', 'couloir'] }],
     });
-    const result = resolveTarget(['couloir'], 'MOVE_TO', ctxWithLoc);
+    const result = resolveOne(['couloir'], 'MOVE_TO', ctxWithLoc);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('corridor_b');
     expect(result?.source).toBe('connected_location');
@@ -213,7 +234,7 @@ describe('resolveTarget()', () => {
 
   test('filters out verb alias tokens from target matching', () => {
     // "frapper" should not match as a target when the verb is STRIKE
-    const result = resolveTarget(['frapper', 'robot'], 'STRIKE', ctx);
+    const result = resolveOne(['frapper', 'robot'], 'STRIKE', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_robot');
   });
@@ -221,7 +242,7 @@ describe('resolveTarget()', () => {
   test('filters out conjugated verb forms from target matching', () => {
     // "parle" is a conjugated form of "parler" (TALK alias) — should be stripped
     const npcCtx = makeContext({ npcs: [robot] });
-    const result = resolveTarget(['parle', 'robot'], 'TALK', npcCtx);
+    const result = resolveOne(['parle', 'robot'], 'TALK', npcCtx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_robot');
     expect(result?.source).toBe('npc');
@@ -230,7 +251,7 @@ describe('resolveTarget()', () => {
 
 // === FRENCH ALIAS RESOLUTION ===
 
-describe('resolveTarget() — French alias support', () => {
+describe('resolveTargets() — French alias support', () => {
   const ai = makeNpc('station_ai', ['ia', 'intelligence', 'artificielle', 'ordinateur', 'ordi', 'station'], []);
   const crew = makeNpc('parasitized_crewmember', ['equipage', 'membre', 'parasite', 'infecte', 'mec', 'type', 'collegue', 'equipier'], ['hostile'] as PropertyId[]);
   const android = makeNpc('wounded_android', ['androide', 'blesse', 'android', 'mec', 'type', 'robot', 'synthetique'], []);
@@ -245,48 +266,52 @@ describe('resolveTarget() — French alias support', () => {
   });
 
   test('resolves "ia" to station_ai', () => {
-    const result = resolveTarget(['ia'], 'TALK', ctx);
+    const result = resolveOne(['ia'], 'TALK', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('station_ai');
     expect(result?.source).toBe('npc');
   });
 
   test('resolves "membre equipage" to parasitized_crewmember', () => {
-    const result = resolveTarget(['membre', 'equipage'], 'TALK', ctx);
+    const result = resolveOne(['membre', 'equipage'], 'TALK', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('parasitized_crewmember');
     expect(result?.source).toBe('npc');
   });
 
-  test('resolves "mec" to an NPC (android or crewmember)', () => {
-    const result = resolveTarget(['mec'], 'TALK', ctx);
-    expect(result).not.toBeNull();
-    expect(result?.source).toBe('npc');
+  test('"mec" names two NPCs at once — ambiguous, not a guess', () => {
+    // Decision N: the crewmember and the android both answer to "mec". Picking one
+    // would be a coin toss, so the resolver hands both back and the parser asks.
+    const resolution = resolveTargets(['mec'], 'TALK', ctx);
+    expect(resolution.kind).toBe('ambiguous');
+    if (resolution.kind !== 'ambiguous') return;
+    const ids = resolution.candidates.map(c => c.id).sort();
+    expect(ids).toEqual(['parasitized_crewmember', 'wounded_android']);
   });
 
   test('resolves "alien" to xenomorph', () => {
-    const result = resolveTarget(['alien'], 'STRIKE', ctx);
+    const result = resolveOne(['alien'], 'STRIKE', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('xenomorph');
     expect(result?.source).toBe('npc');
   });
 
   test('resolves "porte blindee" to blast_door', () => {
-    const result = resolveTarget(['porte', 'blindee'], 'OPEN', ctx);
+    const result = resolveOne(['porte', 'blindee'], 'OPEN', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('blast_door');
     expect(result?.source).toBe('environment');
   });
 
   test('resolves "camera" to security_camera', () => {
-    const result = resolveTarget(['camera'], 'EXAMINE', ctx);
+    const result = resolveOne(['camera'], 'EXAMINE', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_camera');
     expect(result?.source).toBe('environment');
   });
 
   test('resolves "armoire" to supply_locker', () => {
-    const result = resolveTarget(['armoire'], 'OPEN', ctx);
+    const result = resolveOne(['armoire'], 'OPEN', ctx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('supply_locker');
     expect(result?.source).toBe('environment');
@@ -302,7 +327,7 @@ describe('resolveTarget() — French alias support', () => {
       aliases: ['bouteille', 'oxygene', 'bonbonne', 'o2', 'recharge'],
     };
     const itemCtx = makeContext({ inventory: [canister] });
-    const result = resolveTarget(['bouteille'], 'USE', itemCtx);
+    const result = resolveOne(['bouteille'], 'USE', itemCtx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('oxygen_canister');
     expect(result?.source).toBe('inventory');
@@ -315,7 +340,7 @@ describe('resolveTarget() — French alias support', () => {
       npcs: [ai],
       environmentFeatures: [airlock],
     });
-    const result = resolveTarget(['airlock'], 'OPEN', mixedCtx);
+    const result = resolveOne(['airlock'], 'OPEN', mixedCtx);
     expect(result).not.toBeNull();
     expect(result?.id).not.toBe('station_ai');
     expect(result?.id).toBe('main_airlock');
@@ -328,7 +353,7 @@ describe('resolveTarget() — French alias support', () => {
       npcs: [robot],
       environmentFeatures: [camera],
     });
-    const result = resolveTarget(['camera', 'securite'], 'EXAMINE', disambCtx);
+    const result = resolveOne(['camera', 'securite'], 'EXAMINE', disambCtx);
     expect(result).not.toBeNull();
     expect(result?.id).not.toBe('security_robot');
     expect(result?.id).toBe('security_camera');
@@ -337,7 +362,7 @@ describe('resolveTarget() — French alias support', () => {
 
 // === BODY-PART PRIORITY REGRESSION ===
 
-describe('resolveTarget() — body-part before NPC (regression)', () => {
+describe('resolveTargets() — body-part before NPC (regression)', () => {
   const robot = makeNpc('security_robot', ['robot', 'sentinelle'], ['hostile', 'robotic', 'metallic'] as PropertyId[]);
   const xenomorph = makeNpc('xenomorph', ['alien', 'creature'], ['hostile', 'organic'] as PropertyId[]);
 
@@ -361,7 +386,7 @@ describe('resolveTarget() — body-part before NPC (regression)', () => {
 
   // Bug C regression: possessive body-part phrase must resolve to virtual part, not whole NPC
   test('"tete robot" → security_robot_head (not security_robot)', () => {
-    const result = resolveTarget(['tete', 'robot'], 'STRIKE', bodyCtx);
+    const result = resolveOne(['tete', 'robot'], 'STRIKE', bodyCtx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_robot_head');
     expect(result?.source).toBe('npc_part');
@@ -369,7 +394,7 @@ describe('resolveTarget() — body-part before NPC (regression)', () => {
   });
 
   test('"griffe alien" → xenomorph_claw (not xenomorph)', () => {
-    const result = resolveTarget(['griffe', 'alien'], 'CUT', bodyCtx);
+    const result = resolveOne(['griffe', 'alien'], 'CUT', bodyCtx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('xenomorph_claw');
     expect(result?.source).toBe('npc_part');
@@ -377,7 +402,7 @@ describe('resolveTarget() — body-part before NPC (regression)', () => {
 
   // Ensure plain NPC still resolves when no body-part token present
   test('"robot" alone → security_robot (whole NPC)', () => {
-    const result = resolveTarget(['robot'], 'STRIKE', bodyCtx);
+    const result = resolveOne(['robot'], 'STRIKE', bodyCtx);
     expect(result).not.toBeNull();
     expect(result?.id).toBe('security_robot');
     expect(result?.source).toBe('npc');
@@ -386,54 +411,54 @@ describe('resolveTarget() — body-part before NPC (regression)', () => {
 
 // === USER FEEDBACK REGRESSIONS (2026-02) ===
 
-describe('resolveTarget() — single-NPC contextual fallback', () => {
+describe('resolveTargets() — single-NPC contextual fallback', () => {
   const xenomorph = makeNpc('xenomorph', ['xenomorphe', 'alien', 'creature'], []);
 
   test('empty target tokens after verb alias filtering + single NPC → NPC (je le frappe)', () => {
     // "je le frappe" → "le" stripped (stop word), "frappe" = STRIKE form → filtered away → empty target
     const ctx = makeContext({ npcs: [xenomorph] });
-    const result = resolveTarget(['frappe'], 'STRIKE', ctx, undefined, undefined, verbForms);
+    const result = resolveOne(['frappe'], 'STRIKE', ctx, undefined, undefined, verbForms);
     expect(result?.id).toBe('xenomorph');
     expect(result?.source).toBe('npc');
   });
 
   test('no fallback when 0 NPCs in scene', () => {
     const ctx = makeContext({ npcs: [] });
-    const result = resolveTarget(['frappe'], 'STRIKE', ctx, undefined, undefined, verbForms);
-    // Falls through to abstract environment
-    expect(result?.source).toBe('abstract');
+    const resolution = resolveTargets(['frappe'], 'STRIKE', ctx, undefined, undefined, verbForms);
+    // Nothing to hit: the answer is "none", not an abstract stand-in.
+    expect(resolution.kind).toBe('none');
   });
 
   test('no fallback when 2+ NPCs in scene (ambiguous)', () => {
     const robot = makeNpc('security_robot', ['robot'], []);
     const ctx = makeContext({ npcs: [xenomorph, robot] });
-    const result = resolveTarget(['frappe'], 'STRIKE', ctx);
-    // Cannot determine which NPC → abstract fallback
-    expect(result?.source).toBe('abstract');
+    const resolution = resolveTargets(['frappe'], 'STRIKE', ctx);
+    // "frappe" names no one in particular and two NPCs are present.
+    expect(resolution.kind).toBe('none');
   });
 
   test('intransitive verbs still return null with empty target tokens', () => {
     const ctx = makeContext({ npcs: [xenomorph] });
-    const result = resolveTarget([], 'WAIT', ctx);
+    const result = resolveOne([], 'WAIT', ctx);
     expect(result).toBeNull();
   });
 });
 
-describe('resolveTarget() — generic NPC reference words', () => {
+describe('resolveTargets() — generic NPC reference words', () => {
   const genericNpcRefs = new Set(['lui', 'elle', 'eux', 'ennemi', 'enemi', 'adversaire', 'cible', 'creature', 'monstre', 'bete', 'alien']);
   const xenomorph = makeNpc('xenomorph', ['xenomorphe'], []);
   const crew = makeNpc('parasitized_crewmember', ['membre', 'equipage', 'infecte'], []);
 
   test('"ennemi" with single NPC + genericNpcRefs → resolves to NPC (j\'inspecte l\'ennemi)', () => {
     const ctx = makeContext({ npcs: [xenomorph] });
-    const result = resolveTarget(['ennemi'], 'EXAMINE', ctx, genericNpcRefs);
+    const result = resolveOne(['ennemi'], 'EXAMINE', ctx, genericNpcRefs);
     expect(result?.id).toBe('xenomorph');
     expect(result?.source).toBe('npc');
   });
 
   test('"enemi" (typo) with single NPC + genericNpcRefs → resolves to NPC', () => {
     const ctx = makeContext({ npcs: [crew] });
-    const result = resolveTarget(['enemi'], 'EXAMINE', ctx, genericNpcRefs);
+    const result = resolveOne(['enemi'], 'EXAMINE', ctx, genericNpcRefs);
     expect(result?.id).toBe('parasitized_crewmember');
     expect(result?.source).toBe('npc');
   });
@@ -441,7 +466,7 @@ describe('resolveTarget() — generic NPC reference words', () => {
   test('"lui" pronoun with single NPC + genericNpcRefs → resolves to NPC (je lui lance un lit)', () => {
     const ctx = makeContext({ npcs: [xenomorph] });
     // "lit" (bed) doesn't match xenomorph, but "lui" is a generic ref
-    const result = resolveTarget(['lui', 'lit', 'dessus'], 'THROW', ctx, genericNpcRefs);
+    const result = resolveOne(['lui', 'lit', 'dessus'], 'THROW', ctx, genericNpcRefs);
     expect(result?.id).toBe('xenomorph');
     expect(result?.source).toBe('npc');
   });
@@ -449,28 +474,28 @@ describe('resolveTarget() — generic NPC reference words', () => {
   test('generic ref token ignored when NPC matches by alias (specific match wins)', () => {
     // "alien" is both a generic ref AND a specific alias → NPC resolution happens first
     const ctx = makeContext({ npcs: [xenomorph] });
-    const result = resolveTarget(['alien'], 'STRIKE', ctx, genericNpcRefs);
+    const result = resolveOne(['alien'], 'STRIKE', ctx, genericNpcRefs);
     expect(result?.id).toBe('xenomorph');
     expect(result?.source).toBe('npc');
   });
 
-  test('generic ref without genericNpcRefs parameter → abstract fallback', () => {
+  test('generic ref without genericNpcRefs parameter → nothing found', () => {
     // Without the optional param, no generic-ref resolution
     const ctx = makeContext({ npcs: [xenomorph] });
-    const result = resolveTarget(['ennemi'], 'EXAMINE', ctx);
-    expect(result?.source).toBe('abstract');
+    const resolution = resolveTargets(['ennemi'], 'EXAMINE', ctx);
+    expect(resolution.kind).toBe('none');
   });
 
-  test('generic ref with 2 NPCs → abstract fallback (ambiguous)', () => {
+  test('generic ref with 2 NPCs → nothing found (ambiguous by nature)', () => {
     const robot = makeNpc('security_robot', ['robot'], []);
     const ctx = makeContext({ npcs: [xenomorph, robot] });
-    const result = resolveTarget(['ennemi'], 'EXAMINE', ctx, genericNpcRefs);
-    // 2 NPCs → cannot determine which → fallback
-    expect(result?.source).toBe('abstract');
+    const resolution = resolveTargets(['ennemi'], 'EXAMINE', ctx, genericNpcRefs);
+    // A generic word only stands in for a single obvious NPC.
+    expect(resolution.kind).toBe('none');
   });
 });
 
-describe('resolveTarget() — adjacent transposition fuzzy matching', () => {
+describe('resolveTargets() — adjacent transposition fuzzy matching', () => {
   const ductTape: ResolvedTarget = {
     id: 'duct_tape',
     nameKey: 'item.duct_tape',
@@ -483,7 +508,7 @@ describe('resolveTarget() — adjacent transposition fuzzy matching', () => {
   test('"rouelau" (adjacent transposition of "rouleau") resolves to duct_tape', () => {
     // TAKE resolves from locationItems, not inventory
     const ctx = makeContext({ locationItems: [ductTape] });
-    const result = resolveTarget(['rouelau'], 'TAKE', ctx);
+    const result = resolveOne(['rouelau'], 'TAKE', ctx);
     expect(result?.id).toBe('duct_tape');
     expect(result?.source).toBe('location');
   });
@@ -492,8 +517,53 @@ describe('resolveTarget() — adjacent transposition fuzzy matching', () => {
     // "rxulbau" differs from "rouleau" at positions 1 AND 4 (not adjacent, not a swap)
     // With multiple unmatched items in scene, TAKE returns null (not abstract)
     const ctx = makeContext({ locationItems: [ductTape, { ...ductTape, id: 'other' }] });
-    const result = resolveTarget(['rxulbau'], 'TAKE', ctx);
+    const result = resolveOne(['rxulbau'], 'TAKE', ctx);
     // edit distance 2, no adjacent swap → no match, multiple items → null
     expect(result).toBeNull();
+  });
+});
+
+// === TARGET POOLS (decision O) ===
+
+describe('resolveTargets() — pools are data, not branches', () => {
+  const wrench: ResolvedTarget = {
+    id: 'wrench', nameKey: 'item.wrench', properties: [], isVirtual: false,
+    source: 'location', aliases: ['cle', 'clef'],
+  };
+
+  test('P2-7: the room you stand in is a nameable target', () => {
+    // "aller a la passerelle" while already on the bridge used to walk you elsewhere,
+    // because the current location was never a candidate.
+    const ctx = makeContext({
+      locationId: 'bridge',
+      sceneDescription: { locationName: 'passerelle', description: '', exits: [] },
+      connectedLocations: [{ id: 'corridor_b', aliases: ['couloir'] }],
+    });
+    const result = resolveOne(['passerelle'], 'MOVE_TO', ctx);
+    expect(result?.id).toBe('bridge');
+    expect(result?.source).toBe('current_location');
+  });
+
+  test('a movement verb does not reach for a loose item', () => {
+    const ctx = makeContext({
+      locationItems: [wrench],
+      connectedLocations: [{ id: 'corridor_b', aliases: ['couloir'] }],
+    });
+    const resolution = resolveTargets(['cle'], 'MOVE_TO', ctx);
+    expect(resolution.kind).toBe('none');
+  });
+
+  test('TAKE looks at the floor before the pack', () => {
+    const carried: ResolvedTarget = { ...wrench, id: 'carried_wrench', source: 'inventory' };
+    const ctx = makeContext({ inventory: [carried], locationItems: [wrench] });
+    const result = resolveOne(['cle'], 'TAKE', ctx);
+    expect(result?.id).toBe('wrench');
+  });
+
+  test('P2-5: a two-letter scrap names nothing', () => {
+    // Two items, so the sole-candidate fallback cannot mask the score floor.
+    const ctx = makeContext({ locationItems: [wrench, { ...wrench, id: 'other_wrench' }] });
+    const resolution = resolveTargets(['zz'], 'TAKE', ctx);
+    expect(resolution.kind).toBe('none');
   });
 });
