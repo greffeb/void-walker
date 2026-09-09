@@ -6,10 +6,13 @@ import { describe, test, expect } from 'vitest';
 import {
   LOCATION_STATE_IDS,
   applyLocationToken,
+  atmosphereOf,
   deriveConditions,
   isLethalLocation,
   locationStateFromAtmosphere,
+  tickLocationStates,
 } from '../../../src/engine/locationState';
+import { BALANCE } from '../../../src/engine/constants';
 
 describe('applyLocationToken', () => {
   test('every token is handled', () => {
@@ -77,5 +80,53 @@ describe('locationStateFromAtmosphere', () => {
     for (const atmosphere of ['pressurized', 'low_oxygen', 'toxic_atmosphere'] as const) {
       expect(locationStateFromAtmosphere(atmosphere).pressure, atmosphere).toBe('pressurized');
     }
+  });
+
+  test('round-trips through the air axis, so the oxygen tracker still reads it', () => {
+    for (const atmosphere of ['pressurized', 'low_oxygen', 'toxic_atmosphere', 'depressurized'] as const) {
+      expect(atmosphereOf(locationStateFromAtmosphere(atmosphere)), atmosphere).toBe(atmosphere);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PROPAGATION — P4-4 and P4-5
+// ---------------------------------------------------------------------------
+
+describe('tickLocationStates', () => {
+  const corridor = [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }];
+
+  test('a fresh fire stays put — FIRE_SPREAD_DELAY is a real delay, not a comment', () => {
+    const states = { a: applyLocationToken({ pressure: 'pressurized' }, 'burning', 0) };
+    for (let turn = 0; turn < BALANCE.FIRE_SPREAD_DELAY; turn++) {
+      const next = tickLocationStates(states, corridor, turn);
+      expect(next['b']?.fire, `turn ${turn}`).toBeUndefined();
+    }
+  });
+
+  test('a fire left alone reaches the next room and fouls its own air', () => {
+    const states = {
+      a: applyLocationToken({ pressure: 'pressurized', air: 'breathable' }, 'burning', 0),
+      b: { pressure: 'pressurized' as const, air: 'breathable' as const },
+    };
+    const next = tickLocationStates(states, corridor, BALANCE.FIRE_SPREAD_DELAY);
+    expect(next['a']?.air).toBe('toxic');
+    expect(next['b']?.fire).toBe('burning');
+  });
+
+  test('vacuum and water stop it', () => {
+    const states = {
+      a: applyLocationToken({ pressure: 'pressurized' }, 'burning', 0),
+      b: { pressure: 'depressurized' as const },
+      c: { pressure: 'pressurized' as const, flood: 'flooded' as const },
+    };
+    const next = tickLocationStates(states, [{ from: 'a', to: 'b' }, { from: 'a', to: 'c' }], 99);
+    expect(next['b']?.fire).toBeUndefined();
+    expect(next['c']?.fire).toBeUndefined();
+  });
+
+  test('returns the same object when nothing burns, so the state keeps its identity', () => {
+    const states = { a: { pressure: 'pressurized' as const } };
+    expect(tickLocationStates(states, corridor, 99)).toBe(states);
   });
 });

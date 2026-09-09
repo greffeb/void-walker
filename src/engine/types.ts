@@ -939,7 +939,6 @@ export type ConsequenceType =
   | 'inventory_remove'
   | 'item_break'
   | 'environment_change'    // e.g., room becomes on_fire
-  | 'ship_memory_mark'
   | 'atmosphere_change'
   | 'npc_killed'
   | 'npc_flee'
@@ -955,8 +954,10 @@ export interface Consequence {
   readonly conditionId?: ConditionId;
   readonly itemId?: string;
   readonly atmosphereType?: AtmosphereType;
+  /** What an environment_change writes on the location. */
+  readonly locationState?: import('./locationState').LocationStateId;
   readonly propertyId?: import('./properties').PropertyId;
-  /** Target location for npc_relocate consequences. */
+  /** Target location for npc_relocate and environment consequences. */
   readonly locationId?: string;
   /** NPC ID for npc_relocate consequences. */
   readonly npcId?: string;

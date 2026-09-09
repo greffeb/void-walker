@@ -31,10 +31,7 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   PROPERTY_FAMILIES: 'runtime mirror of a union type, test-only',
   findUnclassifiedProperties: 'guard asserting PROPERTY_FAMILY stays total',
 
-  // --- Decision V, scaffolding for lot 4. applyLocationToken is what decision U
-  // will call from the consequence engine; isLethalLocation is what decision Y
-  // will read instead of the hardcoded scenarioFlagMapper switch.
-  applyLocationToken: 'U — consequences must drive location state',
+  // --- Decision V, scaffolding still waiting on decision Y.
   isLethalLocation: 'Y — emergent victory must read world state, not flags',
 
   // --- Durability: the whole Phase 3 module (deliverables 4-6) is never called.
@@ -56,7 +53,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   // --- Combat: ambush bonus and creature learning (Phase 6 §6.6) never invoked.
   calculateAmbushBonus: 'combat: ambush bonus never applied',
   onCreatureWounded: 'combat: creature learning never invoked',
-  shouldNPCAttack: 'combat: aggression patterns never consulted',
 
   // --- Weak points (Phase 3 deliverable 9). These were wired ONLY in the
   // unrouted playtest hooks deleted under decision R, so in the shipped game a

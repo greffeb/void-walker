@@ -19,6 +19,8 @@ import { addItem, removeItem } from './inventory';
 import { clampHp } from './state';
 import { ITEM_DEFINITIONS } from '../content/items';
 import { applyStateToken } from './entityState';
+import type { LocationStateId } from './locationState';
+import { applyLocationToken, atmosphereToken } from './locationState';
 import { isNpcAlive } from './victory';
 
 // ---------------------------------------------------------------------------
@@ -95,17 +97,17 @@ export function buildConsequences(
 
   // Outcome-based consequences
   if (outcome === 'crit_success' || outcome === 'success') {
-    // IGNITE on a flammable target → fire
+    // IGNITE on a flammable target → the room catches
     if (verb === 'IGNITE' && target?.properties.includes('flammable')) {
-      consequences.push({ type: 'environment_change', targetId: target.id });
+      consequences.push({ type: 'environment_change', targetId: target.id, locationState: 'burning' });
     }
-    // ELECTRIFY on conductive target → chain to nearby
+    // ELECTRIFY on conductive target → arcs light the place up
     if (verb === 'ELECTRIFY' && target?.properties.includes('conductive')) {
-      consequences.push({ type: 'environment_change', targetId: target.id });
+      consequences.push({ type: 'environment_change', targetId: target.id, locationState: 'lit' });
     }
     // FLOOD → flooding environment
     if (verb === 'FLOOD' && target) {
-      consequences.push({ type: 'environment_change', targetId: target.id });
+      consequences.push({ type: 'environment_change', targetId: target.id, locationState: 'flooded' });
     }
   }
 
@@ -195,23 +197,20 @@ export function buildConsequences(
  */
 function resolveChainReactions(
   consequence: Consequence,
-  state: GameState,
-  context: SceneContext,
+  _state: GameState,
+  _context: SceneContext,
 ): readonly Consequence[] {
   const chains: Consequence[] = [];
 
-  // environment_change (fire) → atmosphere degrades in toxic zones
-  if (consequence.type === 'environment_change') {
-    // Fire in a room can cause atmosphere to degrade
-    const currentAtmosphere = context.atmosphere;
-    if (currentAtmosphere === 'pressurized' || currentAtmosphere === 'low_oxygen') {
-      // Fire degrades atmosphere over FIRE_SPREAD_DELAY turns; immediate O2 consequence
-      chains.push({ type: 'atmosphere_change', atmosphereType: 'toxic_atmosphere' });
-    }
+  // Breaching a room throws everything loose against the walls, and the fire
+  // in the next room over finds a new draught. The fire-to-air chain is not
+  // here: it is on a delay, and belongs to tickLocationStates.
+  if (consequence.type === 'environment_change' && consequence.locationState === 'depressurized') {
+    chains.push({
+      type: 'damage', targetId: 'player',
+      amount: BALANCE.FAILURE_DAMAGE, nonLethal: true,
+    });
   }
-
-  // atmosphere_change → depressurized causes O2 drain (handled by oxygen tick each turn)
-  // No further chain needed here — oxygen.ts reads the atmosphere from state
 
   return chains;
 }
@@ -255,6 +254,22 @@ export function applyConsequences(
 // ---------------------------------------------------------------------------
 // Single consequence handlers
 // ---------------------------------------------------------------------------
+
+/** The one channel through which the world changes (decision U). */
+function writeLocationState(
+  state: GameState,
+  locationId: string,
+  token: LocationStateId,
+): GameState {
+  const before = state.locationStates[locationId] ?? {};
+  return {
+    ...state,
+    locationStates: {
+      ...state.locationStates,
+      [locationId]: applyLocationToken(before, token, state.turn),
+    },
+  };
+}
 
 function applySingleConsequence(
   state: GameState,
@@ -317,13 +332,18 @@ function applySingleConsequence(
       return { ...state, character: { ...state.character, durability: newDurability } };
     }
 
-    case 'environment_change':
-    case 'atmosphere_change':
-    case 'ship_memory_mark':
-      // Environmental changes are noted but not stored directly in this minimal
-      // engine state (scene state belongs to the UI/content layer).
-      // processTurn() uses these to update SceneContext or log narrative hints.
-      return state;
+    case 'environment_change': {
+      const locId = c.locationId ?? state.playerLocationId;
+      const token = c.locationState;
+      if (locId === null || locId === undefined || token === undefined) return state;
+      return writeLocationState(state, locId, token);
+    }
+
+    case 'atmosphere_change': {
+      const locId = c.locationId ?? state.playerLocationId;
+      if (locId === null || locId === undefined || c.atmosphereType === undefined) return state;
+      return writeLocationState(state, locId, atmosphereToken(c.atmosphereType));
+    }
 
     case 'npc_killed': {
       const npcId = c.npcId ?? c.targetId;
@@ -339,8 +359,31 @@ function applySingleConsequence(
       };
     }
 
-    case 'npc_flee':
-      return state;
+    // A creature that breaks off does not stand there waiting: it withdraws
+    // through the nearest door, and the fight is over.
+    case 'npc_flee': {
+      const npcId = c.npcId ?? c.targetId;
+      if (!npcId) return state;
+      const npcState = state.npcStates[npcId];
+      if (npcState === undefined || !isNpcAlive(npcState)) return state;
+
+      const from = npcState.locationId;
+      const escape = from !== null && state.scenario !== null
+        ? state.scenario.graph.edges.find(e => e.from === from || e.to === from)
+        : undefined;
+      const destination = escape === undefined || from === null
+        ? null
+        : (escape.from === from ? escape.to : escape.from);
+
+      return {
+        ...state,
+        activeCombat: state.activeCombat?.npcInstanceId === npcId ? null : state.activeCombat,
+        npcStates: {
+          ...state.npcStates,
+          [npcId]: { ...npcState, locationId: destination },
+        },
+      };
+    }
 
     case 'npc_relocate': {
       const npcId = c.npcId ?? c.targetId;

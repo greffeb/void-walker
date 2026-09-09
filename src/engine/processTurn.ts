@@ -23,6 +23,7 @@ import type {
 import { defaultRng } from './dice';
 import { rollCheck, outcomeOf } from './dice';
 import { applyStateToken } from './entityState';
+import { tickLocationStates } from './locationState';
 import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
 import { isReformulation } from './types';
@@ -37,7 +38,7 @@ import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
 import { createMark, addMark, getMarksForTarget, getMarkDCModifier } from './shipMemory';
 import { recordAttempt, getObstacleKey, checkFailsafe } from './failsafe';
-import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat, canDiscoverWeakPoint, checkWeakPointAutoDiscover } from './combat';
+import { resolveNPCAttack, resolvePlayerAttack, attemptFlee, attemptRetreat, canDiscoverWeakPoint, checkWeakPointAutoDiscover, shouldNPCAttack } from './combat';
 import { checkVictory, checkAdditionalDefeat } from './victory';
 import { threatCheck, transitionBeat } from './threat';
 import { createVisitState, markRevisit, markItemTaken, markItemDropped, markObstacleResolved, isObstacleResolved } from './backtracking';
@@ -129,7 +130,6 @@ function formatConsequenceDetail(c: Consequence): string {
     case 'inventory_remove': return `remove item: ${c.itemId ?? '?'}`;
     case 'item_break': return `item broken: ${c.targetId ?? '?'}`;
     case 'environment_change': return `environment change on ${c.targetId ?? '?'}`;
-    case 'ship_memory_mark': return `ship memory mark on ${c.targetId ?? '?'}`;
     case 'atmosphere_change': return `atmosphere → ${c.atmosphereType ?? '?'}`;
     case 'npc_killed': return `npc killed: ${c.targetId ?? '?'}`;
     case 'npc_flee': return `npc fled: ${c.targetId ?? '?'}`;
@@ -1201,31 +1201,39 @@ export function processTurn(
     const armorValue = getEquippedArmorValue(current.character.equippedArmor);
     const difficultyMultiplier = BALANCE.DIFFICULTY_DAMAGE_MULTIPLIER[current.difficulty];
 
-    const npcAttack = resolveNPCAttack(
-      npc.attack,
-      npc.aggressionPattern,
-      npc.hp,
-      npc.maxHp,
-      current.character.stats,
-      armorValue,
-      difficultyMultiplier,
-      rng,
-    );
+    // A creature that has had enough breaks off instead of standing there
+    // trading blows it no longer wants (P4-7).
+    if (!shouldNPCAttack(npc.aggressionPattern, combat.round, true, npc.hp, npc.maxHp)) {
+      current = applyConsequences(
+        current, [{ type: 'npc_flee', npcId: combat.npcInstanceId }], context, rng,
+      );
+    } else {
+      const npcAttack = resolveNPCAttack(
+        npc.attack,
+        npc.aggressionPattern,
+        npc.hp,
+        npc.maxHp,
+        current.character.stats,
+        armorValue,
+        difficultyMultiplier,
+        rng,
+      );
 
-    npcAttackHit = npcAttack.hit;
-    npcAttackDamage = npcAttack.hit ? npcAttack.damageDealt : 0;
+      npcAttackHit = npcAttack.hit;
+      npcAttackDamage = npcAttack.hit ? npcAttack.damageDealt : 0;
 
-    if (npcAttack.hit) {
-      current = updateCharacterHp(current, -npcAttack.damageDealt);
+      if (npcAttack.hit) {
+        current = updateCharacterHp(current, -npcAttack.damageDealt);
+      }
+
+      current = {
+        ...current,
+        activeCombat: {
+          ...combat,
+          round: combat.round + 1,
+        },
+      };
     }
-
-    current = {
-      ...current,
-      activeCombat: {
-        ...combat,
-        round: combat.round + 1,
-      },
-    };
 
     if (current.character !== null) {
       const deathResult2 = checkDeath(
@@ -1257,6 +1265,22 @@ export function processTurn(
           );
         }
       }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // STEP 7b: The world moves on its own (decisions U, P4-4, P4-5)
+  // ─────────────────────────────────────────────────────────
+  // A fire nobody put out fouls the air it burns in, then reaches the next
+  // room. FIRE_SPREAD_DELAY was a constant no code ever read.
+  if (current.scenario !== null) {
+    const spread = tickLocationStates(
+      current.locationStates,
+      current.scenario.graph.edges,
+      current.turn,
+    );
+    if (spread !== current.locationStates) {
+      current = { ...current, locationStates: spread };
     }
   }
 

@@ -22,7 +22,7 @@ import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import type { EntityState } from './entityState';
 import { makeEntityState, stateMatchesToken } from './entityState';
 import { getFeatureState, isItemRevealed, pickStateDescription } from './featureState';
-import { deriveConditions, locationStateFromAtmosphere } from './locationState';
+import { deriveConditions, locationStateFromAtmosphere, atmosphereOf } from './locationState';
 import { isNpcAlive } from './victory';
 import { buildObstacleVerbMap } from '../content/parserData';
 
@@ -206,6 +206,11 @@ export function getSceneContext(state: GameState): SceneContext {
   // --- Scene description for UI and narration ---
   const sceneDescription = buildSceneDescription(node, visitState, connectedLocations, state.featureStates ?? {}, skeletonDescription, scenarioIntro);
 
+  // The node's declared atmosphere is only a starting point: fire, breaches and
+  // scenario consequences move it afterwards (decision U).
+  const currentLocationState = state.locationStates?.[node.id]
+    ?? locationStateFromAtmosphere(node.atmosphere);
+
   return {
     inventory,
     locationItems,
@@ -213,10 +218,8 @@ export function getSceneContext(state: GameState): SceneContext {
     environmentFeatures,
     connectedLocations,
     suggestions: [],           // ParsedAction[] remains empty; parser uses its own resolution
-    environmentConditions: deriveConditions(
-      state.locationStates?.[node.id] ?? locationStateFromAtmosphere(node.atmosphere),
-    ),
-    atmosphere: node.atmosphere,
+    environmentConditions: deriveConditions(currentLocationState),
+    atmosphere: atmosphereOf(currentLocationState),
     locationId: playerLocationId,
     scenarioSuggestions,
     hasBlackBox: node.hasBlackBox === true,
