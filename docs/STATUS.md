@@ -4,8 +4,8 @@
 > Si un autre document contredit celui-ci, c'est celui-ci qui a raison.
 > Toute reprise de développement commence par lire cette page — et rien d'autre.
 
-**Dernière mise à jour :** 2026-09-03
-**Dernier commit de code :** `6339e84` (2026-03-08)
+**Dernière mise à jour :** 2026-09-09
+**Dernier commit de code :** fin du lot 8 (audit + 8 lots de correction)
 **Derniers bug reports joueurs :** 2026-06-30
 
 ---
@@ -24,24 +24,23 @@ déjà livré — le piège principal de ce dépôt.
 
 ## 2. Où en est le projet, en une phrase
 
-**Le jeu est jouable de bout en bout et techniquement sain.** Les 10 phases du plan initial
-sont livrées à l'exception de la Phase 8 (IA) et de la Phase 9 (polish/lancement). Ce qui reste
-n'est plus de la construction : c'est de la **qualité de jeu** — variété narrative, poids de
-l'échec, ergonomie du texte.
+**Le jeu est jouable de bout en bout, il est gagnable, et un test le prouve en y jouant.**
+Les 10 phases du plan initial sont livrées à l'exception de la Phase 8 (IA) et de la Phase 9
+(polish/lancement). Un audit phase par phase mené en septembre 2026 a produit 31 décisions
+arbitrées et 8 lots de correction, tous livrés (§3bis).
 
-### Santé technique (vérifiée le 2026-09-03)
+### Santé technique (vérifiée le 2026-09-09)
 
 | Contrôle | Résultat |
 |---|---|
 | `npm run typecheck` | ✅ |
 | `npm run lint` | ✅ 0 erreur, 0 warning |
-| `npm test` (unitaires) | ✅ **1 717 tests / 64 fichiers** |
-| `npm run check` (suite complète) | ✅ **1 843 tests / 84 fichiers** (unit + stress + integration) |
-| Taille de `src/` | 45 274 lignes |
+| `npm run check` (suite complète) | ✅ **2 005 tests / 95 fichiers** (unit + stress + integration) |
+| Taille de `src/` | 40 527 lignes |
 | CI | `test.yml` (typecheck + lint + test:all) · `deploy-pwa.yml` (GitHub Pages, toutes branches) |
 
-**Rien n'est cassé.** Le projet a simplement été mis en pause ~6 mois. Il n'y a pas de dette
-technique bloquante à rembourser avant de reprendre.
+`src/` a **maigri** de 45 274 à 40 527 lignes : la mesure précédente comptait 4 écrans,
+5 hooks et 2 panneaux morts, supprimés depuis (décision R).
 
 ---
 
@@ -49,17 +48,53 @@ technique bloquante à rembourser avant de reprendre.
 
 | Phase | Statut | Preuve dans le code |
 |---|---|---|
-| 0 — Bootstrap + i18n | ✅ Livré | `src/i18n/`, 809 clés FR + EN |
-| 1 — Propriétés & verbes | ✅ Livré | 85 propriétés, 78 verbes |
-| 2 — Parser | ✅ Livré | `parser.ts`, `resolver.ts`, 6 stratégies de matching |
-| 3 — Résolution & combat | ✅ Livré | `dice.ts`, `difficulty.ts`, `combat.ts` |
-| 4 — Conséquences & état | ✅ Livré | `consequences.ts`, `state.ts`, chaînes de cascade |
-| 5 — Narration | ✅ Livré | composition 7 couches, `composer.ts` — contenu porté à 3 variantes/cellule sur les 12 verbes principaux (P2) |
+| 0 — Bootstrap + i18n | ✅ Livré | `src/i18n/`, FR + EN |
+| 1 — Propriétés & verbes | ✅ Livré | 69 propriétés, **85 verbes** (78 + 7 secrets) |
+| 2 — Parser | ✅ Livré | `parser.ts`, `resolver.ts` — refondus au lot 5 |
+| 3 — Résolution & combat | ✅ Livré | `dice.ts`, `difficulty.ts`, `combat.ts`, `nature.ts` |
+| 4 — Conséquences & état | ✅ Livré | `consequences.ts`, `locationState.ts`, `failsafe.ts` |
+| 5 — Narration | ✅ Livré | composition 7 couches, `composer.ts` |
 | 6 — Scénarios & victoire | ✅ Livré | 3 skeletons, 15 modules, `victory.ts`, `threat.ts` |
-| 6B — Boucle de jeu | ✅ Livré | `checkVictory` / `threatCheck` / `visitedLocations` câblés dans `processTurn` |
-| 7 — UI PWA | ✅ Livré | 8 écrans, 14 composants, thème CRT, carte canvas, chorégraphie de dés, PWA |
+| 6B — Boucle de jeu | ✅ Livré | victoire / menace / visites câblées dans `processTurn` |
+| 7 — UI PWA | ✅ Livré | écrans, thème CRT, carte, chorégraphie de dés, PWA |
 | 8 — IA (Gemini) | ⬜ Non démarré | `src/ai/` n'existe pas |
-| 9 — Polish & lancement | ⬜ Non démarré | dépend de P1→P4 ci-dessous |
+| 9 — Polish & lancement | ⬜ Non démarré | dépend du §5 |
+
+⚠️ **Ce tableau ne dit que « le système existe ».** L'audit de septembre 2026 a montré que
+plusieurs « ✅ Livré » recouvraient du câblage absent : failsafe 1 sur 4, verbes secrets 0 sur 9,
+armure jamais appliquée, passif du Medic jamais accordé, sauvegarde automatique jamais
+écrite. Ces trous sont bouchés (§3bis), mais la leçon vaut pour la suite : **un livrable de la
+forme « X existe » ne remplace pas un livrable de la forme « X consomme Y »**.
+
+---
+
+## 3bis. Audit 2026-09 — 31 décisions, 8 lots
+
+Un audit phase par phase a comparé ce qui était **promis** dans `docs/archive/phases/` à ce que
+le code **fait**. Cinq motifs expliquent ~80 % des écarts :
+
+1. **La promesse affichée sans effet** (12 cas) — texte i18n et donnée présents, câblage absent.
+2. **Le contournement plutôt que le raccordement** (9) — une branche ajoutée à côté du système.
+3. **Le test qui valide le dernier mètre** (5) — l'état gagnant écrit à la main.
+4. **La duplication non supprimée après remplacement** (5).
+5. **Le type qui ment** (6) — `as StringKey`, `Record<string, …>`, unions élargies.
+
+**Cause racine unique :** chaque phase livrait SON morceau ; la jonction entre données et
+mécanique n'a jamais été le livrable de personne.
+
+| Lot | Contenu | État |
+|---|---|---|
+| 0 | Filet de mesure : détection de blocage réécrite, cliquets, armure récupérée | ✅ |
+| 1 | Nettoyage : 11 fichiers morts supprimés, test d'exports orphelins | ✅ |
+| 2 | Socle de types : propriété ≠ état, stat par cible, état d'environnement par lieu | ✅ |
+| 3 | Pipeline de résolution : un seul système de DC, gradation d'absurdité, LCK sans bonus | ✅ |
+| 4 | Le monde réagit : 4 failsafes distincts, conséquences = canal unique, victoire émergente | ✅ |
+| 5 | Parser : résolu / ambigu / aucun, politiques en données, négation | ✅ |
+| 6 | Personnage : passifs à un point d'application, allocation dans `initGame` | ✅ |
+| 7 | Narration & UI : 7 verbes secrets, ordre des couches, réglages, sauvegarde, permadeath | ✅ |
+| 8 | Contenu et victoires : répétition narrative, **premières victoires mesurées** | ✅ |
+
+---
 
 ### Systèmes livrés hors plan de phases
 
@@ -82,172 +117,161 @@ technique bloquante à rembourser avant de reprendre.
 | Items | 20 |
 | NPCs | 5 |
 | Templates d'action | 1 003 |
-| Clés i18n | 809 (FR + EN) |
+| Réactions PNJ | 44 (au moins 2 par disposition × issue) |
+| Textes de second regard | 24 |
+| Textes de verbes secrets | 44 |
+| Clés i18n | FR + EN, exhaustivité garantie par `StringKey` |
 
 ---
 
 ## 4. Ce qui ne va pas — diagnostics chiffrés
 
-Ces quatre constats viennent d'une analyse du code, pas d'une impression. Ils justifient
-l'ordre des chantiers du §5.
+Ces constats viennent de mesures, pas d'impressions. Chaque chiffre est reproductible par le
+script cité.
 
-### 4.1 ~~La narration se répète~~ ✅ résolu par P2 — *2026-09-03*
+### 4.1 ~~La narration se répète~~ ✅ résolu — *2026-09-09*
 
-Les templates sont indexés par cellule `(verbe × type de cible × outcome × tension)` —
-c'est la clé que `selectActionTemplate()` utilise réellement pour filtrer.
+Deux passes. La première (P2, 2026-09-03) a écrit 560 templates. La seconde (lot 8) a d'abord
+**mesuré ce que le joueur relit vraiment** — `npx tsx scripts/repetition-audit.ts`, 60 parties
+graines — au lieu de compter les cellules :
 
-| Mesure | Avant P2 | Après P2 |
+| Mesure | Avant lot 8 | Après |
 |---|---|---|
-| Templates d'action | 443 | **1 003** |
-| Cellules couvertes | 425 | 525 |
-| Moyenne de variantes / cellule | 1,04 | **1,91** |
-| Cellules à une seule variante | 411 (97 %) | 231 (44 %) |
-| Verbes avec templates dédiés | 24 / 78 | **39 / 78** |
-| Moyenne sur les 12 verbes principaux | 1,03 | **3,00** |
+| Répétitions exactes dans une même partie | 194 / 2 170 tours (8,9 %) | **76 / 2 170 (3,5 %)** |
+| Tours `EXAMINE` répétés | 50 % | **15 %** |
+| Occurrences de la phrase la plus fréquente | 208 | 80 |
 
-`NarrationMemory` (buffer 10, fallback LRU) fonctionnait déjà correctement : le problème
-était un pool à un seul élément, pas le code. Les 12 verbes les plus joués — mesurés sur
-60 parties automatisées : `MOVE_TO`, `EXAMINE`, `STRIKE`, `TAKE`, `USE`, `HACK`, `OPEN`,
-`TALK`, `REPAIR`, `CUT`, `SHOOT`, `BREAK` — ont désormais exactement 3 variantes par
-cellule, garanti par un test unitaire (`tests/unit/narration/contentCoverage.test.ts`).
+La cause n'était pas la pauvreté des templates : c'était le **mécanisme anti-répétition
+lui-même**, qui répondait à tout second regard par une phrase fixe écrite en dur dans le pont
+de narration. Il répond maintenant par un texte gradué selon l'insistance et accordé au sens
+du verbe (`src/content/templates/reexamination.ts`).
 
-Quinze verbes qui tombaient sur les fallbacks de catégorie ont reçu des templates dédiés
-(2 variantes / cellule) : `PUSH`, `PULL`, `ACTIVATE`, `DEACTIVATE`, `SCAN`, `LISTEN`,
-`SMELL`, `JUMP`, `DODGE`, `DISTRACT`, `DECEIVE`, `DROP`, `EQUIP`, `DRINK`, `TOUCH`.
+**Métrique de cellules, corrigée :** l'ancienne version de cette page annonçait « 91 % de
+cellules à variante unique ». La mesure réelle donne **42 %** (200 sur 481) —
+`npx tsx scripts/analyze-templates.ts`. Douze verbes secondaires restent à 1 variante
+(`EAT`, `READ`, `PERSUADE`, `INTIMIDATE`, `THROW`, `CLIMB`, `HIDE`, `BARRICADE`,
+`FORCE_OPEN`, `RUN`, `WAIT`, `SELF_HARM`) ; aucun n'apparaît dans les répétitions mesurées,
+ce qui en fait un chantier de confort, pas de qualité.
 
-**Reste à faire (non bloquant) :** 9 verbes secondaires restent à 1 variante par cellule
-(`READ`, `PERSUADE`, `INTIMIDATE`, `THROW`, `CLIMB`, `HIDE`, `BARRICADE`, `FORCE_OPEN`,
-`RUN`), ainsi que `EAT`, `WAIT` et `SELF_HARM`. Reproduire les chiffres :
-`npx tsx scripts/analyze-templates.ts`.
+### 4.2 ~~L'échec n'a pas de poids~~ ✅ résolu par le lot 4 — *2026-09-09*
 
-### 4.2 L'échec n'a pas de poids — le joueur peut spammer
+Le diagnostic était **incomplet**. La vraie cause n'était pas le réglage du failsafe : c'est
+que **3 des 4 types de failsafe n'avaient jamais été construits**. `checkFailsafe` renvoyait
+toujours `degraded_bypass`, c'est-à-dire une réduction de DC — donc oui, spammer était
+récompensé, parce que c'était la seule réponse que le moteur savait donner.
 
-Deux causes mécaniques, indépendantes, qui se cumulent :
+Les quatre font maintenant quatre choses (`src/engine/failsafe.ts`) :
+`degraded_bypass` (DC réduit **et** PV prélevés), `alternate_route` (révèle une voie
+inexplorée, sans remise de DC), `narrative_rescue` (ouvre la sortie, pas le butin),
+`threat_escalation` (avance l'horloge du rôdeur). Le cauchemar ne désactive plus le filet : il
+répond par la menace.
 
-1. **`src/engine/consequences.ts:169`** — les dégâts d'échec hors combat sont `nonLethal` :
-   ils ne peuvent pas faire descendre les PV sous 1. Donc **à 1 PV, rater est littéralement
-   gratuit**.
-2. **`src/engine/failsafe.ts` + `BALANCE.FAILSAFE`** — au-delà du seuil (2 tentatives en
-   explorer, 4 en survivor), chaque échec supplémentaire **réduit le DC de 3**.
-   Spammer n'est donc pas seulement gratuit : **c'est récompensé**.
+Le plancher `nonLethal` à 1 PV est **conservé** — il protège l'exploration, pas le combat, et
+les défaites mesurées sont à 100 % `hp_zero`.
 
-Le garde-fou anti-softlock était volontaire. L'effet de bord — le jeu « sur des rails » — ne
-l'était pas. Le `stalkerClock` est aujourd'hui la seule vraie pression, et il se remet à zéro
-à chaque progression de nœud.
+### 4.3 ~~L'ordre du texte~~ ✅ résolu par le lot 7 — *2026-09-09*
 
-### 4.3 L'ordre et le rendu du texte
+`npc_reaction` est passé de la 4e à la 7e position, conformément à la table verrouillée de la
+phase 5 et à `NARRATION_STRUCTURE.md` §1.4 : **le code était la dérive, pas les documents**.
 
-`LAYER_ORDER` est figé en dur dans `src/narration/types.ts:74` :
-`action_result → sensory → consequence → npc_reaction → atmosphere → player_state → threat`.
+Tranché sur des sorties réelles (`npx tsx scripts/layer-order-trial.ts`), pas sur le tableau.
+Piège rencontré et à retenir : comparer deux parties rejouées ne compare rien, parce que
+l'anti-répétition consomme d'autres variantes. Le script capture les `NarrativeContext` et fait
+composer **les mêmes** par les deux ordres, RNG fixe, mémoire remise à zéro.
 
-`docs/specs/NARRATION_STRUCTURE.md` contient déjà une spec de réordonnancement annotée,
-**partiellement appliquée** seulement. C'est le point de départ du chantier P4b, pas une page
-blanche.
-
-Défauts de rendu observés en jeu (extrait réel de l'issue #85) :
-
-> « Vous tentez d'utiliser la Trousse médicale. **la** Trousse médicale s'active après un
-> instant d'hésitation. Le résultat apparaît : fonctionnel. »
-
-Trois défauts en une phrase : redondance action/résultat, minuscule après un point, texte
-générique creux.
+Restent les défauts de **rendu** (chantier P4a ci-dessous), inchangés :
+le modificateur `|capitalize` n'existe pas dans `templateEngine.ts`, et `postProcess`
+contracte « de le » → « du » même dans du texte légitime.
 
 ### 4.4 Les bugs ouverts
 
-**16 issues ouvertes**, toutes au format `[Playtest]` avec reproduction seedée. Elles se
-regroupent en ~6-7 causes racines :
+**16 issues ouvertes**, toutes au format `[Playtest]` avec reproduction seedée.
 
-| Cause probable | Issues |
-|---|---|
-| MOVE_TO vers le lieu où on se trouve déjà | #78, #82, #83 |
-| SELF_HARM → environment | #64, #65, #69 |
-| EXAMINE → item.multitool | #61, #77 |
-| SHOOT → environment | #79, #80 |
-| ~~USE trousse médicale : succès mais 0 PV gagné~~ ✅ corrigé | ~~#85~~ |
-| Parser / UI divers | #60, #72, #75, #81, #84 |
+⚠️ L'ancienne version de cette page concluait « une seule est un bug de gameplay ». **C'est
+faux** : trois des quatre familles avaient une cause racine dans la résolution de cible, toutes
+traitées au lot 5.
 
-**Une seule est un bug de gameplay** (#85). Les autres sont cosmétiques ou liées au parser.
+| Cause racine | Issues | État |
+|---|---|---|
+| MOVE_TO vers le lieu où on se trouve déjà | #78, #82, #83 | ✅ pool `here` (décision P2-7) |
+| SELF_HARM → environment | #64, #65, #69 | ✅ la cible abstraite n'existe plus (décision N) |
+| SHOOT → environment | #79, #80 | ✅ politiques de cible par verbe (décision O) |
+| EXAMINE → item.multitool | #61, #77 | à vérifier |
+| USE trousse médicale | ~~#85~~ | ✅ corrigé |
+| Parser / UI divers | #60, #72, #75, #81, #84 | à vérifier |
+
+**À faire :** rejouer les reproductions seedées des issues restantes avant de les fermer.
+
+### 4.5 Le jeu est gagnable — et il ne l'était mesurablement pas
+
+Pendant six lots, le filet a mesuré **0 % de victoires** sans que personne demande pourquoi.
+Le diagnostic (`npx tsx scripts/diag-victory.ts`) tient en deux lignes : sur 200 parties,
+**35 % atteignent le lieu de victoire et 0 % possèdent l'objet requis**. Le badge dort dans un
+casier verrouillé, et aucun des deux bots n'avait jamais essayé d'ouvrir quoi que ce soit.
+
+**Le 0 % mesurait l'instrument, pas le jeu.** `tests/integration/winByPlaying.test.ts` le
+prouve en tapant les commandes, sans écrire un seul champ d'état — contrairement à
+`scenarioCompletion`, qui téléporte le joueur et lui met l'objet dans les mains.
+
+| Mesure (500 parties, graine 42) | Avant | Après |
+|---|---|---|
+| Victoires | 0 % | **4,0 %** (bot objectif 8,0 %) |
+| Bloqué | 268 | **212** |
+| Couverture de lieux | 67,0 % | 61,0 % |
+| Obstacles résolus | 0,68 | 0,63 |
+
+Les deux cliquets de progression baissent parce que les tours passés à forcer un casier ne
+sont pas des tours passés à marcher — et ce sont eux qui achètent les victoires.
+
+**La cible §6 de la phase 6B reste loin** : 40 % pour le bot objectif, 10 % pour l'aléatoire.
+C'est le chantier P1 ci-dessous.
 
 ---
 
 ## 5. Chantiers priorisés
 
-L'ordre compte : chaque chantier dépend de l'état laissé par le précédent.
+### P1 — Rendre la victoire atteignable · le seul chantier de fond restant
 
-### ✅ P0 — Remettre la carte à jour · *fait le 2026-09-03*
+4 % de victoires prouve que le chemin existe ; 40 % est la cible. Les pistes, par ordre de
+rendement estimé :
 
-Création de ce fichier, réorganisation des 30 documents, réécriture de `CLAUDE.md`,
-nettoyage des déchets à la racine.
+- **Le bot aléatoire ne gagne jamais (0/250).** Vérifier si c'est normal ou si la partie exige
+  une séquence qu'un joueur ne devine pas — c'est la même question que « le jeu est-il
+  lisible ? ».
+- **Deux gestes par porte.** Le badge déverrouille mais n'ouvre pas ; il faut ensuite pousser.
+  C'est défendable, mais rien ne le dit au joueur au moment où il utilise le badge.
+- **Les objets de progression sont derrière des jets.** Forcer le casier coûte des PV et peut
+  échouer plusieurs fois ; c'est la principale source de défaite mesurée.
+- **`defeat_entity` et `containment` ne sont utilisés par aucun scénario** — deux des sept
+  types de victoire dorment.
 
-### P1 — Le bug #85, et le triage · ~1 j · *#85 corrigé le 2026-09-03*
+### P2 — Fermer les issues restantes · petit
 
-✅ **#85 corrigé** : le verbe `USE` sur un consommable de soin (`healingValue`) applique
-désormais une conséquence `heal` et consomme l'item sur succès. La cause racine était que
-seul `EAT` (items `edible`) lisait `healingValue` ; les kits `injectable` employés via `USE`
-tombaient dans le bloc générique où seul un `crit_success` soignait (+1). Fix dans
-`src/engine/consequences.ts`, gardes de régression dans `tests/unit/engine/useHeal.test.ts`
-et `tests/integration/useHeal.integration.test.ts`.
+Rejouer les reproductions seedées de #61, #77, #60, #72, #75, #81, #84 (§4.4). Trois familles
+sur quatre sont déjà traitées à la racine ; il reste à le vérifier et à fermer.
 
-Triage des 15 autres issues → causes racines regroupées au §4.4 (aucun étiquetage GitHub).
+### P3 — UX du rendu narratif (ex-P4a) · ~1 j
 
-**Pourquoi maintenant :** tant que le soin est cassé, l'équilibrage de la survie est
-inobservable — donc P3 est infaisable. Ce n'est pas une correction de bug, c'est une
-condition préalable à la mesure.
+Articles, majuscules, redondance action/résultat. Deux défauts précis : `|capitalize` inconnu
+de `templateEngine.ts`, et `postProcess` qui contracte « de le » → « du » à tort.
 
-**Ne pas aller plus loin sur les bugs.** Les 15 autres n'expliquent aucune des frustrations
-de jeu identifiées au §4.
+**Règle apprise :** ne jamais commencer une phrase par `{def_target}` ou `{def_tool}` — le slot
+rend l'article en minuscule, ce qui produit une minuscule après un point.
 
-### ✅ P2 — Variété narrative · *fait le 2026-09-03*
+### P4 — Variété de confort · optionnel
 
-560 nouveaux templates répartis en deux fichiers :
-
-- `src/content/templates/actionVariants.ts` — +2 variantes sur chacune des 183 cellules des
-  12 verbes les plus joués, portant chaque pool à 3 ;
-- `src/content/templates/actionCoverage.ts` — templates dédiés pour 15 verbes qui tombaient
-  jusqu'ici sur les fallbacks de catégorie.
-
-Correction annexe : 5 templates `EAT` utilisaient `{def_target|capitalize}`, un modificateur
-que `templateEngine.ts` ne connaît pas — le slot était remplacé par une chaîne vide. Les
-textes ont été reformulés (le support du modificateur relève de P4a).
-
-**Mesure de succès atteinte :** 3,00 variantes/cellule sur les 12 verbes principaux
-(1,03 avant), verrouillé par un test unitaire. Chiffres complets au §4.1.
-
-**Règle apprise :** ne jamais commencer une phrase par `{def_target}` ou `{def_tool}` —
-le slot rend l'article défini en minuscule (« le sas »), ce qui produit une minuscule après
-un point. Le corpus antérieur contient encore ce défaut ; c'est le périmètre de P4a.
-
-### P3 — Poids de l'échec et progression · 3-5 j, conception d'abord
-
-Trancher le design avant d'écrire du code :
-
-- l'échec doit **changer le monde** (outil cassé, créature alertée, voie verrouillée) au lieu
-  d'infliger -1 PV plafonné ;
-- remplacer la réduction de DC par tentative par une **révélation de voie alternative**
-  (« la force ne donnera rien — mais le panneau latéral est mal fixé ») ;
-- retirer ou atténuer le plancher `nonLethal` à 1 PV.
-
-**Pourquoi après P2 :** P2 ne casse rien, P3 impose un re-playtest complet. Et P3 a besoin
-de #85 corrigé (P1) pour être mesurable.
-
-### P4 — UX de la narration · à découper
-
-- **P4a** (~1 j) : articles, majuscules, redondance action/résultat, mots
-  mis en avant. Bugs de `templateEngine` et du moteur de grammaire. Deux défauts précis
-  identifiés pendant P2 : le modificateur `|capitalize` n'existe pas dans `templateEngine.ts`,
-  et `postProcess` contracte « de le » → « du » même dans du texte français légitime
-  (« impossible de le déloger » → « impossible du déloger »).
-- **P4b** (gros) : ordre des tronçons et propositions d'action. Repartir de
-  `docs/specs/NARRATION_STRUCTURE.md`.
-
-**Pourquoi P4b en dernier :** la refonte de la progression (P3) change ce qu'il faut afficher.
-Trancher le `LAYER_ORDER` avant P3, c'est du travail à refaire.
+Douze verbes secondaires à 1 variante par cellule (§4.1). Aucun n'apparaît dans les
+répétitions mesurées : à faire seulement si une mesure le justifie.
 
 ### Pièges connus
 
-- **Attaquer les 16 issues en premier.** Réflexe naturel, rendement le plus faible.
-- **Toucher au `LAYER_ORDER` avant P3.**
 - **Suivre un document de `docs/archive/`.** Il décrit du travail déjà fait.
+- **Croire un chiffre de cette page sans le re-mesurer.** Deux des quatre diagnostics de la
+  version précédente étaient faux (91 % de cellules, « une seule est un bug de gameplay »).
+- **Desserrer un cliquet sans écrire pourquoi.** Les fichiers de stress portent l'historique
+  de chaque desserrage ; c'est ce qui permet de distinguer un progrès d'une régression.
+- **Comparer deux mesures après un changement qui consomme la RNG.** Le flux se décale et
+  les chiffres ne sont plus comparables : il faut isoler l'effet (voir le lot 6).
 
 ---
 
