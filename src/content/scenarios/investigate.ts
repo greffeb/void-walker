@@ -1601,11 +1601,10 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Baie d\'Amarrage — Votre navette s\'arrime à la Station Phoebe-7 dans un silence de mort. '
-          + 'Pas de comité d\'accueil, pas de procédure standard. Les lumières de la baie clignotent faiblement. '
-          + 'L\'air est respirable mais stérile — aucune odeur, aucun bruit de machine. '
-          + 'Le manifeste cargo est encore allumé, la navette attend derrière le sas. '
-          + 'Premier réflexe d\'enquêteur : ne touchez à rien, observez tout.',
+        fr: 'Votre navette s\'arrime à la Station Phoebe-7 dans un silence de mort. '
+          + 'Pas de comité d\'accueil, pas de procédure d\'arrimage, pas une voix sur la fréquence. '
+          + 'Les lumières de la baie clignotent faiblement, à contretemps. '
+          + 'L\'air est respirable mais stérile — aucune odeur, aucun bruit de machine.',
         en: 'Docking Bay — Your shuttle docks with Station Phoebe-7 in dead silence. '
           + 'No welcoming committee. Breathable but sterile air. The cargo manifest is still on.',
       },
@@ -1616,12 +1615,10 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Centre de Communications — Le cœur nerveux de la station. '
-          + 'Trois terminaux occupent la salle : le terminal de communications principal, '
-          + 'verrouillé derrière un chiffrement militaire ; un terminal de maintenance auxiliaire au coin, '
-          + 'dont l\'écran fissuré affiche des fragments de logs ; '
-          + 'et un bloc-notes manuscrit posé sur la console — l\'écriture de Vasquez. '
-          + 'Toutes les réponses sont ici. Il suffit de savoir où chercher.',
+        fr: 'Le cœur nerveux de la station, et personne pour le faire battre. '
+          + 'Les ventilateurs des consoles tournent encore, à vide, dans une pièce que rien n\'éclaire '
+          + 'sinon les écrans. Sur l\'un d\'eux, un curseur clignote au bout du même message '
+          + 'depuis soixante-douze heures.',
         en: 'Comms Center — The station\'s nerve center. Three terminals: '
           + 'the encrypted main comms terminal, a cracked maintenance terminal, '
           + 'and Vasquez\'s handwritten clipboard. All the answers are here.',
@@ -1633,12 +1630,10 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Quartiers de la Directrice — Le bureau personnel de Vasquez. '
-          + 'Luxueux pour un avant-poste minier. Terminal personnel encore allumé, '
-          + 'un coffre-fort mural, et un plan d\'évacuation annoté au feutre rouge. '
-          + 'Vasquez est partie en vitesse — elle n\'a pas eu le temps de tout effacer. '
-          + 'C\'est ici que vous trouverez les preuves directes de la conspiration '
-          + 'et les clés d\'accès nécessaires pour transmettre la vérité.',
+        fr: 'Le bureau personnel de Vasquez, luxueux pour un avant-poste minier : '
+          + 'tapis épais, bois véritable, un fauteuil qui a coûté plus qu\'un mois de salaire de mineur. '
+          + 'Un tiroir est resté ouvert, des papiers ont glissé au sol. '
+          + 'Elle est partie vite — assez vite pour ne pas finir ce qu\'elle avait commencé à effacer.',
         en: 'Director\'s Quarters — Vasquez\'s personal office. Luxurious for a mining outpost. '
           + 'Personal terminal still on, a wall safe, and an annotated evacuation map. '
           + 'She left in a hurry — she didn\'t have time to erase everything.',
@@ -1650,13 +1645,10 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'Niveau Réacteur — Chaleur oppressante. Le cœur du réacteur pulse de manière irrégulière, '
-          + 'projetant des lueurs orange sur les parois métalliques. L\'atmosphère est toxique — '
-          + 'chaque seconde ici vous coûte de l\'oxygène. '
-          + 'L\'IA de la station, PHOEBE, est ouvertement hostile : portes qui se verrouillent, '
-          + 'systèmes qui dysfonctionnent, et un programme d\'effacement massif en cours '
-          + 'sur les deux nœuds de traitement qui ronronnent dans l\'ombre. '
-          + 'Neutralisez l\'IA, stabilisez — ou sabotez — le réacteur.',
+        fr: 'Chaleur oppressante. Des lueurs orange battent sur les parois au rythme d\'un réacteur '
+          + 'qui ne tient plus la mesure. L\'atmosphère est toxique : chaque seconde ici se paie '
+          + 'en oxygène. Et PHOEBE, l\'IA de la station, a cessé de faire semblant — des portes '
+          + 'se verrouillent derrière vous, des systèmes s\'éteignent à votre approche.',
         en: 'Reactor Level — Oppressive heat. The reactor pulses erratically. '
           + 'Toxic atmosphere drains oxygen. The AI is openly hostile. '
           + 'Neutralize the AI, stabilize or sabotage the reactor.',
@@ -1668,14 +1660,10 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 9,
       descriptionKey: {
-        fr: 'Salle de Transmission — Le dernier bastion. La balise de détresse est ici, '
-          + 'massive et silencieuse, son antenne orientée vers les étoiles. '
-          + 'Le verrou final de l\'IA protège les contrôles de transmission. '
-          + 'Le panneau de communications peut amplifier le signal — '
-          + 'et l\'écran de transmission attend vos ordres. '
-          + 'Tout ce que vous avez découvert, toutes les preuves collectées '
-          + '— c\'est ici que la vérité quitte la station. '
-          + 'Activez la balise. Chargez les preuves. Transmettez.',
+        fr: 'Le dernier bastion. La salle est longue, basse, tournée vers l\'unique paroi '
+          + 'qui donne sur le vide. Une antenne massive traverse le plafond et sort de la coque, '
+          + 'pointée vers des étoiles qui ne savent rien de ce qui s\'est passé ici. '
+          + 'Tout ce que vous avez découvert tient maintenant dans ce que cette pièce peut émettre.',
         en: 'Transmission Room — The final stand. The distress beacon, the AI\'s last lock, '
           + 'the comms array. Everything you\'ve found must be transmitted from here.',
       },
@@ -1686,12 +1674,10 @@ export const INVESTIGATE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Observatoire — Le calme après la tempête. '
-          + 'Le signal est parti, quelque part dans l\'immensité. '
-          + 'Fraude, sabotage, meurtre — tout voyage à la vitesse de la lumière '
-          + 'vers ceux qui pourront rendre justice. '
-          + 'Le hublot montre les étoiles. Phoebe-7 sera bientôt un cimetière officiel, '
-          + 'mais les 34 membres d\'équipage ne seront pas morts pour rien.',
+        fr: 'Le calme après la tempête. Le signal est parti, quelque part dans l\'immensité, '
+          + 'et plus rien ne peut le rappeler. Fraude, sabotage, meurtre : tout voyage à la vitesse '
+          + 'de la lumière vers ceux qui pourront en faire quelque chose. '
+          + 'Phoebe-7 sera bientôt un cimetière officiel, mais les trente-quatre ne seront pas morts pour rien.',
         en: 'Observatory — Calm after the storm. The signal is out there. '
           + 'Fraud, sabotage, murder — all traveling at lightspeed toward justice. '
           + 'The crew of 34 will not have died for nothing.',

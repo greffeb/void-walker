@@ -15,7 +15,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Baie d'Amarrage — Votre navette s'arrime à la Station Phoebe-7 dans un silence de mort. Pas de comité d'accueil, pas de procédure standard. Les lumières de la baie clignotent faiblement. L'air est respirable mais stérile — aucune odeur, aucun bruit de machine. Le manifeste cargo est encore allumé, la navette attend derrière le sas. Premier réflexe d'enquêteur : ne touchez à rien, observez tout.
+> Votre navette s'arrime à la Station Phoebe-7 dans un silence de mort. Pas de comité d'accueil, pas de procédure d'arrimage, pas une voix sur la fréquence. Les lumières de la baie clignotent faiblement, à contretemps. L'air est respirable mais stérile — aucune odeur, aucun bruit de machine.
 
 > Vous voyez autour de vous Sas d'amarrage, Terminal du manifeste cargo, Pinces d'amarrage.
 > Parmi les débris, vous remarquez Scanner portable, Trousse à outils standard.
@@ -124,7 +124,7 @@ Les communications se déversent à l'écran. Un échange saute aux yeux : le Dr
 
 ### Ce que le joueur lit en entrant
 
-> Centre de Communications — Le cœur nerveux de la station. Trois terminaux occupent la salle : le terminal de communications principal, verrouillé derrière un chiffrement militaire ; un terminal de maintenance auxiliaire au coin, dont l'écran fissuré affiche des fragments de logs ; et un bloc-notes manuscrit posé sur la console — l'écriture de Vasquez. Toutes les réponses sont ici. Il suffit de savoir où chercher.
+> Le cœur nerveux de la station, et personne pour le faire battre. Les ventilateurs des consoles tournent encore, à vide, dans une pièce que rien n'éclaire sinon les écrans. Sur l'un d'eux, un curseur clignote au bout du même message depuis soixante-douze heures.
 
 > Vous voyez autour de vous Terminal chiffré, Terminal de maintenance, Bloc-notes du directeur.
 
@@ -216,7 +216,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 
 ### Ce que le joueur lit en entrant
 
-> Quartiers de la Directrice — Le bureau personnel de Vasquez. Luxueux pour un avant-poste minier. Terminal personnel encore allumé, un coffre-fort mural, et un plan d'évacuation annoté au feutre rouge. Vasquez est partie en vitesse — elle n'a pas eu le temps de tout effacer. C'est ici que vous trouverez les preuves directes de la conspiration et les clés d'accès nécessaires pour transmettre la vérité.
+> Le bureau personnel de Vasquez, luxueux pour un avant-poste minier : tapis épais, bois véritable, un fauteuil qui a coûté plus qu'un mois de salaire de mineur. Un tiroir est resté ouvert, des papiers ont glissé au sol. Elle est partie vite — assez vite pour ne pas finir ce qu'elle avait commencé à effacer.
 
 > Vous voyez autour de vous Terminal du directeur, Coffre-fort mural, Plan d'évacuation.
 > Parmi les débris, vous remarquez Dossiers compromettants.
@@ -303,7 +303,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 
 ### Ce que le joueur lit en entrant
 
-> Niveau Réacteur — Chaleur oppressante. Le cœur du réacteur pulse de manière irrégulière, projetant des lueurs orange sur les parois métalliques. L'atmosphère est toxique — chaque seconde ici vous coûte de l'oxygène. L'IA de la station, PHOEBE, est ouvertement hostile : portes qui se verrouillent, systèmes qui dysfonctionnent, et un programme d'effacement massif en cours sur les deux nœuds de traitement qui ronronnent dans l'ombre. Neutralisez l'IA, stabilisez — ou sabotez — le réacteur.
+> Chaleur oppressante. Des lueurs orange battent sur les parois au rythme d'un réacteur qui ne tient plus la mesure. L'atmosphère est toxique : chaque seconde ici se paie en oxygène. Et PHOEBE, l'IA de la station, a cessé de faire semblant — des portes se verrouillent derrière vous, des systèmes s'éteignent à votre approche.
 
 > Vous voyez autour de vous Cœur du réacteur, Nœud IA primaire, Nœud IA secondaire, Terminal de neutralisation.
 
@@ -406,7 +406,7 @@ MODE SÉCURISÉ : L'IA conservera ses fonctions vitales (support vie, gravité) 
 
 ### Ce que le joueur lit en entrant
 
-> Salle de Transmission — Le dernier bastion. La balise de détresse est ici, massive et silencieuse, son antenne orientée vers les étoiles. Le verrou final de l'IA protège les contrôles de transmission. Le panneau de communications peut amplifier le signal — et l'écran de transmission attend vos ordres. Tout ce que vous avez découvert, toutes les preuves collectées — c'est ici que la vérité quitte la station. Activez la balise. Chargez les preuves. Transmettez.
+> Le dernier bastion. La salle est longue, basse, tournée vers l'unique paroi qui donne sur le vide. Une antenne massive traverse le plafond et sort de la coque, pointée vers des étoiles qui ne savent rien de ce qui s'est passé ici. Tout ce que vous avez découvert tient maintenant dans ce que cette pièce peut émettre.
 
 > Vous voyez autour de vous Balise de détresse, Panneau de communications, Verrou final de l'IA, Écran de transmission balise.
 
@@ -516,7 +516,7 @@ Pour transmettre : insérer le badge administrateur, charger les fichiers de pre
 
 ### Ce que le joueur lit en entrant
 
-> Observatoire — Le calme après la tempête. Le signal est parti, quelque part dans l'immensité. Fraude, sabotage, meurtre — tout voyage à la vitesse de la lumière vers ceux qui pourront rendre justice. Le hublot montre les étoiles. Phoebe-7 sera bientôt un cimetière officiel, mais les 34 membres d'équipage ne seront pas morts pour rien.
+> Le calme après la tempête. Le signal est parti, quelque part dans l'immensité, et plus rien ne peut le rappeler. Fraude, sabotage, meurtre : tout voyage à la vitesse de la lumière vers ceux qui pourront en faire quelque chose. Phoebe-7 sera bientôt un cimetière officiel, mais les trente-quatre ne seront pas morts pour rien.
 
 > Vous voyez autour de vous Hublot de l'observatoire.
 

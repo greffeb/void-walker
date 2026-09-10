@@ -24,9 +24,9 @@ const BUDGETS: Readonly<Record<RuleId, number>> = {
   R1_nom_redit:          56,
   R2_desc_trop_longue:   30,
   R3_etat_muet:           0,
-  R4_noeud_titre:        12,
-  R5_noeud_inventaire:   24,
-  R6_coaching:            3,
+  R4_noeud_titre:         0,  // atteint 2026-09-10 : 18 proses de lieu réécrites
+  R5_noeud_inventaire:    0,  // atteint 2026-09-10 : l'énumération ne se dit plus deux fois
+  R6_coaching:            0,  // atteint 2026-09-10
   R7_etat_inatteignable:  0,  // atteint 2026-09-10 : BREAK casse au lieu d'ouvrir, tokens d'état en liste
   R8_flag_sans_etat:      0,  // atteint 2026-09-10 : 12 états manquants posés, 11 exceptions motivées
   R9_sans_nom_fr:         0,  // atteint 2026-09-10 : 51 noms FR/EN ajoutés

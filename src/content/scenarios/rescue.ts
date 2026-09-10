@@ -1530,7 +1530,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Site de Crash. Votre navette s\'est ecrasee contre le dock d\'amarrage de la Station Calypso. La coque est percee, le cockpit deforme au-dela de toute reparation. De la fumee s\'echappe des circuits brules. La soute arriere contient peut-etre du materiel recuperable. Un signal de detresse pulse depuis les profondeurs de la station — regulier, insistant. Quelqu\'un est vivant la-dedans.',
+        fr: 'Votre navette s\'est écrasée contre le dock d\'amarrage de la Station Calypso. '
+          + 'La coque est percée, le cockpit déformé au-delà de toute réparation, et de la fumée '
+          + 's\'échappe encore des circuits brûlés. Depuis les profondeurs de la station, un signal '
+          + 'de détresse pulse — régulier, insistant. Quelqu\'un est vivant là-dedans.',
         en: 'Crash Site — Your shuttle crashed into Station Calypso\'s docking bay. Hull breached, cockpit destroyed. A distress signal pulses from deeper inside.',
       },
     },
@@ -1540,7 +1543,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Point de Triage. Zone medicale devastee — civieres renversees, materiel chirurgical eparpille. Le couloir principal s\'est effondre sous le poids des poutres — des tonnes de metal bloquent le passage. Le signal de detresse est plus fort ici, juste de l\'autre cote. Une trappe de maintenance est visible au ras du sol. Un rack contient un decoupeur plasma industriel — puissant, mais le bruit attirerait l\'attention.',
+        fr: 'Zone médicale dévastée : civières renversées, matériel chirurgical éparpillé, '
+          + 'des traces de pas dans la poussière qui vont toutes dans le même sens. Le couloir '
+          + 'principal s\'est effondré sous le poids des poutres — des tonnes de métal en travers '
+          + 'du chemin. Le signal de détresse est plus fort ici, juste de l\'autre côté.',
         en: 'Triage Point — Devastated medical zone. The main corridor collapsed. The distress signal is stronger here — just on the other side.',
       },
     },
@@ -1550,7 +1556,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Laboratoire de la Dr. Okonkwo. Une barricade methodique bloque l\'entree — mobilier soude, plaques d\'acier. Derriere, une femme. Blessee. Consciente. Le terminal de recherche clignote a cote d\'elle, affichant des donnees fragmentaires du Projet Chasseur. Des rations vides indiquent qu\'elle survit ici depuis au moins 48 heures. Le chemin de sortie passe par le territoire de chasse de la creature.',
+        fr: 'Le laboratoire de la Dr. Okonkwo, condamné de l\'intérieur. '
+          + 'Mobilier soudé, plaques d\'acier : un travail méthodique, fait par quelqu\'un qui avait '
+          + 'le temps et la tête froide. Derrière, une respiration. Des rations vides jonchent le sol — '
+          + 'de quoi tenir quarante-huit heures, pas plus.',
         en: 'Dr. Okonkwo\'s Lab — A methodical barricade blocks the entrance. Behind it, a wounded woman. The research terminal flickers with Project Hunter data.',
       },
     },
@@ -1560,7 +1569,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'Zone de Traque. Les couloirs sont plus etroits ici — visibilite reduite, recoins sombres, points d\'embuscade. L\'air est plus mince. Les parois sont recouvertes de panneaux acoustiques — vestiges du laboratoire d\'Okonkwo. Un rack de diversion contient des grenades flash. Une porte blindee partiellement ouverte bloque le passage vers la baie d\'extraction. Des griffures profondes sur la porte — la creature est passee par la.',
+        fr: 'Les couloirs se resserrent ici : visibilité réduite, recoins sombres, '
+          + 'angles qu\'on n\'aime pas tourner. L\'air est plus mince. Les parois sont tapissées de '
+          + 'panneaux absorbants — vestiges du laboratoire d\'Okonkwo — et le moindre bruit meurt '
+          + 'à un mètre de sa source. Des griffures profondes marquent le métal. Elle est passée par là.',
         en: 'The Hunt Zone — Narrow corridors, reduced visibility, ambush points. Acoustic panels line the walls. A blast door blocks the way to extraction.',
       },
     },
@@ -1570,7 +1582,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 10,
       descriptionKey: {
-        fr: 'Baie d\'Extraction. La navette de secours est la — cabossee mais fonctionnelle, l\'ecoutille ouverte, les moteurs en veille. La liberte est a portee de main. Mais la creature se dresse entre vous et la navette. Biomasse sombre, griffes d\'acier, yeux trop intelligents. La geometrie de la baie forme un entonnoir acoustique naturel — un detail qui pourrait tout changer si vous avez les bons outils. Un choix impossible s\'impose.',
+        fr: 'La navette de secours est là, cabossée mais fonctionnelle, moteurs en veille. '
+          + 'La liberté à quelques mètres. Mais la créature se dresse entre elle et vous : '
+          + 'biomasse sombre, griffes d\'acier, yeux trop intelligents. La baie se resserre en '
+          + 'entonnoir vers le fond, et le moindre son y revient doublé.',
         en: 'Extraction Bay — The rescue shuttle is here. But the creature stands between you and freedom. An impossible choice looms.',
       },
     },
@@ -1580,7 +1595,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Le cockpit de la navette d\'evacuation. Systemes en ligne, moteurs prets. L\'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s\'est passe ensuite — qui est monte, qui est reste, ce qui est arrive a la creature — depend entierement de vos choix.',
+        fr: 'Le cockpit de la navette d\'évacuation. Systèmes en ligne, moteurs prêts, '
+          + 'les coordonnées de retour vers la flotte à l\'écran. Ce qui s\'est passé ensuite — '
+          + 'qui est monté, qui est resté, ce qu\'est devenue la créature — tient entièrement '
+          + 'dans ce que vous avez choisi.',
         en: 'The evacuation shuttle cockpit. Systems online. One button: LAUNCH. What happens next depends entirely on your choices.',
       },
     },

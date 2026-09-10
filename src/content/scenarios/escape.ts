@@ -1640,12 +1640,11 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Baie des Capsules Cryogéniques — Vous ouvrez les yeux. Froid mordant. Obscurité presque totale. '
+        fr: 'Vous ouvrez les yeux. Froid mordant, obscurité presque totale. '
           + 'Le couvercle de votre capsule est ouvert — éjection d\'urgence. '
-          + 'Autour de vous, 46 autres capsules. Silencieuses. Leurs voyants sont morts depuis longtemps. '
-          + 'L\'éclairage de secours rougeoie faiblement. Un terminal de statut clignote contre le mur, '
-          + 'et un casier d\'urgence attend dans l\'ombre. '
-          + 'Vous êtes seul. Et quelque chose a coupé le courant il y a 4 heures.',
+          + 'Autour de vous, quarante-six autres capsules, silencieuses, leurs voyants morts depuis '
+          + 'longtemps. L\'éclairage de secours rougeoie faiblement. Vous êtes seul, et quelque chose '
+          + 'a coupé le courant il y a quatre heures.',
         en: 'Cryopod Bay — You open your eyes. Biting cold. Near-total darkness. '
           + '46 other pods, all dead. Emergency lighting glows faintly. '
           + 'A status terminal flickers. An emergency locker waits in the shadows.',
@@ -1657,12 +1656,10 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Point de Contrôle de Sécurité — Une cloison blindée barre le couloir, '
-          + 'épaisse comme un coffre-fort. Le panneau de sécurité adjacent exige un badge de niveau 3. '
-          + 'Des griffures profondes marquent le métal — quelque chose a tenté de forcer le passage '
-          + 'depuis l\'autre côté. Sans succès. Ou avec succès, justement — impossible de savoir. '
-          + 'Une grille de ventilation au plafond offre peut-être une alternative '
-          + 'pour ceux qui n\'ont pas peur du noir et des espaces confinés.',
+        fr: 'Le couloir s\'arrête net sur une paroi épaisse comme un coffre-fort. '
+          + 'Des griffures profondes marquent le métal, côté couloir : quelque chose a tenté de forcer '
+          + 'le passage depuis l\'autre côté. Sans succès. Ou avec succès, justement — impossible de '
+          + 'savoir de quel côté la chose se trouvait quand elle a renoncé.',
         en: 'Security Checkpoint — An armored bulkhead blocks the corridor. Badge reader demands level 3+. '
           + 'Deep scratches on the metal from the other side. '
           + 'A ceiling vent might offer an alternative route.',
@@ -1674,13 +1671,10 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Quartiers du Capitaine — Le bureau personnel du Capitaine Reeves. '
-          + 'Des papiers froissés jonchent le sol. Le terminal personnel est encore allumé — '
-          + 'les dernières entrées de journal clignotent à l\'écran. '
-          + 'Un datapad repose sur le bureau, séparé du terminal, comme s\'il avait été posé là '
-          + 'délibérément pour que quelqu\'un le trouve. '
-          + 'Le hublot d\'observation montre l\'extérieur : le vaisseau dérive, des sections entières '
-          + 'arrachées et exposées au vide. L\'USS Meridian est en train de mourir.',
+        fr: 'Le bureau personnel du Capitaine Reeves. Des papiers froissés jonchent le sol, '
+          + 'comme si quelqu\'un avait cherché quelque chose en vitesse — ou voulu qu\'on croie cela. '
+          + 'Par la paroi vitrée, l\'extérieur : le vaisseau dérive, des sections entières arrachées '
+          + 'et exposées au vide. L\'USS Meridian est en train de mourir.',
         en: 'Captain\'s Quarters — Captain Reeves\' office. Crumpled papers on the floor. '
           + 'Personal terminal still on. A datapad on the desk, deliberately placed. '
           + 'Through the viewport: the ship drifts, sections torn away.',
@@ -1692,14 +1686,10 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'Centre de Survie — L\'air est rare. Chaque respiration compte. '
-          + 'Le panneau de support vie est en miettes — griffures profondes, câbles arrachés. '
-          + 'La créature est venue ici en premier. Elle savait ce qu\'elle faisait. '
-          + 'Un casier de combinaison EVA est verrouillé contre le mur — '
-          + 'la seule protection contre l\'asphyxie progressive. '
-          + 'La valve de reroutage O₂ et le conduit d\'énergie principal offrent '
-          + 'des options de survie pour ceux qui savent improviser. '
-          + 'Le passage vers le pont inférieur est droit devant. Chaque seconde ici vous coûte de l\'air.',
+        fr: 'L\'air est rare. Chaque respiration compte, et vous les comptez. '
+          + 'Les machines qui tenaient cette section en vie sont en miettes — griffures profondes, '
+          + 'câbles arrachés. La créature est venue ici en premier, et elle savait ce qu\'elle faisait. '
+          + 'Le passage vers le pont inférieur est droit devant.',
         en: 'Life Support Hub — Air is thin. The life support panel is shredded. '
           + 'An EVA suit locker, an O₂ valve, a power conduit — survival options for those who improvise. '
           + 'The lower deck is straight ahead. Every second here costs air.',
@@ -1711,14 +1701,10 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 10,
       descriptionKey: {
-        fr: 'Soute / Pont des Pods — L\'air est presque irrespirable. '
-          + 'L\'écoutille du pod d\'évasion est là, à portée de main — mais un lecteur de badge '
-          + 'contrôle l\'accès. Et entre vous et la sortie : la créature. '
-          + 'Le Spécimen Alpha, Projet ORACLE. Biomasse noire, griffes d\'acier organique, '
-          + 'et une intelligence terrifiante dans ses yeux trop humains. '
-          + 'Le levier de largage cargo est à votre gauche. '
-          + 'Le panneau de contrôle des joints de coque est à votre droite. '
-          + 'Le pod est droit devant. C\'est elle ou vous.',
+        fr: 'L\'air est presque irrespirable. La sortie est là, à quelques mètres, '
+          + 'et entre elle et vous : la créature. Le Spécimen Alpha, Projet ORACLE. '
+          + 'Biomasse noire, griffes d\'acier organique, et dans ses yeux trop humains une intelligence '
+          + 'qui prend son temps. C\'est elle ou vous.',
         en: 'Cargo Bay / Pod Deck — Air nearly gone. The escape pod hatch is right there — '
           + 'but a badge reader controls access. And between you and the exit: the creature. '
           + 'Jettison lever on the left. Hull breach panel on the right. Pod straight ahead.',
@@ -1730,13 +1716,10 @@ export const ESCAPE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Pod d\'Évasion — Le sas se referme derrière vous. Le silence. '
-          + 'Pas le silence de la mort — le silence de la sécurité. '
-          + 'Le pod s\'éjecte avec un souffle pneumatique. '
-          + 'Depuis le hublot, vous regardez l\'USS Meridian rapetisser dans l\'obscurité — '
-          + 'un point de lumière avalé par le noir de l\'espace. '
-          + 'Quelque part là-dedans, le Spécimen Alpha attend le prochain visiteur. '
-          + 'Mais pas vous. Plus jamais vous.',
+        fr: 'Le sas se referme derrière vous. Le silence — pas celui de la mort, '
+          + 'celui de la sécurité. Le pod s\'éjecte avec un souffle pneumatique, et l\'USS Meridian '
+          + 'rapetisse dans l\'obscurité jusqu\'à n\'être qu\'un point de lumière avalé par le noir. '
+          + 'Quelque part là-dedans, le Spécimen Alpha attend le prochain visiteur. Plus jamais vous.',
         en: 'Escape Pod — The airlock seals behind you. Silence — not death\'s silence, safety\'s silence. '
           + 'Through the porthole, the USS Meridian shrinks into darkness.',
       },

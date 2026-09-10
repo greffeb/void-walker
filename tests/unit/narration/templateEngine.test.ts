@@ -258,7 +258,7 @@ describe('renderTemplate — nested slot inside conditional (issue #23 regressio
     );
     // Must not contain raw template syntax
     expect(result).not.toMatch(/\{/);
-    expect(result).toContain('via le Pistolet laser');
+    expect(result).toContain('via le pistolet laser');
   });
 
   it('resolves {?tool_used: via {def_tool}|} to empty when tool absent', () => {
@@ -284,7 +284,7 @@ describe('renderTemplate — nested slot inside conditional (issue #23 regressio
       ctx, 'fr',
     );
     expect(result).not.toMatch(/\{/);
-    expect(result).toContain('avec le Multitool');
+    expect(result).toContain('avec le multitool');
   });
 });
 
@@ -346,6 +346,6 @@ describe('selectActionTemplate — BARRICADE / FORCE_OPEN / RUN have dedicated t
     const rendered = renderTemplate(tpl.text.fr, ctx, 'fr');
     expect(rendered).not.toMatch(/\{/);
     // When tool is present, template branch should mention it
-    expect(rendered).toContain('Multitool');
+    expect(rendered.toLowerCase()).toContain('multitool');
   });
 });

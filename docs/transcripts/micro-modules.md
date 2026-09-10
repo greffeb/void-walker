@@ -7,7 +7,7 @@
 ## `mm_loot_emergency_kit` — type `loot`, visibilité `open`
 
 - entrée
-  > Un petit local technique avec un casier d'urgence au mur. La peinture jaune du marquage de sécurité est à peine visible.
+  > Un petit local technique, à peine plus large qu'un placard. La peinture jaune du marquage de sécurité disparaît sous la crasse.
 - indice
   > Une porte de service avec un marquage d'urgence jaune.
 - retour
@@ -45,7 +45,7 @@
 ## `mm_loot_locked_cabinet` — type `loot`, visibilité `open`
 
 - entrée
-  > Un réduit de stockage. Une armoire blindée occupe tout un mur, son verrou électronique clignote en rouge.
+  > Un réduit de stockage, plus profond qu'il n'en a l'air. Contre le mur du fond, un voyant rouge clignote — la seule chose encore vivante ici.
 - indice
   > Une porte menant à un local de stockage.
 - retour
@@ -102,7 +102,7 @@
 ## `mm_loot_escape_toolbox` — type `loot`, visibilité `open`
 
 - entrée
-  > Un atelier de maintenance encombré de débris. Une boîte à outils rouge est encore fixée au mur.
+  > Un atelier de maintenance encombré de débris. Les supports muraux ont été vidés à la hâte — presque tous.
 - indice
   > Un accès obstrué par des débris vers un atelier.
 - retour
@@ -140,7 +140,7 @@
 ## `mm_loot_investigate_scanner` — type `loot`, visibilité `open`
 
 - entrée
-  > Un bureau de recherche annexe. Des notes éparpillées et un scanner portable encore sous tension.
+  > Un bureau annexe, occupé jusqu'au dernier jour. Des notes éparpillées, une chaise repoussée en vitesse, un café à moitié bu.
 - indice
   > Un accès vers un bureau de recherche.
 - retour
@@ -642,7 +642,7 @@
 ## `mm_encounter_investigate_lab_hazard` — type `encounter`, visibilité `open`
 
 - entrée
-  > Un laboratoire dévasté. Des flacons brisés et des réactifs renversés forment des flaques fumantes au sol.
+  > Un laboratoire dévasté. Le verre craque sous vos pas, et des flaques fumantes rongent lentement le revêtement du sol.
 - indice
   > Des vapeurs chimiques s'échappent d'un labo adjacent.
 - retour
@@ -769,7 +769,7 @@
 ## `mm_ambiance_escape_airlock_view` — type `ambiance`, visibilité `open`
 
 - entrée
-  > Un sas d'observation donne sur une section de coque arrachée. Des débris flottent lentement dans le vide. L'un d'eux ressemble à un corps en combinaison.
+  > Un sas d'observation donne sur le vide. Des débris flottent lentement de l'autre côté de la vitre. L'un d'eux ressemble à un corps en combinaison.
 - indice
   > Un sas donne sur le vide spatial et des débris flottants.
 - retour
@@ -805,7 +805,7 @@
 ## `mm_ambiance_escape_cat_collar` — type `ambiance`, visibilité `hidden`
 
 - entrée
-  > Un recoin sous une couchette. Un petit collier de chat gît sur le sol, à côté d'un bol d'eau vide. La médaille est gravée d'un nom.
+  > Un recoin sous une couchette, à l'abri des regards. Un bol d'eau vide est renversé sur le sol. Quelqu'un, ici, n'était pas tout à fait seul.
 - indice
   > Vous entendez un miaulement étouffé... ou était-ce votre imagination ?
 - retour

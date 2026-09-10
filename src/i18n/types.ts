@@ -935,6 +935,8 @@ export type StringKey =
   | 'scene.npcs_intro'
   | 'scene.exits_new'
   | 'scene.exits_known'
+  | 'scene.exits_new_plural'
+  | 'scene.exits_known_plural'
   | 'scene.recap_changed'
   | 'scene.recap_appeared'
   | 'scene.recap_gone'

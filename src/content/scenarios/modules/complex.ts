@@ -239,8 +239,8 @@ export const TERMINAL_DECRYPT_01: ScenarioModule = {
     failsafeType: 'alternate_route',
   },
   skins: makeSkins(
-    'Un terminal. Chiffré, mais pas impossible.',
-    'Terminal chiffré. Les données dedans pourraient changer la donne.',
+    'Un seul poste de travail, au centre d\'une pièce vide. L\'écran est allumé et n\'affiche qu\'une ligne.',
+    'L\'écran attend, patient, depuis soixante-douze heures. Ce qu\'il garde n\'a pas bougé d\'un octet.',
     'Terminal sous haute sécurité. Décryptez ou cherchez un autre moyen.',
     'Cherchez le mot de passe, hackez, ou faites parler quelqu\'un.',
     'Trois approches : perquisition, piratage, social.',

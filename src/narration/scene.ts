@@ -259,7 +259,7 @@ export function narrateScene(
   const exitTokens: SceneToken[] = [];
 
   if (unexplored.length > 0) {
-    const exitPhrase = t('scene.exits_new', locale);
+    const exitPhrase = t(unexplored.length > 1 ? 'scene.exits_new_plural' : 'scene.exits_new', locale);
     const segs = unexplored.map(e => {
       const seg: SceneToken[] = [{ kind: 'exit', value: withDeterminer(e.name, grammar), visited: false }];
       return seg as readonly SceneToken[];
@@ -272,7 +272,7 @@ export function narrateScene(
 
   if (explored.length > 0) {
     if (exitTokens.length > 0) exitTokens.push({ kind: 'text', value: ' ' });
-    const knownPhrase = t('scene.exits_known', locale);
+    const knownPhrase = t(explored.length > 1 ? 'scene.exits_known_plural' : 'scene.exits_known', locale);
     const segs = explored.map(e => {
       const seg: SceneToken[] = [{ kind: 'exit', value: withDeterminer(e.name, grammar), visited: true }];
       return seg as readonly SceneToken[];

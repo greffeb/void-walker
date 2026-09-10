@@ -154,6 +154,22 @@ function selectEatTargetProperty(
   return undefined;
 }
 
+/**
+ * A sentence starts with a capital.
+ *
+ * Slots render a display name as the common noun it is inside a sentence
+ * ("le terminal chiffré", not "le Terminal chiffré"). That leaves the opening of
+ * a sentence to fix up here — which is also what retires the standing rule
+ * "never begin a template with {def_target}", since the slot no longer decides
+ * the case of the first letter.
+ */
+export function capitaliseSentences(text: string): string {
+  return text.replace(
+    /(^|[.!?]\u00A0?\s+|\n\s*)([a-zàâäéèêëîïôöùûüÿçœæ])/g,
+    (_, lead: string, letter: string) => lead + letter.toUpperCase(),
+  );
+}
+
 export function selectActionTemplate(ctx: NarrativeContext): ActionTemplate {
   const tier = tensionTier(ctx.tension);
   // A broken door reads better as broken than as metallic, so a salient state
@@ -578,7 +594,7 @@ export function composeNarrative(
   }
 
   const grammar = getGrammarEngine(effectiveLocale);
-  return grammar.postProcess(parts.join(' '));
+  return capitaliseSentences(grammar.postProcess(parts.join(' ')));
 }
 
 // === COMPOSER RESETS ===

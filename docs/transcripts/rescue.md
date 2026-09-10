@@ -15,7 +15,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Site de Crash. Votre navette s'est ecrasee contre le dock d'amarrage de la Station Calypso. La coque est percee, le cockpit deforme au-dela de toute reparation. De la fumee s'echappe des circuits brules. La soute arriere contient peut-etre du materiel recuperable. Un signal de detresse pulse depuis les profondeurs de la station — regulier, insistant. Quelqu'un est vivant la-dedans.
+> Votre navette s'est écrasée contre le dock d'amarrage de la Station Calypso. La coque est percée, le cockpit déformé au-delà de toute réparation, et de la fumée s'échappe encore des circuits brûlés. Depuis les profondeurs de la station, un signal de détresse pulse — régulier, insistant. Quelqu'un est vivant là-dedans.
 
 > Vous voyez autour de vous Navette écrasée, Brèche de coque, Pièces récupérables, Balise de détresse endommagée.
 > Parmi les débris, vous remarquez Trousse de premiers soins.
@@ -136,7 +136,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Point de Triage. Zone medicale devastee — civieres renversees, materiel chirurgical eparpille. Le couloir principal s'est effondre sous le poids des poutres — des tonnes de metal bloquent le passage. Le signal de detresse est plus fort ici, juste de l'autre cote. Une trappe de maintenance est visible au ras du sol. Un rack contient un decoupeur plasma industriel — puissant, mais le bruit attirerait l'attention.
+> Zone médicale dévastée : civières renversées, matériel chirurgical éparpillé, des traces de pas dans la poussière qui vont toutes dans le même sens. Le couloir principal s'est effondré sous le poids des poutres — des tonnes de métal en travers du chemin. Le signal de détresse est plus fort ici, juste de l'autre côté.
 
 > Vous voyez autour de vous Couloir effondré, Trappe de déviation maintenance, Rack de découpeur plasma.
 
@@ -214,7 +214,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Laboratoire de la Dr. Okonkwo. Une barricade methodique bloque l'entree — mobilier soude, plaques d'acier. Derriere, une femme. Blessee. Consciente. Le terminal de recherche clignote a cote d'elle, affichant des donnees fragmentaires du Projet Chasseur. Des rations vides indiquent qu'elle survit ici depuis au moins 48 heures. Le chemin de sortie passe par le territoire de chasse de la creature.
+> Le laboratoire de la Dr. Okonkwo, condamné de l'intérieur. Mobilier soudé, plaques d'acier : un travail méthodique, fait par quelqu'un qui avait le temps et la tête froide. Derrière, une respiration. Des rations vides jonchent le sol — de quoi tenir quarante-huit heures, pas plus.
 
 > Vous voyez autour de vous Barricade de survivant, Terminal de recherche.
 > Parmi les débris, vous remarquez Notes de recherche, Composant d'émetteur sonique.
@@ -290,7 +290,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Zone de Traque. Les couloirs sont plus etroits ici — visibilite reduite, recoins sombres, points d'embuscade. L'air est plus mince. Les parois sont recouvertes de panneaux acoustiques — vestiges du laboratoire d'Okonkwo. Un rack de diversion contient des grenades flash. Une porte blindee partiellement ouverte bloque le passage vers la baie d'extraction. Des griffures profondes sur la porte — la creature est passee par la.
+> Les couloirs se resserrent ici : visibilité réduite, recoins sombres, angles qu'on n'aime pas tourner. L'air est plus mince. Les parois sont tapissées de panneaux absorbants — vestiges du laboratoire d'Okonkwo — et le moindre bruit meurt à un mètre de sa source. Des griffures profondes marquent le métal. Elle est passée par là.
 
 > Vous voyez autour de vous Parois acoustiques, Rack de diversion, Porte blindée partiellement ouverte.
 
@@ -360,7 +360,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Baie d'Extraction. La navette de secours est la — cabossee mais fonctionnelle, l'ecoutille ouverte, les moteurs en veille. La liberte est a portee de main. Mais la creature se dresse entre vous et la navette. Biomasse sombre, griffes d'acier, yeux trop intelligents. La geometrie de la baie forme un entonnoir acoustique naturel — un detail qui pourrait tout changer si vous avez les bons outils. Un choix impossible s'impose.
+> La navette de secours est là, cabossée mais fonctionnelle, moteurs en veille. La liberté à quelques mètres. Mais la créature se dresse entre elle et vous : biomasse sombre, griffes d'acier, yeux trop intelligents. La baie se resserre en entonnoir vers le fond, et le moindre son y revient doublé.
 
 > Vous voyez autour de vous Écoutille de navette, Point de piège acoustique, Porte de baie d'extraction.
 
@@ -429,7 +429,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Le cockpit de la navette d'evacuation. Systemes en ligne, moteurs prets. L'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s'est passe ensuite — qui est monte, qui est reste, ce qui est arrive a la creature — depend entierement de vos choix.
+> Le cockpit de la navette d'évacuation. Systèmes en ligne, moteurs prêts, les coordonnées de retour vers la flotte à l'écran. Ce qui s'est passé ensuite — qui est monté, qui est resté, ce qu'est devenue la créature — tient entièrement dans ce que vous avez choisi.
 
 > Vous voyez autour de vous Cockpit de navette.
 

@@ -242,7 +242,7 @@ export const ENCOUNTER_MICRO_MODULES: readonly MicroModule[] = [
     },
     locale: {
       fr: {
-        description: 'Un laboratoire dévasté. Des flacons brisés et des réactifs renversés forment des flaques fumantes au sol.',
+        description: 'Un laboratoire dévasté. Le verre craque sous vos pas, et des flaques fumantes rongent lentement le revêtement du sol.',
         hintText: 'Des vapeurs chimiques s\'échappent d\'un labo adjacent.',
         revisitDescription: 'Le labo dévasté. Les vapeurs se sont dissipées.',
       },

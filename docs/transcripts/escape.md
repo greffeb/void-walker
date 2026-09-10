@@ -15,7 +15,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Baie des Capsules Cryogéniques — Vous ouvrez les yeux. Froid mordant. Obscurité presque totale. Le couvercle de votre capsule est ouvert — éjection d'urgence. Autour de vous, 46 autres capsules. Silencieuses. Leurs voyants sont morts depuis longtemps. L'éclairage de secours rougeoie faiblement. Un terminal de statut clignote contre le mur, et un casier d'urgence attend dans l'ombre. Vous êtes seul. Et quelque chose a coupé le courant il y a 4 heures.
+> Vous ouvrez les yeux. Froid mordant, obscurité presque totale. Le couvercle de votre capsule est ouvert — éjection d'urgence. Autour de vous, quarante-six autres capsules, silencieuses, leurs voyants morts depuis longtemps. L'éclairage de secours rougeoie faiblement. Vous êtes seul, et quelque chose a coupé le courant il y a quatre heures.
 
 > Vous voyez autour de vous Capsule cryogénique, Terminal de statut, Casier d'urgence.
 > Parmi les débris, vous remarquez Lampe de secours, Kit médical basique.
@@ -111,7 +111,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Point de Contrôle de Sécurité — Une cloison blindée barre le couloir, épaisse comme un coffre-fort. Le panneau de sécurité adjacent exige un badge de niveau 3. Des griffures profondes marquent le métal — quelque chose a tenté de forcer le passage depuis l'autre côté. Sans succès. Ou avec succès, justement — impossible de savoir. Une grille de ventilation au plafond offre peut-être une alternative pour ceux qui n'ont pas peur du noir et des espaces confinés.
+> Le couloir s'arrête net sur une paroi épaisse comme un coffre-fort. Des griffures profondes marquent le métal, côté couloir : quelque chose a tenté de forcer le passage depuis l'autre côté. Sans succès. Ou avec succès, justement — impossible de savoir de quel côté la chose se trouvait quand elle a renoncé.
 
 > Vous voyez autour de vous Panneau de sécurité, Porte blindée, Grille de ventilation.
 
@@ -179,7 +179,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Quartiers du Capitaine — Le bureau personnel du Capitaine Reeves. Des papiers froissés jonchent le sol. Le terminal personnel est encore allumé — les dernières entrées de journal clignotent à l'écran. Un datapad repose sur le bureau, séparé du terminal, comme s'il avait été posé là délibérément pour que quelqu'un le trouve. Le hublot d'observation montre l'extérieur : le vaisseau dérive, des sections entières arrachées et exposées au vide. L'USS Meridian est en train de mourir.
+> Le bureau personnel du Capitaine Reeves. Des papiers froissés jonchent le sol, comme si quelqu'un avait cherché quelque chose en vitesse — ou voulu qu'on croie cela. Par la paroi vitrée, l'extérieur : le vaisseau dérive, des sections entières arrachées et exposées au vide. L'USS Meridian est en train de mourir.
 
 > Vous voyez autour de vous Terminal du capitaine, Hublot d'observation.
 > Parmi les débris, vous remarquez Datapad du capitaine.
@@ -234,7 +234,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Centre de Survie — L'air est rare. Chaque respiration compte. Le panneau de support vie est en miettes — griffures profondes, câbles arrachés. La créature est venue ici en premier. Elle savait ce qu'elle faisait. Un casier de combinaison EVA est verrouillé contre le mur — la seule protection contre l'asphyxie progressive. La valve de reroutage O₂ et le conduit d'énergie principal offrent des options de survie pour ceux qui savent improviser. Le passage vers le pont inférieur est droit devant. Chaque seconde ici vous coûte de l'air.
+> L'air est rare. Chaque respiration compte, et vous les comptez. Les machines qui tenaient cette section en vie sont en miettes — griffures profondes, câbles arrachés. La créature est venue ici en premier, et elle savait ce qu'elle faisait. Le passage vers le pont inférieur est droit devant.
 
 > Vous voyez autour de vous Casier de combinaison EVA, Panneau de support vie, Valve de reroutage O₂, Conduit d'énergie.
 
@@ -327,7 +327,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Soute / Pont des Pods — L'air est presque irrespirable. L'écoutille du pod d'évasion est là, à portée de main — mais un lecteur de badge contrôle l'accès. Et entre vous et la sortie : la créature. Le Spécimen Alpha, Projet ORACLE. Biomasse noire, griffes d'acier organique, et une intelligence terrifiante dans ses yeux trop humains. Le levier de largage cargo est à votre gauche. Le panneau de contrôle des joints de coque est à votre droite. Le pod est droit devant. C'est elle ou vous.
+> L'air est presque irrespirable. La sortie est là, à quelques mètres, et entre elle et vous : la créature. Le Spécimen Alpha, Projet ORACLE. Biomasse noire, griffes d'acier organique, et dans ses yeux trop humains une intelligence qui prend son temps. C'est elle ou vous.
 
 > Vous voyez autour de vous Écoutille du pod d'évasion, Levier de largage cargo, Panneau de brèche coque.
 
@@ -411,7 +411,7 @@
 
 ### Ce que le joueur lit en entrant
 
-> Pod d'Évasion — Le sas se referme derrière vous. Le silence. Pas le silence de la mort — le silence de la sécurité. Le pod s'éjecte avec un souffle pneumatique. Depuis le hublot, vous regardez l'USS Meridian rapetisser dans l'obscurité — un point de lumière avalé par le noir de l'espace. Quelque part là-dedans, le Spécimen Alpha attend le prochain visiteur. Mais pas vous. Plus jamais vous.
+> Le sas se referme derrière vous. Le silence — pas celui de la mort, celui de la sécurité. Le pod s'éjecte avec un souffle pneumatique, et l'USS Meridian rapetisse dans l'obscurité jusqu'à n'être qu'un point de lumière avalé par le noir. Quelque part là-dedans, le Spécimen Alpha attend le prochain visiteur. Plus jamais vous.
 
 > Vous voyez autour de vous Hublot du pod.
 

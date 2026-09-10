@@ -533,7 +533,7 @@
 ### Peau `mid`
 
 - entrée
-  > Le mécanisme alien pulse. Il réagit à votre présence.
+  > Quelque chose pulse dans le mur, à intervalles réguliers. Le rythme change quand vous approchez.
 - retour
   > La situation a changé.
 - obstacle
@@ -543,7 +543,7 @@
 ### Peau `high`
 
 - entrée
-  > Le mécanisme alien s'intensifie. Il faut agir maintenant.
+  > Le pouls dans le mur s'accélère. La lumière qui en sort éclaire vos mains par saccades.
 - retour
   > Plus de temps à perdre.
 - obstacle
@@ -594,7 +594,7 @@
 ### Peau `low`
 
 - entrée
-  > Une alarme discrète. Le champ de confinement montre des signes de faiblesse.
+  > Une alarme discrète, répétitive, que personne n'a coupée. Derrière la vitre, la lumière bleue vacille.
 - retour
   > De retour ici.
 - obstacle
@@ -655,7 +655,7 @@
 ### Peau `low`
 
 - entrée
-  > Un panneau de distribution d'énergie. Il y a un choix à faire.
+  > La salle bourdonne d'un courant qui ne va plus nulle part. Deux câbles épais montent vers le plafond, et un seul est chaud.
 - retour
   > De retour ici.
 - obstacle
@@ -926,7 +926,7 @@
 ### Peau `low`
 
 - entrée
-  > Un terminal. Chiffré, mais pas impossible.
+  > Un seul poste de travail, au centre d'une pièce vide. L'écran est allumé et n'affiche qu'une ligne.
 - retour
   > De retour ici.
 - obstacle
@@ -936,7 +936,7 @@
 ### Peau `mid`
 
 - entrée
-  > Terminal chiffré. Les données dedans pourraient changer la donne.
+  > L'écran attend, patient, depuis soixante-douze heures. Ce qu'il garde n'a pas bougé d'un octet.
 - retour
   > La menace n'a pas disparu.
 - obstacle
