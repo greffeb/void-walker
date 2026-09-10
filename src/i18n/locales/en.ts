@@ -951,14 +951,19 @@ export const en: LocaleStrings = {
   'env.seal_point': 'Seal point',
 
   // Scene narration prose templates
-  'scene.intro_new':      'You regain consciousness in',
-  'scene.intro_enter':    'You enter',
   'scene.intro_revisit':  'You return to',
+  'scene.look_around':   'You take a moment to look around.',
   'scene.features_intro': 'You see around you',
   'scene.items_intro':    'Among the debris, you notice',
   'scene.npcs_intro':     'You spot',
   'scene.exits_new':      'You make out an exit toward',
   'scene.exits_known':    'Known path toward',
+  'scene.recap_changed': 'Now:',
+  'scene.recap_appeared': 'You now notice',
+  'scene.recap_gone': 'No longer here:',
+  'scene.recap_new_exit': 'A way opens toward',
+  'scene.recap_arrived': 'Someone arrives:',
+  'scene.recap_left': 'Someone has left:',
   'scene.prompt':         'What do you do?',
 
   // Anti-softlock interventions

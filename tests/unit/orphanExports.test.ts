@@ -81,13 +81,12 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
 
   // --- Narration location state: the atmosphere cooldown reset on environment
   // change is specified as LOCKED in Phase 5 §8 and never triggered.
-  resetComposer: 'narration: location state reset never called',
+  // resetComposer, resetAllLocationStates and resetHintMemory left this list
+  // when startNewGame started calling resetNarrationMemory.
   resetComposerForSetting: 'narration: location state reset never called',
-  resetAllLocationStates: 'narration: location state reset never called',
   resetLocationState: 'narration: location state reset never called',
   resetLocationOnEnvironmentChange: 'narration: cooldown reset on env change never called',
   resetEntryCounter: 'narration: entry counter reset never called',
-  resetHintMemory: 'narration: hint memory reset never called',
   adjustHintPriority: 'narration: hint priority never adjusted',
   renderTemplateWithSlots: 'narration: alternate renderer unused',
 
@@ -108,7 +107,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   isExitUnlocked: 'backtracking helper unused',
   categorizeExits: 'backtracking helper unused',
   sceneHasHealingItem: 'scene helper unused',
-  getFeatureDescription: 'feature description helper unused',
   buildCustomScene: 'scene builder helper unused',
   generateSituationOfType: 'situation generator helper unused',
 

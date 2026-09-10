@@ -11,14 +11,13 @@ import type { VerbId } from '../engine/verbs';
 import type { Locale, StringKey } from '../i18n/types';
 import type { GrammaticalInfo } from '../i18n/grammar/interface';
 import type { LocationNode } from '../engine/scenario';
-import { isEnrichedFeature } from '../engine/scenario';
-import { getFeatureState, pickStateDescription } from '../engine/featureState';
+import { getFeatureState, getFeatureDescription } from '../engine/featureState';
 import type {
   NarrativeContext, NarrativeSettings, Outcome, VerbCategory,
   TargetInfo, ItemInfo, NpcInfo, LocationInfo, StateChange,
 } from './types';
 import { NARRATIVE_PRESETS } from './types';
-import { composeNarrative, getVerbCategory } from './composer';
+import { composeNarrative, getVerbCategory, resetComposer, resetAllLocationStates } from './composer';
 import { getLocale, t } from '../i18n/index';
 import { narrationMemory } from './memory';
 import { selectSecretVerbText } from './secretVerbs';
@@ -28,8 +27,23 @@ export { composeNarrative, resetComposer } from './composer';
 export { renderTemplate, renderTemplateWithSlots, getGrammarEngine, detectSelfReference } from './templateEngine';
 export { NarrationMemory } from './memory';
 export { selectGameplayHint, resetHintMemory } from './hints';
+import { resetHintMemory } from './hints';
 export type { NarrativeContext, NarrativeSettings, NarrativePreset } from './types';
 export { NARRATIVE_PRESETS } from './types';
+
+/**
+ * Forget everything the narrator remembers. Called when a game starts.
+ *
+ * The buffers, the look counts, the per-location turn counters and the hint
+ * memory are module singletons; nothing used to clear them, so a second game in
+ * the same tab inherited the first one's sense of what had already been said.
+ */
+export function resetNarrationMemory(): void {
+  narrationMemory.reset();
+  resetComposer();
+  resetAllLocationStates();
+  resetHintMemory();
+}
 
 // === OUTCOME MAPPING ===
 
@@ -431,10 +445,20 @@ export function narrateForTurn(
   // Anti-repetition: looking at the same thing again says so, and says it
   // differently each time (the bridge used to answer with one fixed sentence,
   // which made it the most repeated text in the game).
+  //
+  // "The same thing" includes the state it is in. A terminal that was locked
+  // when the player first read it, and is now decrypted, is a new sight — the
+  // old key ignored state, so the second look after unlocking answered "nothing
+  // the first look did not already give you" and swallowed the revelation.
   const parsedVerb = result.trace.parsedVerb ?? 'WAIT';
   const parsedTarget = result.trace.parsedTarget ?? '';
-  if (OBSERVING_VERBS.has(parsedVerb) && parsedTarget) {
-    const previousLooks = narrationMemory.countPair(parsedVerb, parsedTarget);
+  const isObserving = OBSERVING_VERBS.has(parsedVerb) && parsedTarget !== '';
+  const lookVariant = isObserving
+    ? targetStateSignature(result.newState, parsedTarget, sceneContext.locationId ?? '')
+    : '';
+  if (isObserving) {
+    const previousLooks = narrationMemory.countLook(parsedVerb, parsedTarget, lookVariant);
+    narrationMemory.recordLook(parsedVerb, parsedTarget, lookVariant);
     if (previousLooks > 0) {
       return selectReexaminationText(parsedVerb, previousLooks, locale ?? getLocale(), narrationMemory);
     }
@@ -456,7 +480,7 @@ export function narrateForTurn(
       result.trace.parsedTarget ?? '',
       isSuccessful,
       sceneContext.locationId ?? '',
-      state,
+      result.newState,
       effectiveLocale,
     );
     if (revealText) {
@@ -467,49 +491,40 @@ export function narrateForTurn(
   return narrative;
 }
 
-// === EXAMINE ENVIRONMENT — rich scene description ===
+/**
+ * A stable string for the state a look found its target in. Empty when the
+ * target has no state worth distinguishing, which keeps plain objects on the
+ * old one-key-per-target behaviour.
+ */
+function targetStateSignature(state: GameState, targetId: string, locationId: string): string {
+  const node = state.scenario
+    ? findLocationNode(state.scenario.graph.nodes, locationId)
+    : null;
+  const feature = node?.features.find(f => f.id === targetId);
+  if (!feature) return '';
+  const entityState = getFeatureState(state, targetId, feature);
+  return Object.entries(entityState)
+    .filter(([, v]) => v !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${String(v)}`)
+    .join(',');
+}
+
+// === EXAMINE ENVIRONMENT ===
 
 /**
- * Build a detailed scene description when the player examines the environment.
- * Lists location flavor, obstacle, items, features, NPCs, and exits.
+ * What the player is told for "look around".
+ *
+ * This used to be a fourth, hand-rolled enumeration of the room
+ * ("L'environnement présente : …", "Présences : …"), printed in the same turn
+ * as the scene recap the store appends — so looking around listed the contents
+ * twice, in two different styles. The scene recap is the one enumeration; here
+ * we only say that the player looked, and let it do its job.
  */
 function buildExamineEnvironmentNarrative(scene: SceneDescription): string {
-  const parts: string[] = [];
-
-  // Location flavor
-  parts.push(`Vous observez les lieux. ${scene.locationDescription}`);
-
-  // Obstacle hint
-  if (scene.obstacleHint) {
-    parts.push(scene.obstacleHint);
-  }
-
-  // Visible items
-  if (scene.visibleItems.length > 0) {
-    const itemNames = scene.visibleItems.map(i => i.name).join(', ');
-    parts.push(`Vous remarquez : ${itemNames}.`);
-  }
-
-  // Environment features
-  if (scene.visibleFeatures.length > 0) {
-    const featureNames = scene.visibleFeatures.map(f => f.name).join(', ');
-    parts.push(`L'environnement présente : ${featureNames}.`);
-  }
-
-  // NPCs
-  if (scene.visibleNpcs.length > 0) {
-    const npcNames = scene.visibleNpcs.map(n => n.name).join(', ');
-    parts.push(`Présences : ${npcNames}.`);
-  }
-
-  // Exits
-  if (scene.exits.length > 0) {
-    const exitDescs = scene.exits.map(e =>
-      e.visited ? `${e.name} [exploré]` : `${e.name} [inexploré]`,
-    );
-    parts.push(`Sorties : ${exitDescs.join(', ')}.`);
-  }
-
+  const parts: string[] = [t('scene.look_around')];
+  if (scene.locationDescription) parts.push(scene.locationDescription);
+  if (scene.obstacleHint) parts.push(scene.obstacleHint);
   return parts.join(' ');
 }
 
@@ -552,21 +567,14 @@ function getRevealContent(
       return item.examineResult[localeKey] || item.examineResult.fr;
     }
 
-    // Check features — examineResult first (detailed description), state-description as fallback
+    // Check features. The state description wins over examineResult: a repaired
+    // terminal must not be described by the text written for the broken one.
+    // getFeatureDescription already encodes that order — this used to invert it
+    // and keep a third copy of the same resolution.
     const feature = node.features.find(f => f.id === targetId);
     if (feature) {
-      // Always prefer examineResult for EXAMINE actions (detailed description)
-      if (feature.examineResult) {
-        return feature.examineResult[localeKey] || feature.examineResult.fr;
-      }
-      // Fall back to state-based description if no examineResult
-      if (isEnrichedFeature(feature) && feature.descriptions) {
-        const currentState = getFeatureState(state, targetId, feature);
-        const stateDesc = pickStateDescription(feature.descriptions, currentState);
-        if (stateDesc) {
-          return stateDesc[localeKey] || stateDesc.fr;
-        }
-      }
+      const described = getFeatureDescription(feature, getFeatureState(state, targetId, feature), localeKey);
+      if (described) return described;
     }
 
     // Check obstacle target

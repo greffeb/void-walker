@@ -44,6 +44,25 @@ describe('re-examination', () => {
     for (const wrong of sightOnly) expect(texts.has(wrong)).toBe(false);
   });
 
+  it('counting how insistent the player is does not make them more insistent', () => {
+    // countLook used to increment on read, so merely asking advanced the tier.
+    const memory = new NarrationMemory();
+    expect(memory.countLook('EXAMINE', 'terminal')).toBe(0);
+    expect(memory.countLook('EXAMINE', 'terminal')).toBe(0);
+    memory.recordLook('EXAMINE', 'terminal');
+    expect(memory.countLook('EXAMINE', 'terminal')).toBe(1);
+  });
+
+  it('a look at a changed object is a first look, not a repeat', () => {
+    // The old key was verb:target and ignored state, so examining a terminal
+    // after decrypting it answered "nothing the first look did not give you"
+    // and swallowed the revelation.
+    const memory = new NarrationMemory();
+    memory.recordLook('EXAMINE', 'terminal', 'lock=locked');
+    expect(memory.countLook('EXAMINE', 'terminal', 'lock=locked')).toBe(1);
+    expect(memory.countLook('EXAMINE', 'terminal', 'lock=unlocked,activity=active')).toBe(0);
+  });
+
   it('every tier has something written for it', () => {
     for (const tier of ['second', 'third', 'insistent'] as const) {
       expect(REEXAMINATION_SNIPPETS.filter(s => s.tier === tier).length).toBeGreaterThanOrEqual(3);

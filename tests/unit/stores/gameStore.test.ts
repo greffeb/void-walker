@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from 'vitest';
-import { flattenSceneToText, flattenSceneReminder } from '../../../src/stores/sceneHelpers';
+import { flattenSceneToText, flattenSceneReminder, assembleTurnText } from '../../../src/stores/sceneHelpers';
 import type { NarratedScene } from '@narration/scene';
 
 const baseScene: NarratedScene = {
@@ -15,21 +15,23 @@ const baseScene: NarratedScene = {
   items: [],
   npcs: [],
   exits: [{ kind: 'exit', value: 'Sortie vers couloir.', visited: false }],
+  recap: [],
   prompt: 'Que faites-vous ?',
 };
 
 describe('flattenSceneToText', () => {
   it('showIntro=true: renders intro + elements + prompt', () => {
-    const text = flattenSceneToText(baseScene, true);
+    const text = flattenSceneToText(baseScene, 'full');
     expect(text).toContain('Baie Cryo');
     expect(text).toContain('Vous voyez un terminal.');
     expect(text).toContain('Que faites-vous ?');
   });
 
-  it('showIntro=false: skips intro, renders elements + prompt', () => {
-    const text = flattenSceneToText(baseScene, false);
+  it("layout 'recap': no intro, no room — only what changed", () => {
+    const text = flattenSceneToText(baseScene, 'recap');
     expect(text).not.toContain('Baie Cryo');
-    expect(text).toContain('Vous voyez un terminal.');
+    expect(text).not.toContain('Vous voyez un terminal.');
+    expect(text).toBe('Que faites-vous ?');
   });
 
   it('with scenarioIntro and locationDescription: renders both in order', () => {
@@ -39,7 +41,7 @@ describe('flattenSceneToText', () => {
       intro: [{ kind: 'location', value: 'Baie Cryo' }],
       locationDescription: 'Froid mordant.',
     };
-    const text = flattenSceneToText(scene, true);
+    const text = flattenSceneToText(scene, 'full');
     // scenarioIntro comes first
     expect(text.indexOf('Intro scénario.')).toBeLessThan(text.indexOf('Baie Cryo'));
     // intro + description joined with " — "
@@ -56,7 +58,7 @@ describe('flattenSceneToText', () => {
       ],
       locationDescription: null,
     };
-    const text = flattenSceneToText(scene, true);
+    const text = flattenSceneToText(scene, 'full');
     expect(text).toContain('Vous revenez dans la baie cryo.');
     expect(text).not.toContain('—');
   });
@@ -66,7 +68,7 @@ describe('flattenSceneToText', () => {
       ...baseScene,
       obstacle: 'Un obstacle bloque le passage.',
     };
-    const text = flattenSceneToText(scene, true);
+    const text = flattenSceneToText(scene, 'full');
     const obstacleIdx = text.indexOf('Un obstacle bloque le passage.');
     const featuresIdx = text.indexOf('Vous voyez un terminal.');
     expect(obstacleIdx).toBeGreaterThanOrEqual(0);
@@ -79,50 +81,71 @@ describe('flattenSceneToText', () => {
       ...baseScene,
       scenarioIntro: 'Intro scénario.',
     };
-    const text = flattenSceneToText(scene, true);
+    const text = flattenSceneToText(scene, 'full');
     // blank line between scenarioIntro and intro
     expect(text).toContain('Intro scénario.\n\nBaie Cryo');
   });
 
-  it('showIntro=false: scenarioIntro and locationDescription are suppressed', () => {
+  it("layout 'recap': scenarioIntro and locationDescription are suppressed", () => {
     const scene: NarratedScene = {
       ...baseScene,
       scenarioIntro: 'Intro scénario.',
       locationDescription: 'Froid mordant.',
+      recap: [{ kind: 'text', value: 'Désormais : le terminal.' }],
     };
-    const text = flattenSceneToText(scene, false);
+    const text = flattenSceneToText(scene, 'recap');
     expect(text).not.toContain('Intro scénario.');
     expect(text).not.toContain('Froid mordant.');
-    expect(text).toContain('Vous voyez un terminal.');
+    expect(text).toContain('Désormais : le terminal.');
   });
 });
 
 describe('flattenSceneReminder', () => {
-  it('produces only elements + prompt, no intro or description', () => {
+  it('says nothing but the prompt when nothing moved', () => {
+    // The whole room used to be reprinted after every single action, so a turn
+    // spent examining one terminal ended with the room listed again.
+    const text = flattenSceneReminder(baseScene);
+    expect(text).toBe('Que faites-vous ?');
+    expect(text).not.toContain('Vous voyez un terminal.');
+  });
+
+  it('carries the recap when something moved, and nothing else', () => {
     const scene: NarratedScene = {
+      ...baseScene,
       scenarioIntro: 'ignore',
       intro: [{ kind: 'location', value: 'ignore' }],
       locationDescription: 'ignore',
-      obstacle: null,
-      features: [{ kind: 'text', value: 'Vous voyez un terminal.' }],
-      items: [{ kind: 'text', value: 'Vous remarquez un couteau.' }],
-      npcs: [],
-      exits: [{ kind: 'exit', value: 'Sortie.', visited: false }],
-      prompt: 'Que faites-vous ?',
+      items: [{ kind: 'text', value: 'ignore' }],
+      recap: [{ kind: 'text', value: 'Désormais : ' }, { kind: 'feature', value: 'le terminal' }],
     };
     const text = flattenSceneReminder(scene);
+    expect(text).toContain('Désormais : le terminal');
+    expect(text).toContain('Que faites-vous ?');
     expect(text).not.toContain('ignore');
-    expect(text).toContain('Vous voyez un terminal.');
-    expect(text).toContain('Vous remarquez un couteau.');
+  });
+
+  it('does not repeat the obstacle', () => {
+    const text = flattenSceneReminder({ ...baseScene, obstacle: 'Obstacle bloquant.' });
+    expect(text).not.toContain('Obstacle bloquant.');
+  });
+});
+
+describe('assembleTurnText', () => {
+  it('same room, nothing moved: the action line, then the prompt', () => {
+    const text = assembleTurnText('Vous examinez le terminal.', baseScene, null);
+    expect(text).toBe('Vous examinez le terminal.\n\nQue faites-vous ?');
+  });
+
+  it('a move keeps the action line and prints the room it arrives in', () => {
+    // The move narrative used to be discarded in favour of the scene alone.
+    const text = assembleTurnText('Vous gagnez le centre de coordination.', baseScene, 'enter');
+    expect(text).toContain('Vous gagnez le centre de coordination.');
+    expect(text).toContain('Baie Cryo');
     expect(text).toContain('Que faites-vous ?');
   });
 
-  it('reminder does not include obstacle', () => {
-    const scene: NarratedScene = {
-      ...baseScene,
-      obstacle: 'Obstacle bloquant.',
-    };
-    const text = flattenSceneReminder(scene);
-    expect(text).not.toContain('Obstacle bloquant.');
+  it('falls back to the narrative alone when there is no scene', () => {
+    expect(assembleTurnText('Rien ne bouge.', null, null)).toBe('Rien ne bouge.');
+    expect(assembleTurnText('Rien ne bouge.', null, 'enter')).toBe('Rien ne bouge.');
   });
 });

@@ -957,14 +957,19 @@ export const fr: LocaleStrings = {
   'env.seal_point': 'Point de scellement',
 
   // Scene narration prose templates
-  'scene.intro_new':      'Vous reprenez conscience dans',
-  'scene.intro_enter':    'Vous pénétrez dans',
   'scene.intro_revisit':  'Vous revenez dans',
+  'scene.look_around':   'Vous prenez le temps de regarder autour de vous.',
   'scene.features_intro': 'Vous voyez autour de vous',
   'scene.items_intro':    'Parmi les débris, vous remarquez',
   'scene.npcs_intro':     'Vous apercevez',
   'scene.exits_new':      'Vous distinguez une sortie vers',
   'scene.exits_known':    'Chemin connu vers',
+  'scene.recap_changed': 'Désormais :',
+  'scene.recap_appeared': 'Vous remarquez maintenant',
+  'scene.recap_gone': 'Il n\'y a plus',
+  'scene.recap_new_exit': 'Un passage s\'ouvre vers',
+  'scene.recap_arrived': 'Quelqu\'un entre :',
+  'scene.recap_left': 'Quelqu\'un est parti :',
   'scene.prompt':         'Que faites-vous ?',
 
   // Anti-softlock interventions

@@ -1,56 +1,57 @@
 // ---------------------------------------------------------------------------
-// src/stores/sceneHelpers.ts — Pure helper functions for NarratedScene → text
+// src/stores/sceneHelpers.ts — NarratedScene → text, for the typewriter
 // ---------------------------------------------------------------------------
-// Extracted here so unit tests can import without pulling in the full store
-// (which depends on Zustand, Dexie/IndexedDB, and other browser-only modules).
+// Kept out of the store so unit tests can import it without pulling in Zustand,
+// Dexie/IndexedDB and the rest of the browser-only modules.
+//
+// The layout itself lives in @narration/sceneLines, shared with the renderer:
+// the typewriter clips by character count, so text and JSX must agree exactly.
 // ---------------------------------------------------------------------------
 
 import type { NarratedScene } from '@narration/scene';
+import type { SceneLayout } from '@narration/sceneLines';
+import { buildSceneLines, sceneLinesToText } from '@narration/sceneLines';
 
 /**
- * Flatten a NarratedScene to a plain text string for the typewriter.
+ * Flatten a NarratedScene to plain text for the typewriter.
  *
- * Order matches NarrativePanel's NarratedSceneBlock and renderClippedScene:
- *   scenarioIntro (+ blank line)
- *   intro (+ " — " + locationDescription if present)
- *   obstacle
- *   features / items / npcs / exits
- *   prompt
+ * `layout` used to be a `showIntro` boolean, whose false branch meant "the room
+ * but no intro" — a shape production never asked for and which no longer exists
+ * now that a same-room turn prints only what changed.
  */
-export function flattenSceneToText(scene: NarratedScene, showIntro: boolean): string {
-  const lines: string[] = [];
-
-  if (showIntro) {
-    // Scenario intro (new_game only)
-    if (scene.scenarioIntro) {
-      lines.push(scene.scenarioIntro);
-      lines.push(''); // blank separator line
-    }
-    // Location name + optional rich description
-    if (scene.intro.length > 0) {
-      const introText = scene.intro.map(tok => tok.value).join('');
-      lines.push(scene.locationDescription ? `${introText} — ${scene.locationDescription}` : introText);
-    }
-  }
-
-  // Obstacle
-  if (scene.obstacle) lines.push(scene.obstacle);
-
-  // Interactive elements
-  for (const tokens of [scene.features, scene.items, scene.npcs, scene.exits]) {
-    if (tokens.length > 0) lines.push(tokens.map(tok => tok.value).join(''));
-  }
-
-  lines.push(scene.prompt);
-  return lines.join('\n');
+export function flattenSceneToText(scene: NarratedScene, layout: SceneLayout = 'full'): string {
+  return sceneLinesToText(buildSceneLines(scene, layout));
 }
 
-/** Post-action reminder: only interactive elements + prompt (no intro, no description). */
+/**
+ * Post-action recap: only what changed, then the prompt.
+ *
+ * This used to reprint the room in full — features, items, NPCs, exits — after
+ * every single action, so a turn spent examining one terminal ended with the
+ * whole room listed again. Now a turn where nothing moved says nothing, and the
+ * prompt carries it.
+ */
 export function flattenSceneReminder(scene: NarratedScene): string {
-  const lines: string[] = [];
-  for (const tokens of [scene.features, scene.items, scene.npcs, scene.exits]) {
-    if (tokens.length > 0) lines.push(tokens.map(tok => tok.value).join(''));
+  return sceneLinesToText(buildSceneLines(scene, 'recap'));
+}
+
+/**
+ * The text a turn ends with, assembled once.
+ *
+ * `submitAction` and `onDiceAnimationComplete` each had their own copy of this,
+ * so every change to the shape of a turn had to be made twice.
+ */
+export function assembleTurnText(
+  narrative: string,
+  scene: NarratedScene | null,
+  introMode: 'new_game' | 'enter' | 'revisit' | null,
+): string {
+  // A move prints the room it arrives in, after the line that got us there.
+  if (introMode !== null) {
+    if (!scene) return narrative;
+    const full = flattenSceneToText(scene, 'full');
+    return narrative ? `${narrative}\n${full}` : full;
   }
-  lines.push(scene.prompt);
-  return lines.join('\n');
+  const reminder = scene ? flattenSceneReminder(scene) : '';
+  return reminder ? `${narrative}\n\n${reminder}` : narrative;
 }
