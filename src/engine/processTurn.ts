@@ -32,7 +32,7 @@ import { BALANCE } from './constants';
 import { tickOxygen } from './oxygen';
 import { tickStalkerClock, checkStalkerClock, applyStalkerEvent, resetStalkerClock } from './stalkerClock';
 import type { VerbId } from './verbs';
-import { MOVEMENT_VERBS, getVerbStat, isAutoVerb as isAutoVerb_, isUnresistedVerb } from './verbs';
+import { MOVEMENT_VERBS, getVerbStat, isAutoVerb as isAutoVerb_, isUnresistedVerb, OBSERVING_VERBS } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
 import { checkDeath, applyDeath, updateCharacterHp } from './state';
 import { addItem } from './inventory';
@@ -556,7 +556,13 @@ export function processTurn(
   // ─────────────────────────────────────────────────────────
   const isAutoVerb = isAutoVerb_(
     action.verb, action.target?.properties ?? [], action.target?.state,
-  );
+  )
+    // Looking is not a check. `isUnresistedVerb` already says an observing verb
+    // "cannot be refused", but the generic pipeline rolled anyway: a failed
+    // EXAMINE returned no description at all, so the player who looks at the
+    // bulkhead to learn a badge opens it was told nothing, at random. An
+    // authored EXAMINE carrying its own DC is still a real check.
+    || (interactionMatch === null && OBSERVING_VERBS.has(action.verb));
   let diceRoll: DiceResult | null = null;
 
   // Trace data for step 5 (populated if not auto-verb)

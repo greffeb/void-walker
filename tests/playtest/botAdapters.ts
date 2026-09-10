@@ -32,11 +32,12 @@ export function toBotState(state: GameState): BotState {
 }
 
 /** Convert full GameState into the minimal BotScene view. */
-export function toBotScene(state: GameState): BotScene {
+export function toBotScene(state: GameState, lastNarrative = ''): BotScene {
   const ctx = getSceneContext(state);
   const suggestionStrings = (ctx.scenarioSuggestions ?? []).map(formatSuggestionAsInput);
   const locationItemNames = ctx.locationItems.map(i => t(i.nameKey as StringKey));
   const locationItemIds = ctx.locationItems.map(i => i.id);
+  const inventoryItemNames = ctx.inventory.map(i => t(i.nameKey as StringKey));
   const npcIds = ctx.npcs.map(n => n.id);
   const npcNames = ctx.npcs.map(n => t(n.nameKey as StringKey));
   const environmentFeatureIds = ctx.environmentFeatures.map(f => f.id);
@@ -69,6 +70,7 @@ export function toBotScene(state: GameState): BotScene {
     suggestions: suggestionStrings,
     obstacleSuggestions,
     locationItemNames,
+    inventoryItemNames,
     locationItemIds,
     npcIds,
     npcNames,
@@ -83,5 +85,6 @@ export function toBotScene(state: GameState): BotScene {
     healingItemName: firstHealingItemName(state.character?.inventory ?? []),
     hasObstacle,
     obstacleTargetId,
+    lastNarrative,
   };
 }

@@ -670,7 +670,7 @@ export function isAutoVerb(
 }
 
 /** Verbs that only observe. They meet no resistance, so they cannot be refused. */
-const OBSERVING_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
+export const OBSERVING_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
   'EXAMINE', 'READ', 'SCAN', 'LISTEN', 'SMELL',
 ]);
 

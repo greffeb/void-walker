@@ -11,6 +11,7 @@ import type {
   RngFn, ResolvedTarget,
 } from './types';
 import type { VerbId } from './verbs';
+import { OBSERVING_VERBS } from './verbs';
 import type { RollOutcome } from './types';
 import type { PlayerAttackResult } from './types';
 import { BALANCE } from './constants';
@@ -167,9 +168,13 @@ export function buildConsequences(
 
   // General outcome consequences (only for non-combat actions with a real target).
   // THROW is excluded from self-damage: the thrown object was aimed outward, not at the player.
+  // Observing is excluded too: a look that tells you nothing is a wasted turn,
+  // not a wound. Authored EXAMINE checks still roll and still fail — the game
+  // may refuse the information — but the curious player stops paying blood for
+  // reading the room, which is where they learn what to do.
   // Non-combat failure damage is nonLethal: it cannot reduce HP below 1.
   // Combat/oxygen/scenario interactions handle lethal damage separately.
-  if (!attackResult && target !== null && verb !== 'THROW') {
+  if (!attackResult && target !== null && verb !== 'THROW' && !OBSERVING_VERBS.has(verb)) {
     if (outcome === 'failure') {
       consequences.push({
         type: 'damage', targetId: 'player',

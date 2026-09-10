@@ -11,6 +11,7 @@ import { ALL_MODULES } from '../src/content/scenarios/modules/index';
 import { isEnrichedFeature } from '../src/engine/scenario';
 import { randomBot } from '../tests/playtest/bots/randomBot';
 import { goalBot } from '../tests/playtest/bots/goalBot';
+import { freePlayBot } from '../tests/playtest/bots/freePlayBot';
 import { toBotState, toBotScene } from '../tests/playtest/botAdapters';
 import { StuckDetector, readProgress } from '../tests/playtest/stuckDetector';
 import { createSeededRng } from '../tests/playtest/bots/index';
@@ -77,7 +78,9 @@ for (let i = 0; i < RUNS; i++) {
   const sessionLength = rng.pick(SESSION_LENGTHS);
   const playerClass = rng.pick(PLAYER_CLASSES);
   const difficulty = rng.pick(DIFFICULTIES);
-  const bot = rng.float() < 0.5 ? randomBot : goalBot;
+  // Three profiles, evenly weighted: told what to do, inventing it, and noise.
+  const botRoll = rng.float();
+  const bot = botRoll < 1 / 3 ? randomBot : botRoll < 2 / 3 ? goalBot : freePlayBot;
   const engineRng = (): number => rng.float();
 
   let state: GameState;
@@ -115,12 +118,13 @@ for (let i = 0; i < RUNS; i++) {
   let outcome: RunReport['outcome'] = 'timeout';
   let turns = 0;
   let furthestIndex = 0;
+  let lastNarrative = '';
   const buffered: string[] = [];
 
   while (turns < MAX_TURNS) {
     if (isGameOver(state)) break;
     const hpBefore = state.character?.hp ?? 0;
-    const input = bot.makeDecision(toBotState(state), toBotScene(state), rng);
+    const input = bot.makeDecision(toBotState(state), toBotScene(state, lastNarrative), rng);
     const context = getSceneContext(state);
     const offered = (context.scenarioSuggestions ?? [])
       .map(c => `${c.verbText} ${c.targetText}`.trim());
@@ -130,6 +134,7 @@ for (let i = 0; i < RUNS; i++) {
     }
     const result = processTurn(state, input, context, parserData, engineRng);
     state = result.newState;
+    lastNarrative = result.narrative;
     const { trace } = result;
     const line = `[${state.playerLocationId}] "${input}"`
       + ` -> ${trace.parsedVerb ?? '?'}/${trace.parsedTarget ?? '-'} ${trace.outcome ?? '-'}`
@@ -232,7 +237,7 @@ for (const bucket of ORDER) {
 
 console.log('');
 console.log('--- entonnoir par bot ---');
-for (const botName of ['random', 'goal_seeker']) {
+for (const botName of ['random', 'goal_seeker', 'free_play']) {
   const botRuns = reports.filter(r => r.botName === botName);
   if (botRuns.length === 0) continue;
   const wins = botRuns.filter(r => r.bucket === 'victoire').length;
@@ -260,7 +265,7 @@ console.log(`  actions ratees      ${avg(r => r.failedActions)} par partie`);
 
 console.log('');
 console.log('--- noeud le plus avance atteint ---');
-for (const botName of ['random', 'goal_seeker']) {
+for (const botName of ['random', 'goal_seeker', 'free_play']) {
   const botRuns = reports.filter(r => r.botName === botName);
   if (botRuns.length === 0) continue;
   console.log(`  ${botName} (${botRuns.length} parties)`);

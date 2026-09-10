@@ -351,12 +351,52 @@ poids », §4.2). Les deux décisions ne peuvent pas être vraies en même temps
 tient jusqu'à arbitrage écrit. Rendre le soin automatique a aussi été essayé : passer par
 `isAutoVerb` court-circuite tout le pipeline de conséquences, donc le soin cessait de soigner.
 
-### P1ter — Les 7 points restants · combat
+### P1ter — ⚠️ Le chiffre de 34 % mesure la liste de suggestions, pas le jeu
 
-32,8 % contre 40 % visés. Il reste, pour le bot objectif sur 98 parties, **27 morts à
-`escalation` et 26 à `boss`** — toutes au contact de l'Oracle. Les PV partent maintenant
-d'abord au combat (5,5 par partie contre 10 à 14 de réserve). C'est un arbitrage d'équilibrage,
-pas un câblage manquant : à trancher avant de coder.
+**C'est le constat le plus important de la page.** Les bots du filet lisent tous les
+suggestions que la scène leur propose. Le taux de victoire du « bot objectif » mesure donc la
+qualité du **classement des trois lignes cliquables**, pas la jouabilité du jeu.
+
+Un troisième profil a été écrit pour le vérifier : `tests/playtest/bots/freePlayBot.ts`. Il
+reçoit le vocabulaire de verbes du jeu (via i18n), les noms de ce qui est présent dans la
+pièce, et le texte que le jeu vient d'afficher. **Rien ne lui dit quel verbe marche sur quoi.**
+Il combine verbe × cible × outil, mémorise ce qu'il a déjà gâché, suit les indices du texte et
+privilégie les verbes qui ont payé. Il ne lit jamais une suggestion — un test l'interdit
+explicitement.
+
+| Profil, mêmes graines | Victoires |
+|---|---|
+| `goal_seeker` (lit les suggestions) | **34,0 %** |
+| `free_play` (invente ses actions) | **0,0 %** |
+| `random` (bruit) | 0,0 % |
+
+`npx vitest run --project stress tests/stress/freePlay.test.ts` (120 parties) :
+contenant ouvert **43,3 %**, badge en main **40,8 %**, victoires **0 %**,
+**2,11 lieux visités en moyenne** sur six et plus.
+
+Le joueur libre ouvre donc le casier et prend le badge quatre fois sur dix — puis **ne bouge
+plus**. Il s'arrête *bloqué*, pas mort.
+
+**Deux défauts trouvés par ce bot en une seule session, qu'aucun bot lisant les suggestions
+n'aurait pu montrer :**
+
+- **Observer coûtait des PV.** `examiner Porte blindée` jetait un DC 7 dont l'échec prélevait
+  un point de vie. Un joueur curieux était saigné pour avoir regardé.
+- **Un `EXAMINE` raté ne renvoyait aucune description.** Le joueur qui regarde la cloison pour
+  apprendre qu'un badge l'ouvre n'apprenait rien, au hasard. `isUnresistedVerb` déclarait
+  pourtant depuis toujours qu'un verbe d'observation « ne peut pas être refusé » : le pipeline
+  générique jetait quand même. Regarder est désormais automatique ; un `EXAMINE` **écrit avec
+  son propre DC** (check de perception) reste un jet.
+
+**Ce qui n'est pas tranché.** Le 0 % du joueur libre n'est pas encore un verdict sur le jeu :
+ce bot est une v1 et son exploration est faible (2,11 lieux). Savoir si c'est le jeu qui ne
+donne aucune raison d'avancer, ou le bot qui est un mauvais touriste, est la prochaine question
+— et elle se mesure, elle ne se suppose pas.
+
+### P1quater — Les 6 points restants du bot objectif · combat
+
+34,0 % contre 40 % visés, pour le profil guidé. Les pertes restantes sont des morts au contact
+de l'Oracle, à `escalation` et à `boss`. Arbitrage d'équilibrage, pas câblage manquant.
 
 ### P2 — Fermer les issues restantes · petit
 

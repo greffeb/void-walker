@@ -40,6 +40,8 @@ export interface BotScene {
   readonly obstacleSuggestions: readonly string[];
   /** Names of items visible in this location */
   readonly locationItemNames: readonly string[];
+  /** Names of items the player is carrying, for "utiliser X sur Y" */
+  readonly inventoryItemNames: readonly string[];
   /** IDs of items visible in this location */
   readonly locationItemIds: readonly string[];
   /** NPC IDs present in this location */
@@ -67,6 +69,15 @@ export interface BotScene {
   readonly hasObstacle: boolean;
   /** Target ID for the active obstacle (if any) */
   readonly obstacleTargetId: string | null;
+  /**
+   * What the game said last turn.
+   *
+   * A player is not combining verbs blindly: they read "a level 3 badge is
+   * required" and reach for the badge. Without the text, a bot that invents its
+   * own actions is a floor — a player who ignores every description — not an
+   * emulation of one.
+   */
+  readonly lastNarrative: string;
 }
 
 // ---------------------------------------------------------------------------
