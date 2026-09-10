@@ -96,7 +96,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
 
   // --- Assorted engine helpers with no caller.
   getConditionRollModifier: 'conditions: roll modifier never applied',
-  resetStalkerClock: 'stalker clock never reset on node progression',
   useOxygenCanister: 'oxygen: canister use never wired',
   hasBeenVisited: 'backtracking helper unused',
   isFeatureChanged: 'backtracking helper unused',

@@ -7,7 +7,15 @@ import { getSceneContext, formatSuggestionAsInput, sceneHasHealingItem } from '.
 import type { GameState } from '../../src/engine/types';
 import type { BotState, BotScene } from './bots/index';
 import { t } from '../../src/i18n/index';
+import { ITEM_DEFINITIONS } from '../../src/content/items';
 import type { StringKey } from '../../src/i18n/types';
+
+/** The carried item a bot can drink, named as the player would type it. */
+function firstHealingItemName(inventory: readonly string[]): string | null {
+  const id = inventory.find(itemId => sceneHasHealingItem([itemId]));
+  if (id === undefined) return null;
+  return t((ITEM_DEFINITIONS[id]?.nameKey ?? `item.${id}`) as StringKey);
+}
 
 /** Convert full GameState into the minimal BotState view. */
 export function toBotState(state: GameState): BotState {
@@ -68,7 +76,11 @@ export function toBotScene(state: GameState): BotScene {
     environmentFeatureNames,
     connectedLocationIds: walkableExits.map(l => l.id),
     connectedLocationAliases: walkableExits.map(l => l.aliases[0] ?? l.id),
-    hasHealingItem: sceneHasHealingItem(locationItemIds),
+    // What the player can drink right now. This read the *floor* while the act
+    // it gates reaches into the *inventory*, and the bot picks a kit up before
+    // it is ever hurt — so the flag was false exactly when healing became
+    // possible, and no bot ever healed in any run.
+    healingItemName: firstHealingItemName(state.character?.inventory ?? []),
     hasObstacle,
     obstacleTargetId,
   };

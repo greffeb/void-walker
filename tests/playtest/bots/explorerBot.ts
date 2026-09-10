@@ -99,11 +99,11 @@ export const explorerBot: PlaytestBot = {
     }
     if (
       state.playerHp < state.playerMaxHp * 0.3
-      && scene.hasHealingItem
+      && scene.healingItemName !== null
       && memory.healAttemptsAtLocation < 2
     ) {
       memory.healAttemptsAtLocation += 1;
-      return 'utiliser kit medical';
+      return `utiliser ${scene.healingItemName}`;
     }
 
     // Hard cap on consecutive same-room turns to keep stuck=0 guarantees.

@@ -121,6 +121,25 @@ function nothingLeftToGain(
   return result.newState !== undefined && stateReached;
 }
 
+/** Standing in one of these kills you — the engine's own `isLethalLocation`. */
+const LETHAL_LOCATION_STATES: ReadonlySet<string> = new Set(['depressurized', 'burning']);
+
+/**
+ * True when succeeding at this act makes the room the player is standing in
+ * lethal. The cargo jettison lever vents the bay the player is in; it carries a
+ * new state and a flag, so it read as progress and was proposed beside the acts
+ * that win the game. The player may still pull it — the engine never refuses —
+ * but the game will not suggest it.
+ */
+function killsTheDoer(result: InteractionResult, nodeId: string): boolean {
+  return (result.consequences ?? []).some(
+    c => c.type === 'environment_change'
+      && c.locationState !== undefined
+      && LETHAL_LOCATION_STATES.has(c.locationState)
+      && (c.locationId === undefined || c.locationId === nodeId),
+  );
+}
+
 /** The verb of a trigger, as an instruction: never a movement, never a secret. */
 function pickInteractionVerb(trigger: VerbId | readonly VerbId[]): VerbId | null {
   const verbs = Array.isArray(trigger) ? trigger as readonly VerbId[] : [trigger as VerbId];
@@ -185,6 +204,7 @@ function buildShutFeatureCandidates(
     for (const { trigger, onSuccess } of def.interactions) {
       if (!interactionAdvances(onSuccess)) continue;
       if (nothingLeftToGain(onSuccess, instance, scenarioFlags)) continue;
+      if (killsTheDoer(onSuccess, node.id)) continue;
       if (trigger.requiredState !== undefined
           && !stateMatchesToken(instance.state, trigger.requiredState)) continue;
       if (trigger.requiredFlag !== undefined && scenarioFlags[trigger.requiredFlag] !== true) continue;
@@ -228,6 +248,7 @@ function buildShutFeatureCandidates(
         if (!instance) continue;
         if (!interactionAdvances(interaction.onSuccess)) continue;
         if (nothingLeftToGain(interaction.onSuccess, instance, scenarioFlags)) continue;
+        if (killsTheDoer(interaction.onSuccess, node.id)) continue;
 
         candidates.push({
           verbText: useVerb,

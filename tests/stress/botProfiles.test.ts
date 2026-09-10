@@ -31,7 +31,7 @@ const BASE_SEED_CHAOTIC = 12100;
 // and the stat gain apart: the shift alone moves this from 69 to 75 and
 // coverage from 85.1 % to 84.2 %; the two extra stat points then buy back
 // 0.4 points of coverage. The bar below sits at the measured value.
-const EXPLORER_STUCK_BASELINE = 105;
+const EXPLORER_STUCK_BASELINE = 120;
 const PLAYER_CLASSES = ['marine', 'engineer', 'medic'] as const;
 const SESSION_LENGTHS = ['quick', 'standard'] as const;
 const DIFFICULTY: DifficultyLevel = 'explorer';
@@ -255,6 +255,10 @@ describe('botProfiles: explorer + chaotic', () => {
     // room opens it, and this bot examines rather than opens, so it stalls at
     // doors it never tries. The goal bot, which reads the acts the scene names,
     // went from 54 stuck in 250 to 1.
+    // 105 → 120, i.e. every run (P1bis): the stalker clock stopped executing
+    // long runs, so this bot no longer dies — and a run that does not end in
+    // death ends in wandering. The metric is now saturated and says nothing;
+    // the coverage figures below are what to read.
     expect(stuckCount).toBeLessThanOrEqual(EXPLORER_STUCK_BASELINE);
     // 0.85 sat inside the noise band: two equivalent seed streams measure 85.1 %
     // and 84.2 %. Held at the measured floor rather than at a figure one reseed

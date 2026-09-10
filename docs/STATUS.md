@@ -4,8 +4,8 @@
 > Si un autre document contredit celui-ci, c'est celui-ci qui a raison.
 > Toute reprise de développement commence par lire cette page — et rien d'autre.
 
-**Dernière mise à jour :** 2026-09-09
-**Dernier commit de code :** chantier P1 (victoire atteignable)
+**Dernière mise à jour :** 2026-09-10
+**Dernier commit de code :** chantier P1bis (survie — trois câblages dormants)
 **Derniers bug reports joueurs :** 2026-06-30
 
 ---
@@ -305,21 +305,58 @@ Trois des quatre pistes sont traitées à la racine (§4.6). La quatrième étai
 
 **La cible §6 de la phase 6B reste loin** : 19,6 % mesurés pour le bot objectif contre 40 %
 visés. Le goulot a changé de nature — il n'est plus la lisibilité mais la **survie**.
+P1bis (ci-dessous) l'a porté à **32,8 %**.
 
-### P1bis — Survivre jusqu'au pod · le goulot suivant, mesuré
+### P1bis — Survivre jusqu'au pod · ✅ trois câblages dormants — *2026-09-10*
 
-L'entonnoir désigne maintenant un seul seau : **40 % des parties tiennent l'objet en main et
-n'arrivent jamais au lieu de victoire**, et 100 % des défaites sont `hp_zero`. Les PV partent
-par deux robinets, mesurés par partie : **tentatives ratées 5,1** (1 PV par action non-combat
-ratée, `BALANCE.FAILURE_DAMAGE`) et **combat 3,7**, contre 10 à 14 PV de départ.
+L'entonnoir a d'abord été posé par bot et par nœud, et la réponse était sans ambiguïté :
+**pour le bot objectif, 77 pertes sur 77 étaient des morts, zéro blocage.** Pas un problème de
+lisibilité ni de navigation — de survie. Trois systèmes livrés ne faisaient rien :
 
-Pistes, non arbitrées :
+- **L'horloge du rôdeur ne se remettait jamais à zéro.** `resetStalkerClock` était exporté et
+  jamais appelé — la liste des exports orphelins le disait depuis le lot 1. Le compteur nommé
+  `actionsSinceLastProgression` mesurait donc les tours **écoulés**, pas les tours perdus. Pire :
+  passé le seuil `KILL`, `checkStalkerClock` renvoie `kill` **à chaque tour**, soit −5 PV par
+  tour à partir du 35ᵉ. Toute partie qui durait était exécutée, quelle que soit sa qualité.
+  Le compteur est remis à zéro quand le joueur atteint un lieu où il n'était jamais allé.
+- **L'armure ne protégeait personne.** `equippedArmor` est initialisé à `null` et rien ne
+  l'écrit jamais. La combinaison EVA — seul objet du jeu à porter `armorValue` — protégeait
+  déjà les poumons (le calcul d'O₂ accepte « dans l'inventaire ») mais pas le corps. L'armure
+  se lit maintenant comme l'oxygène : sur ce que le joueur porte.
+- **Aucun bot ne s'était jamais soigné.** `hasHealingItem` lisait le **sol** alors que l'acte
+  qu'il déclenchait puisait dans l'**inventaire** — et le bot ramasse le kit avant d'être
+  blessé. Le drapeau était donc faux exactement quand le soin devenait possible. Il nomme
+  maintenant l'objet porté, au lieu de taper « kit médical » en dur : un medic ayant bu sa
+  trousse gardait un stimulant, et la commande ne désignait plus rien.
+- **Un acte qui rend la pièce létale n'est plus suggéré.** Le levier de largage cargo vide la
+  soute où se tient le joueur ; il porte un état et un drapeau, donc il passait pour de la
+  progression et s'affichait à côté des actes qui gagnent la partie. Le joueur peut toujours le
+  tirer — le moteur ne refuse jamais — mais le jeu ne le propose plus.
 
-- Le levier de largage cargo est proposé comme un acte de progression au n\u0153ud boss ; en
-  crit_success il tue le joueur. Un piège mortel ne devrait pas être classé avec les actes
-  qui font avancer.
-- 1 PV par échec est un impôt invisible qui transforme l'exploration en `hp_zero`.
-- Le rôdeur encaisse la réserve que le casier a vidée.
+| Mesure (500 parties, graine 42) | Après lot 8 | Après P1 | **Après P1bis** |
+|---|---|---|---|
+| Victoires | 4,0 % | 9,8 % | **16,4 %** |
+| Victoires, bot objectif | 8,0 % | 19,6 % | **32,8 %** |
+| Défaites | 268 | 227 | **175** |
+| Obstacles résolus | 0,63 | 0,90 | **0,91** |
+| Bloqué | 212 | 224 | 243 |
+
+`maxStuck` monte encore, et toujours pour la même raison : les parties qui étaient exécutées au
+tour 35 survivent et se mettent à errer. Les défaites tombent de 227 à 175 — c'est la moitié
+honnête de l'échange.
+
+**Non retenu, et pourquoi.** Supprimer l'impôt de 1 PV par échec ordinaire a été essayé et
+mesuré : il contredit **REG-017** et un test de régression explicite du lot 4 (« l'échec a du
+poids », §4.2). Les deux décisions ne peuvent pas être vraies en même temps ; celle du lot 4
+tient jusqu'à arbitrage écrit. Rendre le soin automatique a aussi été essayé : passer par
+`isAutoVerb` court-circuite tout le pipeline de conséquences, donc le soin cessait de soigner.
+
+### P1ter — Les 7 points restants · combat
+
+32,8 % contre 40 % visés. Il reste, pour le bot objectif sur 98 parties, **27 morts à
+`escalation` et 26 à `boss`** — toutes au contact de l'Oracle. Les PV partent maintenant
+d'abord au combat (5,5 par partie contre 10 à 14 de réserve). C'est un arbitrage d'équilibrage,
+pas un câblage manquant : à trancher avant de coder.
 
 ### P2 — Fermer les issues restantes · petit
 

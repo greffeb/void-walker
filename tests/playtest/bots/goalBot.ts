@@ -35,8 +35,8 @@ export const goalBot: PlaytestBot = {
     resetOnNewRun(state);
 
     // Priority 1: heal if critically low HP (< 30%)
-    if (state.playerHp < state.playerMaxHp * 0.3 && scene.hasHealingItem) {
-      return 'utiliser kit médical';
+    if (state.playerHp < state.playerMaxHp * 0.3 && scene.healingItemName !== null) {
+      return `utiliser ${scene.healingItemName}`;
     }
 
     // Priority 2: leave while you still can. The bot had no self-preservation

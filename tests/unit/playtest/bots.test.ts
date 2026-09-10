@@ -39,10 +39,10 @@ function makeScene(overrides: Partial<BotScene> = {}): BotScene {
     environmentFeatureNames: ['camera de securite'],
     connectedLocationIds: ['room_b', 'room_c'],
     connectedLocationAliases: ['couloir nord', 'réservoir'],
-    hasHealingItem: false,
     hasObstacle: false,
     obstacleTargetId: null,
     obstacleSuggestions: [],
+    healingItemName: null,
     ...overrides,
   };
 }
@@ -131,15 +131,17 @@ describe('goalBot', () => {
   it('priority 1: uses healing item when HP is critically low', () => {
     const rng = createSeededRng(42);
     const state = makeState({ playerHp: 2, playerMaxHp: 10 }); // 20% < 30%
-    const scene = makeScene({ hasHealingItem: true });
+    // Named, not assumed: a bot that always typed "kit medical" missed the
+    // stimulant it was actually carrying, and paid a hit point for the miss.
+    const scene = makeScene({ healingItemName: 'Stimulant' });
     const decision = goalBot.makeDecision(state, scene, rng);
-    expect(decision).toContain('kit médical');
+    expect(decision).toBe('utiliser Stimulant');
   });
 
   it('does NOT prioritize healing when HP is fine', () => {
     const rng = createSeededRng(42);
     const state = makeState({ playerHp: 8, playerMaxHp: 10 }); // 80% >= 30%
-    const scene = makeScene({ hasHealingItem: true, locationItemNames: ['objet'] });
+    const scene = makeScene({ healingItemName: 'Kit médical basique', locationItemNames: ['objet'] });
     const decision = goalBot.makeDecision(state, scene, rng);
     // Should pick up item instead of healing
     expect(decision).toContain('prendre');

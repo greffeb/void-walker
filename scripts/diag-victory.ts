@@ -60,6 +60,7 @@ interface RunReport {
   readonly furthestNode: string;
   readonly hpLostToFailedActions: number;
   readonly hpLostToCombat: number;
+  readonly hpLostToStalker: number;
   readonly hpLostToOxygen: number;
   readonly hpLostToConditions: number;
   readonly failedActions: number;
@@ -107,6 +108,7 @@ for (let i = 0; i < RUNS; i++) {
   let containerOpened = gateContainerIds.size === 0;
   let hpLostToFailedActions = 0;
   let hpLostToCombat = 0;
+  let hpLostToStalker = 0;
   let hpLostToOxygen = 0;
   let hpLostToConditions = 0;
   let failedActions = 0;
@@ -140,12 +142,18 @@ for (let i = 0; i < RUNS; i++) {
     }
 
     const lost = Math.max(0, hpBefore - (state.character?.hp ?? 0));
+    const stalkerBite = trace.stalkerEventType === 'threat_arrival' ? 2
+      : trace.stalkerEventType === 'kill' ? 5
+      : 0;
     hpLostToOxygen += trace.oxygenHpDrain;
     hpLostToConditions += trace.conditionHpDrain;
     hpLostToCombat += trace.npcAttackDamage;
-    // Whatever the tick and the NPC did not take is what the attempt itself cost.
+    hpLostToStalker += stalkerBite;
+    // Whatever the tick, the NPC and the stalker did not take is what the
+    // attempt itself cost.
     hpLostToFailedActions += Math.max(
-      0, lost - trace.oxygenHpDrain - trace.conditionHpDrain - trace.npcAttackDamage,
+      0,
+      lost - trace.oxygenHpDrain - trace.conditionHpDrain - trace.npcAttackDamage - stalkerBite,
     );
     if (trace.outcome === 'failure' || trace.outcome === 'crit_failure') failedActions++;
 
@@ -190,6 +198,7 @@ for (let i = 0; i < RUNS; i++) {
     furthestNode: SPINE[furthestIndex]!,
     hpLostToFailedActions,
     hpLostToCombat,
+    hpLostToStalker,
     hpLostToOxygen,
     hpLostToConditions,
     failedActions,
@@ -244,19 +253,28 @@ console.log('');
 console.log('--- PV perdus par partie, par source ---');
 console.log(`  tentatives ratees   ${avg(r => r.hpLostToFailedActions)}`);
 console.log(`  combat              ${avg(r => r.hpLostToCombat)}`);
+console.log(`  rodeur              ${avg(r => r.hpLostToStalker)}`);
 console.log(`  oxygene             ${avg(r => r.hpLostToOxygen)}`);
 console.log(`  conditions          ${avg(r => r.hpLostToConditions)}`);
 console.log(`  actions ratees      ${avg(r => r.failedActions)} par partie`);
 
 console.log('');
 console.log('--- noeud le plus avance atteint ---');
-for (const nodeId of SPINE) {
-  const n = reports.filter(r => r.furthestNode === nodeId).length;
-  const reached = reports.filter(
-    r => SPINE.indexOf(r.furthestNode as typeof SPINE[number]) >= SPINE.indexOf(nodeId),
-  ).length;
-  console.log(`  ${nodeId.padEnd(12)} s arrete ici ${String(n).padStart(4)}`
-    + `   l a atteint ${String(reached).padStart(4)} (${pct(reached)})`);
+for (const botName of ['random', 'goal_seeker']) {
+  const botRuns = reports.filter(r => r.botName === botName);
+  if (botRuns.length === 0) continue;
+  console.log(`  ${botName} (${botRuns.length} parties)`);
+  for (const nodeId of SPINE) {
+    const stops = botRuns.filter(r => r.furthestNode === nodeId).length;
+    const reached = botRuns.filter(
+      r => SPINE.indexOf(r.furthestNode as typeof SPINE[number]) >= SPINE.indexOf(nodeId),
+    ).length;
+    console.log(`    ${nodeId.padEnd(12)} s arrete ici ${String(stops).padStart(4)}`
+      + ` (mort ${String(botRuns.filter(r => r.furthestNode === nodeId && r.outcome === 'defeat').length).padStart(3)}`
+      + ` / bloque ${String(botRuns.filter(r => r.furthestNode === nodeId && r.outcome === 'stuck').length).padStart(3)})`
+      + `   l a atteint ${String(reached).padStart(4)}`
+      + ` (${((100 * reached) / botRuns.length).toFixed(1)}%)`);
+  }
 }
 
 console.log('');

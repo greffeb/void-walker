@@ -30,7 +30,7 @@ import { isReformulation, isRefusal } from './types';
 import { tickConditions, checkConditionTriggers, addCondition, removeCondition, applyConditionMalus } from './conditions';
 import { BALANCE } from './constants';
 import { tickOxygen } from './oxygen';
-import { tickStalkerClock, checkStalkerClock, applyStalkerEvent } from './stalkerClock';
+import { tickStalkerClock, checkStalkerClock, applyStalkerEvent, resetStalkerClock } from './stalkerClock';
 import type { VerbId } from './verbs';
 import { MOVEMENT_VERBS, getVerbStat, isAutoVerb as isAutoVerb_, isUnresistedVerb } from './verbs';
 import { buildConsequences, applyConsequences } from './consequences';
@@ -69,9 +69,19 @@ import type { StringKey } from '@i18n/types';
 // ---------------------------------------------------------------------------
 
 /** Damage reduction granted by the equipped armor, stacked with DEF in combat. */
-function getEquippedArmorValue(equippedArmor: string | null): number {
-  if (equippedArmor === null) return 0;
-  return ITEM_DEFINITIONS[equippedArmor]?.armorValue ?? 0;
+function getEquippedArmorValue(
+  character: { equippedArmor: string | null; inventory: readonly string[] },
+): number {
+  // `equippedArmor` is initialised to null and never written — the equip helpers
+  // in inventory.ts have no caller anywhere — so this was 0 for every player in
+  // every run. The oxygen tick already counts a carried EVA suit as worn; the
+  // body had no such luck, and the only armour in the game protected nothing.
+  const worn = character.equippedArmor;
+  if (worn !== null) return ITEM_DEFINITIONS[worn]?.armorValue ?? 0;
+  return character.inventory.reduce(
+    (best, id) => Math.max(best, ITEM_DEFINITIONS[id]?.armorValue ?? 0),
+    0,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -774,7 +784,7 @@ export function processTurn(
     const combat = current.activeCombat;
     const combatCharacter = current.character;
     const effectiveStats = applyConditionMalus(combatCharacter.stats, combatCharacter.conditions);
-    const armorValue = getEquippedArmorValue(current.character.equippedArmor);
+    const armorValue = getEquippedArmorValue(current.character);
     const difficultyMultiplier = BALANCE.DIFFICULTY_DAMAGE_MULTIPLIER[current.difficulty];
 
     // ── WEAK POINT DISCOVERY (Phase 3 deliverable 9) ───────────────────────
@@ -1276,7 +1286,7 @@ export function processTurn(
     const combat = current.activeCombat;
     const npc = combat.npc;
 
-    const armorValue = getEquippedArmorValue(current.character.equippedArmor);
+    const armorValue = getEquippedArmorValue(current.character);
     const difficultyMultiplier = BALANCE.DIFFICULTY_DAMAGE_MULTIPLIER[current.difficulty];
 
     // A creature that has had enough breaks off instead of standing there
@@ -1458,6 +1468,12 @@ export function processTurn(
           ...current.visitedLocations,
           [newLocationId]: updatedVisit,
         },
+        // Reaching somewhere new is the progression the counter is named after.
+        // `resetStalkerClock` was written and never called, so the clock counted
+        // turns elapsed rather than turns wasted: past its kill threshold it
+        // fired every single turn, executing any run that lasted — however well
+        // it was going.
+        ...(destinationNeverVisited ? { stalkerClockState: resetStalkerClock() } : {}),
       };
     }
   }

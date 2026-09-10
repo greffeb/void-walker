@@ -54,8 +54,15 @@ export interface BotScene {
   readonly connectedLocationIds: readonly string[];
   /** Names/aliases of connected locations (for text commands) */
   readonly connectedLocationAliases: readonly string[];
-  /** True if a healing item is visible here */
-  readonly hasHealingItem: boolean;
+  /**
+   * Display name of a healing item in the player's hands, or null.
+   *
+   * This was a boolean, and every bot turned it into the fixed command
+   * "utiliser kit medical". A medic who had drunk the kit still carried a
+   * stimulant, so the flag stayed true while the command named nothing: the
+   * turn resolved as a DC 15 check on no target, failed, and cost a hit point.
+   */
+  readonly healingItemName: string | null;
   /** True if there is an unresolved obstacle in this location */
   readonly hasObstacle: boolean;
   /** Target ID for the active obstacle (if any) */

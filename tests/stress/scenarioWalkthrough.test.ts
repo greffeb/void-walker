@@ -108,15 +108,27 @@ const TARGET = {
  *    sealed way now ends its walk where it used to wander through. That is the
  *    price of doors that exist, paid by the one bot that cannot use them — the
  *    goal bot went the other way on both counts.
+ *  - P1bis: three dormant wirings, found by asking where runs *die* rather than
+ *    how many win. `resetStalkerClock` was exported and never called, so the
+ *    counter named `actionsSinceLastProgression` measured turns elapsed: past
+ *    its kill threshold it fired every single turn, executing any run that
+ *    lasted, however well it was going. `equippedArmor` is initialised to null
+ *    and never written, so the only armour in the game protected nobody. And
+ *    the harness gated healing on a *floor* check while the act reached into
+ *    the *inventory*, so no bot ever healed once.
+ *    Victories 9.8 % → **16.4 %**, goal bot 19.6 % → **32.8 %**.
+ *    `maxStuck` 224 → 243 again, and for the same reason it always moves the
+ *    wrong way here: runs that used to be executed on turn 35 now survive to
+ *    wander. Deaths fell 227 → 175 — the honest half of that trade.
  */
 const BASELINE = {
-  /** Loosened for the random bot alone; see the note above. */
-  maxStuck: 224,
+  /** Loosened for the random bot alone, then again when runs stopped dying. */
+  maxStuck: 243,
   maxTimeouts: 0,
   /** No longer zero. It may only ever go up. */
-  minVictories: 49,
+  minVictories: 82,
   /** Progression, which early death can only ever lower. */
-  minAvgObstaclesResolved: 0.90,
+  minAvgObstaclesResolved: 0.91,
   minAvgLocationCoverage: 0.58,
 } as const;
 
