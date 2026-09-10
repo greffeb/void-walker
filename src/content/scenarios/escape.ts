@@ -99,7 +99,6 @@ const access_keycard: ScenarioItemDefinition = {
             fr: 'Le badge active l\'écoutille du pod. Les joints pneumatiques sifflent et les verrous lâchent — mais le battant reste en place. Il faudra l\'ouvrir.',
             en: 'The badge activates the pod hatch. Pneumatic seals hiss and the locks release — but the door stays put. You will have to open it.',
           },
-          newState: 'open',
           flagSet: 'pod_hatch_open',
         },
       },

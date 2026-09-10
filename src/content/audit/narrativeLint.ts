@@ -117,6 +117,7 @@ export const UNCHANGED_BY_DESIGN: Readonly<Record<string, string>> = {
   classified_evidence_recovered: 'récupère des fichiers supprimés ; l\'écran est le même',
   vasquez_location_found:        'perce une couche de chiffrement ; l\'écran est le même',
   override_admin_access:         'étape 1 du protocole en 2 étapes ; le terminal attend encore l\'étape 2',
+  pod_hatch_open:                'le badge déverrouille l\'écoutille sans l\'ouvrir ; il faut encore la pousser',
   evidence_transmitted:          'la balise transmet ; c\'est la victoire, pas un changement d\'état',
   ai_safe_mode:                  'neutralise l\'IA, pas le terminal qui sert à la neutraliser',
 };
