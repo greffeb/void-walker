@@ -81,6 +81,14 @@ function buildSlotValues(ctx: NarrativeContext | null): SlotValues {
   };
 }
 
+/** Lowercase the first letter: a display name used as a common noun. */
+function asCommonNoun<T extends string | null>(noun: T): T {
+  if (noun === null || noun.length === 0) return noun;
+  // Leave acronyms alone: "EVA", "IA".
+  if (noun.slice(0, 2) === noun.slice(0, 2).toUpperCase() && /[A-Z]/.test(noun.slice(1, 2))) return noun;
+  return (noun.charAt(0).toLowerCase() + noun.slice(1)) as T;
+}
+
 // === SLOT PREFIX MAPPING ===
 
 type SlotPrefix = 'def' | 'indef' | 'de' | 'a' | 'part';
@@ -120,7 +128,12 @@ function resolveSimpleSlot(
       : prefixed.base === 'tool' ? slots.toolGrammar
       : slots.npcGrammar;
 
-    return grammar.resolveSlot(prefixToModifier(prefixed.prefix), noun, info);
+    // Display names are capitalised ("Terminal chiffré"); inside a sentence they
+    // are common nouns ("le terminal chiffré"). An NPC keeps its capital — it is
+    // a name, not a noun. postProcess re-capitalises at sentence start, so a
+    // template may now open with one of these slots.
+    const word = prefixed.base === 'npc' ? noun : asCommonNoun(noun);
+    return grammar.resolveSlot(prefixToModifier(prefixed.prefix), word, info);
   }
 
   // Check target_article special case
@@ -137,8 +150,8 @@ function resolveSimpleSlot(
   // Simple named slots
   switch (name) {
     case 'actor': return slots.actor;
-    case 'target': return slots.target;
-    case 'tool_used': return slots.tool_used;
+    case 'target': return asCommonNoun(slots.target);
+    case 'tool_used': return asCommonNoun(slots.tool_used);
     case 'npc_name': return slots.npc_name;
     case 'location': return slots.location;
     case 'direction': return slots.direction;

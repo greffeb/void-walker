@@ -103,7 +103,7 @@ export const AMBIANCE_MICRO_MODULES: readonly MicroModule[] = [
     ],
     locale: {
       fr: {
-        description: 'Un sas d\'observation donne sur une section de coque arrachée. Des débris flottent lentement dans le vide. L\'un d\'eux ressemble à un corps en combinaison.',
+        description: 'Un sas d\'observation donne sur le vide. Des débris flottent lentement de l\'autre côté de la vitre. L\'un d\'eux ressemble à un corps en combinaison.',
         hintText: 'Un sas donne sur le vide spatial et des débris flottants.',
         revisitDescription: 'Le sas d\'observation. Les débris ont dérivé un peu plus loin.',
       },
@@ -142,7 +142,7 @@ export const AMBIANCE_MICRO_MODULES: readonly MicroModule[] = [
     ],
     locale: {
       fr: {
-        description: 'Un recoin sous une couchette. Un petit collier de chat gît sur le sol, à côté d\'un bol d\'eau vide. La médaille est gravée d\'un nom.',
+        description: 'Un recoin sous une couchette, à l\'abri des regards. Un bol d\'eau vide est renversé sur le sol. Quelqu\'un, ici, n\'était pas tout à fait seul.',
         hintText: 'Vous entendez un miaulement étouffé... ou était-ce votre imagination ?',
         revisitDescription: 'Le coin du chat disparu. Le bol est toujours vide.',
       },

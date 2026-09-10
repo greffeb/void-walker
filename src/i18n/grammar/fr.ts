@@ -175,7 +175,10 @@ export class FrenchGrammar implements GrammarEngine {
           return `${word.slice(0, -1)}'${hWord}`; // Elide "l'homme"
         })
       // French typography: non-breaking space before ; : ! ?
-      .replace(/ ?([;:!?])/g, '\u00A0$1')
+      // Consume ALL preceding spaces, not one: a template with "vu  :" used to
+      // become "vu \u00A0:", which the double-space cleanup below cannot see
+      // because a no-break space is not a space.
+      .replace(/[ \u00A0]*([;:!?])/g, '\u00A0$1')
       // Clean up double spaces
       .replace(/ {2,}/g, ' ')
       // Clean up space after l' or d'

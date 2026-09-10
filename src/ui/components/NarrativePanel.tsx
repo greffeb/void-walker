@@ -6,6 +6,7 @@ import { useRef, useEffect } from 'react';
 import { useTypewriter } from '../hooks/useTypewriter';
 import type { TurnEntry } from '@stores/gameStore';
 import type { NarratedScene, SceneToken } from '@narration/scene';
+import { buildSceneLines, sceneLineText, LOCATION_DESC_SEPARATOR } from '@narration/sceneLines';
 import { BugReportButton } from './BugReportButton';
 import { t } from '@i18n/index';
 
@@ -33,76 +34,57 @@ function SceneTokenSpan({ token }: { readonly token: SceneToken }): JSX.Element 
 }
 
 function NarratedSceneBlock({ scene, showIntro = true }: { readonly scene: NarratedScene; readonly showIntro?: boolean }): JSX.Element {
+  // Same lines as the typewriter and the plain text: a committed turn in the
+  // history must read exactly as it did while it was being typed. This block
+  // used to print the whole room even for a same-room turn, so the history
+  // showed the action and then the room all over again.
+  const lines = buildSceneLines(scene, showIntro ? 'full' : 'recap');
+
   return (
     <div style={{ marginBottom: '8px', lineHeight: 1.6 }}>
-      {/* Scenario intro (new_game only) */}
-      {showIntro && scene.scenarioIntro && (
-        <div style={{ color: 'var(--text-narrative)', marginBottom: '8px' }}>
-          {scene.scenarioIntro}
-        </div>
-      )}
-
-      {/* Location name + rich description joined with em-dash */}
-      {showIntro && scene.intro.length > 0 && (
-        <div>
-          {scene.intro.map((tok, j) => <SceneTokenSpan key={j} token={tok} />)}
-          {scene.locationDescription && (
-            <span style={{ color: 'var(--text-narrative)' }}>
-              {' — '}{scene.locationDescription}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Obstacle */}
-      {scene.obstacle && (
-        <div style={{ color: 'var(--warning)', fontStyle: 'italic' }}>
-          {scene.obstacle}
-        </div>
-      )}
-
-      {/* Interactive elements */}
-      {[scene.features, scene.items, scene.npcs, scene.exits]
-        .filter(s => s.length > 0)
-        .map((tokens, i) => (
-          <div key={i}>
-            {tokens.map((tok, j) => <SceneTokenSpan key={j} token={tok} />)}
-          </div>
-        ))}
-
-      {/* Prompt */}
-      <div style={{ color: 'var(--text-system)', fontStyle: 'italic' }}>
-        {scene.prompt}
-      </div>
+      {lines.map((line, i) => {
+        switch (line.kind) {
+          case 'scenario-intro':
+            return (
+              <div key={i} style={{ color: 'var(--text-narrative)', marginBottom: '8px' }}>
+                {line.text}
+              </div>
+            );
+          case 'blank':
+            return <div key={i}>&nbsp;</div>;
+          case 'location-intro':
+            return (
+              <div key={i}>
+                {line.tokens.map((tok, j) => <SceneTokenSpan key={j} token={tok} />)}
+                {line.locationDesc && (
+                  <span style={{ color: 'var(--text-narrative)' }}>
+                    {LOCATION_DESC_SEPARATOR}{line.locationDesc}
+                  </span>
+                )}
+              </div>
+            );
+          case 'obstacle':
+            return (
+              <div key={i} style={{ color: 'var(--warning)', fontStyle: 'italic' }}>
+                {line.text}
+              </div>
+            );
+          case 'tokens':
+            return (
+              <div key={i}>
+                {line.tokens.map((tok, j) => <SceneTokenSpan key={j} token={tok} />)}
+              </div>
+            );
+          case 'prompt':
+            return (
+              <div key={i} style={{ color: 'var(--text-system)', fontStyle: 'italic' }}>
+                {line.text}
+              </div>
+            );
+        }
+      })}
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// CLIPPED SCENE RENDERER — renders colored tokens up to maxChars characters,
-// where maxChars maps 1:1 to the plain-text output of flattenSceneToText().
-// ---------------------------------------------------------------------------
-
-type RenderLine =
-  | { readonly kind: 'scenario-intro'; readonly text: string }
-  | { readonly kind: 'blank' }
-  | { readonly kind: 'location-intro'; readonly tokens: readonly SceneToken[]; readonly locationDesc: string | null }
-  | { readonly kind: 'tokens'; readonly tokens: readonly SceneToken[] }
-  | { readonly kind: 'obstacle'; readonly text: string }
-  | { readonly kind: 'prompt'; readonly text: string };
-
-function lineTextLength(line: RenderLine): number {
-  switch (line.kind) {
-    case 'scenario-intro': return line.text.length;
-    case 'blank':          return 0; // empty string in join
-    case 'location-intro': {
-      const base = line.tokens.map(t => t.value).join('').length;
-      return line.locationDesc ? base + ' — '.length + line.locationDesc.length : base;
-    }
-    case 'tokens':   return line.tokens.reduce((s, t) => s + t.value.length, 0);
-    case 'obstacle': return line.text.length;
-    case 'prompt':   return line.text.length;
-  }
 }
 
 function renderClippedScene(
@@ -113,28 +95,9 @@ function renderClippedScene(
 ): JSX.Element | null {
   if (maxChars <= 0) return cursor ? <>{cursor}</> : null;
 
-  // Build allLines in EXACTLY the same order as flattenSceneToText()
-  const allLines: RenderLine[] = [];
-
-  if (showIntro) {
-    if (scene.scenarioIntro) {
-      allLines.push({ kind: 'scenario-intro', text: scene.scenarioIntro });
-      allLines.push({ kind: 'blank' });
-    }
-    if (scene.intro.length > 0) {
-      allLines.push({ kind: 'location-intro', tokens: scene.intro, locationDesc: scene.locationDescription });
-    }
-  }
-
-  if (scene.obstacle) {
-    allLines.push({ kind: 'obstacle', text: scene.obstacle });
-  }
-
-  for (const s of [scene.features, scene.items, scene.npcs, scene.exits]) {
-    if (s.length > 0) allLines.push({ kind: 'tokens', tokens: s });
-  }
-
-  allLines.push({ kind: 'prompt', text: scene.prompt });
+  // Same lines, same order, same lengths as the plain text the typewriter
+  // counts — one builder, so the two cannot drift apart.
+  const allLines = buildSceneLines(scene, showIntro ? 'full' : 'recap');
 
   const elements: JSX.Element[] = [];
   let rem = maxChars;
@@ -143,7 +106,7 @@ function renderClippedScene(
     if (rem <= 0) break;
     const isLast = i === allLines.length - 1;
     const line = allLines[i]!;
-    const lineLen = lineTextLength(line);
+    const lineLen = sceneLineText(line).length;
 
     if (line.kind === 'scenario-intro') {
       const visible = line.text.slice(0, rem);
@@ -185,7 +148,7 @@ function renderClippedScene(
       // Render em-dash + locationDesc if budget remains and desc exists
       let descElem: JSX.Element | null = null;
       if (line.locationDesc && lineRem > 0) {
-        const sep = ' — ';
+        const sep = LOCATION_DESC_SEPARATOR;
         const sepVisible = sep.slice(0, lineRem);
         lineRem -= sepVisible.length;
         const descVisible = line.locationDesc.slice(0, lineRem);

@@ -8,10 +8,13 @@
 // ---------------------------------------------------------------------------
 
 import type { SceneDescription } from '../engine/types';
+import type { SceneDelta } from '../engine/sceneDelta';
+import { EMPTY_SCENE_DELTA, isSceneUnchanged } from '../engine/sceneDelta';
 import type { Locale } from '../i18n/types';
 import { t } from '../i18n/index';
 import { detectGrammar } from './index';
 import { getGrammarEngine } from './templateEngine';
+import type { GrammarEngine } from '../i18n/grammar/interface';
 
 export type SceneIntroMode = 'new_game' | 'enter' | 'revisit';
 
@@ -44,6 +47,12 @@ export interface NarratedScene {
   readonly exits:    readonly SceneToken[];
   /** Obstacle hint text, or null if none / already resolved */
   readonly obstacle: string | null;
+  /**
+   * The short recap, built only from what changed since last turn. Empty when
+   * nothing moved — which is most turns, and why the full enumeration used to
+   * be reprinted pointlessly after every action.
+   */
+  readonly recap:    readonly SceneToken[];
   /** "Que faites-vous ?" */
   readonly prompt:   string;
 }
@@ -88,6 +97,17 @@ function startsWithDeterminer(name: string): boolean {
 function sentenceCase(s: string): string {
   if (s.length === 0) return s;
   return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+/**
+ * Prefix a definite article unless the name already carries a determiner.
+ * Exit names are bare location names, and "une sortie vers atelier de
+ * robotique" is not French.
+ */
+function withDeterminer(name: string, grammar: GrammarEngine): string {
+  const lower = sentenceCase(name);
+  if (startsWithDeterminer(lower)) return lower;
+  return grammar.resolveSlot('def', lower, detectGrammar(name));
 }
 
 /**
@@ -152,6 +172,7 @@ export function narrateScene(
   sd: SceneDescription,
   introMode: SceneIntroMode,
   locale: Locale,
+  delta: SceneDelta = EMPTY_SCENE_DELTA,
 ): NarratedScene {
   // --- Article lookup tables (locale-specific, from i18n JSON strings) ---
   const itemArticles    = parseArticleMap(t('grammar.item_articles',    locale));
@@ -238,9 +259,9 @@ export function narrateScene(
   const exitTokens: SceneToken[] = [];
 
   if (unexplored.length > 0) {
-    const exitPhrase = t('scene.exits_new', locale);
+    const exitPhrase = t(unexplored.length > 1 ? 'scene.exits_new_plural' : 'scene.exits_new', locale);
     const segs = unexplored.map(e => {
-      const seg: SceneToken[] = [{ kind: 'exit', value: e.name, visited: false }];
+      const seg: SceneToken[] = [{ kind: 'exit', value: withDeterminer(e.name, grammar), visited: false }];
       return seg as readonly SceneToken[];
     });
     exitTokens.push(...buildSentenceTokens(
@@ -251,9 +272,9 @@ export function narrateScene(
 
   if (explored.length > 0) {
     if (exitTokens.length > 0) exitTokens.push({ kind: 'text', value: ' ' });
-    const knownPhrase = t('scene.exits_known', locale);
+    const knownPhrase = t(explored.length > 1 ? 'scene.exits_known_plural' : 'scene.exits_known', locale);
     const segs = explored.map(e => {
-      const seg: SceneToken[] = [{ kind: 'exit', value: e.name, visited: true }];
+      const seg: SceneToken[] = [{ kind: 'exit', value: withDeterminer(e.name, grammar), visited: true }];
       return seg as readonly SceneToken[];
     });
     exitTokens.push(...buildSentenceTokens(
@@ -271,6 +292,102 @@ export function narrateScene(
     npcs,
     exits: exitTokens,
     obstacle: sd.obstacleHint,
+    recap:    buildRecap(sd, delta, locale, grammar, featureArticles, itemArticles),
     prompt:   t('scene.prompt', locale),
   };
+}
+
+// ---------------------------------------------------------------------------
+// RECAP — only what moved
+// ---------------------------------------------------------------------------
+
+/**
+ * The post-action recap. One short line per kind of change, naming only the
+ * elements involved, so that a turn where nothing moved says nothing.
+ */
+function buildRecap(
+  sd: SceneDescription,
+  delta: SceneDelta,
+  locale: Locale,
+  grammar: GrammarEngine,
+  featureArticles: Readonly<Record<string, string>>,
+  itemArticles: Readonly<Record<string, string>>,
+): readonly SceneToken[] {
+  if (isSceneUnchanged(delta)) return [];
+
+  const lines: SceneToken[][] = [];
+
+  const changed = sd.visibleFeatures.filter(f => delta.changedFeatures.includes(f.id));
+  if (changed.length > 0) {
+    lines.push([
+      { kind: 'text', value: t('scene.recap_changed', locale) + ' ' },
+      ...joinSegments(changed.map(f => [
+        { kind: 'feature', value: definiteName(f.name, grammar) } as SceneToken,
+      ])),
+      { kind: 'text', value: '.' },
+    ]);
+  }
+
+  const appeared = sd.visibleItems.filter(i => delta.appearedItems.includes(i.id));
+  if (appeared.length > 0) {
+    lines.push([
+      { kind: 'text', value: t('scene.recap_appeared', locale) + ' ' },
+      ...joinSegments(appeared.map(i => indefiniteSegment(i, itemArticles, 'item'))),
+      { kind: 'text', value: '.' },
+    ]);
+  }
+
+  if (delta.newExits.length > 0) {
+    lines.push([
+      { kind: 'text', value: t('scene.recap_new_exit', locale) + ' ' },
+      ...joinSegments(delta.newExits.map(name => [
+        { kind: 'exit', value: withDeterminer(name, grammar), visited: false } as SceneToken,
+      ])),
+      { kind: 'text', value: '.' },
+    ]);
+  }
+
+  const arrived = sd.visibleNpcs.filter(n => delta.arrivedNpcs.includes(n.id));
+  if (arrived.length > 0) {
+    lines.push([
+      { kind: 'text', value: t('scene.recap_arrived', locale) + ' ' },
+      ...joinSegments(arrived.map(n => [{ kind: 'npc', value: n.name } as SceneToken])),
+      { kind: 'text', value: '.' },
+    ]);
+  }
+
+  const result: SceneToken[] = [];
+  for (const line of lines) {
+    if (result.length > 0) result.push({ kind: 'text', value: ' ' });
+    result.push(...line);
+  }
+  void featureArticles;
+  return result;
+}
+
+/** Comma-and-"ainsi que" joining, without the trailing period. */
+function joinSegments(segments: readonly (readonly SceneToken[])[]): readonly SceneToken[] {
+  const joined = buildSentenceTokens([], segments);
+  // buildSentenceTokens closes with a period; the caller supplies its own.
+  return joined.slice(0, -1);
+}
+
+/** "le terminal de communications" — the recap points at something known. */
+function definiteName(name: string, grammar: GrammarEngine): string {
+  const lower = sentenceCase(name);
+  if (startsWithDeterminer(lower)) return lower;
+  return grammar.resolveSlot('def', lower, detectGrammar(name));
+}
+
+function indefiniteSegment(
+  entity: { readonly id: string; readonly name: string },
+  articles: Readonly<Record<string, string>>,
+  kind: 'item' | 'feature',
+): readonly SceneToken[] {
+  const seg: SceneToken[] = [];
+  if (!startsWithDeterminer(entity.name)) {
+    seg.push({ kind: 'text', value: articleFor(`${kind}.${entity.id}`, articles) + ' ' });
+  }
+  seg.push({ kind, value: sentenceCase(entity.name) });
+  return seg;
 }

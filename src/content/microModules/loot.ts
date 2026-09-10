@@ -26,7 +26,7 @@ export const LOOT_MICRO_MODULES: readonly MicroModule[] = [
     entryObstacle: null,
     locale: {
       fr: {
-        description: 'Un petit local technique avec un casier d\'urgence au mur. La peinture jaune du marquage de sécurité est à peine visible.',
+        description: 'Un petit local technique, à peine plus large qu\'un placard. La peinture jaune du marquage de sécurité disparaît sous la crasse.',
         hintText: 'Une porte de service avec un marquage d\'urgence jaune.',
         revisitDescription: 'Le local technique. Le casier d\'urgence est ouvert.',
       },
@@ -74,7 +74,7 @@ export const LOOT_MICRO_MODULES: readonly MicroModule[] = [
     },
     locale: {
       fr: {
-        description: 'Un réduit de stockage. Une armoire blindée occupe tout un mur, son verrou électronique clignote en rouge.',
+        description: 'Un réduit de stockage, plus profond qu\'il n\'en a l\'air. Contre le mur du fond, un voyant rouge clignote — la seule chose encore vivante ici.',
         hintText: 'Une porte menant à un local de stockage.',
         revisitDescription: 'Le réduit avec l\'armoire blindée, maintenant ouverte.',
       },
@@ -145,7 +145,7 @@ export const LOOT_MICRO_MODULES: readonly MicroModule[] = [
     },
     locale: {
       fr: {
-        description: 'Un atelier de maintenance encombré de débris. Une boîte à outils rouge est encore fixée au mur.',
+        description: 'Un atelier de maintenance encombré de débris. Les supports muraux ont été vidés à la hâte — presque tous.',
         hintText: 'Un accès obstrué par des débris vers un atelier.',
         revisitDescription: 'L\'atelier de maintenance. La boîte à outils est ouverte.',
       },
@@ -188,7 +188,7 @@ export const LOOT_MICRO_MODULES: readonly MicroModule[] = [
     items: [{ id: 'scanner' }],
     locale: {
       fr: {
-        description: 'Un bureau de recherche annexe. Des notes éparpillées et un scanner portable encore sous tension.',
+        description: 'Un bureau annexe, occupé jusqu\'au dernier jour. Des notes éparpillées, une chaise repoussée en vitesse, un café à moitié bu.',
         hintText: 'Un accès vers un bureau de recherche.',
         revisitDescription: 'Le bureau de recherche. Le scanner a été récupéré.',
       },

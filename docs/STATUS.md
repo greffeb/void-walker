@@ -5,7 +5,7 @@
 > Toute reprise de développement commence par lire cette page — et rien d'autre.
 
 **Dernière mise à jour :** 2026-09-10
-**Dernier commit de code :** chantier P1bis (survie — trois câblages dormants)
+**Dernier commit de code :** lisibilité narrative (lint à 11 règles, tout le texte de scénario relu)
 **Derniers bug reports joueurs :** 2026-06-30
 
 ---
@@ -29,18 +29,25 @@ Les 10 phases du plan initial sont livrées à l'exception de la Phase 8 (IA) et
 (polish/lancement). Un audit phase par phase mené en septembre 2026 a produit 31 décisions
 arbitrées et 8 lots de correction, tous livrés (§3bis).
 
-### Santé technique (vérifiée le 2026-09-09)
+### Santé technique (vérifiée le 2026-09-10)
 
 | Contrôle | Résultat |
 |---|---|
 | `npm run typecheck` | ✅ |
 | `npm run lint` | ✅ 0 erreur, 0 warning |
-| `npm run check` (suite complète) | ✅ **2 007 tests / 96 fichiers** (unit + stress + integration) |
-| Taille de `src/` | 40 527 lignes |
+| `npm run check` (suite complète) | ✅ **2 057 tests / 98 fichiers** (unit + stress + integration, 1 ignoré) |
+| Taille de `src/` | 41 264 lignes (`.ts`) · 44 712 avec les `.tsx` |
 | CI | `test.yml` (typecheck + lint + test:all) · `deploy-pwa.yml` (GitHub Pages, toutes branches) |
 
-`src/` a **maigri** de 45 274 à 40 527 lignes : la mesure précédente comptait 4 écrans,
-5 hooks et 2 panneaux morts, supprimés depuis (décision R).
+**Attention à cette ligne :** la mesure précédente (40 527) comptait `src/**/*.ts` seulement ;
+celle-ci compte aussi les `.tsx`. À périmètre égal, `src/` est passé de 40 255 à 41 264 lignes
+de `.ts` sur ce chantier — +534 pour l'instrument d'audit (`src/content/audit/`,
+`featureNames.ts`), +385 pour le moteur et la narration (`sceneDelta.ts`, `sceneLines.ts`), et
+le contenu de scénario est **net à l'équilibre** (+258 / −244) : les descriptions ont raccourci
+autant qu'elles ont été réécrites. L'UI et le store ont maigri (−43).
+
+La baisse précédente, de 45 274 à 40 527, venait de la suppression de 4 écrans, 5 hooks et
+2 panneaux morts (décision R).
 
 ---
 
@@ -122,6 +129,8 @@ mécanique n'a jamais été le livrable de personne.
 | Textes de second regard | 24 |
 | Textes de verbes secrets | 44 |
 | Clés i18n | FR + EN, exhaustivité garantie par `StringKey` |
+| Règles de lisibilité narrative | 11, toutes à 0 (`scripts/narrative-lint.ts`) |
+| Transcripts de relecture | 5 fichiers, `docs/transcripts/` |
 
 ---
 
@@ -153,6 +162,60 @@ cellules à variante unique ». La mesure réelle donne **42 %** (200 sur 481) �
 (`EAT`, `READ`, `PERSUADE`, `INTIMIDATE`, `THROW`, `CLIMB`, `HIDE`, `BARRICADE`,
 `FORCE_OPEN`, `RUN`, `WAIT`, `SELF_HARM`) ; aucun n'apparaît dans les répétitions mesurées,
 ce qui en fait un chantier de confort, pas de qualité.
+
+### 4.1bis ~~Le texte de scénario était illisible~~ ✅ résolu — *2026-09-10*
+
+Le §4.1 mesurait la **répétition** entre tours. Il ne voyait pas la redondance **dans** un
+tour, ni le texte que le joueur ne pouvait pas atteindre. Un bug report de cinq minutes de jeu
+a révélé neuf défauts de plomberie, tous mesurés, et un corpus de ~660 chaînes françaises
+écrites contre la mécanique qui les affiche.
+
+**Ce qui n'allait pas, et pourquoi le §4.1 ne le voyait pas :**
+
+| # | Défaut | Cause |
+|---|---|---|
+| 1 | Le flavor text entier colorié comme un nom | `visibleFeatures[].name` recevait `pickStateDescription(...)`, pas le nom |
+| 2 | Un jet réussi recopiait l'écran | 69 features sans `examineResult` retombaient sur la description déjà affichée |
+| 3 | La salle réénumérée à chaque tour | `flattenSceneReminder` appelé inconditionnellement |
+| 4 | La salle décrite deux fois | 12 proses de nœud sur 18 commençaient par leur propre titre, 24 inventoriaient leur contenu |
+| 5 | L'état affiché ne suivait pas le monde | 24 descriptions d'état inatteignables ; 19 `newState` n'atteignaient pas leur propre description ; 51 `flagSet` sans `newState` |
+| 6 | « mm bio cocoon » affiché au joueur | 47 entités sans nom français nulle part |
+| 7 | Trois systèmes de noms concurrents | `SCENARIO_NAMES_FR` jamais consulté par le moteur |
+| 8 | Un second regard avalait une révélation | la mémoire du narrateur ignorait l'état de la cible |
+| 9 | La salle listée deux fois dans le même tour | `buildExamineEnvironmentNarrative`, 4ᵉ énumération concurrente |
+
+**Racine commune :** `descriptions[state]` servait à la fois de nom, d'étiquette d'état et de
+texte d'examen. Les rôles sont maintenant séparés — i18n donne le nom, `descriptions[state]`
+dit ce qu'un examen révèle dans cet état, la prose du nœud donne l'ambiance.
+
+**L'instrument d'abord.** `npx tsx scripts/narrative-lint.ts` — 11 règles décidables
+statiquement, de « la description redit le nom » à « le `newState` n'atteint pas sa propre
+description ». `tests/unit/content/narrativeLint.test.ts` les tient **toutes à 0** ; un budget
+au-dessus de 0 exige une raison écrite à côté.
+`npx tsx scripts/narrative-transcript.ts` écrit tout le texte joueur de chaque scénario dans
+`docs/transcripts/` — salle par salle, état par état, via le vrai narrateur. C'est là que la
+lisibilité se relit, et c'est ce transcript qui a trouvé la règle R11 que le lint n'avait pas.
+
+| Mesure | Avant | Après |
+|---|---|---|
+| Répétitions exactes (60 parties, `repetition-audit.ts`) | 76 / 2 147 (3,5 %) | **23 / 2 147 (1,1 %)** |
+| Défauts de lisibilité (`narrative-lint.ts`) | 242 | **0** |
+| Victoires (200 parties, graine 42, `diag-victory.ts`) | 4 % | 4 % — inchangé |
+
+Le taux de victoire identique est le contrôle : ce chantier a changé ce que le joueur **lit**,
+pas ce que le jeu **fait**.
+
+**Corollaires réglés au passage :** `BREAK` était traité comme un synonyme d'`OPEN` et posait
+`open`, ce qui rendait mortes les sept descriptions `broken` écrites par les auteurs ;
+les singletons de narration fuyaient d'une partie à l'autre dans un même onglet
+(`resetNarrationMemory`, appelé par `startNewGame`) ; les `projects` de Vitest n'héritaient pas
+du `resolve` racine, donc tout import `@alias` exécuté depuis `src/` cassait sous test ;
+`getFeatureDescription` et les trois `reset*` de narration sortent de la liste des orphelins.
+
+**Chantier P3 absorbé** (articles, majuscules, redondance action/résultat) : les slots rendent
+désormais un nom d'affichage comme le nom commun qu'il est, `capitaliseSentences` met la
+majuscule où une phrase commence, et la règle « ne jamais commencer un template par
+`{def_target}` » n'a plus besoin d'être retenue.
 
 ### 4.2 ~~L'échec n'a pas de poids~~ ✅ résolu par le lot 4 — *2026-09-09*
 
@@ -403,13 +466,16 @@ de l'Oracle, à `escalation` et à `boss`. Arbitrage d'équilibrage, pas câblag
 Rejouer les reproductions seedées de #61, #77, #60, #72, #75, #81, #84 (§4.4). Trois familles
 sur quatre sont déjà traitées à la racine ; il reste à le vérifier et à fermer.
 
-### P3 — UX du rendu narratif (ex-P4a) · ~1 j
+### P3 — ~~UX du rendu narratif~~ ✅ résolu — *2026-09-10* · voir §4.1bis
 
-Articles, majuscules, redondance action/résultat. Deux défauts précis : `|capitalize` inconnu
-de `templateEngine.ts`, et `postProcess` qui contracte « de le » → « du » à tort.
+Les majuscules et la redondance action/résultat sont traitées : les slots rendent un nom
+d'affichage comme le nom commun qu'il est, et `capitaliseSentences` (dans `composer.ts`) met la
+majuscule là où une phrase commence. **La règle « ne jamais commencer une phrase par
+`{def_target}` » est périmée** — le slot ne décide plus de la casse de la première lettre.
 
-**Règle apprise :** ne jamais commencer une phrase par `{def_target}` ou `{def_tool}` — le slot
-rend l'article en minuscule, ce qui produit une minuscule après un point.
+**Reste ouvert, petit :** `|capitalize` est inconnu de `templateEngine.ts` (aucun template ne
+l'utilise aujourd'hui) et `postProcess` contracte « de le » → « du » sans regarder le contexte.
+Aucun des deux n'apparaît dans une sortie mesurée.
 
 ### P4 — Variété de confort · optionnel
 
@@ -468,6 +534,8 @@ produit le désordre initial.
 | Traiter une issue de playtest | `docs/process/ISSUE_RESOLUTION_METHODOLOGY.md` |
 | Créer ou tester un module | `docs/process/MODULE_TESTING_METHODOLOGY.md` |
 | Lancer un playtest automatisé | `docs/process/AI_PLAYTEST_INSTRUCTIONS.md` |
+| Relire le texte d'un scénario | `docs/transcripts/*.md` (régénérer : `npx tsx scripts/narrative-transcript.ts`) |
+| Vérifier la lisibilité narrative | `npx tsx scripts/narrative-lint.ts --detail` |
 
 ---
 

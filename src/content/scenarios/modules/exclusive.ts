@@ -190,8 +190,8 @@ export const ALIEN_MECHANISM_01: ScenarioModule = {
   },
   skins: makeSkins(
     'Un objet alien. Mystérieux, pas immédiatement menaçant.',
-    'Le mécanisme alien pulse. Il réagit à votre présence.',
-    'Le mécanisme alien s\'intensifie. Il faut agir maintenant.',
+    'Quelque chose pulse dans le mur, à intervalles réguliers. Le rythme change quand vous approchez.',
+    'Le pouls dans le mur s\'accélère. La lumière qui en sort éclaire vos mains par saccades.',
     'Prenez le temps de comprendre — ou tentez votre chance.',
     'Déchiffrez, forcez, ou accordez-vous à lui.',
     'Activez-le. Maintenant. N\'importe comment.',
@@ -239,7 +239,7 @@ export const CONTAINMENT_BREACH_01: ScenarioModule = {
     failsafeType: 'threat_escalation',
   },
   skins: makeSkins(
-    'Une alarme discrète. Le champ de confinement montre des signes de faiblesse.',
+    'Une alarme discrète, répétitive, que personne n\'a coupée. Derrière la vitre, la lumière bleue vacille.',
     'La brèche est active. L\'atmosphère se détériore. Agissez vite.',
     'Confinement rompu. Danger immédiat. Chaque seconde aggrave la situation.',
     'Signes de problème — le champ peut encore être restauré.',
@@ -325,7 +325,7 @@ export const POWER_REROUTE_DILEMMA_01: ScenarioModule = {
     failsafeType: 'alternate_route',
   },
   skins: makeSkins(
-    'Un panneau de distribution d\'énergie. Il y a un choix à faire.',
+    'La salle bourdonne d\'un courant qui ne va plus nulle part. Deux câbles épais montent vers le plafond, et un seul est chaud.',
     'Le panneau est là. Ce que vous choisirez aura des conséquences.',
     'Un panneau. Un choix. Quelqu\'un en paiera le prix.',
     'Deux options, un coût moral. Réfléchissez.',

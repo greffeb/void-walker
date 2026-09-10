@@ -165,7 +165,20 @@ describe('findScenarioInteraction', () => {
     const state = setScenarioFlag(makeState(), 'power_on');
     const match = findScenarioInteraction('ACTIVATE', 'reactor', flagPanel, state);
     expect(match).not.toBeNull();
-    expect(applyInteractionOutcome(match!, true).newFeatureState).toBe('active');
+    expect(applyInteractionOutcome(match!, true).newFeatureStates).toEqual(['active']);
+  });
+
+  it('carries an ordered token list, for an interaction that moves two axes', () => {
+    // `active` sets activity and power but leaves the lock alone, so a terminal
+    // told only 'active' stays locked and keeps describing itself as locked.
+    const terminal: ScenarioFeatureDefinition = {
+      id: 'encrypted_terminal',
+      initialState: 'locked',
+      featureType: 'terminal',
+      interactions: [{ trigger: { verb: 'HACK', dc: null }, onSuccess: { newState: ['unlocked', 'active'] } }],
+    };
+    const match = findScenarioInteraction('HACK', 'encrypted_terminal', terminal, makeState());
+    expect(applyInteractionOutcome(match!, true).newFeatureStates).toEqual(['unlocked', 'active']);
   });
 
   it('respects requiredFlag condition — no match when flag unset', () => {
@@ -199,7 +212,7 @@ describe('applyInteractionOutcome', () => {
   it('returns the onSuccess result on success', () => {
     const match = findScenarioInteraction('OPEN', 'emergency_locker', lockedLocker, makeState())!;
     const result = applyInteractionOutcome(match, true);
-    expect(result.newFeatureState).toBe('open');
+    expect(result.newFeatureStates).toEqual(['open']);
     expect(result.itemsToReveal).toContain('oxygen_canister');
   });
 
@@ -208,7 +221,7 @@ describe('applyInteractionOutcome', () => {
     const result = applyInteractionOutcome(match, false);
     expect(result.success).toBe(false);
     expect(result.consequences.length).toBeGreaterThan(0);
-    expect(result.newFeatureState).toBeNull();
+    expect(result.newFeatureStates).toEqual([]);
   });
 
   it('returns an inert result when onFailure is absent', () => {
@@ -219,7 +232,7 @@ describe('applyInteractionOutcome', () => {
     const match = findScenarioInteraction('FORCE_OPEN', 'hard_lock', def, makeState())!;
     const result = applyInteractionOutcome(match, false);
     expect(result.consequences).toHaveLength(0);
-    expect(result.newFeatureState).toBeNull();
+    expect(result.newFeatureStates).toEqual([]);
   });
 
   it('consumes the required item only when the rule asks for it', () => {

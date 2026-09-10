@@ -61,8 +61,8 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
           },
           examineResult: { fr: 'Une porte renforcée en alliage. Le mécanisme d\'ouverture est bloqué — grippage mécanique ou verrouillage de sécurité. Des marques de griffes entourent le cadre. Le panneau de contrôle adjacent semble encore alimenté. En bas, une trappe de ventilation pourrait offrir une alternative.', en: '' },
           descriptions: {
-            locked: { fr: 'porte bloquée', en: '' },
-            open: { fr: 'porte ouverte', en: '' },
+            locked: { fr: 'Alliage renforcé, mécanisme grippé. Des marques de griffes entourent le cadre. Le panneau de contrôle adjacent semble encore alimenté.', en: '' },
+            open: { fr: 'Le battant est écarté, assez pour passer. L\'air de l\'autre côté est plus froid et sent le métal chaud.', en: '' },
           },
           interactions: [
             // OPEN when panel has been bypassed → auto-success
@@ -115,8 +115,8 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
           },
           examineResult: { fr: 'Trappe de ventilation au ras du sol. Étroite mais praticable pour quelqu\'un de souple. De l\'air circule — elle mène bien de l\'autre côté.', en: '' },
           descriptions: {
-            closed: { fr: 'trappe de ventilation', en: '' },
-            open: { fr: 'trappe de ventilation ouverte', en: '' },
+            closed: { fr: 'Au ras du sol, étroite — praticable pour quelqu\'un de souple. De l\'air circule : elle mène bien de l\'autre côté.', en: '' },
+            open: { fr: 'Le capot est écarté. Le conduit s\'enfonce dans le noir, juste assez large pour les épaules.', en: '' },
           },
           interactions: [
             {
@@ -155,14 +155,14 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
           },
           examineResult: { fr: 'Panneau de contrôle endommagé. Certains circuits sont encore actifs — un technicien compétent pourrait court-circuiter le verrouillage de la porte.', en: '' },
           descriptions: {
-            damaged: { fr: 'panneau de sécurité local', en: '' },
-            open: { fr: 'panneau de sécurité court-circuité', en: '' },
+            damaged: { fr: 'Le boîtier est enfoncé, mais certains circuits répondent encore. De quoi court-circuiter un verrouillage, pour qui sait où pincer.', en: '' },
+            open: { fr: 'Court-circuité. Deux fils torsadés à la main tiennent le contact, et le voyant reste obstinément vert.', en: '' },
           },
           interactions: [
             {
               trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'damaged', stat: 'INT', dc: 11 },
               onSuccess: {
-                newState: 'open',
+                newState: ['intact', 'open'],
                 flagSet: 'panel_bypassed',
                 narrative: { fr: 'Vous court-circuitez le panneau de sécurité. Un voyant passe au vert — le verrouillage de la porte est désactivé. Vous pouvez maintenant l\'ouvrir.', en: '' },
               },
@@ -231,8 +231,8 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
           aliases: { fr: ['armoire', 'armoire medicale', 'placard', 'placard medical'], en: ['cabinet', 'medical cabinet'] },
           initialState: 'locked',
           descriptions: {
-            locked: { fr: 'armoire médicale verrouillée par un digicode', en: '' },
-            open: { fr: 'armoire médicale ouverte', en: '' },
+            locked: { fr: 'Verrouillée par un code, mais le panneau est fissuré. Derrière la vitre sale, des boîtes alignées et un flacon couché.', en: '' },
+            open: { fr: 'Ouverte. Les rayons du haut sont vides, ceux du bas ont été fouillés sans ménagement.', en: '' },
           },
           examineResult: { fr: 'Armoire médicale standard. Verrouillée par un code — mais le panneau est fissuré. Contient probablement des fournitures de premier secours et peut-être de la morphine.', en: '' },
           interactions: [
@@ -263,7 +263,7 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
           aliases: { fr: ['lit', 'couchette', 'lit de camp', 'brancard'], en: ['cot', 'bed'] },
           initialState: 'intact',
           descriptions: {
-            intact: { fr: 'lit de camp taché de sang', en: '' },
+            intact: { fr: 'Pliant, monté à la hâte. Les draps sont trempés de sang et les taches sont encore sombres — quelqu\'un a été soigné ici, ou a essayé.', en: '' },
           },
           examineResult: { fr: 'Lit de camp pliant taché de sang. Quelqu\'un a été soigné ici — ou a essayé. Les draps sont trempés mais les signes sont récents.', en: '' },
         } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
@@ -333,8 +333,8 @@ export const DARK_ROOM_01: ScenarioModule = {
           aliases: { fr: ['luminaire', 'plafonnier', 'lampe', 'lumiere', 'eclairage'], en: ['light', 'fixture', 'lamp'] },
           examineResult: { fr: 'Plafonnier brisé. Le tube est éclaté et les fils pendent. Il ne fonctionnera plus, mais le réseau électrique derrière est peut-être intact.', en: '' },
           descriptions: {
-            broken: { fr: 'plafonnier brisé pendant du plafond. Le tube est éclaté.', en: '' },
-            intact: { fr: 'plafonnier diffusant une lumière blanche stable.', en: '' },
+            broken: { fr: 'Le tube est éclaté, les fils pendent. Il ne fonctionnera plus — mais le réseau électrique derrière est peut-être intact.', en: '' },
+            intact: { fr: 'Il diffuse une lumière blanche stable, la seule de la pièce qui ne clignote pas.', en: '' },
           },
           interactions: [
             {
@@ -440,7 +440,7 @@ export const SUPPLY_CACHE_01: ScenarioModule = {
       role: 'storage',
       onCriticalPath: true,
       features: [
-        { id: 'supply_container', initialState: 'locked', examineResult: { fr: 'Conteneur de ravitaillement d\'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.', en: '' }, descriptions: { locked: { fr: 'Conteneur de ravitaillement d\'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.', en: '' }, open: { fr: 'Le conteneur est ouvert. Les compartiments internes sont accessibles — rations entamées, emplacements vides, quelques fournitures éparses. Quelqu\'un est passé avant vous.', en: '' } } },
+        { id: 'supply_container', initialState: 'locked', examineResult: { fr: 'Conteneur de ravitaillement d\'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.', en: '' }, descriptions: { locked: { fr: 'Scellé. Le verrou est un standard militaire : il cède aux bons outils, ou à assez de force appliquée au bon endroit.', en: '' }, open: { fr: 'Ouvert. Rations entamées, emplacements vides, quelques fournitures éparses — quelqu\'un est passé avant vous.', en: '' } } },
         { id: 'inventory_manifest', initialState: 'intact', examineResult: { fr: 'Manifeste d\'inventaire affiché sur le côté. Liste le contenu : rations, médicaments, outils, et... une entrée barrée à l\'encre noire. Quelqu\'un a retiré quelque chose avant vous.', en: '' } },
       ],
       items: [],

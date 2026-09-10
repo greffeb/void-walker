@@ -210,7 +210,7 @@ export const TERMINAL_DECRYPT_01: ScenarioModule = {
         { id: 'log_archive', initialState: 'intact', examineResult: { fr: 'Archive de journaux de bord sur support physique. Des centaines d\'entrées datées. Certaines pages sont arrachées — celles des jours précédant l\'incident.', en: '' } },
       ],
       items: [
-        { id: 'data_chip', hidden: true, examineResult: { fr: 'Puce de données isolée, trouvée cachée sous le terminal. Contient des journaux non chiffrés — des enregistrements personnels que quelqu\'un voulait protéger de la purge système.', en: '' } },
+        { id: 'data_chip', hidden: true, examineResult: { fr: 'Trouvée scotchée sous le terminal. Des journaux non chiffrés — des enregistrements personnels que quelqu\'un voulait soustraire à la purge.', en: '' } },
       ],
     },
   ],
@@ -239,8 +239,8 @@ export const TERMINAL_DECRYPT_01: ScenarioModule = {
     failsafeType: 'alternate_route',
   },
   skins: makeSkins(
-    'Un terminal. Chiffré, mais pas impossible.',
-    'Terminal chiffré. Les données dedans pourraient changer la donne.',
+    'Un seul poste de travail, au centre d\'une pièce vide. L\'écran est allumé et n\'affiche qu\'une ligne.',
+    'L\'écran attend, patient, depuis soixante-douze heures. Ce qu\'il garde n\'a pas bougé d\'un octet.',
     'Terminal sous haute sécurité. Décryptez ou cherchez un autre moyen.',
     'Cherchez le mot de passe, hackez, ou faites parler quelqu\'un.',
     'Trois approches : perquisition, piratage, social.',

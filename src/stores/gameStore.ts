@@ -14,11 +14,13 @@ import { buildParserLocaleData } from '@content/parserData';
 import { assembleScenario } from '@engine/pacing';
 import { initGame, isGameOver, rollBonusAllocation } from '@engine/game';
 import { getSceneContext, formatSuggestionAsInput } from '@engine/scene';
+import { diffScene, EMPTY_SCENE_DELTA } from '@engine/sceneDelta';
 import { processTurn } from '@engine/processTurn';
 import { createSeededRng } from '@engine/rng';
 import { BALANCE } from '@engine/constants';
 import { narrateForTurn, NARRATIVE_PRESETS } from '@narration/index';
 import { narrateScene } from '@narration/scene';
+import { resetNarrationMemory } from '@narration/index';
 import {
   saveGame as saveToDb,
   loadGame as loadFromDb,
@@ -41,7 +43,7 @@ import type { NarratedScene } from '@narration/scene';
 import { createInitialGameState } from '@engine/types';
 import type { MapLayoutResult } from '@ui/utils/mapLayout';
 import { buildMapLocations, generateMapLayout } from '@ui/utils/mapLayout';
-import { flattenSceneToText, flattenSceneReminder } from './sceneHelpers';
+import { assembleTurnText } from './sceneHelpers';
 export { flattenSceneToText, flattenSceneReminder } from './sceneHelpers';
 
 // ---------------------------------------------------------------------------
@@ -350,6 +352,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       _seed = Math.floor(Math.random() * 2147483646) + 1;
       _rng = createSeededRng(_seed);
       _parserData = buildParserLocaleData('fr');
+      // The narrator's buffers are module singletons. Without this, a second
+      // game in the same tab starts convinced it has already said everything.
+      resetNarrationMemory();
 
       const skeleton = LAUNCH_SKELETONS[Math.floor(_rng() * LAUNCH_SKELETONS.length)]!;
       const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, _rng);
@@ -473,11 +478,17 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         }
       }
 
-      // Always build scene description; intro line shown only on location change
+      // Always build scene description; intro line shown only on location change.
+      // Within the same room, the recap is built from what actually changed —
+      // comparing across a move would say "everything", so the delta is empty
+      // there and the full scene prints instead.
+      const sceneDelta = introMode === null && store.sceneDescription && newContext.sceneDescription
+        ? diffScene(store.sceneDescription, newContext.sceneDescription)
+        : EMPTY_SCENE_DELTA;
       let sceneIntro: NarratedScene | null = null;
       if (newContext.sceneDescription) {
         try {
-          sceneIntro = narrateScene(newContext.sceneDescription, introMode ?? 'revisit', 'fr');
+          sceneIntro = narrateScene(newContext.sceneDescription, introMode ?? 'revisit', 'fr', sceneDelta);
         } catch {
           // Narration failure should not block
         }
@@ -537,15 +548,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         });
       } else {
         // No dice: typewriter plays first, entry commits to history when done
-        let fullNarrative: string;
-        if (introMode !== null) {
-          // Location change: full scene (intro + description + elements)
-          fullNarrative = sceneIntro ? flattenSceneToText(sceneIntro, true) : narrative;
-        } else {
-          // Same location: narrative + element reminder
-          const reminder = sceneIntro ? flattenSceneReminder(sceneIntro) : '';
-          fullNarrative = reminder ? `${narrative}\n\n${reminder}` : narrative;
-        }
+        const fullNarrative = assembleTurnText(narrative, sceneIntro, introMode);
         const gameOver = isGameOver(result.newState);
         set({
           pendingTurnEntry: entry,
@@ -581,18 +584,11 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const gameOver = isGameOver(gameState);
     const narrative = pendingNarrative ?? '';
 
-    // After dice animation, assemble the full narrative the same way submitAction does
-    let fullNarrative: string;
-    const sceneIntro = pendingTurnEntry?.sceneIntro ?? null;
-    const introMode = pendingTurnEntry?.introMode ?? null;
-    if (introMode !== null) {
-      // Location change: full scene (intro + description + elements)
-      fullNarrative = sceneIntro ? flattenSceneToText(sceneIntro, true) : narrative;
-    } else {
-      // Same location: narrative + element reminder
-      const reminder = sceneIntro ? flattenSceneReminder(sceneIntro) : '';
-      fullNarrative = reminder ? `${narrative}\n\n${reminder}` : narrative;
-    }
+    const fullNarrative = assembleTurnText(
+      narrative,
+      pendingTurnEntry?.sceneIntro ?? null,
+      pendingTurnEntry?.introMode ?? null,
+    );
 
     set({
       isDiceAnimating: false,

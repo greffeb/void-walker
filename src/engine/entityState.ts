@@ -146,14 +146,21 @@ export function stateMatchesToken(state: EntityState, token: StateId): boolean {
 /**
  * Tokens ordered by narrative salience: a broken door is described as broken
  * rather than closed, so the first matching token wins when picking a description.
+ *
+ * `empty` and `searched` sit above `open` and `active` because they answer the
+ * question the player is actually asking. A looted locker is open AND empty;
+ * "open, with a slot for a badge and one for a canister" sends them hunting for
+ * something they are already carrying, while "open and empty" ends the matter.
+ * Same for a terminal already read: `searched` beats `active`.
  */
 export const STATE_TOKEN_SALIENCE: readonly StateId[] = [
   'dead', 'unconscious', 'wounded',
   'broken', 'damaged',
   'hostile', 'friendly', 'willing',
-  'locked', 'open',
-  'active', 'inactive',
+  'locked',
   'empty', 'searched',
+  'open',
+  'active', 'inactive',
   'unpowered', 'powered',
   'closed', 'intact', 'unlocked', 'full',
   'alive', 'neutral',

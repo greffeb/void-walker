@@ -17,6 +17,7 @@ import { isItemAvailable, isObstacleResolved, isMovementOnlyPath } from './backt
 import { resolveProperties } from './properties';
 import { ITEM_DEFINITIONS } from '../content/items';
 import { ENVIRONMENT_FEATURE_DEFINITIONS } from '../content/environments';
+import { featureDisplayName, itemDisplayName, npcDisplayName, displayNameOrId } from '../content/featureNames';
 import { NPC_DEFINITIONS } from '../content/npcs';
 import { t, getLocale } from '../i18n/index';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
@@ -510,20 +511,12 @@ function buildSuggestionCandidates(
   if (!obstacleResolved && node.obstacle) {
     for (const path of node.obstacle.paths) {
       // Resolve target display name — check NPCs first, then features, then fallback
+      const obstacleTargetId = node.obstacle.targetId;
       let targetDisplayName: string;
-      if (node.obstacle.targetId) {
-        const npcMatch = (node.npcs ?? []).find(n => n.id === node.obstacle!.targetId);
-        if (npcMatch) {
-          const npcDef = NPC_DEFINITIONS[npcMatch.id];
-          targetDisplayName = npcDef ? t(npcDef.nameKey) : resolveDisplayName(`npc.${npcMatch.id}`, npcMatch.id);
-        } else {
-          const featDef = ENVIRONMENT_FEATURE_DEFINITIONS[node.obstacle.targetId];
-          if (featDef) {
-            targetDisplayName = t(featDef.nameKey);
-          } else {
-            targetDisplayName = resolveDisplayName(`env.${node.obstacle.targetId}`, node.obstacle.targetId);
-          }
-        }
+      if (obstacleTargetId) {
+        const isNpc = (node.npcs ?? []).some(n => n.id === obstacleTargetId);
+        const resolved = isNpc ? npcDisplayName(obstacleTargetId) : featureDisplayName(obstacleTargetId);
+        targetDisplayName = displayNameOrId(resolved, obstacleTargetId);
       } else {
         targetDisplayName = node.obstacle.description.fr;
       }
@@ -563,8 +556,7 @@ function buildSuggestionCandidates(
   // Environment features — suggest examining/interacting with them
   if (node.features) {
     for (const feat of node.features) {
-      const def = ENVIRONMENT_FEATURE_DEFINITIONS[feat.id];
-      const name = def ? t(def.nameKey) : resolveDisplayName(`env.${feat.id}`, feat.id);
+      const name = displayNameOrId(featureDisplayName(feat.id), feat.id);
       candidates.push({
         verbText: 'examiner',
         targetText: name,
@@ -648,41 +640,29 @@ function buildSceneDescription(
       }
       return !item.hidden;
     })
-    .map(item => {
-      const def = ITEM_DEFINITIONS[item.id];
-      const name = def ? t(def.nameKey) : resolveDisplayName(`item.${item.id}`, item.id);
-      return { id: item.id, name };
-    });
+    .map(item => ({ id: item.id, name: displayNameOrId(itemDisplayName(item.id), item.id) }));
 
   // Dropped loot visible in scene description
-  const droppedVisible = (visitState?.droppedItems ?? []).map(id => {
-    const def = ITEM_DEFINITIONS[id];
-    const name = def ? t(def.nameKey) : resolveDisplayName(`item.${id}`, id);
-    return { id, name };
-  });
+  const droppedVisible = (visitState?.droppedItems ?? []).map(id => (
+    { id, name: displayNameOrId(itemDisplayName(id), id) }
+  ));
 
   const visibleItems = [...staticVisibleItems, ...droppedVisible];
 
-  // Environment features (use state-based description when available)
+  // Environment features. The name is what the scene enumerates and highlights;
+  // the state description is what an EXAMINE reveals. Conflating the two is how
+  // a whole paragraph ended up rendered as an object's name.
   const visibleFeatures = node.features.map(feat => {
     const currentState = featureStates[feat.id] ?? makeEntityState(feat.initialState);
     const stateDescription = pickStateDescription(feat.descriptions, currentState);
-    if (stateDescription) {
-      return { id: feat.id, name: stateDescription.fr };
-    }
-
-    // Fall back to registry definition name, then i18n
-    const def = ENVIRONMENT_FEATURE_DEFINITIONS[feat.id];
-    const name = def ? t(def.nameKey) : resolveDisplayName(`env.${feat.id}`, feat.id);
-    return { id: feat.id, name };
+    const name = displayNameOrId(featureDisplayName(feat.id), feat.id);
+    return { id: feat.id, name, stateDescription: stateDescription?.fr ?? null };
   });
 
   // NPCs present
-  const visibleNpcs = (node.npcs ?? []).map(npc => {
-    const def = NPC_DEFINITIONS[npc.id];
-    const name = def ? t(def.nameKey) : resolveDisplayName(`npc.${npc.id}`, npc.id);
-    return { id: npc.id, name };
-  });
+  const visibleNpcs = (node.npcs ?? []).map(npc => (
+    { id: npc.id, name: displayNameOrId(npcDisplayName(npc.id), npc.id) }
+  ));
 
   // Exits
   const exits = connectedLocations.map(loc => ({
@@ -720,7 +700,7 @@ function parseAliases(aliasesKey: StringKey): readonly string[] {
 function resolveDisplayName(i18nKey: string, id: string): string {
   const resolved = t(i18nKey as StringKey);
   // t() returns the key itself when missing — detect that
-  if (resolved === i18nKey) return id.replace(/_/g, ' ');
+  if (resolved === i18nKey) return displayNameOrId(null, id);
   return resolved;
 }
 

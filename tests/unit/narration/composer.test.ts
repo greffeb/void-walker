@@ -14,6 +14,7 @@ import {
   incrementLocationTurn,
   resetLocationState,
   resetLocationOnEnvironmentChange,
+  capitaliseSentences,
 } from '../../../src/narration/composer';
 import type {
   NarrativeContext, Outcome, VerbCategory,
@@ -352,5 +353,38 @@ describe('composer action phrase (Layer 1)', () => {
     // No action phrase prepended — template output starts the result
     expect(result).not.toContain('tentez');
     expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sentence case no longer rides on the noun
+// ---------------------------------------------------------------------------
+describe('capitaliseSentences', () => {
+  it('capitalises the first letter of the text', () => {
+    expect(capitaliseSentences('le terminal cède.')).toBe('Le terminal cède.');
+  });
+
+  it('capitalises after a full stop', () => {
+    expect(capitaliseSentences('Il cède. le passage est libre.'))
+      .toBe('Il cède. Le passage est libre.');
+  });
+
+  it('capitalises after a question mark carrying a French no-break space', () => {
+    expect(capitaliseSentences('Qui va là\u00A0? personne.'))
+      .toBe('Qui va là\u00A0? Personne.');
+  });
+
+  it('capitalises after a newline', () => {
+    expect(capitaliseSentences('Première ligne.\nseconde ligne.'))
+      .toBe('Première ligne.\nSeconde ligne.');
+  });
+
+  it('leaves a capital alone and does not touch mid-sentence words', () => {
+    expect(capitaliseSentences('Le terminal chiffré résiste.'))
+      .toBe('Le terminal chiffré résiste.');
+  });
+
+  it('leaves an accented opening letter correct', () => {
+    expect(capitaliseSentences("écran noir.")).toBe('Écran noir.');
   });
 });

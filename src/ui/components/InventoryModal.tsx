@@ -9,9 +9,9 @@
 import { useGameStore } from '@stores/gameStore';
 import { ITEM_DEFINITIONS } from '@content/items';
 import type { ItemDefinition } from '@content/items';
-import { SCENARIO_NAMES_FR } from '@content/scenarioNames';
+import { itemDisplayName, displayNameOrId } from '@content/featureNames';
 import { Modal } from './Modal';
-import { ts, itemName } from '../utils/formatters';
+import { itemName } from '../utils/formatters';
 import type { ItemDurabilityState, ItemType } from '@engine/types';
 
 interface Props {
@@ -51,7 +51,7 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
 
   // Group items by type.
   // Scenario items (e.g. standard_toolkit) have no ITEM_DEFINITIONS entry — fall back to
-  // SCENARIO_NAMES_FR for the display name and treat them as 'misc' (Issue #48).
+  // featureNames for the display name and treat them as 'misc' (Issue #48).
   const groupedItems = new Map<ItemType, { id: string; def: ItemDefinition | null; dur: ItemDurabilityState | undefined }[]>();
   for (const type of TYPE_ORDER) groupedItems.set(type, []);
 
@@ -126,7 +126,7 @@ export function InventoryModal({ onClose }: Props): JSX.Element {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {items.map(({ id, def, dur }) => {
-                const name = def ? ts(def.nameKey) : (SCENARIO_NAMES_FR[id] ?? id);
+                const name = displayNameOrId(itemDisplayName(id), id);
                 const isBroken = dur?.broken === true;
                 const isEquipped = id === equippedWeapon || id === equippedArmor;
 

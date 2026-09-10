@@ -20,6 +20,11 @@ function pickRandom<T>(arr: readonly T[], rng: MemoryRngFn): T {
  * Anti-repetition memory system for narrative template selection.
  * Maintains per-layer buffers of recently used template IDs.
  */
+/** Looks are remembered per verb, target and target state. */
+function lookKey(verb: string, targetId: string, variant: string): string {
+  return variant ? `${verb}:${targetId}:${variant}` : `${verb}:${targetId}`;
+}
+
 export class NarrationMemory {
   private readonly buffers: Map<string, string[]> = new Map();
   private readonly bufferSize: number;
@@ -107,15 +112,23 @@ export class NarrationMemory {
   }
 
   /**
-   * How many times this pair was narrated before now — 0 on first sight.
+   * How many times this look was narrated before now — 0 on first sight.
    * Grades how insistent the player is being, which `trackPair`'s boolean
    * could not express.
+   *
+   * `variant` distinguishes looks at the same thing in different states, so
+   * that unlocking a terminal and looking again is a first sight, not a third
+   * one. Reading does not record: call `recordLook` for that, or a caller that
+   * merely asks how insistent the player is would make them more insistent.
    */
-  countPair(verb: string, targetId: string): number {
-    const pair = `${verb}:${targetId}`;
-    const seen = this.pairCounts.get(pair) ?? 0;
-    this.pairCounts.set(pair, seen + 1);
-    return seen;
+  countLook(verb: string, targetId: string, variant = ''): number {
+    return this.pairCounts.get(lookKey(verb, targetId, variant)) ?? 0;
+  }
+
+  /** Note that this look has now been narrated. */
+  recordLook(verb: string, targetId: string, variant = ''): void {
+    const key = lookKey(verb, targetId, variant);
+    this.pairCounts.set(key, (this.pairCounts.get(key) ?? 0) + 1);
   }
 
   /** Reset all buffers (e.g., new game) */

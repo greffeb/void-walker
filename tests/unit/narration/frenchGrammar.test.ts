@@ -217,6 +217,14 @@ describe('FrenchGrammar', () => {
       expect(result).toBe("l'écran");
     });
 
+    it('swallows every space before a colon, not just one', () => {
+      // "vu  :" used to become "vu \u00A0:" — the double-space cleanup below
+      // cannot see it, because a no-break space is not a space.
+      expect(frenchGrammar.postProcess('vu  :')).toBe('vu\u00A0:');
+      expect(frenchGrammar.postProcess('vu :')).toBe('vu\u00A0:');
+      expect(frenchGrammar.postProcess('vu:')).toBe('vu\u00A0:');
+    });
+
     it('cleans up double spaces', () => {
       const result = frenchGrammar.postProcess('a  b   c');
       expect(result).toBe('a b c');

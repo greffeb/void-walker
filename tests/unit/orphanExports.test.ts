@@ -17,6 +17,11 @@ const SCAN_DIRS = ['src/content', 'src/engine', 'src/narration'];
 // Production code only: a test or a script importing a registry does not prove
 // the game uses it.
 const SEARCH_DIRS = ['src'];
+// Audit instruments live under src/ so that `npm run typecheck` covers them,
+// but their consumers are a script and a regression test by design. Counting
+// them as orphans would make the orphan list absorb tooling and lose its
+// meaning, which is to hunt write-only *game* data.
+const TOOLING_PREFIXES = ['src/content/audit/'];
 
 /**
  * Exports with no consumer anywhere in `src/`. The list may only ever shrink.
@@ -76,13 +81,12 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
 
   // --- Narration location state: the atmosphere cooldown reset on environment
   // change is specified as LOCKED in Phase 5 §8 and never triggered.
-  resetComposer: 'narration: location state reset never called',
+  // resetComposer, resetAllLocationStates and resetHintMemory left this list
+  // when startNewGame started calling resetNarrationMemory.
   resetComposerForSetting: 'narration: location state reset never called',
-  resetAllLocationStates: 'narration: location state reset never called',
   resetLocationState: 'narration: location state reset never called',
   resetLocationOnEnvironmentChange: 'narration: cooldown reset on env change never called',
   resetEntryCounter: 'narration: entry counter reset never called',
-  resetHintMemory: 'narration: hint memory reset never called',
   adjustHintPriority: 'narration: hint priority never adjusted',
   renderTemplateWithSlots: 'narration: alternate renderer unused',
 
@@ -101,10 +105,8 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   isFeatureChanged: 'backtracking helper unused',
   categorizeExits: 'backtracking helper unused',
   sceneHasHealingItem: 'scene helper unused',
-  getFeatureDescription: 'feature description helper unused',
   buildCustomScene: 'scene builder helper unused',
   generateSituationOfType: 'situation generator helper unused',
-  getScenarioNameFr: 'scenario naming helper unused',
 
   // --- Runtime value lists mirroring a union type, used only by tests.
   STAT_IDS: 'runtime mirror of a union type, test-only',
@@ -150,6 +152,8 @@ function collectExports(): ExportedSymbol[] {
     for (const file of walk(join(ROOT, dir))) {
       // Barrel files re-export everything; they prove nothing about consumption.
       if (file.endsWith('index.ts')) continue;
+      const rel = relative(ROOT, file).replace(/\\/g, '/');
+      if (TOOLING_PREFIXES.some(prefix => rel.startsWith(prefix))) continue;
       const source = readFileSync(file, 'utf8');
       for (const match of source.matchAll(EXPORT_RE)) {
         symbols.push({ name: match[1]!, file: relative(ROOT, file).replace(/\\/g, '/') });

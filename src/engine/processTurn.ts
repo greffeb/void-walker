@@ -23,6 +23,7 @@ import type {
 import { defaultRng } from './dice';
 import { rollCheck, outcomeOf } from './dice';
 import { applyStateToken } from './entityState';
+import type { StateId } from './entityState';
 import { tickLocationStates } from './locationState';
 import { parseAction, normalizeInput } from './parser';
 import { detectCreativity, calculateDifficulty } from './difficulty';
@@ -63,6 +64,47 @@ import { ITEM_DEFINITIONS } from '../content/items';
 import { buildObstacleVerbMap } from '../content/parserData';
 import { getLocale, t } from '../i18n/index';
 import type { StringKey } from '@i18n/types';
+
+// ---------------------------------------------------------------------------
+// Opening verbs
+// ---------------------------------------------------------------------------
+
+/** Verbs that get a feature out of the player's way. */
+const OPEN_VERBS: ReadonlySet<VerbId> = new Set(['OPEN', 'UNLOCK', 'FORCE_OPEN', 'BREAK']);
+
+/**
+ * The state tokens an opening verb leaves behind.
+ *
+ * BREAK used to be treated as a synonym of OPEN, so smashing a terminal left it
+ * reading "active" and every authored `broken` description was unreachable.
+ * Breaking something now marks it broken *and* out of the way: integrity wins
+ * the salience contest, so the player reads the wreck, and the passage is still
+ * open.
+ */
+function openingTokensFor(verb: VerbId): readonly StateId[] {
+  return verb === 'BREAK' ? ['broken', 'open'] : ['open'];
+}
+
+/**
+ * A looted container should say so. Authors wrote `empty` descriptions for the
+ * lockers, but nothing ever set the token, so the room kept describing the
+ * badge and the canister the player was already carrying.
+ */
+function markEmptiedContainers(state: GameState, locationId: string): GameState {
+  const node = state.scenario?.graph.nodes.find(n => n.id === locationId);
+  const taken = state.visitedLocations[locationId]?.itemsTaken ?? [];
+  if (!node || taken.length === 0) return state;
+
+  let next = state;
+  for (const feat of node.features) {
+    if (!isEnrichedFeature(feat)) continue;
+    const contents = feat.contains ?? [];
+    if (contents.length === 0) continue;
+    if (!contents.every(id => taken.includes(id))) continue;
+    next = setFeatureState(next, feat.id, 'empty');
+  }
+  return next;
+}
 
 // ---------------------------------------------------------------------------
 // Equipped armor
@@ -444,9 +486,10 @@ export function processTurn(
       {
         scenarioNarrativeOverride = interactionResult.narrativeOverride;
 
-        // Apply feature state change
-        if (interactionResult.newFeatureState !== null) {
-          current = setFeatureState(current, targetId, interactionResult.newFeatureState);
+        // Apply feature state change, token by token: a single interaction can
+        // move more than one axis (unlock AND power up).
+        for (const token of interactionResult.newFeatureStates) {
+          current = setFeatureState(current, targetId, token);
         }
 
         // Apply consequences (damage, heal, etc.)
@@ -540,11 +583,12 @@ export function processTurn(
               },
             };
           }
-          // Also update the feature state to 'open' when an OPEN-like verb
-          // resolved the obstacle, so EXAMINE shows the updated description.
-          const OPEN_VERBS: ReadonlySet<VerbId> = new Set(['OPEN', 'UNLOCK', 'FORCE_OPEN', 'BREAK']);
+          // Also update the feature state when an OPEN-like verb resolved the
+          // obstacle, so EXAMINE shows the updated description.
           if (OPEN_VERBS.has(action.verb) && action.target?.source === 'environment') {
-            current = setFeatureState(current, targetId, 'open');
+            for (const token of openingTokensFor(action.verb)) {
+              current = setFeatureState(current, targetId, token);
+            }
           }
         }
       }
@@ -1130,12 +1174,13 @@ export function processTurn(
     current = applyConsequences(current, consequences, context, rng);
 
     // When an OPEN-like verb succeeds on an environment target via D20 roll,
-    // update the feature state to 'open' so EXAMINE reflects the change.
+    // update the feature state so EXAMINE reflects the change.
     if ((outcome === 'success' || outcome === 'crit_success')
         && action.target?.source === 'environment') {
-      const OPEN_VERBS_D20: ReadonlySet<VerbId> = new Set(['OPEN', 'UNLOCK', 'FORCE_OPEN', 'BREAK']);
-      if (OPEN_VERBS_D20.has(action.verb)) {
-        current = setFeatureState(current, action.target.id, 'open');
+      if (OPEN_VERBS.has(action.verb)) {
+        for (const token of openingTokensFor(action.verb)) {
+          current = setFeatureState(current, action.target.id, token);
+        }
         // Issue #53: reveal items contained in the feature when it is opened
         // via D20 (no scenario interaction matched). Without this, the
         // feature state changes to 'open' but `contains` items never appear.
@@ -1583,6 +1628,7 @@ export function processTurn(
         };
       }
     }
+    current = markEmptiedContainers(current, locId);
   }
 
   // 9c. Victory / defeat check (only when a scenario is active)

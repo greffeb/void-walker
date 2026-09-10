@@ -752,8 +752,15 @@ export interface InteractionTrigger {
  * All fields are optional — only specify what changes.
  */
 export interface InteractionResult {
-  /** New state for the feature (mutates GameState.featureStates). */
-  readonly newState?: FeatureState;
+  /**
+   * New state for the feature (mutates GameState.featureStates).
+   *
+   * State tokens live on independent axes: `active` sets activity and power but
+   * leaves a lock alone, so a terminal told `newState: 'active'` stays locked
+   * and keeps describing itself as locked. Pass an ordered list when an
+   * interaction changes more than one axis — `['unlocked', 'active']`.
+   */
+  readonly newState?: FeatureState | readonly FeatureState[];
   /** Standard consequences to apply (damage, heal, inventory_add, etc.). */
   readonly consequences?: readonly Consequence[];
   /** Narrative text override. When absent, standard templates are used. */

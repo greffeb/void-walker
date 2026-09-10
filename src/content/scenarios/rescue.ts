@@ -23,11 +23,11 @@ const first_aid_kit: ScenarioItemDefinition = {
     en: ['first aid', 'kit', 'medical kit', 'bandages'],
   },
   description: {
-    fr: "Trousse de premiers soins recuperee de la navette. Compresses, desinfectant, garrot. Pas suffisant pour une blessure grave, mais utile en urgence.",
+    fr: "Récupérée dans la navette. Compresses, désinfectant, garrot. Insuffisant pour une blessure grave, utile dans l'urgence.",
     en: "First aid kit from the shuttle. Not enough for serious injuries, but useful in emergencies.",
   },
   examineResult: {
-    fr: "Trousse de premiers soins recuperee de la navette. Compresses, desinfectant, garrot. Pas suffisant pour stabiliser une blessure grave.",
+    fr: "Récupérée dans la navette. Compresses, désinfectant, garrot. Pas de quoi stabiliser une blessure grave.",
     en: "",
   },
   useOn: [
@@ -74,11 +74,11 @@ const medical_stabilizer: ScenarioItemDefinition = {
     en: ['stabilizer', 'medical stabilizer', 'med device'],
   },
   description: {
-    fr: "Stabilisateur medical de niveau hospitalier. Maintient un patient en etat stable pendant plusieurs heures. Exactement ce qu'il faut pour la survivante blessee.",
+    fr: "Niveau hospitalier. Il maintient un patient stable plusieurs heures, le temps d'une extraction.",
     en: "Hospital-grade medical stabilizer. Keeps a patient stable for hours.",
   },
   examineResult: {
-    fr: "Stabilisateur medical de niveau hospitalier. Ce dispositif peut maintenir un patient en etat stable pendant plusieurs heures — exactement ce qu'il faut pour la survivante blessee.",
+    fr: "Niveau hospitalier. Il maintient un patient stable plusieurs heures — de quoi transporter quelqu'un qui ne tiendrait pas debout.",
     en: "",
   },
   useOn: [
@@ -110,11 +110,11 @@ const salvage_tool: ScenarioItemDefinition = {
     en: ['tool', 'salvage tool', 'lever'],
   },
   description: {
-    fr: "Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune. L'allie du survivaliste.",
+    fr: "Multifonction : levier, coupeur, soudeur de fortune. Usé jusqu'au manche, et encore fiable.",
     en: "Multi-function salvage tool. Lever, cutter, makeshift welder.",
   },
   examineResult: {
-    fr: "Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune.",
+    fr: "Multifonction : levier, coupeur, soudeur de fortune.",
     en: "",
   },
   useOn: [
@@ -127,6 +127,7 @@ const salvage_tool: ScenarioItemDefinition = {
             fr: "L'outil de recuperation fait levier sur les poutres effondrees. Le metal grince, cede. Un passage etroit mais praticable s'ouvre dans les decombres.",
             en: "The salvage tool levers the collapsed beams. A narrow passage opens.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'corridor_cleared_tool',
         },
       },
@@ -140,6 +141,7 @@ const salvage_tool: ScenarioItemDefinition = {
             fr: "Vous bloquez l'outil dans le mecanisme de la porte blindee et forcez. Le metal grince — la porte s'ouvre de 30 centimetres supplementaires. Assez pour passer.",
             en: "You jam the tool into the blast door mechanism and force it.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'blast_door_widened',
         },
       },
@@ -153,6 +155,7 @@ const salvage_tool: ScenarioItemDefinition = {
             fr: "L'outil sert de levier pour forcer le mecanisme endommage. La porte de la baie d'extraction coulisse — la navette est de l'autre cote.",
             en: "The tool levers the damaged mechanism. The extraction bay door slides open.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'extraction_door_opened',
         },
       },
@@ -175,11 +178,11 @@ const plasma_cutter: ScenarioItemDefinition = {
     en: ['cutter', 'plasma cutter', 'plasma'],
   },
   description: {
-    fr: "Decoupeur plasma industriel. Coupe le metal comme du beurre. Bruyant, limite en batterie, mais devastateur.",
+    fr: "Industriel. Il coupe le métal comme du beurre. Bruyant, court en batterie, dévastateur.",
     en: "Industrial plasma cutter. Cuts metal like butter. Loud, battery-limited, devastating.",
   },
   examineResult: {
-    fr: "Decoupeur plasma industriel. Puissant assez pour couper a travers les poutres effondrees, mais le bruit attirerait l'attention.",
+    fr: "Industriel. Assez puissant pour trancher des poutres effondrées — et assez bruyant pour s'entendre dans toute la station.",
     en: "",
   },
   useOn: [
@@ -192,6 +195,7 @@ const plasma_cutter: ScenarioItemDefinition = {
             fr: "Le plasma tranche les poutres dans une gerbe d'etincelles bleues. Le passage s'ouvre — mais le rugissement du decoupeur a resonne dans toute la station.",
             en: "Plasma slices through the beams in a shower of blue sparks.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'corridor_plasma_cut',
         },
       },
@@ -225,11 +229,11 @@ const research_notes: ScenarioItemDefinition = {
     en: ['notes', 'research notes', 'journal', 'report'],
   },
   description: {
-    fr: "Notes de recherche d'Okonkwo. Projet Chasseur — sensibilite acoustique extreme. Les hautes frequences la desorientent. L'information qui pourrait vous sauver la vie.",
+    fr: "De la main d'Okonkwo. Projet Chasseur : sensibilité acoustique extrême, les hautes fréquences la désorientent.",
     en: "Okonkwo's research notes. Project Hunter — extreme sound sensitivity.",
   },
   examineResult: {
-    fr: "Notes de recherche detaillant le Projet Chasseur — une creature modifiee genetiquement. Point cle : sensibilite acoustique extreme.",
+    fr: "Elles détaillent le Projet Chasseur : une créature modifiée génétiquement. Point clé, souligné deux fois — sensibilité acoustique extrême.",
     en: "",
   },
   readableContent: {
@@ -248,11 +252,11 @@ const sonic_emitter_component: ScenarioItemDefinition = {
     en: ['emitter', 'sonic emitter', 'sonic component', 'component'],
   },
   description: {
-    fr: "Composant d'emetteur sonique haute frequence. Utilise dans les experiences d'Okonkwo. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser la creature.",
+    fr: "Haute fréquence, issu des expériences d'Okonkwo. Dans une zone à l'acoustique fermée, il ferait plus que du bruit.",
     en: "High-frequency sonic emitter component. Combined with acoustics, could neutralize the creature.",
   },
   examineResult: {
-    fr: "Composant d'emetteur sonique haute frequence. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser ou pieger la creature.",
+    fr: "Haute fréquence, prélevé sur un banc d'essai. Dans une zone à l'acoustique fermée, il ferait plus que du bruit.",
     en: "",
   },
   useOn: [
@@ -279,6 +283,7 @@ const sonic_emitter_component: ScenarioItemDefinition = {
             fr: "Vous fixez le composant sonique au point de piege acoustique. L'activation declenche une cascade de resonance — les murs acoustiques amplifient le signal x100. Un mur de son invisible, infranchissable pour la creature. Confinee. Neutralisee. Pour toujours.",
             en: "You attach the sonic component to the acoustic trap point. Resonance cascade. The creature is trapped.",
           },
+          newState: 'active',
           flagSet: 'creature_contained',
           consumeItem: true,
         },
@@ -306,6 +311,7 @@ const sonic_emitter_component: ScenarioItemDefinition = {
             fr: "Le composant sonique remplace l'antenne brisee — meme gamme de frequences. La balise emet a nouveau. Mais vous venez de sacrifier votre seule arme contre la creature.",
             en: "The sonic component replaces the broken antenna. But you just sacrificed your only weapon.",
           },
+          newState: ['intact', 'active'],
           flagSet: 'backup_beacon_active',
           consumeItem: true,
         },
@@ -370,11 +376,14 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
   },
   descriptions: {
     damaged: {
-      fr: "Votre navette, ecrasee a l'approche. Le cockpit est deforme au-dela de toute reparation. La soute arriere est partiellement accessible — des debris bloquent l'acces complet.",
+      fr: 'Écrasée à l\'approche. Le cockpit est déformé au-delà de toute réparation, et la soute '
+        + 'arrière n\'est qu\'à moitié accessible — des débris bloquent le reste.',
       en: "",
     },
     open: {
-      fr: "La soute de la navette est dégagée. De la fumée s'échappe encore des circuits brûlés. Les compartiments de rangement sont ouverts — la plupart vides ou détruits. Le moteur principal est en miettes, le réservoir percé. Cette navette ne redécollera jamais.",
+      fr: 'La soute est dégagée. De la fumée s\'échappe encore des circuits brûlés, les compartiments '
+        + 'sont ouverts et presque tous vides. Moteur en miettes, réservoir percé : elle ne redécollera '
+        + 'jamais.',
       en: "",
     },
   },
@@ -395,7 +404,7 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 10 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous arrachez la poutre tordue. Le metal grince, cede. Le compartiment medical s'ouvre — un stabilisateur medical de niveau hospitalier.",
           en: "You wrench the twisted beam away. The medical compartment opens.",
@@ -412,7 +421,7 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "L'outil de recuperation fait levier. La poutre se plie, liberant le compartiment medical. Le stabilisateur est intact, pret a l'emploi.",
           en: "The salvage tool levers the beam aside.",
@@ -513,7 +522,8 @@ const salvageable_parts: ScenarioFeatureDefinition = {
   },
   descriptions: {
     intact: {
-      fr: "Pieces recuperables eparpillees dans les debris : cablage, composants electroniques, outils de fortune. De quoi improviser.",
+      fr: 'Éparpillées dans les débris : câblage, composants électroniques, outils de fortune. De quoi '
+        + 'improviser.',
       en: "",
     },
     empty: {
@@ -578,7 +588,7 @@ const emergency_beacon_broken: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'broken', requiredItem: 'salvage_tool', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: "Antenne reconstruite avec des pieces de fortune. Le circuit d'emission reprend vie — un bip regulier. La portee est limitee, mais c'est un signal. Un espoir de secours exterieur.",
           en: "Antenna rebuilt from salvage. The emission circuit comes alive.",
@@ -636,7 +646,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'broken', stat: 'FOR', dc: 12 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Poutre par poutre, vous degagez le passage. Le metal mord vos mains, la sueur brule vos yeux. Mais le couloir s'ouvre enfin.",
           en: "Beam by beam, you clear the passage.",
@@ -655,7 +665,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'broken', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "L'outil de recuperation fait levier sur les poutres principales. Le metal cede proprement — le passage s'ouvre sans effort excessif.",
           en: "The salvage tool levers the main beams. The passage opens cleanly.",
@@ -678,7 +688,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredState: 'broken', requiredItem: 'plasma_cutter', stat: 'INT', dc: 10 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Le decoupeur plasma tranche les poutres comme du beurre. Le passage s'ouvre dans une pluie d'etincelles et une odeur de metal brule. Efficace — mais le bruit a du porter loin.",
           en: "The plasma cutter slices through beams like butter. Effective — but loud.",
@@ -691,7 +701,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'CLIMB', requiredState: 'broken', stat: 'AGI', dc: 8 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous rampez entre les poutres tordues. Le m\u00e9tal mord votre peau, les d\u00e9bris s'effondrent derri\u00e8re vous. Trois m\u00e8tres de terreur pure. Mais vous passez.",
           en: "You crawl through the twisted beams. Metal bites your skin, debris collapses behind you. But you make it through.",
@@ -878,7 +888,7 @@ const research_terminal: ScenarioFeatureDefinition = {
   },
   descriptions: {
     damaged: {
-      fr: "Terminal de recherche partiellement detruit. L'ecran clignote — donnees fragmentaires recuperables.",
+      fr: 'Partiellement détruit. L\'écran clignote, et les données qui restent sont fragmentaires.',
       en: "",
     },
     active: {
@@ -908,7 +918,7 @@ const research_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: "Le terminal reprend vie. Les donnees completes du Projet Chasseur s'affichent. Et un detail crucial : la creature APPREND. Elle s'adapte aux stimuli repetes en 3 a 5 expositions.",
           en: "Full Project Hunter data. Crucial detail: the creature LEARNS.",
@@ -1046,7 +1056,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 13 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous agrippez le bord de la porte et poussez de toute votre force. Le mecanisme cede dans un grincement metallique. La porte s'ouvre — de l'autre cote, la baie d'extraction.",
           en: "You grip the door edge and push. The mechanism yields. Beyond — the extraction bay.",
@@ -1065,7 +1075,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "L'outil de recuperation fait levier. Le mecanisme cede. La porte blindee coulisse — la baie d'extraction s'ouvre devant vous.",
           en: "The salvage tool levers the mechanism. The door slides open.",
@@ -1078,7 +1088,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous trouvez le mecanisme coince et realignez les rails. La porte coulisse — lentement, mais suffisamment.",
           en: "You find the jammed mechanism and realign the rails. The door slides open.",
@@ -1259,7 +1269,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous reconnectez le circuit hydraulique. La porte s'ouvre dans un sifflement pneumatique. La navette est la — le cockpit allume, les moteurs en veille.",
           en: "You reconnect the hydraulic circuit. The door opens with a pneumatic hiss.",
@@ -1270,7 +1280,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 14 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous forcez la porte. Le mecanisme grince, proteste, puis cede. La navette d'extraction est enfin accessible.",
           en: "You force the door. The extraction shuttle is finally accessible.",
@@ -1293,7 +1303,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', requiredFlag: 'bay_door_bypass_found', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Le recablage fonctionne. La porte s'ouvre silencieusement — presque trop facilement.",
           en: "The rewiring works. The door opens silently.",
@@ -1319,7 +1329,8 @@ const shuttle_cockpit: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: "Le cockpit de la navette d'evacuation. Systemes en ligne, moteurs prets. L'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s'est passe — qui est monte, qui est reste — depend entierement de vos choix.",
+      fr: 'Systèmes en ligne, moteurs prêts, les coordonnées de retour vers la flotte affichées. Un '
+        + 'seul bouton : DÉCOLLAGE.',
       en: "",
     },
   },
@@ -1524,7 +1535,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'intro',
       tension: 2,
       descriptionKey: {
-        fr: 'Site de Crash. Votre navette s\'est ecrasee contre le dock d\'amarrage de la Station Calypso. La coque est percee, le cockpit deforme au-dela de toute reparation. De la fumee s\'echappe des circuits brules. La soute arriere contient peut-etre du materiel recuperable. Un signal de detresse pulse depuis les profondeurs de la station — regulier, insistant. Quelqu\'un est vivant la-dedans.',
+        fr: 'Votre navette s\'est écrasée contre le dock d\'amarrage de la Station Calypso. '
+          + 'La coque est percée, le cockpit déformé au-delà de toute réparation, et de la fumée '
+          + 's\'échappe encore des circuits brûlés. Depuis les profondeurs de la station, un signal '
+          + 'de détresse pulse — régulier, insistant. Quelqu\'un est vivant là-dedans.',
         en: 'Crash Site — Your shuttle crashed into Station Calypso\'s docking bay. Hull breached, cockpit destroyed. A distress signal pulses from deeper inside.',
       },
     },
@@ -1534,7 +1548,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'rising',
       tension: 4,
       descriptionKey: {
-        fr: 'Point de Triage. Zone medicale devastee — civieres renversees, materiel chirurgical eparpille. Le couloir principal s\'est effondre sous le poids des poutres — des tonnes de metal bloquent le passage. Le signal de detresse est plus fort ici, juste de l\'autre cote. Une trappe de maintenance est visible au ras du sol. Un rack contient un decoupeur plasma industriel — puissant, mais le bruit attirerait l\'attention.',
+        fr: 'Zone médicale dévastée : civières renversées, matériel chirurgical éparpillé, '
+          + 'des traces de pas dans la poussière qui vont toutes dans le même sens. Le couloir '
+          + 'principal s\'est effondré sous le poids des poutres — des tonnes de métal en travers '
+          + 'du chemin. Le signal de détresse est plus fort ici, juste de l\'autre côté.',
         en: 'Triage Point — Devastated medical zone. The main corridor collapsed. The distress signal is stronger here — just on the other side.',
       },
     },
@@ -1544,7 +1561,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'midpoint',
       tension: 6,
       descriptionKey: {
-        fr: 'Laboratoire de la Dr. Okonkwo. Une barricade methodique bloque l\'entree — mobilier soude, plaques d\'acier. Derriere, une femme. Blessee. Consciente. Le terminal de recherche clignote a cote d\'elle, affichant des donnees fragmentaires du Projet Chasseur. Des rations vides indiquent qu\'elle survit ici depuis au moins 48 heures. Le chemin de sortie passe par le territoire de chasse de la creature.',
+        fr: 'Le laboratoire de la Dr. Okonkwo, condamné de l\'intérieur. '
+          + 'Mobilier soudé, plaques d\'acier : un travail méthodique, fait par quelqu\'un qui avait '
+          + 'le temps et la tête froide. Derrière, une respiration. Des rations vides jonchent le sol — '
+          + 'de quoi tenir quarante-huit heures, pas plus.',
         en: 'Dr. Okonkwo\'s Lab — A methodical barricade blocks the entrance. Behind it, a wounded woman. The research terminal flickers with Project Hunter data.',
       },
     },
@@ -1554,7 +1574,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'escalation',
       tension: 8,
       descriptionKey: {
-        fr: 'Zone de Traque. Les couloirs sont plus etroits ici — visibilite reduite, recoins sombres, points d\'embuscade. L\'air est plus mince. Les parois sont recouvertes de panneaux acoustiques — vestiges du laboratoire d\'Okonkwo. Un rack de diversion contient des grenades flash. Une porte blindee partiellement ouverte bloque le passage vers la baie d\'extraction. Des griffures profondes sur la porte — la creature est passee par la.',
+        fr: 'Les couloirs se resserrent ici : visibilité réduite, recoins sombres, '
+          + 'angles qu\'on n\'aime pas tourner. L\'air est plus mince. Les parois sont tapissées de '
+          + 'panneaux absorbants — vestiges du laboratoire d\'Okonkwo — et le moindre bruit meurt '
+          + 'à un mètre de sa source. Des griffures profondes marquent le métal. Elle est passée par là.',
         en: 'The Hunt Zone — Narrow corridors, reduced visibility, ambush points. Acoustic panels line the walls. A blast door blocks the way to extraction.',
       },
     },
@@ -1564,7 +1587,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'climax',
       tension: 10,
       descriptionKey: {
-        fr: 'Baie d\'Extraction. La navette de secours est la — cabossee mais fonctionnelle, l\'ecoutille ouverte, les moteurs en veille. La liberte est a portee de main. Mais la creature se dresse entre vous et la navette. Biomasse sombre, griffes d\'acier, yeux trop intelligents. La geometrie de la baie forme un entonnoir acoustique naturel — un detail qui pourrait tout changer si vous avez les bons outils. Un choix impossible s\'impose.',
+        fr: 'La navette de secours est là, cabossée mais fonctionnelle, moteurs en veille. '
+          + 'La liberté à quelques mètres. Mais la créature se dresse entre elle et vous : '
+          + 'biomasse sombre, griffes d\'acier, yeux trop intelligents. La baie se resserre en '
+          + 'entonnoir vers le fond, et le moindre son y revient doublé.',
         en: 'Extraction Bay — The rescue shuttle is here. But the creature stands between you and freedom. An impossible choice looms.',
       },
     },
@@ -1574,7 +1600,10 @@ export const RESCUE_SKELETON: CoreSkeleton = {
       beat: 'resolution',
       tension: 3,
       descriptionKey: {
-        fr: 'Le cockpit de la navette d\'evacuation. Systemes en ligne, moteurs prets. L\'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s\'est passe ensuite — qui est monte, qui est reste, ce qui est arrive a la creature — depend entierement de vos choix.',
+        fr: 'Le cockpit de la navette d\'évacuation. Systèmes en ligne, moteurs prêts, '
+          + 'les coordonnées de retour vers la flotte à l\'écran. Ce qui s\'est passé ensuite — '
+          + 'qui est monté, qui est resté, ce qu\'est devenue la créature — tient entièrement '
+          + 'dans ce que vous avez choisi.',
         en: 'The evacuation shuttle cockpit. Systems online. One button: LAUNCH. What happens next depends entirely on your choices.',
       },
     },
