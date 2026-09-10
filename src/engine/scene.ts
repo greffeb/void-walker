@@ -23,6 +23,7 @@ import { t, getLocale } from '../i18n/index';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import type { EntityState } from './entityState';
 import { makeEntityState, stateMatchesToken } from './entityState';
+import { toStateTokens } from './interactionResolver';
 import { getFeatureState, isItemRevealed, pickStateDescription, isExitUnlocked } from './featureState';
 import { deriveConditions, locationStateFromAtmosphere, atmosphereOf } from './locationState';
 import { isNpcAlive } from './victory';
@@ -115,8 +116,8 @@ function nothingLeftToGain(
   instance: EnvironmentFeatureInstance,
   scenarioFlags: Readonly<Record<string, boolean>>,
 ): boolean {
-  const stateReached = result.newState === undefined
-    || stateMatchesToken(instance.state, result.newState);
+  const stateReached = toStateTokens(result.newState)
+    .every(token => stateMatchesToken(instance.state, token));
   const flagTaken = result.flagSet !== undefined && scenarioFlags[result.flagSet] === true;
   if (result.flagSet !== undefined) return flagTaken && stateReached;
   return result.newState !== undefined && stateReached;
@@ -150,12 +151,6 @@ function pickInteractionVerb(trigger: VerbId | readonly VerbId[]): VerbId | null
     return verbId;
   }
   return null;
-}
-
-/** Display name of an item, whichever registry holds it. */
-function itemDisplayName(id: string): string {
-  const def = ITEM_DEFINITIONS[id];
-  return def ? t(def.nameKey) : resolveDisplayName(`item.${id}`, id);
 }
 
 /** Every carried item, with the scenario definition when one placed it. */
@@ -194,7 +189,7 @@ function buildShutFeatureCandidates(
   const carriedItemIds = carriedItems.map(i => i.id);
 
   const useOnText = (itemId: string, featureName: string): string =>
-    `${itemDisplayName(itemId)} ${targetPreposition} ${featureName}`;
+    `${displayNameOrId(itemDisplayName(itemId), itemId)} ${targetPreposition} ${featureName}`;
 
   for (const def of node.features) {
     if (!isEnrichedFeature(def) || !def.interactions) continue;
