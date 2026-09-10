@@ -34,6 +34,8 @@ npm run playtest:god            # Playtest with god mode (invincible player)
 npm run playtest:chaos          # Playtest with chaos mode (random actions)
 npm run playtest:auto           # Automated single playthrough
 npm run playtest:auto:100       # 100 automated playthroughs with report
+npx tsx scripts/narrative-lint.ts        # 11 readability rules over scenario text (must be 0)
+npx tsx scripts/narrative-transcript.ts  # dump all player-facing text to docs/transcripts/
 ```
 
 **Pre-commit gate:** Always run `npm run check` (typecheck + lint + test:all) before any commit or push. Never commit with only `npm test` — ESLint errors and type issues will break CI. The full check command is the single source of truth for commit-readiness. Fix **all** errors AND warnings before committing — warnings in CI are treated as errors.
@@ -99,9 +101,23 @@ src/services/  → IndexedDB (Dexie.js), PWA service worker
 - **Bridge pattern:** Engine never imports narration. `narrateForTurn(result, sceneContext, state)` in `src/narration/index.ts` builds `NarrativeContext` from `TurnResult` and calls `composeNarrative()`
 - **Location awareness:** Atmosphere fades after 4 turns, replaced by gameplay hints. Environment changes reset counters.
 - **Content:** 10 template files in `src/content/templates/`, 443 action templates
-
-> ⚠️ Template coverage is thin: 91% of `(verb × outcome × tension)` cells hold a single
-> variant, so the anti-repetition system has nothing to choose from. See `docs/STATUS.md` §4.1.
+- **Scene text has three distinct jobs — do not blur them.** i18n `env.<id>` / `item.<id>` gives
+  the **name**, and that alone is what the enumeration prints and the UI highlights;
+  `descriptions[state]` is what an EXAMINE **reveals in that state** (1-3 sentences); a node's
+  `descriptionKey` gives the room's **mood**, never an inventory of its contents. Conflating
+  them is how a whole paragraph once rendered as an object's name.
+- **Display names are nouns, not sentences.** Slots lowercase a name's first letter; sentence
+  case is applied by `capitaliseSentences` in `composer.ts`. A template may start with
+  `{def_target}`.
+- **Post-action recap is conditional:** `diffScene` (`src/engine/sceneDelta.ts`) decides whether
+  anything changed; when nothing did, the turn ends on the action and the prompt.
+- **One scene layout:** `buildSceneLines` (`src/narration/sceneLines.ts`) is consumed by the
+  plain-text flattener, the typewriter's clipped renderer and the history block. The typewriter
+  clips by character count, so never add a fourth way to lay a scene out.
+- **Audit before authoring:** `npx tsx scripts/narrative-lint.ts` holds 11 readability rules at
+  zero (enforced by `tests/unit/content/narrativeLint.test.ts`), and
+  `npx tsx scripts/narrative-transcript.ts` writes every scenario's player-facing text to
+  `docs/transcripts/` for reading. Run both after touching scenario text.
 
 ---
 

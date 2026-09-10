@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { describe, it, expect } from 'vitest';
-import { narrateForTurn } from '../../../src/narration/index';
+import { narrateForTurn, resetNarrationMemory } from '../../../src/narration/index';
 import { createInitialGameState } from '../../../src/engine/types';
 import type { TurnResult, SceneContext, GameState } from '../../../src/engine/types';
 
@@ -158,5 +158,31 @@ describe('C3-8: narrateForTurn scenario narrative override', () => {
     // Should not crash; returns standard composition
     const output = narrateForTurn(result, makeSceneContext(), makeGameState());
     expect(typeof output).toBe('string');
+  });
+
+  it('a second look at an authored EXAMINE text says so instead of repeating it', () => {
+    // A feature with its own EXAMINE narrative used to return that text verbatim
+    // on every look, word for word, however many times the player looked: the
+    // scenario override was consulted before the repeat-look ladder.
+    resetNarrationMemory();
+    const examineAgain = (): string => narrateForTurn({
+      newState: makeGameState(),
+      narrative: '',
+      diceRoll: null,
+      suggestions: [],
+      trace: makeTrace({
+        parsedVerb: 'EXAMINE',
+        parsedTarget: 'docking_clamps',
+        scenarioInteractionMatched: true,
+        scenarioNarrativeOverride: { fr: 'Les jauges de pression sont stables.', en: '' },
+      }),
+    }, makeSceneContext(), makeGameState(), undefined, 'fr');
+
+    const first = examineAgain();
+    const second = examineAgain();
+    const third = examineAgain();
+    expect(first).toBe('Les jauges de pression sont stables.');
+    expect(second).not.toBe(first);
+    expect(third).not.toBe(second);
   });
 });

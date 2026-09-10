@@ -410,6 +410,30 @@ export function narrateForTurn(
     return result.narrative || '';
   }
 
+  // Anti-repetition: looking at the same thing again says so, and says it
+  // differently each time (the bridge used to answer with one fixed sentence,
+  // which made it the most repeated text in the game).
+  //
+  // "The same thing" includes the state it is in. A terminal that was locked
+  // when the player first read it, and is now decrypted, is a new sight — the
+  // old key ignored state, so the second look after unlocking answered "nothing
+  // the first look did not already give you" and swallowed the revelation.
+  //
+  // This runs before the scenario override below: a feature with its own EXAMINE
+  // narrative used to return that text verbatim on every look, word for word,
+  // however many times the player looked.
+  const parsedVerb = result.trace.parsedVerb ?? 'WAIT';
+  const parsedTarget = result.trace.parsedTarget ?? '';
+  const isObserving = OBSERVING_VERBS.has(parsedVerb) && parsedTarget !== '';
+  if (isObserving) {
+    const lookVariant = targetStateSignature(result.newState, parsedTarget, sceneContext.locationId ?? '');
+    const previousLooks = narrationMemory.countLook(parsedVerb, parsedTarget, lookVariant);
+    narrationMemory.recordLook(parsedVerb, parsedTarget, lookVariant);
+    if (previousLooks > 0) {
+      return selectReexaminationText(parsedVerb, previousLooks, locale ?? getLocale(), narrationMemory);
+    }
+  }
+
   // C3-8: If a scenario interaction produced a narrative override, use it directly
   if (result.trace.scenarioInteractionMatched && result.trace.scenarioNarrativeOverride) {
     const override = result.trace.scenarioNarrativeOverride;
@@ -440,28 +464,6 @@ export function narrateForTurn(
 
   if (isExamineEnvironment && isSuccessful) {
     return buildExamineEnvironmentNarrative(sceneContext.sceneDescription);
-  }
-
-  // Anti-repetition: looking at the same thing again says so, and says it
-  // differently each time (the bridge used to answer with one fixed sentence,
-  // which made it the most repeated text in the game).
-  //
-  // "The same thing" includes the state it is in. A terminal that was locked
-  // when the player first read it, and is now decrypted, is a new sight — the
-  // old key ignored state, so the second look after unlocking answered "nothing
-  // the first look did not already give you" and swallowed the revelation.
-  const parsedVerb = result.trace.parsedVerb ?? 'WAIT';
-  const parsedTarget = result.trace.parsedTarget ?? '';
-  const isObserving = OBSERVING_VERBS.has(parsedVerb) && parsedTarget !== '';
-  const lookVariant = isObserving
-    ? targetStateSignature(result.newState, parsedTarget, sceneContext.locationId ?? '')
-    : '';
-  if (isObserving) {
-    const previousLooks = narrationMemory.countLook(parsedVerb, parsedTarget, lookVariant);
-    narrationMemory.recordLook(parsedVerb, parsedTarget, lookVariant);
-    if (previousLooks > 0) {
-      return selectReexaminationText(parsedVerb, previousLooks, locale ?? getLocale(), narrationMemory);
-    }
   }
 
   // Build narrative context from turn data

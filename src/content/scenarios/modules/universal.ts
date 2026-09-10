@@ -263,7 +263,7 @@ export const WOUNDED_SURVIVOR_01: ScenarioModule = {
           aliases: { fr: ['lit', 'couchette', 'lit de camp', 'brancard'], en: ['cot', 'bed'] },
           initialState: 'intact',
           descriptions: {
-            intact: { fr: 'lit de camp taché de sang', en: '' },
+            intact: { fr: 'Pliant, monté à la hâte. Les draps sont trempés de sang et les taches sont encore sombres — quelqu\'un a été soigné ici, ou a essayé.', en: '' },
           },
           examineResult: { fr: 'Lit de camp pliant taché de sang. Quelqu\'un a été soigné ici — ou a essayé. Les draps sont trempés mais les signes sont récents.', en: '' },
         } satisfies ScenarioFeatureDefinition as ScenarioFeatureDefinition,
@@ -333,8 +333,8 @@ export const DARK_ROOM_01: ScenarioModule = {
           aliases: { fr: ['luminaire', 'plafonnier', 'lampe', 'lumiere', 'eclairage'], en: ['light', 'fixture', 'lamp'] },
           examineResult: { fr: 'Plafonnier brisé. Le tube est éclaté et les fils pendent. Il ne fonctionnera plus, mais le réseau électrique derrière est peut-être intact.', en: '' },
           descriptions: {
-            broken: { fr: 'plafonnier brisé pendant du plafond. Le tube est éclaté.', en: '' },
-            intact: { fr: 'plafonnier diffusant une lumière blanche stable.', en: '' },
+            broken: { fr: 'Le tube est éclaté, les fils pendent. Il ne fonctionnera plus — mais le réseau électrique derrière est peut-être intact.', en: '' },
+            intact: { fr: 'Il diffuse une lumière blanche stable, la seule de la pièce qui ne clignote pas.', en: '' },
           },
           interactions: [
             {

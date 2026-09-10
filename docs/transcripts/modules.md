@@ -172,7 +172,7 @@
 #### Couchette  `cot`
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
-  > lit de camp taché de sang
+  > Pliant, monté à la hâte. Les draps sont trempés de sang et les taches sont encore sombres — quelqu'un a été soigné ici, ou a essayé.
 - **atteignable** · `integrity=broken activity=inactive power=unpowered openness=open lock=unlocked` · via `examineResult`
   > Lit de camp pliant taché de sang. Quelqu'un a été soigné ici — ou a essayé. Les draps sont trempés mais les signes sont récents.
 
@@ -231,9 +231,9 @@
 #### Luminaire  `light_fixture`
 
 - **initial (broken)** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
-  > plafonnier brisé pendant du plafond. Le tube est éclaté.
+  > Le tube est éclaté, les fils pendent. Il ne fonctionnera plus — mais le réseau électrique derrière est peut-être intact.
 - **atteignable** · `integrity=intact activity=inactive power=unpowered` · via `descriptions`
-  > plafonnier diffusant une lumière blanche stable.
+  > Il diffuse une lumière blanche stable, la seule de la pièce qui ne clignote pas.
 - **ACTIVATE** (état=broken, flag=power_relay_repaired, auto)
   - réussite `newState=intact`
     > Vous actionnez l'interrupteur. Le plafonnier grésille, puis s'allume. La lumière blanche inonde la pièce — vous pouvez voir à nouveau.
