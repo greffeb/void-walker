@@ -51,9 +51,9 @@
 #### Porte bloquée  `blocked_door`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > porte bloquée
+  > Alliage renforcé, mécanisme grippé. Des marques de griffes entourent le cadre. Le panneau de contrôle adjacent semble encore alimenté.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
-  > porte ouverte
+  > Le battant est écarté, assez pour passer. L'air de l'autre côté est plus froid et sent le métal chaud.
 - **OPEN** (état=locked, flag=panel_bypassed, auto)
   - réussite `newState=open`
     > Grâce au panneau court-circuité, la porte s'ouvre sans résistance. Le passage est libre.
@@ -74,9 +74,9 @@
 #### Trappe de ventilation  `vent_hatch`
 
 - **initial (closed)** · `openness=closed` · via `descriptions`
-  > trappe de ventilation
+  > Au ras du sol, étroite — praticable pour quelqu'un de souple. De l'air circule : elle mène bien de l'autre côté.
 - **après newState:open** · `openness=open lock=unlocked` · via `descriptions`
-  > trappe de ventilation ouverte
+  > Le capot est écarté. Le conduit s'enfonce dans le noir, juste assez large pour les épaules.
 - **OPEN** (état=closed, auto)
   - réussite `newState=open`
     > Vous ouvrez la trappe de ventilation. Un courant d'air frais s'échappe du conduit sombre qui s'ouvre devant vous.
@@ -92,11 +92,11 @@
 #### Panneau de sécurité local  `security_panel_local`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > panneau de sécurité local
+  > Le boîtier est enfoncé, mais certains circuits répondent encore. De quoi court-circuiter un verrouillage, pour qui sait où pincer.
 - **après newState:open** · `integrity=damaged openness=open lock=unlocked` · via `descriptions`
-  > panneau de sécurité local
+  > Le boîtier est enfoncé, mais certains circuits répondent encore. De quoi court-circuiter un verrouillage, pour qui sait où pincer.
 - ⚠ **INATTEIGNABLE** `descriptions.open`
-  > panneau de sécurité court-circuité
+  > Court-circuité. Deux fils torsadés à la main tiennent le contact, et le voyant reste obstinément vert.
 - **HACK/OVERRIDE/REPAIR** (état=damaged, DC 11 INT)
   - réussite `newState=open` `flagSet=panel_bypassed`
     > Vous court-circuitez le panneau de sécurité. Un voyant passe au vert — le verrouillage de la porte est désactivé. Vous pouvez maintenant l'ouvrir.
@@ -157,9 +157,9 @@
 #### Armoire médicale  `medical_cabinet`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > armoire médicale verrouillée par un digicode
+  > Verrouillée par un code, mais le panneau est fissuré. Derrière la vitre sale, des boîtes alignées et un flacon couché.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
-  > armoire médicale ouverte
+  > Ouverte. Les rayons du haut sont vides, ceux du bas ont été fouillés sans ménagement.
 - **HACK** (état=locked, DC 9 INT)
   - réussite `newState=open`
     > Vous contournez le digicode en court-circuitant le panneau fissuré. L'armoire s'ouvre avec un déclic. À l'intérieur, un kit médical.
@@ -317,9 +317,9 @@
 #### Conteneur de ravitaillement  `supply_container`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Conteneur de ravitaillement d'urgence scellé. Le code de verrouillage est un standard militaire — crochettable avec les bons outils, ou forçable avec suffisamment de force.
+  > Scellé. Le verrou est un standard militaire : il cède aux bons outils, ou à assez de force appliquée au bon endroit.
 - ⚠ **INATTEIGNABLE** `descriptions.open`
-  > Le conteneur est ouvert. Les compartiments internes sont accessibles — rations entamées, emplacements vides, quelques fournitures éparses. Quelqu'un est passé avant vous.
+  > Ouvert. Rations entamées, emplacements vides, quelques fournitures éparses — quelqu'un est passé avant vous.
 
 #### Manifeste d'inventaire  `inventory_manifest`
 
@@ -978,7 +978,7 @@
 #### Puce de données  `data_chip` *(caché)*
 
 - examineResult
-  > Puce de données isolée, trouvée cachée sous le terminal. Contient des journaux non chiffrés — des enregistrements personnels que quelqu'un voulait protéger de la purge système.
+  > Trouvée scotchée sous le terminal. Des journaux non chiffrés — des enregistrements personnels que quelqu'un voulait soustraire à la purge.
 
 ---
 

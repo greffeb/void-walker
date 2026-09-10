@@ -23,11 +23,11 @@ const first_aid_kit: ScenarioItemDefinition = {
     en: ['first aid', 'kit', 'medical kit', 'bandages'],
   },
   description: {
-    fr: "Trousse de premiers soins recuperee de la navette. Compresses, desinfectant, garrot. Pas suffisant pour une blessure grave, mais utile en urgence.",
+    fr: "Récupérée dans la navette. Compresses, désinfectant, garrot. Insuffisant pour une blessure grave, utile dans l'urgence.",
     en: "First aid kit from the shuttle. Not enough for serious injuries, but useful in emergencies.",
   },
   examineResult: {
-    fr: "Trousse de premiers soins recuperee de la navette. Compresses, desinfectant, garrot. Pas suffisant pour stabiliser une blessure grave.",
+    fr: "Récupérée dans la navette. Compresses, désinfectant, garrot. Pas de quoi stabiliser une blessure grave.",
     en: "",
   },
   useOn: [
@@ -74,11 +74,11 @@ const medical_stabilizer: ScenarioItemDefinition = {
     en: ['stabilizer', 'medical stabilizer', 'med device'],
   },
   description: {
-    fr: "Stabilisateur medical de niveau hospitalier. Maintient un patient en etat stable pendant plusieurs heures. Exactement ce qu'il faut pour la survivante blessee.",
+    fr: "Niveau hospitalier. Il maintient un patient stable plusieurs heures, le temps d'une extraction.",
     en: "Hospital-grade medical stabilizer. Keeps a patient stable for hours.",
   },
   examineResult: {
-    fr: "Stabilisateur medical de niveau hospitalier. Ce dispositif peut maintenir un patient en etat stable pendant plusieurs heures — exactement ce qu'il faut pour la survivante blessee.",
+    fr: "Niveau hospitalier. Il maintient un patient stable plusieurs heures — de quoi transporter quelqu'un qui ne tiendrait pas debout.",
     en: "",
   },
   useOn: [
@@ -110,11 +110,11 @@ const salvage_tool: ScenarioItemDefinition = {
     en: ['tool', 'salvage tool', 'lever'],
   },
   description: {
-    fr: "Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune. L'allie du survivaliste.",
+    fr: "Multifonction : levier, coupeur, soudeur de fortune. Usé jusqu'au manche, et encore fiable.",
     en: "Multi-function salvage tool. Lever, cutter, makeshift welder.",
   },
   examineResult: {
-    fr: "Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune.",
+    fr: "Multifonction : levier, coupeur, soudeur de fortune.",
     en: "",
   },
   useOn: [
@@ -178,11 +178,11 @@ const plasma_cutter: ScenarioItemDefinition = {
     en: ['cutter', 'plasma cutter', 'plasma'],
   },
   description: {
-    fr: "Decoupeur plasma industriel. Coupe le metal comme du beurre. Bruyant, limite en batterie, mais devastateur.",
+    fr: "Industriel. Il coupe le métal comme du beurre. Bruyant, court en batterie, dévastateur.",
     en: "Industrial plasma cutter. Cuts metal like butter. Loud, battery-limited, devastating.",
   },
   examineResult: {
-    fr: "Decoupeur plasma industriel. Puissant assez pour couper a travers les poutres effondrees, mais le bruit attirerait l'attention.",
+    fr: "Industriel. Assez puissant pour trancher des poutres effondrées — et assez bruyant pour s'entendre dans toute la station.",
     en: "",
   },
   useOn: [
@@ -229,11 +229,11 @@ const research_notes: ScenarioItemDefinition = {
     en: ['notes', 'research notes', 'journal', 'report'],
   },
   description: {
-    fr: "Notes de recherche d'Okonkwo. Projet Chasseur — sensibilite acoustique extreme. Les hautes frequences la desorientent. L'information qui pourrait vous sauver la vie.",
+    fr: "De la main d'Okonkwo. Projet Chasseur : sensibilité acoustique extrême, les hautes fréquences la désorientent.",
     en: "Okonkwo's research notes. Project Hunter — extreme sound sensitivity.",
   },
   examineResult: {
-    fr: "Notes de recherche detaillant le Projet Chasseur — une creature modifiee genetiquement. Point cle : sensibilite acoustique extreme.",
+    fr: "Elles détaillent le Projet Chasseur : une créature modifiée génétiquement. Point clé, souligné deux fois — sensibilité acoustique extrême.",
     en: "",
   },
   readableContent: {
@@ -252,11 +252,11 @@ const sonic_emitter_component: ScenarioItemDefinition = {
     en: ['emitter', 'sonic emitter', 'sonic component', 'component'],
   },
   description: {
-    fr: "Composant d'emetteur sonique haute frequence. Utilise dans les experiences d'Okonkwo. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser la creature.",
+    fr: "Haute fréquence, issu des expériences d'Okonkwo. Dans une zone à l'acoustique fermée, il ferait plus que du bruit.",
     en: "High-frequency sonic emitter component. Combined with acoustics, could neutralize the creature.",
   },
   examineResult: {
-    fr: "Composant d'emetteur sonique haute frequence. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser ou pieger la creature.",
+    fr: "Haute fréquence, prélevé sur un banc d'essai. Dans une zone à l'acoustique fermée, il ferait plus que du bruit.",
     en: "",
   },
   useOn: [
@@ -376,11 +376,14 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
   },
   descriptions: {
     damaged: {
-      fr: "Votre navette, ecrasee a l'approche. Le cockpit est deforme au-dela de toute reparation. La soute arriere est partiellement accessible — des debris bloquent l'acces complet.",
+      fr: 'Écrasée à l\'approche. Le cockpit est déformé au-delà de toute réparation, et la soute '
+        + 'arrière n\'est qu\'à moitié accessible — des débris bloquent le reste.',
       en: "",
     },
     open: {
-      fr: "La soute de la navette est dégagée. De la fumée s'échappe encore des circuits brûlés. Les compartiments de rangement sont ouverts — la plupart vides ou détruits. Le moteur principal est en miettes, le réservoir percé. Cette navette ne redécollera jamais.",
+      fr: 'La soute est dégagée. De la fumée s\'échappe encore des circuits brûlés, les compartiments '
+        + 'sont ouverts et presque tous vides. Moteur en miettes, réservoir percé : elle ne redécollera '
+        + 'jamais.',
       en: "",
     },
   },
@@ -519,7 +522,8 @@ const salvageable_parts: ScenarioFeatureDefinition = {
   },
   descriptions: {
     intact: {
-      fr: "Pieces recuperables eparpillees dans les debris : cablage, composants electroniques, outils de fortune. De quoi improviser.",
+      fr: 'Éparpillées dans les débris : câblage, composants électroniques, outils de fortune. De quoi '
+        + 'improviser.',
       en: "",
     },
     empty: {
@@ -884,7 +888,7 @@ const research_terminal: ScenarioFeatureDefinition = {
   },
   descriptions: {
     damaged: {
-      fr: "Terminal de recherche partiellement detruit. L'ecran clignote — donnees fragmentaires recuperables.",
+      fr: 'Partiellement détruit. L\'écran clignote, et les données qui restent sont fragmentaires.',
       en: "",
     },
     active: {
@@ -1325,7 +1329,8 @@ const shuttle_cockpit: ScenarioFeatureDefinition = {
   },
   descriptions: {
     active: {
-      fr: "Le cockpit de la navette d'evacuation. Systemes en ligne, moteurs prets. L'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s'est passe — qui est monte, qui est reste — depend entierement de vos choix.",
+      fr: 'Systèmes en ligne, moteurs prêts, les coordonnées de retour vers la flotte affichées. Un '
+        + 'seul bouton : DÉCOLLAGE.',
       en: "",
     },
   },

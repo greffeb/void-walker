@@ -27,9 +27,9 @@
 #### Sas d'amarrage  `docking_airlock`
 
 - **initial (open)** · `openness=open lock=unlocked` · via `descriptions`
-  > Le sas d'amarrage est ouvert — votre navette est arrimée de l'autre côté. Les indicateurs de pression sont normaux. Votre seul moyen de quitter la station.
+  > Ouvert — votre navette est arrimée de l'autre côté. Les indicateurs de pression sont normaux. C'est votre seul moyen de quitter la station.
 - **après newState:closed** · `openness=closed lock=unlocked` · via `descriptions`
-  > Le sas d'amarrage est scellé. Le voyant indique VERROUILLAGE AUTOMATIQUE. L'IA a coupé l'accès à votre navette.
+  > Scellé. Le voyant indique VERROUILLAGE AUTOMATIQUE. L'IA a coupé l'accès à votre navette.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Le mécanisme du sas est détruit. L'accès à la navette est bloqué physiquement.
 - **EXAMINE** (état=open, auto)
@@ -50,7 +50,7 @@
 #### Terminal du manifeste cargo  `cargo_manifest_terminal`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Terminal du manifeste cargo. L'écran défile lentement — le dernier chargement répertorié remonte à 3 mois.
+  > L'écran défile lentement. Le dernier chargement répertorié remonte à trois mois.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Terminal détruit. L'écran est noir, le boîtier fracturé.
 - `readableContent` (258 car.)
@@ -66,7 +66,7 @@
 #### Pinces d'amarrage  `docking_clamps`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Les pinces d'amarrage maintiennent votre navette en position. Le système de largage rapide est fonctionnel — pour un départ précipité.
+  > Elles maintiennent votre navette en position. Le système de largage rapide est fonctionnel — pour un départ précipité.
 - **après newState:broken** · `activity=inactive power=unpowered integrity=broken` · via `descriptions`
   > Les pinces sont détruites. Votre navette dérive lentement — le câble de secours la retient encore, mais pas pour longtemps.
 - **après newState:inactive** · `activity=inactive power=powered` · via `descriptions`
@@ -88,7 +88,7 @@
 #### Scanner portable  `scanner_device`
 
 - description
-  > Scanner portable multi-fréquence. Détecte les anomalies biologiques et électroniques dans un rayon de 10 mètres. Batterie à 89%.
+  > Multi-fréquence. Repère les anomalies biologiques et électroniques dans un rayon de dix mètres. Batterie à 89 %.
 - **USE sur `wall_safe`** ⚠ `sans newState` `flagSet=safe_scanned`
   > Le scanner révèle un compartiment caché derrière le coffre — un double fond. Le mécanisme d'ouverture secondaire est électronique.
 - **USE sur `ai_core_node_a`** ⚠ `sans newState` `flagSet=ai_scan_revealed`
@@ -99,7 +99,7 @@
 #### Trousse à outils standard  `standard_toolkit`
 
 - description
-  > Trousse à outils standard de maintenance spatiale. Contient un testeur de circuits, un tournevis magnétique, des pinces isolées et un rouleau de ruban conducteur. Tout ce qu'il faut pour les réparations d'urgence.
+  > Maintenance spatiale : testeur de circuits, tournevis magnétique, pinces isolées, ruban conducteur. De quoi réparer dans l'urgence.
 - **USE sur `maintenance_terminal`** `newState=intact+active` `flagSet=maintenance_terminal_repaired`
   > Vous ouvrez le boîtier du terminal et pontez le circuit endommagé. L'écran s'illumine — accès partiel restauré.
 - **USE sur `ai_core_node_a`** ⚠ `sans newState` `flagSet=node_a_exposed`
@@ -135,13 +135,13 @@ Les communications se déversent à l'écran. Un échange saute aux yeux : le Dr
 #### Terminal chiffré  `encrypted_terminal`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Terminal de communications principal. L'écran rouge sang affiche 'ACCÈS RESTREINT — CLÉ DE CHIFFREMENT REQUISE'. Un slot pour noyau de données est visible sur le côté.
+  > L'écran rouge sang exige une clé de chiffrement. Sur le flanc du boîtier, un slot pour noyau de données, propre, jamais utilisé.
 - **après newState:active** · `lock=locked openness=closed activity=active power=powered` · via `descriptions`
-  > Terminal de communications principal. L'écran rouge sang affiche 'ACCÈS RESTREINT — CLÉ DE CHIFFREMENT REQUISE'. Un slot pour noyau de données est visible sur le côté.
+  > L'écran rouge sang exige une clé de chiffrement. Sur le flanc du boîtier, un slot pour noyau de données, propre, jamais utilisé.
 - **après newState:broken** · `lock=locked openness=closed integrity=broken activity=inactive power=unpowered` · via `descriptions`
   > Terminal détruit. L'écran est fendu en étoile, les circuits grésillent. Les données sont inaccessibles par cette voie.
 - ⚠ **INATTEIGNABLE** `descriptions.active`
-  > Terminal déverrouillé. Les logs de la station défilent — 72 heures de communications, rapports d'incident, ordres confidentiels. Plusieurs entrées attirent l'œil : des messages entre la Directrice Vasquez et un expéditeur externe marqué HELIOX, une alerte de confinement ignorée, et un ordre d'évacuation annulé. Il y a beaucoup à lire ici.
+  > Les logs défilent : soixante-douze heures de trafic. Trois échanges reviennent — Vasquez, un expéditeur marqué HELIOX, et une alerte de confinement que personne n'a relayée.
 - `readableContent` (1319 car.)
 - **USE** (état=locked, objet=encrypted_data_core, auto)
   - réussite `newState=active` `flagSet=comms_unlocked`
@@ -173,9 +173,9 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Terminal de maintenance  `maintenance_terminal`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Terminal de maintenance auxiliaire. L'écran est fissuré mais partiellement lisible. Les logs de maintenance affichent en boucle la même entrée : "2247-03-01 — Modification paramètres confinement — Autorisation ADMIN_VASQUEZ — Motif : recalibration programmée." Sauf qu'aucune recalibration n'était prévue dans le planning.
+  > L'écran est fissuré mais lisible. Une entrée tourne en boucle : « Modification paramètres confinement — Autorisation ADMIN_VASQUEZ ». Aucune recalibration n'était au planning.
 - **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
-  > Terminal réparé. L'écran affiche quatre panneaux : CAMÉRAS (archives 72h disponibles), PORTES (contrôle manuel des sas — utile si l'IA verrouille votre chemin), VENTILATION (reroutage atmosphérique possible), et DIAGNOSTICS (état du réacteur en temps réel). Chaque panneau attend vos commandes.
+  > Quatre panneaux répondent : caméras, portes, ventilation, diagnostics. Soixante-douze heures d'archives, et le contrôle manuel des sas.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Terminal complètement hors service. Plus rien à en tirer.
 - `readableContent` (764 car.)
@@ -228,7 +228,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Terminal du directeur  `director_terminal`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Le terminal personnel de la Directrice Vasquez. L'écran de veille affiche le logo de la station — serein, officiel. Mais la messagerie indique 47 messages non lus, tous marqués CONFIDENTIEL HELIOX. Il y a des choses à lire ici.
+  > L'écran de veille affiche le logo de la station, serein, officiel. La messagerie annonce quarante-sept messages non lus, tous marqués CONFIDENTIEL HELIOX.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Terminal détruit. Quelqu'un — ou quelque chose — a voulu effacer les preuves avant vous.
 - `readableContent` (487 car.)
@@ -245,7 +245,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Coffre-fort mural  `wall_safe`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Coffre-fort mural encastré. Serrure à code numérique — 4 chiffres. Des rayures autour du clavier trahissent une utilisation fréquente.
+  > Encastré dans le mur. Serrure à code, quatre chiffres. Des rayures autour du clavier trahissent une utilisation fréquente.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
   > Coffre-fort ouvert. L'intérieur est capitonné de velours synthétique noir — conçu pour protéger des documents sensibles. Le fond du coffre semble légèrement plus épais que nécessaire.
 - **après newState:broken** · `lock=locked openness=closed integrity=broken activity=inactive power=unpowered` · via `descriptions`
@@ -269,7 +269,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Plan d'évacuation  `evacuation_map`
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
-  > Plan d'évacuation de la station affiché au mur. Routes de fuite annotées au feutre rouge.
+  > Affiché au mur, avec des routes de fuite annotées au feutre rouge — et une annotée deux fois.
 - **READ** (auto)
   - réussite ⚠ `sans newState` `flagSet=beacon_location_known`
     > Le plan montre la disposition complète de la station. Une annotation au feutre rouge : 'Balise de secours — Niveau 4, Chambre Est'. Le chemin est tracé. Quelqu'un — Vasquez ? — a aussi marqué les 'zones mortes' des caméras.
@@ -291,7 +291,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Dossiers compromettants  `incriminating_files`
 
 - description
-  > Dossiers compromettants : correspondance Vasquez-Heliox, polices d'assurance gonflées de 400%, plan de sabotage détaillé. La preuve irréfutable.
+  > Correspondance Vasquez-Heliox, polices d'assurance gonflées de 400 %, plan de sabotage détaillé. Irréfutable.
 - **USE sur `emergency_beacon`** ⚠ `sans newState` `flagSet=evidence_transmitted`
   > Les dossiers sont numérisés et joints au signal de détresse. Fraude, sabotage, meurtre — tout est dans la transmission. La vérité va voyager à la vitesse de la lumière vers la flotte de secours.
 
@@ -314,7 +314,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Cœur du réacteur  `reactor_core`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Le cœur du réacteur pulse de manière erratique. Orange, rouge, orange. Les instruments indiquent une déstabilisation progressive. Temps avant masse critique : indéterminé mais limité.
+  > Il pulse de manière erratique. Orange, rouge, orange. Les instruments annoncent une déstabilisation progressive, sans dire combien de temps il reste.
 - **après newState:intact** · `integrity=intact` · via `descriptions`
   > Le réacteur pulse régulièrement — stabilisé. Les niveaux de confinement sont revenus à la normale. Mais l'IA est toujours active.
 - **après newState:broken** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
@@ -354,9 +354,9 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Nœud IA secondaire  `ai_core_node_b`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Nœud secondaire de l'IA. Sert de redondance au nœud primaire — si le premier tombe, celui-ci prend le relais avec des capacités réduites. Le processeur tourne en mode défensif, anticipant une attaque après la perte potentielle de son jumeau.
+  > Redondance du nœud primaire : si le premier tombe, celui-ci prend le relais avec des capacités réduites. Le processeur tourne en mode défensif — il attend l'attaque.
 - **après newState:inactive** · `activity=inactive power=powered` · via `descriptions`
-  > Nœud secondaire désactivé. Le cerveau de l'IA est complètement hors ligne. Les portes verrouillées par l'IA se déverrouillent une à une dans un concert de claquements métalliques. La station est libérée.
+  > Désactivé. Le cerveau de l'IA est entièrement hors ligne, et les portes qu'elle tenait se déverrouillent une à une dans un concert de claquements.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Nœud secondaire détruit. Le silence qui suit est total — l'IA n'a plus de voix, plus d'yeux, plus de mains. La station vous appartient.
 - **HACK** (état=active, flag=node_a_disabled, DC 16 INT)
@@ -376,15 +376,11 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 #### Terminal de neutralisation  `override_terminal`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Terminal de neutralisation d'urgence. Le circuit principal est grillé. Avec des réparations et le bon badge, il pourrait redémarrer l'IA en mode sécurisé.
+  > Le circuit principal est grillé. Avec des réparations et le bon badge, il pourrait redémarrer l'IA en mode sécurisé.
 - **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
-  > Terminal de neutralisation opérationnel. L'écran affiche : RÉINITIALISATION IA — PROTOCOLE EN 2 ÉTAPES :
-1) Insérer badge administrateur (niveau Directeur minimum)
-2) Confirmer le redémarrage en mode sécurisé
-
-MODE SÉCURISÉ : L'IA conservera ses fonctions vitales (support vie, gravité) mais perdra le contrôle des systèmes de sécurité et d'effacement.
+  > L'écran annonce un protocole en deux étapes : badge administrateur, puis confirmation du redémarrage. En mode sécurisé, l'IA garde le support vie et la gravité, et perd la sécurité et l'effacement.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
-  > Terminal de neutralisation irréparable. Cette option est définitivement fermée.
+  > Irréparable. Cette option est définitivement fermée.
 - **REPAIR** (état=damaged, objet=standard_toolkit, auto)
   - réussite `newState=intact+active` `flagSet=override_terminal_repaired`
     > Le testeur de circuits identifie 3 composants grillés. Remplacement minutieux — chaque connexion compte. L'écran s'allume enfin : PRÊT POUR RÉINITIALISATION.
@@ -417,9 +413,9 @@ MODE SÉCURISÉ : L'IA conservera ses fonctions vitales (support vie, gravité) 
 #### Balise de détresse  `emergency_beacon`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Balise de détresse d'urgence. Le boîtier est massif — conçu pour survivre à la destruction de la station. L'écran affiche VERROUILLÉE en rouge. Un lecteur de badge et un port de données sont visibles sur le panneau frontal. L'IA de la station a ajouté ses propres verrous par-dessus les verrous standard.
+  > Le boîtier est massif, conçu pour survivre à la destruction de la station. L'écran affiche VERROUILLÉE en rouge. L'IA a ajouté ses propres verrous par-dessus les verrous standard.
 - **après newState:active** · `lock=locked openness=closed activity=active power=powered` · via `descriptions`
-  > Balise de détresse d'urgence. Le boîtier est massif — conçu pour survivre à la destruction de la station. L'écran affiche VERROUILLÉE en rouge. Un lecteur de badge et un port de données sont visibles sur le panneau frontal. L'IA de la station a ajouté ses propres verrous par-dessus les verrous standard.
+  > Le boîtier est massif, conçu pour survivre à la destruction de la station. L'écran affiche VERROUILLÉE en rouge. L'IA a ajouté ses propres verrous par-dessus les verrous standard.
 - ⚠ **INATTEIGNABLE** `descriptions.active`
   > Balise activée. Le boîtier vibre doucement — l'antenne se déploie. L'écran affiche PRÊTE À TRANSMETTRE en vert. Il ne reste qu'à charger les preuves et confirmer l'envoi.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
@@ -460,7 +456,7 @@ L'antenne pivote. Le signal s'élance dans le vide — 50 années-lumière de po
 #### Verrou final de l'IA  `ai_final_lock`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Le verrou final de l'IA. Un écran holographique affiche trois couches d'authentification superposées — biométrique, code, et badge. Conçu pour qu'aucun membre d'équipage ordinaire ne puisse le forcer. Mais la Directrice Vasquez n'était pas ordinaire — et son badge est peut-être la clé.
+  > Un écran holographique superpose trois couches d'authentification : biométrie, code, badge. Conçu pour qu'aucun membre d'équipage ordinaire ne le force. Vasquez n'était pas ordinaire.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
   > Le verrou est désactivé. Les trois couches d'authentification sont au vert. L'accès à la balise est libre — l'IA ne contrôle plus rien ici.
 - **après newState:broken** · `lock=locked openness=closed integrity=broken activity=inactive power=unpowered` · via `descriptions`
@@ -495,7 +491,7 @@ L'antenne pivote. Le signal s'élance dans le vide — 50 années-lumière de po
 #### Écran de transmission balise  `beacon_transmission_screen`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Écran de contrôle de la transmission. Les données clignotent en rouge : SIGNAL EN ATTENTE, PORTÉE 50 AL, DONNÉES JOINTES : AUCUNE, AUTORISATION : REQUISE. Trois étapes affichées : 1) Autoriser via badge administrateur. 2) Charger les preuves. 3) Confirmer la transmission. C'est ici que tout se joue.
+  > SIGNAL EN ATTENTE. PORTÉE 50 AL. DONNÉES JOINTES : AUCUNE. AUTORISATION : REQUISE. Trois étapes attendent, dans cet ordre.
 - **READ** (auto)
   - réussite ⚠ `sans newState`
     > STATUT TRANSMISSION — BALISE DE DÉTRESSE PHOEBE-7

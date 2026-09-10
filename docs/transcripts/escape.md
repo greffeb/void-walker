@@ -27,16 +27,16 @@
 #### Capsule cryogénique  `cryopod`
 
 - **initial (broken)** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
-  > Votre capsule cryogénique. Le couvercle s'est ouvert d'urgence — le voyant indique une coupure de courant il y a 4 heures. Le gel cryogénique a coulé sur le sol, formant une flaque translucide. Les autres capsules sont vides. Depuis longtemps.
+  > Le couvercle s'est ouvert d'urgence — le voyant indique une coupure de courant il y a quatre heures. Le gel a coulé sur le sol en une flaque translucide.
 
 #### Terminal de statut  `status_terminal`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > L'écran clignote entre des bribes de données : "ALERTE CONFINEMENT — NIVEAU 5"... "Équipage : 0/47 actifs"... "Support vie : CRITIQUE". La date affichée montre que 6 mois se sont écoulés depuis votre mise en cryo.
+  > L'écran clignote entre des bribes : « ALERTE CONFINEMENT — NIVEAU 5 »… « Équipage : 0/47 actifs »… « Support vie : CRITIQUE ». La date affichée a six mois d'avance sur vos souvenirs.
 - **après newState:active** · `integrity=damaged activity=active power=powered` · via `descriptions`
-  > L'écran clignote entre des bribes de données : "ALERTE CONFINEMENT — NIVEAU 5"... "Équipage : 0/47 actifs"... "Support vie : CRITIQUE". La date affichée montre que 6 mois se sont écoulés depuis votre mise en cryo.
+  > L'écran clignote entre des bribes : « ALERTE CONFINEMENT — NIVEAU 5 »… « Équipage : 0/47 actifs »… « Support vie : CRITIQUE ». La date affichée a six mois d'avance sur vos souvenirs.
 - ⚠ **INATTEIGNABLE** `descriptions.active`
-  > Le terminal fonctionne — l'écran affiche le plan du vaisseau et les rapports système. Le diagnostic montre 47 capsules cryogéniques : 46 en défaillance critique (alimentation coupée il y a 6 mois), 1 éjectée en urgence (la vôtre). Le support vie est en mode minimal. Le pont des pods d'évasion est marqué au niveau inférieur — mais un point de contrôle de sécurité bloque l'accès.
+  > Le plan du vaisseau s'affiche. Diagnostic : quarante-six capsules en défaillance depuis six mois, une éjectée en urgence. Les pods sont au niveau inférieur, derrière un point de contrôle.
 - `readableContent` (718 car.)
 - **READ/EXAMINE/SCAN** (état=active, auto)
   - réussite ⚠ `sans newState` `flagSet=terminal_read`
@@ -53,11 +53,11 @@
 #### Casier d'urgence  `emergency_locker`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Casier d'urgence standard. Le verrou magnétique est actif — un voyant rouge clignotant le confirme. La serrure semble fragilisée par les vibrations du vaisseau. Un outil adapté, de la force brute, ou un peu d'ingéniosité pourrait en venir à bout.
+  > Le verrou magnétique est actif, un voyant rouge le confirme. La serrure a travaillé avec les vibrations du vaisseau : elle ne tiendra pas contre un outil adapté, ni contre assez de force.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
-  > Le casier d'urgence est ouvert. L'éclairage de secours éclaire l'intérieur : deux emplacements moulés — l'un pour un badge d'accès, l'autre pour une bonbonne d'oxygène. L'étiquette "URGENCE — NE PAS RETIRER SAUF ÉVACUATION" est à moitié décollée.
+  > L'éclairage de secours éclaire l'intérieur : deux emplacements moulés, l'un pour un badge, l'autre pour une bonbonne d'oxygène. L'étiquette « NE PAS RETIRER SAUF ÉVACUATION » pend à moitié décollée.
 - ⚠ **INATTEIGNABLE** `descriptions.empty`
-  > Le casier d'urgence, grand ouvert et vide. Les emplacements moulés gardent la forme du badge et de la bonbonne qui s'y trouvaient. Plus rien d'utile ici.
+  > Grand ouvert, et vide. Les emplacements moulés gardent la forme de ce qui s'y trouvait.
 - **FORCE_OPEN/BREAK/OPEN/KICK** (état=locked, DC 10 FOR)
   - réussite `newState=open`
     > Le métal cède dans un crissement. Le verrou magnétique saute — le casier s'ouvre. À l'intérieur : un badge d'accès et une bonbonne d'oxygène de secours.
@@ -92,7 +92,7 @@
 #### Badge d'accès  `access_keycard` *(caché)*
 
 - description
-  > Un badge d'accès de niveau 3 — celui du technicien Chen. Encore actif. Il devrait ouvrir la cloison de sécurité.
+  > Niveau 3, au nom du technicien Chen. Encore actif — de quoi ouvrir une cloison de sécurité.
 - **USE sur `security_panel`** `newState=inactive` `flagSet=bulkhead_unlocked`
   > Vous passez le badge sur le lecteur. Bip. Le voyant passe au vert. La cloison blindée gronde — les verrous magnétiques se rétractent un à un. Le passage est libre.
 - **USE sur `escape_pod_hatch`** `newState=open` `flagSet=pod_hatch_open`
@@ -122,9 +122,9 @@
 #### Panneau de sécurité  `security_panel`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Le panneau de sécurité affiche un lecteur de badge et un digicode. Le système accepte les badges de niveau 3 ou supérieur. Des griffures profondes marquent le métal autour — quelque chose a essayé de l'arracher.
+  > Un lecteur de badge et un digicode. Le système n'accepte rien en dessous du niveau 3. Des griffures profondes marquent le métal autour : quelque chose a essayé de l'arracher.
 - **après newState:inactive** · `activity=inactive power=powered` · via `descriptions`
-  > Le panneau de sécurité est éteint. Le lecteur de badge ne répond plus. Mais les verrous de la cloison se sont rétractés.
+  > L'écran est éteint, le lecteur ne répond plus. Mais les verrous de la cloison se sont rétractés.
 - **HACK/REPROGRAM** (état=active, DC 12 INT)
   - réussite `newState=inactive` `flagSet=bulkhead_unlocked`
     > Vos doigts courent sur le digicode. Combinaison après combinaison — jusqu'à trouver une faille dans le firmware. Le voyant passe au vert. Les verrous de la cloison claquent en s'ouvrant.
@@ -139,9 +139,9 @@
 #### Porte blindée  `bulkhead_door`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Cloison blindée de sécurité. Épaisse d'au moins 15 centimètres d'acier renforcé. Les verrous magnétiques sont engagés — le voyant du panneau adjacent indique qu'un badge de niveau 3 ou supérieur est requis. Des griffures profondes marquent le métal côté couloir. Quelque chose a essayé de passer. Quelque chose de gros.
+  > Quinze centimètres d'acier, verrous magnétiques engagés. Le panneau adjacent exige un niveau 3. Les griffures sont du côté couloir : quelque chose a essayé de passer.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
-  > La cloison blindée est ouverte — les verrous magnétiques sont rétractés. Le couloir au-delà s'enfonce dans l'obscurité. L'air qui en provient est plus froid, plus sec. Un silence pesant règne de l'autre côté.
+  > Les verrous sont rétractés. Le couloir au-delà s'enfonce dans l'obscurité, et l'air qui en vient est plus froid, plus sec. Un silence épais règne de l'autre côté.
 - **OPEN/PUSH/MOVE_TO** (état=locked, flag=bulkhead_unlocked, auto)
   - réussite `newState=open`
     > Les verrous ont été désactivés. La porte blindée coulisse lourdement sur ses rails, révélant le couloir au-delà.
@@ -154,9 +154,9 @@
 #### Grille de ventilation  `vent_cover`
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
-  > Grille de ventilation standard. Les vis sont oxydées — le conduit derrière semble assez large pour s'y faufiler. Un courant d'air froid en sort — il mène quelque part de l'autre côté de la cloison. Une alternative au point de contrôle de sécurité, pour ceux qui n'ont pas peur des espaces confinés.
+  > Les vis sont oxydées, et le conduit derrière semble assez large pour s'y faufiler. Un courant d'air froid en sort : il vient de l'autre côté de la cloison.
 - **après newState:open** · `integrity=intact openness=open lock=unlocked` · via `descriptions`
-  > La grille de ventilation est ouverte. Le conduit s'enfonce dans l'obscurité — étroit, poussiéreux, mais praticable. Des traces de griffures marquent les parois du conduit. Vous n'êtes pas le premier à passer par là. Le passage mène de l'autre côté de la cloison blindée.
+  > Le conduit s'enfonce dans le noir — étroit, poussiéreux, praticable. Des griffures marquent les parois. Vous n'êtes pas le premier à passer par là.
 - **OPEN** (état=intact, DC 8 AGI)
   - réussite `newState=open`
     > Les vis rouillées cèdent une à une. La grille tombe avec un clang métallique. Le conduit de ventilation s'ouvre devant vous — étroit, sombre, mais praticable.
@@ -191,9 +191,9 @@
 #### Terminal du capitaine  `captain_terminal`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Le terminal personnel du Capitaine Reeves. L'écran affiche plusieurs entrées de journal — datées des dernières 48 heures avant la catastrophe. Les entrées deviennent de plus en plus frénétiques. La dernière mentionne un "Projet ORACLE" et un dossier classifié. Le datapad du capitaine repose à côté, séparé du terminal.
+  > Des entrées de journal, datées des quarante-huit heures avant la catastrophe, de plus en plus frénétiques. La dernière mentionne un « Projet ORACLE » et un dossier classifié.
 - **après newState:searched** · `activity=active power=powered contents=searched` · via `descriptions`
-  > Le terminal du Capitaine Reeves, fouillé. Les tiroirs ont été ouverts — une petite clé magnétique a été trouvée sous des papiers froissés. Les entrées de journal sont toujours lisibles à l'écran. Le Projet ORACLE hante chaque ligne.
+  > Les tiroirs sont ouverts, une petite clé magnétique a été trouvée sous des papiers froissés. Les entrées restent lisibles à l'écran, et le Projet ORACLE hante chaque ligne.
 - `readableContent` (748 car.)
 - **READ/EXAMINE/SCAN** (état=searched, auto)
   - réussite ⚠ `sans newState` `flagSet=oracle_revealed`
@@ -210,7 +210,7 @@
 #### Hublot d'observation  `viewport`
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
-  > Le hublot d'observation donne sur l'extérieur. Le vaisseau dérive — des sections entières sont arrachées, exposant des ponts au vide. Des débris flottent dans le silence de l'espace. Le vaisseau est mourant.
+  > Dehors, le vaisseau dérive : des sections entières arrachées, des ponts ouverts au vide. Des débris flottent dans le silence.
 
 ### Objets
 
@@ -245,11 +245,11 @@
 #### Casier de combinaison EVA  `EVA_suit_locker`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > Casier de combinaison EVA — verrouillé. La serrure accepte une clé magnétique spécifique. À travers la vitre, vous apercevez une combinaison spatiale intacte.
+  > Verrouillé, et la serrure n'accepte qu'une clé magnétique précise. À travers la vitre, une combinaison spatiale intacte sur son support.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
-  > Le casier EVA est ouvert. La combinaison spatiale blanche repose sur son support, casque intégré et réserve d'oxygène en place. L'étiquette indique : "Autonomie 30 min — Pression : 1 ATM — Température : -40°C à +120°C".
+  > La combinaison blanche repose sur son support, casque et réserve d'oxygène en place. L'étiquette annonce trente minutes d'autonomie.
 - ⚠ **INATTEIGNABLE** `descriptions.empty`
-  > Le casier EVA, vide. Le support de combinaison nu, les attaches ouvertes. Des fragments de vitre craquent sous vos pieds si vous avez forcé l'ouverture.
+  > Le support est nu, les attaches pendent ouvertes. Du verre craque sous vos pieds si vous avez forcé l'ouverture.
 - **FORCE_OPEN/BREAK** (état=locked, DC 12 FOR)
   - réussite `newState=open`
     > La vitre du casier explose sous le choc. Vous dégagez les éclats — la combinaison EVA est intacte à l'intérieur.
@@ -264,9 +264,9 @@
 #### Panneau de support vie  `life_support_panel`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Le panneau de contrôle du support vie est endommagé — des griffures profondes ont arraché des câbles. L'écran clignote : "O₂ SYSTÈME — DÉFAILLANCE CRITIQUE". La réparation semble possible mais complexe.
+  > Des griffures profondes ont arraché les câbles. L'écran clignote : « O₂ SYSTÈME — DÉFAILLANCE CRITIQUE ». Réparable, mais pas simplement.
 - **après newState:intact** · `integrity=intact` · via `descriptions`
-  > Le panneau de support vie a été réparé. L'écran affiche : "O₂ — STABILISÉ — 43% CAPACITÉ". Le ventilateur tourne, l'air circule. Ce n'est pas idéal, mais la chute d'oxygène est stoppée. Vous avez gagné un répit précieux.
+  > L'écran affiche « O₂ — STABILISÉ — 43 % CAPACITÉ ». Le ventilateur tourne, l'air circule. Ce n'est pas idéal, mais la chute est stoppée.
 - **REPAIR** (état=damaged, DC 14 INT)
   - réussite `newState=intact` `flagSet=o2_stabilized`
     > Câble par câble, vous reconnectez le système. Le ventilateur redémarre — l'air frais afflue. L'écran affiche "O₂ STABILISÉ". Vous avez gagné du temps.
@@ -298,9 +298,9 @@
 #### Conduit d'énergie  `power_conduit`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Conduit d'énergie principal — éventré. Des câbles pendent et des étincelles jaillissent par intermittence. Une barre métallique semble récupérable dans les décombres.
+  > Éventré. Des câbles pendent, des étincelles jaillissent par intermittence. Une barre métallique semble récupérable dans les décombres.
 - **après newState:broken** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
-  > Le conduit est complètement détruit. Les câbles pendent, inertes — plus d'étincelles, plus de courant. L'espace où la barre métallique était coincée est vide. Le pont inférieur n'a plus d'alimentation de secours.
+  > Les câbles pendent, inertes — plus d'étincelles, plus de courant. L'emplacement de la barre métallique est vide, et le pont inférieur n'a plus d'alimentation de secours.
 - **BREAK/TAKE/PULL** (état=damaged, DC 8 FOR)
   - réussite `newState=broken`
     > Vous arrachez une barre métallique solide des décombres du conduit. Lourde, rigide — ça fera une arme improvisée acceptable.
@@ -312,7 +312,7 @@
 #### Combinaison EVA  `eva_suit` *(caché)*
 
 - description
-  > Combinaison EVA intacte. Autonomie d'oxygène personnelle de 30 minutes. Protection contre le vide et les variations de pression.
+  > Intacte. Trente minutes d'oxygène propre, et de quoi tenir contre le vide et les écarts de pression.
 
 #### Arme improvisée  `makeshift_weapon` *(caché)*
 
@@ -338,7 +338,7 @@
 #### Écoutille du pod d'évasion  `escape_pod_hatch`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
-  > L'écoutille du pod d'évasion. Un lecteur de badge contrôle l'accès — niveau 3 requis. Au-delà : la capsule de sauvetage. La sortie.
+  > Un lecteur de badge contrôle l'accès, niveau 3 requis. Au-delà : la capsule de sauvetage. La sortie.
 - **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
   > L'écoutille est ouverte. L'intérieur exigu du pod d'évasion est visible — un siège, des commandes minimales, un hublot. La liberté.
 - **HACK/UNLOCK/REPROGRAM** (état=locked, DC 14 INT)
@@ -391,7 +391,7 @@
 - **initial (intact)** · `integrity=intact` · via `descriptions`
   > Panneau de contrôle des joints de coque. L'écran affiche les zones pressurisées et dépressurisées du vaisseau. Un protocole d'urgence permet de forcer une décompression localisée.
 - **après newState:active** · `integrity=intact activity=active power=powered` · via `descriptions`
-  > Le panneau affiche "DÉCOMPRESSION EN COURS — SOUTE" en rouge clignotant. À travers les hublots, vous voyez les portes de soute s'ouvrir — l'air, les débris, tout est aspiré dans le vide. Si la créature était dans la soute, elle n'y est plus.
+  > « DÉCOMPRESSION EN COURS — SOUTE », en rouge clignotant. Par les hublots, les portes de soute s'ouvrent : l'air, les débris, tout part dans le vide.
 - **HACK/ACTIVATE/USE/REPROGRAM** (état=intact, DC 15 INT)
   - réussite `newState=active` `flagSet=cargo_depressurized`
     > Le protocole de brèche s'active — les joints de coque de la soute se fissurent volontairement. Ce n'est pas une éjection franche comme le levier — c'est une hémorragie lente. L'air s'échappe, la pression chute. Vous sentez vos oreilles se boucher. La créature hurle — un son presque humain — avant d'être aspirée centimètre par centimètre vers la brèche. Ça prend plus longtemps. C'est pire.
@@ -422,5 +422,5 @@
 #### Hublot du pod  `pod_viewport`
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
-  > Depuis le hublot du pod, vous regardez le vaisseau rapetisser dans l'obscurité. Un point de lumière de moins en moins distinct, avalé par le noir de l'espace. C'est fini.
+  > Le vaisseau rapetisse dans l'obscurité, un point de lumière de moins en moins distinct. C'est fini.
 

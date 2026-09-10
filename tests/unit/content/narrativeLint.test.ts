@@ -6,8 +6,6 @@
 // text once" and "the text stays clean". Lowering a budget is progress;
 // raising one needs a reason written next to it.
 //
-// Target for every rule is 0. The values below are where each rule stands.
-//
 // Report: `npx tsx scripts/narrative-lint.ts --detail`
 // ---------------------------------------------------------------------------
 
@@ -19,18 +17,18 @@ import { ALL_MICRO_MODULES } from '../../../src/content/microModules/index';
 import { lintNarrative, countByRule, normalise, shingleOverlap } from '../../../src/content/audit/narrativeLint';
 import type { RuleId } from '../../../src/content/audit/narrativeLint';
 
-/** Ratchet. Target is 0 everywhere; these are the counts still outstanding. */
+/** Every rule holds at zero, since 2026-09-10. A budget above 0 needs a reason. */
 const BUDGETS: Readonly<Record<RuleId, number>> = {
-  R1_nom_redit:          56,
-  R2_desc_trop_longue:   30,
+  R1_nom_redit:           0,
+  R2_desc_trop_longue:    0,
   R3_etat_muet:           0,
-  R4_noeud_titre:         0,  // atteint 2026-09-10 : 18 proses de lieu réécrites
-  R5_noeud_inventaire:    0,  // atteint 2026-09-10 : l'énumération ne se dit plus deux fois
-  R6_coaching:            0,  // atteint 2026-09-10
-  R7_etat_inatteignable:  0,  // atteint 2026-09-10 : BREAK casse au lieu d'ouvrir, tokens d'état en liste
-  R8_flag_sans_etat:      0,  // atteint 2026-09-10 : 12 états manquants posés, 11 exceptions motivées
-  R9_sans_nom_fr:         0,  // atteint 2026-09-10 : 51 noms FR/EN ajoutés
-  R10_ponctuation:        2,
+  R4_noeud_titre:         0,
+  R5_noeud_inventaire:    0,
+  R6_coaching:            0,
+  R7_etat_inatteignable:  0,
+  R8_flag_sans_etat:      0,
+  R9_sans_nom_fr:         0,
+  R10_ponctuation:        0,
 };
 
 describe('narrative readability lint', () => {
@@ -71,5 +69,37 @@ describe('lint helpers', () => {
 
   it('shingleOverlap ignores text too short to shingle', () => {
     expect(shingleOverlap('trop court', 'trop court')).toBe(0);
+  });
+});
+
+describe('R10 tells an ellipsis from a doubled terminator', () => {
+  // The rule exists for "Des passages sont raturés avec insistance.." — a period
+  // glued onto a sentence that already had one. An ellipsis is deliberate prose.
+  const lintOne = (fr: string): number => lintNarrative(
+    [],
+    [{
+      id: 'm', type: 'blocked_passage', validSegments: [], tensionRange: [1, 2],
+      compatibility: { universal: true }, skins: [],
+      locations: [{
+        id: 'l', role: 'passage', onCriticalPath: true, items: [],
+        features: [{
+          id: 'door', initialState: 'locked',
+          descriptions: { locked: { fr, en: '' }, open: { fr: 'ouverte', en: '' } },
+        }],
+      }],
+    }] as unknown as Parameters<typeof lintNarrative>[1],
+    [],
+  ).filter(f => f.rule === 'R10_ponctuation').length;
+
+  it('accepts an ellipsis', () => {
+    expect(lintOne('Si la créature est là quand vous tirez... tout part dans le vide.')).toBe(0);
+  });
+
+  it('rejects a period glued onto a finished sentence', () => {
+    expect(lintOne('Des passages sont raturés avec insistance..')).toBe(1);
+  });
+
+  it('rejects a period followed by a comma', () => {
+    expect(lintOne('Le verrou est actif., un voyant le confirme')).toBe(1);
   });
 });

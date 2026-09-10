@@ -27,11 +27,11 @@
 #### Navette écrasée  `crashed_shuttle`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Votre navette, ecrasee a l'approche. Le cockpit est deforme au-dela de toute reparation. La soute arriere est partiellement accessible — des debris bloquent l'acces complet.
+  > Écrasée à l'approche. Le cockpit est déformé au-delà de toute réparation, et la soute arrière n'est qu'à moitié accessible — des débris bloquent le reste.
 - **après newState:open** · `integrity=damaged openness=open lock=unlocked` · via `descriptions`
-  > Votre navette, ecrasee a l'approche. Le cockpit est deforme au-dela de toute reparation. La soute arriere est partiellement accessible — des debris bloquent l'acces complet.
+  > Écrasée à l'approche. Le cockpit est déformé au-delà de toute réparation, et la soute arrière n'est qu'à moitié accessible — des débris bloquent le reste.
 - ⚠ **INATTEIGNABLE** `descriptions.open`
-  > La soute de la navette est dégagée. De la fumée s'échappe encore des circuits brûlés. Les compartiments de rangement sont ouverts — la plupart vides ou détruits. Le moteur principal est en miettes, le réservoir percé. Cette navette ne redécollera jamais.
+  > La soute est dégagée. De la fumée s'échappe encore des circuits brûlés, les compartiments sont ouverts et presque tous vides. Moteur en miettes, réservoir percé : elle ne redécollera jamais.
 - **EXAMINE** (état=damaged, auto)
   - réussite ⚠ `sans newState`
     > La soute arriere contient du materiel d'urgence. Un compartiment medical est visible mais coince sous une poutre tordue. Le moteur principal est en miettes — il faudra trouver un autre moyen de partir.
@@ -68,7 +68,7 @@
 #### Pièces récupérables  `salvageable_parts`
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
-  > Pieces recuperables eparpillees dans les debris : cablage, composants electroniques, outils de fortune. De quoi improviser.
+  > Éparpillées dans les débris : câblage, composants électroniques, outils de fortune. De quoi improviser.
 - **après newState:empty** · `integrity=intact contents=empty` · via `descriptions`
   > Les debris utiles ont deja ete recuperes. Il ne reste que de la ferraille inutile.
 - **SCAN** (DC 8 PER)
@@ -98,9 +98,9 @@
 #### Trousse de premiers soins  `first_aid_kit`
 
 - description
-  > Trousse de premiers soins recuperee de la navette. Compresses, desinfectant, garrot. Pas suffisant pour une blessure grave, mais utile en urgence.
+  > Récupérée dans la navette. Compresses, désinfectant, garrot. Insuffisant pour une blessure grave, utile dans l'urgence.
 - examineResult
-  > Trousse de premiers soins recuperee de la navette. Compresses, desinfectant, garrot. Pas suffisant pour stabiliser une blessure grave.
+  > Récupérée dans la navette. Compresses, désinfectant, garrot. Pas de quoi stabiliser une blessure grave.
 - **USE sur `self`** ⚠ `sans newState`
   > Vous appliquez les compresses et le desinfectant sur vos blessures. Le garrot ralentit un saignement. Ce n'est pas grand chose, mais suffisant pour tenir.
 - **USE sur `dr_okonkwo`** ⚠ `sans newState` `flagSet=okonkwo_patched`
@@ -109,18 +109,18 @@
 #### Stabilisateur médical  `medical_stabilizer` *(caché)*
 
 - description
-  > Stabilisateur medical de niveau hospitalier. Maintient un patient en etat stable pendant plusieurs heures. Exactement ce qu'il faut pour la survivante blessee.
+  > Niveau hospitalier. Il maintient un patient stable plusieurs heures, le temps d'une extraction.
 - examineResult
-  > Stabilisateur medical de niveau hospitalier. Ce dispositif peut maintenir un patient en etat stable pendant plusieurs heures — exactement ce qu'il faut pour la survivante blessee.
+  > Niveau hospitalier. Il maintient un patient stable plusieurs heures — de quoi transporter quelqu'un qui ne tiendrait pas debout.
 - **USE sur `dr_okonkwo`** ⚠ `sans newState` `flagSet=escort_active`
   > Vous activez le stabilisateur et le fixez sur sa blessure principale. Les moniteurs passent au vert. La Dr. Okonkwo ouvre les yeux plus grand, la douleur recule. 'Merci. Je... je peux marcher maintenant. Sortons d'ici — ensemble.'
 
 #### Outil de récupération  `salvage_tool` *(caché)*
 
 - description
-  > Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune. L'allie du survivaliste.
+  > Multifonction : levier, coupeur, soudeur de fortune. Usé jusqu'au manche, et encore fiable.
 - examineResult
-  > Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune.
+  > Multifonction : levier, coupeur, soudeur de fortune.
 - **USE sur `collapsed_corridor`** `newState=intact+open` `flagSet=corridor_cleared_tool`
   > L'outil de recuperation fait levier sur les poutres effondrees. Le metal grince, cede. Un passage etroit mais praticable s'ouvre dans les decombres.
 - **USE sur `blast_door_partial`** `newState=intact+open` `flagSet=blast_door_widened`
@@ -198,9 +198,9 @@
 #### Découpeur plasma  `plasma_cutter` *(caché)*
 
 - description
-  > Decoupeur plasma industriel. Coupe le metal comme du beurre. Bruyant, limite en batterie, mais devastateur.
+  > Industriel. Il coupe le métal comme du beurre. Bruyant, court en batterie, dévastateur.
 - examineResult
-  > Decoupeur plasma industriel. Puissant assez pour couper a travers les poutres effondrees, mais le bruit attirerait l'attention.
+  > Industriel. Assez puissant pour trancher des poutres effondrées — et assez bruyant pour s'entendre dans toute la station.
 - **USE sur `collapsed_corridor`** `newState=intact+open` `flagSet=corridor_plasma_cut`
   > Le plasma tranche les poutres dans une gerbe d'etincelles bleues. Le passage s'ouvre — mais le rugissement du decoupeur a resonne dans toute la station.
 - **USE sur `creature_hunter`** ⚠ `sans newState`
@@ -244,7 +244,7 @@
 #### Terminal de recherche  `research_terminal`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
-  > Terminal de recherche partiellement detruit. L'ecran clignote — donnees fragmentaires recuperables.
+  > Partiellement détruit. L'écran clignote, et les données qui restent sont fragmentaires.
 - **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
   > Terminal restaure. Les donnees du Projet Chasseur s'affichent en entier — une horreur fascinante.
 - `readableContent` (417 car.)
@@ -263,16 +263,16 @@
 #### Notes de recherche  `research_notes`
 
 - description
-  > Notes de recherche d'Okonkwo. Projet Chasseur — sensibilite acoustique extreme. Les hautes frequences la desorientent. L'information qui pourrait vous sauver la vie.
+  > De la main d'Okonkwo. Projet Chasseur : sensibilité acoustique extrême, les hautes fréquences la désorientent.
 - examineResult
-  > Notes de recherche detaillant le Projet Chasseur — une creature modifiee genetiquement. Point cle : sensibilite acoustique extreme.
+  > Elles détaillent le Projet Chasseur : une créature modifiée génétiquement. Point clé, souligné deux fois — sensibilité acoustique extrême.
 
 #### Composant d'émetteur sonique  `sonic_emitter_component`
 
 - description
-  > Composant d'emetteur sonique haute frequence. Utilise dans les experiences d'Okonkwo. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser la creature.
+  > Haute fréquence, issu des expériences d'Okonkwo. Dans une zone à l'acoustique fermée, il ferait plus que du bruit.
 - examineResult
-  > Composant d'emetteur sonique haute frequence. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser ou pieger la creature.
+  > Haute fréquence, prélevé sur un banc d'essai. Dans une zone à l'acoustique fermée, il ferait plus que du bruit.
 - **USE sur `creature_hunter`** ⚠ `sans newState` `flagSet=creature_repelled_escalation`
   > Vous activez le composant sonique. Un hurlement ultrasonique — inaudible pour vous, devastateur pour la creature. Elle se tord de douleur, recule. Un repit precieux.
 - **USE sur `acoustic_trap_point`** `newState=active` `flagSet=creature_contained`
@@ -440,7 +440,7 @@
 #### Cockpit de navette  `shuttle_cockpit`
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
-  > Le cockpit de la navette d'evacuation. Systemes en ligne, moteurs prets. L'ecran affiche les coordonnees de retour vers la flotte. Un seul bouton : DECOLLAGE. Ce qui s'est passe — qui est monte, qui est reste — depend entierement de vos choix.
+  > Systèmes en ligne, moteurs prêts, les coordonnées de retour vers la flotte affichées. Un seul bouton : DÉCOLLAGE.
 - **ACTIVATE** (flag=both_in_shuttle, auto)
   - réussite ⚠ `sans newState`
     > Vous appuyez sur DECOLLAGE. La Dr. Okonkwo s'agrippe au siege copilote. Les moteurs rugissent. La station s'eloigne — avec ses secrets, ses monstres. Mais pas ses survivants. Pas cette fois.

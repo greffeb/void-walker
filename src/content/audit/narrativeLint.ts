@@ -218,8 +218,11 @@ function checkFeature(feat: FeatureDefinition, where: string, siblingNames: read
       }
     }
 
-    // R10 — a fragment meant for assembly must not carry a double terminator.
-    if (/\.\s*\.|\.\s*,/.test(fr)) {
+    // R10 — a fragment meant for assembly must not carry a doubled terminator.
+    // An ellipsis is not one: "quand vous tirez... la soute" is deliberate, while
+    // "avec insistance.." is a period glued onto a sentence that had one.
+    const doubled = /\.\.(?!\.)(?<!\.\.\.)|\.\s*,|[.!?]\s*[.!?]\s*[^.\s]/;
+    if (doubled.test(fr.replace(/\.\.\./g, '\u2026'))) {
       out.push({ rule: 'R10_ponctuation', where, entity: `${feat.id}.${state}`, detail: 'ponctuation doublée' });
     }
   }
