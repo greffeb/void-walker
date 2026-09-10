@@ -478,7 +478,7 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredState: 'locked', requiredItem: 'encrypted_data_core', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Le noyau de données s\'enclenche. Les algorithmes de déchiffrement s\'exécutent — 3 secondes, 5, 12... L\'écran passe au vert. ACCÈS ACCORDÉ.\n\nLes logs défilent. Un message saute aux yeux : le Dr. Chen a tenté d\'alerter l\'équipage d\'une modification non autorisée du confinement. Son message a été supprimé par Vasquez 47 secondes après envoi. Le dernier log s\'arrête net à 03h12 — défaillance confinement, puis silence.',
           en: 'The data core clicks in. Decryption algorithms execute — ACCESS GRANTED. The logs reveal Dr. Chen tried to warn the crew about unauthorized containment modifications. His message was deleted by Vasquez 47 seconds later.',
@@ -491,7 +491,7 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'HACK', requiredState: 'locked', stat: 'INT', dc: 13 },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Protocole militaire niveau 4 — mais pas sans failles. Vous exploitez une backdoor dans le firmware. L\'écran passe au vert.\n\nLes logs s\'affichent. Le Dr. Chen a lancé une alerte à l\'équipage — supprimée par Vasquez en moins d\'une minute. Un message chiffré d\'Heliox confirme un "transfert 72h après l\'incident". Le dernier log : défaillance confinement à 03h12, puis le néant. Mais votre intrusion a laissé des traces dans les registres — l\'IA pourrait le remarquer.',
           en: 'Military protocol level 4 — but not without exploits. Logs show Dr. Chen\'s suppressed warning and Heliox\'s encrypted timeline.',
@@ -511,7 +511,7 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredState: 'locked', requiredFlag: 'password_found', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Le code 7-2-9-4 déverrouille un accès secondaire. Partiel, mais suffisant. Les logs de maintenance défilent : quelqu\'un a modifié les paramètres de confinement du réacteur avec les codes administrateur de Vasquez, exactement 72 heures avant la catastrophe. Le Dr. Chen a tenté de sonner l\'alarme — son message a été effacé. L\'IA a reçu l\'ordre de nettoyer les traces. Ce n\'est pas un accident.',
           en: 'The code 7-2-9-4 unlocks partial access. Maintenance logs show containment modifications using Vasquez\'s admin codes 72 hours before the catastrophe.',
@@ -524,7 +524,7 @@ const encrypted_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'TALK', requiredState: 'locked', stat: 'CHA', dc: 13 },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: '\'Demande d\'accès enregistrée.\' La voix synthétique de l\'IA résonne dans la salle vide. \'Protocole d\'urgence : accès temporaire accordé. Durée : 15 minutes.\' Suffisant.',
           en: '\'Access request logged.\' The AI\'s synthetic voice echoes. \'Emergency protocol: temporary access granted.\'',
@@ -1201,7 +1201,7 @@ const emergency_beacon: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'final_lock_opened', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Le verrou est ouvert — la balise n\'attend plus que vous. Vous enclenchez la séquence d\'activation. L\'antenne se déploie, le signal de calibration résonne. PRÊTE À TRANSMETTRE.',
           en: 'The lock is open — the beacon awaits. You activate the sequence. Antenna deploying. READY TO TRANSMIT.',
@@ -1213,7 +1213,7 @@ const emergency_beacon: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredState: 'locked', requiredItem: 'director_keycard', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Le badge de Vasquez — administrateur ultime. Le verrou et la balise reconnaissent leur maîtresse simultanément. Clic, clic, clic — trois couches de sécurité tombent d\'un coup. Le protocole hiérarchique ne distingue pas les intentions. L\'antenne se déploie.',
           en: 'Vasquez\'s badge — ultimate admin. Lock and beacon recognize their master simultaneously.',
@@ -1225,7 +1225,7 @@ const emergency_beacon: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'HACK', requiredState: 'locked', stat: 'INT', dc: 17 },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Protocole militaire, triple chiffrement, IA hostile — et vous percez quand même. Votre code s\'infiltre couche après couche, exploitant les failles laissées par la programmation hâtive de Vasquez. Les verrous tombent. L\'IA hurle en silence. L\'antenne se déploie.',
           en: 'Military protocol, triple encryption, hostile AI — and you still break through.',
@@ -1244,7 +1244,7 @@ const emergency_beacon: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'ACTIVATE', requiredState: 'locked', requiredFlag: 'comms_direct_access', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['unlocked', 'active'],
         narrative: {
           fr: 'Le réseau de communications longue portée est déjà sous votre contrôle. Vous reroutez le signal directement — la balise s\'active comme relais. Pas besoin de passer par les verrous de l\'IA : le signal partira par le réseau comms, pas par l\'antenne de la balise.',
           en: 'The long-range comms are already under your control. Beacon activates as relay.',

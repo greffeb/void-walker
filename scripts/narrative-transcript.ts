@@ -25,8 +25,12 @@ import type { CoreSkeleton, FeatureDefinition, ItemDefinition, LocaleString } fr
 import type { StateId, EntityState } from '../src/engine/entityState';
 import { makeEntityState, applyStateToken } from '../src/engine/entityState';
 import { pickStateDescription } from '../src/engine/featureState';
-import { featureDisplayName, itemDisplayName } from '../src/content/featureNames';
+import { featureDisplayName, itemDisplayName, displayNameOrId } from '../src/content/featureNames';
+import { reachableStates as reachableFeatureStates, triggerActs, UNCHANGED_BY_DESIGN } from '../src/content/audit/narrativeLint';
 import { toStateTokens } from '../src/engine/interactionResolver';
+import { narrateScene } from '../src/narration/scene';
+import { flattenSceneToText } from '../src/stores/sceneHelpers';
+import type { SceneDescription } from '../src/engine/types';
 
 const OUT_DIR = path.join(process.cwd(), 'docs', 'transcripts');
 
@@ -51,35 +55,53 @@ function describeState(state: EntityState): string {
   return parts.length > 0 ? parts.join(' ') : 'neutre';
 }
 
-/** The enumeration as the player reads it: names, nothing else. */
-function enumerate(features: readonly FeatureDefinition[], items: readonly ItemDefinition[]): string {
-  const names = features.map(f => featureDisplayName(f.id) ?? `⚠ ${f.id}`);
-  const itemNames = items.filter(i => i.hidden !== true).map(i => itemDisplayName(i.id) ?? `⚠ ${i.id}`);
-  const lines: string[] = [];
-  if (names.length > 0) lines.push(`Vous voyez autour de vous ${names.join(', ')}.`);
-  if (itemNames.length > 0) lines.push(`Parmi les débris, vous remarquez ${itemNames.join(', ')}.`);
-  return lines.join('\n');
+/**
+ * The enumeration exactly as the player reads it — articles, elisions, "ainsi
+ * que" and all — by running the real narrator over a synthetic scene. A
+ * hand-rolled approximation here would be one more place for the transcript to
+ * disagree with the game.
+ */
+function enumerate(
+  features: readonly FeatureDefinition[],
+  items: readonly ItemDefinition[],
+  exits: readonly string[] = [],
+): string {
+  const sd: SceneDescription = {
+    locationName: '',
+    locationDescription: '',
+    obstacleHint: null,
+    visibleFeatures: features.map(f => ({
+      id: f.id,
+      name: displayNameOrId(featureDisplayName(f.id), f.id),
+      stateDescription: null,
+    })),
+    visibleItems: items
+      .filter(i => i.hidden !== true)
+      .map(i => ({ id: i.id, name: displayNameOrId(itemDisplayName(i.id), i.id) })),
+    visibleNpcs: [],
+    exits: exits.map(name => ({ name, visited: false })),
+  };
+  const scene = narrateScene(sd, 'revisit', 'fr');
+  // Drop the location intro line and the prompt: only the element lines matter.
+  return flattenSceneToText(scene, 'full')
+    .split('\n')
+    .filter(line => line.length > 0 && !line.startsWith('Vous revenez') && !line.startsWith('Que faites'))
+    .join('\n');
 }
 
-/** Every state an interaction on this feature can put it into, from initial. */
+/**
+ * Every state the player can reach, labelled. Shares the audit's walker so a
+ * `⚠ INATTEIGNABLE` marker here means exactly what the lint means by it.
+ */
 function reachableStates(feat: FeatureDefinition): readonly { label: string; state: EntityState }[] {
   const init = makeEntityState(feat.initialState);
-  const out = [{ label: `initial (${feat.initialState ?? 'défaut'})`, state: init }];
-  if (!isEnrichedFeature(feat)) return out;
-  const seen = new Set<string>([JSON.stringify(init)]);
-  for (const inter of feat.interactions ?? []) {
-    for (const res of [inter.onSuccess, inter.onFailure]) {
-      const tokens = toStateTokens(res?.newState);
-      if (tokens.length === 0) continue;
-      let s = init;
-      for (const tk of tokens) s = applyStateToken(s, tk as StateId);
-      const key = JSON.stringify(s);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ label: `après newState:${tokens.join('+')}`, state: s });
-    }
-  }
-  return out;
+  const initKey = JSON.stringify(init);
+  return reachableFeatureStates(feat).map(state => ({
+    label: JSON.stringify(state) === initKey
+      ? `initial (${feat.initialState ?? 'défaut'})`
+      : 'atteignable',
+    state,
+  }));
 }
 
 function featureSection(feat: FeatureDefinition, indent = ''): string {
@@ -88,19 +110,26 @@ function featureSection(feat: FeatureDefinition, indent = ''): string {
   lines.push(`${indent}#### ${name ?? `⚠ SANS NOM (${feat.id})`}  \`${feat.id}\``);
   lines.push('');
 
+  // One row per distinct text the player can actually read. Several state
+  // combinations select the same description (a broken door is broken whether it
+  // was open or closed), and the generic OPEN/BREAK verbs can reach states the
+  // content never wrote text for — the engine narrates the action itself there,
+  // so an empty row is not a finding.
   const states = reachableStates(feat);
+  const seenText = new Set<string>();
   for (const { label, state } of states) {
     const desc = pickStateDescription(feat.descriptions, state);
     const shown = desc ? desc.fr : fr(feat.examineResult);
-    const source = desc ? 'descriptions' : (feat.examineResult ? 'examineResult' : '—');
+    if (shown.length === 0 || seenText.has(shown)) continue;
+    seenText.add(shown);
+    const source = desc ? 'descriptions' : 'examineResult';
     lines.push(`${indent}- **${label}** · \`${describeState(state)}\` · via \`${source}\``);
-    lines.push(`${indent}  > ${shown || '⚠ RIEN À MONTRER'}`);
+    lines.push(`${indent}  > ${shown}`);
   }
 
-  // Any description no reachable state selects is text nobody will ever read.
-  const shownTexts = new Set(states.map(s => pickStateDescription(feat.descriptions, s.state)?.fr).filter(Boolean));
+  // A description no reachable state selects is text nobody will ever read.
   for (const [st, ls] of Object.entries(feat.descriptions ?? {})) {
-    if (!shownTexts.has(ls.fr)) {
+    if (!seenText.has(ls.fr)) {
       lines.push(`${indent}- ⚠ **INATTEIGNABLE** \`descriptions.${st}\``);
       lines.push(`${indent}  > ${ls.fr}`);
     }
@@ -121,7 +150,13 @@ function featureSection(feat: FeatureDefinition, indent = ''): string {
     ].filter(Boolean).join(', ');
     lines.push(`${indent}- **${verbs}** (${gates})`);
     const flag = inter.onSuccess.flagSet ? ` \`flagSet=${inter.onSuccess.flagSet}\`` : '';
-    const st = inter.onSuccess.newState ? ` \`newState=${toStateTokens(inter.onSuccess.newState).join('+')}\`` : ' ⚠ `sans newState`';
+    const suspicious = inter.onSuccess.flagSet !== undefined
+      && triggerActs(inter.trigger.verb)
+      && Object.keys(feat.descriptions ?? {}).length >= 2
+      && !(inter.onSuccess.flagSet in UNCHANGED_BY_DESIGN);
+    const st = inter.onSuccess.newState
+      ? ` \`newState=${toStateTokens(inter.onSuccess.newState).join('+')}\``
+      : (suspicious ? ' ⚠ `sans newState`' : '');
     lines.push(`${indent}  - réussite${st}${flag}`);
     lines.push(`${indent}    > ${fr(inter.onSuccess.narrative) || '(templates génériques)'}`);
     if (inter.onFailure) {
@@ -133,7 +168,12 @@ function featureSection(feat: FeatureDefinition, indent = ''): string {
   return lines.join('\n');
 }
 
-function itemSection(item: ItemDefinition): string {
+/**
+ * Warn only where the audit would: the target must be a feature with states
+ * worth describing. Using an item on an NPC, or on a one-state prop, changes
+ * nothing describable and is not a finding.
+ */
+function itemSection(item: ItemDefinition, stateCount: ReadonlyMap<string, number> = new Map()): string {
   const name = itemDisplayName(item.id);
   const lines: string[] = [];
   lines.push(`#### ${name ?? `⚠ SANS NOM (${item.id})`}  \`${item.id}\`${item.hidden ? ' *(caché)*' : ''}`);
@@ -142,9 +182,12 @@ function itemSection(item: ItemDefinition): string {
   if (item.examineResult) lines.push(`- examineResult\n  > ${item.examineResult.fr}`);
   if (isEnrichedItem(item)) {
     for (const use of item.useOn ?? []) {
-      const st = use.interaction.onSuccess.newState
-        ? ` \`newState=${toStateTokens(use.interaction.onSuccess.newState).join('+')}\``
-        : ' ⚠ `sans newState`';
+      const res = use.interaction.onSuccess;
+      const describable = (stateCount.get(use.targetId) ?? 0) >= 2;
+      const st = res.newState
+        ? ` \`newState=${toStateTokens(res.newState).join('+')}\``
+        : (describable && res.flagSet !== undefined && !(res.flagSet in UNCHANGED_BY_DESIGN)
+            ? ' ⚠ `sans newState`' : '');
       const flag = use.interaction.onSuccess.flagSet ? ` \`flagSet=${use.interaction.onSuccess.flagSet}\`` : '';
       lines.push(`- **USE sur \`${use.targetId}\`**${st}${flag}`);
       lines.push(`  > ${fr(use.interaction.onSuccess.narrative) || '(templates génériques)'}`);
@@ -180,6 +223,10 @@ function skeletonTranscript(sk: CoreSkeleton): string {
     L.push(`> ${node.descriptionKey.fr}`);
     L.push('');
     if (loc) {
+      const stateCount = new Map<string, number>();
+      for (const nl of Object.values(sk.nodeLocations)) {
+        for (const f of nl.features) stateCount.set(f.id, Object.keys(f.descriptions ?? {}).length);
+      }
       const enumeration = enumerate(loc.features, loc.items);
       if (enumeration) { L.push(`> ${enumeration.split('\n').join('\n> ')}`); L.push(''); }
       L.push(`*Sorties :* ${loc.exits.join(', ') || '—'}`);
@@ -192,7 +239,7 @@ function skeletonTranscript(sk: CoreSkeleton): string {
       if (loc.items.length > 0) {
         L.push('### Objets');
         L.push('');
-        for (const item of loc.items) L.push(itemSection(item));
+        for (const item of loc.items) L.push(itemSection(item, stateCount));
       }
     }
   }
@@ -206,6 +253,10 @@ function modulesTranscript(): string {
   L.push('> Généré par `npx tsx scripts/narrative-transcript.ts`. Ne pas éditer à la main.');
   L.push('');
   for (const mod of ALL_MODULES) {
+    const stateCount = new Map<string, number>();
+    for (const loc of mod.locations) {
+      for (const f of loc.features) stateCount.set(f.id, Object.keys(f.descriptions ?? {}).length);
+    }
     L.push('---');
     L.push('');
     L.push(`## \`${mod.id}\` — type \`${mod.type}\`, tension ${mod.tensionRange.join('–')}`);
@@ -233,7 +284,7 @@ function modulesTranscript(): string {
       const enumeration = enumerate(loc.features, loc.items ?? []);
       if (enumeration) { L.push(`> ${enumeration.split('\n').join('\n> ')}`); L.push(''); }
       for (const feat of loc.features) L.push(featureSection(feat));
-      for (const item of loc.items ?? []) L.push(itemSection(item));
+      for (const item of loc.items ?? []) L.push(itemSection(item, stateCount));
     }
   }
   return L.join('\n');

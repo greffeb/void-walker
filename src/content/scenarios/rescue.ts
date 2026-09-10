@@ -404,7 +404,7 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 10 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous arrachez la poutre tordue. Le metal grince, cede. Le compartiment medical s'ouvre — un stabilisateur medical de niveau hospitalier.",
           en: "You wrench the twisted beam away. The medical compartment opens.",
@@ -421,7 +421,7 @@ const crashed_shuttle: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "L'outil de recuperation fait levier. La poutre se plie, liberant le compartiment medical. Le stabilisateur est intact, pret a l'emploi.",
           en: "The salvage tool levers the beam aside.",
@@ -1056,7 +1056,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 13 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous agrippez le bord de la porte et poussez de toute votre force. Le mecanisme cede dans un grincement metallique. La porte s'ouvre — de l'autre cote, la baie d'extraction.",
           en: "You grip the door edge and push. The mechanism yields. Beyond — the extraction bay.",
@@ -1075,7 +1075,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "L'outil de recuperation fait levier. Le mecanisme cede. La porte blindee coulisse — la baie d'extraction s'ouvre devant vous.",
           en: "The salvage tool levers the mechanism. The door slides open.",
@@ -1088,7 +1088,7 @@ const blast_door_partial: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous trouvez le mecanisme coince et realignez les rails. La porte coulisse — lentement, mais suffisamment.",
           en: "You find the jammed mechanism and realign the rails. The door slides open.",
@@ -1269,7 +1269,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous reconnectez le circuit hydraulique. La porte s'ouvre dans un sifflement pneumatique. La navette est la — le cockpit allume, les moteurs en veille.",
           en: "You reconnect the hydraulic circuit. The door opens with a pneumatic hiss.",
@@ -1280,7 +1280,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'damaged', stat: 'FOR', dc: 14 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous forcez la porte. Le mecanisme grince, proteste, puis cede. La navette d'extraction est enfin accessible.",
           en: "You force the door. The extraction shuttle is finally accessible.",
@@ -1303,7 +1303,7 @@ const extraction_bay_door: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', requiredFlag: 'bay_door_bypass_found', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Le recablage fonctionne. La porte s'ouvre silencieusement — presque trop facilement.",
           en: "The rewiring works. The door opens silently.",

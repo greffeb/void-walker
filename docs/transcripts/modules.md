@@ -46,19 +46,19 @@
 
 ### Lieu `main` (rôle `passage`)
 
-> Vous voyez autour de vous Porte bloquée, Trappe de ventilation, Panneau de sécurité local.
+> Vous voyez autour de vous une porte bloquée, une trappe de ventilation ainsi qu'un panneau de sécurité local.
 
 #### Porte bloquée  `blocked_door`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Alliage renforcé, mécanisme grippé. Des marques de griffes entourent le cadre. Le panneau de contrôle adjacent semble encore alimenté.
-- **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > Le battant est écarté, assez pour passer. L'air de l'autre côté est plus froid et sent le métal chaud.
 - **OPEN** (état=locked, flag=panel_bypassed, auto)
   - réussite `newState=open`
     > Grâce au panneau court-circuité, la porte s'ouvre sans résistance. Le passage est libre.
 - **OPEN** (état=locked, auto)
-  - réussite ⚠ `sans newState`
+  - réussite
     > La porte est verrouillée. Le mécanisme refuse de répondre. Il faudrait forcer le passage, pirater le panneau de sécurité, ou trouver une autre voie.
 - **PUSH/FORCE_OPEN/BREAK** (état=locked, DC 12 FOR)
   - réussite `newState=open`
@@ -75,35 +75,33 @@
 
 - **initial (closed)** · `openness=closed` · via `descriptions`
   > Au ras du sol, étroite — praticable pour quelqu'un de souple. De l'air circule : elle mène bien de l'autre côté.
-- **après newState:open** · `openness=open lock=unlocked` · via `descriptions`
+- **atteignable** · `openness=open lock=unlocked` · via `descriptions`
   > Le capot est écarté. Le conduit s'enfonce dans le noir, juste assez large pour les épaules.
 - **OPEN** (état=closed, auto)
   - réussite `newState=open`
     > Vous ouvrez la trappe de ventilation. Un courant d'air frais s'échappe du conduit sombre qui s'ouvre devant vous.
 - **CLIMB** (état=open, DC 10 AGI)
-  - réussite ⚠ `sans newState`
+  - réussite
     > Vous vous glissez dans le conduit de ventilation. L'espace est étroit, mais vous parvenez à ramper jusqu'à l'autre côté.
   - échec
     > Le conduit est trop étroit. Vous vous coincez un instant avant de reculer, griffé par les parois métalliques.
 - **CLIMB** (état=closed, auto)
-  - réussite ⚠ `sans newState`
+  - réussite
     > La trappe est fermée. Il faudrait d'abord l'ouvrir.
 
 #### Panneau de sécurité local  `security_panel_local`
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > Le boîtier est enfoncé, mais certains circuits répondent encore. De quoi court-circuiter un verrouillage, pour qui sait où pincer.
-- **après newState:open** · `integrity=damaged openness=open lock=unlocked` · via `descriptions`
-  > Le boîtier est enfoncé, mais certains circuits répondent encore. De quoi court-circuiter un verrouillage, pour qui sait où pincer.
-- ⚠ **INATTEIGNABLE** `descriptions.open`
+- **atteignable** · `integrity=broken activity=inactive power=unpowered openness=open lock=unlocked` · via `descriptions`
   > Court-circuité. Deux fils torsadés à la main tiennent le contact, et le voyant reste obstinément vert.
 - **HACK/OVERRIDE/REPAIR** (état=damaged, DC 11 INT)
-  - réussite `newState=open` `flagSet=panel_bypassed`
+  - réussite `newState=intact+open` `flagSet=panel_bypassed`
     > Vous court-circuitez le panneau de sécurité. Un voyant passe au vert — le verrouillage de la porte est désactivé. Vous pouvez maintenant l'ouvrir.
   - échec
     > Les circuits crépitent sous vos doigts mais le système résiste. Le verrouillage reste actif.
 - **HACK/OVERRIDE/REPAIR** (état=open, auto)
-  - réussite ⚠ `sans newState`
+  - réussite
     > Le panneau est déjà court-circuité. La porte devrait s'ouvrir maintenant.
 
 ---
@@ -151,14 +149,14 @@
 
 ### Lieu `main` (rôle `medical`)
 
-> Vous voyez autour de vous Armoire médicale, Couchette.
-> Parmi les débris, vous remarquez Kit médical basique.
+> Vous voyez autour de vous une armoire médicale ainsi qu'un couchette.
+> À portée de main, vous remarquez un kit médical basique.
 
 #### Armoire médicale  `medical_cabinet`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Verrouillée par un code, mais le panneau est fissuré. Derrière la vitre sale, des boîtes alignées et un flacon couché.
-- **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > Ouverte. Les rayons du haut sont vides, ceux du bas ont été fouillés sans ménagement.
 - **HACK** (état=locked, DC 9 INT)
   - réussite `newState=open`
@@ -175,6 +173,8 @@
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
   > lit de camp taché de sang
+- **atteignable** · `integrity=broken activity=inactive power=unpowered openness=open lock=unlocked` · via `examineResult`
+  > Lit de camp pliant taché de sang. Quelqu'un a été soigné ici — ou a essayé. Les draps sont trempés mais les signes sont récents.
 
 #### Kit médical basique  `medkit_basic`
 
@@ -226,19 +226,19 @@
 
 ### Lieu `main` (rôle `hub`)
 
-> Vous voyez autour de vous Luminaire, Relais d'énergie, Bande luminescente d'urgence.
+> Vous voyez autour de vous un luminaire, un relais d'énergie ainsi qu'une bande luminescente d'urgence.
 
 #### Luminaire  `light_fixture`
 
 - **initial (broken)** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
   > plafonnier brisé pendant du plafond. Le tube est éclaté.
-- **après newState:intact** · `integrity=intact activity=inactive power=unpowered` · via `descriptions`
+- **atteignable** · `integrity=intact activity=inactive power=unpowered` · via `descriptions`
   > plafonnier diffusant une lumière blanche stable.
 - **ACTIVATE** (état=broken, flag=power_relay_repaired, auto)
   - réussite `newState=intact`
     > Vous actionnez l'interrupteur. Le plafonnier grésille, puis s'allume. La lumière blanche inonde la pièce — vous pouvez voir à nouveau.
 - **ACTIVATE** (état=broken, auto)
-  - réussite ⚠ `sans newState`
+  - réussite
     > L'interrupteur ne répond pas. Le circuit d'alimentation est coupé — il faudrait réparer le relais d'énergie d'abord.
 - **REPAIR** (état=broken, DC 12 INT)
   - réussite `newState=intact`
@@ -250,7 +250,9 @@
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > relais d'alimentation endommagé. Des câbles arrachés pendent.
-- **après newState:intact** · `integrity=intact` · via `descriptions`
+- **atteignable** · `integrity=broken activity=inactive power=unpowered openness=open lock=unlocked` · via `examineResult`
+  > Relais d'alimentation auxiliaire. Endommagé mais pas détruit. Avec les bonnes manipulations, il pourrait alimenter le circuit d'éclairage de cette section.
+- **atteignable** · `integrity=intact` · via `descriptions`
   > relais d'alimentation ronronnant doucement — circuit rétabli.
 - **REPAIR** (état=damaged, DC 10 INT)
   - réussite `newState=intact` `flagSet=power_relay_repaired`
@@ -312,13 +314,13 @@
 
 ### Lieu `main` (rôle `storage`)
 
-> Vous voyez autour de vous Conteneur de ravitaillement, Manifeste d'inventaire.
+> Vous voyez autour de vous un conteneur de ravitaillement ainsi qu'un manifeste d'inventaire.
 
 #### Conteneur de ravitaillement  `supply_container`
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Scellé. Le verrou est un standard militaire : il cède aux bons outils, ou à assez de force appliquée au bon endroit.
-- ⚠ **INATTEIGNABLE** `descriptions.open`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > Ouvert. Rations entamées, emplacements vides, quelques fournitures éparses — quelqu'un est passé avant vous.
 
 #### Manifeste d'inventaire  `inventory_manifest`
@@ -371,7 +373,7 @@
 
 ### Lieu `main` (rôle `passage`)
 
-> Vous voyez autour de vous Caisses de couverture, Point d'étranglement, Conduit de ventilation.
+> Vous voyez autour de vous des caisses de couverture, un point d'étranglement ainsi qu'un conduit de ventilation.
 
 #### Caisses de couverture  `cover_crates`
 
@@ -432,7 +434,7 @@
 
 ### Lieu `main` (rôle `airlock`)
 
-> Vous voyez autour de vous Brèche du sas, Point de soudure, Panneau de neutralisation.
+> Vous voyez autour de vous une brèche du sas, un point de soudure ainsi qu'un panneau de neutralisation.
 
 #### Brèche du sas  `airlock_breach`
 
@@ -494,7 +496,7 @@
 
 ### Lieu `main` (rôle `engineering`)
 
-> Vous voyez autour de vous Station androïde, Port de neutralisation, Coupe-circuit.
+> Vous voyez autour de vous une station androïde, un port de neutralisation ainsi qu'un coupe-circuit.
 
 #### Station androïde  `android_station`
 
@@ -560,7 +562,7 @@
 
 ### Lieu `main` (rôle `ritual_chamber`)
 
-> Vous voyez autour de vous Mécanisme alien, Panneau de symboles A, Panneau de symboles B, Nœud psionique.
+> Vous voyez autour de vous un mécanisme alien, un panneau de symboles A, un panneau de symboles B ainsi qu'un nœud psionique.
 
 #### Mécanisme alien  `alien_mechanism`
 
@@ -631,7 +633,7 @@
 
 ### Lieu `main` (rôle `hazard_zone`)
 
-> Vous voyez autour de vous Champ de confinement, Unité de rescellement, Panneau d'évacuation.
+> Vous voyez autour de vous un champ de confinement, une unité de rescellement ainsi qu'un panneau d'évacuation.
 
 #### Champ de confinement  `containment_field`
 
@@ -692,13 +694,11 @@
 
 ### Lieu `main` (rôle `control_room`)
 
-> Vous voyez autour de vous Panneau de distribution d'énergie, Circuit d'alimentation infirmerie, Circuit d'alimentation porte.
+> Vous voyez autour de vous un panneau de distribution d'énergie, un circuit d'alimentation infirmerie ainsi qu'un circuit d'alimentation porte.
 
 #### Panneau de distribution d'énergie  `power_distribution_panel`
 
 - **initial (damaged)** · `integrity=damaged` · via `examineResult`
-  > Panneau de distribution énergétique principal de la section. Deux circuits prioritaires : sas (évacuation) et infirmerie (survie du blessé). L'énergie disponible ne suffit que pour l'un des deux.
-- **après newState:intact** · `integrity=intact` · via `examineResult`
   > Panneau de distribution énergétique principal de la section. Deux circuits prioritaires : sas (évacuation) et infirmerie (survie du blessé). L'énergie disponible ne suffit que pour l'un des deux.
 - **HACK/IMPROVISE_TOOL** (DC 16 INT)
   - réussite `newState=intact` `flagSet=survivor_saved`
@@ -714,8 +714,6 @@
 #### Circuit d'alimentation porte  `door_feed_circuit`
 
 - **initial (damaged)** · `integrity=damaged` · via `examineResult`
-  > Circuit d'alimentation des portes de section. Endommagé mais réparable. S'il est alimenté, les portes s'ouvrent et votre chemin se débloque. Sinon, il faudra trouver un autre passage.
-- **après newState:active** · `integrity=damaged activity=active power=powered` · via `examineResult`
   > Circuit d'alimentation des portes de section. Endommagé mais réparable. S'il est alimenté, les portes s'ouvrent et votre chemin se débloque. Sinon, il faudra trouver un autre passage.
 - **REPAIR/USE/HACK** (DC 11 INT)
   - réussite `newState=active`
@@ -769,7 +767,7 @@
 
 ### Lieu `main` (rôle `passage`)
 
-> Vous voyez autour de vous Zone de patrouille, Couverture furtive, Point de diversion, Emplacement de piège.
+> Vous voyez autour de vous une zone de patrouille, une couverture furtive, un point de diversion ainsi qu'un emplacement de piège.
 
 #### Zone de patrouille  `patrol_zone`
 
@@ -836,7 +834,7 @@
 
 ### Lieu `main` (rôle `hazard_zone`)
 
-> Vous voyez autour de vous Zone inondée, Contrôle de valve, Reroutage de tuyauterie, Passage submergé.
+> Vous voyez autour de vous une zone inondée, un contrôle de valve, un reroutage de tuyauterie ainsi qu'un passage submergé.
 
 #### Zone inondée  `flood_zone`
 
@@ -902,7 +900,7 @@
 
 ### Lieu `main` (rôle `quarters`)
 
-> Vous voyez autour de vous Piège de débris, Verrou de contention, Poutre structurelle.
+> Vous voyez autour de vous un piège de débris, un verrou de contention ainsi qu'une poutre structurelle.
 
 #### Piège de débris  `debris_trap`
 
@@ -963,7 +961,7 @@
 
 ### Lieu `main` (rôle `control_room`)
 
-> Vous voyez autour de vous Terminal chiffré, Archive de journaux.
+> Vous voyez autour de vous un terminal chiffré ainsi qu'une archive de journaux.
 
 #### Terminal chiffré  `encrypted_terminal`
 
@@ -1024,7 +1022,7 @@
 
 ### Lieu `main` (rôle `airlock`)
 
-> Vous voyez autour de vous Section de coque fragilisée, Marqueurs de passage sûr, Point de scellement.
+> Vous voyez autour de vous une section de coque fragilisée, des marqueurs de passage sûr ainsi qu'un point de scellement.
 
 #### Section de coque fragilisée  `weakened_hull_section`
 

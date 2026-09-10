@@ -13,8 +13,8 @@
 - retour
   > Le local technique. Le casier d'urgence est ouvert.
 
-> Vous voyez autour de vous Casier d'urgence.
-> Parmi les débris, vous remarquez Kit médical basique.
+> Vous voyez autour de vous un casier d'urgence.
+> À portée de main, vous remarquez un kit médical basique.
 
 #### Casier d'urgence  `mm_emergency_locker`
 
@@ -32,8 +32,8 @@
 - retour
   > Le cul-de-sac avec le cadavre. Vous avez déjà fouillé les lieux.
 
-> Vous voyez autour de vous Cadavre en combinaison.
-> Parmi les débris, vous remarquez ⚠ pry_bar.
+> Vous voyez autour de vous un cadavre en combinaison.
+> À portée de main, vous remarquez un pry bar.
 
 #### Cadavre en combinaison  `mm_corpse`
 
@@ -51,8 +51,8 @@
 - retour
   > Le réduit avec l'armoire blindée, maintenant ouverte.
 
-> Vous voyez autour de vous Armoire blindée.
-> Parmi les débris, vous remarquez ⚠ repair_kit.
+> Vous voyez autour de vous une armoire blindée.
+> À portée de main, vous remarquez un repair kit.
 
 #### Armoire blindée  `mm_cabinet`
 
@@ -70,8 +70,8 @@
 - retour
   > Le compartiment secret. Les provisions ont été prises.
 
-> Vous voyez autour de vous Panneau dissimulé.
-> Parmi les débris, vous remarquez Stimulant.
+> Vous voyez autour de vous un panneau dissimulé.
+> À portée de main, vous remarquez un stimulant.
 
 #### Panneau dissimulé  `mm_hidden_panel`
 
@@ -89,8 +89,8 @@
 - retour
   > L'entrepôt de fournitures. Les étagères sont presque vides.
 
-> Vous voyez autour de vous Étagères de fournitures.
-> Parmi les débris, vous remarquez Ruban adhésif.
+> Vous voyez autour de vous des étagères de fournitures.
+> À portée de main, vous remarquez un ruban adhésif.
 
 #### Étagères de fournitures  `mm_supply_shelf`
 
@@ -108,8 +108,8 @@
 - retour
   > L'atelier de maintenance. La boîte à outils est ouverte.
 
-> Vous voyez autour de vous Boîte à outils.
-> Parmi les débris, vous remarquez ⚠ welder.
+> Vous voyez autour de vous une boîte à outils.
+> À portée de main, vous remarquez un welder.
 
 #### Boîte à outils  `mm_toolbox`
 
@@ -127,8 +127,8 @@
 - retour
   > Le vestiaire EVA. Le casier fonctionnel est ouvert.
 
-> Vous voyez autour de vous Casier de combinaisons.
-> Parmi les débris, vous remarquez ⚠ space_suit.
+> Vous voyez autour de vous un casier de combinaisons.
+> À portée de main, vous remarquez un space suit.
 
 #### Casier de combinaisons  `mm_suit_locker`
 
@@ -146,8 +146,8 @@
 - retour
   > Le bureau de recherche. Le scanner a été récupéré.
 
-> Vous voyez autour de vous Bureau de recherche.
-> Parmi les débris, vous remarquez Scanner.
+> Vous voyez autour de vous un bureau de recherche.
+> À portée de main, vous remarquez un scanner.
 
 #### Bureau de recherche  `mm_research_desk`
 
@@ -165,8 +165,8 @@
 - retour
   > Le bureau personnel. Vous avez déjà fouillé le tiroir.
 
-> Vous voyez autour de vous Tiroir de bureau.
-> Parmi les débris, vous remarquez ⚠ keycard.
+> Vous voyez autour de vous un tiroir de bureau.
+> À portée de main, vous remarquez un keycard.
 
 #### Tiroir de bureau  `mm_desk_drawer`
 
@@ -184,7 +184,7 @@
 - retour
   > Le poste de travail. Le terminal affiche toujours les mêmes données.
 
-> Vous voyez autour de vous Terminal de données.
+> Vous voyez autour de vous un terminal de données.
 
 #### Terminal de données  `mm_data_terminal`
 
@@ -207,7 +207,7 @@
 - retour
   > La cabine personnelle. Le carnet est toujours sur la table.
 
-> Vous voyez autour de vous Photo de famille.
+> Vous voyez autour de vous une photo de famille.
 
 #### Photo de famille  `mm_personal_photo`
 
@@ -228,7 +228,7 @@
 - retour
   > L'alcôve aux traces de sang. Rien n'a changé.
 
-> Vous voyez autour de vous Traces de sang.
+> Vous voyez autour de vous des traces de sang.
 
 #### Traces de sang  `mm_bloodstains`
 
@@ -251,7 +251,7 @@
 - retour
   > Le poste de communication. L'enregistrement a déjà été écouté.
 
-> Vous voyez autour de vous Enregistreur d'urgence.
+> Vous voyez autour de vous un enregistreur d'urgence.
 
 #### Enregistreur d'urgence  `mm_recorder`
 
@@ -274,7 +274,7 @@
 - retour
   > Le cul-de-sac aux inscriptions. Les mots gravés sont toujours là.
 
-> Vous voyez autour de vous Mur gravé.
+> Vous voyez autour de vous un mur gravé.
 
 #### Mur gravé  `mm_scratched_wall`
 
@@ -297,7 +297,7 @@
 - retour
   > Le bureau du capitaine. Le terminal affiche toujours le journal.
 
-> Vous voyez autour de vous Terminal du capitaine.
+> Vous voyez autour de vous un terminal du capitaine.
 
 #### Terminal du capitaine  `mm_captain_terminal`
 
@@ -320,7 +320,7 @@
 - retour
   > Le réduit d'archivage. Le dossier confidentiel a été lu.
 
-> Vous voyez autour de vous Dossier confidentiel.
+> Vous voyez autour de vous un dossier confidentiel.
 
 #### Dossier confidentiel  `mm_sealed_report`
 
@@ -341,7 +341,7 @@
 - retour
   > La cabine de communication. L'appel de détresse continue de tourner.
 
-> Vous voyez autour de vous Relais de communication.
+> Vous voyez autour de vous un relais de communication.
 
 #### Relais de communication  `mm_comm_relay`
 
@@ -364,7 +364,7 @@
 - retour
   > Le coin repos. La tablette affiche toujours le même message.
 
-> Vous voyez autour de vous Tablette personnelle.
+> Vous voyez autour de vous une tablette personnelle.
 
 #### Tablette personnelle  `mm_tablet`
 
@@ -385,7 +385,7 @@
 - retour
   > Le laboratoire annexe. Les écrans affichent toujours les mêmes données.
 
-> Vous voyez autour de vous Terminal de recherche.
+> Vous voyez autour de vous un terminal de recherche.
 
 #### Terminal de recherche  `mm_research_terminal`
 
@@ -408,7 +408,7 @@
 - retour
   > La cabine fouillée. Le disque "ASSURANCE" a été récupéré.
 
-> Vous voyez autour de vous Disque caché.
+> Vous voyez autour de vous un disque caché.
 
 #### Disque caché  `mm_hidden_drive`
 
@@ -431,7 +431,7 @@
 - retour
   > La salle serveur. Les emails sont toujours affichés.
 
-> Vous voyez autour de vous Serveur de messagerie.
+> Vous voyez autour de vous un serveur de messagerie.
 
 #### Serveur de messagerie  `mm_email_server`
 
@@ -454,7 +454,7 @@
 - retour
   > L'alcôve aux glyphes. Ils pulsent toujours au même rythme.
 
-> Vous voyez autour de vous Glyphes aliens.
+> Vous voyez autour de vous des glyphes aliens.
 
 #### Glyphes aliens  `mm_alien_glyphs`
 
@@ -477,7 +477,7 @@
 - retour
   > Le cul-de-sac avec le sac d'exploration. Le journal a été lu.
 
-> Vous voyez autour de vous Sac d'exploration.
+> Vous voyez autour de vous un sac d'exploration.
 
 #### Sac d'exploration  `mm_explorer_pack`
 
@@ -498,7 +498,7 @@
 - retour
   > Le survivant est toujours là, mais il ne parle plus.
 
-> Vous voyez autour de vous Survivant hébété.
+> Vous voyez autour de vous un survivant hébété.
 
 #### Survivant hébété  `mm_npc_survivor`
 
@@ -521,7 +521,7 @@
 - retour
   > L'abri du survivant. Il semble un peu plus calme.
 
-> Vous voyez autour de vous Barricade de fortune.
+> Vous voyez autour de vous une barricade de fortune.
 
 #### Barricade de fortune  `mm_makeshift_barricade`
 
@@ -539,7 +539,7 @@
 - retour
   > Le nid. L'odeur est toujours aussi atroce.
 
-> Vous voyez autour de vous Restes de nid.
+> Vous voyez autour de vous des restes de nid.
 
 #### Restes de nid  `mm_nest_remains`
 
@@ -557,7 +557,7 @@
 - retour
   > Le couloir. Le marin s'est effondré contre le mur, épuisé.
 
-> Vous voyez autour de vous Arme abandonnée.
+> Vous voyez autour de vous une arme abandonnée.
 
 #### Arme abandonnée  `mm_dropped_weapon`
 
@@ -575,7 +575,7 @@
 - retour
   > La zone toxique. Le gaz s'est partiellement dissipé.
 
-> Vous voyez autour de vous Conduites percées.
+> Vous voyez autour de vous des conduites percées.
 
 #### Conduites percées  `mm_leaking_pipes`
 
@@ -593,8 +593,8 @@
 - retour
   > Le nid. Les cocons vides pendent mollement.
 
-> Vous voyez autour de vous Cocons organiques.
-> Parmi les débris, vous remarquez ⚠ mm_acid_sample.
+> Vous voyez autour de vous des cocons organiques.
+> À portée de main, vous remarquez un mm acid sample.
 
 #### Cocons organiques  `mm_organic_pods`
 
@@ -612,7 +612,7 @@
 - retour
   > Le poste de contrôle. L'androïde est inactif.
 
-> Vous voyez autour de vous Pièces d'androïde.
+> Vous voyez autour de vous des pièces d'androïde.
 
 #### Pièces d'androïde  `mm_android_parts`
 
@@ -630,7 +630,7 @@
 - retour
   > La cellule éventrée. Les marques de griffures témoignent de ce qui s'est passé.
 
-> Vous voyez autour de vous Cellule de confinement brisée.
+> Vous voyez autour de vous une cellule de confinement brisée.
 
 #### Cellule de confinement brisée  `mm_broken_containment`
 
@@ -648,8 +648,8 @@
 - retour
   > Le labo dévasté. Les vapeurs se sont dissipées.
 
-> Vous voyez autour de vous Réactifs renversés.
-> Parmi les débris, vous remarquez ⚠ mm_chemical_sample.
+> Vous voyez autour de vous des réactifs renversés.
+> À portée de main, vous remarquez un mm chemical sample.
 
 #### Réactifs renversés  `mm_spilled_chemicals`
 
@@ -667,7 +667,7 @@
 - retour
   > La cavité organique. Les vrilles sont rétractées.
 
-> Vous voyez autour de vous Masse pulsante.
+> Vous voyez autour de vous une masse pulsante.
 
 #### Masse pulsante  `mm_pulsating_mass`
 
@@ -685,7 +685,7 @@
 - retour
   > La zone de gravité instable. Les fluctuations se sont atténuées.
 
-> Vous voyez autour de vous Distorsion gravitationnelle.
+> Vous voyez autour de vous une distorsion gravitationnelle.
 
 #### Distorsion gravitationnelle  `mm_gravity_distortion`
 
@@ -703,7 +703,7 @@
 - retour
   > L'alcôve d'observation. Les étoiles n'ont pas bougé.
 
-> Vous voyez autour de vous Baie d'observation.
+> Vous voyez autour de vous une baie d'observation.
 
 #### Baie d'observation  `mm_viewport`
 
@@ -721,7 +721,7 @@
 - retour
   > Le coin repas abandonné. Rien n'a changé.
 
-> Vous voyez autour de vous Plateau-repas froid.
+> Vous voyez autour de vous un plateau-repas froid.
 
 #### Plateau-repas froid  `mm_cold_food`
 
@@ -739,7 +739,7 @@
 - retour
   > Le couloir aux lumières mourantes. Elles clignotent toujours.
 
-> Vous voyez autour de vous Panneau qui crépite.
+> Vous voyez autour de vous un panneau qui crépite.
 
 #### Panneau qui crépite  `mm_sparking_panel`
 
@@ -757,7 +757,7 @@
 - retour
   > Le mémorial. Les visages des disparus vous regardent en silence.
 
-> Vous voyez autour de vous Mémorial improvisé.
+> Vous voyez autour de vous un mémorial improvisé.
 
 #### Mémorial improvisé  `mm_memorial_photos`
 
@@ -775,7 +775,7 @@
 - retour
   > Le sas d'observation. Les débris ont dérivé un peu plus loin.
 
-> Vous voyez autour de vous Coque arrachée.
+> Vous voyez autour de vous une coque arrachée.
 
 #### Coque arrachée  `mm_space_view`
 
@@ -793,7 +793,7 @@
 - retour
   > La salle de cryogénie. Le givre a fondu.
 
-> Vous voyez autour de vous Cryopods vides.
+> Vous voyez autour de vous des cryopods vides.
 
 #### Cryopods vides  `mm_empty_cryopods`
 
@@ -811,7 +811,7 @@
 - retour
   > Le coin du chat disparu. Le bol est toujours vide.
 
-> Vous voyez autour de vous Collier de chat.
+> Vous voyez autour de vous un collier de chat.
 
 #### Collier de chat  `mm_pet_collar`
 
@@ -829,7 +829,7 @@
 - retour
   > La chambre de test. La cage ouverte est un rappel silencieux.
 
-> Vous voyez autour de vous Cage ouverte.
+> Vous voyez autour de vous une cage ouverte.
 
 #### Cage ouverte  `mm_empty_cage`
 
@@ -847,7 +847,7 @@
 - retour
   > Le laboratoire aux spécimens. L'un des bocaux semble avoir légèrement changé de position.
 
-> Vous voyez autour de vous Collection de spécimens.
+> Vous voyez autour de vous une collection de spécimens.
 
 #### Collection de spécimens  `mm_specimen_collection`
 
@@ -865,7 +865,7 @@
 - retour
   > La quarantaine violée. Le sas reste ouvert, le danger dispersé.
 
-> Vous voyez autour de vous Panneau de quarantaine.
+> Vous voyez autour de vous un panneau de quarantaine.
 
 #### Panneau de quarantaine  `mm_quarantine_sign`
 
@@ -883,7 +883,7 @@
 - retour
   > Le jardin de cristaux. Le bourdonnement harmonique n'a pas changé.
 
-> Vous voyez autour de vous Formations de cristaux.
+> Vous voyez autour de vous des formations de cristaux.
 
 #### Formations de cristaux  `mm_crystal_formations`
 
@@ -901,7 +901,7 @@
 - retour
   > Le cocon. La silhouette à l'intérieur semble avoir bougé imperceptiblement.
 
-> Vous voyez autour de vous Cocon biomécanique.
+> Vous voyez autour de vous un cocon biomécanique.
 
 #### Cocon biomécanique  `mm_bio_cocoon`
 

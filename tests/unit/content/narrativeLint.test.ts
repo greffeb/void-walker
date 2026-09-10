@@ -29,6 +29,7 @@ const BUDGETS: Readonly<Record<RuleId, number>> = {
   R8_flag_sans_etat:      0,
   R9_sans_nom_fr:         0,
   R10_ponctuation:        0,
+  R11_etat_sans_effet:    0,
 };
 
 describe('narrative readability lint', () => {

@@ -29,7 +29,8 @@ export type RuleId =
   | 'R7_etat_inatteignable'
   | 'R8_flag_sans_etat'
   | 'R9_sans_nom_fr'
-  | 'R10_ponctuation';
+  | 'R10_ponctuation'
+  | 'R11_etat_sans_effet';
 
 export interface Finding {
   readonly rule: RuleId;
@@ -106,7 +107,7 @@ function applyTokens(start: EntityState, tokens: readonly StateId[]): EntityStat
  *
  * Keyed by the flag the interaction sets, which is unique per interaction.
  */
-const UNCHANGED_BY_DESIGN: Readonly<Record<string, string>> = {
+export const UNCHANGED_BY_DESIGN: Readonly<Record<string, string>> = {
   manifest_hacked:               'étend l\'accès aux logs ; le terminal affiche toujours le manifeste',
   safe_scanned:                  'le scanner révèle un double-fond ; le coffre reste verrouillé',
   ai_scan_revealed:              'le scanner lit un flux ; le nœud tourne toujours',
@@ -129,7 +130,7 @@ const OBSERVING_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
 ]);
 
 /** True when at least one verb on the trigger acts on the world. */
-function triggerActs(verb: VerbId | readonly VerbId[]): boolean {
+export function triggerActs(verb: VerbId | readonly VerbId[]): boolean {
   const verbs = typeof verb === 'string' ? [verb] : verb;
   return verbs.some(v => !OBSERVING_VERBS.has(v));
 }
@@ -163,7 +164,7 @@ function stateEdges(feat: FeatureDefinition): readonly StateEdge[] {
  * an unlock gated on `requiredState: 'locked'` stops being available once the
  * feature is open, so composing tokens blindly invents reachable states.
  */
-function reachableStates(feat: FeatureDefinition): readonly EntityState[] {
+export function reachableStates(feat: FeatureDefinition): readonly EntityState[] {
   const edges = stateEdges(feat);
   const start = makeEntityState(feat.initialState);
   const seen = new Map<string, EntityState>([[JSON.stringify(start), start]]);
@@ -247,6 +248,33 @@ function checkFeature(feat: FeatureDefinition, where: string, siblingNames: read
   for (const [state, ls] of entries) {
     if (!reachable.has(ls.fr)) {
       out.push({ rule: 'R7_etat_inatteignable', where, entity: `${feat.id}.${state}`, detail: 'jamais affichable' });
+    }
+  }
+
+  // R11 — an interaction whose `newState` does not produce the description
+  // written under that very token. R7 asks whether a text is reachable at all;
+  // this asks whether the path meant to show it actually does. `newState:
+  // 'active'` on a locked terminal is the canonical miss: the lock outranks the
+  // activity, so the player reads "ACCÈS RESTREINT" after decrypting.
+  if (isEnrichedFeature(feat)) {
+    for (const inter of feat.interactions ?? []) {
+      for (const [key, res] of [['onSuccess', inter.onSuccess], ['onFailure', inter.onFailure]] as const) {
+        const tokens = toStateTokens(res?.newState);
+        if (tokens.length === 0) continue;
+        const last = tokens[tokens.length - 1]!;
+        const intended = descriptions[last];
+        if (!intended) continue;
+        const from = makeEntityState(inter.trigger.requiredState ?? feat.initialState);
+        const reached = pickStateDescription(descriptions, applyTokens(from, tokens));
+        if (reached?.fr !== intended.fr) {
+          out.push({
+            rule: 'R11_etat_sans_effet',
+            where,
+            entity: `${feat.id}.${key}→${last}`,
+            detail: `affiche « ${(reached?.fr ?? '(rien)').slice(0, 40)}… »`,
+          });
+        }
+      }
     }
   }
 

@@ -325,7 +325,7 @@ const status_terminal: ScenarioFeatureDefinition = {
           fr: 'L\'écran stabilise son affichage. Vous parcourez les entrées du journal système. L\'histoire se dessine — coupure réacteur, brèche, équipe perdue, confinement. Le dernier signe de vie de l\'équipage remonte à plus de six mois.',
           en: 'The screen stabilizes. You read through the system log entries. The story unfolds — reactor failure, breach, lost team, containment. The last crew activity was over six months ago.',
         },
-        newState: 'active',
+        newState: ['intact', 'active'],
         flagSet: 'terminal_read',
       },
     },
@@ -337,7 +337,7 @@ const status_terminal: ScenarioFeatureDefinition = {
           fr: 'Quelques connexions ressoudées. L\'écran cesse de clignoter et affiche un plan partiel du vaisseau. La baie des pods d\'évasion est marquée au pont inférieur.',
           en: 'A few reconnected wires. The screen stops flickering and shows a partial ship map. The escape pod deck is marked on the lower level.',
         },
-        newState: 'active',
+        newState: ['intact', 'active'],
         flagSet: 'ship_map_found',
       },
       onFailure: {

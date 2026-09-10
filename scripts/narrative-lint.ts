@@ -25,6 +25,7 @@ const RULE_LABELS: Readonly<Record<RuleId, string>> = {
   R8_flag_sans_etat:      'flagSet sans newState (l\'objet ne change pas d\'air)',
   R9_sans_nom_fr:         'aucun nom français',
   R10_ponctuation:        'ponctuation doublée',
+  R11_etat_sans_effet:    'le newState n\'affiche pas sa propre description',
 };
 
 const args = process.argv.slice(2);

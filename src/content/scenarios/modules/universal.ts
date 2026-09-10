@@ -162,7 +162,7 @@ export const BLOCKED_PASSAGE_01: ScenarioModule = {
             {
               trigger: { verb: ['HACK', 'OVERRIDE', 'REPAIR'], requiredState: 'damaged', stat: 'INT', dc: 11 },
               onSuccess: {
-                newState: 'open',
+                newState: ['intact', 'open'],
                 flagSet: 'panel_bypassed',
                 narrative: { fr: 'Vous court-circuitez le panneau de sécurité. Un voyant passe au vert — le verrouillage de la porte est désactivé. Vous pouvez maintenant l\'ouvrir.', en: '' },
               },

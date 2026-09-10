@@ -17,8 +17,8 @@
 
 > Vous ouvrez les yeux. Froid mordant, obscurité presque totale. Le couvercle de votre capsule est ouvert — éjection d'urgence. Autour de vous, quarante-six autres capsules, silencieuses, leurs voyants morts depuis longtemps. L'éclairage de secours rougeoie faiblement. Vous êtes seul, et quelque chose a coupé le courant il y a quatre heures.
 
-> Vous voyez autour de vous Capsule cryogénique, Terminal de statut, Casier d'urgence.
-> Parmi les débris, vous remarquez Lampe de secours, Kit médical basique.
+> Vous voyez autour de vous une capsule cryogénique, un terminal de statut ainsi qu'un casier d'urgence.
+> À portée de main, vous remarquez une lampe de secours ainsi qu'un kit médical basique.
 
 *Sorties :* unlock
 
@@ -33,19 +33,17 @@
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > L'écran clignote entre des bribes : « ALERTE CONFINEMENT — NIVEAU 5 »… « Équipage : 0/47 actifs »… « Support vie : CRITIQUE ». La date affichée a six mois d'avance sur vos souvenirs.
-- **après newState:active** · `integrity=damaged activity=active power=powered` · via `descriptions`
-  > L'écran clignote entre des bribes : « ALERTE CONFINEMENT — NIVEAU 5 »… « Équipage : 0/47 actifs »… « Support vie : CRITIQUE ». La date affichée a six mois d'avance sur vos souvenirs.
-- ⚠ **INATTEIGNABLE** `descriptions.active`
+- **atteignable** · `integrity=intact activity=active power=powered` · via `descriptions`
   > Le plan du vaisseau s'affiche. Diagnostic : quarante-six capsules en défaillance depuis six mois, une éjectée en urgence. Les pods sont au niveau inférieur, derrière un point de contrôle.
 - `readableContent` (718 car.)
 - **READ/EXAMINE/SCAN** (état=active, auto)
-  - réussite ⚠ `sans newState` `flagSet=terminal_read`
+  - réussite `flagSet=terminal_read`
     > Le rapport système confirme le pire. 47 membres d'équipage, aucun actif. La dernière activité humaine remonte à 6 mois — une cascade d'alertes biologiques, des sections scellées, puis le silence. Le plan du vaisseau indique les pods d'évasion au pont inférieur, derrière un point de contrôle de sécurité.
 - **READ/EXAMINE/HACK/SCAN** (auto)
-  - réussite `newState=active` `flagSet=terminal_read`
+  - réussite `newState=intact+active` `flagSet=terminal_read`
     > L'écran stabilise son affichage. Vous parcourez les entrées du journal système. L'histoire se dessine — coupure réacteur, brèche, équipe perdue, confinement. Le dernier signe de vie de l'équipage remonte à plus de six mois.
 - **REPAIR** (état=damaged, DC 8 INT)
-  - réussite `newState=active` `flagSet=ship_map_found`
+  - réussite `newState=intact+active` `flagSet=ship_map_found`
     > Quelques connexions ressoudées. L'écran cesse de clignoter et affiche un plan partiel du vaisseau. La baie des pods d'évasion est marquée au pont inférieur.
   - échec
     > Un arc électrique vous force à retirer la main. L'écran continue de clignoter — mais les bribes de données restent lisibles.
@@ -54,9 +52,9 @@
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Le verrou magnétique est actif, un voyant rouge le confirme. La serrure a travaillé avec les vibrations du vaisseau : elle ne tiendra pas contre un outil adapté, ni contre assez de force.
-- **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > L'éclairage de secours éclaire l'intérieur : deux emplacements moulés, l'un pour un badge, l'autre pour une bonbonne d'oxygène. L'étiquette « NE PAS RETIRER SAUF ÉVACUATION » pend à moitié décollée.
-- ⚠ **INATTEIGNABLE** `descriptions.empty`
+- **atteignable** · `lock=unlocked openness=open contents=empty` · via `descriptions`
   > Grand ouvert, et vide. Les emplacements moulés gardent la forme de ce qui s'y trouvait.
 - **FORCE_OPEN/BREAK/OPEN/KICK** (état=locked, DC 10 FOR)
   - réussite `newState=open`
@@ -86,7 +84,7 @@
 
 - description
   > Kit médical d'urgence. Contient des bandages compressifs, un antiseptique et une dose d'analgésique. Suffisant pour traiter une blessure légère.
-- **USE sur `self`** ⚠ `sans newState`
+- **USE sur `self`**
   > Vous appliquez les bandages compressifs et l'antiseptique sur vos blessures. La dose d'analgésique atténue la douleur.
 
 #### Badge d'accès  `access_keycard` *(caché)*
@@ -113,7 +111,7 @@
 
 > Le couloir s'arrête net sur une paroi épaisse comme un coffre-fort. Des griffures profondes marquent le métal, côté couloir : quelque chose a tenté de forcer le passage depuis l'autre côté. Sans succès. Ou avec succès, justement — impossible de savoir de quel côté la chose se trouvait quand elle a renoncé.
 
-> Vous voyez autour de vous Panneau de sécurité, Porte blindée, Grille de ventilation.
+> Vous voyez autour de vous un panneau de sécurité, une porte blindée ainsi qu'une grille de ventilation.
 
 *Sorties :* start, reveal
 
@@ -123,7 +121,7 @@
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
   > Un lecteur de badge et un digicode. Le système n'accepte rien en dessous du niveau 3. Des griffures profondes marquent le métal autour : quelque chose a essayé de l'arracher.
-- **après newState:inactive** · `activity=inactive power=powered` · via `descriptions`
+- **atteignable** · `activity=inactive power=unpowered integrity=broken openness=open lock=unlocked` · via `descriptions`
   > L'écran est éteint, le lecteur ne répond plus. Mais les verrous de la cloison se sont rétractés.
 - **HACK/REPROGRAM** (état=active, DC 12 INT)
   - réussite `newState=inactive` `flagSet=bulkhead_unlocked`
@@ -140,7 +138,7 @@
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Quinze centimètres d'acier, verrous magnétiques engagés. Le panneau adjacent exige un niveau 3. Les griffures sont du côté couloir : quelque chose a essayé de passer.
-- **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > Les verrous sont rétractés. Le couloir au-delà s'enfonce dans l'obscurité, et l'air qui en vient est plus froid, plus sec. Un silence épais règne de l'autre côté.
 - **OPEN/PUSH/MOVE_TO** (état=locked, flag=bulkhead_unlocked, auto)
   - réussite `newState=open`
@@ -155,7 +153,7 @@
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
   > Les vis sont oxydées, et le conduit derrière semble assez large pour s'y faufiler. Un courant d'air froid en sort : il vient de l'autre côté de la cloison.
-- **après newState:open** · `integrity=intact openness=open lock=unlocked` · via `descriptions`
+- **atteignable** · `integrity=intact openness=open lock=unlocked` · via `descriptions`
   > Le conduit s'enfonce dans le noir — étroit, poussiéreux, praticable. Des griffures marquent les parois. Vous n'êtes pas le premier à passer par là.
 - **OPEN** (état=intact, DC 8 AGI)
   - réussite `newState=open`
@@ -181,8 +179,8 @@
 
 > Le bureau personnel du Capitaine Reeves. Des papiers froissés jonchent le sol, comme si quelqu'un avait cherché quelque chose en vitesse — ou voulu qu'on croie cela. Par la paroi vitrée, l'extérieur : le vaisseau dérive, des sections entières arrachées et exposées au vide. L'USS Meridian est en train de mourir.
 
-> Vous voyez autour de vous Terminal du capitaine, Hublot d'observation.
-> Parmi les débris, vous remarquez Datapad du capitaine.
+> Vous voyez autour de vous un terminal du capitaine ainsi qu'un hublot d'observation.
+> À portée de main, vous remarquez un datapad du capitaine.
 
 *Sorties :* unlock, escalation
 
@@ -192,14 +190,14 @@
 
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
   > Des entrées de journal, datées des quarante-huit heures avant la catastrophe, de plus en plus frénétiques. La dernière mentionne un « Projet ORACLE » et un dossier classifié.
-- **après newState:searched** · `activity=active power=powered contents=searched` · via `descriptions`
+- **atteignable** · `activity=active power=powered contents=searched` · via `descriptions`
   > Les tiroirs sont ouverts, une petite clé magnétique a été trouvée sous des papiers froissés. Les entrées restent lisibles à l'écran, et le Projet ORACLE hante chaque ligne.
 - `readableContent` (748 car.)
 - **READ/EXAMINE/SCAN** (état=searched, auto)
-  - réussite ⚠ `sans newState` `flagSet=oracle_revealed`
+  - réussite `flagSet=oracle_revealed`
     > Vous relisez les entrées du terminal. Reeves avait compris : le spécimen Alpha n'était pas un sujet d'étude mais une arme biologique commandée par le Commandement. Projet ORACLE. L'équipage entier servait de terrain de test. La clé EVA que vous avez trouvée était son plan de secours.
 - **READ/EXAMINE/SCAN** (auto)
-  - réussite ⚠ `sans newState` `flagSet=oracle_revealed`
+  - réussite `flagSet=oracle_revealed`
     > Vous parcourez les fichiers du Projet ORACLE. L'histoire se dévoile — un organisme extraterrestre transformé en arme biologique. Le capitaine Reeves savait. L'équipage entier a été sacrifié pour un prototype militaire.
 - **HACK/EXAMINE** (état=active, DC 10 INT)
   - réussite `newState=searched` `flagSet=oracle_revealed`
@@ -223,7 +221,7 @@
 
 - description
   > Une petite clé magnétique. L'étiquette indique "Casier EVA — Pont 3".
-- **USE sur `EVA_suit_locker`** ⚠ `sans newState`
+- **USE sur `EVA_suit_locker`**
   > La clé magnétique s'insère parfaitement. Le verrou claque — le casier EVA s'ouvre, révélant une combinaison spatiale intacte.
 
 ---
@@ -236,7 +234,7 @@
 
 > L'air est rare. Chaque respiration compte, et vous les comptez. Les machines qui tenaient cette section en vie sont en miettes — griffures profondes, câbles arrachés. La créature est venue ici en premier, et elle savait ce qu'elle faisait. Le passage vers le pont inférieur est droit devant.
 
-> Vous voyez autour de vous Casier de combinaison EVA, Panneau de support vie, Valve de reroutage O₂, Conduit d'énergie.
+> Vous voyez autour de vous un casier de combinaison EVA, un panneau de support vie, une valve de reroutage O₂ ainsi qu'un conduit d'énergie.
 
 *Sorties :* reveal, boss
 
@@ -246,9 +244,9 @@
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Verrouillé, et la serrure n'accepte qu'une clé magnétique précise. À travers la vitre, une combinaison spatiale intacte sur son support.
-- **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > La combinaison blanche repose sur son support, casque et réserve d'oxygène en place. L'étiquette annonce trente minutes d'autonomie.
-- ⚠ **INATTEIGNABLE** `descriptions.empty`
+- **atteignable** · `lock=unlocked openness=open contents=empty` · via `descriptions`
   > Le support est nu, les attaches pendent ouvertes. Du verre craque sous vos pieds si vous avez forcé l'ouverture.
 - **FORCE_OPEN/BREAK** (état=locked, DC 12 FOR)
   - réussite `newState=open`
@@ -265,7 +263,7 @@
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > Des griffures profondes ont arraché les câbles. L'écran clignote : « O₂ SYSTÈME — DÉFAILLANCE CRITIQUE ». Réparable, mais pas simplement.
-- **après newState:intact** · `integrity=intact` · via `descriptions`
+- **atteignable** · `integrity=intact` · via `descriptions`
   > L'écran affiche « O₂ — STABILISÉ — 43 % CAPACITÉ ». Le ventilateur tourne, l'air circule. Ce n'est pas idéal, mais la chute est stoppée.
 - **REPAIR** (état=damaged, DC 14 INT)
   - réussite `newState=intact` `flagSet=o2_stabilized`
@@ -287,7 +285,7 @@
 
 - **initial (closed)** · `openness=closed` · via `descriptions`
   > Valve de reroutage d'O₂ — fermée. En la tournant, vous pourriez sceller les sections non-essentielles et concentrer l'oxygène restant dans les zones habitées.
-- **après newState:open** · `openness=open lock=unlocked` · via `descriptions`
+- **atteignable** · `openness=open lock=unlocked` · via `descriptions`
   > La valve est ouverte. L'oxygène est rerouté vers les sections essentielles. Des bruits de portes hermétiques qui se ferment résonnent dans les couloirs lointains.
 - **OPEN/USE/ACTIVATE** (état=closed, DC 12 FOR)
   - réussite `newState=open` `flagSet=sections_sealed`
@@ -299,7 +297,7 @@
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > Éventré. Des câbles pendent, des étincelles jaillissent par intermittence. Une barre métallique semble récupérable dans les décombres.
-- **après newState:broken** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
+- **atteignable** · `integrity=broken activity=inactive power=unpowered openness=open lock=unlocked` · via `descriptions`
   > Les câbles pendent, inertes — plus d'étincelles, plus de courant. L'emplacement de la barre métallique est vide, et le pont inférieur n'a plus d'alimentation de secours.
 - **BREAK/TAKE/PULL** (état=damaged, DC 8 FOR)
   - réussite `newState=broken`
@@ -329,7 +327,7 @@
 
 > L'air est presque irrespirable. La sortie est là, à quelques mètres, et entre elle et vous : la créature. Le Spécimen Alpha, Projet ORACLE. Biomasse noire, griffes d'acier organique, et dans ses yeux trop humains une intelligence qui prend son temps. C'est elle ou vous.
 
-> Vous voyez autour de vous Écoutille du pod d'évasion, Levier de largage cargo, Panneau de brèche coque.
+> Vous voyez autour de vous une écoutille du pod d'évasion, un levier de largage cargo ainsi qu'un panneau de brèche coque.
 
 *Sorties :* escalation, resolution
 
@@ -339,7 +337,7 @@
 
 - **initial (locked)** · `lock=locked openness=closed` · via `descriptions`
   > Un lecteur de badge contrôle l'accès, niveau 3 requis. Au-delà : la capsule de sauvetage. La sortie.
-- **après newState:open** · `lock=unlocked openness=open` · via `descriptions`
+- **atteignable** · `lock=unlocked openness=open` · via `descriptions`
   > L'écoutille est ouverte. L'intérieur exigu du pod d'évasion est visible — un siège, des commandes minimales, un hublot. La liberté.
 - **HACK/UNLOCK/REPROGRAM** (état=locked, DC 14 INT)
   - réussite `newState=open` `flagSet=pod_hatch_open`
@@ -355,7 +353,7 @@
   - réussite `newState=open`
     > Le badge a déjà déverrouillé l'écoutille. Vous poussez — elle s'ouvre. Le pod d'évasion est là.
 - **TALK** (état=locked, DC 14 CHA)
-  - réussite ⚠ `sans newState` `flagSet=creature_distracted`
+  - réussite `flagSet=creature_distracted`
     > Vous parlez. Pas des mots — des sons. Graves, réguliers, comme un battement de cœur. La créature s'immobilise. Ses yeux trop humains vous fixent avec une curiosité terrifiante. Un instant de flottement — puis elle recule d'un pas. Juste assez pour que vous atteigniez l'écoutille. Elle ne vous laisse pas partir — elle vous observe partir.
   - échec
     > La créature siffle et avance d'un pas. Votre voix ne fait que l'agiter. Communiquer avec une arme biologique programmée pour tuer — mauvaise idée, en fin de compte.
@@ -363,7 +361,7 @@
   - réussite `newState=open` `flagSet=pod_hatch_open`
     > La créature vous observe, immobile. Vos doigts tremblent sur le lecteur — mais cette fois, pas d'interférence. Le firmware cède. L'écoutille s'ouvre. Vous ne regardez pas la créature en entrant dans le pod.
 - **EXAMINE** (état=locked, DC 12 PER)
-  - réussite ⚠ `sans newState` `flagSet=hatch_bypass_found`
+  - réussite `flagSet=hatch_bypass_found`
     > En examinant l'écoutille de près, vous remarquez que le panneau de maintenance latéral n'est pas soudé — juste clipsé. Derrière, les câbles du mécanisme de verrouillage sont accessibles. Un court-circuit bien placé suffirait.
 - **OPEN/HACK/ACTIVATE** (état=locked, flag=hatch_bypass_found, DC 6 INT)
   - réussite `newState=open` `flagSet=pod_hatch_open`
@@ -373,7 +371,7 @@
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
   > Levier de largage d'urgence de la soute. Protégé par un cache de sécurité rouge. Si la créature est dans la soute quand vous tirez... la soute entière est éjectée dans le vide.
-- **après newState:active** · `integrity=intact activity=active power=powered` · via `descriptions`
+- **atteignable** · `integrity=intact activity=active power=powered` · via `descriptions`
   > Le levier est en position basse. Les portes de la soute se sont ouvertes sur le vide — tout ce qui n'était pas arrimé a été aspiré.
 - **PULL/ACTIVATE/USE/PUSH** (état=intact, DC 10 FOR)
   - réussite `newState=active` `flagSet=cargo_jettisoned`
@@ -390,7 +388,7 @@
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
   > Panneau de contrôle des joints de coque. L'écran affiche les zones pressurisées et dépressurisées du vaisseau. Un protocole d'urgence permet de forcer une décompression localisée.
-- **après newState:active** · `integrity=intact activity=active power=powered` · via `descriptions`
+- **atteignable** · `integrity=intact activity=active power=powered` · via `descriptions`
   > « DÉCOMPRESSION EN COURS — SOUTE », en rouge clignotant. Par les hublots, les portes de soute s'ouvrent : l'air, les débris, tout part dans le vide.
 - **HACK/ACTIVATE/USE/REPROGRAM** (état=intact, DC 15 INT)
   - réussite `newState=active` `flagSet=cargo_depressurized`
@@ -413,7 +411,7 @@
 
 > Le sas se referme derrière vous. Le silence — pas celui de la mort, celui de la sécurité. Le pod s'éjecte avec un souffle pneumatique, et l'USS Meridian rapetisse dans l'obscurité jusqu'à n'être qu'un point de lumière avalé par le noir. Quelque part là-dedans, le Spécimen Alpha attend le prochain visiteur. Plus jamais vous.
 
-> Vous voyez autour de vous Hublot du pod.
+> Vous voyez autour de vous un hublot du pod.
 
 *Sorties :* boss
 
