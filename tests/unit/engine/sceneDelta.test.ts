@@ -79,4 +79,18 @@ describe('diffScene', () => {
     const after = { ...room, visibleFeatures: [room.visibleFeatures[1]!] };
     expect(diffScene(room, after).changedFeatures).toEqual([]);
   });
+
+  it('excludes the feature the action just targeted — its own narrative already said what changed', () => {
+    const after: SceneDescription = {
+      ...room,
+      visibleFeatures: [
+        { id: 'terminal', name: 'terminal de communications', stateDescription: 'Déverrouillé.' },
+        { id: 'notes', name: 'bloc-notes', stateDescription: 'Déjà lu.' },
+      ],
+    };
+    // Only "notes" was acted on this turn: "terminal" changed too (a side effect) and still shows up.
+    expect(diffScene(room, after, 'notes').changedFeatures).toEqual(['terminal']);
+    // Acting on "terminal" instead hides it, since terminal is the only thing that changed.
+    expect(diffScene(room, after, 'terminal').changedFeatures).toEqual(['notes']);
+  });
 });

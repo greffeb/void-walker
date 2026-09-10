@@ -809,7 +809,7 @@ export const en: LocaleStrings = {
   'env.docking_airlock': 'Docking airlock',
   'env.cargo_manifest_terminal': 'Cargo manifest terminal',
   'env.docking_clamps': 'Docking clamps',
-  'env.encrypted_terminal': 'Encrypted terminal',
+  'env.encrypted_terminal': 'Comms terminal',
   'env.maintenance_terminal': 'Maintenance terminal',
   'env.director_notes_clipboard': 'Director\'s clipboard',
   'env.director_terminal': 'Director\'s terminal',

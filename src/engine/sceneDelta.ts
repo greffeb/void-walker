@@ -60,11 +60,20 @@ function missingFrom<T>(source: readonly T[], reference: ReadonlySet<T>): readon
  *
  * Callers must only compare descriptions of the SAME location: across a move,
  * everything differs and the full scene is printed anyway.
+ *
+ * `actedOnId` excludes the feature the action just targeted: its own
+ * narrative already said what changed, so repeating its name in the recap
+ * ("Désormais : le bloc-notes du directeur" right after READING it) adds
+ * nothing. The recap is for changes the player would otherwise miss.
  */
-export function diffScene(before: SceneDescription, after: SceneDescription): SceneDelta {
+export function diffScene(
+  before: SceneDescription,
+  after: SceneDescription,
+  actedOnId: string | null = null,
+): SceneDelta {
   const beforeFeatureState = new Map(before.visibleFeatures.map(f => [f.id, f.stateDescription]));
   const changedFeatures = after.visibleFeatures
-    .filter(f => beforeFeatureState.has(f.id) && beforeFeatureState.get(f.id) !== f.stateDescription)
+    .filter(f => f.id !== actedOnId && beforeFeatureState.has(f.id) && beforeFeatureState.get(f.id) !== f.stateDescription)
     .map(f => f.id);
 
   const beforeItems = new Set(before.visibleItems.map(i => i.id));

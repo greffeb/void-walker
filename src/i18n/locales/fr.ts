@@ -815,7 +815,7 @@ export const fr: LocaleStrings = {
   'env.docking_airlock': 'Sas d\'amarrage',
   'env.cargo_manifest_terminal': 'Terminal du manifeste cargo',
   'env.docking_clamps': 'Pinces d\'amarrage',
-  'env.encrypted_terminal': 'Terminal chiffré',
+  'env.encrypted_terminal': 'Terminal de communication',
   'env.maintenance_terminal': 'Terminal de maintenance',
   'env.director_notes_clipboard': 'Bloc-notes du directeur',
   'env.director_terminal': 'Terminal du directeur',

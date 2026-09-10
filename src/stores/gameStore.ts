@@ -483,7 +483,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       // comparing across a move would say "everything", so the delta is empty
       // there and the full scene prints instead.
       const sceneDelta = introMode === null && store.sceneDescription && newContext.sceneDescription
-        ? diffScene(store.sceneDescription, newContext.sceneDescription)
+        ? diffScene(store.sceneDescription, newContext.sceneDescription, result.trace.parsedTarget)
         : EMPTY_SCENE_DELTA;
       let sceneIntro: NarratedScene | null = null;
       if (newContext.sceneDescription) {
