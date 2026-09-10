@@ -721,7 +721,16 @@ export interface SceneDescription {
   /** Items visible in the location (not yet taken). */
   readonly visibleItems: readonly { readonly id: string; readonly name: string }[];
   /** Environment features in the location. */
-  readonly visibleFeatures: readonly { readonly id: string; readonly name: string }[];
+  /**
+   * Features in the room. `name` is what the scene enumerates and the UI
+   * highlights; `stateDescription` is what an EXAMINE reveals in the current
+   * state, and never belongs in the enumeration.
+   */
+  readonly visibleFeatures: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly stateDescription: string | null;
+  }[];
   /** NPCs present in the location. */
   readonly visibleNpcs: readonly { readonly id: string; readonly name: string }[];
   /** Connected locations with visit status. */

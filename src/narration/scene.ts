@@ -12,6 +12,7 @@ import type { Locale } from '../i18n/types';
 import { t } from '../i18n/index';
 import { detectGrammar } from './index';
 import { getGrammarEngine } from './templateEngine';
+import type { GrammarEngine } from '../i18n/grammar/interface';
 
 export type SceneIntroMode = 'new_game' | 'enter' | 'revisit';
 
@@ -88,6 +89,17 @@ function startsWithDeterminer(name: string): boolean {
 function sentenceCase(s: string): string {
   if (s.length === 0) return s;
   return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+/**
+ * Prefix a definite article unless the name already carries a determiner.
+ * Exit names are bare location names, and "une sortie vers atelier de
+ * robotique" is not French.
+ */
+function withDeterminer(name: string, grammar: GrammarEngine): string {
+  const lower = sentenceCase(name);
+  if (startsWithDeterminer(lower)) return lower;
+  return grammar.resolveSlot('def', lower, detectGrammar(name));
 }
 
 /**
@@ -240,7 +252,7 @@ export function narrateScene(
   if (unexplored.length > 0) {
     const exitPhrase = t('scene.exits_new', locale);
     const segs = unexplored.map(e => {
-      const seg: SceneToken[] = [{ kind: 'exit', value: e.name, visited: false }];
+      const seg: SceneToken[] = [{ kind: 'exit', value: withDeterminer(e.name, grammar), visited: false }];
       return seg as readonly SceneToken[];
     });
     exitTokens.push(...buildSentenceTokens(
@@ -253,7 +265,7 @@ export function narrateScene(
     if (exitTokens.length > 0) exitTokens.push({ kind: 'text', value: ' ' });
     const knownPhrase = t('scene.exits_known', locale);
     const segs = explored.map(e => {
-      const seg: SceneToken[] = [{ kind: 'exit', value: e.name, visited: true }];
+      const seg: SceneToken[] = [{ kind: 'exit', value: withDeterminer(e.name, grammar), visited: true }];
       return seg as readonly SceneToken[];
     });
     exitTokens.push(...buildSentenceTokens(
