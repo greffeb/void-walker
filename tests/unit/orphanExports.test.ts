@@ -100,7 +100,6 @@ const KNOWN_ORPHANS: Readonly<Record<string, string>> = {
   useOxygenCanister: 'oxygen: canister use never wired',
   hasBeenVisited: 'backtracking helper unused',
   isFeatureChanged: 'backtracking helper unused',
-  isExitUnlocked: 'backtracking helper unused',
   categorizeExits: 'backtracking helper unused',
   sceneHasHealingItem: 'scene helper unused',
   getFeatureDescription: 'feature description helper unused',

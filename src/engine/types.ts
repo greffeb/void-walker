@@ -691,6 +691,12 @@ export interface SceneContext {
     readonly visited?: boolean;
   }[];
   readonly suggestions: readonly ParsedAction[];
+  /**
+   * The subset of `connectedLocations` that can be walked right now. A sealed
+   * way stays in `connectedLocations` so the player can name it and be told it
+   * is sealed; it is absent here so nothing proposes walking into it.
+   */
+  readonly walkableLocationIds?: readonly string[];
   readonly environmentConditions: readonly EnvironmentCondition[];
   /** Body part definitions with locale-aware aliases (injected by content layer) */
   readonly bodyParts?: readonly BodyPartDefinition[];

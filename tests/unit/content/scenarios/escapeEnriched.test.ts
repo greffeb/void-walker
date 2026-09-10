@@ -9,6 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { ESCAPE_SKELETON } from '../../../../src/content/scenarios/escape';
+import { ITEM_DEFINITIONS } from '../../../../src/content/items';
 import {
   isEnrichedFeature,
   isEnrichedItem,
@@ -260,9 +261,10 @@ describe('ESCAPE skeleton — enriched structural validation', () => {
   // 13. Each interaction requiredItem references a scenario item or registry
   // =========================================================================
   it('13. each interaction requiredItem references a known item', () => {
-    // Items that exist in the global registry but not in this scenario
-    const registryItems = new Set(['standard_toolkit', 'knife']);
-    const knownItems = new Set([...itemIds, ...registryItems]);
+    // The registry, not a hand-written list: the old allow-list named
+    // `standard_toolkit`, an item belonging to INVESTIGATE that no class starts
+    // with, so a gate path here could never fire and the test still passed.
+    const knownItems = new Set([...itemIds, ...Object.keys(ITEM_DEFINITIONS)]);
 
     for (const { nodeId, feature } of features) {
       const enriched = feature;

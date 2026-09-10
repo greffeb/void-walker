@@ -16,6 +16,8 @@ interface ExplorerMemory {
   examinedFeatures: Set<string>;
   examinedNpcs: Set<string>;
   talkedNpcs: Set<string>;
+  /** How often each proposed act was tried, keyed by location and act. */
+  actsTried: Map<string, number>;
 }
 
 function createMemory(): ExplorerMemory {
@@ -28,6 +30,7 @@ function createMemory(): ExplorerMemory {
     examinedFeatures: new Set<string>(),
     examinedNpcs: new Set<string>(),
     talkedNpcs: new Set<string>(),
+    actsTried: new Map<string, number>(),
   };
 }
 
@@ -44,6 +47,7 @@ function maybeResetMemory(state: BotState): void {
     memory.examinedFeatures = reset.examinedFeatures;
     memory.examinedNpcs = reset.examinedNpcs;
     memory.talkedNpcs = reset.talkedNpcs;
+    memory.actsTried = reset.actsTried;
   }
 }
 
@@ -160,6 +164,20 @@ export const explorerBot: PlaytestBot = {
     if (scene.hasObstacle && scene.obstacleTargetId !== null) {
       const obstacleVerbs = ['pousser', 'forcer', 'ouvrir', 'hacker', 'utiliser'];
       return `${rng.pick(obstacleVerbs)} ${scene.obstacleTargetId.replace(/_/g, ' ')}`;
+    }
+
+    // 5c) Open the way on. A bot that only ever examines saw half the game once
+    // doors became real: coverage fell from 85 % to 55 %, not because the
+    // content shrank but because it never tried a handle. The scene names the
+    // act, so it reads it — bounded, so a lid that will not move is abandoned.
+    const openable = scene.obstacleSuggestions.filter(
+      act => (memory.actsTried.get(`${state.playerLocationId}:${act}`) ?? 0) < 2,
+    );
+    if (openable.length > 0) {
+      const act = openable[0]!;
+      const key = `${state.playerLocationId}:${act}`;
+      memory.actsTried.set(key, (memory.actsTried.get(key) ?? 0) + 1);
+      return act;
     }
 
     // Emergency anti-loop guard: move periodically before repeating local

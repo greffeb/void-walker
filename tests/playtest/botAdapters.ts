@@ -7,7 +7,6 @@ import { getSceneContext, formatSuggestionAsInput, sceneHasHealingItem } from '.
 import type { GameState } from '../../src/engine/types';
 import type { BotState, BotScene } from './bots/index';
 import { t } from '../../src/i18n/index';
-import { ITEM_DEFINITIONS } from '../../src/content/items';
 import type { StringKey } from '../../src/i18n/types';
 
 /** Convert full GameState into the minimal BotState view. */
@@ -35,17 +34,13 @@ export function toBotScene(state: GameState): BotScene {
   const environmentFeatureIds = ctx.environmentFeatures.map(f => f.id);
   const environmentFeatureNames = ctx.environmentFeatures.map(f => t(f.nameKey as StringKey));
 
-  // What a player sees as "shut": a lock, a seal, or a closed lid.
-  const closedFeatureNames = ctx.environmentFeatures
-    .filter(f => f.state?.lock === 'locked'
-      || f.state?.openness === 'closed'
-      || f.properties.includes('sealed'))
-    .map(f => t(f.nameKey as StringKey));
-
-  const carriedKeyNames = (state.character?.inventory ?? [])
-    .filter(id => ITEM_DEFINITIONS[id] === undefined)
-    .map(id => t(`item.${id}` as StringKey))
-    .filter(name => !name.startsWith('item.'));
+  // The acts the scene itself names. The harness used to derive these from
+  // feature states and inventory, which re-implemented — badly — what the scene
+  // already knows: its key list dropped the marine's knife and the engineer's
+  // multitool, the two auto-success keys to the locker holding the gate item.
+  const obstacleSuggestions = (ctx.scenarioSuggestions ?? [])
+    .filter(c => c.category === 'obstacle')
+    .map(formatSuggestionAsInput);
 
   let hasObstacle = false;
   let obstacleTargetId: string | null = null;
@@ -59,20 +54,22 @@ export function toBotScene(state: GameState): BotScene {
     }
   }
 
+  const walkable = new Set(ctx.walkableLocationIds ?? ctx.connectedLocations.map(l => l.id));
+  const walkableExits = ctx.connectedLocations.filter(l => walkable.has(l.id));
+
   return {
     suggestions: suggestionStrings,
+    obstacleSuggestions,
     locationItemNames,
     locationItemIds,
     npcIds,
     npcNames,
     environmentFeatureIds,
     environmentFeatureNames,
-    connectedLocationIds: ctx.connectedLocations.map(l => l.id),
-    connectedLocationAliases: ctx.connectedLocations.map(l => l.aliases[0] ?? l.id),
+    connectedLocationIds: walkableExits.map(l => l.id),
+    connectedLocationAliases: walkableExits.map(l => l.aliases[0] ?? l.id),
     hasHealingItem: sceneHasHealingItem(locationItemIds),
     hasObstacle,
     obstacleTargetId,
-    closedFeatureNames,
-    carriedKeyNames,
   };
 }

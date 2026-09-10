@@ -82,8 +82,8 @@ const access_keycard: ScenarioItemDefinition = {
         trigger: { verb: 'USE', dc: null },
         onSuccess: {
           narrative: {
-            fr: 'Vous passez le badge sur le lecteur. Bip. Le voyant passe au vert. La cloison blindée gronde — les verrous magnétiques se rétractent un à un. Le passage est libre.',
-            en: 'You swipe the badge on the reader. Beep. The indicator turns green. The bulkhead groans — magnetic locks retract one by one. The way is clear.',
+            fr: 'Vous passez le badge sur le lecteur. Bip. Le voyant passe au vert. La cloison blindée gronde — les verrous magnétiques se rétractent un à un. Elle ne s\'ouvre pas pour autant : il faudra la pousser.',
+            en: 'You swipe the badge on the reader. Beep. The indicator turns green. The bulkhead groans — magnetic locks retract one by one. It does not open on its own: you will have to push it.',
           },
           flagSet: 'bulkhead_unlocked',
         },
@@ -95,8 +95,8 @@ const access_keycard: ScenarioItemDefinition = {
         trigger: { verb: 'USE', dc: null },
         onSuccess: {
           narrative: {
-            fr: 'Le badge active l\'écoutille du pod. Les joints pneumatiques sifflent — la porte s\'ouvre sur l\'intérieur exigu de la capsule d\'évasion.',
-            en: 'The badge activates the pod hatch. Pneumatic seals hiss — the door opens to the cramped escape pod interior.',
+            fr: 'Le badge active l\'écoutille du pod. Les joints pneumatiques sifflent et les verrous lâchent — mais le battant reste en place. Il faudra l\'ouvrir.',
+            en: 'The badge activates the pod hatch. Pneumatic seals hiss and the locks release — but the door stays put. You will have to open it.',
           },
           flagSet: 'pod_hatch_open',
         },
@@ -424,19 +424,19 @@ const emergency_locker: ScenarioFeatureDefinition = {
         consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
     },
-    // USE standard_toolkit (auto-success)
+    // USE multitool (auto-success)
     {
       trigger: {
         verb: 'USE',
         requiredState: 'locked',
-        requiredItem: 'standard_toolkit',
+        requiredItem: 'multitool',
         dc: null,
       },
       onSuccess: {
         newState: 'open',
         narrative: {
-          fr: 'La trousse à outils fait le travail. Trois vis, un levier improvisé, et le verrou cède sans résistance. Le casier contient un badge d\'accès et une bonbonne d\'oxygène.',
-          en: 'The toolkit does the job. Three screws, an improvised lever, and the lock gives way. The locker holds an access keycard and an oxygen canister.',
+          fr: 'Le multitool fait le travail. Trois vis, un levier improvisé, et le verrou cède sans résistance. Le casier contient un badge d\'accès et une bonbonne d\'oxygène.',
+          en: 'The multitool does the job. Three screws, an improvised lever, and the lock gives way. The locker holds an access keycard and an oxygen canister.',
         },
         revealsItems: ['access_keycard', 'oxygen_canister'],
       },
@@ -689,19 +689,19 @@ const vent_cover: ScenarioFeatureDefinition = {
         consequences: [{ type: 'damage', targetId: 'player', amount: 1 }],
       },
     },
-    // USE standard_toolkit (auto-success)
+    // USE multitool (auto-success)
     {
       trigger: {
         verb: 'USE',
         requiredState: 'intact',
-        requiredItem: 'standard_toolkit',
+        requiredItem: 'multitool',
         dc: null,
       },
       onSuccess: {
         newState: 'open',
         narrative: {
-          fr: 'Le tournevis de la trousse fait sauter les vis rouillées sans effort. La grille se détache proprement.',
-          en: 'The toolkit\'s screwdriver pops the rusted screws effortlessly. The grate comes off cleanly.',
+          fr: 'Le tournevis du multitool fait sauter les vis rouillées sans effort. La grille se détache proprement.',
+          en: 'The multitool\'s screwdriver pops the rusted screws effortlessly. The grate comes off cleanly.',
         },
         removeProperties: ['sealed'],
         revealsExit: 'reveal',

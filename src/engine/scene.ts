@@ -7,7 +7,8 @@
 // ---------------------------------------------------------------------------
 
 import type { GameState, SceneContext, SceneDescription, ResolvedTarget, NpcInstance, EnvironmentFeatureInstance } from './types';
-import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition } from './scenario';
+import type { LocationNode, NarrativeSkin, LocationVisitState, FeatureDefinition, ItemDefinition, InteractionResult } from './scenario';
+import type { VerbId } from './verbs';
 import type { SuggestionCandidate } from './suggestions';
 import type { StringKey } from '../i18n/types';
 import { generateSuggestions, isExcludedFromSuggestions } from './suggestions';
@@ -21,15 +22,23 @@ import { t, getLocale } from '../i18n/index';
 import { isEnrichedFeature, isEnrichedItem } from './scenario';
 import type { EntityState } from './entityState';
 import { makeEntityState, stateMatchesToken } from './entityState';
-import { getFeatureState, isItemRevealed, pickStateDescription } from './featureState';
+import { getFeatureState, isItemRevealed, pickStateDescription, isExitUnlocked } from './featureState';
 import { deriveConditions, locationStateFromAtmosphere, atmosphereOf } from './locationState';
 import { isNpcAlive } from './victory';
 import { buildObstacleVerbMap } from '../content/parserData';
-import { MOVEMENT_VERBS } from './verbs';
+import { MOVEMENT_VERBS, getVerbStat } from './verbs';
 
 // ---------------------------------------------------------------------------
 // OBSTACLE VERB → LOCALIZED DISPLAY NAME
 // ---------------------------------------------------------------------------
+
+/** A VerbId as the player would type it, or null when the locale has no wording. */
+function verbIdToDisplay(verbId: string): string | null {
+  const key = `verb.${verbId}` as StringKey;
+  const resolved = t(key);
+  if (resolved === key) return null;
+  return resolved[0]!.toLowerCase() + resolved.slice(1);
+}
 
 /**
  * Map an English obstacle path verb to a localized display string for suggestions.
@@ -42,15 +51,13 @@ function obstaclVerbToFrench(verb: string): string {
   // Step 1: Lookup in obstacleVerbMap → VerbId → localized name via t()
   const verbId = buildObstacleVerbMap(getLocale()).get(lower);
   if (verbId) {
-    const key = `verb.${verbId}` as StringKey;
-    const resolved = t(key);
-    if (resolved !== key) return resolved[0]!.toLowerCase() + resolved.slice(1);
+    const resolved = verbIdToDisplay(verbId);
+    if (resolved !== null) return resolved;
   }
 
   // Step 2: Direct VerbId i18n lookup (e.g. module uses "PUSH" verbatim)
-  const directKey = `verb.${verb.toUpperCase()}` as StringKey;
-  const directResolved = t(directKey);
-  if (directResolved !== directKey) return directResolved[0]!.toLowerCase() + directResolved.slice(1);
+  const directResolved = verbIdToDisplay(verb.toUpperCase());
+  if (directResolved !== null) return directResolved;
 
   // Step 3: Return verb as-is
   return verb;
@@ -83,6 +90,157 @@ function pickSuggestionVerb(verbs: readonly string[]): { verbText: string; names
   }
   const first = verbs[0] ?? 'examine';
   return { verbText: obstaclVerbToFrench(first), namesTarget: true };
+}
+
+// ---------------------------------------------------------------------------
+// SHUT FEATURES — the acts a scenario rule will actually answer to
+// ---------------------------------------------------------------------------
+
+/** True when succeeding at this rule moves the game, rather than just describing it. */
+function interactionAdvances(result: InteractionResult): boolean {
+  return result.newState !== undefined
+    || (result.revealsItems?.length ?? 0) > 0
+    || result.revealsExit !== undefined
+    || result.flagSet !== undefined
+    || result.resolveObstacle === true;
+}
+
+/**
+ * True when the rule's gain has already been taken. Without this the scene kept
+ * proposing a terminal the player had already read, forever.
+ */
+function nothingLeftToGain(
+  result: InteractionResult,
+  instance: EnvironmentFeatureInstance,
+  scenarioFlags: Readonly<Record<string, boolean>>,
+): boolean {
+  const stateReached = result.newState === undefined
+    || stateMatchesToken(instance.state, result.newState);
+  const flagTaken = result.flagSet !== undefined && scenarioFlags[result.flagSet] === true;
+  if (result.flagSet !== undefined) return flagTaken && stateReached;
+  return result.newState !== undefined && stateReached;
+}
+
+/** The verb of a trigger, as an instruction: never a movement, never a secret. */
+function pickInteractionVerb(trigger: VerbId | readonly VerbId[]): VerbId | null {
+  const verbs = Array.isArray(trigger) ? trigger as readonly VerbId[] : [trigger as VerbId];
+  for (const verbId of verbs) {
+    if (MOVEMENT_VERBS.has(verbId)) continue;
+    if (isExcludedFromSuggestions(verbId)) continue;
+    return verbId;
+  }
+  return null;
+}
+
+/** Display name of an item, whichever registry holds it. */
+function itemDisplayName(id: string): string {
+  const def = ITEM_DEFINITIONS[id];
+  return def ? t(def.nameKey) : resolveDisplayName(`item.${id}`, id);
+}
+
+/** Every carried item, with the scenario definition when one placed it. */
+function carriedItemDefinitions(
+  graph: import('./scenario').LocationGraph,
+  inventory: readonly string[],
+): { id: string; def?: ItemDefinition }[] {
+  return inventory.map(id => {
+    for (const node of graph.nodes) {
+      const def = node.items.find(i => i.id === id);
+      if (def) return { id, def };
+    }
+    return { id };
+  });
+}
+
+/**
+ * What the player may do, right now, to the shut things in this room.
+ *
+ * Until this existed the scene only ever offered `examiner` for a feature: every
+ * real verb came from `node.obstacle.paths`, and core nodes carry no obstacle.
+ * The locker holding the gate item was therefore never once named as openable
+ * across eight full games — and a route the game never mentions is a route the
+ * player has to guess. Each candidate is read from the feature's own trigger, so
+ * a rule that cannot fire is never advertised.
+ */
+function buildShutFeatureCandidates(
+  node: LocationNode,
+  features: readonly EnvironmentFeatureInstance[],
+  carriedItems: readonly { id: string; def?: ItemDefinition }[],
+  scenarioFlags: Readonly<Record<string, boolean>>,
+): Omit<SuggestionCandidate, 'score'>[] {
+  const candidates: Omit<SuggestionCandidate, 'score'>[] = [];
+  const useVerb = verbIdToDisplay('USE');
+  const targetPreposition = t('parser.prepositions.target').split(',')[0]?.trim();
+  const carriedItemIds = carriedItems.map(i => i.id);
+
+  const useOnText = (itemId: string, featureName: string): string =>
+    `${itemDisplayName(itemId)} ${targetPreposition} ${featureName}`;
+
+  for (const def of node.features) {
+    if (!isEnrichedFeature(def) || !def.interactions) continue;
+    const instance = features.find(f => f.id === def.id);
+    if (!instance) continue;
+    const featureName = t(instance.nameKey as StringKey);
+
+    for (const { trigger, onSuccess } of def.interactions) {
+      if (!interactionAdvances(onSuccess)) continue;
+      if (nothingLeftToGain(onSuccess, instance, scenarioFlags)) continue;
+      if (trigger.requiredState !== undefined
+          && !stateMatchesToken(instance.state, trigger.requiredState)) continue;
+      if (trigger.requiredFlag !== undefined && scenarioFlags[trigger.requiredFlag] !== true) continue;
+      if (trigger.requiredItem !== undefined && !carriedItemIds.includes(trigger.requiredItem)) continue;
+
+      const verbId = pickInteractionVerb(trigger.verb);
+      if (verbId === null) continue;
+      const verbText = verbIdToDisplay(verbId);
+      if (verbText === null) continue;
+
+      const stat = trigger.stat ?? getVerbStat(verbId, instance.properties);
+
+      // A rule gated on an item is proposed as using that item, so the player
+      // learns what the thing in their hands is for.
+      if (trigger.requiredItem !== undefined && useVerb !== null && targetPreposition) {
+        candidates.push({
+          verbText: useVerb,
+          targetText: useOnText(trigger.requiredItem, featureName),
+          stat,
+          category: 'obstacle',
+          equipped: true,
+        });
+        continue;
+      }
+
+      candidates.push({
+        verbText, targetText: featureName, stat, category: 'obstacle',
+        equipped: trigger.requiredFlag !== undefined,
+      });
+    }
+  }
+
+  // What the things in your hands are for. These rules hang off the *item*, not
+  // the feature, which is why the badge — the whole point of the scenario — was
+  // never once proposed: the reader forced the pod hatch instead and lost.
+  if (useVerb !== null && targetPreposition) {
+    for (const { id: itemId, def } of carriedItems) {
+      if (def === undefined || !isEnrichedItem(def) || !def.useOn) continue;
+      for (const { targetId, interaction } of def.useOn) {
+        const instance = features.find(f => f.id === targetId);
+        if (!instance) continue;
+        if (!interactionAdvances(interaction.onSuccess)) continue;
+        if (nothingLeftToGain(interaction.onSuccess, instance, scenarioFlags)) continue;
+
+        candidates.push({
+          verbText: useVerb,
+          targetText: useOnText(itemId, t(instance.nameKey as StringKey)),
+          stat: interaction.trigger.stat ?? getVerbStat('USE', instance.properties),
+          category: 'obstacle',
+          equipped: true,
+        });
+      }
+    }
+  }
+
+  return candidates;
 }
 
 // ---------------------------------------------------------------------------
@@ -198,6 +356,13 @@ export function getSceneContext(state: GameState): SceneContext {
   const connectedLocations = hasUnresolvedObstacle
     ? allConnectedLocations.filter(loc => loc.visited)
     : allConnectedLocations;
+  // A sealed way stays nameable — the engine answers "still sealed" and the
+  // player learns there is a door — but it is never *suggested*, because a list
+  // of three lines has no room for one that cannot work yet.
+  const walkableLocations = connectedLocations.filter(loc => {
+    const edge = graph.edges.find(e => e.from === playerLocationId && e.to === loc.id);
+    return edge?.locked !== true || isExitUnlocked(state, playerLocationId, loc.id);
+  });
   const activeSkin = node.activeSkin ?? null;
   const playerClass = state.character?.className ?? 'marine';
   // Derive combat NPC display name if in active combat
@@ -211,9 +376,12 @@ export function getSceneContext(state: GameState): SceneContext {
   const scenarioSuggestions = buildSuggestionCandidates(
     node,
     obstacleResolved,
-    connectedLocations,
+    walkableLocations,
     locationItems,
     npcs,
+    environmentFeatures,
+    carriedItemDefinitions(graph, state.character?.inventory ?? []),
+    state.scenarioFlags ?? {},
     activeSkin,
     playerClass,
     activeCombatNpcName,
@@ -256,6 +424,7 @@ export function getSceneContext(state: GameState): SceneContext {
     environmentFeatures,
     connectedLocations,
     suggestions: [],           // ParsedAction[] remains empty; parser uses its own resolution
+    walkableLocationIds: walkableLocations.map(l => l.id),
     environmentConditions: deriveConditions(currentLocationState),
     atmosphere: atmosphereOf(currentLocationState),
     locationId: playerLocationId,
@@ -275,18 +444,42 @@ function buildSuggestionCandidates(
   connectedLocations: readonly { id: string; aliases: readonly string[]; displayName?: string; visited?: boolean }[],
   locationItems: readonly ResolvedTarget[],
   npcs: readonly NpcInstance[],
+  environmentFeatures: readonly EnvironmentFeatureInstance[],
+  carriedItems: readonly { id: string; def?: ItemDefinition }[],
+  scenarioFlags: Readonly<Record<string, boolean>>,
   activeSkin: NarrativeSkin | null,
   playerClass: import('./types').PlayerClassName,
   activeCombatNpcName?: string,
   playerConditions?: readonly string[],
 ): readonly SuggestionCandidate[] {
-  // When in combat, suggest combat-specific actions
+  // When in combat, suggest combat-specific actions — and always a way out.
+  // A bare "fuir" names no destination, which the parser rejects outright, so
+  // the only escape line the scene offered did nothing at all: a reader who met
+  // the boss stayed there until the turn limit, whatever they picked. The way
+  // out includes the door: at the boss node the act that ends the game is
+  // opening the pod, and hiding it behind the fight made victory unreachable.
   if (activeCombatNpcName) {
     const combatCandidates: Omit<SuggestionCandidate, 'score'>[] = [
       { verbText: 'frapper', targetText: activeCombatNpcName, stat: 'FOR', category: 'obstacle' },
       { verbText: 'tirer sur', targetText: activeCombatNpcName, stat: 'AGI', category: 'obstacle' },
-      { verbText: 'fuir', targetText: '', stat: 'AGI', category: 'movement' },
+      ...buildShutFeatureCandidates(node, environmentFeatures, carriedItems, scenarioFlags),
     ];
+    // Unexplored first: fleeing forward is how a chase ends somewhere new.
+    const escapes = [
+      ...connectedLocations.filter(l => !l.visited),
+      ...connectedLocations.filter(l => l.visited),
+    ].slice(0, 2);
+    for (const [index, loc] of escapes.entries()) {
+      combatCandidates.push({
+        verbText: index === 0 ? 'fuir' : 'aller',
+        targetText: loc.aliases[0] ?? loc.id,
+        stat: 'AGI',
+        category: 'movement',
+      });
+    }
+    if (escapes.length === 0) {
+      combatCandidates.push({ verbText: 'fuir', targetText: '', stat: 'AGI', category: 'movement' });
+    }
     return generateSuggestions(combatCandidates, playerClass, activeSkin);
   }
 
@@ -322,6 +515,9 @@ function buildSuggestionCandidates(
       });
     }
   }
+
+  // Shut things, and what this player can currently do about them
+  candidates.push(...buildShutFeatureCandidates(node, environmentFeatures, carriedItems, scenarioFlags));
 
   // Location items
   for (const item of locationItems) {

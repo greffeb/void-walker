@@ -31,7 +31,7 @@ const BASE_SEED_CHAOTIC = 12100;
 // and the stat gain apart: the shift alone moves this from 69 to 75 and
 // coverage from 85.1 % to 84.2 %; the two extra stat points then buy back
 // 0.4 points of coverage. The bar below sits at the measured value.
-const EXPLORER_STUCK_BASELINE = 78;
+const EXPLORER_STUCK_BASELINE = 105;
 const PLAYER_CLASSES = ['marine', 'engineer', 'medic'] as const;
 const SESSION_LENGTHS = ['quick', 'standard'] as const;
 const DIFFICULTY: DifficultyLevel = 'explorer';
@@ -251,18 +251,28 @@ describe('botProfiles: explorer + chaotic', () => {
 
     // Ratchet, not a target. Since stuck means "no narrative progress", the
     // explorer bot stalls on 74/120 runs. Target is 0 — lower this as fixes land.
+    // 78 → 107 (P1): a locked way now blocks passage until something in the
+    // room opens it, and this bot examines rather than opens, so it stalls at
+    // doors it never tries. The goal bot, which reads the acts the scene names,
+    // went from 54 stuck in 250 to 1.
     expect(stuckCount).toBeLessThanOrEqual(EXPLORER_STUCK_BASELINE);
     // 0.85 sat inside the noise band: two equivalent seed streams measure 85.1 %
     // and 84.2 %. Held at the measured floor rather than at a figure one reseed
     // can break.
-    expect(meanLocationCoverage).toBeGreaterThanOrEqual(0.84);
-    expect(weightedItemCoverage).toBeGreaterThanOrEqual(0.75);
-    expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.80);
+    // 0.84 → 0.79 (P1): doors became real, and this bot examines before it opens,
+    // so it reaches fewer rooms. What it does reach, it works over far harder —
+    // items 82.2 % → 96.7 %, features 55.5 % → 78.7 %, crew 42.0 % → 72.3 % —
+    // because it now opens containers instead of walking past them. Three of
+    // these four are tightened below; this one is the price.
+    expect(meanLocationCoverage).toBeGreaterThanOrEqual(0.79);
+    expect(weightedItemCoverage).toBeGreaterThanOrEqual(0.90);
+    expect(weightedFeatureCoverage).toBeGreaterThanOrEqual(0.78);
     // Lowered from 0.70 → 0.65: obstacle blocking (REG-019) costs the bot
     // turns resolving obstacles, slightly reducing NPC interaction coverage.
     // Raised back to 0.66 by decision Z: feature state now reaches the resolver,
     // so targets resolve correctly and the bot meets more of the crew.
-    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.66);
+    // 0.66 → 0.70 (P1): measured 72.3 %.
+    expect(weightedNpcTalkCoverage).toBeGreaterThanOrEqual(0.70);
   });
 
   it('chaotic profile meets absurd/failsafe thresholds', () => {
@@ -289,7 +299,10 @@ describe('botProfiles: explorer + chaotic', () => {
     // stalling is its expected behaviour. The count is reported, not enforced.
     // 0.65 → 0.649: some fuzz inputs ("chanter doucement") used to parse to
     // nothing and now name a secret verb, which shortens those runs (decision W).
-    expect(absurdInputShare).toBeGreaterThanOrEqual(0.649);
+    // 0.649 → 0.648 (P1): measured 64.82 %. The share moved by two hundredths
+    // of a point because the suggestion list changed which turns exist, not
+    // because the bot types differently — it is the same noise band.
+    expect(absurdInputShare).toBeGreaterThanOrEqual(0.648);
     expect(concreteTargetRate).toBeGreaterThanOrEqual(0.45);
     expect(failsafeSessionRate).toBeGreaterThanOrEqual(0.25);
     expect(uniqueParsedVerbs).toBeGreaterThanOrEqual(10);

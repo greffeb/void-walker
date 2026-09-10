@@ -27,6 +27,7 @@ import {
   fillMicroModuleSlots,
   buildMicroModuleNodes,
 } from './microModules';
+import { isEnrichedFeature } from './scenario';
 import { dedupeGraphEntities } from './registryCheck';
 
 // ---------------------------------------------------------------------------
@@ -251,6 +252,22 @@ function createNodeFromModule(
   };
 }
 
+/**
+ * True when this location holds something that says it opens the way on.
+ *
+ * The content already declares it with `revealsExit`; until now that field only
+ * wrote a key nothing ever read, so every door in the game was scenery and
+ * `aller reveal` worked through a sealed bulkhead.
+ */
+function gatesTheWayForward(nodes: readonly LocationNode[], nodeId: string): boolean {
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return false;
+  return node.features.some(
+    f => isEnrichedFeature(f)
+      && (f.interactions ?? []).some(i => i.onSuccess.revealsExit !== undefined),
+  );
+}
+
 /** Build the location graph from skeleton + placed modules */
 export function buildLocationGraph(
   skeleton: CoreSkeleton,
@@ -282,7 +299,10 @@ export function buildLocationGraph(
         const node = createNodeFromModule(loc, pm, pm.index, skeleton, rng, usedNames);
         nodes.push(node);
         // Bidirectional edge to previous
-        edges.push({ from: prevNodeId, to: node.id, bidirectional: true });
+        edges.push({
+          from: prevNodeId, to: node.id, bidirectional: true,
+          locked: gatesTheWayForward(nodes, prevNodeId),
+        });
         edges.push({ from: node.id, to: prevNodeId, bidirectional: true });
         if (firstCriticalPathId === null) firstCriticalPathId = node.id;
         prevNodeId = node.id;
@@ -312,7 +332,10 @@ export function buildLocationGraph(
     }
     // Connect last module/node to segment end (if not already there)
     if (prevNodeId !== segment.endNode && !edges.some(e => e.from === prevNodeId && e.to === segment.endNode)) {
-      edges.push({ from: prevNodeId, to: segment.endNode, bidirectional: true });
+      edges.push({
+        from: prevNodeId, to: segment.endNode, bidirectional: true,
+        locked: gatesTheWayForward(nodes, prevNodeId),
+      });
       edges.push({ from: segment.endNode, to: prevNodeId, bidirectional: true });
     }
   }
@@ -323,7 +346,10 @@ export function buildLocationGraph(
   }
   // Connect boss → resolution
   if (!edges.some(e => e.from === 'boss' && e.to === 'resolution')) {
-    edges.push({ from: 'boss', to: 'resolution', bidirectional: true });
+    edges.push({
+      from: 'boss', to: 'resolution', bidirectional: true,
+      locked: gatesTheWayForward(nodes, 'boss'),
+    });
     edges.push({ from: 'resolution', to: 'boss', bidirectional: true });
   }
 

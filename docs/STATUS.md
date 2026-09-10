@@ -5,7 +5,7 @@
 > Toute reprise de développement commence par lire cette page — et rien d'autre.
 
 **Dernière mise à jour :** 2026-09-09
-**Dernier commit de code :** fin du lot 8 (audit + 8 lots de correction)
+**Dernier commit de code :** chantier P1 (victoire atteignable)
 **Derniers bug reports joueurs :** 2026-06-30
 
 ---
@@ -35,7 +35,7 @@ arbitrées et 8 lots de correction, tous livrés (§3bis).
 |---|---|
 | `npm run typecheck` | ✅ |
 | `npm run lint` | ✅ 0 erreur, 0 warning |
-| `npm run check` (suite complète) | ✅ **2 005 tests / 95 fichiers** (unit + stress + integration) |
+| `npm run check` (suite complète) | ✅ **2 007 tests / 96 fichiers** (unit + stress + integration) |
 | Taille de `src/` | 40 527 lignes |
 | CI | `test.yml` (typecheck + lint + test:all) · `deploy-pwa.yml` (GitHub Pages, toutes branches) |
 
@@ -93,6 +93,7 @@ mécanique n'a jamais été le livrable de personne.
 | 6 | Personnage : passifs à un point d'application, allocation dans `initGame` | ✅ |
 | 7 | Narration & UI : 7 verbes secrets, ordre des couches, réglages, sauvegarde, permadeath | ✅ |
 | 8 | Contenu et victoires : répétition narrative, **premières victoires mesurées** | ✅ |
+| P1 | Victoire atteignable : l'écran nomme l'acte qui gagne, les portes existent | ✅ |
 
 ---
 
@@ -202,48 +203,123 @@ traitées au lot 5.
 
 **À faire :** rejouer les reproductions seedées des issues restantes avant de les fermer.
 
-### 4.5 Le jeu est gagnable — et il ne l'était mesurablement pas
+### 4.5 ~~Le jeu est gagnable — et il ne l'était mesurablement pas~~ ✅ P1 — *2026-09-09*
 
 Pendant six lots, le filet a mesuré **0 % de victoires** sans que personne demande pourquoi.
-Le diagnostic (`npx tsx scripts/diag-victory.ts`) tient en deux lignes : sur 200 parties,
-**35 % atteignent le lieu de victoire et 0 % possèdent l'objet requis**. Le badge dort dans un
-casier verrouillé, et aucun des deux bots n'avait jamais essayé d'ouvrir quoi que ce soit.
+Le lot 8 a montré que le 0 % mesurait l'instrument : aucun bot n'ouvrait jamais rien.
+Le chantier P1 a montré que **le jeu non plus ne disait jamais qu'on pouvait ouvrir**.
 
-**Le 0 % mesurait l'instrument, pas le jeu.** `tests/integration/winByPlaying.test.ts` le
-prouve en tapant les commandes, sans écrire un seul champ d'état — contrairement à
-`scenarioCompletion`, qui téléporte le joueur et lui met l'objet dans les mains.
+`buildSuggestionCandidates` ne proposait que `examiner` pour une feature : les vrais verbes
+venaient uniquement de `node.obstacle.paths`, et `pacing.ts` n'attache d'obstacle qu'aux nœuds
+de **module**. Le casier qui contient le badge est sur un nœud **core** — donc en huit parties
+complètes, le mot « forcer » n'apparaissait pas une seule fois à l'écran.
+`tests/integration/winBySuggestions.test.ts` le prouve : un joueur qui ne tape **que** les
+suggestions gagnait 0 fois sur 8 ; il gagne maintenant.
 
-| Mesure (500 parties, graine 42) | Avant | Après |
+| Mesure (500 parties, graine 42) | Avant lot 8 | Après lot 8 | **Après P1** |
+|---|---|---|---|
+| Victoires | 0 % | 4,0 % | **9,8 %** |
+| Victoires, bot objectif | 0 % | 8,0 % | **19,6 %** |
+| Bot objectif bloqué | — | 54/250 | **1/250** |
+| Défaites | 232 | 268 | **227** |
+| Obstacles résolus | 0,68 | 0,63 | **0,90** |
+| Bloqué (total) | 268 | 212 | 224 |
+| Couverture de lieux | 67,0 % | 61,0 % | 58,0 % |
+
+Les deux dernières lignes empirent, et c'est **uniquement le bot aléatoire** (223 des 224
+parties bloquées). Les portes existent maintenant vraiment : un bot qui n'ouvre rien s'arrête
+là où il traversait. Le bot objectif a fait le chemin inverse sur les deux mesures.
+
+**Entonnoir** (`npx tsx scripts/diag-victory.ts`, 200 parties) — chaque partie compte pour un
+seul seau, donc un correctif déplacé se lit directement :
+
+| Seau | Avant P1 | Après P1 |
 |---|---|---|
-| Victoires | 0 % | **4,0 %** (bot objectif 8,0 %) |
-| Bloqué | 268 | **212** |
-| Couverture de lieux | 67,0 % | 61,0 % |
-| Obstacles résolus | 0,68 | 0,63 |
+| Contenant jamais ouvert | 53,0 % | **27,5 %** |
+| Contenant ouvert, objet non pris | 0 % | 21,5 % |
+| Objet en main, jamais arrivé | 28,5 % | 40,0 % |
+| Victoire | 4,0 % | **11,0 %** |
+| Contenant ouvert (bot objectif) | 70,4 % | **99,0 %** |
 
-Les deux cliquets de progression baissent parce que les tours passés à forcer un casier ne
-sont pas des tours passés à marcher — et ce sont eux qui achètent les victoires.
+### 4.6 Ce que P1 a changé
 
-**La cible §6 de la phase 6B reste loin** : 40 % pour le bot objectif, 10 % pour l'aléatoire.
-C'est le chantier P1 ci-dessous.
+- **Les suggestions lisent les règles de la feature** — ce qui l'ouvre, et quel objet porté
+  l'ouvre (`utiliser Couteau sur Casier d'urgence`). Un acte dont le joueur a déjà la clé
+  passe devant un jet flatteur pour sa classe (`EQUIPPED_PATH_BONUS`).
+- **Les règles posées sur l'objet** (`useOn`) sont proposées aussi : le badge — l'axe entier du
+  scénario — n'était jamais nommé, le joueur forçait l'écoutille et mourait.
+- **Le combat ne cache plus la sortie.** `fuir` sans destination était rejeté par le parser :
+  la seule ligne de fuite proposée ne faisait littéralement rien. Au nœud boss, l'acte qui
+  termine la partie était masqué par le combat.
+- **Les portes sont des portes** (choix explicite). `LocationEdge.locked` est dérivé à
+  l'assemblage des features qui déclarent `revealsExit` ; `isExitUnlocked`, écrit mais jamais
+  lu, gouverne maintenant le déplacement, et la carte l'affiche. Une sortie scellée reste
+  **nommable** — le moteur répond « encore condamné » (règle sacrée nº1) — mais n'est jamais
+  proposée ni franchissable.
+- **Un acte dont on a payé le prix réussit.** Décision Z faisait jeter un dé à tout `dc: null`
+  sur un verbe qui rencontre de la résistance. Passer le badge sur le lecteur prévu, ou pousser
+  une porte dont on vient de rétracter les verrous, n'est pas une tentative aveugle : la
+  résistance était le verrou. Z tient toujours pour les règles qui n'exigent rien.
+- **`promoteVerb` cassait les clés.** « utiliser le multitool sur le casier » devient `CUT`,
+  qui ne correspondait à aucune règle : l'ouverture automatique écrite dans le contenu
+  devenait un jet à DC 11. Une règle qui nomme un objet répond à cet objet.
+- **Le contenu ne ment plus.** Le badge annonçait « Le passage est libre » alors que la cloison
+  restait verrouillée. Et `requiredItem: 'standard_toolkit'` désignait un objet d'INVESTIGATE
+  qu'aucune classe ne porte — un des quatre chemins du casier était mort, celui de l'ingénieur.
+- **Le harnais lit l'écran** au lieu de rejouer, mal, ce que la scène sait déjà : sa liste de
+  « clés portées » écartait le couteau du marine et le multitool de l'ingénieur, précisément
+  les deux ouvertures automatiques du casier.
+
+### 4.7 ⚠️ Le filet ne mesure qu'un scénario sur trois
+
+`createSeededRng` est un générateur de Lehmer : le **premier** tirage d'une graine fraîche vaut
+≈ `seed/127773`. Pour les graines 42…541, il est toujours < 0,005 — donc
+`rng.pick(LAUNCH_SKELETONS)`, premier tirage de `runPlaythrough` **et** de `diag-victory.ts`,
+renvoie toujours l'indice 0. **Les 500 parties du filet et les 200 du diagnostic jouent toutes
+`escape`.** `investigate` et `rescue` ne sont jamais mesurés.
+
+Non corrigé pendant P1 **délibérément** : décaler le flux RNG rendrait tout avant/après
+incomparable (piège explicite du §5). À traiter dans un lot dédié, en repartant d'une ligne de
+base neuve.
 
 ---
 
 ## 5. Chantiers priorisés
 
-### P1 — Rendre la victoire atteignable · le seul chantier de fond restant
+### P1 — ~~Rendre la victoire atteignable~~ ✅ livré, cible non atteinte — *2026-09-09*
 
-4 % de victoires prouve que le chemin existe ; 40 % est la cible. Les pistes, par ordre de
-rendement estimé :
+Trois des quatre pistes sont traitées à la racine (§4.6). La quatrième était hors périmètre.
 
-- **Le bot aléatoire ne gagne jamais (0/250).** Vérifier si c'est normal ou si la partie exige
-  une séquence qu'un joueur ne devine pas — c'est la même question que « le jeu est-il
-  lisible ? ».
-- **Deux gestes par porte.** Le badge déverrouille mais n'ouvre pas ; il faut ensuite pousser.
-  C'est défendable, mais rien ne le dit au joueur au moment où il utilise le badge.
-- **Les objets de progression sont derrière des jets.** Forcer le casier coûte des PV et peut
-  échouer plusieurs fois ; c'est la principale source de défaite mesurée.
-- **`defeat_entity` et `containment` ne sont utilisés par aucun scénario** — deux des sept
-  types de victoire dorment.
+- ✅ **Le bot aléatoire ne gagne jamais.** Ce n'était pas normal : le jeu ne nommait jamais
+  l'acte qui le gagne. Il le nomme maintenant, et `winBySuggestions.test.ts` le prouve en
+  ne tapant que ce que l'écran propose. Le bot aléatoire reste à 0 % — il tire ses verbes
+  d'une liste figée et ne lit l'écran que 30 % du temps ; la cible de 10 % du §6 de la
+  phase 6B mesure ce bot-là, pas le jeu.
+- ✅ **Deux gestes par porte.** Le texte ne ment plus, et la suggestion du second geste
+  apparaît à l'instant où le drapeau est posé.
+- ✅ **Les objets de progression derrière des jets.** Les chemins écrits comme automatiques
+  le sont redevenus (badge, couteau, multitool). Le bot objectif ouvre le contenant dans
+  99 % des parties, contre 70 %.
+- ⬜ **`defeat_entity` et `containment` dorment toujours** — exclu de P1 par décision : ces
+  deux types ajoutent des *façons* de gagner, pas un *taux* de victoire.
+
+**La cible §6 de la phase 6B reste loin** : 19,6 % mesurés pour le bot objectif contre 40 %
+visés. Le goulot a changé de nature — il n'est plus la lisibilité mais la **survie**.
+
+### P1bis — Survivre jusqu'au pod · le goulot suivant, mesuré
+
+L'entonnoir désigne maintenant un seul seau : **40 % des parties tiennent l'objet en main et
+n'arrivent jamais au lieu de victoire**, et 100 % des défaites sont `hp_zero`. Les PV partent
+par deux robinets, mesurés par partie : **tentatives ratées 5,1** (1 PV par action non-combat
+ratée, `BALANCE.FAILURE_DAMAGE`) et **combat 3,7**, contre 10 à 14 PV de départ.
+
+Pistes, non arbitrées :
+
+- Le levier de largage cargo est proposé comme un acte de progression au n\u0153ud boss ; en
+  crit_success il tue le joueur. Un piège mortel ne devrait pas être classé avec les actes
+  qui font avancer.
+- 1 PV par échec est un impôt invisible qui transforme l'exploration en `hp_zero`.
+- Le rôdeur encaisse la réserve que le casier a vidée.
 
 ### P2 — Fermer les issues restantes · petit
 
@@ -268,6 +344,11 @@ répétitions mesurées : à faire seulement si une mesure le justifie.
 - **Suivre un document de `docs/archive/`.** Il décrit du travail déjà fait.
 - **Croire un chiffre de cette page sans le re-mesurer.** Deux des quatre diagnostics de la
   version précédente étaient faux (91 % de cellules, « une seule est un bug de gameplay »).
+- **Croire que le filet couvre les trois scénarios.** Il n'en joue qu'un (§4.7).
+- **Mesurer un taux de victoire agrégé.** Il ne dit pas *où* les parties s'arrêtent, donc il ne
+  permet pas d'attribuer un gain. `scripts/diag-victory.ts` range chaque partie dans un seul
+  seau et affiche le nœud le plus avancé atteint ; `--trace=<graine>` et `--reaching=<nœud>`
+  impriment le détail d'une partie, suggestions comprises.
 - **Desserrer un cliquet sans écrire pourquoi.** Les fichiers de stress portent l'historique
   de chaque desserrage ; c'est ce qui permet de distinguer un progrès d'une régression.
 - **Comparer deux mesures après un changement qui consomme la RNG.** Le flux se décale et

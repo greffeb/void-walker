@@ -84,6 +84,7 @@ export function findScenarioInteraction(
   targetId: string,
   targetDef: FeatureDefinition | ItemDefinition | null,
   state: GameState,
+  toolId?: string,
 ): InteractionMatch | null {
   if (targetDef === null) return null;
   if (!isEnrichedFeature(targetDef)) return null;
@@ -96,8 +97,12 @@ export function findScenarioInteraction(
   for (const interaction of interactions) {
     const { trigger } = interaction;
 
-    // 1. Verb check
-    if (!verbMatches(trigger.verb, verb)) continue;
+    // 1. Verb check. A rule keyed on a named item answers to that item whatever
+    // the parser made of the verb: "utiliser le multitool sur le casier" is
+    // promoted to CUT, which matched no rule, so the authored auto-open became
+    // a blind roll the scene had just promised would work.
+    const keyedByTool = trigger.requiredItem !== undefined && trigger.requiredItem === toolId;
+    if (!keyedByTool && !verbMatches(trigger.verb, verb)) continue;
 
     // 2. Required state check
     if (trigger.requiredState !== undefined && !stateMatchesToken(currentState, trigger.requiredState)) continue;

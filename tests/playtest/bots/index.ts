@@ -31,6 +31,13 @@ export interface BotState {
 export interface BotScene {
   /** Text suggestions the bot can use as input */
   readonly suggestions: readonly string[];
+  /**
+   * The suggestions that name an act on something in the way — a lid to force,
+   * a key to use, a door to push. The harness used to derive these itself from
+   * feature states and inventory, which meant it re-implemented, badly, what
+   * the scene already knows.
+   */
+  readonly obstacleSuggestions: readonly string[];
   /** Names of items visible in this location */
   readonly locationItemNames: readonly string[];
   /** IDs of items visible in this location */
@@ -53,10 +60,6 @@ export interface BotScene {
   readonly hasObstacle: boolean;
   /** Target ID for the active obstacle (if any) */
   readonly obstacleTargetId: string | null;
-  /** Features here that are shut: locked, sealed or simply closed. */
-  readonly closedFeatureNames: readonly string[];
-  /** Key items the player carries, by display name. */
-  readonly carriedKeyNames: readonly string[];
 }
 
 // ---------------------------------------------------------------------------

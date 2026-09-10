@@ -55,7 +55,7 @@ import {
   tickCreatureAmbush,
 } from './microModules';
 import { findScenarioInteraction, findItemUseOn, applyInteractionOutcome } from './interactionResolver';
-import { setFeatureState, revealItem, unlockExit, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
+import { setFeatureState, revealItem, unlockExit, isExitUnlocked, setScenarioFlag, unsetScenarioFlag, hasScenarioFlag } from './featureState';
 import { isEnrichedItem, isEnrichedFeature } from './scenario';
 import { removeItem } from './inventory';
 import { NPC_DEFINITIONS } from '../content/npcs';
@@ -387,7 +387,9 @@ export function processTurn(
       // Fall through to feature interaction if useOn didn't match
       if (interactionMatch === null) {
         const featureDef = node.features.find(f => f.id === targetId) ?? null;
-        interactionMatch = findScenarioInteraction(action.verb, targetId, featureDef, current);
+        interactionMatch = findScenarioInteraction(
+          action.verb, targetId, featureDef, current, action.tool?.id,
+        );
       }
 
       // Self-use path: "utiliser <item>" where target is an inventory item.
@@ -473,9 +475,19 @@ export function processTurn(
           }
         }
 
-        // Unlock exit (stored in unlockedExits — key is locationId:exitId for now)
+        // Unlock the ways onward from here. The content's `revealsExit` value
+        // cannot be used as an edge name: escape writes node ids, the other two
+        // skeletons write segment ids, and an inserted module means the named
+        // node is not even adjacent. What the rule really says is "this opens
+        // the way on from where I am".
         if (interactionResult.exitToUnlock !== null && current.playerLocationId !== null) {
-          current = unlockExit(current, current.playerLocationId, interactionResult.exitToUnlock);
+          const fromId = current.playerLocationId;
+          current = unlockExit(current, fromId, interactionResult.exitToUnlock);
+          for (const edge of current.scenario?.graph.edges ?? []) {
+            if (edge.from === fromId && edge.locked === true) {
+              current = unlockExit(current, fromId, edge.to);
+            }
+          }
         }
 
         // Set/unset flags
@@ -956,7 +968,15 @@ export function processTurn(
             && !isObstacleResolved(fleeVisitState)
             && !current.visitedLocations[fleeLocationId];
 
-          if (!fleeObstacleBlocks) {
+          // A door does not stop being a door because you are running.
+          const fleeEdge = current.scenario?.graph.edges.find(
+            e => e.from === current.playerLocationId && e.to === fleeLocationId,
+          );
+          const fleeExitLocked = fleeEdge?.locked === true
+            && current.playerLocationId !== null
+            && !isExitUnlocked(current, current.playerLocationId, fleeLocationId);
+
+          if (!fleeObstacleBlocks && !fleeExitLocked) {
             const existingFleeVisit = current.visitedLocations[fleeLocationId];
             const updatedFleeVisit = existingFleeVisit
               ? markRevisit(existingFleeVisit)
@@ -990,9 +1010,18 @@ export function processTurn(
   // fires — that is the requalification of `dc: null` demanded by decision Z:
   // a beat that only delivers information stays guaranteed, an act that
   // overcomes something gets a real check.
+  //
+  // A rule that demands something the player had to earn is the third case.
+  // Swiping the badge the reader was built for, or pushing a door whose locks
+  // you personally retracted, is not a blind attempt: the resistance was the
+  // lock, and it is already beaten. Decision Z's fix stands, because a
+  // `dc: null` rule that asks for nothing still rolls.
+  const guaranteedTrigger = interactionMatch?.interaction.trigger;
   const interactionIsGuaranteed = interactionMatch !== null
-    && interactionMatch.interaction.trigger.dc === null
-    && isUnresistedVerb(action.verb, action.target?.properties ?? [], action.target?.state);
+    && guaranteedTrigger?.dc === null
+    && (isUnresistedVerb(action.verb, action.target?.properties ?? [], action.target?.state)
+      || interactionMatch.requiredItem !== undefined
+      || guaranteedTrigger.requiredFlag !== undefined);
 
   if (isAutoVerb || interactionIsGuaranteed) {
     applyMatchedInteraction(true);
@@ -1395,7 +1424,22 @@ export function processTurn(
       && !isObstacleResolved(currentVisitState);
     const destinationNeverVisited = !current.visitedLocations[newLocationId];
 
-    if (hasUnresolvedObstacle && destinationNeverVisited) {
+    // A shut door is a shut door: the way on stays closed until something in
+    // this room opens it.
+    const outgoingEdge = current.scenario?.graph.edges.find(
+      e => e.from === current.playerLocationId && e.to === newLocationId,
+    );
+    const exitStillLocked = outgoingEdge?.locked === true
+      && current.playerLocationId !== null
+      && !isExitUnlocked(current, current.playerLocationId, newLocationId);
+
+    if (exitStillLocked) {
+      movementBlocked = true;
+      scenarioNarrativeOverride = {
+        fr: 'Le passage est encore condamné de ce côté. Il faut d\'abord l\'ouvrir.',
+        en: 'The way through is still sealed on this side. It has to be opened first.',
+      };
+    } else if (hasUnresolvedObstacle && destinationNeverVisited) {
       // Block movement — player must resolve the obstacle first
       movementBlocked = true;
       scenarioNarrativeOverride = {

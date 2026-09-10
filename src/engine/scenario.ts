@@ -418,6 +418,11 @@ export interface LocationEdge {
   readonly from: string;
   readonly to: string;
   readonly bidirectional: boolean;
+  /**
+   * The way onward is shut until something in `from` opens it.
+   * Derived at assembly from the features of `from`, never authored by hand.
+   */
+  readonly locked?: boolean;
 }
 
 /** The complete assembled location navigation graph */

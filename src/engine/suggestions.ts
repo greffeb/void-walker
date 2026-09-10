@@ -24,6 +24,14 @@ export interface SuggestionCandidate {
   readonly stat: StatId;
   /** Category for variety balancing */
   readonly category: 'obstacle' | 'item' | 'npc' | 'movement' | 'environment';
+  /**
+   * The player already holds what this act demands — the right key, or a lock
+   * someone already released. Without this the badge lost the top-three cut to
+   * forcing the hatch, because a marine's FOR bonus outscored the one act the
+   * scenario was built around. It says nothing about the roll: it says the
+   * player is equipped, which is what they most need told.
+   */
+  readonly equipped?: boolean;
   /** Computed score (higher = shown first) */
   readonly score: number;
 }
@@ -79,6 +87,9 @@ export const CLASS_STAT_BONUS = 2;
 /** Bonus score if stat is in active skin's suggestedPathPriority. */
 export const SKIN_PRIORITY_BONUS = 1;
 
+/** Bonus for an act the player is equipped for, so it outranks a blind attempt. */
+export const EQUIPPED_PATH_BONUS = 3;
+
 /** Max candidates per category for variety balancing. */
 export const MAX_PER_CATEGORY = 2;
 
@@ -99,6 +110,10 @@ export function scoreCandidate(
 
   if (activeSkin?.suggestedPathPriority.includes(candidate.stat) === true) {
     score += SKIN_PRIORITY_BONUS;
+  }
+
+  if (candidate.equipped === true) {
+    score += EQUIPPED_PATH_BONUS;
   }
 
   return score;
@@ -163,10 +178,16 @@ export function generateSuggestions(
   playerClass: PlayerClassName,
   activeSkin: NarrativeSkin | null,
 ): readonly SuggestionCandidate[] {
-  const scored: SuggestionCandidate[] = candidates.map(c => ({
-    ...c,
-    score: scoreCandidate(c, playerClass, activeSkin),
-  }));
+  // The same act can be reached twice — once as an obstacle path, once as the
+  // feature's own rule — and a repeated line wastes one of only three slots.
+  const seen = new Set<string>();
+  const scored: SuggestionCandidate[] = [];
+  for (const c of candidates) {
+    const key = `${c.verbText}|${c.targetText}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    scored.push({ ...c, score: scoreCandidate(c, playerClass, activeSkin) });
+  }
 
   return selectTop3WithVariety(scored);
 }

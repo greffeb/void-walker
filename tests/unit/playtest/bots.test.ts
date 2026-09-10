@@ -42,8 +42,7 @@ function makeScene(overrides: Partial<BotScene> = {}): BotScene {
     hasHealingItem: false,
     hasObstacle: false,
     obstacleTargetId: null,
-    closedFeatureNames: [],
-    carriedKeyNames: [],
+    obstacleSuggestions: [],
     ...overrides,
   };
 }
@@ -173,18 +172,18 @@ describe('goalBot', () => {
 
   it('opens what is shut — the gate item is behind a locked lid', () => {
     // Until lot 8 the bot walked past every container it could force, which is
-    // why the gate item was obtained in 0 of 200 runs.
+    // why the gate item was obtained in 0 of 200 runs. It no longer works out
+    // for itself what is shut: the scene names the act, and the bot reads it.
     const rng = createSeededRng(42);
     const state = makeState({ turn: 1, playerLocationId: 'start' });
     const scene = makeScene({
       locationItemNames: [],
       locationItemIds: [],
       suggestions: [],
-      closedFeatureNames: ['casier de secours'],
+      obstacleSuggestions: ['forcer casier de secours'],
     });
     const decision = goalBot.makeDecision(state, scene, rng);
-    expect(decision).toContain('casier de secours');
-    expect(['ouvrir', 'forcer'].some(v => decision.startsWith(v))).toBe(true);
+    expect(decision).toBe('forcer casier de secours');
   });
 
   it('gives up on a lid that will not budge', () => {
@@ -194,7 +193,7 @@ describe('goalBot', () => {
       locationItemNames: [],
       locationItemIds: [],
       suggestions: [],
-      closedFeatureNames: ['casier de secours'],
+      obstacleSuggestions: ['forcer casier de secours'],
       connectedLocationIds: ['room_b'],
       connectedLocationAliases: ['couloir nord'],
     });
@@ -213,8 +212,7 @@ describe('goalBot', () => {
       locationItemNames: [],
       locationItemIds: [],
       suggestions: [],
-      closedFeatureNames: ['sas de la capsule'],
-      carriedKeyNames: ['badge d\'acces'],
+      obstacleSuggestions: ['utiliser badge d\'acces sur sas de la capsule'],
     });
     const decisions: string[] = [];
     for (let turn = 1; turn <= 2; turn++) {

@@ -14,6 +14,7 @@ import type { MapLayoutResult, MapLocationData, MapConnector } from '@ui/utils/m
 import { computeVisibility, isConnectorVisible, isConnectorToAdjacent } from '@ui/utils/mapVisibility';
 import type { RoomVisibility, VisibilityState } from '@ui/utils/mapVisibility';
 import { isObstacleResolved } from '@engine/backtracking';
+import { isExitUnlocked } from '@engine/featureState';
 import type { GameState } from '@engine/types';
 import type { LocationNode } from '@engine/scenario';
 
@@ -71,13 +72,13 @@ function computeHiddenExits(state: GameState): ReadonlySet<string> {
     }
   }
 
-  // Check locked exits (unlockedExits: key = "from:to", value = true when unlocked)
-  // An edge that needs explicit unlocking but hasn't been unlocked → hidden
-  // We detect this by checking if any edge's "from:to" key exists in unlockedExits as false
-  // Actually, unlockedExits only tracks unlocked ones (true), so locked exits are those
-  // that WOULD need unlocking but aren't in the map yet.
-  // The engine doesn't mark edges as "requires unlock" in the graph data model —
-  // unlocking is driven by interactions. So we don't hide these exits beyond obstacle gating.
+  // Doors the player has not opened yet. The graph carries the lock now, so the
+  // map can finally show what the movement gate already enforces.
+  for (const edge of graph.edges) {
+    if (edge.locked === true && !isExitUnlocked(state, edge.from, edge.to)) {
+      hidden.add(`${edge.from}:${edge.to}`);
+    }
+  }
 
   return hidden;
 }
