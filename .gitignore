@@ -94,6 +94,7 @@ data/logs/*
 .claude/
 scripts/playtest*
 scripts/.ai-playtest-state.json
+scripts/.ai-playtest-state-*.json
 
 # Sorties de commandes locales (ne jamais committer)
 test_out.txt

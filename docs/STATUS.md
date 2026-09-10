@@ -4,8 +4,8 @@
 > Si un autre document contredit celui-ci, c'est celui-ci qui a raison.
 > Toute reprise de développement commence par lire cette page — et rien d'autre.
 
-**Dernière mise à jour :** 2026-09-10
-**Dernier commit de code :** lisibilité narrative (lint à 11 règles, tout le texte de scénario relu)
+**Dernière mise à jour :** 2026-09-11
+**Dernier commit de code :** campagne de playtest IA multi-scénarios (P5) — REG-029
 **Derniers bug reports joueurs :** 2026-06-30
 
 ---
@@ -29,13 +29,13 @@ Les 10 phases du plan initial sont livrées à l'exception de la Phase 8 (IA) et
 (polish/lancement). Un audit phase par phase mené en septembre 2026 a produit 31 décisions
 arbitrées et 8 lots de correction, tous livrés (§3bis).
 
-### Santé technique (vérifiée le 2026-09-10)
+### Santé technique (vérifiée le 2026-09-11)
 
 | Contrôle | Résultat |
 |---|---|
 | `npm run typecheck` | ✅ |
 | `npm run lint` | ✅ 0 erreur, 0 warning |
-| `npm run check` (suite complète) | ✅ **2 057 tests / 98 fichiers** (unit + stress + integration, 1 ignoré) |
+| `npm run check` (suite complète) | ✅ **2 062 tests / 100 fichiers** (unit + stress + integration, 1 ignoré) |
 | Taille de `src/` | 41 264 lignes (`.ts`) · 44 712 avec les `.tsx` |
 | CI | `test.yml` (typecheck + lint + test:all) · `deploy-pwa.yml` (GitHub Pages, toutes branches) |
 
@@ -482,6 +482,53 @@ Aucun des deux n'apparaît dans une sortie mesurée.
 Douze verbes secondaires à 1 variante par cellule (§4.1). Aucun n'apparaît dans les
 répétitions mesurées : à faire seulement si une mesure le justifie.
 
+### P5 — ✅ Campagne de playtest IA multi-scénarios · 6 sous-agents, 1 bug racine confirmé — *2026-09-11*
+
+Les 2 057 tests automatisés ne jouent qu'`escape` (§4.7). Six sous-agents ont chacun joué une
+partie complète en français, en raisonnant comme un joueur réel (lecture du texte, hypothèse,
+action), sur les trois scénarios : `escape`×2, `investigate`×2, `rescue`×2, classes et
+difficultés variées, graines 5001-5006. Journaux complets : `scripts/playtest-detailed-12.md`
+à `-17.md`.
+
+**Un bug confirmé et corrigé**, trouvé indépendamment par deux sous-agents sur `investigate`
+(graines 5003 et 5004) : insérer le noyau de données chiffré dans le terminal de
+communications — l'action la plus naturelle, littéralement suggérée par le texte de la
+pièce (« un slot pour noyau de données, propre, jamais utilisé ») — décryptait le terminal
+mais **n'ouvrait jamais la sortie**. `encrypted_terminal` porte cinq interactions qui
+déverrouillent le passage vers `reveal` (USE/HACK/TALK sans objet, USE avec mot de passe,
+BREAK) ; la sixième — USE avec l'objet-clé du scénario lui-même — changeait l'état de la
+feature et posait son propre drapeau, mais ne portait pas `revealsExit`. La solution la plus
+évidente du puzzle était un cul-de-sac. Reproduit à la main (état JSON inspecté directement :
+`unlockedExits` restait `{}` après un déchiffrage réussi), corrigé (`revealsExit:
+'unlock_to_reveal'` ajouté à l'interaction), reproduit à nouveau avec succès, couvert par
+**REG-029** (`tests/unit/engine/regressions.test.ts`). Un audit du reste du contenu
+(`escape.ts`, `rescue.ts`, tous les modules) ne montre pas d'autre `useOn` du même genre privé
+de `revealsExit` à côté d'un frère qui l'a — mais seul `investigate` avait été rejoué à la main
+jusqu'ici.
+
+**~55 autres défauts relevés, non corrigés, à trier :**
+
+| Catégorie | Occurrences (sur 6 parties) | Exemples |
+|---|---|---|
+| Formulation naturelle → verbe absurde | 8+ | « insérer X dans Y » → DANSE (confirmé 2×) ; « traverser prudemment » / « se faufiler » / « passer par » → CLIMB ; « renforcer » → FORCE_OPEN (sens inversé) |
+| Cible non résolue en dialogue | 4+ | TALK/PERSUADE sur un PNJ nommé explicitement résout une cible vide, texte tronqué, PNJ répond mot pour mot identique après échec |
+| Accord grammatical | 10+ | « un couchette », « le trappe », « n'a » pour un sujet pluriel, « à le » non contracté, « adaptée » mal accordé |
+| Coquille récurrente | 5+ | « s'arrêt'en pleine phrase » (apostrophe orpheline), présente dans au moins 3 scénarios différents — sent une chaîne de template unique |
+| Objet non retiré de l'énumération après prise | 3+ | « kit médical basique » reste listé après `TAKE` réussi |
+| Question de clarification dupliquée | 4+ | « Que tentez-vous exactement ? » affiché deux fois de suite |
+| Mécanique d'escorte (rescue) possiblement absente | 1 rapport | Dr Okonkwo ne suit jamais le joueur malgré la confiance gagnée ; si confirmé, `escort_alive` serait structurellement inatteignable — **à vérifier, pas encore reproduit à la main** |
+| Blocages non confirmés | plusieurs | Suspects d'obstacles de module non résolus ou de mauvaise piste suivie par l'agent — aucun `revealsExit` n'existe dans `modules/*.ts` (vérifié), donc mécanisme différent de REG-029, cause non identifiée |
+
+**Piège d'outillage découvert :** deux sous-agents sur six ont rapporté une contamination
+croisée de fichier d'état malgré la variable d'environnement `AI_PLAYTEST_SESSION` (ajoutée à
+`scripts/ai-playtest.ts` pour cette campagne, isolant chaque session dans son propre fichier).
+Cause non déterminée avec certitude — noté pour la prochaine campagne parallèle plutôt que
+supposé résolu.
+
+**Prochaine étape suggérée, non commencée :** vérifier à la main la mécanique d'escorte de
+`rescue`, isoler la source de la coquille répétée, et trancher entre corriger le vocabulaire
+du parser (les verbes absurdes) ou l'étendre par alias ciblés.
+
 ### Pièges connus
 
 - **Suivre un document de `docs/archive/`.** Il décrit du travail déjà fait.
@@ -496,10 +543,6 @@ répétitions mesurées : à faire seulement si une mesure le justifie.
   de chaque desserrage ; c'est ce qui permet de distinguer un progrès d'une régression.
 - **Comparer deux mesures après un changement qui consomme la RNG.** Le flux se décale et
   les chiffres ne sont plus comparables : il faut isoler l'effet (voir le lot 6).
-
----
-
-## 6. Organisation de la documentation
 
 ```
 docs/

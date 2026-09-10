@@ -1580,3 +1580,38 @@ describe('REG-028: equipped armor reduces damage taken', () => {
     expect(bareDamage - armoredDamage).toBe(ITEM_DEFINITIONS.eva_suit!.armorValue);
   });
 });
+
+// ---------------------------------------------------------------------------
+// REG-029: solving a gate with the gate item didn't open the gate (Issue found
+// by a free-play AI playtest campaign — the harness only ever plays escape,
+// so investigate's own gate had never been walked end to end).
+// ---------------------------------------------------------------------------
+// `encrypted_terminal` has five interactions that unlock the way to `reveal`
+// (USE/HACK/TALK with no item, USE with a found password, BREAK). The sixth —
+// USE with the actual gate item, `encrypted_data_core`, inserted into the slot
+// the room's own text describes — decrypted the terminal and set its own flag,
+// but carried no `revealsExit`. The most natural solution to the puzzle the
+// scenario is built around was the one that didn't open the door.
+
+describe('REG-029: using the gate item on its terminal unlocks the way onward', () => {
+  test('encrypted_data_core USE on encrypted_terminal unlocks unlock→reveal', () => {
+    const skeleton = getSkeletonById('investigate')!;
+    const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, createSeededRng(1));
+    const base = initGame(scenario, 'engineer', 'explorer', 'Test', createSeededRng(1));
+    const state: GameState = {
+      ...base,
+      playerLocationId: 'unlock',
+      visitedLocations: { ...base.visitedLocations, unlock: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], droppedItems: [], obstacleResolved: false } },
+      character: { ...base.character!, inventory: ['encrypted_data_core'] },
+    };
+    const parserData = buildParserLocaleData('fr');
+
+    const result = processTurn(
+      state, 'utiliser le noyau de donnees sur le terminal de communication',
+      getSceneContext(state), parserData, createSeededRng(1),
+    );
+
+    expect(result.newState.scenarioFlags['terminal_decrypted']).toBe(true);
+    expect(result.newState.unlockedExits['unlock:reveal']).toBe(true);
+  });
+});

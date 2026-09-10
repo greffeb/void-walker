@@ -154,6 +154,7 @@ const encrypted_data_core: ScenarioItemDefinition = {
           },
           newState: ['unlocked', 'active'],
           flagSet: 'terminal_decrypted',
+          revealsExit: 'unlock_to_reveal',
         },
       },
     },

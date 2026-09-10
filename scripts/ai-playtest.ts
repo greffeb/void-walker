@@ -33,7 +33,11 @@ import type { SceneToken } from '../src/narration/scene';
 import type { GameState, SceneContext } from '../src/engine/types';
 import type { PlayerClassName, DifficultyLevel } from '../src/engine/types';
 
-const STATE_FILE = path.join(__dirname, '.ai-playtest-state.json');
+// One CLI process = one game turn, so state travels through a file. A session
+// tag (env var, so parallel subagents never have to remember a flag) keeps
+// concurrent playtests from overwriting each other's save.
+const SESSION = process.env.AI_PLAYTEST_SESSION;
+const STATE_FILE = path.join(__dirname, `.ai-playtest-state${SESSION ? `-${SESSION}` : ''}.json`);
 const parserData = buildParserLocaleData('fr');
 
 // ---------------------------------------------------------------------------
