@@ -411,8 +411,9 @@ export function NarrativePanel({
         cursor: isComplete ? 'default' : 'pointer',
       }}
     >
-      {/* Welcome narrative (first scene) */}
-      {welcomeNarrative && turnHistory.length === 0 && (
+      {/* Welcome narrative (first scene) — kept in history so players can
+          scroll back up to it once turn 1 has happened. */}
+      {welcomeNarrative && (
         <NarratedSceneBlock scene={welcomeNarrative} />
       )}
 
