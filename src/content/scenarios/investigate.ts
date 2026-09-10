@@ -93,6 +93,7 @@ const standard_toolkit: ScenarioItemDefinition = {
             fr: 'Vous ouvrez le boîtier du terminal et pontez le circuit endommagé. L\'écran s\'illumine — accès partiel restauré.',
             en: 'You open the terminal casing and bridge the damaged circuit.',
           },
+          newState: ['intact', 'active'],
           flagSet: 'maintenance_terminal_repaired',
         },
       },
@@ -119,6 +120,7 @@ const standard_toolkit: ScenarioItemDefinition = {
             fr: 'Vous remplacez le circuit grillé du terminal de neutralisation. L\'écran s\'allume faiblement — le système est partiellement opérationnel.',
             en: 'You replace the burned circuit. The screen lights up faintly.',
           },
+          newState: ['intact', 'active'],
           flagSet: 'override_terminal_repaired',
         },
       },
@@ -150,6 +152,7 @@ const encrypted_data_core: ScenarioItemDefinition = {
             fr: 'Vous insérez le noyau de données. Le terminal ronronne, les barres de déchiffrement progressent — 40%, 70%, 98%... ACCÈS AUX LOGS : ACCORDÉ.\n\nLes communications se déversent à l\'écran. Un échange saute aux yeux : le Dr. Chen signalant des "modifications non autorisées du confinement" — message supprimé 47 secondes plus tard par la Directrice Vasquez. Un ordre chiffré d\'Heliox : "Calendrier confirmé. Transfert 72h après l\'incident." Le dernier log : alerte niveau 5, puis le silence.',
             en: 'You insert the data core. Decryption progresses — ACCESS GRANTED. Logs reveal Dr. Chen\'s suppressed warning about unauthorized containment modifications, deleted by Vasquez 47 seconds later.',
           },
+          newState: ['unlocked', 'active'],
           flagSet: 'terminal_decrypted',
         },
       },
@@ -196,6 +199,7 @@ const director_keycard: ScenarioItemDefinition = {
             fr: 'Badge inséré. L\'IA hésite — le badge de sa créatrice. \'Commande contradictoire détectée. Protocole hiérarchique activé.\' Le verrou cède. Le badge de Vasquez est la clé maîtresse.',
             en: 'Badge inserted. The AI hesitates — its creator\'s badge.',
           },
+          newState: 'open',
           flagSet: 'ai_lock_opened',
         },
       },
@@ -604,7 +608,7 @@ const maintenance_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: 'Vous reconnectez les circuits endommagés. L\'écran s\'illumine — accès complet. Caméras, portes, ventilation — vous avez les yeux et les mains de la station.',
           en: 'You reconnect the damaged circuits. Full access restored.',
@@ -615,7 +619,7 @@ const maintenance_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', requiredItem: 'standard_toolkit', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: 'Le testeur de circuits identifie le composant grillé. Remplacement en 30 secondes. L\'écran reprend vie — accès complet aux systèmes de maintenance.',
           en: 'The circuit tester identifies the burned component. Quick replacement.',
@@ -673,6 +677,7 @@ const director_notes_clipboard: ScenarioFeatureDefinition = {
           fr: 'Notes manuscrites : \'Compte à rebours lancé. 72h avant procédure d\'évacuation automatique. Vérifier que les logs sont effacés AVANT.\' Le reste est raturé — mais un code est visible dans la marge : 7-2-9-4.',
           en: 'Handwritten notes reveal a countdown and a code: 7-2-9-4.',
         },
+        newState: 'searched',
         flagSet: 'password_found',
       },
     },
@@ -1108,7 +1113,7 @@ const override_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', requiredItem: 'standard_toolkit', dc: null },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: 'Le testeur de circuits identifie 3 composants grillés. Remplacement minutieux — chaque connexion compte. L\'écran s\'allume enfin : PRÊT POUR RÉINITIALISATION.',
           en: 'Circuit tester identifies 3 burned components. Careful replacement.',
@@ -1119,7 +1124,7 @@ const override_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 13 },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: 'Sans les bons outils, c\'est un travail de précision à mains nues. Mais vous y arrivez — les circuits reprennent vie un par un.',
           en: 'Without proper tools, it\'s precision work with bare hands. But you manage.',

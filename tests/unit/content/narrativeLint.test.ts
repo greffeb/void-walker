@@ -27,8 +27,8 @@ const BUDGETS: Readonly<Record<RuleId, number>> = {
   R4_noeud_titre:        12,
   R5_noeud_inventaire:   24,
   R6_coaching:            3,
-  R7_etat_inatteignable: 24,
-  R8_flag_sans_etat:     51,
+  R7_etat_inatteignable:  0,  // atteint 2026-09-10 : BREAK casse au lieu d'ouvrir, tokens d'état en liste
+  R8_flag_sans_etat:      0,  // atteint 2026-09-10 : 12 états manquants posés, 11 exceptions motivées
   R9_sans_nom_fr:         0,  // atteint 2026-09-10 : 51 noms FR/EN ajoutés
   R10_ponctuation:        2,
 };

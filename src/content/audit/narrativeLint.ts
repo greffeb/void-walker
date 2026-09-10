@@ -12,9 +12,11 @@
 
 import type { CoreSkeleton, ScenarioModule, MicroModule, LocaleString, FeatureDefinition, ItemDefinition } from '../../engine/scenario';
 import type { StateId, EntityState } from '../../engine/entityState';
+import type { VerbId } from '../../engine/verbs';
 import { isEnrichedFeature, isEnrichedItem } from '../../engine/scenario';
-import { makeEntityState, applyStateToken } from '../../engine/entityState';
+import { makeEntityState, applyStateToken, stateMatchesToken } from '../../engine/entityState';
 import { pickStateDescription } from '../../engine/featureState';
+import { toStateTokens } from '../../engine/interactionResolver';
 import { featureDisplayName, itemDisplayName } from '../featureNames';
 
 export type RuleId =
@@ -81,29 +83,104 @@ export function shingleOverlap(a: string, b: string): number {
 
 // --- feature-level rules ---------------------------------------------------
 
-/** Every state token an interaction on this feature can set. */
-function settableTokens(feat: FeatureDefinition): readonly StateId[] {
-  if (!isEnrichedFeature(feat)) return [];
-  const tokens = new Set<StateId>();
-  for (const inter of feat.interactions ?? []) {
-    for (const res of [inter.onSuccess, inter.onFailure]) {
-      for (const tk of toTokenList(res?.newState)) tokens.add(tk);
-    }
-  }
-  return [...tokens];
-}
-
-/** `newState` accepts one token or an ordered list; normalise to a list. */
-export function toTokenList(newState: StateId | readonly StateId[] | undefined): readonly StateId[] {
-  if (newState === undefined) return [];
-  return typeof newState === 'string' ? [newState] : newState;
-}
+/**
+ * Token sequences the engine can apply to ANY environment feature, with no
+ * scenario interaction involved: `processTurn` turns a successful OPEN-like verb
+ * into a state change directly (see `openingTokensFor`). A description reachable
+ * only that way is still reachable.
+ */
+const GENERIC_OPENINGS: readonly (readonly StateId[])[] = [['open'], ['broken', 'open']];
 
 /** Apply an ordered token list the way setFeatureState does. */
 function applyTokens(start: EntityState, tokens: readonly StateId[]): EntityState {
   let s = start;
   for (const tk of tokens) s = applyStateToken(s, tk);
   return s;
+}
+
+/**
+ * Successes that deliberately leave their target looking the same. A static rule
+ * cannot tell a HACK that unlocks from a HACK that merely reads, so each
+ * exception is declared here with its reason, the way KNOWN_ORPHANS works. The
+ * list may only ever shrink.
+ *
+ * Keyed by the flag the interaction sets, which is unique per interaction.
+ */
+const UNCHANGED_BY_DESIGN: Readonly<Record<string, string>> = {
+  manifest_hacked:               'étend l\'accès aux logs ; le terminal affiche toujours le manifeste',
+  safe_scanned:                  'le scanner révèle un double-fond ; le coffre reste verrouillé',
+  ai_scan_revealed:              'le scanner lit un flux ; le nœud tourne toujours',
+  reactor_sabotage_confirmed:    'le scanner confirme un sabotage ; le réacteur est inchangé',
+  node_a_exposed:                'dévisse un panneau ; le nœud reste actif, rien de visible ne bouge',
+  camera_evidence_found:         'consulte les archives caméra ; le terminal réparé reste réparé',
+  classified_evidence_recovered: 'récupère des fichiers supprimés ; l\'écran est le même',
+  vasquez_location_found:        'perce une couche de chiffrement ; l\'écran est le même',
+  override_admin_access:         'étape 1 du protocole en 2 étapes ; le terminal attend encore l\'étape 2',
+  evidence_transmitted:          'la balise transmet ; c\'est la victoire, pas un changement d\'état',
+  ai_safe_mode:                  'neutralise l\'IA, pas le terminal qui sert à la neutraliser',
+};
+
+/**
+ * Verbs that only look. Learning something about an object is not changing it,
+ * so these may set a flag without touching the object's state.
+ */
+const OBSERVING_VERBS: ReadonlySet<VerbId> = new Set<VerbId>([
+  'EXAMINE', 'SCAN', 'READ', 'LISTEN', 'SMELL', 'TALK', 'INTERROGATE',
+]);
+
+/** True when at least one verb on the trigger acts on the world. */
+function triggerActs(verb: VerbId | readonly VerbId[]): boolean {
+  const verbs = typeof verb === 'string' ? [verb] : verb;
+  return verbs.some(v => !OBSERVING_VERBS.has(v));
+}
+
+/** An interaction edge: applicable only from a state its trigger accepts. */
+interface StateEdge {
+  readonly requiredState: StateId | undefined;
+  readonly tokens: readonly StateId[];
+}
+
+function stateEdges(feat: FeatureDefinition): readonly StateEdge[] {
+  const edges: StateEdge[] = GENERIC_OPENINGS.map(tokens => ({ requiredState: undefined, tokens }));
+  if (!isEnrichedFeature(feat)) return edges;
+  // A container whose `contains` have all been taken is marked empty by
+  // processTurn's markEmptiedContainers, with no interaction involved.
+  if ((feat.contains ?? []).length > 0) {
+    edges.push({ requiredState: undefined, tokens: ['empty'] });
+  }
+  for (const inter of feat.interactions ?? []) {
+    for (const res of [inter.onSuccess, inter.onFailure]) {
+      const tokens = toStateTokens(res?.newState);
+      if (tokens.length > 0) edges.push({ requiredState: inter.trigger.requiredState, tokens });
+    }
+  }
+  return edges;
+}
+
+/**
+ * Every state the player can actually put this feature into, by walking the
+ * interaction graph from the initial state. Honouring `requiredState` matters:
+ * an unlock gated on `requiredState: 'locked'` stops being available once the
+ * feature is open, so composing tokens blindly invents reachable states.
+ */
+function reachableStates(feat: FeatureDefinition): readonly EntityState[] {
+  const edges = stateEdges(feat);
+  const start = makeEntityState(feat.initialState);
+  const seen = new Map<string, EntityState>([[JSON.stringify(start), start]]);
+  const queue: EntityState[] = [start];
+
+  while (queue.length > 0) {
+    const state = queue.shift()!;
+    for (const edge of edges) {
+      if (edge.requiredState !== undefined && !stateMatchesToken(state, edge.requiredState)) continue;
+      const next = applyTokens(state, edge.tokens);
+      const key = JSON.stringify(next);
+      if (seen.has(key)) continue;
+      seen.set(key, next);
+      queue.push(next);
+    }
+  }
+  return [...seen.values()];
 }
 
 function checkFeature(feat: FeatureDefinition, where: string, siblingNames: readonly string[]): readonly Finding[] {
@@ -159,20 +236,10 @@ function checkFeature(feat: FeatureDefinition, where: string, siblingNames: read
   }
 
   // R7 — a description the player can never reach.
-  const init = makeEntityState(feat.initialState);
   const reachable = new Set<string>();
-  const initDesc = pickStateDescription(descriptions, init);
-  if (initDesc) reachable.add(initDesc.fr);
-  const tokens = settableTokens(feat);
-  // Every ordered subset is overkill; every prefix-from-initial plus every
-  // single token covers the paths content actually writes.
-  for (const tk of tokens) {
-    const d = pickStateDescription(descriptions, applyTokens(init, [tk]));
+  for (const state of reachableStates(feat)) {
+    const d = pickStateDescription(descriptions, state);
     if (d) reachable.add(d.fr);
-    for (const tk2 of tokens) {
-      const d2 = pickStateDescription(descriptions, applyTokens(init, [tk, tk2]));
-      if (d2) reachable.add(d2.fr);
-    }
   }
   for (const [state, ls] of entries) {
     if (!reachable.has(ls.fr)) {
@@ -180,14 +247,20 @@ function checkFeature(feat: FeatureDefinition, where: string, siblingNames: read
     }
   }
 
-  // R8 — an interaction that flags progress but leaves the object looking untouched.
+  // R8 — a success that changes the object but leaves it looking untouched.
+  //
+  // Scoped deliberately. Only successes: a failed attempt that changes nothing
+  // is correct, and `onFailure` flags like `hack_attempt_logged` record the
+  // attempt, not a change. And only verbs that act: reading a log or scanning a
+  // safe teaches the player something without altering the thing, so those
+  // legitimately set a flag and no state.
   if (isEnrichedFeature(feat) && entries.length >= 2) {
     for (const inter of feat.interactions ?? []) {
-      for (const [key, res] of [['onSuccess', inter.onSuccess], ['onFailure', inter.onFailure]] as const) {
-        if (res?.flagSet !== undefined && res.newState === undefined) {
-          out.push({ rule: 'R8_flag_sans_etat', where, entity: `${feat.id}.${key}`, detail: `flagSet=${res.flagSet} sans newState` });
-        }
-      }
+      const res = inter.onSuccess;
+      if (res.flagSet === undefined || res.newState !== undefined) continue;
+      if (!triggerActs(inter.trigger.verb)) continue;
+      if (res.flagSet in UNCHANGED_BY_DESIGN) continue;
+      out.push({ rule: 'R8_flag_sans_etat', where, entity: `${feat.id}.onSuccess`, detail: `flagSet=${res.flagSet} sans newState` });
     }
   }
 
@@ -235,15 +308,14 @@ function checkItem(
   for (const use of item.useOn ?? []) {
     const states = featureStateCount.get(use.targetId) ?? 0;
     if (states < 2) continue;
-    for (const [key, res] of [['onSuccess', use.interaction.onSuccess], ['onFailure', use.interaction.onFailure]] as const) {
-      if (res?.flagSet !== undefined && res.newState === undefined) {
-        out.push({
-          rule: 'R8_flag_sans_etat',
-          where,
-          entity: `${item.id}→${use.targetId}.${key}`,
-          detail: `flagSet=${res.flagSet} sans newState`,
-        });
-      }
+    const res = use.interaction.onSuccess;
+    if (res.flagSet !== undefined && res.newState === undefined && !(res.flagSet in UNCHANGED_BY_DESIGN)) {
+      out.push({
+        rule: 'R8_flag_sans_etat',
+        where,
+        entity: `${item.id}→${use.targetId}.onSuccess`,
+        detail: `flagSet=${res.flagSet} sans newState`,
+      });
     }
   }
   return out;

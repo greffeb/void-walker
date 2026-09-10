@@ -127,6 +127,7 @@ const salvage_tool: ScenarioItemDefinition = {
             fr: "L'outil de recuperation fait levier sur les poutres effondrees. Le metal grince, cede. Un passage etroit mais praticable s'ouvre dans les decombres.",
             en: "The salvage tool levers the collapsed beams. A narrow passage opens.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'corridor_cleared_tool',
         },
       },
@@ -140,6 +141,7 @@ const salvage_tool: ScenarioItemDefinition = {
             fr: "Vous bloquez l'outil dans le mecanisme de la porte blindee et forcez. Le metal grince — la porte s'ouvre de 30 centimetres supplementaires. Assez pour passer.",
             en: "You jam the tool into the blast door mechanism and force it.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'blast_door_widened',
         },
       },
@@ -153,6 +155,7 @@ const salvage_tool: ScenarioItemDefinition = {
             fr: "L'outil sert de levier pour forcer le mecanisme endommage. La porte de la baie d'extraction coulisse — la navette est de l'autre cote.",
             en: "The tool levers the damaged mechanism. The extraction bay door slides open.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'extraction_door_opened',
         },
       },
@@ -192,6 +195,7 @@ const plasma_cutter: ScenarioItemDefinition = {
             fr: "Le plasma tranche les poutres dans une gerbe d'etincelles bleues. Le passage s'ouvre — mais le rugissement du decoupeur a resonne dans toute la station.",
             en: "Plasma slices through the beams in a shower of blue sparks.",
           },
+          newState: ['intact', 'open'],
           flagSet: 'corridor_plasma_cut',
         },
       },
@@ -279,6 +283,7 @@ const sonic_emitter_component: ScenarioItemDefinition = {
             fr: "Vous fixez le composant sonique au point de piege acoustique. L'activation declenche une cascade de resonance — les murs acoustiques amplifient le signal x100. Un mur de son invisible, infranchissable pour la creature. Confinee. Neutralisee. Pour toujours.",
             en: "You attach the sonic component to the acoustic trap point. Resonance cascade. The creature is trapped.",
           },
+          newState: 'active',
           flagSet: 'creature_contained',
           consumeItem: true,
         },
@@ -306,6 +311,7 @@ const sonic_emitter_component: ScenarioItemDefinition = {
             fr: "Le composant sonique remplace l'antenne brisee — meme gamme de frequences. La balise emet a nouveau. Mais vous venez de sacrifier votre seule arme contre la creature.",
             en: "The sonic component replaces the broken antenna. But you just sacrificed your only weapon.",
           },
+          newState: ['intact', 'active'],
           flagSet: 'backup_beacon_active',
           consumeItem: true,
         },
@@ -578,7 +584,7 @@ const emergency_beacon_broken: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'broken', requiredItem: 'salvage_tool', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: "Antenne reconstruite avec des pieces de fortune. Le circuit d'emission reprend vie — un bip regulier. La portee est limitee, mais c'est un signal. Un espoir de secours exterieur.",
           en: "Antenna rebuilt from salvage. The emission circuit comes alive.",
@@ -636,7 +642,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'broken', stat: 'FOR', dc: 12 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Poutre par poutre, vous degagez le passage. Le metal mord vos mains, la sueur brule vos yeux. Mais le couloir s'ouvre enfin.",
           en: "Beam by beam, you clear the passage.",
@@ -655,7 +661,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'FORCE_OPEN', requiredState: 'broken', requiredItem: 'salvage_tool', dc: null },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "L'outil de recuperation fait levier sur les poutres principales. Le metal cede proprement — le passage s'ouvre sans effort excessif.",
           en: "The salvage tool levers the main beams. The passage opens cleanly.",
@@ -678,7 +684,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'USE', requiredState: 'broken', requiredItem: 'plasma_cutter', stat: 'INT', dc: 10 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Le decoupeur plasma tranche les poutres comme du beurre. Le passage s'ouvre dans une pluie d'etincelles et une odeur de metal brule. Efficace — mais le bruit a du porter loin.",
           en: "The plasma cutter slices through beams like butter. Effective — but loud.",
@@ -691,7 +697,7 @@ const collapsed_corridor: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'CLIMB', requiredState: 'broken', stat: 'AGI', dc: 8 },
       onSuccess: {
-        newState: 'open',
+        newState: ['intact', 'open'],
         narrative: {
           fr: "Vous rampez entre les poutres tordues. Le m\u00e9tal mord votre peau, les d\u00e9bris s'effondrent derri\u00e8re vous. Trois m\u00e8tres de terreur pure. Mais vous passez.",
           en: "You crawl through the twisted beams. Metal bites your skin, debris collapses behind you. But you make it through.",
@@ -908,7 +914,7 @@ const research_terminal: ScenarioFeatureDefinition = {
     {
       trigger: { verb: 'REPAIR', requiredState: 'damaged', stat: 'INT', dc: 11 },
       onSuccess: {
-        newState: 'active',
+        newState: ['intact', 'active'],
         narrative: {
           fr: "Le terminal reprend vie. Les donnees completes du Projet Chasseur s'affichent. Et un detail crucial : la creature APPREND. Elle s'adapte aux stimuli repetes en 3 a 5 expositions.",
           en: "Full Project Hunter data. Crucial detail: the creature LEARNS.",

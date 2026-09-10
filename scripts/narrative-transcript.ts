@@ -26,7 +26,7 @@ import type { StateId, EntityState } from '../src/engine/entityState';
 import { makeEntityState, applyStateToken } from '../src/engine/entityState';
 import { pickStateDescription } from '../src/engine/featureState';
 import { featureDisplayName, itemDisplayName } from '../src/content/featureNames';
-import { toTokenList } from '../src/content/audit/narrativeLint';
+import { toStateTokens } from '../src/engine/interactionResolver';
 
 const OUT_DIR = path.join(process.cwd(), 'docs', 'transcripts');
 
@@ -69,7 +69,7 @@ function reachableStates(feat: FeatureDefinition): readonly { label: string; sta
   const seen = new Set<string>([JSON.stringify(init)]);
   for (const inter of feat.interactions ?? []) {
     for (const res of [inter.onSuccess, inter.onFailure]) {
-      const tokens = toTokenList(res?.newState);
+      const tokens = toStateTokens(res?.newState);
       if (tokens.length === 0) continue;
       let s = init;
       for (const tk of tokens) s = applyStateToken(s, tk as StateId);
@@ -121,7 +121,7 @@ function featureSection(feat: FeatureDefinition, indent = ''): string {
     ].filter(Boolean).join(', ');
     lines.push(`${indent}- **${verbs}** (${gates})`);
     const flag = inter.onSuccess.flagSet ? ` \`flagSet=${inter.onSuccess.flagSet}\`` : '';
-    const st = inter.onSuccess.newState ? ` \`newState=${toTokenList(inter.onSuccess.newState).join('+')}\`` : ' ⚠ `sans newState`';
+    const st = inter.onSuccess.newState ? ` \`newState=${toStateTokens(inter.onSuccess.newState).join('+')}\`` : ' ⚠ `sans newState`';
     lines.push(`${indent}  - réussite${st}${flag}`);
     lines.push(`${indent}    > ${fr(inter.onSuccess.narrative) || '(templates génériques)'}`);
     if (inter.onFailure) {
@@ -143,7 +143,7 @@ function itemSection(item: ItemDefinition): string {
   if (isEnrichedItem(item)) {
     for (const use of item.useOn ?? []) {
       const st = use.interaction.onSuccess.newState
-        ? ` \`newState=${toTokenList(use.interaction.onSuccess.newState).join('+')}\``
+        ? ` \`newState=${toStateTokens(use.interaction.onSuccess.newState).join('+')}\``
         : ' ⚠ `sans newState`';
       const flag = use.interaction.onSuccess.flagSet ? ` \`flagSet=${use.interaction.onSuccess.flagSet}\`` : '';
       lines.push(`- **USE sur \`${use.targetId}\`**${st}${flag}`);

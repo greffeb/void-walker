@@ -93,9 +93,9 @@
 
 - description
   > Un badge d'accès de niveau 3 — celui du technicien Chen. Encore actif. Il devrait ouvrir la cloison de sécurité.
-- **USE sur `security_panel`** ⚠ `sans newState` `flagSet=bulkhead_unlocked`
+- **USE sur `security_panel`** `newState=inactive` `flagSet=bulkhead_unlocked`
   > Vous passez le badge sur le lecteur. Bip. Le voyant passe au vert. La cloison blindée gronde — les verrous magnétiques se rétractent un à un. Le passage est libre.
-- **USE sur `escape_pod_hatch`** ⚠ `sans newState` `flagSet=pod_hatch_open`
+- **USE sur `escape_pod_hatch`** `newState=open` `flagSet=pod_hatch_open`
   > Le badge active l'écoutille du pod. Les joints pneumatiques sifflent — la porte s'ouvre sur l'intérieur exigu de la capsule d'évasion.
 
 #### Bouteille d'oxygène  `oxygen_canister` *(caché)*
@@ -193,8 +193,6 @@
 - **initial (active)** · `activity=active power=powered` · via `descriptions`
   > Le terminal personnel du Capitaine Reeves. L'écran affiche plusieurs entrées de journal — datées des dernières 48 heures avant la catastrophe. Les entrées deviennent de plus en plus frénétiques. La dernière mentionne un "Projet ORACLE" et un dossier classifié. Le datapad du capitaine repose à côté, séparé du terminal.
 - **après newState:searched** · `activity=active power=powered contents=searched` · via `descriptions`
-  > Le terminal personnel du Capitaine Reeves. L'écran affiche plusieurs entrées de journal — datées des dernières 48 heures avant la catastrophe. Les entrées deviennent de plus en plus frénétiques. La dernière mentionne un "Projet ORACLE" et un dossier classifié. Le datapad du capitaine repose à côté, séparé du terminal.
-- ⚠ **INATTEIGNABLE** `descriptions.searched`
   > Le terminal du Capitaine Reeves, fouillé. Les tiroirs ont été ouverts — une petite clé magnétique a été trouvée sous des papiers froissés. Les entrées de journal sont toujours lisibles à l'écran. Le Projet ORACLE hante chaque ligne.
 - `readableContent` (748 car.)
 - **READ/EXAMINE/SCAN** (état=searched, auto)

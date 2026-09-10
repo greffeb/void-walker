@@ -100,18 +100,18 @@
 
 - description
   > Trousse à outils standard de maintenance spatiale. Contient un testeur de circuits, un tournevis magnétique, des pinces isolées et un rouleau de ruban conducteur. Tout ce qu'il faut pour les réparations d'urgence.
-- **USE sur `maintenance_terminal`** ⚠ `sans newState` `flagSet=maintenance_terminal_repaired`
+- **USE sur `maintenance_terminal`** `newState=intact+active` `flagSet=maintenance_terminal_repaired`
   > Vous ouvrez le boîtier du terminal et pontez le circuit endommagé. L'écran s'illumine — accès partiel restauré.
 - **USE sur `ai_core_node_a`** ⚠ `sans newState` `flagSet=node_a_exposed`
   > Vous dévissez le panneau de maintenance du nœud. Les connecteurs de données sont exposés — il suffirait de déconnecter les fibres optiques principales.
-- **USE sur `override_terminal`** ⚠ `sans newState` `flagSet=override_terminal_repaired`
+- **USE sur `override_terminal`** `newState=intact+active` `flagSet=override_terminal_repaired`
   > Vous remplacez le circuit grillé du terminal de neutralisation. L'écran s'allume faiblement — le système est partiellement opérationnel.
 
 #### Noyau de données chiffré  `encrypted_data_core` *(caché)*
 
 - description
   > Noyau de données lourdement chiffré — protocole militaire niveau 4. Contient les logs de la station des dernières 72 heures. La clé de déchiffrement est quelque part sur la station.
-- **USE sur `encrypted_terminal`** ⚠ `sans newState` `flagSet=terminal_decrypted`
+- **USE sur `encrypted_terminal`** `newState=unlocked+active` `flagSet=terminal_decrypted`
   > Vous insérez le noyau de données. Le terminal ronronne, les barres de déchiffrement progressent — 40%, 70%, 98%... ACCÈS AUX LOGS : ACCORDÉ.
 
 Les communications se déversent à l'écran. Un échange saute aux yeux : le Dr. Chen signalant des "modifications non autorisées du confinement" — message supprimé 47 secondes plus tard par la Directrice Vasquez. Un ordre chiffré d'Heliox : "Calendrier confirmé. Transfert 72h après l'incident." Le dernier log : alerte niveau 5, puis le silence.
@@ -174,9 +174,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > Terminal de maintenance auxiliaire. L'écran est fissuré mais partiellement lisible. Les logs de maintenance affichent en boucle la même entrée : "2247-03-01 — Modification paramètres confinement — Autorisation ADMIN_VASQUEZ — Motif : recalibration programmée." Sauf qu'aucune recalibration n'était prévue dans le planning.
-- **après newState:active** · `integrity=damaged activity=active power=powered` · via `descriptions`
-  > Terminal de maintenance auxiliaire. L'écran est fissuré mais partiellement lisible. Les logs de maintenance affichent en boucle la même entrée : "2247-03-01 — Modification paramètres confinement — Autorisation ADMIN_VASQUEZ — Motif : recalibration programmée." Sauf qu'aucune recalibration n'était prévue dans le planning.
-- ⚠ **INATTEIGNABLE** `descriptions.active`
+- **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
   > Terminal réparé. L'écran affiche quatre panneaux : CAMÉRAS (archives 72h disponibles), PORTES (contrôle manuel des sas — utile si l'IA verrouille votre chemin), VENTILATION (reroutage atmosphérique possible), et DIAGNOSTICS (état du réacteur en temps réel). Chaque panneau attend vos commandes.
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Terminal complètement hors service. Plus rien à en tirer.
@@ -185,10 +183,10 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
   - réussite ⚠ `sans newState` `flagSet=maintenance_logs_read`
     > L'écran fissuré affiche des fragments : interventions non autorisées sur le confinement, exactement 72 heures avant le silence radio. Codes d'accès modifiés par 'ADMIN_VASQUEZ'. Elle a couvert ses traces — presque.
 - **REPAIR** (état=damaged, DC 11 INT)
-  - réussite `newState=active` `flagSet=maintenance_control`
+  - réussite `newState=intact+active` `flagSet=maintenance_control`
     > Vous reconnectez les circuits endommagés. L'écran s'illumine — accès complet. Caméras, portes, ventilation — vous avez les yeux et les mains de la station.
 - **REPAIR** (état=damaged, objet=standard_toolkit, auto)
-  - réussite `newState=active` `flagSet=maintenance_control`
+  - réussite `newState=intact+active` `flagSet=maintenance_control`
     > Le testeur de circuits identifie le composant grillé. Remplacement en 30 secondes. L'écran reprend vie — accès complet aux systèmes de maintenance.
 - **HACK** (état=active, DC 12 INT)
   - réussite ⚠ `sans newState` `flagSet=camera_evidence_found`
@@ -201,10 +199,10 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 
 - **initial (intact)** · `integrity=intact` · via `descriptions`
   > Le bloc-notes de la directrice. Notes manuscrites, écriture nerveuse. Des passages sont raturés avec insistance.
-- ⚠ **INATTEIGNABLE** `descriptions.searched`
+- **après newState:searched** · `integrity=intact contents=searched` · via `descriptions`
   > Le bloc-notes, déjà examiné. Les ratures sont toujours aussi suspectes.
 - **READ** (auto)
-  - réussite ⚠ `sans newState` `flagSet=password_found`
+  - réussite `newState=searched` `flagSet=password_found`
     > Notes manuscrites : 'Compte à rebours lancé. 72h avant procédure d'évacuation automatique. Vérifier que les logs sont effacés AVANT.' Le reste est raturé — mais un code est visible dans la marge : 7-2-9-4.
 - **EXAMINE** (DC 10 PER)
   - réussite ⚠ `sans newState` `flagSet=fraud_note_deciphered`
@@ -287,7 +285,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
   > Badge personnel de la Directrice Vasquez. Niveau d'accès maximal. Le post-it avec le code 7-2-9-4 est toujours collé au dos. Sa négligence est votre meilleur allié.
 - **USE sur `override_terminal`** ⚠ `sans newState` `flagSet=override_admin_access`
   > Le terminal reconnaît le badge de Vasquez. ACCÈS ADMINISTRATEUR — DIRECTRICE VASQUEZ. Ironie : l'accès qu'elle a utilisé pour condamner la station va servir à la sauver.
-- **USE sur `ai_final_lock`** ⚠ `sans newState` `flagSet=ai_lock_opened`
+- **USE sur `ai_final_lock`** `newState=open` `flagSet=ai_lock_opened`
   > Badge inséré. L'IA hésite — le badge de sa créatrice. 'Commande contradictoire détectée. Protocole hiérarchique activé.' Le verrou cède. Le badge de Vasquez est la clé maîtresse.
 
 #### Dossiers compromettants  `incriminating_files`
@@ -379,9 +377,7 @@ Les logs s'affichent. Le Dr. Chen a lancé une alerte à l'équipage — supprim
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > Terminal de neutralisation d'urgence. Le circuit principal est grillé. Avec des réparations et le bon badge, il pourrait redémarrer l'IA en mode sécurisé.
-- **après newState:active** · `integrity=damaged activity=active power=powered` · via `descriptions`
-  > Terminal de neutralisation d'urgence. Le circuit principal est grillé. Avec des réparations et le bon badge, il pourrait redémarrer l'IA en mode sécurisé.
-- ⚠ **INATTEIGNABLE** `descriptions.active`
+- **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
   > Terminal de neutralisation opérationnel. L'écran affiche : RÉINITIALISATION IA — PROTOCOLE EN 2 ÉTAPES :
 1) Insérer badge administrateur (niveau Directeur minimum)
 2) Confirmer le redémarrage en mode sécurisé
@@ -390,10 +386,10 @@ MODE SÉCURISÉ : L'IA conservera ses fonctions vitales (support vie, gravité) 
 - ⚠ **INATTEIGNABLE** `descriptions.broken`
   > Terminal de neutralisation irréparable. Cette option est définitivement fermée.
 - **REPAIR** (état=damaged, objet=standard_toolkit, auto)
-  - réussite `newState=active` `flagSet=override_terminal_repaired`
+  - réussite `newState=intact+active` `flagSet=override_terminal_repaired`
     > Le testeur de circuits identifie 3 composants grillés. Remplacement minutieux — chaque connexion compte. L'écran s'allume enfin : PRÊT POUR RÉINITIALISATION.
 - **REPAIR** (état=damaged, DC 13 INT)
-  - réussite `newState=active` `flagSet=override_terminal_repaired`
+  - réussite `newState=intact+active` `flagSet=override_terminal_repaired`
     > Sans les bons outils, c'est un travail de précision à mains nues. Mais vous y arrivez — les circuits reprennent vie un par un.
 - **ACTIVATE** (état=active, flag=override_admin_access, auto)
   - réussite ⚠ `sans newState` `flagSet=ai_safe_mode`

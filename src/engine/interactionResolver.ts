@@ -38,8 +38,8 @@ export interface InteractionResolution {
   readonly result: InteractionResult;
   /** Narrative override text, if any. Null = use standard templates. */
   readonly narrativeOverride: import('./scenario').LocaleString | null;
-  /** Updated feature state, if changed. */
-  readonly newFeatureState: FeatureState | null;
+  /** Updated feature state tokens, applied in order. Empty when unchanged. */
+  readonly newFeatureStates: readonly FeatureState[];
   /** Consequences to apply via applyConsequences(). */
   readonly consequences: readonly Consequence[];
   /** Item IDs to reveal. */
@@ -119,6 +119,12 @@ export function findScenarioInteraction(
   return null;
 }
 
+/** `newState` is authored as one token or an ordered list; normalise it. */
+export function toStateTokens(newState: FeatureState | readonly FeatureState[] | undefined): readonly FeatureState[] {
+  if (newState === undefined) return [];
+  return typeof newState === 'string' ? [newState] : newState;
+}
+
 /**
  * Find the interaction for "use item on target".
  * Called when the parser identifies USE <item> ON <target>.
@@ -156,7 +162,7 @@ export function applyInteractionOutcome(
     success,
     result,
     narrativeOverride: result.narrative ?? null,
-    newFeatureState: result.newState ?? null,
+    newFeatureStates: toStateTokens(result.newState),
     consequences: result.consequences ?? [],
     itemsToReveal: result.revealsItems ?? [],
     exitToUnlock: result.revealsExit ?? null,

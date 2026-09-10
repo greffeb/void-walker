@@ -82,12 +82,10 @@
 
 - **initial (broken)** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
   > La balise de detresse de la navette — endommagee dans le crash. Le circuit d'emission est intact mais l'antenne est brisee.
-- **après newState:active** · `integrity=broken activity=active power=powered` · via `descriptions`
-  > La balise de detresse de la navette — endommagee dans le crash. Le circuit d'emission est intact mais l'antenne est brisee.
-- ⚠ **INATTEIGNABLE** `descriptions.active`
+- **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
   > La balise est reparee. Le signal pulse vers l'exterieur — quelqu'un, quelque part, pourrait le capter.
 - **REPAIR** (état=broken, objet=salvage_tool, DC 11 INT)
-  - réussite `newState=active` `flagSet=backup_beacon_active`
+  - réussite `newState=intact+active` `flagSet=backup_beacon_active`
     > Antenne reconstruite avec des pieces de fortune. Le circuit d'emission reprend vie — un bip regulier. La portee est limitee, mais c'est un signal. Un espoir de secours exterieur.
   - échec
     > Les composants ne s'emboitent pas correctement. L'antenne reste silencieuse.
@@ -123,11 +121,11 @@
   > Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune. L'allie du survivaliste.
 - examineResult
   > Outil de recuperation multifonction. Levier, coupeur, soudeur de fortune.
-- **USE sur `collapsed_corridor`** ⚠ `sans newState` `flagSet=corridor_cleared_tool`
+- **USE sur `collapsed_corridor`** `newState=intact+open` `flagSet=corridor_cleared_tool`
   > L'outil de recuperation fait levier sur les poutres effondrees. Le metal grince, cede. Un passage etroit mais praticable s'ouvre dans les decombres.
-- **USE sur `blast_door_partial`** ⚠ `sans newState` `flagSet=blast_door_widened`
+- **USE sur `blast_door_partial`** `newState=intact+open` `flagSet=blast_door_widened`
   > Vous bloquez l'outil dans le mecanisme de la porte blindee et forcez. Le metal grince — la porte s'ouvre de 30 centimetres supplementaires. Assez pour passer.
-- **USE sur `extraction_bay_door`** ⚠ `sans newState` `flagSet=extraction_door_opened`
+- **USE sur `extraction_bay_door`** `newState=intact+open` `flagSet=extraction_door_opened`
   > L'outil sert de levier pour forcer le mecanisme endommage. La porte de la baie d'extraction coulisse — la navette est de l'autre cote.
 
 ---
@@ -150,26 +148,24 @@
 
 - **initial (broken)** · `integrity=broken activity=inactive power=unpowered` · via `descriptions`
   > Le couloir s'est effondre sous le poids des debris. Des poutres metalliques bloquent le passage principal. La structure gemit encore — instable.
-- **après newState:open** · `integrity=broken activity=inactive power=unpowered openness=open lock=unlocked` · via `descriptions`
-  > Le couloir s'est effondre sous le poids des debris. Des poutres metalliques bloquent le passage principal. La structure gemit encore — instable.
-- ⚠ **INATTEIGNABLE** `descriptions.open`
+- **après newState:intact+open** · `integrity=intact activity=inactive power=unpowered openness=open lock=unlocked` · via `descriptions`
   > Les debris ont ete degages. Le passage est etroit mais praticable. Des traces de sang menent de l'autre cote.
 - **FORCE_OPEN** (état=broken, DC 12 FOR)
-  - réussite `newState=open`
+  - réussite `newState=intact+open`
     > Poutre par poutre, vous degagez le passage. Le metal mord vos mains, la sueur brule vos yeux. Mais le couloir s'ouvre enfin.
   - échec
     > Les poutres sont trop lourdes, trop enchevetrees. Vous vous epuisez sans resultat. Il faut une autre approche — ou un outil.
 - **FORCE_OPEN** (état=broken, objet=salvage_tool, auto)
-  - réussite `newState=open`
+  - réussite `newState=intact+open`
     > L'outil de recuperation fait levier sur les poutres principales. Le metal cede proprement — le passage s'ouvre sans effort excessif.
 - **EXAMINE** (état=broken, DC 11 PER)
   - réussite ⚠ `sans newState` `flagSet=detour_found`
     > En examinant les murs autour de l'effondrement, vous reperez une trappe de maintenance partiellement cachee par les decombres. Un passage alternatif.
 - **USE** (état=broken, objet=plasma_cutter, DC 10 INT)
-  - réussite `newState=open` `flagSet=noise_made_unlock`
+  - réussite `newState=intact+open` `flagSet=noise_made_unlock`
     > Le decoupeur plasma tranche les poutres comme du beurre. Le passage s'ouvre dans une pluie d'etincelles et une odeur de metal brule. Efficace — mais le bruit a du porter loin.
 - **CLIMB** (état=broken, DC 8 AGI)
-  - réussite `newState=open`
+  - réussite `newState=intact+open`
     > Vous rampez entre les poutres tordues. Le métal mord votre peau, les débris s'effondrent derrière vous. Trois mètres de terreur pure. Mais vous passez.
   - échec
     > Vous tentez de ramper dans les décombres mais une poutre glisse, manquant de vous écraser. Trop instable — il faut une autre approche.
@@ -205,7 +201,7 @@
   > Decoupeur plasma industriel. Coupe le metal comme du beurre. Bruyant, limite en batterie, mais devastateur.
 - examineResult
   > Decoupeur plasma industriel. Puissant assez pour couper a travers les poutres effondrees, mais le bruit attirerait l'attention.
-- **USE sur `collapsed_corridor`** ⚠ `sans newState` `flagSet=corridor_plasma_cut`
+- **USE sur `collapsed_corridor`** `newState=intact+open` `flagSet=corridor_plasma_cut`
   > Le plasma tranche les poutres dans une gerbe d'etincelles bleues. Le passage s'ouvre — mais le rugissement du decoupeur a resonne dans toute la station.
 - **USE sur `creature_hunter`** ⚠ `sans newState`
   > Le faisceau plasma touche la creature. Elle hurle — un son qui vous transperce — et recule, la chair cauterisee. Blessee, pas vaincue. Mais vous avez gagne un repit.
@@ -249,16 +245,14 @@
 
 - **initial (damaged)** · `integrity=damaged` · via `descriptions`
   > Terminal de recherche partiellement detruit. L'ecran clignote — donnees fragmentaires recuperables.
-- **après newState:active** · `integrity=damaged activity=active power=powered` · via `descriptions`
-  > Terminal de recherche partiellement detruit. L'ecran clignote — donnees fragmentaires recuperables.
-- ⚠ **INATTEIGNABLE** `descriptions.active`
+- **après newState:intact+active** · `integrity=intact activity=active power=powered` · via `descriptions`
   > Terminal restaure. Les donnees du Projet Chasseur s'affichent en entier — une horreur fascinante.
 - `readableContent` (417 car.)
 - **READ** (état=damaged, auto)
   - réussite ⚠ `sans newState` `flagSet=project_hunter_read`
     > Donnees fragmentaires : 'Projet Chasseur — sensibilite acoustique extreme — frequences 15-20 kHz — desorientation confirmee'. Et une note personnelle : 'J'aurais du arreter au Stade 3. Pardon.'
 - **REPAIR** (état=damaged, DC 11 INT)
-  - réussite `newState=active` `flagSet=creature_learns_discovered`
+  - réussite `newState=intact+active` `flagSet=creature_learns_discovered`
     > Le terminal reprend vie. Les donnees completes du Projet Chasseur s'affichent. Et un detail crucial : la creature APPREND. Elle s'adapte aux stimuli repetes en 3 a 5 expositions.
 - **READ** (état=active, auto)
   - réussite ⚠ `sans newState` `flagSet=project_hunter_read`
@@ -281,11 +275,11 @@
   > Composant d'emetteur sonique haute frequence. Combine avec l'acoustique d'une zone confinee, il pourrait neutraliser ou pieger la creature.
 - **USE sur `creature_hunter`** ⚠ `sans newState` `flagSet=creature_repelled_escalation`
   > Vous activez le composant sonique. Un hurlement ultrasonique — inaudible pour vous, devastateur pour la creature. Elle se tord de douleur, recule. Un repit precieux.
-- **USE sur `acoustic_trap_point`** ⚠ `sans newState` `flagSet=creature_contained`
+- **USE sur `acoustic_trap_point`** `newState=active` `flagSet=creature_contained`
   > Vous fixez le composant sonique au point de piege acoustique. L'activation declenche une cascade de resonance — les murs acoustiques amplifient le signal x100. Un mur de son invisible, infranchissable pour la creature. Confinee. Neutralisee. Pour toujours.
 - **USE sur `acoustic_walls`** ⚠ `sans newState` `flagSet=creature_repelled_escalation`
   > Vous activez le composant contre les parois acoustiques. Le son se repercute violemment — la creature hurle et s'enfuit du couloir. Le chemin est libre, temporairement.
-- **USE sur `emergency_beacon_broken`** ⚠ `sans newState` `flagSet=backup_beacon_active`
+- **USE sur `emergency_beacon_broken`** `newState=intact+active` `flagSet=backup_beacon_active`
   > Le composant sonique remplace l'antenne brisee — meme gamme de frequences. La balise emet a nouveau. Mais vous venez de sacrifier votre seule arme contre la creature.
 
 ---
