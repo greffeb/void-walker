@@ -200,11 +200,13 @@ function playTurn(state: GameState, command: string, seed: number): GameState {
   // Generate narrative via the narration bridge
   const narrative = narrateForTurn(result, context, state);
 
-  // Display action summary
+  // Display action summary. When reformulated, `narrative` below already IS
+  // the reformulation prompt (see narrateForTurn) — printing it here too
+  // produced the "Que tentez-vous exactement ?" x2 duplicate seen in every
+  // playtest log; this was a CLI display bug, not an engine/UI one (the real
+  // React UI only ever renders `narrative` once, see gameStore.ts).
   const tr = result.trace;
-  if (tr.reformulated) {
-    console.log(`${tr.reformulationPrompt ?? 'Je ne suis pas sûr de comprendre votre action.'}`);
-  } else {
+  if (!tr.reformulated) {
     const verb = tr.parsedVerb ?? '?';
     const target = tr.parsedTargetName ?? tr.parsedTarget ?? '-';
     const mode = tr.isAutoVerb ? 'automatique' : (tr.outcome ?? 'résolution');
@@ -214,6 +216,8 @@ function playTurn(state: GameState, command: string, seed: number): GameState {
   // Display narrative
   if (narrative) {
     console.log(narrative);
+  } else if (tr.reformulated) {
+    console.log('Je ne suis pas sûr de comprendre votre action.');
   }
 
   // Check game end

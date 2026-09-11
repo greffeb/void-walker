@@ -116,11 +116,18 @@ describe('normalizeInput()', () => {
     expect(tokens).toContain('robot');
   });
 
-  test('drops single-character tokens', () => {
+  // REG-037: single-character tokens are noise ONLY when they're a French
+  // elision remnant ("l'ennemi" -> "l"). A meaningful single letter (a label
+  // like "panneau A"/"panneau B", or "a" as in "il a") must survive, or two
+  // features named identically except for a trailing letter become
+  // permanently indistinguishable by any phrasing.
+  test('drops single-character elision remnants, keeps meaningful single letters', () => {
     const tokens = normalizeInput('a b frappe c d');
-    for (const t of tokens) {
-      expect(t.length).toBeGreaterThan(1);
-    }
+    expect(tokens).toContain('a');
+    expect(tokens).toContain('b');
+    expect(tokens).toContain('frappe');
+    expect(tokens).not.toContain('c');
+    expect(tokens).not.toContain('d');
   });
 
   test('handles multiple spaces', () => {

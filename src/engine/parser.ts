@@ -31,6 +31,11 @@ export type { CompoundPattern } from './types';
 
 // === INPUT NORMALIZATION ===
 
+/** Single-letter remnants left behind by French elision ("l'ennemi" -> "l",
+ * "d'un" -> "d"...). Genuine noise, unlike a meaningful single-letter token
+ * such as a label ("panneau A"/"panneau B") or the verb "a". */
+const ELISION_REMNANTS: ReadonlySet<string> = new Set(['l', 'd', 'j', 'n', 'm', 's', 't', 'c']);
+
 /**
  * Normalize raw input into clean tokens.
  * Pipeline: lowercase → strip accents → apostrophe→space → remove punct →
@@ -66,8 +71,13 @@ export function normalizeInput(
     t.includes('-') ? [t, ...t.split('-')] : [t],
   );
 
-  // Drop single-character tokens
-  const filtered = expanded.filter((t) => t.length > 1);
+  // Drop single-character tokens, EXCEPT the small fixed set of French
+  // elision remnants ("l'ennemi" -> "l", "d'un" -> "d"...) — those are noise
+  // and must go, but blanket-dropping ALL single characters also ate
+  // meaningful single-letter labels ("panneau A" vs "panneau B"), making two
+  // otherwise-identical features permanently indistinguishable by any
+  // phrasing (REG-037).
+  const filtered = expanded.filter((t) => t.length > 1 || !ELISION_REMNANTS.has(t));
 
   // Remove stop words (if provided)
   const tokens = stopWords
@@ -104,7 +114,7 @@ export function normalizeInputKeepPrepositions(
 
   return text
     .split(/\s+/)
-    .filter((t) => t.length > 1 || (t.length === 1 && (prepositions?.has(t) ?? false)));
+    .filter((t) => t.length > 1 || (prepositions?.has(t) ?? false) || !ELISION_REMNANTS.has(t));
 }
 
 
@@ -452,6 +462,12 @@ function splitOnPrepositions(
   fullTokens: readonly string[],
   localeData: ParserLocaleData,
 ): { targetTokens: readonly string[]; toolTokens: readonly string[] } {
+  // Drop stop words and elision noise, but keep meaningful single-letter
+  // tokens (a label like "panneau A"/"panneau B" — see REG-037).
+  const clean = (list: readonly string[]): string[] => list.filter(
+    (t) => !localeData.stopWords.has(t) && (t.length > 1 || !ELISION_REMNANTS.has(t)),
+  );
+
   // Search in fullTokens (which keeps prepositions) for splitting points
   for (let i = 1; i < fullTokens.length; i++) {
     const token = fullTokens[i];
@@ -460,11 +476,9 @@ function splitOnPrepositions(
     // Check for target prepositions (sur, vers, contre)
     if (localeData.targetPrepositions.has(token)) {
       // Tokens after the preposition = target
-      const afterPrep = fullTokens.slice(i + 1)
-        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+      const afterPrep = clean(fullTokens.slice(i + 1));
       // Tokens before the preposition (skip first = verb) = possible tool
-      const beforePrep = fullTokens.slice(1, i)
-        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+      const beforePrep = clean(fullTokens.slice(1, i));
 
       if (afterPrep.length > 0) {
         return { targetTokens: afterPrep, toolTokens: beforePrep };
@@ -474,11 +488,9 @@ function splitOnPrepositions(
     // Check for tool prepositions (avec)
     if (localeData.toolPrepositions.has(token)) {
       // Tokens after the preposition = tool
-      const afterPrep = fullTokens.slice(i + 1)
-        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+      const afterPrep = clean(fullTokens.slice(i + 1));
       // Tokens before the preposition (skip first = verb) = target
-      const beforePrep = fullTokens.slice(1, i)
-        .filter((t) => !localeData.stopWords.has(t) && t.length > 1);
+      const beforePrep = clean(fullTokens.slice(1, i));
 
       if (afterPrep.length > 0) {
         return {

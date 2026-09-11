@@ -170,6 +170,21 @@ describe('buildNarrativeContext', () => {
     expect(ctx.target).toBeNull();
   });
 
+  // REG-036 (bug found by the AI playtest campaign): reflexive targets (id
+  // 'self', nameKey 'player.self', used for "je me cache" etc.) matched none
+  // of the scene-entity pools buildTargetInfo searches, and the i18n-prefix
+  // fallback only tried 'item.'/'npc.'/'env.', never 'player.' — so the raw
+  // id "self" leaked verbatim into French narration ("vous cacher le self").
+  it('resolves the reflexive "self" target to its localized name, not the raw id', () => {
+    const result = makeResult({
+      trace: makeTrace({ parsedVerb: 'HIDE', parsedTarget: 'self', parsedTargetName: null }),
+    });
+    const ctx = buildNarrativeContext(result, makeSceneContext(), makeGameState());
+    expect(ctx.target).not.toBeNull();
+    expect(ctx.target?.name).not.toBe('self');
+    expect(ctx.target?.name.toLowerCase()).not.toContain('self');
+  });
+
   it('builds NPC info from scene context', () => {
     const scene = makeSceneContext({
       npcs: [{

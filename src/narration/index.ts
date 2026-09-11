@@ -84,9 +84,16 @@ const KNOWN_FEMININE_NOUNS = new Set([
   'issue', 'sortie', 'entrée', 'zone', 'chambre', 'caverne',
   'mine', 'grotte', 'fissure', 'table', 'chaise', 'boîte',
   'caisse', 'coque', 'bouteille', 'fiole', 'seringue', 'pilule',
-  'antenne', 'alarme', 'sirène',
+  'antenne', 'alarme', 'sirène', 'trappe',
 ]);
 const PLURAL_MARKERS = ['s', 'x'];
+
+/** Civil/professional titles that carry no gender of their own ("Dr Okonkwo") —
+ * gender must be read from the name that follows instead of the title word. */
+const TITLE_WORDS = new Set(['dr', 'pr', 'capt', 'cpt', 'lt', 'sgt', 'mme', 'mlle']);
+/** Known feminine person names (surnames/first names) appearing after a title
+ * in game content. A last resort, narrower than KNOWN_FEMININE_NOUNS. */
+const KNOWN_FEMININE_NAMES = new Set(['okonkwo']);
 
 /**
  * Detect basic grammatical info from a French noun phrase.
@@ -103,11 +110,12 @@ export function detectGrammar(frenchName: string): GrammaticalInfo {
 
   // Detect gender from the FIRST noun word (skip articles/adjectives)
   const words = lower.split(/\s+/);
-  // In French compound names like "kit médical", the main noun is usually the first word
-  const mainWord = words[0] ?? '';
+  // In French compound names like "kit médical", the main noun is usually the first word.
+  // Titles ("Dr", "Capt"...) carry no gender of their own — read the name after them instead.
+  const mainWord = (TITLE_WORDS.has(words[0] ?? '') ? words[1] : words[0]) ?? '';
   let gender: 'M' | 'F' = 'M';
-  // Check known feminine nouns first (exact match)
-  if (KNOWN_FEMININE_NOUNS.has(mainWord)) {
+  // Check known feminine nouns/names first (exact match)
+  if (KNOWN_FEMININE_NOUNS.has(mainWord) || KNOWN_FEMININE_NAMES.has(mainWord)) {
     gender = 'F';
   } else {
     for (const suffix of FEMININE_SUFFIXES) {
@@ -312,8 +320,12 @@ function buildTargetInfo(
 
   const entity = allEntities.find(e => e.id === targetId);
   if (!entity) {
-    // Try i18n lookup for common entity prefixes before falling back to raw ID
-    for (const prefix of ['item', 'npc', 'env'] as const) {
+    // Try i18n lookup for common entity prefixes before falling back to raw ID.
+    // "player" covers the reflexive self-target ("je me cache" -> id 'self',
+    // nameKey 'player.self') — without it, 'self' fell through to the raw-id
+    // fallback below and leaked the technical identifier into French
+    // narration verbatim ("vous cacher le self").
+    for (const prefix of ['item', 'npc', 'env', 'player'] as const) {
       const key = `${prefix}.${targetId}` as StringKey;
       const resolved = t(key);
       if (resolved !== key) {

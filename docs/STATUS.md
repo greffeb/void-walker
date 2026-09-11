@@ -5,7 +5,8 @@
 > Toute reprise de développement commence par lire cette page — et rien d'autre.
 
 **Dernière mise à jour :** 2026-09-11
-**Dernier commit de code :** campagne de playtest IA multi-scénarios (P5) — REG-029
+**Dernier commit de code :** correction de 9 défauts du corpus P5, dont un bloquant confirmé
+(mécanique d'escorte `rescue` inatteignable) — REG-030 à REG-037
 **Derniers bug reports joueurs :** 2026-06-30
 
 ---
@@ -529,6 +530,73 @@ supposé résolu.
 `rescue`, isoler la source de la coquille répétée, et trancher entre corriger le vocabulaire
 du parser (les verbes absurdes) ou l'étendre par alias ciblés.
 
+### P5bis — ✅ Correction de 9 défauts du corpus P5, un bloquant confirmé — *2026-09-11*
+
+Repris un par un, chaque défaut root-causé par reproduction directe (script jetable ou test),
+corrigé au minimum, couvert par une regression `REG-NNN` permanente, `npm run check` repassé
+au vert après chaque fix (100 fichiers / 2078 tests à la fin de ce lot).
+
+1. **Coquille « s'arrêt'en pleine phrase »** — `\b` (frontière ASCII) créait une fausse
+   coupure après un accent. Lookbehind Unicode `(?<![\p{L}])`. `frenchGrammar.test.ts`.
+2. **« insérer X dans Y » → DANSE** — vocabulaire manquant (« insérer » pas alias de USE,
+   « dans » pas une préposition cible reconnue), pas un bug du mécanisme de fallback.
+   REG-030.
+3. **TALK sur PNJ dont l'obstacle est déjà résolu → cible vide** — l'intercept d'obstacle de
+   feature se redéclenchait sans vérifier `isObstacleResolved`. REG-031 (et REG-020 ajusté :
+   un failsafe `narrative_rescue` s'appuyait sur l'ancien comportement bogué).
+4. **Accord « n'a » sur cible plurielle** — deux templates EXAMINE reformulés pour éviter
+   l'accord au lieu de le calculer (« Rien... chez X » plutôt que « X n'a... »).
+5. **Objet non retiré de l'énumération après prise** (`medkit_basic` vs `medical_kit`) —
+   `aliasesOf()` ne comptait que `nameKey`/`id` pour le tie-break `nameExact`, jamais le nom
+   d'affichage propre de l'entité ; un item dont l'id ne lit pas comme du français perdait
+   contre un item sans rapport dont l'id l'est par coïncidence. REG-032.
+6. **EXAMINE sur objet de soin déclenche la narration de USE** — `findItemUseOn` ne vérifie
+   que la cible, jamais le verbe déclencheur ; les deux points d'entrée « self-use » dans
+   `processTurn.ts` n'étaient pas filtrés par verbe. REG-033.
+7. **Question de clarification affichée deux fois** — **pas un bug du moteur/UI** : le CLI de
+   playtest (`scripts/ai-playtest.ts`) affichait `trace.reformulationPrompt` PUIS la narration
+   (qui est déjà ce même texte pour un tour reformulé). L'UI React réelle n'affiche que la
+   narration une fois — corrigé dans le script de playtest par honnêteté, aucun impact
+   joueur.
+8. **Genre « un couchette », « le trappe »** — deux mécanismes distincts : l'article
+   indéfini de énumération de scène vient d'une table JSON par clé i18n (`env.cot` y était
+   mis à `'un'`, corrigé en `'une'`) ; l'article défini des templates vient de
+   `detectGrammar()` (liste de noms féminins connus), à qui « trappe » manquait. REG-034.
+9. **« le Dr Okonkwo » / « à le Dr Okonkwo »** — « Dr » est un titre sans genre propre ;
+   `detectGrammar()` lisait le genre sur le premier mot systématiquement. Ajout d'un
+   ensemble de titres (« dr », « capt »...) qui reportent la lecture du genre sur le mot
+   suivant, et d'Okonkwo comme prénom/nom connu féminin. Corrige aussi la contraction « à »
+   comme effet de bord (« à » + « la » ne se contracte jamais ; le vrai bug était le genre).
+   REG-034.
+10. **🔴 Mécanique d'escorte de `rescue` — confirmée bloquante, corrigée.** Les deux
+    interactions de `shuttle_hatch` (victoire primaire ET fin alternative « partir seul »)
+    étaient déclenchées par `verb: 'MOVE_TO'`. Or la politique de résolution de cible de
+    MOVE_TO ne cherche **que** dans les sorties de la carte et « ici » — jamais dans les
+    features d'environnement. Aucune formulation naturelle ne pouvait donc jamais
+    résoudre l'écoutille comme cible d'un MOVE_TO : ces trois fins (victoire `escort_alive`,
+    abandon, appât) étaient du code mort, structurellement inatteignables. Reproduit avec
+    un script direct (`processTurn` avec le flag `escort_active` forcé, verbatim « aller
+    vers l'écoutille » → `Où voulez-vous aller ?`). Corrigé en passant les deux interactions
+    à `verb: 'USE'` (politique par défaut, qui couvre les features — même motif que
+    `escape_pod_hatch` dans `escape.ts`, qui fonctionne déjà). REG-035.
+11. **Fuite d'identifiant technique « self » dans la narration** — `buildTargetInfo()`
+    cherchait le nom d'une cible réflexive (id `'self'`, `nameKey: 'player.self'`) dans les
+    entités de la scène puis, à défaut, testait les préfixes i18n `item.`/`npc.`/`env.` —
+    jamais `player.`. Résultat : « vous cacher le self » au lieu de « vous cacher
+    vous-même ». Ajout de `player` à la liste de préfixes essayés.
+12. **🔴 Deux features au nom quasi identique (« Panneau de symboles A/B ») totalement
+    indiscernables — confirmé bloquant, corrigé.** `normalizeInput()` supprimait tout token
+    d'un seul caractère sans distinction, y compris la lettre qui distinguait les deux
+    panneaux — aucune formulation ne pouvait jamais lever l'ambiguïté. Remplacé par une
+    liste précise de résidus d'élision français à ignorer (« l' », « d' », « j' »...) ; les
+    autres lettres seules (dont les labels « A »/« B ») survivent désormais. REG-037.
+
+**Restent non traités, connus, non urgents :** verbes absurdes sur formulations créatives
+(« traverser prudemment » → CLIMB, « renforcer » → FORCE_OPEN), répliques de PNJ figées après
+échec de dialogue répété (anti-répétition qui ne couvre pas ce cas précis), quelques phrases
+d'action redondantes (« Vous tentez d'ouvrir X. Vous ouvrez x. »), capitalisation après
+virgule en milieu de phrase. Aucun n'a été signalé comme bloquant dans les 6 journaux.
+
 ### Pièges connus
 
 - **Suivre un document de `docs/archive/`.** Il décrit du travail déjà fait.
@@ -543,6 +611,12 @@ du parser (les verbes absurdes) ou l'étendre par alias ciblés.
   de chaque desserrage ; c'est ce qui permet de distinguer un progrès d'une régression.
 - **Comparer deux mesures après un changement qui consomme la RNG.** Le flux se décale et
   les chiffres ne sont plus comparables : il faut isoler l'effet (voir le lot 6).
+- **Un mécanisme de fallback interactif (`ScenarioInteraction.trigger.verb`) doit utiliser un
+  verbe couvert par la politique de résolution de cible de ce verbe (`TARGET_POLICIES` dans
+  `resolver.ts`).** MOVE_TO/RUN ne cherchent QUE dans les sorties et « ici » — jamais dans les
+  features d'environnement. Une interaction sur une feature déclenchée par MOVE_TO est du
+  code mort silencieux : ni le typecheck ni les tests de contenu statique ne l'attrapent,
+  seule une reproduction bout-en-bout via `processTurn` le révèle (voir P5bis §10).
 
 ```
 docs/

@@ -29,6 +29,8 @@ import { initGame } from '../../../src/engine/game';
 import { getSceneContext } from '../../../src/engine/scene';
 import { processTurn } from '../../../src/engine/processTurn';
 import { isObstacleResolved } from '../../../src/engine/backtracking';
+import { detectGrammar } from '../../../src/narration/index';
+import { t } from '../../../src/i18n';
 
 const localeData = buildParserLocaleData('fr');
 
@@ -1792,5 +1794,118 @@ describe('REG-033: EXAMINE on a self-heal item describes it instead of using it'
 
     expect(result.trace.parsedVerb).toBe('USE');
     expect(result.newState.character!.hp).toBeGreaterThan(hurt.character.hp);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-034: gender bugs found by the AI playtest campaign — "le trappe",
+// "un couchette", "le Dr Okonkwo" (should be "la")
+// ---------------------------------------------------------------------------
+describe('REG-034: "trappe", "couchette" and titled NPC names get the right gender', () => {
+  test('detectGrammar treats "trappe" (and compounds) as feminine', () => {
+    expect(detectGrammar('trappe de déviation maintenance').gender).toBe('F');
+    expect(detectGrammar('Trappe de ventilation').gender).toBe('F');
+  });
+
+  test('env.cot ("Couchette") has the feminine indefinite article', () => {
+    const map = JSON.parse(t('grammar.feature_articles', 'fr')) as Record<string, string>;
+    expect(map['env.cot']).toBe('une');
+  });
+
+  test('a civil title ("Dr") does not force masculine gender — the name after it decides', () => {
+    expect(detectGrammar('Dr Okonkwo').gender).toBe('F');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-035: rescue's primary victory (and both alternative endings) were
+// structurally unreachable — the shuttle_hatch interactions were gated on
+// verb MOVE_TO, but MOVE_TO's target-resolution policy only ever searches
+// exits/here, never environment features. No natural phrasing could ever
+// resolve a feature as a MOVE_TO target, so boarding the shuttle (the only
+// way to reach `escort_alive`) could never fire. Fixed by using USE instead
+// (default policy, includes environment — matches escape_pod_hatch's
+// pattern in escape.ts).
+// ---------------------------------------------------------------------------
+describe('REG-035: boarding the rescue shuttle (escort_alive victory) is reachable', () => {
+  function atBossWithEscortActive(seed: number) {
+    const rng = createSeededRng(seed);
+    const skeleton = getSkeletonById('rescue')!;
+    const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, rng);
+    const state = initGame(scenario, 'medic', 'explorer', 'Joueur', createSeededRng(seed));
+    const boss = scenario.graph.nodes.find(n => n.coreNodeId === 'boss');
+    if (!boss) return null;
+    return {
+      ...state,
+      playerLocationId: boss.id,
+      scenarioFlags: { ...state.scenarioFlags, okonkwo_found: true, escort_active: true },
+    };
+  }
+
+  test('"utiliser l\'ecoutille" with escort_active relocates Okonkwo and wins the game', () => {
+    const state = atBossWithEscortActive(1);
+    if (state === null) return; // module placement didn't include a boss node on this seed
+    const parserData = buildParserLocaleData('fr');
+    const ctx = getSceneContext(state);
+
+    const result = processTurn(state, "utiliser l'ecoutille", ctx, parserData, createSeededRng(1));
+
+    expect(result.trace.parsedVerb).toBe('USE');
+    expect(result.trace.parsedTarget).toBe('shuttle_hatch');
+    expect(result.newState.npcStates['dr_okonkwo']?.locationId).toBe('resolution');
+    expect(result.newState.phase).toBe('victory');
+    expect(result.newState.victoryResult?.type).toBe('primary');
+  });
+
+  test('the shuttle_hatch interactions are no longer gated on the unreachable MOVE_TO verb', async () => {
+    const rescue = await import('../../../src/content/scenarios/rescue');
+    const boss = rescue.RESCUE_SKELETON.nodeLocations.boss;
+    const hatch = boss.features.find(f => f.id === 'shuttle_hatch');
+    expect(hatch).toBeDefined();
+    for (const interaction of hatch!.interactions ?? []) {
+      const verbs = Array.isArray(interaction.trigger.verb) ? interaction.trigger.verb : [interaction.trigger.verb];
+      expect(verbs).not.toContain('MOVE_TO');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-037: two features named identically except for a trailing single-letter
+// label ("Panneau de symboles A" / "...B") were permanently indistinguishable
+// — normalizeInput() blanket-dropped every single-character token, including
+// the very letter that told the two apart, no matter how the player phrased
+// it. Fixed to only drop the small fixed set of French elision remnants
+// ("l'ennemi" -> "l") and keep other single-letter tokens (labels, "a"/"b").
+// ---------------------------------------------------------------------------
+describe('REG-037: single-letter labels ("panneau ... A" vs "... B") survive tokenization', () => {
+  const panelA = makeFeature('symbol_panel_a', ['panneau', 'de', 'symboles', 'a'], ['tangible'] as PropertyId[]);
+  const panelB = makeFeature('symbol_panel_b', ['panneau', 'de', 'symboles', 'b'], ['tangible'] as PropertyId[]);
+  const ctx = makeContext({ environmentFeatures: [panelA, panelB] });
+
+  test('normalizeInput keeps a trailing single-letter label', () => {
+    const tokens = normalizeInput('examiner le panneau de symboles a', localeData.stopWords);
+    expect(tokens).toContain('a');
+  });
+
+  test('normalizeInput still drops elision remnants ("l\'ennemi" -> not "l")', () => {
+    const tokens = normalizeInput("regarder l'ennemi", localeData.stopWords);
+    expect(tokens).not.toContain('l');
+    expect(tokens).toContain('ennemi');
+  });
+
+  test('"examiner le panneau de symboles a" resolves to panel A, not panel B', () => {
+    const result = parseAction('examiner le panneau de symboles a', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.target?.id).toBe('symbol_panel_a');
+    }
+  });
+
+  test('"examiner le panneau de symboles b" resolves to panel B, not panel A', () => {
+    const result = parseAction('examiner le panneau de symboles b', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.target?.id).toBe('symbol_panel_b');
+    }
   });
 });

@@ -1130,8 +1130,14 @@ const shuttle_hatch: ScenarioFeatureDefinition = {
   },
   interactions: [
     // PRIMARY VICTORY: enter shuttle WITH escort active
+    // Verb-gated to USE, not MOVE_TO: MOVE_TO's target-resolution policy only
+    // ever searches exits/here, never environment features, so a MOVE_TO
+    // trigger on a feature (the hatch) could never be reached by any natural
+    // player phrasing — this interaction was dead code. USE uses the default
+    // policy, which does include environment features (see escape_pod_hatch
+    // in escape.ts for the same working pattern).
     {
-      trigger: { verb: 'MOVE_TO', requiredFlag: 'escort_active', dc: null },
+      trigger: { verb: 'USE', requiredFlag: 'escort_active', dc: null },
       onSuccess: {
         narrative: {
           fr: "Vous aidez la Dr. Okonkwo a monter dans la navette. Elle s'accroche a vous, epuisee mais vivante. 'Merci', murmure-t-elle. Vous lancez le decollage.",
@@ -1146,7 +1152,7 @@ const shuttle_hatch: ScenarioFeatureDefinition = {
     },
     // ALTERNATIVE VICTORY: enter WITHOUT escort (dark choice)
     {
-      trigger: { verb: 'MOVE_TO', dc: null },
+      trigger: { verb: 'USE', dc: null },
       onSuccess: {
         narrative: {
           fr: "Vous montez dans la navette. Seul. Derriere vous, la Dr. Okonkwo vous regarde, incredule. 'Non... non, attendez !' Vous fermez l'ecoutille. Le moteur rugit.",

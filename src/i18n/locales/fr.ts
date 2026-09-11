@@ -1133,7 +1133,7 @@ export const fr: LocaleStrings = {
     'env.vent_hatch':                'une',
     'env.security_panel_local':      'un',
     'env.medical_cabinet':           'une',
-    'env.cot':                       'un',
+    'env.cot':                       'une',
     'env.light_fixture':             'un',
     'env.power_relay':               'un',
     'env.emergency_glow_strip':      'une',
