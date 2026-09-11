@@ -958,7 +958,7 @@ const EXAMINE_TEMPLATES: readonly ActionTemplate[] = [
     tension: 'mid',
     category: 'perception',
     text: {
-      fr: 'Un coup d\'œil suffit. {def_target} n\'a aucun secret que vos yeux{?tool_used:, assistés par {def_tool},|} ne puissent percer.',
+      fr: 'Un coup d\'œil suffit. Rien, chez {def_target}, que vos yeux{?tool_used:, assistés par {def_tool},|} ne puissent percer.',
       en: '',
     },
   },

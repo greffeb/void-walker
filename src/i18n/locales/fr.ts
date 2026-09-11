@@ -538,7 +538,7 @@ export const fr: LocaleStrings = {
   'verb.RUN.aliases': 'courir,sprinter,fuir,s\'enfuir,cours,courez,courons,sprinte,sprintez,fuis,fuyez,enfuis',
   'verb.HIDE.aliases': 'se cacher,se planquer,se dissimuler,se mettre a couvert,cache,cachez,planque,planquez,dissimule,dissimulez,couvert,voler,derober,pickpocket,faire les poches,subtiliser',
   'verb.STACK.aliases': 'empiler,entasser,empile,empilez,entasse,entassez',
-  'verb.USE.aliases': 'utiliser,employer,utilise,utilisez,emploie,employez,soigner,soigne,soignez,guerir,gueris,guerissez,panser,panse,pansez',
+  'verb.USE.aliases': 'utiliser,employer,utilise,utilisez,emploie,employez,soigner,soigne,soignez,guerir,gueris,guerissez,panser,panse,pansez,inserer,insere,inserez,glisser,glisse,glissez',
   'verb.OPEN.aliases': 'ouvrir,debloquer,ouvre,ouvrez,debloque,debloquez',
   'verb.CLOSE.aliases': 'fermer,refermer,ferme,fermez,referme,refermez',
   'verb.TAKE.aliases': 'prendre,ramasser,recuperer,prends,prenez,ramasse,ramassez,recupere,recuperez',
@@ -565,7 +565,7 @@ export const fr: LocaleStrings = {
   // Parser data — intent keywords for semantic fallback (VERB:keyword)
   'parser.intents': 'STRIKE:attaquer,STRIKE:agresser,STRIKE:combattre,STRIKE:frapper,STRIKE:tuer,STRIKE:eliminer,STRIKE:violence,STRIKE:combat,STRIKE:guerre,STRIKE:bagarre,STRIKE:baston,MOVE_TO:aller,MOVE_TO:partir,MOVE_TO:marcher,MOVE_TO:avancer,MOVE_TO:reculer,MOVE_TO:direction,EXAMINE:voir,EXAMINE:chercher,EXAMINE:trouver,EXAMINE:verifier,EXAMINE:explorer,TALK:demander,TALK:appeler,TALK:crier,TALK:hurler,TALK:chuchoter,RUN:fuir,RUN:echapper,RUN:sauver,TAKE:recuperer,TAKE:attraper,TAKE:saisir,TAKE:voler,USE:utiliser,USE:employer,USE:servir,USE:soigner,USE:guerir,USE:panser,WAIT:reposer,WAIT:repos,WAIT:dormir',
   // Parser data — prepositions that indicate target vs tool
-  'parser.prepositions.target': 'sur,vers,contre,a',
+  'parser.prepositions.target': 'sur,vers,contre,a,dans',
   'parser.prepositions.tool': 'avec',
   // Generic NPC reference tokens — when matched and exactly one NPC in scene, resolve to that NPC.
   // Covers pronouns ("lui") and generic enemy words ("ennemi") that players use instead of the NPC name.

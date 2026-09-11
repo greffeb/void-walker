@@ -212,6 +212,15 @@ describe('FrenchGrammar', () => {
       expect(result).toBe("l'arbre est grand");
     });
 
+    it('does not elide a word ending in an accented vowel + "te"/"le"/etc (Issue found by AI playtest campaign)', () => {
+      // JS `\b` only treats ASCII as word characters, so the accented "ê" in
+      // "arrête" created a false boundary before "te" — the regex read the
+      // tail of the word as the standalone pronoun "te" and elided it into
+      // "arrêt'en", corrupting a threat snippet the moment it shipped.
+      const result = frenchGrammar.postProcess("Un journal de maintenance s'arrête en pleine phrase.");
+      expect(result).toBe("Un journal de maintenance s'arrête en pleine phrase.");
+    });
+
     it('removes extra spaces after l\' and d\'', () => {
       const result = frenchGrammar.postProcess("l' écran");
       expect(result).toBe("l'écran");

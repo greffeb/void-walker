@@ -1042,6 +1042,13 @@ describe('REG-020: NPC-obstacle intercept resolves obstacle and neutralizes NPC'
 
     let success = false;
     for (let i = 0; i < 30 && !success; i++) {
+      // REG-031 stopped this intercept from re-firing once the obstacle is
+      // already resolved — including when a `narrative_rescue` failsafe beat
+      // the player to it after enough failures. That is now correctly a
+      // no-op, not a mechanism this test exercises: if the failsafe wins the
+      // race, there is nothing left to assert here.
+      if (isObstacleResolved(state.visitedLocations[npcObstacle.nodeId])) return;
+
       const ctx = getSceneContext(state);
       const attemptRng = createSeededRng(i * 12345);
       const result = processTurn(state, `${frenchVerb} ${npcId}`, ctx, parserData, attemptRng);
@@ -1613,5 +1620,177 @@ describe('REG-029: using the gate item on its terminal unlocks the way onward', 
 
     expect(result.newState.scenarioFlags['terminal_decrypted']).toBe(true);
     expect(result.newState.unlockedExits['unlock:reveal']).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-030: "insérer X dans Y" fell to the DANCE easter egg instead of USE
+// (found by the same AI playtest campaign, on two different seeds)
+// ---------------------------------------------------------------------------
+// "insérer" named no verb's alias, so the parser's last resort — a random
+// secret/easter-egg verb, by design for genuinely nonsense input — caught a
+// player typing the exact action the room's own text had just suggested.
+// "dans" was also absent from `parser.prepositions.target`, so even a
+// correctly-verbed phrase would have failed to attach its object as the target.
+describe('REG-030: "inserer X dans Y" resolves to USE, not a secret verb', () => {
+  const terminal = makeFeature('encrypted_terminal', ['terminal', 'terminal de communication'], ['electronic']);
+  const core = {
+    id: 'encrypted_data_core', nameKey: 'item.encrypted_data_core',
+    properties: ['electronic', 'small'] as PropertyId[],
+    isVirtual: false as const, source: 'inventory' as const, aliases: ['noyau', 'noyau de donnees'],
+  };
+  const ctx = makeContext({ environmentFeatures: [terminal], inventory: [core] });
+
+  test('parseAction("inserer le noyau de donnees dans le terminal") → USE, not DANCE', () => {
+    const result = parseAction('inserer le noyau de donnees dans le terminal', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('USE');
+      expect(result.target?.id).toBe('encrypted_terminal');
+      expect(result.tool?.id).toBe('encrypted_data_core');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-031: talking to a resolved NPC-obstacle re-ran the obstacle check and
+// lost the target (found by the same AI playtest campaign)
+// ---------------------------------------------------------------------------
+// wounded_crew_member's obstacle lists 'talk' among its persuade-path verbs.
+// The feature-obstacle intercept (Issue #47) matched verb+target against the
+// obstacle regardless of whether it had already been resolved — so healing
+// the NPC first (a different path) didn't stop every later "parler à ..."
+// from re-entering obstacle handling. That path has no scenario narrative for
+// an NPC (only features/items carry ScenarioInteraction), so the generic
+// template rendered with no target at all: "Vous tentez de parler à. Vous
+// engagez la conversation avec ." — exactly what the transcript showed, even
+// though the exact on-screen name was typed back verbatim.
+describe('REG-031: an already-resolved NPC-obstacle stops intercepting later verbs', () => {
+  function buildAtWoundedCrewNode() {
+    const rng = createSeededRng(31);
+    const skeleton = getSkeletonById('escape')!;
+    const scenario = assembleScenario(skeleton, 'standard', ALL_MODULES, rng);
+    const node = scenario.graph.nodes.find(
+      n => n.obstacle?.targetId === 'wounded_crew_member',
+    );
+    if (!node) return null;
+    const state = initGame(scenario, 'medic', 'explorer', 'Joueur', rng);
+    return {
+      state: {
+        ...state,
+        playerLocationId: node.id,
+        visitedLocations: {
+          ...state.visitedLocations,
+          // Already resolved through a different path (e.g. healing), same
+          // as the transcript: obstacle beaten, conversation should be plain.
+          [node.id]: { visitCount: 1, firstVisitTurn: 0, itemsTaken: [], featuresChanged: [], droppedItems: [], obstacleResolved: true },
+        },
+      },
+      nodeId: node.id,
+    };
+  }
+
+  test('TALK on the NPC resolves a real target once the obstacle is already beaten', () => {
+    const found = buildAtWoundedCrewNode();
+    if (!found) return; // module not placed on this seed's assembly — nothing to verify
+    const { state } = found;
+    const parserData = buildParserLocaleData('fr');
+
+    const result = processTurn(
+      state, "parler au membre d'equipage blesse",
+      getSceneContext(state), parserData, createSeededRng(31),
+    );
+
+    expect(result.trace.parsedVerb).toBe('TALK');
+    expect(result.trace.parsedTarget).toBe('wounded_crew_member');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-032: a scenario item's own display name didn't count as its "name"
+// (found by the same AI playtest campaign — a medic typed the exact name the
+// screen showed, "prendre kit medical", and took the wrong item)
+// ---------------------------------------------------------------------------
+// `medkit_basic` (a scenario-only item, on the floor) and `medical_kit` (the
+// global registry item, already in a medic's starting inventory) both scored
+// 20 on "kit medical" — the alias-splitting fix for multi-word names put
+// "kit"/"medical" in both entities' candidate pools. The tie-break, "nameExact"
+// beats "not name exact", only ever looked at nameKey- and id-derived words:
+// `medical_kit`'s id happens to *be* the two French words "medical" + "kit",
+// so it won nameExact by coincidence, while medkit_basic's id ("medkit_basic")
+// does not read as French at all. The location item — the one actually in the
+// room — lost to inventory. `aliases[1]` (every scene.ts builder's own display
+// name) now counts as "the entity's own name" too.
+describe('REG-032: an entity\'s own display name counts toward nameExact, not just its id', () => {
+  const medkitBasic: ResolvedTarget = {
+    id: 'medkit_basic', nameKey: 'item.medkit_basic', properties: [],
+    isVirtual: false, source: 'location',
+    aliases: ['medkit_basic', 'kit médical basique', 'kit', 'kit medical', 'medkit', 'trousse', 'trousse medicale', 'soins', 'pansement'],
+  };
+  const medicalKit: ResolvedTarget = {
+    id: 'medical_kit', nameKey: 'item.medical_kit', properties: [],
+    isVirtual: false, source: 'inventory',
+    aliases: ['medical_kit', 'trousse médicale', 'trousse', 'medicale', 'medkit', 'soin', 'premiers', 'secours', 'kit'],
+  };
+  const ctx = makeContext({ inventory: [medicalKit], locationItems: [medkitBasic] });
+
+  test('"prendre kit medical" takes the item on the floor, not the unrelated one already carried', () => {
+    const result = parseAction('prendre kit medical', ctx, localeData);
+    expect('verb' in result).toBe(true);
+    if ('verb' in result) {
+      expect(result.verb).toBe('TAKE');
+      expect(result.target?.id).toBe('medkit_basic');
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REG-033: EXAMINE on a self-healing item consumed it and played the heal
+// narrative (found by the same AI playtest campaign, in two scenarios)
+// ---------------------------------------------------------------------------
+// `findItemUseOn` matches by target id ('self') only — it never checks which
+// verb the player typed. The self-use lookup that makes "utiliser la trousse"
+// heal the player had no verb guard either, so "examiner la trousse" matched
+// the exact same useOn('self') entry and consumed the kit while narrating a
+// medical application, instead of returning its `examineResult` description.
+describe('REG-033: EXAMINE on a self-heal item describes it instead of using it', () => {
+  function buildAtStartWithMedkit() {
+    const rng = createSeededRng(16);
+    const skeleton = getSkeletonById('escape')!;
+    const scenario = assembleScenario(skeleton, 'quick', ALL_MODULES, rng);
+    const state = initGame(scenario, 'medic', 'explorer', 'Joueur', rng);
+    return {
+      ...state,
+      character: { ...state.character!, inventory: [...state.character!.inventory, 'medkit_basic'] },
+    };
+  }
+
+  test('EXAMINE does not consume the item or heal the player', () => {
+    const state = buildAtStartWithMedkit();
+    const parserData = buildParserLocaleData('fr');
+    const hpBefore = state.character.hp;
+
+    const result = processTurn(
+      state, 'examiner le kit medical basique',
+      getSceneContext(state), parserData, createSeededRng(16),
+    );
+
+    expect(result.trace.parsedVerb).toBe('EXAMINE');
+    expect(result.newState.character!.hp).toBe(hpBefore);
+    expect(result.newState.character!.inventory).toContain('medkit_basic');
+  });
+
+  test('USE still heals and consumes the item as before', () => {
+    const state = buildAtStartWithMedkit();
+    const parserData = buildParserLocaleData('fr');
+    const hurt = { ...state, character: { ...state.character, hp: Math.max(1, state.character.hp - 3) } };
+
+    const result = processTurn(
+      hurt, 'utiliser le kit medical basique',
+      getSceneContext(hurt), parserData, createSeededRng(16),
+    );
+
+    expect(result.trace.parsedVerb).toBe('USE');
+    expect(result.newState.character!.hp).toBeGreaterThan(hurt.character.hp);
   });
 });

@@ -446,8 +446,12 @@ export function processTurn(
 
       // Self-use path: "utiliser <item>" where target is an inventory item.
       // Try useOn with targetId 'self' to allow consumable self-heal etc.
+      // Verb-gated: without this, "examiner la trousse" matched the same
+      // useOn('self') entry as "utiliser la trousse" — findItemUseOn only
+      // checks the target id, not the trigger's verb — so looking at a medkit
+      // consumed it and played the heal narrative instead of a description.
       if (interactionMatch === null && !action.tool
-          && action.target?.source === 'inventory') {
+          && action.target?.source === 'inventory' && action.verb === 'USE') {
         const selfItemDef = findItemDefInGraph(current, targetId);
         if (selfItemDef && isEnrichedItem(selfItemDef)) {
           interactionMatch = findItemUseOn(targetId, selfItemDef, 'self');
@@ -458,6 +462,7 @@ export function processTurn(
       // Auto-find an inventory healing item and use it on self (Issue #74).
       if (interactionMatch === null && !action.tool
           && targetId === 'self' && action.target?.source === 'abstract'
+          && action.verb === 'USE'
           && current.character !== null) {
         const HEALING_IDS = new Set([
           'medkit_basic', 'medical_kit', 'stimulant', 'first_aid_kit', 'health_pack',
@@ -702,9 +707,18 @@ export function processTurn(
       n => n.id === current.playerLocationId,
     );
     const featureNodeObstacle = featureObstacleNode?.obstacle;
+    // Once beaten, an obstacle stays beaten. Without this check, "talk" being
+    // one of a persuade path's verbs meant every later conversation with the
+    // same NPC re-ran the obstacle check from scratch — even after it had
+    // already been resolved through a different path (e.g. healing them) —
+    // producing a second, narrative-less dice roll with no scenario text to
+    // answer it, instead of the plain conversation the generic pipeline gives.
+    const featureObstacleAlreadyResolved = isObstacleResolved(
+      current.visitedLocations[current.playerLocationId],
+    );
     // Build obstacle verb map to translate authoring verbs (e.g. 'attack') to VerbIds (e.g. 'STRIKE')
     const obstacleVerbMap = buildObstacleVerbMap(getLocale());
-    const featureMatchedPath = featureNodeObstacle
+    const featureMatchedPath = featureNodeObstacle && !featureObstacleAlreadyResolved
       ? featureNodeObstacle.paths.find(p => {
           if (!p.verbs.some(v => obstacleVerbMap.get(v.toLowerCase()) === action.verb)) return false;
           // A path crossed on foot is attempted by moving, not by naming the

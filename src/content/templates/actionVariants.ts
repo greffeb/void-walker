@@ -432,7 +432,7 @@ const REPAIR_VARIANTS = variants('REPAIR', 'technical', [
 const EXAMINE_VARIANTS = variants('EXAMINE', 'perception', [
   [null, 'auto_success', 'low', [
     '{actor} détaillez {def_target} sans vous presser. Rien d\'anormal : formes, matériaux, usure conforme.',
-    'Un regard suffit : {def_target} n\'a rien à cacher, du moins rien qui se voie d\'ici.',
+    'Un regard suffit : rien à cacher chez {def_target}, du moins rien qui se voie d\'ici.',
   ]],
   [null, 'auto_success', 'mid', [
     '{actor} observez {def_target} en gardant un œil sur le couloir. L\'essentiel se lit tout de suite ; le reste attendra.',

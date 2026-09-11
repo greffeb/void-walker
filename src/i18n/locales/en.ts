@@ -537,7 +537,7 @@ export const en: LocaleStrings = {
   'verb.RUN.aliases': 'run,sprint,flee,dash,escape',
   'verb.HIDE.aliases': 'hide,conceal yourself,take cover',
   'verb.STACK.aliases': 'stack,pile up',
-  'verb.USE.aliases': 'use,employ,apply',
+  'verb.USE.aliases': 'use,employ,apply,insert,slide',
   'verb.OPEN.aliases': 'open,unseal',
   'verb.CLOSE.aliases': 'close,shut',
   'verb.TAKE.aliases': 'take,pick up,grab',
@@ -561,7 +561,7 @@ export const en: LocaleStrings = {
   'parser.stopWords': 'the,a,an,of,in,on,at,to,and,or,is,are,be,my,your,his,her,its,our,their,i,you,he,she,it,we,they,me,him,us,them,this,that,these,those,do,does,did,will,would,can,could,shall,should,may,might,very,just,also,too',
   'parser.negationWords': 'not,no,never,none,dont,don t,nothing',
   'parser.intents': 'STRIKE:attack,STRIKE:fight,STRIKE:kill,STRIKE:hit,MOVE_TO:go,MOVE_TO:walk,MOVE_TO:travel,EXAMINE:look,EXAMINE:search,EXAMINE:find,EXAMINE:check,TALK:ask,TALK:call,TALK:yell,RUN:flee,RUN:escape,TAKE:grab,TAKE:get,TAKE:steal,USE:use,USE:apply',
-  'parser.prepositions.target': 'at,toward,towards,against',
+  'parser.prepositions.target': 'at,toward,towards,against,in,into',
   'parser.prepositions.tool': 'with,using',
   'parser.genericNpcRefs': 'him,her,them,enemy,foe,target,creature,monster,beast,alien',
   // Tokens that signal "take all items" intent (take everything, grab all, etc.)

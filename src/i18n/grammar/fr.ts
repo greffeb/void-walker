@@ -165,10 +165,17 @@ export class FrenchGrammar implements GrammarEngine {
       .replace(/\bà les\b/gi, 'aux')
       // Elision: "le arbre" → "l'arbre" (catch any missed by slot resolution)
       // Note: 'h' excluded — aspirated-h handled by startsWithVowel flag in slot resolution
-      .replace(/\b(le|la|de|ne|se|je|me|te|que) ([aeéèêëiîïoôuûüy])/gi,
+      //
+      // The lookbehind checks for a Unicode letter, not JS's `\b`: `\b` treats
+      // only ASCII as word characters, so "arrête en" has a *false* boundary
+      // between the non-ASCII "ê" and "te" — the regex read "arrê|te en" as
+      // the standalone pronoun "te" before a vowel, and elided it into
+      // "arrêt'en". Any word ending in an accented vowel + le/la/de/ne/se/je/
+      // me/te/que before a vowel-starting word hit the same corruption.
+      .replace(/(?<![\p{L}])(le|la|de|ne|se|je|me|te|que) ([aeéèêëiîïoôuûüy])/giu,
         (_, word: string, vowel: string) => `${word.slice(0, -1)}'${vowel}`)
       // Elision for mute-h words (not in aspirated-h list)
-      .replace(/\b(le|la|de|ne|se|je|me|te|que) (h\w*)/gi,
+      .replace(/(?<![\p{L}])(le|la|de|ne|se|je|me|te|que) (h\w*)/giu,
         (match, word: string, hWord: string) => {
           const bare = hWord.toLowerCase().split(/\s/)[0] ?? '';
           if (ASPIRATED_H_WORDS.has(bare)) return match; // Keep "le hasard"

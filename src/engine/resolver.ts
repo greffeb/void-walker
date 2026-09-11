@@ -331,9 +331,18 @@ function aliasesOf(entity: {
   readonly nameKey: string;
   readonly aliases?: readonly string[];
 }): { readonly name: readonly string[]; readonly all: readonly string[] } {
+  // Every builder in scene.ts puts the display name at aliases[1] — the
+  // convention is [id, displayName, ...more]. Its words count as "the
+  // entity's own name" too: without this, a scenario item whose id does not
+  // read as French ("medkit_basic") lost a nameExact tie to an unrelated
+  // registry item whose id happened to split into the exact words the player
+  // typed ("medical_kit" → "medical" + "kit"), even though the registry item
+  // was not present in the room at all.
+  const displayNameWords = entity.aliases?.[1]?.split(/\s+/) ?? [];
   const name = [
     ...nameKeyToAliases(entity.nameKey),
     ...entity.id.replace(/_/g, ' ').split(' '),
+    ...displayNameWords,
   ];
   // The display name is stored as one multi-word alias ("kit médical basique").
   // Kept whole, each of its words could only ever score a substring match, so a
