@@ -1,0 +1,97 @@
+# Void Walker V2 — roadmap proposée
+
+> **Statut :** PROPOSITION DE SÉQUENCEMENT — pas un planning accepté ni une autorisation d'exécution.
+> **Mise à jour :** 2026-10-09.
+
+## Règles de lecture
+
+Cette roadmap mène jusqu'à un petit jeu complet publié en PWA. Les dates et charges ne sont pas estimées tant que le périmètre de lancement n'est pas arbitré.
+
+Une étape sort par des **preuves**, pas par une déclaration « implémenté ». Les décisions fonctionnelles proviennent du [cahier des charges](05-cahier-des-charges.md) et du [journal](03-decisions.md).
+
+Le cadrage ci-dessous précède la Phase 0 demandée par le porteur du projet. Il évite qu'un agent de Bootstrap décide lui-même du jeu à construire.
+
+## Préparation — présente conversation
+
+- [x] Examiner la méthode agentique de Lacets.
+- [x] Fixer la priorité créative, l'interaction, le rôle général des dés, la durée et l'objectif de publication.
+- [x] Arbitrer défaite, temps, espace, personnage et nombre de familles de scénarios.
+- [x] Choisir reprise mobile, présentation du risque, contraintes principales et objectif d'évacuation.
+- [x] Arbitrer propagation simple, tentatives répétées, absence de duel et principe des menus.
+- [x] Accepter C-01/C-05 v0.1 avec réserves ; choisir santé par états, menace persistante unique et station isolée.
+- [ ] Préciser les règles des cinq interactions demandées et les variations de la famille de scénarios.
+- [x] Décrire et faire accepter en conception la boucle et l'[aventure AR-01 v1.0](08-aventure-reference.md), sans preuve d'exécution revendiquée.
+- [x] Extraire les règles acceptées d'AR-01 dans C-03/C-04 (temps, réactions, risque et blessures).
+- [ ] Spécifier la deuxième référence pour la dépressurisation préparée (D-038), distincte de la première tranche.
+- [ ] Spécifier les contrats essentiels et leurs contre-exemples.
+- [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité.
+- [ ] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines.
+- [ ] Préparer les instructions de reprise, l'issue Bootstrap et les premières issues verticales.
+
+**Sortie :** starter pack cohérent, accepté par le porteur du projet et explicitement marqué prêt pour Bootstrap.
+
+## Phase 0 — socle agentique, nouveau dépôt
+
+Intentions déjà demandées :
+
+- commande unique couvrant lint, typecheck, tests, solveur, parcours de référence et build ;
+- même commande exécutée en CI ;
+- workflow `/issue <n>`, délégation contrôlée à Copilot CLI et revue indépendante ;
+- rôles spécialisés, permissions, hooks et gabarits d'issues/PR ;
+- garde-fous anti-spaghetti et séparation du moteur et du contenu ;
+- journal des parties humaines et statut de référence réservé à la validation téléphone.
+
+**Proposition à arbitrer :** la vérification du solveur et du replay porte d'abord sur un minuscule monde de test réellement exécutable. Un stub qui retourne toujours vrai n'est pas un contrôle. Le Bootstrap ne construit pas en même temps tout le gameplay.
+
+**Sortie proposée :** une issue complète a traversé le workflow, un contrôle volontairement cassé bloque la CI, aucune preuve humaine n'a été fabriquée, les parcours initiaux restent candidats.
+
+## Phase 1 — contrat d'interaction et tranche verticale
+
+- Petite scène écrite à la main, utilisable sur téléphone et dans la CLI.
+- Une interaction d'objet complète, avec précondition, coût, effets, texte et relecture.
+- Actions composables issues du même catalogue pour l'UI et les outils.
+- Invariants et preuves positives/négatives sur l'état du monde.
+
+**Sortie proposée :** le porteur du projet peut expliquer sur téléphone ce qu'il a fait, ce qui a changé et pourquoi. Aucune prétention de rejouabilité complète à ce stade.
+
+## Phase 2 — aventure de référence complète
+
+- Base de conception disponible : AR-01 v1.0 (D-057). Les étapes ci-dessous sont des réalisations futures, pas cochées par l'acceptation du document.
+- Début, objectif, obstacles, solutions distinctes et conclusions définis ensemble.
+- Règles de hasard, échec, temps et personnage acceptées et raccordées.
+- Sauvegarde/reprise et replay vérifiables.
+- Parité d'observation entre UI, bots et joueur LLM externe.
+
+**Sortie proposée :** aventure complète de la durée cible, parcours vérifiés automatiquement puis acceptés sur téléphone. La génération n'est pas utilisée pour masquer un problème de gameplay fondamental.
+
+## Phase 3 — génération procédurale contrôlée
+
+- Étendue de variation conforme à la décision de lancement.
+- Validation des prérequis et recherche de chemins dans l'espace d'état supporté.
+- Assemblages négatifs rejetés ou explicitement diagnostiqués.
+- Campagnes stratifiées de bots et lecture humaine de situations variées.
+
+**Sortie proposée :** diversité utile mesurée, pas seulement diversité de noms ; pas de revendication « toujours gagnable » après toute action du joueur.
+
+## Phase 4 — contenu de lancement et expérience mobile
+
+- Volume et familles de scénarios conformes au périmètre accepté.
+- Texte exact, lisible, sans information mécanique inventée.
+- Visuels et audio selon périmètre ; provenance et licences documentées.
+- Accessibilité, ergonomie des actions composées, installation et reprise sur appareils ciblés.
+- Équilibrage après correction des contrats, pas en compensation des bugs.
+
+**Sortie proposée :** contenu fini, cohérence et expérience acceptées, critères de lancement satisfaits.
+
+## Phase 5 — publication PWA et clôture
+
+- Déploiement approuvé manuellement ; contrôles et preuves attachés au build livré.
+- Installation, hors ligne, mise à jour et sauvegardes vérifiés sur plateformes convenues.
+- Documentation de support, collecte des problèmes et procédure de reprise.
+- Bilan de lancement et backlog futur séparé des engagements de cette version.
+
+**Sortie :** petit jeu complet publié et accepté, conformément à D-009. Les seuils exacts de clôture restent à spécifier.
+
+## Après lancement — hors définition de fin actuelle
+
+Stores mobiles, IA de narration, contenu supplémentaire, nouvelles mécaniques et métaprogression ne sont pas automatiquement autorisés. Ils devront faire l'objet d'un nouveau cadrage.
