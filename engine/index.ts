@@ -23,3 +23,4 @@ export {
   type Resultat,
 } from './partie';
 export * from './vocabulaire';
+import '../content/index';
