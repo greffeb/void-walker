@@ -361,7 +361,7 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Rédiger la proposition de conception des dix morceaux (D-171) : plan, objets, places de la créature, parcours à prouver, règles des mélanges (D-167).
+1. Faire relire puis valider la [conception des morceaux](13-morceaux-lancement.md) : familles, fiches, règles de mélange MX-01 à MX-05, parcours.
 2. Issues du service de rapports et de la signature des validations.
 
 Q-01 à Q-154 sont répondus ; les prochains numéros d'entretien commencent à Q-155. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
