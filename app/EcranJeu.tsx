@@ -71,7 +71,10 @@ export function EcranJeu({
           type="button"
           aria-expanded={inventaireOuvert}
           aria-controls={inventaireOuvert ? idInventaire : undefined}
-          onClick={() => setInventaireOuvert((ouvert) => !ouvert)}
+          onClick={() => {
+            setDeplie(null);
+            setInventaireOuvert((ouvert) => !ouvert);
+          }}
         >
           Inventaire
         </button>
