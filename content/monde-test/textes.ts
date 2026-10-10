@@ -73,6 +73,14 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     fermer: 'Fermer {le:cible}',
     aller: 'Aller dans {le:vers}',
   },
+  verbes: {
+    regarder: 'Regarder',
+    prendre: 'Prendre',
+    poser: 'Poser',
+    ouvrir: 'Ouvrir',
+    fermer: 'Fermer',
+    aller: 'Aller vers',
+  },
   observation: {
     lieu: 'Vous êtes dans {le:piece}.',
     objets: 'Vous voyez ici {un:liste}.',

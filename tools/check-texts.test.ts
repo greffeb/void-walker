@@ -26,6 +26,18 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('refus ferme : aucun texte (NP-01).');
   });
 
+  it('une action sans verbe pour le rappel fait échouer le contrôle', () => {
+    const entree = avecTextes((textes) => ({ ...textes, verbes: sans(textes.verbes, 'prendre') }));
+    expect(verifierTextes(entree)).toContain('verbe prendre : aucun texte (NP-01).');
+  });
+
+  it('un verbe vide ou avec un trou fait échouer le contrôle', () => {
+    const vide = avecTextes((textes) => ({ ...textes, verbes: { ...textes.verbes, poser: ' ' } }));
+    expect(verifierTextes(vide)).toContain('verbe poser : texte vide.');
+    const trou = avecTextes((textes) => ({ ...textes, verbes: { ...textes.verbes, ouvrir: 'Ouvrir {le:cible}' } }));
+    expect(verifierTextes(trou)).toContain('verbe ouvrir : rôle inconnu « cible ».');
+  });
+
   it('un trou inconnu fait échouer le contrôle (N-03)', () => {
     const entree = avecTextes((textes) => ({
       ...textes,
