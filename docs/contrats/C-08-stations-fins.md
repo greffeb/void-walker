@@ -24,9 +24,10 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 - un seul problème final par station, juste avant de partir ; les autres obstacles sont sur le chemin (D-159) ;
 - obstacles en chaîne ou à préparer dans l'ordre libre, selon les morceaux (D-160) ;
 - la créature part d'un endroit prévu par un morceau, tiré au hasard, jamais dans la pièce de départ (D-161) ;
-- les stations se tirent au pur hasard, une station déjà jouée peut revenir (D-162).
+- les stations se tirent au pur hasard, une station déjà jouée peut revenir (D-162) ;
+- deux morceaux ne se mélangent que si leur mélange a reçu ses règles ; sinon l'assemblage le refuse (D-167).
 
-Les nouveaux morceaux et leurs règles (D-163 à D-166) seront décrits avec la liste des morceaux, puis retranscrits dans C-02/C-03/C-04 après acceptation de leur conception.
+Les nouveaux morceaux et leurs règles (D-163 à D-166, D-168 à D-170) seront décrits dans un document proposé par les agents puis validé (D-171), avant d'être retranscrits dans C-02/C-03/C-04.
 
 ## 3. Vérification avant de jouer
 

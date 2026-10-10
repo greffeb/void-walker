@@ -1246,4 +1246,36 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : si la créature entre dans la chambre froide et que la porte se referme derrière elle, elle est ralentie pour toute la partie : elle n'agit plus qu'une réaction sur deux. Le passager qui y reste plus de deux actions de suite subit une blessure.
 - Limite : cohabitation avec l'huile et les autres ralentissements à décider ; la blessure suit le plafond d'une aggravation par action (C-04).
 
+### D-167 — Tout mélange de morceaux possible, une fois ses règles décidées
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-150 « Tout mélanger, règles au cas par cas ».
+- Décision : des morceaux qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) peuvent se retrouver dans une même station, à condition que leur mélange ait reçu ses règles.
+- Limite : tant qu'un mélange n'a pas de règles décidées, l'assemblage le refuse ; GP-03 (vide séparé du feu, de l'huile et du bloc) reste en vigueur jusque-là.
+
+### D-168 — Interrupteurs autonomes
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-151 « Ils marchent toujours ».
+- Décision : les interrupteurs des machines et de la gravité ont leur propre alimentation ; ils ne dépendent pas du morceau d'énergie.
+
+### D-169 — Planche dans une pièce voisine, encombrante
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-152 « Dans une pièce voisine, encombrante ».
+- Décision : la planche de la passerelle se trouve dans une pièce voisine du vide et doit être rapportée ; elle est encombrante (D-079), donc impossible à porter en même temps que le bloc d'énergie.
+
+### D-170 — Deux façons d'enfermer la créature dans la chambre froide
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-153 « Les deux ».
+- Décision : un compresseur bruyant à l'intérieur l'attire et la porte se ferme depuis un pupitre dans la pièce voisine, hors de sa vue ; ou bien le passager se fait suivre, ressort par une autre porte et referme derrière elle.
+- Limite : la chambre froide a donc deux portes ; la blessure du passager au-delà de deux actions s'applique (D-166).
+
+### D-171 — Les agents proposent le détail des morceaux
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-154 « Les agents proposent, vous validez ».
+- Décision : plan, objets, places de la créature, parcours à prouver et règles de mélange des dix morceaux sont proposés par les agents dans un document, relu puis validé par questions, comme AR-01 et AR-02.
+
 

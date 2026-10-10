@@ -327,6 +327,11 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-143 / Q-144 Passerelle | La planche cède sous la créature ; on peut la retirer | D-164 |
 | Q-145 à Q-147 Sans gravité | Deux actions pour le passager ; la créature dérive ; interrupteur | D-165 |
 | Q-148 / Q-149 Chambre froide | Ralentie pour de bon ; le passager blessé s'il y reste | D-166 |
+| Q-150 Mélanges | Tout mélanger, règles au cas par cas | D-167 |
+| Q-151 Interrupteurs | Toujours alimentés | D-168 |
+| Q-152 Planche | Pièce voisine, encombrante | D-169 |
+| Q-153 Chambre froide | Bruit dedans et fermeture à distance, ou poursuite | D-170 |
+| Q-154 Détail des morceaux | Les agents proposent, vous validez | D-171 |
 
 ## 5. Socles formels acceptés
 
@@ -356,10 +361,10 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Concevoir les dix morceaux : disposition, places de la créature, interrupteurs et énergie, cohabitations interdites (sans gravité et vide, froid et huile…).
+1. Rédiger la proposition de conception des dix morceaux (D-171) : plan, objets, places de la créature, parcours à prouver, règles des mélanges (D-167).
 2. Issues du service de rapports et de la signature des validations.
 
-Q-01 à Q-149 sont répondus ; les prochains numéros d'entretien commencent à Q-150. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-154 sont répondus ; les prochains numéros d'entretien commencent à Q-155. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 

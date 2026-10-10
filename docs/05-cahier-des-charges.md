@@ -98,7 +98,8 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-063 | Service de rapports mis à jour et déployé par les agents ; agents GitHub Copilot sur le PC du porteur du projet | D-125 à D-128 | Configuration au Bootstrap |
 | B-064 | React pour l'écran, Cloudflare Workers pour le service, captures automatiques jointes aux PR | D-133 à D-135 | Bootstrap et première PR avec captures |
 | B-065 | Architecture AP-01 à AP-10 respectée : moteur isolé, dés enregistrés, sauvegarde par action, signature, versions de test, commande unique | D-136 | Vérification complète au Bootstrap |
-| B-066 | Quatre nouveaux morceaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide, avec leurs règles | D-158, D-163 à D-166 | Conception des morceaux, puis parcours témoins |
+| B-066 | Quatre nouveaux morceaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide, avec leurs règles | D-158, D-163 à D-166, D-168 à D-170 | Conception des morceaux, puis parcours témoins |
+| B-067 | Mélange de morceaux autorisé seulement une fois ses règles décidées ; détail des morceaux proposé par les agents et validé | D-167, D-171 | Document de conception des morceaux accepté |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 

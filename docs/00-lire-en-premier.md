@@ -106,9 +106,9 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange.
 
-**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : concevoir les dix morceaux (règles d'assemblage et nouveaux morceaux fixés par D-156 à D-166), puis issues du service de rapports et de la signature.
+**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : rédiger la proposition de conception des dix morceaux (D-156 à D-171), puis issues du service de rapports et de la signature.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-149 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-154 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 
