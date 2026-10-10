@@ -235,7 +235,7 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-87 / Q-90 Qui peut envoyer | Tout le monde, sans compte, comme en V1 | D-095 |
 | Q-88 Création de l'issue | Petit service intermédiaire | D-094 |
 | Q-89 Ce qui valide | Case « je valide » | D-096 |
-| Q-91 Authentification | Code personnel vérifié par le service | D-097 |
+| Q-91 Authentification | Code personnel vérifié par le service — remplacé par D-130 | D-097 |
 
 ### Bloc U — sens d'une validation sur téléphone : répondu
 
@@ -281,6 +281,26 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-114 Créature | Toujours la même | D-120 |
 | Q-115 Problème du départ | Varié selon les morceaux | D-121 |
 
+### Bloc Y — architecture et outillage : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-116 Dépôt | Ce dépôt | D-122 |
+| Q-117 Pile technique | Les agents proposent, vous choisissez | D-123 |
+| Q-118 Hébergement | GitHub Pages | D-124 |
+| Q-119 Service de rapports | Déployable par les agents en autonomie | D-125 |
+| Q-120 Agents | Copilot seulement | D-126 |
+| Q-122 Déploiement du service | Par les agents eux-mêmes | D-127 |
+| Q-123 Forme de Copilot | Éditeur ou terminal sur le PC | D-128 |
+
+### Bloc Z — validation par demande de fusion : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-121 / Q-124 Preuve que c'est vous | PR avec preuves, jeu sur téléphone, retours depuis le téléphone ; option la plus simple à l'usage | D-129, D-130 |
+| Q-125 Version de test | Une adresse par PR | D-131 |
+| Q-126 Retours | En commentaire de la PR testée | D-132 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -309,10 +329,10 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Fixer les règles d'assemblage des morceaux, puis écrire leur liste en conception.
+1. Faire proposer la pile technique par les agents puis la choisir (D-123) ; fixer les règles d'assemblage et la liste des morceaux.
 2. Fixer le volume et les variations du lancement, l'architecture et les issues exécutables ; les profils d'agents et leurs accès ne sont pas encore installés.
 
-Q-01 à Q-115 sont répondus ; les prochains numéros d'entretien commencent à Q-116. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-126 sont répondus ; les prochains numéros d'entretien commencent à Q-127. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 

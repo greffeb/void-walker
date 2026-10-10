@@ -32,8 +32,8 @@ Les noms suivants sont demandés pour le futur socle, mais aucun agent n'est ins
 
 | Rôle | Responsabilité proposée | Limite essentielle |
 | --- | --- | --- |
-| Orchestrateur Claude Code | Lire l'issue, préparer la session, déléguer si demandé, vérifier, présenter la PR | Ne décide pas seul d'un changement produit |
-| Exécutant Copilot CLI | Implémenter le périmètre accepté, tests et preuves | Ni push, ni PR, ni merge en mode délégué |
+| Orchestrateur Copilot | Lire l'issue, préparer la session, déléguer si demandé, vérifier, présenter la PR, fusionner le vert après relecture (D-105, D-126) | Ne décide pas seul d'un changement produit |
+| Exécutant Copilot | Implémenter le périmètre accepté, tests et preuves (D-126) | Ni push, ni PR, ni merge en mode délégué |
 | `reviewer` | Contrôler diff, contrats et preuves ; chercher des contre-exemples | Pas de correction de production dans la même fonction |
 | `spec-writer` | Transformer les choix acceptés en exigences vérifiables | Ne remplace pas une question ouverte par sa préférence |
 | `planner` | Découper une décision en issues verticales limitées | Ne crée pas de besoin supplémentaire |
@@ -43,6 +43,8 @@ Les noms suivants sont demandés pour le futur socle, mais aucun agent n'est ins
 | `ui-ux-expert` | Concevoir et vérifier l'expérience mobile | Ne change pas les effets métier pour simplifier l'écran |
 | `asset-generator` | Produire des assets conformes à la direction choisie | Licence, provenance, budget et outils à préciser |
 | `playtester` | Jouer par la CLI à partir de l'observation publique | Aucun accès aux données cachées du scénario ni au solveur |
+
+Tous les rôles sont tenus par GitHub Copilot, dans l'éditeur ou le terminal du PC du porteur du projet (D-126/D-128). Le relecteur est une autre session, sans le contexte de celle qui a codé.
 
 Une issue ne convoque que les rôles utiles. Multiplier les agents ne remplace ni un contrat ni une preuve indépendante.
 
@@ -54,9 +56,9 @@ Une issue ne convoque que les rôles utiles. Multiplier les agents ne remplace n
 4. Écrire le plan, puis implémenter par petits changements dans le périmètre.
 5. Exécuter la vérification complète, joindre résultats et contre-exemples traités.
 6. Faire relire indépendamment ; les écarts bloquants ne deviennent pas des exceptions implicites.
-7. Présenter une PR avec critères ↔ preuves, version et limites des tests.
-8. Merger suivant une politique encore à arbitrer ; les agents d'implémentation ne s'accordent pas eux-mêmes un droit de merge.
-9. Faire jouer les candidats sur téléphone quand l'acceptation fonctionnelle le requiert.
+7. Présenter une PR avec critères ↔ preuves (captures, extraits de texte), version et limites des tests ; indiquer « validation humaine requise » si besoin (D-129). La PR est publiée à une adresse de test (D-131).
+8. Fusionner selon la zone (C-10 §6) ; les agents d'implémentation ne s'accordent pas eux-mêmes un droit de merge.
+9. Le porteur du projet joue la version de test sur téléphone ; ses retours, le fichier de partie et sa validation signée arrivent en commentaire de la PR (D-130, D-132).
 10. Mettre à jour décisions, roadmap, journal et prochain point de reprise.
 
 ## 5. Zones : demande initiale et arbitrage restant
@@ -67,7 +69,7 @@ La demande utilisateur est :
 - orange : textes, interface, équilibrage et format des scénarios, merge humain sur preuves ;
 - rouge : déploiement, format de sauvegarde et IA, merge et test manuels.
 
-**Arbitrage du 2026-10-10 (D-104 à D-107) :** la proposition D-012 n'est pas retenue ; tests, outils, solveur et documentation restent verts, y compris quand ils changent un test, un seuil ou un contrat. L'orchestrateur fusionne le vert après relecture par un autre agent. Le moteur de jeu est orange tant qu'il est jeune. Les textes du jeu passent en vert (D-116). Pas de protection technique de la branche principale. Détail dans [C-10 §6](contrats/C-10-preuves-gouvernance.md).
+**Arbitrage du 2026-10-10 (D-104 à D-107) :** la proposition D-012 n'est pas retenue ; tests, outils, solveur et documentation restent verts, y compris quand ils changent un test, un seuil ou un contrat. L'orchestrateur fusionne le vert après relecture par un autre agent. Le moteur de jeu est orange tant qu'il est jeune. Les textes du jeu passent en vert (D-116). Pas de protection technique de la branche principale. Exception à la zone rouge : les agents déploient eux-mêmes le service de rapports (D-127). Détail dans [C-10 §6](contrats/C-10-preuves-gouvernance.md).
 
 Restent à décider : zone d'une demande de fusion mixte, passage du moteur en vert, budget et reprises des agents.
 

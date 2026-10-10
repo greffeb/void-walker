@@ -1,6 +1,6 @@
 # C-10 — Preuves, rapports et gouvernance
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-102 ; assemble D-001, D-010, D-092 à D-101, D-104 à D-108 et le [workflow agentique](../04-workflow-agentique.md) ; RP-01 à RP-05 acceptés par D-101.
+> **Statut :** CONTRAT ACCEPTÉ v1.1 — D-102 ; assemble D-001, D-010, D-092 à D-101, D-104 à D-108, D-116, D-125 à D-132 et le [workflow agentique](../04-workflow-agentique.md) ; RP-01 à RP-05 acceptés par D-101. v1.1 : validation signée par le téléphone (D-130) et passage par la PR (D-129, D-131, D-132).
 > **Date :** 2026-10-10.
 > **Implémentation et tests :** absents.
 
@@ -21,7 +21,8 @@ Un niveau n'implique jamais le suivant (D-010). Aucun agent ne coche une partie 
 ## 3. Rapports des joueurs
 
 - Boutons « bug » et « envoyer ma partie » dans toutes les versions, y compris publique (D-095).
-- Le jeu envoie le rapport à un service intermédiaire, qui crée une issue GitHub avec sa propre clé ; aucun compte n'est demandé (D-093/D-094).
+- Le jeu envoie le rapport à un service intermédiaire, qui crée une issue GitHub avec sa propre clé ; aucun compte n'est demandé (D-093/D-094). Depuis une version de test, il publie un commentaire sur la PR testée (D-132).
+- Les agents mettent à jour et déploient eux-mêmes le service, en même temps que la fonctionnalité du jeu qui en a besoin (D-125/D-127).
 - **RP-01 — Issue de bug :** version, partie exportée (C-09) jusqu'à l'action signalée, observation publique de cette action, commentaire. De quoi rejouer la situation exactement.
 - **RP-02 — Issue d'envoi de partie :** partie exportée complète, fin obtenue, commentaire, et l'état de la case « je valide ».
 - **RP-03 — Anti-abus :** limites de nombre, de délai et de doublons appliquées par le service, en plus du jeu ; un rapport non envoyé est gardé pour un nouvel essai (comme en V1).
@@ -34,17 +35,20 @@ Un niveau n'implique jamais le suivant (D-010). Aucun agent ne coche une partie 
 - **Ce qu'il faut avoir fait (D-099) :** aller au bout, victoire ou défaite ; puis juger. Un abandon ne valide pas.
 - **Durée (D-100) :** modifier l'aventure ou le morceau, ou changer le résultat d'un de ses parcours automatiques, annule la validation. Une correction du moteur sans effet sur ces résultats la conserve. La détection est automatique.
 
-Une partie envoyée vaut validation seulement si la case « je valide » est cochée (D-096) et si le code personnel saisi est vérifié par le service (D-097).
+**Déroulement (D-129, D-131, D-132).** L'agent ouvre la PR avec ses preuves (captures, extraits de texte) et la mention « validation humaine requise ». La PR est publiée à une adresse de test dont le lien y est posté. Le porteur du projet joue sur téléphone ; depuis cette version, il envoie sa partie, son commentaire et, s'il le coche, « je valide » : tout arrive en commentaire de la PR.
 
-- **RP-04 —** Le service marque alors l'issue d'une étiquette de validation que seul lui peut poser ; l'issue cite la version, l'aventure ou les morceaux couverts. Une case cochée sans code valide reste un simple retour.
-- **RP-05 —** Le journal des parties humaines référence ces issues ; il n'est jamais rempli sans elles.
+**Authentification (D-130).** Une validation compte seulement si elle porte la case « je valide » (D-096) et la signature du téléphone du porteur du projet. La clé de signature est créée une fois par le jeu sur ce téléphone et ne le quitte jamais ; le dépôt conserve sa partie publique et la vérification est automatique.
+
+- **RP-04 —** Le contrôle automatique marque la validation reconnue d'une étiquette ; il cite la version, l'aventure ou les morceaux couverts. Une case cochée sans signature valide reste un simple retour.
+- **RP-05 —** Le journal des parties humaines référence ces validations signées ; il n'est jamais rempli sans elles.
 
 ## 5. Sécurité imposée
 
-- Clé GitHub et code personnel uniquement côté service, jamais dans le jeu, le dépôt, une issue ou une adresse web.
+- La clé de signature ne quitte jamais le téléphone ; aucun secret de validation n'existe dans le jeu, le dépôt ou le service.
+- Changer la clé publique est réservé au porteur du projet ; la CI signale tout changement de ce fichier.
+- La clé GitHub du service se limite à créer des issues et commentaires sur ce dépôt ; elle n'apparaît jamais dans le jeu, une issue ou une adresse web.
 - Envoi en HTTPS, données dans le corps de la requête.
 - Aucune donnée personnelle au-delà du commentaire saisi.
-- Les agents n'ont accès ni au code personnel ni aux secrets du service.
 
 ## 6. Gouvernance du dépôt
 
@@ -52,7 +56,7 @@ Une partie envoyée vaut validation seulement si la case « je valide » est coc
 | --- | --- | --- |
 | Verte | Tests, outils, solveur, documentation — y compris un test, seuil ou contrat modifié (D-104) ; textes du jeu (D-116) | Orchestrateur, après vérifications vertes et relecture par un autre agent (D-105) |
 | Orange | Interface, équilibrage, format des scénarios ; moteur de jeu tant qu'il est jeune (D-107) | Porteur du projet, sur preuves |
-| Rouge | Déploiement, format de sauvegarde, IA | Porteur du projet, avec test manuel |
+| Rouge | Déploiement, format de sauvegarde, IA — sauf le service de rapports, déployé par les agents (D-127) | Porteur du projet, avec test manuel |
 
 - **Branche principale :** pas de protection technique (D-106). La règle de travail demeure : un exécutant délégué ne pousse pas, l'orchestrateur fusionne après vérification.
 - **Rôles :** un auteur de contenu et un auteur d'outils remplacent `script-writer` (D-108).
@@ -66,9 +70,11 @@ Restent ouverts : la zone d'une demande de fusion qui touche plusieurs zones, le
 | --- | --- | --- |
 | PR-01 | Bouton « bug » sans réseau | Rapport gardé, renvoyé plus tard, aucune perte de partie |
 | PR-02 | Issue de bug rejouée par un agent | Même situation reproduite |
-| PR-03 | « Je valide » coché, code faux | Issue créée sans étiquette de validation |
-| PR-04 | « Je valide » coché, bon code | Étiquette de validation posée par le service |
-| PR-05 | Recherche du code ou de la clé dans le build du jeu | Introuvable |
+| PR-03 | « Je valide » coché sans signature valide | Commentaire publié, aucune validation reconnue |
+| PR-04 | « Je valide » signé par le téléphone enregistré | Validation reconnue et étiquetée |
+| PR-05 | Recherche d'un secret de validation dans le jeu, le dépôt ou le service | Introuvable |
 | PR-06 | Rafale de rapports identiques | Bloquée par le service |
 | PR-07 | Morceau validé puis modifié | Validation retirée automatiquement, morceau à rejouer |
 | PR-08 | Correction du moteur sans changement des parcours d'une aventure | Validation conservée |
+| PR-09 | Partie envoyée depuis la version de test d'une PR | Commentaire sur cette PR, avec fichier de partie |
+| PR-10 | Modification du fichier de clé publique | Signalée par la CI |

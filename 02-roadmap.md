@@ -36,7 +36,7 @@ Intentions déjà demandées :
 
 - commande unique couvrant lint, typecheck, tests, solveur, parcours de référence et build ;
 - même commande exécutée en CI ;
-- workflow `/issue <n>`, délégation contrôlée à Copilot CLI et revue indépendante ;
+- workflow `/issue <n>` avec GitHub Copilot (D-126), délégation contrôlée et revue indépendante ;
 - rôles spécialisés, permissions, hooks et gabarits d'issues/PR ;
 - garde-fous anti-spaghetti et séparation du moteur et du contenu ;
 - journal des parties humaines et statut de référence réservé à la validation téléphone.

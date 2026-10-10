@@ -756,7 +756,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 
 ### D-097 — Code personnel pour authentifier une validation
 
-- Date / statut : 2026-10-10 / **Validé**.
+- Date / statut : 2026-10-10 / **Remplacé par D-130** (signature par le téléphone).
 - Origine : réponse Q-91 « Un code personnel saisi dans le jeu ».
 - Décision : la validation n'est reconnue que si le code personnel du porteur du projet, saisi dans le jeu, est vérifié par le service.
 - Limite : le code n'est jamais dans le jeu, le dépôt ou une issue ; il est transmis chiffré (HTTPS) dans le corps de la requête, pas dans l'adresse ; le service seul le vérifie. Les agents ne disposent pas du code et ne marquent jamais une validation eux-mêmes.
@@ -934,5 +934,84 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse Q-115 « Varié, selon les morceaux ».
 - Décision : selon les morceaux tirés, le départ peut demander de rétablir l'énergie, d'ouvrir un accès ou d'écarter la créature. L'évacuation reste l'objectif commun (D-018).
+
+## Décisions validées — architecture et outillage
+
+### D-122 — La V2 se développe dans le dépôt existant
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-116 « Ici, dans ce dépôt ».
+- Décision : le code de la V2 vit dans le dépôt GitHub `greffeb/void_walker`, où se trouve déjà ce kit ; le kit en devient la documentation. L'historique de la V1 reste consultable.
+- Remplace : la partie « nouveau dépôt » de D-002. La méthode issue/preuves de D-002 reste valable.
+
+### D-123 — Les agents proposent la pile technique, le porteur du projet choisit
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-117 « Les agents proposent, vous validez ».
+- Décision : la pile technique du jeu fait l'objet d'une proposition comparée par les agents, puis d'un choix explicite du porteur du projet.
+- Limite : les contraintes acceptées s'imposent à la proposition : PWA mobile, hors LLM, moteur partagé par l'appli, la CLI et les bots (C-01), replay exact (C-09), hébergement GitHub Pages (D-124).
+
+### D-124 — Jeu hébergé sur GitHub Pages
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-118 « GitHub Pages, comme la V1 ».
+- Décision : la PWA est publiée sur GitHub Pages depuis le dépôt, comme la V1.
+
+### D-125 — Service de rapports déployable par les agents en autonomie
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse libre à Q-119 : « il faut que les agents puissent le déployer en autonomie (mises a jour) ».
+- Décision : le service intermédiaire de D-094 doit pouvoir être mis à jour et redéployé par les agents sans intervention du porteur du projet.
+- Tension à arbitrer : un agent qui modifie librement le service pourrait aussi lui faire accepter une fausse validation (D-097). La protection des validations est à décider.
+
+### D-126 — Copilot seulement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse libre à Q-120 : « que copilot ».
+- Décision : GitHub Copilot assure tous les rôles d'agent ; Claude Code n'est plus prévu comme orchestrateur. Remplace la répartition Claude Code / Copilot CLI de 04 §3.
+- Limite : la relecture indépendante de D-105 reste exigée, par une autre session Copilot au profil de relecteur, sans le contexte de celle qui a codé. Forme exacte de Copilot (GitHub, CLI, éditeur) à préciser.
+
+### D-127 — Les agents déploient eux-mêmes le service de rapports
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-122 « Les agents le déploient eux-mêmes », et réponse libre à Q-121 : les agents mettent à jour le service en même temps qu'une nouvelle fonctionnalité du jeu qui a besoin de remonter des informations par les issues.
+- Décision : une évolution du jeu qui change les rapports met à jour le service dans le même travail ; les agents disposent des accès de déploiement du service.
+- Limite : la clé GitHub du service se limite à la création d'issues sur ce dépôt.
+
+### D-128 — Copilot dans l'éditeur ou le terminal, sur le PC du porteur du projet
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-123 « Copilot dans l'éditeur ou le terminal, sur votre PC ».
+- Décision : les agents Copilot travaillent sur la machine du porteur du projet (éditeur ou terminal), pas comme agent autonome dans le cloud GitHub.
+
+## Décisions validées — validation par demande de fusion
+
+### D-129 — Une fonctionnalité à valider passe par sa PR
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse libre à Q-124 : l'agent ouvre une PR, y montre les preuves (captures d'écran, extraits de texte) et indique que la fonctionnalité demande une validation humaine ; le porteur du projet joue sur téléphone puis donne ses retours, avec un fichier de partie venant du téléphone pour la reproductibilité.
+- Décision : une fonctionnalité qui demande une validation humaine est présentée dans sa PR avec ses preuves et la mention « validation humaine requise ». Le porteur du projet la joue sur téléphone ; ses retours, avec le fichier de la partie, viennent du téléphone.
+- Limite : les preuves d'agent (captures, extraits) restent du niveau « vérifié automatiquement » ; seule la validation signée du téléphone vaut validation (C-10).
+
+### D-130 — Validation signée par le téléphone
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse libre à Q-124 « option 1 ou 2, le plus simple à l'usage pour moi » ; la signature ne demande rien à taper.
+- Décision : le jeu crée une fois, sur le téléphone du porteur du projet, une clé qui ne quitte jamais l'appareil ; chaque « je valide » est signé avec elle. Le dépôt conserve la partie publique de la clé et la vérification se fait automatiquement. Remplace le code personnel de D-097.
+- Pourquoi : les agents peuvent modifier et déployer le service (D-127) sans pouvoir fabriquer une validation ni lire un secret de validation.
+- Limite : changer la clé publique (nouveau téléphone, données effacées) est fait par le porteur du projet ; tout changement de ce fichier est signalé par la CI.
+
+### D-131 — Une version de test par PR
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-125 « Oui, une adresse de test par PR ».
+- Décision : chaque PR est publiée à une adresse de test distincte, dont le lien est posté dans la PR ; elle est supprimée après fusion ou fermeture. La version publique ne change pas.
+
+### D-132 — Les retours d'une version de test arrivent dans sa PR
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-126 « En commentaire de la PR testée ».
+- Décision : depuis une version de test, l'envoi de partie et le bouton « bug » publient un commentaire sur la PR correspondante : fichier de partie, commentaire et, le cas échéant, validation signée.
+- Limite : depuis la version publique, les rapports créent toujours des issues (D-093/D-095).
 
 

@@ -6,7 +6,7 @@
 
 ## Mission de ce dossier
 
-Préparer, avec le porteur du projet, un ensemble autonome de documents Markdown permettant de faire développer le jeu dans d'autres conversations avec Claude Code, Copilot CLI et des agents spécialisés.
+Préparer, avec le porteur du projet, un ensemble autonome de documents Markdown permettant de faire développer le jeu dans d'autres conversations avec GitHub Copilot et des agents spécialisés (D-126).
 
 Le code sera produit par les agents. Le porteur du projet choisit le produit, arbitre les propositions et accepte les preuves, notamment en jouant sur téléphone. Ce kit doit permettre une reprise sans mémoire de la conversation initiale.
 
@@ -75,7 +75,7 @@ La validation humaine sera conservée dans le [journal des parties humaines](jou
 - Stations assemblées à partir de morceaux écrits à la main, chacune vérifiée : toujours un chemin sûr au départ.
 - Si plus aucune sortie n'est possible, le jeu le dit et laisse continuer ; fin racontée, sans score ; même station rejouable avec de nouveaux dés.
 - Une seule partie en cours ; export d'une partie ; boutons « bug » et « envoyer ma partie » pour tous, via un petit service qui crée les issues GitHub.
-- Une validation téléphone exige la case « je valide » et le code personnel du porteur du projet, vérifié par le service.
+- Une fonctionnalité à valider passe par sa PR : preuves de l'agent, version de test par PR, retours et validation signée par le téléphone du porteur du projet en commentaire de la PR.
 - Valider : aller au bout d'une partie puis juger ; chaque morceau du lancement au moins une fois ; validation perdue si l'aventure ou ses parcours automatiques changent.
 - Dépôt : tests et docs en zone verte, fusionnés par l'orchestrateur après relecture par un autre agent ; moteur en zone orange au début ; branche principale non protégée ; deux rôles d'auteur, contenu et outils.
 - Textes en français, au vouvoiement, courts, écrits à la main avec quelques variantes ; pas de chiffre de dé affiché ; écrits par les agents en autonomie (zone verte).
@@ -89,11 +89,11 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 ## Reprise immédiate
 
-**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance arbitrée (D-101 à D-117) ; volume du lancement fixé (D-118 à D-121). Pas de code, de solveur ni de partie humaine exécutée.
+**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents et circuit de validation par PR arbitrés (D-101 à D-132). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Prochaine tâche recommandée :** choisir l'architecture technique et le service de rapports, puis les profils d'agents et les issues de Bootstrap. Les règles d'assemblage et la liste des huit morceaux peuvent être conçues en parallèle.
+**Prochaine tâche recommandée :** faire proposer par les agents une pile technique comparée (D-123), la faire choisir, puis rédiger les profils Copilot et l'issue de Bootstrap. Les règles d'assemblage et la liste des huit morceaux peuvent être conçues en parallèle.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-115 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-126 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 
