@@ -1059,4 +1059,11 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : le texte de l'issue de Bootstrap est conservé dans le kit et publié immédiatement comme issue du dépôt.
 - Limite : publier l'issue n'autorise pas son exécution sans lancement explicite par le porteur du projet.
 
+### D-139 — La V1 en ligne peut disparaître au Bootstrap
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse du porteur du projet « ok pour virer l'ancienne version en ligne », à la question sur le changement du mode de publication GitHub Pages.
+- Décision : le Bootstrap (#89) peut changer le mode de publication GitHub Pages même si la V1 publiée cesse d'être accessible ; après fusion, le monde de test V2 la remplace à la racine (AP-05).
+- Limite : l'historique Git de la V1 reste consultable (D-122).
+
 
