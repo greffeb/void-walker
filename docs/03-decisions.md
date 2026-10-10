@@ -1074,7 +1074,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Date / statut : 2026-10-10 / **Validé, implémentation absente**.
 - Origine : revue écran par écran de la maquette (choix cités en [12 §8](12-interface-ecrans.md)), puis « design a bien travaillé » et demande de consigner ces choix.
 - Décision : [la description des écrans](12-interface-ecrans.md) et sa [maquette PDF](maquette/maquette-ui-v1.pdf) deviennent la référence de l'interface. Les éléments marqués [Validé] et les choix du tableau 12 §8 font autorité : direction « Phosphore » (terminal ambre, IBM Plex Mono), accueil à trois boutons, réveil texte seul, IA Station en modale, santé affichée seulement si le personnage n'est pas indemne, composition en bulle par-dessus l'écran, aperçu puis confirmation pour toute action engageante, déplacements compris, coûts « bruyant », « long », « périlleux », ancienneté d'un état vu en mots, personnage masculin.
-- Limite : les éléments [Proposé] restent ajustables par l'agent d'interface s'il garde l'intention. Le sens mécanique de « long » et « périlleux » reste à décider : ces étiquettes ne s'affichent pas avant. Les seuils entre « à l'instant », « il y a un moment » et « il y a longtemps » restent à fixer. L'interface est en zone orange (C-10 §6).
+- Limite : les éléments [Proposé] restent ajustables par l'agent d'interface s'il garde l'intention. Le sens mécanique de « long » et « périlleux » reste à décider : ces étiquettes ne s'affichent pas avant (remplacé par D-150 : supprimées). Les seuils entre « à l'instant », « il y a un moment » et « il y a longtemps » restent à fixer (fixés par D-151). L'interface est en zone orange (C-10 §6).
 
 ### D-141 — Dernière position vue de la créature en mots
 
@@ -1131,5 +1131,37 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse « Non, pas au lancement ».
 - Décision : la gestion des sauvegardes se limite au téléchargement de la partie (C-09 §5). Réimporter une partie téléchargée n'est pas proposé au lancement.
+
+### D-150 — Un seul coût affiché : « bruyant »
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses « Supprimer l'étiquette [long] » et « Supprimer l'étiquette, le niveau de risque suffit ».
+- Décision : les étiquettes « long » et « périlleux » sont supprimées de l'aperçu. Le coût affiché est « bruyant » ou « aucun » ; le danger passe par le niveau de risque. Remplace sur ce point D-140.
+
+### D-151 — Seuils de l'ancienneté d'un état vu
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « À l'instant : 1 action ; un moment : 2 à 5 ; longtemps : 6 et plus ».
+- Décision : compté en actions confirmées depuis la dernière vue, « à l'instant » vaut 1 action au plus, « il y a un moment » 2 à 5, « il y a longtemps » 6 et plus. Valable pour les états de pièce et pour la créature (D-141).
+
+### D-152 — Voix d'IA Station par la synthèse vocale du téléphone
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Synthèse vocale du téléphone, en direct ».
+- Décision : les messages d'IA Station sont lus par la synthèse vocale française du téléphone, mot pour mot. Pas de fichiers de voix.
+- Limite : la voix dépend de l'appareil ; sans voix française disponible, le message reste en texte seul, sans erreur. Précise D-148.
+
+### D-153 — Bruitages libres de droits et bande-son fournie
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « sons libres de droit pour les bip boop clic clac + soundtrack fournie ».
+- Décision : les bruitages d'interface et d'ambiance (bips, clics) sont des sons libres de droits dont la source et la licence sont notées dans le dépôt. La bande-son est fournie par le porteur du projet.
+- Limite : un agent n'ajoute pas de musique de lui-même. Précise D-148.
+
+### D-154 — Inventaire dans une bulle
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Bouton INVENTAIRE : une bulle liste les objets portés, toucher un objet ouvre ses actions ».
+- Décision : le bouton INVENTAIRE ouvre une bulle (D-146) qui liste les objets portés, l'objet encombrant signalé ; toucher un objet ouvre la même composition d'action que dans la pièce. Ouvrir l'inventaire est gratuit (D-014).
 
 

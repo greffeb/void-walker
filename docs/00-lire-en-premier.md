@@ -23,7 +23,7 @@ Le présent dossier ne modifie ni le prototype précédent ni le projet Lacets. 
 
 Les besoins créatifs sont illustrés par les [cinq interactions de référence](07-interactions-reference.md). Leurs intentions sont demandées, leurs modalités techniques restent proposées jusqu'à arbitrage.
 
-La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « Phosphore », [PDF](maquette/maquette-ui-v1.pdf)) est la référence de l'interface (D-140 à D-149). Elle sert aux agents d'interface et au graphiste ; ses points encore ouverts sont listés en §9, ses écarts avec l'interface actuelle en §11.
+La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « Phosphore », [PDF](maquette/maquette-ui-v1.pdf)) est la référence de l'interface (D-140 à D-154). Elle sert aux agents d'interface et au graphiste ; ses points encore ouverts sont listés en §9, ses écarts avec l'interface actuelle en §11.
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
@@ -104,7 +104,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 `npm run verify` est vert en local. Après quatre erreurs réseau lors des délégations à l'exécutant, l'orchestrateur a codé lui-même à la demande du porteur du projet ; un rapport sur l'exécutant reste à traiter. Le relecteur et le playtester ont relu et joué ; leurs remarques sont traitées ou listées dans la PR. Le mode GitHub Pages peut retirer la V1 en ligne (D-139).
 
-**Maquette d'interface :** acceptée (D-140 à D-149) ; issues d'interface à traiter une par une, en zone orange.
+**Maquette d'interface :** acceptée (D-140 à D-154) ; issues d'interface à traiter une par une, en zone orange.
 
 **Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
 

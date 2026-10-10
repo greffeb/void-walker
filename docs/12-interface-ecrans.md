@@ -1,6 +1,6 @@
 # Void Walker V2 — interface : description des écrans
 
-> **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-149 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
+> **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-154 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
 > **Mise à jour :** 2026-10-10.
 > **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
 > **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
@@ -185,10 +185,10 @@ Grille de deux colonnes : libellé en capitales `texte-secondaire`, puis valeur.
 | Ligne | Contenu | Exemple |
 | --- | --- | --- |
 | RISQUE | Niveau en gras `accent`, puis le danger connu | « **faible** — effort, aucune blessure attendue » |
-| COÛT | Étiquettes `[bruyant]`, `[long]`, `[périlleux]`, ou « aucun » | « [bruyant] [long] » |
+| COÛT | `[bruyant]` ou « aucun » | « [bruyant] » |
 | SAVOIR | Une ou deux phrases sur les conséquences connues | « La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter. » |
 
-- Les trois coûts sont validés. [Validé] Le sens mécanique de `[long]` et `[périlleux]` reste à décider : ne pas les afficher avant (D-140). `[bruyant]` peut l'être.
+- Seul coût affiché : `[bruyant]`. Les étiquettes `[long]` et `[périlleux]` de la maquette sont supprimées ; le danger passe par le niveau de risque. [Validé D-150]
 - Échelle de risque : aucun risque connu, faible, modéré, élevé, mortel (C-04 §3.1 pour le vide). Une conséquence sans dé s'annonce comme certaine (C-04 §5), par exemple « certain : vous serez blessé ». [Proposé]
 - Ni pourcentage ni chiffre (C-04 §4.3). L'aperçu ne se calcule que sur ce que le passager sait (C-06 §4).
 
@@ -332,7 +332,7 @@ Parcours de référence du prototype (cas A-03 de C-01).
 2. Toucher « Déplacer ». Fil : CAISSE › DÉPLACER. « OÙ ? » : ▸ sous la grille haute, ▸ devant la porte du Salon de transit, ▸ au centre de l'atelier.
 3. Toucher « sous la grille haute ». Fil : CAISSE › DÉPLACER › sous la grille haute. Aperçu :
    - RISQUE : **faible** — effort, aucune blessure attendue ;
-   - COÛT : [bruyant] (la maquette montre aussi [long], à ne pas afficher avant décision, D-140) ;
+   - COÛT : [bruyant] (la maquette montre aussi [long], supprimé, D-150) ;
    - SAVOIR : La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter.
 4. CONFIRMER envoie une commande structurée (objet, action, position publique), jamais une phrase. Le moteur résout l'action et enregistre la partie (C-09 SP-02). ANNULER, « ✕ » ou toucher le voile referment sans effet.
 
@@ -356,7 +356,7 @@ Le porteur du projet trouve la carte « pas mal » et la reverra plus tard. [Val
   - **Sortie vue vers une pièce non visitée :** étiquette « [↑ GALERIE TECHNIQUE] » reliée par un pointillé. La pièce n'est pas dessinée (OP-03). La flèche suit la direction de la sortie.
   - **Porte étanche :** sous l'étiquette, « porte étanche · voyant AIR ● » (étiquette en vidéo inverse) ou « VIDE ○ ». Valeur tenue à jour (OP-04).
   - **Passage sans signalétique** (la grille haute, qui est bien un passage [Validé]) : « [→ ?] » relié par un pointillé, sans destination tant qu'elle n'est pas découverte (OP-03).
-  - **Pièce hors de vue :** son dernier état vu, en 12 `texte-secondaire` dans le rectangle, par exemple « vu il y a un moment · flèches rouges » (D-076). Un incendie vu s'écrirait « feu ». L'ancienneté se dit en mots, jamais en chiffres : « vu à l'instant », « vu il y a un moment », « vu il y a longtemps ». [Validé] Les seuils entre ces mots restent à fixer. [Ouvert]
+  - **Pièce hors de vue :** son dernier état vu, en 12 `texte-secondaire` dans le rectangle, par exemple « vu il y a un moment · flèches rouges » (D-076). Un incendie vu s'écrirait « feu ». L'ancienneté se dit en mots, jamais en chiffres : « vu à l'instant », « vu il y a un moment », « vu il y a longtemps ». [Validé] Seuils, en actions confirmées depuis la dernière vue : à l'instant = 1 au plus, il y a un moment = 2 à 5, il y a longtemps = 6 et plus. [Validé D-151]
   - **Dans la pièce actuelle :** les repères utiles, « GRILLE HAUTE fermée », « @ VOUS », « [■] Caisse ».
 - **Sous le plan**, « ── ICI ── », puis les positions en mots : « VOUS ........ sous la grille haute », « CAISSE ...... sous la grille haute ».
 - **Légende :** « [↑ NOM] sortie vue, pièce non visitée », « [→ ?] passage, destination inconnue », « AIR ● / VIDE ○ voyant de porte étanche ».
@@ -383,7 +383,7 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 - **En-tête :** « OPTIONS » en `accent` 17/600, puis « le jeu est en pause » en 12.
 - **Contenu qui défile**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
-  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Voix d'IA Station » COUPÉE / ACTIVE. [Validé D-148 : ambiance et voix d'IA Station au lancement ; Proposé pour le détail des niveaux] Tout reste lisible sans le son.
+  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Voix d'IA Station » COUPÉE / ACTIVE. [Validé D-148 ; Proposé pour le détail des niveaux] La voix est la synthèse vocale française du téléphone, qui lit le message mot pour mot ; sans voix française, le réglage l'indique et le texte suffit (D-152). Bruitages libres de droits, source et licence notées ; bande-son fournie par le porteur du projet (D-153). Tout reste lisible sans le son.
   3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé]
   4. **── PARTIE ──** :
      - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
@@ -428,7 +428,7 @@ Exemple : « Caisse · Monter dessus · atteindre la poignée de la grille haute
 - **En-tête :** ATELIER DE SERVICE, « > au sol, près de la caisse », badge « ! BLESSÉ », engrenage.
 - **Récit :**
   - rappel « > Caisse · Monter dessus · atteindre la poignée de la grille haute » ;
-  - en dessous, en 13 `texte-secondaire` : « risque annoncé : élevé » (la maquette ajoute « · [périlleux] », à ne pas afficher avant décision, D-140) ;
+  - en dessous, en 13 `texte-secondaire` : « risque annoncé : élevé » (la maquette ajoute « · [périlleux] », supprimé, D-150) ;
   - récit : « Vous montez sur la caisse et tendez le bras. Vos doigts accrochent la poignée : elle cède d'un cran. Puis la caisse bascule. Votre épaule heurte le sol, et la douleur vous coupe le souffle. »
 - **Ce qui change :**
   - « ÉTAT : indemne → BLESSÉ » ; l'épaule n'est dite que dans le récit (D-143) ;
@@ -455,7 +455,7 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
 
 | État | Ce qu'il doit montrer | Source |
 | --- | --- | --- |
-| Inventaire | Objets portés, l'objet encombrant (un seul à la fois), fiche gratuite de chaque objet, actions possibles depuis l'inventaire | D-079, B-045 |
+| Inventaire | Bulle ouverte par INVENTAIRE : objets portés, l'objet encombrant (un seul à la fois) signalé ; toucher un objet ouvre la même composition que dans la pièce | D-079, B-045, D-154 |
 | Signaler un bug | Commentaire du joueur, partie jointe, envoi au service, rapport gardé sans réseau | C-10 RP-01, RP-03, PR-01 |
 | Envoyer ma partie | Partie complète, commentaire, case « je valide » dans les versions de test | C-10 RP-02, D-130, D-132 |
 | Échec d'enregistrement | Avertissement visible et persistant, jeu possible, jamais « sauvegardé » à tort | C-09 §3, S-02 |
@@ -503,7 +503,7 @@ Revue du 2026-10-10. Ces choix sont consignés dans le [journal des décisions](
 | Personnage | Un homme | « homme » |
 | Grille haute | C'est un passage | « oui ça le sera, un passage » |
 | Déplacement | Aperçu et confirmation | « oui, aperçu et confirmation » |
-| Coûts | bruyant, long, périlleux | « bruyant long perilleux » |
+| Coûts | bruyant, long, périlleux ; puis « long » et « périlleux » supprimés (D-150) | « bruyant long perilleux » |
 | Ancienneté d'un état vu | En mots : « à l'instant », « il y a un moment », « il y a longtemps » | « bien » |
 | Message d'IA Station | Lien dans le récit et pastille sur la navigation | « lien et pastille bien » |
 | Exporter, envoyer, bug | Exporter = télécharger sur le téléphone ; Envoyer ma partie, d'abord vu comme fonction de débogage, reste pour tous (D-142) ; Signaler un bug joint la partie automatiquement | « exporter veux dire télécharger sur téléphone, envoyer sera une feature de débug, et signaler un bug joindra la partie automatiquement » |
@@ -512,7 +512,7 @@ Revue du 2026-10-10. Ces choix sont consignés dans le [journal des décisions](
 | Terminer la partie | Passe par l'écran de fin « Partie abandonnée » avant le menu principal | « oui » (second passage) |
 | Créature sur la carte | En mots, pas de nombre d'actions | « on va essayer de garder du texte » |
 | Bordure | `#76603A` | « ok pour la bordure » |
-| « long » et « périlleux » | Sens à définir plus tard | « j'y réfléchirai plus tard » |
+| « long » et « périlleux » | Sens à définir plus tard, puis supprimés (D-150) | « j'y réfléchirai plus tard » |
 
 ## 9. Écarts et questions
 
@@ -523,15 +523,16 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 3. **Commentaire écrit dans les rapports** — champ facultatif accepté ; il ne commande jamais le personnage (D-142).
 4. **« Terminer la partie »** — passe par l'écran de fin « Partie abandonnée » (C-08 §4, D-086, §5.2).
 5. **Marqueur de la créature** — en mots, sans nombre d'actions ; OP-05 amendé (D-141).
-6. **Sens de « long » et de « périlleux »** — **toujours ouvert**, reporté par le porteur du projet. Ne pas afficher ces étiquettes avant décision ; « bruyant » peut l'être (D-140).
+6. **« long » et « périlleux »** — supprimés ; seul « bruyant » reste (D-150).
 7. **Panneau bas ou bulle** — bulles ancrées partout (D-146, §3.6).
 8. **La grille haute dans « Se déplacer vers »** — seulement une fois ouverte (D-147, §3.4).
-9. **Son** — ambiance et voix d'IA Station au lancement (D-148). **Ouvert :** enregistrement ou synthèse de la voix, sons précis, licences.
+9. **Son** — ambiance et voix d'IA Station au lancement (D-148) ; voix par la synthèse du téléphone (D-152) ; bruitages libres de droits et bande-son fournie (D-153).
 10. **Blessure localisée** — seulement dans le récit (D-143).
 11. **Rappel de « plus aucune sortie »** — gardé, discret (D-144).
 12. **Confirmation avant une nouvelle partie** — oui, elle remplace l'ancienne (D-145, §4.1).
 13. **Import d'une partie téléchargée** — pas au lancement (D-149).
-14. **Seuils de l'ancienneté** (« à l'instant », « il y a un moment », « il y a longtemps ») — **ouvert** (§4.8).
+14. **Seuils de l'ancienneté** — 1 action au plus / 2 à 5 / 6 et plus (D-151, §4.8).
+15. **Inventaire** — bulle ouverte par le bouton INVENTAIRE (D-154). Reste à maquetter en détail par l'agent d'interface, dans ce cadre.
 
 ## 10. Correspondance avec la maquette
 
