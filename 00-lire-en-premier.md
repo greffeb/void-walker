@@ -20,6 +20,7 @@ Le présent dossier ne modifie ni le prototype précédent ni le projet Lacets. 
 4. [06 — Contrats et questions ouvertes](06-contrats.md).
 5. [02 — Roadmap et portes de validation](02-roadmap.md).
 6. [04 — Workflow agentique](04-workflow-agentique.md) pour préparer ou exécuter une issue.
+7. [10 — Architecture](10-architecture.md) : pile et organisation acceptées (D-136).
 
 Les besoins créatifs sont illustrés par les [cinq interactions de référence](07-interactions-reference.md). Leurs intentions sont demandées, leurs modalités techniques restent proposées jusqu'à arbitrage.
 
@@ -76,6 +77,7 @@ La validation humaine sera conservée dans le [journal des parties humaines](jou
 - Si plus aucune sortie n'est possible, le jeu le dit et laisse continuer ; fin racontée, sans score ; même station rejouable avec de nouveaux dés.
 - Une seule partie en cours ; export d'une partie ; boutons « bug » et « envoyer ma partie » pour tous, via un petit service qui crée les issues GitHub.
 - Une fonctionnalité à valider passe par sa PR : preuves de l'agent, version de test par PR, retours et validation signée par le téléphone du porteur du projet en commentaire de la PR.
+- Pile : TypeScript, React, Vite, PWA sur GitHub Pages ; service de rapports sur Cloudflare Workers ; captures automatiques dans les PR.
 - Valider : aller au bout d'une partie puis juger ; chaque morceau du lancement au moins une fois ; validation perdue si l'aventure ou ses parcours automatiques changent.
 - Dépôt : tests et docs en zone verte, fusionnés par l'orchestrateur après relecture par un autre agent ; moteur en zone orange au début ; branche principale non protégée ; deux rôles d'auteur, contenu et outils.
 - Textes en français, au vouvoiement, courts, écrits à la main avec quelques variantes ; pas de chiffre de dé affiché ; écrits par les agents en autonomie (zone verte).
@@ -89,11 +91,11 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 ## Reprise immédiate
 
-**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents et circuit de validation par PR arbitrés (D-101 à D-132). Pas de code, de solveur ni de partie humaine exécutée.
+**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Prochaine tâche recommandée :** faire proposer par les agents une pile technique comparée (D-123), la faire choisir, puis rédiger les profils Copilot et l'issue de Bootstrap. Les règles d'assemblage et la liste des huit morceaux peuvent être conçues en parallèle.
+**Prochaine tâche recommandée :** rédiger les profils Copilot et l'issue de Bootstrap. Les règles d'assemblage et la liste des huit morceaux peuvent être conçues en parallèle.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-126 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-131 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 
