@@ -301,6 +301,17 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-125 Version de test | Une adresse par PR | D-131 |
 | Q-126 Retours | En commentaire de la PR testée | D-132 |
 
+### Bloc AA — pile technique : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-127 Écran | React | D-133 |
+| Q-128 Service de rapports | Cloudflare Workers | D-134 |
+| Q-129 Captures en PR | Oui, automatiques | D-135 |
+| Q-130 / Q-131 Architecture | Dix points acceptés, document validé | D-136 |
+| Q-132 Agents au départ | Quatre : orchestrateur, exécutant, relecteur, playtester | D-137 |
+| Q-133 Issue de démarrage | Créée tout de suite sur GitHub (#89) | D-138 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -329,10 +340,10 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Faire proposer la pile technique par les agents puis la choisir (D-123) ; fixer les règles d'assemblage et la liste des morceaux.
+1. Lancer l'issue de Bootstrap #89 ; fixer les règles d'assemblage et la liste des morceaux.
 2. Fixer le volume et les variations du lancement, l'architecture et les issues exécutables ; les profils d'agents et leurs accès ne sont pas encore installés.
 
-Q-01 à Q-126 sont répondus ; les prochains numéros d'entretien commencent à Q-127. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-133 sont répondus ; les prochains numéros d'entretien commencent à Q-134. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 

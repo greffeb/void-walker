@@ -1014,4 +1014,56 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : depuis une version de test, l'envoi de partie et le bouton « bug » publient un commentaire sur la PR correspondante : fichier de partie, commentaire et, le cas échéant, validation signée.
 - Limite : depuis la version publique, les rapports créent toujours des issues (D-093/D-095).
 
+## Décisions validées — pile technique
+
+### D-133 — Interface en React
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-127 « React », sur proposition comparée (D-123).
+- Décision : l'écran du jeu est construit avec React ; le reste de la pile commune proposée est TypeScript, Vite et PWA sur GitHub Pages, avec un moteur séparé de l'écran.
+- Limite : le code de la V1 n'est pas repris pour autant ; seul ce qui sert les contrats peut être migré (D-011, proposé).
+
+### D-134 — Service de rapports sur Cloudflare Workers
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-128 « Cloudflare Workers ».
+- Décision : le service intermédiaire (D-094) tourne sur Cloudflare Workers, déployé par les agents (D-127) ; la clé GitHub y est stockée en secret non relisible.
+- Limite : un compte Cloudflare est à créer par le porteur du projet. Le script Google de la V1 n'est pas repris.
+
+### D-135 — Captures automatiques dans les PR
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-129 « Oui, captures automatiques ».
+- Décision : un robot joue les parcours sur un écran de téléphone simulé et joint captures et texte affiché à la PR.
+- Limite : ces captures sont des preuves du niveau « vérifié automatiquement », jamais une validation humaine.
+
+### D-136 — Architecture v1.0 acceptée
+
+- Date / statut : 2026-10-10 / **Validé, implémentation absente**.
+- Origine : réponses Q-130, dix points cochés sur dix, et Q-131 « Oui, on valide ».
+- Décision : [l'architecture](10-architecture.md) devient la référence du Bootstrap, avec AP-01 à AP-10 : moteur isolé et règles d'import vérifiées ; générateur de dés propre à la partie ; sauvegarde IndexedDB par action ; clé de signature non exportable ; publication principale et `/pr-<numéro>/` ; service sécurisé et limité ; reconnaissance des validations par une action GitHub ; commande unique de vérification ; captures automatiques ; CI par PR et publication sur la branche principale.
+- Limite : les bibliothèques secondaires restent au choix des agents dans ces règles. Le changement du mode de publication GitHub Pages et la création du compte Cloudflare sont à faire au Bootstrap.
+
+## Décisions validées — démarrage
+
+### D-137 — Quatre agents Copilot au départ
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-132 « Le minimum : 4 agents ».
+- Décision : orchestrateur, exécutant, relecteur et playtester sont installés comme profils Copilot du dépôt (`.github/agents/`). Les autres rôles de 04 §3 seront ajoutés quand une issue en aura besoin.
+
+### D-138 — Issue de démarrage créée directement sur GitHub
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-133 « La créer tout de suite sur GitHub ».
+- Décision : le texte de l'issue de Bootstrap est conservé dans le kit et publié immédiatement comme issue du dépôt.
+- Limite : publier l'issue n'autorise pas son exécution sans lancement explicite par le porteur du projet.
+
+### D-139 — La V1 en ligne peut disparaître au Bootstrap
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse du porteur du projet « ok pour virer l'ancienne version en ligne », à la question sur le changement du mode de publication GitHub Pages.
+- Décision : le Bootstrap (#89) peut changer le mode de publication GitHub Pages même si la V1 publiée cesse d'être accessible ; après fusion, le monde de test V2 la remplace à la racine (AP-05).
+- Limite : l'historique Git de la V1 reste consultable (D-122).
+
 

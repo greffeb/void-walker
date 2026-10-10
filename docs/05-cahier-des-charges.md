@@ -96,6 +96,8 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-061 | Dépôt existant, PWA sur GitHub Pages, pile technique proposée par les agents et choisie par le porteur du projet | D-122 à D-124 | Proposition d'architecture acceptée |
 | B-062 | Validation par PR : preuves de l'agent, version de test par PR, retours et validation signée en commentaire | D-129 à D-132 | Cas PR-09 de C-10 |
 | B-063 | Service de rapports mis à jour et déployé par les agents ; agents GitHub Copilot sur le PC du porteur du projet | D-125 à D-128 | Configuration au Bootstrap |
+| B-064 | React pour l'écran, Cloudflare Workers pour le service, captures automatiques jointes aux PR | D-133 à D-135 | Bootstrap et première PR avec captures |
+| B-065 | Architecture AP-01 à AP-10 respectée : moteur isolé, dés enregistrés, sauvegarde par action, signature, versions de test, commande unique | D-136 | Vérification complète au Bootstrap |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 
