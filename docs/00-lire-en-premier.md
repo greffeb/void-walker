@@ -1,8 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
-> **Statut :** CADRAGE EN COURS — kit documentaire, pas dépôt applicatif prêt à développer.
+> **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
 > **Mise à jour :** 2026-10-10.
-> **Autorisation de lancer le Bootstrap :** NON — décisions de gameplay et contrats encore incomplets.
 
 ## Mission de ce dossier
 
@@ -93,13 +92,15 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136) ; quatre agents Copilot installés dans `.github/agents/` (D-137) ; [issue de Bootstrap](11-bootstrap.md) publiée : [#89](https://github.com/greffeb/void-walker/issues/89). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Prochaine tâche recommandée :** lancer l'agent `orchestrateur` sur l'issue #89 quand le porteur du projet le décide. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
+**Bootstrap #89, en cours sur `bootstrap/89-socle` (non poussée) :** étape 1/5 faite — kit dans `docs/`, socle TypeScript strict, contrôles d'import et de liens, `npm run verify` vert. Étape 2/5 (moteur minimal et monde de test) arrêtée : deux erreurs réseau consécutives lors de la délégation à l'exécutant, aucun changement partiel. Restent : moteur et monde de test, CLI, appli PWA, CI et publication (le changement du mode GitHub Pages retire la V1 en ligne : accord du porteur du projet requis).
+
+**Prochaine tâche recommandée :** relancer l'agent `orchestrateur` sur l'issue #89 pour reprendre à l'étape 2. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-133 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 
-**Ne pas faire :** bootstrap applicatif, correction de la V1, ajout de mécanismes non arbitrés, génération en masse d'issues d'implémentation, promotion d'une proposition au statut validé.
+**Ne pas faire :** code applicatif hors de l'issue #89, correction de la V1, ajout de mécanismes non arbitrés, génération en masse d'issues d'implémentation, promotion d'une proposition au statut validé.
 
 Après chaque bloc de réponses : consigner les décisions explicites, mettre à jour le cahier des charges et les questions, puis demander le prochain bloc utile. Une réponse « à décider » reste ouverte.
 
