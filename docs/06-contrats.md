@@ -22,7 +22,7 @@ Les contrats seront détaillés après les arbitrages produit qui leur donnent u
 | C-05 Conséquences | Comment un succès devient-il un changement réel ? | Socle v0.1 accepté, D-027 ; ordre et vide fixés par C-03 | Sauvegarde détaillée et autres réserves adjacentes |
 | C-06 Observation et connaissances | Que sait chaque joueur/adaptateur ? | [v1.0 accepté](contrats/C-06-observation-connaissances.md), D-075 à D-077, D-080 à D-082 | Forme visuelle de la carte, textes des messages |
 | C-07 Narration | Que peut affirmer le texte ? | [v1.0 accepté](contrats/C-07-textes.md), D-109 à D-117 | Textes définitifs |
-| C-08 Scénarios et fins | Qu'est-ce qui rend une aventure valide ? | [v1.0 accepté](contrats/C-08-stations-fins.md), D-083 à D-088, D-101/D-102 | Volume du lancement et règles d'assemblage |
+| C-08 Scénarios et fins | Qu'est-ce qui rend une aventure valide ? | [v1.0 accepté](contrats/C-08-stations-fins.md), D-083 à D-088, D-101/D-102, D-156 à D-162 | Conception des dix morceaux |
 | C-09 Sauvegarde et replay | Qu'est-ce qui doit rester identique ? | [v1.0 accepté](contrats/C-09-sauvegarde-replay.md), D-022, D-087 à D-092, D-101 à D-103 | Format technique (architecture) |
 | C-10 Preuves et gouvernance | Qui peut déclarer une version prête ? | [v1.0 accepté](contrats/C-10-preuves-gouvernance.md), D-010, D-092 à D-108 | Fusion mixte, passage du moteur en vert, budget des agents |
 
@@ -312,6 +312,22 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-132 Agents au départ | Quatre : orchestrateur, exécutant, relecteur, playtester | D-137 |
 | Q-133 Issue de démarrage | Créée tout de suite sur GitHub (#89) | D-138 |
 
+### Bloc AB — assemblage et nouveaux morceaux : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-134 Origine des morceaux | Imaginer plus, quitte à ajouter des règles | D-156 |
+| Q-135 Problème du départ | Un seul problème final par station | D-159 |
+| Q-136 Ordre des obstacles | En chaîne et en ordre libre | D-160 |
+| Q-137 Place de la créature | Tirée parmi les places prévues par les morceaux | D-161 |
+| Q-138 Répétition | Pur hasard | D-162 |
+| Q-139 Nouveaux morceaux | Machines, passerelle, sans gravité, chambre froide | D-158 |
+| Q-140 Combien | 6 anciens + 4 nouveaux | D-157 |
+| Q-141 / Q-142 Salle des machines | Vacarme dans les deux sens ; arrêter et relancer, relancer attire | D-163 |
+| Q-143 / Q-144 Passerelle | La planche cède sous la créature ; on peut la retirer | D-164 |
+| Q-145 à Q-147 Sans gravité | Deux actions pour le passager ; la créature dérive ; interrupteur | D-165 |
+| Q-148 / Q-149 Chambre froide | Ralentie pour de bon ; le passager blessé s'il y reste | D-166 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -340,10 +356,10 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Lancer l'issue de Bootstrap #89 ; fixer les règles d'assemblage et la liste des morceaux.
-2. Fixer le volume et les variations du lancement, l'architecture et les issues exécutables ; les profils d'agents et leurs accès ne sont pas encore installés.
+1. Concevoir les dix morceaux : disposition, places de la créature, interrupteurs et énergie, cohabitations interdites (sans gravité et vide, froid et huile…).
+2. Issues du service de rapports et de la signature des validations.
 
-Q-01 à Q-133 sont répondus ; les prochains numéros d'entretien commencent à Q-134. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-149 sont répondus ; les prochains numéros d'entretien commencent à Q-150. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 

@@ -82,7 +82,7 @@ La validation humaine sera conservée dans le [journal des parties humaines](jou
 - Valider : aller au bout d'une partie puis juger ; chaque morceau du lancement au moins une fois ; validation perdue si l'aventure ou ses parcours automatiques changent.
 - Dépôt : tests et docs en zone verte, fusionnés par l'orchestrateur après relecture par un autre agent ; moteur en zone orange au début ; branche principale non protégée ; deux rôles d'auteur, contenu et outils.
 - Textes en français, au vouvoiement, courts, écrits à la main avec quelques variantes ; pas de chiffre de dé affiché ; écrits par les agents en autonomie (zone verte).
-- Lancement : environ 8 morceaux, 2 ou 3 obstacles par station, toujours la même créature, problème du départ variable.
+- Lancement : dix morceaux (six tirés des aventures, quatre nouveaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide), 2 ou 3 obstacles et un seul problème final par station, toujours la même créature, stations tirées au hasard.
 - Les règles lisent les qualités des objets, pas leur nom ; port sans limite sauf un seul objet encombrant.
 - Pas de LLM requis dans le jeu ; le rôle éventuel d'un LLM est celui d'un joueur de test externe.
 - Développement agentique dans un nouveau dépôt, méthode issue → vérification → revue → preuves.
@@ -106,9 +106,9 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange.
 
-**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
+**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : concevoir les dix morceaux (règles d'assemblage et nouveaux morceaux fixés par D-156 à D-166), puis issues du service de rapports et de la signature.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-133 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-149 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 

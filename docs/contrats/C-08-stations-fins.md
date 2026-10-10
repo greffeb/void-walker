@@ -17,7 +17,16 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 - **GP-03 — Premiers morceaux :** découpés dans AR-01 et AR-02. Un morceau du vide ne cohabite pas avec feu, huile ou bloc tant que leurs interactions ne sont pas décidées (D-058).
 - **GP-04 — Départ sans danger immédiat :** la pièce de départ laisse lire et explorer avant tout contact (AR-01 §5).
 
-**Volume du lancement :** environ huit morceaux (D-118) ; deux ou trois obstacles par station (D-119) ; une seule espèce de créature, placée différemment (D-120) ; le problème à régler pour partir varie selon les morceaux (D-121). Les règles précises d'assemblage restent à fixer.
+**Volume du lancement :** dix morceaux, six tirés d'AR-01/AR-02 et quatre nouveaux (D-157/D-158) ; deux ou trois obstacles par station (D-119) ; une seule espèce de créature (D-120).
+
+**Règles d'assemblage :**
+
+- un seul problème final par station, juste avant de partir ; les autres obstacles sont sur le chemin (D-159) ;
+- obstacles en chaîne ou à préparer dans l'ordre libre, selon les morceaux (D-160) ;
+- la créature part d'un endroit prévu par un morceau, tiré au hasard, jamais dans la pièce de départ (D-161) ;
+- les stations se tirent au pur hasard, une station déjà jouée peut revenir (D-162).
+
+Les nouveaux morceaux et leurs règles (D-163 à D-166) seront décrits avec la liste des morceaux, puis retranscrits dans C-02/C-03/C-04 après acceptation de leur conception.
 
 ## 3. Vérification avant de jouer
 

@@ -92,12 +92,13 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-057 | Zones de fusion : tests/docs verts fusionnés après relecture indépendante ; moteur orange au début ; branche principale non protégée | D-104 à D-107 | Configuration du dépôt et des agents au Bootstrap |
 | B-058 | Textes en français, vouvoiement, 2 à 4 phrases, écrits à la main avec trous et variantes ; aucun chiffre de dé | D-109 à D-114 | Cas N-01 à N-07 de C-07 |
 | B-059 | Textes écrits par les agents en autonomie, fusionnés après relecture indépendante, sous les règles NP-01 à NP-05 | D-115/D-116 | Contrôles automatiques de C-07 |
-| B-060 | Lancement : environ 8 morceaux, 2 ou 3 obstacles par station, une seule espèce de créature, problème du départ variable | D-118 à D-121 | Liste des morceaux, stations assemblées et durée mesurée |
+| B-060 | Lancement : dix morceaux, 2 ou 3 obstacles par station, une seule espèce de créature, un seul problème final ; créature placée selon les morceaux ; stations tirées au hasard | D-118 à D-121, D-156 à D-162 | Liste des morceaux, stations assemblées et durée mesurée |
 | B-061 | Dépôt existant, PWA sur GitHub Pages, pile technique proposée par les agents et choisie par le porteur du projet | D-122 à D-124 | Proposition d'architecture acceptée |
 | B-062 | Validation par PR : preuves de l'agent, version de test par PR, retours et validation signée en commentaire | D-129 à D-132 | Cas PR-09 de C-10 |
 | B-063 | Service de rapports mis à jour et déployé par les agents ; agents GitHub Copilot sur le PC du porteur du projet | D-125 à D-128 | Configuration au Bootstrap |
 | B-064 | React pour l'écran, Cloudflare Workers pour le service, captures automatiques jointes aux PR | D-133 à D-135 | Bootstrap et première PR avec captures |
 | B-065 | Architecture AP-01 à AP-10 respectée : moteur isolé, dés enregistrés, sauvegarde par action, signature, versions de test, commande unique | D-136 | Vérification complète au Bootstrap |
+| B-066 | Quatre nouveaux morceaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide, avec leurs règles | D-158, D-163 à D-166 | Conception des morceaux, puis parcours témoins |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 

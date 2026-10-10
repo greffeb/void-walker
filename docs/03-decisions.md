@@ -912,7 +912,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 
 ### D-118 — Environ huit morceaux au lancement
 
-- Date / statut : 2026-10-10 / **Validé**.
+- Date / statut : 2026-10-10 / **Validé, volume remplacé par D-157** (dix morceaux).
 - Origine : réponse Q-112 « Petit : environ 8 morceaux ».
 - Décision : le contenu de lancement compte environ huit morceaux, de quoi faire une dizaine de stations vraiment différentes ; d'autres pourront être ajoutés après.
 - Limite : chaque morceau doit être validé sur téléphone au moins une fois (D-098).
@@ -1171,5 +1171,79 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : « changement de plan pour l'IA, pas de synthèse vocale. juste un effet sonore ».
 - Décision : un message d'IA Station n'est pas lu à voix haute ; son arrivée est signalée par un effet sonore, choisi parmi les bruitages libres de droits (D-153). Remplace D-152 et la partie « voix » de D-148.
 - Limite : le message reste un texte ; le lien dans le récit et la pastille signalent aussi son arrivée sans le son.
+
+## Décisions validées — assemblage et morceaux du lancement
+
+### D-156 — De nouveaux morceaux peuvent apporter de nouvelles règles
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-134 « Imaginer plus, quitte à ajouter des règles ».
+- Décision : en plus des six morceaux tirés d'AR-01/AR-02 (galerie en feu, grille haute et caisse, local énergie, salle d'observation, panneau et passage caché, salle panoramique et baie), le lancement accueille des morceaux nouveaux qui ajoutent leurs propres règles.
+- Limite : chaque nouvelle règle est arbitrée explicitement avant implémentation (D-163 à D-166) ; aucune ne s'invente au codage.
+
+### D-157 — Dix morceaux au lancement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-140 « 6 anciens + 3 ou 4 nouveaux », puis choix de quatre nouveaux (Q-139).
+- Décision : six morceaux tirés des aventures de référence et quatre nouveaux, soit dix. Remplace le volume « environ huit » de D-118 ; le reste de D-118 (validation de chaque morceau, D-098) s'applique.
+
+### D-158 — Quatre nouveaux morceaux
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-139, quatre idées cochées.
+- Décision : salle des machines bruyante, passerelle effondrée, zone sans gravité, chambre froide. Leurs règles sont fixées par D-163 à D-166.
+- Non retenus : cuisine (lancer un objet), coursive obscure, monte-charge.
+
+### D-159 — Un seul problème final par station
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-135 « Un seul problème final par station ».
+- Décision : une station a un seul problème à régler juste avant de partir (énergie, créature devant la capsule, accès…) ; les autres obstacles sont sur le chemin. Précise D-121.
+
+### D-160 — Obstacles en chaîne et en ordre libre
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-136 « Mélange : en chaîne et en ordre libre ».
+- Décision : dans une station, certains obstacles se franchissent l'un après l'autre, d'autres se préparent dans l'ordre que le joueur veut, comme l'énergie et l'accès d'AR-01.
+
+### D-161 — Place de départ de la créature prévue par les morceaux
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-137 « Tirée parmi les places prévues par les morceaux ».
+- Décision : chaque morceau déclare les endroits où la créature peut attendre ; l'assemblage en tire un seul, jamais dans la pièce de départ (GP-04).
+
+### D-162 — Les stations se tirent au pur hasard
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-138 « Pur hasard ».
+- Décision : une nouvelle partie peut retomber sur une station déjà jouée, même deux fois de suite. Le choix délibéré « rejouer cette station » reste disponible (D-087).
+
+### D-163 — Salle des machines bruyante
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses Q-141 « Le vacarme couvre tout, dans les deux sens » et Q-142 « Arrêter et relancer ; relancer attire ».
+- Décision : machines en marche, aucun bruit fait dans la salle n'en sort, et le passager qui s'y trouve n'entend pas la créature bouger dans les pièces voisines ; la vue reste normale si elle entre. Arrêter ou relancer les machines coûte une action chacun ; arrêtées, la salle est ordinaire ; les relancer produit un grand bruit qui attire la créature, comme le test de l'avertisseur.
+- Limite : intensité et durée du bruit de relance à fixer avec le morceau, sans en faire une diversion garantie (C-03 §5.1).
+
+### D-164 — Passerelle effondrée
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses Q-143 « La planche cède, elle tombe » et Q-144 « Oui, on peut la retirer derrière soi ».
+- Décision : une planche ou une échelle posée sur le vide permet au passager de traverser. Si la créature s'y engage, la planche cède : la créature tombe et est neutralisée pour de bon, et la planche est perdue, coupant de nouveau le passage. Le passager peut retirer la planche derrière lui en une action.
+- Limite : neutraliser n'est pas évacuer (D-018) ; une planche brisée peut retirer une voie au joueur, sans garantie de retour (D-084/D-085).
+
+### D-165 — Zone sans gravité
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses Q-145 « Traverser prend deux actions », Q-146 « Elle traverse très lentement » et Q-147 « Oui, on peut la couper et la rétablir ».
+- Décision : sans gravité, traverser la zone coûte deux actions au passager ; la créature y dérive et met deux réactions de plus pour la traverser. Un interrupteur coupe ou rétablit la gravité, en une action.
+- Limite : besoin éventuel d'énergie pour l'interrupteur et cohabitation avec le vide à décider.
+
+### D-166 — Chambre froide
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses Q-148 « Enfermée une fois, ralentie pour de bon » et Q-149 « Y rester trop longtemps blesse ».
+- Décision : si la créature entre dans la chambre froide et que la porte se referme derrière elle, elle est ralentie pour toute la partie : elle n'agit plus qu'une réaction sur deux. Le passager qui y reste plus de deux actions de suite subit une blessure.
+- Limite : cohabitation avec l'huile et les autres ralentissements à décider ; la blessure suit le plafond d'une aggravation par action (C-04).
 
 
