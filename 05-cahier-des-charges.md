@@ -1,7 +1,7 @@
 # Void Walker V2 — cahier des charges produit
 
-> **Statut :** VERSION DE TRAVAIL 0.6 — cadrage et AR-01 acceptés en conception ; quatre contrats bornés, starter pack global encore incomplet.
-> **Mise à jour :** 2026-10-09.
+> **Statut :** VERSION DE TRAVAIL 0.8 — AR-01 et AR-02 acceptées en conception ; quatre contrats bornés, starter pack global encore incomplet.
+> **Mise à jour :** 2026-10-10.
 
 ## 1. Promesse produit
 
@@ -54,6 +54,28 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-034 | Évacuation physique : entrer, fermer et lancer | D-054 | Préconditions de conclusion et aucun succès à la simple arrivée |
 | B-035 | AR-01 v1.0 comme attentes de conception, non comme partie validée | D-057 | Exécution des trois témoins, puis validation humaine indépendante |
 
+### Exigences de la deuxième référence, consacrée au vide
+
+| ID | Exigence AR-02 | Décision | Preuve future |
+| --- | --- | --- | --- |
+| B-036 | Courte aventure complète : quatre pièces, même passager, même créature ; seul le vide est nouveau | D-058/D-063 | Parcours complets d'AR-02 |
+| B-037 | Vide mortel sans combinaison, annoncé avant l'action ; combinaison enfilée en une action | D-059/D-060 | Aperçu « mortel », cas de défaite et témoins protégés |
+| B-038 | Sans air = relié à une brèche ouverte par un passage ouvert ou non étanche ; effet immédiat dans les deux sens ; capsule fermée de nouveau pressurisée | D-061/D-065/D-067 | Portes ouvertes ou fermées, capsule, reprise |
+| B-039 | Créature exposée neutralisée pour de bon, expulsée ou inerte, sans victoire automatique | D-062 | Persistance après retour de l'air et après reprise |
+| B-040 | Découpeuse à réussite sûre ; une rustine facultative près de la baie ; repercer possible | D-064/D-066/D-068/D-069 | Consommation, réparation et nouvelle brèche |
+| B-041 | AR-02 v1.0 acceptée comme conception : trois parcours, passage en force conservé, combinaison retirable et remise | D-070 à D-074 | Exécution des témoins, puis partie sur téléphone |
+
+### Exigences de monde et de connaissance, valables pour tout le lancement
+
+| ID | Exigence | Décision | Preuve future |
+| --- | --- | --- | --- |
+| B-042 | Carte construite au fil de l'exploration ; hors de vue, dernier état vu | D-075/D-076 | Cas K-01/K-02 de C-06 |
+| B-043 | Bruits vagues de la créature qui bouge dans la pièce voisine, par une porte ouverte | D-077 | Cas K-03/K-04 de C-06 |
+| B-044 | Règles fondées sur les qualités déclarées des objets, jamais sur leur nom | D-078 | Cas W-01 de C-02 |
+| B-045 | Port sans limite, sauf un seul objet encombrant à la fois | D-079 | Cas W-02 de C-02 |
+| B-046 | Petites règles de monde et de carte de C-02/C-06 (dépôt, objet encombrant, grille, nom des portes, voyants, dernière position vue) | D-080 | Cas d'acceptation de C-02/C-06 |
+| B-047 | Assistance limitée à ses messages prévus, relisibles, sans réponse d'état | D-081 | Cas K-06 de C-06 |
+
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 
 ## 3. Boucle de jeu proposée à détailler
@@ -80,7 +102,7 @@ Une liste exhaustive visible peut révéler une solution. Une liste trop courte 
 
 Les [interactions de référence](07-interactions-reference.md) expriment cinq besoins concrets : dépressurisation, glissade, accès en hauteur, passage secret et extinction. Elles servent à décider quelles propriétés ont un effet réel, sans établir un catalogue universel par avance.
 
-Répartition D-038 : la dépressurisation sera éprouvée par une deuxième aventure de référence. AR-01 se concentre sur les quatre autres besoins ; ce report de tranche n'est pas une exclusion du lancement.
+Répartition D-038 : la dépressurisation sera éprouvée par une deuxième aventure de référence. AR-01 se concentre sur les quatre autres besoins ; ce report de tranche n'est pas une exclusion du lancement. Cette deuxième référence, [AR-02](09-aventure-reference-vide.md), est acceptée en conception : courte aventure complète de quatre pièces (D-058, D-074).
 
 ## 5. Rejouabilité
 
@@ -98,7 +120,7 @@ Santé, consommables et menace réactive constituent les contraintes choisies (D
 
 Le joueur voit un risque qualitatif et les conséquences prévisibles avant une tentative (D-020). Une nouvelle tentative paie de nouveaux coûts et risques si elle reste possible (D-024). Pas de duel classique : se protéger, détourner, préparer l'environnement ou fuir (D-025).
 
-La propagation des dangers dépend des passages et de leurs capacités (D-023). Pour AR-01, [C-03](contrats/C-03-temps-reactions.md) fixe l'ordre du tour et le feu après deux engagements de connexion laissée ouverte. Les règles du vide restent ouvertes pour AR-02. Le [contrat de cohérence du monde](contrats/C-05-monde-consequences.md) conserve ses invariants transversaux.
+La propagation des dangers dépend des passages et de leurs capacités (D-023). Pour AR-01, [C-03](contrats/C-03-temps-reactions.md) fixe l'ordre du tour et le feu après deux engagements de connexion laissée ouverte. Les règles du vide sont fixées pour AR-02 par D-059 à D-074 et retranscrites dans C-03/C-04 : mortel sans combinaison, vide immédiat dans tout ce qui est ouvert vers la brèche, air de retour dès qu'une pièce n'y est plus reliée. Le [contrat de cohérence du monde](contrats/C-05-monde-consequences.md) conserve ses invariants transversaux.
 
 Pour AR-01, [C-04](contrats/C-04-risques-blessures.md) fixe indemne/blessé/critique/défaite, soin consommable, aggravation plafonnée et premier réglage de la fuite exposée. La menace persistante est décrite par C-03 et les positions d'AR-01. Aucun de ces paramètres ne doit être généralisé silencieusement à un autre danger ou une autre entité.
 
@@ -128,4 +150,4 @@ La sortie sur les stores n'est pas requise pour clôturer la première publicati
 
 L'[aventure AR-01 v1.0](08-aventure-reference.md) est acceptée comme référence de conception, avec trois témoins à prouver et ses contrats C-03/C-04 (D-055 à D-057). Les textes de finition, la durée, l'intérêt et la découvrabilité ne sont pas encore validés ; aucun parcours n'a été exécuté.
 
-Prochaine étape proposée : concevoir AR-02 pour la dépressurisation préparée, puis borner les entités, connaissances, conditions de génération/fins, sauvegarde/replay et preuves. Compléter ensuite architecture, périmètre de contenu et issues de lancement. Ne pas construire le moteur sur des inconnues remplacées silencieusement par des valeurs inventées.
+Prochaine étape proposée : borner les entités, connaissances, conditions de génération/fins, sauvegarde/replay et preuves. Compléter ensuite architecture, périmètre de contenu et issues de lancement. Ne pas construire le moteur sur des inconnues remplacées silencieusement par des valeurs inventées.

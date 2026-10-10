@@ -42,7 +42,7 @@ Une huile au sol concerne les entités qui traversent la position ; une expositi
 
 L'état de la menace — emplacement, exposition, état de fonctionnement — est canonique. Une neutralisation persistante ne se réinitialise pas parce que le joueur change de pièce ou recharge. Aucun module de duel indépendant n'est ajouté (D-025).
 
-Pour AR-01, le rythme du feu, le timing de l'exposition et l'ordre action/danger/réaction sont désormais fixés par [C-03](C-03-temps-reactions.md) et [C-04](C-04-risques-blessures.md), selon D-055 à D-057. Les dangers hors de cette portée, notamment le vide, restent ouverts et ne doivent pas être implémentés par extrapolation silencieuse.
+Pour AR-01, le rythme du feu, le timing de l'exposition et l'ordre action/danger/réaction sont désormais fixés par [C-03](C-03-temps-reactions.md) et [C-04](C-04-risques-blessures.md), selon D-055 à D-057. Pour AR-02, l'air d'une pièce ne dépend que de son lien à une brèche ouverte ([C-03 §5.4](C-03-temps-reactions.md)) ; la brèche, la rustine consommée et la neutralisation de la créature sont des états persistants uniques (D-062/D-066/D-074). Les autres dangers hors de ces portées restent ouverts et ne doivent pas être implémentés par extrapolation silencieuse.
 
 ## 6. Connaissance et objectif
 

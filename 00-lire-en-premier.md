@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** CADRAGE EN COURS — kit documentaire, pas dépôt applicatif prêt à développer.
-> **Mise à jour :** 2026-10-09.
+> **Mise à jour :** 2026-10-10.
 > **Autorisation de lancer le Bootstrap :** NON — décisions de gameplay et contrats encore incomplets.
 
 ## Mission de ce dossier
@@ -25,9 +25,13 @@ Les besoins créatifs sont illustrés par les [cinq interactions de référence]
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
+L'[aventure AR-02](09-aventure-reference-vide.md), courte référence de la dépressurisation, est **acceptée comme conception** (D-074). Ses trois témoins P-V1/P-V2/P-V3 restent à prouver, aucun n'a été joué. Elle contient aussi des solutions d'auteur.
+
 Premiers socles contractuels acceptés (D-027) : [actions et observation](contrats/C-01-actions-observation.md), [cohérence du monde et des conséquences](contrats/C-05-monde-consequences.md). Leurs questions explicitement ouvertes ne sont pas des décisions implicites.
 
-Contrats acceptés dans la portée d'AR-01 (D-055 à D-057) : [temps et réactions](contrats/C-03-temps-reactions.md), [risques et blessures](contrats/C-04-risques-blessures.md). Les règles du vide ne sont pas déduites de celles-ci.
+Contrats acceptés dans la portée d'AR-01 et d'AR-02 (D-055 à D-057, D-074) : [temps et réactions](contrats/C-03-temps-reactions.md), [risques et blessures](contrats/C-04-risques-blessures.md). Le vide y a sa propre section ; il n'est pas déduit des règles du feu.
+
+Contrats acceptés pour tout le lancement (D-082) : [monde et entités](contrats/C-02-monde-entites.md), [observation, carte et connaissances](contrats/C-06-observation-connaissances.md).
 
 La validation humaine sera conservée dans le [journal des parties humaines](journal-parties-humaines.md). Il est actuellement vide : aucune partie V2 n'a eu lieu.
 
@@ -57,12 +61,18 @@ La validation humaine sera conservée dans le [journal des parties humaines](jou
 - Santé, consommables et menace réactive ; pas d'échéance globale, de faim/fatigue ni d'O₂ permanent.
 - Niveau de risque qualitatif et conséquences prévisibles présentés avant la tentative.
 - Propagation simple des dangers par les passages ouverts, selon des règles bornées.
+- Deuxième référence courte pour le vide : quatre pièces, même passager, même créature.
+- Vide mortel sans combinaison ; il gagne aussitôt tout ce qui est ouvert vers la brèche et quitte toute pièce qui n'y est plus reliée ; créature exposée neutralisée pour de bon.
 - Pas de duel classique : protection, diversion, fuite et préparations environnementales.
 - Nouvelle tentative autorisée si elle reste possible, en payant de nouveau coûts et risques.
 - Menus de manipulations plausibles, sans révéler les effets secrets.
 - Santé par quelques états de blessure, pas une jauge détaillée de PV.
 - Une menace principale persistante, avec emplacement et réactions aux actes du joueur.
 - Thème d'horreur spatiale, texte majoritaire, interface mobile-first et carte.
+- Carte construite au fil de l'exploration ; hors de vue, elle garde le dernier état vu.
+- On entend vaguement la créature bouger dans la pièce voisine par une porte ouverte.
+- L'assistance parle seulement aux moments prévus ; elle ne répond pas aux demandes d'état.
+- Les règles lisent les qualités des objets, pas leur nom ; port sans limite sauf un seul objet encombrant.
 - Pas de LLM requis dans le jeu ; le rôle éventuel d'un LLM est celui d'un joueur de test externe.
 - Développement agentique dans un nouveau dépôt, méthode issue → vérification → revue → preuves.
 - Parcours de référence accepté seulement après une partie du porteur du projet sur téléphone.
@@ -71,11 +81,13 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 ## Reprise immédiate
 
-**Étape terminée :** conception d'AR-01 acceptée, Q-24 à Q-50 répondues, décisions jusqu'à D-057. Six pièces, trois témoins sur papier (13/18/15 engagements), règles temporelles et de risque extraites vers C-03/C-04. Pas de code, de solveur ni de partie humaine exécutée.
+**Étape terminée :** AR-01 et AR-02 acceptées en conception (D-057, D-074) ; C-02 et C-06 v1.0 acceptés (D-075 à D-082). Contrats acceptés : C-01 à C-06. Pas de code, de solveur ni de partie humaine exécutée.
 
-**Prochaine tâche recommandée :** concevoir la deuxième référence du vide (AR-02, D-038) pour borner protection, propagation et effets sur les entités ; elle peut être plus courte et ne doit pas devenir une deuxième famille narrative de lancement. Le document correspondant n'est pas encore créé. Puis compléter C-02/C-06/C-08/C-09/C-10, l'architecture, le contenu de lancement et les issues de Bootstrap.
+**Prochaine tâche recommandée :** borner C-08 (scénarios générés et fins), C-09 (sauvegarde et replay) et C-10 (preuves et gouvernance), puis C-07 (narration), l'architecture, le contenu de lancement et les issues de Bootstrap.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-50 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-75 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+
+**Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 
 **Ne pas faire :** bootstrap applicatif, correction de la V1, ajout de mécanismes non arbitrés, génération en masse d'issues d'implémentation, promotion d'une proposition au statut validé.
 

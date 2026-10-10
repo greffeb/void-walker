@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-09.
+> **Mise à jour :** 2026-10-10.
 
 ## Règles
 
@@ -456,5 +456,202 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Organisation : les règles temporelles et de risque sont retranscrites dans C-03 et C-04 ; AR-01 reste la référence des données fixes et des parcours. Cette extraction ne crée pas de nouvelle règle.
 - Réserves : le texte narratif reste un brouillon éditorial ; durée, intérêt, découvrabilité, équilibrage et implémentation ne sont pas validés. Aucune case de partie humaine ou de référence exécutée ne doit être cochée par un agent.
 - Limite : une contradiction trouvée par implémentation/revue doit revenir en arbitrage, pas être cachée par une mutation de scénario, un affaiblissement de test ou une fausse attestation. Cette décision ne lance pas automatiquement le Bootstrap ni ne termine le starter pack global.
+
+## Décisions validées — deuxième référence, règles du vide
+
+### D-058 — AR-02 : courte aventure complète de la même famille
+
+- Date / statut : 2026-10-09 / **Validé**.
+- Origine : réponse Q-51 « Courte aventure complète, même famille ».
+- Décision : la deuxième référence exigée par D-038 est une aventure courte et complète, du départ à l'évacuation, d'environ quatre pièces, avec le même passager et le même type de créature sensible au bruit. Seules les règles du vide sont nouvelles ; feu, huile et bloc en sont absents pour isoler leurs interactions.
+- Conséquence : les règles acceptées d'AR-01 qui ne concernent ni le feu, ni l'huile, ni le bloc (temps, réactions, blessures, fuite exposée, départ) sont reprises plutôt que réinventées ; leur application précise à AR-02 sera confirmée avec sa conception.
+- Limite : ni deuxième famille narrative ni variante de la carte d'AR-01. Carte, objets, outil et parcours restent à accepter. Les interactions du vide avec feu, huile ou bloc ne sont pas définies : ne pas les combiner par extrapolation.
+
+### D-059 — Vide sans protection : défaite immédiate annoncée
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-52 « Défaite immédiate, annoncée comme mortelle ».
+- Décision : un passager exposé au vide sans protection est vaincu, hors du plafond d'aggravation de D-053. Toute action connue pour l'y exposer est présentée comme mortelle sans protection avant engagement.
+- Cadre de la question : dans la référence, seul le joueur peut ouvrir une brèche ; aucune rupture aléatoire.
+- Limite : forme de l'avertissement et éventuelle confirmation à maqueter (C-01). Pas de jauge d'O₂ (D-021). Découvrabilité du danger à vérifier sur téléphone.
+
+### D-060 — Combinaison étanche comme protection personnelle
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-53 « Combinaison étanche, un engagement pour l'enfiler ».
+- Décision : enfiler la combinaison coûte un engagement ; elle protège entièrement du vide, exposition et aspiration comprises. Pas de jauge d'air dans la référence.
+- Cadre de la question : une cloison étanche fermée sépare deux pièces de pression différente ; se cacher derrière une caisse ne protège jamais du vide.
+- Limite : emplacement, nombre d'exemplaires et retrait éventuel restent à fixer. Aucun malus implicite de mobilité, de bruit ou de manipulation.
+
+### D-061 — Propagation immédiate du vide dans la zone ouverte
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-54 « Immédiate dans toute la zone ouverte ».
+- Décision : au pas de la brèche, la pièce percée et tout ce qui communique avec elle par un passage ouvert ou non étanche passent au vide. Ouvrir plus tard un passage entre vide et zone pressurisée étend aussitôt le vide. Se préparer consiste à fermer avant.
+- Différence assumée avec le feu : ni délai de deux engagements ni limite d'une pièce par mise à jour ; D-056 reste propre au feu.
+- Limite : l'étanchéité de chaque passage est une donnée de contenu. Retour de l'air, réparation et effets sur les objets non décidés.
+
+### D-062 — Créature exposée au vide : neutralisation définitive
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-55 « Neutralisation définitive ».
+- Décision : dans la pièce percée, la créature est aspirée et expulsée de la station ; atteinte ailleurs par la propagation, elle reste inerte sur place. Dans les deux cas, plus aucune réaction.
+- Rappels : neutraliser n'est pas évacuer (D-018) ; l'état est persistant et unique (C-05) ; cette neutralisation environnementale ne crée pas de duel (D-025).
+- Limite : vaut pour cette créature organique ; une entité résistante ou une autre menace aura sa propre règle. Effet du corps inerte sur les passages non décidé.
+
+## Décisions validées — deuxième référence, plan et matériel
+
+### D-063 — Plan d'AR-02 : quatre pièces, capsule prête, créature à l'embarquement
+
+- Date / statut : 2026-10-09 / **Validé comme base**.
+- Origine : réponse Q-56 « Oui, ce plan me va ».
+- Décision : coursive de départ ; local de sécurité avec combinaison et outil ; salle panoramique avec une grande baie extérieure ; embarquement avec une capsule déjà alimentée, où la créature attend au départ. Au réveil, l'assistance signale une présence non identifiée à l'embarquement. La porte entre salle panoramique et embarquement est grippée : l'ouvrir fait du bruit.
+- Approches présentées : percer la baie pendant que la créature est derrière la porte fermée, puis ouvrir pour vider l'embarquement de son air ; ou ouvrir la porte bruyante pour l'attirer dans la salle, puis percer pour l'aspirer. Passer en force reste possible, au risque d'une blessure.
+- Limite : pas de problème d'énergie ni de passage de contournement. États exacts des portes, positions, parcours et textes restent à détailler dans AR-02 puis à accepter.
+
+### D-064 — Découpeuse de maintenance pour percer la baie
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-57 « Une découpeuse de maintenance ».
+- Décision : la baie se perce avec une découpeuse de maintenance, en une action, avec une réussite sûre ; une étiquette sur l'outil prévient du risque de dépressurisation. Pas d'outil ressemblant à une arme.
+- Limite : aucune action d'attaque contre la créature n'est créée (D-025). Effet de l'outil sur d'autres matériaux non défini.
+
+### D-065 — La capsule refait son air quand on la ferme
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-58 « Oui, elle refait son air quand on la ferme ».
+- Décision : si l'embarquement perd son air pendant que l'écoutille est ouverte, la capsule reste utilisable et retrouve son air une fois fermée. Les deux façons d'utiliser le vide restent sans risque.
+- Limite : les conditions de départ d'AR-01 (D-054) sont reprises par D-058 ; aucun verrou de lancement supplémentaire.
+
+### D-066 — Rustine d'urgence : la baie percée peut être rebouchée
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-59 « Oui, avec une rustine d'urgence ».
+- Décision : un objet et une action de plus permettent de reboucher la brèche, puis de refaire l'air. Précise la réparation laissée ouverte par D-061.
+- Limite : nombre, emplacement, manière dont l'air revient et possibilité de repercer à préciser. La neutralisation de la créature reste définitive (D-062).
+
+## Décisions validées — deuxième référence, retour de l'air et rustine
+
+### D-067 — L'air revient dès qu'une pièce n'est plus reliée au trou
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-60 « Oui, tout de suite ».
+- Décision : seul ce qui est relié à une brèche ouverte, par des passages ouverts ou non étanches, est sans air. Une pièce qui n'y est plus reliée, parce qu'une porte a été refermée ou la baie rebouchée, retrouve son air aussitôt. Refermer une porte derrière soi rend donc l'air à ce qui est derrière.
+- Articulation : la capsule fermée (D-065) est un cas de cette règle ; l'extension immédiate de D-061 part toujours d'une zone reliée à une brèche ouverte. La créature neutralisée le reste (D-062).
+- Limite : moment exact dans le pas et présentation au joueur proposés dans AR-02, à accepter.
+
+### D-068 — Une seule rustine, près de la baie ; repercer reste possible
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-61 « Oui ».
+- Décision : une seule rustine, rangée près de la baie ; reboucher prend une action, sans risque ; la découpeuse peut repercer ensuite. Pas de deuxième rustine.
+- Pourquoi : la trouver près de la baie aide à comprendre que celle-ci peut céder.
+- Limite : forme du rangement et texte d'indice à préciser dans AR-02.
+
+### D-069 — Rustine facultative pour gagner
+
+- Date / statut : 2026-10-09 / **Validé pour AR-02**.
+- Origine : réponse Q-62 « Oui, c'est une option de plus ».
+- Décision : aucun parcours gagnant d'AR-02 ne dépend de la rustine ; elle rend l'air à la salle et sera testée comme option.
+- Conséquence : aucun verrou de lancement ni retrait forcé de combinaison n'est ajouté pour la rendre nécessaire.
+
+## Décisions validées — acceptation d'AR-02 comme conception
+
+### D-070 — Passage en force conservé dans AR-02
+
+- Date / statut : 2026-10-10 / **Validé pour AR-02**.
+- Origine : réponse Q-63 « Garder tel quel ».
+- Décision : le parcours en force (8 actions, un D6 de fuite exposée, au pire une blessure) reste possible. C'est un vrai choix, plus court mais risqué, comme dans AR-01.
+- Limite : il ne sert pas de témoin des règles du vide. Pas de risque supplémentaire ajouté pour le décourager.
+
+### D-071 — Précisions du vide VP-01 à VP-04 et VP-06
+
+- Date / statut : 2026-10-10 / **Validé pour AR-02**.
+- Origine : réponse Q-64, cinq précisions cochées sur six.
+- Décision : quand l'air part, la créature n'a pas le temps de réagir (VP-01) ; avant d'agir, le jeu indique les pièces connues qui perdent ou retrouvent l'air et « mortel » sans combinaison, sans révéler la créature (VP-02) ; l'état d'air des pièces connues est public par les voyants des portes et l'assistance (VP-03) ; le vide ne déplace pas les objets, le corps inerte ne bloque pas le passage (VP-04) ; pas de règle de son propre au vide dans AR-02 (VP-06).
+- Non retenu : VP-05, interdiction de retirer la combinaison, remplacée par D-072.
+
+### D-072 — La combinaison peut être retirée partout
+
+- Date / statut : 2026-10-10 / **Validé pour AR-02**.
+- Origine : réponse Q-66 « Oui, partout, avec l'avertissement habituel ».
+- Décision : retirer la combinaison coûte une action et reste possible partout ; dans une pièce sans air, l'option est annoncée mortelle comme les autres expositions (D-059).
+- Limite : aucun parcours gagnant n'en a besoin.
+
+### D-073 — Combinaison retirée gardée sur soi
+
+- Date / statut : 2026-10-10 / **Validé pour AR-02**.
+- Origine : réponse Q-67 « On la garde sur soi et on peut la remettre (une action) ».
+- Décision : la combinaison retirée reste avec le passager ; la remettre coûte une action. Pas d'objet perdu ni de manipulation supplémentaire.
+
+### D-074 — AR-02 v1.0 acceptée comme référence de conception
+
+- Date / statut : 2026-10-10 / **Conception validée, exécution non vérifiée**.
+- Origine : réponse Q-65 « Oui, on valide », avec Q-63/Q-64/Q-66/Q-67.
+- Décision : accepter les pièces, passages, objets, connaissances de départ et précisions d'AR-02, ainsi que les parcours P-V1/P-V2/P-V3 (12/12/8 engagements) comme attentes à prouver par le futur moteur.
+- Organisation : les règles du vide sont retranscrites dans C-03, C-04 et C-05 ; AR-02 reste la référence des données fixes et des parcours. Cette extraction ne crée pas de nouvelle règle.
+- Réserves : textes, durée, intérêt, découvrabilité et implémentation non validés. Aucune partie humaine ni référence exécutée ne doit être cochée par un agent.
+- Limite : une contradiction trouvée par implémentation ou revue revient en arbitrage, sans mutation de scénario ni affaiblissement de test.
+
+## Décisions validées — monde, carte et connaissances
+
+### D-075 — La carte montre seulement ce qu'on a visité
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-68 « Seulement ce qu'on a visité ».
+- Décision : pas de plan d'évacuation complet au départ ; la carte se dessine au fil de l'exploration.
+- Limite : signalétique des portes, sorties vues mais non franchies et rôle de l'assistance à préciser dans C-06. Les noms connus par la signalétique (AR-01 §11.4) ne dessinent pas une pièce sur la carte.
+
+### D-076 — Hors de vue, la carte garde le dernier état vu
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-69 « Non : ce qu'on y a vu en dernier ».
+- Décision : une pièce où le passager n'est pas affiche ce qu'il y a vu en dernier, pas son état réel. Les voyants des portes et l'assistance complètent pour l'air et les systèmes (D-046, D-071).
+- Limite : la liste exacte des systèmes renseignés à distance est à préciser dans C-06.
+
+### D-077 — Bruits vagues de la créature par les portes ouvertes
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-70 « Oui, des bruits vagues par les portes ouvertes ».
+- Décision : quand la créature bouge dans une pièce voisine reliée par une porte ouverte, le passager entend un bruit situé par le passage (« derrière la porte de l'observation »), sans sa position exacte.
+- Limite : rien au-delà de la pièce voisine ; une créature immobile ou neutralisée ne fait pas ce bruit. Le cas d'une grille fermée, qui laisse passer le son dans AR-01, est à confirmer dans C-06.
+
+### D-078 — Les règles lisent les qualités des objets, pas leur nom
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-71 « Oui : le jeu regarde les qualités, pas le nom ».
+- Décision : un objet qui possède la qualité requise (appui stable, liquide glissant, moyen d'extinction adapté…) produit le même effet qu'un autre ; chaque qualité est déclarée dans les données de l'objet.
+- Limite : seules les qualités et effets déjà acceptés existent ; une nouvelle qualité, ou une combinaison non arbitrée comme l'inflammabilité, demande une décision.
+
+### D-079 — Pas de limite de port, sauf un seul objet encombrant
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-72 « Pas de limite, sauf un seul objet encombrant à la fois ».
+- Décision : les petits objets se portent sans limite ; un objet encombrant, comme le bloc d'énergie, se porte un seul à la fois. Étend D-051 au-delà d'AR-01.
+- Limite : « encombrant » est une qualité déclarée ; le gabarit des passages étroits (D-043) reste une contrainte distincte. Pas de poids ni de cases.
+
+## Décisions validées — acceptation de C-02 et C-06
+
+### D-080 — Petites règles du monde et de la carte
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-73, sept règles cochées sur huit.
+- Décision : changer de place dans une pièce ne coûte pas d'action à part (MP-01) ; on pose un objet porté n'importe où en une action (MP-02) ; ramasser un deuxième objet encombrant est refusé sans échange automatique (MP-03) ; on entend aussi à travers une grille fermée, comme la créature (OP-01) ; une porte normale indique le nom de sa pièce, qui n'apparaît sur la carte qu'une fois visitée (OP-03) ; l'air lu sur les voyants reste à jour sur la carte (OP-04) ; la carte marque où la créature a été vue en dernier et depuis combien d'actions (OP-05).
+- Non retenu : OP-02, informations de l'assistance à distance, remplacé par D-081.
+
+### D-081 — L'assistance parle seulement aux moments prévus
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-75 « Moins : seulement ses messages prévus ».
+- Décision : l'assistance ne répond à aucune demande d'état. Elle parle aux moments prévus, avec d'éventuels choix prédéfinis (D-034) ; ses messages restent relisibles et exacts sur les systèmes (D-046).
+- Remplace : la mention de l'assistance comme source d'état d'air à la demande dans D-071 (VP-03) et D-076. L'air à distance se lit sur les voyants des portes étanches.
+- Limite : contenu et moments des messages restent à écrire par aventure.
+
+### D-082 — C-02 et C-06 v1.0 acceptés
+
+- Date / statut : 2026-10-10 / **Contrats validés, implémentation absente**.
+- Origine : réponse Q-74 « Oui, on valide », avec Q-73/Q-75.
+- Décision : [C-02](contrats/C-02-monde-entites.md) et [C-06](contrats/C-06-observation-connaissances.md) deviennent des contrats acceptés, avec MP-01 à MP-03, OP-01, OP-03 à OP-05 et la règle d'assistance de D-081.
+- Limite : format des données, forme visuelle de la carte et textes relèvent de l'architecture, de la maquette et de C-07. Aucun test ni implémentation n'est revendiqué.
 
 

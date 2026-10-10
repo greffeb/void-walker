@@ -1,14 +1,14 @@
-# C-03 — Temps, dangers et réactions — socle AR-01
+# C-03 — Temps, dangers et réactions — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.1, PORTÉE AR-01 — D-039/D-040/D-047 à D-050/D-056/D-057.
-> **Date :** 2026-10-09.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.2, PORTÉE AR-01 ET AR-02 — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074.
+> **Date :** 2026-10-10.
 > **Implémentation et vérification exécutable :** absentes. Pas d'attestation de partie humaine.
 
 ## 1. Portée et sources de vérité
 
 Ce texte extrait les règles temporelles acceptées de l'[aventure AR-01](../08-aventure-reference.md). AR-01 porte ses pièces, positions, objets, propriétés de connexions et parcours attendus ; C-03 porte l'ordre et le sens de leurs réactions. Les [risques et blessures](C-04-risques-blessures.md) sont définis dans C-04.
 
-La portée n'est pas une simulation universelle : le vide, d'autres créatures et les effets non présents dans la référence devront avoir leurs règles. Les constantes d'équilibrage appartiendront aux données de règles, pas à des tests sur un nom de pièce dans le moteur.
+La portée n'est pas une simulation universelle : d'autres créatures et les effets non présents dans les références devront avoir leurs règles. Les constantes d'équilibrage appartiendront aux données de règles, pas à des tests sur un nom de pièce dans le moteur.
 
 ## 2. Unité d'engagement
 
@@ -89,6 +89,16 @@ Ouvrir puis éteindre au pas suivant permet l'extinction avant la deuxième mise
 
 AR-01 n'ajoute à cela ni destruction de tout l'équipement, ni fumées/O₂, ni décompte global. La portée d'extinction depuis un seuil protégé relève des positions de la fixture, pas d'une commande à distance sans justification.
 
+### 5.4 Vide — AR-02
+
+[AR-02](../09-aventure-reference-vide.md) reprend les règles ci-dessus pour la même créature (D-058), sans feu ni huile ni avertisseur, et ajoute le vide.
+
+- **État d'air :** une pièce est sans air si et seulement si elle est reliée à une brèche ouverte par des passages ouverts ou non étanches. Ni valeur intermédiaire, ni délai, ni limite d'une pièce par mise à jour, contrairement au feu (D-061/D-067).
+- **Moment :** percer, reboucher, ouvrir ou fermer sont l'effet de l'action (étape 2). L'état d'air est recalculé et les expositions appliquées à l'étape 3, avant toute réaction (étape 4) : une créature atteinte n'agit pas dans ce pas (D-071).
+- **Créature exposée :** dans la pièce percée, expulsée et sans position dans la station ; ailleurs, inerte sur place, sans bloquer le passage. Définitif, même si l'air revient (D-062/D-071).
+- **Capsule :** écoutille fermée, elle n'est plus reliée à la brèche et retrouve son air (D-065).
+- **Bornes :** le vide ne déplace aucun objet ; aucune règle de son propre au vide dans AR-02 (D-071). L'exposition du passager relève de C-04 §3.1.
+
 ## 6. Attentes de test, non exécutées
 
 | ID | Mise en situation | Attente |
@@ -103,6 +113,10 @@ AR-01 n'ajoute à cela ni destruction de tout l'équipement, ni fumées/O₂, ni
 | T-08 | Résoudre une fuite exposée selon C-04 | Une seule résolution hostile de cette menace dans cet engagement |
 | T-09 | Joueur séparé ou non visible | Aucun accès caché à sa nouvelle position pour décider la réaction |
 | T-10 | Sauvegarder/reprendre entre deux réactions perdues | Même nombre de réactions restantes, sans remise à zéro ni doublon |
+| T-11 | Percer avec deux portes ouvertes en chaîne | Les trois pièces sans air dans la même mise à jour |
+| T-12 | Refermer une porte après la brèche | Pièces situées derrière de nouveau avec air à cette mise à jour |
+| T-13 | Percer au pas qui suit l'entrée de la créature dans la pièce | Expulsée avant sa réaction, aucune attaque |
+| T-14 | Reboucher après neutralisation puis reprendre la sauvegarde | Air revenu, créature toujours expulsée ou inerte |
 
 Ces tests utiliseront des états initiaux explicitement qualifiés et les vraies commandes métier. Des fixtures de compteur ne démontrent pas à elles seules la jouabilité d'un parcours complet.
 

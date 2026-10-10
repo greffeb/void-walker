@@ -1,7 +1,7 @@
-# C-04 — Risques, blessures et soin — socle AR-01
+# C-04 — Risques, blessures et soin — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.1, PORTÉE AR-01 — D-041/D-042/D-052/D-053/D-055/D-057.
-> **Date :** 2026-10-09.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.2, PORTÉE AR-01 ET AR-02 — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074.
+> **Date :** 2026-10-10.
 > **Implémentation, calibrage humain et validation téléphone :** non réalisés.
 
 ## 1. Portée
@@ -29,7 +29,13 @@ Les conséquences ordinaires de feu et de menace gardent leurs causes, mais prod
 
 Le soin s'applique comme effet du geste engagé avant les expositions suivantes. Si le joueur reste à découvert, une aggravation peut suivre ce soin dans le même pas ; le résultat doit montrer les deux événements sans annoncer une sécurité fictive.
 
-Un état de défaite acquis est terminal. Le plafond n'efface pas les dangers persistants ; le prochain engagement peut de nouveau aggraver une blessure. Ce contrat ne couvre pas une exposition exceptionnelle au vide, réservée à la deuxième référence.
+Un état de défaite acquis est terminal. Le plafond n'efface pas les dangers persistants ; le prochain engagement peut de nouveau aggraver une blessure. L'exposition au vide n'est pas une aggravation ordinaire : voir §3.1.
+
+### 3.1 Exposition au vide — AR-02
+
+Un passager sans combinaison dans une pièce sans air ([C-03 §5.4](C-03-temps-reactions.md)) à la mise à jour des dangers est vaincu, hors plafond, sans jet (D-059). La combinaison protège entièrement ; l'enfiler, la retirer ou la remettre coûte une action, et retirée elle reste avec le passager (D-060/D-072/D-073).
+
+Toute action connue pour exposer le passager — percer, ouvrir vers une zone sans air, retirer la combinaison sans air — est annoncée « mortel » avant engagement. L'aperçu nomme les pièces connues qui perdent ou retrouvent l'air, jamais l'effet sur une créature non perçue (D-071).
 
 ## 4. Franchissement exposé
 
@@ -77,6 +83,8 @@ Une nouvelle tentative est un nouvel engagement dans le nouvel état, avec ses c
 | RSK-07 | Personnage critique, franchissement avec D6 = 1 | Déplacement enregistré puis défaite ; aucune victoire d'arrivée |
 | RSK-08 | Reprise après un résultat défavorable | Blessure et destination conservées, pas de nouveau D6 |
 | RSK-09 | Consultation répétée du risque | Zéro engagement, aucun tirage métier consommé, aucune fuite d'état caché |
+| RSK-10 | Percer sans combinaison | Aperçu « mortel », aucun dé ; défaite si engagé |
+| RSK-11 | Percer en combinaison, créature dans la pièce | Aucune aggravation du passager, aucun dé |
 
 Les fixtures de tests doivent identifier leurs injections d'état. Les témoins complets d'AR-01 restent à exécuter depuis une nouvelle partie, sans modifier le monde à la main pour obtenir le résultat attendu.
 

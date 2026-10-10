@@ -1,7 +1,7 @@
 # Void Walker V2 — contexte
 
 > **Statut :** CADRAGE PARTIEL — les éléments validés sont référencés ; le reste demeure à décider.
-> **Mise à jour :** 2026-10-09.
+> **Mise à jour :** 2026-10-10.
 
 ## Produit recherché
 
@@ -49,7 +49,7 @@ Le cadre de lancement est une **station spatiale isolée** (D-030). Le personnag
 
 L'[aventure AR-01 v1.0](08-aventure-reference.md) est acceptée comme conception (D-057) : un passager réveillé pendant le confinement doit alimenter puis quitter une capsule, dans six pièces reliées par deux détours. Une assistance automatisée scriptée l'informe sur les systèmes ; une créature organique sensible au bruit réagit dans le monde réel.
 
-Trois parcours témoins sont décrits sur papier : maintenance/circuit, voie normale/bloc/avertisseur, bloc/seuil huilé. Ils doivent être prouvés par le futur moteur ; la durée et l'intérêt se mesureront sur téléphone. La dépressurisation reste à concevoir dans une deuxième référence (D-038), pas exclue du lancement.
+Trois parcours témoins sont décrits sur papier : maintenance/circuit, voie normale/bloc/avertisseur, bloc/seuil huilé. Ils doivent être prouvés par le futur moteur ; la durée et l'intérêt se mesureront sur téléphone. La dépressurisation est traitée par une deuxième référence courte, [AR-02](09-aventure-reference-vide.md), acceptée en conception : quatre pièces, combinaison, baie à percer et rustine (D-058 à D-074).
 
 Les [contrats de temps](contrats/C-03-temps-reactions.md) et de [risque/blessure](contrats/C-04-risques-blessures.md) formalisent les règles acceptées pour AR-01. Ils ne remplacent pas les contrats encore absents de génération, sauvegarde et gouvernance.
 

@@ -1,7 +1,7 @@
 # Void Walker V2 — contrats à construire ensemble
 
 > **Statut :** REGISTRE DE CONTRATS ET QUESTIONS — propositions non encore figées sauf référence explicite à une décision validée.
-> **Mise à jour :** 2026-10-09.
+> **Mise à jour :** 2026-10-10.
 
 ## 1. Ce qu'est un contrat ferme
 
@@ -16,11 +16,11 @@ Les contrats seront détaillés après les arbitrages produit qui leur donnent u
 | Contrat | Question couverte | Éléments déjà choisis | Éléments à arbitrer |
 | --- | --- | --- | --- |
 | C-01 Actions et options | Que peut-on choisir, et comment ? | Socle v0.1 accepté, D-027 | Confirmation UI détaillée et vocabulaire d'actions |
-| C-02 Monde et entités | Qu'est-ce qui existe et où ? | D-015 pièces et positions relatives | Conteneurs, objets composés, identités et propriétés |
-| C-03 Tour et temps | Qu'est-ce qui fait avancer le monde ? | v0.1 accepté dans la portée AR-01, D-056/D-057 | Extension au vide et aux autres contenus, représentation technique |
-| C-04 Risques et résolution | Quand un dé est-il justifié ? | v0.1 accepté dans la portée AR-01, D-055/D-057 | Calibrage humain et risques hors référence |
-| C-05 Conséquences | Comment un succès devient-il un changement réel ? | Socle v0.1 accepté, D-027 ; ordre AR-01 fixé par C-03 | Sauvegarde détaillée, vide et autres réserves adjacentes |
-| C-06 Observation et connaissances | Que sait chaque joueur/adaptateur ? | Playtester sans accès caché demandé | Révélations, secrets, indices, parité des interfaces |
+| C-02 Monde et entités | Qu'est-ce qui existe et où ? | [v1.0 accepté](contrats/C-02-monde-entites.md), D-078 à D-080/D-082 | Format des données (architecture), nouvelles qualités |
+| C-03 Tour et temps | Qu'est-ce qui fait avancer le monde ? | v0.2 accepté pour AR-01 et le vide d'AR-02, D-056/D-057/D-074 | Autres contenus et créatures, représentation technique |
+| C-04 Risques et résolution | Quand un dé est-il justifié ? | v0.2 accepté pour AR-01 et AR-02, D-055/D-057/D-074 | Calibrage humain et risques hors référence |
+| C-05 Conséquences | Comment un succès devient-il un changement réel ? | Socle v0.1 accepté, D-027 ; ordre et vide fixés par C-03 | Sauvegarde détaillée et autres réserves adjacentes |
+| C-06 Observation et connaissances | Que sait chaque joueur/adaptateur ? | [v1.0 accepté](contrats/C-06-observation-connaissances.md), D-075 à D-077, D-080 à D-082 | Forme visuelle de la carte, textes des messages |
 | C-07 Narration | Que peut affirmer le texte ? | Jeu sans LLM, D-004 | Composition, grammaire, variations, faits permis |
 | C-08 Scénarios et fins | Qu'est-ce qui rend une aventure valide ? | D-017 une famille, D-018 évacuation, D-013 défaite définitive | Forme générée, solutions, échecs irréversibles, solveur |
 | C-09 Sauvegarde et replay | Qu'est-ce qui doit rester identique ? | D-013 pas de retour, D-022 autosave par action et reprise exacte | Flux aléatoires, erreurs d'écriture, versions et migrations |
@@ -150,36 +150,98 @@ Les sections 11 à 16 de l'[aventure AR-01](08-aventure-reference.md) portent un
 | Q-49 Tour et feu | Action → feu → réaction → conclusion/sauvegarde ; propagation à deux engagements | D-056 |
 | Q-50 Référence | AR-01 v1.0 acceptée comme conception, pas comme partie exécutée | D-057 |
 
+### Bloc L — deuxième référence, règles du vide : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-51 Forme d'AR-02 | Courte aventure complète, même famille | D-058 |
+| Q-52 Vide sans protection | Défaite immédiate, annoncée comme mortelle | D-059 |
+| Q-53 Protection personnelle | Combinaison étanche, une action pour l'enfiler | D-060 |
+| Q-54 Propagation | Immédiate dans toute la zone ouverte | D-061 |
+| Q-55 Créature exposée | Neutralisation définitive : expulsée ou inerte | D-062 |
+
+### Bloc M — deuxième référence, plan et matériel : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-56 Plan | Quatre pièces, capsule prête, créature à l'embarquement | D-063 |
+| Q-57 Outil | Découpeuse de maintenance | D-064 |
+| Q-58 Capsule | Elle refait son air quand on la ferme | D-065 |
+| Q-59 Baie percée | Réparable avec une rustine d'urgence | D-066 |
+
+### Bloc N — deuxième référence, retour de l'air et rustine : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-60 Retour de l'air | Tout de suite, dès qu'une pièce n'est plus reliée au trou | D-067 |
+| Q-61 Rustine | Une seule, près de la baie, une action ; repercer possible | D-068 |
+| Q-62 Utilité | Option de plus, jamais obligatoire pour gagner | D-069 |
+
+Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-reference-vide.md) sont acceptés par le bloc O.
+
+### Bloc O — acceptation d'AR-02 : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-63 Passer en force | Garder tel quel | D-070 |
+| Q-64 Petites règles | VP-01 à VP-04 et VP-06 acceptées ; VP-05 non retenue | D-071 |
+| Q-66 Retirer la combinaison | Oui, partout, avec l'avertissement mortel sans air | D-072 |
+| Q-67 Combinaison retirée | Gardée sur soi, remise en une action | D-073 |
+| Q-65 Validation | AR-02 v1.0 acceptée comme conception, pas comme partie jouée | D-074 |
+
+### Bloc P — monde, carte et connaissances : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-68 Carte au départ | Seulement ce qu'on a visité | D-075 |
+| Q-69 Carte hors de vue | Ce qu'on y a vu en dernier | D-076 |
+| Q-70 Entendre la créature | Bruits vagues par les portes ouvertes, pièce voisine | D-077 |
+| Q-71 Objets interchangeables | Le jeu lit les qualités, pas le nom | D-078 |
+| Q-72 Porter des objets | Pas de limite, sauf un seul objet encombrant | D-079 |
+
+### Bloc Q — acceptation de C-02 et C-06 : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-73 Huit petites règles | Sept acceptées ; celle de l'assistance à distance non retenue | D-080 |
+| Q-75 Ce que sait l'assistance | Seulement ses messages prévus | D-081 |
+| Q-74 Validation | C-02 et C-06 v1.0 acceptés | D-082 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
-- [C-03 — Temps, dangers et réactions](contrats/C-03-temps-reactions.md) : ordre, perceptions et compteurs ; portée AR-01.
-- [C-04 — Risques, blessures et soin](contrats/C-04-risques-blessures.md) : états, fuite exposée, résultat partiel et plafond ; portée AR-01.
+- [C-03 — Temps, dangers et réactions](contrats/C-03-temps-reactions.md) : ordre, perceptions et compteurs ; portée AR-01, vide d'AR-02.
+- [C-04 — Risques, blessures et soin](contrats/C-04-risques-blessures.md) : états, fuite exposée, résultat partiel et plafond, exposition au vide ; portée AR-01 et AR-02.
 - [C-05 — Monde et conséquences cohérentes](contrats/C-05-monde-consequences.md) : identité, déplacement, dangers, effets, persistance et preuves.
+
+- [C-02 — Monde, lieux, liaisons et entités](contrats/C-02-monde-entites.md) : lieux, liaisons et capacités, entités, qualités, port.
+- [C-06 — Observation, carte et connaissances](contrats/C-06-observation-connaissances.md) : sources de connaissance, carte, aperçus, secrets, mémoire.
+
+**C-02 et C-06 v1.0** sont acceptés par Q-74 / D-082 ; ils assemblent des décisions validées et les petites règles de D-080/D-081.
 
 **C-01 et C-05 v0.1 sont acceptés par Q-20 / D-027**. Leurs réserves explicites restent ouvertes ; cette validation ne vaut ni implémentation terminée ni parcours accepté sur téléphone. Les autres invariants proposés dans le registre n'acquièrent pas automatiquement le même statut s'ils ne font pas partie de ces contrats.
 
 **C-03 et C-04 v0.1** extraient les règles acceptées d'AR-01 par Q-48 à Q-50 / D-055 à D-057. Cette portée n'autorise pas de nouveaux dangers ou formats de sauvegarde non arbitrés. Aucun code ni test de ces contrats n'est réalisé.
 
+**C-03 et C-04 v0.2** ajoutent le vide d'AR-02 (D-074), retranscrit sans changement de sens ; C-05 y renvoie.
+
 ## 6. Contrats par l'exemple
 
-Voir les [cinq interactions de référence](07-interactions-reference.md). L'intention de chaque situation est validée par D-019. Pour la portée AR-01, leurs modalités applicables sont fixées par AR-01/C-03/C-04 ; les extensions hors de cette fixture et la dépressurisation restent à préciser.
+Voir les [cinq interactions de référence](07-interactions-reference.md). L'intention de chaque situation est validée par D-019. Pour la portée AR-01, leurs modalités applicables sont fixées par AR-01/C-03/C-04 ; la dépressurisation l'est par AR-02/C-03/C-04. Les extensions hors de ces fixtures restent à préciser.
 
 Exemple de traduction en contrat : déplacer une caisse doit changer son emplacement, puis la règle d'accessibilité doit lire cet emplacement. Un texte « vous atteignez la grille » ou un drapeau propre à une salle ne suffit pas à prouver l'interaction générique.
 
 ## 7. Prochaine séance de cadrage
 
-1. Concevoir AR-02, cas de dépressurisation préparée, dans la même famille d'évacuation. Le document n'existe pas encore.
-2. Compléter C-02/C-06 à partir des besoins réellement acceptés : identité, relations, connaissances et représentation publique, sans moteur physique universel.
-3. Borner C-08/C-09/C-10 : génération/conditions de fin, sauvegarde/replay, critères de preuve et gouvernance.
-4. Fixer le volume et les variations du lancement, l'architecture et les issues exécutables ; les profils d'agents et leurs accès ne sont pas encore installés.
+1. Borner C-08/C-09/C-10 : génération/conditions de fin, sauvegarde/replay, critères de preuve et gouvernance.
+2. Fixer le volume et les variations du lancement, l'architecture et les issues exécutables ; les profils d'agents et leurs accès ne sont pas encore installés.
 
-Q-01 à Q-50 sont répondus ; les prochains numéros d'entretien commencent à Q-51. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-75 sont répondus ; les prochains numéros d'entretien commencent à Q-76. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
-- Dépressurisation préparée dans AR-02 ; ne pas réintroduire un duel ou compagnon physique pour étendre ce cas.
-- Types d'objets, transformations, inventaire et ressources ; quoi omettre volontairement.
+- Interactions du vide avec feu, huile ou bloc non définies ; ne pas réintroduire un duel ou compagnon physique pour étendre ce cas.
+- Transformations d'objets et ressources au-delà des qualités de C-02 ; quoi omettre volontairement.
 - Règles et risques hors de la portée d'AR-01 ; information visible sans fuite des secrets.
 - Génération, fins, connaissance et cas d'absence de solution.
 - Ton, écriture, langues, carte, assets/audio et confort de lecture.
@@ -188,3 +250,5 @@ Q-01 à Q-50 sont répondus ; les prochains numéros d'entretien commencent à Q
 - Zones de merge et isolation des agents ; sens exact du rôle `script-writer`.
 
 On pose les questions en petits blocs. Pas de formulaire de cinquante choix techniques avant d'avoir une boucle de jeu claire.
+
+À la demande du porteur du projet, les questions se formulent en langage courant : situation concrète, options compréhensibles sans numéros de décision ni jargon (« engagement », « précondition », « canonique »). Les documents gardent la précision nécessaire aux agents.

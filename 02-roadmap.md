@@ -1,7 +1,7 @@
 # Void Walker V2 — roadmap proposée
 
 > **Statut :** PROPOSITION DE SÉQUENCEMENT — pas un planning accepté ni une autorisation d'exécution.
-> **Mise à jour :** 2026-10-09.
+> **Mise à jour :** 2026-10-10.
 
 ## Règles de lecture
 
@@ -22,7 +22,7 @@ Le cadrage ci-dessous précède la Phase 0 demandée par le porteur du projet. I
 - [ ] Préciser les règles des cinq interactions demandées et les variations de la famille de scénarios.
 - [x] Décrire et faire accepter en conception la boucle et l'[aventure AR-01 v1.0](08-aventure-reference.md), sans preuve d'exécution revendiquée.
 - [x] Extraire les règles acceptées d'AR-01 dans C-03/C-04 (temps, réactions, risque et blessures).
-- [ ] Spécifier la deuxième référence pour la dépressurisation préparée (D-038), distincte de la première tranche.
+- [x] Spécifier la deuxième référence pour la dépressurisation préparée (D-038) : [AR-02 v1.0](09-aventure-reference-vide.md) acceptée en conception (D-074), règles retranscrites dans C-03/C-04, sans preuve d'exécution revendiquée.
 - [ ] Spécifier les contrats essentiels et leurs contre-exemples.
 - [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité.
 - [ ] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines.
@@ -56,7 +56,7 @@ Intentions déjà demandées :
 
 ## Phase 2 — aventure de référence complète
 
-- Base de conception disponible : AR-01 v1.0 (D-057). Les étapes ci-dessous sont des réalisations futures, pas cochées par l'acceptation du document.
+- Base de conception disponible : AR-01 v1.0 (D-057) ; AR-02, consacrée au vide, acceptée en conception (D-074). Les étapes ci-dessous sont des réalisations futures, pas cochées par l'acceptation du document.
 - Début, objectif, obstacles, solutions distinctes et conclusions définis ensemble.
 - Règles de hasard, échec, temps et personnage acceptées et raccordées.
 - Sauvegarde/reprise et replay vérifiables.

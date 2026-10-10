@@ -1,7 +1,7 @@
 # Void Walker V2 — interactions créatives de référence
 
-> **Statut :** INTENTIONS VALIDÉES — modalités AR-01 acceptées par D-057 ; extensions et dépressurisation encore à cadrer. Aucune partie humaine V2.
-> **Mise à jour :** 2026-10-09.
+> **Statut :** INTENTIONS VALIDÉES — modalités acceptées par AR-01 (D-057) et AR-02 (D-074) ; extensions encore à cadrer. Aucune partie humaine V2.
+> **Mise à jour :** 2026-10-10.
 
 ## 1. Rôle de ces exemples
 
@@ -13,7 +13,7 @@ Pour R-02 à R-05 dans AR-01, les données fixes de l'[aventure acceptée](08-av
 
 Ces cas sont des futurs tests de contrat, pas encore une aventure complète ni des parcours validés sur téléphone. La première aventure pourra en combiner une sélection cohérente ; leur présence simultanée dans chaque partie n'est pas requise.
 
-**Répartition décidée :** AR-01 couvre R-02 à R-05 ; R-01 (dépressurisation préparée) est reportée à une deuxième référence par D-038. Son besoin de lancement n'est pas supprimé par cette répartition.
+**Répartition décidée :** AR-01 couvre R-02 à R-05 ; R-01 (dépressurisation préparée) est reportée à une deuxième référence par D-038. Son besoin de lancement n'est pas supprimé par cette répartition. Cette référence est [AR-02](09-aventure-reference-vide.md).
 
 ## 2. R-01 — Dépressurisation préparée
 
@@ -34,9 +34,11 @@ Une action sur la vitre de la station, avec un appareil adapté ou un tir, peut 
 
 Résultat vrai et persistant sur la séparation, la pièce, le joueur et l'ennemi ; différences entre protégé/non protégé, vitre extérieure/intérieure, ennemi vulnérable/résistant ; état conservé après fermeture et reprise de l'application.
 
-### R-01 — Limites à décider
+### R-01 — Choix pour AR-02 et limites restantes
 
-Types de protection, conséquence exacte de l'exposition, moment de résolution, propagation et moyens alternatifs. Aucun calcul de fluide ni jauge permanente d'O₂ n'est imposé par l'exemple.
+Décidé pour AR-02 : défaite sans protection (D-059), combinaison étanche (D-060), propagation immédiate par ce qui est ouvert ou non étanche (D-061), air de retour dès qu'une pièce n'est plus reliée à la brèche (D-067), créature expulsée ou inerte pour de bon (D-062), découpeuse (D-064), rustine facultative (D-066/D-068/D-069), combinaison retirable et remise en une action (D-072/D-073). AR-02 est acceptée en conception (D-074) et ses règles sont dans C-03 §5.4 et C-04 §3.1.
+
+Restent ouverts : autres outils et matériaux, vitrage intérieur, entités résistantes, interactions avec feu, huile ou bloc, usage dans les scénarios générés. Aucun calcul de fluide ni jauge permanente d'O₂ n'est imposé par l'exemple.
 
 ## 3. R-02 — Sol glissant
 
@@ -131,6 +133,6 @@ Le solveur pourra utiliser l'état complet pour vérifier des chemins ; le playt
 
 ## 8. Questions bloquant la version normative
 
-D-023 à D-026 ont fixé la portée générale des dangers, le réessai payant, l'absence de duel et les options plausibles. D-031 à D-057 fixent maintenant les modalités bornées d'AR-01 : coûts élémentaires, états de santé, menace, feu et premiers risques. R-01 et les extensions hors de cette fixture restent à concevoir avant implémentation.
+D-023 à D-026 ont fixé la portée générale des dangers, le réessai payant, l'absence de duel et les options plausibles. D-031 à D-057 fixent maintenant les modalités bornées d'AR-01 : coûts élémentaires, états de santé, menace, feu et premiers risques. R-01 est fixée pour AR-02 par D-058 à D-074 ; les extensions hors de ces fixtures restent à concevoir avant implémentation.
 
 Les tests négatifs sont aussi importants que les réussites : refuser honnêtement une manipulation impossible n'est pas un manque de liberté ; annoncer son succès sans effet l'est.
