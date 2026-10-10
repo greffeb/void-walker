@@ -370,8 +370,8 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Issues de développement des morceaux : données des dix morceaux, assembleur et vérifieur de stations.
-2. Issues du service de rapports et de la signature des validations.
+1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
+2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
 Q-01 à Q-158 sont répondus ; les prochains numéros d'entretien commencent à Q-159. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 

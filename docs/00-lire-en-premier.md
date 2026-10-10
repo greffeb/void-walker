@@ -106,7 +106,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange.
 
-**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : la [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175) ; préparer les issues des morceaux, de l'assembleur, du service de rapports et de la signature.
+**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : la [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175). Issues de développement créées, dans l'ordre : moteur [#100](https://github.com/greffeb/void-walker/issues/100), [#101](https://github.com/greffeb/void-walker/issues/101), [#102](https://github.com/greffeb/void-walker/issues/102) ; AR-01 [#103](https://github.com/greffeb/void-walker/issues/103) ; AR-02 [#104](https://github.com/greffeb/void-walker/issues/104) ; nouveaux morceaux [#105](https://github.com/greffeb/void-walker/issues/105) ; stations [#106](https://github.com/greffeb/void-walker/issues/106) ; rapports [#107](https://github.com/greffeb/void-walker/issues/107) ; signature [#108](https://github.com/greffeb/void-walker/issues/108). #100 et #94 touchent toutes deux le moteur : ne pas les mener en même temps.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-158 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
