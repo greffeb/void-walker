@@ -1,5 +1,6 @@
-import { jouer, nouvellePartie, reprendrePartie, type Commande, type DefMonde, type Partie } from '../engine';
+import { jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
 import { raconter, raconterDerniers, type TextesMonde } from '../content';
+import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 
 // Logique de l'écran, sans React : démarrer, reprendre, jouer, sauvegarder honnêtement (C-09 §2-§3).
@@ -9,6 +10,8 @@ export type EtatSauvegarde = 'sauvegardee' | 'echec';
 export interface Jeu {
   readonly partie: Partie;
   readonly recit: readonly string[];
+  /** Rappel de la dernière action choisie, en tête du récit ; `null` au début de la partie. */
+  readonly rappel: TexteRappel | null;
   readonly sauvegarde: EtatSauvegarde;
 }
 
@@ -33,7 +36,7 @@ async function enregistrer(env: Environnement, partie: Partie): Promise<EtatSauv
 
 export async function commencer(env: Environnement): Promise<Jeu> {
   const partie = nouvellePartie(env.monde, { version: env.version, graine: env.graine() });
-  return { partie, recit: raconterDerniers(env.textes, partie), sauvegarde: await enregistrer(env, partie) };
+  return { partie, recit: raconterDerniers(env.textes, partie), rappel: null, sauvegarde: await enregistrer(env, partie) };
 }
 
 /** Reprend la partie enregistrée au dernier geste, ou en commence une si rien n'est enregistré. */
@@ -48,16 +51,19 @@ export async function demarrer(env: Environnement): Promise<Demarrage> {
   if (donnees === null) return { type: 'pret', jeu: await commencer(env) };
   try {
     const partie = reprendrePartie(env.monde, donnees, env.version);
-    return { type: 'pret', jeu: { partie, recit: raconterDerniers(env.textes, partie), sauvegarde: 'sauvegardee' } };
+    const repris = rappelRepris(partie, observer(env.monde, partie.etat));
+    const rappel = repris === null ? null : texteRappel(env.textes, repris);
+    return { type: 'pret', jeu: { partie, recit: raconterDerniers(env.textes, partie), rappel, sauvegarde: 'sauvegardee' } };
   } catch (erreur) {
     return { type: 'reprise_impossible', raison: erreur instanceof Error ? erreur.message : String(erreur) };
   }
 }
 
-/** Joue une commande ; seule une action engagée écrit, et l'échec d'écriture reste signalé (C-09 §3). */
-export async function jouerCommande(env: Environnement, jeu: Jeu, commande: Commande): Promise<Jeu> {
-  const resultat = jouer(env.monde, jeu.partie, commande);
+/** Joue la commande d'une option ; seule une action engagée écrit, et l'échec d'écriture reste signalé (C-09 §3). */
+export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMenu): Promise<Jeu> {
+  const resultat = jouer(env.monde, jeu.partie, option.commande);
   const recit = raconter(env.textes, resultat);
-  if (resultat.type !== 'engagee') return { ...jeu, recit };
-  return { partie: resultat.partie, recit, sauvegarde: await enregistrer(env, resultat.partie) };
+  const rappel = texteRappel(env.textes, rappelDe(option));
+  if (resultat.type !== 'engagee') return { ...jeu, recit, rappel };
+  return { partie: resultat.partie, recit, rappel, sauvegarde: await enregistrer(env, resultat.partie) };
 }
