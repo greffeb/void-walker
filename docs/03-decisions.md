@@ -1125,6 +1125,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : réponse « Ambiance et voix d'IA Station ».
 - Décision : le lancement comporte une ambiance sonore et une voix pour les messages d'IA Station, chacune réglable dans les options.
 - Limite : tout reste lisible sans le son ; la voix dit exactement le texte écrit. La façon de produire la voix (enregistrement ou synthèse), les sons précis et leurs licences restent à décider. Aucun LLM (D-004).
+- Remplacement partiel : pas de voix, un effet sonore à l'arrivée d'un message (D-155).
 
 ### D-149 — Pas d'import de partie au lancement
 
@@ -1146,7 +1147,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 
 ### D-152 — Voix d'IA Station par la synthèse vocale du téléphone
 
-- Date / statut : 2026-10-10 / **Validé**.
+- Date / statut : 2026-10-10 / **Remplacé par D-155**.
 - Origine : réponse « Synthèse vocale du téléphone, en direct ».
 - Décision : les messages d'IA Station sont lus par la synthèse vocale française du téléphone, mot pour mot. Pas de fichiers de voix.
 - Limite : la voix dépend de l'appareil ; sans voix française disponible, le message reste en texte seul, sans erreur. Précise D-148.
@@ -1163,5 +1164,12 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse « Bouton INVENTAIRE : une bulle liste les objets portés, toucher un objet ouvre ses actions ».
 - Décision : le bouton INVENTAIRE ouvre une bulle (D-146) qui liste les objets portés, l'objet encombrant signalé ; toucher un objet ouvre la même composition d'action que dans la pièce. Ouvrir l'inventaire est gratuit (D-014).
+
+### D-155 — IA Station sans voix : un effet sonore
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : « changement de plan pour l'IA, pas de synthèse vocale. juste un effet sonore ».
+- Décision : un message d'IA Station n'est pas lu à voix haute ; son arrivée est signalée par un effet sonore, choisi parmi les bruitages libres de droits (D-153). Remplace D-152 et la partie « voix » de D-148.
+- Limite : le message reste un texte ; le lien dans le récit et la pastille signalent aussi son arrivée sans le son.
 
 

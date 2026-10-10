@@ -154,7 +154,7 @@ Aucun système détaillé de caractéristiques, combat, horloges ou ressources n
 - Texte et carte requis ; carte en plan et en liste, décrite par la [maquette v1](12-interface-ecrans.md) (D-140).
 - Actions contextuelles sélectionnables sur téléphone requises : bulles ancrées, aperçu puis confirmation (D-140, D-146).
 - Illustrations d'objets éventuelles, pas encore un volume obligatoire.
-- Français seulement (D-109) ; direction visuelle « Phosphore » et liste d'accessibilité de 12 §7 (D-140) ; ambiance sonore et voix d'IA Station (D-148) : synthèse vocale du téléphone (D-152), bruitages libres de droits et bande-son fournie (D-153).
+- Français seulement (D-109) ; direction visuelle « Phosphore » et liste d'accessibilité de 12 §7 (D-140) ; ambiance sonore (D-148) : bruitages libres de droits et bande-son fournie (D-153) ; IA Station sans voix, signalée par un effet sonore (D-155).
 - Une chaîne traduite ne devient pas une commande métier reparsée.
 
 ## 8. Sauvegarde, exploitation et publication

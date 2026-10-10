@@ -1,6 +1,6 @@
 # Void Walker V2 — interface : description des écrans
 
-> **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-154 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
+> **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-155 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
 > **Mise à jour :** 2026-10-10.
 > **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
 > **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
@@ -383,7 +383,7 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 - **En-tête :** « OPTIONS » en `accent` 17/600, puis « le jeu est en pause » en 12.
 - **Contenu qui défile**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
-  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Voix d'IA Station » COUPÉE / ACTIVE. [Validé D-148 ; Proposé pour le détail des niveaux] La voix est la synthèse vocale française du téléphone, qui lit le message mot pour mot ; sans voix française, le réglage l'indique et le texte suffit (D-152). Bruitages libres de droits, source et licence notées ; bande-son fournie par le porteur du projet (D-153). Tout reste lisible sans le son.
+  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Effets sonores » COUPÉS / ACTIFS. [Validé D-148 ; Proposé pour le détail des niveaux] IA Station n'a pas de voix : un effet sonore signale l'arrivée d'un message (D-155). Bruitages libres de droits, source et licence notées ; bande-son fournie par le porteur du projet (D-153). Tout reste lisible sans le son.
   3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé]
   4. **── PARTIE ──** :
      - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
@@ -526,7 +526,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 6. **« long » et « périlleux »** — supprimés ; seul « bruyant » reste (D-150).
 7. **Panneau bas ou bulle** — bulles ancrées partout (D-146, §3.6).
 8. **La grille haute dans « Se déplacer vers »** — seulement une fois ouverte (D-147, §3.4).
-9. **Son** — ambiance et voix d'IA Station au lancement (D-148) ; voix par la synthèse du téléphone (D-152) ; bruitages libres de droits et bande-son fournie (D-153).
+9. **Son** — ambiance au lancement (D-148) ; IA Station sans voix, un effet sonore à l'arrivée d'un message (D-155) ; bruitages libres de droits et bande-son fournie (D-153).
 10. **Blessure localisée** — seulement dans le récit (D-143).
 11. **Rappel de « plus aucune sortie »** — gardé, discret (D-144).
 12. **Confirmation avant une nouvelle partie** — oui, elle remplace l'ancienne (D-145, §4.1).
