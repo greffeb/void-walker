@@ -638,6 +638,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : réponse Q-73, sept règles cochées sur huit.
 - Décision : changer de place dans une pièce ne coûte pas d'action à part (MP-01) ; on pose un objet porté n'importe où en une action (MP-02) ; ramasser un deuxième objet encombrant est refusé sans échange automatique (MP-03) ; on entend aussi à travers une grille fermée, comme la créature (OP-01) ; une porte normale indique le nom de sa pièce, qui n'apparaît sur la carte qu'une fois visitée (OP-03) ; l'air lu sur les voyants reste à jour sur la carte (OP-04) ; la carte marque où la créature a été vue en dernier et depuis combien d'actions (OP-05).
 - Non retenu : OP-02, informations de l'assistance à distance, remplacé par D-081.
+- Amendement : « depuis combien d'actions » d'OP-05 est remplacé par une ancienneté en mots (D-141).
 
 ### D-081 — L'assistance parle seulement aux moments prévus
 
@@ -1065,5 +1066,70 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : réponse du porteur du projet « ok pour virer l'ancienne version en ligne », à la question sur le changement du mode de publication GitHub Pages.
 - Décision : le Bootstrap (#89) peut changer le mode de publication GitHub Pages même si la V1 publiée cesse d'être accessible ; après fusion, le monde de test V2 la remplace à la racine (AP-05).
 - Limite : l'historique Git de la V1 reste consultable (D-122).
+
+## Décisions validées — interface
+
+### D-140 — Maquette d'interface v1 et direction « Phosphore »
+
+- Date / statut : 2026-10-10 / **Validé, implémentation absente**.
+- Origine : revue écran par écran de la maquette (choix cités en [12 §8](12-interface-ecrans.md)), puis « design a bien travaillé » et demande de consigner ces choix.
+- Décision : [la description des écrans](12-interface-ecrans.md) et sa [maquette PDF](maquette/maquette-ui-v1.pdf) deviennent la référence de l'interface. Les éléments marqués [Validé] et les choix du tableau 12 §8 font autorité : direction « Phosphore » (terminal ambre, IBM Plex Mono), accueil à trois boutons, réveil texte seul, IA Station en modale, santé affichée seulement si le personnage n'est pas indemne, composition en bulle par-dessus l'écran, aperçu puis confirmation pour toute action engageante, déplacements compris, coûts « bruyant », « long », « périlleux », ancienneté d'un état vu en mots, personnage masculin.
+- Limite : les éléments [Proposé] restent ajustables par l'agent d'interface s'il garde l'intention. Le sens mécanique de « long » et « périlleux » reste à décider : ces étiquettes ne s'affichent pas avant. Les seuils entre « à l'instant », « il y a un moment » et « il y a longtemps » restent à fixer. L'interface est en zone orange (C-10 §6).
+
+### D-141 — Dernière position vue de la créature en mots
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse en revue de maquette « on va essayer de garder du texte ».
+- Décision : sur la carte, le dernier endroit où la créature a été vue est indiqué en mots, avec l'échelle des états vus (« vue ici à l'instant », « il y a un moment », « il y a longtemps »), sans nombre d'actions. Remplace la seconde moitié d'OP-05 accepté par D-080 ; un bruit n'ajoute toujours aucun marqueur.
+
+### D-142 — Rapports : dans les options, partout, avec commentaire
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses « Partout, y compris la version publique », « Oui, dans les options », « Oui, champ de commentaire facultatif ».
+- Décision : « Signaler un bug » et « Envoyer ma partie » sont rangés dans les options, accessibles depuis l'accueil et le jeu, dans toutes les versions (confirme D-095). Un commentaire écrit facultatif peut accompagner un rapport.
+- Limite : ce champ ne commande jamais le personnage (D-006 inchangée). L'idée d'un envoi réservé au débogage est écartée.
+
+### D-143 — Blessure localisée seulement dans le récit
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Seulement dans le récit, l'encadré dit juste BLESSÉ ».
+- Décision : l'encadré « ce qui change » et le badge disent seulement l'état (blessé, critique). Une précision comme « l'épaule » n'apparaît que dans le récit et n'a aucun effet de jeu (C-04).
+
+### D-144 — Rappel discret quand plus aucune sortie n'est possible
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Oui, rappel discret ».
+- Décision : après « Continuer à jouer », un rappel discret « plus aucune sortie possible » reste en tête du récit jusqu'à la fin de la partie (D-085 : il ne nomme aucune sortie).
+
+### D-145 — Confirmer avant de remplacer une partie en cours
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Oui, elle remplace l'ancienne après confirmation ».
+- Décision : « Nouvelle partie » alors qu'une partie est en cours demande une confirmation ; la nouvelle partie remplace alors l'ancienne, qui est perdue (D-089).
+
+### D-146 — Des bulles ancrées partout
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Bulles ancrées sur l'élément touché, partout ».
+- Décision : fiches d'objet, choix d'action et aperçus, déplacement compris, s'ouvrent dans une bulle ancrée sur l'élément touché. Le panneau bas de la maquette est abandonné.
+
+### D-147 — Un passage sans signalétique rejoint « Se déplacer vers » une fois ouvert
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Oui, une fois ouverte seulement », à propos de la grille haute.
+- Décision : un passage comme la grille haute apparaît dans « Se déplacer vers » quand il est ouvert ; avant, il n'est qu'un objet de la pièce. Sa destination n'est pas affichée tant qu'elle n'est pas découverte (OP-03).
+
+### D-148 — Ambiance sonore et voix d'IA Station au lancement
+
+- Date / statut : 2026-10-10 / **Validé, contenu à produire**.
+- Origine : réponse « Ambiance et voix d'IA Station ».
+- Décision : le lancement comporte une ambiance sonore et une voix pour les messages d'IA Station, chacune réglable dans les options.
+- Limite : tout reste lisible sans le son ; la voix dit exactement le texte écrit. La façon de produire la voix (enregistrement ou synthèse), les sons précis et leurs licences restent à décider. Aucun LLM (D-004).
+
+### D-149 — Pas d'import de partie au lancement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse « Non, pas au lancement ».
+- Décision : la gestion des sauvegardes se limite au téléchargement de la partie (C-09 §5). Réimporter une partie téléchargée n'est pas proposé au lancement.
 
 

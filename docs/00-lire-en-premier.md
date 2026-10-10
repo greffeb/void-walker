@@ -23,7 +23,7 @@ Le présent dossier ne modifie ni le prototype précédent ni le projet Lacets. 
 
 Les besoins créatifs sont illustrés par les [cinq interactions de référence](07-interactions-reference.md). Leurs intentions sont demandées, leurs modalités techniques restent proposées jusqu'à arbitrage.
 
-La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « Phosphore ») sert de base aux agents d'interface et au graphiste. Les choix faits pendant la revue de maquette n'y sont pas encore consignés au journal ; ses écarts avec les contrats sont listés en §9, et ceux avec l'interface actuelle en §11.
+La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « Phosphore », [PDF](maquette/maquette-ui-v1.pdf)) est la référence de l'interface (D-140 à D-149). Elle sert aux agents d'interface et au graphiste ; ses points encore ouverts sont listés en §9, ses écarts avec l'interface actuelle en §11.
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
@@ -94,7 +94,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136) ; quatre agents Copilot installés dans `.github/agents/` (D-137) ; [issue de Bootstrap](11-bootstrap.md) publiée : [#89](https://github.com/greffeb/void-walker/issues/89). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Bootstrap #89, sur `bootstrap/89-socle` :** les cinq étapes sont codées. Elles couvrent :
+**Bootstrap #89, fusionné (PR #90) :** les cinq étapes sont codées. Elles couvrent :
 
 - le kit dans `docs/` et le socle TypeScript ;
 - le moteur minimal et le monde de test ;
@@ -104,7 +104,9 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 `npm run verify` est vert en local. Après quatre erreurs réseau lors des délégations à l'exécutant, l'orchestrateur a codé lui-même à la demande du porteur du projet ; un rapport sur l'exécutant reste à traiter. Le relecteur et le playtester ont relu et joué ; leurs remarques sont traitées ou listées dans la PR. Le mode GitHub Pages peut retirer la V1 en ligne (D-139).
 
-**Prochaine tâche recommandée :** suivre la PR du Bootstrap : CI verte, PR cassée de démonstration, lien de la version de test, accord du porteur du projet pour fusionner (zones orange et rouge). En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
+**Maquette d'interface :** acceptée (D-140 à D-149) ; issues d'interface à traiter une par une, en zone orange.
+
+**Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-133 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 

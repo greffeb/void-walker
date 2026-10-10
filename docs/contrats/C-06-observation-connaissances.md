@@ -1,6 +1,6 @@
 # C-06 — Observation, carte et connaissances
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081.
+> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots).
 > **Date :** 2026-10-10.
 > **Implémentation et tests :** absents.
 
@@ -32,7 +32,7 @@ La même observation sert la PWA, la CLI, les bots et le joueur LLM externe. Seu
 - **OP-03 —** Depuis une pièce visitée, chaque sortie vue apparaît comme un passage. Une porte normale porte le nom de sa destination par la signalétique ; cette destination reste non dessinée tant qu'elle n'est pas visitée. Un accès sans signalétique (conduit, passage découvert) n'affiche pas sa destination tant qu'elle n'est pas découverte, en le franchissant ou parce que ce qui est révélé l'indique (AR-01 §11.1).
 - Hors de vue, une pièce garde le dernier état vu (D-076) : objets, liaisons, foyer.
 - **OP-04 —** L'air des pièces connues, lu sur les voyants des portes étanches, est affiché à jour (D-071, D-081).
-- **OP-05 —** Le dernier endroit où la créature a été vue est marqué avec le nombre d'actions écoulées depuis. Un bruit entendu n'ajoute aucun marqueur de position.
+- **OP-05 —** Le dernier endroit où la créature a été vue est marqué, avec l'ancienneté dite en mots (« à l'instant », « il y a un moment », « il y a longtemps »), sans nombre d'actions (D-141). Un bruit entendu n'ajoute aucun marqueur de position.
 
 ## 4. Menus, aperçus et risques
 

@@ -151,10 +151,10 @@ Aucun système détaillé de caractéristiques, combat, horloges ou ressources n
 
 ## 7. Interface, narration et assets
 
-- Texte et carte requis ; forme spatiale de la carte à préciser.
-- Actions contextuelles sélectionnables sur téléphone requises.
+- Texte et carte requis ; carte en plan et en liste, décrite par la [maquette v1](12-interface-ecrans.md) (D-140).
+- Actions contextuelles sélectionnables sur téléphone requises : bulles ancrées, aperçu puis confirmation (D-140, D-146).
 - Illustrations d'objets éventuelles, pas encore un volume obligatoire.
-- Langues, ton précis, direction visuelle, audio et critères d'accessibilité à arbitrer.
+- Français seulement (D-109) ; direction visuelle « Phosphore » et liste d'accessibilité de 12 §7 (D-140) ; ambiance sonore et voix d'IA Station (D-148), dont la production reste à décider.
 - Une chaîne traduite ne devient pas une commande métier reparsée.
 
 ## 8. Sauvegarde, exploitation et publication

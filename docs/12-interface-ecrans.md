@@ -1,10 +1,10 @@
 # Void Walker V2 — interface : description des écrans
 
-> **Statut :** MAQUETTE v1 — direction « Phosphore » choisie et retours écran par écran du porteur du projet intégrés le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
+> **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-149 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
 > **Mise à jour :** 2026-10-10.
 > **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
 > **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
-> **Maquette de référence :** canevas « Void Walker — UI » sur claude.ai (privé tant que le porteur du projet ne l'a pas partagé). Ce document se suffit à lui-même : un agent qui ne voit pas la maquette doit pouvoir reproduire chaque écran.
+> **Maquette de référence :** [maquette-ui-v1.pdf](maquette/maquette-ui-v1.pdf), 13 écrans exportés du canevas « Void Walker — UI » sur claude.ai. Le PDF montre encore le panneau bas et la bordure `#6B5530` : ce document prime. Il se suffit à lui-même : un agent qui ne voit pas la maquette doit pouvoir reproduire chaque écran.
 
 ## 0. Comment lire ce document
 
@@ -39,7 +39,7 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 | --- | --- | --- | --- |
 | `fond` | `#0A0907` | Fond de tous les écrans | — |
 | `surface` | `#14100A` | Bulle de composition | — |
-| `surface-2` | `#110E09` | Panneau bas, modale IA Station | — |
+| `surface-2` | `#110E09` | Modale IA Station | — |
 | `texte` | `#F4C27A` | Texte courant, puces, boutons secondaires | 12,2:1 |
 | `accent` | `#FFB23F` | Titres de pièce, titres de bulle, bordure de bulle, badge de santé, éléments actifs | 11,1:1 |
 | `texte-secondaire` | `#B08850` | Rappels, positions, libellés, raisons d'indisponibilité | 6,1:1 |
@@ -48,7 +48,7 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 | `séparateur` | `#4A3A20` | Filets décoratifs seulement | 1,8:1 |
 
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
-- **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale ou sous un panneau bas.
+- **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale.
 - **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
 - Pas de dégradé décoratif. Pas de rouge ni de vert : tout l'écran reste dans la gamme ambre.
 
@@ -142,6 +142,7 @@ Dans cet ordre :
 - **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 50 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
 - Titre « ── SE DÉPLACER VERS ── » (remplace « Sorties »). [Validé]
 - **Boutons de déplacement** : un par passage connu, pleine largeur, vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre l'aperçu de déplacement (§4.3).
+- **Passage sans signalétique** (grille haute, conduit) : il rejoint « Se déplacer vers » seulement une fois ouvert ; avant, il n'est qu'une puce d'objet. Tant que sa destination n'est pas découverte, le bouton porte le nom du passage, « → GRILLE HAUTE » (OP-03). [Validé D-147]
 
 ### 3.5 Bulle de composition
 
@@ -161,9 +162,12 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 - **Fermer sans effet :** « ✕ », ANNULER, toucher hors de la bulle, retour système. [Proposé]
 - La phrase « Rien ne se passe avant confirmation » est retirée. [Validé]
 
-### 3.6 Panneau bas
+### 3.6 Bulles partout
 
-Utilisé dans la maquette pour la fiche longue (poste d'appel) et pour l'aperçu de déplacement. Il remplace le dock et la navigation : bord supérieur de 2 px `accent`, fond `surface-2`, récit voilé à 55 % au-dessus. Choisir entre ce panneau et la bulle reste à décider (§9). [Ouvert]
+Fiches d'objet, choix d'action et aperçus, déplacement compris, utilisent la bulle de §3.5, ancrée sur l'élément touché. Le panneau bas de la maquette (poste d'appel, aperçu de déplacement) est abandonné. [Validé D-146]
+
+- Une fiche longue (poste d'appel) prend toute la largeur moins les marges et défile à l'intérieur de la bulle si besoin. [Proposé]
+- Pour un bouton de déplacement pleine largeur, la bulle s'ouvre au-dessus de lui, flèche centrée. [Proposé]
 
 ### 3.7 Action indisponible
 
@@ -184,7 +188,7 @@ Grille de deux colonnes : libellé en capitales `texte-secondaire`, puis valeur.
 | COÛT | Étiquettes `[bruyant]`, `[long]`, `[périlleux]`, ou « aucun » | « [bruyant] [long] » |
 | SAVOIR | Une ou deux phrases sur les conséquences connues | « La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter. » |
 
-- Les trois coûts sont validés. [Validé] Leur sens mécanique reste à définir (§9).
+- Les trois coûts sont validés. [Validé] Le sens mécanique de `[long]` et `[périlleux]` reste à décider : ne pas les afficher avant (D-140). `[bruyant]` peut l'être.
 - Échelle de risque : aucun risque connu, faible, modéré, élevé, mortel (C-04 §3.1 pour le vide). Une conséquence sans dé s'annonce comme certaine (C-04 §5), par exemple « certain : vous serez blessé ». [Proposé]
 - Ni pourcentage ni chiffre (C-04 §4.3). L'aperçu ne se calcule que sur ce que le passager sait (C-06 §4).
 
@@ -255,7 +259,7 @@ Seulement le titre et trois boutons. Pas de sous-titre. [Validé]
 - **Haut :** « VOID » et « WALKER▮ » sur deux lignes (style « titre d'accueil »), à environ 120 px du haut. Nom provisoire du jeu.
 - **Bas**, dans la zone du pouce, empilés, à 16 px des côtés, 10 px d'écart, 32 px du bas :
   1. **REPRENDRE LA PARTIE**, principal. Reprend exactement l'état enregistré (C-09). Visible seulement s'il y a une partie en cours (D-089). [Proposé] Si la dernière partie s'est terminée par une défaite, on arrive sur son écran de fin (C-09 S-05).
-  2. **NOUVELLE PARTIE**, secondaire. Mène au réveil. S'il n'y a pas de partie en cours, ce bouton devient le principal. [Proposé] La confirmation avant d'écraser une partie en cours reste à décider. [Ouvert]
+  2. **NOUVELLE PARTIE**, secondaire. Mène au réveil. S'il n'y a pas de partie en cours, ce bouton devient le principal. [Proposé] Si une partie est en cours, une confirmation s'ouvre dans la page : « Une partie est en cours. La nouvelle partie la remplacera. », ANNULER / COMMENCER. [Validé D-145 ; libellés Proposés]
   3. **OPTIONS**, discret.
 - Signaler un bug, envoyer et télécharger la partie sont dans les options. [Validé]
 
@@ -284,14 +288,14 @@ Texte d'exemple :
 
 **Aperçu de déplacement** : toucher « → ATELIER DE SERVICE ». [Validé : aperçu et confirmation pour se déplacer]
 
-- Dans la maquette, c'est un panneau bas (§3.6) : « ALLER VERS › », puis « ATELIER DE SERVICE » en `accent` 19/600.
+- Bulle ancrée sur le bouton (§3.6, D-146 ; la maquette montre encore un panneau bas) : « ALLER VERS › », puis « ATELIER DE SERVICE » en `accent` 19/600.
 - RISQUE : aucun risque connu. COÛT : aucun. SAVOIR : « Vous quitterez le Salon de transit. »
 - Boutons ANNULER / CONFIRMER. Pas de phrase « Rien ne se passe avant confirmation ». [Validé]
 - CONFIRMER fait le déplacement et mène à l'écran de la pièce d'arrivée.
 
 ### 4.4 Fiche d'objet : Poste d'appel
 
-Consultation gratuite (D-014). Elle s'ouvre en touchant la puce. Dans la maquette, c'est un panneau bas sur le salon voilé.
+Consultation gratuite (D-014). Elle s'ouvre en touchant la puce, dans une bulle large ancrée sur elle (§3.6, D-146 ; la maquette montre encore un panneau bas).
 
 - **Titre :** « POSTE D'APPEL » en `accent` 19/600.
 - **Qualités** en étiquettes : « [fixé au mur] [alimenté] [haut-parleur grésillant] ». Ce sont des qualités déclarées de l'objet (B-044), rédigées pour le joueur.
@@ -328,7 +332,7 @@ Parcours de référence du prototype (cas A-03 de C-01).
 2. Toucher « Déplacer ». Fil : CAISSE › DÉPLACER. « OÙ ? » : ▸ sous la grille haute, ▸ devant la porte du Salon de transit, ▸ au centre de l'atelier.
 3. Toucher « sous la grille haute ». Fil : CAISSE › DÉPLACER › sous la grille haute. Aperçu :
    - RISQUE : **faible** — effort, aucune blessure attendue ;
-   - COÛT : [bruyant] [long] ;
+   - COÛT : [bruyant] (la maquette montre aussi [long], à ne pas afficher avant décision, D-140) ;
    - SAVOIR : La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter.
 4. CONFIRMER envoie une commande structurée (objet, action, position publique), jamais une phrase. Le moteur résout l'action et enregistre la partie (C-09 SP-02). ANNULER, « ✕ » ou toucher le voile referment sans effet.
 
@@ -358,7 +362,7 @@ Le porteur du projet trouve la carte « pas mal » et la reverra plus tard. [Val
 - **Légende :** « [↑ NOM] sortie vue, pièce non visitée », « [→ ?] passage, destination inconnue », « AIR ● / VIDE ○ voyant de porte étanche ».
 - **Bas :** FERMER LA CARTE, secondaire, pleine largeur.
 - **Ne pas reproduire :** la maquette écrit « mouvement entendu » dans le salon. C'est contraire à OP-05 et à C-06 §5 : un bruit n'ajoute aucune marque de position sur la carte.
-- **Créature vue :** le dernier endroit où elle a été vue est marqué dans la pièce, en mots, avec la même échelle que les états vus : « créature vue ici à l'instant », « … il y a un moment », « … il y a longtemps ». Pas de nombre d'actions. [Validé] Ce choix modifie OP-05, qui demandait le nombre d'actions écoulées : C-06 est à amender (§9). La forme graphique du marqueur reste à maquetter.
+- **Créature vue :** le dernier endroit où elle a été vue est marqué dans la pièce, en mots, avec la même échelle que les états vus : « créature vue ici à l'instant », « … il y a un moment », « … il y a longtemps ». Pas de nombre d'actions. [Validé D-141, OP-05 amendé] La forme graphique du marqueur reste à maquetter.
 
 ### 4.9 IA Station
 
@@ -379,12 +383,13 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 - **En-tête :** « OPTIONS » en `accent` 17/600, puis « le jeu est en pause » en 12.
 - **Contenu qui défile**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
-  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Voix d'IA Station » COUPÉE / ACTIVE. [Validé pour la présence de réglages de son ; Proposé pour leur détail] L'audio n'est pas encore arbitré (05 §7).
+  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Voix d'IA Station » COUPÉE / ACTIVE. [Validé D-148 : ambiance et voix d'IA Station au lancement ; Proposé pour le détail des niveaux] Tout reste lisible sans le son.
   3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé]
   4. **── PARTIE ──** :
      - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
      - « ▸ Signaler un bug », avec « la partie en cours est jointe ». La partie est jointe automatiquement (RP-01). [Validé]
-     - « ▸ Envoyer ma partie », avec « débogage ». [Validé, mais écart avec C-10, voir §9]
+     - « ▸ Envoyer ma partie », avec « partie et commentaire », dans toutes les versions (D-095, D-142). [Validé]
+     - Pas d'import de partie au lancement (D-149).
      - « ⊘ Abandonner la partie en cours », bouton danger. Il ouvre une confirmation dans la page : « Abandonner ? Cette partie ne pourra pas être reprise. », ANNULER / ABANDONNER. ABANDONNER mène à l'écran de fin, version abandon (C-08 §4).
 - **Bas, fixe :** MENU PRINCIPAL (secondaire) et REPRENDRE LA PARTIE (principal).
 - **Sans partie en cours :** masquer Télécharger, Abandonner et REPRENDRE LA PARTIE. [Proposé]
@@ -423,10 +428,10 @@ Exemple : « Caisse · Monter dessus · atteindre la poignée de la grille haute
 - **En-tête :** ATELIER DE SERVICE, « > au sol, près de la caisse », badge « ! BLESSÉ », engrenage.
 - **Récit :**
   - rappel « > Caisse · Monter dessus · atteindre la poignée de la grille haute » ;
-  - en dessous, en 13 `texte-secondaire` : « risque annoncé : élevé · [périlleux] » ;
+  - en dessous, en 13 `texte-secondaire` : « risque annoncé : élevé » (la maquette ajoute « · [périlleux] », à ne pas afficher avant décision, D-140) ;
   - récit : « Vous montez sur la caisse et tendez le bras. Vos doigts accrochent la poignée : elle cède d'un cran. Puis la caisse bascule. Votre épaule heurte le sol, et la douleur vous coupe le souffle. »
 - **Ce qui change :**
-  - « ÉTAT : indemne → BLESSÉ (épaule) » ;
+  - « ÉTAT : indemne → BLESSÉ » ; l'épaule n'est dite que dans le récit (D-143) ;
   - « La poignée de la grille haute a bougé d'un cran. » ;
   - « La caisse est renversée sous la grille haute. »
 - **Bruit :** « Le choc résonne longtemps dans l'atelier. »
@@ -443,7 +448,7 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
   - « INFORMATION DU JEU » ;
   - « PLUS AUCUNE SORTIE POSSIBLE. » ;
   - « Plus aucun chemin ne mène à une capsule de secours. Vous pouvez continuer à jouer et explorer la station. » ;
-  - CONTINUER À JOUER (principal, inversé dans la carte) : la carte disparaît et le jeu reprend. Il revient ensuite au joueur d'abandonner depuis les options. [Validé] Un rappel discret « [ plus aucune sortie possible ] » reste en tête du récit. [Proposé]
+  - CONTINUER À JOUER (principal, inversé dans la carte) : la carte disparaît et le jeu reprend. Il revient ensuite au joueur d'abandonner depuis les options. [Validé] Un rappel discret « [ plus aucune sortie possible ] » reste en tête du récit jusqu'à la fin de la partie. [Validé D-144]
   - TERMINER LA PARTIE (secondaire). C'est un abandon : il mène à l'écran de fin « Partie abandonnée » (§4.11), puis au menu principal par MENU PRINCIPAL. [Validé] Sous le bouton, remplacer « retour au menu principal » de la maquette par « la partie s'arrête ici ». [Proposé]
 
 ## 6. États encore à maquetter
@@ -455,10 +460,10 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
 | Envoyer ma partie | Partie complète, commentaire, case « je valide » dans les versions de test | C-10 RP-02, D-130, D-132 |
 | Échec d'enregistrement | Avertissement visible et persistant, jeu possible, jamais « sauvegardé » à tort | C-09 §3, S-02 |
 | Partie incompatible après mise à jour | Message, puis nouvelle partie proposée ; l'ancienne est perdue | C-09 §4, S-04 |
-| Confirmation de nouvelle partie | Si une partie est en cours (à décider) | D-089 |
+| Confirmation de nouvelle partie | Confirmation dans la page quand une partie est en cours (§4.1) | D-089, D-145 |
 | Premier contact et créature vue | Annonce du premier contact, créature dans la pièce, choix de protection, de diversion ou de fuite | C-03 §4.4, D-025 |
 | Risque mortel | Aperçu « mortel » (vide sans combinaison), pièces connues qui perdent l'air | C-04 §3.1, D-071 |
-| Créature sur la carte | Forme du marqueur du dernier endroit où elle a été vue (texte en mots, §4.8) | C-06 OP-05, à amender |
+| Créature sur la carte | Forme du marqueur du dernier endroit où elle a été vue (texte en mots, §4.8) | C-06 OP-05, D-141 |
 | Carte en vue liste | Même information que le plan, en texte | §4.8 |
 | Téléchargement de partie | Retour visible : fichier prêt ou échec | C-09 SP-05 |
 | Pièce en feu | Dernier état vu « feu » sur la carte, aperçu des risques du foyer | C-03, D-076 |
@@ -476,7 +481,7 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
 
 ## 8. Choix du porteur du projet pendant la revue de maquette
 
-Revue du 2026-10-10. Ces choix ne sont **pas encore consignés** dans le [journal des décisions](03-decisions.md). Un agent ne doit pas les y promouvoir lui-même ; le porteur du projet les fera consigner.
+Revue du 2026-10-10. Ces choix sont consignés dans le [journal des décisions](03-decisions.md) par D-140 à D-149.
 
 | Sujet | Choix | Origine (réponse du porteur du projet) |
 | --- | --- | --- |
@@ -501,7 +506,7 @@ Revue du 2026-10-10. Ces choix ne sont **pas encore consignés** dans le [journa
 | Coûts | bruyant, long, périlleux | « bruyant long perilleux » |
 | Ancienneté d'un état vu | En mots : « à l'instant », « il y a un moment », « il y a longtemps » | « bien » |
 | Message d'IA Station | Lien dans le récit et pastille sur la navigation | « lien et pastille bien » |
-| Exporter, envoyer, bug | Exporter = télécharger sur le téléphone ; Envoyer = fonction de débogage ; Signaler un bug joint la partie automatiquement | « exporter veux dire télécharger sur téléphone, envoyer sera une feature de débug, et signaler un bug joindra la partie automatiquement » |
+| Exporter, envoyer, bug | Exporter = télécharger sur le téléphone ; Envoyer ma partie, d'abord vu comme fonction de débogage, reste pour tous (D-142) ; Signaler un bug joint la partie automatiquement | « exporter veux dire télécharger sur téléphone, envoyer sera une feature de débug, et signaler un bug joindra la partie automatiquement » |
 | Plus aucune sortie | « Terminer » revient au menu principal ; si l'on continue, c'est au joueur d'abandonner | « terminer reviens au menu principal, si on continue de jouer c'est au joueur d'abandonner » |
 | Rejouer une station | Même plan et mêmes positions d'objets, nouveaux dés | « oui » |
 | Terminer la partie | Passe par l'écran de fin « Partie abandonnée » avant le menu principal | « oui » (second passage) |
@@ -509,21 +514,24 @@ Revue du 2026-10-10. Ces choix ne sont **pas encore consignés** dans le [journa
 | Bordure | `#76603A` | « ok pour la bordure » |
 | « long » et « périlleux » | Sens à définir plus tard | « j'y réfléchirai plus tard » |
 
-## 9. Écarts et questions à arbitrer avant implémentation
+## 9. Écarts et questions
 
-1. **« Envoyer ma partie », fonction de débogage.** D-095 et C-10 §3 placent « bug » et « envoyer ma partie » dans toutes les versions, y compris publique. D-132 et RP-02 font aussi passer par cet envoi la case « je valide » signée depuis une version de test. Le bouton doit-il exister dans la version publique, ou seulement dans les versions de test ?
-2. **Signaler un bug dans les options.** Le premier cahier de la maquette voulait des boutons « toujours accessibles ». Ils sont maintenant à deux touchers, dans les options, depuis l'accueil comme depuis le jeu. Est-ce acceptable ?
-3. **Commentaire écrit dans les rapports.** RP-01 et RP-02 prévoient un commentaire du joueur. L'interdiction de saisie libre (D-006) vise la commande du personnage. Un champ de commentaire est-il accepté pour les rapports ?
-4. **« Terminer la partie » — tranché.** Il passe par l'écran de fin « Partie abandonnée », conformément à C-08 §4 et D-086 (§5.2).
-5. **Marqueur de la créature — tranché, contrat à amender.** En mots, sans nombre d'actions (§4.8). OP-05 de C-06, accepté par D-080, demande le contraire : il faut une décision qui le remplace explicitement avant d'implémenter la carte.
-6. **Sens de « long » et de « périlleux » — reporté** par le porteur du projet. Aucun contrat ne dit ce qu'est une action longue (plus d'un pas de jeu ?), ni en quoi « périlleux » diffère du niveau de risque. Ne pas afficher ces étiquettes avant que leur sens soit décidé ; « bruyant » peut être utilisé.
-7. **Panneau bas ou bulle.** La fiche du poste d'appel et l'aperçu de déplacement utilisent un panneau bas ; la composition utilise une bulle. Faut-il les unifier en bulles ancrées sur l'élément touché ?
-8. **La grille haute dans « Se déplacer vers ».** C'est un passage (§8). Doit-elle aussi apparaître dans le dock comme déplacement, par exemple « → GRILLE HAUTE » sans destination, en plus de sa puce d'objet ?
-9. **Son.** Des réglages de son sont prévus, mais l'audio n'est pas arbitré (05 §7). Quels sons existent au lancement ?
-10. **Blessure localisée.** « (épaule) » est narratif. C-04 ne connaît pas de blessure localisée : la garder dans l'encadré, ou ne la mettre que dans le récit ?
-11. **Rappel persistant de « plus aucune sortie ».** Faut-il garder le rappel discret en tête du récit après CONTINUER À JOUER ?
-12. **Confirmation avant une nouvelle partie** quand une partie est en cours (§4.1).
-13. **Gestion des sauvegardes.** Avec une seule partie (D-089), elle se limite à « Télécharger ma partie ». Faut-il aussi importer une partie exportée, pour la revoir par exemple ? Rien n'est décidé.
+Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
+
+1. **« Envoyer ma partie »** — dans toutes les versions, y compris publique (D-142, confirme D-095). Elle porte aussi la case « je valide » des versions de test (D-132).
+2. **Signaler un bug dans les options** — accepté (D-142).
+3. **Commentaire écrit dans les rapports** — champ facultatif accepté ; il ne commande jamais le personnage (D-142).
+4. **« Terminer la partie »** — passe par l'écran de fin « Partie abandonnée » (C-08 §4, D-086, §5.2).
+5. **Marqueur de la créature** — en mots, sans nombre d'actions ; OP-05 amendé (D-141).
+6. **Sens de « long » et de « périlleux »** — **toujours ouvert**, reporté par le porteur du projet. Ne pas afficher ces étiquettes avant décision ; « bruyant » peut l'être (D-140).
+7. **Panneau bas ou bulle** — bulles ancrées partout (D-146, §3.6).
+8. **La grille haute dans « Se déplacer vers »** — seulement une fois ouverte (D-147, §3.4).
+9. **Son** — ambiance et voix d'IA Station au lancement (D-148). **Ouvert :** enregistrement ou synthèse de la voix, sons précis, licences.
+10. **Blessure localisée** — seulement dans le récit (D-143).
+11. **Rappel de « plus aucune sortie »** — gardé, discret (D-144).
+12. **Confirmation avant une nouvelle partie** — oui, elle remplace l'ancienne (D-145, §4.1).
+13. **Import d'une partie téléchargée** — pas au lancement (D-149).
+14. **Seuils de l'ancienneté** (« à l'instant », « il y a un moment », « il y a longtemps ») — **ouvert** (§4.8).
 
 ## 10. Correspondance avec la maquette
 
