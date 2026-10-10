@@ -23,7 +23,7 @@ Le présent dossier ne modifie ni le prototype précédent ni le projet Lacets. 
 
 Les besoins créatifs sont illustrés par les [cinq interactions de référence](07-interactions-reference.md). Leurs intentions sont demandées, leurs modalités techniques restent proposées jusqu'à arbitrage.
 
-La [description des écrans](10-interface-ecrans.md) (maquette v1, direction « Phosphore ») sert de base aux agents d'interface et au graphiste. Les choix faits pendant la revue de maquette n'y sont pas encore consignés au journal ; ses écarts avec les contrats sont listés en §9.
+La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « Phosphore ») sert de base aux agents d'interface et au graphiste. Les choix faits pendant la revue de maquette n'y sont pas encore consignés au journal ; ses écarts avec les contrats sont listés en §9, et ceux avec l'interface actuelle en §11.
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 

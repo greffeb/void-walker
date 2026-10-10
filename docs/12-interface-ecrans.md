@@ -2,7 +2,8 @@
 
 > **Statut :** MAQUETTE v1 — direction « Phosphore » choisie et retours écran par écran du porteur du projet intégrés le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
 > **Mise à jour :** 2026-10-10.
-> **Public :** agents `ui-ux-expert`, `asset-generator` (graphiste) et exécutants chargés de l'interface PWA.
+> **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
+> **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
 > **Maquette de référence :** canevas « Void Walker — UI » sur claude.ai (privé tant que le porteur du projet ne l'a pas partagé). Ce document se suffit à lui-même : un agent qui ne voit pas la maquette doit pouvoir reproduire chaque écran.
 
 ## 0. Comment lire ce document
@@ -22,8 +23,8 @@ Les textes cités viennent de la maquette (salon de transit, atelier de service)
 1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur. Pas de fausse barre d'état. [Validé]
 2. **Le pouce agit en bas, l'œil lit en haut.** Tout ce qui agit (objets, déplacements, navigation, confirmation) est dans la moitié basse. En haut, un seul contrôle, rarement utilisé : l'engrenage des options. [Validé]
 3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Seul le bouton CONFIRMER d'un aperçu engage une action. Annuler est toujours possible, sans effet. Toute action engageante, déplacement compris, passe par un aperçu puis une confirmation. [Validé]
-4. **Un nom par chose** (NP-04). Même libellé dans le récit, le dock, la bulle, la carte et le rappel d'action. Les puces d'objet gardent la casse du nom (« Burette d'huile ») ; titres de pièce et boutons de déplacement passent en capitales par le style uniquement, le nom enregistré reste identique.
-5. **Aucun chiffre de jeu.** Ni points de vie, ni pourcentage, ni dé, ni score, ni niveau. Exception contractuelle à cadrer : le marqueur de créature de OP-05 (§9).
+4. **Un nom par chose** (NP-04). Même libellé dans le récit, le dock, la bulle, la carte et le rappel d'action. Les puces d'objet affichent le nom avec une majuscule initiale (« Burette d'huile ») ; titres de pièce et boutons de déplacement passent en capitales par le style uniquement ; le nom enregistré (en minuscules, avec genre et élision, NP-02) reste identique.
+5. **Aucun chiffre de jeu.** Ni points de vie, ni pourcentage, ni dé, ni score, ni niveau, ni compteur d'actions. Le marqueur de créature de la carte est lui aussi écrit en mots (§4.8). [Validé]
 6. **Jamais la couleur seule.** Chaque état est porté par un mot et une forme (§2.6).
 7. **Taille du texte réglable**, trois niveaux (§4.10). [Validé]
 8. **Textes** en français, au vouvoiement, deux à quatre phrases après une action (C-07). Le personnage est un homme : accords au masculin (« Vous êtes blessé »). [Validé]
@@ -43,12 +44,12 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 | `accent` | `#FFB23F` | Titres de pièce, titres de bulle, bordure de bulle, badge de santé, éléments actifs | 11,1:1 |
 | `texte-secondaire` | `#B08850` | Rappels, positions, libellés, raisons d'indisponibilité | 6,1:1 |
 | `signal` | `#FFD08A` | Bruits perçus, paroles d'IA Station | 13,9:1 |
-| `bordure` | `#6B5530` | Contours des puces et boutons | 2,8:1 |
+| `bordure` | `#76603A` | Contours des puces et boutons | 3,3:1 |
 | `séparateur` | `#4A3A20` | Filets décoratifs seulement | 1,8:1 |
 
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
 - **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale ou sous un panneau bas.
-- **Bordure trop faible :** `#6B5530` est sous le seuil de 3:1 des composants (WCAG 1.4.11). Utiliser `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`). [Proposé]
+- **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
 - Pas de dégradé décoratif. Pas de rouge ni de vert : tout l'écran reste dans la gamme ambre.
 
 ### 2.2 Typographie
@@ -243,7 +244,7 @@ Tous sont de vrais boutons ou liens, accessibles au clavier et au lecteur d'écr
 | IA Station | RETOUR, voile | Écran de jeu |
 | Options | MENU PRINCIPAL / REPRENDRE LA PARTIE | Accueil / écran de jeu |
 | Options | ABANDONNER (après confirmation) | Fin (abandon) |
-| Plus aucune sortie | TERMINER LA PARTIE | Menu principal (§9) |
+| Plus aucune sortie | TERMINER LA PARTIE | Fin (abandon), puis menu principal |
 | Fin | REJOUER CETTE STATION / NOUVELLE PARTIE | Réveil |
 | Fin | MENU PRINCIPAL | Accueil |
 
@@ -357,7 +358,7 @@ Le porteur du projet trouve la carte « pas mal » et la reverra plus tard. [Val
 - **Légende :** « [↑ NOM] sortie vue, pièce non visitée », « [→ ?] passage, destination inconnue », « AIR ● / VIDE ○ voyant de porte étanche ».
 - **Bas :** FERMER LA CARTE, secondaire, pleine largeur.
 - **Ne pas reproduire :** la maquette écrit « mouvement entendu » dans le salon. C'est contraire à OP-05 et à C-06 §5 : un bruit n'ajoute aucune marque de position sur la carte.
-- **À maquetter :** le marqueur du dernier endroit où la créature a été vue (OP-05, §9).
+- **Créature vue :** le dernier endroit où elle a été vue est marqué dans la pièce, en mots, avec la même échelle que les états vus : « créature vue ici à l'instant », « … il y a un moment », « … il y a longtemps ». Pas de nombre d'actions. [Validé] Ce choix modifie OP-05, qui demandait le nombre d'actions écoulées : C-06 est à amender (§9). La forme graphique du marqueur reste à maquetter.
 
 ### 4.9 IA Station
 
@@ -443,7 +444,7 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
   - « PLUS AUCUNE SORTIE POSSIBLE. » ;
   - « Plus aucun chemin ne mène à une capsule de secours. Vous pouvez continuer à jouer et explorer la station. » ;
   - CONTINUER À JOUER (principal, inversé dans la carte) : la carte disparaît et le jeu reprend. Il revient ensuite au joueur d'abandonner depuis les options. [Validé] Un rappel discret « [ plus aucune sortie possible ] » reste en tête du récit. [Proposé]
-  - TERMINER LA PARTIE (secondaire), avec « retour au menu principal ». [Validé, mais voir §9]
+  - TERMINER LA PARTIE (secondaire). C'est un abandon : il mène à l'écran de fin « Partie abandonnée » (§4.11), puis au menu principal par MENU PRINCIPAL. [Validé] Sous le bouton, remplacer « retour au menu principal » de la maquette par « la partie s'arrête ici ». [Proposé]
 
 ## 6. États encore à maquetter
 
@@ -457,7 +458,7 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
 | Confirmation de nouvelle partie | Si une partie est en cours (à décider) | D-089 |
 | Premier contact et créature vue | Annonce du premier contact, créature dans la pièce, choix de protection, de diversion ou de fuite | C-03 §4.4, D-025 |
 | Risque mortel | Aperçu « mortel » (vide sans combinaison), pièces connues qui perdent l'air | C-04 §3.1, D-071 |
-| Créature sur la carte | Marqueur du dernier endroit où elle a été vue | C-06 OP-05 |
+| Créature sur la carte | Forme du marqueur du dernier endroit où elle a été vue (texte en mots, §4.8) | C-06 OP-05, à amender |
 | Carte en vue liste | Même information que le plan, en texte | §4.8 |
 | Téléchargement de partie | Retour visible : fichier prêt ou échec | C-09 SP-05 |
 | Pièce en feu | Dernier état vu « feu » sur la carte, aperçu des risques du foyer | C-03, D-076 |
@@ -503,15 +504,19 @@ Revue du 2026-10-10. Ces choix ne sont **pas encore consignés** dans le [journa
 | Exporter, envoyer, bug | Exporter = télécharger sur le téléphone ; Envoyer = fonction de débogage ; Signaler un bug joint la partie automatiquement | « exporter veux dire télécharger sur téléphone, envoyer sera une feature de débug, et signaler un bug joindra la partie automatiquement » |
 | Plus aucune sortie | « Terminer » revient au menu principal ; si l'on continue, c'est au joueur d'abandonner | « terminer reviens au menu principal, si on continue de jouer c'est au joueur d'abandonner » |
 | Rejouer une station | Même plan et mêmes positions d'objets, nouveaux dés | « oui » |
+| Terminer la partie | Passe par l'écran de fin « Partie abandonnée » avant le menu principal | « oui » (second passage) |
+| Créature sur la carte | En mots, pas de nombre d'actions | « on va essayer de garder du texte » |
+| Bordure | `#76603A` | « ok pour la bordure » |
+| « long » et « périlleux » | Sens à définir plus tard | « j'y réfléchirai plus tard » |
 
 ## 9. Écarts et questions à arbitrer avant implémentation
 
 1. **« Envoyer ma partie », fonction de débogage.** D-095 et C-10 §3 placent « bug » et « envoyer ma partie » dans toutes les versions, y compris publique. D-132 et RP-02 font aussi passer par cet envoi la case « je valide » signée depuis une version de test. Le bouton doit-il exister dans la version publique, ou seulement dans les versions de test ?
 2. **Signaler un bug dans les options.** Le premier cahier de la maquette voulait des boutons « toujours accessibles ». Ils sont maintenant à deux touchers, dans les options, depuis l'accueil comme depuis le jeu. Est-ce acceptable ?
 3. **Commentaire écrit dans les rapports.** RP-01 et RP-02 prévoient un commentaire du joueur. L'interdiction de saisie libre (D-006) vise la commande du personnage. Un champ de commentaire est-il accepté pour les rapports ?
-4. **« Terminer la partie » après « plus aucune sortie ».** C-08 §4 fait de l'abandon une fin, et D-086 veut un récit de fin. Faut-il montrer l'écran de fin « Partie abandonnée » avant le menu principal, ou revenir directement au menu ?
-5. **Marqueur de la créature (OP-05).** Le contrat accepté demande le dernier endroit où la créature a été vue, « avec le nombre d'actions écoulées depuis ». C'est un chiffre affiché. Faut-il l'écrire ainsi (« vue ici il y a 3 actions ») ou le dire en mots, comme les états vus (§8), ce qui modifierait OP-05 ?
-6. **Sens de « long » et de « périlleux ».** Aucun contrat ne dit ce qu'est une action longue (plus d'un pas de jeu ?), ni en quoi « périlleux » diffère du niveau de risque. À définir avant d'afficher ces étiquettes.
+4. **« Terminer la partie » — tranché.** Il passe par l'écran de fin « Partie abandonnée », conformément à C-08 §4 et D-086 (§5.2).
+5. **Marqueur de la créature — tranché, contrat à amender.** En mots, sans nombre d'actions (§4.8). OP-05 de C-06, accepté par D-080, demande le contraire : il faut une décision qui le remplace explicitement avant d'implémenter la carte.
+6. **Sens de « long » et de « périlleux » — reporté** par le porteur du projet. Aucun contrat ne dit ce qu'est une action longue (plus d'un pas de jeu ?), ni en quoi « périlleux » diffère du niveau de risque. Ne pas afficher ces étiquettes avant que leur sens soit décidé ; « bruyant » peut être utilisé.
 7. **Panneau bas ou bulle.** La fiche du poste d'appel et l'aperçu de déplacement utilisent un panneau bas ; la composition utilise une bulle. Faut-il les unifier en bulles ancrées sur l'élément touché ?
 8. **La grille haute dans « Se déplacer vers ».** C'est un passage (§8). Doit-elle aussi apparaître dans le dock comme déplacement, par exemple « → GRILLE HAUTE » sans destination, en plus de sa puce d'objet ?
 9. **Son.** Des réglages de son sont prévus, mais l'audio n'est pas arbitré (05 §7). Quels sons existent au lancement ?
@@ -539,3 +544,25 @@ Revue du 2026-10-10. Ces choix ne sont **pas encore consignés** dans le [journa
 | `E2-Impasse` | §5.2 |
 | `E3-Reglages` | §4.10, options |
 | `Main`, `A-carte`, `C-jeu`, `C-carte` | Directions non retenues (Transit, Rapport) : ne pas implémenter |
+
+## 11. Écarts avec l'interface actuelle (Bootstrap #89)
+
+État relevé sur la branche principale après la fusion du Bootstrap : `app/App.tsx`, `app/styles.css`, `content/monde-test/textes.ts`, `engine/vocabulaire.ts`. L'interface y est volontairement minimale (monde de test, hors carte et hors créature). Ce tableau dit ce qu'une issue d'interface devra changer ; il n'autorise pas à le faire hors d'une issue acceptée.
+
+| Sujet | Interface actuelle | Ce document | Remarque |
+| --- | --- | --- | --- |
+| Style | Police système, palette bleu-gris (`#0b0d10`, `#9fb4c8`), coins arrondis | Phosphore : IBM Plex Mono, palette ambre, angles droits, lignes de balayage (§2) | Racine à 17 px, déjà conforme au récit |
+| Démarrage | La partie démarre ou reprend directement | Accueil d'abord : REPRENDRE, NOUVELLE PARTIE, OPTIONS (§4.1) | — |
+| Réveil | Texte de réveil dans le récit du premier écran | Écran d'introduction séparé, un seul bouton (§4.2) | — |
+| En-tête | « Void Walker » sur chaque écran | Nom de la pièce et position, badge de santé, engrenage (§3.2) | — |
+| Situation | Bloc de phrases : « Vous êtes dans la cabine. Vous voyez ici un carnet. La porte est fermée. Vous portez… » | Pièce dans l'en-tête, objets et passages dans le dock (§3.4) | Garder ces phrases pour la CLI et le lecteur d'écran ; le récit reste identique à la CLI (C-06 K-07) |
+| Menu | Liste plate de toutes les options : « Regarder la cabine », « Prendre le carnet », « Aller dans l'atelier »… | Options regroupées par objet : toucher l'objet ouvre la bulle (§3.5) ; passages dans « Se déplacer vers » | Le moteur fournit déjà la cible de chaque option : le regroupement relève de l'écran seul |
+| Regarder | Bouton comme les autres | Consultation gratuite : c'est la fiche de la bulle, pas une action à confirmer | Déjà une consultation côté moteur (`regarder_*`) |
+| Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER pour toute action engageante (§3.8) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
+| Indisponible | Bouton grisé, raison en dessous (« La porte est fermée. ») | « ⊘ », raison courte à droite, filet pointillé (§3.7) | Raison publique déjà fournie par le moteur |
+| Sauvegarde | Ligne permanente « Partie sauvegardée · 3 action(s) » | Pas de compteur d'actions affiché (§1) ; réussite discrète ou silencieuse, échec toujours visible et persistant (§6) | Garder les attributs `data-testid="sauvegarde"`, `data-actions`, `data-etat` utilisés par les captures (AP-09) |
+| Pied de page | Version, commit et numéro de PR sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
+| Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
+| Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
+| Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |
+| Absents | Carte, IA Station, options, santé, fins, rapports | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun |
