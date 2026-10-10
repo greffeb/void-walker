@@ -41,7 +41,8 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
 }
 
 export function rendreConsultation(textes: TextesMonde, consultation: Consultation, cle: CleTexte): string {
-  const repere = `${cle.graine}:${cle.action}:${consultation.type}:${consultation.cible.id}`;
+  // Une même chose garde la même description pendant toute la partie.
+  const repere = `${cle.graine}:${consultation.type}:${consultation.cible.id}`;
   if (consultation.type === 'regarder_passage') {
     const { cible } = consultation;
     const variantes = cible.ouvert ? textes.passages.ouvert : textes.passages.ferme;

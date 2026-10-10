@@ -55,8 +55,8 @@ describe('CLI', () => {
     const debut = executer(['nouvelle'], ctx);
     const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
     const sortie = executer(['jouer', numero(debut.lignes, 'Aller dans l’atelier')], ctx);
-    expect(sortie.code).toBe(2);
-    expect(sortie.lignes[0]).toBe('Le passage est fermé.');
+    expect(sortie.code).toBe(0);
+    expect(sortie.lignes[0]).toBe('Ce passage est fermé : vous ne pouvez pas le franchir.');
     expect(sortie.lignes).not.toContain('Partie enregistrée.');
     expect(sortie.lignes).toContain('Actions engagées : 0');
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
@@ -77,8 +77,18 @@ describe('CLI', () => {
     executer(['nouvelle'], ctx);
     const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
     expect(executer(['commande', 'voler', 'e12345678'], ctx).lignes[0]).toBe('Cette action n’existe pas : rien n’a été joué.');
-    expect(executer(['commande', 'prendre', 'objet-carnet'], ctx).lignes[0]).toBe('Ce que vous visez n’est pas à votre portée.');
+    expect(executer(['commande', 'prendre', 'objet-carnet'], ctx).lignes[0]).toBe('Rien de tel n’est à votre portée ici.');
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+  });
+
+  it('voir --ids montre les commandes brutes, utilisables avec « commande »', () => {
+    const ctx = contexte();
+    executer(['nouvelle'], ctx);
+    const ligne = executer(['voir', '--ids'], ctx).lignes.find((candidate) => candidate.includes('Prendre le carnet')) ?? '';
+    const [, action, cible] = ligne.match(/\[(\w+) (e[0-9a-f]{8})\]/) ?? [];
+    expect(action).toBe('prendre');
+    const sortie = executer(['commande', action ?? '', cible ?? ''], ctx);
+    expect(sortie.lignes).toContain('Actions engagées : 1');
   });
 
   it('écriture impossible : avertissement, jamais « enregistrée » (C-09 §3)', () => {

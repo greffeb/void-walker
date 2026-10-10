@@ -16,7 +16,7 @@ export function rejouerExport(contenu: string, version: string): RapportRejeu {
   const entree = MONDES[fichier.monde];
   if (entree === undefined) throw new Error(`Monde inconnu : ${fichier.monde}.`);
   const { partie, etapes } = rejouer(entree.monde, fichier, version);
-  const lignes = [`Export du monde ${fichier.monde}, version ${fichier.version}, graine ${fichier.graine}, ${fichier.actions.length} actions.`];
+  const lignes = [`Export : monde « ${fichier.monde} », version ${fichier.version}, graine ${fichier.graine}, ${fichier.actions.length} actions.`];
   if (fichier.commentaire !== undefined) lignes.push(`Commentaire : ${fichier.commentaire}`);
   etapes.forEach((evenements, index) => {
     const { action } = fichier.actions[index]?.commande ?? { action: '?' };

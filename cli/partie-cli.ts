@@ -38,11 +38,15 @@ export const AIDE = [
   '',
   'Commandes :',
   '  nouvelle [--graine N]        Commencer une nouvelle partie (remplace la partie en cours).',
-  '  voir                         Relire la situation et les actions possibles (gratuit).',
+  '  voir [--ids]                 Relire la situation et les actions possibles (gratuit).',
   '  jouer <numéro>               Choisir une action du menu par son numéro.',
-  '  commande <action> <cible>    Envoyer une commande brute (action et identifiant public).',
+  '  commande <action> <cible>    Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
   '  exporter <fichier> [--commentaire "texte"]   Exporter la partie pour la rejouer.',
   '  aide                         Afficher cette aide.',
+  '',
+  'Les numéros du menu changent après chaque action : relisez le menu affiché.',
+  'Seules les actions qui engagent le personnage comptent et sont enregistrées ;',
+  'regarder, relire et une action refusée ne coûtent rien.',
   '',
   `Option : --partie <fichier>  (par défaut ${PARTIE_PAR_DEFAUT})`,
 ];
@@ -57,7 +61,9 @@ export function analyserArguments(argv: readonly string[]): Arguments {
   const options: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     const argument = argv[i] ?? '';
-    if (argument.startsWith('--')) {
+    if (argument === '--ids') {
+      options.ids = 'oui';
+    } else if (argument.startsWith('--')) {
       options[argument.slice(2)] = argv[i + 1] ?? '';
       i++;
     } else {
@@ -67,11 +73,12 @@ export function analyserArguments(argv: readonly string[]): Arguments {
   return { positionnels, options };
 }
 
-export function afficherSituation(textes: TextesMonde, observation: Observation): string[] {
+export function afficherSituation(textes: TextesMonde, observation: Observation, avecIds = false): string[] {
   const lignes = ['', ...rendreObservation(textes, observation), '', 'Actions :'];
   observation.menu.forEach((option, index) => {
     const { libelle, raison } = libelleOption(textes, option);
-    lignes.push(`  ${index + 1}. ${libelle}${raison === null ? '' : ` — indisponible : ${raison}`}`);
+    const ids = avecIds ? ` [${option.commande.action} ${option.commande.cible}]` : '';
+    lignes.push(`  ${index + 1}. ${libelle}${raison === null ? '' : ` — indisponible : ${raison}`}${ids}`);
   });
   lignes.push('', `Actions engagées : ${observation.actions}`);
   return lignes;
@@ -102,7 +109,7 @@ function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
   const lignes = [...raconter(contexte.textes, resultat)];
   if (resultat.type === 'engagee') lignes.push(enregistrer(contexte, chemin, resultat.partie));
   lignes.push(...afficherSituation(contexte.textes, observer(contexte.monde, resultat.partie.etat)));
-  return { lignes, code: resultat.type === 'refus' ? 2 : 0 };
+  return { lignes, code: 0 };
 }
 
 export function executer(argv: readonly string[], contexte: Contexte): Sortie {
@@ -127,7 +134,8 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
     case 'voir': {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
-      return { lignes: [...raconterDerniers(textes, partie), ...afficherSituation(textes, observer(monde, partie.etat))], code: 0 };
+      const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
+      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...situation], code: 0 };
     }
     case 'jouer': {
       const partie = charger(contexte, chemin);

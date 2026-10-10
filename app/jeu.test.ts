@@ -60,7 +60,7 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const jeu = await pret(env);
     const apresDepart = ecritures;
     const refuse = await choisir(env, jeu, 'aller', false);
-    expect(refuse.recit).toEqual(['Le passage est fermé.']);
+    expect(refuse.recit).toEqual(['Ce passage est fermé : vous ne pouvez pas le franchir.']);
     expect(refuse.partie).toBe(jeu.partie);
     const regarde = await choisir(env, jeu, 'regarder');
     expect(regarde.partie).toBe(jeu.partie);

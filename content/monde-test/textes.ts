@@ -36,8 +36,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous déposez {le:objet} à vos pieds. Vos mains sont de nouveau libres.',
     ],
     passage_ouvert: [
-      'Vous ouvrez {le:passage}. Le mécanisme grince, puis cède.',
-      'Vous actionnez la commande. {Le:passage} glisse dans la cloison avec un souffle d’air tiède.',
+      'Vous ouvrez {le:passage}. Le panneau coulisse dans la cloison avec un chuintement.',
+      'Vous appuyez sur le bouton d’ouverture. {Le:passage} s’efface dans la cloison.',
     ],
     passage_ferme: [
       'Vous fermez {le:passage}. Le joint se plaque contre le cadre avec un bruit mat.',
@@ -45,22 +45,22 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ],
     deplacement: [
       'Vous franchissez le seuil et entrez dans {le:piece}. Vos pas résonnent sur le plancher métallique.',
-      'Vous passez dans {le:piece}, une main sur la cloison. Le métal est froid sous vos doigts.',
+      'Vous passez dans {le:piece}, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.',
     ],
     piece_decouverte: ['Vous n’aviez encore jamais mis les pieds ici.', 'Rien, ici, ne vous est familier.'],
   },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Vous apercevez {le:vers} de l’autre côté.'],
-    ferme: ['{Le:passage} est fermé{e:passage}. Une plaque indique : {Nom:vers}.'],
+    ferme: ['{Le:passage} est fermé{e:passage}. Une plaque indique « {Nom:vers} ».'],
   },
   refus: {
     commande_invalide: 'Commande illisible : rien n’a été joué.',
     action_inconnue: 'Cette action n’existe pas : rien n’a été joué.',
-    cible_absente: 'Ce que vous visez n’est pas à votre portée.',
+    cible_absente: 'Rien de tel n’est à votre portée ici.',
     pas_en_main: 'Vous n’avez pas cela en main.',
     deja_ouvert: 'C’est déjà ouvert.',
     deja_ferme: 'C’est déjà fermé.',
-    ferme: 'Le passage est fermé.',
+    ferme: 'Ce passage est fermé : vous ne pouvez pas le franchir.',
   },
   indisponibilites: {
     ferme: '{Le:cible} est fermé{e:cible}.',
