@@ -1,6 +1,6 @@
 # C-02 — Monde, lieux, liaisons et entités
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-015, D-043/D-044, D-047, D-051, D-061, D-067, D-072/D-073, D-078 à D-080, AR-01 et AR-02. Points MP-01 à MP-03 acceptés par D-080.
+> **Statut :** CONTRAT ACCEPTÉ v1.1 — D-082 ; assemble D-015, D-043/D-044, D-047, D-051, D-061, D-067, D-072/D-073, D-078 à D-080, AR-01 et AR-02. Points MP-01 à MP-03 acceptés par D-080. v1.1 : qualités et propriétés des morceaux du lancement (D-175).
 > **Date :** 2026-10-10.
 > **Implémentation et tests :** absents.
 
@@ -79,6 +79,9 @@ Les règles lisent des qualités déclarées, jamais un nom ou un modèle (D-078
 | Rebouche une brèche, par usage | Supprime la brèche (D-066/D-068) | Rustine |
 | Encombrant | Un seul porté à la fois (D-079) | Bloc |
 | Gabarit large | Refusé par les liaisons étroites (D-043) | Bloc, créature |
+| Pont fragile | Posé sur un vide, laisse passer le passager ; cède sous la créature et se perd (D-164) ; encombrant (D-169) | Planche |
+
+Propriétés de pièce ajoutées par les morceaux du lancement (D-175) : pièce bruyante à machines commutables (D-163), gravité commutable (D-165), chambre froide (D-166).
 
 Une qualité absente de cette table n'existe pas encore. En ajouter une, ou combiner deux qualités sans règle acceptée (vide et feu, huile et feu), demande une décision.
 

@@ -1,6 +1,6 @@
 # C-03 — Temps, dangers et réactions — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.2, PORTÉE AR-01 ET AR-02 — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.3, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175.
 > **Date :** 2026-10-10.
 > **Implémentation et vérification exécutable :** absentes. Pas d'attestation de partie humaine.
 
@@ -99,6 +99,17 @@ AR-01 n'ajoute à cela ni destruction de tout l'équipement, ni fumées/O₂, ni
 - **Capsule :** écoutille fermée, elle n'est plus reliée à la brèche et retrouve son air (D-065).
 - **Bornes :** le vide ne déplace aucun objet ; aucune règle de son propre au vide dans AR-02 (D-071). L'exposition du passager relève de C-04 §3.1.
 
+### 5.5 Morceaux du lancement
+
+Règles des nouveaux morceaux de la [conception des morceaux](../13-morceaux-lancement.md) (D-175) :
+
+- **Salle des machines (D-163, D-173).** Machines en marche, aucun son né dans la salle n'en sort, et le passager qui s'y trouve n'entend pas la créature bouger dans les pièces voisines ; la vue reste normale. L'interrupteur, uniquement dans la salle, arrête ou relance les machines en une action ; la relance produit un grand bruit entendu hors de la salle, comme le test de l'avertisseur.
+- **Passerelle (D-164).** Une créature qui s'engage sur la planche tombe : elle est neutralisée pour de bon et la planche est perdue.
+- **Sans gravité (D-165, D-168).** Gravité coupée, la créature met deux réactions de plus pour traverser la zone. L'interrupteur fonctionne toujours (une action).
+- **Chambre froide (D-166, D-170).** Si la créature y entre et que la porte se referme derrière elle, elle n'agit plus qu'une réaction sur deux pour toute la partie.
+
+**Mélanges (D-174).** Les ralentissements s'additionnent : le froid saute une réaction sur deux ; réactions perdues (huile) et traversée sans gravité se comptent sur les réactions qui restent (MX-01). Le vide éteint un foyer qu'il atteint, et le feu ne gagne pas une pièce sans air (MX-02). Vide et huile s'ignorent (MX-03). L'huile ne se verse pas gravité coupée (MX-04) et reste glissante dans la chambre froide (MX-05).
+
 ## 6. Attentes de test, non exécutées
 
 | ID | Mise en situation | Attente |
@@ -117,6 +128,10 @@ AR-01 n'ajoute à cela ni destruction de tout l'équipement, ni fumées/O₂, ni
 | T-12 | Refermer une porte après la brèche | Pièces situées derrière de nouveau avec air à cette mise à jour |
 | T-13 | Percer au pas qui suit l'entrée de la créature dans la pièce | Expulsée avant sa réaction, aucune attaque |
 | T-14 | Reboucher après neutralisation puis reprendre la sauvegarde | Air revenu, créature toujours expulsée ou inerte |
+| T-15 | Ouvrir une porte grippée dans la salle des machines en marche | Aucun son hors de la salle |
+| T-16 | Relancer les machines | Grand bruit perçu par la créature voisine |
+| T-17 | Créature enfermée une fois dans la chambre froide, puis glissée sur l'huile | Une réaction sur deux, et deux réactions perdues comptées sur celles qui restent |
+| T-18 | Le vide atteint une pièce en feu | Foyer éteint, aucune propagation dans la pièce sans air |
 
 Ces tests utiliseront des états initiaux explicitement qualifiés et les vraies commandes métier. Des fixtures de compteur ne démontrent pas à elles seules la jouabilité d'un parcours complet.
 

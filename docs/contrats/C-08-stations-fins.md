@@ -14,7 +14,7 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 
 - **GP-01 — Contenu d'un morceau :** des pièces, liaisons, objets et effets décrits avec C-02 ; ce qu'il demande pour être franchi ; ce qu'il fournit (accès, objet, alimentation) ; ses points d'attache vers les autres morceaux.
 - **GP-02 — Composition d'une station :** une pièce de départ, des morceaux d'obstacle, un embarquement avec capsule, une seule créature placée (D-029).
-- **GP-03 — Premiers morceaux :** découpés dans AR-01 et AR-02. Un morceau du vide ne cohabite pas avec feu, huile ou bloc tant que leurs interactions ne sont pas décidées (D-058).
+- **GP-03 — Premiers morceaux :** découpés dans AR-01 et AR-02. Le vide cohabite avec le feu et l'huile selon MX-02/MX-03 (D-174) ; il ne rencontre jamais le bloc, M-03 et M-06 étant tous deux des morceaux finals (D-172).
 - **GP-04 — Départ sans danger immédiat :** la pièce de départ laisse lire et explorer avant tout contact (AR-01 §5).
 
 **Volume du lancement :** dix morceaux, six tirés d'AR-01/AR-02 et quatre nouveaux (D-157/D-158) ; deux ou trois obstacles par station (D-119) ; une seule espèce de créature (D-120).
@@ -27,7 +27,7 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 - les stations se tirent au pur hasard, une station déjà jouée peut revenir (D-162) ;
 - deux morceaux ne se mélangent que si leur mélange a reçu ses règles ; sinon l'assemblage le refuse (D-167).
 
-Les nouveaux morceaux et leurs règles (D-163 à D-166, D-168 à D-170) seront décrits dans un document proposé par les agents puis validé (D-171), avant d'être retranscrits dans C-02/C-03/C-04.
+Les dix morceaux, leurs deux familles (final, chemin) et leurs fiches sont décrits dans la [conception des morceaux](../13-morceaux-lancement.md), acceptée par D-172 à D-175 ; leurs règles sont dans C-02 §5, C-03 §5.5 et C-04 §3.2.
 
 ## 3. Vérification avant de jouer
 

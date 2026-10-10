@@ -100,6 +100,7 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-065 | Architecture AP-01 à AP-10 respectée : moteur isolé, dés enregistrés, sauvegarde par action, signature, versions de test, commande unique | D-136 | Vérification complète au Bootstrap |
 | B-066 | Quatre nouveaux morceaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide, avec leurs règles | D-158, D-163 à D-166, D-168 à D-170 | Conception des morceaux, puis parcours témoins |
 | B-067 | Mélange de morceaux autorisé seulement une fois ses règles décidées ; détail des morceaux proposé par les agents et validé | D-167, D-171 | Document de conception des morceaux accepté |
+| B-068 | Dix morceaux en deux familles (final, chemin), mélanges MX-01 à MX-05, un seul interrupteur des machines | D-172 à D-175 | Parcours sûr par morceau, cas par mélange, partie sur téléphone par morceau |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 

@@ -1,6 +1,6 @@
 # C-04 — Risques, blessures et soin — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.2, PORTÉE AR-01 ET AR-02 — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.3, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175.
 > **Date :** 2026-10-10.
 > **Implémentation, calibrage humain et validation téléphone :** non réalisés.
 
@@ -36,6 +36,10 @@ Un état de défaite acquis est terminal. Le plafond n'efface pas les dangers pe
 Un passager sans combinaison dans une pièce sans air ([C-03 §5.4](C-03-temps-reactions.md)) à la mise à jour des dangers est vaincu, hors plafond, sans jet (D-059). La combinaison protège entièrement ; l'enfiler, la retirer ou la remettre coûte une action, et retirée elle reste avec le passager (D-060/D-072/D-073).
 
 Toute action connue pour exposer le passager — percer, ouvrir vers une zone sans air, retirer la combinaison sans air — est annoncée « mortel » avant engagement. L'aperçu nomme les pièces connues qui perdent ou retrouvent l'air, jamais l'effet sur une créature non perçue (D-071).
+
+### 3.2 Chambre froide et sans gravité — morceaux du lancement
+
+Le passager qui reste plus de deux actions de suite dans la chambre froide subit une aggravation ordinaire, soumise au plafond d'une par action (D-166). Traverser une zone sans gravité lui coûte deux actions, sans blessure (D-165). Ces coûts sont annoncés avant l'action, comme tout danger connu (D-020).
 
 ## 4. Franchissement exposé
 

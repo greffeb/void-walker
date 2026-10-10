@@ -1278,4 +1278,32 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : réponse Q-154 « Les agents proposent, vous validez ».
 - Décision : plan, objets, places de la créature, parcours à prouver et règles de mélange des dix morceaux sont proposés par les agents dans un document, relu puis validé par questions, comme AR-01 et AR-02.
 
+## Décisions validées — conception des morceaux
+
+### D-172 — Deux familles de morceaux
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse Q-155 « Oui, c'est bien ».
+- Décision : les morceaux « final » (M-03 Énergie, M-06 Baie) portent le problème à régler juste avant de partir ; les huit autres sont des morceaux « chemin ». Une station enchaîne départ, un ou deux morceaux de chemin, un morceau final et l'embarquement.
+
+### D-173 — Un seul interrupteur dans la salle des machines
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse Q-156 « Non, un seul interrupteur dans la salle ».
+- Décision : l'interrupteur des machines se trouve uniquement dans la salle ; pour attirer la créature en relançant les machines, il faut y être.
+
+### D-174 — Règles de mélange MX-01 à MX-05
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse Q-157, cinq règles cochées sur cinq.
+- Décision : les ralentissements s'additionnent (MX-01) ; le vide éteint un foyer qu'il atteint et le feu ne gagne pas une pièce sans air (MX-02) ; vide et huile n'ont aucun effet l'un sur l'autre (MX-03) ; impossible de verser l'huile tant que la gravité est coupée (MX-04) ; l'huile reste glissante dans la chambre froide, sans effet de plus (MX-05).
+- Conséquence : GP-03 est levé pour le feu et l'huile ; vide et bloc ne se rencontrent jamais, M-03 et M-06 étant tous deux des morceaux finals.
+
+### D-175 — Conception des dix morceaux v1.0 acceptée
+
+- Date / statut : 2026-10-11 / **Conception validée, exécution non vérifiée**.
+- Origine : réponse Q-158 « Oui, on valide », avec Q-155 à Q-157.
+- Décision : [la conception des morceaux](13-morceaux-lancement.md) devient le plan de travail : fiches, places de la créature et parcours à prouver (un parcours sûr par morceau, un cas par mélange accepté, une partie sur téléphone par morceau). Les règles des nouveaux morceaux et des mélanges sont retranscrites dans C-02, C-03 et C-04, sans changement de sens.
+- Réserves : textes, durée et intérêt non mesurés ; aucune partie humaine revendiquée.
+
 

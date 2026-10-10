@@ -1,7 +1,7 @@
 # Morceaux du lancement — conception
 
-> **Statut :** PROPOSITION v0.1 — cadre accepté par D-156 à D-171 ; fiches, places de la créature, règles de mélange **MX-xx** et parcours proposés par les agents (D-171), non acceptés.
-> **Date :** 2026-10-10.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175.
+> **Date :** 2026-10-11.
 > **Implémentation et parties sur téléphone :** absentes.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
@@ -14,7 +14,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 - Un mélange de morceaux n'est permis qu'une fois ses règles décidées (D-167).
 - Toujours un chemin sûr au départ, vérifié avant de jouer (D-084).
 
-## 2. Les deux familles de morceaux (proposé)
+## 2. Les deux familles de morceaux (D-172)
 
 | Famille | Rôle | Morceaux |
 | --- | --- | --- |
@@ -70,7 +70,7 @@ Chaque fiche donne : les pièces apportées, les objets, les places possibles de
 
 - **Pièces :** une salle des machines entre deux pièces, avec un interrupteur.
 - **Créature :** peut attendre dans la salle des machines ; on ne l'entend pas venir.
-- **Sûr :** faire dans la salle les gestes bruyants (ouvrir une porte grippée) : rien ne sort. Ou arrêter les machines, s'éloigner, puis les relancer à distance pour attirer la créature ; cela suppose un second interrupteur dans la pièce voisine (proposé).
+- **Sûr :** faire dans la salle les gestes bruyants (ouvrir une porte grippée) : rien ne sort. Ou relancer les machines depuis l'interrupteur de la salle pour attirer la créature, puis repartir par l'autre porte (un seul interrupteur, D-173).
 - **Risqué :** entrer sans savoir si elle est là.
 
 ### M-08 — Passerelle effondrée (nouveau, D-164/D-169)
@@ -98,7 +98,7 @@ Chaque fiche donne : les pièces apportées, les objets, les places possibles de
 
 Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur), ralentissement (M-04 huile, M-09, M-10), neutralisation (M-06, M-08), air (M-06).
 
-| Mélange | Règle proposée |
+| Mélange | Règle acceptée (D-174) |
 | --- | --- |
 | Bruits entre eux | Aucune règle nouvelle : un son naît dans une pièce et suit les règles existantes (C-03 §4.2) ; un son né dans la salle des machines en marche n'en sort pas (D-163) |
 | **MX-01** Ralentissements entre eux | Ils s'additionnent : le froid fait sauter une réaction sur deux ; les réactions perdues de l'huile et le temps de traversée sans gravité se comptent sur les réactions qui restent |
@@ -109,14 +109,14 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 | **MX-05** Huile dans la chambre froide | L'huile y reste glissante, sans effet de plus |
 | Vide et bloc | Jamais dans la même station : M-03 et M-06 sont tous deux « finals » (D-159) |
 
-Tant qu'une ligne MX n'est pas acceptée, l'assemblage refuse ce mélange (D-167).
+Un mélange qui n'apparaît pas dans ce tableau reste refusé par l'assemblage tant que ses règles ne sont pas décidées (D-167).
 
-## 5. Parcours à prouver (proposés)
+## 5. Parcours à prouver
 
 - Pour chaque morceau : un parcours sûr et, s'il existe, un parcours risqué, joués par le moteur dans une station minimale.
 - Pour chaque règle MX acceptée : un cas où les deux morceaux se rencontrent.
 - Pour chaque morceau : au moins une validation sur téléphone, dans une station assemblée (D-098).
 
-## 6. À décider ensuite
+## 6. Suite
 
-Acceptation des familles, des fiches, du second interrupteur de M-07, des règles MX-01 à MX-05 et des parcours. Les textes viendront des agents, en zone verte (D-116).
+Règles retranscrites dans C-02 §5, C-03 §5.5 et C-04 §3.2. Les textes viendront des agents, en zone verte (D-116). Prochaines issues : découpage des morceaux en données, assembleur et vérifieur de stations.

@@ -333,6 +333,15 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-153 Chambre froide | Bruit dedans et fermeture à distance, ou poursuite | D-170 |
 | Q-154 Détail des morceaux | Les agents proposent, vous validez | D-171 |
 
+### Bloc AC — acceptation de la conception des morceaux : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-155 Familles | Final et chemin | D-172 |
+| Q-156 Interrupteur des machines | Un seul, dans la salle | D-173 |
+| Q-157 Mélanges | MX-01 à MX-05 acceptées | D-174 |
+| Q-158 Validation | Conception des dix morceaux v1.0 | D-175 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -361,10 +370,10 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Faire relire puis valider la [conception des morceaux](13-morceaux-lancement.md) : familles, fiches, règles de mélange MX-01 à MX-05, parcours.
+1. Issues de développement des morceaux : données des dix morceaux, assembleur et vérifieur de stations.
 2. Issues du service de rapports et de la signature des validations.
 
-Q-01 à Q-154 sont répondus ; les prochains numéros d'entretien commencent à Q-155. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-158 sont répondus ; les prochains numéros d'entretien commencent à Q-159. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
