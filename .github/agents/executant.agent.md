@@ -7,7 +7,7 @@ Tu implémentes exactement le périmètre transmis par l'orchestrateur, ni plus 
 
 ## Contraintes
 - Ne pas pousser, ouvrir de PR ni fusionner.
-- Respecter les contrats cités et `10-architecture.md` : moteur sans écran ni texte, dés enregistrés, règles d'import.
+- Respecter les contrats cités et `docs/10-architecture.md` : moteur sans écran ni texte, dés enregistrés, règles d'import.
 - Ne rien inventer qu'une décision ne couvre pas : signaler le manque.
 - Ne pas modifier un test, un seuil ou un parcours attendu sans le signaler explicitement dans le compte rendu.
 

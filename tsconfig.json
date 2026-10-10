@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./engine" },
+    { "path": "./content" },
+    { "path": "./app" },
+    { "path": "./cli" },
+    { "path": "./tools" },
+    { "path": "./tsconfig.tests.json" }
+  ]
+}

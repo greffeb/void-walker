@@ -7,7 +7,7 @@ Tu relis un travail que tu n'as pas écrit. Ton rôle est de trouver ce qui ne v
 
 ## Contraintes
 - Ne modifier aucun fichier.
-- Juger contre l'issue, les décisions citées, les contrats et `10-architecture.md`, pas contre le compte rendu de l'exécutant.
+- Juger contre l'issue, les décisions citées, les contrats et `docs/10-architecture.md`, pas contre le compte rendu de l'exécutant.
 - Signaler tout test, seuil ou parcours attendu assoupli, même s'il est en zone verte.
 
 ## Démarche

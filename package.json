@@ -1,0 +1,30 @@
+{
+  "name": "void-walker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc -b",
+    "check:imports": "tsx tools/check-imports.ts",
+    "check:links": "tsx tools/check-links.ts",
+    "test": "vitest run",
+    "verify": "tsx tools/verify.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^22.20.5",
+    "eslint": "^10.12.0",
+    "mdast-util-from-markdown": "^2.1.0",
+    "mdast-util-to-string": "^4.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.3.4",
+    "vitest": "^4.1.11"
+  }
+}
