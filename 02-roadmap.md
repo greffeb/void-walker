@@ -26,7 +26,7 @@ Le cadrage ci-dessous précède la Phase 0 demandée par le porteur du projet. I
 - [x] Spécifier les contrats essentiels et leurs contre-exemples : C-01 à C-10 acceptés (D-117), sans implémentation.
 - [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité — volume fixé (D-118 à D-121), règles d'assemblage et liste des morceaux à faire.
 - [x] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines (D-096 à D-108) ; restent la fusion mixte, le passage du moteur en vert et le budget des agents.
-- [ ] Préparer les instructions de reprise, l'issue Bootstrap et les premières issues verticales.
+- [x] Préparer les instructions de reprise, l'issue Bootstrap et les profils d'agents : [#89](https://github.com/greffeb/void-walker/issues/89), `.github/agents/` (D-137/D-138). Premières issues verticales à venir.
 
 **Sortie :** starter pack cohérent, accepté par le porteur du projet et explicitement marqué prêt pour Bootstrap.
 

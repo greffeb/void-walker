@@ -91,11 +91,11 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 ## Reprise immédiate
 
-**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136). Pas de code, de solveur ni de partie humaine exécutée.
+**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136) ; quatre agents Copilot installés dans `.github/agents/` (D-137) ; [issue de Bootstrap](11-bootstrap.md) publiée : [#89](https://github.com/greffeb/void-walker/issues/89). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Prochaine tâche recommandée :** rédiger les profils Copilot et l'issue de Bootstrap. Les règles d'assemblage et la liste des huit morceaux peuvent être conçues en parallèle.
+**Prochaine tâche recommandée :** lancer l'agent `orchestrateur` sur l'issue #89 quand le porteur du projet le décide. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-131 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-133 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 
