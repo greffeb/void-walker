@@ -72,6 +72,8 @@ jobs:
       pull-requests: write
     env:
       PR_NUMERO: ${{ github.event.pull_request.number }}
+      COMMIT: ${{ github.event.pull_request.head.sha }}
+      VERSION_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -84,7 +86,11 @@ jobs:
       - name: Publier dans /pr-${{ github.event.pull_request.number }}/
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publier-pages.sh "pr-${PR_NUMERO}" artefact/dist artefact/captures
+        run: |
+          printf '%s' "${COMMIT}" > artefact/dist/version.txt
+          bash .github/scripts/publier-pages.sh "pr-${PR_NUMERO}" artefact/dist artefact/captures
+      - name: Attendre que la version de test soit en ligne
+        run: bash .github/scripts/attendre-pages.sh "${VERSION_URL}version.txt" "${COMMIT}"
       - name: Poster le lien et les captures dans la PR
         env:
           GH_TOKEN: ${{ github.token }}

@@ -49,4 +49,8 @@ jobs:
       - name: Publier à la racine (les versions de test /pr-*/ sont conservées)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/publier-pages.sh "" dist
+        run: |
+          printf '%s' "${GITHUB_SHA}" > dist/version.txt
+          bash .github/scripts/publier-pages.sh "" dist
+      - name: Vérifier que la version principale est en ligne
+        run: bash .github/scripts/attendre-pages.sh "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/version.txt" "${GITHUB_SHA}"
