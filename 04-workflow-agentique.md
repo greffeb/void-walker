@@ -1,7 +1,7 @@
 # Void Walker V2 — workflow agentique en préparation
 
 > **Statut :** BROUILLON DE CONTRAT DE TRAVAIL — principes demandés séparés des renforcements proposés.
-> **Mise à jour :** 2026-10-09.
+> **Mise à jour :** 2026-10-10.
 
 ## 1. Ce qui est repris de Lacets
 
@@ -37,7 +37,8 @@ Les noms suivants sont demandés pour le futur socle, mais aucun agent n'est ins
 | `reviewer` | Contrôler diff, contrats et preuves ; chercher des contre-exemples | Pas de correction de production dans la même fonction |
 | `spec-writer` | Transformer les choix acceptés en exigences vérifiables | Ne remplace pas une question ouverte par sa préférence |
 | `planner` | Découper une décision en issues verticales limitées | Ne crée pas de besoin supplémentaire |
-| `script-writer` | À préciser : auteur de scénarios ou auteur d'outils ? | Ambiguïté à lever avant configuration |
+| Auteur de contenu | Écrire morceaux de stations, textes et messages de l'assistance (D-108) | Ne crée ni règle ni qualité non acceptée |
+| Auteur d'outils | Écrire vérificateur, bots, export et scripts de CI (D-108) | Ne modifie pas le moteur ni le contenu sous couvert d'outillage |
 | `game-designer` | Proposer situations, règles et équilibrage | Les nouvelles règles sont à arbitrer |
 | `ui-ux-expert` | Concevoir et vérifier l'expérience mobile | Ne change pas les effets métier pour simplifier l'écran |
 | `asset-generator` | Produire des assets conformes à la direction choisie | Licence, provenance, budget et outils à préciser |
@@ -66,9 +67,9 @@ La demande utilisateur est :
 - orange : textes, interface, équilibrage et format des scénarios, merge humain sur preuves ;
 - rouge : déploiement, format de sauvegarde et IA, merge et test manuels.
 
-**Proposition D-012 non encore approuvée :** retirer du vert les modifications qui changent les verdicts des tests/solveurs, les attentes de référence, les contrats, les permissions ou les seuils. Classer selon l'impact réel ; la zone la plus restrictive l'emporte dans une PR mixte.
+**Arbitrage du 2026-10-10 (D-104 à D-107) :** la proposition D-012 n'est pas retenue ; tests, outils, solveur et documentation restent verts, y compris quand ils changent un test, un seuil ou un contrat. L'orchestrateur fusionne le vert après relecture par un autre agent. Le moteur de jeu est orange tant qu'il est jeune. Pas de protection technique de la branche principale. Détail dans [C-10 §6](contrats/C-10-preuves-gouvernance.md).
 
-Restent à décider : protection effective de la branche principale, acteur autorisé à auto-merger, garanties contre l'auto-validation, zone des premières modifications du moteur, budget/reprises des agents.
+Restent à décider : zone d'une demande de fusion mixte, passage du moteur en vert, budget et reprises des agents.
 
 ## 6. Definition of Done, principes acquis
 

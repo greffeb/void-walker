@@ -22,9 +22,9 @@ Les contrats seront détaillés après les arbitrages produit qui leur donnent u
 | C-05 Conséquences | Comment un succès devient-il un changement réel ? | Socle v0.1 accepté, D-027 ; ordre et vide fixés par C-03 | Sauvegarde détaillée et autres réserves adjacentes |
 | C-06 Observation et connaissances | Que sait chaque joueur/adaptateur ? | [v1.0 accepté](contrats/C-06-observation-connaissances.md), D-075 à D-077, D-080 à D-082 | Forme visuelle de la carte, textes des messages |
 | C-07 Narration | Que peut affirmer le texte ? | Jeu sans LLM, D-004 | Composition, grammaire, variations, faits permis |
-| C-08 Scénarios et fins | Qu'est-ce qui rend une aventure valide ? | D-017 une famille, D-018 évacuation, D-013 défaite définitive | Forme générée, solutions, échecs irréversibles, solveur |
-| C-09 Sauvegarde et replay | Qu'est-ce qui doit rester identique ? | D-013 pas de retour, D-022 autosave par action et reprise exacte | Flux aléatoires, erreurs d'écriture, versions et migrations |
-| C-10 Preuves et gouvernance | Qui peut déclarer une version prête ? | D-010 validation téléphone | Statuts, invalidation, intégrité et zones de merge |
+| C-08 Scénarios et fins | Qu'est-ce qui rend une aventure valide ? | [v1.0 accepté](contrats/C-08-stations-fins.md), D-083 à D-088, D-101/D-102 | Volume du lancement et règles d'assemblage |
+| C-09 Sauvegarde et replay | Qu'est-ce qui doit rester identique ? | [v1.0 accepté](contrats/C-09-sauvegarde-replay.md), D-022, D-087 à D-092, D-101 à D-103 | Format technique (architecture) |
+| C-10 Preuves et gouvernance | Qui peut déclarer une version prête ? | [v1.0 accepté](contrats/C-10-preuves-gouvernance.md), D-010, D-092 à D-108 | Fusion mixte, passage du moteur en vert, budget des agents |
 
 ## 3. Invariants techniques proposés
 
@@ -207,6 +207,57 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-75 Ce que sait l'assistance | Seulement ses messages prévus | D-081 |
 | Q-74 Validation | C-02 et C-06 v1.0 acceptés | D-082 |
 
+### Bloc R — stations assemblées et fins : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-76 Variation | Assembler des morceaux écrits à la main | D-083 |
+| Q-77 Garantie | Toujours un chemin sûr si l'on prépare bien | D-084 |
+| Q-78 Plus aucune sortie | Le jeu le signale mais laisse continuer | D-085 |
+| Q-79 Fin de partie | Le récit seulement | D-086 |
+| Q-80 Rejouer | Même station relançable | D-087 |
+
+### Bloc S — sauvegarde, export et rapports : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-81 Dés en rejouant | Nouveaux tirages | D-088 |
+| Q-82 Parties en cours | Une seule | D-089 |
+| Q-83 Mise à jour | Continuer si possible, sinon prévenir | D-090 |
+| Q-84 Enregistrement impossible | Prévenir et laisser continuer | D-091 |
+| Q-85 Export | Fichier de partie à envoyer | D-092 |
+| Q-86 Validation téléphone | Issues GitHub automatiques : partie + commentaire ; bouton « bug » reproductible | D-093 |
+
+### Bloc T — envoi des rapports et authentification : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-87 / Q-90 Qui peut envoyer | Tout le monde, sans compte, comme en V1 | D-095 |
+| Q-88 Création de l'issue | Petit service intermédiaire | D-094 |
+| Q-89 Ce qui valide | Case « je valide » | D-096 |
+| Q-91 Authentification | Code personnel vérifié par le service | D-097 |
+
+### Bloc U — sens d'une validation sur téléphone : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-92 Ce qu'on valide | Chaque morceau au moins une fois, plus AR-01/AR-02 | D-098 |
+| Q-93 Ce qu'il faut avoir fait | Aller au bout, puis juger | D-099 |
+| Q-94 Durée | Perdue si l'aventure ou ses parcours automatiques changent | D-100 |
+
+### Bloc V — acceptation de C-08/C-09/C-10 et gouvernance : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-95 Petites règles | Neuf sur dix ; export avant abandon non retenu | D-101 |
+| Q-96 Validation | C-08, C-09, C-10 v1.0 acceptés | D-102 |
+| Q-97 Partie incompatible | Rien de plus que le message | D-103 |
+| Q-98 Tests et doc | Restent en zone verte ; D-012 non retenue | D-104 |
+| Q-99 Fusion verte | Orchestrateur, après relecture indépendante | D-105 |
+| Q-100 Branche principale | Non protégée | D-106 |
+| Q-101 Moteur | Zone orange au début | D-107 |
+| Q-102 `script-writer` | Deux rôles : contenu et outils | D-108 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -218,6 +269,8 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 - [C-06 — Observation, carte et connaissances](contrats/C-06-observation-connaissances.md) : sources de connaissance, carte, aperçus, secrets, mémoire.
 
 **C-02 et C-06 v1.0** sont acceptés par Q-74 / D-082 ; ils assemblent des décisions validées et les petites règles de D-080/D-081.
+
+**C-08, C-09 et C-10 v1.0** sont acceptés par Q-96 / D-102, avec les règles de D-101 et la gouvernance de D-103 à D-108. Tous les contrats sont acceptés sauf C-07 (narration).
 
 **C-01 et C-05 v0.1 sont acceptés par Q-20 / D-027**. Leurs réserves explicites restent ouvertes ; cette validation ne vaut ni implémentation terminée ni parcours accepté sur téléphone. Les autres invariants proposés dans le registre n'acquièrent pas automatiquement le même statut s'ils ne font pas partie de ces contrats.
 
@@ -233,10 +286,10 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 
 ## 7. Prochaine séance de cadrage
 
-1. Borner C-08/C-09/C-10 : génération/conditions de fin, sauvegarde/replay, critères de preuve et gouvernance.
+1. Rédiger C-07 (narration) à partir des choix déjà faits.
 2. Fixer le volume et les variations du lancement, l'architecture et les issues exécutables ; les profils d'agents et leurs accès ne sont pas encore installés.
 
-Q-01 à Q-75 sont répondus ; les prochains numéros d'entretien commencent à Q-76. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-102 sont répondus ; les prochains numéros d'entretien commencent à Q-103. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
@@ -247,7 +300,7 @@ Q-01 à Q-75 sont répondus ; les prochains numéros d'entretien commencent à Q
 - Ton, écriture, langues, carte, assets/audio et confort de lecture.
 - Appareils de validation, offline, sauvegardes, mises à jour et publication.
 - Budget, cadence humaine, services déjà disponibles et contraintes d'exploitation.
-- Zones de merge et isolation des agents ; sens exact du rôle `script-writer`.
+- Fusion d'une demande touchant plusieurs zones, passage du moteur en vert, budget des agents, isolation des agents.
 
 On pose les questions en petits blocs. Pas de formulaire de cinquante choix techniques avant d'avoir une boucle de jeu claire.
 

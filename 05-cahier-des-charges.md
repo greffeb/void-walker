@@ -76,6 +76,21 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-046 | Petites règles de monde et de carte de C-02/C-06 (dépôt, objet encombrant, grille, nom des portes, voyants, dernière position vue) | D-080 | Cas d'acceptation de C-02/C-06 |
 | B-047 | Assistance limitée à ses messages prévus, relisibles, sans réponse d'état | D-081 | Cas K-06 de C-06 |
 
+### Exigences de stations, sauvegarde et rapports
+
+| ID | Exigence | Décision | Preuve future |
+| --- | --- | --- | --- |
+| B-048 | Stations assemblées à partir de morceaux écrits à la main, vérifiées avant de jouer : toujours un chemin sûr | D-083/D-084 | Cas G-01/G-02 de C-08 |
+| B-049 | Plus aucune sortie : signal exact, partie continuée, abandon possible | D-085 | Cas G-03/G-04 de C-08 |
+| B-050 | Fin racontée sans score ; même station rejouable avec de nouveaux dés | D-086 à D-088 | Cas G-05 de C-08 |
+| B-051 | Une seule partie en cours ; mise à jour compatible ou annoncée ; échec d'enregistrement signalé sans bloquer | D-089 à D-091 | Cas S-01 à S-05 de C-09 |
+| B-052 | Export d'une partie rejouable à l'identique | D-092 | Cas S-03/S-06 de C-09 |
+| B-053 | Boutons « bug » et « envoyer ma partie » pour tous, sans compte, via un service qui crée les issues GitHub, avec anti-abus | D-093 à D-095 | Cas PR-01/PR-02/PR-06 de C-10 |
+| B-054 | Validation téléphone : case « je valide » et code personnel vérifié par le service ; aucun secret dans le jeu | D-096/D-097 | Cas PR-03 à PR-05 de C-10 |
+| B-055 | Validation = partie allée au bout puis jugement ; chaque morceau au moins une fois ; perdue si l'aventure ou ses parcours automatiques changent | D-098 à D-100 | Cas PR-07/PR-08 de C-10 |
+| B-056 | Partie incompatible après mise à jour : message et nouvelle partie | D-103 | Cas S-04 de C-09 |
+| B-057 | Zones de fusion : tests/docs verts fusionnés après relecture indépendante ; moteur orange au début ; branche principale non protégée | D-104 à D-107 | Configuration du dépôt et des agents au Bootstrap |
+
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 
 ## 3. Boucle de jeu proposée à détailler

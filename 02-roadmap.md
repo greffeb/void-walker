@@ -25,7 +25,7 @@ Le cadrage ci-dessous précède la Phase 0 demandée par le porteur du projet. I
 - [x] Spécifier la deuxième référence pour la dépressurisation préparée (D-038) : [AR-02 v1.0](09-aventure-reference-vide.md) acceptée en conception (D-074), règles retranscrites dans C-03/C-04, sans preuve d'exécution revendiquée.
 - [ ] Spécifier les contrats essentiels et leurs contre-exemples.
 - [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité.
-- [ ] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines.
+- [x] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines (D-096 à D-108) ; restent la fusion mixte, le passage du moteur en vert et le budget des agents.
 - [ ] Préparer les instructions de reprise, l'issue Bootstrap et les premières issues verticales.
 
 **Sortie :** starter pack cohérent, accepté par le porteur du projet et explicitement marqué prêt pour Bootstrap.

@@ -31,7 +31,7 @@ Premiers socles contractuels acceptés (D-027) : [actions et observation](contra
 
 Contrats acceptés dans la portée d'AR-01 et d'AR-02 (D-055 à D-057, D-074) : [temps et réactions](contrats/C-03-temps-reactions.md), [risques et blessures](contrats/C-04-risques-blessures.md). Le vide y a sa propre section ; il n'est pas déduit des règles du feu.
 
-Contrats acceptés pour tout le lancement (D-082) : [monde et entités](contrats/C-02-monde-entites.md), [observation, carte et connaissances](contrats/C-06-observation-connaissances.md).
+Contrats acceptés pour tout le lancement (D-082, D-102) : [monde et entités](contrats/C-02-monde-entites.md), [observation, carte et connaissances](contrats/C-06-observation-connaissances.md), [stations et fins](contrats/C-08-stations-fins.md), [sauvegarde et replay](contrats/C-09-sauvegarde-replay.md), [preuves, rapports et gouvernance](contrats/C-10-preuves-gouvernance.md). Seul C-07 (narration) reste à rédiger.
 
 La validation humaine sera conservée dans le [journal des parties humaines](journal-parties-humaines.md). Il est actuellement vide : aucune partie V2 n'a eu lieu.
 
@@ -72,6 +72,12 @@ La validation humaine sera conservée dans le [journal des parties humaines](jou
 - Carte construite au fil de l'exploration ; hors de vue, elle garde le dernier état vu.
 - On entend vaguement la créature bouger dans la pièce voisine par une porte ouverte.
 - L'assistance parle seulement aux moments prévus ; elle ne répond pas aux demandes d'état.
+- Stations assemblées à partir de morceaux écrits à la main, chacune vérifiée : toujours un chemin sûr au départ.
+- Si plus aucune sortie n'est possible, le jeu le dit et laisse continuer ; fin racontée, sans score ; même station rejouable avec de nouveaux dés.
+- Une seule partie en cours ; export d'une partie ; boutons « bug » et « envoyer ma partie » pour tous, via un petit service qui crée les issues GitHub.
+- Une validation téléphone exige la case « je valide » et le code personnel du porteur du projet, vérifié par le service.
+- Valider : aller au bout d'une partie puis juger ; chaque morceau du lancement au moins une fois ; validation perdue si l'aventure ou ses parcours automatiques changent.
+- Dépôt : tests et docs en zone verte, fusionnés par l'orchestrateur après relecture par un autre agent ; moteur en zone orange au début ; branche principale non protégée ; deux rôles d'auteur, contenu et outils.
 - Les règles lisent les qualités des objets, pas leur nom ; port sans limite sauf un seul objet encombrant.
 - Pas de LLM requis dans le jeu ; le rôle éventuel d'un LLM est celui d'un joueur de test externe.
 - Développement agentique dans un nouveau dépôt, méthode issue → vérification → revue → preuves.
@@ -81,11 +87,11 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 ## Reprise immédiate
 
-**Étape terminée :** AR-01 et AR-02 acceptées en conception (D-057, D-074) ; C-02 et C-06 v1.0 acceptés (D-075 à D-082). Contrats acceptés : C-01 à C-06. Pas de code, de solveur ni de partie humaine exécutée.
+**Étape terminée :** AR-01 et AR-02 acceptées en conception ; C-01 à C-06 et C-08 à C-10 acceptés ; gouvernance du dépôt arbitrée (D-101 à D-108). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Prochaine tâche recommandée :** borner C-08 (scénarios générés et fins), C-09 (sauvegarde et replay) et C-10 (preuves et gouvernance), puis C-07 (narration), l'architecture, le contenu de lancement et les issues de Bootstrap.
+**Prochaine tâche recommandée :** rédiger C-07 (narration : ce que le texte peut affirmer, ton, langues), puis fixer le volume du lancement, l'architecture, les profils d'agents et les issues de Bootstrap.
 
-**À ne pas refaire :** l'entretien Q-01 à Q-75 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
+**À ne pas refaire :** l'entretien Q-01 à Q-102 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
 **Façon de poser les questions :** en langage courant, à la demande du porteur du projet. Décrire la situation concrètement ; pas de numéros de décision ni de jargon (« engagement », « précondition », « canonique ») dans les questions. Les documents gardent leur précision.
 

@@ -98,7 +98,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 
 ### D-012 — Zones par risque de changement, pas seulement par dossier
 
-- Date / statut : 2026-10-09 / **Proposé**.
+- Date / statut : 2026-10-09 / **Proposé, non retenu par D-104** (2026-10-10).
 - Décision proposée : une modification d'oracle, de seuil, de contrat, de permission ou d'attestation humaine ne devient pas verte parce qu'elle se trouve dans les tests, outils ou docs.
 - Pourquoi : empêcher qu'un agent fasse passer son changement en affaiblissant la définition de réussite.
 - Origine utilisateur à préserver : verte pour tests/outils/solveur/docs ; orange pour textes/UI/équilibrage/format de scénarios ; rouge pour déploiement/sauvegarde/IA. Les exceptions proposées doivent être validées explicitement.
@@ -653,5 +653,194 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : réponse Q-74 « Oui, on valide », avec Q-73/Q-75.
 - Décision : [C-02](contrats/C-02-monde-entites.md) et [C-06](contrats/C-06-observation-connaissances.md) deviennent des contrats acceptés, avec MP-01 à MP-03, OP-01, OP-03 à OP-05 et la règle d'assistance de D-081.
 - Limite : format des données, forme visuelle de la carte et textes relèvent de l'architecture, de la maquette et de C-07. Aucun test ni implémentation n'est revendiqué.
+
+## Décisions validées — scénarios générés et fins
+
+### D-083 — Variation par assemblage de morceaux écrits à la main
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-76 « Assembler des morceaux écrits à la main ».
+- Décision : chaque partie du lancement combine et place différemment des morceaux conçus et vérifiés à l'avance — pièces, obstacles, solutions. La génération libre de plans et d'objets est écartée pour le lancement.
+- Limite : nombre de morceaux, règles d'assemblage et variations observables restent à fixer. Les morceaux n'utilisent que les lieux, liaisons, qualités et règles acceptés (C-02 à C-06).
+
+### D-084 — Toujours un chemin sûr au départ
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-77 « Toujours un chemin sûr si l'on prépare bien ».
+- Décision : toute station assemblée est vérifiée avant d'être jouée ; elle offre au moins un chemin d'évacuation sans dé ni blessure si l'on prépare bien. Étend D-050 à tout le lancement.
+- Limite : aucune garantie après les choix du joueur ; découvrabilité à mesurer sur téléphone.
+
+### D-085 — Plus aucune sortie possible : le jeu le signale, la partie continue
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-78 « Le jeu le signale mais laisse continuer ».
+- Décision : après chaque action, le jeu vérifie s'il reste une évacuation possible ; sinon, il le dit. Le joueur peut continuer à errer et abandonner quand il veut.
+- Conséquence assumée : le signal est calculé sur l'état réel ; son absence indique qu'une sortie existe encore, éventuellement cachée. Il ne nomme jamais cette sortie.
+- Limite : abandonner reste possible à tout moment. Méthode de vérification et texte du signal relèvent de l'architecture et de C-07 ; le signal ne doit jamais être faux.
+
+### D-086 — Fin de partie : le récit seulement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-79 « Rien de plus que le récit ».
+- Décision : pas de score ni de bilan chiffré ; le texte de fin raconte ce qui s'est réellement passé (AR-01 §14.1).
+- Limite : le récit ne contient aucun fait non appliqué (C-05).
+
+### D-087 — Rejouer la même station depuis le début
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-80 « Oui, on peut relancer la même station ».
+- Décision : après une fin, on peut relancer une nouvelle partie sur la même station, avec le même état de départ.
+- Limite : ce n'est pas un retour en arrière (D-013) ; la partie terminée reste terminée. Traitement des dés à préciser.
+
+## Décisions validées — sauvegarde, export et rapports
+
+### D-088 — Nouveaux tirages en rejouant une station
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-81 « Nouveaux tirages ».
+- Décision : relancer la même station (D-087) produit de nouveaux résultats de dés. Connaître les lieux aide ; connaître les dés à l'avance, non.
+- Limite : le replay d'une partie existante, lui, rejoue exactement ses tirages enregistrés (C-05 E-08).
+
+### D-089 — Une seule partie en cours
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-82 « Une seule à la fois ».
+- Décision : une seule sauvegarde automatique, reprise au dernier geste (D-022). Pas d'emplacements multiples.
+
+### D-090 — Mise à jour : continuer si possible, sinon prévenir
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-83 « Continuer si possible, sinon prévenir ».
+- Décision : après une mise à jour, la partie en cours reprend si la nouvelle version le permet ; sinon le jeu le dit et propose une nouvelle partie.
+- Limite : le critère de compatibilité relève de l'architecture ; une reprise ne doit jamais produire un état incohérent ou un nouveau tirage pour une action passée.
+
+### D-091 — Enregistrement impossible : prévenir et laisser continuer
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-84 « Prévenir et laisser continuer ».
+- Décision : si l'enregistrement échoue, le jeu le signale et laisse jouer ; une fermeture ferait alors perdre les dernières actions.
+- Limite : ne jamais annoncer « sauvegardé » sans écriture réussie ; l'avertissement reste visible tant que la partie n'est pas enregistrée ; une action déjà résolue n'est pas rejouée avec un nouveau tirage lors d'une nouvelle tentative d'écriture (C-05 §7).
+
+### D-092 — Export d'une partie
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-85 « Oui, un fichier de partie à envoyer ».
+- Décision : une partie peut être exportée sous forme d'un fichier qui la rejoue entièrement ; il sert aux rapports de bug et aux validations sur téléphone.
+
+### D-093 — Envoi de partie et bouton « bug » vers des issues GitHub
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse libre à Q-86 : « création automatique d'une issue github avec partie exportée + emplacement pour commentaire joueur. il faut aussi un bouton "bug" qui crée une issue github avec un moyen fiable pour l'agent de reproduire la situation + commentaire ».
+- Décision : envoyer sa partie crée une issue GitHub contenant la partie exportée et le commentaire du joueur. Un bouton « bug » crée une issue contenant de quoi reproduire la situation de façon fiable, plus un commentaire.
+- Limite : contenu exact et modèle d'issue à préciser dans C-10.
+
+### D-094 — Envoi par un petit service intermédiaire, sur le modèle de la V1
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-88 « Le jeu l'envoie seul via un petit service en ligne », et référence à la V1 (commit 8e7e453) en réponse à Q-87.
+- Décision : le jeu envoie le rapport à un service intermédiaire qui crée l'issue avec sa propre clé GitHub, comme le script Google de la V1 (journal dans une feuille, issue avec reproduction). Aucun compte GitHub n'est demandé au joueur.
+- Limite : la clé GitHub reste uniquement côté service, jamais dans le jeu. Hébergement et technologie à arbitrer avec l'architecture ; reprise du script V1 possible, pas obligatoire.
+
+### D-095 — Boutons de rapport pour tous les joueurs
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponses Q-87 (V1 sans compte) et Q-90 « Tout le monde, même la version publique ».
+- Décision : les boutons « bug » et « envoyer ma partie » existent aussi dans la version publique.
+- Limite : limites anti-abus requises (nombre de rapports, délai, doublons), comme en V1 ; elles doivent aussi être appliquées côté service, pas seulement dans le jeu.
+
+### D-096 — Case « je valide » dans l'envoi
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-89 « Vous cochez « je valide » avant d'envoyer ».
+- Décision : une partie envoyée ne vaut validation d'une aventure que si la case « je valide cette aventure » est cochée ; sinon c'est un simple retour.
+
+### D-097 — Code personnel pour authentifier une validation
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-91 « Un code personnel saisi dans le jeu ».
+- Décision : la validation n'est reconnue que si le code personnel du porteur du projet, saisi dans le jeu, est vérifié par le service.
+- Limite : le code n'est jamais dans le jeu, le dépôt ou une issue ; il est transmis chiffré (HTTPS) dans le corps de la requête, pas dans l'adresse ; le service seul le vérifie. Les agents ne disposent pas du code et ne marquent jamais une validation eux-mêmes.
+
+## Décisions validées — sens d'une validation sur téléphone
+
+### D-098 — Chaque morceau validé au moins une fois
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-92 « Chaque morceau, au moins une fois ».
+- Décision : en plus d'AR-01 et AR-02, chaque morceau du contenu de lancement doit avoir été joué et validé au moins une fois sur téléphone, dans une station assemblée.
+- Limite : une même partie peut valider plusieurs morceaux qu'elle traverse ; la liste des morceaux couverts est portée par l'issue de validation.
+
+### D-099 — Valider : aller au bout, puis juger
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-93 « Aller au bout, puis votre jugement ».
+- Décision : une partie terminée, gagnée ou perdue, peut valider ; c'est le jugement du porteur du projet qui décide si l'aventure tient. Une défaite « juste » peut valider.
+- Limite : un abandon n'est pas une partie allée au bout.
+
+### D-100 — Une validation se perd si l'aventure change
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-94 « Perdue si l'aventure change ».
+- Décision : modifier l'aventure ou le morceau lui-même (pièces, liaisons, objets, parcours) annule sa validation. Une correction du moteur qui ne change pas les résultats de ses parcours automatiques la conserve.
+- Limite : un changement de résultat d'un parcours automatique annule aussi la validation. La détection doit être automatique ; un agent ne décide pas seul qu'une modification est sans effet.
+
+## Décisions validées — acceptation de C-08, C-09 et C-10
+
+### D-101 — Petites règles des stations, de la sauvegarde et des rapports
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-95, neuf règles cochées sur dix.
+- Décision : GP-01/GP-02 (composition d'une station), GP-03 (premiers morceaux tirés d'AR-01/AR-02, vide séparé du feu, de l'huile et du bloc), GP-04 (jamais de créature dans la pièce de départ), GP-05 (vérification par les vraies règles, sans remplacer les parties humaines), SP-01/SP-02 (contenu de la sauvegarde, action jamais appliquée deux fois), SP-04/SP-05 (export anonyme et sans effet sur la partie), RP-01/RP-02 (contenu des issues), RP-03 (anti-abus côté service, rapport gardé pour réessayer), RP-04/RP-05 (étiquette de validation posée par le service seul, journal limité à ces issues).
+- Non retenu : SP-03, export proposé avant d'abandonner une partie incompatible ; reste à discuter.
+
+### D-102 — C-08, C-09 et C-10 v1.0 acceptés
+
+- Date / statut : 2026-10-10 / **Contrats validés, implémentation absente**.
+- Origine : réponse Q-96 « Oui, on valide », avec Q-95.
+- Décision : [C-08](contrats/C-08-stations-fins.md), [C-09](contrats/C-09-sauvegarde-replay.md) et [C-10](contrats/C-10-preuves-gouvernance.md) deviennent des contrats acceptés, avec les règles de D-101.
+- Réserves : SP-03 ouvert ; gouvernance du dépôt (C-10 §6) arbitrée séparément. Aucun test, service ni implémentation n'est revendiqué.
+
+## Décisions validées — gouvernance du dépôt
+
+### D-103 — Partie incompatible : message et nouvelle partie, rien de plus
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-97 « Rien de plus ».
+- Décision : quand une mise à jour empêche de continuer, le jeu affiche le message et propose une nouvelle partie (D-090) ; l'ancienne partie est perdue. Ni export proposé ni rapport automatique. Clôt SP-03.
+
+### D-104 — Tests et documentation restent en zone verte
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-98 « Vert si c'est dans les tests ou la doc ».
+- Décision : conformément à la demande initiale, les modifications de tests, outils, solveur et documentation sont en zone verte, y compris quand elles changent un test, un seuil ou un contrat. La proposition D-012 n'est pas retenue.
+- Garde-fou restant : la relecture indépendante de D-105 avant toute fusion automatique.
+
+### D-105 — Fusion verte par l'orchestrateur après relecture indépendante
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-99 « L'orchestrateur, après une relecture indépendante ».
+- Décision : en zone verte, l'orchestrateur fusionne après vérifications vertes et relecture par un agent relecteur différent de celui qui a codé.
+- Limite : orange et rouge restent soumis à l'accord ou au test manuel du porteur du projet (04 §5).
+
+### D-106 — Branche principale non protégée
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-100 « Non ».
+- Décision : pas de protection technique de la branche principale dans le nouveau dépôt.
+- Limite : la règle de travail reste qu'un exécutant délégué ne pousse pas et que l'orchestrateur fusionne après vérification (04 §1, D-105) ; elle n'est pas imposée techniquement.
+
+### D-107 — Moteur de jeu en zone orange au début
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-101 « Orange : votre accord ».
+- Décision : tant que le moteur est jeune, chaque modification du moteur attend l'accord du porteur du projet sur preuves.
+- Limite : le moment où le moteur passe en zone verte demandera une décision explicite.
+
+### D-108 — Deux rôles distincts pour le contenu et les outils
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-102 « Deux rôles séparés ».
+- Décision : un rôle d'auteur de contenu (morceaux de stations, textes, messages de l'assistance) et un rôle d'auteur d'outils (vérificateur, bots, export, scripts de CI) remplacent le rôle ambigu `script-writer`.
+- Limite : noms exacts des profils à fixer lors de leur configuration.
 
 

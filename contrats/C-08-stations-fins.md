@@ -1,0 +1,59 @@
+# C-08 — Stations assemblées et fins de partie
+
+> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-102 ; assemble D-013, D-017/D-018, D-050, D-054, D-058, D-083 à D-088 ; GP-01 à GP-05 acceptés par D-101.
+> **Date :** 2026-10-10.
+> **Implémentation, vérifieur et tests :** absents.
+
+## 1. But
+
+Dire ce qu'est une station jouable au lancement, comment elle est assemblée et vérifiée, et comment une partie se termine. Les règles de jeu restent celles de C-01 à C-06.
+
+## 2. Morceaux
+
+Chaque partie combine et place différemment des morceaux écrits à la main et vérifiés à l'avance (D-083). La génération libre de plans et d'objets est exclue du lancement.
+
+- **GP-01 — Contenu d'un morceau :** des pièces, liaisons, objets et effets décrits avec C-02 ; ce qu'il demande pour être franchi ; ce qu'il fournit (accès, objet, alimentation) ; ses points d'attache vers les autres morceaux.
+- **GP-02 — Composition d'une station :** une pièce de départ, des morceaux d'obstacle, un embarquement avec capsule, une seule créature placée (D-029).
+- **GP-03 — Premiers morceaux :** découpés dans AR-01 et AR-02. Un morceau du vide ne cohabite pas avec feu, huile ou bloc tant que leurs interactions ne sont pas décidées (D-058).
+- **GP-04 — Départ sans danger immédiat :** la pièce de départ laisse lire et explorer avant tout contact (AR-01 §5).
+
+Nombre de morceaux, règles d'assemblage et variations visibles restent à fixer.
+
+## 3. Vérification avant de jouer
+
+Toute station assemblée est vérifiée avant d'être proposée (D-084) : il existe au moins un chemin d'évacuation sans dé ni blessure si l'on prépare bien. Une station qui échoue est rejetée, avec un diagnostic ; elle n'est jamais jouée.
+
+- **GP-05 —** Le vérifieur utilise les vraies règles et les vraies commandes, sur l'état complet ; il ne remplace pas la découvrabilité, mesurée par des parties humaines.
+
+## 4. Fins de partie
+
+| Fin | Condition | Source |
+| --- | --- | --- |
+| Évacuation | Capsule alimentée, passager vivant à bord, écoutille fermée, pas de menace active à bord, départ commandé | D-054 |
+| Défaite | Blessures jusqu'à la défaite, ou exposition au vide sans protection | C-04 |
+| Abandon | Choisi par le joueur à tout moment | D-085 |
+
+Neutraliser la créature n'est jamais une fin (D-018). Une défaite acquise dans un pas l'emporte sur une évacuation (C-03 §3).
+
+**Plus aucune sortie possible (D-085).** Après chaque action, le jeu vérifie sur l'état réel s'il reste une évacuation possible. Sinon, il le dit ; la partie continue jusqu'à l'abandon ou la défaite. Le signal n'est jamais faux et ne nomme jamais la sortie restante.
+
+**Écran de fin (D-086).** Le récit seulement, fidèle aux faits ; ni score ni bilan chiffré.
+
+## 5. Rejouer
+
+Après une fin, une nouvelle partie peut reprendre la même station, même état de départ, avec de nouveaux tirages (D-087/D-088). La partie terminée reste terminée (D-013).
+
+## 6. Exemples à prouver
+
+| ID | Cas | Attendu |
+| --- | --- | --- |
+| G-01 | Assemblage sans chemin sûr | Station rejetée avec diagnostic |
+| G-02 | Morceau du vide et morceau du feu tirés ensemble | Assemblage refusé |
+| G-03 | Joueur qui consomme la seule ressource indispensable | Signal « plus aucune sortie », partie toujours jouable |
+| G-04 | Sortie restante cachée et non découverte | Aucun signal, aucune indication de la sortie |
+| G-05 | Rejouer la même station | Même départ, tirages différents |
+| G-06 | Créature neutralisée sans départ | Aucune fin déclenchée |
+
+## 7. Réserves
+
+Volume du contenu de lancement, durée 15–30 minutes et diversité réelle seront mesurés, pas déduits du nombre de morceaux.
