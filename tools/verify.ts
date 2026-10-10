@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { isMainModule } from './repo-files';
 
 // Vérification complète (AP-08), dans l'ordre : une étape = un script npm. Ajouter les suivantes ici.
-export const STEPS: readonly string[] = ['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'test', 'parcours'];
+export const STEPS: readonly string[] = ['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'test', 'parcours', 'build'];
 
 export interface StepResult {
   readonly step: string;
