@@ -24,7 +24,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   },
   evenements: {
     reveil: [
-      'Vous ouvrez les yeux dans {le:piece}. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Vous appelez : personne ne répond.',
+      'Vous ouvrez les yeux dans {le:piece}. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.',
       'Vous vous réveillez dans {le:piece}, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.',
     ],
     objet_pris: [
@@ -32,16 +32,16 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous ramassez {le:objet}. Vos mains tremblent un peu.',
     ],
     objet_pose: [
-      'Vous posez {le:objet} au sol. Le bruit résonne un instant dans {le:piece}.',
-      'Vous déposez {le:objet} à vos pieds. Vos mains sont de nouveau libres.',
+      'Vous posez {le:objet} au sol, près de la cloison. Vos mains sont libres.',
+      'Vous déposez {le:objet} à vos pieds. Vous gardez les mains libres.',
     ],
     passage_ouvert: [
-      'Vous ouvrez {le:passage}. Le panneau coulisse dans la cloison avec un chuintement.',
+      'Vous ouvrez {le:passage}. Un chuintement, et le passage est libre.',
       'Vous appuyez sur le bouton d’ouverture. {Le:passage} s’efface dans la cloison.',
     ],
     passage_ferme: [
       'Vous fermez {le:passage}. Le joint se plaque contre le cadre avec un bruit mat.',
-      '{Le:passage} se referme. Le silence revient d’un coup.',
+      'Vous refermez {le:passage}. Le silence revient d’un coup.',
     ],
     deplacement: [
       'Vous franchissez le seuil et entrez dans {le:piece}. Vos pas résonnent sur le plancher métallique.',
@@ -56,7 +56,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   refus: {
     commande_invalide: 'Commande illisible : rien n’a été joué.',
     action_inconnue: 'Cette action n’existe pas : rien n’a été joué.',
-    cible_absente: 'Rien de tel n’est à votre portée ici.',
+    cible_absente: 'Cette action ne peut pas viser cela ici.',
     pas_en_main: 'Vous n’avez pas cela en main.',
     deja_ouvert: 'C’est déjà ouvert.',
     deja_ferme: 'C’est déjà fermé.',

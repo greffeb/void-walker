@@ -32,7 +32,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['engine/**/*.{ts,tsx}', 'content/**/*.{ts,tsx}'],
+    files: ['engine/**/*.{ts,tsx,mts,cts,js,mjs,cjs}', 'content/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'],
     rules: {
       'no-restricted-globals': [
         'error',

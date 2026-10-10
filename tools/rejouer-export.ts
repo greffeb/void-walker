@@ -13,7 +13,7 @@ export interface RapportRejeu {
 
 export function rejouerExport(contenu: string, version: string): RapportRejeu {
   const fichier = lireExport(JSON.parse(contenu) as unknown);
-  const entree = MONDES[fichier.monde];
+  const entree = Object.hasOwn(MONDES, fichier.monde) ? MONDES[fichier.monde] : undefined;
   if (entree === undefined) throw new Error(`Monde inconnu : ${fichier.monde}.`);
   const { partie, etapes } = rejouer(entree.monde, fichier, version);
   const lignes = [`Export : monde « ${fichier.monde} », version ${fichier.version}, graine ${fichier.graine}, ${fichier.actions.length} actions.`];

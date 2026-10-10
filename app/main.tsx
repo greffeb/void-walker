@@ -22,6 +22,6 @@ const env: Environnement = {
 
 createRoot(racine).render(
   <StrictMode>
-    <App env={env} version={version} pr={import.meta.env.VITE_PR_NUMERO ?? ''} />
+    <App env={env} version={version} commit={import.meta.env.VITE_COMMIT ?? ''} pr={import.meta.env.VITE_PR_NUMERO ?? ''} />
   </StrictMode>,
 );

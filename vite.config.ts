@@ -14,6 +14,7 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_VERSION': JSON.stringify(version),
     'import.meta.env.VITE_PR_NUMERO': JSON.stringify(process.env.PR_NUMERO ?? ''),
+    'import.meta.env.VITE_COMMIT': JSON.stringify(process.env.COMMIT ?? process.env.GITHUB_SHA ?? ''),
   },
   build: {
     outDir: '../dist',

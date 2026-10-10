@@ -54,7 +54,8 @@ const RULES: Record<Zone, ZoneRule> = {
   },
 };
 
-const ROOT_CONFIG_FILE = /^(vite|vitest|playwright|eslint)\.config\.ts$/;
+const ROOT_CONFIG_FILE = /^(vite|vitest|playwright|eslint)\.config\.(ts|js)$/;
+const CODE_EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'];
 
 export interface ImportRecord {
   readonly form: string;
@@ -107,7 +108,13 @@ function isTypeOnlyExport(declaration: ts.ExportDeclaration): boolean {
 
 /** Tous les imports d'un fichier : statiques, `export … from`, `import()`, `require`, types et références `///`. */
 export function collectImports(fileName: string, text: string): ImportRecord[] {
-  const scriptKind = fileName.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const scriptKind = /\.[cm]?jsx?$/.test(fileName)
+    ? fileName.endsWith('x')
+      ? ts.ScriptKind.JSX
+      : ts.ScriptKind.JS
+    : fileName.endsWith('.tsx')
+      ? ts.ScriptKind.TSX
+      : ts.ScriptKind.TS;
   const source = ts.createSourceFile(fileName, text, ts.ScriptTarget.Latest, true, scriptKind);
   const lineOf = (position: number): number => source.getLineAndCharacterOfPosition(position).line + 1;
   const records: ImportRecord[] = [];
@@ -181,7 +188,7 @@ function violationReason(zone: Zone, record: ImportRecord, target: Target): stri
 }
 
 export function checkImports(root: string): ImportReport {
-  const files = listRepoFiles(root, ['.ts', '.tsx']).filter(
+  const files = listRepoFiles(root, CODE_EXTENSIONS).filter(
     (file) => !(dirname(file) === root && ROOT_CONFIG_FILE.test(basename(file))),
   );
   const violations: Violation[] = [];

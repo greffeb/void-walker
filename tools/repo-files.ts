@@ -4,17 +4,9 @@ import { fileURLToPath } from 'node:url';
 
 export const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
-// Dépendances et sorties générées, ignorées par git (.gitignore).
-const IGNORED_DIRECTORIES = new Set([
-  '.git',
-  'node_modules',
-  'dist',
-  'coverage',
-  'test-results',
-  'playwright-report',
-  'captures',
-  '.void-walker',
-]);
+// Dépendances, ignorées à toute profondeur ; sorties générées (.gitignore), ignorées seulement à la racine.
+const IGNORED_EVERYWHERE = new Set(['.git', 'node_modules']);
+const IGNORED_AT_ROOT = new Set(['dist', 'coverage', 'test-results', 'playwright-report', 'captures', '.void-walker']);
 
 /** Fichiers sous `root` dont le nom finit par une des extensions, hors dossiers ignorés, triés. */
 export function listRepoFiles(root: string, extensions: readonly string[]): string[] {
@@ -23,7 +15,8 @@ export function listRepoFiles(root: string, extensions: readonly string[]): stri
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
       if (entry.isDirectory()) {
-        if (!IGNORED_DIRECTORIES.has(entry.name)) walk(path);
+        const ignored = IGNORED_EVERYWHERE.has(entry.name) || (directory === root && IGNORED_AT_ROOT.has(entry.name));
+        if (!ignored) walk(path);
       } else if (entry.isFile() && extensions.some((extension) => entry.name.endsWith(extension))) {
         files.push(path);
       }

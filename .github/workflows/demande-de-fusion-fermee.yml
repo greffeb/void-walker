@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Même groupe que la publication de la PR : une publication en cours est annulée avant le retrait.
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   retrait:
     name: Retrait de la version de test
@@ -16,8 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    concurrency:
-      group: retrait-pr-${{ github.event.pull_request.number }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

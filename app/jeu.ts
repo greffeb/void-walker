@@ -12,7 +12,7 @@ export interface Jeu {
   readonly sauvegarde: EtatSauvegarde;
 }
 
-export type Demarrage = { readonly type: 'pret'; readonly jeu: Jeu } | { readonly type: 'incompatible'; readonly raison: string };
+export type Demarrage = { readonly type: 'pret'; readonly jeu: Jeu } | { readonly type: 'reprise_impossible'; readonly raison: string };
 
 export interface Environnement {
   readonly monde: DefMonde;
@@ -41,15 +41,16 @@ export async function demarrer(env: Environnement): Promise<Demarrage> {
   let donnees: unknown;
   try {
     donnees = await env.stockage.lire();
-  } catch {
-    return { type: 'pret', jeu: await commencer(env) };
+  } catch (erreur) {
+    // Ne jamais écraser une sauvegarde qu'on n'a pas pu lire : le joueur décide.
+    return { type: 'reprise_impossible', raison: `Lecture de la sauvegarde impossible : ${erreur instanceof Error ? erreur.message : String(erreur)}` };
   }
   if (donnees === null) return { type: 'pret', jeu: await commencer(env) };
   try {
     const partie = reprendrePartie(env.monde, donnees, env.version);
     return { type: 'pret', jeu: { partie, recit: raconterDerniers(env.textes, partie), sauvegarde: 'sauvegardee' } };
   } catch (erreur) {
-    return { type: 'incompatible', raison: erreur instanceof Error ? erreur.message : String(erreur) };
+    return { type: 'reprise_impossible', raison: erreur instanceof Error ? erreur.message : String(erreur) };
   }
 }
 

@@ -31,4 +31,9 @@ describe("rejoueur d'export", () => {
   it('refuse un export d’une autre version', () => {
     expect(() => rejouerExport(JSON.stringify(exporter(monde, partieJouee())), 'autre')).toThrow(/version/);
   });
+
+  it('refuse un monde inconnu, même nommé comme une propriété d’objet', () => {
+    const fichier = { ...exporter(monde, partieJouee()), monde: 'constructor' };
+    expect(() => rejouerExport(JSON.stringify(fichier), 'v')).toThrow(/Monde inconnu/);
+  });
 });

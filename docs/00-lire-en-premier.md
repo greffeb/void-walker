@@ -92,9 +92,17 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136) ; quatre agents Copilot installés dans `.github/agents/` (D-137) ; [issue de Bootstrap](11-bootstrap.md) publiée : [#89](https://github.com/greffeb/void-walker/issues/89). Pas de code, de solveur ni de partie humaine exécutée.
 
-**Bootstrap #89, en cours sur `bootstrap/89-socle` (non poussée) :** étape 1/5 faite — kit dans `docs/`, socle TypeScript strict, contrôles d'import et de liens, `npm run verify` vert. Étape 2/5 (moteur minimal et monde de test) arrêtée : quatre erreurs réseau lors de la délégation à l'exécutant (deux avant relance, deux après, dont une avec un périmètre réduit au seul moteur), aucun changement partiel ; une délégation triviale répond normalement. Restent : moteur et monde de test, CLI, appli PWA, CI et publication. Le changement du mode GitHub Pages est accepté même s'il retire la V1 en ligne (D-139).
+**Bootstrap #89, sur `bootstrap/89-socle` :** les cinq étapes sont codées. Elles couvrent :
 
-**Prochaine tâche recommandée :** relancer l'agent `orchestrateur` sur l'issue #89 pour reprendre à l'étape 2. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
+- le kit dans `docs/` et le socle TypeScript ;
+- le moteur minimal et le monde de test ;
+- la CLI et le rejoueur d'export ;
+- l'appli PWA avec sauvegarde IndexedDB et captures ;
+- la CI et la publication GitHub Pages.
+
+`npm run verify` est vert en local. Après quatre erreurs réseau lors des délégations à l'exécutant, l'orchestrateur a codé lui-même à la demande du porteur du projet ; un rapport sur l'exécutant reste à traiter. Le relecteur et le playtester ont relu et joué ; leurs remarques sont traitées ou listées dans la PR. Le mode GitHub Pages peut retirer la V1 en ligne (D-139).
+
+**Prochaine tâche recommandée :** suivre la PR du Bootstrap : CI verte, PR cassée de démonstration, lien de la version de test, accord du porteur du projet pour fusionner (zones orange et rouge). En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-133 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 

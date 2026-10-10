@@ -63,8 +63,9 @@ jobs:
   publication:
     name: Publication de la version de test
     needs: captures
+    # Publie aussi quand les captures échouent, pour que l'échec soit visible dans la PR ; la PR reste en rouge.
     # Seules les branches de ce dépôt publient : une PR venue d'un fork n'a pas les droits d'écriture.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: ${{ !cancelled() && needs.captures.result != 'skipped' && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

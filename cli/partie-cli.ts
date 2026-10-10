@@ -101,7 +101,7 @@ function enregistrer(contexte: Contexte, chemin: string, partie: Partie): string
     return 'Partie enregistrée.';
   } catch (erreur) {
     const detail = erreur instanceof Error ? erreur.message : String(erreur);
-    return `ATTENTION : la partie n’a pas pu être enregistrée (${detail}). Vous pouvez continuer ; l’enregistrement sera retenté à la prochaine action.`;
+    return `ATTENTION : la partie n’a pas pu être enregistrée (${detail}). Cette action ne sera pas conservée : le prochain appel repartira de la dernière partie enregistrée.`;
   }
 }
 
@@ -122,7 +122,9 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
     case 'aide':
       return { lignes: AIDE, code: 0 };
     case 'nouvelle': {
-      const graine = options.graine === undefined ? contexte.es.graineAleatoire() : Number(options.graine);
+      if (reste.length > 0) return { lignes: [`Argument inattendu : ${reste.join(' ')}. Pour choisir la graine : nouvelle --graine N`], code: 1 };
+      const texteGraine = options.graine;
+      const graine = texteGraine === undefined ? contexte.es.graineAleatoire() : /^\d+$/.test(texteGraine) ? Number(texteGraine) : Number.NaN;
       if (!Number.isInteger(graine) || graine < 0 || graine > 0xffffffff) {
         return { lignes: ['Graine invalide : entier de 0 à 4294967295 attendu.'], code: 1 };
       }

@@ -181,18 +181,35 @@ describe('checkImports', () => {
     ]);
   });
 
-  it('signale un fichier TypeScript hors des dossiers, sauf configuration racine, node_modules et dist', () => {
+  it('signale un fichier de code hors des dossiers, sauf configuration racine et node_modules', () => {
     expect(
       violations({
         'scripts/tool.ts': 'export {};\n',
         'helper.ts': 'export {};\n',
         'vitest.config.ts': "import 'vitest/config';\n",
+        'eslint.config.js': "import 'eslint';\n",
         'node_modules/pkg/index.ts': "import 'node:fs';\n",
-        'app/dist/bundle.ts': "import '../../cli/index';\n",
+        'dist/bundle.js': "import 'node:fs';\n",
       }),
     ).toEqual([
       'helper.ts:1 fichier hors de engine/, content/, app/, cli/, tools/',
       'scripts/tool.ts:1 fichier hors de engine/, content/, app/, cli/, tools/',
+    ]);
+  });
+
+  it('analyse aussi .mts, .js et les sous-dossiers nommés comme une sortie générée', () => {
+    expect(
+      violations({
+        'engine/b.mts': "import 'react';\n",
+        'engine/c.js': "import '../content/index.js';\n",
+        'engine/dist/d.ts': "import 'node:fs';\n",
+        'app/dist/bundle.ts': "import '../../cli/index';\n",
+      }),
+    ).toEqual([
+      "app/dist/bundle.ts:1 import '../../cli/index' : cli/ interdit ; app/ importe app/, engine/, content/ et des paquets npm",
+      "engine/b.mts:1 import 'react' : paquet npm interdit ; engine/ n'importe que engine/",
+      "engine/c.js:1 import '../content/index.js' : content/ interdit ; engine/ n'importe que engine/",
+      "engine/dist/d.ts:1 import 'node:fs' : module Node interdit ; engine/ n'importe que engine/",
     ]);
   });
 

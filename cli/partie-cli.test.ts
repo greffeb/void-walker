@@ -77,7 +77,7 @@ describe('CLI', () => {
     executer(['nouvelle'], ctx);
     const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
     expect(executer(['commande', 'voler', 'e12345678'], ctx).lignes[0]).toBe('Cette action n’existe pas : rien n’a été joué.');
-    expect(executer(['commande', 'prendre', 'objet-carnet'], ctx).lignes[0]).toBe('Rien de tel n’est à votre portée ici.');
+    expect(executer(['commande', 'prendre', 'objet-carnet'], ctx).lignes[0]).toBe('Cette action ne peut pas viser cela ici.');
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
   });
 
@@ -106,6 +106,9 @@ describe('CLI', () => {
     executer(['nouvelle'], ctx);
     expect(executer(['jouer', '99'], ctx).code).toBe(1);
     expect(executer(['nouvelle', '--graine', '-3'], ctx).code).toBe(1);
+    expect(executer(['nouvelle', '--graine'], ctx).code).toBe(1);
+    expect(executer(['nouvelle', '--graine', '1e3'], ctx).code).toBe(1);
+    expect(executer(['nouvelle', '42'], ctx).code).toBe(1);
     expect(executer(['inconnue'], ctx).code).toBe(1);
   });
 });

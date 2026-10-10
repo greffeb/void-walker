@@ -88,7 +88,21 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const stockage = stockageIndexedDB('version', fabrique);
     await pret(environnement(stockage, 'ancienne'));
     const demarrage = await demarrer(environnement(stockage, 'nouvelle'));
-    expect(demarrage.type).toBe('incompatible');
+    expect(demarrage.type).toBe('reprise_impossible');
+  });
+
+  it('sauvegarde illisible : rien n’est écrasé, le joueur est prévenu', async () => {
+    let ecritures = 0;
+    const env = environnement({
+      lire: () => Promise.reject(new Error('base verrouillée')),
+      ecrire: () => {
+        ecritures++;
+        return Promise.resolve();
+      },
+    });
+    const demarrage = await demarrer(env);
+    expect(demarrage).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('base verrouillée') });
+    expect(ecritures).toBe(0);
   });
 
   it('deux adresses publiées gardent des parties séparées', async () => {

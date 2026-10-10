@@ -11,7 +11,7 @@ describe('parcours témoin du monde de test', () => {
     expect(rapport.lignes.filter((ligne) => ligne.includes('[refus attendu'))).toHaveLength(2);
   });
 
-  it('même graine : même texte ; le texte ne dépend pas des dés (NP-03)', () => {
+  it('même graine : même texte, au mot près (NP-03)', () => {
     expect(executerParcours(ENTREE, 'test', 3).lignes).toEqual(executerParcours(ENTREE, 'test', 3).lignes);
   });
 

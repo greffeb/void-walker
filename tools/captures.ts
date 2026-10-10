@@ -78,13 +78,15 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   rmSync(SORTIE, { recursive: true, force: true });
   mkdirSync(SORTIE, { recursive: true });
 
-  const serveur = await preview({ configFile: join(REPO_ROOT, 'vite.config.ts'), logLevel: 'warn' });
-  const adresse = serveur.resolvedUrls?.local[0];
-  const navigateur = await chromium.launch();
   const etapes: EtapeCapture[] = [];
   const erreurs: string[] = [];
   let installable = 'non vérifiée';
+  let serveur: Awaited<ReturnType<typeof preview>> | undefined;
+  let navigateur: Awaited<ReturnType<typeof chromium.launch>> | undefined;
   try {
+    serveur = await preview({ configFile: join(REPO_ROOT, 'vite.config.ts'), logLevel: 'warn' });
+    navigateur = await chromium.launch();
+    const adresse = serveur.resolvedUrls?.local[0];
     if (adresse === undefined) throw new Error('Serveur de prévisualisation sans adresse.');
     const contexte = await navigateur.newContext({ ...devices[TELEPHONE], locale: 'fr-FR' });
     let page = await contexte.newPage();
@@ -141,8 +143,9 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   } catch (erreur) {
     erreurs.push(erreur instanceof Error ? erreur.message : String(erreur));
   } finally {
-    await navigateur.close();
-    await new Promise<void>((resoudre) => serveur.httpServer.close(() => resoudre()));
+    await navigateur?.close();
+    const http = serveur?.httpServer;
+    if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify({ telephone: TELEPHONE, installable, erreurs, etapes }, null, 2)}\n`);

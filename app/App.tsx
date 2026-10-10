@@ -5,10 +5,20 @@ import { commencer, demarrer, jouerCommande, type Environnement, type Jeu } from
 
 type Ecran =
   | { readonly type: 'chargement' }
-  | { readonly type: 'incompatible'; readonly raison: string }
+  | { readonly type: 'reprise_impossible'; readonly raison: string }
   | { readonly type: 'jeu'; readonly jeu: Jeu };
 
-export function App({ env, version, pr }: { readonly env: Environnement; readonly version: string; readonly pr: string }) {
+export function App({
+  env,
+  version,
+  commit,
+  pr,
+}: {
+  readonly env: Environnement;
+  readonly version: string;
+  readonly commit: string;
+  readonly pr: string;
+}) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   const [occupe, setOccupe] = useState(false);
 
@@ -50,9 +60,9 @@ export function App({ env, version, pr }: { readonly env: Environnement; readonl
         <h1>Void Walker</h1>
       </header>
       {ecran.type === 'chargement' && <p className="attente">Chargement…</p>}
-      {ecran.type === 'incompatible' && (
+      {ecran.type === 'reprise_impossible' && (
         <section className="avis" role="alert">
-          <p>La partie enregistrée ne peut pas reprendre avec cette version du jeu.</p>
+          <p>La partie enregistrée ne peut pas reprendre.</p>
           <p className="detail">{ecran.raison}</p>
           <button type="button" disabled={occupe} onClick={() => void recommencer()}>
             Commencer une nouvelle partie
@@ -62,6 +72,7 @@ export function App({ env, version, pr }: { readonly env: Environnement; readonl
       {ecran.type === 'jeu' && <Partie jeu={ecran.jeu} env={env} occupe={occupe} choisir={choisir} />}
       <footer className="pied">
         <span>Version {version}</span>
+        {commit !== '' && <span> · {commit.slice(0, 7)}</span>}
         {pr !== '' && <span> · version de test de la PR #{pr}</span>}
       </footer>
     </main>
