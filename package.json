@@ -11,6 +11,8 @@
     "typecheck": "tsc -b",
     "check:imports": "tsx tools/check-imports.ts",
     "check:links": "tsx tools/check-links.ts",
+    "check:texts": "tsx tools/check-texts.ts",
+    "parcours": "tsx tools/rejouer-parcours.ts",
     "test": "vitest run",
     "verify": "tsx tools/verify.ts"
   },
