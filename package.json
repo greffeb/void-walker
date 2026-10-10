@@ -13,6 +13,8 @@
     "check:links": "tsx tools/check-links.ts",
     "check:texts": "tsx tools/check-texts.ts",
     "parcours": "tsx tools/rejouer-parcours.ts",
+    "cli": "tsx cli/main.ts",
+    "rejouer": "tsx tools/rejouer-export.ts",
     "test": "vitest run",
     "verify": "tsx tools/verify.ts"
   },

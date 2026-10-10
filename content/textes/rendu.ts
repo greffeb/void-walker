@@ -1,4 +1,4 @@
-import type { Cible, Consultation, Evenement, Observation, OptionMenu, RaisonRefus } from '../../engine';
+import type { Cible, Consultation, Evenement, Observation, OptionMenu, Partie, RaisonRefus, Resultat } from '../../engine';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { Nom, TextesMonde } from './types';
 
@@ -54,6 +54,27 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
 
 export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {
   return remplir(textes.refus[raison], {});
+}
+
+function repere(partie: Partie): CleTexte {
+  return { graine: partie.enregistrement.graine, action: partie.etat.actions };
+}
+
+/** Récit de la dernière action engagée, identique après une reprise ou un rejeu. */
+export function raconterDerniers(textes: TextesMonde, partie: Partie): string[] {
+  return rendreEvenements(textes, partie.derniers, repere(partie));
+}
+
+/** Récit d'un résultat, le même pour l'appli et la CLI (C-06 K-07). */
+export function raconter(textes: TextesMonde, resultat: Resultat): string[] {
+  switch (resultat.type) {
+    case 'refus':
+      return [rendreRefus(textes, resultat.raison)];
+    case 'consultation':
+      return [rendreConsultation(textes, resultat.consultation, repere(resultat.partie))];
+    case 'engagee':
+      return rendreEvenements(textes, resultat.evenements, repere(resultat.partie));
+  }
 }
 
 export function rendreObservation(textes: TextesMonde, observation: Observation): string[] {

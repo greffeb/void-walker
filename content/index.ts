@@ -14,6 +14,8 @@ export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir 
 export {
   libelleOption,
   nomDe,
+  raconter,
+  raconterDerniers,
   rendreConsultation,
   rendreEvenements,
   rendreObservation,
