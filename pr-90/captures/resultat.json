@@ -6,37 +6,37 @@
     {
       "titre": "Départ",
       "image": "01.png",
-      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.",
+      "recit": "Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.",
       "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nVous ne portez rien."
     },
     {
       "titre": "Prendre le carnet",
       "image": "02.png",
-      "recit": "Vous ramassez le carnet. Vos mains tremblent un peu.",
+      "recit": "Vous prenez le carnet. Le contact est froid sous vos doigts.",
       "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nVous portez le carnet."
     },
     {
       "titre": "Ouvrir la porte de l’atelier",
       "image": "03.png",
-      "recit": "Vous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.",
+      "recit": "Vous ouvrez la porte de l’atelier. Un chuintement, et le passage est libre.",
       "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nVous portez le carnet."
     },
     {
       "titre": "Après fermeture et réouverture",
       "image": "04.png",
-      "recit": "Vous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.",
+      "recit": "Vous ouvrez la porte de l’atelier. Un chuintement, et le passage est libre.",
       "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nVous portez le carnet."
     },
     {
       "titre": "Aller dans l’atelier",
       "image": "05.png",
-      "recit": "Vous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.",
+      "recit": "Vous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.",
       "situation": "Vous êtes dans l’atelier.\nRien ne traîne ici.\nLa porte de la cabine est ouverte.\nVous portez le carnet."
     },
     {
       "titre": "Poser le carnet",
       "image": "06.png",
-      "recit": "Vous déposez le carnet à vos pieds. Vous gardez les mains libres.",
+      "recit": "Vous posez le carnet au sol, près de la cloison. Vos mains sont libres.",
       "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet.\nLa porte de la cabine est ouverte.\nVous ne portez rien."
     }
   ]
