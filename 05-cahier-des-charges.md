@@ -90,6 +90,9 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-055 | Validation = partie allée au bout puis jugement ; chaque morceau au moins une fois ; perdue si l'aventure ou ses parcours automatiques changent | D-098 à D-100 | Cas PR-07/PR-08 de C-10 |
 | B-056 | Partie incompatible après mise à jour : message et nouvelle partie | D-103 | Cas S-04 de C-09 |
 | B-057 | Zones de fusion : tests/docs verts fusionnés après relecture indépendante ; moteur orange au début ; branche principale non protégée | D-104 à D-107 | Configuration du dépôt et des agents au Bootstrap |
+| B-058 | Textes en français, vouvoiement, 2 à 4 phrases, écrits à la main avec trous et variantes ; aucun chiffre de dé | D-109 à D-114 | Cas N-01 à N-07 de C-07 |
+| B-059 | Textes écrits par les agents en autonomie, fusionnés après relecture indépendante, sous les règles NP-01 à NP-05 | D-115/D-116 | Contrôles automatiques de C-07 |
+| B-060 | Lancement : environ 8 morceaux, 2 ou 3 obstacles par station, une seule espèce de créature, problème du départ variable | D-118 à D-121 | Liste des morceaux, stations assemblées et durée mesurée |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 

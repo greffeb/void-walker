@@ -23,8 +23,8 @@ Le cadrage ci-dessous précède la Phase 0 demandée par le porteur du projet. I
 - [x] Décrire et faire accepter en conception la boucle et l'[aventure AR-01 v1.0](08-aventure-reference.md), sans preuve d'exécution revendiquée.
 - [x] Extraire les règles acceptées d'AR-01 dans C-03/C-04 (temps, réactions, risque et blessures).
 - [x] Spécifier la deuxième référence pour la dépressurisation préparée (D-038) : [AR-02 v1.0](09-aventure-reference-vide.md) acceptée en conception (D-074), règles retranscrites dans C-03/C-04, sans preuve d'exécution revendiquée.
-- [ ] Spécifier les contrats essentiels et leurs contre-exemples.
-- [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité.
+- [x] Spécifier les contrats essentiels et leurs contre-exemples : C-01 à C-10 acceptés (D-117), sans implémentation.
+- [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité — volume fixé (D-118 à D-121), règles d'assemblage et liste des morceaux à faire.
 - [x] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines (D-096 à D-108) ; restent la fusion mixte, le passage du moteur en vert et le budget des agents.
 - [ ] Préparer les instructions de reprise, l'issue Bootstrap et les premières issues verticales.
 

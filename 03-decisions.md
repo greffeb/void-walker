@@ -843,4 +843,96 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : un rôle d'auteur de contenu (morceaux de stations, textes, messages de l'assistance) et un rôle d'auteur d'outils (vérificateur, bots, export, scripts de CI) remplacent le rôle ambigu `script-writer`.
 - Limite : noms exacts des profils à fixer lors de leur configuration.
 
+## Décisions validées — textes du jeu
+
+### D-109 — Français seulement au lancement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-103 « Français seulement ».
+- Décision : un seul texte, en français, à écrire et relire pour le lancement.
+- Limite : une autre langue pourra venir plus tard par une nouvelle décision ; aucune obligation de la préparer maintenant.
+
+### D-110 — Le texte vouvoie le joueur
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-104 « Vous ».
+- Décision : le texte s'adresse au joueur à la deuxième personne du pluriel (« Vous ouvrez la grille »), comme les brouillons des aventures.
+
+### D-111 — Textes courts après une action
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-105 « Court : 2 à 4 phrases par action ».
+- Décision : deux à quatre phrases après une action, lisibles d'un coup d'œil sur téléphone ; plus long seulement aux moments forts (réveil, premier contact, fin).
+
+### D-112 — Phrases écrites à la main, avec des trous
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-106 « Phrases écrites à la main, avec des trous ».
+- Décision : chaque situation a ses phrases rédigées ; le moteur ne remplit que des trous (nom d'objet, de pièce). Pas de phrases composées par le moteur.
+- Pourquoi : leçon de la V1, dont le texte de liaison assemblé par le moteur était mauvais.
+
+### D-113 — Quelques variantes de phrases, sans effet sur le jeu
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-107 « Quelques variantes ».
+- Décision : une même situation peut avoir plusieurs formulations pour éviter la répétition ; le choix n'influence jamais les dés ni le jeu.
+
+### D-114 — Le résultat du dé n'est pas affiché
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-108 « Non, seulement ce qui arrive ».
+- Décision : le texte dit ce qui arrive, sans chiffre de dé. Le niveau de risque qualitatif reste annoncé avant l'action (D-020).
+- Limite : le tirage reste enregistré dans la sauvegarde et l'export (C-09) ; seul l'affichage est concerné.
+
+## Décisions validées — acceptation de C-07
+
+### D-115 — Petites règles des textes
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-109, cinq règles cochées sur six.
+- Décision : un événement visible, une phrase, avec contrôle automatique (NP-01) ; trous remplis de noms affichables et accordés (NP-02) ; variantes reproductibles, sans dés (NP-03) ; un nom par chose partout (NP-04) ; aucune affirmation non perçue par le passager (NP-05).
+- Non retenu : NP-06, accord du porteur du projet sur chaque texte, remplacé par D-116.
+
+### D-116 — Les textes passent en zone verte
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse libre à Q-109 « je laisse les agents développer en autonomie », précisée par Q-111 « Seulement les textes ».
+- Décision : les agents écrivent les textes en autonomie ; ils sont fusionnés en zone verte, par l'orchestrateur après relecture indépendante (D-105). Remplace la place des textes en zone orange (04 §5).
+- Limite : interface, équilibrage, format des scénarios et moteur restent en zone orange. Les validations sur téléphone restent celles du porteur du projet.
+
+### D-117 — C-07 v1.0 accepté
+
+- Date / statut : 2026-10-10 / **Contrat validé, implémentation absente**.
+- Origine : réponse Q-110 « Oui, on valide », avec Q-109/Q-111.
+- Décision : [C-07](contrats/C-07-textes.md) devient un contrat accepté, avec NP-01 à NP-05 et D-116. Tous les contrats C-01 à C-10 sont désormais acceptés.
+- Limite : textes définitifs, nom de la station et titre public restent à écrire. Aucune implémentation revendiquée.
+
+## Décisions validées — volume du lancement
+
+### D-118 — Environ huit morceaux au lancement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-112 « Petit : environ 8 morceaux ».
+- Décision : le contenu de lancement compte environ huit morceaux, de quoi faire une dizaine de stations vraiment différentes ; d'autres pourront être ajoutés après.
+- Limite : chaque morceau doit être validé sur téléphone au moins une fois (D-098).
+
+### D-119 — Deux ou trois obstacles par station
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-113 « 2 ou 3 obstacles ».
+- Décision : une station assemblée comporte deux ou trois obstacles, pour viser 15 à 30 minutes (D-008).
+- Limite : la durée réelle se mesure sur téléphone.
+
+### D-120 — Une seule espèce de créature au lancement
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-114 « Toujours la même créature sensible au bruit ».
+- Décision : la menace du lancement est toujours la créature organique sensible au bruit d'AR-01/AR-02 ; sa place et les pièces changent selon la station. Ses règles (C-03, C-04) s'appliquent telles quelles.
+
+### D-121 — Le problème à régler pour partir varie selon les morceaux
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-115 « Varié, selon les morceaux ».
+- Décision : selon les morceaux tirés, le départ peut demander de rétablir l'énergie, d'ouvrir un accès ou d'écarter la créature. L'évacuation reste l'objectif commun (D-018).
+
 

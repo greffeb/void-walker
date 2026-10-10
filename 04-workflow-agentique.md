@@ -67,7 +67,7 @@ La demande utilisateur est :
 - orange : textes, interface, équilibrage et format des scénarios, merge humain sur preuves ;
 - rouge : déploiement, format de sauvegarde et IA, merge et test manuels.
 
-**Arbitrage du 2026-10-10 (D-104 à D-107) :** la proposition D-012 n'est pas retenue ; tests, outils, solveur et documentation restent verts, y compris quand ils changent un test, un seuil ou un contrat. L'orchestrateur fusionne le vert après relecture par un autre agent. Le moteur de jeu est orange tant qu'il est jeune. Pas de protection technique de la branche principale. Détail dans [C-10 §6](contrats/C-10-preuves-gouvernance.md).
+**Arbitrage du 2026-10-10 (D-104 à D-107) :** la proposition D-012 n'est pas retenue ; tests, outils, solveur et documentation restent verts, y compris quand ils changent un test, un seuil ou un contrat. L'orchestrateur fusionne le vert après relecture par un autre agent. Le moteur de jeu est orange tant qu'il est jeune. Les textes du jeu passent en vert (D-116). Pas de protection technique de la branche principale. Détail dans [C-10 §6](contrats/C-10-preuves-gouvernance.md).
 
 Restent à décider : zone d'une demande de fusion mixte, passage du moteur en vert, budget et reprises des agents.
 

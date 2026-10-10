@@ -50,8 +50,8 @@ Une partie envoyée vaut validation seulement si la case « je valide » est coc
 
 | Zone | Contenu | Fusion |
 | --- | --- | --- |
-| Verte | Tests, outils, solveur, documentation — y compris un test, seuil ou contrat modifié (D-104) | Orchestrateur, après vérifications vertes et relecture par un autre agent (D-105) |
-| Orange | Textes, interface, équilibrage, format des scénarios ; moteur de jeu tant qu'il est jeune (D-107) | Porteur du projet, sur preuves |
+| Verte | Tests, outils, solveur, documentation — y compris un test, seuil ou contrat modifié (D-104) ; textes du jeu (D-116) | Orchestrateur, après vérifications vertes et relecture par un autre agent (D-105) |
+| Orange | Interface, équilibrage, format des scénarios ; moteur de jeu tant qu'il est jeune (D-107) | Porteur du projet, sur preuves |
 | Rouge | Déploiement, format de sauvegarde, IA | Porteur du projet, avec test manuel |
 
 - **Branche principale :** pas de protection technique (D-106). La règle de travail demeure : un exécutant délégué ne pousse pas, l'orchestrateur fusionne après vérification.
