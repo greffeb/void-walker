@@ -104,7 +104,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 `npm run verify` est vert en local. Après quatre erreurs réseau lors des délégations à l'exécutant, l'orchestrateur a codé lui-même à la demande du porteur du projet ; un rapport sur l'exécutant reste à traiter. Le relecteur et le playtester ont relu et joué ; leurs remarques sont traitées ou listées dans la PR. Le mode GitHub Pages peut retirer la V1 en ligne (D-139).
 
-**Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface à traiter une par une, en zone orange.
+**Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange.
 
 **Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : règles d'assemblage et liste des huit morceaux, puis issues du service de rapports et de la signature.
 
