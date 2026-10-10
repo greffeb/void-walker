@@ -46,6 +46,7 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
   const adresse = process.env.VERSION_URL ?? '';
   const images = process.env.CAPTURES_URL ?? '';
   const commit = process.env.COMMIT ?? '';
+  const suffixe = commit === '' ? '' : `?v=${commit.slice(0, 7)}`;
   const lignes = [
     '<!-- void-walker:version-de-test -->',
     '## Version de test',
@@ -58,7 +59,7 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
     erreurs.length === 0 ? '**Parcours du monde de test : réussi.**' : `**Parcours du monde de test : ÉCHEC.**\n\n${erreurs.map((erreur) => `- ${erreur}`).join('\n')}`,
     `Installation : ${installable}`,
     '',
-    etapes.map((etape) => `<img src="${images}${etape.image}" width="200" alt="${etape.titre}">`).join(' '),
+    etapes.map((etape) => `<img src="${images}${etape.image}${suffixe}" width="200" alt="${etape.titre}">`).join(' '),
     '',
     '<details><summary>Texte affiché à chaque étape</summary>',
     '',
