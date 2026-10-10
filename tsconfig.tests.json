@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node", "vitest/globals"],
+    "tsBuildInfoFile": "./node_modules/.tmp/tests.tsbuildinfo"
+  },
+  "include": ["**/*.test.ts", "**/*.test.tsx", "vitest.config.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "**/dist"]
+}

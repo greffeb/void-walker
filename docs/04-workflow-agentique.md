@@ -44,7 +44,7 @@ Les noms suivants sont demandés pour le futur socle, mais aucun agent n'est ins
 | `asset-generator` | Produire des assets conformes à la direction choisie | Licence, provenance, budget et outils à préciser |
 | `playtester` | Jouer par la CLI à partir de l'observation publique | Aucun accès aux données cachées du scénario ni au solveur |
 
-Tous les rôles sont tenus par GitHub Copilot, dans l'éditeur ou le terminal du PC du porteur du projet (D-126/D-128). Le relecteur est une autre session, sans le contexte de celle qui a codé.
+Tous les rôles sont tenus par GitHub Copilot, dans l'éditeur ou le terminal du PC du porteur du projet (D-126/D-128). Le relecteur est une autre session, sans le contexte de celle qui a codé. Profils installés au départ (D-137) : `orchestrateur`, `executant`, `relecteur`, `playtester` dans `.github/agents/`.
 
 Une issue ne convoque que les rôles utiles. Multiplier les agents ne remplace ni un contrat ni une preuve indépendante.
 

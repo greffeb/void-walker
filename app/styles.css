@@ -1,0 +1,119 @@
+:root {
+  color-scheme: dark;
+  --fond: #0b0d10;
+  --surface: #151920;
+  --bord: #2a313c;
+  --texte: #d9dde3;
+  --discret: #8a93a0;
+  --accent: #9fb4c8;
+  --alerte: #e0a46a;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  background: var(--fond);
+  color: var(--texte);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+.jeu {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100dvh;
+}
+
+.entete h1 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--discret);
+}
+
+.recit p {
+  margin: 0 0 0.5rem;
+}
+
+.situation {
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+  color: var(--accent);
+}
+
+.situation p {
+  margin: 0.2rem 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+}
+
+.actions button,
+.avis button {
+  min-height: 3rem;
+  padding: 0.6rem 1rem;
+  font: inherit;
+  text-align: left;
+  color: var(--texte);
+  background: var(--surface);
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  color: var(--discret);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.actions button:not(:disabled):active {
+  background: var(--bord);
+}
+
+.raison {
+  margin: 0.2rem 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--discret);
+}
+
+.sauvegarde {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--discret);
+}
+
+.sauvegarde.echec,
+.avis {
+  color: var(--alerte);
+}
+
+.pied {
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: var(--discret);
+}
+
+.detail {
+  font-size: 0.8rem;
+}

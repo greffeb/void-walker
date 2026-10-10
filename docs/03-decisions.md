@@ -1044,4 +1044,26 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : [l'architecture](10-architecture.md) devient la référence du Bootstrap, avec AP-01 à AP-10 : moteur isolé et règles d'import vérifiées ; générateur de dés propre à la partie ; sauvegarde IndexedDB par action ; clé de signature non exportable ; publication principale et `/pr-<numéro>/` ; service sécurisé et limité ; reconnaissance des validations par une action GitHub ; commande unique de vérification ; captures automatiques ; CI par PR et publication sur la branche principale.
 - Limite : les bibliothèques secondaires restent au choix des agents dans ces règles. Le changement du mode de publication GitHub Pages et la création du compte Cloudflare sont à faire au Bootstrap.
 
+## Décisions validées — démarrage
+
+### D-137 — Quatre agents Copilot au départ
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-132 « Le minimum : 4 agents ».
+- Décision : orchestrateur, exécutant, relecteur et playtester sont installés comme profils Copilot du dépôt (`.github/agents/`). Les autres rôles de 04 §3 seront ajoutés quand une issue en aura besoin.
+
+### D-138 — Issue de démarrage créée directement sur GitHub
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse Q-133 « La créer tout de suite sur GitHub ».
+- Décision : le texte de l'issue de Bootstrap est conservé dans le kit et publié immédiatement comme issue du dépôt.
+- Limite : publier l'issue n'autorise pas son exécution sans lancement explicite par le porteur du projet.
+
+### D-139 — La V1 en ligne peut disparaître au Bootstrap
+
+- Date / statut : 2026-10-10 / **Validé**.
+- Origine : réponse du porteur du projet « ok pour virer l'ancienne version en ligne », à la question sur le changement du mode de publication GitHub Pages.
+- Décision : le Bootstrap (#89) peut changer le mode de publication GitHub Pages même si la V1 publiée cesse d'être accessible ; après fusion, le monde de test V2 la remplace à la racine (AP-05).
+- Limite : l'historique Git de la V1 reste consultable (D-122).
+
 
