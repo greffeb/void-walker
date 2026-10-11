@@ -11,7 +11,7 @@ export const PARCOURS_MONDE_TEST: Parcours = {
   ],
   attendu: {
     piece: 'atelier',
-    objetsIci: ['carnet'],
+    objetsIci: ['carnet', 'trousse'],
     inventaire: [],
     // Les portes de la cabine et de la soute.
     passagesOuverts: ['porte', 'porte'],

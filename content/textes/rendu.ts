@@ -47,7 +47,13 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { passage: nomDe(textes, evenement.passage) };
     case 'premier_contact':
     case 'menace':
+    case 'aggravation_blesse':
+    case 'aggravation_critique':
+    case 'defaite':
       return {};
+    case 'soin_indemne':
+    case 'soin_blesse':
+      return { objet: nomDe(textes, evenement.objet) };
   }
 }
 
@@ -100,6 +106,8 @@ export function raconter(textes: TextesMonde, resultat: Resultat): string[] {
 export function rendreObservation(textes: TextesMonde, observation: Observation): string[] {
   const modele = textes.observation;
   const lignes = [remplir(modele.lieu, { piece: nomDe(textes, observation.piece) })];
+  if (observation.sante === 'blesse') lignes.push(remplir(modele.blesse, {}));
+  if (observation.sante === 'critique') lignes.push(remplir(modele.critique, {}));
   lignes.push(
     observation.objets.length > 0
       ? remplir(modele.objets, { liste: observation.objets.map((objet) => nomDe(textes, objet)) })
@@ -114,6 +122,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })
       : remplir(modele.inventaireVide, {}),
   );
+  if (observation.terminee) lignes.push(remplir(modele.terminee, {}));
   return lignes;
 }
 
@@ -143,11 +152,23 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom>
       return { passage: nomDe(textes, savoir.passage) };
     case 'quittera':
       return { piece: nomDe(textes, savoir.piece) };
+    case 'soignera':
+      return {};
+    case 'videra':
+      return { objet: nomDe(textes, savoir.objet) };
   }
 }
 
 function valeursDanger(textes: TextesMonde, danger: Danger): Record<string, Nom> {
-  return danger.type === 'creature_entendue' ? { passage: nomDe(textes, danger.passage) } : { piece: nomDe(textes, danger.piece) };
+  switch (danger.type) {
+    case 'interception':
+    case 'interception_mortelle':
+      return {};
+    case 'creature_entendue':
+      return { passage: nomDe(textes, danger.passage) };
+    default:
+      return { piece: nomDe(textes, danger.piece) };
+  }
 }
 
 export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {

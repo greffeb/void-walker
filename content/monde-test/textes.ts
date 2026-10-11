@@ -9,6 +9,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     porte: { texte: 'porte', genre: 'f', nombre: 's', elision: false },
     grille: { texte: 'grille', genre: 'f', nombre: 's', elision: false },
     carnet: { texte: 'carnet', genre: 'm', nombre: 's', elision: false },
+    trousse: { texte: 'trousse de soin', genre: 'f', nombre: 's', elision: false },
   },
   descriptions: {
     cabine: [
@@ -26,6 +27,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     carnet: [
       'Un carnet à couverture souple, aux coins cornés. Les pages sont vierges.',
       'Un petit carnet de papier, un luxe à bord. Personne n’y a rien écrit.',
+    ],
+    trousse: [
+      'Une trousse de soin à fermeture éclair, marquée d’une croix blanche.',
+      'Une petite trousse de secours en toile, aux coins usés, une croix blanche sur le rabat.',
     ],
   },
   evenements: {
@@ -65,6 +70,26 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.',
     ],
     menace: ['La créature se jette sur vous ; vous vous dérobez de justesse.', 'Des griffes fendent l’air à un souffle de votre visage.'],
+    aggravation_blesse: [
+      'Des griffes vous lacèrent l’épaule : vous êtes blessé.',
+      'Une griffe vous entaille le flanc ; vous êtes blessé.',
+    ],
+    aggravation_critique: [
+      'Les griffes vous atteignent de nouveau : vous êtes grièvement blessé.',
+      'Un coup vous projette contre la cloison ; grièvement blessé, vous tenez à peine debout.',
+    ],
+    defaite: [
+      'Les griffes vous ont atteint une fois de trop. Vos jambes cèdent ; le plancher froid vient à votre rencontre. Vous n’entendez plus que votre souffle, puis plus rien.',
+      'Vous ne sentez presque pas le dernier coup. Le plancher vient à votre rencontre. La lumière de veille grésille encore, très loin.',
+    ],
+    soin_indemne: [
+      'Vous puisez dans {le:objet} et pansez votre plaie. La douleur reflue ; vous êtes d’aplomb.',
+      'Vous ouvrez {le:objet} et serrez un pansement sur la blessure. Vos mains cessent de trembler.',
+    ],
+    soin_blesse: [
+      'Vous puisez dans {le:objet} et serrez un pansement sur la pire de vos plaies. Vous tenez debout, mais vous restez blessé.',
+      'Vous ouvrez {le:objet} et colmatez ce que vous pouvez. Vous allez un peu mieux ; vous restez blessé.',
+    ],
   },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Vous apercevez {le:vers} de l’autre côté.'],
@@ -78,9 +103,14 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     deja_ouvert: 'C’est déjà ouvert.',
     deja_ferme: 'C’est déjà fermé.',
     ferme: 'Ce passage est fermé : vous ne pouvez pas le franchir.',
+    pas_blesse: 'Vous n’êtes pas blessé : rien n’a été joué.',
+    vide: 'Il n’y a plus rien à utiliser : rien n’a été joué.',
+    partie_terminee: 'Cette partie est terminée : rien n’a été joué.',
   },
   indisponibilites: {
     ferme: '{Le:cible} est fermé{e:cible}.',
+    pas_blesse: 'Vous n’êtes pas blessé.',
+    vide: '{Le:cible} est vide.',
   },
   libelles: {
     regarder: 'Regarder {le:cible}',
@@ -89,6 +119,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ouvrir: 'Ouvrir {le:cible}',
     fermer: 'Fermer {le:cible}',
     aller: 'Aller dans {le:vers}',
+    soigner: 'Se soigner avec {le:cible}',
   },
   verbes: {
     regarder: 'Regarder',
@@ -97,6 +128,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ouvrir: 'Ouvrir',
     fermer: 'Fermer',
     aller: 'Aller vers',
+    soigner: 'Se soigner',
   },
   observation: {
     lieu: 'Vous êtes dans {le:piece}.',
@@ -107,6 +139,9 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',
     creature: 'La créature est là, tout près de vous.',
+    blesse: 'Vous êtes blessé.',
+    critique: 'Vous êtes grièvement blessé.',
+    terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',
   },
   apercu: {
     risques: {
@@ -118,6 +153,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       certain: 'certain',
     },
     dangers: {
+      interception: 'la créature peut vous blesser',
+      interception_mortelle: 'une blessure de plus vous serait fatale',
       creature_vue_instant: 'vous venez de voir la créature dans {le:piece}',
       creature_vue_moment: 'vous avez vu la créature dans {le:piece} il y a un moment',
       creature_vue_longtemps: 'vous avez vu la créature dans {le:piece} il y a longtemps',
@@ -130,6 +167,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       ouvrira: '{Le:passage} sera ouvert{e:passage}.',
       fermera: '{Le:passage} sera fermé{e:passage}.',
       quittera: 'Vous quitterez {le:piece}.',
+      soignera: 'Votre état s’améliorera d’un cran.',
+      videra: '{Le:objet} sera vide.',
     },
   },
 };

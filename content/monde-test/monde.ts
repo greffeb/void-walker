@@ -1,6 +1,6 @@
 import type { DefMonde } from '../../engine';
 
-// Monde de test : trois pièces, une porte bruyante, une grille étroite qui laisse passer le son, la créature (#100).
+// Monde de test : trois pièces, une porte bruyante, une grille étroite qui laisse passer le son, la créature (#100), une trousse de soin (#101).
 // Le parcours témoin ouvre la porte bruyante : la créature l'entend depuis la soute et s'approche. Aucun gameplay d'AR-01/AR-02.
 export const MONDE_TEST: DefMonde = {
   id: 'monde-test',
@@ -15,6 +15,9 @@ export const MONDE_TEST: DefMonde = {
     { id: 'liaison-atelier-soute', nom: 'porte', entre: ['piece-atelier', 'piece-soute'], ouverte: true },
     { id: 'liaison-cabine-soute', nom: 'grille', entre: ['piece-cabine', 'piece-soute'], ouverte: false, etroite: true, sonAuTravers: true },
   ],
-  objets: [{ id: 'objet-carnet', nom: 'carnet', piece: 'piece-cabine' }],
+  objets: [
+    { id: 'objet-carnet', nom: 'carnet', piece: 'piece-cabine' },
+    { id: 'objet-trousse', nom: 'trousse', piece: 'piece-atelier', soin: 1 },
+  ],
   creature: { piece: 'piece-soute' },
 };

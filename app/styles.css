@@ -139,6 +139,35 @@ button:disabled {
   color: var(--accent);
 }
 
+/* Badge de santé (12 §3.2) : « ! BLESSÉ » en vidéo inverse, « !! CRITIQUE » contour de 2 px ; rien si indemne. */
+.badge-sante {
+  margin: 0 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.badge-sante.blesse {
+  color: var(--fond);
+  background: var(--accent);
+}
+
+.badge-sante.critique {
+  color: var(--accent);
+  background: var(--fond);
+  border: 2px solid var(--accent);
+}
+
+/* Partie terminée (D-013) : en attendant l'écran de fin (12 §4.11), la phrase de fin et NOUVELLE PARTIE. */
+.fin-partie p {
+  margin: 0 0 16px;
+}
+
 .engrenage {
   flex: none;
   display: grid;

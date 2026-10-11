@@ -41,6 +41,11 @@ export interface TextesMonde {
     readonly inventaireVide: string;
     /** La créature est dans la pièce, vue par le passager (C-06 §2). */
     readonly creature: string;
+    /** Santé (C-04 §2) ; rien quand il est indemne (12 §3). */
+    readonly blesse: string;
+    readonly critique: string;
+    /** Partie conclue par la défaite (D-013). */
+    readonly terminee: string;
   };
   /** Aperçu avant confirmation (12 §3.8) : mots du risque, du danger connu et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
@@ -66,6 +71,11 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeEvenement, readonly string[]>>
   creature_entre: ['passage'],
   premier_contact: [],
   menace: [],
+  aggravation_blesse: [],
+  aggravation_critique: [],
+  defaite: [],
+  soin_indemne: ['objet'],
+  soin_blesse: ['objet'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -75,6 +85,7 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   ouvrir: ['cible', 'vers'],
   fermer: ['cible', 'vers'],
   aller: ['cible', 'vers'],
+  soigner: ['cible'],
 };
 
 export const ROLES_PASSAGE = ['passage', 'vers'] as const;
@@ -86,9 +97,13 @@ export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
   ouvrira: ['passage'],
   fermera: ['passage'],
   quittera: ['piece'],
+  soignera: [],
+  videra: ['objet'],
 };
 
 export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
+  interception: [],
+  interception_mortelle: [],
   creature_vue_instant: ['piece'],
   creature_vue_moment: ['piece'],
   creature_vue_longtemps: ['piece'],
@@ -104,4 +119,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   inventaire: ['liste'],
   inventaireVide: [],
   creature: [],
+  blesse: [],
+  critique: [],
+  terminee: [],
 };

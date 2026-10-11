@@ -40,7 +40,7 @@ describe('CLI', () => {
       expect(sortie.code).toBe(0);
     }
     expect(sortie.lignes).toContain('Vous êtes dans l’atelier.');
-    expect(sortie.lignes).toContain('Vous voyez ici un carnet.');
+    expect(sortie.lignes).toContain('Vous voyez ici un carnet et une trousse de soin.');
     expect(sortie.lignes).toContain('Actions engagées : 4');
 
     expect(executer(['exporter', 'export.json', '--commentaire', 'essai'], ctx).code).toBe(0);

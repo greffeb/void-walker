@@ -288,6 +288,31 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(sauvegarde)).toBe('La sauvegarde a échoué. Vous pouvez continuer : elle sera retentée à la prochaine action.');
   });
 
+  it('badge de santé : rien si indemne, « ! BLESSÉ » puis « !! CRITIQUE », annoncés comme état (12 §3.2)', async () => {
+    const jeu = await commencer(env);
+    const avec = (sante: Jeu['partie']['etat']['sante']): Jeu => ({ ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante } } });
+    expect(rendre(jeu)).not.toContain('badge-sante');
+    expect(entre(rendre(avec('blesse')), '<header', '</header>')).toContain(
+      '<p class="badge-sante blesse" role="status" aria-label="État : blessé">! BLESSÉ</p>',
+    );
+    expect(entre(rendre(avec('critique')), '<header', '</header>')).toContain(
+      '<p class="badge-sante critique" role="status" aria-label="État : critique">!! CRITIQUE</p>',
+    );
+    expect(texte(entre(rendre(avec('blesse')), 'data-testid="situation"', '</section>'))).toContain('Vous êtes blessé.');
+  });
+
+  it('défaite : plus d’action ni d’inventaire, la phrase de fin et NOUVELLE PARTIE (D-013)', async () => {
+    const jeu = await commencer(env);
+    const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
+    const html = renderToStaticMarkup(<EcranJeu jeu={vaincu} env={env} occupe={false} choisir={rien} nouvellePartie={() => undefined} />);
+    expect(html).not.toContain('badge-sante');
+    expect(html).not.toContain('class="puce"');
+    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
+      'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie',
+    );
+    expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
+  });
+
   it('situation en phrases : hors de l’écran, gardée pour le lecteur d’écran comme dans la CLI (C-06 K-07)', async () => {
     const situation = entre(rendre(await commencer(env)), '<section class="lecteur-seul"', '</section>');
     expect(texte(situation)).toBe(

@@ -1357,4 +1357,25 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
 - Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
 
+### D-183 — Rester sous ses yeux se joue au même dé que la fuite
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : question de #101 (rester dans la pièce de la créature après le premier contact), réponse « Un dé comme la fuite : une chance sur deux d'être blessé ».
+- Décision : quand le passager commence une action dans la pièce de la créature après le premier contact, un seul D6 enregistré résout son interception, qu'il parte (fuite exposée, D-052) ou qu'il reste : de 1 à 3, une aggravation ; de 4 à 6, rien (D-055). Ce jet est sa réaction du pas : ni seconde attaque ni déplacement en plus (C-04 §4.2).
+- Limite : l'aperçu l'annonce « élevé », « mortel » si le passager est critique [détail de l'agent, selon l'échelle de 12 §3.8]. Entrer dans sa pièce ou la voir entrer ne déclenche pas le dé ce pas-là : une menace seulement (C-03 §4.3) [détail de l'agent].
+
+### D-184 — L'action qui suit le premier contact est libre
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse « Libre : ni dé ni blessure pour cette action-là, quelle qu'elle soit ».
+- Décision : juste après le premier contact, la première action du passager ne tire aucun dé et ne blesse pas, qu'il fuie ou qu'il reste (C-03 §4.4). S'il reste, elle menace ; s'il part, elle le voit partir (D-177).
+- Limite : une seule fois par partie, comme le premier contact.
+
+### D-185 — Se soigner avec la trousse en main ou posée dans la pièce
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse « En main ou posée dans la pièce ».
+- Décision : « Se soigner » vise une trousse portée ou posée dans la pièce du passager. Une dose améliore d'un état (C-04 §2) ; vide, la trousse reste un objet et l'action est indisponible (« La trousse de soin est vide. ») ; indemne, l'action est indisponible (« Vous n'êtes pas blessé. »).
+- Limite : le monde de test a une trousse à une dose dans l'atelier ; le nombre de soins d'AR-01 reste celui de son contenu (D-051).
+
 
