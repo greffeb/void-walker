@@ -1,8 +1,8 @@
 # C-03 — Temps, dangers et réactions — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.3, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175.
-> **Date :** 2026-10-10.
-> **Implémentation et vérification exécutable :** absentes. Pas d'attestation de partie humaine.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175 ; poursuite et ouïe D-177/D-178.
+> **Date :** 2026-10-11.
+> **Implémentation et vérification exécutable :** créature, perception, réaction et premier contact (§2 à §4, T-01, T-07, T-09) dans le moteur depuis #100 ; le reste absent. Pas d'attestation de partie humaine.
 
 ## 1. Portée et sources de vérité
 
@@ -55,7 +55,7 @@ Le chemin sonore vers une origine peut être impraticable pour le gabarit de la 
 
 Après inspection d'une source silencieuse, sans nouvel indice, la créature reste là. Ni patrouille permanente ni retour artificiel à son emplacement initial. Réaction au stimulus n'implique pas suivi omniscient de la trajectoire réelle du joueur.
 
-**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe.
+**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice.
 
 ### 4.4 Premier contact
 

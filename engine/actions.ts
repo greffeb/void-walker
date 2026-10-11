@@ -23,6 +23,8 @@ export interface Effet {
   readonly evenements: readonly Evenement[];
   /** Sons produits par l'action, actifs pendant la réaction de ce pas (C-03 §3). */
   readonly sons?: readonly SonEmis[];
+  /** Liaison franchie par le passager, que la créature a pu le voir prendre (D-177). */
+  readonly franchie?: string;
 }
 
 /** Aperçu calculé sur ce que le passager sait seulement (C-06 §4), sans dé ni changement d'état. */
@@ -204,7 +206,7 @@ const aller: ActionEngagee = {
     const piece = refPiece(monde, arrivee);
     const evenements: Evenement[] = [{ type: 'deplacement', passage: refPassage(monde, etat, liaison, etat.piece), piece }];
     if (nouvelle) evenements.push({ type: 'piece_decouverte', piece });
-    return { etat: suivant, evenements };
+    return { etat: suivant, evenements, franchie: liaison.id };
   },
 };
 

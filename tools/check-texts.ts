@@ -37,7 +37,7 @@ import { isMainModule } from './repo-files';
 
 const ID_PUBLIC = /\be[0-9a-f]{8}\b/;
 
-/** Moments forts où le récit d'une action peut être plus long (D-111) : leur texte a sa propre limite de quatre phrases. */
+/** Moments forts où le récit d'une action peut être plus long (D-111). Garde-fou du contrôle, non décidé : quatre phrases au plus pour ce texte seul. */
 const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact'];
 
 export function compterPhrases(texte: string): number {
@@ -70,7 +70,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const type of TYPES_EVENEMENT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
   for (const type of MOMENTS_FORTS) {
     for (const variante of textes.evenements[type] as readonly unknown[]) {
-      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (D-111).`);
+      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (garde-fou du contrôle).`);
     }
   }
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);

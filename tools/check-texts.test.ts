@@ -61,10 +61,10 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree).some((erreur) => erreur.includes('D-111'))).toBe(true);
   });
 
-  it('premier contact : plus long permis, mais pas plus de quatre phrases pour lui seul (D-111)', () => {
+  it('premier contact : plus long permis (D-111), mais garde-fou de quatre phrases pour lui seul', () => {
     const long = 'Une. Deux. Trois. Quatre. Cinq.';
     const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, premier_contact: [long] } }));
-    expect(verifierTextes(entree)).toContain('événement premier_contact : plus de quatre phrases (D-111).');
+    expect(verifierTextes(entree)).toContain('événement premier_contact : plus de quatre phrases (garde-fou du contrôle).');
   });
 
   it('aperçu : un niveau de risque sans mot, une phrase sans texte ou un chiffre font échouer le contrôle (C-04 §4.3)', () => {

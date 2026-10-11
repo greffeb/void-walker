@@ -214,7 +214,7 @@ describe('perception et réaction (C-03 §4)', () => {
   it('un joueur visible passe avant un son, même plus fort (C-03 §4.2)', () => {
     const depart = partie();
     const ensemble = { ...depart.etat, creature: { piece: 'a', indice: null, contact: true } };
-    const reponse = reagir(MONDE, ensemble, [{ piece: 'c', intensite: 'fort' }]);
+    const reponse = reagir(MONDE, ensemble, [{ piece: 'c', intensite: 'fort' }], 'a', undefined);
     expect(reponse.etat.creature).toEqual({ piece: 'a', indice: null, contact: true });
     expect(types(reponse.evenements)).toEqual(['menace']);
   });
@@ -268,6 +268,34 @@ describe('poursuite par le passage vu (D-177)', () => {
       ['poser', 'boite'],
     ]);
     expect(pieceCreature(fin)).toBe('c');
+  });
+
+  it('deux passages entre les mêmes pièces : elle retient celui qu’il a vraiment pris, quel que soit l’ordre du monde', () => {
+    const grille = { id: 'bc2', nom: 'grille_bc', entre: ['b', 'c'] as const, ouverte: true, etroite: true };
+    for (const avant of [true, false]) {
+      const double: DefMonde = { ...monde, liaisons: avant ? [grille, ...monde.liaisons] : [...monde.liaisons, grille] };
+      const vue = suite(double, partie(double), [['aller', 'salle_b'], ['aller', 'porte_bc']]).partie;
+      const parPorte = suite(double, vue, [['aller', 'porte_bc'], ['prendre', 'cle']]);
+      expect(parPorte.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre']]);
+      const parGrille = suite(double, vue, [['aller', 'grille_bc'], ['prendre', 'cle'], ['poser', 'cle']]);
+      expect(parGrille.evenements.map(types)).toEqual([['deplacement'], ['objet_pris'], ['objet_pose']]);
+      expect(parGrille.partie.etat.creature).toMatchObject({ piece: 'c', indice: { piece: 'b', par: 'bc2' } });
+    }
+  });
+
+  it('un son prend le pas sur l’indice de départ (C-03 §4.2)', () => {
+    const bruyante = liaisons(monde, { ac: { bruyante: true } });
+    const vue = suite(bruyante, partie(bruyante), [['aller', 'salle_b'], ['aller', 'salle_c']]).partie;
+    const bloquee = suite(bruyante, vue, [['aller', 'salle_b'], ['fermer', 'porte_bc'], ['aller', 'salle_a']]).partie;
+    expect(bloquee.etat.creature).toEqual({ piece: 'c', indice: { piece: 'b', par: 'bc' }, contact: true });
+    const fin = suite(bruyante, bloquee, [['ouvrir', 'grille_ac']]).partie;
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: true });
+  });
+
+  it('revenir dans sa pièce efface l’indice de départ : elle le voit, menace', () => {
+    const { partie: fin, evenements } = suite(monde, contact(), [['aller', 'salle_b'], ['aller', 'salle_c']]);
+    expect(evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'menace']]);
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: null, contact: true });
   });
 });
 

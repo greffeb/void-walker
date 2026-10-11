@@ -1321,8 +1321,8 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 
 - Date / statut : 2026-10-11 / **Validé**.
 - Origine : question de la relecture de #100 ; réponse « Elle vous suit par la porte qu'elle vous a vu prendre, une pièce par action ».
-- Décision : quand le passager quitte la pièce où la créature le voit, sa réaction de cette action est de le voir partir. À l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large ; elle ne sait pas où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice. Précise C-03 §4.2 (indice réellement perçu) et la limite de D-040.
-- Limite : la fuite exposée et son jet (C-04 §4, #101) se résoudront pendant l'action de départ.
+- Décision : quand le passager quitte la pièce où la créature le voit, sa réaction de cette action est de le voir partir. À l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large ; elle ne sait pas où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice. Précise C-03 §4.3 et la limite de D-040.
+- Rappel (C-04 §4.2, pas une réponse du porteur) : la fuite exposée et son jet (#101) se résoudront pendant l'action de départ et consommeront cette réaction.
 
 ### D-178 — La créature entend aussi loin que le son passe
 
@@ -1335,6 +1335,6 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Date / statut : 2026-10-11 / **Validé**.
 - Origine : réponse « Oui, les agents proposent une apparence et la gardent partout ».
 - Décision : les textes peuvent décrire la créature ; l'apparence proposée est gardée partout : plus haute qu'un homme, peau luisante, tête sans yeux, gueule qui hume l'air, griffes. Précise l'aspect laissé ouvert par D-032.
-- Limite : textes en zone verte (D-116) ; un changement d'apparence se fait partout à la fois.
+- Limite : textes en zone verte (D-116).
 
 

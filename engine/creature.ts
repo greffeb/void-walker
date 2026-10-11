@@ -82,16 +82,16 @@ function reaction(
   etat: EtatPartie,
   creature: EtatCreature,
   sons: readonly SonEmis[],
-  avant: string,
+  depuis: string,
+  franchie: string | undefined,
 ): { creature: EtatCreature; evenements: Evenement[] } {
   if (creature.piece === etat.piece) {
     // L'avertissement donne une action pour réagir avant toute conséquence hostile (C-03 §4.4).
     return { creature: { ...creature, indice: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
   }
-  if (creature.piece === avant) {
+  if (creature.piece === depuis) {
     // Elle l'a vu partir : sa réaction est de retenir le passage pris, qu'elle suivra au pas suivant (D-177).
-    const par = liaisonsDe(monde, avant).find((liaison) => autreCote(liaison, avant) === etat.piece && etat.liaisons[liaison.id] === true);
-    return { creature: { ...creature, indice: { piece: etat.piece, par: par?.id ?? null } }, evenements: [] };
+    return { creature: { ...creature, indice: { piece: etat.piece, par: franchie ?? null } }, evenements: [] };
   }
   const son = sonRetenu(monde, etat, creature.piece, sons);
   const indice: Indice | null = son === undefined ? creature.indice : { piece: son.piece, par: null };
@@ -110,10 +110,19 @@ function passageSuivi(monde: DefMonde, etat: EtatPartie, depuis: string, indice:
   return liaison !== undefined && praticable(etat, liaison) ? liaison : undefined;
 }
 
-/** Étapes 4 et 5 d'un pas (C-03 §3) : la réaction, puis l'annonce du premier contact si la créature et le passager se retrouvent. */
-export function reagir(monde: DefMonde, etat: EtatPartie, sons: readonly SonEmis[], avant: string = etat.piece): { etat: EtatPartie; evenements: Evenement[] } {
+/**
+ * Étapes 4 et 5 d'un pas (C-03 §3) : la réaction, puis l'annonce du premier contact si la créature et le passager se retrouvent.
+ * `depuis` : pièce du passager avant l'action ; `franchie` : liaison qu'il vient de prendre, s'il a changé de pièce.
+ */
+export function reagir(
+  monde: DefMonde,
+  etat: EtatPartie,
+  sons: readonly SonEmis[],
+  depuis: string,
+  franchie: string | undefined,
+): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
-  const { creature, evenements } = reaction(monde, etat, etat.creature, sons, avant);
+  const { creature, evenements } = reaction(monde, etat, etat.creature, sons, depuis, franchie);
   if (creature.piece === etat.piece && !creature.contact) {
     return { etat: { ...etat, creature: { ...creature, contact: true } }, evenements: [...evenements, { type: 'premier_contact' }] };
   }
