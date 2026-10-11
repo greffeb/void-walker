@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { MONDE_PAR_DEFAUT, MONDES } from '../content';
 import { App } from './App';
 import type { Environnement } from './jeu';
+import { lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
 import './styles.css';
 
@@ -22,6 +23,12 @@ const env: Environnement = {
 
 createRoot(racine).render(
   <StrictMode>
-    <App env={env} version={version} commit={import.meta.env.VITE_COMMIT ?? ''} pr={import.meta.env.VITE_PR_NUMERO ?? ''} />
+    <App
+      env={env}
+      reglages={lireReglages((cle) => window.localStorage.getItem(cle))}
+      version={version}
+      commit={import.meta.env.VITE_COMMIT ?? ''}
+      pr={import.meta.env.VITE_PR_NUMERO ?? ''}
+    />
   </StrictMode>,
 );

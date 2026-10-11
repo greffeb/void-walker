@@ -5,6 +5,7 @@ import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
 import { libelleOption, MONDE_PAR_DEFAUT, MONDES, nomDe, type EntreeMonde } from '../content';
 import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
+import { CLE_REGLAGES } from '../app/reglages';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 
@@ -198,8 +199,10 @@ async function attendreSauvegarde(page: Page, actions: number): Promise<void> {
 }
 
 async function lire(page: Page): Promise<{ recit: string; situation: string }> {
-  const texte = async (id: string): Promise<string> => (await page.getByTestId(id).innerText()).replace(/\n\s*\n/g, '\n').trim();
-  return { recit: await texte('recit'), situation: await texte('situation') };
+  // Récit tel que le lecteur d'écran le reçoit : la copie écrite à la machine lui est masquée (D-186).
+  const recit = await page.getByTestId('recit').evaluate((zone) => [...zone.querySelectorAll('.lecteur-seul')].map((bloc) => bloc.textContent ?? '').join('\n'));
+  const situation = (await page.getByTestId('situation').innerText()).replace(/\n\s*\n/g, '\n').trim();
+  return { recit, situation };
 }
 
 /** Aucun chiffre affiché, cibles d'au moins 44 × 44 px, pas de débordement en largeur (12 §1, §2.7, §7). */
@@ -388,10 +391,85 @@ async function verifierInventaireSansEffet(page: Page, geste: Geste, erreurs: st
 
 /** Le rappel et le récit nomment la cible comme le dock (NP-04). */
 async function verifierNoms(page: Page, geste: Geste, erreurs: string[]): Promise<void> {
-  const rappel = ((await page.getByTestId('rappel').textContent()) ?? '').replace(/^>\s*/, '').trim();
+  const rappel = ((await page.getByTestId('rappel').locator('.lecteur-seul').textContent()) ?? '').trim();
   if (rappel.toLowerCase() !== geste.rappel.toLowerCase()) erreurs.push(`${geste.titre} : rappel « ${rappel} » au lieu de « ${geste.rappel} ».`);
-  const recit = (await page.getByTestId('recit').innerText()).toLowerCase();
+  const recit = (await lire(page)).recit.toLowerCase();
   if (!recit.includes(geste.nom.toLowerCase())) erreurs.push(`${geste.titre} : le récit ne nomme pas « ${geste.nom} » (NP-04).`);
+}
+
+interface EtatEcriture {
+  readonly visibles: number;
+  readonly total: number;
+  /** Les caractères visibles précèdent tous les autres : l'écriture suit l'ordre de lecture. */
+  readonly dansLOrdre: boolean;
+  readonly curseur: string;
+  readonly curseurs: number;
+  /** Place de chaque bloc du récit et du dock : elle ne doit pas bouger pendant l'écriture. */
+  readonly places: string;
+  readonly classes: string;
+  /** Animations de la machine à écrire encore en cours (caractères ou curseur). */
+  readonly animees: number;
+}
+
+/** Fige l'écriture du récit à `ms` de son début si `ms` est donné, puis relève ce qui est affiché (D-186). */
+async function etatEcriture(page: Page, ms?: number): Promise<EtatEcriture> {
+  return page.evaluate((instant) => {
+    const zone = document.querySelector('[data-testid="recit"]');
+    if (zone === null) throw new Error('Récit absent.');
+    const animations = document.getAnimations().filter((animation) => {
+      const cible = animation.effect instanceof KeyframeEffect ? animation.effect.target : null;
+      return cible !== null && zone.contains(cible);
+    });
+    if (instant !== undefined) {
+      for (const animation of animations) {
+        animation.pause();
+        animation.currentTime = instant;
+      }
+    }
+    const vus = [...zone.querySelectorAll('.car')].map((car) => getComputedStyle(car).visibility === 'visible');
+    const premierCache = vus.indexOf(false);
+    const curseur = zone.querySelector('.curseur');
+    const places = [...zone.querySelectorAll('p'), document.querySelector('.dock')]
+      .map((element) => {
+        const boite = element?.getBoundingClientRect();
+        return boite === undefined ? '?' : `${Math.round(boite.top)}+${Math.round(boite.height)}`;
+      })
+      .join(' ');
+    return {
+      visibles: vus.filter(Boolean).length,
+      total: vus.length,
+      dansLOrdre: premierCache === -1 || vus.slice(premierCache).every((vu) => !vu),
+      curseur: curseur === null ? 'absent' : `${getComputedStyle(curseur).visibility}, ${getComputedStyle(curseur).animationName}`,
+      curseurs: document.querySelectorAll('.curseur').length,
+      places: `${places} / ${zone.scrollHeight}`,
+      classes: zone.className,
+      animees: animations.filter((animation) => animation.playState === 'running' && animation instanceof CSSAnimation && animation.animationName === 'apparait')
+        .length,
+    };
+  }, ms);
+}
+
+/** Joue « Regarder autour de vous » et attend que son texte remplace le précédent : une nouvelle écriture commence. */
+async function nouveauTexte(page: Page): Promise<void> {
+  const ancien = await page.locator('[data-testid="recit"] .car').first().elementHandle();
+  await page.locator('.dock .autour').click();
+  await page.waitForFunction((car) => car === null || !car.isConnected, ancien);
+}
+
+/** Écriture figée à différents instants : progressive, dans l'ordre, sans décalage, puis curseur ; un seul curseur. */
+function verifierProgression(etats: readonly (readonly [number, EtatEcriture])[], ou: string, erreurs: string[]): void {
+  const [premier] = etats;
+  if (premier === undefined) return;
+  for (const [ms, etat] of etats) {
+    const fini = ms >= 500;
+    if (fini ? etat.visibles !== etat.total : etat.visibles >= etat.total) erreurs.push(`${ou}, ${ms} ms : ${etat.visibles} caractères visibles sur ${etat.total}.`);
+    if (!etat.dansLOrdre) erreurs.push(`${ou}, ${ms} ms : l’écriture ne suit pas l’ordre de lecture.`);
+    if (etat.curseurs !== 1) erreurs.push(`${ou}, ${ms} ms : ${etat.curseurs} curseurs à l’écran.`);
+    if (!etat.curseur.startsWith(fini ? 'visible' : 'hidden')) erreurs.push(`${ou}, ${ms} ms : curseur ${etat.curseur}.`);
+    if (etat.places !== premier[1].places) erreurs.push(`${ou}, ${ms} ms : la mise en page a bougé (${premier[1].places} → ${etat.places}).`);
+  }
+  const visibles = etats.map(([, etat]) => etat.visibles);
+  if (visibles.some((nombre, rang) => rang > 0 && nombre <= (visibles[rang - 1] ?? 0))) erreurs.push(`${ou} : écriture non progressive (${visibles.join(', ')}).`);
 }
 
 async function policesChargees(page: Page): Promise<string[]> {
@@ -454,9 +532,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
     let page = await contexte.newPage();
 
-    const capturerEtape = async (titre: string): Promise<EtapeCapture> => {
+    /** Par défaut, l'écriture à la machine est menée à son terme et le curseur montré allumé (D-186). */
+    const capturerEtape = async (titre: string, animations: 'disabled' | 'allow' = 'disabled'): Promise<EtapeCapture> => {
       const image = `${String(etapes.length + 1).padStart(2, '0')}.png`;
-      await page.screenshot({ path: join(SORTIE, image), fullPage: true });
+      await page.screenshot({ path: join(SORTIE, image), fullPage: true, animations });
       const etape = { titre, image, ...(await lire(page)) };
       etapes.push(etape);
       return etape;
@@ -684,6 +763,73 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await verifierDansEcran(page, titre, erreurs);
       await neuf.close();
     }
+
+    // Machine à écrire (D-186) : écriture figée à plusieurs instants, en taille standard puis à 22 px (« très grande »).
+    const machine = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+    page = await machine.newPage();
+    await page.goto(adresse);
+    await attendreSauvegarde(page, 0);
+    for (const taille of ['taille standard', 'texte à 22 px']) {
+      if (taille !== 'taille standard') await page.addStyleTag({ content: '.ecran, .ecran * { font-size: 22px !important; }' });
+      await nouveauTexte(page);
+      const etats: [number, EtatEcriture][] = [];
+      for (const ms of [0, 125, 250, 375, 600]) {
+        etats.push([ms, await etatEcriture(page, ms)]);
+        if (taille === 'taille standard') await capturerEtape(`Machine à écrire, ${ms} ms après le toucher`, 'allow');
+      }
+      verifierProgression(etats, `Machine à écrire, ${taille}`, erreurs);
+    }
+    const lecteur = await page.getByTestId('recit').ariaSnapshot();
+    const blocs = (await lire(page)).recit.split('\n');
+    if (lecteur.includes('▮') || blocs.some((bloc) => !lecteur.includes(bloc))) erreurs.push(`Lecteur d’écran : récit lu autrement qu’en entier, ou curseur lu :\n${lecteur}`);
+    // Toucher pendant l'écriture : la puce s'ouvre, le texte s'affiche en entier.
+    await nouveauTexte(page);
+    await etatEcriture(page, 100);
+    const puce = page.locator('.dock .puce[aria-haspopup="dialog"]').first();
+    await puce.click();
+    const touche = await etatEcriture(page);
+    if (!(await page.getByRole('dialog').first().isVisible())) erreurs.push('Machine à écrire : toucher une puce pendant l’écriture n’ouvre pas sa bulle.');
+    if (touche.visibles !== touche.total || touche.classes.includes('ecrire')) erreurs.push(`Machine à écrire : après un toucher, ${touche.visibles} caractères visibles sur ${touche.total}.`);
+    await capturerEtape('Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier', 'allow');
+    await page.keyboard.press('Escape');
+    // Rouvrir une bulle ne réécrit rien.
+    await puce.click();
+    await page.keyboard.press('Escape');
+    const rouverte = await etatEcriture(page);
+    if (rouverte.animees > 0 || rouverte.visibles !== rouverte.total) erreurs.push('Machine à écrire : rouvrir une bulle relance l’écriture.');
+    // Toucher un bouton d'action pendant l'écriture joue l'action sans attendre.
+    await nouveauTexte(page);
+    await etatEcriture(page, 100);
+    await nouveauTexte(page);
+    await machine.close();
+
+    // Réglage [NON], gardé sur l'appareil : texte immédiat, curseur fixe, après rechargement.
+    const sansEffet = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+    page = await sansEffet.newPage();
+    await page.goto(adresse);
+    await attendreSauvegarde(page, 0);
+    await page.evaluate((cle) => window.localStorage.setItem(cle, JSON.stringify({ machineAEcrire: false })), CLE_REGLAGES);
+    for (const fois of ['après rechargement', 'après un second rechargement']) {
+      await page.reload();
+      await attendreSauvegarde(page, 0);
+      await nouveauTexte(page);
+      const etat = await etatEcriture(page);
+      if (etat.visibles !== etat.total || etat.animees > 0 || etat.curseur !== 'visible, none' || !etat.classes.includes('curseur-fixe')) {
+        erreurs.push(`Réglage [NON] ${fois} : ${JSON.stringify(etat)}.`);
+      }
+    }
+    await capturerEtape('Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe');
+    await sansEffet.close();
+
+    // Le téléphone demande moins d'animations : texte immédiat, curseur fixe.
+    const reduit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR', reducedMotion: 'reduce' });
+    page = await reduit.newPage();
+    await page.goto(adresse);
+    await attendreSauvegarde(page, 0);
+    await nouveauTexte(page);
+    const calme = await etatEcriture(page);
+    if (calme.visibles !== calme.total || calme.animees > 0 || calme.curseur !== 'visible, none') erreurs.push(`Mouvement réduit : ${JSON.stringify(calme)}.`);
+    await reduit.close();
 
     const etroit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
     page = await etroit.newPage();

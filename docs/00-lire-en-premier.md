@@ -114,6 +114,8 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #94 (aperçu puis confirmation, moteur et écran) est fusionnée ([PR #111](https://github.com/greffeb/void-walker/pull/111)). Seule la créature vue ou entendue rend un aperçu risqué (D-180, D-181, PR #112) ; les autres dangers arrivent avec #101 et #102. Le porteur a demandé un seul toucher pour prendre, poser et changer de pièce quand rien n'est à craindre, les portes gardant l'aperçu (D-182) : [issue #113](https://github.com/greffeb/void-walker/issues/113), fusionnée ([PR #114](https://github.com/greffeb/void-walker/pull/114)) et close.
 
+#115 (machine à écrire) est fusionnée ([PR #119](https://github.com/greffeb/void-walker/pull/119)) : le nouveau récit s'écrit en 500 ms, puis un curseur clignote lentement (D-186). Le réglage est gardé sur l'appareil ; sa bascule arrivera avec l'écran d'options (#96).
+
 #117 (aperçu allégé) est proposée par une PR en zone orange : les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun », SAVOIR reste toujours (D-187). Fusion après accord du porteur et essai sur téléphone.
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
