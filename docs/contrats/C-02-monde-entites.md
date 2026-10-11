@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.1 — D-082 ; assemble D-015, D-043/D-044, D-047, D-051, D-061, D-067, D-072/D-073, D-078 à D-080, AR-01 et AR-02. Points MP-01 à MP-03 acceptés par D-080. v1.1 : qualités et propriétés des morceaux du lancement (D-175).
 > **Date :** 2026-10-10.
-> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; le reste absent.
+> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; encombrant (MP-03, W-02), combinaison, découpeuse, rustine et planche absents.
 
 ## 1. But et portée
 
