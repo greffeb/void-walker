@@ -99,7 +99,8 @@ export function EcranJeu({
   const voir: Prevoir = (option) => prevoir(env, jeu.partie, option);
 
   const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
-  const deplacementOuvert = ouverte?.zone === 'deplacement' ? dock.deplacements.find((option) => option.cible.id === ouverte.cible) : undefined;
+  const deplacementOuvert =
+    ouverte?.zone === 'deplacement' ? dock.deplacements.find((option) => option.cible.id === ouverte.cible && option.disponible) : undefined;
   return (
     <main className="jeu">
       <header className="entete-piece">
@@ -170,6 +171,7 @@ export function EcranJeu({
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'inventaire'}
             aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
+            disabled={occupe}
             onClick={(evenement) =>
               ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null }, evenement.currentTarget)
             }
@@ -537,6 +539,7 @@ function Recit({ jeu, zone }: { readonly jeu: Jeu; readonly zone: RefObject<HTML
 }
 
 /** Dock (12 §3.4) : une puce par objet ou passage de la pièce, qui ouvre sa bulle, puis un bouton par passage connu. */
+// Pendant l'enregistrement d'une action, rien ne s'ouvre : une bulle calculée sur l'état d'avant serait périmée (C-01 §4).
 export function DockPiece({
   dock,
   textes,
@@ -570,6 +573,7 @@ export function DockPiece({
               className="puce"
               aria-haspopup="dialog"
               aria-expanded={groupe.cible.id === puceOuverte}
+              disabled={occupe}
               onClick={(evenement) => ouvrir(groupe, evenement.currentTarget)}
             >
               <span aria-hidden="true">▸ </span>
@@ -590,7 +594,13 @@ export function DockPiece({
           <ul className="deplacements">
             {dock.deplacements.map((option) => (
               <li key={option.cible.id}>
-                <Deplacement option={option} textes={textes} ouverte={option.cible.id === deplacementOuvert} ouvrir={ouvrirDeplacement} />
+                <Deplacement
+                  option={option}
+                  textes={textes}
+                  occupe={occupe}
+                  ouverte={option.cible.id === deplacementOuvert}
+                  ouvrir={ouvrirDeplacement}
+                />
               </li>
             ))}
           </ul>
@@ -603,11 +613,13 @@ export function DockPiece({
 function Deplacement({
   option,
   textes,
+  occupe,
   ouverte,
   ouvrir,
 }: {
   readonly option: OptionMenu;
   readonly textes: TextesMonde;
+  readonly occupe: boolean;
   readonly ouverte: boolean;
   readonly ouvrir: (option: OptionMenu, ancre: HTMLElement) => void;
 }) {
@@ -620,6 +632,7 @@ function Deplacement({
       className="deplacement"
       aria-haspopup="dialog"
       aria-expanded={ouverte}
+      disabled={occupe}
       onClick={(evenement) => ouvrir(option, evenement.currentTarget)}
     >
       <span aria-hidden="true">→ </span>

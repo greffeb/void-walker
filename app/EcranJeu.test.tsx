@@ -179,6 +179,13 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(entre(dock, '<button type="button" class="deplacement"', '</button>')).toContain('aria-haspopup="dialog" aria-expanded="false"');
   });
 
+  it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
+    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} env={env} occupe={true} choisir={rien} />);
+    const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
+    expect(ouvrants).toHaveLength(4);
+    expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
+  });
+
   it('inventaire : l’action choisie montre aussi son aperçu ; « ‹ » revient à la fiche', async () => {
     const jeu = await apres('prendre');
     const carnet = observer(monde, jeu.partie.etat).inventaire[0];
