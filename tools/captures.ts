@@ -4,7 +4,7 @@ import { chromium, devices, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
 import { jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
 import { libelleOption, MONDE_PAR_DEFAUT, MONDES, nomDe, type EntreeMonde } from '../content';
-import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel } from '../app/ecran';
+import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 
@@ -36,23 +36,30 @@ export interface Geste {
   readonly rappel: string;
   /** Nom de la cible ou de la destination, attendu dans le récit (NP-04). */
   readonly nom: string;
-  /** Commande du menu moteur, celle que la CLI numérote : CONFIRMER doit enregistrer exactement celle-ci (C-01 A-05). */
+  /** Commande du menu moteur, celle que la CLI numérote : le geste doit enregistrer exactement celle-ci (C-01 A-05). */
   readonly commande: Commande;
+  /** Joué d'un seul toucher, sans aperçu (D-182). */
+  readonly direct: boolean;
 }
 
-function gesteDe({ textes }: EntreeMonde, observation: Observation, option: OptionMenu): Geste {
+const SANS_CONFIRMATION = ', sans confirmation';
+/** L'écran ignore un toucher d'un seul geste moins d'une demi-seconde après une action ou un changement de bulle (anti double toucher). */
+const PAUSE_JOUEUR_MS = 700;
+
+function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Observation, option: OptionMenu): Geste {
   const dock = composerDock(observation);
   const titre = libelleOption(textes, option).libelle;
   const rappel = texteRappel(textes, rappelDe(option)).texte;
   const fil = filBulle(textes, option.cible, option);
   const { commande } = option;
+  const direct = unToucher(monde, partie, option);
   if (dock.deplacements.includes(option)) {
     const destination = nomDestination(textes, option);
-    return { titre, zone: 'deplacement', bouton: destination, verbe: null, fil, rappel, nom: destination, commande };
+    return { titre, zone: 'deplacement', bouton: destination, verbe: null, fil, rappel, nom: destination, commande, direct };
   }
   const zone = dock.piece.some((groupe) => groupe.options.includes(option)) ? 'piece' : 'inventaire';
   const nom = nomDe(textes, option.cible).texte;
-  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], fil, rappel, nom, commande };
+  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], fil, rappel, nom, commande, direct };
 }
 
 /** Gestes du parcours témoin, calculés par le moteur, les textes et le rangement de l'écran : ils ne dépendent pas de la graine. */
@@ -62,11 +69,32 @@ export function gestesDuParcours(entree: EntreeMonde): Geste[] {
     const observation = observer(entree.monde, partie.etat);
     const option = trouverOption(observation, etape);
     if (option === undefined) throw new Error(`Étape introuvable : ${etape.action} ${etape.cible}.`);
+    const geste = gesteDe(entree, partie, observation, option);
     const resultat = jouer(entree.monde, partie, option.commande);
     if (resultat.type !== 'engagee') throw new Error(`Étape non engagée : ${etape.action}.`);
     partie = resultat.partie;
-    return gesteDe(entree, observation, option);
+    return geste;
   });
+}
+
+/** Au départ, un passage à ouvrir puis à franchir d'un seul toucher (D-182), s'il en existe un. */
+function passageDirect(entree: EntreeMonde): { readonly ouvrir: Geste; readonly aller: Geste; readonly depart: string } | undefined {
+  const partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+  const observation = observer(entree.monde, partie.etat);
+  for (const option of observation.menu.filter((choix) => choix.action === 'ouvrir' && choix.disponible)) {
+    const resultat = jouer(entree.monde, partie, option.commande);
+    if (resultat.type !== 'engagee') continue;
+    const apres = observer(entree.monde, resultat.partie.etat);
+    const aller = apres.menu.find((choix) => choix.action === 'aller' && choix.cible.id === option.cible.id);
+    if (aller !== undefined && unToucher(entree.monde, resultat.partie, aller)) {
+      return {
+        ouvrir: gesteDe(entree, partie, observation, option),
+        aller: gesteDe(entree, resultat.partie, apres, aller),
+        depart: nomDe(entree.textes, observation.piece).texte,
+      };
+    }
+  }
+  return undefined;
 }
 
 function echapper(texte: string): string {
@@ -77,15 +105,24 @@ function exactement(texte: string): RegExp {
   return new RegExp(`^${echapper(texte)}$`, 'i');
 }
 
-/** Ouvre la bulle touchée : la fiche d'une puce, ou directement l'aperçu d'un déplacement. */
+/** Ouvre la bulle touchée : la fiche d'une puce, ou l'aperçu d'un déplacement ; un déplacement d'un seul toucher est joué. */
 async function ouvrir(page: Page, geste: Geste): Promise<void> {
   if (geste.zone === 'inventaire') {
     const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
     if ((await inventaire.getAttribute('aria-expanded')) !== 'true') await inventaire.click();
     await page.getByRole('dialog', { name: exactement('Inventaire') }).getByRole('button', { name: exactement(geste.bouton) }).click();
   } else {
-    await page.locator('.dock').getByRole('button', { name: exactement(geste.bouton) }).click();
+    const nom = geste.zone === 'deplacement' && geste.direct ? `${geste.bouton}${SANS_CONFIRMATION}` : geste.bouton;
+    if (geste.zone === 'deplacement' && geste.direct) await page.waitForTimeout(PAUSE_JOUEUR_MS);
+    await page.locator('.dock').getByRole('button', { name: exactement(nom) }).click();
   }
+}
+
+/** Joue un geste d'un seul toucher depuis sa bulle ouverte : la ligne de l'action, sans aperçu (D-182). */
+async function toucherLigne(page: Page, geste: Geste): Promise<void> {
+  if (geste.verbe === null) return;
+  await page.waitForTimeout(PAUSE_JOUEUR_MS);
+  await page.getByRole('dialog', { name: exactement(geste.bouton) }).getByRole('button', { name: exactement(`${geste.verbe}${SANS_CONFIRMATION}`) }).click();
 }
 
 /** Choisit l'action dans la fiche s'il le faut ; renvoie CONFIRMER de l'aperçu (12 §3.8). */
@@ -205,20 +242,24 @@ async function verifierSansEffet(page: Page, erreurs: string[]): Promise<void> {
   const puces = await page.locator('.dock .puce[aria-haspopup="dialog"]').all();
   if (puces.length === 0) erreurs.push('Aucune puce à ouvrir au départ : bulles non vérifiées.');
   for (let fois = 0; fois < 10; fois++) {
-    const puce = puces[fois % puces.length];
+    // Décalé d'un cran : la première bulle ouverte est celle d'une porte, dont l'action garde l'aperçu.
+    const puce = puces[(fois + 1) % puces.length];
     const depuisFiche = fois >= FERMETURES.length;
-    const fermeture = depuisFiche ? (FERMETURES[fois % (FERMETURES.length - 1)] ?? '✕') : (FERMETURES[fois] ?? '✕');
+    const choix = depuisFiche ? (FERMETURES[fois % (FERMETURES.length - 1)] ?? '✕') : (FERMETURES[fois] ?? '✕');
     if (puce === undefined) break;
     const nom = (await puce.innerText()).replace(/^▸\s*/, '').trim();
     await puce.click();
     const fiche = page.getByRole('dialog', { name: exactement(nom) });
     await fiche.waitFor();
     if ((await puce.getAttribute('aria-expanded')) !== 'true') erreurs.push(`Bulle « ${nom} » : la puce n’est pas marquée ouverte.`);
+    // Une ligne d'un seul toucher jouerait l'action : on ne touche que celles qui ouvrent un aperçu.
+    const ligne = fiche.locator(`.ligne:not(.indisponible):not([aria-label$="${SANS_CONFIRMATION}"])`).first();
+    const versApercu = !depuisFiche && (await ligne.count()) > 0;
+    const fermeture = !versApercu && choix === 'ANNULER' ? '✕' : choix;
     let bulle = fiche;
-    if (depuisFiche) {
+    if (!versApercu) {
       if (fois === FERMETURES.length) await verifierFocusPiege(page, fiche, `Fiche « ${nom} »`, erreurs);
     } else {
-      const ligne = fiche.locator('.ligne:not(.indisponible)').first();
       const verbe = (await ligne.innerText()).replace(/^▸\s*/, '').trim();
       await ligne.click();
       bulle = page.getByRole('dialog', { name: exactement(`${nom} › ${verbe}`) });
@@ -257,12 +298,13 @@ async function fermerBulle(page: Page, bulle: Locator, fermeture: (typeof FERMET
   if (fermeture === 'ANNULER') await bulle.getByRole('button', { name: exactement('Annuler') }).click();
 }
 
-/** Inventaire : liste, fiche, « ‹ », fiche, aperçu, « ‹ », aperçu, puis fermeture, cinq fois, sans effet ; le focus revient sur INVENTAIRE. */
+/** Inventaire : liste, fiche, « ‹ », fiche, aperçu, « ‹ », aperçu, puis fermeture, cinq fois, sans effet ; le focus revient sur INVENTAIRE.
+ * Action d'un seul toucher : pas d'aperçu, la fiche se referme (✕ à la place d'ANNULER). */
 async function verifierInventaireSansEffet(page: Page, geste: Geste, erreurs: string[]): Promise<void> {
   const avant = { partie: await partieEnregistree(page), ...(await lire(page)) };
   const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
   const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
-  for (const fermeture of FERMETURES) {
+  for (const choix of FERMETURES) {
     await inventaire.click();
     const liste = page.getByRole('dialog', { name: exactement('Inventaire') });
     await liste.getByRole('button', { name: exactement(geste.bouton) }).click();
@@ -270,13 +312,17 @@ async function verifierInventaireSansEffet(page: Page, geste: Geste, erreurs: st
     await fiche.getByRole('button', { name: exactement('Étape précédente') }).click();
     await liste.waitFor({ timeout: 5_000 }).catch(() => erreurs.push('Inventaire : « ‹ » ne ramène pas à la liste.'));
     await liste.getByRole('button', { name: exactement(geste.bouton) }).click();
-    await fiche.getByRole('button', { name: exactement(geste.verbe ?? '') }).click();
-    const apercu = page.getByRole('dialog', { name: exactement(geste.fil) });
-    await apercu.getByRole('button', { name: exactement('Étape précédente') }).click();
-    await fiche.waitFor({ timeout: 5_000 }).catch(() => erreurs.push('Inventaire : « ‹ » ne ramène pas de l’aperçu à la fiche.'));
-    await fiche.getByRole('button', { name: exactement(geste.verbe ?? '') }).click();
-    await fermerBulle(page, apercu, fermeture);
-    await apercu.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Inventaire : ${fermeture} ne le ferme pas.`));
+    let bulle = fiche;
+    if (!geste.direct) {
+      await fiche.getByRole('button', { name: exactement(geste.verbe ?? '') }).click();
+      bulle = page.getByRole('dialog', { name: exactement(geste.fil) });
+      await bulle.getByRole('button', { name: exactement('Étape précédente') }).click();
+      await fiche.waitFor({ timeout: 5_000 }).catch(() => erreurs.push('Inventaire : « ‹ » ne ramène pas de l’aperçu à la fiche.'));
+      await fiche.getByRole('button', { name: exactement(geste.verbe ?? '') }).click();
+    }
+    const fermeture = geste.direct && choix === 'ANNULER' ? '✕' : choix;
+    await fermerBulle(page, bulle, fermeture);
+    await bulle.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Inventaire : ${fermeture} ne le ferme pas.`));
     if (!(await inventaire.evaluate((element) => element === document.activeElement))) {
       erreurs.push(`Inventaire fermé par ${fermeture} : le focus ne revient pas sur INVENTAIRE.`);
     }
@@ -375,6 +421,38 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       if ((await ferme.getAttribute('aria-disabled')) !== 'true') erreurs.push(`« ⊘ ${passage.bouton} » devrait être indisponible au départ, avec sa raison.`);
     }
     await verifierSansEffet(page, erreurs);
+    // Premier geste de pièce qui garde l'aperçu : sa bulle est capturée, ici puis à 320 px.
+    const premierApercu = gestes.find((geste) => geste.zone === 'piece' && !geste.direct);
+
+    /** Aperçu puis CONFIRMER (12 §3.8) ; l'aperçu d'un déplacement se referme d'abord sans rien jouer, de cinq façons. */
+    const confirmerApres = async (geste: Geste): Promise<void> => {
+      let confirmer = await versApercu(page, geste);
+      await confirmer.waitFor();
+      if (geste === premierApercu || geste.zone !== 'piece') {
+        const titre = `Aperçu « ${geste.fil} »`;
+        await capturerEtape(titre);
+        await verifierEcran(page, titre, erreurs);
+        await verifierDansEcran(page, titre, erreurs);
+      }
+      if (geste.zone === 'deplacement') {
+        // Le focus revient sur le bouton après chaque fermeture (12 §3.5).
+        const avantFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
+        const bouton = page.locator('.dock').getByRole('button', { name: exactement(geste.bouton) });
+        await verifierFocusPiege(page, page.getByRole('dialog', { name: exactement(geste.fil) }), `Aperçu « ${geste.fil} »`, erreurs);
+        for (const fermeture of FERMETURES) {
+          if (fermeture !== FERMETURES[0]) await ouvrir(page, geste);
+          await fermerBulle(page, page.getByRole('dialog', { name: exactement(geste.fil) }), fermeture);
+          await confirmer.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Déplacement : ${fermeture} ne ferme pas l’aperçu.`));
+          if (!(await bouton.evaluate((element) => element === document.activeElement))) {
+            erreurs.push(`Déplacement fermé par ${fermeture} : le focus ne revient pas sur le bouton.`);
+          }
+        }
+        const apresFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
+        if (JSON.stringify(apresFermetures) !== JSON.stringify(avantFermetures)) erreurs.push('Fermer l’aperçu du déplacement a changé la partie, le récit ou la situation.');
+        confirmer = await preparer(page, geste);
+      }
+      await confirmer.click();
+    };
 
     for (const [index, geste] of gestes.entries()) {
       if (geste.zone === 'inventaire') {
@@ -393,36 +471,17 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
         await verifierEcran(page, titre, erreurs);
         await verifierDansEcran(page, titre, erreurs);
       }
-      let confirmer = await versApercu(page, geste);
-      await confirmer.waitFor();
-      if (index === 0 || geste.zone !== 'piece') {
-        const titre = `Aperçu « ${geste.fil} »`;
-        await capturerEtape(titre);
-        await verifierEcran(page, titre, erreurs);
-        await verifierDansEcran(page, titre, erreurs);
+      if (geste.direct) {
+        await toucherLigne(page, geste);
+      } else {
+        await confirmerApres(geste);
       }
-      if (geste.zone === 'deplacement') {
-        // L'aperçu du déplacement se referme sans rien jouer, de cinq façons ; le focus revient sur le bouton (12 §3.5).
-        const avantFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
-        const bouton = page.locator('.dock').getByRole('button', { name: exactement(geste.bouton) });
-        await verifierFocusPiege(page, page.getByRole('dialog', { name: exactement(geste.fil) }), `Aperçu « ${geste.fil} »`, erreurs);
-        for (const fermeture of FERMETURES) {
-          if (fermeture !== FERMETURES[0]) await ouvrir(page, geste);
-          await fermerBulle(page, page.getByRole('dialog', { name: exactement(geste.fil) }), fermeture);
-          await confirmer.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Déplacement : ${fermeture} ne ferme pas l’aperçu.`));
-          if (!(await bouton.evaluate((element) => element === document.activeElement))) {
-            erreurs.push(`Déplacement fermé par ${fermeture} : le focus ne revient pas sur le bouton.`);
-          }
-        }
-        const apresFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
-        if (JSON.stringify(apresFermetures) !== JSON.stringify(avantFermetures)) erreurs.push('Fermer l’aperçu du déplacement a changé la partie, le récit ou la situation.');
-        confirmer = await preparer(page, geste);
-      }
-      await confirmer.click();
       await attendreSauvegarde(page, index + 1);
+      if (geste.direct && (await page.getByRole('dialog').count()) > 0) erreurs.push(`${geste.titre} : une bulle reste ouverte après un seul toucher.`);
       const journal = (JSON.parse(await partieEnregistree(page)) as { enregistrement: { actions: { commande: Commande }[] } }).enregistrement.actions;
       if (JSON.stringify(journal.at(-1)?.commande) !== JSON.stringify(geste.commande)) {
-        erreurs.push(`${geste.titre} : CONFIRMER a enregistré ${JSON.stringify(journal.at(-1)?.commande)} au lieu de ${JSON.stringify(geste.commande)}.`);
+        const qui = geste.direct ? 'Le toucher' : 'CONFIRMER';
+        erreurs.push(`${geste.titre} : ${qui} a enregistré ${JSON.stringify(journal.at(-1)?.commande)} au lieu de ${JSON.stringify(geste.commande)}.`);
       }
       const avant = await capturerEtape(geste.titre);
       await verifierEcran(page, geste.titre, erreurs);
@@ -479,12 +538,86 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await verifierEcran(page, `Fin, ${ETROIT.width} px`, erreurs);
     await contexte.setOffline(false);
 
+    // Double toucher sur un déplacement d'un seul toucher : un seul déplacement, focus hors des boutons réutilisés (D-182).
+    const essai = passageDirect(entree);
+    if (essai === undefined) {
+      erreurs.push('Aucun déplacement d’un seul toucher à essayer au départ.');
+    } else {
+      const neuf = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+      page = await neuf.newPage();
+      await page.goto(adresse);
+      await attendreSauvegarde(page, 0);
+      await (await preparer(page, essai.ouvrir)).click();
+      await attendreSauvegarde(page, 1);
+      await page.waitForTimeout(PAUSE_JOUEUR_MS);
+      const bouton = page.locator('.dock').getByRole('button', { name: exactement(`${essai.aller.bouton}${SANS_CONFIRMATION}`) });
+      const boite = await bouton.boundingBox();
+      if (boite === null) {
+        erreurs.push(`« → ${essai.aller.bouton} » d’un seul toucher absent.`);
+      } else {
+        const [x, y] = [boite.x + boite.width / 2, boite.y + boite.height / 2];
+        await page.touchscreen.tap(x, y);
+        await page.waitForTimeout(80);
+        await page.touchscreen.tap(x, y);
+        await attendreSauvegarde(page, 2);
+        // Laisse à un éventuel second déplacement le temps de s'enregistrer.
+        await page.waitForTimeout(1_000);
+        const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
+        if (actions !== '2') erreurs.push(`Double toucher sur « → ${essai.aller.bouton} » : ${actions ?? '?'} actions au lieu de 2.`);
+        const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim().toLowerCase();
+        if (piece !== essai.aller.bouton.toLowerCase()) erreurs.push(`Double toucher sur « → ${essai.aller.bouton} » : arrivée en « ${piece} ».`);
+        await capturerEtape(`« → ${essai.aller.bouton} » d’un seul toucher, touché deux fois : un seul déplacement`);
+        // Au clavier, retour par le même passage : le focus va au récit ; un second Entrée ne rejoue pas le bouton réutilisé.
+        const retour = page.locator('.dock').getByRole('button', { name: exactement(`${essai.depart}${SANS_CONFIRMATION}`) });
+        if ((await retour.count()) === 0) {
+          erreurs.push('Aucun déplacement d’un seul toucher pour l’essai au clavier.');
+        } else {
+          await page.waitForTimeout(PAUSE_JOUEUR_MS);
+          await retour.focus();
+          await page.keyboard.press('Enter');
+          await attendreSauvegarde(page, 3);
+          const focus = await page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? document.activeElement?.tagName ?? '');
+          if (focus !== 'recit') erreurs.push(`Après un déplacement d’un seul toucher au clavier, le focus est sur « ${focus} » et non sur le récit.`);
+          // Passé le délai anti double toucher : seul le déplacement du focus empêche de rejouer le bouton.
+          await page.waitForTimeout(PAUSE_JOUEUR_MS);
+          await page.keyboard.press('Enter');
+          await page.waitForTimeout(1_000);
+          if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== '3') erreurs.push('Un second Entrée a rejoué un déplacement.');
+        }
+        // Double toucher sur un objet de la liste d'inventaire : la ligne « Poser » apparue dessous ne joue rien.
+        const prise = gestes.find((geste) => geste.direct && geste.zone === 'piece');
+        const pose = gestes.find((geste) => geste.direct && geste.zone === 'inventaire');
+        if (prise === undefined || pose === undefined) {
+          erreurs.push('Aucun geste d’un seul toucher à poser depuis l’inventaire.');
+        } else {
+          await ouvrir(page, prise);
+          await toucherLigne(page, prise);
+          await attendreSauvegarde(page, 4);
+          // Passé le délai après la prise : seul le changement d'étape de la bulle doit protéger.
+          await page.waitForTimeout(PAUSE_JOUEUR_MS);
+          await page.getByRole('button', { name: exactement('Inventaire') }).click();
+          await page.waitForTimeout(PAUSE_JOUEUR_MS);
+          const objet = await page.getByRole('dialog', { name: exactement('Inventaire') }).getByRole('button', { name: exactement(pose.bouton) }).boundingBox();
+          if (objet !== null) {
+            const [ox, oy] = [objet.x + objet.width / 2, objet.y + objet.height / 2];
+            await page.touchscreen.tap(ox, oy);
+            await page.waitForTimeout(80);
+            await page.touchscreen.tap(ox, oy);
+            await page.waitForTimeout(1_000);
+          }
+          if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== '4') erreurs.push(`Double toucher sur « ${pose.bouton} » dans l’inventaire : l’objet a été posé.`);
+          if (!(await page.getByRole('dialog', { name: exactement(pose.bouton) }).isVisible())) erreurs.push(`Double toucher sur « ${pose.bouton} » : la fiche n’est pas restée ouverte.`);
+        }
+      }
+      await neuf.close();
+    }
+
     const etroit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
     page = await etroit.newPage();
     await page.goto(adresse);
     await attendreSauvegarde(page, 0);
-    const premier = gestes[0];
-    if (premier !== undefined && premier.zone !== 'deplacement') {
+    const premier = premierApercu;
+    if (premier !== undefined) {
       await ouvrir(page, premier);
       await capturerEtape(`Départ, bulle « ${premier.bouton} », ${ETROIT.width} px de large`);
       await verifierEcran(page, `Départ, ${ETROIT.width} px`, erreurs);

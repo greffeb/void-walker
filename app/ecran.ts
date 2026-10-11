@@ -1,8 +1,10 @@
 import { former, nomDe, type TextesMonde } from '../content';
 import {
   ACTIONS,
+  apercu,
   CATALOGUE,
   type Cible,
+  type DefMonde,
   type IdAction,
   type Observation,
   type OptionMenu,
@@ -61,6 +63,18 @@ export function composer(groupe: Groupe): Composition {
     fiche: groupe.options.find((option) => !CATALOGUE[option.action].engage),
     actions: groupe.options.filter((option) => CATALOGUE[option.action].engage),
   };
+}
+
+/** Les portes gardent toujours l'aperçu (D-182). */
+const UN_TOUCHER: readonly IdAction[] = ['prendre', 'poser', 'aller'];
+
+/** Prendre, poser ou changer de pièce se joue d'un seul toucher quand l'aperçu n'annonce ni risque, ni danger, ni coût (D-182). */
+export function unToucher(monde: DefMonde, partie: Partie, option: OptionMenu): boolean {
+  if (!option.disponible || !UN_TOUCHER.includes(option.action)) return false;
+  const resultat = apercu(monde, partie, option.commande);
+  if (resultat.type !== 'apercu') return false;
+  const { risque, danger, cout } = resultat.apercu;
+  return risque === 'aucun' && danger === null && cout === 'aucun';
 }
 
 /** Marge aux bords de l'écran et écart laissé à la flèche entre la bulle et sa puce (12 §2.7, §3.5). */

@@ -1,13 +1,18 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { observer, type IdAction, type OptionMenu } from '../engine';
+import { CATALOGUE, observer, type IdAction, type OptionMenu } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type ApercuTexte, type TextesMonde } from '../content';
-import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, type Dock, type Groupe } from './ecran';
+import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, unToucher, type Dock, type Groupe } from './ecran';
 import { consulter, prevoir, type Environnement, type Jeu } from './jeu';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
 type Lire = (option: OptionMenu) => readonly string[];
 type Prevoir = (option: OptionMenu) => ApercuTexte;
+/** Vrai si l'option se joue d'un seul toucher, sans aperçu (D-182). */
+type Direct = (option: OptionMenu) => boolean;
+
+/** Suffixe du nom accessible d'un bouton qui joue l'action sans aperçu. */
+const SANS_CONFIRMATION = ', sans confirmation';
 
 /**
  * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté) ou un déplacement.
@@ -20,6 +25,9 @@ type Ouverte =
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
+
+/** Un double toucher ne joue qu'une action : le second ne doit pas jouer un bouton d'un seul toucher apparu dessous (D-182). */
+const ANTI_DOUBLE_TOUCHER_MS = 500;
 
 function quitterEntreeBulle(): void {
   const etat: unknown = window.history.state;
@@ -51,6 +59,8 @@ export function EcranJeu({
   const origine = useRef<HTMLElement | null>(null);
   /** Après une action lancée depuis une bulle : où rendre le focus une fois le résultat affiché. */
   const aRendre = useRef<HTMLElement | null>(null);
+  /** Dernière action engagée ou dernier changement de bulle : ce qui a pu faire apparaître un autre bouton sous le doigt. */
+  const dernierChangement = useRef(Number.NEGATIVE_INFINITY);
 
   useEffect(() => {
     const surRetour = (): void => {
@@ -71,10 +81,15 @@ export function EcranJeu({
     (depuis.isConnected ? depuis : recit.current)?.focus();
   }, [jeu]);
 
+  /** Ouvre une bulle ou change d'étape. */
+  const montrer = (suivante: Ouverte): void => {
+    dernierChangement.current = performance.now();
+    setOuverte(suivante);
+  };
   const ouvrir = (suivante: Ouverte, depuis: HTMLElement): void => {
     if (origine.current === null) window.history.pushState({ [ENTREE_BULLE]: true }, '');
     origine.current = depuis;
-    setOuverte(suivante);
+    montrer(suivante);
   };
   /** Fermer sans effet : ✕, voile, Échap ou retour système ; le focus revient à l'élément d'origine (12 §7). */
   const fermer = (): void => {
@@ -85,18 +100,29 @@ export function EcranJeu({
     quitterEntreeBulle();
     depuis.focus();
   };
-  // CONFIRMER est le seul geste qui engage une action (12 §1.3) ; « Regarder autour de vous » reste gratuit.
+  const direct: Direct = (option) => unToucher(env.monde, jeu.partie, option);
+  /** Un toucher d'un seul geste trop proche d'une action ou d'un changement de bulle est le second d'un double toucher : ignoré. */
+  const tropTot = (option: OptionMenu): boolean => direct(option) && performance.now() - dernierChangement.current < ANTI_DOUBLE_TOUCHER_MS;
+  // CONFIRMER engage l'action, ou un seul toucher quand rien n'est à craindre (D-182) ; « Regarder autour de vous » reste gratuit.
   const jouer: Jouer = (option) => {
-    aRendre.current = origine.current;
-    if (origine.current !== null) {
+    if (tropTot(option)) return;
+    const depuis = origine.current;
+    if (depuis !== null) {
       origine.current = null;
       setOuverte(null);
       quitterEntreeBulle();
     }
+    // Après un déplacement, le même bouton mène ailleurs : le focus va au récit.
+    aRendre.current = option.action === 'aller' ? recit.current : depuis;
+    if (CATALOGUE[option.action].engage) dernierChangement.current = performance.now();
     void choisir(jeu, option);
   };
   const lire: Lire = (option) => consulter(env, jeu.partie, option);
   const voir: Prevoir = (option) => prevoir(env, jeu.partie, option);
+  const toucherDeplacement = (option: OptionMenu, ancre: HTMLElement): void => {
+    if (direct(option)) jouer(option);
+    else ouvrir({ zone: 'deplacement', cible: option.cible.id, ancre }, ancre);
+  };
 
   const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
   const deplacementOuvert =
@@ -126,7 +152,8 @@ export function EcranJeu({
         puceOuverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
         deplacementOuvert={ouverte?.zone === 'deplacement' ? ouverte.cible : null}
         ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null }, ancre)}
-        ouvrirDeplacement={(option, ancre) => ouvrir({ zone: 'deplacement', cible: option.cible.id, ancre }, ancre)}
+        ouvrirDeplacement={toucherDeplacement}
+        direct={direct}
         jouer={jouer}
       />
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
@@ -136,12 +163,13 @@ export function EcranJeu({
           ancre={ouverte.ancre}
           groupe={groupeOuvert}
           action={ouverte.action}
-          choisirAction={(action) => setOuverte({ ...ouverte, action })}
+          choisirAction={(action) => montrer({ ...ouverte, action })}
           textes={textes}
           occupe={occupe}
           jouer={jouer}
           lire={lire}
           prevoir={voir}
+          direct={direct}
           fermer={fermer}
         />
       )}
@@ -154,14 +182,15 @@ export function EcranJeu({
             id={idInventaire}
             groupes={dock.inventaire}
             cible={ouverte.cible}
-            choisir={(cible) => setOuverte({ zone: 'inventaire', cible, action: null })}
+            choisir={(cible) => montrer({ zone: 'inventaire', cible, action: null })}
             action={ouverte.action}
-            choisirAction={(action) => setOuverte({ ...ouverte, action })}
+            choisirAction={(action) => montrer({ ...ouverte, action })}
             textes={textes}
             occupe={occupe}
             jouer={jouer}
             lire={lire}
             prevoir={voir}
+            direct={direct}
             fermer={fermer}
           />
         )}
@@ -187,10 +216,11 @@ export function EcranJeu({
 interface PropsComposition {
   readonly textes: TextesMonde;
   readonly occupe: boolean;
-  /** Joue l'action : appelé seulement par CONFIRMER. */
+  /** Joue l'action : CONFIRMER, ou la ligne elle-même si elle se joue d'un seul toucher. */
   readonly jouer: Jouer;
   readonly lire: Lire;
   readonly prevoir: Prevoir;
+  readonly direct: Direct;
   readonly fermer: () => void;
   /** Action dont l'aperçu est affiché ; `null` à l'étape de la fiche. */
   readonly action: IdAction | null;
@@ -411,14 +441,17 @@ export function BulleInventaire({
   );
 }
 
-/** Étapes de la bulle (12 §3.5) : la fiche, gratuite, et une ligne par action ; puis l'aperçu de l'action choisie. */
+/** Étapes de la bulle (12 §3.5) : la fiche, gratuite, et une ligne par action ; puis l'aperçu de l'action choisie, sauf action d'un seul toucher. */
 function Composer({
   groupe,
   option,
   idDescription,
   textes,
+  occupe,
+  jouer,
   lire,
   prevoir: voir,
+  direct,
   choisirAction,
 }: PropsComposition & { readonly groupe: Groupe; readonly option: OptionMenu | undefined; readonly idDescription: string }) {
   if (option !== undefined) return <ApercuAction apercu={voir(option)} idDescription={idDescription} />;
@@ -439,13 +472,18 @@ function Composer({
             const verbe = textes.verbes[action.action];
             return (
               <li key={action.action}>
-                {raison === null ? (
-                  <button type="button" className="ligne" onClick={() => choisirAction(action.action)}>
+                {raison !== null ? (
+                  <Indisponible classe="ligne" libelle={verbe} raison={raison} />
+                ) : direct(action) ? (
+                  <button type="button" className="ligne" aria-label={`${verbe}${SANS_CONFIRMATION}`} disabled={occupe} onClick={() => jouer(action)}>
                     <span aria-hidden="true">▸ </span>
                     {verbe}
                   </button>
                 ) : (
-                  <Indisponible classe="ligne" libelle={verbe} raison={raison} />
+                  <button type="button" className="ligne" onClick={() => choisirAction(action.action)}>
+                    <span aria-hidden="true">▸ </span>
+                    {verbe}
+                  </button>
                 )}
               </li>
             );
@@ -477,7 +515,7 @@ function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuTexte;
   );
 }
 
-/** ANNULER (un tiers) referme sans effet ; CONFIRMER (deux tiers) est le seul geste qui engage (12 §3.5). */
+/** ANNULER (un tiers) referme sans effet ; CONFIRMER (deux tiers) engage l'action prévue (12 §3.5). */
 function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean; readonly confirmer: () => void; readonly annuler: () => void }) {
   return (
     <div className="confirmation">
@@ -549,6 +587,7 @@ export function DockPiece({
   deplacementOuvert,
   ouvrir,
   ouvrirDeplacement,
+  direct,
   jouer,
 }: {
   readonly dock: Dock;
@@ -558,7 +597,9 @@ export function DockPiece({
   readonly puceOuverte: string | null;
   readonly deplacementOuvert: string | null;
   readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
+  /** Ouvre l'aperçu du déplacement, ou le joue s'il se fait d'un seul toucher. */
   readonly ouvrirDeplacement: (option: OptionMenu, ancre: HTMLElement) => void;
+  readonly direct: Direct;
   /** « Regarder autour de vous » : gratuit, sans aperçu. */
   readonly jouer: Jouer;
 }) {
@@ -600,6 +641,7 @@ export function DockPiece({
                   textes={textes}
                   occupe={occupe}
                   ouverte={option.cible.id === deplacementOuvert}
+                  direct={direct(option)}
                   ouvrir={ouvrirDeplacement}
                 />
               </li>
@@ -616,12 +658,14 @@ function Deplacement({
   textes,
   occupe,
   ouverte,
+  direct,
   ouvrir,
 }: {
   readonly option: OptionMenu;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
   readonly ouverte: boolean;
+  readonly direct: boolean;
   readonly ouvrir: (option: OptionMenu, ancre: HTMLElement) => void;
 }) {
   const { raison } = libelleOption(textes, option);
@@ -631,8 +675,9 @@ function Deplacement({
     <button
       type="button"
       className="deplacement"
-      aria-haspopup="dialog"
-      aria-expanded={ouverte}
+      aria-haspopup={direct ? undefined : 'dialog'}
+      aria-expanded={direct ? undefined : ouverte}
+      aria-label={direct ? `${destination}${SANS_CONFIRMATION}` : undefined}
       disabled={occupe}
       onClick={(evenement) => ouvrir(option, evenement.currentTarget)}
     >

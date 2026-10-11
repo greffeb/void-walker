@@ -1353,7 +1353,7 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 
 ### D-182 — Une seule touche quand rien n'est à craindre, sauf pour les portes
 
-- Date / statut : 2026-10-11 / **Validé, implémentation à faire**.
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #113).
 - Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
 - Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
 

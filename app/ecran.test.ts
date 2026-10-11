@@ -12,6 +12,7 @@ import {
   rappelDe,
   rappelRepris,
   texteRappel,
+  unToucher,
   type Dock,
 } from './ecran';
 import { consulter, prevoir } from './jeu';
@@ -193,6 +194,36 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
   it('une option qui engage le personnage n’est jamais lue comme une fiche', () => {
     const prendre = optionDe(depart(), 'prendre', 'carnet');
     expect(() => consulter({ monde, textes }, depart(), prendre)).toThrow(/engage le personnage/);
+  });
+});
+
+describe('un seul toucher (D-182)', () => {
+  it('départ : prendre le carnet d’un toucher ; ouvrir une porte ou une grille garde l’aperçu', () => {
+    const partie = depart();
+    expect(unToucher(monde, partie, optionDe(partie, 'prendre', 'carnet'))).toBe(true);
+    expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'porte'))).toBe(false);
+    expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'grille'))).toBe(false);
+  });
+
+  it('dans tous les états atteignables : jamais pour une porte, une option indisponible, un risque, un danger ou un coût', () => {
+    const vus = new Set<string>();
+    for (const partie of atteignables()) {
+      for (const option of observer(monde, partie.etat).menu) {
+        const direct = unToucher(monde, partie, option);
+        if (!option.disponible) {
+          expect(direct).toBe(false);
+          continue;
+        }
+        vus.add(`${option.action}:${String(direct)}`);
+        if (!direct) continue;
+        expect(['prendre', 'poser', 'aller']).toContain(option.action);
+        expect(prevoir({ monde, textes }, partie, option)).toMatchObject({ risque: textes.apercu.risques.aucun, danger: null, cout: textes.apercu.couts.aucun });
+      }
+    }
+    // Les deux cas existent pour le déplacement : sans danger connu, et vers la créature vue ou entendue.
+    expect([...vus]).toEqual(expect.arrayContaining(['aller:true', 'aller:false', 'prendre:true', 'poser:true', 'ouvrir:false', 'fermer:false']));
+    expect([...vus]).not.toEqual(expect.arrayContaining(['ouvrir:true']));
+    expect([...vus]).not.toEqual(expect.arrayContaining(['fermer:true']));
   });
 });
 
