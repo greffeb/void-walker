@@ -64,6 +64,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     verifierGabarit(erreurs, `indisponibilité ${raison}`, textes.indisponibilites[raison], ROLES_INDISPONIBILITE);
   }
   for (const action of ACTIONS) verifierGabarit(erreurs, `libellé ${action}`, textes.libelles[action], ROLES_LIBELLE[action]);
+  for (const action of ACTIONS) verifierGabarit(erreurs, `verbe ${action}`, textes.verbes[action], []);
   verifierVariantes(erreurs, 'regarder un passage ouvert', textes.passages.ouvert, ROLES_PASSAGE);
   verifierVariantes(erreurs, 'regarder un passage fermé', textes.passages.ferme, ROLES_PASSAGE);
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {

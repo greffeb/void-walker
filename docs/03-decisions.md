@@ -1306,4 +1306,13 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : [la conception des morceaux](13-morceaux-lancement.md) devient le plan de travail : fiches, places de la créature et parcours à prouver (un parcours sûr par morceau, un cas par mélange accepté, une partie sur téléphone par morceau). Les règles des nouveaux morceaux et des mélanges sont retranscrites dans C-02, C-03 et C-04, sans changement de sens.
 - Réserves : textes, durée et intérêt non mesurés ; aucune partie humaine revendiquée.
 
+## Décisions validées — interface (suite)
+
+### D-176 — Une couleur par menu : cyan pour l'inventaire
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : demande du porteur du projet sur la version de test de la PR #109, avec une capture : « le menu d'inventaire […] dans une pop-up, une sorte d'info-bulle, couleur cyan », puis « cyan (adapté à l'esthétique cassette futurism phosphore) » ; « l'infobulle doit se placer par-dessus les éléments existants ».
+- Décision : la bulle d'inventaire (D-154) est cyan, posée au-dessus du bouton INVENTAIRE sans le cacher, par-dessus l'écran ; « Dans la pièce » et « Se déplacer vers » restent visibles dessous ; toucher en dehors la referme. Chaque menu peut avoir sa propre couleur. Remplace sur ce point la règle « tout l'écran reste dans la gamme ambre » de 12 §2.1 (D-140) : l'écran de jeu reste ambre.
+- Limite : blanc pour la carte et vert pour l'IA du vaisseau sont des pistes du porteur du projet, pas encore décidées. Chaque couleur garde les seuils de contraste de 12 §7 et n'est jamais la seule porteuse d'une information (12 §2.6).
+
 

@@ -35,8 +35,8 @@ export default defineConfig({
         description: 'Récit d’horreur spatiale.',
         lang: 'fr',
         display: 'standalone',
-        background_color: '#0b0d10',
-        theme_color: '#0b0d10',
+        background_color: '#0a0907',
+        theme_color: '#0a0907',
         icons: [
           { src: 'icone-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icone-512.png', sizes: '512x512', type: 'image/png' },
@@ -44,7 +44,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,webmanifest}'],
+        // La police IBM Plex Mono est servie par l'appli, y compris hors ligne (12 §2.2).
+        globPatterns: ['**/*.{js,css,html,png,webmanifest,woff2}'],
         globIgnores: ['captures/**'],
         // La version principale ne doit pas servir les versions de test publiées sous elle.
         navigateFallbackDenylist: [/\/pr-\d+\//],

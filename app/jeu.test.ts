@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { observer, type DefMonde } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
-import { demarrer, jouerCommande, type Environnement, type Jeu } from './jeu';
+import { demarrer, jouerOption, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
@@ -19,7 +19,7 @@ async function pret(env: Environnement): Promise<Jeu> {
 async function choisir(env: Environnement, jeu: Jeu, action: string, disponible = true): Promise<Jeu> {
   const option = observer(monde as DefMonde, jeu.partie.etat).menu.find((choix) => choix.action === action && choix.disponible === disponible);
   if (option === undefined) throw new Error(`Option ${action} absente.`);
-  return jouerCommande(env, jeu, option.commande);
+  return jouerOption(env, jeu, option);
 }
 
 describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
@@ -39,7 +39,23 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const rouvert = await pret(environnement(stockageIndexedDB('essai', fabrique)));
     expect(rouvert.partie).toEqual(jeu.partie);
     expect(rouvert.recit).toEqual(jeu.recit);
+    expect(rouvert.rappel).toEqual(jeu.rappel);
     expect(rouvert.sauvegarde).toBe('sauvegardee');
+  });
+
+  it('le rappel de la dernière action suit le geste et se retrouve à la reprise (12 §3.3)', async () => {
+    const env = environnement(stockageIndexedDB('rappel', fabrique));
+    let jeu = await pret(env);
+    expect(jeu.rappel).toBeNull();
+    jeu = await choisir(env, jeu, 'prendre');
+    expect(jeu.rappel).toEqual({ texte: 'Carnet · Prendre', capitales: false });
+    jeu = await choisir(env, jeu, 'regarder');
+    expect(jeu.rappel).toEqual({ texte: 'Regarder autour de vous', capitales: true });
+    jeu = await choisir(env, jeu, 'ouvrir');
+    expect((await pret(environnement(stockageIndexedDB('rappel', fabrique)))).rappel).toEqual(jeu.rappel);
+    jeu = await choisir(env, jeu, 'aller');
+    expect(jeu.rappel).toEqual({ texte: 'Aller vers · atelier', capitales: true });
+    expect((await pret(environnement(stockageIndexedDB('rappel', fabrique)))).rappel).toEqual(jeu.rappel);
   });
 
   it('le parcours du monde de test se joue jusqu’au bout', async () => {

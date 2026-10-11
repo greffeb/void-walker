@@ -1,119 +1,512 @@
-:root {
-  color-scheme: dark;
-  --fond: #0b0d10;
-  --surface: #151920;
-  --bord: #2a313c;
-  --texte: #d9dde3;
-  --discret: #8a93a0;
-  --accent: #9fb4c8;
-  --alerte: #e0a46a;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 17px;
-  line-height: 1.5;
-  background: var(--fond);
-  color: var(--texte);
+/* Direction « Phosphore » (docs/12-interface-ecrans.md §2) : terminal ambre, angles droits, ni rouge ni vert. */
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/polices/IBMPlexMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-* {
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/polices/IBMPlexMono-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/polices/IBMPlexMono-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --surface-2: #110e09;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --texte-secondaire: #b08850;
+  --signal: #ffd08a;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --cyan: #4fe6f0;
+  --cyan-texte: #a6f6fa;
+  --cyan-secondaire: #3aa7ae;
+  --cyan-surface: #061416;
+  --voile-bulle: rgba(10, 9, 7, 0.35);
+  --voile-modale: rgba(10, 9, 7, 0.55);
+  font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 17px;
+  line-height: 1.6;
+  background: var(--fond);
+  color: var(--texte);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--fond);
+}
+
+html,
+body,
+#racine {
+  height: 100%;
+  margin: 0;
+}
+
 body {
-  margin: 0;
-  min-height: 100dvh;
+  background: var(--fond);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.jeu {
-  max-width: 34rem;
-  margin: 0 auto;
-  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: 100dvh;
-}
-
-.entete h1 {
-  margin: 0;
-  font-size: 1rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--discret);
-}
-
-.recit p {
-  margin: 0 0 0.5rem;
-}
-
-.situation {
-  padding: 0.75rem 1rem;
-  background: var(--surface);
-  border: 1px solid var(--bord);
-  border-radius: 0.5rem;
-  color: var(--accent);
-}
-
-.situation p {
-  margin: 0.2rem 0;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.action {
-  display: flex;
-  flex-direction: column;
-}
-
-.actions button,
-.avis button {
-  min-height: 3rem;
-  padding: 0.6rem 1rem;
+button {
   font: inherit;
-  text-align: left;
-  color: var(--texte);
-  background: var(--surface);
-  border: 1px solid var(--bord);
-  border-radius: 0.5rem;
+  color: inherit;
+  border-radius: 0;
   cursor: pointer;
 }
 
-.actions button:disabled {
-  color: var(--discret);
+button:disabled {
   cursor: not-allowed;
-  opacity: 0.7;
 }
 
-.actions button:not(:disabled):active {
-  background: var(--bord);
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ecran {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 30rem;
+  margin: 0 auto;
+}
+
+/* Lignes de balayage (12 §2.3) : 1 px noir à 22 % toutes les 3 px, au-dessus de tout, jamais touchées. */
+.balayage {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+}
+
+/* Écran de jeu (12 §3.1) : en-tête, récit qui défile, dock d'au plus 45 %, navigation. */
+.jeu {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.entete-piece {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 64px;
+  padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  border-bottom: 1px solid var(--separateur);
+}
+
+.titre-piece {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.engrenage {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--texte);
+  background: none;
+  border: 0;
+}
+
+.avis-sauvegarde {
+  flex: none;
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--fond);
+  background: var(--accent);
+}
+
+.recit {
+  flex: 1 1 0;
+  min-height: 33%;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.recit p {
+  margin: 0 0 12px;
+}
+
+.recit .rappel {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--texte-secondaire);
+}
+
+.rappel.capitales {
+  text-transform: uppercase;
+}
+
+.lecteur-seul {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.dock {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 45%;
+  overflow-y: auto;
+  padding: 4px 16px 12px;
+  border-top: 1px dashed var(--separateur);
+}
+
+/* Bulle (12 §3.5) : voile de 35 % qui referme au toucher, sous les lignes de balayage. */
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: var(--voile-bulle);
+}
+
+.bas {
+  position: relative;
+  z-index: 5;
+  flex: none;
+}
+
+.bulle {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 12px);
+  display: flex;
+  flex-direction: column;
+  max-height: min(60dvh, 420px);
+  border: 1px solid var(--couleur-menu);
+  background: var(--surface-menu);
+  box-shadow: 0 0 0 4px var(--fond);
+}
+
+.bulle:focus {
+  outline: none;
+}
+
+/* Losange de 12 px qui pointe le bouton d'origine, premier tiers de la navigation. */
+.bulle::after {
+  content: '';
+  position: absolute;
+  left: calc((100% - 16px) / 6 - 6px);
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background: var(--surface-menu);
+  border-right: 1px solid var(--couleur-menu);
+  border-bottom: 1px solid var(--couleur-menu);
+  transform: rotate(45deg);
+}
+
+/* Une couleur par menu (D-176) : cyan pour l'inventaire. */
+.bulle-inventaire {
+  --couleur-menu: var(--cyan);
+  --texte-menu: var(--cyan-texte);
+  --secondaire-menu: var(--cyan-secondaire);
+  --surface-menu: var(--cyan-surface);
+}
+
+.bulle .titre-section {
+  margin: 0;
+  padding: 10px 12px 4px;
+  color: var(--couleur-menu);
+}
+
+.bulle-corps {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px 12px;
+}
+
+.bulle .puces {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bulle .puce {
+  color: var(--texte-menu);
+  border-color: var(--secondaire-menu);
+}
+
+.bulle .puce[aria-expanded='true'] {
+  color: var(--surface-menu);
+  background: var(--couleur-menu);
+  border-color: var(--couleur-menu);
+}
+
+.bulle .options {
+  border-color: var(--couleur-menu);
+  background: var(--surface-menu);
+}
+
+.bulle .option + .option {
+  border-top-color: var(--secondaire-menu);
+}
+
+.bulle .option button,
+.bulle .vide {
+  color: var(--texte-menu);
+}
+
+.bulle .raison {
+  color: var(--secondaire-menu);
+}
+
+.bulle :focus-visible {
+  outline-color: var(--couleur-menu);
+}
+
+.titre-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+}
+
+.titre-section::before,
+.titre-section::after {
+  content: '';
+  border-top: 1px solid currentColor;
+}
+
+.titre-section::before {
+  flex: 0 0 16px;
+}
+
+.titre-section::after {
+  flex: 0 1 96px;
+}
+
+.puces {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.puces .pleine-largeur {
+  grid-column: 1 / -1;
+}
+
+.puces > li {
+  display: flex;
+}
+
+.puces > li > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.puce {
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 12px;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: left;
+  color: var(--texte);
+  background: transparent;
+  border: 1px solid var(--bordure);
+}
+
+.puce[aria-expanded='true'] {
+  color: var(--fond);
+  background: var(--texte);
+  border-color: var(--texte);
+}
+
+.puce.autour {
+  margin-top: 8px;
+}
+
+.options {
+  border: 1px solid var(--accent);
+  background: var(--surface);
+}
+
+.option + .option {
+  border-top: 1px solid var(--separateur);
+}
+
+.option button {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: left;
+  color: var(--texte);
+  background: transparent;
+  border: 0;
+}
+
+.option .raison {
+  padding: 0 12px 8px;
+}
+
+.deplacements {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deplacement {
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--fond);
+  background: var(--texte);
+  border: 1px solid var(--texte);
+}
+
+.deplacement:disabled {
+  color: var(--texte-secondaire);
+  background: transparent;
+  border-color: var(--bordure);
 }
 
 .raison {
-  margin: 0.2rem 0 0 1rem;
-  font-size: 0.85rem;
-  color: var(--discret);
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--texte-secondaire);
 }
 
-.sauvegarde {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--discret);
+.vide {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--texte-secondaire);
 }
 
-.sauvegarde.echec,
-.avis {
-  color: var(--alerte);
+/* Navigation (12 §4.3) : boutons texte sans pictogramme, seulement ceux dont la fonction existe. */
+.navigation {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--separateur);
+}
+
+.navigation button {
+  min-height: 52px;
+  padding: 4px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texte);
+  background: transparent;
+  border: 1px solid var(--bordure);
+}
+
+.navigation button[aria-expanded='true'] {
+  color: var(--cyan-texte);
+  border-color: var(--cyan);
+  box-shadow: inset 0 0 0 1px var(--cyan);
+}
+
+.puce:not(:disabled, [aria-expanded='true']):active,
+.option button:not(:disabled):active,
+.navigation button:not([aria-expanded='true']):active {
+  background: var(--separateur);
+}
+
+.deplacement:not(:disabled):active,
+.principal:not(:disabled):active {
+  background: var(--accent);
+}
+
+.principal {
+  width: 100%;
+  min-height: 54px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fond);
+  background: var(--texte);
+  border: 1px solid var(--texte);
+}
+
+.attente,
+.avis .detail {
+  color: var(--texte-secondaire);
+}
+
+.avis .detail {
+  font-size: 13px;
 }
 
 .pied {
-  margin-top: auto;
-  font-size: 0.75rem;
-  color: var(--discret);
-}
-
-.detail {
-  font-size: 0.8rem;
+  flex: none;
+  padding: 0 16px max(6px, env(safe-area-inset-bottom));
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--texte-secondaire);
 }

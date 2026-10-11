@@ -1,17 +1,20 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium, devices, type Page } from 'playwright';
+import { chromium, devices, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
-import { jouer, nouvellePartie, observer, type Partie } from '../engine';
-import { libelleOption, MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
+import { jouer, nouvellePartie, observer, type Observation, type OptionMenu, type Partie } from '../engine';
+import { libelleOption, MONDE_PAR_DEFAUT, MONDES, nomDe, type EntreeMonde } from '../content';
+import { composerDock, nomDestination, nomPuce, rappelDe, texteRappel } from '../app/ecran';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 
-// Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé.
+// Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large.
 // Niveau « vérifié automatiquement » : jamais une validation humaine (C-10 §2).
 
 const SORTIE = join(REPO_ROOT, 'captures');
 const TELEPHONE = 'Pixel 7';
+const REFERENCE = { width: 390, height: 844 };
+const ETROIT = { width: 320, height: 568 };
 
 export interface EtapeCapture {
   readonly titre: string;
@@ -20,21 +23,65 @@ export interface EtapeCapture {
   readonly situation: string;
 }
 
-/** Libellés du parcours témoin, calculés par le moteur et les textes : ils ne dépendent pas de la graine. */
-export function libellesDuParcours(entree: EntreeMonde): string[] {
-  let partie: Partie = nouvellePartie(entree.monde, { version: 'libelles', graine: 0 });
+/** Où toucher pour jouer une étape (12 §3.4), et ce que l'écran doit en rappeler. */
+export interface Geste {
+  readonly titre: string;
+  readonly zone: 'piece' | 'inventaire' | 'deplacement';
+  /** Puce ou destination, telle qu'affichée. */
+  readonly bouton: string;
+  /** Option de la puce dépliée ; `null` pour un déplacement. */
+  readonly verbe: string | null;
+  readonly rappel: string;
+  /** Nom de la cible ou de la destination, attendu dans le récit (NP-04). */
+  readonly nom: string;
+}
+
+function gesteDe({ textes }: EntreeMonde, observation: Observation, option: OptionMenu): Geste {
+  const dock = composerDock(observation);
+  const titre = libelleOption(textes, option).libelle;
+  const rappel = texteRappel(textes, rappelDe(option)).texte;
+  if (dock.deplacements.includes(option)) {
+    const destination = nomDestination(textes, option);
+    return { titre, zone: 'deplacement', bouton: destination, verbe: null, rappel, nom: destination };
+  }
+  const zone = dock.piece.some((groupe) => groupe.options.includes(option)) ? 'piece' : 'inventaire';
+  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], rappel, nom: nomDe(textes, option.cible).texte };
+}
+
+/** Gestes du parcours témoin, calculés par le moteur, les textes et le rangement de l'écran : ils ne dépendent pas de la graine. */
+export function gestesDuParcours(entree: EntreeMonde): Geste[] {
+  let partie: Partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
   return entree.parcours.etapes.map((etape) => {
-    const option = trouverOption(observer(entree.monde, partie.etat), etape);
+    const observation = observer(entree.monde, partie.etat);
+    const option = trouverOption(observation, etape);
     if (option === undefined) throw new Error(`Étape introuvable : ${etape.action} ${etape.cible}.`);
     const resultat = jouer(entree.monde, partie, option.commande);
     if (resultat.type !== 'engagee') throw new Error(`Étape non engagée : ${etape.action}.`);
     partie = resultat.partie;
-    return libelleOption(entree.textes, option).libelle;
+    return gesteDe(entree, observation, option);
   });
 }
 
+function exactement(texte: string): RegExp {
+  return new RegExp(`^${texte.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+}
+
+/** Ouvre l'inventaire puis la puce s'il le faut ; renvoie le bouton qui joue l'étape. */
+async function preparer(page: Page, geste: Geste): Promise<Locator> {
+  if (geste.zone === 'deplacement') return page.getByRole('button', { name: exactement(geste.bouton) });
+  if (geste.zone === 'inventaire') {
+    const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
+    if ((await inventaire.getAttribute('aria-expanded')) !== 'true') await inventaire.click();
+  }
+  await page.getByRole('button', { name: exactement(geste.bouton) }).click();
+  return page.getByRole('group', { name: exactement(geste.bouton) }).getByRole('button', { name: exactement(geste.verbe ?? '') });
+}
+
+/** La sauvegarde réussie est silencieuse : on attend ses attributs, pas un texte (12 §11). */
 async function attendreSauvegarde(page: Page, actions: number): Promise<void> {
-  await page.locator(`[data-testid="sauvegarde"][data-actions="${actions}"][data-etat="sauvegardee"]`).waitFor({ timeout: 10_000 });
+  await page
+    .locator(`[data-testid="sauvegarde"][data-actions="${actions}"][data-etat="sauvegardee"]`)
+    .waitFor({ state: 'attached', timeout: 10_000 });
 }
 
 async function lire(page: Page): Promise<{ recit: string; situation: string }> {
@@ -42,7 +89,61 @@ async function lire(page: Page): Promise<{ recit: string; situation: string }> {
   return { recit: await texte('recit'), situation: await texte('situation') };
 }
 
-function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[], installable: string): string {
+/** Aucun chiffre affiché, cibles d'au moins 44 × 44 px, pas de débordement en largeur (12 §1, §2.7, §7). */
+async function verifierEcran(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  const zones = await page.locator('.entete-piece, [data-testid="recit"], .dock, .bulle, .navigation').allInnerTexts();
+  if (zones.some((texte) => /\d/.test(texte))) erreurs.push(`${ou} : un chiffre est affiché.`);
+  for (const bouton of await page.locator('main button').all()) {
+    const boite = await bouton.boundingBox();
+    if (boite !== null && (boite.width < 43.5 || boite.height < 43.5)) {
+      erreurs.push(`${ou} : « ${(await bouton.innerText()).trim()} » mesure ${Math.round(boite.width)} × ${Math.round(boite.height)} px.`);
+    }
+  }
+  const debord = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  if (debord > 0) erreurs.push(`${ou} : la page déborde de ${debord} px en largeur.`);
+}
+
+/** Bulle d'inventaire ouverte : au-dessus de son bouton sans le cacher, dock toujours là (D-154, D-176). */
+async function verifierBulle(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  const bulle = await page.getByRole('dialog', { name: exactement('Inventaire') }).boundingBox();
+  const bouton = await page.getByRole('button', { name: exactement('Inventaire') }).boundingBox();
+  if (bulle === null || bouton === null) {
+    erreurs.push(`${ou} : bulle d’inventaire ou bouton absent.`);
+    return;
+  }
+  if (bulle.y + bulle.height > bouton.y) erreurs.push(`${ou} : la bulle cache le bouton INVENTAIRE.`);
+  for (const titre of ['Dans la pièce', 'Se déplacer vers']) {
+    if (!(await page.getByRole('heading', { name: exactement(titre) }).isVisible())) erreurs.push(`${ou} : « ${titre} » a disparu sous la bulle.`);
+  }
+}
+
+/** Toucher en dehors de la bulle la referme sans rien jouer (12 §3.5). */
+async function verifierFermeture(page: Page, erreurs: string[]): Promise<void> {
+  const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
+  await inventaire.click();
+  await page.mouse.click(24, 140);
+  if (await page.getByRole('dialog', { name: exactement('Inventaire') }).isVisible()) erreurs.push('Toucher hors de la bulle ne la ferme pas.');
+  if ((await inventaire.getAttribute('aria-expanded')) !== 'false') erreurs.push('Le bouton INVENTAIRE reste marqué ouvert après fermeture.');
+}
+
+/** Le rappel et le récit nomment la cible comme le dock (NP-04). */
+async function verifierNoms(page: Page, geste: Geste, erreurs: string[]): Promise<void> {
+  const rappel = ((await page.getByTestId('rappel').textContent()) ?? '').replace(/^>\s*/, '').trim();
+  if (rappel.toLowerCase() !== geste.rappel.toLowerCase()) erreurs.push(`${geste.titre} : rappel « ${rappel} » au lieu de « ${geste.rappel} ».`);
+  const recit = (await page.getByTestId('recit').innerText()).toLowerCase();
+  if (!recit.includes(geste.nom.toLowerCase())) erreurs.push(`${geste.titre} : le récit ne nomme pas « ${geste.nom} » (NP-04).`);
+}
+
+async function policesChargees(page: Page): Promise<string[]> {
+  return page.evaluate(async () => {
+    await document.fonts.ready;
+    return [...document.fonts]
+      .filter((police) => police.family.includes('IBM Plex Mono') && police.status === 'loaded')
+      .map((police) => `${police.weight} ${police.style}`);
+  });
+}
+
+function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[], installable: string, horsLigne: string): string {
   const adresse = process.env.VERSION_URL ?? '';
   const images = process.env.CAPTURES_URL ?? '';
   const commit = process.env.COMMIT ?? '';
@@ -54,10 +155,11 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
     adresse === '' ? 'Adresse : (publication locale)' : `**Adresse :** ${adresse}`,
     commit === '' ? '' : `Commit \`${commit.slice(0, 7)}\``,
     '',
-    `Captures d’un navigateur automatique sur téléphone simulé (${TELEPHONE}). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.`,
+    `Captures d’un navigateur automatique sur téléphone simulé (${TELEPHONE}, ${REFERENCE.width} × ${REFERENCE.height} puis ${ETROIT.width} px de large). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.`,
     '',
     erreurs.length === 0 ? '**Parcours du monde de test : réussi.**' : `**Parcours du monde de test : ÉCHEC.**\n\n${erreurs.map((erreur) => `- ${erreur}`).join('\n')}`,
     `Installation : ${installable}`,
+    `Hors ligne : ${horsLigne}`,
     '',
     etapes.map((etape) => `<img src="${images}${etape.image}${suffixe}" width="200" alt="${etape.titre}">`).join(' '),
     '',
@@ -74,13 +176,14 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
 export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
   const entree = MONDES[MONDE_PAR_DEFAUT];
   if (entree === undefined) throw new Error('Monde par défaut absent.');
-  const libelles = libellesDuParcours(entree);
+  const gestes = gestesDuParcours(entree);
   rmSync(SORTIE, { recursive: true, force: true });
   mkdirSync(SORTIE, { recursive: true });
 
   const etapes: EtapeCapture[] = [];
   const erreurs: string[] = [];
   let installable = 'non vérifiée';
+  let horsLigne = 'non vérifié';
   let serveur: Awaited<ReturnType<typeof preview>> | undefined;
   let navigateur: Awaited<ReturnType<typeof chromium.launch>> | undefined;
   try {
@@ -88,7 +191,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     navigateur = await chromium.launch();
     const adresse = serveur.resolvedUrls?.local[0];
     if (adresse === undefined) throw new Error('Serveur de prévisualisation sans adresse.');
-    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], locale: 'fr-FR' });
+    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
     let page = await contexte.newPage();
 
     const capturerEtape = async (titre: string): Promise<EtapeCapture> => {
@@ -102,13 +205,27 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await page.goto(adresse);
     await attendreSauvegarde(page, 0);
     await capturerEtape('Départ');
-    const fermee = page.getByRole('button', { name: libelles[2] ?? '', exact: true });
-    if (!(await fermee.isDisabled())) erreurs.push(`« ${libelles[2]} » devrait être indisponible au départ.`);
+    await verifierEcran(page, 'Départ', erreurs);
+    if ((await page.evaluate(() => document.documentElement.lang)) !== 'fr') erreurs.push('Le document n’est pas déclaré en français.');
+    const passage = gestes.find((geste) => geste.zone === 'deplacement');
+    if (passage !== undefined && !(await page.getByRole('button', { name: exactement(passage.bouton) }).isDisabled())) {
+      erreurs.push(`« → ${passage.bouton} » devrait être indisponible au départ.`);
+    }
 
-    for (const [index, libelle] of libelles.entries()) {
-      await page.getByRole('button', { name: libelle, exact: true }).click();
+    for (const [index, geste] of gestes.entries()) {
+      if (geste.zone === 'inventaire') await verifierFermeture(page, erreurs);
+      const bouton = await preparer(page, geste);
+      if (geste.zone === 'inventaire' || (index === 0 && geste.zone === 'piece')) {
+        const titre = geste.zone === 'inventaire' ? `Inventaire ouvert, « ${geste.bouton} » déplié` : `« ${geste.bouton} » déplié`;
+        await capturerEtape(titre);
+        await verifierEcran(page, titre, erreurs);
+        if (geste.zone === 'inventaire') await verifierBulle(page, titre, erreurs);
+      }
+      await bouton.click();
       await attendreSauvegarde(page, index + 1);
-      const avant = await capturerEtape(libelle);
+      const avant = await capturerEtape(geste.titre);
+      await verifierEcran(page, geste.titre, erreurs);
+      await verifierNoms(page, geste, erreurs);
       if (index === 1) {
         // Fermer l'appli puis la rouvrir : reprise au dernier geste (C-09 S-01).
         await page.close();
@@ -140,6 +257,35 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const icones = (manifeste?.icons ?? []).map((icone) => icone.sizes).join(', ');
     installable = `manifeste ${manifeste === null ? 'absent' : `présent (icônes ${icones})`}, service worker ${actif ? 'actif' : 'inactif'}`;
     if (manifeste === null || !actif) erreurs.push(`Appli non installable : ${installable}.`);
+
+    // Hors ligne : la partie et la police viennent du service worker de l'appli (12 §2.2).
+    await contexte.setOffline(true);
+    page = await contexte.newPage();
+    const requetes: string[] = [];
+    page.on('response', (reponse) => {
+      if (reponse.url().endsWith('.woff2')) requetes.push(`${reponse.url().split('/').pop()} (${reponse.fromServiceWorker() ? 'service worker' : 'réseau'})`);
+    });
+    await page.goto(adresse);
+    await attendreSauvegarde(page, gestes.length);
+    const chargees = await policesChargees(page);
+    horsLigne = `polices chargées : ${chargees.join(', ') || 'aucune'} ; ${requetes.join(', ') || 'aucune requête de police'}`;
+    const servies = requetes.length > 0 && requetes.every((requete) => requete.endsWith('(service worker)'));
+    if (!chargees.includes('400 normal') || !chargees.includes('600 normal') || !servies) erreurs.push(`Police hors ligne : ${horsLigne}.`);
+    await capturerEtape('Hors ligne : reprise, police servie par l’appli');
+
+    await page.setViewportSize(ETROIT);
+    await capturerEtape(`Fin du parcours, ${ETROIT.width} px de large`);
+    await verifierEcran(page, `Fin, ${ETROIT.width} px`, erreurs);
+    await contexte.setOffline(false);
+
+    const etroit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
+    page = await etroit.newPage();
+    await page.goto(adresse);
+    await attendreSauvegarde(page, 0);
+    const premier = gestes[0];
+    if (premier !== undefined && premier.zone !== 'deplacement') await preparer(page, premier);
+    await capturerEtape(`Départ, « ${premier?.bouton ?? ''} » déplié, ${ETROIT.width} px de large`);
+    await verifierEcran(page, `Départ, ${ETROIT.width} px`, erreurs);
   } catch (erreur) {
     erreurs.push(erreur instanceof Error ? erreur.message : String(erreur));
   } finally {
@@ -148,8 +294,9 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify({ telephone: TELEPHONE, installable, erreurs, etapes }, null, 2)}\n`);
-  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, installable));
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT], installable, horsLigne, erreurs, etapes };
+  writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
+  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, installable, horsLigne));
   return { etapes, erreurs };
 }
 
@@ -157,6 +304,6 @@ if (isMainModule(import.meta.url)) {
   const { etapes, erreurs } = await capturer();
   for (const etape of etapes) console.log(`[${etape.image}] ${etape.titre}\n${etape.recit}\n${etape.situation}\n`);
   for (const erreur of erreurs) console.error(`ERREUR : ${erreur}`);
-  console.log(erreurs.length === 0 ? 'Captures : parcours réussi dans l’appli, reprise au dernier geste.' : 'Captures : ÉCHEC.');
+  console.log(erreurs.length === 0 ? 'Captures : parcours réussi dans l’appli, reprise au dernier geste, police servie hors ligne.' : 'Captures : ÉCHEC.');
   if (erreurs.length > 0) process.exitCode = 1;
 }

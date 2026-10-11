@@ -25,6 +25,8 @@ export interface TextesMonde {
   readonly refus: Readonly<Record<RaisonRefus, string>>;
   readonly indisponibilites: Readonly<Record<RaisonIndisponibilite, string>>;
   readonly libelles: Readonly<Record<IdAction, string>>;
+  /** Verbe seul, sans trou : options d'une puce et rappel de la dernière action (« > Carnet · Prendre »). */
+  readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
     readonly lieu: string;
     readonly objets: string;
