@@ -2,15 +2,15 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-109/
-Commit `83c24b8`
+Commit `c62e56b`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
 **Parcours du monde de test : réussi.**
 Installation : manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif
-Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)
+Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-Regular.woff2 (service worker), IBMPlexMono-SemiBold.woff2 (service worker)
 
-<img src="https://greffeb.github.io/void-walker/pr-109/captures/01.png?v=83c24b8" width="200" alt="Départ"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/02.png?v=83c24b8" width="200" alt="« Carnet » déplié"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/03.png?v=83c24b8" width="200" alt="Prendre le carnet"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/04.png?v=83c24b8" width="200" alt="Ouvrir la porte de l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/05.png?v=83c24b8" width="200" alt="Après fermeture et réouverture"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/06.png?v=83c24b8" width="200" alt="Aller dans l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/07.png?v=83c24b8" width="200" alt="Inventaire ouvert, « Carnet » déplié"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/08.png?v=83c24b8" width="200" alt="Poser le carnet"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/09.png?v=83c24b8" width="200" alt="Hors ligne : reprise, police servie par l’appli"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/10.png?v=83c24b8" width="200" alt="Fin du parcours, 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/11.png?v=83c24b8" width="200" alt="Départ, « Carnet » déplié, 320 px de large">
+<img src="https://greffeb.github.io/void-walker/pr-109/captures/01.png?v=c62e56b" width="200" alt="Départ"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/02.png?v=c62e56b" width="200" alt="« Carnet » déplié"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/03.png?v=c62e56b" width="200" alt="Prendre le carnet"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/04.png?v=c62e56b" width="200" alt="Ouvrir la porte de l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/05.png?v=c62e56b" width="200" alt="Après fermeture et réouverture"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/06.png?v=c62e56b" width="200" alt="Aller dans l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/07.png?v=c62e56b" width="200" alt="Inventaire ouvert, « Carnet » déplié"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/08.png?v=c62e56b" width="200" alt="Poser le carnet"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/09.png?v=c62e56b" width="200" alt="Hors ligne : reprise, police servie par l’appli"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/10.png?v=c62e56b" width="200" alt="Fin du parcours, 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-109/captures/11.png?v=c62e56b" width="200" alt="Départ, « Carnet » déplié, 320 px de large">
 
 <details><summary>Texte affiché à chaque étape</summary>
 

@@ -11,7 +11,7 @@
     }
   ],
   "installable": "manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif",
-  "horsLigne": "polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)",
+  "horsLigne": "polices chargées : 400 normal, 600 normal ; IBMPlexMono-Regular.woff2 (service worker), IBMPlexMono-SemiBold.woff2 (service worker)",
   "erreurs": [],
   "etapes": [
     {
