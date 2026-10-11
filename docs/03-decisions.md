@@ -1392,4 +1392,27 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : dans l'aperçu de l'appli, la ligne RISQUE n'apparaît que s'il y a un risque connu (ou un danger connu annoncé), la ligne COÛT que s'il y a un coût (`[bruyant]`). Sinon la ligne disparaît entièrement, libellé et valeur, aussi pour le lecteur d'écran. SAVOIR reste toujours affiché : un aperçu sans risque ni coût montre seulement SAVOIR, puis ANNULER / CONFIRMER. Précise 12 §3.8 et D-150.
 - Limite : l'aperçu calculé par le moteur ne change pas ; la CLI garde ses trois lignes. Le un seul toucher (D-182) se décide toujours sur l'aperçu du moteur, pas sur ce qui est affiché.
 
+### D-188 — Le feu brûle à chaque action finie dans une pièce en feu
+
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #102).
+- Origine : réponses du porteur « Possible, une blessure certaine annoncée avant » (entrer dans une pièce en feu) et « Une blessure certaine quand il arrive, puis une à chaque action tant que vous y restez » (le feu gagne la pièce du passager).
+- Décision : finir une action dans une pièce en feu provoque une aggravation certaine, cause « feu », sans dé : en y entrant, quand le feu la gagne, puis à chaque action tant que le passager y reste. Éteindre la pièce où l'on est, ou en sortir, évite la brûlure de cette action. L'aperçu l'annonce « certain » (« mortel » comme danger quand le passager est critique) dès que le passager voit le foyer en cause : sa pièce, ou une voisine par un passage ouvert.
+- Limite : avec les griffes dans le même pas, une seule aggravation, causes conservées (C-04 §3, D-053). Le feu n'abîme pas les objets (C-03 §5.3).
+
+### D-189 — La créature n'entre jamais dans une pièce en feu
+
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #102).
+- Origine : réponse du porteur « Elle ne traverse jamais une pièce en feu, elle contourne ou attend ».
+- Décision : une liaison vers une pièce en feu n'est pas praticable pour la créature. Elle passe par un autre chemin s'il existe, sinon elle attend du côté où elle est en gardant son indice.
+- Limite [détail de l'agent] : si le feu gagne la pièce où elle se trouve, elle n'est pas blessée et peut en sortir ; rien n'est décidé de plus.
+
+### D-190 — L'huile au pied d'une porte, du côté du passager
+
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #102).
+- Origine : réponse du porteur « Au pied d'une porte, de votre côté ; elle glisse en franchissant cette porte vers vous ; vous passez toujours par le bord sec sans glisser ».
+- Décision : verser une dose de liquide glissant rend glissant le pied d'un passage de la pièce, du côté du passager, même fermé (AR-01 §11.3). La créature qui franchit ce passage sans connaître ce sol glisse là où il se trouve ; sa réaction s'arrête et les deux suivantes sont perdues ; elle connaît ensuite ce sol et le franchit prudemment, en deux réactions (C-03 §5.2). Glissée, elle ne peut pas intercepter. Le passager passe toujours par le bord sec, sans glisser ni dé.
+- Limite [détail de l'agent] : un sol huilé du côté qu'elle quitte compte aussi ; elle y glisse sans changer de pièce.
+
+Détails de l'agent pour #102, à revoir par le porteur au besoin : une pièce au plus prend feu par mise à jour, la première dans l'ordre du monde ; l'eau s'utilise sur la pièce du passager ou sur une voisine par un passage ouvert ; déplacer la caisse est un geste discret (AR-01 §12) ; sortir de l'alcôve coûte une réaction à la créature, comme y entrer (C-03 §4.3) ; un bruit fait dans sa propre pièce l'en fait sortir.
+
 

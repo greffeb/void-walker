@@ -1,5 +1,5 @@
 import type { Des } from './des';
-import type { EtatPartie } from './etat';
+import { creatureEnVue, type EtatPartie } from './etat';
 import type { Cause, Danger, Evenement, NiveauRisque, Sante } from './vocabulaire';
 
 // Blessures, soin et interception (C-04 §2 à §4).
@@ -20,10 +20,13 @@ const EVENEMENT_AGGRAVATION = {
   vaincu: 'defaite',
 } as const;
 
-/** Le passager commence l'action dans la pièce de la créature, répit passé : elle peut l'intercepter (C-04 §4, D-183). */
+/**
+ * Le passager commence l'action sous les yeux de la créature, répit passé : elle peut l'intercepter (C-04 §4, D-183) ; pas
+ * depuis l'alcôve, ni après une glissade tant qu'elle a des réactions perdues (C-03 §5.2).
+ */
 export function expose(etat: EtatPartie): boolean {
   const creature = etat.creature;
-  return creature !== null && creature.piece === etat.piece && creature.contact && !creature.repit;
+  return creature !== null && creatureEnVue(etat) && creature.contact && !creature.repit && creature.perdues === 0;
 }
 
 /** Le jet d'interception, enregistré (D-055) : vrai si elle l'atteint. */

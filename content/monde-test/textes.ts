@@ -90,6 +90,58 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous puisez dans {le:objet} et serrez un pansement sur la pire de vos plaies. Vous tenez debout, mais vous restez blessé.',
       'Vous ouvrez {le:objet} et colmatez ce que vous pouvez. Vous allez un peu mieux ; vous restez blessé.',
     ],
+    objet_deplace: [
+      'Vous poussez {le:objet} {nom:position}, en raclant le sol.',
+      'Vous traînez {le:objet} sur le sol et l’installez {nom:position}.',
+    ],
+    feu_derriere: [
+      'De l’autre côté {de:passage}, des flammes lèchent les cloisons.',
+      'Une bouffée de chaleur vous saute au visage : derrière {le:passage}, tout brûle.',
+    ],
+    feu_gagne: ['Les flammes gagnent {le:piece}.', 'Le feu se jette dans {le:piece}.'],
+    feu_eteint: [
+      'L’eau siffle sur les flammes ; le feu {de:piece} meurt dans un nuage de vapeur.',
+      'Une gerbe d’eau, un sifflement, puis plus rien : le feu {de:piece} est éteint.',
+    ],
+    huile_versee: [
+      'Vous videz {le:objet} au pied {de:passage} ; le sol luit, glissant.',
+      'Vous répandez {le:objet} au pied {de:passage}, en gardant un bord sec pour vous.',
+    ],
+    creature_glisse: [
+      'La créature franchit {le:passage}, dérape sur l’huile et s’étale de tout son long.',
+      'Elle surgit par {le:passage}, ses pattes partent sur le sol huilé : la voilà à terre.',
+    ],
+    alarme_declenchee: [
+      'Vous lancez {le:objet} ; au loin, une sirène se met à hurler.',
+      'Vous appuyez sur {le:objet}. Quelque part, un émetteur se met à sonner.',
+    ],
+  },
+  brulures: {
+    feu: {
+      aggravation_blesse: ['Les flammes vous mordent les bras : vous êtes blessé.', 'La chaleur vous brûle la peau ; vous êtes blessé.'],
+      aggravation_critique: [
+        'Le feu vous enveloppe un instant : vous êtes grièvement brûlé.',
+        'Vos vêtements prennent feu ; vous les étouffez, grièvement brûlé.',
+      ],
+      defaite: [
+        'Les flammes se referment sur vous. Vous ne trouvez plus d’air, puis plus rien.',
+        'La chaleur vous fait tomber à genoux. La fumée emporte le reste.',
+      ],
+    },
+    griffes_feu: {
+      aggravation_blesse: [
+        'Des griffes et des flammes à la fois : vous êtes blessé.',
+        'Une griffe vous entaille pendant que le feu vous lèche : vous êtes blessé.',
+      ],
+      aggravation_critique: [
+        'Griffé, brûlé, vous tenez à peine debout : vous êtes grièvement blessé.',
+        'Les griffes et le feu vous atteignent ensemble ; grièvement blessé, vous chancelez.',
+      ],
+      defaite: [
+        'Les griffes vous jettent dans les flammes. Vous ne vous relevez pas.',
+        'Entre les griffes et le feu, vous n’avez plus nulle part où aller. Tout s’éteint.',
+      ],
+    },
   },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Vous apercevez {le:vers} de l’autre côté.'],
@@ -106,11 +158,16 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     pas_blesse: 'Vous n’êtes pas blessé : rien n’a été joué.',
     vide: 'Il n’y a plus rien à utiliser : rien n’a été joué.',
     partie_terminee: 'Cette partie est terminée : rien n’a été joué.',
+    hors_de_portee: 'C’est hors de portée : rien n’a été joué.',
+    test_en_cours: 'Le test est déjà en cours : rien n’a été joué.',
+    parametre_absent: 'Ce n’est pas possible ici : rien n’a été joué.',
   },
   indisponibilites: {
     ferme: '{Le:cible} est fermé{e:cible}.',
     pas_blesse: 'Vous n’êtes pas blessé.',
     vide: '{Le:cible} est vide.',
+    hors_de_portee: '{Le:cible} est hors de portée.',
+    test_en_cours: 'Le test est déjà en cours.',
   },
   libelles: {
     regarder: 'Regarder {le:cible}',
@@ -120,6 +177,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     fermer: 'Fermer {le:cible}',
     aller: 'Aller dans {le:vers}',
     soigner: 'Se soigner avec {le:cible}',
+    deplacer: 'Déplacer {le:cible} {nom:position}',
+    arroser: 'Arroser le feu {de:piece} avec {le:cible}',
+    verser: 'Verser {le:cible} au pied {de:passage}',
+    declencher: 'Déclencher {le:cible}',
   },
   verbes: {
     regarder: 'Regarder',
@@ -129,6 +190,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     fermer: 'Fermer',
     aller: 'Aller vers',
     soigner: 'Se soigner',
+    deplacer: 'Déplacer',
+    arroser: 'Arroser',
+    verser: 'Verser',
+    declencher: 'Déclencher',
   },
   observation: {
     lieu: 'Vous êtes dans {le:piece}.',
@@ -136,6 +201,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     aucunObjet: 'Rien ne traîne ici.',
     passageOuvert: '{Le:passage} est ouvert{e:passage}.',
     passageFerme: '{Le:passage} est fermé{e:passage}.',
+    passageEnFeu: '{Le:passage} est ouvert{e:passage} : de l’autre côté, tout brûle.',
+    huile: 'Le sol est huilé au pied {de:passage}.',
+    placement: '{Le:objet} est {nom:position}.',
+    feu: 'Les flammes vous entourent.',
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',
     creature: 'La créature est là, tout près de vous.',
@@ -159,6 +228,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       creature_vue_moment: 'vous avez vu la créature dans {le:piece} il y a un moment',
       creature_vue_longtemps: 'vous avez vu la créature dans {le:piece} il y a longtemps',
       creature_entendue: 'quelque chose bougeait derrière {le:passage}',
+      brulure: 'vous finirez dans les flammes',
+      brulure_mortelle: 'vous finirez dans les flammes, et vous n’y survivrez pas',
     },
     couts: { aucun: 'aucun', bruyant: '[bruyant]' },
     savoir: {
@@ -169,6 +240,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       quittera: 'Vous quitterez {le:piece}.',
       soignera: 'Votre état s’améliorera d’un cran.',
       videra: '{Le:objet} sera vide.',
+      deplacera: '{Le:objet} sera {nom:position}.',
+      eteindra: 'Le feu {de:piece} sera éteint.',
+      huilera: 'Le sol sera glissant au pied {de:passage}, de votre côté ; vous garderez un bord sec.',
+      sonnera: 'L’avertisseur sonnera un moment dans {le:piece}.',
     },
   },
 };

@@ -1,5 +1,9 @@
 import {
   autreCote,
+  cleZone,
+  creatureEnVue,
+  enFeu,
+  huilee,
   liaisonsDe,
   refPassage,
   refPiece,
@@ -17,32 +21,44 @@ import type { Danger, Evenement, NiveauRisque } from './vocabulaire';
 
 export type Intensite = 'normal' | 'fort';
 
-/** Son produit pendant l'action, actif pendant la réaction de ce pas. */
+/** Son produit pendant l'action, actif pendant la réaction de ce pas ; `alcove` : sa source est dans l'alcôve de la pièce. */
 export interface SonEmis {
   readonly piece: string;
   readonly intensite: Intensite;
+  readonly alcove?: boolean;
 }
 
 const FORCE: Readonly<Record<Intensite, number>> = { normal: 1, fort: 2 };
+
+/** Réactions perdues après une glissade sur un sol huilé inconnu (C-03 §5.2). */
+export const REACTIONS_PERDUES = 2;
 
 function laissePasserLeSon(etat: EtatPartie, liaison: DefLiaison): boolean {
   return etat.liaisons[liaison.id] === true || liaison.sonAuTravers === true;
 }
 
-/** La créature est large : elle ne franchit qu'une liaison ouverte et non étroite, jamais une cloison fermée (D-044, D-047). */
-function praticable(etat: EtatPartie, liaison: DefLiaison): boolean {
-  return etat.liaisons[liaison.id] === true && liaison.etroite !== true;
+/**
+ * La créature est large : elle ne franchit qu'une liaison ouverte et non étroite, jamais une cloison fermée (D-044, D-047) ;
+ * elle n'entre jamais dans une pièce en feu (D-189).
+ */
+function praticable(etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  return etat.liaisons[liaison.id] === true && liaison.etroite !== true && !enFeu(etat, autreCote(liaison, depuis));
 }
 
 /** Plus court chemin de liaisons acceptées, dans l'ordre stable du monde ; `null` si aucun. */
-function chemin(monde: DefMonde, depart: string, arrivee: string, accepte: (liaison: DefLiaison) => boolean): DefLiaison[] | null {
+function chemin(
+  monde: DefMonde,
+  depart: string,
+  arrivee: string,
+  accepte: (liaison: DefLiaison, depuis: string) => boolean,
+): DefLiaison[] | null {
   const venu = new Map<string, DefLiaison | null>([[depart, null]]);
   const file = [depart];
   for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
     if (piece === arrivee) break;
     for (const liaison of liaisonsDe(monde, piece)) {
       const voisine = autreCote(liaison, piece);
-      if (venu.has(voisine) || !accepte(liaison)) continue;
+      if (venu.has(voisine) || !accepte(liaison, piece)) continue;
       venu.set(voisine, liaison);
       file.push(voisine);
     }
@@ -71,21 +87,33 @@ export function sonRetenu(monde: DefMonde, etat: EtatPartie, depuis: string, son
  * séparation qui la bloque (C-03 §4.3). Au plus une liaison franchie.
  */
 function pasVers(monde: DefMonde, etat: EtatPartie, depuis: string, cible: string): DefLiaison | undefined {
-  const voie = chemin(monde, depuis, cible, (liaison) => praticable(etat, liaison));
+  const voie = chemin(monde, depuis, cible, (liaison, piece) => praticable(etat, liaison, piece));
   if (voie !== null) return voie[0];
   const premier = chemin(monde, depuis, cible, (liaison) => laissePasserLeSon(etat, liaison))?.[0];
-  return premier !== undefined && praticable(etat, premier) ? premier : undefined;
+  return premier !== undefined && praticable(etat, premier, depuis) ? premier : undefined;
 }
 
 interface Percu {
   readonly evenement: Evenement;
-  /** Bruit entendu : pièce d'où il vient et liaison qui le laisse passer ; absent quand il la voit entrer. */
+  /** Bruit entendu : pièce d'où il vient et liaison qui le laisse passer ; absent quand il la voit. */
   readonly entendue?: BruitCreature;
 }
 
-/** Ce que le passager perçoit d'un mouvement : il le voit entrer, ou l'entend bouger dans une pièce voisine (OP-01). */
-function percuParLePassager(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depart: string, arrivee: string): Percu | undefined {
-  if (arrivee === etat.piece) return { evenement: { type: 'creature_entre', passage: refPassage(monde, etat, liaison, etat.piece) } };
+/**
+ * Ce que le passager perçoit d'un mouvement : il la voit entrer ou glisser dans sa pièce, ou l'entend bouger dans une pièce
+ * voisine (OP-01). `glisse` : la pièce où elle a glissé, s'il y en a une.
+ */
+function percuParLePassager(
+  monde: DefMonde,
+  etat: EtatPartie,
+  liaison: DefLiaison,
+  depart: string,
+  arrivee: string,
+  glisse: string | null,
+): Percu | undefined {
+  const passage = refPassage(monde, etat, liaison, etat.piece === depart ? depart : arrivee);
+  if (glisse === etat.piece) return { evenement: { type: 'creature_glisse', passage } };
+  if (arrivee === etat.piece) return { evenement: { type: 'creature_entre', passage } };
   for (const piece of [arrivee, depart]) {
     const voisine = liaisonsDe(monde, etat.piece).find((lien) => autreCote(lien, etat.piece) === piece && laissePasserLeSon(etat, lien));
     if (voisine !== undefined) {
@@ -93,6 +121,39 @@ function percuParLePassager(monde: DefMonde, etat: EtatPartie, liaison: DefLiais
     }
   }
   return undefined;
+}
+
+interface Reponse {
+  readonly creature: EtatCreature;
+  readonly evenements: Evenement[];
+  readonly entendue?: BruitCreature;
+}
+
+/**
+ * Franchir `liaison` vers l'indice (C-03 §5.2) : un sol huilé connu se franchit prudemment, en deux réactions ; inconnu, elle
+ * glisse là où il se trouve, sa réaction s'arrête et les deux suivantes sont perdues.
+ */
+function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, liaison: DefLiaison, indice: Indice): Reponse {
+  const depart = creature.piece;
+  const arrivee = autreCote(liaison, depart);
+  const zone = [arrivee, depart].find((piece) => huilee(etat, liaison.id, piece));
+  const cle = zone === undefined ? null : cleZone({ liaison: liaison.id, piece: zone });
+  if (cle !== null && creature.connues.includes(cle) && creature.engagee !== liaison.id) {
+    return { creature: { ...creature, indice, engagee: liaison.id }, evenements: [] };
+  }
+  const glisse = cle !== null && !creature.connues.includes(cle) ? zone ?? null : null;
+  const piece = glisse ?? arrivee;
+  const suite: EtatCreature = {
+    ...creature,
+    piece,
+    alcove: false,
+    engagee: null,
+    indice: piece === indice.piece ? null : indice,
+    ...(glisse === null || cle === null ? {} : { perdues: REACTIONS_PERDUES, connues: [...creature.connues, cle].sort() }),
+  };
+  const percu = piece === depart && glisse !== etat.piece ? undefined : percuParLePassager(monde, etat, liaison, depart, arrivee, glisse);
+  if (percu === undefined) return { creature: suite, evenements: [] };
+  return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
 }
 
 /** Une réaction (C-03 §4.2) : joueur visible, sinon son actif, sinon dernier indice, sinon attendre. */
@@ -104,37 +165,41 @@ function reaction(
   depuis: string,
   franchie: string | undefined,
   interceptee: boolean,
-): { creature: EtatCreature; evenements: Evenement[]; entendue?: BruitCreature } {
+): Reponse {
   if (interceptee) {
     // Le jet consomme sa réaction (C-04 §4.2, D-055) ; s'il est parti, elle l'a vu prendre ce passage (D-177).
     const parti = creature.piece === depuis && etat.piece !== depuis;
     return { creature: { ...creature, indice: parti ? { piece: etat.piece, par: franchie ?? null } : null }, evenements: [] };
   }
-  if (creature.piece === etat.piece) {
+  // Après une glissade, réactions perdues : ni mouvement ni regard (C-03 §5.2, T-05).
+  if (creature.perdues > 0) return { creature: { ...creature, perdues: creature.perdues - 1 }, evenements: [] };
+  if (creature.piece === etat.piece && !creature.alcove) {
     // L'avertissement donne une action pour réagir avant toute conséquence hostile (C-03 §4.4).
-    return { creature: { ...creature, indice: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
+    return { creature: { ...creature, indice: null, engagee: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
   }
-  if (creature.piece === depuis) {
+  if (creature.piece === depuis && !creature.alcove) {
     // Elle l'a vu partir : sa réaction est de retenir le passage pris, qu'elle suivra au pas suivant (D-177).
-    return { creature: { ...creature, indice: { piece: etat.piece, par: franchie ?? null } }, evenements: [] };
+    return { creature: { ...creature, indice: { piece: etat.piece, par: franchie ?? null }, engagee: null }, evenements: [] };
   }
   const son = sonRetenu(monde, etat, creature.piece, sons);
+  if (son !== undefined && son.piece === creature.piece) {
+    // Elle rejoint la source, dans l'alcôve ou hors d'elle : repositionnement local, puis elle y cherche (C-03 §4.3, §5.1).
+    return { creature: { ...creature, indice: null, engagee: null, alcove: son.alcove === true }, evenements: [] };
+  }
   const indice: Indice | null = son === undefined ? creature.indice : { piece: son.piece, par: null };
   if (indice === null) return { creature, evenements: [] };
   if (indice.piece === creature.piece) return { creature: { ...creature, indice: null }, evenements: [] };
+  // Sortir de l'alcôve est un repositionnement local : une réaction (C-03 §4.3).
+  if (creature.alcove) return { creature: { ...creature, indice, alcove: false }, evenements: [] };
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
-  if (liaison === undefined) return { creature: { ...creature, indice }, evenements: [] };
-  const arrivee = autreCote(liaison, creature.piece);
-  const percu = percuParLePassager(monde, etat, liaison, creature.piece, arrivee);
-  const suite: EtatCreature = { ...creature, piece: arrivee, indice: arrivee === indice.piece ? null : indice };
-  if (percu === undefined) return { creature: suite, evenements: [] };
-  return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
+  if (liaison === undefined) return { creature: { ...creature, indice, engagee: null }, evenements: [] };
+  return franchir(monde, etat, creature, liaison, indice);
 }
 
 /** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */
 function passageSuivi(monde: DefMonde, etat: EtatPartie, depuis: string, indice: Indice): DefLiaison | undefined {
   const liaison = liaisonsDe(monde, depuis).find((lien) => lien.id === indice.par && autreCote(lien, depuis) === indice.piece);
-  return liaison !== undefined && praticable(etat, liaison) ? liaison : undefined;
+  return liaison !== undefined && praticable(etat, liaison, depuis) ? liaison : undefined;
 }
 
 /** Seuil de « il y a longtemps », en actions confirmées (D-151). */
@@ -145,10 +210,10 @@ const LONGTEMPS = 6;
  * Ce qu'il voit de sa pièce remplace ce qu'il en savait : la créature, ou la pièce vide. La voir fait oublier le bruit,
  * puisqu'on sait où elle est ; sinon un bruit ne vieillit pas.
  */
-function retenir(etat: EtatPartie, creature: EtatCreature, entendue: BruitCreature | undefined): Reperes {
+function retenir(etat: EtatPartie, entendue: BruitCreature | undefined): Reperes {
   const { vue, entendue: bruit } = etat.reperes;
   const ici = etat.piece;
-  if (creature.piece === ici) return { vue: { piece: ici, depuis: 0 }, entendue: null };
+  if (creatureEnVue(etat)) return { vue: { piece: ici, depuis: 0 }, entendue: null };
   return {
     vue: vue === null || vue.piece === ici ? null : { ...vue, depuis: Math.min(vue.depuis + 1, LONGTEMPS) },
     entendue: entendue ?? (bruit?.piece === ici ? null : bruit),
@@ -172,8 +237,9 @@ export function reagir(
   const reponse = reaction(monde, etat, etat.creature, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
   const creature = etat.creature.repit ? { ...reponse.creature, repit: false } : reponse.creature;
-  const suite: EtatPartie = { ...etat, creature, reperes: retenir(etat, creature, reponse.entendue) };
-  if (creature.piece === etat.piece && !creature.contact) {
+  const apres: EtatPartie = { ...etat, creature };
+  const suite: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
+  if (creatureEnVue(suite) && !creature.contact) {
     return {
       etat: { ...suite, creature: { ...creature, contact: true, repit: true } },
       evenements: [...reponse.evenements, { type: 'premier_contact' }],

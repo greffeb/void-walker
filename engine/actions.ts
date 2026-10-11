@@ -2,12 +2,17 @@ import { dangerConnu, type SonEmis } from './creature';
 import type { Des } from './des';
 import {
   autreCote,
+  cleZone,
+  enFeu,
+  horsDePortee,
+  huilee,
   liaisonsDe,
   objetsDans,
   objetsPortes,
   refObjet,
   refPassage,
   refPiece,
+  refPosition,
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
@@ -34,7 +39,7 @@ interface ActionCommune {
   readonly id: IdAction;
   /** Cibles plausibles proposées au menu, d'après ce que le passager sait (C-01 §4). */
   cibles(contexte: Contexte): readonly string[];
-  /** Revérifie une commande dans l'état courant ; `null` si elle peut être jouée. */
+  /** Revérifie une commande dans l'état courant ; `null` si elle peut être jouée. Le paramètre est vérifié à part. */
   verifier(contexte: Contexte, cible: string): RaisonRefus | null;
 }
 
@@ -45,8 +50,10 @@ export interface ActionConsultation extends ActionCommune {
 
 export interface ActionEngagee extends ActionCommune {
   readonly engage: true;
-  prevoir(contexte: Contexte, cible: string): Prevision;
-  appliquer(contexte: Contexte, cible: string, des: Des): Effet;
+  /** Paramètres possibles pour cette cible (12 §3.5, étape « OÙ ? ») ; absent pour une action sans paramètre. */
+  parametres?(contexte: Contexte, cible: string): readonly string[];
+  prevoir(contexte: Contexte, cible: string, parametre: string | undefined): Prevision;
+  appliquer(contexte: Contexte, cible: string, des: Des, parametre: string | undefined): Effet;
 }
 
 export type DefAction = ActionConsultation | ActionEngagee;
@@ -63,7 +70,18 @@ function objetPorte({ monde, etat }: Contexte, cible: string): boolean {
   return objetsPortes(monde, etat).some((objet) => objet.id === cible);
 }
 
-/** Hors des repères de la créature (D-180, D-181), les mondes actuels n'ont ni danger connu ni dé : seul le bruit d'un geste s'annonce. */
+function objet(monde: DefMonde, id: string): DefObjet {
+  const trouve = indexer(monde).objets.get(id);
+  if (trouve === undefined) throw new Error(`Objet inconnu : ${id}.`);
+  return trouve;
+}
+
+function exiger<T>(valeur: T | undefined, message: string): T {
+  if (valeur === undefined) throw new Error(message);
+  return valeur;
+}
+
+/** Hors des repères de la créature (D-180, D-181) et du feu (D-188), une action n'a ni danger connu ni dé : seul le bruit d'un geste s'annonce. */
 const SANS_DANGER = { risque: 'aucun', danger: null, cout: 'aucun' } as const;
 
 /** Risque d'un passage vers `piece` : celui de la créature vue ou entendue de l'autre côté, sinon aucun. */
@@ -72,18 +90,25 @@ function risqueVers({ monde, etat }: Contexte, piece: string): Pick<Prevision, '
 }
 
 function passageIci(contexte: Contexte, cible: string): DefLiaison {
+  return exiger(liaisonIci(contexte, cible), `Liaison absente : ${cible}.`);
+}
+
+/** Ouvrir, fermer ou franchir une liaison : déjà dans la pièce, à portée (C-02 §5, 12 §4.5). */
+function verifierPassage(contexte: Contexte, cible: string): RaisonRefus | null {
   const liaison = liaisonIci(contexte, cible);
-  if (liaison === undefined) throw new Error(`Liaison absente : ${cible}.`);
-  return liaison;
+  if (liaison === undefined) return 'cible_absente';
+  return horsDePortee(contexte.monde, contexte.etat, liaison, contexte.etat.piece) ? 'hors_de_portee' : null;
 }
 
 function basculer(contexte: Contexte, cible: string, ouverte: boolean): Effet {
   const { monde, etat } = contexte;
-  const liaison = indexer(monde).liaisons.get(cible);
-  if (liaison === undefined) throw new Error(`Liaison inconnue : ${cible}.`);
+  const liaison = exiger(indexer(monde).liaisons.get(cible), `Liaison inconnue : ${cible}.`);
   const suivant: EtatPartie = { ...etat, liaisons: { ...etat.liaisons, [cible]: ouverte } };
   const passage = refPassage(monde, suivant, liaison, etat.piece);
-  return { etat: suivant, evenements: [{ type: ouverte ? 'passage_ouvert' : 'passage_ferme', passage }] };
+  const evenements: Evenement[] = [{ type: ouverte ? 'passage_ouvert' : 'passage_ferme', passage }];
+  // Ouvrir sur un foyer le montre (AR-01 P-B pas 4).
+  if (passage.feu) evenements.push({ type: 'feu_derriere', passage });
+  return { etat: suivant, evenements };
 }
 
 const regarder: ActionConsultation = {
@@ -114,11 +139,16 @@ const regarder: ActionConsultation = {
   },
 };
 
+/** Les objets qui ne se portent pas (caisse, dispositif fixe) ne sont pas proposés (C-02 §4.3). */
+function portablesIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.portable !== false);
+}
+
 const prendre: ActionEngagee = {
   id: 'prendre',
   engage: true,
-  cibles: ({ monde, etat }) => objetsDans(monde, etat, etat.piece).map((objet) => objet.id),
-  verifier: (contexte, cible) => (objetIci(contexte, cible) ? null : 'cible_absente'),
+  cibles: (contexte) => portablesIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => (portablesIci(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente'),
   prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'portera', objet: refObjet(monde, cible) }] }),
   appliquer: ({ monde, etat }, cible) => {
     const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'passager' } } };
@@ -129,7 +159,7 @@ const prendre: ActionEngagee = {
 const poser: ActionEngagee = {
   id: 'poser',
   engage: true,
-  cibles: ({ monde, etat }) => objetsPortes(monde, etat).map((objet) => objet.id),
+  cibles: ({ monde, etat }) => objetsPortes(monde, etat).map((porte) => porte.id),
   verifier: (contexte, cible) => (objetPorte(contexte, cible) ? null : 'pas_en_main'),
   prevoir: ({ monde, etat }, cible) => ({
     ...SANS_DANGER,
@@ -150,7 +180,7 @@ const ouvrir: ActionEngagee = {
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
-    return contexte.etat.liaisons[cible] === true ? 'deja_ouvert' : null;
+    return contexte.etat.liaisons[cible] === true ? 'deja_ouvert' : verifierPassage(contexte, cible);
   },
   prevoir: (contexte, cible) => {
     const liaison = passageIci(contexte, cible);
@@ -185,7 +215,7 @@ const fermer: ActionEngagee = {
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
-    return contexte.etat.liaisons[cible] === true ? null : 'deja_ferme';
+    return contexte.etat.liaisons[cible] === true ? verifierPassage(contexte, cible) : 'deja_ferme';
   },
   prevoir: (contexte, cible) => ({
     ...SANS_DANGER,
@@ -200,7 +230,7 @@ const aller: ActionEngagee = {
   cibles: ({ monde, etat }) => liaisonsDe(monde, etat.piece).map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
-    return contexte.etat.liaisons[cible] === true ? null : 'ferme';
+    return contexte.etat.liaisons[cible] === true ? verifierPassage(contexte, cible) : 'ferme';
   },
   prevoir: (contexte, cible) => ({
     ...SANS_DANGER,
@@ -209,8 +239,7 @@ const aller: ActionEngagee = {
   }),
   appliquer: (contexte, cible) => {
     const { monde, etat } = contexte;
-    const liaison = liaisonIci(contexte, cible);
-    if (liaison === undefined) throw new Error(`Liaison absente : ${cible}.`);
+    const liaison = passageIci(contexte, cible);
     const arrivee = autreCote(liaison, etat.piece);
     const nouvelle = !etat.visitees.includes(arrivee);
     const suivant: EtatPartie = { ...etat, piece: arrivee, visitees: nouvelle ? [...etat.visitees, arrivee] : etat.visitees };
@@ -223,16 +252,16 @@ const aller: ActionEngagee = {
 
 /** Soin en main ou posé dans la pièce (D-185). */
 function soinsAPortee({ monde, etat }: Contexte): DefObjet[] {
-  return [...objetsDans(monde, etat, etat.piece), ...objetsPortes(monde, etat)].filter((objet) => objet.soin !== undefined);
+  return [...objetsDans(monde, etat, etat.piece), ...objetsPortes(monde, etat)].filter((candidat) => candidat.soin !== undefined);
 }
 
 /** Un soin améliore d'un état et consomme une dose ; indemne, il est indisponible plutôt que gaspillé (C-04 §2). */
 const soigner: ActionEngagee = {
   id: 'soigner',
   engage: true,
-  cibles: (contexte) => soinsAPortee(contexte).map((objet) => objet.id),
+  cibles: (contexte) => soinsAPortee(contexte).map((candidat) => candidat.id),
   verifier: (contexte, cible) => {
-    if (!soinsAPortee(contexte).some((objet) => objet.id === cible)) return 'cible_absente';
+    if (!soinsAPortee(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
     if ((contexte.etat.doses[cible] ?? 0) === 0) return 'vide';
     return contexte.etat.sante === 'blesse' || contexte.etat.sante === 'critique' ? null : 'pas_blesse';
   },
@@ -248,5 +277,149 @@ const soigner: ActionEngagee = {
   },
 };
 
+function deplacablesIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.deplacable === true);
+}
+
+/** Pousser un objet au sol vers une autre position de la pièce (C-02 §4.3, AR-01 P-A pas 2) ; geste discret (AR-01 §12). */
+const deplacer: ActionEngagee = {
+  id: 'deplacer',
+  engage: true,
+  cibles: (contexte) => deplacablesIci(contexte).map((candidat) => candidat.id),
+  parametres: ({ monde, etat }, cible) => {
+    const emplacement = etat.objets[cible];
+    const actuelle = emplacement?.type === 'piece' ? emplacement.position : undefined;
+    return (monde.positions ?? []).filter((position) => position.piece === etat.piece && position.id !== actuelle).map((position) => position.id);
+  },
+  verifier: (contexte, cible) => (deplacablesIci(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente'),
+  prevoir: ({ monde }, cible, parametre) => ({
+    ...SANS_DANGER,
+    savoir: [{ type: 'deplacera', objet: refObjet(monde, cible), position: refPosition(monde, exiger(parametre, 'Position absente.')) }],
+  }),
+  appliquer: ({ monde, etat }, cible, _des, parametre) => {
+    const position = exiger(parametre, 'Position absente.');
+    const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'piece', piece: etat.piece, position } } };
+    return { etat: suivant, evenements: [{ type: 'objet_deplace', objet: refObjet(monde, cible), position: refPosition(monde, position) }] };
+  },
+};
+
+function portesAvec({ monde, etat }: Contexte, qualite: 'extinction' | 'glissant'): DefObjet[] {
+  return objetsPortes(monde, etat).filter((candidat) => candidat[qualite] !== undefined);
+}
+
+/** Récipient porté et non vide ; posé ou sans la qualité, il n'est pas proposé (C-02 §5). */
+function verifierRecipient(contexte: Contexte, cible: string, qualite: 'extinction' | 'glissant'): RaisonRefus | null {
+  if (!portesAvec(contexte, qualite).some((candidat) => candidat.id === cible)) return objetPorte(contexte, cible) ? 'cible_absente' : 'pas_en_main';
+  return (contexte.etat.doses[cible] ?? 0) === 0 ? 'vide' : null;
+}
+
+function savoirDose({ monde, etat }: Contexte, cible: string): Savoir[] {
+  return etat.doses[cible] === 1 ? [{ type: 'videra', objet: refObjet(monde, cible) }] : [];
+}
+
+/** Foyers à portée (C-03 §5.3) : la pièce du passager, ou une voisine par un passage ouvert, depuis le seuil. */
+function foyersAPortee({ monde, etat }: Contexte): string[] {
+  const voisines = liaisonsDe(monde, etat.piece).filter((liaison) => etat.liaisons[liaison.id] === true && enFeu(etat, autreCote(liaison, etat.piece)));
+  return [...(enFeu(etat, etat.piece) ? [etat.piece] : []), ...voisines.map((liaison) => liaison.id)];
+}
+
+/** Pièce que l'eau éteindra : la sienne, ou celle derrière le passage choisi. */
+function pieceArrosee({ monde, etat }: Contexte, parametre: string): string {
+  if (parametre === etat.piece) return parametre;
+  return autreCote(exiger(indexer(monde).liaisons.get(parametre), `Liaison inconnue : ${parametre}.`), etat.piece);
+}
+
+/** Une dose d'extinction adaptée éteint le foyer visé (C-02 §5, AR-01 P-B pas 5). */
+const arroser: ActionEngagee = {
+  id: 'arroser',
+  engage: true,
+  cibles: (contexte) => portesAvec(contexte, 'extinction').map((candidat) => candidat.id),
+  parametres: foyersAPortee,
+  verifier: (contexte, cible) => verifierRecipient(contexte, cible, 'extinction'),
+  prevoir: (contexte, cible, parametre) => ({
+    ...SANS_DANGER,
+    savoir: [
+      { type: 'eteindra', piece: refPiece(contexte.monde, pieceArrosee(contexte, exiger(parametre, 'Foyer absent.'))) },
+      ...savoirDose(contexte, cible),
+    ],
+  }),
+  appliquer: (contexte, cible, _des, parametre) => {
+    const { monde, etat } = contexte;
+    const piece = pieceArrosee(contexte, exiger(parametre, 'Foyer absent.'));
+    const suivant: EtatPartie = {
+      ...etat,
+      doses: { ...etat.doses, [cible]: (etat.doses[cible] ?? 0) - 1 },
+      feu: etat.feu.filter((brule) => brule !== piece),
+      expositions: etat.expositions.filter((id) => !indexer(monde).liaisons.get(id)?.entre.includes(piece)),
+    };
+    return { etat: suivant, evenements: [{ type: 'feu_eteint', piece: refPiece(monde, piece) }] };
+  },
+};
+
+/** Une dose de liquide glissant rend glissant le pied d'un passage de la pièce, de ce côté, même fermé (C-03 §5.2, D-190). */
+const verser: ActionEngagee = {
+  id: 'verser',
+  engage: true,
+  cibles: (contexte) => portesAvec(contexte, 'glissant').map((candidat) => candidat.id),
+  parametres: ({ monde, etat }) =>
+    liaisonsDe(monde, etat.piece)
+      .filter((liaison) => !huilee(etat, liaison.id, etat.piece))
+      .map((liaison) => liaison.id),
+  verifier: (contexte, cible) => verifierRecipient(contexte, cible, 'glissant'),
+  prevoir: (contexte, cible, parametre) => ({
+    ...SANS_DANGER,
+    savoir: [
+      { type: 'huilera', passage: refPassage(contexte.monde, contexte.etat, passageIci(contexte, exiger(parametre, 'Passage absent.')), contexte.etat.piece) },
+      ...savoirDose(contexte, cible),
+    ],
+  }),
+  appliquer: (contexte, cible, _des, parametre) => {
+    const { monde, etat } = contexte;
+    const liaison = passageIci(contexte, exiger(parametre, 'Passage absent.'));
+    const huile = [...etat.huile, { liaison: liaison.id, piece: etat.piece }].sort((a, b) => cleZone(a).localeCompare(cleZone(b)));
+    const suivant: EtatPartie = { ...etat, doses: { ...etat.doses, [cible]: (etat.doses[cible] ?? 0) - 1 }, huile };
+    const passage = refPassage(monde, suivant, liaison, etat.piece);
+    return { etat: suivant, evenements: [{ type: 'huile_versee', objet: refObjet(monde, cible), passage }] };
+  },
+};
+
+/** Réactions couvertes par le son de l'avertisseur : celle de l'activation et les deux suivantes (C-03 §5.1, T-04). */
+export const DUREE_ALARME = 3;
+
+function avertisseursIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.avertisseur !== undefined);
+}
+
+/** Lancer le test de l'avertisseur (C-03 §5.1) ; « test en cours » tant que le cycle dure. */
+const declencher: ActionEngagee = {
+  id: 'declencher',
+  engage: true,
+  cibles: (contexte) => avertisseursIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    if (!avertisseursIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    return contexte.etat.alarme === null ? null : 'test_en_cours';
+  },
+  prevoir: ({ monde }, cible) => ({
+    ...SANS_DANGER,
+    savoir: [{ type: 'sonnera', piece: refPiece(monde, exiger(objet(monde, cible).avertisseur, 'Avertisseur absent.').piece) }],
+  }),
+  appliquer: ({ monde, etat }, cible) => ({
+    etat: { ...etat, alarme: { objet: cible, restant: DUREE_ALARME } },
+    evenements: [{ type: 'alarme_declenchee', objet: refObjet(monde, cible) }],
+  }),
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
-export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = { regarder, prendre, poser, ouvrir, fermer, aller, soigner };
+export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
+  regarder,
+  prendre,
+  poser,
+  ouvrir,
+  fermer,
+  aller,
+  soigner,
+  deplacer,
+  arroser,
+  verser,
+  declencher,
+};

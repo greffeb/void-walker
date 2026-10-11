@@ -1,7 +1,8 @@
 import { CATALOGUE, type DefAction } from './actions';
-import { reagir } from './creature';
-import { graineValide, ouvrirDes } from './des';
-import { etatInitial, refPiece, type EtatPartie } from './etat';
+import { reagir, type SonEmis } from './creature';
+import { graineValide, ouvrirDes, type Des } from './des';
+import { etatInitial, refPiece, type Alarme, type EtatPartie } from './etat';
+import { actualiserFeu, brule, voitLaPiece } from './feu';
 import { empreinte } from './hachage';
 import { indexer, type DefMonde } from './monde';
 import { observer } from './observation';
@@ -10,12 +11,16 @@ import {
   ACTIONS,
   NIVEAUX_RISQUE,
   type Apercu,
+  type Cause,
   type Commande,
   type Consultation,
+  type Danger,
   type Evenement,
   type IdAction,
+  type NiveauRisque,
   type Observation,
   type RaisonRefus,
+  type Sante,
 } from './vocabulaire';
 
 export const FORMAT_ENREGISTREMENT = 1;
@@ -73,8 +78,8 @@ export function nouvellePartie(monde: DefMonde, options: { readonly version: str
 
 function estCommande(valeur: unknown): valeur is Commande {
   if (typeof valeur !== 'object' || valeur === null) return false;
-  const { action, cible } = valeur as Record<string, unknown>;
-  return typeof action === 'string' && typeof cible === 'string';
+  const { action, cible, parametre } = valeur as Record<string, unknown>;
+  return typeof action === 'string' && typeof cible === 'string' && (parametre === undefined || typeof parametre === 'string');
 }
 
 function estAction(action: string): action is IdAction {
@@ -83,39 +88,105 @@ function estAction(action: string): action is IdAction {
 
 type Validation =
   | { readonly type: 'refus'; readonly raison: RaisonRefus }
-  | { readonly type: 'valide'; readonly commande: Commande; readonly definition: DefAction; readonly cible: string };
+  | {
+      readonly type: 'valide';
+      readonly commande: Commande;
+      readonly definition: DefAction;
+      readonly cible: string;
+      readonly parametre: string | undefined;
+    };
 
-/** Revérifie une commande dans l'état courant (C-01 §4) : une commande périmée est refusée. */
+/** Revérifie une commande dans l'état courant (C-01 §4) : une commande périmée est refusée, son paramètre aussi. */
 function valider(monde: DefMonde, etat: EtatPartie, commande: unknown): Validation {
   if (!estCommande(commande)) return { type: 'refus', raison: 'commande_invalide' };
   if (etat.sante === 'vaincu') return { type: 'refus', raison: 'partie_terminee' };
   if (!estAction(commande.action)) return { type: 'refus', raison: 'action_inconnue' };
-  const cible = indexer(monde).versInterne.get(commande.cible);
+  const { versInterne } = indexer(monde);
+  const cible = versInterne.get(commande.cible);
   if (cible === undefined) return { type: 'refus', raison: 'cible_absente' };
   const definition = CATALOGUE[commande.action];
   const raison = definition.verifier({ monde, etat }, cible);
   if (raison !== null) return { type: 'refus', raison };
-  return { type: 'valide', commande: { action: commande.action, cible: commande.cible }, definition, cible };
+  const possibles = definition.engage ? definition.parametres?.({ monde, etat }, cible) : undefined;
+  if (possibles === undefined) {
+    if (commande.parametre !== undefined) return { type: 'refus', raison: 'commande_invalide' };
+    return { type: 'valide', commande: { action: commande.action, cible: commande.cible }, definition, cible, parametre: undefined };
+  }
+  const parametre = commande.parametre === undefined ? undefined : versInterne.get(commande.parametre);
+  if (commande.parametre === undefined || parametre === undefined || !possibles.includes(parametre)) return { type: 'refus', raison: 'parametre_absent' };
+  return {
+    type: 'valide',
+    commande: { action: commande.action, cible: commande.cible, parametre: commande.parametre },
+    definition,
+    cible,
+    parametre,
+  };
+}
+
+/** L'aperçu simule l'action sans dé : aucune règle d'effet n'en tire (le jet d'interception se résout à part). */
+const SANS_DES: Des = {
+  lancer: () => {
+    throw new Error('Aucun dé dans un aperçu.');
+  },
+};
+
+/**
+ * Brûlure connue (D-188) : l'action finira dans une pièce en feu que le passager voit déjà, ou que le feu gagnera depuis un
+ * foyer qu'il voit (C-03 §5.3, C-06 §4). Certaine, sans dé ; mortelle s'il est critique.
+ */
+function feuConnu(
+  monde: DefMonde,
+  etat: EtatPartie,
+  definition: DefAction,
+  cible: string,
+  parametre: string | undefined,
+  sante: Sante,
+): { risque: NiveauRisque; danger: Danger } | null {
+  if (!definition.engage) return null;
+  const effet = definition.appliquer({ monde, etat }, cible, SANS_DES, parametre);
+  const { etat: apres, gagnee } = actualiserFeu(monde, effet.etat);
+  if (!brule(apres)) return null;
+  const piece = apres.piece;
+  const connu = gagnee?.piece === piece ? voitLaPiece(monde, etat, gagnee.source) : voitLaPiece(monde, etat, piece);
+  if (!connu) return null;
+  return { risque: 'certain', danger: { type: sante === 'critique' ? 'brulure_mortelle' : 'brulure' } };
 }
 
 /** Aperçu avant confirmation (C-01 §5, C-06 §4) : sans effet sur la partie ni sur les dés. */
 export function apercu(monde: DefMonde, partie: Partie, commande: unknown): ResultatApercu {
   const validation = valider(monde, partie.etat, commande);
   if (validation.type === 'refus') return validation;
-  const { definition, cible } = validation;
+  const { definition, cible, parametre } = validation;
   if (!definition.engage) return { type: 'gratuit' };
-  const { santeApres, ...prevision } = definition.prevoir({ monde, etat: partie.etat }, cible);
-  // Le danger le plus haut l'emporte : la créature ici avant celui de la destination ; un soin passe avant le jet (C-04 §3, §4.3).
-  const ici = risqueIci(partie.etat, santeApres ?? partie.etat.sante);
-  const plusHaut = ici !== null && NIVEAUX_RISQUE.indexOf(ici.risque) >= NIVEAUX_RISQUE.indexOf(prevision.risque);
-  return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...(plusHaut ? ici : {}) } };
+  const { santeApres, ...prevision } = definition.prevoir({ monde, etat: partie.etat }, cible, parametre);
+  const sante = santeApres ?? partie.etat.sante;
+  // Le danger le plus haut l'emporte : la créature ici avant celui de la destination, le feu avant tout ; un soin passe avant le jet (C-04 §3, §4.3).
+  let retenu: { risque: NiveauRisque; danger: Danger | null } = prevision;
+  for (const autre of [risqueIci(partie.etat, sante), feuConnu(monde, partie.etat, definition, cible, parametre, sante)]) {
+    if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
+  }
+  return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...retenu } };
+}
+
+/** Son de l'avertisseur, fort, depuis l'alcôve de sa pièce (C-03 §5.1). */
+function sonAlarme(monde: DefMonde, alarme: Alarme): SonEmis {
+  const avertisseur = indexer(monde).objets.get(alarme.objet)?.avertisseur;
+  if (avertisseur === undefined) throw new Error(`Avertisseur inconnu : ${alarme.objet}.`);
+  return { piece: avertisseur.piece, intensite: 'fort', alcove: true };
+}
+
+/** Une réaction de plus couverte par le son ; le test se termine après la dernière (C-03 §5.1, T-04). */
+function decompter(etat: EtatPartie): EtatPartie {
+  if (etat.alarme === null) return etat;
+  const restant = etat.alarme.restant - 1;
+  return { ...etat, alarme: restant > 0 ? { ...etat.alarme, restant } : null };
 }
 
 /** Joue une commande structurée ; un refus ou une consultation rend la partie inchangée (C-01 §6, C-03 §2). */
 export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resultat {
   const validation = valider(monde, partie.etat, commande);
   if (validation.type === 'refus') return { ...validation, partie };
-  const { definition, cible } = validation;
+  const { definition, cible, parametre } = validation;
   const contexte = { monde, etat: partie.etat };
   if (!definition.engage) return { type: 'consultation', consultation: definition.consulter(contexte, cible), partie };
 
@@ -123,16 +194,22 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2).
   const exposition = expose(partie.etat);
   const atteint = exposition && intercepter(session.des);
-  const effet = definition.appliquer(contexte, cible, session.des);
-  // Pas de danger à actualiser dans les mondes actuels (étape 3) ; puis une réaction au plus (C-03 §3).
-  const reponse = reagir(monde, effet.etat, effet.sons ?? [], partie.etat.piece, effet.franchie, exposition);
-  const blessure = aggraver(reponse.etat, atteint ? ['griffes'] : []);
-  const interception: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : blessure.evenements;
+  const effet = definition.appliquer(contexte, cible, session.des, parametre);
+  // Étape 3 : le feu, puis la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, D-188).
+  const feu = actualiserFeu(monde, effet.etat);
+  const brulure = brule(feu.etat);
+  // Étape 4 : une réaction au plus, avec le son de l'action et celui de l'avertisseur en cours (C-03 §3, §5.1).
+  const sons = [...(effet.sons ?? []), ...(feu.etat.alarme === null ? [] : [sonAlarme(monde, feu.etat.alarme)])];
+  const reponse = reagir(monde, feu.etat, sons, partie.etat.piece, effet.franchie, exposition);
+  const causes: Cause[] = [...(atteint ? (['griffes'] as const) : []), ...(brulure ? (['feu'] as const) : [])];
+  const blessure = aggraver(decompter(reponse.etat), causes);
+  const interception: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : atteint ? blessure.evenements : [];
+  const brulures: readonly Evenement[] = atteint ? [] : blessure.evenements;
   // En fuite, elle frappe au seuil, avant le déplacement ; une défaite se raconte à l'arrivée (C-04 §4.2).
   const auSeuil = effet.franchie !== undefined && blessure.etat.sante !== 'vaincu';
   const evenements = auSeuil
-    ? [...interception, ...effet.evenements, ...reponse.evenements]
-    : [...effet.evenements, ...reponse.evenements, ...interception];
+    ? [...interception, ...effet.evenements, ...feu.evenements, ...reponse.evenements, ...brulures]
+    : [...effet.evenements, ...feu.evenements, ...reponse.evenements, ...interception, ...brulures];
   const tirages = [...session.tirages];
   const etat: EtatPartie = { ...blessure.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
   const entree: EntreeJournal = { commande: validation.commande, tirages };
@@ -205,7 +282,8 @@ export function lireEnregistrement(donnees: unknown): Enregistrement {
     const { commande, tirages } = entree as Record<string, unknown>;
     exiger(estCommande(commande), `Action ${index + 1} : commande illisible.`);
     exiger(Array.isArray(tirages) && tirages.every((tirage) => Number.isInteger(tirage)), `Action ${index + 1} : tirages illisibles.`);
-    return { commande: { action: commande.action, cible: commande.cible }, tirages: tirages as number[] };
+    const { action, cible, parametre } = commande;
+    return { commande: { action, cible, ...(parametre === undefined ? {} : { parametre }) }, tirages: tirages as number[] };
   });
   return { format: FORMAT_ENREGISTREMENT, version, monde, graine, actions: entrees };
 }
