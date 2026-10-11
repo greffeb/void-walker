@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-11.
 
 ## Mission de ce dossier
 
@@ -104,7 +104,15 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 `npm run verify` est vert en local. Après quatre erreurs réseau lors des délégations à l'exécutant, l'orchestrateur a codé lui-même à la demande du porteur du projet ; un rapport sur l'exécutant reste à traiter. Le relecteur et le playtester ont relu et joué ; leurs remarques sont traitées ou listées dans la PR. Le mode GitHub Pages peut retirer la V1 en ligne (D-139).
 
-**Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange. #92 (écran de jeu « Phosphore ») est proposée par la [PR #109](https://github.com/greffeb/void-walker/pull/109) : fusion après accord du porteur du projet. Le porteur s'est dit satisfait après un test sur téléphone (retour consigné, non signé). La relecture indépendante a relevé deux blocages : contrastes sous les lignes de balayage, et inventaire, désormais traité par une bulle cyan (D-176). Restent à confirmer : portes, « Regarder autour de vous », intensité des lignes de balayage. Suivante : #93, qui garde les bulles des objets de la pièce.
+**Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange. #92 (écran de jeu « Phosphore ») est fusionnée ([PR #109](https://github.com/greffeb/void-walker/pull/109)) ; le porteur s'est dit satisfait après un test sur téléphone (retour consigné, non signé). Restent à confirmer : portes, « Regarder autour de vous », intensité des lignes de balayage.
+
+#93 (bulles de composition, fiches et inventaire) est proposée par la [PR #110](https://github.com/greffeb/void-walker/pull/110) : fusion après accord du porteur du projet, validation sur téléphone requise. Le relecteur l'a jugée fusionnable. Faute de données dans le moteur, trois parties attendent :
+
+- les qualités et l'objet encombrant, qui arrivent avec #102 ;
+- l'étape « OÙ ? », avec la première action à paramètre ;
+- une action indisponible dans une bulle.
+
+La PR liste aussi les choix à confirmer sur téléphone. Suivante : #94 (aperçu puis confirmation), qui touche le moteur comme #100.
 
 **Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : la [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175). Issues de développement créées, dans l'ordre : moteur [#100](https://github.com/greffeb/void-walker/issues/100), [#101](https://github.com/greffeb/void-walker/issues/101), [#102](https://github.com/greffeb/void-walker/issues/102) ; AR-01 [#103](https://github.com/greffeb/void-walker/issues/103) ; AR-02 [#104](https://github.com/greffeb/void-walker/issues/104) ; nouveaux morceaux [#105](https://github.com/greffeb/void-walker/issues/105) ; stations [#106](https://github.com/greffeb/void-walker/issues/106) ; rapports [#107](https://github.com/greffeb/void-walker/issues/107) ; signature [#108](https://github.com/greffeb/void-walker/issues/108). #100 et #94 touchent toutes deux le moteur : ne pas les mener en même temps.
 
