@@ -2,7 +2,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, devices, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
-import { jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
+import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
 import { libelleOption, MONDE_PAR_DEFAUT, MONDES, nomDe, type EntreeMonde } from '../content';
 import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
@@ -98,6 +98,44 @@ function passageDirect(entree: EntreeMonde): { readonly ouvrir: Geste; readonly 
   return undefined;
 }
 
+/** Une forme de l'aperçu : avec ou sans risque connu, avec ou sans coût ; les gestes qui y mènent depuis le départ. */
+export interface CasApercu {
+  readonly risque: boolean;
+  readonly cout: boolean;
+  readonly chemin: readonly Geste[];
+  readonly geste: Geste;
+}
+
+/** Premier aperçu de chaque forme, au plus près du départ ; seuls ceux du monde par défaut existent. */
+export function casApercus(entree: EntreeMonde): CasApercu[] {
+  const trouves = new Map<string, CasApercu>();
+  const vus = new Set<string>();
+  let frontiere: { partie: Partie; chemin: Geste[] }[] = [{ partie: nouvellePartie(entree.monde, { version: 'gestes', graine: 0 }), chemin: [] }];
+  while (frontiere.length > 0 && trouves.size < 4) {
+    const suivante: { partie: Partie; chemin: Geste[] }[] = [];
+    for (const { partie, chemin } of frontiere) {
+      const etat = JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+      if (vus.has(etat)) continue;
+      vus.add(etat);
+      const observation = observer(entree.monde, partie.etat);
+      for (const option of observation.menu.filter((choix) => choix.disponible)) {
+        const geste = gesteDe(entree, partie, observation, option);
+        const prevu = apercu(entree.monde, partie, option.commande);
+        if (prevu.type === 'apercu' && !geste.direct) {
+          const risque = prevu.apercu.risque !== 'aucun' || prevu.apercu.danger !== null;
+          const cout = prevu.apercu.cout !== 'aucun';
+          const forme = `${String(risque)}:${String(cout)}`;
+          if (!trouves.has(forme)) trouves.set(forme, { risque, cout, chemin, geste });
+        }
+        const resultat = jouer(entree.monde, partie, option.commande);
+        if (resultat.type === 'engagee') suivante.push({ partie: resultat.partie, chemin: [...chemin, geste] });
+      }
+    }
+    frontiere = suivante;
+  }
+  return [...trouves.values()];
+}
+
 function echapper(texte: string): string {
   return texte.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -129,7 +167,8 @@ async function toucherLigne(page: Page, geste: Geste): Promise<void> {
 /** Choisit l'action dans la fiche s'il le faut ; renvoie CONFIRMER de l'aperçu (12 §3.8). */
 async function versApercu(page: Page, geste: Geste): Promise<Locator> {
   if (geste.verbe !== null) {
-    await page.getByRole('dialog', { name: exactement(geste.bouton) }).getByRole('button', { name: exactement(geste.verbe) }).click();
+    // Dans les lignes d'action seulement : « Fermer » est aussi le nom du « ✕ » de la bulle.
+    await page.getByRole('dialog', { name: exactement(geste.bouton) }).locator('.lignes').getByRole('button', { name: exactement(geste.verbe) }).click();
   }
   return page.getByRole('dialog', { name: exactement(geste.fil) }).getByRole('button', { name: exactement('Confirmer') });
 }
@@ -137,6 +176,19 @@ async function versApercu(page: Page, geste: Geste): Promise<Locator> {
 async function preparer(page: Page, geste: Geste): Promise<Locator> {
   await ouvrir(page, geste);
   return versApercu(page, geste);
+}
+
+/** Rejoue des gestes depuis le départ comme le joueur : d'un seul toucher, ou par l'aperçu puis CONFIRMER. */
+async function rejouer(page: Page, chemin: readonly Geste[]): Promise<void> {
+  for (const [index, geste] of chemin.entries()) {
+    if (geste.direct) {
+      await ouvrir(page, geste);
+      await toucherLigne(page, geste);
+    } else {
+      await (await preparer(page, geste)).click();
+    }
+    await attendreSauvegarde(page, index + 1);
+  }
 }
 
 /** La sauvegarde réussie est silencieuse : on attend ses attributs, pas un texte (12 §11). */
@@ -688,6 +740,27 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
           if (!(await page.getByRole('dialog', { name: exactement(pose.bouton) }).isVisible())) erreurs.push(`Double toucher sur « ${pose.bouton} » : la fiche n’est pas restée ouverte.`);
         }
       }
+      await neuf.close();
+    }
+
+    // Les quatre formes de l'aperçu, chacune depuis une partie neuve.
+    const formes = casApercus(entree);
+    if (formes.length < 4) erreurs.push(`Seulement ${formes.length} formes d’aperçu sur quatre dans le monde de test.`);
+    for (const forme of formes) {
+      const neuf = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+      page = await neuf.newPage();
+      await page.goto(adresse);
+      await attendreSauvegarde(page, 0);
+      await rejouer(page, forme.chemin);
+      await (await preparer(page, forme.geste)).waitFor();
+      const titre = `Aperçu « ${forme.geste.fil} », ${forme.risque ? 'risque connu' : 'sans risque connu'}, ${forme.cout ? 'avec un coût' : 'sans coût'}`;
+      // RISQUE et COÛT seulement s'ils disent autre chose que « aucun » ; SAVOIR toujours (D-187).
+      const lignes = await page.getByRole('dialog', { name: exactement(forme.geste.fil) }).locator('.apercu dt').allTextContents();
+      const attendues = [...(forme.risque ? ['Risque'] : []), ...(forme.cout ? ['Coût'] : []), 'Savoir'];
+      if (lignes.join(' · ') !== attendues.join(' · ')) erreurs.push(`${titre} : lignes « ${lignes.join(' · ')} » au lieu de « ${attendues.join(' · ')} ».`);
+      await capturerEtape(titre);
+      await verifierEcran(page, titre, erreurs);
+      await verifierDansEcran(page, titre, erreurs);
       await neuf.close();
     }
 

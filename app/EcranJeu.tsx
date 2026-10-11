@@ -1,14 +1,14 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
-import { libelleOption, nomDe, remplir, rendreObservation, type ApercuTexte, type TextesMonde } from '../content';
+import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
 import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, unToucher, type Dock, type Groupe } from './ecran';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { consulter, prevoir, type Environnement, type Jeu } from './jeu';
+import { consulter, prevoir, type ApercuAffiche, type Environnement, type Jeu } from './jeu';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
 type Lire = (option: OptionMenu) => readonly string[];
-type Prevoir = (option: OptionMenu) => ApercuTexte;
+type Prevoir = (option: OptionMenu) => ApercuAffiche;
 /** Vrai si l'option se joue d'un seul toucher, sans aperçu (D-182). */
 type Direct = (option: OptionMenu) => boolean;
 
@@ -527,17 +527,25 @@ function Composer({
   );
 }
 
-/** Aperçu (12 §3.8) : RISQUE (niveau, puis le danger connu), COÛT, SAVOIR. Aucun chiffre. */
-function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuTexte; readonly idDescription: string }) {
+/** Aperçu (12 §3.8) : RISQUE (niveau, puis le danger connu) et COÛT s'ils ne sont pas « aucun » (D-187), puis SAVOIR. Aucun chiffre. */
+function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuAffiche; readonly idDescription: string }) {
   return (
     <dl id={idDescription} className="apercu">
-      <dt>Risque</dt>
-      <dd>
-        <strong>{apercu.risque}</strong>
-        {apercu.danger === null ? null : ` — ${apercu.danger}`}
-      </dd>
-      <dt>Coût</dt>
-      <dd>{apercu.cout}</dd>
+      {apercu.risque !== null && (
+        <>
+          <dt>Risque</dt>
+          <dd>
+            <strong>{apercu.risque}</strong>
+            {apercu.danger === null ? null : ` — ${apercu.danger}`}
+          </dd>
+        </>
+      )}
+      {apercu.cout !== null && (
+        <>
+          <dt>Coût</dt>
+          <dd>{apercu.cout}</dd>
+        </>
+      )}
       <dt>Savoir</dt>
       <dd>
         {apercu.savoir.map((phrase, index) => (

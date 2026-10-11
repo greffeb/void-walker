@@ -194,10 +194,11 @@ Grille de deux colonnes : libellé en capitales `texte-secondaire`, puis valeur.
 
 | Ligne | Contenu | Exemple |
 | --- | --- | --- |
-| RISQUE | Niveau en gras `accent`, puis le danger connu | « **faible** — effort, aucune blessure attendue » |
-| COÛT | `[bruyant]` ou « aucun » | « [bruyant] » |
-| SAVOIR | Une ou deux phrases sur les conséquences connues | « La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter. » |
+| RISQUE | Niveau en gras `accent`, puis le danger connu ; ligne absente s'il n'y a aucun risque connu | « **faible** — effort, aucune blessure attendue » |
+| COÛT | `[bruyant]` ; ligne absente s'il n'y a aucun coût | « [bruyant] » |
+| SAVOIR | Une ou deux phrases sur les conséquences connues ; toujours affiché | « La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter. » |
 
+- Les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun » : ni « aucun risque connu » ni « coût aucun » à l'écran, ni pour le lecteur d'écran. Un aperçu sans risque ni coût montre seulement SAVOIR, puis ANNULER / CONFIRMER. Le un seul toucher se décide toujours sur l'aperçu du moteur, pas sur ce qui est affiché (D-182). La CLI garde ses trois lignes. [Validé D-187]
 - Seul coût affiché : `[bruyant]`. Les étiquettes `[long]` et `[périlleux]` de la maquette sont supprimées ; le danger passe par le niveau de risque. [Validé D-150]
 - Échelle de risque : aucun risque connu, faible, modéré, élevé, mortel (C-04 §3.1 pour le vide). Une conséquence sans dé s'annonce comme certaine (C-04 §5), par exemple « certain : vous serez blessé ». [Proposé]
 - Ni pourcentage ni chiffre (C-04 §4.3). L'aperçu ne se calcule que sur ce que le passager sait (C-06 §4).
@@ -299,7 +300,7 @@ Texte d'exemple :
 **Aperçu de déplacement** : toucher « → ATELIER DE SERVICE ». [Validé : aperçu et confirmation pour se déplacer ; sans risque connu ni coût, le toucher fait le déplacement directement, lu « atelier de service, sans confirmation », D-182]
 
 - Bulle ancrée sur le bouton (§3.6, D-146 ; la maquette montre encore un panneau bas) : « ALLER VERS › », puis « ATELIER DE SERVICE » en `accent` 19/600.
-- RISQUE : aucun risque connu. COÛT : aucun. SAVOIR : « Vous quitterez le Salon de transit. »
+- SAVOIR seul, sans ligne RISQUE ni COÛT (aucun risque connu, aucun coût, D-187) : « Vous quitterez le Salon de transit. »
 - Boutons ANNULER / CONFIRMER. Pas de phrase « Rien ne se passe avant confirmation ». [Validé]
 - CONFIRMER fait le déplacement et mène à l'écran de la pièce d'arrivée.
 

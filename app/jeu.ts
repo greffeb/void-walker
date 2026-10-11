@@ -66,11 +66,19 @@ export function consulter(env: Pick<Environnement, 'monde' | 'textes'>, partie: 
   return raconter(env.textes, resultat);
 }
 
-/** Aperçu avant CONFIRMER (12 §3.8), le même que la CLI ; ne touche ni à la partie ni à la sauvegarde. */
-export function prevoir(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie, option: OptionMenu): ApercuTexte {
+/** Aperçu affiché : RISQUE et COÛT seulement s'ils disent autre chose que « aucun » (D-187) ; SAVOIR toujours. */
+export interface ApercuAffiche extends Omit<ApercuTexte, 'risque' | 'cout'> {
+  readonly risque: string | null;
+  readonly cout: string | null;
+}
+
+/** Aperçu avant CONFIRMER (12 §3.8), mêmes mots que la CLI ; ne touche ni à la partie ni à la sauvegarde. */
+export function prevoir(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie, option: OptionMenu): ApercuAffiche {
   const resultat = apercu(env.monde, partie, option.commande);
   if (resultat.type !== 'apercu') throw new Error(`« ${option.action} » sans aperçu : ${resultat.type === 'refus' ? resultat.raison : 'gratuit'}.`);
-  return rendreApercu(env.textes, resultat.apercu);
+  const { risque, danger, cout } = resultat.apercu;
+  const texte = rendreApercu(env.textes, resultat.apercu);
+  return { ...texte, risque: risque === 'aucun' && danger === null ? null : texte.risque, cout: cout === 'aucun' ? null : texte.cout };
 }
 
 /** Joue la commande d'une option ; seule une action engagée écrit, et l'échec d'écriture reste signalé (C-09 §3). */

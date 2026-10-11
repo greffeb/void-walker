@@ -1385,4 +1385,11 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : tout nouveau texte (récit et rappel, ligne de bruit, messages d'IA Station, réveil) apparaît caractère par caractère, dans l'ordre de lecture, en 500 ms au total quelle que soit sa longueur. Ensuite un curseur bloc `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Pendant l'écriture, toucher un bouton agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit (bulle rouverte, retour d'un autre écran). Réglage « Effet machine à écrire [OUI] / [NON] », gardé sur l'appareil hors de la sauvegarde ; sur [NON] ou si le téléphone demande moins d'animations, le texte apparaît d'un coup et le curseur ne clignote pas.
 - Limite : affichage seulement, ni temps de jeu ni tirage (C-03). Le lecteur d'écran reçoit le texte entier une fois, jamais lettre par lettre, et ne lit pas le curseur. La place du texte final est réservée dès le début : la mise en page ne bouge pas. Cadence du clignotement [détail de l'agent] : 1,6 s par cycle, à juger sur téléphone.
 
+### D-187 — L'aperçu ne dit pas « aucun »
+
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #117).
+- Origine : demande du porteur (« ne pas afficher "Risque aucun risque connu" et ne pas afficher "Coût aucun". N'afficher les infos risque et coût que s'il y a autre chose que "aucun" »).
+- Décision : dans l'aperçu de l'appli, la ligne RISQUE n'apparaît que s'il y a un risque connu (ou un danger connu annoncé), la ligne COÛT que s'il y a un coût (`[bruyant]`). Sinon la ligne disparaît entièrement, libellé et valeur, aussi pour le lecteur d'écran. SAVOIR reste toujours affiché : un aperçu sans risque ni coût montre seulement SAVOIR, puis ANNULER / CONFIRMER. Précise 12 §3.8 et D-150.
+- Limite : l'aperçu calculé par le moteur ne change pas ; la CLI garde ses trois lignes. Le un seul toucher (D-182) se décide toujours sur l'aperçu du moteur, pas sur ce qui est affiché.
+
 
