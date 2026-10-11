@@ -4,6 +4,13 @@ import type { RefObjet, RefPassage, RefPiece } from './vocabulaire';
 
 export type EmplacementObjet = { readonly type: 'piece'; readonly piece: string } | { readonly type: 'passager' };
 
+/** Créature (C-02 §4.2) : emplacement, dernier indice perçu non encore inspecté (une pièce), premier contact annoncé. */
+export interface EtatCreature {
+  readonly piece: string;
+  readonly indice: string | null;
+  readonly contact: boolean;
+}
+
 /** État complet d'une partie : sérialisable en JSON, jamais montré tel quel au joueur. */
 export interface EtatPartie {
   readonly piece: string;
@@ -13,6 +20,8 @@ export interface EtatPartie {
   readonly visitees: readonly string[];
   readonly actions: number;
   readonly generateur: EtatGenerateur;
+  /** `null` dans un monde sans créature. */
+  readonly creature: EtatCreature | null;
 }
 
 export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
@@ -24,6 +33,7 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     visitees: [monde.depart],
     actions: 0,
     generateur: generateurDepuisGraine(graine),
+    creature: monde.creature === undefined ? null : { piece: monde.creature.piece, indice: null, contact: false },
   };
 }
 

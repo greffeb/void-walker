@@ -38,6 +38,8 @@ export interface TextesMonde {
     readonly passageFerme: string;
     readonly inventaire: string;
     readonly inventaireVide: string;
+    /** La créature est dans la pièce, vue par le passager (C-06 §2). */
+    readonly creature: string;
   };
   /** Aperçu avant confirmation (12 §3.8) : mots du risque et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
@@ -56,6 +58,11 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeEvenement, readonly string[]>>
   passage_ferme: ['passage'],
   deplacement: ['passage', 'piece'],
   piece_decouverte: ['piece'],
+  bruit_mecanisme: ['passage'],
+  bruit_creature: ['passage'],
+  creature_entre: ['passage'],
+  premier_contact: [],
+  menace: [],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -86,4 +93,5 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   passageFerme: ['passage'],
   inventaire: ['liste'],
   inventaireVide: [],
+  creature: [],
 };

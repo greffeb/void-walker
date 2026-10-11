@@ -12,11 +12,22 @@ export interface DefLiaison {
   readonly nom: string;
   readonly entre: readonly [string, string];
   readonly ouverte: boolean;
+  /** Trop étroite pour un gabarit large, comme la créature (C-02 §3, D-044). */
+  readonly etroite?: boolean;
+  /** Laisse passer le son même fermée, comme une grille (C-02 §3, OP-01). */
+  readonly sonAuTravers?: boolean;
+  /** Mécanisme grippé : l'ouvrir fait un bruit normal dans la pièce de celui qui l'ouvre (C-02 §3). */
+  readonly bruyante?: boolean;
 }
 
 export interface DefObjet {
   readonly id: string;
   readonly nom: string;
+  readonly piece: string;
+}
+
+/** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
+export interface DefCreature {
   readonly piece: string;
 }
 
@@ -26,6 +37,7 @@ export interface DefMonde {
   readonly pieces: readonly DefPiece[];
   readonly liaisons: readonly DefLiaison[];
   readonly objets: readonly DefObjet[];
+  readonly creature?: DefCreature;
 }
 
 export interface IndexMonde {
@@ -65,6 +77,10 @@ export function validerMonde(monde: DefMonde): string[] {
   }
   for (const objet of monde.objets) {
     if (!pieces.has(objet.piece)) erreurs.push(`${objet.id} : pièce inconnue ${objet.piece}.`);
+  }
+  if (monde.creature !== undefined) {
+    if (!pieces.has(monde.creature.piece)) erreurs.push(`Créature : pièce inconnue ${monde.creature.piece}.`);
+    if (monde.creature.piece === monde.depart) erreurs.push('Créature dans la pièce de départ (GP-04).');
   }
   return erreurs;
 }

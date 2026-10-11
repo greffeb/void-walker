@@ -1,3 +1,4 @@
+import type { SonEmis } from './creature';
 import type { Des } from './des';
 import {
   autreCote,
@@ -20,6 +21,8 @@ export interface Contexte {
 export interface Effet {
   readonly etat: EtatPartie;
   readonly evenements: readonly Evenement[];
+  /** Sons produits par l'action, actifs pendant la réaction de ce pas (C-03 §3). */
+  readonly sons?: readonly SonEmis[];
 }
 
 /** Aperçu calculé sur ce que le passager sait seulement (C-06 §4), sans dé ni changement d'état. */
@@ -58,7 +61,7 @@ function objetPorte({ monde, etat }: Contexte, cible: string): boolean {
   return objetsPortes(monde, etat).some((objet) => objet.id === cible);
 }
 
-/** Le monde de test n'a encore ni danger, ni dé, ni bruit : rien à annoncer de plus. */
+/** Les mondes actuels n'ont ni danger connu ni dé : seul le bruit d'un geste peut s'annoncer. */
 const SANS_DANGER = { risque: 'aucun', cout: 'aucun' } as const;
 
 function passageIci(contexte: Contexte, cible: string): DefLiaison {
@@ -142,11 +145,26 @@ const ouvrir: ActionEngagee = {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
     return contexte.etat.liaisons[cible] === true ? 'deja_ouvert' : null;
   },
-  prevoir: (contexte, cible) => ({
-    ...SANS_DANGER,
-    savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, passageIci(contexte, cible), contexte.etat.piece) }],
-  }),
-  appliquer: (contexte, cible) => basculer(contexte, cible, true),
+  prevoir: (contexte, cible) => {
+    const liaison = passageIci(contexte, cible);
+    return {
+      ...SANS_DANGER,
+      // Un mécanisme grippé se voit : le bruit est connu avant d'ouvrir (C-02 §3).
+      cout: liaison.bruyante === true ? 'bruyant' : 'aucun',
+      savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, liaison, contexte.etat.piece) }],
+    };
+  },
+  appliquer: (contexte, cible) => {
+    const effet = basculer(contexte, cible, true);
+    const liaison = passageIci(contexte, cible);
+    if (liaison.bruyante !== true) return effet;
+    const passage = refPassage(contexte.monde, effet.etat, liaison, contexte.etat.piece);
+    return {
+      ...effet,
+      evenements: [...effet.evenements, { type: 'bruit_mecanisme', passage }],
+      sons: [{ piece: contexte.etat.piece, intensite: 'normal' }],
+    };
+  },
 };
 
 const fermer: ActionEngagee = {

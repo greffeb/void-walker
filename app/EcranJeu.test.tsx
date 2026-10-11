@@ -105,7 +105,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('dock : puces des choses de la pièce, regard autour de soi, déplacement indisponible avec sa raison (12 §3.7)', async () => {
     const dock = entre(rendre(await commencer(env)), '<section class="dock"', '</section>');
     expect(texte(dock)).toBe(
-      'Dans la pièce ▸ Carnet ▸ Porte de l’atelier ▸ Regarder autour de vous Se déplacer vers ⊘ atelier La porte de l’atelier est fermée.',
+      'Dans la pièce ▸ Carnet ▸ Porte de l’atelier ▸ Grille de la soute ▸ Regarder autour de vous Se déplacer vers ⊘ atelier La porte de l’atelier est fermée. ⊘ soute La grille de la soute est fermée.',
     );
     const deplacement = entre(dock, '<button type="button" class="deplacement', '</button>');
     expect(deplacement).toContain(
@@ -113,7 +113,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     );
     expect(deplacement).not.toContain('disabled=""');
     expect(dock).not.toContain('aria-expanded="true"');
-    expect(dock.match(/aria-haspopup="dialog"/g)).toHaveLength(2);
+    expect(dock.match(/aria-haspopup="dialog"/g)).toHaveLength(3);
   });
 
   it('puce dont la bulle est ouverte : seule en vidéo inverse', async () => {
@@ -182,7 +182,8 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
     const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} env={env} occupe={true} choisir={rien} />);
     const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
-    expect(ouvrants).toHaveLength(4);
+    // Carnet, porte, grille, « → ATELIER » (ouverte) et INVENTAIRE ; « ⊘ SOUTE » n'ouvre rien.
+    expect(ouvrants).toHaveLength(5);
     expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
   });
 
@@ -259,7 +260,9 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('situation en phrases : hors de l’écran, gardée pour le lecteur d’écran comme dans la CLI (C-06 K-07)', async () => {
     const situation = entre(rendre(await commencer(env)), '<section class="lecteur-seul"', '</section>');
-    expect(texte(situation)).toBe('Vous êtes dans la cabine. Vous voyez ici un carnet. La porte de l’atelier est fermée. Vous ne portez rien.');
+    expect(texte(situation)).toBe(
+      'Vous êtes dans la cabine. Vous voyez ici un carnet. La porte de l’atelier est fermée. La grille de la soute est fermée. Vous ne portez rien.',
+    );
     expect(situation).toContain('data-testid="situation"');
   });
 

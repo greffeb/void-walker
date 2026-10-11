@@ -11,6 +11,11 @@ export const TYPES_EVENEMENT = [
   'passage_ferme',
   'deplacement',
   'piece_decouverte',
+  'bruit_mecanisme',
+  'bruit_creature',
+  'creature_entre',
+  'premier_contact',
+  'menace',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -67,7 +72,16 @@ export type Evenement =
   | { readonly type: 'passage_ouvert'; readonly passage: RefPassage }
   | { readonly type: 'passage_ferme'; readonly passage: RefPassage }
   | { readonly type: 'deplacement'; readonly passage: RefPassage; readonly piece: RefPiece }
-  | { readonly type: 'piece_decouverte'; readonly piece: RefPiece };
+  | { readonly type: 'piece_decouverte'; readonly piece: RefPiece }
+  /** Le passager entend son propre geste bruyant. */
+  | { readonly type: 'bruit_mecanisme'; readonly passage: RefPassage }
+  /** La créature bouge dans une pièce voisine : situé par le passage, jamais par une position (OP-01). */
+  | { readonly type: 'bruit_creature'; readonly passage: RefPassage }
+  | { readonly type: 'creature_entre'; readonly passage: RefPassage }
+  /** Une seule fois par partie (C-03 §4.4). */
+  | { readonly type: 'premier_contact' }
+  /** Incident au contact ; sans blessure tant que C-04 n'est pas en place (#101). */
+  | { readonly type: 'menace' };
 
 export type Consultation =
   | { readonly type: 'regarder_piece'; readonly cible: RefPiece }
@@ -116,5 +130,7 @@ export interface Observation {
   readonly inventaire: readonly RefObjet[];
   readonly visitees: readonly RefPiece[];
   readonly actions: number;
+  /** Vue directe : la créature est dans la même pièce (C-06 §2). */
+  readonly creatureVisible: boolean;
   readonly menu: readonly OptionMenu[];
 }

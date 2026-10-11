@@ -1,6 +1,6 @@
 import type { Parcours } from '../types';
 
-// Parcours témoin de l'issue #89 : prendre l'objet, ouvrir, passer, poser.
+// Parcours témoin : prendre l'objet, ouvrir (porte bruyante : la créature approche), passer, poser.
 export const PARCOURS_MONDE_TEST: Parcours = {
   nom: 'Prendre le carnet, ouvrir, passer, poser',
   etapes: [
@@ -13,7 +13,8 @@ export const PARCOURS_MONDE_TEST: Parcours = {
     piece: 'atelier',
     objetsIci: ['carnet'],
     inventaire: [],
-    passagesOuverts: ['porte'],
+    // Les portes de la cabine et de la soute.
+    passagesOuverts: ['porte', 'porte'],
     actions: 4,
   },
 };

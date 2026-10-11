@@ -29,6 +29,13 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { passage: nomDe(textes, evenement.passage) };
     case 'deplacement':
       return { passage: nomDe(textes, evenement.passage), piece: nomDe(textes, evenement.piece) };
+    case 'bruit_mecanisme':
+    case 'bruit_creature':
+    case 'creature_entre':
+      return { passage: nomDe(textes, evenement.passage) };
+    case 'premier_contact':
+    case 'menace':
+      return {};
   }
 }
 
@@ -89,6 +96,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   for (const passage of observation.passages) {
     lignes.push(remplir(passage.ouvert ? modele.passageOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
   }
+  if (observation.creatureVisible) lignes.push(remplir(modele.creature, {}));
   lignes.push(
     observation.inventaire.length > 0
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })

@@ -98,6 +98,9 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   }
 }
 
+/** Moments forts où le texte peut être plus long (D-111) : ils ne comptent pas dans le maximum de quatre phrases. */
+const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact'];
+
 /** Phrases minimales et maximales qu'une suite d'événements peut produire, toutes variantes confondues. */
 function bornesPhrases(textes: TextesMonde, types: readonly TypeEvenement[]): [number, number] {
   let minimum = 0;
@@ -105,7 +108,7 @@ function bornesPhrases(textes: TextesMonde, types: readonly TypeEvenement[]): [n
   for (const type of types) {
     const comptes = textes.evenements[type].map(compterPhrases);
     minimum += Math.min(...comptes);
-    maximum += Math.max(...comptes);
+    if (!MOMENTS_FORTS.includes(type)) maximum += Math.max(...comptes);
   }
   return [minimum, maximum];
 }
