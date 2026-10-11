@@ -1,17 +1,22 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { observer, type OptionMenu } from '../engine';
-import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
-import { composer, composerDock, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, type Dock, type Groupe } from './ecran';
-import { consulter, type Environnement, type Jeu } from './jeu';
+import { observer, type IdAction, type OptionMenu } from '../engine';
+import { libelleOption, nomDe, remplir, rendreObservation, type ApercuTexte, type TextesMonde } from '../content';
+import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, type Dock, type Groupe } from './ecran';
+import { consulter, prevoir, type Environnement, type Jeu } from './jeu';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
 type Lire = (option: OptionMenu) => readonly string[];
+type Prevoir = (option: OptionMenu) => ApercuTexte;
 
-/** Bulle ouverte : celle d'une puce de la pièce, ou l'inventaire (liste, puis fiche d'un objet porté). */
+/**
+ * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté) ou un déplacement.
+ * `action` : action choisie dont l'aperçu est affiché ; `null` à l'étape de la fiche.
+ */
 type Ouverte =
-  | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement }
-  | { readonly zone: 'inventaire'; readonly cible: string | null };
+  | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null }
+  | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null }
+  | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement };
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -80,7 +85,7 @@ export function EcranJeu({
     quitterEntreeBulle();
     depuis.focus();
   };
-  // Engagement provisoire (#93) : la dernière étape joue l'action, en attendant l'aperçu (Interface 3).
+  // CONFIRMER est le seul geste qui engage une action (12 §1.3) ; « Regarder autour de vous » reste gratuit.
   const jouer: Jouer = (option) => {
     aRendre.current = origine.current;
     if (origine.current !== null) {
@@ -91,8 +96,10 @@ export function EcranJeu({
     void choisir(jeu, option);
   };
   const lire: Lire = (option) => consulter(env, jeu.partie, option);
+  const voir: Prevoir = (option) => prevoir(env, jeu.partie, option);
 
   const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
+  const deplacementOuvert = ouverte?.zone === 'deplacement' ? dock.deplacements.find((option) => option.cible.id === ouverte.cible) : undefined;
   return (
     <main className="jeu">
       <header className="entete-piece">
@@ -115,14 +122,30 @@ export function EcranJeu({
         dock={dock}
         textes={textes}
         occupe={occupe}
-        ouverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
-        ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre }, ancre)}
+        puceOuverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
+        deplacementOuvert={ouverte?.zone === 'deplacement' ? ouverte.cible : null}
+        ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null }, ancre)}
+        ouvrirDeplacement={(option, ancre) => ouvrir({ zone: 'deplacement', cible: option.cible.id, ancre }, ancre)}
         jouer={jouer}
       />
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
-      {ouverte !== null && <div className={ouverte.zone === 'piece' ? 'voile voile-haut' : 'voile'} data-testid="voile" onClick={fermer} />}
+      {ouverte !== null && <div className={ouverte.zone === 'inventaire' ? 'voile' : 'voile voile-haut'} data-testid="voile" onClick={fermer} />}
       {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
-        <BulleObjet ancre={ouverte.ancre} groupe={groupeOuvert} textes={textes} occupe={occupe} jouer={jouer} lire={lire} fermer={fermer} />
+        <BulleObjet
+          ancre={ouverte.ancre}
+          groupe={groupeOuvert}
+          action={ouverte.action}
+          choisirAction={(action) => setOuverte({ ...ouverte, action })}
+          textes={textes}
+          occupe={occupe}
+          jouer={jouer}
+          lire={lire}
+          prevoir={voir}
+          fermer={fermer}
+        />
+      )}
+      {ouverte?.zone === 'deplacement' && deplacementOuvert !== undefined && (
+        <BulleDeplacement ancre={ouverte.ancre} option={deplacementOuvert} textes={textes} occupe={occupe} jouer={jouer} prevoir={voir} fermer={fermer} />
       )}
       <div className="bas">
         {ouverte?.zone === 'inventaire' && (
@@ -130,11 +153,14 @@ export function EcranJeu({
             id={idInventaire}
             groupes={dock.inventaire}
             cible={ouverte.cible}
-            choisir={(cible) => setOuverte({ zone: 'inventaire', cible })}
+            choisir={(cible) => setOuverte({ zone: 'inventaire', cible, action: null })}
+            action={ouverte.action}
+            choisirAction={(action) => setOuverte({ ...ouverte, action })}
             textes={textes}
             occupe={occupe}
             jouer={jouer}
             lire={lire}
+            prevoir={voir}
             fermer={fermer}
           />
         )}
@@ -144,7 +170,9 @@ export function EcranJeu({
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'inventaire'}
             aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
-            onClick={(evenement) => (ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null }, evenement.currentTarget))}
+            onClick={(evenement) =>
+              ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null }, evenement.currentTarget)
+            }
           >
             Inventaire
           </button>
@@ -157,9 +185,19 @@ export function EcranJeu({
 interface PropsComposition {
   readonly textes: TextesMonde;
   readonly occupe: boolean;
+  /** Joue l'action : appelé seulement par CONFIRMER. */
   readonly jouer: Jouer;
   readonly lire: Lire;
+  readonly prevoir: Prevoir;
   readonly fermer: () => void;
+  /** Action dont l'aperçu est affiché ; `null` à l'étape de la fiche. */
+  readonly action: IdAction | null;
+  readonly choisirAction: (action: IdAction | null) => void;
+}
+
+/** Action choisie, encore jouable ; sinon la bulle revient à la fiche. */
+function choisie(groupe: Groupe, action: IdAction | null): OptionMenu | undefined {
+  return composer(groupe).actions.find((option) => option.action === action && option.disponible);
 }
 
 /**
@@ -175,6 +213,7 @@ function Bulle({
   etape,
   retour,
   fermer,
+  pied,
   children,
 }: {
   readonly id?: string;
@@ -187,6 +226,8 @@ function Bulle({
   readonly etape: string;
   readonly retour?: () => void;
   readonly fermer: () => void;
+  /** Toujours visible sous le contenu qui défile : ANNULER et CONFIRMER restent sous le pouce. */
+  readonly pied?: ReactNode;
   readonly children: ReactNode;
 }) {
   const idTitre = useId();
@@ -236,14 +277,14 @@ function Bulle({
         </button>
       </div>
       <div className="bulle-corps">{children}</div>
+      {pied !== undefined && <div className="bulle-pied">{pied}</div>}
     </section>
   );
 }
 
-/** Bulle d'une puce de la pièce, ancrée sur elle : dessus si elle y tient, sinon dessous, jamais hors de l'écran (12 §3.5, §3.6). */
-export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { readonly ancre: HTMLElement; readonly groupe: Groupe }) {
+/** Bulle ancrée sur l'élément touché : dessus si elle y tient, sinon dessous, jamais hors de l'écran (12 §3.5, §3.6). */
+function BulleAncree({ ancre, etape, ...props }: Omit<Parameters<typeof Bulle>[0], 'zone' | 'classe'> & { readonly ancre: HTMLElement }) {
   const zone = useRef<HTMLElement>(null);
-  const idFiche = useId();
   useLayoutEffect(() => {
     const bulle = zone.current;
     if (bulle === null) return;
@@ -265,11 +306,51 @@ export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { rea
     placer();
     window.addEventListener('resize', placer);
     return () => window.removeEventListener('resize', placer);
-  }, [ancre]);
+  }, [ancre, etape]);
+  return <Bulle zone={zone} classe="bulle-objet" etape={etape} {...props} />;
+}
+
+/** Bulle d'une puce de la pièce : fiche et actions, puis aperçu de l'action choisie. */
+export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { readonly ancre: HTMLElement; readonly groupe: Groupe }) {
+  const idDescription = useId();
+  const option = choisie(groupe, props.action);
   return (
-    <Bulle zone={zone} classe="bulle-objet" titre={nomPuce(props.textes, groupe.cible)} decrite={idFiche} etape={groupe.cible.id} fermer={props.fermer}>
-      <Composer groupe={groupe} idFiche={idFiche} {...props} />
-    </Bulle>
+    <BulleAncree
+      ancre={ancre}
+      titre={filBulle(props.textes, groupe.cible, option)}
+      decrite={idDescription}
+      etape={`${groupe.cible.id}:${option?.action ?? ''}`}
+      retour={option === undefined ? undefined : () => props.choisirAction(null)}
+      fermer={props.fermer}
+      pied={option === undefined ? undefined : <Confirmation occupe={props.occupe} confirmer={() => props.jouer(option)} annuler={props.fermer} />}
+    >
+      <Composer groupe={groupe} option={option} idDescription={idDescription} {...props} />
+    </BulleAncree>
+  );
+}
+
+/** Déplacement (12 §4.3) : aperçu ancré sur le bouton, puis CONFIRMER. */
+export function BulleDeplacement({
+  ancre,
+  option,
+  textes,
+  occupe,
+  jouer,
+  prevoir: voir,
+  fermer,
+}: Pick<PropsComposition, 'textes' | 'occupe' | 'jouer' | 'prevoir' | 'fermer'> & { readonly ancre: HTMLElement; readonly option: OptionMenu }) {
+  const idDescription = useId();
+  return (
+    <BulleAncree
+      ancre={ancre}
+      titre={filBulle(textes, option.cible, option)}
+      decrite={idDescription}
+      etape={option.cible.id}
+      fermer={fermer}
+      pied={<Confirmation occupe={occupe} confirmer={() => jouer(option)} annuler={fermer} />}
+    >
+      <ApercuAction apercu={voir(option)} idDescription={idDescription} />
+    </BulleAncree>
   );
 }
 
@@ -288,21 +369,23 @@ export function BulleInventaire({
   readonly choisir: (cible: string | null) => void;
 }) {
   const zone = useRef<HTMLElement>(null);
-  const idFiche = useId();
+  const idDescription = useId();
   const groupe = groupes.find((porte) => porte.cible.id === cible);
   if (groupe !== undefined) {
+    const option = choisie(groupe, props.action);
     return (
       <Bulle
         id={id}
         zone={zone}
         classe="bulle-inventaire"
-        titre={nomPuce(props.textes, groupe.cible)}
-        decrite={idFiche}
-        etape={groupe.cible.id}
-        retour={() => choisir(null)}
+        titre={filBulle(props.textes, groupe.cible, option)}
+        decrite={idDescription}
+        etape={`${groupe.cible.id}:${option?.action ?? ''}`}
+        retour={option === undefined ? () => choisir(null) : () => props.choisirAction(null)}
         fermer={props.fermer}
+        pied={option === undefined ? undefined : <Confirmation occupe={props.occupe} confirmer={() => props.jouer(option)} annuler={props.fermer} />}
       >
-        <Composer groupe={groupe} idFiche={idFiche} {...props} />
+        <Composer groupe={groupe} option={option} idDescription={idDescription} {...props} />
       </Bulle>
     );
   }
@@ -326,20 +409,22 @@ export function BulleInventaire({
   );
 }
 
-/** Première étape (12 §3.5) : la fiche, gratuite, puis une ligne par action ; une action sans paramètre se joue aussitôt. */
+/** Étapes de la bulle (12 §3.5) : la fiche, gratuite, et une ligne par action ; puis l'aperçu de l'action choisie. */
 function Composer({
   groupe,
-  idFiche,
+  option,
+  idDescription,
   textes,
-  occupe,
-  jouer,
   lire,
-}: Omit<PropsComposition, 'fermer'> & { readonly groupe: Groupe; readonly idFiche: string }) {
+  prevoir: voir,
+  choisirAction,
+}: PropsComposition & { readonly groupe: Groupe; readonly option: OptionMenu | undefined; readonly idDescription: string }) {
+  if (option !== undefined) return <ApercuAction apercu={voir(option)} idDescription={idDescription} />;
   const { fiche, actions } = composer(groupe);
   return (
     <>
       {fiche !== undefined && (
-        <div id={idFiche} className="fiche">
+        <div id={idDescription} className="fiche">
           {lire(fiche).map((phrase, index) => (
             <p key={index}>{phrase}</p>
           ))}
@@ -347,13 +432,13 @@ function Composer({
       )}
       {actions.length > 0 && (
         <ul className="lignes">
-          {actions.map((option) => {
-            const { raison } = libelleOption(textes, option);
-            const verbe = textes.verbes[option.action];
+          {actions.map((action) => {
+            const { raison } = libelleOption(textes, action);
+            const verbe = textes.verbes[action.action];
             return (
-              <li key={option.action}>
+              <li key={action.action}>
                 {raison === null ? (
-                  <button type="button" className="ligne" disabled={occupe} onClick={() => jouer(option)}>
+                  <button type="button" className="ligne" onClick={() => choisirAction(action.action)}>
                     <span aria-hidden="true">▸ </span>
                     {verbe}
                   </button>
@@ -366,6 +451,40 @@ function Composer({
         </ul>
       )}
     </>
+  );
+}
+
+/** Aperçu (12 §3.8) : RISQUE, COÛT, SAVOIR. Aucun chiffre. */
+function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuTexte; readonly idDescription: string }) {
+  return (
+    <dl id={idDescription} className="apercu">
+      <dt>Risque</dt>
+      <dd>
+        <strong>{apercu.risque}</strong>
+      </dd>
+      <dt>Coût</dt>
+      <dd>{apercu.cout}</dd>
+      <dt>Savoir</dt>
+      <dd>
+        {apercu.savoir.map((phrase, index) => (
+          <p key={index}>{phrase}</p>
+        ))}
+      </dd>
+    </dl>
+  );
+}
+
+/** ANNULER (un tiers) referme sans effet ; CONFIRMER (deux tiers) est le seul geste qui engage (12 §3.5). */
+function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean; readonly confirmer: () => void; readonly annuler: () => void }) {
+  return (
+    <div className="confirmation">
+      <button type="button" className="secondaire" onClick={annuler}>
+        Annuler
+      </button>
+      <button type="button" className="principal" disabled={occupe} onClick={confirmer}>
+        Confirmer
+      </button>
+    </div>
   );
 }
 
@@ -422,16 +541,21 @@ export function DockPiece({
   dock,
   textes,
   occupe,
-  ouverte,
+  puceOuverte,
+  deplacementOuvert,
   ouvrir,
+  ouvrirDeplacement,
   jouer,
 }: {
   readonly dock: Dock;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
   /** Cible dont la bulle est ouverte : sa puce passe en vidéo inverse. */
-  readonly ouverte: string | null;
+  readonly puceOuverte: string | null;
+  readonly deplacementOuvert: string | null;
   readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
+  readonly ouvrirDeplacement: (option: OptionMenu, ancre: HTMLElement) => void;
+  /** « Regarder autour de vous » : gratuit, sans aperçu. */
   readonly jouer: Jouer;
 }) {
   const autour = dock.autour;
@@ -445,7 +569,7 @@ export function DockPiece({
               type="button"
               className="puce"
               aria-haspopup="dialog"
-              aria-expanded={groupe.cible.id === ouverte}
+              aria-expanded={groupe.cible.id === puceOuverte}
               onClick={(evenement) => ouvrir(groupe, evenement.currentTarget)}
             >
               <span aria-hidden="true">▸ </span>
@@ -466,7 +590,7 @@ export function DockPiece({
           <ul className="deplacements">
             {dock.deplacements.map((option) => (
               <li key={option.cible.id}>
-                <Deplacement option={option} textes={textes} occupe={occupe} jouer={jouer} />
+                <Deplacement option={option} textes={textes} ouverte={option.cible.id === deplacementOuvert} ouvrir={ouvrirDeplacement} />
               </li>
             ))}
           </ul>
@@ -476,12 +600,28 @@ export function DockPiece({
   );
 }
 
-function Deplacement({ option, textes, occupe, jouer }: { readonly option: OptionMenu; readonly textes: TextesMonde; readonly occupe: boolean; readonly jouer: Jouer }) {
+function Deplacement({
+  option,
+  textes,
+  ouverte,
+  ouvrir,
+}: {
+  readonly option: OptionMenu;
+  readonly textes: TextesMonde;
+  readonly ouverte: boolean;
+  readonly ouvrir: (option: OptionMenu, ancre: HTMLElement) => void;
+}) {
   const { raison } = libelleOption(textes, option);
   const destination = nomDestination(textes, option);
   if (raison !== null) return <Indisponible classe="deplacement" libelle={destination} raison={raison} />;
   return (
-    <button type="button" className="deplacement" disabled={occupe} onClick={() => jouer(option)}>
+    <button
+      type="button"
+      className="deplacement"
+      aria-haspopup="dialog"
+      aria-expanded={ouverte}
+      onClick={(evenement) => ouvrir(option, evenement.currentTarget)}
+    >
       <span aria-hidden="true">→ </span>
       {destination}
     </button>

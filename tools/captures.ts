@@ -4,7 +4,7 @@ import { chromium, devices, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
 import { jouer, nouvellePartie, observer, type Observation, type OptionMenu, type Partie } from '../engine';
 import { libelleOption, MONDE_PAR_DEFAUT, MONDES, nomDe, type EntreeMonde } from '../content';
-import { composerDock, nomDestination, nomPuce, rappelDe, texteRappel } from '../app/ecran';
+import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel } from '../app/ecran';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 
@@ -31,6 +31,8 @@ export interface Geste {
   readonly bouton: string;
   /** Action de la bulle ouverte sur la puce ; `null` pour un déplacement. */
   readonly verbe: string | null;
+  /** Fil de la bulle d'aperçu : « Carnet › Prendre », « Aller vers › atelier ». */
+  readonly fil: string;
   readonly rappel: string;
   /** Nom de la cible ou de la destination, attendu dans le récit (NP-04). */
   readonly nom: string;
@@ -40,12 +42,13 @@ function gesteDe({ textes }: EntreeMonde, observation: Observation, option: Opti
   const dock = composerDock(observation);
   const titre = libelleOption(textes, option).libelle;
   const rappel = texteRappel(textes, rappelDe(option)).texte;
+  const fil = filBulle(textes, option.cible, option);
   if (dock.deplacements.includes(option)) {
     const destination = nomDestination(textes, option);
-    return { titre, zone: 'deplacement', bouton: destination, verbe: null, rappel, nom: destination };
+    return { titre, zone: 'deplacement', bouton: destination, verbe: null, fil, rappel, nom: destination };
   }
   const zone = dock.piece.some((groupe) => groupe.options.includes(option)) ? 'piece' : 'inventaire';
-  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], rappel, nom: nomDe(textes, option.cible).texte };
+  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], fil, rappel, nom: nomDe(textes, option.cible).texte };
 }
 
 /** Gestes du parcours témoin, calculés par le moteur, les textes et le rangement de l'écran : ils ne dépendent pas de la graine. */
@@ -70,9 +73,8 @@ function exactement(texte: string): RegExp {
   return new RegExp(`^${echapper(texte)}$`, 'i');
 }
 
-/** Ouvre la bulle de la puce, dans la pièce ou dans l'inventaire ; renvoie le bouton qui joue l'étape. */
-async function preparer(page: Page, geste: Geste): Promise<Locator> {
-  if (geste.zone === 'deplacement') return page.getByRole('button', { name: exactement(geste.bouton) });
+/** Ouvre la bulle touchée : la fiche d'une puce, ou directement l'aperçu d'un déplacement. */
+async function ouvrir(page: Page, geste: Geste): Promise<void> {
   if (geste.zone === 'inventaire') {
     const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
     if ((await inventaire.getAttribute('aria-expanded')) !== 'true') await inventaire.click();
@@ -80,7 +82,19 @@ async function preparer(page: Page, geste: Geste): Promise<Locator> {
   } else {
     await page.locator('.dock').getByRole('button', { name: exactement(geste.bouton) }).click();
   }
-  return page.getByRole('dialog', { name: exactement(geste.bouton) }).getByRole('button', { name: exactement(geste.verbe ?? '') });
+}
+
+/** Choisit l'action dans la fiche s'il le faut ; renvoie CONFIRMER de l'aperçu (12 §3.8). */
+async function versApercu(page: Page, geste: Geste): Promise<Locator> {
+  if (geste.verbe !== null) {
+    await page.getByRole('dialog', { name: exactement(geste.bouton) }).getByRole('button', { name: exactement(geste.verbe) }).click();
+  }
+  return page.getByRole('dialog', { name: exactement(geste.fil) }).getByRole('button', { name: exactement('Confirmer') });
+}
+
+async function preparer(page: Page, geste: Geste): Promise<Locator> {
+  await ouvrir(page, geste);
+  return versApercu(page, geste);
 }
 
 /** La sauvegarde réussie est silencieuse : on attend ses attributs, pas un texte (12 §11). */
@@ -166,15 +180,15 @@ async function partieEnregistree(page: Page): Promise<string> {
   });
 }
 
-const FERMETURES = ['✕', 'voile', 'Échap', 'retour système'] as const;
+const FERMETURES = ['✕', 'voile', 'Échap', 'retour système', 'ANNULER'] as const;
 
 /**
- * Ouvrir, parcourir et fermer dix fois les bulles ne change rien (C-01 A-01) ; le focus entre dans la bulle,
+ * Ouvrir, parcourir jusqu'à l'aperçu et fermer dix fois les bulles ne change rien (C-01 A-01) ; le focus entre dans la bulle,
  * n'en sort pas au clavier et revient sur la puce à la fermeture (12 §7).
  */
 async function verifierSansEffet(page: Page, erreurs: string[]): Promise<void> {
   const avant = { partie: await partieEnregistree(page), ...(await lire(page)) };
-  const puces = await page.locator('.dock [aria-haspopup="dialog"]').all();
+  const puces = await page.locator('.dock .puce[aria-haspopup="dialog"]').all();
   if (puces.length === 0) erreurs.push('Aucune puce à ouvrir au départ : bulles non vérifiées.');
   for (let fois = 0; fois < 10; fois++) {
     const puce = puces[fois % puces.length];
@@ -182,20 +196,29 @@ async function verifierSansEffet(page: Page, erreurs: string[]): Promise<void> {
     if (puce === undefined) break;
     const nom = (await puce.innerText()).replace(/^▸\s*/, '').trim();
     await puce.click();
-    const bulle = page.getByRole('dialog', { name: exactement(nom) });
-    await bulle.waitFor();
+    const fiche = page.getByRole('dialog', { name: exactement(nom) });
+    await fiche.waitFor();
     if ((await puce.getAttribute('aria-expanded')) !== 'true') erreurs.push(`Bulle « ${nom} » : la puce n’est pas marquée ouverte.`);
+    const ligne = fiche.locator('.ligne:not(.indisponible)').first();
+    const verbe = (await ligne.innerText()).replace(/^▸\s*/, '').trim();
+    await ligne.click();
+    const apercu = page.getByRole('dialog', { name: exactement(`${nom} › ${verbe}`) });
+    await apercu.waitFor();
     if (fois === 0) {
-      for (const touche of ['Tab', 'Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
+      for (const touche of ['Tab', 'Tab', 'Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
         await page.keyboard.press(touche);
-        if (!(await bulle.evaluate((element) => element.contains(document.activeElement)))) {
-          erreurs.push(`Bulle « ${nom} » : le focus sort de la bulle au clavier (${touche}).`);
+        if (!(await apercu.evaluate((element) => element.contains(document.activeElement)))) {
+          erreurs.push(`Aperçu « ${nom} › ${verbe} » : le focus sort de la bulle au clavier (${touche}).`);
           break;
         }
       }
+      await apercu.getByRole('button', { name: exactement('Étape précédente') }).click();
+      await fiche.waitFor({ timeout: 5_000 }).catch(() => erreurs.push(`Aperçu « ${nom} › ${verbe} » : « ‹ » ne ramène pas à la fiche.`));
+      await ligne.click();
+      await apercu.waitFor();
     }
-    await fermerBulle(page, bulle, fermeture);
-    await bulle.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Bulle « ${nom} » : ${fermeture} ne la ferme pas.`));
+    await fermerBulle(page, apercu, fermeture);
+    await apercu.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Bulle « ${nom} » : ${fermeture} ne la ferme pas.`));
     if (!(await puce.evaluate((element) => element === document.activeElement))) {
       erreurs.push(`Bulle « ${nom} » fermée par ${fermeture} : le focus ne revient pas sur la puce.`);
     }
@@ -217,9 +240,10 @@ async function fermerBulle(page: Page, bulle: Locator, fermeture: (typeof FERMET
   if (fermeture === 'voile') await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
   if (fermeture === 'Échap') await page.keyboard.press('Escape');
   if (fermeture === 'retour système') await page.evaluate(() => window.history.back());
+  if (fermeture === 'ANNULER') await bulle.getByRole('button', { name: exactement('Annuler') }).click();
 }
 
-/** Inventaire : liste, fiche, « ‹ », puis fermeture, quatre fois, sans effet ; le focus revient sur INVENTAIRE. */
+/** Inventaire : liste, fiche, « ‹ », fiche, aperçu, « ‹ », aperçu, puis fermeture, cinq fois, sans effet ; le focus revient sur INVENTAIRE. */
 async function verifierInventaireSansEffet(page: Page, geste: Geste, erreurs: string[]): Promise<void> {
   const avant = { partie: await partieEnregistree(page), ...(await lire(page)) };
   const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
@@ -232,8 +256,13 @@ async function verifierInventaireSansEffet(page: Page, geste: Geste, erreurs: st
     await fiche.getByRole('button', { name: exactement('Étape précédente') }).click();
     await liste.waitFor({ timeout: 5_000 }).catch(() => erreurs.push('Inventaire : « ‹ » ne ramène pas à la liste.'));
     await liste.getByRole('button', { name: exactement(geste.bouton) }).click();
-    await fermerBulle(page, fiche, fermeture);
-    await fiche.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Inventaire : ${fermeture} ne le ferme pas.`));
+    await fiche.getByRole('button', { name: exactement(geste.verbe ?? '') }).click();
+    const apercu = page.getByRole('dialog', { name: exactement(geste.fil) });
+    await apercu.getByRole('button', { name: exactement('Étape précédente') }).click();
+    await fiche.waitFor({ timeout: 5_000 }).catch(() => erreurs.push('Inventaire : « ‹ » ne ramène pas de l’aperçu à la fiche.'));
+    await fiche.getByRole('button', { name: exactement(geste.verbe ?? '') }).click();
+    await fermerBulle(page, apercu, fermeture);
+    await apercu.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Inventaire : ${fermeture} ne le ferme pas.`));
     if (!(await inventaire.evaluate((element) => element === document.activeElement))) {
       erreurs.push(`Inventaire fermé par ${fermeture} : le focus ne revient pas sur INVENTAIRE.`);
     }
@@ -343,14 +372,32 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
         await verifierBulle(page, 'Inventaire ouvert', erreurs);
         await verifierDansEcran(page, 'Inventaire ouvert', erreurs);
       }
-      const bouton = await preparer(page, geste);
+      await ouvrir(page, geste);
       if (geste.zone === 'inventaire' || (index === 0 && geste.zone === 'piece')) {
         const titre = geste.zone === 'inventaire' ? `Inventaire, fiche « ${geste.bouton} »` : `Bulle « ${geste.bouton} » ouverte`;
         await capturerEtape(titre);
         await verifierEcran(page, titre, erreurs);
         await verifierDansEcran(page, titre, erreurs);
       }
-      await bouton.click();
+      let confirmer = await versApercu(page, geste);
+      await confirmer.waitFor();
+      if (index === 0 || geste.zone !== 'piece') {
+        const titre = `Aperçu « ${geste.fil} »`;
+        await capturerEtape(titre);
+        await verifierEcran(page, titre, erreurs);
+        await verifierDansEcran(page, titre, erreurs);
+      }
+      if (geste.zone === 'deplacement') {
+        // ANNULER referme sans rien jouer (12 §3.5) ; on rouvre ensuite pour confirmer.
+        const avantAnnuler = await lire(page);
+        await page.getByRole('dialog', { name: exactement(geste.fil) }).getByRole('button', { name: exactement('Annuler') }).click();
+        await confirmer.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push('ANNULER ne ferme pas l’aperçu du déplacement.'));
+        const apresAnnuler = await lire(page);
+        if (apresAnnuler.recit !== avantAnnuler.recit || apresAnnuler.situation !== avantAnnuler.situation) erreurs.push('ANNULER a changé le récit ou la situation.');
+        if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== String(index)) erreurs.push('ANNULER a compté une action.');
+        confirmer = await preparer(page, geste);
+      }
+      await confirmer.click();
       await attendreSauvegarde(page, index + 1);
       const avant = await capturerEtape(geste.titre);
       await verifierEcran(page, geste.titre, erreurs);
@@ -413,15 +460,21 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await attendreSauvegarde(page, 0);
     const premier = gestes[0];
     if (premier !== undefined && premier.zone !== 'deplacement') {
-      await preparer(page, premier);
+      await ouvrir(page, premier);
       await capturerEtape(`Départ, bulle « ${premier.bouton} », ${ETROIT.width} px de large`);
       await verifierEcran(page, `Départ, ${ETROIT.width} px`, erreurs);
       await verifierDansEcran(page, `Départ, ${ETROIT.width} px`, erreurs);
+      await (await versApercu(page, premier)).waitFor();
+      await capturerEtape(`Aperçu « ${premier.fil} », ${ETROIT.width} px de large`);
+      await verifierEcran(page, `Aperçu, ${ETROIT.width} px`, erreurs);
+      await verifierDansEcran(page, `Aperçu, ${ETROIT.width} px`, erreurs);
       await page.keyboard.press('Escape');
       // Plus grand que la taille « très grande » prévue (22 px pour le récit, 12 §4.10), qui n'existe pas encore.
       await page.addStyleTag({ content: '.ecran, .ecran * { font-size: 22px !important; }' });
-      await preparer(page, premier);
-      const titre = `Bulle « ${premier.bouton} », ${ETROIT.width} px, tout le texte à 22 px`;
+      await ouvrir(page, premier);
+      await verifierDansEcran(page, `Bulle « ${premier.bouton} », ${ETROIT.width} px, texte à 22 px`, erreurs);
+      await (await versApercu(page, premier)).waitFor();
+      const titre = `Aperçu « ${premier.fil} », ${ETROIT.width} px, tout le texte à 22 px`;
       await capturerEtape(titre);
       await verifierEcran(page, titre, erreurs);
       await verifierDansEcran(page, titre, erreurs);

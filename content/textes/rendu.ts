@@ -1,4 +1,4 @@
-import type { Cible, Consultation, Evenement, Observation, OptionMenu, Partie, RaisonRefus, Resultat } from '../../engine';
+import type { Apercu, Cible, Consultation, Evenement, Observation, OptionMenu, Partie, RaisonRefus, Resultat, Savoir } from '../../engine';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { Nom, TextesMonde } from './types';
 
@@ -101,6 +101,36 @@ export interface LibelleOption {
   readonly libelle: string;
   /** Raison publique d'indisponibilité, ou `null` si l'option est jouable. */
   readonly raison: string | null;
+}
+
+/** Aperçu mis en mots, le même pour l'appli et la CLI (C-01 A-05). */
+export interface ApercuTexte {
+  readonly risque: string;
+  readonly cout: string;
+  readonly savoir: readonly string[];
+}
+
+function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom> {
+  switch (savoir.type) {
+    case 'portera':
+      return { objet: nomDe(textes, savoir.objet) };
+    case 'laissera':
+      return { objet: nomDe(textes, savoir.objet), piece: nomDe(textes, savoir.piece) };
+    case 'ouvrira':
+    case 'fermera':
+      return { passage: nomDe(textes, savoir.passage) };
+    case 'quittera':
+      return { piece: nomDe(textes, savoir.piece) };
+  }
+}
+
+export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
+  const modele = textes.apercu;
+  return {
+    risque: modele.risques[apercu.risque],
+    cout: modele.couts[apercu.cout],
+    savoir: apercu.savoir.map((savoir) => remplir(modele.savoir[savoir.type], valeursSavoir(textes, savoir))),
+  };
 }
 
 export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleOption {

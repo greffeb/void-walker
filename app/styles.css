@@ -409,6 +409,82 @@ button:disabled {
   color: var(--texte-menu);
 }
 
+/* Aperçu (12 §3.8) : libellés en capitales à gauche, valeurs à droite ; le risque en gras. */
+.apercu {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--texte-menu);
+}
+
+.apercu dt {
+  font-size: 12px;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--secondaire-menu);
+}
+
+.apercu dd {
+  margin: 0;
+}
+
+.apercu dd p {
+  margin: 0 0 4px;
+}
+
+.apercu strong {
+  font-weight: 600;
+  color: var(--couleur-menu);
+}
+
+/* ANNULER un tiers, CONFIRMER deux tiers (12 §3.5), hors de la zone qui défile. */
+.bulle-pied {
+  flex: none;
+  padding: 0 12px 12px;
+}
+
+/* Trop étroit pour les deux mots côte à côte (texte agrandi) : CONFIRMER passe dessous. */
+.confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.confirmation .secondaire {
+  flex: 1 1 0;
+  min-width: min-content;
+}
+
+.confirmation .principal {
+  flex: 2 1 0;
+  min-width: min-content;
+}
+
+.confirmation button {
+  min-height: 54px;
+  padding: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bulle .principal {
+  color: var(--surface-menu);
+  background: var(--couleur-menu);
+  border: 1px solid var(--couleur-menu);
+}
+
+.secondaire {
+  color: var(--texte-menu);
+  background: transparent;
+  border: 1px solid var(--texte-menu);
+}
+
 .bulle :focus-visible {
   outline-color: var(--couleur-menu);
 }
@@ -506,6 +582,11 @@ button:disabled {
   color: var(--texte-secondaire);
   background: transparent;
   border: 1px dashed var(--bordure);
+}
+
+.deplacement[aria-expanded='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .raison {

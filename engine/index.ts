@@ -6,6 +6,7 @@ export { empreinte, hacher } from './hachage';
 export { idPublic, validerMonde, type DefLiaison, type DefMonde, type DefObjet, type DefPiece } from './monde';
 export { menu, observer } from './observation';
 export {
+  apercu,
   empreinteEtat,
   ErreurRejeu,
   exporter,
@@ -21,5 +22,6 @@ export {
   type ExportPartie,
   type Partie,
   type Resultat,
+  type ResultatApercu,
 } from './partie';
 export * from './vocabulaire';

@@ -1,10 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { observer } from '../engine';
+import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
 import { App } from './App';
-import { BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
+import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
 import { composerDock, type Groupe } from './ecran';
-import { commencer, consulter, jouerOption, type Environnement, type Jeu } from './jeu';
+import { commencer, consulter, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
 import type { Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
@@ -49,33 +49,32 @@ async function apres(...actions: string[]): Promise<Jeu> {
 
 const rienAJouer = (): void => undefined;
 
-/** Bulle d'une puce, rendue côté serveur : l'ancrage ne se calcule que dans le navigateur. */
-function bulleObjet(jeu: Jeu, groupe: Groupe): string {
-  return renderToStaticMarkup(
-    <BulleObjet
-      ancre={{} as HTMLElement}
-      groupe={groupe}
-      textes={textes}
-      occupe={false}
-      jouer={rienAJouer}
-      lire={(option) => consulter(env, jeu.partie, option)}
-      fermer={rienAJouer}
-    />,
-  );
+function composition(jeu: Jeu, action: IdAction | null) {
+  return {
+    textes,
+    occupe: false,
+    jouer: rienAJouer,
+    lire: (option: OptionMenu) => consulter(env, jeu.partie, option),
+    prevoir: (option: OptionMenu) => prevoir(env, jeu.partie, option),
+    fermer: rienAJouer,
+    action,
+    choisirAction: rienAJouer,
+  };
 }
 
-function bulleInventaire(jeu: Jeu, cible: string | null): string {
+/** Bulle d'une puce, rendue côté serveur : l'ancrage ne se calcule que dans le navigateur. */
+function bulleObjet(jeu: Jeu, groupe: Groupe, action: IdAction | null = null): string {
+  return renderToStaticMarkup(<BulleObjet ancre={{} as HTMLElement} groupe={groupe} {...composition(jeu, action)} />);
+}
+
+function bulleInventaire(jeu: Jeu, cible: string | null, action: IdAction | null = null): string {
   return renderToStaticMarkup(
     <BulleInventaire
       id="inventaire"
       groupes={composerDock(observer(monde, jeu.partie.etat)).inventaire}
       cible={cible}
       choisir={rienAJouer}
-      textes={textes}
-      occupe={false}
-      jouer={rienAJouer}
-      lire={(option) => consulter(env, jeu.partie, option)}
-      fermer={rienAJouer}
+      {...composition(jeu, action)}
     />,
   );
 }
@@ -122,7 +121,16 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const carnet = dock.piece[0];
     if (carnet === undefined) throw new Error('Puce du carnet absente.');
     const html = renderToStaticMarkup(
-      <DockPiece dock={dock} textes={textes} occupe={false} ouverte={carnet.cible.id} ouvrir={rienAJouer} jouer={rienAJouer} />,
+      <DockPiece
+        dock={dock}
+        textes={textes}
+        occupe={false}
+        puceOuverte={carnet.cible.id}
+        deplacementOuvert={null}
+        ouvrir={rienAJouer}
+        ouvrirDeplacement={rienAJouer}
+        jouer={rienAJouer}
+      />,
     );
     expect(html.match(/aria-expanded="true"/g)).toHaveLength(1);
     expect(entre(html, '<button type="button" class="puce"', '</button>')).toContain('aria-expanded="true"');
@@ -145,6 +153,39 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(html)).toBe(`Carnet ✕ ${description(jeu, 'carnet')} ▸ Prendre`);
     expect(html).toContain('<button type="button" class="ligne"><span aria-hidden="true">▸ </span>Prendre</button>');
     expect(texte(bulleObjet(jeu, porte))).toBe(`Porte de l’atelier ✕ ${description(jeu, 'porte')} ▸ Ouvrir`);
+  });
+
+  it('action choisie : fil « Carnet › Prendre », aperçu RISQUE / COÛT / SAVOIR, ANNULER puis CONFIRMER (12 §3.5, §3.8)', async () => {
+    const jeu = await commencer(env);
+    const carnet = composerDock(observer(monde, jeu.partie.etat)).piece[0];
+    if (carnet === undefined) throw new Error('Puce du carnet absente.');
+    const html = bulleObjet(jeu, carnet, 'prendre');
+    expect(html).toContain('aria-label="Étape précédente"');
+    expect(texte(html)).toBe('‹ Carnet › Prendre ✕ Risque aucun risque connu Coût aucun Savoir Vous aurez le carnet en main. Annuler Confirmer');
+    const apercu = html.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
+    expect(html).toContain(`<dl id="${apercu}" class="apercu"><dt>Risque</dt><dd><strong>aucun risque connu</strong></dd>`);
+    expect(html).toMatch(/<div class="confirmation"><button type="button" class="secondaire">Annuler<\/button><button type="button" class="principal">Confirmer<\/button><\/div>/);
+    expect(texte(html)).not.toMatch(/\d|%|Rien ne se passe/);
+  });
+
+  it('déplacement : bulle d’aperçu « Aller vers › atelier », sans étape précédente (12 §4.3)', async () => {
+    const jeu = await apres('ouvrir');
+    const aller = composerDock(observer(monde, jeu.partie.etat)).deplacements[0];
+    if (aller === undefined || !aller.disponible) throw new Error('Déplacement ouvert attendu.');
+    const html = renderToStaticMarkup(<BulleDeplacement ancre={{} as HTMLElement} option={aller} {...composition(jeu, null)} />);
+    expect(html).toMatch(/^<section class="bulle bulle-objet" role="dialog" aria-modal="true"/);
+    expect(texte(html)).toBe('Aller vers › atelier ✕ Risque aucun risque connu Coût aucun Savoir Vous quitterez la cabine. Annuler Confirmer');
+    const dock = entre(rendre(jeu), '<section class="dock"', '</section>');
+    expect(entre(dock, '<button type="button" class="deplacement"', '</button>')).toContain('aria-haspopup="dialog" aria-expanded="false"');
+  });
+
+  it('inventaire : l’action choisie montre aussi son aperçu ; « ‹ » revient à la fiche', async () => {
+    const jeu = await apres('prendre');
+    const carnet = observer(monde, jeu.partie.etat).inventaire[0];
+    if (carnet === undefined) throw new Error('Carnet absent de l’inventaire.');
+    expect(texte(bulleInventaire(jeu, carnet.id, 'poser'))).toBe(
+      '‹ Carnet › Poser ✕ Risque aucun risque connu Coût aucun Savoir Le carnet restera dans la cabine. Annuler Confirmer',
+    );
   });
 
   it('action indisponible dans une bulle : visible, « ⊘ », raison à droite, aria-disabled, jamais barrée (12 §3.7)', async () => {

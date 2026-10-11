@@ -90,4 +90,22 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',
   },
+  apercu: {
+    risques: {
+      aucun: 'aucun risque connu',
+      faible: 'faible',
+      modere: 'modéré',
+      eleve: 'élevé',
+      mortel: 'mortel',
+      certain: 'certain',
+    },
+    couts: { aucun: 'aucun', bruyant: '[bruyant]' },
+    savoir: {
+      portera: 'Vous aurez {le:objet} en main.',
+      laissera: '{Le:objet} restera dans {le:piece}.',
+      ouvrira: '{Le:passage} sera ouvert{e:passage}.',
+      fermera: '{Le:passage} sera fermé{e:passage}.',
+      quittera: 'Vous quitterez {le:piece}.',
+    },
+  },
 };
