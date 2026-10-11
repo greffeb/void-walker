@@ -1,0 +1,120 @@
+{
+  "telephone": "Pixel 7",
+  "ecrans": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 568
+    }
+  ],
+  "installable": "manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif",
+  "horsLigne": "polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)",
+  "erreurs": [],
+  "etapes": [
+    {
+      "titre": "Départ",
+      "image": "01.png",
+      "recit": "Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien."
+    },
+    {
+      "titre": "Bulle « Carnet » ouverte",
+      "image": "02.png",
+      "recit": "Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien."
+    },
+    {
+      "titre": "Prendre le carnet",
+      "image": "03.png",
+      "recit": "> Carnet · Prendre\nVous prenez le carnet. Le contact est froid sous vos doigts.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous portez le carnet."
+    },
+    {
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir »",
+      "image": "04.png",
+      "recit": "> Carnet · Prendre\nVous prenez le carnet. Le contact est froid sous vos doigts.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous portez le carnet."
+    },
+    {
+      "titre": "Ouvrir la porte de l’atelier",
+      "image": "05.png",
+      "recit": "> Porte de l’atelier · Ouvrir\nVous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.\nLa porte de l’atelier a grincé si fort que le bruit a dû porter loin.\nQuelque chose bouge derrière la porte de l’atelier.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet."
+    },
+    {
+      "titre": "Après fermeture et réouverture",
+      "image": "06.png",
+      "recit": "> Porte de l’atelier · Ouvrir\nVous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.\nLa porte de l’atelier a grincé si fort que le bruit a dû porter loin.\nQuelque chose bouge derrière la porte de l’atelier.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet."
+    },
+    {
+      "titre": "Aperçu « Aller vers › atelier »",
+      "image": "07.png",
+      "recit": "> Porte de l’atelier · Ouvrir\nVous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.\nLa porte de l’atelier a grincé si fort que le bruit a dû porter loin.\nQuelque chose bouge derrière la porte de l’atelier.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet."
+    },
+    {
+      "titre": "Aller dans l’atelier",
+      "image": "08.png",
+      "recit": "> ALLER VERS · ATELIER\nVous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.\nUne silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans l’atelier.\nRien ne traîne ici.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet."
+    },
+    {
+      "titre": "Inventaire ouvert",
+      "image": "09.png",
+      "recit": "> ALLER VERS · ATELIER\nVous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.\nUne silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans l’atelier.\nRien ne traîne ici.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet."
+    },
+    {
+      "titre": "Inventaire, fiche « Carnet »",
+      "image": "10.png",
+      "recit": "> ALLER VERS · ATELIER\nVous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.\nUne silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans l’atelier.\nRien ne traîne ici.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet."
+    },
+    {
+      "titre": "Poser le carnet",
+      "image": "11.png",
+      "recit": "> Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien."
+    },
+    {
+      "titre": "Hors ligne : reprise, police servie par l’appli",
+      "image": "12.png",
+      "recit": "> Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien."
+    },
+    {
+      "titre": "Fin du parcours, 320 px de large",
+      "image": "13.png",
+      "recit": "> Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien."
+    },
+    {
+      "titre": "« → soute » d’un seul toucher, touché deux fois : un seul déplacement",
+      "image": "14.png",
+      "recit": "> ALLER VERS · SOUTE\nVous franchissez le seuil et entrez dans la soute. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.\nLa chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.",
+      "situation": "Vous êtes dans la soute.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la cabine est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien."
+    },
+    {
+      "titre": "Départ, bulle « Porte de l’atelier », 320 px de large",
+      "image": "15.png",
+      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien."
+    },
+    {
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir », 320 px de large",
+      "image": "16.png",
+      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien."
+    },
+    {
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px",
+      "image": "17.png",
+      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien."
+    }
+  ]
+}
