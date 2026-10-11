@@ -50,6 +50,7 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     inventaire: objetsPortes(monde, etat).map((objet) => refObjet(monde, objet.id)),
     visitees: etat.visitees.map((piece) => refPiece(monde, piece)),
     actions: etat.actions,
+    creatureVisible: etat.creature !== null && etat.creature.piece === etat.piece,
     menu: menu(monde, etat),
   };
 }

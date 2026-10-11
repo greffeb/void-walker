@@ -1,3 +1,4 @@
+import { dangerConnu, type SonEmis } from './creature';
 import type { Des } from './des';
 import {
   autreCote,
@@ -20,6 +21,10 @@ export interface Contexte {
 export interface Effet {
   readonly etat: EtatPartie;
   readonly evenements: readonly Evenement[];
+  /** Sons produits par l'action, actifs pendant la réaction de ce pas (C-03 §3). */
+  readonly sons?: readonly SonEmis[];
+  /** Liaison franchie par le passager, que la créature a pu le voir prendre (D-177). */
+  readonly franchie?: string;
 }
 
 /** Aperçu calculé sur ce que le passager sait seulement (C-06 §4), sans dé ni changement d'état. */
@@ -58,8 +63,13 @@ function objetPorte({ monde, etat }: Contexte, cible: string): boolean {
   return objetsPortes(monde, etat).some((objet) => objet.id === cible);
 }
 
-/** Le monde de test n'a encore ni danger, ni dé, ni bruit : rien à annoncer de plus. */
-const SANS_DANGER = { risque: 'aucun', cout: 'aucun' } as const;
+/** Hors des repères de la créature (D-180, D-181), les mondes actuels n'ont ni danger connu ni dé : seul le bruit d'un geste s'annonce. */
+const SANS_DANGER = { risque: 'aucun', danger: null, cout: 'aucun' } as const;
+
+/** Risque d'un passage vers `piece` : celui de la créature vue ou entendue de l'autre côté, sinon aucun. */
+function risqueVers({ monde, etat }: Contexte, piece: string): Pick<Prevision, 'risque' | 'danger'> {
+  return dangerConnu(monde, etat, piece) ?? SANS_DANGER;
+}
 
 function passageIci(contexte: Contexte, cible: string): DefLiaison {
   const liaison = liaisonIci(contexte, cible);
@@ -142,11 +152,28 @@ const ouvrir: ActionEngagee = {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
     return contexte.etat.liaisons[cible] === true ? 'deja_ouvert' : null;
   },
-  prevoir: (contexte, cible) => ({
-    ...SANS_DANGER,
-    savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, passageIci(contexte, cible), contexte.etat.piece) }],
-  }),
-  appliquer: (contexte, cible) => basculer(contexte, cible, true),
+  prevoir: (contexte, cible) => {
+    const liaison = passageIci(contexte, cible);
+    return {
+      ...SANS_DANGER,
+      // Ouvrir sur la pièce où elle a été perçue s'annonce comme y aller (choix du porteur, D-180).
+      ...risqueVers(contexte, autreCote(liaison, contexte.etat.piece)),
+      // Un mécanisme grippé se voit et s'annonce avant d'ouvrir (AR-01 §13 P-A, AR-02 §10 « porte grippée »).
+      cout: liaison.bruyante === true ? 'bruyant' : 'aucun',
+      savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, liaison, contexte.etat.piece) }],
+    };
+  },
+  appliquer: (contexte, cible) => {
+    const effet = basculer(contexte, cible, true);
+    const liaison = passageIci(contexte, cible);
+    if (liaison.bruyante !== true) return effet;
+    const passage = refPassage(contexte.monde, effet.etat, liaison, contexte.etat.piece);
+    return {
+      ...effet,
+      evenements: [...effet.evenements, { type: 'bruit_mecanisme', passage }],
+      sons: [{ piece: contexte.etat.piece, intensite: 'normal' }],
+    };
+  },
 };
 
 const fermer: ActionEngagee = {
@@ -175,7 +202,11 @@ const aller: ActionEngagee = {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
     return contexte.etat.liaisons[cible] === true ? null : 'ferme';
   },
-  prevoir: ({ monde, etat }) => ({ ...SANS_DANGER, savoir: [{ type: 'quittera', piece: refPiece(monde, etat.piece) }] }),
+  prevoir: (contexte, cible) => ({
+    ...SANS_DANGER,
+    ...risqueVers(contexte, autreCote(passageIci(contexte, cible), contexte.etat.piece)),
+    savoir: [{ type: 'quittera', piece: refPiece(contexte.monde, contexte.etat.piece) }],
+  }),
   appliquer: (contexte, cible) => {
     const { monde, etat } = contexte;
     const liaison = liaisonIci(contexte, cible);
@@ -186,7 +217,7 @@ const aller: ActionEngagee = {
     const piece = refPiece(monde, arrivee);
     const evenements: Evenement[] = [{ type: 'deplacement', passage: refPassage(monde, etat, liaison, etat.piece), piece }];
     if (nouvelle) evenements.push({ type: 'piece_decouverte', piece });
-    return { etat: suivant, evenements };
+    return { etat: suivant, evenements, franchie: liaison.id };
   },
 };
 

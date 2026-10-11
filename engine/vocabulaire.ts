@@ -11,6 +11,11 @@ export const TYPES_EVENEMENT = [
   'passage_ferme',
   'deplacement',
   'piece_decouverte',
+  'bruit_mecanisme',
+  'bruit_creature',
+  'creature_entre',
+  'premier_contact',
+  'menace',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -67,7 +72,16 @@ export type Evenement =
   | { readonly type: 'passage_ouvert'; readonly passage: RefPassage }
   | { readonly type: 'passage_ferme'; readonly passage: RefPassage }
   | { readonly type: 'deplacement'; readonly passage: RefPassage; readonly piece: RefPiece }
-  | { readonly type: 'piece_decouverte'; readonly piece: RefPiece };
+  | { readonly type: 'piece_decouverte'; readonly piece: RefPiece }
+  /** Le passager entend son propre geste bruyant. */
+  | { readonly type: 'bruit_mecanisme'; readonly passage: RefPassage }
+  /** La créature bouge dans une pièce voisine : situé par le passage, jamais par une position (OP-01). */
+  | { readonly type: 'bruit_creature'; readonly passage: RefPassage }
+  | { readonly type: 'creature_entre'; readonly passage: RefPassage }
+  /** Une seule fois par partie (C-03 §4.4). */
+  | { readonly type: 'premier_contact' }
+  /** Incident au contact ; sans blessure tant que C-04 n'est pas en place (#101). */
+  | { readonly type: 'menace' };
 
 export type Consultation =
   | { readonly type: 'regarder_piece'; readonly cible: RefPiece }
@@ -101,9 +115,19 @@ export type Savoir =
   | { readonly type: 'fermera'; readonly passage: RefPassage }
   | { readonly type: 'quittera'; readonly piece: RefPiece };
 
+export const TYPES_DANGER = ['creature_vue_instant', 'creature_vue_moment', 'creature_vue_longtemps', 'creature_entendue'] as const;
+export type TypeDanger = (typeof TYPES_DANGER)[number];
+
+/** Danger connu qui justifie le niveau de risque (12 §3.8) : la créature vue, avec l'ancienneté de D-151, ou entendue (D-180, D-181). */
+export type Danger =
+  | { readonly type: 'creature_vue_instant' | 'creature_vue_moment' | 'creature_vue_longtemps'; readonly piece: RefPiece }
+  | { readonly type: 'creature_entendue'; readonly passage: RefPassage };
+
 export interface Apercu {
   readonly commande: Commande;
   readonly risque: NiveauRisque;
+  /** `null` quand aucun danger n'est connu. */
+  readonly danger: Danger | null;
   readonly cout: Cout;
   readonly savoir: readonly Savoir[];
 }
@@ -116,5 +140,7 @@ export interface Observation {
   readonly inventaire: readonly RefObjet[];
   readonly visitees: readonly RefPiece[];
   readonly actions: number;
+  /** Vue directe : la créature est dans la même pièce (C-06 §2). */
+  readonly creatureVisible: boolean;
   readonly menu: readonly OptionMenu[];
 }

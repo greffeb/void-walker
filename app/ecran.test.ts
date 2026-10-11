@@ -69,15 +69,19 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     }
   });
 
-  it('départ : puces du carnet et de la porte, regard sur la pièce, déplacement indisponible, rien en main', () => {
+  it('départ : puces du carnet, de la porte et de la grille, regard sur la pièce, déplacements indisponibles, rien en main', () => {
     const dock = composerDock(observer(monde, depart().etat));
-    expect(dock.piece.map((groupe) => nomPuce(textes, groupe.cible))).toEqual(['Carnet', 'Porte de l’atelier']);
+    expect(dock.piece.map((groupe) => nomPuce(textes, groupe.cible))).toEqual(['Carnet', 'Porte de l’atelier', 'Grille de la soute']);
     expect(dock.piece.map((groupe) => groupe.options.map((option) => textes.verbes[option.action]))).toEqual([
       ['Regarder', 'Prendre'],
       ['Regarder', 'Ouvrir'],
+      ['Regarder', 'Ouvrir'],
     ]);
     expect(dock.autour?.cible.sorte).toBe('piece');
-    expect(dock.deplacements.map((option) => [nomDestination(textes, option), option.disponible])).toEqual([['atelier', false]]);
+    expect(dock.deplacements.map((option) => [nomDestination(textes, option), option.disponible])).toEqual([
+      ['atelier', false],
+      ['soute', false],
+    ]);
     expect(dock.inventaire).toEqual([]);
   });
 
@@ -158,7 +162,8 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     }
   });
 
-  it('ouvrir et relire dix fois chaque fiche et chaque aperçu ne change ni l’état, ni le compteur, ni les dés (C-01 A-01)', () => {
+  // Tous les états atteignables, repère de la créature compris (D-180) : plusieurs milliers, d'où un délai plus long.
+  it('ouvrir et relire dix fois chaque fiche et chaque aperçu ne change ni l’état, ni le compteur, ni les dés (C-01 A-01)', { timeout: 30_000 }, () => {
     for (const partie of atteignables()) {
       const avant = { empreinte: empreinteEtat(partie.etat), json: JSON.stringify(partie) };
       const dock = composerDock(observer(monde, partie.etat));

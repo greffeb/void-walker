@@ -4,6 +4,7 @@ import type {
   NiveauRisque,
   RaisonIndisponibilite,
   RaisonRefus,
+  TypeDanger,
   TypeEvenement,
   TypeSavoir,
 } from '../../engine';
@@ -38,10 +39,14 @@ export interface TextesMonde {
     readonly passageFerme: string;
     readonly inventaire: string;
     readonly inventaireVide: string;
+    /** La créature est dans la pièce, vue par le passager (C-06 §2). */
+    readonly creature: string;
   };
-  /** Aperçu avant confirmation (12 §3.8) : mots du risque et du coût, sans chiffre ; une phrase par chose sue. */
+  /** Aperçu avant confirmation (12 §3.8) : mots du risque, du danger connu et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
     readonly risques: Readonly<Record<NiveauRisque, string>>;
+    /** Suit le niveau sur la ligne RISQUE (« élevé — … ») : en minuscule, sans point final. */
+    readonly dangers: Readonly<Record<TypeDanger, string>>;
     readonly couts: Readonly<Record<Cout, string>>;
     readonly savoir: Readonly<Record<TypeSavoir, string>>;
   };
@@ -56,6 +61,11 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeEvenement, readonly string[]>>
   passage_ferme: ['passage'],
   deplacement: ['passage', 'piece'],
   piece_decouverte: ['piece'],
+  bruit_mecanisme: ['passage'],
+  bruit_creature: ['passage'],
+  creature_entre: ['passage'],
+  premier_contact: [],
+  menace: [],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -78,6 +88,13 @@ export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
   quittera: ['piece'],
 };
 
+export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
+  creature_vue_instant: ['piece'],
+  creature_vue_moment: ['piece'],
+  creature_vue_longtemps: ['piece'],
+  creature_entendue: ['passage'],
+};
+
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
   lieu: ['piece'],
   objets: ['liste'],
@@ -86,4 +103,5 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   passageFerme: ['passage'],
   inventaire: ['liste'],
   inventaireVide: [],
+  creature: [],
 };

@@ -98,6 +98,20 @@ describe('CLI', () => {
     expect(executer(['voir'], ctx).lignes).toContain('Actions engagées : 0');
   });
 
+  it('aperçu : la créature entendue derrière la porte rend le passage risqué, dit comme dans l’appli (D-181)', () => {
+    const ctx = contexte();
+    const debut = executer(['nouvelle'], ctx);
+    const ouverte = executer(['jouer', numero(debut.lignes, 'Ouvrir la porte de l’atelier')], ctx);
+    const aller = numero(ouverte.lignes, 'Aller dans l’atelier');
+    expect(executer(['apercu', aller], ctx).lignes).toEqual([
+      'Aperçu : Aller dans l’atelier',
+      '  Risque : modéré — quelque chose bougeait derrière la porte de l’atelier',
+      '  Coût : aucun',
+      '  Vous quitterez la cabine.',
+      `Rien n’est joué. Pour confirmer : jouer ${aller}`,
+    ]);
+  });
+
   it('commande brute invalide : refus explicite sans effet', () => {
     const ctx = contexte();
     executer(['nouvelle'], ctx);

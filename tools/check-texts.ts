@@ -8,6 +8,7 @@ import {
   observer,
   RAISONS_INDISPONIBILITE,
   RAISONS_REFUS,
+  TYPES_DANGER,
   TYPES_EVENEMENT,
   TYPES_SAVOIR,
   type Partie,
@@ -22,6 +23,7 @@ import {
   rendreEvenements,
   rendreObservation,
   rendreRefus,
+  ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
@@ -36,6 +38,9 @@ import { isMainModule } from './repo-files';
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
 
 const ID_PUBLIC = /\be[0-9a-f]{8}\b/;
+
+/** Moments forts où le récit d'une action peut être plus long (D-111). Garde-fou du contrôle, non décidé : quatre phrases au plus pour ce texte seul. */
+const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact'];
 
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;
@@ -65,6 +70,11 @@ function verifierGabarit(erreurs: string[], ou: string, gabarit: unknown, roles:
 
 function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): void {
   for (const type of TYPES_EVENEMENT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
+  for (const type of MOMENTS_FORTS) {
+    for (const variante of textes.evenements[type] as readonly unknown[]) {
+      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (garde-fou du contrôle).`);
+    }
+  }
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);
   for (const raison of RAISONS_INDISPONIBILITE) {
     verifierGabarit(erreurs, `indisponibilité ${raison}`, textes.indisponibilites[raison], ROLES_INDISPONIBILITE);
@@ -79,6 +89,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const niveau of NIVEAUX_RISQUE) verifierGabarit(erreurs, `risque ${niveau}`, textes.apercu.risques[niveau], []);
   for (const cout of COUTS) verifierGabarit(erreurs, `coût ${cout}`, textes.apercu.couts[cout], []);
   for (const type of TYPES_SAVOIR) verifierGabarit(erreurs, `aperçu ${type}`, textes.apercu.savoir[type], ROLES_SAVOIR[type]);
+  for (const type of TYPES_DANGER) verifierGabarit(erreurs, `danger ${type}`, textes.apercu.dangers[type], ROLES_DANGER[type]);
   for (const mot of [...Object.values(textes.apercu.risques), ...Object.values(textes.apercu.couts)]) {
     if (/[\d%]/.test(mot)) erreurs.push(`aperçu : chiffre ou pourcentage dans « ${mot} » (C-04 §4.3).`);
   }
@@ -105,7 +116,7 @@ function bornesPhrases(textes: TextesMonde, types: readonly TypeEvenement[]): [n
   for (const type of types) {
     const comptes = textes.evenements[type].map(compterPhrases);
     minimum += Math.min(...comptes);
-    maximum += Math.max(...comptes);
+    if (!MOMENTS_FORTS.includes(type)) maximum += Math.max(...comptes);
   }
   return [minimum, maximum];
 }
@@ -142,8 +153,10 @@ function rendreToutAtteignable(entree: EntreeMonde, version: string): Rendu[] {
         if (raison !== null) rendus.push({ texte: raison, ou: `indisponibilité ${option.action}` });
         const prevu = apercu(monde, partie, option.commande);
         if (prevu.type === 'apercu') {
-          const { risque, cout, savoir } = rendreApercu(textes, prevu.apercu);
-          for (const texte of [risque, cout, ...savoir]) rendus.push({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
+          const { risque, danger, cout, savoir } = rendreApercu(textes, prevu.apercu);
+          for (const texte of [risque, ...(danger === null ? [] : [danger]), cout, ...savoir]) {
+            rendus.push({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
+          }
         }
         const resultat = jouer(monde, partie, option.commande);
         const repere = { graine: 1, action: partie.etat.actions + 1 };

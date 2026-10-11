@@ -4,6 +4,38 @@ import type { RefObjet, RefPassage, RefPiece } from './vocabulaire';
 
 export type EmplacementObjet = { readonly type: 'piece'; readonly piece: string } | { readonly type: 'passager' };
 
+/** Dernier indice perçu non encore inspecté (C-03 §4.2). */
+export interface Indice {
+  readonly piece: string;
+  /** Départ du passager vu par la créature : elle ne le suit que par ce passage (D-177). */
+  readonly par: string | null;
+}
+
+/** Créature (C-02 §4.2) : emplacement, dernier indice, premier contact annoncé. */
+export interface EtatCreature {
+  readonly piece: string;
+  readonly indice: Indice | null;
+  readonly contact: boolean;
+}
+
+/** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */
+export interface VueCreature {
+  readonly piece: string;
+  readonly depuis: number;
+}
+
+/** Dernier bruit de la créature entendu (D-181) : pièce d'où il venait et liaison qui le laissait passer (OP-01). */
+export interface BruitCreature {
+  readonly piece: string;
+  readonly par: string;
+}
+
+/** Ce que le passager sait de la créature ; voir une pièce vide efface ce qui la concerne. */
+export interface Reperes {
+  readonly vue: VueCreature | null;
+  readonly entendue: BruitCreature | null;
+}
+
 /** État complet d'une partie : sérialisable en JSON, jamais montré tel quel au joueur. */
 export interface EtatPartie {
   readonly piece: string;
@@ -13,6 +45,9 @@ export interface EtatPartie {
   readonly visitees: readonly string[];
   readonly actions: number;
   readonly generateur: EtatGenerateur;
+  /** `null` dans un monde sans créature. */
+  readonly creature: EtatCreature | null;
+  readonly reperes: Reperes;
 }
 
 export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
@@ -24,6 +59,8 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     visitees: [monde.depart],
     actions: 0,
     generateur: generateurDepuisGraine(graine),
+    creature: monde.creature === undefined ? null : { piece: monde.creature.piece, indice: null, contact: false },
+    reperes: { vue: null, entendue: null },
   };
 }
 

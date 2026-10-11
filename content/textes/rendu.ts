@@ -1,4 +1,16 @@
-import type { Apercu, Cible, Consultation, Evenement, Observation, OptionMenu, Partie, RaisonRefus, Resultat, Savoir } from '../../engine';
+import type {
+  Apercu,
+  Cible,
+  Consultation,
+  Danger,
+  Evenement,
+  Observation,
+  OptionMenu,
+  Partie,
+  RaisonRefus,
+  Resultat,
+  Savoir,
+} from '../../engine';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { Nom, TextesMonde } from './types';
 
@@ -29,6 +41,13 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { passage: nomDe(textes, evenement.passage) };
     case 'deplacement':
       return { passage: nomDe(textes, evenement.passage), piece: nomDe(textes, evenement.piece) };
+    case 'bruit_mecanisme':
+    case 'bruit_creature':
+    case 'creature_entre':
+      return { passage: nomDe(textes, evenement.passage) };
+    case 'premier_contact':
+    case 'menace':
+      return {};
   }
 }
 
@@ -89,6 +108,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   for (const passage of observation.passages) {
     lignes.push(remplir(passage.ouvert ? modele.passageOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
   }
+  if (observation.creatureVisible) lignes.push(remplir(modele.creature, {}));
   lignes.push(
     observation.inventaire.length > 0
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })
@@ -106,6 +126,8 @@ export interface LibelleOption {
 /** Aperçu mis en mots, le même pour l'appli et la CLI (C-01 A-05). */
 export interface ApercuTexte {
   readonly risque: string;
+  /** Danger connu, affiché après le niveau (12 §3.8) ; `null` s'il n'y en a pas. */
+  readonly danger: string | null;
   readonly cout: string;
   readonly savoir: readonly string[];
 }
@@ -124,10 +146,15 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom>
   }
 }
 
+function valeursDanger(textes: TextesMonde, danger: Danger): Record<string, Nom> {
+  return danger.type === 'creature_entendue' ? { passage: nomDe(textes, danger.passage) } : { piece: nomDe(textes, danger.piece) };
+}
+
 export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
   const modele = textes.apercu;
   return {
     risque: modele.risques[apercu.risque],
+    danger: apercu.danger === null ? null : remplir(modele.dangers[apercu.danger.type], valeursDanger(textes, apercu.danger)),
     cout: modele.couts[apercu.cout],
     savoir: apercu.savoir.map((savoir) => remplir(modele.savoir[savoir.type], valeursSavoir(textes, savoir))),
   };

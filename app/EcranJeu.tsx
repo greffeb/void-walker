@@ -456,13 +456,14 @@ function Composer({
   );
 }
 
-/** Aperçu (12 §3.8) : RISQUE, COÛT, SAVOIR. Aucun chiffre. */
+/** Aperçu (12 §3.8) : RISQUE (niveau, puis le danger connu), COÛT, SAVOIR. Aucun chiffre. */
 function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuTexte; readonly idDescription: string }) {
   return (
     <dl id={idDescription} className="apercu">
       <dt>Risque</dt>
       <dd>
         <strong>{apercu.risque}</strong>
+        {apercu.danger === null ? null : ` — ${apercu.danger}`}
       </dd>
       <dt>Coût</dt>
       <dd>{apercu.cout}</dd>

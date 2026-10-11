@@ -1,4 +1,5 @@
 import { CATALOGUE, type DefAction } from './actions';
+import { reagir } from './creature';
 import { graineValide, ouvrirDes } from './des';
 import { etatInitial, refPiece, type EtatPartie } from './etat';
 import { empreinte } from './hachage';
@@ -113,17 +114,20 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
 
   const session = ouvrirDes(partie.etat.generateur);
   const effet = definition.appliquer(contexte, cible, session.des);
+  // Pas de danger à actualiser dans les mondes actuels (étape 3) ; puis une réaction au plus (C-03 §3).
+  const reponse = reagir(monde, effet.etat, effet.sons ?? [], partie.etat.piece, effet.franchie);
+  const evenements = [...effet.evenements, ...reponse.evenements];
   const tirages = [...session.tirages];
-  const etat: EtatPartie = { ...effet.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
+  const etat: EtatPartie = { ...reponse.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
   const entree: EntreeJournal = { commande: validation.commande, tirages };
   return {
     type: 'engagee',
-    evenements: effet.evenements,
+    evenements,
     tirages,
     partie: {
       enregistrement: { ...partie.enregistrement, actions: [...partie.enregistrement.actions, entree] },
       etat,
-      derniers: effet.evenements,
+      derniers: evenements,
     },
   };
 }

@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-11.
 
 ## Règles
 
@@ -1314,5 +1314,47 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : demande du porteur du projet sur la version de test de la PR #109, avec une capture : « le menu d'inventaire […] dans une pop-up, une sorte d'info-bulle, couleur cyan », puis « cyan (adapté à l'esthétique cassette futurism phosphore) » ; « l'infobulle doit se placer par-dessus les éléments existants ».
 - Décision : la bulle d'inventaire (D-154) est cyan, posée au-dessus du bouton INVENTAIRE sans le cacher, par-dessus l'écran ; « Dans la pièce » et « Se déplacer vers » restent visibles dessous ; toucher en dehors la referme. Chaque menu peut avoir sa propre couleur. Remplace sur ce point la règle « tout l'écran reste dans la gamme ambre » de 12 §2.1 (D-140) : l'écran de jeu reste ambre.
 - Limite : blanc pour la carte et vert pour l'IA du vaisseau sont des pistes du porteur du projet, pas encore décidées. Chaque couleur garde les seuils de contraste de 12 §7 et n'est jamais la seule porteuse d'une information (12 §2.6).
+
+## Décisions validées — créature (#100)
+
+### D-177 — La créature suit le passage qu'elle vous a vu prendre
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : question de la relecture de #100 ; réponse « Elle vous suit par la porte qu'elle vous a vu prendre, une pièce par action ».
+- Décision : quand le passager quitte la pièce où la créature le voit, sa réaction de cette action est de le voir partir. À l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large ; elle ne sait pas où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice. Précise C-03 §4.3 et la limite de D-040.
+- Rappel (C-04 §4.2, pas une réponse du porteur) : la fuite exposée et son jet (#101) se résoudront pendant l'action de départ et consommeront cette réaction.
+
+### D-178 — La créature entend aussi loin que le son passe
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : question de la relecture de #100 ; réponse « Aussi loin que les portes ouvertes et les grilles le laissent passer ».
+- Décision : un bruit atteint la créature à travers toute suite de liaisons qui laissent passer le son (ouvertes, ou grilles même fermées), sans limite de distance, comme dans AR-01 P-A (le son de P passerait par E vers O). Le passager, lui, n'entend la créature que dans la pièce voisine (OP-01).
+
+### D-179 — Les agents proposent l'apparence de la créature
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse « Oui, les agents proposent une apparence et la gardent partout ».
+- Décision : les textes peuvent décrire la créature ; l'apparence proposée est gardée partout : plus haute qu'un homme, peau luisante, tête sans yeux, gueule qui hume l'air, griffes. Précise l'aspect laissé ouvert par D-032.
+- Limite : textes en zone verte (D-116).
+
+### D-180 — Aller ou ouvrir là où l'on a vu la créature est annoncé risqué
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : retour du porteur sur la version de test de la PR #112 (« aller dans une pièce où on sait que la créature y était il y a peu devrait avertir le joueur »), puis réponses : « Risque élevé si vue à l'instant ou il y a un moment, modéré si il y a longtemps » ; pièce revue vide : « Plus d'avertissement » ; ouvrir une porte vers elle : « Oui, même niveau que pour y aller ».
+- Décision : l'aperçu d'un déplacement, ou de l'ouverture d'une porte, vers la pièce où le passager a vu la créature en dernier annonce un risque **élevé** si c'était « à l'instant » ou « il y a un moment », **modéré** si c'était « il y a longtemps » (seuils de D-151). Le danger suit le niveau sur la ligne RISQUE (12 §3.8). L'avertissement disparaît quand le passager voit cette pièce vide.
+- Limite : calculé sur ce que le passager sait seulement (C-06 §4) ; une créature jamais perçue n'est pas annoncée.
+
+### D-181 — Un bruit entendu derrière une porte avertit aussi
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponses « Oui : risque modéré, « quelque chose bougeait derrière cette porte » » ; vue puis entendue ailleurs : « Les deux : élevé là où vue, modéré là où entendue » ; avec le temps : « Non : modéré tant que vous n'avez pas vu la pièce » ; entendue puis vue ailleurs : « Le bruit est oublié : on sait maintenant où elle est ».
+- Décision : aller ou ouvrir vers la pièce d'où venait le dernier bruit de la créature s'annonce **modéré**, avec le passage derrière lequel il a été entendu. La dernière vue et le dernier bruit sont gardés chacun à part : un bruit entendu après l'avoir vue laisse les deux pièces signalées ; la voir après l'avoir entendue fait oublier le bruit. Le bruit ne s'oublie pas avec le temps ; il s'efface aussi quand le passager voit cette pièce. Si une vue « il y a longtemps » et un bruit concernent la même pièce, le niveau est le même et c'est le bruit, plus récent, qui est dit [détail de l'agent].
+- Limite : sur la carte, un bruit n'ajoute toujours aucune marque (OP-05) ; seul l'aperçu en tient compte.
+
+### D-182 — Une seule touche quand rien n'est à craindre, sauf pour les portes
+
+- Date / statut : 2026-10-11 / **Validé, implémentation à faire**.
+- Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
+- Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
 
 

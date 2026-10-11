@@ -5,7 +5,9 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   noms: {
     cabine: { texte: 'cabine', genre: 'f', nombre: 's', elision: false },
     atelier: { texte: 'atelier', genre: 'm', nombre: 's', elision: true },
+    soute: { texte: 'soute', genre: 'f', nombre: 's', elision: false },
     porte: { texte: 'porte', genre: 'f', nombre: 's', elision: false },
+    grille: { texte: 'grille', genre: 'f', nombre: 's', elision: false },
     carnet: { texte: 'carnet', genre: 'm', nombre: 's', elision: false },
   },
   descriptions: {
@@ -16,6 +18,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     atelier: [
       'Des établis vissés au sol, des outils rangés dans leurs logements. Tout est en ordre, comme si l’équipe venait de sortir.',
       'L’atelier sent l’huile froide. Sur les établis, chaque outil est à sa place, sous une fine couche de poussière.',
+    ],
+    soute: [
+      'Une soute basse, encombrée de caisses arrimées. L’air y est plus froid et sent l’humidité.',
+      'Des rayonnages vides, des sangles qui pendent. Au sol, des traînées sombres que vous évitez de regarder.',
     ],
     carnet: [
       'Un carnet à couverture souple, aux coins cornés. Les pages sont vierges.',
@@ -36,7 +42,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous déposez {le:objet} à vos pieds. Vous gardez les mains libres.',
     ],
     passage_ouvert: [
-      'Vous ouvrez {le:passage}. Un chuintement, et le passage est libre.',
+      'Vous tirez sur la poignée de {le:passage}. Le passage s’ouvre devant vous.',
       'Vous appuyez sur le bouton d’ouverture. {Le:passage} s’efface dans la cloison.',
     ],
     passage_ferme: [
@@ -48,6 +54,17 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous passez dans {le:piece}, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.',
     ],
     piece_decouverte: ['Vous n’aviez encore jamais mis les pieds ici.', 'Rien, ici, ne vous est familier.'],
+    bruit_mecanisme: [
+      '{Le:passage} a grincé si fort que le bruit a dû porter loin.',
+      'Le mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.',
+    ],
+    bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],
+    creature_entre: ['Quelque chose surgit par {le:passage}.', 'Une masse sombre se glisse par {le:passage}.'],
+    premier_contact: [
+      'Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.',
+      'La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.',
+    ],
+    menace: ['La créature se jette sur vous ; vous vous dérobez de justesse.', 'Des griffes fendent l’air à un souffle de votre visage.'],
   },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Vous apercevez {le:vers} de l’autre côté.'],
@@ -89,6 +106,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     passageFerme: '{Le:passage} est fermé{e:passage}.',
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',
+    creature: 'La créature est là, tout près de vous.',
   },
   apercu: {
     risques: {
@@ -98,6 +116,12 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       eleve: 'élevé',
       mortel: 'mortel',
       certain: 'certain',
+    },
+    dangers: {
+      creature_vue_instant: 'vous venez de voir la créature dans {le:piece}',
+      creature_vue_moment: 'vous avez vu la créature dans {le:piece} il y a un moment',
+      creature_vue_longtemps: 'vous avez vu la créature dans {le:piece} il y a longtemps',
+      creature_entendue: 'quelque chose bougeait derrière {le:passage}',
     },
     couts: { aucun: 'aucun', bruyant: '[bruyant]' },
     savoir: {
