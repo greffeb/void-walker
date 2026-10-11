@@ -1378,4 +1378,11 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : « Se soigner » vise une trousse portée ou posée dans la pièce du passager. Une dose améliore d'un état (C-04 §2) ; vide, la trousse reste un objet et l'action est indisponible (« La trousse de soin est vide. ») ; indemne, l'action est indisponible (« Vous n'êtes pas blessé. »).
 - Limite : le monde de test a une trousse à une dose dans l'atelier ; le nombre de soins d'AR-01 reste celui de son contenu (D-051).
 
+### D-187 — L'aperçu ne dit pas « aucun »
+
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #117).
+- Origine : demande du porteur (« ne pas afficher "Risque aucun risque connu" et ne pas afficher "Coût aucun". N'afficher les infos risque et coût que s'il y a autre chose que "aucun" »).
+- Décision : dans l'aperçu de l'appli, la ligne RISQUE n'apparaît que s'il y a un risque connu (ou un danger connu annoncé), la ligne COÛT que s'il y a un coût (`[bruyant]`). Sinon la ligne disparaît entièrement, libellé et valeur, aussi pour le lecteur d'écran. SAVOIR reste toujours affiché : un aperçu sans risque ni coût montre seulement SAVOIR, puis ANNULER / CONFIRMER. Précise 12 §3.8 et D-150.
+- Limite : l'aperçu calculé par le moteur ne change pas ; la CLI garde ses trois lignes. Le un seul toucher (D-182) se décide toujours sur l'aperçu du moteur, pas sur ce qui est affiché.
+
 

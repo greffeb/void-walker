@@ -1,4 +1,4 @@
-import { CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type OptionMenu, type Partie } from '../engine';
+import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type OptionMenu, type Partie } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, nomDe, raconter, type EntreeMonde } from '../content';
 import {
   composer,
@@ -244,7 +244,7 @@ describe('un seul toucher (D-182)', () => {
         if (!direct) continue;
         if (!['prendre', 'poser', 'aller'].includes(option.action)) ecarts.push(`${option.action} d’un toucher`);
         const apercu = prevoir({ monde, textes }, partie, option);
-        if (apercu.risque !== textes.apercu.risques.aucun || apercu.danger !== null || apercu.cout !== textes.apercu.couts.aucun) {
+        if (apercu.risque !== null || apercu.danger !== null || apercu.cout !== null) {
           ecarts.push(`${option.action} d’un toucher malgré un risque`);
         }
       }
@@ -254,6 +254,30 @@ describe('un seul toucher (D-182)', () => {
     expect([...vus]).toEqual(expect.arrayContaining(['aller:true', 'aller:false', 'prendre:true', 'poser:true', 'ouvrir:false', 'fermer:false']));
     expect([...vus]).not.toEqual(expect.arrayContaining(['ouvrir:true']));
     expect([...vus]).not.toEqual(expect.arrayContaining(['fermer:true']));
+  });
+});
+
+describe('aperçu affiché (D-187)', () => {
+  it('dans tous les états atteignables : RISQUE et COÛT absents exactement quand le moteur annonce « aucun », jamais écrits « aucun »', () => {
+    const formes = new Set<string>();
+    const ecarts: string[] = [];
+    for (const partie of atteignables()) {
+      for (const option of observer(monde, partie.etat).menu.filter((choix) => choix.disponible && CATALOGUE[choix.action].engage)) {
+        const moteur = apercu(monde, partie, option.commande);
+        if (moteur.type !== 'apercu') continue;
+        const { risque, danger, cout } = moteur.apercu;
+        const affiche = prevoir({ monde, textes }, partie, option);
+        const avecRisque = risque !== 'aucun' || danger !== null;
+        const avecCout = cout !== 'aucun';
+        formes.add(`${String(avecRisque)}:${String(avecCout)}`);
+        if ((affiche.risque !== null) !== avecRisque) ecarts.push(`${option.action} : ligne RISQUE ${affiche.risque === null ? 'absente' : 'affichée'}`);
+        if ((affiche.cout !== null) !== avecCout) ecarts.push(`${option.action} : ligne COÛT ${affiche.cout === null ? 'absente' : 'affichée'}`);
+        if (affiche.risque === textes.apercu.risques.aucun || affiche.cout === textes.apercu.couts.aucun) ecarts.push(`${option.action} : « aucun » affiché`);
+        if (affiche.savoir.length === 0) ecarts.push(`${option.action} : SAVOIR vide`);
+      }
+    }
+    expect([...new Set(ecarts)]).toEqual([]);
+    expect([...formes].sort()).toEqual(['false:false', 'false:true', 'true:false', 'true:true']);
   });
 });
 

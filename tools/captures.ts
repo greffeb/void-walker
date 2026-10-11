@@ -675,6 +675,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await rejouer(page, forme.chemin);
       await (await preparer(page, forme.geste)).waitFor();
       const titre = `Aperçu « ${forme.geste.fil} », ${forme.risque ? 'risque connu' : 'sans risque connu'}, ${forme.cout ? 'avec un coût' : 'sans coût'}`;
+      // RISQUE et COÛT seulement s'ils disent autre chose que « aucun » ; SAVOIR toujours (D-187).
+      const lignes = await page.getByRole('dialog', { name: exactement(forme.geste.fil) }).locator('.apercu dt').allTextContents();
+      const attendues = [...(forme.risque ? ['Risque'] : []), ...(forme.cout ? ['Coût'] : []), 'Savoir'];
+      if (lignes.join(' · ') !== attendues.join(' · ')) erreurs.push(`${titre} : lignes « ${lignes.join(' · ')} » au lieu de « ${attendues.join(' · ')} ».`);
       await capturerEtape(titre);
       await verifierEcran(page, titre, erreurs);
       await verifierDansEcran(page, titre, erreurs);

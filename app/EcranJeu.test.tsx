@@ -181,17 +181,38 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(porte).not.toContain('sans confirmation');
   });
 
-  it('action choisie : fil « Carnet › Prendre », aperçu RISQUE / COÛT / SAVOIR, ANNULER puis CONFIRMER (12 §3.5, §3.8)', async () => {
+  it('action choisie : fil « Carnet › Prendre », aperçu sans risque ni coût réduit à SAVOIR, ANNULER puis CONFIRMER (12 §3.5, §3.8, D-187)', async () => {
     const jeu = await commencer(env);
     const carnet = composerDock(observer(monde, jeu.partie.etat)).piece[0];
     if (carnet === undefined) throw new Error('Puce du carnet absente.');
     const html = bulleObjet(jeu, carnet, 'prendre');
     expect(html).toContain('aria-label="Étape précédente"');
-    expect(texte(html)).toBe('‹ Carnet › Prendre ✕ Risque aucun risque connu Coût aucun Savoir Vous aurez le carnet en main. Annuler Confirmer');
+    expect(texte(html)).toBe('‹ Carnet › Prendre ✕ Savoir Vous aurez le carnet en main. Annuler Confirmer');
     const apercu = html.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
-    expect(html).toContain(`<dl id="${apercu}" class="apercu"><dt>Risque</dt><dd><strong>aucun risque connu</strong></dd>`);
+    expect(html).toContain(`<dl id="${apercu}" class="apercu"><dt>Savoir</dt><dd><p>Vous aurez le carnet en main.</p></dd></dl>`);
     expect(html).toMatch(/<div class="confirmation"><button type="button" class="secondaire">Annuler<\/button><button type="button" class="principal">Confirmer<\/button><\/div>/);
-    expect(texte(html)).not.toMatch(/\d|%|Rien ne se passe/);
+    expect(texte(html)).not.toMatch(/\d|%|Rien ne se passe|Risque|Coût|aucun/);
+  });
+
+  it('aperçu (D-187) : RISQUE et COÛT seulement quand ils disent autre chose que « aucun » ; SAVOIR toujours', async () => {
+    const ouvrirPorte = async (jeu: Jeu): Promise<string> => {
+      const porte = composerDock(observer(monde, jeu.partie.etat)).piece.find((groupe) => groupe.cible.nom === 'porte');
+      if (porte === undefined) throw new Error('Puce de la porte absente.');
+      return texte(bulleObjet(jeu, porte, 'ouvrir'));
+    };
+    const depart = await commencer(env);
+    const grille = composerDock(observer(monde, depart.partie.etat)).piece.find((groupe) => groupe.cible.nom === 'grille');
+    if (grille === undefined) throw new Error('Puce de la grille absente.');
+    // Ni risque ni coût : une grille garde l'aperçu (D-182), réduit à SAVOIR.
+    expect(texte(bulleObjet(depart, grille, 'ouvrir'))).toBe('‹ Grille de la soute › Ouvrir ✕ Savoir La grille de la soute sera ouverte. Annuler Confirmer');
+    // Coût sans risque connu : la porte grippée.
+    expect(await ouvrirPorte(depart)).toBe('‹ Porte de l’atelier › Ouvrir ✕ Coût [bruyant] Savoir La porte de l’atelier sera ouverte. Annuler Confirmer');
+    // Risque et coût : attirée par la porte, la créature est entrée dans la cabine ; agir sous ses yeux est risqué (D-183).
+    const proche = await apres('ouvrir', 'prendre', 'fermer');
+    expect(rendre(proche)).toContain('La créature est là, tout près de vous.');
+    expect(await ouvrirPorte(proche)).toBe(
+      '‹ Porte de l’atelier › Ouvrir ✕ Risque élevé — la créature peut vous blesser Coût [bruyant] Savoir La porte de l’atelier sera ouverte. Annuler Confirmer',
+    );
   });
 
   it('déplacement : bulle d’aperçu « Aller vers › atelier », sans étape précédente (12 §4.3)', async () => {
@@ -200,9 +221,9 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     if (aller === undefined || !aller.disponible) throw new Error('Déplacement ouvert attendu.');
     const html = renderToStaticMarkup(<BulleDeplacement ancre={{} as HTMLElement} option={aller} {...composition(jeu, null)} />);
     expect(html).toMatch(/^<section class="bulle bulle-objet" role="dialog" aria-modal="true"/);
-    // La porte grippée a attiré la créature dans l'atelier, entendue derrière la porte : l'aperçu prévient (D-181, 12 §3.8).
+    // La porte grippée a attiré la créature dans l'atelier, entendue derrière la porte : l'aperçu prévient (D-181, 12 §3.8) ; pas de coût, pas de ligne COÛT (D-187).
     expect(texte(html)).toBe(
-      'Aller vers › atelier ✕ Risque modéré — quelque chose bougeait derrière la porte de l’atelier Coût aucun Savoir Vous quitterez la cabine. Annuler Confirmer',
+      'Aller vers › atelier ✕ Risque modéré — quelque chose bougeait derrière la porte de l’atelier Savoir Vous quitterez la cabine. Annuler Confirmer',
     );
     expect(html).toContain('<dd><strong>modéré</strong> — quelque chose bougeait derrière la porte de l’atelier</dd>');
     const dock = entre(rendre(jeu), '<section class="dock"', '</section>');
@@ -222,7 +243,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const carnet = observer(monde, jeu.partie.etat).inventaire[0];
     if (carnet === undefined) throw new Error('Carnet absent de l’inventaire.');
     expect(texte(bulleInventaire(jeu, carnet.id, 'poser'))).toBe(
-      '‹ Carnet › Poser ✕ Risque aucun risque connu Coût aucun Savoir Le carnet restera dans la cabine. Annuler Confirmer',
+      '‹ Carnet › Poser ✕ Savoir Le carnet restera dans la cabine. Annuler Confirmer',
     );
   });
 
