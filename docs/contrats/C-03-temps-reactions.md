@@ -36,6 +36,8 @@ Le moteur distingue : lien de déplacement, gabarit autorisé, canal sonore, can
 
 Dans AR-01, la vision est limitée à une même pièce sans séparation opaque entre positions. Les indices acoustiques passent par les connexions qui les autorisent. Pas de vision à travers les pièces ni de connaissance de la position globale cachée du joueur.
 
+**Portée de l'ouïe (D-178).** Un bruit atteint la créature par toute suite de liaisons qui laissent passer le son, sans limite de distance ; le passager n'entend la créature que dans la pièce voisine (OP-01).
+
 ### 4.2 Priorités de réaction
 
 1. Joueur effectivement visible et interceptable.
@@ -52,6 +54,8 @@ Une réaction peut franchir au plus une liaison normale, effectuer un reposition
 Le chemin sonore vers une origine peut être impraticable pour le gabarit de la créature. Elle tente une voie réellement praticable ou rejoint le côté accessible d'une séparation bloquante. Une cloison fermée d'AR-01 la retient ; aucun franchissement forcé, saut par conduit ou téléportation.
 
 Après inspection d'une source silencieuse, sans nouvel indice, la créature reste là. Ni patrouille permanente ni retour artificiel à son emplacement initial. Réaction au stimulus n'implique pas suivi omniscient de la trajectoire réelle du joueur.
+
+**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe.
 
 ### 4.4 Premier contact
 

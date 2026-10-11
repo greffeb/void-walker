@@ -2,7 +2,7 @@
 export { CATALOGUE, type DefAction } from './actions';
 export { sonRetenu, type Intensite, type SonEmis } from './creature';
 export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, type EtatGenerateur } from './des';
-export type { EmplacementObjet, EtatCreature, EtatPartie } from './etat';
+export type { EmplacementObjet, EtatCreature, EtatPartie, Indice } from './etat';
 export { empreinte, hacher } from './hachage';
 export { idPublic, validerMonde, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece } from './monde';
 export { menu, observer } from './observation';

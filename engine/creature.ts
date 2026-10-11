@@ -1,4 +1,4 @@
-import { autreCote, liaisonsDe, refPassage, type EtatCreature, type EtatPartie } from './etat';
+import { autreCote, liaisonsDe, refPassage, type EtatCreature, type EtatPartie, type Indice } from './etat';
 import type { DefLiaison, DefMonde } from './monde';
 import type { Evenement } from './vocabulaire';
 
@@ -77,24 +77,43 @@ function percuParLePassager(monde: DefMonde, etat: EtatPartie, liaison: DefLiais
 }
 
 /** Une réaction (C-03 §4.2) : joueur visible, sinon son actif, sinon dernier indice, sinon attendre. */
-function reaction(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, sons: readonly SonEmis[]): { creature: EtatCreature; evenements: Evenement[] } {
+function reaction(
+  monde: DefMonde,
+  etat: EtatPartie,
+  creature: EtatCreature,
+  sons: readonly SonEmis[],
+  avant: string,
+): { creature: EtatCreature; evenements: Evenement[] } {
   if (creature.piece === etat.piece) {
     // L'avertissement donne une action pour réagir avant toute conséquence hostile (C-03 §4.4).
     return { creature: { ...creature, indice: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
   }
-  const cible = sonRetenu(monde, etat, creature.piece, sons)?.piece ?? creature.indice;
-  if (cible === null) return { creature, evenements: [] };
-  const liaison = cible === creature.piece ? undefined : pasVers(monde, etat, creature.piece, cible);
-  if (liaison === undefined) return { creature: { ...creature, indice: cible === creature.piece ? null : cible }, evenements: [] };
+  if (creature.piece === avant) {
+    // Elle l'a vu partir : sa réaction est de retenir le passage pris, qu'elle suivra au pas suivant (D-177).
+    const par = liaisonsDe(monde, avant).find((liaison) => autreCote(liaison, avant) === etat.piece && etat.liaisons[liaison.id] === true);
+    return { creature: { ...creature, indice: { piece: etat.piece, par: par?.id ?? null } }, evenements: [] };
+  }
+  const son = sonRetenu(monde, etat, creature.piece, sons);
+  const indice: Indice | null = son === undefined ? creature.indice : { piece: son.piece, par: null };
+  if (indice === null) return { creature, evenements: [] };
+  if (indice.piece === creature.piece) return { creature: { ...creature, indice: null }, evenements: [] };
+  const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
+  if (liaison === undefined) return { creature: { ...creature, indice }, evenements: [] };
   const arrivee = autreCote(liaison, creature.piece);
   const percu = percuParLePassager(monde, etat, liaison, creature.piece, arrivee);
-  return { creature: { piece: arrivee, indice: arrivee === cible ? null : cible, contact: creature.contact }, evenements: percu === undefined ? [] : [percu] };
+  return { creature: { piece: arrivee, indice: arrivee === indice.piece ? null : indice, contact: creature.contact }, evenements: percu === undefined ? [] : [percu] };
+}
+
+/** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */
+function passageSuivi(monde: DefMonde, etat: EtatPartie, depuis: string, indice: Indice): DefLiaison | undefined {
+  const liaison = liaisonsDe(monde, depuis).find((lien) => lien.id === indice.par && autreCote(lien, depuis) === indice.piece);
+  return liaison !== undefined && praticable(etat, liaison) ? liaison : undefined;
 }
 
 /** Étapes 4 et 5 d'un pas (C-03 §3) : la réaction, puis l'annonce du premier contact si la créature et le passager se retrouvent. */
-export function reagir(monde: DefMonde, etat: EtatPartie, sons: readonly SonEmis[]): { etat: EtatPartie; evenements: Evenement[] } {
+export function reagir(monde: DefMonde, etat: EtatPartie, sons: readonly SonEmis[], avant: string = etat.piece): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
-  const { creature, evenements } = reaction(monde, etat, etat.creature, sons);
+  const { creature, evenements } = reaction(monde, etat, etat.creature, sons, avant);
   if (creature.piece === etat.piece && !creature.contact) {
     return { etat: { ...etat, creature: { ...creature, contact: true } }, evenements: [...evenements, { type: 'premier_contact' }] };
   }

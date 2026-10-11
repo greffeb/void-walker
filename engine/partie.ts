@@ -115,7 +115,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   const session = ouvrirDes(partie.etat.generateur);
   const effet = definition.appliquer(contexte, cible, session.des);
   // Pas de danger à actualiser dans les mondes actuels (étape 3) ; puis une réaction au plus (C-03 §3).
-  const reponse = reagir(monde, effet.etat, effet.sons ?? []);
+  const reponse = reagir(monde, effet.etat, effet.sons ?? [], partie.etat.piece);
   const evenements = [...effet.evenements, ...reponse.evenements];
   const tirages = [...session.tirages];
   const etat: EtatPartie = { ...reponse.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };

@@ -4,10 +4,17 @@ import type { RefObjet, RefPassage, RefPiece } from './vocabulaire';
 
 export type EmplacementObjet = { readonly type: 'piece'; readonly piece: string } | { readonly type: 'passager' };
 
-/** Créature (C-02 §4.2) : emplacement, dernier indice perçu non encore inspecté (une pièce), premier contact annoncé. */
+/** Dernier indice perçu non encore inspecté (C-03 §4.2). */
+export interface Indice {
+  readonly piece: string;
+  /** Départ du passager vu par la créature : elle ne le suit que par ce passage (D-177). */
+  readonly par: string | null;
+}
+
+/** Créature (C-02 §4.2) : emplacement, dernier indice, premier contact annoncé. */
 export interface EtatCreature {
   readonly piece: string;
-  readonly indice: string | null;
+  readonly indice: Indice | null;
   readonly contact: boolean;
 }
 

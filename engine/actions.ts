@@ -149,7 +149,7 @@ const ouvrir: ActionEngagee = {
     const liaison = passageIci(contexte, cible);
     return {
       ...SANS_DANGER,
-      // Un mécanisme grippé se voit : le bruit est connu avant d'ouvrir (C-02 §3).
+      // Un mécanisme grippé se voit et s'annonce avant d'ouvrir (AR-01 §13 P-A, AR-02 §10 « porte grippée »).
       cout: liaison.bruyante === true ? 'bruyant' : 'aucun',
       savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, liaison, contexte.etat.piece) }],
     };

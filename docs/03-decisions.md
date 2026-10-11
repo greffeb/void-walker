@@ -1315,4 +1315,26 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : la bulle d'inventaire (D-154) est cyan, posée au-dessus du bouton INVENTAIRE sans le cacher, par-dessus l'écran ; « Dans la pièce » et « Se déplacer vers » restent visibles dessous ; toucher en dehors la referme. Chaque menu peut avoir sa propre couleur. Remplace sur ce point la règle « tout l'écran reste dans la gamme ambre » de 12 §2.1 (D-140) : l'écran de jeu reste ambre.
 - Limite : blanc pour la carte et vert pour l'IA du vaisseau sont des pistes du porteur du projet, pas encore décidées. Chaque couleur garde les seuils de contraste de 12 §7 et n'est jamais la seule porteuse d'une information (12 §2.6).
 
+## Décisions validées — créature (#100)
+
+### D-177 — La créature suit le passage qu'elle vous a vu prendre
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : question de la relecture de #100 ; réponse « Elle vous suit par la porte qu'elle vous a vu prendre, une pièce par action ».
+- Décision : quand le passager quitte la pièce où la créature le voit, sa réaction de cette action est de le voir partir. À l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large ; elle ne sait pas où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice. Précise C-03 §4.2 (indice réellement perçu) et la limite de D-040.
+- Limite : la fuite exposée et son jet (C-04 §4, #101) se résoudront pendant l'action de départ.
+
+### D-178 — La créature entend aussi loin que le son passe
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : question de la relecture de #100 ; réponse « Aussi loin que les portes ouvertes et les grilles le laissent passer ».
+- Décision : un bruit atteint la créature à travers toute suite de liaisons qui laissent passer le son (ouvertes, ou grilles même fermées), sans limite de distance, comme dans AR-01 P-A (le son de P passerait par E vers O). Le passager, lui, n'entend la créature que dans la pièce voisine (OP-01).
+
+### D-179 — Les agents proposent l'apparence de la créature
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponse « Oui, les agents proposent une apparence et la gardent partout ».
+- Décision : les textes peuvent décrire la créature ; l'apparence proposée est gardée partout : plus haute qu'un homme, peau luisante, tête sans yeux, gueule qui hume l'air, griffes. Précise l'aspect laissé ouvert par D-032.
+- Limite : textes en zone verte (D-116) ; un changement d'apparence se fait partout à la fois.
+
 

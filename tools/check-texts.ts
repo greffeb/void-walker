@@ -37,6 +37,9 @@ import { isMainModule } from './repo-files';
 
 const ID_PUBLIC = /\be[0-9a-f]{8}\b/;
 
+/** Moments forts où le récit d'une action peut être plus long (D-111) : leur texte a sa propre limite de quatre phrases. */
+const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact'];
+
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;
 }
@@ -65,6 +68,11 @@ function verifierGabarit(erreurs: string[], ou: string, gabarit: unknown, roles:
 
 function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): void {
   for (const type of TYPES_EVENEMENT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
+  for (const type of MOMENTS_FORTS) {
+    for (const variante of textes.evenements[type] as readonly unknown[]) {
+      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (D-111).`);
+    }
+  }
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);
   for (const raison of RAISONS_INDISPONIBILITE) {
     verifierGabarit(erreurs, `indisponibilité ${raison}`, textes.indisponibilites[raison], ROLES_INDISPONIBILITE);
@@ -97,9 +105,6 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     verifierVariantes(erreurs, `description de « ${entite.nom} »`, textes.descriptions[entite.nom], []);
   }
 }
-
-/** Moments forts où le texte peut être plus long (D-111) : ils ne comptent pas dans le maximum de quatre phrases. */
-const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact'];
 
 /** Phrases minimales et maximales qu'une suite d'événements peut produire, toutes variantes confondues. */
 function bornesPhrases(textes: TextesMonde, types: readonly TypeEvenement[]): [number, number] {
