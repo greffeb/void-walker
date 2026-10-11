@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { chromium, devices, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
-import { libelleOption, MONDE_PAR_DEFAUT, MONDES, nomDe, type EntreeMonde } from '../content';
+import { libelleOption, MONDES, nomDe, type EntreeMonde } from '../content';
 import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { trouverOption } from './rejouer-parcours';
@@ -66,7 +66,7 @@ function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Ob
 /** Gestes du parcours témoin, calculés par le moteur, les textes et le rangement de l'écran : ils ne dépendent pas de la graine. */
 export function gestesDuParcours(entree: EntreeMonde): Geste[] {
   let partie: Partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
-  return entree.parcours.etapes.map((etape) => {
+  return (entree.parcours[0]?.etapes ?? []).map((etape) => {
     const observation = observer(entree.monde, partie.etat);
     const option = trouverOption(observation, etape);
     if (option === undefined) throw new Error(`Étape introuvable : ${etape.action} ${etape.cible}.`);
@@ -512,8 +512,9 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
 }
 
 export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
-  const entree = MONDES[MONDE_PAR_DEFAUT];
-  if (entree === undefined) throw new Error('Monde par défaut absent.');
+  // Les captures suivent encore le parcours du monde de test ; leur passage à AR-01 relève de l'interface.
+  const entree = MONDES['monde-test'];
+  if (entree === undefined) throw new Error('Monde de test absent.');
   const gestes = gestesDuParcours(entree);
   rmSync(SORTIE, { recursive: true, force: true });
   mkdirSync(SORTIE, { recursive: true });

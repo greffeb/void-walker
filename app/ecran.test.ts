@@ -1,5 +1,5 @@
 import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type OptionMenu, type Partie } from '../engine';
-import { MONDE_PAR_DEFAUT, MONDES, nomDe, raconter, type EntreeMonde } from '../content';
+import { MONDES, nomDe, raconter, type EntreeMonde } from '../content';
 import {
   composer,
   composerDock,
@@ -17,8 +17,9 @@ import {
 } from './ecran';
 import { consulter, prevoir } from './jeu';
 
-const entree = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
+const entree = MONDES['monde-test'] as EntreeMonde;
 const { monde, textes } = entree;
+const etapes = entree.parcours[0]?.etapes ?? [];
 const depart = (): Partie => nouvellePartie(monde, { version: 'ecran', graine: 3 });
 
 function placees(dock: Dock): OptionMenu[] {
@@ -95,7 +96,7 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
 
   it('un nom par chose : puce, rappel et récit nomment la même chose (NP-04)', () => {
     let partie = depart();
-    for (const etape of entree.parcours.etapes) {
+    for (const etape of etapes) {
       const option = optionDe(partie, etape.action, etape.cible);
       const resultat = jouer(monde, partie, option.commande);
       const recit = raconter(textes, resultat).join(' ').toLowerCase();
@@ -124,7 +125,7 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
   it('reprise : même rappel que juste après l’action ; aucun avant la première', () => {
     let partie = depart();
     expect(rappelRepris(partie, observer(monde, partie.etat))).toBeNull();
-    for (const etape of entree.parcours.etapes) {
+    for (const etape of etapes) {
       const option = optionDe(partie, etape.action, etape.cible);
       const resultat = jouer(monde, partie, option.commande);
       if (resultat.type !== 'engagee') throw new Error(`Étape non engagée : ${etape.action}.`);

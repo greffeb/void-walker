@@ -6,13 +6,24 @@ import {
   observer,
   reprendrePartie,
   type DefMonde,
+  type Evenement,
   type Observation,
   type OptionMenu,
   type Partie,
   type Resultat,
   type ResultatApercu,
 } from '../engine';
-import { libelleOption, raconter, raconterDerniers, rendreApercu, rendreObservation, rendreRefus, type TextesMonde } from '../content';
+import {
+  libelleOption,
+  raconter,
+  raconterDerniers,
+  rendreApercu,
+  rendreAssistance,
+  rendreObservation,
+  rendreRefus,
+  type EntreeMonde,
+  type TextesMonde,
+} from '../content';
 
 // CLI pour les agents et le playtester : une commande par appel, partie enregistrée dans un fichier.
 
@@ -53,6 +64,7 @@ export const AIDE = [
   'regarder, relire, un aperçu et une action refusée ne coûtent rien.',
   '',
   `Option : --partie <fichier>  (par défaut ${PARTIE_PAR_DEFAUT})`,
+  'Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon AR-01)',
 ];
 
 interface Arguments {
@@ -77,8 +89,47 @@ export function analyserArguments(argv: readonly string[]): Arguments {
   return { positionnels, options };
 }
 
+function cheminPartie(options: Readonly<Record<string, string>>): string {
+  return options.partie !== undefined && options.partie !== '' ? options.partie : PARTIE_PAR_DEFAUT;
+}
+
+/** Monde d'une partie enregistrée, ou `null` si le fichier est absent ou illisible (la reprise dira alors pourquoi). */
+function mondeEnregistre(contenu: string | null): string | null {
+  if (contenu === null) return null;
+  try {
+    const monde = (JSON.parse(contenu) as { enregistrement?: { monde?: unknown } } | null)?.enregistrement?.monde;
+    return typeof monde === 'string' ? monde : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Monde de l'appel : celui de `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon le monde par
+ * défaut. Renvoie un message si le monde est inconnu.
+ */
+export function choisirMonde(
+  argv: readonly string[],
+  mondes: Readonly<Record<string, EntreeMonde>>,
+  parDefaut: string,
+  es: EntreesSorties,
+): EntreeMonde | string {
+  const { positionnels, options } = analyserArguments(argv);
+  const demande = options.monde;
+  if (demande === '') return 'Indiquez le monde : --monde <id>.';
+  const id = demande ?? (positionnels[0] === 'nouvelle' ? null : mondeEnregistre(es.lire(cheminPartie(options)))) ?? parDefaut;
+  return mondes[id] ?? `Monde inconnu : ${id}. Mondes disponibles : ${Object.keys(mondes).join(', ')}.`;
+}
+
+/** Messages de l'IA de la station reçus avec ces événements, après le récit. */
+function afficherAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
+  return rendreAssistance(textes, evenements).map((message) => `[ IA STATION ] « ${message} »`);
+}
+
 export function afficherSituation(textes: TextesMonde, observation: Observation, avecIds = false): string[] {
-  const lignes = ['', ...rendreObservation(textes, observation), '', 'Actions :'];
+  const lignes = ['', ...rendreObservation(textes, observation), ''];
+  if (observation.terminee) lignes.push('Partie terminée : plus aucune action possible.');
+  else lignes.push('Actions :');
   observation.menu.forEach((option, index) => {
     const { libelle, raison } = libelleOption(textes, option);
     const { action, cible, parametre } = option.commande;
@@ -133,7 +184,10 @@ function enregistrer(contexte: Contexte, chemin: string, partie: Partie): string
 
 function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
   const lignes = [...raconter(contexte.textes, resultat)];
-  if (resultat.type === 'engagee') lignes.push(enregistrer(contexte, chemin, resultat.partie));
+  if (resultat.type === 'engagee') {
+    lignes.push(...afficherAssistance(contexte.textes, resultat.evenements));
+    lignes.push(enregistrer(contexte, chemin, resultat.partie));
+  }
   lignes.push(...afficherSituation(contexte.textes, observer(contexte.monde, resultat.partie.etat)));
   return { lignes, code: 0 };
 }
@@ -141,7 +195,7 @@ function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
 export function executer(argv: readonly string[], contexte: Contexte): Sortie {
   const { positionnels, options } = analyserArguments(argv);
   const [commande = 'aide', ...reste] = positionnels;
-  const chemin = options.partie !== undefined && options.partie !== '' ? options.partie : PARTIE_PAR_DEFAUT;
+  const chemin = cheminPartie(options);
   const { monde, textes } = contexte;
 
   switch (commande) {
@@ -155,7 +209,7 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
         return { lignes: ['Graine invalide : entier de 0 à 4294967295 attendu.'], code: 1 };
       }
       const partie = nouvellePartie(monde, { version: contexte.version, graine });
-      const lignes = [...raconterDerniers(textes, partie), enregistrer(contexte, chemin, partie)];
+      const lignes = [...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), enregistrer(contexte, chemin, partie)];
       lignes.push(...afficherSituation(textes, observer(monde, partie.etat)));
       return { lignes, code: 0 };
     }
@@ -163,13 +217,15 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
       const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
-      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...situation], code: 0 };
+      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation], code: 0 };
     }
     case 'apercu':
     case 'jouer': {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
-      const menu = observer(monde, partie.etat).menu;
+      const observation = observer(monde, partie.etat);
+      if (observation.terminee) return { lignes: [rendreRefus(textes, 'partie_terminee')], code: 1 };
+      const menu = observation.menu;
       const numero = Number(reste[0]);
       const option = Number.isInteger(numero) ? menu[numero - 1] : undefined;
       if (option === undefined) return { lignes: [`Numéro d’action invalide : choisissez entre 1 et ${menu.length}.`], code: 1 };

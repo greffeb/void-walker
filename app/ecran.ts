@@ -112,9 +112,9 @@ export function nomPuce(textes: TextesMonde, cible: Cible): string {
   return former('Nom', nomDe(textes, cible));
 }
 
-/** Destination d'un bouton « Se déplacer vers » ; les capitales viennent du style. */
+/** Destination d'un bouton « Se déplacer vers », ou le passage lui-même tant qu'elle est inconnue ; les capitales viennent du style. */
 export function nomDestination(textes: TextesMonde, option: OptionMenu): string {
-  return nomDe(textes, option.cible.sorte === 'passage' ? option.cible.vers : option.cible).texte;
+  return nomDe(textes, option.cible.sorte === 'passage' ? (option.cible.vers ?? option.cible) : option.cible).texte;
 }
 
 /** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Aller vers › atelier ». */
@@ -133,7 +133,7 @@ export type Rappel =
 export function rappelDe({ action, cible }: OptionMenu): Rappel {
   // Une position n'est jamais la cible d'une option, seulement son paramètre.
   if (cible.sorte === 'piece' || cible.sorte === 'position') return { type: 'autour' };
-  if (cible.sorte === 'passage' && action === 'aller') return { type: 'deplacement', vers: cible.vers };
+  if (cible.sorte === 'passage' && action === 'aller' && cible.vers !== null) return { type: 'deplacement', vers: cible.vers };
   return { type: 'cible', action, cible };
 }
 

@@ -59,7 +59,7 @@ function partie(monde: DefMonde = MONDE): Partie {
 /** Joue l'option du menu public `action` sur la cible nommée `nom` (passage nommé par lui-même ou sa destination). */
 function engager(monde: DefMonde, courante: Partie, action: IdAction, nom: string): { partie: Partie; evenements: readonly Evenement[] } {
   const option = observer(monde, courante.etat).menu.find(
-    (choix) => choix.action === action && choix.disponible && (choix.cible.nom === nom || (choix.cible.sorte === 'passage' && choix.cible.vers.nom === nom)),
+    (choix) => choix.action === action && choix.disponible && (choix.cible.nom === nom || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === nom)),
   );
   if (option === undefined) throw new Error(`Option ${action} ${nom} absente ou indisponible.`);
   const resultat = jouer(monde, courante, option.commande);
@@ -86,7 +86,7 @@ const pieceCreature = (courante: Partie): string | undefined => courante.etat.cr
 
 function optionAller(monde: DefMonde, courante: Partie, nom: string): Commande {
   const option = observer(monde, courante.etat).menu.find(
-    (choix) => choix.action === 'aller' && choix.cible.sorte === 'passage' && (choix.cible.nom === nom || choix.cible.vers.nom === nom),
+    (choix) => choix.action === 'aller' && choix.cible.sorte === 'passage' && (choix.cible.nom === nom || choix.cible.vers?.nom === nom),
   );
   if (option === undefined) throw new Error(`Aller ${nom} absent.`);
   return option.commande;
@@ -363,7 +363,7 @@ describe('danger connu derrière un passage où elle a été perçue (D-180, D-1
   /** Niveau et danger de l'aperçu, le danger réduit à son type et au nom de la pièce ou du passage. */
   function apercuDe(monde: DefMonde, courante: Partie, action: IdAction, nom: string): unknown {
     const option = observer(monde, courante.etat).menu.find(
-      (choix) => choix.action === action && choix.cible.sorte === 'passage' && (choix.cible.nom === nom || choix.cible.vers.nom === nom),
+      (choix) => choix.action === action && choix.cible.sorte === 'passage' && (choix.cible.nom === nom || choix.cible.vers?.nom === nom),
     );
     const resultat = apercu(monde, courante, option?.commande);
     if (resultat.type !== 'apercu') throw new Error(`Aperçu ${action} ${nom} : ${resultat.type}.`);

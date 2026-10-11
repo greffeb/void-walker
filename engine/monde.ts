@@ -23,6 +23,15 @@ export interface DefLiaison {
   readonly bruyante?: boolean;
   /** Hors de portée depuis cette pièce sans un appui stable placé dessous (C-02 §5, AR-01 §11.1 A–P). */
   readonly haute?: string;
+  /** Aucune signalétique : la destination reste inconnue tant que le passager ne l'a pas franchie (C-06 §3). */
+  readonly sansSignaletique?: boolean;
+  /**
+   * Pièce depuis laquelle la liaison est invisible avant sa découverte (K-05) ; une liaison cachée est aussi sans
+   * signalétique. De l'autre côté, on la voit comme un passage fermé sans destination.
+   */
+  readonly cachee?: string;
+  /** Seule pièce d'où l'on peut l'ouvrir ou la fermer, comme une écoutille manoeuvrée de l'intérieur. */
+  readonly manoeuvre?: string;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -57,11 +66,27 @@ export interface DefObjet {
   /** Qualité « liquide glissant, par dose » (C-02 §5). */
   readonly glissant?: number;
   readonly avertisseur?: DefAvertisseur;
+  /** Trop large pour une liaison étroite, porté ou non (C-02 §3, D-044). */
+  readonly large?: boolean;
+  /** Source d'énergie qui peut s'installer dans une capsule et l'alimenter. */
+  readonly source?: boolean;
+  /** Capsule d'évacuation : `interieur` est la pièce où l'on monte à bord. */
+  readonly capsule?: { readonly interieur: string };
+  /** Console dont le circuit, une fois activé, alimente cette capsule. */
+  readonly alimente?: string;
+  /** Pupitre qui lance cette capsule. */
+  readonly depart?: string;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
 export interface DefCreature {
   readonly piece: string;
+}
+
+/** Message de l'IA de la station, délivré une fois : au réveil, à la première arrivée dans une pièce, ou au départ. */
+export interface DefAssistance {
+  readonly id: string;
+  readonly quand: { readonly type: 'reveil' } | { readonly type: 'arrivee'; readonly piece: string } | { readonly type: 'evacuation' };
 }
 
 export interface DefMonde {
@@ -72,6 +97,7 @@ export interface DefMonde {
   readonly objets: readonly DefObjet[];
   readonly positions?: readonly DefPosition[];
   readonly creature?: DefCreature;
+  readonly assistance?: readonly DefAssistance[];
 }
 
 export interface IndexMonde {
@@ -122,8 +148,12 @@ export function validerMonde(monde: DefMonde): string[] {
     if (!pieces.has(a) || !pieces.has(b)) erreurs.push(`${liaison.id} : pièce inconnue.`);
     if (a === b) erreurs.push(`${liaison.id} : relie une pièce à elle-même.`);
     if (liaison.haute !== undefined && !liaison.entre.includes(liaison.haute)) erreurs.push(`${liaison.id} : haute d'une pièce qu'elle ne relie pas.`);
+    if (liaison.cachee !== undefined && !liaison.entre.includes(liaison.cachee)) erreurs.push(`${liaison.id} : cachée d'une pièce qu'elle ne relie pas.`);
+    if (liaison.cachee !== undefined && liaison.ouverte) erreurs.push(`${liaison.id} : cachée mais ouverte au départ.`);
+    if (liaison.manoeuvre !== undefined && !liaison.entre.includes(liaison.manoeuvre)) erreurs.push(`${liaison.id} : manoeuvrée d'une pièce qu'elle ne relie pas.`);
   }
   const positionsConnues = new Map(positions.map((position) => [position.id, position]));
+  const objets = new Map(monde.objets.map((objet) => [objet.id, objet]));
   for (const position of positions) {
     if (!pieces.has(position.piece)) erreurs.push(`${position.id} : pièce inconnue ${position.piece}.`);
     if (position.sous !== undefined && liaisons.get(position.sous)?.haute !== position.piece) {
@@ -141,6 +171,32 @@ export function validerMonde(monde: DefMonde): string[] {
       if (!pieces.has(objet.avertisseur.piece)) erreurs.push(`${objet.id} : émetteur dans une pièce inconnue.`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : avertisseur portable.`);
     }
+    if (objet.capsule !== undefined) {
+      const interieur = objet.capsule.interieur;
+      if (!pieces.has(interieur)) erreurs.push(`${objet.id} : intérieur inconnu ${interieur}.`);
+      if (interieur === objet.piece) erreurs.push(`${objet.id} : intérieur dans la pièce de la capsule.`);
+      if (!monde.liaisons.some((liaison) => liaison.entre.includes(interieur) && liaison.entre.includes(objet.piece))) {
+        erreurs.push(`${objet.id} : aucune liaison vers son intérieur.`);
+      }
+      if (objet.portable !== false) erreurs.push(`${objet.id} : capsule portable.`);
+    }
+    if (objet.alimente !== undefined) {
+      if (objets.get(objet.alimente)?.capsule === undefined) erreurs.push(`${objet.id} : alimente autre chose qu'une capsule.`);
+      if (objet.portable !== false) erreurs.push(`${objet.id} : console portable.`);
+    }
+    if (objet.depart !== undefined) {
+      const capsule = objets.get(objet.depart)?.capsule;
+      if (capsule === undefined) erreurs.push(`${objet.id} : lance autre chose qu'une capsule.`);
+      else if (capsule.interieur !== objet.piece) erreurs.push(`${objet.id} : pupitre hors de l'intérieur de sa capsule.`);
+      if (objet.portable !== false) erreurs.push(`${objet.id} : pupitre portable.`);
+    }
+  }
+  const messages = new Set<string>();
+  for (const message of monde.assistance ?? []) {
+    if (message.id === '') erreurs.push('Message d\'assistance sans identifiant.');
+    if (messages.has(message.id)) erreurs.push(`${message.id} : message d'assistance en double.`);
+    messages.add(message.id);
+    if (message.quand.type === 'arrivee' && !pieces.has(message.quand.piece)) erreurs.push(`${message.id} : pièce inconnue ${message.quand.piece}.`);
   }
   if (monde.creature !== undefined) {
     if (!pieces.has(monde.creature.piece)) erreurs.push(`Créature : pièce inconnue ${monde.creature.piece}.`);

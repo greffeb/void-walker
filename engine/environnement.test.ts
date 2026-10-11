@@ -68,7 +68,7 @@ function placee(monde: DefMonde, changement: Partial<Partie['etat']>): Partie {
 /** Option du menu public : action, cible nommée (un passage par lui-même ou sa destination), paramètre nommé le cas échéant. */
 function option(monde: DefMonde, courante: Partie, action: IdAction, nom: string, parametre?: string): OptionMenu | undefined {
   const nomme = (cible: OptionMenu['cible'] | undefined, attendu: string): boolean =>
-    cible !== undefined && (cible.nom === attendu || (cible.sorte === 'passage' && cible.vers.nom === attendu));
+    cible !== undefined && (cible.nom === attendu || (cible.sorte === 'passage' && cible.vers?.nom === attendu));
   return observer(monde, courante.etat).menu.find(
     (choix) => choix.action === action && nomme(choix.cible, nom) && (parametre === undefined || nomme(choix.parametre, parametre)),
   );

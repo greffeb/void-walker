@@ -1,6 +1,21 @@
 // Vocabulaire public du moteur : commandes, événements, consultations, raisons. Aucun texte.
 
-export const ACTIONS = ['regarder', 'prendre', 'poser', 'ouvrir', 'fermer', 'aller', 'soigner', 'deplacer', 'arroser', 'verser', 'declencher'] as const;
+export const ACTIONS = [
+  'regarder',
+  'prendre',
+  'poser',
+  'ouvrir',
+  'fermer',
+  'aller',
+  'soigner',
+  'deplacer',
+  'arroser',
+  'verser',
+  'declencher',
+  'activer',
+  'installer',
+  'lancer',
+] as const;
 export type IdAction = (typeof ACTIONS)[number];
 
 /** Chaîne de santé (C-04 §2, D-041) ; « vaincu » conclut la partie (D-013). */
@@ -36,6 +51,11 @@ export const TYPES_EVENEMENT = [
   'huile_versee',
   'creature_glisse',
   'alarme_declenchee',
+  'circuit_active',
+  'objet_installe',
+  'passage_decouvert',
+  'evacuation',
+  'assistance',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -56,11 +76,27 @@ export const RAISONS_REFUS = [
   'hors_de_portee',
   'test_en_cours',
   'parametre_absent',
+  'trop_large',
+  'deja_actif',
+  'non_alimentee',
+  'non_isolee',
+  'creature_a_bord',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
 /** Raisons qu'un menu peut afficher sur une option indisponible : sous-ensemble des refus. */
-export const RAISONS_INDISPONIBILITE = ['ferme', 'pas_blesse', 'vide', 'hors_de_portee', 'test_en_cours'] as const satisfies readonly RaisonRefus[];
+export const RAISONS_INDISPONIBILITE = [
+  'ferme',
+  'pas_blesse',
+  'vide',
+  'hors_de_portee',
+  'test_en_cours',
+  'trop_large',
+  'deja_actif',
+  'non_alimentee',
+  'non_isolee',
+  'creature_a_bord',
+] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 
 export interface RefPiece {
@@ -75,13 +111,18 @@ export interface RefObjet {
   readonly nom: string;
 }
 
-/** Passage vu depuis la pièce du passager : `vers` est la pièce annoncée par la signalétique. */
+/**
+ * Passage vu depuis la pièce du passager : `vers` est la pièce annoncée par la signalétique, ou `null` tant que la
+ * destination d'un passage sans signalétique n'est pas découverte (C-06 §3, K-05).
+ */
 export interface RefPassage {
   readonly sorte: 'passage';
   readonly id: string;
   readonly nom: string;
   readonly ouvert: boolean;
-  readonly vers: RefPiece;
+  readonly vers: RefPiece | null;
+  /** Faux pour un passage sans signalétique ou caché : sa destination ne s'annonce pas. */
+  readonly signale: boolean;
   /** Ouvert sur une pièce en feu : le passager voit les flammes (C-06 §2). */
   readonly feu: boolean;
   /** Sol huilé au pied du passage, de ce côté (C-03 §5.2, D-190). */
@@ -134,7 +175,22 @@ export type Evenement =
   | { readonly type: 'huile_versee'; readonly objet: RefObjet; readonly passage: RefPassage }
   /** La créature glisse sous les yeux du passager, au pied du passage qu'elle franchissait (C-03 §5.2). */
   | { readonly type: 'creature_glisse'; readonly passage: RefPassage }
-  | { readonly type: 'alarme_declenchee'; readonly objet: RefObjet };
+  | { readonly type: 'alarme_declenchee'; readonly objet: RefObjet }
+  /** Le circuit de la console est réarmé : il alimentera sa capsule (AR-01 §11.2). */
+  | { readonly type: 'circuit_active'; readonly objet: RefObjet }
+  | { readonly type: 'objet_installe'; readonly objet: RefObjet; readonly capsule: RefObjet }
+  /** L'ouverture d'un passage caché révèle sa destination (K-05). */
+  | { readonly type: 'passage_decouvert'; readonly passage: RefPassage }
+  /** Conclusion de la partie : sources qui alimentaient la capsule, circuit puis bloc. */
+  | { readonly type: 'evacuation'; readonly sources: readonly SourceEvacuation[] }
+  /** Message de l'IA de la station reçu à ce pas : son texte est écrit à la main, hors du récit (C-07). */
+  | { readonly type: 'assistance'; readonly message: string };
+
+/** Ce qui alimentait la capsule au départ : le circuit réarmé, un bloc installé, ou les deux. */
+export type SourceEvacuation = 'circuit' | 'bloc';
+
+/** Issue d'une partie terminée. */
+export type Issue = 'evacuation' | 'defaite';
 
 export type Consultation =
   | { readonly type: 'regarder_piece'; readonly cible: RefPiece }
@@ -171,6 +227,9 @@ export const TYPES_SAVOIR = [
   'eteindra',
   'huilera',
   'sonnera',
+  'alimentera',
+  'installera',
+  'partira',
 ] as const;
 export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
@@ -188,7 +247,12 @@ export type Savoir =
   | { readonly type: 'eteindra'; readonly piece: RefPiece }
   | { readonly type: 'huilera'; readonly passage: RefPassage }
   /** L'avertisseur sonnera dans sa pièce, le temps de son cycle (C-03 §5.1). */
-  | { readonly type: 'sonnera'; readonly piece: RefPiece };
+  | { readonly type: 'sonnera'; readonly piece: RefPiece }
+  /** Le circuit réarmé alimentera cette capsule. */
+  | { readonly type: 'alimentera'; readonly objet: RefObjet }
+  | { readonly type: 'installera'; readonly objet: RefObjet; readonly capsule: RefObjet }
+  /** La capsule partira et la partie se conclura. */
+  | { readonly type: 'partira' };
 
 export const TYPES_DANGER = [
   'interception',
@@ -240,5 +304,9 @@ export interface Observation {
   readonly sante: Sante;
   /** Partie conclue (D-013) : plus aucune action au menu. */
   readonly terminee: boolean;
+  /** Comment elle s'est conclue ; `null` tant qu'elle continue. */
+  readonly issue: Issue | null;
+  /** Messages d'assistance reçus, dans l'ordre, pour les relire. */
+  readonly messages: readonly string[];
   readonly menu: readonly OptionMenu[];
 }

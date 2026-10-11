@@ -23,20 +23,42 @@ export type Variantes = readonly [string, ...string[]];
 export const TYPES_AGGRAVATION = ['aggravation_blesse', 'aggravation_critique', 'defaite'] as const;
 export type TypeAggravation = (typeof TYPES_AGGRAVATION)[number];
 
+/**
+ * Événements racontés par `evenements` : l'évacuation a ses textes selon les sources (`evacuations`), l'assistance les siens
+ * (`assistance`), hors du récit.
+ */
+export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance'>;
+
+/** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, ou les deux. */
+export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc'] as const;
+export type CleEvacuation = (typeof CLES_EVACUATION)[number];
+
 export interface TextesMonde {
   readonly noms: Readonly<Record<string, Nom>>;
   /** Description des pièces et objets, par clé de nom, pour « regarder ». */
   readonly descriptions: Readonly<Record<string, Variantes>>;
-  readonly evenements: Readonly<Record<TypeEvenement, Variantes>>;
+  readonly evenements: Readonly<Record<TypeRecit, Variantes>>;
   /**
    * Aggravations dues au feu (D-188), à la place des textes de griffes de `evenements` : feu seul, ou griffes et feu dans le
    * même pas (une seule aggravation, causes conservées, C-04 §3).
    */
   readonly brulures: Readonly<Record<'feu' | 'griffes_feu', Readonly<Record<TypeAggravation, Variantes>>>>;
-  readonly passages: { readonly ouvert: Variantes; readonly ferme: Variantes };
+  /** Départ de la capsule, selon ce qui l'alimentait. */
+  readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
+  /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
+  readonly assistance: Readonly<Record<string, string>>;
+  readonly passages: {
+    readonly ouvert: Variantes;
+    readonly ferme: Variantes;
+    /** Passage dont la destination n'est pas connue (C-06 §3, K-05). */
+    readonly ouvertSansDestination: Variantes;
+    readonly fermeSansDestination: Variantes;
+  };
   readonly refus: Readonly<Record<RaisonRefus, string>>;
   readonly indisponibilites: Readonly<Record<RaisonIndisponibilite, string>>;
   readonly libelles: Readonly<Record<IdAction, string>>;
+  /** Libellé d'« aller » par un passage dont la destination n'est pas connue : nommé par le passage seul. */
+  readonly allerSansDestination: string;
   /** Verbe seul, sans trou : options d'une puce et rappel de la dernière action (« > Carnet · Prendre »). */
   readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
@@ -64,6 +86,8 @@ export interface TextesMonde {
     readonly critique: string;
     /** Partie conclue par la défaite (D-013). */
     readonly terminee: string;
+    /** Partie conclue par le départ de la capsule. */
+    readonly evacuee: string;
   };
   /** Aperçu avant confirmation (12 §3.8) : mots du risque, du danger connu et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
@@ -76,7 +100,7 @@ export interface TextesMonde {
 }
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */
-export const ROLES_EVENEMENT: Readonly<Record<TypeEvenement, readonly string[]>> = {
+export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   reveil: ['piece'],
   objet_pris: ['objet', 'piece'],
   objet_pose: ['objet', 'piece'],
@@ -101,6 +125,9 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeEvenement, readonly string[]>>
   huile_versee: ['objet', 'passage'],
   creature_glisse: ['passage'],
   alarme_declenchee: ['objet'],
+  circuit_active: ['objet'],
+  objet_installe: ['objet', 'capsule'],
+  passage_decouvert: ['passage'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -115,9 +142,14 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   arroser: ['cible', 'piece'],
   verser: ['cible', 'passage'],
   declencher: ['cible'],
+  activer: ['cible'],
+  installer: ['cible'],
+  lancer: ['cible'],
 };
 
+export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
 export const ROLES_PASSAGE = ['passage', 'vers'] as const;
+export const ROLES_PASSAGE_SANS_DESTINATION = ['passage'] as const;
 export const ROLES_INDISPONIBILITE = ['cible'] as const;
 
 export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
@@ -132,6 +164,9 @@ export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
   eteindra: ['piece'],
   huilera: ['passage'],
   sonnera: ['piece'],
+  alimentera: ['objet'],
+  installera: ['objet', 'capsule'],
+  partira: [],
 };
 
 export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
@@ -162,4 +197,5 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   blesse: [],
   critique: [],
   terminee: [],
+  evacuee: [],
 };

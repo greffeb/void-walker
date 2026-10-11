@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
-import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
+import { MONDES, type EntreeMonde } from '../content';
 import { App } from './App';
 import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
 import { composerDock, unToucher, type Groupe } from './ecran';
@@ -8,7 +8,7 @@ import { marquerEcrit } from './ecriture';
 import { commencer, consulter, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
 import type { Stockage } from './sauvegarde';
 
-const { monde, textes } = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
+const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
 
 function memoire(): Stockage {
   let donnees: unknown = null;

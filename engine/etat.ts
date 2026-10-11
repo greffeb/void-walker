@@ -1,10 +1,12 @@
 import { generateurDepuisGraine, type EtatGenerateur } from './des';
 import { dosesDe, indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { RefObjet, RefPassage, RefPiece, RefPosition, Sante } from './vocabulaire';
+import type { RefObjet, RefPassage, RefPiece, RefPosition, Sante, SourceEvacuation } from './vocabulaire';
 
 export type EmplacementObjet =
   | { readonly type: 'piece'; readonly piece: string; readonly position?: string }
-  | { readonly type: 'passager' };
+  | { readonly type: 'passager' }
+  /** Installé dans une capsule : ni au sol ni porté. */
+  | { readonly type: 'installe'; readonly dans: string };
 
 /** Dernier indice perçu non encore inspecté (C-03 §4.2). */
 export interface Indice {
@@ -81,6 +83,14 @@ export interface EtatPartie {
   readonly expositions: readonly string[];
   readonly huile: readonly ZoneHuile[];
   readonly alarme: Alarme | null;
+  /** Liaisons sans signalétique dont le passager connaît la destination, dans l'ordre du monde ; jamais oubliées (K-05). */
+  readonly decouvertes: readonly string[];
+  /** Consoles dont le circuit est activé, dans l'ordre du monde. */
+  readonly actives: readonly string[];
+  /** Conclusion autre que la défaite : la capsule est partie. */
+  readonly fin: 'evacuation' | null;
+  /** Messages d'assistance déjà reçus, dans l'ordre de réception. */
+  readonly messages: readonly string[];
 }
 
 export function cleZone(zone: ZoneHuile): string {
@@ -114,11 +124,60 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     expositions: [],
     huile: [],
     alarme: null,
+    decouvertes: [],
+    actives: [],
+    fin: null,
+    messages: (monde.assistance ?? []).filter((message) => message.quand.type === 'reveil').map((message) => message.id),
   };
 }
 
 export function liaisonsDe(monde: DefMonde, piece: string): DefLiaison[] {
   return monde.liaisons.filter((liaison) => liaison.entre.includes(piece));
+}
+
+/** Une signalétique annonce la destination ; une liaison cachée n'en a pas. */
+export function signalee(liaison: DefLiaison): boolean {
+  return liaison.sansSignaletique !== true && liaison.cachee === undefined;
+}
+
+export function destinationConnue(etat: EtatPartie, liaison: DefLiaison): boolean {
+  return signalee(liaison) || etat.decouvertes.includes(liaison.id);
+}
+
+/** Une liaison cachée n'existe pas, pour le passager, depuis sa pièce cachée tant qu'elle n'est pas découverte (K-05). */
+export function perceptible(etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  return liaison.cachee !== depuis || etat.decouvertes.includes(liaison.id);
+}
+
+/** Liaisons de la pièce que le passager perçoit ; les règles physiques, elles, lisent `liaisonsDe`. */
+export function liaisonsVisibles(monde: DefMonde, etat: EtatPartie, piece: string): DefLiaison[] {
+  return liaisonsDe(monde, piece).filter((liaison) => perceptible(etat, liaison, piece));
+}
+
+/** On n'ouvre ni ne ferme une liaison manoeuvrée que depuis sa pièce de manoeuvre. */
+export function manoeuvrable(liaison: DefLiaison, depuis: string): boolean {
+  return liaison.manoeuvre === undefined || liaison.manoeuvre === depuis;
+}
+
+/** Ajoute la liaison aux découvertes, dans l'ordre du monde. */
+export function decouvrir(monde: DefMonde, etat: EtatPartie, liaison: string): readonly string[] {
+  if (etat.decouvertes.includes(liaison)) return etat.decouvertes;
+  return monde.liaisons.filter((candidate) => candidate.id === liaison || etat.decouvertes.includes(candidate.id)).map((candidate) => candidate.id);
+}
+
+/** Un objet large porté interdit les liaisons étroites (D-044). */
+export function porteLarge(monde: DefMonde, etat: EtatPartie): boolean {
+  return objetsPortes(monde, etat).some((objet) => objet.large === true);
+}
+
+/** Ce qui alimente la capsule : un circuit activé qui la vise, puis une source installée dedans. */
+export function sourcesDe(monde: DefMonde, etat: EtatPartie, capsule: string): SourceEvacuation[] {
+  const circuit = monde.objets.some((objet) => objet.alimente === capsule && etat.actives.includes(objet.id));
+  const bloc = monde.objets.some((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return objet.source === true && emplacement?.type === 'installe' && emplacement.dans === capsule;
+  });
+  return [...(circuit ? (['circuit'] as const) : []), ...(bloc ? (['bloc'] as const) : [])];
 }
 
 export function autreCote(liaison: DefLiaison, piece: string): string {
@@ -196,7 +255,8 @@ export function refPassage(monde: DefMonde, etat: EtatPartie, liaison: DefLiaiso
     id: publicDe(monde, liaison.id),
     nom: liaison.nom,
     ouvert,
-    vers: refPiece(monde, vers),
+    vers: destinationConnue(etat, liaison) ? refPiece(monde, vers) : null,
+    signale: signalee(liaison),
     feu: ouvert && enFeu(etat, vers),
     huile: huilee(etat, liaison.id, depuis),
   };

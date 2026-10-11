@@ -1,7 +1,8 @@
 import { MONDES, type EntreeMonde, type TextesMonde } from '../content';
-import { compterPhrases, verifierTextes } from './check-texts';
+import { compterPhrases, controlerTextes, verifierTextes } from './check-texts';
 
-const ENTREE = Object.values(MONDES)[0] as EntreeMonde;
+const ENTREE = MONDES['monde-test'] as EntreeMonde;
+const AR01 = MONDES['ar-01'] as EntreeMonde;
 
 function avecTextes(modification: (textes: TextesMonde) => TextesMonde): EntreeMonde {
   return { ...ENTREE, textes: modification(ENTREE.textes) };
@@ -84,5 +85,47 @@ describe('contrôle des textes (C-07)', () => {
   it('compte les phrases', () => {
     expect(compterPhrases('Vous ouvrez. Le mécanisme grince, puis cède.')).toBe(2);
     expect(compterPhrases('Une plaque indique : Atelier.')).toBe(1);
+  });
+
+  it('le monde de test reste exploré en entier', EXHAUSTIF, () => {
+    const { couverture } = controlerTextes(ENTREE);
+    expect(couverture?.complete).toBe(true);
+  });
+
+  it('les textes d’AR-01 sont complets et sûrs, évacuation et assistance comprises', { timeout: 120_000 }, () => {
+    const { erreurs, avertissements, couverture } = controlerTextes(AR01);
+    expect(erreurs).toEqual([]);
+    expect(couverture?.rendus).toEqual(expect.arrayContaining(['circuit_active', 'objet_installe', 'passage_decouvert', 'evacuation', 'assistance']));
+    // Hors parcours, feu, blessure et menace cumulés dépassent quatre phrases : signalé, à arbitrer (D-111).
+    expect(avertissements.length).toBeGreaterThan(0);
+    expect(avertissements.every((avertissement) => avertissement.endsWith('2 à 4 attendues (D-111).'))).toBe(true);
+  });
+
+  it('un récit de plus de quatre phrases depuis un état d’un parcours témoin reste une erreur (D-111)', EXHAUSTIF, () => {
+    const long = 'Vous prenez {le:objet}. Deux. Trois. Quatre. Cinq.';
+    const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, objet_pris: [long] } }));
+    expect(controlerTextes(entree).erreurs).toContain('action prendre (objet_pris) : de 5 à 5 phrase(s) selon les variantes, 2 à 4 attendues (D-111).');
+  });
+
+  it('évacuation : plus longue permise, mais garde-fou de quatre phrases', () => {
+    const long = 'Une. Deux. Trois. Quatre. Cinq.';
+    const entree = { ...AR01, textes: { ...AR01.textes, evacuations: { ...AR01.textes.evacuations, bloc: [long] as const } } };
+    expect(verifierTextes(entree)).toContain('événement evacuation : plus de quatre phrases (garde-fou du contrôle).');
+  });
+
+  it('un message d’assistance absent, à trou ou chiffré fait échouer le contrôle', () => {
+    const avecAssistance = (assistance: Record<string, string>): EntreeMonde => ({ ...AR01, textes: { ...AR01.textes, assistance } });
+    expect(verifierTextes(avecAssistance(sans(AR01.textes.assistance, 'energie')))).toContain('assistance « energie » : aucun texte (NP-01).');
+    expect(verifierTextes(avecAssistance({ ...AR01.textes.assistance, depart: 'Départ depuis {le:piece}.' }))).toContain(
+      'assistance « depart » : rôle inconnu « piece ».',
+    );
+    expect(verifierTextes(avecAssistance({ ...AR01.textes.assistance, reveil: 'Capsule 2 disponible.' }))).toContain(
+      'assistance « reveil » : chiffre dans « Capsule 2 disponible. ».',
+    );
+  });
+
+  it('un passage sans destination connue sans texte fait échouer le contrôle', () => {
+    const entree = { ...AR01, textes: { ...AR01.textes, allerSansDestination: undefined as unknown as string } };
+    expect(verifierTextes(entree)).toContain('libellé aller sans destination connue : aucun texte (NP-01).');
   });
 });

@@ -1,10 +1,10 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { observer, type DefMonde } from '../engine';
-import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
+import { MONDES, type EntreeMonde } from '../content';
 import { demarrer, jouerOption, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
-const { monde, textes } = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
+const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
 
 function environnement(stockage: Stockage, version = 'v-test'): Environnement {
   return { monde, textes, version, stockage, graine: () => 31 };

@@ -115,6 +115,15 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous lancez {le:objet} ; au loin, une sirène se met à hurler.',
       'Vous appuyez sur {le:objet}. Quelque part, un émetteur se met à sonner.',
     ],
+    circuit_active: [
+      'Vous réarmez {le:objet}. Un relais claque, très fort.',
+      'Vous basculez le levier {de:objet}. Le relais claque dans tout le local.',
+    ],
+    objet_installe: [
+      'Vous engagez {le:objet} dans {le:capsule}. Il se verrouille avec un déclic.',
+      'Vous glissez {le:objet} dans son logement {de:capsule}. Un voyant s’allume.',
+    ],
+    passage_decouvert: ['Derrière {le:passage}, un passage étroit se découvre.', 'Un passage étroit apparaît derrière {le:passage}.'],
   },
   brulures: {
     feu: {
@@ -143,9 +152,17 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       ],
     },
   },
+  evacuations: {
+    circuit: ['Le circuit tient. La capsule se détache et file dans le noir.'],
+    bloc: ['Le bloc tient. La capsule se détache et file dans le noir.'],
+    circuit_bloc: ['Le circuit et le bloc tiennent. La capsule se détache et file dans le noir.'],
+  },
+  assistance: {},
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Vous apercevez {le:vers} de l’autre côté.'],
-    ferme: ['{Le:passage} est fermé{e:passage}. Une plaque indique « {Nom:vers} ».'],
+    ferme: ['{Le:passage} est fermé{e:passage}. Une plaque indique « {Nom:vers} ».'],
+    ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Vous ne voyez pas où mène le conduit.'],
+    fermeSansDestination: ['{Le:passage} est fermé{e:passage}. Rien n’indique ce qu’il y a derrière.'],
   },
   refus: {
     commande_invalide: 'Commande illisible : rien n’a été joué.',
@@ -161,6 +178,11 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     hors_de_portee: 'C’est hors de portée : rien n’a été joué.',
     test_en_cours: 'Le test est déjà en cours : rien n’a été joué.',
     parametre_absent: 'Ce n’est pas possible ici : rien n’a été joué.',
+    trop_large: 'C’est trop large pour passer : rien n’a été joué.',
+    deja_actif: 'C’est déjà activé : rien n’a été joué.',
+    non_alimentee: 'Rien n’alimente la capsule : rien n’a été joué.',
+    non_isolee: 'Un passage est encore ouvert : rien n’a été joué.',
+    creature_a_bord: 'La créature est à bord : rien n’a été joué.',
   },
   indisponibilites: {
     ferme: '{Le:cible} est fermé{e:cible}.',
@@ -168,6 +190,11 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     vide: '{Le:cible} est vide.',
     hors_de_portee: '{Le:cible} est hors de portée.',
     test_en_cours: 'Le test est déjà en cours.',
+    trop_large: 'Ce que vous portez est trop large pour passer.',
+    deja_actif: '{Le:cible} est déjà activé{e:cible}.',
+    non_alimentee: 'Rien n’alimente la capsule.',
+    non_isolee: 'Un passage est encore ouvert.',
+    creature_a_bord: 'La créature est à bord.',
   },
   libelles: {
     regarder: 'Regarder {le:cible}',
@@ -181,7 +208,11 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     arroser: 'Arroser le feu {de:piece} avec {le:cible}',
     verser: 'Verser {le:cible} au pied {de:passage}',
     declencher: 'Déclencher {le:cible}',
+    activer: 'Activer {le:cible}',
+    installer: 'Installer {le:cible}',
+    lancer: 'Lancer le départ depuis {le:cible}',
   },
+  allerSansDestination: 'Passer par {le:cible}',
   verbes: {
     regarder: 'Regarder',
     prendre: 'Prendre',
@@ -194,6 +225,9 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     arroser: 'Arroser',
     verser: 'Verser',
     declencher: 'Déclencher',
+    activer: 'Activer',
+    installer: 'Installer',
+    lancer: 'Lancer',
   },
   observation: {
     lieu: 'Vous êtes dans {le:piece}.',
@@ -212,6 +246,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     blesse: 'Vous êtes blessé.',
     critique: 'Vous êtes grièvement blessé.',
     terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',
+    evacuee: 'La capsule s’est détachée. Vous avez quitté la station.',
   },
   apercu: {
     risques: {
@@ -245,6 +280,9 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       eteindra: 'Le feu {de:piece} sera éteint.',
       huilera: 'Le sol sera glissant au pied {de:passage}, de votre côté ; vous garderez un bord sec.',
       sonnera: 'L’avertisseur sonnera un moment dans {le:piece}.',
+      alimentera: 'Le circuit alimentera {le:objet}.',
+      installera: '{Le:objet} sera installé{e:objet} dans {le:capsule}.',
+      partira: 'La capsule partira ; la partie se terminera.',
     },
   },
 };

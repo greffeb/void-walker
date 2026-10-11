@@ -12,7 +12,7 @@ import type {
   Savoir,
 } from '../../engine';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
-import type { Nom, TextesMonde, Variantes } from './types';
+import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
 
 /** Repère pour choisir les variantes : la graine de la partie et le numéro de l'action. */
 export interface CleTexte {
@@ -20,11 +20,14 @@ export interface CleTexte {
   readonly action: number;
 }
 
-/** Nom public d'une cible ; un passage se nomme par sa destination (« la porte de l’atelier », C-06 OP-03). */
+/**
+ * Nom public d'une cible ; un passage se nomme par sa destination (« la porte de l’atelier », C-06 OP-03), ou par son seul
+ * nom tant que sa destination n'est pas connue (« la grille »).
+ */
 export function nomDe(textes: TextesMonde, cible: Cible): Nom {
   const nom = textes.noms[cible.nom];
   if (nom === undefined) throw new ErreurTexte(`Nom sans texte : ${cible.nom}.`);
-  if (cible.sorte !== 'passage') return nom;
+  if (cible.sorte !== 'passage' || cible.vers === null) return nom;
   return { ...nom, texte: `${nom.texte} ${former('de', nomDe(textes, cible.vers))}` };
 }
 
@@ -38,6 +41,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
     case 'passage_ouvert':
     case 'passage_ferme':
+    case 'passage_decouvert':
       return { passage: nomDe(textes, evenement.passage) };
     case 'deplacement':
       return { passage: nomDe(textes, evenement.passage), piece: nomDe(textes, evenement.piece) };
@@ -52,11 +56,16 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'aggravation_blesse':
     case 'aggravation_critique':
     case 'defaite':
+    case 'evacuation':
+    case 'assistance':
       return {};
     case 'soin_indemne':
     case 'soin_blesse':
     case 'alarme_declenchee':
+    case 'circuit_active':
       return { objet: nomDe(textes, evenement.objet) };
+    case 'objet_installe':
+      return { objet: nomDe(textes, evenement.objet), capsule: nomDe(textes, evenement.capsule) };
     case 'objet_deplace':
       return { objet: nomDe(textes, evenement.objet), position: nomDe(textes, evenement.position) };
     case 'feu_gagne':
@@ -67,20 +76,42 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
   }
 }
 
-/** Textes possibles d'un événement ; une aggravation due au feu a les siens (D-188). */
+/** Clé des textes d'une évacuation, selon ses sources. */
+export function cleEvacuation(sources: readonly ('circuit' | 'bloc')[]): CleEvacuation {
+  if (sources.includes('circuit')) return sources.includes('bloc') ? 'circuit_bloc' : 'circuit';
+  if (sources.includes('bloc')) return 'bloc';
+  throw new ErreurTexte('Évacuation sans source.');
+}
+
+/** Textes possibles d'un événement ; une aggravation due au feu a les siens (D-188), une évacuation aussi, selon ses sources. */
 function variantesDe(textes: TextesMonde, evenement: Evenement): Variantes {
   if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
     if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
   }
+  if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
+  if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
   return textes.evenements[evenement.type];
 }
 
-/** Une phrase par événement appliqué (C-07 NP-01). */
+/** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
-  return evenements.map((evenement, index) => {
+  return evenements.flatMap((evenement, index) => {
+    if (evenement.type === 'assistance') return [];
     const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
-    return remplir(variante, valeursEvenement(textes, evenement));
+    return [remplir(variante, valeursEvenement(textes, evenement))];
   });
+}
+
+/** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07). */
+export function rendreAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
+  return evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [texteAssistance(textes, evenement.message)] : []));
+}
+
+/** Texte d'un message d'assistance, par son identifiant. */
+export function texteAssistance(textes: TextesMonde, message: string): string {
+  const texte = Object.hasOwn(textes.assistance, message) ? textes.assistance[message] : undefined;
+  if (texte === undefined) throw new ErreurTexte(`Message d’assistance sans texte : ${message}.`);
+  return texte;
 }
 
 export function rendreConsultation(textes: TextesMonde, consultation: Consultation, cle: CleTexte): string {
@@ -88,6 +119,10 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
   const repere = `${cle.graine}:${consultation.type}:${consultation.cible.id}`;
   if (consultation.type === 'regarder_passage') {
     const { cible } = consultation;
+    if (cible.vers === null) {
+      const variantes = cible.ouvert ? textes.passages.ouvertSansDestination : textes.passages.fermeSansDestination;
+      return remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible) });
+    }
     const variantes = cible.ouvert ? textes.passages.ouvert : textes.passages.ferme;
     return remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible), vers: nomDe(textes, cible.vers) });
   }
@@ -146,7 +181,8 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })
       : remplir(modele.inventaireVide, {}),
   );
-  if (observation.terminee) lignes.push(remplir(modele.terminee, {}));
+  if (observation.issue === 'evacuation') lignes.push(remplir(modele.evacuee, {}));
+  else if (observation.terminee) lignes.push(remplir(modele.terminee, {}));
   return lignes;
 }
 
@@ -187,6 +223,12 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom>
       return { piece: nomDe(textes, savoir.piece) };
     case 'huilera':
       return { passage: nomDe(textes, savoir.passage) };
+    case 'alimentera':
+      return { objet: nomDe(textes, savoir.objet) };
+    case 'installera':
+      return { objet: nomDe(textes, savoir.objet), capsule: nomDe(textes, savoir.capsule) };
+    case 'partira':
+      return {};
   }
 }
 
@@ -217,15 +259,16 @@ export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
 export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleOption {
   const { cible, parametre } = option;
   const valeurs: Record<string, Nom> = { cible: nomDe(textes, cible) };
-  if (cible.sorte === 'passage') valeurs.vers = nomDe(textes, cible.vers);
-  // Paramètre : la position visée, le passage et la pièce derrière lui, ou la pièce elle-même.
+  if (cible.sorte === 'passage' && cible.vers !== null) valeurs.vers = nomDe(textes, cible.vers);
+  // Paramètre : la position visée, le passage et la pièce derrière lui (le passage seul si elle est inconnue), ou la pièce elle-même.
   if (parametre?.sorte === 'position') valeurs.position = nomDe(textes, parametre);
   if (parametre?.sorte === 'passage') {
     valeurs.passage = nomDe(textes, parametre);
-    valeurs.piece = nomDe(textes, parametre.vers);
+    valeurs.piece = nomDe(textes, parametre.vers ?? parametre);
   }
   if (parametre?.sorte === 'piece') valeurs.piece = nomDe(textes, parametre);
-  const libelle = remplir(textes.libelles[option.action], valeurs);
+  const gabarit = option.action === 'aller' && cible.sorte === 'passage' && cible.vers === null ? textes.allerSansDestination : textes.libelles[option.action];
+  const libelle = remplir(gabarit, valeurs);
   if (option.disponible) return { libelle, raison: null };
   if (option.raison === undefined) throw new ErreurTexte(`Option indisponible sans raison : ${option.action}.`);
   return { libelle, raison: remplir(textes.indisponibilites[option.raison], { cible: valeurs.cible as Nom }) };

@@ -1,5 +1,5 @@
 import { CATALOGUE } from './actions';
-import { creatureEnVue, enFeu, liaisonsDe, objetsDans, objetsPortes, refObjet, refPassage, refPiece, refPosition, type EtatPartie } from './etat';
+import { creatureEnVue, enFeu, liaisonsVisibles, objetsDans, objetsPortes, refObjet, refPassage, refPiece, refPosition, type EtatPartie } from './etat';
 import { indexer, type DefMonde } from './monde';
 import {
   ACTIONS,
@@ -25,8 +25,13 @@ function cibleVisible(monde: DefMonde, etat: EtatPartie, id: string): Cible {
   return refPassage(monde, etat, liaison, etat.piece);
 }
 
+/** Partie conclue : défaite (D-013) ou évacuation. */
+export function terminee(etat: EtatPartie): boolean {
+  return etat.sante === 'vaincu' || etat.fin !== null;
+}
+
 export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
-  if (etat.sante === 'vaincu') return [];
+  if (terminee(etat)) return [];
   const options: OptionMenu[] = [];
   for (const action of ACTIONS) {
     const definition = CATALOGUE[action];
@@ -63,7 +68,7 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
         ? [{ objet: refObjet(monde, objet.id), position: refPosition(monde, emplacement.position) }]
         : [];
     }),
-    passages: liaisonsDe(monde, etat.piece).map((liaison) => refPassage(monde, etat, liaison, etat.piece)),
+    passages: liaisonsVisibles(monde, etat, etat.piece).map((liaison) => refPassage(monde, etat, liaison, etat.piece)),
     inventaire: objetsPortes(monde, etat).map((objet) => refObjet(monde, objet.id)),
     visitees: etat.visitees.map((piece) => refPiece(monde, piece)),
     actions: etat.actions,
@@ -71,7 +76,9 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     creatureATerre: creatureEnVue(etat) && (etat.creature?.perdues ?? 0) > 0,
     feu: enFeu(etat, etat.piece),
     sante: etat.sante,
-    terminee: etat.sante === 'vaincu',
+    terminee: terminee(etat),
+    issue: etat.fin ?? (etat.sante === 'vaincu' ? 'defaite' : null),
+    messages: etat.messages,
     menu: menu(monde, etat),
   };
 }
