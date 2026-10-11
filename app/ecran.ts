@@ -1,5 +1,16 @@
 import { former, nomDe, type TextesMonde } from '../content';
-import { ACTIONS, type Cible, type IdAction, type Observation, type OptionMenu, type Partie, type RefObjet, type RefPassage, type RefPiece } from '../engine';
+import {
+  ACTIONS,
+  CATALOGUE,
+  type Cible,
+  type IdAction,
+  type Observation,
+  type OptionMenu,
+  type Partie,
+  type RefObjet,
+  type RefPassage,
+  type RefPiece,
+} from '../engine';
 
 // Organisation de l'écran de jeu (docs/12-interface-ecrans.md §3), sans React : partagée par l'appli et les captures.
 
@@ -36,6 +47,49 @@ export function composerDock(observation: Observation): Dock {
     autour: autres.find((option) => option.cible.sorte === 'piece'),
     deplacements: observation.menu.filter((option) => option.action === 'aller'),
     inventaire: grouper(observation.inventaire, autres),
+  };
+}
+
+/** Première étape d'une bulle (12 §3.5) : la consultation est la fiche, gratuite (D-014) ; le reste, les actions. */
+export interface Composition {
+  readonly fiche: OptionMenu | undefined;
+  readonly actions: readonly OptionMenu[];
+}
+
+export function composer(groupe: Groupe): Composition {
+  return {
+    fiche: groupe.options.find((option) => !CATALOGUE[option.action].engage),
+    actions: groupe.options.filter((option) => CATALOGUE[option.action].engage),
+  };
+}
+
+/** Marge aux bords de l'écran et écart laissé à la flèche entre la bulle et sa puce (12 §2.7, §3.5). */
+export const MARGE_BULLE = 16;
+export const ECART_BULLE = 12;
+
+export interface Placement {
+  readonly cote: 'dessus' | 'dessous';
+  /** Distance entre la bulle et le bord bas de l'écran (dessus) ou son bord haut (dessous). */
+  readonly bord: number;
+  readonly hauteurMax: number;
+  /** Pointe de la flèche, depuis le bord gauche de la bulle. */
+  readonly fleche: number;
+}
+
+/** Au-dessus de la puce si la bulle y tient, sinon dessous ; du côté le plus grand si aucun ne suffit : elle défile. */
+export function placerBulle(
+  ancre: { readonly haut: number; readonly bas: number; readonly centre: number },
+  bulle: { readonly gauche: number; readonly largeur: number; readonly hauteur: number },
+  hauteurEcran: number,
+): Placement {
+  const dessus = ancre.haut - ECART_BULLE - MARGE_BULLE;
+  const dessous = hauteurEcran - ancre.bas - ECART_BULLE - MARGE_BULLE;
+  const cote = bulle.hauteur <= dessus || (bulle.hauteur > dessous && dessus >= dessous) ? 'dessus' : 'dessous';
+  return {
+    cote,
+    bord: cote === 'dessus' ? hauteurEcran - ancre.haut + ECART_BULLE : ancre.bas + ECART_BULLE,
+    hauteurMax: Math.max(0, cote === 'dessus' ? dessus : dessous),
+    fleche: Math.min(Math.max(ancre.centre - bulle.gauche, ECART_BULLE), bulle.largeur - ECART_BULLE),
   };
 }
 

@@ -1,10 +1,25 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { observer, type OptionMenu } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
-import { composerDock, nomDestination, nomPuce, REGARDER_AUTOUR, type Dock, type Groupe } from './ecran';
-import type { Environnement, Jeu } from './jeu';
+import { composer, composerDock, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, type Dock, type Groupe } from './ecran';
+import { consulter, type Environnement, type Jeu } from './jeu';
 
 type Jouer = (option: OptionMenu) => void;
+/** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
+type Lire = (option: OptionMenu) => readonly string[];
+
+/** Bulle ouverte : celle d'une puce de la pièce, ou l'inventaire (liste, puis fiche d'un objet porté). */
+type Ouverte =
+  | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement }
+  | { readonly zone: 'inventaire'; readonly cible: string | null };
+
+/** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
+const ENTREE_BULLE = 'void-walker:bulle';
+
+function quitterEntreeBulle(): void {
+  const etat: unknown = window.history.state;
+  if (typeof etat === 'object' && etat !== null && ENTREE_BULLE in etat) window.history.back();
+}
 
 /** Écran de jeu (12 §3.1), lu dans cet ordre : en-tête de pièce, récit, dock, navigation (12 §7). */
 export function EcranJeu({
@@ -24,23 +39,60 @@ export function EcranJeu({
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
   const dock = composerDock(observation);
-  const [deplie, setDeplie] = useState<string | null>(null);
-  const [inventaireOuvert, setInventaireOuvert] = useState(false);
+  const [ouverte, setOuverte] = useState<Ouverte | null>(null);
   const idInventaire = useId();
-  const boutonInventaire = useRef<HTMLButtonElement>(null);
+  const recit = useRef<HTMLElement>(null);
+  /** Élément touché pour ouvrir la bulle en cours ; `null` si aucune n'est ouverte. */
+  const origine = useRef<HTMLElement | null>(null);
+  /** Après une action lancée depuis une bulle : où rendre le focus une fois le résultat affiché. */
+  const aRendre = useRef<HTMLElement | null>(null);
 
+  useEffect(() => {
+    const surRetour = (): void => {
+      const depuis = origine.current;
+      if (depuis === null) return;
+      origine.current = null;
+      setOuverte(null);
+      depuis.focus();
+    };
+    window.addEventListener('popstate', surRetour);
+    return () => window.removeEventListener('popstate', surRetour);
+  }, []);
+
+  useEffect(() => {
+    const depuis = aRendre.current;
+    if (depuis === null) return;
+    aRendre.current = null;
+    (depuis.isConnected ? depuis : recit.current)?.focus();
+  }, [jeu]);
+
+  const ouvrir = (suivante: Ouverte, depuis: HTMLElement): void => {
+    if (origine.current === null) window.history.pushState({ [ENTREE_BULLE]: true }, '');
+    origine.current = depuis;
+    setOuverte(suivante);
+  };
+  /** Fermer sans effet : ✕, voile, Échap ou retour système ; le focus revient à l'élément d'origine (12 §7). */
+  const fermer = (): void => {
+    const depuis = origine.current;
+    if (depuis === null) return;
+    origine.current = null;
+    setOuverte(null);
+    quitterEntreeBulle();
+    depuis.focus();
+  };
+  // Engagement provisoire (#93) : la dernière étape joue l'action, en attendant l'aperçu (Interface 3).
   const jouer: Jouer = (option) => {
-    setDeplie(null);
-    setInventaireOuvert(false);
+    aRendre.current = origine.current;
+    if (origine.current !== null) {
+      origine.current = null;
+      setOuverte(null);
+      quitterEntreeBulle();
+    }
     void choisir(jeu, option);
   };
-  const basculer = (id: string): void => setDeplie((actuel) => (actuel === id ? null : id));
-  const fermerInventaire = (): void => {
-    setDeplie(null);
-    setInventaireOuvert(false);
-    boutonInventaire.current?.focus();
-  };
+  const lire: Lire = (option) => consulter(env, jeu.partie, option);
 
+  const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
   return (
     <main className="jeu">
       <header className="entete-piece">
@@ -52,39 +104,47 @@ export function EcranJeu({
         )}
       </header>
       <Sauvegarde jeu={jeu} />
-      <Recit jeu={jeu} />
+      <Recit jeu={jeu} zone={recit} />
       {/* Situation en phrases : hors de l'écran, gardée pour le lecteur d'écran comme dans la CLI (C-06 K-07). */}
       <section className="lecteur-seul" data-testid="situation">
         {rendreObservation(textes, observation).map((ligne, index) => (
           <p key={index}>{ligne}</p>
         ))}
       </section>
-      <DockPiece dock={dock} textes={textes} occupe={occupe} deplie={inventaireOuvert ? null : deplie} basculer={basculer} jouer={jouer} />
+      <DockPiece
+        dock={dock}
+        textes={textes}
+        occupe={occupe}
+        ouverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
+        ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre }, ancre)}
+        jouer={jouer}
+      />
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
-      {inventaireOuvert && <div className="voile" data-testid="voile" onClick={fermerInventaire} />}
+      {ouverte !== null && <div className={ouverte.zone === 'piece' ? 'voile voile-haut' : 'voile'} data-testid="voile" onClick={fermer} />}
+      {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
+        <BulleObjet ancre={ouverte.ancre} groupe={groupeOuvert} textes={textes} occupe={occupe} jouer={jouer} lire={lire} fermer={fermer} />
+      )}
       <div className="bas">
-        {inventaireOuvert && (
+        {ouverte?.zone === 'inventaire' && (
           <BulleInventaire
             id={idInventaire}
             groupes={dock.inventaire}
+            cible={ouverte.cible}
+            choisir={(cible) => setOuverte({ zone: 'inventaire', cible })}
             textes={textes}
             occupe={occupe}
-            deplie={deplie}
-            basculer={basculer}
             jouer={jouer}
-            fermer={fermerInventaire}
+            lire={lire}
+            fermer={fermer}
           />
         )}
         <nav className="navigation" aria-label="Navigation">
           <button
-            ref={boutonInventaire}
             type="button"
-            aria-expanded={inventaireOuvert}
-            aria-controls={inventaireOuvert ? idInventaire : undefined}
-            onClick={() => {
-              setDeplie(null);
-              setInventaireOuvert((ouvert) => !ouvert);
-            }}
+            aria-haspopup="dialog"
+            aria-expanded={ouverte?.zone === 'inventaire'}
+            aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
+            onClick={(evenement) => (ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null }, evenement.currentTarget))}
           >
             Inventaire
           </button>
@@ -94,38 +154,200 @@ export function EcranJeu({
   );
 }
 
-/** Inventaire (D-154) : bulle cyan (D-176) posée au-dessus du bouton INVENTAIRE, par-dessus l'écran. */
+interface PropsComposition {
+  readonly textes: TextesMonde;
+  readonly occupe: boolean;
+  readonly jouer: Jouer;
+  readonly lire: Lire;
+  readonly fermer: () => void;
+}
+
+/**
+ * Bulle (12 §3.5) : dialogue nommé par son fil, « ‹ » à partir de la deuxième étape, « ✕ ».
+ * Le focus y entre à chaque étape et n'en sort pas ; Échap la referme.
+ */
+function Bulle({
+  id,
+  zone,
+  classe,
+  titre,
+  etape,
+  retour,
+  fermer,
+  children,
+}: {
+  readonly id?: string;
+  readonly zone: RefObject<HTMLElement | null>;
+  readonly classe: string;
+  readonly titre: string;
+  /** Change à chaque étape : le focus revient sur la bulle. */
+  readonly etape: string;
+  readonly retour?: () => void;
+  readonly fermer: () => void;
+  readonly children: ReactNode;
+}) {
+  const idTitre = useId();
+  useEffect(() => {
+    zone.current?.focus();
+  }, [zone, etape]);
+  const pieger = (evenement: KeyboardEvent<HTMLElement>): void => {
+    if (evenement.key === 'Escape') {
+      evenement.preventDefault();
+      fermer();
+      return;
+    }
+    if (evenement.key !== 'Tab') return;
+    const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')];
+    const premier = boutons[0];
+    const dernier = boutons[boutons.length - 1];
+    if (premier === undefined || dernier === undefined) return;
+    const actif = document.activeElement;
+    if (evenement.shiftKey ? actif === premier || actif === evenement.currentTarget : actif === dernier) {
+      evenement.preventDefault();
+      (evenement.shiftKey ? dernier : premier).focus();
+    }
+  };
+  return (
+    <section ref={zone} id={id} className={`bulle ${classe}`} role="dialog" aria-modal="true" aria-labelledby={idTitre} tabIndex={-1} onKeyDown={pieger}>
+      <div className="bulle-entete">
+        {retour !== undefined && (
+          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour}>
+            <span aria-hidden="true">‹</span>
+          </button>
+        )}
+        <h2 id={idTitre} className="bulle-titre">
+          {titre}
+        </h2>
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+      <div className="bulle-corps">{children}</div>
+    </section>
+  );
+}
+
+/** Bulle d'une puce de la pièce, ancrée sur elle : dessus si elle y tient, sinon dessous, jamais hors de l'écran (12 §3.5, §3.6). */
+export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { readonly ancre: HTMLElement; readonly groupe: Groupe }) {
+  const zone = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const bulle = zone.current;
+    if (bulle === null) return;
+    const placer = (): void => {
+      const puce = ancre.getBoundingClientRect();
+      const boite = bulle.getBoundingClientRect();
+      const hauteur = [...bulle.children].reduce((somme, enfant) => somme + enfant.scrollHeight, boite.height - bulle.clientHeight);
+      const place = placerBulle(
+        { haut: puce.top, bas: puce.bottom, centre: puce.left + puce.width / 2 },
+        { gauche: boite.left, largeur: boite.width, hauteur },
+        window.innerHeight,
+      );
+      bulle.dataset.cote = place.cote;
+      bulle.style.top = place.cote === 'dessous' ? `${place.bord}px` : '';
+      bulle.style.bottom = place.cote === 'dessus' ? `${place.bord}px` : '';
+      bulle.style.maxHeight = `${place.hauteurMax}px`;
+      bulle.style.setProperty('--fleche', `${place.fleche}px`);
+    };
+    placer();
+    window.addEventListener('resize', placer);
+    return () => window.removeEventListener('resize', placer);
+  }, [ancre]);
+  return (
+    <Bulle zone={zone} classe="bulle-objet" titre={nomPuce(props.textes, groupe.cible)} etape={groupe.cible.id} fermer={props.fermer}>
+      <Composer groupe={groupe} {...props} />
+    </Bulle>
+  );
+}
+
+/** Inventaire (D-154) : bulle cyan (D-176) au-dessus du bouton INVENTAIRE ; toucher un objet ouvre la même composition qu'en pièce. */
 export function BulleInventaire({
   id,
   groupes,
-  fermer,
+  cible,
+  choisir,
   ...props
-}: PropsPuces & { readonly id: string; readonly groupes: readonly Groupe[]; readonly fermer: () => void }) {
-  const bulle = useRef<HTMLElement>(null);
-  const fermerActuel = useRef(fermer);
-  useEffect(() => {
-    fermerActuel.current = fermer;
-  });
-  // À l'ouverture seulement : le focus entre dans la bulle, Échap la referme.
-  useEffect(() => {
-    bulle.current?.focus();
-    const touche = (evenement: KeyboardEvent): void => {
-      if (evenement.key === 'Escape') fermerActuel.current();
-    };
-    document.addEventListener('keydown', touche);
-    return () => document.removeEventListener('keydown', touche);
-  }, []);
+}: PropsComposition & {
+  readonly id: string;
+  readonly groupes: readonly Groupe[];
+  /** Objet porté dont la fiche est ouverte ; `null` pour la liste. */
+  readonly cible: string | null;
+  readonly choisir: (cible: string | null) => void;
+}) {
+  const zone = useRef<HTMLElement>(null);
+  const groupe = groupes.find((porte) => porte.cible.id === cible);
+  if (groupe !== undefined) {
+    return (
+      <Bulle id={id} zone={zone} classe="bulle-inventaire" titre={nomPuce(props.textes, groupe.cible)} etape={groupe.cible.id} retour={() => choisir(null)} fermer={props.fermer}>
+        <Composer groupe={groupe} {...props} />
+      </Bulle>
+    );
+  }
   return (
-    <section ref={bulle} id={id} className="bulle bulle-inventaire" role="dialog" aria-label="Inventaire" tabIndex={-1}>
-      <h2 className="titre-section">Inventaire</h2>
-      <div className="bulle-corps">
-        {groupes.length === 0 ? (
-          <p className="vide">{remplir(props.textes.observation.inventaireVide, {})}</p>
-        ) : (
-          <Puces groupes={groupes} {...props} />
-        )}
-      </div>
-    </section>
+    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre="Inventaire" etape="" fermer={props.fermer}>
+      {groupes.length === 0 ? (
+        <p className="vide">{remplir(props.textes.observation.inventaireVide, {})}</p>
+      ) : (
+        <ul className="puces">
+          {groupes.map((porte) => (
+            <li key={porte.cible.id}>
+              <button type="button" className="puce" onClick={() => choisir(porte.cible.id)}>
+                <span aria-hidden="true">▸ </span>
+                {nomPuce(props.textes, porte.cible)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Bulle>
+  );
+}
+
+/** Première étape (12 §3.5) : la fiche, gratuite, puis une ligne par action ; une action sans paramètre se joue aussitôt. */
+function Composer({ groupe, textes, occupe, jouer, lire }: Omit<PropsComposition, 'fermer'> & { readonly groupe: Groupe }) {
+  const { fiche, actions } = composer(groupe);
+  return (
+    <>
+      {fiche !== undefined && (
+        <div className="fiche">
+          {lire(fiche).map((phrase, index) => (
+            <p key={index}>{phrase}</p>
+          ))}
+        </div>
+      )}
+      {actions.length > 0 && (
+        <ul className="lignes">
+          {actions.map((option) => {
+            const { raison } = libelleOption(textes, option);
+            const verbe = textes.verbes[option.action];
+            return (
+              <li key={option.action}>
+                {raison === null ? (
+                  <button type="button" className="ligne" disabled={occupe} onClick={() => jouer(option)}>
+                    <span aria-hidden="true">▸ </span>
+                    {verbe}
+                  </button>
+                ) : (
+                  <Indisponible classe="ligne" libelle={verbe} raison={raison} />
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+}
+
+/** Action indisponible (12 §3.7) : visible, « ⊘ », raison publique à droite, lue « Ouvrir, indisponible : … », jamais activable. */
+function Indisponible({ classe, libelle, raison }: { readonly classe: string; readonly libelle: string; readonly raison: string }) {
+  return (
+    <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${libelle}, indisponible : ${raison}`}>
+      <span className="libelle">
+        <span aria-hidden="true">⊘ </span>
+        {libelle}
+      </span>
+      <span className="raison">{raison}</span>
+    </button>
   );
 }
 
@@ -146,10 +368,11 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
   );
 }
 
-function Recit({ jeu }: { readonly jeu: Jeu }) {
+/** `tabIndex` : le focus y revient quand la puce d'origine a disparu après l'action (objet pris). */
+function Recit({ jeu, zone }: { readonly jeu: Jeu; readonly zone: RefObject<HTMLElement | null> }) {
   const { rappel } = jeu;
   return (
-    <section className="recit" data-testid="recit" aria-live="polite">
+    <section ref={zone} className="recit" data-testid="recit" aria-live="polite" tabIndex={-1}>
       {rappel !== null && (
         <p className={rappel.capitales ? 'rappel capitales' : 'rappel'} data-testid="rappel">
           <span aria-hidden="true">&gt; </span>
@@ -163,23 +386,45 @@ function Recit({ jeu }: { readonly jeu: Jeu }) {
   );
 }
 
-interface PropsPuces {
+/** Dock (12 §3.4) : une puce par objet ou passage de la pièce, qui ouvre sa bulle, puis un bouton par passage connu. */
+export function DockPiece({
+  dock,
+  textes,
+  occupe,
+  ouverte,
+  ouvrir,
+  jouer,
+}: {
+  readonly dock: Dock;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
-  readonly deplie: string | null;
-  readonly basculer: (id: string) => void;
+  /** Cible dont la bulle est ouverte : sa puce passe en vidéo inverse. */
+  readonly ouverte: string | null;
+  readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
   readonly jouer: Jouer;
-}
-
-/** Dock (12 §3.4) : puces des objets et passages de la pièce, puis un bouton par passage connu. */
-export function DockPiece({ dock, ...props }: PropsPuces & { readonly dock: Dock }) {
+}) {
   const autour = dock.autour;
   return (
     <section className="dock">
       <h2 className="titre-section">Dans la pièce</h2>
-      <Puces groupes={dock.piece} {...props} />
+      <ul className="puces">
+        {dock.piece.map((groupe) => (
+          <li key={groupe.cible.id}>
+            <button
+              type="button"
+              className="puce"
+              aria-haspopup="dialog"
+              aria-expanded={groupe.cible.id === ouverte}
+              onClick={(evenement) => ouvrir(groupe, evenement.currentTarget)}
+            >
+              <span aria-hidden="true">▸ </span>
+              {nomPuce(textes, groupe.cible)}
+            </button>
+          </li>
+        ))}
+      </ul>
       {autour !== undefined && (
-        <button type="button" className="puce autour" disabled={props.occupe} onClick={() => props.jouer(autour)}>
+        <button type="button" className="puce autour" disabled={occupe} onClick={() => jouer(autour)}>
           <span aria-hidden="true">▸ </span>
           {REGARDER_AUTOUR}
         </button>
@@ -189,7 +434,9 @@ export function DockPiece({ dock, ...props }: PropsPuces & { readonly dock: Dock
           <h2 className="titre-section">Se déplacer vers</h2>
           <ul className="deplacements">
             {dock.deplacements.map((option) => (
-              <Deplacement key={option.cible.id} option={option} textes={props.textes} occupe={props.occupe} jouer={props.jouer} />
+              <li key={option.cible.id}>
+                <Deplacement option={option} textes={textes} occupe={occupe} jouer={jouer} />
+              </li>
             ))}
           </ul>
         </>
@@ -198,91 +445,15 @@ export function DockPiece({ dock, ...props }: PropsPuces & { readonly dock: Dock
   );
 }
 
-function Puces({ groupes, textes, occupe, deplie, basculer, jouer }: PropsPuces & { readonly groupes: readonly Groupe[] }) {
-  const idOptions = useId();
-  const ouvert = groupes.findIndex((groupe) => groupe.cible.id === deplie);
-  const groupeOuvert = groupes[ouvert];
-  const items: ReactNode[] = [];
-  groupes.forEach((groupe, index) => {
-    items.push(
-      <li key={groupe.cible.id}>
-        <button
-          type="button"
-          className="puce"
-          aria-expanded={index === ouvert}
-          aria-controls={index === ouvert ? idOptions : undefined}
-          onClick={() => basculer(groupe.cible.id)}
-        >
-          <span aria-hidden="true">▸ </span>
-          {nomPuce(textes, groupe.cible)}
-        </button>
-      </li>,
-    );
-    // En attendant les bulles (Interface 2), les options se déplient sous la rangée de la puce touchée.
-    const finDeRangee = index % 2 === 1 || index === groupes.length - 1;
-    if (finDeRangee && groupeOuvert !== undefined && Math.floor(ouvert / 2) === Math.floor(index / 2)) {
-      items.push(
-        <li key="options" className="pleine-largeur">
-          <Options id={idOptions} groupe={groupeOuvert} textes={textes} occupe={occupe} jouer={jouer} />
-        </li>,
-      );
-    }
-  });
-  return <ul className="puces">{items}</ul>;
-}
-
-function Options({
-  id,
-  groupe,
-  textes,
-  occupe,
-  jouer,
-}: {
-  readonly id: string;
-  readonly groupe: Groupe;
-  readonly textes: TextesMonde;
-  readonly occupe: boolean;
-  readonly jouer: Jouer;
-}) {
-  return (
-    <div id={id} className="options" role="group" aria-label={nomPuce(textes, groupe.cible)}>
-      {groupe.options.map((option) => {
-        const { raison } = libelleOption(textes, option);
-        return (
-          <div key={option.action} className="option">
-            <button type="button" disabled={occupe || !option.disponible} onClick={() => jouer(option)}>
-              <span aria-hidden="true">▸ </span>
-              {textes.verbes[option.action]}
-            </button>
-            {raison !== null && <p className="raison">{raison}</p>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function Deplacement({ option, textes, occupe, jouer }: { readonly option: OptionMenu; readonly textes: TextesMonde; readonly occupe: boolean; readonly jouer: Jouer }) {
-  const idRaison = useId();
   const { raison } = libelleOption(textes, option);
+  const destination = nomDestination(textes, option);
+  if (raison !== null) return <Indisponible classe="deplacement" libelle={destination} raison={raison} />;
   return (
-    <li>
-      <button
-        type="button"
-        className="deplacement"
-        disabled={occupe || !option.disponible}
-        aria-describedby={raison === null ? undefined : idRaison}
-        onClick={() => jouer(option)}
-      >
-        <span aria-hidden="true">→ </span>
-        {nomDestination(textes, option)}
-      </button>
-      {raison !== null && (
-        <p id={idRaison} className="raison">
-          {raison}
-        </p>
-      )}
-    </li>
+    <button type="button" className="deplacement" disabled={occupe} onClick={() => jouer(option)}>
+      <span aria-hidden="true">→ </span>
+      {destination}
+    </button>
   );
 }
 

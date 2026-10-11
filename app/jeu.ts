@@ -59,6 +59,13 @@ export async function demarrer(env: Environnement): Promise<Demarrage> {
   }
 }
 
+/** Fiche d'une bulle : texte de la consultation, sans toucher à la partie, au récit ni à la sauvegarde (D-014). */
+export function consulter(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie, option: OptionMenu): string[] {
+  const resultat = jouer(env.monde, partie, option.commande);
+  if (resultat.type === 'engagee') throw new Error(`« ${option.action} » engage le personnage : ce n’est pas une fiche.`);
+  return raconter(env.textes, resultat);
+}
+
 /** Joue la commande d'une option ; seule une action engagée écrit, et l'échec d'écriture reste signalé (C-09 §3). */
 export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMenu): Promise<Jeu> {
   const resultat = jouer(env.monde, jeu.partie, option.commande);
