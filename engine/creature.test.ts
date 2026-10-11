@@ -14,7 +14,7 @@ import {
   type IdAction,
   type Partie,
 } from './index';
-import { reagir } from './creature';
+import { dangerConnu, reagir } from './creature';
 
 // Créature (C-03 §3, §4 ; C-02 §4.2 ; OP-01). Fixtures nommées par leur rôle ; aucune règle ne lit un nom.
 //
@@ -334,6 +334,9 @@ describe('ce que le passager sait (C-06, C-01 A-02)', () => {
     expect(observer(avecCreature, a.partie.etat)).toEqual(observer(sans, b.partie.etat));
     expect(a.evenements).toEqual(b.evenements);
     expect(observer(avecCreature, a.partie.etat).creatureVisible).toBe(false);
+    for (const choix of observer(avecCreature, a.partie.etat).menu) {
+      expect(apercu(avecCreature, a.partie, choix.commande)).toEqual(apercu(sans, b.partie, choix.commande));
+    }
   });
 
   it('vue dans la même pièce seulement', () => {
@@ -347,6 +350,117 @@ describe('ce que le passager sait (C-06, C-01 A-02)', () => {
     expect(apercu(MONDE, depart, ouvrir?.commande)).toMatchObject({ type: 'apercu', apercu: { risque: 'aucun', cout: 'bruyant' } });
     const grille = observer(MONDE, depart.etat).menu.find((choix) => choix.action === 'ouvrir' && choix.cible.nom === 'grille_ac');
     expect(apercu(MONDE, depart, grille?.commande)).toMatchObject({ type: 'apercu', apercu: { cout: 'aucun' } });
+  });
+});
+
+describe('danger connu derrière un passage où elle a été perçue (D-180, D-181)', () => {
+  /** Niveau et danger de l'aperçu, le danger réduit à son type et au nom de la pièce ou du passage. */
+  function apercuDe(monde: DefMonde, courante: Partie, action: IdAction, nom: string): unknown {
+    const option = observer(monde, courante.etat).menu.find(
+      (choix) => choix.action === action && choix.cible.sorte === 'passage' && (choix.cible.nom === nom || choix.cible.vers.nom === nom),
+    );
+    const resultat = apercu(monde, courante, option?.commande);
+    if (resultat.type !== 'apercu') throw new Error(`Aperçu ${action} ${nom} : ${resultat.type}.`);
+    const { risque, danger } = resultat.apercu;
+    if (danger === null) return { risque, danger };
+    return { risque, danger: [danger.type, danger.type === 'creature_entendue' ? danger.passage.nom : danger.piece.nom] };
+  }
+
+  it('entendue derrière une porte : modéré, situé par cette porte ; ailleurs, aucun risque connu', () => {
+    const monde = liaisons(MONDE, { ac: { ouverte: true } });
+    const entendue = suite(monde, partie(monde), [['ouvrir', 'porte_ab']]).partie;
+    expect(entendue.etat.reperes).toEqual({ vue: null, entendue: { piece: 'b', par: 'ab' } });
+    expect(apercuDe(monde, entendue, 'aller', 'salle_b')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'porte_ab'] });
+    expect(apercuDe(monde, entendue, 'aller', 'grille_ac')).toEqual({ risque: 'aucun', danger: null });
+    // Elle entre : vue ici, à l'instant ; le bruit est oublié, on sait où elle est (D-181).
+    const vue = engager(monde, entendue, 'prendre', 'boite').partie;
+    expect(vue.etat.reperes).toEqual({ vue: { piece: 'a', depuis: 0 }, entendue: null });
+    expect(apercuDe(monde, vue, 'aller', 'salle_b')).toEqual({ risque: 'aucun', danger: null });
+  });
+
+  it('entrer dans la pièce du bruit et la voir vide efface le bruit', () => {
+    // État injecté : bruit entendu en B, la créature repartie en C sans être perçue ; porte A–B ouverte.
+    const monde = liaisons(MONDE, { ab: { ouverte: true, bruyante: false } });
+    const depart = partie(monde);
+    const entendue = { ...depart, etat: { ...depart.etat, reperes: { vue: null, entendue: { piece: 'b', par: 'ab' } } } };
+    expect(apercuDe(monde, entendue, 'aller', 'salle_b')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'porte_ab'] });
+    const vide = engager(monde, entendue, 'aller', 'salle_b').partie;
+    expect(vide.etat.reperes).toEqual({ vue: null, entendue: null });
+    expect(apercuDe(monde, vide, 'aller', 'salle_a')).toEqual({ risque: 'aucun', danger: null });
+  });
+
+  it('vue : élevé à l’instant et il y a un moment, modéré il y a longtemps (seuils D-151) ; ouvrir vers elle s’annonce pareil', () => {
+    // Contact par la grille, retour par la grille : trop étroite, elle ne le suit pas et reste en C.
+    const monde = liaisons(MONDE, { ab: { bruyante: false }, ac: { ouverte: true } });
+    let courante = suite(monde, partie(monde), [['aller', 'grille_ac'], ['aller', 'grille_ac']]).partie;
+    expect(courante.etat.reperes.vue).toEqual({ piece: 'c', depuis: 1 });
+    const attendus = ['creature_vue_instant', 'creature_vue_moment', 'creature_vue_moment', 'creature_vue_moment', 'creature_vue_moment', 'creature_vue_longtemps'];
+    const risqueDe = (type: string | undefined): string => (type === 'creature_vue_longtemps' ? 'modere' : 'eleve');
+    for (const [rang, attendu] of attendus.entries()) {
+      expect(courante.etat.reperes.vue?.depuis, attendu).toBe(rang + 1);
+      expect(apercuDe(monde, courante, 'aller', 'grille_ac')).toEqual({ risque: risqueDe(attendu), danger: [attendu, 'salle_c'] });
+      // Refermer la grille compte une action de plus ; l'ouvrir s'annonce comme y aller.
+      const suivant = attendus[rang + 1];
+      const fermee = engager(monde, courante, 'fermer', 'grille_ac').partie;
+      if (suivant !== undefined) expect(apercuDe(monde, fermee, 'ouvrir', 'grille_ac')).toEqual({ risque: risqueDe(suivant), danger: [suivant, 'salle_c'] });
+      courante = engager(monde, courante, rang % 2 === 0 ? 'prendre' : 'poser', 'boite').partie;
+    }
+    // Compteur plafonné à « il y a longtemps » : l'état reste fini.
+    expect(courante.etat.reperes.vue).toEqual({ piece: 'c', depuis: 6 });
+    expect(pieceCreature(courante)).toBe('c');
+  });
+
+  it('vue puis entendue ailleurs : les deux pièces signalées ; voir la pièce vide efface la vue, un nouveau bruit remplace l’ancien', () => {
+    // Monde de base, grille ouverte : contact en C par la grille, retour en A, puis porte grippée ouverte.
+    const monde = liaisons(MONDE, { ac: { ouverte: true } });
+    const avant = suite(monde, partie(monde), [['aller', 'grille_ac'], ['aller', 'grille_ac'], ['ouvrir', 'porte_ab']]).partie;
+    expect(pieceCreature(avant)).toBe('b');
+    expect(avant.etat.reperes).toEqual({ vue: { piece: 'c', depuis: 2 }, entendue: { piece: 'b', par: 'ab' } });
+    expect(apercuDe(monde, avant, 'aller', 'grille_ac')).toEqual({ risque: 'eleve', danger: ['creature_vue_moment', 'salle_c'] });
+    expect(apercuDe(monde, avant, 'aller', 'salle_b')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'porte_ab'] });
+    // Il retourne en C par la grille : elle n'y est plus ; elle passe de B en A, entendue derrière la grille.
+    const { partie: fin, evenements } = suite(monde, avant, [['aller', 'grille_ac']]);
+    expect(types(evenements[0] ?? [])).toEqual(['deplacement', 'bruit_creature']);
+    expect(fin.etat.reperes).toEqual({ vue: null, entendue: { piece: 'a', par: 'ac' } });
+    expect(apercuDe(monde, fin, 'aller', 'grille_ac')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'grille_ac'] });
+    expect(apercuDe(monde, fin, 'aller', 'salle_b')).toEqual({ risque: 'aucun', danger: null });
+  });
+
+  it('un bruit ne vieillit pas : modéré tant que la pièce n’a pas été vue', () => {
+    // Créature en D : le bruit de A l'attire en C, entendue derrière la grille ; porte B–C fermée et grille étroite la retiennent en C.
+    const monde = liaisons({ ...MONDE, creature: { piece: 'd' } }, { bc: { ouverte: false } });
+    let courante = engager(monde, partie(monde), 'ouvrir', 'porte_ab').partie;
+    for (let fois = 0; fois < 8; fois++) courante = engager(monde, courante, fois % 2 === 0 ? 'prendre' : 'poser', 'boite').partie;
+    expect(pieceCreature(courante)).toBe('c');
+    expect(courante.etat.reperes).toEqual({ vue: null, entendue: { piece: 'c', par: 'ac' } });
+    expect(apercuDe(monde, courante, 'ouvrir', 'grille_ac')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'grille_ac'] });
+  });
+
+  it('deux passages vers la même pièce : les deux préviennent', () => {
+    const monde = liaisons(MONDE, { ab: { ouverte: true, bruyante: false } });
+    const double: DefMonde = { ...monde, liaisons: [...monde.liaisons, { id: 'bc2', nom: 'grille_bc', entre: ['b', 'c'], ouverte: true, etroite: true }] };
+    const vue = suite(double, partie(double), [['aller', 'salle_b'], ['aller', 'porte_bc'], ['aller', 'grille_bc']]).partie;
+    expect(apercuDe(double, vue, 'aller', 'porte_bc')).toEqual({ risque: 'eleve', danger: ['creature_vue_instant', 'salle_c'] });
+    expect(apercuDe(double, vue, 'aller', 'grille_bc')).toEqual({ risque: 'eleve', danger: ['creature_vue_instant', 'salle_c'] });
+  });
+
+  it('vue et entendue dans la même pièce : le niveau le plus haut ; à égalité, le bruit situé par son passage', () => {
+    // États injectés : seuls les repères comptent pour l'aperçu, la créature n'y est pas lue.
+    const depart = partie();
+    const avec = (depuis: number) => ({ ...depart.etat, reperes: { vue: { piece: 'b', depuis }, entendue: { piece: 'b', par: 'ab' } } });
+    expect(dangerConnu(MONDE, avec(3), 'b')).toMatchObject({ risque: 'eleve', danger: { type: 'creature_vue_moment' } });
+    expect(dangerConnu(MONDE, avec(6), 'b')).toMatchObject({ risque: 'modere', danger: { type: 'creature_entendue', passage: { nom: 'porte_ab' } } });
+    expect(dangerConnu(MONDE, avec(6), 'c')).toBeNull();
+  });
+
+  it('elle quitte une pièce voisine pour une pièce lointaine : entendue là d’où vient le bruit (OP-01)', () => {
+    // État injecté : passager en B, créature en C en route vers D ; seul C est voisine de B (porte B–C ouverte).
+    const depart = partie();
+    const etat = { ...depart.etat, piece: 'b', creature: { piece: 'c', indice: { piece: 'd', par: null }, contact: true } };
+    const reponse = reagir(MONDE, etat, [], 'b', undefined);
+    expect(reponse.etat.creature?.piece).toBe('d');
+    expect(reponse.evenements).toMatchObject([{ type: 'bruit_creature', passage: { nom: 'porte_bc' } }]);
+    expect(reponse.etat.reperes.entendue).toEqual({ piece: 'c', par: 'bc' });
   });
 });
 

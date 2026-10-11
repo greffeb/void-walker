@@ -8,6 +8,7 @@ import {
   observer,
   RAISONS_INDISPONIBILITE,
   RAISONS_REFUS,
+  TYPES_DANGER,
   TYPES_EVENEMENT,
   TYPES_SAVOIR,
   type Partie,
@@ -22,6 +23,7 @@ import {
   rendreEvenements,
   rendreObservation,
   rendreRefus,
+  ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
@@ -87,6 +89,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const niveau of NIVEAUX_RISQUE) verifierGabarit(erreurs, `risque ${niveau}`, textes.apercu.risques[niveau], []);
   for (const cout of COUTS) verifierGabarit(erreurs, `coût ${cout}`, textes.apercu.couts[cout], []);
   for (const type of TYPES_SAVOIR) verifierGabarit(erreurs, `aperçu ${type}`, textes.apercu.savoir[type], ROLES_SAVOIR[type]);
+  for (const type of TYPES_DANGER) verifierGabarit(erreurs, `danger ${type}`, textes.apercu.dangers[type], ROLES_DANGER[type]);
   for (const mot of [...Object.values(textes.apercu.risques), ...Object.values(textes.apercu.couts)]) {
     if (/[\d%]/.test(mot)) erreurs.push(`aperçu : chiffre ou pourcentage dans « ${mot} » (C-04 §4.3).`);
   }
@@ -150,8 +153,10 @@ function rendreToutAtteignable(entree: EntreeMonde, version: string): Rendu[] {
         if (raison !== null) rendus.push({ texte: raison, ou: `indisponibilité ${option.action}` });
         const prevu = apercu(monde, partie, option.commande);
         if (prevu.type === 'apercu') {
-          const { risque, cout, savoir } = rendreApercu(textes, prevu.apercu);
-          for (const texte of [risque, cout, ...savoir]) rendus.push({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
+          const { risque, danger, cout, savoir } = rendreApercu(textes, prevu.apercu);
+          for (const texte of [risque, ...(danger === null ? [] : [danger]), cout, ...savoir]) {
+            rendus.push({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
+          }
         }
         const resultat = jouer(monde, partie, option.commande);
         const repere = { graine: 1, action: partie.etat.actions + 1 };

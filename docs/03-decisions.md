@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-11.
 
 ## Règles
 
@@ -1336,5 +1336,25 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Origine : réponse « Oui, les agents proposent une apparence et la gardent partout ».
 - Décision : les textes peuvent décrire la créature ; l'apparence proposée est gardée partout : plus haute qu'un homme, peau luisante, tête sans yeux, gueule qui hume l'air, griffes. Précise l'aspect laissé ouvert par D-032.
 - Limite : textes en zone verte (D-116).
+
+### D-180 — Aller ou ouvrir là où l'on a vu la créature est annoncé risqué
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : retour du porteur sur la version de test de la PR #112 (« aller dans une pièce où on sait que la créature y était il y a peu devrait avertir le joueur »), puis réponses : « Risque élevé si vue à l'instant ou il y a un moment, modéré si il y a longtemps » ; pièce revue vide : « Plus d'avertissement » ; ouvrir une porte vers elle : « Oui, même niveau que pour y aller ».
+- Décision : l'aperçu d'un déplacement, ou de l'ouverture d'une porte, vers la pièce où le passager a vu la créature en dernier annonce un risque **élevé** si c'était « à l'instant » ou « il y a un moment », **modéré** si c'était « il y a longtemps » (seuils de D-151). Le danger suit le niveau sur la ligne RISQUE (12 §3.8). L'avertissement disparaît quand le passager voit cette pièce vide.
+- Limite : calculé sur ce que le passager sait seulement (C-06 §4) ; une créature jamais perçue n'est pas annoncée.
+
+### D-181 — Un bruit entendu derrière une porte avertit aussi
+
+- Date / statut : 2026-10-11 / **Validé**.
+- Origine : réponses « Oui : risque modéré, « quelque chose bougeait derrière cette porte » » ; vue puis entendue ailleurs : « Les deux : élevé là où vue, modéré là où entendue » ; avec le temps : « Non : modéré tant que vous n'avez pas vu la pièce » ; entendue puis vue ailleurs : « Le bruit est oublié : on sait maintenant où elle est ».
+- Décision : aller ou ouvrir vers la pièce d'où venait le dernier bruit de la créature s'annonce **modéré**, avec le passage derrière lequel il a été entendu. La dernière vue et le dernier bruit sont gardés chacun à part : un bruit entendu après l'avoir vue laisse les deux pièces signalées ; la voir après l'avoir entendue fait oublier le bruit. Le bruit ne s'oublie pas avec le temps ; il s'efface aussi quand le passager voit cette pièce. Si une vue « il y a longtemps » et un bruit concernent la même pièce, le niveau est le même et c'est le bruit, plus récent, qui est dit [détail de l'agent].
+- Limite : sur la carte, un bruit n'ajoute toujours aucune marque (OP-05) ; seul l'aperçu en tient compte.
+
+### D-182 — Une seule touche quand rien n'est à craindre, sauf pour les portes
+
+- Date / statut : 2026-10-11 / **Validé, implémentation à faire**.
+- Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
+- Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
 
 

@@ -174,7 +174,11 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     if (aller === undefined || !aller.disponible) throw new Error('Déplacement ouvert attendu.');
     const html = renderToStaticMarkup(<BulleDeplacement ancre={{} as HTMLElement} option={aller} {...composition(jeu, null)} />);
     expect(html).toMatch(/^<section class="bulle bulle-objet" role="dialog" aria-modal="true"/);
-    expect(texte(html)).toBe('Aller vers › atelier ✕ Risque aucun risque connu Coût aucun Savoir Vous quitterez la cabine. Annuler Confirmer');
+    // La porte grippée a attiré la créature dans l'atelier, entendue derrière la porte : l'aperçu prévient (D-181, 12 §3.8).
+    expect(texte(html)).toBe(
+      'Aller vers › atelier ✕ Risque modéré — quelque chose bougeait derrière la porte de l’atelier Coût aucun Savoir Vous quitterez la cabine. Annuler Confirmer',
+    );
+    expect(html).toContain('<dd><strong>modéré</strong> — quelque chose bougeait derrière la porte de l’atelier</dd>');
     const dock = entre(rendre(jeu), '<section class="dock"', '</section>');
     expect(entre(dock, '<button type="button" class="deplacement"', '</button>')).toContain('aria-haspopup="dialog" aria-expanded="false"');
   });

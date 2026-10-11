@@ -162,7 +162,8 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     }
   });
 
-  it('ouvrir et relire dix fois chaque fiche et chaque aperçu ne change ni l’état, ni le compteur, ni les dés (C-01 A-01)', () => {
+  // Tous les états atteignables, repère de la créature compris (D-180) : plusieurs milliers, d'où un délai plus long.
+  it('ouvrir et relire dix fois chaque fiche et chaque aperçu ne change ni l’état, ni le compteur, ni les dés (C-01 A-01)', { timeout: 30_000 }, () => {
     for (const partie of atteignables()) {
       const avant = { empreinte: empreinteEtat(partie.etat), json: JSON.stringify(partie) };
       const dock = composerDock(observer(monde, partie.etat));

@@ -117,6 +117,12 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       mortel: 'mortel',
       certain: 'certain',
     },
+    dangers: {
+      creature_vue_instant: 'vous venez de voir la créature dans {le:piece}',
+      creature_vue_moment: 'vous avez vu la créature dans {le:piece} il y a un moment',
+      creature_vue_longtemps: 'vous avez vu la créature dans {le:piece} il y a longtemps',
+      creature_entendue: 'quelque chose bougeait derrière {le:passage}',
+    },
     couts: { aucun: 'aucun', bruyant: '[bruyant]' },
     savoir: {
       portera: 'Vous aurez {le:objet} en main.',

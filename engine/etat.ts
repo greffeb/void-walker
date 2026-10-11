@@ -18,6 +18,24 @@ export interface EtatCreature {
   readonly contact: boolean;
 }
 
+/** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */
+export interface VueCreature {
+  readonly piece: string;
+  readonly depuis: number;
+}
+
+/** Dernier bruit de la créature entendu (D-181) : pièce d'où il venait et liaison qui le laissait passer (OP-01). */
+export interface BruitCreature {
+  readonly piece: string;
+  readonly par: string;
+}
+
+/** Ce que le passager sait de la créature ; voir une pièce vide efface ce qui la concerne. */
+export interface Reperes {
+  readonly vue: VueCreature | null;
+  readonly entendue: BruitCreature | null;
+}
+
 /** État complet d'une partie : sérialisable en JSON, jamais montré tel quel au joueur. */
 export interface EtatPartie {
   readonly piece: string;
@@ -29,6 +47,7 @@ export interface EtatPartie {
   readonly generateur: EtatGenerateur;
   /** `null` dans un monde sans créature. */
   readonly creature: EtatCreature | null;
+  readonly reperes: Reperes;
 }
 
 export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
@@ -41,6 +60,7 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     actions: 0,
     generateur: generateurDepuisGraine(graine),
     creature: monde.creature === undefined ? null : { piece: monde.creature.piece, indice: null, contact: false },
+    reperes: { vue: null, entendue: null },
   };
 }
 

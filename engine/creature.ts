@@ -1,6 +1,17 @@
-import { autreCote, liaisonsDe, refPassage, type EtatCreature, type EtatPartie, type Indice } from './etat';
-import type { DefLiaison, DefMonde } from './monde';
-import type { Evenement } from './vocabulaire';
+import {
+  autreCote,
+  liaisonsDe,
+  refPassage,
+  refPiece,
+  type BruitCreature,
+  type EtatCreature,
+  type EtatPartie,
+  type Indice,
+  type Reperes,
+  type VueCreature,
+} from './etat';
+import { indexer, type DefLiaison, type DefMonde } from './monde';
+import type { Danger, Evenement, NiveauRisque } from './vocabulaire';
 
 // Réaction de la créature (C-03 §3 étape 4, §4) : perception réelle, une réaction par action engagée, sans patrouille.
 
@@ -66,12 +77,20 @@ function pasVers(monde: DefMonde, etat: EtatPartie, depuis: string, cible: strin
   return premier !== undefined && praticable(etat, premier) ? premier : undefined;
 }
 
+interface Percu {
+  readonly evenement: Evenement;
+  /** Bruit entendu : pièce d'où il vient et liaison qui le laisse passer ; absent quand il la voit entrer. */
+  readonly entendue?: BruitCreature;
+}
+
 /** Ce que le passager perçoit d'un mouvement : il le voit entrer, ou l'entend bouger dans une pièce voisine (OP-01). */
-function percuParLePassager(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depart: string, arrivee: string): Evenement | undefined {
-  if (arrivee === etat.piece) return { type: 'creature_entre', passage: refPassage(monde, etat, liaison, etat.piece) };
+function percuParLePassager(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depart: string, arrivee: string): Percu | undefined {
+  if (arrivee === etat.piece) return { evenement: { type: 'creature_entre', passage: refPassage(monde, etat, liaison, etat.piece) } };
   for (const piece of [arrivee, depart]) {
     const voisine = liaisonsDe(monde, etat.piece).find((lien) => autreCote(lien, etat.piece) === piece && laissePasserLeSon(etat, lien));
-    if (voisine !== undefined) return { type: 'bruit_creature', passage: refPassage(monde, etat, voisine, etat.piece) };
+    if (voisine !== undefined) {
+      return { evenement: { type: 'bruit_creature', passage: refPassage(monde, etat, voisine, etat.piece) }, entendue: { piece, par: voisine.id } };
+    }
   }
   return undefined;
 }
@@ -84,7 +103,7 @@ function reaction(
   sons: readonly SonEmis[],
   depuis: string,
   franchie: string | undefined,
-): { creature: EtatCreature; evenements: Evenement[] } {
+): { creature: EtatCreature; evenements: Evenement[]; entendue?: BruitCreature } {
   if (creature.piece === etat.piece) {
     // L'avertissement donne une action pour réagir avant toute conséquence hostile (C-03 §4.4).
     return { creature: { ...creature, indice: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
@@ -101,13 +120,33 @@ function reaction(
   if (liaison === undefined) return { creature: { ...creature, indice }, evenements: [] };
   const arrivee = autreCote(liaison, creature.piece);
   const percu = percuParLePassager(monde, etat, liaison, creature.piece, arrivee);
-  return { creature: { piece: arrivee, indice: arrivee === indice.piece ? null : indice, contact: creature.contact }, evenements: percu === undefined ? [] : [percu] };
+  const suite: EtatCreature = { piece: arrivee, indice: arrivee === indice.piece ? null : indice, contact: creature.contact };
+  if (percu === undefined) return { creature: suite, evenements: [] };
+  return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
 }
 
 /** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */
 function passageSuivi(monde: DefMonde, etat: EtatPartie, depuis: string, indice: Indice): DefLiaison | undefined {
   const liaison = liaisonsDe(monde, depuis).find((lien) => lien.id === indice.par && autreCote(lien, depuis) === indice.piece);
   return liaison !== undefined && praticable(etat, liaison) ? liaison : undefined;
+}
+
+/** Seuil de « il y a longtemps », en actions confirmées (D-151). */
+const LONGTEMPS = 6;
+
+/**
+ * Ce que le passager retient à la fin du pas : la dernière vue et le dernier bruit, chacun gardé à part (D-180, D-181).
+ * Ce qu'il voit de sa pièce remplace ce qu'il en savait : la créature, ou la pièce vide. La voir fait oublier le bruit,
+ * puisqu'on sait où elle est ; sinon un bruit ne vieillit pas.
+ */
+function retenir(etat: EtatPartie, creature: EtatCreature, entendue: BruitCreature | undefined): Reperes {
+  const { vue, entendue: bruit } = etat.reperes;
+  const ici = etat.piece;
+  if (creature.piece === ici) return { vue: { piece: ici, depuis: 0 }, entendue: null };
+  return {
+    vue: vue === null || vue.piece === ici ? null : { ...vue, depuis: Math.min(vue.depuis + 1, LONGTEMPS) },
+    entendue: entendue ?? (bruit?.piece === ici ? null : bruit),
+  };
 }
 
 /**
@@ -122,9 +161,32 @@ export function reagir(
   franchie: string | undefined,
 ): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
-  const { creature, evenements } = reaction(monde, etat, etat.creature, sons, depuis, franchie);
+  const { creature, evenements, entendue } = reaction(monde, etat, etat.creature, sons, depuis, franchie);
+  const suite: EtatPartie = { ...etat, creature, reperes: retenir(etat, creature, entendue) };
   if (creature.piece === etat.piece && !creature.contact) {
-    return { etat: { ...etat, creature: { ...creature, contact: true } }, evenements: [...evenements, { type: 'premier_contact' }] };
+    return { etat: { ...suite, creature: { ...creature, contact: true } }, evenements: [...evenements, { type: 'premier_contact' }] };
   }
-  return { etat: { ...etat, creature }, evenements };
+  return { etat: suite, evenements };
+}
+
+/** Ancienneté d'une vue (D-151) : 1 action au plus, 2 à 5, 6 et plus. */
+function anciennete(vue: VueCreature): 'creature_vue_instant' | 'creature_vue_moment' | 'creature_vue_longtemps' {
+  if (vue.depuis <= 1) return 'creature_vue_instant';
+  return vue.depuis < LONGTEMPS ? 'creature_vue_moment' : 'creature_vue_longtemps';
+}
+
+/**
+ * Danger connu derrière un passage vers `piece`, d'après les repères du passager seulement (C-06 §4) : vue à l'instant ou
+ * il y a un moment, élevé ; vue il y a longtemps, modéré (D-180) ; entendue, modéré (D-181). Le plus haut l'emporte ;
+ * à égalité, le bruit, situé par son passage.
+ */
+export function dangerConnu(monde: DefMonde, etat: EtatPartie, piece: string): { risque: NiveauRisque; danger: Danger } | null {
+  const { vue, entendue } = etat.reperes;
+  const type = vue?.piece === piece ? anciennete(vue) : null;
+  if (type !== null && type !== 'creature_vue_longtemps') return { risque: 'eleve', danger: { type, piece: refPiece(monde, piece) } };
+  const liaison = entendue?.piece === piece ? indexer(monde).liaisons.get(entendue.par) : undefined;
+  if (liaison !== undefined) {
+    return { risque: 'modere', danger: { type: 'creature_entendue', passage: refPassage(monde, etat, liaison, autreCote(liaison, piece)) } };
+  }
+  return type === null ? null : { risque: 'modere', danger: { type, piece: refPiece(monde, piece) } };
 }

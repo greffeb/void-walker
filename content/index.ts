@@ -26,6 +26,7 @@ export {
   type LibelleOption,
 } from './textes/rendu';
 export {
+  ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,

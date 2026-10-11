@@ -1,8 +1,8 @@
 # C-06 — Observation, carte et connaissances
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots).
-> **Date :** 2026-10-10.
-> **Implémentation et tests :** absents.
+> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots) ; §4 complété par D-180 et D-181 (aperçu d'un déplacement vers la créature).
+> **Date :** 2026-10-11.
+> **Implémentation et tests :** partiels — vue dans la même pièce, bruits (OP-01) et aperçus D-180/D-181 (PR #112) ; carte absente.
 
 ## 1. But
 
@@ -39,6 +39,7 @@ La même observation sert la PWA, la CLI, les bots et le joueur LLM externe. Seu
 Les menus proposent des manipulations plausibles des éléments connus (D-026, C-01 §4). Aperçus et niveaux de risque se calculent **uniquement** à partir de ce que le passager sait (C-04 §4.3, D-071 VP-02) :
 
 - un risque de fuite exposée n'est annoncé que pour une créature perçue ;
+- aller ou ouvrir vers la pièce où le passager a vu la créature en dernier s'annonce **élevé** si c'était à l'instant ou il y a un moment, **modéré** si c'était il y a longtemps (D-180, seuils de D-151) ; vers celle d'où venait le dernier bruit de la créature, **modéré**, situé par le passage (D-181). Dernière vue et dernier bruit sont gardés à part ; chacun s'efface quand le passager voit cette pièce vide, et voir la créature fait oublier le bruit ;
 - l'aperçu d'une brèche nomme les pièces connues qui perdront l'air, pas l'effet sur une créature non perçue ;
 - une raison d'indisponibilité ne révèle pas un secret (C-01 §4).
 

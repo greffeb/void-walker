@@ -97,10 +97,10 @@ function afficherApercu(textes: TextesMonde, option: OptionMenu, numero: number,
     case 'gratuit':
       return [`${libelle} : gratuit, rien à confirmer. Pour le faire : jouer ${numero}`];
     case 'apercu': {
-      const { risque, cout, savoir } = rendreApercu(textes, resultat.apercu);
+      const { risque, danger, cout, savoir } = rendreApercu(textes, resultat.apercu);
       return [
         `Aperçu : ${libelle}`,
-        `  Risque : ${risque}`,
+        `  Risque : ${risque}${danger === null ? '' : ` — ${danger}`}`,
         `  Coût : ${cout}`,
         ...savoir.map((phrase) => `  ${phrase}`),
         `Rien n’est joué. Pour confirmer : jouer ${numero}`,

@@ -1,4 +1,4 @@
-import type { SonEmis } from './creature';
+import { dangerConnu, type SonEmis } from './creature';
 import type { Des } from './des';
 import {
   autreCote,
@@ -63,8 +63,13 @@ function objetPorte({ monde, etat }: Contexte, cible: string): boolean {
   return objetsPortes(monde, etat).some((objet) => objet.id === cible);
 }
 
-/** Les mondes actuels n'ont ni danger connu ni dé : seul le bruit d'un geste peut s'annoncer. */
-const SANS_DANGER = { risque: 'aucun', cout: 'aucun' } as const;
+/** Hors des repères de la créature (D-180, D-181), les mondes actuels n'ont ni danger connu ni dé : seul le bruit d'un geste s'annonce. */
+const SANS_DANGER = { risque: 'aucun', danger: null, cout: 'aucun' } as const;
+
+/** Risque d'un passage vers `piece` : celui de la créature vue ou entendue de l'autre côté, sinon aucun. */
+function risqueVers({ monde, etat }: Contexte, piece: string): Pick<Prevision, 'risque' | 'danger'> {
+  return dangerConnu(monde, etat, piece) ?? SANS_DANGER;
+}
 
 function passageIci(contexte: Contexte, cible: string): DefLiaison {
   const liaison = liaisonIci(contexte, cible);
@@ -151,6 +156,8 @@ const ouvrir: ActionEngagee = {
     const liaison = passageIci(contexte, cible);
     return {
       ...SANS_DANGER,
+      // Ouvrir sur la pièce où elle a été perçue s'annonce comme y aller (choix du porteur, D-180).
+      ...risqueVers(contexte, autreCote(liaison, contexte.etat.piece)),
       // Un mécanisme grippé se voit et s'annonce avant d'ouvrir (AR-01 §13 P-A, AR-02 §10 « porte grippée »).
       cout: liaison.bruyante === true ? 'bruyant' : 'aucun',
       savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, liaison, contexte.etat.piece) }],
@@ -195,7 +202,11 @@ const aller: ActionEngagee = {
     if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
     return contexte.etat.liaisons[cible] === true ? null : 'ferme';
   },
-  prevoir: ({ monde, etat }) => ({ ...SANS_DANGER, savoir: [{ type: 'quittera', piece: refPiece(monde, etat.piece) }] }),
+  prevoir: (contexte, cible) => ({
+    ...SANS_DANGER,
+    ...risqueVers(contexte, autreCote(passageIci(contexte, cible), contexte.etat.piece)),
+    savoir: [{ type: 'quittera', piece: refPiece(contexte.monde, contexte.etat.piece) }],
+  }),
   appliquer: (contexte, cible) => {
     const { monde, etat } = contexte;
     const liaison = liaisonIci(contexte, cible);

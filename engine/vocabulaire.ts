@@ -115,9 +115,19 @@ export type Savoir =
   | { readonly type: 'fermera'; readonly passage: RefPassage }
   | { readonly type: 'quittera'; readonly piece: RefPiece };
 
+export const TYPES_DANGER = ['creature_vue_instant', 'creature_vue_moment', 'creature_vue_longtemps', 'creature_entendue'] as const;
+export type TypeDanger = (typeof TYPES_DANGER)[number];
+
+/** Danger connu qui justifie le niveau de risque (12 §3.8) : la créature vue, avec l'ancienneté de D-151, ou entendue (D-180, D-181). */
+export type Danger =
+  | { readonly type: 'creature_vue_instant' | 'creature_vue_moment' | 'creature_vue_longtemps'; readonly piece: RefPiece }
+  | { readonly type: 'creature_entendue'; readonly passage: RefPassage };
+
 export interface Apercu {
   readonly commande: Commande;
   readonly risque: NiveauRisque;
+  /** `null` quand aucun danger n'est connu. */
+  readonly danger: Danger | null;
   readonly cout: Cout;
   readonly savoir: readonly Savoir[];
 }
