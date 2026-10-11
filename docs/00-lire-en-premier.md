@@ -106,13 +106,13 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange. #92 (écran de jeu « Phosphore ») est fusionnée ([PR #109](https://github.com/greffeb/void-walker/pull/109)) ; le porteur s'est dit satisfait après un test sur téléphone (retour consigné, non signé). Restent à confirmer : portes, « Regarder autour de vous », intensité des lignes de balayage.
 
-#93 (bulles de composition, fiches et inventaire) est proposée par la [PR #110](https://github.com/greffeb/void-walker/pull/110) : fusion après accord du porteur du projet, validation sur téléphone requise. Le relecteur l'a jugée fusionnable. Faute de données dans le moteur, trois parties attendent :
+#93 (bulles de composition, fiches et inventaire) est fusionnée ([PR #110](https://github.com/greffeb/void-walker/pull/110)) et close. Faute de données dans le moteur, trois parties attendent :
 
 - les qualités et l'objet encombrant, qui arrivent avec #102 ;
 - l'étape « OÙ ? », avec la première action à paramètre ;
 - une action indisponible dans une bulle.
 
-La PR liste aussi les choix à confirmer sur téléphone. Suivante : #94 (aperçu puis confirmation), qui touche le moteur comme #100.
+#94 (aperçu puis confirmation, moteur et écran) est proposée par la [PR #111](https://github.com/greffeb/void-walker/pull/111) : fusion après accord du porteur du projet, validation sur téléphone requise. Le relecteur a trouvé un plantage, corrigé et contre-éprouvé. Le monde de test n'ayant ni danger ni bruit, tout s'annonce « aucun risque connu ». La PR liste les choix à confirmer sur téléphone. Tant qu'elle n'est pas fusionnée, ne pas lancer #100, qui touche aussi le moteur.
 
 **Prochaine tâche recommandée :** traiter les issues d'interface issues de la maquette. En parallèle : la [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175). Issues de développement créées, dans l'ordre : moteur [#100](https://github.com/greffeb/void-walker/issues/100), [#101](https://github.com/greffeb/void-walker/issues/101), [#102](https://github.com/greffeb/void-walker/issues/102) ; AR-01 [#103](https://github.com/greffeb/void-walker/issues/103) ; AR-02 [#104](https://github.com/greffeb/void-walker/issues/104) ; nouveaux morceaux [#105](https://github.com/greffeb/void-walker/issues/105) ; stations [#106](https://github.com/greffeb/void-walker/issues/106) ; rapports [#107](https://github.com/greffeb/void-walker/issues/107) ; signature [#108](https://github.com/greffeb/void-walker/issues/108). #100 et #94 touchent toutes deux le moteur : ne pas les mener en même temps.
 
