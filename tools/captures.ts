@@ -194,19 +194,55 @@ async function verifierSansEffet(page: Page, erreurs: string[]): Promise<void> {
         }
       }
     }
-    if (fermeture === '✕') await bulle.getByRole('button', { name: exactement('Fermer') }).click();
-    if (fermeture === 'voile') await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
-    if (fermeture === 'Échap') await page.keyboard.press('Escape');
-    if (fermeture === 'retour système') await page.evaluate(() => window.history.back());
+    await fermerBulle(page, bulle, fermeture);
     await bulle.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Bulle « ${nom} » : ${fermeture} ne la ferme pas.`));
     if (!(await puce.evaluate((element) => element === document.activeElement))) {
       erreurs.push(`Bulle « ${nom} » fermée par ${fermeture} : le focus ne revient pas sur la puce.`);
     }
   }
+  // Une action indisponible ne joue rien, même touchée ou validée au clavier (12 §3.7).
+  const indisponible = page.getByRole('button', { name: /, indisponible : /i }).first();
+  await indisponible.click({ force: true });
+  await indisponible.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Space');
   const apres = { partie: await partieEnregistree(page), ...(await lire(page)) };
   if (apres.partie !== avant.partie) erreurs.push('Ouvrir et fermer les bulles a modifié la partie enregistrée.');
   if (apres.recit !== avant.recit || apres.situation !== avant.situation) erreurs.push('Ouvrir et fermer les bulles a changé le récit ou la situation.');
   if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== '0') erreurs.push('Ouvrir et fermer les bulles a compté une action.');
+}
+
+async function fermerBulle(page: Page, bulle: Locator, fermeture: (typeof FERMETURES)[number]): Promise<void> {
+  if (fermeture === '✕') await bulle.getByRole('button', { name: exactement('Fermer') }).click();
+  if (fermeture === 'voile') await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
+  if (fermeture === 'Échap') await page.keyboard.press('Escape');
+  if (fermeture === 'retour système') await page.evaluate(() => window.history.back());
+}
+
+/** Inventaire : liste, fiche, « ‹ », puis fermeture, quatre fois, sans effet ; le focus revient sur INVENTAIRE. */
+async function verifierInventaireSansEffet(page: Page, geste: Geste, erreurs: string[]): Promise<void> {
+  const avant = { partie: await partieEnregistree(page), ...(await lire(page)) };
+  const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
+  const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
+  for (const fermeture of FERMETURES) {
+    await inventaire.click();
+    const liste = page.getByRole('dialog', { name: exactement('Inventaire') });
+    await liste.getByRole('button', { name: exactement(geste.bouton) }).click();
+    const fiche = page.getByRole('dialog', { name: exactement(geste.bouton) });
+    await fiche.getByRole('button', { name: exactement('Étape précédente') }).click();
+    await liste.waitFor({ timeout: 5_000 }).catch(() => erreurs.push('Inventaire : « ‹ » ne ramène pas à la liste.'));
+    await liste.getByRole('button', { name: exactement(geste.bouton) }).click();
+    await fermerBulle(page, fiche, fermeture);
+    await fiche.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Inventaire : ${fermeture} ne le ferme pas.`));
+    if (!(await inventaire.evaluate((element) => element === document.activeElement))) {
+      erreurs.push(`Inventaire fermé par ${fermeture} : le focus ne revient pas sur INVENTAIRE.`);
+    }
+  }
+  const apres = { partie: await partieEnregistree(page), ...(await lire(page)) };
+  if (apres.partie !== avant.partie || apres.recit !== avant.recit || apres.situation !== avant.situation) {
+    erreurs.push('Parcourir l’inventaire a changé la partie, le récit ou la situation.');
+  }
+  if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== actions) erreurs.push('Parcourir l’inventaire a compté une action.');
 }
 
 /** Le rappel et le récit nomment la cible comme le dock (NP-04). */
@@ -300,6 +336,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     for (const [index, geste] of gestes.entries()) {
       if (geste.zone === 'inventaire') {
         await verifierFermeture(page, erreurs);
+        await verifierInventaireSansEffet(page, geste, erreurs);
         await page.getByRole('button', { name: exactement('Inventaire') }).click();
         await capturerEtape('Inventaire ouvert');
         await verifierEcran(page, 'Inventaire ouvert', erreurs);

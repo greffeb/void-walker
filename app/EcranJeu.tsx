@@ -171,6 +171,7 @@ function Bulle({
   zone,
   classe,
   titre,
+  decrite,
   etape,
   retour,
   fermer,
@@ -180,6 +181,8 @@ function Bulle({
   readonly zone: RefObject<HTMLElement | null>;
   readonly classe: string;
   readonly titre: string;
+  /** Fiche lue par le lecteur d'écran à l'ouverture, après le titre. */
+  readonly decrite?: string;
   /** Change à chaque étape : le focus revient sur la bulle. */
   readonly etape: string;
   readonly retour?: () => void;
@@ -208,7 +211,17 @@ function Bulle({
     }
   };
   return (
-    <section ref={zone} id={id} className={`bulle ${classe}`} role="dialog" aria-modal="true" aria-labelledby={idTitre} tabIndex={-1} onKeyDown={pieger}>
+    <section
+      ref={zone}
+      id={id}
+      className={`bulle ${classe}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={idTitre}
+      aria-describedby={decrite}
+      tabIndex={-1}
+      onKeyDown={pieger}
+    >
       <div className="bulle-entete">
         {retour !== undefined && (
           <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour}>
@@ -230,6 +243,7 @@ function Bulle({
 /** Bulle d'une puce de la pièce, ancrée sur elle : dessus si elle y tient, sinon dessous, jamais hors de l'écran (12 §3.5, §3.6). */
 export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { readonly ancre: HTMLElement; readonly groupe: Groupe }) {
   const zone = useRef<HTMLElement>(null);
+  const idFiche = useId();
   useLayoutEffect(() => {
     const bulle = zone.current;
     if (bulle === null) return;
@@ -253,8 +267,8 @@ export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { rea
     return () => window.removeEventListener('resize', placer);
   }, [ancre]);
   return (
-    <Bulle zone={zone} classe="bulle-objet" titre={nomPuce(props.textes, groupe.cible)} etape={groupe.cible.id} fermer={props.fermer}>
-      <Composer groupe={groupe} {...props} />
+    <Bulle zone={zone} classe="bulle-objet" titre={nomPuce(props.textes, groupe.cible)} decrite={idFiche} etape={groupe.cible.id} fermer={props.fermer}>
+      <Composer groupe={groupe} idFiche={idFiche} {...props} />
     </Bulle>
   );
 }
@@ -274,11 +288,21 @@ export function BulleInventaire({
   readonly choisir: (cible: string | null) => void;
 }) {
   const zone = useRef<HTMLElement>(null);
+  const idFiche = useId();
   const groupe = groupes.find((porte) => porte.cible.id === cible);
   if (groupe !== undefined) {
     return (
-      <Bulle id={id} zone={zone} classe="bulle-inventaire" titre={nomPuce(props.textes, groupe.cible)} etape={groupe.cible.id} retour={() => choisir(null)} fermer={props.fermer}>
-        <Composer groupe={groupe} {...props} />
+      <Bulle
+        id={id}
+        zone={zone}
+        classe="bulle-inventaire"
+        titre={nomPuce(props.textes, groupe.cible)}
+        decrite={idFiche}
+        etape={groupe.cible.id}
+        retour={() => choisir(null)}
+        fermer={props.fermer}
+      >
+        <Composer groupe={groupe} idFiche={idFiche} {...props} />
       </Bulle>
     );
   }
@@ -303,12 +327,19 @@ export function BulleInventaire({
 }
 
 /** Première étape (12 §3.5) : la fiche, gratuite, puis une ligne par action ; une action sans paramètre se joue aussitôt. */
-function Composer({ groupe, textes, occupe, jouer, lire }: Omit<PropsComposition, 'fermer'> & { readonly groupe: Groupe }) {
+function Composer({
+  groupe,
+  idFiche,
+  textes,
+  occupe,
+  jouer,
+  lire,
+}: Omit<PropsComposition, 'fermer'> & { readonly groupe: Groupe; readonly idFiche: string }) {
   const { fiche, actions } = composer(groupe);
   return (
     <>
       {fiche !== undefined && (
-        <div className="fiche">
+        <div id={idFiche} className="fiche">
           {lire(fiche).map((phrase, index) => (
             <p key={index}>{phrase}</p>
           ))}

@@ -133,9 +133,13 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const [carnet, porte] = composerDock(observer(monde, jeu.partie.etat)).piece;
     if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
     const html = bulleObjet(jeu, carnet);
-    expect(html).toMatch(/^<section class="bulle bulle-objet" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1">/);
+    expect(html).toMatch(
+      /^<section class="bulle bulle-objet" role="dialog" aria-modal="true" aria-labelledby="[^"]+" aria-describedby="[^"]+" tabindex="-1">/,
+    );
     const titre = html.match(/aria-labelledby="([^"]+)"/)?.[1] ?? '';
     expect(html).toContain(`<h2 id="${titre}" class="bulle-titre">Carnet</h2>`);
+    const fiche = html.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
+    expect(texte(entre(html, `<div id="${fiche}" class="fiche">`, '</div>'))).toBe(description(jeu, 'carnet'));
     expect(html).toContain('aria-label="Fermer"');
     expect(html).not.toContain('Étape précédente');
     expect(texte(html)).toBe(`Carnet ✕ ${description(jeu, 'carnet')} ▸ Prendre`);
