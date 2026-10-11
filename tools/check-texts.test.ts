@@ -11,8 +11,11 @@ function sans<T extends object>(objet: T, cle: string): T {
   return Object.fromEntries(Object.entries(objet).filter(([nom]) => nom !== cle)) as T;
 }
 
+/** Ces tests parcourent tous les états atteignables : plusieurs secondes sur la machine de vérification de GitHub. */
+const EXHAUSTIF = { timeout: 30_000 };
+
 describe('contrôle des textes (C-07)', () => {
-  it('les textes du monde de test sont complets et sûrs', () => {
+  it('les textes du monde de test sont complets et sûrs', EXHAUSTIF, () => {
     expect(verifierTextes(ENTREE)).toEqual([]);
   });
 
@@ -51,12 +54,12 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('nom « carnet » sans texte (NP-02).');
   });
 
-  it('un texte qui affiche un identifiant interne fait échouer le contrôle', () => {
+  it('un texte qui affiche un identifiant interne fait échouer le contrôle', EXHAUSTIF, () => {
     const entree = avecTextes((textes) => ({ ...textes, observation: { ...textes.observation, aucunObjet: 'Rien dans piece-atelier.' } }));
     expect(verifierTextes(entree).some((erreur) => erreur.includes('identifiant affiché'))).toBe(true);
   });
 
-  it('une action racontée en une seule phrase fait échouer le contrôle (D-111)', () => {
+  it('une action racontée en une seule phrase fait échouer le contrôle (D-111)', EXHAUSTIF, () => {
     const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, objet_pris: ['Vous prenez {le:objet}.'] } }));
     expect(verifierTextes(entree).some((erreur) => erreur.includes('D-111'))).toBe(true);
   });
@@ -67,7 +70,7 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('événement premier_contact : plus de quatre phrases (garde-fou du contrôle).');
   });
 
-  it('aperçu : un niveau de risque sans mot, une phrase sans texte ou un chiffre font échouer le contrôle (C-04 §4.3)', () => {
+  it('aperçu : un niveau de risque sans mot, une phrase sans texte ou un chiffre font échouer le contrôle (C-04 §4.3)', EXHAUSTIF, () => {
     const sansMot = avecTextes((textes) => ({ ...textes, apercu: { ...textes.apercu, risques: sans(textes.apercu.risques, 'mortel') } }));
     expect(verifierTextes(sansMot)).toContain('risque mortel : aucun texte (NP-01).');
     const sansPhrase = avecTextes((textes) => ({ ...textes, apercu: { ...textes.apercu, savoir: sans(textes.apercu.savoir, 'quittera') } }));

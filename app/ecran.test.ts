@@ -230,7 +230,7 @@ describe('un seul toucher (D-182)', () => {
     expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'grille'))).toBe(false);
   });
 
-  it('dans tous les états atteignables : jamais pour une porte, une option indisponible, un risque, un danger ou un coût', () => {
+  it('dans tous les états atteignables : jamais pour une porte, une option indisponible, un risque, un danger ou un coût', { timeout: 30_000 }, () => {
     const vus = new Set<string>();
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
@@ -258,7 +258,7 @@ describe('un seul toucher (D-182)', () => {
 });
 
 describe('aperçu affiché (D-187)', () => {
-  it('dans tous les états atteignables : RISQUE et COÛT absents exactement quand le moteur annonce « aucun », jamais écrits « aucun »', () => {
+  it('dans tous les états atteignables : RISQUE et COÛT absents exactement quand le moteur annonce « aucun », jamais écrits « aucun »', { timeout: 30_000 }, () => {
     const formes = new Set<string>();
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
