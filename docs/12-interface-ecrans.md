@@ -22,7 +22,7 @@ Les textes cités viennent de la maquette (salon de transit, atelier de service)
 
 1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur. Pas de fausse barre d'état. [Validé]
 2. **Le pouce agit en bas, l'œil lit en haut.** Tout ce qui agit (objets, déplacements, navigation, confirmation) est dans la moitié basse. En haut, un seul contrôle, rarement utilisé : l'engrenage des options. [Validé]
-3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Seul le bouton CONFIRMER d'un aperçu engage une action. Annuler est toujours possible, sans effet. Toute action engageante, déplacement compris, passe par un aperçu puis une confirmation. [Validé] Remplacé en partie par D-182 (implémentation à faire) : prendre, poser et changer de pièce d'un seul toucher quand rien n'est à craindre ; les portes gardent l'aperçu.
+3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Annuler est toujours possible, sans effet. Une action engageante passe par un aperçu puis CONFIRMER ; prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu n'annoncerait ni risque connu ni coût ; ouvrir et fermer une porte gardent toujours l'aperçu. [Validé D-182, remplaçant « toute action engageante, déplacement compris, passe par un aperçu »]
 4. **Un nom par chose** (NP-04). Même libellé dans le récit, le dock, la bulle, la carte et le rappel d'action. Les puces d'objet affichent le nom avec une majuscule initiale (« Burette d'huile ») ; titres de pièce et boutons de déplacement passent en capitales par le style uniquement ; le nom enregistré (en minuscules, avec genre et élision, NP-02) reste identique.
 5. **Aucun chiffre de jeu.** Ni points de vie, ni pourcentage, ni dé, ni score, ni niveau, ni compteur d'actions. Le marqueur de créature de la carte est lui aussi écrit en mots (§4.8). [Validé]
 6. **Jamais la couleur seule.** Chaque état est porté par un mot et une forme (§2.6).
@@ -166,6 +166,7 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 - **Étape 1, action :** une ligne par manipulation plausible, « ▸ Déplacer », « ▸ Monter dessus », « ▸ Prendre », hauteur 48 px, filets entre les lignes. Les actions indisponibles restent visibles (§3.7).
 - **Étape 2, paramètre :** libellé « OÙ ? », puis une ligne par position ou cible. Selon l'action, le libellé peut devenir « SUR QUOI ? » ou « AVEC QUOI ? ». [Proposé] Une action sans paramètre saute cette étape.
 - **Étape 3, aperçu** (§3.8), puis deux boutons : ANNULER (un tiers de la largeur, contour) et CONFIRMER (deux tiers, vidéo inverse).
+- **Un seul toucher :** prendre ou poser sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». [Validé D-182]
 - **Fermer sans effet :** « ✕ », ANNULER, toucher hors de la bulle, retour système. [Proposé]
 - La phrase « Rien ne se passe avant confirmation » est retirée. [Validé]
 
@@ -293,7 +294,7 @@ Texte d'exemple :
 - **Dock :** ▸ Poste d'appel, ▸ Signalétique d'évacuation. SE DÉPLACER VERS : → ATELIER DE SERVICE, → GALERIE TECHNIQUE.
 - **Navigation :** INVENTAIRE · CARTE · IA STATION.
 
-**Aperçu de déplacement** : toucher « → ATELIER DE SERVICE ». [Validé : aperçu et confirmation pour se déplacer]
+**Aperçu de déplacement** : toucher « → ATELIER DE SERVICE ». [Validé : aperçu et confirmation pour se déplacer ; sans risque connu ni coût, le toucher fait le déplacement directement, lu « atelier de service, sans confirmation », D-182]
 
 - Bulle ancrée sur le bouton (§3.6, D-146 ; la maquette montre encore un panneau bas) : « ALLER VERS › », puis « ATELIER DE SERVICE » en `accent` 19/600.
 - RISQUE : aucun risque connu. COÛT : aucun. SAVOIR : « Vous quitterez le Salon de transit. »
@@ -574,7 +575,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Situation | Bloc de phrases : « Vous êtes dans la cabine. Vous voyez ici un carnet. La porte est fermée. Vous portez… » | Pièce dans l'en-tête, objets et passages dans le dock (§3.4) | Garder ces phrases pour la CLI et le lecteur d'écran ; le récit reste identique à la CLI (C-06 K-07) |
 | Menu | Liste plate de toutes les options : « Regarder la cabine », « Prendre le carnet », « Aller dans l'atelier »… | Options regroupées par objet : toucher l'objet ouvre la bulle (§3.5) ; passages dans « Se déplacer vers » | Le moteur fournit déjà la cible de chaque option : le regroupement relève de l'écran seul |
 | Regarder | Bouton comme les autres | Consultation gratuite : c'est la fiche de la bulle, pas une action à confirmer | Déjà une consultation côté moteur (`regarder_*`) |
-| Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER pour toute action engageante (§3.8) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
+| Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER, sauf prendre, poser et changer de pièce sans risque connu ni coût, joués d'un seul toucher (§3.8, D-182) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
 | Indisponible | Bouton grisé, raison en dessous (« La porte est fermée. ») | « ⊘ », raison courte à droite, filet pointillé (§3.7) | Raison publique déjà fournie par le moteur |
 | Sauvegarde | Ligne permanente « Partie sauvegardée · 3 action(s) » | Pas de compteur d'actions affiché (§1) ; réussite discrète ou silencieuse, échec toujours visible et persistant (§6) | Garder les attributs `data-testid="sauvegarde"`, `data-actions`, `data-etat` utilisés par les captures (AP-09) |
 | Pied de page | Version, commit et numéro de PR sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |

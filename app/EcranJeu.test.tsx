@@ -3,7 +3,7 @@ import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
 import { App } from './App';
 import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
-import { composerDock, type Groupe } from './ecran';
+import { composerDock, unToucher, type Groupe } from './ecran';
 import { commencer, consulter, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
 import type { Stockage } from './sauvegarde';
 
@@ -56,6 +56,7 @@ function composition(jeu: Jeu, action: IdAction | null) {
     jouer: rienAJouer,
     lire: (option: OptionMenu) => consulter(env, jeu.partie, option),
     prevoir: (option: OptionMenu) => prevoir(env, jeu.partie, option),
+    direct: (option: OptionMenu) => unToucher(monde, jeu.partie, option),
     fermer: rienAJouer,
     action,
     choisirAction: rienAJouer,
@@ -129,6 +130,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
         deplacementOuvert={null}
         ouvrir={rienAJouer}
         ouvrirDeplacement={rienAJouer}
+        direct={() => false}
         jouer={rienAJouer}
       />,
     );
@@ -151,8 +153,32 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(html).toContain('aria-label="Fermer"');
     expect(html).not.toContain('Étape précédente');
     expect(texte(html)).toBe(`Carnet ✕ ${description(jeu, 'carnet')} ▸ Prendre`);
-    expect(html).toContain('<button type="button" class="ligne"><span aria-hidden="true">▸ </span>Prendre</button>');
+    expect(html).toContain('<button type="button" class="ligne" aria-label="Prendre, sans confirmation"><span aria-hidden="true">▸ </span>Prendre</button>');
     expect(texte(bulleObjet(jeu, porte))).toBe(`Porte de l’atelier ✕ ${description(jeu, 'porte')} ▸ Ouvrir`);
+  });
+
+  it('un seul toucher (D-182) : prendre sans risque ni coût joue la ligne, une porte garde l’aperçu', async () => {
+    const jeu = await commencer(env);
+    const [carnet, porte] = composerDock(observer(monde, jeu.partie.etat)).piece;
+    if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
+    expect(bulleObjet(jeu, carnet)).toContain('aria-label="Prendre, sans confirmation"');
+    expect(bulleObjet(jeu, porte)).toContain('<button type="button" class="ligne"><span aria-hidden="true">▸ </span>Ouvrir</button>');
+    // Pendant l'enregistrement d'une action, la ligne ne joue rien de plus.
+    const occupee = renderToStaticMarkup(<BulleObjet ancre={{} as HTMLElement} groupe={carnet} {...composition(jeu, null)} occupe={true} />);
+    expect(occupee).toContain('aria-label="Prendre, sans confirmation" disabled=""');
+  });
+
+  it('un seul toucher (D-182) : déplacement sans danger connu joué tout de suite ; vers la créature entendue, aperçu', async () => {
+    const debut = await commencer(env);
+    const grille = observer(monde, debut.partie.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
+    if (grille === undefined) throw new Error('Grille absente.');
+    const ouverte = await jouerOption(env, debut, grille);
+    const soute = entre(entre(rendre(ouverte), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
+    expect(soute).toContain('aria-label="soute, sans confirmation"');
+    expect(soute).not.toContain('aria-haspopup');
+    const porte = entre(entre(rendre(await apres('ouvrir')), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
+    expect(porte).toContain('aria-haspopup="dialog"');
+    expect(porte).not.toContain('sans confirmation');
   });
 
   it('action choisie : fil « Carnet › Prendre », aperçu RISQUE / COÛT / SAVOIR, ANNULER puis CONFIRMER (12 §3.5, §3.8)', async () => {
