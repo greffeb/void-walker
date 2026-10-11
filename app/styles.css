@@ -35,6 +35,10 @@
   --signal: #ffd08a;
   --bordure: #76603a;
   --separateur: #4a3a20;
+  --cyan: #4fe6f0;
+  --cyan-texte: #a6f6fa;
+  --cyan-secondaire: #3aa7ae;
+  --cyan-surface: #061416;
   --voile-bulle: rgba(10, 9, 7, 0.35);
   --voile-modale: rgba(10, 9, 7, 0.55);
   font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
@@ -200,80 +204,106 @@ button:disabled {
   border-top: 1px dashed var(--separateur);
 }
 
-.bulle-inventaire {
+/* Bulle (12 §3.5) : voile de 35 % qui referme au toucher, sous les lignes de balayage. */
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: var(--voile-bulle);
+}
+
+.bas {
+  position: relative;
+  z-index: 5;
+  flex: none;
+}
+
+.bulle {
   position: absolute;
   left: 16px;
   right: 16px;
-  bottom: 74px;
-  z-index: 20;
-  border: 2px solid var(--accent);
-  background: var(--surface-2);
-  box-shadow: 0 0 0 1px var(--accent), 0 18px 28px rgba(0, 0, 0, 0.45);
+  bottom: calc(100% + 12px);
+  display: flex;
+  flex-direction: column;
+  max-height: min(60dvh, 420px);
+  border: 1px solid var(--couleur-menu);
+  background: var(--surface-menu);
+  box-shadow: 0 0 0 4px var(--fond);
 }
 
-.bulle-inventaire::after {
+.bulle:focus {
+  outline: none;
+}
+
+/* Losange de 12 px qui pointe le bouton d'origine, premier tiers de la navigation. */
+.bulle::after {
   content: '';
   position: absolute;
-  left: 30px;
-  bottom: -16px;
-  width: 0;
-  height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-top: 16px solid var(--accent);
+  left: calc((100% - 16px) / 6 - 6px);
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  background: var(--surface-menu);
+  border-right: 1px solid var(--couleur-menu);
+  border-bottom: 1px solid var(--couleur-menu);
+  transform: rotate(45deg);
 }
 
-.bulle-entete {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--accent);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: var(--surface);
+/* Une couleur par menu (D-176) : cyan pour l'inventaire. */
+.bulle-inventaire {
+  --couleur-menu: var(--cyan);
+  --texte-menu: var(--cyan-texte);
+  --secondaire-menu: var(--cyan-secondaire);
+  --surface-menu: var(--cyan-surface);
+}
+
+.bulle .titre-section {
+  margin: 0;
+  padding: 10px 12px 4px;
+  color: var(--couleur-menu);
 }
 
 .bulle-corps {
-  padding: 10px 12px 12px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px 12px;
 }
 
-.bulle-inventaire .puces {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.bulle .puces {
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.bulle-inventaire .puces > li,
-.bulle-inventaire .puces .pleine-largeur {
-  display: block;
-  grid-column: auto;
+.bulle .puce {
+  color: var(--texte-menu);
+  border-color: var(--secondaire-menu);
 }
 
-.bulle-inventaire .puce {
-  background: rgba(255, 178, 77, 0.12);
-  border-color: var(--accent);
-  color: var(--signal);
+.bulle .puce[aria-expanded='true'] {
+  color: var(--surface-menu);
+  background: var(--couleur-menu);
+  border-color: var(--couleur-menu);
 }
 
-.bulle-inventaire .puce[aria-expanded='true'] {
-  background: var(--accent);
-  color: var(--fond);
-  border-color: var(--accent);
+.bulle .options {
+  border-color: var(--couleur-menu);
+  background: var(--surface-menu);
 }
 
-.bulle-inventaire .options {
-  border-color: var(--accent);
-  background: var(--surface-2);
+.bulle .option + .option {
+  border-top-color: var(--secondaire-menu);
 }
 
-.bulle-inventaire .option button {
-  color: var(--signal);
+.bulle .option button,
+.bulle .vide {
+  color: var(--texte-menu);
 }
 
-.bulle-inventaire .vide {
-  margin: 0;
-  color: var(--signal);
+.bulle .raison {
+  color: var(--secondaire-menu);
+}
+
+.bulle :focus-visible {
+  outline-color: var(--couleur-menu);
 }
 
 .titre-section {
@@ -435,9 +465,9 @@ button:disabled {
 }
 
 .navigation button[aria-expanded='true'] {
-  color: var(--fond);
-  background: var(--texte);
-  border-color: var(--texte);
+  color: var(--cyan-texte);
+  border-color: var(--cyan);
+  box-shadow: inset 0 0 0 1px var(--cyan);
 }
 
 .puce:not(:disabled, [aria-expanded='true']):active,

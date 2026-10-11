@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { observer, type OptionMenu } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
 import { composerDock, nomDestination, nomPuce, REGARDER_AUTOUR, type Dock, type Groupe } from './ecran';
@@ -27,6 +27,7 @@ export function EcranJeu({
   const [deplie, setDeplie] = useState<string | null>(null);
   const [inventaireOuvert, setInventaireOuvert] = useState(false);
   const idInventaire = useId();
+  const boutonInventaire = useRef<HTMLButtonElement>(null);
 
   const jouer: Jouer = (option) => {
     setDeplie(null);
@@ -34,6 +35,11 @@ export function EcranJeu({
     void choisir(jeu, option);
   };
   const basculer = (id: string): void => setDeplie((actuel) => (actuel === id ? null : id));
+  const fermerInventaire = (): void => {
+    setDeplie(null);
+    setInventaireOuvert(false);
+    boutonInventaire.current?.focus();
+  };
 
   return (
     <main className="jeu">
@@ -53,33 +59,73 @@ export function EcranJeu({
           <p key={index}>{ligne}</p>
         ))}
       </section>
-      {!inventaireOuvert && <DockPiece dock={dock} textes={textes} occupe={occupe} deplie={deplie} basculer={basculer} jouer={jouer} />}
-      {inventaireOuvert && (
-        <section id={idInventaire} className="bulle-inventaire" aria-label="Inventaire" role="dialog">
-          <div className="bulle-entete">Inventaire</div>
-          <div className="bulle-corps">
-            {dock.inventaire.length === 0 ? (
-              <p className="vide">{remplir(textes.observation.inventaireVide, {})}</p>
-            ) : (
-              <Puces groupes={dock.inventaire} textes={textes} occupe={occupe} deplie={deplie} basculer={basculer} jouer={jouer} />
-            )}
-          </div>
-        </section>
-      )}
-      <nav className="navigation" aria-label="Navigation">
-        <button
-          type="button"
-          aria-expanded={inventaireOuvert}
-          aria-controls={inventaireOuvert ? idInventaire : undefined}
-          onClick={() => {
-            setDeplie(null);
-            setInventaireOuvert((ouvert) => !ouvert);
-          }}
-        >
-          Inventaire
-        </button>
-      </nav>
+      <DockPiece dock={dock} textes={textes} occupe={occupe} deplie={inventaireOuvert ? null : deplie} basculer={basculer} jouer={jouer} />
+      {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
+      {inventaireOuvert && <div className="voile" data-testid="voile" onClick={fermerInventaire} />}
+      <div className="bas">
+        {inventaireOuvert && (
+          <BulleInventaire
+            id={idInventaire}
+            groupes={dock.inventaire}
+            textes={textes}
+            occupe={occupe}
+            deplie={deplie}
+            basculer={basculer}
+            jouer={jouer}
+            fermer={fermerInventaire}
+          />
+        )}
+        <nav className="navigation" aria-label="Navigation">
+          <button
+            ref={boutonInventaire}
+            type="button"
+            aria-expanded={inventaireOuvert}
+            aria-controls={inventaireOuvert ? idInventaire : undefined}
+            onClick={() => {
+              setDeplie(null);
+              setInventaireOuvert((ouvert) => !ouvert);
+            }}
+          >
+            Inventaire
+          </button>
+        </nav>
+      </div>
     </main>
+  );
+}
+
+/** Inventaire (D-154) : bulle cyan (D-176) posée au-dessus du bouton INVENTAIRE, par-dessus l'écran. */
+export function BulleInventaire({
+  id,
+  groupes,
+  fermer,
+  ...props
+}: PropsPuces & { readonly id: string; readonly groupes: readonly Groupe[]; readonly fermer: () => void }) {
+  const bulle = useRef<HTMLElement>(null);
+  const fermerActuel = useRef(fermer);
+  useEffect(() => {
+    fermerActuel.current = fermer;
+  });
+  // À l'ouverture seulement : le focus entre dans la bulle, Échap la referme.
+  useEffect(() => {
+    bulle.current?.focus();
+    const touche = (evenement: KeyboardEvent): void => {
+      if (evenement.key === 'Escape') fermerActuel.current();
+    };
+    document.addEventListener('keydown', touche);
+    return () => document.removeEventListener('keydown', touche);
+  }, []);
+  return (
+    <section ref={bulle} id={id} className="bulle bulle-inventaire" role="dialog" aria-label="Inventaire" tabIndex={-1}>
+      <h2 className="titre-section">Inventaire</h2>
+      <div className="bulle-corps">
+        {groupes.length === 0 ? (
+          <p className="vide">{remplir(props.textes.observation.inventaireVide, {})}</p>
+        ) : (
+          <Puces groupes={groupes} {...props} />
+        )}
+      </div>
+    </section>
   );
 }
 

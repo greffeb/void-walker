@@ -91,7 +91,7 @@ async function lire(page: Page): Promise<{ recit: string; situation: string }> {
 
 /** Aucun chiffre affiché, cibles d'au moins 44 × 44 px, pas de débordement en largeur (12 §1, §2.7, §7). */
 async function verifierEcran(page: Page, ou: string, erreurs: string[]): Promise<void> {
-  const zones = await page.locator('.entete-piece, [data-testid="recit"], .dock, .inventaire, .navigation').allInnerTexts();
+  const zones = await page.locator('.entete-piece, [data-testid="recit"], .dock, .bulle, .navigation').allInnerTexts();
   if (zones.some((texte) => /\d/.test(texte))) erreurs.push(`${ou} : un chiffre est affiché.`);
   for (const bouton of await page.locator('main button').all()) {
     const boite = await bouton.boundingBox();
@@ -101,6 +101,29 @@ async function verifierEcran(page: Page, ou: string, erreurs: string[]): Promise
   }
   const debord = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   if (debord > 0) erreurs.push(`${ou} : la page déborde de ${debord} px en largeur.`);
+}
+
+/** Bulle d'inventaire ouverte : au-dessus de son bouton sans le cacher, dock toujours là (D-154, D-176). */
+async function verifierBulle(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  const bulle = await page.getByRole('dialog', { name: exactement('Inventaire') }).boundingBox();
+  const bouton = await page.getByRole('button', { name: exactement('Inventaire') }).boundingBox();
+  if (bulle === null || bouton === null) {
+    erreurs.push(`${ou} : bulle d’inventaire ou bouton absent.`);
+    return;
+  }
+  if (bulle.y + bulle.height > bouton.y) erreurs.push(`${ou} : la bulle cache le bouton INVENTAIRE.`);
+  for (const titre of ['Dans la pièce', 'Se déplacer vers']) {
+    if (!(await page.getByRole('heading', { name: exactement(titre) }).isVisible())) erreurs.push(`${ou} : « ${titre} » a disparu sous la bulle.`);
+  }
+}
+
+/** Toucher en dehors de la bulle la referme sans rien jouer (12 §3.5). */
+async function verifierFermeture(page: Page, erreurs: string[]): Promise<void> {
+  const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
+  await inventaire.click();
+  await page.mouse.click(24, 140);
+  if (await page.getByRole('dialog', { name: exactement('Inventaire') }).isVisible()) erreurs.push('Toucher hors de la bulle ne la ferme pas.');
+  if ((await inventaire.getAttribute('aria-expanded')) !== 'false') erreurs.push('Le bouton INVENTAIRE reste marqué ouvert après fermeture.');
 }
 
 /** Le rappel et le récit nomment la cible comme le dock (NP-04). */
@@ -190,11 +213,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     }
 
     for (const [index, geste] of gestes.entries()) {
+      if (geste.zone === 'inventaire') await verifierFermeture(page, erreurs);
       const bouton = await preparer(page, geste);
       if (geste.zone === 'inventaire' || (index === 0 && geste.zone === 'piece')) {
         const titre = geste.zone === 'inventaire' ? `Inventaire ouvert, « ${geste.bouton} » déplié` : `« ${geste.bouton} » déplié`;
         await capturerEtape(titre);
         await verifierEcran(page, titre, erreurs);
+        if (geste.zone === 'inventaire') await verifierBulle(page, titre, erreurs);
       }
       await bouton.click();
       await attendreSauvegarde(page, index + 1);

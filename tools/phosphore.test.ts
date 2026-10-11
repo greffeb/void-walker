@@ -54,6 +54,11 @@ describe('direction « Phosphore » (12 §2)', () => {
     ['texte-secondaire', 'surface', 4.5],
     ['bordure', 'fond', 3],
     ['bordure', 'surface', 3],
+    ['cyan-texte', 'cyan-surface', 4.5],
+    ['cyan', 'cyan-surface', 4.5],
+    ['cyan-secondaire', 'cyan-surface', 4.5],
+    ['cyan-surface', 'cyan', 4.5],
+    ['cyan', 'fond', 3],
   ])('contraste de %s sur %s : au moins %s:1 (12 §7)', (avant, arriere, seuil) => {
     expect(contraste(jeton(avant), jeton(arriere))).toBeGreaterThanOrEqual(seuil);
   });
@@ -63,15 +68,19 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(mesures).toEqual(['12.2', '11.1', '6.1', '13.9', '3.3']);
   });
 
-  it('toutes les couleurs de la feuille restent dans la gamme ambre : ni rouge ni vert', () => {
+  it('couleurs : ambre partout, cyan seulement pour le menu d’inventaire (D-176) ; ni rouge ni vert', () => {
     const couleurs = [...css.matchAll(/#[0-9a-f]{6}\b|rgba?\([^)]*\)/gi)].map((trouve) => trouve[0]);
     expect(couleurs.length).toBeGreaterThan(10);
     for (const couleur of couleurs) {
       const angle = teinte(couleur);
       if (angle === null) continue;
-      expect(angle, couleur).toBeGreaterThanOrEqual(20);
-      expect(angle, couleur).toBeLessThanOrEqual(55);
+      const ambre = angle >= 20 && angle <= 55;
+      const cyan = angle >= 175 && angle <= 195;
+      expect(ambre || cyan, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
+    const cyans = couleurs.filter((couleur) => (teinte(couleur) ?? 0) >= 175);
+    expect(cyans.length).toBeGreaterThan(0);
+    for (const couleur of cyans) expect(/--cyan[a-z-]*:\s*$/.test(css.slice(css.indexOf(couleur) - 30, css.indexOf(couleur))), couleur).toBe(true);
   });
 
   it('angles droits partout', () => {

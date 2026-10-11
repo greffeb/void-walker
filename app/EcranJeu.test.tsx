@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { observer } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
 import { App } from './App';
-import { DockPiece, EcranJeu } from './EcranJeu';
+import { BulleInventaire, DockPiece, EcranJeu } from './EcranJeu';
 import { composerDock } from './ecran';
 import { commencer, jouerOption, type Environnement, type Jeu } from './jeu';
 import type { Stockage } from './sauvegarde';
@@ -82,6 +82,27 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     );
     expect(html.match(/aria-expanded="true"/g)).toHaveLength(1);
     expect(texte(entre(html, '<div id=', '</div></div></li>'))).toBe('▸ Regarder ▸ Prendre');
+    expect(html).toMatch(/role="group" aria-label="Carnet"/);
+  });
+
+  it('inventaire : bulle cyan nommée, puces des objets portés avec les mêmes options qu’en pièce (D-154, D-176)', async () => {
+    const dock = composerDock(observer(monde, (await apres('prendre')).partie.etat));
+    const carnet = dock.inventaire[0];
+    if (carnet === undefined) throw new Error('Carnet absent de l’inventaire.');
+    const html = renderToStaticMarkup(
+      <BulleInventaire
+        id="inventaire"
+        groupes={dock.inventaire}
+        textes={textes}
+        occupe={false}
+        deplie={carnet.cible.id}
+        basculer={() => undefined}
+        jouer={() => undefined}
+        fermer={() => undefined}
+      />,
+    );
+    expect(html).toMatch(/^<section id="inventaire" class="bulle bulle-inventaire" role="dialog" aria-label="Inventaire" tabindex="-1">/);
+    expect(texte(html)).toBe('Inventaire ▸ Carnet ▸ Regarder ▸ Poser');
     expect(html).toMatch(/role="group" aria-label="Carnet"/);
   });
 
