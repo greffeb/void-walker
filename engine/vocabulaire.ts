@@ -233,6 +233,8 @@ export interface Observation {
   readonly actions: number;
   /** Vue directe : la créature est dans la même pièce, hors de l'alcôve (C-06 §2, AR-01 §11.3). */
   readonly creatureVisible: boolean;
+  /** Vue à terre après une glissade : elle ne peut pas l'intercepter tant qu'elle ne s'est pas relevée (C-03 §5.2, AR-01 §11.3). */
+  readonly creatureATerre: boolean;
   /** La pièce du passager est en feu (C-03 §5.3). */
   readonly feu: boolean;
   readonly sante: Sante;

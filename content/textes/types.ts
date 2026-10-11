@@ -57,6 +57,8 @@ export interface TextesMonde {
     readonly inventaireVide: string;
     /** La créature est dans la pièce, vue par le passager (C-06 §2). */
     readonly creature: string;
+    /** La créature, vue à terre après une glissade (C-03 §5.2). */
+    readonly creatureATerre: string;
     /** Santé (C-04 §2) ; rien quand il est indemne (12 §3). */
     readonly blesse: string;
     readonly critique: string;
@@ -156,6 +158,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   inventaire: ['liste'],
   inventaireVide: [],
   creature: [],
+  creatureATerre: [],
   blesse: [],
   critique: [],
   terminee: [],

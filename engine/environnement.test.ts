@@ -228,6 +228,19 @@ describe('feu confiné et propagation (C-03 §5.3, D-188)', () => {
     expect(fin.etat.expositions).toEqual(['sg']);
   });
 
+  it('deux liaisons exposées gagnent leurs deux pièces dans la même mise à jour ; l\'aperçu ne dépend pas d\'une liaison cachée', () => {
+    const ouverte = avecEau();
+    const apercus = [true, false].map((cachee) => {
+      const etat = { ...ouverte.etat, liaisons: { ...ouverte.etat.liaisons, sg: true, gp: cachee }, expositions: cachee ? ['gp', 'sg'] : ['sg'] };
+      const courante = { ...ouverte, etat };
+      const resultat = jouer(MONDE, courante, option(MONDE, courante, 'poser', 'eau')?.commande);
+      if (resultat.type !== 'engagee') throw new Error('Poser non engagé.');
+      return { apercu: apercuDe(MONDE, courante, 'poser', 'eau'), feu: resultat.partie.etat.feu };
+    });
+    expect(apercus.map(({ apercu }) => apercu.danger)).toEqual([{ type: 'brulure' }, { type: 'brulure' }]);
+    expect(apercus.map(({ feu }) => feu)).toEqual([['salon', 'galerie', 'local'], ['salon', 'galerie']]);
+  });
+
   it('D-188 : le feu gagne la pièce du passager : brûlure certaine, annoncée, puis une à chaque action tant qu\'il y reste', () => {
     const ouvert = engager(MONDE, avecEau(), 'ouvrir', 'galerie').partie;
     expect(apercuDe(MONDE, ouvert, 'poser', 'eau')).toMatchObject({ risque: 'certain', danger: { type: 'brulure' } });
@@ -323,9 +336,11 @@ describe('sol huilé et glissade (C-03 §5.2, D-190)', () => {
     const { partie: glissee, evenements } = suite(MONDE, auLocal(), [['verser', 'huile', 'cloison_po'], ['ouvrir', 'observation']]);
     expect(types(evenements[1] ?? [])).toEqual(['passage_ouvert', 'bruit_mecanisme', 'creature_glisse', 'premier_contact']);
     expect(glissee.etat.creature).toMatchObject({ piece: 'local', perdues: 2, connues: ['po@local'], alcove: false });
+    expect(observer(MONDE, glissee.etat)).toMatchObject({ creatureVisible: true, creatureATerre: true });
     // Le passager reste sous ses yeux : réaction 1 perdue (et action libre après le premier contact).
     const r1 = jouer(MONDE, glissee, option(MONDE, glissee, 'fermer', 'observation')?.commande);
     if (r1.type !== 'engagee') throw new Error('Réaction 1 non engagée.');
+    expect(types(r1.evenements)).not.toContain('menace');
     expect(r1.partie.etat.creature).toMatchObject({ piece: 'local', perdues: 1, repit: false });
     // Réaction 2 perdue : répit passé, mais glissée, elle ne peut pas l'intercepter ; même un bruit ne la fait pas bouger.
     const r2 = jouer(MONDE, r1.partie, option(MONDE, r1.partie, 'ouvrir', 'observation')?.commande);
@@ -337,6 +352,27 @@ describe('sol huilé et glissade (C-03 §5.2, D-190)', () => {
     const r3 = jouer(MONDE, r2.partie, option(MONDE, r2.partie, 'fermer', 'observation')?.commande);
     if (r3.type !== 'engagee') throw new Error('Réaction 3 non engagée.');
     expect(r3.tirages).toHaveLength(1);
+    expect(observer(MONDE, r2.partie.etat).creatureATerre).toBe(false);
+  });
+
+  it('T-06 : sol connu du côté où elle arrive : elle s\'engage, puis franchit, sans nouvelle glissade (D-190)', () => {
+    const depart = partie();
+    const placeeDevant = {
+      ...depart,
+      etat: {
+        ...depart.etat,
+        piece: 'local',
+        visitees: ['salon', 'local'],
+        huile: [{ liaison: 'po', piece: 'local' }],
+        creature: { ...CALME, piece: 'observation', contact: true, connues: ['po@local'] },
+      },
+    };
+    const engagee = engager(MONDE, placeeDevant, 'ouvrir', 'observation');
+    expect(engagee.partie.etat.creature).toMatchObject({ piece: 'observation', engagee: 'po', perdues: 0 });
+    const franchie = engager(MONDE, engagee.partie, 'ouvrir', 'galerie');
+    expect(types(franchie.evenements)).toContain('creature_entre');
+    expect(types(franchie.evenements)).not.toContain('creature_glisse');
+    expect(franchie.partie.etat.creature).toMatchObject({ piece: 'local', engagee: null, perdues: 0 });
   });
 
   it('le passager passe toujours par le bord sec, sans glisser ni dé (D-190)', () => {

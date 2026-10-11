@@ -140,7 +140,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
     lignes.push(remplir(modele.placement, { objet: nomDe(textes, objet), position: nomDe(textes, position) }));
   }
   if (observation.feu) lignes.push(remplir(modele.feu, {}));
-  if (observation.creatureVisible) lignes.push(remplir(modele.creature, {}));
+  if (observation.creatureVisible) lignes.push(remplir(observation.creatureATerre ? modele.creatureATerre : modele.creature, {}));
   lignes.push(
     observation.inventaire.length > 0
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })

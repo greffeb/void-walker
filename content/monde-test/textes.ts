@@ -208,6 +208,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',
     creature: 'La créature est là, tout près de vous.',
+    creatureATerre: 'La créature est à terre, tout près de vous ; elle peine à se relever.',
     blesse: 'Vous êtes blessé.',
     critique: 'Vous êtes grièvement blessé.',
     terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',

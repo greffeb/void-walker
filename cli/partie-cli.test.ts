@@ -1,4 +1,4 @@
-import { empreinteEtat, lireExport, rejouer } from '../engine';
+import { empreinteEtat, idPublic, lireExport, rejouer } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
 import { executer, PARTIE_PAR_DEFAUT, type Contexte } from './partie-cli';
 
@@ -118,6 +118,9 @@ describe('CLI', () => {
     const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
     expect(executer(['commande', 'voler', 'e12345678'], ctx).lignes[0]).toBe('Cette action n’existe pas : rien n’a été joué.');
     expect(executer(['commande', 'prendre', 'objet-carnet'], ctx).lignes[0]).toBe('Cette action ne peut pas viser cela ici.');
+    // Un paramètre donné à une action qui n'en prend pas est refusé.
+    const carnet = idPublic(ENTREE.monde.id, 'objet-carnet');
+    expect(executer(['commande', 'prendre', carnet, carnet], ctx).lignes[0]).toBe('Commande illisible : rien n’a été joué.');
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
   });
 

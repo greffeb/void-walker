@@ -79,6 +79,11 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
       if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (garde-fou du contrôle).`);
     }
   }
+  for (const causes of ['feu', 'griffes_feu'] as const) {
+    for (const variante of textes.brulures[causes].defaite as readonly unknown[]) {
+      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`brûlure ${causes} defaite : plus de quatre phrases (garde-fou du contrôle).`);
+    }
+  }
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);
   for (const raison of RAISONS_INDISPONIBILITE) {
     verifierGabarit(erreurs, `indisponibilité ${raison}`, textes.indisponibilites[raison], ROLES_INDISPONIBILITE);

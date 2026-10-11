@@ -131,17 +131,17 @@ interface Reponse {
 
 /**
  * Franchir `liaison` vers l'indice (C-03 §5.2) : un sol huilé connu se franchit prudemment, en deux réactions ; inconnu, elle
- * glisse là où il se trouve, sa réaction s'arrête et les deux suivantes sont perdues.
+ * glisse là où il se trouve, côté arrivée d'abord, sa réaction s'arrête et les deux suivantes sont perdues.
  */
 function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, liaison: DefLiaison, indice: Indice): Reponse {
   const depart = creature.piece;
   const arrivee = autreCote(liaison, depart);
-  const zone = [arrivee, depart].find((piece) => huilee(etat, liaison.id, piece));
-  const cle = zone === undefined ? null : cleZone({ liaison: liaison.id, piece: zone });
-  if (cle !== null && creature.connues.includes(cle) && creature.engagee !== liaison.id) {
+  const zones = [arrivee, depart].filter((piece) => huilee(etat, liaison.id, piece));
+  const inconnue = zones.find((piece) => !creature.connues.includes(cleZone({ liaison: liaison.id, piece })));
+  if (zones.length > 0 && inconnue === undefined && creature.engagee !== liaison.id) {
     return { creature: { ...creature, indice, engagee: liaison.id }, evenements: [] };
   }
-  const glisse = cle !== null && !creature.connues.includes(cle) ? zone ?? null : null;
+  const glisse = inconnue ?? null;
   const piece = glisse ?? arrivee;
   const suite: EtatCreature = {
     ...creature,
@@ -149,9 +149,12 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, lia
     alcove: false,
     engagee: null,
     indice: piece === indice.piece ? null : indice,
-    ...(glisse === null || cle === null ? {} : { perdues: REACTIONS_PERDUES, connues: [...creature.connues, cle].sort() }),
+    ...(glisse === null
+      ? {}
+      : { perdues: REACTIONS_PERDUES, connues: [...creature.connues, cleZone({ liaison: liaison.id, piece: glisse })].sort() }),
   };
-  const percu = piece === depart && glisse !== etat.piece ? undefined : percuParLePassager(monde, etat, liaison, depart, arrivee, glisse);
+  // Glissée sans changer de pièce, elle est vue si le passager y est, entendue s'il est à côté.
+  const percu = percuParLePassager(monde, etat, liaison, depart, piece, glisse);
   if (percu === undefined) return { creature: suite, evenements: [] };
   return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
 }

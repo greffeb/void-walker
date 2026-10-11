@@ -68,6 +68,7 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     visitees: etat.visitees.map((piece) => refPiece(monde, piece)),
     actions: etat.actions,
     creatureVisible: creatureEnVue(etat),
+    creatureATerre: creatureEnVue(etat) && (etat.creature?.perdues ?? 0) > 0,
     feu: enFeu(etat, etat.piece),
     sante: etat.sante,
     terminee: etat.sante === 'vaincu',

@@ -144,10 +144,15 @@ function feuConnu(
 ): { risque: NiveauRisque; danger: Danger } | null {
   if (!definition.engage) return null;
   const effet = definition.appliquer({ monde, etat }, cible, SANS_DES, parametre);
-  const { etat: apres, gagnee } = actualiserFeu(monde, effet.etat);
+  const { etat: apres, gagnees } = actualiserFeu(monde, effet.etat);
   if (!brule(apres)) return null;
   const piece = apres.piece;
-  const connu = gagnee?.piece === piece ? voitLaPiece(monde, etat, gagnee.source) : voitLaPiece(monde, etat, piece);
+  const venues = gagnees.filter((gagnee) => gagnee.piece === piece);
+  // Déjà en feu : il voit la pièce. Gagnée pendant ce pas : seulement par un passage de sa pièce, qu'il voit (C-06 §4).
+  const connu =
+    venues.length === 0
+      ? voitLaPiece(monde, etat, piece)
+      : venues.some((venue) => indexer(monde).liaisons.get(venue.liaison)?.entre.includes(etat.piece) === true);
   if (!connu) return null;
   return { risque: 'certain', danger: { type: sante === 'critique' ? 'brulure_mortelle' : 'brulure' } };
 }
@@ -198,18 +203,28 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   // Étape 3 : le feu, puis la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, D-188).
   const feu = actualiserFeu(monde, effet.etat);
   const brulure = brule(feu.etat);
-  // Étape 4 : une réaction au plus, avec le son de l'action et celui de l'avertisseur en cours (C-03 §3, §5.1).
-  const sons = [...(effet.sons ?? []), ...(feu.etat.alarme === null ? [] : [sonAlarme(monde, feu.etat.alarme)])];
+  // Étape 4 : une réaction au plus, avec le son de l'avertisseur en cours puis ceux de l'action, plus récents (C-03 §3, §4.2, §5.1).
+  const sons = [...(feu.etat.alarme === null ? [] : [sonAlarme(monde, feu.etat.alarme)]), ...(effet.sons ?? [])];
   const reponse = reagir(monde, feu.etat, sons, partie.etat.piece, effet.franchie, exposition);
   const causes: Cause[] = [...(atteint ? (['griffes'] as const) : []), ...(brulure ? (['feu'] as const) : [])];
   const blessure = aggraver(decompter(reponse.etat), causes);
-  const interception: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : atteint ? blessure.evenements : [];
-  const brulures: readonly Evenement[] = atteint ? [] : blessure.evenements;
-  // En fuite, elle frappe au seuil, avant le déplacement ; une défaite se raconte à l'arrivée (C-04 §4.2).
-  const auSeuil = effet.franchie !== undefined && blessure.etat.sante !== 'vaincu';
-  const evenements = auSeuil
-    ? [...interception, ...effet.evenements, ...feu.evenements, ...reponse.evenements, ...brulures]
-    : [...effet.evenements, ...feu.evenements, ...reponse.evenements, ...interception, ...brulures];
+  const menace: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : [];
+  const coups = blessure.evenements;
+  // En fuite, elle frappe au seuil, avant le déplacement ; la brûlure se raconte avec le feu ; une défaite se raconte en dernier (C-04 §4.2, C-03 §3).
+  const vaincu = blessure.etat.sante === 'vaincu';
+  const auSeuil = effet.franchie !== undefined && !vaincu;
+  const coupsAuSeuil = auSeuil && atteint && !brulure;
+  const coupsAvecLeFeu = !vaincu && brulure;
+  const evenements = [
+    ...(auSeuil ? menace : []),
+    ...(coupsAuSeuil ? coups : []),
+    ...effet.evenements,
+    ...feu.evenements,
+    ...(coupsAvecLeFeu ? coups : []),
+    ...reponse.evenements,
+    ...(auSeuil ? [] : menace),
+    ...(coupsAuSeuil || coupsAvecLeFeu ? [] : coups),
+  ];
   const tirages = [...session.tirages];
   const etat: EtatPartie = { ...blessure.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
   const entree: EntreeJournal = { commande: validation.commande, tirages };
