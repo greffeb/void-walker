@@ -12,7 +12,7 @@ import type {
   Savoir,
 } from '../../engine';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
-import type { Nom, TextesMonde } from './types';
+import type { Nom, TextesMonde, Variantes } from './types';
 
 /** Repère pour choisir les variantes : la graine de la partie et le numéro de l'action. */
 export interface CleTexte {
@@ -44,6 +44,8 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'bruit_mecanisme':
     case 'bruit_creature':
     case 'creature_entre':
+    case 'feu_derriere':
+    case 'creature_glisse':
       return { passage: nomDe(textes, evenement.passage) };
     case 'premier_contact':
     case 'menace':
@@ -53,14 +55,30 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return {};
     case 'soin_indemne':
     case 'soin_blesse':
+    case 'alarme_declenchee':
       return { objet: nomDe(textes, evenement.objet) };
+    case 'objet_deplace':
+      return { objet: nomDe(textes, evenement.objet), position: nomDe(textes, evenement.position) };
+    case 'feu_gagne':
+    case 'feu_eteint':
+      return { piece: nomDe(textes, evenement.piece) };
+    case 'huile_versee':
+      return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
   }
+}
+
+/** Textes possibles d'un événement ; une aggravation due au feu a les siens (D-188). */
+function variantesDe(textes: TextesMonde, evenement: Evenement): Variantes {
+  if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
+    if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
+  }
+  return textes.evenements[evenement.type];
 }
 
 /** Une phrase par événement appliqué (C-07 NP-01). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
   return evenements.map((evenement, index) => {
-    const variante = choisirVariante(textes.evenements[evenement.type], `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
+    const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return remplir(variante, valeursEvenement(textes, evenement));
   });
 }
@@ -114,9 +132,15 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       : remplir(modele.aucunObjet, {}),
   );
   for (const passage of observation.passages) {
-    lignes.push(remplir(passage.ouvert ? modele.passageOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
+    const modeleOuvert = passage.feu ? modele.passageEnFeu : modele.passageOuvert;
+    lignes.push(remplir(passage.ouvert ? modeleOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
+    if (passage.huile) lignes.push(remplir(modele.huile, { passage: nomDe(textes, passage) }));
   }
-  if (observation.creatureVisible) lignes.push(remplir(modele.creature, {}));
+  for (const { objet, position } of observation.placements) {
+    lignes.push(remplir(modele.placement, { objet: nomDe(textes, objet), position: nomDe(textes, position) }));
+  }
+  if (observation.feu) lignes.push(remplir(modele.feu, {}));
+  if (observation.creatureVisible) lignes.push(remplir(observation.creatureATerre ? modele.creatureATerre : modele.creature, {}));
   lignes.push(
     observation.inventaire.length > 0
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })
@@ -156,6 +180,13 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom>
       return {};
     case 'videra':
       return { objet: nomDe(textes, savoir.objet) };
+    case 'deplacera':
+      return { objet: nomDe(textes, savoir.objet), position: nomDe(textes, savoir.position) };
+    case 'eteindra':
+    case 'sonnera':
+      return { piece: nomDe(textes, savoir.piece) };
+    case 'huilera':
+      return { passage: nomDe(textes, savoir.passage) };
   }
 }
 
@@ -163,6 +194,8 @@ function valeursDanger(textes: TextesMonde, danger: Danger): Record<string, Nom>
   switch (danger.type) {
     case 'interception':
     case 'interception_mortelle':
+    case 'brulure':
+    case 'brulure_mortelle':
       return {};
     case 'creature_entendue':
       return { passage: nomDe(textes, danger.passage) };
@@ -182,9 +215,16 @@ export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
 }
 
 export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleOption {
-  const { cible } = option;
+  const { cible, parametre } = option;
   const valeurs: Record<string, Nom> = { cible: nomDe(textes, cible) };
   if (cible.sorte === 'passage') valeurs.vers = nomDe(textes, cible.vers);
+  // Paramètre : la position visée, le passage et la pièce derrière lui, ou la pièce elle-même.
+  if (parametre?.sorte === 'position') valeurs.position = nomDe(textes, parametre);
+  if (parametre?.sorte === 'passage') {
+    valeurs.passage = nomDe(textes, parametre);
+    valeurs.piece = nomDe(textes, parametre.vers);
+  }
+  if (parametre?.sorte === 'piece') valeurs.piece = nomDe(textes, parametre);
   const libelle = remplir(textes.libelles[option.action], valeurs);
   if (option.disponible) return { libelle, raison: null };
   if (option.raison === undefined) throw new ErreurTexte(`Option indisponible sans raison : ${option.action}.`);

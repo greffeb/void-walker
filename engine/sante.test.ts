@@ -172,7 +172,7 @@ describe('rester sous ses yeux (D-183) et action libre après le premier contact
   it('entrer de nouveau dans sa pièce : une menace, pas de dé ce pas-là', () => {
     const graine = graineOu('aller', 'salle_a', favorable);
     const dehors = engager(expose(graine), 'aller', 'salle_a').partie;
-    const retour = engager({ ...dehors, etat: { ...dehors.etat, creature: { piece: 'b', indice: null, contact: true, repit: false } } }, 'aller', 'salle_b');
+    const retour = engager({ ...dehors, etat: { ...dehors.etat, creature: { piece: 'b', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null } } }, 'aller', 'salle_b');
     expect(retour.tirages).toEqual([]);
     expect(types(retour.evenements)).toEqual(['deplacement', 'menace']);
   });

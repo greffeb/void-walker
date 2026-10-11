@@ -131,7 +131,8 @@ export type Rappel =
   | { readonly type: 'autour' };
 
 export function rappelDe({ action, cible }: OptionMenu): Rappel {
-  if (cible.sorte === 'piece') return { type: 'autour' };
+  // Une position n'est jamais la cible d'une option, seulement son paramètre.
+  if (cible.sorte === 'piece' || cible.sorte === 'position') return { type: 'autour' };
   if (cible.sorte === 'passage' && action === 'aller') return { type: 'deplacement', vers: cible.vers };
   return { type: 'cible', action, cible };
 }

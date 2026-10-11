@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175 ; interception et soin précisés par D-183 à D-185.
 > **Date :** 2026-10-11.
-> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; vide, feu et morceaux absents. **Calibrage humain et validation téléphone :** non réalisés.
+> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; brûlure du feu, certaine et annoncée (D-188, #102) ; vide et morceaux absents. **Calibrage humain et validation téléphone :** non réalisés.
 
 ## 1. Portée
 

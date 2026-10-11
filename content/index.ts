@@ -33,8 +33,10 @@ export {
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
   ROLES_SAVOIR,
+  TYPES_AGGRAVATION,
   type Nom,
   type TextesMonde,
+  type TypeAggravation,
   type Variantes,
 } from './textes/types';
 export type { EntreeMonde, EtapeParcours, Parcours } from './types';

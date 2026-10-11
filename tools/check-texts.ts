@@ -30,6 +30,7 @@ import {
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
   ROLES_SAVOIR,
+  TYPES_AGGRAVATION,
   type EntreeMonde,
   type TextesMonde,
 } from '../content';
@@ -70,9 +71,17 @@ function verifierGabarit(erreurs: string[], ou: string, gabarit: unknown, roles:
 
 function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): void {
   for (const type of TYPES_EVENEMENT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
+  for (const causes of ['feu', 'griffes_feu'] as const) {
+    for (const type of TYPES_AGGRAVATION) verifierVariantes(erreurs, `brûlure ${causes} ${type}`, textes.brulures[causes][type], []);
+  }
   for (const type of MOMENTS_FORTS) {
     for (const variante of textes.evenements[type] as readonly unknown[]) {
       if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (garde-fou du contrôle).`);
+    }
+  }
+  for (const causes of ['feu', 'griffes_feu'] as const) {
+    for (const variante of textes.brulures[causes].defaite as readonly unknown[]) {
+      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`brûlure ${causes} defaite : plus de quatre phrases (garde-fou du contrôle).`);
     }
   }
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);

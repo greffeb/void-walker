@@ -44,7 +44,7 @@ export const AIDE = [
   '  voir [--ids]                 Relire la situation et les actions possibles (gratuit).',
   '  apercu <numéro>              Voir le risque, le coût et ce que vous savez avant d’agir (gratuit).',
   '  jouer <numéro>               Choisir une action du menu par son numéro.',
-  '  commande <action> <cible>    Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
+  '  commande <action> <cible> [paramètre]   Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
   '  exporter <fichier> [--commentaire "texte"]   Exporter la partie pour la rejouer.',
   '  aide                         Afficher cette aide.',
   '',
@@ -81,7 +81,8 @@ export function afficherSituation(textes: TextesMonde, observation: Observation,
   const lignes = ['', ...rendreObservation(textes, observation), '', 'Actions :'];
   observation.menu.forEach((option, index) => {
     const { libelle, raison } = libelleOption(textes, option);
-    const ids = avecIds ? ` [${option.commande.action} ${option.commande.cible}]` : '';
+    const { action, cible, parametre } = option.commande;
+    const ids = avecIds ? ` [${[action, cible, ...(parametre === undefined ? [] : [parametre])].join(' ')}]` : '';
     lignes.push(`  ${index + 1}. ${libelle}${raison === null ? '' : ` — indisponible : ${raison}`}${ids}`);
   });
   lignes.push('', `Actions engagées : ${observation.actions}`);
@@ -178,7 +179,8 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
     case 'commande': {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
-      return suite(contexte, chemin, jouer(monde, partie, { action: reste[0] ?? '', cible: reste[1] ?? '' }));
+      const [action = '', cible = '', parametre] = reste;
+      return suite(contexte, chemin, jouer(monde, partie, { action, cible, ...(parametre === undefined ? {} : { parametre }) }));
     }
     case 'exporter': {
       const partie = charger(contexte, chemin);

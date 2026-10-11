@@ -1,5 +1,5 @@
 import { CATALOGUE } from './actions';
-import { liaisonsDe, objetsDans, objetsPortes, refObjet, refPassage, refPiece, type EtatPartie } from './etat';
+import { creatureEnVue, enFeu, liaisonsDe, objetsDans, objetsPortes, refObjet, refPassage, refPiece, refPosition, type EtatPartie } from './etat';
 import { indexer, type DefMonde } from './monde';
 import {
   ACTIONS,
@@ -19,6 +19,7 @@ function cibleVisible(monde: DefMonde, etat: EtatPartie, id: string): Cible {
   const index = indexer(monde);
   if (index.pieces.has(id)) return refPiece(monde, id);
   if (index.objets.has(id)) return refObjet(monde, id);
+  if (index.positions.has(id)) return refPosition(monde, id);
   const liaison = index.liaisons.get(id);
   if (liaison === undefined) throw new Error(`Cible inconnue : ${id}.`);
   return refPassage(monde, etat, liaison, etat.piece);
@@ -35,8 +36,17 @@ export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
       if (raison !== null && !estIndisponibilite(raison)) {
         throw new Error(`Option ${action} proposée avec un refus non affichable : ${raison}.`);
       }
-      const commande = { action, cible: cible.id };
-      options.push(raison === null ? { action, cible, commande, disponible: true } : { action, cible, commande, disponible: false, raison });
+      const dispo = raison === null ? { disponible: true } : { disponible: false, raison };
+      const parametres = definition.engage ? definition.parametres?.({ monde, etat }, id) : undefined;
+      if (parametres === undefined) {
+        options.push({ action, cible, commande: { action, cible: cible.id }, ...dispo });
+        continue;
+      }
+      for (const parametre of parametres) {
+        const vise = cibleVisible(monde, etat, parametre);
+        if (vise.sorte === 'objet') throw new Error(`Paramètre objet non pris en charge : ${parametre}.`);
+        options.push({ action, cible, commande: { action, cible: cible.id, parametre: vise.id }, ...dispo, parametre: vise });
+      }
     }
   }
   return options;
@@ -47,11 +57,19 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
   return {
     piece: refPiece(monde, etat.piece),
     objets: objetsDans(monde, etat, etat.piece).map((objet) => refObjet(monde, objet.id)),
+    placements: objetsDans(monde, etat, etat.piece).flatMap((objet) => {
+      const emplacement = etat.objets[objet.id];
+      return emplacement?.type === 'piece' && emplacement.position !== undefined
+        ? [{ objet: refObjet(monde, objet.id), position: refPosition(monde, emplacement.position) }]
+        : [];
+    }),
     passages: liaisonsDe(monde, etat.piece).map((liaison) => refPassage(monde, etat, liaison, etat.piece)),
     inventaire: objetsPortes(monde, etat).map((objet) => refObjet(monde, objet.id)),
     visitees: etat.visitees.map((piece) => refPiece(monde, piece)),
     actions: etat.actions,
-    creatureVisible: etat.creature !== null && etat.creature.piece === etat.piece,
+    creatureVisible: creatureEnVue(etat),
+    creatureATerre: creatureEnVue(etat) && (etat.creature?.perdues ?? 0) > 0,
+    feu: enFeu(etat, etat.piece),
     sante: etat.sante,
     terminee: etat.sante === 'vaincu',
     menu: menu(monde, etat),
