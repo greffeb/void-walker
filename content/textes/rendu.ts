@@ -41,8 +41,12 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
     case 'passage_ouvert':
     case 'passage_ferme':
-    case 'passage_decouvert':
       return { passage: nomDe(textes, evenement.passage) };
+    case 'passage_decouvert': {
+      const { vers } = evenement.passage;
+      if (vers === null) throw new ErreurTexte('Passage découvert sans destination.');
+      return { passage: nomDe(textes, { ...evenement.passage, vers: null }), vers: nomDe(textes, vers) };
+    }
     case 'deplacement':
       return { passage: nomDe(textes, evenement.passage), piece: nomDe(textes, evenement.piece) };
     case 'bruit_mecanisme':
@@ -174,6 +178,10 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   for (const { objet, position } of observation.placements) {
     lignes.push(remplir(modele.placement, { objet: nomDe(textes, objet), position: nomDe(textes, position) }));
   }
+  for (const { objet, capsule } of observation.installes) {
+    lignes.push(remplir(modele.installe, { objet: nomDe(textes, objet), capsule: nomDe(textes, capsule) }));
+  }
+  for (const objet of observation.actives) lignes.push(remplir(modele.active, { objet: nomDe(textes, objet) }));
   if (observation.feu) lignes.push(remplir(modele.feu, {}));
   if (observation.creatureVisible) lignes.push(remplir(observation.creatureATerre ? modele.creatureATerre : modele.creature, {}));
   lignes.push(

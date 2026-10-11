@@ -249,7 +249,8 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       } catch (erreur) {
         return { lignes: [`Export impossible : ${erreur instanceof Error ? erreur.message : String(erreur)}`], code: 1 };
       }
-      return { lignes: [`Partie exportée dans ${fichier} (${partie.etat.actions} actions engagées). La partie continue.`], code: 0 };
+      const etat = observer(monde, partie.etat).terminee ? 'La partie est terminée.' : 'La partie continue.';
+      return { lignes: [`Partie exportée dans ${fichier} (${partie.etat.actions} actions engagées). ${etat}`], code: 0 };
     }
     default:
       return { lignes: [`Commande inconnue : ${commande}.`, '', ...AIDE], code: 1 };

@@ -8,6 +8,8 @@ export interface DefPiece {
   readonly nom: string;
   /** Foyer présent au départ (C-02 §4.4, C-03 §5.3). */
   readonly feu?: boolean;
+  /** Sous-position fermée d'une pièce, comme une cabine « à bord » : ni découverte ni carte (C-02 §2, C-06 §3). */
+  readonly sousPosition?: boolean;
 }
 
 export interface DefLiaison {
@@ -142,6 +144,7 @@ export function validerMonde(monde: DefMonde): string[] {
   const pieces = new Set(monde.pieces.map((piece) => piece.id));
   if (!pieces.has(monde.depart)) erreurs.push(`Départ inconnu : ${monde.depart}.`);
   if (monde.pieces.some((piece) => piece.id === monde.depart && piece.feu === true)) erreurs.push('Feu dans la pièce de départ.');
+  if (monde.pieces.some((piece) => piece.id === monde.depart && piece.sousPosition === true)) erreurs.push('Départ dans une sous-position.');
   const liaisons = new Map(monde.liaisons.map((liaison) => [liaison.id, liaison]));
   for (const liaison of monde.liaisons) {
     const [a, b] = liaison.entre;

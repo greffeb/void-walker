@@ -132,6 +132,29 @@ describe('monde : passages, capsule et messages (validation)', () => {
       'console : aucune liaison vers son intérieur.',
     ]);
   });
+
+  it('sous-position : jamais pièce de départ', () => {
+    const pieces = MONDE.pieces.map((piece) => (piece.id === 'cabine' ? { ...piece, sousPosition: true } : piece));
+    expect(validerMonde({ ...MONDE, pieces })).toEqual([]);
+    expect(validerMonde({ ...MONDE, pieces, depart: 'cabine' })).toContain('Départ dans une sous-position.');
+  });
+});
+
+describe('sous-position (C-02 §2)', () => {
+  it('y entrer ne découvre aucune pièce et ne l’ajoute pas aux pièces visitées ; le reste est inchangé', () => {
+    const SOUS: DefMonde = { ...MONDE, pieces: MONDE.pieces.map((piece) => (piece.id === 'cabine' ? { ...piece, sousPosition: true } : piece)) };
+    const depart = partie(SOUS);
+    const choix = option(depart, 'aller', 'ecoutille', SOUS);
+    if (choix === undefined) throw new Error('Option aller ecoutille absente.');
+    const resultat = jouer(SOUS, depart, choix.commande);
+    if (resultat.type !== 'engagee') throw new Error(`aller ecoutille : ${resultat.type}.`);
+    expect(types(resultat.evenements)).toEqual(['deplacement']);
+    const vue = observer(SOUS, resultat.partie.etat);
+    expect(vue.piece.nom).toBe('cabine');
+    expect(vue.visitees.map((piece) => piece.nom)).toEqual(['quai']);
+    // Pièce ordinaire : la même entrée la découvre.
+    expect(types(engager(depart, 'aller', 'ecoutille').evenements)).toEqual(['deplacement', 'piece_decouverte']);
+  });
 });
 
 describe('passages sans signalétique et cachés (C-06 §3, K-05)', () => {
@@ -211,6 +234,10 @@ describe('circuit, source et capsule (AR-01 §11.2)', () => {
     const { partie: arme, evenements } = engager(local, 'activer', 'console');
     expect(types(evenements)).toEqual(['circuit_active']);
     expect(option(arme, 'activer', 'console')).toMatchObject({ disponible: false, raison: 'deja_actif' });
+    expect(observer(MONDE, local.etat).actives).toEqual([]);
+    expect(observer(MONDE, arme.etat).actives.map((objet) => objet.nom)).toEqual(['console']);
+    // Visible là où se trouve la console seulement.
+    expect(observer(MONDE, engager(arme, 'aller', 'grille').partie.etat).actives).toEqual([]);
   });
 
   it('installer : seulement une source portée, devant une capsule ; elle quitte les mains', () => {
@@ -222,6 +249,10 @@ describe('circuit, source et capsule (AR-01 §11.2)', () => {
     expect(observer(MONDE, installe.etat).inventaire).toEqual([]);
     expect(observer(MONDE, installe.etat).objets.map((objet) => objet.nom)).toEqual(['capsule']);
     expect(option(installe, 'prendre', 'bloc')).toBeUndefined();
+    expect(observer(MONDE, quai.etat).installes).toEqual([]);
+    expect(observer(MONDE, installe.etat).installes).toMatchObject([{ objet: { nom: 'bloc' }, capsule: { nom: 'capsule' } }]);
+    // Visible là où se trouve la capsule seulement.
+    expect(observer(MONDE, engager(installe, 'aller', 'grille').partie.etat).installes).toEqual([]);
   });
 
   it('lancer : refusé sans alimentation, puis écoutille ouverte ; sinon évacuation sans dé, message une fois, partie close', () => {

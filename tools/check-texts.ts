@@ -12,6 +12,7 @@ import {
   TYPES_EVENEMENT,
   TYPES_SAVOIR,
   type Evenement,
+  type Commande,
   type Partie,
   type TypeEvenement,
 } from '../engine';
@@ -165,24 +166,70 @@ function variantesRecit(textes: TextesMonde, evenement: Evenement): readonly str
   return textes.evenements[evenement.type];
 }
 
-/** Phrases minimales et maximales qu'une suite d'événements peut produire, toutes variantes confondues. */
-function bornesPhrases(textes: TextesMonde, evenements: readonly Evenement[]): [number, number] {
+/** Phrases qu'une suite d'événements peut produire, toutes variantes confondues ; le maximum ne compte pas les moments forts. */
+export interface Bornes {
+  readonly minimum: number;
+  readonly maximum: number;
+  readonly momentFort: boolean;
+}
+
+function bornesPhrases(textes: TextesMonde, evenements: readonly Evenement[]): Bornes {
   let minimum = 0;
   let maximum = 0;
+  let momentFort = false;
   for (const evenement of evenements) {
     const comptes = variantesRecit(textes, evenement).map(compterPhrases);
     if (comptes.length === 0) continue;
     minimum += Math.min(...comptes);
-    if (!MOMENTS_FORTS.includes(evenement.type)) maximum += Math.max(...comptes);
+    if (MOMENTS_FORTS.includes(evenement.type)) momentFort = true;
+    else maximum += Math.max(...comptes);
   }
-  return [minimum, maximum];
+  return { minimum, maximum, momentFort };
+}
+
+export function direBornes({ minimum, maximum, momentFort }: Bornes): string {
+  if (momentFort) return `au moins ${minimum} phrase(s), au plus ${maximum} hors moment fort`;
+  return minimum === maximum ? `${minimum} phrase(s)` : `de ${minimum} à ${maximum} phrase(s) selon les variantes`;
+}
+
+/** Récit de plus de quatre phrases rendu hors des parcours témoins, une entrée par état où il a été rendu. */
+export interface Avertissement {
+  /** Suite des événements de l'action, dans l'ordre. */
+  readonly combinaison: string;
+  readonly bornes: string;
+  readonly message: string;
+}
+
+/** Combinaison d'événements en cause, avec le nombre d'états où son récit a dépassé quatre phrases. */
+export interface GroupeAvertissements {
+  readonly combinaison: string;
+  readonly occurrences: number;
+  readonly bornes: readonly string[];
+}
+
+export function regrouperAvertissements(avertissements: readonly Avertissement[]): GroupeAvertissements[] {
+  const groupes = new Map<string, { occurrences: number; bornes: Set<string> }>();
+  for (const { combinaison, bornes } of avertissements) {
+    const groupe = groupes.get(combinaison) ?? { occurrences: 0, bornes: new Set<string>() };
+    groupe.occurrences += 1;
+    groupe.bornes.add(bornes);
+    groupes.set(combinaison, groupe);
+  }
+  return [...groupes]
+    .map(([combinaison, { occurrences, bornes }]) => ({ combinaison, occurrences, bornes: [...bornes] }))
+    .sort((a, b) => b.occurrences - a.occurrences || a.combinaison.localeCompare(b.combinaison));
 }
 
 interface Rendu {
   readonly texte: string;
   readonly ou: string;
-  /** Bornes de phrases toutes variantes confondues, pour le récit d'une action engagée (D-111). */
-  readonly phrases?: [number, number];
+  /**
+   * Récit d'une action engagée : ses événements et ses bornes de phrases (D-111). Plus de quatre phrases est une erreur
+   * pour une étape d'un parcours témoin (`temoin`). Ailleurs, c'est un avertissement : D-111 ne dit pas comment raconter
+   * une action qui cumule assez d'événements pour dépasser quatre phrases (feu, blessure et menace dans le même pas), à
+   * faire arbitrer.
+   */
+  readonly recit?: { readonly combinaison: string; readonly bornes: Bornes; readonly temoin: boolean };
   /** Aperçu : ni chiffre ni pourcentage (C-04 §4.3). */
   readonly sansChiffre?: true;
 }
@@ -195,25 +242,23 @@ interface Exploration {
   readonly vus: Set<string>;
   readonly internes: readonly string[];
   readonly erreurs: Set<string>;
-  readonly avertissements: Set<string>;
-  /**
-   * Vrai pour les actions possibles depuis un état d'un parcours témoin : un récit de plus de quatre phrases y est une
-   * erreur. Ailleurs, c'est un avertissement : D-111 ne dit pas comment raconter une action qui cumule assez d'événements
-   * pour dépasser quatre phrases (feu, blessure et menace dans le même pas), à faire arbitrer.
-   */
-  strict: boolean;
+  readonly avertissements: Avertissement[];
+  /** Étapes des parcours témoins : état de départ et commande jouée (voir `etapeTemoin`). */
+  readonly temoins: ReadonlySet<string>;
 }
 
-function controler(exploration: Exploration, { texte, ou, phrases, sansChiffre }: Rendu): void {
+function controler(exploration: Exploration, { texte, ou, recit, sansChiffre }: Rendu): void {
   const { erreurs, internes } = exploration;
   if (/[{}]/.test(texte)) erreurs.add(`${ou} : trou non rempli dans « ${texte} ».`);
   const fuite = internes.find((id) => texte.includes(id));
   if (fuite !== undefined || ID_PUBLIC.test(texte)) erreurs.add(`${ou} : identifiant affiché dans « ${texte} » (NP-02).`);
   if (sansChiffre === true && /[\d%]/.test(texte)) erreurs.add(`${ou} : chiffre ou pourcentage dans « ${texte} » (C-04 §4.3).`);
-  if (phrases === undefined) return;
-  const message = `${ou} : de ${phrases[0]} à ${phrases[1]} phrase(s) selon les variantes, 2 à 4 attendues (D-111).`;
-  if (phrases[0] < 2 || (phrases[1] > 4 && exploration.strict)) erreurs.add(message);
-  else if (phrases[1] > 4) exploration.avertissements.add(message);
+  if (recit === undefined) return;
+  const { minimum, maximum } = recit.bornes;
+  const bornes = direBornes(recit.bornes);
+  const message = `${ou} : ${bornes} ; 2 à 4 attendues (D-111).`;
+  if (minimum < 2 || (maximum > 4 && recit.temoin)) erreurs.add(message);
+  else if (maximum > 4) exploration.avertissements.push({ combinaison: recit.combinaison, bornes, message });
 }
 
 /** Couverture du contrôle, affichée pour savoir ce qui a réellement été rendu. */
@@ -233,7 +278,8 @@ function cleEtat(partie: Partie): string {
 function visiter({ monde, textes }: EntreeMonde, partie: Partie, exploration: Exploration): Partie[] {
   const { types } = exploration;
   const rendre = (rendu: Rendu): void => controler(exploration, rendu);
-  exploration.vus.add(cleEtat(partie));
+  const cle = cleEtat(partie);
+  exploration.vus.add(cle);
   const graine = partie.enregistrement.graine;
   const suivantes: Partie[] = [];
   const observation = observer(monde, partie.etat);
@@ -256,10 +302,11 @@ function visiter({ monde, textes }: EntreeMonde, partie: Partie, exploration: Ex
     } else if (resultat.type === 'engagee') {
       const suite = resultat.evenements.map((evenement) => evenement.type);
       for (const type of suite) types.add(type);
+      const combinaison = suite.join(' + ');
       rendre({
         texte: rendreEvenements(textes, resultat.evenements, repere).join(' '),
-        ou: `action ${option.action} (${suite.join(' + ')})`,
-        phrases: bornesPhrases(textes, resultat.evenements),
+        ou: `action ${option.action} (${combinaison})`,
+        recit: { combinaison, bornes: bornesPhrases(textes, resultat.evenements), temoin: exploration.temoins.has(etapeTemoin(cle, option.commande)) },
       });
       for (const message of rendreAssistance(textes, resultat.evenements)) rendre({ texte: message, ou: 'assistance' });
       suivantes.push(resultat.partie);
@@ -278,6 +325,29 @@ function successeurs({ monde }: EntreeMonde, partie: Partie): Partie[] {
   return suivantes;
 }
 
+function etapeTemoin(cle: string, commande: Commande): string {
+  return `${cle}\n${JSON.stringify(commande)}`;
+}
+
+/**
+ * Étapes des parcours témoins, calculées d'avance : un état de parcours peut d'abord être atteint comme voisin d'un autre.
+ * Un parcours qui échoue s'arrête là ; l'erreur est relevée par l'exploration.
+ */
+function etapesTemoins({ monde, parcours }: EntreeMonde, depart: Partie): Set<string> {
+  const temoins = new Set<string>();
+  for (const { etapes } of parcours) {
+    let partie = depart;
+    for (const etape of etapes) {
+      const option = trouverOption(observer(monde, partie.etat), etape);
+      const resultat = option === undefined || !option.disponible ? null : jouer(monde, partie, option.commande);
+      if (option === undefined || resultat?.type !== 'engagee') break;
+      temoins.add(etapeTemoin(cleEtat(partie), option.commande));
+      partie = resultat.partie;
+    }
+  }
+  return temoins;
+}
+
 /**
  * Rend les textes de trois façons : le long de chaque parcours témoin avec les voisins immédiats de chaque état, en largeur
  * depuis le départ jusqu'à `maxEtats` états, puis par des marches au hasard à graine fixe.
@@ -289,10 +359,17 @@ function explorer(
 ): { exploration: Exploration; complete: boolean; typesParcours: Set<TypeEvenement> } {
   const { monde, textes } = entree;
   const internes = [monde.id, ...[...monde.pieces, ...monde.liaisons, ...monde.objets].map((entite) => entite.id)];
-  const exploration: Exploration = { types: new Set(), vus: new Set(), internes, erreurs: new Set(), avertissements: new Set(), strict: true };
+  const depart = nouvellePartie(monde, { version, graine: 1 });
+  const exploration: Exploration = {
+    types: new Set(),
+    vus: new Set(),
+    internes,
+    erreurs: new Set(),
+    avertissements: [],
+    temoins: etapesTemoins(entree, depart),
+  };
   const { types, vus, erreurs } = exploration;
   const rendre = (rendu: Rendu): void => controler(exploration, rendu);
-  const depart = nouvellePartie(monde, { version, graine: 1 });
   rendre({ texte: rendreEvenements(textes, depart.derniers, { graine: 1, action: 0 }).join(' '), ou: 'réveil' });
   for (const message of rendreAssistance(textes, depart.derniers)) rendre({ texte: message, ou: 'assistance' });
   for (const evenement of depart.derniers) types.add(evenement.type);
@@ -302,9 +379,7 @@ function explorer(
   for (const parcours of entree.parcours) {
     let partie = depart;
     const voir = (courante: Partie): void => {
-      exploration.strict = true;
       const voisines = vus.has(cleEtat(courante)) ? successeurs(entree, courante) : visiter(entree, courante, exploration);
-      exploration.strict = false;
       for (const voisine of voisines) if (!vus.has(cleEtat(voisine))) visiter(entree, voisine, exploration);
     };
     for (const [index, etape] of parcours.etapes.entries()) {
@@ -364,8 +439,11 @@ function explorer(
 
 export interface ResultatTextes {
   readonly erreurs: readonly string[];
-  /** Récits de plus de quatre phrases hors des parcours témoins et de leurs voisins (D-111, à arbitrer). */
-  readonly avertissements: readonly string[];
+  /**
+   * Récits de plus de quatre phrases rendus depuis un état hors des parcours témoins (D-111, à arbitrer) : une entrée par
+   * état et par action.
+   */
+  readonly avertissements: readonly Avertissement[];
   /** Absente si la structure des textes est déjà en erreur. */
   readonly couverture: Couverture | null;
 }
@@ -414,8 +492,11 @@ if (isMainModule(import.meta.url)) {
       if (couverture.jamais.length > 0) console.warn(`${id} : avertissement, jamais rendus : ${couverture.jamais.join(', ')}.`);
     }
     if (avertissements.length > 0) {
-      console.warn(`${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors parcours témoins (D-111, à arbitrer) :`);
-      for (const avertissement of avertissements) console.warn(`  ${avertissement}`);
+      const groupes = regrouperAvertissements(avertissements);
+      console.warn(
+        `${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors parcours témoins (un par état et par action), en ${groupes.length} combinaison(s) d’événements (D-111, à arbitrer) :`,
+      );
+      for (const { combinaison, occurrences, bornes } of groupes) console.warn(`  ${occurrences} × ${combinaison} — ${bornes.join(' ; ')}`);
     }
   }
   if (total > 0) {

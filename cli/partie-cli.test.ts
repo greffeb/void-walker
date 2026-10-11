@@ -44,7 +44,10 @@ describe('CLI', () => {
     expect(sortie.lignes).toContain('Vous voyez ici un carnet et une trousse de soin.');
     expect(sortie.lignes).toContain('Actions engagées : 4');
 
-    expect(executer(['exporter', 'export.json', '--commentaire', 'essai'], ctx).code).toBe(0);
+    expect(executer(['exporter', 'export.json', '--commentaire', 'essai'], ctx)).toEqual({
+      lignes: ['Partie exportée dans export.json (4 actions engagées). La partie continue.'],
+      code: 0,
+    });
     const fichier = lireExport(JSON.parse(ctx.fichiers.get('export.json') ?? 'null'));
     expect(fichier.commentaire).toBe('essai');
     expect(empreinteEtat(rejouer(ENTREE.monde, fichier, VERSION).partie.etat)).toBe(fichier.empreinte);
@@ -193,6 +196,10 @@ describe('CLI', () => {
     expect(fin).toContain('Actions engagées : 13');
     expect(executer(['jouer', '1'], ctx)).toEqual({ lignes: ['Cette partie est terminée : rien n’a été joué.'], code: 1 });
     expect(executer(['voir'], ctx).lignes).toContain('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
+    expect(executer(['exporter', 'fin.json'], ctx)).toEqual({
+      lignes: ['Partie exportée dans fin.json (13 actions engagées). La partie est terminée.'],
+      code: 0,
+    });
   });
 
   it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon AR-01', () => {

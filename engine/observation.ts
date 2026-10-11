@@ -59,15 +59,23 @@ export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
 
 /** Observation publique (C-06) : ne contient que des identifiants publics et des clés de nom. */
 export function observer(monde: DefMonde, etat: EtatPartie): Observation {
+  const ici = objetsDans(monde, etat, etat.piece);
   return {
     piece: refPiece(monde, etat.piece),
-    objets: objetsDans(monde, etat, etat.piece).map((objet) => refObjet(monde, objet.id)),
-    placements: objetsDans(monde, etat, etat.piece).flatMap((objet) => {
+    objets: ici.map((objet) => refObjet(monde, objet.id)),
+    placements: ici.flatMap((objet) => {
       const emplacement = etat.objets[objet.id];
       return emplacement?.type === 'piece' && emplacement.position !== undefined
         ? [{ objet: refObjet(monde, objet.id), position: refPosition(monde, emplacement.position) }]
         : [];
     }),
+    installes: monde.objets.flatMap((objet) => {
+      const emplacement = etat.objets[objet.id];
+      return emplacement?.type === 'installe' && ici.some((capsule) => capsule.id === emplacement.dans)
+        ? [{ objet: refObjet(monde, objet.id), capsule: refObjet(monde, emplacement.dans) }]
+        : [];
+    }),
+    actives: ici.filter((objet) => etat.actives.includes(objet.id)).map((objet) => refObjet(monde, objet.id)),
     passages: liaisonsVisibles(monde, etat, etat.piece).map((liaison) => refPassage(monde, etat, liaison, etat.piece)),
     inventaire: objetsPortes(monde, etat).map((objet) => refObjet(monde, objet.id)),
     visitees: etat.visitees.map((piece) => refPiece(monde, piece)),

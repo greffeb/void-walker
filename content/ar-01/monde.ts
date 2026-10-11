@@ -12,7 +12,7 @@ export const MONDE_AR01: DefMonde = {
     { id: 'p-energie', nom: 'energie' },
     { id: 'p-observation', nom: 'observation' },
     { id: 'p-embarquement', nom: 'embarquement' },
-    { id: 'p-cabine', nom: 'cabine' },
+    { id: 'p-cabine', nom: 'cabine', sousPosition: true },
   ],
   liaisons: [
     { id: 'l-salon-atelier', nom: 'porte', entre: ['p-salon', 'p-atelier'], ouverte: true },

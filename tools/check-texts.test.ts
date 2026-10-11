@@ -1,5 +1,5 @@
 import { MONDES, type EntreeMonde, type TextesMonde } from '../content';
-import { compterPhrases, controlerTextes, verifierTextes } from './check-texts';
+import { compterPhrases, controlerTextes, direBornes, regrouperAvertissements, verifierTextes } from './check-texts';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
 const AR01 = MONDES['ar-01'] as EntreeMonde;
@@ -93,18 +93,57 @@ describe('contrôle des textes (C-07)', () => {
   });
 
   it('les textes d’AR-01 sont complets et sûrs, évacuation et assistance comprises', { timeout: 120_000 }, () => {
-    const { erreurs, avertissements, couverture } = controlerTextes(AR01);
+    const { erreurs, couverture } = controlerTextes(AR01);
     expect(erreurs).toEqual([]);
     expect(couverture?.rendus).toEqual(expect.arrayContaining(['circuit_active', 'objet_installe', 'passage_decouvert', 'evacuation', 'assistance']));
-    // Hors parcours, feu, blessure et menace cumulés dépassent quatre phrases : signalé, à arbitrer (D-111).
-    expect(avertissements.length).toBeGreaterThan(0);
-    expect(avertissements.every((avertissement) => avertissement.endsWith('2 à 4 attendues (D-111).'))).toBe(true);
   });
 
   it('un récit de plus de quatre phrases depuis un état d’un parcours témoin reste une erreur (D-111)', EXHAUSTIF, () => {
     const long = 'Vous prenez {le:objet}. Deux. Trois. Quatre. Cinq.';
     const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, objet_pris: [long] } }));
-    expect(controlerTextes(entree).erreurs).toContain('action prendre (objet_pris) : de 5 à 5 phrase(s) selon les variantes, 2 à 4 attendues (D-111).');
+    expect(controlerTextes(entree).erreurs).toContain('action prendre (objet_pris) : 5 phrase(s) ; 2 à 4 attendues (D-111).');
+  });
+
+  it('un récit de plus de quatre phrases : avertissement hors parcours témoins, erreur dans un parcours (D-111)', EXHAUSTIF, () => {
+    const long = 'Vous posez {le:objet}. Deux. Trois. Quatre. Cinq.';
+    const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, objet_pose: [long] } }));
+    const message = 'action poser (objet_pose) : 5 phrase(s) ; 2 à 4 attendues (D-111).';
+
+    const horsParcours = controlerTextes({ ...entree, parcours: [] });
+    expect(horsParcours.erreurs.filter((erreur) => erreur.includes('D-111'))).toEqual([]);
+    expect(horsParcours.avertissements).toContainEqual({ combinaison: 'objet_pose', bornes: '5 phrase(s)', message });
+
+    // Poser le carnet est la dernière étape du parcours témoin (la créature menace à ce moment-là), jouée depuis un état
+    // d’abord atteint comme voisin d’un autre. Le même récit hors de cette étape reste un avertissement.
+    const dansParcours = controlerTextes(entree);
+    expect(dansParcours.erreurs).toEqual(['action poser (objet_pose + menace) : 6 phrase(s) ; 2 à 4 attendues (D-111).']);
+    expect(dansParcours.avertissements).toContainEqual({ combinaison: 'objet_pose', bornes: '5 phrase(s)', message });
+  });
+
+  it('dit les bornes de phrases sans contradiction, moments forts compris', () => {
+    expect(direBornes({ minimum: 3, maximum: 3, momentFort: false })).toBe('3 phrase(s)');
+    expect(direBornes({ minimum: 4, maximum: 6, momentFort: false })).toBe('de 4 à 6 phrase(s) selon les variantes');
+    // Le minimum compte le moment fort, pas le maximum : « de 9 à 5 » ne doit plus s’afficher.
+    expect(direBornes({ minimum: 9, maximum: 5, momentFort: true })).toBe('au moins 9 phrase(s), au plus 5 hors moment fort');
+  });
+
+  it('regroupe les avertissements par combinaison d’événements, la plus fréquente en tête', () => {
+    const avertissement = (combinaison: string, bornes: string) => ({ combinaison, bornes, message: `action x (${combinaison}) : ${bornes}` });
+    const groupes = regrouperAvertissements([
+      avertissement('feu_gagne + menace', 'au moins 3 phrase(s), au plus 5 hors moment fort'),
+      avertissement('objet_pose', '5 phrase(s)'),
+      avertissement('objet_pose', '5 phrase(s)'),
+      avertissement('feu_gagne + menace', 'de 4 à 6 phrase(s) selon les variantes'),
+      avertissement('objet_pose', '5 phrase(s)'),
+    ]);
+    expect(groupes).toEqual([
+      { combinaison: 'objet_pose', occurrences: 3, bornes: ['5 phrase(s)'] },
+      {
+        combinaison: 'feu_gagne + menace',
+        occurrences: 2,
+        bornes: ['au moins 3 phrase(s), au plus 5 hors moment fort', 'de 4 à 6 phrase(s) selon les variantes'],
+      },
+    ]);
   });
 
   it('évacuation : plus longue permise, mais garde-fou de quatre phrases', () => {

@@ -73,6 +73,10 @@ export interface TextesMonde {
     readonly huile: string;
     /** Objet posé à une position de la pièce (C-02 §2). */
     readonly placement: string;
+    /** Objet installé dans une capsule de la pièce. */
+    readonly installe: string;
+    /** Console de la pièce dont le circuit est activé. */
+    readonly active: string;
     /** La pièce du passager est en feu. */
     readonly feu: string;
     readonly inventaire: string;
@@ -127,7 +131,8 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   alarme_declenchee: ['objet'],
   circuit_active: ['objet'],
   objet_installe: ['objet', 'capsule'],
-  passage_decouvert: ['passage'],
+  // `passage` : le passage sans sa destination ; `vers` : la destination qu'il révèle (NP-04).
+  passage_decouvert: ['passage', 'vers'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -189,6 +194,8 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   passageEnFeu: ['passage'],
   huile: ['passage'],
   placement: ['objet', 'position'],
+  installe: ['objet', 'capsule'],
+  active: ['objet'],
   feu: [],
   inventaire: ['liste'],
   inventaireVide: [],

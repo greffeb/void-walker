@@ -52,7 +52,7 @@ export const TEXTES_AR01: TextesMonde = {
       'La salle d’observation est plongée dans la pénombre. Au fond, une paroi opaque cache une alcôve d’équipement.',
     ],
     embarquement: [
-      'Un quai d’embarquement désert. Une capsule de secours y est arrimée, son écoutille donnant sur la cabine.',
+      'Un quai d’embarquement sans passagers. Une capsule de secours y est arrimée.',
       'Le quai d’embarquement est vide de passagers. Contre le quai, une capsule de secours attend.',
     ],
     cabine: [
@@ -72,20 +72,20 @@ export const TEXTES_AR01: TextesMonde = {
       'Une caisse renforcée, trop lourde pour être portée. Son couvercle plat ferait un appui stable.',
     ],
     bidon: [
-      'Un bidon d’eau d’extinction, une seule charge. L’étiquette le dit adapté aux feux de câbles.',
-      'Un bidon d’eau à bec verseur, prévu pour les feux de compartiment. Il ne contient qu’une charge.',
+      'Un bidon d’eau d’extinction. L’étiquette le dit adapté aux feux de câbles.',
+      'Un bidon d’eau à bec verseur. Une étiquette le dit prévu pour les feux de compartiment.',
     ],
     burette: [
       'Une burette d’huile de maintenance. Lubrifiant glissant, non inflammable ; de quoi rendre un seuil glissant en gardant un bord sec.',
-      'Une burette d’huile, une seule dose. L’étiquette précise : glissant, non inflammable.',
+      'Une burette d’huile à long bec. L’étiquette précise : glissant, non inflammable.',
     ],
     trousse: [
-      'Une trousse de soin d’urgence, marquée d’une croix blanche. De quoi panser une plaie, une fois.',
-      'Une trousse de soin en toile, une croix blanche sur le rabat. Elle ne servira qu’une fois.',
+      'Une trousse de soin d’urgence, marquée d’une croix blanche. De quoi panser une plaie.',
+      'Une trousse de soin en toile, une croix blanche sur le rabat.',
     ],
     console: [
-      'Une console marquée « circuit de départ », désarmée. Au-dessus, un gros relais ; il claquera fort au réarmement.',
-      'La console du circuit de départ est éteinte. Son relais, massif, a l’air bruyant.',
+      'Une console marquée « circuit de départ ». Au-dessus, un gros relais ; il claquera fort au réarmement.',
+      'La console du circuit de départ, avec son levier de réarmement. Son relais, massif, a l’air bruyant.',
     ],
     bloc: [
       'Un bloc d’énergie chargé, muni d’un connecteur compatible avec les capsules de secours. Il est visiblement trop large pour un conduit.',
@@ -141,7 +141,7 @@ export const TEXTES_AR01: TextesMonde = {
       'Vous ouvrez {le:objet} et colmatez ce que vous pouvez. Vous allez un peu mieux ; vous restez blessé.',
     ],
     objet_deplace: [
-      'Vous poussez {le:objet} {nom:position}, sans hâte. Le sol lisse étouffe le frottement.',
+      'Vous poussez {le:objet} {nom:position}. Le sol lisse étouffe le frottement.',
       'Vous faites glisser {le:objet} {nom:position}. Le couvercle reste bien à plat.',
     ],
     feu_derriere: [
@@ -174,8 +174,8 @@ export const TEXTES_AR01: TextesMonde = {
       'Vous glissez {le:objet} dans son logement, à l’arrière {de:capsule}. Un voyant vert s’allume.',
     ],
     passage_decouvert: [
-      'Derrière {le:passage}, un étroit accès de service s’enfonce ; un relevé fixé à l’entrée dit que le réseau d’urgence demandait de garder cet accès d’évacuation.',
-      'Derrière {le:passage} s’ouvre un accès de service étroit ; sur un relevé, le réseau d’urgence exige le maintien de cet accès d’évacuation.',
+      'Derrière {le:passage}, un accès de service étroit mène vers {le:vers} ; un relevé de service y est fixé : le réseau d’urgence demande de garder cet accès d’évacuation.',
+      'Derrière {le:passage} s’ouvre un accès de service étroit, vers {le:vers} ; sur un relevé fixé à l’entrée, le réseau d’urgence demande le maintien de cet accès d’évacuation.',
     ],
   },
   brulures: {
@@ -226,14 +226,14 @@ export const TEXTES_AR01: TextesMonde = {
   },
   passages: {
     ouvert: [
-      '{Le:passage} est ouvert{e:passage}. De l’autre côté, vous apercevez {le:vers}.',
-      '{Le:passage} est ouvert{e:passage}. Le passage mène dans {le:vers}.',
+      '{Le:passage} est ouvert{e:passage}. Le seuil donne sur {le:vers}.',
+      '{Le:passage} est ouvert{e:passage}. Par là, on rejoint {le:vers}.',
     ],
     ferme: [
-      '{Le:passage} est fermé{e:passage}. Une plaque indique « {Nom:vers} ».',
-      '{Le:passage} est fermé{e:passage}. La signalétique annonce « {Nom:vers} ».',
+      '{Le:passage} est fermé{e:passage}. De l’autre côté se trouve {le:vers}.',
+      '{Le:passage} est fermé{e:passage}. Il faut l’ouvrir pour rejoindre {le:vers}.',
     ],
-    ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Au-delà, un conduit sombre dont vous ne voyez pas le bout.'],
+    ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Au-delà, un conduit dont vous ne voyez pas le bout.'],
     fermeSansDestination: ['{Le:passage} est fermé{e:passage}. Rien n’indique ce qu’il y a derrière.'],
   },
   refus: {
@@ -310,6 +310,8 @@ export const TEXTES_AR01: TextesMonde = {
     passageEnFeu: '{Le:passage} est ouvert{e:passage} : de l’autre côté, tout brûle.',
     huile: 'Le sol est huilé au pied {de:passage}.',
     placement: '{Le:objet} est {nom:position}.',
+    installe: '{Le:objet} est engagé{e:objet} dans {le:capsule}.',
+    active: '{Le:objet} est réarmé{e:objet}.',
     feu: 'Les flammes vous entourent.',
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',

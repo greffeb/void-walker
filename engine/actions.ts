@@ -283,7 +283,7 @@ const aller: ActionEngagee = {
     const { monde, etat } = contexte;
     const liaison = passageIci(contexte, cible);
     const arrivee = autreCote(liaison, etat.piece);
-    const nouvelle = !etat.visitees.includes(arrivee);
+    const nouvelle = indexer(monde).pieces.get(arrivee)?.sousPosition !== true && !etat.visitees.includes(arrivee);
     const suivant: EtatPartie = {
       ...etat,
       piece: arrivee,

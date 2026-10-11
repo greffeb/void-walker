@@ -10,7 +10,7 @@ import {
   type OptionMenu,
   type Partie,
 } from '../engine';
-import { libelleOption, MONDES, raconter, rendreApercu, rendreObservation, type EntreeMonde, type EtapeParcours } from '../content';
+import { libelleOption, MONDES, raconter, rendreApercu, rendreEvenements, rendreObservation, type EntreeMonde, type EtapeParcours } from '../content';
 import { trouverOption } from './rejouer-parcours';
 
 // Cas négatifs d'AR-01 (docs/08-aventure-reference.md §10) et contrats C-02, C-06, C-09, joués par le menu public depuis une
@@ -224,6 +224,10 @@ describe('AR-01 : ce que sait le passager (C-06)', () => {
     const local = apres(depart(), P_A.slice(0, 4));
     const ouvert = engager(local, { action: 'ouvrir', cible: 'panneau' });
     expect(ouvert.evenements.map((evenement) => evenement.type)).toEqual(['passage_ouvert', 'passage_decouvert']);
+    // Le panneau est nommé sans sa destination, puis la destination découverte (NP-04).
+    const recit = rendreEvenements(ENTREE.textes, ouvert.evenements.slice(1), { graine: 1, action: 5 }).join(' ');
+    expect(recit).toMatch(/^Derrière le panneau[ ,]/);
+    expect(recit).toContain('vers l’embarquement');
     expect(passage(ouvert.partie, 'panneau')).toMatchObject([{ vers: { nom: 'embarquement' } }]);
     const embarquement = engager(ouvert.partie, { action: 'aller', cible: 'panneau', vers: 'embarquement' }).partie;
     expect(passage(embarquement, 'panneau')).toMatchObject([{ vers: { nom: 'energie' }, ouvert: true }]);
@@ -282,6 +286,16 @@ describe('AR-01 : ce que sait le passager (C-06)', () => {
     lire(eteint.partie);
     expect(textes.join('\n')).toContain('grille');
     expect(textes.filter((texte) => /énergie/i.test(texte))).toEqual([]);
+  });
+
+  it('console réarmée et bloc engagé se voient sur place ; la cabine n’est pas une pièce découverte', () => {
+    const arme = apres(depart(), P_A.slice(0, 9));
+    expect(rendreObservation(ENTREE.textes, observer(MONDE, arme.etat))).toContain('La console de départ est réarmée.');
+    const installe = apres(depart(), P_B.slice(0, 15));
+    expect(rendreObservation(ENTREE.textes, observer(MONDE, installe.etat))).toContain('Le bloc d’énergie est engagé dans la capsule de secours.');
+    const [aBord] = suite(apres(depart(), P_A.slice(0, 10)), [P_A[10] as EtapeParcours]);
+    expect(aBord?.evenements.map((evenement) => evenement.type)).toEqual(['deplacement']);
+    expect(noms(observer(MONDE, aBord?.partie.etat ?? arme.etat).visitees)).not.toContain('cabine');
   });
 });
 

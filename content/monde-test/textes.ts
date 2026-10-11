@@ -123,7 +123,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       'Vous engagez {le:objet} dans {le:capsule}. Il se verrouille avec un déclic.',
       'Vous glissez {le:objet} dans son logement {de:capsule}. Un voyant s’allume.',
     ],
-    passage_decouvert: ['Derrière {le:passage}, un passage étroit se découvre.', 'Un passage étroit apparaît derrière {le:passage}.'],
+    passage_decouvert: [
+      'Derrière {le:passage}, un passage étroit se découvre. Il mène vers {le:vers}.',
+      'Un passage étroit apparaît derrière {le:passage}. Il mène vers {le:vers}.',
+    ],
   },
   brulures: {
     feu: {
@@ -238,6 +241,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     passageEnFeu: '{Le:passage} est ouvert{e:passage} : de l’autre côté, tout brûle.',
     huile: 'Le sol est huilé au pied {de:passage}.',
     placement: '{Le:objet} est {nom:position}.',
+    installe: '{Le:objet} est installé{e:objet} dans {le:capsule}.',
+    active: '{Le:objet} est activé{e:objet}.',
     feu: 'Les flammes vous entourent.',
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',

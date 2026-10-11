@@ -293,6 +293,10 @@ export interface Observation {
   readonly objets: readonly RefObjet[];
   /** Objets déplaçables de la pièce posés à une position (C-02 §2), comme la caisse sous la grille. */
   readonly placements: readonly { readonly objet: RefObjet; readonly position: RefPosition }[];
+  /** Objets installés dans une capsule de la pièce, comme le bloc engagé dans son connecteur. */
+  readonly installes: readonly { readonly objet: RefObjet; readonly capsule: RefObjet }[];
+  /** Consoles de la pièce dont le circuit est activé. */
+  readonly actives: readonly RefObjet[];
   readonly passages: readonly RefPassage[];
   readonly inventaire: readonly RefObjet[];
   readonly visitees: readonly RefPiece[];
