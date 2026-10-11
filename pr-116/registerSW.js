@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/void-walker/pr-116/sw.js', { scope: '/void-walker/pr-116/' })})}
