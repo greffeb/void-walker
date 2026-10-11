@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des parties humaines
 
-> **Statut :** MODÈLE DE JOURNAL — aucune partie V2 ni validation téléphone enregistrée.
-> **Mise à jour :** 2026-10-09.
+> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; aucune validation signée C-10 des aventures ou morceaux du lancement n'est enregistrée.
+> **Mise à jour :** 2026-10-11.
 
 ## Règle validée
 
@@ -24,4 +24,11 @@ Une mise à jour de référence par un agent produit un candidat. Le maintien ou
 
 ## Sessions
 
-Aucune session enregistrée.
+### Retour sur l'interface #92
+
+- Date : 2026-10-11.
+- Testeur : porteur du projet ; il confirme avoir essayé la version sur téléphone et s'en déclare satisfait.
+- Build : commit `5fa2db527c2dad0a9c18fc0ebb54d88e04a24f0f`, [version de test de la PR #109](https://greffeb.github.io/void-walker/pr-109/).
+- Portée rapportée : interface de l'issue #92 ; scénario, graine, appareil, système, navigateur, durée et parcours exact non précisés.
+- Verdict humain rapporté : satisfait.
+- Limite : retour communiqué dans Copilot, sans export de partie ni signature envoyée depuis le téléphone. Il est consigné comme retour humain explicite, pas comme validation authentifiée C-10 ; il ne valide pas AR-01, AR-02 ni les morceaux du lancement.
