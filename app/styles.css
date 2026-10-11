@@ -212,20 +212,26 @@ button:disabled {
   background: var(--voile-bulle);
 }
 
+/* Bulle d'une puce : le voile couvre aussi la navigation. */
+.voile-haut {
+  z-index: 6;
+}
+
 .bas {
   position: relative;
   z-index: 5;
   flex: none;
 }
 
+/* Bordure de la couleur du menu, halo de 4 px couleur fond, angles droits (12 §2.7). Ambre par défaut. */
 .bulle {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: calc(100% + 12px);
+  --couleur-menu: var(--accent);
+  --texte-menu: var(--texte);
+  --secondaire-menu: var(--texte-secondaire);
+  --surface-menu: var(--surface);
+  --filet-menu: var(--separateur);
   display: flex;
   flex-direction: column;
-  max-height: min(60dvh, 420px);
   border: 1px solid var(--couleur-menu);
   background: var(--surface-menu);
   box-shadow: 0 0 0 4px var(--fond);
@@ -235,38 +241,159 @@ button:disabled {
   outline: none;
 }
 
-/* Losange de 12 px qui pointe le bouton d'origine, premier tiers de la navigation. */
+/* Losange de 12 px qui pointe l'élément touché. */
 .bulle::after {
   content: '';
   position: absolute;
-  left: calc((100% - 16px) / 6 - 6px);
-  bottom: -7px;
   width: 12px;
   height: 12px;
   background: var(--surface-menu);
-  border-right: 1px solid var(--couleur-menu);
-  border-bottom: 1px solid var(--couleur-menu);
   transform: rotate(45deg);
 }
 
-/* Une couleur par menu (D-176) : cyan pour l'inventaire. */
+/* Bulle d'une puce : pleine largeur de l'écran de jeu moins les marges ; hauteur, côté et flèche posés par le script. */
+.bulle-objet {
+  position: fixed;
+  z-index: 7;
+  left: max(16px, calc((100vw - 30rem) / 2 + 16px));
+  right: max(16px, calc((100vw - 30rem) / 2 + 16px));
+}
+
+.bulle-objet::after {
+  left: calc(var(--fleche, 50%) - 6px);
+}
+
+.bulle-objet[data-cote='dessus']::after {
+  bottom: -7px;
+  border-right: 1px solid var(--couleur-menu);
+  border-bottom: 1px solid var(--couleur-menu);
+}
+
+.bulle-objet[data-cote='dessous']::after {
+  top: -7px;
+  border-left: 1px solid var(--couleur-menu);
+  border-top: 1px solid var(--couleur-menu);
+}
+
+/* Une couleur par menu (D-176) : cyan pour l'inventaire, posé au-dessus de son bouton. */
 .bulle-inventaire {
   --couleur-menu: var(--cyan);
   --texte-menu: var(--cyan-texte);
   --secondaire-menu: var(--cyan-secondaire);
   --surface-menu: var(--cyan-surface);
+  --filet-menu: var(--cyan-secondaire);
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 12px);
+  max-height: min(60dvh, 420px);
 }
 
-.bulle .titre-section {
+/* Flèche sur le premier tiers de la navigation, là où est INVENTAIRE. */
+.bulle-inventaire::after {
+  left: calc((100% - 16px) / 6 - 6px);
+  bottom: -7px;
+  border-right: 1px solid var(--couleur-menu);
+  border-bottom: 1px solid var(--couleur-menu);
+}
+
+.bulle-entete {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--filet-menu);
+}
+
+.bulle-titre {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
-  padding: 10px 12px 4px;
+  padding: 11px 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
   color: var(--couleur-menu);
+}
+
+.bulle-titre:first-child {
+  padding-left: 12px;
+}
+
+.bulle-icone {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--couleur-menu);
+  background: none;
+  border: 0;
 }
 
 .bulle-corps {
   min-height: 0;
   overflow-y: auto;
   padding: 8px 12px 12px;
+}
+
+/* Fiche (12 §3.5, §4.4) : la consultation, gratuite. */
+.fiche p {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--texte-menu);
+}
+
+.lignes {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ligne {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 4px;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: left;
+  color: var(--texte-menu);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--filet-menu);
+}
+
+/* Action indisponible (12 §3.7) : « ⊘ », raison à droite, filet pointillé, jamais barrée. */
+.indisponible {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  cursor: not-allowed;
+}
+
+.indisponible .raison {
+  margin: 0 0 0 auto;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: right;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.ligne.indisponible {
+  color: var(--secondaire-menu);
+  border-top-style: dashed;
+}
+
+.ligne.indisponible .raison {
+  color: var(--secondaire-menu);
 }
 
 .bulle .puces {
@@ -278,28 +405,8 @@ button:disabled {
   border-color: var(--secondaire-menu);
 }
 
-.bulle .puce[aria-expanded='true'] {
-  color: var(--surface-menu);
-  background: var(--couleur-menu);
-  border-color: var(--couleur-menu);
-}
-
-.bulle .options {
-  border-color: var(--couleur-menu);
-  background: var(--surface-menu);
-}
-
-.bulle .option + .option {
-  border-top-color: var(--secondaire-menu);
-}
-
-.bulle .option button,
 .bulle .vide {
   color: var(--texte-menu);
-}
-
-.bulle .raison {
-  color: var(--secondaire-menu);
 }
 
 .bulle :focus-visible {
@@ -341,10 +448,6 @@ button:disabled {
   list-style: none;
 }
 
-.puces .pleine-largeur {
-  grid-column: 1 / -1;
-}
-
 .puces > li {
   display: flex;
 }
@@ -376,31 +479,6 @@ button:disabled {
   margin-top: 8px;
 }
 
-.options {
-  border: 1px solid var(--accent);
-  background: var(--surface);
-}
-
-.option + .option {
-  border-top: 1px solid var(--separateur);
-}
-
-.option button {
-  width: 100%;
-  min-height: 48px;
-  padding: 8px 12px;
-  font-size: 15px;
-  line-height: 1.3;
-  text-align: left;
-  color: var(--texte);
-  background: transparent;
-  border: 0;
-}
-
-.option .raison {
-  padding: 0 12px 8px;
-}
-
 .deplacements {
   display: flex;
   flex-direction: column;
@@ -424,10 +502,10 @@ button:disabled {
   border: 1px solid var(--texte);
 }
 
-.deplacement:disabled {
+.deplacement.indisponible {
   color: var(--texte-secondaire);
   background: transparent;
-  border-color: var(--bordure);
+  border: 1px dashed var(--bordure);
 }
 
 .raison {
@@ -471,12 +549,12 @@ button:disabled {
 }
 
 .puce:not(:disabled, [aria-expanded='true']):active,
-.option button:not(:disabled):active,
+.ligne:not(:disabled, .indisponible):active,
 .navigation button:not([aria-expanded='true']):active {
   background: var(--separateur);
 }
 
-.deplacement:not(:disabled):active,
+.deplacement:not(:disabled, .indisponible):active,
 .principal:not(:disabled):active {
   background: var(--accent);
 }
