@@ -4,6 +4,7 @@ import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
 import { App } from './App';
 import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
 import { composerDock, unToucher, type Groupe } from './ecran';
+import { marquerEcrit } from './ecriture';
 import { commencer, consulter, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
 import type { Stockage } from './sauvegarde';
 
@@ -23,8 +24,10 @@ function memoire(): Stockage {
 const env: Environnement = { monde, textes, version: 'v-test', stockage: memoire(), graine: () => 5 };
 const rien = (): Promise<void> => Promise.resolve();
 
-function rendre(jeu: Jeu, ouvrirOptions?: () => void): string {
-  return renderToStaticMarkup(<EcranJeu jeu={jeu} env={env} occupe={false} choisir={rien} ouvrirOptions={ouvrirOptions} />);
+function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true): string {
+  return renderToStaticMarkup(
+    <EcranJeu jeu={jeu} env={env} machineAEcrire={machineAEcrire} occupe={false} choisir={rien} ouvrirOptions={ouvrirOptions} />,
+  );
 }
 
 /** Texte de la page, sans balises ni attributs. */
@@ -35,6 +38,19 @@ function texte(html: string): string {
 function entre(html: string, debut: string, fin: string): string {
   const depuis = html.indexOf(debut);
   return depuis === -1 ? '' : html.slice(depuis, html.indexOf(fin, depuis) + fin.length);
+}
+
+/** Ce que reçoit le lecteur d'écran dans le récit : un bloc entier par paragraphe, séparés par « | ». */
+function lu(recit: string): string {
+  return [...recit.matchAll(/<span class="lecteur-seul">([^<]*)<\/span>/g)].map(([, bloc = '']) => bloc).join(' | ');
+}
+
+/** Copies écrites à la machine, masquées au lecteur d'écran : leurs caractères, sans le curseur. */
+function vu(recit: string): string[] {
+  return recit
+    .split('<span aria-hidden="true">')
+    .slice(1)
+    .map((copie) => [...copie.matchAll(/<span class="car"[^>]*>([^<]*)<\/span>/g)].map(([, caractere = '']) => caractere).join('').replace(/&gt;/g, '>'));
 }
 
 async function apres(...actions: string[]): Promise<Jeu> {
@@ -210,7 +226,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 
   it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
-    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} env={env} occupe={true} choisir={rien} />);
+    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} env={env} machineAEcrire occupe={true} choisir={rien} />);
     const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
     // Carnet, porte, grille, « → ATELIER » (ouverte) et INVENTAIRE ; « ⊘ SOUTE » n'ouvre rien.
     expect(ouvrants).toHaveLength(5);
@@ -265,8 +281,11 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('rappel « > Carnet · Prendre » en tête du récit, avec le même nom que la puce (NP-04)', async () => {
     const recit = entre(rendre(await apres('prendre')), 'data-testid="recit"', '</section>');
-    expect(recit).toMatch(/^data-testid="recit" aria-live="polite" tabindex="-1"><p class="rappel" data-testid="rappel"><span aria-hidden="true">&gt; <\/span>Carnet · Prendre<\/p>/);
-    expect(texte(recit)).toMatch(/Vous (prenez|ramassez) le carnet\./);
+    expect(recit).toMatch(
+      /^data-testid="recit" aria-live="polite" tabindex="-1"><p class="rappel" data-testid="rappel"><span class="lecteur-seul">Carnet · Prendre<\/span><span aria-hidden="true">/,
+    );
+    expect(lu(recit)).toMatch(/^Carnet · Prendre \| Vous (prenez|ramassez) le carnet\./);
+    expect(vu(recit)[0]).toBe('> Carnet · Prendre');
   });
 
   it('aucun chiffre ni compteur d’actions affiché ; réussite de sauvegarde silencieuse, attributs de capture gardés', async () => {
@@ -304,7 +323,9 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('défaite : plus d’action ni d’inventaire, la phrase de fin et NOUVELLE PARTIE (D-013)', async () => {
     const jeu = await commencer(env);
     const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
-    const html = renderToStaticMarkup(<EcranJeu jeu={vaincu} env={env} occupe={false} choisir={rien} nouvellePartie={() => undefined} />);
+    const html = renderToStaticMarkup(
+      <EcranJeu jeu={vaincu} env={env} machineAEcrire occupe={false} choisir={rien} nouvellePartie={() => undefined} />,
+    );
     expect(html).not.toContain('badge-sante');
     expect(html).not.toContain('class="puce"');
     expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
@@ -322,7 +343,49 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 
   it('lignes de balayage sur tout l’écran, masquées aux lecteurs d’écran (12 §2.3)', () => {
-    const html = renderToStaticMarkup(<App env={env} version="v-test" commit="" pr="" />);
+    const html = renderToStaticMarkup(<App env={env} reglages={{ machineAEcrire: true }} version="v-test" commit="" pr="" />);
     expect(html).toContain('<div class="balayage" aria-hidden="true"></div>');
+  });
+});
+
+describe('effet machine à écrire sur le nouveau texte (D-186)', () => {
+  it('nouveau récit : écrit en 500 ms dans l’ordre de lecture, puis un seul curseur à la fin du dernier bloc', async () => {
+    const jeu = await apres('prendre');
+    const recit = entre(rendre(jeu), '<section class="recit', '</section>');
+    expect(recit).toMatch(/^<section class="recit ecrire" data-testid="recit"/);
+    const delais = [...recit.matchAll(/class="car" style="animation-delay:(\d+)ms"/g)].map(([, ms = '']) => Number(ms));
+    expect(delais[0]).toBe(0);
+    expect(delais.every((ms, rang) => rang === 0 || ms >= (delais[rang - 1] ?? 0))).toBe(true);
+    expect(Math.max(...delais)).toBeLessThan(500);
+    expect(Math.max(...delais)).toBeGreaterThan(490);
+    expect(recit.match(/class="curseur"/g)).toHaveLength(1);
+    expect(recit).toMatch(/<span class="curseur" style="animation-delay:500ms">▮<\/span><\/span><\/p><\/section>$/);
+    expect(vu(recit)).toEqual(['> Carnet · Prendre', ...jeu.recit]);
+  });
+
+  it('lecteur d’écran : le texte entier une seule fois par bloc ; copie écrite et curseur masqués', async () => {
+    const jeu = await apres('prendre');
+    const recit = entre(rendre(jeu), '<section class="recit', '</section>');
+    expect(recit).toContain('aria-live="polite"');
+    expect(lu(recit)).toBe(['Carnet · Prendre', ...jeu.recit].join(' | '));
+    // Chaque caractère et le curseur sont à l'intérieur d'une copie aria-hidden.
+    const horsCopies = recit.replace(/<span aria-hidden="true">(?:<span class="(?:car|curseur)"[^>]*>[^<]*<\/span>)*<\/span>/g, '');
+    expect(horsCopies).not.toMatch(/class="car"|class="curseur"|▮/);
+  });
+
+  it('réglage sur [NON] : pas d’écriture, curseur fixe ; même structure pour le lecteur d’écran', async () => {
+    const jeu = await apres('prendre');
+    const oui = entre(rendre(jeu), '<section class="recit', '</section>');
+    const non = entre(rendre(jeu, undefined, false), '<section class="recit', '</section>');
+    expect(non).toMatch(/^<section class="recit curseur-fixe" data-testid="recit"/);
+    expect(non.replace('recit curseur-fixe', 'recit ecrire')).toBe(oui);
+  });
+
+  it('un texte déjà affiché n’est pas réécrit : seul le nouveau l’est', async () => {
+    const jeu = await apres('prendre');
+    marquerEcrit(jeu);
+    expect(entre(rendre(jeu), '<section class="recit', '>')).toBe('<section class="recit" data-testid="recit" aria-live="polite" tabindex="-1">');
+    const suivant = await jouerOption(env, jeu, observer(monde, jeu.partie.etat).menu.find((option) => option.action === 'ouvrir') as OptionMenu);
+    expect(entre(rendre(suivant), '<section class="recit', '>')).toContain('class="recit ecrire"');
   });
 });

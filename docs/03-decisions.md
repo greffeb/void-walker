@@ -1378,4 +1378,11 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Décision : « Se soigner » vise une trousse portée ou posée dans la pièce du passager. Une dose améliore d'un état (C-04 §2) ; vide, la trousse reste un objet et l'action est indisponible (« La trousse de soin est vide. ») ; indemne, l'action est indisponible (« Vous n'êtes pas blessé. »).
 - Limite : le monde de test a une trousse à une dose dans l'atelier ; le nombre de soins d'AR-01 reste celui de son contenu (D-051).
 
+### D-186 — Le nouveau texte s'écrit à la machine, puis un curseur clignote
+
+- Date / statut : 2026-10-11 / **Validé** (implémenté par #115).
+- Origine : demande du porteur (« à chaque fois que du nouveau texte s'affiche, je veux un effet machine à écrire. Quelque chose d'assez rapide, juste pour montrer qu'il y a du nouveau texte, genre 500 ms pour tout afficher, puis un curseur bloc qui clignote lentement à la fin du texte »), puis réponses « Tout nouveau texte : récit, messages de l'IA, bruit entendu », « Un seul curseur, à la fin du dernier texte apparu », « Les boutons marchent normalement, le texte finit de s'afficher d'un coup », « Réglage « Effet machine à écrire » dans les options, et coupé si le téléphone demande moins d'animations ».
+- Décision : tout nouveau texte (récit et rappel, ligne de bruit, messages d'IA Station, réveil) apparaît caractère par caractère, dans l'ordre de lecture, en 500 ms au total quelle que soit sa longueur. Ensuite un curseur bloc `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Pendant l'écriture, toucher un bouton agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit (bulle rouverte, retour d'un autre écran). Réglage « Effet machine à écrire [OUI] / [NON] », gardé sur l'appareil hors de la sauvegarde ; sur [NON] ou si le téléphone demande moins d'animations, le texte apparaît d'un coup et le curseur ne clignote pas.
+- Limite : affichage seulement, ni temps de jeu ni tirage (C-03). Le lecteur d'écran reçoit le texte entier une fois, jamais lettre par lettre, et ne lit pas le curseur. La place du texte final est réservée dès le début : la mise en page ne bouge pas. Cadence du clignotement [détail de l'agent] : 1,6 s par cycle, à juger sur téléphone.
+
 

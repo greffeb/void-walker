@@ -93,7 +93,7 @@ Lignes horizontales sur tout l'écran : 1 px noir à 22 % d'opacité toutes les 
 | `⊘` | Action indisponible ; action dangereuse dans les options |
 | `[ … ]` | Étiquette : qualités `[stable]`, coûts `[bruyant]`, interlocuteur `[ IA STATION ]`, destination inconnue `[→ ?]` |
 | `── TITRE ──` | Titre de section |
-| `▮` | Curseur décoratif (titre d'accueil) |
+| `▮` | Curseur décoratif (titre d'accueil) ; curseur clignotant à la fin du dernier texte apparu (§3.3, D-186) |
 | `!` / `!!` | Blessé / critique |
 | `‹` / `✕` | Étape précédente / annuler, dans une bulle |
 
@@ -141,6 +141,8 @@ Dans cet ordre :
 3. **Ligne de bruit** : icône oreille, puis une phrase en italique `signal`, par exemple « Quelque chose bouge derrière la porte du Salon de transit. » [Validé] Le texte nomme le passage, jamais une position (OP-01). Sans bruit : même ligne en `texte-secondaire`, « Vous n'entendez rien de particulier. » [Proposé]
 4. **Lien IA Station**, seulement quand un message vient d'arriver : cadre pointillé, « [ IA STATION ] parle dans l'écouteur › ». Ouvre la modale (§3.9). [Validé]
 5. **Encadré « Ce qui change »** après une action dont l'effet est notable (§3.10).
+
+**Machine à écrire** [Validé D-186] : tout nouveau texte (rappel, récit, bruit, messages d'IA Station, réveil) s'écrit caractère par caractère, dans l'ordre de lecture, en 500 ms au total. Puis un curseur `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Toucher un bouton pendant l'écriture agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit. Le lecteur d'écran reçoit le texte entier une fois ; le curseur lui est masqué. La place du texte final est réservée dès le début.
 
 ### 3.4 Dock « Dans la pièce »
 
@@ -392,7 +394,7 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 - **Contenu qui défile**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
   2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Effets sonores » COUPÉS / ACTIFS. [Validé D-148 ; Proposé pour le détail des niveaux] IA Station n'a pas de voix : un effet sonore signale l'arrivée d'un message (D-155). Bruitages libres de droits, source et licence notées ; bande-son fournie par le porteur du projet (D-153). Tout reste lisible sans le son.
-  3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé]
+  3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé] « Effet machine à écrire [OUI] / [NON] », [OUI] par défaut ; sur [NON], texte immédiat et curseur fixe. [Validé D-186]
   4. **── PARTIE ──** :
      - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
      - « ▸ Signaler un bug », avec « la partie en cours est jointe ». La partie est jointe automatiquement (RP-01). [Validé]
@@ -484,7 +486,7 @@ Selon C-08 §4 : le jeu le dit honnêtement, ne nomme jamais une sortie restante
 - Trois tailles de texte ; aucune troncature à « très grande » : le texte passe à la ligne, et le dock comme les bulles défilent.
 - Vrais éléments HTML : `button`, `a`, groupes radio. Libellés accessibles sur les boutons à icône (« Options »). Annonce des changements du récit au lecteur d'écran (zone `aria-live` polie). Badge de santé en `role="status"`.
 - Ordre de lecture : en-tête, récit, bruit, dock, navigation. Dans une bulle ou une modale, le focus y entre, y reste, puis revient sur l'élément d'origine à la fermeture.
-- Lignes de balayage désactivables. Pas d'animation non désactivable. `prefers-reduced-motion` respecté.
+- Lignes de balayage désactivables. Pas d'animation non désactivable. `prefers-reduced-motion` respecté. Machine à écrire désactivable, coupée en mouvement réduit ; texte annoncé en entier, jamais lettre par lettre (D-186).
 - Langue du document `fr`.
 
 ## 8. Choix du porteur du projet pendant la revue de maquette

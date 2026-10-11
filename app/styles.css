@@ -212,6 +212,45 @@ button:disabled {
   text-transform: uppercase;
 }
 
+/* Effet machine à écrire (D-186) : chaque caractère, déjà à sa place, devient visible à son tour ; puis le curseur clignote lentement. */
+.recit.ecrire .car {
+  animation: apparait 0s linear both;
+}
+
+.curseur {
+  animation: clignote 1.6s step-end infinite;
+}
+
+.recit.ecrire .curseur {
+  animation:
+    apparait 0s linear both,
+    clignote 1.6s step-end infinite;
+}
+
+.recit.curseur-fixe .curseur {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recit.ecrire .car,
+  .recit .curseur,
+  .recit.ecrire .curseur {
+    animation: none;
+  }
+}
+
+@keyframes apparait {
+  from {
+    visibility: hidden;
+  }
+}
+
+@keyframes clignote {
+  50% {
+    opacity: 0;
+  }
+}
+
 .lecteur-seul {
   position: absolute;
   width: 1px;

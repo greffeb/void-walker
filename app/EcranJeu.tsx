@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type ApercuTexte, type TextesMonde } from '../content';
 import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, unToucher, type Dock, type Groupe } from './ecran';
+import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, prevoir, type Environnement, type Jeu } from './jeu';
 
 type Jouer = (option: OptionMenu) => void;
@@ -38,6 +39,7 @@ function quitterEntreeBulle(): void {
 export function EcranJeu({
   jeu,
   env,
+  machineAEcrire,
   occupe,
   choisir,
   ouvrirOptions,
@@ -45,6 +47,8 @@ export function EcranJeu({
 }: {
   readonly jeu: Jeu;
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
+  /** Réglage « Effet machine à écrire » (D-186) ; le mouvement réduit du téléphone l'emporte, en CSS. */
+  readonly machineAEcrire: boolean;
   readonly occupe: boolean;
   readonly choisir: (jeu: Jeu, option: OptionMenu) => Promise<void>;
   /** Absent tant que l'écran d'options n'existe pas : l'engrenage reste masqué. */
@@ -64,6 +68,18 @@ export function EcranJeu({
   const aRendre = useRef<HTMLElement | null>(null);
   /** Dernière action engagée ou dernier changement de bulle : ce qui a pu faire apparaître un autre bouton sous le doigt. */
   const dernierChangement = useRef(Number.NEGATIVE_INFINITY);
+  /** Texte affiché en entier avant la fin de l'écriture : touché ou clavier pendant l'effet (D-186). */
+  const [complet, setComplet] = useState<Jeu | null>(null);
+  const ecrire = machineAEcrire && complet !== jeu && !dejaEcrit(jeu);
+  const completer = (): void => {
+    marquerEcrit(jeu);
+    setComplet(jeu);
+  };
+
+  useEffect(() => {
+    const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);
+    return () => clearTimeout(fin);
+  }, [jeu]);
 
   useEffect(() => {
     const surRetour = (): void => {
@@ -131,7 +147,8 @@ export function EcranJeu({
   const deplacementOuvert =
     ouverte?.zone === 'deplacement' ? dock.deplacements.find((option) => option.cible.id === ouverte.cible && option.disponible) : undefined;
   return (
-    <main className="jeu">
+    // Pendant l'écriture, tout toucher agit normalement et affiche le texte en entier.
+    <main className="jeu" onPointerDownCapture={completer} onKeyDownCapture={completer}>
       <header className="entete-piece">
         <h1 className="titre-piece">{nomDe(textes, observation.piece).texte}</h1>
         <BadgeSante sante={observation.sante} />
@@ -142,7 +159,7 @@ export function EcranJeu({
         )}
       </header>
       <Sauvegarde jeu={jeu} />
-      <Recit jeu={jeu} zone={recit} />
+      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} />
       {/* Situation en phrases : hors de l'écran, gardée pour le lecteur d'écran comme dans la CLI (C-06 K-07). */}
       <section className="lecteur-seul" data-testid="situation">
         {rendreObservation(textes, observation).map((ligne, index) => (
@@ -586,19 +603,57 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
   );
 }
 
-/** `tabIndex` : le focus y revient quand la puce d'origine a disparu après l'action (objet pris). */
-function Recit({ jeu, zone }: { readonly jeu: Jeu; readonly zone: RefObject<HTMLElement | null> }) {
+/**
+ * Récit (12 §3.3), écrit à la machine quand il est nouveau (D-186). `tabIndex` : le focus y revient quand la puce d'origine a disparu.
+ * Chaque bloc existe deux fois : le texte entier pour le lecteur d'écran, et une copie masquée écrite lettre à lettre,
+ * qui occupe dès le départ la place du texte final. Le curseur suit le dernier bloc.
+ */
+function Recit({
+  jeu,
+  zone,
+  ecrire,
+  fixe,
+}: {
+  readonly jeu: Jeu;
+  readonly zone: RefObject<HTMLElement | null>;
+  readonly ecrire: boolean;
+  /** Réglage sur [NON] : curseur sans clignotement. */
+  readonly fixe: boolean;
+}) {
   const { rappel } = jeu;
+  const blocs = [...(rappel === null ? [] : [`> ${rappel.texte}`]), ...jeu.recit];
+  const delais = delaisEcriture(blocs);
+  // Nouvelle clé à chaque nouveau texte : la copie écrite est recréée et son écriture repart de zéro.
+  const numero = numeroDe(jeu);
+  const copie = (rang: number): ReactNode => (
+    <span key={numero} aria-hidden="true">
+      {[...(blocs[rang] ?? '')].map((caractere, index) => (
+        <span key={index} className="car" style={{ animationDelay: `${delais[rang]?.[index] ?? 0}ms` }}>
+          {caractere}
+        </span>
+      ))}
+      {rang === blocs.length - 1 && (
+        <span className="curseur" style={{ animationDelay: `${DUREE_ECRITURE_MS}ms` }}>
+          ▮
+        </span>
+      )}
+    </span>
+  );
+  const decalage = rappel === null ? 0 : 1;
+  const classes = ['recit', ...(ecrire ? ['ecrire'] : []), ...(fixe ? ['curseur-fixe'] : [])].join(' ');
   return (
-    <section ref={zone} className="recit" data-testid="recit" aria-live="polite" tabIndex={-1}>
+    <section ref={zone} className={classes} data-testid="recit" aria-live="polite" tabIndex={-1}>
       {rappel !== null && (
         <p className={rappel.capitales ? 'rappel capitales' : 'rappel'} data-testid="rappel">
-          <span aria-hidden="true">&gt; </span>
-          {rappel.texte}
+          <span className="lecteur-seul">{rappel.texte}</span>
+          {copie(0)}
         </p>
       )}
       {jeu.recit.map((phrase, index) => (
-        <p key={index}>{phrase}</p>
+        <p key={index}>
+          <span className="lecteur-seul">{phrase}</span>
+          {copie(index + decalage)}
+        </p>
       ))}
     </section>
   );
