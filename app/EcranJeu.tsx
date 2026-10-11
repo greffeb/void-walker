@@ -53,18 +53,18 @@ export function EcranJeu({
           <p key={index}>{ligne}</p>
         ))}
       </section>
-      {/* En attendant la bulle d'inventaire (Interface 2), l'inventaire ouvert prend la place du dock. */}
-      {inventaireOuvert ? (
-        <section id={idInventaire} className="dock inventaire">
-          <h2 className="titre-section">Inventaire</h2>
-          {dock.inventaire.length === 0 ? (
-            <p className="vide">{remplir(textes.observation.inventaireVide, {})}</p>
-          ) : (
-            <Puces groupes={dock.inventaire} textes={textes} occupe={occupe} deplie={deplie} basculer={basculer} jouer={jouer} />
-          )}
+      {!inventaireOuvert && <DockPiece dock={dock} textes={textes} occupe={occupe} deplie={deplie} basculer={basculer} jouer={jouer} />}
+      {inventaireOuvert && (
+        <section id={idInventaire} className="bulle-inventaire" aria-label="Inventaire" role="dialog">
+          <div className="bulle-entete">Inventaire</div>
+          <div className="bulle-corps">
+            {dock.inventaire.length === 0 ? (
+              <p className="vide">{remplir(textes.observation.inventaireVide, {})}</p>
+            ) : (
+              <Puces groupes={dock.inventaire} textes={textes} occupe={occupe} deplie={deplie} basculer={basculer} jouer={jouer} />
+            )}
+          </div>
         </section>
-      ) : (
-        <DockPiece dock={dock} textes={textes} occupe={occupe} deplie={deplie} basculer={basculer} jouer={jouer} />
       )}
       <nav className="navigation" aria-label="Navigation">
         <button
