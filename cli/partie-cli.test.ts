@@ -72,6 +72,32 @@ describe('CLI', () => {
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
   });
 
+  it('aperçu : risque, coût et ce que l’on sait, sans rien jouer ni enregistrer (12 §3.8)', () => {
+    const ctx = contexte();
+    const debut = executer(['nouvelle'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    const prendre = numero(debut.lignes, 'Prendre le carnet');
+    expect(executer(['apercu', prendre], ctx)).toEqual({
+      lignes: [
+        'Aperçu : Prendre le carnet',
+        '  Risque : aucun risque connu',
+        '  Coût : aucun',
+        '  Vous aurez le carnet en main.',
+        `Rien n’est joué. Pour confirmer : jouer ${prendre}`,
+      ],
+      code: 0,
+    });
+    expect(executer(['apercu', numero(debut.lignes, 'Aller dans l’atelier')], ctx).lignes).toEqual([
+      'Aperçu : Aller dans l’atelier',
+      '  Ce passage est fermé : vous ne pouvez pas le franchir.',
+    ]);
+    const regarder = numero(debut.lignes, 'Regarder le carnet');
+    expect(executer(['apercu', regarder], ctx).lignes).toEqual([`Regarder le carnet : gratuit, rien à confirmer. Pour le faire : jouer ${regarder}`]);
+    expect(executer(['apercu', '99'], ctx).code).toBe(1);
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    expect(executer(['voir'], ctx).lignes).toContain('Actions engagées : 0');
+  });
+
   it('commande brute invalide : refus explicite sans effet', () => {
     const ctx = contexte();
     executer(['nouvelle'], ctx);

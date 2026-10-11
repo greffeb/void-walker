@@ -1,4 +1,5 @@
 import {
+  apercu,
   exporter,
   jouer,
   nouvellePartie,
@@ -6,10 +7,12 @@ import {
   reprendrePartie,
   type DefMonde,
   type Observation,
+  type OptionMenu,
   type Partie,
   type Resultat,
+  type ResultatApercu,
 } from '../engine';
-import { libelleOption, raconter, raconterDerniers, rendreObservation, type TextesMonde } from '../content';
+import { libelleOption, raconter, raconterDerniers, rendreApercu, rendreObservation, rendreRefus, type TextesMonde } from '../content';
 
 // CLI pour les agents et le playtester : une commande par appel, partie enregistrée dans un fichier.
 
@@ -39,6 +42,7 @@ export const AIDE = [
   'Commandes :',
   '  nouvelle [--graine N]        Commencer une nouvelle partie (remplace la partie en cours).',
   '  voir [--ids]                 Relire la situation et les actions possibles (gratuit).',
+  '  apercu <numéro>              Voir le risque, le coût et ce que vous savez avant d’agir (gratuit).',
   '  jouer <numéro>               Choisir une action du menu par son numéro.',
   '  commande <action> <cible>    Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
   '  exporter <fichier> [--commentaire "texte"]   Exporter la partie pour la rejouer.',
@@ -46,7 +50,7 @@ export const AIDE = [
   '',
   'Les numéros du menu changent après chaque action : relisez le menu affiché.',
   'Seules les actions qui engagent le personnage comptent et sont enregistrées ;',
-  'regarder, relire et une action refusée ne coûtent rien.',
+  'regarder, relire, un aperçu et une action refusée ne coûtent rien.',
   '',
   `Option : --partie <fichier>  (par défaut ${PARTIE_PAR_DEFAUT})`,
 ];
@@ -82,6 +86,27 @@ export function afficherSituation(textes: TextesMonde, observation: Observation,
   });
   lignes.push('', `Actions engagées : ${observation.actions}`);
   return lignes;
+}
+
+/** Même aperçu que l'écran (12 §3.8) : risque, coût, ce que vous savez ; rien n'est joué. */
+function afficherApercu(textes: TextesMonde, option: OptionMenu, numero: number, resultat: ResultatApercu): string[] {
+  const { libelle } = libelleOption(textes, option);
+  switch (resultat.type) {
+    case 'refus':
+      return [`Aperçu : ${libelle}`, `  ${rendreRefus(textes, resultat.raison)}`];
+    case 'gratuit':
+      return [`${libelle} : gratuit, rien à confirmer. Pour le faire : jouer ${numero}`];
+    case 'apercu': {
+      const { risque, cout, savoir } = rendreApercu(textes, resultat.apercu);
+      return [
+        `Aperçu : ${libelle}`,
+        `  Risque : ${risque}`,
+        `  Coût : ${cout}`,
+        ...savoir.map((phrase) => `  ${phrase}`),
+        `Rien n’est joué. Pour confirmer : jouer ${numero}`,
+      ];
+    }
+  }
 }
 
 function charger(contexte: Contexte, chemin: string): Partie | string {
@@ -139,6 +164,7 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
       return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...situation], code: 0 };
     }
+    case 'apercu':
     case 'jouer': {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
@@ -146,6 +172,7 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const numero = Number(reste[0]);
       const option = Number.isInteger(numero) ? menu[numero - 1] : undefined;
       if (option === undefined) return { lignes: [`Numéro d’action invalide : choisissez entre 1 et ${menu.length}.`], code: 1 };
+      if (commande === 'apercu') return { lignes: afficherApercu(textes, option, numero, apercu(monde, partie, option.commande)), code: 0 };
       return suite(contexte, chemin, jouer(monde, partie, option.commande));
     }
     case 'commande': {

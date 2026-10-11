@@ -1,4 +1,5 @@
 import {
+  apercu,
   empreinteEtat,
   ErreurRejeu,
   exporter,
@@ -256,6 +257,74 @@ describe('actions', () => {
         }
       }
     }
+  });
+});
+
+describe('aperçu avant confirmation (C-01 §5, C-06 §4)', () => {
+  it('chaque action engagée disponible a un aperçu ; une consultation est gratuite ; une option indisponible est refusée comme au jeu', () => {
+    for (const partie of etatsAtteignables(8)) {
+      for (const choix of observer(MONDE, partie.etat).menu) {
+        const resultat = apercu(MONDE, partie, choix.commande);
+        if (!choix.disponible) expect(resultat).toEqual({ type: 'refus', raison: choix.raison });
+        else if (choix.action === 'regarder') expect(resultat).toEqual({ type: 'gratuit' });
+        else expect(resultat).toMatchObject({ type: 'apercu', apercu: { commande: choix.commande } });
+      }
+    }
+  });
+
+  it('demander dix fois un aperçu ne change ni l’état, ni le compteur, ni les dés', () => {
+    for (const partie of etatsAtteignables(8)) {
+      const avant = JSON.stringify(partie);
+      for (let fois = 0; fois < 10; fois++) {
+        for (const choix of observer(MONDE, partie.etat).menu) apercu(MONDE, partie, choix.commande);
+      }
+      expect(JSON.stringify(partie)).toBe(avant);
+    }
+  });
+
+  it('annonce ce que le passager sait : objet en main, laissé ici, passage ouvert ou fermé, pièce quittée', () => {
+    const depart = partieNeuve();
+    const voir = (partie: Partie, action: IdAction, nom: string) => apercu(MONDE, partie, option(observer(MONDE, partie.etat), action, nom).commande);
+    const boite = observer(MONDE, depart.etat).objets[0];
+    const salleA = observer(MONDE, depart.etat).piece;
+    expect(voir(depart, 'prendre', 'boite')).toMatchObject({ apercu: { risque: 'aucun', cout: 'aucun', savoir: [{ type: 'portera', objet: boite }] } });
+    expect(voir(depart, 'ouvrir', 'porte')).toMatchObject({ apercu: { savoir: [{ type: 'ouvrira', passage: { nom: 'porte', ouvert: false } }] } });
+    const ouverte = engager(engager(depart, 'prendre', 'boite'), 'ouvrir', 'porte');
+    expect(voir(ouverte, 'poser', 'boite')).toMatchObject({ apercu: { savoir: [{ type: 'laissera', objet: boite, piece: salleA }] } });
+    expect(voir(ouverte, 'fermer', 'porte')).toMatchObject({ apercu: { savoir: [{ type: 'fermera', passage: { nom: 'porte', ouvert: true } }] } });
+    expect(voir(ouverte, 'aller', 'porte')).toMatchObject({ apercu: { risque: 'aucun', cout: 'aucun', savoir: [{ type: 'quittera', piece: salleA }] } });
+  });
+
+  it('deux mondes identiques sauf un secret donnent le même aperçu (C-01 A-02)', () => {
+    const secret: DefMonde = { ...MONDE, objets: [...MONDE.objets, { id: 'o-cache', nom: 'cache', piece: 'p-b' }] };
+    let a = partieNeuve();
+    let b = nouvellePartie(secret, { version: VERSION, graine: 42 });
+    for (const [action, nom] of [['prendre', 'boite'], ['ouvrir', 'porte']] as const) {
+      const apercusA = observer(MONDE, a.etat).menu.map((choix) => apercu(MONDE, a, choix.commande));
+      const apercusB = observer(secret, b.etat).menu.map((choix) => apercu(secret, b, choix.commande));
+      expect(apercusB).toEqual(apercusA);
+      a = engager(a, action, nom);
+      const resultat = jouer(secret, b, option(observer(secret, b.etat), action, nom).commande);
+      if (resultat.type !== 'engagee') throw new Error(`${action} ${nom} non engagée.`);
+      b = resultat.partie;
+    }
+    expect(chaines(apercu(secret, b, option(observer(secret, b.etat), 'aller', 'porte').commande))).not.toContain('cache');
+  });
+
+  it('confirmer un aperçu devenu périmé est refusé sans coût (C-01 A-04)', () => {
+    const partie = partieNeuve();
+    const prendre = option(observer(MONDE, partie.etat), 'prendre', 'boite').commande;
+    expect(apercu(MONDE, partie, prendre).type).toBe('apercu');
+    const deja = engager(partie, 'prendre', 'boite');
+    expect(apercu(MONDE, deja, prendre)).toEqual({ type: 'refus', raison: 'cible_absente' });
+    attendreRefusSansEffet(deja, prendre, 'cible_absente');
+  });
+
+  it('commande mal formée : même refus qu’au jeu', () => {
+    const partie = partieNeuve();
+    expect(apercu(MONDE, partie, null)).toEqual({ type: 'refus', raison: 'commande_invalide' });
+    expect(apercu(MONDE, partie, { action: 'lancer', cible: 'e00000000' })).toEqual({ type: 'refus', raison: 'action_inconnue' });
+    expect(apercu(MONDE, partie, { action: 'prendre', cible: 'o-1' })).toEqual({ type: 'refus', raison: 'cible_absente' });
   });
 });
 

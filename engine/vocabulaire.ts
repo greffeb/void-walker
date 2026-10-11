@@ -82,6 +82,32 @@ export interface OptionMenu {
   readonly raison?: RaisonIndisponibilite;
 }
 
+/** Échelle de l'aperçu (C-04 §4.3, 12 §3.8) ; « certain » annonce une conséquence sans dé (C-04 §5). */
+export const NIVEAUX_RISQUE = ['aucun', 'faible', 'modere', 'eleve', 'mortel', 'certain'] as const;
+export type NiveauRisque = (typeof NIVEAUX_RISQUE)[number];
+
+/** Seul coût affiché : « bruyant », ou aucun (D-150). */
+export const COUTS = ['aucun', 'bruyant'] as const;
+export type Cout = (typeof COUTS)[number];
+
+export const TYPES_SAVOIR = ['portera', 'laissera', 'ouvrira', 'fermera', 'quittera'] as const;
+export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
+
+/** Conséquence connue du passager avant d'agir (C-06 §4) : jamais un secret ni un résultat de dé. */
+export type Savoir =
+  | { readonly type: 'portera'; readonly objet: RefObjet }
+  | { readonly type: 'laissera'; readonly objet: RefObjet; readonly piece: RefPiece }
+  | { readonly type: 'ouvrira'; readonly passage: RefPassage }
+  | { readonly type: 'fermera'; readonly passage: RefPassage }
+  | { readonly type: 'quittera'; readonly piece: RefPiece };
+
+export interface Apercu {
+  readonly commande: Commande;
+  readonly risque: NiveauRisque;
+  readonly cout: Cout;
+  readonly savoir: readonly Savoir[];
+}
+
 /** Tout ce que le passager sait (C-06) ; seule sortie vers le joueur. */
 export interface Observation {
   readonly piece: RefPiece;

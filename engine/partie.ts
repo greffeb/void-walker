@@ -1,10 +1,19 @@
-import { CATALOGUE } from './actions';
+import { CATALOGUE, type DefAction } from './actions';
 import { graineValide, ouvrirDes } from './des';
 import { etatInitial, refPiece, type EtatPartie } from './etat';
 import { empreinte } from './hachage';
 import { indexer, type DefMonde } from './monde';
 import { observer } from './observation';
-import { ACTIONS, type Commande, type Consultation, type Evenement, type IdAction, type Observation, type RaisonRefus } from './vocabulaire';
+import {
+  ACTIONS,
+  type Apercu,
+  type Commande,
+  type Consultation,
+  type Evenement,
+  type IdAction,
+  type Observation,
+  type RaisonRefus,
+} from './vocabulaire';
 
 export const FORMAT_ENREGISTREMENT = 1;
 
@@ -33,6 +42,12 @@ export type Resultat =
   | { readonly type: 'refus'; readonly raison: RaisonRefus; readonly partie: Partie }
   | { readonly type: 'consultation'; readonly consultation: Consultation; readonly partie: Partie }
   | { readonly type: 'engagee'; readonly evenements: readonly Evenement[]; readonly tirages: readonly number[]; readonly partie: Partie };
+
+/** Aperçu d'une commande ; une consultation est gratuite et n'en a pas besoin (D-014). */
+export type ResultatApercu =
+  | { readonly type: 'refus'; readonly raison: RaisonRefus }
+  | { readonly type: 'gratuit' }
+  | { readonly type: 'apercu'; readonly apercu: Apercu };
 
 export interface ExportPartie extends Enregistrement {
   readonly observation: Observation;
@@ -63,23 +78,44 @@ function estAction(action: string): action is IdAction {
   return (ACTIONS as readonly string[]).includes(action);
 }
 
+type Validation =
+  | { readonly type: 'refus'; readonly raison: RaisonRefus }
+  | { readonly type: 'valide'; readonly commande: Commande; readonly definition: DefAction; readonly cible: string };
+
+/** Revérifie une commande dans l'état courant (C-01 §4) : une commande périmée est refusée. */
+function valider(monde: DefMonde, etat: EtatPartie, commande: unknown): Validation {
+  if (!estCommande(commande)) return { type: 'refus', raison: 'commande_invalide' };
+  if (!estAction(commande.action)) return { type: 'refus', raison: 'action_inconnue' };
+  const cible = indexer(monde).versInterne.get(commande.cible);
+  if (cible === undefined) return { type: 'refus', raison: 'cible_absente' };
+  const definition = CATALOGUE[commande.action];
+  const raison = definition.verifier({ monde, etat }, cible);
+  if (raison !== null) return { type: 'refus', raison };
+  return { type: 'valide', commande: { action: commande.action, cible: commande.cible }, definition, cible };
+}
+
+/** Aperçu avant confirmation (C-01 §5, C-06 §4) : sans effet sur la partie ni sur les dés. */
+export function apercu(monde: DefMonde, partie: Partie, commande: unknown): ResultatApercu {
+  const validation = valider(monde, partie.etat, commande);
+  if (validation.type === 'refus') return validation;
+  const { definition, cible } = validation;
+  if (!definition.engage) return { type: 'gratuit' };
+  return { type: 'apercu', apercu: { commande: validation.commande, ...definition.prevoir({ monde, etat: partie.etat }, cible) } };
+}
+
 /** Joue une commande structurée ; un refus ou une consultation rend la partie inchangée (C-01 §6, C-03 §2). */
 export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resultat {
-  if (!estCommande(commande)) return { type: 'refus', raison: 'commande_invalide', partie };
-  if (!estAction(commande.action)) return { type: 'refus', raison: 'action_inconnue', partie };
-  const cible = indexer(monde).versInterne.get(commande.cible);
-  if (cible === undefined) return { type: 'refus', raison: 'cible_absente', partie };
-  const definition = CATALOGUE[commande.action];
+  const validation = valider(monde, partie.etat, commande);
+  if (validation.type === 'refus') return { ...validation, partie };
+  const { definition, cible } = validation;
   const contexte = { monde, etat: partie.etat };
-  const raison = definition.verifier(contexte, cible);
-  if (raison !== null) return { type: 'refus', raison, partie };
   if (!definition.engage) return { type: 'consultation', consultation: definition.consulter(contexte, cible), partie };
 
   const session = ouvrirDes(partie.etat.generateur);
   const effet = definition.appliquer(contexte, cible, session.des);
   const tirages = [...session.tirages];
   const etat: EtatPartie = { ...effet.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
-  const entree: EntreeJournal = { commande: { action: commande.action, cible: commande.cible }, tirages };
+  const entree: EntreeJournal = { commande: validation.commande, tirages };
   return {
     type: 'engagee',
     evenements: effet.evenements,

@@ -61,6 +61,17 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree).some((erreur) => erreur.includes('D-111'))).toBe(true);
   });
 
+  it('aperçu : un niveau de risque sans mot, une phrase sans texte ou un chiffre font échouer le contrôle (C-04 §4.3)', () => {
+    const sansMot = avecTextes((textes) => ({ ...textes, apercu: { ...textes.apercu, risques: sans(textes.apercu.risques, 'mortel') } }));
+    expect(verifierTextes(sansMot)).toContain('risque mortel : aucun texte (NP-01).');
+    const sansPhrase = avecTextes((textes) => ({ ...textes, apercu: { ...textes.apercu, savoir: sans(textes.apercu.savoir, 'quittera') } }));
+    expect(verifierTextes(sansPhrase)).toContain('aperçu quittera : aucun texte (NP-01).');
+    const chiffre = avecTextes((textes) => ({ ...textes, apercu: { ...textes.apercu, risques: { ...textes.apercu.risques, aucun: '0 %' } } }));
+    expect(verifierTextes(chiffre)).toContain('aperçu : chiffre ou pourcentage dans « 0 % » (C-04 §4.3).');
+    const rendu = avecTextes((textes) => ({ ...textes, apercu: { ...textes.apercu, savoir: { ...textes.apercu.savoir, portera: 'Vous aurez {le:objet} en main, 1 sur 6.' } } }));
+    expect(verifierTextes(rendu)).toContain('aperçu prendre : chiffre ou pourcentage dans « Vous aurez le carnet en main, 1 sur 6. » (C-04 §4.3).');
+  });
+
   it('compte les phrases', () => {
     expect(compterPhrases('Vous ouvrez. Le mécanisme grince, puis cède.')).toBe(2);
     expect(compterPhrases('Une plaque indique : Atelier.')).toBe(1);

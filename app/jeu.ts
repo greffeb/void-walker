@@ -1,5 +1,5 @@
-import { jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
-import { raconter, raconterDerniers, type TextesMonde } from '../content';
+import { apercu, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
+import { raconter, raconterDerniers, rendreApercu, type ApercuTexte, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 
@@ -64,6 +64,13 @@ export function consulter(env: Pick<Environnement, 'monde' | 'textes'>, partie: 
   const resultat = jouer(env.monde, partie, option.commande);
   if (resultat.type === 'engagee') throw new Error(`« ${option.action} » engage le personnage : ce n’est pas une fiche.`);
   return raconter(env.textes, resultat);
+}
+
+/** Aperçu avant CONFIRMER (12 §3.8), le même que la CLI ; ne touche ni à la partie ni à la sauvegarde. */
+export function prevoir(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie, option: OptionMenu): ApercuTexte {
+  const resultat = apercu(env.monde, partie, option.commande);
+  if (resultat.type !== 'apercu') throw new Error(`« ${option.action} » sans aperçu : ${resultat.type === 'refus' ? resultat.raison : 'gratuit'}.`);
+  return rendreApercu(env.textes, resultat.apercu);
 }
 
 /** Joue la commande d'une option ; seule une action engagée écrit, et l'échec d'écriture reste signalé (C-09 §3). */

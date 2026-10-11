@@ -4,6 +4,7 @@ import {
   composer,
   composerDock,
   ECART_BULLE,
+  filBulle,
   MARGE_BULLE,
   nomDestination,
   nomPuce,
@@ -13,7 +14,7 @@ import {
   texteRappel,
   type Dock,
 } from './ecran';
-import { consulter } from './jeu';
+import { consulter, prevoir } from './jeu';
 
 const entree = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
 const { monde, textes } = entree;
@@ -157,19 +158,31 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     }
   });
 
-  it('ouvrir et relire dix fois chaque fiche ne change ni l’état, ni le compteur, ni les dés (C-01 A-01)', () => {
+  it('ouvrir et relire dix fois chaque fiche et chaque aperçu ne change ni l’état, ni le compteur, ni les dés (C-01 A-01)', () => {
     for (const partie of atteignables()) {
       const avant = { empreinte: empreinteEtat(partie.etat), json: JSON.stringify(partie) };
       const dock = composerDock(observer(monde, partie.etat));
-      const fiches = [...dock.piece, ...dock.inventaire].map((groupe) => composer(groupe).fiche);
+      const compositions = [...dock.piece, ...dock.inventaire].map(composer);
+      const apercus = [...compositions.flatMap((etape) => etape.actions), ...dock.deplacements].filter((option) => option.disponible);
       for (let fois = 0; fois < 10; fois++) {
-        for (const fiche of fiches) {
+        for (const { fiche } of compositions) {
           if (fiche !== undefined) expect(consulter({ monde, textes }, partie, fiche)).toHaveLength(1);
         }
+        for (const option of apercus) expect(prevoir({ monde, textes }, partie, option).savoir.length).toBeGreaterThan(0);
       }
       expect(empreinteEtat(partie.etat)).toBe(avant.empreinte);
       expect(JSON.stringify(partie)).toBe(avant.json);
     }
+  });
+
+  it('fil de la bulle : objet, puis objet › action ; déplacement « Aller vers › destination » (12 §3.5, §4.3)', () => {
+    const ouverte = jouer(monde, depart(), optionDe(depart(), 'ouvrir', 'porte').commande);
+    if (ouverte.type !== 'engagee') throw new Error('Porte non ouverte.');
+    const prendre = optionDe(depart(), 'prendre', 'carnet');
+    const aller = optionDe(ouverte.partie, 'aller', 'porte');
+    expect(filBulle(textes, prendre.cible)).toBe('Carnet');
+    expect(filBulle(textes, prendre.cible, prendre)).toBe('Carnet › Prendre');
+    expect(filBulle(textes, aller.cible, aller)).toBe('Aller vers › atelier');
   });
 
   it('une option qui engage le personnage n’est jamais lue comme une fiche', () => {

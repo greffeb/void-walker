@@ -1,8 +1,11 @@
 import type {
+  Cout,
   IdAction,
+  NiveauRisque,
   RaisonIndisponibilite,
   RaisonRefus,
   TypeEvenement,
+  TypeSavoir,
 } from '../../engine';
 
 /** Nom affichable (C-07 NP-02) : genre, nombre et élision pour accorder les phrases. */
@@ -36,6 +39,12 @@ export interface TextesMonde {
     readonly inventaire: string;
     readonly inventaireVide: string;
   };
+  /** Aperçu avant confirmation (12 §3.8) : mots du risque et du coût, sans chiffre ; une phrase par chose sue. */
+  readonly apercu: {
+    readonly risques: Readonly<Record<NiveauRisque, string>>;
+    readonly couts: Readonly<Record<Cout, string>>;
+    readonly savoir: Readonly<Record<TypeSavoir, string>>;
+  };
 }
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */
@@ -60,6 +69,14 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
 
 export const ROLES_PASSAGE = ['passage', 'vers'] as const;
 export const ROLES_INDISPONIBILITE = ['cible'] as const;
+
+export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
+  portera: ['objet'],
+  laissera: ['objet', 'piece'],
+  ouvrira: ['passage'],
+  fermera: ['passage'],
+  quittera: ['piece'],
+};
 
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
   lieu: ['piece'],

@@ -103,6 +103,13 @@ export function nomDestination(textes: TextesMonde, option: OptionMenu): string 
   return nomDe(textes, option.cible.sorte === 'passage' ? option.cible.vers : option.cible).texte;
 }
 
+/** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Aller vers › atelier ». */
+export function filBulle(textes: TextesMonde, cible: Cible, option?: OptionMenu): string {
+  if (option?.action === 'aller') return `${textes.verbes.aller} › ${nomDestination(textes, option)}`;
+  const nom = nomPuce(textes, cible);
+  return option === undefined ? nom : `${nom} › ${textes.verbes[option.action]}`;
+}
+
 /** Dernière action rappelée en tête du récit (12 §3.3). */
 export type Rappel =
   | { readonly type: 'cible'; readonly action: IdAction; readonly cible: RefObjet | RefPassage }

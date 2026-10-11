@@ -1,11 +1,15 @@
 import {
   ACTIONS,
+  apercu,
+  COUTS,
   jouer,
+  NIVEAUX_RISQUE,
   nouvellePartie,
   observer,
   RAISONS_INDISPONIBILITE,
   RAISONS_REFUS,
   TYPES_EVENEMENT,
+  TYPES_SAVOIR,
   type Partie,
   type TypeEvenement,
 } from '../engine';
@@ -13,6 +17,7 @@ import {
   analyserGabarit,
   libelleOption,
   MONDES,
+  rendreApercu,
   rendreConsultation,
   rendreEvenements,
   rendreObservation,
@@ -22,6 +27,7 @@ import {
   ROLES_LIBELLE,
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
+  ROLES_SAVOIR,
   type EntreeMonde,
   type TextesMonde,
 } from '../content';
@@ -70,6 +76,12 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {
     verifierGabarit(erreurs, `observation ${cle}`, textes.observation[cle as keyof TextesMonde['observation']], roles);
   }
+  for (const niveau of NIVEAUX_RISQUE) verifierGabarit(erreurs, `risque ${niveau}`, textes.apercu.risques[niveau], []);
+  for (const cout of COUTS) verifierGabarit(erreurs, `coût ${cout}`, textes.apercu.couts[cout], []);
+  for (const type of TYPES_SAVOIR) verifierGabarit(erreurs, `aperçu ${type}`, textes.apercu.savoir[type], ROLES_SAVOIR[type]);
+  for (const mot of [...Object.values(textes.apercu.risques), ...Object.values(textes.apercu.couts)]) {
+    if (/[\d%]/.test(mot)) erreurs.push(`aperçu : chiffre ou pourcentage dans « ${mot} » (C-04 §4.3).`);
+  }
 
   for (const entite of [...monde.pieces, ...monde.liaisons, ...monde.objets]) {
     const nom = textes.noms[entite.nom];
@@ -103,6 +115,8 @@ interface Rendu {
   readonly ou: string;
   /** Bornes de phrases toutes variantes confondues, pour le récit d'une action engagée (D-111). */
   readonly phrases?: [number, number];
+  /** Aperçu : ni chiffre ni pourcentage (C-04 §4.3). */
+  readonly sansChiffre?: true;
 }
 
 /** Parcourt tous les états atteignables et rend chaque texte que le joueur peut voir. */
@@ -126,6 +140,11 @@ function rendreToutAtteignable(entree: EntreeMonde, version: string): Rendu[] {
         const { libelle, raison } = libelleOption(textes, option);
         rendus.push({ texte: libelle, ou: `libellé ${option.action}` });
         if (raison !== null) rendus.push({ texte: raison, ou: `indisponibilité ${option.action}` });
+        const prevu = apercu(monde, partie, option.commande);
+        if (prevu.type === 'apercu') {
+          const { risque, cout, savoir } = rendreApercu(textes, prevu.apercu);
+          for (const texte of [risque, cout, ...savoir]) rendus.push({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
+        }
         const resultat = jouer(monde, partie, option.commande);
         const repere = { graine: 1, action: partie.etat.actions + 1 };
         if (resultat.type === 'consultation') {
@@ -157,10 +176,11 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
   } catch (erreur) {
     return [`rendu impossible : ${erreur instanceof Error ? erreur.message : String(erreur)}`];
   }
-  for (const { texte, ou, phrases } of rendus) {
+  for (const { texte, ou, phrases, sansChiffre } of rendus) {
     if (/[{}]/.test(texte)) erreurs.push(`${ou} : trou non rempli dans « ${texte} ».`);
     const fuite = internes.find((id) => texte.includes(id));
     if (fuite !== undefined || ID_PUBLIC.test(texte)) erreurs.push(`${ou} : identifiant affiché dans « ${texte} » (NP-02).`);
+    if (sansChiffre === true && /[\d%]/.test(texte)) erreurs.push(`${ou} : chiffre ou pourcentage dans « ${texte} » (C-04 §4.3).`);
     if (phrases !== undefined && (phrases[0] < 2 || phrases[1] > 4)) {
       erreurs.push(`${ou} : de ${phrases[0]} à ${phrases[1]} phrase(s) selon les variantes, 2 à 4 attendues (D-111).`);
     }
