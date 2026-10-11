@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { OptionMenu } from '../engine';
 import { EcranJeu } from './EcranJeu';
 import { commencer, demarrer, jouerOption, type Environnement, type Jeu } from './jeu';
+import type { Reglages } from './reglages';
 
 type Ecran =
   | { readonly type: 'chargement' }
@@ -10,11 +11,13 @@ type Ecran =
 
 export function App({
   env,
+  reglages,
   version,
   commit,
   pr,
 }: {
   readonly env: Environnement;
+  readonly reglages: Reglages;
   readonly version: string;
   readonly commit: string;
   readonly pr: string;
@@ -57,7 +60,14 @@ export function App({
   return (
     <div className="ecran">
       {ecran.type === 'jeu' ? (
-        <EcranJeu jeu={ecran.jeu} env={env} occupe={occupe} choisir={choisir} nouvellePartie={() => void recommencer()} />
+        <EcranJeu
+          jeu={ecran.jeu}
+          env={env}
+          machineAEcrire={reglages.machineAEcrire}
+          occupe={occupe}
+          choisir={choisir}
+          nouvellePartie={() => void recommencer()}
+        />
       ) : (
         <main className="jeu">
           <header className="entete-piece">

@@ -107,6 +107,17 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(regle).toContain('repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px)');
   });
 
+  it('machine à écrire (D-186) : curseur lent, fixe sur [NON] ou si le téléphone demande moins d’animations', () => {
+    const clignote = /\.curseur\s*\{\s*animation:\s*clignote\s+([\d.]+)s/.exec(css)?.[1];
+    expect(Number(clignote)).toBeGreaterThanOrEqual(1.2);
+    expect(/\.recit\.curseur-fixe \.curseur\s*\{\s*animation:\s*none;/.test(css)).toBe(true);
+    const reduit = /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    // Même spécificité que les règles de l'écriture, sinon elles l'emportent sur le mouvement réduit.
+    expect(reduit).toMatch(/\.recit\.ecrire \.car,\s*\.recit \.curseur,\s*\.recit\.ecrire \.curseur\s*\{\s*animation:\s*none;/);
+    // Le caractère à venir est caché mais garde sa place : la mise en page ne bouge pas.
+    expect(/@keyframes apparait\s*\{\s*from\s*\{\s*visibility:\s*hidden;/.test(css)).toBe(true);
+  });
+
   it('document en français', () => {
     expect(readFileSync(new URL('index.html', APPLI), 'utf8')).toContain('<html lang="fr">');
   });
