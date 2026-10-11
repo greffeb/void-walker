@@ -25,6 +25,7 @@ function cibleVisible(monde: DefMonde, etat: EtatPartie, id: string): Cible {
 }
 
 export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
+  if (etat.sante === 'vaincu') return [];
   const options: OptionMenu[] = [];
   for (const action of ACTIONS) {
     const definition = CATALOGUE[action];
@@ -51,6 +52,8 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     visitees: etat.visitees.map((piece) => refPiece(monde, piece)),
     actions: etat.actions,
     creatureVisible: etat.creature !== null && etat.creature.piece === etat.piece,
+    sante: etat.sante,
+    terminee: etat.sante === 'vaincu',
     menu: menu(monde, etat),
   };
 }

@@ -103,7 +103,13 @@ function reaction(
   sons: readonly SonEmis[],
   depuis: string,
   franchie: string | undefined,
+  interceptee: boolean,
 ): { creature: EtatCreature; evenements: Evenement[]; entendue?: BruitCreature } {
+  if (interceptee) {
+    // Le jet consomme sa réaction (C-04 §4.2, D-055) ; s'il est parti, elle l'a vu prendre ce passage (D-177).
+    const parti = creature.piece === depuis && etat.piece !== depuis;
+    return { creature: { ...creature, indice: parti ? { piece: etat.piece, par: franchie ?? null } : null }, evenements: [] };
+  }
   if (creature.piece === etat.piece) {
     // L'avertissement donne une action pour réagir avant toute conséquence hostile (C-03 §4.4).
     return { creature: { ...creature, indice: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
@@ -120,7 +126,7 @@ function reaction(
   if (liaison === undefined) return { creature: { ...creature, indice }, evenements: [] };
   const arrivee = autreCote(liaison, creature.piece);
   const percu = percuParLePassager(monde, etat, liaison, creature.piece, arrivee);
-  const suite: EtatCreature = { piece: arrivee, indice: arrivee === indice.piece ? null : indice, contact: creature.contact };
+  const suite: EtatCreature = { ...creature, piece: arrivee, indice: arrivee === indice.piece ? null : indice };
   if (percu === undefined) return { creature: suite, evenements: [] };
   return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
 }
@@ -151,7 +157,8 @@ function retenir(etat: EtatPartie, creature: EtatCreature, entendue: BruitCreatu
 
 /**
  * Étapes 4 et 5 d'un pas (C-03 §3) : la réaction, puis l'annonce du premier contact si la créature et le passager se retrouvent.
- * `depuis` : pièce du passager avant l'action ; `franchie` : liaison qu'il vient de prendre, s'il a changé de pièce.
+ * `depuis` : pièce du passager avant l'action ; `franchie` : liaison qu'il vient de prendre, s'il a changé de pièce ;
+ * `interceptee` : un jet d'interception a déjà consommé la réaction de ce pas.
  */
 export function reagir(
   monde: DefMonde,
@@ -159,14 +166,20 @@ export function reagir(
   sons: readonly SonEmis[],
   depuis: string,
   franchie: string | undefined,
+  interceptee: boolean,
 ): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
-  const { creature, evenements, entendue } = reaction(monde, etat, etat.creature, sons, depuis, franchie);
-  const suite: EtatPartie = { ...etat, creature, reperes: retenir(etat, creature, entendue) };
+  const reponse = reaction(monde, etat, etat.creature, sons, depuis, franchie, interceptee);
+  // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
+  const creature = etat.creature.repit ? { ...reponse.creature, repit: false } : reponse.creature;
+  const suite: EtatPartie = { ...etat, creature, reperes: retenir(etat, creature, reponse.entendue) };
   if (creature.piece === etat.piece && !creature.contact) {
-    return { etat: { ...suite, creature: { ...creature, contact: true } }, evenements: [...evenements, { type: 'premier_contact' }] };
+    return {
+      etat: { ...suite, creature: { ...creature, contact: true, repit: true } },
+      evenements: [...reponse.evenements, { type: 'premier_contact' }],
+    };
   }
-  return { etat: suite, evenements };
+  return { etat: suite, evenements: reponse.evenements };
 }
 
 /** Ancienneté d'une vue (D-151) : 1 action au plus, 2 à 5, 6 et plus. */

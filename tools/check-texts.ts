@@ -39,8 +39,8 @@ import { isMainModule } from './repo-files';
 
 const ID_PUBLIC = /\be[0-9a-f]{8}\b/;
 
-/** Moments forts où le récit d'une action peut être plus long (D-111). Garde-fou du contrôle, non décidé : quatre phrases au plus pour ce texte seul. */
-const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact'];
+/** Moments forts où le récit d'une action peut être plus long (D-111 : premier contact, fin). Garde-fou du contrôle, non décidé : quatre phrases au plus pour ce texte seul. */
+const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact', 'defaite'];
 
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;

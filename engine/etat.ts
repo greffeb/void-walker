@@ -1,6 +1,6 @@
 import { generateurDepuisGraine, type EtatGenerateur } from './des';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { RefObjet, RefPassage, RefPiece } from './vocabulaire';
+import type { RefObjet, RefPassage, RefPiece, Sante } from './vocabulaire';
 
 export type EmplacementObjet = { readonly type: 'piece'; readonly piece: string } | { readonly type: 'passager' };
 
@@ -16,6 +16,8 @@ export interface EtatCreature {
   readonly piece: string;
   readonly indice: Indice | null;
   readonly contact: boolean;
+  /** L'action qui suit le premier contact est libre : ni dé ni blessure (C-03 §4.4, D-184). */
+  readonly repit: boolean;
 }
 
 /** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */
@@ -48,6 +50,9 @@ export interface EtatPartie {
   /** `null` dans un monde sans créature. */
   readonly creature: EtatCreature | null;
   readonly reperes: Reperes;
+  readonly sante: Sante;
+  /** Doses restantes des objets de soin (C-02 §4.3). */
+  readonly doses: Readonly<Record<string, number>>;
 }
 
 export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
@@ -59,8 +64,10 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     visitees: [monde.depart],
     actions: 0,
     generateur: generateurDepuisGraine(graine),
-    creature: monde.creature === undefined ? null : { piece: monde.creature.piece, indice: null, contact: false },
+    creature: monde.creature === undefined ? null : { piece: monde.creature.piece, indice: null, contact: false, repit: false },
     reperes: { vue: null, entendue: null },
+    sante: 'indemne',
+    doses: Object.fromEntries(monde.objets.flatMap((objet) => (objet.soin === undefined ? [] : [[objet.id, objet.soin]]))),
   };
 }
 

@@ -10,6 +10,7 @@ import {
   sonRetenu,
   validerMonde,
   type DefMonde,
+  type Commande,
   type Evenement,
   type IdAction,
   type Partie,
@@ -83,6 +84,14 @@ function types(evenements: readonly Evenement[]): string[] {
 
 const pieceCreature = (courante: Partie): string | undefined => courante.etat.creature?.piece;
 
+function optionAller(monde: DefMonde, courante: Partie, nom: string): Commande {
+  const option = observer(monde, courante.etat).menu.find(
+    (choix) => choix.action === 'aller' && choix.cible.sorte === 'passage' && (choix.cible.nom === nom || choix.cible.vers.nom === nom),
+  );
+  if (option === undefined) throw new Error(`Aller ${nom} absent.`);
+  return option.commande;
+}
+
 describe('créature : monde et état (C-02 §4.2)', () => {
   it('un monde avec créature est valide ; jamais dans la pièce de départ, jamais dans une pièce inconnue (GP-04)', () => {
     expect(validerMonde(MONDE)).toEqual([]);
@@ -91,7 +100,7 @@ describe('créature : monde et état (C-02 §4.2)', () => {
   });
 
   it('état de départ : emplacement réel, aucun indice, premier contact pas encore annoncé', () => {
-    expect(partie().etat.creature).toEqual({ piece: 'c', indice: null, contact: false });
+    expect(partie().etat.creature).toEqual({ piece: 'c', indice: null, contact: false, repit: false });
     expect(nouvellePartie({ ...MONDE, creature: undefined }, { version: VERSION, graine: 7 }).etat.creature).toBeNull();
   });
 });
@@ -134,14 +143,14 @@ describe('perception et réaction (C-03 §4)', () => {
     // Pas 2 : geste silencieux ; elle poursuit vers l'indice, entre en A : premier contact, sans conséquence hostile.
     expect(types(evenements[1] ?? [])).toEqual(['objet_pris', 'creature_entre', 'premier_contact']);
     expect(pieceCreature(fin)).toBe('a');
-    expect(fin.etat.creature).toMatchObject({ indice: null, contact: true });
+    expect(fin.etat.creature).toMatchObject({ indice: null, contact: true, repit: true });
   });
 
   it('une porte fermée bloque le son : la créature ne l’entend pas et ne bouge pas', () => {
     const monde = liaisons(MONDE, { bc: { ouverte: false }, ac: { sonAuTravers: false } });
     const { partie: fin, evenements } = suite(monde, partie(monde), [['ouvrir', 'porte_ab']]);
     expect(types(evenements[0] ?? [])).toEqual(['passage_ouvert', 'bruit_mecanisme']);
-    expect(fin.etat.creature).toEqual({ piece: 'c', indice: null, contact: false });
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: null, contact: false, repit: false });
   });
 
   it('T-07 : son entendu par une grille trop étroite, aucune voie praticable : elle ne passe pas, l’origine perçue est conservée', () => {
@@ -151,7 +160,7 @@ describe('perception et réaction (C-03 §4)', () => {
       ['prendre', 'boite'],
       ['poser', 'boite'],
     ]);
-    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: false });
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: false, repit: false });
   });
 
   it('T-07 : le chemin du son praticable en partie, elle rejoint le côté accessible de la séparation étroite', () => {
@@ -162,37 +171,34 @@ describe('perception et réaction (C-03 §4)', () => {
       ['prendre', 'boite'],
       ['poser', 'boite'],
     ]);
-    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: false });
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: false, repit: false });
   });
 
   it('l’origine perçue est poursuivie plus tard, dès qu’une voie s’ouvre, sans nouveau son', () => {
     const monde = liaisons(MONDE, { bc: { ouverte: false } });
     const coincee = suite(monde, partie(monde), [['ouvrir', 'porte_ab']]).partie;
-    expect(coincee.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: false });
+    expect(coincee.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: false, repit: false });
     // Le passager ouvre B–C depuis B (geste discret) : la créature reprend la poursuite vers A, par B.
     const { partie: fin, evenements } = suite(monde, coincee, [
       ['aller', 'salle_b'],
       ['ouvrir', 'porte_bc'],
     ]);
     expect(types(evenements[1] ?? [])).toEqual(['passage_ouvert', 'creature_entre', 'premier_contact']);
-    expect(fin.etat.creature).toEqual({ piece: 'b', indice: { piece: 'a', par: null }, contact: true });
+    expect(fin.etat.creature).toEqual({ piece: 'b', indice: { piece: 'a', par: null }, contact: true, repit: true });
   });
 
-  it('premier contact annoncé une seule fois ; ensuite, rester visible attire une menace, jamais le jour même de l’arrivée', () => {
+  it('premier contact annoncé une seule fois ; l’action suivante est libre, puis la quitter passe par le dé (D-184, D-183)', () => {
     const contact = suite(MONDE, partie(), [
       ['ouvrir', 'porte_ab'],
       ['prendre', 'boite'],
     ]).partie;
-    const { partie: fin, evenements } = suite(MONDE, contact, [
-      ['poser', 'boite'],
-      ['aller', 'salle_b'],
-      ['aller', 'salle_a'],
-    ]);
-    expect(types(evenements[0] ?? [])).toEqual(['objet_pose', 'menace']);
-    expect(types(evenements[1] ?? [])).toEqual(['deplacement', 'piece_decouverte']);
-    // Revenir dans sa pièce : vue de nouveau, menace immédiate, sans second avertissement (C-03 §4.4).
-    expect(types(evenements[2] ?? [])).toEqual(['deplacement', 'menace']);
-    expect(pieceCreature(fin)).toBe('a');
+    const repit = engager(MONDE, contact, 'poser', 'boite');
+    expect(types(repit.evenements)).toEqual(['objet_pose', 'menace']);
+    const fuite = jouer(MONDE, repit.partie, optionAller(MONDE, repit.partie, 'salle_b'));
+    if (fuite.type !== 'engagee') throw new Error('Fuite non engagée.');
+    expect(fuite.tirages).toHaveLength(1);
+    const interception = (fuite.tirages[0] ?? 0) <= 3 ? 'aggravation_blesse' : 'menace';
+    expect(types(fuite.evenements)).toEqual([interception, 'deplacement', 'piece_decouverte']);
   });
 
   it('arriver dans la pièce du passager et l’attaquer ne tiennent pas dans la même réaction (C-03 §4.3)', () => {
@@ -213,23 +219,23 @@ describe('perception et réaction (C-03 §4)', () => {
 
   it('un joueur visible passe avant un son, même plus fort (C-03 §4.2)', () => {
     const depart = partie();
-    const ensemble = { ...depart.etat, creature: { piece: 'a', indice: null, contact: true } };
-    const reponse = reagir(MONDE, ensemble, [{ piece: 'c', intensite: 'fort' }], 'a', undefined);
-    expect(reponse.etat.creature).toEqual({ piece: 'a', indice: null, contact: true });
+    const ensemble = { ...depart.etat, creature: { piece: 'a', indice: null, contact: true, repit: false } };
+    const reponse = reagir(MONDE, ensemble, [{ piece: 'c', intensite: 'fort' }], 'a', undefined, false);
+    expect(reponse.etat.creature).toEqual({ piece: 'a', indice: null, contact: true, repit: false });
     expect(types(reponse.evenements)).toEqual(['menace']);
   });
 
   it('T-09 : elle suit le passage qu’elle l’a vu prendre, pas sa position cachée ; arrivée sur place, sans indice, elle attend', () => {
     const monde = liaisons(MONDE, { ab: { ouverte: true, bruyante: false } });
     const vue = suite(monde, partie(monde), [['aller', 'salle_b'], ['aller', 'salle_c']]).partie;
-    expect(vue.etat.creature).toMatchObject({ piece: 'c', contact: true });
+    expect(vue.etat.creature).toMatchObject({ piece: 'c', contact: true, repit: true });
     // Il sort par B puis continue vers A, ou reste en B : elle fait le même pas, vers B, sans savoir où il est.
     const loin = suite(monde, vue, [['aller', 'salle_b'], ['aller', 'salle_a'], ['prendre', 'boite']]);
     const pres = suite(monde, vue, [['aller', 'salle_b'], ['prendre', 'cle']]);
     expect(loin.evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'bruit_creature'], ['objet_pris']]);
     expect(pres.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre']]);
-    expect(loin.partie.etat.creature).toEqual({ piece: 'b', indice: null, contact: true });
-    expect(pres.partie.etat.creature).toEqual({ piece: 'b', indice: null, contact: true });
+    expect(loin.partie.etat.creature).toEqual({ piece: 'b', indice: null, contact: true, repit: false });
+    expect(pres.partie.etat.creature).toEqual({ piece: 'b', indice: null, contact: true, repit: false });
   });
 });
 
@@ -257,7 +263,7 @@ describe('poursuite par le passage vu (D-177)', () => {
       ['prendre', 'cle'],
       ['poser', 'cle'],
     ]);
-    expect(fin.etat.creature).toMatchObject({ piece: 'c', indice: { piece: 'b' }, contact: true });
+    expect(fin.etat.creature).toMatchObject({ piece: 'c', indice: { piece: 'b' }, contact: true, repit: false });
   });
 
   it('un passage trop étroit l’arrête : elle ne le suit pas par la grille ni ne fait le tour', () => {
@@ -287,15 +293,15 @@ describe('poursuite par le passage vu (D-177)', () => {
     const bruyante = liaisons(monde, { ac: { bruyante: true } });
     const vue = suite(bruyante, partie(bruyante), [['aller', 'salle_b'], ['aller', 'salle_c']]).partie;
     const bloquee = suite(bruyante, vue, [['aller', 'salle_b'], ['fermer', 'porte_bc'], ['aller', 'salle_a']]).partie;
-    expect(bloquee.etat.creature).toEqual({ piece: 'c', indice: { piece: 'b', par: 'bc' }, contact: true });
+    expect(bloquee.etat.creature).toEqual({ piece: 'c', indice: { piece: 'b', par: 'bc' }, contact: true, repit: false });
     const fin = suite(bruyante, bloquee, [['ouvrir', 'grille_ac']]).partie;
-    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: true });
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: { piece: 'a', par: null }, contact: true, repit: false });
   });
 
   it('revenir dans sa pièce efface l’indice de départ : elle le voit, menace', () => {
     const { partie: fin, evenements } = suite(monde, contact(), [['aller', 'salle_b'], ['aller', 'salle_c']]);
     expect(evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'menace']]);
-    expect(fin.etat.creature).toEqual({ piece: 'c', indice: null, contact: true });
+    expect(fin.etat.creature).toEqual({ piece: 'c', indice: null, contact: true, repit: false });
   });
 });
 
@@ -363,7 +369,8 @@ describe('danger connu derrière un passage où elle a été perçue (D-180, D-1
     if (resultat.type !== 'apercu') throw new Error(`Aperçu ${action} ${nom} : ${resultat.type}.`);
     const { risque, danger } = resultat.apercu;
     if (danger === null) return { risque, danger };
-    return { risque, danger: [danger.type, danger.type === 'creature_entendue' ? danger.passage.nom : danger.piece.nom] };
+    if (danger.type === 'creature_entendue') return { risque, danger: [danger.type, danger.passage.nom] };
+    return { risque, danger: 'piece' in danger ? [danger.type, danger.piece.nom] : [danger.type] };
   }
 
   it('entendue derrière une porte : modéré, situé par cette porte ; ailleurs, aucun risque connu', () => {
@@ -456,8 +463,8 @@ describe('danger connu derrière un passage où elle a été perçue (D-180, D-1
   it('elle quitte une pièce voisine pour une pièce lointaine : entendue là d’où vient le bruit (OP-01)', () => {
     // État injecté : passager en B, créature en C en route vers D ; seul C est voisine de B (porte B–C ouverte).
     const depart = partie();
-    const etat = { ...depart.etat, piece: 'b', creature: { piece: 'c', indice: { piece: 'd', par: null }, contact: true } };
-    const reponse = reagir(MONDE, etat, [], 'b', undefined);
+    const etat = { ...depart.etat, piece: 'b', creature: { piece: 'c', indice: { piece: 'd', par: null }, contact: true, repit: false } };
+    const reponse = reagir(MONDE, etat, [], 'b', undefined, false);
     expect(reponse.etat.creature?.piece).toBe('d');
     expect(reponse.evenements).toMatchObject([{ type: 'bruit_creature', passage: { nom: 'porte_bc' } }]);
     expect(reponse.etat.reperes.entendue).toEqual({ piece: 'c', par: 'bc' });

@@ -5,8 +5,10 @@ import { etatInitial, refPiece, type EtatPartie } from './etat';
 import { empreinte } from './hachage';
 import { indexer, type DefMonde } from './monde';
 import { observer } from './observation';
+import { aggraver, expose, intercepter, risqueIci } from './sante';
 import {
   ACTIONS,
+  NIVEAUX_RISQUE,
   type Apercu,
   type Commande,
   type Consultation,
@@ -86,6 +88,7 @@ type Validation =
 /** Revérifie une commande dans l'état courant (C-01 §4) : une commande périmée est refusée. */
 function valider(monde: DefMonde, etat: EtatPartie, commande: unknown): Validation {
   if (!estCommande(commande)) return { type: 'refus', raison: 'commande_invalide' };
+  if (etat.sante === 'vaincu') return { type: 'refus', raison: 'partie_terminee' };
   if (!estAction(commande.action)) return { type: 'refus', raison: 'action_inconnue' };
   const cible = indexer(monde).versInterne.get(commande.cible);
   if (cible === undefined) return { type: 'refus', raison: 'cible_absente' };
@@ -101,7 +104,11 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   if (validation.type === 'refus') return validation;
   const { definition, cible } = validation;
   if (!definition.engage) return { type: 'gratuit' };
-  return { type: 'apercu', apercu: { commande: validation.commande, ...definition.prevoir({ monde, etat: partie.etat }, cible) } };
+  const { santeApres, ...prevision } = definition.prevoir({ monde, etat: partie.etat }, cible);
+  // Le danger le plus haut l'emporte : la créature ici avant celui de la destination ; un soin passe avant le jet (C-04 §3, §4.3).
+  const ici = risqueIci(partie.etat, santeApres ?? partie.etat.sante);
+  const plusHaut = ici !== null && NIVEAUX_RISQUE.indexOf(ici.risque) >= NIVEAUX_RISQUE.indexOf(prevision.risque);
+  return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...(plusHaut ? ici : {}) } };
 }
 
 /** Joue une commande structurée ; un refus ou une consultation rend la partie inchangée (C-01 §6, C-03 §2). */
@@ -113,12 +120,21 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   if (!definition.engage) return { type: 'consultation', consultation: definition.consulter(contexte, cible), partie };
 
   const session = ouvrirDes(partie.etat.generateur);
+  // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2).
+  const exposition = expose(partie.etat);
+  const atteint = exposition && intercepter(session.des);
   const effet = definition.appliquer(contexte, cible, session.des);
   // Pas de danger à actualiser dans les mondes actuels (étape 3) ; puis une réaction au plus (C-03 §3).
-  const reponse = reagir(monde, effet.etat, effet.sons ?? [], partie.etat.piece, effet.franchie);
-  const evenements = [...effet.evenements, ...reponse.evenements];
+  const reponse = reagir(monde, effet.etat, effet.sons ?? [], partie.etat.piece, effet.franchie, exposition);
+  const blessure = aggraver(reponse.etat, atteint ? ['griffes'] : []);
+  const interception: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : blessure.evenements;
+  // En fuite, elle frappe au seuil, avant le déplacement ; une défaite se raconte à l'arrivée (C-04 §4.2).
+  const auSeuil = effet.franchie !== undefined && blessure.etat.sante !== 'vaincu';
+  const evenements = auSeuil
+    ? [...interception, ...effet.evenements, ...reponse.evenements]
+    : [...effet.evenements, ...reponse.evenements, ...interception];
   const tirages = [...session.tirages];
-  const etat: EtatPartie = { ...reponse.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
+  const etat: EtatPartie = { ...blessure.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
   const entree: EntreeJournal = { commande: validation.commande, tirages };
   return {
     type: 'engagee',

@@ -10,8 +10,8 @@ import {
   refPiece,
   type EtatPartie,
 } from './etat';
-import { indexer, type DefLiaison, type DefMonde } from './monde';
-import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus } from './vocabulaire';
+import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
+import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus, Sante, Savoir } from './vocabulaire';
 
 export interface Contexte {
   readonly monde: DefMonde;
@@ -27,8 +27,8 @@ export interface Effet {
   readonly franchie?: string;
 }
 
-/** Aperçu calculé sur ce que le passager sait seulement (C-06 §4), sans dé ni changement d'état. */
-export type Prevision = Omit<Apercu, 'commande'>;
+/** Aperçu calculé sur ce que le passager sait seulement (C-06 §4), sans dé ni changement d'état ; `santeApres` si l'action change la santé avant le jet. */
+export type Prevision = Omit<Apercu, 'commande'> & { readonly santeApres?: Sante };
 
 interface ActionCommune {
   readonly id: IdAction;
@@ -221,5 +221,32 @@ const aller: ActionEngagee = {
   },
 };
 
+/** Soin en main ou posé dans la pièce (D-185). */
+function soinsAPortee({ monde, etat }: Contexte): DefObjet[] {
+  return [...objetsDans(monde, etat, etat.piece), ...objetsPortes(monde, etat)].filter((objet) => objet.soin !== undefined);
+}
+
+/** Un soin améliore d'un état et consomme une dose ; indemne, il est indisponible plutôt que gaspillé (C-04 §2). */
+const soigner: ActionEngagee = {
+  id: 'soigner',
+  engage: true,
+  cibles: (contexte) => soinsAPortee(contexte).map((objet) => objet.id),
+  verifier: (contexte, cible) => {
+    if (!soinsAPortee(contexte).some((objet) => objet.id === cible)) return 'cible_absente';
+    if ((contexte.etat.doses[cible] ?? 0) === 0) return 'vide';
+    return contexte.etat.sante === 'blesse' || contexte.etat.sante === 'critique' ? null : 'pas_blesse';
+  },
+  prevoir: ({ monde, etat }, cible) => {
+    const savoir: Savoir[] = [{ type: 'soignera' }];
+    if (etat.doses[cible] === 1) savoir.push({ type: 'videra', objet: refObjet(monde, cible) });
+    return { ...SANS_DANGER, savoir, santeApres: etat.sante === 'critique' ? 'blesse' : 'indemne' };
+  },
+  appliquer: ({ monde, etat }, cible) => {
+    const gueri = etat.sante === 'blesse';
+    const suivant: EtatPartie = { ...etat, sante: gueri ? 'indemne' : 'blesse', doses: { ...etat.doses, [cible]: (etat.doses[cible] ?? 0) - 1 } };
+    return { etat: suivant, evenements: [{ type: gueri ? 'soin_indemne' : 'soin_blesse', objet: refObjet(monde, cible) }] };
+  },
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
-export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = { regarder, prendre, poser, ouvrir, fermer, aller };
+export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = { regarder, prendre, poser, ouvrir, fermer, aller, soigner };

@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { CATALOGUE, observer, type IdAction, type OptionMenu } from '../engine';
+import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type ApercuTexte, type TextesMonde } from '../content';
 import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, unToucher, type Dock, type Groupe } from './ecran';
 import { consulter, prevoir, type Environnement, type Jeu } from './jeu';
@@ -41,6 +41,7 @@ export function EcranJeu({
   occupe,
   choisir,
   ouvrirOptions,
+  nouvellePartie,
 }: {
   readonly jeu: Jeu;
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
@@ -48,6 +49,8 @@ export function EcranJeu({
   readonly choisir: (jeu: Jeu, option: OptionMenu) => Promise<void>;
   /** Absent tant que l'écran d'options n'existe pas : l'engrenage reste masqué. */
   readonly ouvrirOptions?: () => void;
+  /** Après une défaite, seul geste possible en attendant l'écran de fin (12 §4.11). */
+  readonly nouvellePartie?: () => void;
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
@@ -131,6 +134,7 @@ export function EcranJeu({
     <main className="jeu">
       <header className="entete-piece">
         <h1 className="titre-piece">{nomDe(textes, observation.piece).texte}</h1>
+        <BadgeSante sante={observation.sante} />
         {ouvrirOptions !== undefined && (
           <button type="button" className="engrenage" aria-label="Options" onClick={ouvrirOptions}>
             <Engrenage />
@@ -145,17 +149,29 @@ export function EcranJeu({
           <p key={index}>{ligne}</p>
         ))}
       </section>
-      <DockPiece
-        dock={dock}
-        textes={textes}
-        occupe={occupe}
-        puceOuverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
-        deplacementOuvert={ouverte?.zone === 'deplacement' ? ouverte.cible : null}
-        ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null }, ancre)}
-        ouvrirDeplacement={toucherDeplacement}
-        direct={direct}
-        jouer={jouer}
-      />
+      {observation.terminee ? (
+        <section className="dock fin-partie">
+          {/* Déjà lue dans la situation, en tête de page pour le lecteur d'écran. */}
+          <p aria-hidden="true">{remplir(textes.observation.terminee, {})}</p>
+          {nouvellePartie !== undefined && (
+            <button type="button" className="principal" disabled={occupe} onClick={nouvellePartie}>
+              Nouvelle partie
+            </button>
+          )}
+        </section>
+      ) : (
+        <DockPiece
+          dock={dock}
+          textes={textes}
+          occupe={occupe}
+          puceOuverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
+          deplacementOuvert={ouverte?.zone === 'deplacement' ? ouverte.cible : null}
+          ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null }, ancre)}
+          ouvrirDeplacement={toucherDeplacement}
+          direct={direct}
+          jouer={jouer}
+        />
+      )}
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
       {ouverte !== null && <div className={ouverte.zone === 'inventaire' ? 'voile' : 'voile voile-haut'} data-testid="voile" onClick={fermer} />}
       {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
@@ -194,7 +210,7 @@ export function EcranJeu({
             fermer={fermer}
           />
         )}
-        <nav className="navigation" aria-label="Navigation">
+        <nav className="navigation" aria-label="Navigation" hidden={observation.terminee}>
           <button
             type="button"
             aria-haspopup="dialog"
@@ -539,6 +555,17 @@ function Indisponible({ classe, libelle, raison }: { readonly classe: string; re
       </span>
       <span className="raison">{raison}</span>
     </button>
+  );
+}
+
+/** Badge de santé (12 §3.2) : rien quand il est indemne ; la défaite n'a pas de badge. */
+function BadgeSante({ sante }: { readonly sante: Sante }) {
+  if (sante !== 'blesse' && sante !== 'critique') return null;
+  const blesse = sante === 'blesse';
+  return (
+    <p className={`badge-sante ${sante}`} role="status" aria-label={blesse ? 'État : blessé' : 'État : critique'}>
+      {blesse ? '! BLESSÉ' : '!! CRITIQUE'}
+    </p>
   );
 }
 

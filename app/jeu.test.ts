@@ -65,7 +65,7 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const fin = await pret(environnement(stockageIndexedDB('parcours', fabrique)));
     const observation = observer(monde, fin.partie.etat);
     expect(observation.piece.nom).toBe('atelier');
-    expect(observation.objets.map((objet) => objet.nom)).toEqual(['carnet']);
+    expect(observation.objets.map((objet) => objet.nom)).toEqual(['carnet', 'trousse']);
     expect(fin.partie.etat.actions).toBe(4);
   });
 

@@ -57,7 +57,7 @@ export function App({
   return (
     <div className="ecran">
       {ecran.type === 'jeu' ? (
-        <EcranJeu jeu={ecran.jeu} env={env} occupe={occupe} choisir={choisir} />
+        <EcranJeu jeu={ecran.jeu} env={env} occupe={occupe} choisir={choisir} nouvellePartie={() => void recommencer()} />
       ) : (
         <main className="jeu">
           <header className="entete-piece">

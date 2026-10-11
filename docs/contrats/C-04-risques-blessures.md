@@ -1,8 +1,8 @@
 # C-04 — Risques, blessures et soin — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.3, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175.
-> **Date :** 2026-10-10.
-> **Implémentation, calibrage humain et validation téléphone :** non réalisés.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175 ; interception et soin précisés par D-183 à D-185.
+> **Date :** 2026-10-11.
+> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; vide, feu et morceaux absents. **Calibrage humain et validation téléphone :** non réalisés.
 
 ## 1. Portée
 
@@ -59,6 +59,8 @@ Porte fermée, gabarit incompatible, objet absent, commande périmée : refus se
 Le jet résout l'interception **avant le changement de position** au sens de la validation ; son résultat contient ensuite le déplacement et l'aggravation éventuelle comme une transition cohérente. Sur résultat défavorable, le personnage ne reste pas immobile : D-052 exige le succès partiel.
 
 Ce jet consomme la réaction hostile de cette créature pour l'engagement, même si aucune blessure ne résulte. Ni attaque supplémentaire ni déplacement supplémentaire dans ce même pas. La poursuite pourra reprendre au prochain engagement avec des indices réellement acquis, sans connaître la nouvelle position par magie.
+
+**Rester sous ses yeux (D-183).** Une action faite dans la pièce de la créature, après le premier contact, se résout au même D6, que le passager parte ou reste. L'action qui suit immédiatement le premier contact est libre, sans dé ni blessure (D-184).
 
 Si le joueur critique subit l'aggravation, sa destination est enregistrée et la partie conclut en défaite. Une arrivée en embarquement ne le transforme pas en survivant après coup.
 

@@ -24,6 +24,8 @@ export interface DefObjet {
   readonly id: string;
   readonly nom: string;
   readonly piece: string;
+  /** Qualité « soin, par dose » (C-02 §5) : nombre de doses au départ. */
+  readonly soin?: number;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -77,6 +79,7 @@ export function validerMonde(monde: DefMonde): string[] {
   }
   for (const objet of monde.objets) {
     if (!pieces.has(objet.piece)) erreurs.push(`${objet.id} : pièce inconnue ${objet.piece}.`);
+    if (objet.soin !== undefined && (!Number.isInteger(objet.soin) || objet.soin < 1)) erreurs.push(`${objet.id} : doses de soin invalides.`);
   }
   if (monde.creature !== undefined) {
     if (!pieces.has(monde.creature.piece)) erreurs.push(`Créature : pièce inconnue ${monde.creature.piece}.`);

@@ -498,7 +498,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     }
 
     const fin = etapes[etapes.length - 1]?.situation ?? '';
-    for (const attendu of ['Vous êtes dans l’atelier.', 'Vous voyez ici un carnet.']) {
+    for (const attendu of ['Vous êtes dans l’atelier.', 'Vous voyez ici un carnet et une trousse de soin.']) {
       if (!fin.includes(attendu)) erreurs.push(`Fin du parcours : « ${attendu} » absent.`);
     }
 
