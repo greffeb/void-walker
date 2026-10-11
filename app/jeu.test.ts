@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { observer, type DefMonde } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { demarrer, jouerOption, type Environnement, type Jeu } from './jeu';
+import { demarrer, jouerOption, mondeDemande, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
@@ -126,5 +126,64 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const test = environnement(stockageIndexedDB('void-walker:/void-walker/pr-1/', fabrique));
     await choisir(principale, await pret(principale), 'prendre');
     expect((await pret(test)).partie.etat.actions).toBe(0);
+  });
+});
+
+describe('appli : monde choisi par l’adresse', () => {
+  it('« ?monde= » choisit un monde connu ; un id inconnu ou absent laisse le monde par défaut', () => {
+    expect(mondeDemande('?monde=monde-test', MONDES, 'ar-01')).toBe('monde-test');
+    expect(mondeDemande('?monde=ar-01', MONDES, 'monde-test')).toBe('ar-01');
+    expect(mondeDemande('', MONDES, 'ar-01')).toBe('ar-01');
+    expect(mondeDemande('?monde=', MONDES, 'ar-01')).toBe('ar-01');
+    expect(mondeDemande('?monde=inconnu', MONDES, 'ar-01')).toBe('ar-01');
+    expect(mondeDemande('?monde=toString', MONDES, 'ar-01')).toBe('ar-01');
+  });
+});
+
+describe('appli : AR-01, rappel avec paramètre et parole d’IA Station à la reprise (#103)', () => {
+  const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_C = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes ?? [];
+  let fabrique: IDBFactory;
+  beforeEach(() => {
+    fabrique = new IDBFactory();
+  });
+  const envAr01 = (): Environnement => ({ monde: ar01.monde, textes: ar01.textes, version: 'v-test', stockage: stockageIndexedDB('ar-01', fabrique), graine: () => 20261010 });
+
+  async function etapes(env: Environnement, nombre: number): Promise<Jeu> {
+    let jeu = await pret(env);
+    for (const etape of P_C.slice(0, nombre)) {
+      const option = observer(ar01.monde, jeu.partie.etat).menu.find(
+        (choix) =>
+          choix.action === etape.action &&
+          choix.cible.nom === etape.cible &&
+          (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+          (etape.parametre === undefined || (choix.parametre?.sorte === 'passage' ? choix.parametre.vers?.nom : choix.parametre?.nom) === etape.parametre),
+      );
+      if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+      jeu = await jouerOption(env, jeu, option);
+    }
+    return jeu;
+  }
+
+  it('déplacer la caisse : le rappel nomme la position, à chaud comme à la reprise', async () => {
+    const jeu = await etapes(envAr01(), 3);
+    expect(jeu.rappel).toEqual({ texte: 'Caisse · Déplacer · sous la grille', capitales: false });
+    expect((await pret(envAr01())).rappel).toEqual(jeu.rappel);
+  });
+
+  it('verser la burette : le rappel nomme la cloison, à chaud comme à la reprise', async () => {
+    const jeu = await etapes(envAr01(), 6);
+    expect(jeu.rappel).toEqual({ texte: 'Burette d’huile · Verser · Cloison de la salle d’observation', capitales: false });
+    expect((await pret(envAr01())).rappel).toEqual(jeu.rappel);
+  });
+
+  it('par la grille jamais franchie : le rappel nomme la pièce d’arrivée ; IA Station parle et reparle à la reprise', async () => {
+    expect((await pret(envAr01())).assistance).toEqual([ar01.textes.assistance.reveil]);
+    const jeu = await etapes(envAr01(), 5);
+    expect(jeu.rappel).toEqual({ texte: 'Aller vers · local énergie', capitales: true });
+    expect(jeu.assistance).toEqual([ar01.textes.assistance.energie]);
+    const repris = await pret(envAr01());
+    expect(repris.rappel).toEqual(jeu.rappel);
+    expect(repris.assistance).toEqual(jeu.assistance);
   });
 });

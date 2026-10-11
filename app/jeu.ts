@@ -1,5 +1,5 @@
 import { apercu, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
-import { raconter, raconterDerniers, rendreApercu, type ApercuTexte, type TextesMonde } from '../content';
+import { raconter, raconterDerniers, rendreApercu, rendreAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 
@@ -12,6 +12,8 @@ export interface Jeu {
   readonly recit: readonly string[];
   /** Rappel de la dernière action choisie, en tête du récit ; `null` au début de la partie. */
   readonly rappel: TexteRappel | null;
+  /** Paroles d'IA Station reçues à ce pas, après le récit (12 §3.3) ; aucune après un refus ou une consultation. */
+  readonly assistance: readonly string[];
   readonly sauvegarde: EtatSauvegarde;
 }
 
@@ -36,7 +38,13 @@ async function enregistrer(env: Environnement, partie: Partie): Promise<EtatSauv
 
 export async function commencer(env: Environnement): Promise<Jeu> {
   const partie = nouvellePartie(env.monde, { version: env.version, graine: env.graine() });
-  return { partie, recit: raconterDerniers(env.textes, partie), rappel: null, sauvegarde: await enregistrer(env, partie) };
+  return {
+    partie,
+    recit: raconterDerniers(env.textes, partie),
+    rappel: null,
+    assistance: rendreAssistance(env.textes, partie.derniers),
+    sauvegarde: await enregistrer(env, partie),
+  };
 }
 
 /** Reprend la partie enregistrée au dernier geste, ou en commence une si rien n'est enregistré. */
@@ -53,7 +61,8 @@ export async function demarrer(env: Environnement): Promise<Demarrage> {
     const partie = reprendrePartie(env.monde, donnees, env.version);
     const repris = rappelRepris(partie, observer(env.monde, partie.etat));
     const rappel = repris === null ? null : texteRappel(env.textes, repris);
-    return { type: 'pret', jeu: { partie, recit: raconterDerniers(env.textes, partie), rappel, sauvegarde: 'sauvegardee' } };
+    const jeu: Jeu = { partie, recit: raconterDerniers(env.textes, partie), rappel, assistance: rendreAssistance(env.textes, partie.derniers), sauvegarde: 'sauvegardee' };
+    return { type: 'pret', jeu };
   } catch (erreur) {
     return { type: 'reprise_impossible', raison: erreur instanceof Error ? erreur.message : String(erreur) };
   }
@@ -85,7 +94,16 @@ export function prevoir(env: Pick<Environnement, 'monde' | 'textes'>, partie: Pa
 export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMenu): Promise<Jeu> {
   const resultat = jouer(env.monde, jeu.partie, option.commande);
   const recit = raconter(env.textes, resultat);
-  const rappel = texteRappel(env.textes, rappelDe(option));
-  if (resultat.type !== 'engagee') return { ...jeu, recit, rappel };
-  return { partie: resultat.partie, recit, rappel, sauvegarde: await enregistrer(env, resultat.partie) };
+  if (resultat.type !== 'engagee') return { ...jeu, recit, rappel: texteRappel(env.textes, rappelDe(option)), assistance: [] };
+  // Un déplacement se rappelle par la pièce d'arrivée, connue même quand le passage ne la nommait pas (D-147).
+  const arrivee = option.action === 'aller' ? observer(env.monde, resultat.partie.etat).piece : null;
+  const rappel = texteRappel(env.textes, arrivee === null ? rappelDe(option) : { type: 'deplacement', vers: arrivee });
+  const assistance = rendreAssistance(env.textes, resultat.evenements);
+  return { partie: resultat.partie, recit, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
+}
+
+/** Monde joué : celui demandé par `?monde=` s'il existe, sinon le monde par défaut ; un identifiant inconnu est ignoré. */
+export function mondeDemande(recherche: string, mondes: Readonly<Record<string, EntreeMonde>>, parDefaut: string): string {
+  const demande = new URLSearchParams(recherche).get('monde');
+  return demande !== null && Object.hasOwn(mondes, demande) ? demande : parDefaut;
 }

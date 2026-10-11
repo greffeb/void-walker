@@ -1,7 +1,23 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
-import { composer, composerDock, filBulle, nomDestination, nomPuce, placerBulle, REGARDER_AUTOUR, unToucher, type Dock, type Groupe } from './ecran';
+import {
+  composer,
+  composerDock,
+  etapeBulle,
+  filBulle,
+  lignesActions,
+  nomDestination,
+  nomParametre,
+  nomPuce,
+  placerBulle,
+  precedente,
+  REGARDER_AUTOUR,
+  unToucher,
+  type Dock,
+  type Etape,
+  type Groupe,
+} from './ecran';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, prevoir, type ApercuAffiche, type Environnement, type Jeu } from './jeu';
 
@@ -17,11 +33,11 @@ const SANS_CONFIRMATION = ', sans confirmation';
 
 /**
  * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté) ou un déplacement.
- * `action` : action choisie dont l'aperçu est affiché ; `null` à l'étape de la fiche.
+ * `action` : action choisie ; `null` à l'étape de la fiche. `parametre` : paramètre choisi à l'étape « OÙ ? », sinon `null`.
  */
 type Ouverte =
-  | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null }
-  | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null }
+  | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null; readonly parametre: string | null }
+  | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement };
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
@@ -53,7 +69,7 @@ export function EcranJeu({
   readonly choisir: (jeu: Jeu, option: OptionMenu) => Promise<void>;
   /** Absent tant que l'écran d'options n'existe pas : l'engrenage reste masqué. */
   readonly ouvrirOptions?: () => void;
-  /** Après une défaite, seul geste possible en attendant l'écran de fin (12 §4.11). */
+  /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
   readonly nouvellePartie?: () => void;
 }) {
   const { textes } = env;
@@ -169,7 +185,7 @@ export function EcranJeu({
       {observation.terminee ? (
         <section className="dock fin-partie">
           {/* Déjà lue dans la situation, en tête de page pour le lecteur d'écran. */}
-          <p aria-hidden="true">{remplir(textes.observation.terminee, {})}</p>
+          <p aria-hidden="true">{remplir(observation.issue === 'evacuation' ? textes.observation.evacuee : textes.observation.terminee, {})}</p>
           {nouvellePartie !== undefined && (
             <button type="button" className="principal" disabled={occupe} onClick={nouvellePartie}>
               Nouvelle partie
@@ -178,12 +194,14 @@ export function EcranJeu({
         </section>
       ) : (
         <DockPiece
+          // Une nouvelle pièce remonte le dock : il ne garde pas le défilement de la précédente.
+          key={observation.piece.id}
           dock={dock}
           textes={textes}
           occupe={occupe}
           puceOuverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
           deplacementOuvert={ouverte?.zone === 'deplacement' ? ouverte.cible : null}
-          ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null }, ancre)}
+          ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null, parametre: null }, ancre)}
           ouvrirDeplacement={toucherDeplacement}
           direct={direct}
           jouer={jouer}
@@ -196,7 +214,9 @@ export function EcranJeu({
           ancre={ouverte.ancre}
           groupe={groupeOuvert}
           action={ouverte.action}
-          choisirAction={(action) => montrer({ ...ouverte, action })}
+          choisirAction={(action) => montrer({ ...ouverte, action, parametre: null })}
+          parametre={ouverte.parametre}
+          choisirParametre={(parametre) => montrer({ ...ouverte, parametre })}
           textes={textes}
           occupe={occupe}
           jouer={jouer}
@@ -215,9 +235,11 @@ export function EcranJeu({
             id={idInventaire}
             groupes={dock.inventaire}
             cible={ouverte.cible}
-            choisir={(cible) => montrer({ zone: 'inventaire', cible, action: null })}
+            choisir={(cible) => montrer({ zone: 'inventaire', cible, action: null, parametre: null })}
             action={ouverte.action}
-            choisirAction={(action) => montrer({ ...ouverte, action })}
+            choisirAction={(action) => montrer({ ...ouverte, action, parametre: null })}
+            parametre={ouverte.parametre}
+            choisirParametre={(parametre) => montrer({ ...ouverte, parametre })}
             textes={textes}
             occupe={occupe}
             jouer={jouer}
@@ -235,7 +257,7 @@ export function EcranJeu({
             aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
             disabled={occupe}
             onClick={(evenement) =>
-              ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null }, evenement.currentTarget)
+              ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null, parametre: null }, evenement.currentTarget)
             }
           >
             Inventaire
@@ -255,14 +277,39 @@ interface PropsComposition {
   readonly prevoir: Prevoir;
   readonly direct: Direct;
   readonly fermer: () => void;
-  /** Action dont l'aperçu est affiché ; `null` à l'étape de la fiche. */
+  /** Action choisie ; `null` à l'étape de la fiche. */
   readonly action: IdAction | null;
   readonly choisirAction: (action: IdAction | null) => void;
+  /** Paramètre choisi à l'étape « OÙ ? » ; `null` avant. */
+  readonly parametre: string | null;
+  readonly choisirParametre: (parametre: string | null) => void;
 }
 
-/** Action choisie, encore jouable ; sinon la bulle revient à la fiche. */
-function choisie(groupe: Groupe, action: IdAction | null): OptionMenu | undefined {
-  return composer(groupe).actions.find((option) => option.action === action && option.disponible);
+/** Fil d'une étape (12 §3.5) ; le paramètre garde sa casse : « CAISSE › DÉPLACER › sous la grille ». */
+function Fil({ textes, groupe, etape }: { readonly textes: TextesMonde; readonly groupe: Groupe; readonly etape: Etape }) {
+  if (etape.type === 'fiche') return filBulle(textes, groupe.cible);
+  const action = etape.type === 'parametre' ? etape.action : etape.option.action;
+  const parametre = etape.type === 'apercu' ? etape.option.parametre : undefined;
+  return (
+    <>
+      {`${nomPuce(textes, groupe.cible)} › ${textes.verbes[action]}`}
+      {parametre !== undefined && <span className="fil-parametre">{` › ${nomParametre(textes, parametre)}`}</span>}
+    </>
+  );
+}
+
+/** Retour d'une étape (« ‹ ») ; `undefined` à la fiche. */
+function retourDe(etape: Etape, props: PropsComposition): (() => void) | undefined {
+  const avant = precedente(etape);
+  if (avant === null) return undefined;
+  return avant.action === null ? () => props.choisirAction(null) : () => props.choisirParametre(null);
+}
+
+/** Clé d'une étape : le focus revient sur la bulle quand elle change. */
+function cleEtape(groupe: Groupe, etape: Etape): string {
+  if (etape.type === 'fiche') return groupe.cible.id;
+  if (etape.type === 'parametre') return `${groupe.cible.id}:${etape.action}`;
+  return `${groupe.cible.id}:${etape.option.action}:${etape.option.parametre?.id ?? ''}`;
 }
 
 /**
@@ -284,7 +331,7 @@ function Bulle({
   readonly id?: string;
   readonly zone: RefObject<HTMLElement | null>;
   readonly classe: string;
-  readonly titre: string;
+  readonly titre: ReactNode;
   /** Fiche lue par le lecteur d'écran à l'ouverture, après le titre. */
   readonly decrite?: string;
   /** Change à chaque étape : le focus revient sur la bulle. */
@@ -375,21 +422,21 @@ function BulleAncree({ ancre, etape, ...props }: Omit<Parameters<typeof Bulle>[0
   return <Bulle zone={zone} classe="bulle-objet" etape={etape} {...props} />;
 }
 
-/** Bulle d'une puce de la pièce : fiche et actions, puis aperçu de l'action choisie. */
+/** Bulle d'une puce de la pièce : fiche et actions, puis « OÙ ? » si l'action a un paramètre, puis l'aperçu. */
 export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { readonly ancre: HTMLElement; readonly groupe: Groupe }) {
   const idDescription = useId();
-  const option = choisie(groupe, props.action);
+  const etape = etapeBulle(groupe, props.action, props.parametre);
   return (
     <BulleAncree
       ancre={ancre}
-      titre={filBulle(props.textes, groupe.cible, option)}
-      decrite={idDescription}
-      etape={`${groupe.cible.id}:${option?.action ?? ''}`}
-      retour={option === undefined ? undefined : () => props.choisirAction(null)}
+      titre={<Fil textes={props.textes} groupe={groupe} etape={etape} />}
+      decrite={etape.type === 'parametre' ? undefined : idDescription}
+      etape={cleEtape(groupe, etape)}
+      retour={retourDe(etape, props)}
       fermer={props.fermer}
-      pied={option === undefined ? undefined : <Confirmation occupe={props.occupe} confirmer={() => props.jouer(option)} annuler={props.fermer} />}
+      pied={etape.type === 'apercu' ? <Confirmation occupe={props.occupe} confirmer={() => props.jouer(etape.option)} annuler={props.fermer} /> : undefined}
     >
-      <Composer groupe={groupe} option={option} idDescription={idDescription} {...props} />
+      <Composer groupe={groupe} etape={etape} idDescription={idDescription} {...props} />
     </BulleAncree>
   );
 }
@@ -437,20 +484,20 @@ export function BulleInventaire({
   const idDescription = useId();
   const groupe = groupes.find((porte) => porte.cible.id === cible);
   if (groupe !== undefined) {
-    const option = choisie(groupe, props.action);
+    const etape = etapeBulle(groupe, props.action, props.parametre);
     return (
       <Bulle
         id={id}
         zone={zone}
         classe="bulle-inventaire"
-        titre={filBulle(props.textes, groupe.cible, option)}
-        decrite={idDescription}
-        etape={`${groupe.cible.id}:${option?.action ?? ''}`}
-        retour={option === undefined ? () => choisir(null) : () => props.choisirAction(null)}
+        titre={<Fil textes={props.textes} groupe={groupe} etape={etape} />}
+        decrite={etape.type === 'parametre' ? undefined : idDescription}
+        etape={cleEtape(groupe, etape)}
+        retour={retourDe(etape, props) ?? (() => choisir(null))}
         fermer={props.fermer}
-        pied={option === undefined ? undefined : <Confirmation occupe={props.occupe} confirmer={() => props.jouer(option)} annuler={props.fermer} />}
+        pied={etape.type === 'apercu' ? <Confirmation occupe={props.occupe} confirmer={() => props.jouer(etape.option)} annuler={props.fermer} /> : undefined}
       >
-        <Composer groupe={groupe} option={option} idDescription={idDescription} {...props} />
+        <Composer groupe={groupe} etape={etape} idDescription={idDescription} {...props} />
       </Bulle>
     );
   }
@@ -474,10 +521,13 @@ export function BulleInventaire({
   );
 }
 
-/** Étapes de la bulle (12 §3.5) : la fiche, gratuite, et une ligne par action ; puis l'aperçu de l'action choisie, sauf action d'un seul toucher. */
+/**
+ * Étapes de la bulle (12 §3.5) : la fiche, gratuite, et une ligne par action ; puis « OÙ ? », une ligne par paramètre jouable,
+ * si l'action en a ; puis l'aperçu de l'option choisie, sauf action d'un seul toucher.
+ */
 function Composer({
   groupe,
-  option,
+  etape,
   idDescription,
   textes,
   occupe,
@@ -486,9 +536,30 @@ function Composer({
   prevoir: voir,
   direct,
   choisirAction,
-}: PropsComposition & { readonly groupe: Groupe; readonly option: OptionMenu | undefined; readonly idDescription: string }) {
-  if (option !== undefined) return <ApercuAction apercu={voir(option)} idDescription={idDescription} />;
+  choisirParametre,
+}: PropsComposition & { readonly groupe: Groupe; readonly etape: Etape; readonly idDescription: string }) {
+  if (etape.type === 'apercu') return <ApercuAction apercu={voir(etape.option)} idDescription={idDescription} />;
+  if (etape.type === 'parametre') {
+    return (
+      <>
+        <h3 className="question">Où ?</h3>
+        <ul className="lignes">
+          {etape.options.map(({ parametre }) =>
+            parametre === undefined ? null : (
+              <li key={parametre.id}>
+                <button type="button" className="ligne" onClick={() => choisirParametre(parametre.id)}>
+                  <span aria-hidden="true">▸ </span>
+                  {nomParametre(textes, parametre)}
+                </button>
+              </li>
+            ),
+          )}
+        </ul>
+      </>
+    );
+  }
   const { fiche, actions } = composer(groupe);
+  const lignes = lignesActions(actions);
   return (
     <>
       {fiche !== undefined && (
@@ -498,9 +569,9 @@ function Composer({
           ))}
         </div>
       )}
-      {actions.length > 0 && (
+      {lignes.length > 0 && (
         <ul className="lignes">
-          {actions.map((action) => {
+          {lignes.map((action) => {
             const { raison } = libelleOption(textes, action);
             const verbe = textes.verbes[action.action];
             return (
@@ -629,7 +700,9 @@ function Recit({
   readonly fixe: boolean;
 }) {
   const { rappel } = jeu;
-  const blocs = [...(rappel === null ? [] : [`> ${rappel.texte}`]), ...jeu.recit];
+  // Paroles d'IA Station entre guillemets, après le récit, écrites comme lui (D-186).
+  const paroles = jeu.assistance.map((message) => `«\u00a0${message}\u00a0»`);
+  const blocs = [...(rappel === null ? [] : [`> ${rappel.texte}`]), ...jeu.recit, ...paroles];
   const delais = delaisEcriture(blocs);
   // Nouvelle clé à chaque nouveau texte : la copie écrite est recréée et son écriture repart de zéro.
   const numero = numeroDe(jeu);
@@ -663,6 +736,17 @@ function Recit({
           {copie(index + decalage)}
         </p>
       ))}
+      {paroles.length > 0 && (
+        <section className="parole-ia" aria-label="Parole d’IA Station" data-testid="ia-station">
+          <p className="etiquette-ia">[ IA STATION ]</p>
+          {paroles.map((parole, index) => (
+            <p key={index} className="citation-ia">
+              <span className="lecteur-seul">{parole}</span>
+              {copie(decalage + jeu.recit.length + index)}
+            </p>
+          ))}
+        </section>
+      )}
     </section>
   );
 }

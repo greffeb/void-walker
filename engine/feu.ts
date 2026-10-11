@@ -1,4 +1,4 @@
-import { autreCote, enFeu, liaisonsDe, refPiece, type EtatPartie } from './etat';
+import { autreCote, destinationConnue, enFeu, liaisonsDe, liaisonsVisibles, refPassage, refPiece, type EtatPartie } from './etat';
 import type { DefMonde } from './monde';
 import type { Evenement } from './vocabulaire';
 
@@ -32,8 +32,22 @@ export function actualiserFeu(monde: DefMonde, etat: EtatPartie): { etat: EtatPa
   // Les liaisons qui menaient à une pièce gagnée ne l'exposent plus : elle brûle.
   const expositions = exposees.filter((id) => !monde.liaisons.some((liaison) => liaison.id === id && liaison.entre.some((piece) => nouvelles.has(piece))));
   const suite: EtatPartie = { ...etat, feu, expositions };
-  const vues = feu.filter((piece) => nouvelles.has(piece) && voitLaPiece(monde, suite, piece));
-  return { etat: suite, evenements: vues.map((piece) => ({ type: 'feu_gagne', piece: refPiece(monde, piece) })), gagnees };
+  const evenements = feu.filter((piece) => nouvelles.has(piece)).flatMap((piece) => feuVu(monde, suite, piece));
+  return { etat: suite, evenements, gagnees };
+}
+
+/**
+ * Ce que le passager voit d'une pièce qui prend feu : la pièce nommée, la sienne ou une voisine par un passage ouvert dont il
+ * connaît la destination ; sinon les flammes derrière ce passage, sans nommer la pièce (C-06 OP-03).
+ */
+function feuVu(monde: DefMonde, etat: EtatPartie, piece: string): Evenement[] {
+  if (piece === etat.piece) return [{ type: 'feu_gagne', piece: refPiece(monde, piece) }];
+  const ouvertes = liaisonsVisibles(monde, etat, etat.piece).filter(
+    (liaison) => etat.liaisons[liaison.id] === true && autreCote(liaison, etat.piece) === piece,
+  );
+  if (ouvertes.some((liaison) => destinationConnue(etat, liaison))) return [{ type: 'feu_gagne', piece: refPiece(monde, piece) }];
+  const [par] = ouvertes;
+  return par === undefined ? [] : [{ type: 'feu_derriere', passage: refPassage(monde, etat, par, etat.piece) }];
 }
 
 /** Le passager voit une pièce : la sienne, ou une voisine par un passage ouvert. */

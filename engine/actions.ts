@@ -23,7 +23,7 @@ import {
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus, Sante, Savoir, SourceEvacuation } from './vocabulaire';
+import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
 
 export interface Contexte {
   readonly monde: DefMonde;
@@ -377,6 +377,13 @@ function pieceArrosee({ monde, etat }: Contexte, parametre: string): string {
   return autreCote(exiger(indexer(monde).liaisons.get(parametre), `Liaison inconnue : ${parametre}.`), etat.piece);
 }
 
+/** Foyer visé, tel que le passager le connaît : la pièce, ou le passage seul tant que sa destination est inconnue (C-06 OP-03). */
+function foyerVise({ monde }: Contexte, etat: EtatPartie, parametre: string): RefPiece | RefPassage {
+  const liaison = parametre === etat.piece ? undefined : indexer(monde).liaisons.get(parametre);
+  if (liaison === undefined || destinationConnue(etat, liaison)) return refPiece(monde, pieceArrosee({ monde, etat }, parametre));
+  return refPassage(monde, etat, liaison, etat.piece);
+}
+
 /** Une dose d'extinction adaptée éteint le foyer visé (C-02 §5, AR-01 P-B pas 5). */
 const arroser: ActionEngagee = {
   id: 'arroser',
@@ -386,21 +393,19 @@ const arroser: ActionEngagee = {
   verifier: (contexte, cible) => verifierRecipient(contexte, cible, 'extinction'),
   prevoir: (contexte, cible, parametre) => ({
     ...SANS_DANGER,
-    savoir: [
-      { type: 'eteindra', piece: refPiece(contexte.monde, pieceArrosee(contexte, exiger(parametre, 'Foyer absent.'))) },
-      ...savoirDose(contexte, cible),
-    ],
+    savoir: [{ type: 'eteindra', piece: foyerVise(contexte, contexte.etat, exiger(parametre, 'Foyer absent.')) }, ...savoirDose(contexte, cible)],
   }),
   appliquer: (contexte, cible, _des, parametre) => {
     const { monde, etat } = contexte;
-    const piece = pieceArrosee(contexte, exiger(parametre, 'Foyer absent.'));
+    const vise = exiger(parametre, 'Foyer absent.');
+    const piece = pieceArrosee(contexte, vise);
     const suivant: EtatPartie = {
       ...etat,
       doses: { ...etat.doses, [cible]: (etat.doses[cible] ?? 0) - 1 },
       feu: etat.feu.filter((brule) => brule !== piece),
       expositions: etat.expositions.filter((id) => !indexer(monde).liaisons.get(id)?.entre.includes(piece)),
     };
-    return { etat: suivant, evenements: [{ type: 'feu_eteint', piece: refPiece(monde, piece) }] };
+    return { etat: suivant, evenements: [{ type: 'feu_eteint', piece: foyerVise(contexte, suivant, vise) }] };
   },
 };
 

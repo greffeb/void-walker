@@ -1,4 +1,5 @@
 import {
+  apercu,
   idPublic,
   jouer,
   nouvellePartie,
@@ -9,7 +10,7 @@ import {
   type OptionMenu,
   type Partie,
 } from '../engine';
-import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
+import { libelleOption, MONDES, raconter, rendreApercu, rendreObservation, type EntreeMonde, type EtapeParcours } from '../content';
 import { trouverOption } from './rejouer-parcours';
 
 // Cas négatifs d'AR-01 (docs/08-aventure-reference.md §10) et contrats C-02, C-06, C-09, joués par le menu public depuis une
@@ -237,6 +238,50 @@ describe('AR-01 : ce que sait le passager (C-06)', () => {
     expect(passage(local, 'grille')).toMatchObject([{ vers: { nom: 'atelier' } }]);
     const retour = engager(local, { action: 'aller', cible: 'grille', vers: 'atelier' }).partie;
     expect(passage(retour, 'grille')).toMatchObject([{ vers: { nom: 'energie' } }]);
+  });
+
+  it('feu derrière la grille jamais franchie : aucun texte ne nomme le local énergie (OP-03, NP-05)', () => {
+    const ouverte = apres(depart(), [
+      { action: 'aller', cible: 'porte', vers: 'atelier' },
+      { action: 'prendre', cible: 'bidon' },
+      { action: 'deplacer', cible: 'caisse', parametre: 'sous_grille' },
+      { action: 'ouvrir', cible: 'grille' },
+    ]);
+    // Placé à la main : la cloison entre la galerie en feu et le local énergie, ouverte depuis une fin d'action.
+    const exposee: Partie = {
+      ...ouverte,
+      etat: { ...ouverte.etat, liaisons: { ...ouverte.etat.liaisons, 'l-galerie-energie': true }, expositions: ['l-galerie-energie'] },
+    };
+    const textes: string[] = [];
+    const lire = (partie: Partie): void => {
+      const observation = observer(MONDE, partie.etat);
+      textes.push(...rendreObservation(ENTREE.textes, observation));
+      for (const option of observation.menu) {
+        const { libelle, raison } = libelleOption(ENTREE.textes, option);
+        textes.push(libelle, raison ?? '');
+        const resultat = option.disponible ? apercu(MONDE, partie, option.commande) : null;
+        if (resultat?.type === 'apercu') textes.push(...Object.values(rendreApercu(ENTREE.textes, resultat.apercu)).flat().map(String));
+        const lu = jouer(MONDE, partie, option.commande);
+        if (lu.type === 'consultation') textes.push(...raconter(ENTREE.textes, lu));
+      }
+    };
+    const gagne = jouer(MONDE, exposee, (choix(exposee, { action: 'prendre', cible: 'burette' }) as OptionMenu).commande);
+    if (gagne.type !== 'engagee') throw new Error('Prendre la burette non engagé.');
+    expect(gagne.partie.etat.feu).toContain('p-energie');
+    expect(gagne.evenements.filter((evenement) => evenement.type.startsWith('feu'))).toEqual([
+      { type: 'feu_derriere', passage: expect.objectContaining({ nom: 'grille', vers: null }) },
+    ]);
+    textes.push(...raconter(ENTREE.textes, gagne));
+    lire(gagne.partie);
+    const arroser = observer(MONDE, gagne.partie.etat).menu.find((option) => option.action === 'arroser' && option.parametre?.nom === 'grille');
+    if (arroser === undefined) throw new Error('Arroser par la grille absent.');
+    const eteint = jouer(MONDE, gagne.partie, arroser.commande);
+    if (eteint.type !== 'engagee') throw new Error('Arroser non engagé.');
+    expect(eteint.partie.etat.feu).not.toContain('p-energie');
+    textes.push(...raconter(ENTREE.textes, eteint));
+    lire(eteint.partie);
+    expect(textes.join('\n')).toContain('grille');
+    expect(textes.filter((texte) => /énergie/i.test(texte))).toEqual([]);
   });
 });
 

@@ -167,11 +167,12 @@ export type Evenement =
   | { readonly type: 'soin_indemne'; readonly objet: RefObjet }
   | { readonly type: 'soin_blesse'; readonly objet: RefObjet }
   | { readonly type: 'objet_deplace'; readonly objet: RefObjet; readonly position: RefPosition }
-  /** Le passager voit des flammes par le passage qu'il vient d'ouvrir. */
+  /** Le passager voit des flammes par le passage qu'il vient d'ouvrir, ou par un passage ouvert dont il ignore la destination. */
   | { readonly type: 'feu_derriere'; readonly passage: RefPassage }
-  /** Le feu gagne une pièce que le passager voit : la sienne, ou une voisine par un passage ouvert (C-03 §5.3). */
+  /** Le feu gagne une pièce que le passager voit et sait nommer : la sienne, ou une voisine par un passage ouvert (C-03 §5.3). */
   | { readonly type: 'feu_gagne'; readonly piece: RefPiece }
-  | { readonly type: 'feu_eteint'; readonly piece: RefPiece }
+  /** Foyer éteint : la pièce, ou le passage seul tant que sa destination est inconnue (C-06 OP-03). */
+  | { readonly type: 'feu_eteint'; readonly piece: RefPiece | RefPassage }
   | { readonly type: 'huile_versee'; readonly objet: RefObjet; readonly passage: RefPassage }
   /** La créature glisse sous les yeux du passager, au pied du passage qu'elle franchissait (C-03 §5.2). */
   | { readonly type: 'creature_glisse'; readonly passage: RefPassage }
@@ -244,7 +245,8 @@ export type Savoir =
   /** Dernière dose : le soin restera vide. */
   | { readonly type: 'videra'; readonly objet: RefObjet }
   | { readonly type: 'deplacera'; readonly objet: RefObjet; readonly position: RefPosition }
-  | { readonly type: 'eteindra'; readonly piece: RefPiece }
+  /** La pièce, ou le passage seul tant que sa destination est inconnue (C-06 OP-03). */
+  | { readonly type: 'eteindra'; readonly piece: RefPiece | RefPassage }
   | { readonly type: 'huilera'; readonly passage: RefPassage }
   /** L'avertisseur sonnera dans sa pièce, le temps de son cycle (C-03 §5.1). */
   | { readonly type: 'sonnera'; readonly piece: RefPiece }

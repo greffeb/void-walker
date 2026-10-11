@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
-import { MONDES, type EntreeMonde } from '../content';
+import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App } from './App';
 import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
 import { composerDock, unToucher, type Groupe } from './ecran';
@@ -65,17 +65,19 @@ async function apres(...actions: string[]): Promise<Jeu> {
 
 const rienAJouer = (): void => undefined;
 
-function composition(jeu: Jeu, action: IdAction | null) {
+function composition(jeu: Jeu, action: IdAction | null, parametre: string | null = null, entree: Environnement = env) {
   return {
-    textes,
+    textes: entree.textes,
     occupe: false,
     jouer: rienAJouer,
-    lire: (option: OptionMenu) => consulter(env, jeu.partie, option),
-    prevoir: (option: OptionMenu) => prevoir(env, jeu.partie, option),
-    direct: (option: OptionMenu) => unToucher(monde, jeu.partie, option),
+    lire: (option: OptionMenu) => consulter(entree, jeu.partie, option),
+    prevoir: (option: OptionMenu) => prevoir(entree, jeu.partie, option),
+    direct: (option: OptionMenu) => unToucher(entree.monde, jeu.partie, option),
     fermer: rienAJouer,
     action,
     choisirAction: rienAJouer,
+    parametre,
+    choisirParametre: rienAJouer,
   };
 }
 
@@ -408,5 +410,149 @@ describe('effet machine à écrire sur le nouveau texte (D-186)', () => {
     expect(entre(rendre(jeu), '<section class="recit', '>')).toBe('<section class="recit" data-testid="recit" aria-live="polite" tabindex="-1">');
     const suivant = await jouerOption(env, jeu, observer(monde, jeu.partie.etat).menu.find((option) => option.action === 'ouvrir') as OptionMenu);
     expect(entre(rendre(suivant), '<section class="recit', '>')).toContain('class="recit ecrire"');
+  });
+});
+
+describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA Station, évacuation (#103)', () => {
+  const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_C = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes ?? [];
+  const envAr01: Environnement = { monde: ar01.monde, textes: ar01.textes, version: 'v-test', stockage: memoire(), graine: () => 20261010 };
+
+  /** Option du menu désignée comme dans un parcours : nom de la cible, destination, nom du paramètre. */
+  function optionAr01(jeu: Jeu, etape: EtapeParcours): OptionMenu {
+    const nomParam = (parametre: OptionMenu['parametre']): string | undefined => (parametre?.sorte === 'passage' ? parametre.vers?.nom : parametre?.nom);
+    const option = observer(ar01.monde, jeu.partie.etat).menu.find(
+      (choix) =>
+        choix.action === etape.action &&
+        choix.cible.nom === etape.cible &&
+        (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+        (etape.parametre === undefined || nomParam(choix.parametre) === etape.parametre),
+    );
+    if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+    return option;
+  }
+
+  async function pc(nombre: number): Promise<Jeu> {
+    let jeu = await commencer(envAr01);
+    for (const etape of P_C.slice(0, nombre)) jeu = await jouerOption(envAr01, jeu, optionAr01(jeu, etape));
+    return jeu;
+  }
+
+  function rendreAr01(jeu: Jeu): string {
+    return renderToStaticMarkup(<EcranJeu jeu={jeu} env={envAr01} machineAEcrire occupe={false} choisir={rien} nouvellePartie={() => undefined} />);
+  }
+
+  function groupeAr01(jeu: Jeu, nom: string, zone: 'piece' | 'inventaire' = 'piece'): Groupe {
+    const groupe = composerDock(observer(ar01.monde, jeu.partie.etat))[zone].find((candidat) => candidat.cible.nom === nom);
+    if (groupe === undefined) throw new Error(`Puce ${nom} absente.`);
+    return groupe;
+  }
+
+  function bulleAr01(jeu: Jeu, nom: string, action: IdAction | null, parametre: string | null = null): string {
+    return renderToStaticMarkup(<BulleObjet ancre={{} as HTMLElement} groupe={groupeAr01(jeu, nom)} {...composition(jeu, action, parametre, envAr01)} />);
+  }
+
+  const dockDe = (html: string): string => entre(html, '<section class="dock"', '</section>');
+
+  it('caisse : actions, puis « OÙ ? » et ses positions, puis l’aperçu avec le paramètre dans le fil (12 §3.5, §4.6)', async () => {
+    const jeu = await pc(2);
+    const caisse = groupeAr01(jeu, 'caisse');
+    const fiche = texte(bulleAr01(jeu, 'caisse', null));
+    expect(fiche).toMatch(/^Caisse ✕ .* ▸ Déplacer$/);
+    expect(fiche.match(/Déplacer/g)).toHaveLength(1);
+
+    const ou = bulleAr01(jeu, 'caisse', 'deplacer');
+    expect(texte(ou)).toBe('‹ Caisse › Déplacer ✕ Où ? ▸ sous la grille');
+    expect(ou).toContain('<h3 class="question">Où ?</h3>');
+    expect(ou).toContain('aria-label="Étape précédente"');
+    expect(ou).not.toContain('aria-describedby');
+    expect(ou).not.toContain('Confirmer');
+
+    const sous = caisse.options.find((option) => option.parametre?.nom === 'sous_grille');
+    if (sous?.parametre === undefined) throw new Error('Position sous la grille absente.');
+    const apercu = bulleAr01(jeu, 'caisse', 'deplacer', sous.parametre.id);
+    expect(texte(apercu)).toBe('‹ Caisse › Déplacer › sous la grille ✕ Savoir La caisse sera sous la grille. Annuler Confirmer');
+    expect(apercu).toContain('Caisse › Déplacer<span class="fil-parametre"> › sous la grille</span></h2>');
+    // Paramètre qui n'est plus jouable : retour à la fiche.
+    expect(texte(bulleAr01(jeu, 'caisse', 'deplacer', 'inconnu'))).toBe(fiche);
+  });
+
+  it('inventaire : verser la burette passe aussi par « OÙ ? » ; vide, « Verser » n’apparaît qu’une fois, avec sa raison', async () => {
+    const local = await pc(5);
+    const burette = groupeAr01(local, 'burette', 'inventaire');
+    const inventaire = (jeu: Jeu, action: IdAction | null, parametre: string | null = null): string =>
+      renderToStaticMarkup(
+        <BulleInventaire
+          id="inventaire"
+          groupes={composerDock(observer(ar01.monde, jeu.partie.etat)).inventaire}
+          cible={burette.cible.id}
+          choisir={rienAJouer}
+          {...composition(jeu, action, parametre, envAr01)}
+        />,
+      );
+    const ou = texte(inventaire(local, 'verser'));
+    expect(ou).toMatch(/^‹ Burette d’huile › Verser ✕ Où \? (▸ [^▸]+ )*▸ Cloison de la salle d’observation( ▸ [^▸]+)*$/);
+    const cloison = burette.options.find((option) => option.parametre?.sorte === 'passage' && option.parametre.vers?.nom === 'observation');
+    if (cloison?.parametre === undefined) throw new Error('Cloison de l’observation absente.');
+    expect(texte(inventaire(local, 'verser', cloison.parametre.id))).toMatch(
+      /^‹ Burette d’huile › Verser › Cloison de la salle d’observation ✕ Savoir Le sol sera glissant au pied de la cloison de la salle d’observation/,
+    );
+
+    const vide = await jouerOption(envAr01, local, cloison);
+    const fiche = inventaire(vide, null);
+    expect(fiche.match(/class="ligne indisponible"/g)).toHaveLength(1);
+    expect(texte(fiche)).toMatch(/⊘ Verser La burette d’huile est vide\.$/);
+    expect(texte(inventaire(vide, 'verser'))).toBe(texte(fiche));
+  });
+
+  it('grille sans signalétique : une puce tant qu’elle est fermée ; ouverte, « → GRILLE » ; franchie, sa destination (D-147)', async () => {
+    const atelier = dockDe(rendreAr01(await pc(1)));
+    expect(texte(atelier)).toContain('▸ Grille');
+    expect(texte(entre(atelier, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit');
+    const ouverte = dockDe(rendreAr01(await pc(4)));
+    expect(texte(entre(ouverte, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit → grille');
+    const local = dockDe(rendreAr01(await pc(5)));
+    expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).toContain('→ atelier de service');
+    expect(local).not.toMatch(/→ grille/);
+  });
+
+  it('bloc en main : « → atelier » par la grille reste visible, indisponible, avec sa raison', async () => {
+    const charge = dockDe(rendreAr01(await pc(7)));
+    const grille = entre(charge, '<button type="button" class="deplacement indisponible" aria-disabled="true" aria-label="atelier de service', '</button>');
+    const raison = 'Ce que vous portez est trop large pour la grille de l’atelier de service.';
+    expect(grille).toContain(`aria-label="atelier de service, indisponible : ${raison}"`);
+    expect(texte(grille)).toBe(`⊘ atelier de service ${raison}`);
+  });
+
+  it('IA Station : au réveil puis à l’arrivée au local énergie, encadrée après le récit, écrite comme lui ; rien à l’action suivante', async () => {
+    const reveil = await commencer(envAr01);
+    expect(reveil.assistance).toEqual([ar01.textes.assistance.reveil]);
+    const recit = entre(rendreAr01(reveil), '<section class="recit', '</section></section>');
+    const ia = entre(recit, '<section class="parole-ia"', '</section>');
+    expect(ia).toMatch(/^<section class="parole-ia" aria-label="Parole d’IA Station" data-testid="ia-station"><p class="etiquette-ia">\[ IA STATION \]<\/p><p class="citation-ia">/);
+    expect(lu(recit)).toBe([...reveil.recit, `«\u00a0${ar01.textes.assistance.reveil ?? ''}\u00a0»`].join(' | '));
+    expect(vu(recit).at(-1)).toBe(`«\u00a0${ar01.textes.assistance.reveil ?? ''}\u00a0»`);
+    expect(recit.match(/class="curseur"/g)).toHaveLength(1);
+    expect(ia).toContain('class="curseur"');
+
+    const arrivee = await pc(5);
+    expect(arrivee.rappel).toEqual({ texte: 'Aller vers · local énergie', capitales: true });
+    expect(arrivee.assistance).toEqual([ar01.textes.assistance.energie]);
+    expect(lu(entre(rendreAr01(arrivee), '<section class="recit', '</section></section>'))).toContain(`«\u00a0${ar01.textes.assistance.energie ?? ''}\u00a0»`);
+    expect((await pc(6)).assistance).toEqual([]);
+    expect(rendreAr01(await pc(6))).not.toContain('parole-ia');
+  });
+
+  it('évacuation : quinze actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
+    const fin = await pc(P_C.length);
+    expect(fin.partie.etat.actions).toBe(15);
+    const html = rendreAr01(fin);
+    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe('La capsule s’est détachée. Vous avez quitté la station. Nouvelle partie');
+    expect(html).not.toContain('Cette partie est terminée');
+    expect(html).not.toContain('class="puce"');
+    expect(html).not.toContain('class="deplacements"');
+    expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
+    expect(entre(html, '<header', '</header>')).toContain('<h1 class="titre-piece">cabine de la capsule</h1>');
+    expect(fin.assistance).toEqual([ar01.textes.assistance.depart]);
   });
 });

@@ -1,10 +1,10 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium, devices, type Locator, type Page } from 'playwright';
+import { chromium, devices, type Browser, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
-import { libelleOption, MONDES, nomDe, type EntreeMonde } from '../content';
-import { composerDock, filBulle, nomDestination, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
+import { libelleOption, MONDES, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
+import { composerDock, filBulle, nomDestination, nomParametre, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
@@ -18,6 +18,8 @@ const REFERENCE = { width: 390, height: 844 };
 const ETROIT = { width: 320, height: 568 };
 
 export interface EtapeCapture {
+  /** Partie du commentaire : parcours du monde de test, ou AR-01. */
+  readonly suite: 'monde-test' | 'ar-01';
   readonly titre: string;
   readonly image: string;
   readonly recit: string;
@@ -32,7 +34,9 @@ export interface Geste {
   readonly bouton: string;
   /** Action de la bulle ouverte sur la puce ; `null` pour un déplacement. */
   readonly verbe: string | null;
-  /** Fil de la bulle d'aperçu : « Carnet › Prendre », « Aller vers › atelier ». */
+  /** Ligne choisie à l'étape « OÙ ? », telle qu'affichée ; `null` pour une action sans paramètre (12 §3.5). */
+  readonly parametre: string | null;
+  /** Fil de la bulle d'aperçu : « Carnet › Prendre », « Caisse › Déplacer › sous la grille », « Aller vers › atelier ». */
   readonly fil: string;
   readonly rappel: string;
   /** Nom de la cible ou de la destination, attendu dans le récit (NP-04). */
@@ -56,17 +60,23 @@ function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Ob
   const direct = unToucher(monde, partie, option);
   if (dock.deplacements.includes(option)) {
     const destination = nomDestination(textes, option);
-    return { titre, zone: 'deplacement', bouton: destination, verbe: null, fil, rappel, nom: destination, commande, direct };
+    // Le rappel et le récit nomment la pièce d'arrivée, même par un passage dont la destination était inconnue (D-147).
+    const resultat = jouer(monde, partie, commande);
+    const arrivee = resultat.type === 'engagee' ? observer(monde, resultat.partie.etat).piece : undefined;
+    const rappelArrivee = arrivee === undefined ? rappel : texteRappel(textes, { type: 'deplacement', vers: arrivee }).texte;
+    const nom = arrivee === undefined ? destination : nomDe(textes, arrivee).texte;
+    return { titre, zone: 'deplacement', bouton: destination, verbe: null, parametre: null, fil, rappel: rappelArrivee, nom, commande, direct };
   }
   const zone = dock.piece.some((groupe) => groupe.options.includes(option)) ? 'piece' : 'inventaire';
   const nom = nomDe(textes, option.cible).texte;
-  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], fil, rappel, nom, commande, direct };
+  const parametre = option.parametre === undefined ? null : nomParametre(textes, option.parametre);
+  return { titre, zone, bouton: nomPuce(textes, option.cible), verbe: textes.verbes[option.action], parametre, fil, rappel, nom, commande, direct };
 }
 
-/** Gestes du parcours témoin, calculés par le moteur, les textes et le rangement de l'écran : ils ne dépendent pas de la graine. */
-export function gestesDuParcours(entree: EntreeMonde): Geste[] {
+/** Gestes d'un parcours témoin, calculés par le moteur, les textes et le rangement de l'écran : ils ne dépendent pas de la graine. */
+export function gestesDuParcours(entree: EntreeMonde, etapes: readonly EtapeParcours[] = entree.parcours[0]?.etapes ?? []): Geste[] {
   let partie: Partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
-  return (entree.parcours[0]?.etapes ?? []).map((etape) => {
+  return etapes.map((etape) => {
     const observation = observer(entree.monde, partie.etat);
     const option = trouverOption(observation, etape);
     if (option === undefined) throw new Error(`Étape introuvable : ${etape.action} ${etape.cible}.`);
@@ -153,8 +163,18 @@ async function ouvrir(page: Page, geste: Geste): Promise<void> {
   } else {
     const nom = geste.zone === 'deplacement' && geste.direct ? `${geste.bouton}${SANS_CONFIRMATION}` : geste.bouton;
     if (geste.zone === 'deplacement' && geste.direct) await page.waitForTimeout(PAUSE_JOUEUR_MS);
-    await page.locator('.dock').getByRole('button', { name: exactement(nom) }).click();
+    await zoneDuDock(page, geste).getByRole('button', { name: exactement(nom) }).click();
   }
+}
+
+/** Puces de la pièce ou boutons « Se déplacer vers » : la puce « Grille » et le bouton « → grille » portent le même nom (D-147). */
+function zoneDuDock(page: Page, geste: Geste): Locator {
+  return page.locator(geste.zone === 'deplacement' ? '.dock .deplacements' : '.dock .puces');
+}
+
+/** Fil de l'étape « OÙ ? » : la puce et l'action, sans paramètre (« Caisse › Déplacer »). */
+function filQuestion(geste: Geste): string {
+  return `${geste.bouton} › ${geste.verbe ?? ''}`;
 }
 
 /** Joue un geste d'un seul toucher depuis sa bulle ouverte : la ligne de l'action, sans aperçu (D-182). */
@@ -164,13 +184,25 @@ async function toucherLigne(page: Page, geste: Geste): Promise<void> {
   await page.getByRole('dialog', { name: exactement(geste.bouton) }).getByRole('button', { name: exactement(`${geste.verbe}${SANS_CONFIRMATION}`) }).click();
 }
 
-/** Choisit l'action dans la fiche s'il le faut ; renvoie CONFIRMER de l'aperçu (12 §3.8). */
+/** Choisit l'action dans la fiche s'il le faut, puis le paramètre à l'étape « OÙ ? » ; renvoie CONFIRMER de l'aperçu (12 §3.5, §3.8). */
 async function versApercu(page: Page, geste: Geste): Promise<Locator> {
-  if (geste.verbe !== null) {
-    // Dans les lignes d'action seulement : « Fermer » est aussi le nom du « ✕ » de la bulle.
-    await page.getByRole('dialog', { name: exactement(geste.bouton) }).locator('.lignes').getByRole('button', { name: exactement(geste.verbe) }).click();
+  await versQuestion(page, geste);
+  return versConfirmer(page, geste);
+}
+
+/** Depuis l'étape « OÙ ? » s'il y en a une : touche le paramètre ; renvoie CONFIRMER de l'aperçu. */
+async function versConfirmer(page: Page, geste: Geste): Promise<Locator> {
+  if (geste.parametre !== null) {
+    await page.getByRole('dialog', { name: exactement(filQuestion(geste)) }).locator('.lignes').getByRole('button', { name: exactement(geste.parametre) }).click();
   }
   return page.getByRole('dialog', { name: exactement(geste.fil) }).getByRole('button', { name: exactement('Confirmer') });
+}
+
+/** Touche la ligne de l'action dans la fiche ouverte : l'aperçu, ou l'étape « OÙ ? » si l'action a un paramètre. */
+async function versQuestion(page: Page, geste: Geste): Promise<void> {
+  if (geste.verbe === null) return;
+  // Dans les lignes d'action seulement : « Fermer » est aussi le nom du « ✕ » de la bulle.
+  await page.getByRole('dialog', { name: exactement(geste.bouton) }).locator('.lignes').getByRole('button', { name: exactement(geste.verbe) }).click();
 }
 
 async function preparer(page: Page, geste: Geste): Promise<Locator> {
@@ -481,23 +513,180 @@ async function policesChargees(page: Page): Promise<string[]> {
   });
 }
 
-function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[], installable: string, horsLigne: string): string {
-  const adresse = process.env.VERSION_URL ?? '';
+type CapturerPage = (page: Page, titre: string, animations?: 'disabled' | 'allow') => Promise<EtapeCapture>;
+
+/** Parole d'IA Station : dans son encadré, dernier bloc du récit, étiquetée, porteuse du seul curseur (12 §4.2, D-186). */
+async function verifierParole(page: Page, attendue: string | undefined, ou: string, erreurs: string[]): Promise<void> {
+  if (attendue === undefined) {
+    erreurs.push(`${ou} : aucun texte d’IA Station à attendre.`);
+    return;
+  }
+  const encadre = page.getByTestId('ia-station');
+  if ((await encadre.count()) !== 1) {
+    erreurs.push(`${ou} : encadré d’IA Station absent.`);
+    return;
+  }
+  const lue = (await encadre.locator('.citation-ia .lecteur-seul').allTextContents()).join('\n');
+  if (lue !== `«\u00a0${attendue}\u00a0»`) erreurs.push(`${ou} : IA Station lue « ${lue} » au lieu de « ${attendue} » entre guillemets.`);
+  if (((await encadre.locator('.etiquette-ia').textContent()) ?? '').trim() !== '[ IA STATION ]') erreurs.push(`${ou} : étiquette « [ IA STATION ] » absente.`);
+  const place = await page.evaluate(() => {
+    const recit = document.querySelector('[data-testid="recit"]');
+    const dernier = recit?.lastElementChild;
+    return {
+      apresRecit: dernier instanceof HTMLElement && dernier.dataset.testid === 'ia-station',
+      curseurs: document.querySelectorAll('.curseur').length,
+      dansEncadre: document.querySelector('[data-testid="ia-station"] .curseur') !== null,
+    };
+  });
+  if (!place.apresRecit) erreurs.push(`${ou} : l’encadré d’IA Station n’est pas après le récit.`);
+  if (place.curseurs !== 1 || !place.dansEncadre) erreurs.push(`${ou} : ${place.curseurs} curseur(s), ${place.dansEncadre ? 'dans' : 'hors de'} l’encadré.`);
+}
+
+/** Commande enregistrée par le dernier geste : exactement celle du menu moteur (C-01 A-05). */
+async function verifierCommande(page: Page, geste: Geste, ou: string, erreurs: string[]): Promise<void> {
+  const journal = (JSON.parse(await partieEnregistree(page)) as { enregistrement: { actions: { commande: Commande }[] } }).enregistrement.actions;
+  if (JSON.stringify(journal.at(-1)?.commande) !== JSON.stringify(geste.commande)) {
+    erreurs.push(`${ou} : enregistré ${JSON.stringify(journal.at(-1)?.commande)} au lieu de ${JSON.stringify(geste.commande)}.`);
+  }
+}
+
+/**
+ * AR-01 depuis l'adresse par défaut : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
+ * la parole d'IA Station (12 §4.2) et la fin par évacuation ; puis l'étape « OÙ ? » à 320 px de large.
+ */
+async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const etapes = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes;
+  if (etapes === undefined) {
+    erreurs.push('Parcours P-C absent d’AR-01.');
+    return;
+  }
+  const gestes = gestesDuParcours(ar01, etapes);
+  const { assistance, observation: phrases } = ar01.textes;
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await contexte.newPage();
+  await page.goto(adresse);
+  await attendreSauvegarde(page, 0);
+  const depart = nomDe(ar01.textes, observer(ar01.monde, nouvellePartie(ar01.monde, { version: 'gestes', graine: 0 }).etat).piece).texte;
+  const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim();
+  if (piece !== depart) erreurs.push(`Adresse par défaut : pièce « ${piece} » au lieu de « ${depart} », le départ d’AR-01.`);
+  await verifierParole(page, assistance.reveil, 'Départ', erreurs);
+  await capturer(page, 'AR-01 — Départ : parole d’IA Station');
+  await verifierEcran(page, 'AR-01, départ', erreurs);
+
+  for (const [index, geste] of gestes.entries()) {
+    const ou = `Étape ${index + 1}, ${geste.titre}`;
+    const etape = etapes[index];
+    await ouvrir(page, geste);
+    if (geste.direct) {
+      await toucherLigne(page, geste);
+    } else {
+      if (geste.parametre !== null) {
+        await versQuestion(page, geste);
+        const question = page.getByRole('dialog', { name: exactement(filQuestion(geste)) });
+        await question.waitFor();
+        if (!(await question.getByRole('heading', { name: exactement('Où ?') }).isVisible())) erreurs.push(`${ou} : « OÙ ? » absent.`);
+        // « ‹ » ramène aux actions ; on revient à « OÙ ? ».
+        await question.getByRole('button', { name: exactement('Étape précédente') }).click();
+        await page
+          .getByRole('dialog', { name: exactement(geste.bouton) })
+          .waitFor({ timeout: 5_000 })
+          .catch(() => erreurs.push(`${ou} : « ‹ » ne ramène pas de « OÙ ? » aux actions.`));
+        await versQuestion(page, geste);
+        await question.waitFor();
+        if (geste.zone === 'piece') {
+          const titre = `AR-01 — Bulle « ${geste.bouton} », étape « OÙ ? »`;
+          await capturer(page, titre);
+          await verifierEcran(page, titre, erreurs);
+          await verifierDansEcran(page, titre, erreurs);
+        }
+      }
+      let confirmer = geste.parametre === null ? await versApercu(page, geste) : await versConfirmer(page, geste);
+      await confirmer.waitFor();
+      if (geste.parametre !== null) {
+        // « ‹ » ramène de l'aperçu à « OÙ ? ».
+        await page.getByRole('dialog', { name: exactement(geste.fil) }).getByRole('button', { name: exactement('Étape précédente') }).click();
+        await page
+          .getByRole('dialog', { name: exactement(filQuestion(geste)) })
+          .waitFor({ timeout: 5_000 })
+          .catch(() => erreurs.push(`${ou} : « ‹ » ne ramène pas de l’aperçu à « OÙ ? ».`));
+        confirmer = await versConfirmer(page, geste);
+        await confirmer.waitFor();
+        if (geste.zone === 'inventaire') {
+          const titre = `AR-01 — Aperçu « ${geste.fil} »`;
+          await capturer(page, titre);
+          await verifierEcran(page, titre, erreurs);
+          await verifierDansEcran(page, titre, erreurs);
+        }
+      }
+      await confirmer.click();
+    }
+    await attendreSauvegarde(page, index + 1);
+    if (geste.direct && (await page.getByRole('dialog').count()) > 0) erreurs.push(`${ou} : une bulle reste ouverte après un seul toucher.`);
+    await verifierCommande(page, geste, ou, erreurs);
+    await verifierNoms(page, { ...geste, titre: ou }, erreurs);
+    if (index === gestes.length - 1) break;
+    await verifierEcran(page, ou, erreurs);
+    const arrivee = geste.zone === 'deplacement' && geste.bouton !== geste.nom;
+    if (arrivee) {
+      // Passage sans signalétique franchi : la pièce d'arrivée est nommée, IA Station parle (D-147).
+      await verifierParole(page, assistance.energie, ou, erreurs);
+      await capturer(page, `AR-01 — Par « → ${geste.bouton} » : « ${geste.rappel} », parole d’IA Station`);
+    } else if ((await page.getByTestId('ia-station').count()) > 0) {
+      erreurs.push(`${ou} : encadré d’IA Station affiché sans parole nouvelle.`);
+    }
+    if (etape?.action === 'ouvrir' && etape.cible === 'cloison' && etape.vers === 'observation') {
+      const situation = (await lire(page)).situation;
+      if (!situation.includes(phrases.creatureATerre)) erreurs.push(`${ou} : « ${phrases.creatureATerre} » absent de la situation.`);
+      await capturer(page, `AR-01 — ${geste.titre} : créature à terre`);
+    }
+    if (etape?.action === 'installer') await capturer(page, `AR-01 — ${geste.titre}`);
+  }
+
+  // Fin par évacuation : quinze actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock.
+  const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
+  if (actions !== '15') erreurs.push(`Fin : ${actions ?? '?'} actions au lieu de 15.`);
+  const fin = page.locator('.dock.fin-partie');
+  if (!((await fin.innerText()).includes(phrases.evacuee))) erreurs.push(`Fin : « ${phrases.evacuee} » absent.`);
+  if (!(await fin.getByRole('button', { name: exactement('Nouvelle partie') }).isVisible())) erreurs.push('Fin : NOUVELLE PARTIE absent.');
+  if ((await page.locator('.dock .puce, .dock .deplacements').count()) > 0) erreurs.push('Fin : le dock de la pièce est encore là.');
+  if (await page.locator('.navigation').isVisible()) erreurs.push('Fin : INVENTAIRE est encore proposé.');
+  await verifierParole(page, assistance.depart, 'Fin', erreurs);
+  await capturer(page, `AR-01 — Fin : « ${phrases.evacuee} », NOUVELLE PARTIE`);
+  await verifierEcran(page, 'AR-01, fin', erreurs);
+  await contexte.close();
+
+  // Étape « OÙ ? » à 320 px de large.
+  const caisse = gestes.findIndex((geste) => geste.zone === 'piece' && geste.parametre !== null);
+  const question = gestes[caisse];
+  if (question === undefined) {
+    erreurs.push('Aucun geste à paramètre dans la pièce pour l’essai à 320 px.');
+    return;
+  }
+  const etroit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
+  const petite = await etroit.newPage();
+  await petite.goto(adresse);
+  await attendreSauvegarde(petite, 0);
+  await rejouer(petite, gestes.slice(0, caisse));
+  await ouvrir(petite, question);
+  await versQuestion(petite, question);
+  await petite.getByRole('dialog', { name: exactement(filQuestion(question)) }).waitFor();
+  const titre = `AR-01 — Bulle « ${question.bouton} », étape « OÙ ? », ${ETROIT.width} px de large`;
+  await capturer(petite, titre);
+  await verifierEcran(petite, titre, erreurs);
+  await verifierDansEcran(petite, titre, erreurs);
+  await etroit.close();
+}
+
+/** Une partie du commentaire : bilan, images, puis texte affiché à chaque étape. */
+function partieCommentaire(titre: string, etapes: readonly EtapeCapture[], erreurs: readonly string[], details: readonly string[]): string[] {
   const images = process.env.CAPTURES_URL ?? '';
   const commit = process.env.COMMIT ?? '';
   const suffixe = commit === '' ? '' : `?v=${commit.slice(0, 7)}`;
   const lignes = [
-    '<!-- void-walker:version-de-test -->',
-    '## Version de test',
+    `### ${titre}`,
     '',
-    adresse === '' ? 'Adresse : (publication locale)' : `**Adresse :** ${adresse}`,
-    commit === '' ? '' : `Commit \`${commit.slice(0, 7)}\``,
-    '',
-    `Captures d’un navigateur automatique sur téléphone simulé (${TELEPHONE}, ${REFERENCE.width} × ${REFERENCE.height} puis ${ETROIT.width} px de large). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.`,
-    '',
-    erreurs.length === 0 ? '**Parcours du monde de test : réussi.**' : `**Parcours du monde de test : ÉCHEC.**\n\n${erreurs.map((erreur) => `- ${erreur}`).join('\n')}`,
-    `Installation : ${installable}`,
-    `Hors ligne : ${horsLigne}`,
+    erreurs.length === 0 ? `**${titre} : réussi.**` : `**${titre} : ÉCHEC.**\n\n${erreurs.map((erreur) => `- ${erreur}`).join('\n')}`,
+    ...details,
     '',
     etapes.map((etape) => `<img src="${images}${etape.image}${suffixe}" width="200" alt="${etape.titre}">`).join(' '),
     '',
@@ -508,19 +697,50 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
     lignes.push(`#### ${etape.titre}`, '', ...etape.recit.split('\n').map((ligne) => `> ${ligne}`), '', '```text', etape.situation, '```', '');
   }
   lignes.push('</details>', '');
+  return lignes;
+}
+
+function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[], erreursAr01: readonly string[], installable: string, horsLigne: string): string {
+  const adresse = process.env.VERSION_URL ?? '';
+  const commit = process.env.COMMIT ?? '';
+  const lignes = [
+    '<!-- void-walker:version-de-test -->',
+    '## Version de test',
+    '',
+    adresse === '' ? 'Adresse : (publication locale)' : `**Adresse :** ${adresse}`,
+    commit === '' ? '' : `Commit \`${commit.slice(0, 7)}\``,
+    '',
+    `Captures d’un navigateur automatique sur téléphone simulé (${TELEPHONE}, ${REFERENCE.width} × ${REFERENCE.height} puis ${ETROIT.width} px de large). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.`,
+    '',
+    ...partieCommentaire(
+      'Parcours du monde de test',
+      etapes.filter((etape) => etape.suite === 'monde-test'),
+      erreurs,
+      ['Adresse : `?monde=monde-test`.', `Installation : ${installable}`, `Hors ligne : ${horsLigne}`],
+    ),
+    ...partieCommentaire(
+      'AR-01, parcours P-C',
+      etapes.filter((etape) => etape.suite === 'ar-01'),
+      erreursAr01,
+      ['Adresse par défaut, partie neuve, joué geste par geste.'],
+    ),
+  ];
   return lignes.join('\n');
 }
 
 export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
-  // Les captures suivent encore le parcours du monde de test ; leur passage à AR-01 relève de l'interface.
+  // Le parcours du monde de test se joue par `?monde=monde-test` ; AR-01, le monde par défaut, par l'adresse nue.
   const entree = MONDES['monde-test'];
-  if (entree === undefined) throw new Error('Monde de test absent.');
+  const ar01 = MONDES['ar-01'];
+  if (entree === undefined || ar01 === undefined) throw new Error('Monde de test ou AR-01 absent.');
   const gestes = gestesDuParcours(entree);
   rmSync(SORTIE, { recursive: true, force: true });
   mkdirSync(SORTIE, { recursive: true });
 
   const etapes: EtapeCapture[] = [];
   const erreurs: string[] = [];
+  const erreursAr01: string[] = [];
+  let suite: EtapeCapture['suite'] = 'monde-test';
   let installable = 'non vérifiée';
   let horsLigne = 'non vérifié';
   let serveur: Awaited<ReturnType<typeof preview>> | undefined;
@@ -528,19 +748,21 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   try {
     serveur = await preview({ configFile: join(REPO_ROOT, 'vite.config.ts'), logLevel: 'warn' });
     navigateur = await chromium.launch();
-    const adresse = serveur.resolvedUrls?.local[0];
-    if (adresse === undefined) throw new Error('Serveur de prévisualisation sans adresse.');
+    const racine = serveur.resolvedUrls?.local[0];
+    if (racine === undefined) throw new Error('Serveur de prévisualisation sans adresse.');
+    const adresse = `${racine}?monde=monde-test`;
     const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
     let page = await contexte.newPage();
 
     /** Par défaut, l'écriture à la machine est menée à son terme et le curseur montré allumé (D-186). */
-    const capturerEtape = async (titre: string, animations: 'disabled' | 'allow' = 'disabled'): Promise<EtapeCapture> => {
+    const capturerPage: CapturerPage = async (cible, titre, animations = 'disabled') => {
       const image = `${String(etapes.length + 1).padStart(2, '0')}.png`;
-      await page.screenshot({ path: join(SORTIE, image), fullPage: true, animations });
-      const etape = { titre, image, ...(await lire(page)) };
+      await cible.screenshot({ path: join(SORTIE, image), fullPage: true, animations });
+      const etape = { suite, titre, image, ...(await lire(cible)) };
       etapes.push(etape);
       return etape;
     };
+    const capturerEtape = (titre: string, animations: 'disabled' | 'allow' = 'disabled'): Promise<EtapeCapture> => capturerPage(page, titre, animations);
 
     await page.goto(adresse);
     await attendreSauvegarde(page, 0);
@@ -569,7 +791,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       if (geste.zone === 'deplacement') {
         // Le focus revient sur le bouton après chaque fermeture (12 §3.5).
         const avantFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
-        const bouton = page.locator('.dock').getByRole('button', { name: exactement(geste.bouton) });
+        const bouton = zoneDuDock(page, geste).getByRole('button', { name: exactement(geste.bouton) });
         await verifierFocusPiege(page, page.getByRole('dialog', { name: exactement(geste.fil) }), `Aperçu « ${geste.fil} »`, erreurs);
         for (const fermeture of FERMETURES) {
           if (fermeture !== FERMETURES[0]) await ouvrir(page, geste);
@@ -857,6 +1079,14 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await verifierEcran(page, titre, erreurs);
       await verifierDansEcran(page, titre, erreurs);
     }
+
+    // AR-01, monde par défaut : parcours P-C joué geste par geste depuis l'adresse nue, dans un contexte neuf.
+    suite = 'ar-01';
+    try {
+      await parcoursAr01(navigateur, racine, ar01, capturerPage, erreursAr01);
+    } catch (erreur) {
+      erreursAr01.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
   } catch (erreur) {
     erreurs.push(erreur instanceof Error ? erreur.message : String(erreur));
   } finally {
@@ -865,16 +1095,20 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT], installable, horsLigne, erreurs, etapes };
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT], installable, horsLigne, erreurs, erreursAr01, etapes };
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
-  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, installable, horsLigne));
-  return { etapes, erreurs };
+  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, installable, horsLigne));
+  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`)] };
 }
 
 if (isMainModule(import.meta.url)) {
   const { etapes, erreurs } = await capturer();
   for (const etape of etapes) console.log(`[${etape.image}] ${etape.titre}\n${etape.recit}\n${etape.situation}\n`);
   for (const erreur of erreurs) console.error(`ERREUR : ${erreur}`);
-  console.log(erreurs.length === 0 ? 'Captures : parcours réussi dans l’appli, reprise au dernier geste, police servie hors ligne.' : 'Captures : ÉCHEC.');
+  console.log(
+    erreurs.length === 0
+      ? 'Captures : parcours du monde de test et P-C d’AR-01 réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
+      : 'Captures : ÉCHEC.',
+  );
   if (erreurs.length > 0) process.exitCode = 1;
 }
