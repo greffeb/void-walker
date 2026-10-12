@@ -159,7 +159,7 @@ describe('AR-01 : ressources et passages (§10)', () => {
     ] as const) {
       const pas = engager(avant, geste);
       const [de, vers] = [avant.etat.creature, pas.partie.etat.creature];
-      expect(de !== null && vers !== null && voisines(de.piece, vers.piece)).toBe(true);
+      expect(de?.piece != null && vers?.piece != null && voisines(de.piece, vers.piece)).toBe(true);
       if (vers?.alcove === true) expect(vers.piece).toBe('p-observation');
       if (geste.action === 'declencher') expect(vers).toMatchObject({ piece: 'p-energie', alcove: false });
       avant = pas.partie;

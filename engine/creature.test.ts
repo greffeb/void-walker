@@ -82,7 +82,7 @@ function types(evenements: readonly Evenement[]): string[] {
   return evenements.map((evenement) => evenement.type);
 }
 
-const pieceCreature = (courante: Partie): string | undefined => courante.etat.creature?.piece;
+const pieceCreature = (courante: Partie): string | null | undefined => courante.etat.creature?.piece;
 
 function optionAller(monde: DefMonde, courante: Partie, nom: string): Commande {
   const option = observer(monde, courante.etat).menu.find(

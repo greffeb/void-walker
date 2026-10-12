@@ -110,6 +110,10 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
       if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`brûlure ${causes} defaite : plus de quatre phrases (garde-fou du contrôle).`);
     }
   }
+  verifierVariantes(erreurs, 'défaite par le vide', textes.asphyxie, []);
+  for (const variante of textes.asphyxie as readonly unknown[]) {
+    if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push('défaite par le vide : plus de quatre phrases (garde-fou du contrôle).');
+  }
   for (const { id } of monde.assistance ?? []) {
     const message = textes.assistance[id] as unknown;
     if (typeof message !== 'string' || message.trim() === '') {
@@ -130,6 +134,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   verifierVariantes(erreurs, 'regarder un passage ouvert sans destination connue', textes.passages.ouvertSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierVariantes(erreurs, 'regarder un passage fermé sans destination connue', textes.passages.fermeSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierGabarit(erreurs, 'libellé aller sans destination connue', textes.allerSansDestination, ROLES_ALLER_SANS_DESTINATION);
+  verifierGabarit(erreurs, 'voyant d’une porte étanche sans air derrière', textes.passages.voyantVide, []);
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {
     verifierGabarit(erreurs, `observation ${cle}`, textes.observation[cle as keyof TextesMonde['observation']], roles);
   }
@@ -160,6 +165,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
 function variantesRecit(textes: TextesMonde, evenement: Evenement): readonly string[] {
   if (evenement.type === 'assistance') return [];
   if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
+  if (evenement.type === 'defaite' && evenement.causes.includes('vide')) return textes.asphyxie;
   if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
     if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
   }

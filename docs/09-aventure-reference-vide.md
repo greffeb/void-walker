@@ -209,13 +209,13 @@ Ce sont des faits sur les objets, pas une liste de gestes optimaux.
 
 ## 11. État des preuves
 
-| Niveau | État au 10/10/2026 |
+| Niveau | État au 12/10/2026 |
 | --- | --- |
 | Cadre, plan, matériel, données fixes, précisions et parcours | Acceptés en conception, Q-51 à Q-67 (D-058 à D-074) |
 | Règles du vide dans les contrats | Retranscrites dans C-03, C-04, C-05 |
-| Moteur, solveur, tests | Non réalisés |
+| Moteur et tests | Proposés par #104 : P-V1, P-V2, P-V3 et VN-01 à VN-13 passent dans la vérification complète ; solveur absent |
 | Partie sur téléphone | Non effectuée ; journal humain vide |
 | Durée et intérêt | Non mesurés ; volontairement plus courte qu'AR-01 (D-058) |
-| Textes | À écrire ; aucun texte final |
+| Textes | Écrits à la main par #104, à relire par le porteur |
 
 Pour l'implémentation future : si un parcours contredit un contrat ou ne passe pas, documenter le contre-exemple et revenir en arbitrage. Ne pas modifier silencieusement l'état de la créature, de l'air ou une attente de test pour rétablir le vert.

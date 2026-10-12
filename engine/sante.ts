@@ -41,6 +41,11 @@ export function aggraver(etat: EtatPartie, causes: readonly Cause[]): { etat: Et
   return { etat: { ...etat, sante }, evenements: [{ type: EVENEMENT_AGGRAVATION[sante], causes }] };
 }
 
+/** Exposé au vide sans combinaison : vaincu, hors plafond, sans jet ; les autres causes du pas sont conservées (C-04 §3.1, D-059). */
+export function asphyxier(etat: EtatPartie, causes: readonly Cause[]): { etat: EtatPartie; evenements: Evenement[] } {
+  return { etat: { ...etat, sante: 'vaincu' }, evenements: [{ type: 'defaite', causes: [...causes, 'vide'] }] };
+}
+
 /** Risque connu d'agir sous ses yeux, selon la santé qu'il aura au moment du jet : élevé, mortel si une blessure de plus serait fatale (C-04 §4.3). */
 export function risqueIci(etat: EtatPartie, sante: Sante): { risque: NiveauRisque; danger: Danger } | null {
   if (!expose(etat)) return null;

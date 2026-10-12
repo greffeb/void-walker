@@ -177,6 +177,15 @@ export const TEXTES_AR01: TextesMonde = {
       'Derrière {le:passage}, un accès de service étroit mène vers {le:vers} ; un relevé y est fixé : le réseau d’urgence avait demandé de garder cet accès d’évacuation, que le confinement masquait.',
       'Derrière {le:passage} s’ouvre un accès de service étroit, vers {le:vers} ; sur un relevé fixé à l’entrée, le réseau d’urgence avait demandé le maintien de cet accès d’évacuation.',
     ],
+    // Vide : absent d'AR-01 (AR-02 §2), textes requis par la structure seulement.
+    combinaison_enfilee: ['Vous enfilez {le:objet} et verrouillez le casque.'],
+    combinaison_retiree: ['Vous retirez {le:objet}. Vous l’emportez avec vous.'],
+    breche_ouverte: ['Vous percez {le:objet}. L’air s’échappe par la brèche.'],
+    breche_rebouchee: ['Vous rebouchez la brèche {de:objet}.'],
+    air_perdu: ['Le vide gagne {le:pieces}.'],
+    air_revenu: ['L’air revient dans {le:pieces}.'],
+    creature_expulsee: ['La créature est aspirée par la brèche et disparaît.'],
+    creature_inerte: ['La créature gît au sol, inerte.'],
   },
   brulures: {
     feu: {
@@ -205,6 +214,7 @@ export const TEXTES_AR01: TextesMonde = {
       ],
     },
   },
+  asphyxie: ['L’air vous quitte d’un coup. Votre vue se brouille, puis plus rien.'],
   evacuations: {
     circuit: [
       'Le circuit de départ tient la charge. La capsule se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.',
@@ -218,6 +228,7 @@ export const TEXTES_AR01: TextesMonde = {
       'Le circuit de départ et le bloc d’énergie alimentent ensemble la capsule. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.',
       'Le levier descend ; circuit et bloc répondent ensemble. Un choc, puis plus rien ne vous retient à la station.',
     ],
+    reserve: ['La capsule part sur sa propre réserve. Un choc, puis plus rien ne vous retient à la station.'],
   },
   assistance: {
     reveil: 'Une capsule de secours est disponible. Son circuit de départ ne répond pas.',
@@ -235,6 +246,7 @@ export const TEXTES_AR01: TextesMonde = {
     ],
     ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Au-delà, un conduit dont vous ne voyez pas le bout.'],
     fermeSansDestination: ['{Le:passage} est fermé{e:passage}. Rien n’indique ce qu’il y a derrière.'],
+    voyantVide: 'Son voyant est rouge : plus d’air de l’autre côté.',
   },
   refus: {
     commande_invalide: 'Commande illisible : rien n’a été joué.',
@@ -255,6 +267,9 @@ export const TEXTES_AR01: TextesMonde = {
     non_alimentee: 'La capsule n’est pas alimentée : rien n’a été joué.',
     non_isolee: 'La capsule n’est pas close : rien n’a été joué.',
     creature_a_bord: 'La créature est à bord : rien n’a été joué.',
+    deja_enfilee: 'Vous portez déjà une combinaison : rien n’a été joué.',
+    deja_percee: 'C’est déjà percé : rien n’a été joué.',
+    sans_breche: 'Il n’y a aucune brèche à reboucher : rien n’a été joué.',
   },
   indisponibilites: {
     ferme: '{Le:cible} est fermé{e:cible}.',
@@ -283,6 +298,10 @@ export const TEXTES_AR01: TextesMonde = {
     activer: 'Réarmer {le:cible}',
     installer: 'Installer {le:cible} dans la capsule',
     lancer: 'Lancer la capsule depuis {le:cible}',
+    enfiler: 'Enfiler {le:cible}',
+    retirer: 'Retirer {le:cible}',
+    percer: 'Percer {le:cible}',
+    reboucher: 'Reboucher la brèche avec {le:cible}',
   },
   allerSansDestination: 'Passer par {le:cible}',
   verbes: {
@@ -300,6 +319,10 @@ export const TEXTES_AR01: TextesMonde = {
     activer: 'Réarmer',
     installer: 'Installer',
     lancer: 'Lancer',
+    enfiler: 'Enfiler',
+    retirer: 'Retirer',
+    percer: 'Percer',
+    reboucher: 'Reboucher',
   },
   observation: {
     lieu: 'Vous êtes dans {le:piece}.',
@@ -313,6 +336,12 @@ export const TEXTES_AR01: TextesMonde = {
     installe: '{Le:objet} est engagé{e:objet} dans {le:capsule}.',
     active: '{Le:objet} est réarmé{e:objet}.',
     feu: 'Les flammes vous entourent.',
+    sansAir: 'Il n’y a plus d’air ici.',
+    passageVide: 'Le voyant {de:passage} est rouge : plus d’air de l’autre côté.',
+    enfilee: 'Vous avez enfilé {le:objet}.',
+    percee: '{Le:objet} est percé{e:objet}.',
+    rebouchee: '{Le:objet} est rebouché{e:objet}.',
+    creatureInerte: 'La créature gît ici, inerte.',
     inventaire: 'Vous portez {le:liste}.',
     inventaireVide: 'Vous ne portez rien.',
     creature: 'La créature est là, tout près de vous.',
@@ -343,6 +372,7 @@ export const TEXTES_AR01: TextesMonde = {
       creature_entendue: 'quelque chose bougeait derrière {le:passage}',
       brulure: 'vous finirez dans les flammes',
       brulure_mortelle: 'vous finirez dans les flammes, et vous n’y survivrez pas',
+      asphyxie: 'sans air et sans combinaison, vous n’y survivrez pas',
     },
     couts: { aucun: 'aucun', bruyant: '[bruyant]' },
     savoir: {
@@ -360,6 +390,12 @@ export const TEXTES_AR01: TextesMonde = {
       alimentera: 'Le circuit alimentera {le:objet}.',
       installera: '{Le:objet} sera installé{e:objet} dans {le:capsule}.',
       partira: 'La capsule partira ; la partie se terminera.',
+      protegera: 'Vous serez protégé par {le:objet}.',
+      gardera: 'Vous garderez {le:objet} avec vous.',
+      percera: '{Le:objet} sera percé{e:objet}.',
+      rebouchera: 'La brèche {de:objet} sera rebouchée.',
+      perdront_air: 'Le vide gagnera {le:pieces}.',
+      retrouveront_air: 'L’air reviendra dans {le:pieces}.',
     },
   },
 };

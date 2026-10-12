@@ -20,8 +20,8 @@ const ETROIT = { width: 320, height: 568 };
 const PORTEUR = { width: 412, height: 915 };
 
 export interface EtapeCapture {
-  /** Partie du commentaire : parcours du monde de test, ou AR-01. */
-  readonly suite: 'monde-test' | 'ar-01';
+  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02. */
+  readonly suite: 'monde-test' | 'ar-01' | 'ar-02';
   readonly titre: string;
   readonly image: string;
   readonly recit: string;
@@ -803,6 +803,56 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   await etroit.close();
 }
 
+/**
+ * AR-02 par `?monde=ar-02` : P-V1 joué geste par geste, dans un contexte neuf ; captures du départ, de la combinaison enfilée,
+ * de l'aperçu de « percer », de la brèche, de l'arrivée devant le corps inerte et de la fin.
+ */
+async function parcoursAr02(navigateur: Browser, racine: string, ar02: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const etapes = ar02.parcours.find((parcours) => parcours.nom.startsWith('P-V1'))?.etapes;
+  if (etapes === undefined) {
+    erreurs.push('Parcours P-V1 absent d’AR-02.');
+    return;
+  }
+  const gestes = gestesDuParcours(ar02, etapes);
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await contexte.newPage();
+  await page.goto(`${racine}?monde=ar-02`);
+  await attendreSauvegarde(page, 0);
+  await capturer(page, 'AR-02 — Départ');
+  await verifierEcran(page, 'AR-02, départ', erreurs);
+  for (const [index, geste] of gestes.entries()) {
+    const ou = `Étape ${index + 1}, ${geste.titre}`;
+    const etape = etapes[index];
+    if (geste.direct) {
+      await ouvrir(page, geste);
+      await toucherLigne(page, geste);
+    } else {
+      const confirmer = await preparer(page, geste);
+      await confirmer.waitFor();
+      if (etape?.action === 'percer') {
+        const titre = `AR-02 — Aperçu « ${geste.fil} »`;
+        await capturer(page, titre);
+        await verifierDansEcran(page, titre, erreurs);
+      }
+      await confirmer.click();
+    }
+    await attendreSauvegarde(page, index + 1);
+    await verifierCommande(page, geste, ou, erreurs);
+    await verifierNoms(page, { ...geste, titre: ou }, erreurs);
+    if (index === gestes.length - 1) break;
+    await verifierEcran(page, ou, erreurs);
+    const corps = etape?.action === 'aller' && etape.vers === 'embarquement';
+    if (etape?.action === 'enfiler' || etape?.action === 'percer' || corps) await capturer(page, `AR-02 — ${geste.titre}`);
+  }
+  const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
+  if (actions !== String(gestes.length)) erreurs.push(`Fin : ${actions ?? '?'} actions au lieu de ${gestes.length}.`);
+  const fin = page.locator('.dock.fin-partie');
+  if (!(await fin.innerText()).includes(ar02.textes.observation.evacuee)) erreurs.push(`Fin : « ${ar02.textes.observation.evacuee} » absent.`);
+  await capturer(page, `AR-02 — Fin : « ${ar02.textes.observation.evacuee} »`);
+  await verifierEcran(page, 'AR-02, fin', erreurs);
+  await contexte.close();
+}
+
 /** Une partie du commentaire : bilan, images, puis texte affiché à chaque étape. */
 function partieCommentaire(titre: string, etapes: readonly EtapeCapture[], erreurs: readonly string[], details: readonly string[]): string[] {
   const images = process.env.CAPTURES_URL ?? '';
@@ -826,7 +876,14 @@ function partieCommentaire(titre: string, etapes: readonly EtapeCapture[], erreu
   return lignes;
 }
 
-function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[], erreursAr01: readonly string[], installable: string, horsLigne: string): string {
+function commentaire(
+  etapes: readonly EtapeCapture[],
+  erreurs: readonly string[],
+  erreursAr01: readonly string[],
+  erreursAr02: readonly string[],
+  installable: string,
+  horsLigne: string,
+): string {
   const adresse = process.env.VERSION_URL ?? '';
   const commit = process.env.COMMIT ?? '';
   const lignes = [
@@ -850,6 +907,12 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
       erreursAr01,
       ['Adresse par défaut, partie neuve, joué geste par geste.'],
     ),
+    ...partieCommentaire(
+      'AR-02, parcours P-V1',
+      etapes.filter((etape) => etape.suite === 'ar-02'),
+      erreursAr02,
+      ['Adresse : `?monde=ar-02`, partie neuve, joué geste par geste.'],
+    ),
   ];
   return lignes.join('\n');
 }
@@ -858,7 +921,8 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   // Le parcours du monde de test se joue par `?monde=monde-test` ; AR-01, le monde par défaut, par l'adresse nue.
   const entree = MONDES['monde-test'];
   const ar01 = MONDES['ar-01'];
-  if (entree === undefined || ar01 === undefined) throw new Error('Monde de test ou AR-01 absent.');
+  const ar02 = MONDES['ar-02'];
+  if (entree === undefined || ar01 === undefined || ar02 === undefined) throw new Error('Monde de test, AR-01 ou AR-02 absent.');
   const gestes = gestesDuParcours(entree);
   rmSync(SORTIE, { recursive: true, force: true });
   mkdirSync(SORTIE, { recursive: true });
@@ -866,6 +930,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   const etapes: EtapeCapture[] = [];
   const erreurs: string[] = [];
   const erreursAr01: string[] = [];
+  const erreursAr02: string[] = [];
   let suite: EtapeCapture['suite'] = 'monde-test';
   let installable = 'non vérifiée';
   let horsLigne = 'non vérifié';
@@ -1214,6 +1279,14 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     } catch (erreur) {
       erreursAr01.push(erreur instanceof Error ? erreur.message : String(erreur));
     }
+
+    // AR-02 par `?monde=ar-02` : parcours P-V1, dans un contexte neuf.
+    suite = 'ar-02';
+    try {
+      await parcoursAr02(navigateur, racine, ar02, capturerPage, erreursAr02);
+    } catch (erreur) {
+      erreursAr02.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
   } catch (erreur) {
     erreurs.push(erreur instanceof Error ? erreur.message : String(erreur));
   } finally {
@@ -1222,10 +1295,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, etapes };
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, etapes };
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
-  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, installable, horsLigne));
-  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`)] };
+  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, installable, horsLigne));
+  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`), ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`)] };
 }
 
 if (isMainModule(import.meta.url)) {
@@ -1234,7 +1307,7 @@ if (isMainModule(import.meta.url)) {
   for (const erreur of erreurs) console.error(`ERREUR : ${erreur}`);
   console.log(
     erreurs.length === 0
-      ? 'Captures : parcours du monde de test et P-C d’AR-01 réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
+      ? 'Captures : parcours du monde de test, P-C d’AR-01 et P-V1 d’AR-02 réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
       : 'Captures : ÉCHEC.',
   );
   if (erreurs.length > 0) process.exitCode = 1;

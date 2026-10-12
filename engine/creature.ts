@@ -130,11 +130,14 @@ interface Reponse {
   readonly entendue?: BruitCreature;
 }
 
+/** Créature encore active, donc dans la station (D-062). */
+type CreatureActive = EtatCreature & { readonly piece: string };
+
 /**
  * Franchir `liaison` vers l'indice (C-03 §5.2) : un sol huilé connu se franchit prudemment, en deux réactions ; inconnu, elle
  * glisse là où il se trouve, côté arrivée d'abord, sa réaction s'arrête et les deux suivantes sont perdues.
  */
-function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, liaison: DefLiaison, indice: Indice): Reponse {
+function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, liaison: DefLiaison, indice: Indice): Reponse {
   const depart = creature.piece;
   const arrivee = autreCote(liaison, depart);
   const zones = [arrivee, depart].filter((piece) => huilee(etat, liaison.id, piece));
@@ -164,7 +167,7 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, lia
 function reaction(
   monde: DefMonde,
   etat: EtatPartie,
-  creature: EtatCreature,
+  creature: CreatureActive,
   sons: readonly SonEmis[],
   depuis: string,
   franchie: string | undefined,
@@ -238,7 +241,12 @@ export function reagir(
   interceptee: boolean,
 ): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
-  const reponse = reaction(monde, etat, etat.creature, sons, depuis, franchie, interceptee);
+  const { piece } = etat.creature;
+  // Inerte ou expulsée, elle ne réagit plus jamais ; le passager retient seulement ce qu'il voit (D-062).
+  if (etat.creature.neutralisee !== undefined || piece === null) {
+    return { etat: { ...etat, creature: { ...etat.creature, repit: false }, reperes: retenir(etat, undefined) }, evenements: [] };
+  }
+  const reponse = reaction(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
   const creature = etat.creature.repit ? { ...reponse.creature, repit: false } : reponse.creature;
   const apres: EtatPartie = { ...etat, creature };

@@ -13,9 +13,14 @@ export interface Embrasement {
 /**
  * Une liaison ouverte entre un foyer et une pièce sans feu est exposée à chaque fin d'action ; à la deuxième fin d'action
  * consécutive, la pièce voisine prend feu. Fermer le lien ou éteindre la source interrompt l'exposition. Les sources sont
- * celles du début de l'étape : une pièce nouvellement en feu ne propage pas dans la même étape (pas d'enchaînement).
+ * celles du début de l'étape : une pièce nouvellement en feu ne propage pas dans la même étape (pas d'enchaînement). Une pièce
+ * sans air n'est ni exposée ni gagnée (MX-02).
  */
-export function actualiserFeu(monde: DefMonde, etat: EtatPartie): { etat: EtatPartie; evenements: Evenement[]; gagnees: Embrasement[] } {
+export function actualiserFeu(
+  monde: DefMonde,
+  etat: EtatPartie,
+  sansAir: readonly string[] = [],
+): { etat: EtatPartie; evenements: Evenement[]; gagnees: Embrasement[] } {
   const exposees: string[] = [];
   const gagnees: Embrasement[] = [];
   for (const liaison of monde.liaisons) {
@@ -23,6 +28,7 @@ export function actualiserFeu(monde: DefMonde, etat: EtatPartie): { etat: EtatPa
     const [a, b] = liaison.entre;
     if (enFeu(etat, a) === enFeu(etat, b)) continue;
     const cible = enFeu(etat, a) ? b : a;
+    if (sansAir.includes(cible)) continue;
     if (etat.expositions.includes(liaison.id)) gagnees.push({ piece: cible, liaison: liaison.id });
     else exposees.push(liaison.id);
   }
