@@ -187,7 +187,7 @@ const prendre: ActionEngagee = {
 const poser: ActionEngagee = {
   id: 'poser',
   engage: true,
-  // La combinaison enfilée se retire d'abord (D-072).
+  // La combinaison enfilée se retire d'abord (détail de l'agent, #104 ; retirer : D-072).
   cibles: ({ monde, etat }) => objetsEnMain(monde, etat).map((porte) => porte.id),
   verifier: ({ monde, etat }, cible) => (objetsEnMain(monde, etat).some((porte) => porte.id === cible) ? null : 'pas_en_main'),
   prevoir: ({ monde, etat }, cible) => ({

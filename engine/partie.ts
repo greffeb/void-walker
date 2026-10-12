@@ -205,6 +205,11 @@ function simuler(monde: DefMonde, etat: EtatPartie, definition: ActionEngagee, c
   return { avant: etat, ...mettreAJourDangers(monde, etat, effet) };
 }
 
+/** Sous ses yeux, sauf si le vide l'atteint à ce pas : elle n'agit plus, ni jet ni menace (C-03 §5.4, D-071, RSK-11). */
+function exposeCePas({ avant, vide }: Simulation): boolean {
+  return expose(avant) && vide.etat.creature?.neutralisee === undefined;
+}
+
 /** Aperçu avant confirmation (C-01 §5, C-06 §4) : sans effet sur la partie ni sur les dés. */
 export function apercu(monde: DefMonde, partie: Partie, commande: unknown): ResultatApercu {
   const validation = valider(monde, partie.etat, commande);
@@ -216,7 +221,7 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   const simulation = simuler(monde, partie.etat, definition, cible, parametre);
   // Le danger le plus haut l'emporte : la créature ici avant celui de la destination, le feu et le vide avant tout ; un soin passe avant le jet (C-04 §3, §4.3).
   let retenu: { risque: NiveauRisque; danger: Danger | null } = prevision;
-  for (const autre of [risqueIci(partie.etat, sante), feuConnu(monde, simulation, sante), videConnu(simulation)]) {
+  for (const autre of [exposeCePas(simulation) ? risqueIci(partie.etat, sante) : null, feuConnu(monde, simulation, sante), videConnu(simulation)]) {
     if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
   }
   const savoir = [...prevision.savoir, ...airConnu(monde, simulation)];
@@ -246,8 +251,9 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   if (!definition.engage) return { type: 'consultation', consultation: definition.consulter(contexte, cible), partie };
 
   const session = ouvrirDes(partie.etat.generateur);
-  // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2).
-  const exposition = expose(partie.etat);
+  // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2) ; pas si le vide
+  // l'atteint à ce pas, ce que l'effet simulé sans dé suffit à dire.
+  const exposition = exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
   const atteint = exposition && intercepter(session.des);
   const effet = definition.appliquer(contexte, cible, session.des, parametre);
   // Étape 3 : le vide, puis le feu, puis la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, §5.4, D-188).
@@ -261,11 +267,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   const blessure = vide.asphyxie ? asphyxier(decompter(reponse.etat), causes) : aggraver(decompter(reponse.etat), causes);
   const menace: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : [];
   const coups = blessure.evenements;
-  // En fuite, elle frappe au seuil, avant le déplacement ; neutralisée par le vide à ce pas, elle a frappé avant l'effet (étape 2) ;
-  // la brûlure se raconte avec le feu ; une défaite se raconte en dernier (C-04 §4.2, C-03 §3).
+  // En fuite, elle frappe au seuil, avant le déplacement ; la brûlure se raconte avec le feu ; une défaite se raconte en dernier
+  // (C-04 §4.2, C-03 §3).
   const vaincu = blessure.etat.sante === 'vaincu';
-  const neutralisee = exposition && vide.etat.creature?.neutralisee !== undefined;
-  const auSeuil = (effet.franchie !== undefined || neutralisee) && !vaincu;
+  const auSeuil = effet.franchie !== undefined && !vaincu;
   const coupsAuSeuil = auSeuil && atteint && !brulure;
   const coupsAvecLeFeu = !vaincu && brulure;
   const evenements = [

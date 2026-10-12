@@ -161,15 +161,23 @@ describe('AR-02 : percer (C-03 §5.4, C-04 §3.1)', () => {
     expect(perce?.partie.etat.sante).toBe('indemne');
   });
 
-  it('percer sous ses yeux après l’action libre : un jet, raconté avant la brèche ; puis plus aucune réaction', () => {
-    const libre = apres(depart(), [...P_V2.slice(0, 7), { action: 'fermer', cible: 'porte', vers: 'coursive' }]);
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])('RSK-11 : percer en combinaison sous ses yeux, action libre passée (graine %i) : aucun dé, aucune menace, indemne', (graine) => {
+    const neuve = nouvellePartie(MONDE, { version: VERSION, graine });
+    const libre = apres(neuve, [...P_V2.slice(0, 7), { action: 'fermer', cible: 'porte', vers: 'coursive' }]);
+    expect(libre.etat.creature).toMatchObject({ piece: 'p-panoramique', repit: false });
+    expect(apercuDe(libre, PERCER)).toMatchObject({ risque: 'aucun', danger: null });
     const perce = engager(libre, PERCER);
-    expect(perce.tirages).toHaveLength(1);
-    const ordre = types(perce.evenements);
-    const coup = ordre.findIndex((type) => type === 'menace' || type.startsWith('aggravation'));
-    expect(coup).toBeGreaterThanOrEqual(0);
-    expect(coup).toBeLessThan(ordre.indexOf('breche_ouverte'));
-    expect(ordre).toContain('creature_expulsee');
+    expect(perce.tirages).toEqual([]);
+    expect(types(perce.evenements)).toEqual(['breche_ouverte', 'air_perdu', 'creature_expulsee']);
+    expect(perce.partie.etat.sante).toBe('indemne');
+  });
+
+  it('VP-01 : percer sans combinaison sous ses yeux : aucun dé, la brèche puis la défaite, sans menace', () => {
+    const libre = apres(depart(), [...P_V2.slice(0, 7), { action: 'fermer', cible: 'porte', vers: 'coursive' }, RETIRER]);
+    expect(libre.etat.creature).toMatchObject({ piece: 'p-panoramique', repit: false });
+    const perce = engager(libre, PERCER);
+    expect(perce.tirages).toEqual([]);
+    expect(types(perce.evenements)).toEqual(['breche_ouverte', 'air_perdu', 'creature_expulsee', 'defaite']);
   });
 
   it('P-V1 : la créature exposée hors de la pièce percée devient inerte, découverte en arrivant', () => {

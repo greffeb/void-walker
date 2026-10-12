@@ -53,7 +53,9 @@ const P_V2: Parcours = {
   attendu: ARRIVEE_EQUIPEE,
 };
 
-// Le pas 4 traverse sous ses yeux pendant l'action libre qui suit la première rencontre : aucun dé (D-184).
+// CONTRADICTION À ARBITRER (D-074) : AR-02 §8 et D-070 prévoient un D6 de fuite exposée au pas 4, mais ce pas est l'action
+// libre qui suit la première rencontre (D-184, postérieure) : aucun dé, indemne. Attente alignée sur le moteur en attendant
+// le choix du porteur, signalée dans la PR #104 et dans AR-02 §11.
 const P_V3: Parcours = {
   nom: 'P-V3 — Passer en force',
   etapes: [

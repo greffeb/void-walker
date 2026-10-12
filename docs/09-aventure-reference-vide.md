@@ -213,7 +213,7 @@ Ce sont des faits sur les objets, pas une liste de gestes optimaux.
 | --- | --- |
 | Cadre, plan, matériel, données fixes, précisions et parcours | Acceptés en conception, Q-51 à Q-67 (D-058 à D-074) |
 | Règles du vide dans les contrats | Retranscrites dans C-03, C-04, C-05 |
-| Moteur et tests | Proposés par #104 : P-V1, P-V2, P-V3 et VN-01 à VN-13 passent dans la vérification complète ; solveur absent |
+| Moteur et tests | Proposés par #104 : P-V1, P-V2, P-V3 et VN-01 à VN-13 passent dans la vérification complète ; solveur absent. **Contradiction à arbitrer :** P-V3 passe sans dé ni blessure, son pas 4 étant l'action libre qui suit la première rencontre (D-184), alors que §8 et D-070 y prévoient un D6 |
 | Partie sur téléphone | Non effectuée ; journal humain vide |
 | Durée et intérêt | Non mesurés ; volontairement plus courte qu'AR-01 (D-058) |
 | Textes | Écrits à la main par #104, à relire par le porteur |
