@@ -751,9 +751,9 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
     if (etape?.action === 'installer') await capturer(page, `AR-01 — ${geste.titre}`);
   }
 
-  // Fin par évacuation : quinze actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock.
+  // Fin par évacuation : seize actions (D-196), la phrase de la capsule et NOUVELLE PARTIE à la place du dock.
   const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
-  if (actions !== '15') erreurs.push(`Fin : ${actions ?? '?'} actions au lieu de 15.`);
+  if (actions !== '16') erreurs.push(`Fin : ${actions ?? '?'} actions au lieu de 16.`);
   const fin = page.locator('.dock.fin-partie');
   if (!((await fin.innerText()).includes(phrases.evacuee))) erreurs.push(`Fin : « ${phrases.evacuee} » absent.`);
   if (!(await fin.getByRole('button', { name: exactement('Nouvelle partie') }).isVisible())) erreurs.push('Fin : NOUVELLE PARTIE absent.');
