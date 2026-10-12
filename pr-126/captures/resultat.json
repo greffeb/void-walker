@@ -1,0 +1,440 @@
+{
+  "telephone": "Pixel 7",
+  "ecrans": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 568
+    },
+    {
+      "width": 412,
+      "height": 915
+    }
+  ],
+  "installable": "manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif",
+  "horsLigne": "polices chargées : 400 normal, 600 normal ; IBMPlexMono-Regular.woff2 (service worker), IBMPlexMono-SemiBold.woff2 (service worker)",
+  "erreurs": [],
+  "erreursAr01": [],
+  "erreursAr02": [],
+  "etapes": [
+    {
+      "suite": "monde-test",
+      "titre": "Accueil sans partie active",
+      "image": "01.png",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Réveil — monde-test",
+      "image": "02.png",
+      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.\n« Merci de rester dans votre cabine jusqu’à nouvel ordre. »",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Accueil avec partie en cours",
+      "image": "03.png",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Confirmation du remplacement",
+      "image": "04.png",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Départ",
+      "image": "05.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Bulle « Carnet » ouverte",
+      "image": "06.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Prendre le carnet",
+      "image": "07.png",
+      "recit": "Carnet · Prendre\nVous ramassez le carnet. Vos mains tremblent un peu.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 13,7 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir »",
+      "image": "08.png",
+      "recit": "Carnet · Prendre\nVous ramassez le carnet. Vos mains tremblent un peu.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 13,7 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Ouvrir la porte de l’atelier",
+      "image": "09.png",
+      "recit": "Porte de l’atelier · Ouvrir\nVous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.\nLe mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.\nDerrière la porte de l’atelier, quelque chose de lourd se déplace.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 14,2 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Après fermeture et réouverture",
+      "image": "10.png",
+      "recit": "Porte de l’atelier · Ouvrir\nVous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.\nLe mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.\nDerrière la porte de l’atelier, quelque chose de lourd se déplace.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 14,2 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Aller vers › atelier »",
+      "image": "11.png",
+      "recit": "Porte de l’atelier · Ouvrir\nVous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.\nLe mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.\nDerrière la porte de l’atelier, quelque chose de lourd se déplace.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 14,2 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aller dans l’atelier",
+      "image": "12.png",
+      "recit": "Aller vers · atelier\nVous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.\nLa chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 12,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Inventaire ouvert",
+      "image": "13.png",
+      "recit": "Aller vers · atelier\nVous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.\nLa chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 12,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Inventaire, fiche « Carnet »",
+      "image": "14.png",
+      "recit": "Aller vers · atelier\nVous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.\nLa chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 12,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Poser le carnet",
+      "image": "15.png",
+      "recit": "Carnet · Poser\nVous déposez le carnet à vos pieds. Vous gardez les mains libres.\nDes griffes fendent l’air à un souffle de votre visage.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet et une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 12,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Hors ligne : reprise, police servie par l’appli",
+      "image": "16.png",
+      "recit": "Carnet · Poser\nVous déposez le carnet à vos pieds. Vous gardez les mains libres.\nDes griffes fendent l’air à un souffle de votre visage.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet et une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 12,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Fin du parcours, 320 px de large",
+      "image": "17.png",
+      "recit": "Carnet · Poser\nVous déposez le carnet à vos pieds. Vous gardez les mains libres.\nDes griffes fendent l’air à un souffle de votre visage.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet et une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "« → soute » d’un seul toucher, touché deux fois : un seul déplacement",
+      "image": "18.png",
+      "recit": "Aller vers · soute\nVous franchissez le seuil et entrez dans la soute. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.\nLa chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.",
+      "situation": "Vous êtes dans la soute.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la cabine est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 14,7 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir », sans risque connu, avec un coût",
+      "image": "19.png",
+      "recit": "Regarder autour de vous\nUne cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Grille de la soute › Ouvrir », sans risque connu, sans coût",
+      "image": "20.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Aller vers › atelier », risque connu, sans coût",
+      "image": "21.png",
+      "recit": "Porte de l’atelier · Ouvrir\nVous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.\nLa porte de l’atelier a grincé si fort que le bruit a dû porter loin.\nQuelque chose bouge derrière la porte de l’atelier.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,9 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir », risque connu, avec un coût",
+      "image": "22.png",
+      "recit": "Porte de l’atelier · Fermer\nVous refermez la porte de l’atelier. Le silence revient d’un coup.\nDes griffes fendent l’air à un souffle de votre visage.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 13,7 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Machine à écrire, 0 ms après le toucher",
+      "image": "23.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Machine à écrire, 125 ms après le toucher",
+      "image": "24.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Machine à écrire, 250 ms après le toucher",
+      "image": "25.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Machine à écrire, 375 ms après le toucher",
+      "image": "26.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Machine à écrire, 600 ms après le toucher",
+      "image": "27.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier (tout le texte à 22 px)",
+      "image": "28.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe",
+      "image": "29.png",
+      "recit": "Regarder autour de vous\nUne cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Départ, bulle « Porte de l’atelier », 320 px de large",
+      "image": "30.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir », 320 px de large",
+      "image": "31.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px",
+      "image": "32.png",
+      "recit": "Regarder autour de vous\nUn réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Réveil : citation IA Station encadrée",
+      "image": "33.png",
+      "recit": "Vous vous réveillez d’un coup, sanglé à votre siège, dans le salon de transit. Les flèches d’embarquement brillent en rouge. Votre terminal de transit affiche : CONFINEMENT EN COURS.\n« Une capsule de secours est disponible. Son circuit de départ ne répond pas. »",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Départ : IA Station nouvelle",
+      "image": "34.png",
+      "recit": "Regarder autour de vous\nDes sièges de transit vissés en rangs, tous vides. Au plafond, les flèches d’embarquement sont rouges.",
+      "situation": "Vous êtes dans le salon de transit.\nVous voyez ici un poste d’appel et une signalétique d’évacuation.\nLa porte de l’atelier maintenance est ouverte.\nLa cloison du local technique est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 11,2 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Bulle « Caisse », étape « OÙ ? »",
+      "image": "35.png",
+      "recit": "Burette d’huile · Prendre\nVous ramassez la burette d’huile. Vous l’emportez avec vous.",
+      "situation": "Vous êtes dans l’atelier maintenance.\nVous voyez ici une caisse, un bidon d’eau et une trousse de soin.\nLa porte du salon de transit est ouverte.\nLa grille est fermée.\nLa caisse est au centre de l’atelier.\nVous portez la burette d’huile.",
+      "partage": "Récit : 12,8 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Par « → grille » : « Aller vers · local énergie », lien d’IA Station",
+      "image": "36.png",
+      "recit": "Aller vers · local énergie\nVous franchissez la grille. Vous entrez dans le local énergie.\nRien, ici, ne vous est familier.",
+      "situation": "Vous êtes dans le local énergie.\nVous voyez ici une console de départ, un bloc d’énergie et un test d’avertisseur.\nLa cloison du local technique est fermée.\nLa grille de l’atelier maintenance est ouverte.\nLa cloison de la baie d’observation est fermée.\nLe panneau est fermé.\nVous portez la burette d’huile.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Fenêtre d’IA Station : deux messages nouveaux",
+      "image": "37.png",
+      "recit": "Aller vers · local énergie\nVous franchissez la grille. Vous entrez dans le local énergie.\nRien, ici, ne vous est familier.",
+      "situation": "Vous êtes dans le local énergie.\nVous voyez ici une console de départ, un bloc d’énergie et un test d’avertisseur.\nLa cloison du local technique est fermée.\nLa grille de l’atelier maintenance est ouverte.\nLa cloison de la baie d’observation est fermée.\nLe panneau est fermé.\nVous portez la burette d’huile.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Fenêtre d’IA Station après reprise : messages lus",
+      "image": "38.png",
+      "recit": "Aller vers · local énergie\nVous franchissez la grille. Vous entrez dans le local énergie.\nRien, ici, ne vous est familier.",
+      "situation": "Vous êtes dans le local énergie.\nVous voyez ici une console de départ, un bloc d’énergie et un test d’avertisseur.\nLa cloison du local technique est fermée.\nLa grille de l’atelier maintenance est ouverte.\nLa cloison de la baie d’observation est fermée.\nLe panneau est fermé.\nVous portez la burette d’huile.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Aperçu « Burette d’huile › Verser › Cloison de la baie d’observation »",
+      "image": "39.png",
+      "recit": "Aller vers · local énergie\nVous franchissez la grille. Vous entrez dans le local énergie.\nRien, ici, ne vous est familier.",
+      "situation": "Vous êtes dans le local énergie.\nVous voyez ici une console de départ, un bloc d’énergie et un test d’avertisseur.\nLa cloison du local technique est fermée.\nLa grille de l’atelier maintenance est ouverte.\nLa cloison de la baie d’observation est fermée.\nLe panneau est fermé.\nVous portez la burette d’huile.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Ouvrir la cloison de la baie d’observation : créature à terre",
+      "image": "40.png",
+      "recit": "Cloison de la baie d’observation · Ouvrir\nVous ouvrez la cloison de la baie d’observation. Le passage est dégagé.\nLa cloison de la baie d’observation grince longuement ; le bruit a dû porter.\nQuelque chose franchit la cloison de la baie d’observation et part en glissade sur le sol huilé.\nVous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans le local énergie.\nVous voyez ici une console de départ et un test d’avertisseur.\nLa cloison du local technique est fermée.\nLa grille de l’atelier maintenance est ouverte.\nLa cloison de la baie d’observation est ouverte.\nLe sol est huilé au pied de la cloison de la baie d’observation.\nLe panneau est fermé.\nLa créature est à terre, tout près de vous ; elle peine à se relever.\nVous portez la burette d’huile et le bloc d’énergie.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Installer le bloc d’énergie dans la capsule",
+      "image": "41.png",
+      "recit": "Bloc d’énergie · Installer\nVous engagez le bloc d’énergie dans le connecteur de la capsule de secours. Le verrou s’enclenche avec un déclic.",
+      "situation": "Vous êtes dans la salle d’embarquement.\nVous voyez ici une capsule de secours.\nLa cloison de la baie d’observation est fermée.\nL’écoutille de la cabine de la capsule est fermée.\nLe bloc d’énergie est engagé dans la capsule de secours.\nVous portez la burette d’huile.",
+      "partage": "Récit : 8,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Fin : « La capsule s’est détachée. Vous avez quitté la station. », NOUVELLE PARTIE",
+      "image": "42.png",
+      "recit": "Pupitre de départ · Lancer\nLe bloc d’énergie alimente la capsule. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.",
+      "situation": "Vous êtes dans la cabine de la capsule.\nVous voyez ici un pupitre de départ.\nL’écoutille de la salle d’embarquement est fermée.\nVous portez la burette d’huile.\nLa capsule s’est détachée. Vous avez quitté la station.",
+      "partage": "Récit : 22,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Fin : fenêtre d’IA Station, départ confirmé",
+      "image": "43.png",
+      "recit": "Pupitre de départ · Lancer\nLe bloc d’énergie alimente la capsule. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.",
+      "situation": "Vous êtes dans la cabine de la capsule.\nVous voyez ici un pupitre de départ.\nL’écoutille de la salle d’embarquement est fermée.\nVous portez la burette d’huile.\nLa capsule s’est détachée. Vous avez quitté la station.",
+      "partage": "Récit : 22,4 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Départ, 412 × 915",
+      "image": "44.png",
+      "recit": "Regarder autour de vous\nUn salon de transit aux sièges alignés. Les flèches d’embarquement brillent en rouge au plafond.",
+      "situation": "Vous êtes dans le salon de transit.\nVous voyez ici un poste d’appel et une signalétique d’évacuation.\nLa porte de l’atelier maintenance est ouverte.\nLa cloison du local technique est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 13,8 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Départ, 320 × 568",
+      "image": "45.png",
+      "recit": "Regarder autour de vous\nUn salon de transit aux sièges alignés. Les flèches d’embarquement brillent en rouge au plafond.",
+      "situation": "Vous êtes dans le salon de transit.\nVous voyez ici un poste d’appel et une signalétique d’évacuation.\nLa porte de l’atelier maintenance est ouverte.\nLa cloison du local technique est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-01",
+      "titre": "AR-01 — Bulle « Caisse », étape « OÙ ? », 320 px de large",
+      "image": "46.png",
+      "recit": "Burette d’huile · Prendre\nVous prenez la burette d’huile. Vous l’avez en main.",
+      "situation": "Vous êtes dans l’atelier maintenance.\nVous voyez ici une caisse, un bidon d’eau et une trousse de soin.\nLa porte du salon de transit est ouverte.\nLa grille est fermée.\nLa caisse est au centre de l’atelier.\nVous portez la burette d’huile.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "ar-02",
+      "titre": "AR-02 — Départ",
+      "image": "47.png",
+      "recit": "Regarder autour de vous\nLes cabines du personnel sont silencieuses, éclairées en rouge. Chaque porte étanche porte un petit voyant d’air au-dessus du cadre.",
+      "situation": "Vous êtes dans les cabines du personnel.\nVous voyez ici un terminal personnel et une signalétique d’évacuation.\nLa porte du local de sécurité est ouverte.\nLa porte de la salle panoramique est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 10,5 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-02",
+      "titre": "AR-02 — Enfiler la combinaison étanche",
+      "image": "48.png",
+      "recit": "Combinaison étanche · Enfiler\nVous vous glissez dans la combinaison étanche et rabattez le casque. Le verrou claque ; le vide ne vous atteindra plus.",
+      "situation": "Vous êtes dans le local de sécurité.\nVous voyez ici un casier mural et une découpeuse de maintenance.\nLa porte des cabines du personnel est ouverte.\nVotre casque est verrouillé : la combinaison étanche vous protège du vide.\nVous portez la combinaison étanche.",
+      "partage": "Récit : 13,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-02",
+      "titre": "AR-02 — Aperçu « Baie extérieure › Percer »",
+      "image": "49.png",
+      "recit": "Aller vers · salle panoramique\nVous passez par la porte de la salle panoramique. Vous voici dans la salle panoramique.\nVous n’étiez encore jamais venu ici.",
+      "situation": "Vous êtes dans la salle panoramique.\nVous voyez ici une baie extérieure et un kit de brèche.\nLa porte des cabines du personnel est ouverte.\nLa porte grippée de la salle d’embarquement est fermée.\nVotre casque est verrouillé : la combinaison étanche vous protège du vide.\nVous portez la combinaison étanche et la découpeuse de maintenance.",
+      "partage": "Récit : 10,5 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-02",
+      "titre": "AR-02 — Percer la baie extérieure à la découpeuse",
+      "image": "50.png",
+      "recit": "Baie extérieure · Percer\nVous appuyez la découpeuse contre la baie extérieure. Le vitrage éclate ; l’air s’échappe vers l’espace.\nPlus d’air dans les cabines du personnel, le local de sécurité et la salle panoramique : les voyants virent au rouge.",
+      "situation": "Vous êtes dans la salle panoramique.\nVous voyez ici une baie extérieure et un kit de brèche.\nLa porte des cabines du personnel est ouverte.\nLe voyant de la porte des cabines du personnel est rouge : plus d’air de l’autre côté.\nLa porte grippée de la salle d’embarquement est fermée.\nIl n’y a plus d’air ici.\nLa baie extérieure est percée : l’espace est à nu.\nVotre casque est verrouillé : la combinaison étanche vous protège du vide.\nVous portez la combinaison étanche et la découpeuse de maintenance.",
+      "partage": "Récit : 10,5 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-02",
+      "titre": "AR-02 — Aller dans la salle d’embarquement",
+      "image": "51.png",
+      "recit": "Aller vers · salle d’embarquement\nVous franchissez la porte grippée de la salle d’embarquement. Vous entrez dans la salle d’embarquement.\nRien, ici, ne vous est familier.\nAu sol gît une forme inerte, plus haute qu’un homme, une tête sans yeux.",
+      "situation": "Vous êtes dans la salle d’embarquement.\nVous voyez ici une capsule de secours.\nLa porte grippée de la salle panoramique est ouverte.\nLe voyant de la porte grippée de la salle panoramique est rouge : plus d’air de l’autre côté.\nL’écoutille de la cabine de la capsule est fermée.\nIl n’y a plus d’air ici.\nUne créature gît ici, inerte.\nVotre casque est verrouillé : la combinaison étanche vous protège du vide.\nVous portez la combinaison étanche et la découpeuse de maintenance.",
+      "partage": "Récit : 9,8 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "ar-02",
+      "titre": "AR-02 — Fin : « La capsule s’est détachée. Vous avez quitté la station. »",
+      "image": "52.png",
+      "recit": "Pupitre de départ · Lancer\nLe levier descend ; la réserve de la capsule répond. Un choc, puis plus rien ne vous retient à la station.",
+      "situation": "Vous êtes dans la cabine de la capsule.\nVous voyez ici un pupitre de départ.\nL’écoutille de la salle d’embarquement est fermée.\nLe voyant de l’écoutille de la salle d’embarquement est rouge : plus d’air de l’autre côté.\nVotre casque est verrouillé : la combinaison étanche vous protège du vide.\nVous portez la combinaison étanche et la découpeuse de maintenance.\nLa capsule s’est détachée. Vous avez quitté la station.",
+      "partage": "Récit : 22,4 lignes visibles ; boutons du dock tous visibles."
+    }
+  ]
+}
