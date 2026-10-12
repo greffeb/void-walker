@@ -1,7 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { observer, type OptionMenu } from '../engine';
 import { EcranJeu, EcranReveil } from './EcranJeu';
-import { commencer, demarrer, jouerOption, lireLus, marquerLus, sauvegardePresente, type Environnement, type Jeu } from './jeu';
+import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
+import {
+  abandonner,
+  charger,
+  commencer,
+  demarrer,
+  fichierPartie,
+  jouerOption,
+  lireLus,
+  marquerLus,
+  sauvegardePresente,
+  type Environnement,
+  type Jeu,
+} from './jeu';
 import type { Reglages } from './reglages';
 
 /** `lus` : messages d'IA Station déjà lus, à part du jeu pour ne pas réécrire le récit quand il change (D-186). */
@@ -10,23 +23,50 @@ type Ecran =
   | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean }
   | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
   | { readonly type: 'reprise_impossible' }
-  | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[] };
+  | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[] }
+  /** Options (12 §4.10) ouvertes depuis l'accueil ou le jeu ; `jeu` : la partie enregistrée, `null` s'il n'y en a pas. */
+  | { readonly type: 'options'; readonly depuis: 'accueil' | 'jeu'; readonly jeu: Jeu | null; readonly lus: readonly string[] }
+  /** Fin après abandon (12 §4.11) : la partie n'est plus enregistrée. */
+  | { readonly type: 'fin'; readonly jeu: Jeu };
+
+/** Télécharge l'export de la partie sur l'appareil (C-09 §5) ; le retour est visible, prêt ou échec. */
+function telechargerPartie(env: Environnement, jeu: Jeu): Telechargement {
+  try {
+    const { nom, contenu } = fichierPartie(env, jeu.partie, new Date());
+    const adresse = URL.createObjectURL(new Blob([contenu], { type: 'application/json' }));
+    const lien = document.createElement('a');
+    lien.href = adresse;
+    lien.download = nom;
+    lien.hidden = true;
+    document.body.append(lien);
+    lien.click();
+    lien.remove();
+    setTimeout(() => URL.revokeObjectURL(adresse), 60_000);
+    return { etat: 'pret', nom };
+  } catch {
+    return { etat: 'echec' };
+  }
+}
 
 export function App({
   env,
-  reglages,
+  reglages: reglagesInitiaux,
+  garderReglages,
   version,
   commit,
   pr,
 }: {
   readonly env: Environnement;
   readonly reglages: Reglages;
+  /** Garde les réglages sur l'appareil, hors de la sauvegarde de partie (12 §4.10). */
+  readonly garderReglages?: (reglages: Reglages) => void;
   readonly version: string;
   readonly commit: string;
   readonly pr: string;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   const [occupe, setOccupe] = useState(false);
+  const [reglages, setReglages] = useState(reglagesInitiaux);
 
   useEffect(() => {
     let actif = true;
@@ -109,8 +149,57 @@ export function App({
     [env],
   );
 
+  const changerReglages = useCallback(
+    (nouveaux: Reglages) => {
+      setReglages(nouveaux);
+      garderReglages?.(nouveaux);
+    },
+    [garderReglages],
+  );
+
+  const allerAccueil = useCallback(async () => {
+    setOccupe(true);
+    try {
+      setEcran({ type: 'accueil', partiePresente: await sauvegardePresente(env), confirmation: false });
+    } catch {
+      setEcran({ type: 'reprise_impossible' });
+    } finally {
+      setOccupe(false);
+    }
+  }, [env]);
+
+  /** Depuis l'accueil, la partie enregistrée est lue, jamais créée ni modifiée. */
+  const optionsDepuisAccueil = useCallback(async () => {
+    setOccupe(true);
+    try {
+      const charge = await charger(env);
+      const jeu = charge.type === 'pret' ? charge.jeu : null;
+      setEcran({ type: 'options', depuis: 'accueil', jeu, lus: jeu === null ? [] : await lireLus(env, jeu.partie) });
+    } finally {
+      setOccupe(false);
+    }
+  }, [env]);
+
+  /** Abandon confirmé (C-08 §4) : l'écran de fin seulement une fois la partie retirée de l'appareil. */
+  const abandonnerPartie = useCallback(
+    async (jeu: Jeu): Promise<boolean> => {
+      setOccupe(true);
+      try {
+        const fait = await abandonner(env);
+        if (fait) setEcran({ type: 'fin', jeu });
+        return fait;
+      } finally {
+        setOccupe(false);
+      }
+    },
+    [env],
+  );
+
+  const ouvrirOptions = (jeu: Jeu, lus: readonly string[]): void => setEcran({ type: 'options', depuis: 'jeu', jeu, lus });
+  const enCours = ecran.type === 'options' && ecran.jeu !== null && !observer(env.monde, ecran.jeu.partie.etat).terminee ? ecran.jeu : null;
+
   return (
-    <div className="ecran">
+    <div className="ecran" data-taille={reglages.taille}>
       {ecran.type === 'accueil' ? (
         <main className="jeu accueil">
           <h1 className="titre-accueil" aria-label="VOID WALKER">
@@ -149,10 +238,41 @@ export function App({
                 >
                   Nouvelle partie
                 </button>
+                <button type="button" className="discret" disabled={occupe} onClick={() => void optionsDepuisAccueil()}>
+                  Options
+                </button>
               </>
             )}
           </div>
         </main>
+      ) : ecran.type === 'options' ? (
+        <EcranOptions
+          reglages={reglages}
+          changerReglages={changerReglages}
+          partieEnCours={enCours !== null}
+          occupe={occupe}
+          telecharger={() => (enCours === null ? { etat: 'echec' } : telechargerPartie(env, enCours))}
+          abandonner={() => (enCours === null ? Promise.resolve(false) : abandonnerPartie(enCours))}
+          menuPrincipal={() => void allerAccueil()}
+          reprendre={() => {
+            if (enCours === null) return;
+            // Depuis le jeu, retour au même écran, sans réécrire le récit ; depuis l'accueil, comme REPRENDRE LA PARTIE.
+            const reveil = ecran.depuis === 'accueil' && enCours.partie.etat.actions === 0;
+            setEcran({ type: reveil ? 'reveil' : 'jeu', jeu: enCours, lus: ecran.lus });
+          }}
+          version={version}
+          commit={commit}
+          pr={pr}
+        />
+      ) : ecran.type === 'fin' ? (
+        <EcranFin
+          jeu={ecran.jeu}
+          env={env}
+          occupe={occupe}
+          rejouer={() => void commencerNouvellePartie()}
+          nouvellePartie={() => void commencerNouvellePartie()}
+          menuPrincipal={() => void allerAccueil()}
+        />
       ) : ecran.type === 'reveil' ? (
         <EcranReveil
           jeu={ecran.jeu}
@@ -170,6 +290,7 @@ export function App({
           occupe={occupe}
           choisir={choisir}
           lireMessages={lireMessages}
+          ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
           nouvellePartie={() => void commencerNouvellePartie()}
         />
       ) : (
@@ -190,15 +311,8 @@ export function App({
           </section>
         </main>
       )}
-      {ecran.type !== 'accueil' && ecran.type !== 'reveil' && (
-        <footer className="pied">
-          <span>V{version}</span>
-          {commit !== '' && <span> · {commit.slice(0, 7)}</span>}
-          {pr !== '' && <span> · test PR #{pr}</span>}
-        </footer>
-      )}
-      {/* Lignes de balayage (12 §2.3) : décoratives, jamais touchées ni lues. */}
-      <div className="balayage" aria-hidden="true" />
+      {/* Lignes de balayage (12 §2.3) : décoratives, jamais touchées ni lues ; désactivables dans les options. */}
+      {reglages.balayage && <div className="balayage" aria-hidden="true" />}
     </div>
   );
 }

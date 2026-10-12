@@ -3,9 +3,11 @@ import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App } from './App';
 import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
+import { APERCU_TAILLE, EcranFin, EcranOptions } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
+import { REGLAGES_PAR_DEFAUT, type Reglages } from './reglages';
 import type { Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
@@ -22,6 +24,11 @@ function memoire(): Stockage {
     lireLus: () => Promise.resolve(lus),
     ecrireLus: (nouveaux) => {
       lus = nouveaux;
+      return Promise.resolve();
+    },
+    effacer: () => {
+      donnees = null;
+      lus = null;
       return Promise.resolve();
     },
   };
@@ -131,7 +138,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(html).toContain('<h1 class="titre-piece">cabine</h1>');
   });
 
-  it('en-tête : engrenage masqué tant que l’écran d’options n’existe pas, bouton « Options » sinon', async () => {
+  it('en-tête : bouton « Options » (engrenage) quand les options sont branchées', async () => {
     const jeu = await commencer(env);
     expect(rendre(jeu)).not.toContain('Options');
     expect(entre(rendre(jeu, () => undefined), '<button', '</button>')).toMatch(/class="engrenage" aria-label="Options"/);
@@ -320,7 +327,8 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('navigation : INVENTAIRE et IA STATION, boutons texte sans pictogramme qui ouvrent une bulle ou une fenêtre', async () => {
     const nav = entre(rendre(await commencer(env), undefined, true, ['reveil']), '<nav', '</nav>');
     expect(nav.match(/<button/g)).toHaveLength(2);
-    expect(texte(nav)).toBe('Inventaire IA Station');
+    // Coupure possible à la syllabe en texte agrandi (trait d'union conditionnel), invisible sinon.
+    expect(texte(nav)).toBe('Inven\u00adtaire IA Sta\u00adtion');
     expect(nav.match(/aria-haspopup="dialog" aria-expanded="false"/g)).toHaveLength(2);
     expect(nav).not.toMatch(/<svg|<img/);
   });
@@ -386,10 +394,22 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const jeu = await commencer(env);
     const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
     const html = renderToStaticMarkup(
-      <EcranJeu jeu={vaincu} lus={[]} env={env} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+      <EcranJeu
+        jeu={vaincu}
+        lus={[]}
+        env={env}
+        machineAEcrire
+        occupe={false}
+        choisir={rien}
+        lireMessages={rienALire}
+        ouvrirOptions={() => undefined}
+        nouvellePartie={() => undefined}
+      />,
     );
     expect(html).not.toContain('badge-sante');
     expect(html).not.toContain('class="puce"');
+    // Partie terminée : rien à mettre en pause, l'engrenage disparaît comme la navigation.
+    expect(html).not.toContain('aria-label="Options"');
     expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
       'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie',
     );
@@ -404,19 +424,98 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(situation).toContain('data-testid="situation"');
   });
 
-  it('lignes de balayage sur tout l’écran, masquées aux lecteurs d’écran (12 §2.3)', () => {
-    const html = renderToStaticMarkup(<App env={env} reglages={{ machineAEcrire: true }} version="v-test" commit="" pr="" />);
+  it('lignes de balayage sur tout l’écran, masquées aux lecteurs d’écran, désactivables (12 §2.3) ; taille du texte posée sur l’écran', () => {
+    const html = renderToStaticMarkup(<App env={env} reglages={REGLAGES_PAR_DEFAUT} version="v-test" commit="" pr="" />);
     expect(html).toContain('<div class="balayage" aria-hidden="true"></div>');
+    expect(html).toContain('<div class="ecran" data-taille="standard">');
+    const sans = renderToStaticMarkup(<App env={env} reglages={{ taille: 'tres_grande', balayage: false, machineAEcrire: true }} version="v-test" commit="" pr="" />);
+    expect(sans).not.toContain('balayage');
+    expect(sans).toContain('<div class="ecran" data-taille="tres_grande">');
   });
 
-  it('pied de page court : version, commit et numéro de PR sur une ligne (D-191)', () => {
-    const pied = (commit: string, pr: string): string =>
-      entre(renderToStaticMarkup(<App env={env} reglages={{ machineAEcrire: true }} version="0.1.0" commit={commit} pr={pr} />), '<footer', '</footer>')
-        .replace(/<[^>]*>/g, '')
-        .trim();
+  it('pied de page court, déplacé dans les options : version, commit et numéro de PR sur une ligne (D-191)', async () => {
+    const pied = (commit: string, pr: string): string => texte(entre(options({ commit, pr, version: '0.1.0' }), '<p class="pied">', '</p>'));
     expect(pied('e27d2204f1c3', '121')).toBe('V0.1.0 · e27d220 · test PR #121');
     expect(pied('e27d2204f1c3', '')).toBe('V0.1.0 · e27d220');
     expect(pied('', '')).toBe('V0.1.0');
+    // Plus de pied de page sur l'écran de jeu.
+    expect(rendre(await commencer(env), () => undefined)).not.toContain('class="pied"');
+  });
+});
+
+function options(
+  surcharge: Partial<{ reglages: Reglages; partieEnCours: boolean; version: string; commit: string; pr: string }> = {},
+): string {
+  return renderToStaticMarkup(
+    <EcranOptions
+      reglages={surcharge.reglages ?? REGLAGES_PAR_DEFAUT}
+      changerReglages={rienALire}
+      partieEnCours={surcharge.partieEnCours ?? true}
+      occupe={false}
+      telecharger={() => null}
+      abandonner={() => Promise.resolve(false)}
+      menuPrincipal={rienALire}
+      reprendre={rienALire}
+      version={surcharge.version ?? 'v-test'}
+      commit={surcharge.commit ?? ''}
+      pr={surcharge.pr ?? ''}
+    />,
+  );
+}
+
+describe('options (12 §4.10, #96)', () => {
+  it('en-tête, taille du texte en trois boutons radio avec aperçu, affichage en deux bascules, partie, puis MENU PRINCIPAL et REPRENDRE', () => {
+    const html = options();
+    expect(texte(html)).toBe(
+      [
+        'Options le jeu est en pause',
+        'Taille du texte Standard Grande Très grande',
+        APERCU_TAILLE,
+        'Affichage Lignes de balayage [OUI] Effet machine à écrire [OUI]',
+        'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone ⊘ Abandonner la partie en cours',
+        'Vv-test Menu principal Reprendre la partie',
+      ].join(' '),
+    );
+    expect(html.match(/type="radio"/g)).toHaveLength(3);
+    expect(html).toMatch(/<label class="segment actif"><input type="radio"[^>]*name="taille" checked=""\/><span>Standard<\/span><\/label>/);
+    expect(html).toContain('role="switch" aria-checked="true" aria-label="Lignes de balayage"');
+    expect(html).toContain('role="switch" aria-checked="true" aria-label="Effet machine à écrire"');
+    expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
+  });
+
+  it('réglages choisis : la taille active et les bascules sur [NON]', () => {
+    const html = options({ reglages: { taille: 'tres_grande', balayage: false, machineAEcrire: false } });
+    expect(html).toMatch(/<label class="segment actif"><input[^>]*checked=""\/><span>Très grande<\/span>/);
+    expect(html.match(/class="segment actif"/g)).toHaveLength(1);
+    expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
+    expect(html).toContain('role="switch" aria-checked="false"');
+  });
+
+  it('sans partie en cours : ni Télécharger, ni Abandonner, ni REPRENDRE LA PARTIE, ni « en pause »', () => {
+    const html = texte(options({ partieEnCours: false }));
+    for (const absent of ['Télécharger', 'Abandonner', 'Reprendre', 'en pause', 'Partie ']) expect(html).not.toContain(absent);
+    expect(html).toContain('Menu principal');
+  });
+});
+
+describe('fin après abandon (12 §4.11, #96)', () => {
+  it('titre, récit court, pièces visitées en mots, phrase de fin, puis REJOUER, NOUVELLE PARTIE et MENU PRINCIPAL ; aucun chiffre', async () => {
+    const jeu = await apres('prendre', 'ouvrir', 'aller');
+    const html = renderToStaticMarkup(
+      <EcranFin jeu={jeu} env={env} occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} />,
+    );
+    expect(texte(html)).toBe(
+      [
+        '&gt; Fin de la partie_',
+        'Partie abandonnée.',
+        'Vous en restez là, dans l’atelier. Ce que la station cachait encore, vous ne le saurez pas.',
+        'Pièces visitées : Cabine, Atelier',
+        'Cette partie est terminée. Elle ne peut pas être reprise.',
+        'Rejouer cette station Nouvelle partie Menu principal',
+      ].join(' '),
+    );
+    expect(texte(html)).not.toMatch(/\d/);
+    expect(html).toContain('<button type="button" class="principal">Rejouer cette station</button>');
   });
 });
 
@@ -623,7 +722,7 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
     expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${reveil}\u00a0»`);
     expect(html).not.toContain('lien-ia');
     expect(navIa(html)).toBe(
-      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message">IA Station<span class="pastille" aria-hidden="true"></span></button>',
+      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message">IA Sta\u00adtion<span class="pastille" aria-hidden="true"></span></button>',
     );
     const lu1 = navIa(rendre(jeu, undefined, true, ['reveil']));
     expect(lu1).toContain('aria-label="IA Station"');

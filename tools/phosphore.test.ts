@@ -116,6 +116,18 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(regle).toContain('repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px)');
   });
 
+  it('taille du texte (12 §4.10) : récit à 17, 19 ou 22 px, toute autre taille à proportion', () => {
+    const echelle = (taille: string): number => {
+      const valeur = new RegExp(`\\.ecran\\[data-taille='${taille}'\\]\\s*\\{\\s*--echelle:\\s*calc\\((\\d+) / (\\d+)\\);`).exec(css);
+      return Number(valeur?.[1]) / Number(valeur?.[2]);
+    };
+    expect(/\.ecran\s*\{[^}]*--echelle:\s*1;[^}]*font-size:\s*calc\(17px \* var\(--echelle\)\);/.exec(css)).not.toBeNull();
+    expect([17, 17 * echelle('grande'), 17 * echelle('tres_grande')].map(Math.round)).toEqual([17, 19, 22]);
+    // Seule la racine garde une taille fixe : elle sert d'unité à la largeur de l'écran, pas au texte.
+    const fixes = [...css.matchAll(/font-size:\s*([^;]+);/g)].map(([, valeur = '']) => valeur).filter((valeur) => !valeur.includes('var(--echelle)'));
+    expect(fixes).toEqual(['17px']);
+  });
+
   it('machine à écrire (D-186) : curseur lent, fixe sur [NON] ou si le téléphone demande moins d’animations', () => {
     const clignote = /\.curseur\s*\{\s*animation:\s*clignote\s+([\d.]+)s/.exec(css)?.[1];
     expect(Number(clignote)).toBeGreaterThanOrEqual(1.2);

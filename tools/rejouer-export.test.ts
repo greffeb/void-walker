@@ -1,5 +1,6 @@
 import { exporter, jouer, nouvellePartie, observer, type Partie } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
+import { fichierPartie } from '../app/jeu';
 import { rejouerExport } from './rejouer-export';
 
 const { monde } = MONDES['monde-test'] as EntreeMonde;
@@ -21,6 +22,11 @@ describe("rejoueur d'export", () => {
     const rapport = rejouerExport(JSON.stringify(exporter(monde, partieJouee(), 'note')), 'v');
     expect(rapport.identique).toBe(true);
     expect(rapport.lignes).toContain('Commentaire : note');
+  });
+
+  it('le fichier « Télécharger ma partie » de l’appli se rejoue à l’identique (#96, C-09 S-03)', () => {
+    const { contenu } = fichierPartie({ monde }, partieJouee(), new Date(2026, 9, 12));
+    expect(rejouerExport(contenu, 'v').identique).toBe(true);
   });
 
   it('signale un export dont l’empreinte ne correspond pas', () => {
