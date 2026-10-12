@@ -1490,6 +1490,107 @@ Une approbation globale du travail ne valide pas automatiquement toutes les opti
 - Précise : C-08 §4 pour la fin par abandon ; D-013 et D-089 inchangées.
 - Limite : fermer le jeu sur l'écran de fin le fait disparaître. Le futur « Envoyer ma partie » de cet écran (12 §4.11) ne pourra envoyer que la partie encore affichée.
 
+## Décisions validées — carte (#97)
+
+Choix faits le 2026-10-12 sur maquettes et sur les mesures d'un prototype jetable ; conception complète dans [14 — carte en plan de pont](14-carte.md).
+
+### D-201 — La carte est un plan de pont
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : choix du porteur entre trois formes maquettées (« franchement le C, plan de pont c'est celui qui me plait le plus »).
+- Décision : la carte dessine le plan réel de la station : pièces à leur taille, murs communs, portes en ouvertures. Les stations générées produisent ce plan en s'assemblant ; une station impossible à dessiner est refusée.
+- Remplace : la forme de la carte de 12 §4.8 (boîtes reliées par un double trait, maquette P08).
+- Limite : la géométrie sert l'affichage ; les règles du jeu lisent toujours des positions relatives simples (D-015).
+
+### D-202 — Les pièces connues par une porte sont dessinées en pointillé
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : demande du porteur au lancement de #97 (« affiche les pièces non visitées adjacentes aux pièces déjà visitées en pointillé »), confirmée.
+- Décision : une pièce non visitée, destination nommée d'une porte signalée vue depuis une pièce visitée, est dessinée en entier, en pointillé, avec son nom. Un passage sans signalétique ne fait toujours pas connaître sa destination.
+- Remplace : « cette destination reste non dessinée tant qu'elle n'est pas visitée » d'OP-03 (C-06 §3, 12 §4.8) et la limite de D-075 sur les noms connus par la signalétique.
+
+### D-203 — L'air et la créature entrent dans #97
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : confirmation du porteur ; le moteur a désormais le vide (#104) et la créature (#100).
+- Décision : feu, vide et créature figurent sur la carte dès #97.
+- Remplace : le hors-périmètre de l'issue #97 (voyants d'air et créature « à brancher » plus tard).
+
+### D-204 — Plans générés par tuiles dessinées, portes souples
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : réponse du porteur (« tuiles dessinées mais il faut faire attention à l'emplacement des portes et autres passages. Si c'est trop rigide, on arrivera pas à assembler des pièces »), puis validation des règles mesurées par le prototype.
+- Décision : chaque morceau porte son plan en cases ; la porte entre deux morceaux se place n'importe où sur un mur commun d'au moins deux cases ; une tuile peut être retournée en miroir, jamais tournée ; aucun vide enfermé entre les pièces ; même graine, même plan (14 §5.2).
+- Limite : mesures d'un prototype jetable à tuiles approximatives (14 §6) ; les vraies tuiles se dessinent avec les morceaux (#105, #106).
+
+### D-205 — Grandes stations et carte qui défile
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : demande du porteur (« Pense qu'il faut aussi gérer des grosses station de 20 salles (voir plus) (quitte a faire défiler au doigt si le plan doit être zoomé) »), puis choix « Ouverte centrée sur moi » et « Pincer pour zoomer ».
+- Décision : une station peut compter 20 pièces et plus ; elle se construit en trois temps : chemin principal, annexes posées une à une, portes de boucle. La carte garde une échelle lisible et défile au doigt ; elle s'ouvre centrée sur la pièce actuelle et se pince pour zoomer, sans bouton recentrer ni vue d'ensemble.
+- Limite : taille des stations et durée de partie (D-008) restent à mesurer.
+
+### D-206 — Petites pièces en cul-de-sac
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : demande du porteur (« pouvoir gérer des petites pièces Adjacentes en cul de sac a une seule porte (local technique, placard à balai, cabine d'équipage, salle de bain, wc) »).
+- Décision : ces pièces n'ont qu'une porte et rien ne s'y accroche ; elles sont assez grandes pour leur nom complet (14 §4.2, PL-04).
+
+### D-207 — Règles de cohérence des stations
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : demandes du porteur (pièces vitrées, sas et capsules vers l'extérieur ; « sanitaires a couté des cabines et dortoirs, pas de passage par les salles des machines obligatoire pour aller aux WC » ; « des "couloirs" qui connectent jusqu'a 6 salles » ; plusieurs zones de vie et techniques « reliées ensembles en plusieurs points »), validation des règles du prototype, et précision : « il est possible de devoir passer par des pièces de vie pour avancer dans l'histoire ».
+- Décision : coque dégagée, avec quatre cases libres devant vitres, sas extérieurs et capsules ; pièces de vie atteintes depuis le départ sans traverser de pièce technique, pour l'architecture seulement, pas pour le chemin imposé par l'incident ; WC et salles de bain sur un couchage ou sur un couloir qui en dessert un ; couloirs en grappes, six portes au plus par pièce ; plusieurs zones reliées en plusieurs points, possibles mais jamais obligatoires (14 §5.4).
+- Limite : liste des catégories et règles complémentaires à écrire avec le catalogue des pièces ; c'est le vérifieur de jeu (GP-05) qui garantit qu'une porte de boucle ne contourne pas un obstacle.
+
+### D-208 — Pièces du même type numérotées
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : réponse du porteur « Numérotées ».
+- Décision : dans une station, les pièces du même type portent un numéro (CABINE 3, COULOIR B), le même dans le récit, le dock, la carte et la fiche (NP-04).
+
+### D-209 — États sur la carte : motif de sol et étiquette
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : choix du porteur « C · Les deux » sur maquettes.
+- Décision : le feu (hachures, étiquette FEU), le vide (points, VIDE ○) et la créature (losange, CRÉATURE) portent un motif de sol et une étiquette en vidéo inverse ; l'ancienneté suit en mots et s'efface faute de place dans une petite pièce ; la pièce actuelle porte « @ VOUS ».
+- Précise : la forme du marqueur de créature laissée à maquetter par D-141 : un losange.
+
+### D-210 — Fiche d'une pièce : état vu et objets vus
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : réponse du porteur sur maquette (« État vu, Objets vus »).
+- Décision : toucher une pièce visitée ouvre sa fiche, gratuite, dans une bulle ancrée : états vus avec leur ancienneté, objets vus au dernier regard ; ni ancienneté seule ni passages. La carte ne déplace jamais le passager.
+
+### D-211 — La carte en vert phosphore
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : choix du porteur « B · Vert phosphore » sur maquettes.
+- Décision : l'écran de la carte a ses propres jetons verts (14 §2.2), comme l'inventaire est cyan (D-176) et IA Station blanche (D-192).
+- Remplace : « la couleur de la carte (autre piste de D-176) reste à choisir » (D-192).
+- Limite : valeurs à juger sur téléphone.
+
+### D-212 — Vue LISTE de la plus proche ; positions en mots dans la liste seulement
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : réponses du porteur « De la plus proche » et « Non, liste seulement ».
+- Décision : la vue LISTE range les pièces visitées par nombre de passages connus depuis la pièce actuelle ; les positions en mots (ICI) n'apparaissent que dans la vue LISTE.
+- Remplace : « Sous le plan, ── ICI ── » de 12 §4.8 et le point 4 du périmètre de l'issue #97.
+
+### D-213 — Mémoire de la carte
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : validation par le porteur de la conception « Ce que le moteur garde ».
+- Décision : l'état sauvegardé garde, par pièce, le dernier état vu (feu, objets, portes, moment du regard), mis à jour dans la pièce actuelle et, pour le feu, à travers une porte ouverte. La carte publique ne contient que ce que le passager sait, géométrie comprise (14 §3).
+- Précise : D-076 et OP-05 ; OP-04 inchangé (air à jour par les voyants).
+
+### D-214 — #97 en trois livraisons ; géométrie générée dans #106
+
+- Date / statut : 2026-10-12 / **Validé**.
+- Origine : validation par le porteur du découpage proposé.
+- Décision : #97 se livre en trois PR : plans, mémoire, écran (14 §7). L'assemblage géométrique des stations générées rejoint #106. Un catalogue de pièces sans obstacle fera l'objet d'une issue à part, créée avec l'accord du porteur.
+- Limite : chaque livraison est en zone orange ; l'écran demande un essai sur téléphone.
+
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 
 Détails de l'agent pour #102, à revoir par le porteur au besoin : chaque pièce exposée deux fois de suite prend feu dans la même mise à jour, sans enchaînement (C-03 §5.3 ; l'aperçu ne dépend ainsi d'aucune liaison cachée) ; l'eau s'utilise sur la pièce du passager ou sur une voisine par un passage ouvert ; déplacer la caisse est un geste discret (AR-01 §12) ; le test de l'avertisseur s'annonce sans coût, le son étant émis dans une autre pièce ; sortir de l'alcôve coûte une réaction à la créature, comme y entrer (C-03 §4.3) ; un bruit fait dans sa propre pièce l'en fait sortir ; à terre après une glissade, elle est montrée comme telle au passager.

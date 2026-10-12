@@ -1,6 +1,6 @@
 # C-06 — Observation, carte et connaissances
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots) ; §4 complété par D-180 et D-181 (aperçu d'un déplacement vers la créature).
+> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots) ; §4 complété par D-180 et D-181 (aperçu d'un déplacement vers la créature) ; §3 amendé par D-201, D-202 et D-213 (carte en plan de pont, pièces connues dessinées, mémoire), détaillé dans [14 — carte](../14-carte.md).
 > **Date :** 2026-10-11.
 > **Implémentation et tests :** partiels — vue dans la même pièce, bruits (OP-01) et aperçus D-180/D-181 (PR #112) ; destination inconnue d'un accès sans signalétique, passage caché (OP-03, K-05) et messages prévus de l'assistance (D-081) fusionnés par #103 ; historique d'IA Station, avec le moment de chaque message, proposé par #98 ; voyants d'air des portes et aperçu de l'air perdu ou revenu (AR-02) proposés par #104 ; carte absente.
 
@@ -33,6 +33,13 @@ La même observation sert la PWA, la CLI, les bots et le joueur LLM externe. Seu
 - Hors de vue, une pièce garde le dernier état vu (D-076) : objets, liaisons, foyer.
 - **OP-04 —** L'air des pièces connues, lu sur les voyants des portes étanches, est affiché à jour (D-071, D-081).
 - **OP-05 —** Le dernier endroit où la créature a été vue est marqué, avec l'ancienneté dite en mots (« à l'instant », « il y a un moment », « il y a longtemps »), sans nombre d'actions (D-141). Un bruit entendu n'ajoute aucun marqueur de position.
+
+**Amendements du 2026-10-12** ([14 — carte](../14-carte.md) §2 et §3) :
+
+- La carte est un plan de pont : pièces à leur taille, murs communs, portes en ouvertures (D-201).
+- OP-03 : la destination nommée d'une porte signalée, vue depuis une pièce visitée, est dessinée en pointillé avec son nom, sans être visitée (D-202). Un accès sans signalétique ne fait toujours pas connaître sa destination.
+- Le dernier état vu de chaque pièce (feu, objets, portes, moment du regard) fait partie de l'état sauvegardé ; il se met à jour dans la pièce actuelle et, pour le feu, à travers une porte ouverte (D-213).
+- L'observation porte une carte publique limitée à ce que le passager sait, géométrie comprise : la forme d'une pièce inconnue n'y figure jamais (D-213, K-13 de 14 §3.6).
 
 ## 4. Menus, aperçus et risques
 
