@@ -5,6 +5,19 @@ export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, 
 export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice, Reperes, VueCreature } from './etat';
 export { empreinte, hacher } from './hachage';
 export { idPublic, validerMonde, type DefAssistance, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece } from './monde';
+export {
+  COTES,
+  emplacementDe,
+  murCommun,
+  panDeCoque,
+  piecesDeCoque,
+  type CasePlan,
+  type Cote,
+  type EmplacementPassage,
+  type PanCoque,
+  type PlanLiaison,
+  type RectPlan,
+} from './plan';
 export { historique, menu, observer } from './observation';
 export {
   apercu,

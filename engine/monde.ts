@@ -1,4 +1,5 @@
 import { hacher } from './hachage';
+import { validerPlan, type PlanLiaison, type RectPlan } from './plan';
 
 // Forme commune d'un monde (C-02). `nom` est une clé publique vers le texte ; `id` reste interne.
 // Les règles lisent des qualités déclarées, jamais un nom (D-078).
@@ -10,6 +11,10 @@ export interface DefPiece {
   readonly feu?: boolean;
   /** Sous-position fermée d'une pièce, comme une cabine « à bord » : ni découverte ni carte (C-02 §2, C-06 §3). */
   readonly sousPosition?: boolean;
+  /** Rectangle sur le plan de pont (14 §4.1) ; toutes les pièces dessinées d'un monde en ont un, ou aucune. */
+  readonly plan?: RectPlan;
+  /** Contre la coque sans vitrage déclaré, comme une baie d'observation (14 §4.1) : PL-05 s'y applique. */
+  readonly coque?: boolean;
 }
 
 export interface DefLiaison {
@@ -36,6 +41,8 @@ export interface DefLiaison {
   readonly manoeuvre?: string;
   /** Jamais étanche, même fermée, comme une grille ou un conduit : le vide la traverse (C-02 §3, D-061). */
   readonly nonEtanche?: boolean;
+  /** Porte fixée dans le mur commun, ou tracé d'un conduit sans mur commun (14 §4.1). */
+  readonly plan?: PlanLiaison;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -224,6 +231,8 @@ export function validerMonde(monde: DefMonde): string[] {
     if (monde.creature.piece === monde.depart) erreurs.push('Créature dans la pièce de départ (GP-04).');
     if (monde.pieces.some((piece) => piece.id === monde.creature?.piece && piece.feu === true)) erreurs.push('Créature dans une pièce en feu.');
   }
+  // Un plan impossible à dessiner rend le monde injouable, comme une station sans chemin sûr (14 §1).
+  erreurs.push(...validerPlan(monde));
   return erreurs;
 }
 

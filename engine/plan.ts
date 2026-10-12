@@ -1,3 +1,5 @@
+import type { DefLiaison, DefMonde } from './monde';
+
 // Plan de pont des stations (docs/14-carte.md §4) : pièces en rectangles de cases, portes dans les murs communs, conduits
 // tracés, pièces de coque. Les cases ne servent qu'au dessin : aucune grille ni distance n'est affichée (D-015), et aucune
 // règle de jeu ne lit le plan (D-078). Le plan ne dépend que du monde (PL-07).
@@ -169,4 +171,121 @@ export function panLibre(piece: RectPlan, occupees: ReadonlySet<string>): PanCoq
     }
   }
   return meilleur;
+}
+
+/** Pièces de coque (14 §4.1) : déclarées, à vitrage extérieur, ou d'embarquement d'une capsule ; dans l'ordre du monde. */
+export function piecesDeCoque(monde: DefMonde): string[] {
+  const parObjet = new Set(monde.objets.filter((objet) => objet.vitrageExterieur === true || objet.capsule !== undefined).map((objet) => objet.piece));
+  return monde.pieces.filter((piece) => piece.coque === true || parObjet.has(piece.id)).map((piece) => piece.id);
+}
+
+function rectDe(monde: DefMonde, piece: string): RectPlan | undefined {
+  return monde.pieces.find((candidate) => candidate.id === piece)?.plan;
+}
+
+/** Cases occupées par les pièces et par les conduits : rien ne s'y pose devant une coque (PL-05). */
+function occupation(monde: DefMonde): Set<string> {
+  const occupees = casesDe(monde.pieces.flatMap((piece) => (piece.plan === undefined ? [] : [piece.plan])));
+  for (const liaison of monde.liaisons) for (const etape of liaison.plan?.trace ?? []) occupees.add(cleCase(etape.x, etape.y));
+  return occupees;
+}
+
+/** Pan de coque dégagé de la pièce (PL-05), où s'arrime une capsule ; `null` sans plan ou sans pan libre. */
+export function panDeCoque(monde: DefMonde, piece: string): PanCoque | null {
+  const rect = rectDe(monde, piece);
+  return rect === undefined ? null : panLibre(rect, occupation(monde));
+}
+
+/** Emplacement d'une liaison sur le plan : son tracé, ou sa porte dans le mur commun ; `null` sans plan ou vers une sous-position. */
+export function emplacementDe(monde: DefMonde, liaison: DefLiaison): EmplacementPassage | null {
+  const trace = liaison.plan?.trace;
+  if (trace !== undefined) return { type: 'trace', cases: trace };
+  const [a, b] = liaison.entre.map((piece) => rectDe(monde, piece));
+  if (a === undefined || b === undefined) return null;
+  const mur = murCommun(a, b);
+  return mur === null ? null : { type: 'mur', axe: mur.axe, ligne: mur.ligne, rang: liaison.plan?.rang ?? rangParDefaut(mur) };
+}
+
+function rectValide(rect: RectPlan): boolean {
+  return [rect.x, rect.y, rect.largeur, rect.hauteur].every(Number.isInteger) && rect.largeur >= 2 && rect.hauteur >= 2;
+}
+
+/** Tracé de conduit : cases entières, libres, contiguës, la première contre une pièce et la dernière contre l'autre. */
+function traceValide(trace: readonly CasePlan[], a: RectPlan, b: RectPlan, pieces: ReadonlySet<string>): boolean {
+  const premiere = trace[0];
+  const derniere = trace[trace.length - 1];
+  if (premiere === undefined || derniere === undefined) return false;
+  const libres = trace.every((etape) => Number.isInteger(etape.x) && Number.isInteger(etape.y) && !pieces.has(cleCase(etape.x, etape.y)));
+  const contigues = trace.every((etape, index) => {
+    const avant = trace[index - 1];
+    return avant === undefined || Math.abs(avant.x - etape.x) + Math.abs(avant.y - etape.y) === 1;
+  });
+  const relie = (depart: RectPlan, arrivee: RectPlan): boolean => ouvertureVers(depart, premiere) !== null && ouvertureVers(arrivee, derniere) !== null;
+  return libres && contigues && (relie(a, b) || relie(b, a));
+}
+
+/**
+ * Erreurs du plan d'un monde (14 §4.2 : PL-01 à PL-03, PL-05, PL-06) ; un monde sans aucun plan n'en a pas. PL-04 se vérifie
+ * avec les textes (content/textes/lisibilite.ts) ; PL-07 tient à ce que tout se calcule depuis le monde seul.
+ */
+export function validerPlan(monde: DefMonde): string[] {
+  const erreurs: string[] = [];
+  const sousPositions = new Set(monde.pieces.filter((piece) => piece.sousPosition === true).map((piece) => piece.id));
+  for (const piece of monde.pieces) if (sousPositions.has(piece.id) && piece.plan !== undefined) erreurs.push(`${piece.id} : sous-position avec un plan.`);
+  const dessinees = monde.pieces.filter((piece) => !sousPositions.has(piece.id));
+  if (dessinees.every((piece) => piece.plan === undefined)) {
+    for (const liaison of monde.liaisons) if (liaison.plan !== undefined) erreurs.push(`${liaison.id} : plan de liaison sans plan des pièces.`);
+    return erreurs;
+  }
+  const rects = new Map<string, RectPlan>();
+  for (const piece of dessinees) {
+    if (piece.plan === undefined) erreurs.push(`${piece.id} : pièce sans plan, alors que d’autres en ont un.`);
+    else if (!rectValide(piece.plan)) erreurs.push(`${piece.id} : rectangle invalide (cases entières, au moins 2 × 2).`);
+    else rects.set(piece.id, piece.plan);
+  }
+  const liste = [...rects];
+  liste.forEach(([id, rect], index) => {
+    for (const [autre, autreRect] of liste.slice(index + 1)) if (chevauchent(rect, autreRect)) erreurs.push(`${id} et ${autre} : pièces qui se chevauchent (PL-01).`);
+  });
+  const pieces = casesDe(rects.values());
+  const portes = new Map<string, number>();
+  const ouvertures = new Map<string, string>();
+  for (const liaison of monde.liaisons) {
+    if (liaison.entre.some((piece) => sousPositions.has(piece))) {
+      if (liaison.plan !== undefined) erreurs.push(`${liaison.id} : plan d’une liaison vers une sous-position.`);
+      continue;
+    }
+    const [a, b] = liaison.entre.map((piece) => rects.get(piece));
+    // Pièce sans plan ou rectangle invalide : déjà signalé.
+    if (a === undefined || b === undefined) continue;
+    for (const piece of liaison.entre) portes.set(piece, (portes.get(piece) ?? 0) + 1);
+    const rang = liaison.plan?.rang;
+    const trace = liaison.plan?.trace;
+    if (trace !== undefined) {
+      if (rang !== undefined) erreurs.push(`${liaison.id} : porte et tracé à la fois.`);
+      if (!traceValide(trace, a, b, pieces)) erreurs.push(`${liaison.id} : tracé de conduit invalide (PL-02).`);
+      continue;
+    }
+    const mur = murCommun(a, b);
+    if (mur === null) {
+      erreurs.push(`${liaison.id} : ni mur commun ni tracé de conduit (PL-02).`);
+      continue;
+    }
+    if (rang !== undefined && !(Number.isInteger(rang) && rang >= mur.debut && rang < mur.fin)) {
+      erreurs.push(`${liaison.id} : porte hors du mur commun (PL-02).`);
+      continue;
+    }
+    const cle = `${mur.axe}${mur.ligne}/${rang ?? rangParDefaut(mur)}`;
+    const deja = ouvertures.get(cle);
+    if (deja === undefined) ouvertures.set(cle, liaison.id);
+    else erreurs.push(`${deja} et ${liaison.id} : même ouverture.`);
+  }
+  for (const [piece, nombre] of portes) if (nombre > PORTES_MAX) erreurs.push(`${piece} : ${nombre} portes, six au plus (PL-06).`);
+  for (const vide of videsEnfermes([...rects.values()])) erreurs.push(`Vide enfermé entre les pièces en (${vide.x}, ${vide.y}) (PL-03).`);
+  const devant = occupation(monde);
+  for (const piece of piecesDeCoque(monde)) {
+    const rect = rects.get(piece);
+    if (rect !== undefined && panLibre(rect, devant) === null) erreurs.push(`${piece} : pièce de coque sans pan dégagé (PL-05).`);
+  }
+  return erreurs;
 }
