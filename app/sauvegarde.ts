@@ -6,6 +6,8 @@ export interface Stockage {
   /** Messages lus : affichage seulement, hors de la partie, jamais rejoués. */
   lireLus(): Promise<unknown>;
   ecrireLus(donnees: unknown): Promise<void>;
+  /** Retire la partie et ses messages lus, en une écriture : après un abandon, rien ne se reprend (D-013). */
+  effacer(): Promise<void>;
 }
 
 const MAGASIN = 'parties';
@@ -42,10 +44,10 @@ export function stockageIndexedDB(nom: string, fabrique: IDBFactory = indexedDB)
     const valeur = await requete(db.transaction(MAGASIN, 'readonly').objectStore(MAGASIN).get(cle));
     return valeur ?? null;
   };
-  const ecrire = async (cle: string, donnees: unknown): Promise<void> => {
+  const ecrire = async (modifier: (magasin: IDBObjectStore) => void): Promise<void> => {
     const db = await connexion();
     const transaction = db.transaction(MAGASIN, 'readwrite');
-    transaction.objectStore(MAGASIN).put(donnees, cle);
+    modifier(transaction.objectStore(MAGASIN));
     await new Promise<void>((resoudre, rejeter) => {
       transaction.oncomplete = () => resoudre();
       transaction.onerror = () => rejeter(transaction.error ?? new Error('Écriture refusée.'));
@@ -54,8 +56,13 @@ export function stockageIndexedDB(nom: string, fabrique: IDBFactory = indexedDB)
   };
   return {
     lire: () => lire(CLE),
-    ecrire: (donnees) => ecrire(CLE, donnees),
+    ecrire: (donnees) => ecrire((magasin) => magasin.put(donnees, CLE)),
     lireLus: () => lire(CLE_LUS),
-    ecrireLus: (donnees) => ecrire(CLE_LUS, donnees),
+    ecrireLus: (donnees) => ecrire((magasin) => magasin.put(donnees, CLE_LUS)),
+    effacer: () =>
+      ecrire((magasin) => {
+        magasin.delete(CLE);
+        magasin.delete(CLE_LUS);
+      }),
   };
 }

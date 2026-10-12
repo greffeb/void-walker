@@ -283,6 +283,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     critique: 'Vous êtes grièvement blessé.',
     terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',
     evacuee: 'La capsule s’est détachée. Vous avez quitté la station.',
+    abandon: 'Vous en restez là, dans {le:piece}.',
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',

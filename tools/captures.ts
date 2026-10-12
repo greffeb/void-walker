@@ -1,4 +1,5 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium, devices, type Browser, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
@@ -6,8 +7,10 @@ import { apercu, jouer, nouvellePartie, observer, type Commande, type Observatio
 import { libelleOption, MONDES, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
 import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
+import { rejouerExport } from './rejouer-export';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
+import { versionDuJeu } from './version';
 
 // Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large ;
 // le départ d'AR-01 aussi en 412 × 915, proche du téléphone du porteur (D-191).
@@ -290,14 +293,44 @@ function decrirePartage(mesure: { lignes: number; defile: boolean } | null): str
   return `Récit : ${lignes} lignes visibles ; boutons du dock ${mesure.defile ? 'à faire défiler' : 'tous visibles'}.`;
 }
 
-/** Le pied de page (version, commit, numéro de PR) tient sur une ligne (D-191). */
+/** Le pied de page (version, commit, numéro de PR) est en bas des options, sur une ligne (D-191, #96) ; on revient ensuite au jeu. */
 async function verifierPied(page: Page, ou: string, erreurs: string[]): Promise<void> {
-  const pied = page.locator('.pied');
+  await ouvrirOptions(page);
+  const pied = page.locator('.options .pied');
+  if ((await page.locator('.pied').count()) !== 1) erreurs.push(`${ou} : le pied de page n’est pas seulement dans les options.`);
   const lignes = await pied.evaluate((element) => {
     const style = getComputedStyle(element);
     return (element.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) / parseFloat(style.lineHeight);
   });
   if (!(lignes <= 1.05)) erreurs.push(`${ou} : le pied de page « ${(await pied.innerText()).trim()} » tient sur ${Math.round(lignes)} lignes.`);
+  await page.getByRole('button', { name: exactement('Reprendre la partie') }).click();
+  await page.getByTestId('recit').waitFor();
+}
+
+/** Ouvre les options par l'engrenage de l'écran de jeu (12 §3.2). */
+async function ouvrirOptions(page: Page): Promise<void> {
+  await page.locator('.entete-piece').getByRole('button', { name: exactement('Options') }).click();
+  await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+}
+
+/** Touche une taille du groupe segmenté (12 §4.10). */
+async function choisirTaille(page: Page, libelle: 'Standard' | 'Grande' | 'Très grande'): Promise<void> {
+  await page.locator('label.segment', { has: page.getByText(libelle, { exact: true }) }).click();
+}
+
+/** Aucun texte coupé (12 §7) : aucun élément visible ne déborde en largeur de sa boîte. */
+async function verifierSansTroncature(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  const coupes = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.ecran *')]
+      .filter((element) => element.closest('.lecteur-seul, svg') === null && element.clientWidth > 0 && element.scrollWidth > element.clientWidth + 1)
+      .map((element) => `${element.tagName.toLowerCase()}.${element.className} « ${(element.textContent ?? '').trim().slice(0, 40)} »`),
+  );
+  for (const coupe of coupes) erreurs.push(`${ou} : texte coupé en largeur dans ${coupe}.`);
+}
+
+/** Taille du récit en pixels, ou de l'aperçu de taille dans les options. */
+async function tailleRecit(page: Page): Promise<string> {
+  return page.locator('[data-testid="recit"] p:not(.rappel), [data-testid="apercu-taille"]').first().evaluate((element) => getComputedStyle(element).fontSize);
 }
 
 /** Bulle d'inventaire ouverte : au-dessus de son bouton sans le cacher, dock toujours là (D-154, D-176). */
@@ -658,6 +691,148 @@ async function verifierCommande(page: Page, geste: Geste, ou: string, erreurs: s
   }
 }
 
+/** Partie enregistrée, lue : sa graine et son état ; `null` s'il n'y en a plus. */
+async function partieLue(page: Page): Promise<{ enregistrement: { graine: number }; etat: Record<string, unknown> } | null> {
+  const brute = await partieEnregistree(page);
+  return brute === 'null' || brute === 'aucune base' ? null : (JSON.parse(brute) as { enregistrement: { graine: number }; etat: Record<string, unknown> });
+}
+
+/**
+ * Options (#96, 12 §4.10, §4.11) dans le monde de test : depuis l'accueil sans partie, puis en cours de partie sans rien changer ;
+ * taille « très grande » partout, lignes de balayage coupées, réglages gardés au rechargement ; téléchargement rejoué par le
+ * rejoueur ; abandon confirmé dans la page, écran de fin, plus de reprise ; REJOUER CETTE STATION, même départ, nouveaux tirages.
+ */
+async function parcoursOptions(navigateur: Browser, adresse: string, entree: EntreeMonde, gestes: readonly Geste[], capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR', acceptDownloads: true });
+  const page = await contexte.newPage();
+  await page.goto(adresse);
+  await page.getByRole('button', { name: exactement('Options') }).click();
+  await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+  for (const absent of [/Télécharger ma partie/i, /Abandonner la partie en cours/i, /^Reprendre la partie$/i]) {
+    if ((await page.getByRole('button', { name: absent }).count()) > 0) erreurs.push(`Options sans partie : « ${absent.source} » est proposé.`);
+  }
+  if ((await partieLue(page)) !== null) erreurs.push('Options sans partie : une partie a été créée.');
+  await capturer(page, 'Options depuis l’accueil, sans partie');
+  await page.getByRole('button', { name: exactement('Menu principal') }).click();
+  await page.getByRole('button', { name: exactement('Nouvelle partie') }).waitFor();
+
+  // En cours de partie : ouvrir les options ne change ni la partie, ni le récit, ni la situation.
+  await nouvelleDepuisAccueil(page);
+  await rejouer(page, gestes.slice(0, 2));
+  await page.waitForTimeout(PAUSE_JOUEUR_MS);
+  const avant = { partie: await partieEnregistree(page), ...(await lire(page)) };
+  await ouvrirOptions(page);
+  if (!(await page.getByText('le jeu est en pause', { exact: true }).isVisible())) erreurs.push('Options en partie : « le jeu est en pause » absent.');
+  await capturer(page, 'Options en cours de partie');
+  await verifierSansTroncature(page, 'Options en cours de partie', erreurs);
+
+  // Télécharger ma partie : le fichier se rejoue avec le rejoueur et donne le même état (C-09 S-03, SP-05).
+  const [telechargement] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Télécharger ma partie/i }).click()]);
+  const chemin = join(tmpdir(), `void-walker-captures-${process.pid}.json`);
+  await telechargement.saveAs(chemin);
+  const rapport = rejouerExport(readFileSync(chemin, 'utf8'), versionDuJeu());
+  rmSync(chemin, { force: true });
+  if (!rapport.identique) erreurs.push(`Téléchargement : le fichier ne se rejoue pas à l’identique.\n${rapport.lignes.join('\n')}`);
+  const retour = ((await page.getByTestId('telechargement').textContent()) ?? '').trim();
+  if (retour !== `Fichier prêt : ${telechargement.suggestedFilename()}`) erreurs.push(`Téléchargement : retour « ${retour} ».`);
+  if ((await partieEnregistree(page)) !== avant.partie) erreurs.push('Télécharger ma partie a modifié la partie enregistrée.');
+
+  // Très grande : aperçu à 22 px ; lignes de balayage coupées.
+  await choisirTaille(page, 'Très grande');
+  if ((await tailleRecit(page)) !== '22px') erreurs.push(`Options : aperçu à ${await tailleRecit(page)} en « très grande ».`);
+  await page.getByRole('switch', { name: exactement('Lignes de balayage') }).click();
+  if ((await page.locator('.balayage').count()) !== 0) erreurs.push('Lignes de balayage sur [NON] : la couche est toujours là.');
+  await capturer(page, 'Options : taille « très grande », lignes de balayage sur [NON], fichier prêt');
+  await verifierSansTroncature(page, 'Options, très grande', erreurs);
+
+  await page.getByRole('button', { name: exactement('Reprendre la partie') }).click();
+  await page.getByTestId('recit').waitFor();
+  const ecriture = await etatEcriture(page);
+  if (ecriture.animees > 0 || ecriture.visibles !== ecriture.total) erreurs.push('Retour des options : le récit se réécrit.');
+  const apres = { partie: await partieEnregistree(page), ...(await lire(page)) };
+  if (JSON.stringify(apres) !== JSON.stringify(avant)) erreurs.push('Ouvrir les options a changé la partie, le récit ou la situation.');
+  if ((await tailleRecit(page)) !== '22px') erreurs.push(`Jeu en « très grande » : récit à ${await tailleRecit(page)}.`);
+  await capturer(page, 'Jeu en « très grande », sans lignes de balayage');
+  await verifierEcran(page, 'Jeu, très grande', erreurs);
+  await verifierSansTroncature(page, 'Jeu, très grande', erreurs);
+  const puce = page.locator('.dock .puce[aria-haspopup="dialog"]').first();
+  await puce.click();
+  await verifierDansEcran(page, 'Bulle, très grande', erreurs);
+  await verifierSansTroncature(page, 'Bulle, très grande', erreurs);
+  await capturer(page, 'Bulle en « très grande »');
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: exactement('Inventaire') }).click();
+  await verifierDansEcran(page, 'Inventaire, très grande', erreurs);
+  await verifierSansTroncature(page, 'Inventaire, très grande', erreurs);
+  await page.keyboard.press('Escape');
+  await page.locator('.nav-ia').click();
+  await verifierDansEcran(page, 'IA Station, très grande', erreurs);
+  await verifierSansTroncature(page, 'IA Station, très grande', erreurs);
+  await capturer(page, 'Fenêtre d’IA Station en « très grande »');
+  await page.keyboard.press('Escape');
+
+  // Réglages gardés sur l'appareil ; accueil, options depuis l'accueil et reprise.
+  await page.reload();
+  await page.getByRole('button', { name: exactement('Reprendre la partie') }).waitFor();
+  const garde = await page.locator('.ecran').evaluate((ecran) => ({ taille: (ecran as HTMLElement).dataset.taille, balayage: ecran.querySelector('.balayage') !== null }));
+  if (garde.taille !== 'tres_grande' || garde.balayage) erreurs.push(`Après rechargement : réglages ${JSON.stringify(garde)}.`);
+  await capturer(page, 'Accueil après rechargement : réglages gardés');
+  await verifierSansTroncature(page, 'Accueil, très grande', erreurs);
+  await page.getByRole('button', { name: exactement('Options') }).click();
+  await page.getByRole('button', { name: exactement('Reprendre la partie') }).click();
+  await attendreSauvegarde(page, 2);
+  if ((await partieEnregistree(page)) !== avant.partie) erreurs.push('Options depuis l’accueil puis REPRENDRE : la partie a changé.');
+
+  // Abandon : confirmation dans la page ; ANNULER ne change rien.
+  await ouvrirOptions(page);
+  const abandon = page.getByRole('button', { name: /Abandonner la partie en cours/i });
+  await abandon.click();
+  await page.getByText('Abandonner ? Cette partie ne pourra pas être reprise.').waitFor();
+  await capturer(page, 'Options : confirmation d’abandon');
+  await page.getByRole('button', { name: exactement('Annuler') }).click();
+  if (!(await abandon.evaluate((element) => element === document.activeElement))) erreurs.push('Abandon annulé : le focus ne revient pas sur le bouton.');
+  if ((await partieEnregistree(page)) !== avant.partie) erreurs.push('ANNULER l’abandon a modifié la partie.');
+  await abandon.click();
+  await page.getByRole('button', { name: exactement('Abandonner') }).click();
+  await page.getByRole('heading', { name: exactement('Partie abandonnée.') }).waitFor();
+  const fin = await page.getByTestId('fin').innerText();
+  // Pièces visitées après les deux gestes joués, selon le moteur, en mots.
+  let jouee = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+  for (const geste of gestes.slice(0, 2)) {
+    const resultat = jouer(entree.monde, jouee, geste.commande);
+    if (resultat.type === 'engagee') jouee = resultat.partie;
+  }
+  const visitees = observer(entree.monde, jouee.etat).visitees.map((piece) => nomPuce(entree.textes, piece)).join(', ');
+  for (const attendu of ['Pièces visitées', visitees, entree.textes.observation.terminee]) {
+    if (!fin.toLowerCase().includes(attendu.toLowerCase())) erreurs.push(`Fin d’abandon : « ${attendu} » absent.`);
+  }
+  if (/\d/.test(await page.locator('main').innerText())) erreurs.push('Fin d’abandon : un chiffre est affiché.');
+  if ((await partieLue(page)) !== null) erreurs.push('Fin d’abandon : la partie est encore enregistrée.');
+  await capturer(page, 'Fin : partie abandonnée (« très grande »)');
+  await verifierSansTroncature(page, 'Fin, très grande', erreurs);
+  await page.reload();
+  await page.getByRole('button', { name: exactement('Nouvelle partie') }).waitFor();
+  if ((await page.getByRole('button', { name: exactement('Reprendre la partie') }).count()) !== 0) erreurs.push('Après abandon : la partie se reprend encore.');
+
+  // REJOUER CETTE STATION : même état de départ, nouveaux tirages (D-087, D-088).
+  await nouvelleDepuisAccueil(page);
+  await rejouer(page, gestes.slice(0, 1));
+  const abandonnee = await partieLue(page);
+  await ouvrirOptions(page);
+  await abandon.click();
+  await page.getByRole('button', { name: exactement('Abandonner') }).click();
+  await page.getByRole('button', { name: exactement('Rejouer cette station') }).click();
+  await page.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+  const rejouee = await partieLue(page);
+  const depart = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 }).etat;
+  if (rejouee === null || abandonnee === null) erreurs.push('Rejouer cette station : partie absente.');
+  else {
+    if (rejouee.enregistrement.graine === abandonnee.enregistrement.graine) erreurs.push('Rejouer cette station : mêmes tirages que la partie abandonnée.');
+    if (JSON.stringify({ ...rejouee.etat, generateur: null }) !== JSON.stringify({ ...depart, generateur: null })) erreurs.push('Rejouer cette station : autre état de départ.');
+  }
+  await contexte.close();
+}
+
 /**
  * AR-01 depuis l'adresse par défaut : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
  * la parole d'IA Station au réveil (12 §4.2), puis son lien, sa pastille et sa fenêtre, avant et après reprise (12 §3.9, D-192),
@@ -795,6 +970,35 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
     await verifierEcran(vue, titre, erreurs);
     await verifierPied(vue, titre, erreurs);
     if (ecran === PORTEUR && (await partage(vue))?.defile !== false) erreurs.push(`${titre} : les boutons du départ ne sont pas tous visibles.`);
+    if (ecran === ETROIT) {
+      // Taille « très grande » sur le plus petit écran : rien de coupé, six lignes de récit, le dock défile (12 §7, D-191).
+      await ouvrirOptions(vue);
+      await choisirTaille(vue, 'Très grande');
+      await capturer(vue, `AR-01 — Options en « très grande », ${ecran.width} × ${ecran.height}`);
+      await verifierSansTroncature(vue, `Options AR-01, très grande, ${ecran.width} px`, erreurs);
+      await vue.getByRole('button', { name: exactement('Reprendre la partie') }).click();
+      const grand = `AR-01 — Départ en « très grande », ${ecran.width} × ${ecran.height}`;
+      await vue.getByTestId('recit').waitFor();
+      await capturer(vue, grand);
+      await verifierEcran(vue, grand, erreurs);
+      await verifierSansTroncature(vue, grand, erreurs);
+      // En-tête le plus chargé, posé à la main dans la page : nom de pièce long et « !! CRITIQUE » ; rien ne sort de l'écran.
+      await vue.evaluate(() => {
+        const titre = document.querySelector('.entete-piece .titre-piece');
+        if (titre === null) return;
+        titre.textContent = 'Salle d’embarquement';
+        const badge = document.createElement('p');
+        badge.className = 'badge-sante critique';
+        badge.textContent = '!! CRITIQUE';
+        titre.after(badge);
+      });
+      const charge = `AR-01 — En-tête simulé « Salle d’embarquement » et « !! CRITIQUE », très grande, ${ecran.width} px`;
+      await capturer(vue, charge);
+      await verifierEcran(vue, charge, erreurs);
+      await verifierSansTroncature(vue, charge, erreurs);
+      const engrenage = await vue.locator('.engrenage').boundingBox();
+      if (engrenage === null || engrenage.x + engrenage.width > ecran.width) erreurs.push(`${charge} : l’engrenage sort de l’écran.`);
+    }
     await autre.close();
   }
 
@@ -976,7 +1180,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await page.getByRole('button', { name: /^nouvelle partie$/i }).waitFor();
     if ((await page.getByRole('button', { name: /^reprendre la partie$/i }).count()) !== 0) erreurs.push('Accueil vide : REPRENDRE LA PARTIE est affiché.');
     if ((await page.locator('.titre-accueil').textContent())?.replace(/\s/g, '') !== 'VOIDWALKER▮') erreurs.push('Accueil vide : titre inattendu.');
-    if ((await page.getByRole('button').count()) !== 1) erreurs.push('Accueil vide : OPTIONS ou un autre bouton est visible.');
+    if ((await page.getByRole('button').count()) !== 2) erreurs.push('Accueil vide : NOUVELLE PARTIE et OPTIONS ne sont pas les deux seuls boutons.');
     if ((await page.locator('.actions-accueil .principal').innerText()).trim().toLowerCase() !== 'nouvelle partie') erreurs.push('Accueil vide : NOUVELLE PARTIE n’est pas principal.');
     if ((await partieEnregistree(page)) !== 'null') erreurs.push('Accueil vide : une partie a été créée avant un choix explicite.');
     await capturerEtape('Accueil sans partie active');
@@ -1008,7 +1212,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
 
     await page.reload();
     await page.getByRole('button', { name: /^reprendre la partie$/i }).waitFor();
-    if ((await page.getByRole('button').count()) !== 2) erreurs.push('Accueil avec partie : les boutons attendus ne sont pas seuls.');
+    if ((await page.getByRole('button').count()) !== 3) erreurs.push('Accueil avec partie : REPRENDRE, NOUVELLE PARTIE et OPTIONS ne sont pas les seuls boutons.');
     if ((await page.locator('.actions-accueil .principal').innerText()).trim().toLowerCase() !== 'reprendre la partie') erreurs.push('Accueil avec partie : REPRENDRE LA PARTIE n’est pas principal.');
     await capturerEtape('Accueil avec partie en cours');
     await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
@@ -1383,7 +1587,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await verifierEcran(page, `Aperçu, ${ETROIT.width} px`, erreurs);
       await verifierDansEcran(page, `Aperçu, ${ETROIT.width} px`, erreurs);
       await page.keyboard.press('Escape');
-      // Plus grand que la taille « très grande » prévue (22 px pour le récit, 12 §4.10), qui n'existe pas encore.
+      // Plus grand encore que la taille « très grande » (22 px pour le récit seul, 12 §4.10) : tout le texte à 22 px.
       await page.addStyleTag({ content: '.ecran, .ecran * { font-size: 22px !important; }' });
       await ouvrir(page, premier);
       await verifierDansEcran(page, `Bulle « ${premier.bouton} », ${ETROIT.width} px, texte à 22 px`, erreurs);
@@ -1392,6 +1596,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await capturerEtape(titre);
       await verifierEcran(page, titre, erreurs);
       await verifierDansEcran(page, titre, erreurs);
+    }
+
+    // Options (#96) : réglages, téléchargement, abandon et fin, dans un contexte neuf.
+    try {
+      await parcoursOptions(navigateur, adresse, entree, gestes, capturerPage, erreurs);
+    } catch (erreur) {
+      erreurs.push(`Options : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
     }
 
     // AR-01, monde par défaut : parcours P-C joué geste par geste depuis l'adresse nue, dans un contexte neuf.

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { MONDE_PAR_DEFAUT, MONDES } from '../content';
 import { App } from './App';
 import { mondeDemande, type Environnement } from './jeu';
-import { lireReglages } from './reglages';
+import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
 import './styles.css';
 
@@ -30,6 +30,7 @@ createRoot(racine).render(
     <App
       env={env}
       reglages={lireReglages((cle) => window.localStorage.getItem(cle))}
+      garderReglages={(reglages) => ecrireReglages((cle, valeur) => window.localStorage.setItem(cle, valeur), reglages)}
       version={version}
       commit={import.meta.env.VITE_COMMIT ?? ''}
       pr={import.meta.env.VITE_PR_NUMERO ?? ''}

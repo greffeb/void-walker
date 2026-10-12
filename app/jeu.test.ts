@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { observer, type DefMonde } from '../engine';
+import { empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { commencer, demarrer, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
+import { abandonner, charger, commencer, demarrer, fichierPartie, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
@@ -136,6 +136,10 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
         ecritures++;
         return Promise.resolve();
       },
+      effacer: () => {
+        ecritures++;
+        return Promise.resolve();
+      },
     });
     const demarrage = await demarrer(env);
     expect(demarrage).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('base verrouillée') });
@@ -147,6 +151,76 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const test = environnement(stockageIndexedDB('void-walker:/void-walker/pr-1/', fabrique));
     await choisir(principale, await pret(principale), 'prendre');
     expect((await pret(test)).partie.etat.actions).toBe(0);
+  });
+});
+
+describe('appli : options, téléchargement et abandon (#96, C-09 §5, C-08 §4)', () => {
+  let fabrique: IDBFactory;
+  beforeEach(() => {
+    fabrique = new IDBFactory();
+  });
+
+  it('les options lisent la partie sans en créer ni la modifier', async () => {
+    const reel = stockageIndexedDB('options', fabrique);
+    let ecritures = 0;
+    const env = environnement({ ...reel, ecrire: async (donnees) => { ecritures++; await reel.ecrire(donnees); } });
+    expect(await charger(env)).toEqual({ type: 'absente' });
+    expect(await reel.lire()).toBeNull();
+    const jeu = await choisir(env, await pret(env), 'prendre');
+    const avant = { sauvegarde: await reel.lire(), ecritures };
+    const charge = await charger(env);
+    expect(charge.type === 'pret' && charge.jeu.partie).toEqual(jeu.partie);
+    expect({ sauvegarde: await reel.lire(), ecritures }).toEqual(avant);
+  });
+
+  it('le fichier téléchargé est l’export de la partie, sans la modifier (SP-05) ; nom daté', async () => {
+    const env = environnement(stockageIndexedDB('export', fabrique));
+    const jeu = await choisir(env, await pret(env), 'prendre');
+    const copie = structuredClone(jeu.partie);
+    const { nom, contenu } = fichierPartie(env, jeu.partie, new Date(2026, 9, 12, 9, 5));
+    expect(nom).toBe('void-walker-monde-test-2026-10-12-0905.json');
+    expect(JSON.parse(contenu)).toMatchObject({ version: 'v-test', monde: monde.id, graine: 31, actions: jeu.partie.enregistrement.actions });
+    expect(jeu.partie).toEqual(copie);
+    // Rejoué comme le fait `npm run rejouer` : même état final et même observation finale (C-09 S-03).
+    const fichier = lireExport(JSON.parse(contenu) as unknown);
+    const rejoue = rejouer(monde, fichier, 'v-test').partie;
+    expect(empreinteEtat(rejoue.etat)).toBe(fichier.empreinte);
+    expect(JSON.stringify(observer(monde, rejoue.etat))).toBe(JSON.stringify(fichier.observation));
+    expect(fichier.empreinte).toBe(empreinteEtat(jeu.partie.etat));
+  });
+
+  it('abandon : la partie et ses messages lus quittent l’appareil ; plus rien à reprendre (D-013)', async () => {
+    const stockage = stockageIndexedDB('abandon', fabrique);
+    const env = environnement(stockage);
+    const jeu = await choisir(env, await pret(env), 'prendre');
+    await marquerLus(env, jeu.partie);
+    expect(await abandonner(env)).toBe(true);
+    expect(await sauvegardePresente(env)).toBe(false);
+    expect(await charger(env)).toEqual({ type: 'absente' });
+    expect(await stockage.lireLus()).toBeNull();
+  });
+
+  it('abandon refusé par le stockage : signalé, la partie reste enregistrée', async () => {
+    const stockage = stockageIndexedDB('abandon-refuse', fabrique);
+    const env = environnement(stockage);
+    await choisir(env, await pret(env), 'prendre');
+    const refuse = environnement({ ...stockage, effacer: () => Promise.reject(new Error('quota')) });
+    expect(await abandonner(refuse)).toBe(false);
+    expect(await sauvegardePresente(env)).toBe(true);
+  });
+
+  it('rejouer après abandon : même état de départ, nouveaux tirages (D-087, D-088)', async () => {
+    const stockage = stockageIndexedDB('rejouer', fabrique);
+    const graines = [31, 77];
+    const env: Environnement = { ...environnement(stockage), graine: () => graines.shift() ?? 0 };
+    const premiere = await choisir(env, await pret(env), 'prendre');
+    expect(await abandonner(env)).toBe(true);
+    const rejouee = await commencer(env);
+    const depart = (await commencer({ ...env, graine: () => 31 })).partie;
+    expect(rejouee.partie.enregistrement.graine).toBe(77);
+    expect(rejouee.partie.enregistrement.graine).not.toBe(premiere.partie.enregistrement.graine);
+    expect({ ...rejouee.partie.etat, generateur: null }).toEqual({ ...depart.etat, generateur: null });
+    expect(rejouee.partie.etat.generateur).not.toEqual(depart.etat.generateur);
   });
 });
 

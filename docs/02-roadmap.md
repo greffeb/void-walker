@@ -26,7 +26,7 @@ Le cadrage ci-dessous précède la Phase 0 demandée par le porteur du projet. I
 - [x] Spécifier les contrats essentiels et leurs contre-exemples : C-01 à C-10 acceptés (D-117), sans implémentation.
 - [ ] Arrêter le périmètre du lancement, les exclusions et critères de qualité — volume fixé (D-118 à D-121), règles d'assemblage et liste des morceaux à faire.
 - [x] Arbitrer les pouvoirs des agents, zones de merge et preuves humaines (D-096 à D-108) ; restent la fusion mixte, le passage du moteur en vert et le budget des agents.
-- [x] Préparer les instructions de reprise, l'issue Bootstrap et les profils d'agents : [#89](https://github.com/greffeb/void-walker/issues/89), `.github/agents/` (D-137/D-138). Premières issues verticales à venir.
+- [x] Préparer les instructions de reprise, l'issue Bootstrap, les profils spécialisés et l'instruction de gestion des issues dans la conversation principale : [#89](https://github.com/greffeb/void-walker/issues/89), `.github/agents/`, `.github/instructions/gestion-issues.instructions.md` (D-137/D-138/D-199). Premières issues verticales à venir.
 
 **Sortie :** starter pack cohérent, accepté par le porteur du projet et explicitement marqué prêt pour Bootstrap.
 
@@ -36,7 +36,7 @@ Intentions déjà demandées :
 
 - commande unique couvrant lint, typecheck, tests, solveur, parcours de référence et build ;
 - même commande exécutée en CI ;
-- workflow `/issue <n>` avec GitHub Copilot (D-126), délégation contrôlée et revue indépendante ;
+- gestion d'une issue avec GitHub Copilot dans la conversation principale (D-126/D-199), délégation spécialisée contrôlée et revue indépendante ;
 - rôles spécialisés, permissions, hooks et gabarits d'issues/PR ;
 - garde-fous anti-spaghetti et séparation du moteur et du contenu ;
 - journal des parties humaines et statut de référence réservé à la validation téléphone.

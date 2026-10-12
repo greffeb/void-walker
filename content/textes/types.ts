@@ -107,6 +107,8 @@ export interface TextesMonde {
     readonly terminee: string;
     /** Partie conclue par le départ de la capsule. */
     readonly evacuee: string;
+    /** Récit court de l'écran de fin après un abandon (12 §4.11), dans la pièce où le passager s'est arrêté. */
+    readonly abandon: string;
     /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ. */
     readonly momentReveil: string;
     readonly momentArrivee: string;
@@ -250,6 +252,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   critique: [],
   terminee: [],
   evacuee: [],
+  abandon: ['piece'],
   momentReveil: ['piece'],
   momentArrivee: ['piece'],
   momentEvacuation: [],

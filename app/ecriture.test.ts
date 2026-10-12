@@ -1,5 +1,5 @@
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { CLE_REGLAGES, lireReglages } from './reglages';
+import { CLE_REGLAGES, ecrireReglages, lireReglages } from './reglages';
 
 describe('effet machine à écrire (D-186)', () => {
   it('environ 500 ms quelle que soit la longueur, dans l’ordre de lecture des blocs', () => {
@@ -34,21 +34,39 @@ describe('effet machine à écrire (D-186)', () => {
   });
 });
 
-describe('réglage « Effet machine à écrire » gardé sur l’appareil', () => {
+describe('réglages d’affichage gardés sur l’appareil (D-186, 12 §4.10)', () => {
   const magasin = (valeur: string | null) => (cle: string) => (cle === CLE_REGLAGES ? valeur : null);
+  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true };
 
-  it('[OUI] par défaut ; [NON] enregistré relu', () => {
-    expect(lireReglages(magasin(null))).toEqual({ machineAEcrire: true });
-    expect(lireReglages(magasin('{"machineAEcrire":false}'))).toEqual({ machineAEcrire: false });
-    expect(lireReglages(magasin('{"machineAEcrire":true}'))).toEqual({ machineAEcrire: true });
+  it('par défaut : taille standard, lignes de balayage et machine à écrire sur [OUI] ; réglages enregistrés relus', () => {
+    expect(lireReglages(magasin(null))).toEqual(DEFAUT);
+    expect(lireReglages(magasin('{"machineAEcrire":false}'))).toEqual({ ...DEFAUT, machineAEcrire: false });
+    expect(lireReglages(magasin('{"taille":"tres_grande","balayage":false,"machineAEcrire":true}'))).toEqual({
+      taille: 'tres_grande',
+      balayage: false,
+      machineAEcrire: true,
+    });
   });
 
-  it('réglages illisibles ou stockage refusé : [OUI]', () => {
-    for (const valeur of ['pas du json', '42', '{}', '{"machineAEcrire":"non"}']) expect(lireReglages(magasin(valeur))).toEqual({ machineAEcrire: true });
+  it('réglages illisibles ou stockage refusé : valeurs par défaut, réglage par réglage', () => {
+    for (const valeur of ['pas du json', '42', '{}', '{"machineAEcrire":"non","taille":"enorme","balayage":0}']) expect(lireReglages(magasin(valeur))).toEqual(DEFAUT);
+    expect(lireReglages(magasin('{"taille":"grande","machineAEcrire":"non"}'))).toEqual({ ...DEFAUT, taille: 'grande' });
     expect(
       lireReglages(() => {
         throw new Error('Stockage refusé.');
       }),
-    ).toEqual({ machineAEcrire: true });
+    ).toEqual(DEFAUT);
+  });
+
+  it('écrire puis relire redonne les mêmes réglages ; un refus du navigateur est signalé sans lever', () => {
+    const memoire = new Map<string, string>();
+    const reglages = { taille: 'grande', balayage: false, machineAEcrire: false } as const;
+    expect(ecrireReglages((cle, valeur) => memoire.set(cle, valeur), reglages)).toBe(true);
+    expect(lireReglages((cle) => memoire.get(cle) ?? null)).toEqual(reglages);
+    expect(
+      ecrireReglages(() => {
+        throw new Error('quota');
+      }, reglages),
+    ).toBe(false);
   });
 });

@@ -1,4 +1,4 @@
-import { apercu, historique, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
+import { apercu, exporter, historique, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
 import { raconter, raconterDerniers, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
@@ -54,6 +54,12 @@ export async function sauvegardePresente(env: Pick<Environnement, 'stockage'>): 
 
 /** Reprend la partie enregistrée au dernier geste, ou en commence une si rien n'est enregistré. */
 export async function demarrer(env: Environnement): Promise<Demarrage> {
+  const charge = await charger(env);
+  return charge.type === 'absente' ? { type: 'pret', jeu: await commencer(env) } : charge;
+}
+
+/** Lit la partie enregistrée sans jamais en créer : `absente` si rien n'est enregistré. */
+export async function charger(env: Environnement): Promise<Demarrage | { readonly type: 'absente' }> {
   let donnees: unknown;
   try {
     donnees = await env.stockage.lire();
@@ -61,7 +67,7 @@ export async function demarrer(env: Environnement): Promise<Demarrage> {
     // Ne jamais écraser une sauvegarde qu'on n'a pas pu lire : le joueur décide.
     return { type: 'reprise_impossible', raison: `Lecture de la sauvegarde impossible : ${erreur instanceof Error ? erreur.message : String(erreur)}` };
   }
-  if (donnees === null) return { type: 'pret', jeu: await commencer(env) };
+  if (donnees === null) return { type: 'absente' };
   try {
     const partie = reprendrePartie(env.monde, donnees, env.version);
     const repris = rappelRepris(partie, observer(env.monde, partie.etat));
@@ -151,6 +157,23 @@ export async function marquerLus(env: Environnement, partie: Partie): Promise<vo
     await env.stockage.ecrireLus({ ...partieDesLus(partie), lus: [...partie.etat.messages] });
   } catch {
     // Rien à signaler au joueur : la partie, elle, est enregistrée à part.
+  }
+}
+
+/** Fichier « Télécharger ma partie » : l'export qui rejoue toute la partie (C-09 §5), sans la modifier (SP-05). */
+export function fichierPartie(env: Pick<Environnement, 'monde'>, partie: Partie, maintenant: Date): { readonly nom: string; readonly contenu: string } {
+  const deux = (nombre: number): string => String(nombre).padStart(2, '0');
+  const date = `${maintenant.getFullYear()}-${deux(maintenant.getMonth() + 1)}-${deux(maintenant.getDate())}-${deux(maintenant.getHours())}${deux(maintenant.getMinutes())}`;
+  return { nom: `void-walker-${partie.enregistrement.monde}-${date}.json`, contenu: `${JSON.stringify(exporter(env.monde, partie), null, 2)}\n` };
+}
+
+/** Abandon (C-08 §4) : la partie et ses messages lus quittent l'appareil ; `false` si le stockage a refusé. */
+export async function abandonner(env: Pick<Environnement, 'stockage'>): Promise<boolean> {
+  try {
+    await env.stockage.effacer();
+    return true;
+  } catch {
+    return false;
   }
 }
 

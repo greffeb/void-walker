@@ -35,6 +35,10 @@ const SANS_CONFIRMATION = ', sans confirmation';
 /** Historique vide, pour un monde sans message d'IA Station. */
 const AUCUN_MESSAGE = 'Aucun message reçu.';
 
+/** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */
+const NAV_INVENTAIRE = 'Inven\u00adtaire';
+const NAV_IA = 'IA Sta\u00adtion';
+
 /**
  * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, ou la fenêtre d'IA Station.
  * `action` : action choisie ; `null` à l'étape de la fiche. `parametre` : paramètre choisi à l'étape « OÙ ? », sinon `null`.
@@ -79,7 +83,7 @@ export function EcranJeu({
   readonly choisir: (jeu: Jeu, option: OptionMenu) => Promise<void>;
   /** À l'ouverture de la fenêtre d'IA Station : tous les messages reçus passent en lus, sans toucher à la partie. */
   readonly lireMessages: (jeu: Jeu) => void;
-  /** Absent tant que l'écran d'options n'existe pas : l'engrenage reste masqué. */
+  /** Engrenage des options (12 §3.2) ; absent, ou partie terminée : pas d'engrenage. */
   readonly ouvrirOptions?: () => void;
   /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
   readonly nouvellePartie?: () => void;
@@ -186,8 +190,8 @@ export function EcranJeu({
       <header className="entete-piece">
         <h1 className="titre-piece">{nomDe(textes, observation.piece).texte}</h1>
         <BadgeSante sante={observation.sante} />
-        {ouvrirOptions !== undefined && (
-          <button type="button" className="engrenage" aria-label="Options" onClick={ouvrirOptions}>
+        {ouvrirOptions !== undefined && !observation.terminee && (
+          <button type="button" className="engrenage" aria-label="Options" disabled={occupe} onClick={ouvrirOptions}>
             <Engrenage />
           </button>
         )}
@@ -281,12 +285,13 @@ export function EcranJeu({
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'inventaire'}
             aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
+            aria-label="Inventaire"
             disabled={occupe}
             onClick={(evenement) =>
               ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null, parametre: null }, evenement.currentTarget)
             }
           >
-            Inventaire
+            {NAV_INVENTAIRE}
           </button>
           {/* Carré plein tant qu'un message n'a pas été lu, « nouveau message » pour le lecteur d'écran (12 §2.6). */}
           <button
@@ -298,7 +303,7 @@ export function EcranJeu({
             disabled={occupe}
             onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
           >
-            IA Station
+            {NAV_IA}
             {nonLus.length > 0 && <span className="pastille" aria-hidden="true" />}
           </button>
         </nav>

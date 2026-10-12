@@ -98,11 +98,22 @@ button:disabled {
 }
 
 .ecran {
+  --echelle: 1;
   display: flex;
   flex-direction: column;
   height: 100dvh;
   max-width: 30rem;
   margin: 0 auto;
+  font-size: calc(17px * var(--echelle));
+}
+
+/* Taille du texte (12 §4.10) : récit à 17, 19 ou 22 px, tous les autres textes à proportion ; les cibles gardent leur hauteur minimale. */
+.ecran[data-taille='grande'] {
+  --echelle: calc(19 / 17);
+}
+
+.ecran[data-taille='tres_grande'] {
+  --echelle: calc(22 / 17);
 }
 
 /* Lignes de balayage (12 §2.3) : 1 px noir à 22 % toutes les 3 px, au-dessus de tout, jamais touchées. */
@@ -131,7 +142,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   margin: 0;
-  font-size: 40px;
+  font-size: calc(40px * var(--echelle));
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.06em;
@@ -143,10 +154,13 @@ button:disabled {
   gap: 10px;
 }
 
-.actions-accueil .secondaire {
+.actions-accueil .secondaire,
+.options-bas .secondaire,
+.confirmation-options .secondaire,
+.actions-fin .secondaire {
   min-height: 50px;
   padding: 8px 16px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -156,7 +170,7 @@ button:disabled {
 
 .confirmation-accueil p {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   line-height: 1.5;
 }
 
@@ -177,7 +191,7 @@ button:disabled {
 
 .lieu-reveil {
   margin: 0;
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
   line-height: 1.4;
   color: var(--texte-secondaire);
   text-transform: uppercase;
@@ -193,24 +207,30 @@ button:disabled {
   padding: 8px 16px max(16px, env(safe-area-inset-bottom));
 }
 
+/* Quand le nom de la pièce, le badge et l'engrenage ne tiennent plus sur une ligne (texte agrandi), badge et engrenage passent dessous, à droite. */
 .entete-piece {
   flex: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
   min-height: 56px;
   padding: max(8px, env(safe-area-inset-top)) 16px 8px;
   border-bottom: 1px solid var(--separateur);
 }
 
+/* Le titre se plie aux espaces ; son plus long mot fixe sa largeur minimale. */
 .titre-piece {
+  flex: 1 1 0;
+  min-width: min-content;
   margin: 0;
-  font-size: 17px;
+  font-size: calc(17px * var(--echelle));
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  overflow-wrap: break-word;
   color: var(--accent);
 }
 
@@ -221,7 +241,7 @@ button:disabled {
   padding: 0 10px;
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
   font-weight: 600;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -238,6 +258,11 @@ button:disabled {
   border: 2px solid var(--accent);
 }
 
+/* Le badge porte la marge qui pousse à droite ; l'engrenage le suit. */
+.badge-sante + .engrenage {
+  margin-left: 0;
+}
+
 /* Partie terminée (D-013) : en attendant l'écran de fin (12 §4.11), la phrase de fin et NOUVELLE PARTIE. */
 .fin-partie p {
   margin: 0 0 16px;
@@ -249,6 +274,7 @@ button:disabled {
   place-items: center;
   width: 44px;
   height: 44px;
+  margin-left: auto;
   padding: 0;
   color: var(--texte);
   background: none;
@@ -259,7 +285,7 @@ button:disabled {
   flex: none;
   margin: 0;
   padding: 10px 16px;
-  font-size: 14px;
+  font-size: calc(14px * var(--echelle));
   line-height: 1.4;
   color: var(--fond);
   background: var(--accent);
@@ -280,7 +306,7 @@ button:disabled {
 
 .recit .rappel {
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: calc(14px * var(--echelle));
   line-height: 1.4;
   color: var(--texte-secondaire);
 }
@@ -299,7 +325,7 @@ button:disabled {
 
 .recit .etiquette-ia {
   margin: 0 0 4px;
-  font-size: 12px;
+  font-size: calc(12px * var(--echelle));
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: 0.06em;
@@ -323,7 +349,7 @@ button:disabled {
   min-height: 44px;
   margin: 0 0 12px;
   padding: 8px 12px;
-  font-size: 14px;
+  font-size: calc(14px * var(--echelle));
   line-height: 1.4;
   text-align: left;
   color: var(--blanc-texte);
@@ -501,7 +527,7 @@ button:disabled {
   min-width: 0;
   margin: 0;
   padding: 11px 0;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: 0.04em;
@@ -522,7 +548,7 @@ button:disabled {
 /* Étape 2 de la bulle (12 §3.5) : « OÙ ? » au-dessus des paramètres. */
 .question {
   margin: 4px 0 8px;
-  font-size: 12px;
+  font-size: calc(12px * var(--echelle));
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: 0.06em;
@@ -535,7 +561,7 @@ button:disabled {
   width: 44px;
   height: 44px;
   padding: 0;
-  font-size: 20px;
+  font-size: calc(20px * var(--echelle));
   line-height: 1;
   color: var(--couleur-menu);
   background: none;
@@ -551,7 +577,7 @@ button:disabled {
 /* Fiche (12 §3.5, §4.4) : la consultation, gratuite. */
 .fiche p {
   margin: 0 0 8px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   line-height: 1.5;
   color: var(--texte-menu);
 }
@@ -566,7 +592,7 @@ button:disabled {
   width: 100%;
   min-height: 44px;
   padding: 8px 4px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   line-height: 1.3;
   text-align: left;
   color: var(--texte-menu);
@@ -587,7 +613,7 @@ button:disabled {
 
 .indisponible .raison {
   margin: 0 0 0 auto;
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
   font-weight: 400;
   line-height: 1.4;
   text-align: right;
@@ -623,13 +649,13 @@ button:disabled {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 8px 12px;
   margin: 0;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   line-height: 1.5;
   color: var(--texte-menu);
 }
 
 .apercu dt {
-  font-size: 12px;
+  font-size: calc(12px * var(--echelle));
   line-height: 1.9;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -675,7 +701,7 @@ button:disabled {
 .confirmation button {
   min-height: 50px;
   padding: 8px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -734,7 +760,7 @@ button:disabled {
 
 .modale-titre {
   margin: 0;
-  font-size: 17px;
+  font-size: calc(17px * var(--echelle));
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.04em;
@@ -743,7 +769,7 @@ button:disabled {
 
 .modale-sous-titre {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--echelle));
   line-height: 1.4;
   color: var(--blanc-secondaire);
 }
@@ -768,7 +794,7 @@ button:disabled {
 
 .repere-ia {
   margin: 0 0 4px;
-  font-size: 12px;
+  font-size: calc(12px * var(--echelle));
   line-height: 1.4;
   color: var(--blanc-secondaire);
 }
@@ -785,7 +811,7 @@ button:disabled {
 
 .modale-ia .citation-ia {
   margin: 0;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   line-height: 1.5;
   font-style: italic;
   color: var(--blanc-texte);
@@ -794,7 +820,7 @@ button:disabled {
 .modale-vide {
   margin: 0;
   padding: 8px 12px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   color: var(--blanc-secondaire);
 }
 
@@ -807,7 +833,7 @@ button:disabled {
   width: 100%;
   min-height: 50px;
   padding: 8px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -825,7 +851,7 @@ button:disabled {
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
   font-weight: 400;
   line-height: 1.4;
   text-transform: uppercase;
@@ -846,9 +872,10 @@ button:disabled {
   flex: 0 1 96px;
 }
 
+/* Deux colonnes tant qu'un mot de douze lettres y tient, jamais plus ; une seule en texte agrandi sur un écran étroit (12 §7). */
 .puces {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(calc(108px * var(--echelle) + 26px), calc(50% - 3px))), 1fr));
   gap: 6px;
   margin: 0;
   padding: 0;
@@ -868,9 +895,10 @@ button:disabled {
   width: 100%;
   min-height: 46px;
   padding: 8px 12px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   line-height: 1.3;
   text-align: left;
+  overflow-wrap: anywhere;
   color: var(--texte);
   background: transparent;
   border: 1px solid var(--bordure);
@@ -899,7 +927,7 @@ button:disabled {
   width: 100%;
   min-height: 46px;
   padding: 8px 12px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   font-weight: 600;
   line-height: 1.3;
   text-align: left;
@@ -922,14 +950,14 @@ button:disabled {
 
 .raison {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
   line-height: 1.4;
   color: var(--texte-secondaire);
 }
 
 .vide {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   color: var(--texte-secondaire);
 }
 
@@ -946,9 +974,11 @@ button:disabled {
 .navigation button {
   min-height: 48px;
   padding: 4px;
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  /* En texte agrandi sur un écran étroit, INVENTAIRE ne tient pas sur une ligne : il se coupe à la syllabe plutôt que d'être tronqué. */
+  overflow-wrap: anywhere;
   color: var(--texte);
   background: transparent;
   border: 1px solid var(--bordure);
@@ -958,6 +988,12 @@ button:disabled {
   color: var(--cyan-texte);
   border-color: var(--cyan);
   box-shadow: inset 0 0 0 1px var(--cyan);
+}
+
+/* « Très grande » : sans interlettrage, INVENTAIRE tient encore sur une ligne dès 390 px de large. */
+.ecran[data-taille='tres_grande'] .navigation button {
+  letter-spacing: 0;
+  padding: 4px 2px;
 }
 
 /* IA STATION à sa place, la troisième : CARTE viendra au milieu (12 §4.3). */
@@ -998,7 +1034,7 @@ button:disabled {
   width: 100%;
   min-height: 50px;
   padding: 8px 16px;
-  font-size: 15px;
+  font-size: calc(15px * var(--echelle));
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1013,13 +1049,243 @@ button:disabled {
 }
 
 .avis .detail {
-  font-size: 13px;
+  font-size: calc(13px * var(--echelle));
 }
 
 .pied {
-  flex: none;
-  padding: 0 16px max(6px, env(safe-area-inset-bottom));
-  font-size: 12px;
+  margin: 20px 0 0;
+  font-size: calc(12px * var(--echelle));
   line-height: 1.4;
+  color: var(--texte-secondaire);
+}
+
+/* Bouton discret (12 §3.12) : contour `bordure`. */
+.discret {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 16px;
+  font-size: calc(13px * var(--echelle));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte);
+  background: transparent;
+  border: 1px solid var(--bordure);
+}
+
+/* Options (12 §4.10) : en-tête, sections qui défilent, MENU PRINCIPAL et REPRENDRE LA PARTIE fixes en bas. */
+.entete-options {
+  flex: none;
+  min-height: 56px;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px;
+  border-bottom: 1px solid var(--separateur);
+}
+
+.sous-titre-options {
+  margin: 2px 0 0;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte-secondaire);
+}
+
+.options-corps {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 16px 12px;
+}
+
+.options-corps > section + section {
+  margin-top: 14px;
+}
+
+/* Groupe segmenté (12 §3.12) : de vrais boutons radio, la valeur active en vidéo inverse ; à la ligne si la place manque. */
+.segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segment {
+  flex: 1 1 0;
+  min-width: min-content;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  font-size: calc(13px * var(--echelle));
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  border: 1px solid var(--bordure);
+  cursor: pointer;
+}
+
+.segment.actif {
+  color: var(--fond);
+  background: var(--texte);
+  border-color: var(--texte);
+}
+
+.segment:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Une phrase de récit à la taille choisie : elle hérite de la taille du récit. */
+.apercu-taille {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border: 1px dashed var(--separateur);
+}
+
+/* Bascule (12 §3.12) : « [OUI] » / « [NON] » à droite du libellé. */
+.bascule,
+.ligne-option {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 4px;
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.3;
+  text-align: left;
+  color: var(--texte);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--separateur);
+}
+
+.bascule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.valeur-bascule {
+  flex: none;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.ligne-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.detail-option {
+  font-size: calc(12px * var(--echelle));
+  color: var(--texte-secondaire);
+}
+
+.retour-option {
+  margin: 0 0 10px;
+  font-size: calc(13px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte-secondaire);
+  overflow-wrap: anywhere;
+}
+
+.retour-option:empty {
+  margin: 0;
+}
+
+/* Action dangereuse (12 §3.12) : contour pointillé `accent`, « ⊘ » ; elle ouvre une confirmation dans la page. */
+.danger {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.3;
+  text-align: left;
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--accent);
+}
+
+.confirmation-options {
+  margin-top: 6px;
+  padding: 10px 12px 12px;
+  border: 1px dashed var(--accent);
+}
+
+.confirmation-options p {
+  margin: 0 0 10px;
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.5;
+}
+
+.confirmation-options p:focus,
+.titre-piece:focus,
+.titre-fin:focus {
+  outline: none;
+}
+
+.confirmation-options .avis-option {
+  padding: 6px 8px;
+  color: var(--fond);
+  background: var(--accent);
+}
+
+.confirmation-options > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.confirmation-options button {
+  flex: 1 1 0;
+  min-width: min-content;
+}
+
+.options-bas,
+.actions-fin {
+  flex: none;
+  display: grid;
+  gap: 10px;
+  padding: 8px 16px max(16px, env(safe-area-inset-bottom));
+}
+
+.options-bas {
+  border-top: 1px solid var(--separateur);
+}
+
+/* Fin de partie (12 §4.11) : le récit seulement, puis les pièces visitées en mots sous un filet pointillé. */
+.recit-fin {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+.titre-fin {
+  margin: 0 0 16px;
+  font-size: calc(24px * var(--echelle));
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--accent);
+}
+
+.recit-fin p {
+  margin: 0 0 12px;
+}
+
+.bilan-fin {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--separateur);
+}
+
+.bilan-fin p {
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.5;
+}
+
+.etiquette-fin {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--texte-secondaire);
 }
