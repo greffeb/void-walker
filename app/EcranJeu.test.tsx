@@ -229,7 +229,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const proche = await apres('ouvrir', 'prendre', 'fermer');
     expect(rendre(proche)).toContain('La créature est là, tout près de vous.');
     expect(await ouvrirPorte(proche)).toBe(
-      '‹ Porte de l’atelier › Ouvrir ✕ Risque élevé — la créature peut vous blesser Coût [bruyant] Savoir La porte de l’atelier sera ouverte. Annuler Confirmer',
+      '‹ Porte de l’atelier › Ouvrir ✕ Risque élevé — le temps de faire cela, la créature peut vous frapper Coût [bruyant] Savoir La porte de l’atelier sera ouverte. Annuler Confirmer',
     );
   });
 

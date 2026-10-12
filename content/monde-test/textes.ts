@@ -263,8 +263,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
       certain: 'certain',
     },
     dangers: {
-      interception: 'la créature peut vous blesser',
-      interception_mortelle: 'une blessure de plus vous serait fatale',
+      interception: 'le temps de faire cela, la créature peut vous frapper',
+      interception_mortelle: 'le temps de faire cela, la créature peut vous frapper ; un coup de plus vous serait fatal',
       creature_vue_instant: 'vous venez de voir la créature dans {le:piece}',
       creature_vue_moment: 'vous avez vu la créature dans {le:piece} il y a un moment',
       creature_vue_longtemps: 'vous avez vu la créature dans {le:piece} il y a longtemps',
