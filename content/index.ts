@@ -24,6 +24,7 @@ export {
   cleEvacuation,
   libelleOption,
   nomDe,
+  nomPassage,
   raconter,
   raconterDerniers,
   rendreApercu,
@@ -58,3 +59,14 @@ export {
   type Variantes,
 } from './textes/types';
 export type { EntreeMonde, EtapeParcours, Parcours } from './types';
+export {
+  ANCIENNETES,
+  etatsDe,
+  lignesListeCarte,
+  MOTS_CARTE,
+  nomCarte,
+  regardDe,
+  rendreListeCarte,
+  type BlocListe,
+  type EntreeListe,
+} from './textes/carte';
