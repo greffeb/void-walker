@@ -5,10 +5,10 @@ import type { TextesMonde } from '../textes/types';
 // leurs textes ne servent qu'à la structure commune.
 export const TEXTES_AR02: TextesMonde = {
   noms: {
-    coursive: { texte: 'coursive des cabines', genre: 'f', nombre: 's', elision: false },
+    coursive: { texte: 'cabines du personnel', genre: 'f', nombre: 'p', elision: false },
     local: { texte: 'local de sécurité', genre: 'm', nombre: 's', elision: false },
     panoramique: { texte: 'salle panoramique', genre: 'f', nombre: 's', elision: false },
-    embarquement: { texte: 'embarquement', genre: 'm', nombre: 's', elision: true },
+    embarquement: { texte: 'salle d’embarquement', genre: 'f', nombre: 's', elision: false },
     cabine: { texte: 'cabine de la capsule', genre: 'f', nombre: 's', elision: false },
     porte: { texte: 'porte', genre: 'f', nombre: 's', elision: false },
     porte_grippee: { texte: 'porte grippée', genre: 'f', nombre: 's', elision: false },
@@ -25,16 +25,16 @@ export const TEXTES_AR02: TextesMonde = {
   },
   descriptions: {
     coursive: [
-      'Une coursive étroite, bordée de portes de cabines closes. Au-dessus de chaque porte étanche, un voyant dit s’il reste de l’air de l’autre côté.',
-      'La coursive des cabines est silencieuse, éclairée en rouge. Chaque porte étanche porte un petit voyant d’air au-dessus du cadre.',
+      'Un couloir étroit, bordé de portes de cabines closes. Au-dessus de chaque porte étanche, un voyant dit s’il reste de l’air de l’autre côté.',
+      'Les cabines du personnel sont silencieuses, éclairées en rouge. Chaque porte étanche porte un petit voyant d’air au-dessus du cadre.',
     ],
     local: [
       'Un local de sécurité aux murs couverts de consignes jaunes et noires. Un établi, un casier mural, des crochets vides.',
       'Le local de sécurité sent le caoutchouc et le métal froid. Des consignes de dépressurisation couvrent les murs.',
     ],
     panoramique: [
-      'Une grande baie occupe tout un mur et donne sur l’espace, noir et piqué d’étoiles. Au fond, la porte de l’embarquement a un mécanisme visiblement grippé.',
-      'La salle panoramique est tournée vers le vide : une baie immense, des étoiles immobiles. La porte de l’embarquement, au fond, a un mécanisme rouillé et dur.',
+      'Une grande baie occupe tout un mur et donne sur l’espace, noir et piqué d’étoiles. Au fond, la porte de la salle d’embarquement a un mécanisme visiblement grippé.',
+      'La salle panoramique est tournée vers le vide : une baie immense, des étoiles immobiles. La porte de la salle d’embarquement, au fond, a un mécanisme rouillé et dur.',
     ],
     embarquement: [
       'Un quai d’embarquement nu. Une capsule de secours y est arrimée.',
@@ -49,8 +49,8 @@ export const TEXTES_AR02: TextesMonde = {
       'Le terminal personnel de votre cabine. Son écran conserve les derniers messages de la station.',
     ],
     signaletique: [
-      'Des flèches lumineuses mènent vers l’embarquement, par la salle panoramique. Elles sont toutes rouges.',
-      'La signalétique d’évacuation clignote en rouge. Ses flèches désignent l’embarquement, au-delà de la salle panoramique.',
+      'Des flèches lumineuses mènent vers la salle d’embarquement, par la salle panoramique. Elles sont toutes rouges.',
+      'La signalétique d’évacuation clignote en rouge. Ses flèches désignent la salle d’embarquement, au-delà de la salle panoramique.',
     ],
     casier: [
       'Un casier mural à la porte ouverte. Une étiquette rouge : « Perte de pression : combinaison obligatoire ».',
@@ -174,8 +174,8 @@ export const TEXTES_AR02: TextesMonde = {
     ],
   },
   assistance: {
-    capsule: 'Une capsule de secours est prête au départ, à l’embarquement.',
-    presence: 'Présence non identifiée détectée à l’embarquement.',
+    capsule: 'Une capsule de secours est prête au départ, dans la salle d’embarquement.',
+    presence: 'Présence non identifiée détectée dans la salle d’embarquement.',
   },
   passages: {
     ouvert: [
@@ -183,7 +183,7 @@ export const TEXTES_AR02: TextesMonde = {
       '{Le:passage} est ouvert{e:passage}. Par là, on rejoint {le:vers}.',
     ],
     ferme: [
-      '{Le:passage} est fermé{e:passage}. De l’autre côté se trouve {le:vers}.',
+      '{Le:passage} est fermé{e:passage}. De l’autre côté, il y a {le:vers}.',
       '{Le:passage} est fermé{e:passage}. Il faut l’ouvrir pour rejoindre {le:vers}.',
     ],
     ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Vous ne voyez pas où il mène.'],

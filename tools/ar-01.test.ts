@@ -226,7 +226,7 @@ describe('AR-01 : ce que sait le passager (C-06)', () => {
     // Le panneau est nommé sans sa destination, puis la destination découverte (NP-04).
     const recit = rendreEvenements(ENTREE.textes, ouvert.evenements.slice(1), { graine: 1, action: 5 }).join(' ');
     expect(recit).toMatch(/^Derrière le panneau[ ,]/);
-    expect(recit).toContain('vers l’embarquement');
+    expect(recit).toContain('vers la salle d’embarquement');
     expect(passage(ouvert.partie, 'panneau')).toMatchObject([{ vers: { nom: 'embarquement' } }]);
     const embarquement = engager(ouvert.partie, { action: 'aller', cible: 'panneau', vers: 'embarquement' }).partie;
     expect(passage(embarquement, 'panneau')).toMatchObject([{ vers: { nom: 'energie' }, ouvert: true }]);

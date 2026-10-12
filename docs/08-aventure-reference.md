@@ -61,20 +61,20 @@ Les codes ci-dessous sont des repères d'auteur. Ils ne sont pas les identifiant
 | Repère | Lieu | Rôle | Éléments de référence |
 | --- | --- | --- | --- |
 | S | Salon de transit | Départ et compréhension de l'objectif | Poste d'appel, signalétique d'évacuation, cloison vers le secteur de service |
-| A | Atelier de service | Préparation | Caisse stable, grille haute, eau d'extinction compatible, huile, soin |
-| G | Galerie technique | Voie normale temporairement bloquée | Petit foyer d'incendie, cloisons de compartimentage |
+| A | Atelier maintenance | Préparation | Caisse stable, grille haute, eau d'extinction compatible, huile, soin |
+| G | Local technique | Voie normale temporairement bloquée | Petit foyer d'incendie, cloisons de compartimentage |
 | P | Local énergie | Remise en service du départ et exploration | Circuit dédié à la capsule, bloc d'énergie compatible transportable, panneau de commande |
-| O | Salle d'observation | Zone exposée à la menace | Vitrage extérieur, passages isolables, espaces de dissimulation |
-| E | Embarquement | Préparer et effectuer l'évacuation | Capsule, connexion d'énergie, accès à bord |
+| O | Baie d'observation | Zone exposée à la menace | Vitrage extérieur, passages isolables, espaces de dissimulation |
+| E | Salle d'embarquement | Préparer et effectuer l'évacuation | Capsule, connexion d'énergie, accès à bord |
 
 ```mermaid
 flowchart LR
-  S[Salon de transit] --- A[Atelier]
-  S --- G[Galerie technique]
+  S[Salon de transit] --- A[Atelier maintenance]
+  S --- G[Local technique]
   G --- P[Local énergie]
   A -. "grille haute : appui puis ouverture" .- P
-  P --- O[Salle d'observation]
-  O --- E[Embarquement]
+  P --- O[Baie d'observation]
+  O --- E[Salle d'embarquement]
   P -. "accès derrière un panneau : inconnu au départ" .- E
 ```
 
@@ -218,7 +218,7 @@ Pour la référence, les petits objets portables peuvent être transportés ense
 
 Pas d'outil spécialisé nécessaire pour les loquets, panneau et branchement : poignées, connecteur compatible et signalétique sont compréhensibles par le passager. Les outils de brèche appartiendront à la deuxième référence.
 
-### 11.3 Salle d'observation et positions relatives
+### 11.3 Baie d'observation et positions relatives
 
 O comporte le seuil technique vers P, le trajet vers E, et une alcôve d'équipement contenant l'avertisseur. Une paroi opaque coupe la vue entre cette alcôve et le trajet P–O–E.
 

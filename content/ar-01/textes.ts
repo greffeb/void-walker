@@ -5,11 +5,11 @@ import type { TextesMonde } from '../textes/types';
 export const TEXTES_AR01: TextesMonde = {
   noms: {
     salon: { texte: 'salon de transit', genre: 'm', nombre: 's', elision: false },
-    atelier: { texte: 'atelier de service', genre: 'm', nombre: 's', elision: true },
-    galerie: { texte: 'galerie technique', genre: 'f', nombre: 's', elision: false },
+    atelier: { texte: 'atelier maintenance', genre: 'm', nombre: 's', elision: true },
+    galerie: { texte: 'local technique', genre: 'm', nombre: 's', elision: false },
     energie: { texte: 'local énergie', genre: 'm', nombre: 's', elision: false },
-    observation: { texte: 'salle d’observation', genre: 'f', nombre: 's', elision: false },
-    embarquement: { texte: 'embarquement', genre: 'm', nombre: 's', elision: true },
+    observation: { texte: 'baie d’observation', genre: 'f', nombre: 's', elision: false },
+    embarquement: { texte: 'salle d’embarquement', genre: 'f', nombre: 's', elision: false },
     cabine: { texte: 'cabine de la capsule', genre: 'f', nombre: 's', elision: false },
     porte: { texte: 'porte', genre: 'f', nombre: 's', elision: false },
     cloison: { texte: 'cloison', genre: 'f', nombre: 's', elision: false },
@@ -40,8 +40,8 @@ export const TEXTES_AR01: TextesMonde = {
       'L’atelier sent l’huile froide. Tout en haut de la cloison, une grille ferme un conduit ; il faudrait un appui stable pour l’atteindre.',
     ],
     galerie: [
-      'Une galerie étroite, des câbles et des conduites au plafond. La signalisation du compartiment signale un risque d’incendie.',
-      'Des chemins de câbles courent le long de la galerie. Un panneau signale un risque d’incendie dans ce compartiment.',
+      'Un local étroit, des câbles et des conduites au plafond. La signalisation du compartiment signale un risque d’incendie.',
+      'Des chemins de câbles courent le long des murs du local. Un panneau signale un risque d’incendie dans ce compartiment.',
     ],
     energie: [
       'Des armoires électriques ronronnent à peine. Dans un angle, un panneau de service porte une poignée et des marques d’ouverture.',
@@ -49,7 +49,7 @@ export const TEXTES_AR01: TextesMonde = {
     ],
     observation: [
       'De grandes baies noires donnent sur le vide. Une paroi opaque isole une alcôve d’équipement.',
-      'La salle d’observation est plongée dans la pénombre. Au fond, une paroi opaque cache une alcôve d’équipement.',
+      'La baie d’observation est plongée dans la pénombre. Au fond, une paroi opaque cache une alcôve d’équipement.',
     ],
     embarquement: [
       'Un quai d’embarquement sans passagers. Une capsule de secours y est arrimée.',
@@ -92,8 +92,8 @@ export const TEXTES_AR01: TextesMonde = {
       'Un bloc d’énergie de secours, lourd et chargé. Son connecteur s’adapte aux capsules ; sa largeur l’interdit dans les conduits.',
     ],
     avertisseur: [
-      'Un bouton de test d’avertisseur. Un plan situe l’émetteur dans une alcôve de la salle d’observation ; le test sonne un court moment.',
-      'Le test d’avertisseur commande un émetteur placé dans une alcôve de la salle d’observation. Le cycle de test est bref.',
+      'Un bouton de test d’avertisseur. Un plan situe l’émetteur dans une alcôve de la baie d’observation ; le test sonne un court moment.',
+      'Le test d’avertisseur commande un émetteur placé dans une alcôve de la baie d’observation. Le cycle de test est bref.',
     ],
     capsule: [
       'Une capsule de secours autonome. Un connecteur de secours accepte une source d’énergie compatible.',
@@ -241,7 +241,7 @@ export const TEXTES_AR01: TextesMonde = {
       '{Le:passage} est ouvert{e:passage}. Par là, on rejoint {le:vers}.',
     ],
     ferme: [
-      '{Le:passage} est fermé{e:passage}. De l’autre côté se trouve {le:vers}.',
+      '{Le:passage} est fermé{e:passage}. De l’autre côté, il y a {le:vers}.',
       '{Le:passage} est fermé{e:passage}. Il faut l’ouvrir pour rejoindre {le:vers}.',
     ],
     ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Au-delà, un conduit dont vous ne voyez pas le bout.'],

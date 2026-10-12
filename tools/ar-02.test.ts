@@ -301,7 +301,7 @@ describe('AR-02 : aperçu et combinaison (C-06)', () => {
     expect(lus[0]).toMatchObject({ risque: 'aucun', danger: null });
     expect(lus[0]?.savoir).toContainEqual({ type: 'perdront_air', pieces: ['coursive', 'local', 'panoramique'].map((nom) => expect.objectContaining({ nom })) });
     const texte = Object.values(rendreApercu(ENTREE.textes, lus[0] as Apercu)).flat().map(String).join(' ');
-    expect(texte).toContain('Le vide gagnera la coursive des cabines, le local de sécurité et la salle panoramique.');
+    expect(texte).toContain('Le vide gagnera les cabines du personnel, le local de sécurité et la salle panoramique.');
     expect(texte).not.toMatch(/créature|embarquement/i);
   });
 

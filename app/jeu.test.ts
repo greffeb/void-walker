@@ -234,7 +234,7 @@ describe('appli : AR-01, rappel avec paramètre et parole d’IA Station à la r
 
   it('verser la burette : le rappel nomme la cloison, à chaud comme à la reprise', async () => {
     const jeu = await etapes(envAr01(), 6);
-    expect(jeu.rappel).toEqual({ texte: 'Burette d’huile · Verser · Cloison de la salle d’observation', capitales: false });
+    expect(jeu.rappel).toEqual({ texte: 'Burette d’huile · Verser · Cloison de la baie d’observation', capitales: false });
     expect((await pret(envAr01())).rappel).toEqual(jeu.rappel);
   });
 

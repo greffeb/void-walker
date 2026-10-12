@@ -37,7 +37,7 @@ AR-02 doit prouver qu'une baie extérieure percée produit un vide réel, que la
 
 ## 3. Intention d'expérience
 
-Le passager se réveille dans une coursive. L'assistance annonce qu'une capsule prête attend à l'embarquement — puis signale une présence non identifiée à cet endroit. Entre les deux, une salle panoramique donne sur l'espace par une grande baie.
+Le passager se réveille dans les cabines du personnel. L'assistance annonce qu'une capsule prête attend dans la salle d'embarquement — puis signale une présence non identifiée à cet endroit. Entre les deux, une salle panoramique donne sur l'espace par une grande baie.
 
 Le joueur doit comprendre par l'observation que la baie peut céder sous un outil adapté, que l'air part alors partout où c'est ouvert, et qu'une combinaison permet d'y survivre. Il choisit ensuite où se tenir, quoi fermer et quand percer.
 
@@ -49,16 +49,16 @@ Les codes sont des repères d'auteur, pas des identifiants publics.
 
 | Repère | Lieu | Rôle | Éléments |
 | --- | --- | --- | --- |
-| C | Coursive des cabines | Départ | Terminal personnel (assistance), signalétique d'évacuation |
+| C | Cabines du personnel | Départ | Terminal personnel (assistance), signalétique d'évacuation |
 | L | Local de sécurité | Préparation | Casier « perte de pression » avec une combinaison, découpeuse de maintenance |
 | B | Salle panoramique | Lieu de la brèche | Grande baie extérieure, kit mural avec une rustine |
-| E | Embarquement | Évacuation | Capsule alimentée, écoutille fermée (D-196) ; créature présente au départ |
+| E | Salle d'embarquement | Évacuation | Capsule alimentée, écoutille fermée (D-196) ; créature présente au départ |
 
 ```mermaid
 flowchart LR
-  C[Coursive - départ] --- L[Local de sécurité]
+  C[Cabines du personnel - départ] --- L[Local de sécurité]
   C ---|porte fermée| B[Salle panoramique]
-  B ---|porte fermée et grippée| E[Embarquement]
+  B ---|porte fermée et grippée| E[Salle d'embarquement]
   B -. "baie extérieure" .- X((Espace))
 ```
 

@@ -164,19 +164,19 @@ describe('CLI', () => {
     let sortie = executer(['nouvelle', '--graine', '7'], ctx);
     expect(sortie.lignes).toContain('[ IA STATION ] « Une capsule de secours est disponible. Son circuit de départ ne répond pas. »');
     const etapes = [
-      'Aller dans l’atelier de service',
+      'Aller dans l’atelier maintenance',
       'Déplacer la caisse sous la grille',
       'Ouvrir la grille',
       'Passer par la grille',
       'Ouvrir le panneau',
-      'Aller dans l’embarquement',
-      'Fermer la cloison de la salle d’observation',
+      'Aller dans la salle d’embarquement',
+      'Fermer la cloison de la baie d’observation',
       'Aller dans le local énergie',
       'Réarmer la console de départ',
-      'Aller dans l’embarquement',
+      'Aller dans la salle d’embarquement',
       'Ouvrir l’écoutille de la cabine de la capsule',
       'Aller dans la cabine de la capsule',
-      'Fermer l’écoutille de l’embarquement',
+      'Fermer l’écoutille de la salle d’embarquement',
       'Lancer la capsule depuis le pupitre de départ',
     ];
     for (const libelle of etapes) {

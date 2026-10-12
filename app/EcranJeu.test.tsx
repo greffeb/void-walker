@@ -526,11 +526,11 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
         />,
       );
     const ou = texte(inventaire(local, 'verser'));
-    expect(ou).toMatch(/^‹ Burette d’huile › Verser ✕ Où \? (▸ [^▸]+ )*▸ Cloison de la salle d’observation( ▸ [^▸]+)*$/);
+    expect(ou).toMatch(/^‹ Burette d’huile › Verser ✕ Où \? (▸ [^▸]+ )*▸ Cloison de la baie d’observation( ▸ [^▸]+)*$/);
     const cloison = burette.options.find((option) => option.parametre?.sorte === 'passage' && option.parametre.vers?.nom === 'observation');
     if (cloison?.parametre === undefined) throw new Error('Cloison de l’observation absente.');
     expect(texte(inventaire(local, 'verser', cloison.parametre.id))).toMatch(
-      /^‹ Burette d’huile › Verser › Cloison de la salle d’observation ✕ Savoir Le sol sera glissant au pied de la cloison de la salle d’observation/,
+      /^‹ Burette d’huile › Verser › Cloison de la baie d’observation ✕ Savoir Le sol sera glissant au pied de la cloison de la baie d’observation/,
     );
 
     const vide = await jouerOption(envAr01, local, cloison);
@@ -547,16 +547,16 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     const ouverte = dockDe(rendreAr01(await pc(4)));
     expect(texte(entre(ouverte, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit → grille');
     const local = dockDe(rendreAr01(await pc(5)));
-    expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).toContain('→ atelier de service');
+    expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).toContain('→ atelier maintenance');
     expect(local).not.toMatch(/→ grille/);
   });
 
   it('bloc en main : « → atelier » par la grille reste visible, indisponible, avec sa raison', async () => {
     const charge = dockDe(rendreAr01(await pc(7)));
-    const grille = entre(charge, '<button type="button" class="deplacement indisponible" aria-disabled="true" aria-label="atelier de service', '</button>');
-    const raison = 'Ce que vous portez est trop large pour la grille de l’atelier de service.';
-    expect(grille).toContain(`aria-label="atelier de service, indisponible : ${raison}"`);
-    expect(texte(grille)).toBe(`⊘ atelier de service ${raison}`);
+    const grille = entre(charge, '<button type="button" class="deplacement indisponible" aria-disabled="true" aria-label="atelier maintenance', '</button>');
+    const raison = 'Ce que vous portez est trop large pour la grille de l’atelier maintenance.';
+    expect(grille).toContain(`aria-label="atelier maintenance, indisponible : ${raison}"`);
+    expect(texte(grille)).toBe(`⊘ atelier maintenance ${raison}`);
   });
 
   it('IA Station : au réveil puis à l’arrivée au local énergie, encadrée après le récit, écrite comme lui ; rien à l’action suivante', async () => {
