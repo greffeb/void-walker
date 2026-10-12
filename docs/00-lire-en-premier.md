@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-12 (#96 proposée ; conception de la carte #97 ; livraison 1 de la carte #97 proposée).
+> **Mise à jour :** 2026-10-12 (#96 proposée ; conception de la carte #97 ; livraisons 1 et 2 de la carte #97 proposées).
 
 ## Mission de ce dossier
 
@@ -122,7 +122,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #96 (options, téléchargement, fin d'abandon) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone. Options depuis l'accueil (OPTIONS) et le jeu (engrenage) : taille du texte STANDARD / GRANDE / TRÈS GRANDE (récit à 17, 19, 22 px, tout le reste à proportion), lignes de balayage et machine à écrire, gardées sur l'appareil ; « Télécharger ma partie » (l'export qui se rejoue avec `npm run rejouer`) ; abandon confirmé dans la page, qui efface la partie de l'appareil (D-200) et mène à l'écran de fin « Partie abandonnée » ; REJOUER CETTE STATION repart du même départ avec de nouveaux tirages. Version, commit et PR sont passés du bas de l'écran de jeu au bas des options. Restent pour plus tard : son (#99), Signaler un bug et Envoyer ma partie (#107), fins de défaite et d'évacuation.
 
-#97 (carte) : conception écrite et validée par parties ([14 — carte](14-carte.md), D-201 à D-214), après des maquettes au format téléphone et un prototype jetable de génération des plans (1 000 tirages par variante, grandes stations jusqu'à 60 pièces). La carte devient un plan de pont en vert phosphore ; air et créature entrent dans l'issue. Trois livraisons à venir, en zone orange : plans, mémoire, écran. L'assemblage géométrique des stations générées rejoint #106 ; un catalogue de pièces sans obstacle attend une issue à part. Livraison 1 (plans) proposée : format, vérifieur et plans des trois mondes, montrés en captures ; mémoire et écran à suivre.
+#97 (carte) : conception écrite et validée par parties ([14 — carte](14-carte.md), D-201 à D-214), après des maquettes au format téléphone et un prototype jetable de génération des plans (1 000 tirages par variante, grandes stations jusqu'à 60 pièces). La carte devient un plan de pont en vert phosphore ; air et créature entrent dans l'issue. Trois livraisons à venir, en zone orange : plans, mémoire, écran. L'assemblage géométrique des stations générées rejoint #106 ; un catalogue de pièces sans obstacle attend une issue à part. Livraison 1 (plans) proposée : format, vérifieur et plans des trois mondes, montrés en captures ; mémoire et écran à suivre. Livraison 2 (mémoire et carte publique, commande `carte` de la CLI) proposée.
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 

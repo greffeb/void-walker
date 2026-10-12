@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots) ; §4 complété par D-180 et D-181 (aperçu d'un déplacement vers la créature) ; §3 amendé par D-201, D-202 et D-213 (carte en plan de pont, pièces connues dessinées, mémoire), détaillé dans [14 — carte](../14-carte.md).
 > **Date :** 2026-10-11.
-> **Implémentation et tests :** partiels — vue dans la même pièce, bruits (OP-01) et aperçus D-180/D-181 (PR #112) ; destination inconnue d'un accès sans signalétique, passage caché (OP-03, K-05) et messages prévus de l'assistance (D-081) fusionnés par #103 ; historique d'IA Station, avec le moment de chaque message, proposé par #98 ; voyants d'air des portes et aperçu de l'air perdu ou revenu (AR-02) proposés par #104 ; carte absente.
+> **Implémentation et tests :** partiels — vue dans la même pièce, bruits (OP-01) et aperçus D-180/D-181 (PR #112) ; destination inconnue d'un accès sans signalétique, passage caché (OP-03, K-05) et messages prévus de l'assistance (D-081) fusionnés par #103 ; historique d'IA Station, avec le moment de chaque message, proposé par #98 ; voyants d'air des portes et aperçu de l'air perdu ou revenu (AR-02) proposés par #104 ; mémoire du passager et carte publique (K-01, K-02, K-05, K-07 en CLI, K-08 à K-13 de 14 §3.6) proposées par #97, livraison 2 ; écran de la carte absent.
 
 ## 1. But
 
