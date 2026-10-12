@@ -160,6 +160,8 @@ interface Simulation {
   readonly avant: EtatPartie;
   readonly vide: Vide;
   readonly feu: { readonly etat: EtatPartie; readonly gagnees: readonly Embrasement[] };
+  /** Liaison que le passager franchira. */
+  readonly franchie: string | undefined;
 }
 
 /**
@@ -202,12 +204,12 @@ function airConnu(monde: DefMonde, { avant, vide }: Simulation): Savoir[] {
 
 function simuler(monde: DefMonde, etat: EtatPartie, definition: ActionEngagee, cible: string, parametre: string | undefined): Simulation {
   const effet = definition.appliquer({ monde, etat }, cible, SANS_DES, parametre);
-  return { avant: etat, ...mettreAJourDangers(monde, etat, effet) };
+  return { avant: etat, franchie: effet.franchie, ...mettreAJourDangers(monde, etat, effet) };
 }
 
 /** Sous ses yeux, sauf si le vide l'atteint à ce pas : elle n'agit plus, ni jet ni menace (C-03 §5.4, D-071, D-194). */
-function exposeCePas({ avant, vide }: Simulation): boolean {
-  return expose(avant) && vide.etat.creature?.neutralisee === undefined;
+function exposeCePas({ avant, vide, franchie }: Simulation): boolean {
+  return expose(avant, franchie) && vide.etat.creature?.neutralisee === undefined;
 }
 
 /** Aperçu avant confirmation (C-01 §5, C-06 §4) : sans effet sur la partie ni sur les dés. */
@@ -221,7 +223,7 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   const simulation = simuler(monde, partie.etat, definition, cible, parametre);
   // Le danger le plus haut l'emporte : la créature ici avant celui de la destination, le feu et le vide avant tout ; un soin passe avant le jet (C-04 §3, §4.3).
   let retenu: { risque: NiveauRisque; danger: Danger | null } = prevision;
-  for (const autre of [exposeCePas(simulation) ? risqueIci(partie.etat, sante) : null, feuConnu(monde, simulation, sante), videConnu(simulation)]) {
+  for (const autre of [exposeCePas(simulation) ? risqueIci(partie.etat, sante, simulation.franchie) : null, feuConnu(monde, simulation, sante), videConnu(simulation)]) {
     if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
   }
   const savoir = [...prevision.savoir, ...airConnu(monde, simulation)];
@@ -253,7 +255,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   const session = ouvrirDes(partie.etat.generateur);
   // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2) ; pas si le vide
   // l'atteint à ce pas, ce que l'effet simulé sans dé suffit à dire.
-  const exposition = expose(partie.etat) && exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
+  const exposition = exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
   const atteint = exposition && intercepter(session.des);
   const effet = definition.appliquer(contexte, cible, session.des, parametre);
   // Étape 3 : le vide, puis le feu, puis la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, §5.4, D-188).

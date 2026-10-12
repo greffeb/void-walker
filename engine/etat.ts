@@ -26,6 +26,8 @@ export interface EtatCreature {
   readonly contact: boolean;
   /** L'action qui suit le premier contact est libre : ni dé ni blessure (C-03 §4.4, D-184). */
   readonly repit: boolean;
+  /** Passage par lequel elle est entrée au premier contact : s'y faufiler à côté d'elle n'est pas libre (D-195). */
+  readonly garde?: string;
   /** Dans l'alcôve de sa pièce, derrière la paroi opaque : elle ne voit pas le reste de la pièce (AR-01 §11.3). */
   readonly alcove: boolean;
   /** Réactions perdues restantes après une glissade (C-03 §5.2), de 2 à 0. */

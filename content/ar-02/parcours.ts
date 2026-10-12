@@ -14,6 +14,7 @@ const PREPARATION: Parcours['etapes'] = [
 
 const EMBARQUER: Parcours['etapes'] = [
   { action: 'aller', cible: 'porte_grippee', vers: 'embarquement' },
+  { action: 'ouvrir', cible: 'ecoutille', vers: 'cabine' },
   { action: 'aller', cible: 'ecoutille', vers: 'cabine' },
   { action: 'fermer', cible: 'ecoutille', vers: 'embarquement' },
   { action: 'lancer', cible: 'pupitre' },
@@ -25,7 +26,7 @@ const ARRIVEE_EQUIPEE: Parcours['attendu'] = {
   // La combinaison enfilée et la découpeuse restent sur le passager.
   inventaire: ['combinaison', 'decoupeuse'],
   passagesOuverts: [],
-  actions: 12,
+  actions: 13,
   issue: 'evacuation',
   sante: 'indemne',
   sansDe: true,
@@ -53,7 +54,7 @@ const P_V2: Parcours = {
   attendu: ARRIVEE_EQUIPEE,
 };
 
-// Pas 4 : action libre qui suit la première rencontre, sans dé ni blessure (D-184, D-193).
+// Pas 4 : se faufiler à côté d'elle par la porte qu'elle vient de franchir n'est pas libre, un dé (D-195).
 const P_V3: Parcours = {
   nom: 'P-V3 — Passer en force',
   etapes: [
@@ -62,6 +63,7 @@ const P_V3: Parcours = {
     { action: 'ouvrir', cible: 'porte_grippee', vers: 'embarquement' },
     { action: 'aller', cible: 'porte_grippee', vers: 'embarquement' },
     { action: 'fermer', cible: 'porte_grippee', vers: 'panoramique' },
+    { action: 'ouvrir', cible: 'ecoutille', vers: 'cabine' },
     { action: 'aller', cible: 'ecoutille', vers: 'cabine' },
     { action: 'fermer', cible: 'ecoutille', vers: 'embarquement' },
     { action: 'lancer', cible: 'pupitre' },
@@ -71,10 +73,10 @@ const P_V3: Parcours = {
     objetsIci: ['pupitre'],
     inventaire: [],
     passagesOuverts: [],
-    actions: 8,
+    actions: 9,
     issue: 'evacuation',
-    sante: 'indemne',
-    sansDe: true,
+    // Graine 20261010 : le dé du pas 4 vaut 1, une blessure.
+    sante: 'blesse',
   },
 };
 

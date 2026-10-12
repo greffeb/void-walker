@@ -17,7 +17,7 @@ export const MONDE_AR02: DefMonde = {
     { id: 'l-coursive-local', nom: 'porte', entre: ['p-coursive', 'p-local'], ouverte: true },
     { id: 'l-coursive-panoramique', nom: 'porte', entre: ['p-coursive', 'p-panoramique'], ouverte: false },
     { id: 'l-panoramique-embarquement', nom: 'porte_grippee', entre: ['p-panoramique', 'p-embarquement'], ouverte: false, bruyante: true },
-    { id: 'l-embarquement-cabine', nom: 'ecoutille', entre: ['p-embarquement', 'p-cabine'], ouverte: true, manoeuvre: 'p-cabine' },
+    { id: 'l-embarquement-cabine', nom: 'ecoutille', entre: ['p-embarquement', 'p-cabine'], ouverte: false },
   ],
   objets: [
     { id: 'o-terminal', nom: 'terminal', piece: 'p-coursive', portable: false },

@@ -174,6 +174,7 @@ describe('CLI', () => {
       'Aller dans le local énergie',
       'Réarmer la console de départ',
       'Aller dans l’embarquement',
+      'Ouvrir l’écoutille de la cabine de la capsule',
       'Aller dans la cabine de la capsule',
       'Fermer l’écoutille de l’embarquement',
       'Lancer la capsule depuis le pupitre de départ',
@@ -193,11 +194,11 @@ describe('CLI', () => {
     expect(fin).toContain('La capsule s’est détachée. Vous avez quitté la station.');
     expect(fin).not.toContain('Cette partie est terminée. Elle ne peut pas être reprise.');
     expect(fin).toContain('Partie terminée : plus aucune action possible.');
-    expect(fin).toContain('Actions engagées : 13');
+    expect(fin).toContain('Actions engagées : 14');
     expect(executer(['jouer', '1'], ctx)).toEqual({ lignes: ['Cette partie est terminée : rien n’a été joué.'], code: 1 });
     expect(executer(['voir'], ctx).lignes).toContain('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
     expect(executer(['exporter', 'fin.json'], ctx)).toEqual({
-      lignes: ['Partie exportée dans fin.json (13 actions engagées). La partie est terminée.'],
+      lignes: ['Partie exportée dans fin.json (14 actions engagées). La partie est terminée.'],
       code: 0,
     });
   });

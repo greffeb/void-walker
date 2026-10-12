@@ -184,7 +184,7 @@ describe('perception et réaction (C-03 §4)', () => {
       ['ouvrir', 'porte_bc'],
     ]);
     expect(types(evenements[1] ?? [])).toEqual(['passage_ouvert', 'creature_entre', 'premier_contact']);
-    expect(fin.etat.creature).toEqual({ piece: 'b', indice: { piece: 'a', par: null }, contact: true, repit: true, alcove: false, perdues: 0, connues: [], engagee: null });
+    expect(fin.etat.creature).toEqual({ piece: 'b', indice: { piece: 'a', par: null }, contact: true, repit: true, garde: 'bc', alcove: false, perdues: 0, connues: [], engagee: null });
   });
 
   it('premier contact annoncé une seule fois ; l’action suivante est libre, puis la quitter passe par le dé (D-184, D-183)', () => {
@@ -202,7 +202,8 @@ describe('perception et réaction (C-03 §4)', () => {
   });
 
   it('arriver dans la pièce du passager et l’attaquer ne tiennent pas dans la même réaction (C-03 §4.3)', () => {
-    // Contact en A, le passager passe en B sans être suivi, referme puis rouvre bruyamment A–B depuis B.
+    // Contact en A ; le passager repasse en B par la porte qu'elle vient de franchir (un dé, ici favorable, D-195), referme,
+    // puis rouvre bruyamment A–B depuis B.
     const { partie: fin, evenements } = suite(MONDE, partie(), [
       ['ouvrir', 'porte_ab'],
       ['prendre', 'boite'],
@@ -211,9 +212,10 @@ describe('perception et réaction (C-03 §4)', () => {
       ['ouvrir', 'porte_ab'],
       ['prendre', 'cle'],
     ]);
-    expect(types(evenements[2] ?? [])).toEqual(['deplacement', 'piece_decouverte']);
+    expect(types(evenements[2] ?? [])).toEqual(['menace', 'deplacement', 'piece_decouverte']);
     expect(types(evenements[4] ?? [])).toEqual(['passage_ouvert', 'bruit_mecanisme', 'creature_entre']);
-    expect(types(evenements[5] ?? [])).toEqual(['objet_pris', 'menace']);
+    // Action suivante sous ses yeux : le dé de D-183, quel qu'en soit le résultat.
+    expect(types(evenements[5] ?? [])).toEqual(['objet_pris', expect.stringMatching(/^(menace|aggravation_blesse)$/)]);
     expect(pieceCreature(fin)).toBe('b');
   });
 
@@ -379,10 +381,10 @@ describe('danger connu derrière un passage où elle a été perçue (D-180, D-1
     expect(entendue.etat.reperes).toEqual({ vue: null, entendue: { piece: 'b', par: 'ab' } });
     expect(apercuDe(monde, entendue, 'aller', 'salle_b')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'porte_ab'] });
     expect(apercuDe(monde, entendue, 'aller', 'grille_ac')).toEqual({ risque: 'aucun', danger: null });
-    // Elle entre : vue ici, à l'instant ; le bruit est oublié, on sait où elle est (D-181).
+    // Elle entre : vue ici, à l'instant ; le bruit est oublié, on sait où elle est (D-181). Repasser par sa porte : le dé (D-195).
     const vue = engager(monde, entendue, 'prendre', 'boite').partie;
     expect(vue.etat.reperes).toEqual({ vue: { piece: 'a', depuis: 0 }, entendue: null });
-    expect(apercuDe(monde, vue, 'aller', 'salle_b')).toEqual({ risque: 'aucun', danger: null });
+    expect(apercuDe(monde, vue, 'aller', 'salle_b')).toEqual({ risque: 'eleve', danger: ['interception'] });
   });
 
   it('entrer dans la pièce du bruit et la voir vide efface le bruit', () => {

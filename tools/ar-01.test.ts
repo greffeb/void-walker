@@ -184,10 +184,10 @@ describe('AR-01 : combinaisons non adaptées (§10)', () => {
   });
 
   it('lancer : indisponible sans alimentation, puis écoutille ouverte', () => {
-    const sansCourant = apres(depart(), [...P_A.slice(0, 8), ...P_A.slice(9, 11)]);
+    const sansCourant = apres(depart(), [...P_A.slice(0, 8), ...P_A.slice(9, 12)]);
     expect(choix(sansCourant, { action: 'lancer', cible: 'pupitre' })).toMatchObject({ disponible: false, raison: 'non_alimentee' });
     refuse(sansCourant, { action: 'lancer', cible: id('o-pupitre') }, 'non_alimentee');
-    const ouverte = apres(depart(), P_A.slice(0, 11));
+    const ouverte = apres(depart(), P_A.slice(0, 12));
     expect(choix(ouverte, { action: 'lancer', cible: 'pupitre' })).toMatchObject({ disponible: false, raison: 'non_isolee' });
     refuse(ouverte, { action: 'lancer', cible: id('o-pupitre') }, 'non_isolee');
   });
@@ -199,11 +199,10 @@ describe('AR-01 : combinaisons non adaptées (§10)', () => {
     refuse(local, { action: 'installer', cible: id('o-bloc') }, 'cible_absente');
   });
 
-  it('écoutille : ni ouverte ni fermée depuis l’embarquement', () => {
+  it('écoutille : fermée au départ, elle s’ouvre depuis l’embarquement (D-196)', () => {
     const embarquement = apres(depart(), P_A.slice(0, 6));
-    const menu = observer(MONDE, embarquement.etat).menu;
-    expect(menu.some((option) => option.cible.nom === 'ecoutille' && (option.action === 'fermer' || option.action === 'ouvrir'))).toBe(false);
-    refuse(embarquement, { action: 'fermer', cible: id('l-embarquement-cabine') }, 'cible_absente');
+    expect(choix(embarquement, { action: 'ouvrir', cible: 'ecoutille', vers: 'cabine' })).toMatchObject({ disponible: true });
+    expect(choix(embarquement, { action: 'aller', cible: 'ecoutille', vers: 'cabine' })).toMatchObject({ disponible: false });
   });
 });
 
@@ -293,7 +292,7 @@ describe('AR-01 : ce que sait le passager (C-06)', () => {
     expect(rendreObservation(ENTREE.textes, observer(MONDE, arme.etat))).toContain('La console de départ est réarmée.');
     const installe = apres(depart(), P_B.slice(0, 15));
     expect(rendreObservation(ENTREE.textes, observer(MONDE, installe.etat))).toContain('Le bloc d’énergie est engagé dans la capsule de secours.');
-    const [aBord] = suite(apres(depart(), P_A.slice(0, 10)), [P_A[10] as EtapeParcours]);
+    const [aBord] = suite(apres(depart(), P_A.slice(0, 11)), [P_A[11] as EtapeParcours]);
     expect(aBord?.evenements.map((evenement) => evenement.type)).toEqual(['deplacement']);
     expect(noms(observer(MONDE, aBord?.partie.etat ?? arme.etat).visitees)).not.toContain('cabine');
   });

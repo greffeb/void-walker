@@ -128,6 +128,8 @@ interface Reponse {
   readonly creature: EtatCreature;
   readonly evenements: Evenement[];
   readonly entendue?: BruitCreature;
+  /** Liaison qu'elle a franchie jusqu'au bout pendant cette réaction. */
+  readonly franchie?: string;
 }
 
 /** Créature encore active, donc dans la station (D-062). */
@@ -159,8 +161,9 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, l
   };
   // Glissée sans changer de pièce, elle est vue si le passager y est, entendue s'il est à côté.
   const percu = percuParLePassager(monde, etat, liaison, depart, piece, glisse);
-  if (percu === undefined) return { creature: suite, evenements: [] };
-  return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
+  const passee = piece === arrivee ? { franchie: liaison.id } : {};
+  if (percu === undefined) return { creature: suite, evenements: [], ...passee };
+  return { creature: suite, evenements: [percu.evenement], ...passee, ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
 }
 
 /** Une réaction (C-03 §4.2) : joueur visible, sinon son actif, sinon dernier indice, sinon attendre. */
@@ -248,16 +251,23 @@ export function reagir(
   }
   const reponse = reaction(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
-  const creature = etat.creature.repit ? { ...reponse.creature, repit: false } : reponse.creature;
+  const creature = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
   const apres: EtatPartie = { ...etat, creature };
   const suite: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
   if (creatureEnVue(suite) && !creature.contact) {
+    // Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir (D-195).
+    const garde = creature.piece === suite.piece && piece !== suite.piece && reponse.franchie !== undefined ? { garde: reponse.franchie } : {};
     return {
-      etat: { ...suite, creature: { ...creature, contact: true, repit: true } },
+      etat: { ...suite, creature: { ...creature, contact: true, repit: true, ...garde } },
       evenements: [...reponse.evenements, { type: 'premier_contact' }],
     };
   }
   return { etat: suite, evenements: reponse.evenements };
+}
+
+function sansGarde(creature: EtatCreature): EtatCreature {
+  const { garde, ...reste } = creature;
+  return garde === undefined ? creature : reste;
 }
 
 /** Ancienneté d'une vue (D-151) : 1 action au plus, 2 à 5, 6 et plus. */

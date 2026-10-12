@@ -109,6 +109,29 @@ const SANS_COMBINAISON: readonly EtapeParcours[] = [
   { action: 'aller', cible: 'porte', vers: 'panoramique' },
 ];
 
+describe('AR-02 : passer en force (D-195, D-196)', () => {
+  const CONTACT = etapes('P-V3').slice(0, 3);
+
+  it('après le premier contact, se faufiler par la porte grippée est annoncé élevé ; fuir par la coursive reste libre', () => {
+    const contact = apres(depart(), CONTACT);
+    expect(contact.etat.creature).toMatchObject({ piece: 'p-panoramique', repit: true, garde: 'l-panoramique-embarquement' });
+    expect(apercuDe(contact, { action: 'aller', cible: 'porte_grippee', vers: 'embarquement' })).toMatchObject({ risque: 'eleve', danger: { type: 'interception' } });
+    expect(apercuDe(contact, { action: 'aller', cible: 'porte', vers: 'coursive' })).toMatchObject({ risque: 'aucun', danger: null });
+    const [faufile] = suite(contact, [{ action: 'aller', cible: 'porte_grippee', vers: 'embarquement' }]);
+    expect(faufile?.tirages).toHaveLength(1);
+    const [fuite] = suite(contact, [{ action: 'aller', cible: 'porte', vers: 'coursive' }]);
+    expect(fuite?.tirages).toEqual([]);
+  });
+
+  it('l’écoutille est fermée au départ et s’ouvre depuis l’embarquement', () => {
+    const neuve = depart();
+    expect(neuve.etat.liaisons['l-embarquement-cabine']).toBe(false);
+    const embarquement = apres(neuve, P_V1.slice(0, 9));
+    expect(choix(embarquement, { action: 'aller', cible: 'ecoutille', vers: 'cabine' })).toMatchObject({ disponible: false });
+    expect(choix(embarquement, { action: 'ouvrir', cible: 'ecoutille', vers: 'cabine' })).toMatchObject({ disponible: true });
+  });
+});
+
 describe('AR-02 : percer (C-03 §5.4, C-04 §3.1)', () => {
   it('VN-01, RSK-10 : sans combinaison, aperçu mortel ; engagé, défaite sans dé, rien ensuite', () => {
     const panoramique = apres(depart(), SANS_COMBINAISON);

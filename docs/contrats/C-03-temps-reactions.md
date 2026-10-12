@@ -59,7 +59,7 @@ Après inspection d'une source silencieuse, sans nouvel indice, la créature res
 
 ### 4.4 Premier contact
 
-Première détection directement menaçante dans la partie : signal public clair, sans sanction hostile immédiate ; le joueur dispose de son engagement suivant pour réagir. Lire ne consomme pas cette occasion.
+Première détection directement menaçante dans la partie : signal public clair, sans sanction hostile immédiate ; le joueur dispose de son engagement suivant pour réagir. Lire ne consomme pas cette occasion. Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir : s'y faufiler pendant cet engagement se joue au dé (C-04 §4, D-195).
 
 L'avertissement est mémorisé, pas recréé à chaque changement de pièce. Une séparation qui retire effectivement le contact empêche ses conséquences ; elle ne réinitialise ni position ni souvenirs de la créature.
 

@@ -31,7 +31,7 @@ export const MONDE_AR01: DefMonde = {
     { id: 'l-energie-observation', nom: 'cloison', entre: ['p-energie', 'p-observation'], ouverte: false, bruyante: true },
     { id: 'l-observation-embarquement', nom: 'cloison', entre: ['p-observation', 'p-embarquement'], ouverte: true },
     { id: 'l-energie-embarquement', nom: 'panneau', entre: ['p-energie', 'p-embarquement'], ouverte: false, etroite: true, cachee: 'p-embarquement' },
-    { id: 'l-embarquement-cabine', nom: 'ecoutille', entre: ['p-embarquement', 'p-cabine'], ouverte: true, manoeuvre: 'p-cabine' },
+    { id: 'l-embarquement-cabine', nom: 'ecoutille', entre: ['p-embarquement', 'p-cabine'], ouverte: false },
   ],
   positions: [
     { id: 'pos-sous-grille', nom: 'sous_grille', piece: 'p-atelier', sous: 'l-atelier-energie' },
