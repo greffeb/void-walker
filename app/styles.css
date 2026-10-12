@@ -293,7 +293,8 @@ button:disabled {
 .parole-ia {
   margin: 0 0 12px;
   padding: 8px 12px;
-  border: 1px solid var(--bordure);
+  background: var(--blanc-surface);
+  border: 1px solid var(--blanc);
 }
 
 .recit .etiquette-ia {
@@ -302,13 +303,13 @@ button:disabled {
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: 0.06em;
-  color: var(--texte-secondaire);
+  color: var(--blanc-secondaire);
 }
 
 .recit .citation-ia {
   margin: 0;
   font-style: italic;
-  color: var(--signal);
+  color: var(--blanc-texte);
 }
 
 .recit .citation-ia + .citation-ia {
@@ -325,13 +326,14 @@ button:disabled {
   font-size: 14px;
   line-height: 1.4;
   text-align: left;
-  color: var(--signal);
-  background: transparent;
-  border: 1px dashed var(--bordure);
+  color: var(--blanc-texte);
+  background: var(--blanc-surface);
+  border: 1px dashed var(--blanc);
 }
 
 .lien-ia:not(:disabled):active {
-  background: var(--separateur);
+  background: var(--blanc-secondaire);
+  color: var(--blanc-surface);
 }
 
 /* Effet machine à écrire (D-186) : chaque caractère, déjà à sa place, devient visible à son tour ; puis le curseur clignote lentement. */
