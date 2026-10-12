@@ -20,7 +20,7 @@ Les textes cités viennent de la maquette (salon de transit, atelier de service)
 
 ## 1. Principes transverses
 
-1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur. Pas de fausse barre d'état. [Validé]
+1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur jusqu'à six lignes, puis le dock défile (D-191). Pas de fausse barre d'état. [Validé]
 2. **Le pouce agit en bas, l'œil lit en haut.** Tout ce qui agit (objets, déplacements, navigation, confirmation) est dans la moitié basse. En haut, un seul contrôle, rarement utilisé : l'engrenage des options. [Validé]
 3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Annuler est toujours possible, sans effet. Une action engageante passe par un aperçu puis CONFIRMER ; prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu n'annoncerait ni risque connu ni coût ; ouvrir et fermer une porte gardent toujours l'aperçu. [Validé D-182, remplaçant « toute action engageante, déplacement compris, passe par un aperçu »]
 4. **Un nom par chose** (NP-04). Même libellé dans le récit, le dock, la bulle, la carte et le rappel d'action. Les puces d'objet affichent le nom avec une majuscule initiale (« Burette d'huile ») ; titres de pièce et boutons de déplacement passent en capitales par le style uniquement ; le nom enregistré (en minuscules, avec genre et élision, NP-02) reste identique.

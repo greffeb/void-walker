@@ -254,7 +254,7 @@ async function verifierEcran(page: Page, ou: string, erreurs: string[]): Promise
   const debord = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   if (debord > 0) erreurs.push(`${ou} : la page déborde de ${debord} px en largeur.`);
   const mesure = await partage(page);
-  if (mesure !== null && mesure.lignes < 5.95) erreurs.push(`${ou} : le récit ne montre que ${mesure.lignes.toFixed(1)} lignes.`);
+  if (mesure !== null && !(mesure.lignes >= 5.95)) erreurs.push(`${ou} : le récit ne montre que ${mesure.lignes.toFixed(1)} lignes.`);
   if (mesure !== null && mesure.defile && mesure.lignes > 6.05) erreurs.push(`${ou} : le dock défile alors que le récit a ${mesure.lignes.toFixed(1)} lignes.`);
 }
 
@@ -283,7 +283,7 @@ async function verifierPied(page: Page, ou: string, erreurs: string[]): Promise<
     const style = getComputedStyle(element);
     return (element.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) / parseFloat(style.lineHeight);
   });
-  if (lignes > 1.05) erreurs.push(`${ou} : le pied de page « ${(await pied.innerText()).trim()} » tient sur ${Math.round(lignes)} lignes.`);
+  if (!(lignes <= 1.05)) erreurs.push(`${ou} : le pied de page « ${(await pied.innerText()).trim()} » tient sur ${Math.round(lignes)} lignes.`);
 }
 
 /** Bulle d'inventaire ouverte : au-dessus de son bouton sans le cacher, dock toujours là (D-154, D-176). */
@@ -1063,7 +1063,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const touche = await etatEcriture(page);
     if (!(await page.getByRole('dialog').first().isVisible())) erreurs.push('Machine à écrire : toucher une puce pendant l’écriture n’ouvre pas sa bulle.');
     if (touche.visibles !== touche.total || touche.classes.includes('ecrire')) erreurs.push(`Machine à écrire : après un toucher, ${touche.visibles} caractères visibles sur ${touche.total}.`);
-    await capturerEtape('Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier', 'allow');
+    await capturerEtape('Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier (tout le texte à 22 px)', 'allow');
     await page.keyboard.press('Escape');
     // Rouvrir une bulle ne réécrit rien.
     await puce.click();
