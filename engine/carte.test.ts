@@ -261,6 +261,19 @@ describe('carte publique (14 §3.4)', () => {
     expect(carteDe(partie()).passages.every((vue) => vue.voyant === null)).toBe(true);
   });
 
+  it('voyant (VP-03) : une porte dit l’air de la pièce d’en face, pas celui de la pièce d’où on la lit', () => {
+    const debut = partie(VIDE);
+    // Le passager, en combinaison dans la baie percée, lit la porte du sas : de l'autre côté, le sas a son air.
+    const baie: Partie = { ...debut, etat: { ...debut.etat, piece: 'baie', visitees: ['sas', 'baie'], breches: ['hublot'] } };
+    const carte = carteDe(baie, VIDE);
+    expect(carte.passages.find((vue) => vue.id === idPublic(VIDE.id, 'sb'))?.voyant).toBe('air');
+    expect(carte.pieces.map((vue) => [vue.piece.nom, vue.vide])).toEqual([
+      ['sas', false],
+      ['baie', true],
+      ['couloir', true],
+    ]);
+  });
+
   it('conduit sans signalétique : son seul bout se voit ; une fois franchi, tout son tracé', () => {
     const CONDUIT: DefMonde = {
       id: 'essai-carte-conduit',

@@ -53,6 +53,9 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   const avecVoyant = (liaison: DefLiaison, connue: boolean): boolean => voyants && connue && liaison.nonEtanche !== true;
   const passages = vus.map(({ liaison, depuis, connue }): PassageCarte => {
     const [premiere] = depuis;
+    // Le voyant dit l'air de la pièce d'en face (VP-03), lu depuis la pièce actuelle, ou sinon depuis la première pièce visitée d'où on l'a vu.
+    const lecture = liaison.entre.includes(ici) ? ici : premiere;
+    const enFace = lecture === undefined ? undefined : autreCote(liaison, lecture);
     const conduitInconnu = !connue && premiere !== undefined && liaison.plan?.trace !== undefined;
     return {
       id: idPublic(monde.id, liaison.id),
@@ -62,7 +65,7 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
       // Chaque pièce visitée a eu son regard : la liaison a été vue. À défaut, fermée : rien n'en dit plus.
       ouvert: etat.memoire.liaisons[liaison.id] ?? false,
       dessin: dessinDe(liaison),
-      voyant: avecVoyant(liaison, connue) ? (liaison.entre.some((piece) => sansAir.includes(piece)) ? 'vide' : 'air') : null,
+      voyant: avecVoyant(liaison, connue) && enFace !== undefined ? (sansAir.includes(enFace) ? 'vide' : 'air') : null,
       emplacement: conduitInconnu ? entreeDeConduit(monde, liaison, premiere) : emplacementDe(monde, liaison),
     };
   });
