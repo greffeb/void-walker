@@ -8,6 +8,7 @@ import { libelleOption, MONDES, nomDe, type EntreeMonde, type EtapeParcours } fr
 import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { rejouerExport } from './rejouer-export';
+import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 import { versionDuJeu } from './version';
@@ -23,8 +24,8 @@ const ETROIT = { width: 320, height: 568 };
 const PORTEUR = { width: 412, height: 915 };
 
 export interface EtapeCapture {
-  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02. */
-  readonly suite: 'monde-test' | 'ar-01' | 'ar-02';
+  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02, ou les plans des stations. */
+  readonly suite: 'monde-test' | 'ar-01' | 'ar-02' | 'plans';
   readonly titre: string;
   readonly image: string;
   readonly recit: string;
@@ -1074,6 +1075,21 @@ async function parcoursAr02(navigateur: Browser, racine: string, ar02: EntreeMon
   await contexte.close();
 }
 
+/** Plans des stations (14 §4.3) : rendu d'auteur de chaque monde, montré au porteur avant fusion. */
+async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const contexte = await navigateur.newContext({ viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await contexte.newPage();
+  for (const [id, entree] of Object.entries(MONDES)) {
+    try {
+      await page.setContent(`<!doctype html><html lang="fr"><body style="margin:0;background:#050A06">${dessinerPlan(entree)}</body></html>`);
+      await capturer(page, `Plan — ${id}`);
+    } catch (erreur) {
+      erreurs.push(`${id} : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+    }
+  }
+  await contexte.close();
+}
+
 /** Une partie du commentaire : bilan, images, puis texte affiché à chaque étape. */
 function partieCommentaire(titre: string, etapes: readonly EtapeCapture[], erreurs: readonly string[], details: readonly string[]): string[] {
   const images = process.env.CAPTURES_URL ?? '';
@@ -1102,6 +1118,7 @@ function commentaire(
   erreurs: readonly string[],
   erreursAr01: readonly string[],
   erreursAr02: readonly string[],
+  erreursPlans: readonly string[],
   installable: string,
   horsLigne: string,
 ): string {
@@ -1134,6 +1151,12 @@ function commentaire(
       erreursAr02,
       ['Adresse : `?monde=ar-02`, partie neuve, joué geste par geste.'],
     ),
+    ...partieCommentaire(
+      'Plans des stations (#97)',
+      etapes.filter((etape) => etape.suite === 'plans'),
+      erreursPlans,
+      ['Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. À juger par le porteur avant fusion.'],
+    ),
   ];
   return lignes.join('\n');
 }
@@ -1152,6 +1175,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   const erreurs: string[] = [];
   const erreursAr01: string[] = [];
   const erreursAr02: string[] = [];
+  const erreursPlans: string[] = [];
   let suite: EtapeCapture['suite'] = 'monde-test';
   let installable = 'non vérifiée';
   let horsLigne = 'non vérifié';
@@ -1620,6 +1644,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     } catch (erreur) {
       erreursAr02.push(erreur instanceof Error ? erreur.message : String(erreur));
     }
+    // Plans des stations (#97) : rendu d'auteur, dans un contexte neuf.
+    suite = 'plans';
+    try {
+      await capturerPlans(navigateur, capturerPage, erreursPlans);
+    } catch (erreur) {
+      erreursPlans.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
   } catch (erreur) {
     erreurs.push(erreur instanceof Error ? erreur.message : String(erreur));
   } finally {
@@ -1628,10 +1659,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, etapes };
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, erreursPlans, etapes };
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
-  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, installable, horsLigne));
-  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`), ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`)] };
+  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, erreursPlans, installable, horsLigne));
+  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`), ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`), ...erreursPlans.map((erreur) => `Plans : ${erreur}`)] };
 }
 
 if (isMainModule(import.meta.url)) {
