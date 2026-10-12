@@ -290,7 +290,7 @@ Texte seul et un bouton. [Validé]
 
 - **Haut :** « > SALON DE TRANSIT_ » en 13 `texte-secondaire`.
 - **Récit long** (autorisé au réveil, D-111), 17 px, interligne 1,65, qui défile si besoin. Le texte du terminal de transit (« CONFINEMENT EN COURS ») est en vidéo inverse.
-- **Parole d'IA Station** encadrée : contour `bordure`, étiquette « [ IA STATION ] » en 12/600 `texte-secondaire`, citation en italique `signal`. Ce message entre dans l'historique de la modale.
+- **Parole d'IA Station** encadrée, en blanc froid comme la modale (D-198) : contour `blanc`, fond `blanc-surface`, étiquette « [ IA STATION ] » en 12/600 `blanc-secondaire`, citation en italique `blanc-texte`. Le lien « parle dans l'écouteur » suit les mêmes couleurs, cadre pointillé `blanc`. Ce message entre dans l'historique de la modale.
 - **Bas :** REGARDER AUTOUR DE VOUS, principal, pleine largeur. Lire étant gratuit, ce bouton n'engage rien.
 
 Texte d'exemple :
