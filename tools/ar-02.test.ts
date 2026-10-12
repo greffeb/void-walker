@@ -175,9 +175,25 @@ describe('AR-02 : percer (C-03 §5.4, C-04 §3.1)', () => {
   it('VP-01 : percer sans combinaison sous ses yeux : aucun dé, la brèche puis la défaite, sans menace', () => {
     const libre = apres(depart(), [...P_V2.slice(0, 7), { action: 'fermer', cible: 'porte', vers: 'coursive' }, RETIRER]);
     expect(libre.etat.creature).toMatchObject({ piece: 'p-panoramique', repit: false });
+    expect(apercuDe(libre, PERCER)).toMatchObject({ risque: 'mortel', danger: { type: 'asphyxie' } });
     const perce = engager(libre, PERCER);
     expect(perce.tirages).toEqual([]);
     expect(types(perce.evenements)).toEqual(['breche_ouverte', 'air_perdu', 'creature_expulsee', 'defaite']);
+  });
+
+  it('VP-01 : ouvrir vers la zone sans air sous ses yeux : inerte sur place, aucun dé, aucune menace', () => {
+    const isolee = apres(depart(), [...EQUIPE, PERCER, { action: 'aller', cible: 'porte', vers: 'coursive' }, { action: 'fermer', cible: 'porte', vers: 'panoramique' }]);
+    const creature = isolee.etat.creature;
+    if (creature === null) throw new Error('Créature absente.');
+    // État construit : elle est dans la coursive avec le passager, contact passé, répit épuisé.
+    const enVue: Partie = { ...isolee, etat: { ...isolee.etat, creature: { ...creature, piece: 'p-coursive', contact: true, repit: false } } };
+    const ouvrir: EtapeParcours = { action: 'ouvrir', cible: 'porte', vers: 'panoramique' };
+    expect(apercuDe(enVue, ouvrir)).toMatchObject({ risque: 'aucun', danger: null });
+    const ouverte = engager(enVue, ouvrir);
+    expect(ouverte.tirages).toEqual([]);
+    expect(types(ouverte.evenements)).toEqual(['passage_ouvert', 'air_perdu', 'creature_inerte']);
+    expect(ouverte.partie.etat.creature).toMatchObject({ piece: 'p-coursive', neutralisee: 'inerte' });
+    expect(ouverte.partie.etat.sante).toBe('indemne');
   });
 
   it('P-V1 : la créature exposée hors de la pièce percée devient inerte, découverte en arrivant', () => {

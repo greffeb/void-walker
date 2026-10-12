@@ -136,10 +136,10 @@ function valider(monde: DefMonde, etat: EtatPartie, commande: unknown): Validati
   };
 }
 
-/** L'aperçu simule l'action sans dé : aucune règle d'effet n'en tire (le jet d'interception se résout à part). */
+/** Effet simulé sans dé (aperçu, et vide à venir dans `jouer`) : aucune règle d'effet n'en tire, seul le jet d'interception, à part. */
 const SANS_DES: Des = {
   lancer: () => {
-    throw new Error('Aucun dé dans un aperçu.');
+    throw new Error('Aucun dé dans un effet simulé.');
   },
 };
 
@@ -253,7 +253,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   const session = ouvrirDes(partie.etat.generateur);
   // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2) ; pas si le vide
   // l'atteint à ce pas, ce que l'effet simulé sans dé suffit à dire.
-  const exposition = exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
+  const exposition = expose(partie.etat) && exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
   const atteint = exposition && intercepter(session.des);
   const effet = definition.appliquer(contexte, cible, session.des, parametre);
   // Étape 3 : le vide, puis le feu, puis la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, §5.4, D-188).
