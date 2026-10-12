@@ -2,6 +2,7 @@ import {
   chevauchent,
   cleCase,
   emplacementDe,
+  entreeDeConduit,
   murCommun,
   ouvertureVers,
   panDeCoque,
@@ -177,6 +178,9 @@ describe('vérifieur du plan (14 §4.2)', () => {
     };
     expect(validerMonde(conduit)).toEqual([]);
     expect(emplacementDe(conduit, liaison(conduit, 'ab'))).toEqual({ type: 'trace', cases: [{ x: 2, y: 0 }, { x: 3, y: 0 }] });
+    // Tant que sa destination est inconnue, seul le bout du conduit se voit, dans le mur de la pièce d'où on le voit (14 §2.6).
+    expect(entreeDeConduit(conduit, liaison(conduit, 'ab'), 'a')).toEqual({ type: 'mur', axe: 'v', ligne: 2, rang: 0 });
+    expect(entreeDeConduit(conduit, liaison(conduit, 'ab'), 'b')).toEqual({ type: 'mur', axe: 'v', ligne: 4, rang: 0 });
     const casse = (trace: readonly { x: number; y: number }[]): string[] => validerMonde(avecLiaisons(conduit, { ab: { plan: { trace } } }));
     expect(casse([{ x: 2, y: 0 }, { x: 3, y: 1 }])).toContain('ab : tracé de conduit invalide (PL-02).');
     expect(casse([{ x: 2, y: 0 }])).toContain('ab : tracé de conduit invalide (PL-02).');

@@ -289,3 +289,15 @@ export function validerPlan(monde: DefMonde): string[] {
   }
   return erreurs;
 }
+
+/** Bout d'un conduit du côté d'une pièce : l'ouverture dans son mur, seule montrée tant que sa destination est inconnue (14 §2.6). */
+export function entreeDeConduit(monde: DefMonde, liaison: DefLiaison, piece: string): EmplacementPassage | null {
+  const trace = liaison.plan?.trace;
+  const rect = rectDe(monde, piece);
+  if (trace === undefined || rect === undefined) return null;
+  for (const etape of [trace[0], trace[trace.length - 1]]) {
+    const ouverture = etape === undefined ? null : ouvertureVers(rect, etape);
+    if (ouverture !== null) return ouverture;
+  }
+  return null;
+}
