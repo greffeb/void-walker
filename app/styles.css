@@ -212,6 +212,32 @@ button:disabled {
   text-transform: uppercase;
 }
 
+/* Parole d'IA Station (12 §3.3) : encadré après le récit, étiquette discrète, citation en italique. */
+.parole-ia {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--bordure);
+}
+
+.recit .etiquette-ia {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  color: var(--texte-secondaire);
+}
+
+.recit .citation-ia {
+  margin: 0;
+  font-style: italic;
+  color: var(--signal);
+}
+
+.recit .citation-ia + .citation-ia {
+  margin-top: 8px;
+}
+
 /* Effet machine à écrire (D-186) : chaque caractère, déjà à sa place, devient visible à son tour ; puis le curseur clignote lentement. */
 .recit.ecrire .car {
   animation: apparait 0s linear both;
@@ -388,6 +414,22 @@ button:disabled {
 
 .bulle-titre:first-child {
   padding-left: 12px;
+}
+
+/* Le paramètre garde sa casse dans le fil : « CAISSE › DÉPLACER › sous la grille » (12 §3.5). */
+.fil-parametre {
+  text-transform: none;
+}
+
+/* Étape 2 de la bulle (12 §3.5) : « OÙ ? » au-dessus des paramètres. */
+.question {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondaire-menu);
 }
 
 .bulle-icone {

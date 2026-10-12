@@ -1,24 +1,30 @@
 import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type OptionMenu, type Partie } from '../engine';
-import { MONDE_PAR_DEFAUT, MONDES, nomDe, raconter, type EntreeMonde } from '../content';
+import { MONDES, nomDe, raconter, type EntreeMonde } from '../content';
 import {
   composer,
   composerDock,
   ECART_BULLE,
+  etapeBulle,
   filBulle,
+  lignesActions,
   MARGE_BULLE,
   nomDestination,
+  nomParametre,
   nomPuce,
   placerBulle,
+  precedente,
   rappelDe,
   rappelRepris,
   texteRappel,
   unToucher,
   type Dock,
+  type Groupe,
 } from './ecran';
 import { consulter, prevoir } from './jeu';
 
-const entree = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
+const entree = MONDES['monde-test'] as EntreeMonde;
 const { monde, textes } = entree;
+const etapes = entree.parcours[0]?.etapes ?? [];
 const depart = (): Partie => nouvellePartie(monde, { version: 'ecran', graine: 3 });
 
 function placees(dock: Dock): OptionMenu[] {
@@ -95,7 +101,7 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
 
   it('un nom par chose : puce, rappel et récit nomment la même chose (NP-04)', () => {
     let partie = depart();
-    for (const etape of entree.parcours.etapes) {
+    for (const etape of etapes) {
       const option = optionDe(partie, etape.action, etape.cible);
       const resultat = jouer(monde, partie, option.commande);
       const recit = raconter(textes, resultat).join(' ').toLowerCase();
@@ -124,7 +130,7 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
   it('reprise : même rappel que juste après l’action ; aucun avant la première', () => {
     let partie = depart();
     expect(rappelRepris(partie, observer(monde, partie.etat))).toBeNull();
-    for (const etape of entree.parcours.etapes) {
+    for (const etape of etapes) {
       const option = optionDe(partie, etape.action, etape.cible);
       const resultat = jouer(monde, partie, option.commande);
       if (resultat.type !== 'engagee') throw new Error(`Étape non engagée : ${etape.action}.`);
@@ -219,6 +225,93 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
   it('une option qui engage le personnage n’est jamais lue comme une fiche', () => {
     const prendre = optionDe(depart(), 'prendre', 'carnet');
     expect(() => consulter({ monde, textes }, depart(), prendre)).toThrow(/engage le personnage/);
+  });
+});
+
+describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
+  const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_C = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes ?? [];
+
+  /** Partie AR-01 après les `nombre` premières étapes de P-C, jouées par les commandes du menu. */
+  function pc(nombre: number): Partie {
+    let partie = nouvellePartie(ar01.monde, { version: 'ecran', graine: 20261010 });
+    for (const etape of P_C.slice(0, nombre)) {
+      const option = observer(ar01.monde, partie.etat).menu.find(
+        (choix) =>
+          choix.action === etape.action &&
+          choix.cible.nom === etape.cible &&
+          (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+          (etape.parametre === undefined || (choix.parametre?.sorte === 'passage' ? choix.parametre.vers?.nom : choix.parametre?.nom) === etape.parametre),
+      );
+      if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+      const resultat = jouer(ar01.monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`${etape.action} ${etape.cible} non engagée.`);
+      partie = resultat.partie;
+    }
+    return partie;
+  }
+
+  function groupe(partie: Partie, nom: string, zone: 'piece' | 'inventaire' = 'piece'): Groupe {
+    const trouve = composerDock(observer(ar01.monde, partie.etat))[zone].find((candidat) => candidat.cible.nom === nom);
+    if (trouve === undefined) throw new Error(`Puce ${nom} absente.`);
+    return trouve;
+  }
+
+  it('une ligne par action : plusieurs paramètres, une ligne ; jouable si l’un l’est, sinon la première avec sa raison', () => {
+    const burette = groupe(pc(5), 'burette', 'inventaire');
+    const verser = composer(burette).actions.filter((option) => option.action === 'verser');
+    expect(verser.length).toBeGreaterThan(1);
+    expect(lignesActions(composer(burette).actions).filter((option) => option.action === 'verser')).toEqual([verser.find((option) => option.disponible)]);
+
+    const vide = groupe(pc(6), 'burette', 'inventaire');
+    const lignes = lignesActions(composer(vide).actions);
+    const [indisponible] = composer(vide).actions.filter((option) => option.action === 'verser');
+    expect(lignes.filter((option) => option.action === 'verser')).toEqual([indisponible]);
+    expect(indisponible?.disponible).toBe(false);
+  });
+
+  it('fiche, puis « OÙ ? » avec les seuls paramètres jouables, puis l’aperçu de la commande exacte du menu ; « ‹ » remonte d’une étape', () => {
+    const partie = pc(2);
+    const caisse = groupe(partie, 'caisse');
+    expect(etapeBulle(caisse, null, null)).toEqual({ type: 'fiche' });
+
+    const ou = etapeBulle(caisse, 'deplacer', null);
+    if (ou.type !== 'parametre') throw new Error(`Étape ${ou.type}.`);
+    expect(ou.options.every((option) => option.disponible && option.action === 'deplacer')).toBe(true);
+    expect(ou.options.map((option) => option.parametre === undefined ? '' : nomParametre(ar01.textes, option.parametre))).toEqual(['sous la grille']);
+    expect(precedente(ou)).toEqual({ action: null, parametre: null });
+
+    const [sous] = ou.options;
+    if (sous?.parametre === undefined) throw new Error('Position absente.');
+    const vue = etapeBulle(caisse, 'deplacer', sous.parametre.id);
+    expect(vue).toEqual({ type: 'apercu', option: sous, avecParametre: true });
+    if (vue.type !== 'apercu') throw new Error(`Étape ${vue.type}.`);
+    expect(observer(ar01.monde, partie.etat).menu).toContainEqual(vue.option);
+    expect(vue.option.commande).toEqual({ action: 'deplacer', cible: caisse.cible.id, parametre: sous.parametre.id });
+    expect(precedente(vue)).toEqual({ action: 'deplacer', parametre: null });
+    expect(filBulle(ar01.textes, caisse.cible, vue.option)).toBe('Caisse › Déplacer › sous la grille');
+
+    expect(etapeBulle(caisse, 'deplacer', 'inconnu')).toEqual({ type: 'fiche' });
+    expect(precedente({ type: 'fiche' })).toBeNull();
+  });
+
+  it('action sans paramètre : de la fiche droit à l’aperçu, « ‹ » ramène aux actions', () => {
+    const partie = pc(4);
+    const burette = groupe(partie, 'burette', 'inventaire');
+    const etape = etapeBulle(burette, 'poser', null);
+    expect(etape).toMatchObject({ type: 'apercu', avecParametre: false });
+    expect(precedente(etape)).toEqual({ action: null, parametre: null });
+  });
+
+  it('rappel avec paramètre : « Caisse · Déplacer · sous la grille », retrouvé depuis la commande enregistrée', () => {
+    const avant = pc(2);
+    const option = composer(groupe(avant, 'caisse')).actions.find((candidate) => candidate.action === 'deplacer' && candidate.disponible);
+    if (option === undefined) throw new Error('Déplacer absent.');
+    const rappel = rappelDe(option);
+    expect(texteRappel(ar01.textes, rappel)).toEqual({ texte: 'Caisse · Déplacer · sous la grille', capitales: false });
+    const apres = pc(3);
+    const repris = rappelRepris(apres, observer(ar01.monde, apres.etat));
+    expect(repris).toEqual(rappel);
   });
 });
 

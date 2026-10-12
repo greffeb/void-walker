@@ -172,7 +172,7 @@ describe('refus', () => {
     attendreRefusSansEffet(partie, null, 'commande_invalide');
     attendreRefusSansEffet(partie, 'prendre boite', 'commande_invalide');
     attendreRefusSansEffet(partie, { action: 'prendre' }, 'commande_invalide');
-    attendreRefusSansEffet(partie, { action: 'lancer', cible }, 'action_inconnue');
+    attendreRefusSansEffet(partie, { action: 'teleporter', cible }, 'action_inconnue');
     attendreRefusSansEffet(partie, { action: 'prendre', cible: 'e00000000' }, 'cible_absente');
     attendreRefusSansEffet(partie, { action: 'prendre', cible: 'o-1' }, 'cible_absente');
   });
@@ -323,7 +323,7 @@ describe('aperçu avant confirmation (C-01 §5, C-06 §4)', () => {
   it('commande mal formée : même refus qu’au jeu', () => {
     const partie = partieNeuve();
     expect(apercu(MONDE, partie, null)).toEqual({ type: 'refus', raison: 'commande_invalide' });
-    expect(apercu(MONDE, partie, { action: 'lancer', cible: 'e00000000' })).toEqual({ type: 'refus', raison: 'action_inconnue' });
+    expect(apercu(MONDE, partie, { action: 'teleporter', cible: 'e00000000' })).toEqual({ type: 'refus', raison: 'action_inconnue' });
     expect(apercu(MONDE, partie, { action: 'prendre', cible: 'o-1' })).toEqual({ type: 'refus', raison: 'cible_absente' });
   });
 });

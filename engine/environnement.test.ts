@@ -68,7 +68,7 @@ function placee(monde: DefMonde, changement: Partial<Partie['etat']>): Partie {
 /** Option du menu public : action, cible nommée (un passage par lui-même ou sa destination), paramètre nommé le cas échéant. */
 function option(monde: DefMonde, courante: Partie, action: IdAction, nom: string, parametre?: string): OptionMenu | undefined {
   const nomme = (cible: OptionMenu['cible'] | undefined, attendu: string): boolean =>
-    cible !== undefined && (cible.nom === attendu || (cible.sorte === 'passage' && cible.vers.nom === attendu));
+    cible !== undefined && (cible.nom === attendu || (cible.sorte === 'passage' && cible.vers?.nom === attendu));
   return observer(monde, courante.etat).menu.find(
     (choix) => choix.action === action && nomme(choix.cible, nom) && (parametre === undefined || nomme(choix.parametre, parametre)),
   );
@@ -311,6 +311,39 @@ describe('feu confiné et propagation (C-03 §5.3, D-188)', () => {
     expect(types(bruit.evenements)).toContain('bruit_mecanisme');
     expect(bruit.partie.etat.creature?.piece).toBe('local');
     expect(bruit.partie.etat.creature?.indice).toEqual({ piece: 'salon', par: null });
+  });
+
+  it('OP-03 : le feu gagne la pièce derrière une grille jamais franchie : flammes derrière la grille, pièce jamais nommée', () => {
+    const grille: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.map((liaison) => (liaison.id === 'ap' ? { ...liaison, sansSignaletique: true } : liaison)) };
+    const ouverte = suite(grille, partie(grille), [['aller', 'atelier'], ['prendre', 'eau'], ['deplacer', 'caisse', 'sous_grille'], ['ouvrir', 'grille_ap']]).partie;
+    // Placé à la main : la cloison entre la galerie en feu et le local, ouverte depuis une fin d'action (exposition déjà comptée).
+    const exposee = (decouvertes: readonly string[]): Partie => ({
+      ...ouverte,
+      etat: { ...ouverte.etat, liaisons: { ...ouverte.etat.liaisons, gp: true }, expositions: ['gp'], decouvertes },
+    });
+    const gagne = engager(grille, exposee([]), 'prendre', 'huile');
+    expect(gagne.partie.etat.feu).toEqual(['galerie', 'local']);
+    expect(gagne.evenements.filter((evenement) => evenement.type.startsWith('feu'))).toEqual([
+      { type: 'feu_derriere', passage: expect.objectContaining({ nom: 'grille_ap', vers: null, feu: true }) },
+    ]);
+    const arroser = option(grille, gagne.partie, 'arroser', 'eau', 'grille_ap');
+    expect(arroser?.parametre).toMatchObject({ sorte: 'passage', vers: null });
+    expect(apercuDe(grille, gagne.partie, 'arroser', 'eau', 'grille_ap').savoir[0]).toEqual({
+      type: 'eteindra',
+      piece: expect.objectContaining({ sorte: 'passage', nom: 'grille_ap', vers: null }),
+    });
+    const eteint = engager(grille, gagne.partie, 'arroser', 'eau', 'grille_ap');
+    expect(eteint.partie.etat.feu).toEqual(['galerie']);
+    expect(eteint.evenements).toEqual([{ type: 'feu_eteint', piece: expect.objectContaining({ sorte: 'passage', nom: 'grille_ap', vers: null }) }]);
+    // Destination connue (déjà franchie) : la pièce se nomme.
+    const connue = engager(grille, exposee(['ap']), 'prendre', 'huile');
+    expect(connue.evenements.filter((evenement) => evenement.type.startsWith('feu'))).toEqual([
+      { type: 'feu_gagne', piece: expect.objectContaining({ nom: 'local' }) },
+    ]);
+    expect(apercuDe(grille, connue.partie, 'arroser', 'eau', 'local').savoir[0]).toEqual({
+      type: 'eteindra',
+      piece: expect.objectContaining({ sorte: 'piece', nom: 'local' }),
+    });
   });
 });
 

@@ -1,14 +1,15 @@
 import { empreinteEtat, idPublic, lireExport, rejouer } from '../engine';
 import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
-import { executer, PARTIE_PAR_DEFAUT, type Contexte } from './partie-cli';
+import { choisirMonde, executer, PARTIE_PAR_DEFAUT, type Contexte } from './partie-cli';
 
-const ENTREE = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
+const ENTREE = MONDES['monde-test'] as EntreeMonde;
+const AR01 = MONDES['ar-01'] as EntreeMonde;
 const VERSION = 'test-cli';
 
-function contexte(fichiers = new Map<string, string>(), ecritureEnPanne = false): Contexte & { fichiers: Map<string, string> } {
+function contexte(fichiers = new Map<string, string>(), ecritureEnPanne = false, entree = ENTREE): Contexte & { fichiers: Map<string, string> } {
   return {
-    monde: ENTREE.monde,
-    textes: ENTREE.textes,
+    monde: entree.monde,
+    textes: entree.textes,
     version: VERSION,
     fichiers,
     es: {
@@ -43,7 +44,10 @@ describe('CLI', () => {
     expect(sortie.lignes).toContain('Vous voyez ici un carnet et une trousse de soin.');
     expect(sortie.lignes).toContain('Actions engagées : 4');
 
-    expect(executer(['exporter', 'export.json', '--commentaire', 'essai'], ctx).code).toBe(0);
+    expect(executer(['exporter', 'export.json', '--commentaire', 'essai'], ctx)).toEqual({
+      lignes: ['Partie exportée dans export.json (4 actions engagées). La partie continue.'],
+      code: 0,
+    });
     const fichier = lireExport(JSON.parse(ctx.fichiers.get('export.json') ?? 'null'));
     expect(fichier.commentaire).toBe('essai');
     expect(empreinteEtat(rejouer(ENTREE.monde, fichier, VERSION).partie.etat)).toBe(fichier.empreinte);
@@ -153,5 +157,59 @@ describe('CLI', () => {
     expect(executer(['nouvelle', '--graine', '1e3'], ctx).code).toBe(1);
     expect(executer(['nouvelle', '42'], ctx).code).toBe(1);
     expect(executer(['inconnue'], ctx).code).toBe(1);
+  });
+
+  it('AR-01 : joue P-A jusqu’à l’évacuation, messages de l’IA après le récit, fin dite clairement', () => {
+    const ctx = contexte(new Map(), false, AR01);
+    let sortie = executer(['nouvelle', '--graine', '7'], ctx);
+    expect(sortie.lignes).toContain('[ IA STATION ] « Une capsule de secours est disponible. Son circuit de départ ne répond pas. »');
+    const etapes = [
+      'Aller dans l’atelier de service',
+      'Déplacer la caisse sous la grille',
+      'Ouvrir la grille',
+      'Passer par la grille',
+      'Ouvrir le panneau',
+      'Aller dans l’embarquement',
+      'Fermer la cloison de la salle d’observation',
+      'Aller dans le local énergie',
+      'Réarmer la console de départ',
+      'Aller dans l’embarquement',
+      'Aller dans la cabine de la capsule',
+      'Fermer l’écoutille de l’embarquement',
+      'Lancer la capsule depuis le pupitre de départ',
+    ];
+    for (const libelle of etapes) {
+      sortie = executer(['jouer', numero(sortie.lignes, libelle)], ctx);
+      expect(sortie.code).toBe(0);
+      expect(sortie.lignes).toContain('Partie enregistrée.');
+      if (libelle === 'Passer par la grille') {
+        expect(sortie.lignes.some((ligne) => ligne.startsWith('[ IA STATION ] « Le circuit de départ'))).toBe(true);
+      }
+    }
+    const fin = sortie.lignes;
+    const message = fin.indexOf('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
+    expect(message).toBeGreaterThan(0);
+    expect(fin.indexOf('Partie enregistrée.')).toBeGreaterThan(message);
+    expect(fin).toContain('La capsule s’est détachée. Vous avez quitté la station.');
+    expect(fin).not.toContain('Cette partie est terminée. Elle ne peut pas être reprise.');
+    expect(fin).toContain('Partie terminée : plus aucune action possible.');
+    expect(fin).toContain('Actions engagées : 13');
+    expect(executer(['jouer', '1'], ctx)).toEqual({ lignes: ['Cette partie est terminée : rien n’a été joué.'], code: 1 });
+    expect(executer(['voir'], ctx).lignes).toContain('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
+    expect(executer(['exporter', 'fin.json'], ctx)).toEqual({
+      lignes: ['Partie exportée dans fin.json (13 actions engagées). La partie est terminée.'],
+      code: 0,
+    });
+  });
+
+  it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon AR-01', () => {
+    const ctx = contexte();
+    expect(choisirMonde(['nouvelle'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(AR01);
+    expect(choisirMonde(['nouvelle', '--monde', 'monde-test'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(ENTREE);
+    executer(['nouvelle'], ctx);
+    expect(choisirMonde(['voir'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(ENTREE);
+    expect(choisirMonde(['nouvelle'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(AR01);
+    expect(choisirMonde(['voir', '--monde', 'ailleurs'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
+    expect(choisirMonde(['voir', '--monde'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toMatch(/--monde <id>/);
   });
 });

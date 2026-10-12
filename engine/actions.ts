@@ -3,20 +3,27 @@ import type { Des } from './des';
 import {
   autreCote,
   cleZone,
+  decouvrir,
+  destinationConnue,
   enFeu,
   horsDePortee,
   huilee,
   liaisonsDe,
+  liaisonsVisibles,
+  manoeuvrable,
   objetsDans,
   objetsPortes,
+  porteLarge,
   refObjet,
   refPassage,
   refPiece,
   refPosition,
+  signalee,
+  sourcesDe,
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus, Sante, Savoir } from './vocabulaire';
+import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
 
 export interface Contexte {
   readonly monde: DefMonde;
@@ -30,6 +37,8 @@ export interface Effet {
   readonly sons?: readonly SonEmis[];
   /** Liaison franchie par le passager, que la créature a pu le voir prendre (D-177). */
   readonly franchie?: string;
+  /** La capsule part, alimentée par ces sources : la conclusion du pas décide si l'évacuation a lieu. */
+  readonly evacuation?: readonly SourceEvacuation[];
 }
 
 /** Aperçu calculé sur ce que le passager sait seulement (C-06 §4), sans dé ni changement d'état ; `santeApres` si l'action change la santé avant le jet. */
@@ -58,8 +67,20 @@ export interface ActionEngagee extends ActionCommune {
 
 export type DefAction = ActionConsultation | ActionEngagee;
 
+/** Liaison que le passager perçoit dans sa pièce : une liaison cachée non découverte n'existe pas de son côté caché (K-05). */
 function liaisonIci({ monde, etat }: Contexte, cible: string): DefLiaison | undefined {
-  return liaisonsDe(monde, etat.piece).find((liaison) => liaison.id === cible);
+  return liaisonsVisibles(monde, etat, etat.piece).find((liaison) => liaison.id === cible);
+}
+
+/** Ouverte ou fermée depuis ici : vue, et manoeuvrable de ce côté. */
+function manoeuvrableIci(contexte: Contexte, cible: string): DefLiaison | undefined {
+  const liaison = liaisonIci(contexte, cible);
+  return liaison !== undefined && manoeuvrable(liaison, contexte.etat.piece) ? liaison : undefined;
+}
+
+/** Une liaison cachée non découverte se voit de l'autre côté comme un passage fermé, qu'on ne franchit pas (K-05). */
+function franchissable(contexte: Contexte, liaison: DefLiaison): boolean {
+  return liaison.cachee === undefined || contexte.etat.decouvertes.includes(liaison.id);
 }
 
 function objetIci({ monde, etat }: Contexte, cible: string): boolean {
@@ -87,6 +108,11 @@ const SANS_DANGER = { risque: 'aucun', danger: null, cout: 'aucun' } as const;
 /** Risque d'un passage vers `piece` : celui de la créature vue ou entendue de l'autre côté, sinon aucun. */
 function risqueVers({ monde, etat }: Contexte, piece: string): Pick<Prevision, 'risque' | 'danger'> {
   return dangerConnu(monde, etat, piece) ?? SANS_DANGER;
+}
+
+/** Risque du passage : sans destination connue, rien ne dit au passager ce qui l'attend derrière (C-06 §4). */
+function risquePar(contexte: Contexte, liaison: DefLiaison): Pick<Prevision, 'risque' | 'danger'> {
+  return destinationConnue(contexte.etat, liaison) ? risqueVers(contexte, autreCote(liaison, contexte.etat.piece)) : SANS_DANGER;
 }
 
 function passageIci(contexte: Contexte, cible: string): DefLiaison {
@@ -120,7 +146,7 @@ const regarder: ActionConsultation = {
       etat.piece,
       ...objetsDans(monde, etat, etat.piece).map((objet) => objet.id),
       ...objetsPortes(monde, etat).map((objet) => objet.id),
-      ...liaisonsDe(monde, etat.piece).map((liaison) => liaison.id),
+      ...liaisonsVisibles(monde, etat, etat.piece).map((liaison) => liaison.id),
     ];
   },
   verifier: (contexte, cible) =>
@@ -174,12 +200,12 @@ const poser: ActionEngagee = {
 const ouvrir: ActionEngagee = {
   id: 'ouvrir',
   engage: true,
-  cibles: ({ monde, etat }) =>
-    liaisonsDe(monde, etat.piece)
-      .filter((liaison) => etat.liaisons[liaison.id] !== true)
+  cibles: (contexte) =>
+    liaisonsVisibles(contexte.monde, contexte.etat, contexte.etat.piece)
+      .filter((liaison) => contexte.etat.liaisons[liaison.id] !== true && manoeuvrable(liaison, contexte.etat.piece))
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
-    if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
+    if (manoeuvrableIci(contexte, cible) === undefined) return 'cible_absente';
     return contexte.etat.liaisons[cible] === true ? 'deja_ouvert' : verifierPassage(contexte, cible);
   },
   prevoir: (contexte, cible) => {
@@ -187,21 +213,29 @@ const ouvrir: ActionEngagee = {
     return {
       ...SANS_DANGER,
       // Ouvrir sur la pièce où elle a été perçue s'annonce comme y aller (choix du porteur, D-180).
-      ...risqueVers(contexte, autreCote(liaison, contexte.etat.piece)),
+      ...risquePar(contexte, liaison),
       // Un mécanisme grippé se voit et s'annonce avant d'ouvrir (AR-01 §13 P-A, AR-02 §10 « porte grippée »).
       cout: liaison.bruyante === true ? 'bruyant' : 'aucun',
       savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, liaison, contexte.etat.piece) }],
     };
   },
   appliquer: (contexte, cible) => {
-    const effet = basculer(contexte, cible, true);
+    const { monde, etat } = contexte;
     const liaison = passageIci(contexte, cible);
-    if (liaison.bruyante !== true) return effet;
-    const passage = refPassage(contexte.monde, effet.etat, liaison, contexte.etat.piece);
+    const effet = basculer(contexte, cible, true);
+    let suivant = effet.etat;
+    const evenements = [...effet.evenements];
+    // Ouvrir un passage caché le découvre et révèle sa destination (K-05).
+    if (liaison.cachee !== undefined && !etat.decouvertes.includes(liaison.id)) {
+      suivant = { ...suivant, decouvertes: decouvrir(monde, suivant, liaison.id) };
+      evenements.push({ type: 'passage_decouvert', passage: refPassage(monde, suivant, liaison, etat.piece) });
+    }
+    if (liaison.bruyante !== true) return { etat: suivant, evenements };
+    const passage = refPassage(monde, suivant, liaison, etat.piece);
     return {
-      ...effet,
-      evenements: [...effet.evenements, { type: 'bruit_mecanisme', passage }],
-      sons: [{ piece: contexte.etat.piece, intensite: 'normal' }],
+      etat: suivant,
+      evenements: [...evenements, { type: 'bruit_mecanisme', passage }],
+      sons: [{ piece: etat.piece, intensite: 'normal' }],
     };
   },
 };
@@ -209,12 +243,12 @@ const ouvrir: ActionEngagee = {
 const fermer: ActionEngagee = {
   id: 'fermer',
   engage: true,
-  cibles: ({ monde, etat }) =>
-    liaisonsDe(monde, etat.piece)
-      .filter((liaison) => etat.liaisons[liaison.id] === true)
+  cibles: (contexte) =>
+    liaisonsVisibles(contexte.monde, contexte.etat, contexte.etat.piece)
+      .filter((liaison) => contexte.etat.liaisons[liaison.id] === true && manoeuvrable(liaison, contexte.etat.piece))
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
-    if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
+    if (manoeuvrableIci(contexte, cible) === undefined) return 'cible_absente';
     return contexte.etat.liaisons[cible] === true ? verifierPassage(contexte, cible) : 'deja_ferme';
   },
   prevoir: (contexte, cible) => ({
@@ -227,22 +261,36 @@ const fermer: ActionEngagee = {
 const aller: ActionEngagee = {
   id: 'aller',
   engage: true,
-  cibles: ({ monde, etat }) => liaisonsDe(monde, etat.piece).map((liaison) => liaison.id),
+  cibles: (contexte) =>
+    liaisonsVisibles(contexte.monde, contexte.etat, contexte.etat.piece)
+      .filter((liaison) => franchissable(contexte, liaison))
+      .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
-    if (liaisonIci(contexte, cible) === undefined) return 'cible_absente';
-    return contexte.etat.liaisons[cible] === true ? verifierPassage(contexte, cible) : 'ferme';
+    const liaison = liaisonIci(contexte, cible);
+    if (liaison === undefined || !franchissable(contexte, liaison)) return 'cible_absente';
+    if (contexte.etat.liaisons[cible] !== true) return 'ferme';
+    const portee = verifierPassage(contexte, cible);
+    if (portee !== null) return portee;
+    // Le gabarit d'un passage étroit se voit, même sans destination connue (D-044).
+    return liaison.etroite === true && porteLarge(contexte.monde, contexte.etat) ? 'trop_large' : null;
   },
   prevoir: (contexte, cible) => ({
     ...SANS_DANGER,
-    ...risqueVers(contexte, autreCote(passageIci(contexte, cible), contexte.etat.piece)),
+    ...risquePar(contexte, passageIci(contexte, cible)),
     savoir: [{ type: 'quittera', piece: refPiece(contexte.monde, contexte.etat.piece) }],
   }),
   appliquer: (contexte, cible) => {
     const { monde, etat } = contexte;
     const liaison = passageIci(contexte, cible);
     const arrivee = autreCote(liaison, etat.piece);
-    const nouvelle = !etat.visitees.includes(arrivee);
-    const suivant: EtatPartie = { ...etat, piece: arrivee, visitees: nouvelle ? [...etat.visitees, arrivee] : etat.visitees };
+    const nouvelle = indexer(monde).pieces.get(arrivee)?.sousPosition !== true && !etat.visitees.includes(arrivee);
+    const suivant: EtatPartie = {
+      ...etat,
+      piece: arrivee,
+      visitees: nouvelle ? [...etat.visitees, arrivee] : etat.visitees,
+      // Franchir un passage sans signalétique en apprend la destination, des deux côtés (K-05).
+      decouvertes: signalee(liaison) ? etat.decouvertes : decouvrir(monde, etat, liaison.id),
+    };
     const piece = refPiece(monde, arrivee);
     const evenements: Evenement[] = [{ type: 'deplacement', passage: refPassage(monde, etat, liaison, etat.piece), piece }];
     if (nouvelle) evenements.push({ type: 'piece_decouverte', piece });
@@ -319,7 +367,7 @@ function savoirDose({ monde, etat }: Contexte, cible: string): Savoir[] {
 
 /** Foyers à portée (C-03 §5.3) : la pièce du passager, ou une voisine par un passage ouvert, depuis le seuil. */
 function foyersAPortee({ monde, etat }: Contexte): string[] {
-  const voisines = liaisonsDe(monde, etat.piece).filter((liaison) => etat.liaisons[liaison.id] === true && enFeu(etat, autreCote(liaison, etat.piece)));
+  const voisines = liaisonsVisibles(monde, etat, etat.piece).filter((liaison) => etat.liaisons[liaison.id] === true && enFeu(etat, autreCote(liaison, etat.piece)));
   return [...(enFeu(etat, etat.piece) ? [etat.piece] : []), ...voisines.map((liaison) => liaison.id)];
 }
 
@@ -327,6 +375,13 @@ function foyersAPortee({ monde, etat }: Contexte): string[] {
 function pieceArrosee({ monde, etat }: Contexte, parametre: string): string {
   if (parametre === etat.piece) return parametre;
   return autreCote(exiger(indexer(monde).liaisons.get(parametre), `Liaison inconnue : ${parametre}.`), etat.piece);
+}
+
+/** Foyer visé, tel que le passager le connaît : la pièce, ou le passage seul tant que sa destination est inconnue (C-06 OP-03). */
+function foyerVise({ monde }: Contexte, etat: EtatPartie, parametre: string): RefPiece | RefPassage {
+  const liaison = parametre === etat.piece ? undefined : indexer(monde).liaisons.get(parametre);
+  if (liaison === undefined || destinationConnue(etat, liaison)) return refPiece(monde, pieceArrosee({ monde, etat }, parametre));
+  return refPassage(monde, etat, liaison, etat.piece);
 }
 
 /** Une dose d'extinction adaptée éteint le foyer visé (C-02 §5, AR-01 P-B pas 5). */
@@ -338,21 +393,19 @@ const arroser: ActionEngagee = {
   verifier: (contexte, cible) => verifierRecipient(contexte, cible, 'extinction'),
   prevoir: (contexte, cible, parametre) => ({
     ...SANS_DANGER,
-    savoir: [
-      { type: 'eteindra', piece: refPiece(contexte.monde, pieceArrosee(contexte, exiger(parametre, 'Foyer absent.'))) },
-      ...savoirDose(contexte, cible),
-    ],
+    savoir: [{ type: 'eteindra', piece: foyerVise(contexte, contexte.etat, exiger(parametre, 'Foyer absent.')) }, ...savoirDose(contexte, cible)],
   }),
   appliquer: (contexte, cible, _des, parametre) => {
     const { monde, etat } = contexte;
-    const piece = pieceArrosee(contexte, exiger(parametre, 'Foyer absent.'));
+    const vise = exiger(parametre, 'Foyer absent.');
+    const piece = pieceArrosee(contexte, vise);
     const suivant: EtatPartie = {
       ...etat,
       doses: { ...etat.doses, [cible]: (etat.doses[cible] ?? 0) - 1 },
       feu: etat.feu.filter((brule) => brule !== piece),
       expositions: etat.expositions.filter((id) => !indexer(monde).liaisons.get(id)?.entre.includes(piece)),
     };
-    return { etat: suivant, evenements: [{ type: 'feu_eteint', piece: refPiece(monde, piece) }] };
+    return { etat: suivant, evenements: [{ type: 'feu_eteint', piece: foyerVise(contexte, suivant, vise) }] };
   },
 };
 
@@ -362,7 +415,7 @@ const verser: ActionEngagee = {
   engage: true,
   cibles: (contexte) => portesAvec(contexte, 'glissant').map((candidat) => candidat.id),
   parametres: ({ monde, etat }) =>
-    liaisonsDe(monde, etat.piece)
+    liaisonsVisibles(monde, etat, etat.piece)
       .filter((liaison) => !huilee(etat, liaison.id, etat.piece))
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => verifierRecipient(contexte, cible, 'glissant'),
@@ -409,6 +462,86 @@ const declencher: ActionEngagee = {
   }),
 };
 
+function consolesIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.alimente !== undefined);
+}
+
+/** Réarmer le circuit d'une console : il alimentera sa capsule ; le relais claque fort dans la pièce (AR-01 §11.2). */
+const activer: ActionEngagee = {
+  id: 'activer',
+  engage: true,
+  cibles: (contexte) => consolesIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    if (!consolesIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    return contexte.etat.actives.includes(cible) ? 'deja_actif' : null;
+  },
+  prevoir: ({ monde }, cible) => ({
+    ...SANS_DANGER,
+    cout: 'bruyant',
+    savoir: [{ type: 'alimentera', objet: refObjet(monde, exiger(objet(monde, cible).alimente, 'Capsule absente.')) }],
+  }),
+  appliquer: ({ monde, etat }, cible) => ({
+    etat: { ...etat, actives: monde.objets.filter((candidat) => candidat.id === cible || etat.actives.includes(candidat.id)).map((candidat) => candidat.id) },
+    evenements: [{ type: 'circuit_active', objet: refObjet(monde, cible) }],
+    sons: [{ piece: etat.piece, intensite: 'fort' }],
+  }),
+};
+
+function capsuleIci({ monde, etat }: Contexte): DefObjet | undefined {
+  return objetsDans(monde, etat, etat.piece).find((candidat) => candidat.capsule !== undefined);
+}
+
+function sourcesPortees({ monde, etat }: Contexte): DefObjet[] {
+  return objetsPortes(monde, etat).filter((candidat) => candidat.source === true);
+}
+
+/** Installer une source portée dans la capsule de la pièce : elle l'alimente (AR-01 §11.2) ; geste discret. */
+const installer: ActionEngagee = {
+  id: 'installer',
+  engage: true,
+  cibles: (contexte) => (capsuleIci(contexte) === undefined ? [] : sourcesPortees(contexte).map((candidat) => candidat.id)),
+  verifier: (contexte, cible) => {
+    if (!sourcesPortees(contexte).some((candidat) => candidat.id === cible)) return objetPorte(contexte, cible) ? 'cible_absente' : 'pas_en_main';
+    return capsuleIci(contexte) === undefined ? 'cible_absente' : null;
+  },
+  prevoir: (contexte, cible) => ({
+    ...SANS_DANGER,
+    savoir: [
+      { type: 'installera', objet: refObjet(contexte.monde, cible), capsule: refObjet(contexte.monde, exiger(capsuleIci(contexte), 'Capsule absente.').id) },
+    ],
+  }),
+  appliquer: (contexte, cible) => {
+    const { monde, etat } = contexte;
+    const capsule = exiger(capsuleIci(contexte), 'Capsule absente.');
+    const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'installe', dans: capsule.id } } };
+    return { etat: suivant, evenements: [{ type: 'objet_installe', objet: refObjet(monde, cible), capsule: refObjet(monde, capsule.id) }] };
+  },
+};
+
+function pupitresIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.depart !== undefined);
+}
+
+/** Lancer la capsule : alimentée, pièce close, créature hors de bord (AR-01 §11.2) ; la conclusion du pas décide. */
+const lancer: ActionEngagee = {
+  id: 'lancer',
+  engage: true,
+  cibles: (contexte) => pupitresIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    const { monde, etat } = contexte;
+    if (!pupitresIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    if (sourcesDe(monde, etat, exiger(objet(monde, cible).depart, 'Capsule absente.')).length === 0) return 'non_alimentee';
+    if (liaisonsDe(monde, etat.piece).some((liaison) => etat.liaisons[liaison.id] === true)) return 'non_isolee';
+    return etat.creature?.piece === etat.piece ? 'creature_a_bord' : null;
+  },
+  prevoir: () => ({ ...SANS_DANGER, savoir: [{ type: 'partira' }] }),
+  appliquer: ({ monde, etat }, cible) => ({
+    etat,
+    evenements: [],
+    evacuation: sourcesDe(monde, etat, exiger(objet(monde, cible).depart, 'Capsule absente.')),
+  }),
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
 export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   regarder,
@@ -422,4 +555,7 @@ export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   arroser,
   verser,
   declencher,
+  activer,
+  installer,
+  lancer,
 };

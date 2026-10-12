@@ -3,7 +3,7 @@
 > **Statut :** RÉFÉRENCE DE CONCEPTION ACCEPTÉE v1.0 — Q-50 / D-057, avec réglages initiaux Q-48/Q-49.
 > **Date :** 2026-10-09.
 > **Portée :** une aventure fixe de référence, pas la définition de tous les scénarios générés.
-> **Implémentation, solveur, parcours joués et validation téléphone :** non réalisés.
+> **Implémentation :** proposée par #103 (moteur, contenu `content/ar-01/`, appli, CLI) ; P-A, P-B et P-C rejoués automatiquement par la vérification complète depuis une nouvelle partie, sans dé. **Solveur et validation téléphone :** non réalisés ; aucune partie humaine.
 
 Les sections de monde et de parcours sont des **attentes de conception à prouver**, pas des sorties de jeu. Le texte narratif de la section 15 reste un brouillon éditorial. [C-03](contrats/C-03-temps-reactions.md) et [C-04](contrats/C-04-risques-blessures.md) portent désormais les règles de temps et de risque extraites sans changement de cette référence.
 

@@ -1,11 +1,14 @@
-import type { DefMonde, IdAction } from '../engine';
+import type { DefMonde, IdAction, Sante } from '../engine';
 import type { TextesMonde } from './textes/types';
 
 /** Étape d'un parcours témoin, décrite comme un joueur la choisirait au menu : action, nom de la cible. */
 export interface EtapeParcours {
   readonly action: IdAction;
   readonly cible: string;
+  /** Destination du passage visé ; à omettre tant qu'elle est inconnue (le passage se vise alors par son seul nom). */
   readonly vers?: string;
+  /** Paramètre comme le menu l'affiche : nom de la position, de la destination du passage, ou de la pièce visée. */
+  readonly parametre?: string;
 }
 
 export interface Parcours {
@@ -18,11 +21,15 @@ export interface Parcours {
     readonly inventaire: readonly string[];
     readonly passagesOuverts: readonly string[];
     readonly actions: number;
+    readonly issue?: 'evacuation';
+    readonly sante?: Sante;
+    /** Aucun dé tiré de tout le parcours. */
+    readonly sansDe?: true;
   };
 }
 
 export interface EntreeMonde {
   readonly monde: DefMonde;
   readonly textes: TextesMonde;
-  readonly parcours: Parcours;
+  readonly parcours: readonly Parcours[];
 }

@@ -5,6 +5,7 @@ import {
   enFeu,
   huilee,
   liaisonsDe,
+  liaisonsVisibles,
   refPassage,
   refPiece,
   type BruitCreature,
@@ -115,7 +116,7 @@ function percuParLePassager(
   if (glisse === etat.piece) return { evenement: { type: 'creature_glisse', passage } };
   if (arrivee === etat.piece) return { evenement: { type: 'creature_entre', passage } };
   for (const piece of [arrivee, depart]) {
-    const voisine = liaisonsDe(monde, etat.piece).find((lien) => autreCote(lien, etat.piece) === piece && laissePasserLeSon(etat, lien));
+    const voisine = liaisonsVisibles(monde, etat, etat.piece).find((lien) => autreCote(lien, etat.piece) === piece && laissePasserLeSon(etat, lien));
     if (voisine !== undefined) {
       return { evenement: { type: 'bruit_creature', passage: refPassage(monde, etat, voisine, etat.piece) }, entendue: { piece, par: voisine.id } };
     }

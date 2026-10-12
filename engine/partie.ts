@@ -5,7 +5,7 @@ import { etatInitial, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece } from './feu';
 import { empreinte } from './hachage';
 import { indexer, type DefMonde } from './monde';
-import { observer } from './observation';
+import { observer, terminee } from './observation';
 import { aggraver, expose, intercepter, risqueIci } from './sante';
 import {
   ACTIONS,
@@ -72,8 +72,19 @@ export function nouvellePartie(monde: DefMonde, options: { readonly version: str
   return {
     enregistrement: { format: FORMAT_ENREGISTREMENT, version: options.version, monde: monde.id, graine: options.graine, actions: [] },
     etat,
-    derniers: [{ type: 'reveil', piece: refPiece(monde, etat.piece) }],
+    derniers: [{ type: 'reveil', piece: refPiece(monde, etat.piece) }, ...etat.messages.map((message) => ({ type: 'assistance', message }) as const)],
   };
+}
+
+/** Messages d'arrivée pas encore reçus pour la pièce où le passager finit le pas : une fois chacun. */
+function messagesArrivee(monde: DefMonde, etat: EtatPartie): string[] {
+  return (monde.assistance ?? [])
+    .filter((message) => message.quand.type === 'arrivee' && message.quand.piece === etat.piece && !etat.messages.includes(message.id))
+    .map((message) => message.id);
+}
+
+function messagesEvacuation(monde: DefMonde, etat: EtatPartie): string[] {
+  return (monde.assistance ?? []).filter((message) => message.quand.type === 'evacuation' && !etat.messages.includes(message.id)).map((message) => message.id);
 }
 
 function estCommande(valeur: unknown): valeur is Commande {
@@ -99,7 +110,7 @@ type Validation =
 /** Revérifie une commande dans l'état courant (C-01 §4) : une commande périmée est refusée, son paramètre aussi. */
 function valider(monde: DefMonde, etat: EtatPartie, commande: unknown): Validation {
   if (!estCommande(commande)) return { type: 'refus', raison: 'commande_invalide' };
-  if (etat.sante === 'vaincu') return { type: 'refus', raison: 'partie_terminee' };
+  if (terminee(etat)) return { type: 'refus', raison: 'partie_terminee' };
   if (!estAction(commande.action)) return { type: 'refus', raison: 'action_inconnue' };
   const { versInterne } = indexer(monde);
   const cible = versInterne.get(commande.cible);
@@ -225,8 +236,20 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
     ...(auSeuil ? [] : menace),
     ...(coupsAuSeuil || coupsAvecLeFeu ? [] : coups),
   ];
+  // Étape 5 : messages d'arrivée, puis conclusion ; une défaite l'emporte sur le départ de la capsule.
+  let conclu: EtatPartie = blessure.etat;
+  if (!vaincu) {
+    const arrivees = messagesArrivee(monde, conclu);
+    conclu = { ...conclu, messages: [...conclu.messages, ...arrivees] };
+    evenements.push(...arrivees.map((message) => ({ type: 'assistance', message }) as const));
+    if (effet.evacuation !== undefined) {
+      const depart = messagesEvacuation(monde, conclu);
+      conclu = { ...conclu, fin: 'evacuation', messages: [...conclu.messages, ...depart] };
+      evenements.push({ type: 'evacuation', sources: effet.evacuation }, ...depart.map((message) => ({ type: 'assistance', message }) as const));
+    }
+  }
   const tirages = [...session.tirages];
-  const etat: EtatPartie = { ...blessure.etat, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
+  const etat: EtatPartie = { ...conclu, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
   const entree: EntreeJournal = { commande: validation.commande, tirages };
   return {
     type: 'engagee',

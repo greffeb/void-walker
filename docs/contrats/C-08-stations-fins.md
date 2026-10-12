@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.0 — D-102 ; assemble D-013, D-017/D-018, D-050, D-054, D-058, D-083 à D-088 ; GP-01 à GP-05 acceptés par D-101.
 > **Date :** 2026-10-10.
-> **Implémentation, vérifieur et tests :** absents.
+> **Implémentation, vérifieur et tests :** fin par évacuation (§4, conditions de D-054, défaite prioritaire) proposée par #103 pour AR-01 ; abandon, « plus aucune sortie », écran de fin, assemblage et vérifieur absents.
 
 ## 1. But
 

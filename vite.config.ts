@@ -49,6 +49,8 @@ export default defineConfig({
         globIgnores: ['captures/**'],
         // La version principale ne doit pas servir les versions de test publiées sous elle.
         navigateFallbackDenylist: [/\/pr-\d+\//],
+        // « ?monde=<id> » (monde choisi pour les essais) sert la même page, y compris hors ligne dans une version de test.
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^monde$/],
       },
     }),
   ],

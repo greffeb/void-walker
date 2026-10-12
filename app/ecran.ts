@@ -47,9 +47,14 @@ export function composerDock(observation: Observation): Dock {
   return {
     piece: grouper([...observation.objets, ...observation.passages], autres),
     autour: autres.find((option) => option.cible.sorte === 'piece'),
-    deplacements: observation.menu.filter((option) => option.action === 'aller'),
+    deplacements: observation.menu.filter((option) => option.action === 'aller' && signaleOuOuvert(option.cible)),
     inventaire: grouper(observation.inventaire, autres),
   };
+}
+
+/** Un passage sans signalétique ne rejoint « Se déplacer vers » qu'une fois ouvert ; avant, il n'est qu'une puce (D-147). */
+function signaleOuOuvert(cible: Cible): boolean {
+  return cible.sorte !== 'passage' || cible.signale || cible.ouvert;
 }
 
 /** Première étape d'une bulle (12 §3.5) : la consultation est la fiche, gratuite (D-014) ; le reste, les actions. */
@@ -63,6 +68,52 @@ export function composer(groupe: Groupe): Composition {
     fiche: groupe.options.find((option) => !CATALOGUE[option.action].engage),
     actions: groupe.options.filter((option) => CATALOGUE[option.action].engage),
   };
+}
+
+/**
+ * Lignes de l'étape 1 : une par action, même quand elle a plusieurs paramètres. Jouable si l'un d'eux l'est ;
+ * sinon la première option, avec sa raison (12 §3.7).
+ */
+export function lignesActions(actions: readonly OptionMenu[]): OptionMenu[] {
+  const lignes: OptionMenu[] = [];
+  for (const option of actions) {
+    const rang = lignes.findIndex((ligne) => ligne.action === option.action);
+    if (rang === -1) lignes.push(option);
+    else if (option.disponible && lignes[rang]?.disponible === false) lignes[rang] = option;
+  }
+  return lignes;
+}
+
+/** Étape d'une bulle (12 §3.5) : la fiche et les actions, puis « OÙ ? » si l'action a un paramètre, puis l'aperçu. */
+export type Etape =
+  | { readonly type: 'fiche' }
+  | { readonly type: 'parametre'; readonly action: IdAction; readonly options: readonly OptionMenu[] }
+  | { readonly type: 'apercu'; readonly option: OptionMenu; readonly avecParametre: boolean };
+
+/** Étape atteinte par l'action et le paramètre choisis ; un choix qui n'est plus jouable ramène à la fiche. */
+export function etapeBulle(groupe: Groupe, action: IdAction | null, parametre: string | null): Etape {
+  const jouables = composer(groupe).actions.filter((option) => option.action === action && option.disponible);
+  const [premiere] = jouables;
+  if (action === null || premiere === undefined) return { type: 'fiche' };
+  if (premiere.parametre === undefined) return { type: 'apercu', option: premiere, avecParametre: false };
+  if (parametre === null) return { type: 'parametre', action, options: jouables };
+  const option = jouables.find((jouable) => jouable.parametre?.id === parametre);
+  return option === undefined ? { type: 'fiche' } : { type: 'apercu', option, avecParametre: true };
+}
+
+/** Choix qui mènent à l'étape d'avant (« ‹ ») : de l'aperçu à « OÙ ? » ou aux actions, de « OÙ ? » aux actions ; `null` à la fiche. */
+export function precedente(etape: Etape): { readonly action: IdAction | null; readonly parametre: null } | null {
+  if (etape.type === 'fiche') return null;
+  return { action: etape.type === 'apercu' && etape.avecParametre ? etape.option.action : null, parametre: null };
+}
+
+/**
+ * Nom d'un paramètre, dans la ligne « OÙ ? », le fil et le rappel : la position telle qu'on la dit (« sous la grille »),
+ * le passage par son nom de puce (« Cloison de la salle d'observation », « Grille » tant que sa destination est inconnue),
+ * la pièce par son nom, comme la destination d'un déplacement.
+ */
+export function nomParametre(textes: TextesMonde, parametre: NonNullable<OptionMenu['parametre']>): string {
+  return parametre.sorte === 'passage' ? nomPuce(textes, parametre) : nomDe(textes, parametre).texte;
 }
 
 /** Les portes gardent toujours l'aperçu (D-182). */
@@ -112,29 +163,31 @@ export function nomPuce(textes: TextesMonde, cible: Cible): string {
   return former('Nom', nomDe(textes, cible));
 }
 
-/** Destination d'un bouton « Se déplacer vers » ; les capitales viennent du style. */
+/** Destination d'un bouton « Se déplacer vers », ou le passage lui-même tant qu'elle est inconnue ; les capitales viennent du style. */
 export function nomDestination(textes: TextesMonde, option: OptionMenu): string {
-  return nomDe(textes, option.cible.sorte === 'passage' ? option.cible.vers : option.cible).texte;
+  return nomDe(textes, option.cible.sorte === 'passage' ? (option.cible.vers ?? option.cible) : option.cible).texte;
 }
 
-/** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Aller vers › atelier ». */
+/** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Caisse › Déplacer › sous la grille », « Aller vers › atelier ». */
 export function filBulle(textes: TextesMonde, cible: Cible, option?: OptionMenu): string {
   if (option?.action === 'aller') return `${textes.verbes.aller} › ${nomDestination(textes, option)}`;
   const nom = nomPuce(textes, cible);
-  return option === undefined ? nom : `${nom} › ${textes.verbes[option.action]}`;
+  if (option === undefined) return nom;
+  const parametre = option.parametre === undefined ? '' : ` › ${nomParametre(textes, option.parametre)}`;
+  return `${nom} › ${textes.verbes[option.action]}${parametre}`;
 }
 
 /** Dernière action rappelée en tête du récit (12 §3.3). */
 export type Rappel =
-  | { readonly type: 'cible'; readonly action: IdAction; readonly cible: RefObjet | RefPassage }
+  | { readonly type: 'cible'; readonly action: IdAction; readonly cible: RefObjet | RefPassage; readonly parametre?: OptionMenu['parametre'] }
   | { readonly type: 'deplacement'; readonly vers: RefPiece }
   | { readonly type: 'autour' };
 
-export function rappelDe({ action, cible }: OptionMenu): Rappel {
+export function rappelDe({ action, cible, parametre }: OptionMenu): Rappel {
   // Une position n'est jamais la cible d'une option, seulement son paramètre.
   if (cible.sorte === 'piece' || cible.sorte === 'position') return { type: 'autour' };
-  if (cible.sorte === 'passage' && action === 'aller') return { type: 'deplacement', vers: cible.vers };
-  return { type: 'cible', action, cible };
+  if (cible.sorte === 'passage' && action === 'aller' && cible.vers !== null) return { type: 'deplacement', vers: cible.vers };
+  return parametre === undefined ? { type: 'cible', action, cible } : { type: 'cible', action, cible, parametre };
 }
 
 function estAction(action: string): action is IdAction {
@@ -147,7 +200,12 @@ export function rappelRepris(partie: Partie, observation: Observation): Rappel |
   if (commande === undefined || !estAction(commande.action)) return null;
   if (commande.action === 'aller') return { type: 'deplacement', vers: observation.piece };
   const cible = [...observation.objets, ...observation.inventaire, ...observation.passages].find((ref) => ref.id === commande.cible);
-  return cible === undefined ? null : { type: 'cible', action: commande.action, cible };
+  if (cible === undefined) return null;
+  if (commande.parametre === undefined) return { type: 'cible', action: commande.action, cible };
+  // Le paramètre tel qu'on le voit maintenant : la pièce, un de ses passages ou une position où un objet est posé.
+  const parametres = [observation.piece, ...observation.passages, ...observation.placements.map((placement) => placement.position)];
+  const parametre = parametres.find((ref) => ref.id === commande.parametre);
+  return parametre === undefined ? { type: 'cible', action: commande.action, cible } : { type: 'cible', action: commande.action, cible, parametre };
 }
 
 export interface TexteRappel {
@@ -156,14 +214,16 @@ export interface TexteRappel {
   readonly capitales: boolean;
 }
 
-/** « Carnet · Prendre », « Aller vers · atelier » ou « Regarder autour de vous ». */
+/** « Carnet · Prendre », « Caisse · Déplacer · sous la grille », « Aller vers · atelier » ou « Regarder autour de vous ». */
 export function texteRappel(textes: TextesMonde, rappel: Rappel): TexteRappel {
   switch (rappel.type) {
     case 'autour':
       return { texte: REGARDER_AUTOUR, capitales: true };
     case 'deplacement':
       return { texte: `${textes.verbes.aller} · ${nomDe(textes, rappel.vers).texte}`, capitales: true };
-    case 'cible':
-      return { texte: `${nomPuce(textes, rappel.cible)} · ${textes.verbes[rappel.action]}`, capitales: false };
+    case 'cible': {
+      const parametre = rappel.parametre === undefined ? '' : ` · ${nomParametre(textes, rappel.parametre)}`;
+      return { texte: `${nomPuce(textes, rappel.cible)} · ${textes.verbes[rappel.action]}${parametre}`, capitales: false };
+    }
   }
 }

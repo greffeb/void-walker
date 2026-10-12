@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-11.
+> **Mise à jour :** 2026-10-11 (#103 proposée).
 
 ## Mission de ce dossier
 
@@ -106,25 +106,23 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **Maquette d'interface :** acceptée (D-140 à D-155) ; issues d'interface #92 à #99 à traiter une par une, en zone orange. #92 (écran de jeu « Phosphore ») est fusionnée ([PR #109](https://github.com/greffeb/void-walker/pull/109)) ; le porteur s'est dit satisfait après un test sur téléphone (retour consigné, non signé). Restent à confirmer : portes, « Regarder autour de vous », intensité des lignes de balayage.
 
-#93 (bulles de composition, fiches et inventaire) est fusionnée ([PR #110](https://github.com/greffeb/void-walker/pull/110)) et close. Faute de données dans le moteur, trois parties attendent :
-
-- les qualités et l'objet encombrant, qui arrivent avec #102 ;
-- l'étape « OÙ ? », avec la première action à paramètre ;
-- une action indisponible dans une bulle.
+#93 (bulles de composition, fiches et inventaire) est fusionnée ([PR #110](https://github.com/greffeb/void-walker/pull/110)) et close. Faute de données dans le moteur, une partie attend encore : l'affichage des qualités dans la fiche (« [stable] [encombrant] ») ; la qualité « encombrant » n'existe pas encore dans le moteur. L'étape « OÙ ? » et l'action indisponible dans une bulle sont proposées par #103.
 
 #94 (aperçu puis confirmation, moteur et écran) est fusionnée ([PR #111](https://github.com/greffeb/void-walker/pull/111)). Seule la créature vue ou entendue rend un aperçu risqué (D-180, D-181, PR #112) ; les autres dangers arrivent avec #101 et #102. Le porteur a demandé un seul toucher pour prendre, poser et changer de pièce quand rien n'est à craindre, les portes gardant l'aperçu (D-182) : [issue #113](https://github.com/greffeb/void-walker/issues/113), fusionnée ([PR #114](https://github.com/greffeb/void-walker/pull/114)) et close.
 
 #115 (machine à écrire) est fusionnée ([PR #119](https://github.com/greffeb/void-walker/pull/119)) : le nouveau récit s'écrit en 500 ms, puis un curseur clignote lentement (D-186). Le réglage est gardé sur l'appareil ; sa bascule arrivera avec l'écran d'options (#96).
 
-#117 (aperçu allégé) est proposée par une PR en zone orange : les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun », SAVOIR reste toujours (D-187). Fusion après accord du porteur et essai sur téléphone.
+#117 (aperçu allégé) est fusionnée ([PR #118](https://github.com/greffeb/void-walker/pull/118)) : les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun », SAVOIR reste toujours (D-187).
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 
 #101 (blessures, soin, fuite exposée) est fusionnée ([PR #116](https://github.com/greffeb/void-walker/pull/116)) et close. Choix consignés : rester sous ses yeux se joue au même dé que la fuite (D-183), l'action qui suit le premier contact est libre (D-184), trousse en main ou dans la pièce (D-185). L'écran montre le badge de santé et, après une défaite, seulement la phrase de fin et NOUVELLE PARTIE, en attendant l'écran de fin.
 
-#102 (feu, huile, avertisseur, caisse sous la grille) est proposée par une PR en zone orange : fusion après accord du porteur. Choix consignés : le feu brûle à chaque action finie dans une pièce en feu, annoncé certain (D-188) ; la créature n'y entre jamais (D-189) ; l'huile se verse au pied d'une porte, du côté du passager, qui passe toujours par le bord sec (D-190). Nouvelles actions : déplacer, arroser, verser, déclencher ; une commande peut porter un paramètre (position ou passage). Moteur et CLI seulement : aucun monde jouable dans l'appli ne les utilise encore, et l'étape « OÙ ? » de la bulle reste à faire avec AR-01 (#103).
+#102 (feu, huile, avertisseur, caisse sous la grille) est fusionnée ([PR #120](https://github.com/greffeb/void-walker/pull/120)) ; l'issue reste à fermer. Choix consignés : le feu brûle à chaque action finie dans une pièce en feu, annoncé certain (D-188) ; la créature n'y entre jamais (D-189) ; l'huile se verse au pied d'une porte, du côté du passager, qui passe toujours par le bord sec (D-190). Nouvelles actions : déplacer, arroser, verser, déclencher ; une commande peut porter un paramètre (position ou passage).
 
-**Prochaine tâche recommandée :** AR-01 jouable (#103), qui assemble ces mécanismes avec son contenu et l'étape « OÙ ? » de la bulle. L'interface (#95 à #99) peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175). Issues de développement créées, dans l'ordre : moteur [#100](https://github.com/greffeb/void-walker/issues/100), [#101](https://github.com/greffeb/void-walker/issues/101), [#102](https://github.com/greffeb/void-walker/issues/102) ; AR-01 [#103](https://github.com/greffeb/void-walker/issues/103) ; AR-02 [#104](https://github.com/greffeb/void-walker/issues/104) ; nouveaux morceaux [#105](https://github.com/greffeb/void-walker/issues/105) ; stations [#106](https://github.com/greffeb/void-walker/issues/106) ; rapports [#107](https://github.com/greffeb/void-walker/issues/107) ; signature [#108](https://github.com/greffeb/void-walker/issues/108). Deux issues qui touchent le moteur ne se mènent pas en même temps.
+#103 (AR-01 jouable) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et sa partie sur téléphone. AR-01 devient le monde par défaut de l'appli et de la CLI (le monde de test reste jouable avec `?monde=monde-test` ou `--monde monde-test`). Ajouts : grille sans signalétique et panneau caché, bloc trop large pour les conduits, console, installation du bloc, cabine « à bord », départ et fin par évacuation, trois messages d'IA Station, étape « OÙ ? » de la bulle. P-A, P-B et P-C passent dans la vérification complète. Les détails proposés par les agents sont listés à la fin du journal des décisions ; une question reste ouverte sur les récits de plus de quatre phrases quand plusieurs choses arrivent ensemble (D-111).
+
+**Prochaine tâche recommandée :** après le retour du porteur sur #103, AR-02 jouable (#104). L'interface (#95 à #99) peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175). Issues de développement créées, dans l'ordre : moteur [#100](https://github.com/greffeb/void-walker/issues/100), [#101](https://github.com/greffeb/void-walker/issues/101), [#102](https://github.com/greffeb/void-walker/issues/102) ; AR-01 [#103](https://github.com/greffeb/void-walker/issues/103) ; AR-02 [#104](https://github.com/greffeb/void-walker/issues/104) ; nouveaux morceaux [#105](https://github.com/greffeb/void-walker/issues/105) ; stations [#106](https://github.com/greffeb/void-walker/issues/106) ; rapports [#107](https://github.com/greffeb/void-walker/issues/107) ; signature [#108](https://github.com/greffeb/void-walker/issues/108). Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-158 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 

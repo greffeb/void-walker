@@ -11,37 +11,61 @@ import {
   TYPES_DANGER,
   TYPES_EVENEMENT,
   TYPES_SAVOIR,
+  type Evenement,
+  type Commande,
   type Partie,
   type TypeEvenement,
 } from '../engine';
 import {
   analyserGabarit,
+  cleEvacuation,
+  CLES_EVACUATION,
   libelleOption,
   MONDES,
   rendreApercu,
+  rendreAssistance,
   rendreConsultation,
   rendreEvenements,
   rendreObservation,
   rendreRefus,
+  ROLES_ALLER_SANS_DESTINATION,
   ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
+  ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
   type EntreeMonde,
   type TextesMonde,
+  type TypeRecit,
 } from '../content';
 import { isMainModule } from './repo-files';
+import { trouverOption } from './rejouer-parcours';
 
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
 
 const ID_PUBLIC = /\be[0-9a-f]{8}\b/;
 
-/** Moments forts où le récit d'une action peut être plus long (D-111 : premier contact, fin). Garde-fou du contrôle, non décidé : quatre phrases au plus pour ce texte seul. */
-const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact', 'defaite'];
+/**
+ * Moments forts où le récit d'une action peut être plus long (D-111 : premier contact, fin). Garde-fou du contrôle, non
+ * décidé : quatre phrases au plus pour ce texte seul.
+ */
+const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact', 'defaite', 'evacuation'];
+
+/**
+ * Nombre d'états distincts explorés en largeur depuis le départ, au plus. AR-01 a trop d'états pour une exploration complète
+ * en moins d'une minute : la borne garde le contrôle rapide ; le monde de test, plus petit, reste exploré en entier. Les états
+ * des parcours témoins, leurs voisins et des marches au hasard à graine fixe complètent la couverture.
+ */
+export const MAX_ETATS = 50000;
+/** Marches au hasard à graine fixe : nombre et longueur, pour atteindre des états profonds (feu propagé, blessures). */
+const MARCHES = 40;
+const LONGUEUR_MARCHE = 80;
+
+const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance');
 
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;
@@ -70,12 +94,14 @@ function verifierGabarit(erreurs: string[], ou: string, gabarit: unknown, roles:
 }
 
 function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): void {
-  for (const type of TYPES_EVENEMENT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
+  for (const type of TYPES_RECIT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
   for (const causes of ['feu', 'griffes_feu'] as const) {
     for (const type of TYPES_AGGRAVATION) verifierVariantes(erreurs, `brûlure ${causes} ${type}`, textes.brulures[causes][type], []);
   }
+  for (const cle of CLES_EVACUATION) verifierVariantes(erreurs, `évacuation ${cle}`, textes.evacuations[cle], []);
   for (const type of MOMENTS_FORTS) {
-    for (const variante of textes.evenements[type] as readonly unknown[]) {
+    const variantes = type === 'evacuation' ? CLES_EVACUATION.flatMap((cle) => textes.evacuations[cle]) : textes.evenements[type as TypeRecit];
+    for (const variante of variantes as readonly unknown[]) {
       if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`événement ${type} : plus de quatre phrases (garde-fou du contrôle).`);
     }
   }
@@ -83,6 +109,15 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     for (const variante of textes.brulures[causes].defaite as readonly unknown[]) {
       if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`brûlure ${causes} defaite : plus de quatre phrases (garde-fou du contrôle).`);
     }
+  }
+  for (const { id } of monde.assistance ?? []) {
+    const message = textes.assistance[id] as unknown;
+    if (typeof message !== 'string' || message.trim() === '') {
+      erreurs.push(`assistance « ${id} » : aucun texte (NP-01).`);
+      continue;
+    }
+    for (const erreur of analyserGabarit(message, [])) erreurs.push(`assistance « ${id} » : ${erreur}.`);
+    if (/\d/.test(message)) erreurs.push(`assistance « ${id} » : chiffre dans « ${message} ».`);
   }
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);
   for (const raison of RAISONS_INDISPONIBILITE) {
@@ -92,6 +127,9 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const action of ACTIONS) verifierGabarit(erreurs, `verbe ${action}`, textes.verbes[action], []);
   verifierVariantes(erreurs, 'regarder un passage ouvert', textes.passages.ouvert, ROLES_PASSAGE);
   verifierVariantes(erreurs, 'regarder un passage fermé', textes.passages.ferme, ROLES_PASSAGE);
+  verifierVariantes(erreurs, 'regarder un passage ouvert sans destination connue', textes.passages.ouvertSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
+  verifierVariantes(erreurs, 'regarder un passage fermé sans destination connue', textes.passages.fermeSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
+  verifierGabarit(erreurs, 'libellé aller sans destination connue', textes.allerSansDestination, ROLES_ALLER_SANS_DESTINATION);
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {
     verifierGabarit(erreurs, `observation ${cle}`, textes.observation[cle as keyof TextesMonde['observation']], roles);
   }
@@ -103,7 +141,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     if (/[\d%]/.test(mot)) erreurs.push(`aperçu : chiffre ou pourcentage dans « ${mot} » (C-04 §4.3).`);
   }
 
-  for (const entite of [...monde.pieces, ...monde.liaisons, ...monde.objets]) {
+  for (const entite of [...monde.pieces, ...monde.liaisons, ...monde.objets, ...(monde.positions ?? [])]) {
     const nom = textes.noms[entite.nom];
     if (nom === undefined) {
       erreurs.push(`nom « ${entite.nom} » sans texte (NP-02).`);
@@ -118,105 +156,348 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   }
 }
 
-/** Phrases minimales et maximales qu'une suite d'événements peut produire, toutes variantes confondues. */
-function bornesPhrases(textes: TextesMonde, types: readonly TypeEvenement[]): [number, number] {
+/** Textes possibles du récit d'un événement, comme le rendu les choisit ; l'assistance n'est pas racontée. */
+function variantesRecit(textes: TextesMonde, evenement: Evenement): readonly string[] {
+  if (evenement.type === 'assistance') return [];
+  if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
+  if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
+    if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
+  }
+  return textes.evenements[evenement.type];
+}
+
+/** Phrases qu'une suite d'événements peut produire, toutes variantes confondues ; le maximum ne compte pas les moments forts. */
+export interface Bornes {
+  readonly minimum: number;
+  readonly maximum: number;
+  readonly momentFort: boolean;
+}
+
+function bornesPhrases(textes: TextesMonde, evenements: readonly Evenement[]): Bornes {
   let minimum = 0;
   let maximum = 0;
-  for (const type of types) {
-    const comptes = textes.evenements[type].map(compterPhrases);
+  let momentFort = false;
+  for (const evenement of evenements) {
+    const comptes = variantesRecit(textes, evenement).map(compterPhrases);
+    if (comptes.length === 0) continue;
     minimum += Math.min(...comptes);
-    if (!MOMENTS_FORTS.includes(type)) maximum += Math.max(...comptes);
+    if (MOMENTS_FORTS.includes(evenement.type)) momentFort = true;
+    else maximum += Math.max(...comptes);
   }
-  return [minimum, maximum];
+  return { minimum, maximum, momentFort };
+}
+
+export function direBornes({ minimum, maximum, momentFort }: Bornes): string {
+  if (momentFort) return `au moins ${minimum} phrase(s), au plus ${maximum} hors moment fort`;
+  return minimum === maximum ? `${minimum} phrase(s)` : `de ${minimum} à ${maximum} phrase(s) selon les variantes`;
+}
+
+/** Récit de plus de quatre phrases rendu hors des pas joués par les parcours témoins, une entrée par état où il a été rendu. */
+export interface Avertissement {
+  /** Suite des événements de l'action, dans l'ordre. */
+  readonly combinaison: string;
+  readonly bornes: string;
+  readonly message: string;
+}
+
+/** Combinaison d'événements en cause, avec le nombre d'états où son récit a dépassé quatre phrases. */
+export interface GroupeAvertissements {
+  readonly combinaison: string;
+  readonly occurrences: number;
+  readonly bornes: readonly string[];
+}
+
+export function regrouperAvertissements(avertissements: readonly Avertissement[]): GroupeAvertissements[] {
+  const groupes = new Map<string, { occurrences: number; bornes: Set<string> }>();
+  for (const { combinaison, bornes } of avertissements) {
+    const groupe = groupes.get(combinaison) ?? { occurrences: 0, bornes: new Set<string>() };
+    groupe.occurrences += 1;
+    groupe.bornes.add(bornes);
+    groupes.set(combinaison, groupe);
+  }
+  return [...groupes]
+    .map(([combinaison, { occurrences, bornes }]) => ({ combinaison, occurrences, bornes: [...bornes] }))
+    .sort((a, b) => b.occurrences - a.occurrences || a.combinaison.localeCompare(b.combinaison));
 }
 
 interface Rendu {
   readonly texte: string;
   readonly ou: string;
-  /** Bornes de phrases toutes variantes confondues, pour le récit d'une action engagée (D-111). */
-  readonly phrases?: [number, number];
+  /**
+   * Récit d'une action engagée : ses événements et ses bornes de phrases (D-111). Plus de quatre phrases est une erreur
+   * pour une étape d'un parcours témoin (`temoin`). Ailleurs, c'est un avertissement : D-111 ne dit pas comment raconter
+   * une action qui cumule assez d'événements pour dépasser quatre phrases (feu, blessure et menace dans le même pas), à
+   * faire arbitrer.
+   */
+  readonly recit?: { readonly combinaison: string; readonly bornes: Bornes; readonly temoin: boolean };
   /** Aperçu : ni chiffre ni pourcentage (C-04 §4.3). */
   readonly sansChiffre?: true;
 }
 
-/** Parcourt tous les états atteignables et rend chaque texte que le joueur peut voir. */
-function rendreToutAtteignable(entree: EntreeMonde, version: string): Rendu[] {
+/** Ce que l'exploration a rendu et relevé ; chaque texte est contrôlé dès qu'il est rendu, sans être gardé. */
+interface Exploration {
+  /** Types d'événements effectivement racontés. */
+  readonly types: Set<TypeEvenement>;
+  /** États dont les textes ont été rendus. */
+  readonly vus: Set<string>;
+  readonly internes: readonly string[];
+  readonly erreurs: Set<string>;
+  readonly avertissements: Avertissement[];
+  /** Étapes des parcours témoins : état de départ et commande jouée (voir `etapeTemoin`). */
+  readonly temoins: ReadonlySet<string>;
+}
+
+function controler(exploration: Exploration, { texte, ou, recit, sansChiffre }: Rendu): void {
+  const { erreurs, internes } = exploration;
+  if (/[{}]/.test(texte)) erreurs.add(`${ou} : trou non rempli dans « ${texte} ».`);
+  const fuite = internes.find((id) => texte.includes(id));
+  if (fuite !== undefined || ID_PUBLIC.test(texte)) erreurs.add(`${ou} : identifiant affiché dans « ${texte} » (NP-02).`);
+  if (sansChiffre === true && /[\d%]/.test(texte)) erreurs.add(`${ou} : chiffre ou pourcentage dans « ${texte} » (C-04 §4.3).`);
+  if (recit === undefined) return;
+  const { minimum, maximum } = recit.bornes;
+  const bornes = direBornes(recit.bornes);
+  const message = `${ou} : ${bornes} ; 2 à 4 attendues (D-111).`;
+  if (minimum < 2 || (maximum > 4 && recit.temoin)) erreurs.add(message);
+  else if (maximum > 4) exploration.avertissements.push({ combinaison: recit.combinaison, bornes, message });
+}
+
+/** Couverture du contrôle, affichée pour savoir ce qui a réellement été rendu. */
+export interface Couverture {
+  readonly etats: number;
+  /** Tous les états atteignables ont été explorés : la borne n'a pas coupé l'exploration. */
+  readonly complete: boolean;
+  readonly rendus: readonly TypeEvenement[];
+  readonly jamais: readonly TypeEvenement[];
+}
+
+function cleEtat(partie: Partie): string {
+  return JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+}
+
+/** Rend chaque texte que le joueur peut voir dans cet état et renvoie les parties qui suivent ses actions engagées. */
+function visiter({ monde, textes }: EntreeMonde, partie: Partie, exploration: Exploration): Partie[] {
+  const { types } = exploration;
+  const rendre = (rendu: Rendu): void => controler(exploration, rendu);
+  const cle = cleEtat(partie);
+  exploration.vus.add(cle);
+  const graine = partie.enregistrement.graine;
+  const suivantes: Partie[] = [];
+  const observation = observer(monde, partie.etat);
+  for (const ligne of rendreObservation(textes, observation)) rendre({ texte: ligne, ou: 'observation' });
+  for (const option of observation.menu) {
+    const { libelle, raison } = libelleOption(textes, option);
+    rendre({ texte: libelle, ou: `libellé ${option.action}` });
+    if (raison !== null) rendre({ texte: raison, ou: `indisponibilité ${option.action}` });
+    const prevu = apercu(monde, partie, option.commande);
+    if (prevu.type === 'apercu') {
+      const { risque, danger, cout, savoir } = rendreApercu(textes, prevu.apercu);
+      for (const texte of [risque, ...(danger === null ? [] : [danger]), cout, ...savoir]) {
+        rendre({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
+      }
+    }
+    const resultat = jouer(monde, partie, option.commande);
+    const repere = { graine, action: partie.etat.actions + 1 };
+    if (resultat.type === 'consultation') {
+      rendre({ texte: rendreConsultation(textes, resultat.consultation, repere), ou: `consultation ${option.action}` });
+    } else if (resultat.type === 'engagee') {
+      const suite = resultat.evenements.map((evenement) => evenement.type);
+      for (const type of suite) types.add(type);
+      const combinaison = suite.join(' + ');
+      rendre({
+        texte: rendreEvenements(textes, resultat.evenements, repere).join(' '),
+        ou: `action ${option.action} (${combinaison})`,
+        recit: { combinaison, bornes: bornesPhrases(textes, resultat.evenements), temoin: exploration.temoins.has(etapeTemoin(cle, option.commande)) },
+      });
+      for (const message of rendreAssistance(textes, resultat.evenements)) rendre({ texte: message, ou: 'assistance' });
+      suivantes.push(resultat.partie);
+    }
+  }
+  return suivantes;
+}
+
+/** Parties qui suivent les actions engagées d'un état, sans rien rendre. */
+function successeurs({ monde }: EntreeMonde, partie: Partie): Partie[] {
+  const suivantes: Partie[] = [];
+  for (const option of observer(monde, partie.etat).menu) {
+    const resultat = jouer(monde, partie, option.commande);
+    if (resultat.type === 'engagee') suivantes.push(resultat.partie);
+  }
+  return suivantes;
+}
+
+function etapeTemoin(cle: string, commande: Commande): string {
+  return `${cle}\n${JSON.stringify(commande)}`;
+}
+
+/**
+ * Étapes des parcours témoins, calculées d'avance : un état de parcours peut d'abord être atteint comme voisin d'un autre.
+ * Un parcours qui échoue s'arrête là ; l'erreur est relevée par l'exploration.
+ */
+function etapesTemoins({ monde, parcours }: EntreeMonde, depart: Partie): Set<string> {
+  const temoins = new Set<string>();
+  for (const { etapes } of parcours) {
+    let partie = depart;
+    for (const etape of etapes) {
+      const option = trouverOption(observer(monde, partie.etat), etape);
+      const resultat = option === undefined || !option.disponible ? null : jouer(monde, partie, option.commande);
+      if (option === undefined || resultat?.type !== 'engagee') break;
+      temoins.add(etapeTemoin(cleEtat(partie), option.commande));
+      partie = resultat.partie;
+    }
+  }
+  return temoins;
+}
+
+/**
+ * Rend les textes de trois façons : le long de chaque parcours témoin avec les voisins immédiats de chaque état, en largeur
+ * depuis le départ jusqu'à `maxEtats` états, puis par des marches au hasard à graine fixe.
+ */
+function explorer(
+  entree: EntreeMonde,
+  version: string,
+  maxEtats: number,
+): { exploration: Exploration; complete: boolean; typesParcours: Set<TypeEvenement> } {
   const { monde, textes } = entree;
-  const rendus: Rendu[] = [];
+  const internes = [monde.id, ...[...monde.pieces, ...monde.liaisons, ...monde.objets].map((entite) => entite.id)];
   const depart = nouvellePartie(monde, { version, graine: 1 });
-  rendus.push({ texte: rendreEvenements(textes, depart.derniers, { graine: 1, action: 0 }).join(' '), ou: 'réveil' });
-  for (const raison of RAISONS_REFUS) rendus.push({ texte: rendreRefus(textes, raison), ou: `refus ${raison}` });
-  const vus = new Set<string>();
+  const exploration: Exploration = {
+    types: new Set(),
+    vus: new Set(),
+    internes,
+    erreurs: new Set(),
+    avertissements: [],
+    temoins: etapesTemoins(entree, depart),
+  };
+  const { types, vus, erreurs } = exploration;
+  const rendre = (rendu: Rendu): void => controler(exploration, rendu);
+  rendre({ texte: rendreEvenements(textes, depart.derniers, { graine: 1, action: 0 }).join(' '), ou: 'réveil' });
+  for (const message of rendreAssistance(textes, depart.derniers)) rendre({ texte: message, ou: 'assistance' });
+  for (const evenement of depart.derniers) types.add(evenement.type);
+  for (const raison of RAISONS_REFUS) rendre({ texte: rendreRefus(textes, raison), ou: `refus ${raison}` });
+
+  const typesParcours = new Set<TypeEvenement>();
+  for (const parcours of entree.parcours) {
+    let partie = depart;
+    const voir = (courante: Partie): void => {
+      const voisines = vus.has(cleEtat(courante)) ? successeurs(entree, courante) : visiter(entree, courante, exploration);
+      for (const voisine of voisines) if (!vus.has(cleEtat(voisine))) visiter(entree, voisine, exploration);
+    };
+    for (const [index, etape] of parcours.etapes.entries()) {
+      voir(partie);
+      const option = trouverOption(observer(monde, partie.etat), etape);
+      const resultat = option === undefined || !option.disponible ? null : jouer(monde, partie, option.commande);
+      if (resultat?.type !== 'engagee') {
+        erreurs.add(`parcours « ${parcours.nom} », étape ${index + 1} : option absente ou non engagée.`);
+        break;
+      }
+      for (const evenement of resultat.evenements) typesParcours.add(evenement.type);
+      partie = resultat.partie;
+    }
+    voir(partie);
+  }
+
+  // Largeur par niveaux : seule la frontière est gardée en mémoire. Les états déjà rendus par les parcours sont développés
+  // sans être rendus à nouveau.
+  const developpes = new Set<string>();
   let frontiere: Partie[] = [depart];
-  while (frontiere.length > 0) {
+  while (frontiere.length > 0 && developpes.size < maxEtats) {
     const suivante: Partie[] = [];
+    const prevus = new Set<string>();
     for (const partie of frontiere) {
-      const cle = JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
-      if (vus.has(cle)) continue;
-      vus.add(cle);
-      const observation = observer(monde, partie.etat);
-      for (const ligne of rendreObservation(textes, observation)) rendus.push({ texte: ligne, ou: 'observation' });
-      for (const option of observation.menu) {
-        const { libelle, raison } = libelleOption(textes, option);
-        rendus.push({ texte: libelle, ou: `libellé ${option.action}` });
-        if (raison !== null) rendus.push({ texte: raison, ou: `indisponibilité ${option.action}` });
-        const prevu = apercu(monde, partie, option.commande);
-        if (prevu.type === 'apercu') {
-          const { risque, danger, cout, savoir } = rendreApercu(textes, prevu.apercu);
-          for (const texte of [risque, ...(danger === null ? [] : [danger]), cout, ...savoir]) {
-            rendus.push({ texte, ou: `aperçu ${option.action}`, sansChiffre: true });
-          }
-        }
-        const resultat = jouer(monde, partie, option.commande);
-        const repere = { graine: 1, action: partie.etat.actions + 1 };
-        if (resultat.type === 'consultation') {
-          rendus.push({ texte: rendreConsultation(textes, resultat.consultation, repere), ou: `consultation ${option.action}` });
-        } else if (resultat.type === 'engagee') {
-          rendus.push({
-            texte: rendreEvenements(textes, resultat.evenements, repere).join(' '),
-            ou: `action ${option.action}`,
-            phrases: bornesPhrases(textes, resultat.evenements.map((evenement) => evenement.type)),
-          });
-          suivante.push(resultat.partie);
-        }
+      const cle = cleEtat(partie);
+      if (developpes.has(cle)) continue;
+      if (developpes.size >= maxEtats) {
+        suivante.push(partie);
+        continue;
+      }
+      developpes.add(cle);
+      for (const voisine of vus.has(cle) ? successeurs(entree, partie) : visiter(entree, partie, exploration)) {
+        const cleVoisine = cleEtat(voisine);
+        if (developpes.has(cleVoisine) || prevus.has(cleVoisine)) continue;
+        prevus.add(cleVoisine);
+        suivante.push(voisine);
       }
     }
     frontiere = suivante;
   }
-  return rendus;
+  const complete = frontiere.every((partie) => developpes.has(cleEtat(partie)));
+  developpes.clear();
+
+  for (let marche = 0; marche < MARCHES; marche++) {
+    let partie = nouvellePartie(monde, { version, graine: marche + 2 });
+    let hasard = marche + 1;
+    for (let pas = 0; pas < LONGUEUR_MARCHE; pas++) {
+      const suivantes = vus.has(cleEtat(partie)) ? successeurs(entree, partie) : visiter(entree, partie, exploration);
+      if (suivantes.length === 0) break;
+      // Générateur congruentiel à graine fixe : mêmes marches à chaque contrôle.
+      hasard = (hasard * 1103515245 + 12345) % 2147483648;
+      partie = suivantes[hasard % suivantes.length] as Partie;
+    }
+  }
+  return { exploration, complete, typesParcours };
+}
+
+export interface ResultatTextes {
+  readonly erreurs: readonly string[];
+  /**
+   * Récits de plus de quatre phrases rendus hors des pas joués par les parcours témoins (D-111, à arbitrer) : une entrée par
+   * état et par action.
+   */
+  readonly avertissements: readonly Avertissement[];
+  /** Absente si la structure des textes est déjà en erreur. */
+  readonly couverture: Couverture | null;
+}
+
+export function controlerTextes(entree: EntreeMonde, version = 'controle-textes', maxEtats = MAX_ETATS): ResultatTextes {
+  const erreurs: string[] = [];
+  verifierStructure(erreurs, entree);
+  if (erreurs.length > 0) return { erreurs, avertissements: [], couverture: null };
+
+  let resultat: ReturnType<typeof explorer>;
+  try {
+    resultat = explorer(entree, version, maxEtats);
+  } catch (erreur) {
+    return { erreurs: [`rendu impossible : ${erreur instanceof Error ? erreur.message : String(erreur)}`], avertissements: [], couverture: null };
+  }
+  const { exploration, complete, typesParcours } = resultat;
+  const jamais = TYPES_EVENEMENT.filter((type) => !exploration.types.has(type));
+  for (const type of jamais) {
+    if (typesParcours.has(type)) exploration.erreurs.add(`événement ${type} : atteint par un parcours témoin mais jamais rendu.`);
+  }
+  return {
+    erreurs: [...exploration.erreurs],
+    avertissements: [...exploration.avertissements],
+    couverture: { etats: exploration.vus.size, complete, rendus: TYPES_EVENEMENT.filter((type) => exploration.types.has(type)), jamais },
+  };
 }
 
 export function verifierTextes(entree: EntreeMonde, version = 'controle-textes'): string[] {
-  const erreurs: string[] = [];
-  verifierStructure(erreurs, entree);
-  if (erreurs.length > 0) return erreurs;
-
-  const internes = [entree.monde.id, ...[...entree.monde.pieces, ...entree.monde.liaisons, ...entree.monde.objets].map((entite) => entite.id)];
-  let rendus: Rendu[];
-  try {
-    rendus = rendreToutAtteignable(entree, version);
-  } catch (erreur) {
-    return [`rendu impossible : ${erreur instanceof Error ? erreur.message : String(erreur)}`];
-  }
-  for (const { texte, ou, phrases, sansChiffre } of rendus) {
-    if (/[{}]/.test(texte)) erreurs.push(`${ou} : trou non rempli dans « ${texte} ».`);
-    const fuite = internes.find((id) => texte.includes(id));
-    if (fuite !== undefined || ID_PUBLIC.test(texte)) erreurs.push(`${ou} : identifiant affiché dans « ${texte} » (NP-02).`);
-    if (sansChiffre === true && /[\d%]/.test(texte)) erreurs.push(`${ou} : chiffre ou pourcentage dans « ${texte} » (C-04 §4.3).`);
-    if (phrases !== undefined && (phrases[0] < 2 || phrases[1] > 4)) {
-      erreurs.push(`${ou} : de ${phrases[0]} à ${phrases[1]} phrase(s) selon les variantes, 2 à 4 attendues (D-111).`);
-    }
-  }
-  return [...new Set(erreurs)];
+  return [...controlerTextes(entree, version).erreurs];
 }
 
 if (isMainModule(import.meta.url)) {
   let total = 0;
   for (const [id, entree] of Object.entries(MONDES)) {
-    const erreurs = verifierTextes(entree);
+    const debut = Date.now();
+    const { erreurs, avertissements, couverture } = controlerTextes(entree);
     total += erreurs.length;
     for (const erreur of erreurs) console.error(`${id} : ${erreur}`);
     if (erreurs.length === 0) console.log(`${id} : textes complets, trous sûrs, aucun identifiant affiché.`);
+    if (couverture !== null) {
+      const borne = couverture.complete ? 'exploration complète' : `borne de ${MAX_ETATS} états atteinte`;
+      console.log(
+        `${id} : ${couverture.etats} états rendus (${borne} ; parcours témoins et voisins, ${MARCHES} marches au hasard) en ${Math.round((Date.now() - debut) / 1000)} s.`,
+      );
+      console.log(`${id} : événements racontés ${couverture.rendus.length}/${TYPES_EVENEMENT.length} : ${couverture.rendus.join(', ')}.`);
+      if (couverture.jamais.length > 0) console.warn(`${id} : avertissement, jamais rendus : ${couverture.jamais.join(', ')}.`);
+    }
+    if (avertissements.length > 0) {
+      const groupes = regrouperAvertissements(avertissements);
+      console.warn(
+        `${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors des pas joués par les parcours témoins (un par état et par action explorés, pas une fréquence en partie), en ${groupes.length} combinaison(s) d’événements (D-111, à arbitrer) :`,
+      );
+      for (const { combinaison, occurrences, bornes } of groupes) console.warn(`  ${occurrences} × ${combinaison} — ${bornes.join(' ; ')}`);
+    }
   }
   if (total > 0) {
     console.error(`\n${total} erreur(s) dans les textes (docs/contrats/C-07-textes.md §4).`);

@@ -44,7 +44,7 @@ function partie(graine = 7): Partie {
 
 function commande(courante: Partie, action: IdAction, nom: string) {
   const option = observer(MONDE, courante.etat).menu.find(
-    (choix) => choix.action === action && (choix.cible.nom === nom || (choix.cible.sorte === 'passage' && choix.cible.vers.nom === nom)),
+    (choix) => choix.action === action && (choix.cible.nom === nom || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === nom)),
   );
   if (option === undefined) throw new Error(`Option ${action} ${nom} absente.`);
   return option.commande;

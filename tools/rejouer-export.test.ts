@@ -1,8 +1,8 @@
 import { exporter, jouer, nouvellePartie, observer, type Partie } from '../engine';
-import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
+import { MONDES, type EntreeMonde } from '../content';
 import { rejouerExport } from './rejouer-export';
 
-const { monde } = MONDES[MONDE_PAR_DEFAUT] as EntreeMonde;
+const { monde } = MONDES['monde-test'] as EntreeMonde;
 
 function partieJouee(): Partie {
   let partie = nouvellePartie(monde, { version: 'v', graine: 9 });
