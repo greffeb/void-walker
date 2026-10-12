@@ -19,6 +19,7 @@ export const MONDES: Readonly<Record<string, EntreeMonde>> = {
 export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
 
 export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir } from './textes/gabarit';
+export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
 export {
   cleEvacuation,
   libelleOption,
