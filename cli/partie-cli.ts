@@ -15,10 +15,12 @@ import {
 } from '../engine';
 import {
   libelleOption,
+  lignesListeCarte,
   raconter,
   raconterDerniers,
   rendreApercu,
   rendreAssistance,
+  rendreListeCarte,
   rendreObservation,
   rendreRefus,
   type EntreeMonde,
@@ -53,6 +55,7 @@ export const AIDE = [
   'Commandes :',
   '  nouvelle [--graine N]        Commencer une nouvelle partie (remplace la partie en cours).',
   '  voir [--ids]                 Relire la situation et les actions possibles (gratuit).',
+  '  carte                        Relire la carte : ici, pièces visitées et connues (gratuit).',
   '  apercu <numéro>              Voir le risque, le coût et ce que vous savez avant d’agir (gratuit).',
   '  jouer <numéro>               Choisir une action du menu par son numéro.',
   '  commande <action> <cible> [paramètre]   Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
@@ -218,6 +221,11 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
       const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
       return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation], code: 0 };
+    }
+    case 'carte': {
+      const partie = charger(contexte, chemin);
+      if (typeof partie === 'string') return { lignes: [partie], code: 1 };
+      return { lignes: lignesListeCarte(rendreListeCarte(textes, observer(monde, partie.etat).carte)), code: 0 };
     }
     case 'apercu':
     case 'jouer': {

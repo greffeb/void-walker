@@ -54,6 +54,33 @@ describe('CLI', () => {
     expect(executer(['voir'], ctx).lignes).toContain('Actions engagées : 4');
   });
 
+  it('carte : la vue liste, gratuite, sans chiffre ni identifiant (14 §3.5, K-07)', () => {
+    const ctx = contexte();
+    executer(['nouvelle', '--graine', '5'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    const sortie = executer(['carte'], ctx);
+    expect(sortie).toEqual({
+      lignes: [
+        '── ICI ──',
+        'CABINE : @ vous',
+        'porte de l’atelier : fermé',
+        'grille de la soute : fermé',
+        '── VISITÉES, DE LA PLUS PROCHE ──',
+        'aucune',
+        '── CONNUES, PAS ENCORE VISITÉES ──',
+        'ATELIER : par sa porte',
+        'SOUTE : par sa porte',
+      ],
+      code: 0,
+    });
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    expect(executer(['aide'], ctx).lignes.some((ligne) => ligne.trimStart().startsWith('carte'))).toBe(true);
+  });
+
+  it('carte sans partie en cours : le dit, code d’erreur', () => {
+    expect(executer(['carte'], contexte())).toEqual({ lignes: ['Aucune partie en cours. Commencez par : nouvelle'], code: 1 });
+  });
+
   it('une option indisponible est refusée : partie et fichier inchangés', () => {
     const ctx = contexte();
     const debut = executer(['nouvelle'], ctx);

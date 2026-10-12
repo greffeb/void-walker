@@ -21,12 +21,14 @@ import {
   cleEvacuation,
   CLES_EVACUATION,
   libelleOption,
+  lignesListeCarte,
   MONDES,
   nomLisible,
   rendreApercu,
   rendreAssistance,
   rendreConsultation,
   rendreEvenements,
+  rendreListeCarte,
   rendreObservation,
   rendreRefus,
   ROLES_ALLER_SANS_DESTINATION,
@@ -300,6 +302,7 @@ function visiter({ monde, textes }: EntreeMonde, partie: Partie, exploration: Ex
   const suivantes: Partie[] = [];
   const observation = observer(monde, partie.etat);
   for (const ligne of rendreObservation(textes, observation)) rendre({ texte: ligne, ou: 'observation' });
+  for (const ligne of lignesListeCarte(rendreListeCarte(textes, observation.carte))) rendre({ texte: ligne, ou: 'carte', sansChiffre: true });
   for (const option of observation.menu) {
     const { libelle, raison } = libelleOption(textes, option);
     rendre({ texte: libelle, ou: `libellé ${option.action}` });
