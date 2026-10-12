@@ -22,11 +22,13 @@ const EVENEMENT_AGGRAVATION = {
 
 /**
  * Le passager commence l'action sous les yeux de la créature, répit passé : elle peut l'intercepter (C-04 §4, D-183) ; pas
- * depuis l'alcôve, ni après une glissade tant qu'elle a des réactions perdues (C-03 §5.2).
+ * depuis l'alcôve, ni après une glissade tant qu'elle a des réactions perdues (C-03 §5.2). Pendant le répit, seulement s'il
+ * franchit le passage par lequel elle est entrée (`franchie`, D-195).
  */
-export function expose(etat: EtatPartie): boolean {
+export function expose(etat: EtatPartie, franchie?: string): boolean {
   const creature = etat.creature;
-  return creature !== null && creatureEnVue(etat) && creature.contact && !creature.repit && creature.perdues === 0;
+  if (creature === null || !creatureEnVue(etat) || !creature.contact || creature.perdues > 0) return false;
+  return !creature.repit || (franchie !== undefined && franchie === creature.garde);
 }
 
 /** Le jet d'interception, enregistré (D-055) : vrai si elle l'atteint. */
@@ -41,8 +43,13 @@ export function aggraver(etat: EtatPartie, causes: readonly Cause[]): { etat: Et
   return { etat: { ...etat, sante }, evenements: [{ type: EVENEMENT_AGGRAVATION[sante], causes }] };
 }
 
+/** Exposé au vide sans combinaison : vaincu, hors plafond, sans jet ; les autres causes du pas sont conservées (C-04 §3.1, D-059). */
+export function asphyxier(etat: EtatPartie, causes: readonly Cause[]): { etat: EtatPartie; evenements: Evenement[] } {
+  return { etat: { ...etat, sante: 'vaincu' }, evenements: [{ type: 'defaite', causes: [...causes, 'vide'] }] };
+}
+
 /** Risque connu d'agir sous ses yeux, selon la santé qu'il aura au moment du jet : élevé, mortel si une blessure de plus serait fatale (C-04 §4.3). */
-export function risqueIci(etat: EtatPartie, sante: Sante): { risque: NiveauRisque; danger: Danger } | null {
-  if (!expose(etat)) return null;
+export function risqueIci(etat: EtatPartie, sante: Sante, franchie?: string): { risque: NiveauRisque; danger: Danger } | null {
+  if (!expose(etat, franchie)) return null;
   return sante === 'critique' ? { risque: 'mortel', danger: { type: 'interception_mortelle' } } : { risque: 'eleve', danger: { type: 'interception' } };
 }

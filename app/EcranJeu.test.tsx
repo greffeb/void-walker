@@ -581,9 +581,9 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(rendreAr01(await pc(6), ['reveil'])).not.toContain('lien-ia');
   });
 
-  it('évacuation : quinze actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
+  it('évacuation : seize actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
     const fin = await pc(P_C.length);
-    expect(fin.partie.etat.actions).toBe(15);
+    expect(fin.partie.etat.actions).toBe(16);
     const html = rendreAr01(fin);
     expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe('La capsule s’est détachée. Vous avez quitté la station. Nouvelle partie');
     expect(html).not.toContain('Cette partie est terminée');

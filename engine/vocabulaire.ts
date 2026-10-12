@@ -15,6 +15,10 @@ export const ACTIONS = [
   'activer',
   'installer',
   'lancer',
+  'enfiler',
+  'retirer',
+  'percer',
+  'reboucher',
 ] as const;
 export type IdAction = (typeof ACTIONS)[number];
 
@@ -22,8 +26,11 @@ export type IdAction = (typeof ACTIONS)[number];
 export const SANTES = ['indemne', 'blesse', 'critique', 'vaincu'] as const;
 export type Sante = (typeof SANTES)[number];
 
-/** Ce qui blesse : les griffes de la créature au contact (C-04 §4), le feu de la pièce où l'on finit l'action (D-188). */
-export const CAUSES = ['griffes', 'feu'] as const;
+/**
+ * Ce qui blesse : les griffes de la créature au contact (C-04 §4), le feu de la pièce où l'on finit l'action (D-188) ; le vide,
+ * sans combinaison, est une défaite hors plafond (C-04 §3.1).
+ */
+export const CAUSES = ['griffes', 'feu', 'vide'] as const;
 export type Cause = (typeof CAUSES)[number];
 
 export const TYPES_EVENEMENT = [
@@ -54,6 +61,14 @@ export const TYPES_EVENEMENT = [
   'circuit_active',
   'objet_installe',
   'passage_decouvert',
+  'combinaison_enfilee',
+  'combinaison_retiree',
+  'breche_ouverte',
+  'breche_rebouchee',
+  'air_perdu',
+  'air_revenu',
+  'creature_expulsee',
+  'creature_inerte',
   'evacuation',
   'assistance',
 ] as const;
@@ -81,6 +96,9 @@ export const RAISONS_REFUS = [
   'non_alimentee',
   'non_isolee',
   'creature_a_bord',
+  'deja_enfilee',
+  'deja_percee',
+  'sans_breche',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -127,6 +145,8 @@ export interface RefPassage {
   readonly feu: boolean;
   /** Sol huilé au pied du passage, de ce côté (C-03 §5.2, D-190). */
   readonly huile: boolean;
+  /** Voyant d'une porte étanche : la pièce de l'autre côté est sans air (C-06 OP-04, VP-03). */
+  readonly vide: boolean;
 }
 
 /** Position locale d'une pièce, utile à une action (C-02 §2) : « sous la grille haute », « au centre ». */
@@ -182,6 +202,13 @@ export type Evenement =
   | { readonly type: 'objet_installe'; readonly objet: RefObjet; readonly capsule: RefObjet }
   /** L'ouverture d'un passage caché révèle sa destination (K-05). */
   | { readonly type: 'passage_decouvert'; readonly passage: RefPassage }
+  | { readonly type: 'combinaison_enfilee' | 'combinaison_retiree'; readonly objet: RefObjet }
+  /** Le vitrage extérieur percé, puis rebouché (C-02 §3, D-066). */
+  | { readonly type: 'breche_ouverte' | 'breche_rebouchee'; readonly objet: RefObjet }
+  /** Pièces que le passager voit perdre ou retrouver leur air à ce pas : la sienne, ou une voisine par un passage ouvert (C-03 §5.4). */
+  | { readonly type: 'air_perdu' | 'air_revenu'; readonly pieces: readonly RefPiece[] }
+  /** La créature, sous ses yeux, aspirée hors de la station ou figée par le vide ; inerte, aussi à la découverte du corps (D-062). */
+  | { readonly type: 'creature_expulsee' | 'creature_inerte' }
   /** Conclusion de la partie : sources qui alimentaient la capsule, circuit puis bloc. */
   | { readonly type: 'evacuation'; readonly sources: readonly SourceEvacuation[] }
   /** Message de l'IA de la station reçu à ce pas : son texte est écrit à la main, hors du récit (C-07). */
@@ -198,8 +225,8 @@ export interface MessageRecu {
   readonly moment: MomentMessage;
 }
 
-/** Ce qui alimentait la capsule au départ : le circuit réarmé, un bloc installé, ou les deux. */
-export type SourceEvacuation = 'circuit' | 'bloc';
+/** Ce qui alimentait la capsule au départ : le circuit réarmé, un bloc installé, ou les deux ; sinon sa propre réserve (AR-02 §5.2). */
+export type SourceEvacuation = 'circuit' | 'bloc' | 'reserve';
 
 /** Issue d'une partie terminée. */
 export type Issue = 'evacuation' | 'defaite';
@@ -242,6 +269,12 @@ export const TYPES_SAVOIR = [
   'alimentera',
   'installera',
   'partira',
+  'protegera',
+  'gardera',
+  'percera',
+  'rebouchera',
+  'perdront_air',
+  'retrouveront_air',
 ] as const;
 export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
@@ -265,7 +298,12 @@ export type Savoir =
   | { readonly type: 'alimentera'; readonly objet: RefObjet }
   | { readonly type: 'installera'; readonly objet: RefObjet; readonly capsule: RefObjet }
   /** La capsule partira et la partie se conclura. */
-  | { readonly type: 'partira' };
+  | { readonly type: 'partira' }
+  /** Combinaison enfilée : protégé du vide ; retirée : gardée sur soi, sans protection (D-060, D-072/D-073). */
+  | { readonly type: 'protegera' | 'gardera'; readonly objet: RefObjet }
+  | { readonly type: 'percera' | 'rebouchera'; readonly objet: RefObjet }
+  /** Pièces connues qui perdront ou retrouveront leur air (C-04 §3.1, VP-02) ; rien sur une créature non perçue. */
+  | { readonly type: 'perdront_air' | 'retrouveront_air'; readonly pieces: readonly RefPiece[] };
 
 export const TYPES_DANGER = [
   'interception',
@@ -276,6 +314,7 @@ export const TYPES_DANGER = [
   'creature_entendue',
   'brulure',
   'brulure_mortelle',
+  'asphyxie',
 ] as const;
 export type TypeDanger = (typeof TYPES_DANGER)[number];
 
@@ -285,7 +324,8 @@ export type TypeDanger = (typeof TYPES_DANGER)[number];
  * pièce où l'action finira, brûlure certaine (D-188).
  */
 export type Danger =
-  | { readonly type: 'interception' | 'interception_mortelle' | 'brulure' | 'brulure_mortelle' }
+  /** `asphyxie` : l'action finira sans combinaison dans une pièce sans air (C-04 §3.1). */
+  | { readonly type: 'interception' | 'interception_mortelle' | 'brulure' | 'brulure_mortelle' | 'asphyxie' }
   | { readonly type: 'creature_vue_instant' | 'creature_vue_moment' | 'creature_vue_longtemps'; readonly piece: RefPiece }
   | { readonly type: 'creature_entendue'; readonly passage: RefPassage };
 
@@ -318,6 +358,15 @@ export interface Observation {
   readonly creatureATerre: boolean;
   /** La pièce du passager est en feu (C-03 §5.3). */
   readonly feu: boolean;
+  /** La pièce du passager est sans air (C-03 §5.4). */
+  readonly sansAir: boolean;
+  /** Combinaison portée, enfilée : protégé du vide (D-060). */
+  readonly enfilee: RefObjet | null;
+  /** Vitrages extérieurs de la pièce percés, puis rebouchés (C-02 §3). */
+  readonly percees: readonly RefObjet[];
+  readonly rebouchees: readonly RefObjet[];
+  /** Le corps inerte de la créature est dans la pièce (D-062). */
+  readonly creatureInerte: boolean;
   readonly sante: Sante;
   /** Partie conclue (D-013) : plus aucune action au menu. */
   readonly terminee: boolean;

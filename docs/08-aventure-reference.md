@@ -190,7 +190,7 @@ Cette section est la source de vérité des placements, positions et capacités 
 | P–O | Cloison fermée, connue | Manipulable des deux côtés ; mécanisme grippé dont l'ouverture émet un bruit normal dans la pièce de l'acteur, indépendamment de la position de la créature |
 | O–E | Ouvert | Cloison refermable des deux côtés ; pas de courant requis pour l'isoler |
 | P–E | Panneau fermé, passage inconnu | Ouvrir le panneau découvre et ouvre cet accès ; trop étroit pour bloc/créature ; retour possible, sans oublier sa découverte si refermé |
-| E–capsule | Écoutille ouverte, intérieur vide | Connexion à une sous-position « à bord », pas une septième salle exploratoire ; fermeture manuelle depuis l'intérieur |
+| E–capsule | Écoutille fermée, intérieur vide | Connexion à une sous-position « à bord », pas une septième salle exploratoire ; s'ouvre et se ferme à la main des deux côtés, une action chaque fois (D-196) |
 
 L'ouverture d'un passage n'ouvre pas les autres. Une cloison a le même état dans les deux sens. Les portes manuelles restent manipulables quel que soit le choix d'énergie.
 
@@ -267,9 +267,10 @@ Chaque numéro représente un engagement. Observer un élément, lire les indica
 | 8 | Revenir E → P par le passage découvert | Retour praticable, sans appui supplémentaire |
 | 9 | Réactiver le circuit de départ | Capsule alimentée ; bruit en P, mais aucune liaison acoustique ouverte vers O |
 | 10 | Traverser P → E par l'accès étroit | Le bloc n'a pas été transporté, le circuit reste actif |
-| 11 | Entrer dans la capsule | Position réellement à bord |
-| 12 | Fermer l'écoutille | Capsule isolée |
-| 13 | Commander le départ | Évacuation si toutes les conditions de la section 14 tiennent |
+| 11 | Ouvrir l'écoutille | Accès à bord (D-196) |
+| 12 | Entrer dans la capsule | Position réellement à bord |
+| 13 | Fermer l'écoutille | Capsule isolée |
+| 14 | Commander le départ | Évacuation si toutes les conditions de la section 14 tiennent |
 
 Pourquoi sans dé obligatoire : les manipulations préparées n'ont pas de risque résiduel et le bruit est isolé. O–E doit être refermé **avant** la remise en service, car le passage secret ouvert relie encore P à E et transmettrait sinon le son vers O. Une prévisualisation tenant compte des connaissances peut nommer le bruit et les ouvertures connues, pas certifier une position cachée de la menace.
 
@@ -294,9 +295,10 @@ Ce témoin court n'est **pas** la durée d'une première découverte : la cible 
 | 13 | O → E par la traversée hors de l'alcôve | Créature n'a pas reçu la position du joueur par magie |
 | 14 | Fermer E–O | Liaison normale protectrice fermée |
 | 15 | Installer le bloc dans la capsule | Objet transféré, alimentation locale active |
-| 16 | Entrer dans la capsule | À bord |
-| 17 | Fermer l'écoutille | Capsule isolée |
-| 18 | Commander le départ | Évacuation |
+| 16 | Ouvrir l'écoutille | Accès à bord (D-196) |
+| 17 | Entrer dans la capsule | À bord |
+| 18 | Fermer l'écoutille | Capsule isolée |
+| 19 | Commander le départ | Évacuation |
 
 Le circuit de station n'a pas été réactivé et le bloc n'a traversé aucun accès étroit. La diversion ne reste sûre que sous ses conditions de visibilité et perception ; activer un avertisseur face à un poursuivant qui voit déjà le joueur n'est pas une garantie de salut.
 
@@ -318,9 +320,10 @@ Le préfixe compte cinq engagements, sans montée ou déplacement implicite supp
 | 10 | O → E | Deuxième réaction suspendue ; compteur à zéro pour la prochaine réaction |
 | 11 | Fermer E–O | La créature récupère dans P ; elle ne rejoint pas E en un pas et la dernière cloison est maintenant fermée |
 | 12 | Installer le bloc | Alimentation locale |
-| 13 | Entrer dans la capsule | À bord |
-| 14 | Fermer l'écoutille | Capsule isolée |
-| 15 | Commander le départ | Évacuation |
+| 13 | Ouvrir l'écoutille | Accès à bord (D-196) |
+| 14 | Entrer dans la capsule | À bord |
+| 15 | Fermer l'écoutille | Capsule isolée |
+| 16 | Commander le départ | Évacuation |
 
 Cette version de P-C dépend du placement précis et de la réaction précipitée à l'ouverture. Si le moteur final résout autrement la perception, ce témoin doit être revu, pas maintenu « validé » par modification manuelle de l'état du PNJ.
 

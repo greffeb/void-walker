@@ -29,8 +29,8 @@ export type TypeAggravation = (typeof TYPES_AGGRAVATION)[number];
  */
 export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance'>;
 
-/** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, ou les deux. */
-export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc'] as const;
+/** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, les deux, ou la réserve d'une capsule déjà prête (AR-02). */
+export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc', 'reserve'] as const;
 export type CleEvacuation = (typeof CLES_EVACUATION)[number];
 
 export interface TextesMonde {
@@ -43,6 +43,8 @@ export interface TextesMonde {
    * même pas (une seule aggravation, causes conservées, C-04 §3).
    */
   readonly brulures: Readonly<Record<'feu' | 'griffes_feu', Readonly<Record<TypeAggravation, Variantes>>>>;
+  /** Défaite par le vide, sans combinaison dans une pièce sans air (C-04 §3.1), à la place des autres textes de défaite. */
+  readonly asphyxie: Variantes;
   /** Départ de la capsule, selon ce qui l'alimentait. */
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
@@ -53,6 +55,8 @@ export interface TextesMonde {
     /** Passage dont la destination n'est pas connue (C-06 §3, K-05). */
     readonly ouvertSansDestination: Variantes;
     readonly fermeSansDestination: Variantes;
+    /** Ajouté au regard d'une porte étanche dont le voyant dit qu'il n'y a plus d'air de l'autre côté (VP-03). */
+    readonly voyantVide: string;
   };
   readonly refus: Readonly<Record<RaisonRefus, string>>;
   readonly indisponibilites: Readonly<Record<RaisonIndisponibilite, string>>;
@@ -79,6 +83,17 @@ export interface TextesMonde {
     readonly active: string;
     /** La pièce du passager est en feu. */
     readonly feu: string;
+    /** La pièce du passager n'a plus d'air (C-03 §5.4). */
+    readonly sansAir: string;
+    /** Voyant d'une porte étanche : plus d'air de l'autre côté (VP-03). */
+    readonly passageVide: string;
+    /** Combinaison enfilée (D-060). */
+    readonly enfilee: string;
+    /** Vitrage extérieur percé, ou rebouché, dans la pièce. */
+    readonly percee: string;
+    readonly rebouchee: string;
+    /** Le corps inerte de la créature est dans la pièce (D-062). */
+    readonly creatureInerte: string;
     readonly inventaire: string;
     readonly inventaireVide: string;
     /** La créature est dans la pièce, vue par le passager (C-06 §2). */
@@ -137,6 +152,15 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   objet_installe: ['objet', 'capsule'],
   // `passage` : le passage sans sa destination ; `vers` : la destination qu'il révèle (NP-04).
   passage_decouvert: ['passage', 'vers'],
+  combinaison_enfilee: ['objet'],
+  combinaison_retiree: ['objet'],
+  breche_ouverte: ['objet'],
+  breche_rebouchee: ['objet'],
+  // `pieces` : liste des pièces dont l'air change, nommées ensemble.
+  air_perdu: ['pieces'],
+  air_revenu: ['pieces'],
+  creature_expulsee: [],
+  creature_inerte: [],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -154,6 +178,10 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   activer: ['cible'],
   installer: ['cible'],
   lancer: ['cible'],
+  enfiler: ['cible'],
+  retirer: ['cible'],
+  percer: ['cible'],
+  reboucher: ['cible'],
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
@@ -176,6 +204,12 @@ export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
   alimentera: ['objet'],
   installera: ['objet', 'capsule'],
   partira: [],
+  protegera: ['objet'],
+  gardera: ['objet'],
+  percera: ['objet'],
+  rebouchera: ['objet'],
+  perdront_air: ['pieces'],
+  retrouveront_air: ['pieces'],
 };
 
 export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
@@ -187,6 +221,7 @@ export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
   creature_entendue: ['passage'],
   brulure: [],
   brulure_mortelle: [],
+  asphyxie: [],
 };
 
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
@@ -201,6 +236,12 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   installe: ['objet', 'capsule'],
   active: ['objet'],
   feu: [],
+  sansAir: [],
+  passageVide: ['passage'],
+  enfilee: ['objet'],
+  percee: ['objet'],
+  rebouchee: ['objet'],
+  creatureInerte: [],
   inventaire: ['liste'],
   inventaireVide: [],
   creature: [],

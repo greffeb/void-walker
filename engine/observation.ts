@@ -1,5 +1,19 @@
 import { CATALOGUE } from './actions';
-import { creatureEnVue, enFeu, liaisonsVisibles, objetsDans, objetsPortes, refObjet, refPassage, refPiece, refPosition, type EtatPartie } from './etat';
+import {
+  corpsIci,
+  creatureEnVue,
+  enFeu,
+  liaisonsVisibles,
+  objetsDans,
+  objetsPortes,
+  piecesSansAir,
+  protectionEnfilee,
+  refObjet,
+  refPassage,
+  refPiece,
+  refPosition,
+  type EtatPartie,
+} from './etat';
 import { indexer, type DefMonde } from './monde';
 import {
   ACTIONS,
@@ -71,6 +85,7 @@ export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
 /** Observation publique (C-06) : ne contient que des identifiants publics et des clés de nom. */
 export function observer(monde: DefMonde, etat: EtatPartie): Observation {
   const ici = objetsDans(monde, etat, etat.piece);
+  const protection = protectionEnfilee(monde, etat);
   return {
     piece: refPiece(monde, etat.piece),
     objets: ici.map((objet) => refObjet(monde, objet.id)),
@@ -94,6 +109,11 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     creatureVisible: creatureEnVue(etat),
     creatureATerre: creatureEnVue(etat) && (etat.creature?.perdues ?? 0) > 0,
     feu: enFeu(etat, etat.piece),
+    sansAir: piecesSansAir(monde, etat).includes(etat.piece),
+    enfilee: protection === undefined ? null : refObjet(monde, protection.id),
+    percees: ici.filter((objet) => etat.breches.includes(objet.id)).map((objet) => refObjet(monde, objet.id)),
+    rebouchees: ici.filter((objet) => etat.rebouchees.includes(objet.id)).map((objet) => refObjet(monde, objet.id)),
+    creatureInerte: corpsIci(etat),
     sante: etat.sante,
     terminee: terminee(etat),
     issue: etat.fin ?? (etat.sante === 'vaincu' ? 'defaite' : null),

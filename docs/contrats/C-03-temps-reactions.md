@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175 ; poursuite et ouïe D-177/D-178.
 > **Date :** 2026-10-11.
-> **Implémentation et vérification exécutable :** créature, perception, réaction et premier contact (§2 à §4, T-01, T-07, T-09) dans le moteur depuis #100 ; avertisseur, glissade et feu (§5.1 à §5.3, T-02 à T-06, T-08, T-10) depuis #102 ; vide et morceaux absents. Pas d'attestation de partie humaine.
+> **Implémentation et vérification exécutable :** créature, perception, réaction et premier contact (§2 à §4, T-01, T-07, T-09) dans le moteur depuis #100 ; avertisseur, glissade et feu (§5.1 à §5.3, T-02 à T-06, T-08, T-10) depuis #102 ; vide, brèche, rustine et retour de l'air (§5.4, T-11 à T-14, T-18) proposés par #104 ; morceaux absents. Pas d'attestation de partie humaine.
 
 ## 1. Portée et sources de vérité
 
@@ -59,7 +59,7 @@ Après inspection d'une source silencieuse, sans nouvel indice, la créature res
 
 ### 4.4 Premier contact
 
-Première détection directement menaçante dans la partie : signal public clair, sans sanction hostile immédiate ; le joueur dispose de son engagement suivant pour réagir. Lire ne consomme pas cette occasion.
+Première détection directement menaçante dans la partie : signal public clair, sans sanction hostile immédiate ; le joueur dispose de son engagement suivant pour réagir. Lire ne consomme pas cette occasion. Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir : s'y faufiler pendant cet engagement se joue au dé (C-04 §4, D-195).
 
 L'avertissement est mémorisé, pas recréé à chaque changement de pièce. Une séparation qui retire effectivement le contact empêche ses conséquences ; elle ne réinitialise ni position ni souvenirs de la créature.
 

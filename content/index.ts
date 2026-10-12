@@ -2,6 +2,9 @@
 import { MONDE_AR01 } from './ar-01/monde';
 import { PARCOURS_AR01 } from './ar-01/parcours';
 import { TEXTES_AR01 } from './ar-01/textes';
+import { MONDE_AR02 } from './ar-02/monde';
+import { PARCOURS_AR02 } from './ar-02/parcours';
+import { TEXTES_AR02 } from './ar-02/textes';
 import { MONDE_TEST } from './monde-test/monde';
 import { PARCOURS_MONDE_TEST } from './monde-test/parcours';
 import { TEXTES_MONDE_TEST } from './monde-test/textes';
@@ -9,6 +12,7 @@ import type { EntreeMonde } from './types';
 
 export const MONDES: Readonly<Record<string, EntreeMonde>> = {
   [MONDE_AR01.id]: { monde: MONDE_AR01, textes: TEXTES_AR01, parcours: PARCOURS_AR01 },
+  [MONDE_AR02.id]: { monde: MONDE_AR02, textes: TEXTES_AR02, parcours: PARCOURS_AR02 },
   [MONDE_TEST.id]: { monde: MONDE_TEST, textes: TEXTES_MONDE_TEST, parcours: [PARCOURS_MONDE_TEST] },
 };
 

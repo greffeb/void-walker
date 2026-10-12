@@ -128,13 +128,18 @@ interface Reponse {
   readonly creature: EtatCreature;
   readonly evenements: Evenement[];
   readonly entendue?: BruitCreature;
+  /** Liaison qu'elle a franchie jusqu'au bout pendant cette réaction. */
+  readonly franchie?: string;
 }
+
+/** Créature encore active, donc dans la station (D-062). */
+type CreatureActive = EtatCreature & { readonly piece: string };
 
 /**
  * Franchir `liaison` vers l'indice (C-03 §5.2) : un sol huilé connu se franchit prudemment, en deux réactions ; inconnu, elle
  * glisse là où il se trouve, côté arrivée d'abord, sa réaction s'arrête et les deux suivantes sont perdues.
  */
-function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, liaison: DefLiaison, indice: Indice): Reponse {
+function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, liaison: DefLiaison, indice: Indice): Reponse {
   const depart = creature.piece;
   const arrivee = autreCote(liaison, depart);
   const zones = [arrivee, depart].filter((piece) => huilee(etat, liaison.id, piece));
@@ -156,15 +161,16 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: EtatCreature, lia
   };
   // Glissée sans changer de pièce, elle est vue si le passager y est, entendue s'il est à côté.
   const percu = percuParLePassager(monde, etat, liaison, depart, piece, glisse);
-  if (percu === undefined) return { creature: suite, evenements: [] };
-  return { creature: suite, evenements: [percu.evenement], ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
+  const passee = piece === arrivee ? { franchie: liaison.id } : {};
+  if (percu === undefined) return { creature: suite, evenements: [], ...passee };
+  return { creature: suite, evenements: [percu.evenement], ...passee, ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
 }
 
 /** Une réaction (C-03 §4.2) : joueur visible, sinon son actif, sinon dernier indice, sinon attendre. */
 function reaction(
   monde: DefMonde,
   etat: EtatPartie,
-  creature: EtatCreature,
+  creature: CreatureActive,
   sons: readonly SonEmis[],
   depuis: string,
   franchie: string | undefined,
@@ -238,18 +244,30 @@ export function reagir(
   interceptee: boolean,
 ): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
-  const reponse = reaction(monde, etat, etat.creature, sons, depuis, franchie, interceptee);
+  const { piece } = etat.creature;
+  // Inerte ou expulsée, elle ne réagit plus jamais ; le passager retient seulement ce qu'il voit (D-062).
+  if (etat.creature.neutralisee !== undefined || piece === null) {
+    return { etat: { ...etat, creature: { ...etat.creature, repit: false }, reperes: retenir(etat, undefined) }, evenements: [] };
+  }
+  const reponse = reaction(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
-  const creature = etat.creature.repit ? { ...reponse.creature, repit: false } : reponse.creature;
+  const creature = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
   const apres: EtatPartie = { ...etat, creature };
   const suite: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
   if (creatureEnVue(suite) && !creature.contact) {
+    // Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir (D-195).
+    const garde = creature.piece === suite.piece && piece !== suite.piece && reponse.franchie !== undefined ? { garde: reponse.franchie } : {};
     return {
-      etat: { ...suite, creature: { ...creature, contact: true, repit: true } },
+      etat: { ...suite, creature: { ...creature, contact: true, repit: true, ...garde } },
       evenements: [...reponse.evenements, { type: 'premier_contact' }],
     };
   }
   return { etat: suite, evenements: reponse.evenements };
+}
+
+function sansGarde(creature: EtatCreature): EtatCreature {
+  const { garde, ...reste } = creature;
+  return garde === undefined ? creature : reste;
 }
 
 /** Ancienneté d'une vue (D-151) : 1 action au plus, 2 à 5, 6 et plus. */

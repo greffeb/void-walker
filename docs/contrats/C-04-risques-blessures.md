@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175 ; interception et soin précisés par D-183 à D-185.
 > **Date :** 2026-10-11.
-> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; brûlure du feu, certaine et annoncée (D-188, #102) ; vide et morceaux absents. **Calibrage humain et validation téléphone :** non réalisés.
+> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; brûlure du feu, certaine et annoncée (D-188, #102) ; vide sans combinaison et créature neutralisée (RSK-10, RSK-11) proposés par #104 ; morceaux absents. **Calibrage humain et validation téléphone :** non réalisés.
 
 ## 1. Portée
 
@@ -60,7 +60,7 @@ Le jet résout l'interception **avant le changement de position** au sens de la 
 
 Ce jet consomme la réaction hostile de cette créature pour l'engagement, même si aucune blessure ne résulte. Ni attaque supplémentaire ni déplacement supplémentaire dans ce même pas. La poursuite pourra reprendre au prochain engagement avec des indices réellement acquis, sans connaître la nouvelle position par magie.
 
-**Rester sous ses yeux (D-183).** Une action faite dans la pièce de la créature, après le premier contact, se résout au même D6, que le passager parte ou reste. L'action qui suit immédiatement le premier contact est libre, sans dé ni blessure (D-184).
+**Rester sous ses yeux (D-183).** Une action faite dans la pièce de la créature, après le premier contact, se résout au même D6, que le passager parte ou reste. L'action qui suit immédiatement le premier contact est libre, sans dé ni blessure (D-184), sauf franchir le passage par lequel elle vient d'entrer dans sa pièce : se faufiler à côté d'elle se joue au même D6 (D-195).
 
 Si le joueur critique subit l'aggravation, sa destination est enregistrée et la partie conclut en défaite. Une arrivée en embarquement ne le transforme pas en survivant après coup.
 

@@ -12,8 +12,10 @@ import {
   liaisonsVisibles,
   manoeuvrable,
   objetsDans,
+  objetsEnMain,
   objetsPortes,
   porteLarge,
+  protectionEnfilee,
   refObjet,
   refPassage,
   refPiece,
@@ -185,8 +187,9 @@ const prendre: ActionEngagee = {
 const poser: ActionEngagee = {
   id: 'poser',
   engage: true,
-  cibles: ({ monde, etat }) => objetsPortes(monde, etat).map((porte) => porte.id),
-  verifier: (contexte, cible) => (objetPorte(contexte, cible) ? null : 'pas_en_main'),
+  // La combinaison enfilée se retire d'abord (détail de l'agent, #104 ; retirer : D-072).
+  cibles: ({ monde, etat }) => objetsEnMain(monde, etat).map((porte) => porte.id),
+  verifier: ({ monde, etat }, cible) => (objetsEnMain(monde, etat).some((porte) => porte.id === cible) ? null : 'pas_en_main'),
   prevoir: ({ monde, etat }, cible) => ({
     ...SANS_DANGER,
     savoir: [{ type: 'laissera', objet: refObjet(monde, cible), piece: refPiece(monde, etat.piece) }],
@@ -542,6 +545,116 @@ const lancer: ActionEngagee = {
   }),
 };
 
+/** Protections à portée : dans la pièce (le casier) ou en main, tant qu'aucune n'est enfilée (AR-02 §5.2). */
+function protectionsAPortee({ monde, etat }: Contexte): DefObjet[] {
+  return [...objetsDans(monde, etat, etat.piece), ...objetsEnMain(monde, etat)].filter((candidat) => candidat.protection === true);
+}
+
+/** Enfiler une combinaison, depuis le casier ou en main : une action, protection complète, sans jauge (D-060, D-073). */
+const enfiler: ActionEngagee = {
+  id: 'enfiler',
+  engage: true,
+  cibles: (contexte) =>
+    protectionEnfilee(contexte.monde, contexte.etat) === undefined ? protectionsAPortee(contexte).map((candidat) => candidat.id) : [],
+  verifier: (contexte, cible) => {
+    if (protectionEnfilee(contexte.monde, contexte.etat) !== undefined) return 'deja_enfilee';
+    return protectionsAPortee(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente';
+  },
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'protegera', objet: refObjet(monde, cible) }] }),
+  appliquer: ({ monde, etat }, cible) => ({
+    etat: { ...etat, objets: { ...etat.objets, [cible]: { type: 'passager', enfile: true } } },
+    evenements: [{ type: 'combinaison_enfilee', objet: refObjet(monde, cible) }],
+  }),
+};
+
+/** Retirer la combinaison : une action, partout, gardée sur soi ; sans air, l'aperçu l'annonce mortel (D-072, D-073). */
+const retirer: ActionEngagee = {
+  id: 'retirer',
+  engage: true,
+  cibles: ({ monde, etat }) => {
+    const enfilee = protectionEnfilee(monde, etat);
+    return enfilee === undefined ? [] : [enfilee.id];
+  },
+  verifier: ({ monde, etat }, cible) => (protectionEnfilee(monde, etat)?.id === cible ? null : 'cible_absente'),
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'gardera', objet: refObjet(monde, cible) }] }),
+  appliquer: ({ monde, etat }, cible) => ({
+    etat: { ...etat, objets: { ...etat.objets, [cible]: { type: 'passager' } } },
+    evenements: [{ type: 'combinaison_retiree', objet: refObjet(monde, cible) }],
+  }),
+};
+
+function vitragesIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.vitrageExterieur === true);
+}
+
+function outilEnMain({ monde, etat }: Contexte): boolean {
+  return objetsEnMain(monde, etat).some((candidat) => candidat.perce === true);
+}
+
+/** Ajoute ou retire `id` d'une liste tenue dans l'ordre du monde. */
+function basculerDans(monde: DefMonde, liste: readonly string[], id: string, present: boolean): string[] {
+  return monde.objets.filter((candidat) => (candidat.id === id ? present : liste.includes(candidat.id))).map((candidat) => candidat.id);
+}
+
+/**
+ * Percer un vitrage extérieur de la pièce avec un outil en main : une action, réussite sûre, sans dé ni bruit (D-064) ; le
+ * vide se résout à la mise à jour des dangers du même pas (VP-01). Repercer après la rustine reste possible (D-068).
+ */
+const percer: ActionEngagee = {
+  id: 'percer',
+  engage: true,
+  cibles: (contexte) =>
+    outilEnMain(contexte) ? vitragesIci(contexte).filter((candidat) => !contexte.etat.breches.includes(candidat.id)).map((candidat) => candidat.id) : [],
+  verifier: (contexte, cible) => {
+    if (!vitragesIci(contexte).some((candidat) => candidat.id === cible) || !outilEnMain(contexte)) return 'cible_absente';
+    return contexte.etat.breches.includes(cible) ? 'deja_percee' : null;
+  },
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'percera', objet: refObjet(monde, cible) }] }),
+  appliquer: ({ monde, etat }, cible) => ({
+    etat: { ...etat, breches: basculerDans(monde, etat.breches, cible, true), rebouchees: basculerDans(monde, etat.rebouchees, cible, false) },
+    evenements: [{ type: 'breche_ouverte', objet: refObjet(monde, cible) }],
+  }),
+};
+
+function kitsIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.rebouche !== undefined);
+}
+
+/** Brèche de la pièce que la rustine refermera. */
+function brecheIci({ monde, etat }: Contexte): DefObjet | undefined {
+  return vitragesIci({ monde, etat }).find((candidat) => etat.breches.includes(candidat.id));
+}
+
+/** Reboucher la brèche de la pièce depuis le kit : une action, sans risque, une rustine consommée (D-066, D-068). */
+const reboucher: ActionEngagee = {
+  id: 'reboucher',
+  engage: true,
+  cibles: (contexte) => (brecheIci(contexte) === undefined ? [] : kitsIci(contexte).map((candidat) => candidat.id)),
+  verifier: (contexte, cible) => {
+    if (!kitsIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    if ((contexte.etat.doses[cible] ?? 0) === 0) return 'vide';
+    return brecheIci(contexte) === undefined ? 'sans_breche' : null;
+  },
+  prevoir: (contexte, cible) => ({
+    ...SANS_DANGER,
+    savoir: [
+      { type: 'rebouchera', objet: refObjet(contexte.monde, exiger(brecheIci(contexte), 'Brèche absente.').id) },
+      ...savoirDose(contexte, cible),
+    ],
+  }),
+  appliquer: (contexte, cible) => {
+    const { monde, etat } = contexte;
+    const breche = exiger(brecheIci(contexte), 'Brèche absente.').id;
+    const suivant: EtatPartie = {
+      ...etat,
+      doses: { ...etat.doses, [cible]: (etat.doses[cible] ?? 0) - 1 },
+      breches: basculerDans(monde, etat.breches, breche, false),
+      rebouchees: basculerDans(monde, etat.rebouchees, breche, true),
+    };
+    return { etat: suivant, evenements: [{ type: 'breche_rebouchee', objet: refObjet(monde, breche) }] };
+  },
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
 export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   regarder,
@@ -558,4 +671,8 @@ export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   activer,
   installer,
   lancer,
+  enfiler,
+  retirer,
+  percer,
+  reboucher,
 };

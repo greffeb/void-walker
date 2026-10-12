@@ -34,6 +34,8 @@ export interface DefLiaison {
   readonly cachee?: string;
   /** Seule pièce d'où l'on peut l'ouvrir ou la fermer, comme une écoutille manoeuvrée de l'intérieur. */
   readonly manoeuvre?: string;
+  /** Jamais étanche, même fermée, comme une grille ou un conduit : le vide la traverse (C-02 §3, D-061). */
+  readonly nonEtanche?: boolean;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -72,12 +74,23 @@ export interface DefObjet {
   readonly large?: boolean;
   /** Source d'énergie qui peut s'installer dans une capsule et l'alimenter. */
   readonly source?: boolean;
-  /** Capsule d'évacuation : `interieur` est la pièce où l'on monte à bord. */
-  readonly capsule?: { readonly interieur: string };
+  /** Capsule d'évacuation : `interieur` est la pièce où l'on monte à bord ; `alimentee` : déjà prête, sur sa réserve (AR-02 §5.2). */
+  readonly capsule?: { readonly interieur: string; readonly alimentee?: boolean };
   /** Console dont le circuit, une fois activé, alimente cette capsule. */
   readonly alimente?: string;
   /** Pupitre qui lance cette capsule. */
   readonly depart?: string;
+  /**
+   * Vitrage extérieur de sa pièce, fixe : percé, il ouvre une brèche sur l'espace (C-02 §3, D-061). La baie est portée ici
+   * par un objet fixe, à portée depuis sa seule pièce, plutôt que par une liaison vers un extérieur.
+   */
+  readonly vitrageExterieur?: boolean;
+  /** Qualité « perce un vitrage extérieur », réussite sûre (C-02 §5, D-064). */
+  readonly perce?: boolean;
+  /** Qualité « protection contre le vide », quand elle est enfilée (C-02 §5, D-060). */
+  readonly protection?: boolean;
+  /** Qualité « rebouche une brèche, par usage » (C-02 §5, D-066) : nombre d'usages au départ. */
+  readonly rebouche?: number;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -118,7 +131,7 @@ export function idPublic(monde: string, idInterne: string): string {
 
 /** Doses de l'objet, quelle que soit sa qualité par dose ; un objet n'en porte qu'une. */
 export function dosesDe(objet: DefObjet): number | undefined {
-  return objet.soin ?? objet.extinction ?? objet.glissant;
+  return objet.soin ?? objet.extinction ?? objet.glissant ?? objet.rebouche;
 }
 
 function dosesValides(doses: number | undefined): boolean {
@@ -165,8 +178,13 @@ export function validerMonde(monde: DefMonde): string[] {
   }
   for (const objet of monde.objets) {
     if (!pieces.has(objet.piece)) erreurs.push(`${objet.id} : pièce inconnue ${objet.piece}.`);
-    for (const doses of [objet.soin, objet.extinction, objet.glissant]) if (!dosesValides(doses)) erreurs.push(`${objet.id} : doses invalides.`);
-    if ([objet.soin, objet.extinction, objet.glissant].filter((doses) => doses !== undefined).length > 1) erreurs.push(`${objet.id} : plus d'une qualité par dose.`);
+    for (const doses of [objet.soin, objet.extinction, objet.glissant, objet.rebouche]) if (!dosesValides(doses)) erreurs.push(`${objet.id} : doses invalides.`);
+    if ([objet.soin, objet.extinction, objet.glissant, objet.rebouche].filter((doses) => doses !== undefined).length > 1) {
+      erreurs.push(`${objet.id} : plus d'une qualité par dose.`);
+    }
+    if (objet.vitrageExterieur === true && objet.portable !== false) erreurs.push(`${objet.id} : vitrage portable.`);
+    if (objet.rebouche !== undefined && objet.portable !== false) erreurs.push(`${objet.id} : kit de rustine portable.`);
+    if (objet.protection === true && objet.portable === false) erreurs.push(`${objet.id} : protection qui ne se porte pas.`);
     if (objet.deplacable === true && objet.portable !== false) erreurs.push(`${objet.id} : déplaçable mais portable.`);
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
     if (objet.position !== undefined && objet.deplacable !== true) erreurs.push(`${objet.id} : position sans être déplaçable.`);

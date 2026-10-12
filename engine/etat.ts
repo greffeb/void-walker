@@ -4,7 +4,8 @@ import type { RefObjet, RefPassage, RefPiece, RefPosition, Sante, SourceEvacuati
 
 export type EmplacementObjet =
   | { readonly type: 'piece'; readonly piece: string; readonly position?: string }
-  | { readonly type: 'passager' }
+  /** `enfile` : une protection portée sur soi, pas en main (C-02 §4.1, D-072/D-073). */
+  | { readonly type: 'passager'; readonly enfile?: true }
   /** Installé dans une capsule : ni au sol ni porté. */
   | { readonly type: 'installe'; readonly dans: string };
 
@@ -17,11 +18,16 @@ export interface Indice {
 
 /** Créature (C-02 §4.2) : emplacement, dernier indice, premier contact annoncé, ralentissements. */
 export interface EtatCreature {
-  readonly piece: string;
+  /** `null` une fois expulsée : elle n'a plus de position dans la station (VP-04). */
+  readonly piece: string | null;
+  /** Neutralisée par le vide, pour de bon : inerte sur place, ou expulsée (D-062) ; absente tant qu'elle est active. */
+  readonly neutralisee?: 'inerte' | 'expulsee';
   readonly indice: Indice | null;
   readonly contact: boolean;
   /** L'action qui suit le premier contact est libre : ni dé ni blessure (C-03 §4.4, D-184). */
   readonly repit: boolean;
+  /** Passage par lequel elle est entrée au premier contact : s'y faufiler à côté d'elle n'est pas libre (D-195). */
+  readonly garde?: string;
   /** Dans l'alcôve de sa pièce, derrière la paroi opaque : elle ne voit pas le reste de la pièce (AR-01 §11.3). */
   readonly alcove: boolean;
   /** Réactions perdues restantes après une glissade (C-03 §5.2), de 2 à 0. */
@@ -87,6 +93,10 @@ export interface EtatPartie {
   readonly decouvertes: readonly string[];
   /** Consoles dont le circuit est activé, dans l'ordre du monde. */
   readonly actives: readonly string[];
+  /** Vitrages extérieurs percés, brèches ouvertes, dans l'ordre du monde (C-02 §4.4). */
+  readonly breches: readonly string[];
+  /** Vitrages rebouchés et pas percés de nouveau, dans l'ordre du monde (D-066/D-068). */
+  readonly rebouchees: readonly string[];
   /** Conclusion autre que la défaite : la capsule est partie. */
   readonly fin: 'evacuation' | null;
   /** Messages d'assistance déjà reçus, dans l'ordre de réception. */
@@ -126,6 +136,8 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     alarme: null,
     decouvertes: [],
     actives: [],
+    breches: [],
+    rebouchees: [],
     fin: null,
     messages: (monde.assistance ?? []).filter((message) => message.quand.type === 'reveil').map((message) => message.id),
   };
@@ -170,14 +182,16 @@ export function porteLarge(monde: DefMonde, etat: EtatPartie): boolean {
   return objetsPortes(monde, etat).some((objet) => objet.large === true);
 }
 
-/** Ce qui alimente la capsule : un circuit activé qui la vise, puis une source installée dedans. */
+/** Ce qui alimente la capsule : un circuit activé qui la vise, puis une source installée dedans ; à défaut, sa propre réserve. */
 export function sourcesDe(monde: DefMonde, etat: EtatPartie, capsule: string): SourceEvacuation[] {
   const circuit = monde.objets.some((objet) => objet.alimente === capsule && etat.actives.includes(objet.id));
   const bloc = monde.objets.some((objet) => {
     const emplacement = etat.objets[objet.id];
     return objet.source === true && emplacement?.type === 'installe' && emplacement.dans === capsule;
   });
-  return [...(circuit ? (['circuit'] as const) : []), ...(bloc ? (['bloc'] as const) : [])];
+  const sources: SourceEvacuation[] = [...(circuit ? (['circuit'] as const) : []), ...(bloc ? (['bloc'] as const) : [])];
+  if (sources.length === 0 && indexer(monde).objets.get(capsule)?.capsule?.alimentee === true) return ['reserve'];
+  return sources;
 }
 
 export function autreCote(liaison: DefLiaison, piece: string): string {
@@ -193,6 +207,45 @@ export function objetsDans(monde: DefMonde, etat: EtatPartie, piece: string): De
 
 export function objetsPortes(monde: DefMonde, etat: EtatPartie): DefObjet[] {
   return monde.objets.filter((objet) => etat.objets[objet.id]?.type === 'passager');
+}
+
+/** Portés en main : tout ce que le passager porte, sauf la combinaison enfilée. */
+export function objetsEnMain(monde: DefMonde, etat: EtatPartie): DefObjet[] {
+  return monde.objets.filter((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return emplacement?.type === 'passager' && emplacement.enfile !== true;
+  });
+}
+
+/** Protection enfilée, s'il y en a une (D-060). */
+export function protectionEnfilee(monde: DefMonde, etat: EtatPartie): DefObjet | undefined {
+  return monde.objets.find((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return objet.protection === true && emplacement?.type === 'passager' && emplacement.enfile === true;
+  });
+}
+
+/**
+ * Pièces sans air, dans l'ordre du monde : reliées à une brèche ouverte par des passages ouverts ou jamais étanches ; ni
+ * valeur intermédiaire ni délai (C-03 §5.4, D-061/D-067).
+ */
+export function piecesSansAir(monde: DefMonde, etat: EtatPartie): string[] {
+  if (etat.breches.length === 0) return [];
+  const atteintes = new Set<string>();
+  for (const objet of monde.objets) {
+    const emplacement = etat.objets[objet.id];
+    if (etat.breches.includes(objet.id) && emplacement?.type === 'piece') atteintes.add(emplacement.piece);
+  }
+  const file = [...atteintes];
+  for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
+    for (const liaison of liaisonsDe(monde, piece)) {
+      const voisine = autreCote(liaison, piece);
+      if (atteintes.has(voisine) || (etat.liaisons[liaison.id] !== true && liaison.nonEtanche !== true)) continue;
+      atteintes.add(voisine);
+      file.push(voisine);
+    }
+  }
+  return monde.pieces.filter((piece) => atteintes.has(piece.id)).map((piece) => piece.id);
 }
 
 export function enFeu(etat: EtatPartie, piece: string): boolean {
@@ -218,9 +271,19 @@ export function horsDePortee(monde: DefMonde, etat: EtatPartie, liaison: DefLiai
   return liaison.haute === depuis && !appuiSous(monde, etat, liaison.id);
 }
 
-/** La créature est dans la pièce du passager et le voit : hors de l'alcôve (AR-01 §11.3, C-06 §2). */
+/** La créature n'a pas été neutralisée par le vide : elle perçoit et réagit (D-062). */
+export function creatureActive(etat: EtatPartie): boolean {
+  return etat.creature !== null && etat.creature.neutralisee === undefined;
+}
+
+/** La créature active est dans la pièce du passager et le voit : hors de l'alcôve (AR-01 §11.3, C-06 §2). */
 export function creatureEnVue(etat: EtatPartie): boolean {
-  return etat.creature !== null && etat.creature.piece === etat.piece && !etat.creature.alcove;
+  return creatureActive(etat) && etat.creature?.piece === etat.piece && etat.creature.alcove !== true;
+}
+
+/** Le corps inerte de la créature est dans la pièce du passager (D-062). */
+export function corpsIci(etat: EtatPartie): boolean {
+  return etat.creature?.neutralisee === 'inerte' && etat.creature.piece === etat.piece;
 }
 
 function publicDe(monde: DefMonde, id: string): string {
@@ -259,5 +322,7 @@ export function refPassage(monde: DefMonde, etat: EtatPartie, liaison: DefLiaiso
     signale: signalee(liaison),
     feu: ouvert && enFeu(etat, vers),
     huile: huilee(etat, liaison.id, depuis),
+    // Seule une porte étanche porte un voyant d'air (VP-03).
+    vide: liaison.nonEtanche !== true && piecesSansAir(monde, etat).includes(vers),
   };
 }

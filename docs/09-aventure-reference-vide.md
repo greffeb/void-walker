@@ -52,7 +52,7 @@ Les codes sont des repères d'auteur, pas des identifiants publics.
 | C | Coursive des cabines | Départ | Terminal personnel (assistance), signalétique d'évacuation |
 | L | Local de sécurité | Préparation | Casier « perte de pression » avec une combinaison, découpeuse de maintenance |
 | B | Salle panoramique | Lieu de la brèche | Grande baie extérieure, kit mural avec une rustine |
-| E | Embarquement | Évacuation | Capsule alimentée, écoutille ouverte ; créature présente au départ |
+| E | Embarquement | Évacuation | Capsule alimentée, écoutille fermée (D-196) ; créature présente au départ |
 
 ```mermaid
 flowchart LR
@@ -73,7 +73,7 @@ L'intérieur de la capsule est une sous-position « à bord » de E, séparée p
 | C–L | Ouvert | Porte étanche ordinaire, manipulable des deux côtés, ouverture discrète |
 | C–B | Fermé | Porte étanche ordinaire, manipulable des deux côtés, ouverture discrète |
 | B–E | Fermé | Porte étanche grippée : l'ouvrir fait un bruit normal dans la pièce de l'acteur, comme P–O d'AR-01 |
-| E–à bord | Écoutille ouverte | Étanche ; fermeture manuelle depuis l'intérieur |
+| E–à bord | Écoutille fermée | Étanche ; s'ouvre et se ferme à la main des deux côtés, une action chaque fois (D-196) |
 | B–espace | Baie intacte | Séparation extérieure ; percée par la découpeuse, rebouchable par la rustine |
 
 Toutes les séparations d'AR-02 sont étanches : aucun conduit ni grille. Une porte fermée bloque passage, son et vide ; ouverte, elle laisse passer les trois. Les portes manuelles restent manipulables avec ou sans air.
@@ -112,7 +112,7 @@ Le passager connaît les noms de la signalétique et, par l'assistance, deux fai
 
 | ID | Précision | Raison |
 | --- | --- | --- |
-| VP-01 | Percer, reboucher, ouvrir ou fermer sont l'effet de l'action ; l'état d'air et les expositions se résolvent à la mise à jour des dangers du même pas, avant toute réaction de la créature | Ordre accepté d'AR-01 repris (C-03) ; une créature atteinte n'agit plus dans ce pas |
+| VP-01 | Percer, reboucher, ouvrir ou fermer sont l'effet de l'action ; l'état d'air et les expositions se résolvent à la mise à jour des dangers du même pas, avant toute réaction de la créature | Ordre accepté d'AR-01 repris (C-03) ; une créature atteinte n'agit plus dans ce pas, pas même pour intercepter (D-194) |
 | VP-02 | Avant de percer, d'ouvrir ou de fermer, le menu annonce les pièces connues qui perdront ou retrouveront leur air, et « mortel » sans combinaison ; jamais l'effet sur une créature non perçue | D-059 et C-01 : danger connu sans fuite de secret |
 | VP-03 | L'état d'air des pièces connues est public par les voyants des portes étanches ; l'assistance ne répond pas aux demandes d'état (D-081) | Permet d'annoncer le danger sans deviner |
 | VP-04 | La dépressurisation ne déplace aucun objet ; le corps inerte ne bloque aucun passage ; une créature expulsée n'a plus de position dans la station | Borne les effets aux règles acceptées |
@@ -123,7 +123,7 @@ Le passager connaît les noms de la signalétique et, par l'assistance, deux fai
 
 - **AP-1 — Vider l'embarquement.** Percer pendant que la créature est derrière la porte fermée, puis ouvrir : l'embarquement perd son air et la créature reste inerte sur place.
 - **AP-2 — Attirer puis percer.** Ouvrir la porte grippée : la créature entend, entre dans la salle ; percer à l'action suivante : elle est aspirée dehors.
-- **AP-3 — Passer en force, sans vide.** Ouvrir, traverser près d'elle avec le D6 de la fuite exposée, refermer derrière soi, embarquer. Pas de combinaison nécessaire, risque de blessure.
+- **AP-3 — Passer en force, sans vide.** Ouvrir, se faufiler à côté d'elle avec le D6 (D-195), refermer derrière soi, embarquer. Pas de combinaison nécessaire, risque de blessure.
 - **Option — Reboucher.** Après une brèche, la rustine rend l'air à tout ce qui est relié à la salle ; jamais nécessaire pour gagner (D-069).
 
 ## 8. Parcours témoins acceptés en conception — à prouver
@@ -141,11 +141,12 @@ Chaque numéro est une action engagée ; lire, observer et ouvrir les menus rest
 | 5 | Ouvrir C–B | Ouverture discrète ; rien ne parvient à E |
 | 6 | C → B | Baie, kit et porte grippée visibles ; pas de contact |
 | 7 | Percer la baie | B, C et L sans air (portes ouvertes) ; E garde son air ; créature intacte, rien entendu |
-| 8 | Ouvrir B–E | E et l'intérieur de la capsule perdent leur air ; créature inerte sur place, aucune réaction |
+| 8 | Ouvrir B–E | E perd son air ; la capsule, écoutille fermée, garde le sien ; créature inerte sur place, aucune réaction |
 | 9 | B → E | Passage libre, le corps ne bloque pas |
-| 10 | Entrer dans la capsule | À bord |
-| 11 | Fermer l'écoutille | La capsule retrouve son air |
-| 12 | Lancer | Évacuation |
+| 10 | Ouvrir l'écoutille | La capsule perd son air (D-196) |
+| 11 | Entrer dans la capsule | À bord |
+| 12 | Fermer l'écoutille | La capsule retrouve son air |
+| 13 | Lancer | Évacuation |
 
 ### P-V2 — Attirer puis percer (AP-2), sans dé
 
@@ -155,22 +156,24 @@ Chaque numéro est une action engagée ; lire, observer et ouvrir les menus rest
 | 7 | Ouvrir B–E | Bruit dans B ; la créature entre dans B ; premier contact annoncé, pas d'attaque à l'arrivée |
 | 8 | Percer la baie | B, E, C et L sans air ; créature dans la pièce percée : expulsée ; aucune réaction |
 | 9 | B → E | — |
-| 10 | Entrer dans la capsule | À bord |
-| 11 | Fermer l'écoutille | La capsule retrouve son air |
-| 12 | Lancer | Évacuation |
+| 10 | Ouvrir l'écoutille | La capsule perd son air (D-196) |
+| 11 | Entrer dans la capsule | À bord |
+| 12 | Fermer l'écoutille | La capsule retrouve son air |
+| 13 | Lancer | Évacuation |
 
-### P-V3 — Passer en force (AP-3), un D6
+### P-V3 — Passer en force (AP-3), un D6 (D-195)
 
 | Pas | Action | Résultat attendu |
 | --- | --- | --- |
 | 1 | Ouvrir C–B | — |
 | 2 | C → B | — |
 | 3 | Ouvrir B–E | Bruit ; la créature entre dans B ; premier contact annoncé |
-| 4 | B → E | Fuite exposée (C-04) : arrivée en E dans tous les cas ; 1–3 = une blessure ; réaction de la créature consommée |
+| 4 | B → E | Se faufiler à côté d'elle par la porte qu'elle vient de franchir n'est pas libre (D-195) : un D6, 1–3 = une blessure ; arrivée en E dans tous les cas ; elle vous voit partir |
 | 5 | Fermer B–E | La créature reste dans B, retenue par la porte |
-| 6 | Entrer dans la capsule | À bord |
-| 7 | Fermer l'écoutille | Capsule isolée |
-| 8 | Lancer | Évacuation, blessé ou non |
+| 6 | Ouvrir l'écoutille | Accès à bord (D-196) |
+| 7 | Entrer dans la capsule | À bord |
+| 8 | Fermer l'écoutille | Capsule isolée |
+| 9 | Lancer | Évacuation, blessé ou non |
 
 P-V3 est plus court mais risqué ; il ne prouve rien sur le vide et ne doit pas servir de témoin des règles R-01.
 
@@ -209,13 +212,13 @@ Ce sont des faits sur les objets, pas une liste de gestes optimaux.
 
 ## 11. État des preuves
 
-| Niveau | État au 10/10/2026 |
+| Niveau | État au 12/10/2026 |
 | --- | --- |
 | Cadre, plan, matériel, données fixes, précisions et parcours | Acceptés en conception, Q-51 à Q-67 (D-058 à D-074) |
 | Règles du vide dans les contrats | Retranscrites dans C-03, C-04, C-05 |
-| Moteur, solveur, tests | Non réalisés |
+| Moteur et tests | Proposés par #104 : P-V1, P-V2, P-V3 et VN-01 à VN-13 passent dans la vérification complète ; solveur absent. P-V3 au dé (D-195) ; parcours allongés d'une action par l'écoutille fermée (D-196) |
 | Partie sur téléphone | Non effectuée ; journal humain vide |
 | Durée et intérêt | Non mesurés ; volontairement plus courte qu'AR-01 (D-058) |
-| Textes | À écrire ; aucun texte final |
+| Textes | Écrits à la main par #104, à relire par le porteur |
 
 Pour l'implémentation future : si un parcours contredit un contrat ou ne passe pas, documenter le contre-exemple et revenir en arbitrage. Ne pas modifier silencieusement l'état de la créature, de l'air ou une attente de test pour rétablir le vert.

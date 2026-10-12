@@ -9,8 +9,10 @@ import type {
   OptionMenu,
   Partie,
   RaisonRefus,
+  RefPiece,
   Resultat,
   Savoir,
+  SourceEvacuation,
 } from '../../engine';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
@@ -32,7 +34,7 @@ export function nomDe(textes: TextesMonde, cible: Cible): Nom {
   return { ...nom, texte: `${nom.texte} ${former('de', nomDe(textes, cible.vers))}` };
 }
 
-function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<string, Nom> {
+function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<string, Nom | readonly Nom[]> {
   switch (evenement.type) {
     case 'reveil':
     case 'piece_decouverte':
@@ -63,7 +65,17 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'defaite':
     case 'evacuation':
     case 'assistance':
+    case 'creature_expulsee':
+    case 'creature_inerte':
       return {};
+    case 'combinaison_enfilee':
+    case 'combinaison_retiree':
+    case 'breche_ouverte':
+    case 'breche_rebouchee':
+      return { objet: nomDe(textes, evenement.objet) };
+    case 'air_perdu':
+    case 'air_revenu':
+      return { pieces: nomsDe(textes, evenement.pieces) };
     case 'soin_indemne':
     case 'soin_blesse':
     case 'alarme_declenchee':
@@ -81,15 +93,24 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
   }
 }
 
+function nomsDe(textes: TextesMonde, pieces: readonly RefPiece[]): Nom[] {
+  return pieces.map((piece) => nomDe(textes, piece));
+}
+
 /** Clé des textes d'une évacuation, selon ses sources. */
-export function cleEvacuation(sources: readonly ('circuit' | 'bloc')[]): CleEvacuation {
+export function cleEvacuation(sources: readonly SourceEvacuation[]): CleEvacuation {
   if (sources.includes('circuit')) return sources.includes('bloc') ? 'circuit_bloc' : 'circuit';
   if (sources.includes('bloc')) return 'bloc';
+  if (sources.includes('reserve')) return 'reserve';
   throw new ErreurTexte('Évacuation sans source.');
 }
 
-/** Textes possibles d'un événement ; une aggravation due au feu a les siens (D-188), une évacuation aussi, selon ses sources. */
+/**
+ * Textes possibles d'un événement ; une défaite par le vide a les siens, une aggravation due au feu aussi (D-188), une
+ * évacuation selon ses sources.
+ */
 function variantesDe(textes: TextesMonde, evenement: Evenement): Variantes {
+  if (evenement.type === 'defaite' && evenement.causes.includes('vide')) return textes.asphyxie;
   if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
     if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
   }
@@ -136,7 +157,9 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
       return remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible) });
     }
     const variantes = cible.ouvert ? textes.passages.ouvert : textes.passages.ferme;
-    return remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible), vers: nomDe(textes, cible.vers) });
+    const regard = remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible), vers: nomDe(textes, cible.vers) });
+    // Le voyant d'une porte étanche dit l'air de l'autre côté (VP-03).
+    return cible.vide ? `${regard} ${remplir(textes.passages.voyantVide, {})}` : regard;
   }
   const description = textes.descriptions[consultation.cible.nom];
   if (description === undefined) throw new ErreurTexte(`Description absente : ${consultation.cible.nom}.`);
@@ -182,6 +205,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
     const modeleOuvert = passage.feu ? modele.passageEnFeu : modele.passageOuvert;
     lignes.push(remplir(passage.ouvert ? modeleOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
     if (passage.huile) lignes.push(remplir(modele.huile, { passage: nomDe(textes, passage) }));
+    if (passage.vide) lignes.push(remplir(modele.passageVide, { passage: nomDe(textes, passage) }));
   }
   for (const { objet, position } of observation.placements) {
     lignes.push(remplir(modele.placement, { objet: nomDe(textes, objet), position: nomDe(textes, position) }));
@@ -191,7 +215,12 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   }
   for (const objet of observation.actives) lignes.push(remplir(modele.active, { objet: nomDe(textes, objet) }));
   if (observation.feu) lignes.push(remplir(modele.feu, {}));
+  if (observation.sansAir) lignes.push(remplir(modele.sansAir, {}));
+  for (const objet of observation.percees) lignes.push(remplir(modele.percee, { objet: nomDe(textes, objet) }));
+  for (const objet of observation.rebouchees) lignes.push(remplir(modele.rebouchee, { objet: nomDe(textes, objet) }));
   if (observation.creatureVisible) lignes.push(remplir(observation.creatureATerre ? modele.creatureATerre : modele.creature, {}));
+  if (observation.creatureInerte) lignes.push(remplir(modele.creatureInerte, {}));
+  if (observation.enfilee !== null) lignes.push(remplir(modele.enfilee, { objet: nomDe(textes, observation.enfilee) }));
   lignes.push(
     observation.inventaire.length > 0
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })
@@ -217,10 +246,17 @@ export interface ApercuTexte {
   readonly savoir: readonly string[];
 }
 
-function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom> {
+function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom | readonly Nom[]> {
   switch (savoir.type) {
     case 'portera':
+    case 'protegera':
+    case 'gardera':
+    case 'percera':
+    case 'rebouchera':
       return { objet: nomDe(textes, savoir.objet) };
+    case 'perdront_air':
+    case 'retrouveront_air':
+      return { pieces: nomsDe(textes, savoir.pieces) };
     case 'laissera':
       return { objet: nomDe(textes, savoir.objet), piece: nomDe(textes, savoir.piece) };
     case 'ouvrira':
@@ -254,6 +290,7 @@ function valeursDanger(textes: TextesMonde, danger: Danger): Record<string, Nom>
     case 'interception_mortelle':
     case 'brulure':
     case 'brulure_mortelle':
+    case 'asphyxie':
       return {};
     case 'creature_entendue':
       return { passage: nomDe(textes, danger.passage) };
