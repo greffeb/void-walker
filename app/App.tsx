@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { OptionMenu } from '../engine';
-import { EcranJeu } from './EcranJeu';
-import { commencer, demarrer, jouerOption, lireLus, marquerLus, type Environnement, type Jeu } from './jeu';
+import { observer, type OptionMenu } from '../engine';
+import { EcranJeu, EcranReveil } from './EcranJeu';
+import { commencer, demarrer, jouerOption, lireLus, marquerLus, sauvegardePresente, type Environnement, type Jeu } from './jeu';
 import type { Reglages } from './reglages';
 
 /** `lus` : messages d'IA Station déjà lus, à part du jeu pour ne pas réécrire le récit quand il change (D-186). */
 type Ecran =
   | { readonly type: 'chargement' }
-  | { readonly type: 'reprise_impossible'; readonly raison: string }
+  | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean }
+  | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
+  | { readonly type: 'reprise_impossible' }
   | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[] };
 
 export function App({
@@ -28,11 +30,14 @@ export function App({
 
   useEffect(() => {
     let actif = true;
-    void demarrer(env).then(async (demarrage) => {
-      const lus = demarrage.type === 'pret' ? await lireLus(env, demarrage.jeu.partie) : [];
-      if (!actif) return;
-      setEcran(demarrage.type === 'pret' ? { type: 'jeu', jeu: demarrage.jeu, lus } : demarrage);
-    });
+    void sauvegardePresente(env).then(
+      (partiePresente) => {
+        if (actif) setEcran({ type: 'accueil', partiePresente, confirmation: false });
+      },
+      () => {
+        if (actif) setEcran({ type: 'reprise_impossible' });
+      },
+    );
     return () => {
       actif = false;
     };
@@ -51,14 +56,48 @@ export function App({
     [env],
   );
 
-  const recommencer = useCallback(async () => {
+  const commencerNouvellePartie = useCallback(async () => {
     setOccupe(true);
     try {
-      setEcran({ type: 'jeu', jeu: await commencer(env), lus: [] });
+      setEcran({ type: 'reveil', jeu: await commencer(env), lus: [] });
     } finally {
       setOccupe(false);
     }
   }, [env]);
+
+  const reprendre = useCallback(async () => {
+    setOccupe(true);
+    try {
+      const demarrage = await demarrer(env);
+      if (demarrage.type !== 'pret') {
+        setEcran({ type: 'reprise_impossible' });
+        return;
+      }
+      if (demarrage.jeu.partie.etat.actions === 0) {
+        const lus = await lireLus(env, demarrage.jeu.partie);
+        setEcran({ type: 'reveil', jeu: demarrage.jeu, lus });
+        return;
+      }
+      const lus = await lireLus(env, demarrage.jeu.partie);
+      setEcran({ type: 'jeu', jeu: demarrage.jeu, lus });
+    } finally {
+      setOccupe(false);
+    }
+  }, [env]);
+
+  const regarder = useCallback(
+    async (jeu: Jeu, lus: readonly string[]) => {
+      const option = observer(env.monde, jeu.partie.etat).menu.find((choix) => choix.action === 'regarder');
+      if (option === undefined) return;
+      setOccupe(true);
+      try {
+        setEcran({ type: 'jeu', jeu: await jouerOption(env, jeu, option), lus });
+      } finally {
+        setOccupe(false);
+      }
+    },
+    [env],
+  );
 
   /** Ouvrir la fenêtre d'IA Station : tous les messages reçus passent en lus, la partie ne change pas (12 §3.9). */
   const lireMessages = useCallback(
@@ -72,7 +111,57 @@ export function App({
 
   return (
     <div className="ecran">
-      {ecran.type === 'jeu' ? (
+      {ecran.type === 'accueil' ? (
+        <main className="jeu accueil">
+          <h1 className="titre-accueil" aria-label="VOID WALKER">
+            <span>VOID</span>
+            <span>WALKER▮</span>
+          </h1>
+          <div className="actions-accueil">
+            {ecran.confirmation ? (
+              <section className="confirmation-accueil" aria-label="Confirmation de nouvelle partie">
+                <p>Une partie est en cours. La nouvelle partie la remplacera.</p>
+                <div>
+                  <button type="button" className="secondaire" disabled={occupe} onClick={() => setEcran({ ...ecran, confirmation: false })}>
+                    Annuler
+                  </button>
+                  <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()}>
+                    Commencer
+                  </button>
+                </div>
+              </section>
+            ) : (
+              <>
+                {ecran.partiePresente && (
+                  <button type="button" className="principal" disabled={occupe} onClick={() => void reprendre()}>
+                    Reprendre la partie
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={ecran.partiePresente ? 'secondaire' : 'principal'}
+                  disabled={occupe}
+                  onClick={() =>
+                    ecran.partiePresente
+                      ? setEcran({ ...ecran, confirmation: true })
+                      : void commencerNouvellePartie()
+                  }
+                >
+                  Nouvelle partie
+                </button>
+              </>
+            )}
+          </div>
+        </main>
+      ) : ecran.type === 'reveil' ? (
+        <EcranReveil
+          jeu={ecran.jeu}
+          env={env}
+          machineAEcrire={reglages.machineAEcrire}
+          occupe={occupe}
+          regarder={() => void regarder(ecran.jeu, ecran.lus)}
+        />
+      ) : ecran.type === 'jeu' ? (
         <EcranJeu
           jeu={ecran.jeu}
           lus={ecran.lus}
@@ -81,7 +170,7 @@ export function App({
           occupe={occupe}
           choisir={choisir}
           lireMessages={lireMessages}
-          nouvellePartie={() => void recommencer()}
+          nouvellePartie={() => void commencerNouvellePartie()}
         />
       ) : (
         <main className="jeu">
@@ -92,21 +181,22 @@ export function App({
             {ecran.type === 'chargement' && <p className="attente">Chargement…</p>}
             {ecran.type === 'reprise_impossible' && (
               <div className="avis" role="alert">
-                <p>La partie enregistrée ne peut pas reprendre.</p>
-                <p className="detail">{ecran.raison}</p>
-                <button type="button" className="principal" disabled={occupe} onClick={() => void recommencer()}>
-                  Commencer une nouvelle partie
+                <p>La partie enregistrée ne peut pas être reprise. Vous pouvez commencer une nouvelle partie.</p>
+                <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()}>
+                  Nouvelle partie
                 </button>
               </div>
             )}
           </section>
         </main>
       )}
-      <footer className="pied">
-        <span>V{version}</span>
-        {commit !== '' && <span> · {commit.slice(0, 7)}</span>}
-        {pr !== '' && <span> · test PR #{pr}</span>}
-      </footer>
+      {ecran.type !== 'accueil' && ecran.type !== 'reveil' && (
+        <footer className="pied">
+          <span>V{version}</span>
+          {commit !== '' && <span> · {commit.slice(0, 7)}</span>}
+          {pr !== '' && <span> · test PR #{pr}</span>}
+        </footer>
+      )}
       {/* Lignes de balayage (12 §2.3) : décoratives, jamais touchées ni lues. */}
       <div className="balayage" aria-hidden="true" />
     </div>

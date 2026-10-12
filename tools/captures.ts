@@ -234,10 +234,24 @@ async function attendreSauvegarde(page: Page, actions: number): Promise<void> {
     .waitFor({ state: 'attached', timeout: 10_000 });
 }
 
+async function nouvelleDepuisAccueil(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+  await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
+  await attendreSauvegarde(page, 0);
+}
+
+async function reprendreDepuisAccueil(page: Page, actions: number): Promise<void> {
+  await page.getByRole('button', { name: /^reprendre la partie$/i }).click();
+  if (actions === 0) await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
+  await attendreSauvegarde(page, actions);
+}
+
 async function lire(page: Page): Promise<{ recit: string; situation: string }> {
   // Récit tel que le lecteur d'écran le reçoit : la copie écrite à la machine lui est masquée (D-186).
-  const recit = await page.getByTestId('recit').evaluate((zone) => [...zone.querySelectorAll('.lecteur-seul')].map((bloc) => bloc.textContent ?? '').join('\n'));
-  const situation = (await page.getByTestId('situation').innerText()).replace(/\n\s*\n/g, '\n').trim();
+  const zoneRecit = page.getByTestId('recit');
+  const recit = (await zoneRecit.count()) === 0 ? '' : await zoneRecit.evaluate((zone) => [...zone.querySelectorAll('.lecteur-seul')].map((bloc) => bloc.textContent ?? '').join('\n'));
+  const zoneSituation = page.getByTestId('situation');
+  const situation = (await zoneSituation.count()) === 0 ? '' : (await zoneSituation.innerText()).replace(/\n\s*\n/g, '\n').trim();
   return { recit, situation };
 }
 
@@ -339,7 +353,7 @@ async function partieEnregistree(page: Page): Promise<string> {
       demande.onerror = () => rejeter(demande.error ?? new Error('IndexedDB'));
     });
     base.close();
-    return JSON.stringify(valeur);
+    return JSON.stringify(valeur ?? null);
   });
 }
 
@@ -550,7 +564,15 @@ async function policesChargees(page: Page): Promise<string[]> {
 
 type CapturerPage = (page: Page, titre: string, animations?: 'disabled' | 'allow') => Promise<EtapeCapture>;
 
-/** Parole d'IA Station : dans son encadré, dernier bloc du récit, étiquetée, porteuse du seul curseur (12 §4.2, D-186). */
+/** Bouton IA STATION : carré plein et « nouveau message » tant qu'un message n'est pas lu, rien ensuite (12 §2.6). */
+async function verifierPastille(page: Page, attendue: boolean, ou: string, erreurs: string[]): Promise<void> {
+  const bouton = page.locator('.nav-ia');
+  const pastilles = await bouton.locator('.pastille').count();
+  const nom = await bouton.getAttribute('aria-label');
+  const voulu = attendue ? 'IA Station, nouveau message' : 'IA Station';
+  if (pastilles !== (attendue ? 1 : 0) || nom !== voulu) erreurs.push(`${ou} : IA STATION « ${nom ?? '?'} », ${pastilles} pastille(s), au lieu de « ${voulu} ».`);
+}
+
 async function verifierParole(page: Page, attendue: string | undefined, ou: string, erreurs: string[]): Promise<void> {
   if (attendue === undefined) {
     erreurs.push(`${ou} : aucun texte d’IA Station à attendre.`);
@@ -562,9 +584,9 @@ async function verifierParole(page: Page, attendue: string | undefined, ou: stri
     return;
   }
   const lue = (await encadre.locator('.citation-ia .lecteur-seul').allTextContents()).join('\n');
-  if (lue !== `«\u00a0${attendue}\u00a0»`) erreurs.push(`${ou} : IA Station lue « ${lue} » au lieu de « ${attendue} » entre guillemets.`);
-  if (((await encadre.locator('.etiquette-ia').textContent()) ?? '').trim() !== '[ IA STATION ]') erreurs.push(`${ou} : étiquette « [ IA STATION ] » absente.`);
-  const place = await page.evaluate(() => {
+  if (lue !== `«\u00a0${attendue}\u00a0»`) erreurs.push(`${ou} : citation IA Station inattendue : « ${lue} ».`);
+  if (((await encadre.locator('.etiquette-ia').textContent()) ?? '').trim() !== '[ IA STATION ]') erreurs.push(`${ou} : étiquette IA Station absente.`);
+  const placement = await page.evaluate(() => {
     const recit = document.querySelector('[data-testid="recit"]');
     const dernier = recit?.lastElementChild;
     return {
@@ -573,17 +595,8 @@ async function verifierParole(page: Page, attendue: string | undefined, ou: stri
       dansEncadre: document.querySelector('[data-testid="ia-station"] .curseur') !== null,
     };
   });
-  if (!place.apresRecit) erreurs.push(`${ou} : l’encadré d’IA Station n’est pas après le récit.`);
-  if (place.curseurs !== 1 || !place.dansEncadre) erreurs.push(`${ou} : ${place.curseurs} curseur(s), ${place.dansEncadre ? 'dans' : 'hors de'} l’encadré.`);
-}
-
-/** Bouton IA STATION : carré plein et « nouveau message » tant qu'un message n'est pas lu, rien ensuite (12 §2.6). */
-async function verifierPastille(page: Page, attendue: boolean, ou: string, erreurs: string[]): Promise<void> {
-  const bouton = page.locator('.nav-ia');
-  const pastilles = await bouton.locator('.pastille').count();
-  const nom = await bouton.getAttribute('aria-label');
-  const voulu = attendue ? 'IA Station, nouveau message' : 'IA Station';
-  if (pastilles !== (attendue ? 1 : 0) || nom !== voulu) erreurs.push(`${ou} : IA STATION « ${nom ?? '?'} », ${pastilles} pastille(s), au lieu de « ${voulu} ».`);
+  if (!placement.apresRecit) erreurs.push(`${ou} : l’encadré IA Station ne suit pas le récit.`);
+  if (placement.curseurs !== 1 || !placement.dansEncadre) erreurs.push(`${ou} : curseur IA Station mal placé.`);
 }
 
 /** Lien « [ IA STATION ] parle dans l'écouteur › », dernier élément du récit, sans la citation (12 §3.3, D-192). */
@@ -661,13 +674,17 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
   const page = await contexte.newPage();
   await page.goto(adresse);
+  await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+  await page.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+  await verifierParole(page, assistance.reveil, 'Réveil AR-01', erreurs);
+  await capturer(page, 'AR-01 — Réveil : citation IA Station encadrée');
+  await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
   await attendreSauvegarde(page, 0);
   const depart = nomDe(ar01.textes, observer(ar01.monde, nouvellePartie(ar01.monde, { version: 'gestes', graine: 0 }).etat).piece).texte;
   const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim();
   if (piece !== depart) erreurs.push(`Adresse par défaut : pièce « ${piece} » au lieu de « ${depart} », le départ d’AR-01.`);
-  await verifierParole(page, assistance.reveil, 'Départ', erreurs);
   await verifierPastille(page, true, 'Départ', erreurs);
-  await capturer(page, 'AR-01 — Départ : parole d’IA Station, pastille sur IA STATION');
+  await capturer(page, 'AR-01 — Départ : IA Station nouvelle');
   await verifierEcran(page, 'AR-01, départ', erreurs);
 
   for (const [index, geste] of gestes.entries()) {
@@ -734,7 +751,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
       );
       // Après reprise : mêmes messages, aucun nouveau ; le lien reste, le message venant d'arriver.
       await page.reload();
-      await attendreSauvegarde(page, index + 1);
+      await reprendreDepuisAccueil(page, index + 1);
       await verifierLien(page, `${ou}, après reprise`, erreurs);
       await verifierPastille(page, false, `${ou}, après reprise`, erreurs);
       await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, false], [assistance.energie, false]], 'voile', `${ou}, après reprise, par IA STATION`, erreurs, () =>
@@ -772,7 +789,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
     const autre = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ecran, locale: 'fr-FR' });
     const vue = await autre.newPage();
     await vue.goto(adresse);
-    await attendreSauvegarde(vue, 0);
+    await nouvelleDepuisAccueil(vue);
     const titre = `AR-01 — Départ, ${ecran.width} × ${ecran.height}`;
     await capturer(vue, titre);
     await verifierEcran(vue, titre, erreurs);
@@ -791,7 +808,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   const etroit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
   const petite = await etroit.newPage();
   await petite.goto(adresse);
-  await attendreSauvegarde(petite, 0);
+  await nouvelleDepuisAccueil(petite);
   await rejouer(petite, gestes.slice(0, caisse));
   await ouvrir(petite, question);
   await versQuestion(petite, question);
@@ -817,7 +834,7 @@ async function parcoursAr02(navigateur: Browser, racine: string, ar02: EntreeMon
   const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
   const page = await contexte.newPage();
   await page.goto(`${racine}?monde=ar-02`);
-  await attendreSauvegarde(page, 0);
+  await nouvelleDepuisAccueil(page);
   await capturer(page, 'AR-02 — Départ');
   await verifierEcran(page, 'AR-02, départ', erreurs);
   for (const [index, geste] of gestes.entries()) {
@@ -956,7 +973,112 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const capturerEtape = (titre: string, animations: 'disabled' | 'allow' = 'disabled'): Promise<EtapeCapture> => capturerPage(page, titre, animations);
 
     await page.goto(adresse);
+    await page.getByRole('button', { name: /^nouvelle partie$/i }).waitFor();
+    if ((await page.getByRole('button', { name: /^reprendre la partie$/i }).count()) !== 0) erreurs.push('Accueil vide : REPRENDRE LA PARTIE est affiché.');
+    if ((await page.locator('.titre-accueil').textContent())?.replace(/\s/g, '') !== 'VOIDWALKER▮') erreurs.push('Accueil vide : titre inattendu.');
+    if ((await page.getByRole('button').count()) !== 1) erreurs.push('Accueil vide : OPTIONS ou un autre bouton est visible.');
+    if ((await page.locator('.actions-accueil .principal').innerText()).trim().toLowerCase() !== 'nouvelle partie') erreurs.push('Accueil vide : NOUVELLE PARTIE n’est pas principal.');
+    if ((await partieEnregistree(page)) !== 'null') erreurs.push('Accueil vide : une partie a été créée avant un choix explicite.');
+    await capturerEtape('Accueil sans partie active');
+
+    await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+    const reveil = await lire(page);
+    if (!/Vous (?:ouvrez les yeux|vous réveillez) dans la cabine/.test(reveil.recit)) erreurs.push('Réveil : le texte écrit du monde-test est absent.');
+    await verifierParole(page, entree.textes.assistance.reveil, 'Réveil monde-test', erreurs);
+    if ((await page.getByRole('button').count()) !== 1) erreurs.push('Réveil : le bouton REGARDER AUTOUR DE VOUS n’est pas seul.');
+    const sauvegardeAuReveil = await partieEnregistree(page);
+    if ((JSON.parse(sauvegardeAuReveil) as { etat?: { actions?: number } }).etat?.actions !== 0) erreurs.push('Réveil : la nouvelle partie n’est pas au départ, sans action engagée.');
+    await capturerEtape('Réveil — monde-test');
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
     await attendreSauvegarde(page, 0);
+    if ((await partieEnregistree(page)) !== sauvegardeAuReveil) erreurs.push('REGARDER AUTOUR DE VOUS a modifié la sauvegarde.');
+    await page.getByRole('button', { name: /^IA Station, nouveau message$/i }).click();
+    const fenetreIA = page.getByRole('dialog', { name: /^IA Station$/i });
+    await fenetreIA.getByRole('button', { name: /^Retour$/i }).click();
+    await page.getByRole('button', { name: /^IA Station$/i }).waitFor();
+    await page.reload();
+    await page.getByRole('button', { name: /^reprendre la partie$/i }).click();
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
+    await attendreSauvegarde(page, 0);
+    if ((await page.getByRole('button', { name: /^IA Station, nouveau message$/i }).count()) !== 0) {
+      erreurs.push('Un message déjà lu redevient nouveau après reprise au réveil.');
+    }
+
+    await page.reload();
+    await page.getByRole('button', { name: /^reprendre la partie$/i }).waitFor();
+    if ((await page.getByRole('button').count()) !== 2) erreurs.push('Accueil avec partie : les boutons attendus ne sont pas seuls.');
+    if ((await page.locator('.actions-accueil .principal').innerText()).trim().toLowerCase() !== 'reprendre la partie') erreurs.push('Accueil avec partie : REPRENDRE LA PARTIE n’est pas principal.');
+    await capturerEtape('Accueil avec partie en cours');
+    await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+    await page.getByText('Une partie est en cours. La nouvelle partie la remplacera.').waitFor();
+    const avantConfirmation = await partieEnregistree(page);
+    if ((await page.getByRole('button').count()) !== 2) erreurs.push('Confirmation : ANNULER et COMMENCER ne sont pas les deux seuls boutons.');
+    await capturerEtape('Confirmation du remplacement');
+
+    await page.getByRole('button', { name: /^commencer$/i }).click();
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+    const apresConfirmation = await partieEnregistree(page);
+    if (apresConfirmation === avantConfirmation) erreurs.push('COMMENCER n’a pas remplacé la sauvegarde après confirmation.');
+    if ((JSON.parse(apresConfirmation) as { etat?: { actions?: number } }).etat?.actions !== 0) {
+      erreurs.push('COMMENCER : la nouvelle partie ne commence pas au réveil sans action engagée.');
+    }
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
+    await attendreSauvegarde(page, 0);
+    if ((await partieEnregistree(page)) !== apresConfirmation) erreurs.push('Le réveil de la partie remplacée a modifié la sauvegarde.');
+
+    await page.reload();
+    await page.getByRole('button', { name: /^reprendre la partie$/i }).waitFor();
+    await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+    await page.getByText('Une partie est en cours. La nouvelle partie la remplacera.').waitFor();
+    const avantAnnulation = await partieEnregistree(page);
+    await page.getByRole('button', { name: /^annuler$/i }).click();
+    await page.getByRole('button', { name: /^reprendre la partie$/i }).waitFor();
+    if ((await partieEnregistree(page)) !== avantAnnulation) erreurs.push('ANNULER a modifié la sauvegarde.');
+    await page.getByRole('button', { name: /^reprendre la partie$/i }).click();
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+    if ((await partieEnregistree(page)) !== avantAnnulation) erreurs.push('La reprise à zéro action a modifié la sauvegarde.');
+    await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
+    await attendreSauvegarde(page, 0);
+    if ((await partieEnregistree(page)) !== avantAnnulation) erreurs.push('Le réveil repris ou son observation gratuite a modifié la sauvegarde.');
+
+    const contexteInvalide = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+    const pageInvalide = await contexteInvalide.newPage();
+    await pageInvalide.goto(adresse);
+    await pageInvalide.getByRole('button', { name: /^nouvelle partie$/i }).waitFor();
+    await pageInvalide.evaluate(async () => {
+      const nom = (await indexedDB.databases()).find((base) => base.name?.startsWith('void-walker:') === true)?.name;
+      if (nom === undefined) throw new Error('Base IndexedDB absente.');
+      const base = await new Promise<IDBDatabase>((resoudre, rejeter) => {
+        const demande = indexedDB.open(nom);
+        demande.onsuccess = () => resoudre(demande.result);
+        demande.onerror = () => rejeter(demande.error ?? new Error('IndexedDB'));
+      });
+      await new Promise<void>((resoudre, rejeter) => {
+        const transaction = base.transaction('parties', 'readwrite');
+        transaction.objectStore('parties').put({ detailTechnique: 'sauvegarde corrompue' }, 'en-cours');
+        transaction.oncomplete = () => resoudre();
+        transaction.onerror = () => rejeter(transaction.error ?? new Error('IndexedDB'));
+      });
+      base.close();
+    });
+    await pageInvalide.reload();
+    await pageInvalide.getByRole('button', { name: /^reprendre la partie$/i }).click();
+    const avisReprise = pageInvalide.getByRole('alert');
+    await avisReprise.waitFor();
+    const messageReprise = await avisReprise.innerText();
+    if (!messageReprise.includes('Vous pouvez commencer une nouvelle partie.') || messageReprise.includes('sauvegarde corrompue')) {
+      erreurs.push('Reprise impossible : message brut ou bouton de nouvelle partie absent.');
+    }
+    if ((await pageInvalide.getByRole('button', { name: /^nouvelle partie$/i }).count()) !== 1) erreurs.push('Reprise impossible : NOUVELLE PARTIE est absente.');
+    await pageInvalide.getByRole('button', { name: /^nouvelle partie$/i }).click();
+    await pageInvalide.getByRole('button', { name: /^regarder autour de vous$/i }).waitFor();
+    if ((JSON.parse(await partieEnregistree(pageInvalide)) as { etat?: { actions?: number } }).etat?.actions !== 0) {
+      erreurs.push('Reprise impossible : nouvelle partie non démarrée après le choix explicite.');
+    }
+    await contexteInvalide.close();
+
     await capturerEtape('Départ');
     await verifierEcran(page, 'Départ', erreurs);
     if ((await page.evaluate(() => document.documentElement.lang)) !== 'fr') erreurs.push('Le document n’est pas déclaré en français.');
@@ -1036,7 +1158,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
         await page.close();
         page = await contexte.newPage();
         await page.goto(adresse);
-        await attendreSauvegarde(page, index + 1);
+        await reprendreDepuisAccueil(page, index + 1);
         const apres = await capturerEtape('Après fermeture et réouverture');
         if (apres.recit !== avant.recit || apres.situation !== avant.situation) erreurs.push('La réouverture ne reprend pas au dernier geste.');
       }
@@ -1071,7 +1193,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       if (reponse.url().endsWith('.woff2')) requetes.push(`${reponse.url().split('/').pop()} (${reponse.fromServiceWorker() ? 'service worker' : 'réseau'})`);
     });
     await page.goto(adresse);
-    await attendreSauvegarde(page, gestes.length);
+    await reprendreDepuisAccueil(page, gestes.length);
     const chargees = await policesChargees(page);
     horsLigne = `polices chargées : ${chargees.join(', ') || 'aucune'} ; ${requetes.join(', ') || 'aucune requête de police'}`;
     const servies = requetes.length > 0 && requetes.every((requete) => requete.endsWith('(service worker)'));
@@ -1092,7 +1214,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       const neuf = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
       page = await neuf.newPage();
       await page.goto(adresse);
-      await attendreSauvegarde(page, 0);
+      await nouvelleDepuisAccueil(page);
       await (await preparer(page, essai.ouvrir)).click();
       await attendreSauvegarde(page, 1);
       await page.waitForTimeout(PAUSE_JOUEUR_MS);
@@ -1165,7 +1287,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       const neuf = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
       page = await neuf.newPage();
       await page.goto(adresse);
-      await attendreSauvegarde(page, 0);
+      await nouvelleDepuisAccueil(page);
       await rejouer(page, forme.chemin);
       await (await preparer(page, forme.geste)).waitFor();
       const titre = `Aperçu « ${forme.geste.fil} », ${forme.risque ? 'risque connu' : 'sans risque connu'}, ${forme.cout ? 'avec un coût' : 'sans coût'}`;
@@ -1183,7 +1305,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const machine = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
     page = await machine.newPage();
     await page.goto(adresse);
-    await attendreSauvegarde(page, 0);
+    await nouvelleDepuisAccueil(page);
     for (const taille of ['taille standard', 'texte à 22 px']) {
       if (taille !== 'taille standard') await page.addStyleTag({ content: '.ecran, .ecran * { font-size: 22px !important; }' });
       await nouveauTexte(page);
@@ -1222,11 +1344,11 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const sansEffet = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
     page = await sansEffet.newPage();
     await page.goto(adresse);
-    await attendreSauvegarde(page, 0);
+    await nouvelleDepuisAccueil(page);
     await page.evaluate((cle) => window.localStorage.setItem(cle, JSON.stringify({ machineAEcrire: false })), CLE_REGLAGES);
     for (const fois of ['après rechargement', 'après un second rechargement']) {
       await page.reload();
-      await attendreSauvegarde(page, 0);
+      await reprendreDepuisAccueil(page, 0);
       await nouveauTexte(page);
       const etat = await etatEcriture(page);
       if (etat.visibles !== etat.total || etat.animees > 0 || etat.curseur !== 'visible, none' || !etat.classes.includes('curseur-fixe')) {
@@ -1240,7 +1362,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const reduit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR', reducedMotion: 'reduce' });
     page = await reduit.newPage();
     await page.goto(adresse);
-    await attendreSauvegarde(page, 0);
+    await nouvelleDepuisAccueil(page);
     await nouveauTexte(page);
     const calme = await etatEcriture(page);
     if (calme.visibles !== calme.total || calme.animees > 0 || calme.curseur !== 'visible, none') erreurs.push(`Mouvement réduit : ${JSON.stringify(calme)}.`);
@@ -1249,7 +1371,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const etroit = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
     page = await etroit.newPage();
     await page.goto(adresse);
-    await attendreSauvegarde(page, 0);
+    await nouvelleDepuisAccueil(page);
     const premier = premierApercu;
     if (premier !== undefined) {
       await ouvrir(page, premier);
