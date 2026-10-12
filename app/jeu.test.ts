@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { observer, type DefMonde } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { commencer, demarrer, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, type Environnement, type Jeu } from './jeu';
+import { commencer, demarrer, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
@@ -26,6 +26,22 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
   let fabrique: IDBFactory;
   beforeEach(() => {
     fabrique = new IDBFactory();
+  });
+
+  it('lire la sauvegarde à l’accueil ne crée pas de partie et ne modifie pas une sauvegarde existante', async () => {
+    const reel = stockageIndexedDB('accueil-lecture', fabrique);
+    let ecritures = 0;
+    const env = environnement({ ...reel, ecrire: async (donnees) => { ecritures++; await reel.ecrire(donnees); } });
+
+    expect(await sauvegardePresente(env)).toBe(false);
+    expect(await reel.lire()).toBeNull();
+    expect(ecritures).toBe(0);
+
+    await commencer(env);
+    const sauvegarde = await reel.lire();
+    expect(await sauvegardePresente(env)).toBe(true);
+    expect(await reel.lire()).toEqual(sauvegarde);
+    expect(ecritures).toBe(1);
   });
 
   it('première ouverture : nouvelle partie sauvegardée ; réouverture : même partie, même récit', async () => {

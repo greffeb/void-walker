@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App } from './App';
-import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu, ModaleIA } from './EcranJeu';
+import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
@@ -351,6 +351,22 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(sauvegarde).toContain('data-etat="echec"');
     expect(sauvegarde).not.toContain('hidden');
     expect(texte(sauvegarde)).toBe('La sauvegarde a échoué. Vous pouvez continuer : elle sera retentée à la prochaine action.');
+  });
+
+  it('réveil : citation IA Station encadrée et panne de sauvegarde visible', async () => {
+    const jeu = await commencer(env);
+    const rendreReveil = (partie: Jeu): string =>
+      renderToStaticMarkup(
+        <EcranReveil jeu={partie} env={env} machineAEcrire={false} occupe={false} regarder={() => undefined} />,
+      );
+    const html = rendreReveil(jeu);
+    expect(html).toContain('data-testid="ia-station"');
+    expect(texte(entre(html, 'data-testid="ia-station"', '</section>'))).toContain(jeu.assistance[0]);
+    expect((html.match(/<button/g) ?? [])).toHaveLength(1);
+
+    const enPanne = rendreReveil({ ...jeu, sauvegarde: 'echec' });
+    expect(enPanne).toContain('role="alert"');
+    expect(texte(entre(enPanne, 'data-testid="sauvegarde"', '</p>'))).toContain('La sauvegarde a échoué.');
   });
 
   it('badge de santé : rien si indemne, « ! BLESSÉ » puis « !! CRITIQUE », annoncés comme état (12 §3.2)', async () => {

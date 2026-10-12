@@ -47,6 +47,11 @@ export async function commencer(env: Environnement): Promise<Jeu> {
   };
 }
 
+/** Lecture seule utilisée à l'accueil : l'absence de sauvegarde ne crée pas de partie (C-09 §2). */
+export async function sauvegardePresente(env: Pick<Environnement, 'stockage'>): Promise<boolean> {
+  return (await env.stockage.lire()) !== null;
+}
+
 /** Reprend la partie enregistrée au dernier geste, ou en commence une si rien n'est enregistré. */
 export async function demarrer(env: Environnement): Promise<Demarrage> {
   let donnees: unknown;

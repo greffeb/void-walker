@@ -307,6 +307,49 @@ export function EcranJeu({
   );
 }
 
+export function EcranReveil({
+  jeu,
+  env,
+  machineAEcrire,
+  occupe,
+  regarder,
+}: {
+  readonly jeu: Jeu;
+  readonly env: Pick<Environnement, 'monde' | 'textes'>;
+  readonly machineAEcrire: boolean;
+  readonly occupe: boolean;
+  readonly regarder: () => void;
+}) {
+  const observation = observer(env.monde, jeu.partie.etat);
+  const zone = useRef<HTMLElement>(null);
+  const [complet, setComplet] = useState(false);
+  const ecrire = machineAEcrire && !complet && !dejaEcrit(jeu);
+  const completer = (): void => {
+    marquerEcrit(jeu);
+    setComplet(true);
+  };
+
+  useEffect(() => {
+    const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);
+    return () => clearTimeout(fin);
+  }, [jeu]);
+
+  return (
+    <main className="jeu reveil" onPointerDownCapture={completer} onKeyDownCapture={completer}>
+      <header className="entete-piece entete-reveil">
+        <p className="lieu-reveil">&gt; {nomDe(env.textes, observation.piece).texte}_</p>
+      </header>
+      <Sauvegarde jeu={jeu} />
+      <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={false} ouvrirIA={() => undefined} />
+      <div className="actions-reveil">
+        <button type="button" className="principal" disabled={occupe} onClick={regarder}>
+          Regarder autour de vous
+        </button>
+      </div>
+    </main>
+  );
+}
+
 interface PropsComposition {
   readonly textes: TextesMonde;
   readonly occupe: boolean;
@@ -804,6 +847,7 @@ function Recit({
   occupe,
   iaOuverte,
   ouvrirIA,
+  sansAssistance = false,
 }: {
   readonly jeu: Jeu;
   readonly zone: RefObject<HTMLElement | null>;
@@ -813,11 +857,12 @@ function Recit({
   readonly occupe: boolean;
   readonly iaOuverte: boolean;
   readonly ouvrirIA: (depuis: HTMLElement) => void;
+  readonly sansAssistance?: boolean;
 }) {
   const { rappel } = jeu;
   const reveil = jeu.partie.etat.actions === 0;
   // Paroles d'IA Station entre guillemets, après le récit, écrites comme lui (D-186).
-  const paroles = reveil ? jeu.assistance.map((message) => `«\u00a0${message}\u00a0»`) : [];
+  const paroles = reveil && !sansAssistance ? jeu.assistance.map((message) => `«\u00a0${message}\u00a0»`) : [];
   const blocs = [...(rappel === null ? [] : [`> ${rappel.texte}`]), ...jeu.recit, ...paroles];
   const delais = delaisEcriture(blocs);
   // Nouvelle clé à chaque nouveau texte : la copie écrite est recréée et son écriture repart de zéro.
@@ -863,7 +908,7 @@ function Recit({
           ))}
         </section>
       )}
-      {!reveil && jeu.assistance.length > 0 && (
+      {!reveil && !sansAssistance && jeu.assistance.length > 0 && (
         <button
           type="button"
           className="lien-ia"
