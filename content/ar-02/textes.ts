@@ -127,7 +127,7 @@ export const TEXTES_AR02: TextesMonde = {
     ],
     combinaison_retiree: [
       'Vous déverrouillez le casque et retirez {le:objet}. Vous l’emportez avec vous.',
-      'Vous ôtez {le:objet}, casque compris. Vous la gardez roulée sous le bras.',
+      'Vous ôtez {le:objet}, casque compris. Vous gardez le tout roulé sous le bras.',
     ],
     breche_ouverte: [
       'Le disque mord dans {le:objet}. Le verre cède d’un coup ; l’air file par la brèche.',
@@ -144,8 +144,8 @@ export const TEXTES_AR02: TextesMonde = {
       'Le souffle arrache la créature du sol ; elle passe par la brèche et se perd dans l’espace.',
     ],
     creature_inerte: [
-      'Une créature gît au sol, inerte : plus haute qu’un homme, une tête sans yeux.',
-      'Au sol, une créature plus haute qu’un homme, sans yeux, ne bouge plus.',
+      'Au sol gît une forme inerte, plus haute qu’un homme, une tête sans yeux.',
+      'Au sol, une masse plus haute qu’un homme, sans yeux, ne bouge plus.',
     ],
   },
   brulures: {
@@ -336,7 +336,7 @@ export const TEXTES_AR02: TextesMonde = {
       gardera: 'Vous garderez {le:objet} sur vous, sans protection.',
       percera: '{Le:objet} sera percé{e:objet}.',
       rebouchera: 'La brèche {de:objet} sera rebouchée.',
-      perdront_air: 'Plus d’air dans {le:pieces}.',
+      perdront_air: 'Le vide gagnera {le:pieces}.',
       retrouveront_air: 'L’air reviendra dans {le:pieces}.',
     },
   },

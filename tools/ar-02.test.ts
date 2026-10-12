@@ -146,10 +146,10 @@ describe('AR-02 : percer (C-03 §5.4, C-04 §3.1)', () => {
     const perce = apres(depart(), [...EQUIPE, PERCER]);
     const fermee = engager(perce, { action: 'fermer', cible: 'porte', vers: 'coursive' });
     expect(sansAir(fermee.partie)).toEqual(['p-panoramique']);
-    expect(fermee.evenements).toContainEqual({ type: 'air_revenu', pieces: [expect.objectContaining({ nom: 'coursive' })] });
+    expect(fermee.evenements).toContainEqual({ type: 'air_revenu', pieces: ['coursive', 'local'].map((nom) => expect.objectContaining({ nom })) });
     const rouverte = engager(fermee.partie, { action: 'ouvrir', cible: 'porte', vers: 'coursive' });
     expect(sansAir(rouverte.partie)).toEqual(['p-coursive', 'p-local', 'p-panoramique']);
-    expect(rouverte.evenements).toContainEqual({ type: 'air_perdu', pieces: [expect.objectContaining({ nom: 'coursive' })] });
+    expect(rouverte.evenements).toContainEqual({ type: 'air_perdu', pieces: ['coursive', 'local'].map((nom) => expect.objectContaining({ nom })) });
   });
 
   it('T-13, RSK-11 : percer au pas qui suit l’entrée de la créature, expulsée avant sa réaction, aucune attaque ni dé (P-V2 pas 8)', () => {
@@ -278,7 +278,7 @@ describe('AR-02 : aperçu et combinaison (C-06)', () => {
     expect(lus[0]).toMatchObject({ risque: 'aucun', danger: null });
     expect(lus[0]?.savoir).toContainEqual({ type: 'perdront_air', pieces: ['coursive', 'local', 'panoramique'].map((nom) => expect.objectContaining({ nom })) });
     const texte = Object.values(rendreApercu(ENTREE.textes, lus[0] as Apercu)).flat().map(String).join(' ');
-    expect(texte).toContain('Plus d’air dans la coursive des cabines, le local de sécurité et la salle panoramique.');
+    expect(texte).toContain('Le vide gagnera la coursive des cabines, le local de sécurité et la salle panoramique.');
     expect(texte).not.toMatch(/créature|embarquement/i);
   });
 

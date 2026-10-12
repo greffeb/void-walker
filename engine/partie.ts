@@ -205,7 +205,7 @@ function simuler(monde: DefMonde, etat: EtatPartie, definition: ActionEngagee, c
   return { avant: etat, ...mettreAJourDangers(monde, etat, effet) };
 }
 
-/** Sous ses yeux, sauf si le vide l'atteint à ce pas : elle n'agit plus, ni jet ni menace (C-03 §5.4, D-071, RSK-11). */
+/** Sous ses yeux, sauf si le vide l'atteint à ce pas : elle n'agit plus, ni jet ni menace (C-03 §5.4, D-071, D-194). */
 function exposeCePas({ avant, vide }: Simulation): boolean {
   return expose(avant) && vide.etat.creature?.neutralisee === undefined;
 }

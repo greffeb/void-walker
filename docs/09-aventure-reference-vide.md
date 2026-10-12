@@ -112,7 +112,7 @@ Le passager connaît les noms de la signalétique et, par l'assistance, deux fai
 
 | ID | Précision | Raison |
 | --- | --- | --- |
-| VP-01 | Percer, reboucher, ouvrir ou fermer sont l'effet de l'action ; l'état d'air et les expositions se résolvent à la mise à jour des dangers du même pas, avant toute réaction de la créature | Ordre accepté d'AR-01 repris (C-03) ; une créature atteinte n'agit plus dans ce pas |
+| VP-01 | Percer, reboucher, ouvrir ou fermer sont l'effet de l'action ; l'état d'air et les expositions se résolvent à la mise à jour des dangers du même pas, avant toute réaction de la créature | Ordre accepté d'AR-01 repris (C-03) ; une créature atteinte n'agit plus dans ce pas, pas même pour intercepter (D-194) |
 | VP-02 | Avant de percer, d'ouvrir ou de fermer, le menu annonce les pièces connues qui perdront ou retrouveront leur air, et « mortel » sans combinaison ; jamais l'effet sur une créature non perçue | D-059 et C-01 : danger connu sans fuite de secret |
 | VP-03 | L'état d'air des pièces connues est public par les voyants des portes étanches ; l'assistance ne répond pas aux demandes d'état (D-081) | Permet d'annoncer le danger sans deviner |
 | VP-04 | La dépressurisation ne déplace aucun objet ; le corps inerte ne bloque aucun passage ; une créature expulsée n'a plus de position dans la station | Borne les effets aux règles acceptées |
@@ -123,7 +123,7 @@ Le passager connaît les noms de la signalétique et, par l'assistance, deux fai
 
 - **AP-1 — Vider l'embarquement.** Percer pendant que la créature est derrière la porte fermée, puis ouvrir : l'embarquement perd son air et la créature reste inerte sur place.
 - **AP-2 — Attirer puis percer.** Ouvrir la porte grippée : la créature entend, entre dans la salle ; percer à l'action suivante : elle est aspirée dehors.
-- **AP-3 — Passer en force, sans vide.** Ouvrir, traverser près d'elle avec le D6 de la fuite exposée, refermer derrière soi, embarquer. Pas de combinaison nécessaire, risque de blessure.
+- **AP-3 — Passer en force, sans vide.** Ouvrir, traverser près d'elle pendant l'action libre qui suit la première rencontre (D-184, D-193), refermer derrière soi, embarquer. Pas de combinaison nécessaire ; s'attarder ensuite sous ses yeux se joue au dé.
 - **Option — Reboucher.** Après une brèche, la rustine rend l'air à tout ce qui est relié à la salle ; jamais nécessaire pour gagner (D-069).
 
 ## 8. Parcours témoins acceptés en conception — à prouver
@@ -159,20 +159,20 @@ Chaque numéro est une action engagée ; lire, observer et ouvrir les menus rest
 | 11 | Fermer l'écoutille | La capsule retrouve son air |
 | 12 | Lancer | Évacuation |
 
-### P-V3 — Passer en force (AP-3), un D6
+### P-V3 — Passer en force (AP-3), sans dé (D-193)
 
 | Pas | Action | Résultat attendu |
 | --- | --- | --- |
 | 1 | Ouvrir C–B | — |
 | 2 | C → B | — |
 | 3 | Ouvrir B–E | Bruit ; la créature entre dans B ; premier contact annoncé |
-| 4 | B → E | Fuite exposée (C-04) : arrivée en E dans tous les cas ; 1–3 = une blessure ; réaction de la créature consommée |
+| 4 | B → E | Action libre qui suit le premier contact (D-184) : arrivée en E, ni dé ni blessure ; elle vous voit partir |
 | 5 | Fermer B–E | La créature reste dans B, retenue par la porte |
 | 6 | Entrer dans la capsule | À bord |
 | 7 | Fermer l'écoutille | Capsule isolée |
-| 8 | Lancer | Évacuation, blessé ou non |
+| 8 | Lancer | Évacuation, indemne |
 
-P-V3 est plus court mais risqué ; il ne prouve rien sur le vide et ne doit pas servir de témoin des règles R-01.
+P-V3 est plus court, sans combinaison ; il ne prouve rien sur le vide et ne doit pas servir de témoin des règles R-01.
 
 ## 9. Cas à prouver
 
@@ -213,7 +213,7 @@ Ce sont des faits sur les objets, pas une liste de gestes optimaux.
 | --- | --- |
 | Cadre, plan, matériel, données fixes, précisions et parcours | Acceptés en conception, Q-51 à Q-67 (D-058 à D-074) |
 | Règles du vide dans les contrats | Retranscrites dans C-03, C-04, C-05 |
-| Moteur et tests | Proposés par #104 : P-V1, P-V2, P-V3 et VN-01 à VN-13 passent dans la vérification complète ; solveur absent. **Contradiction à arbitrer :** P-V3 passe sans dé ni blessure, son pas 4 étant l'action libre qui suit la première rencontre (D-184), alors que §8 et D-070 y prévoient un D6 |
+| Moteur et tests | Proposés par #104 : P-V1, P-V2, P-V3 et VN-01 à VN-13 passent dans la vérification complète ; solveur absent. P-V3 sans dé, arbitré par D-193 |
 | Partie sur téléphone | Non effectuée ; journal humain vide |
 | Durée et intérêt | Non mesurés ; volontairement plus courte qu'AR-01 (D-058) |
 | Textes | Écrits à la main par #104, à relire par le porteur |

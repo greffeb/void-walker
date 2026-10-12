@@ -25,20 +25,17 @@ export interface Vide {
   readonly asphyxie: boolean;
 }
 
-/**
- * Pièce dont le passager sait nommer l'état : la sienne, ou une voisine dont il connaît la destination. Ouvert, il la voit ;
- * sinon `voyant` : le voyant de la porte étanche dit l'air de l'autre côté (VP-03).
- */
-function voitEtNomme(monde: DefMonde, etat: EtatPartie, piece: string, voyant: boolean): boolean {
+/** Pièce dont le passager voit l'état : la sienne, ou une voisine par un passage ouvert dont il connaît la destination. */
+function voitEtNomme(monde: DefMonde, etat: EtatPartie, piece: string): boolean {
   if (piece === etat.piece) return true;
   return liaisonsVisibles(monde, etat, etat.piece).some(
-    (liaison) => (voyant || etat.liaisons[liaison.id] === true) && autreCote(liaison, etat.piece) === piece && destinationConnue(etat, liaison),
+    (liaison) => etat.liaisons[liaison.id] === true && autreCote(liaison, etat.piece) === piece && destinationConnue(etat, liaison),
   );
 }
 
 /** Foyer éteint par le vide, tel que le passager le voit : la pièce nommée, ou le passage seul tant que sa destination est inconnue (C-06 OP-03). */
 function foyerEteintVu(monde: DefMonde, etat: EtatPartie, piece: string): Evenement[] {
-  if (voitEtNomme(monde, etat, piece, false)) return [{ type: 'feu_eteint', piece: refPiece(monde, piece) }];
+  if (voitEtNomme(monde, etat, piece)) return [{ type: 'feu_eteint', piece: refPiece(monde, piece) }];
   const par = liaisonsVisibles(monde, etat, etat.piece).find((liaison) => etat.liaisons[liaison.id] === true && autreCote(liaison, etat.piece) === piece);
   return par === undefined ? [] : [{ type: 'feu_eteint', piece: refPassage(monde, etat, par, etat.piece) }];
 }
@@ -58,14 +55,16 @@ function refs(monde: DefMonde, pieces: readonly string[]): RefPiece[] {
 /**
  * Recalcule l'air après l'effet de l'action (`etat`) par rapport au début du pas (`avant`) : le vide éteint les foyers qu'il
  * atteint (MX-02) ; la créature active exposée est expulsée si elle est dans une pièce percée, inerte ailleurs, pour de bon
- * (D-062). Le passager sait ce qui change dans sa pièce et, par les voyants, dans les voisines ; il découvre un corps inerte en arrivant.
+ * (D-062). Le passager apprend l'air perdu ou revenu dans les pièces connues, comme l'aperçu (VP-02, VP-03) ; il découvre un corps inerte en arrivant.
  */
 export function actualiserVide(monde: DefMonde, avant: EtatPartie, etat: EtatPartie): Vide {
   const sansAir = piecesSansAir(monde, etat);
   const precedent = piecesSansAir(monde, avant);
   const evenements: Evenement[] = [];
-  const perdues = sansAir.filter((piece) => !precedent.includes(piece) && voitEtNomme(monde, etat, piece, true));
-  const revenues = precedent.filter((piece) => !sansAir.includes(piece) && voitEtNomme(monde, etat, piece, true));
+  // Mêmes pièces que l'aperçu (VP-02), plus celles que le passager découvre en changeant de pièce.
+  const connues = new Set([...piecesConnues(monde, avant), ...piecesConnues(monde, etat)]);
+  const perdues = sansAir.filter((piece) => !precedent.includes(piece) && connues.has(piece));
+  const revenues = precedent.filter((piece) => !sansAir.includes(piece) && connues.has(piece));
   if (perdues.length > 0) evenements.push({ type: 'air_perdu', pieces: refs(monde, perdues) });
   if (revenues.length > 0) evenements.push({ type: 'air_revenu', pieces: refs(monde, revenues) });
   let suite = etat;
