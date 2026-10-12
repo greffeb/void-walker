@@ -4,7 +4,7 @@ import { chromium, devices, type Browser, type Locator, type Page } from 'playwr
 import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
 import { libelleOption, MONDES, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
-import { composerDock, filBulle, nomDestination, nomParametre, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
+import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
@@ -577,6 +577,66 @@ async function verifierParole(page: Page, attendue: string | undefined, ou: stri
   if (place.curseurs !== 1 || !place.dansEncadre) erreurs.push(`${ou} : ${place.curseurs} curseur(s), ${place.dansEncadre ? 'dans' : 'hors de'} l’encadré.`);
 }
 
+/** Bouton IA STATION : carré plein et « nouveau message » tant qu'un message n'est pas lu, rien ensuite (12 §2.6). */
+async function verifierPastille(page: Page, attendue: boolean, ou: string, erreurs: string[]): Promise<void> {
+  const bouton = page.locator('.nav-ia');
+  const pastilles = await bouton.locator('.pastille').count();
+  const nom = await bouton.getAttribute('aria-label');
+  const voulu = attendue ? 'IA Station, nouveau message' : 'IA Station';
+  if (pastilles !== (attendue ? 1 : 0) || nom !== voulu) erreurs.push(`${ou} : IA STATION « ${nom ?? '?'} », ${pastilles} pastille(s), au lieu de « ${voulu} ».`);
+}
+
+/** Lien « [ IA STATION ] parle dans l'écouteur › », dernier élément du récit, sans la citation (12 §3.3, D-192). */
+async function verifierLien(page: Page, ou: string, erreurs: string[]): Promise<Locator> {
+  const lien = page.getByTestId('lien-ia');
+  if ((await lien.count()) !== 1 || !(await lien.isVisible())) erreurs.push(`${ou} : lien d’IA Station absent.`);
+  else if ((await lien.innerText()).trim() !== LIEN_IA) erreurs.push(`${ou} : lien d’IA Station « ${await lien.innerText()} ».`);
+  if ((await page.getByTestId('ia-station').count()) > 0) erreurs.push(`${ou} : la citation d’IA Station est dans le récit au lieu du lien.`);
+  const dernier = await page.getByTestId('recit').evaluate((recit) => (recit.lastElementChild as HTMLElement | null)?.dataset.testid);
+  if (dernier !== 'lien-ia') erreurs.push(`${ou} : le lien d’IA Station n’est pas après le récit.`);
+  return lien;
+}
+
+/**
+ * Fenêtre d'IA Station (12 §3.9, D-192) : blanche, messages reçus dans l'ordre, NOUVEAU sur ceux qui n'étaient pas lus, un seul bouton ;
+ * le focus y reste ; RETOUR ou le voile la referment sans rien jouer, le focus revient, la pastille s'éteint.
+ */
+async function verifierFenetreIA(
+  page: Page,
+  depuis: Locator,
+  attendus: readonly (readonly [string | undefined, boolean])[],
+  fermeture: 'Retour' | 'voile' | 'Échap',
+  ou: string,
+  erreurs: string[],
+  capturer?: () => Promise<unknown>,
+): Promise<void> {
+  const avant = { partie: await partieEnregistree(page), ...(await lire(page)), actions: await page.getByTestId('sauvegarde').getAttribute('data-actions') };
+  await depuis.click();
+  const fenetre = page.getByRole('dialog', { name: exactement('IA Station') });
+  await fenetre.waitFor();
+  const vus = await fenetre
+    .locator('.historique-ia li')
+    .evaluateAll((messages) => messages.map((message) => `${message.querySelector('.citation-ia')?.textContent ?? ''}${message.querySelector('.nouveau') === null ? '' : ' [NOUVEAU]'}`));
+  const voulus = attendus.map(([texte, nouveau]) => `«\u00a0${texte ?? '?'}\u00a0»${nouveau ? ' [NOUVEAU]' : ''}`);
+  if (vus.join(' | ') !== voulus.join(' | ')) erreurs.push(`${ou} : fenêtre d’IA Station « ${vus.join(' | ')} » au lieu de « ${voulus.join(' | ')} ».`);
+  if (!(await fenetre.locator('.historique-ia li').last().isVisible())) erreurs.push(`${ou} : le dernier message n’est pas visible à l’ouverture.`);
+  if ((await fenetre.getByRole('button').count()) !== 1) erreurs.push(`${ou} : la fenêtre d’IA Station n’a pas un seul bouton.`);
+  const bord = await fenetre.evaluate((element) => getComputedStyle(element).borderTopColor);
+  if (bord !== 'rgb(238, 246, 248)') erreurs.push(`${ou} : contour de la fenêtre ${bord}, pas le blanc d’IA Station.`);
+  if (/\d/.test(await fenetre.innerText())) erreurs.push(`${ou} : un chiffre est affiché dans la fenêtre d’IA Station.`);
+  await verifierDansEcran(page, ou, erreurs);
+  await verifierFocusPiege(page, fenetre, ou, erreurs);
+  await capturer?.();
+  if (fermeture === 'Retour') await fenetre.getByRole('button', { name: exactement('Retour') }).click();
+  else if (fermeture === 'Échap') await page.keyboard.press('Escape');
+  else await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
+  await fenetre.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`${ou} : ${fermeture} ne ferme pas la fenêtre d’IA Station.`));
+  if (!(await depuis.evaluate((element) => element === document.activeElement))) erreurs.push(`${ou} : le focus ne revient pas là où la fenêtre a été ouverte.`);
+  await verifierPastille(page, false, `${ou}, après lecture`, erreurs);
+  const apres = { partie: await partieEnregistree(page), ...(await lire(page)), actions: await page.getByTestId('sauvegarde').getAttribute('data-actions') };
+  if (JSON.stringify(apres) !== JSON.stringify(avant)) erreurs.push(`${ou} : lire IA Station a changé la partie, le récit ou la situation.`);
+}
+
 /** Commande enregistrée par le dernier geste : exactement celle du menu moteur (C-01 A-05). */
 async function verifierCommande(page: Page, geste: Geste, ou: string, erreurs: string[]): Promise<void> {
   const journal = (JSON.parse(await partieEnregistree(page)) as { enregistrement: { actions: { commande: Commande }[] } }).enregistrement.actions;
@@ -587,7 +647,8 @@ async function verifierCommande(page: Page, geste: Geste, ou: string, erreurs: s
 
 /**
  * AR-01 depuis l'adresse par défaut : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
- * la parole d'IA Station (12 §4.2) et la fin par évacuation ; puis l'étape « OÙ ? » à 320 px de large.
+ * la parole d'IA Station au réveil (12 §4.2), puis son lien, sa pastille et sa fenêtre, avant et après reprise (12 §3.9, D-192),
+ * et la fin par évacuation ; puis l'étape « OÙ ? » à 320 px de large.
  */
 async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const etapes = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes;
@@ -605,7 +666,8 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim();
   if (piece !== depart) erreurs.push(`Adresse par défaut : pièce « ${piece} » au lieu de « ${depart} », le départ d’AR-01.`);
   await verifierParole(page, assistance.reveil, 'Départ', erreurs);
-  await capturer(page, 'AR-01 — Départ : parole d’IA Station');
+  await verifierPastille(page, true, 'Départ', erreurs);
+  await capturer(page, 'AR-01 — Départ : parole d’IA Station, pastille sur IA STATION');
   await verifierEcran(page, 'AR-01, départ', erreurs);
 
   for (const [index, geste] of gestes.entries()) {
@@ -663,11 +725,23 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
     await verifierEcran(page, ou, erreurs);
     const arrivee = geste.zone === 'deplacement' && geste.bouton !== geste.nom;
     if (arrivee) {
-      // Passage sans signalétique franchi : la pièce d'arrivée est nommée, IA Station parle (D-147).
-      await verifierParole(page, assistance.energie, ou, erreurs);
-      await capturer(page, `AR-01 — Par « → ${geste.bouton} » : « ${geste.rappel} », parole d’IA Station`);
-    } else if ((await page.getByTestId('ia-station').count()) > 0) {
-      erreurs.push(`${ou} : encadré d’IA Station affiché sans parole nouvelle.`);
+      // Passage sans signalétique franchi : la pièce d'arrivée est nommée, IA Station parle ; le lien ouvre sa fenêtre (D-147, D-192).
+      const lien = await verifierLien(page, ou, erreurs);
+      await verifierPastille(page, true, ou, erreurs);
+      await capturer(page, `AR-01 — Par « → ${geste.bouton} » : « ${geste.rappel} », lien d’IA Station`);
+      await verifierFenetreIA(page, lien, [[assistance.reveil, true], [assistance.energie, true]], 'Retour', `${ou}, fenêtre par le lien`, erreurs, () =>
+        capturer(page, 'AR-01 — Fenêtre d’IA Station : deux messages nouveaux'),
+      );
+      // Après reprise : mêmes messages, aucun nouveau ; le lien reste, le message venant d'arriver.
+      await page.reload();
+      await attendreSauvegarde(page, index + 1);
+      await verifierLien(page, `${ou}, après reprise`, erreurs);
+      await verifierPastille(page, false, `${ou}, après reprise`, erreurs);
+      await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, false], [assistance.energie, false]], 'voile', `${ou}, après reprise, par IA STATION`, erreurs, () =>
+        capturer(page, 'AR-01 — Fenêtre d’IA Station après reprise : messages lus'),
+      );
+    } else if ((await page.getByTestId('ia-station').count()) > 0 || (await page.getByTestId('lien-ia').count()) > 0) {
+      erreurs.push(`${ou} : IA Station signalée sans parole nouvelle.`);
     }
     if (etape?.action === 'ouvrir' && etape.cible === 'cloison' && etape.vers === 'observation') {
       const situation = (await lire(page)).situation;
@@ -685,9 +759,12 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   if (!(await fin.getByRole('button', { name: exactement('Nouvelle partie') }).isVisible())) erreurs.push('Fin : NOUVELLE PARTIE absent.');
   if ((await page.locator('.dock .puce, .dock .deplacements').count()) > 0) erreurs.push('Fin : le dock de la pièce est encore là.');
   if (await page.locator('.navigation').isVisible()) erreurs.push('Fin : INVENTAIRE est encore proposé.');
-  await verifierParole(page, assistance.depart, 'Fin', erreurs);
+  const lienFin = await verifierLien(page, 'Fin', erreurs);
   await capturer(page, `AR-01 — Fin : « ${phrases.evacuee} », NOUVELLE PARTIE`);
   await verifierEcran(page, 'AR-01, fin', erreurs);
+  await verifierFenetreIA(page, lienFin, [[assistance.reveil, false], [assistance.energie, false], [assistance.depart, true]], 'Échap', 'Fin, fenêtre', erreurs, () =>
+    capturer(page, 'AR-01 — Fin : fenêtre d’IA Station, départ confirmé'),
+  );
   await contexte.close();
 
   // Départ au format du téléphone du porteur, puis à 320 × 568 où le dock défile au-dessous de six lignes de récit (D-191).

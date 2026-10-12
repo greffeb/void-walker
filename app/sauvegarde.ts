@@ -1,12 +1,16 @@
-// Accès IndexedDB (AP-03) : une partie en cours, une écriture par action engagée.
+// Accès IndexedDB (AP-03) : une partie en cours, une écriture par action engagée ; à côté, les messages d'IA Station lus (12 §3.9).
 
 export interface Stockage {
   lire(): Promise<unknown>;
   ecrire(donnees: unknown): Promise<void>;
+  /** Messages lus : affichage seulement, hors de la partie, jamais rejoués. */
+  lireLus(): Promise<unknown>;
+  ecrireLus(donnees: unknown): Promise<void>;
 }
 
 const MAGASIN = 'parties';
 const CLE = 'en-cours';
+const CLE_LUS = 'messages-lus';
 
 function requete<T>(demande: IDBRequest<T>): Promise<T> {
   return new Promise((resoudre, rejeter) => {
@@ -33,21 +37,25 @@ export function stockageIndexedDB(nom: string, fabrique: IDBFactory = indexedDB)
     });
     return base;
   };
+  const lire = async (cle: string): Promise<unknown> => {
+    const db = await connexion();
+    const valeur = await requete(db.transaction(MAGASIN, 'readonly').objectStore(MAGASIN).get(cle));
+    return valeur ?? null;
+  };
+  const ecrire = async (cle: string, donnees: unknown): Promise<void> => {
+    const db = await connexion();
+    const transaction = db.transaction(MAGASIN, 'readwrite');
+    transaction.objectStore(MAGASIN).put(donnees, cle);
+    await new Promise<void>((resoudre, rejeter) => {
+      transaction.oncomplete = () => resoudre();
+      transaction.onerror = () => rejeter(transaction.error ?? new Error('Écriture refusée.'));
+      transaction.onabort = () => rejeter(transaction.error ?? new Error('Écriture annulée.'));
+    });
+  };
   return {
-    async lire() {
-      const db = await connexion();
-      const valeur = await requete(db.transaction(MAGASIN, 'readonly').objectStore(MAGASIN).get(CLE));
-      return valeur ?? null;
-    },
-    async ecrire(donnees) {
-      const db = await connexion();
-      const transaction = db.transaction(MAGASIN, 'readwrite');
-      transaction.objectStore(MAGASIN).put(donnees, CLE);
-      await new Promise<void>((resoudre, rejeter) => {
-        transaction.oncomplete = () => resoudre();
-        transaction.onerror = () => rejeter(transaction.error ?? new Error('Écriture refusée.'));
-        transaction.onabort = () => rejeter(transaction.error ?? new Error('Écriture annulée.'));
-      });
-    },
+    lire: () => lire(CLE),
+    ecrire: (donnees) => ecrire(CLE, donnees),
+    lireLus: () => lire(CLE_LUS),
+    ecrireLus: (donnees) => ecrire(CLE_LUS, donnees),
   };
 }

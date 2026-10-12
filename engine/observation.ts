@@ -5,6 +5,7 @@ import {
   ACTIONS,
   RAISONS_INDISPONIBILITE,
   type Cible,
+  type MessageRecu,
   type Observation,
   type OptionMenu,
   type RaisonIndisponibilite,
@@ -55,6 +56,16 @@ export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
     }
   }
   return options;
+}
+
+/** Messages d'assistance reçus, dans l'ordre, avec le moment prévu de chacun : un message n'arrive qu'une fois (D-081). */
+export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
+  return etat.messages.map((message) => {
+    const quand = (monde.assistance ?? []).find((def) => def.id === message)?.quand;
+    if (quand === undefined) throw new Error(`Message d'assistance inconnu : ${message}.`);
+    if (quand.type === 'evacuation') return { message, moment: quand };
+    return { message, moment: { type: quand.type, piece: refPiece(monde, quand.type === 'reveil' ? monde.depart : quand.piece) } };
+  });
 }
 
 /** Observation publique (C-06) : ne contient que des identifiants publics et des clés de nom. */

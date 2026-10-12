@@ -39,6 +39,10 @@
   --cyan-texte: #a6f6fa;
   --cyan-secondaire: #3aa7ae;
   --cyan-surface: #061416;
+  --blanc: #eef6f8;
+  --blanc-texte: #dce8ec;
+  --blanc-secondaire: #8c9ca2;
+  --blanc-surface: #0a0e0f;
   --voile-bulle: rgba(10, 9, 7, 0.35);
   --voile-modale: rgba(10, 9, 7, 0.55);
   font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
@@ -238,6 +242,25 @@ button:disabled {
 
 .recit .citation-ia + .citation-ia {
   margin-top: 8px;
+}
+
+/* Lien IA Station (12 §3.3) : cadre pointillé, seulement quand un message vient d'arriver ; ouvre la fenêtre. */
+.lien-ia {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--signal);
+  background: transparent;
+  border: 1px dashed var(--bordure);
+}
+
+.lien-ia:not(:disabled):active {
+  background: var(--separateur);
 }
 
 /* Effet machine à écrire (D-186) : chaque caractère, déjà à sa place, devient visible à son tour ; puis le curseur clignote lentement. */
@@ -601,6 +624,129 @@ button:disabled {
   outline-color: var(--couleur-menu);
 }
 
+/* Fenêtre d'IA Station (12 §3.9) : blanc froid (D-192), voile de 55 %, ancrée en bas, au-dessus de la navigation. */
+.voile-modale {
+  z-index: 8;
+  background: var(--voile-modale);
+}
+
+.modale-ia {
+  position: fixed;
+  z-index: 9;
+  left: max(16px, calc((100vw - 30rem) / 2 + 16px));
+  right: max(16px, calc((100vw - 30rem) / 2 + 16px));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  max-height: min(600px, calc(100dvh - 48px));
+  display: flex;
+  flex-direction: column;
+  color: var(--blanc-texte);
+  background: var(--blanc-surface);
+  border: 1px solid var(--blanc);
+  box-shadow: 0 0 0 4px var(--fond);
+}
+
+.modale-ia:focus {
+  outline: none;
+}
+
+.modale-ia :focus-visible {
+  outline-color: var(--blanc);
+}
+
+.modale-entete {
+  flex: none;
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--blanc-secondaire);
+}
+
+.modale-titre {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--blanc);
+}
+
+.modale-sous-titre {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--blanc-secondaire);
+}
+
+/* Le plus récent en bas ; l'historique défile, l'en-tête et RETOUR restent. */
+.historique-ia {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px 12px;
+  list-style: none;
+}
+
+.historique-ia li {
+  padding: 8px 0;
+}
+
+.historique-ia li + li {
+  border-top: 1px dashed var(--blanc-secondaire);
+}
+
+.repere-ia {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--blanc-secondaire);
+}
+
+/* Non lu : NOUVEAU en vidéo inverse (12 §2.6). */
+.nouveau {
+  padding: 0 6px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blanc-surface);
+  background: var(--blanc);
+}
+
+.modale-ia .citation-ia {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--blanc-texte);
+}
+
+.modale-vide {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 15px;
+  color: var(--blanc-secondaire);
+}
+
+.modale-pied {
+  flex: none;
+  padding: 8px 12px 12px;
+}
+
+.modale-pied .secondaire {
+  width: 100%;
+  min-height: 50px;
+  padding: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blanc);
+  border-color: var(--blanc);
+}
+
+.modale-pied .secondaire:active {
+  color: var(--blanc-surface);
+  background: var(--blanc);
+}
+
 .titre-section {
   display: flex;
   align-items: center;
@@ -739,6 +885,29 @@ button:disabled {
   color: var(--cyan-texte);
   border-color: var(--cyan);
   box-shadow: inset 0 0 0 1px var(--cyan);
+}
+
+/* IA STATION à sa place, la troisième : CARTE viendra au milieu (12 §4.3). */
+.navigation .nav-ia {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.navigation .nav-ia[aria-expanded='true'] {
+  color: var(--blanc);
+  border-color: var(--blanc);
+  box-shadow: inset 0 0 0 1px var(--blanc);
+}
+
+/* Nouveau message (12 §2.6) : carré plein de 8 px. */
+.pastille {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
 }
 
 .puce:not(:disabled, [aria-expanded='true']):active,

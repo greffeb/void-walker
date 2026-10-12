@@ -1,5 +1,5 @@
-import { apercu, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
-import { raconter, raconterDerniers, rendreApercu, rendreAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
+import { apercu, historique, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
+import { raconter, raconterDerniers, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 
@@ -100,6 +100,53 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
   const rappel = texteRappel(env.textes, arrivee === null ? rappelDe(option) : { type: 'deplacement', vers: arrivee });
   const assistance = rendreAssistance(env.textes, resultat.evenements);
   return { partie: resultat.partie, recit, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
+}
+
+/** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */
+export interface MessageAffiche {
+  readonly message: string;
+  readonly repere: string;
+  readonly texte: string;
+}
+
+/** Messages reçus, du plus ancien au plus récent ; seulement ceux déjà reçus, aucune réponse d'état (C-06 K-06). */
+export function historiqueAffiche(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie): MessageAffiche[] {
+  return historique(env.monde, partie.etat).map(({ message, moment }) => ({
+    message,
+    repere: rendreMoment(env.textes, moment),
+    texte: texteAssistance(env.textes, message),
+  }));
+}
+
+/** Partie à laquelle se rapportent les messages lus : une autre partie les ignore. */
+function partieDesLus(partie: Partie): { readonly monde: string; readonly graine: number } {
+  return { monde: partie.enregistrement.monde, graine: partie.enregistrement.graine };
+}
+
+/**
+ * Messages déjà lus dans la fenêtre d'IA Station, par identifiant, gardés sur l'appareil à côté de la partie (12 §3.9).
+ * Illisibles, absents ou d'une autre partie : aucun.
+ */
+export async function lireLus(env: Environnement, partie: Partie): Promise<readonly string[]> {
+  try {
+    const brut = await env.stockage.lireLus();
+    if (typeof brut !== 'object' || brut === null) return [];
+    const { monde, graine, lus } = brut as Record<string, unknown>;
+    const attendue = partieDesLus(partie);
+    if (monde !== attendue.monde || graine !== attendue.graine || !Array.isArray(lus)) return [];
+    return lus.filter((message): message is string => typeof message === 'string');
+  } catch {
+    return [];
+  }
+}
+
+/** Tous les messages reçus passent en lus, sans toucher à la partie ; un échec d'écriture les laisse nouveaux à la reprise. */
+export async function marquerLus(env: Environnement, partie: Partie): Promise<void> {
+  try {
+    await env.stockage.ecrireLus({ ...partieDesLus(partie), lus: [...partie.etat.messages] });
+  } catch {
+    // Rien à signaler au joueur : la partie, elle, est enregistrée à part.
+  }
 }
 
 /** Monde joué : celui demandé par `?monde=` s'il existe, sinon le monde par défaut ; un identifiant inconnu est ignoré. */

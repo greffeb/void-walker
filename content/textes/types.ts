@@ -92,6 +92,10 @@ export interface TextesMonde {
     readonly terminee: string;
     /** Partie conclue par le départ de la capsule. */
     readonly evacuee: string;
+    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ. */
+    readonly momentReveil: string;
+    readonly momentArrivee: string;
+    readonly momentEvacuation: string;
   };
   /** Aperçu avant confirmation (12 §3.8) : mots du risque, du danger connu et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
@@ -205,4 +209,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   critique: [],
   terminee: [],
   evacuee: [],
+  momentReveil: ['piece'],
+  momentArrivee: ['piece'],
+  momentEvacuation: [],
 };

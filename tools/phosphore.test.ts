@@ -59,6 +59,11 @@ describe('direction « Phosphore » (12 §2)', () => {
     ['cyan-secondaire', 'cyan-surface', 4.5],
     ['cyan-surface', 'cyan', 4.5],
     ['cyan', 'fond', 3],
+    ['blanc-texte', 'blanc-surface', 4.5],
+    ['blanc', 'blanc-surface', 4.5],
+    ['blanc-secondaire', 'blanc-surface', 4.5],
+    ['blanc-surface', 'blanc', 4.5],
+    ['blanc', 'fond', 3],
   ])('contraste de %s sur %s : au moins %s:1 (12 §7)', (avant, arriere, seuil) => {
     expect(contraste(jeton(avant), jeton(arriere))).toBeGreaterThanOrEqual(seuil);
   });
@@ -68,19 +73,23 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(mesures).toEqual(['12.2', '11.1', '6.1', '13.9', '3.3']);
   });
 
-  it('couleurs : ambre partout, cyan seulement pour le menu d’inventaire (D-176) ; ni rouge ni vert', () => {
+  it('couleurs : ambre partout, cyan pour l’inventaire (D-176), blanc froid pour IA Station (D-192) ; ni rouge ni vert', () => {
     const couleurs = [...css.matchAll(/#[0-9a-f]{6}\b|rgba?\([^)]*\)/gi)].map((trouve) => trouve[0]);
     expect(couleurs.length).toBeGreaterThan(10);
+    /** Jeton qui déclare la couleur : une couleur hors de l'ambre n'existe que dans son jeton. */
+    const jetonDe = (couleur: string): string => /--([a-z-]+):\s*$/.exec(css.slice(css.indexOf(couleur) - 30, css.indexOf(couleur)))?.[1] ?? '';
     for (const couleur of couleurs) {
       const angle = teinte(couleur);
       if (angle === null) continue;
+      const [r, g, b] = rgb(couleur);
       const ambre = angle >= 20 && angle <= 55;
-      const cyan = angle >= 175 && angle <= 195;
-      expect(ambre || cyan, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
+      const cyan = angle >= 175 && angle <= 195 && jetonDe(couleur).startsWith('cyan');
+      // Un blanc à peine bleuté : presque aucune couleur.
+      const blanc = angle >= 180 && angle <= 210 && (Math.max(r, g, b) - Math.min(r, g, b)) / 255 <= 0.1 && jetonDe(couleur).startsWith('blanc');
+      expect(ambre || cyan || blanc, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
-    const cyans = couleurs.filter((couleur) => (teinte(couleur) ?? 0) >= 175);
-    expect(cyans.length).toBeGreaterThan(0);
-    for (const couleur of cyans) expect(/--cyan[a-z-]*:\s*$/.test(css.slice(css.indexOf(couleur) - 30, css.indexOf(couleur))), couleur).toBe(true);
+    expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('cyan'))).toBe(true);
+    expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('blanc'))).toBe(true);
   });
 
   it('angles droits partout', () => {

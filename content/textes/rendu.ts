@@ -4,6 +4,7 @@ import type {
   Consultation,
   Danger,
   Evenement,
+  MomentMessage,
   Observation,
   OptionMenu,
   Partie,
@@ -116,6 +117,13 @@ export function texteAssistance(textes: TextesMonde, message: string): string {
   const texte = Object.hasOwn(textes.assistance, message) ? textes.assistance[message] : undefined;
   if (texte === undefined) throw new ErreurTexte(`Message d’assistance sans texte : ${message}.`);
   return texte;
+}
+
+/** Repère du moment où un message a été reçu, sans heure : « au réveil · Salon de transit » (12 §3.9). */
+export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string {
+  const { momentReveil, momentArrivee, momentEvacuation } = textes.observation;
+  if (moment.type === 'evacuation') return remplir(momentEvacuation, {});
+  return remplir(moment.type === 'reveil' ? momentReveil : momentArrivee, { piece: nomDe(textes, moment.piece) });
 }
 
 export function rendreConsultation(textes: TextesMonde, consultation: Consultation, cle: CleTexte): string {

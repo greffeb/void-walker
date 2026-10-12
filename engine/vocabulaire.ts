@@ -187,6 +187,17 @@ export type Evenement =
   /** Message de l'IA de la station reçu à ce pas : son texte est écrit à la main, hors du récit (C-07). */
   | { readonly type: 'assistance'; readonly message: string };
 
+/** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
+export type MomentMessage =
+  | { readonly type: 'reveil'; readonly piece: RefPiece }
+  | { readonly type: 'arrivee'; readonly piece: RefPiece }
+  | { readonly type: 'evacuation' };
+
+export interface MessageRecu {
+  readonly message: string;
+  readonly moment: MomentMessage;
+}
+
 /** Ce qui alimentait la capsule au départ : le circuit réarmé, un bloc installé, ou les deux. */
 export type SourceEvacuation = 'circuit' | 'bloc';
 

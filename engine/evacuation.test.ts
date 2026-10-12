@@ -1,5 +1,6 @@
 import {
   apercu,
+  historique,
   idPublic,
   jouer,
   nouvellePartie,
@@ -268,6 +269,16 @@ describe('circuit, source et capsule (AR-01 §11.2)', () => {
     const vue = observer(MONDE, fin.partie.etat);
     expect(vue).toMatchObject({ terminee: true, issue: 'evacuation', menu: [], messages: ['bienvenue', 'local', 'depart'] });
     expect(jouer(MONDE, fin.partie, { action: 'regarder', cible: idPublic(MONDE.id, 'cabine') })).toMatchObject({ type: 'refus', raison: 'partie_terminee' });
+  });
+
+  it('historique : chaque message reçu avec son moment prévu, dans l’ordre, sans heure (12 §3.9)', () => {
+    expect(historique(MONDE, partie().etat)).toEqual([{ message: 'bienvenue', moment: { type: 'reveil', piece: { sorte: 'piece', id: idPublic(MONDE.id, 'quai'), nom: 'quai' } } }]);
+    const fin = engager(suite(partie(), [['aller', 'grille'], ['activer', 'console'], ['aller', 'grille'], ...A_BORD]), 'lancer', 'pupitre').partie;
+    expect(historique(MONDE, fin.etat)).toEqual([
+      { message: 'bienvenue', moment: { type: 'reveil', piece: { sorte: 'piece', id: idPublic(MONDE.id, 'quai'), nom: 'quai' } } },
+      { message: 'local', moment: { type: 'arrivee', piece: { sorte: 'piece', id: idPublic(MONDE.id, 'local'), nom: 'local' } } },
+      { message: 'depart', moment: { type: 'evacuation' } },
+    ]);
   });
 
   it('lancer : un bloc installé suffit ; circuit et bloc ensemble sont tous deux nommés', () => {
