@@ -207,24 +207,30 @@ button:disabled {
   padding: 8px 16px max(16px, env(safe-area-inset-bottom));
 }
 
+/* Quand le nom de la pièce, le badge et l'engrenage ne tiennent plus sur une ligne (texte agrandi), badge et engrenage passent dessous, à droite. */
 .entete-piece {
   flex: none;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
   min-height: 56px;
   padding: max(8px, env(safe-area-inset-top)) 16px 8px;
   border-bottom: 1px solid var(--separateur);
 }
 
+/* Le titre se plie aux espaces ; son plus long mot fixe sa largeur minimale. */
 .titre-piece {
+  flex: 1 1 0;
+  min-width: min-content;
   margin: 0;
   font-size: calc(17px * var(--echelle));
   font-weight: 600;
   line-height: 1.3;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  overflow-wrap: break-word;
   color: var(--accent);
 }
 
@@ -252,6 +258,11 @@ button:disabled {
   border: 2px solid var(--accent);
 }
 
+/* Le badge porte la marge qui pousse à droite ; l'engrenage le suit. */
+.badge-sante + .engrenage {
+  margin-left: 0;
+}
+
 /* Partie terminée (D-013) : en attendant l'écran de fin (12 §4.11), la phrase de fin et NOUVELLE PARTIE. */
 .fin-partie p {
   margin: 0 0 16px;
@@ -263,6 +274,7 @@ button:disabled {
   place-items: center;
   width: 44px;
   height: 44px;
+  margin-left: auto;
   padding: 0;
   color: var(--texte);
   background: none;
@@ -860,10 +872,10 @@ button:disabled {
   flex: 0 1 96px;
 }
 
-/* Deux colonnes tant qu'un mot de douze lettres y tient ; une seule en texte agrandi sur un écran étroit (12 §7 : rien de coupé). */
+/* Deux colonnes tant qu'un mot de douze lettres y tient, jamais plus ; une seule en texte agrandi sur un écran étroit (12 §7). */
 .puces {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(108px * var(--echelle) + 26px)), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(calc(108px * var(--echelle) + 26px), calc(50% - 3px))), 1fr));
   gap: 6px;
   margin: 0;
   padding: 0;
@@ -1206,7 +1218,9 @@ button:disabled {
   line-height: 1.5;
 }
 
-.confirmation-options p:focus {
+.confirmation-options p:focus,
+.titre-piece:focus,
+.titre-fin:focus {
   outline: none;
 }
 

@@ -508,7 +508,7 @@ describe('fin après abandon (12 §4.11, #96)', () => {
       [
         '&gt; Fin de la partie_',
         'Partie abandonnée.',
-        'Vous en restez là, dans l’atelier. Ce que la station cachait encore, vous ne le saurez pas.',
+        'Vous en restez là, dans l’atelier.',
         'Pièces visitées : Cabine, Atelier',
         'Cette partie est terminée. Elle ne peut pas être reprise.',
         'Rejouer cette station Nouvelle partie Menu principal',

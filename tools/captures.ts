@@ -982,6 +982,22 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
       await capturer(vue, grand);
       await verifierEcran(vue, grand, erreurs);
       await verifierSansTroncature(vue, grand, erreurs);
+      // En-tête le plus chargé, posé à la main dans la page : nom de pièce long et « !! CRITIQUE » ; rien ne sort de l'écran.
+      await vue.evaluate(() => {
+        const titre = document.querySelector('.entete-piece .titre-piece');
+        if (titre === null) return;
+        titre.textContent = 'Salle d’embarquement';
+        const badge = document.createElement('p');
+        badge.className = 'badge-sante critique';
+        badge.textContent = '!! CRITIQUE';
+        titre.after(badge);
+      });
+      const charge = `AR-01 — En-tête simulé « Salle d’embarquement » et « !! CRITIQUE », très grande, ${ecran.width} px`;
+      await capturer(vue, charge);
+      await verifierEcran(vue, charge, erreurs);
+      await verifierSansTroncature(vue, charge, erreurs);
+      const engrenage = await vue.locator('.engrenage').boundingBox();
+      if (engrenage === null || engrenage.x + engrenage.width > ecran.width) erreurs.push(`${charge} : l’engrenage sort de l’écran.`);
     }
     await autre.close();
   }

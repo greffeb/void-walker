@@ -58,8 +58,8 @@ export function App({
 }: {
   readonly env: Environnement;
   readonly reglages: Reglages;
-  /** Garde les réglages sur l'appareil, hors de la sauvegarde de partie (12 §4.10). */
-  readonly garderReglages?: (reglages: Reglages) => void;
+  /** Garde les réglages sur l'appareil, hors de la sauvegarde de partie (12 §4.10) ; `false` si l'appareil refuse. */
+  readonly garderReglages?: (reglages: Reglages) => boolean;
   readonly version: string;
   readonly commit: string;
   readonly pr: string;
@@ -67,6 +67,7 @@ export function App({
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   const [occupe, setOccupe] = useState(false);
   const [reglages, setReglages] = useState(reglagesInitiaux);
+  const [reglagesGardes, setReglagesGardes] = useState(true);
 
   useEffect(() => {
     let actif = true;
@@ -152,7 +153,7 @@ export function App({
   const changerReglages = useCallback(
     (nouveaux: Reglages) => {
       setReglages(nouveaux);
-      garderReglages?.(nouveaux);
+      setReglagesGardes(garderReglages?.(nouveaux) ?? true);
     },
     [garderReglages],
   );
@@ -249,6 +250,7 @@ export function App({
         <EcranOptions
           reglages={reglages}
           changerReglages={changerReglages}
+          reglagesGardes={reglagesGardes}
           partieEnCours={enCours !== null}
           occupe={occupe}
           telecharger={() => (enCours === null ? { etat: 'echec' } : telechargerPartie(env, enCours))}

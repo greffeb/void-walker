@@ -20,6 +20,7 @@ export type Telechargement = { readonly etat: 'pret'; readonly nom: string } | {
 export function EcranOptions({
   reglages,
   changerReglages,
+  reglagesGardes = true,
   partieEnCours,
   occupe,
   telecharger,
@@ -32,6 +33,8 @@ export function EcranOptions({
 }: {
   readonly reglages: Reglages;
   readonly changerReglages: (reglages: Reglages) => void;
+  /** Faux si l'appareil a refusé de garder le dernier réglage (navigation privée, quota) : il vaut jusqu'à la fermeture. */
+  readonly reglagesGardes?: boolean;
   readonly partieEnCours: boolean;
   readonly occupe: boolean;
   readonly telecharger: () => Telechargement;
@@ -44,6 +47,7 @@ export function EcranOptions({
   readonly pr: string;
 }) {
   const idTaille = useId();
+  const titre = useRef<HTMLHeadingElement>(null);
   const [telechargement, setTelechargement] = useState<Telechargement>(null);
   const [confirmation, setConfirmation] = useState(false);
   const [abandonRefuse, setAbandonRefuse] = useState(false);
@@ -51,6 +55,10 @@ export function EcranOptions({
   const danger = useRef<HTMLButtonElement>(null);
   /** Le focus suit la confirmation : sur sa question à l'ouverture, sur le bouton d'abandon à l'annulation (12 §7). */
   const focusApres = useRef(false);
+
+  useEffect(() => {
+    titre.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!focusApres.current) return;
@@ -67,7 +75,9 @@ export function EcranOptions({
   return (
     <main className="jeu options">
       <header className="entete-options">
-        <h1 className="titre-piece">Options</h1>
+        <h1 ref={titre} className="titre-piece" tabIndex={-1}>
+          Options
+        </h1>
         {partieEnCours && <p className="sous-titre-options">le jeu est en pause</p>}
       </header>
       <div className="options-corps">
@@ -101,6 +111,11 @@ export function EcranOptions({
             actif={reglages.machineAEcrire}
             basculer={() => changerReglages({ ...reglages, machineAEcrire: !reglages.machineAEcrire })}
           />
+          {!reglagesGardes && (
+            <p className="retour-option" role="status">
+              Cet appareil ne garde pas les réglages : ils valent jusqu’à la fermeture du jeu.
+            </p>
+          )}
         </section>
         {partieEnCours && (
           <section>
@@ -198,13 +213,19 @@ export function EcranFin({
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
   const visitees = observation.visitees.map((piece) => nomPuce(textes, piece)).join(', ');
+  const titre = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    titre.current?.focus();
+  }, []);
   return (
     <main className="jeu fin">
       <header className="entete-piece entete-reveil">
         <p className="lieu-reveil">&gt; Fin de la partie_</p>
       </header>
       <section className="recit-fin" data-testid="fin">
-        <h1 className="titre-fin">Partie abandonnée.</h1>
+        <h1 ref={titre} className="titre-fin" tabIndex={-1}>
+          Partie abandonnée.
+        </h1>
         <p>{remplir(textes.observation.abandon, { piece: nomDe(textes, observation.piece) })}</p>
         <div className="bilan-fin">
           <p>

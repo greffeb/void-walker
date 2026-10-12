@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { observer, type DefMonde } from '../engine';
+import { empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
 import { abandonner, charger, commencer, demarrer, fichierPartie, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
@@ -181,6 +181,10 @@ describe('appli : options, téléchargement et abandon (#96, C-09 §5, C-08 §4)
     expect(nom).toBe('void-walker-monde-test-2026-10-12-0905.json');
     expect(JSON.parse(contenu)).toMatchObject({ version: 'v-test', monde: monde.id, graine: 31, actions: jeu.partie.enregistrement.actions });
     expect(jeu.partie).toEqual(copie);
+    // Rejoué comme par `npm run rejouer` : même état final (C-09 S-03).
+    const fichier = lireExport(JSON.parse(contenu) as unknown);
+    expect(empreinteEtat(rejouer(monde, fichier, 'v-test').partie.etat)).toBe(fichier.empreinte);
+    expect(fichier.empreinte).toBe(empreinteEtat(jeu.partie.etat));
   });
 
   it('abandon : la partie et ses messages lus quittent l’appareil ; plus rien à reprendre (D-013)', async () => {
