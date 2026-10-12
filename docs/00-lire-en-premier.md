@@ -114,6 +114,8 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #117 (aperçu allégé) est fusionnée ([PR #118](https://github.com/greffeb/void-walker/pull/118)) : les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun », SAVOIR reste toujours (D-187).
 
+#122 (écran plus compact) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone : boutons de quelques pixels plus bas, dock à sa hauteur et récit d'au moins six lignes, pied de page sur une ligne (D-191).
+
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 
 #101 (blessures, soin, fuite exposée) est fusionnée ([PR #116](https://github.com/greffeb/void-walker/pull/116)) et close. Choix consignés : rester sous ses yeux se joue au même dé que la fuite (D-183), l'action qui suit le premier contact est libre (D-184), trousse en main ou dans la pièce (D-185). L'écran montre le badge de santé et, après une défaite, seulement la phrase de fin et NOUVELLE PARTIE, en attendant l'écran de fin.
