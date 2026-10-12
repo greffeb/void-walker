@@ -160,7 +160,10 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     bloc: ['Le bloc tient. La capsule se détache et file dans le noir.'],
     circuit_bloc: ['Le circuit et le bloc tiennent. La capsule se détache et file dans le noir.'],
   },
-  assistance: {},
+  assistance: {
+    reveil: 'Confinement en cours. Merci de rester dans votre cabine.',
+    atelier: 'Vous avez quitté votre cabine. Ce déplacement a été noté.',
+  },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Vous apercevez {le:vers} de l’autre côté.'],
     ferme: ['{Le:passage} est fermé{e:passage}. Une plaque indique « {Nom:vers} ».'],
@@ -252,6 +255,9 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     critique: 'Vous êtes grièvement blessé.',
     terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',
     evacuee: 'La capsule s’est détachée. Vous avez quitté la station.',
+    momentReveil: 'au réveil · {Nom:piece}',
+    momentArrivee: 'en arrivant · {Nom:piece}',
+    momentEvacuation: 'au départ de la capsule',
   },
   apercu: {
     risques: {

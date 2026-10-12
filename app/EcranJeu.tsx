@@ -6,6 +6,7 @@ import {
   composerDock,
   etapeBulle,
   filBulle,
+  LIEN_IA,
   lignesActions,
   nomDestination,
   nomParametre,
@@ -19,7 +20,7 @@ import {
   type Groupe,
 } from './ecran';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { consulter, prevoir, type ApercuAffiche, type Environnement, type Jeu } from './jeu';
+import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
@@ -31,14 +32,19 @@ type Direct = (option: OptionMenu) => boolean;
 /** Suffixe du nom accessible d'un bouton qui joue l'action sans aperçu. */
 const SANS_CONFIRMATION = ', sans confirmation';
 
+/** Historique vide, pour un monde sans message d'IA Station. */
+const AUCUN_MESSAGE = 'Aucun message reçu.';
+
 /**
- * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté) ou un déplacement.
+ * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, ou la fenêtre d'IA Station.
  * `action` : action choisie ; `null` à l'étape de la fiche. `parametre` : paramètre choisi à l'étape « OÙ ? », sinon `null`.
+ * `nouveaux` : messages qui n'étaient pas encore lus à l'ouverture de la fenêtre, marqués NOUVEAU tant qu'elle reste ouverte.
  */
 type Ouverte =
   | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null; readonly parametre: string | null }
-  | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement };
+  | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
+  | { readonly zone: 'ia'; readonly nouveaux: number };
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -54,19 +60,25 @@ function quitterEntreeBulle(): void {
 /** Écran de jeu (12 §3.1), lu dans cet ordre : en-tête de pièce, récit, dock, navigation (12 §7). */
 export function EcranJeu({
   jeu,
+  lus,
   env,
   machineAEcrire,
   occupe,
   choisir,
+  lireMessages,
   ouvrirOptions,
   nouvellePartie,
 }: {
   readonly jeu: Jeu;
+  /** Messages d'IA Station déjà lus, parmi ceux reçus : les suivants sont nouveaux (12 §2.6). */
+  readonly lus: number;
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
   /** Réglage « Effet machine à écrire » (D-186) ; le mouvement réduit du téléphone l'emporte, en CSS. */
   readonly machineAEcrire: boolean;
   readonly occupe: boolean;
   readonly choisir: (jeu: Jeu, option: OptionMenu) => Promise<void>;
+  /** À l'ouverture de la fenêtre d'IA Station : tous les messages reçus passent en lus, sans toucher à la partie. */
+  readonly lireMessages: (jeu: Jeu) => void;
   /** Absent tant que l'écran d'options n'existe pas : l'engrenage reste masqué. */
   readonly ouvrirOptions?: () => void;
   /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
@@ -158,6 +170,12 @@ export function EcranJeu({
     if (direct(option)) jouer(option);
     else ouvrir({ zone: 'deplacement', cible: option.cible.id, ancre }, ancre);
   };
+  const nonLus = jeu.partie.etat.messages.length - lus;
+  // Gratuit (D-014) : la fenêtre montre les messages déjà reçus, sans question possible (C-06 K-06).
+  const ouvrirIA = (depuis: HTMLElement): void => {
+    ouvrir({ zone: 'ia', nouveaux: nonLus }, depuis);
+    lireMessages(jeu);
+  };
 
   const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
   const deplacementOuvert =
@@ -175,7 +193,7 @@ export function EcranJeu({
         )}
       </header>
       <Sauvegarde jeu={jeu} />
-      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} />
+      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} ouvrirIA={ouvrirIA} />
       {/* Situation en phrases : hors de l'écran, gardée pour le lecteur d'écran comme dans la CLI (C-06 K-07). */}
       <section className="lecteur-seul" data-testid="situation">
         {rendreObservation(textes, observation).map((ligne, index) => (
@@ -207,8 +225,15 @@ export function EcranJeu({
           jouer={jouer}
         />
       )}
-      {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
-      {ouverte !== null && <div className={ouverte.zone === 'inventaire' ? 'voile' : 'voile voile-haut'} data-testid="voile" onClick={fermer} />}
+      {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5) ; voile de 55 % sous la fenêtre d'IA Station (12 §3.9). */}
+      {ouverte !== null && (
+        <div
+          className={ouverte.zone === 'inventaire' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
+          data-testid="voile"
+          onClick={fermer}
+        />
+      )}
+      {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
       {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
         <BulleObjet
           ancre={ouverte.ancre}
@@ -252,6 +277,7 @@ export function EcranJeu({
         <nav className="navigation" aria-label="Navigation" hidden={observation.terminee}>
           <button
             type="button"
+            className="nav-inventaire"
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'inventaire'}
             aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
@@ -261,6 +287,19 @@ export function EcranJeu({
             }
           >
             Inventaire
+          </button>
+          {/* Carré plein tant qu'un message n'a pas été lu, « nouveau message » pour le lecteur d'écran (12 §2.6). */}
+          <button
+            type="button"
+            className="nav-ia"
+            aria-haspopup="dialog"
+            aria-expanded={ouverte?.zone === 'ia'}
+            aria-label={nonLus > 0 ? 'IA Station, nouveau message' : 'IA Station'}
+            disabled={occupe}
+            onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
+          >
+            IA Station
+            {nonLus > 0 && <span className="pastille" aria-hidden="true" />}
           </button>
         </nav>
       </div>
@@ -312,6 +351,25 @@ function cleEtape(groupe: Groupe, etape: Etape): string {
   return `${groupe.cible.id}:${etape.option.action}:${etape.option.parametre?.id ?? ''}`;
 }
 
+/** Le focus reste dans la bulle ou la fenêtre ; Échap la referme. */
+function garderFocus(evenement: KeyboardEvent<HTMLElement>, fermer: () => void): void {
+  if (evenement.key === 'Escape') {
+    evenement.preventDefault();
+    fermer();
+    return;
+  }
+  if (evenement.key !== 'Tab') return;
+  const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')];
+  const premier = boutons[0];
+  const dernier = boutons[boutons.length - 1];
+  if (premier === undefined || dernier === undefined) return;
+  const actif = document.activeElement;
+  if (evenement.shiftKey ? actif === premier || actif === evenement.currentTarget : actif === dernier) {
+    evenement.preventDefault();
+    (evenement.shiftKey ? dernier : premier).focus();
+  }
+}
+
 /**
  * Bulle (12 §3.5) : dialogue nommé par son fil, « ‹ » à partir de la deuxième étape, « ✕ ».
  * Le focus y entre à chaque étape et n'en sort pas ; Échap la referme.
@@ -346,23 +404,6 @@ function Bulle({
   useEffect(() => {
     zone.current?.focus();
   }, [zone, etape]);
-  const pieger = (evenement: KeyboardEvent<HTMLElement>): void => {
-    if (evenement.key === 'Escape') {
-      evenement.preventDefault();
-      fermer();
-      return;
-    }
-    if (evenement.key !== 'Tab') return;
-    const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')];
-    const premier = boutons[0];
-    const dernier = boutons[boutons.length - 1];
-    if (premier === undefined || dernier === undefined) return;
-    const actif = document.activeElement;
-    if (evenement.shiftKey ? actif === premier || actif === evenement.currentTarget : actif === dernier) {
-      evenement.preventDefault();
-      (evenement.shiftKey ? dernier : premier).focus();
-    }
-  };
   return (
     <section
       ref={zone}
@@ -373,7 +414,7 @@ function Bulle({
       aria-labelledby={idTitre}
       aria-describedby={decrite}
       tabIndex={-1}
-      onKeyDown={pieger}
+      onKeyDown={(evenement) => garderFocus(evenement, fermer)}
     >
       <div className="bulle-entete">
         {retour !== undefined && (
@@ -654,6 +695,66 @@ function Indisponible({ classe, libelle, raison }: { readonly classe: string; re
   );
 }
 
+/**
+ * Fenêtre d'IA Station (12 §3.9), blanche (D-192) : messages reçus du plus ancien au plus récent, en bas et visible à
+ * l'ouverture ; repère de moment sans heure ; NOUVEAU sur ceux qui n'étaient pas lus ; un seul bouton, RETOUR.
+ */
+export function ModaleIA({ messages, nouveaux, fermer }: { readonly messages: readonly MessageAffiche[]; readonly nouveaux: number; readonly fermer: () => void }) {
+  const zone = useRef<HTMLElement>(null);
+  const liste = useRef<HTMLOListElement>(null);
+  const idSousTitre = useId();
+  useLayoutEffect(() => {
+    if (liste.current !== null) liste.current.scrollTop = liste.current.scrollHeight;
+    zone.current?.focus();
+  }, []);
+  const premierNouveau = messages.length - nouveaux;
+  return (
+    <section
+      ref={zone}
+      className="modale-ia"
+      role="dialog"
+      aria-modal="true"
+      aria-label="IA Station"
+      aria-describedby={idSousTitre}
+      tabIndex={-1}
+      onKeyDown={(evenement) => garderFocus(evenement, fermer)}
+    >
+      <div className="modale-entete">
+        <h2 className="modale-titre">[ IA STATION ]</h2>
+        <p id={idSousTitre} className="modale-sous-titre">
+          messages reçus dans l’écouteur
+        </p>
+      </div>
+      {messages.length === 0 ? (
+        <p className="modale-vide">{AUCUN_MESSAGE}</p>
+      ) : (
+        <ol ref={liste} className="historique-ia">
+          {messages.map((message, index) => (
+            <li key={index}>
+              <p className="repere-ia">
+                <span aria-hidden="true">&gt; </span>
+                {message.repere}
+                {index >= premierNouveau && (
+                  <>
+                    {' '}
+                    <span className="nouveau">nouveau</span>
+                  </>
+                )}
+              </p>
+              <p className="citation-ia">{`«\u00a0${message.texte}\u00a0»`}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="modale-pied">
+        <button type="button" className="secondaire" onClick={fermer}>
+          Retour
+        </button>
+      </div>
+    </section>
+  );
+}
+
 /** Badge de santé (12 §3.2) : rien quand il est indemne ; la défaite n'a pas de badge. */
 function BadgeSante({ sante }: { readonly sante: Sante }) {
   if (sante !== 'blesse' && sante !== 'critique') return null;
@@ -686,22 +787,28 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
  * Récit (12 §3.3), écrit à la machine quand il est nouveau (D-186). `tabIndex` : le focus y revient quand la puce d'origine a disparu.
  * Chaque bloc existe deux fois : le texte entier pour le lecteur d'écran, et une copie masquée écrite lettre à lettre,
  * qui occupe dès le départ la place du texte final. Le curseur suit le dernier bloc.
+ * Au réveil, la parole d'IA Station est encadrée en entier (12 §4.2) ; ensuite, un lien ouvre sa fenêtre (12 §3.3, D-192).
  */
 function Recit({
   jeu,
   zone,
   ecrire,
   fixe,
+  occupe,
+  ouvrirIA,
 }: {
   readonly jeu: Jeu;
   readonly zone: RefObject<HTMLElement | null>;
   readonly ecrire: boolean;
   /** Réglage sur [NON] : curseur sans clignotement. */
   readonly fixe: boolean;
+  readonly occupe: boolean;
+  readonly ouvrirIA: (depuis: HTMLElement) => void;
 }) {
   const { rappel } = jeu;
+  const reveil = jeu.partie.etat.actions === 0;
   // Paroles d'IA Station entre guillemets, après le récit, écrites comme lui (D-186).
-  const paroles = jeu.assistance.map((message) => `«\u00a0${message}\u00a0»`);
+  const paroles = reveil ? jeu.assistance.map((message) => `«\u00a0${message}\u00a0»`) : [];
   const blocs = [...(rappel === null ? [] : [`> ${rappel.texte}`]), ...jeu.recit, ...paroles];
   const delais = delaisEcriture(blocs);
   // Nouvelle clé à chaque nouveau texte : la copie écrite est recréée et son écriture repart de zéro.
@@ -746,6 +853,19 @@ function Recit({
             </p>
           ))}
         </section>
+      )}
+      {!reveil && jeu.assistance.length > 0 && (
+        <button
+          type="button"
+          className="lien-ia"
+          aria-haspopup="dialog"
+          aria-label="IA Station parle dans l’écouteur"
+          data-testid="lien-ia"
+          disabled={occupe}
+          onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
+        >
+          {LIEN_IA}
+        </button>
       )}
     </section>
   );

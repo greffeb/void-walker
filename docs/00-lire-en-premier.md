@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-11 (#103 proposée).
+> **Mise à jour :** 2026-10-12 (#98 proposée).
 
 ## Mission de ce dossier
 
@@ -114,7 +114,9 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #117 (aperçu allégé) est fusionnée ([PR #118](https://github.com/greffeb/void-walker/pull/118)) : les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun », SAVOIR reste toujours (D-187).
 
-#122 (écran plus compact) est proposée par une PR en zone orange ([PR #123](https://github.com/greffeb/void-walker/pull/123)), sans fusion avant l'accord du porteur et son essai sur téléphone : boutons de quelques pixels plus bas, dock à sa hauteur et récit d'au moins six lignes, pied de page sur une ligne (D-191).
+#122 (écran plus compact) est fusionnée ([PR #123](https://github.com/greffeb/void-walker/pull/123)) : boutons de quelques pixels plus bas, dock à sa hauteur et récit d'au moins six lignes, pied de page sur une ligne (D-191).
+
+#98 (IA Station) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone. La fenêtre d'IA Station est blanche (D-192) : historique des messages reçus, repère de moment, NOUVEAU sur les non-lus, RETOUR. En partie, un lien « [ IA STATION ] parle dans l'écouteur › » remplace la citation ; au réveil elle reste encadrée. Pastille sur IA STATION tant qu'un message n'est pas lu, lus gardés sur l'appareil. Le monde de test reçoit deux messages (réveil, arrivée dans l'atelier). L'effet sonore d'arrivée viendra avec #99.
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 
@@ -122,7 +124,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #102 (feu, huile, avertisseur, caisse sous la grille) est fusionnée ([PR #120](https://github.com/greffeb/void-walker/pull/120)) ; l'issue reste à fermer. Choix consignés : le feu brûle à chaque action finie dans une pièce en feu, annoncé certain (D-188) ; la créature n'y entre jamais (D-189) ; l'huile se verse au pied d'une porte, du côté du passager, qui passe toujours par le bord sec (D-190). Nouvelles actions : déplacer, arroser, verser, déclencher ; une commande peut porter un paramètre (position ou passage).
 
-#103 (AR-01 jouable) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et sa partie sur téléphone. AR-01 devient le monde par défaut de l'appli et de la CLI (le monde de test reste jouable avec `?monde=monde-test` ou `--monde monde-test`). Ajouts : grille sans signalétique et panneau caché, bloc trop large pour les conduits, console, installation du bloc, cabine « à bord », départ et fin par évacuation, trois messages d'IA Station, étape « OÙ ? » de la bulle. P-A, P-B et P-C passent dans la vérification complète. Les détails proposés par les agents sont listés à la fin du journal des décisions ; une question reste ouverte sur les récits de plus de quatre phrases quand plusieurs choses arrivent ensemble (D-111).
+#103 (AR-01 jouable) est fusionnée ([PR #121](https://github.com/greffeb/void-walker/pull/121)). AR-01 devient le monde par défaut de l'appli et de la CLI (le monde de test reste jouable avec `?monde=monde-test` ou `--monde monde-test`). Ajouts : grille sans signalétique et panneau caché, bloc trop large pour les conduits, console, installation du bloc, cabine « à bord », départ et fin par évacuation, trois messages d'IA Station, étape « OÙ ? » de la bulle. P-A, P-B et P-C passent dans la vérification complète. Les détails proposés par les agents sont listés à la fin du journal des décisions ; une question reste ouverte sur les récits de plus de quatre phrases quand plusieurs choses arrivent ensemble (D-111).
 
 **Prochaine tâche recommandée :** après le retour du porteur sur #103, AR-02 jouable (#104). L'interface (#95 à #99) peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) est acceptée (D-175). Issues de développement créées, dans l'ordre : moteur [#100](https://github.com/greffeb/void-walker/issues/100), [#101](https://github.com/greffeb/void-walker/issues/101), [#102](https://github.com/greffeb/void-walker/issues/102) ; AR-01 [#103](https://github.com/greffeb/void-walker/issues/103) ; AR-02 [#104](https://github.com/greffeb/void-walker/issues/104) ; nouveaux morceaux [#105](https://github.com/greffeb/void-walker/issues/105) ; stations [#106](https://github.com/greffeb/void-walker/issues/106) ; rapports [#107](https://github.com/greffeb/void-walker/issues/107) ; signature [#108](https://github.com/greffeb/void-walker/issues/108). Deux issues qui touchent le moteur ne se mènent pas en même temps.
 

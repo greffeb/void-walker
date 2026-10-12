@@ -39,18 +39,18 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 | --- | --- | --- | --- |
 | `fond` | `#0A0907` | Fond de tous les écrans | — |
 | `surface` | `#14100A` | Bulle de composition | — |
-| `surface-2` | `#110E09` | Modale IA Station | — |
+| `surface-2` | `#110E09` | Modale IA Station (remplacé par `blanc-surface`, D-192) | — |
 | `texte` | `#F4C27A` | Texte courant, puces, boutons secondaires | 12,2:1 |
 | `accent` | `#FFB23F` | Titres de pièce, titres de bulle, bordure de bulle, badge de santé, éléments actifs | 11,1:1 |
 | `texte-secondaire` | `#B08850` | Rappels, positions, libellés, raisons d'indisponibilité | 6,1:1 |
-| `signal` | `#FFD08A` | Bruits perçus, paroles d'IA Station | 13,9:1 |
+| `signal` | `#FFD08A` | Bruits perçus, paroles d'IA Station dans le récit | 13,9:1 |
 | `bordure` | `#76603A` | Contours des puces et boutons | 3,3:1 |
 | `séparateur` | `#4A3A20` | Filets décoratifs seulement | 1,8:1 |
 
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
 - **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale.
 - **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
-- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan.
+- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192).
 
 | Jeton | Valeur | Usage | Contraste sur `cyan-surface` |
 | --- | --- | --- | --- |
@@ -58,6 +58,15 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 | `cyan-texte` | `#A6F6FA` | Texte de la bulle d'inventaire | 15,4:1 |
 | `cyan-secondaire` | `#3AA7AE` | Contours des puces et raisons dans la bulle | 6,5:1 |
 | `cyan-surface` | `#061416` | Fond de la bulle d'inventaire | — |
+
+Blanc froid à peine bleuté de la fenêtre d'IA Station (D-192), valeurs à juger sur téléphone :
+
+| Jeton | Valeur | Usage | Contraste sur `blanc-surface` |
+| --- | --- | --- | --- |
+| `blanc` | `#EEF6F8` | Contour, titre, NOUVEAU et RETOUR de la fenêtre | 17,7:1 |
+| `blanc-texte` | `#DCE8EC` | Citations de la fenêtre | 15,5:1 |
+| `blanc-secondaire` | `#8C9CA2` | Repères de moment, sous-titre, filets | 6,8:1 |
+| `blanc-surface` | `#0A0E0F` | Fond de la fenêtre | — |
 
 ### 2.2 Typographie
 
@@ -139,7 +148,7 @@ Dans cet ordre :
 1. **Rappel de la dernière action**, en `texte-secondaire` : objet · action · paramètre, par exemple « > Caisse · Déplacer · sous la grille haute ». [Validé] Pour un déplacement : « > ALLER VERS · ATELIER DE SERVICE ». Pour l'arrivée dans le jeu : « > REGARDER AUTOUR DE VOUS ».
 2. **Récit** : deux à quatre phrases (C-07).
 3. **Ligne de bruit** : icône oreille, puis une phrase en italique `signal`, par exemple « Quelque chose bouge derrière la porte du Salon de transit. » [Validé] Le texte nomme le passage, jamais une position (OP-01). Sans bruit : même ligne en `texte-secondaire`, « Vous n'entendez rien de particulier. » [Proposé]
-4. **Lien IA Station**, seulement quand un message vient d'arriver : cadre pointillé, « [ IA STATION ] parle dans l'écouteur › ». Ouvre la modale (§3.9). [Validé]
+4. **Lien IA Station**, seulement quand un message vient d'arriver : cadre pointillé, « [ IA STATION ] parle dans l'écouteur › ». Ouvre la modale (§3.9). [Validé] Le message lui-même ne s'écrit pas dans le récit : il se lit dans la modale ; seul celui du réveil est cité en entier (§4.2). [Validé D-192]
 5. **Encadré « Ce qui change »** après une action dont l'effet est notable (§3.10).
 
 **Machine à écrire** [Validé D-186] : tout nouveau texte (rappel, récit, bruit, messages d'IA Station, réveil) s'écrit caractère par caractère, dans l'ordre de lecture, en 500 ms au total. Puis un curseur `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Toucher un bouton pendant l'écriture agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit. Le lecteur d'écran reçoit le texte entier une fois ; le curseur lui est masqué. La place du texte final est réservée dès le début.
@@ -205,11 +214,12 @@ Grille de deux colonnes : libellé en capitales `texte-secondaire`, puis valeur.
 
 ### 3.9 Modale IA Station
 
-Nom affiché « IA Station » (remplace « assistance »). C'est une modale, avec un seul bouton « Retour ». [Validé]
+Nom affiché « IA Station » (remplace « assistance »). C'est une modale, avec un seul bouton « Retour ». [Validé] Elle est blanche, comme l'inventaire est cyan (§2.1). [Validé D-192, remplaçant `surface-2`, `texte`, `accent` et `signal` dans cette modale]
 
-- Voile de 55 % sur l'écran de jeu. Boîte ancrée en bas, à 16 px des côtés et 24 px du bas, 600 px de haut au plus. Contour 1 px `texte`, fond `surface-2`.
-- En-tête : « [ IA STATION ] » en `accent` 17/600, puis « messages reçus dans l'écouteur » en 12.
-- Historique chronologique, le plus récent en bas, qui défile. Chaque message a un repère de moment, sans heure : « > au réveil · Salon de transit ». Un message non lu porte l'étiquette NOUVEAU en vidéo inverse. Le texte est en italique `signal`, entre guillemets.
+- Voile de 55 % sur l'écran de jeu. Boîte ancrée en bas, à 16 px des côtés et 24 px du bas, 600 px de haut au plus. Contour 1 px `blanc`, fond `blanc-surface`.
+- En-tête : « [ IA STATION ] » en `blanc` 17/600, puis « messages reçus dans l'écouteur » en 12 `blanc-secondaire`.
+- Historique chronologique, le plus récent en bas, qui défile. Chaque message a un repère de moment, sans heure : « > au réveil · Salon de transit ». Un message non lu porte l'étiquette NOUVEAU en vidéo inverse. Le texte est en italique `blanc-texte`, entre guillemets.
+- Ouvrir la modale fait passer tous les messages reçus en lus ; NOUVEAU reste affiché jusqu'à sa fermeture. Le message du réveil compte comme nouveau, bien qu'il soit cité au réveil. [Validé D-192]
 - En bas : RETOUR. Toucher le voile ferme aussi.
 - Pas de question ni de réponse sur l'état du monde (D-081, cas K-06).
 
@@ -585,4 +595,4 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
 | Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
 | Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |
-| Absents | Carte, IA Station, options, santé, fins, rapports | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun |
+| Absents | Carte, options, fins, rapports | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun. Santé : #101 ; IA Station : #98 |

@@ -2,20 +2,26 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App } from './App';
-import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu } from './EcranJeu';
+import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu, ModaleIA } from './EcranJeu';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
-import { commencer, consulter, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
+import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
 import type { Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
 
 function memoire(): Stockage {
   let donnees: unknown = null;
+  let lus: unknown = null;
   return {
     lire: () => Promise.resolve(donnees),
     ecrire: (nouvelles) => {
       donnees = nouvelles;
+      return Promise.resolve();
+    },
+    lireLus: () => Promise.resolve(lus),
+    ecrireLus: (nouveaux) => {
+      lus = nouveaux;
       return Promise.resolve();
     },
   };
@@ -23,10 +29,20 @@ function memoire(): Stockage {
 
 const env: Environnement = { monde, textes, version: 'v-test', stockage: memoire(), graine: () => 5 };
 const rien = (): Promise<void> => Promise.resolve();
+const rienALire = (): void => undefined;
 
-function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true): string {
+function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true, lus = 0): string {
   return renderToStaticMarkup(
-    <EcranJeu jeu={jeu} env={env} machineAEcrire={machineAEcrire} occupe={false} choisir={rien} ouvrirOptions={ouvrirOptions} />,
+    <EcranJeu
+      jeu={jeu}
+      lus={lus}
+      env={env}
+      machineAEcrire={machineAEcrire}
+      occupe={false}
+      choisir={rien}
+      lireMessages={rienALire}
+      ouvrirOptions={ouvrirOptions}
+    />,
   );
 }
 
@@ -249,11 +265,18 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 
   it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
-    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} env={env} machineAEcrire occupe={true} choisir={rien} />);
+    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} lus={0} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />);
     const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
-    // Carnet, porte, grille, « → ATELIER » (ouverte) et INVENTAIRE ; « ⊘ SOUTE » n'ouvre rien.
-    expect(ouvrants).toHaveLength(5);
+    // Carnet, porte, grille, « → ATELIER » (ouverte), INVENTAIRE et IA STATION ; « ⊘ SOUTE » n'ouvre rien.
+    expect(ouvrants).toHaveLength(6);
     expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
+    const arrivee = await apres('prendre', 'ouvrir', 'aller');
+    const lien = entre(
+      renderToStaticMarkup(<EcranJeu jeu={arrivee} lus={0} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />),
+      '<button type="button" class="lien-ia"',
+      '>',
+    );
+    expect(lien).toContain('disabled=""');
   });
 
   it('inventaire : l’action choisie montre aussi son aperçu ; « ‹ » revient à la fiche', async () => {
@@ -294,11 +317,11 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(bulleInventaire(await commencer(env), null))).toBe('Inventaire ✕ Vous ne portez rien.');
   });
 
-  it('navigation : seulement INVENTAIRE, bouton texte sans pictogramme qui ouvre une bulle', async () => {
-    const nav = entre(rendre(await commencer(env)), '<nav', '</nav>');
-    expect(nav.match(/<button/g)).toHaveLength(1);
-    expect(texte(nav)).toBe('Inventaire');
-    expect(nav).toContain('aria-haspopup="dialog" aria-expanded="false"');
+  it('navigation : INVENTAIRE et IA STATION, boutons texte sans pictogramme qui ouvrent une bulle ou une fenêtre', async () => {
+    const nav = entre(rendre(await commencer(env), undefined, true, 1), '<nav', '</nav>');
+    expect(nav.match(/<button/g)).toHaveLength(2);
+    expect(texte(nav)).toBe('Inventaire IA Station');
+    expect(nav.match(/aria-haspopup="dialog" aria-expanded="false"/g)).toHaveLength(2);
     expect(nav).not.toMatch(/<svg|<img/);
   });
 
@@ -347,7 +370,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const jeu = await commencer(env);
     const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
     const html = renderToStaticMarkup(
-      <EcranJeu jeu={vaincu} env={env} machineAEcrire occupe={false} choisir={rien} nouvellePartie={() => undefined} />,
+      <EcranJeu jeu={vaincu} lus={0} env={env} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
     );
     expect(html).not.toContain('badge-sante');
     expect(html).not.toContain('class="puce"');
@@ -448,8 +471,10 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     return jeu;
   }
 
-  function rendreAr01(jeu: Jeu): string {
-    return renderToStaticMarkup(<EcranJeu jeu={jeu} env={envAr01} machineAEcrire occupe={false} choisir={rien} nouvellePartie={() => undefined} />);
+  function rendreAr01(jeu: Jeu, lus = 0): string {
+    return renderToStaticMarkup(
+      <EcranJeu jeu={jeu} lus={lus} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+    );
   }
 
   function groupeAr01(jeu: Jeu, nom: string, zone: 'piece' | 'inventaire' = 'piece'): Groupe {
@@ -548,9 +573,12 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     const arrivee = await pc(5);
     expect(arrivee.rappel).toEqual({ texte: 'Aller vers · local énergie', capitales: true });
     expect(arrivee.assistance).toEqual([ar01.textes.assistance.energie]);
-    expect(lu(entre(rendreAr01(arrivee), '<section class="recit', '</section></section>'))).toContain(`«\u00a0${ar01.textes.assistance.energie ?? ''}\u00a0»`);
+    // En cours de partie, un lien ouvre la fenêtre au lieu de la citation (12 §3.3, D-192).
+    const html = rendreAr01(arrivee, 1);
+    expect(html).not.toContain('parole-ia');
+    expect(texte(entre(html, '<button type="button" class="lien-ia"', '</button>'))).toBe('[ IA STATION ] parle dans l’écouteur ›');
     expect((await pc(6)).assistance).toEqual([]);
-    expect(rendreAr01(await pc(6))).not.toContain('parole-ia');
+    expect(rendreAr01(await pc(6), 1)).not.toContain('lien-ia');
   });
 
   it('évacuation : quinze actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
@@ -564,5 +592,56 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
     expect(entre(html, '<header', '</header>')).toContain('<h1 class="titre-piece">cabine de la capsule</h1>');
     expect(fin.assistance).toEqual([ar01.textes.assistance.depart]);
+    // Le dernier message se lit encore dans la fenêtre, par le lien : la navigation n'est plus là.
+    expect(html).toContain('class="lien-ia"');
+  });
+});
+
+describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9, D-192)', () => {
+  const { reveil = '', atelier = '' } = textes.assistance;
+  const navIa = (html: string): string => entre(html, '<button type="button" class="nav-ia"', '</button>');
+
+  it('au réveil : citation encadrée, pas de lien ; pastille et « nouveau message » tant que la fenêtre n’a pas été ouverte', async () => {
+    const jeu = await commencer(env);
+    const html = rendre(jeu);
+    expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${reveil}\u00a0»`);
+    expect(html).not.toContain('lien-ia');
+    expect(navIa(html)).toBe(
+      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message">IA Station<span class="pastille" aria-hidden="true"></span></button>',
+    );
+    const lu1 = navIa(rendre(jeu, undefined, true, 1));
+    expect(lu1).toContain('aria-label="IA Station"');
+    expect(lu1).not.toContain('pastille');
+  });
+
+  it('à l’arrivée dans l’atelier : seulement le lien dans le récit, après lui ; à l’action suivante, plus de lien, la pastille reste', async () => {
+    const arrivee = await apres('prendre', 'ouvrir', 'aller');
+    expect(arrivee.assistance).toEqual([atelier]);
+    const recit = entre(rendre(arrivee, undefined, true, 1), '<section class="recit', '</button></section>');
+    expect(recit).not.toContain('parole-ia');
+    expect(recit).not.toContain(atelier);
+    expect(recit).toMatch(
+      /<button type="button" class="lien-ia" aria-haspopup="dialog" aria-label="IA Station parle dans l’écouteur" data-testid="lien-ia">\[ IA STATION \] parle dans l’écouteur\u00a0›<\/button><\/section>$/,
+    );
+    expect(navIa(rendre(arrivee, undefined, true, 1))).toContain('pastille');
+    expect(navIa(rendre(arrivee, undefined, true, 2))).not.toContain('pastille');
+    const suivant = await jouerOption(env, arrivee, observer(monde, arrivee.partie.etat).menu.find((option) => option.action === 'poser') as OptionMenu);
+    expect(rendre(suivant, undefined, true, 1)).not.toContain('lien-ia');
+    expect(navIa(rendre(suivant, undefined, true, 1))).toContain('pastille');
+  });
+
+  it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, un seul bouton RETOUR', async () => {
+    const arrivee = await apres('prendre', 'ouvrir', 'aller');
+    const html = renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={1} fermer={rienAJouer} />);
+    expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1">/);
+    expect(texte(html)).toBe(
+      `[ IA STATION ] messages reçus dans l’écouteur &gt; au réveil · Cabine « ${reveil} » &gt; en arrivant · Atelier nouveau « ${atelier} » Retour`,
+    );
+    expect(html.match(/<button/g)).toHaveLength(1);
+    expect(html.match(/class="nouveau"/g)).toHaveLength(1);
+    expect(renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={0} fermer={rienAJouer} />)).not.toContain('nouveau"');
+    expect(texte(renderToStaticMarkup(<ModaleIA messages={[]} nouveaux={0} fermer={rienAJouer} />))).toBe(
+      '[ IA STATION ] messages reçus dans l’écouteur Aucun message reçu. Retour',
+    );
   });
 });

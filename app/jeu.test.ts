@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { observer, type DefMonde } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { demarrer, jouerOption, mondeDemande, type Environnement, type Jeu } from './jeu';
+import { commencer, demarrer, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
@@ -72,7 +72,7 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
   it('refus et consultation n’écrivent rien et ne changent pas la partie', async () => {
     const reel = stockageIndexedDB('refus', fabrique);
     let ecritures = 0;
-    const env = environnement({ lire: () => reel.lire(), ecrire: async (donnees) => { ecritures++; await reel.ecrire(donnees); } });
+    const env = environnement({ ...reel, ecrire: async (donnees) => { ecritures++; await reel.ecrire(donnees); } });
     const jeu = await pret(env);
     const apresDepart = ecritures;
     const refuse = await choisir(env, jeu, 'aller', false);
@@ -86,7 +86,7 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
   it('écriture refusée : échec signalé, jeu possible, nouvel essai à l’action suivante (C-09 §3)', async () => {
     const reel = stockageIndexedDB('panne', fabrique);
     let enPanne = false;
-    const env = environnement({ lire: () => reel.lire(), ecrire: (donnees) => (enPanne ? Promise.reject(new Error('quota')) : reel.ecrire(donnees)) });
+    const env = environnement({ ...reel, ecrire: (donnees) => (enPanne ? Promise.reject(new Error('quota')) : reel.ecrire(donnees)) });
     let jeu = await pret(env);
     enPanne = true;
     jeu = await choisir(env, jeu, 'prendre');
@@ -115,6 +115,11 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
         ecritures++;
         return Promise.resolve();
       },
+      lireLus: () => Promise.reject(new Error('base verrouillée')),
+      ecrireLus: () => {
+        ecritures++;
+        return Promise.resolve();
+      },
     });
     const demarrage = await demarrer(env);
     expect(demarrage).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('base verrouillée') });
@@ -126,6 +131,62 @@ describe('appli : sauvegarde et reprise (AP-03, C-09)', () => {
     const test = environnement(stockageIndexedDB('void-walker:/void-walker/pr-1/', fabrique));
     await choisir(principale, await pret(principale), 'prendre');
     expect((await pret(test)).partie.etat.actions).toBe(0);
+  });
+});
+
+describe('appli : IA Station, historique et messages lus (#98, 12 §3.9)', () => {
+  let fabrique: IDBFactory;
+  beforeEach(() => {
+    fabrique = new IDBFactory();
+  });
+
+  it('historique : chaque message reçu avec son repère, sans heure ; seulement ceux déjà reçus (K-06)', async () => {
+    const env = environnement(stockageIndexedDB('historique', fabrique));
+    let jeu = await pret(env);
+    expect(historiqueAffiche(env, jeu.partie)).toEqual([{ repere: 'au réveil · Cabine', texte: textes.assistance.reveil }]);
+    for (const action of ['prendre', 'ouvrir', 'aller']) jeu = await choisir(env, jeu, action);
+    expect(historiqueAffiche(env, jeu.partie)).toEqual([
+      { repere: 'au réveil · Cabine', texte: textes.assistance.reveil },
+      { repere: 'en arrivant · Atelier', texte: textes.assistance.atelier },
+    ]);
+  });
+
+  it('lire ne change pas la partie ; après reprise, même historique et mêmes non-lus', async () => {
+    const stockage = stockageIndexedDB('lus', fabrique);
+    const env = environnement(stockage);
+    let jeu = await pret(env);
+    expect(await lireLus(env, jeu.partie)).toBe(0);
+    const avant = await stockage.lire();
+    await marquerLus(env, jeu.partie);
+    expect(await stockage.lire()).toEqual(avant);
+    expect(await lireLus(env, jeu.partie)).toBe(1);
+    for (const action of ['prendre', 'ouvrir', 'aller']) jeu = await choisir(env, jeu, action);
+    expect(await lireLus(env, jeu.partie)).toBe(1);
+
+    const rouvert = environnement(stockageIndexedDB('lus', fabrique));
+    const repris = await pret(rouvert);
+    expect(historiqueAffiche(rouvert, repris.partie)).toEqual(historiqueAffiche(env, jeu.partie));
+    expect(await lireLus(rouvert, repris.partie)).toBe(1);
+    await marquerLus(rouvert, repris.partie);
+    expect(await lireLus(environnement(stockageIndexedDB('lus', fabrique)), repris.partie)).toBe(2);
+  });
+
+  it('messages lus d’une autre partie, illisibles ou en trop : rien n’est lu au-delà de ce qui est reçu', async () => {
+    const stockage = stockageIndexedDB('autre', fabrique);
+    const env = environnement(stockage);
+    const jeu = await pret(env);
+    await marquerLus(env, jeu.partie);
+    const nouvelle = await commencer({ ...env, graine: () => 32 });
+    expect(await lireLus(env, nouvelle.partie)).toBe(0);
+    for (const brut of [null, 'abc', { monde: monde.id, graine: 31, lus: -1 }, { monde: monde.id, graine: 31, lus: 1.5 }, { monde: 'ar-01', graine: 31, lus: 1 }]) {
+      await stockage.ecrireLus(brut);
+      expect(await lireLus(env, jeu.partie)).toBe(0);
+    }
+    await stockage.ecrireLus({ monde: monde.id, graine: 31, lus: 9 });
+    expect(await lireLus(env, jeu.partie)).toBe(1);
+    const enPanne = environnement({ ...stockage, lireLus: () => Promise.reject(new Error('base verrouillée')), ecrireLus: () => Promise.reject(new Error('quota')) });
+    expect(await lireLus(enPanne, jeu.partie)).toBe(0);
+    await expect(marquerLus(enPanne, jeu.partie)).resolves.toBeUndefined();
   });
 });
 

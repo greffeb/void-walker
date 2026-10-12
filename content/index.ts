@@ -25,6 +25,7 @@ export {
   rendreAssistance,
   rendreConsultation,
   rendreEvenements,
+  rendreMoment,
   rendreObservation,
   rendreRefus,
   texteAssistance,

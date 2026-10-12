@@ -20,4 +20,9 @@ export const MONDE_TEST: DefMonde = {
     { id: 'objet-trousse', nom: 'trousse', piece: 'piece-atelier', soin: 1 },
   ],
   creature: { piece: 'piece-soute' },
+  // IA Station (#98) : un message au réveil, un autre à la première arrivée dans l'atelier.
+  assistance: [
+    { id: 'reveil', quand: { type: 'reveil' } },
+    { id: 'atelier', quand: { type: 'arrivee', piece: 'piece-atelier' } },
+  ],
 };
