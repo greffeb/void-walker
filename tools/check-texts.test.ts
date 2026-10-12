@@ -35,6 +35,14 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('verbe prendre : aucun texte (NP-01).');
   });
 
+  it('un nom de pièce trop long pour son plan fait échouer le contrôle (PL-04)', () => {
+    const long = avecTextes((textes) => ({
+      ...textes,
+      noms: { ...textes.noms, cabine: { texte: 'cabine de repos prolongé', genre: 'f', nombre: 's', elision: false } },
+    }));
+    expect(verifierTextes(long)).toContain('plan : « cabine de repos prolongé » ne tient pas dans sa pièce de 3 × 2 cases (PL-04).');
+  });
+
   it('un verbe vide ou avec un trou fait échouer le contrôle', () => {
     const vide = avecTextes((textes) => ({ ...textes, verbes: { ...textes.verbes, poser: ' ' } }));
     expect(verifierTextes(vide)).toContain('verbe poser : texte vide.');

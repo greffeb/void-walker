@@ -6,11 +6,13 @@ import type { DefMonde } from '../../engine';
 export const MONDE_AR02: DefMonde = {
   id: 'ar-02',
   depart: 'p-coursive',
+  // Plan (14 §4.3) : local de sécurité, cabines du personnel et salle panoramique en rang, la salle d'embarquement sous la
+  // panoramique ; la baie et la capsule donnent sur la coque.
   pieces: [
-    { id: 'p-coursive', nom: 'coursive' },
-    { id: 'p-local', nom: 'local' },
-    { id: 'p-panoramique', nom: 'panoramique' },
-    { id: 'p-embarquement', nom: 'embarquement' },
+    { id: 'p-coursive', nom: 'coursive', plan: { x: 3, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-local', nom: 'local', plan: { x: 0, y: 0, largeur: 3, hauteur: 3 } },
+    { id: 'p-panoramique', nom: 'panoramique', plan: { x: 7, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-embarquement', nom: 'embarquement', plan: { x: 7, y: 3, largeur: 4, hauteur: 3 } },
     { id: 'p-cabine', nom: 'cabine', sousPosition: true },
   ],
   liaisons: [

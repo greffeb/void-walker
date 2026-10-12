@@ -5,10 +5,11 @@ import type { DefMonde } from '../../engine';
 export const MONDE_TEST: DefMonde = {
   id: 'monde-test',
   depart: 'piece-cabine',
+  // Plan (14 §4.3) : cabine et atelier côte à côte, la soute en dessous, touchant les deux.
   pieces: [
-    { id: 'piece-cabine', nom: 'cabine' },
-    { id: 'piece-atelier', nom: 'atelier' },
-    { id: 'piece-soute', nom: 'soute' },
+    { id: 'piece-cabine', nom: 'cabine', plan: { x: 0, y: 0, largeur: 3, hauteur: 2 } },
+    { id: 'piece-atelier', nom: 'atelier', plan: { x: 3, y: 0, largeur: 3, hauteur: 2 } },
+    { id: 'piece-soute', nom: 'soute', plan: { x: 0, y: 2, largeur: 6, hauteur: 2 } },
   ],
   liaisons: [
     { id: 'liaison-cabine-atelier', nom: 'porte', entre: ['piece-cabine', 'piece-atelier'], ouverte: false, bruyante: true },

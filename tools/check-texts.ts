@@ -22,6 +22,7 @@ import {
   CLES_EVACUATION,
   libelleOption,
   MONDES,
+  nomLisible,
   rendreApercu,
   rendreAssistance,
   rendreConsultation,
@@ -158,6 +159,14 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   }
   for (const entite of [...monde.pieces, ...monde.objets]) {
     verifierVariantes(erreurs, `description de « ${entite.nom} »`, textes.descriptions[entite.nom], []);
+  }
+  // PL-04 (14 §4.2) : chaque nom de pièce tient dans son rectangle, avec la place d'une ligne d'état.
+  for (const piece of monde.pieces) {
+    const nom = textes.noms[piece.nom];
+    if (piece.plan === undefined || nom === undefined) continue;
+    if (!nomLisible(nom.texte, piece.plan.largeur, piece.plan.hauteur)) {
+      erreurs.push(`plan : « ${nom.texte} » ne tient pas dans sa pièce de ${piece.plan.largeur} × ${piece.plan.hauteur} cases (PL-04).`);
+    }
   }
 }
 
