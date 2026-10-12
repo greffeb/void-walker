@@ -285,8 +285,9 @@ export interface Couverture {
   readonly jamais: readonly TypeEvenement[];
 }
 
+/** Clé d'un état pour l'exploration : sans compteur, dés ni mémoire, qu'aucune règle ne lit (14 §3) ; sinon l'espace serait infini. */
 function cleEtat(partie: Partie): string {
-  return JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+  return JSON.stringify({ ...partie.etat, actions: 0, generateur: null, memoire: null });
 }
 
 /** Rend chaque texte que le joueur peut voir dans cet état et renvoie les parties qui suivent ses actions engagées. */

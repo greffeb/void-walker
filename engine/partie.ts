@@ -4,6 +4,7 @@ import { graineValide, ouvrirDes, type Des } from './des';
 import { etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
 import { empreinte } from './hachage';
+import { regarder } from './memoire';
 import { indexer, type DefMonde } from './monde';
 import { observer, terminee } from './observation';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
@@ -70,7 +71,8 @@ export class ErreurRejeu extends Error {
 }
 
 export function nouvellePartie(monde: DefMonde, options: { readonly version: string; readonly graine: number }): Partie {
-  const etat = etatInitial(monde, options.graine);
+  // Au réveil, le passager voit sa pièce (14 §3.1).
+  const etat = regarder(monde, etatInitial(monde, options.graine));
   return {
     enregistrement: { format: FORMAT_ENREGISTREMENT, version: options.version, monde: monde.id, graine: options.graine, actions: [] },
     etat,
@@ -299,7 +301,8 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
     }
   }
   const tirages = [...session.tirages];
-  const etat: EtatPartie = { ...conclu, actions: partie.etat.actions + 1, generateur: session.etatFinal() };
+  // Le regard de fin d'action met à jour la mémoire du passager, avec le compte d'actions confirmées (14 §3.1).
+  const etat: EtatPartie = regarder(monde, { ...conclu, actions: partie.etat.actions + 1, generateur: session.etatFinal() });
   const entree: EntreeJournal = { commande: validation.commande, tirages };
   return {
     type: 'engagee',

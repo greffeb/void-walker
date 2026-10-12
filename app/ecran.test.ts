@@ -47,7 +47,7 @@ function atteignables(): Partie[] {
   while (frontiere.length > 0) {
     const suivante: Partie[] = [];
     for (const partie of frontiere) {
-      const cle = JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+      const cle = JSON.stringify({ ...partie.etat, actions: 0, generateur: null, memoire: null });
       if (vus.has(cle)) continue;
       vus.add(cle);
       parties.push(partie);

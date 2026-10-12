@@ -132,7 +132,7 @@ export function casApercus(entree: EntreeMonde): CasApercu[] {
   while (frontiere.length > 0 && trouves.size < 4) {
     const suivante: { partie: Partie; chemin: Geste[] }[] = [];
     for (const { partie, chemin } of frontiere) {
-      const etat = JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+      const etat = JSON.stringify({ ...partie.etat, actions: 0, generateur: null, memoire: null });
       if (vus.has(etat)) continue;
       vus.add(etat);
       const observation = observer(entree.monde, partie.etat);
