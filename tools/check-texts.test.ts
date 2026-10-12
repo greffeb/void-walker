@@ -98,13 +98,13 @@ describe('contrôle des textes (C-07)', () => {
     expect(couverture?.rendus).toEqual(expect.arrayContaining(['circuit_active', 'objet_installe', 'passage_decouvert', 'evacuation', 'assistance']));
   });
 
-  it('un récit de plus de quatre phrases depuis un état d’un parcours témoin reste une erreur (D-111)', EXHAUSTIF, () => {
+  it('un récit de plus de quatre phrases dans un pas joué par un parcours témoin reste une erreur (D-111)', EXHAUSTIF, () => {
     const long = 'Vous prenez {le:objet}. Deux. Trois. Quatre. Cinq.';
     const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, objet_pris: [long] } }));
     expect(controlerTextes(entree).erreurs).toContain('action prendre (objet_pris) : 5 phrase(s) ; 2 à 4 attendues (D-111).');
   });
 
-  it('un récit de plus de quatre phrases : avertissement hors parcours témoins, erreur dans un parcours (D-111)', EXHAUSTIF, () => {
+  it('un récit de plus de quatre phrases : avertissement hors des pas des parcours témoins, erreur dans un pas de parcours (D-111)', EXHAUSTIF, () => {
     const long = 'Vous posez {le:objet}. Deux. Trois. Quatre. Cinq.';
     const entree = avecTextes((textes) => ({ ...textes, evenements: { ...textes.evenements, objet_pose: [long] } }));
     const message = 'action poser (objet_pose) : 5 phrase(s) ; 2 à 4 attendues (D-111).';

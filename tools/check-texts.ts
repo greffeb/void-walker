@@ -192,7 +192,7 @@ export function direBornes({ minimum, maximum, momentFort }: Bornes): string {
   return minimum === maximum ? `${minimum} phrase(s)` : `de ${minimum} à ${maximum} phrase(s) selon les variantes`;
 }
 
-/** Récit de plus de quatre phrases rendu hors des parcours témoins, une entrée par état où il a été rendu. */
+/** Récit de plus de quatre phrases rendu hors des pas joués par les parcours témoins, une entrée par état où il a été rendu. */
 export interface Avertissement {
   /** Suite des événements de l'action, dans l'ordre. */
   readonly combinaison: string;
@@ -440,7 +440,7 @@ function explorer(
 export interface ResultatTextes {
   readonly erreurs: readonly string[];
   /**
-   * Récits de plus de quatre phrases rendus depuis un état hors des parcours témoins (D-111, à arbitrer) : une entrée par
+   * Récits de plus de quatre phrases rendus hors des pas joués par les parcours témoins (D-111, à arbitrer) : une entrée par
    * état et par action.
    */
   readonly avertissements: readonly Avertissement[];
@@ -494,7 +494,7 @@ if (isMainModule(import.meta.url)) {
     if (avertissements.length > 0) {
       const groupes = regrouperAvertissements(avertissements);
       console.warn(
-        `${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors parcours témoins (un par état et par action), en ${groupes.length} combinaison(s) d’événements (D-111, à arbitrer) :`,
+        `${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors des pas joués par les parcours témoins (un par état et par action explorés, pas une fréquence en partie), en ${groupes.length} combinaison(s) d’événements (D-111, à arbitrer) :`,
       );
       for (const { combinaison, occurrences, bornes } of groupes) console.warn(`  ${occurrences} × ${combinaison} — ${bornes.join(' ; ')}`);
     }

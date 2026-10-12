@@ -76,15 +76,15 @@ export const TEXTES_AR01: TextesMonde = {
       'Un bidon d’eau à bec verseur. Une étiquette le dit prévu pour les feux de compartiment.',
     ],
     burette: [
-      'Une burette d’huile de maintenance. Lubrifiant glissant, non inflammable ; de quoi rendre un seuil glissant en gardant un bord sec.',
+      'Une burette d’huile de maintenance. L’étiquette précise : lubrifiant glissant, non inflammable.',
       'Une burette d’huile à long bec. L’étiquette précise : glissant, non inflammable.',
     ],
     trousse: [
-      'Une trousse de soin d’urgence, marquée d’une croix blanche. De quoi panser une plaie.',
+      'Une trousse de soin d’urgence, marquée d’une croix blanche.',
       'Une trousse de soin en toile, une croix blanche sur le rabat.',
     ],
     console: [
-      'Une console marquée « circuit de départ ». Au-dessus, un gros relais ; il claquera fort au réarmement.',
+      'Une console marquée « circuit de départ ». Au-dessus, un gros relais, étiqueté « bruyant au réarmement ».',
       'La console du circuit de départ, avec son levier de réarmement. Son relais, massif, a l’air bruyant.',
     ],
     bloc: [
@@ -174,8 +174,8 @@ export const TEXTES_AR01: TextesMonde = {
       'Vous glissez {le:objet} dans son logement, à l’arrière {de:capsule}. Un voyant vert s’allume.',
     ],
     passage_decouvert: [
-      'Derrière {le:passage}, un accès de service étroit mène vers {le:vers} ; un relevé de service y est fixé : le réseau d’urgence demande de garder cet accès d’évacuation.',
-      'Derrière {le:passage} s’ouvre un accès de service étroit, vers {le:vers} ; sur un relevé fixé à l’entrée, le réseau d’urgence demande le maintien de cet accès d’évacuation.',
+      'Derrière {le:passage}, un accès de service étroit mène vers {le:vers} ; un relevé y est fixé : le réseau d’urgence avait demandé de garder cet accès d’évacuation, que le confinement masquait.',
+      'Derrière {le:passage} s’ouvre un accès de service étroit, vers {le:vers} ; sur un relevé fixé à l’entrée, le réseau d’urgence avait demandé le maintien de cet accès d’évacuation.',
     ],
   },
   brulures: {
