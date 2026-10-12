@@ -2,7 +2,7 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-125/
-Commit `781d9bb`
+Commit `8e0a9c0`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large ; départ d’AR-01 aussi en 412 × 915). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
@@ -13,7 +13,7 @@ Adresse : `?monde=monde-test`.
 Installation : manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif
 Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-Regular.woff2 (service worker), IBMPlexMono-SemiBold.woff2 (service worker)
 
-<img src="https://greffeb.github.io/void-walker/pr-125/captures/01.png?v=781d9bb" width="200" alt="Départ"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/02.png?v=781d9bb" width="200" alt="Bulle « Carnet » ouverte"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/03.png?v=781d9bb" width="200" alt="Prendre le carnet"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/04.png?v=781d9bb" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/05.png?v=781d9bb" width="200" alt="Ouvrir la porte de l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/06.png?v=781d9bb" width="200" alt="Après fermeture et réouverture"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/07.png?v=781d9bb" width="200" alt="Aperçu « Aller vers › atelier »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/08.png?v=781d9bb" width="200" alt="Aller dans l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/09.png?v=781d9bb" width="200" alt="Inventaire ouvert"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/10.png?v=781d9bb" width="200" alt="Inventaire, fiche « Carnet »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/11.png?v=781d9bb" width="200" alt="Poser le carnet"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/12.png?v=781d9bb" width="200" alt="Hors ligne : reprise, police servie par l’appli"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/13.png?v=781d9bb" width="200" alt="Fin du parcours, 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/14.png?v=781d9bb" width="200" alt="« → soute » d’un seul toucher, touché deux fois : un seul déplacement"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/15.png?v=781d9bb" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », sans risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/16.png?v=781d9bb" width="200" alt="Aperçu « Grille de la soute › Ouvrir », sans risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/17.png?v=781d9bb" width="200" alt="Aperçu « Aller vers › atelier », risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/18.png?v=781d9bb" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/19.png?v=781d9bb" width="200" alt="Machine à écrire, 0 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/20.png?v=781d9bb" width="200" alt="Machine à écrire, 125 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/21.png?v=781d9bb" width="200" alt="Machine à écrire, 250 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/22.png?v=781d9bb" width="200" alt="Machine à écrire, 375 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/23.png?v=781d9bb" width="200" alt="Machine à écrire, 600 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/24.png?v=781d9bb" width="200" alt="Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier (tout le texte à 22 px)"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/25.png?v=781d9bb" width="200" alt="Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/26.png?v=781d9bb" width="200" alt="Départ, bulle « Porte de l’atelier », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/27.png?v=781d9bb" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/28.png?v=781d9bb" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px">
+<img src="https://greffeb.github.io/void-walker/pr-125/captures/01.png?v=8e0a9c0" width="200" alt="Départ"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/02.png?v=8e0a9c0" width="200" alt="Bulle « Carnet » ouverte"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/03.png?v=8e0a9c0" width="200" alt="Prendre le carnet"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/04.png?v=8e0a9c0" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/05.png?v=8e0a9c0" width="200" alt="Ouvrir la porte de l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/06.png?v=8e0a9c0" width="200" alt="Après fermeture et réouverture"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/07.png?v=8e0a9c0" width="200" alt="Aperçu « Aller vers › atelier »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/08.png?v=8e0a9c0" width="200" alt="Aller dans l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/09.png?v=8e0a9c0" width="200" alt="Inventaire ouvert"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/10.png?v=8e0a9c0" width="200" alt="Inventaire, fiche « Carnet »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/11.png?v=8e0a9c0" width="200" alt="Poser le carnet"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/12.png?v=8e0a9c0" width="200" alt="Hors ligne : reprise, police servie par l’appli"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/13.png?v=8e0a9c0" width="200" alt="Fin du parcours, 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/14.png?v=8e0a9c0" width="200" alt="« → soute » d’un seul toucher, touché deux fois : un seul déplacement"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/15.png?v=8e0a9c0" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », sans risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/16.png?v=8e0a9c0" width="200" alt="Aperçu « Grille de la soute › Ouvrir », sans risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/17.png?v=8e0a9c0" width="200" alt="Aperçu « Aller vers › atelier », risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/18.png?v=8e0a9c0" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/19.png?v=8e0a9c0" width="200" alt="Machine à écrire, 0 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/20.png?v=8e0a9c0" width="200" alt="Machine à écrire, 125 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/21.png?v=8e0a9c0" width="200" alt="Machine à écrire, 250 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/22.png?v=8e0a9c0" width="200" alt="Machine à écrire, 375 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/23.png?v=8e0a9c0" width="200" alt="Machine à écrire, 600 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/24.png?v=8e0a9c0" width="200" alt="Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier (tout le texte à 22 px)"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/25.png?v=8e0a9c0" width="200" alt="Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/26.png?v=8e0a9c0" width="200" alt="Départ, bulle « Porte de l’atelier », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/27.png?v=8e0a9c0" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/28.png?v=8e0a9c0" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px">
 
 <details><summary>Texte affiché à chaque étape</summary>
 
@@ -238,9 +238,9 @@ Vous ne portez rien.
 _Récit : 14,7 lignes visibles ; boutons du dock tous visibles._
 
 > Aller vers · soute
-> Vous franchissez le seuil et entrez dans la soute. Vos pas résonnent sur le plancher métallique.
-> Vous n’aviez encore jamais mis les pieds ici.
-> La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.
+> Vous passez dans la soute, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.
+> Rien, ici, ne vous est familier.
+> Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.
 
 ```text
 Vous êtes dans la soute.
@@ -303,8 +303,8 @@ Vous ne portez rien.
 _Récit : 13,7 lignes visibles ; boutons du dock tous visibles._
 
 > Porte de l’atelier · Fermer
-> Vous fermez la porte de l’atelier. Le joint se plaque contre le cadre avec un bruit mat.
-> La créature se jette sur vous ; vous vous dérobez de justesse.
+> Vous refermez la porte de l’atelier. Le silence revient d’un coup.
+> Des griffes fendent l’air à un souffle de votre visage.
 
 ```text
 Vous êtes dans la cabine.
@@ -320,7 +320,7 @@ Vous portez le carnet.
 _Récit : 11,4 lignes visibles ; boutons du dock tous visibles._
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -335,7 +335,7 @@ Vous ne portez rien.
 _Récit : 11,4 lignes visibles ; boutons du dock tous visibles._
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -350,7 +350,7 @@ Vous ne portez rien.
 _Récit : 11,4 lignes visibles ; boutons du dock tous visibles._
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -365,7 +365,7 @@ Vous ne portez rien.
 _Récit : 11,4 lignes visibles ; boutons du dock tous visibles._
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -380,7 +380,7 @@ Vous ne portez rien.
 _Récit : 11,4 lignes visibles ; boutons du dock tous visibles._
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -395,7 +395,7 @@ Vous ne portez rien.
 _Récit : 6,0 lignes visibles ; boutons du dock à faire défiler._
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -410,7 +410,7 @@ Vous ne portez rien.
 _Récit : 11,4 lignes visibles ; boutons du dock tous visibles._
 
 > Regarder autour de vous
-> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
+> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
 
 ```text
 Vous êtes dans la cabine.
@@ -424,7 +424,7 @@ Vous ne portez rien.
 
 _Récit : 6,0 lignes visibles ; boutons du dock à faire défiler._
 
-> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
+> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
 > « Merci de rester dans votre cabine jusqu’à nouvel ordre. »
 
 ```text
@@ -439,7 +439,7 @@ Vous ne portez rien.
 
 _Récit : 6,0 lignes visibles ; boutons du dock à faire défiler._
 
-> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
+> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
 > « Merci de rester dans votre cabine jusqu’à nouvel ordre. »
 
 ```text
@@ -454,7 +454,7 @@ Vous ne portez rien.
 
 _Récit : 6,0 lignes visibles ; boutons du dock à faire défiler._
 
-> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
+> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
 > « Merci de rester dans votre cabine jusqu’à nouvel ordre. »
 
 ```text
@@ -469,10 +469,12 @@ Vous ne portez rien.
 
 ### AR-01, parcours P-C
 
-**AR-01, parcours P-C : réussi.**
+**AR-01, parcours P-C : ÉCHEC.**
+
+- Fin : 16 actions au lieu de 15.
 Adresse par défaut, partie neuve, joué geste par geste.
 
-<img src="https://greffeb.github.io/void-walker/pr-125/captures/29.png?v=781d9bb" width="200" alt="AR-01 — Départ : parole d’IA Station, pastille sur IA STATION"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/30.png?v=781d9bb" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/31.png?v=781d9bb" width="200" alt="AR-01 — Par « → grille » : « Aller vers · local énergie », lien d’IA Station"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/32.png?v=781d9bb" width="200" alt="AR-01 — Fenêtre d’IA Station : deux messages nouveaux"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/33.png?v=781d9bb" width="200" alt="AR-01 — Fenêtre d’IA Station après reprise : messages lus"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/34.png?v=781d9bb" width="200" alt="AR-01 — Aperçu « Burette d’huile › Verser › Cloison de la salle d’observation »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/35.png?v=781d9bb" width="200" alt="AR-01 — Ouvrir la cloison de la salle d’observation : créature à terre"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/36.png?v=781d9bb" width="200" alt="AR-01 — Installer le bloc d’énergie dans la capsule"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/37.png?v=781d9bb" width="200" alt="AR-01 — Fin : « La capsule s’est détachée. Vous avez quitté la station. », NOUVELLE PARTIE"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/38.png?v=781d9bb" width="200" alt="AR-01 — Fin : fenêtre d’IA Station, départ confirmé"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/39.png?v=781d9bb" width="200" alt="AR-01 — Départ, 412 × 915"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/40.png?v=781d9bb" width="200" alt="AR-01 — Départ, 320 × 568"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/41.png?v=781d9bb" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? », 320 px de large">
+<img src="https://greffeb.github.io/void-walker/pr-125/captures/29.png?v=8e0a9c0" width="200" alt="AR-01 — Départ : parole d’IA Station, pastille sur IA STATION"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/30.png?v=8e0a9c0" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/31.png?v=8e0a9c0" width="200" alt="AR-01 — Par « → grille » : « Aller vers · local énergie », lien d’IA Station"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/32.png?v=8e0a9c0" width="200" alt="AR-01 — Fenêtre d’IA Station : deux messages nouveaux"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/33.png?v=8e0a9c0" width="200" alt="AR-01 — Fenêtre d’IA Station après reprise : messages lus"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/34.png?v=8e0a9c0" width="200" alt="AR-01 — Aperçu « Burette d’huile › Verser › Cloison de la salle d’observation »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/35.png?v=8e0a9c0" width="200" alt="AR-01 — Ouvrir la cloison de la salle d’observation : créature à terre"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/36.png?v=8e0a9c0" width="200" alt="AR-01 — Installer le bloc d’énergie dans la capsule"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/37.png?v=8e0a9c0" width="200" alt="AR-01 — Fin : « La capsule s’est détachée. Vous avez quitté la station. », NOUVELLE PARTIE"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/38.png?v=8e0a9c0" width="200" alt="AR-01 — Fin : fenêtre d’IA Station, départ confirmé"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/39.png?v=8e0a9c0" width="200" alt="AR-01 — Départ, 412 × 915"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/40.png?v=8e0a9c0" width="200" alt="AR-01 — Départ, 320 × 568"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/41.png?v=8e0a9c0" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? », 320 px de large">
 
 <details><summary>Texte affiché à chaque étape</summary>
 
@@ -603,7 +605,7 @@ Vous portez la burette d’huile et le bloc d’énergie.
 
 #### AR-01 — Installer le bloc d’énergie dans la capsule
 
-_Récit : 9,8 lignes visibles ; boutons du dock tous visibles._
+_Récit : 8,6 lignes visibles ; boutons du dock tous visibles._
 
 > Bloc d’énergie · Installer
 > Vous engagez le bloc d’énergie dans le connecteur de la capsule de secours. Le verrou s’enclenche avec un déclic.
@@ -612,7 +614,7 @@ _Récit : 9,8 lignes visibles ; boutons du dock tous visibles._
 Vous êtes dans l’embarquement.
 Vous voyez ici une capsule de secours.
 La cloison de la salle d’observation est fermée.
-L’écoutille de la cabine de la capsule est ouverte.
+L’écoutille de la cabine de la capsule est fermée.
 Le bloc d’énergie est engagé dans la capsule de secours.
 Vous portez la burette d’huile.
 ```
@@ -622,7 +624,7 @@ Vous portez la burette d’huile.
 _Récit : 22,4 lignes visibles ; boutons du dock tous visibles._
 
 > Pupitre de départ · Lancer
-> Le levier descend ; le bloc d’énergie répond. Un choc, puis plus rien ne vous retient à la station.
+> Le bloc d’énergie alimente la capsule. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.
 
 ```text
 Vous êtes dans la cabine de la capsule.
@@ -637,7 +639,7 @@ La capsule s’est détachée. Vous avez quitté la station.
 _Récit : 22,4 lignes visibles ; boutons du dock tous visibles._
 
 > Pupitre de départ · Lancer
-> Le levier descend ; le bloc d’énergie répond. Un choc, puis plus rien ne vous retient à la station.
+> Le bloc d’énergie alimente la capsule. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.
 
 ```text
 Vous êtes dans la cabine de la capsule.
@@ -666,7 +668,7 @@ Vous ne portez rien.
 
 _Récit : 6,0 lignes visibles ; boutons du dock à faire défiler._
 
-> Le siège se redresse sans prévenir. Vous êtes dans le salon de transit. Au plafond, les flèches d’embarquement sont rouges. Votre terminal de transit affiche : CONFINEMENT EN COURS.
+> Vous vous réveillez d’un coup, sanglé à votre siège, dans le salon de transit. Les flèches d’embarquement brillent en rouge. Votre terminal de transit affiche : CONFINEMENT EN COURS.
 > « Une capsule de secours est disponible. Son circuit de départ ne répond pas. »
 
 ```text
@@ -700,7 +702,7 @@ Vous portez la burette d’huile.
 **AR-02, parcours P-V1 : réussi.**
 Adresse : `?monde=ar-02`, partie neuve, joué geste par geste.
 
-<img src="https://greffeb.github.io/void-walker/pr-125/captures/42.png?v=781d9bb" width="200" alt="AR-02 — Départ"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/43.png?v=781d9bb" width="200" alt="AR-02 — Enfiler la combinaison étanche"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/44.png?v=781d9bb" width="200" alt="AR-02 — Aperçu « Baie extérieure › Percer »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/45.png?v=781d9bb" width="200" alt="AR-02 — Percer la baie extérieure à la découpeuse"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/46.png?v=781d9bb" width="200" alt="AR-02 — Aller dans l’embarquement"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/47.png?v=781d9bb" width="200" alt="AR-02 — Fin : « La capsule s’est détachée. Vous avez quitté la station. »">
+<img src="https://greffeb.github.io/void-walker/pr-125/captures/42.png?v=8e0a9c0" width="200" alt="AR-02 — Départ"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/43.png?v=8e0a9c0" width="200" alt="AR-02 — Enfiler la combinaison étanche"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/44.png?v=8e0a9c0" width="200" alt="AR-02 — Aperçu « Baie extérieure › Percer »"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/45.png?v=8e0a9c0" width="200" alt="AR-02 — Percer la baie extérieure à la découpeuse"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/46.png?v=8e0a9c0" width="200" alt="AR-02 — Aller dans l’embarquement"> <img src="https://greffeb.github.io/void-walker/pr-125/captures/47.png?v=8e0a9c0" width="200" alt="AR-02 — Fin : « La capsule s’est détachée. Vous avez quitté la station. »">
 
 <details><summary>Texte affiché à chaque étape</summary>
 
@@ -774,7 +776,7 @@ Vous portez la combinaison étanche et la découpeuse de maintenance.
 
 #### AR-02 — Aller dans l’embarquement
 
-_Récit : 11,0 lignes visibles ; boutons du dock tous visibles._
+_Récit : 9,8 lignes visibles ; boutons du dock tous visibles._
 
 > Aller vers · embarquement
 > Vous franchissez la porte grippée de l’embarquement. Vous entrez dans l’embarquement.
@@ -786,8 +788,7 @@ Vous êtes dans l’embarquement.
 Vous voyez ici une capsule de secours.
 La porte grippée de la salle panoramique est ouverte.
 Le voyant de la porte grippée de la salle panoramique est rouge : plus d’air de l’autre côté.
-L’écoutille de la cabine de la capsule est ouverte.
-Le voyant de l’écoutille de la cabine de la capsule est rouge : plus d’air de l’autre côté.
+L’écoutille de la cabine de la capsule est fermée.
 Il n’y a plus d’air ici.
 Une créature gît ici, inerte.
 Votre casque est verrouillé : la combinaison étanche vous protège du vide.
@@ -799,7 +800,7 @@ Vous portez la combinaison étanche et la découpeuse de maintenance.
 _Récit : 22,4 lignes visibles ; boutons du dock tous visibles._
 
 > Pupitre de départ · Lancer
-> La capsule part sur sa propre réserve. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.
+> Le levier descend ; la réserve de la capsule répond. Un choc, puis plus rien ne vous retient à la station.
 
 ```text
 Vous êtes dans la cabine de la capsule.
