@@ -2,7 +2,7 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-121/
-Commit `c5d510f`
+Commit `54206f5`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
@@ -11,15 +11,15 @@ Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 
 **Parcours du monde de test : réussi.**
 Adresse : `?monde=monde-test`.
 Installation : manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif
-Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)
+Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-Regular.woff2 (service worker), IBMPlexMono-SemiBold.woff2 (service worker)
 
-<img src="https://greffeb.github.io/void-walker/pr-121/captures/01.png?v=c5d510f" width="200" alt="Départ"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/02.png?v=c5d510f" width="200" alt="Bulle « Carnet » ouverte"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/03.png?v=c5d510f" width="200" alt="Prendre le carnet"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/04.png?v=c5d510f" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/05.png?v=c5d510f" width="200" alt="Ouvrir la porte de l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/06.png?v=c5d510f" width="200" alt="Après fermeture et réouverture"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/07.png?v=c5d510f" width="200" alt="Aperçu « Aller vers › atelier »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/08.png?v=c5d510f" width="200" alt="Aller dans l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/09.png?v=c5d510f" width="200" alt="Inventaire ouvert"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/10.png?v=c5d510f" width="200" alt="Inventaire, fiche « Carnet »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/11.png?v=c5d510f" width="200" alt="Poser le carnet"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/12.png?v=c5d510f" width="200" alt="Hors ligne : reprise, police servie par l’appli"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/13.png?v=c5d510f" width="200" alt="Fin du parcours, 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/14.png?v=c5d510f" width="200" alt="« → soute » d’un seul toucher, touché deux fois : un seul déplacement"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/15.png?v=c5d510f" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », sans risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/16.png?v=c5d510f" width="200" alt="Aperçu « Grille de la soute › Ouvrir », sans risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/17.png?v=c5d510f" width="200" alt="Aperçu « Aller vers › atelier », risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/18.png?v=c5d510f" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/19.png?v=c5d510f" width="200" alt="Machine à écrire, 0 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/20.png?v=c5d510f" width="200" alt="Machine à écrire, 125 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/21.png?v=c5d510f" width="200" alt="Machine à écrire, 250 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/22.png?v=c5d510f" width="200" alt="Machine à écrire, 375 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/23.png?v=c5d510f" width="200" alt="Machine à écrire, 600 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/24.png?v=c5d510f" width="200" alt="Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/25.png?v=c5d510f" width="200" alt="Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/26.png?v=c5d510f" width="200" alt="Départ, bulle « Porte de l’atelier », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/27.png?v=c5d510f" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/28.png?v=c5d510f" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px">
+<img src="https://greffeb.github.io/void-walker/pr-121/captures/01.png?v=54206f5" width="200" alt="Départ"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/02.png?v=54206f5" width="200" alt="Bulle « Carnet » ouverte"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/03.png?v=54206f5" width="200" alt="Prendre le carnet"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/04.png?v=54206f5" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/05.png?v=54206f5" width="200" alt="Ouvrir la porte de l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/06.png?v=54206f5" width="200" alt="Après fermeture et réouverture"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/07.png?v=54206f5" width="200" alt="Aperçu « Aller vers › atelier »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/08.png?v=54206f5" width="200" alt="Aller dans l’atelier"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/09.png?v=54206f5" width="200" alt="Inventaire ouvert"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/10.png?v=54206f5" width="200" alt="Inventaire, fiche « Carnet »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/11.png?v=54206f5" width="200" alt="Poser le carnet"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/12.png?v=54206f5" width="200" alt="Hors ligne : reprise, police servie par l’appli"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/13.png?v=54206f5" width="200" alt="Fin du parcours, 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/14.png?v=54206f5" width="200" alt="« → soute » d’un seul toucher, touché deux fois : un seul déplacement"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/15.png?v=54206f5" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », sans risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/16.png?v=54206f5" width="200" alt="Aperçu « Grille de la soute › Ouvrir », sans risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/17.png?v=54206f5" width="200" alt="Aperçu « Aller vers › atelier », risque connu, sans coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/18.png?v=54206f5" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », risque connu, avec un coût"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/19.png?v=54206f5" width="200" alt="Machine à écrire, 0 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/20.png?v=54206f5" width="200" alt="Machine à écrire, 125 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/21.png?v=54206f5" width="200" alt="Machine à écrire, 250 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/22.png?v=54206f5" width="200" alt="Machine à écrire, 375 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/23.png?v=54206f5" width="200" alt="Machine à écrire, 600 ms après le toucher"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/24.png?v=54206f5" width="200" alt="Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/25.png?v=54206f5" width="200" alt="Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/26.png?v=54206f5" width="200" alt="Départ, bulle « Porte de l’atelier », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/27.png?v=54206f5" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px de large"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/28.png?v=54206f5" width="200" alt="Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px">
 
 <details><summary>Texte affiché à chaque étape</summary>
 
 #### Départ
 
-> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
+> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
 
 ```text
 Vous êtes dans la cabine.
@@ -31,7 +31,7 @@ Vous ne portez rien.
 
 #### Bulle « Carnet » ouverte
 
-> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
+> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
 
 ```text
 Vous êtes dans la cabine.
@@ -44,7 +44,7 @@ Vous ne portez rien.
 #### Prendre le carnet
 
 > Carnet · Prendre
-> Vous prenez le carnet. Le contact est froid sous vos doigts.
+> Vous ramassez le carnet. Vos mains tremblent un peu.
 
 ```text
 Vous êtes dans la cabine.
@@ -57,7 +57,7 @@ Vous portez le carnet.
 #### Aperçu « Porte de l’atelier › Ouvrir »
 
 > Carnet · Prendre
-> Vous prenez le carnet. Le contact est froid sous vos doigts.
+> Vous ramassez le carnet. Vos mains tremblent un peu.
 
 ```text
 Vous êtes dans la cabine.
@@ -70,9 +70,9 @@ Vous portez le carnet.
 #### Ouvrir la porte de l’atelier
 
 > Porte de l’atelier · Ouvrir
-> Vous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.
-> La porte de l’atelier a grincé si fort que le bruit a dû porter loin.
-> Quelque chose bouge derrière la porte de l’atelier.
+> Vous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.
+> Le mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.
+> Derrière la porte de l’atelier, quelque chose de lourd se déplace.
 
 ```text
 Vous êtes dans la cabine.
@@ -85,9 +85,9 @@ Vous portez le carnet.
 #### Après fermeture et réouverture
 
 > Porte de l’atelier · Ouvrir
-> Vous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.
-> La porte de l’atelier a grincé si fort que le bruit a dû porter loin.
-> Quelque chose bouge derrière la porte de l’atelier.
+> Vous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.
+> Le mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.
+> Derrière la porte de l’atelier, quelque chose de lourd se déplace.
 
 ```text
 Vous êtes dans la cabine.
@@ -100,9 +100,9 @@ Vous portez le carnet.
 #### Aperçu « Aller vers › atelier »
 
 > Porte de l’atelier · Ouvrir
-> Vous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.
-> La porte de l’atelier a grincé si fort que le bruit a dû porter loin.
-> Quelque chose bouge derrière la porte de l’atelier.
+> Vous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.
+> Le mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.
+> Derrière la porte de l’atelier, quelque chose de lourd se déplace.
 
 ```text
 Vous êtes dans la cabine.
@@ -115,9 +115,9 @@ Vous portez le carnet.
 #### Aller dans l’atelier
 
 > Aller vers · atelier
-> Vous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.
-> Rien, ici, ne vous est familier.
-> Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.
+> Vous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.
+> Vous n’aviez encore jamais mis les pieds ici.
+> La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.
 
 ```text
 Vous êtes dans l’atelier.
@@ -131,9 +131,9 @@ Vous portez le carnet.
 #### Inventaire ouvert
 
 > Aller vers · atelier
-> Vous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.
-> Rien, ici, ne vous est familier.
-> Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.
+> Vous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.
+> Vous n’aviez encore jamais mis les pieds ici.
+> La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.
 
 ```text
 Vous êtes dans l’atelier.
@@ -147,9 +147,9 @@ Vous portez le carnet.
 #### Inventaire, fiche « Carnet »
 
 > Aller vers · atelier
-> Vous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.
-> Rien, ici, ne vous est familier.
-> Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.
+> Vous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.
+> Vous n’aviez encore jamais mis les pieds ici.
+> La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.
 
 ```text
 Vous êtes dans l’atelier.
@@ -163,8 +163,8 @@ Vous portez le carnet.
 #### Poser le carnet
 
 > Carnet · Poser
-> Vous posez le carnet au sol, près de la cloison. Vos mains sont libres.
-> La créature se jette sur vous ; vous vous dérobez de justesse.
+> Vous déposez le carnet à vos pieds. Vous gardez les mains libres.
+> Des griffes fendent l’air à un souffle de votre visage.
 
 ```text
 Vous êtes dans l’atelier.
@@ -178,8 +178,8 @@ Vous ne portez rien.
 #### Hors ligne : reprise, police servie par l’appli
 
 > Carnet · Poser
-> Vous posez le carnet au sol, près de la cloison. Vos mains sont libres.
-> La créature se jette sur vous ; vous vous dérobez de justesse.
+> Vous déposez le carnet à vos pieds. Vous gardez les mains libres.
+> Des griffes fendent l’air à un souffle de votre visage.
 
 ```text
 Vous êtes dans l’atelier.
@@ -193,8 +193,8 @@ Vous ne portez rien.
 #### Fin du parcours, 320 px de large
 
 > Carnet · Poser
-> Vous posez le carnet au sol, près de la cloison. Vos mains sont libres.
-> La créature se jette sur vous ; vous vous dérobez de justesse.
+> Vous déposez le carnet à vos pieds. Vous gardez les mains libres.
+> Des griffes fendent l’air à un souffle de votre visage.
 
 ```text
 Vous êtes dans l’atelier.
@@ -208,9 +208,9 @@ Vous ne portez rien.
 #### « → soute » d’un seul toucher, touché deux fois : un seul déplacement
 
 > Aller vers · soute
-> Vous passez dans la soute, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.
-> Rien, ici, ne vous est familier.
-> Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.
+> Vous franchissez le seuil et entrez dans la soute. Vos pas résonnent sur le plancher métallique.
+> Vous n’aviez encore jamais mis les pieds ici.
+> La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.
 
 ```text
 Vous êtes dans la soute.
@@ -223,7 +223,7 @@ Vous ne portez rien.
 
 #### Aperçu « Porte de l’atelier › Ouvrir », sans risque connu, avec un coût
 
-> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
+> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
 
 ```text
 Vous êtes dans la cabine.
@@ -248,9 +248,9 @@ Vous ne portez rien.
 #### Aperçu « Aller vers › atelier », risque connu, sans coût
 
 > Porte de l’atelier · Ouvrir
-> Vous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.
-> La porte de l’atelier a grincé si fort que le bruit a dû porter loin.
-> Quelque chose bouge derrière la porte de l’atelier.
+> Vous appuyez sur le bouton d’ouverture. La porte de l’atelier s’efface dans la cloison.
+> Le mécanisme grippé a hurlé tout du long ; l’écho met longtemps à mourir.
+> Derrière la porte de l’atelier, quelque chose de lourd se déplace.
 
 ```text
 Vous êtes dans la cabine.
@@ -263,8 +263,8 @@ Vous ne portez rien.
 #### Aperçu « Porte de l’atelier › Ouvrir », risque connu, avec un coût
 
 > Porte de l’atelier · Fermer
-> Vous fermez la porte de l’atelier. Le joint se plaque contre le cadre avec un bruit mat.
-> La créature se jette sur vous ; vous vous dérobez de justesse.
+> Vous refermez la porte de l’atelier. Le silence revient d’un coup.
+> Des griffes fendent l’air à un souffle de votre visage.
 
 ```text
 Vous êtes dans la cabine.
@@ -278,7 +278,7 @@ Vous portez le carnet.
 #### Machine à écrire, 0 ms après le toucher
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -291,7 +291,7 @@ Vous ne portez rien.
 #### Machine à écrire, 125 ms après le toucher
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -304,7 +304,7 @@ Vous ne portez rien.
 #### Machine à écrire, 250 ms après le toucher
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -317,7 +317,7 @@ Vous ne portez rien.
 #### Machine à écrire, 375 ms après le toucher
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -330,7 +330,7 @@ Vous ne portez rien.
 #### Machine à écrire, 600 ms après le toucher
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -343,7 +343,7 @@ Vous ne portez rien.
 #### Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier
 
 > Regarder autour de vous
-> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
+> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
 
 ```text
 Vous êtes dans la cabine.
@@ -356,7 +356,7 @@ Vous ne portez rien.
 #### Réglage « Effet machine à écrire » sur [NON] : texte immédiat, curseur fixe
 
 > Regarder autour de vous
-> Un réduit de mousse grise et de métal. La couchette défaite garde encore la forme d’un corps. Le ventilateur souffle un air tiède.
+> Une cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.
 
 ```text
 Vous êtes dans la cabine.
@@ -368,7 +368,7 @@ Vous ne portez rien.
 
 #### Départ, bulle « Porte de l’atelier », 320 px de large
 
-> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
+> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
 
 ```text
 Vous êtes dans la cabine.
@@ -380,7 +380,7 @@ Vous ne portez rien.
 
 #### Aperçu « Porte de l’atelier › Ouvrir », 320 px de large
 
-> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
+> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
 
 ```text
 Vous êtes dans la cabine.
@@ -392,7 +392,7 @@ Vous ne portez rien.
 
 #### Aperçu « Porte de l’atelier › Ouvrir », 320 px, tout le texte à 22 px
 
-> Vous vous réveillez dans la cabine, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.
+> Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.
 
 ```text
 Vous êtes dans la cabine.
@@ -409,7 +409,7 @@ Vous ne portez rien.
 **AR-01, parcours P-C : réussi.**
 Adresse par défaut, partie neuve, joué geste par geste.
 
-<img src="https://greffeb.github.io/void-walker/pr-121/captures/29.png?v=c5d510f" width="200" alt="AR-01 — Départ : parole d’IA Station"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/30.png?v=c5d510f" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/31.png?v=c5d510f" width="200" alt="AR-01 — Par « → grille » : « Aller vers · local énergie », parole d’IA Station"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/32.png?v=c5d510f" width="200" alt="AR-01 — Aperçu « Burette d’huile › Verser › Cloison de la salle d’observation »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/33.png?v=c5d510f" width="200" alt="AR-01 — Ouvrir la cloison de la salle d’observation : créature à terre"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/34.png?v=c5d510f" width="200" alt="AR-01 — Installer le bloc d’énergie dans la capsule"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/35.png?v=c5d510f" width="200" alt="AR-01 — Fin : « La capsule s’est détachée. Vous avez quitté la station. », NOUVELLE PARTIE"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/36.png?v=c5d510f" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? », 320 px de large">
+<img src="https://greffeb.github.io/void-walker/pr-121/captures/29.png?v=54206f5" width="200" alt="AR-01 — Départ : parole d’IA Station"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/30.png?v=54206f5" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/31.png?v=54206f5" width="200" alt="AR-01 — Par « → grille » : « Aller vers · local énergie », parole d’IA Station"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/32.png?v=54206f5" width="200" alt="AR-01 — Aperçu « Burette d’huile › Verser › Cloison de la salle d’observation »"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/33.png?v=54206f5" width="200" alt="AR-01 — Ouvrir la cloison de la salle d’observation : créature à terre"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/34.png?v=54206f5" width="200" alt="AR-01 — Installer le bloc d’énergie dans la capsule"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/35.png?v=54206f5" width="200" alt="AR-01 — Fin : « La capsule s’est détachée. Vous avez quitté la station. », NOUVELLE PARTIE"> <img src="https://greffeb.github.io/void-walker/pr-121/captures/36.png?v=54206f5" width="200" alt="AR-01 — Bulle « Caisse », étape « OÙ ? », 320 px de large">
 
 <details><summary>Texte affiché à chaque étape</summary>
 
