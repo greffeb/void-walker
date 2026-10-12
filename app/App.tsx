@@ -88,9 +88,9 @@ export function App({
         </main>
       )}
       <footer className="pied">
-        <span>Version {version}</span>
+        <span>V{version}</span>
         {commit !== '' && <span> · {commit.slice(0, 7)}</span>}
-        {pr !== '' && <span> · version de test de la PR #{pr}</span>}
+        {pr !== '' && <span> · test PR #{pr}</span>}
       </footer>
       {/* Lignes de balayage (12 §2.3) : décoratives, jamais touchées ni lues. */}
       <div className="balayage" aria-hidden="true" />

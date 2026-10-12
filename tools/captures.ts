@@ -9,13 +9,15 @@ import { CLE_REGLAGES } from '../app/reglages';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 
-// Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large.
+// Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large ;
+// le départ d'AR-01 aussi en 412 × 915, proche du téléphone du porteur (D-191).
 // Niveau « vérifié automatiquement » : jamais une validation humaine (C-10 §2).
 
 const SORTIE = join(REPO_ROOT, 'captures');
 const TELEPHONE = 'Pixel 7';
 const REFERENCE = { width: 390, height: 844 };
 const ETROIT = { width: 320, height: 568 };
+const PORTEUR = { width: 412, height: 915 };
 
 export interface EtapeCapture {
   /** Partie du commentaire : parcours du monde de test, ou AR-01. */
@@ -24,6 +26,8 @@ export interface EtapeCapture {
   readonly image: string;
   readonly recit: string;
   readonly situation: string;
+  /** Lignes de récit visibles et dock entier ou à faire défiler (D-191) ; vide hors de l'écran de jeu. */
+  readonly partage: string;
 }
 
 /** Où toucher pour jouer une étape (12 §3.4), et ce que l'écran doit en rappeler. */
@@ -237,7 +241,7 @@ async function lire(page: Page): Promise<{ recit: string; situation: string }> {
   return { recit, situation };
 }
 
-/** Aucun chiffre affiché, cibles d'au moins 44 × 44 px, pas de débordement en largeur (12 §1, §2.7, §7). */
+/** Aucun chiffre affiché, cibles d'au moins 44 × 44 px, pas de débordement en largeur (12 §1, §2.7, §7) ; six lignes de récit au moins (D-191). */
 async function verifierEcran(page: Page, ou: string, erreurs: string[]): Promise<void> {
   const zones = await page.locator('.entete-piece, [data-testid="recit"], .dock, .bulle, .navigation').allInnerTexts();
   if (zones.some((texte) => /\d/.test(texte))) erreurs.push(`${ou} : un chiffre est affiché.`);
@@ -249,6 +253,37 @@ async function verifierEcran(page: Page, ou: string, erreurs: string[]): Promise
   }
   const debord = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   if (debord > 0) erreurs.push(`${ou} : la page déborde de ${debord} px en largeur.`);
+  const mesure = await partage(page);
+  if (mesure !== null && !(mesure.lignes >= 5.95)) erreurs.push(`${ou} : le récit ne montre que ${mesure.lignes.toFixed(1)} lignes.`);
+  if (mesure !== null && mesure.defile && mesure.lignes > 6.05) erreurs.push(`${ou} : le dock défile alors que le récit a ${mesure.lignes.toFixed(1)} lignes.`);
+}
+
+/** Partage de l'écran de jeu (D-191) : lignes de récit visibles, et si le dock défile ; `null` sans récit ni dock. */
+async function partage(page: Page): Promise<{ lignes: number; defile: boolean } | null> {
+  return page.evaluate(() => {
+    const recit = document.querySelector<HTMLElement>('[data-testid="recit"]');
+    const dock = document.querySelector<HTMLElement>('.dock');
+    if (recit === null || dock === null) return null;
+    const style = getComputedStyle(recit);
+    const lignes = (recit.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) / parseFloat(style.lineHeight);
+    return { lignes, defile: dock.scrollHeight > dock.clientHeight + 1 };
+  });
+}
+
+function decrirePartage(mesure: { lignes: number; defile: boolean } | null): string {
+  if (mesure === null) return '';
+  const lignes = mesure.lignes.toFixed(1).replace('.', ',');
+  return `Récit : ${lignes} lignes visibles ; boutons du dock ${mesure.defile ? 'à faire défiler' : 'tous visibles'}.`;
+}
+
+/** Le pied de page (version, commit, numéro de PR) tient sur une ligne (D-191). */
+async function verifierPied(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  const pied = page.locator('.pied');
+  const lignes = await pied.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return (element.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) / parseFloat(style.lineHeight);
+  });
+  if (!(lignes <= 1.05)) erreurs.push(`${ou} : le pied de page « ${(await pied.innerText()).trim()} » tient sur ${Math.round(lignes)} lignes.`);
 }
 
 /** Bulle d'inventaire ouverte : au-dessus de son bouton sans le cacher, dock toujours là (D-154, D-176). */
@@ -655,6 +690,20 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   await verifierEcran(page, 'AR-01, fin', erreurs);
   await contexte.close();
 
+  // Départ au format du téléphone du porteur, puis à 320 × 568 où le dock défile au-dessous de six lignes de récit (D-191).
+  for (const ecran of [PORTEUR, ETROIT]) {
+    const autre = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ecran, locale: 'fr-FR' });
+    const vue = await autre.newPage();
+    await vue.goto(adresse);
+    await attendreSauvegarde(vue, 0);
+    const titre = `AR-01 — Départ, ${ecran.width} × ${ecran.height}`;
+    await capturer(vue, titre);
+    await verifierEcran(vue, titre, erreurs);
+    await verifierPied(vue, titre, erreurs);
+    if (ecran === PORTEUR && (await partage(vue))?.defile !== false) erreurs.push(`${titre} : les boutons du départ ne sont pas tous visibles.`);
+    await autre.close();
+  }
+
   // Étape « OÙ ? » à 320 px de large.
   const caisse = gestes.findIndex((geste) => geste.zone === 'piece' && geste.parametre !== null);
   const question = gestes[caisse];
@@ -694,7 +743,7 @@ function partieCommentaire(titre: string, etapes: readonly EtapeCapture[], erreu
     '',
   ];
   for (const etape of etapes) {
-    lignes.push(`#### ${etape.titre}`, '', ...etape.recit.split('\n').map((ligne) => `> ${ligne}`), '', '```text', etape.situation, '```', '');
+    lignes.push(`#### ${etape.titre}`, '', ...(etape.partage === '' ? [] : [`_${etape.partage}_`, '']), ...etape.recit.split('\n').map((ligne) => `> ${ligne}`), '', '```text', etape.situation, '```', '');
   }
   lignes.push('</details>', '');
   return lignes;
@@ -710,7 +759,7 @@ function commentaire(etapes: readonly EtapeCapture[], erreurs: readonly string[]
     adresse === '' ? 'Adresse : (publication locale)' : `**Adresse :** ${adresse}`,
     commit === '' ? '' : `Commit \`${commit.slice(0, 7)}\``,
     '',
-    `Captures d’un navigateur automatique sur téléphone simulé (${TELEPHONE}, ${REFERENCE.width} × ${REFERENCE.height} puis ${ETROIT.width} px de large). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.`,
+    `Captures d’un navigateur automatique sur téléphone simulé (${TELEPHONE}, ${REFERENCE.width} × ${REFERENCE.height} puis ${ETROIT.width} px de large ; départ d’AR-01 aussi en ${PORTEUR.width} × ${PORTEUR.height}). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.`,
     '',
     ...partieCommentaire(
       'Parcours du monde de test',
@@ -758,7 +807,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const capturerPage: CapturerPage = async (cible, titre, animations = 'disabled') => {
       const image = `${String(etapes.length + 1).padStart(2, '0')}.png`;
       await cible.screenshot({ path: join(SORTIE, image), fullPage: true, animations });
-      const etape = { suite, titre, image, ...(await lire(cible)) };
+      const etape = { suite, titre, image, ...(await lire(cible)), partage: decrirePartage(await partage(cible)) };
       etapes.push(etape);
       return etape;
     };
@@ -890,6 +939,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await page.setViewportSize(ETROIT);
     await capturerEtape(`Fin du parcours, ${ETROIT.width} px de large`);
     await verifierEcran(page, `Fin, ${ETROIT.width} px`, erreurs);
+    await verifierPied(page, `Fin, ${ETROIT.width} px`, erreurs);
     await contexte.setOffline(false);
 
     // Double toucher sur un déplacement d'un seul toucher : un seul déplacement, focus hors des boutons réutilisés (D-182).
@@ -1013,7 +1063,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     const touche = await etatEcriture(page);
     if (!(await page.getByRole('dialog').first().isVisible())) erreurs.push('Machine à écrire : toucher une puce pendant l’écriture n’ouvre pas sa bulle.');
     if (touche.visibles !== touche.total || touche.classes.includes('ecrire')) erreurs.push(`Machine à écrire : après un toucher, ${touche.visibles} caractères visibles sur ${touche.total}.`);
-    await capturerEtape('Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier', 'allow');
+    await capturerEtape('Machine à écrire : puce touchée pendant l’écriture, texte affiché en entier (tout le texte à 22 px)', 'allow');
     await page.keyboard.press('Escape');
     // Rouvrir une bulle ne réécrit rien.
     await puce.click();
@@ -1095,7 +1145,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT], installable, horsLigne, erreurs, erreursAr01, etapes };
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, etapes };
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
   writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, installable, horsLigne));
   return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`)] };

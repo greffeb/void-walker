@@ -20,7 +20,7 @@ Les textes cités viennent de la maquette (salon de transit, atelier de service)
 
 ## 1. Principes transverses
 
-1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur. Pas de fausse barre d'état. [Validé]
+1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur jusqu'à six lignes, puis le dock défile (D-191). Pas de fausse barre d'état. [Validé]
 2. **Le pouce agit en bas, l'œil lit en haut.** Tout ce qui agit (objets, déplacements, navigation, confirmation) est dans la moitié basse. En haut, un seul contrôle, rarement utilisé : l'engrenage des options. [Validé]
 3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Annuler est toujours possible, sans effet. Une action engageante passe par un aperçu puis CONFIRMER ; prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu n'annoncerait ni risque connu ni coût ; ouvrir et fermer une porte gardent toujours l'aperçu. [Validé D-182, remplaçant « toute action engageante, déplacement compris, passe par un aperçu »]
 4. **Un nom par chose** (NP-04). Même libellé dans le récit, le dock, la bulle, la carte et le rappel d'action. Les puces d'objet affichent le nom avec une majuscule initiale (« Burette d'huile ») ; titres de pièce et boutons de déplacement passent en capitales par le style uniquement ; le nom enregistré (en minuscules, avec genre et élision, NP-02) reste identique.
@@ -116,13 +116,13 @@ Deux icônes seulement, au trait (1,8 px), 20 à 22 px, couleur du texte : **eng
 
 ### 2.7 Formes et espacements
 
-Angles droits partout (rayon 0). Bordures de 1 px. La bulle a une bordure `accent` et un halo de 4 px couleur `fond` ; pas d'ombre douce. Marges latérales 16 px, gouttières 6 à 8 px, pas de 4 px. Cibles tactiles : au moins 44 × 44 px, lignes de liste 48, puces 50, boutons de déplacement 50, navigation 52, boutons principaux 54 à 58.
+Angles droits partout (rayon 0). Bordures de 1 px. La bulle a une bordure `accent` et un halo de 4 px couleur `fond` ; pas d'ombre douce. Marges latérales 16 px, gouttières 6 à 8 px, pas de 4 px. Cibles tactiles : au moins 44 × 44 px, lignes de liste 44, puces 46, boutons de déplacement 46, navigation 48, boutons principaux 50 (D-191 : quelques pixels de moins partout, jamais sous 44).
 
 ## 3. Composants réutilisables
 
 ### 3.1 Structure de l'écran de jeu
 
-De haut en bas, en colonne : en-tête de pièce (environ 64 px), zone de récit (prend la place restante et défile), dock « Dans la pièce », barre de navigation. Les lignes de balayage couvrent le tout. Le dock défile s'il déborde ; il ne prend pas plus d'environ 45 % de la hauteur, pour que le récit garde au moins un tiers de l'écran. [Proposé]
+De haut en bas, en colonne : en-tête de pièce (environ 56 px), zone de récit (prend la place restante et défile), dock « Dans la pièce », barre de navigation. Les lignes de balayage couvrent le tout. La limite entre le récit et le dock se place toute seule : le dock prend la hauteur qu'il faut pour montrer tous ses boutons, le récit garde le reste et jamais moins de six lignes de texte, à sa taille (texte agrandi compris). Seulement si les boutons ne tiennent pas à côté de ces six lignes, le dock défile. Pas de limite déplaçable au doigt. [Validé D-191]
 
 ### 3.2 En-tête de pièce
 
@@ -148,7 +148,7 @@ Dans cet ordre :
 
 - Filet pointillé au-dessus. Pas de consigne « Touchez pour agir ». [Validé]
 - Titre « ── DANS LA PIÈCE ── ».
-- **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 50 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
+- **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 46 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
 - Titre « ── SE DÉPLACER VERS ── » (remplace « Sorties »). [Validé]
 - **Boutons de déplacement** : un par passage connu, pleine largeur, vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre l'aperçu de déplacement (§4.3).
 - **Passage sans signalétique** (grille haute, conduit) : il rejoint « Se déplacer vers » seulement une fois ouvert ; avant, il n'est qu'une puce d'objet. Tant que sa destination n'est pas découverte, le bouton porte le nom du passage, « → GRILLE HAUTE » (OP-03). [Validé D-147]
@@ -165,7 +165,7 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
   - le fil de la composition en `accent` 15/600 : « CAISSE », puis « CAISSE › DÉPLACER », puis « CAISSE › DÉPLACER › sous la grille haute » ;
   - à la première étape, les qualités de l'objet sous le nom : « [stable] [encombrant] » (c'est la fiche, gratuite) ;
   - « ✕ » annuler (44 × 44).
-- **Étape 1, action :** une ligne par manipulation plausible, « ▸ Déplacer », « ▸ Monter dessus », « ▸ Prendre », hauteur 48 px, filets entre les lignes. Les actions indisponibles restent visibles (§3.7).
+- **Étape 1, action :** une ligne par manipulation plausible, « ▸ Déplacer », « ▸ Monter dessus », « ▸ Prendre », hauteur 44 px, filets entre les lignes. Les actions indisponibles restent visibles (§3.7).
 - **Étape 2, paramètre :** libellé « OÙ ? », puis une ligne par position ou cible. Selon l'action, le libellé peut devenir « SUR QUOI ? » ou « AVEC QUOI ? ». [Proposé] Une action sans paramètre saute cette étape.
 - **Étape 3, aperçu** (§3.8), puis deux boutons : ANNULER (un tiers de la largeur, contour) et CONFIRMER (deux tiers, vidéo inverse).
 - **Un seul toucher :** prendre ou poser sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». [Validé D-182]
@@ -229,7 +229,7 @@ C'est la voix du système, distincte du récit et d'IA Station, et rare. Fond `t
 
 | Type | Apparence | Exemples |
 | --- | --- | --- |
-| Principal | Vidéo inverse, 54 à 58 px | CONFIRMER, REPRENDRE LA PARTIE |
+| Principal | Vidéo inverse, 50 px | CONFIRMER, REPRENDRE LA PARTIE |
 | Secondaire | Contour `texte` | ANNULER, NOUVELLE PARTIE, FERMER |
 | Discret | Contour `bordure`, ou texte souligné | OPTIONS, ENVOYER MA PARTIE (fin) |
 | Danger | Contour pointillé `accent`, « ⊘ » | Abandonner la partie en cours |
@@ -581,7 +581,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER, sauf prendre, poser et changer de pièce sans risque connu ni coût, joués d'un seul toucher (§3.8, D-182) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
 | Indisponible | Bouton grisé, raison en dessous (« La porte est fermée. ») | « ⊘ », raison courte à droite, filet pointillé (§3.7) | Raison publique déjà fournie par le moteur |
 | Sauvegarde | Ligne permanente « Partie sauvegardée · 3 action(s) » | Pas de compteur d'actions affiché (§1) ; réussite discrète ou silencieuse, échec toujours visible et persistant (§6) | Garder les attributs `data-testid="sauvegarde"`, `data-actions`, `data-etat` utilisés par les captures (AP-09) |
-| Pied de page | Version, commit et numéro de PR sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
+| Pied de page | Sur l'écran de jeu, sur une ligne : « V0.1.0 · e27d220 · test PR #121 » (D-191) | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
 | Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
 | Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
 | Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |

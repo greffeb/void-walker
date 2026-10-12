@@ -369,6 +369,16 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const html = renderToStaticMarkup(<App env={env} reglages={{ machineAEcrire: true }} version="v-test" commit="" pr="" />);
     expect(html).toContain('<div class="balayage" aria-hidden="true"></div>');
   });
+
+  it('pied de page court : version, commit et numéro de PR sur une ligne (D-191)', () => {
+    const pied = (commit: string, pr: string): string =>
+      entre(renderToStaticMarkup(<App env={env} reglages={{ machineAEcrire: true }} version="0.1.0" commit={commit} pr={pr} />), '<footer', '</footer>')
+        .replace(/<[^>]*>/g, '')
+        .trim();
+    expect(pied('e27d2204f1c3', '121')).toBe('V0.1.0 · e27d220 · test PR #121');
+    expect(pied('e27d2204f1c3', '')).toBe('V0.1.0 · e27d220');
+    expect(pied('', '')).toBe('V0.1.0');
+  });
 });
 
 describe('effet machine à écrire sur le nouveau texte (D-186)', () => {
