@@ -54,11 +54,11 @@ Un niveau n'implique jamais le suivant (D-010). Aucun agent ne coche une partie 
 
 | Zone | Contenu | Fusion |
 | --- | --- | --- |
-| Verte | Tests, outils, solveur, documentation — y compris un test, seuil ou contrat modifié (D-104) ; textes du jeu (D-116) | Orchestrateur, après vérifications vertes et relecture par un autre agent (D-105) |
+| Verte | Tests, outils, solveur, documentation — y compris un test, seuil ou contrat modifié (D-104) ; textes du jeu (D-116) | Assistant principal dans son rôle d'orchestration, après vérifications vertes et relecture indépendante (D-105, D-199) |
 | Orange | Interface, équilibrage, format des scénarios ; moteur de jeu tant qu'il est jeune (D-107) | Porteur du projet, sur preuves |
 | Rouge | Déploiement, format de sauvegarde, IA — sauf le service de rapports, déployé par les agents (D-127) | Porteur du projet, avec test manuel |
 
-- **Branche principale :** pas de protection technique (D-106). La règle de travail demeure : un exécutant délégué ne pousse pas, l'orchestrateur fusionne après vérification.
+- **Branche principale :** pas de protection technique (D-106). La règle de travail demeure : un exécutant délégué ne pousse pas ; l'assistant principal tient le rôle d'orchestration et fusionne après vérification (D-199).
 - **Rôles :** un auteur de contenu et un auteur d'outils remplacent `script-writer` (D-108).
 - **Validation humaine :** jamais par un agent, quelle que soit la zone (§4).
 

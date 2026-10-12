@@ -80,7 +80,7 @@ La validation humaine sera conservée dans le [journal des parties humaines](jou
 - Une fonctionnalité à valider passe par sa PR : preuves de l'agent, version de test par PR, retours et validation signée par le téléphone du porteur du projet en commentaire de la PR.
 - Pile : TypeScript, React, Vite, PWA sur GitHub Pages ; service de rapports sur Cloudflare Workers ; captures automatiques dans les PR.
 - Valider : aller au bout d'une partie puis juger ; chaque morceau du lancement au moins une fois ; validation perdue si l'aventure ou ses parcours automatiques changent.
-- Dépôt : tests et docs en zone verte, fusionnés par l'orchestrateur après relecture par un autre agent ; moteur en zone orange au début ; branche principale non protégée ; deux rôles d'auteur, contenu et outils.
+- Dépôt : tests et docs en zone verte, fusionnés par l'assistant principal dans son rôle d'orchestration après relecture indépendante ; moteur en zone orange au début ; branche principale non protégée ; deux rôles d'auteur, contenu et outils.
 - Textes en français, au vouvoiement, courts, écrits à la main avec quelques variantes ; pas de chiffre de dé affiché ; écrits par les agents en autonomie (zone verte).
 - Lancement : dix morceaux (six tirés des aventures, quatre nouveaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide), 2 ou 3 obstacles et un seul problème final par station, toujours la même créature, stations tirées au hasard.
 - Les règles lisent les qualités des objets, pas leur nom ; port sans limite sauf un seul objet encombrant.
@@ -92,7 +92,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 ## Reprise immédiate
 
-**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136) ; quatre agents Copilot installés dans `.github/agents/` (D-137) ; [issue de Bootstrap](11-bootstrap.md) publiée : [#89](https://github.com/greffeb/void-walker/issues/89). Pas de code, de solveur ni de partie humaine exécutée.
+**Étape terminée :** AR-01 et AR-02 acceptées en conception ; les dix contrats C-01 à C-10 acceptés ; gouvernance, volume du lancement, dépôt, hébergement, agents, circuit de validation par PR et pile technique arbitrés (D-101 à D-135) ; [architecture](10-architecture.md) acceptée (D-136) ; trois profils Copilot spécialisés installés dans `.github/agents/` et gestion des issues guidée dans la conversation principale (D-137, D-199) ; [issue de Bootstrap](11-bootstrap.md) publiée : [#89](https://github.com/greffeb/void-walker/issues/89). Pas de code, de solveur ni de partie humaine exécutée.
 
 **Bootstrap #89, fusionné (PR #90) :** les cinq étapes sont codées. Elles couvrent :
 

@@ -32,7 +32,7 @@ Les noms suivants sont demandés pour le futur socle, mais aucun agent n'est ins
 
 | Rôle | Responsabilité proposée | Limite essentielle |
 | --- | --- | --- |
-| Orchestrateur Copilot | Lire l'issue, préparer la session, déléguer si demandé, vérifier, présenter la PR, fusionner le vert après relecture (D-105, D-126) | Ne décide pas seul d'un changement produit |
+| Assistant principal, rôle d'orchestration | Lire l'issue, préparer la session, déléguer si utile, vérifier, présenter la PR, fusionner le vert après relecture (D-105, D-126, D-199) | N'est pas un sous-agent et ne décide pas seul d'un changement produit |
 | Exécutant Copilot | Implémenter le périmètre accepté, tests et preuves (D-126) | Ni push, ni PR, ni merge en mode délégué |
 | `reviewer` | Contrôler diff, contrats et preuves ; chercher des contre-exemples | Pas de correction de production dans la même fonction |
 | `spec-writer` | Transformer les choix acceptés en exigences vérifiables | Ne remplace pas une question ouverte par sa préférence |
@@ -44,7 +44,7 @@ Les noms suivants sont demandés pour le futur socle, mais aucun agent n'est ins
 | `asset-generator` | Produire des assets conformes à la direction choisie | Licence, provenance, budget et outils à préciser |
 | `playtester` | Jouer par la CLI à partir de l'observation publique | Aucun accès aux données cachées du scénario ni au solveur |
 
-Tous les rôles sont tenus par GitHub Copilot, dans l'éditeur ou le terminal du PC du porteur du projet (D-126/D-128). Le relecteur est une autre session, sans le contexte de celle qui a codé. Profils installés au départ (D-137) : `orchestrateur`, `executant`, `relecteur`, `playtester` dans `.github/agents/`.
+Tous les rôles sont tenus par GitHub Copilot, dans l'éditeur ou le terminal du PC du porteur du projet (D-126/D-128). Le rôle d'orchestration est tenu par l'assistant principal dans la conversation de l'issue, à l'aide de `.github/instructions/gestion-issues.instructions.md` ; il ne s'exécute pas comme sous-agent (D-199). Le relecteur est une autre session, sans le contexte de celle qui a codé. Profils spécialisés installés au départ : `executant`, `relecteur`, `playtester` dans `.github/agents/` (D-137/D-199).
 
 Une issue ne convoque que les rôles utiles. Multiplier les agents ne remplace ni un contrat ni une preuve indépendante.
 
