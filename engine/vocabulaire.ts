@@ -305,6 +305,10 @@ export type Savoir =
   /** Pièces connues qui perdront ou retrouveront leur air (C-04 §3.1, VP-02) ; rien sur une créature non perçue. */
   | { readonly type: 'perdront_air' | 'retrouveront_air'; readonly pieces: readonly RefPiece[] };
 
+/** Ancienneté d'un regard, dite en mots (D-151) : jamais le nombre d'actions (14 §3.2). */
+export const PALIERS = ['instant', 'moment', 'longtemps'] as const;
+export type Palier = (typeof PALIERS)[number];
+
 export const TYPES_DANGER = [
   'interception',
   'interception_mortelle',

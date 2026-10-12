@@ -16,7 +16,8 @@ import {
   type VueCreature,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde } from './monde';
-import type { Danger, Evenement, NiveauRisque } from './vocabulaire';
+import { LONGTEMPS, palier } from './anciennete';
+import type { Danger, Evenement, NiveauRisque, Palier } from './vocabulaire';
 
 // Réaction de la créature (C-03 §3 étape 4, §4) : perception réelle, une réaction par action engagée, sans patrouille.
 
@@ -212,8 +213,6 @@ function passageSuivi(monde: DefMonde, etat: EtatPartie, depuis: string, indice:
   return liaison !== undefined && praticable(etat, liaison, depuis) ? liaison : undefined;
 }
 
-/** Seuil de « il y a longtemps », en actions confirmées (D-151). */
-const LONGTEMPS = 6;
 
 /**
  * Ce que le passager retient à la fin du pas : la dernière vue et le dernier bruit, chacun gardé à part (D-180, D-181).
@@ -270,10 +269,9 @@ function sansGarde(creature: EtatCreature): EtatCreature {
   return garde === undefined ? creature : reste;
 }
 
-/** Ancienneté d'une vue (D-151) : 1 action au plus, 2 à 5, 6 et plus. */
-function anciennete(vue: VueCreature): 'creature_vue_instant' | 'creature_vue_moment' | 'creature_vue_longtemps' {
-  if (vue.depuis <= 1) return 'creature_vue_instant';
-  return vue.depuis < LONGTEMPS ? 'creature_vue_moment' : 'creature_vue_longtemps';
+/** Ancienneté d'une vue (D-151), en type de danger. */
+function anciennete(vue: VueCreature): `creature_vue_${Palier}` {
+  return `creature_vue_${palier(vue.depuis)}` as const;
 }
 
 /**
