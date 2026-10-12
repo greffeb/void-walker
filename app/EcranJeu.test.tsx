@@ -31,7 +31,7 @@ const env: Environnement = { monde, textes, version: 'v-test', stockage: memoire
 const rien = (): Promise<void> => Promise.resolve();
 const rienALire = (): void => undefined;
 
-function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true, lus = 0): string {
+function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true, lus: readonly string[] = []): string {
   return renderToStaticMarkup(
     <EcranJeu
       jeu={jeu}
@@ -265,14 +265,14 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 
   it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
-    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} lus={0} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />);
+    const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} lus={[]} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />);
     const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
     // Carnet, porte, grille, « → ATELIER » (ouverte), INVENTAIRE et IA STATION ; « ⊘ SOUTE » n'ouvre rien.
     expect(ouvrants).toHaveLength(6);
     expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     const lien = entre(
-      renderToStaticMarkup(<EcranJeu jeu={arrivee} lus={0} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />),
+      renderToStaticMarkup(<EcranJeu jeu={arrivee} lus={[]} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />),
       '<button type="button" class="lien-ia"',
       '>',
     );
@@ -318,7 +318,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 
   it('navigation : INVENTAIRE et IA STATION, boutons texte sans pictogramme qui ouvrent une bulle ou une fenêtre', async () => {
-    const nav = entre(rendre(await commencer(env), undefined, true, 1), '<nav', '</nav>');
+    const nav = entre(rendre(await commencer(env), undefined, true, ['reveil']), '<nav', '</nav>');
     expect(nav.match(/<button/g)).toHaveLength(2);
     expect(texte(nav)).toBe('Inventaire IA Station');
     expect(nav.match(/aria-haspopup="dialog" aria-expanded="false"/g)).toHaveLength(2);
@@ -370,7 +370,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const jeu = await commencer(env);
     const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
     const html = renderToStaticMarkup(
-      <EcranJeu jeu={vaincu} lus={0} env={env} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+      <EcranJeu jeu={vaincu} lus={[]} env={env} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
     );
     expect(html).not.toContain('badge-sante');
     expect(html).not.toContain('class="puce"');
@@ -471,7 +471,7 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     return jeu;
   }
 
-  function rendreAr01(jeu: Jeu, lus = 0): string {
+  function rendreAr01(jeu: Jeu, lus: readonly string[] = []): string {
     return renderToStaticMarkup(
       <EcranJeu jeu={jeu} lus={lus} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
     );
@@ -574,11 +574,11 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(arrivee.rappel).toEqual({ texte: 'Aller vers · local énergie', capitales: true });
     expect(arrivee.assistance).toEqual([ar01.textes.assistance.energie]);
     // En cours de partie, un lien ouvre la fenêtre au lieu de la citation (12 §3.3, D-192).
-    const html = rendreAr01(arrivee, 1);
+    const html = rendreAr01(arrivee, ['reveil']);
     expect(html).not.toContain('parole-ia');
     expect(texte(entre(html, '<button type="button" class="lien-ia"', '</button>'))).toBe('[ IA STATION ] parle dans l’écouteur ›');
     expect((await pc(6)).assistance).toEqual([]);
-    expect(rendreAr01(await pc(6), 1)).not.toContain('lien-ia');
+    expect(rendreAr01(await pc(6), ['reveil'])).not.toContain('lien-ia');
   });
 
   it('évacuation : quinze actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
@@ -609,7 +609,7 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
     expect(navIa(html)).toBe(
       '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message">IA Station<span class="pastille" aria-hidden="true"></span></button>',
     );
-    const lu1 = navIa(rendre(jeu, undefined, true, 1));
+    const lu1 = navIa(rendre(jeu, undefined, true, ['reveil']));
     expect(lu1).toContain('aria-label="IA Station"');
     expect(lu1).not.toContain('pastille');
   });
@@ -617,30 +617,32 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
   it('à l’arrivée dans l’atelier : seulement le lien dans le récit, après lui ; à l’action suivante, plus de lien, la pastille reste', async () => {
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     expect(arrivee.assistance).toEqual([atelier]);
-    const recit = entre(rendre(arrivee, undefined, true, 1), '<section class="recit', '</button></section>');
+    const recit = entre(rendre(arrivee, undefined, true, ['reveil']), '<section class="recit', '</button></section>');
     expect(recit).not.toContain('parole-ia');
     expect(recit).not.toContain(atelier);
     expect(recit).toMatch(
-      /<button type="button" class="lien-ia" aria-haspopup="dialog" aria-label="IA Station parle dans l’écouteur" data-testid="lien-ia">\[ IA STATION \] parle dans l’écouteur\u00a0›<\/button><\/section>$/,
+      /<button type="button" class="lien-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station parle dans l’écouteur" data-testid="lien-ia">\[ IA STATION \] parle dans l’écouteur\u00a0›<\/button><\/section>$/,
     );
-    expect(navIa(rendre(arrivee, undefined, true, 1))).toContain('pastille');
-    expect(navIa(rendre(arrivee, undefined, true, 2))).not.toContain('pastille');
+    expect(navIa(rendre(arrivee, undefined, true, ['reveil']))).toContain('pastille');
+    expect(navIa(rendre(arrivee, undefined, true, ['reveil', 'atelier']))).not.toContain('pastille');
+    // Seul le message de l'atelier a été lu : celui du réveil reste nouveau.
+    expect(navIa(rendre(arrivee, undefined, true, ['atelier']))).toContain('pastille');
     const suivant = await jouerOption(env, arrivee, observer(monde, arrivee.partie.etat).menu.find((option) => option.action === 'poser') as OptionMenu);
-    expect(rendre(suivant, undefined, true, 1)).not.toContain('lien-ia');
-    expect(navIa(rendre(suivant, undefined, true, 1))).toContain('pastille');
+    expect(rendre(suivant, undefined, true, ['reveil'])).not.toContain('lien-ia');
+    expect(navIa(rendre(suivant, undefined, true, ['reveil']))).toContain('pastille');
   });
 
   it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, un seul bouton RETOUR', async () => {
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
-    const html = renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={1} fermer={rienAJouer} />);
+    const html = renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={['atelier']} fermer={rienAJouer} />);
     expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1">/);
     expect(texte(html)).toBe(
       `[ IA STATION ] messages reçus dans l’écouteur &gt; au réveil · Cabine « ${reveil} » &gt; en arrivant · Atelier nouveau « ${atelier} » Retour`,
     );
     expect(html.match(/<button/g)).toHaveLength(1);
     expect(html.match(/class="nouveau"/g)).toHaveLength(1);
-    expect(renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={0} fermer={rienAJouer} />)).not.toContain('nouveau"');
-    expect(texte(renderToStaticMarkup(<ModaleIA messages={[]} nouveaux={0} fermer={rienAJouer} />))).toBe(
+    expect(renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={[]} fermer={rienAJouer} />)).not.toContain('nouveau"');
+    expect(texte(renderToStaticMarkup(<ModaleIA messages={[]} nouveaux={[]} fermer={rienAJouer} />))).toBe(
       '[ IA STATION ] messages reçus dans l’écouteur Aucun message reçu. Retour',
     );
   });

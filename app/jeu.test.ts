@@ -143,11 +143,11 @@ describe('appli : IA Station, historique et messages lus (#98, 12 §3.9)', () =>
   it('historique : chaque message reçu avec son repère, sans heure ; seulement ceux déjà reçus (K-06)', async () => {
     const env = environnement(stockageIndexedDB('historique', fabrique));
     let jeu = await pret(env);
-    expect(historiqueAffiche(env, jeu.partie)).toEqual([{ repere: 'au réveil · Cabine', texte: textes.assistance.reveil }]);
+    expect(historiqueAffiche(env, jeu.partie)).toEqual([{ message: 'reveil', repere: 'au réveil · Cabine', texte: textes.assistance.reveil }]);
     for (const action of ['prendre', 'ouvrir', 'aller']) jeu = await choisir(env, jeu, action);
     expect(historiqueAffiche(env, jeu.partie)).toEqual([
-      { repere: 'au réveil · Cabine', texte: textes.assistance.reveil },
-      { repere: 'en arrivant · Atelier', texte: textes.assistance.atelier },
+      { message: 'reveil', repere: 'au réveil · Cabine', texte: textes.assistance.reveil },
+      { message: 'atelier', repere: 'en arrivant · Atelier', texte: textes.assistance.atelier },
     ]);
   });
 
@@ -155,37 +155,37 @@ describe('appli : IA Station, historique et messages lus (#98, 12 §3.9)', () =>
     const stockage = stockageIndexedDB('lus', fabrique);
     const env = environnement(stockage);
     let jeu = await pret(env);
-    expect(await lireLus(env, jeu.partie)).toBe(0);
+    expect(await lireLus(env, jeu.partie)).toEqual([]);
     const avant = await stockage.lire();
     await marquerLus(env, jeu.partie);
     expect(await stockage.lire()).toEqual(avant);
-    expect(await lireLus(env, jeu.partie)).toBe(1);
+    expect(await lireLus(env, jeu.partie)).toEqual(['reveil']);
     for (const action of ['prendre', 'ouvrir', 'aller']) jeu = await choisir(env, jeu, action);
-    expect(await lireLus(env, jeu.partie)).toBe(1);
+    expect(await lireLus(env, jeu.partie)).toEqual(['reveil']);
 
     const rouvert = environnement(stockageIndexedDB('lus', fabrique));
     const repris = await pret(rouvert);
     expect(historiqueAffiche(rouvert, repris.partie)).toEqual(historiqueAffiche(env, jeu.partie));
-    expect(await lireLus(rouvert, repris.partie)).toBe(1);
+    expect(await lireLus(rouvert, repris.partie)).toEqual(['reveil']);
     await marquerLus(rouvert, repris.partie);
-    expect(await lireLus(environnement(stockageIndexedDB('lus', fabrique)), repris.partie)).toBe(2);
+    expect(await lireLus(environnement(stockageIndexedDB('lus', fabrique)), repris.partie)).toEqual(['reveil', 'atelier']);
   });
 
-  it('messages lus d’une autre partie, illisibles ou en trop : rien n’est lu au-delà de ce qui est reçu', async () => {
+  it('messages lus d’une autre partie ou illisibles : aucun ; panne de stockage sans effet sur le jeu', async () => {
     const stockage = stockageIndexedDB('autre', fabrique);
     const env = environnement(stockage);
     const jeu = await pret(env);
     await marquerLus(env, jeu.partie);
     const nouvelle = await commencer({ ...env, graine: () => 32 });
-    expect(await lireLus(env, nouvelle.partie)).toBe(0);
-    for (const brut of [null, 'abc', { monde: monde.id, graine: 31, lus: -1 }, { monde: monde.id, graine: 31, lus: 1.5 }, { monde: 'ar-01', graine: 31, lus: 1 }]) {
+    expect(await lireLus(env, nouvelle.partie)).toEqual([]);
+    for (const brut of [null, 'abc', { monde: monde.id, graine: 31, lus: 1 }, { monde: 'ar-01', graine: 31, lus: ['reveil'] }]) {
       await stockage.ecrireLus(brut);
-      expect(await lireLus(env, jeu.partie)).toBe(0);
+      expect(await lireLus(env, jeu.partie)).toEqual([]);
     }
-    await stockage.ecrireLus({ monde: monde.id, graine: 31, lus: 9 });
-    expect(await lireLus(env, jeu.partie)).toBe(1);
+    await stockage.ecrireLus({ monde: monde.id, graine: 31, lus: ['reveil', 3] });
+    expect(await lireLus(env, jeu.partie)).toEqual(['reveil']);
     const enPanne = environnement({ ...stockage, lireLus: () => Promise.reject(new Error('base verrouillée')), ecrireLus: () => Promise.reject(new Error('quota')) });
-    expect(await lireLus(enPanne, jeu.partie)).toBe(0);
+    expect(await lireLus(enPanne, jeu.partie)).toEqual([]);
     await expect(marquerLus(enPanne, jeu.partie)).resolves.toBeUndefined();
   });
 });

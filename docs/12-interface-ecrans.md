@@ -151,7 +151,7 @@ Dans cet ordre :
 4. **Lien IA Station**, seulement quand un message vient d'arriver : cadre pointillé, « [ IA STATION ] parle dans l'écouteur › ». Ouvre la modale (§3.9). [Validé] Le message lui-même ne s'écrit pas dans le récit : il se lit dans la modale ; seul celui du réveil est cité en entier (§4.2). [Validé D-192]
 5. **Encadré « Ce qui change »** après une action dont l'effet est notable (§3.10).
 
-**Machine à écrire** [Validé D-186] : tout nouveau texte (rappel, récit, bruit, messages d'IA Station, réveil) s'écrit caractère par caractère, dans l'ordre de lecture, en 500 ms au total. Puis un curseur `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Toucher un bouton pendant l'écriture agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit. Le lecteur d'écran reçoit le texte entier une fois ; le curseur lui est masqué. La place du texte final est réservée dès le début.
+**Machine à écrire** [Validé D-186] : tout nouveau texte (rappel, récit, bruit, parole d'IA Station au réveil) s'écrit caractère par caractère, dans l'ordre de lecture, en 500 ms au total. Puis un curseur `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Toucher un bouton pendant l'écriture agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit. Le lecteur d'écran reçoit le texte entier une fois ; le curseur lui est masqué. La place du texte final est réservée dès le début.
 
 ### 3.4 Dock « Dans la pièce »
 

@@ -8,7 +8,7 @@ import type { Reglages } from './reglages';
 type Ecran =
   | { readonly type: 'chargement' }
   | { readonly type: 'reprise_impossible'; readonly raison: string }
-  | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: number };
+  | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[] };
 
 export function App({
   env,
@@ -29,7 +29,7 @@ export function App({
   useEffect(() => {
     let actif = true;
     void demarrer(env).then(async (demarrage) => {
-      const lus = demarrage.type === 'pret' ? await lireLus(env, demarrage.jeu.partie) : 0;
+      const lus = demarrage.type === 'pret' ? await lireLus(env, demarrage.jeu.partie) : [];
       if (!actif) return;
       setEcran(demarrage.type === 'pret' ? { type: 'jeu', jeu: demarrage.jeu, lus } : demarrage);
     });
@@ -43,7 +43,7 @@ export function App({
       setOccupe(true);
       try {
         const suivant = await jouerOption(env, jeu, option);
-        setEcran((avant) => ({ type: 'jeu', jeu: suivant, lus: avant.type === 'jeu' ? avant.lus : 0 }));
+        setEcran((avant) => ({ type: 'jeu', jeu: suivant, lus: avant.type === 'jeu' ? avant.lus : [] }));
       } finally {
         setOccupe(false);
       }
@@ -54,7 +54,7 @@ export function App({
   const recommencer = useCallback(async () => {
     setOccupe(true);
     try {
-      setEcran({ type: 'jeu', jeu: await commencer(env), lus: 0 });
+      setEcran({ type: 'jeu', jeu: await commencer(env), lus: [] });
     } finally {
       setOccupe(false);
     }
@@ -63,7 +63,7 @@ export function App({
   /** Ouvrir la fenêtre d'IA Station : tous les messages reçus passent en lus, la partie ne change pas (12 §3.9). */
   const lireMessages = useCallback(
     (jeu: Jeu) => {
-      const lus = jeu.partie.etat.messages.length;
+      const lus = jeu.partie.etat.messages;
       setEcran((avant) => (avant.type === 'jeu' && avant.jeu === jeu ? { ...avant, lus } : avant));
       void marquerLus(env, jeu.partie);
     },

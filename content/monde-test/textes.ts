@@ -161,7 +161,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     circuit_bloc: ['Le circuit et le bloc tiennent. La capsule se détache et file dans le noir.'],
   },
   assistance: {
-    reveil: 'Confinement en cours. Merci de rester dans votre cabine.',
+    reveil: 'Merci de rester dans votre cabine jusqu’à nouvel ordre.',
     atelier: 'Vous avez quitté votre cabine. Ce déplacement a été noté.',
   },
   passages: {

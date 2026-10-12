@@ -102,15 +102,20 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
   return { partie: resultat.partie, recit, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
 }
 
-/** Message de l'historique d'IA Station (12 §3.9) : repère de moment sans heure, puis le texte. */
+/** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */
 export interface MessageAffiche {
+  readonly message: string;
   readonly repere: string;
   readonly texte: string;
 }
 
 /** Messages reçus, du plus ancien au plus récent ; seulement ceux déjà reçus, aucune réponse d'état (C-06 K-06). */
 export function historiqueAffiche(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie): MessageAffiche[] {
-  return historique(env.monde, partie.etat).map(({ message, moment }) => ({ repere: rendreMoment(env.textes, moment), texte: texteAssistance(env.textes, message) }));
+  return historique(env.monde, partie.etat).map(({ message, moment }) => ({
+    message,
+    repere: rendreMoment(env.textes, moment),
+    texte: texteAssistance(env.textes, message),
+  }));
 }
 
 /** Partie à laquelle se rapportent les messages lus : une autre partie les ignore. */
@@ -119,26 +124,26 @@ function partieDesLus(partie: Partie): { readonly monde: string; readonly graine
 }
 
 /**
- * Nombre de messages déjà lus dans la fenêtre d'IA Station, gardé sur l'appareil à côté de la partie (12 §3.9).
- * Illisible, absent ou d'une autre partie : aucun.
+ * Messages déjà lus dans la fenêtre d'IA Station, par identifiant, gardés sur l'appareil à côté de la partie (12 §3.9).
+ * Illisibles, absents ou d'une autre partie : aucun.
  */
-export async function lireLus(env: Environnement, partie: Partie): Promise<number> {
+export async function lireLus(env: Environnement, partie: Partie): Promise<readonly string[]> {
   try {
     const brut = await env.stockage.lireLus();
-    if (typeof brut !== 'object' || brut === null) return 0;
+    if (typeof brut !== 'object' || brut === null) return [];
     const { monde, graine, lus } = brut as Record<string, unknown>;
     const attendue = partieDesLus(partie);
-    if (monde !== attendue.monde || graine !== attendue.graine || typeof lus !== 'number' || !Number.isInteger(lus) || lus < 0) return 0;
-    return Math.min(lus, partie.etat.messages.length);
+    if (monde !== attendue.monde || graine !== attendue.graine || !Array.isArray(lus)) return [];
+    return lus.filter((message): message is string => typeof message === 'string');
   } catch {
-    return 0;
+    return [];
   }
 }
 
 /** Tous les messages reçus passent en lus, sans toucher à la partie ; un échec d'écriture les laisse nouveaux à la reprise. */
 export async function marquerLus(env: Environnement, partie: Partie): Promise<void> {
   try {
-    await env.stockage.ecrireLus({ ...partieDesLus(partie), lus: partie.etat.messages.length });
+    await env.stockage.ecrireLus({ ...partieDesLus(partie), lus: [...partie.etat.messages] });
   } catch {
     // Rien à signaler au joueur : la partie, elle, est enregistrée à part.
   }

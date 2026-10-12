@@ -44,7 +44,7 @@ type Ouverte =
   | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
-  | { readonly zone: 'ia'; readonly nouveaux: number };
+  | { readonly zone: 'ia'; readonly nouveaux: readonly string[] };
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -70,8 +70,8 @@ export function EcranJeu({
   nouvellePartie,
 }: {
   readonly jeu: Jeu;
-  /** Messages d'IA Station déjà lus, parmi ceux reçus : les suivants sont nouveaux (12 §2.6). */
-  readonly lus: number;
+  /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
+  readonly lus: readonly string[];
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
   /** Réglage « Effet machine à écrire » (D-186) ; le mouvement réduit du téléphone l'emporte, en CSS. */
   readonly machineAEcrire: boolean;
@@ -170,7 +170,7 @@ export function EcranJeu({
     if (direct(option)) jouer(option);
     else ouvrir({ zone: 'deplacement', cible: option.cible.id, ancre }, ancre);
   };
-  const nonLus = jeu.partie.etat.messages.length - lus;
+  const nonLus = jeu.partie.etat.messages.filter((message) => !lus.includes(message));
   // Gratuit (D-014) : la fenêtre montre les messages déjà reçus, sans question possible (C-06 K-06).
   const ouvrirIA = (depuis: HTMLElement): void => {
     ouvrir({ zone: 'ia', nouveaux: nonLus }, depuis);
@@ -193,7 +193,7 @@ export function EcranJeu({
         )}
       </header>
       <Sauvegarde jeu={jeu} />
-      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} ouvrirIA={ouvrirIA} />
+      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={ouverte?.zone === 'ia'} ouvrirIA={ouvrirIA} />
       {/* Situation en phrases : hors de l'écran, gardée pour le lecteur d'écran comme dans la CLI (C-06 K-07). */}
       <section className="lecteur-seul" data-testid="situation">
         {rendreObservation(textes, observation).map((ligne, index) => (
@@ -294,12 +294,12 @@ export function EcranJeu({
             className="nav-ia"
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'ia'}
-            aria-label={nonLus > 0 ? 'IA Station, nouveau message' : 'IA Station'}
+            aria-label={nonLus.length > 0 ? 'IA Station, nouveau message' : 'IA Station'}
             disabled={occupe}
             onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
           >
             IA Station
-            {nonLus > 0 && <span className="pastille" aria-hidden="true" />}
+            {nonLus.length > 0 && <span className="pastille" aria-hidden="true" />}
           </button>
         </nav>
       </div>
@@ -699,7 +699,15 @@ function Indisponible({ classe, libelle, raison }: { readonly classe: string; re
  * Fenêtre d'IA Station (12 §3.9), blanche (D-192) : messages reçus du plus ancien au plus récent, en bas et visible à
  * l'ouverture ; repère de moment sans heure ; NOUVEAU sur ceux qui n'étaient pas lus ; un seul bouton, RETOUR.
  */
-export function ModaleIA({ messages, nouveaux, fermer }: { readonly messages: readonly MessageAffiche[]; readonly nouveaux: number; readonly fermer: () => void }) {
+export function ModaleIA({
+  messages,
+  nouveaux,
+  fermer,
+}: {
+  readonly messages: readonly MessageAffiche[];
+  readonly nouveaux: readonly string[];
+  readonly fermer: () => void;
+}) {
   const zone = useRef<HTMLElement>(null);
   const liste = useRef<HTMLOListElement>(null);
   const idSousTitre = useId();
@@ -707,7 +715,6 @@ export function ModaleIA({ messages, nouveaux, fermer }: { readonly messages: re
     if (liste.current !== null) liste.current.scrollTop = liste.current.scrollHeight;
     zone.current?.focus();
   }, []);
-  const premierNouveau = messages.length - nouveaux;
   return (
     <section
       ref={zone}
@@ -729,12 +736,12 @@ export function ModaleIA({ messages, nouveaux, fermer }: { readonly messages: re
         <p className="modale-vide">{AUCUN_MESSAGE}</p>
       ) : (
         <ol ref={liste} className="historique-ia">
-          {messages.map((message, index) => (
-            <li key={index}>
+          {messages.map((message) => (
+            <li key={message.message}>
               <p className="repere-ia">
                 <span aria-hidden="true">&gt; </span>
                 {message.repere}
-                {index >= premierNouveau && (
+                {nouveaux.includes(message.message) && (
                   <>
                     {' '}
                     <span className="nouveau">nouveau</span>
@@ -795,6 +802,7 @@ function Recit({
   ecrire,
   fixe,
   occupe,
+  iaOuverte,
   ouvrirIA,
 }: {
   readonly jeu: Jeu;
@@ -803,6 +811,7 @@ function Recit({
   /** Réglage sur [NON] : curseur sans clignotement. */
   readonly fixe: boolean;
   readonly occupe: boolean;
+  readonly iaOuverte: boolean;
   readonly ouvrirIA: (depuis: HTMLElement) => void;
 }) {
   const { rappel } = jeu;
@@ -859,6 +868,7 @@ function Recit({
           type="button"
           className="lien-ia"
           aria-haspopup="dialog"
+          aria-expanded={iaOuverte}
           aria-label="IA Station parle dans l’écouteur"
           data-testid="lien-ia"
           disabled={occupe}

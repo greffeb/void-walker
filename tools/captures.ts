@@ -605,7 +605,7 @@ async function verifierFenetreIA(
   page: Page,
   depuis: Locator,
   attendus: readonly (readonly [string | undefined, boolean])[],
-  fermeture: 'Retour' | 'voile',
+  fermeture: 'Retour' | 'voile' | 'Échap',
   ou: string,
   erreurs: string[],
   capturer?: () => Promise<unknown>,
@@ -628,6 +628,7 @@ async function verifierFenetreIA(
   await verifierFocusPiege(page, fenetre, ou, erreurs);
   await capturer?.();
   if (fermeture === 'Retour') await fenetre.getByRole('button', { name: exactement('Retour') }).click();
+  else if (fermeture === 'Échap') await page.keyboard.press('Escape');
   else await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
   await fenetre.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`${ou} : ${fermeture} ne ferme pas la fenêtre d’IA Station.`));
   if (!(await depuis.evaluate((element) => element === document.activeElement))) erreurs.push(`${ou} : le focus ne revient pas là où la fenêtre a été ouverte.`);
@@ -761,7 +762,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   const lienFin = await verifierLien(page, 'Fin', erreurs);
   await capturer(page, `AR-01 — Fin : « ${phrases.evacuee} », NOUVELLE PARTIE`);
   await verifierEcran(page, 'AR-01, fin', erreurs);
-  await verifierFenetreIA(page, lienFin, [[assistance.reveil, false], [assistance.energie, false], [assistance.depart, true]], 'Retour', 'Fin, fenêtre', erreurs, () =>
+  await verifierFenetreIA(page, lienFin, [[assistance.reveil, false], [assistance.energie, false], [assistance.depart, true]], 'Échap', 'Fin, fenêtre', erreurs, () =>
     capturer(page, 'AR-01 — Fin : fenêtre d’IA Station, départ confirmé'),
   );
   await contexte.close();
