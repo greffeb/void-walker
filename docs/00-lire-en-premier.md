@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-12 (#98 proposée).
+> **Mise à jour :** 2026-10-12 (#96 proposée).
 
 ## Mission de ce dossier
 
@@ -110,13 +110,15 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #94 (aperçu puis confirmation, moteur et écran) est fusionnée ([PR #111](https://github.com/greffeb/void-walker/pull/111)). Seule la créature vue ou entendue rend un aperçu risqué (D-180, D-181, PR #112) ; les autres dangers arrivent avec #101 et #102. Le porteur a demandé un seul toucher pour prendre, poser et changer de pièce quand rien n'est à craindre, les portes gardant l'aperçu (D-182) : [issue #113](https://github.com/greffeb/void-walker/issues/113), fusionnée ([PR #114](https://github.com/greffeb/void-walker/pull/114)) et close.
 
-#115 (machine à écrire) est fusionnée ([PR #119](https://github.com/greffeb/void-walker/pull/119)) : le nouveau récit s'écrit en 500 ms, puis un curseur clignote lentement (D-186). Le réglage est gardé sur l'appareil ; sa bascule arrivera avec l'écran d'options (#96).
+#115 (machine à écrire) est fusionnée ([PR #119](https://github.com/greffeb/void-walker/pull/119)) : le nouveau récit s'écrit en 500 ms, puis un curseur clignote lentement (D-186). Le réglage est gardé sur l'appareil ; sa bascule est dans l'écran d'options (#96).
 
 #117 (aperçu allégé) est fusionnée ([PR #118](https://github.com/greffeb/void-walker/pull/118)) : les lignes RISQUE et COÛT n'apparaissent que si elles disent autre chose que « aucun », SAVOIR reste toujours (D-187).
 
 #122 (écran plus compact) est fusionnée ([PR #123](https://github.com/greffeb/void-walker/pull/123)) : boutons de quelques pixels plus bas, dock à sa hauteur et récit d'au moins six lignes, pied de page sur une ligne (D-191).
 
 #98 (IA Station) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone. La fenêtre d'IA Station est blanche (D-192) : historique des messages reçus, repère de moment, NOUVEAU sur les non-lus, RETOUR. En partie, un lien « [ IA STATION ] parle dans l'écouteur › » remplace la citation ; au réveil elle reste encadrée. Pastille sur IA STATION tant qu'un message n'est pas lu, lus gardés sur l'appareil. Le monde de test reçoit deux messages (réveil, arrivée dans l'atelier). L'effet sonore d'arrivée viendra avec #99.
+
+#96 (options, téléchargement, fin d'abandon) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone. Options depuis l'accueil (OPTIONS) et le jeu (engrenage) : taille du texte STANDARD / GRANDE / TRÈS GRANDE (récit à 17, 19, 22 px, tout le reste à proportion), lignes de balayage et machine à écrire, gardées sur l'appareil ; « Télécharger ma partie » (l'export qui se rejoue avec `npm run rejouer`) ; abandon confirmé dans la page, qui efface la partie de l'appareil (D-200) et mène à l'écran de fin « Partie abandonnée » ; REJOUER CETTE STATION repart du même départ avec de nouveaux tirages. Version, commit et PR sont passés du bas de l'écran de jeu au bas des options. Restent pour plus tard : son (#99), Signaler un bug et Envoyer ma partie (#107), fins de défaite et d'évacuation.
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 
