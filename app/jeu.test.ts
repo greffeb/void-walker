@@ -181,9 +181,11 @@ describe('appli : options, téléchargement et abandon (#96, C-09 §5, C-08 §4)
     expect(nom).toBe('void-walker-monde-test-2026-10-12-0905.json');
     expect(JSON.parse(contenu)).toMatchObject({ version: 'v-test', monde: monde.id, graine: 31, actions: jeu.partie.enregistrement.actions });
     expect(jeu.partie).toEqual(copie);
-    // Rejoué comme par `npm run rejouer` : même état final (C-09 S-03).
+    // Rejoué comme le fait `npm run rejouer` : même état final et même observation finale (C-09 S-03).
     const fichier = lireExport(JSON.parse(contenu) as unknown);
-    expect(empreinteEtat(rejouer(monde, fichier, 'v-test').partie.etat)).toBe(fichier.empreinte);
+    const rejoue = rejouer(monde, fichier, 'v-test').partie;
+    expect(empreinteEtat(rejoue.etat)).toBe(fichier.empreinte);
+    expect(JSON.stringify(observer(monde, rejoue.etat))).toBe(JSON.stringify(fichier.observation));
     expect(fichier.empreinte).toBe(empreinteEtat(jeu.partie.etat));
   });
 
