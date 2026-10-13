@@ -3,7 +3,7 @@
 > **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-12 consignés par D-201 à D-214 ; document à relire par le porteur avant le plan d'implémentation.
 > **Date :** 2026-10-12.
 > **Issues :** [#97](https://github.com/greffeb/void-walker/issues/97) (carte) pour les §2 à §4 ; [#106](https://github.com/greffeb/void-walker/issues/106) (stations assemblées) pour le §5.
-> **Implémentation :** livraison 1 (format du plan, vérifieur PL-01 à PL-07, plans d'AR-01, d'AR-02 et du monde de test, captures) proposée par #97 ; livraison 2 (mémoire du passager, carte publique, commande `carte` de la CLI) proposée ; écran absent. Un prototype jetable, hors dépôt, a mesuré la génération des plans (§6) ; aucun de ses fichiers n'est conservé.
+> **Implémentation :** livraison 1 (format du plan, vérifieur PL-01 à PL-07, plans d'AR-01, d'AR-02 et du monde de test, captures) proposée par #97 ; livraison 2 (mémoire du passager, carte publique, commande `carte` de la CLI) proposée ; livraison 3 (écran) proposée, à valider sur téléphone par le porteur. Un prototype jetable, hors dépôt, a mesuré la génération des plans (§6) ; aucun de ses fichiers n'est conservé.
 > **Remplace :** la forme de la carte de [12 §4.8](12-interface-ecrans.md) (boîtes reliées de la maquette P08) et la règle « destination non dessinée » d'OP-03 dans [C-06 §3](contrats/C-06-observation-connaissances.md) ; voir §8.
 
 ## 1. But
