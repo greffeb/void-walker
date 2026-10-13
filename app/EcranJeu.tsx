@@ -22,7 +22,8 @@ import { Bulle, BulleAncree, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
-import { useSon } from './son/contexte';
+import { annoncerTexte, useSon } from './son/contexte';
+import type { Signal } from './son/recettes';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
@@ -36,6 +37,9 @@ const SANS_CONFIRMATION = ', sans confirmation';
 
 /** Historique vide, pour un monde sans message d'IA Station. */
 const AUCUN_MESSAGE = 'Aucun message reçu.';
+
+/** Aucun signal : réveil, reprise, retour des options (15 §2.2). */
+const AUCUN_SIGNAL: readonly Signal[] = [];
 
 /** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */
 const NAV_INVENTAIRE = 'Inven\u00adtaire';
@@ -76,6 +80,7 @@ export function EcranJeu({
   lireMessages,
   ouvrirOptions,
   nouvellePartie,
+  signaux = AUCUN_SIGNAL,
 }: {
   readonly jeu: Jeu;
   /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
@@ -91,6 +96,8 @@ export function EcranJeu({
   readonly ouvrirOptions?: () => void;
   /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
   readonly nouvellePartie?: () => void;
+  /** Signaux de la dernière action (15 §2.2), annoncés après l'écriture du texte. */
+  readonly signaux?: readonly Signal[];
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
@@ -111,7 +118,14 @@ export function EcranJeu({
   const completer = (): void => {
     marquerEcrit(jeu);
     setComplet(jeu);
+    // Texte affiché en entier : le crépitement s'arrête net, les signaux partent (15 §2.3).
+    son.taire();
   };
+
+  // Nouveau texte (15 §2.3, §2.4) : crépitement s'il s'écrit, puis les signaux de l'action ; une seule fois par texte.
+  useEffect(() => {
+    annoncerTexte(son, jeu, ecrire, signaux);
+  }, [son, jeu, ecrire, signaux]);
 
   useEffect(() => {
     const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);
@@ -353,10 +367,17 @@ export function EcranReveil({
   const zone = useRef<HTMLElement>(null);
   const [complet, setComplet] = useState(false);
   const ecrire = machineAEcrire && !complet && !dejaEcrit(jeu);
+  const son = useSon();
   const completer = (): void => {
     marquerEcrit(jeu);
     setComplet(true);
+    son.taire();
   };
+
+  // Réveil : crépitement seulement ; aucun signal sans action d'avant (15 §2.2).
+  useEffect(() => {
+    annoncerTexte(son, jeu, ecrire, AUCUN_SIGNAL);
+  }, [son, jeu, ecrire]);
 
   useEffect(() => {
     const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);

@@ -328,6 +328,7 @@ export function App({
             choisir={choisir}
             lireMessages={lireMessages}
             ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
+          signaux={ecran.signaux}
             nouvellePartie={() => void commencerNouvellePartie()}
           />
         ) : (
