@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
 import {
@@ -11,7 +11,6 @@ import {
   nomDestination,
   nomParametre,
   nomPuce,
-  placerBulle,
   precedente,
   REGARDER_AUTOUR,
   unToucher,
@@ -19,6 +18,7 @@ import {
   type Etape,
   type Groupe,
 } from './ecran';
+import { Bulle, BulleAncree, garderFocus } from './bulle';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 
@@ -397,118 +397,6 @@ function cleEtape(groupe: Groupe, etape: Etape): string {
   if (etape.type === 'fiche') return groupe.cible.id;
   if (etape.type === 'parametre') return `${groupe.cible.id}:${etape.action}`;
   return `${groupe.cible.id}:${etape.option.action}:${etape.option.parametre?.id ?? ''}`;
-}
-
-/** Le focus reste dans la bulle ou la fenêtre ; Échap la referme. */
-function garderFocus(evenement: KeyboardEvent<HTMLElement>, fermer: () => void): void {
-  if (evenement.key === 'Escape') {
-    evenement.preventDefault();
-    fermer();
-    return;
-  }
-  if (evenement.key !== 'Tab') return;
-  const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')];
-  const premier = boutons[0];
-  const dernier = boutons[boutons.length - 1];
-  if (premier === undefined || dernier === undefined) return;
-  const actif = document.activeElement;
-  if (evenement.shiftKey ? actif === premier || actif === evenement.currentTarget : actif === dernier) {
-    evenement.preventDefault();
-    (evenement.shiftKey ? dernier : premier).focus();
-  }
-}
-
-/**
- * Bulle (12 §3.5) : dialogue nommé par son fil, « ‹ » à partir de la deuxième étape, « ✕ ».
- * Le focus y entre à chaque étape et n'en sort pas ; Échap la referme.
- */
-function Bulle({
-  id,
-  zone,
-  classe,
-  titre,
-  decrite,
-  etape,
-  retour,
-  fermer,
-  pied,
-  children,
-}: {
-  readonly id?: string;
-  readonly zone: RefObject<HTMLElement | null>;
-  readonly classe: string;
-  readonly titre: ReactNode;
-  /** Fiche lue par le lecteur d'écran à l'ouverture, après le titre. */
-  readonly decrite?: string;
-  /** Change à chaque étape : le focus revient sur la bulle. */
-  readonly etape: string;
-  readonly retour?: () => void;
-  readonly fermer: () => void;
-  /** Toujours visible sous le contenu qui défile : ANNULER et CONFIRMER restent sous le pouce. */
-  readonly pied?: ReactNode;
-  readonly children: ReactNode;
-}) {
-  const idTitre = useId();
-  useEffect(() => {
-    zone.current?.focus();
-  }, [zone, etape]);
-  return (
-    <section
-      ref={zone}
-      id={id}
-      className={`bulle ${classe}`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={idTitre}
-      aria-describedby={decrite}
-      tabIndex={-1}
-      onKeyDown={(evenement) => garderFocus(evenement, fermer)}
-    >
-      <div className="bulle-entete">
-        {retour !== undefined && (
-          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour}>
-            <span aria-hidden="true">‹</span>
-          </button>
-        )}
-        <h2 id={idTitre} className="bulle-titre">
-          {titre}
-        </h2>
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
-          <span aria-hidden="true">✕</span>
-        </button>
-      </div>
-      <div className="bulle-corps">{children}</div>
-      {pied !== undefined && <div className="bulle-pied">{pied}</div>}
-    </section>
-  );
-}
-
-/** Bulle ancrée sur l'élément touché : dessus si elle y tient, sinon dessous, jamais hors de l'écran (12 §3.5, §3.6). */
-function BulleAncree({ ancre, etape, ...props }: Omit<Parameters<typeof Bulle>[0], 'zone' | 'classe'> & { readonly ancre: HTMLElement }) {
-  const zone = useRef<HTMLElement>(null);
-  useLayoutEffect(() => {
-    const bulle = zone.current;
-    if (bulle === null) return;
-    const placer = (): void => {
-      const puce = ancre.getBoundingClientRect();
-      const boite = bulle.getBoundingClientRect();
-      const hauteur = [...bulle.children].reduce((somme, enfant) => somme + enfant.scrollHeight, boite.height - bulle.clientHeight);
-      const place = placerBulle(
-        { haut: puce.top, bas: puce.bottom, centre: puce.left + puce.width / 2 },
-        { gauche: boite.left, largeur: boite.width, hauteur },
-        window.innerHeight,
-      );
-      bulle.dataset.cote = place.cote;
-      bulle.style.top = place.cote === 'dessous' ? `${place.bord}px` : '';
-      bulle.style.bottom = place.cote === 'dessus' ? `${place.bord}px` : '';
-      bulle.style.maxHeight = `${place.hauteurMax}px`;
-      bulle.style.setProperty('--fleche', `${place.fleche}px`);
-    };
-    placer();
-    window.addEventListener('resize', placer);
-    return () => window.removeEventListener('resize', placer);
-  }, [ancre, etape]);
-  return <Bulle zone={zone} classe="bulle-objet" etape={etape} {...props} />;
 }
 
 /** Bulle d'une puce de la pièce : fiche et actions, puis « OÙ ? » si l'action a un paramètre, puis l'aperçu. */
