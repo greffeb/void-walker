@@ -47,7 +47,7 @@ describe('carlingue qui travaille (15 §3.4, D-219)', () => {
     expect(frottement(3, () => 0, () => 0.5).map((impulsion) => impulsion.t)).toEqual([0, 2]);
   });
 
-  it('chaque son tiré reste dans ses bornes et dure moins de 6 s (15 §3.4, §7)', () => {
+  it('chaque son tiré reste dans ses bornes et dure moins de 6 s (15 §3.4, §7)', { timeout: 30_000 }, () => {
     const hasard = lcg(11);
     const vus = new Set<Genre>();
     for (let tirage = 0; tirage < 2000; tirage += 1) {

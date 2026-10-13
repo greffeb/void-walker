@@ -57,7 +57,8 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
     expect(signauxApres(ailleurs(base), apres)).toEqual(['alarme-feu', 'alarme-vide', 'blessure', 'ia']);
   });
 
-  it('parties tirées au hasard dans les trois mondes : signaux justes, ordonnés, et chacun rencontré', () => {
+  // Exhaustif : 600 parties ; la machine de la PR est plusieurs fois plus lente qu'un poste.
+  it('parties tirées au hasard dans les trois mondes : signaux justes, ordonnés, et chacun rencontré', { timeout: 30_000 }, () => {
     const vus = new Set<Signal>();
     for (const entree of Object.values(MONDES)) {
       for (let graine = 1; graine <= 200; graine += 1) {
