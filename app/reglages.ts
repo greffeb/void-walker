@@ -1,4 +1,4 @@
-// Réglages d'affichage, gardés sur l'appareil hors de la sauvegarde de partie (12 §4.10, D-186).
+// Réglages d'affichage et de son, gardés sur l'appareil hors de la sauvegarde de partie (12 §4.10, D-186, D-220).
 
 /** Taille du texte : récit à 17, 19 ou 22 px, le reste à proportion (12 §4.10). */
 export const TAILLES = ['standard', 'grande', 'tres_grande'] as const;
@@ -10,22 +10,34 @@ export interface Reglages {
   readonly balayage: boolean;
   /** « Effet machine à écrire » [OUI] / [NON]. */
   readonly machineAEcrire: boolean;
+  /** Rails du son, de 0 à 100 (15 §4, D-220, D-223). */
+  readonly general: number;
+  readonly effets: number;
+  readonly ambiance: number;
 }
 
 export const CLE_REGLAGES = 'void-walker:reglages';
 
-export const REGLAGES_PAR_DEFAUT: Reglages = { taille: 'standard', balayage: true, machineAEcrire: true };
+export const REGLAGES_PAR_DEFAUT: Reglages = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60 };
+
+/** Niveau de 0 à 100, arrondi ; illisible : sa valeur par défaut. */
+function niveau(valeur: unknown, defaut: number): number {
+  return typeof valeur === 'number' && Number.isFinite(valeur) ? Math.round(Math.min(100, Math.max(0, valeur))) : defaut;
+}
 
 /** Réglages enregistrés ; un réglage illisible ou absent prend sa valeur par défaut. */
 export function lireReglages(lire: (cle: string) => string | null): Reglages {
   try {
     const brut: unknown = JSON.parse(lire(CLE_REGLAGES) ?? 'null');
     if (typeof brut !== 'object' || brut === null) return REGLAGES_PAR_DEFAUT;
-    const { taille, balayage, machineAEcrire } = brut as Record<string, unknown>;
+    const { taille, balayage, machineAEcrire, general, effets, ambiance } = brut as Record<string, unknown>;
     return {
       taille: TAILLES.find((connue) => connue === taille) ?? REGLAGES_PAR_DEFAUT.taille,
       balayage: balayage !== false,
       machineAEcrire: machineAEcrire !== false,
+      general: niveau(general, REGLAGES_PAR_DEFAUT.general),
+      effets: niveau(effets, REGLAGES_PAR_DEFAUT.effets),
+      ambiance: niveau(ambiance, REGLAGES_PAR_DEFAUT.ambiance),
     };
   } catch {
     return REGLAGES_PAR_DEFAUT;

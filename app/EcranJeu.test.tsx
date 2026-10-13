@@ -156,6 +156,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(deplacement).not.toContain('disabled=""');
     expect(dock).not.toContain('aria-expanded="true"');
     expect(dock.match(/aria-haspopup="dialog"/g)).toHaveLength(3);
+    expect(entre(dock, '<button type="button" class="puce"', '</button>')).toContain('data-son="bulle"');
   });
 
   it('puce dont la bulle est ouverte : seule en vidéo inverse', async () => {
@@ -185,7 +186,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
     const html = bulleObjet(jeu, carnet);
     expect(html).toMatch(
-      /^<section class="bulle bulle-objet" role="dialog" aria-modal="true" aria-labelledby="[^"]+" aria-describedby="[^"]+" tabindex="-1">/,
+      /^<section class="bulle bulle-objet" role="dialog" aria-modal="true" aria-labelledby="[^"]+" aria-describedby="[^"]+" tabindex="-1" data-son-fermer="fermer">/,
     );
     const titre = html.match(/aria-labelledby="([^"]+)"/)?.[1] ?? '';
     expect(html).toContain(`<h2 id="${titre}" class="bulle-titre">Carnet</h2>`);
@@ -194,7 +195,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(html).toContain('aria-label="Fermer"');
     expect(html).not.toContain('Étape précédente');
     expect(texte(html)).toBe(`Carnet ✕ ${description(jeu, 'carnet')} ▸ Prendre`);
-    expect(html).toContain('<button type="button" class="ligne" aria-label="Prendre, sans confirmation"><span aria-hidden="true">▸ </span>Prendre</button>');
+    expect(html).toContain('<button type="button" class="ligne" aria-label="Prendre, sans confirmation" data-son="confirmer"><span aria-hidden="true">▸ </span>Prendre</button>');
     expect(texte(bulleObjet(jeu, porte))).toBe(`Porte de l’atelier ✕ ${description(jeu, 'porte')} ▸ Ouvrir`);
   });
 
@@ -203,7 +204,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const [carnet, porte] = composerDock(observer(monde, jeu.partie.etat)).piece;
     if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
     expect(bulleObjet(jeu, carnet)).toContain('aria-label="Prendre, sans confirmation"');
-    expect(bulleObjet(jeu, porte)).toContain('<button type="button" class="ligne"><span aria-hidden="true">▸ </span>Ouvrir</button>');
+    expect(bulleObjet(jeu, porte)).toContain('<button type="button" class="ligne" data-son="clic"><span aria-hidden="true">▸ </span>Ouvrir</button>');
     // Pendant l'enregistrement d'une action, la ligne ne joue rien de plus.
     const occupee = renderToStaticMarkup(<BulleObjet ancre={{} as HTMLElement} groupe={carnet} {...composition(jeu, null)} occupe={true} />);
     expect(occupee).toContain('aria-label="Prendre, sans confirmation" disabled=""');
@@ -217,9 +218,11 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const soute = entre(entre(rendre(ouverte), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
     expect(soute).toContain('aria-label="soute, sans confirmation"');
     expect(soute).not.toContain('aria-haspopup');
+    expect(soute).toContain('data-son="confirmer"');
     const porte = entre(entre(rendre(await apres('ouvrir')), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
     expect(porte).toContain('aria-haspopup="dialog"');
     expect(porte).not.toContain('sans confirmation');
+    expect(porte).toContain('data-son="bulle"');
   });
 
   it('action choisie : fil « Carnet › Prendre », aperçu sans risque ni coût réduit à SAVOIR, ANNULER puis CONFIRMER (12 §3.5, §3.8, D-187)', async () => {
@@ -231,7 +234,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(html)).toBe('‹ Carnet › Prendre ✕ Savoir Vous aurez le carnet en main. Annuler Confirmer');
     const apercu = html.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
     expect(html).toContain(`<dl id="${apercu}" class="apercu"><dt>Savoir</dt><dd><p>Vous aurez le carnet en main.</p></dd></dl>`);
-    expect(html).toMatch(/<div class="confirmation"><button type="button" class="secondaire">Annuler<\/button><button type="button" class="principal">Confirmer<\/button><\/div>/);
+    expect(html).toMatch(/<div class="confirmation"><button type="button" class="secondaire" data-son="fermer">Annuler<\/button><button type="button" class="principal" data-son="confirmer">Confirmer<\/button><\/div>/);
     expect(texte(html)).not.toMatch(/\d|%|Rien ne se passe|Risque|Coût|aucun/);
   });
 
@@ -305,16 +308,24 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const html = bulleObjet(jeu, { cible: aller.cible as Groupe['cible'], options: [regarder, aller] });
     const ligne = entre(html, '<button type="button" class="ligne indisponible"', '</button>');
     expect(ligne).toContain('aria-disabled="true"');
+    expect(ligne).toContain('data-son="refus"');
     expect(ligne).not.toMatch(/disabled=""|<s>|<del>|line-through/);
     expect(texte(ligne)).toBe('⊘ Aller vers La porte de l’atelier est fermée.');
     expect(ligne).toContain('aria-label="Aller vers, indisponible : La porte de l’atelier est fermée."');
     expect(ligne).toContain('<span class="raison">La porte de l’atelier est fermée.</span>');
   });
 
+  it('inventaire : ✕ et Échap referment avec le bip plus grave de l’inventaire (D-226)', async () => {
+    const jeu = await commencer(env);
+    const html = bulleInventaire(jeu, null);
+    expect(html).toContain('aria-label="Fermer" data-son="fermer-inventaire"');
+    expect(html).toContain('data-son-fermer="fermer-inventaire"');
+  });
+
   it('inventaire : bulle cyan, liste exacte des objets portés, puis la même composition qu’en pièce (D-154, D-176)', async () => {
     const jeu = await apres('prendre');
     const liste = bulleInventaire(jeu, null);
-    expect(liste).toMatch(/^<section id="inventaire" class="bulle bulle-inventaire" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1">/);
+    expect(liste).toMatch(/^<section id="inventaire" class="bulle bulle-inventaire" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1" data-son-fermer="fermer-inventaire">/);
     expect(texte(liste)).toBe('Inventaire ✕ ▸ Carnet');
     const carnet = observer(monde, jeu.partie.etat).inventaire[0];
     if (carnet === undefined) throw new Error('Carnet absent de l’inventaire.');
@@ -331,6 +342,8 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(nav)).toBe('Inven­taire Carte IA Sta­tion');
     expect(nav.match(/aria-haspopup="dialog" aria-expanded="false"/g)).toHaveLength(3);
     expect(nav).toContain('class="nav-carte"');
+    expect(nav).toContain('aria-label="Inventaire" data-son="panneau-inventaire"');
+    expect(nav).toContain('aria-label="Carte" data-son="panneau-carte"');
     expect(nav).not.toMatch(/<svg|<img/);
   });
 
@@ -429,7 +442,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const html = renderToStaticMarkup(<App env={env} reglages={REGLAGES_PAR_DEFAUT} version="v-test" commit="" pr="" />);
     expect(html).toContain('<div class="balayage" aria-hidden="true"></div>');
     expect(html).toContain('<div class="ecran" data-taille="standard">');
-    const sans = renderToStaticMarkup(<App env={env} reglages={{ taille: 'tres_grande', balayage: false, machineAEcrire: true }} version="v-test" commit="" pr="" />);
+    const sans = renderToStaticMarkup(<App env={env} reglages={{ ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false }} version="v-test" commit="" pr="" />);
     expect(sans).not.toContain('balayage');
     expect(sans).toContain('<div class="ecran" data-taille="tres_grande">');
   });
@@ -472,24 +485,36 @@ describe('options (12 §4.10, #96)', () => {
         'Options le jeu est en pause',
         'Taille du texte Standard Grande Très grande',
         APERCU_TAILLE,
+        'Son Général 80 Effets sonores bips et clics du terminal 80 Ambiance bruit brun et carlingue 60',
         'Affichage Lignes de balayage [OUI] Effet machine à écrire [OUI]',
         'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone ⊘ Abandonner la partie en cours',
         'Vv-test Menu principal Reprendre la partie',
       ].join(' '),
     );
     expect(html.match(/type="radio"/g)).toHaveLength(3);
-    expect(html).toMatch(/<label class="segment actif"><input type="radio"[^>]*name="taille" checked=""\/><span>Standard<\/span><\/label>/);
+    expect(html).toMatch(/<label class="segment actif" data-son="clic"><input type="radio"[^>]*name="taille" checked=""\/><span>Standard<\/span><\/label>/);
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Lignes de balayage"');
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Effet machine à écrire"');
     expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
   });
 
   it('réglages choisis : la taille active et les bascules sur [NON]', () => {
-    const html = options({ reglages: { taille: 'tres_grande', balayage: false, machineAEcrire: false } });
-    expect(html).toMatch(/<label class="segment actif"><input[^>]*checked=""\/><span>Très grande<\/span>/);
+    const html = options({ reglages: { ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false, machineAEcrire: false } });
+    expect(html).toMatch(/<label class="segment actif" data-son="clic"><input[^>]*checked=""\/><span>Très grande<\/span>/);
     expect(html.match(/class="segment actif"/g)).toHaveLength(1);
     expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
     expect(html).toContain('role="switch" aria-checked="false"');
+  });
+
+  it('son : trois rails de 0 à 100, valeur écrite à droite, COUPÉE ou COUPÉS à 0 (15 §4, D-220)', () => {
+    const html = options();
+    const rails = html.match(/<input[^>]*class="curseur-rail"[^>]*>/g) ?? [];
+    expect(rails).toHaveLength(3);
+    for (const rail of rails) expect(rail).toMatch(/type="range" min="0" max="100" step="1"/);
+    expect(rails.map((rail) => /value="(\d+)"/.exec(rail)?.[1])).toEqual(['80', '80', '60']);
+    const coupe = texte(options({ reglages: { ...REGLAGES_PAR_DEFAUT, general: 0, effets: 0, ambiance: 0 } }));
+    expect(coupe).toContain('Son Général COUPÉE Effets sonores bips et clics du terminal COUPÉS Ambiance bruit brun et carlingue COUPÉE');
+    expect(options()).toContain('aria-valuetext="60"');
   });
 
   it('sans partie en cours : ni Télécharger, ni Abandonner, ni REPRENDRE LA PARTIE, ni « en pause »', () => {
@@ -516,7 +541,7 @@ describe('fin après abandon (12 §4.11, #96)', () => {
       ].join(' '),
     );
     expect(texte(html)).not.toMatch(/\d/);
-    expect(html).toContain('<button type="button" class="principal">Rejouer cette station</button>');
+    expect(html).toContain('<button type="button" class="principal" data-son="clic">Rejouer cette station</button>');
   });
 });
 
@@ -723,7 +748,7 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
     expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${reveil}\u00a0»`);
     expect(html).not.toContain('lien-ia');
     expect(navIa(html)).toBe(
-      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message">IA Sta\u00adtion<span class="pastille" aria-hidden="true"></span></button>',
+      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message" data-son="panneau-ia">IA Sta\u00adtion<span class="pastille" aria-hidden="true"></span></button>',
     );
     const lu1 = navIa(rendre(jeu, undefined, true, ['reveil']));
     expect(lu1).toContain('aria-label="IA Station"');
@@ -737,7 +762,7 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
     expect(recit).not.toContain('parole-ia');
     expect(recit).not.toContain(atelier);
     expect(recit).toMatch(
-      /<button type="button" class="lien-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station parle dans l’écouteur" data-testid="lien-ia">\[ IA STATION \] parle dans l’écouteur\u00a0›<\/button><\/section>$/,
+      /<button type="button" class="lien-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station parle dans l’écouteur" data-testid="lien-ia" data-son="panneau-ia">\[ IA STATION \] parle dans l’écouteur\u00a0›<\/button><\/section>$/,
     );
     expect(navIa(rendre(arrivee, undefined, true, ['reveil']))).toContain('pastille');
     expect(navIa(rendre(arrivee, undefined, true, ['reveil', 'atelier']))).not.toContain('pastille');
@@ -751,7 +776,10 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
   it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, un seul bouton RETOUR', async () => {
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     const html = renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={['atelier']} fermer={rienAJouer} />);
-    expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1">/);
+    // Refermer IA Station : son propre bip, plus grave (D-226), par RETOUR comme par Échap.
+    expect(html).toContain('data-son="fermer-ia">Retour</button>');
+    expect(html).toContain('data-son-fermer="fermer-ia"');
+    expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1" data-son-fermer="fermer-ia">/);
     expect(texte(html)).toBe(
       `[ IA STATION ] messages reçus dans l’écouteur &gt; au réveil · Cabine « ${reveil} » &gt; en arrivant · Atelier nouveau « ${atelier} » Retour`,
     );

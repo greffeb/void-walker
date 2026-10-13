@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { observer } from '../engine';
 import { nomDe, remplir } from '../content';
 import { nomPuce } from './ecran';
 import type { Environnement, Jeu } from './jeu';
 import { TAILLES, type Reglages, type Taille } from './reglages';
+import { useSon } from './son/contexte';
 
 const LIBELLES_TAILLE: Readonly<Record<Taille, string>> = { standard: 'Standard', grande: 'Grande', tres_grande: 'Très grande' };
 
@@ -87,7 +88,7 @@ export function EcranOptions({
           </h2>
           <div className="segments" role="radiogroup" aria-labelledby={idTaille}>
             {TAILLES.map((taille) => (
-              <label key={taille} className={taille === reglages.taille ? 'segment actif' : 'segment'}>
+              <label key={taille} className={taille === reglages.taille ? 'segment actif' : 'segment'} data-son="clic">
                 <input
                   type="radio"
                   name="taille"
@@ -102,6 +103,24 @@ export function EcranOptions({
           <p className="apercu-taille" data-testid="apercu-taille">
             {APERCU_TAILLE}
           </p>
+        </section>
+        <section>
+          <h2 className="titre-section">Son</h2>
+          <Rail libelle="Général" coupe="COUPÉE" valeur={reglages.general} changer={(general) => changerReglages({ ...reglages, general })} />
+          <Rail
+            libelle="Effets sonores"
+            detail="bips et clics du terminal"
+            coupe="COUPÉS"
+            valeur={reglages.effets}
+            changer={(effets) => changerReglages({ ...reglages, effets })}
+          />
+          <Rail
+            libelle="Ambiance"
+            detail="bruit brun et carlingue"
+            coupe="COUPÉE"
+            valeur={reglages.ambiance}
+            changer={(ambiance) => changerReglages({ ...reglages, ambiance })}
+          />
         </section>
         <section>
           <h2 className="titre-section">Affichage</h2>
@@ -120,7 +139,7 @@ export function EcranOptions({
         {partieEnCours && (
           <section>
             <h2 className="titre-section">Partie</h2>
-            <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())}>
+            <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
               <span>
                 <span aria-hidden="true">▸ </span>
                 Télécharger ma partie
@@ -142,7 +161,7 @@ export function EcranOptions({
                   </p>
                 )}
                 <div>
-                  <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)}>
+                  <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)} data-son="clic">
                     Annuler
                   </button>
                   <button
@@ -150,13 +169,14 @@ export function EcranOptions({
                     className="principal"
                     disabled={occupe}
                     onClick={() => void abandonner().then((fait) => setAbandonRefuse(!fait))}
+                    data-son="confirmer"
                   >
                     Abandonner
                   </button>
                 </div>
               </section>
             ) : (
-              <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)}>
+              <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)} data-son="clic">
                 <span aria-hidden="true">⊘ </span>
                 Abandonner la partie en cours
               </button>
@@ -170,11 +190,11 @@ export function EcranOptions({
         </p>
       </div>
       <div className="options-bas">
-        <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal}>
+        <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal} data-son="clic">
           Menu principal
         </button>
         {partieEnCours && (
-          <button type="button" className="principal" disabled={occupe} onClick={reprendre}>
+          <button type="button" className="principal" disabled={occupe} onClick={reprendre} data-son="clic">
             Reprendre la partie
           </button>
         )}
@@ -186,10 +206,63 @@ export function EcranOptions({
 /** Bascule (12 §3.12) : libellé, puis « [OUI] » ou « [NON] » à droite ; lue comme un interrupteur. */
 function Bascule({ libelle, actif, basculer }: { readonly libelle: string; readonly actif: boolean; readonly basculer: () => void }) {
   return (
-    <button type="button" className="bascule" role="switch" aria-checked={actif} aria-label={libelle} onClick={basculer}>
+    <button type="button" className="bascule" role="switch" aria-checked={actif} aria-label={libelle} onClick={basculer} data-son="clic">
       <span>{libelle}</span>
       <span className="valeur-bascule">{actif ? '[OUI]' : '[NON]'}</span>
     </button>
+  );
+}
+
+const TOUCHES_RAIL = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown']);
+
+/**
+ * Rail du son (15 §4, D-220) : libellé, détail, valeur à droite (« COUPÉE » ou « COUPÉS » à 0), puis le curseur natif.
+ * Le réglage s'applique pendant le glissé ; le clic de contrôle part au relâché, au nouveau niveau.
+ */
+function Rail({
+  libelle,
+  detail,
+  coupe,
+  valeur,
+  changer,
+}: {
+  readonly libelle: string;
+  readonly detail?: string;
+  readonly coupe: string;
+  readonly valeur: number;
+  readonly changer: (valeur: number) => void;
+}) {
+  const id = useId();
+  const son = useSon();
+  const ecrite = valeur === 0 ? coupe : String(valeur);
+  return (
+    <div className="rail">
+      <label className="rail-haut" htmlFor={id}>
+        <span>
+          {libelle}
+          {detail !== undefined && <span className="detail-option">{detail}</span>}
+        </span>
+        <span className="valeur-rail" aria-hidden="true">
+          {ecrite}
+        </span>
+      </label>
+      <input
+        id={id}
+        className="curseur-rail"
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        aria-valuetext={valeur === 0 ? coupe.toLowerCase() : String(valeur)}
+        style={{ '--rempli': `${valeur}%` } as CSSProperties}
+        value={valeur}
+        onChange={(evenement) => changer(Number(evenement.currentTarget.value))}
+        onPointerUp={() => son.geste('clic')}
+        onKeyUp={(evenement) => {
+          if (TOUCHES_RAIL.has(evenement.key)) son.geste('clic');
+        }}
+      />
+    </div>
   );
 }
 
@@ -235,13 +308,13 @@ export function EcranFin({
         </div>
       </section>
       <div className="actions-fin">
-        <button type="button" className="principal" disabled={occupe} onClick={rejouer}>
+        <button type="button" className="principal" disabled={occupe} onClick={rejouer} data-son="clic">
           Rejouer cette station
         </button>
-        <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie}>
+        <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
           Nouvelle partie
         </button>
-        <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal}>
+        <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
           Menu principal
         </button>
       </div>

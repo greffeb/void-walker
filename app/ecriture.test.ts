@@ -34,22 +34,27 @@ describe('effet machine à écrire (D-186)', () => {
   });
 });
 
-describe('réglages d’affichage gardés sur l’appareil (D-186, 12 §4.10)', () => {
+describe('réglages gardés sur l’appareil (D-186, D-220, 12 §4.10)', () => {
   const magasin = (valeur: string | null) => (cle: string) => (cle === CLE_REGLAGES ? valeur : null);
-  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true };
+  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60 };
 
-  it('par défaut : taille standard, lignes de balayage et machine à écrire sur [OUI] ; réglages enregistrés relus', () => {
+  it('par défaut : taille standard, balayage et machine à écrire sur [OUI], son à 80, 80 et 60 ; réglages enregistrés relus', () => {
     expect(lireReglages(magasin(null))).toEqual(DEFAUT);
     expect(lireReglages(magasin('{"machineAEcrire":false}'))).toEqual({ ...DEFAUT, machineAEcrire: false });
-    expect(lireReglages(magasin('{"taille":"tres_grande","balayage":false,"machineAEcrire":true}'))).toEqual({
+    expect(lireReglages(magasin('{"taille":"tres_grande","balayage":false,"machineAEcrire":true,"general":55,"effets":0,"ambiance":100}'))).toEqual({
       taille: 'tres_grande',
       balayage: false,
       machineAEcrire: true,
+      general: 55,
+      effets: 0,
+      ambiance: 100,
     });
   });
 
   it('réglages illisibles ou stockage refusé : valeurs par défaut, réglage par réglage', () => {
-    for (const valeur of ['pas du json', '42', '{}', '{"machineAEcrire":"non","taille":"enorme","balayage":0}']) expect(lireReglages(magasin(valeur))).toEqual(DEFAUT);
+    for (const valeur of ['pas du json', '42', '{}', '{"machineAEcrire":"non","taille":"enorme","balayage":0,"general":"fort","effets":null}']) {
+      expect(lireReglages(magasin(valeur))).toEqual(DEFAUT);
+    }
     expect(lireReglages(magasin('{"taille":"grande","machineAEcrire":"non"}'))).toEqual({ ...DEFAUT, taille: 'grande' });
     expect(
       lireReglages(() => {
@@ -58,9 +63,13 @@ describe('réglages d’affichage gardés sur l’appareil (D-186, 12 §4.10)', 
     ).toEqual(DEFAUT);
   });
 
+  it('niveaux du son hors bornes : ramenés entre 0 et 100, arrondis', () => {
+    expect(lireReglages(magasin('{"general":-3,"effets":101.6,"ambiance":29.6}'))).toEqual({ ...DEFAUT, general: 0, effets: 100, ambiance: 30 });
+  });
+
   it('écrire puis relire redonne les mêmes réglages ; un refus du navigateur est signalé sans lever', () => {
     const memoire = new Map<string, string>();
-    const reglages = { taille: 'grande', balayage: false, machineAEcrire: false } as const;
+    const reglages = { taille: 'grande', balayage: false, machineAEcrire: false, general: 10, effets: 20, ambiance: 0 } as const;
     expect(ecrireReglages((cle, valeur) => memoire.set(cle, valeur), reglages)).toBe(true);
     expect(lireReglages((cle) => memoire.get(cle) ?? null)).toEqual(reglages);
     expect(

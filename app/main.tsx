@@ -5,6 +5,7 @@ import { App } from './App';
 import { mondeDemande, type Environnement } from './jeu';
 import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
+import { creerMoteur, sessionAmbiante } from './son/moteur';
 import './styles.css';
 
 // AR-01 par défaut ; `?monde=<id>` choisit un autre monde connu (le monde de test pour les captures).
@@ -25,15 +26,50 @@ const env: Environnement = {
   graine: () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 0,
 };
 
+const reglages = lireReglages((cle) => window.localStorage.getItem(cle));
+
+// Hasard du son, sans lien avec celui de la partie : générateur rapide amorcé une fois par l'appareil (Math.random est interdit, AP-02).
+let etatHasard = crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
+const hasardSon = (): number => {
+  etatHasard = (Math.imul(etatHasard, 1664525) + 1013904223) >>> 0;
+  return etatHasard / 2 ** 32;
+};
+
+// Son (15 §5, D-222) : synthétisé en direct ; rien avant le premier toucher, pause en arrière-plan, mode silencieux respecté.
+const son = creerMoteur(
+  {
+    creerContexte: () => {
+      const Contexte = window.AudioContext as typeof AudioContext | undefined;
+      return Contexte === undefined ? null : new Contexte();
+    },
+    hasard: hasardSon,
+    minuterie: {
+      attendre: (ms, quoi) => {
+        const minuteur = window.setTimeout(quoi, ms);
+        return () => window.clearTimeout(minuteur);
+      },
+    },
+    mouvementReduit: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  },
+  reglages,
+);
+sessionAmbiante(navigator);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) son.cacher();
+  else son.montrer();
+});
+window.addEventListener('pagehide', () => son.cacher());
+
 createRoot(racine).render(
   <StrictMode>
     <App
       env={env}
-      reglages={lireReglages((cle) => window.localStorage.getItem(cle))}
+      reglages={reglages}
       garderReglages={(reglages) => ecrireReglages((cle, valeur) => window.localStorage.setItem(cle, valeur), reglages)}
       version={version}
       commit={import.meta.env.VITE_COMMIT ?? ''}
       pr={import.meta.env.VITE_PR_NUMERO ?? ''}
+      son={son}
     />
   </StrictMode>,
 );

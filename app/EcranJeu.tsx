@@ -22,6 +22,8 @@ import { Bulle, BulleAncree, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
+import { annoncerTexte, useSon } from './son/contexte';
+import type { Geste, Signal } from './son/recettes';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
@@ -35,6 +37,9 @@ const SANS_CONFIRMATION = ', sans confirmation';
 
 /** Historique vide, pour un monde sans message d'IA Station. */
 const AUCUN_MESSAGE = 'Aucun message reçu.';
+
+/** Aucun signal : réveil, reprise, retour des options (15 §2.2). */
+const AUCUN_SIGNAL: readonly Signal[] = [];
 
 /** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */
 const NAV_INVENTAIRE = 'Inven\u00adtaire';
@@ -52,6 +57,11 @@ type Ouverte =
   | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
   | { readonly zone: 'ia'; readonly nouveaux: readonly string[] }
   | { readonly zone: 'carte' };
+
+/** Refermer l'inventaire, la carte ou IA Station sonne plus grave que les autres bulles (D-226). */
+function sonDeFermetureZone(zone: Ouverte['zone']): Geste {
+  return zone === 'inventaire' ? 'fermer-inventaire' : zone === 'carte' ? 'fermer-carte' : zone === 'ia' ? 'fermer-ia' : 'fermer';
+}
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -75,6 +85,7 @@ export function EcranJeu({
   lireMessages,
   ouvrirOptions,
   nouvellePartie,
+  signaux = AUCUN_SIGNAL,
 }: {
   readonly jeu: Jeu;
   /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
@@ -90,11 +101,19 @@ export function EcranJeu({
   readonly ouvrirOptions?: () => void;
   /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
   readonly nouvellePartie?: () => void;
+  /** Signaux de la dernière action (15 §2.2), annoncés après l'écriture du texte. */
+  readonly signaux?: readonly Signal[];
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
   const dock = composerDock(observation);
+  const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
+  /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
+  const zoneOuverte = useRef<Ouverte['zone'] | null>(null);
+  useEffect(() => {
+    zoneOuverte.current = ouverte?.zone ?? null;
+  }, [ouverte]);
   const idInventaire = useId();
   const recit = useRef<HTMLElement>(null);
   /** Élément touché pour ouvrir la bulle en cours ; `null` si aucune n'est ouverte. */
@@ -109,7 +128,14 @@ export function EcranJeu({
   const completer = (): void => {
     marquerEcrit(jeu);
     setComplet(jeu);
+    // Texte affiché en entier : le crépitement s'arrête net, les signaux partent (15 §2.3).
+    son.taire();
   };
+
+  // Nouveau texte (15 §2.3, §2.4) : crépitement s'il s'écrit, puis les signaux de l'action ; une seule fois par texte.
+  useEffect(() => {
+    annoncerTexte(son, jeu, ecrire, signaux);
+  }, [son, jeu, ecrire, signaux]);
 
   useEffect(() => {
     const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);
@@ -122,11 +148,13 @@ export function EcranJeu({
       if (depuis === null) return;
       origine.current = null;
       setOuverte(null);
+      // Retour système (12 §3.5) : même son que ✕ ; une fermeture par ✕ a déjà vidé `origine` et ne sonne pas deux fois.
+      son.geste(zoneOuverte.current === null ? 'fermer' : sonDeFermetureZone(zoneOuverte.current));
       depuis.focus();
     };
     window.addEventListener('popstate', surRetour);
     return () => window.removeEventListener('popstate', surRetour);
-  }, []);
+  }, [son]);
 
   useEffect(() => {
     const depuis = aRendre.current;
@@ -194,7 +222,7 @@ export function EcranJeu({
         <h1 className="titre-piece">{nomDe(textes, observation.piece).texte}</h1>
         <BadgeSante sante={observation.sante} />
         {ouvrirOptions !== undefined && !observation.terminee && (
-          <button type="button" className="engrenage" aria-label="Options" disabled={occupe} onClick={ouvrirOptions}>
+          <button type="button" className="engrenage" aria-label="Options" disabled={occupe} onClick={ouvrirOptions} data-son="clic">
             <Engrenage />
           </button>
         )}
@@ -212,7 +240,7 @@ export function EcranJeu({
           {/* Déjà lue dans la situation, en tête de page pour le lecteur d'écran. */}
           <p aria-hidden="true">{remplir(observation.issue === 'evacuation' ? textes.observation.evacuee : textes.observation.terminee, {})}</p>
           {nouvellePartie !== undefined && (
-            <button type="button" className="principal" disabled={occupe} onClick={nouvellePartie}>
+            <button type="button" className="principal" disabled={occupe} onClick={nouvellePartie} data-son="clic">
               Nouvelle partie
             </button>
           )}
@@ -237,6 +265,7 @@ export function EcranJeu({
         <div
           className={ouverte.zone === 'inventaire' || ouverte.zone === 'carte' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
           data-testid="voile"
+          data-son={sonDeFermetureZone(ouverte.zone)}
           onClick={fermer}
         />
       )}
@@ -295,6 +324,7 @@ export function EcranJeu({
             onClick={(evenement) =>
               ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null, parametre: null }, evenement.currentTarget)
             }
+            data-son={ouverte?.zone === 'inventaire' ? 'fermer-inventaire' : 'panneau-inventaire'}
           >
             {NAV_INVENTAIRE}
           </button>
@@ -306,6 +336,7 @@ export function EcranJeu({
             aria-label="Carte"
             disabled={occupe}
             onClick={(evenement) => (ouverte?.zone === 'carte' ? fermer() : ouvrir({ zone: 'carte' }, evenement.currentTarget))}
+            data-son={ouverte?.zone === 'carte' ? 'fermer-carte' : 'panneau-carte'}
           >
             {NAV_CARTE}
           </button>
@@ -318,6 +349,7 @@ export function EcranJeu({
             aria-label={nonLus.length > 0 ? 'IA Station, nouveau message' : 'IA Station'}
             disabled={occupe}
             onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
+            data-son="panneau-ia"
           >
             {NAV_IA}
             {nonLus.length > 0 && <span className="pastille" aria-hidden="true" />}
@@ -345,10 +377,17 @@ export function EcranReveil({
   const zone = useRef<HTMLElement>(null);
   const [complet, setComplet] = useState(false);
   const ecrire = machineAEcrire && !complet && !dejaEcrit(jeu);
+  const son = useSon();
   const completer = (): void => {
     marquerEcrit(jeu);
     setComplet(true);
+    son.taire();
   };
+
+  // Réveil : crépitement seulement ; aucun signal sans action d'avant (15 §2.2).
+  useEffect(() => {
+    annoncerTexte(son, jeu, ecrire, AUCUN_SIGNAL);
+  }, [son, jeu, ecrire]);
 
   useEffect(() => {
     const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);
@@ -363,7 +402,7 @@ export function EcranReveil({
       <Sauvegarde jeu={jeu} />
       <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={false} ouvrirIA={() => undefined} />
       <div className="actions-reveil">
-        <button type="button" className="principal" disabled={occupe} onClick={regarder}>
+        <button type="button" className="principal" disabled={occupe} onClick={regarder} data-son="confirmer">
           Regarder autour de vous
         </button>
       </div>
@@ -488,6 +527,7 @@ export function BulleInventaire({
         etape={cleEtape(groupe, etape)}
         retour={retourDe(etape, props) ?? (() => choisir(null))}
         fermer={props.fermer}
+        sonFermer="fermer-inventaire"
         pied={etape.type === 'apercu' ? <Confirmation occupe={props.occupe} confirmer={() => props.jouer(etape.option)} annuler={props.fermer} /> : undefined}
       >
         <Composer groupe={groupe} etape={etape} idDescription={idDescription} {...props} />
@@ -495,14 +535,14 @@ export function BulleInventaire({
     );
   }
   return (
-    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre="Inventaire" etape="" fermer={props.fermer}>
+    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre="Inventaire" etape="" fermer={props.fermer} sonFermer="fermer-inventaire">
       {groupes.length === 0 ? (
         <p className="vide">{remplir(props.textes.observation.inventaireVide, {})}</p>
       ) : (
         <ul className="puces">
           {groupes.map((porte) => (
             <li key={porte.cible.id}>
-              <button type="button" className="puce" onClick={() => choisir(porte.cible.id)}>
+              <button type="button" className="puce" onClick={() => choisir(porte.cible.id)} data-son="clic">
                 <span aria-hidden="true">▸ </span>
                 {nomPuce(props.textes, porte.cible)}
               </button>
@@ -540,7 +580,7 @@ function Composer({
           {etape.options.map(({ parametre }) =>
             parametre === undefined ? null : (
               <li key={parametre.id}>
-                <button type="button" className="ligne" onClick={() => choisirParametre(parametre.id)}>
+                <button type="button" className="ligne" onClick={() => choisirParametre(parametre.id)} data-son="clic">
                   <span aria-hidden="true">▸ </span>
                   {nomParametre(textes, parametre)}
                 </button>
@@ -572,12 +612,12 @@ function Composer({
                 {raison !== null ? (
                   <Indisponible classe="ligne" libelle={verbe} raison={raison} />
                 ) : direct(action) ? (
-                  <button type="button" className="ligne" aria-label={`${verbe}${SANS_CONFIRMATION}`} disabled={occupe} onClick={() => jouer(action)}>
+                  <button type="button" className="ligne" aria-label={`${verbe}${SANS_CONFIRMATION}`} disabled={occupe} onClick={() => jouer(action)} data-son="confirmer">
                     <span aria-hidden="true">▸ </span>
                     {verbe}
                   </button>
                 ) : (
-                  <button type="button" className="ligne" onClick={() => choisirAction(action.action)}>
+                  <button type="button" className="ligne" onClick={() => choisirAction(action.action)} data-son="clic">
                     <span aria-hidden="true">▸ </span>
                     {verbe}
                   </button>
@@ -624,10 +664,10 @@ function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuAffich
 function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean; readonly confirmer: () => void; readonly annuler: () => void }) {
   return (
     <div className="confirmation">
-      <button type="button" className="secondaire" onClick={annuler}>
+      <button type="button" className="secondaire" onClick={annuler} data-son="fermer">
         Annuler
       </button>
-      <button type="button" className="principal" disabled={occupe} onClick={confirmer}>
+      <button type="button" className="principal" disabled={occupe} onClick={confirmer} data-son="confirmer">
         Confirmer
       </button>
     </div>
@@ -637,7 +677,7 @@ function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean
 /** Action indisponible (12 §3.7) : visible, « ⊘ », raison publique à droite, lue « Ouvrir, indisponible : … », jamais activable. */
 function Indisponible({ classe, libelle, raison }: { readonly classe: string; readonly libelle: string; readonly raison: string }) {
   return (
-    <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${libelle}, indisponible : ${raison}`}>
+    <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${libelle}, indisponible : ${raison}`} data-son="refus">
       <span className="libelle">
         <span aria-hidden="true">⊘ </span>
         {libelle}
@@ -676,6 +716,7 @@ export function ModaleIA({
       aria-label="IA Station"
       aria-describedby={idSousTitre}
       tabIndex={-1}
+      data-son-fermer="fermer-ia"
       onKeyDown={(evenement) => garderFocus(evenement, fermer)}
     >
       <div className="modale-entete">
@@ -706,7 +747,7 @@ export function ModaleIA({
         </ol>
       )}
       <div className="modale-pied">
-        <button type="button" className="secondaire" onClick={fermer}>
+        <button type="button" className="secondaire" onClick={fermer} data-son="fermer-ia">
           Retour
         </button>
       </div>
@@ -827,6 +868,7 @@ function Recit({
           data-testid="lien-ia"
           disabled={occupe}
           onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
+          data-son="panneau-ia"
         >
           {LIEN_IA}
         </button>
@@ -875,6 +917,7 @@ export function DockPiece({
               aria-expanded={groupe.cible.id === puceOuverte}
               disabled={occupe}
               onClick={(evenement) => ouvrir(groupe, evenement.currentTarget)}
+              data-son="bulle"
             >
               <span aria-hidden="true">▸ </span>
               {nomPuce(textes, groupe.cible)}
@@ -883,7 +926,7 @@ export function DockPiece({
         ))}
       </ul>
       {autour !== undefined && (
-        <button type="button" className="puce autour" disabled={occupe} onClick={() => jouer(autour)}>
+        <button type="button" className="puce autour" disabled={occupe} onClick={() => jouer(autour)} data-son="confirmer">
           <span aria-hidden="true">▸ </span>
           {REGARDER_AUTOUR}
         </button>
@@ -938,6 +981,7 @@ function Deplacement({
       aria-label={direct ? `${destination}${SANS_CONFIRMATION}` : undefined}
       disabled={occupe}
       onClick={(evenement) => ouvrir(option, evenement.currentTarget)}
+      data-son={direct ? 'confirmer' : 'bulle'}
     >
       <span aria-hidden="true">→ </span>
       {destination}

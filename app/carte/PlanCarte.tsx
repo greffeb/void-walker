@@ -164,6 +164,8 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
             onClick={(evenement) => {
               if (evenement.detail > 0 && glisse.current) {
                 glisse.current = false;
+                // Fin d'un glissement : ni fiche, ni son de bulle (la racine ne fait pas sonner un clic annulé).
+                evenement.preventDefault();
                 return;
               }
               toucher(piece, evenement.currentTarget);
@@ -175,6 +177,7 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
               if (rect === null || plan === undefined) return;
               changerVue((courante) => montrer(courante, enPixels(rect, courante, casePx), { largeur: plan.width, hauteur: plan.height }));
             }}
+            data-son="bulle"
           >
             <span className="carte-textes" aria-hidden="true">
               {textesPiece.nom.map((ligne) => (

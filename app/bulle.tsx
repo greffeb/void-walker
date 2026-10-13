@@ -1,5 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { placerBulle } from './ecran';
+import type { Geste } from './son/recettes';
 
 // Bulles (12 §3.5, §3.6) : dialogue nommé, focus piégé, Échap qui referme ; partagées par l'écran de jeu et la carte.
 
@@ -36,6 +37,7 @@ export function Bulle({
   retour,
   fermer,
   pied,
+  sonFermer = 'fermer',
   children,
 }: {
   readonly id?: string;
@@ -50,6 +52,8 @@ export function Bulle({
   readonly fermer: () => void;
   /** Toujours visible sous le contenu qui défile : ANNULER et CONFIRMER restent sous le pouce. */
   readonly pied?: ReactNode;
+  /** Son de ✕ et d'Échap : le tic des bulles, ou le bip plus grave d'un menu (D-226). */
+  readonly sonFermer?: Geste;
   readonly children: ReactNode;
 }) {
   const idTitre = useId();
@@ -66,18 +70,19 @@ export function Bulle({
       aria-labelledby={idTitre}
       aria-describedby={decrite}
       tabIndex={-1}
+      data-son-fermer={sonFermer}
       onKeyDown={(evenement) => garderFocus(evenement, fermer)}
     >
       <div className="bulle-entete">
         {retour !== undefined && (
-          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour}>
+          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour} data-son="clic">
             <span aria-hidden="true">‹</span>
           </button>
         )}
         <h2 id={idTitre} className="bulle-titre">
           {titre}
         </h2>
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son={sonFermer}>
           <span aria-hidden="true">✕</span>
         </button>
       </div>

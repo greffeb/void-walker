@@ -139,7 +139,8 @@ describe('écran de la carte (14 §2)', () => {
     expect(html).toContain('role="dialog"');
     expect(html).toContain('aria-modal="true"');
     expect(html).toContain('class="bulle carte"');
-    expect(html).toContain('aria-label="Fermer"');
+    expect(html).toContain('aria-label="Fermer" data-son="fermer-carte"');
+    expect(html).toContain('data-son-fermer="fermer-carte"');
     for (const mot of ['CARTE // RELEVÉ', 'LISTE', '✕']) expect(texte(html)).toContain(mot);
     expect(texte(html)).not.toContain('FERMER LA CARTE');
     expect(html).toContain('aria-label="Plan de la station ; vous êtes dans l’atelier maintenance. La vue liste dit la même chose en texte."');

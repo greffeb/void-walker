@@ -1,0 +1,599 @@
+<title>Banc des bruitages Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Mise en page : une colonne de terminal à 390 px, une ligne par moment sonore, trois puces A / B / C. Phosphore assumé, sombre seulement. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --signal: #ffd08a;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --blanc: #eef6f8;
+  --cyan: #4fe6f0;
+  --vert: #5cff7a;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html { background: var(--fond); }
+body { background: var(--fond); color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.55; }
+.page { max-width: 560px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 22px; }
+h1 { font-size: 15px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0; }
+h1 span { color: var(--secondaire); font-weight: 400; }
+p { margin: 0; }
+.intro { color: var(--secondaire); font-size: 13.5px; }
+.intro b { color: var(--texte); font-weight: 600; }
+.regie { border: 1px solid var(--bordure); background: var(--surface); padding: 12px; display: grid; gap: 10px; }
+.regie-ligne { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.regie label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--secondaire); }
+input[type=range] { accent-color: var(--accent); flex: 1 1 140px; min-width: 0; }
+.curseurs { display: grid; grid-template-columns: auto minmax(0, 1fr) 2.5em; gap: 10px 12px; align-items: center; }
+.curseurs output { font-size: 13px; color: var(--signal); text-align: right; font-variant-numeric: tabular-nums; }
+.bascule { font: inherit; font-size: 12.5px; letter-spacing: .08em; background: transparent; color: var(--texte); border: 1px solid var(--bordure); padding: 6px 10px; cursor: pointer; }
+.bascule[aria-pressed=true] { background: var(--accent); color: var(--fond); border-color: var(--accent); }
+.moment { border-top: 1px solid var(--separateur); padding-top: 14px; display: grid; gap: 10px; }
+.entete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.entete h2 { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; margin: 0; color: var(--signal); }
+.entete .num { font-size: 12px; color: var(--secondaire); font-variant-numeric: tabular-nums; }
+.quand { font-size: 13px; color: var(--secondaire); }
+.puces { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.puces.quatre { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.puces.quatre > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.puce { font: inherit; text-align: left; background: transparent; color: var(--texte); border: 1px solid var(--bordure); padding: 9px 9px 8px; cursor: pointer; display: grid; gap: 2px; min-height: 64px; align-content: start; }
+.puce .l { font-size: 12px; color: var(--secondaire); letter-spacing: .1em; }
+.puce .n { font-size: 13px; line-height: 1.3; }
+.puce:hover { border-color: var(--accent); }
+.puce:focus-visible, .bascule:focus-visible, .action:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.puce[aria-checked=true] { border-color: var(--accent); background: var(--accent); color: var(--fond); }
+.puce[aria-checked=true] .l { color: var(--fond); }
+.puce.joue { box-shadow: 0 0 0 1px var(--signal), 0 0 14px rgba(255,178,63,.35); }
+.sous { display: flex; flex-wrap: wrap; gap: 8px; }
+.action { font: inherit; font-size: 12.5px; letter-spacing: .08em; background: var(--surface); color: var(--texte); border: 1px solid var(--separateur); padding: 7px 10px; cursor: pointer; }
+.action:hover { border-color: var(--bordure); }
+.action.carte { color: var(--vert); }
+.action.inv { color: var(--cyan); }
+.action.opt { color: var(--texte); }
+.ecran { border: 1px solid var(--separateur); background: var(--surface); padding: 12px; min-height: 5.2em; font-size: 14.5px; }
+.ecran .curseur { display: inline-block; width: .6em; height: 1.05em; background: var(--texte); vertical-align: -.15em; animation: cligne 1.1s steps(1) infinite; }
+@keyframes cligne { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ecran .curseur { animation: none; } }
+.bilan { border: 1px solid var(--accent); padding: 12px; display: grid; gap: 10px; }
+.bilan pre { margin: 0; white-space: pre-wrap; font: inherit; font-size: 13px; color: var(--signal); }
+.note { font-size: 12.5px; color: var(--secondaire); }
+</style>
+
+<div class="page">
+  <header style="display:grid;gap:8px">
+    <h1>Void Walker <span>· #99 · bruitages</span></h1>
+    <p class="intro">Trois propositions par moment, toutes <b>synthétisées</b> (aucun fichier tiers : pas de licence à chercher). Touche une puce pour l'entendre ; la dernière touchée est ton choix. Le monde reste muet, seul le terminal fait du bruit.</p>
+  </header>
+
+  <section class="regie" aria-label="Mélangeur">
+    <div class="entete"><h2 style="font-size:13px;font-weight:600;letter-spacing:.14em;margin:0;color:var(--signal)">OPTIONS › SON</h2><span class="num">MAQUETTE</span></div>
+    <div class="curseurs">
+      <label for="vol-general">Général</label><input id="vol-general" type="range" min="0" max="100" value="80"><output for="vol-general">80</output>
+      <label for="vol-bande" hidden>Bande-son</label><input id="vol-bande" type="range" min="0" max="100" value="60" hidden><output for="vol-bande" hidden>60</output>
+      <label for="vol-effets">Effets sonores</label><input id="vol-effets" type="range" min="0" max="100" value="80"><output for="vol-effets">80</output>
+      <label for="vol-ambiance">Ambiance</label><input id="vol-ambiance" type="range" min="0" max="100" value="60"><output for="vol-ambiance">60</output>
+    </div>
+    <p class="note">Fond d'ambiance continu, sous la bande-son :</p>
+    <div id="types-ambiance" class="puces quatre" role="radiogroup" aria-label="Fond d'ambiance"></div>
+    <div class="sous">
+      <button id="jouer-ambiance" class="bascule" aria-pressed="false" type="button">▶ AMBIANCE</button>
+      <button id="jouer-bande" class="bascule" aria-pressed="false" type="button" hidden>▶ BANDE-SON (AAC 64)</button>
+    </div>
+    <p class="note">Lance l'ambiance, puis touche les bruitages plus bas : tu entends le mélange complet.</p>
+    <div class="regie-ligne">
+      <button id="grain" class="bascule" aria-pressed="true" type="button">GRAIN CASSETTE : OUI</button>
+      <span class="note">Saturation douce et aigus coupés, comme sur une bande.</span>
+    </div>
+  </section>
+
+  <section class="regie" aria-labelledby="h-carlingue">
+    <div class="entete"><h2 id="h-carlingue" style="font-size:13px;font-weight:600;letter-spacing:.14em;margin:0;color:var(--signal)">CARLINGUE QUI TRAVAILLE</h2><span class="num">NOUVEAU · AMBIANCE</span></div>
+    <p class="note">Craquements lointains de tôle, joués au hasard sous le bruit brun, à gauche ou à droite, avec la réverbération d'une coque. Touche une puce pour en entendre un tout de suite (chaque toucher en tire un nouveau). Mets un casque ou baisse peu : ils sont lointains.</p>
+    <div id="types-carlingue" class="puces quatre" role="radiogroup" aria-label="Craquements"></div>
+    <div class="sous">
+      <button id="carlingue-hasard" class="bascule" aria-pressed="false" type="button">AU HASARD : NON</button>
+      <button id="carlingue-rythme" class="bascule" aria-pressed="false" type="button">RYTHME : RARE</button>
+    </div>
+    <p id="carlingue-etat" class="note">Au hasard, avec le fond brun : un craquement toutes les 20 à 60 s (rare) ou 6 à 20 s (fréquent). Le rythme fréquent sert à juger vite.</p>
+  </section>
+
+  <main id="moments" style="display:grid;gap:22px"></main>
+
+
+  <section class="bilan" aria-label="Mes choix">
+    <div class="sous">
+      <button id="enchainer" class="action" type="button">▶ ÉCOUTER MES CHOIX ENCHAÎNÉS</button>
+      <button id="copier" class="action" type="button">COPIER MES CHOIX</button>
+    </div>
+    <pre id="resume"></pre>
+    <p class="note">Recopie ou colle ce bilan dans la conversation. Un son qui ne va dans aucune variante : dis ce qui cloche (trop aigu, trop long, trop « jeu vidéo »…), je le retouche.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  // ───────── Moteur : WebAudio, rien n'est chargé ─────────
+  let ctx = null, sortie = null, entree = null, grainActif = true;
+  let filtreBande, satur, directe;
+  // Quatre bus : général ← effets, bande-son, ambiance. Courbe au carré pour une pente perçue régulière.
+  const NIVEAUX = { general: 0.8, bande: 0.6, effets: 0.8, ambiance: 0.6 };
+  const bus = {};
+  const gainDe = (v) => v * v;
+
+  function courbeSaturation(k) {
+    const n = 1024, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); }
+    return c;
+  }
+  function audio() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return ctx; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    bus.general = ctx.createGain(); bus.general.connect(ctx.destination);
+    ['bande', 'effets', 'ambiance'].forEach((k) => { bus[k] = ctx.createGain(); bus[k].connect(bus.general); });
+    Object.keys(bus).forEach((k) => { bus[k].gain.value = gainDe(NIVEAUX[k]); });
+    sortie = bus.effets;
+    entree = ctx.createGain();
+    satur = ctx.createWaveShaper(); satur.curve = courbeSaturation(2.2); satur.oversample = '2x';
+    filtreBande = ctx.createBiquadFilter(); filtreBande.type = 'lowpass'; filtreBande.frequency.value = 5200; filtreBande.Q.value = 0.5;
+    directe = ctx.createGain();
+    branche();
+    return ctx;
+  }
+  function branche() {
+    entree.disconnect(); satur.disconnect(); filtreBande.disconnect(); directe.disconnect();
+    if (grainActif) { entree.connect(satur); satur.connect(filtreBande); filtreBande.connect(sortie); }
+    else { entree.connect(directe); directe.connect(sortie); }
+  }
+
+  let bruitBuf = null;
+  function bruit() {
+    if (bruitBuf) return bruitBuf;
+    bruitBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = bruitBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return bruitBuf;
+  }
+
+  // Enveloppe : attaque, tenue, chute exponentielle.
+  function env(g, t, dur, vol, att = 0.002, chute = null) {
+    const r = chute ?? Math.min(0.03, dur * 0.5);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + att);
+    g.gain.setValueAtTime(vol, Math.max(t + att, t + dur - r));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  }
+  const vivants = new Set();
+  function suivre(src, t, dur, groupe) {
+    src.start(t); src.stop(t + dur + 0.02);
+    const e = { src, groupe }; vivants.add(e);
+    src.onended = () => vivants.delete(e);
+  }
+  // Oscillateur.
+  function ton(t, dur, f, o = {}) {
+    const c = ctx, osc = c.createOscillator(), g = c.createGain();
+    osc.type = o.type || 'square';
+    osc.frequency.setValueAtTime(f, t);
+    if (o.fin) osc.frequency.exponentialRampToValueAtTime(o.fin, t + (o.glisse ?? dur));
+    let noeud = osc;
+    if (o.lp) { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = o.lp; osc.connect(lp); noeud = lp; }
+    noeud.connect(g);
+    env(g, t, dur, o.vol ?? 0.1, o.att, o.chute);
+    if (o.trem) { // modulation d'amplitude (bourdonnement)
+      const lfo = c.createOscillator(), lg = c.createGain(), m = c.createGain();
+      lfo.type = 'square'; lfo.frequency.value = o.trem; lg.gain.value = 0.5; m.gain.value = 0.5;
+      lfo.connect(lg); lg.connect(m.gain); g.connect(m); m.connect(o.vers || entree);
+      suivre(lfo, t, dur, o.groupe);
+    } else g.connect(o.vers || entree);
+    suivre(osc, t, dur, o.groupe);
+  }
+  // Bruit filtré.
+  function souffle(t, dur, o = {}) {
+    const c = ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = bruit(); s.loop = true;
+    f.type = o.filtre || 'bandpass'; f.frequency.setValueAtTime(o.f || 3000, t); f.Q.value = o.q ?? 1;
+    if (o.fin) f.frequency.exponentialRampToValueAtTime(o.fin, t + dur);
+    s.connect(f); f.connect(g); g.connect(o.vers || entree);
+    env(g, t, dur, o.vol ?? 0.2, o.att ?? 0.001, o.chute);
+    s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
+    const e = { src: s, groupe: o.groupe }; vivants.add(e); s.onended = () => vivants.delete(e);
+  }
+  // Écho de bande (pour le carillon).
+  function echo(temps, retour) {
+    const d = ctx.createDelay(1), fb = ctx.createGain(), lp = ctx.createBiquadFilter(), entreeE = ctx.createGain();
+    d.delayTime.value = temps; fb.gain.value = retour; lp.type = 'lowpass'; lp.frequency.value = 2400;
+    entreeE.connect(entree); entreeE.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(entree);
+    return entreeE;
+  }
+
+  // ───────── Les propositions ─────────
+  const n = () => ctx.currentTime + 0.01;
+  const MOMENTS = [
+    { id: 'clic', titre: 'Clic', quand: 'Toucher un bouton ou une puce.', variantes: [
+      { nom: 'Touche mécanique', jouer: (t = n()) => { souffle(t, 0.007, { f: 3600, q: 2.5, vol: 0.55 }); ton(t, 0.004, 2400, { vol: 0.05 }); } },
+      { nom: 'Bip de touche', jouer: (t = n()) => ton(t, 0.016, 1800, { vol: 0.09, chute: 0.008 }) },
+      { nom: 'Relais', jouer: (t = n()) => { souffle(t, 0.005, { filtre: 'highpass', f: 4500, vol: 0.4 }); ton(t, 0.014, 190, { type: 'sine', vol: 0.4, fin: 120 }); } },
+    ]},
+    { id: 'bulle2', titre: 'Bulle', quand: "Toucher un objet ou une sortie ouvre sa bulle d'actions ; ✕, ANNULER ou toucher à côté la referme. Nouvelles propositions, plus douces ; ✕ avec le bouton dessous.", double: true, variantes: [
+      { nom: 'Blip adouci', jouer: (t = n()) => ton(t, 0.035, 1050, { type: 'triangle', fin: 990, vol: 0.12, lp: 1800 }), fermer: (t = n()) => ton(t, 0.035, 700, { type: 'triangle', fin: 660, vol: 0.12, lp: 1800 }) },
+      { nom: 'Blip feutré', jouer: (t = n()) => ton(t, 0.032, 900, { type: 'sine', fin: 860, vol: 0.13, att: 0.004, chute: 0.02 }), fermer: (t = n()) => ton(t, 0.032, 640, { type: 'sine', fin: 610, vol: 0.13, att: 0.004, chute: 0.02 }) },
+      { nom: 'Tic double', jouer: (t = n()) => { souffle(t, 0.004, { f: 3000, q: 2.5, vol: 0.2 }); souffle(t + 0.03, 0.004, { f: 3600, q: 2.5, vol: 0.16 }); }, fermer: (t = n()) => souffle(t, 0.004, { f: 2400, q: 2.5, vol: 0.18 }) },
+      { nom: 'Bloup', jouer: (t = n()) => ton(t, 0.045, 500, { type: 'sine', fin: 750, vol: 0.13, att: 0.005, chute: 0.02 }), fermer: (t = n()) => ton(t, 0.045, 750, { type: 'sine', fin: 500, vol: 0.12, att: 0.005, chute: 0.02 }) },
+    ]},
+    { id: 'confirmer2', titre: 'Confirmer', quand: "Toucher CONFIRMER après un aperçu. On le fait souvent : le bouton ×5 le rejoue cinq fois de suite pour juger la lassitude.", rafale: true, variantes: [
+      { nom: 'Boop-bip adouci', jouer: (t = n()) => { ton(t, 0.05, 660, { type: 'triangle', vol: 0.14, lp: 2200 }); ton(t + 0.06, 0.065, 990, { type: 'triangle', vol: 0.13, lp: 2200 }); } },
+      { nom: 'Bip-bip sinus', jouer: (t = n()) => { ton(t, 0.04, 660, { type: 'sine', vol: 0.13, att: 0.004 }); ton(t + 0.055, 0.05, 990, { type: 'sine', vol: 0.12, att: 0.004 }); } },
+      { nom: 'Bip unique', jouer: (t = n()) => ton(t, 0.06, 880, { type: 'triangle', vol: 0.15, lp: 2500, chute: 0.03 }) },
+      { nom: 'Déclic validé', jouer: (t = n()) => { souffle(t, 0.006, { f: 3600, q: 2.5, vol: 0.35 }); ton(t + 0.025, 0.045, 990, { type: 'sine', vol: 0.08, att: 0.004 }); } },
+    ]},
+    { id: 'victoire2', nouveau: true, titre: 'Victoire', quand: "Évacuation réussie : un magnétoscope qu'on arrête (bande qui ralentit, puis le mécanisme).", variantes: [
+      { nom: 'Arrêt de bande', jouer: (t = n()) => { [523, 659, 784].forEach((f) => { ton(t, 0.26, f, { vol: 0.07, lp: 3000, chute: 0.005 }); ton(t + 0.25, 0.8, f, { fin: f * 0.15, vol: 0.07, lp: 3000, att: 0.002, chute: 0.15 }); }); souffle(t + 1.05, 0.03, { filtre: 'lowpass', f: 600, vol: 0.45 }); souffle(t + 1.1, 0.004, { f: 2500, q: 2, vol: 0.22 }); } },
+      { nom: 'Stop et éjection', jouer: (t = n()) => { [660, 880].forEach((f, i) => ton(t + i * 0.12, 0.11, f, { vol: 0.08, lp: 3000 })); ton(t + 0.24, 0.12, 1320, { vol: 0.08, lp: 3000, chute: 0.005 }); ton(t + 0.36, 0.9, 1320, { fin: 150, vol: 0.08, lp: 3000, att: 0.002, chute: 0.2 }); souffle(t + 0.36, 0.9, { f: 1200, fin: 150, q: 1, vol: 0.05 }); souffle(t + 1.3, 0.02, { filtre: 'lowpass', f: 500, vol: 0.4 }); souffle(t + 1.42, 0.03, { filtre: 'lowpass', f: 700, vol: 0.35 }); } },
+      { nom: 'Bande qui ralentit', jouer: (t = n()) => { ton(t, 1.2, 440, { type: 'sine', fin: 60, vol: 0.16, att: 0.01, chute: 0.25 }); ton(t, 1.2, 660, { type: 'sine', fin: 90, vol: 0.08, att: 0.01, chute: 0.25 }); souffle(t, 1.2, { f: 3000, fin: 200, q: 0.8, vol: 0.06 }); souffle(t + 1.25, 0.03, { filtre: 'lowpass', f: 600, vol: 0.45 }); } },
+    ]},
+    { id: 'mort2', nouveau: true, titre: 'Mort', quand: "Troisième blessure : variantes du Parasite de la blessure. Remplace la blessure critique à ce moment.", variantes: [
+      { nom: "Parasite qui s'éteint", jouer: (t = n()) => { souffle(t, 0.06, { filtre: 'lowpass', f: 700, q: 1, vol: 0.3 }); ton(t + 0.02, 1.4, 220, { fin: 55, vol: 0.12, lp: 1500, trem: 40, chute: 0.5 }); } },
+      { nom: 'Triple parasite', jouer: (t = n()) => { [[0, 1], [0.35, 0.75], [0.7, 0.5]].forEach(([d, h]) => { souffle(t + d, 0.04, { filtre: 'lowpass', f: 700 * h, q: 1, vol: 0.3 }); ton(t + d + 0.02, 0.13, 220 * h, { vol: 0.09, lp: 1500, trem: 40 }); }); souffle(t + 1.05, 0.06, { filtre: 'lowpass', f: 280, q: 1, vol: 0.3 }); ton(t + 1.07, 1.0, 88, { vol: 0.12, lp: 1200, trem: 40, chute: 0.5 }); } },
+      { nom: 'Parasite et coupure', jouer: (t = n()) => { [0, 0.32].forEach((d) => { souffle(t + d, 0.04, { filtre: 'lowpass', f: 525, q: 1, vol: 0.3 }); ton(t + d + 0.02, 0.13, 165, { vol: 0.09, lp: 1500, trem: 40 }); }); ton(t + 0.7, 0.9, 110, { vol: 0.12, lp: 1200, trem: 40, chute: 0.01 }); souffle(t + 1.6, 0.005, { f: 1800, q: 2, vol: 0.25 }); } },
+    ]},
+    { id: 'creature', nouveau: true, titre: 'Créature', quand: "Première rencontre avec la créature. Choisi : B Dissonance.", variantes: [
+      { nom: 'Alerte proximité', jouer: (t = n()) => { ton(t, 0.12, 98, { vol: 0.2, lp: 1500, trem: 30 }); ton(t + 0.2, 0.12, 98, { vol: 0.2, lp: 1500, trem: 30 }); ton(t + 0.42, 0.35, 147, { fin: 294, vol: 0.12, lp: 1800 }); } },
+      { nom: 'Dissonance', jouer: (t = n()) => { ton(t, 0.7, 233, { vol: 0.08, lp: 1600, trem: 8, att: 0.02, chute: 0.2 }); ton(t, 0.7, 330, { vol: 0.08, lp: 1600, trem: 8, att: 0.02, chute: 0.2 }); } },
+      { nom: 'Sonar', jouer: (t = n()) => { ton(t, 0.25, 1200, { type: 'sine', fin: 1000, vol: 0.18, chute: 0.2 }); ton(t + 0.3, 0.25, 1200, { type: 'sine', fin: 1000, vol: 0.08, chute: 0.2 }); ton(t + 0.6, 0.25, 1200, { type: 'sine', fin: 1000, vol: 0.035, chute: 0.2 }); } },
+    ]},
+    { id: 'bulle', ancien: true, titre: 'Bulle', quand: '', double: true, variantes: [
+      { nom: 'Glissé', jouer: (t = n()) => ton(t, 0.06, 520, { fin: 880, vol: 0.08, lp: 3000 }), fermer: (t = n()) => ton(t, 0.06, 880, { fin: 520, vol: 0.08, lp: 3000 }) },
+      { nom: 'Bi-bip', jouer: (t = n()) => { ton(t, 0.028, 880, { vol: 0.08 }); ton(t + 0.045, 0.028, 1320, { vol: 0.07 }); }, fermer: (t = n()) => { ton(t, 0.028, 1320, { vol: 0.07 }); ton(t + 0.045, 0.028, 880, { vol: 0.08 }); } },
+      { nom: 'Blip', jouer: (t = n()) => ton(t, 0.045, 1050, { type: 'triangle', fin: 980, vol: 0.28 }), fermer: (t = n()) => ton(t, 0.045, 700, { type: 'triangle', fin: 640, vol: 0.28 }) },
+    ]},
+    { id: 'confirmer', ancien: true, titre: 'Confirmer', quand: '', variantes: [
+      { nom: 'Boop-bip', jouer: (t = n()) => { ton(t, 0.07, 660, { vol: 0.1, lp: 3500 }); ton(t + 0.08, 0.1, 990, { vol: 0.1, lp: 3500 }); } },
+      { nom: 'Arpège', jouer: (t = n()) => [523, 659, 784, 1046].forEach((f, i) => ton(t + i * 0.042, 0.036, f, { vol: 0.08, lp: 4000 })) },
+      { nom: 'Bip long', jouer: (t = n()) => { ton(t, 0.19, 1046, { type: 'sine', vol: 0.3, att: 0.005, chute: 0.07 }); ton(t, 0.19, 2092, { type: 'sine', vol: 0.05, att: 0.005, chute: 0.07 }); } },
+    ]},
+    { id: 'refus', titre: 'Indisponible', quand: 'Toucher une action impossible : le « bzzt ».', variantes: [
+      { nom: 'Bzzt', jouer: (t = n()) => { ton(t, 0.2, 98, { type: 'sawtooth', vol: 0.22, lp: 1800, trem: 32 }); ton(t, 0.2, 49, { vol: 0.08, lp: 900 }); } },
+      { nom: 'Bz-bzt', jouer: (t = n()) => { [0, 0.11].forEach((d) => { ton(t + d, 0.07, 120, { vol: 0.12, lp: 1400 }); souffle(t + d, 0.07, { f: 900, q: 1.2, vol: 0.12 }); }); } },
+      { nom: 'Boop grave', jouer: (t = n()) => { ton(t, 0.09, 330, { vol: 0.1, lp: 2000 }); ton(t + 0.11, 0.15, 220, { vol: 0.11, lp: 2000 }); } },
+    ]},
+    { id: 'ia', titre: 'IA Station', quand: "Arrivée d'un message d'IA Station (D-155).", variantes: [
+      { nom: 'Télétype', jouer: (t = n()) => [0, 0.07, 0.14].forEach((d) => ton(t + d, 0.028, 1600, { vol: 0.07 })) },
+      { nom: 'Porteuse', jouer: (t = n()) => { ton(t, 0.18, 1200, { type: 'sine', fin: 2400, vol: 0.14 }); souffle(t, 0.18, { f: 2200, q: 0.8, vol: 0.05 }); ton(t + 0.2, 0.06, 2100, { type: 'sine', vol: 0.18 }); } },
+      { nom: 'Carillon', jouer: (t = n()) => { const e = echo(0.14, 0.32); ton(t, 0.12, 880, { type: 'sine', vol: 0.22, vers: e, chute: 0.08 }); ton(t + 0.11, 0.22, 1318, { type: 'sine', vol: 0.2, vers: e, chute: 0.15 }); } },
+    ]},
+    { id: 'panneau2', titre: 'Inventaire · carte · IA Station', quand: "Ouvrir l'un des trois. Nouvelles propositions, plus douces. Les boutons dessous rejouent le son choisi avec une hauteur propre à chacun.", panneaux: true, variantes: [
+      { nom: 'Double blip', jouer: (t = n(), h = 1) => { ton(t, 0.035, 780 * h, { type: 'triangle', vol: 0.15 }); ton(t + 0.05, 0.04, 1040 * h, { type: 'triangle', vol: 0.13 }); } },
+      { nom: 'Déclic de lecteur', jouer: (t = n(), h = 1) => { souffle(t, 0.006, { f: 2200 * h, q: 2, vol: 0.18 }); ton(t, 0.02, 150 * h, { type: 'sine', vol: 0.22, fin: 110 * h }); souffle(t + 0.06, 0.004, { f: 3000 * h, q: 2, vol: 0.09 }); } },
+      { nom: 'Bip feutré', jouer: (t = n(), h = 1) => ton(t, 0.09, 660 * h, { type: 'sine', fin: 720 * h, vol: 0.16, att: 0.012, chute: 0.05 }) },
+      { nom: 'Trille discrète', jouer: (t = n(), h = 1) => [1200, 1500, 1200, 1500].forEach((f, i) => ton(t + i * 0.024, 0.018, f * h, { type: 'sine', vol: 0.06, chute: 0.008 })) },
+    ]},
+    { id: 'ecriture', titre: "Crépitement d'écriture", quand: "Pendant l'effet machine à écrire (500 ms, #115). Il s'arrête net quand le texte est complet ou quand on saute.", ecriture: true, variantes: [
+      { nom: 'Grésillement', tic: (t) => souffle(t, 0.003, { f: 3800 + Math.random() * 1200, q: 3, vol: 0.12 + Math.random() * 0.1, groupe: 'ecriture' }), pas: 0.022 },
+      { nom: "Tête d'impression", tic: (t) => ton(t, 0.003, 2600, { vol: 0.035, chute: 0.002, groupe: 'ecriture' }), pas: 0.03 },
+      { nom: 'Bips de caractères', tic: (t) => ton(t, 0.007, [1200, 1500, 1800][Math.floor(Math.random() * 3)], { type: 'sine', vol: 0.07, chute: 0.004, groupe: 'ecriture' }), pas: 0.036 },
+    ]},
+    { id: 'blessure', nouveau: true, titre: 'Blessure', quand: "Le badge « ! BLESSÉ » apparaît. Le bouton CRITIQUE joue la même idée, plus grave, pour « !! CRITIQUE ».", critique: true, variantes: [
+      { nom: 'Chute', jouer: (t = n(), h = 1) => ton(t, 0.13, 880 * h, { fin: 330 * h, vol: 0.1, lp: 2500 }) },
+      { nom: 'Boop-bip renversé', jouer: (t = n(), h = 1) => { ton(t, 0.07, 440 * h, { vol: 0.1, lp: 1800 }); ton(t + 0.08, 0.12, 294 * h, { vol: 0.11, lp: 1800 }); } },
+      { nom: 'Parasite', jouer: (t = n(), h = 1) => { souffle(t, 0.04, { filtre: 'lowpass', f: 700 * h, q: 1, vol: 0.3 }); ton(t + 0.02, 0.13, 220 * h, { vol: 0.09, lp: 1500, trem: 40 }); } },
+    ]},
+    { id: 'soin', nouveau: true, titre: 'Soin', quand: "L'état s'améliore : le badge recule ou disparaît.", variantes: [
+      { nom: 'Remontée', jouer: (t = n()) => [440, 554, 660].forEach((f, i) => ton(t + i * 0.06, 0.05, f, { vol: 0.09, lp: 3000 })) },
+      { nom: 'Bip apaisé', jouer: (t = n()) => { ton(t, 0.12, 523, { type: 'sine', vol: 0.16, att: 0.02, chute: 0.06 }); ton(t + 0.12, 0.16, 784, { type: 'sine', vol: 0.15, att: 0.02, chute: 0.1 }); } },
+      { nom: 'Balayage doux', jouer: (t = n()) => { ton(t, 0.25, 400, { type: 'triangle', fin: 900, vol: 0.12, att: 0.04, chute: 0.08 }); ton(t + 0.27, 0.04, 900, { type: 'triangle', vol: 0.14 }); } },
+    ]},
+    { id: 'feu', nouveau: true, titre: 'Alarme incendie', quand: "Le terminal signale un feu. Idée commune : aigu et rapide, pour ne jamais le confondre avec le vide.", variantes: [
+      { nom: 'Klaxon de bord', jouer: (t = n()) => [880, 660, 880, 660].forEach((f, i) => ton(t + i * 0.12, 0.11, f, { vol: 0.08, lp: 2500, chute: 0.01 })) },
+      { nom: 'Détecteur', jouer: (t = n()) => [0, 1, 2, 3, 4, 5].forEach((i) => ton(t + i * 0.09, 0.05, 1400, { vol: 0.06, chute: 0.01 })) },
+      { nom: 'Sirène montante', jouer: (t = n()) => [0, 0.45].forEach((d) => ton(t + d, 0.4, 500, { type: 'sawtooth', fin: 1100, vol: 0.07, lp: 2000, att: 0.02, chute: 0.04 })) },
+    ]},
+    { id: 'vide', nouveau: true, titre: 'Alarme vide', quand: "Le terminal signale le vide (dépressurisation). Idée commune : grave et lent, à l'opposé du feu.", variantes: [
+      { nom: 'Grave pulsé', jouer: (t = n()) => [0, 0.26, 0.52].forEach((d) => ton(t + d, 0.16, 180, { vol: 0.14, lp: 1200, chute: 0.03 })) },
+      { nom: 'Descente', jouer: (t = n()) => ton(t, 0.55, 1200, { type: 'sine', fin: 300, vol: 0.14, trem: 12, att: 0.02, chute: 0.08 }) },
+      { nom: 'Klaxon grave', jouer: (t = n()) => [330, 247, 330, 247].forEach((f, i) => ton(t + i * 0.21, 0.19, f, { vol: 0.1, lp: 1500, chute: 0.02 })) },
+    ]},
+  ];
+
+  // ───────── Démo d'écriture ─────────
+  const PHRASE = "L'atelier sent l'huile froide. Tout en haut de la cloison, une grille ferme un conduit ; il faudrait un appui stable pour l'atteindre.";
+  let minuteurEcriture = null;
+  function arreterEcriture(ecran) {
+    if (minuteurEcriture) { cancelAnimationFrame(minuteurEcriture); minuteurEcriture = null; }
+    vivants.forEach((e) => { if (e.groupe === 'ecriture') { try { e.src.stop(); } catch {} vivants.delete(e); } });
+    if (ecran) ecran.innerHTML = '';
+    if (ecran) { ecran.textContent = PHRASE; const c = document.createElement('span'); c.className = 'curseur'; ecran.append(' ', c); }
+  }
+  function ecrire(v, ecran) {
+    audio(); arreterEcriture(null);
+    const duree = 0.5, t0 = ctx.currentTime + 0.02;
+    for (let t = 0; t < duree; t += v.pas * (0.75 + Math.random() * 0.5)) v.tic(t0 + t);
+    const debut = performance.now();
+    const pas = () => {
+      const k = Math.min(1, (performance.now() - debut) / (duree * 1000));
+      ecran.textContent = PHRASE.slice(0, Math.round(PHRASE.length * k));
+      if (k < 1) minuteurEcriture = requestAnimationFrame(pas); else { minuteurEcriture = null; arreterEcriture(ecran); }
+    };
+    pas();
+  }
+
+  // ───────── Interface ─────────
+  const CLE = 'vw-banc-sons-99';
+  let choix = {};
+  try { choix = JSON.parse(localStorage.getItem(CLE) || '{}') || {}; } catch { choix = {}; }
+  const garder = () => { try { localStorage.setItem(CLE, JSON.stringify(choix)); } catch {} };
+  const lettre = (i) => 'ABCDE'[i];
+  // Choix déjà faits sur ce banc (v1), repris tant que le porteur ne les change pas.
+  const CHOIX_V1 = { creature: 1, victoire2: 2, mort2: 0, clic: 0, bulle2: 2, confirmer2: 3, refus: 1, ia: 0, ecriture: 2, panneau2: 2, blessure: 2, soin: 1, feu: 1, vide: 0 };
+  // Les anciennes bulle et confirmer (jugées trop intenses) sortent du banc.
+  for (let i = MOMENTS.length - 1; i >= 0; i--) if (MOMENTS[i].ancien) MOMENTS.splice(i, 1);
+  Object.entries(CHOIX_V1).forEach(([k, v]) => { if (choix[k] === undefined) choix[k] = v; });
+
+  function jouerVariante(m, i, ecran) {
+    audio();
+    const v = m.variantes[i];
+    if (m.ecriture) ecrire(v, ecran); else v.jouer();
+  }
+  function bouton(texte, cls, quoi) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'action ' + (cls || ''); b.textContent = texte;
+    b.addEventListener('click', quoi); return b;
+  }
+
+  const racine = document.getElementById('moments');
+  MOMENTS.forEach((m, k) => {
+    const s = document.createElement('section'); s.className = 'moment'; s.setAttribute('aria-labelledby', 'h-' + m.id);
+    s.innerHTML = `<div class="entete"><h2 id="h-${m.id}">${m.titre}</h2><span class="num">${m.nouveau ? 'NOUVEAU · ' : ''}${k + 1}/${MOMENTS.length}</span></div><p class="quand">${m.quand}</p>`;
+    const puces = document.createElement('div'); puces.className = 'puces' + (m.variantes.length === 4 ? ' quatre' : ''); puces.setAttribute('role', 'radiogroup'); puces.setAttribute('aria-label', m.titre);
+    let ecran = null;
+    if (m.ecriture) { ecran = document.createElement('div'); ecran.className = 'ecran'; ecran.textContent = PHRASE; const c = document.createElement('span'); c.className = 'curseur'; ecran.append(' ', c); }
+    m.variantes.forEach((v, i) => {
+      const p = document.createElement('button'); p.type = 'button'; p.className = 'puce'; p.setAttribute('role', 'radio'); p.id = `p-${m.id}-${i}`;
+      p.innerHTML = `<span class="l">${lettre(i)}</span><span class="n">${v.nom}</span>`;
+      p.setAttribute('aria-checked', String(choix[m.id] === i));
+      p.addEventListener('click', () => {
+        choix[m.id] = i; garder();
+        puces.querySelectorAll('.puce').forEach((q, j) => q.setAttribute('aria-checked', String(j === i)));
+        p.classList.add('joue'); setTimeout(() => p.classList.remove('joue'), 260);
+        jouerVariante(m, i, ecran); resume();
+      });
+      puces.append(p);
+    });
+    s.append(puces);
+    const sous = document.createElement('div'); sous.className = 'sous';
+    const choisie = () => m.variantes[choix[m.id] ?? 0];
+    if (m.rafale) sous.append(bouton('×5 À LA SUITE', '', () => { audio(); const t = ctx.currentTime + 0.01; for (let i = 0; i < 5; i++) choisie().jouer(t + i * 0.7); }));
+    if (m.critique) sous.append(bouton('CRITIQUE', '', () => { audio(); const t = ctx.currentTime + 0.01; choisie().jouer(t, 0.75); choisie().jouer(t + 0.32, 0.75); }));
+    if (m.double) sous.append(bouton('FERMER LA BULLE', '', () => { audio(); choisie().fermer(); }));
+    if (m.panneaux) {
+      sous.append(bouton('CARTE', 'carte', () => { audio(); choisie().jouer(undefined, 0.84); }));
+      sous.append(bouton('INVENTAIRE', 'inv', () => { audio(); choisie().jouer(undefined, 1.19); }));
+      sous.append(bouton('IA STATION', 'opt', () => { audio(); choisie().jouer(undefined, 1); }));
+    }
+    if (m.ecriture) {
+      s.append(ecran);
+      sous.append(bouton('▶ ÉCRIRE', '', () => ecrire(choisie(), ecran)));
+      sous.append(bouton('SAUTER', '', () => arreterEcriture(ecran)));
+    }
+    if (sous.children.length) s.append(sous);
+    racine.append(s);
+  });
+
+  // ───────── Bande-son : AAC 64 kbit/s retenu (extrait de 30 s en boucle) ─────────
+  const lecteur = new Audio(); lecteur.loop = true; lecteur.preload = 'auto';
+  let gainBande = null, bandeJoue = false;
+  fetch('extraits/aac-64.mp4').then((r) => { if (!r.ok) throw new Error(r.status); return r.blob(); })
+    .then((b) => { lecteur.src = URL.createObjectURL(b); }).catch(() => { lecteur.src = 'extraits/aac-64.mp4'; });
+  const boutonBande = document.getElementById('jouer-bande');
+  boutonBande.addEventListener('click', () => {
+    audio();
+    if (!gainBande) { try { const s = ctx.createMediaElementSource(lecteur); gainBande = ctx.createGain(); s.connect(gainBande); gainBande.connect(bus.bande); } catch {} }
+    bandeJoue = !bandeJoue;
+    if (bandeJoue) lecteur.play().catch(() => {}); else lecteur.pause();
+    boutonBande.setAttribute('aria-pressed', String(bandeJoue)); boutonBande.textContent = (bandeJoue ? '■' : '▶') + ' BANDE-SON (AAC 64)';
+  });
+
+  const resumeEl = document.getElementById('resume');
+  function resume() {
+    const lignes = MOMENTS.map((m) => `${m.titre.padEnd(29, ' ')} ${choix[m.id] === undefined ? '—' : lettre(choix[m.id]) + ' ' + m.variantes[choix[m.id]].nom}`);
+    lignes.push(`${'Bande-son'.padEnd(29, ' ')} non (retirée pour le moment)`);
+    if (typeof CARLINGUES !== 'undefined') lignes.push(`${'Carlingue'.padEnd(29, ' ')} ${lettre(typeCarlingue)} ${CARLINGUES[typeCarlingue].nom} · rythme ${rythmeFrequent ? 'fréquent' : 'rare'}`);
+    lignes.push(`${"Fond d'ambiance".padEnd(29, ' ')} ${lettre(typeAmbiance)} ${AMBIANCES[typeAmbiance].nom}`);
+    lignes.push(`${'Niveaux'.padEnd(29, ' ')} général ${Math.round(NIVEAUX.general * 100)} · effets ${Math.round(NIVEAUX.effets * 100)} · ambiance ${Math.round(NIVEAUX.ambiance * 100)}`);
+    resumeEl.textContent = `#99 · mes choix (grain cassette : ${grainActif ? 'oui' : 'non'})\n` + lignes.join('\n');
+  }
+
+  ['general', 'bande', 'effets', 'ambiance'].forEach((k) => {
+    const c = document.getElementById('vol-' + k), o = c.nextElementSibling;
+    c.addEventListener('input', () => { NIVEAUX[k] = c.value / 100; o.textContent = c.value; resume(); if (bus[k]) bus[k].gain.setTargetAtTime(gainDe(NIVEAUX[k]), ctx.currentTime, 0.03); });
+  });
+
+  // ───────── Fond d'ambiance : bruit synthétisé en continu ─────────
+  const AMBIANCES = [
+    { nom: 'Brun profond', sous: 'grave, sourd, comme un moteur lointain', chaine: [['lowpass', 90, 0.5], ['lowpass', 260, 0.5]], gain: 5 },
+    { nom: 'Brun doux', sous: 'grave mais plus aéré', chaine: [['lowpass', 380, 0.5]], gain: 2.4 },
+    { nom: 'Souffle de bande', sous: 'le chuintement d\'une cassette', chaine: [['highpass', 2500, 0.5], ['lowpass', 8500, 0.5]], gain: 0.16, ondule: true },
+    { nom: 'Blanc doux', sous: 'neige d\'écran, aigus adoucis', chaine: [['lowpass', 5000, 0.5]], gain: 0.22 },
+  ];
+  let typeAmbiance = 0, ambianceJoue = false, ambianceNoeuds = [];
+  let tamponAmbiance = null;
+  function tampon() {
+    if (tamponAmbiance) return tamponAmbiance;
+    const duree = 9; tamponAmbiance = ctx.createBuffer(2, ctx.sampleRate * duree, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = tamponAmbiance.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    return tamponAmbiance;
+  }
+  function arreterAmbiance() { ambianceNoeuds.forEach((x) => { try { x.stop?.(); x.disconnect(); } catch {} }); ambianceNoeuds = []; }
+  function lancerAmbiance() {
+    audio(); arreterAmbiance();
+    const a = AMBIANCES[typeAmbiance], s = ctx.createBufferSource(); s.buffer = tampon(); s.loop = true;
+    let dernier = s; ambianceNoeuds.push(s);
+    a.chaine.forEach(([type, f, q]) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; dernier.connect(b); dernier = b; ambianceNoeuds.push(b); });
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(a.gain, ctx.currentTime + 0.8);
+    dernier.connect(g); g.connect(bus.ambiance); ambianceNoeuds.push(g);
+    if (a.ondule) { const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = 0.35; lg.gain.value = a.gain * 0.15; l.connect(lg); lg.connect(g.gain); l.start(); ambianceNoeuds.push(l, lg); }
+    s.start();
+  }
+  const zoneAmb = document.getElementById('types-ambiance');
+  function dessinerAmbiances() {
+    zoneAmb.innerHTML = '';
+    AMBIANCES.forEach((a, i) => {
+      const p = document.createElement('button'); p.type = 'button'; p.className = 'puce'; p.setAttribute('role', 'radio'); p.id = 'amb-' + i;
+      p.setAttribute('aria-checked', String(typeAmbiance === i));
+      p.innerHTML = `<span class="l">${lettre(i)}</span><span class="n">${a.nom}</span><span class="l" style="letter-spacing:0">${a.sous}</span>`;
+      p.addEventListener('click', () => { typeAmbiance = i; dessinerAmbiances(); lancerAmbiance(); ambianceJoue = true; majBoutonAmb(); resume(); });
+      zoneAmb.append(p);
+    });
+  }
+  const boutonAmb = document.getElementById('jouer-ambiance');
+  function majBoutonAmb() { boutonAmb.setAttribute('aria-pressed', String(ambianceJoue)); boutonAmb.textContent = (ambianceJoue ? '■' : '▶') + ' AMBIANCE'; }
+  boutonAmb.addEventListener('click', () => { ambianceJoue = !ambianceJoue; if (ambianceJoue) lancerAmbiance(); else arreterAmbiance(); majBoutonAmb(); });
+  dessinerAmbiances();
+
+  // ───────── Carlingue : train d'impulsions de frottement (stick-slip) dans des résonateurs de tôle, puis réverbération ─────────
+  const alea = (a, b) => a + Math.random() * (b - a);
+  let reverb = null;
+  function salleCoque() {
+    if (reverb) return reverb;
+    const duree = 3.8, n = Math.floor(ctx.sampleRate * duree), ir = ctx.createBuffer(2, n, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = ir.getChannelData(c); let lp = 0;
+      for (let i = 0; i < n; i++) {
+        const t = i / ctx.sampleRate, k = 0.25 + 0.7 * (t / duree); // de plus en plus sombre
+        lp += (Math.random() * 2 - 1 - lp) * (1 - k);
+        d[i] = lp * Math.exp(-t * 1.6);
+      }
+    }
+    reverb = ctx.createConvolver(); reverb.buffer = ir;
+    const retour = ctx.createGain(); retour.gain.value = 0.9; reverb.connect(retour); retour.connect(bus.ambiance);
+    return reverb;
+  }
+  // Impulsions dont la cadence suit `cadence(u)` (u de 0 à 1) : la tôle accroche, glisse, accroche.
+  function frottement(duree, cadence, grain = 0.0012) {
+    const sr = ctx.sampleRate, n = Math.floor(sr * duree), b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0);
+    let t = 0;
+    while (t < duree) {
+      const i0 = Math.floor(t * sr), amp = alea(0.4, 1), lg = Math.floor(grain * sr);
+      for (let i = 0; i < lg && i0 + i < n; i++) d[i0 + i] += (Math.random() * 2 - 1) * amp * Math.exp(-i / (lg / 3));
+      t += (1 / Math.max(0.5, cadence(t / duree))) * alea(0.7, 1.3);
+    }
+    return b;
+  }
+  function tole(buffer, modes, q, o) {
+    const t = ctx.currentTime + 0.05, s = ctx.createBufferSource(); s.buffer = buffer;
+    const somme = ctx.createGain(), lp = ctx.createBiquadFilter(), env = ctx.createGain(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain();
+    modes.forEach((f) => { const r = ctx.createBiquadFilter(); r.type = 'bandpass'; r.frequency.value = f; r.Q.value = q; s.connect(r); r.connect(somme); });
+    lp.type = 'lowpass'; lp.frequency.value = o.lp;
+    const d = buffer.duration;
+    env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(o.vol, t + d * 0.25); env.gain.setValueAtTime(o.vol, t + d * 0.6); env.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    if (pan.pan) pan.pan.value = alea(-0.75, 0.75);
+    somme.connect(lp); lp.connect(env); env.connect(pan);
+    const sec = ctx.createGain(); sec.gain.value = o.sec ?? 0.25; pan.connect(sec); sec.connect(bus.ambiance);
+    pan.connect(salleCoque());
+    s.start(t);
+    return t;
+  }
+  const GONG = 0.6;
+  const CARLINGUES = [
+    { nom: 'Gémissement', sous: 'la tôle frotte et geint', jouer() {
+      const d = alea(2.2, 3.6), base = alea(7, 10), haut = alea(16, 26), h = alea(0.85, 1.2);
+      tole(frottement(d, (u) => base + (haut - base) * Math.sin(Math.PI * u) + alea(-2, 2)), [180, 297, 431, 612].map((f) => f * h), 22, { lp: 1400, vol: 36, sec: 0.4 });
+    } },
+    { nom: 'Craquement', sous: 'quelques claquements secs', jouer() {
+      const d = alea(0.5, 1.1), h = alea(0.8, 1.25);
+      tole(frottement(d, () => alea(3, 14), 0.0008), [520, 1310, 2380].map((f) => f * h), 35, { lp: 2800, vol: 75, sec: 0.3 });
+    } },
+    { nom: 'Pression', sous: 'la coque encaisse, sourde', jouer() {
+      const t = tole(frottement(alea(3, 4.5), (u) => 4 + 6 * u + alea(-1, 1), 0.002), [70, 113, 182, 260].map((f) => f * alea(0.9, 1.1)), 30, { lp: 700, vol: 150, sec: 0.4 });
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(48, t); o.frequency.exponentialRampToValueAtTime(34, t + 1.4);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1.0, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+      o.connect(g); g.connect(salleCoque()); g.connect(bus.ambiance); o.start(t); o.stop(t + 1.6);
+    } },
+    { nom: 'Gong', sous: 'un coup sourd, loin sur la coque', jouer() {
+      // Un seul coup de masse : partiels inharmoniques de plaque, chacun en paire désaccordée (battement), longue décroissance.
+      const t = ctx.currentTime + 0.05, base = alea(55, 82), dest = ctx.createGain(), lp = ctx.createBiquadFilter(), pan = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain();
+      lp.type = 'lowpass'; lp.frequency.value = alea(1000, 1400); dest.connect(lp); lp.connect(pan);
+      if (pan.pan) pan.pan.value = alea(-0.75, 0.75);
+      [[1, 1, 5.5], [1.48, 0.7, 4.2], [2.15, 0.55, 3.4], [2.71, 0.4, 2.6], [3.6, 0.25, 1.9], [4.93, 0.12, 1.3]].forEach(([r, a, dec]) => {
+        [-0.25, 0.25].forEach((dt) => {
+          const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = base * r + dt * r;
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(a * GONG, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+          o.connect(g); g.connect(dest); o.start(t); o.stop(t + dec + 0.05);
+        });
+      });
+      // Le choc de la masse, étouffé par la distance.
+      souffle(t, 0.05, { filtre: 'lowpass', f: 260, q: 0.7, vol: 2.5, vers: dest });
+      const sec = ctx.createGain(); sec.gain.value = 0.35; pan.connect(sec); sec.connect(bus.ambiance);
+      pan.connect(salleCoque());
+    } },
+    { nom: 'Mélange', sous: 'au hasard ; le gong plus rare', jouer() { const tirage = [0, 0, 1, 1, 2, 2, 3]; CARLINGUES[tirage[Math.floor(Math.random() * tirage.length)]].jouer(); } },
+  ];
+  let typeCarlingue = 4, carlingueHasard = false, rythmeFrequent = false, minuteurCarlingue = null;
+  const zoneCar = document.getElementById('types-carlingue');
+  function dessinerCarlingues() {
+    zoneCar.innerHTML = '';
+    CARLINGUES.forEach((c, i) => {
+      const p = document.createElement('button'); p.type = 'button'; p.className = 'puce'; p.setAttribute('role', 'radio'); p.id = 'car-' + i;
+      p.setAttribute('aria-checked', String(typeCarlingue === i));
+      p.innerHTML = `<span class="l">${lettre(i)}</span><span class="n">${c.nom}</span><span class="l" style="letter-spacing:0">${c.sous}</span>`;
+      p.addEventListener('click', () => { audio(); typeCarlingue = i; dessinerCarlingues(); c.jouer(); resume(); });
+      zoneCar.append(p);
+    });
+  }
+  function prochainCarlingue() {
+    clearTimeout(minuteurCarlingue);
+    if (!carlingueHasard) return;
+    const [a, b] = rythmeFrequent ? [6, 20] : [20, 60];
+    minuteurCarlingue = setTimeout(() => { if (ctx && carlingueHasard) CARLINGUES[typeCarlingue].jouer(); prochainCarlingue(); }, alea(a, b) * 1000);
+  }
+  const bHasard = document.getElementById('carlingue-hasard'), bRythme = document.getElementById('carlingue-rythme');
+  bHasard.addEventListener('click', () => {
+    audio(); carlingueHasard = !carlingueHasard;
+    bHasard.setAttribute('aria-pressed', String(carlingueHasard)); bHasard.textContent = 'AU HASARD : ' + (carlingueHasard ? 'OUI' : 'NON');
+    if (carlingueHasard && !ambianceJoue) { ambianceJoue = true; lancerAmbiance(); majBoutonAmb(); }
+    if (carlingueHasard) CARLINGUES[typeCarlingue].jouer();
+    prochainCarlingue(); resume();
+  });
+  bRythme.addEventListener('click', () => {
+    rythmeFrequent = !rythmeFrequent; bRythme.setAttribute('aria-pressed', String(rythmeFrequent));
+    bRythme.textContent = 'RYTHME : ' + (rythmeFrequent ? 'FRÉQUENT' : 'RARE'); prochainCarlingue(); resume();
+  });
+  dessinerCarlingues();
+  resume();
+  const grain = document.getElementById('grain');
+  grain.addEventListener('click', () => {
+    grainActif = !grainActif; grain.setAttribute('aria-pressed', String(grainActif));
+    grain.textContent = 'GRAIN CASSETTE : ' + (grainActif ? 'OUI' : 'NON');
+    audio(); branche(); resume();
+  });
+
+  document.getElementById('enchainer').addEventListener('click', () => {
+    audio();
+    const v = (id) => MOMENTS.find((m) => m.id === id).variantes[choix[id] ?? 0];
+    const t = ctx.currentTime + 0.05;
+    const plan = [
+      [0, () => v('clic').jouer(t)],
+      [0.45, () => v('bulle2').jouer(t + 0.45)],
+      [1.1, () => v('clic').jouer(t + 1.1)],
+      [1.35, () => v('confirmer2').jouer(t + 1.35)],
+      [2.0, () => { const e = MOMENTS.find((m) => m.id === 'ecriture'); const w = e.variantes[choix.ecriture ?? 0]; for (let d = 0; d < 0.5; d += w.pas * (0.75 + Math.random() * 0.5)) w.tic(t + 2.0 + d); }],
+      [2.9, () => v('refus').jouer(t + 2.9)],
+      [3.6, () => v('ia').jouer(t + 3.6)],
+      [4.5, () => v('panneau2').jouer(t + 4.5, 0.84)],
+      [5.3, () => v('bulle2').fermer(t + 5.3)],
+    ];
+    plan.forEach(([, f]) => f());
+  });
+
+  document.getElementById('copier').addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText(resumeEl.textContent); b.textContent = 'COPIÉ'; }
+    catch { const r = document.createRange(); r.selectNodeContents(resumeEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'TEXTE SÉLECTIONNÉ'; }
+    setTimeout(() => { b.textContent = 'COPIER MES CHOIX'; }, 1600);
+  });
+})();
+</script>

@@ -699,6 +699,63 @@ async function partieLue(page: Page): Promise<{ enregistrement: { graine: number
 }
 
 /**
+ * Son (15 §5, D-222), dans Chromium : un espion compte les contextes audio et les sources créés. Aucun contexte avant le
+ * premier toucher ; un seul ensuite ; puis le nombre exact de sources d'une bulle, d'Échap et d'un segment. Niveau
+ * « vérifié automatiquement ».
+ */
+async function verifierSon(navigateur: Browser, adresse: string, erreurs: string[]): Promise<void> {
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  await contexte.addInitScript(() => {
+    const compte = { contextes: 0, sources: 0 };
+    (window as unknown as { __sons: typeof compte }).__sons = compte;
+    const Vrai = window.AudioContext;
+    window.AudioContext = class extends Vrai {
+      constructor(options?: AudioContextOptions) {
+        super(options);
+        compte.contextes += 1;
+      }
+      override createOscillator(): OscillatorNode {
+        compte.sources += 1;
+        return super.createOscillator();
+      }
+      override createBufferSource(): AudioBufferSourceNode {
+        compte.sources += 1;
+        return super.createBufferSource();
+      }
+    };
+  });
+  const page = await contexte.newPage();
+  const compte = (): Promise<{ contextes: number; sources: number }> =>
+    page.evaluate(() => (window as unknown as { __sons: { contextes: number; sources: number } }).__sons);
+  try {
+    await page.goto(adresse);
+    await page.getByRole('button', { name: /^nouvelle partie$/i }).waitFor();
+    if ((await compte()).contextes !== 0) erreurs.push('Son : un contexte audio existe avant le premier toucher.');
+    await nouvelleDepuisAccueil(page);
+    const apres = await compte();
+    if (apres.contextes !== 1) erreurs.push(`Son : ${apres.contextes} contexte(s) audio après les premiers touchers, 1 attendu.`);
+    // Un toucher, un son (D-217) : nombre exact de sources par geste (Tic double : 2 ; un tic : 1 ; clic : 2).
+    await page.waitForTimeout(PAUSE_JOUEUR_MS);
+    const ecart = async (geste: () => Promise<void>): Promise<number> => {
+      const avant = (await compte()).sources;
+      await geste();
+      await page.waitForTimeout(150);
+      return (await compte()).sources - avant;
+    };
+    const bulle = await ecart(() => page.locator('.dock .puce[aria-haspopup="dialog"]').first().click());
+    if (bulle !== 2) erreurs.push(`Son : ouvrir une bulle fait partir ${bulle} source(s), 2 attendues.`);
+    const echap = await ecart(() => page.keyboard.press('Escape'));
+    if (echap !== 1) erreurs.push(`Son : Échap qui referme la bulle fait partir ${echap} source(s), 1 attendue.`);
+    await page.locator('.engrenage').click();
+    await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+    const segment = await ecart(() => page.locator('label.segment').getByText('Grande', { exact: true }).click());
+    if (segment !== 2) erreurs.push(`Son : toucher un segment fait partir ${segment} source(s), 2 attendues (un seul clic).`);
+  } finally {
+    await contexte.close();
+  }
+}
+
+/**
  * Options (#96, 12 §4.10, §4.11) dans le monde de test : depuis l'accueil sans partie, puis en cours de partie sans rien changer ;
  * taille « très grande » partout, lignes de balayage coupées, réglages gardés au rechargement ; téléchargement rejoué par le
  * rejoueur ; abandon confirmé dans la page, écran de fin, plus de reprise ; REJOUER CETTE STATION, même départ, nouveaux tirages.
@@ -726,6 +783,19 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   if (!(await page.getByText('le jeu est en pause', { exact: true }).isVisible())) erreurs.push('Options en partie : « le jeu est en pause » absent.');
   await capturer(page, 'Options en cours de partie');
   await verifierSansTroncature(page, 'Options en cours de partie', erreurs);
+
+  // Son (15 §4, D-220, D-223) : trois rails à 80, 80 et 60 ; « Ambiance » à 0 au clavier s'écrit COUPÉE et se garde.
+  const rails = page.locator('.curseur-rail');
+  if ((await rails.count()) !== 3) erreurs.push(`Options : ${await rails.count()} rails de son, 3 attendus.`);
+  const niveaux = await rails.evaluateAll((liste) => liste.map((rail) => (rail as HTMLInputElement).value));
+  if (niveaux.join(' ') !== '80 80 60') erreurs.push(`Options : rails à ${niveaux.join(', ')}, 80, 80 et 60 attendus.`);
+  await rails.nth(2).focus();
+  await page.keyboard.press('Home');
+  if ((await page.locator('.valeur-rail').nth(2).innerText()).trim() !== 'COUPÉE') erreurs.push('Options : ambiance à 0 sans « COUPÉE ».');
+  const sonGarde = await page.evaluate((cle) => JSON.parse(window.localStorage.getItem(cle) ?? '{}') as { ambiance?: number }, CLE_REGLAGES);
+  if (sonGarde.ambiance !== 0) erreurs.push(`Options : ambiance gardée à ${String(sonGarde.ambiance)}, 0 attendu.`);
+  await page.locator('.rail').first().scrollIntoViewIfNeeded();
+  await capturer(page, 'Options : section SON, ambiance coupée');
 
   // Télécharger ma partie : le fichier se rejoue avec le rejoueur et donne le même état (C-09 S-03, SP-05).
   const [telechargement] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Télécharger ma partie/i }).click()]);
@@ -1794,6 +1864,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await capturerEtape(titre);
       await verifierEcran(page, titre, erreurs);
       await verifierDansEcran(page, titre, erreurs);
+    }
+
+    // Son (#99) : premier toucher et bulle, dans un contexte neuf ; aucune capture.
+    try {
+      await verifierSon(navigateur, adresse, erreurs);
+    } catch (erreur) {
+      erreurs.push(`Son : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
     }
 
     // Options (#96) : réglages, téléchargement, abandon et fin, dans un contexte neuf.
