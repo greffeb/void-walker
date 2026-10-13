@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { observer } from '../engine';
 import { nomDe, remplir } from '../content';
 import { nomPuce } from './ecran';
 import type { Environnement, Jeu } from './jeu';
 import { TAILLES, type Reglages, type Taille } from './reglages';
+import { useSon } from './son/contexte';
 
 const LIBELLES_TAILLE: Readonly<Record<Taille, string>> = { standard: 'Standard', grande: 'Grande', tres_grande: 'Très grande' };
 
@@ -104,6 +105,24 @@ export function EcranOptions({
           </p>
         </section>
         <section>
+          <h2 className="titre-section">Son</h2>
+          <Rail libelle="Général" coupe="COUPÉE" valeur={reglages.general} changer={(general) => changerReglages({ ...reglages, general })} />
+          <Rail
+            libelle="Effets sonores"
+            detail="bips et clics du terminal"
+            coupe="COUPÉS"
+            valeur={reglages.effets}
+            changer={(effets) => changerReglages({ ...reglages, effets })}
+          />
+          <Rail
+            libelle="Ambiance"
+            detail="bruit brun et carlingue"
+            coupe="COUPÉE"
+            valeur={reglages.ambiance}
+            changer={(ambiance) => changerReglages({ ...reglages, ambiance })}
+          />
+        </section>
+        <section>
           <h2 className="titre-section">Affichage</h2>
           <Bascule libelle="Lignes de balayage" actif={reglages.balayage} basculer={() => changerReglages({ ...reglages, balayage: !reglages.balayage })} />
           <Bascule
@@ -191,6 +210,59 @@ function Bascule({ libelle, actif, basculer }: { readonly libelle: string; reado
       <span>{libelle}</span>
       <span className="valeur-bascule">{actif ? '[OUI]' : '[NON]'}</span>
     </button>
+  );
+}
+
+const TOUCHES_RAIL = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown']);
+
+/**
+ * Rail du son (15 §4, D-220) : libellé, détail, valeur à droite (« COUPÉE » ou « COUPÉS » à 0), puis le curseur natif.
+ * Le réglage s'applique pendant le glissé ; le clic de contrôle part au relâché, au nouveau niveau.
+ */
+function Rail({
+  libelle,
+  detail,
+  coupe,
+  valeur,
+  changer,
+}: {
+  readonly libelle: string;
+  readonly detail?: string;
+  readonly coupe: string;
+  readonly valeur: number;
+  readonly changer: (valeur: number) => void;
+}) {
+  const id = useId();
+  const son = useSon();
+  const ecrite = valeur === 0 ? coupe : String(valeur);
+  return (
+    <div className="rail">
+      <label className="rail-haut" htmlFor={id}>
+        <span>
+          {libelle}
+          {detail !== undefined && <span className="detail-option">{detail}</span>}
+        </span>
+        <span className="valeur-rail" aria-hidden="true">
+          {ecrite}
+        </span>
+      </label>
+      <input
+        id={id}
+        className="curseur-rail"
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        aria-valuetext={valeur === 0 ? coupe.toLowerCase() : String(valeur)}
+        style={{ '--rempli': `${valeur}%` } as CSSProperties}
+        value={valeur}
+        onChange={(evenement) => changer(Number(evenement.currentTarget.value))}
+        onPointerUp={() => son.geste('clic')}
+        onKeyUp={(evenement) => {
+          if (TOUCHES_RAIL.has(evenement.key)) son.geste('clic');
+        }}
+      />
+    </div>
   );
 }
 

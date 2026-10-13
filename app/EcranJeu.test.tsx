@@ -478,6 +478,7 @@ describe('options (12 §4.10, #96)', () => {
         'Options le jeu est en pause',
         'Taille du texte Standard Grande Très grande',
         APERCU_TAILLE,
+        'Son Général 80 Effets sonores bips et clics du terminal 80 Ambiance bruit brun et carlingue 30',
         'Affichage Lignes de balayage [OUI] Effet machine à écrire [OUI]',
         'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone ⊘ Abandonner la partie en cours',
         'Vv-test Menu principal Reprendre la partie',
@@ -496,6 +497,17 @@ describe('options (12 §4.10, #96)', () => {
     expect(html.match(/class="segment actif"/g)).toHaveLength(1);
     expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
     expect(html).toContain('role="switch" aria-checked="false"');
+  });
+
+  it('son : trois rails de 0 à 100, valeur écrite à droite, COUPÉE ou COUPÉS à 0 (15 §4, D-220)', () => {
+    const html = options();
+    const rails = html.match(/<input[^>]*class="curseur-rail"[^>]*>/g) ?? [];
+    expect(rails).toHaveLength(3);
+    for (const rail of rails) expect(rail).toMatch(/type="range" min="0" max="100" step="1"/);
+    expect(rails.map((rail) => /value="(\d+)"/.exec(rail)?.[1])).toEqual(['80', '80', '30']);
+    const coupe = texte(options({ reglages: { ...REGLAGES_PAR_DEFAUT, general: 0, effets: 0, ambiance: 0 } }));
+    expect(coupe).toContain('Son Général COUPÉE Effets sonores bips et clics du terminal COUPÉS Ambiance bruit brun et carlingue COUPÉE');
+    expect(options()).toContain('aria-valuetext="30"');
   });
 
   it('sans partie en cours : ni Télécharger, ni Abandonner, ni REPRENDRE LA PARTIE, ni « en pause »', () => {
