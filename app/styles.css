@@ -928,15 +928,17 @@ button:disabled {
   border: 1px solid var(--texte);
 }
 
-.deplacement.indisponible {
-  color: var(--texte-secondaire);
+/* Déplacement impossible (porte fermée) : contour pointillé, sans fond ; le bouton ouvre quand même la bulle du passage (D-229). */
+.deplacement.bloque {
+  color: var(--texte);
   background: transparent;
-  border: 1px dashed var(--bordure);
+  border: 1px dashed var(--texte);
 }
 
 .deplacement[aria-expanded='true'] {
+  color: var(--fond);
   background: var(--accent);
-  border-color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
 .raison {
@@ -1026,9 +1028,14 @@ button:disabled {
   background: var(--separateur);
 }
 
-.deplacement:not(:disabled, .indisponible):active,
+.deplacement:not(:disabled):active,
 .principal:not(:disabled):active {
   background: var(--accent);
+}
+
+.deplacement.bloque:not(:disabled):active {
+  color: var(--fond);
+  border-style: solid;
 }
 
 .principal {

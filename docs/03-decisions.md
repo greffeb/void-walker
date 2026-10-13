@@ -26,7 +26,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement) |
-| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02) |
+| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
@@ -1139,6 +1139,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse « Oui, une fois ouverte seulement », à propos de la grille haute.
 - Décision : un passage comme la grille haute apparaît dans « Se déplacer vers » quand il est ouvert ; avant, il n'est qu'un objet de la pièce. Sa destination n'est pas affichée tant qu'elle n'est pas découverte (OP-03).
+- Modification partielle : une fois ouvert, il reste dans « Se déplacer vers », même refermé (D-229).
 
 ### D-148 — Ambiance sonore et voix d'IA Station au lancement
 
@@ -1377,6 +1378,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-11 / **Validé** (implémenté par #113).
 - Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
 - Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
+- Modification partielle : le bouton « Se déplacer vers » ouvre d'abord la bulle du passage ; c'est la ligne du déplacement qui se joue d'un seul toucher (D-229).
 
 ### D-183 — Rester sous ses yeux se joue au même dé que la fuite
 
@@ -1713,6 +1715,14 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Origine : demande du porteur : « le même esthétique que l'inventaire et que la carte, c'est-à-dire une bulle qui se met par-dessus l'écran avec une petite flèche au-dessus du bouton » ; précision : « retirer le bouton retour et le remplacer par une croix comme les autres menus ».
 - Décision : le menu IA Station reprend la présentation de l'inventaire et de la carte : bulle superposée au-dessus de la navigation, flèche vers son bouton et même voile. Une croix dans l'en-tête remplace le bouton RETOUR. Le blanc et les messages reçus restent inchangés. Le porteur précise ensuite qu'un deuxième appui sur IA STATION doit fermer la bulle comme pour INVENTAIRE et CARTE ; il joue le son de fermeture du menu (D-226).
 - Modifie : la présentation de la modale de 12 §3.9 ; la couleur blanche de D-192 est conservée. Aucun essai sur téléphone n'est attesté ici.
+
+### D-229 — Les portes se manœuvrent depuis « Se déplacer vers »
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : proposition du porteur : « retirer les boutons dédiés pour les différentes portes et de le déplacer dans un sous-menu quand on clique sur un des boutons pour "se déplacer vers" […] ça libérerait de la place […] ça éviterait aussi de chercher où se trouve le bouton pour ouvrir telle porte » ; réponses « Toujours le sous-menu » et, pour les grilles, « il faut qu'ils restent des objets "dans la pièce" jusqu'à ce qu'on découvre qu'il y a un passage derrière. Ensuite ils se comportent comme une porte (refermable ou non) ».
+- Décision : les portes n'ont plus de puce dans « Dans la pièce ». Chaque bouton « → DESTINATION » ouvre la bulle du passage : sa fiche, puis « ▸ Aller dans l'atelier » (indisponible avec sa raison si la porte est fermée), puis « ▸ Ouvrir » ou « ▸ Fermer ». Le bouton ouvre toujours la bulle, même quand le déplacement se jouerait d'un seul toucher ; dans la bulle, la ligne du déplacement garde le seul toucher de D-182. Un passage sans signalétique reste une puce tant que le passager ne l'a pas ouvert ; une fois ouvert, il rejoint « Se déplacer vers » et y reste, même refermé.
+- Limite [détail de l'agent] : un bouton dont le déplacement est impossible (porte fermée, objet trop large) se voit au contour pointillé, sans fond, et son nom accessible porte la raison (« atelier, La porte de l'atelier est fermée. ») ; il reste activable. Un passage qui s'ouvre sans permettre d'y passer (le panneau vu du local énergie d'AR-01) reste une puce. Un passage déjà ouvert se retrouve dans les commandes enregistrées de la partie, sans changer le moteur.
+- Modifie : D-147 (le passage reste dans « Se déplacer vers » une fois refermé), D-182 (un toucher de plus pour changer de pièce), 12 §3.4, §3.6 et §4.3.
 
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 
