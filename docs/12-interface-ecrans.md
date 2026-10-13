@@ -549,7 +549,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 6. **« long » et « périlleux »** — supprimés ; seul « bruyant » reste (D-150).
 7. **Panneau bas ou bulle** — bulles ancrées partout (D-146, §3.6).
 8. **La grille haute dans « Se déplacer vers »** — seulement une fois ouverte (D-147, §3.4).
-9. **Son** — ambiance au lancement (D-148) ; IA Station sans voix, un effet sonore à l'arrivée d'un message (D-155) ; bruitages libres de droits et bande-son fournie (D-153). Précisé le 2026-10-13 ([15 — son](15-son.md), D-216 à D-223) : bruitages synthétisés pour le projet, signaux de blessure, de soin et d'alarme, ambiance de bruit brun et de carlingue, trois rails dans les options ; bande-son retirée pour le moment.
+9. **Son** — ambiance au lancement (D-148) ; IA Station sans voix, un effet sonore à l'arrivée d'un message (D-155) ; bruitages libres de droits et bande-son fournie (D-153). Précisé le 2026-10-13 ([15 — son](15-son.md), D-216 à D-224) : bruitages synthétisés pour le projet, signaux de blessure, de soin et d'alarme, ambiance de bruit brun et de carlingue, trois rails dans les options ; bande-son retirée pour le moment.
 10. **Blessure localisée** — seulement dans le récit (D-143).
 11. **Rappel de « plus aucune sortie »** — gardé, discret (D-144).
 12. **Confirmation avant une nouvelle partie** — oui, elle remplace l'ancienne (D-145, §4.1).

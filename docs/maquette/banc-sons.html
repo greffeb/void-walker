@@ -78,7 +78,7 @@ input[type=range] { accent-color: var(--accent); flex: 1 1 140px; min-width: 0; 
       <label for="vol-general">Général</label><input id="vol-general" type="range" min="0" max="100" value="80"><output for="vol-general">80</output>
       <label for="vol-bande" hidden>Bande-son</label><input id="vol-bande" type="range" min="0" max="100" value="60" hidden><output for="vol-bande" hidden>60</output>
       <label for="vol-effets">Effets sonores</label><input id="vol-effets" type="range" min="0" max="100" value="80"><output for="vol-effets">80</output>
-      <label for="vol-ambiance">Ambiance</label><input id="vol-ambiance" type="range" min="0" max="100" value="18"><output for="vol-ambiance">18</output>
+      <label for="vol-ambiance">Ambiance</label><input id="vol-ambiance" type="range" min="0" max="100" value="60"><output for="vol-ambiance">60</output>
     </div>
     <p class="note">Fond d'ambiance continu, sous la bande-son :</p>
     <div id="types-ambiance" class="puces quatre" role="radiogroup" aria-label="Fond d'ambiance"></div>
@@ -123,7 +123,7 @@ input[type=range] { accent-color: var(--accent); flex: 1 1 140px; min-width: 0; 
   let ctx = null, sortie = null, entree = null, grainActif = true;
   let filtreBande, satur, directe;
   // Quatre bus : général ← effets, bande-son, ambiance. Courbe au carré pour une pente perçue régulière.
-  const NIVEAUX = { general: 0.8, bande: 0.6, effets: 0.8, ambiance: 0.18 };
+  const NIVEAUX = { general: 0.8, bande: 0.6, effets: 0.8, ambiance: 0.6 };
   const bus = {};
   const gainDe = (v) => v * v;
 
@@ -232,6 +232,21 @@ input[type=range] { accent-color: var(--accent); flex: 1 1 140px; min-width: 0; 
       { nom: 'Bip unique', jouer: (t = n()) => ton(t, 0.06, 880, { type: 'triangle', vol: 0.15, lp: 2500, chute: 0.03 }) },
       { nom: 'Déclic validé', jouer: (t = n()) => { souffle(t, 0.006, { f: 3600, q: 2.5, vol: 0.35 }); ton(t + 0.025, 0.045, 990, { type: 'sine', vol: 0.08, att: 0.004 }); } },
     ]},
+    { id: 'victoire2', nouveau: true, titre: 'Victoire', quand: "Évacuation réussie : un magnétoscope qu'on arrête (bande qui ralentit, puis le mécanisme).", variantes: [
+      { nom: 'Arrêt de bande', jouer: (t = n()) => { [523, 659, 784].forEach((f) => { ton(t, 0.26, f, { vol: 0.07, lp: 3000, chute: 0.005 }); ton(t + 0.25, 0.8, f, { fin: f * 0.15, vol: 0.07, lp: 3000, att: 0.002, chute: 0.15 }); }); souffle(t + 1.05, 0.03, { filtre: 'lowpass', f: 600, vol: 0.45 }); souffle(t + 1.1, 0.004, { f: 2500, q: 2, vol: 0.22 }); } },
+      { nom: 'Stop et éjection', jouer: (t = n()) => { [660, 880].forEach((f, i) => ton(t + i * 0.12, 0.11, f, { vol: 0.08, lp: 3000 })); ton(t + 0.24, 0.12, 1320, { vol: 0.08, lp: 3000, chute: 0.005 }); ton(t + 0.36, 0.9, 1320, { fin: 150, vol: 0.08, lp: 3000, att: 0.002, chute: 0.2 }); souffle(t + 0.36, 0.9, { f: 1200, fin: 150, q: 1, vol: 0.05 }); souffle(t + 1.3, 0.02, { filtre: 'lowpass', f: 500, vol: 0.4 }); souffle(t + 1.42, 0.03, { filtre: 'lowpass', f: 700, vol: 0.35 }); } },
+      { nom: 'Bande qui ralentit', jouer: (t = n()) => { ton(t, 1.2, 440, { type: 'sine', fin: 60, vol: 0.16, att: 0.01, chute: 0.25 }); ton(t, 1.2, 660, { type: 'sine', fin: 90, vol: 0.08, att: 0.01, chute: 0.25 }); souffle(t, 1.2, { f: 3000, fin: 200, q: 0.8, vol: 0.06 }); souffle(t + 1.25, 0.03, { filtre: 'lowpass', f: 600, vol: 0.45 }); } },
+    ]},
+    { id: 'mort2', nouveau: true, titre: 'Mort', quand: "Troisième blessure : variantes du Parasite de la blessure. Remplace la blessure critique à ce moment.", variantes: [
+      { nom: "Parasite qui s'éteint", jouer: (t = n()) => { souffle(t, 0.06, { filtre: 'lowpass', f: 700, q: 1, vol: 0.3 }); ton(t + 0.02, 1.4, 220, { fin: 55, vol: 0.12, lp: 1500, trem: 40, chute: 0.5 }); } },
+      { nom: 'Triple parasite', jouer: (t = n()) => { [[0, 1], [0.35, 0.75], [0.7, 0.5]].forEach(([d, h]) => { souffle(t + d, 0.04, { filtre: 'lowpass', f: 700 * h, q: 1, vol: 0.3 }); ton(t + d + 0.02, 0.13, 220 * h, { vol: 0.09, lp: 1500, trem: 40 }); }); souffle(t + 1.05, 0.06, { filtre: 'lowpass', f: 280, q: 1, vol: 0.3 }); ton(t + 1.07, 1.0, 88, { vol: 0.12, lp: 1200, trem: 40, chute: 0.5 }); } },
+      { nom: 'Parasite et coupure', jouer: (t = n()) => { [0, 0.32].forEach((d) => { souffle(t + d, 0.04, { filtre: 'lowpass', f: 525, q: 1, vol: 0.3 }); ton(t + d + 0.02, 0.13, 165, { vol: 0.09, lp: 1500, trem: 40 }); }); ton(t + 0.7, 0.9, 110, { vol: 0.12, lp: 1200, trem: 40, chute: 0.01 }); souffle(t + 1.6, 0.005, { f: 1800, q: 2, vol: 0.25 }); } },
+    ]},
+    { id: 'creature', nouveau: true, titre: 'Créature', quand: "Première rencontre avec la créature. Choisi : B Dissonance.", variantes: [
+      { nom: 'Alerte proximité', jouer: (t = n()) => { ton(t, 0.12, 98, { vol: 0.2, lp: 1500, trem: 30 }); ton(t + 0.2, 0.12, 98, { vol: 0.2, lp: 1500, trem: 30 }); ton(t + 0.42, 0.35, 147, { fin: 294, vol: 0.12, lp: 1800 }); } },
+      { nom: 'Dissonance', jouer: (t = n()) => { ton(t, 0.7, 233, { vol: 0.08, lp: 1600, trem: 8, att: 0.02, chute: 0.2 }); ton(t, 0.7, 330, { vol: 0.08, lp: 1600, trem: 8, att: 0.02, chute: 0.2 }); } },
+      { nom: 'Sonar', jouer: (t = n()) => { ton(t, 0.25, 1200, { type: 'sine', fin: 1000, vol: 0.18, chute: 0.2 }); ton(t + 0.3, 0.25, 1200, { type: 'sine', fin: 1000, vol: 0.08, chute: 0.2 }); ton(t + 0.6, 0.25, 1200, { type: 'sine', fin: 1000, vol: 0.035, chute: 0.2 }); } },
+    ]},
     { id: 'bulle', ancien: true, titre: 'Bulle', quand: '', double: true, variantes: [
       { nom: 'Glissé', jouer: (t = n()) => ton(t, 0.06, 520, { fin: 880, vol: 0.08, lp: 3000 }), fermer: (t = n()) => ton(t, 0.06, 880, { fin: 520, vol: 0.08, lp: 3000 }) },
       { nom: 'Bi-bip', jouer: (t = n()) => { ton(t, 0.028, 880, { vol: 0.08 }); ton(t + 0.045, 0.028, 1320, { vol: 0.07 }); }, fermer: (t = n()) => { ton(t, 0.028, 1320, { vol: 0.07 }); ton(t + 0.045, 0.028, 880, { vol: 0.08 }); } },
@@ -314,7 +329,7 @@ input[type=range] { accent-color: var(--accent); flex: 1 1 140px; min-width: 0; 
   const garder = () => { try { localStorage.setItem(CLE, JSON.stringify(choix)); } catch {} };
   const lettre = (i) => 'ABCDE'[i];
   // Choix déjà faits sur ce banc (v1), repris tant que le porteur ne les change pas.
-  const CHOIX_V1 = { clic: 0, bulle2: 2, confirmer2: 3, refus: 1, ia: 0, ecriture: 2, panneau2: 2, blessure: 2, soin: 1, feu: 1, vide: 0 };
+  const CHOIX_V1 = { creature: 1, clic: 0, bulle2: 2, confirmer2: 3, refus: 1, ia: 0, ecriture: 2, panneau2: 2, blessure: 2, soin: 1, feu: 1, vide: 0 };
   // Les anciennes bulle et confirmer (jugées trop intenses) sortent du banc.
   for (let i = MOMENTS.length - 1; i >= 0; i--) if (MOMENTS[i].ancien) MOMENTS.splice(i, 1);
   Object.entries(CHOIX_V1).forEach(([k, v]) => { if (choix[k] === undefined) choix[k] = v; });

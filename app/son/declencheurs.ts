@@ -1,27 +1,38 @@
 // Signaux du terminal après une action (15 §2.2, D-218) : on compare ce que le passager voit avant et après.
 
-import type { Observation, Sante } from '../../engine';
+import type { Evenement, Observation, Sante } from '../../engine';
 import type { Signal } from './recettes';
 
 const GRAVITE: Readonly<Record<Sante, number>> = { indemne: 0, blesse: 1, critique: 2, vaincu: 3 };
 
-/** Feux que le passager voit : sa pièce, et chaque passage ouvert sur une pièce en feu (C-06 §2), depuis la pièce où il se tient. */
-function feuxVus(observation: Observation): string[] {
-  const ici = observation.piece.id;
-  return [...(observation.feu ? [`piece:${ici}`] : []), ...observation.passages.filter((passage) => passage.feu).map((passage) => `passage:${ici}:${passage.id}`)];
+/**
+ * Dangers que le passager voit, depuis la pièce où il se tient : sa pièce, et chaque passage qui le montre (porte ouverte sur le
+ * feu, C-06 §2 ; voyant d'une porte étanche pour le vide, OP-04).
+ */
+function dangersVus(observation: Observation, ici: boolean, parPassage: (passage: Observation['passages'][number]) => boolean): string[] {
+  const piece = observation.piece.id;
+  return [...(ici ? [`piece:${piece}`] : []), ...observation.passages.filter(parPassage).map((passage) => `passage:${piece}:${passage.id}`)];
+}
+
+const feuxVus = (observation: Observation): string[] => dangersVus(observation, observation.feu, (passage) => passage.feu);
+const videsVus = (observation: Observation): string[] => dangersVus(observation, observation.sansAir, (passage) => passage.vide);
+
+/** Un danger qui n'était pas en vue l'est maintenant. */
+function apparait(avant: readonly string[], apres: readonly string[]): boolean {
+  return apres.some((danger) => !avant.includes(danger));
 }
 
 /**
- * L'alarme incendie sonne quand un feu apparaît à la vue du passager : dans sa pièce (il y entre, le feu s'y propage) ou par un
- * passage ouvert (il ouvre sur une pièce en feu, le feu gagne la voisine) (D-218, D-223). L'alarme vide sonne quand le vide passe
- * d'absent à présent dans sa pièce. Rester devant le danger ne la fait pas resonner, y revenir si. Ordre de jeu : 15 §2.4.
+ * Une alarme sonne quand le feu ou le vide apparaît à la vue du passager : dans sa pièce (il y entre, le danger s'y propage) ou
+ * par un passage (porte ouverte sur le feu, voyant d'une porte étanche pour le vide) (D-218, D-223, D-224). Rester devant le
+ * danger ne la fait pas resonner, y revenir si. La créature sonne à la première rencontre, que le moteur annonce (D-224).
+ * Ordre de jeu : 15 §2.4.
  */
-export function signauxApres(avant: Observation, apres: Observation): Signal[] {
+export function signauxApres(avant: Observation, apres: Observation, evenements: readonly Evenement[] = []): Signal[] {
   const signaux: Signal[] = [];
-  const memePiece = avant.piece.id === apres.piece.id;
-  const feuxAvant = feuxVus(avant);
-  if (feuxVus(apres).some((feu) => !feuxAvant.includes(feu))) signaux.push('alarme-feu');
-  if (apres.sansAir && !(memePiece && avant.sansAir)) signaux.push('alarme-vide');
+  if (apparait(feuxVus(avant), feuxVus(apres))) signaux.push('alarme-feu');
+  if (apparait(videsVus(avant), videsVus(apres))) signaux.push('alarme-vide');
+  if (evenements.some((evenement) => evenement.type === 'premier_contact')) signaux.push('creature');
   const ecart = GRAVITE[apres.sante] - GRAVITE[avant.sante];
   if (ecart > 0) signaux.push(GRAVITE[apres.sante] >= GRAVITE.critique ? 'blessure-critique' : 'blessure');
   if (ecart < 0) signaux.push('soin');

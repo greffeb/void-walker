@@ -1,6 +1,6 @@
 # Void Walker V2 — son : bruitages du terminal et ambiance
 
-> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-223 (D-223 après l'essai sur téléphone de la PR #130).
+> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-224 (D-223 et D-224 après l'essai sur téléphone de la PR #130).
 > **Date :** 2026-10-13.
 > **Issue :** [#99](https://github.com/greffeb/void-walker/issues/99) (bande-son et bruitages d'interface rétro).
 > **Références d'écoute :** le [banc des bruitages](maquette/banc-sons.html) (sons choisis à l'oreille, recettes exactes) et la [maquette de la section SON](maquette/options-son.html) (variante A, rail). Les deux pages s'ouvrent dans un navigateur et jouent après un premier toucher.
@@ -43,7 +43,8 @@ Après chaque action jouée, l'interface compare l'observation d'avant et celle 
 | Santé aggravée jusqu'à « critique » ou « vaincu » | Blessure critique : même recette, hauteur × 0,75, jouée deux fois à 0,32 s d'écart |
 | Santé améliorée | Soin (Bip apaisé) |
 | Un feu apparaît à la vue du passager : dans sa pièce (il y entre, le feu s'y propage) ou par un passage ouvert (il ouvre sur une pièce en feu, le feu gagne la voisine) (D-223) | Alarme incendie (Détecteur), une fois |
-| `sansAir` passe de faux à vrai de la même façon | Alarme vide (Grave pulsé), une fois |
+| Le vide apparaît à la vue du passager de la même façon : dans sa pièce, ou par le voyant d'une porte étanche (D-224) | Alarme vide (Grave pulsé), une fois |
+| Première rencontre de la créature (événement `premier_contact` du moteur) (D-224) | Créature (Dissonance) |
 | Nombre de messages d'IA Station en hausse | IA Station (Télétype) |
 
 Rester dans une pièce en feu, ou devant un passage ouvert sur le feu, ne fait pas resonner l'alarme ; en sortir puis y revenir la fait resonner (« à chaque entrée dans le danger », choix du porteur). Changer de pièce compte comme un passage de faux à vrai quand la nouvelle pièce brûle ou n'a plus d'air. Reprendre une partie enregistrée, ou revenir des options, ne joue aucun signal : il n'y a pas d'observation d'avant. Un refus, une consultation ou un aperçu ne change pas l'observation et ne joue aucun signal.
@@ -54,7 +55,7 @@ Pendant l'effet machine à écrire (D-186), le crépitement (Bips de caractères
 
 ### 2.4 Ordre
 
-Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis les signaux à la suite, espacés de 250 ms, dans cet ordre : alarme incendie, alarme vide, blessure ou soin, IA Station. Les signaux attendent la fin de l'écriture ; sans écriture, ou si on la saute, ils partent tout de suite.
+Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis les signaux à la suite, espacés de 250 ms, dans cet ordre : alarme incendie, alarme vide, créature, blessure ou soin, IA Station. Les signaux attendent la fin de l'écriture ; sans écriture, ou si on la saute, ils partent tout de suite.
 
 ### 2.5 Ambiance (D-219)
 
@@ -87,6 +88,7 @@ Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles r
 | Soin | ton sinus 120 ms à 523, vol 0,16, montée 20 ms, chute 60 ms ; à 120 ms, ton sinus 160 ms à 784, vol 0,15, montée 20 ms, chute 100 ms |
 | Alarme incendie | six tons carrés 50 ms à 1 400, vol 0,06, chute 10 ms, tous les 90 ms |
 | Alarme vide | trois tons carrés 160 ms à 180, passe-bas 1 200, vol 0,14, chute 30 ms, à 0, 260 et 520 ms |
+| Créature | deux tons carrés de 700 ms à 233 et 330 (triton), passe-bas 1 600, trém. 8, vol 0,08 chacun, montée 20 ms, chute 200 ms |
 
 **Grain cassette :** tous les bruitages passent par une saturation douce (tanh, k = 2,2) puis un passe-bas à 5 200 Hz (Q 0,5). L'ambiance n'y passe pas.
 

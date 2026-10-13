@@ -13,6 +13,12 @@ const feuxVus = (observation: Observation): string[] => [
   ...observation.passages.filter((passage) => passage.feu).map((passage) => `passage:${observation.piece.id}:${passage.id}`),
 ];
 
+/** Vides vus : la pièce du passager, et chaque voyant de porte étanche qui annonce une pièce sans air. */
+const videsVus = (observation: Observation): string[] => [
+  ...(observation.sansAir ? [`piece:${observation.piece.id}`] : []),
+  ...observation.passages.filter((passage) => passage.vide).map((passage) => `passage:${observation.piece.id}:${passage.id}`),
+];
+
 function lcg(graine: number): () => number {
   let etat = graine >>> 0;
   return () => {
@@ -45,6 +51,23 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
     expect(signauxApres(voitLeFeu, base)).toEqual([]);
   });
 
+  it('vide découvert par le voyant d’une porte : alarme, une fois ; de nouveau en entrant dans la pièce sans air (comme le feu)', () => {
+    const passage = base.passages[0];
+    if (passage === undefined) throw new Error('Passage attendu au départ du monde de test.');
+    const voitLeVide: Observation = { ...base, passages: base.passages.map((vu) => (vu.id === passage.id ? { ...vu, vide: true } : vu)) };
+    expect(signauxApres(base, voitLeVide)).toEqual(['alarme-vide']);
+    expect(signauxApres(voitLeVide, voitLeVide)).toEqual([]);
+    expect(signauxApres(voitLeVide, ailleurs({ ...base, sansAir: true }))).toEqual(['alarme-vide']);
+    expect(signauxApres(voitLeVide, base)).toEqual([]);
+  });
+
+  it('créature : la Dissonance à la première rencontre seulement (événement premier_contact du moteur)', () => {
+    const enVue: Observation = { ...base, creatureVisible: true };
+    expect(signauxApres(base, enVue, [{ type: 'premier_contact' }])).toEqual(['creature']);
+    expect(signauxApres(base, enVue)).toEqual([]);
+    expect(signauxApres(enVue, ailleurs(enVue))).toEqual([]);
+  });
+
   it('vide : mêmes règles que le feu', () => {
     const sansAir = { ...base, sansAir: true };
     expect(signauxApres(ailleurs(base), sansAir)).toEqual(['alarme-vide']);
@@ -70,7 +93,7 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
 
   it('plusieurs à la fois : alarme incendie, alarme vide, santé, IA Station (15 §2.4)', () => {
     const apres: Observation = { ...base, feu: true, sansAir: true, sante: 'blesse', messages: [...base.messages, 'nouveau'] };
-    expect(signauxApres(ailleurs(base), apres)).toEqual(['alarme-feu', 'alarme-vide', 'blessure', 'ia']);
+    expect(signauxApres(ailleurs(base), apres, [{ type: 'premier_contact' }])).toEqual(['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'ia']);
   });
 
   // Exhaustif : 600 parties ; la machine de la PR est plusieurs fois plus lente qu'un poste.
@@ -89,15 +112,16 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
           const resultat = jouer(entree.monde, partie, option.commande);
           if (resultat.type !== 'engagee') continue;
           const apres = observer(entree.monde, resultat.partie.etat);
-          const signaux = signauxApres(avant, apres);
+          const signaux = signauxApres(avant, apres, resultat.evenements);
           // Ordonnés, sans doublon, au plus un signal de santé.
           expect(signaux).toEqual(SIGNAUX.filter((signal) => signaux.includes(signal)));
           expect(signaux.filter((signal) => signal === 'blessure' || signal === 'blessure-critique' || signal === 'soin').length).toBeLessThanOrEqual(1);
           // Une alarme si et seulement si le danger vient d'apparaître là où se trouve le passager.
-          const memePiece = avant.piece.id === apres.piece.id;
           const feuxAvant = feuxVus(avant);
           expect(signaux.includes('alarme-feu')).toBe(feuxVus(apres).some((feu) => !feuxAvant.includes(feu)));
-          expect(signaux.includes('alarme-vide')).toBe(apres.sansAir && !(memePiece && avant.sansAir));
+          const videsAvant = videsVus(avant);
+          expect(signaux.includes('alarme-vide')).toBe(videsVus(apres).some((vide) => !videsAvant.includes(vide)));
+          expect(signaux.includes('creature')).toBe(resultat.evenements.some((evenement) => evenement.type === 'premier_contact'));
           expect(signaux.includes('ia')).toBe(apres.messages.length > avant.messages.length);
           for (const signal of signaux) vus.add(signal);
           partie = resultat.partie;

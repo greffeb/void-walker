@@ -75,6 +75,13 @@ describe('recettes des sons (15 §3)', () => {
     ]);
   });
 
+  it('créature : Dissonance, deux tons carrés en triton (233 et 330 Hz) qui tremblent à 8 Hz, 0,7 s', () => {
+    expect(RECETTES_SIGNAUX.creature).toEqual([
+      { sorte: 'ton', t: 0, duree: 0.7, f: 233, vol: 0.08, passeBas: 1600, trem: 8, montee: 0.02, chute: 0.2 },
+      { sorte: 'ton', t: 0, duree: 0.7, f: 330, vol: 0.08, passeBas: 1600, trem: 8, montee: 0.02, chute: 0.2 },
+    ]);
+  });
+
   it('blessure critique : la recette de la blessure, hauteur × 0,75, jouée deux fois à 0,32 s d’écart (15 §2.2)', () => {
     const critique = RECETTES_SIGNAUX['blessure-critique'];
     expect(critique).toHaveLength(RECETTES_SIGNAUX.blessure.length * 2);
@@ -106,8 +113,8 @@ describe('recettes des sons (15 §3)', () => {
     }
   });
 
-  it('ordre des signaux : alarme incendie, alarme vide, blessure ou soin, IA Station ; sans doublon (15 §2.4)', () => {
-    expect(ordonnerSignaux(['ia', 'soin', 'alarme-vide', 'alarme-feu', 'ia'])).toEqual(['alarme-feu', 'alarme-vide', 'soin', 'ia']);
+  it('ordre des signaux : alarme incendie, alarme vide, créature, blessure ou soin, IA Station ; sans doublon (15 §2.4)', () => {
+    expect(ordonnerSignaux(['ia', 'soin', 'creature', 'alarme-vide', 'alarme-feu', 'ia'])).toEqual(['alarme-feu', 'alarme-vide', 'creature', 'soin', 'ia']);
     expect(ordonnerSignaux([])).toEqual([]);
     expect(ESPACE_SIGNAUX).toBe(0.25);
   });

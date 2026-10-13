@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { observer, type OptionMenu } from '../engine';
+import { observer, type Evenement, type OptionMenu } from '../engine';
 import { EcranJeu, EcranReveil } from './EcranJeu';
 import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
 import {
@@ -22,6 +22,11 @@ import { SILENCE, type Son } from './son/moteur';
 import type { Signal } from './son/recettes';
 
 const AUCUN_SIGNAL: readonly Signal[] = [];
+
+/** Événements du pas qui vient d'être joué ; aucun si la partie n'a pas avancé (refus, consultation). */
+function evenementsDuPas(avant: Jeu, apres: Jeu): readonly Evenement[] {
+  return apres.partie === avant.partie ? [] : apres.partie.derniers;
+}
 
 /** `lus` : messages d'IA Station déjà lus, à part du jeu pour ne pas réécrire le récit quand il change (D-186). */
 type Ecran =
@@ -104,7 +109,7 @@ export function App({
       setOccupe(true);
       try {
         const suivant = await jouerOption(env, jeu, option);
-        const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat));
+        const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat), evenementsDuPas(jeu, suivant));
         setEcran((avant) => ({ type: 'jeu', jeu: suivant, lus: avant.type === 'jeu' ? avant.lus : [], signaux }));
       } finally {
         setOccupe(false);
@@ -149,7 +154,7 @@ export function App({
       setOccupe(true);
       try {
         const suivant = await jouerOption(env, jeu, option);
-        const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat));
+        const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat), evenementsDuPas(jeu, suivant));
         setEcran({ type: 'jeu', jeu: suivant, lus, signaux });
       } finally {
         setOccupe(false);

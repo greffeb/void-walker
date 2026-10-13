@@ -59,8 +59,8 @@ export function decaler(recette: Recette, de: number): ElementSon[] {
 export const GESTES = ['clic', 'bulle', 'fermer', 'panneau-inventaire', 'panneau-carte', 'panneau-ia', 'confirmer', 'refus'] as const;
 export type Geste = (typeof GESTES)[number];
 
-/** Signaux du terminal (15 §2.2, D-218), dans l'ordre où ils se jouent (15 §2.4). */
-export const SIGNAUX = ['alarme-feu', 'alarme-vide', 'blessure', 'blessure-critique', 'soin', 'ia'] as const;
+/** Signaux du terminal (15 §2.2, D-218, D-224), dans l'ordre où ils se jouent (15 §2.4). */
+export const SIGNAUX = ['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'blessure-critique', 'soin', 'ia'] as const;
 export type Signal = (typeof SIGNAUX)[number];
 
 export function ordonnerSignaux(signaux: readonly Signal[]): Signal[] {
@@ -115,6 +115,8 @@ export const RECETTES_GESTES: Readonly<Record<Geste, Recette>> = {
 export const RECETTES_SIGNAUX: Readonly<Record<Signal, Recette>> = {
   'alarme-feu': [0, 1, 2, 3, 4, 5].map((rang) => ton(rang * 0.09, 0.05, 1400, { vol: 0.06, chute: 0.01 })),
   'alarme-vide': [0, 0.26, 0.52].map((de) => ton(de, 0.16, 180, { vol: 0.14, passeBas: 1200, chute: 0.03 })),
+  // Dissonance (D-224) : triton qui tremble, à la première rencontre de la créature.
+  creature: [233, 330].map((f) => ton(0, 0.7, f, { vol: 0.08, passeBas: 1600, trem: 8, montee: 0.02, chute: 0.2 })),
   blessure: blessure(1),
   'blessure-critique': [...blessure(0.75), ...decaler(blessure(0.75), 0.32)],
   soin: [
