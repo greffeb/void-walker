@@ -64,6 +64,19 @@ export function gainDe(niveau: number): number {
   return (Math.min(100, Math.max(0, niveau)) / 100) ** 2;
 }
 
+/**
+ * Session « ambient » (Safari) : le jeu se tait en mode silencieux et se mélange à la musique du joueur (D-222). Un navigateur
+ * qui la refuse ou la fige n'empêche pas l'appli de démarrer (15 §5).
+ */
+export function sessionAmbiante(navigateur: unknown): void {
+  try {
+    const session = (navigateur as { audioSession?: { type: string } }).audioSession;
+    if (session !== undefined) session.type = 'ambient';
+  } catch {
+    // Refusée : le jeu joue avec la session par défaut.
+  }
+}
+
 const FONDU_REGLAGE = 0.03;
 const SILENCE_GAIN = 0.0001;
 /** Un son part 10 ms après sa demande. */
@@ -157,6 +170,25 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
   let annulerCarlingue: (() => void) | null = null;
   let ecriture: { readonly sources: AudioScheduledSourceNode[]; readonly annuler: () => void } | null = null;
   let enAttente: readonly Signal[] = [];
+  /** Sons de passage en cours ou programmés : arrêtés net quand l'appli passe en arrière-plan (D-222) ; le fond brun n'en est pas. */
+  const vivantes = new Set<AudioScheduledSourceNode>();
+
+  function suivre<T extends AudioScheduledSourceNode>(source: T): T {
+    vivantes.add(source);
+    source.onended = () => vivantes.delete(source);
+    return source;
+  }
+
+  function arreterVivantes(): void {
+    for (const source of vivantes) {
+      try {
+        source.stop();
+      } catch {
+        // Déjà terminée : rien à arrêter.
+      }
+    }
+    vivantes.clear();
+  }
 
   const audible = (couche: 'effets' | 'ambiance'): boolean => bus !== null && visible && niveaux.general > 0 && niveaux[couche] > 0;
 
@@ -234,7 +266,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
     const gain = enveloppe(ctx, t, element.duree, element.vol, monteeDe(element), chuteDe(element));
     const fin = t + element.duree + 0.02;
     if (element.sorte === 'ton') {
-      const oscillateur = ctx.createOscillator();
+      const oscillateur = suivre(ctx.createOscillator());
       oscillateur.type = element.onde ?? 'square';
       oscillateur.frequency.setValueAtTime(element.f, t);
       if (element.fin !== undefined) oscillateur.frequency.exponentialRampToValueAtTime(element.fin, t + element.duree);
@@ -247,7 +279,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
       if (element.trem === undefined) gain.connect(vers);
       else {
         // Bourdonnement : amplitude modulée en carré entre 0 et 1.
-        const lfo = ctx.createOscillator();
+        const lfo = suivre(ctx.createOscillator());
         lfo.type = 'square';
         lfo.frequency.value = element.trem;
         const profondeur = ctx.createGain();
@@ -267,7 +299,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
       sources.push(oscillateur);
       return;
     }
-    const lecteur = ctx.createBufferSource();
+    const lecteur = suivre(ctx.createBufferSource());
     lecteur.buffer = b.bruit;
     lecteur.loop = true;
     const passe = filtre(ctx, element.filtre ?? 'bandpass', element.f, element.q ?? 1);
@@ -367,7 +399,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
       passeBas.connect(pan);
       for (const partiel of son.partiels) {
         for (const ecart of [-son.desaccord, son.desaccord]) {
-          const oscillateur = ctx.createOscillator();
+          const oscillateur = suivre(ctx.createOscillator());
           oscillateur.type = 'sine';
           oscillateur.frequency.value = son.base * partiel.rapport + ecart * partiel.rapport;
           const gain = ctx.createGain();
@@ -383,7 +415,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
       jouerElement(b, son.choc, t, entree);
       return;
     }
-    const lecteur = ctx.createBufferSource();
+    const lecteur = suivre(ctx.createBufferSource());
     lecteur.buffer = tamponFrottement(ctx, son, deps.hasard);
     const somme = ctx.createGain();
     for (const frequence of son.resonateurs) {
@@ -402,7 +434,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
     gain.connect(pan);
     lecteur.start(t);
     if (son.coup === undefined) return;
-    const coup = ctx.createOscillator();
+    const coup = suivre(ctx.createOscillator());
     coup.type = 'sine';
     coup.frequency.setValueAtTime(son.coup.de, t);
     coup.frequency.exponentialRampToValueAtTime(son.coup.a, t + son.coup.glisse);
@@ -479,6 +511,7 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
       sur(() => {
         arreterEcriture();
         enAttente = [];
+        arreterVivantes();
         annulerCarlingue?.();
         annulerCarlingue = null;
         if (bus !== null) void bus.ctx.suspend().catch(rien);

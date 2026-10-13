@@ -68,7 +68,7 @@ Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles r
 
 - **Ton :** oscillateur (carré par défaut, sinus ou triangle sinon) de fréquence f, éventuellement glissée vers une fréquence de fin ; filtre passe-bas facultatif ; modulation d'amplitude carrée facultative (« trém. », en Hz).
 - **Souffle :** bruit blanc à travers un passe-bande (par défaut) ou un autre filtre de fréquence f et de facteur Q.
-- **Enveloppe :** montée exponentielle en 2 ms (sauf mention), tenue, chute exponentielle de min(30 ms, durée / 2) (sauf mention).
+- **Enveloppe :** montée exponentielle en 2 ms pour un ton, 1 ms pour un souffle (sauf mention), tenue, chute exponentielle de min(30 ms, durée / 2) (sauf mention).
 - Temps en secondes depuis le départ du son ; « vol » est le niveau crête avant les bus.
 
 ### 3.2 Bruitages
@@ -135,7 +135,7 @@ Section **── SON ──** entre TAILLE DU TEXTE et AFFICHAGE, trois rails ([
 - **Mode silencieux :** le jeu respecte le mode silencieux de l'iPhone et se mélange à l'audio déjà en cours (session audio « ambient » quand le navigateur le permet) ; il n'interrompt jamais la musique du joueur.
 - **Pannes :** sans audio dans le navigateur, ou si l'audio refuse de démarrer, le son devient muet ; aucune erreur ne remonte au jeu, aucun message n'apparaît.
 - **Hors ligne :** rien n'est téléchargé ; le son marche hors ligne dès que l'appli est installée.
-- **Mémoire :** le bruit de base et la réverbération sont fabriqués une seule fois (environ 3 Mo).
+- **Mémoire :** le bruit de base et la réverbération sont fabriqués une seule fois (environ 5 Mo à 48 kHz).
 
 ## 6. Architecture
 
@@ -146,7 +146,7 @@ Tout vit dans `app/` ; le moteur et la CLI ne changent pas.
 | `app/son/recettes.ts` | Les sons du §3, en données ; aucun audio | rien |
 | `app/son/declencheurs.ts` | Fonction pure : observations d'avant et d'après → signaux du §2.2, dans l'ordre du §2.4 | vocabulaire du moteur, en lecture |
 | `app/son/moteur.ts` | Seul point de contact avec l'audio du navigateur : joue une recette, bus général → effets (grain cassette) et ambiance, fond brun, carlingue, cycle de vie du §5 ; le contexte audio, le hasard et l'horloge lui sont fournis | `recettes.ts` |
-| `app/son/contexte.tsx` | Branchement React : `son.jouer(…)`, `son.crepiter()` / `son.taire()` ; les écrans ne savent rien de l'audio | `moteur.ts` |
+| `app/son/contexte.ts` | Branchement React : chaque bouton porte `data-son`, un seul écouteur à la racine de l'App joue `son.geste(…)` ; l'écran annonce un nouveau texte (`son.nouveauTexte`) et le fait taire quand on le saute (`son.taire`) ; les écrans ne savent rien de l'audio | `moteur.ts` |
 | `app/reglages.ts` | Trois niveaux de plus (§4) | — |
 | `app/EcranOptions.tsx` | Section SON (§4) | `reglages.ts` |
 

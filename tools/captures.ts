@@ -700,7 +700,8 @@ async function partieLue(page: Page): Promise<{ enregistrement: { graine: number
 
 /**
  * Son (15 §5, D-222), dans Chromium : un espion compte les contextes audio et les sources créés. Aucun contexte avant le
- * premier toucher ; un seul ensuite ; ouvrir une bulle fait partir des sons. Niveau « vérifié automatiquement ».
+ * premier toucher ; un seul ensuite ; puis le nombre exact de sources d'une bulle, d'Échap et d'un segment. Niveau
+ * « vérifié automatiquement ».
  */
 async function verifierSon(navigateur: Browser, adresse: string, erreurs: string[]): Promise<void> {
   const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
@@ -733,8 +734,22 @@ async function verifierSon(navigateur: Browser, adresse: string, erreurs: string
     await nouvelleDepuisAccueil(page);
     const apres = await compte();
     if (apres.contextes !== 1) erreurs.push(`Son : ${apres.contextes} contexte(s) audio après les premiers touchers, 1 attendu.`);
-    await page.locator('.dock .puce[aria-haspopup="dialog"]').first().click();
-    if ((await compte()).sources <= apres.sources) erreurs.push('Son : ouvrir une bulle ne fait partir aucun son.');
+    // Un toucher, un son (D-217) : nombre exact de sources par geste (Tic double : 2 ; un tic : 1 ; clic : 2).
+    await page.waitForTimeout(PAUSE_JOUEUR_MS);
+    const ecart = async (geste: () => Promise<void>): Promise<number> => {
+      const avant = (await compte()).sources;
+      await geste();
+      await page.waitForTimeout(150);
+      return (await compte()).sources - avant;
+    };
+    const bulle = await ecart(() => page.locator('.dock .puce[aria-haspopup="dialog"]').first().click());
+    if (bulle !== 2) erreurs.push(`Son : ouvrir une bulle fait partir ${bulle} source(s), 2 attendues.`);
+    const echap = await ecart(() => page.keyboard.press('Escape'));
+    if (echap !== 1) erreurs.push(`Son : Échap qui referme la bulle fait partir ${echap} source(s), 1 attendue.`);
+    await page.locator('.engrenage').click();
+    await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+    const segment = await ecart(() => page.locator('label.segment').getByText('Grande', { exact: true }).click());
+    if (segment !== 2) erreurs.push(`Son : toucher un segment fait partir ${segment} source(s), 2 attendues (un seul clic).`);
   } finally {
     await contexte.close();
   }

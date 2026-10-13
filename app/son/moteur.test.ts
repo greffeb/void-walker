@@ -1,5 +1,5 @@
 import { dureeRecette, RECETTES_GESTES, RECETTES_SIGNAUX, ESPACE_SIGNAUX, GESTES, NOTES_CREPITEMENT } from './recettes';
-import { creerMoteur, gainDe, type Niveaux } from './moteur';
+import { creerMoteur, gainDe, sessionAmbiante, type Niveaux } from './moteur';
 
 // Faux contexte audio : il journalise ce que le moteur lui demande, sans produire de son.
 
@@ -363,6 +363,20 @@ describe('moteur du son (15 §5, §6)', () => {
     expect(minuterie.actives()).toHaveLength(1);
   });
 
+  it('arrière-plan : les sons déjà programmés (signaux, gestes, carlingue) s’arrêtent net, rien ne repart au retour', () => {
+    const { son, ctx, minuterie } = monter();
+    son.debloquer();
+    son.nouveauTexte(false, ['alarme-feu', 'ia']);
+    son.geste('confirmer');
+    minuterie.declencher();
+    const programmees = [...ctx.oscillateurs(), ...ctx.lecteurs().filter((lecteur) => !(lecteur.loop && lecteur.buffer?.duration === 9))];
+    expect(programmees.length).toBeGreaterThan(10);
+    son.cacher();
+    for (const source of programmees) expect(source.arretNet).toBe(true);
+    // Le fond brun n'est pas arrêté : il reprend avec le contexte.
+    expect(ctx.lecteurs().find((lecteur) => lecteur.loop && lecteur.buffer?.duration === 9)?.arretNet).toBe(false);
+  });
+
   it('carlingue : à chaque échéance, un son à gauche ou à droite, réverbéré, puis le suivant entre 20 et 60 s', () => {
     const { son, ctx, minuterie } = monter();
     son.debloquer();
@@ -425,5 +439,22 @@ describe('moteur du son (15 §5, §6)', () => {
       casse.son.debloquer();
     }).not.toThrow();
     expect(casse.ctx.noeuds).toHaveLength(noeuds);
+  });
+});
+
+describe('session audio « ambient » (15 §5, D-222)', () => {
+  it('réglée quand le navigateur la propose ; absente ou refusée, le jeu démarre quand même', () => {
+    const session = { type: 'auto' };
+    sessionAmbiante({ audioSession: session });
+    expect(session.type).toBe('ambient');
+    expect(() => sessionAmbiante({})).not.toThrow();
+    const refusee = {
+      get audioSession(): never {
+        throw new Error('SecurityError');
+      },
+    };
+    expect(() => sessionAmbiante(refusee)).not.toThrow();
+    const figee = Object.freeze({ audioSession: Object.freeze({ type: 'auto' }) });
+    expect(() => sessionAmbiante(figee)).not.toThrow();
   });
 });

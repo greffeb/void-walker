@@ -5,7 +5,7 @@ import { App } from './App';
 import { mondeDemande, type Environnement } from './jeu';
 import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
-import { creerMoteur } from './son/moteur';
+import { creerMoteur, sessionAmbiante } from './son/moteur';
 import './styles.css';
 
 // AR-01 par défaut ; `?monde=<id>` choisit un autre monde connu (le monde de test pour les captures).
@@ -53,9 +53,7 @@ const son = creerMoteur(
   },
   reglages,
 );
-// Session « ambient » (Safari) : le jeu se tait en mode silencieux et se mélange à la musique du joueur.
-const sessionAudio = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
-if (sessionAudio !== undefined) sessionAudio.type = 'ambient';
+sessionAmbiante(navigator);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) son.cacher();
   else son.montrer();
