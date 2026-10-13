@@ -1471,7 +1471,7 @@ button:disabled {
 .carte-piece {
   position: absolute;
   display: block;
-  padding: calc(8px * var(--echelle));
+  padding: calc(8px * var(--echelle) * var(--texte-carte, 1));
   overflow: hidden;
   text-align: left;
   font: inherit;
@@ -1493,14 +1493,14 @@ button:disabled {
 
 .carte-nom,
 .carte-etiquette {
-  font-size: calc(13px * var(--echelle));
+  font-size: calc(13px * var(--echelle) * var(--texte-carte, 1));
   font-weight: 600;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
 .carte-nom {
-  line-height: calc(17px * var(--echelle));
+  line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
 }
 
 .carte-piece[data-statut='actuelle'] .carte-nom {
@@ -1513,8 +1513,8 @@ button:disabled {
 
 .carte-etats {
   display: flex;
-  gap: calc(8px * var(--echelle));
-  line-height: calc(17px * var(--echelle));
+  gap: calc(8px * var(--echelle) * var(--texte-carte, 1));
+  line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
 }
 
 /* Étiquettes d'état en vidéo inverse (14 §2.5) ; « @ VOUS » en vert, sans fond. */
@@ -1533,8 +1533,8 @@ button:disabled {
 }
 
 .carte-anciennete {
-  font-size: calc(12px * var(--echelle));
-  line-height: calc(17px * var(--echelle));
+  font-size: calc(12px * var(--echelle) * var(--texte-carte, 1));
+  line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
   color: var(--vert-secondaire);
   white-space: nowrap;
 }

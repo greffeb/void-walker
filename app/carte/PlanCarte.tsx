@@ -1,4 +1,4 @@
-import { useRef, type PointerEvent, type WheelEvent } from 'react';
+import { useRef, type CSSProperties, type PointerEvent, type WheelEvent } from 'react';
 import type { CartePublique, PassageCarte, PieceCarte } from '../../engine';
 import { libellePiece, nomDe, regardDe, type TextesMonde } from '../../content';
 import { pointsTrace, rectCapsule, segmentOuverture } from './dessin';
@@ -157,7 +157,8 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
             aria-label={libellePiece(textes, piece)}
             aria-haspopup="dialog"
             aria-expanded={ouverte === piece.piece.id}
-            style={{ left: cible.gauche, top: cible.haut, width: cible.largeur, height: cible.hauteur }}
+            // --texte-carte : le texte suit le plan quand on dézoome, jusqu'aux trois quarts (TEXTE_MIN).
+            style={{ left: cible.gauche, top: cible.haut, width: cible.largeur, height: cible.hauteur, '--texte-carte': textesPiece.texte } as CSSProperties}
             // Un clic au clavier (detail 0) ouvre toujours ; le clic qui termine un glissement n'ouvre rien, et lui seul : une
             // activation suivante sans nouvel appui, comme celle d'un lecteur d'écran, ouvre la fiche.
             onClick={(evenement) => {

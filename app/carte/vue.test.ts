@@ -66,11 +66,20 @@ describe('vue du plan (14 §2.3)', () => {
       nom: ['LOCAL ÉNERGIE'],
       etats: [['feu', 'creature']],
       anciennete: ['vu il y a un', 'moment'],
+      texte: 1,
     });
-    // À mi-échelle, « ÉNERGIE » ne tient plus : plus aucun texte ; motif et losange restent dessinés.
-    expect(etiquettes(energie, 'local énergie', 'vu il y a un moment', 0.5)).toEqual({ nom: [], etats: [], anciennete: [] });
+    // Très réduit, « ÉNERGIE » ne tient plus, même en petit : plus aucun texte ; motif et losange restent dessinés.
+    expect(etiquettes(energie, 'local énergie', 'vu il y a un moment', 0.4)).toEqual({ nom: [], etats: [], anciennete: [], texte: 0.75 });
     // Deux cases : le nom, deux lignes d'état ; « CRÉATURE » est trop large et disparaît.
     const cabine = piece('cabine', { x: 0, y: 0, largeur: 2, hauteur: 2 }, { statut: 'actuelle', vide: true, creature: 'instant' });
-    expect(etiquettes(cabine, 'cabine', null, 1)).toEqual({ nom: ['CABINE'], etats: [['vous'], ['vide']], anciennete: [] });
+    expect(etiquettes(cabine, 'cabine', null, 1)).toEqual({ nom: ['CABINE'], etats: [['vous'], ['vide']], anciennete: [], texte: 1 });
+  });
+
+  it('en dézoomant, le texte rétrécit avec le plan jusqu’aux trois quarts avant qu’un nom ne disparaisse (retour du porteur, 14 §9)', () => {
+    const salle = piece('embarquement', { x: 0, y: 0, largeur: 4, hauteur: 3 });
+    expect(etiquettes(salle, 'salle d’embarquement', null, 0.9)).toMatchObject({ nom: ['SALLE', 'D’EMBARQUEMENT'], texte: 0.9 });
+    expect(etiquettes(salle, 'salle d’embarquement', null, 0.75)).toMatchObject({ nom: ['SALLE', 'D’EMBARQUEMENT'], texte: 0.75 });
+    expect(etiquettes(salle, 'salle d’embarquement', null, 0.6)).toMatchObject({ nom: [], texte: 0.75 });
+    expect(etiquettes(salle, 'salle d’embarquement', null, 2)).toMatchObject({ texte: 1 });
   });
 });

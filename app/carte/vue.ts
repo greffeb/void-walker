@@ -35,6 +35,8 @@ export const ZOOM_MAX = 2;
 export const SEUIL_GLISSER_PX = 8;
 /** Marge autour de la partie connue vue en entier. */
 export const MARGE_VUE_PX = 16;
+/** Le texte rétrécit avec le plan jusqu'aux trois quarts de sa taille, avant qu'un nom ne disparaisse (14 §9, retour du porteur). */
+export const TEXTE_MIN = 0.75;
 /** Cible tactile minimale (12 §7, 14 §2.9), et part du plan gardée à l'écran quand on glisse. */
 export const CIBLE_MIN_PX = 44;
 
@@ -52,6 +54,8 @@ export interface Etiquettes {
   readonly nom: readonly string[];
   readonly etats: readonly (readonly Marque[])[];
   readonly anciennete: readonly string[];
+  /** Taille du texte par rapport à la normale : il suit le plan quand on dézoome, jusqu'à TEXTE_MIN. */
+  readonly texte: number;
 }
 
 /** Cadre de la partie connue, capsules comprises, en cases ; `null` dans un monde sans plan. */
@@ -134,18 +138,20 @@ export function zoneTouchable(boite: BoitePx): BoitePx {
   return { gauche: boite.gauche - (largeur - boite.largeur) / 2, haut: boite.haut - (hauteur - boite.hauteur) / 2, largeur, hauteur };
 }
 
-const RIEN: Etiquettes = { nom: [], etats: [], anciennete: [] };
 
 /**
  * Ce qui tient dans la pièce au zoom courant (14 §2.3, §2.4) : le nom d'abord, puis les étiquettes d'état, jamais coupées, puis
  * l'ancienneté. Ce qui ne tient pas disparaît ; murs, motifs et losange restent. Le texte et la case grandissent ensemble avec la
- * taille du texte : les mesures de PL-04 valent à toutes les tailles.
+ * taille du texte : les mesures de PL-04 valent à toutes les tailles. En dézoomant, le texte rétrécit avec le plan jusqu'à TEXTE_MIN :
+ * on mesure alors la place dans des cases ramenées à la taille du texte.
  */
 export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | null, zoom: number): Etiquettes {
-  if (piece.rect === null) return RIEN;
-  const casePx = CASE_PX * zoom;
+  const texte = Math.min(1, Math.max(TEXTE_MIN, zoom));
+  const rien: Etiquettes = { nom: [], etats: [], anciennete: [], texte };
+  if (piece.rect === null) return rien;
+  const casePx = (CASE_PX * zoom) / texte;
   const place = placeDuNom(nom, piece.rect.largeur, piece.rect.hauteur, casePx);
-  if (place === null) return RIEN;
+  if (place === null) return rien;
   const max = caracteresParLigne(piece.rect.largeur * casePx);
   const marques: Marque[] = [
     ...(piece.statut === 'actuelle' ? (['vous'] as const) : []),
@@ -168,5 +174,5 @@ export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | 
     }
   }
   const lignes = anciennete === null ? null : couperTexte(anciennete, piece.rect.largeur * casePx);
-  return { nom: place.lignes, etats, anciennete: lignes !== null && lignes.length <= libres ? lignes : [] };
+  return { nom: place.lignes, etats, anciennete: lignes !== null && lignes.length <= libres ? lignes : [], texte };
 }

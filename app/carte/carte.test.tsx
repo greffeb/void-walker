@@ -99,6 +99,12 @@ describe('écran de la carte (14 §2)', () => {
     expect(html.match(/<button/g)).toHaveLength(4);
   });
 
+  it('un peu réduite, la carte garde les noms, écrits plus petits (retour du porteur)', () => {
+    const html = plan(CARTE, { zoom: 0.9, x: 0, y: 0 });
+    expect(texte(html)).toContain('D’EMBARQUEMENT');
+    expect(html).toContain('--texte-carte:0.9');
+  });
+
   it('AR-01 au départ : le salon de transit et ses deux sorties, rien d’autre (K-01)', () => {
     const carte = observer(AR01, nouvellePartie(AR01, { version: 'v', graine: 1 }).etat).carte;
     const html = plan(carte);
