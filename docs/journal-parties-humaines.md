@@ -11,7 +11,7 @@ Un agent peut préparer une fiche ou transcrire un retour humain explicitement f
 
 ## Validations signées
 
-RP-05 : cette liste ne contient que des validations reconnues par le robot de la PR (étiquette alidation-reconnue). Chaque ligne est recopiée de sa réponse, avec le lien vers la partie signée ; un contrôle automatique refuse une ligne sans ce lien. Aucune pour l'instant.
+RP-05 : cette liste ne contient que des validations reconnues par le robot de la PR (étiquette `validation-reconnue`). Chaque ligne est recopiée de sa réponse, avec le lien vers la partie signée ; un contrôle automatique refuse une ligne sans ce lien. Aucune pour l'instant.
 
 ## Informations proposées pour chaque session
 

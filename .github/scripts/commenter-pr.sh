@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Poste ou met à jour, dans la PR, le commentaire du robot avec le lien et les captures de la version de test.
-# Usage : commenter-pr.sh <numéro de PR> <fichier markdown>
+# Poste ou met à jour, dans la PR, un commentaire du robot reconnu par son marqueur (par défaut : la version de test).
+# Usage : commenter-pr.sh <numéro de PR> <fichier markdown> [marqueur]
 set -euo pipefail
 
 numero="$1"
 fichier="$2"
-marqueur='<!-- void-walker:version-de-test -->'
+marqueur="${3:-<!-- void-walker:version-de-test -->}"
 if [[ ! "$numero" =~ ^[0-9]+$ ]]; then
   echo "Numéro de PR invalide : ${numero}" >&2
   exit 1

@@ -30,7 +30,7 @@ jobs:
 
   cle-validation:
     name: Clé de validation
-    # PR-10 : aussi pour un envoi direct sur la branche principale ; le jeu est publié quand même.
+    # PR-10 : aussi pour un envoi direct sur la branche principale, par un avertissement dans le résumé du run.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -30,14 +30,28 @@ jobs:
 
   cle-validation:
     name: Clé de validation
-    # PR-10 : toute modification de la clé publique ou du code qui la vérifie est signalée ici, en échec.
+    # PR-10 : toute modification de la clé publique ou du code qui la vérifie est signalée par un avertissement et un
+    # commentaire du robot dans la PR ; la CI reste verte.
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - run: bash .github/scripts/surveiller-validation.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+      - run: bash .github/scripts/surveiller-validation.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" "${RUNNER_TEMP}/cle-validation.md"
+      - name: Prévenir dans la PR
+        # Une PR venue d'un fork n'a pas les droits d'écriture : l'avertissement du run reste.
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMERO: ${{ github.event.pull_request.number }}
+        run: |
+          if [[ -f "${RUNNER_TEMP}/cle-validation.md" ]]; then
+            bash .github/scripts/commenter-pr.sh "${PR_NUMERO}" "${RUNNER_TEMP}/cle-validation.md" '<!-- void-walker:cle-validation -->'
+          fi
 
   captures:
     name: Captures sur téléphone simulé

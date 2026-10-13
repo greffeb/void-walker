@@ -1441,6 +1441,14 @@ button:disabled {
   color: var(--accent);
 }
 
+/* Empreinte de la clé sous « je valide » (D-232), à comparer avec la réponse du robot de la PR. */
+.cle-rapport {
+  margin: -4px 0 0 30px;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte-secondaire);
+}
+
 .joint-rapport {
   margin: 0;
   padding-left: 8px;

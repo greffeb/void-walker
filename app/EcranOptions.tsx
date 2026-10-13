@@ -189,6 +189,7 @@ export function EcranOptions({
                 enAttente={rapportsEnAttente}
                 validable={pr !== '' && partieFinie}
                 apresEnvoi={() => setEnvois((nombre) => nombre + 1)}
+                empreinteCle={empreinteCle}
               />
             )}
             {!partieEnCours ? null : confirmation ? (
@@ -262,9 +263,11 @@ function LignesRapports({
   enAttente,
   validable,
   apresEnvoi,
+  empreinteCle,
 }: {
   readonly validable: boolean;
   readonly apresEnvoi: () => void;
+  readonly empreinteCle: (() => Promise<string | null>) | undefined;
   readonly partieEnregistree: boolean;
   readonly partieEnCours: boolean;
   readonly pr: string;
@@ -309,6 +312,7 @@ function LignesRapports({
               type={type}
               pr={pr}
               validable={validable}
+              empreinteCle={empreinteCle}
               partieJointe={partieEnregistree}
               envoyer={(commentaire, valide) => envoyer(type, commentaire, valide)}
               fermer={(retour) => {

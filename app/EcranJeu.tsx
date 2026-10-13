@@ -92,6 +92,7 @@ export function EcranJeu({
   signaux = AUCUN_SIGNAL,
   envoyerPartie,
   pr = '',
+  empreinteCle,
 }: {
   readonly jeu: Jeu;
   /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
@@ -113,6 +114,8 @@ export function EcranJeu({
   readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
   /** Numéro de PR de la version de test, vide pour la version publique. */
   readonly pr?: string;
+  /** Empreinte de la clé de validation, montrée sous « je valide » (D-232) : l'écran de fin n'a pas d'options. */
+  readonly empreinteCle?: () => Promise<string | null>;
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
@@ -248,7 +251,7 @@ export function EcranJeu({
               Nouvelle partie
             </button>
           )}
-          {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={pr !== ''} occupe={occupe} />}
+          {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={pr !== ''} empreinteCle={empreinteCle} occupe={occupe} />}
         </section>
       ) : (
         <DockPiece

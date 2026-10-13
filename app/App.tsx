@@ -375,6 +375,7 @@ export function App({
             nouvellePartie={() => void commencerNouvellePartie()}
             envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
             pr={pr}
+            empreinteCle={empreinteCle}
           />
         ) : (
           <main className="jeu">

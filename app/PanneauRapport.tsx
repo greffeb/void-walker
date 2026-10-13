@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { COMMENTAIRE_MAX, type Retour, type TypeRapport } from './rapports';
+import { empreinteLisible } from './validation';
 
 /** Texte montré après ENVOYER ; `null` pour la saisie en cours. */
 export const RETOURS: Readonly<Record<Retour, string>> = {
@@ -29,6 +30,7 @@ export function PanneauRapport({
   type,
   pr,
   validable = false,
+  empreinteCle,
   partieJointe,
   envoyer,
   fermer,
@@ -38,12 +40,16 @@ export function PanneauRapport({
   readonly pr: string;
   /** Partie allée au bout, dans une version de test : elle peut porter « je valide », signé par le téléphone (D-130). */
   readonly validable?: boolean;
+  /** Empreinte de la clé de validation du téléphone, montrée sous « je valide » pour la comparer avec la PR (D-232). */
+  readonly empreinteCle?: () => Promise<string | null>;
   readonly partieJointe: boolean;
   readonly envoyer: (commentaire: string, valide: boolean) => Promise<Retour>;
   /** `retour` : ce qu'il faut afficher sous la ligne une fois le panneau refermé ; `null` à l'annulation. */
   readonly fermer: (retour: Retour | null) => void;
 }) {
   const id = useId();
+  const avecCase = type === 'partie' && validable && pr !== '';
+  const empreinte = useEmpreinte(avecCase ? empreinteCle : undefined);
   const champ = useRef<HTMLTextAreaElement>(null);
   const [commentaire, setCommentaire] = useState('');
   const [valide, setValide] = useState(false);
@@ -88,7 +94,7 @@ export function PanneauRapport({
       <p className="compte-rapport" aria-hidden="true">
         {commentaire.length} / {COMMENTAIRE_MAX}
       </p>
-      {type === 'partie' && validable && pr !== '' && (
+      {avecCase && (
         <label className="case-rapport" data-son="clic">
           <input type="checkbox" className="lecteur-seul" checked={valide} disabled={envoi} onChange={() => setValide(!valide)} />
           <span className="valeur-case" aria-hidden="true">
@@ -99,6 +105,12 @@ export function PanneauRapport({
             <span className="detail-option">signé par ce téléphone · version de test PR #{pr}</span>
           </span>
         </label>
+      )}
+      {avecCase && empreinte !== undefined && (
+        <p className="cle-rapport" data-testid="cle-rapport">
+          Clé de ce téléphone :{' '}
+          {empreinte === null ? <span>créée à cet envoi</span> : <span className="empreinte-cle">{empreinteLisible(empreinte)}</span>}
+        </p>
       )}
       <p className="joint-rapport">{joint}</p>
       {refus !== null && (
@@ -118,6 +130,25 @@ export function PanneauRapport({
   );
 }
 
+/** Empreinte lue une fois : `undefined` tant qu'elle n'est pas lue (ou illisible), `null` si la clé n'existe pas encore. */
+function useEmpreinte(lire: (() => Promise<string | null>) | undefined): string | null | undefined {
+  const [empreinte, setEmpreinte] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (lire === undefined) return undefined;
+    let actif = true;
+    lire().then(
+      (lue) => {
+        if (actif) setEmpreinte(lue);
+      },
+      () => undefined,
+    );
+    return () => {
+      actif = false;
+    };
+  }, [lire]);
+  return empreinte;
+}
+
 /**
  * ENVOYER MA PARTIE d'une fin de partie (12 §4.11), discret : le même panneau s'ouvre à sa place, puis le retour reste
  * sous le bouton. `validable` : partie allée au bout, dans une version de test.
@@ -126,11 +157,13 @@ export function EnvoyerMaPartie({
   envoyer,
   pr,
   validable,
+  empreinteCle,
   occupe,
 }: {
   readonly envoyer: (commentaire: string, valide: boolean) => Promise<Retour>;
   readonly pr: string;
   readonly validable: boolean;
+  readonly empreinteCle?: () => Promise<string | null>;
   readonly occupe: boolean;
 }) {
   const [envoi, setEnvoi] = useState<'ferme' | 'ouvert' | Retour>('ferme');
@@ -141,6 +174,7 @@ export function EnvoyerMaPartie({
         type="partie"
         pr={pr}
         validable={validable}
+        empreinteCle={empreinteCle}
         partieJointe
         envoyer={envoyer}
         fermer={(retour) => {
