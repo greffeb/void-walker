@@ -1132,6 +1132,57 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
 }
 
 /**
+ * Feu découvert dans AR-01 (#138, D-233) : P-B jusqu'à l'ouverture du local technique ; la phrase du feu, seule, en rouge
+ * derrière un triangle qui clignote ; fixe quand le téléphone demande moins d'animations.
+ */
+async function dangerAr01(navigateur: Browser, racine: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const etapes = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-B'))?.etapes;
+  const ouverture = etapes?.findIndex((etape) => etape.action === 'ouvrir' && etape.vers === 'galerie') ?? -1;
+  if (etapes === undefined || ouverture === -1) {
+    erreurs.push('Parcours P-B ou ouverture du local technique absents d’AR-01.');
+    return;
+  }
+  const gestes = gestesDuParcours(ar01, etapes).slice(0, ouverture + 1);
+  for (const reduit of [false, true]) {
+    const ou = reduit ? 'Feu découvert, mouvement réduit' : 'Feu découvert';
+    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR', reducedMotion: reduit ? 'reduce' : 'no-preference' });
+    const page = await contexte.newPage();
+    await page.goto(racine);
+    await nouvelleDepuisAccueil(page);
+    if ((await page.getByTestId('alerte').count()) !== 0) erreurs.push(`${ou} : alerte avant la découverte.`);
+    await rejouer(page, gestes.slice(0, -1));
+    if ((await page.getByTestId('alerte').count()) !== 0) erreurs.push(`${ou} : alerte avant l’ouverture.`);
+    const derniere = gestes.at(-1);
+    if (derniere !== undefined) await (await preparer(page, derniere)).click();
+    await attendreSauvegarde(page, gestes.length);
+    const alertes = page.getByTestId('alerte');
+    if ((await alertes.count()) !== 1) {
+      erreurs.push(`${ou} : ${await alertes.count()} ligne(s) d’alerte au lieu d’une.`);
+      await contexte.close();
+      continue;
+    }
+    const style = await alertes.evaluate((ligne) => {
+      const icone = ligne.querySelector('.icone-alerte');
+      const vue = icone === null ? null : getComputedStyle(icone);
+      return {
+        texte: ligne.textContent ?? '',
+        couleur: getComputedStyle(ligne).color,
+        icone: vue === null ? null : { couleur: vue.color, animation: vue.animationName, duree: vue.animationDuration },
+      };
+    });
+    if (!/flammes|brûle/.test(style.texte)) erreurs.push(`${ou} : la ligne d’alerte n’est pas celle du feu (« ${style.texte} »).`);
+    if (style.couleur !== 'rgb(255, 90, 74)' || style.icone?.couleur !== 'rgb(255, 90, 74)') erreurs.push(`${ou} : couleurs ${JSON.stringify(style)}.`);
+    const attendue = reduit ? 'none' : 'alerte';
+    if (style.icone?.animation !== attendue) erreurs.push(`${ou} : animation du triangle « ${style.icone?.animation ?? 'absent'} » au lieu de « ${attendue} ».`);
+    if (!reduit && style.icone?.duree !== '0.5s') erreurs.push(`${ou} : cycle du triangle ${style.icone?.duree ?? '?'} au lieu de 0.5s.`);
+    const titre = reduit ? 'AR-01 — Feu découvert, mouvement réduit : triangle fixe' : 'AR-01 — Feu découvert : phrase en rouge, triangle clignotant';
+    await capturer(page, titre);
+    await verifierEcran(page, ou, erreurs);
+    await contexte.close();
+  }
+}
+
+/**
  * AR-02 par `?monde=ar-02` : P-V1 joué geste par geste, dans un contexte neuf ; captures du départ, de la combinaison enfilée,
  * de l'aperçu de « percer », de la brèche, de l'arrivée devant le corps inerte et de la fin.
  */
@@ -1930,6 +1981,12 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     suite = 'ar-01';
     try {
       await parcoursAr01(navigateur, racine, ar01, capturerPage, erreursAr01);
+    } catch (erreur) {
+      erreursAr01.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // AR-01 : feu découvert signalé dans le récit (#138), avec et sans animations, dans des contextes neufs.
+    try {
+      await dangerAr01(navigateur, racine, ar01, capturerPage, erreursAr01);
     } catch (erreur) {
       erreursAr01.push(erreur instanceof Error ? erreur.message : String(erreur));
     }

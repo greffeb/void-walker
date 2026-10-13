@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { MONDES, type EntreeMonde } from '../content';
+import { alertesDuRecit, MONDES, type EntreeMonde } from '../content';
 import { abandonner, charger, commencer, demarrer, fichierPartie, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
@@ -336,5 +336,56 @@ describe('appli : AR-01, rappel avec paramètre et parole d’IA Station à la r
     const repris = await pret(envAr01());
     expect(repris.rappel).toEqual(jeu.rappel);
     expect(repris.assistance).toEqual(jeu.assistance);
+  });
+});
+
+describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
+  const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_B = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-B'))?.etapes ?? [];
+  let fabrique: IDBFactory;
+  beforeEach(() => {
+    fabrique = new IDBFactory();
+  });
+  const envAr01 = (): Environnement => ({ monde: ar01.monde, textes: ar01.textes, version: 'v-test', stockage: stockageIndexedDB('ar-01', fabrique), graine: () => 20261010 });
+
+  async function etapes(env: Environnement, nombre: number): Promise<Jeu> {
+    let jeu = await pret(env);
+    for (const etape of P_B.slice(0, nombre)) {
+      const option = observer(ar01.monde, jeu.partie.etat).menu.find(
+        (choix) =>
+          choix.action === etape.action &&
+          choix.cible.nom === etape.cible &&
+          (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+          (etape.parametre === undefined || (choix.parametre?.sorte === 'passage' ? choix.parametre.vers?.nom : choix.parametre?.nom) === etape.parametre),
+      );
+      if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+      jeu = await jouerOption(env, jeu, option);
+    }
+    return jeu;
+  }
+
+  it('rangs comptés dans le récit, sans les messages d’assistance ; le feu qui gagne une pièce vue est une alerte', () => {
+    const evenements = [{ type: 'assistance' }, { type: 'passage_ouvert' }, { type: 'feu_gagne' }, { type: 'feu_eteint' }, { type: 'feu_derriere' }];
+    expect(alertesDuRecit(evenements as Parameters<typeof alertesDuRecit>[0])).toEqual([1, 3]);
+  });
+
+  it('aucune alerte avant la découverte du feu', async () => {
+    expect((await pret(envAr01())).alertes).toEqual([]);
+    expect((await etapes(envAr01(), 3)).alertes).toEqual([]);
+  });
+
+  it('ouvrir la porte du local technique : seule la phrase du feu est signalée, à chaud comme à la reprise', async () => {
+    const jeu = await etapes(envAr01(), 4);
+    expect(jeu.alertes).toHaveLength(1);
+    expect(jeu.recit[jeu.alertes[0] ?? -1]).toMatch(/flammes|brûle/);
+    expect(jeu.recit.filter((_, rang) => !jeu.alertes.includes(rang)).some((autre) => /flammes|brûle/.test(autre))).toBe(false);
+    const repris = await pret(envAr01());
+    expect(repris.recit).toEqual(jeu.recit);
+    expect(repris.alertes).toEqual(jeu.alertes);
+  });
+
+  it('l’action suivante ne garde pas l’alerte quand elle ne montre aucun nouveau danger', async () => {
+    const jeu = await etapes(envAr01(), 5);
+    expect(jeu.alertes).toEqual([]);
   });
 });

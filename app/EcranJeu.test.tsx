@@ -937,3 +937,53 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
     );
   });
 });
+
+describe('danger apparu : triangle rouge devant la phrase du feu (#138, D-233)', () => {
+  const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_B = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-B'))?.etapes ?? [];
+  const envAr01: Environnement = { monde: ar01.monde, textes: ar01.textes, version: 'v-test', stockage: memoire(), graine: () => 20261010 };
+
+  async function pb(nombre: number): Promise<Jeu> {
+    let jeu = await commencer(envAr01);
+    for (const etape of P_B.slice(0, nombre)) {
+      const option = observer(ar01.monde, jeu.partie.etat).menu.find(
+        (choix) =>
+          choix.action === etape.action &&
+          choix.cible.nom === etape.cible &&
+          (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)),
+      );
+      if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+      jeu = await jouerOption(envAr01, jeu, option);
+    }
+    return jeu;
+  }
+
+  const recitDe = (jeu: Jeu): string =>
+    entre(
+      renderToStaticMarkup(
+        <EcranJeu jeu={jeu} lus={[]} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+      ),
+      'data-testid="recit"',
+      '<section class="dock"',
+    );
+
+  it('ouvrir la porte du local technique : la phrase du feu, et elle seule, porte le triangle et la couleur d’alerte', async () => {
+    const jeu = await pb(4);
+    const recit = recitDe(jeu);
+    const alertes = [...recit.matchAll(/<p class="alerte" data-testid="alerte">(.*?)<\/p>/g)].map(([, contenu = '']) => contenu);
+    expect(alertes).toHaveLength(1);
+    const [alerte = ''] = alertes;
+    // Le triangle précède la phrase, hors de la copie écrite à la machine : il est là dès le départ.
+    expect(alerte).toMatch(/^<svg class="icone-alerte" viewBox="0 0 16 16" role="img" aria-label="Attention">/);
+    expect(lu(alerte)).toBe(jeu.recit[jeu.alertes[0] ?? -1]);
+    expect(lu(alerte)).toMatch(/flammes|brûle/);
+    // Les autres phrases restent sans repère.
+    expect(recit.match(/icone-alerte/g)).toHaveLength(1);
+    expect(jeu.recit).toHaveLength(2);
+    expect(recit).toContain(`<p><span class="lecteur-seul">${jeu.recit[0] ?? ''}</span>`);
+  });
+
+  it('avant la découverte, aucun triangle ni ligne d’alerte', async () => {
+    for (const nombre of [0, 1, 2, 3]) expect(recitDe(await pb(nombre))).not.toContain('alerte');
+  });
+});

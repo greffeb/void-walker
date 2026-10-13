@@ -135,6 +135,16 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   });
 }
 
+/** Événements dont la phrase décrit un danger qui apparaît à la vue du passager : le feu, comme l'alarme sonore (D-218, D-233). */
+const ALERTES: ReadonlySet<Evenement['type']> = new Set(['feu_derriere', 'feu_gagne']);
+
+/** Rangs, dans le récit de `rendreEvenements`, des phrases qui annoncent un danger (D-233). */
+export function alertesDuRecit(evenements: readonly Evenement[]): number[] {
+  return evenements
+    .filter((evenement) => evenement.type !== 'assistance')
+    .flatMap((evenement, rang) => (ALERTES.has(evenement.type) ? [rang] : []));
+}
+
 /** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07). */
 export function rendreAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
   return evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [texteAssistance(textes, evenement.message)] : []));

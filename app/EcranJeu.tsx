@@ -820,12 +820,20 @@ function Recit({
           {copie(0)}
         </p>
       )}
-      {jeu.recit.map((phrase, index) => (
-        <p key={index}>
-          <span className="lecteur-seul">{phrase}</span>
-          {copie(index + decalage)}
-        </p>
-      ))}
+      {jeu.recit.map((phrase, index) =>
+        jeu.alertes.includes(index) ? (
+          <p key={index} className="alerte" data-testid="alerte">
+            <IconeAlerte />
+            <span className="lecteur-seul">{phrase}</span>
+            {copie(index + decalage)}
+          </p>
+        ) : (
+          <p key={index}>
+            <span className="lecteur-seul">{phrase}</span>
+            {copie(index + decalage)}
+          </p>
+        ),
+      )}
       {paroles.length > 0 && (
         <section className="parole-ia" aria-label="Parole d’IA Station" data-testid="ia-station">
           <p className="etiquette-ia">[ IA STATION ]</p>
@@ -853,6 +861,20 @@ function Recit({
         </button>
       )}
     </section>
+  );
+}
+
+/**
+ * Triangle d'attention devant la phrase d'un danger apparu (D-233) : présent dès le premier instant, hors de l'écriture à la
+ * machine, il clignote seul ; le lecteur d'écran l'annonce une fois, avec la phrase.
+ */
+function IconeAlerte() {
+  return (
+    <svg className="icone-alerte" viewBox="0 0 16 16" role="img" aria-label="Attention">
+      <path d="M8 1.5 15 14.5H1Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="miter" />
+      <path d="M8 6v4.2" stroke="currentColor" strokeWidth="1.8" />
+      <rect x="7.1" y="11.4" width="1.8" height="1.8" fill="currentColor" />
+    </svg>
   );
 }
 

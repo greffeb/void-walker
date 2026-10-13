@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
-import { raconter, raconterDerniers, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
+import { alertesDuRecit, raconter, raconterDerniers, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 
@@ -10,6 +10,8 @@ export type EtatSauvegarde = 'sauvegardee' | 'echec';
 export interface Jeu {
   readonly partie: Partie;
   readonly recit: readonly string[];
+  /** Rangs des phrases du récit qui annoncent un danger apparu à la vue, signalées en rouge (D-233). */
+  readonly alertes: readonly number[];
   /** Rappel de la dernière action choisie, en tête du récit ; `null` au début de la partie. */
   readonly rappel: TexteRappel | null;
   /** Paroles d'IA Station reçues à ce pas, après le récit (12 §3.3) ; aucune après un refus ou une consultation. */
@@ -41,6 +43,7 @@ export async function commencer(env: Environnement): Promise<Jeu> {
   return {
     partie,
     recit: raconterDerniers(env.textes, partie),
+    alertes: alertesDuRecit(partie.derniers),
     rappel: null,
     assistance: rendreAssistance(env.textes, partie.derniers),
     sauvegarde: await enregistrer(env, partie),
@@ -72,7 +75,14 @@ export async function charger(env: Environnement): Promise<Demarrage | { readonl
     const partie = reprendrePartie(env.monde, donnees, env.version);
     const repris = rappelRepris(partie, observer(env.monde, partie.etat));
     const rappel = repris === null ? null : texteRappel(env.textes, repris);
-    const jeu: Jeu = { partie, recit: raconterDerniers(env.textes, partie), rappel, assistance: rendreAssistance(env.textes, partie.derniers), sauvegarde: 'sauvegardee' };
+    const jeu: Jeu = {
+      partie,
+      recit: raconterDerniers(env.textes, partie),
+      alertes: alertesDuRecit(partie.derniers),
+      rappel,
+      assistance: rendreAssistance(env.textes, partie.derniers),
+      sauvegarde: 'sauvegardee',
+    };
     return { type: 'pret', jeu };
   } catch (erreur) {
     return { type: 'reprise_impossible', raison: erreur instanceof Error ? erreur.message : String(erreur) };
@@ -105,12 +115,12 @@ export function prevoir(env: Pick<Environnement, 'monde' | 'textes'>, partie: Pa
 export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMenu): Promise<Jeu> {
   const resultat = jouer(env.monde, jeu.partie, option.commande);
   const recit = raconter(env.textes, resultat);
-  if (resultat.type !== 'engagee') return { ...jeu, recit, rappel: texteRappel(env.textes, rappelDe(option)), assistance: [] };
+  if (resultat.type !== 'engagee') return { ...jeu, recit, alertes: [], rappel: texteRappel(env.textes, rappelDe(option)), assistance: [] };
   // Un déplacement se rappelle par la pièce d'arrivée, connue même quand le passage ne la nommait pas (D-147).
   const arrivee = option.action === 'aller' ? observer(env.monde, resultat.partie.etat).piece : null;
   const rappel = texteRappel(env.textes, arrivee === null ? rappelDe(option) : { type: 'deplacement', vers: arrivee });
   const assistance = rendreAssistance(env.textes, resultat.evenements);
-  return { partie: resultat.partie, recit, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
+  return { partie: resultat.partie, recit, alertes: alertesDuRecit(resultat.evenements), rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */
