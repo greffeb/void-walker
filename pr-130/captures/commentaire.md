@@ -2,7 +2,7 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-130/
-Commit `d7c3655`
+Commit `d2c4711`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large ; départ d’AR-01 aussi en 412 × 915). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
@@ -13,7 +13,7 @@ Adresse : `?monde=monde-test`.
 Installation : manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif
 Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)
 
-<img src="https://greffeb.github.io/void-walker/pr-130/captures/01.png?v=d7c3655" width="200" alt="Options : section SON, ambiance coupée">
+<img src="https://greffeb.github.io/void-walker/pr-130/captures/01.png?v=d2c4711" width="200" alt="Options : section SON, ambiance coupée">
 
 <details><summary>Texte affiché à chaque étape</summary>
 
