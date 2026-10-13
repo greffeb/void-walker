@@ -11,6 +11,7 @@ export default defineConfig(
     'playwright-report/',
     'captures/',
     '.void-walker/',
+    '.worktrees/',
   ]),
   js.configs.recommended,
   tseslint.configs.recommended,

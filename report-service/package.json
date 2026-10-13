@@ -1,0 +1,15 @@
+{
+  "name": "void-walker-report-service",
+  "private": true,
+  "type": "module",
+  "description": "Outil de déploiement du service de rapports (D-127) ; le code du Worker est vérifié avec le reste du dépôt.",
+  "scripts": {
+    "connexion": "wrangler login --scopes account:read user:read workers:write workers_scripts:write workers_tail:read",
+    "deployer": "wrangler deploy",
+    "journal": "wrangler tail",
+    "secret": "wrangler secret put GITHUB_JETON"
+  },
+  "devDependencies": {
+    "wrangler": "4.150.0"
+  }
+}

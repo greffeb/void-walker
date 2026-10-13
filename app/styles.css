@@ -166,6 +166,7 @@ button:disabled {
 .actions-accueil .secondaire,
 .options-bas .secondaire,
 .confirmation-options .secondaire,
+.panneau-rapport .secondaire,
 .actions-fin .secondaire {
   min-height: 50px;
   padding: 8px 16px;
@@ -1336,6 +1337,103 @@ button:disabled {
 .confirmation-options button {
   flex: 1 1 0;
   min-width: min-content;
+}
+
+/* Rapports (12 §4.10, choix A) : le panneau s'ouvre sous la ligne touchée, sur la surface, bordé. */
+.ligne-option.ouverte {
+  color: var(--accent);
+}
+
+.panneau-rapport {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+}
+
+.champ-rapport {
+  font-size: calc(12px * var(--echelle));
+  color: var(--texte-secondaire);
+}
+
+.panneau-rapport textarea {
+  min-height: 96px;
+  padding: 8px;
+  font: inherit;
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte);
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+  border-radius: 0;
+  resize: vertical;
+}
+
+.panneau-rapport textarea::placeholder {
+  color: var(--texte-secondaire);
+}
+
+.panneau-rapport textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.compte-rapport {
+  margin: -4px 0 0;
+  font-size: calc(11px * var(--echelle));
+  text-align: right;
+  color: var(--texte-secondaire);
+}
+
+.case-rapport {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 0;
+  font-size: calc(14px * var(--echelle));
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.case-rapport .detail-option {
+  display: block;
+}
+
+.case-rapport:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.valeur-case {
+  flex: none;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.joint-rapport {
+  margin: 0;
+  padding-left: 8px;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte-secondaire);
+  border-left: 2px solid var(--separateur);
+}
+
+.panneau-rapport .avis-option {
+  margin: 0;
+  padding: 6px 8px;
+  font-size: calc(13px * var(--echelle));
+  color: var(--fond);
+  background: var(--accent);
+}
+
+.panneau-rapport > div {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
 }
 
 .options-bas,

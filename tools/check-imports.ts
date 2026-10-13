@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { REPO_ROOT, displayPath, isMainModule, listRepoFiles } from './repo-files';
 
 // Règles d'import de docs/10-architecture.md §3 (AP-01).
-export const ZONES = ['engine', 'content', 'app', 'cli', 'tools'] as const;
+export const ZONES = ['engine', 'content', 'app', 'cli', 'tools', 'report-service'] as const;
 export type Zone = (typeof ZONES)[number];
 
 interface ZoneRule {
@@ -46,11 +46,18 @@ const RULES: Record<Zone, ZoneRule> = {
     summary: 'cli/ importe cli/, engine/, content/, des paquets npm et des modules Node',
   },
   tools: {
-    zones: ['tools', 'engine', 'content', 'app'],
+    zones: ['tools', 'engine', 'content', 'app', 'report-service'],
     typeOnlyZones: [],
     packages: true,
     nodeModules: true,
-    summary: 'tools/ importe tools/, engine/, content/, app/, des paquets npm et des modules Node',
+    summary: 'tools/ importe tools/, engine/, content/, app/, report-service/, des paquets npm et des modules Node',
+  },
+  'report-service': {
+    zones: ['report-service'],
+    typeOnlyZones: [],
+    packages: false,
+    nodeModules: false,
+    summary: "report-service/ n'importe que report-service/ : il tourne seul sur Cloudflare",
   },
 };
 

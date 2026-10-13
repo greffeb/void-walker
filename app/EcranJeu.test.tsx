@@ -8,6 +8,8 @@ import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
+import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
+import type { Retour } from './rapports';
 import { REGLAGES_PAR_DEFAUT, type Reglages } from './reglages';
 import type { Stockage } from './sauvegarde';
 
@@ -471,7 +473,18 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 });
 
 function options(
-  surcharge: Partial<{ reglages: Reglages; partieEnCours: boolean; version: string; build: string; commit: string; pr: string; miseAJour: MiseAJour }> = {},
+  surcharge: Partial<{
+    reglages: Reglages;
+    partieEnCours: boolean;
+    version: string;
+    build: string;
+    commit: string;
+    pr: string;
+    miseAJour: MiseAJour;
+    partieEnregistree: boolean;
+    envoyerRapport: () => Promise<Retour>;
+    rapportsEnAttente: number;
+  }> = {},
 ): string {
   return renderToStaticMarkup(
     <EcranOptions
@@ -488,6 +501,9 @@ function options(
       commit={surcharge.commit ?? ''}
       pr={surcharge.pr ?? ''}
       miseAJour={surcharge.miseAJour}
+      partieEnregistree={surcharge.partieEnregistree}
+      envoyerRapport={surcharge.envoyerRapport}
+      rapportsEnAttente={surcharge.rapportsEnAttente}
     />,
   );
 }
@@ -554,6 +570,59 @@ describe('options (12 §4.10, #96)', () => {
   });
 });
 
+describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
+  const envoyerRapport = (): Promise<Retour> => Promise.resolve('envoye');
+
+  it('partie en cours : Télécharger, Signaler un bug, Envoyer ma partie, puis Abandonner', () => {
+    expect(texte(entre(options({ envoyerRapport }), '<h2 class="titre-section">Partie</h2>', '</section>'))).toBe(
+      [
+        'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone',
+        '▸ Signaler un bug la partie en cours est jointe',
+        '▸ Envoyer ma partie partie et commentaire',
+        '⊘ Abandonner la partie en cours',
+      ].join(' '),
+    );
+    expect(options({ envoyerRapport })).toContain('aria-expanded="false"');
+  });
+
+  it('sans partie : seulement Signaler un bug, sans partie jointe ; partie finie : on peut encore l’envoyer', () => {
+    const sans = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false }));
+    expect(sans).toContain('Partie ▸ Signaler un bug aucune partie à joindre');
+    for (const absent of ['Envoyer ma partie', 'Télécharger', 'Abandonner']) expect(sans).not.toContain(absent);
+    const finie = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true }));
+    expect(finie).toContain('▸ Signaler un bug la partie est jointe ▸ Envoyer ma partie partie et commentaire');
+    expect(finie).not.toContain('Abandonner');
+  });
+
+  it('rapports gardés sans réseau : le nombre en attente est dit en mots courants', () => {
+    expect(texte(options({ envoyerRapport, rapportsEnAttente: 1 }))).toContain('Un rapport attend le réseau pour partir.');
+    expect(texte(options({ envoyerRapport, rapportsEnAttente: 3 }))).toContain('3 rapports attendent le réseau pour partir.');
+    expect(options({ envoyerRapport })).not.toContain('rapports-en-attente');
+  });
+
+  it('panneau de bug : commentaire facultatif borné, ce qui est joint, ANNULER et ENVOYER ; pas de case « je valide »', () => {
+    const html = renderToStaticMarkup(<PanneauRapport type="bug" pr="142" partieJointe envoyer={envoyerRapport} fermer={rienALire} />);
+    expect(texte(html)).toBe('Votre commentaire, facultatif 0 / 1000 Joint : la partie jusqu’ici et l’écran affiché. Annuler Envoyer');
+    expect(html).toMatch(/<textarea[^>]*maxLength="1000"[^>]*placeholder="Ce qui s’est passé, ce que vous attendiez…"/);
+    expect(html).not.toContain('checkbox');
+  });
+
+  it('panneau d’envoi de partie : la case « je valide » seulement dans une version de test (D-132)', () => {
+    const test = renderToStaticMarkup(<PanneauRapport type="partie" pr="142" partieJointe envoyer={envoyerRapport} fermer={rienALire} />);
+    expect(texte(test)).toContain('[ ] Je valide cette aventure version de test PR #142');
+    expect(test).toContain('type="checkbox"');
+    const publique = renderToStaticMarkup(<PanneauRapport type="partie" pr="" partieJointe envoyer={envoyerRapport} fermer={rienALire} />);
+    expect(publique).not.toContain('checkbox');
+    expect(texte(publique)).toContain('Joint : la partie complète et où elle en est.');
+  });
+
+  it('retours : le panneau se ferme quand le rapport est parti ou gardé, reste ouvert sinon', () => {
+    expect((['envoye', 'garde', 'trop'] as const).every(rapportPris)).toBe(true);
+    expect((['refuse', 'perdu', 'patience'] as const).some(rapportPris)).toBe(false);
+    expect(RETOURS.garde).toBe('Pas de réseau. Le rapport est gardé sur le téléphone et partira tout seul à la prochaine connexion.');
+  });
+});
+
 describe('fin après abandon (12 §4.11, #96)', () => {
   it('titre, récit court, pièces visitées en mots, phrase de fin, puis REJOUER, NOUVELLE PARTIE et MENU PRINCIPAL ; aucun chiffre', async () => {
     const jeu = await apres('prendre', 'ouvrir', 'aller');
@@ -572,6 +641,15 @@ describe('fin après abandon (12 §4.11, #96)', () => {
     );
     expect(texte(html)).not.toMatch(/\d/);
     expect(html).toContain('<button type="button" class="principal" data-son="clic">Rejouer cette station</button>');
+  });
+
+  it('ENVOYER MA PARTIE, discret, entre NOUVELLE PARTIE et MENU PRINCIPAL quand le service est là (#107)', async () => {
+    const jeu = await apres('prendre');
+    const html = renderToStaticMarkup(
+      <EcranFin jeu={jeu} env={env} occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} envoyerPartie={() => Promise.resolve('envoye')} />,
+    );
+    expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Envoyer ma partie Menu principal');
+    expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
   });
 });
 

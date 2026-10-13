@@ -5,6 +5,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
 import { mondeDemande, type Environnement } from './jeu';
 import { piloterMiseAJour } from './miseAJour';
+import { creerRapports } from './rapports';
 import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
 import { creerMoteur, sessionAmbiante } from './son/moteur';
@@ -73,6 +74,17 @@ const miseAJour = piloterMiseAJour({
   recharger: () => window.location.reload(),
 });
 
+// Rapports (C-10 §3) : ceux gardés sans réseau repartent au lancement et au retour du réseau (PR-01).
+const rapports = creerRapports({
+  adresse: import.meta.env.VITE_SERVICE_RAPPORTS,
+  appeler: (adresse, init) => window.fetch(adresse, init),
+  lire: (cle) => window.localStorage.getItem(cle),
+  ecrire: (cle, valeur) => window.localStorage.setItem(cle, valeur),
+  maintenant: () => Date.now(),
+});
+void rapports.renvoyer();
+window.addEventListener('online', () => void rapports.renvoyer());
+
 createRoot(racine).render(
   <StrictMode>
     <App
@@ -85,6 +97,7 @@ createRoot(racine).render(
       pr={import.meta.env.VITE_PR_NUMERO ?? ''}
       son={son}
       miseAJour={miseAJour}
+      rapports={rapports}
     />
   </StrictMode>,
 );

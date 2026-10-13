@@ -35,8 +35,8 @@
 | `content/` | AR-01, AR-02, morceaux, qualités, textes français | Types du moteur |
 | `app/` | PWA React : écran, carte, menus, sauvegarde, rapports, signature | `engine`, `content` |
 | `cli/` | Même partie en ligne de commande, pour les agents et le playtester | `engine`, `content` |
-| `tools/` | Vérificateur de stations, bots, rejoueur d'export, contrôles des textes, captures | `engine`, `content`, `app` pour les captures |
-| `report-service/` | Worker Cloudflare : reçoit les rapports, crée issues et commentaires | Format d'export seulement |
+| `tools/` | Vérificateur de stations, bots, rejoueur d'export, contrôles des textes, captures | `engine`, `content`, `app` pour les captures, `report-service` pour rejouer un rapport |
+| `report-service/` | Worker Cloudflare : reçoit les rapports, crée issues et commentaires ; [déploiement](../report-service/README.md) | Rien d'autre : il ne connaît l'export que par sa forme |
 | `docs/` | Ce kit | — |
 
 Ces règles d'import sont vérifiées automatiquement ; une violation fait échouer la vérification.
@@ -47,7 +47,7 @@ Ces règles d'import sont vérifiées automatiquement ; une violation fait écho
 - **AP-03 — Sauvegarde.** IndexedDB du navigateur ; une écriture par action, contenant l'état et le journal des actions ; « sauvegardé » affiché seulement après succès (C-09).
 - **AP-04 — Signature.** Clé générée par l'API de chiffrement du navigateur (WebCrypto), privée et non exportable, conservée sur le téléphone. La clé publique est dans `docs/validation-key.json`, fichier surveillé par la CI (D-130).
 - **AP-05 — Versions de test.** GitHub Pages publie la version principale à la racine et chaque PR dans `/pr-<numéro>/`, supprimé à la fermeture. Chaque version de test connaît son numéro de PR pour y envoyer les retours (D-132). La V1 publiait autrement ; le mode de publication du dépôt sera changé au Bootstrap.
-- **AP-06 — Service de rapports.** Requêtes POST en HTTPS ; issue pour la version publique, commentaire de PR pour une version de test ; limites de nombre, de délai et de doublons ; clé GitHub limitée aux issues et commentaires de ce dépôt.
+- **AP-06 — Service de rapports.** Requêtes POST en HTTPS ; issue pour la version publique, commentaire de PR pour une version de test ; limites de nombre, de délai et de doublons ; clé GitHub limitée aux issues et commentaires de ce dépôt. Déploiement et secrets : [report-service/README.md](../report-service/README.md).
 - **AP-07 — Reconnaissance d'une validation.** Une action GitHub, déclenchée par un commentaire de validation, vérifie la signature avec la clé publique du dépôt et pose l'étiquette. Le service ne décide jamais d'une validation.
 - **AP-08 — Vérification complète.** Une commande unique : contrôle du code, types, tests unitaires, parcours témoins d'AR-01 et AR-02 rejoués par le moteur, vérificateur de stations, contrôles des textes, build. La même en local et en CI.
 - **AP-09 — Captures.** Un navigateur automatisé joue les parcours témoins sur un écran de téléphone simulé ; captures et texte affiché sont joints à la PR (D-135).

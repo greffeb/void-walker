@@ -33,6 +33,8 @@ export default defineConfig({
     'import.meta.env.VITE_PR_NUMERO': JSON.stringify(process.env.PR_NUMERO ?? ''),
     'import.meta.env.VITE_COMMIT': JSON.stringify(commit),
     'import.meta.env.VITE_BUILD': JSON.stringify(numeroDeConstruction()),
+    // Service de rapports (AP-06, D-134) ; SERVICE_RAPPORTS le remplace pour un essai contre un autre Worker.
+    'import.meta.env.VITE_SERVICE_RAPPORTS': JSON.stringify(process.env.SERVICE_RAPPORTS ?? 'https://void-walker-rapports.greffe-b.workers.dev/rapports'),
   },
   build: {
     outDir: '../dist',
