@@ -1664,7 +1664,13 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Date / statut : 2026-10-13 / **Validé**.
 - Origine : réponses du porteur après l'essai sur téléphone : « le vide, comme le feu » ; « créature, j'aime bien Dissonance, et à la première rencontre ». Choix fait sur le banc d'écoute.
 - Décision : l'alarme vide sonne aussi quand le voyant d'une porte étanche révèle une pièce sans air, aux mêmes règles que le feu (D-223). Un signal « créature » (Dissonance, 15 §3.2) sonne une seule fois, à la première rencontre que le moteur annonce ; il passe après les alarmes et avant la santé (15 §2.4).
-- Modifie : D-218. Les sons de la mort et de la victoire restent à choisir.
+- Modifie : D-218. Les sons de la mort et de la victoire sont choisis par D-225.
+
+### D-225 — Sons de la mort et de la victoire
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demande du porteur après l'essai sur téléphone (« il manque un son pour la victoire (fin de transmission) et pour la mort (3e dégât, boop long) ») ; « pour la mort, fais des variantes de blessure Parasite » ; « victoire, essaye un effet magnétoscope qu'on arrête » ; choix sur le banc : mort A Parasite qui s'éteint, victoire C Bande qui ralentit. Le crépitement entendu sans rien faire (« ça fait crépitement bug analog ») est accepté tel quel.
+- Décision : quand la santé passe à « vaincu », le signal « mort » remplace la blessure critique ; quand l'évacuation réussit, le signal « victoire » part en dernier (15 §2.2, §2.4, §3.2).
 
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 

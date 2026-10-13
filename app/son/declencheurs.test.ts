@@ -76,14 +76,21 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
     expect(signauxApres(ailleurs({ ...base, sansAir: true }), sansAir)).toEqual(['alarme-vide']);
   });
 
-  it('santé : blessé, puis critique ou vaincu (version critique) ; amélioration : soin', () => {
+  it('santé : blessé, puis critique (version critique), puis vaincu (la mort, D-225) ; amélioration : soin', () => {
     const sante = (etat: Observation['sante']): Observation => ({ ...base, sante: etat });
     expect(signauxApres(sante('indemne'), sante('blesse'))).toEqual(['blessure']);
     expect(signauxApres(sante('indemne'), sante('critique'))).toEqual(['blessure-critique']);
     expect(signauxApres(sante('blesse'), sante('critique'))).toEqual(['blessure-critique']);
-    expect(signauxApres(sante('critique'), sante('vaincu'))).toEqual(['blessure-critique']);
+    expect(signauxApres(sante('critique'), sante('vaincu'))).toEqual(['mort']);
     expect(signauxApres(sante('critique'), sante('blesse'))).toEqual(['soin']);
     expect(signauxApres(sante('blesse'), sante('indemne'))).toEqual(['soin']);
+  });
+
+  it('fin de partie : la mort remplace la blessure critique ; la victoire à l’évacuation (D-225)', () => {
+    expect(signauxApres({ ...base, sante: 'critique' }, { ...base, sante: 'vaincu', issue: 'defaite' })).toEqual(['mort']);
+    expect(signauxApres(base, { ...base, sante: 'vaincu', issue: 'defaite' })).toEqual(['mort']);
+    expect(signauxApres(base, { ...base, issue: 'evacuation', terminee: true })).toEqual(['victoire']);
+    expect(signauxApres({ ...base, issue: 'evacuation' }, { ...base, issue: 'evacuation' })).toEqual([]);
   });
 
   it('IA Station : un message de plus', () => {
@@ -123,7 +130,30 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
           expect(signaux.includes('alarme-vide')).toBe(videsVus(apres).some((vide) => !videsAvant.includes(vide)));
           expect(signaux.includes('creature')).toBe(resultat.evenements.some((evenement) => evenement.type === 'premier_contact'));
           expect(signaux.includes('ia')).toBe(apres.messages.length > avant.messages.length);
+          expect(signaux.includes('mort')).toBe(apres.sante === 'vaincu' && avant.sante !== 'vaincu');
+          expect(signaux.includes('blessure-critique') && apres.sante === 'vaincu').toBe(false);
           for (const signal of signaux) vus.add(signal);
+          partie = resultat.partie;
+        }
+      }
+    }
+    // La victoire demande une évacuation, que le hasard n'atteint pas : les parcours témoins la jouent.
+    for (const entree of Object.values(MONDES)) {
+      for (const parcours of entree.parcours) {
+        let partie: Partie = nouvellePartie(entree.monde, { version: 't', graine: 20261010 });
+        for (const etape of parcours.etapes) {
+          const avant = observer(entree.monde, partie.etat);
+          const option = avant.menu.find(
+            (choix) =>
+              choix.action === etape.action &&
+              choix.cible.nom === etape.cible &&
+              (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+              (etape.parametre === undefined || choix.parametre?.nom === etape.parametre),
+          );
+          if (option === undefined) break;
+          const resultat = jouer(entree.monde, partie, option.commande);
+          if (resultat.type !== 'engagee') break;
+          for (const signal of signauxApres(avant, observer(entree.monde, resultat.partie.etat), resultat.evenements)) vus.add(signal);
           partie = resultat.partie;
         }
       }

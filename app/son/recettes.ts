@@ -29,6 +29,8 @@ export interface Souffle {
   readonly f: number;
   readonly q?: number;
   readonly filtre?: Filtre;
+  /** Fréquence du filtre atteinte en fin de son, par glissement exponentiel (bande qui ralentit). */
+  readonly fin?: number;
   readonly vol: number;
   readonly montee?: number;
   readonly chute?: number;
@@ -59,8 +61,8 @@ export function decaler(recette: Recette, de: number): ElementSon[] {
 export const GESTES = ['clic', 'bulle', 'fermer', 'panneau-inventaire', 'panneau-carte', 'panneau-ia', 'confirmer', 'refus'] as const;
 export type Geste = (typeof GESTES)[number];
 
-/** Signaux du terminal (15 §2.2, D-218, D-224), dans l'ordre où ils se jouent (15 §2.4). */
-export const SIGNAUX = ['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'blessure-critique', 'soin', 'ia'] as const;
+/** Signaux du terminal (15 §2.2, D-218, D-224, D-225), dans l'ordre où ils se jouent (15 §2.4). */
+export const SIGNAUX = ['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'blessure-critique', 'mort', 'soin', 'ia', 'victoire'] as const;
 export type Signal = (typeof SIGNAUX)[number];
 
 export function ordonnerSignaux(signaux: readonly Signal[]): Signal[] {
@@ -119,11 +121,20 @@ export const RECETTES_SIGNAUX: Readonly<Record<Signal, Recette>> = {
   creature: [233, 330].map((f) => ton(0, 0.7, f, { vol: 0.08, passeBas: 1600, trem: 8, montee: 0.02, chute: 0.2 })),
   blessure: blessure(1),
   'blessure-critique': [...blessure(0.75), ...decaler(blessure(0.75), 0.32)],
+  // Parasite qui s'éteint (D-225) : le bourdonnement de la blessure ralentit et descend.
+  mort: [souffle(0, 0.06, 700, { filtre: 'lowpass', q: 1, vol: 0.3 }), ton(0.02, 1.4, 220, { fin: 55, vol: 0.12, passeBas: 1500, trem: 40, chute: 0.5 })],
   soin: [
     ton(0, 0.12, 523, { onde: 'sine', vol: 0.16, montee: 0.02, chute: 0.06 }),
     ton(0.12, 0.16, 784, { onde: 'sine', vol: 0.15, montee: 0.02, chute: 0.1 }),
   ],
   ia: [0, 0.07, 0.14].map((de) => ton(de, 0.028, 1600, { vol: 0.07 })),
+  // Bande qui ralentit (D-225) : un magnétoscope qu'on arrête, puis le clac du mécanisme.
+  victoire: [
+    ton(0, 1.2, 440, { onde: 'sine', fin: 60, vol: 0.16, montee: 0.01, chute: 0.25 }),
+    ton(0, 1.2, 660, { onde: 'sine', fin: 90, vol: 0.08, montee: 0.01, chute: 0.25 }),
+    souffle(0, 1.2, 3000, { fin: 200, q: 0.8, vol: 0.06 }),
+    souffle(1.25, 0.03, 600, { filtre: 'lowpass', vol: 0.45 }),
+  ],
 };
 
 /** Crépitement de l'écriture (15 §2.3, §3.2) : un tic tous les 36 ms × (0,75 à 1,25), sur une note tirée parmi trois. */

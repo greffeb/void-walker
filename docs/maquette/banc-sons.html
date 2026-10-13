@@ -329,7 +329,7 @@ input[type=range] { accent-color: var(--accent); flex: 1 1 140px; min-width: 0; 
   const garder = () => { try { localStorage.setItem(CLE, JSON.stringify(choix)); } catch {} };
   const lettre = (i) => 'ABCDE'[i];
   // Choix déjà faits sur ce banc (v1), repris tant que le porteur ne les change pas.
-  const CHOIX_V1 = { creature: 1, clic: 0, bulle2: 2, confirmer2: 3, refus: 1, ia: 0, ecriture: 2, panneau2: 2, blessure: 2, soin: 1, feu: 1, vide: 0 };
+  const CHOIX_V1 = { creature: 1, victoire2: 2, mort2: 0, clic: 0, bulle2: 2, confirmer2: 3, refus: 1, ia: 0, ecriture: 2, panneau2: 2, blessure: 2, soin: 1, feu: 1, vide: 0 };
   // Les anciennes bulle et confirmer (jugées trop intenses) sortent du banc.
   for (let i = MOMENTS.length - 1; i >= 0; i--) if (MOMENTS[i].ancien) MOMENTS.splice(i, 1);
   Object.entries(CHOIX_V1).forEach(([k, v]) => { if (choix[k] === undefined) choix[k] = v; });

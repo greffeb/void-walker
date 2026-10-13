@@ -34,8 +34,11 @@ export function signauxApres(avant: Observation, apres: Observation, evenements:
   if (apparait(videsVus(avant), videsVus(apres))) signaux.push('alarme-vide');
   if (evenements.some((evenement) => evenement.type === 'premier_contact')) signaux.push('creature');
   const ecart = GRAVITE[apres.sante] - GRAVITE[avant.sante];
-  if (ecart > 0) signaux.push(GRAVITE[apres.sante] >= GRAVITE.critique ? 'blessure-critique' : 'blessure');
-  if (ecart < 0) signaux.push('soin');
+  // La mort remplace la blessure critique (D-225).
+  if (apres.sante === 'vaincu' && avant.sante !== 'vaincu') signaux.push('mort');
+  else if (ecart > 0) signaux.push(GRAVITE[apres.sante] >= GRAVITE.critique ? 'blessure-critique' : 'blessure');
+  else if (ecart < 0) signaux.push('soin');
   if (apres.messages.length > avant.messages.length) signaux.push('ia');
+  if (apres.issue === 'evacuation' && avant.issue !== 'evacuation') signaux.push('victoire');
   return signaux;
 }

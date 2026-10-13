@@ -1,6 +1,6 @@
 # Void Walker V2 — son : bruitages du terminal et ambiance
 
-> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-224 (D-223 et D-224 après l'essai sur téléphone de la PR #130).
+> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-225 (D-223 à D-225 après l'essai sur téléphone de la PR #130).
 > **Date :** 2026-10-13.
 > **Issue :** [#99](https://github.com/greffeb/void-walker/issues/99) (bande-son et bruitages d'interface rétro).
 > **Références d'écoute :** le [banc des bruitages](maquette/banc-sons.html) (sons choisis à l'oreille, recettes exactes) et la [maquette de la section SON](maquette/options-son.html) (variante A, rail). Les deux pages s'ouvrent dans un navigateur et jouent après un premier toucher.
@@ -40,12 +40,14 @@ Après chaque action jouée, l'interface compare l'observation d'avant et celle 
 | Changement | Son |
 | --- | --- |
 | Santé aggravée jusqu'à « blessé » | Blessure (Parasite) |
-| Santé aggravée jusqu'à « critique » ou « vaincu » | Blessure critique : même recette, hauteur × 0,75, jouée deux fois à 0,32 s d'écart |
+| Santé aggravée jusqu'à « critique » | Blessure critique : même recette, hauteur × 0,75, jouée deux fois à 0,32 s d'écart |
+| Santé « vaincu » : la partie est perdue (D-225) | Mort (Parasite qui s'éteint), à la place de la blessure critique |
 | Santé améliorée | Soin (Bip apaisé) |
 | Un feu apparaît à la vue du passager : dans sa pièce (il y entre, le feu s'y propage) ou par un passage ouvert (il ouvre sur une pièce en feu, le feu gagne la voisine) (D-223) | Alarme incendie (Détecteur), une fois |
 | Le vide apparaît à la vue du passager de la même façon : dans sa pièce, ou par le voyant d'une porte étanche (D-224) | Alarme vide (Grave pulsé), une fois |
 | Première rencontre de la créature (événement `premier_contact` du moteur) (D-224) | Créature (Dissonance) |
 | Nombre de messages d'IA Station en hausse | IA Station (Télétype) |
+| Évacuation réussie (D-225) | Victoire (Bande qui ralentit) |
 
 Rester dans une pièce en feu, ou devant un passage ouvert sur le feu, ne fait pas resonner l'alarme ; en sortir puis y revenir la fait resonner (« à chaque entrée dans le danger », choix du porteur). Changer de pièce compte comme un passage de faux à vrai quand la nouvelle pièce brûle ou n'a plus d'air. Reprendre une partie enregistrée, ou revenir des options, ne joue aucun signal : il n'y a pas d'observation d'avant. Un refus, une consultation ou un aperçu ne change pas l'observation et ne joue aucun signal.
 
@@ -55,7 +57,7 @@ Pendant l'effet machine à écrire (D-186), le crépitement (Bips de caractères
 
 ### 2.4 Ordre
 
-Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis les signaux à la suite, espacés de 250 ms, dans cet ordre : alarme incendie, alarme vide, créature, blessure ou soin, IA Station. Les signaux attendent la fin de l'écriture ; sans écriture, ou si on la saute, ils partent tout de suite.
+Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis les signaux à la suite, espacés de 250 ms, dans cet ordre : alarme incendie, alarme vide, créature, blessure, mort ou soin, IA Station, victoire. Les signaux attendent la fin de l'écriture ; sans écriture, ou si on la saute, ils partent tout de suite.
 
 ### 2.5 Ambiance (D-219)
 
@@ -68,7 +70,7 @@ Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles r
 ### 3.1 Conventions
 
 - **Ton :** oscillateur (carré par défaut, sinus ou triangle sinon) de fréquence f, éventuellement glissée vers une fréquence de fin ; filtre passe-bas facultatif ; modulation d'amplitude carrée facultative (« trém. », en Hz).
-- **Souffle :** bruit blanc à travers un passe-bande (par défaut) ou un autre filtre de fréquence f et de facteur Q.
+- **Souffle :** bruit blanc à travers un passe-bande (par défaut) ou un autre filtre de fréquence f et de facteur Q ; la fréquence du filtre peut glisser jusqu'à une fréquence de fin.
 - **Enveloppe :** montée exponentielle en 2 ms pour un ton, 1 ms pour un souffle (sauf mention), tenue, chute exponentielle de min(30 ms, durée / 2) (sauf mention).
 - Temps en secondes depuis le départ du son ; « vol » est le niveau crête avant les bus.
 
@@ -89,6 +91,8 @@ Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles r
 | Alarme incendie | six tons carrés 50 ms à 1 400, vol 0,06, chute 10 ms, tous les 90 ms |
 | Alarme vide | trois tons carrés 160 ms à 180, passe-bas 1 200, vol 0,14, chute 30 ms, à 0, 260 et 520 ms |
 | Créature | deux tons carrés de 700 ms à 233 et 330 (triton), passe-bas 1 600, trém. 8, vol 0,08 chacun, montée 20 ms, chute 200 ms |
+| Mort | souffle 60 ms passe-bas 700, Q 1, vol 0,3 ; à 20 ms, ton carré 1,4 s de 220 à 55, passe-bas 1 500, trém. 40, vol 0,12, chute 500 ms |
+| Victoire | tons sinus 1,2 s de 440 à 60 (vol 0,16) et de 660 à 90 (vol 0,08), montée 10 ms, chute 250 ms ; souffle 1,2 s, f 3 000 glissant à 200, Q 0,8, vol 0,06 ; à 1,25 s, souffle 30 ms passe-bas 600, vol 0,45 (le clac d'arrêt) |
 
 **Grain cassette :** tous les bruitages passent par une saturation douce (tanh, k = 2,2) puis un passe-bas à 5 200 Hz (Q 0,5). L'ambiance n'y passe pas.
 
@@ -155,7 +159,7 @@ Tout vit dans `app/` ; le moteur et la CLI ne changent pas.
 
 ## 7. Tests et preuves
 
-- **Recettes :** chaque son du §2 a sa recette ; un geste dure moins de 300 ms, un signal moins d'1 s (la blessure critique, jouée deux fois, dure 0,47 s), un son de carlingue moins de 6 s (réverbération non comprise) ; niveaux sous un plafond commun ; valeurs du §3.
+- **Recettes :** chaque son du §2 a sa recette ; un geste dure moins de 300 ms, un signal moins d'1 s (la blessure critique, jouée deux fois, dure 0,47 s), une fin de partie (mort, victoire) moins d'1,5 s, un son de carlingue moins de 6 s (réverbération non comprise) ; niveaux sous un plafond commun ; valeurs du §3.
 - **Déclencheurs :** un cas écrit par ligne du §2.2, dont le retour dans une pièce en feu et la reprise d'une partie ; puis des centaines de parties tirées au hasard avec le vrai moteur sur AR-01, AR-02 et le monde de test : à chaque pas, seuls les signaux listés sortent, une alarme sonne si et seulement si le feu ou le vide vient d'apparaître dans la pièce du passager, l'ordre du §2.4 est respecté.
 - **Moteur :** avec un faux contexte audio qui enregistre les demandes : rien avant le premier toucher ; pause et reprise ; gains (§4) ; ambiance à 0 arrêtée ; audio absent ou en panne sans erreur ; carlingue sur des milliers de tirages : intervalles de 20 à 60 s, gong une fois sur sept.
 - **Écrans :** avec un espion à la place du son : chaque geste du §2.1 joue exactement un son ; le crépitement démarre avec l'écriture et s'arrête à la fin ou au saut ; les rails changent et gardent les réglages.

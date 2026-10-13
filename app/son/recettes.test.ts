@@ -33,9 +33,9 @@ describe('recettes des sons (15 §3)', () => {
     for (const [nom, recette] of toutes()) expect(recette.length, nom).toBeGreaterThan(0);
   });
 
-  it('un geste dure moins de 300 ms, un signal moins d’une seconde (15 §7)', () => {
+  it('un geste dure moins de 300 ms, un signal moins d’une seconde, une fin de partie moins d’une seconde et demie (15 §7)', () => {
     for (const [nom, recette] of Object.entries(RECETTES_GESTES)) expect(dureeRecette(recette), nom).toBeLessThan(0.3);
-    for (const [nom, recette] of Object.entries(RECETTES_SIGNAUX)) expect(dureeRecette(recette), nom).toBeLessThan(1);
+    for (const [nom, recette] of Object.entries(RECETTES_SIGNAUX)) expect(dureeRecette(recette), nom).toBeLessThan(nom === 'victoire' || nom === 'mort' ? 1.5 : 1);
   });
 
   it('éléments bien formés : départ positif, fréquences audibles, niveaux sous le plafond commun, montée avant la fin', () => {
@@ -82,6 +82,19 @@ describe('recettes des sons (15 §3)', () => {
     ]);
   });
 
+  it('mort : Parasite qui s’éteint ; victoire : Bande qui ralentit, puis le clac d’arrêt (D-225)', () => {
+    expect(RECETTES_SIGNAUX.mort).toEqual([
+      { sorte: 'souffle', t: 0, duree: 0.06, f: 700, filtre: 'lowpass', q: 1, vol: 0.3 },
+      { sorte: 'ton', t: 0.02, duree: 1.4, f: 220, fin: 55, vol: 0.12, passeBas: 1500, trem: 40, chute: 0.5 },
+    ]);
+    expect(RECETTES_SIGNAUX.victoire).toEqual([
+      { sorte: 'ton', t: 0, duree: 1.2, f: 440, onde: 'sine', fin: 60, vol: 0.16, montee: 0.01, chute: 0.25 },
+      { sorte: 'ton', t: 0, duree: 1.2, f: 660, onde: 'sine', fin: 90, vol: 0.08, montee: 0.01, chute: 0.25 },
+      { sorte: 'souffle', t: 0, duree: 1.2, f: 3000, fin: 200, q: 0.8, vol: 0.06 },
+      { sorte: 'souffle', t: 1.25, duree: 0.03, f: 600, filtre: 'lowpass', vol: 0.45 },
+    ]);
+  });
+
   it('blessure critique : la recette de la blessure, hauteur × 0,75, jouée deux fois à 0,32 s d’écart (15 §2.2)', () => {
     const critique = RECETTES_SIGNAUX['blessure-critique'];
     expect(critique).toHaveLength(RECETTES_SIGNAUX.blessure.length * 2);
@@ -115,6 +128,7 @@ describe('recettes des sons (15 §3)', () => {
 
   it('ordre des signaux : alarme incendie, alarme vide, créature, blessure ou soin, IA Station ; sans doublon (15 §2.4)', () => {
     expect(ordonnerSignaux(['ia', 'soin', 'creature', 'alarme-vide', 'alarme-feu', 'ia'])).toEqual(['alarme-feu', 'alarme-vide', 'creature', 'soin', 'ia']);
+    expect(ordonnerSignaux(['victoire', 'ia', 'mort'])).toEqual(['mort', 'ia', 'victoire']);
     expect(ordonnerSignaux([])).toEqual([]);
     expect(ESPACE_SIGNAUX).toBe(0.25);
   });

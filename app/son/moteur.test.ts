@@ -342,6 +342,17 @@ describe('moteur du son (15 §5, §6)', () => {
     expect(ctx.oscillateurs().filter((oscillateur) => frequence(oscillateur) === 523)).toHaveLength(1);
   });
 
+  it('souffle dont le filtre glisse (victoire) : la fréquence part de f et rejoint fin sur la durée', () => {
+    const { son, ctx } = monter();
+    son.debloquer();
+    son.nouveauTexte(false, ['victoire']);
+    const glisse = ctx.noeuds.filter((noeud): noeud is FauxFiltre => noeud instanceof FauxFiltre).find((filtre) => filtre.frequency.journal.some((etape) => etape.quoi === 'rampe' && etape.valeur === 200));
+    expect(glisse?.frequency.journal).toEqual([
+      { quoi: 'fixer', valeur: 3000, t: DEPART },
+      { quoi: 'rampe', valeur: 200, t: DEPART + 1.2 },
+    ]);
+  });
+
   it('sans écriture, ou moins d’animations demandées : pas de crépitement, signaux tout de suite', () => {
     for (const [ecriture, reduit] of [
       [false, false],

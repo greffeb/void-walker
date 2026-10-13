@@ -306,6 +306,10 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
     lecteur.buffer = b.bruit;
     lecteur.loop = true;
     const passe = filtre(ctx, element.filtre ?? 'bandpass', element.f, element.q ?? 1);
+    if (element.fin !== undefined) {
+      passe.frequency.setValueAtTime(element.f, t);
+      passe.frequency.exponentialRampToValueAtTime(element.fin, t + element.duree);
+    }
     lecteur.connect(passe);
     passe.connect(gain);
     gain.connect(vers);
