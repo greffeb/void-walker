@@ -795,21 +795,24 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
     expect(navIa(rendre(suivant, undefined, true, ['reveil']))).toContain('pastille');
   });
 
-  it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, un seul bouton RETOUR', async () => {
+  it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, une croix pour fermer', async () => {
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     const html = renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={['atelier']} fermer={rienAJouer} />);
-    // Refermer IA Station : son propre bip, plus grave (D-226), par RETOUR comme par Échap.
-    expect(html).toContain('data-son="fermer-ia">Retour</button>');
+    // Refermer IA Station : son propre bip, plus grave (D-226), par la croix comme par Échap.
+    expect(html).toContain('class="bulle-icone" aria-label="Fermer" data-son="fermer-ia"><span aria-hidden="true">✕</span></button>');
+    expect(html).not.toContain('Retour');
+    expect(html).not.toContain('modale-pied');
+    expect(html).toContain('class="historique-ia" tabindex="0"');
     expect(html).toContain('data-son-fermer="fermer-ia"');
-    expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1" data-son-fermer="fermer-ia">/);
+    expect(html).toMatch(/^<section class="bulle modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1" data-son-fermer="fermer-ia">/);
     expect(texte(html)).toBe(
-      `[ IA STATION ] messages reçus dans l’écouteur &gt; au réveil · Cabine « ${reveil} » &gt; en arrivant · Atelier nouveau « ${atelier} » Retour`,
+      `[ IA STATION ] messages reçus dans l’écouteur ✕ &gt; au réveil · Cabine « ${reveil} » &gt; en arrivant · Atelier nouveau « ${atelier} »`,
     );
     expect(html.match(/<button/g)).toHaveLength(1);
     expect(html.match(/class="nouveau"/g)).toHaveLength(1);
     expect(renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={[]} fermer={rienAJouer} />)).not.toContain('nouveau"');
     expect(texte(renderToStaticMarkup(<ModaleIA messages={[]} nouveaux={[]} fermer={rienAJouer} />))).toBe(
-      '[ IA STATION ] messages reçus dans l’écouteur Aucun message reçu. Retour',
+      '[ IA STATION ] messages reçus dans l’écouteur ✕ Aucun message reçu.',
     );
   });
 });

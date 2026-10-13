@@ -732,29 +732,26 @@ button:disabled {
   outline-color: var(--couleur-menu);
 }
 
-/* Fenêtre d'IA Station (12 §3.9) : blanc froid (D-192), voile de 55 %, ancrée en bas, au-dessus de la navigation. */
-.voile-modale {
-  z-index: 8;
-  background: var(--voile-modale);
-}
-
+/* IA Station : bulle blanche au-dessus de la navigation, comme l'inventaire et la carte (D-228). */
 .modale-ia {
-  position: fixed;
-  z-index: 9;
-  left: max(16px, calc((100vw - 30rem) / 2 + 16px));
-  right: max(16px, calc((100vw - 30rem) / 2 + 16px));
-  bottom: max(24px, env(safe-area-inset-bottom));
-  max-height: min(600px, calc(100dvh - 48px));
-  display: flex;
-  flex-direction: column;
+  --couleur-menu: var(--blanc);
+  --texte-menu: var(--blanc-texte);
+  --secondaire-menu: var(--blanc-secondaire);
+  --surface-menu: var(--blanc-surface);
+  --filet-menu: var(--blanc-secondaire);
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 12px);
+  max-height: min(60dvh, 420px);
   color: var(--blanc-texte);
-  background: var(--blanc-surface);
-  border: 1px solid var(--blanc);
-  box-shadow: 0 0 0 4px var(--fond);
 }
 
-.modale-ia:focus {
-  outline: none;
+.modale-ia::after {
+  right: calc((100% - 16px) / 6 - 6px);
+  bottom: -7px;
+  border-right: 1px solid var(--couleur-menu);
+  border-bottom: 1px solid var(--couleur-menu);
 }
 
 .modale-ia :focus-visible {
@@ -763,8 +760,15 @@ button:disabled {
 
 .modale-entete {
   flex: none;
-  padding: 12px 12px 8px;
+  display: flex;
+  align-items: flex-start;
   border-bottom: 1px solid var(--blanc-secondaire);
+}
+
+.modale-identite {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 12px 12px 8px;
 }
 
 .modale-titre {
@@ -783,7 +787,7 @@ button:disabled {
   color: var(--blanc-secondaire);
 }
 
-/* Le plus récent en bas ; l'historique défile, l'en-tête et RETOUR restent. */
+/* Le plus récent en bas ; l'historique défile, l'en-tête et la croix restent. */
 .historique-ia {
   flex: 1 1 auto;
   min-height: 0;
@@ -831,28 +835,6 @@ button:disabled {
   padding: 8px 12px;
   font-size: calc(15px * var(--echelle));
   color: var(--blanc-secondaire);
-}
-
-.modale-pied {
-  flex: none;
-  padding: 8px 12px 12px;
-}
-
-.modale-pied .secondaire {
-  width: 100%;
-  min-height: 50px;
-  padding: 8px;
-  font-size: calc(15px * var(--echelle));
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--blanc);
-  border-color: var(--blanc);
-}
-
-.modale-pied .secondaire:active {
-  color: var(--blanc-surface);
-  background: var(--blanc);
 }
 
 .titre-section {

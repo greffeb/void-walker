@@ -12,7 +12,7 @@ export function garderFocus(evenement: KeyboardEvent<HTMLElement>, fermer: () =>
     return;
   }
   if (evenement.key !== 'Tab') return;
-  const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')];
+  const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex="0"]')];
   const premier = boutons[0];
   const dernier = boutons[boutons.length - 1];
   if (premier === undefined || dernier === undefined) return;
