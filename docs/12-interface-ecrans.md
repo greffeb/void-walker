@@ -406,7 +406,7 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 - **En-tête :** « OPTIONS » en `accent` 17/600, puis « le jeu est en pause » en 12.
 - **Contenu qui défile**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
-  2. **── SON ──** : « Ambiance » COUPÉE / BASSE / NORMALE ; « Effets sonores » COUPÉS / ACTIFS. [Validé D-148 ; Proposé pour le détail des niveaux] IA Station n'a pas de voix : un effet sonore signale l'arrivée d'un message (D-155). Bruitages libres de droits, source et licence notées ; bande-son fournie par le porteur du projet (D-153). Tout reste lisible sans le son.
+  2. **── SON ──** : trois rails de 0 à 100, « Général » 80, « Effets sonores » 80, « Ambiance » 30 par défaut ; à 0, « COUPÉE » ou « COUPÉS ». [Validé D-220, remplaçant « Ambiance » COUPÉE / BASSE / NORMALE et « Effets sonores » COUPÉS / ACTIFS] Bruitages du terminal synthétisés pour le projet (D-216, D-217), signaux de blessure, de soin et d'alarme (D-218), ambiance de bruit brun et de carlingue (D-219), pas de bande-son pour le moment (D-221) : détail dans [15 — son](15-son.md). IA Station n'a pas de voix : un effet sonore signale l'arrivée d'un message (D-155). Tout reste lisible sans le son.
   3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé] « Effet machine à écrire [OUI] / [NON] », [OUI] par défaut ; sur [NON], texte immédiat et curseur fixe. [Validé D-186]
   4. **── PARTIE ──** :
      - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
@@ -549,7 +549,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 6. **« long » et « périlleux »** — supprimés ; seul « bruyant » reste (D-150).
 7. **Panneau bas ou bulle** — bulles ancrées partout (D-146, §3.6).
 8. **La grille haute dans « Se déplacer vers »** — seulement une fois ouverte (D-147, §3.4).
-9. **Son** — ambiance au lancement (D-148) ; IA Station sans voix, un effet sonore à l'arrivée d'un message (D-155) ; bruitages libres de droits et bande-son fournie (D-153).
+9. **Son** — ambiance au lancement (D-148) ; IA Station sans voix, un effet sonore à l'arrivée d'un message (D-155) ; bruitages libres de droits et bande-son fournie (D-153). Précisé le 2026-10-13 ([15 — son](15-son.md), D-216 à D-222) : bruitages synthétisés pour le projet, signaux de blessure, de soin et d'alarme, ambiance de bruit brun et de carlingue, trois rails dans les options ; bande-son retirée pour le moment.
 10. **Blessure localisée** — seulement dans le récit (D-143).
 11. **Rappel de « plus aucune sortie »** — gardé, discret (D-144).
 12. **Confirmation avant une nouvelle partie** — oui, elle remplace l'ancienne (D-145, §4.1).

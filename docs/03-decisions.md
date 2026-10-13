@@ -1598,6 +1598,59 @@ Choix faits le 2026-10-12 sur maquettes et sur les mesures d'un prototype jetabl
 - Décision : la carte s'ouvre dans une bulle posée au-dessus de la navigation, avec de petites marges, l'écran de jeu visible derrière un voile et une flèche vers CARTE. Elle se ferme par ✕, le voile, CARTE, Échap ou le retour système.
 - Remplace : « La carte occupe tout l'écran » et le bouton FERMER LA CARTE (14 §2.1, D-201 pour la forme de l'écran seulement).
 
+## Décisions validées — son (#99)
+
+Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/banc-sons.html) et la [maquette de la section SON](maquette/options-son.html) ; conception complète dans [15 — son](15-son.md). Ils précisent la demande du porteur du 2026-10-11 consignée dans l'issue #99 (« bruits informatique rétro cassette futurism. Bzzt, clic, bip, boop. Que des bruits d'interface ») et la modifient là où D-218 et D-219 le disent.
+
+### D-216 — Bruitages synthétisés pour le projet
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demande du porteur « j'aimerais que tu me proposes les sons toi » ; proposition retenue de sons synthétisés plutôt que tirés d'une banque ; « option 1, synthèse en direct ».
+- Décision : tous les sons sont synthétisés par le jeu au moment de les jouer, à partir de recettes écrites pour le projet (15 §3) ; aucun fichier son n'est ajouté. Les crédits notent « créé pour le projet » (15 §9).
+- Précise : D-153 (« sons libres de droits dont la source et la licence sont notées »).
+
+### D-217 — Catalogue des sons ; un toucher, un son
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : choix du porteur sur le banc (clic A Touche mécanique, bulle C Tic double, confirmer D Déclic validé, indisponible B Bz-bzt, IA Station A Télétype, inventaire · carte · IA Station C Bip feutré avec une hauteur propre à chacun, crépitement C Bips de caractères), après deux tours pour adoucir bulle, confirmer et les panneaux ; validation de la partie « déclencheurs ».
+- Décision : chaque geste joue le son de 15 §2.1, et un seul : le son le plus précis remplace le clic. Toute action jouée d'un seul toucher (D-182) joue « confirmer ». Le crépitement accompagne l'effet machine à écrire et s'arrête avec lui (15 §2.3).
+- Précise : D-155 (l'arrivée d'un message d'IA Station joue le Télétype).
+
+### D-218 — Blessure, soin et alarmes : des signaux du terminal
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demande du porteur « propose-moi aussi des sons pour : blessure, soin, alarme incendie, alarme vide » ; choix C Parasite, B Bip apaisé, B Détecteur, A Grave pulsé ; « le feu ou le vide pour la première fois dans la pièce où je me trouve (ou quand le feu se propage dans notre salle) » ; « option 1 » (l'alarme resonne à chaque entrée).
+- Décision : ces quatre sons sont des signaux du terminal, pas des bruits du monde. La blessure sonne quand la santé s'aggrave (plus grave et deux fois à « critique » ou « vaincu »), le soin quand elle s'améliore ; une alarme sonne une fois quand le feu ou le vide passe de absent à présent dans la pièce du passager, qu'il y entre ou que le danger s'y propage, et resonne à chaque nouvelle entrée. Ordre et espacement en 15 §2.4. Aucun signal à la reprise d'une partie.
+- Modifie : la précision du 2026-10-11 qui excluait tout son lié au feu et au vide ; le monde reste sans bruit propre.
+
+### D-219 — Ambiance : bruit brun et carlingue qui travaille
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demandes du porteur « une option pour avoir un bruit blanc / marron deep bass », « avec le brun profond ça fait vraiment effet », « des bruits lointains de tôle qui craque, comme un sous-marin », « un gong lointain sourd, un seul coup sur la coque » ; choix A Brun profond, E Mélange, rythme rare ; « impec ».
+- Décision : l'ambiance est un fond continu de bruit brun profond, sous lequel la carlingue travaille : gémissement, craquement, pression ou gong lointain, tirés au hasard (le gong deux fois plus rare), un toutes les 20 à 60 s, à gauche ou à droite, dans une réverbération de coque (15 §2.5, §3.3, §3.4). Elle tourne sur tous les écrans dès le premier toucher.
+- Modifie : la précision du 2026-10-11 (« seulement des bruits d'interface ») pour l'ambiance.
+
+### D-220 — Options › SON : trois rails
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demande du porteur « un slider général, et des sliders soundtrack, effets sonores, et ambiance » ; choix « A rail » sur maquettes ; niveaux du bilan « général 80 · effets 80 · ambiance 30 ».
+- Décision : la section SON des options a trois rails de 0 à 100 : Général, Effets sonores, Ambiance, par défaut 80, 80 et 30 ; à 0, « COUPÉE » ou « COUPÉS ». Ils s'appliquent immédiatement et sont gardés sur l'appareil (15 §4).
+- Remplace : « Ambiance » COUPÉE / BASSE / NORMALE et « Effets sonores » COUPÉS / ACTIFS (12 §4.10, détail de D-148).
+
+### D-221 — Pas de bande-son pour le moment
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : « tu sais quoi, on vire la bande son pour le moment ». Auparavant, à l'aveugle sur un extrait, le porteur n'avait pas distingué l'AAC 64 kbit/s (environ 13 Mo pour le morceau entier) de l'original à 192 kbit/s (40 Mo) : « on peut mettre la plus compressée ».
+- Décision : #99 ne livre pas de bande-son ; pas de curseur « Bande-son » tant qu'il n'y a pas de musique. Le fichier du porteur reste hors du dépôt.
+- Limite : si la bande-son revient, la compression AAC 64 kbit/s est la piste retenue ; le morceau commence par environ 5 s presque silencieuses et finit sur 14 s de silence, à traiter pour une boucle sans coupure.
+- Suspend : la partie bande-son de D-153 et le point 2 du périmètre de l'issue #99.
+
+### D-222 — Son : premier toucher, arrière-plan, mode silencieux
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : validation de la partie « cycle de vie » ; « option 1 » pour le mode silencieux.
+- Décision : aucun son avant le premier toucher ; pause en bloc quand l'appli passe en arrière-plan, reprise au retour, sans rattrapage ; le jeu respecte le mode silencieux de l'iPhone et se mélange à l'audio du joueur sans l'interrompre ; sans audio disponible, le jeu reste muet sans erreur (15 §5).
+
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 
 Détails de l'agent pour #102, à revoir par le porteur au besoin : chaque pièce exposée deux fois de suite prend feu dans la même mise à jour, sans enchaînement (C-03 §5.3 ; l'aperçu ne dépend ainsi d'aucune liaison cachée) ; l'eau s'utilise sur la pièce du passager ou sur une voisine par un passage ouvert ; déplacer la caisse est un geste discret (AR-01 §12) ; le test de l'avertisseur s'annonce sans coût, le son étant émis dans une autre pièce ; sortir de l'alcôve coûte une réaction à la créature, comme y entrer (C-03 §4.3) ; un bruit fait dans sa propre pièce l'en fait sortir ; à terre après une glissade, elle est montrée comme telle au passager.

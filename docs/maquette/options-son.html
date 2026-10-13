@@ -1,0 +1,231 @@
+<title>Options son Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Comparateur : trois maquettes de l'écran Options à 390 px, une visible à la fois, choisie par onglet A / B / C. Phosphore, sombre seulement. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 40px; display: grid; gap: 14px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.onglets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.onglet { font: inherit; font-size: 13px; letter-spacing: .06em; min-height: 46px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.onglet:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ecouter { font: inherit; font-size: 13px; letter-spacing: .06em; min-height: 46px; background: transparent; color: var(--accent); border: 1px solid var(--accent); cursor: pointer; }
+.ecouter[aria-pressed=true] { background: var(--accent); color: var(--fond); }
+
+/* Téléphone */
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 640px; }
+.entete { padding: 10px 16px 8px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.entete p { margin: 2px 0 0; font-size: 12px; color: var(--secondaire); }
+.corps { flex: 1; padding: 4px 16px 12px; display: grid; gap: 14px; align-content: start; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.estompe { opacity: .45; }
+.ligne { border-top: 1px solid var(--separateur); padding: 8px 4px; display: grid; gap: 6px; }
+.ligne-haut { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.libelle { font-size: 15px; }
+.detail { display: block; font-size: 12px; color: var(--secondaire); }
+.valeur { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; flex: none; }
+.bascule { display: flex; justify-content: space-between; border-top: 1px solid var(--separateur); padding: 12px 4px; font-size: 15px; }
+.bas { padding: 10px 16px 14px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; border-top: 1px solid var(--separateur); }
+.bas span { min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 8px; }
+.bas .s { border: 1px solid var(--texte); }
+.bas .p { background: var(--texte); color: var(--fond); }
+
+/* A : rail */
+.rail { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; cursor: pointer; margin: 0; }
+.rail::-webkit-slider-runnable-track { height: 6px; background: linear-gradient(to right, var(--accent) var(--p), var(--separateur) var(--p)); }
+.rail::-moz-range-track { height: 6px; background: var(--separateur); }
+.rail::-moz-range-progress { height: 6px; background: var(--accent); }
+.rail::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; background: var(--texte); border: 2px solid var(--fond); outline: 1px solid var(--accent); border-radius: 0; }
+.rail::-moz-range-thumb { width: 18px; height: 18px; background: var(--texte); border: 2px solid var(--fond); border-radius: 0; }
+
+/* B : blocs et − / + */
+.blocs { display: grid; grid-template-columns: 46px minmax(0, 1fr) 46px; gap: 8px; align-items: center; }
+.pm { font: inherit; font-size: 20px; min-height: 46px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; }
+.pm:disabled { opacity: .35; cursor: default; }
+.jauge { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; height: 22px; }
+.jauge i { background: var(--separateur); }
+.jauge i.on { background: var(--accent); }
+
+/* C : segments */
+.segments { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.segment { font: inherit; font-size: 12px; min-height: 46px; padding: 4px 2px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; text-transform: uppercase; }
+.segment[aria-checked=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Section <b>SON</b> des options, trois façons de régler les trois niveaux. Valeurs par défaut : général 80, effets 80, ambiance 18. Les réglages <b>s'entendent</b> : lance le fond brun, bouge les curseurs ; chaque cran d'« Effets » joue le clic à son nouveau niveau.</p>
+  <div class="onglets" role="tablist" aria-label="Maquettes">
+    <button class="onglet" role="tab" id="t-a" aria-controls="m-a" aria-selected="true" type="button">A · RAIL</button>
+    <button class="onglet" role="tab" id="t-b" aria-controls="m-b" aria-selected="false" type="button">B · BLOCS</button>
+    <button class="onglet" role="tab" id="t-c" aria-controls="m-c" aria-selected="false" type="button">C · CRANS</button>
+  </div>
+  <button id="ecouter" class="ecouter" aria-pressed="false" type="button">▶ LANCER LE FOND BRUN</button>
+  <div id="maquette"></div>
+  <p id="verdict" class="verdict"></p>
+</div>
+
+<template id="gabarit">
+  <div class="tel">
+    <header class="entete"><h1>Options</h1><p>le jeu est en pause</p></header>
+    <div class="corps">
+      <section class="estompe" aria-hidden="true">
+        <h2 class="titre-section">Taille du texte</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;text-align:center">
+          <span style="background:var(--texte);color:var(--fond);padding:12px 2px">STANDARD</span><span style="border:1px solid var(--bordure);padding:12px 2px">GRANDE</span><span style="border:1px solid var(--bordure);padding:12px 2px">TRÈS GRANDE</span>
+        </div>
+      </section>
+      <section>
+        <h2 class="titre-section">Son</h2>
+        <div class="reglages"></div>
+      </section>
+      <section class="estompe" aria-hidden="true">
+        <h2 class="titre-section">Affichage</h2>
+        <div class="bascule"><span>Lignes de balayage</span><b style="color:var(--accent)">[OUI]</b></div>
+        <div class="bascule"><span>Effet machine à écrire</span><b style="color:var(--accent)">[OUI]</b></div>
+      </section>
+    </div>
+    <div class="bas" aria-hidden="true"><span class="s">Menu principal</span><span class="p">Reprendre la partie</span></div>
+  </div>
+</template>
+
+<script>
+(() => {
+  // ───────── Son : fond brun profond et clic « touche mécanique », comme sur le banc ─────────
+  let ctx = null, general, effets, ambiance, source = null;
+  const niveaux = { general: 80, effets: 80, ambiance: 18 };
+  const g = (v) => (v / 100) ** 2;
+  function audio() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    general = ctx.createGain(); general.connect(ctx.destination);
+    effets = ctx.createGain(); effets.connect(general);
+    ambiance = ctx.createGain(); ambiance.connect(general);
+    appliquer();
+  }
+  function appliquer() {
+    if (!ctx) return;
+    general.gain.setTargetAtTime(g(niveaux.general), ctx.currentTime, 0.03);
+    effets.gain.setTargetAtTime(g(niveaux.effets), ctx.currentTime, 0.03);
+    ambiance.gain.setTargetAtTime(g(niveaux.ambiance), ctx.currentTime, 0.03);
+  }
+  let blanc = null;
+  function tampon() {
+    if (blanc) return blanc;
+    blanc = ctx.createBuffer(2, ctx.sampleRate * 9, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = blanc.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    return blanc;
+  }
+  function lancerFond() {
+    audio();
+    source = ctx.createBufferSource(); source.buffer = tampon(); source.loop = true;
+    const f1 = ctx.createBiquadFilter(); f1.type = 'lowpass'; f1.frequency.value = 90; f1.Q.value = 0.5;
+    const f2 = ctx.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 260; f2.Q.value = 0.5;
+    const v = ctx.createGain(); v.gain.setValueAtTime(0.0001, ctx.currentTime); v.gain.exponentialRampToValueAtTime(5, ctx.currentTime + 0.8);
+    source.connect(f1); f1.connect(f2); f2.connect(v); v.connect(ambiance); source.start();
+  }
+  function arreterFond() { try { source?.stop(); } catch {} source = null; }
+  function clic() {
+    audio();
+    const t = ctx.currentTime + 0.01, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), v = ctx.createGain();
+    s.buffer = tampon(); f.type = 'bandpass'; f.frequency.value = 3600; f.Q.value = 2.5;
+    v.gain.setValueAtTime(0.0001, t); v.gain.exponentialRampToValueAtTime(0.55, t + 0.001); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.007);
+    s.connect(f); f.connect(v); v.connect(effets); s.start(t, Math.random() * 5); s.stop(t + 0.02);
+  }
+  const bEcouter = document.getElementById('ecouter');
+  bEcouter.addEventListener('click', () => {
+    const on = bEcouter.getAttribute('aria-pressed') !== 'true';
+    on ? lancerFond() : arreterFond();
+    bEcouter.setAttribute('aria-pressed', String(on));
+    bEcouter.textContent = on ? '■ ARRÊTER LE FOND BRUN' : '▶ LANCER LE FOND BRUN';
+  });
+
+  // ───────── Les trois maquettes ─────────
+  const REGLAGES = [
+    { cle: 'general', libelle: 'Général' },
+    { cle: 'effets', libelle: 'Effets sonores', detail: 'bips et clics du terminal' },
+    { cle: 'ambiance', libelle: 'Ambiance', detail: 'bruit brun profond' },
+  ];
+  const mot = (cle, v) => (v === 0 ? (cle === 'effets' ? 'COUPÉS' : 'COUPÉE') : String(v));
+  function changer(cle, v) {
+    if (niveaux[cle] === v) return;
+    niveaux[cle] = v; appliquer();
+    if (cle === 'effets' || cle === 'general') clic();
+  }
+  const MAQUETTES = {
+    a: { verdict: '<b>A · Rail.</b> Le plus fin : on glisse au pourcentage près. Le carré se saisit au doigt ; la valeur s\'écrit à droite. Risque : un glissé vertical pour faire défiler peut accrocher le rail.',
+      ligne(r) {
+        const d = document.createElement('div'); d.className = 'ligne';
+        d.innerHTML = `<div class="ligne-haut"><label class="libelle" for="a-${r.cle}">${r.libelle}${r.detail ? `<span class="detail">${r.detail}</span>` : ''}</label><span class="valeur"></span></div><input class="rail" id="a-${r.cle}" type="range" min="0" max="100" step="1">`;
+        const i = d.querySelector('input'), val = d.querySelector('.valeur');
+        const maj = () => { i.value = niveaux[r.cle]; i.style.setProperty('--p', niveaux[r.cle] + '%'); val.textContent = mot(r.cle, niveaux[r.cle]); };
+        i.addEventListener('input', () => { niveaux[r.cle] = +i.value; appliquer(); maj(); });
+        i.addEventListener('change', () => { if (r.cle !== 'ambiance') clic(); });
+        maj(); return d;
+      } },
+    b: { verdict: '<b>B · Blocs.</b> Dix crans, un toucher par cran sur − et +, une jauge de terminal. Aucun glissé : rien ne bouge par erreur en faisant défiler. Il faut plusieurs touchers pour aller loin.',
+      ligne(r) {
+        const d = document.createElement('div'); d.className = 'ligne';
+        d.innerHTML = `<div class="ligne-haut"><span class="libelle" id="b-${r.cle}">${r.libelle}${r.detail ? `<span class="detail">${r.detail}</span>` : ''}</span><span class="valeur" aria-live="polite"></span></div>
+          <div class="blocs"><button class="pm" type="button" aria-label="Baisser ${r.libelle}">−</button><div class="jauge" role="meter" aria-labelledby="b-${r.cle}" aria-valuemin="0" aria-valuemax="100">${'<i></i>'.repeat(10)}</div><button class="pm" type="button" aria-label="Monter ${r.libelle}">+</button></div>`;
+        const [moins, plus] = d.querySelectorAll('.pm'), cases = d.querySelectorAll('.jauge i'), val = d.querySelector('.valeur'), j = d.querySelector('.jauge');
+        const cran = () => Math.round(niveaux[r.cle] / 10);
+        const maj = () => { const c = cran(); cases.forEach((x, k) => x.classList.toggle('on', k < c)); val.textContent = mot(r.cle, c * 10); j.setAttribute('aria-valuenow', c * 10); moins.disabled = c === 0; plus.disabled = c === 10; };
+        moins.addEventListener('click', () => { changer(r.cle, Math.max(0, cran() - 1) * 10); maj(); });
+        plus.addEventListener('click', () => { changer(r.cle, Math.min(10, cran() + 1) * 10); maj(); });
+        maj(); return d;
+      } },
+    c: { verdict: '<b>C · Crans.</b> Six choix, du même modèle que la taille du texte : un seul toucher pour n\'importe quel niveau, rien ne glisse. Moins fin : 0, 20, 40, 60, 80, 100.',
+      ligne(r) {
+        const d = document.createElement('div'); d.className = 'ligne';
+        d.innerHTML = `<div class="ligne-haut"><span class="libelle" id="c-${r.cle}">${r.libelle}${r.detail ? `<span class="detail">${r.detail}</span>` : ''}</span></div><div class="segments" role="radiogroup" aria-labelledby="c-${r.cle}"></div>`;
+        const zone = d.querySelector('.segments');
+        const crans = [0, 20, 40, 60, 80, 100];
+        const proche = () => crans.reduce((a, b) => (Math.abs(b - niveaux[r.cle]) < Math.abs(a - niveaux[r.cle]) ? b : a));
+        crans.forEach((v, k) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'segment'; b.setAttribute('role', 'radio');
+          b.textContent = k === 0 ? (r.cle === 'effets' ? 'COUPÉS' : 'COUPÉE') : String(k);
+          if (k === 0) b.style.fontSize = '10px';
+          b.setAttribute('aria-label', k === 0 ? 'Coupé' : `${v} %`);
+          b.addEventListener('click', () => { changer(r.cle, v); maj(); });
+          zone.append(b);
+        });
+        const maj = () => { const p = proche(); zone.querySelectorAll('.segment').forEach((b, k) => b.setAttribute('aria-checked', String(crans[k] === p))); };
+        maj(); return d;
+      } },
+  };
+  const zone = document.getElementById('maquette'), verdict = document.getElementById('verdict');
+  function montrer(cle) {
+    document.querySelectorAll('.onglet').forEach((o) => o.setAttribute('aria-selected', String(o.id === 't-' + cle)));
+    const t = document.getElementById('gabarit').content.cloneNode(true);
+    t.querySelector('.tel').id = 'm-' + cle; t.querySelector('.tel').setAttribute('role', 'tabpanel');
+    const reglages = t.querySelector('.reglages');
+    REGLAGES.forEach((r) => reglages.append(MAQUETTES[cle].ligne(r)));
+    zone.replaceChildren(t);
+    verdict.innerHTML = MAQUETTES[cle].verdict;
+  }
+  document.querySelectorAll('.onglet').forEach((o) => o.addEventListener('click', () => montrer(o.id.slice(2))));
+  montrer('a');
+})();
+</script>
