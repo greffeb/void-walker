@@ -42,6 +42,8 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   // Passages perçus depuis une pièce visitée (14 §3.3) ; ceux d'une sous-position ne se dessinent jamais.
   const vus = monde.liaisons.flatMap((liaison) => {
     if (liaison.entre.some((piece) => sousPositions.has(piece))) return [];
+    // Un passage caché ne se distingue pas d'un panneau ordinaire avant sa découverte, même de son côté visible (14 §2.6, AR-01 §11.1).
+    if (liaison.cachee !== undefined && !etat.decouvertes.includes(liaison.id)) return [];
     const depuis = visitees.filter((piece) => liaison.entre.includes(piece) && perceptible(etat, liaison, piece));
     return depuis.length === 0 ? [] : [{ liaison, depuis, connue: destinationConnue(etat, liaison) }];
   });

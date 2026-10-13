@@ -223,13 +223,8 @@ describe('AR-01 : ce que sait le passager (C-06)', () => {
     const embarquement = apres(depart(), P_B.slice(0, 13));
     expect(observer(MONDE, embarquement.etat).piece.nom).toBe('embarquement');
     const sansPanneau: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.filter((liaison) => liaison.id !== 'l-energie-embarquement') };
-    // Le local énergie, visité, a montré le panneau comme un passage fermé sans destination : seule la carte le garde (14 §3.3).
-    const { carte: avecLui, ...vu } = observer(MONDE, embarquement.etat);
-    const { carte: sansLui, ...vuSans } = observer(sansPanneau, embarquement.etat);
-    expect(vu).toEqual(vuSans);
-    expect(avecLui.pieces).toEqual(sansLui.pieces);
-    expect(avecLui.passages.filter((lien) => lien.id !== id('l-energie-embarquement'))).toEqual(sansLui.passages);
-    expect(avecLui.passages.find((lien) => lien.id === id('l-energie-embarquement'))).toMatchObject({ entre: null, ouvert: false, dessin: 'tirets' });
+    // Le local énergie, visité, a montré le panneau, mais seulement comme un panneau : la carte ne le dessine pas (14 §2.6).
+    expect(observer(MONDE, embarquement.etat)).toEqual(observer(sansPanneau, embarquement.etat));
     refuse(embarquement, { action: 'ouvrir', cible: id('l-energie-embarquement') }, 'cible_absente');
 
     const local = apres(depart(), P_A.slice(0, 4));

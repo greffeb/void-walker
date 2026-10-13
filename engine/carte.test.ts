@@ -234,6 +234,16 @@ describe('carte publique (14 §3.4)', () => {
     expect(passageDe(carteDe(fin, froid), 'sl')).toMatchObject({ vuDepuis: [ref('soute'), ref('local')], entre: null });
   });
 
+  it('passage caché : même vu de son côté visible, il ne se dessine qu’une fois découvert (14 §2.6, AR-01 §11.1)', () => {
+    const froid: DefMonde = { ...MONDE, pieces: MONDE.pieces.map((piece) => (piece.id === 'forge' ? { ...piece, feu: false } : piece)) };
+    const forge = suite([['ouvrir', 'forge'], ['aller', 'forge']], froid);
+    // Depuis la forge, le panneau se voit comme un panneau fermé, au menu ; la carte ne le montre pas comme un passage.
+    expect(observer(froid, forge.etat).passages.some((vu) => vu.nom === 'panneau')).toBe(true);
+    expect(passageDe(carteDe(forge, froid), 'pn')).toBeUndefined();
+    const ouvert = jouerGeste(froid, forge, ['ouvrir', 'panneau']);
+    expect(passageDe(carteDe(ouvert, froid), 'pn')).toMatchObject({ entre: [ref('local'), ref('forge')] });
+  });
+
   it('sous-position : dans la cabine, la carte reste sur le quai, sans la cabine ni son écoutille (C-02 §2)', () => {
     const carte = carteDe(suite([['aller', 'cabine']]));
     expect(pieceDe(carte, 'quai')?.statut).toBe('actuelle');
