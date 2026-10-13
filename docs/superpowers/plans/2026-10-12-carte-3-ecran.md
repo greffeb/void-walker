@@ -147,7 +147,7 @@ describe('fiche et libellés de la carte (14 §2.7, §2.9)', () => {
 
   it('libellés pour le lecteur d’écran : où est le passager, et chaque pièce avec son statut et ses états', () => {
     expect(libellePlan(TEXTES_AR01, CARTE)).toBe('Plan de la station ; vous êtes dans l’atelier maintenance. La vue liste dit la même chose en texte.');
-    expect(libellePlan(TEXTES_AR01, { pieces: [], passages: [], capsules: [] })).toBe('Plan de la station. La vue liste dit la même chose en texte.');
+    expect(libellePlan(TEXTES_AR01, { pieces: [], passages: [], capsules: [], aBord: null })).toBe('Plan de la station. La vue liste dit la même chose en texte.');
     expect(libellePiece(TEXTES_AR01, vue('atelier'))).toBe('Atelier maintenance, vous êtes ici');
     expect(libellePiece(TEXTES_AR01, vue('salon'))).toBe('Salon de transit, vu il y a longtemps');
     expect(libellePiece(TEXTES_AR01, vue('galerie'))).toBe('Local technique, pas encore visitée, FEU, vu il y a un moment');
@@ -263,6 +263,7 @@ const CARTE: CartePublique = {
   ],
   passages: [],
   capsules: [{ objet: { sorte: 'objet', id: 'e-capsule', nom: 'capsule' }, piece: ref('embarquement'), pan: { cote: 'bas', debut: 6, fin: 10 } }],
+  aBord: null,
 };
 
 const ZONE = { largeur: 390, hauteur: 600 };
@@ -568,6 +569,7 @@ const CARTE: CartePublique = {
     { id: 'e-p3', nom: 'grille', vuDepuis: [ref('atelier')], entre: null, ouvert: false, dessin: 'tirets', voyant: null, emplacement: { type: 'mur', axe: 'h', ligne: 3, rang: 5 } },
   ],
   capsules: [{ objet: { sorte: 'objet', id: 'e-capsule', nom: 'capsule' }, piece: ref('embarquement'), pan: { cote: 'bas', debut: 4, fin: 8 } }],
+  aBord: null,
 };
 
 /** Texte de la page, sans balises ni attributs. */
