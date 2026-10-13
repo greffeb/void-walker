@@ -1,3 +1,5 @@
+import type { EmplacementPassage, PanCoque, RectPlan } from './plan';
+
 // Vocabulaire public du moteur : commandes, événements, consultations, raisons. Aucun texte.
 
 export const ACTIONS = [
@@ -305,6 +307,10 @@ export type Savoir =
   /** Pièces connues qui perdront ou retrouveront leur air (C-04 §3.1, VP-02) ; rien sur une créature non perçue. */
   | { readonly type: 'perdront_air' | 'retrouveront_air'; readonly pieces: readonly RefPiece[] };
 
+/** Ancienneté d'un regard, dite en mots (D-151) : jamais le nombre d'actions (14 §3.2). */
+export const PALIERS = ['instant', 'moment', 'longtemps'] as const;
+export type Palier = (typeof PALIERS)[number];
+
 export const TYPES_DANGER = [
   'interception',
   'interception_mortelle',
@@ -336,6 +342,70 @@ export interface Apercu {
   readonly danger: Danger | null;
   readonly cout: Cout;
   readonly savoir: readonly Savoir[];
+}
+
+/** Pièce actuelle, visitée, ou connue par une porte sans être visitée (D-202). */
+export type StatutPiece = 'actuelle' | 'visitee' | 'connue';
+
+/** Ouverture d'un passage : porte, ou tirets pour une grille, un conduit étroit, un panneau, un passage sans signalétique (14 §2.6). */
+export type DessinPassage = 'porte' | 'tirets';
+
+export interface ObjetCarte {
+  readonly objet: RefObjet;
+  readonly position: RefPosition | null;
+}
+
+/** Une pièce que le passager connaît, telle qu'il l'a vue (14 §3.4). */
+export interface PieceCarte {
+  readonly piece: RefPiece;
+  readonly statut: StatutPiece;
+  /** Rectangle en cases ; `null` dans un monde sans plan. */
+  readonly rect: RectPlan | null;
+  /** Ancienneté du dernier regard dans la pièce ; `null` si jamais visitée. */
+  readonly regard: Palier | null;
+  /** Feu vu au dernier regard qui le montrait, et son ancienneté ; `null` si aucun feu vu (D-213). */
+  readonly feu: Palier | null;
+  /** Plus d'air, à jour : la pièce du passager, ou lu sur le voyant d'une porte étanche (OP-04). */
+  readonly vide: boolean;
+  /** La créature a été vue ici en dernier, et quand (D-180) ; `null` sinon. */
+  readonly creature: Palier | null;
+  /** Objets vus au dernier regard, avec leur position (14 §3.1). */
+  readonly objets: readonly ObjetCarte[];
+  /** Passages connus depuis la pièce actuelle ; `null` si aucun chemin connu ne l'y relie. Sert à trier, jamais affiché. */
+  readonly distance: number | null;
+}
+
+/** Un passage vu depuis une pièce visitée (14 §3.4). */
+export interface PassageCarte {
+  readonly id: string;
+  readonly nom: string;
+  /** Pièces visitées d'où il a été vu, dans l'ordre du monde. */
+  readonly vuDepuis: readonly RefPiece[];
+  /** Ses deux pièces quand sa destination est connue ; sinon `null`, un « ? » (OP-03). */
+  readonly entre: readonly [RefPiece, RefPiece] | null;
+  /** Ouvert au dernier regard. */
+  readonly ouvert: boolean;
+  readonly dessin: DessinPassage;
+  /** Voyant d'une porte étanche, à jour (OP-04) ; `null` sans voyant. */
+  readonly voyant: 'air' | 'vide' | null;
+  /** Ouverture dans un mur, ou tracé d'un conduit découvert ; `null` dans un monde sans plan. */
+  readonly emplacement: EmplacementPassage | null;
+}
+
+/** Capsule arrimée dehors, contre le pan de coque de sa salle visitée (14 §2.6). */
+export interface CapsuleCarte {
+  readonly objet: RefObjet;
+  readonly piece: RefPiece;
+  readonly pan: PanCoque;
+}
+
+/** Carte publique (14 §3.4) : seulement ce que le passager sait, géométrie comprise. */
+export interface CartePublique {
+  readonly pieces: readonly PieceCarte[];
+  readonly passages: readonly PassageCarte[];
+  readonly capsules: readonly CapsuleCarte[];
+  /** Sous-position où se tient le passager, comme la cabine de la capsule : jamais dessinée, seulement dite (C-02 §2, 14 §3.4). */
+  readonly aBord: RefPiece | null;
 }
 
 /** Tout ce que le passager sait (C-06) ; seule sortie vers le joueur. */
@@ -375,4 +445,6 @@ export interface Observation {
   /** Messages d'assistance reçus, dans l'ordre, pour les relire. */
   readonly messages: readonly string[];
   readonly menu: readonly OptionMenu[];
+  /** La carte : pièces connues, passages vus, capsule, telles que le passager les a vus (14 §3.4). */
+  readonly carte: CartePublique;
 }

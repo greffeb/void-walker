@@ -68,6 +68,29 @@ export interface Alarme {
   readonly restant: number;
 }
 
+/** Objet vu dans une pièce au dernier regard, avec sa position s'il en a une (14 §3.1). */
+export interface ObjetSouvenir {
+  readonly objet: string;
+  readonly position?: string;
+}
+
+/** Ce que le passager a vu d'une pièce (14 §3.1, D-213). */
+export interface SouvenirPiece {
+  /** Actions confirmées au dernier regard dans la pièce ; absent pour une pièce vue seulement par un passage ouvert. */
+  readonly regard?: number;
+  /** Feu vu ou non au dernier regard qui le montrait, dans la pièce ou par un passage ouvert, et quand. */
+  readonly feu?: { readonly vu: boolean; readonly actions: number };
+  /** Objets vus au dernier regard dans la pièce, dans l'ordre du monde. */
+  readonly objets?: readonly ObjetSouvenir[];
+}
+
+/** Mémoire du passager (14 §3) : aucune règle ne la lit, seule la carte publique. */
+export interface Memoire {
+  readonly pieces: Readonly<Record<string, SouvenirPiece>>;
+  /** Dernier état vu de chaque liaison perçue : vrai si elle était ouverte. */
+  readonly liaisons: Readonly<Record<string, boolean>>;
+}
+
 /** État complet d'une partie : sérialisable en JSON, jamais montré tel quel au joueur. */
 export interface EtatPartie {
   readonly piece: string;
@@ -101,6 +124,8 @@ export interface EtatPartie {
   readonly fin: 'evacuation' | null;
   /** Messages d'assistance déjà reçus, dans l'ordre de réception. */
   readonly messages: readonly string[];
+  /** Ce que le passager a vu, pièce par pièce (14 §3.1). */
+  readonly memoire: Memoire;
 }
 
 export function cleZone(zone: ZoneHuile): string {
@@ -140,6 +165,8 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     rebouchees: [],
     fin: null,
     messages: (monde.assistance ?? []).filter((message) => message.quand.type === 'reveil').map((message) => message.id),
+    // Rempli par le regard du réveil (memoire.ts), une fois l'état initial posé.
+    memoire: { pieces: {}, liaisons: {} },
   };
 }
 

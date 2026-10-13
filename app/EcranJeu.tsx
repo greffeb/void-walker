@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
 import {
@@ -11,7 +11,6 @@ import {
   nomDestination,
   nomParametre,
   nomPuce,
-  placerBulle,
   precedente,
   REGARDER_AUTOUR,
   unToucher,
@@ -19,6 +18,8 @@ import {
   type Etape,
   type Groupe,
 } from './ecran';
+import { Bulle, BulleAncree, garderFocus } from './bulle';
+import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 
@@ -38,9 +39,10 @@ const AUCUN_MESSAGE = 'Aucun message reçu.';
 /** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */
 const NAV_INVENTAIRE = 'Inven\u00adtaire';
 const NAV_IA = 'IA Sta\u00adtion';
+const NAV_CARTE = 'Carte';
 
 /**
- * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, ou la fenêtre d'IA Station.
+ * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, la fenêtre d'IA Station, ou la carte (14 §2.1).
  * `action` : action choisie ; `null` à l'étape de la fiche. `parametre` : paramètre choisi à l'étape « OÙ ? », sinon `null`.
  * `nouveaux` : messages qui n'étaient pas encore lus à l'ouverture de la fenêtre, marqués NOUVEAU tant qu'elle reste ouverte.
  */
@@ -48,7 +50,8 @@ type Ouverte =
   | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
-  | { readonly zone: 'ia'; readonly nouveaux: readonly string[] };
+  | { readonly zone: 'ia'; readonly nouveaux: readonly string[] }
+  | { readonly zone: 'carte' };
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -232,7 +235,7 @@ export function EcranJeu({
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5) ; voile de 55 % sous la fenêtre d'IA Station (12 §3.9). */}
       {ouverte !== null && (
         <div
-          className={ouverte.zone === 'inventaire' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
+          className={ouverte.zone === 'inventaire' || ouverte.zone === 'carte' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
           data-testid="voile"
           onClick={fermer}
         />
@@ -259,6 +262,8 @@ export function EcranJeu({
         <BulleDeplacement ancre={ouverte.ancre} option={deplacementOuvert} textes={textes} occupe={occupe} jouer={jouer} prevoir={voir} fermer={fermer} />
       )}
       <div className="bas">
+        {/* Carte (14 §2) : bulle au-dessus de la navigation comme l'inventaire (D-215), gratuite (D-014) ; elle ne lit que l'observation publique. */}
+        {ouverte?.zone === 'carte' && <EcranCarte carte={observation.carte} textes={textes} fermer={fermer} />}
         {ouverte?.zone === 'inventaire' && (
           <BulleInventaire
             id={idInventaire}
@@ -292,6 +297,17 @@ export function EcranJeu({
             }
           >
             {NAV_INVENTAIRE}
+          </button>
+          <button
+            type="button"
+            className="nav-carte"
+            aria-haspopup="dialog"
+            aria-expanded={ouverte?.zone === 'carte'}
+            aria-label="Carte"
+            disabled={occupe}
+            onClick={(evenement) => (ouverte?.zone === 'carte' ? fermer() : ouvrir({ zone: 'carte' }, evenement.currentTarget))}
+          >
+            {NAV_CARTE}
           </button>
           {/* Carré plein tant qu'un message n'a pas été lu, « nouveau message » pour le lecteur d'écran (12 §2.6). */}
           <button
@@ -397,118 +413,6 @@ function cleEtape(groupe: Groupe, etape: Etape): string {
   if (etape.type === 'fiche') return groupe.cible.id;
   if (etape.type === 'parametre') return `${groupe.cible.id}:${etape.action}`;
   return `${groupe.cible.id}:${etape.option.action}:${etape.option.parametre?.id ?? ''}`;
-}
-
-/** Le focus reste dans la bulle ou la fenêtre ; Échap la referme. */
-function garderFocus(evenement: KeyboardEvent<HTMLElement>, fermer: () => void): void {
-  if (evenement.key === 'Escape') {
-    evenement.preventDefault();
-    fermer();
-    return;
-  }
-  if (evenement.key !== 'Tab') return;
-  const boutons = [...evenement.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled)')];
-  const premier = boutons[0];
-  const dernier = boutons[boutons.length - 1];
-  if (premier === undefined || dernier === undefined) return;
-  const actif = document.activeElement;
-  if (evenement.shiftKey ? actif === premier || actif === evenement.currentTarget : actif === dernier) {
-    evenement.preventDefault();
-    (evenement.shiftKey ? dernier : premier).focus();
-  }
-}
-
-/**
- * Bulle (12 §3.5) : dialogue nommé par son fil, « ‹ » à partir de la deuxième étape, « ✕ ».
- * Le focus y entre à chaque étape et n'en sort pas ; Échap la referme.
- */
-function Bulle({
-  id,
-  zone,
-  classe,
-  titre,
-  decrite,
-  etape,
-  retour,
-  fermer,
-  pied,
-  children,
-}: {
-  readonly id?: string;
-  readonly zone: RefObject<HTMLElement | null>;
-  readonly classe: string;
-  readonly titre: ReactNode;
-  /** Fiche lue par le lecteur d'écran à l'ouverture, après le titre. */
-  readonly decrite?: string;
-  /** Change à chaque étape : le focus revient sur la bulle. */
-  readonly etape: string;
-  readonly retour?: () => void;
-  readonly fermer: () => void;
-  /** Toujours visible sous le contenu qui défile : ANNULER et CONFIRMER restent sous le pouce. */
-  readonly pied?: ReactNode;
-  readonly children: ReactNode;
-}) {
-  const idTitre = useId();
-  useEffect(() => {
-    zone.current?.focus();
-  }, [zone, etape]);
-  return (
-    <section
-      ref={zone}
-      id={id}
-      className={`bulle ${classe}`}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={idTitre}
-      aria-describedby={decrite}
-      tabIndex={-1}
-      onKeyDown={(evenement) => garderFocus(evenement, fermer)}
-    >
-      <div className="bulle-entete">
-        {retour !== undefined && (
-          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour}>
-            <span aria-hidden="true">‹</span>
-          </button>
-        )}
-        <h2 id={idTitre} className="bulle-titre">
-          {titre}
-        </h2>
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
-          <span aria-hidden="true">✕</span>
-        </button>
-      </div>
-      <div className="bulle-corps">{children}</div>
-      {pied !== undefined && <div className="bulle-pied">{pied}</div>}
-    </section>
-  );
-}
-
-/** Bulle ancrée sur l'élément touché : dessus si elle y tient, sinon dessous, jamais hors de l'écran (12 §3.5, §3.6). */
-function BulleAncree({ ancre, etape, ...props }: Omit<Parameters<typeof Bulle>[0], 'zone' | 'classe'> & { readonly ancre: HTMLElement }) {
-  const zone = useRef<HTMLElement>(null);
-  useLayoutEffect(() => {
-    const bulle = zone.current;
-    if (bulle === null) return;
-    const placer = (): void => {
-      const puce = ancre.getBoundingClientRect();
-      const boite = bulle.getBoundingClientRect();
-      const hauteur = [...bulle.children].reduce((somme, enfant) => somme + enfant.scrollHeight, boite.height - bulle.clientHeight);
-      const place = placerBulle(
-        { haut: puce.top, bas: puce.bottom, centre: puce.left + puce.width / 2 },
-        { gauche: boite.left, largeur: boite.width, hauteur },
-        window.innerHeight,
-      );
-      bulle.dataset.cote = place.cote;
-      bulle.style.top = place.cote === 'dessous' ? `${place.bord}px` : '';
-      bulle.style.bottom = place.cote === 'dessus' ? `${place.bord}px` : '';
-      bulle.style.maxHeight = `${place.hauteurMax}px`;
-      bulle.style.setProperty('--fleche', `${place.fleche}px`);
-    };
-    placer();
-    window.addEventListener('resize', placer);
-    return () => window.removeEventListener('resize', placer);
-  }, [ancre, etape]);
-  return <Bulle zone={zone} classe="bulle-objet" etape={etape} {...props} />;
 }
 
 /** Bulle d'une puce de la pièce : fiche et actions, puis « OÙ ? » si l'action a un paramètre, puis l'aperçu. */

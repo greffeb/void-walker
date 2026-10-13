@@ -50,7 +50,7 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
 - **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale.
 - **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
-- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192).
+- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)).
 
 | Jeton | Valeur | Usage | Contraste sur `cyan-surface` |
 | --- | --- | --- | --- |
@@ -366,6 +366,8 @@ Parcours de référence du prototype (cas A-03 de C-01).
 - Dock et navigation comme en §4.5.
 
 ### 4.8 Carte
+
+> **Remplacé le 2026-10-12** par la [carte en plan de pont](14-carte.md) (D-201 à D-212) : plan réel de la station en vert phosphore, pièces connues en pointillé, états en motif et étiquette, fiche au toucher, vue LISTE avec les positions en mots. La description ci-dessous reste comme trace de la maquette P08 ; en cas d'écart, le document 14 prime.
 
 Le porteur du projet trouve la carte « pas mal » et la reverra plus tard. [Validé en l'état, à retravailler] Règles de fond : [C-06 §3](contrats/C-06-observation-connaissances.md).
 

@@ -207,10 +207,23 @@ describe('AR-01 : combinaisons non adaptées (§10)', () => {
 });
 
 describe('AR-01 : ce que sait le passager (C-06)', () => {
+  it('K-01 : au départ, la carte montre le salon de transit et ses deux sorties, rien d’autre', () => {
+    const { carte } = observer(MONDE, depart().etat);
+    expect(carte.pieces.map((vue) => [vue.piece.nom, vue.statut])).toEqual([
+      ['salon', 'actuelle'],
+      ['atelier', 'connue'],
+      ['galerie', 'connue'],
+    ]);
+    expect(carte.passages.map((vue) => vue.id)).toEqual([id('l-salon-atelier'), id('l-salon-galerie')]);
+    // Le feu du local technique, derrière sa cloison fermée, n'a pas été vu.
+    expect(carte.pieces.every((vue) => vue.feu === null)).toBe(true);
+    expect(carte.capsules).toEqual([]);
+  });
   it('passage caché : depuis l’embarquement, tout se voit comme sans lui ; depuis le local, ni destination ni « aller »', () => {
     const embarquement = apres(depart(), P_B.slice(0, 13));
     expect(observer(MONDE, embarquement.etat).piece.nom).toBe('embarquement');
     const sansPanneau: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.filter((liaison) => liaison.id !== 'l-energie-embarquement') };
+    // Le local énergie, visité, a montré le panneau, mais seulement comme un panneau : la carte ne le dessine pas (14 §2.6).
     expect(observer(MONDE, embarquement.etat)).toEqual(observer(sansPanneau, embarquement.etat));
     refuse(embarquement, { action: 'ouvrir', cible: id('l-energie-embarquement') }, 'cible_absente');
 

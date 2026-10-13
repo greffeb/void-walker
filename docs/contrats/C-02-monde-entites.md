@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.1 — D-082 ; assemble D-015, D-043/D-044, D-047, D-051, D-061, D-067, D-072/D-073, D-078 à D-080, AR-01 et AR-02. Points MP-01 à MP-03 acceptés par D-080. v1.1 : qualités et propriétés des morceaux du lancement (D-175).
 > **Date :** 2026-10-10.
-> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; liaison non étanche, vitrage extérieur, combinaison, découpeuse et rustine (AR-02) proposés par #104 ; encombrant (MP-03, W-02) et planche absents.
+> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; liaison non étanche, vitrage extérieur, combinaison, découpeuse et rustine (AR-02) proposés par #104 ; encombrant (MP-03, W-02) et planche absents ; plan de pont des pièces et des liaisons (14 §4) proposé par #97, livraison 1.
 
 ## 1. But et portée
 
@@ -16,6 +16,7 @@ Ce n'est pas un moteur physique universel. Les invariants d'identité et de cons
 - **Sous-position fermée :** espace rattaché à une pièce par une liaison, sans être une pièce d'exploration ; exemple : « à bord » de la capsule (AR-01 §4, AR-02 §4).
 - **Position locale :** repère utile à une action ou à la vue, comme « seuil côté P », « alcôve », « bord sec », « sous la grille », « devant la baie ». Une pièce n'a que les positions dont ses actions ont besoin.
 - **Séparation opaque interne :** coupe la vue entre positions d'une même pièce (paroi de l'alcôve, AR-01 §11.3).
+- **Plan de pont (D-201, D-204) :** chaque pièce peut porter un rectangle en cases, chaque liaison une porte fixée ou le tracé d'un conduit, une pièce la mention « contre la coque » ; format et vérifieur en [14 §4](../14-carte.md). Les cases servent au dessin seulement : aucune grille ni distance n'est affichée (D-015), aucune règle ne lit le plan.
 
 **MP-01 —** Se déplacer entre positions d'une même pièce fait partie de l'action qui en a besoin ; ce n'est pas une action séparée (AR-01 §11.3, C-03 §2).
 

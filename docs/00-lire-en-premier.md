@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-12 (#96 proposée).
+> **Mise à jour :** 2026-10-12 (#96 proposée ; conception de la carte #97 ; livraisons 1 à 3 de la carte #97 proposées).
 
 ## Mission de ce dossier
 
@@ -24,6 +24,8 @@ Le présent dossier ne modifie ni le prototype précédent ni le projet Lacets. 
 Les besoins créatifs sont illustrés par les [cinq interactions de référence](07-interactions-reference.md). Leurs intentions sont demandées, leurs modalités techniques restent proposées jusqu'à arbitrage.
 
 La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « Phosphore », [PDF](maquette/maquette-ui-v1.pdf)) est la référence de l'interface (D-140 à D-155). Elle sert aux agents d'interface et au graphiste ; ses points encore ouverts sont listés en §9, ses écarts avec l'interface actuelle en §11.
+
+La [carte en plan de pont](14-carte.md) remplace la carte de la maquette (12 §4.8) : écran, mémoire du passager, plans des stations et règles de génération des plans (D-201 à D-214). Conception validée par parties sur maquettes et sur les mesures d'un prototype jetable ; aucune implémentation.
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
@@ -119,6 +121,8 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 #98 (IA Station) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone. La fenêtre d'IA Station est blanche (D-192) : historique des messages reçus, repère de moment, NOUVEAU sur les non-lus, RETOUR. En partie, un lien « [ IA STATION ] parle dans l'écouteur › » remplace la citation ; au réveil elle reste encadrée. Pastille sur IA STATION tant qu'un message n'est pas lu, lus gardés sur l'appareil. Le monde de test reçoit deux messages (réveil, arrivée dans l'atelier). L'effet sonore d'arrivée viendra avec #99.
 
 #96 (options, téléchargement, fin d'abandon) est proposée par une PR en zone orange, sans fusion avant l'accord du porteur et son essai sur téléphone. Options depuis l'accueil (OPTIONS) et le jeu (engrenage) : taille du texte STANDARD / GRANDE / TRÈS GRANDE (récit à 17, 19, 22 px, tout le reste à proportion), lignes de balayage et machine à écrire, gardées sur l'appareil ; « Télécharger ma partie » (l'export qui se rejoue avec `npm run rejouer`) ; abandon confirmé dans la page, qui efface la partie de l'appareil (D-200) et mène à l'écran de fin « Partie abandonnée » ; REJOUER CETTE STATION repart du même départ avec de nouveaux tirages. Version, commit et PR sont passés du bas de l'écran de jeu au bas des options. Restent pour plus tard : son (#99), Signaler un bug et Envoyer ma partie (#107), fins de défaite et d'évacuation.
+
+#97 (carte) : conception écrite et validée par parties ([14 — carte](14-carte.md), D-201 à D-214), après des maquettes au format téléphone et un prototype jetable de génération des plans (1 000 tirages par variante, grandes stations jusqu'à 60 pièces). La carte devient un plan de pont en vert phosphore ; air et créature entrent dans l'issue. Trois livraisons à venir, en zone orange : plans, mémoire, écran. L'assemblage géométrique des stations générées rejoint #106 ; un catalogue de pièces sans obstacle attend une issue à part. Livraison 1 (plans) proposée : format, vérifieur et plans des trois mondes, montrés en captures ; mémoire et écran à suivre. Livraison 2 (mémoire et carte publique, commande `carte` de la CLI) proposée. Livraison 3 (écran vert, plan, fiche, liste) proposée, validation humaine requise.
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 

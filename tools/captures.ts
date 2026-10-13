@@ -4,10 +4,11 @@ import { join } from 'node:path';
 import { chromium, devices, type Browser, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
-import { libelleOption, MONDES, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
+import { libelleOption, MONDES, MOTS_CARTE, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
 import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { rejouerExport } from './rejouer-export';
+import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
 import { versionDuJeu } from './version';
@@ -23,8 +24,8 @@ const ETROIT = { width: 320, height: 568 };
 const PORTEUR = { width: 412, height: 915 };
 
 export interface EtapeCapture {
-  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02. */
-  readonly suite: 'monde-test' | 'ar-01' | 'ar-02';
+  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02, ou les plans des stations. */
+  readonly suite: 'monde-test' | 'ar-01' | 'ar-02' | 'plans' | 'carte';
   readonly titre: string;
   readonly image: string;
   readonly recit: string;
@@ -131,7 +132,7 @@ export function casApercus(entree: EntreeMonde): CasApercu[] {
   while (frontiere.length > 0 && trouves.size < 4) {
     const suivante: { partie: Partie; chemin: Geste[] }[] = [];
     for (const { partie, chemin } of frontiere) {
-      const etat = JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+      const etat = JSON.stringify({ ...partie.etat, actions: 0, generateur: null, memoire: null });
       if (vus.has(etat)) continue;
       vus.add(etat);
       const observation = observer(entree.monde, partie.etat);
@@ -1074,6 +1075,179 @@ async function parcoursAr02(navigateur: Browser, racine: string, ar02: EntreeMon
   await contexte.close();
 }
 
+/** Aucun chiffre sur la carte, aucun texte qui déborde de sa pièce, puis les règles de tout écran : cibles de 44 px, pas de débordement (12 §1, §7). */
+async function verifierCarte(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  if (/\d/.test(await page.locator('.carte').innerText())) erreurs.push(`${ou} : un chiffre est affiché sur la carte.`);
+  const debordent = await page
+    .locator('.carte-piece')
+    .evaluateAll((boutons) =>
+      boutons.filter((bouton) => bouton.scrollWidth > bouton.clientWidth + 1 || bouton.scrollHeight > bouton.clientHeight + 1).map((bouton) => bouton.getAttribute('aria-label') ?? ''),
+    );
+  for (const piece of debordent) erreurs.push(`${ou} : le texte de « ${piece} » déborde de sa pièce (PL-04).`);
+  await verifierEcran(page, ou, erreurs);
+}
+
+/**
+ * Carte (#97, 14 §2) : au départ d'AR-01 puis après les cinq premiers pas de P-C (le passager est au local énergie) ; glisser,
+ * fiche au clavier, liste, retour système, texte très grand ; AR-02 pour les voyants d'air. Gratuite (D-014).
+ */
+async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const etapes = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes;
+  if (etapes === undefined) {
+    erreurs.push('Parcours P-C absent d’AR-01.');
+    return;
+  }
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await contexte.newPage();
+  await page.goto(racine);
+  await nouvelleDepuisAccueil(page);
+  const bouton = page.locator('.nav-carte');
+  const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
+  const focusSur = (cible: Locator): Promise<boolean> => cible.evaluate((element) => element === document.activeElement);
+  // La zone du plan se mesure après l'ouverture : on attend les pièces dessinées avant de compter ou de capturer.
+  const ouvrirCarte = async (): Promise<void> => {
+    await bouton.click();
+    await carte.locator('.carte-piece').first().waitFor();
+  };
+
+  // Départ : le salon et ses deux sorties (K-01) ; fermer par Échap ne change rien et rend le focus à CARTE.
+  const avant = await partieEnregistree(page);
+  await ouvrirCarte();
+  await capturer(page, 'Carte — départ d’AR-01');
+  // Bulle comme l'inventaire (D-215) : marges autour, la navigation reste visible dessous.
+  const bulle = await carte.boundingBox();
+  const nav = await page.locator('.navigation').boundingBox();
+  if (bulle === null || nav === null || bulle.x < 8 || bulle.y < 8 || bulle.y + bulle.height > nav.y) erreurs.push('Carte : pas posée en bulle au-dessus de la navigation.');
+  await verifierCarte(page, 'Carte, départ', erreurs);
+  const pieces = await carte.locator('.carte-piece').count();
+  if (pieces !== 3) erreurs.push(`Carte, départ : ${pieces} pièces au lieu de trois (salon, atelier, local technique).`);
+  await page.keyboard.press('Escape');
+  await carte.waitFor({ state: 'detached' });
+  if (!(await focusSur(bouton))) erreurs.push('Carte fermée par Échap : le focus ne revient pas sur CARTE.');
+  // Retour système : même chose.
+  await ouvrirCarte();
+  await page.evaluate(() => window.history.back());
+  await carte.waitFor({ state: 'detached' });
+  if (!(await focusSur(bouton))) erreurs.push('Carte fermée par le retour système : le focus ne revient pas sur CARTE.');
+  if ((await partieEnregistree(page)) !== avant) erreurs.push('Carte : l’ouvrir et la fermer a changé la partie (D-014).');
+
+  // Cinq pas de P-C : atelier, burette, caisse sous la grille, grille ouverte puis franchie.
+  await rejouer(page, gestesDuParcours(ar01, etapes).slice(0, 5));
+  await ouvrirCarte();
+  await capturer(page, 'Carte — au local énergie : pièces visitées, connues, panneau « ? »');
+  await verifierCarte(page, 'Carte, local énergie', erreurs);
+
+  // Glisser fait parcourir le plan, sans ouvrir de fiche.
+  const actuelle = carte.locator('.carte-piece[data-statut="actuelle"]');
+  const debut = await actuelle.boundingBox();
+  if (debut === null) erreurs.push('Carte : pièce actuelle introuvable.');
+  else {
+    await page.mouse.move(debut.x + debut.width / 2, debut.y + debut.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(debut.x + debut.width / 2 - 60, debut.y + debut.height / 2 - 40, { steps: 6 });
+    await page.mouse.up();
+    const fin = await actuelle.boundingBox();
+    if (fin === null || Math.abs(fin.x - (debut.x - 60)) > 2 || Math.abs(fin.y - (debut.y - 40)) > 2) erreurs.push('Carte : glisser ne déplace pas le plan.');
+    if ((await page.getByRole('dialog').count()) !== 1) erreurs.push('Carte : un glissement a ouvert une fiche.');
+  }
+
+  // Au clavier, une pièce sortie de l'écran par un glissement y revient quand elle prend le focus, sans faire défiler la
+  // zone ni décaler le dessin (12 §7).
+  const atelierVu = carte.getByRole('button', { name: /^Atelier maintenance, vu/ });
+  const zonePlan = carte.locator('.carte-zone');
+  const centre = await zonePlan.boundingBox();
+  if (centre !== null) {
+    await page.mouse.move(centre.x + centre.width / 2, centre.y + centre.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(centre.x + centre.width / 2, centre.y + centre.height / 2 - 450, { steps: 8 });
+    await page.mouse.up();
+  }
+  await atelierVu.focus();
+  const defile = await zonePlan.evaluate((zone) => zone.scrollLeft !== 0 || zone.scrollTop !== 0);
+  if (defile) erreurs.push('Carte : le focus clavier fait défiler la zone du plan et décale le dessin.');
+  const visible = await atelierVu.boundingBox();
+  if (centre === null || visible === null || visible.x < centre.x || visible.y < centre.y || visible.x + visible.width > centre.x + centre.width || visible.y + visible.height > centre.y + centre.height) {
+    erreurs.push('Carte : la pièce qui prend le focus reste hors de l’écran.');
+  }
+
+  // Lecteur d'écran : après un glissement, un toucher activé sans nouvel appui (clic sans pointerdown) ouvre quand même la fiche
+  // au second essai ; seul le clic qui termine le glissement est ignoré.
+  const salle = carte.locator('.carte-piece[data-statut="actuelle"]');
+  const boite = await salle.boundingBox();
+  if (boite !== null) {
+    await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(boite.x + boite.width / 2 - 20, boite.y + boite.height / 2, { steps: 4 });
+    await page.mouse.up();
+  }
+  for (let fois = 0; fois < 2; fois++) await atelierVu.evaluate((bouton) => bouton.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
+  const ficheLecteur = page.getByRole('dialog', { name: 'ATELIER MAINTENANCE' });
+  if ((await ficheLecteur.count()) === 0) erreurs.push('Carte : après un glissement, une activation de lecteur d’écran n’ouvre plus de fiche.');
+  else {
+    await page.keyboard.press('Escape');
+    await ficheLecteur.waitFor({ state: 'detached' });
+  }
+
+  // Fiche de l'atelier, au clavier ; Échap la ferme et rend le focus à la pièce.
+  const atelier = carte.getByRole('button', { name: /^Atelier maintenance, vu/ });
+  await atelier.focus();
+  await page.keyboard.press('Enter');
+  const fiche = page.getByRole('dialog', { name: 'ATELIER MAINTENANCE' });
+  await fiche.waitFor();
+  await capturer(page, 'Carte — fiche de l’atelier : état vu, objets vus');
+  if (!(await fiche.innerText()).includes(MOTS_CARTE.objetsVus)) erreurs.push('Fiche : « OBJETS VUS » absent.');
+  await page.keyboard.press('Escape');
+  await fiche.waitFor({ state: 'detached' });
+  if (!(await focusSur(atelier))) erreurs.push('Fiche fermée : le focus ne revient pas sur la pièce.');
+
+  // Vue LISTE, puis retour au plan et fermeture.
+  await carte.getByRole('button', { name: MOTS_CARTE.liste, exact: true }).click();
+  await page.getByRole('dialog', { name: MOTS_CARTE.titreListe }).waitFor();
+  await capturer(page, 'Carte — vue liste');
+  await verifierCarte(page, 'Carte, liste', erreurs);
+  await page.getByRole('button', { name: MOTS_CARTE.plan, exact: true }).click();
+  await carte.getByRole('button', { name: exactement('Fermer') }).click();
+  await carte.waitFor({ state: 'detached' });
+
+  // Texte très grand : noms et étiquettes tiennent ou s'effacent, rien ne déborde.
+  await ouvrirOptions(page);
+  await choisirTaille(page, 'Très grande');
+  await page.getByRole('button', { name: exactement('Reprendre la partie') }).click();
+  await page.getByTestId('recit').waitFor();
+  await ouvrirCarte();
+  await capturer(page, 'Carte — texte très grand');
+  await verifierCarte(page, 'Carte, texte très grand', erreurs);
+  await carte.getByRole('button', { name: exactement('Fermer') }).click();
+  await contexte.close();
+
+  // AR-02 au départ : voyants d'air sur les portes étanches (OP-04).
+  const autre = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const page02 = await autre.newPage();
+  await page02.goto(`${racine}?monde=ar-02`);
+  await nouvelleDepuisAccueil(page02);
+  await page02.locator('.nav-carte').click();
+  await page02.getByRole('dialog', { name: MOTS_CARTE.titrePlan }).locator('.carte-piece').first().waitFor();
+  if ((await page02.locator('.carte .voyant').count()) === 0) erreurs.push('AR-02 : aucun voyant d’air sur la carte.');
+  await capturer(page02, 'Carte — départ d’AR-02 : voyants d’air');
+  await verifierCarte(page02, 'Carte, AR-02', erreurs);
+  await autre.close();
+}
+
+/** Plans des stations (14 §4.3) : rendu d'auteur de chaque monde, montré au porteur avant fusion. */
+async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const contexte = await navigateur.newContext({ viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await contexte.newPage();
+  for (const [id, entree] of Object.entries(MONDES)) {
+    try {
+      await page.setContent(`<!doctype html><html lang="fr"><body style="margin:0;background:#050A06">${dessinerPlan(entree)}</body></html>`);
+      await capturer(page, `Plan — ${id}`);
+    } catch (erreur) {
+      erreurs.push(`${id} : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+    }
+  }
+  await contexte.close();
+}
+
 /** Une partie du commentaire : bilan, images, puis texte affiché à chaque étape. */
 function partieCommentaire(titre: string, etapes: readonly EtapeCapture[], erreurs: readonly string[], details: readonly string[]): string[] {
   const images = process.env.CAPTURES_URL ?? '';
@@ -1102,6 +1276,8 @@ function commentaire(
   erreurs: readonly string[],
   erreursAr01: readonly string[],
   erreursAr02: readonly string[],
+  erreursPlans: readonly string[],
+  erreursCarte: readonly string[],
   installable: string,
   horsLigne: string,
 ): string {
@@ -1134,6 +1310,18 @@ function commentaire(
       erreursAr02,
       ['Adresse : `?monde=ar-02`, partie neuve, joué geste par geste.'],
     ),
+    ...partieCommentaire(
+      'Carte (#97)',
+      etapes.filter((etape) => etape.suite === 'carte'),
+      erreursCarte,
+      ['AR-01 au départ et au local énergie (cinq pas de P-C), fiche, liste, texte très grand ; AR-02 au départ. **Validation humaine requise** sur téléphone : lisibilité, gestes, bornes du zoom (14 §9).'],
+    ),
+    ...partieCommentaire(
+      'Plans des stations (#97)',
+      etapes.filter((etape) => etape.suite === 'plans'),
+      erreursPlans,
+      ['Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. À juger par le porteur avant fusion.'],
+    ),
   ];
   return lignes.join('\n');
 }
@@ -1152,6 +1340,8 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   const erreurs: string[] = [];
   const erreursAr01: string[] = [];
   const erreursAr02: string[] = [];
+  const erreursPlans: string[] = [];
+  const erreursCarte: string[] = [];
   let suite: EtapeCapture['suite'] = 'monde-test';
   let installable = 'non vérifiée';
   let horsLigne = 'non vérifié';
@@ -1620,6 +1810,20 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     } catch (erreur) {
       erreursAr02.push(erreur instanceof Error ? erreur.message : String(erreur));
     }
+    // Carte (#97) : AR-01 puis AR-02, dans des contextes neufs.
+    suite = 'carte';
+    try {
+      await parcoursCarte(navigateur, racine, ar01, capturerPage, erreursCarte);
+    } catch (erreur) {
+      erreursCarte.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // Plans des stations (#97) : rendu d'auteur, dans un contexte neuf.
+    suite = 'plans';
+    try {
+      await capturerPlans(navigateur, capturerPage, erreursPlans);
+    } catch (erreur) {
+      erreursPlans.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
   } catch (erreur) {
     erreurs.push(erreur instanceof Error ? erreur.message : String(erreur));
   } finally {
@@ -1628,10 +1832,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, etapes };
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, erreursPlans, erreursCarte, etapes };
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
-  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, installable, horsLigne));
-  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`), ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`)] };
+  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, erreursPlans, erreursCarte, installable, horsLigne));
+  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`), ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`), ...erreursPlans.map((erreur) => `Plans : ${erreur}`), ...erreursCarte.map((erreur) => `Carte : ${erreur}`)] };
 }
 
 if (isMainModule(import.meta.url)) {

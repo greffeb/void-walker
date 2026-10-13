@@ -21,11 +21,14 @@ import {
   cleEvacuation,
   CLES_EVACUATION,
   libelleOption,
+  lignesListeCarte,
   MONDES,
+  nomLisible,
   rendreApercu,
   rendreAssistance,
   rendreConsultation,
   rendreEvenements,
+  rendreListeCarte,
   rendreObservation,
   rendreRefus,
   ROLES_ALLER_SANS_DESTINATION,
@@ -159,6 +162,14 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const entite of [...monde.pieces, ...monde.objets]) {
     verifierVariantes(erreurs, `description de « ${entite.nom} »`, textes.descriptions[entite.nom], []);
   }
+  // PL-04 (14 §4.2) : chaque nom de pièce tient dans son rectangle, avec la place d'une ligne d'état.
+  for (const piece of monde.pieces) {
+    const nom = textes.noms[piece.nom];
+    if (piece.plan === undefined || nom === undefined) continue;
+    if (!nomLisible(nom.texte, piece.plan.largeur, piece.plan.hauteur)) {
+      erreurs.push(`plan : « ${nom.texte} » ne tient pas dans sa pièce de ${piece.plan.largeur} × ${piece.plan.hauteur} cases (PL-04).`);
+    }
+  }
 }
 
 /** Textes possibles du récit d'un événement, comme le rendu les choisit ; l'assistance n'est pas racontée. */
@@ -276,8 +287,9 @@ export interface Couverture {
   readonly jamais: readonly TypeEvenement[];
 }
 
+/** Clé d'un état pour l'exploration : sans compteur, dés ni mémoire, qu'aucune règle ne lit (14 §3) ; sinon l'espace serait infini. */
 function cleEtat(partie: Partie): string {
-  return JSON.stringify({ ...partie.etat, actions: 0, generateur: null });
+  return JSON.stringify({ ...partie.etat, actions: 0, generateur: null, memoire: null });
 }
 
 /** Rend chaque texte que le joueur peut voir dans cet état et renvoie les parties qui suivent ses actions engagées. */
@@ -290,6 +302,7 @@ function visiter({ monde, textes }: EntreeMonde, partie: Partie, exploration: Ex
   const suivantes: Partie[] = [];
   const observation = observer(monde, partie.etat);
   for (const ligne of rendreObservation(textes, observation)) rendre({ texte: ligne, ou: 'observation' });
+  for (const ligne of lignesListeCarte(rendreListeCarte(textes, observation.carte))) rendre({ texte: ligne, ou: 'carte', sansChiffre: true });
   for (const option of observation.menu) {
     const { libelle, raison } = libelleOption(textes, option);
     rendre({ texte: libelle, ou: `libellé ${option.action}` });

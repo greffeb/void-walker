@@ -43,6 +43,15 @@
   --blanc-texte: #dce8ec;
   --blanc-secondaire: #8c9ca2;
   --blanc-surface: #0a0e0f;
+  /* Carte (14 §2.2, D-211) : vert phosphore, propre à la carte comme le cyan à l'inventaire et le blanc à IA Station. */
+  --vert-fond: #050a06;
+  --vert-surface: #0b140d;
+  --vert: #5cff7a;
+  --vert-texte: #a6f5b0;
+  --vert-secondaire: #62b06d;
+  --vert-signal: #ddffb8;
+  --vert-bordure: #3e7046;
+  --vert-separateur: #1f3a24;
   --voile-bulle: rgba(10, 9, 7, 0.35);
   --voile-modale: rgba(10, 9, 7, 0.55);
   font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
@@ -996,7 +1005,7 @@ button:disabled {
   padding: 4px 2px;
 }
 
-/* IA STATION à sa place, la troisième : CARTE viendra au milieu (12 §4.3). */
+/* IA STATION à sa place, la troisième ; CARTE au milieu (12 §4.3, 14 §2.1). */
 .navigation .nav-ia {
   grid-column: 3;
   display: flex;
@@ -1009,6 +1018,16 @@ button:disabled {
   color: var(--blanc);
   border-color: var(--blanc);
   box-shadow: inset 0 0 0 1px var(--blanc);
+}
+
+.navigation .nav-carte {
+  grid-column: 2;
+}
+
+.navigation .nav-carte[aria-expanded='true'] {
+  color: var(--vert-texte);
+  border-color: var(--vert);
+  box-shadow: inset 0 0 0 1px var(--vert);
 }
 
 /* Nouveau message (12 §2.6) : carré plein de 8 px. */
@@ -1288,4 +1307,317 @@ button:disabled {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--texte-secondaire);
+}
+
+/* Carte (14 §2) : plein écran vert, au-dessus du jeu ; ni transition ni glissement animé (14 §2.3). */
+/* Bulle au-dessus de la navigation, comme l'inventaire (D-215) : marges de 16 px, l'écran de jeu reste visible derrière le voile ;
+   presque toute la hauteur, la navigation comprise dans 100 %. */
+.carte {
+  --couleur-menu: var(--vert);
+  --texte-menu: var(--vert-texte);
+  --secondaire-menu: var(--vert-secondaire);
+  --surface-menu: var(--vert-fond);
+  --filet-menu: var(--vert-separateur);
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 12px);
+  height: calc(100dvh - 100% - 12px - max(16px, env(safe-area-inset-top)));
+  color: var(--vert-texte);
+}
+
+/* Flèche au milieu de la navigation, là où est CARTE. */
+.carte::after {
+  left: calc(50% - 6px);
+  bottom: -7px;
+  border-right: 1px solid var(--couleur-menu);
+  border-bottom: 1px solid var(--couleur-menu);
+}
+
+.carte:focus {
+  outline: none;
+}
+
+.carte :focus-visible {
+  outline: 2px solid var(--vert-signal);
+  outline-offset: 2px;
+}
+
+.carte-entete {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0 8px 12px;
+  border-bottom: 1px solid var(--vert-separateur);
+}
+
+.carte-titre {
+  flex: 1;
+  margin: 0;
+  font-size: calc(17px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--vert);
+}
+
+.carte-bascule {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: calc(13px * var(--echelle));
+  letter-spacing: 0.04em;
+  color: var(--vert-texte);
+  background: transparent;
+  border: 1px solid var(--vert-bordure);
+}
+
+.carte-zone {
+  position: relative;
+  flex: 1;
+  /* clip et non hidden : la zone ne défile jamais, même quand le focus va sur une pièce hors de l'écran. */
+  overflow: clip;
+  touch-action: none;
+}
+
+.carte-etalon {
+  position: absolute;
+  width: calc(34px * var(--echelle));
+  height: 0;
+  visibility: hidden;
+}
+
+.carte-plan {
+  position: absolute;
+  inset: 0;
+}
+
+.carte-traits {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.carte-traits .sol {
+  fill: var(--vert-surface);
+}
+
+.carte-traits .mur {
+  fill: none;
+  stroke: var(--vert-secondaire);
+  stroke-width: 2;
+}
+
+.carte-traits .mur-actuelle {
+  stroke: var(--vert);
+  stroke-width: 3;
+}
+
+.carte-traits .mur-connue {
+  stroke: var(--vert-bordure);
+  stroke-dasharray: 6 4;
+}
+
+.carte-traits .motif-feu {
+  fill: var(--vert);
+  opacity: 0.22;
+}
+
+.carte-traits .motif-vide {
+  fill: var(--vert-signal);
+}
+
+.carte-traits .ouverture {
+  stroke: var(--vert-fond);
+  stroke-width: 5;
+}
+
+.carte-traits .ouverture-fermee {
+  stroke: var(--vert-texte);
+  stroke-width: 1;
+}
+
+.carte-traits .ouverture-tirets,
+.carte-traits .conduit {
+  fill: none;
+  stroke: var(--vert-secondaire);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+
+.carte-traits .ouverture-inconnue {
+  font-size: calc(12px * var(--echelle));
+  font-weight: 600;
+  fill: var(--vert-texte);
+}
+
+.carte-traits .voyant-air {
+  fill: var(--vert-signal);
+}
+
+.carte-traits .voyant-vide {
+  fill: var(--vert-fond);
+  stroke: var(--vert-signal);
+  stroke-width: 1.5;
+}
+
+.carte-traits .capsule {
+  fill: none;
+  stroke: var(--vert-secondaire);
+  stroke-width: 2;
+}
+
+.carte-traits .losange polygon {
+  fill: none;
+  stroke: var(--vert);
+  stroke-width: 2;
+}
+
+.carte-traits .losange circle {
+  fill: var(--vert);
+}
+
+.carte-piece {
+  position: absolute;
+  display: block;
+  padding: calc(8px * var(--echelle) * var(--texte-carte, 1));
+  overflow: hidden;
+  text-align: left;
+  font: inherit;
+  color: var(--vert-texte);
+  background: transparent;
+  border: none;
+}
+
+.carte-piece[aria-expanded='true'] {
+  outline: 2px solid var(--vert-signal);
+  outline-offset: -2px;
+}
+
+.carte-textes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.carte-nom,
+.carte-etiquette {
+  font-size: calc(13px * var(--echelle) * var(--texte-carte, 1));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.carte-nom {
+  line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
+}
+
+.carte-piece[data-statut='actuelle'] .carte-nom {
+  color: var(--vert);
+}
+
+.carte-piece[data-statut='connue'] .carte-nom {
+  color: var(--vert-secondaire);
+}
+
+.carte-etats {
+  display: flex;
+  gap: calc(8px * var(--echelle) * var(--texte-carte, 1));
+  line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
+}
+
+/* Étiquettes d'état en vidéo inverse (14 §2.5) ; « @ VOUS » en vert, sans fond. */
+.carte-etiquette {
+  color: var(--vert-fond);
+  background: var(--vert);
+}
+
+.carte-etiquette[data-marque='vide'] {
+  background: var(--vert-signal);
+}
+
+.carte-etiquette[data-marque='vous'] {
+  color: var(--vert);
+  background: none;
+}
+
+.carte-anciennete {
+  font-size: calc(12px * var(--echelle) * var(--texte-carte, 1));
+  line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
+  color: var(--vert-secondaire);
+  white-space: nowrap;
+}
+
+.carte-liste {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px;
+}
+
+.carte-bloc-titre {
+  margin: 12px 0 4px;
+  font-size: calc(13px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--vert-secondaire);
+}
+
+.carte-liste ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.carte-liste li {
+  padding: 4px 0;
+  font-size: calc(15px * var(--echelle));
+  border-bottom: 1px solid var(--vert-separateur);
+}
+
+.carte-entree-titre {
+  font-weight: 600;
+}
+
+.carte-entree-details,
+.carte-aucune {
+  color: var(--vert-secondaire);
+}
+
+.carte-aucune {
+  margin: 0;
+}
+
+.carte-voile {
+  z-index: 6;
+}
+
+/* Fiche d'une pièce : la bulle des puces, en vert (D-211). */
+.bulle-carte {
+  --couleur-menu: var(--vert);
+  --texte-menu: var(--vert-texte);
+  --secondaire-menu: var(--vert-secondaire);
+  --surface-menu: var(--vert-surface);
+  --filet-menu: var(--vert-separateur);
+}
+
+.fiche-sous-titre,
+.fiche-section {
+  margin: 0;
+  color: var(--vert-secondaire);
+}
+
+.fiche-section {
+  margin-top: 8px;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.04em;
+}
+
+.fiche-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }

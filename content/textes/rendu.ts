@@ -28,10 +28,17 @@ export interface CleTexte {
  * nom tant que sa destination n'est pas connue (« la grille »).
  */
 export function nomDe(textes: TextesMonde, cible: Cible): Nom {
+  if (cible.sorte === 'passage') return nomPassage(textes, cible.nom, cible.vers);
   const nom = textes.noms[cible.nom];
   if (nom === undefined) throw new ErreurTexte(`Nom sans texte : ${cible.nom}.`);
-  if (cible.sorte !== 'passage' || cible.vers === null) return nom;
-  return { ...nom, texte: `${nom.texte} ${former('de', nomDe(textes, cible.vers))}` };
+  return nom;
+}
+
+/** Nom d'un passage par sa clé de nom et sa destination, si elle est connue ; partagé avec la carte (14 §2.8). */
+export function nomPassage(textes: TextesMonde, nom: string, vers: RefPiece | null): Nom {
+  const passage = textes.noms[nom];
+  if (passage === undefined) throw new ErreurTexte(`Nom sans texte : ${nom}.`);
+  return vers === null ? passage : { ...passage, texte: `${passage.texte} ${former('de', nomDe(textes, vers))}` };
 }
 
 function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<string, Nom | readonly Nom[]> {

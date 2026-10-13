@@ -14,6 +14,7 @@ import {
   refPosition,
   type EtatPartie,
 } from './etat';
+import { carte } from './carte';
 import { indexer, type DefMonde } from './monde';
 import {
   ACTIONS,
@@ -119,5 +120,6 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     issue: etat.fin ?? (etat.sante === 'vaincu' ? 'defaite' : null),
     messages: etat.messages,
     menu: menu(monde, etat),
+    carte: carte(monde, etat),
   };
 }

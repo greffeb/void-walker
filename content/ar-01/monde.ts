@@ -5,13 +5,16 @@ import type { DefMonde } from '../../engine';
 export const MONDE_AR01: DefMonde = {
   id: 'ar-01',
   depart: 'p-salon',
+  // Plan (14 §4.3) : salon et atelier en haut, local technique et local énergie dessous, la baie d'observation à l'est contre
+  // la coque, la salle d'embarquement sous l'énergie et la baie, sa capsule arrimée dessous. Le panneau caché s'ouvre dans le
+  // mur commun du local énergie et de l'embarquement.
   pieces: [
-    { id: 'p-salon', nom: 'salon' },
-    { id: 'p-atelier', nom: 'atelier' },
-    { id: 'p-galerie', nom: 'galerie', feu: true },
-    { id: 'p-energie', nom: 'energie' },
-    { id: 'p-observation', nom: 'observation' },
-    { id: 'p-embarquement', nom: 'embarquement' },
+    { id: 'p-salon', nom: 'salon', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-atelier', nom: 'atelier', plan: { x: 4, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-galerie', nom: 'galerie', feu: true, plan: { x: 0, y: 3, largeur: 4, hauteur: 3 } },
+    { id: 'p-energie', nom: 'energie', plan: { x: 4, y: 3, largeur: 4, hauteur: 3 } },
+    { id: 'p-observation', nom: 'observation', coque: true, plan: { x: 8, y: 3, largeur: 4, hauteur: 3 } },
+    { id: 'p-embarquement', nom: 'embarquement', plan: { x: 6, y: 6, largeur: 4, hauteur: 3 } },
     { id: 'p-cabine', nom: 'cabine', sousPosition: true },
   ],
   liaisons: [
