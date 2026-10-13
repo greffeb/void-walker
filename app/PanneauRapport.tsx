@@ -22,12 +22,13 @@ const INVITES: Readonly<Record<TypeRapport, string>> = {
 };
 
 /**
- * Panneau d'un rapport, ouvert sous la ligne touchée (12 §4.10, choix A du porteur) : commentaire facultatif (D-142), case
- * « je valide » pour un envoi de partie depuis une version de test (D-096, D-132), ce qui est joint, ANNULER et ENVOYER.
+ * Panneau d'un rapport, ouvert sous la ligne touchée (D-231) : commentaire facultatif (D-142), case « je valide » pour
+ * l'envoi d'une partie finie depuis une version de test (D-096, D-099, D-132), ce qui est joint, ANNULER et ENVOYER.
  */
 export function PanneauRapport({
   type,
   pr,
+  validable = false,
   partieJointe,
   envoyer,
   fermer,
@@ -35,6 +36,8 @@ export function PanneauRapport({
   readonly type: TypeRapport;
   /** PR de la version de test, vide pour la version publique. */
   readonly pr: string;
+  /** Partie allée au bout, dans une version de test : elle peut porter « je valide », signé par le téléphone (D-130). */
+  readonly validable?: boolean;
   readonly partieJointe: boolean;
   readonly envoyer: (commentaire: string, valide: boolean) => Promise<Retour>;
   /** `retour` : ce qu'il faut afficher sous la ligne une fois le panneau refermé ; `null` à l'annulation. */
@@ -54,7 +57,7 @@ export function PanneauRapport({
   const partir = async (): Promise<void> => {
     setEnvoi(true);
     setRefus(null);
-    const retour = await envoyer(commentaire, type === 'partie' && valide);
+    const retour = await envoyer(commentaire, type === 'partie' && validable && valide);
     setEnvoi(false);
     if (rapportPris(retour)) fermer(retour);
     else setRefus(retour);
@@ -85,7 +88,7 @@ export function PanneauRapport({
       <p className="compte-rapport" aria-hidden="true">
         {commentaire.length} / {COMMENTAIRE_MAX}
       </p>
-      {type === 'partie' && pr !== '' && (
+      {type === 'partie' && validable && pr !== '' && (
         <label className="case-rapport" data-son="clic">
           <input type="checkbox" className="lecteur-seul" checked={valide} disabled={envoi} onChange={() => setValide(!valide)} />
           <span className="valeur-case" aria-hidden="true">
@@ -93,7 +96,7 @@ export function PanneauRapport({
           </span>
           <span>
             Je valide cette aventure
-            <span className="detail-option">version de test PR #{pr}</span>
+            <span className="detail-option">signé par ce téléphone · version de test PR #{pr}</span>
           </span>
         </label>
       )}
@@ -112,5 +115,52 @@ export function PanneauRapport({
         </button>
       </div>
     </section>
+  );
+}
+
+/**
+ * ENVOYER MA PARTIE d'une fin de partie (12 §4.11), discret : le même panneau s'ouvre à sa place, puis le retour reste
+ * sous le bouton. `validable` : partie allée au bout, dans une version de test.
+ */
+export function EnvoyerMaPartie({
+  envoyer,
+  pr,
+  validable,
+  occupe,
+}: {
+  readonly envoyer: (commentaire: string, valide: boolean) => Promise<Retour>;
+  readonly pr: string;
+  readonly validable: boolean;
+  readonly occupe: boolean;
+}) {
+  const [envoi, setEnvoi] = useState<'ferme' | 'ouvert' | Retour>('ferme');
+  const bouton = useRef<HTMLButtonElement>(null);
+  if (envoi === 'ouvert') {
+    return (
+      <PanneauRapport
+        type="partie"
+        pr={pr}
+        validable={validable}
+        partieJointe
+        envoyer={envoyer}
+        fermer={(retour) => {
+          setEnvoi(retour ?? 'ferme');
+          // Le bouton revient au rendu suivant : le focus l'y attend.
+          requestAnimationFrame(() => bouton.current?.focus());
+        }}
+      />
+    );
+  }
+  return (
+    <>
+      <button ref={bouton} type="button" className="discret" disabled={occupe} onClick={() => setEnvoi('ouvert')} data-son="clic">
+        Envoyer ma partie
+      </button>
+      {envoi !== 'ferme' && (
+        <p className="retour-option" role="status" data-testid="retour-partie">
+          {RETOURS[envoi]}
+        </p>
+      )}
+    </>
   );
 }

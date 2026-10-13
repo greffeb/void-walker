@@ -441,6 +441,29 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
   });
 
+  it('fin de partie : ENVOYER MA PARTIE, discret, sous NOUVELLE PARTIE quand le service est là (12 §4.11, #108)', async () => {
+    const jeu = await commencer(env);
+    const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
+    const html = renderToStaticMarkup(
+      <EcranJeu
+        jeu={vaincu}
+        lus={[]}
+        env={env}
+        machineAEcrire
+        occupe={false}
+        choisir={rien}
+        lireMessages={rienALire}
+        nouvellePartie={() => undefined}
+        envoyerPartie={() => Promise.resolve('envoye')}
+        pr="142"
+      />,
+    );
+    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
+      'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie Envoyer ma partie',
+    );
+    expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
+  });
+
   it('situation en phrases : hors de l’écran, gardée pour le lecteur d’écran comme dans la CLI (C-06 K-07)', async () => {
     const situation = entre(rendre(await commencer(env)), '<section class="lecteur-seul"', '</section>');
     expect(texte(situation)).toBe(
@@ -484,6 +507,7 @@ function options(
     partieEnregistree: boolean;
     envoyerRapport: () => Promise<Retour>;
     rapportsEnAttente: number;
+    empreinteCle: () => Promise<string | null>;
   }> = {},
 ): string {
   return renderToStaticMarkup(
@@ -504,6 +528,7 @@ function options(
       partieEnregistree={surcharge.partieEnregistree}
       envoyerRapport={surcharge.envoyerRapport}
       rapportsEnAttente={surcharge.rapportsEnAttente}
+      empreinteCle={surcharge.empreinteCle}
     />,
   );
 }
@@ -607,13 +632,22 @@ describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
     expect(html).not.toContain('checkbox');
   });
 
-  it('panneau d’envoi de partie : la case « je valide » seulement dans une version de test (D-132)', () => {
-    const test = renderToStaticMarkup(<PanneauRapport type="partie" pr="142" partieJointe envoyer={envoyerRapport} fermer={rienALire} />);
-    expect(texte(test)).toContain('[ ] Je valide cette aventure version de test PR #142');
-    expect(test).toContain('type="checkbox"');
-    const publique = renderToStaticMarkup(<PanneauRapport type="partie" pr="" partieJointe envoyer={envoyerRapport} fermer={rienALire} />);
-    expect(publique).not.toContain('checkbox');
-    expect(texte(publique)).toContain('Joint : la partie complète et où elle en est.');
+  it('panneau d’envoi de partie : « je valide » seulement pour une partie finie, dans une version de test (D-099, D-132)', () => {
+    const panneau = (pr: string, validable: boolean): string =>
+      renderToStaticMarkup(<PanneauRapport type="partie" pr={pr} validable={validable} partieJointe envoyer={envoyerRapport} fermer={rienALire} />);
+    expect(texte(panneau('142', true))).toContain('[ ] Je valide cette aventure signé par ce téléphone · version de test PR #142');
+    expect(panneau('142', true)).toContain('type="checkbox"');
+    expect(panneau('142', false)).not.toContain('checkbox');
+    expect(panneau('', true)).not.toContain('checkbox');
+    expect(texte(panneau('', false))).toContain('Joint : la partie complète et où elle en est.');
+  });
+
+  it('section VALIDATION : seulement dans une version de test, avec la clé du téléphone (D-232)', () => {
+    const empreinteCle = (): Promise<string | null> => Promise.resolve(null);
+    const test = options({ envoyerRapport, pr: '142', empreinteCle });
+    expect(texte(entre(test, '<h2 class="titre-section">Validation</h2>', '</section>'))).toBe('Validation Clé de ce téléphone lecture…');
+    expect(texte(options({ envoyerRapport, pr: '', empreinteCle }))).not.toContain('Validation');
+    expect(texte(options({ envoyerRapport, pr: '142' }))).not.toContain('Validation');
   });
 
   it('retours : le panneau se ferme quand le rapport est parti ou gardé, reste ouvert sinon', () => {

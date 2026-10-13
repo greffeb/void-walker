@@ -4,8 +4,9 @@ import { nomDe, remplir } from '../content';
 import { nomPuce } from './ecran';
 import type { Environnement, Jeu } from './jeu';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
-import { PanneauRapport, RETOURS } from './PanneauRapport';
+import { EnvoyerMaPartie, PanneauRapport, RETOURS } from './PanneauRapport';
 import type { Retour, TypeRapport } from './rapports';
+import { empreinteLisible } from './validation';
 import { TAILLES, type Reglages, type Taille } from './reglages';
 import { useSon } from './son/contexte';
 
@@ -39,6 +40,8 @@ export function EcranOptions({
   partieEnregistree = partieEnCours,
   envoyerRapport,
   rapportsEnAttente = 0,
+  partieFinie = false,
+  empreinteCle,
 }: {
   readonly reglages: Reglages;
   readonly changerReglages: (reglages: Reglages) => void;
@@ -62,12 +65,18 @@ export function EcranOptions({
   readonly envoyerRapport?: (type: TypeRapport, commentaire: string, valide: boolean) => Promise<Retour>;
   /** Rapports gardés sur l'appareil, en attente du réseau (PR-01). */
   readonly rapportsEnAttente?: number;
+  /** La partie enregistrée est allée au bout : son envoi peut porter « je valide » dans une version de test (D-099). */
+  readonly partieFinie?: boolean;
+  /** Empreinte de la clé de validation du téléphone (C-10 §4), lue dans les versions de test seulement. */
+  readonly empreinteCle?: () => Promise<string | null>;
 }) {
   const idTaille = useId();
   const titre = useRef<HTMLHeadingElement>(null);
   const [telechargement, setTelechargement] = useState<Telechargement>(null);
   const [confirmation, setConfirmation] = useState(false);
   const [abandonRefuse, setAbandonRefuse] = useState(false);
+  /** Rapports envoyés depuis l'ouverture : le premier « je valide » crée la clé, la section VALIDATION la relit. */
+  const [envois, setEnvois] = useState(0);
   const question = useRef<HTMLParagraphElement>(null);
   const danger = useRef<HTMLButtonElement>(null);
   /** Le focus suit la confirmation : sur sa question à l'ouverture, sur le bouton d'abandon à l'annulation (12 §7). */
@@ -178,6 +187,8 @@ export function EcranOptions({
                 occupe={occupe}
                 envoyer={envoyerRapport}
                 enAttente={rapportsEnAttente}
+                validable={pr !== '' && partieFinie}
+                apresEnvoi={() => setEnvois((nombre) => nombre + 1)}
               />
             )}
             {!partieEnCours ? null : confirmation ? (
@@ -213,6 +224,7 @@ export function EcranOptions({
             )}
           </section>
         )}
+        {pr !== '' && empreinteCle !== undefined && <SectionValidation key={envois} empreinteCle={empreinteCle} />}
         <SectionMiseAJour miseAJour={miseAJour} partieEnCours={partieEnCours} occupe={occupe} />
         <p className="pied">
           V{version}
@@ -248,7 +260,11 @@ function LignesRapports({
   occupe,
   envoyer,
   enAttente,
+  validable,
+  apresEnvoi,
 }: {
+  readonly validable: boolean;
+  readonly apresEnvoi: () => void;
   readonly partieEnregistree: boolean;
   readonly partieEnCours: boolean;
   readonly pr: string;
@@ -292,11 +308,15 @@ function LignesRapports({
             <PanneauRapport
               type={type}
               pr={pr}
+              validable={validable}
               partieJointe={partieEnregistree}
               envoyer={(commentaire, valide) => envoyer(type, commentaire, valide)}
               fermer={(retour) => {
                 setOuvert(null);
-                if (retour !== null) setRetours({ [type]: retour });
+                if (retour !== null) {
+                  setRetours({ [type]: retour });
+                  apresEnvoi();
+                }
                 lignes.current[type]?.focus();
               }}
             />
@@ -313,6 +333,48 @@ function LignesRapports({
         </p>
       )}
     </>
+  );
+}
+
+/**
+ * Clé de validation du téléphone (C-10 §4, D-232) : son empreinte, à comparer avec celle que cite le robot de la PR ; la
+ * clé se crée au premier « je valide » envoyé.
+ */
+export function SectionValidation({ empreinteCle }: { readonly empreinteCle: () => Promise<string | null> }) {
+  const [empreinte, setEmpreinte] = useState<string | null | 'lecture' | 'illisible'>('lecture');
+  useEffect(() => {
+    let actif = true;
+    empreinteCle().then(
+      (lue) => {
+        if (actif) setEmpreinte(lue);
+      },
+      () => {
+        if (actif) setEmpreinte('illisible');
+      },
+    );
+    return () => {
+      actif = false;
+    };
+  }, [empreinteCle]);
+  return (
+    <section>
+      <h2 className="titre-section">Validation</h2>
+      <div className="ligne-cle" data-testid="cle-validation">
+        <span>Clé de ce téléphone</span>
+        {empreinte === 'lecture' ? (
+          <span className="detail-option">lecture…</span>
+        ) : empreinte === 'illisible' ? (
+          <span className="detail-option">illisible sur ce téléphone : « je valide » partira sans signature</span>
+        ) : empreinte === null ? (
+          <span className="detail-option">pas encore créée : elle le sera au premier « je valide » envoyé</span>
+        ) : (
+          <>
+            <span className="empreinte-cle">{empreinteLisible(empreinte)}</span>
+            <span className="detail-option">à comparer avec celle citée dans la PR</span>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -442,8 +504,6 @@ export function EcranFin({
   readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
   readonly pr?: string;
 }) {
-  const [envoi, setEnvoi] = useState<'ferme' | 'ouvert' | Retour>('ferme');
-  const boutonEnvoi = useRef<HTMLButtonElement>(null);
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
   const visitees = observation.visitees.map((piece) => nomPuce(textes, piece)).join(', ');
@@ -475,30 +535,8 @@ export function EcranFin({
         <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
           Nouvelle partie
         </button>
-        {envoyerPartie !== undefined &&
-          (envoi === 'ouvert' ? (
-            <PanneauRapport
-              type="partie"
-              pr={pr}
-              partieJointe
-              envoyer={envoyerPartie}
-              fermer={(retour) => {
-                setEnvoi(retour ?? 'ferme');
-                boutonEnvoi.current?.focus();
-              }}
-            />
-          ) : (
-            <>
-              <button ref={boutonEnvoi} type="button" className="discret" disabled={occupe} onClick={() => setEnvoi('ouvert')} data-son="clic">
-                Envoyer ma partie
-              </button>
-              {envoi !== 'ferme' && (
-                <p className="retour-option" role="status" data-testid="retour-partie">
-                  {RETOURS[envoi]}
-                </p>
-              )}
-            </>
-          ))}
+        {/* Un abandon ne valide pas (D-099) : pas de « je valide » ici. */}
+        {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={false} occupe={occupe} />}
         <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
           Menu principal
         </button>

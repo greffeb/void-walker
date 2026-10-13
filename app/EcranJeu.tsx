@@ -24,6 +24,8 @@ import { Bulle, BulleAncree, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
+import { EnvoyerMaPartie } from './PanneauRapport';
+import type { Retour } from './rapports';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 
@@ -88,6 +90,8 @@ export function EcranJeu({
   ouvrirOptions,
   nouvellePartie,
   signaux = AUCUN_SIGNAL,
+  envoyerPartie,
+  pr = '',
 }: {
   readonly jeu: Jeu;
   /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
@@ -105,6 +109,10 @@ export function EcranJeu({
   readonly nouvellePartie?: () => void;
   /** Signaux de la dernière action (15 §2.2), annoncés après l'écriture du texte. */
   readonly signaux?: readonly Signal[];
+  /** ENVOYER MA PARTIE après la fin (12 §4.11) ; dans une version de test, la partie finie peut porter « je valide ». */
+  readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
+  /** Numéro de PR de la version de test, vide pour la version publique. */
+  readonly pr?: string;
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
@@ -240,6 +248,7 @@ export function EcranJeu({
               Nouvelle partie
             </button>
           )}
+          {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={pr !== ''} occupe={occupe} />}
         </section>
       ) : (
         <DockPiece

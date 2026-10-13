@@ -1,5 +1,6 @@
 import { exporter, type DefMonde, type ExportPartie } from '../engine';
 import type { Jeu } from './jeu';
+import { attester, type Signataire, type Validation } from './validation';
 
 // Rapports des joueurs (C-10 §3, D-142) : « Signaler un bug » et « Envoyer ma partie » partent au service de rapports,
 // qui crée l'issue ou commente la PR testée. Sans réseau, le rapport est gardé sur l'appareil et repart seul (RP-03, PR-01).
@@ -21,6 +22,9 @@ export interface Rapport {
   readonly partie: ExportPartie | null;
   /** Texte affiché au moment du rapport (RP-01). */
   readonly ecran: readonly string[];
+  /** « Je valide » signé par le téléphone (C-10 §4) ; 
+ull pour un simple retour. */
+  readonly validation: Validation | null;
 }
 
 /**
@@ -84,7 +88,23 @@ export function composerRapport(
     valide: type === 'partie' && valide,
     partie: jeu === null ? null : exporter(monde, jeu.partie),
     ecran: type === 'bug' && jeu !== null ? [...jeu.recit, ...jeu.assistance] : [],
+    validation: null,
   };
+}
+
+/**
+ * « Je valide » d'une partie finie, depuis une version de test : le téléphone signe (C-10 §4). Une partie qui n'est pas
+ * allée au bout ne valide pas (D-099) ; si le téléphone ne sait pas signer, la case part sans signature, simple retour.
+ */
+export async function signerRapport(rapport: Rapport, signataire: Signataire | undefined): Promise<Rapport> {
+  if (!rapport.valide || rapport.pr === null || rapport.partie === null || signataire === undefined) return rapport;
+  const attestation = await attester(rapport.partie, { pr: rapport.pr, commit: rapport.commit }, rapport.commentaire);
+  if (attestation === null) return { ...rapport, valide: false };
+  try {
+    return { ...rapport, validation: await signataire.signer(attestation) };
+  } catch {
+    return rapport;
+  }
 }
 
 type Issue = 'arrive' | 'refuse' | 'plus_tard_trop' | 'plus_tard';

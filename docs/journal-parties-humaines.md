@@ -7,7 +7,11 @@
 
 D-010 : un parcours de référence ne passe « validé » qu'après une partie du porteur du projet sur téléphone.
 
-Un agent peut préparer une fiche ou transcrire un retour humain explicitement fourni. Il ne peut ni inventer une session ni attribuer une acceptation à partir de ses propres tests. Le protocole technique de protection de l'attestation reste à définir dans C-10.
+Un agent peut préparer une fiche ou transcrire un retour humain explicitement fourni. Il ne peut ni inventer une session ni attribuer une acceptation à partir de ses propres tests. Une validation n'est authentifiée que signée par le téléphone du porteur du projet et reconnue par le robot de la PR (C-10 §4).
+
+## Validations signées
+
+RP-05 : cette liste ne contient que des validations reconnues par le robot de la PR (étiquette alidation-reconnue). Chaque ligne est recopiée de sa réponse, avec le lien vers la partie signée ; un contrôle automatique refuse une ligne sans ce lien. Aucune pour l'instant.
 
 ## Informations proposées pour chaque session
 

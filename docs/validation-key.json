@@ -1,0 +1,4 @@
+{
+  "$comment": "Clés publiques des téléphones du porteur du projet (C-10 §4, D-130). Modifiées par lui seul ; la CI signale tout changement (PR-10). Chaque entrée : { \"nom\": \"...\", \"cle\": { \"kty\": \"EC\", \"crv\": \"P-256\", \"x\": \"...\", \"y\": \"...\" } }, copiée depuis la réponse du robot de la PR.",
+  "cles": []
+}
