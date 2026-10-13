@@ -7,6 +7,7 @@ import { APERCU_TAILLE, EcranFin, EcranOptions } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
+import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { REGLAGES_PAR_DEFAUT, type Reglages } from './reglages';
 import type { Stockage } from './sauvegarde';
 
@@ -448,17 +449,21 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 
   it('pied de page court, déplacé dans les options : version, commit et numéro de PR sur une ligne (D-191)', async () => {
-    const pied = (commit: string, pr: string): string => texte(entre(options({ commit, pr, version: '0.1.0' }), '<p class="pied">', '</p>'));
+    const pied = (commit: string, pr: string, build = ''): string =>
+      texte(entre(options({ commit, pr, build, version: '0.1.0' }), '<p class="pied">', '</p>'));
     expect(pied('e27d2204f1c3', '121')).toBe('V0.1.0 · e27d220 · test PR #121');
     expect(pied('e27d2204f1c3', '')).toBe('V0.1.0 · e27d220');
     expect(pied('', '')).toBe('V0.1.0');
+    // Numéro de construction entre parenthèses (D-227).
+    expect(pied('e27d2204f1c3', '121', '412')).toBe('V0.1.0 (412) · e27d220 · test PR #121');
+    expect(pied('e27d2204f1c3', '', '412')).toBe('V0.1.0 (412) · e27d220');
     // Plus de pied de page sur l'écran de jeu.
     expect(rendre(await commencer(env), () => undefined)).not.toContain('class="pied"');
   });
 });
 
 function options(
-  surcharge: Partial<{ reglages: Reglages; partieEnCours: boolean; version: string; commit: string; pr: string }> = {},
+  surcharge: Partial<{ reglages: Reglages; partieEnCours: boolean; version: string; build: string; commit: string; pr: string; miseAJour: MiseAJour }> = {},
 ): string {
   return renderToStaticMarkup(
     <EcranOptions
@@ -471,8 +476,10 @@ function options(
       menuPrincipal={rienALire}
       reprendre={rienALire}
       version={surcharge.version ?? 'v-test'}
+      build={surcharge.build ?? ''}
       commit={surcharge.commit ?? ''}
       pr={surcharge.pr ?? ''}
+      miseAJour={surcharge.miseAJour}
     />,
   );
 }
@@ -496,6 +503,21 @@ describe('options (12 §4.10, #96)', () => {
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Lignes de balayage"');
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Effet machine à écrire"');
     expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
+  });
+
+  it('mise à jour : bouton selon l’état, absent sans service worker (D-227)', () => {
+    const section = (etat: EtatMiseAJour, partieEnCours = true): string => {
+      const miseAJour: MiseAJour = { etat: () => etat, abonner: () => () => undefined, chercher: () => Promise.resolve() };
+      const html = options({ miseAJour, partieEnCours });
+      return html.includes('Mise à jour') ? texte(entre(html, '<h2 class="titre-section">Mise à jour</h2>', '</section>')) : '';
+    };
+    expect(section('indisponible')).toBe('');
+    expect(texte(options())).not.toContain('Mise à jour');
+    expect(section('inconnu')).toBe('Mise à jour ▸ Chercher une mise à jour le jeu redémarre, la partie est gardée');
+    expect(section('a_jour', false)).toBe('Mise à jour ▸ Chercher une mise à jour le jeu redémarre s’il en trouve une Le jeu est à jour.');
+    expect(section('echec')).toContain('Impossible de vérifier. Le téléphone est-il connecté ?');
+    expect(section('prete')).toBe('Mise à jour ▸ Installer la nouvelle version le jeu redémarre, la partie est gardée Une nouvelle version est prête.');
+    expect(section('recherche')).toContain('Recherche en cours…');
   });
 
   it('réglages choisis : la taille active et les bascules sur [NON]', () => {

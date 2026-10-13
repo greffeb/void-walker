@@ -15,6 +15,7 @@ import {
   type Environnement,
   type Jeu,
 } from './jeu';
+import type { MiseAJour } from './miseAJour';
 import type { Reglages } from './reglages';
 import { SonContexte, sonDeFermeture, sonDuToucher } from './son/contexte';
 import { signauxApres } from './son/declencheurs';
@@ -65,19 +66,25 @@ export function App({
   reglages: reglagesInitiaux,
   garderReglages,
   version,
+  build = '',
   commit,
   pr,
   son = SILENCE,
+  miseAJour,
 }: {
   readonly env: Environnement;
   readonly reglages: Reglages;
   /** Garde les réglages sur l'appareil, hors de la sauvegarde de partie (12 §4.10) ; `false` si l'appareil refuse. */
   readonly garderReglages?: (reglages: Reglages) => boolean;
   readonly version: string;
+  /** Numéro de construction : nombre de commits de la version publiée (D-227) ; vide hors publication. */
+  readonly build?: string;
   readonly commit: string;
   readonly pr: string;
   /** Moteur du son (15 §6) ; muet par défaut, pour le rendu côté serveur et les tests. */
   readonly son?: Son;
+  /** Mise à jour de l'appli installée (D-227) ; absente hors du navigateur. */
+  readonly miseAJour?: MiseAJour;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   const [occupe, setOccupe] = useState(false);
@@ -303,8 +310,10 @@ export function App({
               setEcran(reveil ? { type: 'reveil', jeu: enCours, lus: ecran.lus } : { type: 'jeu', jeu: enCours, lus: ecran.lus, signaux: AUCUN_SIGNAL });
             }}
             version={version}
+            build={build}
             commit={commit}
             pr={pr}
+            miseAJour={miseAJour}
           />
         ) : ecran.type === 'fin' ? (
           <EcranFin

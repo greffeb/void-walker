@@ -1,8 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MONDE_PAR_DEFAUT, MONDES } from '../content';
+import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
 import { mondeDemande, type Environnement } from './jeu';
+import { piloterMiseAJour } from './miseAJour';
 import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
 import { creerMoteur, sessionAmbiante } from './son/moteur';
@@ -60,6 +62,17 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pagehide', () => son.cacher());
 
+// Mise à jour de l'appli installée (D-227) : cherchée au lancement, au retour dans l'appli et toutes les demi-heures.
+const miseAJour = piloterMiseAJour({
+  enregistrer: registerSW,
+  document,
+  minuterie: {
+    repeter: (ms, quoi) => void window.setInterval(quoi, ms),
+    attendre: (ms, quoi) => void window.setTimeout(quoi, ms),
+  },
+  recharger: () => window.location.reload(),
+});
+
 createRoot(racine).render(
   <StrictMode>
     <App
@@ -67,9 +80,11 @@ createRoot(racine).render(
       reglages={reglages}
       garderReglages={(reglages) => ecrireReglages((cle, valeur) => window.localStorage.setItem(cle, valeur), reglages)}
       version={version}
+      build={import.meta.env.VITE_BUILD ?? ''}
       commit={import.meta.env.VITE_COMMIT ?? ''}
       pr={import.meta.env.VITE_PR_NUMERO ?? ''}
       son={son}
+      miseAJour={miseAJour}
     />
   </StrictMode>,
 );

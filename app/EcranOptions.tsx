@@ -1,8 +1,9 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { observer } from '../engine';
 import { nomDe, remplir } from '../content';
 import { nomPuce } from './ecran';
 import type { Environnement, Jeu } from './jeu';
+import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { TAILLES, type Reglages, type Taille } from './reglages';
 import { useSon } from './son/contexte';
 
@@ -29,8 +30,10 @@ export function EcranOptions({
   menuPrincipal,
   reprendre,
   version,
+  build = '',
   commit,
   pr,
+  miseAJour,
 }: {
   readonly reglages: Reglages;
   readonly changerReglages: (reglages: Reglages) => void;
@@ -44,8 +47,10 @@ export function EcranOptions({
   readonly menuPrincipal: () => void;
   readonly reprendre: () => void;
   readonly version: string;
+  readonly build?: string;
   readonly commit: string;
   readonly pr: string;
+  readonly miseAJour?: MiseAJour;
 }) {
   const idTaille = useId();
   const titre = useRef<HTMLHeadingElement>(null);
@@ -183,8 +188,10 @@ export function EcranOptions({
             )}
           </section>
         )}
+        <SectionMiseAJour miseAJour={miseAJour} partieEnCours={partieEnCours} occupe={occupe} />
         <p className="pied">
           V{version}
+          {build !== '' && ` (${build})`}
           {commit !== '' && ` · ${commit.slice(0, 7)}`}
           {pr !== '' && ` · test PR #${pr}`}
         </p>
@@ -200,6 +207,47 @@ export function EcranOptions({
         )}
       </div>
     </main>
+  );
+}
+
+const SANS_ABONNEMENT = (): (() => void) => () => undefined;
+const INDISPONIBLE = (): EtatMiseAJour => 'indisponible';
+
+/**
+ * Mise à jour (D-227) : le jeu se met à jour seul ; ce bouton la force. Absent sans service worker (développement).
+ */
+function SectionMiseAJour({
+  miseAJour,
+  partieEnCours,
+  occupe,
+}: {
+  readonly miseAJour: MiseAJour | undefined;
+  readonly partieEnCours: boolean;
+  readonly occupe: boolean;
+}) {
+  const lire = miseAJour?.etat ?? INDISPONIBLE;
+  const etat = useSyncExternalStore(miseAJour?.abonner ?? SANS_ABONNEMENT, lire, lire);
+  if (miseAJour === undefined || etat === 'indisponible') return null;
+  const prete = etat === 'prete' || etat === 'installation';
+  const enCours = etat === 'recherche' || etat === 'installation';
+  return (
+    <section>
+      <h2 className="titre-section">Mise à jour</h2>
+      <button type="button" className="ligne-option" disabled={occupe || enCours} onClick={() => void miseAJour.chercher()} data-son="clic">
+        <span>
+          <span aria-hidden="true">▸ </span>
+          {prete ? 'Installer la nouvelle version' : 'Chercher une mise à jour'}
+        </span>
+        <span className="detail-option">{partieEnCours ? 'le jeu redémarre, la partie est gardée' : 'le jeu redémarre s’il en trouve une'}</span>
+      </button>
+      <p className="retour-option" role="status" data-testid="mise-a-jour">
+        {etat === 'recherche' && 'Recherche en cours…'}
+        {etat === 'a_jour' && 'Le jeu est à jour.'}
+        {etat === 'prete' && 'Une nouvelle version est prête.'}
+        {etat === 'installation' && 'Installation de la nouvelle version…'}
+        {etat === 'echec' && 'Impossible de vérifier. Le téléphone est-il connecté ?'}
+      </p>
+    </section>
   );
 }
 

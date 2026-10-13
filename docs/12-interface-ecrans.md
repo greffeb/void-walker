@@ -414,6 +414,8 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
      - « ▸ Envoyer ma partie », avec « partie et commentaire », dans toutes les versions (D-095, D-142). [Validé]
      - Pas d'import de partie au lancement (D-149).
      - « ⊘ Abandonner la partie en cours », bouton danger. Il ouvre une confirmation dans la page : « Abandonner ? Cette partie ne pourra pas être reprise. », ANNULER / ABANDONNER. ABANDONNER mène à l'écran de fin, version abandon (C-08 §4).
+  5. **── MISE À JOUR ──** : « ▸ Chercher une mise à jour », ou « ▸ Installer la nouvelle version » quand elle est prête, avec en dessous « le jeu redémarre, la partie est gardée » ; retour « Le jeu est à jour. », « Une nouvelle version est prête. » ou « Impossible de vérifier. Le téléphone est-il connecté ? ». Le jeu se met aussi à jour seul. Absente sans service worker. [Validé D-227]
+- **Pied de page :** « V0.1.0 (365) · e27d220 · test PR #121 » : version, numéro de construction, commit, PR des versions de test. [Validé D-191, D-227]
 - **Bas, fixe :** MENU PRINCIPAL (secondaire) et REPRENDRE LA PARTIE (principal).
 - **Sans partie en cours :** masquer Télécharger, Abandonner et REPRENDRE LA PARTIE. [Proposé]
 - Les réglages sont conservés sur l'appareil, hors de la sauvegarde de partie. [Proposé]
@@ -593,7 +595,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER, sauf prendre, poser et changer de pièce sans risque connu ni coût, joués d'un seul toucher (§3.8, D-182) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
 | Indisponible | Bouton grisé, raison en dessous (« La porte est fermée. ») | « ⊘ », raison courte à droite, filet pointillé (§3.7) | Raison publique déjà fournie par le moteur |
 | Sauvegarde | Ligne permanente « Partie sauvegardée · 3 action(s) » | Pas de compteur d'actions affiché (§1) ; réussite discrète ou silencieuse, échec toujours visible et persistant (§6) | Garder les attributs `data-testid="sauvegarde"`, `data-actions`, `data-etat` utilisés par les captures (AP-09) |
-| Pied de page | Dans les options, en petit, en bas : « V0.1.0 · e27d220 · test PR #121 » (#96, D-191) ; plus sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
+| Pied de page | Dans les options, en petit, en bas : « V0.1.0 (365) · e27d220 · test PR #121 » (#96, D-191, D-227) ; plus sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
 | Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
 | Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
 | Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |

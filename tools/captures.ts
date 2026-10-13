@@ -784,6 +784,18 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   await capturer(page, 'Options en cours de partie');
   await verifierSansTroncature(page, 'Options en cours de partie', erreurs);
 
+  // Mise à jour (D-227) : le bouton cherche, ne trouve rien de plus récent et le dit ; le pied de page porte la version.
+  const chercherMiseAJour = page.getByRole('button', { name: /Chercher une mise à jour/i });
+  try {
+    await chercherMiseAJour.waitFor({ timeout: 10_000 });
+    await chercherMiseAJour.click();
+    await page.getByTestId('mise-a-jour').getByText('Le jeu est à jour.', { exact: true }).waitFor({ timeout: 10_000 });
+  } catch {
+    erreurs.push(`Options : mise à jour « ${((await page.getByTestId('mise-a-jour').textContent().catch(() => null)) ?? 'section absente').trim()} ».`);
+  }
+  await page.locator('.options .pied').scrollIntoViewIfNeeded();
+  await capturer(page, 'Options : mise à jour et numéro de version');
+
   // Son (15 §4, D-220, D-223) : trois rails à 80, 80 et 60 ; « Ambiance » à 0 au clavier s'écrit COUPÉE et se garde.
   const rails = page.locator('.curseur-rail');
   if ((await rails.count()) !== 3) erreurs.push(`Options : ${await rails.count()} rails de son, 3 attendus.`);

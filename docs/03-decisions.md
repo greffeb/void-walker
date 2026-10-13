@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-11.
+> **Mise à jour :** 2026-10-13.
 
 ## Règles
 
@@ -1678,6 +1678,13 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Origine : demande du porteur après l'essai sur téléphone : « un 2e bruitage pour pouvoir fermer les menus inventaire, carte et IA Station, une variante plus grave pour la fermeture de ces menus ».
 - Décision : refermer l'inventaire, la carte ou IA Station joue le Bip feutré de fermeture, plus grave et descendant, à la hauteur propre à chaque menu (15 §2.1, §3.2), quel que soit le geste : leur bouton, ✕, le voile, RETOUR, Échap ou le retour système. Les autres bulles gardent le tic.
 - Modifie : D-217.
+
+### D-227 — Mise à jour de l'appli installée ; numéro de construction
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demande du porteur : « forcer la mise à jour de la PWA une fois qu'elle est ajoutée sur l'écran d'accueil du téléphone. Soit ça se fait automatiquement, ça serait idéal. Soit on rajoute un bouton dans le menu du jeu » ; « sur l'écran d'options, un numéro de version : un numéro qui s'incrémente, le numéro du dernier commit, ou les deux ».
+- Décision : le jeu installé se met à jour seul, et un bouton des options force la mise à jour. Le pied de page des options porte les deux numéros : « V<version> (<construction>) · <commit> · test PR #<n> », où la construction est le nombre de commits de la version publiée, qui ne fait que croître sur la branche principale.
+- Limite [détail de l'agent] : la nouvelle version est cherchée au lancement, à chaque retour dans l'appli et toutes les demi-heures au premier plan. Prête, elle s'installe aussitôt (le jeu redémarre sur l'accueil, la partie est gardée, D-022) si le joueur n'a pas encore touché l'écran depuis le lancement ou le retour dans l'appli ; sinon au prochain retour, ou par « ▸ Chercher une mise à jour » / « ▸ Installer la nouvelle version » dans la section MISE À JOUR des options. Sans réseau, la recherche automatique se tait ; le bouton dit qu'il n'a pas pu vérifier. Sans historique complet (clone superficiel), le numéro de construction est omis. Modifie le format du pied de page de D-191.
 
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 
