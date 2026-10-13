@@ -274,8 +274,8 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
     const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} lus={[]} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />);
     const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
-    // Carnet, porte, grille, « → ATELIER » (ouverte), INVENTAIRE et IA STATION ; « ⊘ SOUTE » n'ouvre rien.
-    expect(ouvrants).toHaveLength(6);
+    // Carnet, porte, grille, « → ATELIER » (ouverte), INVENTAIRE, CARTE et IA STATION ; « ⊘ SOUTE » n'ouvre rien.
+    expect(ouvrants).toHaveLength(7);
     expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     const lien = entre(
@@ -324,12 +324,13 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(bulleInventaire(await commencer(env), null))).toBe('Inventaire ✕ Vous ne portez rien.');
   });
 
-  it('navigation : INVENTAIRE et IA STATION, boutons texte sans pictogramme qui ouvrent une bulle ou une fenêtre', async () => {
+  it('navigation : INVENTAIRE, CARTE et IA STATION, boutons texte sans pictogramme qui ouvrent une bulle ou une fenêtre', async () => {
     const nav = entre(rendre(await commencer(env), undefined, true, ['reveil']), '<nav', '</nav>');
-    expect(nav.match(/<button/g)).toHaveLength(2);
+    expect(nav.match(/<button/g)).toHaveLength(3);
     // Coupure possible à la syllabe en texte agrandi (trait d'union conditionnel), invisible sinon.
-    expect(texte(nav)).toBe('Inven\u00adtaire IA Sta\u00adtion');
-    expect(nav.match(/aria-haspopup="dialog" aria-expanded="false"/g)).toHaveLength(2);
+    expect(texte(nav)).toBe('Inven­taire Carte IA Sta­tion');
+    expect(nav.match(/aria-haspopup="dialog" aria-expanded="false"/g)).toHaveLength(3);
+    expect(nav).toContain('class="nav-carte"');
     expect(nav).not.toMatch(/<svg|<img/);
   });
 

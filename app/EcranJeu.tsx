@@ -19,6 +19,7 @@ import {
   type Groupe,
 } from './ecran';
 import { Bulle, BulleAncree, garderFocus } from './bulle';
+import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 
@@ -38,9 +39,10 @@ const AUCUN_MESSAGE = 'Aucun message reçu.';
 /** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */
 const NAV_INVENTAIRE = 'Inven\u00adtaire';
 const NAV_IA = 'IA Sta\u00adtion';
+const NAV_CARTE = 'Carte';
 
 /**
- * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, ou la fenêtre d'IA Station.
+ * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, la fenêtre d'IA Station, ou la carte (14 §2.1).
  * `action` : action choisie ; `null` à l'étape de la fiche. `parametre` : paramètre choisi à l'étape « OÙ ? », sinon `null`.
  * `nouveaux` : messages qui n'étaient pas encore lus à l'ouverture de la fenêtre, marqués NOUVEAU tant qu'elle reste ouverte.
  */
@@ -48,7 +50,8 @@ type Ouverte =
   | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
-  | { readonly zone: 'ia'; readonly nouveaux: readonly string[] };
+  | { readonly zone: 'ia'; readonly nouveaux: readonly string[] }
+  | { readonly zone: 'carte' };
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -230,7 +233,7 @@ export function EcranJeu({
         />
       )}
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5) ; voile de 55 % sous la fenêtre d'IA Station (12 §3.9). */}
-      {ouverte !== null && (
+      {ouverte !== null && ouverte.zone !== 'carte' && (
         <div
           className={ouverte.zone === 'inventaire' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
           data-testid="voile"
@@ -238,6 +241,8 @@ export function EcranJeu({
         />
       )}
       {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
+      {/* Carte (14 §2) : gratuite (D-014) ; elle ne lit que l'observation publique. */}
+      {ouverte?.zone === 'carte' && <EcranCarte carte={observation.carte} textes={textes} fermer={fermer} />}
       {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
         <BulleObjet
           ancre={ouverte.ancre}
@@ -292,6 +297,17 @@ export function EcranJeu({
             }
           >
             {NAV_INVENTAIRE}
+          </button>
+          <button
+            type="button"
+            className="nav-carte"
+            aria-haspopup="dialog"
+            aria-expanded={ouverte?.zone === 'carte'}
+            aria-label="Carte"
+            disabled={occupe}
+            onClick={(evenement) => ouvrir({ zone: 'carte' }, evenement.currentTarget)}
+          >
+            {NAV_CARTE}
           </button>
           {/* Carré plein tant qu'un message n'a pas été lu, « nouveau message » pour le lecteur d'écran (12 §2.6). */}
           <button
