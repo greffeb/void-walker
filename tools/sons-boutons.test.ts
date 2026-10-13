@@ -34,7 +34,7 @@ describe('un son sur chaque bouton (15 §2.1, D-217)', () => {
   it('les segments des options, le voile du jeu et celui de la carte portent leur son', () => {
     const tout = ECRANS.map(({ texte }) => texte).join('\n');
     expect(tout).toMatch(/<label[^>]*className=\{[^}]*segment[^}]*\}[^>]*data-son="clic"/);
-    expect(tout).toMatch(/data-testid="voile"\s+data-son="fermer"/);
+    expect(tout).toMatch(/data-testid="voile"\s+data-son=\{sonDeFermetureZone\(ouverte\.zone\)\}/);
     expect(tout).toMatch(/data-testid="voile-carte"\s+data-son="fermer"/);
   });
 

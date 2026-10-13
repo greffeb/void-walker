@@ -1,4 +1,4 @@
-import { annoncerTexte, sonDuToucher } from './contexte';
+import { annoncerTexte, sonDeFermeture, sonDuToucher } from './contexte';
 import { SILENCE, type Son } from './moteur';
 import type { Signal } from './recettes';
 
@@ -20,6 +20,21 @@ describe('son d’un toucher (15 §2.1, D-217)', () => {
     expect(sonDuToucher(touche('tonnerre'))).toBeNull();
     expect(sonDuToucher(touche('clic', 'INPUT'))).toBeNull();
     for (const cible of [null, undefined, {}, 'clic', 42]) expect(sonDuToucher(cible)).toBeNull();
+  });
+});
+
+describe('son d’Échap (D-226)', () => {
+  /** Élément qui a le focus, dans une bulle marquée data-son-fermer, ou hors de toute bulle marquée. */
+  const dans = (fermeture: string | null) => ({
+    closest: (selecteur: string) => (selecteur === '[data-son-fermer]' && fermeture !== null ? { getAttribute: (nom: string) => (nom === 'data-son-fermer' ? fermeture : null) } : null),
+  });
+
+  it('le son de fermeture de la bulle qui a le focus ; le tic des bulles sinon', () => {
+    expect(sonDeFermeture(dans('fermer-inventaire'))).toBe('fermer-inventaire');
+    expect(sonDeFermeture(dans('fermer-carte'))).toBe('fermer-carte');
+    expect(sonDeFermeture(dans(null))).toBe('fermer');
+    expect(sonDeFermeture(dans('tonnerre'))).toBe('fermer');
+    expect(sonDeFermeture(null)).toBe('fermer');
   });
 });
 

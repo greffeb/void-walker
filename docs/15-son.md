@@ -1,6 +1,6 @@
 # Void Walker V2 — son : bruitages du terminal et ambiance
 
-> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-225 (D-223 à D-225 après l'essai sur téléphone de la PR #130).
+> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-226 (D-223 à D-226 après l'essai sur téléphone de la PR #130).
 > **Date :** 2026-10-13.
 > **Issue :** [#99](https://github.com/greffeb/void-walker/issues/99) (bande-son et bruitages d'interface rétro).
 > **Références d'écoute :** le [banc des bruitages](maquette/banc-sons.html) (sons choisis à l'oreille, recettes exactes) et la [maquette de la section SON](maquette/options-son.html) (variante A, rail). Les deux pages s'ouvrent dans un navigateur et jouent après un premier toucher.
@@ -27,11 +27,12 @@ Règle : **un toucher produit un seul son** ; le son le plus précis remplace le
 | Toucher un objet, une sortie ou une puce qui ouvre sa bulle | Bulle, ouverture (Tic double) |
 | Fermer une bulle : ✕, ANNULER, toucher hors de la bulle, Échap, retour système | Bulle, fermeture (un tic) |
 | Ouvrir INVENTAIRE, CARTE ou IA STATION | Bip feutré, hauteur propre à chacun (§3.2) |
+| Refermer INVENTAIRE, CARTE ou IA STATION : leur bouton, ✕, le voile, RETOUR, Échap, retour système (D-226) | Bip feutré de fermeture : plus grave et descendant, même hauteur propre |
 | Toucher CONFIRMER, ou toute action jouée d'un seul toucher : prendre ou poser sans risque ni coût, regarder autour, déplacement sans aperçu (D-182) | Confirmer (Déclic validé) |
 | Toucher une action indisponible (⊘) | Indisponible (Bz-bzt) |
 | Changer un réglage des options : segment, bascule, rail au relâché | Clic, joué au nouveau niveau |
 
-Refermer INVENTAIRE, CARTE ou IA STATION par leur bouton est une fermeture de bulle.
+Les autres bulles, et la fiche d'une pièce de la carte, se referment avec le tic des bulles.
 
 ### 2.2 Signaux après une action (D-218)
 
@@ -82,6 +83,7 @@ Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles r
 | Bulle, ouverture | souffle 4 ms, f 3 000, Q 2,5, vol 0,2 ; à 30 ms, souffle 4 ms, f 3 600, Q 2,5, vol 0,16 |
 | Bulle, fermeture | souffle 4 ms, f 2 400, Q 2,5, vol 0,18 |
 | Bip feutré | ton sinus 90 ms de 660·h à 720·h, vol 0,16, montée 12 ms, chute 50 ms ; h = 1,19 pour INVENTAIRE, 0,84 pour CARTE, 1 pour IA STATION |
+| Bip feutré de fermeture | ton sinus 90 ms de 560·h à 500·h, vol 0,16, montée 12 ms, chute 50 ms ; même h |
 | Confirmer | souffle 6 ms, f 3 600, Q 2,5, vol 0,35 ; à 25 ms, ton sinus 45 ms à 990, vol 0,08, montée 4 ms |
 | Indisponible | deux fois, à 0 et 110 ms : ton carré 70 ms à 120, passe-bas 1 400, vol 0,12, avec souffle 70 ms, f 900, Q 1,2, vol 0,12 |
 | IA Station | trois tons carrés 28 ms à 1 600, vol 0,07, à 0, 70 et 140 ms |

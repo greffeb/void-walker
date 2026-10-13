@@ -94,6 +94,7 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
       aria-modal="true"
       aria-labelledby={idTitre}
       tabIndex={-1}
+      data-son-fermer="fermer-carte"
       onKeyDown={(evenement) => {
         // La fiche a traité la touche (Échap, Tab à ses bords) ; sinon une fiche ouverte se ferme avant la carte.
         if (evenement.defaultPrevented) return;
@@ -122,7 +123,7 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
             {mode === 'plan' ? MOTS_CARTE.liste : MOTS_CARTE.plan}
           </button>
         )}
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer">
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer-carte">
           <span aria-hidden="true">✕</span>
         </button>
       </header>

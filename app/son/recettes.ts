@@ -57,8 +57,20 @@ export function decaler(recette: Recette, de: number): ElementSon[] {
   return recette.map((element) => ({ ...element, t: element.t + de }));
 }
 
-/** Gestes de l'interface (15 §2.1, D-217) : la valeur de l'attribut `data-son` des boutons. */
-export const GESTES = ['clic', 'bulle', 'fermer', 'panneau-inventaire', 'panneau-carte', 'panneau-ia', 'confirmer', 'refus'] as const;
+/** Gestes de l'interface (15 §2.1, D-217, D-226) : la valeur de l'attribut `data-son` des boutons. */
+export const GESTES = [
+  'clic',
+  'bulle',
+  'fermer',
+  'panneau-inventaire',
+  'panneau-carte',
+  'panneau-ia',
+  'fermer-inventaire',
+  'fermer-carte',
+  'fermer-ia',
+  'confirmer',
+  'refus',
+] as const;
 export type Geste = (typeof GESTES)[number];
 
 /** Signaux du terminal (15 §2.2, D-218, D-224, D-225), dans l'ordre où ils se jouent (15 §2.4). */
@@ -96,6 +108,9 @@ export const HAUTEURS_PANNEAU = { inventaire: 1.19, carte: 0.84, ia: 1 } as cons
 
 const bipFeutre = (hauteur: number): Recette => [ton(0, 0.09, 660 * hauteur, { onde: 'sine', fin: 720 * hauteur, vol: 0.16, montee: 0.012, chute: 0.05 })];
 
+/** Fermeture des trois menus (D-226) : le même bip, plus grave, qui descend au lieu de monter. */
+const bipFeutreFermeture = (hauteur: number): Recette => [ton(0, 0.09, 560 * hauteur, { onde: 'sine', fin: 500 * hauteur, vol: 0.16, montee: 0.012, chute: 0.05 })];
+
 const blessure = (hauteur: number): Recette => [
   souffle(0, 0.04, 700 * hauteur, { filtre: 'lowpass', q: 1, vol: 0.3 }),
   ton(0.02, 0.13, 220 * hauteur, { vol: 0.09, passeBas: 1500, trem: 40 }),
@@ -109,6 +124,9 @@ export const RECETTES_GESTES: Readonly<Record<Geste, Recette>> = {
   'panneau-inventaire': bipFeutre(HAUTEURS_PANNEAU.inventaire),
   'panneau-carte': bipFeutre(HAUTEURS_PANNEAU.carte),
   'panneau-ia': bipFeutre(HAUTEURS_PANNEAU.ia),
+  'fermer-inventaire': bipFeutreFermeture(HAUTEURS_PANNEAU.inventaire),
+  'fermer-carte': bipFeutreFermeture(HAUTEURS_PANNEAU.carte),
+  'fermer-ia': bipFeutreFermeture(HAUTEURS_PANNEAU.ia),
   confirmer: [souffle(0, 0.006, 3600, { q: 2.5, vol: 0.35 }), ton(0.025, 0.045, 990, { onde: 'sine', vol: 0.08, montee: 0.004 })],
   refus: [0, 0.11].flatMap((de) => [ton(de, 0.07, 120, { vol: 0.12, passeBas: 1400 }), souffle(de, 0.07, 900, { q: 1.2, vol: 0.12 })]),
 };

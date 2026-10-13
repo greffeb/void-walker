@@ -186,7 +186,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
     const html = bulleObjet(jeu, carnet);
     expect(html).toMatch(
-      /^<section class="bulle bulle-objet" role="dialog" aria-modal="true" aria-labelledby="[^"]+" aria-describedby="[^"]+" tabindex="-1">/,
+      /^<section class="bulle bulle-objet" role="dialog" aria-modal="true" aria-labelledby="[^"]+" aria-describedby="[^"]+" tabindex="-1" data-son-fermer="fermer">/,
     );
     const titre = html.match(/aria-labelledby="([^"]+)"/)?.[1] ?? '';
     expect(html).toContain(`<h2 id="${titre}" class="bulle-titre">Carnet</h2>`);
@@ -315,10 +315,17 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(ligne).toContain('<span class="raison">La porte de l’atelier est fermée.</span>');
   });
 
+  it('inventaire : ✕ et Échap referment avec le bip plus grave de l’inventaire (D-226)', async () => {
+    const jeu = await commencer(env);
+    const html = bulleInventaire(jeu, null);
+    expect(html).toContain('aria-label="Fermer" data-son="fermer-inventaire"');
+    expect(html).toContain('data-son-fermer="fermer-inventaire"');
+  });
+
   it('inventaire : bulle cyan, liste exacte des objets portés, puis la même composition qu’en pièce (D-154, D-176)', async () => {
     const jeu = await apres('prendre');
     const liste = bulleInventaire(jeu, null);
-    expect(liste).toMatch(/^<section id="inventaire" class="bulle bulle-inventaire" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1">/);
+    expect(liste).toMatch(/^<section id="inventaire" class="bulle bulle-inventaire" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1" data-son-fermer="fermer-inventaire">/);
     expect(texte(liste)).toBe('Inventaire ✕ ▸ Carnet');
     const carnet = observer(monde, jeu.partie.etat).inventaire[0];
     if (carnet === undefined) throw new Error('Carnet absent de l’inventaire.');
@@ -769,7 +776,10 @@ describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9,
   it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, un seul bouton RETOUR', async () => {
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     const html = renderToStaticMarkup(<ModaleIA messages={historiqueAffiche(env, arrivee.partie)} nouveaux={['atelier']} fermer={rienAJouer} />);
-    expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1">/);
+    // Refermer IA Station : son propre bip, plus grave (D-226), par RETOUR comme par Échap.
+    expect(html).toContain('data-son="fermer-ia">Retour</button>');
+    expect(html).toContain('data-son-fermer="fermer-ia"');
+    expect(html).toMatch(/^<section class="modale-ia" role="dialog" aria-modal="true" aria-label="IA Station" aria-describedby="[^"]+" tabindex="-1" data-son-fermer="fermer-ia">/);
     expect(texte(html)).toBe(
       `[ IA STATION ] messages reçus dans l’écouteur &gt; au réveil · Cabine « ${reveil} » &gt; en arrivant · Atelier nouveau « ${atelier} » Retour`,
     );

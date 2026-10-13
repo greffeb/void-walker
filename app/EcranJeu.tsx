@@ -23,7 +23,7 @@ import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
-import type { Signal } from './son/recettes';
+import type { Geste, Signal } from './son/recettes';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
@@ -57,6 +57,11 @@ type Ouverte =
   | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
   | { readonly zone: 'ia'; readonly nouveaux: readonly string[] }
   | { readonly zone: 'carte' };
+
+/** Refermer l'inventaire, la carte ou IA Station sonne plus grave que les autres bulles (D-226). */
+function sonDeFermetureZone(zone: Ouverte['zone']): Geste {
+  return zone === 'inventaire' ? 'fermer-inventaire' : zone === 'carte' ? 'fermer-carte' : zone === 'ia' ? 'fermer-ia' : 'fermer';
+}
 
 /** Marque l'entrée d'historique posée à l'ouverture d'une bulle : le retour système la referme (12 §3.5). */
 const ENTREE_BULLE = 'void-walker:bulle';
@@ -104,6 +109,11 @@ export function EcranJeu({
   const dock = composerDock(observation);
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
+  /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
+  const zoneOuverte = useRef<Ouverte['zone'] | null>(null);
+  useEffect(() => {
+    zoneOuverte.current = ouverte?.zone ?? null;
+  }, [ouverte]);
   const idInventaire = useId();
   const recit = useRef<HTMLElement>(null);
   /** Élément touché pour ouvrir la bulle en cours ; `null` si aucune n'est ouverte. */
@@ -139,7 +149,7 @@ export function EcranJeu({
       origine.current = null;
       setOuverte(null);
       // Retour système (12 §3.5) : même son que ✕ ; une fermeture par ✕ a déjà vidé `origine` et ne sonne pas deux fois.
-      son.geste('fermer');
+      son.geste(zoneOuverte.current === null ? 'fermer' : sonDeFermetureZone(zoneOuverte.current));
       depuis.focus();
     };
     window.addEventListener('popstate', surRetour);
@@ -255,7 +265,7 @@ export function EcranJeu({
         <div
           className={ouverte.zone === 'inventaire' || ouverte.zone === 'carte' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
           data-testid="voile"
-          data-son="fermer"
+          data-son={sonDeFermetureZone(ouverte.zone)}
           onClick={fermer}
         />
       )}
@@ -314,7 +324,7 @@ export function EcranJeu({
             onClick={(evenement) =>
               ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null, parametre: null }, evenement.currentTarget)
             }
-            data-son={ouverte?.zone === 'inventaire' ? 'fermer' : 'panneau-inventaire'}
+            data-son={ouverte?.zone === 'inventaire' ? 'fermer-inventaire' : 'panneau-inventaire'}
           >
             {NAV_INVENTAIRE}
           </button>
@@ -326,7 +336,7 @@ export function EcranJeu({
             aria-label="Carte"
             disabled={occupe}
             onClick={(evenement) => (ouverte?.zone === 'carte' ? fermer() : ouvrir({ zone: 'carte' }, evenement.currentTarget))}
-            data-son={ouverte?.zone === 'carte' ? 'fermer' : 'panneau-carte'}
+            data-son={ouverte?.zone === 'carte' ? 'fermer-carte' : 'panneau-carte'}
           >
             {NAV_CARTE}
           </button>
@@ -517,6 +527,7 @@ export function BulleInventaire({
         etape={cleEtape(groupe, etape)}
         retour={retourDe(etape, props) ?? (() => choisir(null))}
         fermer={props.fermer}
+        sonFermer="fermer-inventaire"
         pied={etape.type === 'apercu' ? <Confirmation occupe={props.occupe} confirmer={() => props.jouer(etape.option)} annuler={props.fermer} /> : undefined}
       >
         <Composer groupe={groupe} etape={etape} idDescription={idDescription} {...props} />
@@ -524,7 +535,7 @@ export function BulleInventaire({
     );
   }
   return (
-    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre="Inventaire" etape="" fermer={props.fermer}>
+    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre="Inventaire" etape="" fermer={props.fermer} sonFermer="fermer-inventaire">
       {groupes.length === 0 ? (
         <p className="vide">{remplir(props.textes.observation.inventaireVide, {})}</p>
       ) : (
@@ -705,6 +716,7 @@ export function ModaleIA({
       aria-label="IA Station"
       aria-describedby={idSousTitre}
       tabIndex={-1}
+      data-son-fermer="fermer-ia"
       onKeyDown={(evenement) => garderFocus(evenement, fermer)}
     >
       <div className="modale-entete">
@@ -735,7 +747,7 @@ export function ModaleIA({
         </ol>
       )}
       <div className="modale-pied">
-        <button type="button" className="secondaire" onClick={fermer} data-son="fermer">
+        <button type="button" className="secondaire" onClick={fermer} data-son="fermer-ia">
           Retour
         </button>
       </div>

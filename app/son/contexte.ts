@@ -28,6 +28,16 @@ export function sonDuToucher(cible: unknown): Geste | null {
   return GESTES.find((geste) => geste === valeur) ?? null;
 }
 
+/**
+ * Son d'Échap (D-226) : celui de la bulle qui a le focus, marquée `data-son-fermer` (inventaire, carte, IA Station) ; sinon le tic
+ * des bulles.
+ */
+export function sonDeFermeture(cible: unknown): Geste {
+  if (typeof cible !== 'object' || cible === null || !('closest' in cible)) return 'fermer';
+  const valeur = (cible as Touche).closest('[data-son-fermer]')?.getAttribute('data-son-fermer');
+  return GESTES.find((geste) => geste === valeur) ?? 'fermer';
+}
+
 const annonces = new WeakSet<object>();
 
 /** Annonce un texte affiché une seule fois, même si l'effet se rejoue (mode strict, retour des options) (15 §2.3, §2.4). */

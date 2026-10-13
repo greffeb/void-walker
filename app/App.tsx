@@ -16,7 +16,7 @@ import {
   type Jeu,
 } from './jeu';
 import type { Reglages } from './reglages';
-import { SonContexte, sonDuToucher } from './son/contexte';
+import { SonContexte, sonDeFermeture, sonDuToucher } from './son/contexte';
 import { signauxApres } from './son/declencheurs';
 import { SILENCE, type Son } from './son/moteur';
 import type { Signal } from './son/recettes';
@@ -237,7 +237,7 @@ export function App({
           if (geste !== null) son.geste(geste);
         }}
         onKeyDown={(evenement) => {
-          if (evenement.key === 'Escape' && evenement.defaultPrevented) son.geste('fermer');
+          if (evenement.key === 'Escape' && evenement.defaultPrevented) son.geste(sonDeFermeture(evenement.target));
         }}
       >
         {ecran.type === 'accueil' ? (

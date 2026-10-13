@@ -95,6 +95,17 @@ describe('recettes des sons (15 §3)', () => {
     ]);
   });
 
+  it('fermer l’inventaire, la carte ou IA Station : le bip feutré de l’ouverture, plus grave et qui descend (D-226)', () => {
+    for (const [panneau, hauteur] of Object.entries(HAUTEURS_PANNEAU)) {
+      const [ouverture] = RECETTES_GESTES[`panneau-${panneau}` as 'panneau-ia'];
+      const [fermeture] = RECETTES_GESTES[`fermer-${panneau}` as 'fermer-ia'];
+      expect(fermeture).toMatchObject({ sorte: 'ton', duree: 0.09, onde: 'sine', vol: 0.16, montee: 0.012, chute: 0.05 });
+      expect(fermeture?.f).toBeCloseTo(560 * hauteur);
+      expect(fermeture?.sorte === 'ton' ? fermeture.fin : undefined).toBeCloseTo(500 * hauteur);
+      expect(fermeture?.f ?? 0).toBeLessThan(ouverture?.f ?? 0);
+    }
+  });
+
   it('blessure critique : la recette de la blessure, hauteur × 0,75, jouée deux fois à 0,32 s d’écart (15 §2.2)', () => {
     const critique = RECETTES_SIGNAUX['blessure-critique'];
     expect(critique).toHaveLength(RECETTES_SIGNAUX.blessure.length * 2);
