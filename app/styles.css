@@ -1364,7 +1364,8 @@ button:disabled {
 .carte-zone {
   position: relative;
   flex: 1;
-  overflow: hidden;
+  /* clip et non hidden : la zone ne défile jamais, même quand le focus va sur une pièce hors de l'écran. */
+  overflow: clip;
   touch-action: none;
 }
 

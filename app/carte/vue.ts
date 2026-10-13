@@ -112,6 +112,15 @@ export function borner(vue: Vue, cadre: RectPlan, zone: Taille, casePx: number):
   return dx === 0 && dy === 0 ? vue : { ...vue, x: vue.x + dx, y: vue.y + dy };
 }
 
+/** Ramène dans la zone, avec sa marge, une pièce qui y prend le focus ; inchangée si elle y est déjà (12 §7). */
+export function montrer(vue: Vue, boite: BoitePx, zone: Taille): Vue {
+  const decalage = (debut: number, taille: number, place: number): number =>
+    debut < MARGE_VUE_PX ? MARGE_VUE_PX - debut : debut + taille > place - MARGE_VUE_PX ? Math.max(MARGE_VUE_PX - debut, place - MARGE_VUE_PX - debut - taille) : 0;
+  const dx = decalage(boite.gauche, boite.largeur, zone.largeur);
+  const dy = decalage(boite.haut, boite.hauteur, zone.hauteur);
+  return dx === 0 && dy === 0 ? vue : { ...vue, x: vue.x + dx, y: vue.y + dy };
+}
+
 /** Rectangle du plan à l'écran, en px. */
 export function enPixels(rect: RectPlan, vue: Vue, casePx: number): BoitePx {
   const echelle = casePx * vue.zoom;

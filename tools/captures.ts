@@ -1147,6 +1147,43 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
     if ((await page.getByRole('dialog').count()) !== 1) erreurs.push('Carte : un glissement a ouvert une fiche.');
   }
 
+  // Au clavier, une pièce sortie de l'écran par un glissement y revient quand elle prend le focus, sans faire défiler la
+  // zone ni décaler le dessin (12 §7).
+  const atelierVu = carte.getByRole('button', { name: /^Atelier maintenance, vu/ });
+  const zonePlan = carte.locator('.carte-zone');
+  const centre = await zonePlan.boundingBox();
+  if (centre !== null) {
+    await page.mouse.move(centre.x + centre.width / 2, centre.y + centre.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(centre.x + centre.width / 2, centre.y + centre.height / 2 - 450, { steps: 8 });
+    await page.mouse.up();
+  }
+  await atelierVu.focus();
+  const defile = await zonePlan.evaluate((zone) => zone.scrollLeft !== 0 || zone.scrollTop !== 0);
+  if (defile) erreurs.push('Carte : le focus clavier fait défiler la zone du plan et décale le dessin.');
+  const visible = await atelierVu.boundingBox();
+  if (centre === null || visible === null || visible.x < centre.x || visible.y < centre.y || visible.x + visible.width > centre.x + centre.width || visible.y + visible.height > centre.y + centre.height) {
+    erreurs.push('Carte : la pièce qui prend le focus reste hors de l’écran.');
+  }
+
+  // Lecteur d'écran : après un glissement, un toucher activé sans nouvel appui (clic sans pointerdown) ouvre quand même la fiche
+  // au second essai ; seul le clic qui termine le glissement est ignoré.
+  const salle = carte.locator('.carte-piece[data-statut="actuelle"]');
+  const boite = await salle.boundingBox();
+  if (boite !== null) {
+    await page.mouse.move(boite.x + boite.width / 2, boite.y + boite.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(boite.x + boite.width / 2 - 20, boite.y + boite.height / 2, { steps: 4 });
+    await page.mouse.up();
+  }
+  for (let fois = 0; fois < 2; fois++) await atelierVu.evaluate((bouton) => bouton.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
+  const ficheLecteur = page.getByRole('dialog', { name: 'ATELIER MAINTENANCE' });
+  if ((await ficheLecteur.count()) === 0) erreurs.push('Carte : après un glissement, une activation de lecteur d’écran n’ouvre plus de fiche.');
+  else {
+    await page.keyboard.press('Escape');
+    await ficheLecteur.waitFor({ state: 'detached' });
+  }
+
   // Fiche de l'atelier, au clavier ; Échap la ferme et rend le focus à la pièce.
   const atelier = carte.getByRole('button', { name: /^Atelier maintenance, vu/ });
   await atelier.focus();

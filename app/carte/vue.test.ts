@@ -1,5 +1,5 @@
 import type { CartePublique, PieceCarte, RectPlan, RefPiece } from '../../engine';
-import { borner, cadreConnu, CIBLE_MIN_PX, enPixels, etiquettes, glisser, pincer, vueInitiale, ZOOM_MAX, zoneTouchable, zoomMin } from './vue';
+import { borner, cadreConnu, CIBLE_MIN_PX, enPixels, etiquettes, glisser, MARGE_VUE_PX, montrer, pincer, vueInitiale, ZOOM_MAX, zoneTouchable, zoomMin } from './vue';
 
 const ref = (nom: string): RefPiece => ({ sorte: 'piece', id: `e-${nom}`, nom });
 
@@ -45,6 +45,13 @@ describe('vue du plan (14 §2.3)', () => {
     expect(glisser({ zoom: 1, x: 10, y: 10 }, -30, 5)).toEqual({ zoom: 1, x: -20, y: 15 });
     expect(borner({ zoom: 1, x: -1000, y: 0 }, cadre, ZONE, 34)).toEqual({ zoom: 1, x: CIBLE_MIN_PX - 340, y: 0 });
     expect(borner({ zoom: 1, x: 0, y: 0 }, cadre, ZONE, 34)).toEqual({ zoom: 1, x: 0, y: 0 });
+  });
+
+  it('une pièce qui prend le focus hors de l’écran y est ramenée, sans bouger si elle est déjà visible (12 §7)', () => {
+    const vue = { zoom: 1, x: 0, y: 0 };
+    const dehors = { gauche: 500, haut: -80, largeur: 136, hauteur: 102 };
+    expect(montrer(vue, dehors, ZONE)).toEqual({ zoom: 1, x: 390 - MARGE_VUE_PX - 636, y: MARGE_VUE_PX + 80 });
+    expect(montrer(vue, { gauche: 20, haut: 20, largeur: 136, hauteur: 102 }, ZONE)).toBe(vue);
   });
 
   it('une pièce se touche sur au moins 44 × 44 px, même réduite (14 §2.9)', () => {
