@@ -1,11 +1,12 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { GESTES } from './recettes';
+import { GESTES } from '../app/son/recettes';
 
-// Un toucher, un son (D-217) : vérifié sur le code source, car un écran rendu côté serveur ne montre qu'un état à la fois.
+// Un toucher, un son (D-217) : vérifié sur le code source de app/, car un écran rendu côté serveur ne montre qu'un état à la fois.
+// Dans tools/ : seuls les outils lisent des fichiers (AP-01).
 
-const APP = fileURLToPath(new URL('../', import.meta.url));
+const APP = fileURLToPath(new URL('../app/', import.meta.url));
 
 function sources(dossier: string): { chemin: string; texte: string }[] {
   return readdirSync(dossier, { withFileTypes: true }).flatMap((entree) => {

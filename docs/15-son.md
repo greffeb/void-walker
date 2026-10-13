@@ -4,7 +4,7 @@
 > **Date :** 2026-10-13.
 > **Issue :** [#99](https://github.com/greffeb/void-walker/issues/99) (bande-son et bruitages d'interface rétro).
 > **Références d'écoute :** le [banc des bruitages](maquette/banc-sons.html) (sons choisis à l'oreille, recettes exactes) et la [maquette de la section SON](maquette/options-son.html) (variante A, rail). Les deux pages s'ouvrent dans un navigateur et jouent après un premier toucher.
-> **Implémentation :** une livraison, proposée par #99 en zone orange ; validation humaine sur téléphone requise (D-129).
+> **Implémentation :** proposée par la PR de #99 (branche `conception/99-son`), en zone orange ; validation humaine sur téléphone requise (D-129) : premier toucher, arrière-plan, mode silencieux, équilibre des niveaux.
 > **Remplace :** la section SON de [12 §4.10](12-interface-ecrans.md) (« Ambiance » COUPÉE / BASSE / NORMALE, « Effets sonores » COUPÉS / ACTIFS) et la partie bande-son de D-153 ; voir §8.
 
 ## 1. But

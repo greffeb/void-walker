@@ -27,7 +27,7 @@ La [description des écrans](12-interface-ecrans.md) (maquette v1, direction « 
 
 La [carte en plan de pont](14-carte.md) remplace la carte de la maquette (12 §4.8) : écran, mémoire du passager, plans des stations et règles de génération des plans (D-201 à D-214). Conception validée par parties sur maquettes et sur les mesures d'un prototype jetable ; aucune implémentation.
 
-Le [son](15-son.md) précise la section SON de 12 §4.10 : bruitages du terminal, signaux de blessure, de soin et d'alarme, ambiance de bruit brun et de carlingue, trois rails dans les options (D-216 à D-222). Conception validée par parties à l'oreille, sur un [banc d'écoute](maquette/banc-sons.html) ; aucune implémentation.
+Le [son](15-son.md) précise la section SON de 12 §4.10 : bruitages du terminal, signaux de blessure, de soin et d'alarme, ambiance de bruit brun et de carlingue, trois rails dans les options (D-216 à D-222). Conception validée par parties à l'oreille, sur un [banc d'écoute](maquette/banc-sons.html) ; implémentation proposée.
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
@@ -126,7 +126,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 #97 (carte) : conception écrite et validée par parties ([14 — carte](14-carte.md), D-201 à D-214), après des maquettes au format téléphone et un prototype jetable de génération des plans (1 000 tirages par variante, grandes stations jusqu'à 60 pièces). La carte devient un plan de pont en vert phosphore ; air et créature entrent dans l'issue. Trois livraisons à venir, en zone orange : plans, mémoire, écran. L'assemblage géométrique des stations générées rejoint #106 ; un catalogue de pièces sans obstacle attend une issue à part. Livraison 1 (plans) proposée : format, vérifieur et plans des trois mondes, montrés en captures ; mémoire et écran à suivre. Livraison 2 (mémoire et carte publique, commande `carte` de la CLI) proposée. Livraison 3 (écran vert, plan, fiche, liste) proposée, validation humaine requise.
 
-#99 (son) : conception écrite et validée par parties ([15 — son](15-son.md), D-216 à D-222), sons choisis à l'oreille sur un banc d'écoute. Tous les sons sont synthétisés par le jeu, sans fichier ; pas de bande-son pour le moment. Une livraison à venir, en zone orange, validation humaine sur téléphone requise.
+#99 (son) : conception écrite et validée par parties ([15 — son](15-son.md), D-216 à D-222), sons choisis à l'oreille sur un banc d'écoute. Tous les sons sont synthétisés par le jeu, sans fichier ; pas de bande-son pour le moment. Livraison proposée en zone orange : sons synthétisés, trois rails dans les options, vérifiés par tests et dans Chromium ; validation humaine sur téléphone requise.
 
 **Moteur :** #100 (créature, perception, réactions) est fusionnée ([PR #112](https://github.com/greffeb/void-walker/pull/112)) et close. Choix du porteur consignés : poursuite par le passage vu (D-177), ouïe sans limite tant que le son passe (D-178), apparence proposée par les agents (D-179) ; après son essai de la version de test, aperçu risqué vers la créature vue (D-180) ou entendue (D-181). Quatre relectures ; leurs blocages sont corrigés. Le monde de test fait maintenant venir la créature.
 
