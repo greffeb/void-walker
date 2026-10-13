@@ -152,7 +152,7 @@ Tout vit dans `app/` ; le moteur et la CLI ne changent pas.
 
 ## 7. Tests et preuves
 
-- **Recettes :** chaque son du §2 a sa recette ; un bruitage dure moins de 300 ms, une alarme moins d'1 s, un son de carlingue moins de 6 s (réverbération non comprise) ; niveaux sous un plafond commun ; valeurs du §3.
+- **Recettes :** chaque son du §2 a sa recette ; un geste dure moins de 300 ms, un signal moins d'1 s (la blessure critique, jouée deux fois, dure 0,47 s), un son de carlingue moins de 6 s (réverbération non comprise) ; niveaux sous un plafond commun ; valeurs du §3.
 - **Déclencheurs :** un cas écrit par ligne du §2.2, dont le retour dans une pièce en feu et la reprise d'une partie ; puis des centaines de parties tirées au hasard avec le vrai moteur sur AR-01, AR-02 et le monde de test : à chaque pas, seuls les signaux listés sortent, une alarme sonne si et seulement si le feu ou le vide vient d'apparaître dans la pièce du passager, l'ordre du §2.4 est respecté.
 - **Moteur :** avec un faux contexte audio qui enregistre les demandes : rien avant le premier toucher ; pause et reprise ; gains (§4) ; ambiance à 0 arrêtée ; audio absent ou en panne sans erreur ; carlingue sur des milliers de tirages : intervalles de 20 à 60 s, gong une fois sur sept.
 - **Écrans :** avec un espion à la place du son : chaque geste du §2.1 joue exactement un son ; le crépitement démarre avec l'écriture et s'arrête à la fin ou au saut ; les rails changent et gardent les réglages.
