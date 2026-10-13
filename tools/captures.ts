@@ -1114,6 +1114,10 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   const avant = await partieEnregistree(page);
   await ouvrirCarte();
   await capturer(page, 'Carte — départ d’AR-01');
+  // Bulle comme l'inventaire (D-215) : marges autour, la navigation reste visible dessous.
+  const bulle = await carte.boundingBox();
+  const nav = await page.locator('.navigation').boundingBox();
+  if (bulle === null || nav === null || bulle.x < 8 || bulle.y < 8 || bulle.y + bulle.height > nav.y) erreurs.push('Carte : pas posée en bulle au-dessus de la navigation.');
   await verifierCarte(page, 'Carte, départ', erreurs);
   const pieces = await carte.locator('.carte-piece').count();
   if (pieces !== 3) erreurs.push(`Carte, départ : ${pieces} pièces au lieu de trois (salon, atelier, local technique).`);
@@ -1202,7 +1206,7 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   await capturer(page, 'Carte — vue liste');
   await verifierCarte(page, 'Carte, liste', erreurs);
   await page.getByRole('button', { name: MOTS_CARTE.plan, exact: true }).click();
-  await page.getByRole('button', { name: MOTS_CARTE.fermer }).click();
+  await carte.getByRole('button', { name: exactement('Fermer') }).click();
   await carte.waitFor({ state: 'detached' });
 
   // Texte très grand : noms et étiquettes tiennent ou s'effacent, rien ne déborde.
@@ -1213,7 +1217,7 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   await ouvrirCarte();
   await capturer(page, 'Carte — texte très grand');
   await verifierCarte(page, 'Carte, texte très grand', erreurs);
-  await page.getByRole('button', { name: MOTS_CARTE.fermer }).click();
+  await carte.getByRole('button', { name: exactement('Fermer') }).click();
   await contexte.close();
 
   // AR-02 au départ : voyants d'air sur les portes étanches (OP-04).

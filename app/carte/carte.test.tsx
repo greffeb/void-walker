@@ -134,11 +134,14 @@ describe('écran de la carte (14 §2)', () => {
     expect(texte(renderToStaticMarkup(<FicheCarte fiche={ficheDe(textes, galerie)} ancre={{} as HTMLElement} fermer={rien} />))).not.toContain('OBJETS VUS');
   });
 
-  it('écran : dialogue plein écran, CARTE // RELEVÉ, LISTE, FERMER LA CARTE ; plan nommé pour le lecteur d’écran', () => {
+  it('écran : bulle comme l’inventaire, CARTE // RELEVÉ, LISTE, ✕ pour fermer ; plan nommé pour le lecteur d’écran (D-215)', () => {
     const html = renderToStaticMarkup(<EcranCarte carte={CARTE} textes={textes} fermer={rien} />);
     expect(html).toContain('role="dialog"');
     expect(html).toContain('aria-modal="true"');
-    for (const mot of ['CARTE // RELEVÉ', 'LISTE', 'FERMER LA CARTE']) expect(texte(html)).toContain(mot);
+    expect(html).toContain('class="bulle carte"');
+    expect(html).toContain('aria-label="Fermer"');
+    for (const mot of ['CARTE // RELEVÉ', 'LISTE', '✕']) expect(texte(html)).toContain(mot);
+    expect(texte(html)).not.toContain('FERMER LA CARTE');
     expect(html).toContain('aria-label="Plan de la station ; vous êtes dans l’atelier maintenance. La vue liste dit la même chose en texte."');
   });
 

@@ -233,16 +233,14 @@ export function EcranJeu({
         />
       )}
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5) ; voile de 55 % sous la fenêtre d'IA Station (12 §3.9). */}
-      {ouverte !== null && ouverte.zone !== 'carte' && (
+      {ouverte !== null && (
         <div
-          className={ouverte.zone === 'inventaire' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
+          className={ouverte.zone === 'inventaire' || ouverte.zone === 'carte' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
           data-testid="voile"
           onClick={fermer}
         />
       )}
       {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
-      {/* Carte (14 §2) : gratuite (D-014) ; elle ne lit que l'observation publique. */}
-      {ouverte?.zone === 'carte' && <EcranCarte carte={observation.carte} textes={textes} fermer={fermer} />}
       {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
         <BulleObjet
           ancre={ouverte.ancre}
@@ -264,6 +262,8 @@ export function EcranJeu({
         <BulleDeplacement ancre={ouverte.ancre} option={deplacementOuvert} textes={textes} occupe={occupe} jouer={jouer} prevoir={voir} fermer={fermer} />
       )}
       <div className="bas">
+        {/* Carte (14 §2) : bulle au-dessus de la navigation comme l'inventaire (D-215), gratuite (D-014) ; elle ne lit que l'observation publique. */}
+        {ouverte?.zone === 'carte' && <EcranCarte carte={observation.carte} textes={textes} fermer={fermer} />}
         {ouverte?.zone === 'inventaire' && (
           <BulleInventaire
             id={idInventaire}
@@ -305,7 +305,7 @@ export function EcranJeu({
             aria-expanded={ouverte?.zone === 'carte'}
             aria-label="Carte"
             disabled={occupe}
-            onClick={(evenement) => ouvrir({ zone: 'carte' }, evenement.currentTarget)}
+            onClick={(evenement) => (ouverte?.zone === 'carte' ? fermer() : ouvrir({ zone: 'carte' }, evenement.currentTarget))}
           >
             {NAV_CARTE}
           </button>

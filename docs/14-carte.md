@@ -17,7 +17,7 @@ Principes repris sans changement : ouvrir la carte est gratuit (D-014) ; ni gril
 ### 2.1 Accès
 
 - Bouton **CARTE** au milieu de la barre de navigation, entre INVENTAIRE et IA STATION (D-192).
-- La carte occupe tout l'écran. Titre « CARTE // RELEVÉ » ; à droite, **LISTE** bascule vers la vue liste (titre « CARTE // LISTE », bouton **PLAN** pour revenir). En bas, **FERMER LA CARTE**.
+- La carte s'ouvre dans une bulle posée au-dessus de la navigation, comme l'inventaire : petites marges sur le pourtour, l'écran de jeu visible derrière un voile, flèche vers CARTE (D-215). Titre « CARTE // RELEVÉ » ; à droite, **LISTE** bascule vers la vue liste (titre « CARTE // LISTE », bouton **PLAN** pour revenir), puis **✕**. ✕, le voile ou un nouveau toucher sur CARTE la referment.
 - Ouvrir, parcourir et fermer la carte n'ont aucun effet sur le monde (D-014).
 - À l'ouverture, le plan est centré sur la pièce actuelle (D-205).
 
@@ -42,7 +42,7 @@ Vidéo inverse pour les étiquettes d'état : `vert-fond` sur `vert` (15,2:1) ou
 
 - Une case du plan vaut **34 px** à la taille de texte STANDARD. L'échelle suit le réglage de taille du texte dans la même proportion que le récit : 34, 38 et 44 px par case pour 17, 19 et 22 px.
 - **Glisser** un doigt fait parcourir le plan ; **pincer** zoome, de la vue de toute la partie connue jusqu'au double de l'échelle de base. Bornes exactes à juger sur téléphone.
-- Un nom ou une étiquette qui ne tient plus dans sa pièce à l'échelle courante disparaît ; les murs, les motifs de sol et le losange restent visibles (§2.5).
+- En dézoomant, le texte rétrécit avec le plan jusqu'aux trois quarts de sa taille ; au-delà, un nom ou une étiquette qui ne tient plus dans sa pièce disparaît ; les murs, les motifs de sol et le losange restent visibles (§2.5). Seuil choisi après l'essai du porteur sur téléphone (§9).
 - Ni bouton « recentrer » ni « vue d'ensemble » : la carte s'ouvre centrée et se pince (D-205).
 - En mouvement réduit (`prefers-reduced-motion`), aucun glissement animé.
 
@@ -76,7 +76,7 @@ Ancienneté en mots (D-151) : « à l'instant » (1 action au plus), « il y a u
 - Porte étanche : un **voyant** dans l'ouverture, plein ● pour l'air, vide ○ pour le vide, tenu à jour dès que la destination est connue (OP-04, détails de #104).
 - Grille, conduit étroit, panneau : ouverture en tirets.
 - Passage sans signalétique à destination inconnue : ouverture en tirets et « **?** ». Ce passage ne fait pas connaître la pièce d'en face (OP-03). Si cette pièce est connue par ailleurs, la géométrie peut laisser deviner la destination ; aucun texte ne la nomme.
-- Passage caché non découvert : rien (K-05). Découvert, il se dessine comme les autres.
+- Passage caché non découvert : rien, de chaque côté, même de celui où le panneau se voit, puisqu'il ne se distingue pas d'un panneau ordinaire (K-05, AR-01 §11.1). Découvert, il se dessine comme les autres.
 - Conduit sans mur commun (§4.1) : tracé en pointillé à travers le vide, une fois découvert.
 - Capsule : dessinée arrimée dehors, contre le mur de coque de sa salle d'embarquement, une fois cette salle visitée. La cabine, sous-position, n'est jamais dessinée (C-02 §2).
 

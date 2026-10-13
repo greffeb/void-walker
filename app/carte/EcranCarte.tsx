@@ -67,8 +67,9 @@ function ZonePlan({
 }
 
 /**
- * Carte (14 §2) : plein écran vert, plan ou liste ; l'ouvrir, la parcourir et la fermer sont gratuits (D-014). FERMER LA CARTE,
- * Échap ou le retour système la referment ; une fiche ouverte se ferme d'abord.
+ * Carte (14 §2) : bulle verte posée au-dessus de la navigation, comme l'inventaire (D-215) ; plan ou liste ; l'ouvrir, la
+ * parcourir et la fermer sont gratuits (D-014). ✕, CARTE, le voile, Échap ou le retour système la referment ; une fiche ouverte se
+ * ferme d'abord.
  */
 export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePublique; readonly textes: TextesMonde; readonly fermer: () => void }) {
   const avecPlan = carte.pieces.some((piece) => piece.rect !== null);
@@ -88,7 +89,7 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
   return (
     <section
       ref={zone}
-      className="carte"
+      className="bulle carte"
       role="dialog"
       aria-modal="true"
       aria-labelledby={idTitre}
@@ -120,15 +121,15 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
             {mode === 'plan' ? MOTS_CARTE.liste : MOTS_CARTE.plan}
           </button>
         )}
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
+          <span aria-hidden="true">✕</span>
+        </button>
       </header>
       {mode === 'plan' ? (
         <ZonePlan carte={carte} textes={textes} ouverte={fiche?.piece ?? null} toucher={(piece, ancre) => setFiche({ piece: piece.piece.id, ancre })} />
       ) : (
         <ListeCarte blocs={rendreListeCarte(textes, carte)} />
       )}
-      <button type="button" className="carte-fermer" onClick={fermer}>
-        {MOTS_CARTE.fermer}
-      </button>
       {fiche !== null && ouverte !== undefined && (
         <>
           <div className="voile carte-voile" data-testid="voile-carte" onClick={fermerFiche} />
