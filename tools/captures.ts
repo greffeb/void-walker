@@ -1283,6 +1283,7 @@ function commentaire(
 ): string {
   const adresse = process.env.VERSION_URL ?? '';
   const commit = process.env.COMMIT ?? '';
+  const publiees = etapes.filter((etape) => etape.image !== '');
   const lignes = [
     '<!-- void-walker:version-de-test -->',
     '## Version de test',
@@ -1294,36 +1295,43 @@ function commentaire(
     '',
     ...partieCommentaire(
       'Parcours du monde de test',
-      etapes.filter((etape) => etape.suite === 'monde-test'),
+      publiees.filter((etape) => etape.suite === 'monde-test'),
       erreurs,
       ['Adresse : `?monde=monde-test`.', `Installation : ${installable}`, `Hors ligne : ${horsLigne}`],
     ),
     ...partieCommentaire(
       'AR-01, parcours P-C',
-      etapes.filter((etape) => etape.suite === 'ar-01'),
+      publiees.filter((etape) => etape.suite === 'ar-01'),
       erreursAr01,
       ['Adresse par défaut, partie neuve, joué geste par geste.'],
     ),
     ...partieCommentaire(
       'AR-02, parcours P-V1',
-      etapes.filter((etape) => etape.suite === 'ar-02'),
+      publiees.filter((etape) => etape.suite === 'ar-02'),
       erreursAr02,
       ['Adresse : `?monde=ar-02`, partie neuve, joué geste par geste.'],
     ),
     ...partieCommentaire(
       'Carte (#97)',
-      etapes.filter((etape) => etape.suite === 'carte'),
+      publiees.filter((etape) => etape.suite === 'carte'),
       erreursCarte,
       ['AR-01 au départ et au local énergie (cinq pas de P-C), fiche, liste, texte très grand ; AR-02 au départ. **Validation humaine requise** sur téléphone : lisibilité, gestes, bornes du zoom (14 §9).'],
     ),
     ...partieCommentaire(
       'Plans des stations (#97)',
-      etapes.filter((etape) => etape.suite === 'plans'),
+      publiees.filter((etape) => etape.suite === 'plans'),
       erreursPlans,
       ['Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. À juger par le porteur avant fusion.'],
     ),
   ];
   return lignes.join('\n');
+}
+
+/** Dans la PR, seules les captures demandées par sa ligne « Captures : motif ; motif » sont publiées ; hors CI, toutes. Les vérifications tournent toujours. */
+const MOTIFS = process.env.PR_BODY === undefined ? null : (/^Captures\s*:\s*(.+)$/im.exec(process.env.PR_BODY)?.[1] ?? '').split(';').map((motif) => motif.trim().toLowerCase()).filter((motif) => motif !== '');
+
+function voulue(titre: string): boolean {
+  return MOTIFS === null || MOTIFS.some((motif) => titre.toLowerCase().includes(motif));
 }
 
 export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
@@ -1358,8 +1366,8 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
 
     /** Par défaut, l'écriture à la machine est menée à son terme et le curseur montré allumé (D-186). */
     const capturerPage: CapturerPage = async (cible, titre, animations = 'disabled') => {
-      const image = `${String(etapes.length + 1).padStart(2, '0')}.png`;
-      await cible.screenshot({ path: join(SORTIE, image), fullPage: true, animations });
+      const image = voulue(titre) ? `${String(etapes.filter((vue) => vue.image !== '').length + 1).padStart(2, '0')}.png` : '';
+      if (image !== '') await cible.screenshot({ path: join(SORTIE, image), fullPage: true, animations });
       const etape = { suite, titre, image, ...(await lire(cible)), partage: decrirePartage(await partage(cible)) };
       etapes.push(etape);
       return etape;
@@ -1840,7 +1848,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
 
 if (isMainModule(import.meta.url)) {
   const { etapes, erreurs } = await capturer();
-  for (const etape of etapes) console.log(`[${etape.image}] ${etape.titre}\n${etape.recit}\n${etape.situation}\n`);
+  for (const etape of etapes.filter((vue) => vue.image !== '')) console.log(`[${etape.image}] ${etape.titre}\n${etape.recit}\n${etape.situation}\n`);
   for (const erreur of erreurs) console.error(`ERREUR : ${erreur}`);
   console.log(
     erreurs.length === 0

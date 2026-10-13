@@ -56,7 +56,7 @@ Une issue ne convoque que les rôles utiles. Multiplier les agents ne remplace n
 4. Écrire le plan, puis implémenter par petits changements dans le périmètre.
 5. Exécuter la vérification complète, joindre résultats et contre-exemples traités.
 6. Faire relire indépendamment ; les écarts bloquants ne deviennent pas des exceptions implicites.
-7. Présenter une PR avec critères ↔ preuves (captures, extraits de texte), version et limites des tests ; indiquer « validation humaine requise » si besoin (D-129). La PR est publiée à une adresse de test (D-131).
+7. Présenter une PR avec critères ↔ preuves (captures, extraits de texte), version et limites des tests ; indiquer « validation humaine requise » si besoin (D-129). La PR est publiée à une adresse de test (D-131). Les captures se limitent à ce que la PR change et qu'il faut voir pour la valider : une ligne `Captures : motif ; motif` dans le corps de la PR les désigne (fragments de titres d'étapes) ; sans elle, aucune n'est publiée.
 8. Fusionner selon la zone (C-10 §6) ; les agents d'implémentation ne s'accordent pas eux-mêmes un droit de merge.
 9. Le porteur du projet joue la version de test sur téléphone ; ses retours, le fichier de partie et sa validation signée arrivent en commentaire de la PR (D-130, D-132).
 10. Mettre à jour décisions, roadmap, journal et prochain point de reprise.

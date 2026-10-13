@@ -11,6 +11,7 @@ Jeu narratif d'horreur spatiale, PWA mobile, développé par des agents ; le por
 ## Règles de travail
 
 - Une issue, une branche, une PR avec preuves. Workflow : `docs/04-workflow-agentique.md`.
+- Captures de PR : seulement ce qui a changé et sert à valider, désigné par une ligne `Captures : motif ; motif` dans le corps de la PR.
 - Pour gérer une issue, suivre `.github/instructions/gestion-issues.instructions.md` dans la conversation principale ; ne pas lancer de sous-agent orchestrateur.
 - Zones de fusion : `docs/contrats/C-10-preuves-gouvernance.md` §6. Moteur, interface, équilibrage et format des scénarios attendent l'accord du porteur du projet.
 - Jamais de validation humaine fabriquée : aucune case de partie sur téléphone cochée par un agent.
