@@ -159,8 +159,8 @@ Dans cet ordre :
 - Titre « ── DANS LA PIÈCE ── ».
 - **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 46 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
 - Titre « ── SE DÉPLACER VERS ── » (remplace « Sorties »). [Validé]
-- **Boutons de déplacement** : un par passage connu, pleine largeur, vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre la bulle du passage (§3.5) : sa fiche, « ▸ Aller dans l'atelier », puis « ▸ Ouvrir » ou « ▸ Fermer ». Les portes n'ont pas de puce dans « Dans la pièce ». [Validé D-229]
-- **Déplacement impossible** (porte fermée, objet porté trop large) : le bouton reste activable, il ouvre la bulle où le déplacement est indisponible avec sa raison (§3.7). Contour pointillé, sans fond ; le lecteur d'écran lit « atelier, La porte de l'atelier est fermée. ». [Détail de l'agent, D-229]
+- **Boutons de déplacement** : un par passage connu, sur deux colonnes comme les puces, une seule quand deux ne tiennent plus (D-230), vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre la bulle du passage (§3.5) : sa fiche, « ▸ Aller dans l'atelier », puis « ▸ Ouvrir » ou « ▸ Fermer ». Les portes n'ont pas de puce dans « Dans la pièce ». [Validé D-229]
+- **Déplacement impossible** (porte fermée, objet porté trop large) : le bouton reste activable, il ouvre la bulle où le déplacement est indisponible avec sa raison (§3.7). Contour pointillé, sans fond ; la raison n'est pas écrite sur le bouton, le lecteur d'écran seul la lit : « atelier, La porte de l'atelier est fermée. ». [Validé D-230]
 - **Passage sans signalétique** (grille haute, conduit) : il rejoint « Se déplacer vers » une fois ouvert, et y reste même refermé ; avant, il n'est qu'une puce d'objet. Tant que sa destination n'est pas découverte, le bouton porte le nom du passage, « → GRILLE HAUTE » (OP-03). [Validé D-147, D-229]
 
 ### 3.5 Bulle de composition
@@ -188,7 +188,7 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 Fiches d'objet, choix d'action et aperçus, déplacement compris, utilisent la bulle de §3.5, ancrée sur l'élément touché. Le panneau bas de la maquette (poste d'appel, aperçu de déplacement) est abandonné. [Validé D-146]
 
 - Une fiche longue (poste d'appel) prend toute la largeur moins les marges et défile à l'intérieur de la bulle si besoin. [Proposé]
-- Pour un bouton de déplacement pleine largeur, la bulle s'ouvre au-dessus de lui, flèche centrée. [Proposé]
+- Pour un bouton de déplacement, la bulle s'ouvre au-dessus de lui comme pour une puce, flèche vers le bouton. [D-230]
 
 ### 3.7 Action indisponible
 

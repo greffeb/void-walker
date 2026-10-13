@@ -1760,6 +1760,8 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
           await ligne.focus();
           await page.keyboard.press('Enter');
           await attendreSauvegarde(page, 3);
+          // La bulle refermée, le focus rejoint le récit juste après l'affichage du résultat.
+          await page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'recit', null, { timeout: 2_000 }).catch(() => undefined);
           const focus = await page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? document.activeElement?.tagName ?? '');
           if (focus !== 'recit') erreurs.push(`Après un déplacement d’un seul toucher au clavier, le focus est sur « ${focus} » et non sur le récit.`);
           // Passé le délai anti double toucher : seul le déplacement du focus empêche de rejouer le bouton.

@@ -905,18 +905,29 @@ button:disabled {
   margin-top: 6px;
 }
 
+/* Deux colonnes comme les puces (D-230) ; une seule quand deux ne tiennent plus (texte agrandi sur un écran étroit). */
 .deplacements {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(calc(108px * var(--echelle) + 26px), calc(50% - 3px))), 1fr));
   gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.deplacements > li {
+  display: flex;
+}
+
+.deplacements > li > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .deplacement {
   width: 100%;
   min-height: 46px;
+  overflow-wrap: break-word;
   padding: 8px 12px;
   font-size: calc(15px * var(--echelle));
   font-weight: 600;
