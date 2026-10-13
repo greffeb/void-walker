@@ -1636,6 +1636,7 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Origine : demande du porteur « un slider général, et des sliders soundtrack, effets sonores, et ambiance » ; choix « A rail » sur maquettes ; niveaux du bilan « général 80 · effets 80 · ambiance 30 ».
 - Décision : la section SON des options a trois rails de 0 à 100 : Général, Effets sonores, Ambiance, par défaut 80, 80 et 30 ; à 0, « COUPÉE » ou « COUPÉS ». Ils s'appliquent immédiatement et sont gardés sur l'appareil (15 §4).
 - Remplace : « Ambiance » COUPÉE / BASSE / NORMALE et « Effets sonores » COUPÉS / ACTIFS (12 §4.10, détail de D-148).
+- Modifiée par D-223 : ambiance à 60 par défaut.
 
 ### D-221 — Pas de bande-son pour le moment
 
@@ -1650,6 +1651,13 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Date / statut : 2026-10-13 / **Validé**.
 - Origine : validation de la partie « cycle de vie » ; « option 1 » pour le mode silencieux.
 - Décision : aucun son avant le premier toucher ; pause en bloc quand l'appli passe en arrière-plan, reprise au retour, sans rattrapage ; le jeu respecte le mode silencieux de l'iPhone et se mélange à l'audio du joueur sans l'interrompre ; sans audio disponible, le jeu reste muet sans erreur (15 §5).
+
+### D-223 — Son : réglages après l'essai sur téléphone
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : essai du porteur sur téléphone de la version de test de la PR #130 : « j'ai dû monter ambiance à 60 » ; « en ouvrant la cloison du local technique, je me serais attendu à entendre l'alarme incendie car je découvre qu'une pièce est en feu » ; des clics qui « ne s'entendent pas toujours ».
+- Décision : l'ambiance vaut 60 par défaut. L'alarme incendie sonne aussi quand un feu apparaît par un passage ouvert depuis la pièce du passager (il ouvre sur une pièce en feu, ou le feu gagne la voisine), une fois, et de nouveau à chaque nouvelle vue du danger. Un son part 60 ms après sa demande, pour qu'un bruitage court ne tombe pas dans le passé sur téléphone (15 §5).
+- Modifie : D-220 (défaut de l'ambiance) et D-218 (alarme incendie).
 
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 

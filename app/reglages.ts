@@ -10,7 +10,7 @@ export interface Reglages {
   readonly balayage: boolean;
   /** « Effet machine à écrire » [OUI] / [NON]. */
   readonly machineAEcrire: boolean;
-  /** Rails du son, de 0 à 100 (15 §4, D-220). */
+  /** Rails du son, de 0 à 100 (15 §4, D-220, D-223). */
   readonly general: number;
   readonly effets: number;
   readonly ambiance: number;
@@ -18,7 +18,7 @@ export interface Reglages {
 
 export const CLE_REGLAGES = 'void-walker:reglages';
 
-export const REGLAGES_PAR_DEFAUT: Reglages = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 30 };
+export const REGLAGES_PAR_DEFAUT: Reglages = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60 };
 
 /** Niveau de 0 à 100, arrondi ; illisible : sa valeur par défaut. */
 function niveau(valeur: unknown, defaut: number): number {

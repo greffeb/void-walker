@@ -79,8 +79,11 @@ export function sessionAmbiante(navigateur: unknown): void {
 
 const FONDU_REGLAGE = 0.03;
 const SILENCE_GAIN = 0.0001;
-/** Un son part 10 ms après sa demande. */
-const DEPART = 0.01;
+/**
+ * Un son part 60 ms après sa demande : sur téléphone, l'horloge audio lue par la page retarde de 10 à 40 ms, et un rendu
+ * de l'écran peut retenir la demande quelques dizaines de ms ; un tic de 4 ms programmé trop près tombait dans le passé, muet.
+ */
+export const DEPART = 0.06;
 
 interface Bus {
   readonly ctx: AudioContext;

@@ -1,5 +1,5 @@
 import { dureeRecette, RECETTES_GESTES, RECETTES_SIGNAUX, ESPACE_SIGNAUX, GESTES, NOTES_CREPITEMENT } from './recettes';
-import { creerMoteur, gainDe, sessionAmbiante, type Niveaux } from './moteur';
+import { creerMoteur, DEPART, gainDe, sessionAmbiante, type Niveaux } from './moteur';
 
 // Faux contexte audio : il journalise ce que le moteur lui demande, sans produire de son.
 
@@ -268,8 +268,23 @@ describe('moteur du son (15 §5, §6)', () => {
       expect(ctx.noeuds.length).toBeGreaterThan(avant);
     }
     const clic = ctx.oscillateurs().find((oscillateur) => frequence(oscillateur) === 2400);
-    expect(clic?.debut).toBeCloseTo(0.01);
-    expect(clic?.fin).toBeCloseTo(0.01 + 0.004 + 0.02);
+    expect(clic?.debut).toBeCloseTo(DEPART);
+    expect(clic?.fin).toBeCloseTo(DEPART + 0.004 + 0.02);
+  });
+
+  it('téléphone : un bruitage court part assez loin devant l’horloge audio pour ne jamais tomber dans le passé', () => {
+    // Sur téléphone, l'horloge lue par la page retarde de 10 à 40 ms : un tic de 4 ms programmé 10 ms devant était joué muet.
+    const { son, ctx } = monter();
+    son.debloquer();
+    ctx.currentTime = 2;
+    const avant = ctx.noeuds.length;
+    son.geste('fermer');
+    const nouveaux = ctx.noeuds.slice(avant);
+    const tic = nouveaux.find((noeud): noeud is FauxLecteur => noeud instanceof FauxLecteur);
+    expect(tic?.debut).toBeGreaterThanOrEqual(2 + 0.05);
+    for (const gain of nouveaux.filter((noeud): noeud is FauxGain => noeud instanceof FauxGain)) {
+      for (const etape of gain.gain.journal) expect(etape.t).toBeGreaterThanOrEqual(2 + 0.05);
+    }
   });
 
   it('effets à 0 ou général à 0 : aucun bruitage ; général à 0 arrête aussi le fond', () => {
@@ -303,7 +318,7 @@ describe('moteur du son (15 §5, §6)', () => {
     const tics = ctx.oscillateurs().filter((oscillateur) => crepite(frequence(oscillateur)));
     expect(tics.length).toBeGreaterThanOrEqual(12);
     expect(tics.length).toBeLessThanOrEqual(19);
-    for (const tic of tics) expect(tic.debut).toBeLessThan(0.01 + 0.5);
+    for (const tic of tics) expect(tic.debut).toBeLessThan(DEPART + 0.5);
     expect(ctx.oscillateurs().some((oscillateur) => frequence(oscillateur) === 1400 || frequence(oscillateur) === 1600)).toBe(false);
     ctx.currentTime = 0.5;
     expect(minuterie.declencher((ms) => ms === 500)).toBe(500);
@@ -311,8 +326,8 @@ describe('moteur du son (15 §5, §6)', () => {
     const ia = ctx.oscillateurs().filter((oscillateur) => frequence(oscillateur) === 1600);
     expect(alarme).toHaveLength(6);
     expect(ia).toHaveLength(3);
-    expect(alarme[0]?.debut).toBeCloseTo(0.51);
-    expect(ia[0]?.debut).toBeCloseTo(0.51 + dureeRecette(RECETTES_SIGNAUX['alarme-feu']) + ESPACE_SIGNAUX);
+    expect(alarme[0]?.debut).toBeCloseTo(0.5 + DEPART);
+    expect(ia[0]?.debut).toBeCloseTo(0.5 + DEPART + dureeRecette(RECETTES_SIGNAUX['alarme-feu']) + ESPACE_SIGNAUX);
   });
 
   it('écriture sautée : crépitement arrêté net, signaux tout de suite ; plus rien à 500 ms', () => {

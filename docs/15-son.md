@@ -1,6 +1,6 @@
 # Void Walker V2 — son : bruitages du terminal et ambiance
 
-> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-222 ; document à relire par le porteur avant le plan d'implémentation.
+> **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-13 consignés par D-216 à D-223 (D-223 après l'essai sur téléphone de la PR #130).
 > **Date :** 2026-10-13.
 > **Issue :** [#99](https://github.com/greffeb/void-walker/issues/99) (bande-son et bruitages d'interface rétro).
 > **Références d'écoute :** le [banc des bruitages](maquette/banc-sons.html) (sons choisis à l'oreille, recettes exactes) et la [maquette de la section SON](maquette/options-son.html) (variante A, rail). Les deux pages s'ouvrent dans un navigateur et jouent après un premier toucher.
@@ -42,11 +42,11 @@ Après chaque action jouée, l'interface compare l'observation d'avant et celle 
 | Santé aggravée jusqu'à « blessé » | Blessure (Parasite) |
 | Santé aggravée jusqu'à « critique » ou « vaincu » | Blessure critique : même recette, hauteur × 0,75, jouée deux fois à 0,32 s d'écart |
 | Santé améliorée | Soin (Bip apaisé) |
-| `feu` passe de faux à vrai dans la pièce du passager : il y entre, ou le feu s'y propage | Alarme incendie (Détecteur), une fois |
+| Un feu apparaît à la vue du passager : dans sa pièce (il y entre, le feu s'y propage) ou par un passage ouvert (il ouvre sur une pièce en feu, le feu gagne la voisine) (D-223) | Alarme incendie (Détecteur), une fois |
 | `sansAir` passe de faux à vrai de la même façon | Alarme vide (Grave pulsé), une fois |
 | Nombre de messages d'IA Station en hausse | IA Station (Télétype) |
 
-Rester dans une pièce en feu ne fait pas resonner l'alarme ; en sortir puis y revenir la fait resonner (« à chaque entrée dans le danger », choix du porteur). Changer de pièce compte comme un passage de faux à vrai quand la nouvelle pièce brûle ou n'a plus d'air. Reprendre une partie enregistrée, ou revenir des options, ne joue aucun signal : il n'y a pas d'observation d'avant. Un refus, une consultation ou un aperçu ne change pas l'observation et ne joue aucun signal.
+Rester dans une pièce en feu, ou devant un passage ouvert sur le feu, ne fait pas resonner l'alarme ; en sortir puis y revenir la fait resonner (« à chaque entrée dans le danger », choix du porteur). Changer de pièce compte comme un passage de faux à vrai quand la nouvelle pièce brûle ou n'a plus d'air. Reprendre une partie enregistrée, ou revenir des options, ne joue aucun signal : il n'y a pas d'observation d'avant. Un refus, une consultation ou un aperçu ne change pas l'observation et ne joue aucun signal.
 
 ### 2.3 Crépitement d'écriture
 
@@ -118,7 +118,7 @@ Section **── SON ──** entre TAILLE DU TEXTE et AFFICHAGE, trois rails ([
 | --- | --- | --- |
 | Général | — | 80 |
 | Effets sonores | bips et clics du terminal | 80 |
-| Ambiance | bruit brun et carlingue | 30 |
+| Ambiance | bruit brun et carlingue | 60 (D-223) |
 
 - Valeur de 0 à 100, écrite à droite du libellé en `accent` ; à 0 : « COUPÉE » (général, ambiance) ou « COUPÉS » (effets).
 - Rail de 44 px de haut pour le doigt, piste de 6 px, partie active en `accent`, curseur carré.
@@ -129,6 +129,7 @@ Section **── SON ──** entre TAILLE DU TEXTE et AFFICHAGE, trois rails ([
 
 ## 5. Cycle de vie et pannes (D-222)
 
+- **Programmation :** un son part 60 ms après sa demande. Sur téléphone, l'horloge audio lue par la page retarde de 10 à 40 ms ; un bruitage de quelques ms programmé plus près tombait dans le passé et restait muet (D-223).
 - **Premier toucher :** l'audio s'ouvre pendant le premier toucher (ou la première touche du clavier), n'importe où dans l'appli ; ce toucher joue déjà son son. Avant, l'appli est muette.
 - **Arrière-plan :** quand la page est cachée (autre appli, écran verrouillé, onglet caché), l'audio est mis en pause en bloc ; il reprend au retour. Aucun craquement en retard ne part au retour.
 - **Niveaux à 0 :** ambiance à 0, le fond et la carlingue s'arrêtent vraiment ; effets à 0, aucun bruitage n'est lancé ; général à 0, tout se tait.

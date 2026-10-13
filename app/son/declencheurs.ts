@@ -5,14 +5,22 @@ import type { Signal } from './recettes';
 
 const GRAVITE: Readonly<Record<Sante, number>> = { indemne: 0, blesse: 1, critique: 2, vaincu: 3 };
 
+/** Feux que le passager voit : sa pièce, et chaque passage ouvert sur une pièce en feu (C-06 §2), depuis la pièce où il se tient. */
+function feuxVus(observation: Observation): string[] {
+  const ici = observation.piece.id;
+  return [...(observation.feu ? [`piece:${ici}`] : []), ...observation.passages.filter((passage) => passage.feu).map((passage) => `passage:${ici}:${passage.id}`)];
+}
+
 /**
- * Une alarme sonne quand le feu ou le vide passe d'absent à présent dans la pièce du passager : il y entre, ou le danger s'y
- * propage ; rester dans le danger ne la fait pas resonner, y revenir si. Résultat dans l'ordre de jeu (15 §2.4).
+ * L'alarme incendie sonne quand un feu apparaît à la vue du passager : dans sa pièce (il y entre, le feu s'y propage) ou par un
+ * passage ouvert (il ouvre sur une pièce en feu, le feu gagne la voisine) (D-218, D-223). L'alarme vide sonne quand le vide passe
+ * d'absent à présent dans sa pièce. Rester devant le danger ne la fait pas resonner, y revenir si. Ordre de jeu : 15 §2.4.
  */
 export function signauxApres(avant: Observation, apres: Observation): Signal[] {
   const signaux: Signal[] = [];
   const memePiece = avant.piece.id === apres.piece.id;
-  if (apres.feu && !(memePiece && avant.feu)) signaux.push('alarme-feu');
+  const feuxAvant = feuxVus(avant);
+  if (feuxVus(apres).some((feu) => !feuxAvant.includes(feu))) signaux.push('alarme-feu');
   if (apres.sansAir && !(memePiece && avant.sansAir)) signaux.push('alarme-vide');
   const ecart = GRAVITE[apres.sante] - GRAVITE[avant.sante];
   if (ecart > 0) signaux.push(GRAVITE[apres.sante] >= GRAVITE.critique ? 'blessure-critique' : 'blessure');

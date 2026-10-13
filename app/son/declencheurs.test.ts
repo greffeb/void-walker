@@ -7,6 +7,12 @@ const { monde } = MONDES['monde-test'] as EntreeMonde;
 const base: Observation = observer(monde, nouvellePartie(monde, { version: 'test', graine: 1 }).etat);
 const ailleurs = (observation: Observation): Observation => ({ ...observation, piece: { ...observation.piece, id: `${observation.piece.id}-ailleurs` } });
 
+/** Feux vus par le passager : sa pièce, et chaque passage ouvert sur une pièce en feu, depuis la pièce où il se tient. */
+const feuxVus = (observation: Observation): string[] => [
+  ...(observation.feu ? [`piece:${observation.piece.id}`] : []),
+  ...observation.passages.filter((passage) => passage.feu).map((passage) => `passage:${observation.piece.id}:${passage.id}`),
+];
+
 function lcg(graine: number): () => number {
   let etat = graine >>> 0;
   return () => {
@@ -27,6 +33,16 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
     expect(signauxApres(enFeu, enFeu)).toEqual([]);
     expect(signauxApres(enFeu, ailleurs(base))).toEqual([]);
     expect(signauxApres(ailleurs({ ...base, feu: true }), enFeu)).toEqual(['alarme-feu']);
+  });
+
+  it('feu découvert par un passage ouvert : alarme, une fois ; de nouveau en entrant dans la pièce en feu (point 3 de l’essai)', () => {
+    const passage = base.passages[0];
+    if (passage === undefined) throw new Error('Passage attendu au départ du monde de test.');
+    const voitLeFeu: Observation = { ...base, passages: base.passages.map((vu) => (vu.id === passage.id ? { ...vu, ouvert: true, feu: true } : vu)) };
+    expect(signauxApres(base, voitLeFeu)).toEqual(['alarme-feu']);
+    expect(signauxApres(voitLeFeu, voitLeFeu)).toEqual([]);
+    expect(signauxApres(voitLeFeu, ailleurs({ ...base, feu: true }))).toEqual(['alarme-feu']);
+    expect(signauxApres(voitLeFeu, base)).toEqual([]);
   });
 
   it('vide : mêmes règles que le feu', () => {
@@ -79,7 +95,8 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
           expect(signaux.filter((signal) => signal === 'blessure' || signal === 'blessure-critique' || signal === 'soin').length).toBeLessThanOrEqual(1);
           // Une alarme si et seulement si le danger vient d'apparaître là où se trouve le passager.
           const memePiece = avant.piece.id === apres.piece.id;
-          expect(signaux.includes('alarme-feu')).toBe(apres.feu && !(memePiece && avant.feu));
+          const feuxAvant = feuxVus(avant);
+          expect(signaux.includes('alarme-feu')).toBe(feuxVus(apres).some((feu) => !feuxAvant.includes(feu)));
           expect(signaux.includes('alarme-vide')).toBe(apres.sansAir && !(memePiece && avant.sansAir));
           expect(signaux.includes('ia')).toBe(apres.messages.length > avant.messages.length);
           for (const signal of signaux) vus.add(signal);

@@ -36,9 +36,9 @@ describe('effet machine à écrire (D-186)', () => {
 
 describe('réglages gardés sur l’appareil (D-186, D-220, 12 §4.10)', () => {
   const magasin = (valeur: string | null) => (cle: string) => (cle === CLE_REGLAGES ? valeur : null);
-  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 30 };
+  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60 };
 
-  it('par défaut : taille standard, balayage et machine à écrire sur [OUI], son à 80, 80 et 30 ; réglages enregistrés relus', () => {
+  it('par défaut : taille standard, balayage et machine à écrire sur [OUI], son à 80, 80 et 60 ; réglages enregistrés relus', () => {
     expect(lireReglages(magasin(null))).toEqual(DEFAUT);
     expect(lireReglages(magasin('{"machineAEcrire":false}'))).toEqual({ ...DEFAUT, machineAEcrire: false });
     expect(lireReglages(magasin('{"taille":"tres_grande","balayage":false,"machineAEcrire":true,"general":55,"effets":0,"ambiance":100}'))).toEqual({

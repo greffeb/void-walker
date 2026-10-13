@@ -784,11 +784,11 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   await capturer(page, 'Options en cours de partie');
   await verifierSansTroncature(page, 'Options en cours de partie', erreurs);
 
-  // Son (15 §4, D-220) : trois rails à 80, 80 et 30 ; « Ambiance » à 0 au clavier s'écrit COUPÉE et se garde.
+  // Son (15 §4, D-220, D-223) : trois rails à 80, 80 et 60 ; « Ambiance » à 0 au clavier s'écrit COUPÉE et se garde.
   const rails = page.locator('.curseur-rail');
   if ((await rails.count()) !== 3) erreurs.push(`Options : ${await rails.count()} rails de son, 3 attendus.`);
   const niveaux = await rails.evaluateAll((liste) => liste.map((rail) => (rail as HTMLInputElement).value));
-  if (niveaux.join(' ') !== '80 80 30') erreurs.push(`Options : rails à ${niveaux.join(', ')}, 80, 80 et 30 attendus.`);
+  if (niveaux.join(' ') !== '80 80 60') erreurs.push(`Options : rails à ${niveaux.join(', ')}, 80, 80 et 60 attendus.`);
   await rails.nth(2).focus();
   await page.keyboard.press('Home');
   if ((await page.locator('.valeur-rail').nth(2).innerText()).trim() !== 'COUPÉE') erreurs.push('Options : ambiance à 0 sans « COUPÉE ».');
