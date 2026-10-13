@@ -429,7 +429,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const html = renderToStaticMarkup(<App env={env} reglages={REGLAGES_PAR_DEFAUT} version="v-test" commit="" pr="" />);
     expect(html).toContain('<div class="balayage" aria-hidden="true"></div>');
     expect(html).toContain('<div class="ecran" data-taille="standard">');
-    const sans = renderToStaticMarkup(<App env={env} reglages={{ taille: 'tres_grande', balayage: false, machineAEcrire: true }} version="v-test" commit="" pr="" />);
+    const sans = renderToStaticMarkup(<App env={env} reglages={{ ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false }} version="v-test" commit="" pr="" />);
     expect(sans).not.toContain('balayage');
     expect(sans).toContain('<div class="ecran" data-taille="tres_grande">');
   });
@@ -485,7 +485,7 @@ describe('options (12 §4.10, #96)', () => {
   });
 
   it('réglages choisis : la taille active et les bascules sur [NON]', () => {
-    const html = options({ reglages: { taille: 'tres_grande', balayage: false, machineAEcrire: false } });
+    const html = options({ reglages: { ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false, machineAEcrire: false } });
     expect(html).toMatch(/<label class="segment actif"><input[^>]*checked=""\/><span>Très grande<\/span>/);
     expect(html.match(/class="segment actif"/g)).toHaveLength(1);
     expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
