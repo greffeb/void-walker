@@ -87,7 +87,7 @@ export function EcranOptions({
           </h2>
           <div className="segments" role="radiogroup" aria-labelledby={idTaille}>
             {TAILLES.map((taille) => (
-              <label key={taille} className={taille === reglages.taille ? 'segment actif' : 'segment'}>
+              <label key={taille} className={taille === reglages.taille ? 'segment actif' : 'segment'} data-son="clic">
                 <input
                   type="radio"
                   name="taille"
@@ -120,7 +120,7 @@ export function EcranOptions({
         {partieEnCours && (
           <section>
             <h2 className="titre-section">Partie</h2>
-            <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())}>
+            <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
               <span>
                 <span aria-hidden="true">▸ </span>
                 Télécharger ma partie
@@ -142,7 +142,7 @@ export function EcranOptions({
                   </p>
                 )}
                 <div>
-                  <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)}>
+                  <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)} data-son="clic">
                     Annuler
                   </button>
                   <button
@@ -150,13 +150,14 @@ export function EcranOptions({
                     className="principal"
                     disabled={occupe}
                     onClick={() => void abandonner().then((fait) => setAbandonRefuse(!fait))}
+                    data-son="confirmer"
                   >
                     Abandonner
                   </button>
                 </div>
               </section>
             ) : (
-              <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)}>
+              <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)} data-son="clic">
                 <span aria-hidden="true">⊘ </span>
                 Abandonner la partie en cours
               </button>
@@ -170,11 +171,11 @@ export function EcranOptions({
         </p>
       </div>
       <div className="options-bas">
-        <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal}>
+        <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal} data-son="clic">
           Menu principal
         </button>
         {partieEnCours && (
-          <button type="button" className="principal" disabled={occupe} onClick={reprendre}>
+          <button type="button" className="principal" disabled={occupe} onClick={reprendre} data-son="clic">
             Reprendre la partie
           </button>
         )}
@@ -186,7 +187,7 @@ export function EcranOptions({
 /** Bascule (12 §3.12) : libellé, puis « [OUI] » ou « [NON] » à droite ; lue comme un interrupteur. */
 function Bascule({ libelle, actif, basculer }: { readonly libelle: string; readonly actif: boolean; readonly basculer: () => void }) {
   return (
-    <button type="button" className="bascule" role="switch" aria-checked={actif} aria-label={libelle} onClick={basculer}>
+    <button type="button" className="bascule" role="switch" aria-checked={actif} aria-label={libelle} onClick={basculer} data-son="clic">
       <span>{libelle}</span>
       <span className="valeur-bascule">{actif ? '[OUI]' : '[NON]'}</span>
     </button>
@@ -235,13 +236,13 @@ export function EcranFin({
         </div>
       </section>
       <div className="actions-fin">
-        <button type="button" className="principal" disabled={occupe} onClick={rejouer}>
+        <button type="button" className="principal" disabled={occupe} onClick={rejouer} data-son="clic">
           Rejouer cette station
         </button>
-        <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie}>
+        <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
           Nouvelle partie
         </button>
-        <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal}>
+        <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
           Menu principal
         </button>
       </div>

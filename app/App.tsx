@@ -246,10 +246,10 @@ export function App({
                 <section className="confirmation-accueil" aria-label="Confirmation de nouvelle partie">
                   <p>Une partie est en cours. La nouvelle partie la remplacera.</p>
                   <div>
-                    <button type="button" className="secondaire" disabled={occupe} onClick={() => setEcran({ ...ecran, confirmation: false })}>
+                    <button type="button" className="secondaire" disabled={occupe} onClick={() => setEcran({ ...ecran, confirmation: false })} data-son="clic">
                       Annuler
                     </button>
-                    <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()}>
+                    <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()} data-son="confirmer">
                       Commencer
                     </button>
                   </div>
@@ -257,7 +257,7 @@ export function App({
               ) : (
                 <>
                   {ecran.partiePresente && (
-                    <button type="button" className="principal" disabled={occupe} onClick={() => void reprendre()}>
+                    <button type="button" className="principal" disabled={occupe} onClick={() => void reprendre()} data-son="clic">
                       Reprendre la partie
                     </button>
                   )}
@@ -270,10 +270,11 @@ export function App({
                         ? setEcran({ ...ecran, confirmation: true })
                         : void commencerNouvellePartie()
                     }
+                    data-son="clic"
                   >
                     Nouvelle partie
                   </button>
-                  <button type="button" className="discret" disabled={occupe} onClick={() => void optionsDepuisAccueil()}>
+                  <button type="button" className="discret" disabled={occupe} onClick={() => void optionsDepuisAccueil()} data-son="clic">
                     Options
                   </button>
                 </>
@@ -339,7 +340,7 @@ export function App({
               {ecran.type === 'reprise_impossible' && (
                 <div className="avis" role="alert">
                   <p>La partie enregistrée ne peut pas être reprise. Vous pouvez commencer une nouvelle partie.</p>
-                  <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()}>
+                  <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()} data-son="clic">
                     Nouvelle partie
                   </button>
                 </div>

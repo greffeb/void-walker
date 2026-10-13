@@ -70,14 +70,14 @@ export function Bulle({
     >
       <div className="bulle-entete">
         {retour !== undefined && (
-          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour}>
+          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour} data-son="clic">
             <span aria-hidden="true">‹</span>
           </button>
         )}
         <h2 id={idTitre} className="bulle-titre">
           {titre}
         </h2>
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer">
           <span aria-hidden="true">✕</span>
         </button>
       </div>

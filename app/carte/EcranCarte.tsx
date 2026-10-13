@@ -117,11 +117,12 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
               setFiche(null);
               setMode(mode === 'plan' ? 'liste' : 'plan');
             }}
+            data-son="clic"
           >
             {mode === 'plan' ? MOTS_CARTE.liste : MOTS_CARTE.plan}
           </button>
         )}
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer}>
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer">
           <span aria-hidden="true">✕</span>
         </button>
       </header>
@@ -132,7 +133,7 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
       )}
       {fiche !== null && ouverte !== undefined && (
         <>
-          <div className="voile carte-voile" data-testid="voile-carte" onClick={fermerFiche} />
+          <div className="voile carte-voile" data-testid="voile-carte" data-son="fermer" onClick={fermerFiche} />
           <FicheCarte fiche={ficheDe(textes, ouverte)} ancre={fiche.ancre} fermer={fermerFiche} />
         </>
       )}
