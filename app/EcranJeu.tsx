@@ -674,15 +674,25 @@ function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean
   );
 }
 
-/** Action indisponible (12 §3.7) : visible, « ⊘ », raison publique à droite, lue « Ouvrir, indisponible : … », jamais activable. */
-function Indisponible({ classe, libelle, raison }: { readonly classe: string; readonly libelle: string; readonly raison: string }) {
+/** Action indisponible (12 §3.7) : « ⊘ », raison accessible, jamais activable. */
+function Indisponible({
+  classe,
+  libelle,
+  raison,
+  raisonVisible = true,
+}: {
+  readonly classe: string;
+  readonly libelle: string;
+  readonly raison: string;
+  readonly raisonVisible?: boolean;
+}) {
   return (
     <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${libelle}, indisponible : ${raison}`} data-son="refus">
       <span className="libelle">
         <span aria-hidden="true">⊘ </span>
         {libelle}
       </span>
-      <span className="raison">{raison}</span>
+      <span className={raisonVisible ? 'raison' : 'raison lecteur-seul'}>{raison}</span>
     </button>
   );
 }
@@ -971,7 +981,7 @@ function Deplacement({
 }) {
   const { raison } = libelleOption(textes, option);
   const destination = nomDestination(textes, option);
-  if (raison !== null) return <Indisponible classe="deplacement" libelle={destination} raison={raison} />;
+  if (raison !== null) return <Indisponible classe="deplacement" libelle={destination} raison={raison} raisonVisible={option.raison !== 'ferme'} />;
   return (
     <button
       type="button"

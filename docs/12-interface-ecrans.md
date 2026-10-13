@@ -159,7 +159,7 @@ Dans cet ordre :
 - Titre « ── DANS LA PIÈCE ── ».
 - **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 46 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
 - Titre « ── SE DÉPLACER VERS ── » (remplace « Sorties »). [Validé]
-- **Boutons de déplacement** : un par passage connu, pleine largeur, vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre l'aperçu de déplacement (§4.3).
+- **Boutons de déplacement** : un par passage connu, vidéo inverse, « → NOM DE LA DESTINATION ». Deux colonnes si les libellés tiennent ; une seule sinon. Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre l'aperçu de déplacement (§4.3). Le dock défile si nécessaire, sans sacrifier ses six lignes de récit (§3.1, D-191).
 - **Passage sans signalétique** (grille haute, conduit) : il rejoint « Se déplacer vers » seulement une fois ouvert ; avant, il n'est qu'une puce d'objet. Tant que sa destination n'est pas découverte, le bouton porte le nom du passage, « → GRILLE HAUTE » (OP-03). [Validé D-147]
 
 ### 3.5 Bulle de composition
@@ -196,6 +196,7 @@ Selon [C-01 §4](contrats/C-01-actions-observation.md) : l'option reste visible 
 - Pas de texte barré : le barré n'a pas été compris. [Validé]
 - Non activable (`disabled`, `aria-disabled`). Le lecteur d'écran lit « Ouvrir, indisponible : hors de portée ».
 - La raison ne nomme jamais l'objet qui résoudrait le problème et ne révèle aucun secret.
+- Pour un déplacement bloqué par une porte ou cloison fermée, la raison reste dans le nom accessible mais est masquée visuellement ; les autres raisons de déplacement indisponible restent visibles (D-229).
 
 ### 3.8 Aperçu d'action
 

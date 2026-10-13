@@ -611,6 +611,7 @@ describe('effet machine à écrire sur le nouveau texte (D-186)', () => {
 
 describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA Station, évacuation (#103)', () => {
   const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_A = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-A'))?.etapes ?? [];
   const P_C = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes ?? [];
   const envAr01: Environnement = { monde: ar01.monde, textes: ar01.textes, version: 'v-test', stockage: memoire(), graine: () => 20261010 };
 
@@ -631,6 +632,12 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
   async function pc(nombre: number): Promise<Jeu> {
     let jeu = await commencer(envAr01);
     for (const etape of P_C.slice(0, nombre)) jeu = await jouerOption(envAr01, jeu, optionAr01(jeu, etape));
+    return jeu;
+  }
+
+  async function pa(nombre: number): Promise<Jeu> {
+    let jeu = await commencer(envAr01);
+    for (const etape of P_A.slice(0, nombre)) jeu = await jouerOption(envAr01, jeu, optionAr01(jeu, etape));
     return jeu;
   }
 
@@ -714,11 +721,21 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(local).not.toMatch(/→ grille/);
   });
 
+  it('passage fermé : sa raison reste accessible mais est masquée visuellement (12 §3.7)', async () => {
+    const dock = dockDe(rendreAr01(await pa(5)));
+    const raison = 'La cloison du local technique est fermée.';
+    const local = entre(dock, '<button type="button" class="deplacement indisponible" aria-disabled="true" aria-label="local technique, indisponible :', '</button>');
+
+    expect(local).toContain(`aria-label="local technique, indisponible : ${raison}"`);
+    expect(local).toContain(`<span class="raison lecteur-seul">${raison}</span>`);
+  });
+
   it('bloc en main : « → atelier » par la grille reste visible, indisponible, avec sa raison', async () => {
     const charge = dockDe(rendreAr01(await pc(7)));
     const grille = entre(charge, '<button type="button" class="deplacement indisponible" aria-disabled="true" aria-label="atelier maintenance', '</button>');
     const raison = 'Ce que vous portez est trop large pour la grille de l’atelier maintenance.';
     expect(grille).toContain(`aria-label="atelier maintenance, indisponible : ${raison}"`);
+    expect(grille).toContain(`<span class="raison">${raison}</span>`);
     expect(texte(grille)).toBe(`⊘ atelier maintenance ${raison}`);
   });
 

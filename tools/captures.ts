@@ -219,15 +219,16 @@ async function preparer(page: Page, geste: Geste): Promise<Locator> {
 }
 
 /** Rejoue des gestes depuis le départ comme le joueur : d'un seul toucher, ou par l'aperçu puis CONFIRMER. */
-async function rejouer(page: Page, chemin: readonly Geste[]): Promise<void> {
+async function rejouer(page: Page, chemin: readonly Geste[], respecterPauseJoueur = false, actionsAvant = 0): Promise<void> {
   for (const [index, geste] of chemin.entries()) {
+    if (respecterPauseJoueur) await page.waitForTimeout(PAUSE_JOUEUR_MS);
     if (geste.direct) {
       await ouvrir(page, geste);
       await toucherLigne(page, geste);
     } else {
       await (await preparer(page, geste)).click();
     }
-    await attendreSauvegarde(page, index + 1);
+    await attendreSauvegarde(page, actionsAvant + index + 1);
   }
 }
 
@@ -922,6 +923,87 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   await contexte.close();
 }
 
+/** Sorties après ouverture du panneau : colonnes adaptatives, raison accessible et dock défilant si nécessaire (#131). */
+async function sortiesApresPanneau(navigateur: Browser, adresse: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const etapes = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-A'))?.etapes;
+  if (etapes === undefined || etapes.length < 5) {
+    erreurs.push('Parcours P-A incomplet : impossible de montrer les sorties après ouverture du panneau.');
+    return;
+  }
+  const gestes = gestesDuParcours(ar01, etapes).slice(0, 5);
+  const vues = [
+    { ecran: REFERENCE, taille: null, colonnes: 2, titre: 'AR-01 — Sorties après le panneau, deux colonnes' },
+    { ecran: ETROIT, taille: 'Très grande' as const, colonnes: 1, titre: 'AR-01 — Sorties après le panneau, texte très grand et dock défilant' },
+  ];
+
+  for (const vue of vues) {
+    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: vue.ecran, locale: 'fr-FR' });
+    const page = await contexte.newPage();
+    await page.goto(adresse);
+    await nouvelleDepuisAccueil(page);
+    if (vue.taille !== null) {
+      await ouvrirOptions(page);
+      await choisirTaille(page, vue.taille);
+      await page.getByRole('button', { name: exactement('Reprendre la partie') }).click();
+      await page.getByTestId('recit').waitFor();
+    }
+    if (vue.taille === null) {
+      await rejouer(page, gestes.slice(0, 4), true);
+      await capturer(page, 'AR-01 — Avant ouverture du panneau, local énergie');
+      await rejouer(page, gestes.slice(4), true, 4);
+    } else {
+      await rejouer(page, gestes, true);
+    }
+    await capturer(page, vue.titre);
+
+    const grille = page.locator('.dock .deplacements');
+    if ((await grille.count()) !== 1) {
+      erreurs.push(`${vue.titre} : liste des déplacements absente.`);
+    } else {
+      const colonnes = await grille.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+      if (colonnes !== vue.colonnes) erreurs.push(`${vue.titre} : ${colonnes} colonne(s) au lieu de ${vue.colonnes}.`);
+    }
+
+    const nomAccessible = 'local technique, indisponible : La cloison du local technique est fermée.';
+    const sortieFermee = grille.getByRole('button', { name: exactement(nomAccessible) });
+    if ((await sortieFermee.count()) !== 1) {
+      erreurs.push(`${vue.titre} : la sortie fermée n'a pas son nom accessible complet.`);
+    } else {
+      if ((await sortieFermee.getAttribute('aria-disabled')) !== 'true') erreurs.push(`${vue.titre} : la sortie fermée est activable.`);
+      if (!((await sortieFermee.locator('.raison').getAttribute('class')) ?? '').split(/\s+/).includes('lecteur-seul')) {
+        erreurs.push(`${vue.titre} : la raison de la porte fermée est encore affichée.`);
+      }
+      const boite = await sortieFermee.boundingBox();
+      if (boite !== null && boite.height < 46) erreurs.push(`${vue.titre} : cible tactile de ${boite.height}px, moins de 46px.`);
+    }
+
+    if (vue.taille === null) {
+      const mesure = await partage(page);
+      if (mesure?.defile !== false) erreurs.push(`${vue.titre} : le dock défile alors que le bouton révélé doit être visible sans défilement.`);
+      const embarquement = grille.getByRole('button', { name: /salle d’embarquement/i });
+      const boiteSortie = await embarquement.boundingBox();
+      const boiteNavigation = await page.locator('.navigation').boundingBox();
+      if (
+        (await embarquement.count()) !== 1 ||
+        boiteSortie === null ||
+        boiteNavigation === null ||
+        boiteSortie.y < 0 ||
+        boiteSortie.y + boiteSortie.height > boiteNavigation.y + 0.5
+      ) {
+        erreurs.push(`${vue.titre} : la sortie vers la salle d’embarquement n’est pas entièrement visible au-dessus de la navigation.`);
+      }
+    } else {
+      const mesure = await partage(page);
+      if (mesure?.defile !== true) erreurs.push(`${vue.titre} : le dock ne défile pas malgré le texte très grand.`);
+      await verifierSansTroncature(page, vue.titre, erreurs);
+      await grille.evaluate((element) => element.scrollIntoView({ block: 'end' }));
+      await page.waitForTimeout(50);
+      await capturer(page, 'AR-01 — Sorties après le panneau, très grand, dock défilé sur les déplacements');
+    }
+    await contexte.close();
+  }
+}
+
 /**
  * AR-01 depuis l'adresse par défaut : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
  * la parole d'IA Station au réveil (12 §4.2), puis son lien, sa pastille et sa fenêtre, avant et après reprise (12 §3.9, D-192),
@@ -1048,6 +1130,8 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
     capturer(page, 'AR-01 — Fin : fenêtre d’IA Station, départ confirmé'),
   );
   await contexte.close();
+
+  await sortiesApresPanneau(navigateur, adresse, ar01, capturer, erreurs);
 
   // Départ au format du téléphone du porteur, puis à 320 × 568 où le dock défile au-dessous de six lignes de récit (D-191).
   for (const ecran of [PORTEUR, ETROIT]) {
