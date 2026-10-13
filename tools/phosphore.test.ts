@@ -73,7 +73,7 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(mesures).toEqual(['12.2', '11.1', '6.1', '13.9', '3.3']);
   });
 
-  it('couleurs : ambre partout, cyan pour l’inventaire (D-176), blanc froid pour IA Station (D-192) ; ni rouge ni vert', () => {
+  it('couleurs : ambre partout, cyan pour l’inventaire (D-176), blanc froid pour IA Station (D-192), vert pour la carte (D-211) ; jamais de rouge', () => {
     const couleurs = [...css.matchAll(/#[0-9a-f]{6}\b|rgba?\([^)]*\)/gi)].map((trouve) => trouve[0]);
     expect(couleurs.length).toBeGreaterThan(10);
     /** Jeton qui déclare la couleur : une couleur hors de l'ambre n'existe que dans son jeton. */
@@ -86,10 +86,13 @@ describe('direction « Phosphore » (12 §2)', () => {
       const cyan = angle >= 175 && angle <= 195 && jetonDe(couleur).startsWith('cyan');
       // Un blanc à peine bleuté : presque aucune couleur.
       const blanc = angle >= 180 && angle <= 210 && (Math.max(r, g, b) - Math.min(r, g, b)) / 255 <= 0.1 && jetonDe(couleur).startsWith('blanc');
-      expect(ambre || cyan || blanc, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
+      // Vert phosphore de la carte : seulement dans ses jetons (14 §2.2).
+      const vert = angle >= 85 && angle <= 140 && jetonDe(couleur).startsWith('vert');
+      expect(ambre || cyan || blanc || vert, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('cyan'))).toBe(true);
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('blanc'))).toBe(true);
+    expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('vert'))).toBe(true);
   });
 
   it('angles droits partout', () => {
