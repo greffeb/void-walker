@@ -9,6 +9,7 @@ import type { TextesMonde } from './types';
 
 export const MOTS_CARTE = {
   ici: '@ vous',
+  aBord: 'à bord :',
   feu: 'FEU',
   vide: 'VIDE ○',
   creature: 'CRÉATURE',
@@ -77,7 +78,7 @@ export function rendreListeCarte(textes: TextesMonde, carte: CartePublique): Blo
   const actuelle = carte.pieces.find((piece) => piece.statut === 'actuelle');
   const ici: EntreeListe[] = [];
   if (actuelle !== undefined) {
-    ici.push({ titre: nomCarte(textes, actuelle.piece), details: [MOTS_CARTE.ici, ...etatsDe(actuelle)] });
+    ici.push({ titre: nomCarte(textes, actuelle.piece), details: [MOTS_CARTE.ici, ...(carte.aBord === null ? [] : [`${MOTS_CARTE.aBord} ${nomDe(textes, carte.aBord).texte}`]), ...etatsDe(actuelle)] });
     for (const passage of passagesDe(carte, actuelle.piece.id)) {
       ici.push({
         titre: nomVu(textes, passage, actuelle.piece.id),

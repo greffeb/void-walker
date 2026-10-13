@@ -404,6 +404,8 @@ export interface CartePublique {
   readonly pieces: readonly PieceCarte[];
   readonly passages: readonly PassageCarte[];
   readonly capsules: readonly CapsuleCarte[];
+  /** Sous-position où se tient le passager, comme la cabine de la capsule : jamais dessinée, seulement dite (C-02 §2, 14 §3.4). */
+  readonly aBord: RefPiece | null;
 }
 
 /** Tout ce que le passager sait (C-06) ; seule sortie vers le joueur. */

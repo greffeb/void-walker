@@ -196,6 +196,7 @@ describe('carte publique (14 §3.4)', () => {
         },
       ],
       capsules: [{ objet: objet('capsule'), piece: ref('quai'), pan: { cote: 'haut', debut: 0, fin: 3 } }],
+      aBord: null,
     });
   });
 
@@ -238,6 +239,8 @@ describe('carte publique (14 §3.4)', () => {
     expect(pieceDe(carte, 'quai')?.statut).toBe('actuelle');
     expect(carte.pieces.some((vue) => vue.piece.nom === 'cabine')).toBe(false);
     expect(passageDe(carte, 'qc')).toBeUndefined();
+    // La carte dit seulement que le passager est à bord, sans dessiner la cabine.
+    expect(carte.aBord).toEqual(ref('cabine'));
   });
 
   it('créature : marquée là où elle a été vue en dernier, avec son ancienneté ; jamais dans une pièce inconnue (OP-05)', () => {

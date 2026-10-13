@@ -38,6 +38,7 @@ const CARTE: CartePublique = {
     { id: 'e-p3', nom: 'cloison', vuDepuis: [SALON], entre: [SALON, GALERIE], ouvert: false, dessin: 'porte', voyant: null, emplacement: null },
   ],
   capsules: [],
+  aBord: null,
 };
 
 describe('vue LISTE de la carte (14 §2.8, D-212)', () => {
@@ -59,8 +60,13 @@ describe('vue LISTE de la carte (14 §2.8, D-212)', () => {
     expect(lignes.join(' ')).not.toMatch(/\d/);
   });
 
+  it('à bord d’une sous-position, ICI le dit, sans dessiner la cabine (14 §3.4)', () => {
+    const aBord: CartePublique = { ...CARTE, aBord: { sorte: 'piece', id: 'e-cabine', nom: 'cabine' } };
+    expect(lignesListeCarte(rendreListeCarte(TEXTES_AR01, aBord))[1]).toBe('ATELIER MAINTENANCE : @ vous · à bord : cabine de la capsule');
+  });
+
   it('un bloc vide le dit', () => {
-    expect(lignesListeCarte(rendreListeCarte(TEXTES_AR01, { pieces: [], passages: [], capsules: [] }))).toEqual([
+    expect(lignesListeCarte(rendreListeCarte(TEXTES_AR01, { pieces: [], passages: [], capsules: [], aBord: null }))).toEqual([
       '── ICI ──',
       'aucune',
       '── VISITÉES, DE LA PLUS PROCHE ──',

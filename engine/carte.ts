@@ -100,5 +100,5 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
     const pan = panDeCoque(monde, objet.piece);
     return pan === null ? [] : [{ objet: refObjet(monde, objet.id), piece: refPiece(monde, objet.piece), pan }];
   });
-  return { pieces, passages, capsules };
+  return { pieces, passages, capsules, aBord: etat.piece === ici ? null : refPiece(monde, etat.piece) };
 }
