@@ -14,7 +14,7 @@ Le présent dossier ne modifie ni le prototype précédent ni le projet Lacets. 
 ## Lire dans cet ordre
 
 1. [01 — Contexte et objectif produit](01-contexte.md).
-2. [03 — Journal des décisions](03-decisions.md), en distinguant les statuts.
+2. [03 — Journal des décisions](03-decisions.md) : utiliser son index pour repérer les décisions liées à l'issue, puis lire ces entrées seulement. Ne pas charger tout l'historique par défaut ; vérifier le statut de chaque décision avant de l'appliquer.
 3. [05 — Cahier des charges](05-cahier-des-charges.md).
 4. [06 — Contrats et questions ouvertes](06-contrats.md).
 5. [02 — Roadmap et portes de validation](02-roadmap.md).

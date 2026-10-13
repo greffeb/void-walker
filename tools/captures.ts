@@ -646,13 +646,13 @@ async function verifierLien(page: Page, ou: string, erreurs: string[]): Promise<
 
 /**
  * Fenêtre d'IA Station (12 §3.9, D-192) : blanche, messages reçus dans l'ordre, NOUVEAU sur ceux qui n'étaient pas lus, un seul bouton ;
- * le focus y reste ; RETOUR ou le voile la referment sans rien jouer, le focus revient, la pastille s'éteint.
+ * le focus y reste ; la croix, IA STATION ou le voile la referment sans rien jouer, le focus revient, la pastille s'éteint.
  */
 async function verifierFenetreIA(
   page: Page,
   depuis: Locator,
   attendus: readonly (readonly [string | undefined, boolean])[],
-  fermeture: 'Retour' | 'voile' | 'Échap',
+  fermeture: 'croix' | 'IA STATION' | 'voile' | 'Échap',
   ou: string,
   erreurs: string[],
   capturer?: () => Promise<unknown>,
@@ -673,9 +673,15 @@ async function verifierFenetreIA(
   if (/\d/.test(await fenetre.innerText())) erreurs.push(`${ou} : un chiffre est affiché dans la fenêtre d’IA Station.`);
   await verifierDansEcran(page, ou, erreurs);
   await verifierFocusPiege(page, fenetre, ou, erreurs);
+  await fenetre.getByRole('button', { name: exactement('Fermer') }).focus();
+  await page.keyboard.press('Tab');
+  if (!(await fenetre.locator('.historique-ia').evaluate((element) => element === document.activeElement))) erreurs.push(`${ou} : l'historique n'est pas accessible au clavier depuis la croix.`);
   await capturer?.();
-  if (fermeture === 'Retour') await fenetre.getByRole('button', { name: exactement('Retour') }).click();
-  else if (fermeture === 'Échap') await page.keyboard.press('Escape');
+  if (fermeture === 'croix') await fenetre.getByRole('button', { name: exactement('Fermer') }).click();
+  else if (fermeture === 'IA STATION') {
+    if ((await page.locator('.nav-ia').getAttribute('data-son')) !== 'fermer-ia') erreurs.push(`${ou} : IA STATION ne joue pas le son de fermeture.`);
+    await page.locator('.nav-ia').click();
+  } else if (fermeture === 'Échap') await page.keyboard.press('Escape');
   else await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
   await fenetre.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`${ou} : ${fermeture} ne ferme pas la fenêtre d’IA Station.`));
   if (!(await depuis.evaluate((element) => element === document.activeElement))) erreurs.push(`${ou} : le focus ne revient pas là où la fenêtre a été ouverte.`);
@@ -1004,7 +1010,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
       const lien = await verifierLien(page, ou, erreurs);
       await verifierPastille(page, true, ou, erreurs);
       await capturer(page, `AR-01 — Par « → ${geste.bouton} » : « ${geste.rappel} », lien d’IA Station`);
-      await verifierFenetreIA(page, lien, [[assistance.reveil, true], [assistance.energie, true]], 'Retour', `${ou}, fenêtre par le lien`, erreurs, () =>
+      await verifierFenetreIA(page, lien, [[assistance.reveil, true], [assistance.energie, true]], 'croix', `${ou}, fenêtre par le lien`, erreurs, () =>
         capturer(page, 'AR-01 — Fenêtre d’IA Station : deux messages nouveaux'),
       );
       // Après reprise : mêmes messages, aucun nouveau ; le lien reste, le message venant d'arriver.
@@ -1012,6 +1018,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
       await reprendreDepuisAccueil(page, index + 1);
       await verifierLien(page, `${ou}, après reprise`, erreurs);
       await verifierPastille(page, false, `${ou}, après reprise`, erreurs);
+      await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, false], [assistance.energie, false]], 'IA STATION', `${ou}, fermeture par un second appui sur IA STATION`, erreurs);
       await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, false], [assistance.energie, false]], 'voile', `${ou}, après reprise, par IA STATION`, erreurs, () =>
         capturer(page, 'AR-01 — Fenêtre d’IA Station après reprise : messages lus'),
       );
@@ -1479,7 +1486,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if ((await partieEnregistree(page)) !== sauvegardeAuReveil) erreurs.push('REGARDER AUTOUR DE VOUS a modifié la sauvegarde.');
     await page.getByRole('button', { name: /^IA Station, nouveau message$/i }).click();
     const fenetreIA = page.getByRole('dialog', { name: /^IA Station$/i });
-    await fenetreIA.getByRole('button', { name: /^Retour$/i }).click();
+    await fenetreIA.getByRole('button', { name: /^Fermer$/i }).click();
     await page.getByRole('button', { name: /^IA Station$/i }).waitFor();
     await page.reload();
     await page.getByRole('button', { name: /^reprendre la partie$/i }).click();

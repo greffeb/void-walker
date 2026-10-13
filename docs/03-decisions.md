@@ -12,6 +12,27 @@
 
 Une approbation globale du travail ne valide pas automatiquement toutes les options de design évoquées. Les seuils et détails absents ne doivent pas être inventés au moment de coder.
 
+## Index par domaine
+
+Cet index sert à trouver les décisions liées à une tâche ; il ne remplace pas leur texte. Les plages indiquent les identifiants concernés, pas leur statut : vérifiez chaque entrée avant d'appliquer une règle. Le lien mène au début du bloc ; utilisez la recherche du document sur l'identifiant précis cité par l'issue ou le contrat.
+
+| Domaine | Décisions |
+| --- | --- |
+| Vision, périmètre et règles générales | [D-001 à D-030](#d-001--développement-agentique-arbitrage-produit-humain) |
+| Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
+| Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
+| Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles) |
+| Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil) |
+| Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
+| Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement) |
+| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02) |
+| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite) |
+| Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont) |
+| Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
+
+Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D-012 n'a pas été retenue) ; D-097, D-152 et D-193 sont remplacées ; le volume de D-118 est remplacé par D-157. Les précisions partielles apportées à d'autres décisions sont indiquées dans leur entrée.
+
 ## Décisions validées
 
 ### D-001 — Développement agentique, arbitrage produit humain
@@ -1685,6 +1706,13 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Origine : demande du porteur : « forcer la mise à jour de la PWA une fois qu'elle est ajoutée sur l'écran d'accueil du téléphone. Soit ça se fait automatiquement, ça serait idéal. Soit on rajoute un bouton dans le menu du jeu » ; « sur l'écran d'options, un numéro de version : un numéro qui s'incrémente, le numéro du dernier commit, ou les deux ».
 - Décision : le jeu installé se met à jour seul, et un bouton des options force la mise à jour. Le pied de page des options porte les deux numéros : « V<version> (<construction>) · <commit> · test PR #<n> », où la construction est le nombre de commits de la version publiée, qui ne fait que croître sur la branche principale.
 - Limite [détail de l'agent] : la nouvelle version est cherchée au lancement, à chaque retour dans l'appli et toutes les demi-heures au premier plan. Prête, elle s'installe aussitôt (le jeu redémarre sur l'accueil, la partie est gardée, D-022) si le joueur n'a pas encore touché l'écran depuis le lancement ou le retour dans l'appli ; sinon au prochain retour, ou par « ▸ Chercher une mise à jour » / « ▸ Installer la nouvelle version » dans la section MISE À JOUR des options. Sans réseau, la recherche automatique se tait ; le bouton dit qu'il n'a pas pu vérifier. Sans historique complet (clone superficiel), le numéro de construction est omis. Modifie le format du pied de page de D-191.
+
+### D-228 — IA Station en bulle comme l'inventaire et la carte
+
+- Date / statut : 2026-10-13 / **Validé**.
+- Origine : demande du porteur : « le même esthétique que l'inventaire et que la carte, c'est-à-dire une bulle qui se met par-dessus l'écran avec une petite flèche au-dessus du bouton » ; précision : « retirer le bouton retour et le remplacer par une croix comme les autres menus ».
+- Décision : le menu IA Station reprend la présentation de l'inventaire et de la carte : bulle superposée au-dessus de la navigation, flèche vers son bouton et même voile. Une croix dans l'en-tête remplace le bouton RETOUR. Le blanc et les messages reçus restent inchangés. Le porteur précise ensuite qu'un deuxième appui sur IA STATION doit fermer la bulle comme pour INVENTAIRE et CARTE ; il joue le son de fermeture du menu (D-226).
+- Modifie : la présentation de la modale de 12 §3.9 ; la couleur blanche de D-192 est conservée. Aucun essai sur téléphone n'est attesté ici.
 
 Détails de l'agent pour #96 (options, téléchargement, fin d'abandon), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : toutes les tailles de texte suivent le réglage dans la même proportion que le récit (17, 19, 22 px) ; les puces du dock passent sur une colonne quand deux ne tiennent plus (texte agrandi sur un écran étroit), jamais plus de deux ; INVENTAIRE et IA STATION se coupent à la syllabe avec un trait d'union s'ils ne tiennent pas ; badge et engrenage passent sous un nom de pièce trop long ; « le jeu est en pause » seulement quand une partie est en cours ; l'engrenage disparaît à la fin d'une partie, comme la navigation ; REJOUER CETTE STATION et NOUVELLE PARTIE font la même chose tant qu'il n'y a qu'une station par monde (#106) ; fichier `void-walker-<monde>-<AAAA-MM-JJ-HHMM>.json`, retour « Fichier prêt : <nom> » dès que le navigateur l'a reçu, sans savoir s'il l'a rangé ; phrase d'aperçu de la taille et récit court d'abandon (« Vous en restez là, dans <pièce>. ») écrits par l'agent ; un appareil qui refuse de garder les réglages est signalé dans les options ; pas encore de section SON ni de Signaler un bug / Envoyer ma partie (#99, #107).
 

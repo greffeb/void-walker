@@ -260,16 +260,15 @@ export function EcranJeu({
           jouer={jouer}
         />
       )}
-      {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5) ; voile de 55 % sous la fenêtre d'IA Station (12 §3.9). */}
+      {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
       {ouverte !== null && (
         <div
-          className={ouverte.zone === 'inventaire' || ouverte.zone === 'carte' ? 'voile' : ouverte.zone === 'ia' ? 'voile voile-modale' : 'voile voile-haut'}
+          className={ouverte.zone === 'piece' || ouverte.zone === 'deplacement' ? 'voile voile-haut' : 'voile'}
           data-testid="voile"
           data-son={sonDeFermetureZone(ouverte.zone)}
           onClick={fermer}
         />
       )}
-      {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
       {ouverte?.zone === 'piece' && groupeOuvert !== undefined && (
         <BulleObjet
           ancre={ouverte.ancre}
@@ -291,6 +290,7 @@ export function EcranJeu({
         <BulleDeplacement ancre={ouverte.ancre} option={deplacementOuvert} textes={textes} occupe={occupe} jouer={jouer} prevoir={voir} fermer={fermer} />
       )}
       <div className="bas">
+        {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
         {/* Carte (14 §2) : bulle au-dessus de la navigation comme l'inventaire (D-215), gratuite (D-014) ; elle ne lit que l'observation publique. */}
         {ouverte?.zone === 'carte' && <EcranCarte carte={observation.carte} textes={textes} fermer={fermer} />}
         {ouverte?.zone === 'inventaire' && (
@@ -348,8 +348,8 @@ export function EcranJeu({
             aria-expanded={ouverte?.zone === 'ia'}
             aria-label={nonLus.length > 0 ? 'IA Station, nouveau message' : 'IA Station'}
             disabled={occupe}
-            onClick={(evenement) => ouvrirIA(evenement.currentTarget)}
-            data-son="panneau-ia"
+            onClick={(evenement) => (ouverte?.zone === 'ia' ? fermer() : ouvrirIA(evenement.currentTarget))}
+            data-son={ouverte?.zone === 'ia' ? 'fermer-ia' : 'panneau-ia'}
           >
             {NAV_IA}
             {nonLus.length > 0 && <span className="pastille" aria-hidden="true" />}
@@ -689,7 +689,7 @@ function Indisponible({ classe, libelle, raison }: { readonly classe: string; re
 
 /**
  * Fenêtre d'IA Station (12 §3.9), blanche (D-192) : messages reçus du plus ancien au plus récent, en bas et visible à
- * l'ouverture ; repère de moment sans heure ; NOUVEAU sur ceux qui n'étaient pas lus ; un seul bouton, RETOUR.
+ * l'ouverture ; repère de moment sans heure ; NOUVEAU sur ceux qui n'étaient pas lus ; croix de fermeture dans l'en-tête.
  */
 export function ModaleIA({
   messages,
@@ -710,7 +710,7 @@ export function ModaleIA({
   return (
     <section
       ref={zone}
-      className="modale-ia"
+      className="bulle modale-ia"
       role="dialog"
       aria-modal="true"
       aria-label="IA Station"
@@ -720,15 +720,20 @@ export function ModaleIA({
       onKeyDown={(evenement) => garderFocus(evenement, fermer)}
     >
       <div className="modale-entete">
-        <h2 className="modale-titre">[ IA STATION ]</h2>
-        <p id={idSousTitre} className="modale-sous-titre">
-          messages reçus dans l’écouteur
-        </p>
+        <div className="modale-identite">
+          <h2 className="modale-titre">[ IA STATION ]</h2>
+          <p id={idSousTitre} className="modale-sous-titre">
+            messages reçus dans l’écouteur
+          </p>
+        </div>
+        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer-ia">
+          <span aria-hidden="true">✕</span>
+        </button>
       </div>
       {messages.length === 0 ? (
         <p className="modale-vide">{AUCUN_MESSAGE}</p>
       ) : (
-        <ol ref={liste} className="historique-ia">
+        <ol ref={liste} className="historique-ia" tabIndex={0}>
           {messages.map((message) => (
             <li key={message.message}>
               <p className="repere-ia">
@@ -746,11 +751,6 @@ export function ModaleIA({
           ))}
         </ol>
       )}
-      <div className="modale-pied">
-        <button type="button" className="secondaire" onClick={fermer} data-son="fermer-ia">
-          Retour
-        </button>
-      </div>
     </section>
   );
 }
