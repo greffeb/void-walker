@@ -1,6 +1,6 @@
-import type { CartePublique, RefPiece } from '../../engine';
+import type { CartePublique, PieceCarte, RefPiece } from '../../engine';
 import { TEXTES_AR01 } from '../ar-01/textes';
-import { lignesListeCarte, rendreListeCarte } from './carte';
+import { ficheDe, libellePiece, libellePlan, lignesListeCarte, rendreListeCarte } from './carte';
 
 // Vue LISTE (14 §2.8) sur une carte écrite à la main avec les noms d'AR-01 : le contenu n'importe que les types du moteur.
 
@@ -74,5 +74,40 @@ describe('vue LISTE de la carte (14 §2.8, D-212)', () => {
       '── CONNUES, PAS ENCORE VISITÉES ──',
       'aucune',
     ]);
+  });
+});
+
+function vue(nom: string): PieceCarte {
+  const trouvee = CARTE.pieces.find((piece) => piece.piece.nom === nom);
+  if (trouvee === undefined) throw new Error(`Pièce ${nom} absente.`);
+  return trouvee;
+}
+
+describe('fiche et libellés de la carte (14 §2.7, §2.9)', () => {
+  it('fiche d’une pièce visitée : le nom, le moment du regard, l’état vu, les objets vus ; rien d’autre', () => {
+    expect(ficheDe(TEXTES_AR01, vue('atelier'))).toEqual({
+      titre: 'ATELIER MAINTENANCE',
+      sousTitre: '@ vous',
+      etats: ['rien de particulier'],
+      objets: ['▸ Caisse', '▸ Burette d’huile'],
+    });
+    expect(ficheDe(TEXTES_AR01, vue('energie'))).toEqual({
+      titre: 'LOCAL ÉNERGIE',
+      sousTitre: 'vu à l’instant',
+      etats: ['CRÉATURE, vue il y a un moment'],
+      objets: ['aucun objet'],
+    });
+  });
+
+  it('fiche d’une pièce pas encore visitée : son nom, « pas encore visitée », ce que sa porte ou son voyant ont montré', () => {
+    expect(ficheDe(TEXTES_AR01, vue('galerie'))).toEqual({ titre: 'LOCAL TECHNIQUE', sousTitre: 'pas encore visitée', etats: ['FEU, vu il y a un moment'], objets: null });
+  });
+
+  it('libellés pour le lecteur d’écran : où est le passager, et chaque pièce avec son statut et ses états', () => {
+    expect(libellePlan(TEXTES_AR01, CARTE)).toBe('Plan de la station ; vous êtes dans l’atelier maintenance. La vue liste dit la même chose en texte.');
+    expect(libellePlan(TEXTES_AR01, { pieces: [], passages: [], capsules: [], aBord: null })).toBe('Plan de la station. La vue liste dit la même chose en texte.');
+    expect(libellePiece(TEXTES_AR01, vue('atelier'))).toBe('Atelier maintenance, vous êtes ici');
+    expect(libellePiece(TEXTES_AR01, vue('salon'))).toBe('Salon de transit, vu il y a longtemps');
+    expect(libellePiece(TEXTES_AR01, vue('galerie'))).toBe('Local technique, pas encore visitée, FEU, vu il y a un moment');
   });
 });

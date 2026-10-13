@@ -1,5 +1,5 @@
 import type { CartePublique, Palier, PassageCarte, PieceCarte, RefPiece } from '../../engine';
-import { former } from './gabarit';
+import { former, remplir } from './gabarit';
 import { nomSurPlan } from './lisibilite';
 import { nomDe, nomPassage } from './rendu';
 import type { TextesMonde } from './types';
@@ -8,6 +8,20 @@ import type { TextesMonde } from './types';
 // l'appli et la CLI (C-06 K-07). Aucun chiffre (12 §1) : l'ancienneté se dit en mots (D-151), la distance sert seulement à trier.
 
 export const MOTS_CARTE = {
+  titrePlan: 'CARTE // RELEVÉ',
+  titreListe: 'CARTE // LISTE',
+  liste: 'LISTE',
+  plan: 'PLAN',
+  fermer: 'FERMER LA CARTE',
+  vous: '@ VOUS',
+  vousEtesIci: 'vous êtes ici',
+  etatVu: '── ÉTAT VU ──',
+  objetsVus: '── OBJETS VUS ──',
+  rienVu: 'rien de particulier',
+  aucunObjet: 'aucun objet',
+  pasVisitee: 'pas encore visitée',
+  libellePlan: 'Plan de la station ; vous êtes dans {le:piece}. La vue liste dit la même chose en texte.',
+  libellePlanSeul: 'Plan de la station. La vue liste dit la même chose en texte.',
   ici: '@ vous',
   aBord: 'à bord :',
   feu: 'FEU',
@@ -128,4 +142,37 @@ export function lignesListeCarte(blocs: readonly BlocListe[]): string[] {
       ? [MOTS_CARTE.aucune]
       : bloc.entrees.map((entree) => (entree.details.length === 0 ? entree.titre : `${entree.titre} : ${entree.details.join(' · ')}`))),
   ]);
+}
+
+/** Fiche d'une pièce (14 §2.7) : `objets` vaut `null` pour une pièce pas encore visitée. */
+export interface FicheTexte {
+  readonly titre: string;
+  readonly sousTitre: string;
+  readonly etats: readonly string[];
+  readonly objets: readonly string[] | null;
+}
+
+/** Fiche d'une pièce : son nom, l'état vu et les objets vus au dernier regard, rien d'autre (D-210). */
+export function ficheDe(textes: TextesMonde, piece: PieceCarte): FicheTexte {
+  const titre = nomCarte(textes, piece.piece);
+  const etats = etatsDe(piece);
+  if (piece.statut === 'connue') return { titre, sousTitre: MOTS_CARTE.pasVisitee, etats, objets: null };
+  return {
+    titre,
+    sousTitre: regardDe(piece) ?? MOTS_CARTE.ici,
+    etats: etats.length === 0 ? [MOTS_CARTE.rienVu] : etats,
+    objets: piece.objets.length === 0 ? [MOTS_CARTE.aucunObjet] : piece.objets.map(({ objet }) => `▸ ${former('Nom', nomDe(textes, objet))}`),
+  };
+}
+
+/** Libellé du plan pour le lecteur d'écran (14 §2.9) : où est le passager ; la vue liste dit la même chose. */
+export function libellePlan(textes: TextesMonde, carte: CartePublique): string {
+  const actuelle = carte.pieces.find((piece) => piece.statut === 'actuelle');
+  return actuelle === undefined ? MOTS_CARTE.libellePlanSeul : remplir(MOTS_CARTE.libellePlan, { piece: nomDe(textes, actuelle.piece) });
+}
+
+/** Nom accessible d'une pièce du plan : son nom, son statut, ses états (14 §2.9). */
+export function libellePiece(textes: TextesMonde, piece: PieceCarte): string {
+  const statut = piece.statut === 'actuelle' ? MOTS_CARTE.vousEtesIci : piece.statut === 'connue' ? MOTS_CARTE.pasVisitee : regardDe(piece);
+  return [former('Nom', nomDe(textes, piece.piece)), ...(statut === null ? [] : [statut]), ...etatsDe(piece)].join(', ');
 }

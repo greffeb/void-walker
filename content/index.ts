@@ -62,6 +62,9 @@ export type { EntreeMonde, EtapeParcours, Parcours } from './types';
 export {
   ANCIENNETES,
   etatsDe,
+  ficheDe,
+  libellePiece,
+  libellePlan,
   lignesListeCarte,
   MOTS_CARTE,
   nomCarte,
@@ -69,4 +72,5 @@ export {
   rendreListeCarte,
   type BlocListe,
   type EntreeListe,
+  type FicheTexte,
 } from './textes/carte';
