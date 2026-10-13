@@ -28,6 +28,17 @@ jobs:
       - run: npm ci
       - run: npm run verify
 
+  cle-validation:
+    name: Clé de validation
+    # PR-10 : aussi pour un envoi direct sur la branche principale, par un avertissement dans le résumé du run.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - run: bash .github/scripts/surveiller-validation.sh "${{ github.event.before }}" "${{ github.sha }}"
+
   publication:
     name: Publication à la racine
     needs: verification

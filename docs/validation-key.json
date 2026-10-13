@@ -1,0 +1,15 @@
+{
+  "$comment": "Clés publiques des téléphones du porteur du projet (C-10 §4, D-130). Modifiées par lui seul ; la CI signale tout changement (PR-10). Chaque entrée : { \"nom\": \"...\", \"cle\": { \"kty\": \"EC\", \"crv\": \"P-256\", \"x\": \"...\", \"y\": \"...\" } }, copiée depuis la réponse du robot de la PR.",
+  "cles": 
+  [
+    {
+    "nom": "Téléphone du porteur du projet",
+    "cle": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "t8cO_gFetnO65EJL2N__U-g6Sx38l_LXl_mvwjoMzPg",
+      "y": "CccAuyAtQApP8CCAECLKr0pjb1k1jU-T-J08_Qe2L54"
+    }
+    }
+  ]
+}

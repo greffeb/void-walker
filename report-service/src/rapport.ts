@@ -18,6 +18,11 @@ export interface Demande {
   readonly partie: PartieJointe | null;
   /** Texte affiché à l'écran au moment du rapport (RP-01). */
   readonly ecran: readonly string[];
+  /**
+   * « Je valide » signé par le téléphone (C-10 §4) : recopié tel quel pour le robot de la PR, qui seul le vérifie
+   * (AP-07) ; le service ne décide jamais d'une validation.
+   */
+  readonly validation: Readonly<Record<string, unknown>> | null;
 }
 
 /** Ce que le service lit de l'export ; le reste est recopié sans être interprété. */
@@ -43,6 +48,20 @@ const BUILD = /^[0-9]{0,9}$/;
 const COMMIT = /^[0-9a-f]{0,40}$/;
 const MONDE = /^[a-z0-9-]{1,40}$/;
 const EMPREINTE = /^[0-9A-Za-z_-]{1,128}$/;
+const SIGNATURE = /^[A-Za-z0-9_-]{40,200}$/;
+const COORDONNEE = /^[A-Za-z0-9_-]{43}$/;
+const VALIDATION_MAX = 4000;
+
+/** Forme du bloc signé, sans le vérifier : la signature, la clé publique, et une attestation de taille bornée. */
+function lireValidation(valeur: unknown): Readonly<Record<string, unknown>> | string {
+  if (!objet(valeur)) return 'validation illisible';
+  const { attestation, signature, cle } = valeur;
+  if (!objet(attestation) || JSON.stringify(attestation).length > VALIDATION_MAX) return 'attestation illisible';
+  if (typeof signature !== 'string' || !SIGNATURE.test(signature)) return 'signature illisible';
+  if (!objet(cle) || cle.kty !== 'EC' || cle.crv !== 'P-256') return 'clé illisible';
+  if (typeof cle.x !== 'string' || !COORDONNEE.test(cle.x) || typeof cle.y !== 'string' || !COORDONNEE.test(cle.y)) return 'clé illisible';
+  return { attestation, signature, cle: { kty: cle.kty, crv: cle.crv, x: cle.x, y: cle.y } };
+}
 
 function objet(valeur: unknown): valeur is Record<string, unknown> {
   return typeof valeur === 'object' && valeur !== null && !Array.isArray(valeur);
@@ -64,7 +83,7 @@ function lirePartie(valeur: unknown): PartieJointe | string {
 export function lireDemande(donnees: unknown): Lecture {
   const refus = (raison: string): Lecture => ({ ok: false, raison });
   if (!objet(donnees)) return refus('demande illisible');
-  const { type, version, build = '', commit = '', pr = null, commentaire = '', valide = false, partie = null, ecran = [] } = donnees;
+  const { type, version, build = '', commit = '', pr = null, commentaire = '', valide = false, partie = null, ecran = [], validation = null } = donnees;
   if (type !== 'bug' && type !== 'partie') return refus('type inconnu');
   if (typeof version !== 'string' || !VERSION.test(version)) return refus('version illisible');
   if (typeof build !== 'string' || !BUILD.test(build)) return refus('numéro de construction illisible');
@@ -82,9 +101,16 @@ export function lireDemande(donnees: unknown): Lecture {
     jointe = lue;
   }
   if (type === 'partie' && jointe === null) return refus('partie absente');
+  let signee: Readonly<Record<string, unknown>> | null = null;
+  if (validation !== null) {
+    if (!valide || pr === null) return refus('validation seulement avec « je valide », depuis une version de test');
+    const lue = lireValidation(validation);
+    if (typeof lue === 'string') return refus(lue);
+    signee = lue;
+  }
   return {
     ok: true,
-    demande: { type, version, build, commit, pr, commentaire: commentaire.trim(), valide, partie: jointe, ecran },
+    demande: { type, version, build, commit, pr, commentaire: commentaire.trim(), valide, partie: jointe, ecran, validation: signee },
   };
 }
 
@@ -133,6 +159,14 @@ export interface Composition {
   readonly etiquettes: readonly string[];
 }
 
+/** Langage du bloc de code qui porte la validation signée ; le robot de la PR le cherche. */
+export const LANGAGE_VALIDATION = 'void-walker-validation';
+
+function caseValide(demande: Demande): string {
+  if (!demande.valide) return 'non cochée';
+  return demande.validation === null ? 'cochée, sans signature (simple retour, C-10 RP-04)' : 'cochée, signée par le téléphone';
+}
+
 function versionAffichee(demande: Demande): string {
   return `${demande.version}${demande.build === '' ? '' : ` (${demande.build})`}${demande.commit === '' ? '' : ` · ${demande.commit.slice(0, 7)}`}`;
 }
@@ -153,8 +187,18 @@ export async function composer(demande: Demande, options: { readonly enCommentai
   if (partie !== null) {
     lignes.push(`| Monde | ${partie.monde} |`, `| Actions jouées | ${partie.actions} |`, `| Graine | ${partie.graine} |`);
   }
-  if (demande.type === 'partie') lignes.push(`| Case « je valide » | ${demande.valide ? 'cochée, sans signature (simple retour, C-10 RP-04)' : 'non cochée'} |`);
+  if (demande.type === 'partie') lignes.push(`| Case « je valide » | ${caseValide(demande)} |`);
   lignes.push('', '### Commentaire du joueur', '', demande.commentaire === '' ? '_Aucun._' : blocCode(demande.commentaire, 'text'));
+  if (demande.validation !== null) {
+    lignes.push(
+      '',
+      '### Validation signée',
+      '',
+      'Reconnue seulement par le robot de la PR, avec la clé enregistrée dans le dépôt (C-10 §4).',
+      '',
+      blocCode(JSON.stringify(demande.validation), LANGAGE_VALIDATION),
+    );
+  }
   if (demande.ecran.length > 0) lignes.push('', '### Écran affiché', '', blocCode(demande.ecran.join('\n'), 'text'));
 
   const tete = lignes.join('\n');
@@ -193,6 +237,18 @@ export async function extrairePartie(corps: string): Promise<string | null> {
   const octets = Uint8Array.from(binaire, (caractere) => caractere.charCodeAt(0));
   const flux = new Blob([octets]).stream().pipeThrough(new DecompressionStream('gzip'));
   return new Response(flux).text();
+}
+
+/** Bloc de validation signée d'un rapport, tel que recopié ; `null` s'il n'y en a pas. Le robot de la PR seul le juge. */
+export function extraireValidation(corps: string): unknown {
+  if (!corps.includes(MARQUEUR)) return null;
+  const bloc = new RegExp(`^(\`{3,})${LANGAGE_VALIDATION}\\n([\\s\\S]*?)\\n\\1$`, 'm').exec(corps.replace(/\r\n/g, '\n'));
+  if (bloc?.[2] === undefined) return null;
+  try {
+    return JSON.parse(bloc[2]) as unknown;
+  } catch {
+    return undefined;
+  }
 }
 
 export class ErreurTaille extends Error {

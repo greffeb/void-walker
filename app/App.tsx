@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { observer, type Evenement, type OptionMenu } from '../engine';
 import { EcranJeu, EcranReveil } from './EcranJeu';
 import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
@@ -16,7 +16,8 @@ import {
   type Jeu,
 } from './jeu';
 import type { MiseAJour } from './miseAJour';
-import { composerRapport, type Rapports, type Retour, type TypeRapport } from './rapports';
+import { composerRapport, signerRapport, type Rapports, type Retour, type TypeRapport } from './rapports';
+import type { Signataire } from './validation';
 import type { Reglages } from './reglages';
 import { SonContexte, sonDeFermeture, sonDuToucher } from './son/contexte';
 import { signauxApres } from './son/declencheurs';
@@ -75,6 +76,7 @@ export function App({
   son = SILENCE,
   miseAJour,
   rapports,
+  signataire,
 }: {
   readonly env: Environnement;
   readonly reglages: Reglages;
@@ -91,8 +93,11 @@ export function App({
   readonly miseAJour?: MiseAJour;
   /** Service de rapports (C-10 §3) ; absent, pas de « Signaler un bug » ni d'« Envoyer ma partie ». */
   readonly rapports?: Rapports;
+  /** Clé de validation du téléphone (C-10 §4) ; absente, « je valide » part sans signature. */
+  readonly signataire?: Signataire;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
+  const empreinteCle = useMemo(() => (signataire === undefined ? undefined : () => signataire.empreinte()), [signataire]);
   const rapportsEnAttente = useSyncExternalStore(rapports?.abonner ?? SANS_ABONNEMENT, rapports?.enAttente ?? AUCUN, rapports?.enAttente ?? AUCUN);
   const [occupe, setOccupe] = useState(false);
   const [reglages, setReglages] = useState(reglagesInitiaux);
@@ -236,7 +241,8 @@ export function App({
 
   const envoyerRapport = (type: TypeRapport, jeu: Jeu | null, commentaire: string, valide: boolean): Promise<Retour> => {
     if (rapports === undefined) return Promise.resolve('refuse');
-    return rapports.envoyer(composerRapport(env.monde, { version, build, commit, pr }, type, jeu, commentaire, valide));
+    const rapport = composerRapport(env.monde, { version, build, commit, pr }, type, jeu, commentaire, valide);
+    return signerRapport(rapport, signataire).then((signe) => rapports.envoyer(signe));
   };
 
   const ouvrirOptions = (jeu: Jeu, lus: readonly string[]): void => {
@@ -333,6 +339,8 @@ export function App({
             partieEnregistree={ecran.jeu !== null}
             envoyerRapport={rapports === undefined ? undefined : (type, commentaire, valide) => envoyerRapport(type, ecran.jeu, commentaire, valide)}
             rapportsEnAttente={rapportsEnAttente}
+            partieFinie={ecran.jeu !== null && observer(env.monde, ecran.jeu.partie.etat).terminee}
+            empreinteCle={empreinteCle}
           />
         ) : ecran.type === 'fin' ? (
           <EcranFin
@@ -365,6 +373,9 @@ export function App({
             ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
           signaux={ecran.signaux}
             nouvellePartie={() => void commencerNouvellePartie()}
+            envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
+            pr={pr}
+            empreinteCle={empreinteCle}
           />
         ) : (
           <main className="jeu">

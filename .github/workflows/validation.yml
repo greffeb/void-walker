@@ -1,0 +1,43 @@
+name: Validation sur téléphone
+
+# Reconnaissance des validations signées (C-10 §4, AP-07, RP-04) : à chaque commentaire de rapport posté dans une PR,
+# vérifie la signature avec docs/validation-key.json de la branche principale, puis pose l'étiquette et répond.
+# Le code lancé est toujours celui de la branche principale : une PR ne peut pas changer ce qui la juge.
+# Relance à la main (après l'ajout d'une clé) : onglet Actions, « Run workflow », adresse du commentaire.
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      commentaire:
+        description: Adresse du commentaire de PR à vérifier (…/pull/<n>#issuecomment-<id>)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  reconnaissance:
+    name: Reconnaissance
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.pull_request && contains(github.event.comment.body, '<!-- void-walker-rapport v1 -->')) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Vérifier la signature
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENTAIRE: ${{ github.event.inputs.commentaire }}
+        run: npx tsx tools/reconnaitre-validation.ts

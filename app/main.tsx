@@ -6,6 +6,7 @@ import { App } from './App';
 import { mondeDemande, type Environnement } from './jeu';
 import { piloterMiseAJour } from './miseAJour';
 import { creerRapports } from './rapports';
+import { coffreIndexedDB, creerSignataire } from './validation';
 import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
 import { creerMoteur, sessionAmbiante } from './son/moteur';
@@ -85,6 +86,9 @@ const rapports = creerRapports({
 void rapports.renvoyer();
 window.addEventListener('online', () => void rapports.renvoyer());
 
+// Clé de validation (C-10 §4) : seulement dans une version de test, où « je valide » existe (D-132).
+const signataire = import.meta.env.VITE_PR_NUMERO ? creerSignataire(coffreIndexedDB()) : undefined;
+
 createRoot(racine).render(
   <StrictMode>
     <App
@@ -98,6 +102,7 @@ createRoot(racine).render(
       son={son}
       miseAJour={miseAJour}
       rapports={rapports}
+      signataire={signataire}
     />
   </StrictMode>,
 );

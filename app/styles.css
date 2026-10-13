@@ -278,6 +278,17 @@ button:disabled {
   margin: 0 0 16px;
 }
 
+/* ENVOYER MA PARTIE sous NOUVELLE PARTIE (12 §4.11) ; son panneau s'ouvre à sa place. */
+.fin-partie .discret,
+.fin-partie .panneau-rapport {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.fin-partie .panneau-rapport p {
+  margin: 0;
+}
+
 .engrenage {
   flex: none;
   display: grid;
@@ -1339,6 +1350,23 @@ button:disabled {
   min-width: min-content;
 }
 
+/* Clé de validation du téléphone (C-10 §4, D-232) : son empreinte en groupes de quatre, à comparer avec la PR. */
+.ligne-cle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 4px;
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.3;
+  border-top: 1px solid var(--separateur);
+}
+
+.empreinte-cle {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
 /* Rapports (12 §4.10, choix A) : le panneau s'ouvre sous la ligne touchée, sur la surface, bordé. */
 .ligne-option.ouverte {
   color: var(--accent);
@@ -1411,6 +1439,14 @@ button:disabled {
   flex: none;
   font-weight: 600;
   color: var(--accent);
+}
+
+/* Empreinte de la clé sous « je valide » (D-232), à comparer avec la réponse du robot de la PR. */
+.cle-rapport {
+  margin: -4px 0 0 30px;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte-secondaire);
 }
 
 .joint-rapport {
