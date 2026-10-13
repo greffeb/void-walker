@@ -1,0 +1,20 @@
+// Service de rapports (AP-06, D-134), déployé par les agents depuis le PC (D-127) : voir report-service/README.md.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "void-walker-rapports",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true },
+  "vars": {
+    "DEPOT": "greffeb/void-walker",
+    // Version publiée et versions de test (GitHub Pages), essais locaux de l'appli (vite et vite preview).
+    "ORIGINES": "https://greffeb.github.io,http://localhost:5173,http://localhost:4173"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "GARDE", "class_name": "GardeRapports" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GardeRapports"] }]
+  // GITHUB_JETON : secret, posé une fois par le porteur du projet (`npx wrangler secret put GITHUB_JETON`), jamais ici.
+}

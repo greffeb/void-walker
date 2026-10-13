@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { observer, type Evenement, type OptionMenu } from '../engine';
 import { EcranJeu, EcranReveil } from './EcranJeu';
 import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
@@ -16,6 +16,7 @@ import {
   type Jeu,
 } from './jeu';
 import type { MiseAJour } from './miseAJour';
+import { composerRapport, type Rapports, type Retour, type TypeRapport } from './rapports';
 import type { Reglages } from './reglages';
 import { SonContexte, sonDeFermeture, sonDuToucher } from './son/contexte';
 import { signauxApres } from './son/declencheurs';
@@ -23,6 +24,8 @@ import { SILENCE, type Son } from './son/moteur';
 import type { Signal } from './son/recettes';
 
 const AUCUN_SIGNAL: readonly Signal[] = [];
+const SANS_ABONNEMENT = (): (() => void) => () => undefined;
+const AUCUN = (): number => 0;
 
 /** Événements du pas qui vient d'être joué ; aucun si la partie n'a pas avancé (refus, consultation). */
 function evenementsDuPas(avant: Jeu, apres: Jeu): readonly Evenement[] {
@@ -71,6 +74,7 @@ export function App({
   pr,
   son = SILENCE,
   miseAJour,
+  rapports,
 }: {
   readonly env: Environnement;
   readonly reglages: Reglages;
@@ -85,8 +89,11 @@ export function App({
   readonly son?: Son;
   /** Mise à jour de l'appli installée (D-227) ; absente hors du navigateur. */
   readonly miseAJour?: MiseAJour;
+  /** Service de rapports (C-10 §3) ; absent, pas de « Signaler un bug » ni d'« Envoyer ma partie ». */
+  readonly rapports?: Rapports;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
+  const rapportsEnAttente = useSyncExternalStore(rapports?.abonner ?? SANS_ABONNEMENT, rapports?.enAttente ?? AUCUN, rapports?.enAttente ?? AUCUN);
   const [occupe, setOccupe] = useState(false);
   const [reglages, setReglages] = useState(reglagesInitiaux);
   const [reglagesGardes, setReglagesGardes] = useState(true);
@@ -201,6 +208,7 @@ export function App({
 
   /** Depuis l'accueil, la partie enregistrée est lue, jamais créée ni modifiée. */
   const optionsDepuisAccueil = useCallback(async () => {
+    void rapports?.renvoyer();
     setOccupe(true);
     try {
       const charge = await charger(env);
@@ -209,7 +217,7 @@ export function App({
     } finally {
       setOccupe(false);
     }
-  }, [env]);
+  }, [env, rapports]);
 
   /** Abandon confirmé (C-08 §4) : l'écran de fin seulement une fois la partie retirée de l'appareil. */
   const abandonnerPartie = useCallback(
@@ -226,7 +234,15 @@ export function App({
     [env],
   );
 
-  const ouvrirOptions = (jeu: Jeu, lus: readonly string[]): void => setEcran({ type: 'options', depuis: 'jeu', jeu, lus });
+  const envoyerRapport = (type: TypeRapport, jeu: Jeu | null, commentaire: string, valide: boolean): Promise<Retour> => {
+    if (rapports === undefined) return Promise.resolve('refuse');
+    return rapports.envoyer(composerRapport(env.monde, { version, build, commit, pr }, type, jeu, commentaire, valide));
+  };
+
+  const ouvrirOptions = (jeu: Jeu, lus: readonly string[]): void => {
+    void rapports?.renvoyer();
+    setEcran({ type: 'options', depuis: 'jeu', jeu, lus });
+  };
   const enCours = ecran.type === 'options' && ecran.jeu !== null && !observer(env.monde, ecran.jeu.partie.etat).terminee ? ecran.jeu : null;
 
   return (
@@ -314,6 +330,9 @@ export function App({
             commit={commit}
             pr={pr}
             miseAJour={miseAJour}
+            partieEnregistree={ecran.jeu !== null}
+            envoyerRapport={rapports === undefined ? undefined : (type, commentaire, valide) => envoyerRapport(type, ecran.jeu, commentaire, valide)}
+            rapportsEnAttente={rapportsEnAttente}
           />
         ) : ecran.type === 'fin' ? (
           <EcranFin
@@ -323,6 +342,8 @@ export function App({
             rejouer={() => void commencerNouvellePartie()}
             nouvellePartie={() => void commencerNouvellePartie()}
             menuPrincipal={() => void allerAccueil()}
+            envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
+            pr={pr}
           />
         ) : ecran.type === 'reveil' ? (
           <EcranReveil

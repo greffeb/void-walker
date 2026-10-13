@@ -6,7 +6,7 @@ export const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
 // Dépendances, ignorées à toute profondeur ; sorties générées (.gitignore), ignorées seulement à la racine.
 const IGNORED_EVERYWHERE = new Set(['.git', 'node_modules']);
-const IGNORED_AT_ROOT = new Set(['dist', 'coverage', 'test-results', 'playwright-report', 'captures', '.void-walker']);
+const IGNORED_AT_ROOT = new Set(['dist', 'coverage', 'test-results', 'playwright-report', 'captures', '.void-walker', '.worktrees']);
 
 /** Fichiers sous `root` dont le nom finit par une des extensions, hors dossiers ignorés, triés. */
 export function listRepoFiles(root: string, extensions: readonly string[]): string[] {

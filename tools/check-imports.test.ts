@@ -149,11 +149,24 @@ describe('checkImports', () => {
           "import '../app/index';",
           "import '../engine/index';",
           "import '../content/index';",
+          "import '../report-service/src/rapport';",
           "import 'typescript';",
           "import 'node:fs';",
         ].join('\n'),
       }),
     ).toEqual([]);
+  });
+
+  it('report-service/ reste seul : ni moteur, ni paquet, ni module Node (il tourne sur Cloudflare)', () => {
+    expect(
+      violations({
+        'report-service/src/index.ts': "import './rapport';\nimport '../../engine/index';\nimport 'wrangler';\nimport 'node:fs';\n",
+      }),
+    ).toEqual([
+      "report-service/src/index.ts:2 import '../../engine/index' : engine/ interdit ; report-service/ n'importe que report-service/ : il tourne seul sur Cloudflare",
+      "report-service/src/index.ts:3 import 'wrangler' : paquet npm interdit ; report-service/ n'importe que report-service/ : il tourne seul sur Cloudflare",
+      "report-service/src/index.ts:4 import 'node:fs' : module Node interdit ; report-service/ n'importe que report-service/ : il tourne seul sur Cloudflare",
+    ]);
   });
 
   it('détecte un import dynamique, un require et un spécifieur non littéral fautifs', () => {
@@ -192,8 +205,8 @@ describe('checkImports', () => {
         'dist/bundle.js': "import 'node:fs';\n",
       }),
     ).toEqual([
-      'helper.ts:1 fichier hors de engine/, content/, app/, cli/, tools/',
-      'scripts/tool.ts:1 fichier hors de engine/, content/, app/, cli/, tools/',
+      'helper.ts:1 fichier hors de engine/, content/, app/, cli/, tools/, report-service/',
+      'scripts/tool.ts:1 fichier hors de engine/, content/, app/, cli/, tools/, report-service/',
     ]);
   });
 

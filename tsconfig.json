@@ -6,6 +6,7 @@
     { "path": "./app" },
     { "path": "./cli" },
     { "path": "./tools" },
+    { "path": "./report-service" },
     { "path": "./tsconfig.tests.json" }
   ]
 }

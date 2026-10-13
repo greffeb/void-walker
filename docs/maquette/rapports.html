@@ -1,0 +1,165 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapports Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Comparateur : deux façons d'écrire un rapport (#107), à 390 px, Phosphore. Onglets A / B, puis l'état montré. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.onglets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.etats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 700px; }
+.entete { padding: 10px 16px 8px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.entete p { margin: 2px 0 0; font-size: 12px; color: var(--secondaire); }
+.corps { flex: 1; padding: 4px 16px 12px; display: grid; gap: 12px; align-content: start; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.estompe { opacity: .4; }
+.ligne { display: block; border-top: 1px solid var(--separateur); padding: 10px 4px; font-size: 15px; }
+.ligne.ouverte { color: var(--accent); }
+.detail { display: block; font-size: 12px; color: var(--secondaire); }
+.danger { border: 1px dashed var(--accent); color: var(--accent); padding: 12px; text-align: center; font-size: 14px; margin-top: 6px; }
+.panneau { border: 1px solid var(--bordure); background: var(--surface); padding: 10px; display: grid; gap: 8px; }
+label.champ { font-size: 12px; color: var(--secondaire); display: grid; gap: 4px; }
+textarea { font: inherit; font-size: 15px; color: var(--texte); background: var(--fond); border: 1px solid var(--bordure); min-height: 96px; padding: 8px; resize: vertical; }
+textarea::placeholder { color: var(--secondaire); opacity: .8; }
+.compte { font-size: 11px; color: var(--secondaire); text-align: right; margin-top: -4px; }
+.case { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; padding: 6px 0; }
+.case b { color: var(--accent); flex: none; }
+.case small { display: block; font-size: 12px; color: var(--secondaire); }
+.joint { font-size: 12px; color: var(--secondaire); border-left: 2px solid var(--separateur); padding-left: 8px; }
+.boutons { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+.boutons span { min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 8px; }
+.s { border: 1px solid var(--texte); }
+.p { background: var(--texte); color: var(--fond); }
+.p.inactif { opacity: .45; }
+.retour { font-size: 13px; margin: 0; }
+.retour.attente { color: var(--accent); }
+.bas { padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.pied { font-size: 11px; color: var(--secondaire); text-align: center; margin: 4px 0 0; }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">« <b>Signaler un bug</b> » et « <b>Envoyer ma partie</b> » dans les options (D-142). Deux façons d'écrire le commentaire ; l'état montre ce que le joueur voit après ENVOYER. Exemple : version de test d'une PR, donc la case « je valide » apparaît dans l'envoi de partie.</p>
+  <div class="onglets" role="tablist" aria-label="Maquettes">
+    <button class="onglet" role="tab" data-m="A" aria-selected="true" type="button">A · DANS LES OPTIONS</button>
+    <button class="onglet" role="tab" data-m="B" aria-selected="false" type="button">B · ÉCRAN DÉDIÉ</button>
+  </div>
+  <div class="etats" role="tablist" aria-label="État">
+    <button class="onglet" role="tab" data-e="bug" aria-selected="true" type="button">BUG</button>
+    <button class="onglet" role="tab" data-e="partie" aria-selected="false" type="button">PARTIE</button>
+    <button class="onglet" role="tab" data-e="envoye" aria-selected="false" type="button">ENVOYÉ</button>
+    <button class="onglet" role="tab" data-e="garde" aria-selected="false" type="button">SANS RÉSEAU</button>
+  </div>
+  <div id="maquette"></div>
+  <p id="verdict" class="verdict"></p>
+</div>
+
+<script>
+(() => {
+  let m = 'A', e = 'bug';
+  const VERDICTS = {
+    A: "<b>A</b> — le panneau s'ouvre sous la ligne touchée, comme la confirmation d'abandon. On reste dans les options ; le clavier du téléphone pousse la page vers le haut. Une seule ligne ouverte à la fois.",
+    B: "<b>B</b> — un écran à part, en-tête « SIGNALER UN BUG » ou « ENVOYER MA PARTIE », boutons en bas comme les options. Plus de place pour écrire, retour aux options après l'envoi.",
+  };
+  const commentaire = (titre) => `
+    <label class="champ">Votre commentaire, facultatif
+      <textarea placeholder="${titre}"></textarea></label>
+    <p class="compte">0 / 1000</p>`;
+  const valide = `<div class="case"><b>[ ]</b><span>Je valide cette aventure<small>version de test PR #142 ; la partie doit être finie</small></span></div>`;
+  const formulaire = (type) => type === 'bug'
+    ? `${commentaire('Ce qui s’est passé, ce que vous attendiez…')}<p class="joint">Joint : la partie jusqu’ici et l’écran affiché.</p>`
+    : `${commentaire('Votre avis sur la partie…')}${valide}<p class="joint">Joint : la partie complète et sa fin.</p>`;
+  const retour = () => e === 'envoye'
+    ? `<p class="retour" role="status">Merci, le rapport est envoyé.</p>`
+    : `<p class="retour attente" role="status">Pas de réseau. Le rapport est gardé sur le téléphone et partira tout seul à la prochaine connexion.</p>`;
+  const estEnvoi = () => e === 'envoye' || e === 'garde';
+
+  function vueA() {
+    const type = e === 'partie' ? 'partie' : 'bug';
+    const ouvert = !estEnvoi();
+    const panneau = ouvert
+      ? `<div class="panneau">${formulaire(type)}<div class="boutons"><span class="s">Annuler</span><span class="p">Envoyer</span></div></div>`
+      : retour();
+    const ligne = (t, libelle, detail) => `<span class="ligne ${t === type && ouvert ? 'ouverte' : ''}"><span aria-hidden="true">▸ </span>${libelle}<span class="detail">${detail}</span></span>${t === type ? panneau : ''}`;
+    return `<div class="tel">
+      <header class="entete"><h1>Options</h1><p>le jeu est en pause</p></header>
+      <div class="corps">
+        <section class="estompe"><h2 class="titre-section">Taille du texte</h2></section>
+        <section class="estompe"><h2 class="titre-section">Son</h2></section>
+        <section class="estompe"><h2 class="titre-section">Affichage</h2></section>
+        <section>
+          <h2 class="titre-section">Partie</h2>
+          <span class="ligne estompe"><span aria-hidden="true">▸ </span>Télécharger ma partie<span class="detail">fichier enregistré sur le téléphone</span></span>
+          ${ligne('bug', 'Signaler un bug', 'la partie en cours est jointe')}
+          ${ligne('partie', 'Envoyer ma partie', 'partie et commentaire')}
+          <div class="danger estompe">⊘ Abandonner la partie en cours</div>
+        </section>
+        <p class="pied">V0.1.0 (402) · 3f2a9c1 · test PR #142</p>
+      </div>
+      <div class="bas estompe"><div class="boutons"><span class="s">Menu principal</span><span class="p">Reprendre la partie</span></div></div>
+    </div>`;
+  }
+
+  function vueB() {
+    if (estEnvoi()) {
+      return `<div class="tel">
+        <header class="entete"><h1>Options</h1><p>le jeu est en pause</p></header>
+        <div class="corps">
+          <section class="estompe"><h2 class="titre-section">Taille du texte</h2></section>
+          <section class="estompe"><h2 class="titre-section">Son</h2></section>
+          <section><h2 class="titre-section">Partie</h2>
+            <span class="ligne estompe"><span aria-hidden="true">▸ </span>Télécharger ma partie</span>
+            <span class="ligne"><span aria-hidden="true">▸ </span>Signaler un bug<span class="detail">la partie en cours est jointe</span></span>
+            ${retour()}
+            <span class="ligne estompe"><span aria-hidden="true">▸ </span>Envoyer ma partie</span>
+          </section>
+        </div>
+        <div class="bas estompe"><div class="boutons"><span class="s">Menu principal</span><span class="p">Reprendre la partie</span></div></div>
+      </div>`;
+    }
+    const type = e === 'partie' ? 'partie' : 'bug';
+    return `<div class="tel">
+      <header class="entete"><h1>${type === 'bug' ? 'Signaler un bug' : 'Envoyer ma partie'}</h1><p>le jeu est en pause</p></header>
+      <div class="corps">${formulaire(type)}</div>
+      <div class="bas"><div class="boutons"><span class="s">Annuler</span><span class="p">Envoyer</span></div></div>
+    </div>`;
+  }
+
+  function rendre() {
+    document.getElementById('maquette').innerHTML = m === 'A' ? vueA() : vueB();
+    document.getElementById('verdict').innerHTML = VERDICTS[m];
+    document.querySelectorAll('[data-m]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.m === m)));
+    document.querySelectorAll('[data-e]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.e === e)));
+  }
+  document.querySelectorAll('[data-m]').forEach((b) => b.addEventListener('click', () => { m = b.dataset.m; rendre(); }));
+  document.querySelectorAll('[data-e]').forEach((b) => b.addEventListener('click', () => { e = b.dataset.e; rendre(); }));
+  rendre();
+})();
+</script>

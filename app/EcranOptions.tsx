@@ -4,6 +4,8 @@ import { nomDe, remplir } from '../content';
 import { nomPuce } from './ecran';
 import type { Environnement, Jeu } from './jeu';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
+import { PanneauRapport, RETOURS } from './PanneauRapport';
+import type { Retour, TypeRapport } from './rapports';
 import { TAILLES, type Reglages, type Taille } from './reglages';
 import { useSon } from './son/contexte';
 
@@ -34,6 +36,9 @@ export function EcranOptions({
   commit,
   pr,
   miseAJour,
+  partieEnregistree = partieEnCours,
+  envoyerRapport,
+  rapportsEnAttente = 0,
 }: {
   readonly reglages: Reglages;
   readonly changerReglages: (reglages: Reglages) => void;
@@ -51,6 +56,12 @@ export function EcranOptions({
   readonly commit: string;
   readonly pr: string;
   readonly miseAJour?: MiseAJour;
+  /** Une partie est enregistrée, en cours ou finie : elle peut être envoyée. */
+  readonly partieEnregistree?: boolean;
+  /** Rapports (C-10 §3) ; absents, ni « Signaler un bug » ni « Envoyer ma partie ». */
+  readonly envoyerRapport?: (type: TypeRapport, commentaire: string, valide: boolean) => Promise<Retour>;
+  /** Rapports gardés sur l'appareil, en attente du réseau (PR-01). */
+  readonly rapportsEnAttente?: number;
 }) {
   const idTaille = useId();
   const titre = useRef<HTMLHeadingElement>(null);
@@ -141,21 +152,35 @@ export function EcranOptions({
             </p>
           )}
         </section>
-        {partieEnCours && (
+        {(partieEnCours || envoyerRapport !== undefined) && (
           <section>
             <h2 className="titre-section">Partie</h2>
-            <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
-              <span>
-                <span aria-hidden="true">▸ </span>
-                Télécharger ma partie
-              </span>
-              <span className="detail-option">fichier enregistré sur le téléphone</span>
-            </button>
-            <p className="retour-option" role="status" data-testid="telechargement">
-              {telechargement?.etat === 'pret' && `Fichier prêt : ${telechargement.nom}`}
-              {telechargement?.etat === 'echec' && 'Le téléchargement a échoué. Vous pouvez réessayer.'}
-            </p>
-            {confirmation ? (
+            {partieEnCours && (
+              <>
+                <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
+                  <span>
+                    <span aria-hidden="true">▸ </span>
+                    Télécharger ma partie
+                  </span>
+                  <span className="detail-option">fichier enregistré sur le téléphone</span>
+                </button>
+                <p className="retour-option" role="status" data-testid="telechargement">
+                  {telechargement?.etat === 'pret' && `Fichier prêt : ${telechargement.nom}`}
+                  {telechargement?.etat === 'echec' && 'Le téléchargement a échoué. Vous pouvez réessayer.'}
+                </p>
+              </>
+            )}
+            {envoyerRapport !== undefined && (
+              <LignesRapports
+                partieEnregistree={partieEnregistree}
+                partieEnCours={partieEnCours}
+                pr={pr}
+                occupe={occupe}
+                envoyer={envoyerRapport}
+                enAttente={rapportsEnAttente}
+              />
+            )}
+            {!partieEnCours ? null : confirmation ? (
               <section className="confirmation-options" aria-label="Confirmation d’abandon">
                 <p ref={question} tabIndex={-1}>
                   Abandonner ? Cette partie ne pourra pas être reprise.
@@ -207,6 +232,87 @@ export function EcranOptions({
         )}
       </div>
     </main>
+  );
+}
+
+const LIBELLES_RAPPORT: Readonly<Record<TypeRapport, string>> = { bug: 'Signaler un bug', partie: 'Envoyer ma partie' };
+
+/**
+ * « Signaler un bug » et « Envoyer ma partie » (12 §4.10, D-142) : le panneau s'ouvre sous la ligne touchée, un seul à la
+ * fois ; une fois le rapport parti ou gardé, il se referme et laisse son retour sous la ligne.
+ */
+function LignesRapports({
+  partieEnregistree,
+  partieEnCours,
+  pr,
+  occupe,
+  envoyer,
+  enAttente,
+}: {
+  readonly partieEnregistree: boolean;
+  readonly partieEnCours: boolean;
+  readonly pr: string;
+  readonly occupe: boolean;
+  readonly envoyer: (type: TypeRapport, commentaire: string, valide: boolean) => Promise<Retour>;
+  readonly enAttente: number;
+}) {
+  const [ouvert, setOuvert] = useState<TypeRapport | null>(null);
+  const [retours, setRetours] = useState<Partial<Record<TypeRapport, Retour>>>({});
+  const lignes = useRef<Partial<Record<TypeRapport, HTMLButtonElement | null>>>({});
+  const types: readonly TypeRapport[] = partieEnregistree ? ['bug', 'partie'] : ['bug'];
+  const details: Readonly<Record<TypeRapport, string>> = {
+    bug: partieEnCours ? 'la partie en cours est jointe' : partieEnregistree ? 'la partie est jointe' : 'aucune partie à joindre',
+    partie: 'partie et commentaire',
+  };
+  return (
+    <>
+      {types.map((type) => (
+        <div key={type} className="rapport">
+          <button
+            ref={(bouton) => {
+              lignes.current[type] = bouton;
+            }}
+            type="button"
+            className={ouvert === type ? 'ligne-option ouverte' : 'ligne-option'}
+            aria-expanded={ouvert === type}
+            disabled={occupe}
+            onClick={() => {
+              setOuvert(ouvert === type ? null : type);
+              setRetours({});
+            }}
+            data-son="clic"
+          >
+            <span>
+              <span aria-hidden="true">▸ </span>
+              {LIBELLES_RAPPORT[type]}
+            </span>
+            <span className="detail-option">{details[type]}</span>
+          </button>
+          {ouvert === type ? (
+            <PanneauRapport
+              type={type}
+              pr={pr}
+              partieJointe={partieEnregistree}
+              envoyer={(commentaire, valide) => envoyer(type, commentaire, valide)}
+              fermer={(retour) => {
+                setOuvert(null);
+                if (retour !== null) setRetours({ [type]: retour });
+                lignes.current[type]?.focus();
+              }}
+            />
+          ) : (
+            <p className="retour-option" role="status" data-testid={`retour-${type}`}>
+              {retours[type] !== undefined && RETOURS[retours[type]]}
+            </p>
+          )}
+        </div>
+      ))}
+      {enAttente > 0 && (
+        <p className="retour-option" data-testid="rapports-en-attente">
+          {enAttente === 1 ? 'Un rapport attend le réseau pour partir.' : `${enAttente} rapports attendent le réseau pour partir.`}
+        </p>
+      )}
+    </>
   );
 }
 
@@ -322,6 +428,8 @@ export function EcranFin({
   rejouer,
   nouvellePartie,
   menuPrincipal,
+  envoyerPartie,
+  pr = '',
 }: {
   readonly jeu: Jeu;
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
@@ -330,7 +438,12 @@ export function EcranFin({
   readonly rejouer: () => void;
   readonly nouvellePartie: () => void;
   readonly menuPrincipal: () => void;
+  /** ENVOYER MA PARTIE (12 §4.11) ; absent, pas de bouton. */
+  readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
+  readonly pr?: string;
 }) {
+  const [envoi, setEnvoi] = useState<'ferme' | 'ouvert' | Retour>('ferme');
+  const boutonEnvoi = useRef<HTMLButtonElement>(null);
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
   const visitees = observation.visitees.map((piece) => nomPuce(textes, piece)).join(', ');
@@ -362,6 +475,30 @@ export function EcranFin({
         <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
           Nouvelle partie
         </button>
+        {envoyerPartie !== undefined &&
+          (envoi === 'ouvert' ? (
+            <PanneauRapport
+              type="partie"
+              pr={pr}
+              partieJointe
+              envoyer={envoyerPartie}
+              fermer={(retour) => {
+                setEnvoi(retour ?? 'ferme');
+                boutonEnvoi.current?.focus();
+              }}
+            />
+          ) : (
+            <>
+              <button ref={boutonEnvoi} type="button" className="discret" disabled={occupe} onClick={() => setEnvoi('ouvert')} data-son="clic">
+                Envoyer ma partie
+              </button>
+              {envoi !== 'ferme' && (
+                <p className="retour-option" role="status" data-testid="retour-partie">
+                  {RETOURS[envoi]}
+                </p>
+              )}
+            </>
+          ))}
         <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
           Menu principal
         </button>
