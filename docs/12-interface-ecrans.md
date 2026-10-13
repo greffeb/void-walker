@@ -214,13 +214,13 @@ Grille de deux colonnes : libellé en capitales `texte-secondaire`, puis valeur.
 
 ### 3.9 Modale IA Station
 
-Nom affiché « IA Station » (remplace « assistance »). C'est une modale, avec un seul bouton « Retour ». [Validé] Elle est blanche, comme l'inventaire est cyan (§2.1). [Validé D-192, remplaçant `surface-2`, `texte`, `accent` et `signal` dans cette modale]
+Nom affiché « IA Station » (remplace « assistance »). C'est une bulle avec une croix de fermeture dans l'en-tête, comme les autres menus. [Validé D-228, remplaçant le bouton « Retour »] Elle est blanche, comme l'inventaire est cyan (§2.1). [Validé D-192, remplaçant `surface-2`, `texte`, `accent` et `signal` dans cette modale]
 
-- Voile de 55 % sur l'écran de jeu. Boîte ancrée en bas, à 16 px des côtés et 24 px du bas, 600 px de haut au plus. Contour 1 px `blanc`, fond `blanc-surface`.
+- Même bulle superposée que l'inventaire et la carte : voile de 35 %, à 16 px des côtés et 12 px au-dessus de la navigation, flèche vers le bouton IA STATION. Hauteur au plus de 60 % de l'écran et 420 px. Contour 1 px `blanc`, fond `blanc-surface`. [Validé D-228, remplaçant le voile de 55 % et la boîte à 24 px du bas]
 - En-tête : « [ IA STATION ] » en `blanc` 17/600, puis « messages reçus dans l'écouteur » en 12 `blanc-secondaire`.
 - Historique chronologique, le plus récent en bas, qui défile. Chaque message a un repère de moment, sans heure : « > au réveil · Salon de transit ». Un message non lu porte l'étiquette NOUVEAU en vidéo inverse. Le texte est en italique `blanc-texte`, entre guillemets.
 - Ouvrir la modale fait passer tous les messages reçus en lus ; NOUVEAU reste affiché jusqu'à sa fermeture. Le message du réveil compte comme nouveau, bien qu'il soit cité au réveil. [Validé D-192]
-- En bas : RETOUR. Toucher le voile ferme aussi.
+- En haut à droite : croix de fermeture. Un deuxième appui sur IA STATION ferme la bulle, comme pour INVENTAIRE et CARTE, avec le son de fermeture. Toucher le voile ferme aussi ; Échap et le retour système gardent le même effet. [Validé D-228]
 - Pas de question ni de réponse sur l'état du monde (D-081, cas K-06).
 
 ### 3.10 Encadré « Ce qui change »
@@ -266,7 +266,7 @@ Tous sont de vrais boutons ou liens, accessibles au clavier et au lecteur d'écr
 | Aperçu | CONFIRMER | Écran de jeu, résultat de l'action |
 | Aperçu, bulle, fiche | ANNULER, ✕, voile | Écran de jeu, inchangé |
 | Carte | FERMER LA CARTE | Écran de jeu |
-| IA Station | RETOUR, voile | Écran de jeu |
+| IA Station | Croix, IA STATION, voile | Écran de jeu |
 | Options | MENU PRINCIPAL / REPRENDRE LA PARTIE | Accueil / écran de jeu |
 | Options | ABANDONNER (après confirmation) | Fin (abandon) |
 | Plus aucune sortie | TERMINER LA PARTIE | Fin (abandon), puis menu principal |
