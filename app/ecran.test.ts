@@ -11,6 +11,7 @@ import {
   nomDestination,
   nomParametre,
   nomPuce,
+  passagesOuverts,
   placerBulle,
   precedente,
   rappelDe,
@@ -31,7 +32,7 @@ function placees(dock: Dock): OptionMenu[] {
   return [
     ...dock.piece.flatMap((groupe) => groupe.options),
     ...(dock.autour === undefined ? [] : [dock.autour]),
-    ...dock.deplacements,
+    ...dock.deplacements.flatMap((deplacement) => deplacement.options),
     ...dock.inventaire.flatMap((groupe) => groupe.options),
   ];
 }
@@ -75,7 +76,7 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     const ecarts: string[] = [];
     for (const partie of parties) {
       const observation = observer(monde, partie.etat);
-      const options = placees(composerDock(observation));
+      const options = placees(composerDock(observation, passagesOuverts(partie)));
       if (options.length !== observation.menu.length || !observation.menu.every((option) => options.includes(option))) {
         ecarts.push(`${observation.piece.nom} : ${options.length} places pour ${observation.menu.length} options`);
       }
@@ -83,20 +84,29 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     expect([...new Set(ecarts)]).toEqual([]);
   });
 
-  it('départ : puces du carnet, de la porte et de la grille, regard sur la pièce, déplacements indisponibles, rien en main', () => {
+  it('départ : puce du carnet, regard sur la pièce, portes et grille dans « Se déplacer vers » avec leurs actions, rien en main (D-229)', () => {
     const dock = composerDock(observer(monde, depart().etat));
-    expect(dock.piece.map((groupe) => nomPuce(textes, groupe.cible))).toEqual(['Carnet', 'Porte de l’atelier', 'Grille de la soute']);
-    expect(dock.piece.map((groupe) => groupe.options.map((option) => textes.verbes[option.action]))).toEqual([
-      ['Regarder', 'Prendre'],
-      ['Regarder', 'Ouvrir'],
-      ['Regarder', 'Ouvrir'],
-    ]);
+    expect(dock.piece.map((groupe) => nomPuce(textes, groupe.cible))).toEqual(['Carnet']);
+    expect(dock.piece.map((groupe) => groupe.options.map((option) => textes.verbes[option.action]))).toEqual([['Regarder', 'Prendre']]);
     expect(dock.autour?.cible.sorte).toBe('piece');
-    expect(dock.deplacements.map((option) => [nomDestination(textes, option), option.disponible])).toEqual([
+    expect(dock.deplacements.map(({ aller }) => [nomDestination(textes, aller), aller.disponible])).toEqual([
       ['atelier', false],
       ['soute', false],
     ]);
+    // « Aller » en tête : la bulle du bouton dit d'abord si l'on peut passer, puis comment ouvrir.
+    expect(dock.deplacements.map((deplacement) => deplacement.options.map((option) => textes.verbes[option.action]))).toEqual([
+      ['Aller vers', 'Regarder', 'Ouvrir'],
+      ['Aller vers', 'Regarder', 'Ouvrir'],
+    ]);
     expect(dock.inventaire).toEqual([]);
+  });
+
+  it('une porte ouverte se referme depuis sa bulle de « Se déplacer vers » (D-229)', () => {
+    const ouverte = jouer(monde, depart(), optionDe(depart(), 'ouvrir', 'porte').commande);
+    if (ouverte.type !== 'engagee') throw new Error('Porte non ouverte.');
+    const porte = composerDock(observer(monde, ouverte.partie.etat)).deplacements.find((deplacement) => deplacement.cible.nom === 'porte');
+    expect(porte?.aller.disponible).toBe(true);
+    expect(porte?.options.map((option) => option.action)).toEqual(['aller', 'regarder', 'fermer']);
   });
 
   it('un nom par chose : puce, rappel et récit nomment la même chose (NP-04)', () => {
@@ -147,7 +157,7 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
       const dock = composerDock(observer(monde, partie.etat));
-      for (const groupe of [...dock.piece, ...dock.inventaire]) {
+      for (const groupe of [...dock.piece, ...dock.deplacements, ...dock.inventaire]) {
         const { fiche, actions } = composer(groupe);
         const ranges = [fiche, ...actions];
         if (fiche?.action !== 'regarder') ecarts.push(`${groupe.cible.nom} : fiche ${String(fiche?.action)}`);
@@ -165,7 +175,7 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     for (const partie of atteignables()) {
       const observation = observer(monde, partie.etat);
       const dock = composerDock(observation);
-      for (const groupe of [...dock.piece, ...dock.inventaire]) {
+      for (const groupe of [...dock.piece, ...dock.deplacements, ...dock.inventaire]) {
         for (const option of composer(groupe).actions) {
           if (!observation.menu.includes(option)) ecarts.push(`${option.action} ${groupe.cible.nom} : hors du menu`);
           if (option.commande.action !== option.action || option.commande.cible !== groupe.cible.id) ecarts.push(`${option.action} ${groupe.cible.nom} : commande`);
@@ -197,8 +207,8 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     for (const [rang, partie] of atteignables().entries()) {
       const avant = { empreinte: empreinteEtat(partie.etat), json: JSON.stringify(partie) };
       const dock = composerDock(observer(monde, partie.etat));
-      const compositions = [...dock.piece, ...dock.inventaire].map(composer);
-      const apercus = [...compositions.flatMap((etape) => etape.actions), ...dock.deplacements].filter((option) => option.disponible);
+      const compositions = [...dock.piece, ...dock.deplacements, ...dock.inventaire].map(composer);
+      const apercus = compositions.flatMap((etape) => etape.actions).filter((option) => option.disponible);
       for (let fois = 0; fois < (rang % 25 === 0 ? 10 : 1); fois++) {
         for (const { fiche } of compositions) {
           if (fiche !== undefined && consulter({ monde, textes }, partie, fiche).length !== 1) ecarts.push(`fiche ${fiche.cible.nom}`);
@@ -256,6 +266,27 @@ describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
     if (trouve === undefined) throw new Error(`Puce ${nom} absente.`);
     return trouve;
   }
+
+  it('grille sans signalétique : puce tant qu’on ne l’a pas ouverte ; ouverte puis refermée, elle reste dans « Se déplacer vers » (D-147, D-229)', () => {
+    const ou = (partie: Partie): string => {
+      const dock = composerDock(observer(ar01.monde, partie.etat), passagesOuverts(partie));
+      if (dock.piece.some((candidat) => candidat.cible.nom === 'grille')) return 'piece';
+      return dock.deplacements.some((candidat) => candidat.cible.nom === 'grille') ? 'deplacement' : 'absente';
+    };
+    expect(ou(pc(1))).toBe('piece');
+    const ouverte = pc(4);
+    expect(ou(ouverte)).toBe('deplacement');
+    const fermer = observer(ar01.monde, ouverte.etat).menu.find((option) => option.action === 'fermer' && option.cible.nom === 'grille');
+    if (fermer === undefined) throw new Error('Fermer la grille absent.');
+    const refermee = jouer(ar01.monde, ouverte, fermer.commande);
+    if (refermee.type !== 'engagee') throw new Error('Grille non refermée.');
+    expect(ou(refermee.partie)).toBe('deplacement');
+    const grille = composerDock(observer(ar01.monde, refermee.partie.etat), passagesOuverts(refermee.partie)).deplacements.find(
+      (candidat) => candidat.cible.nom === 'grille',
+    );
+    expect(grille?.options.map((option) => option.action)).toEqual(['aller', 'regarder', 'ouvrir']);
+    expect(grille?.aller.disponible).toBe(false);
+  });
 
   it('une ligne par action : plusieurs paramètres, une ligne ; jouable si l’un l’est, sinon la première avec sa raison', () => {
     const burette = groupe(pc(5), 'burette', 'inventaire');

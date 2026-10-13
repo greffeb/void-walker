@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App } from './App';
-import { BulleDeplacement, BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
+import { BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { APERCU_TAILLE, EcranFin, EcranOptions } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
@@ -145,16 +145,13 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(entre(rendre(jeu, () => undefined), '<button', '</button>')).toMatch(/class="engrenage" aria-label="Options"/);
   });
 
-  it('dock : puces des choses de la pièce, regard autour de soi, déplacement indisponible avec sa raison (12 §3.7)', async () => {
+  it('dock : objets de la pièce, regard autour de soi ; portes fermées dans « Se déplacer vers », en pointillé, avec leur raison (D-229)', async () => {
     const dock = entre(rendre(await commencer(env)), '<section class="dock"', '</section>');
-    expect(texte(dock)).toBe(
-      'Dans la pièce ▸ Carnet ▸ Porte de l’atelier ▸ Grille de la soute ▸ Regarder autour de vous Se déplacer vers ⊘ atelier La porte de l’atelier est fermée. ⊘ soute La grille de la soute est fermée.',
-    );
+    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder autour de vous Se déplacer vers → atelier → soute');
     const deplacement = entre(dock, '<button type="button" class="deplacement', '</button>');
-    expect(deplacement).toContain(
-      'class="deplacement indisponible" aria-disabled="true" aria-label="atelier, indisponible : La porte de l’atelier est fermée."',
-    );
+    expect(deplacement).toContain('class="deplacement bloque" aria-haspopup="dialog" aria-expanded="false" aria-label="atelier, La porte de l’atelier est fermée."');
     expect(deplacement).not.toContain('disabled=""');
+    expect(deplacement).toContain('data-son="bulle"');
     expect(dock).not.toContain('aria-expanded="true"');
     expect(dock.match(/aria-haspopup="dialog"/g)).toHaveLength(3);
     expect(entre(dock, '<button type="button" class="puce"', '</button>')).toContain('data-son="bulle"');
@@ -170,10 +167,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
         textes={textes}
         occupe={false}
         puceOuverte={carnet.cible.id}
-        deplacementOuvert={null}
         ouvrir={rienAJouer}
-        ouvrirDeplacement={rienAJouer}
-        direct={() => false}
         jouer={rienAJouer}
       />,
     );
@@ -183,7 +177,9 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('bulle d’une puce : dialogue nommé, fiche gratuite puis actions, sans « Regarder » à confirmer (12 §3.5)', async () => {
     const jeu = await commencer(env);
-    const [carnet, porte] = composerDock(observer(monde, jeu.partie.etat)).piece;
+    const { piece, deplacements } = composerDock(observer(monde, jeu.partie.etat));
+    const [carnet] = piece;
+    const [porte] = deplacements;
     if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
     const html = bulleObjet(jeu, carnet);
     expect(html).toMatch(
@@ -197,12 +193,15 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(html).not.toContain('Étape précédente');
     expect(texte(html)).toBe(`Carnet ✕ ${description(jeu, 'carnet')} ▸ Prendre`);
     expect(html).toContain('<button type="button" class="ligne" aria-label="Prendre, sans confirmation" data-son="confirmer"><span aria-hidden="true">▸ </span>Prendre</button>');
-    expect(texte(bulleObjet(jeu, porte))).toBe(`Porte de l’atelier ✕ ${description(jeu, 'porte')} ▸ Ouvrir`);
+    // Bulle d'un bouton « Se déplacer vers » : la fiche de la porte, le déplacement, puis l'ouverture (D-229).
+    expect(texte(bulleObjet(jeu, porte))).toBe(`Porte de l’atelier ✕ ${description(jeu, 'porte')} ⊘ Aller dans l’atelier La porte de l’atelier est fermée. ▸ Ouvrir`);
   });
 
   it('un seul toucher (D-182) : prendre sans risque ni coût joue la ligne, une porte garde l’aperçu', async () => {
     const jeu = await commencer(env);
-    const [carnet, porte] = composerDock(observer(monde, jeu.partie.etat)).piece;
+    const { piece, deplacements } = composerDock(observer(monde, jeu.partie.etat));
+    const [carnet] = piece;
+    const [porte] = deplacements;
     if (carnet === undefined || porte === undefined) throw new Error('Puces absentes.');
     expect(bulleObjet(jeu, carnet)).toContain('aria-label="Prendre, sans confirmation"');
     expect(bulleObjet(jeu, porte)).toContain('<button type="button" class="ligne" data-son="clic"><span aria-hidden="true">▸ </span>Ouvrir</button>');
@@ -211,19 +210,27 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(occupee).toContain('aria-label="Prendre, sans confirmation" disabled=""');
   });
 
-  it('un seul toucher (D-182) : déplacement sans danger connu joué tout de suite ; vers la créature entendue, aperçu', async () => {
+  it('un seul toucher (D-182) : dans la bulle du passage, déplacement sans danger connu joué tout de suite ; vers la créature entendue, aperçu', async () => {
+    const passage = (jeu: Jeu, nom: string): Groupe => {
+      const trouve = composerDock(observer(monde, jeu.partie.etat)).deplacements.find((deplacement) => deplacement.cible.nom === nom);
+      if (trouve === undefined) throw new Error(`Passage ${nom} absent.`);
+      return trouve;
+    };
     const debut = await commencer(env);
     const grille = observer(monde, debut.partie.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
     if (grille === undefined) throw new Error('Grille absente.');
     const ouverte = await jouerOption(env, debut, grille);
-    const soute = entre(entre(rendre(ouverte), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
-    expect(soute).toContain('aria-label="soute, sans confirmation"');
-    expect(soute).not.toContain('aria-haspopup');
-    expect(soute).toContain('data-son="confirmer"');
-    const porte = entre(entre(rendre(await apres('ouvrir')), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
-    expect(porte).toContain('aria-haspopup="dialog"');
-    expect(porte).not.toContain('sans confirmation');
-    expect(porte).toContain('data-son="bulle"');
+    // Le bouton ouvre toujours la bulle (D-229) ; la ligne joue le déplacement d'un seul toucher.
+    const bouton = entre(entre(rendre(ouverte), '<ul class="deplacements"', '</ul>'), '<button type="button" class="deplacement"', '</button>');
+    expect(bouton).toContain('aria-haspopup="dialog"');
+    expect(bouton).toContain('data-son="bulle"');
+    expect(bulleObjet(ouverte, passage(ouverte, 'grille'))).toContain(
+      '<button type="button" class="ligne" aria-label="Aller dans la soute, sans confirmation" data-son="confirmer"><span aria-hidden="true">▸ </span>Aller dans la soute</button>',
+    );
+    const porte = await apres('ouvrir');
+    expect(bulleObjet(porte, passage(porte, 'porte'))).toContain(
+      '<button type="button" class="ligne" data-son="clic"><span aria-hidden="true">▸ </span>Aller dans l’atelier</button>',
+    );
   });
 
   it('action choisie : fil « Carnet › Prendre », aperçu sans risque ni coût réduit à SAVOIR, ANNULER puis CONFIRMER (12 §3.5, §3.8, D-187)', async () => {
@@ -241,12 +248,12 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('aperçu (D-187) : RISQUE et COÛT seulement quand ils disent autre chose que « aucun » ; SAVOIR toujours', async () => {
     const ouvrirPorte = async (jeu: Jeu): Promise<string> => {
-      const porte = composerDock(observer(monde, jeu.partie.etat)).piece.find((groupe) => groupe.cible.nom === 'porte');
+      const porte = composerDock(observer(monde, jeu.partie.etat)).deplacements.find((groupe) => groupe.cible.nom === 'porte');
       if (porte === undefined) throw new Error('Puce de la porte absente.');
       return texte(bulleObjet(jeu, porte, 'ouvrir'));
     };
     const depart = await commencer(env);
-    const grille = composerDock(observer(monde, depart.partie.etat)).piece.find((groupe) => groupe.cible.nom === 'grille');
+    const grille = composerDock(observer(monde, depart.partie.etat)).deplacements.find((groupe) => groupe.cible.nom === 'grille');
     if (grille === undefined) throw new Error('Puce de la grille absente.');
     // Ni risque ni coût : une grille garde l'aperçu (D-182), réduit à SAVOIR.
     expect(texte(bulleObjet(depart, grille, 'ouvrir'))).toBe('‹ Grille de la soute › Ouvrir ✕ Savoir La grille de la soute sera ouverte. Annuler Confirmer');
@@ -260,16 +267,19 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     );
   });
 
-  it('déplacement : bulle d’aperçu « Aller vers › atelier », sans étape précédente (12 §4.3)', async () => {
+  it('déplacement : de la bulle du passage à l’aperçu « Aller vers › atelier » (12 §4.3, D-229)', async () => {
     const jeu = await apres('ouvrir');
-    const aller = composerDock(observer(monde, jeu.partie.etat)).deplacements[0];
-    if (aller === undefined || !aller.disponible) throw new Error('Déplacement ouvert attendu.');
-    const html = renderToStaticMarkup(<BulleDeplacement ancre={{} as HTMLElement} option={aller} {...composition(jeu, null)} />);
+    const porte = composerDock(observer(monde, jeu.partie.etat)).deplacements[0];
+    if (porte === undefined || !porte.aller.disponible) throw new Error('Déplacement ouvert attendu.');
+    const html = bulleObjet(jeu, porte, 'aller');
     expect(html).toMatch(/^<section class="bulle bulle-objet" role="dialog" aria-modal="true"/);
+    expect(html).toContain('aria-label="Étape précédente"');
     // La porte grippée a attiré la créature dans l'atelier, entendue derrière la porte : l'aperçu prévient (D-181, 12 §3.8) ; pas de coût, pas de ligne COÛT (D-187).
     expect(texte(html)).toBe(
-      'Aller vers › atelier ✕ Risque modéré — quelque chose bougeait derrière la porte de l’atelier Savoir Vous quitterez la cabine. Annuler Confirmer',
+      '‹ Aller vers › atelier ✕ Risque modéré — quelque chose bougeait derrière la porte de l’atelier Savoir Vous quitterez la cabine. Annuler Confirmer',
     );
+    // Porte ouverte : la bulle propose aussi de la refermer.
+    expect(texte(bulleObjet(jeu, porte))).toBe(`Porte de l’atelier ✕ ${description(jeu, 'porte')} ▸ Aller dans l’atelier ▸ Fermer`);
     expect(html).toContain('<dd><strong>modéré</strong> — quelque chose bougeait derrière la porte de l’atelier</dd>');
     const dock = entre(rendre(jeu), '<section class="dock"', '</section>');
     expect(entre(dock, '<button type="button" class="deplacement"', '</button>')).toContain('aria-haspopup="dialog" aria-expanded="false"');
@@ -278,8 +288,8 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('pendant l’enregistrement d’une action, aucune bulle ne s’ouvre sur l’état d’avant (C-01 §4)', async () => {
     const html = renderToStaticMarkup(<EcranJeu jeu={await apres('ouvrir')} lus={[]} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />);
     const ouvrants = (html.match(/<button[^>]*>/g) ?? []).filter((bouton) => bouton.includes('aria-haspopup="dialog"'));
-    // Carnet, porte, grille, « → ATELIER » (ouverte), INVENTAIRE, CARTE et IA STATION ; « ⊘ SOUTE » n'ouvre rien.
-    expect(ouvrants).toHaveLength(7);
+    // Carnet, « → ATELIER », « → SOUTE », INVENTAIRE, CARTE et IA STATION.
+    expect(ouvrants).toHaveLength(6);
     expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     const lien = entre(
@@ -301,18 +311,16 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('action indisponible dans une bulle : visible, « ⊘ », raison à droite, aria-disabled, jamais barrée (12 §3.7)', async () => {
     const jeu = await commencer(env);
-    const menu = observer(monde, jeu.partie.etat).menu;
-    const regarder = menu.find((option) => option.action === 'regarder' && option.cible.sorte === 'passage');
-    const aller = menu.find((option) => option.action === 'aller');
-    if (regarder === undefined || aller === undefined || aller.disponible) throw new Error('Passage fermé attendu au départ.');
-    // Le monde de test n'a pas encore d'action indisponible dans une bulle : on y range le déplacement, fermé au départ.
-    const html = bulleObjet(jeu, { cible: aller.cible as Groupe['cible'], options: [regarder, aller] });
+    // Porte fermée au départ : dans sa bulle, le déplacement est indisponible (D-229).
+    const porte = composerDock(observer(monde, jeu.partie.etat)).deplacements[0];
+    if (porte === undefined || porte.aller.disponible) throw new Error('Passage fermé attendu au départ.');
+    const html = bulleObjet(jeu, porte);
     const ligne = entre(html, '<button type="button" class="ligne indisponible"', '</button>');
     expect(ligne).toContain('aria-disabled="true"');
     expect(ligne).toContain('data-son="refus"');
     expect(ligne).not.toMatch(/disabled=""|<s>|<del>|line-through/);
-    expect(texte(ligne)).toBe('⊘ Aller vers La porte de l’atelier est fermée.');
-    expect(ligne).toContain('aria-label="Aller vers, indisponible : La porte de l’atelier est fermée."');
+    expect(texte(ligne)).toBe('⊘ Aller dans l’atelier La porte de l’atelier est fermée.');
+    expect(ligne).toContain('aria-label="Aller dans l’atelier, indisponible : La porte de l’atelier est fermée."');
     expect(ligne).toContain('<span class="raison">La porte de l’atelier est fermée.</span>');
   });
 
@@ -708,18 +716,19 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(texte(atelier)).toContain('▸ Grille');
     expect(texte(entre(atelier, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit');
     const ouverte = dockDe(rendreAr01(await pc(4)));
+    expect(texte(ouverte)).not.toContain('▸ Grille');
     expect(texte(entre(ouverte, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit → grille');
     const local = dockDe(rendreAr01(await pc(5)));
     expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).toContain('→ atelier maintenance');
     expect(local).not.toMatch(/→ grille/);
   });
 
-  it('bloc en main : « → atelier » par la grille reste visible, indisponible, avec sa raison', async () => {
+  it('bloc en main : « → atelier » par la grille reste visible, en pointillé, nommé avec sa raison (D-229)', async () => {
     const charge = dockDe(rendreAr01(await pc(7)));
-    const grille = entre(charge, '<button type="button" class="deplacement indisponible" aria-disabled="true" aria-label="atelier maintenance', '</button>');
+    const grille = entre(charge, '<button type="button" class="deplacement bloque" aria-haspopup="dialog" aria-expanded="false" aria-label="atelier maintenance', '</button>');
     const raison = 'Ce que vous portez est trop large pour la grille de l’atelier maintenance.';
-    expect(grille).toContain(`aria-label="atelier maintenance, indisponible : ${raison}"`);
-    expect(texte(grille)).toBe(`⊘ atelier maintenance ${raison}`);
+    expect(grille).toContain(`aria-label="atelier maintenance, ${raison}"`);
+    expect(texte(grille)).toBe('→ atelier maintenance');
   });
 
   it('IA Station : au réveil puis à l’arrivée au local énergie, encadrée après le récit, écrite comme lui ; rien à l’action suivante', async () => {

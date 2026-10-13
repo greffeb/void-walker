@@ -159,14 +159,15 @@ Dans cet ordre :
 - Titre « ── DANS LA PIÈCE ── ».
 - **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 46 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
 - Titre « ── SE DÉPLACER VERS ── » (remplace « Sorties »). [Validé]
-- **Boutons de déplacement** : un par passage connu, pleine largeur, vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre l'aperçu de déplacement (§4.3).
-- **Passage sans signalétique** (grille haute, conduit) : il rejoint « Se déplacer vers » seulement une fois ouvert ; avant, il n'est qu'une puce d'objet. Tant que sa destination n'est pas découverte, le bouton porte le nom du passage, « → GRILLE HAUTE » (OP-03). [Validé D-147]
+- **Boutons de déplacement** : un par passage connu, sur deux colonnes comme les puces, une seule quand deux ne tiennent plus (D-230), vidéo inverse, « → NOM DE LA DESTINATION ». Pas de voyant d'air sur ces boutons : il reste sur la carte. [Validé] Toucher un bouton ouvre la bulle du passage (§3.5) : sa fiche, « ▸ Aller dans l'atelier », puis « ▸ Ouvrir » ou « ▸ Fermer ». Les portes n'ont pas de puce dans « Dans la pièce ». [Validé D-229]
+- **Déplacement impossible** (porte fermée, objet porté trop large) : le bouton reste activable, il ouvre la bulle où le déplacement est indisponible avec sa raison (§3.7). Contour pointillé, sans fond ; la raison n'est pas écrite sur le bouton, le lecteur d'écran seul la lit : « atelier, La porte de l'atelier est fermée. ». [Validé D-230]
+- **Passage sans signalétique** (grille haute, conduit) : il rejoint « Se déplacer vers » une fois ouvert, et y reste même refermé ; avant, il n'est qu'une puce d'objet. Tant que sa destination n'est pas découverte, le bouton porte le nom du passage, « → GRILLE HAUTE » (OP-03). [Validé D-147, D-229]
 
 ### 3.5 Bulle de composition
 
 Superposition légère, pas une grande modale. [Validé] Le porteur du projet en a esquissé le modèle dans la maquette : petit menu d'actions près de l'objet touché.
 
-- **Ouverture :** toucher une puce d'objet. La puce passe en vidéo inverse. L'écran reste visible derrière un voile de 35 %.
+- **Ouverture :** toucher une puce d'objet, ou un bouton « Se déplacer vers » (D-229). La puce passe en vidéo inverse. L'écran reste visible derrière un voile de 35 %.
 - **Placement :** au-dessus de la puce touchée, avec une flèche (losange de 12 px) qui la pointe. Alignée à gauche pour la colonne de gauche, à droite pour celle de droite, à 16 px des bords. Elle ne sort jamais de l'écran ; si la place manque au-dessus, elle s'ouvre en dessous. [Proposé]
 - **Largeur qui suit l'étape :** environ 230 px pour les actions, 300 pour le paramètre, pleine largeur moins les marges pour l'aperçu.
 - **En-tête :**
@@ -177,7 +178,8 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 - **Étape 1, action :** une ligne par manipulation plausible, « ▸ Déplacer », « ▸ Monter dessus », « ▸ Prendre », hauteur 44 px, filets entre les lignes. Les actions indisponibles restent visibles (§3.7).
 - **Étape 2, paramètre :** libellé « OÙ ? », puis une ligne par position ou cible. Selon l'action, le libellé peut devenir « SUR QUOI ? » ou « AVEC QUOI ? ». [Proposé] Une action sans paramètre saute cette étape.
 - **Étape 3, aperçu** (§3.8), puis deux boutons : ANNULER (un tiers de la largeur, contour) et CONFIRMER (deux tiers, vidéo inverse).
-- **Un seul toucher :** prendre ou poser sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». [Validé D-182]
+- **Un seul toucher :** prendre, poser ou changer de pièce sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». [Validé D-182, D-229]
+- **Bulle d'un passage :** la ligne du déplacement nomme où il mène, « ▸ Aller dans l'atelier », « ▸ Passer par la grille » si la destination est inconnue ; elle vient en tête, avant « ▸ Ouvrir » ou « ▸ Fermer ». [Détail de l'agent, D-229]
 - **Fermer sans effet :** « ✕ », ANNULER, toucher hors de la bulle, retour système. [Proposé]
 - La phrase « Rien ne se passe avant confirmation » est retirée. [Validé]
 
@@ -186,7 +188,7 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 Fiches d'objet, choix d'action et aperçus, déplacement compris, utilisent la bulle de §3.5, ancrée sur l'élément touché. Le panneau bas de la maquette (poste d'appel, aperçu de déplacement) est abandonné. [Validé D-146]
 
 - Une fiche longue (poste d'appel) prend toute la largeur moins les marges et défile à l'intérieur de la bulle si besoin. [Proposé]
-- Pour un bouton de déplacement pleine largeur, la bulle s'ouvre au-dessus de lui, flèche centrée. [Proposé]
+- Pour un bouton de déplacement, la bulle s'ouvre au-dessus de lui comme pour une puce, flèche vers le bouton. [D-230]
 
 ### 3.7 Action indisponible
 
@@ -307,9 +309,9 @@ Texte d'exemple :
 - **Dock :** ▸ Poste d'appel, ▸ Signalétique d'évacuation. SE DÉPLACER VERS : → ATELIER DE SERVICE, → GALERIE TECHNIQUE.
 - **Navigation :** INVENTAIRE · CARTE · IA STATION.
 
-**Aperçu de déplacement** : toucher « → ATELIER DE SERVICE ». [Validé : aperçu et confirmation pour se déplacer ; sans risque connu ni coût, le toucher fait le déplacement directement, lu « atelier de service, sans confirmation », D-182]
+**Aperçu de déplacement** : toucher « → ATELIER DE SERVICE », puis « ▸ Aller dans l'atelier de service » dans la bulle du passage (D-229). [Validé : aperçu et confirmation pour se déplacer ; sans risque connu ni coût, la ligne fait le déplacement directement, lue « Aller dans l'atelier de service, sans confirmation », D-182]
 
-- Bulle ancrée sur le bouton (§3.6, D-146 ; la maquette montre encore un panneau bas) : « ALLER VERS › », puis « ATELIER DE SERVICE » en `accent` 19/600.
+- Bulle ancrée sur le bouton (§3.6, D-146 ; la maquette montre encore un panneau bas) : « ‹ », « ALLER VERS › », puis « ATELIER DE SERVICE » en `accent` 19/600.
 - SAVOIR seul, sans ligne RISQUE ni COÛT (aucun risque connu, aucun coût, D-187) : « Vous quitterez le Salon de transit. »
 - Boutons ANNULER / CONFIRMER. Pas de phrase « Rien ne se passe avant confirmation ». [Validé]
 - CONFIRMER fait le déplacement et mène à l'écran de la pièce d'arrivée.

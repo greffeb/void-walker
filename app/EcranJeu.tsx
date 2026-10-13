@@ -11,9 +11,11 @@ import {
   nomDestination,
   nomParametre,
   nomPuce,
+  passagesOuverts,
   precedente,
   REGARDER_AUTOUR,
   unToucher,
+  type Deplacement,
   type Dock,
   type Etape,
   type Groupe,
@@ -47,14 +49,14 @@ const NAV_IA = 'IA Sta\u00adtion';
 const NAV_CARTE = 'Carte';
 
 /**
- * Bulle ouverte : une puce de la pièce, l'inventaire (liste, puis fiche d'un objet porté), un déplacement, la fenêtre d'IA Station, ou la carte (14 §2.1).
+ * Bulle ouverte : une puce de la pièce ou un bouton « Se déplacer vers » (D-229), l'inventaire (liste, puis fiche d'un objet porté), la fenêtre
+ * d'IA Station, ou la carte (14 §2.1).
  * `action` : action choisie ; `null` à l'étape de la fiche. `parametre` : paramètre choisi à l'étape « OÙ ? », sinon `null`.
  * `nouveaux` : messages qui n'étaient pas encore lus à l'ouverture de la fenêtre, marqués NOUVEAU tant qu'elle reste ouverte.
  */
 type Ouverte =
   | { readonly zone: 'piece'; readonly cible: string; readonly ancre: HTMLElement; readonly action: IdAction | null; readonly parametre: string | null }
   | { readonly zone: 'inventaire'; readonly cible: string | null; readonly action: IdAction | null; readonly parametre: string | null }
-  | { readonly zone: 'deplacement'; readonly cible: string; readonly ancre: HTMLElement }
   | { readonly zone: 'ia'; readonly nouveaux: readonly string[] }
   | { readonly zone: 'carte' };
 
@@ -106,7 +108,7 @@ export function EcranJeu({
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
-  const dock = composerDock(observation);
+  const dock = composerDock(observation, passagesOuverts(jeu.partie));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
   /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
@@ -201,10 +203,6 @@ export function EcranJeu({
   };
   const lire: Lire = (option) => consulter(env, jeu.partie, option);
   const voir: Prevoir = (option) => prevoir(env, jeu.partie, option);
-  const toucherDeplacement = (option: OptionMenu, ancre: HTMLElement): void => {
-    if (direct(option)) jouer(option);
-    else ouvrir({ zone: 'deplacement', cible: option.cible.id, ancre }, ancre);
-  };
   const nonLus = jeu.partie.etat.messages.filter((message) => !lus.includes(message));
   // Gratuit (D-014) : la fenêtre montre les messages déjà reçus, sans question possible (C-06 K-06).
   const ouvrirIA = (depuis: HTMLElement): void => {
@@ -212,9 +210,7 @@ export function EcranJeu({
     lireMessages(jeu);
   };
 
-  const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
-  const deplacementOuvert =
-    ouverte?.zone === 'deplacement' ? dock.deplacements.find((option) => option.cible.id === ouverte.cible && option.disponible) : undefined;
+  const groupeOuvert = ouverte?.zone === 'piece' ? [...dock.piece, ...dock.deplacements].find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
   return (
     // Pendant l'écriture, tout toucher agit normalement et affiche le texte en entier.
     <main className="jeu" onPointerDownCapture={completer} onKeyDownCapture={completer}>
@@ -253,17 +249,14 @@ export function EcranJeu({
           textes={textes}
           occupe={occupe}
           puceOuverte={ouverte?.zone === 'piece' ? ouverte.cible : null}
-          deplacementOuvert={ouverte?.zone === 'deplacement' ? ouverte.cible : null}
           ouvrir={(groupe, ancre) => ouvrir({ zone: 'piece', cible: groupe.cible.id, ancre, action: null, parametre: null }, ancre)}
-          ouvrirDeplacement={toucherDeplacement}
-          direct={direct}
           jouer={jouer}
         />
       )}
       {/* Toucher en dehors de la bulle la referme sans effet (12 §3.5). */}
       {ouverte !== null && (
         <div
-          className={ouverte.zone === 'piece' || ouverte.zone === 'deplacement' ? 'voile voile-haut' : 'voile'}
+          className={ouverte.zone === 'piece' ? 'voile voile-haut' : 'voile'}
           data-testid="voile"
           data-son={sonDeFermetureZone(ouverte.zone)}
           onClick={fermer}
@@ -285,9 +278,6 @@ export function EcranJeu({
           direct={direct}
           fermer={fermer}
         />
-      )}
-      {ouverte?.zone === 'deplacement' && deplacementOuvert !== undefined && (
-        <BulleDeplacement ancre={ouverte.ancre} option={deplacementOuvert} textes={textes} occupe={occupe} jouer={jouer} prevoir={voir} fermer={fermer} />
       )}
       <div className="bas">
         {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
@@ -430,6 +420,7 @@ interface PropsComposition {
 /** Fil d'une étape (12 §3.5) ; le paramètre garde sa casse : « CAISSE › DÉPLACER › sous la grille ». */
 function Fil({ textes, groupe, etape }: { readonly textes: TextesMonde; readonly groupe: Groupe; readonly etape: Etape }) {
   if (etape.type === 'fiche') return filBulle(textes, groupe.cible);
+  if (etape.type === 'apercu' && etape.option.action === 'aller') return filBulle(textes, groupe.cible, etape.option);
   const action = etape.type === 'parametre' ? etape.action : etape.option.action;
   const parametre = etape.type === 'apercu' ? etape.option.parametre : undefined;
   return (
@@ -469,31 +460,6 @@ export function BulleObjet({ ancre, groupe, ...props }: PropsComposition & { rea
       pied={etape.type === 'apercu' ? <Confirmation occupe={props.occupe} confirmer={() => props.jouer(etape.option)} annuler={props.fermer} /> : undefined}
     >
       <Composer groupe={groupe} etape={etape} idDescription={idDescription} {...props} />
-    </BulleAncree>
-  );
-}
-
-/** Déplacement (12 §4.3) : aperçu ancré sur le bouton, puis CONFIRMER. */
-export function BulleDeplacement({
-  ancre,
-  option,
-  textes,
-  occupe,
-  jouer,
-  prevoir: voir,
-  fermer,
-}: Pick<PropsComposition, 'textes' | 'occupe' | 'jouer' | 'prevoir' | 'fermer'> & { readonly ancre: HTMLElement; readonly option: OptionMenu }) {
-  const idDescription = useId();
-  return (
-    <BulleAncree
-      ancre={ancre}
-      titre={filBulle(textes, option.cible, option)}
-      decrite={idDescription}
-      etape={option.cible.id}
-      fermer={fermer}
-      pied={<Confirmation occupe={occupe} confirmer={() => jouer(option)} annuler={fermer} />}
-    >
-      <ApercuAction apercu={voir(option)} idDescription={idDescription} />
     </BulleAncree>
   );
 }
@@ -605,8 +571,9 @@ function Composer({
       {lignes.length > 0 && (
         <ul className="lignes">
           {lignes.map((action) => {
-            const { raison } = libelleOption(textes, action);
-            const verbe = textes.verbes[action.action];
+            const { libelle, raison } = libelleOption(textes, action);
+            // Dans la bulle d'un passage, le déplacement nomme où il mène : « Aller dans l'atelier », « Passer par la grille » (D-229).
+            const verbe = action.action === 'aller' ? libelle : textes.verbes[action.action];
             return (
               <li key={action.action}>
                 {raison !== null ? (
@@ -877,29 +844,22 @@ function Recit({
   );
 }
 
-/** Dock (12 §3.4) : une puce par objet ou passage de la pièce, qui ouvre sa bulle, puis un bouton par passage connu. */
+/** Dock (12 §3.4) : une puce par objet de la pièce, puis un bouton par passage connu ; chacun ouvre sa bulle (D-229). */
 // Pendant l'enregistrement d'une action, rien ne s'ouvre : une bulle calculée sur l'état d'avant serait périmée (C-01 §4).
 export function DockPiece({
   dock,
   textes,
   occupe,
   puceOuverte,
-  deplacementOuvert,
   ouvrir,
-  ouvrirDeplacement,
-  direct,
   jouer,
 }: {
   readonly dock: Dock;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
-  /** Cible dont la bulle est ouverte : sa puce passe en vidéo inverse. */
+  /** Cible dont la bulle est ouverte : sa puce ou son bouton passe en vidéo inverse. */
   readonly puceOuverte: string | null;
-  readonly deplacementOuvert: string | null;
   readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
-  /** Ouvre l'aperçu du déplacement, ou le joue s'il se fait d'un seul toucher. */
-  readonly ouvrirDeplacement: (option: OptionMenu, ancre: HTMLElement) => void;
-  readonly direct: Direct;
   /** « Regarder autour de vous » : gratuit, sans aperçu. */
   readonly jouer: Jouer;
 }) {
@@ -935,15 +895,14 @@ export function DockPiece({
         <>
           <h2 className="titre-section">Se déplacer vers</h2>
           <ul className="deplacements">
-            {dock.deplacements.map((option) => (
-              <li key={option.cible.id}>
-                <Deplacement
-                  option={option}
+            {dock.deplacements.map((deplacement) => (
+              <li key={deplacement.cible.id}>
+                <BoutonDeplacement
+                  deplacement={deplacement}
                   textes={textes}
                   occupe={occupe}
-                  ouverte={option.cible.id === deplacementOuvert}
-                  direct={direct(option)}
-                  ouvrir={ouvrirDeplacement}
+                  ouverte={deplacement.cible.id === puceOuverte}
+                  ouvrir={(ancre) => ouvrir(deplacement, ancre)}
                 />
               </li>
             ))}
@@ -954,34 +913,35 @@ export function DockPiece({
   );
 }
 
-function Deplacement({
-  option,
+/**
+ * Bouton « → DESTINATION » : il ouvre la bulle du passage. Un déplacement impossible (porte fermée) se voit au contour
+ * pointillé, sans fond ; sa raison est lue avec le nom (12 §2.6, §3.7).
+ */
+function BoutonDeplacement({
+  deplacement,
   textes,
   occupe,
   ouverte,
-  direct,
   ouvrir,
 }: {
-  readonly option: OptionMenu;
+  readonly deplacement: Deplacement;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
   readonly ouverte: boolean;
-  readonly direct: boolean;
-  readonly ouvrir: (option: OptionMenu, ancre: HTMLElement) => void;
+  readonly ouvrir: (ancre: HTMLElement) => void;
 }) {
-  const { raison } = libelleOption(textes, option);
-  const destination = nomDestination(textes, option);
-  if (raison !== null) return <Indisponible classe="deplacement" libelle={destination} raison={raison} />;
+  const { raison } = libelleOption(textes, deplacement.aller);
+  const destination = nomDestination(textes, deplacement.aller);
   return (
     <button
       type="button"
-      className="deplacement"
-      aria-haspopup={direct ? undefined : 'dialog'}
-      aria-expanded={direct ? undefined : ouverte}
-      aria-label={direct ? `${destination}${SANS_CONFIRMATION}` : undefined}
+      className={raison === null ? 'deplacement' : 'deplacement bloque'}
+      aria-haspopup="dialog"
+      aria-expanded={ouverte}
+      aria-label={raison === null ? undefined : `${destination}, ${raison}`}
       disabled={occupe}
-      onClick={(evenement) => ouvrir(option, evenement.currentTarget)}
-      data-son={direct ? 'confirmer' : 'bulle'}
+      onClick={(evenement) => ouvrir(evenement.currentTarget)}
+      data-son="bulle"
     >
       <span aria-hidden="true">→ </span>
       {destination}

@@ -29,13 +29,19 @@ export interface Groupe {
 }
 
 export interface Dock {
-  /** « Dans la pièce » : objets puis passages, sans le déplacement. */
+  /** « Dans la pièce » : objets, et passages qui ne se savent pas encore passages (D-147). */
   readonly piece: readonly Groupe[];
   readonly autour: OptionMenu | undefined;
-  /** « Se déplacer vers » : un bouton par passage connu. */
-  readonly deplacements: readonly OptionMenu[];
+  /** « Se déplacer vers » : un bouton par passage connu, qui ouvre sa bulle : fiche, aller, ouvrir ou fermer (D-229). */
+  readonly deplacements: readonly Deplacement[];
   /** Objets portés, ouverts par le bouton INVENTAIRE. */
   readonly inventaire: readonly Groupe[];
+}
+
+/** Bouton « Se déplacer vers » : le passage, ses options (« Aller » en tête) et le déplacement qui le nomme. */
+export interface Deplacement extends Groupe {
+  readonly cible: RefPassage;
+  readonly aller: OptionMenu;
 }
 
 function grouper(cibles: readonly (RefObjet | RefPassage)[], options: readonly OptionMenu[]): Groupe[] {
@@ -44,20 +50,37 @@ function grouper(cibles: readonly (RefObjet | RefPassage)[], options: readonly O
     .filter((groupe) => groupe.options.length > 0);
 }
 
-/** Range chaque option du menu moteur à une seule place de l'écran (12 §3.4). */
-export function composerDock(observation: Observation): Dock {
-  const autres = observation.menu.filter((option) => option.action !== 'aller');
+/**
+ * Range chaque option du menu moteur à une seule place de l'écran (12 §3.4). `ouverts` : passages que le passager a déjà
+ * ouverts, retrouvés dans l'enregistrement (`passagesOuverts`) ; refermés, ils restent des passages (D-229).
+ */
+export function composerDock(observation: Observation, ouverts: readonly string[] = []): Dock {
+  const deplacements = observation.passages.flatMap((passage): Deplacement[] => {
+    const options = observation.menu.filter((option) => option.cible.id === passage.id);
+    const aller = options.find((option) => option.action === 'aller');
+    if (aller === undefined || !connuCommePassage(passage, ouverts)) return [];
+    return [{ cible: passage, aller, options: [aller, ...options.filter((option) => option !== aller)] }];
+  });
+  const autres = observation.menu.filter((option) => option.action !== 'aller' && !deplacements.some((deplacement) => deplacement.options.includes(option)));
   return {
     piece: grouper([...observation.objets, ...observation.passages], autres),
     autour: autres.find((option) => option.cible.sorte === 'piece'),
-    deplacements: observation.menu.filter((option) => option.action === 'aller' && signaleOuOuvert(option.cible)),
+    deplacements,
     inventaire: grouper(observation.inventaire, autres),
   };
 }
 
-/** Un passage sans signalétique ne rejoint « Se déplacer vers » qu'une fois ouvert ; avant, il n'est qu'une puce (D-147). */
-function signaleOuOuvert(cible: Cible): boolean {
-  return cible.sorte !== 'passage' || cible.signale || cible.ouvert;
+/**
+ * Un passage sans signalétique reste un objet de la pièce tant que le passager ne l'a pas ouvert ; ensuite il se range avec
+ * les portes, même refermé (D-147, D-229).
+ */
+function connuCommePassage(passage: RefPassage, ouverts: readonly string[]): boolean {
+  return passage.signale || passage.ouvert || passage.vers !== null || ouverts.includes(passage.id);
+}
+
+/** Passages que le passager a ouverts au moins une fois, d'après les commandes enregistrées. */
+export function passagesOuverts(partie: Partie): string[] {
+  return partie.enregistrement.actions.flatMap(({ commande }) => (commande.action === 'ouvrir' ? [commande.cible] : []));
 }
 
 /** Première étape d'une bulle (12 §3.5) : la consultation est la fiche, gratuite (D-014) ; le reste, les actions. */
