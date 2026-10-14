@@ -69,5 +69,5 @@ Après une fin, une nouvelle partie peut reprendre la même station, même état
 Volume du contenu de lancement, durée 15–30 minutes et diversité réelle seront mesurés, pas déduits du nombre de morceaux.
 
 - Le lancement commence par de petites stations, sans annexes ni boucles ; les grandes viennent seulement si la durée le demande (D-242).
-- La part des stations où la créature peut être mise hors jeu ou enfermée avant le problème final est mesurée avant toute décision ; la créature placée plus souvent près du final reste en réserve (D-241).
-- Les objets nécessaires restent dans leur morceau au lancement de l'assemblage ; ceux placés ailleurs, avec une règle de placement à décider, viendront avec les annexes (D-244). GP-01 sera alors étendu.
+- La part des stations où la créature peut être mise hors jeu ou enfermée (les deux portes de la chambre froide fermées) avant le problème final est mesurée avant toute décision ; la créature placée plus souvent près du final reste en réserve (D-241).
+- Dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche ; les objets placés hors de leur morceau, avec une règle de placement à décider, viendront avec les annexes (D-244). Ce que cette règle changera à GP-01 ou aux règles d'assemblage (§2) se décidera avec elle.

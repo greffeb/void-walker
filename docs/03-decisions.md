@@ -1806,13 +1806,13 @@ Questions posées avant de coder #105, sur des points que D-163 à D-170 laissai
 
 ## Décisions validées — point sur les morceaux, avant #106
 
-Questions posées après un point d'ensemble sur les morceaux, leurs outils et la suite du jeu ; réponses du porteur du projet le 2026-10-14, à chaque fois l'option recommandée.
+Questions posées après un point d'ensemble sur les morceaux, leurs outils et la suite du jeu ; réponses du porteur du projet le 2026-10-14, citées mot pour mot dans chaque entrée, avec leurs réserves et conditions.
 
 ### D-241 — Créature mise hors jeu tôt : on mesure avant de décider
 
 - Date / statut : 2026-10-14 / **Validé**.
 - Origine : réponse Q-166 « (c), avec (b) en réserve » : (c) attendre les mesures, (b) une créature placée plus souvent près du problème final.
-- Décision : si la créature est neutralisée ou enfermée dès le premier obstacle (tombée de la passerelle, chambre froide refermée sur elle), la suite de la station n'a plus de menace. On ne change rien au tirage pour l'instant : #106 mesure, sur ses tirages, la part des stations où la créature peut être neutralisée ou enfermée avant le problème final, et celle où elle ne part pas du morceau final. Le porteur décide sur ces mesures et sur ses parties.
+- Décision : si la créature est neutralisée ou enfermée dès le premier obstacle (tombée de la passerelle, ou enfermée dans la chambre froide, les deux portes fermées), la suite de la station n'a plus de menace. Seulement ralentie, une porte fermée à la main et l'autre restée ouverte, elle peut encore sortir : elle reste une menace, plus lente (D-166, D-239). On ne change rien au tirage pour l'instant : #106 mesure, sur ses tirages, la part des stations où la créature peut être neutralisée ou enfermée avant le problème final, et celle où elle ne part pas du morceau final. Le porteur décide sur ces mesures et sur ses parties.
 - Limite : la réserve, une créature placée plus souvent près du problème final, modifierait D-161, D-162 et C-08 §2 ; elle demandera une décision explicite.
 
 ### D-242 — Petites stations d'abord, grandes si la durée le demande
@@ -1820,7 +1820,8 @@ Questions posées après un point d'ensemble sur les morceaux, leurs outils et l
 - Date / statut : 2026-10-14 / **Validé**.
 - Origine : réponse Q-167 « ok pour ta reco ».
 - Décision : le lancement commence par de petites stations, environ six à dix pièces : départ, un ou deux morceaux de chemin, un morceau final et l'embarquement, sans annexes ni boucles. Les grandes stations (annexes, boucles, vingt pièces et plus) viennent avant la publication seulement si la durée mesurée des parties (15 à 30 minutes, D-008) le demande.
-- Précise : D-205, qui reste possible, et D-214 : #106 garde le plan du chemin principal (GE-01 à GE-07) ; les annexes, les boucles et les règles qui les encadrent (GE-08 à GE-13) passent dans une issue des grandes stations, à créer avec l'accord du porteur.
+- Précise : D-205, qui reste possible.
+- Limite : #106 assemble d'abord ces petites stations. Que #106 s'arrête au plan du chemin principal (GE-01 à GE-07) et que les annexes, les boucles et GE-08 à GE-13 passent dans une issue à part n'est pas décidé : c'est une proposition du découpage de #106 ([13 §7](13-morceaux-lancement.md#7-découpage-proposé-de-106), question 1 du §7.4). D-214 reste inchangée tant que le porteur n'a pas répondu ; s'il accepte, une nouvelle entrée portera « Modifie : D-214 ».
 
 ### D-243 — Un lore léger au lancement, écrit avec soin par l'assistant principal
 
@@ -1835,7 +1836,7 @@ Questions posées après un point d'ensemble sur les morceaux, leurs outils et l
 - Date / statut : 2026-10-14 / **Validé**.
 - Origine : réponse Q-169 « ok, mais a bien garder en mémoire ».
 - Décision : dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche. Les objets placés hors de leur morceau, comme l'eau du feu posée dans une pièce quelconque atteinte avant le feu, viendront avec les annexes (D-242).
-- Limite : à garder en mémoire ; le point est inscrit dans la [roadmap](02-roadmap.md), dans [13 §6](13-morceaux-lancement.md#6-suite), dans [14 §7](14-carte.md#7-découpage) et dans [C-08 §7](contrats/C-08-stations-fins.md#7-réserves). La règle de placement reste à décider ; piste recommandée : un objet nécessaire se pose toujours dans la partie de la station qu'on peut atteindre avant l'obstacle qui le demande, jamais derrière, et le vérifieur le confirme.
+- Limite : à garder en mémoire ; le point est inscrit dans la [roadmap](02-roadmap.md), dans [13 §6](13-morceaux-lancement.md#6-suite), dans [14 §7](14-carte.md#7-découpage) et dans [C-08 §7](contrats/C-08-stations-fins.md#7-réserves). La règle de placement reste à décider ; proposition de l'agent, que le porteur n'a pas tranchée : un objet nécessaire se poserait toujours dans la partie de la station qu'on peut atteindre avant l'obstacle qui le demande, jamais derrière, et le vérifieur le confirmerait.
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 

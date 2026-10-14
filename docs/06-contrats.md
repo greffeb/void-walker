@@ -394,7 +394,7 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
 2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
-Q-01 à Q-169 sont répondus ; les prochains numéros d'entretien commencent à Q-170. Les questions à poser avant la première station assemblée de #106 sont listées dans [13 §7.4](13-morceaux-lancement.md#74-questions-à-poser-au-porteur). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-169 sont répondus ; les prochains numéros d'entretien commencent à Q-170. Les questions à poser au porteur pendant #106, sur son découpage, avant la première station assemblée et avant les stations des chemins de la première aventure, sont listées dans [13 §7.4](13-morceaux-lancement.md#74-questions-à-poser-au-porteur). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
