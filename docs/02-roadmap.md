@@ -1,7 +1,7 @@
 # Void Walker V2 — roadmap proposée
 
 > **Statut :** PROPOSITION DE SÉQUENCEMENT — pas un planning accepté ni une autorisation d'exécution.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-14.
 
 ## Règles de lecture
 
@@ -71,6 +71,8 @@ Intentions déjà demandées :
 - Assemblages négatifs rejetés ou explicitement diagnostiqués.
 - Campagnes stratifiées de bots et lecture humaine de situations variées.
 
+**Plan proposé le 2026-10-14 :** #106 en livraisons L0 à L6 ([13 §7](13-morceaux-lancement.md#7-découpage-proposé-de-106)) : petites stations d'abord (D-242), objets dans leur morceau (D-244), mesure de la créature mise hors jeu avant le problème final (D-241). Ensuite, seulement si la durée des parties le demande : catalogue des pièces sans obstacle, grandes stations (annexes, boucles, vérifieur par morceaux), puis objets placés hors de leur morceau et salles de butin, qui ont besoin des annexes et seront le premier vrai réglage de la difficulté.
+
 **Sortie proposée :** diversité utile mesurée, pas seulement diversité de noms ; pas de revendication « toujours gagnable » après toute action du joueur.
 
 ## Phase 4 — contenu de lancement et expérience mobile
@@ -80,6 +82,8 @@ Intentions déjà demandées :
 - Visuels et audio selon périmètre ; provenance et licences documentées.
 - Accessibilité, ergonomie des actions composées, installation et reprise sur appareils ciblés.
 - Équilibrage après correction des contrats, pas en compensation des bugs.
+- Lore léger (D-243) : une conception d'abord (nombre de documents, longueur, place, ce qu'un document peut révéler), puis des documents écrits par l'assistant principal. Lire reste gratuit ; une action « lire » touche un peu au moteur, donc jamais en même temps qu'une autre issue moteur.
+- Mesures : bots sur 1 000 stations et parties du porteur ; durée, difficulté, créature mise hors jeu tôt (D-241).
 
 **Sortie proposée :** contenu fini, cohérence et expérience acceptées, critères de lancement satisfaits.
 
@@ -95,3 +99,13 @@ Intentions déjà demandées :
 ## Après lancement — hors définition de fin actuelle
 
 Stores mobiles, IA de narration, contenu supplémentaire, nouvelles mécaniques et métaprogression ne sont pas automatiquement autorisés. Ils devront faire l'objet d'un nouveau cadrage.
+
+Pistes proposées le 2026-10-14, dans cet ordre, sans décision :
+
+1. **Poste de sécurité**, nouveau morceau inspiré de Duskers : portes motorisées commandées à distance, détecteurs de mouvement. À brider, car la créature n'ouvre jamais une porte : fermer à distance serait une arme très puissante.
+2. **Objectif en données**, puis exfiltration (évacuer avec un objet à emporter), puis extermination (neutraliser devient une fin, ce qui amende D-018).
+3. **Menace en données** (sens, gabarit, portes, peurs, vitesse), puis dangers qui se propagent comme le feu (essaim de nanobots, champignon), variantes de la créature (robot, alien qui ouvre les portes), IA corrompue, qui suppose le poste de sécurité.
+4. **Enquête**, qui repose sur les documents du lore.
+5. **Personnages non joueurs**, puis escorte, coéquipier ou savant fou : le plus coûteux.
+
+Univers, menace et objectif pourront alors se choisir au tirage (par exemple exfiltration et essaim de nanobots, extermination et champignon, escorte et savant fou), à deux conditions : les textes rangés par couches ([13 §7.2](13-morceaux-lancement.md#72-textes-par-couches)) et des règles propres à chaque menace dans le moteur ; un jeu de textes ne change que les phrases. Chaque nouvelle mécanique passe par les canaux communs (son, air, feu, gravité, portes), pour que les mélanges restent tenables. Plusieurs pistes touchent des décisions validées (une seule famille de scénarios D-017, évacuation D-018, pas d'échéance globale D-021, une seule créature D-120) : elles demanderont un nouveau cadrage.

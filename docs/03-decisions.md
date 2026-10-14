@@ -22,10 +22,10 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
-| Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement) |
+| Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont) |
@@ -1803,6 +1803,39 @@ Questions posées avant de coder #105, sur des points que D-163 à D-170 laissai
 - Origine : réponse Q-165 « Une blessure à chaque action de plus ».
 - Décision : comme le feu (D-188), le passager est blessé à la troisième action de suite qu'il finit dans la chambre froide, puis encore à chaque action qu'il y finit ; c'est annoncé avant d'agir. Ressortir remet le compte à zéro.
 - Précise : D-166 et C-04 §3.2.
+
+## Décisions validées — point sur les morceaux, avant #106
+
+Questions posées après un point d'ensemble sur les morceaux, leurs outils et la suite du jeu ; réponses du porteur du projet le 2026-10-14, à chaque fois l'option recommandée.
+
+### D-241 — Créature mise hors jeu tôt : on mesure avant de décider
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-166 « (c), avec (b) en réserve » : (c) attendre les mesures, (b) une créature placée plus souvent près du problème final.
+- Décision : si la créature est neutralisée ou enfermée dès le premier obstacle (tombée de la passerelle, chambre froide refermée sur elle), la suite de la station n'a plus de menace. On ne change rien au tirage pour l'instant : #106 mesure, sur ses tirages, la part des stations où la créature peut être neutralisée ou enfermée avant le problème final, et celle où elle ne part pas du morceau final. Le porteur décide sur ces mesures et sur ses parties.
+- Limite : la réserve, une créature placée plus souvent près du problème final, modifierait D-161, D-162 et C-08 §2 ; elle demandera une décision explicite.
+
+### D-242 — Petites stations d'abord, grandes si la durée le demande
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-167 « ok pour ta reco ».
+- Décision : le lancement commence par de petites stations, environ six à dix pièces : départ, un ou deux morceaux de chemin, un morceau final et l'embarquement, sans annexes ni boucles. Les grandes stations (annexes, boucles, vingt pièces et plus) viennent avant la publication seulement si la durée mesurée des parties (15 à 30 minutes, D-008) le demande.
+- Précise : D-205, qui reste possible, et D-214 : #106 garde le plan du chemin principal (GE-01 à GE-07) ; les annexes, les boucles et les règles qui les encadrent (GE-08 à GE-13) passent dans une issue des grandes stations, à créer avec l'accord du porteur.
+
+### D-243 — Un lore léger au lancement, écrit avec soin par l'assistant principal
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-168 « oui, mais attention a l'écrIture qui doit etre de qualité c'est toi qui va le faire ».
+- Décision : le lancement accueille un lore léger : quelques documents à lire dans la station (journaux de bord, notes, messages, écrans), écrits à la main, qui donnent de la profondeur à l'histoire et servent aussi d'indices pour découvrir les solutions. L'assistant principal, celui qui tient la conversation avec le porteur, les écrit lui-même, avec une exigence de qualité d'écriture ; il ne les délègue pas à un exécutant. Lire reste gratuit (D-014).
+- Précise : D-116 ; ces textes restent en zone verte, fusionnés après relecture indépendante.
+- Limite : la forme (nombre de documents par station, longueur, place, ce qu'un document peut révéler, effet éventuel de la lecture sur ce que sait le passager) se décide avant d'écrire, dans une conception à part. C-07 s'applique, et aucun document ne contredit l'état réel (C-05). Brancher plus tard d'autres univers, menaces ou objectifs au moment du tirage n'est pas décidé : c'est une piste de l'après-lancement ([roadmap](02-roadmap.md)).
+
+### D-244 — Objets nécessaires hors de leur morceau : après les annexes, sans les oublier
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-169 « ok, mais a bien garder en mémoire ».
+- Décision : dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche. Les objets placés hors de leur morceau, comme l'eau du feu posée dans une pièce quelconque atteinte avant le feu, viendront avec les annexes (D-242).
+- Limite : à garder en mémoire ; le point est inscrit dans la [roadmap](02-roadmap.md), dans [13 §6](13-morceaux-lancement.md#6-suite), dans [14 §7](14-carte.md#7-découpage) et dans [C-08 §7](contrats/C-08-stations-fins.md#7-réserves). La règle de placement reste à décider ; piste recommandée : un objet nécessaire se pose toujours dans la partie de la station qu'on peut atteindre avant l'obstacle qui le demande, jamais derrière, et le vérifieur le confirme.
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 

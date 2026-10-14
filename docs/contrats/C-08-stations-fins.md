@@ -58,7 +58,7 @@ Après une fin, une nouvelle partie peut reprendre la même station, même état
 | ID | Cas | Attendu |
 | --- | --- | --- |
 | G-01 | Assemblage sans chemin sûr | Station rejetée avec diagnostic |
-| G-02 | Morceau du vide et morceau du feu tirés ensemble | Assemblage refusé |
+| G-02 | Deux morceaux dont le mélange n'a pas encore de règles, tirés ensemble (D-167) | Assemblage refusé |
 | G-03 | Joueur qui consomme la seule ressource indispensable | Signal « plus aucune sortie », partie toujours jouable |
 | G-04 | Sortie restante cachée et non découverte | Aucun signal, aucune indication de la sortie |
 | G-05 | Rejouer la même station | Même départ, tirages différents |
@@ -67,3 +67,7 @@ Après une fin, une nouvelle partie peut reprendre la même station, même état
 ## 7. Réserves
 
 Volume du contenu de lancement, durée 15–30 minutes et diversité réelle seront mesurés, pas déduits du nombre de morceaux.
+
+- Le lancement commence par de petites stations, sans annexes ni boucles ; les grandes viennent seulement si la durée le demande (D-242).
+- La part des stations où la créature peut être mise hors jeu ou enfermée avant le problème final est mesurée avant toute décision ; la créature placée plus souvent près du final reste en réserve (D-241).
+- Les objets nécessaires restent dans leur morceau au lancement de l'assemblage ; ceux placés ailleurs, avec une règle de placement à décider, viendront avec les annexes (D-244). GP-01 sera alors étendu.

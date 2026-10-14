@@ -1,7 +1,7 @@
 # Void Walker V2 — cahier des charges produit
 
 > **Statut :** VERSION DE TRAVAIL 0.8 — AR-01 et AR-02 acceptées en conception ; quatre contrats bornés, starter pack global encore incomplet.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-14.
 
 ## 1. Promesse produit
 
@@ -101,6 +101,10 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-066 | Quatre nouveaux morceaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide, avec leurs règles | D-158, D-163 à D-166, D-168 à D-170 | Conception des morceaux, puis parcours témoins |
 | B-067 | Mélange de morceaux autorisé seulement une fois ses règles décidées ; détail des morceaux proposé par les agents et validé | D-167, D-171 | Document de conception des morceaux accepté |
 | B-068 | Dix morceaux en deux familles (final, chemin), mélanges MX-01 à MX-05, un seul interrupteur des machines | D-172 à D-175 | Parcours sûr par morceau, cas par mélange, partie sur téléphone par morceau |
+| B-069 | Créature mise hors jeu avant le problème final : mesurée avant toute décision ; placement plus souvent près du final gardé en réserve | D-241 | Statistiques de tirage de #106 et parties du porteur |
+| B-070 | Petites stations d'abord (six à dix pièces, sans annexes) ; grandes stations seulement si la durée des parties le demande | D-242 | Durée mesurée sur téléphone, issue des grandes stations si besoin |
+| B-071 | Lore léger au lancement : documents à lire, écrits à la main par l'assistant principal, qui servent aussi d'indices | D-243 | Conception du lore acceptée, contrôles de C-07, lecture par le porteur |
+| B-072 | Objets nécessaires placés hors de leur morceau : après les annexes, à ne pas oublier | D-244 | Règle de placement décidée, puis vérifieur de stations |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 
