@@ -504,6 +504,8 @@ export interface Observation {
   readonly creatureInerte: boolean;
   /** Vue, la créature ralentie par le froid pour toute la partie (D-166). */
   readonly creatureRalentie: boolean;
+  /** Vue, ralentie, figée par le froid : sa prochaine réaction est sautée, elle ne peut pas intercepter (MX-01, C-04 §4). */
+  readonly creatureEngourdie: boolean;
   /** Ponts fragiles posés en travers d'un vide de la pièce (D-164). */
   readonly ponts: readonly { readonly objet: RefObjet; readonly passage: RefPassage }[];
   /** Machines de la pièce, en marche ou arrêtées ; `null` hors d'une salle des machines (D-163). */

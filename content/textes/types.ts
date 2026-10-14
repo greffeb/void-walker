@@ -101,8 +101,9 @@ export interface TextesMonde {
     readonly rebouchee: string;
     /** Le corps inerte de la créature est dans la pièce (D-062). */
     readonly creatureInerte: string;
-    /** Vue, la créature ralentie par le froid (D-166). */
+    /** Vue, la créature ralentie par le froid (D-166) ; figée, quand sa prochaine réaction sera sautée (MX-01). */
     readonly creatureRalentie: string;
+    readonly creatureEngourdie: string;
     /** Pont fragile posé en travers d'un vide de la pièce (D-164). */
     readonly pont: string;
     /** Salle des machines, machines en marche ou arrêtées (D-163). */
@@ -291,6 +292,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   rebouchee: ['objet'],
   creatureInerte: [],
   creatureRalentie: [],
+  creatureEngourdie: [],
   pont: ['objet', 'passage'],
   machinesMarche: [],
   machinesArret: [],

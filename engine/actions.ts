@@ -448,9 +448,10 @@ const verser: ActionEngagee = {
   id: 'verser',
   engage: true,
   cibles: (contexte) => portesAvec(contexte, 'glissant').map((candidat) => candidat.id),
+  // Au pied d'une porte (D-190) : pas au bord du vide d'une passerelle, mélange non décidé (D-174).
   parametres: ({ monde, etat }) =>
     liaisonsVisibles(monde, etat, etat.piece)
-      .filter((liaison) => !huilee(etat, liaison.id, etat.piece))
+      .filter((liaison) => liaison.gouffre !== true && !huilee(etat, liaison.id, etat.piece))
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     const raison = verifierRecipient(contexte, cible, 'glissant');
@@ -867,20 +868,16 @@ function pupitresFermeture({ monde, etat }: Contexte): DefObjet[] {
   return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.fermeture !== undefined);
 }
 
-/** Pupitre de fermeture : une action, les portes de la chambre froide se ferment d'un coup, hors de vue de qui est dedans (D-170, D-239). */
+/**
+ * Pupitre de fermeture : une action, les portes de la chambre froide se ferment d'un coup, hors de vue de qui est dedans (D-170,
+ * D-239). Toujours offert : son option ne dit rien de portes que le passager n'a pas vues (C-01 §4, C-06 §5) ; déjà fermées,
+ * elles le restent.
+ */
 const boucler: ActionEngagee = {
   id: 'boucler',
   engage: true,
-  cibles: (contexte) =>
-    pupitresFermeture(contexte)
-      .filter((candidat) => portesDe(contexte.monde, exiger(candidat.fermeture, 'Chambre absente.')).some((liaison) => contexte.etat.liaisons[liaison.id] === true))
-      .map((candidat) => candidat.id),
-  verifier: (contexte, cible) => {
-    const pupitre = pupitresFermeture(contexte).find((candidat) => candidat.id === cible);
-    if (pupitre === undefined) return 'cible_absente';
-    const ouvertes = portesDe(contexte.monde, exiger(pupitre.fermeture, 'Chambre absente.')).some((liaison) => contexte.etat.liaisons[liaison.id] === true);
-    return ouvertes ? null : 'deja_ferme';
-  },
+  cibles: (contexte) => pupitresFermeture(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => (pupitresFermeture(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente'),
   prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'bouclera', piece: refPiece(monde, exiger(objet(monde, cible).fermeture, 'Chambre absente.')) }] }),
   appliquer: ({ monde, etat }, cible) => {
     const chambre = exiger(objet(monde, cible).fermeture, 'Chambre absente.');

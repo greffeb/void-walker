@@ -317,6 +317,13 @@ describe('passerelle et pont fragile (D-164, D-236)', () => {
     expect(apres?.etat.creature?.neutralisee).toBeUndefined();
   });
 
+  it('l’huile se verse au pied d’une porte, pas au bord du vide (D-190 ; mélange non décidé, D-174)', () => {
+    const avecHuile: DefMonde = { ...PASSERELLE, id: 'essai-passerelle-huile', objets: [...PASSERELLE.objets, { id: 'huile', nom: 'huile', piece: 'depot', glissant: 1 }] };
+    const auBord = fin(suite(avecHuile, partie(avecHuile), [['prendre', 'huile'], ['aller', 'ouest']]));
+    expect(option(avecHuile, auBord, 'verser', 'huile', 'depot')).toMatchObject({ disponible: true });
+    expect(option(avecHuile, auBord, 'verser', 'huile', 'est')).toBeUndefined();
+  });
+
   it('la créature vue partir par la planche la suit et tombe (D-177)', () => {
     const posee = fin(suite(PASSERELLE, partie(PASSERELLE), [['prendre', 'planche'], ['aller', 'ouest'], ['placer', 'planche', 'est'], ['aller', 'est']]));
     const suivie = placee(PASSERELLE, { ...posee.etat, creature: { piece: 'ouest', ...CALME, indice: { piece: 'est', par: 'gouffre' } } });
@@ -449,6 +456,33 @@ const FROID: DefMonde = {
 };
 const SANS_CREATURE: DefMonde = { ...FROID, id: 'essai-froid-seul', creature: undefined };
 
+describe('zone sans gravité : reprise en pleine dérive (T-10)', () => {
+  // La porte grippée du passager, au fond, attire la créature de l'ouest à travers la zone ; un cellier lui laisse un geste discret.
+  const TRAQUE: DefMonde = {
+    ...GRAVITE,
+    id: 'essai-gravite-traque',
+    depart: 'loin',
+    pieces: [...GRAVITE.pieces, { id: 'cellier', nom: 'cellier' }],
+    liaisons: [
+      ...GRAVITE.liaisons.map((liaison) => (liaison.id === 'el' ? { ...liaison, bruyante: true } : liaison)),
+      { id: 'lc', nom: 'porte_lc', entre: ['loin', 'cellier'], ouverte: false },
+    ],
+    creature: { piece: 'ouest' },
+  };
+
+  it('en pleine dérive, la reprise d’une sauvegarde redonne le même état, puis la même suite', () => {
+    expect(validerMonde(TRAQUE)).toEqual([]);
+    const pas = suite(TRAQUE, partie(TRAQUE), [['ouvrir', 'est'], ['ouvrir', 'cellier']]);
+    expect(pas[0]?.partie.etat.creature).toMatchObject({ piece: 'zone', bord: 'oz' });
+    const sauvee = fin(pas);
+    expect(sauvee.etat.creature).toMatchObject({ piece: 'zone', derive: { vers: 'ze', restant: 1 } });
+    const reprise = reprendrePartie(TRAQUE, JSON.parse(JSON.stringify({ enregistrement: sauvee.enregistrement, etat: sauvee.etat })), 'morceaux-1');
+    expect(empreinteEtat(reprise.etat)).toBe(empreinteEtat(sauvee.etat));
+    const [, arrivee] = suite(TRAQUE, reprise, [['fermer', 'cellier'], ['ouvrir', 'cellier']]);
+    expect(arrivee?.partie.etat.creature?.piece).toBe('est');
+  });
+});
+
 describe('chambre froide : le passager (D-166, D-240, C-04 §3.2)', () => {
   it('la fixture est valide ; un pupitre de fermeture loin de sa chambre est refusé', () => {
     expect(validerMonde(FROID)).toEqual([]);
@@ -495,7 +529,17 @@ describe('chambre froide : la créature ralentie (D-166, D-170, D-239, MX-01, MX
     expect(types(bouclee.evenements)).toEqual(['chambre_bouclee']);
     expect(bouclee.partie.etat.liaisons).toEqual({ sc: false, ce: false });
     expect(bouclee.partie.etat.creature?.ralentie).toEqual({ saute: false });
-    expect(option(FROID, bouclee.partie, 'boucler', 'fermeture')).toBeUndefined();
+    // Toujours offert : l'option ne dit rien des portes ; déjà fermées, elles le restent, contre une action.
+    const encore = engager(FROID, bouclee.partie, 'boucler', 'fermeture');
+    expect(encore.partie.etat.liaisons).toEqual({ sc: false, ce: false });
+    expect(encore.partie.etat.actions).toBe(bouclee.partie.etat.actions + 1);
+  });
+
+  it('depuis le sas, l’option du pupitre est la même, porte de l’entrepôt ouverte ou fermée : rien de caché ne s’y lit (C-06 §5)', () => {
+    const ouverte = placee(FROID, { liaisons: { sc: false, ce: true } });
+    const fermee = placee(FROID, { liaisons: { sc: false, ce: false } });
+    expect(option(FROID, ouverte, 'boucler', 'fermeture')).toEqual(option(FROID, fermee, 'boucler', 'fermeture'));
+    expect(apercuDe(FROID, ouverte, 'boucler', 'fermeture')).toEqual(apercuDe(FROID, fermee, 'boucler', 'fermeture'));
   });
 
   it('une porte de la chambre fermée à la main pendant qu’elle est dedans suffit (D-239) ; dehors, rien', () => {
@@ -515,8 +559,11 @@ describe('chambre froide : la créature ralentie (D-166, D-170, D-239, MX-01, MX
     const face = { contact: true, ralentie: { saute: true } };
     const libre = placee(FROID, { piece: 'chambre', creature: { piece: 'chambre', ...CALME, ...face } });
     expect(apercuDe(FROID, libre, 'aller', 'sas')).toMatchObject({ risque: 'aucun' });
+    // Ce que l'aperçu en dit se voit : elle est figée (C-06 §4).
+    expect(observer(FROID, libre.etat)).toMatchObject({ creatureRalentie: true, creatureEngourdie: true });
     const menace = placee(FROID, { piece: 'chambre', creature: { piece: 'chambre', ...CALME, ...face, ralentie: { saute: false } } });
     expect(apercuDe(FROID, menace, 'aller', 'sas')).toMatchObject({ risque: 'eleve', danger: { type: 'interception' } });
+    expect(observer(FROID, menace.etat)).toMatchObject({ creatureRalentie: true, creatureEngourdie: false });
   });
 
   it('fermer la chambre sous ses yeux : le jet d’interception prend sa réaction, la suivante est sautée', () => {
@@ -564,7 +611,7 @@ describe('chambre froide : la créature ralentie (D-166, D-170, D-239, MX-01, MX
     expect(glisse.partie.etat.creature?.ralentie).toBeUndefined();
   });
 
-  it('T-10 : ralentie, en dérive ou tombée, la reprise d’une sauvegarde redonne le même état', () => {
+  it('T-10 : ralentie, la reprise d’une sauvegarde redonne le même état', () => {
     const pas = suite(FROID, partie(FROID), [['aller', 'chambre'], ['declencher', 'compresseur'], ['aller', 'sas'], ['boucler', 'fermeture']]);
     const sauvee = fin(pas);
     expect(sauvee.etat.creature?.ralentie).toBeDefined();

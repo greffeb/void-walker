@@ -123,6 +123,7 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     rebouchees: ici.filter((objet) => etat.rebouchees.includes(objet.id)).map((objet) => refObjet(monde, objet.id)),
     creatureInerte: corpsIci(etat),
     creatureRalentie: creatureEnVue(etat) && etat.creature?.ralentie !== undefined,
+    creatureEngourdie: creatureEnVue(etat) && etat.creature?.ralentie?.saute === true,
     ponts: pontsDe(monde, etat, etat.piece).flatMap((pont) => {
       const emplacement = etat.objets[pont.id];
       const liaison = emplacement?.type === 'pont' ? indexer(monde).liaisons.get(emplacement.liaison) : undefined;

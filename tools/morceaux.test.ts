@@ -1,9 +1,22 @@
-import { apercu, jouer, nouvellePartie, observer, validerMonde, type DefMonde, type Evenement, type OptionMenu, type Partie } from '../engine';
+import {
+  apercu,
+  empreinteEtat,
+  jouer,
+  nouvellePartie,
+  observer,
+  reprendrePartie,
+  validerMonde,
+  type DefMonde,
+  type Evenement,
+  type OptionMenu,
+  type Partie,
+} from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours, type Parcours } from '../content';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 
-// Stations de test des nouveaux morceaux (#105) : parcours sûrs de chaque fiche (docs/13-morceaux-lancement.md §3), cas de
-// contrat joués par le menu public depuis une nouvelle partie, et preuve qu'aucune règle ne lit un nom ni un identifiant.
+// Stations de test des nouveaux morceaux (#105) : parcours sûrs de chaque fiche (docs/13-morceaux-lancement.md §3) et le risqué
+// de la chambre froide, cas de contrat joués par le menu public depuis une nouvelle partie, et preuve qu'aucune règle ne lit un
+// nom ni un identifiant.
 
 const STATIONS = ['m-07', 'm-08', 'm-09', 'm-10'] as const;
 
@@ -60,7 +73,7 @@ function parcours(id: string, debut: string): Parcours {
   return trouve;
 }
 
-describe('stations de test des nouveaux morceaux : parcours sûrs (#105)', () => {
+describe('stations de test des nouveaux morceaux : parcours de leurs fiches (#105)', () => {
   it.each(STATIONS)('%s : monde valide, sans plan ni pièce de départ dangereuse', (id) => {
     const { monde } = entree(id);
     expect(validerMonde(monde)).toEqual([]);
@@ -133,6 +146,9 @@ describe('M-08 — passerelle effondrée (D-164, D-169, D-236)', () => {
     expect(chute.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
     expect(chute.partie.etat.objets['o-planche']).toEqual({ type: 'perdu' });
     expect(choix(monde, chute.partie, { action: 'aller', cible: 'vide', vers: 'est' })).toMatchObject({ disponible: false, raison: 'sans_pont' });
+    // T-10 : la reprise d'une sauvegarde redonne la créature tombée et la planche perdue.
+    const sauvegarde = JSON.parse(JSON.stringify({ enregistrement: chute.partie.enregistrement, etat: chute.partie.etat })) as unknown;
+    expect(empreinteEtat(reprendrePartie(monde, sauvegarde, 'morceaux-test').etat)).toBe(empreinteEtat(chute.partie.etat));
   });
 });
 
@@ -165,7 +181,7 @@ describe('M-09 — zone sans gravité (D-165, D-237, D-238, MX-04)', () => {
 describe('M-10 — chambre froide (D-166, D-170, D-239, D-240)', () => {
   const { monde } = entree('m-10');
 
-  it.each(['M-10 — Compresseur', 'M-10 — Se faire suivre'])('%s : la créature est ralentie pour la suite, le passager n’a jamais froid trois actions de suite', (debut) => {
+  it.each(['M-10 — Compresseur', 'M-10 — Risqué'])('%s : la créature est ralentie pour la suite, le passager n’a jamais froid trois actions de suite', (debut) => {
     const pas = suite(monde, depart(monde), parcours('m-10', debut).etapes);
     expect(Math.max(...pas.map((un) => un.partie.etat.froid))).toBeLessThanOrEqual(2);
     expect(pas.at(-1)?.partie.etat.creature?.ralentie).toBeDefined();

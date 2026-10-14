@@ -39,8 +39,8 @@ export const EVENEMENTS_MORCEAUX = {
     'Le mécanisme grippé hurle ; vous l’entendez à peine dans le fracas des machines.',
   ],
   chambre_bouclee: [
-    'Vous appuyez sur {le:objet}. Les portes {de:piece} claquent l’une après l’autre.',
-    'Vous enfoncez la commande {de:objet}. Les portes {de:piece} se ferment d’un coup.',
+    'Vous appuyez sur {le:objet}. Un voyant confirme : portes {de:piece} fermées.',
+    'Vous enfoncez la commande {de:objet}. Les verrous des portes {de:piece} s’enclenchent.',
   ],
 } as const satisfies Partial<TextesMonde['evenements']>;
 
@@ -94,6 +94,7 @@ export const VERBES_MORCEAUX = {
 
 export const OBSERVATION_MORCEAUX = {
   creatureRalentie: 'Le givre la couvre ; elle bouge avec lenteur.',
+  creatureEngourdie: 'Le givre la couvre ; engourdie, elle reste figée un instant.',
   pont: '{Le:objet} est posé{e:objet} en travers {de:passage}.',
   machinesMarche: 'Les machines tournent dans un vacarme assourdissant : vous n’entendez rien d’autre.',
   machinesArret: 'Les machines sont à l’arrêt.',
@@ -120,5 +121,5 @@ export const SAVOIR_MORCEAUX = {
   relanceront: 'Les machines repartiront dans un grand bruit, qui portera loin.',
   coupera: 'La gravité sera coupée dans {le:piece}.',
   retablira: 'La gravité reviendra dans {le:piece}.',
-  bouclera: 'Les portes {de:piece} se fermeront d’un coup.',
+  bouclera: 'Les portes {de:piece} seront fermées d’un coup.',
 } as const satisfies Partial<TextesMonde['apercu']['savoir']>;

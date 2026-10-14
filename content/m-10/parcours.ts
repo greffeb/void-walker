@@ -1,7 +1,7 @@
 import type { Parcours } from '../types';
 
-// Parcours sûrs de la fiche M-10 (docs/13-morceaux-lancement.md §3, D-170, D-239) dans sa station de test : un engagement par
-// étape. La créature enfermée, la porte grippée de la coursive s'ouvre sans qu'elle l'entende.
+// Parcours de la fiche M-10 (docs/13-morceaux-lancement.md §3, D-170, D-239) dans sa station de test, le sûr puis le risqué :
+// un engagement par étape. La créature enfermée, la porte grippée de la coursive s'ouvre sans qu'elle l'entende.
 
 const PAR_LA_COURSIVE: Parcours['etapes'] = [
   { action: 'aller', cible: 'porte', vers: 'quartiers' },
@@ -41,9 +41,11 @@ const COMPRESSEUR: Parcours = {
   attendu: { ...PARTI, actions: 15 },
 };
 
-// Se faire suivre à travers la chambre, ressortir par l'autre porte et la refermer derrière elle (D-170, D-239).
+// Parcours risqué de la fiche : se faire suivre à travers la chambre, ressortir par l'autre porte et la refermer derrière elle
+// (D-170, D-239). Il ne passe ici sans dé que parce que le passager entre chez elle et la rencontre pour la première fois : la
+// fuite qui suit est libre (D-184). Une fois ce premier contact passé, la même fuite se joue au dé (C-04 §4).
 const POURSUITE: Parcours = {
-  nom: 'M-10 — Se faire suivre, refermer derrière elle',
+  nom: 'M-10 — Risqué : se faire suivre, refermer derrière elle',
   etapes: [
     { action: 'aller', cible: 'porte', vers: 'antichambre' },
     { action: 'ouvrir', cible: 'porte', vers: 'chambre' },

@@ -242,7 +242,8 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       : remplir(modele.aucunObjet, {}),
   );
   for (const passage of observation.passages) {
-    if (passage.gouffre) {
+    // Un vide de passerelle se dit sans porte ; s'il donne sur des flammes, il se raconte comme tout passage ouvert sur le feu.
+    if (passage.gouffre && !passage.feu) {
       lignes.push(remplir(modele.gouffre, { passage: nomDe(textes, passage), vers: nomDe(textes, passage.vers ?? passage) }));
       continue;
     }
@@ -263,7 +264,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   for (const objet of observation.percees) lignes.push(remplir(modele.percee, { objet: nomDe(textes, objet) }));
   for (const objet of observation.rebouchees) lignes.push(remplir(modele.rebouchee, { objet: nomDe(textes, objet) }));
   if (observation.creatureVisible) lignes.push(remplir(observation.creatureATerre ? modele.creatureATerre : modele.creature, {}));
-  if (observation.creatureRalentie) lignes.push(remplir(modele.creatureRalentie, {}));
+  if (observation.creatureRalentie) lignes.push(remplir(observation.creatureEngourdie ? modele.creatureEngourdie : modele.creatureRalentie, {}));
   if (observation.creatureInerte) lignes.push(remplir(modele.creatureInerte, {}));
   for (const { objet, passage } of observation.ponts) lignes.push(remplir(modele.pont, { objet: nomDe(textes, objet), passage: nomDe(textes, passage) }));
   if (observation.machines !== null) lignes.push(remplir(observation.machines === 'marche' ? modele.machinesMarche : modele.machinesArret, {}));
