@@ -88,6 +88,7 @@ export const TYPES_EVENEMENT = [
   'gravite_coupee',
   'gravite_retablie',
   'chambre_bouclee',
+  'bruit_couvert',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -249,6 +250,8 @@ export type Evenement =
   | { readonly type: 'machines_arretees' | 'machines_relancees'; readonly objet: RefObjet }
   /** La gravité de la zone coupée ou rétablie depuis un interrupteur (D-165, D-238). */
   | { readonly type: 'gravite_coupee' | 'gravite_retablie'; readonly piece: RefPiece }
+  /** Le passager fait un geste bruyant dans une salle des machines en marche : leur vacarme le couvre (D-163). */
+  | { readonly type: 'bruit_couvert'; readonly passage: RefPassage }
   /** Le pupitre ferme d'un coup les portes de la chambre froide (D-170, D-239). */
   | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece };
 

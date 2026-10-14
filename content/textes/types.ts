@@ -187,6 +187,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   gravite_coupee: ['piece'],
   gravite_retablie: ['piece'],
   chambre_bouclee: ['objet', 'piece'],
+  bruit_couvert: ['passage'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {

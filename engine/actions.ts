@@ -257,9 +257,11 @@ const ouvrir: ActionEngagee = {
     }
     if (liaison.bruyante !== true) return { etat: suivant, evenements };
     const passage = refPassage(monde, suivant, liaison, etat.piece);
+    // Le son est émis quand même : la règle du vacarme, pas le geste, décide qu'il ne sort pas de la salle (D-163).
+    const couvert = assourdie(monde, etat, etat.piece);
     return {
       etat: suivant,
-      evenements: [...evenements, { type: 'bruit_mecanisme', passage }],
+      evenements: [...evenements, { type: couvert ? 'bruit_couvert' : 'bruit_mecanisme', passage }],
       sons: [{ piece: etat.piece, intensite: 'normal' }],
     };
   },

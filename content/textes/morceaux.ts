@@ -11,8 +11,8 @@ export const EVENEMENTS_MORCEAUX = {
     'Vous poussez {le:objet} au-dessus du vide jusqu’à l’autre bord. Le passage est à peine plus large qu’un pied.',
   ],
   pont_cede: [
-    'Un craquement sec : {le:objet} cède sous un poids énorme. Quelque chose bascule dans le vide, puis plus rien.',
-    '{Le:objet} se brise avec un claquement de bois mort. Une masse lourde tombe dans le noir, sans un cri.',
+    'Un craquement sec : {le:objet} cède sous un poids énorme, et quelque chose bascule dans le vide.',
+    '{Le:objet} se brise avec un claquement de bois mort ; une masse lourde tombe dans le noir, sans un cri.',
   ],
   derive: [
     'Vous poussez sur la paroi et dérivez lentement jusqu’à {le:passage}. Vous vous agrippez à son cadre.',
@@ -33,6 +33,10 @@ export const EVENEMENTS_MORCEAUX = {
   gravite_retablie: [
     'Un déclic : la gravité revient dans {le:piece}. Ce qui flottait retombe d’un coup.',
     'La gravité revient dans {le:piece}. La poussière s’abat sur le sol.',
+  ],
+  bruit_couvert: [
+    'Le mécanisme grippé grince, mais le vacarme des machines couvre tout.',
+    'Le mécanisme grippé hurle ; vous l’entendez à peine dans le fracas des machines.',
   ],
   chambre_bouclee: [
     'Vous appuyez sur {le:objet}. Les portes {de:piece} claquent l’une après l’autre.',

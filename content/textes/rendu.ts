@@ -101,6 +101,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'pont_cede':
       return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
     case 'derive':
+    case 'bruit_couvert':
       return { passage: nomDe(textes, evenement.passage) };
     case 'machines_arretees':
     case 'machines_relancees':
