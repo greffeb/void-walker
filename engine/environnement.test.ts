@@ -47,7 +47,7 @@ const MONDE: DefMonde = {
     { id: 'caisse', nom: 'caisse', piece: 'atelier', position: 'centre', portable: false, deplacable: true, appui: true },
     { id: 'eau', nom: 'eau', piece: 'atelier', extinction: 1 },
     { id: 'huile', nom: 'huile', piece: 'atelier', glissant: 1 },
-    { id: 'test', nom: 'avertisseur', piece: 'local', portable: false, avertisseur: { piece: 'observation' } },
+    { id: 'test', nom: 'avertisseur', piece: 'local', portable: false, avertisseur: { piece: 'observation', alcove: true } },
   ],
   creature: { piece: 'observation' },
 };
@@ -466,17 +466,17 @@ describe('test de l\'avertisseur (C-03 §5.1, T-04)', () => {
     expect(types(lance.evenements)).toEqual(['alarme_declenchee']);
     // Réaction 0 : elle rejoint l'émetteur dans l'alcôve, repositionnement local.
     expect(lance.partie.etat.creature).toMatchObject({ piece: 'observation', alcove: true });
-    expect(lance.partie.etat.alarme).toEqual({ objet: 'test', restant: 2 });
+    expect(lance.partie.etat.alarmes).toEqual([{ objet: 'test', restant: 2 }]);
     expect(option(MONDE, lance.partie, 'declencher', 'avertisseur')).toMatchObject({ disponible: false, raison: 'test_en_cours' });
     // Réaction 1 : le grincement de la cloison est plus faible que l'avertisseur, elle continue de chercher.
     const ouvert = engager(MONDE, lance.partie, 'ouvrir', 'observation');
     expect(ouvert.partie.etat.creature).toMatchObject({ piece: 'observation', alcove: true });
-    expect(ouvert.partie.etat.alarme).toEqual({ objet: 'test', restant: 1 });
+    expect(ouvert.partie.etat.alarmes).toEqual([{ objet: 'test', restant: 1 }]);
     // Réaction 2 : le passager traverse l'observation hors de sa vue ; le son couvre encore cette réaction, puis s'arrête.
     const traverse = engager(MONDE, ouvert.partie, 'aller', 'observation');
     expect(observer(MONDE, traverse.partie.etat).creatureVisible).toBe(false);
     expect(types(traverse.evenements)).not.toContain('premier_contact');
-    expect(traverse.partie.etat.alarme).toBeNull();
+    expect(traverse.partie.etat.alarmes).toEqual([]);
     // Elle n'a pas reçu la position du passager : sans indice, elle reste dans l'alcôve (AR-01 P-B pas 13).
     const sorti = engager(MONDE, traverse.partie, 'aller', 'embarquement');
     expect(sorti.partie.etat.creature).toMatchObject({ piece: 'observation', alcove: true, contact: false });
@@ -488,7 +488,7 @@ describe('test de l\'avertisseur (C-03 §5.1, T-04)', () => {
       ['ouvrir', 'galerie'],
       ['fermer', 'galerie'],
     ]);
-    expect(fin.etat.alarme).toBeNull();
+    expect(fin.etat.alarmes).toEqual([]);
     expect(option(MONDE, fin, 'declencher', 'avertisseur')).toMatchObject({ disponible: true });
   });
 

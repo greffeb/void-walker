@@ -22,12 +22,12 @@ const EVENEMENT_AGGRAVATION = {
 
 /**
  * Le passager commence l'action sous les yeux de la créature, répit passé : elle peut l'intercepter (C-04 §4, D-183) ; pas
- * depuis l'alcôve, ni après une glissade tant qu'elle a des réactions perdues (C-03 §5.2). Pendant le répit, seulement s'il
- * franchit le passage par lequel elle est entrée (`franchie`, D-195).
+ * depuis l'alcôve, ni après une glissade tant qu'elle a des réactions perdues (C-03 §5.2), ni pendant la réaction que le froid
+ * lui fait sauter (D-166, MX-01). Pendant le répit, seulement s'il franchit le passage par lequel elle est entrée (`franchie`, D-195).
  */
 export function expose(etat: EtatPartie, franchie?: string): boolean {
   const creature = etat.creature;
-  if (creature === null || !creatureEnVue(etat) || !creature.contact || creature.perdues > 0) return false;
+  if (creature === null || !creatureEnVue(etat) || !creature.contact || creature.perdues > 0 || creature.ralentie?.saute === true) return false;
   return !creature.repit || (franchie !== undefined && franchie === creature.garde);
 }
 

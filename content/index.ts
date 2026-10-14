@@ -37,6 +37,7 @@ export {
   rendreObservation,
   rendreRefus,
   texteAssistance,
+  variantesDe,
   type ApercuTexte,
   type CleTexte,
   type NatureDanger,

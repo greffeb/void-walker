@@ -15,6 +15,15 @@ export interface DefPiece {
   readonly plan?: RectPlan;
   /** Contre la coque sans vitrage déclaré, comme une baie d'observation (14 §4.1) : PL-05 s'y applique. */
   readonly coque?: boolean;
+  /**
+   * Salle des machines (C-02 §5, D-163) : en marche au départ, leur vacarme couvre tout pour qui est dedans ; aucun bruit n'en
+   * sort, n'y entre ni ne la traverse, sauf celui de leur relance (D-235).
+   */
+  readonly machines?: boolean;
+  /** Zone à gravité commutable (C-02 §5, D-165) et son état au départ ; gravité coupée, on y dérive (D-237). */
+  readonly gravite?: 'coupee' | 'retablie';
+  /** Chambre froide (C-02 §5, D-166) : y rester blesse (D-240), la créature y est ralentie quand une porte se ferme sur elle (D-239). */
+  readonly froide?: boolean;
 }
 
 export interface DefLiaison {
@@ -43,6 +52,11 @@ export interface DefLiaison {
   readonly nonEtanche?: boolean;
   /** Porte fixée dans le mur commun, ou tracé d'un conduit sans mur commun (14 §4.1). */
   readonly plan?: PlanLiaison;
+  /**
+   * Vide qui coupe une salle en deux bords (D-164, D-236) : toujours ouvert au son, à l'air et au feu, sans porte à manoeuvrer ;
+   * on ne le franchit que sur un pont fragile posé en travers.
+   */
+  readonly gouffre?: boolean;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -53,9 +67,13 @@ export interface DefPosition {
   readonly sous?: string;
 }
 
-/** Avertisseur commandé à distance (C-03 §5.1) : son émetteur est dans l'alcôve, derrière une paroi opaque, de `piece`. */
+/**
+ * Dispositif qui, déclenché, sonne fort le temps de trois réactions (C-03 §5.1, D-234) : son émetteur est dans `piece`, dans
+ * l'alcôve derrière une paroi opaque si `alcove`, comme l'avertisseur d'AR-01 ; ou dans sa propre pièce, comme un compresseur.
+ */
 export interface DefAvertisseur {
   readonly piece: string;
+  readonly alcove?: boolean;
 }
 
 export interface DefObjet {
@@ -98,6 +116,16 @@ export interface DefObjet {
   readonly protection?: boolean;
   /** Qualité « rebouche une brèche, par usage » (C-02 §5, D-066) : nombre d'usages au départ. */
   readonly rebouche?: number;
+  /** Qualité « encombrant » : un seul porté à la fois (C-02 §5, D-079, MP-03). */
+  readonly encombrant?: boolean;
+  /** Qualité « pont fragile » : posé sur un vide, laisse passer le passager ; cède sous la créature et se perd (C-02 §5, D-164). */
+  readonly pont?: boolean;
+  /** Interrupteur autonome des machines de cette pièce, la sienne (D-168, D-173). */
+  readonly machines?: string;
+  /** Interrupteur autonome de la gravité de cette zone, depuis une pièce qui la touche (D-168, D-238). */
+  readonly gravite?: string;
+  /** Pupitre qui ferme d'un coup les portes de cette chambre froide, depuis une pièce voisine (D-170, D-239). */
+  readonly fermeture?: string;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -174,7 +202,13 @@ export function validerMonde(monde: DefMonde): string[] {
     if (liaison.cachee !== undefined && !liaison.entre.includes(liaison.cachee)) erreurs.push(`${liaison.id} : cachée d'une pièce qu'elle ne relie pas.`);
     if (liaison.cachee !== undefined && liaison.ouverte) erreurs.push(`${liaison.id} : cachée mais ouverte au départ.`);
     if (liaison.manoeuvre !== undefined && !liaison.entre.includes(liaison.manoeuvre)) erreurs.push(`${liaison.id} : manoeuvrée d'une pièce qu'elle ne relie pas.`);
+    if (liaison.gouffre === true) {
+      if (!liaison.ouverte) erreurs.push(`${liaison.id} : vide fermé.`);
+      if (liaison.cachee !== undefined || liaison.manoeuvre !== undefined || liaison.haute !== undefined) erreurs.push(`${liaison.id} : vide caché, manoeuvré ou haut.`);
+    }
   }
+  const voisines = (a: string, b: string): boolean => monde.liaisons.some((liaison) => liaison.entre.includes(a) && liaison.entre.includes(b));
+  const defPieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
   const positionsConnues = new Map(positions.map((position) => [position.id, position]));
   const objets = new Map(monde.objets.map((objet) => [objet.id, objet]));
   for (const position of positions) {
@@ -193,6 +227,23 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.rebouche !== undefined && objet.portable !== false) erreurs.push(`${objet.id} : kit de rustine portable.`);
     if (objet.protection === true && objet.portable === false) erreurs.push(`${objet.id} : protection qui ne se porte pas.`);
     if (objet.deplacable === true && objet.portable !== false) erreurs.push(`${objet.id} : déplaçable mais portable.`);
+    if (objet.pont === true && (objet.portable === false || objet.encombrant !== true)) erreurs.push(`${objet.id} : pont fragile non portable ou non encombrant (D-169).`);
+    if (objet.encombrant === true && objet.portable === false) erreurs.push(`${objet.id} : encombrant qui ne se porte pas.`);
+    if (objet.machines !== undefined) {
+      if (defPieces.get(objet.machines)?.machines !== true) erreurs.push(`${objet.id} : interrupteur d'une pièce sans machines.`);
+      if (objet.machines !== objet.piece) erreurs.push(`${objet.id} : interrupteur hors de sa salle des machines (D-173).`);
+      if (objet.portable !== false) erreurs.push(`${objet.id} : interrupteur portable.`);
+    }
+    if (objet.gravite !== undefined) {
+      if (defPieces.get(objet.gravite)?.gravite === undefined) erreurs.push(`${objet.id} : interrupteur d'une pièce sans gravité commutable.`);
+      if (objet.gravite === objet.piece || !voisines(objet.piece, objet.gravite)) erreurs.push(`${objet.id} : interrupteur hors d'une pièce qui touche sa zone (D-238).`);
+      if (objet.portable !== false) erreurs.push(`${objet.id} : interrupteur portable.`);
+    }
+    if (objet.fermeture !== undefined) {
+      if (defPieces.get(objet.fermeture)?.froide !== true) erreurs.push(`${objet.id} : ferme une pièce qui n'est pas une chambre froide.`);
+      if (objet.fermeture === objet.piece || !voisines(objet.piece, objet.fermeture)) erreurs.push(`${objet.id} : pupitre hors d'une pièce voisine de sa chambre (D-170).`);
+      if (objet.portable !== false) erreurs.push(`${objet.id} : pupitre portable.`);
+    }
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
     if (objet.position !== undefined && objet.deplacable !== true) erreurs.push(`${objet.id} : position sans être déplaçable.`);
     if (objet.avertisseur !== undefined) {

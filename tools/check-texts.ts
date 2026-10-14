@@ -18,7 +18,6 @@ import {
 } from '../engine';
 import {
   analyserGabarit,
-  cleEvacuation,
   CLES_EVACUATION,
   libelleOption,
   lignesListeCarte,
@@ -31,6 +30,7 @@ import {
   rendreListeCarte,
   rendreObservation,
   rendreRefus,
+  variantesDe,
   ROLES_ALLER_SANS_DESTINATION,
   ROLES_DANGER,
   ROLES_EVENEMENT,
@@ -101,6 +101,9 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const causes of ['feu', 'griffes_feu'] as const) {
     for (const type of TYPES_AGGRAVATION) verifierVariantes(erreurs, `brûlure ${causes} ${type}`, textes.brulures[causes][type], []);
   }
+  for (const causes of ['froid', 'griffes_froid'] as const) {
+    for (const type of TYPES_AGGRAVATION) verifierVariantes(erreurs, `gelure ${causes} ${type}`, textes.gelures[causes][type], []);
+  }
   for (const cle of CLES_EVACUATION) verifierVariantes(erreurs, `évacuation ${cle}`, textes.evacuations[cle], []);
   for (const type of MOMENTS_FORTS) {
     const variantes = type === 'evacuation' ? CLES_EVACUATION.flatMap((cle) => textes.evacuations[cle]) : textes.evenements[type as TypeRecit];
@@ -111,6 +114,11 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const causes of ['feu', 'griffes_feu'] as const) {
     for (const variante of textes.brulures[causes].defaite as readonly unknown[]) {
       if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`brûlure ${causes} defaite : plus de quatre phrases (garde-fou du contrôle).`);
+    }
+  }
+  for (const causes of ['froid', 'griffes_froid'] as const) {
+    for (const variante of textes.gelures[causes].defaite as readonly unknown[]) {
+      if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push(`gelure ${causes} defaite : plus de quatre phrases (garde-fou du contrôle).`);
     }
   }
   verifierVariantes(erreurs, 'défaite par le vide', textes.asphyxie, []);
@@ -174,13 +182,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
 
 /** Textes possibles du récit d'un événement, comme le rendu les choisit ; l'assistance n'est pas racontée. */
 function variantesRecit(textes: TextesMonde, evenement: Evenement): readonly string[] {
-  if (evenement.type === 'assistance') return [];
-  if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
-  if (evenement.type === 'defaite' && evenement.causes.includes('vide')) return textes.asphyxie;
-  if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
-    if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
-  }
-  return textes.evenements[evenement.type];
+  return evenement.type === 'assistance' ? [] : variantesDe(textes, evenement);
 }
 
 /** Phrases qu'une suite d'événements peut produire, toutes variantes confondues ; le maximum ne compte pas les moments forts. */

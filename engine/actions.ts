@@ -1,6 +1,7 @@
 import { dangerConnu, type SonEmis } from './creature';
 import type { Des } from './des';
 import {
+  assourdie,
   autreCote,
   cleZone,
   decouvrir,
@@ -14,18 +15,22 @@ import {
   objetsDans,
   objetsEnMain,
   objetsPortes,
+  pontsDe,
+  pontSur,
   porteLarge,
   protectionEnfilee,
   refObjet,
   refPassage,
   refPiece,
   refPosition,
+  sansGravite,
   signalee,
   sourcesDe,
+  type Alarme,
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { Apercu, Consultation, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
+import type { Apercu, Consultation, Cout, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
 
 export interface Contexte {
   readonly monde: DefMonde;
@@ -74,10 +79,10 @@ function liaisonIci({ monde, etat }: Contexte, cible: string): DefLiaison | unde
   return liaisonsVisibles(monde, etat, etat.piece).find((liaison) => liaison.id === cible);
 }
 
-/** Ouverte ou fermée depuis ici : vue, et manoeuvrable de ce côté. */
+/** Ouverte ou fermée depuis ici : vue, et manoeuvrable de ce côté ; un vide de passerelle n'a pas de porte (D-164). */
 function manoeuvrableIci(contexte: Contexte, cible: string): DefLiaison | undefined {
   const liaison = liaisonIci(contexte, cible);
-  return liaison !== undefined && manoeuvrable(liaison, contexte.etat.piece) ? liaison : undefined;
+  return liaison !== undefined && liaison.gouffre !== true && manoeuvrable(liaison, contexte.etat.piece) ? liaison : undefined;
 }
 
 /** Une liaison cachée non découverte se voit de l'autre côté comme un passage fermé, qu'on ne franchit pas (K-05). */
@@ -86,7 +91,7 @@ function franchissable(contexte: Contexte, liaison: DefLiaison): boolean {
 }
 
 function objetIci({ monde, etat }: Contexte, cible: string): boolean {
-  return objetsDans(monde, etat, etat.piece).some((objet) => objet.id === cible);
+  return [...objetsDans(monde, etat, etat.piece), ...pontsDe(monde, etat, etat.piece)].some((objet) => objet.id === cible);
 }
 
 function objetPorte({ monde, etat }: Contexte, cible: string): boolean {
@@ -106,6 +111,11 @@ function exiger<T>(valeur: T | undefined, message: string): T {
 
 /** Hors des repères de la créature (D-180, D-181) et du feu (D-188), une action n'a ni danger connu ni dé : seul le bruit d'un geste s'annonce. */
 const SANS_DANGER = { risque: 'aucun', danger: null, cout: 'aucun' } as const;
+
+/** Un geste bruyant s'annonce ; dans une salle des machines en marche, leur vacarme le couvre et rien n'en sort (D-163). */
+function bruit({ monde, etat }: Contexte): Cout {
+  return assourdie(monde, etat, etat.piece) ? 'aucun' : 'bruyant';
+}
 
 /** Risque d'un passage vers `piece` : celui de la créature vue ou entendue de l'autre côté, sinon aucun. */
 function risqueVers({ monde, etat }: Contexte, piece: string): Pick<Prevision, 'risque' | 'danger'> {
@@ -167,16 +177,28 @@ const regarder: ActionConsultation = {
   },
 };
 
-/** Les objets qui ne se portent pas (caisse, dispositif fixe) ne sont pas proposés (C-02 §4.3). */
+/**
+ * Les objets qui ne se portent pas (caisse, dispositif fixe) ne sont pas proposés (C-02 §4.3) ; un pont posé sur un vide de la
+ * pièce se reprend de l'un ou l'autre bord (D-164).
+ */
 function portablesIci({ monde, etat }: Contexte): DefObjet[] {
-  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.portable !== false);
+  return [...objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.portable !== false), ...pontsDe(monde, etat, etat.piece)];
+}
+
+/** Un seul objet encombrant porté à la fois : en ramasser un second est refusé sans coût (D-079, MP-03). */
+function encombre({ monde, etat }: Contexte, cible: DefObjet): boolean {
+  return cible.encombrant === true && objetsPortes(monde, etat).some((porte) => porte.encombrant === true);
 }
 
 const prendre: ActionEngagee = {
   id: 'prendre',
   engage: true,
   cibles: (contexte) => portablesIci(contexte).map((candidat) => candidat.id),
-  verifier: (contexte, cible) => (portablesIci(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente'),
+  verifier: (contexte, cible) => {
+    const candidat = portablesIci(contexte).find((objetIci) => objetIci.id === cible);
+    if (candidat === undefined) return 'cible_absente';
+    return encombre(contexte, candidat) ? 'encombre' : null;
+  },
   prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'portera', objet: refObjet(monde, cible) }] }),
   appliquer: ({ monde, etat }, cible) => {
     const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'passager' } } };
@@ -205,7 +227,7 @@ const ouvrir: ActionEngagee = {
   engage: true,
   cibles: (contexte) =>
     liaisonsVisibles(contexte.monde, contexte.etat, contexte.etat.piece)
-      .filter((liaison) => contexte.etat.liaisons[liaison.id] !== true && manoeuvrable(liaison, contexte.etat.piece))
+      .filter((liaison) => contexte.etat.liaisons[liaison.id] !== true && manoeuvrableIci(contexte, liaison.id) !== undefined)
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     if (manoeuvrableIci(contexte, cible) === undefined) return 'cible_absente';
@@ -218,7 +240,7 @@ const ouvrir: ActionEngagee = {
       // Ouvrir sur la pièce où elle a été perçue s'annonce comme y aller (choix du porteur, D-180).
       ...risquePar(contexte, liaison),
       // Un mécanisme grippé se voit et s'annonce avant d'ouvrir (AR-01 §13 P-A, AR-02 §10 « porte grippée »).
-      cout: liaison.bruyante === true ? 'bruyant' : 'aucun',
+      cout: liaison.bruyante === true ? bruit(contexte) : 'aucun',
       savoir: [{ type: 'ouvrira', passage: refPassage(contexte.monde, contexte.etat, liaison, contexte.etat.piece) }],
     };
   },
@@ -248,7 +270,7 @@ const fermer: ActionEngagee = {
   engage: true,
   cibles: (contexte) =>
     liaisonsVisibles(contexte.monde, contexte.etat, contexte.etat.piece)
-      .filter((liaison) => contexte.etat.liaisons[liaison.id] === true && manoeuvrable(liaison, contexte.etat.piece))
+      .filter((liaison) => contexte.etat.liaisons[liaison.id] === true && manoeuvrableIci(contexte, liaison.id) !== undefined)
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     if (manoeuvrableIci(contexte, cible) === undefined) return 'cible_absente';
@@ -275,7 +297,11 @@ const aller: ActionEngagee = {
     const portee = verifierPassage(contexte, cible);
     if (portee !== null) return portee;
     // Le gabarit d'un passage étroit se voit, même sans destination connue (D-044).
-    return liaison.etroite === true && porteLarge(contexte.monde, contexte.etat) ? 'trop_large' : null;
+    if (liaison.etroite === true && porteLarge(contexte.monde, contexte.etat)) return 'trop_large';
+    // Un vide ne se franchit que sur un pont posé en travers (D-164).
+    if (liaison.gouffre === true && pontSur(contexte.monde, contexte.etat, liaison.id) === undefined) return 'sans_pont';
+    // Sans gravité, il faut d'abord dériver jusqu'à un autre passage que celui par où l'on est entré (D-237).
+    return sansGravite(contexte.etat, contexte.etat.piece) && contexte.etat.bord !== liaison.id ? 'trop_loin' : null;
   },
   prevoir: (contexte, cible) => ({
     ...SANS_DANGER,
@@ -293,6 +319,8 @@ const aller: ActionEngagee = {
       visitees: nouvelle ? [...etat.visitees, arrivee] : etat.visitees,
       // Franchir un passage sans signalétique en apprend la destination, des deux côtés (K-05).
       decouvertes: signalee(liaison) ? etat.decouvertes : decouvrir(monde, etat, liaison.id),
+      // Dans une zone à gravité commutable, on se tient au bord du passage par où l'on est entré (D-237).
+      bord: indexer(monde).pieces.get(arrivee)?.gravite === undefined ? null : liaison.id,
     };
     const piece = refPiece(monde, arrivee);
     const evenements: Evenement[] = [{ type: 'deplacement', passage: refPassage(monde, etat, liaison, etat.piece), piece }];
@@ -421,7 +449,11 @@ const verser: ActionEngagee = {
     liaisonsVisibles(monde, etat, etat.piece)
       .filter((liaison) => !huilee(etat, liaison.id, etat.piece))
       .map((liaison) => liaison.id),
-  verifier: (contexte, cible) => verifierRecipient(contexte, cible, 'glissant'),
+  verifier: (contexte, cible) => {
+    const raison = verifierRecipient(contexte, cible, 'glissant');
+    // Gravité coupée, l'huile ne se verse pas (MX-04).
+    return raison ?? (sansGravite(contexte.etat, contexte.etat.piece) ? 'sans_gravite' : null);
+  },
   prevoir: (contexte, cible, parametre) => ({
     ...SANS_DANGER,
     savoir: [
@@ -439,28 +471,45 @@ const verser: ActionEngagee = {
   },
 };
 
-/** Réactions couvertes par le son de l'avertisseur : celle de l'activation et les deux suivantes (C-03 §5.1, T-04). */
+/**
+ * Réactions couvertes par le son de l'avertisseur, du compresseur ou de la relance des machines : celle de l'activation et les
+ * deux suivantes (C-03 §5.1, T-04, D-234).
+ */
 export const DUREE_ALARME = 3;
+
+/** Lance le bruit fort de ce dispositif ; un seul en cours par dispositif, dans l'ordre du monde. */
+function sonner(monde: DefMonde, alarmes: readonly Alarme[], objetId: string): Alarme[] {
+  const suivantes = [...alarmes.filter((alarme) => alarme.objet !== objetId), { objet: objetId, restant: DUREE_ALARME }];
+  const rang = (alarme: Alarme): number => monde.objets.findIndex((candidat) => candidat.id === alarme.objet);
+  return suivantes.sort((a, b) => rang(a) - rang(b));
+}
 
 function avertisseursIci({ monde, etat }: Contexte): DefObjet[] {
   return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.avertisseur !== undefined);
 }
 
-/** Lancer le test de l'avertisseur (C-03 §5.1) ; « test en cours » tant que le cycle dure. */
+/**
+ * Lancer le test de l'avertisseur (C-03 §5.1), ou le compresseur (D-170, D-234) ; « test en cours » tant que son cycle dure. Un
+ * émetteur dans la pièce même du passager rend le geste bruyant ; dans une autre pièce, sans coût (détail de #102).
+ */
 const declencher: ActionEngagee = {
   id: 'declencher',
   engage: true,
   cibles: (contexte) => avertisseursIci(contexte).map((candidat) => candidat.id),
   verifier: (contexte, cible) => {
     if (!avertisseursIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
-    return contexte.etat.alarme === null ? null : 'test_en_cours';
+    return contexte.etat.alarmes.some((alarme) => alarme.objet === cible) ? 'test_en_cours' : null;
   },
-  prevoir: ({ monde }, cible) => ({
-    ...SANS_DANGER,
-    savoir: [{ type: 'sonnera', piece: refPiece(monde, exiger(objet(monde, cible).avertisseur, 'Avertisseur absent.').piece) }],
-  }),
+  prevoir: (contexte, cible) => {
+    const emetteur = exiger(objet(contexte.monde, cible).avertisseur, 'Avertisseur absent.').piece;
+    return {
+      ...SANS_DANGER,
+      cout: emetteur === contexte.etat.piece ? bruit(contexte) : 'aucun',
+      savoir: [{ type: 'sonnera', piece: refPiece(contexte.monde, emetteur) }],
+    };
+  },
   appliquer: ({ monde, etat }, cible) => ({
-    etat: { ...etat, alarme: { objet: cible, restant: DUREE_ALARME } },
+    etat: { ...etat, alarmes: sonner(monde, etat.alarmes, cible) },
     evenements: [{ type: 'alarme_declenchee', objet: refObjet(monde, cible) }],
   }),
 };
@@ -478,10 +527,10 @@ const activer: ActionEngagee = {
     if (!consolesIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
     return contexte.etat.actives.includes(cible) ? 'deja_actif' : null;
   },
-  prevoir: ({ monde }, cible) => ({
+  prevoir: (contexte, cible) => ({
     ...SANS_DANGER,
-    cout: 'bruyant',
-    savoir: [{ type: 'alimentera', objet: refObjet(monde, exiger(objet(monde, cible).alimente, 'Capsule absente.')) }],
+    cout: bruit(contexte),
+    savoir: [{ type: 'alimentera', objet: refObjet(contexte.monde, exiger(objet(contexte.monde, cible).alimente, 'Capsule absente.')) }],
   }),
   appliquer: ({ monde, etat }, cible) => ({
     etat: { ...etat, actives: monde.objets.filter((candidat) => candidat.id === cible || etat.actives.includes(candidat.id)).map((candidat) => candidat.id) },
@@ -655,6 +704,191 @@ const reboucher: ActionEngagee = {
   },
 };
 
+/** Vides de la pièce sans pont posé en travers (D-164). */
+function videsLibres({ monde, etat }: Contexte): DefLiaison[] {
+  return liaisonsVisibles(monde, etat, etat.piece).filter((liaison) => liaison.gouffre === true && pontSur(monde, etat, liaison.id) === undefined);
+}
+
+function pontsEnMain({ monde, etat }: Contexte): DefObjet[] {
+  return objetsEnMain(monde, etat).filter((candidat) => candidat.pont === true);
+}
+
+/** Poser un pont fragile en main en travers d'un vide de la pièce : une action ; on le reprend par « prendre » (D-164). */
+const placer: ActionEngagee = {
+  id: 'placer',
+  engage: true,
+  cibles: (contexte) => (videsLibres(contexte).length === 0 ? [] : pontsEnMain(contexte).map((candidat) => candidat.id)),
+  parametres: (contexte) => videsLibres(contexte).map((liaison) => liaison.id),
+  verifier: (contexte, cible) => {
+    if (!pontsEnMain(contexte).some((candidat) => candidat.id === cible)) return objetPorte(contexte, cible) ? 'cible_absente' : 'pas_en_main';
+    return videsLibres(contexte).length === 0 ? 'cible_absente' : null;
+  },
+  prevoir: (contexte, cible, parametre) => ({
+    ...SANS_DANGER,
+    savoir: [
+      {
+        type: 'placera',
+        objet: refObjet(contexte.monde, cible),
+        passage: refPassage(contexte.monde, contexte.etat, passageIci(contexte, exiger(parametre, 'Vide absent.')), contexte.etat.piece),
+      },
+    ],
+  }),
+  appliquer: (contexte, cible, _des, parametre) => {
+    const { monde, etat } = contexte;
+    const liaison = passageIci(contexte, exiger(parametre, 'Vide absent.'));
+    const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'pont', liaison: liaison.id } } };
+    return { etat: suivant, evenements: [{ type: 'pont_place', objet: refObjet(monde, cible), passage: refPassage(monde, suivant, liaison, etat.piece) }] };
+  },
+};
+
+/** Passages vers lesquels le passager peut dériver : gravité coupée, tous sauf celui au bord duquel il se tient (D-237). */
+function deriveVers(contexte: Contexte): DefLiaison[] {
+  const { monde, etat } = contexte;
+  if (!sansGravite(etat, etat.piece)) return [];
+  return liaisonsVisibles(monde, etat, etat.piece).filter((liaison) => liaison.id !== etat.bord && franchissable(contexte, liaison));
+}
+
+/** Sans gravité, se pousser jusqu'à un autre passage de la zone : une action, avant de pouvoir le franchir (D-237). */
+const deriver: ActionEngagee = {
+  id: 'deriver',
+  engage: true,
+  cibles: (contexte) => deriveVers(contexte).map((liaison) => liaison.id),
+  verifier: (contexte, cible) => (deriveVers(contexte).some((liaison) => liaison.id === cible) ? null : 'cible_absente'),
+  prevoir: (contexte, cible) => ({
+    ...SANS_DANGER,
+    savoir: [{ type: 'derivera', passage: refPassage(contexte.monde, contexte.etat, passageIci(contexte, cible), contexte.etat.piece) }],
+  }),
+  appliquer: (contexte, cible) => {
+    const { monde, etat } = contexte;
+    return {
+      etat: { ...etat, bord: cible },
+      evenements: [{ type: 'derive', passage: refPassage(monde, etat, passageIci(contexte, cible), etat.piece) }],
+    };
+  },
+};
+
+/** Ajoute ou retire `id` d'une liste de pièces tenue dans l'ordre du monde. */
+function basculerPiece(monde: DefMonde, liste: readonly string[], id: string, present: boolean): string[] {
+  return monde.pieces.filter((piece) => (piece.id === id ? present : liste.includes(piece.id))).map((piece) => piece.id);
+}
+
+/** Interrupteurs des machines de la pièce dont les machines sont en marche (`marche`) ou arrêtées. */
+function interrupteursMachines({ monde, etat }: Contexte, marche: boolean): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.machines !== undefined && etat.arretees.includes(candidat.machines) !== marche);
+}
+
+function verifierInterrupteur(trouves: readonly DefObjet[], tous: readonly DefObjet[], cible: string): RaisonRefus | null {
+  if (trouves.some((candidat) => candidat.id === cible)) return null;
+  return tous.some((candidat) => candidat.id === cible) ? 'deja_fait' : 'cible_absente';
+}
+
+/** Arrêter les machines depuis leur interrupteur : une action, la salle redevient ordinaire et le bruit d'une relance cesse (D-163). */
+const arreter: ActionEngagee = {
+  id: 'arreter',
+  engage: true,
+  cibles: (contexte) => interrupteursMachines(contexte, true).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => verifierInterrupteur(interrupteursMachines(contexte, true), interrupteursMachines(contexte, false), cible),
+  prevoir: ({ monde }, cible) => ({
+    ...SANS_DANGER,
+    savoir: [{ type: 'arreteront', piece: refPiece(monde, exiger(objet(monde, cible).machines, 'Salle absente.')) }],
+  }),
+  appliquer: ({ monde, etat }, cible) => {
+    const salle = exiger(objet(monde, cible).machines, 'Salle absente.');
+    return {
+      etat: { ...etat, arretees: basculerPiece(monde, etat.arretees, salle, true), alarmes: etat.alarmes.filter((alarme) => alarme.objet !== cible) },
+      evenements: [{ type: 'machines_arretees', objet: refObjet(monde, cible) }],
+    };
+  },
+};
+
+/** Relancer les machines : une action, un grand bruit qui sort de la salle et dure comme le test de l'avertisseur (D-163, D-234). */
+const relancer: ActionEngagee = {
+  id: 'relancer',
+  engage: true,
+  cibles: (contexte) => interrupteursMachines(contexte, false).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => verifierInterrupteur(interrupteursMachines(contexte, false), interrupteursMachines(contexte, true), cible),
+  prevoir: ({ monde }, cible) => ({
+    ...SANS_DANGER,
+    cout: 'bruyant',
+    savoir: [{ type: 'relanceront', piece: refPiece(monde, exiger(objet(monde, cible).machines, 'Salle absente.')) }],
+  }),
+  appliquer: ({ monde, etat }, cible) => {
+    const salle = exiger(objet(monde, cible).machines, 'Salle absente.');
+    return {
+      etat: { ...etat, arretees: basculerPiece(monde, etat.arretees, salle, false), alarmes: sonner(monde, etat.alarmes, cible) },
+      evenements: [{ type: 'machines_relancees', objet: refObjet(monde, cible) }],
+    };
+  },
+};
+
+/** Interrupteurs de gravité de la pièce dont la zone a sa gravité (`retablie`) ou non. */
+function interrupteursGravite({ monde, etat }: Contexte, retablie: boolean): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.gravite !== undefined && sansGravite(etat, candidat.gravite) !== retablie);
+}
+
+function basculerGravite(cible: string, coupee: boolean): (contexte: Contexte) => Effet {
+  return ({ monde, etat }) => {
+    const zone = exiger(objet(monde, cible).gravite, 'Zone absente.');
+    return {
+      etat: { ...etat, apesanteur: basculerPiece(monde, etat.apesanteur, zone, coupee) },
+      evenements: [{ type: coupee ? 'gravite_coupee' : 'gravite_retablie', piece: refPiece(monde, zone) }],
+    };
+  };
+}
+
+/** Couper la gravité de la zone depuis un interrupteur d'une pièce qui la touche : une action, toujours alimenté (D-165, D-168). */
+const couper: ActionEngagee = {
+  id: 'couper',
+  engage: true,
+  cibles: (contexte) => interrupteursGravite(contexte, true).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => verifierInterrupteur(interrupteursGravite(contexte, true), interrupteursGravite(contexte, false), cible),
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'coupera', piece: refPiece(monde, exiger(objet(monde, cible).gravite, 'Zone absente.')) }] }),
+  appliquer: (contexte, cible) => basculerGravite(cible, true)(contexte),
+};
+
+const retablir: ActionEngagee = {
+  id: 'retablir',
+  engage: true,
+  cibles: (contexte) => interrupteursGravite(contexte, false).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => verifierInterrupteur(interrupteursGravite(contexte, false), interrupteursGravite(contexte, true), cible),
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'retablira', piece: refPiece(monde, exiger(objet(monde, cible).gravite, 'Zone absente.')) }] }),
+  appliquer: (contexte, cible) => basculerGravite(cible, false)(contexte),
+};
+
+/** Portes de la chambre que le pupitre peut fermer : toutes, sauf un vide de passerelle, qui n'en a pas. */
+function portesDe(monde: DefMonde, piece: string): DefLiaison[] {
+  return liaisonsDe(monde, piece).filter((liaison) => liaison.gouffre !== true);
+}
+
+function pupitresFermeture({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.fermeture !== undefined);
+}
+
+/** Pupitre de fermeture : une action, les portes de la chambre froide se ferment d'un coup, hors de vue de qui est dedans (D-170, D-239). */
+const boucler: ActionEngagee = {
+  id: 'boucler',
+  engage: true,
+  cibles: (contexte) =>
+    pupitresFermeture(contexte)
+      .filter((candidat) => portesDe(contexte.monde, exiger(candidat.fermeture, 'Chambre absente.')).some((liaison) => contexte.etat.liaisons[liaison.id] === true))
+      .map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    const pupitre = pupitresFermeture(contexte).find((candidat) => candidat.id === cible);
+    if (pupitre === undefined) return 'cible_absente';
+    const ouvertes = portesDe(contexte.monde, exiger(pupitre.fermeture, 'Chambre absente.')).some((liaison) => contexte.etat.liaisons[liaison.id] === true);
+    return ouvertes ? null : 'deja_ferme';
+  },
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'bouclera', piece: refPiece(monde, exiger(objet(monde, cible).fermeture, 'Chambre absente.')) }] }),
+  appliquer: ({ monde, etat }, cible) => {
+    const chambre = exiger(objet(monde, cible).fermeture, 'Chambre absente.');
+    const fermees = Object.fromEntries(portesDe(monde, chambre).map((liaison) => [liaison.id, false]));
+    return {
+      etat: { ...etat, liaisons: { ...etat.liaisons, ...fermees } },
+      evenements: [{ type: 'chambre_bouclee', objet: refObjet(monde, cible), piece: refPiece(monde, chambre) }],
+    };
+  },
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
 export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   regarder,
@@ -675,4 +909,11 @@ export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   retirer,
   percer,
   reboucher,
+  placer,
+  deriver,
+  arreter,
+  relancer,
+  couper,
+  retablir,
+  boucler,
 };

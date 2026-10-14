@@ -97,7 +97,19 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'feu_eteint':
       return { piece: nomDe(textes, evenement.piece) };
     case 'huile_versee':
+    case 'pont_place':
+    case 'pont_cede':
       return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
+    case 'derive':
+      return { passage: nomDe(textes, evenement.passage) };
+    case 'machines_arretees':
+    case 'machines_relancees':
+      return { objet: nomDe(textes, evenement.objet) };
+    case 'gravite_coupee':
+    case 'gravite_retablie':
+      return { piece: nomDe(textes, evenement.piece) };
+    case 'chambre_bouclee':
+      return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
   }
 }
 
@@ -114,13 +126,15 @@ export function cleEvacuation(sources: readonly SourceEvacuation[]): CleEvacuati
 }
 
 /**
- * Textes possibles d'un événement ; une défaite par le vide a les siens, une aggravation due au feu aussi (D-188), une
- * évacuation selon ses sources.
+ * Textes possibles d'un événement ; une défaite par le vide a les siens, une aggravation due au feu aussi (D-188), puis celle
+ * due au froid (D-240), une évacuation selon ses sources.
  */
-function variantesDe(textes: TextesMonde, evenement: Evenement): Variantes {
+export function variantesDe(textes: TextesMonde, evenement: Evenement): Variantes {
   if (evenement.type === 'defaite' && evenement.causes.includes('vide')) return textes.asphyxie;
   if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
-    if (evenement.causes.includes('feu')) return textes.brulures[evenement.causes.includes('griffes') ? 'griffes_feu' : 'feu'][evenement.type];
+    const griffes = evenement.causes.includes('griffes');
+    if (evenement.causes.includes('feu')) return textes.brulures[griffes ? 'griffes_feu' : 'feu'][evenement.type];
+    if (evenement.causes.includes('froid')) return textes.gelures[griffes ? 'griffes_froid' : 'froid'][evenement.type];
   }
   if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
   if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
@@ -244,7 +258,12 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   for (const objet of observation.percees) lignes.push(remplir(modele.percee, { objet: nomDe(textes, objet) }));
   for (const objet of observation.rebouchees) lignes.push(remplir(modele.rebouchee, { objet: nomDe(textes, objet) }));
   if (observation.creatureVisible) lignes.push(remplir(observation.creatureATerre ? modele.creatureATerre : modele.creature, {}));
+  if (observation.creatureRalentie) lignes.push(remplir(modele.creatureRalentie, {}));
   if (observation.creatureInerte) lignes.push(remplir(modele.creatureInerte, {}));
+  for (const { objet, passage } of observation.ponts) lignes.push(remplir(modele.pont, { objet: nomDe(textes, objet), passage: nomDe(textes, passage) }));
+  if (observation.machines !== null) lignes.push(remplir(observation.machines === 'marche' ? modele.machinesMarche : modele.machinesArret, {}));
+  if (observation.gravite === 'coupee') lignes.push(remplir(modele.sansGravite, {}));
+  if (observation.froid) lignes.push(remplir(modele.froid, {}));
   if (observation.enfilee !== null) lignes.push(remplir(modele.enfilee, { objet: nomDe(textes, observation.enfilee) }));
   lignes.push(
     observation.inventaire.length > 0
@@ -306,6 +325,16 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom 
       return { objet: nomDe(textes, savoir.objet), capsule: nomDe(textes, savoir.capsule) };
     case 'partira':
       return {};
+    case 'placera':
+      return { objet: nomDe(textes, savoir.objet), passage: nomDe(textes, savoir.passage) };
+    case 'derivera':
+      return { passage: nomDe(textes, savoir.passage) };
+    case 'arreteront':
+    case 'relanceront':
+    case 'coupera':
+    case 'retablira':
+    case 'bouclera':
+      return { piece: nomDe(textes, savoir.piece) };
   }
 }
 
@@ -316,6 +345,8 @@ function valeursDanger(textes: TextesMonde, danger: Danger): Record<string, Nom>
     case 'brulure':
     case 'brulure_mortelle':
     case 'asphyxie':
+    case 'froid':
+    case 'froid_mortel':
       return {};
     case 'creature_entendue':
       return { passage: nomDe(textes, danger.passage) };

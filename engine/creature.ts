@@ -1,4 +1,5 @@
 import {
+  assourdie,
   autreCote,
   cleZone,
   creatureEnVue,
@@ -6,8 +7,11 @@ import {
   huilee,
   liaisonsDe,
   liaisonsVisibles,
+  pontSur,
+  refObjet,
   refPassage,
   refPiece,
+  sansGravite,
   type BruitCreature,
   type EtatCreature,
   type EtatPartie,
@@ -23,11 +27,15 @@ import type { Danger, Evenement, NiveauRisque, Palier } from './vocabulaire';
 
 export type Intensite = 'normal' | 'fort';
 
-/** Son produit pendant l'action, actif pendant la réaction de ce pas ; `alcove` : sa source est dans l'alcôve de la pièce. */
+/**
+ * Son produit pendant l'action, actif pendant la réaction de ce pas ; `alcove` : sa source est dans l'alcôve de la pièce ;
+ * `relance` : le grand bruit des machines qui repartent, le seul qui sorte de leur salle (D-163).
+ */
 export interface SonEmis {
   readonly piece: string;
   readonly intensite: Intensite;
   readonly alcove?: boolean;
+  readonly relance?: boolean;
 }
 
 const FORCE: Readonly<Record<Intensite, number>> = { normal: 1, fort: 2 };
@@ -35,15 +43,19 @@ const FORCE: Readonly<Record<Intensite, number>> = { normal: 1, fort: 2 };
 /** Réactions perdues après une glissade sur un sol huilé inconnu (C-03 §5.2). */
 export const REACTIONS_PERDUES = 2;
 
+/** Réactions de plus pour dériver, gravité coupée, jusqu'à un autre passage de la zone (D-165, D-237). */
+export const REACTIONS_DERIVE = 2;
+
 function laissePasserLeSon(etat: EtatPartie, liaison: DefLiaison): boolean {
   return etat.liaisons[liaison.id] === true || liaison.sonAuTravers === true;
 }
 
 /**
  * La créature est large : elle ne franchit qu'une liaison ouverte et non étroite, jamais une cloison fermée (D-044, D-047) ;
- * elle n'entre jamais dans une pièce en feu (D-189).
+ * elle n'entre jamais dans une pièce en feu (D-189). Un vide ne se franchit que sur un pont, qu'elle croit solide (D-164).
  */
-function praticable(etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  if (liaison.gouffre === true && pontSur(monde, etat, liaison.id) === undefined) return false;
   return etat.liaisons[liaison.id] === true && liaison.etroite !== true && !enFeu(etat, autreCote(liaison, depuis));
 }
 
@@ -74,11 +86,21 @@ function chemin(
   return pas;
 }
 
+/**
+ * Un son arrive jusqu'à `depuis` par des liaisons qui le laissent passer, sans naître, entrer ni passer dans une salle des
+ * machines en marche ; seule la relance sort de sa salle (D-163, D-235).
+ */
+function entendu(monde: DefMonde, etat: EtatPartie, depuis: string, son: SonEmis): boolean {
+  const couverte = (piece: string): boolean => assourdie(monde, etat, piece) && !(son.relance === true && piece === son.piece);
+  if (couverte(depuis) || couverte(son.piece)) return false;
+  return chemin(monde, depuis, son.piece, (liaison, piece) => laissePasserLeSon(etat, liaison) && !couverte(autreCote(liaison, piece))) !== null;
+}
+
 /** Son actif retenu (C-03 §4.2) : le plus fort parmi ceux qui arrivent jusqu'à elle ; à égalité, le plus récent. */
 export function sonRetenu(monde: DefMonde, etat: EtatPartie, depuis: string, sons: readonly SonEmis[]): SonEmis | undefined {
   let retenu: SonEmis | undefined;
   for (const son of sons) {
-    if (chemin(monde, depuis, son.piece, (liaison) => laissePasserLeSon(etat, liaison)) === null) continue;
+    if (!entendu(monde, etat, depuis, son)) continue;
     if (retenu === undefined || FORCE[son.intensite] >= FORCE[retenu.intensite]) retenu = son;
   }
   return retenu;
@@ -89,10 +111,10 @@ export function sonRetenu(monde: DefMonde, etat: EtatPartie, depuis: string, son
  * séparation qui la bloque (C-03 §4.3). Au plus une liaison franchie.
  */
 function pasVers(monde: DefMonde, etat: EtatPartie, depuis: string, cible: string): DefLiaison | undefined {
-  const voie = chemin(monde, depuis, cible, (liaison, piece) => praticable(etat, liaison, piece));
+  const voie = chemin(monde, depuis, cible, (liaison, piece) => praticable(monde, etat, liaison, piece));
   if (voie !== null) return voie[0];
   const premier = chemin(monde, depuis, cible, (liaison) => laissePasserLeSon(etat, liaison))?.[0];
-  return premier !== undefined && praticable(etat, premier, depuis) ? premier : undefined;
+  return premier !== undefined && praticable(monde, etat, premier, depuis) ? premier : undefined;
 }
 
 interface Percu {
@@ -103,7 +125,8 @@ interface Percu {
 
 /**
  * Ce que le passager perçoit d'un mouvement : il la voit entrer ou glisser dans sa pièce, ou l'entend bouger dans une pièce
- * voisine (OP-01). `glisse` : la pièce où elle a glissé, s'il y en a une.
+ * voisine (OP-01), sauf si l'un ou l'autre est dans une salle des machines en marche (D-163). `glisse` : la pièce où elle a
+ * glissé, s'il y en a une.
  */
 function percuParLePassager(
   monde: DefMonde,
@@ -116,7 +139,9 @@ function percuParLePassager(
   const passage = refPassage(monde, etat, liaison, etat.piece === depart ? depart : arrivee);
   if (glisse === etat.piece) return { evenement: { type: 'creature_glisse', passage } };
   if (arrivee === etat.piece) return { evenement: { type: 'creature_entre', passage } };
+  if (assourdie(monde, etat, etat.piece)) return undefined;
   for (const piece of [arrivee, depart]) {
+    if (assourdie(monde, etat, piece)) continue;
     const voisine = liaisonsVisibles(monde, etat, etat.piece).find((lien) => autreCote(lien, etat.piece) === piece && laissePasserLeSon(etat, lien));
     if (voisine !== undefined) {
       return { evenement: { type: 'bruit_creature', passage: refPassage(monde, etat, voisine, etat.piece) }, entendue: { piece, par: voisine.id } };
@@ -131,6 +156,8 @@ interface Reponse {
   readonly entendue?: BruitCreature;
   /** Liaison qu'elle a franchie jusqu'au bout pendant cette réaction. */
   readonly franchie?: string;
+  /** Pont fragile tombé avec elle (D-164). */
+  readonly perdu?: string;
 }
 
 /** Créature encore active, donc dans la station (D-062). */
@@ -149,9 +176,14 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, l
     return { creature: { ...creature, indice, engagee: liaison.id }, evenements: [] };
   }
   const glisse = inconnue ?? null;
+  // Sur le pont fragile, elle tombe avant d'atteindre l'autre bord, sauf si elle glisse avant de s'y engager (D-164).
+  if (liaison.gouffre === true && glisse !== depart) return tomber(monde, etat, creature, liaison);
   const piece = glisse ?? arrivee;
+  // Dans une zone à gravité commutable, elle se tient au bord du passage par où elle est entrée (D-237).
+  const bord = piece === arrivee && indexer(monde).pieces.get(arrivee)?.gravite !== undefined ? { bord: liaison.id } : piece === depart ? bordDe(creature) : {};
   const suite: EtatCreature = {
-    ...creature,
+    ...sans(creature, 'derive', 'bord'),
+    ...bord,
     piece,
     alcove: false,
     engagee: null,
@@ -165,6 +197,43 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, l
   const passee = piece === arrivee ? { franchie: liaison.id } : {};
   if (percu === undefined) return { creature: suite, evenements: [], ...passee };
   return { creature: suite, evenements: [percu.evenement], ...passee, ...(percu.entendue === undefined ? {} : { entendue: percu.entendue }) };
+}
+
+/** La créature sans ces champs facultatifs. */
+function sans(creature: EtatCreature, ...cles: readonly ('bord' | 'derive' | 'garde')[]): EtatCreature {
+  const copie = { ...creature };
+  for (const cle of cles) delete copie[cle];
+  return copie;
+}
+
+function bordDe(creature: EtatCreature): Pick<EtatCreature, 'bord'> {
+  return creature.bord === undefined ? {} : { bord: creature.bord };
+}
+
+/**
+ * Elle s'engage sur le pont fragile : il cède, elle tombe, neutralisée pour de bon, et le pont est perdu (D-164). Le passager
+ * l'entend s'il est sur l'un des deux bords (D-236).
+ */
+function tomber(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, liaison: DefLiaison): Reponse {
+  const pont = pontSur(monde, etat, liaison.id);
+  const tombee: EtatCreature = { ...sans(creature, 'derive', 'bord', 'garde'), piece: null, neutralisee: 'tombee', indice: null, engagee: null, alcove: false, repit: false };
+  if (pont === undefined) throw new Error(`Aucun pont sur ${liaison.id}.`);
+  const evenements: Evenement[] = liaison.entre.includes(etat.piece)
+    ? [{ type: 'pont_cede', objet: refObjet(monde, pont.id), passage: refPassage(monde, etat, liaison, etat.piece) }]
+    : [];
+  return { creature: tombee, evenements, perdu: pont.id };
+}
+
+/**
+ * Gravité coupée, avant de franchir un autre passage que celui au bord duquel elle se tient, elle dérive jusqu'à lui deux
+ * réactions (D-237) ; `undefined` si elle peut le franchir tout de suite.
+ */
+function deriver(etat: EtatPartie, creature: CreatureActive, liaison: DefLiaison, indice: Indice): Reponse | undefined {
+  if (!sansGravite(etat, creature.piece) || creature.bord === liaison.id) return undefined;
+  const restant = (creature.derive?.vers === liaison.id ? creature.derive.restant : REACTIONS_DERIVE) - 1;
+  const reste = sans(creature, 'derive') as CreatureActive;
+  if (restant > 0) return { creature: { ...reste, indice, engagee: null, derive: { vers: liaison.id, restant } }, evenements: [] };
+  return { creature: { ...reste, indice, engagee: null, bord: liaison.id }, evenements: [] };
 }
 
 /** Une réaction (C-03 §4.2) : joueur visible, sinon son actif, sinon dernier indice, sinon attendre. */
@@ -204,13 +273,13 @@ function reaction(
   if (creature.alcove) return { creature: { ...creature, indice, alcove: false }, evenements: [] };
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
   if (liaison === undefined) return { creature: { ...creature, indice, engagee: null }, evenements: [] };
-  return franchir(monde, etat, creature, liaison, indice);
+  return deriver(etat, creature, liaison, indice) ?? franchir(monde, etat, creature, liaison, indice);
 }
 
 /** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */
 function passageSuivi(monde: DefMonde, etat: EtatPartie, depuis: string, indice: Indice): DefLiaison | undefined {
   const liaison = liaisonsDe(monde, depuis).find((lien) => lien.id === indice.par && autreCote(lien, depuis) === indice.piece);
-  return liaison !== undefined && praticable(etat, liaison, depuis) ? liaison : undefined;
+  return liaison !== undefined && praticable(monde, etat, liaison, depuis) ? liaison : undefined;
 }
 
 
@@ -248,10 +317,11 @@ export function reagir(
   if (etat.creature.neutralisee !== undefined || piece === null) {
     return { etat: { ...etat, creature: { ...etat.creature, repit: false }, reperes: retenir(etat, undefined) }, evenements: [] };
   }
-  const reponse = reaction(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
+  const reponse = reagirRalentie(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
   const creature = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
-  const apres: EtatPartie = { ...etat, creature };
+  const objets = reponse.perdu === undefined ? etat.objets : { ...etat.objets, [reponse.perdu]: { type: 'perdu' } as const };
+  const apres: EtatPartie = { ...etat, objets, creature };
   const suite: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
   if (creatureEnVue(suite) && !creature.contact) {
     // Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir (D-195).
@@ -264,9 +334,27 @@ export function reagir(
   return { etat: suite, evenements: reponse.evenements };
 }
 
+/**
+ * Ralentie par le froid, elle n'agit qu'une réaction sur deux : la réaction sautée ne compte ni pour les réactions perdues de
+ * l'huile ni pour sa dérive, qui se comptent sur celles qui restent (MX-01).
+ */
+function reagirRalentie(
+  monde: DefMonde,
+  etat: EtatPartie,
+  creature: CreatureActive,
+  sons: readonly SonEmis[],
+  depuis: string,
+  franchie: string | undefined,
+  interceptee: boolean,
+): Reponse {
+  if (creature.ralentie === undefined) return reaction(monde, etat, creature, sons, depuis, franchie, interceptee);
+  if (creature.ralentie.saute) return { creature: { ...creature, ralentie: { saute: false } }, evenements: [] };
+  const reponse = reaction(monde, etat, creature, sons, depuis, franchie, interceptee);
+  return reponse.creature.neutralisee === undefined ? { ...reponse, creature: { ...reponse.creature, ralentie: { saute: true } } } : reponse;
+}
+
 function sansGarde(creature: EtatCreature): EtatCreature {
-  const { garde, ...reste } = creature;
-  return garde === undefined ? creature : reste;
+  return creature.garde === undefined ? creature : sans(creature, 'garde');
 }
 
 /** Ancienneté d'une vue (D-151), en type de danger. */

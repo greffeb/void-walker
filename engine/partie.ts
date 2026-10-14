@@ -3,6 +3,7 @@ import { reagir, type SonEmis } from './creature';
 import { graineValide, ouvrirDes, type Des } from './des';
 import { etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
+import { actualiserFroid, type Froid } from './froid';
 import { empreinte } from './hachage';
 import { regarder } from './memoire';
 import { indexer, type DefMonde } from './monde';
@@ -147,21 +148,23 @@ const SANS_DES: Des = {
 
 /**
  * Étape 3 d'un pas (C-03 §3) : l'air d'abord — le vide éteint les foyers qu'il atteint et neutralise la créature exposée —,
- * puis le feu, qui ne gagne pas une pièce sans air (C-03 §5.3, §5.4, MX-02).
+ * puis le feu, qui ne gagne pas une pièce sans air (C-03 §5.3, §5.4, MX-02), puis le froid (C-03 §5.5, C-04 §3.2).
  */
 function mettreAJourDangers(
   monde: DefMonde,
   avant: EtatPartie,
   effet: Effet,
-): { vide: Vide; feu: { etat: EtatPartie; evenements: Evenement[]; gagnees: Embrasement[] } } {
+): { vide: Vide; feu: { etat: EtatPartie; evenements: Evenement[]; gagnees: Embrasement[] }; froid: Froid } {
   const vide = actualiserVide(monde, avant, effet.etat);
-  return { vide, feu: actualiserFeu(monde, vide.etat, vide.sansAir) };
+  const feu = actualiserFeu(monde, vide.etat, vide.sansAir);
+  return { vide, feu, froid: actualiserFroid(monde, avant, feu.etat) };
 }
 
 interface Simulation {
   readonly avant: EtatPartie;
   readonly vide: Vide;
   readonly feu: { readonly etat: EtatPartie; readonly gagnees: readonly Embrasement[] };
+  readonly froid: Froid;
   /** Liaison que le passager franchira. */
   readonly franchie: string | undefined;
 }
@@ -190,6 +193,11 @@ function feuConnu(monde: DefMonde, { avant: etat, feu }: Simulation, sante: Sant
  */
 function videConnu({ vide }: Simulation): { risque: NiveauRisque; danger: Danger } | null {
   return vide.asphyxie ? { risque: 'mortel', danger: { type: 'asphyxie' } } : null;
+}
+
+/** Gelure connue (D-240) : le passager sait depuis combien d'actions il est dans la chambre froide. Certaine, mortelle s'il est critique. */
+function froidConnu({ froid }: Simulation, sante: Sante): { risque: NiveauRisque; danger: Danger } | null {
+  return froid.gelure ? { risque: 'certain', danger: { type: sante === 'critique' ? 'froid_mortel' : 'froid' } } : null;
 }
 
 /** Pièces connues qui perdront ou retrouveront leur air (VP-02) ; jamais l'effet sur une créature non perçue. */
@@ -223,27 +231,39 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   const { santeApres, ...prevision } = definition.prevoir({ monde, etat: partie.etat }, cible, parametre);
   const sante = santeApres ?? partie.etat.sante;
   const simulation = simuler(monde, partie.etat, definition, cible, parametre);
-  // Le danger le plus haut l'emporte : la créature ici avant celui de la destination, le feu et le vide avant tout ; un soin passe avant le jet (C-04 §3, §4.3).
+  // Le danger le plus haut l'emporte : la créature ici avant celui de la destination, le feu, le froid et le vide avant tout ; un
+  // soin passe avant le jet (C-04 §3, §4.3).
   let retenu: { risque: NiveauRisque; danger: Danger | null } = prevision;
-  for (const autre of [exposeCePas(simulation) ? risqueIci(partie.etat, sante, simulation.franchie) : null, feuConnu(monde, simulation, sante), videConnu(simulation)]) {
+  const dangers = [
+    exposeCePas(simulation) ? risqueIci(partie.etat, sante, simulation.franchie) : null,
+    feuConnu(monde, simulation, sante),
+    froidConnu(simulation, sante),
+    videConnu(simulation),
+  ];
+  for (const autre of dangers) {
     if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
   }
   const savoir = [...prevision.savoir, ...airConnu(monde, simulation)];
   return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...retenu, savoir } };
 }
 
-/** Son de l'avertisseur, fort, depuis l'alcôve de sa pièce (C-03 §5.1). */
+/**
+ * Son fort d'une alarme en cours (C-03 §5.1, D-234) : celui d'un avertisseur, depuis sa pièce ou l'alcôve de sa pièce, ou la
+ * relance des machines, depuis leur salle, qu'elle seule peut quitter (D-163).
+ */
 function sonAlarme(monde: DefMonde, alarme: Alarme): SonEmis {
-  const avertisseur = indexer(monde).objets.get(alarme.objet)?.avertisseur;
-  if (avertisseur === undefined) throw new Error(`Avertisseur inconnu : ${alarme.objet}.`);
-  return { piece: avertisseur.piece, intensite: 'fort', alcove: true };
+  const objet = indexer(monde).objets.get(alarme.objet);
+  if (objet?.avertisseur !== undefined) {
+    return { piece: objet.avertisseur.piece, intensite: 'fort', ...(objet.avertisseur.alcove === true ? { alcove: true } : {}) };
+  }
+  if (objet?.machines !== undefined) return { piece: objet.machines, intensite: 'fort', relance: true };
+  throw new Error(`Alarme inconnue : ${alarme.objet}.`);
 }
 
-/** Une réaction de plus couverte par le son ; le test se termine après la dernière (C-03 §5.1, T-04). */
+/** Une réaction de plus couverte par chaque son ; une alarme se termine après sa dernière (C-03 §5.1, T-04). */
 function decompter(etat: EtatPartie): EtatPartie {
-  if (etat.alarme === null) return etat;
-  const restant = etat.alarme.restant - 1;
-  return { ...etat, alarme: restant > 0 ? { ...etat.alarme, restant } : null };
+  if (etat.alarmes.length === 0) return etat;
+  return { ...etat, alarmes: etat.alarmes.map((alarme) => ({ ...alarme, restant: alarme.restant - 1 })).filter((alarme) => alarme.restant > 0) };
 }
 
 /** Joue une commande structurée ; un refus ou une consultation rend la partie inchangée (C-01 §6, C-03 §2). */
@@ -260,13 +280,18 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resul
   const exposition = exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
   const atteint = exposition && intercepter(session.des);
   const effet = definition.appliquer(contexte, cible, session.des, parametre);
-  // Étape 3 : le vide, puis le feu, puis la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, §5.4, D-188).
-  const { vide, feu } = mettreAJourDangers(monde, partie.etat, effet);
-  const brulure = brule(feu.etat);
-  // Étape 4 : une réaction au plus, avec le son de l'avertisseur en cours puis ceux de l'action, plus récents (C-03 §3, §4.2, §5.1).
-  const sons = [...(feu.etat.alarme === null ? [] : [sonAlarme(monde, feu.etat.alarme)]), ...(effet.sons ?? [])];
-  const reponse = reagir(monde, feu.etat, sons, partie.etat.piece, effet.franchie, exposition);
-  const causes: Cause[] = [...(atteint ? (['griffes'] as const) : []), ...(brulure ? (['feu'] as const) : [])];
+  // Étape 3 : le vide, puis le feu, puis le froid ; la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, §5.4, D-188),
+  // la gelure de qui la finit dans la chambre froide au-delà de deux actions (D-240).
+  const { vide, feu, froid } = mettreAJourDangers(monde, partie.etat, effet);
+  const brulure = brule(froid.etat);
+  // Étape 4 : une réaction au plus, avec les sons des alarmes en cours puis ceux de l'action, plus récents (C-03 §3, §4.2, §5.1).
+  const sons = [...froid.etat.alarmes.map((alarme) => sonAlarme(monde, alarme)), ...(effet.sons ?? [])];
+  const reponse = reagir(monde, froid.etat, sons, partie.etat.piece, effet.franchie, exposition);
+  const causes: Cause[] = [
+    ...(atteint ? (['griffes'] as const) : []),
+    ...(brulure ? (['feu'] as const) : []),
+    ...(froid.gelure ? (['froid'] as const) : []),
+  ];
   // Sans combinaison dans une pièce sans air : vaincu, hors plafond (C-04 §3.1).
   const blessure = vide.asphyxie ? asphyxier(decompter(reponse.etat), causes) : aggraver(decompter(reponse.etat), causes);
   const menace: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : [];

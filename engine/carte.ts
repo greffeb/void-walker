@@ -14,9 +14,9 @@ function pieceDeCarte(monde: DefMonde, piece: string): string {
   return acces === undefined ? piece : autreCote(acces, piece);
 }
 
-/** Grille, conduit étroit, panneau, passage sans signalétique : ouverture en tirets ; sinon une porte (14 §2.6). */
+/** Grille, conduit étroit, panneau, passage sans signalétique, vide de passerelle : ouverture en tirets ; sinon une porte (14 §2.6). */
 function dessinDe(liaison: DefLiaison): DessinPassage {
-  return liaison.etroite === true || liaison.nonEtanche === true || !signalee(liaison) ? 'tirets' : 'porte';
+  return liaison.etroite === true || liaison.nonEtanche === true || liaison.gouffre === true || !signalee(liaison) ? 'tirets' : 'porte';
 }
 
 /** Nombre de passages connus depuis la pièce de départ, en largeur. */
@@ -52,7 +52,7 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   const sansAir = piecesSansAir(monde, etat);
   // Une station qui peut perdre son air (un vitrage extérieur) porte des voyants sur ses portes étanches (OP-04, VP-03).
   const voyants = monde.objets.some((objet) => objet.vitrageExterieur === true);
-  const avecVoyant = (liaison: DefLiaison, connue: boolean): boolean => voyants && connue && liaison.nonEtanche !== true;
+  const avecVoyant = (liaison: DefLiaison, connue: boolean): boolean => voyants && connue && liaison.nonEtanche !== true && liaison.gouffre !== true;
   const passages = vus.map(({ liaison, depuis, connue }): PassageCarte => {
     const [premiere] = depuis;
     // Le voyant dit l'air de la pièce d'en face (VP-03), lu depuis la pièce actuelle, ou sinon depuis la première pièce visitée d'où on l'a vu.

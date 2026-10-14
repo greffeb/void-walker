@@ -1,11 +1,11 @@
 import { autreCote, destinationConnue, enFeu, liaisonsVisibles, type EtatPartie, type ObjetSouvenir, type SouvenirPiece } from './etat';
-import type { DefMonde } from './monde';
+import { indexer, type DefMonde } from './monde';
 
 // Mémoire du passager (docs/14-carte.md §3.1, D-213) : ce qu'il a vu de chaque pièce, mis à jour au réveil puis à la fin de
 // chaque action. Aucune règle ne la lit : seule la carte publique s'en sert. Deux états qui ne diffèrent que par la mémoire ont
 // donc le même avenir.
 
-/** Objets que le passager voit dans la pièce : au sol, posés à une position, installés dans une capsule de la pièce. */
+/** Objets que le passager voit dans la pièce : au sol, posés à une position, installés dans une capsule de la pièce, posés en travers d'un de ses vides. */
 function objetsVus(monde: DefMonde, etat: EtatPartie, piece: string): ObjetSouvenir[] {
   const capsules = monde.objets
     .filter((objet) => {
@@ -19,6 +19,7 @@ function objetsVus(monde: DefMonde, etat: EtatPartie, piece: string): ObjetSouve
       return [emplacement.position === undefined ? { objet: objet.id } : { objet: objet.id, position: emplacement.position }];
     }
     if (emplacement?.type === 'installe' && capsules.includes(emplacement.dans)) return [{ objet: objet.id }];
+    if (emplacement?.type === 'pont' && indexer(monde).liaisons.get(emplacement.liaison)?.entre.includes(piece) === true) return [{ objet: objet.id }];
     return [];
   });
 }
