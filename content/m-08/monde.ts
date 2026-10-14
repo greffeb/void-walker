@@ -1,12 +1,13 @@
 import type { DefMonde } from '../../engine';
 
 // Station de test M-08 — Passerelle effondrée (docs/13-morceaux-lancement.md §3, D-164, D-169, D-236).
-// La passerelle, coupée par un vide, se joue comme deux bords reliés par le vide ; la planche est dans l'atelier voisin des
-// quartiers, avec un touret de câble, encombrant lui aussi. La créature attend dans la réserve, de l'autre côté du vide.
+// La galerie de la passerelle, coupée par un vide, se joue comme deux pièces, ses bords nord et sud, reliées par le vide ; la
+// planche est dans l'atelier voisin des quartiers, avec un touret de câble, encombrant lui aussi. La créature attend dans la
+// réserve, de l'autre côté du vide.
 // Les règles lisent les qualités déclarées ici, jamais un nom (D-078).
 //
-//   atelier ══porte══ quartiers ══porte grippée══ bord ouest ┄┄vide┄┄ bord est ══porte══ embarquement ══écoutille══ cabine
-//                                                                         ╚══porte══ réserve
+//   atelier ══porte══ quartiers ══porte grippée══ galerie nord ┄┄vide┄┄ galerie sud ══porte══ embarquement ══écoutille══ cabine
+//                                                                             ╚══porte══ réserve
 export const MONDE_M08: DefMonde = {
   id: 'm-08',
   depart: 'p-quartiers',

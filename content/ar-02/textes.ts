@@ -5,6 +5,7 @@ import {
   INDISPONIBILITES_MORCEAUX,
   LIBELLES_MORCEAUX,
   OBSERVATION_MORCEAUX,
+  PASSAGE_GOUFFRE,
   REFUS_MORCEAUX,
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
@@ -202,6 +203,7 @@ export const TEXTES_AR02: TextesMonde = {
     ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Vous ne voyez pas où il mène.'],
     fermeSansDestination: ['{Le:passage} est fermé{e:passage}. Rien n’indique ce qu’il y a derrière.'],
     voyantVide: 'Son voyant est rouge : plus d’air de l’autre côté.',
+    gouffre: PASSAGE_GOUFFRE,
   },
   refus: {
     commande_invalide: 'Commande illisible : rien n’a été joué.',

@@ -348,7 +348,8 @@ function reagirRalentie(
   interceptee: boolean,
 ): Reponse {
   if (creature.ralentie === undefined) return reaction(monde, etat, creature, sons, depuis, franchie, interceptee);
-  if (creature.ralentie.saute) return { creature: { ...creature, ralentie: { saute: false } }, evenements: [] };
+  // Un jet d'interception a déjà pris la réaction de ce pas : la suivante est sautée.
+  if (creature.ralentie.saute && !interceptee) return { creature: { ...creature, ralentie: { saute: false } }, evenements: [] };
   const reponse = reaction(monde, etat, creature, sons, depuis, franchie, interceptee);
   return reponse.creature.neutralisee === undefined ? { ...reponse, creature: { ...reponse.creature, ralentie: { saute: true } } } : reponse;
 }

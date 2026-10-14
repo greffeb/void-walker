@@ -196,7 +196,7 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
       const variantes = cible.ouvert ? textes.passages.ouvertSansDestination : textes.passages.fermeSansDestination;
       return remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible) });
     }
-    const variantes = cible.ouvert ? textes.passages.ouvert : textes.passages.ferme;
+    const variantes = cible.gouffre ? textes.passages.gouffre : cible.ouvert ? textes.passages.ouvert : textes.passages.ferme;
     const regard = remplir(choisirVariante(variantes, repere), { passage: nomDe(textes, cible), vers: nomDe(textes, cible.vers) });
     // Le voyant d'une porte étanche dit l'air de l'autre côté (VP-03).
     return cible.vide ? `${regard} ${remplir(textes.passages.voyantVide, {})}` : regard;
@@ -242,6 +242,10 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       : remplir(modele.aucunObjet, {}),
   );
   for (const passage of observation.passages) {
+    if (passage.gouffre) {
+      lignes.push(remplir(modele.gouffre, { passage: nomDe(textes, passage), vers: nomDe(textes, passage.vers ?? passage) }));
+      continue;
+    }
     const modeleOuvert = passage.feu ? modele.passageEnFeu : modele.passageOuvert;
     lignes.push(remplir(passage.ouvert ? modeleOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
     if (passage.huile) lignes.push(remplir(modele.huile, { passage: nomDe(textes, passage) }));

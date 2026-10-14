@@ -99,7 +99,14 @@ export const OBSERVATION_MORCEAUX = {
   machinesArret: 'Les machines sont à l’arrêt.',
   sansGravite: 'Rien ne pèse ici : vous flottez.',
   froid: 'Un froid mordant vous saisit.',
+  gouffre: 'Un vide vous sépare {de:vers}.',
 } as const satisfies Partial<TextesMonde['observation']>;
+
+/** Regard sur le vide d'une passerelle effondrée (D-164). */
+export const PASSAGE_GOUFFRE: TextesMonde['passages']['gouffre'] = [
+  'Un vide noir coupe la salle en deux. De l’autre côté, {le:vers}.',
+  'Le sol s’arrête net au-dessus du noir. En face, {le:vers}, hors d’atteinte sans quelque chose pour passer.',
+];
 
 export const DANGERS_MORCEAUX = {
   froid: 'le froid vous blessera',
@@ -109,8 +116,8 @@ export const DANGERS_MORCEAUX = {
 export const SAVOIR_MORCEAUX = {
   placera: '{Le:objet} sera posé{e:objet} en travers {de:passage} : on pourra passer.',
   derivera: 'Vous dériverez jusqu’à {le:passage} ; le franchir demandera une action de plus.',
-  arreteront: 'Les machines {de:piece} s’arrêteront.',
-  relanceront: 'Les machines {de:piece} repartiront dans un grand bruit, qui portera loin.',
+  arreteront: 'Les machines s’arrêteront ; le silence reviendra.',
+  relanceront: 'Les machines repartiront dans un grand bruit, qui portera loin.',
   coupera: 'La gravité sera coupée dans {le:piece}.',
   retablira: 'La gravité reviendra dans {le:piece}.',
   bouclera: 'Les portes {de:piece} se fermeront d’un coup.',

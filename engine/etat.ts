@@ -411,5 +411,6 @@ export function refPassage(monde: DefMonde, etat: EtatPartie, liaison: DefLiaiso
     huile: huilee(etat, liaison.id, depuis),
     // Seule une porte étanche porte un voyant d'air (VP-03) ; un vide de passerelle n'a pas de porte.
     vide: liaison.nonEtanche !== true && liaison.gouffre !== true && piecesSansAir(monde, etat).includes(vers),
+    gouffre: liaison.gouffre === true,
   };
 }

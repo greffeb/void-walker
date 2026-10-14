@@ -157,6 +157,7 @@ const regarder: ActionConsultation = {
     return [
       etat.piece,
       ...objetsDans(monde, etat, etat.piece).map((objet) => objet.id),
+      ...pontsDe(monde, etat, etat.piece).map((objet) => objet.id),
       ...objetsPortes(monde, etat).map((objet) => objet.id),
       ...liaisonsVisibles(monde, etat, etat.piece).map((liaison) => liaison.id),
     ];

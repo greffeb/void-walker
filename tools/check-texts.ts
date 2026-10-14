@@ -146,6 +146,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   verifierVariantes(erreurs, 'regarder un passage fermé sans destination connue', textes.passages.fermeSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierGabarit(erreurs, 'libellé aller sans destination connue', textes.allerSansDestination, ROLES_ALLER_SANS_DESTINATION);
   verifierGabarit(erreurs, 'voyant d’une porte étanche sans air derrière', textes.passages.voyantVide, []);
+  verifierVariantes(erreurs, 'regarder le vide d’une passerelle', textes.passages.gouffre, ROLES_PASSAGE);
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {
     verifierGabarit(erreurs, `observation ${cle}`, textes.observation[cle as keyof TextesMonde['observation']], roles);
   }

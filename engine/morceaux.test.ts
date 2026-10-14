@@ -281,8 +281,11 @@ describe('passerelle et pont fragile (D-164, D-236)', () => {
     expect(pose?.partie.etat.objets.planche).toEqual({ type: 'pont', liaison: 'gouffre' });
     expect(observer(PASSERELLE, pose?.partie.etat ?? partie(PASSERELLE).etat).ponts).toHaveLength(1);
     expect(traverse?.partie.etat.piece).toBe('est');
-    // Vue de l'autre bord, la planche se reprend.
-    expect(observer(PASSERELLE, traverse?.partie.etat ?? partie(PASSERELLE).etat).ponts).toHaveLength(1);
+    // Vue de l'autre bord, la planche se voit, se regarde et se reprend.
+    const deLautreBord = observer(PASSERELLE, traverse?.partie.etat ?? partie(PASSERELLE).etat);
+    expect(deLautreBord.ponts).toHaveLength(1);
+    expect(deLautreBord.objets.map((objet) => objet.nom)).toEqual(['planche']);
+    expect(option(PASSERELLE, traverse?.partie ?? partie(PASSERELLE), 'regarder', 'planche')).toBeDefined();
     expect(retire?.partie.etat.objets.planche).toEqual({ type: 'passager' });
     expect(option(PASSERELLE, fin(pas), 'aller', 'ouest')).toMatchObject({ disponible: false, raison: 'sans_pont' });
     expect(pas.flatMap((un) => un.tirages)).toEqual([]);
@@ -514,6 +517,14 @@ describe('chambre froide : la créature ralentie (D-166, D-170, D-239, MX-01, MX
     expect(apercuDe(FROID, libre, 'aller', 'sas')).toMatchObject({ risque: 'aucun' });
     const menace = placee(FROID, { piece: 'chambre', creature: { piece: 'chambre', ...CALME, ...face, ralentie: { saute: false } } });
     expect(apercuDe(FROID, menace, 'aller', 'sas')).toMatchObject({ risque: 'eleve', danger: { type: 'interception' } });
+  });
+
+  it('fermer la chambre sous ses yeux : le jet d’interception prend sa réaction, la suivante est sautée', () => {
+    const face = placee(FROID, { piece: 'chambre', creature: { piece: 'chambre', ...CALME, contact: true } });
+    const fermee = engager(FROID, face, 'fermer', 'sas');
+    expect(fermee.tirages).toHaveLength(1);
+    expect(fermee.partie.etat.creature?.ralentie).toEqual({ saute: true });
+    expect(apercuDe(FROID, fermee.partie, 'ouvrir', 'sas')).toMatchObject({ risque: 'aucun' });
   });
 
   it('T-17, MX-01 : enfermée puis glissée sur l’huile, ses deux réactions perdues se comptent sur celles qui restent', () => {

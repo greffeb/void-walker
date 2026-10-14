@@ -174,6 +174,8 @@ export interface RefPassage {
   readonly huile: boolean;
   /** Voyant d'une porte étanche : la pièce de l'autre côté est sans air (C-06 OP-04, VP-03). */
   readonly vide: boolean;
+  /** Vide d'une passerelle effondrée, sans porte : il se franchit sur un pont posé en travers (D-164). */
+  readonly gouffre: boolean;
 }
 
 /** Position locale d'une pièce, utile à une action (C-02 §2) : « sous la grille haute », « au centre ». */

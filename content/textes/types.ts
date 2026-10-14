@@ -62,6 +62,8 @@ export interface TextesMonde {
     readonly fermeSansDestination: Variantes;
     /** Ajouté au regard d'une porte étanche dont le voyant dit qu'il n'y a plus d'air de l'autre côté (VP-03). */
     readonly voyantVide: string;
+    /** Regard sur le vide d'une passerelle effondrée, sans porte (D-164). */
+    readonly gouffre: Variantes;
   };
   readonly refus: Readonly<Record<RaisonRefus, string>>;
   readonly indisponibilites: Readonly<Record<RaisonIndisponibilite, string>>;
@@ -110,6 +112,8 @@ export interface TextesMonde {
     readonly sansGravite: string;
     /** Chambre froide (D-166). */
     readonly froid: string;
+    /** Vide d'une passerelle effondrée, à la place de « ouvert » : il sépare de la pièce d'en face (D-164). */
+    readonly gouffre: string;
     readonly inventaire: string;
     readonly inventaireVide: string;
     /** La créature est dans la pièce, vue par le passager (C-06 §2). */
@@ -292,6 +296,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   machinesArret: [],
   sansGravite: [],
   froid: [],
+  gouffre: ['passage', 'vers'],
   inventaire: ['liste'],
   inventaireVide: [],
   creature: [],

@@ -90,11 +90,13 @@ export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
 /** Observation publique (C-06) : ne contient que des identifiants publics et des clés de nom. */
 export function observer(monde: DefMonde, etat: EtatPartie): Observation {
   const ici = objetsDans(monde, etat, etat.piece);
+  // Un pont posé en travers d'un vide de la pièce se voit et se reprend de ses deux bords (D-164).
+  const visibles = [...ici, ...pontsDe(monde, etat, etat.piece)];
   const protection = protectionEnfilee(monde, etat);
   const piece = indexer(monde).pieces.get(etat.piece);
   return {
     piece: refPiece(monde, etat.piece),
-    objets: ici.map((objet) => refObjet(monde, objet.id)),
+    objets: visibles.map((objet) => refObjet(monde, objet.id)),
     placements: ici.flatMap((objet) => {
       const emplacement = etat.objets[objet.id];
       return emplacement?.type === 'piece' && emplacement.position !== undefined

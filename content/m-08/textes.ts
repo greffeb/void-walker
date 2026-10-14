@@ -7,8 +7,8 @@ export const TEXTES_M08: TextesMonde = {
   noms: {
     ...NOMS_STATION_ESSAI,
     atelier: { texte: 'atelier', genre: 'm', nombre: 's', elision: true },
-    ouest: { texte: 'bord ouest de la passerelle', genre: 'm', nombre: 's', elision: false },
-    est: { texte: 'bord est de la passerelle', genre: 'm', nombre: 's', elision: false },
+    ouest: { texte: 'galerie nord', genre: 'f', nombre: 's', elision: false },
+    est: { texte: 'galerie sud', genre: 'f', nombre: 's', elision: false },
     reserve: { texte: 'réserve', genre: 'f', nombre: 's', elision: false },
     vide: { texte: 'vide', genre: 'm', nombre: 's', elision: false },
     planche: { texte: 'planche', genre: 'f', nombre: 's', elision: false },
@@ -21,11 +21,11 @@ export const TEXTES_M08: TextesMonde = {
       'Des établis, des outils épars, une odeur de graisse. Une longue planche est appuyée contre la paroi.',
     ],
     ouest: [
-      'La passerelle s’arrête net : son milieu s’est effondré. De l’autre côté du vide, l’obscurité ; on devine le bord est.',
-      'Un tablier de métal tordu, puis plus rien : un vide noir coupe la salle en deux. Le bord est se perd dans l’ombre.',
+      'La passerelle de la galerie s’arrête net : son milieu s’est effondré. Au-delà du vide, dans l’obscurité, on devine la galerie sud.',
+      'Un tablier de métal tordu, puis plus rien : un vide noir coupe la galerie en deux. La partie sud se perd dans l’ombre.',
     ],
     est: [
-      'Le bord est de la passerelle, à l’aplomb du vide. Deux portes s’ouvrent dans la paroi.',
+      'La partie sud de la galerie, à l’aplomb du vide. Deux portes s’ouvrent dans la paroi.',
       'Un bout de passerelle accroché à la paroi, au-dessus du vide. Deux portes mènent plus loin.',
     ],
     reserve: [
