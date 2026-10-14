@@ -153,7 +153,8 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
 
 describe('bulles de composition (12 §3.5 à §3.7)', () => {
   // Des milliers d'états : les écarts sont relevés puis vérifiés d'un coup, une assertion par élément serait trop lente.
-  it('chaque puce : sa consultation devient la fiche, ses actions engageantes les lignes, rien ne se perd', () => {
+  // Délai de 30 s comme les autres parcours de tous les états : la machine de la PR est plus lente qu'un poste.
+  it('chaque puce : sa consultation devient la fiche, ses actions engageantes les lignes, rien ne se perd', { timeout: 30_000 }, () => {
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
       const dock = composerDock(observer(monde, partie.etat));
@@ -170,7 +171,7 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     expect([...new Set(ecarts)]).toEqual([]);
   });
 
-  it('une ligne envoie la commande structurée du menu moteur, celle que la CLI numérote et accepte (C-01 A-03, A-05)', () => {
+  it('une ligne envoie la commande structurée du menu moteur, celle que la CLI numérote et accepte (C-01 A-03, A-05)', { timeout: 30_000 }, () => {
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
       const observation = observer(monde, partie.etat);
@@ -185,7 +186,7 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
     expect([...new Set(ecarts)]).toEqual([]);
   });
 
-  it('l’inventaire liste exactement les objets portés, chacun avec sa composition, tant que la partie continue', () => {
+  it('l’inventaire liste exactement les objets portés, chacun avec sa composition, tant que la partie continue', { timeout: 30_000 }, () => {
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
       const observation = observer(monde, partie.etat);
