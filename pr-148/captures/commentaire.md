@@ -2,7 +2,7 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-148/
-Commit `d8e6446`
+Commit `e9f901e`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large ; départ d’AR-01 aussi en 412 × 915). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
