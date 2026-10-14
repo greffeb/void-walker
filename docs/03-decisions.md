@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-13.
+> **Mise à jour :** 2026-10-14.
 
 ## Règles
 
@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement) |
@@ -1751,6 +1751,58 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Décision : chaque fois qu'une alarme du feu ou du vide sonne (D-218, D-223, D-224), la ligne du récit qui décrit ce danger s'écrit en rouge, précédée d'un petit triangle d'attention rouge qui clignote vite ; le texte, lui, reste fixe. En mouvement réduit, le triangle est fixe. Les alarmes sonores ne changent pas. Seule exception rouge de l'écran de jeu.
 - Limite [détail de l'agent] : la ligne signalée est la phrase du récit qui annonce le danger (flammes derrière un passage, feu qui gagne une pièce, air perdu) ; quand aucune ne le fait (on entre dans une pièce sans air ou en feu, un voyant rouge ou des flammes apparaissent par un passage), la ligne de « Regarder autour de vous » qui le décrit est ajoutée au récit : celle de la pièce du passager si elle est touchée (« Il n'y a plus d'air ici. »), sinon une par passage. Rien n'est signalé sans alarme. La reprise d'une partie montre les mêmes lignes. « Regarder autour de vous » et les fiches ne portent pas le repère. Rouge `#FF5A4A` (6,5:1 sur `fond`) ; triangle dessiné, 1 em, présent dès le départ (aucun décalage pendant l'écriture à la machine) ; deux éclats par seconde, sous le seuil de trois (WCAG 2.3.1) ; le lecteur d'écran lit « Attention » puis la phrase, une seule fois.
 - Modifie : 12 §2.1 (pas de rouge dans l'écran de jeu) et §3.3.
+
+## Décisions validées — règles des nouveaux morceaux (#105)
+
+Questions posées avant de coder #105, sur des points que D-163 à D-170 laissaient ouverts ; réponses du porteur du projet le 2026-10-14, à chaque fois l'option recommandée.
+
+### D-234 — Relance des machines et compresseur : un bruit comme l'avertisseur
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-159 « Comme l'avertisseur ».
+- Décision : relancer les machines et déclencher le compresseur de la chambre froide produisent chacun un bruit fort qui dure comme le test de l'avertisseur : la réaction de l'action qui le lance et les deux suivantes (C-03 §5.1). Pendant ce temps, il l'emporte sur les autres pistes de la créature, sauf si elle voit le passager (C-03 §4.2).
+- Précise : la limite de D-163 (intensité et durée de la relance) et le compresseur de D-170.
+
+### D-235 — Machines en marche, le vacarme couvre tout pour qui est dedans
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-160 « Le vacarme couvre tout ».
+- Décision : en plus de D-163, la créature qui se trouve dans la salle des machines en marche n'entend rien de ce qui se passe hors de la salle, et un bruit ne traverse pas la salle d'une porte à l'autre. Seul le bruit de la relance en sort (D-163, D-234).
+
+### D-236 — Passerelle : deux bords qui s'entendent sans se voir
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-161 « Non, on s'entend seulement ».
+- Décision : les deux bords de la salle coupée par le vide se jouent comme deux pièces voisines, reliées par le vide. Le son passe par-dessus le vide ; la vue non, il fait trop sombre. Pour attirer la créature sur la planche, on fait du bruit, ou elle a vu le passager partir par là (D-177).
+- Précise : D-164.
+
+### D-237 — Sans gravité, on dérive jusqu'à l'autre bout
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-162 « Dériver à l'autre bout ».
+- Décision : gravité coupée, entrer dans la zone coûte une action, comme d'habitude. En ressortir par une autre porte que celle par où l'on est entré en coûte deux : dériver jusqu'à cette porte, puis la franchir. Ressortir par où l'on est entré en coûte une. La créature, elle, met deux réactions de plus pour dériver jusqu'à l'autre porte.
+- Précise : D-165 et C-04 §3.2.
+
+### D-238 — Interrupteurs de gravité dans les pièces aux deux bouts
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-163 « Dans les pièces aux deux bouts ».
+- Décision : au départ, la gravité de la zone est coupée. Un interrupteur se trouve dans chaque pièce qui touche la zone, hors de la zone : on peut couper la gravité pendant que la créature s'y engage, sans y être soi-même.
+- Précise : D-165 et la fiche M-09 (« interrupteur à chaque bout »).
+
+### D-239 — La créature est ralentie dès qu'une porte de la chambre froide se ferme sur elle
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-164 « Une porte se ferme sur elle ».
+- Décision : dès qu'une porte de la chambre froide se ferme pendant que la créature est dedans, au pupitre ou à la main en ressortant par l'autre porte, elle est ralentie pour toute la partie. Le pupitre ferme les deux portes de la chambre d'un coup.
+- Précise : D-166 et D-170.
+
+### D-240 — Le froid blesse à chaque action au-delà de deux
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-165 « Une blessure à chaque action de plus ».
+- Décision : comme le feu (D-188), le passager est blessé à la troisième action de suite qu'il finit dans la chambre froide, puis encore à chaque action qu'il y finit ; c'est annoncé avant d'agir. Ressortir remet le compte à zéro.
+- Précise : D-166 et C-04 §3.2.
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 

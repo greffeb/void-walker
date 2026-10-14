@@ -342,6 +342,18 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-157 Mélanges | MX-01 à MX-05 acceptées | D-174 |
 | Q-158 Validation | Conception des dix morceaux v1.0 | D-175 |
 
+### Bloc AD — règles des nouveaux morceaux, avant de coder #105 : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-159 Durée du bruit de relance et du compresseur | Comme l'avertisseur | D-234 |
+| Q-160 Vacarme des machines | Couvre tout pour qui est dedans | D-235 |
+| Q-161 Passerelle | Les deux bords s'entendent sans se voir | D-236 |
+| Q-162 Traverser sans gravité | Dériver jusqu'à l'autre bout : une action de plus | D-237 |
+| Q-163 Interrupteurs de gravité | Dans les pièces aux deux bouts | D-238 |
+| Q-164 Créature ralentie | Dès qu'une porte de la chambre se ferme sur elle | D-239 |
+| Q-165 Froid | Une blessure à chaque action au-delà de deux | D-240 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -373,7 +385,7 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
 2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
-Q-01 à Q-158 sont répondus ; les prochains numéros d'entretien commencent à Q-159. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-165 sont répondus ; les prochains numéros d'entretien commencent à Q-166. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
