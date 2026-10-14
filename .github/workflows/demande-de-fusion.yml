@@ -87,6 +87,9 @@ jobs:
             dist/
             captures/
           if-no-files-found: ignore
+          # L'artefact ne sert qu'à passer la version au job suivant, qui la publie dans GitHub Pages :
+          # un jour suffit (90 jours par défaut, qui remplissaient le stockage Actions inclus).
+          retention-days: 1
 
   publication:
     name: Publication de la version de test
