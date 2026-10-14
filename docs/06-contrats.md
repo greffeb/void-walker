@@ -1,7 +1,7 @@
 # Void Walker V2 — contrats à construire ensemble
 
 > **Statut :** REGISTRE DE CONTRATS ET QUESTIONS — propositions non encore figées sauf référence explicite à une décision validée.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-14.
 
 ## 1. Ce qu'est un contrat ferme
 
@@ -354,6 +354,34 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-164 Créature ralentie | Dès qu'une porte de la chambre se ferme sur elle | D-239 |
 | Q-165 Froid | Une blessure à chaque action au-delà de deux | D-240 |
 
+### Bloc AE — point sur les morceaux, avant #106 : répondu
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-166 Créature mise hors jeu dès le premier obstacle | Attendre les mesures ; créature placée plus souvent près du final, en réserve | D-241 |
+| Q-167 Taille des stations au lancement | Petites d'abord ; grandes si la durée le demande | D-242 |
+| Q-168 Documents à lire (lore) | Oui, version légère ; écriture soignée, par l'assistant principal | D-243 |
+| Q-169 Objets placés hors de leur morceau | Plus tard, avec les annexes ; à garder en mémoire | D-244 |
+
+### Bloc AF — découpage et règles d'assemblage de #106 : répondu
+
+Réponse unique du porteur aux douze questions : « Ok pour tes reco ».
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-170 Découpage de #106 | Sept livraisons ; grandes stations à part, si besoin | D-245 |
+| Q-171 Air de la baie dans les nouveaux morceaux | Il s'en va comme ailleurs, par-dessus la passerelle aussi | D-246 |
+| Q-172 Feu et passerelle | Le feu gagne l'autre bord | D-247 |
+| Q-173 Obstacles qui ne jouent pas sur la même chose | Ensemble, sans règle de plus | D-248 |
+| Q-174 Final et embarquement | Toujours ensemble | D-249 |
+| Q-175 Chemin sûr et premier contact | Compte comme sûr | D-250 |
+| Q-176 Sortie qui demande un coup de dés | Reste une sortie | D-251 |
+| Q-177 Portes entre morceaux | Fermées au départ | D-252 |
+| Q-178 Tirage | Pile ou face du final d'abord | D-253 |
+| Q-179 Ordre libre | Oui : deux obstacles depuis un même couloir | D-254 |
+| Q-180 Version de test | NOUVELLE PARTIE tire une station | D-255 |
+| Q-181 Panneau caché | Contourner la créature par le passage étroit | D-256 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -385,11 +413,11 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
 2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
-Q-01 à Q-165 sont répondus ; les prochains numéros d'entretien commencent à Q-166. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-181 sont répondus ; les prochains numéros d'entretien commencent à Q-182. Les questions posées sur le découpage de #106 sont gardées dans [13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
-- Interactions du vide avec feu, huile ou bloc non définies ; ne pas réintroduire un duel ou compagnon physique pour étendre ce cas.
+- Interactions du vide avec un futur morceau : refusées par défaut tant que leurs règles ne sont pas décidées (D-167, D-248). Pour les dix morceaux actuels, elles sont réglées : feu et huile selon MX-02/MX-03 (D-174), quatre nouveaux morceaux sans règle de plus (D-246) ; le vide ne rencontre jamais le bloc, M-03 et M-06 étant tous deux des morceaux finals (D-172). Ne pas réintroduire un duel ou compagnon physique pour étendre ce cas.
 - Transformations d'objets et ressources au-delà des qualités de C-02 ; quoi omettre volontairement.
 - Règles et risques hors de la portée d'AR-01 ; information visible sans fuite des secrets.
 - Génération, fins, connaissance et cas d'absence de solution.
@@ -397,6 +425,7 @@ Q-01 à Q-165 sont répondus ; les prochains numéros d'entretien commencent à 
 - Appareils de validation, offline, sauvegardes, mises à jour et publication.
 - Budget, cadence humaine, services déjà disponibles et contraintes d'exploitation.
 - Fusion d'une demande touchant plusieurs zones, passage du moteur en vert, budget des agents, isolation des agents.
+- Après le lancement : univers, menaces et objectifs choisis au moment du tirage (exfiltration, extermination, enquête, escorte ; essaim, champignon, savant fou…), pistes de la [roadmap](02-roadmap.md#après-lancement--hors-définition-de-fin-actuelle), non décidées.
 
 On pose les questions en petits blocs. Pas de formulaire de cinquante choix techniques avant d'avoir une boucle de jeu claire.
 

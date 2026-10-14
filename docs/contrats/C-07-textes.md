@@ -52,3 +52,5 @@ Dire ce que le texte affiché a le droit d'affirmer et comment il est écrit. Le
 ## 6. Réserves
 
 Textes définitifs, nom de la station, titre public, typographie et accessibilité de lecture restent à écrire ou maqueter. Les brouillons d'AR-01 §15 et d'AR-02 §10 ne sont pas des textes finaux.
+
+Les documents à lire du lore léger (D-243) suivent le §2 tel qu'il est écrit : ils ne contredisent pas l'état réel (C-05) et ne révèlent rien que le passager ne sait pas (C-06 §5), ni position d'une créature non perçue, ni accès caché non découvert, ni effet secret. D-243 veut aussi qu'ils servent d'indices : un document qui mettrait sur la piste d'un accès caché, comme le panneau de M-05, se heurterait à cette règle. Ce qu'un document peut révéler, l'effet de sa lecture sur ce que sait le passager et sa longueur, y compris si les deux à quatre phrases après une action (D-111) s'y appliquent, se décident dans la conception du lore, avant d'écrire ; une exception au §2 ou à C-06 §5 demandera une décision explicite.

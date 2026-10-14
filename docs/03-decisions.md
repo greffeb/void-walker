@@ -22,10 +22,10 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
-| Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement) |
+| Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont) |
@@ -1239,6 +1239,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse Q-138 « Pur hasard ».
 - Décision : une nouvelle partie peut retomber sur une station déjà jouée, même deux fois de suite. Le choix délibéré « rejouer cette station » reste disponible (D-087).
+- Modifiée par D-253 : le problème final se tire d'abord à pile ou face, puis la station au pur hasard parmi celles qui ont ce final ; une station déjà jouée peut toujours revenir.
 
 ### D-163 — Salle des machines bruyante
 
@@ -1613,6 +1614,7 @@ Choix faits le 2026-10-12 sur maquettes et sur les mesures d'un prototype jetabl
 - Origine : validation par le porteur du découpage proposé.
 - Décision : #97 se livre en trois PR : plans, mémoire, écran (14 §7). L'assemblage géométrique des stations générées rejoint #106. Un catalogue de pièces sans obstacle fera l'objet d'une issue à part, créée avec l'accord du porteur.
 - Limite : chaque livraison est en zone orange ; l'écran demande un essai sur téléphone.
+- Modifiée par D-245 : #106 ne dessine que le chemin principal ; annexes, boucles et grandes stations iront dans une issue à part, si la durée le demande.
 
 ### D-215 — La carte s'ouvre en bulle, comme l'inventaire
 
@@ -1804,6 +1806,134 @@ Questions posées avant de coder #105, sur des points que D-163 à D-170 laissai
 - Décision : comme le feu (D-188), le passager est blessé à la troisième action de suite qu'il finit dans la chambre froide, puis encore à chaque action qu'il y finit ; c'est annoncé avant d'agir. Ressortir remet le compte à zéro.
 - Précise : D-166 et C-04 §3.2.
 
+## Décisions validées — point sur les morceaux, avant #106
+
+Questions posées après un point d'ensemble sur les morceaux, leurs outils et la suite du jeu ; réponses du porteur du projet le 2026-10-14, citées mot pour mot dans chaque entrée, avec leurs réserves et conditions.
+
+### D-241 — Créature mise hors jeu tôt : on mesure avant de décider
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-166 « (c), avec (b) en réserve » : (c) attendre les mesures, (b) une créature placée plus souvent près du problème final.
+- Décision : si la créature est neutralisée ou enfermée dès le premier obstacle (tombée de la passerelle, ou enfermée dans la chambre froide, les deux portes fermées), la suite de la station n'a plus de menace. Seulement ralentie, une porte fermée à la main et l'autre restée ouverte, elle peut encore sortir : elle reste une menace, plus lente (D-166, D-239). On ne change rien au tirage pour l'instant : #106 mesure, sur ses tirages, la part des stations où la créature peut être neutralisée ou enfermée avant le problème final, et celle où elle ne part pas du morceau final. Le porteur décide sur ces mesures et sur ses parties.
+- Limite : la réserve, une créature placée plus souvent près du problème final, modifierait D-161, D-162 et C-08 §2 ; elle demandera une décision explicite.
+
+### D-242 — Petites stations d'abord, grandes si la durée le demande
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-167 « ok pour ta reco ».
+- Décision : le lancement commence par de petites stations, environ six à dix pièces : départ, un ou deux morceaux de chemin, un morceau final et l'embarquement, sans annexes ni boucles. Les grandes stations (annexes, boucles, vingt pièces et plus) viennent avant la publication seulement si la durée mesurée des parties (15 à 30 minutes, D-008) le demande.
+- Précise : D-205, qui reste possible.
+- Limite : #106 assemble d'abord ces petites stations. Que #106 s'arrête au plan du chemin principal (GE-01 à GE-07) et que les annexes, les boucles et GE-08 à GE-13 passent dans une issue à part n'est pas décidé : c'est une proposition du découpage de #106 ([13 §7](13-morceaux-lancement.md#7-découpage-de-106), question 1 du §7.4). D-214 reste inchangée tant que le porteur n'a pas répondu ; s'il accepte, une nouvelle entrée portera « Modifie : D-214 ».
+- Précisée par D-245 : le porteur a accepté ; #106 ne dessine que le chemin principal, et les grandes stations iront dans une issue à part.
+
+### D-243 — Un lore léger au lancement, écrit avec soin par l'assistant principal
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-168 « oui, mais attention a l'écrIture qui doit etre de qualité c'est toi qui va le faire ».
+- Décision : le lancement accueille un lore léger : quelques documents à lire dans la station (journaux de bord, notes, messages, écrans), écrits à la main, qui donnent de la profondeur à l'histoire et servent aussi d'indices pour découvrir les solutions. L'assistant principal, celui qui tient la conversation avec le porteur, les écrit lui-même, avec une exigence de qualité d'écriture ; il ne les délègue pas à un exécutant. Lire reste gratuit (D-014).
+- Précise : D-116 ; ces textes restent en zone verte, fusionnés après relecture indépendante.
+- Limite : la forme (nombre de documents par station, longueur, place, ce qu'un document peut révéler, effet éventuel de la lecture sur ce que sait le passager) se décide avant d'écrire, dans une conception à part. C-07 s'applique, et aucun document ne contredit l'état réel (C-05). Brancher plus tard d'autres univers, menaces ou objectifs au moment du tirage n'est pas décidé : c'est une piste de l'après-lancement ([roadmap](02-roadmap.md)).
+
+### D-244 — Objets nécessaires hors de leur morceau : après les annexes, sans les oublier
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-169 « ok, mais a bien garder en mémoire ».
+- Décision : dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche. Les objets placés hors de leur morceau, comme l'eau du feu posée dans une pièce quelconque atteinte avant le feu, viendront avec les annexes (D-242).
+- Limite : à garder en mémoire ; le point est inscrit dans la [roadmap](02-roadmap.md), dans [13 §6](13-morceaux-lancement.md#6-suite), dans [14 §7](14-carte.md#7-découpage) et dans [C-08 §7](contrats/C-08-stations-fins.md#7-réserves). La règle de placement reste à décider ; proposition de l'agent, que le porteur n'a pas tranchée : un objet nécessaire se poserait toujours dans la partie de la station qu'on peut atteindre avant l'obstacle qui le demande, jamais derrière, et le vérifieur le confirmerait.
+
+## Décisions validées — découpage et règles d'assemblage de #106
+
+Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur)), posées le 2026-10-14 ; réponse du porteur du projet le même jour : « Ok pour tes reco ». Chaque entrée reprend donc la réponse recommandée.
+
+### D-245 — Découpage de #106 accepté ; grandes stations dans une issue à part
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-170 « Ok pour tes reco ».
+- Décision : #106 avance par les sept livraisons de [13 §7](13-morceaux-lancement.md#7-découpage-de-106) : cadrage sur le papier (L0), vérifieur seul (L1), première station tirée (L2), autres morceaux par groupes (L3, L4), ordre libre et mesures sur 1 000 tirages (L5), signal « plus aucune sortie » (L6). #106 ne dessine que le chemin principal (GE-01 à GE-07). Si la durée des parties demande un jour de grandes stations (D-242), elles se feront dans une issue à part, avec annexes, boucles et GE-08 à GE-13, créée avec l'accord du porteur.
+- Modifie : D-214 ; l'assemblage géométrique des stations générées ne rejoint plus #106 que pour le chemin principal.
+- Précise : la limite de D-242, qui laissait ouverts l'arrêt de #106 au chemin principal et le passage des annexes, des boucles et de GE-08 à GE-13 dans une issue à part ; D-205 reste possible.
+- Limite : chaque livraison garde la zone et l'essai sur téléphone indiqués en 13 §7.1 (D-098).
+
+### D-246 — L'air de la baie gagne aussi les nouveaux morceaux, sans règle de plus
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-171 « Ok pour tes reco ».
+- Décision : quand la baie est percée, l'air s'en va des pièces des quatre nouveaux morceaux comme partout ailleurs (D-061). Il passe par-dessus le vide de la passerelle, dont les deux bords forment une seule salle, et il quitte aussi la salle des machines, la zone sans gravité et la chambre froide. Aucune règle de plus : sans combinaison, le passager y meurt ; exposée, la créature y est neutralisée pour de bon, comme ailleurs (D-059, D-062).
+- Précise : D-165 (cohabitation avec le vide), D-174 et C-02 §5. La baie peut donc sortir avec chacun des quatre nouveaux morceaux.
+
+### D-247 — Le feu passe par-dessus le vide de la passerelle
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-172 « Ok pour tes reco ».
+- Décision : un incendie sur un bord de la passerelle peut gagner l'autre bord, comme par une porte restée ouverte (C-03 §5.3), puisque c'est une seule salle. Le feu ne gagne toujours pas une pièce sans air (MX-02). La galerie en feu et la passerelle peuvent donc sortir ensemble.
+- Précise : D-164, D-174 et C-02 §5.
+
+### D-248 — Les obstacles qui ne jouent pas sur la même chose se mélangent sans règle de plus
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-173 « Ok pour tes reco ».
+- Décision : deux morceaux qui ne touchent pas la même chose (bruit, ralentissement, neutralisation, air), par exemple la galerie en feu et la chambre froide, ou la caisse sous la grille et le local d'énergie, peuvent se retrouver dans une même station sans règle de plus, comme dans AR-01. Seuls les morceaux qui touchent la même chose attendent leurs règles de mélange.
+- Précise : D-167 et C-08 §2.
+- Conséquence : avec les règles de mélange de 13 §4 (D-174 : bruits entre eux, neutralisations entre elles, MX-01 à MX-05), D-246 et D-247, toutes les paires des dix morceaux sont permises, sauf M-03 et M-06 : tous deux finals, ils ne se rencontrent jamais (D-172). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167).
+
+### D-249 — Le morceau final apporte l'embarquement et sa capsule
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-174 « Ok pour tes reco ».
+- Décision : le problème final et l'embarquement avec sa capsule vont toujours ensemble, dans le même morceau, comme la baie où la créature attend devant la capsule. Une station enchaîne donc la pièce de départ, un ou deux morceaux de chemin, puis le morceau final avec son embarquement.
+- Précise : D-172 et 13 §2.
+
+### D-250 — L'action libre du premier contact peut faire partie d'un chemin sûr
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-175 « Ok pour tes reco ».
+- Décision : un chemin sans dé ni blessure qui passe une fois sous les yeux de la créature, grâce à l'action libre qui suit le premier contact (D-184), compte comme sûr pour la vérification d'une station. Le chemin sûr de la chambre froide en dépend.
+- Précise : D-084 et C-08 §3.
+- Limite : une seule fois par partie, comme le premier contact (D-184).
+
+### D-251 — Une sortie qui demande un coup de dés reste une sortie
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-176 « Ok pour tes reco ».
+- Décision : tant qu'une évacuation reste possible au prix d'un coup de dés, le jeu ne dit pas « plus aucune sortie ». Le signal ne vient que si aucune évacuation n'est possible, quels que soient les dés.
+- Précise : D-085 et C-08 §4.
+
+### D-252 — Portes fermées entre les morceaux au départ
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-177 « Ok pour tes reco ».
+- Décision : au départ, les portes qui relient deux morceaux sont fermées, comme les cloisons d'AR-01. La créature n'en ouvrant jamais, elle reste dans sa partie de la station tant que le passager n'ouvre pas.
+- Limite : l'effet sur la menace est mesuré ensuite (D-241). [Détail de l'agent] La porte entre la pièce de départ et le premier morceau suit la même règle ; les portes intérieures d'un morceau gardent l'état prévu par sa fiche. La comparaison avec AR-01 vaut pour trois de ses quatre cloisons : celle de l'observation vers l'embarquement y est ouverte au départ (08 §11.1, O–E). Entre M-04 et l'embarquement apporté par le morceau final (D-249), elle serait fermée : sur une copie d'AR-01 où elle l'est, P-B et P-C demandent une action de plus, l'ouvrir, et restent sans dé ni blessure (essai de l'agent du 2026-10-14).
+
+### D-253 — Au tirage, pile ou face entre les deux problèmes finals
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-178 « Ok pour tes reco ».
+- Décision : une nouvelle station tire d'abord à pile ou face son problème final, énergie ou baie, puis, au pur hasard, une station parmi celles qui ont ce final. Les deux finals sortent ainsi aussi souvent l'un que l'autre, quel que soit le nombre de stations possibles avec chacun.
+- Modifie : D-162 ; les stations n'ont plus toutes la même chance : le problème final se tire d'abord à pile ou face, puis la station au pur hasard parmi celles qui ont ce final. Une station déjà jouée peut toujours revenir, même deux fois de suite.
+
+### D-254 — Ordre libre : deux obstacles qui partent d'un même couloir
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-179 « Ok pour tes reco ».
+- Décision : les obstacles à préparer « dans l'ordre que le joueur veut » peuvent prendre cette forme : deux obstacles qui partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le problème final, comme l'énergie et l'accès d'AR-01.
+- Précise : D-160.
+- Limite : ce qui rend chaque branche nécessaire (un accès, un objet ou une alimentation que le morceau fournit, GP-01) se propose en L0 et se valide avant L5. [Détail de l'agent] L'exemple, repris de D-160 et accepté tel quel, montre seulement deux préparations menées dans l'ordre qu'on veut : dans les morceaux, l'énergie d'AR-01 est devenue le final M-03 (D-172), qui vient après les deux branches. Les deux branches sont donc deux morceaux de chemin.
+
+### D-255 — Version de test de #106 : NOUVELLE PARTIE tire une station
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-180 « Ok pour tes reco ».
+- Décision : dans la version de test de #106, NOUVELLE PARTIE tire une station au hasard ; les aventures de référence restent jouables par un lien.
+- Limite : la question ne portait que sur la version de test ; ce que fait NOUVELLE PARTIE dans la version publique reste à décider. [Détail de l'agent] La question est à poser au porteur avant la fusion de L2, la première livraison où NOUVELLE PARTIE tire une station, puisqu'une fusion publie le jeu (AP-10).
+
+### D-256 — Le panneau caché sert à contourner la créature
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-181 « Ok pour tes reco ».
+- Décision : dans M-05, la créature peut attendre sur le chemin normal ; le passage étroit derrière le panneau, où elle ne passe jamais, permet de la contourner. Les endroits où elle peut attendre autour de la galerie en feu (M-01) seront proposés de la même façon, avant la première station qui l'utilise.
+- Précise : D-161, D-171 et les fiches M-01 et M-05.
+
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 
 Détails de l'agent pour #107 (service de rapports), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : limites du service par appareil (adresse hachée avec un sel tiré par le service, oubliée en un jour) : 20 s entre deux rapports, 6 par heure, 20 par jour ; 100 rapports par jour pour tout le service ; un rapport identique (même partie au même point, même commentaire) est un doublon pendant 24 h, rendu comme déjà reçu ; le jeu attend lui aussi 20 s entre deux envois ; au plus 10 rapports gardés sur l'appareil, renvoyés au lancement, au retour du réseau et à l'ouverture des options, le service qui refuse un rapport l'efface de la file ; commentaire limité à 1 000 caractères, rendu inerte dans un bloc de code (ni mention, ni lien, ni image) ; l'issue de bug joint aussi le texte affiché à l'écran ; un bug peut être signalé sans partie en cours, avec son seul commentaire ; « Envoyer ma partie » est offert pour une partie finie comme en cours ; une version de test dont la PR est fermée envoie une issue qui cite la PR ; les issues portent les étiquettes `rapport-bug` et `rapport-partie` ; une partie trop longue pour GitHub est jointe compressée ; seules la version publiée, les versions de test et les essais locaux (`localhost:5173`, `localhost:4173`) peuvent envoyer ; textes des retours écrits par l'agent.
@@ -1816,4 +1946,4 @@ Détails de l'agent pour #103 (AR-01 jouable), proposés dans la PR et à revoir
 
 Détails de l'agent pour #104 (AR-02 jouable), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : la baie est un objet fixe « vitrage extérieur », pas un passage ; percer demande la découpeuse en main et ne vise qu'un vitrage extérieur de la pièce ; la combinaison s'enfile depuis la pièce ou la main, et peut aussi se prendre ; enfilée, elle protège jusqu'à ce qu'on la retire, et ne se pose pas sans l'avoir retirée ; les voyants d'une porte disent l'air de l'autre côté, porte ouverte ou fermée, si sa destination est connue ; les annonces d'air perdu ou revenu nomment les mêmes pièces connues que l'aperçu ; l'aperçu de percer, d'ouvrir ou de reboucher nomme les pièces connues (visitées, ou nommées par une porte de la pièce) qui perdront ou retrouveront l'air ; la créature exposée au vide est expulsée par la brèche si elle est dans la pièce percée, sinon inerte sur place ; un corps inerte découvert ne compte pas comme premier contact et s'annonce à chaque arrivée dans sa pièce ; s'il gisait dans la cabine, il bloquerait le départ comme la créature (cas impossible dans AR-02) ; la créature que le vide atteint à ce pas n'intercepte pas (devenu D-194) ; P-V3 passe sans dé (devenu D-193, puis remplacé par D-195 : un dé) ; les options impossibles (enfiler deux fois, percer une baie percée, reboucher sans brèche) sont absentes du menu et refusées sans coût ; les voyants comptent pour toute liaison visible à destination connue, grille comprise (pas de grille dans AR-02) ; la capsule d'AR-02 part sur sa propre réserve ; aucun message d'IA Station au départ ; AR-01 et le monde de test reçoivent des textes courts pour les nouvelles clés.
 
-Détails de l'agent pour #105 (nouveaux morceaux), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : les deux bords de la passerelle sont deux pièces reliées par une liaison « vide », toujours ouverte, sans porte à ouvrir ni fermer ; que l'air et le feu passent aussi le vide n'est pas décidé (seul le son l'est, D-236), et ces mélanges restent refusés par l'assemblage ; un vide sur des flammes se raconte comme tout passage ouvert sur le feu ; on ne verse pas d'huile au bord du vide, seulement au pied d'une porte (D-190) ; le pont se pose par « Poser en travers » (le vide visé en paramètre) et se reprend par « Prendre » de l'un ou l'autre bord ; sans pont, « aller » est indisponible (« Il faut de quoi franchir le vide ») ; la créature tombe au moment de s'engager, sauf si elle glisse sur une huile de son côté avant ; tombée, elle n'a plus de place dans la station et la planche est perdue ; le passager l'entend s'il se tient sur l'un des deux bords, ou d'une pièce voisine de l'un d'eux par un passage qui laisse passer le son (retour du porteur après une partie de M-08 : rien ne disait ce qui s'était passé) ; revenu sur un bord, il voit que la planche n'est plus là, des éclats de bois au bord du vide ; un touret de câble, encombrant, est rangé avec la planche dans la station de test ; sans gravité, la dérive est une action à part, « Dériver jusqu'à… », offerte vers chaque passage sauf celui au bord duquel on se tient, et « aller » vers un autre passage reste indisponible, « il faut d'abord dériver » ; ouvrir et fermer les portes de la zone ne demandent pas de dériver ; la créature arrivée par un passage s'y tient, et si la gravité revient pendant qu'elle dérive, elle franchit dès la réaction suivante ; à mi-dérive, elle peut encore repartir aussitôt par le passage d'où elle vient ; couper ou rétablir la gravité et arrêter les machines sont des gestes discrets ; les machines tournent au départ ; les arrêter fait taire une relance en cours ; dans la salle des machines en marche, un geste bruyant ne s'annonce plus « bruyant » et se raconte couvert par le vacarme, et la créature qui s'y trouve n'entend rien, pas même un bruit né dans la salle, sauf la relance ; le compresseur se déclenche comme l'avertisseur, son bruit né dans sa propre pièce, et s'annonce « bruyant » ; plusieurs bruits forts peuvent courir ensemble, un par dispositif ; le pupitre de fermeture, « Fermer la chambre depuis… », ferme toutes les portes de la chambre et ne les rouvre pas ; il est toujours offert, pour ne rien dire de portes que le passager n'a pas vues, et son récit dit seulement que les verrous s'enclenchent ; ralentie, la créature saute aussitôt la réaction du pas où la porte se ferme, puis une sur deux ; une interception prend sa réaction et la suivante est sautée ; pendant la réaction sautée elle ne peut pas intercepter, et l'aperçu le reflète ; vue, elle est décrite couverte de givre, « figée un instant » avant une réaction sautée ; le froid compte les actions finies dans la chambre, l'entrée comprise, et s'annonce « certain » à partir de la troisième ; avec le feu dans le même pas, les textes de brûlure l'emportent ; le bloc d'AR-01 est déclaré encombrant (C-02 §5), sans effet sur ses parcours ; les stations de test M-07 à M-10 ont un plan de pont simple, dessiné par l'agent, et chacune a une capsule déjà alimentée pour aller au bout ; dans M-10, la créature, voisine de la chambre comme le veut la fiche, y entre au pas où le compresseur démarre : le parcours au compresseur passe par le premier contact, et ressortir par l'autre porte est libre (D-184) ; le parcours risqué de la fiche (se faire suivre) y passe aussi sans dé grâce au premier contact, et se jouerait au dé ensuite ; les textes des nouvelles règles sont partagés par tous les mondes, ceux des stations de test aussi ; ils sont écrits par l'agent.
+Détails de l'agent pour #105 (nouveaux morceaux), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : les deux bords de la passerelle sont deux pièces reliées par une liaison « vide », toujours ouverte, sans porte à ouvrir ni fermer ; que l'air et le feu passent aussi le vide n'est pas décidé (seul le son l'est, D-236), et ces mélanges restent refusés par l'assemblage (remplacé par D-246 et D-247 : l'air et le feu passent le vide, et la passerelle peut sortir avec la baie comme avec la galerie en feu) ; un vide sur des flammes se raconte comme tout passage ouvert sur le feu ; on ne verse pas d'huile au bord du vide, seulement au pied d'une porte (D-190) ; le pont se pose par « Poser en travers » (le vide visé en paramètre) et se reprend par « Prendre » de l'un ou l'autre bord ; sans pont, « aller » est indisponible (« Il faut de quoi franchir le vide ») ; la créature tombe au moment de s'engager, sauf si elle glisse sur une huile de son côté avant ; tombée, elle n'a plus de place dans la station et la planche est perdue ; le passager l'entend s'il se tient sur l'un des deux bords, ou d'une pièce voisine de l'un d'eux par un passage qui laisse passer le son (retour du porteur après une partie de M-08 : rien ne disait ce qui s'était passé) ; revenu sur un bord, il voit que la planche n'est plus là, des éclats de bois au bord du vide ; un touret de câble, encombrant, est rangé avec la planche dans la station de test ; sans gravité, la dérive est une action à part, « Dériver jusqu'à… », offerte vers chaque passage sauf celui au bord duquel on se tient, et « aller » vers un autre passage reste indisponible, « il faut d'abord dériver » ; ouvrir et fermer les portes de la zone ne demandent pas de dériver ; la créature arrivée par un passage s'y tient, et si la gravité revient pendant qu'elle dérive, elle franchit dès la réaction suivante ; à mi-dérive, elle peut encore repartir aussitôt par le passage d'où elle vient ; couper ou rétablir la gravité et arrêter les machines sont des gestes discrets ; les machines tournent au départ ; les arrêter fait taire une relance en cours ; dans la salle des machines en marche, un geste bruyant ne s'annonce plus « bruyant » et se raconte couvert par le vacarme, et la créature qui s'y trouve n'entend rien, pas même un bruit né dans la salle, sauf la relance ; le compresseur se déclenche comme l'avertisseur, son bruit né dans sa propre pièce, et s'annonce « bruyant » ; plusieurs bruits forts peuvent courir ensemble, un par dispositif ; le pupitre de fermeture, « Fermer la chambre depuis… », ferme toutes les portes de la chambre et ne les rouvre pas ; il est toujours offert, pour ne rien dire de portes que le passager n'a pas vues, et son récit dit seulement que les verrous s'enclenchent ; ralentie, la créature saute aussitôt la réaction du pas où la porte se ferme, puis une sur deux ; une interception prend sa réaction et la suivante est sautée ; pendant la réaction sautée elle ne peut pas intercepter, et l'aperçu le reflète ; vue, elle est décrite couverte de givre, « figée un instant » avant une réaction sautée ; le froid compte les actions finies dans la chambre, l'entrée comprise, et s'annonce « certain » à partir de la troisième ; avec le feu dans le même pas, les textes de brûlure l'emportent ; le bloc d'AR-01 est déclaré encombrant (C-02 §5), sans effet sur ses parcours ; les stations de test M-07 à M-10 ont un plan de pont simple, dessiné par l'agent, et chacune a une capsule déjà alimentée pour aller au bout ; dans M-10, la créature, voisine de la chambre comme le veut la fiche, y entre au pas où le compresseur démarre : le parcours au compresseur passe par le premier contact, et ressortir par l'autre porte est libre (D-184) ; le parcours risqué de la fiche (se faire suivre) y passe aussi sans dé grâce au premier contact, et se jouerait au dé ensuite ; les textes des nouvelles règles sont partagés par tous les mondes, ceux des stations de test aussi ; ils sont écrits par l'agent.

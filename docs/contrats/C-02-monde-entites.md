@@ -82,9 +82,9 @@ Les règles lisent des qualités déclarées, jamais un nom ou un modèle (D-078
 | Gabarit large | Refusé par les liaisons étroites (D-043) | Bloc, créature |
 | Pont fragile | Posé sur un vide, laisse passer le passager ; cède sous la créature et se perd (D-164) ; encombrant (D-169) | Planche |
 
-Propriétés de pièce ajoutées par les morceaux du lancement (D-175) : pièce bruyante à machines commutables (D-163), gravité commutable (D-165), chambre froide (D-166). Les deux bords d'une salle coupée par un vide sont deux pièces reliées par le vide : le son passe, la vue non (D-236) ; sans porte, il ne se franchit que sur un pont posé (D-164). Que l'air ou le feu passent aussi le vide n'est pas décidé : dans le moteur, le vide est un passage toujours ouvert [détail de l'agent], et les mélanges de la passerelle avec le feu ou le vide restent refusés par l'assemblage (D-167, D-174). Interrupteurs des machines et de la gravité, pupitre de fermeture de la chambre froide : dispositifs fixes (D-168, D-173, D-238, D-239).
+Propriétés de pièce ajoutées par les morceaux du lancement (D-175) : pièce bruyante à machines commutables (D-163), gravité commutable (D-165), chambre froide (D-166). Les deux bords d'une salle coupée par un vide sont deux pièces reliées par le vide : le son passe, la vue non (D-236) ; sans porte, il ne se franchit que sur un pont posé (D-164). L'air et le feu passent aussi le vide, puisque les deux bords forment une seule salle (D-246, D-247) : dans le moteur, le vide est un passage toujours ouvert [détail de l'agent]. Interrupteurs des machines et de la gravité, pupitre de fermeture de la chambre froide : dispositifs fixes (D-168, D-173, D-238, D-239).
 
-Une qualité absente de cette table n'existe pas encore. En ajouter une, ou combiner deux qualités sans règle acceptée (vide et feu, huile et feu), demande une décision.
+Une qualité absente de cette table n'existe pas encore. En ajouter une, ou combiner deux qualités sans règle acceptée (par exemple un liquide glissant inflammable, D-051), demande une décision. La dépressurisation de la baie (M-06) et le feu ont leur règle depuis MX-02 (D-174) ; l'air et le feu passent par-dessus le vide de la passerelle (D-246, D-247).
 
 ## 6. Port et transferts
 

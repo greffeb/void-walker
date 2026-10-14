@@ -1,7 +1,7 @@
 # Void Walker V2 — cahier des charges produit
 
 > **Statut :** VERSION DE TRAVAIL 0.8 — AR-01 et AR-02 acceptées en conception ; quatre contrats bornés, starter pack global encore incomplet.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-14.
 
 ## 1. Promesse produit
 
@@ -101,6 +101,14 @@ Dans une aventure courte d'horreur spatiale, le joueur observe une situation, ma
 | B-066 | Quatre nouveaux morceaux : salle des machines, passerelle effondrée, zone sans gravité, chambre froide, avec leurs règles | D-158, D-163 à D-166, D-168 à D-170 | Conception des morceaux, puis parcours témoins |
 | B-067 | Mélange de morceaux autorisé seulement une fois ses règles décidées ; détail des morceaux proposé par les agents et validé | D-167, D-171 | Document de conception des morceaux accepté |
 | B-068 | Dix morceaux en deux familles (final, chemin), mélanges MX-01 à MX-05, un seul interrupteur des machines | D-172 à D-175 | Parcours sûr par morceau, cas par mélange, partie sur téléphone par morceau |
+| B-069 | Créature mise hors jeu avant le problème final : mesurée avant toute décision ; placement plus souvent près du final gardé en réserve | D-241 | Statistiques de tirage de #106 et parties du porteur |
+| B-070 | Petites stations d'abord (six à dix pièces, sans annexes) ; grandes stations seulement si la durée des parties le demande | D-242 | Durée mesurée sur téléphone ; grandes stations si besoin |
+| B-071 | Lore léger au lancement : quelques documents à lire, écrits à la main par l'assistant principal lui-même avec une exigence de qualité d'écriture, qui servent aussi d'indices | D-243 | Conception du lore acceptée, contrôles de C-07, relecture indépendante avant fusion (D-105, D-116) |
+| B-072 | Objets nécessaires placés hors de leur morceau : après les annexes, à ne pas oublier | D-244 | Règle de placement décidée, puis vérifieur de stations |
+| B-073 | #106 en sept livraisons, plan du chemin principal seulement ; grandes stations dans une issue à part si la durée le demande | D-245 | Preuves des livraisons L0 à L6 (13 §7.1) |
+| B-074 | Mélanges : l'air et le feu passent le vide de la passerelle ; la baie va avec les nouveaux morceaux ; les obstacles qui ne jouent pas sur la même chose se mélangent sans règle de plus | D-246 à D-248 | Cas de mélange en station assemblée (L3, L4) |
+| B-075 | Assemblage : le final apporte l'embarquement ; portes fermées entre morceaux au départ ; pile ou face du final, puis pur hasard ; ordre libre depuis un même couloir ; le panneau caché contourne la créature | D-249, D-252 à D-254, D-256 | Assembleur, statistiques de tirage, parties sur téléphone |
+| B-076 | Chemin sûr pouvant passer par l'action libre du premier contact ; une sortie au dé reste une sortie ; NOUVELLE PARTIE tire une station dans la version de test | D-250, D-251, D-255 | Vérifieur (L1), signal (L6), version de test (L2) |
 
 Les preuves « à définir » ne sont ni réalisées ni suffisantes pour lancer toutes les issues. Elles identifient ce qui manque au cadrage.
 

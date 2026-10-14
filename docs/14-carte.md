@@ -2,7 +2,7 @@
 
 > **Statut :** CONCEPTION VALIDÉE PAR PARTIES — choix du porteur du projet du 2026-10-12 consignés par D-201 à D-214 ; document à relire par le porteur avant le plan d'implémentation.
 > **Date :** 2026-10-12.
-> **Issues :** [#97](https://github.com/greffeb/void-walker/issues/97) (carte) pour les §2 à §4 ; [#106](https://github.com/greffeb/void-walker/issues/106) (stations assemblées) pour le §5.
+> **Issues :** [#97](https://github.com/greffeb/void-walker/issues/97) (carte) pour les §2 à §4 ; [#106](https://github.com/greffeb/void-walker/issues/106) (stations assemblées) pour le §5, petites stations d'abord et chemin principal seulement (D-242, D-245).
 > **Implémentation :** livraison 1 (format du plan, vérifieur PL-01 à PL-07, plans d'AR-01, d'AR-02 et du monde de test, captures) proposée par #97 ; livraison 2 (mémoire du passager, carte publique, commande `carte` de la CLI) proposée ; livraison 3 (écran) proposée, à valider sur téléphone par le porteur. Un prototype jetable, hors dépôt, a mesuré la génération des plans (§6) ; aucun de ses fichiers n'est conservé.
 > **Remplace :** la forme de la carte de [12 §4.8](12-interface-ecrans.md) (boîtes reliées de la maquette P08) et la règle « destination non dessinée » d'OP-03 dans [C-06 §3](contrats/C-06-observation-connaissances.md) ; voir §8.
 
@@ -206,7 +206,7 @@ Chaque morceau (C-08 GP-01) porte son plan : ses pièces en cases, ses portes in
 
 ### 5.3 Grandes stations et petites pièces (D-205, D-206)
 
-Une station peut compter 20 pièces et plus. Elle se construit en trois temps :
+Une station peut compter 20 pièces et plus. Au lancement, on commence par de petites stations, sans annexes ni boucles (D-242) : seul le premier temps ci-dessous sert aux petites stations ; les deux autres attendent que la durée des parties demande de grandes stations. Ils iront dans une issue à part, créée avec l'accord du porteur si la durée le demande (D-245). Une grande station se construit en trois temps :
 
 1. le chemin principal (départ, obstacles, final, embarquement), par recherche ;
 2. les annexes, posées une à une sans défaire ce qui est posé ; une annexe sans place essaie une autre pièce d'accroche ;
@@ -232,7 +232,9 @@ Dans une station, les pièces du même type sont numérotées (CABINE 1, CABINE 
 
 ### 5.6 Critères pour #106
 
-Sur 1 000 tirages par taille (10 à 60 pièces) : toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
+Petites stations d'abord (D-242) : sur 1 000 tirages, toute station proposée a un plan qui passe PL-01 à PL-07 et GE-01 à GE-07 (D-245) ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; même graine, même plan ; une galerie de plans rendus est jointe à la PR.
+
+Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
 
 ## 6. Ce que le prototype a mesuré
 
@@ -270,14 +272,16 @@ Limites : les tuiles sont des approximations ; seule la géométrie est vérifi�
 | #97 — 1. Plans | Format (§4.1), vérifieur (§4.2), plans d'AR-01, d'AR-02 et du monde de test, captures des plans | Orange |
 | #97 — 2. Mémoire | Souvenirs, carte publique, sauvegarde, commande `carte` de la CLI (§3), exemples K | Orange (moteur) |
 | #97 — 3. Écran | Tout le §2, captures sur téléphone simulé ; **validation humaine requise** | Orange |
-| #106 | Assemblage géométrique des stations générées (§5), avec les morceaux | Orange |
+| #106 | Assemblage géométrique des stations générées (§5), avec les morceaux ; petites stations d'abord (D-242) ; chemin principal seulement (GE-01 à GE-06 du §5.2 et GE-07 du §5.4, D-245) ; découpage dans [13 §7](13-morceaux-lancement.md#7-découpage-de-106) | Orange |
 | Nouvelle issue | Catalogue des pièces sans obstacle et des petites pièces : plans, catégories, textes, numérotation | À créer avec l'accord du porteur |
+| Nouvelle issue (D-245) | Grandes stations : annexes, boucles, GE-08 à GE-13 (§5.3, §5.4), vérifieur par morceaux ; seulement si la durée des parties le demande (D-242) | À créer avec l'accord du porteur |
+| Nouvelle issue, après les annexes | Objets nécessaires placés hors de leur morceau, avec une règle de placement à décider ; à ne pas oublier (D-244) | À créer avec l'accord du porteur |
 
 Ordre : 1, puis 2, puis 3. Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
 ## 8. Décisions et documents touchés
 
-- Journal : D-201 à D-214.
+- Journal : D-201 à D-214 ; précisé par D-242 (petites stations d'abord) et D-244 (objets hors de leur morceau) ; D-214 modifiée par D-245 (#106 ne dessine que le chemin principal).
 - [C-06 §3](contrats/C-06-observation-connaissances.md) : OP-03 amendé par D-202 (pièces connues dessinées) ; souvenirs et carte publique par D-213.
 - [12 §4.8](12-interface-ecrans.md) : forme de la carte remplacée par ce document (D-201) ; jetons verts ajoutés en §2.1 (D-211).
 - Issue #97 : périmètre élargi à l'air et à la créature (D-203) ; positions en mots dans la vue LISTE seulement (D-212) ; trois livraisons (D-214).
@@ -286,4 +290,4 @@ Ordre : 1, puis 2, puis 3. Deux issues qui touchent le moteur ne se mènent pas 
 
 - Bornes du zoom et seuil de disparition des noms : à juger sur téléphone.
 - Liste complète des catégories et des règles de cohérence : à écrire avec le catalogue des pièces (§5.4).
-- Taille des stations et durée de partie (15 à 30 minutes, D-008) : un réglage à mesurer, pas une limite technique.
+- Taille des stations et durée de partie (15 à 30 minutes, D-008) : un réglage à mesurer, pas une limite technique. Petites stations d'abord, grandes seulement si la durée le demande (D-242).
