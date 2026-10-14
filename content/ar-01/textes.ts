@@ -1,3 +1,15 @@
+import {
+  DANGERS_MORCEAUX,
+  EVENEMENTS_MORCEAUX,
+  GELURES,
+  INDISPONIBILITES_MORCEAUX,
+  LIBELLES_MORCEAUX,
+  OBSERVATION_MORCEAUX,
+  PASSAGE_GOUFFRE,
+  REFUS_MORCEAUX,
+  SAVOIR_MORCEAUX,
+  VERBES_MORCEAUX,
+} from '../textes/morceaux';
 import type { TextesMonde } from '../textes/types';
 
 // Textes d'AR-01 écrits à la main (C-07) : vouvoiement, phrases courtes, un nom par chose (NP-04), rien de non perçu (NP-05).
@@ -186,6 +198,7 @@ export const TEXTES_AR01: TextesMonde = {
     air_revenu: ['L’air revient dans {le:pieces}.'],
     creature_expulsee: ['La créature est aspirée par la brèche et disparaît.'],
     creature_inerte: ['La créature gît au sol, inerte.'],
+    ...EVENEMENTS_MORCEAUX,
   },
   brulures: {
     feu: {
@@ -214,6 +227,7 @@ export const TEXTES_AR01: TextesMonde = {
       ],
     },
   },
+  gelures: GELURES,
   asphyxie: ['L’air vous quitte d’un coup. Votre vue se brouille, puis plus rien.'],
   evacuations: {
     circuit: [
@@ -247,6 +261,7 @@ export const TEXTES_AR01: TextesMonde = {
     ouvertSansDestination: ['{Le:passage} est ouvert{e:passage}. Au-delà, un conduit dont vous ne voyez pas le bout.'],
     fermeSansDestination: ['{Le:passage} est fermé{e:passage}. Rien n’indique ce qu’il y a derrière.'],
     voyantVide: 'Son voyant est rouge : plus d’air de l’autre côté.',
+    gouffre: PASSAGE_GOUFFRE,
   },
   refus: {
     commande_invalide: 'Commande illisible : rien n’a été joué.',
@@ -270,6 +285,7 @@ export const TEXTES_AR01: TextesMonde = {
     deja_enfilee: 'Vous portez déjà une combinaison : rien n’a été joué.',
     deja_percee: 'C’est déjà percé : rien n’a été joué.',
     sans_breche: 'Il n’y a aucune brèche à reboucher : rien n’a été joué.',
+    ...REFUS_MORCEAUX,
   },
   indisponibilites: {
     ferme: '{Le:cible} est fermé{e:cible}.',
@@ -282,6 +298,7 @@ export const TEXTES_AR01: TextesMonde = {
     non_alimentee: 'La capsule n’est pas alimentée.',
     non_isolee: 'L’écoutille est encore ouverte.',
     creature_a_bord: 'La créature est à bord.',
+    ...INDISPONIBILITES_MORCEAUX,
   },
   libelles: {
     regarder: 'Regarder {le:cible}',
@@ -302,6 +319,7 @@ export const TEXTES_AR01: TextesMonde = {
     retirer: 'Retirer {le:cible}',
     percer: 'Percer {le:cible}',
     reboucher: 'Reboucher la brèche avec {le:cible}',
+    ...LIBELLES_MORCEAUX,
   },
   allerSansDestination: 'Passer par {le:cible}',
   verbes: {
@@ -323,6 +341,7 @@ export const TEXTES_AR01: TextesMonde = {
     retirer: 'Retirer',
     percer: 'Percer',
     reboucher: 'Reboucher',
+    ...VERBES_MORCEAUX,
   },
   observation: {
     lieu: 'Vous êtes dans {le:piece}.',
@@ -354,6 +373,7 @@ export const TEXTES_AR01: TextesMonde = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    ...OBSERVATION_MORCEAUX,
   },
   apercu: {
     risques: {
@@ -374,6 +394,7 @@ export const TEXTES_AR01: TextesMonde = {
       brulure: 'vous finirez dans les flammes',
       brulure_mortelle: 'vous finirez dans les flammes, et vous n’y survivrez pas',
       asphyxie: 'sans air et sans combinaison, vous n’y survivrez pas',
+      ...DANGERS_MORCEAUX,
     },
     couts: { aucun: 'aucun', bruyant: '[bruyant]' },
     savoir: {
@@ -397,6 +418,7 @@ export const TEXTES_AR01: TextesMonde = {
       rebouchera: 'La brèche {de:objet} sera rebouchée.',
       perdront_air: 'Le vide gagnera {le:pieces}.',
       retrouveront_air: 'L’air reviendra dans {le:pieces}.',
+      ...SAVOIR_MORCEAUX,
     },
   },
 };

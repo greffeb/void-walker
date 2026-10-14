@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-13.
+> **Mise à jour :** 2026-10-14.
 
 ## Règles
 
@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement) |
@@ -1752,6 +1752,58 @@ Choix faits le 2026-10-13 à l'oreille, sur le [banc des bruitages](maquette/ban
 - Limite [détail de l'agent] : la ligne signalée est la phrase du récit qui annonce le danger (flammes derrière un passage, feu qui gagne une pièce, air perdu) ; quand aucune ne le fait (on entre dans une pièce sans air ou en feu, un voyant rouge ou des flammes apparaissent par un passage), la ligne de « Regarder autour de vous » qui le décrit est ajoutée au récit : celle de la pièce du passager si elle est touchée (« Il n'y a plus d'air ici. »), sinon une par passage. Rien n'est signalé sans alarme. La reprise d'une partie montre les mêmes lignes. « Regarder autour de vous » et les fiches ne portent pas le repère. Rouge `#FF5A4A` (6,5:1 sur `fond`) ; triangle dessiné, 1 em, présent dès le départ (aucun décalage pendant l'écriture à la machine) ; deux éclats par seconde, sous le seuil de trois (WCAG 2.3.1) ; le lecteur d'écran lit « Attention » puis la phrase, une seule fois.
 - Modifie : 12 §2.1 (pas de rouge dans l'écran de jeu) et §3.3.
 
+## Décisions validées — règles des nouveaux morceaux (#105)
+
+Questions posées avant de coder #105, sur des points que D-163 à D-170 laissaient ouverts ; réponses du porteur du projet le 2026-10-14, à chaque fois l'option recommandée.
+
+### D-234 — Relance des machines et compresseur : un bruit comme l'avertisseur
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-159 « Comme l'avertisseur ».
+- Décision : relancer les machines et déclencher le compresseur de la chambre froide produisent chacun un bruit fort qui dure comme le test de l'avertisseur : la réaction de l'action qui le lance et les deux suivantes (C-03 §5.1). Pendant ce temps, il l'emporte sur les autres pistes de la créature, sauf si elle voit le passager (C-03 §4.2).
+- Précise : la limite de D-163 (intensité et durée de la relance) et le compresseur de D-170.
+
+### D-235 — Machines en marche, le vacarme couvre tout pour qui est dedans
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-160 « Le vacarme couvre tout ».
+- Décision : en plus de D-163, la créature qui se trouve dans la salle des machines en marche n'entend rien de ce qui se passe hors de la salle, et un bruit ne traverse pas la salle d'une porte à l'autre. Seul le bruit de la relance en sort (D-163, D-234).
+
+### D-236 — Passerelle : deux bords qui s'entendent sans se voir
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-161 « Non, on s'entend seulement ».
+- Décision : les deux bords de la salle coupée par le vide se jouent comme deux pièces voisines, reliées par le vide. Le son passe par-dessus le vide ; la vue non, il fait trop sombre. Pour attirer la créature sur la planche, on fait du bruit, ou elle a vu le passager partir par là (D-177).
+- Précise : D-164.
+
+### D-237 — Sans gravité, on dérive jusqu'à l'autre bout
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-162 « Dériver à l'autre bout ».
+- Décision : gravité coupée, entrer dans la zone coûte une action, comme d'habitude. En ressortir par une autre porte que celle par où l'on est entré en coûte deux : dériver jusqu'à cette porte, puis la franchir. Ressortir par où l'on est entré en coûte une. La créature, elle, met deux réactions de plus pour dériver jusqu'à l'autre porte.
+- Précise : D-165 et C-04 §3.2.
+
+### D-238 — Interrupteurs de gravité dans les pièces aux deux bouts
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-163 « Dans les pièces aux deux bouts ».
+- Décision : au départ, la gravité de la zone est coupée. Un interrupteur se trouve dans chaque pièce qui touche la zone, hors de la zone : on peut couper la gravité pendant que la créature s'y engage, sans y être soi-même.
+- Précise : D-165 et la fiche M-09 (« interrupteur à chaque bout »).
+
+### D-239 — La créature est ralentie dès qu'une porte de la chambre froide se ferme sur elle
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-164 « Une porte se ferme sur elle ».
+- Décision : dès qu'une porte de la chambre froide se ferme pendant que la créature est dedans, au pupitre ou à la main en ressortant par l'autre porte, elle est ralentie pour toute la partie. Le pupitre ferme les deux portes de la chambre d'un coup.
+- Précise : D-166 et D-170.
+
+### D-240 — Le froid blesse à chaque action au-delà de deux
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-165 « Une blessure à chaque action de plus ».
+- Décision : comme le feu (D-188), le passager est blessé à la troisième action de suite qu'il finit dans la chambre froide, puis encore à chaque action qu'il y finit ; c'est annoncé avant d'agir. Ressortir remet le compte à zéro.
+- Précise : D-166 et C-04 §3.2.
+
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 
 Détails de l'agent pour #107 (service de rapports), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : limites du service par appareil (adresse hachée avec un sel tiré par le service, oubliée en un jour) : 20 s entre deux rapports, 6 par heure, 20 par jour ; 100 rapports par jour pour tout le service ; un rapport identique (même partie au même point, même commentaire) est un doublon pendant 24 h, rendu comme déjà reçu ; le jeu attend lui aussi 20 s entre deux envois ; au plus 10 rapports gardés sur l'appareil, renvoyés au lancement, au retour du réseau et à l'ouverture des options, le service qui refuse un rapport l'efface de la file ; commentaire limité à 1 000 caractères, rendu inerte dans un bloc de code (ni mention, ni lien, ni image) ; l'issue de bug joint aussi le texte affiché à l'écran ; un bug peut être signalé sans partie en cours, avec son seul commentaire ; « Envoyer ma partie » est offert pour une partie finie comme en cours ; une version de test dont la PR est fermée envoie une issue qui cite la PR ; les issues portent les étiquettes `rapport-bug` et `rapport-partie` ; une partie trop longue pour GitHub est jointe compressée ; seules la version publiée, les versions de test et les essais locaux (`localhost:5173`, `localhost:4173`) peuvent envoyer ; textes des retours écrits par l'agent.
@@ -1764,4 +1816,4 @@ Détails de l'agent pour #103 (AR-01 jouable), proposés dans la PR et à revoir
 
 Détails de l'agent pour #104 (AR-02 jouable), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : la baie est un objet fixe « vitrage extérieur », pas un passage ; percer demande la découpeuse en main et ne vise qu'un vitrage extérieur de la pièce ; la combinaison s'enfile depuis la pièce ou la main, et peut aussi se prendre ; enfilée, elle protège jusqu'à ce qu'on la retire, et ne se pose pas sans l'avoir retirée ; les voyants d'une porte disent l'air de l'autre côté, porte ouverte ou fermée, si sa destination est connue ; les annonces d'air perdu ou revenu nomment les mêmes pièces connues que l'aperçu ; l'aperçu de percer, d'ouvrir ou de reboucher nomme les pièces connues (visitées, ou nommées par une porte de la pièce) qui perdront ou retrouveront l'air ; la créature exposée au vide est expulsée par la brèche si elle est dans la pièce percée, sinon inerte sur place ; un corps inerte découvert ne compte pas comme premier contact et s'annonce à chaque arrivée dans sa pièce ; s'il gisait dans la cabine, il bloquerait le départ comme la créature (cas impossible dans AR-02) ; la créature que le vide atteint à ce pas n'intercepte pas (devenu D-194) ; P-V3 passe sans dé (devenu D-193, puis remplacé par D-195 : un dé) ; les options impossibles (enfiler deux fois, percer une baie percée, reboucher sans brèche) sont absentes du menu et refusées sans coût ; les voyants comptent pour toute liaison visible à destination connue, grille comprise (pas de grille dans AR-02) ; la capsule d'AR-02 part sur sa propre réserve ; aucun message d'IA Station au départ ; AR-01 et le monde de test reçoivent des textes courts pour les nouvelles clés.
 
-
+Détails de l'agent pour #105 (nouveaux morceaux), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : les deux bords de la passerelle sont deux pièces reliées par une liaison « vide », toujours ouverte, sans porte à ouvrir ni fermer ; que l'air et le feu passent aussi le vide n'est pas décidé (seul le son l'est, D-236), et ces mélanges restent refusés par l'assemblage ; un vide sur des flammes se raconte comme tout passage ouvert sur le feu ; on ne verse pas d'huile au bord du vide, seulement au pied d'une porte (D-190) ; le pont se pose par « Poser en travers » (le vide visé en paramètre) et se reprend par « Prendre » de l'un ou l'autre bord ; sans pont, « aller » est indisponible (« Il faut de quoi franchir le vide ») ; la créature tombe au moment de s'engager, sauf si elle glisse sur une huile de son côté avant ; tombée, elle n'a plus de place dans la station et la planche est perdue ; le passager l'entend s'il se tient sur l'un des deux bords, ou d'une pièce voisine de l'un d'eux par un passage qui laisse passer le son (retour du porteur après une partie de M-08 : rien ne disait ce qui s'était passé) ; revenu sur un bord, il voit que la planche n'est plus là, des éclats de bois au bord du vide ; un touret de câble, encombrant, est rangé avec la planche dans la station de test ; sans gravité, la dérive est une action à part, « Dériver jusqu'à… », offerte vers chaque passage sauf celui au bord duquel on se tient, et « aller » vers un autre passage reste indisponible, « il faut d'abord dériver » ; ouvrir et fermer les portes de la zone ne demandent pas de dériver ; la créature arrivée par un passage s'y tient, et si la gravité revient pendant qu'elle dérive, elle franchit dès la réaction suivante ; à mi-dérive, elle peut encore repartir aussitôt par le passage d'où elle vient ; couper ou rétablir la gravité et arrêter les machines sont des gestes discrets ; les machines tournent au départ ; les arrêter fait taire une relance en cours ; dans la salle des machines en marche, un geste bruyant ne s'annonce plus « bruyant » et se raconte couvert par le vacarme, et la créature qui s'y trouve n'entend rien, pas même un bruit né dans la salle, sauf la relance ; le compresseur se déclenche comme l'avertisseur, son bruit né dans sa propre pièce, et s'annonce « bruyant » ; plusieurs bruits forts peuvent courir ensemble, un par dispositif ; le pupitre de fermeture, « Fermer la chambre depuis… », ferme toutes les portes de la chambre et ne les rouvre pas ; il est toujours offert, pour ne rien dire de portes que le passager n'a pas vues, et son récit dit seulement que les verrous s'enclenchent ; ralentie, la créature saute aussitôt la réaction du pas où la porte se ferme, puis une sur deux ; une interception prend sa réaction et la suivante est sautée ; pendant la réaction sautée elle ne peut pas intercepter, et l'aperçu le reflète ; vue, elle est décrite couverte de givre, « figée un instant » avant une réaction sautée ; le froid compte les actions finies dans la chambre, l'entrée comprise, et s'annonce « certain » à partir de la troisième ; avec le feu dans le même pas, les textes de brûlure l'emportent ; le bloc d'AR-01 est déclaré encombrant (C-02 §5), sans effet sur ses parcours ; les stations de test M-07 à M-10 ont un plan de pont simple, dessiné par l'agent, et chacune a une capsule déjà alimentée pour aller au bout ; dans M-10, la créature, voisine de la chambre comme le veut la fiche, y entre au pas où le compresseur démarre : le parcours au compresseur passe par le premier contact, et ressortir par l'autre porte est libre (D-184) ; le parcours risqué de la fiche (se faire suivre) y passe aussi sans dé grâce au premier contact, et se jouerait au dé ensuite ; les textes des nouvelles règles sont partagés par tous les mondes, ceux des stations de test aussi ; ils sont écrits par l'agent.

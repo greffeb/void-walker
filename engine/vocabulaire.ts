@@ -21,6 +21,13 @@ export const ACTIONS = [
   'retirer',
   'percer',
   'reboucher',
+  'placer',
+  'deriver',
+  'arreter',
+  'relancer',
+  'couper',
+  'retablir',
+  'boucler',
 ] as const;
 export type IdAction = (typeof ACTIONS)[number];
 
@@ -29,10 +36,10 @@ export const SANTES = ['indemne', 'blesse', 'critique', 'vaincu'] as const;
 export type Sante = (typeof SANTES)[number];
 
 /**
- * Ce qui blesse : les griffes de la créature au contact (C-04 §4), le feu de la pièce où l'on finit l'action (D-188) ; le vide,
- * sans combinaison, est une défaite hors plafond (C-04 §3.1).
+ * Ce qui blesse : les griffes de la créature au contact (C-04 §4), le feu de la pièce où l'on finit l'action (D-188), le froid
+ * de la chambre froide au-delà de deux actions (D-240) ; le vide, sans combinaison, est une défaite hors plafond (C-04 §3.1).
  */
-export const CAUSES = ['griffes', 'feu', 'vide'] as const;
+export const CAUSES = ['griffes', 'feu', 'froid', 'vide'] as const;
 export type Cause = (typeof CAUSES)[number];
 
 export const TYPES_EVENEMENT = [
@@ -73,6 +80,16 @@ export const TYPES_EVENEMENT = [
   'creature_inerte',
   'evacuation',
   'assistance',
+  'pont_place',
+  'pont_cede',
+  'derive',
+  'machines_arretees',
+  'machines_relancees',
+  'gravite_coupee',
+  'gravite_retablie',
+  'chambre_bouclee',
+  'bruit_couvert',
+  'chute_entendue',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -101,6 +118,11 @@ export const RAISONS_REFUS = [
   'deja_enfilee',
   'deja_percee',
   'sans_breche',
+  'encombre',
+  'sans_pont',
+  'trop_loin',
+  'sans_gravite',
+  'deja_fait',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -116,6 +138,10 @@ export const RAISONS_INDISPONIBILITE = [
   'non_alimentee',
   'non_isolee',
   'creature_a_bord',
+  'encombre',
+  'sans_pont',
+  'trop_loin',
+  'sans_gravite',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 
@@ -149,6 +175,8 @@ export interface RefPassage {
   readonly huile: boolean;
   /** Voyant d'une porte étanche : la pièce de l'autre côté est sans air (C-06 OP-04, VP-03). */
   readonly vide: boolean;
+  /** Vide d'une passerelle effondrée, sans porte : il se franchit sur un pont posé en travers (D-164). */
+  readonly gouffre: boolean;
 }
 
 /** Position locale d'une pièce, utile à une action (C-02 §2) : « sous la grille haute », « au centre ». */
@@ -214,7 +242,23 @@ export type Evenement =
   /** Conclusion de la partie : sources qui alimentaient la capsule, circuit puis bloc. */
   | { readonly type: 'evacuation'; readonly sources: readonly SourceEvacuation[] }
   /** Message de l'IA de la station reçu à ce pas : son texte est écrit à la main, hors du récit (C-07). */
-  | { readonly type: 'assistance'; readonly message: string };
+  | { readonly type: 'assistance'; readonly message: string }
+  /** Un pont fragile posé en travers d'un vide (D-164). */
+  | { readonly type: 'pont_place'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** La créature s'engage sur le pont fragile : il cède, elle tombe, il est perdu ; entendu depuis l'un des deux bords (D-164, D-236). */
+  | { readonly type: 'pont_cede'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** Sans gravité, le passager dérive jusqu'à ce passage de la zone (D-237). */
+  | { readonly type: 'derive'; readonly passage: RefPassage }
+  /** Les machines de la salle arrêtées, ou relancées dans un grand bruit, depuis leur interrupteur (D-163). */
+  | { readonly type: 'machines_arretees' | 'machines_relancees'; readonly objet: RefObjet }
+  /** La gravité de la zone coupée ou rétablie depuis un interrupteur (D-165, D-238). */
+  | { readonly type: 'gravite_coupee' | 'gravite_retablie'; readonly piece: RefPiece }
+  /** Depuis une pièce voisine d'un bord, le passager entend le pont céder et quelque chose tomber, derrière ce passage (D-164, OP-01). */
+  | { readonly type: 'chute_entendue'; readonly passage: RefPassage }
+  /** Le passager fait un geste bruyant dans une salle des machines en marche : leur vacarme le couvre (D-163). */
+  | { readonly type: 'bruit_couvert'; readonly passage: RefPassage }
+  /** Le pupitre ferme d'un coup les portes de la chambre froide (D-170, D-239). */
+  | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece };
 
 /** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
 export type MomentMessage =
@@ -277,6 +321,13 @@ export const TYPES_SAVOIR = [
   'rebouchera',
   'perdront_air',
   'retrouveront_air',
+  'placera',
+  'derivera',
+  'arreteront',
+  'relanceront',
+  'coupera',
+  'retablira',
+  'bouclera',
 ] as const;
 export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
@@ -305,7 +356,17 @@ export type Savoir =
   | { readonly type: 'protegera' | 'gardera'; readonly objet: RefObjet }
   | { readonly type: 'percera' | 'rebouchera'; readonly objet: RefObjet }
   /** Pièces connues qui perdront ou retrouveront leur air (C-04 §3.1, VP-02) ; rien sur une créature non perçue. */
-  | { readonly type: 'perdront_air' | 'retrouveront_air'; readonly pieces: readonly RefPiece[] };
+  | { readonly type: 'perdront_air' | 'retrouveront_air'; readonly pieces: readonly RefPiece[] }
+  /** Le pont fragile sera posé en travers de ce vide (D-164). */
+  | { readonly type: 'placera'; readonly objet: RefObjet; readonly passage: RefPassage }
+  /** Sans gravité, le passager dérivera jusqu'à ce passage ; le franchir demandera une action de plus (D-237). */
+  | { readonly type: 'derivera'; readonly passage: RefPassage }
+  /** Les machines de cette salle s'arrêteront, ou repartiront dans un grand bruit (D-163). */
+  | { readonly type: 'arreteront' | 'relanceront'; readonly piece: RefPiece }
+  /** La gravité de cette zone sera coupée, ou rétablie (D-165). */
+  | { readonly type: 'coupera' | 'retablira'; readonly piece: RefPiece }
+  /** Les portes de cette chambre froide se fermeront (D-170). */
+  | { readonly type: 'bouclera'; readonly piece: RefPiece };
 
 /** Ancienneté d'un regard, dite en mots (D-151) : jamais le nombre d'actions (14 §3.2). */
 export const PALIERS = ['instant', 'moment', 'longtemps'] as const;
@@ -321,6 +382,8 @@ export const TYPES_DANGER = [
   'brulure',
   'brulure_mortelle',
   'asphyxie',
+  'froid',
+  'froid_mortel',
 ] as const;
 export type TypeDanger = (typeof TYPES_DANGER)[number];
 
@@ -330,8 +393,13 @@ export type TypeDanger = (typeof TYPES_DANGER)[number];
  * pièce où l'action finira, brûlure certaine (D-188).
  */
 export type Danger =
-  /** `asphyxie` : l'action finira sans combinaison dans une pièce sans air (C-04 §3.1). */
-  | { readonly type: 'interception' | 'interception_mortelle' | 'brulure' | 'brulure_mortelle' | 'asphyxie' }
+  /**
+   * `asphyxie` : l'action finira sans combinaison dans une pièce sans air (C-04 §3.1) ; `froid` : elle sera la troisième de suite
+   * finie, ou plus, dans la chambre froide (D-240).
+   */
+  | {
+      readonly type: 'interception' | 'interception_mortelle' | 'brulure' | 'brulure_mortelle' | 'asphyxie' | 'froid' | 'froid_mortel';
+    }
   | { readonly type: 'creature_vue_instant' | 'creature_vue_moment' | 'creature_vue_longtemps'; readonly piece: RefPiece }
   | { readonly type: 'creature_entendue'; readonly passage: RefPassage };
 
@@ -437,6 +505,20 @@ export interface Observation {
   readonly rebouchees: readonly RefObjet[];
   /** Le corps inerte de la créature est dans la pièce (D-062). */
   readonly creatureInerte: boolean;
+  /** Vue, la créature ralentie par le froid pour toute la partie (D-166). */
+  readonly creatureRalentie: boolean;
+  /** Vue, ralentie, figée par le froid : sa prochaine réaction est sautée, elle ne peut pas intercepter (MX-01, C-04 §4). */
+  readonly creatureEngourdie: boolean;
+  /** Ponts fragiles posés en travers d'un vide de la pièce (D-164). */
+  readonly ponts: readonly { readonly objet: RefObjet; readonly passage: RefPassage }[];
+  /** Ponts fragiles qui ont cédé dans un vide de la pièce : il en reste des débris au bord (D-164). */
+  readonly pontsBrises: readonly { readonly objet: RefObjet; readonly passage: RefPassage }[];
+  /** Machines de la pièce, en marche ou arrêtées ; `null` hors d'une salle des machines (D-163). */
+  readonly machines: 'marche' | 'arret' | null;
+  /** Gravité de la pièce, coupée ou rétablie ; `null` hors d'une zone à gravité commutable (D-165). */
+  readonly gravite: 'coupee' | 'retablie' | null;
+  /** La pièce du passager est une chambre froide (D-166). */
+  readonly froid: boolean;
   readonly sante: Sante;
   /** Partie conclue (D-013) : plus aucune action au menu. */
   readonly terminee: boolean;

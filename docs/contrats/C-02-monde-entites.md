@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.1 — D-082 ; assemble D-015, D-043/D-044, D-047, D-051, D-061, D-067, D-072/D-073, D-078 à D-080, AR-01 et AR-02. Points MP-01 à MP-03 acceptés par D-080. v1.1 : qualités et propriétés des morceaux du lancement (D-175).
 > **Date :** 2026-10-10.
-> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; liaison non étanche, vitrage extérieur, combinaison, découpeuse et rustine (AR-02) proposés par #104 ; encombrant (MP-03, W-02) et planche absents ; plan de pont des pièces et des liaisons (14 §4) proposé par #97, livraison 1.
+> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; liaison non étanche, vitrage extérieur, combinaison, découpeuse et rustine (AR-02) proposés par #104 ; encombrant (MP-03, W-02), pont fragile, salle des machines, gravité commutable et chambre froide (§5) proposés par #105 ; plan de pont des pièces et des liaisons (14 §4) proposé par #97, livraison 1.
 
 ## 1. But et portée
 
@@ -78,11 +78,11 @@ Les règles lisent des qualités déclarées, jamais un nom ou un modèle (D-078
 | Perce un vitrage extérieur | Crée une brèche, réussite sûre (D-064) | Découpeuse |
 | Protection contre le vide | Protège entièrement quand portée (D-060) | Combinaison |
 | Rebouche une brèche, par usage | Supprime la brèche (D-066/D-068) | Rustine |
-| Encombrant | Un seul porté à la fois (D-079) | Bloc |
+| Encombrant | Un seul porté à la fois (D-079) | Bloc, planche |
 | Gabarit large | Refusé par les liaisons étroites (D-043) | Bloc, créature |
 | Pont fragile | Posé sur un vide, laisse passer le passager ; cède sous la créature et se perd (D-164) ; encombrant (D-169) | Planche |
 
-Propriétés de pièce ajoutées par les morceaux du lancement (D-175) : pièce bruyante à machines commutables (D-163), gravité commutable (D-165), chambre froide (D-166).
+Propriétés de pièce ajoutées par les morceaux du lancement (D-175) : pièce bruyante à machines commutables (D-163), gravité commutable (D-165), chambre froide (D-166). Les deux bords d'une salle coupée par un vide sont deux pièces reliées par le vide : le son passe, la vue non (D-236) ; sans porte, il ne se franchit que sur un pont posé (D-164). Que l'air ou le feu passent aussi le vide n'est pas décidé : dans le moteur, le vide est un passage toujours ouvert [détail de l'agent], et les mélanges de la passerelle avec le feu ou le vide restent refusés par l'assemblage (D-167, D-174). Interrupteurs des machines et de la gravité, pupitre de fermeture de la chambre froide : dispositifs fixes (D-168, D-173, D-238, D-239).
 
 Une qualité absente de cette table n'existe pas encore. En ajouter une, ou combiner deux qualités sans règle acceptée (vide et feu, huile et feu), demande une décision.
 

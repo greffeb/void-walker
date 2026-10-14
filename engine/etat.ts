@@ -7,7 +7,11 @@ export type EmplacementObjet =
   /** `enfile` : une protection portée sur soi, pas en main (C-02 §4.1, D-072/D-073). */
   | { readonly type: 'passager'; readonly enfile?: true }
   /** Installé dans une capsule : ni au sol ni porté. */
-  | { readonly type: 'installe'; readonly dans: string };
+  | { readonly type: 'installe'; readonly dans: string }
+  /** Pont fragile posé en travers de ce vide, vu et repris depuis ses deux bords (D-164). */
+  | { readonly type: 'pont'; readonly liaison: string }
+  /** Tombé dans ce vide avec la créature : perdu pour la partie, sans emplacement dans la station ; des débris restent au bord (D-164). */
+  | { readonly type: 'perdu'; readonly liaison: string };
 
 /** Dernier indice perçu non encore inspecté (C-03 §4.2). */
 export interface Indice {
@@ -20,8 +24,11 @@ export interface Indice {
 export interface EtatCreature {
   /** `null` une fois expulsée : elle n'a plus de position dans la station (VP-04). */
   readonly piece: string | null;
-  /** Neutralisée par le vide, pour de bon : inerte sur place, ou expulsée (D-062) ; absente tant qu'elle est active. */
-  readonly neutralisee?: 'inerte' | 'expulsee';
+  /**
+   * Neutralisée pour de bon : par le vide, inerte sur place ou expulsée (D-062) ; tombée dans le vide d'une passerelle (D-164) ;
+   * absente tant qu'elle est active.
+   */
+  readonly neutralisee?: 'inerte' | 'expulsee' | 'tombee';
   readonly indice: Indice | null;
   readonly contact: boolean;
   /** L'action qui suit le premier contact est libre : ni dé ni blessure (C-03 §4.4, D-184). */
@@ -36,6 +43,12 @@ export interface EtatCreature {
   readonly connues: readonly string[];
   /** Passage huilé connu sur lequel elle s'est engagée : elle le franchira à la réaction suivante (C-03 §5.2). */
   readonly engagee: string | null;
+  /** Ralentie par le froid pour toute la partie (D-166, D-239) ; `saute` : sa prochaine réaction est sautée (MX-01). */
+  readonly ralentie?: { readonly saute: boolean };
+  /** Dans une zone à gravité commutable, le passage au bord duquel elle se tient : celui par où elle est entrée (D-237). */
+  readonly bord?: string;
+  /** Sans gravité, elle dérive vers ce passage ; réactions de dérive qui restent avant d'y être (D-237). */
+  readonly derive?: { readonly vers: string; readonly restant: number };
 }
 
 /** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */
@@ -62,7 +75,10 @@ export interface ZoneHuile {
   readonly piece: string;
 }
 
-/** Test de l'avertisseur en cours (C-03 §5.1) : réactions encore couvertes par le son, celle du pas en cours comprise. */
+/**
+ * Bruit fort en cours, celui d'un dispositif déclenché ou de la relance des machines (C-03 §5.1, D-234) : réactions encore
+ * couvertes par le son, celle du pas en cours comprise. `objet` : l'avertisseur, ou l'interrupteur des machines.
+ */
 export interface Alarme {
   readonly objet: string;
   readonly restant: number;
@@ -111,7 +127,16 @@ export interface EtatPartie {
   /** Liaisons ouvertes depuis un foyer à la fin de l'action précédente : première exposition comptée (C-03 §5.3). */
   readonly expositions: readonly string[];
   readonly huile: readonly ZoneHuile[];
-  readonly alarme: Alarme | null;
+  /** Bruits forts en cours, un au plus par dispositif, dans l'ordre du monde. */
+  readonly alarmes: readonly Alarme[];
+  /** Salles des machines dont les machines sont arrêtées, dans l'ordre du monde (D-163). */
+  readonly arretees: readonly string[];
+  /** Zones dont la gravité est coupée, dans l'ordre du monde (D-165). */
+  readonly apesanteur: readonly string[];
+  /** Dans une zone à gravité commutable, le passage au bord duquel se tient le passager : celui par où il est entré (D-237). */
+  readonly bord: string | null;
+  /** Actions de suite finies dans une chambre froide ; remis à zéro en ressortant (D-240). */
+  readonly froid: number;
   /** Liaisons sans signalétique dont le passager connaît la destination, dans l'ordre du monde ; jamais oubliées (K-05). */
   readonly decouvertes: readonly string[];
   /** Consoles dont le circuit est activé, dans l'ordre du monde. */
@@ -158,7 +183,12 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     feu: monde.pieces.filter((piece) => piece.feu === true).map((piece) => piece.id),
     expositions: [],
     huile: [],
-    alarme: null,
+    alarmes: [],
+    // Les machines tournent au départ (D-163).
+    arretees: [],
+    apesanteur: monde.pieces.filter((piece) => piece.gravite === 'coupee').map((piece) => piece.id),
+    bord: null,
+    froid: 0,
     decouvertes: [],
     actives: [],
     breches: [],
@@ -275,6 +305,44 @@ export function piecesSansAir(monde: DefMonde, etat: EtatPartie): string[] {
   return monde.pieces.filter((piece) => atteintes.has(piece.id)).map((piece) => piece.id);
 }
 
+/** Machines en marche dans cette pièce : leur vacarme couvre tout pour qui est dedans (D-163, D-235). */
+export function assourdie(monde: DefMonde, etat: EtatPartie, piece: string): boolean {
+  return indexer(monde).pieces.get(piece)?.machines === true && !etat.arretees.includes(piece);
+}
+
+/** Gravité coupée dans cette pièce (D-165). */
+export function sansGravite(etat: EtatPartie, piece: string): boolean {
+  return etat.apesanteur.includes(piece);
+}
+
+export function chambreFroide(monde: DefMonde, piece: string): boolean {
+  return indexer(monde).pieces.get(piece)?.froide === true;
+}
+
+/** Pont fragile posé en travers de ce vide, s'il y en a un (D-164). */
+export function pontSur(monde: DefMonde, etat: EtatPartie, liaison: string): DefObjet | undefined {
+  return monde.objets.find((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return emplacement?.type === 'pont' && emplacement.liaison === liaison;
+  });
+}
+
+/** Ponts tombés dans un vide de la pièce avec la créature : leurs débris se voient au bord (D-164). */
+export function pontsBrises(monde: DefMonde, etat: EtatPartie, piece: string): DefObjet[] {
+  return monde.objets.filter((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return emplacement?.type === 'perdu' && indexer(monde).liaisons.get(emplacement.liaison)?.entre.includes(piece) === true;
+  });
+}
+
+/** Ponts posés en travers d'un vide de la pièce, vus et repris de ses deux bords (D-164). */
+export function pontsDe(monde: DefMonde, etat: EtatPartie, piece: string): DefObjet[] {
+  return monde.objets.filter((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return emplacement?.type === 'pont' && indexer(monde).liaisons.get(emplacement.liaison)?.entre.includes(piece) === true;
+  });
+}
+
 export function enFeu(etat: EtatPartie, piece: string): boolean {
   return etat.feu.includes(piece);
 }
@@ -349,7 +417,8 @@ export function refPassage(monde: DefMonde, etat: EtatPartie, liaison: DefLiaiso
     signale: signalee(liaison),
     feu: ouvert && enFeu(etat, vers),
     huile: huilee(etat, liaison.id, depuis),
-    // Seule une porte étanche porte un voyant d'air (VP-03).
-    vide: liaison.nonEtanche !== true && piecesSansAir(monde, etat).includes(vers),
+    // Seule une porte étanche porte un voyant d'air (VP-03) ; un vide de passerelle n'a pas de porte.
+    vide: liaison.nonEtanche !== true && liaison.gouffre !== true && piecesSansAir(monde, etat).includes(vers),
+    gouffre: liaison.gouffre === true,
   };
 }

@@ -1,8 +1,8 @@
 # C-04 — Risques, blessures et soin — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175 ; interception et soin précisés par D-183 à D-185.
-> **Date :** 2026-10-11.
-> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; brûlure du feu, certaine et annoncée (D-188, #102) ; vide sans combinaison et créature neutralisée (RSK-10, RSK-11) proposés par #104 ; morceaux absents. **Calibrage humain et validation téléphone :** non réalisés.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175, précisés par D-237/D-240 ; interception et soin précisés par D-183 à D-185.
+> **Date :** 2026-10-14.
+> **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; brûlure du feu, certaine et annoncée (D-188, #102) ; vide sans combinaison et créature neutralisée (RSK-10, RSK-11) depuis #104 ; froid de la chambre froide et dérive sans gravité (§3.2) proposés par #105. **Calibrage humain et validation téléphone :** non réalisés.
 
 ## 1. Portée
 
@@ -39,7 +39,7 @@ Toute action connue pour exposer le passager — percer, ouvrir vers une zone sa
 
 ### 3.2 Chambre froide et sans gravité — morceaux du lancement
 
-Le passager qui reste plus de deux actions de suite dans la chambre froide subit une aggravation ordinaire, soumise au plafond d'une par action (D-166). Traverser une zone sans gravité lui coûte deux actions, sans blessure (D-165). Ces coûts sont annoncés avant l'action, comme tout danger connu (D-020).
+Le passager qui reste plus de deux actions de suite dans la chambre froide subit une aggravation ordinaire, soumise au plafond d'une par action (D-166) : à la troisième action de suite qu'il y finit, puis à chacune des suivantes, comme le feu ; ressortir remet le compte à zéro (D-240). Traverser une zone sans gravité lui coûte deux actions, sans blessure (D-165) : dériver jusqu'à la porte de l'autre bout, puis la franchir (D-237). Ces coûts sont annoncés avant l'action, comme tout danger connu (D-020).
 
 ## 4. Franchissement exposé
 

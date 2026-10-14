@@ -43,6 +43,11 @@ export interface TextesMonde {
    * même pas (une seule aggravation, causes conservées, C-04 §3).
    */
   readonly brulures: Readonly<Record<'feu' | 'griffes_feu', Readonly<Record<TypeAggravation, Variantes>>>>;
+  /**
+   * Aggravations dues au froid de la chambre froide (D-240), à la place des textes de griffes : froid seul, ou griffes et froid
+   * dans le même pas. Le feu, s'il est aussi en cause, garde ses textes.
+   */
+  readonly gelures: Readonly<Record<'froid' | 'griffes_froid', Readonly<Record<TypeAggravation, Variantes>>>>;
   /** Défaite par le vide, sans combinaison dans une pièce sans air (C-04 §3.1), à la place des autres textes de défaite. */
   readonly asphyxie: Variantes;
   /** Départ de la capsule, selon ce qui l'alimentait. */
@@ -57,6 +62,8 @@ export interface TextesMonde {
     readonly fermeSansDestination: Variantes;
     /** Ajouté au regard d'une porte étanche dont le voyant dit qu'il n'y a plus d'air de l'autre côté (VP-03). */
     readonly voyantVide: string;
+    /** Regard sur le vide d'une passerelle effondrée, sans porte (D-164). */
+    readonly gouffre: Variantes;
   };
   readonly refus: Readonly<Record<RaisonRefus, string>>;
   readonly indisponibilites: Readonly<Record<RaisonIndisponibilite, string>>;
@@ -94,6 +101,22 @@ export interface TextesMonde {
     readonly rebouchee: string;
     /** Le corps inerte de la créature est dans la pièce (D-062). */
     readonly creatureInerte: string;
+    /** Vue, la créature ralentie par le froid (D-166) ; figée, quand sa prochaine réaction sera sautée (MX-01). */
+    readonly creatureRalentie: string;
+    readonly creatureEngourdie: string;
+    /** Pont fragile posé en travers d'un vide de la pièce (D-164). */
+    readonly pont: string;
+    /** Pont fragile qui a cédé dans un vide de la pièce : ses débris au bord (D-164). */
+    readonly pontBrise: string;
+    /** Salle des machines, machines en marche ou arrêtées (D-163). */
+    readonly machinesMarche: string;
+    readonly machinesArret: string;
+    /** Gravité coupée dans la pièce (D-165). */
+    readonly sansGravite: string;
+    /** Chambre froide (D-166). */
+    readonly froid: string;
+    /** Vide d'une passerelle effondrée, à la place de « ouvert » : il sépare de la pièce d'en face (D-164). */
+    readonly gouffre: string;
     readonly inventaire: string;
     readonly inventaireVide: string;
     /** La créature est dans la pièce, vue par le passager (C-06 §2). */
@@ -163,6 +186,16 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   air_revenu: ['pieces'],
   creature_expulsee: [],
   creature_inerte: [],
+  pont_place: ['objet', 'passage'],
+  pont_cede: ['objet', 'passage'],
+  derive: ['passage'],
+  machines_arretees: ['objet'],
+  machines_relancees: ['objet'],
+  gravite_coupee: ['piece'],
+  gravite_retablie: ['piece'],
+  chambre_bouclee: ['objet', 'piece'],
+  bruit_couvert: ['passage'],
+  chute_entendue: ['passage'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -184,6 +217,14 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   retirer: ['cible'],
   percer: ['cible'],
   reboucher: ['cible'],
+  // `passage` : le vide visé ; `piece` : la pièce derrière lui, ou le vide seul si elle est inconnue.
+  placer: ['cible', 'passage', 'piece'],
+  deriver: ['cible', 'vers'],
+  arreter: ['cible'],
+  relancer: ['cible'],
+  couper: ['cible'],
+  retablir: ['cible'],
+  boucler: ['cible'],
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
@@ -212,6 +253,13 @@ export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
   rebouchera: ['objet'],
   perdront_air: ['pieces'],
   retrouveront_air: ['pieces'],
+  placera: ['objet', 'passage'],
+  derivera: ['passage'],
+  arreteront: ['piece'],
+  relanceront: ['piece'],
+  coupera: ['piece'],
+  retablira: ['piece'],
+  bouclera: ['piece'],
 };
 
 export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
@@ -224,6 +272,8 @@ export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
   brulure: [],
   brulure_mortelle: [],
   asphyxie: [],
+  froid: [],
+  froid_mortel: [],
 };
 
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
@@ -244,6 +294,15 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   percee: ['objet'],
   rebouchee: ['objet'],
   creatureInerte: [],
+  creatureRalentie: [],
+  creatureEngourdie: [],
+  pont: ['objet', 'passage'],
+  pontBrise: ['objet', 'passage'],
+  machinesMarche: [],
+  machinesArret: [],
+  sansGravite: [],
+  froid: [],
+  gouffre: ['passage', 'vers'],
   inventaire: ['liste'],
   inventaireVide: [],
   creature: [],

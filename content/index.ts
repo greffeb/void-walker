@@ -5,6 +5,18 @@ import { TEXTES_AR01 } from './ar-01/textes';
 import { MONDE_AR02 } from './ar-02/monde';
 import { PARCOURS_AR02 } from './ar-02/parcours';
 import { TEXTES_AR02 } from './ar-02/textes';
+import { MONDE_M07 } from './m-07/monde';
+import { PARCOURS_M07 } from './m-07/parcours';
+import { TEXTES_M07 } from './m-07/textes';
+import { MONDE_M08 } from './m-08/monde';
+import { PARCOURS_M08 } from './m-08/parcours';
+import { TEXTES_M08 } from './m-08/textes';
+import { MONDE_M09 } from './m-09/monde';
+import { PARCOURS_M09 } from './m-09/parcours';
+import { TEXTES_M09 } from './m-09/textes';
+import { MONDE_M10 } from './m-10/monde';
+import { PARCOURS_M10 } from './m-10/parcours';
+import { TEXTES_M10 } from './m-10/textes';
 import { MONDE_TEST } from './monde-test/monde';
 import { PARCOURS_MONDE_TEST } from './monde-test/parcours';
 import { TEXTES_MONDE_TEST } from './monde-test/textes';
@@ -14,6 +26,11 @@ export const MONDES: Readonly<Record<string, EntreeMonde>> = {
   [MONDE_AR01.id]: { monde: MONDE_AR01, textes: TEXTES_AR01, parcours: PARCOURS_AR01 },
   [MONDE_AR02.id]: { monde: MONDE_AR02, textes: TEXTES_AR02, parcours: PARCOURS_AR02 },
   [MONDE_TEST.id]: { monde: MONDE_TEST, textes: TEXTES_MONDE_TEST, parcours: [PARCOURS_MONDE_TEST] },
+  // Stations de test des nouveaux morceaux (#105) : une par morceau, avec les parcours de sa fiche.
+  [MONDE_M07.id]: { monde: MONDE_M07, textes: TEXTES_M07, parcours: PARCOURS_M07 },
+  [MONDE_M08.id]: { monde: MONDE_M08, textes: TEXTES_M08, parcours: PARCOURS_M08 },
+  [MONDE_M09.id]: { monde: MONDE_M09, textes: TEXTES_M09, parcours: PARCOURS_M09 },
+  [MONDE_M10.id]: { monde: MONDE_M10, textes: TEXTES_M10, parcours: PARCOURS_M10 },
 };
 
 export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
@@ -37,6 +54,7 @@ export {
   rendreObservation,
   rendreRefus,
   texteAssistance,
+  variantesDe,
   type ApercuTexte,
   type CleTexte,
   type NatureDanger,
