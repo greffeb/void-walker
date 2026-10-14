@@ -2,7 +2,7 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-148/
-Commit `aee84d4`
+Commit `d8e6446`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large ; départ d’AR-01 aussi en 412 × 915). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
@@ -11,7 +11,7 @@ Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 
 **Parcours du monde de test : réussi.**
 Adresse : `?monde=monde-test`.
 Installation : manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif
-Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-Regular.woff2 (service worker), IBMPlexMono-SemiBold.woff2 (service worker)
+Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)
 
 
 
@@ -54,12 +54,7 @@ AR-01 au départ et au local énergie (cinq pas de P-C), fiche, liste, texte tr�
 
 ### Plans des stations (#97)
 
-**Plans des stations (#97) : ÉCHEC.**
-
-- m-07 : m-07 : aucun plan.
-- m-08 : m-08 : aucun plan.
-- m-09 : m-09 : aucun plan.
-- m-10 : m-10 : aucun plan.
+**Plans des stations (#97) : réussi.**
 Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. À juger par le porteur avant fusion.
 
 
