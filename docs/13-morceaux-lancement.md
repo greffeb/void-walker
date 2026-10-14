@@ -2,7 +2,7 @@
 
 > **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175.
 > **Date :** 2026-10-11.
-> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage proposé au §7. **Parties sur téléphone :** absentes.
+> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256. **Parties sur téléphone :** absentes.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
@@ -21,7 +21,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 | **Final** | Le problème à régler juste avant de partir | M-03 Énergie, M-06 Baie |
 | **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10 |
 
-Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement.
+Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement. Le morceau final apporte l'embarquement et sa capsule (D-249) ; au départ, les portes entre deux morceaux sont fermées (D-252) ; le tirage choisit d'abord le final à pile ou face (D-253).
 
 ## 3. Fiches
 
@@ -30,7 +30,7 @@ Chaque fiche donne : les pièces apportées, les objets, les places possibles de
 ### M-01 — Galerie en feu (AR-01 G)
 
 - **Pièces :** une galerie fermée des deux côtés, avec un foyer ; une pièce voisine contenant le récipient d'eau.
-- **Créature :** jamais dans la galerie.
+- **Créature :** jamais dans la galerie ; ses places possibles seront proposées avant la première station qui utilise ce morceau (D-256).
 - **Sûr :** prendre l'eau, ouvrir, éteindre depuis le seuil (C-03 §5.3).
 - **Risqué :** laisser la porte ouverte deux actions : le feu gagne la pièce voisine.
 
@@ -56,7 +56,7 @@ Chaque fiche donne : les pièces apportées, les objets, les places possibles de
 ### M-05 — Panneau et passage caché (AR-01 P–E)
 
 - **Pièces :** un panneau de service ouvrable à la main, avec derrière un passage étroit vers une pièce plus loin.
-- **Créature :** jamais dans le passage.
+- **Créature :** jamais dans le passage ; elle peut attendre sur le chemin normal, que le passage étroit permet de contourner (D-256).
 - **Sûr :** ouvrir le panneau, emprunter le raccourci.
 
 ### M-06 — Baie et vide (AR-02, final)
@@ -98,7 +98,7 @@ Chaque fiche donne : les pièces apportées, les objets, les places possibles de
 
 Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur), ralentissement (M-04 huile, M-09, M-10), neutralisation (M-06, M-08), air (M-06).
 
-| Mélange | Règle acceptée (D-174) |
+| Mélange | Règle acceptée (D-174, sauf mention) |
 | --- | --- |
 | Bruits entre eux | Aucune règle nouvelle : un son naît dans une pièce et suit les règles existantes (C-03 §4.2) ; un son né dans la salle des machines en marche n'en sort pas (D-163) |
 | **MX-01** Ralentissements entre eux | Ils s'additionnent : le froid fait sauter une réaction sur deux ; les réactions perdues de l'huile et le temps de traversée sans gravité se comptent sur les réactions qui restent |
@@ -108,8 +108,11 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 | **MX-04** Huile sans gravité | Impossible de verser l'huile tant que la gravité est coupée |
 | **MX-05** Huile dans la chambre froide | L'huile y reste glissante, sans effet de plus |
 | Vide et bloc | Jamais dans la même station : M-03 et M-06 sont tous deux « finals » (D-159) |
+| Vide et nouveaux morceaux | L'air s'en va comme ailleurs, par-dessus le vide de la passerelle aussi ; aucune règle de plus pour les machines, la gravité et le froid (D-246) |
+| Feu et passerelle | Le feu gagne l'autre bord comme par une porte ouverte ; jamais une pièce sans air (D-247) |
+| Morceaux qui ne jouent pas sur la même chose | Aucune règle nouvelle (D-248) |
 
-Un mélange qui n'apparaît pas dans ce tableau reste refusé par l'assemblage tant que ses règles ne sont pas décidées (D-167).
+Avec ces règles, toutes les paires des dix morceaux sont permises ; M-03 et M-06 ne se rencontrent jamais. Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
 
 ## 5. Parcours à prouver
 
@@ -123,25 +126,25 @@ Règles retranscrites dans C-02 §5, C-03 §5.5 et C-04 §3.2. Les textes viendr
 
 À ne pas oublier (D-244) : dans #106, chaque objet nécessaire reste dans son morceau. Les objets placés hors de leur morceau, comme l'eau du feu posée dans une pièce quelconque atteinte avant le feu, viendront avec les annexes ; leur règle de placement reste à décider.
 
-## 7. Découpage proposé de #106
+## 7. Découpage de #106
 
-> **Statut :** PROPOSÉ le 2026-10-14, à valider par le porteur (question 1 du §7.4). Cadre : petites stations d'abord (D-242), objets dans leur morceau (D-244), créature tirée au pur hasard parmi les places déclarées par les morceaux (D-161, D-162), mesure de la part des stations où la créature peut être mise hors jeu avant le problème final (D-241).
+> **Statut :** ACCEPTÉ le 2026-10-14 (D-245) ; règles d'assemblage D-246 à D-256. Cadre : petites stations d'abord (D-242), objets dans leur morceau (D-244), créature tirée au pur hasard parmi les places déclarées par les morceaux (D-161, D-162), mesure de la part des stations où la créature peut être mise hors jeu avant le problème final (D-241).
 
 ### 7.1 Livraisons
 
 | Livraison | Contenu | Sortie (preuves) | Zone | Téléphone |
 | --- | --- | --- | --- | --- |
-| L0 — Cadrage | Table de toutes les paires de morceaux : celles qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) sont permises avec leurs règles ou refusées (refus par défaut, D-167) ; les autres suivent la réponse à la question 4 du §7.4. Propositions de l'agent soumises au porteur (D-171) : pièce de départ, embarquement apporté par le morceau final, places de la créature de M-01 et M-05, rôle du panneau caché, forme de l'ordre libre | Documents relus par un autre agent ; aucune règle ajoutée sans réponse du porteur | Verte | Non |
+| L0 — Cadrage | Table des paires de morceaux en données, chacune avec la règle qui la permet (§4, D-246 à D-248), refus par défaut pour un futur morceau (D-167) ; fiche de la pièce de départ ; places de la créature autour de la galerie en feu (D-256) ; ce qui rend nécessaire chaque branche de l'ordre libre (D-254) ; propositions soumises au porteur avant usage (D-171) | Documents relus par un autre agent ; aucune règle ajoutée sans réponse du porteur | Verte | Non |
 | L1 — Vérifieur seul | Recherche en largeur sur les vraies règles, par les commandes publiques (GP-05), sans dé ni blessure ; au-delà d'un plafond d'états, la station est « non prouvée » et jamais proposée ; le chemin trouvé est rejoué comme un parcours témoin ; un second mode, qui suit aussi les dés, mesure ce que coûterait le signal « plus aucune sortie » | AR-01, AR-02 et m-07 à m-10 acceptés ; copies cassées exprès rejetées avec diagnostic (G-01) : m-08 sans la planche, AR-01 sans l'eau ni la caisse (sans l'eau seule, AR-01 reste faisable par la grille de maintenance) ; tableau des états et des temps ; méthode du signal choisie par écrit | Verte (outil) | Non |
-| L2 — Première station tirée | Format du morceau (famille, attaches, places de la créature, ce qu'il demande et fournit, tuile de plan) avec une empreinte par morceau ; textes rangés par couches (§7.2) ; pièce de départ ; assemblage départ, un morceau de chemin, final, embarquement, sur une première composition dont le mélange est déjà réglé : M-03 en final, M-07 en chemin, ou M-10 si la question 6 du §7.4 reçoit la réponse recommandée (bruits entre eux, §4) ; paires lues dans la table de L0, toute paire refusée ou absente écartée avant le plan (D-167) ; plan du chemin principal (GE-01 à GE-07) ; compositions vérifiées par L1 à la construction, et non au tirage ; NOUVELLE PARTIE tire au hasard une station parmi elles, REJOUER garde la même, un paramètre de test en force une ; m-07 et m-10 refaits à partir des morceaux | G-02 : avec une copie de la table où la paire tirée est retirée exprès, la composition forcée par le paramètre de test est refusée avec son motif ; G-05 ; même graine, même plan ; parcours de m-07 et m-10 inchangés ; tableau des compositions (verdict, états, temps) ; galerie de plans ; captures ; version de test | Orange | Oui : une partie menée au bout par morceau inclus |
-| L3 — Baie, passerelle, sans gravité | M-06 en final, M-08 et M-09 en chemin, selon la table des paires ; deux morceaux de chemin ; MX-01 et la planche avec le bloc (D-169) rencontrés en station assemblée | Temps de vérification d'une station à trois obstacles (premier risque) ; résultats gardés par empreinte ; statistiques de tirage | Orange | Oui : M-06, M-08, M-09 |
-| L4 — Chemins d'AR-01 | M-01, M-02, M-04 (avec sa pièce d'avant : huile et commande de l'avertisseur) et M-05 ; MX-02 à MX-05 rencontrés en station assemblée | Chaque morceau dans au moins une station vérifiée ; un parcours sûr et, s'il existe, un risqué par morceau | Orange | Oui : les quatre |
-| L5 — Ordre libre et mesures | Deux obstacles à préparer dans l'ordre voulu avant le final ; 1 000 tirages | Aucune station non vérifiée proposée ; fréquence par morceau, par final et par place de la créature ; rejets classés par motif ; part des stations où la créature peut être mise hors jeu avant le final (D-241) ; une station rejetée avec son diagnostic | Orange | Oui : une station en ordre libre |
-| L6 — « Plus aucune sortie » | Calcul après chaque action, selon la méthode choisie en L1 ; message, rappel discret (D-144) et textes | G-03, G-04, G-06 ; signal comparé dans les deux sens à la recherche complète sur tous les états atteints : un seul signal faux bloque la livraison ; temps par action mesuré sur téléphone | Orange (moteur) | Oui : une sortie perdue exprès |
+| L2 — Première station tirée | Format du morceau (famille, attaches, places de la créature, ce qu'il demande et fournit, tuile de plan) avec une empreinte par morceau ; textes rangés par couches (§7.2) ; pièce de départ ; assemblage départ, un morceau de chemin, final avec son embarquement (D-249), portes entre morceaux fermées (D-252), sur une première composition : M-03 en final, M-07 ou M-10 en chemin (bruits entre eux, §4 ; D-250 pour le chemin sûr de M-10) ; paires lues dans la table de L0, toute paire refusée ou absente écartée avant le plan (D-167) ; plan du chemin principal (GE-01 à GE-07) ; compositions vérifiées par L1 à la construction, et non au tirage ; NOUVELLE PARTIE tire au hasard une station parmi elles (D-253, D-255), REJOUER garde la même, un paramètre de test en force une ; m-07 et m-10 refaits à partir des morceaux | G-02 : avec une copie de la table où la paire tirée est retirée exprès, la composition forcée par le paramètre de test est refusée avec son motif ; G-05 ; même graine, même plan ; parcours de m-07 et m-10 inchangés ; tableau des compositions (verdict, états, temps) ; galerie de plans ; captures ; version de test | Orange | Oui : une partie menée au bout par morceau inclus |
+| L3 — Baie, passerelle, sans gravité | M-06 en final, M-08 et M-09 en chemin ; vide et nouveaux morceaux (D-246) ; deux morceaux de chemin ; MX-01 et la planche avec le bloc (D-169) rencontrés en station assemblée | Temps de vérification d'une station à trois obstacles (premier risque) ; résultats gardés par empreinte ; statistiques de tirage | Orange | Oui : M-06, M-08, M-09 |
+| L4 — Chemins d'AR-01 | M-01, M-02, M-04 (avec sa pièce d'avant : huile et commande de l'avertisseur) et M-05 ; MX-02 à MX-05 et le feu sur la passerelle (D-247) rencontrés en station assemblée | Chaque morceau dans au moins une station vérifiée ; un parcours sûr et, s'il existe, un risqué par morceau | Orange | Oui : les quatre |
+| L5 — Ordre libre et mesures | Deux obstacles qui partent d'un même couloir, à préparer dans l'ordre voulu avant le final (D-254) ; 1 000 tirages | Aucune station non vérifiée proposée ; fréquence par morceau, par final et par place de la créature ; rejets classés par motif ; part des stations où la créature peut être mise hors jeu avant le final (D-241) ; une station rejetée avec son diagnostic | Orange | Oui : une station en ordre libre |
+| L6 — « Plus aucune sortie » | Calcul après chaque action, selon la méthode choisie en L1 ; une sortie au dé reste une sortie (D-251) ; message, rappel discret (D-144) et textes | G-03, G-04, G-06 ; signal comparé dans les deux sens à la recherche complète sur tous les états atteints : un seul signal faux bloque la livraison ; temps par action mesuré sur téléphone | Orange (moteur) | Oui : une sortie perdue exprès |
 
-**Ordre :** une fois ce découpage accepté par le porteur, L0 et L1 peuvent commencer pendant l'essai de #105 ; L2 attend #105 accepté, la table des paires et les réponses du §7.4 ; puis L3, L4, L5 et L6. L6 touche au moteur, et L2 aussi si l'identifiant de station ne tient pas dans le champ « monde » de la sauvegarde (changer le format de sauvegarde est en zone rouge, C-10 §6). Une livraison qui touche au moteur ne se mène pas en même temps qu'une autre issue moteur ; le travail du lore n'en fait partie que si sa conception demande au moteur plus que « regarder » (D-243, limite).
+**Ordre :** L0 et L1 peuvent commencer tout de suite, pendant l'essai de #105 ; L2 attend #105 accepté et la table des paires ; puis L3, L4, L5 et L6. L6 touche au moteur, et L2 aussi si l'identifiant de station ne tient pas dans le champ « monde » de la sauvegarde (changer le format de sauvegarde est en zone rouge, C-10 §6). Une livraison qui touche au moteur ne se mène pas en même temps qu'une autre issue moteur ; le travail du lore n'en fait partie que si sa conception demande au moteur plus que « regarder » (D-243, limite).
 
-**Hors #106 :** objets placés hors de leur morceau (D-244) ; annexes, boucles et grandes stations (reportées par D-242 ; issue à part proposée, question 1 du §7.4) ; salles de butin, c'est-à-dire des annexes facultatives où trouver des objets en plus de ceux que demandent les obstacles (piste proposée le 2026-10-14, sans décision) ; documents du lore (D-243) ; créature placée plus souvent près du final, en réserve (D-241) ; écrans de fin de défaite et d'évacuation ; retrait automatique d'une validation quand un morceau change (D-100).
+**Hors #106 :** objets placés hors de leur morceau (D-244) ; annexes, boucles et grandes stations (D-242 ; issue à part si la durée le demande, D-245) ; salles de butin, c'est-à-dire des annexes facultatives où trouver des objets en plus de ceux que demandent les obstacles (piste proposée le 2026-10-14, sans décision) ; documents du lore (D-243) ; créature placée plus souvent près du final, en réserve (D-241) ; écrans de fin de défaite et d'évacuation ; retrait automatique d'une validation quand un morceau change (D-100).
 
 ### 7.2 Textes par couches
 
@@ -165,20 +168,20 @@ Les messages d'IA Station et les descriptions de pièces qui nomment une pièce 
 1. C-08 G-02 refusait le vide avec le feu, alors que MX-02 (D-174) les réunit et que le moteur le teste : G-02 est réécrit selon D-167.
 2. C-02 §5 citait encore « vide et feu » parmi les mélanges sans règle : l'exemple est corrigé, en distinguant la dépressurisation de la baie et le vide de la passerelle.
 3. 14 §5.6 demandait à #106 des stations de 10 à 60 pièces : ramené aux petites stations (D-242), avec les mêmes seuils.
-4. Passerelle et dépressurisation : le §4 dit « neutralisations entre elles : aucune règle nouvelle », C-02 §5 les dit refusées (détail de l'agent de #105), et le moteur laisse déjà passer l'air et le feu par-dessus le vide de la passerelle, sans décision. Le mot « vide » désigne aussi deux choses : la dépressurisation de M-06 et le gouffre de M-08. Questions 2 (l'air) et 3 (le feu) du §7.4.
-5. Gravité et dépressurisation : « à décider » selon D-165, absent du tableau du §4. Question 2 du §7.4.
-6. Paires sans famille commune (feu et froid, feu et machines, caisse et énergie…) : le §4 ne dit pas si ce sont des mélanges, et D-167 ne vise que les morceaux qui jouent sur la même chose. Refusées par défaut, elles écarteraient M-02 et M-05 de toute station, aucun des deux finals ne partageant de famille avec eux, alors qu'AR-01 (D-057) les réunit déjà avec M-03. Question 4 du §7.4.
-7. Embarquement : le §2 le place après le final, mais la créature de M-06 garde l'embarquement. L0 propose que le morceau final apporte l'embarquement. Question 5 du §7.4.
-8. M-01 et M-05 disent seulement où la créature n'est jamais ; D-161 demande ses places possibles. L0 les propose ; elles sont soumises au porteur avant L4 (D-171). Question 12 du §7.4.
-9. Seul, le panneau caché de M-05 ne bloque rien. L0 propose : la créature attend sur le chemin normal, et le passage étroit, où elle ne passe pas, permet de la contourner. Question 12 du §7.4.
-10. Le chemin sûr de la chambre froide passe une fois sous les yeux de la créature, grâce à l'action libre qui suit le premier contact (D-184). Question 6 du §7.4.
-11. L'ordre libre (D-160) n'a pas de forme décrite. Question 10 du §7.4.
-12. D-162 dit que les stations se tirent au pur hasard et qu'une station déjà jouée peut revenir ; il ne dit pas si chaque station possible a la même chance. D-241 compte une créature placée plus souvent près du problème final comme une modification de D-162 ; un pile ou face sur le problème final en serait une aussi. La décision qui répondra à la question 9 précisera D-162 explicitement.
+4. Passerelle et dépressurisation : le §4 dit « neutralisations entre elles : aucune règle nouvelle », C-02 §5 les dit refusées (détail de l'agent de #105), et le moteur laisse déjà passer l'air et le feu par-dessus le vide de la passerelle, sans décision. Le mot « vide » désigne aussi deux choses : la dépressurisation de M-06 et le gouffre de M-08. Réglé par D-246 (l'air) et D-247 (le feu).
+5. Gravité et dépressurisation : « à décider » selon D-165, absent du tableau du §4. Réglé par D-246.
+6. Paires sans famille commune (feu et froid, feu et machines, caisse et énergie…) : le §4 ne dit pas si ce sont des mélanges, et D-167 ne vise que les morceaux qui jouent sur la même chose. Refusées par défaut, elles écarteraient M-02 et M-05 de toute station, aucun des deux finals ne partageant de famille avec eux, alors qu'AR-01 (D-057) les réunit déjà avec M-03. Réglé par D-248.
+7. Embarquement : le §2 le place après le final, mais la créature de M-06 garde l'embarquement. Réglé par D-249 : le morceau final apporte l'embarquement.
+8. M-01 et M-05 disent seulement où la créature n'est jamais ; D-161 demande ses places possibles. Réglé pour M-05 par D-256 ; celles de M-01 sont proposées en L0 et validées avant L4 (D-171, D-256).
+9. Seul, le panneau caché de M-05 ne bloque rien. Réglé par D-256 : la créature peut attendre sur le chemin normal, et le passage étroit, où elle ne passe pas, permet de la contourner.
+10. Le chemin sûr de la chambre froide passe une fois sous les yeux de la créature, grâce à l'action libre qui suit le premier contact (D-184). Réglé par D-250 : il compte comme sûr.
+11. L'ordre libre (D-160) n'avait pas de forme décrite. Réglé par D-254.
+12. D-162 dit que les stations se tirent au pur hasard et qu'une station déjà jouée peut revenir ; il ne dit pas si chaque station possible a la même chance. D-241 compte une créature placée plus souvent près du problème final comme une modification de D-162 ; un pile ou face sur le problème final en serait une aussi. Réglé par D-253, qui précise D-162 : pile ou face du final, puis pur hasard.
 13. Les textes qui nomment une pièce voisine seraient faux dans une station assemblée : §7.2.
 
-### 7.4 Questions à poser au porteur
+### 7.4 Questions posées au porteur
 
-À poser en langage courant, chacune avec la réponse recommandée : la question 1 avant de commencer, les questions 2 à 11 avant L2, la question 12 avant L4.
+Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée ; réponse du porteur : « Ok pour tes reco ». Chaque recommandation est retenue : Q-170 à Q-181, D-245 à D-256, dans l'ordre de la liste.
 
 1. Pour assembler les stations, on avancerait par étapes : d'abord régler sur le papier les points encore ouverts et construire l'outil qui prouve qu'une station a bien une sortie, sans rien changer au jeu ; puis une première station tirée au hasard, à essayer sur téléphone ; puis les autres morceaux, par groupes, chacun essayé sur téléphone ; ensuite les obstacles à régler dans l'ordre qu'on veut et les mesures sur mille tirages ; enfin l'annonce « plus aucune sortie ». Si la durée des parties demande un jour de grandes stations, elles se feraient dans une tâche à part, avec les règles qui vont avec (pièces rangées par catégorie, sanitaires près des couchages, couloirs qui desservent plusieurs pièces, portes en boucle). Cette façon d'avancer vous convient-elle ? *Recommandé :* oui.
 2. Quand la baie est percée et que l'air s'échappe, que devient l'air dans les pièces des quatre nouveaux morceaux ? *Recommandé :* il s'en va comme partout ailleurs, sans règle de plus : il passe par-dessus le trou de la passerelle, puisque ses deux bords forment une seule salle, et il quitte aussi la salle des machines, la zone sans gravité et la chambre froide. Autre choix : au lancement, la baie n'est jamais tirée avec un nouveau morceau.

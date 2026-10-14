@@ -363,6 +363,25 @@ Les données fixes, précisions et parcours de l'[aventure AR-02](09-aventure-re
 | Q-168 Documents à lire (lore) | Oui, version légère ; écriture soignée, par l'assistant principal | D-243 |
 | Q-169 Objets placés hors de leur morceau | Plus tard, avec les annexes ; à garder en mémoire | D-244 |
 
+### Bloc AF — découpage et règles d'assemblage de #106 : répondu
+
+Réponse unique du porteur aux douze questions : « Ok pour tes reco ».
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-170 Découpage de #106 | Sept livraisons ; grandes stations à part, si besoin | D-245 |
+| Q-171 Air de la baie dans les nouveaux morceaux | Il s'en va comme ailleurs, par-dessus la passerelle aussi | D-246 |
+| Q-172 Feu et passerelle | Le feu gagne l'autre bord | D-247 |
+| Q-173 Obstacles qui ne jouent pas sur la même chose | Ensemble, sans règle de plus | D-248 |
+| Q-174 Final et embarquement | Toujours ensemble | D-249 |
+| Q-175 Chemin sûr et premier contact | Compte comme sûr | D-250 |
+| Q-176 Sortie qui demande un coup de dés | Reste une sortie | D-251 |
+| Q-177 Portes entre morceaux | Fermées au départ | D-252 |
+| Q-178 Tirage | Pile ou face du final d'abord | D-253 |
+| Q-179 Ordre libre | Deux obstacles depuis un même couloir | D-254 |
+| Q-180 Version de test | NOUVELLE PARTIE tire une station | D-255 |
+| Q-181 Panneau caché | Contourner la créature par le passage étroit | D-256 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -394,7 +413,7 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
 2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
-Q-01 à Q-169 sont répondus ; les prochains numéros d'entretien commencent à Q-170. Les questions à poser au porteur pendant #106, sur son découpage, avant la première station assemblée et avant les stations des chemins de la première aventure, sont listées dans [13 §7.4](13-morceaux-lancement.md#74-questions-à-poser-au-porteur). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-181 sont répondus ; les prochains numéros d'entretien commencent à Q-182. Les questions posées sur le découpage de #106 sont gardées dans [13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
