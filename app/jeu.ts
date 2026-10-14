@@ -1,7 +1,8 @@
-import { apercu, exporter, historique, jouer, nouvellePartie, observer, reprendrePartie, type DefMonde, type OptionMenu, type Partie } from '../engine';
-import { alertesDuRecit, raconter, raconterDerniers, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
+import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
+import { dangersDuRecit, raconter, raconterDerniers, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
+import { dangersApparus, enVue } from './son/declencheurs';
 
 // Logique de l'écran, sans React : démarrer, reprendre, jouer, sauvegarder honnêtement (C-09 §2-§3).
 
@@ -10,7 +11,7 @@ export type EtatSauvegarde = 'sauvegardee' | 'echec';
 export interface Jeu {
   readonly partie: Partie;
   readonly recit: readonly string[];
-  /** Rangs des phrases du récit qui annoncent un danger apparu à la vue, signalées en rouge (D-233). */
+  /** Rangs des phrases du récit qui annoncent un danger apparu à la vue, en même temps que son alarme : en rouge (D-233). */
   readonly alertes: readonly number[];
   /** Rappel de la dernière action choisie, en tête du récit ; `null` au début de la partie. */
   readonly rappel: TexteRappel | null;
@@ -43,7 +44,7 @@ export async function commencer(env: Environnement): Promise<Jeu> {
   return {
     partie,
     recit: raconterDerniers(env.textes, partie),
-    alertes: alertesDuRecit(partie.derniers),
+    alertes: [],
     rappel: null,
     assistance: rendreAssistance(env.textes, partie.derniers),
     sauvegarde: await enregistrer(env, partie),
@@ -75,10 +76,11 @@ export async function charger(env: Environnement): Promise<Demarrage | { readonl
     const partie = reprendrePartie(env.monde, donnees, env.version);
     const repris = rappelRepris(partie, observer(env.monde, partie.etat));
     const rappel = repris === null ? null : texteRappel(env.textes, repris);
+    const { recit, alertes } = signaler(env.textes, observationAvant(env, partie), observer(env.monde, partie.etat), partie.derniers, raconterDerniers(env.textes, partie));
     const jeu: Jeu = {
       partie,
-      recit: raconterDerniers(env.textes, partie),
-      alertes: alertesDuRecit(partie.derniers),
+      recit,
+      alertes,
       rappel,
       assistance: rendreAssistance(env.textes, partie.derniers),
       sauvegarde: 'sauvegardee',
@@ -87,6 +89,47 @@ export async function charger(env: Environnement): Promise<Demarrage | { readonl
   } catch (erreur) {
     return { type: 'reprise_impossible', raison: erreur instanceof Error ? erreur.message : String(erreur) };
   }
+}
+
+/**
+ * Dangers apparus à ce pas, signalés en même temps que leur alarme (D-218, D-233) : la phrase du récit qui les annonce, ou, si
+ * aucune ne le fait (on entre dans une pièce sans air, un voyant passe au rouge), la ligne de « Regarder » qui les décrit, ajoutée :
+ * celle de la pièce du passager si elle est touchée, sinon une par passage qui montre le danger.
+ */
+function signaler(
+  textes: TextesMonde,
+  avant: Observation,
+  apres: Observation,
+  evenements: readonly Evenement[],
+  recit: readonly string[],
+): Pick<Jeu, 'recit' | 'alertes'> {
+  const natures = dangersDuRecit(evenements);
+  const dangers = dangersApparus(avant, apres);
+  const lignes = [...recit];
+  const alertes: number[] = [];
+  for (const nature of ['feu', 'vide'] as const) {
+    const danger = dangers[nature];
+    if (!enVue(danger)) continue;
+    const annonces = natures.flatMap((autre, rang) => (autre === nature ? [rang] : []));
+    if (annonces.length > 0) {
+      alertes.push(...annonces);
+      continue;
+    }
+    // Le danger dans la pièce du passager suffit : ses passages ne s'y ajoutent pas.
+    for (const passage of danger.ici ? [null] : danger.passages) {
+      alertes.push(lignes.length);
+      lignes.push(rendreDangerVu(textes, nature, passage));
+    }
+  }
+  return { recit: lignes, alertes: alertes.sort((a, b) => a - b) };
+}
+
+/** Ce que le passager voyait avant sa dernière action, rejouée sans elle : la reprise signale les mêmes dangers (C-09 §3). */
+function observationAvant(env: Pick<Environnement, 'monde' | 'version'>, partie: Partie): Observation {
+  const { enregistrement } = partie;
+  if (enregistrement.actions.length === 0) return observer(env.monde, partie.etat);
+  const precedent = rejouer(env.monde, { ...enregistrement, actions: enregistrement.actions.slice(0, -1) }, env.version).partie;
+  return observer(env.monde, precedent.etat);
 }
 
 /** Fiche d'une bulle : texte de la consultation, sans toucher à la partie, au récit ni à la sauvegarde (D-014). */
@@ -120,7 +163,8 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
   const arrivee = option.action === 'aller' ? observer(env.monde, resultat.partie.etat).piece : null;
   const rappel = texteRappel(env.textes, arrivee === null ? rappelDe(option) : { type: 'deplacement', vers: arrivee });
   const assistance = rendreAssistance(env.textes, resultat.evenements);
-  return { partie: resultat.partie, recit, alertes: alertesDuRecit(resultat.evenements), rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
+  const signale = signaler(env.textes, observer(env.monde, jeu.partie.etat), observer(env.monde, resultat.partie.etat), resultat.evenements, recit);
+  return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */

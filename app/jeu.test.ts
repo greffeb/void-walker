@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { alertesDuRecit, MONDES, type EntreeMonde } from '../content';
+import { dangersDuRecit, MONDES, type EntreeMonde } from '../content';
 import { abandonner, charger, commencer, demarrer, fichierPartie, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
@@ -364,9 +364,9 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
     return jeu;
   }
 
-  it('rangs comptés dans le récit, sans les messages d’assistance ; le feu qui gagne une pièce vue est une alerte', () => {
-    const evenements = [{ type: 'assistance' }, { type: 'passage_ouvert' }, { type: 'feu_gagne' }, { type: 'feu_eteint' }, { type: 'feu_derriere' }];
-    expect(alertesDuRecit(evenements as Parameters<typeof alertesDuRecit>[0])).toEqual([1, 3]);
+  it('phrases du récit, sans les messages d’assistance : le feu qui se montre ou gagne une pièce, l’air perdu', () => {
+    const evenements = [{ type: 'assistance' }, { type: 'passage_ouvert' }, { type: 'feu_gagne' }, { type: 'feu_eteint' }, { type: 'feu_derriere' }, { type: 'air_perdu' }];
+    expect(dangersDuRecit(evenements as Parameters<typeof dangersDuRecit>[0])).toEqual([null, 'feu', null, 'feu', 'vide']);
   });
 
   it('aucune alerte avant la découverte du feu', async () => {
@@ -387,5 +387,52 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
   it('l’action suivante ne garde pas l’alerte quand elle ne montre aucun nouveau danger', async () => {
     const jeu = await etapes(envAr01(), 5);
     expect(jeu.alertes).toEqual([]);
+  });
+});
+
+describe('appli : vide apparu signalé avec son alarme (D-233)', () => {
+  const ar02 = MONDES['ar-02'] as EntreeMonde;
+  const P_V1 = ar02.parcours.find((parcours) => parcours.nom.startsWith('P-V1'))?.etapes ?? [];
+  let fabrique: IDBFactory;
+  beforeEach(() => {
+    fabrique = new IDBFactory();
+  });
+  const envAr02 = (): Environnement => ({ monde: ar02.monde, textes: ar02.textes, version: 'v-test', stockage: stockageIndexedDB('ar-02', fabrique), graine: () => 20261010 });
+
+  /** Récit et alertes après chaque étape de P-V1, jusqu'à la première étape qui vérifie `cherche`. */
+  async function jusqua(env: Environnement, cherche: (etape: (typeof P_V1)[number]) => boolean): Promise<Jeu> {
+    let jeu = await pret(env);
+    for (const etape of P_V1) {
+      const option = observer(ar02.monde, jeu.partie.etat).menu.find(
+        (choix) =>
+          choix.action === etape.action &&
+          choix.cible.nom === etape.cible &&
+          (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+          (etape.parametre === undefined || (choix.parametre?.sorte === 'passage' ? choix.parametre.vers?.nom : choix.parametre?.nom) === etape.parametre),
+      );
+      if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+      jeu = await jouerOption(env, jeu, option);
+      if (cherche(etape)) return jeu;
+    }
+    throw new Error('Étape cherchée absente de P-V1.');
+  }
+
+  it('percer la baie : la phrase de l’air perdu est signalée, à chaud comme à la reprise', async () => {
+    const jeu = await jusqua(envAr02(), (etape) => etape.action === 'percer');
+    expect(jeu.alertes).toHaveLength(1);
+    expect(jeu.recit[jeu.alertes[0] ?? -1]).toMatch(/plus d’air/i);
+    const repris = await pret(envAr02());
+    expect(repris.recit).toEqual(jeu.recit);
+    expect(repris.alertes).toEqual(jeu.alertes);
+  });
+
+  it('entrer dans une pièce sans air : aucune phrase ne le dit, la ligne de « Regarder » est ajoutée et signalée', async () => {
+    const jeu = await jusqua(envAr02(), (etape) => etape.action === 'aller' && etape.vers === 'cabine');
+    const vide = ar02.textes.observation.sansAir;
+    expect(jeu.recit.at(-1)).toBe(vide);
+    expect(jeu.alertes).toEqual([jeu.recit.length - 1]);
+    const repris = await pret(envAr02());
+    expect(repris.recit).toEqual(jeu.recit);
+    expect(repris.alertes).toEqual(jeu.alertes);
   });
 });

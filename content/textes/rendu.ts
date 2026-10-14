@@ -9,6 +9,7 @@ import type {
   OptionMenu,
   Partie,
   RaisonRefus,
+  RefPassage,
   RefPiece,
   Resultat,
   Savoir,
@@ -135,14 +136,21 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   });
 }
 
-/** Événements dont la phrase décrit un danger qui apparaît à la vue du passager : le feu, comme l'alarme sonore (D-218, D-233). */
-const ALERTES: ReadonlySet<Evenement['type']> = new Set(['feu_derriere', 'feu_gagne']);
+/** Nature du danger dont la phrase d'un événement annonce l'arrivée à la vue : feu ou vide (D-233). */
+export type NatureDanger = 'feu' | 'vide';
 
-/** Rangs, dans le récit de `rendreEvenements`, des phrases qui annoncent un danger (D-233). */
-export function alertesDuRecit(evenements: readonly Evenement[]): number[] {
-  return evenements
-    .filter((evenement) => evenement.type !== 'assistance')
-    .flatMap((evenement, rang) => (ALERTES.has(evenement.type) ? [rang] : []));
+const DANGERS: Partial<Record<Evenement['type'], NatureDanger>> = { feu_derriere: 'feu', feu_gagne: 'feu', air_perdu: 'vide' };
+
+/** Pour chaque phrase du récit de `rendreEvenements`, le danger qu'elle annonce, ou `null` (D-233). */
+export function dangersDuRecit(evenements: readonly Evenement[]): (NatureDanger | null)[] {
+  return evenements.filter((evenement) => evenement.type !== 'assistance').map((evenement) => DANGERS[evenement.type] ?? null);
+}
+
+/** Phrase d'observation d'un danger en vue : dans la pièce du passager, ou derrière un passage (mêmes textes que « Regarder »). */
+export function rendreDangerVu(textes: TextesMonde, nature: NatureDanger, passage: RefPassage | null): string {
+  const modele = textes.observation;
+  if (passage === null) return remplir(nature === 'feu' ? modele.feu : modele.sansAir, {});
+  return remplir(nature === 'feu' ? modele.passageEnFeu : modele.passageVide, { passage: nomDe(textes, passage) });
 }
 
 /** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07). */

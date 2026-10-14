@@ -21,8 +21,8 @@ export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
 export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir } from './textes/gabarit';
 export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
 export {
-  alertesDuRecit,
   cleEvacuation,
+  dangersDuRecit,
   libelleOption,
   nomDe,
   nomPassage,
@@ -31,6 +31,7 @@ export {
   rendreApercu,
   rendreAssistance,
   rendreConsultation,
+  rendreDangerVu,
   rendreEvenements,
   rendreMoment,
   rendreObservation,
@@ -38,6 +39,7 @@ export {
   texteAssistance,
   type ApercuTexte,
   type CleTexte,
+  type NatureDanger,
   type LibelleOption,
 } from './textes/rendu';
 export {
