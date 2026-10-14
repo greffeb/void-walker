@@ -21,9 +21,9 @@ function cadre(rects: readonly RectPlan[]): RectPlan {
   return { x, y, largeur, hauteur };
 }
 
-/** Grille, conduit étroit, panneau, passage sans signalétique : ouverture en tirets (14 §2.6). */
+/** Grille, conduit étroit, panneau, passage sans signalétique, vide de passerelle : ouverture en tirets (14 §2.6). */
 function enTirets(liaison: DefLiaison): boolean {
-  return liaison.etroite === true || liaison.nonEtanche === true || liaison.sansSignaletique === true || liaison.cachee !== undefined;
+  return liaison.etroite === true || liaison.nonEtanche === true || liaison.sansSignaletique === true || liaison.cachee !== undefined || liaison.gouffre === true;
 }
 
 export function dessinerPlan({ monde, textes }: EntreeMonde): string {

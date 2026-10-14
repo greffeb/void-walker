@@ -8,12 +8,13 @@ import type { DefMonde } from '../../engine';
 export const MONDE_M07: DefMonde = {
   id: 'm-07',
   depart: 'p-quartiers',
+  // Plan (14 §4.3) : soute, quartiers, salle des machines et coursive en rang, l'embarquement sous la coursive, contre la coque.
   pieces: [
-    { id: 'p-quartiers', nom: 'quartiers' },
-    { id: 'p-soute', nom: 'soute' },
-    { id: 'p-machines', nom: 'machines', machines: true },
-    { id: 'p-coursive', nom: 'coursive' },
-    { id: 'p-embarquement', nom: 'embarquement' },
+    { id: 'p-quartiers', nom: 'quartiers', plan: { x: 4, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-soute', nom: 'soute', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-machines', nom: 'machines', machines: true, plan: { x: 8, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-coursive', nom: 'coursive', plan: { x: 12, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-embarquement', nom: 'embarquement', plan: { x: 12, y: 3, largeur: 4, hauteur: 3 } },
     { id: 'p-cabine', nom: 'cabine', sousPosition: true },
   ],
   liaisons: [

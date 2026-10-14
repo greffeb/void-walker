@@ -74,7 +74,7 @@ function parcours(id: string, debut: string): Parcours {
 }
 
 describe('stations de test des nouveaux morceaux : parcours de leurs fiches (#105)', () => {
-  it.each(STATIONS)('%s : monde valide, sans plan ni pièce de départ dangereuse', (id) => {
+  it.each(STATIONS)('%s : monde valide, plan compris, créature hors de la pièce de départ', (id) => {
     const { monde } = entree(id);
     expect(validerMonde(monde)).toEqual([]);
     expect(monde.creature?.piece).not.toBe(monde.depart);

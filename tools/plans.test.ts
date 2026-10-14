@@ -1,7 +1,8 @@
 import { emplacementDe, panDeCoque, piecesDeCoque, validerMonde, type DefMonde } from '../engine';
 import { MONDES, nomLisible, type EntreeMonde } from '../content';
 
-// Plans dessinés à la main (14 §4.3) : AR-01, AR-02 et le monde de test passent le vérifieur et les contraintes de leur fiche.
+// Plans dessinés à la main (14 §4.3) : AR-01, AR-02, le monde de test et les stations de test des morceaux (#105) passent le
+// vérifieur et les contraintes de leur fiche.
 
 function entree(id: string): EntreeMonde {
   const trouvee = MONDES[id];
@@ -16,7 +17,7 @@ function liaison(monde: DefMonde, id: string) {
 }
 
 describe('plans des stations (14 §4.3)', () => {
-  it.each(['monde-test', 'ar-01', 'ar-02'])('%s : plan valide, chaque pièce dessinée, chaque nom lisible, chaque liaison placée', (id) => {
+  it.each(['monde-test', 'ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'])('%s : plan valide, chaque pièce dessinée, chaque nom lisible, chaque liaison placée', (id) => {
     const { monde, textes } = entree(id);
     expect(validerMonde(monde)).toEqual([]);
     for (const piece of monde.pieces) {

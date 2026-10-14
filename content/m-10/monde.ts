@@ -11,13 +11,15 @@ import type { DefMonde } from '../../engine';
 export const MONDE_M10: DefMonde = {
   id: 'm-10',
   depart: 'p-quartiers',
+  // Plan (14 §4.3) : antichambre, chambre froide et entrepôt en haut ; quartiers et coursive dessous ; l'embarquement sous la
+  // coursive, contre la coque.
   pieces: [
-    { id: 'p-quartiers', nom: 'quartiers' },
-    { id: 'p-antichambre', nom: 'antichambre' },
-    { id: 'p-chambre', nom: 'chambre', froide: true },
-    { id: 'p-entrepot', nom: 'entrepot' },
-    { id: 'p-coursive', nom: 'coursive' },
-    { id: 'p-embarquement', nom: 'embarquement' },
+    { id: 'p-quartiers', nom: 'quartiers', plan: { x: 0, y: 3, largeur: 4, hauteur: 3 } },
+    { id: 'p-antichambre', nom: 'antichambre', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-chambre', nom: 'chambre', froide: true, plan: { x: 4, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-entrepot', nom: 'entrepot', plan: { x: 8, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-coursive', nom: 'coursive', plan: { x: 4, y: 3, largeur: 8, hauteur: 3 } },
+    { id: 'p-embarquement', nom: 'embarquement', plan: { x: 4, y: 6, largeur: 4, hauteur: 3 } },
     { id: 'p-cabine', nom: 'cabine', sousPosition: true },
   ],
   liaisons: [

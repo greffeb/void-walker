@@ -10,13 +10,14 @@ import type { DefMonde } from '../../engine';
 export const MONDE_M09: DefMonde = {
   id: 'm-09',
   depart: 'p-quartiers',
+  // Plan (14 §4.3) : quartiers, sas ouest, coursive de transfert, sas est et soute en rang, l'embarquement sous le sas est.
   pieces: [
-    { id: 'p-quartiers', nom: 'quartiers' },
-    { id: 'p-sas-ouest', nom: 'sas_ouest' },
-    { id: 'p-transfert', nom: 'transfert', gravite: 'coupee' },
-    { id: 'p-sas-est', nom: 'sas_est' },
-    { id: 'p-soute', nom: 'soute' },
-    { id: 'p-embarquement', nom: 'embarquement' },
+    { id: 'p-quartiers', nom: 'quartiers', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-sas-ouest', nom: 'sas_ouest', plan: { x: 4, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-transfert', nom: 'transfert', gravite: 'coupee', plan: { x: 8, y: 0, largeur: 6, hauteur: 3 } },
+    { id: 'p-sas-est', nom: 'sas_est', plan: { x: 14, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-soute', nom: 'soute', plan: { x: 18, y: 0, largeur: 4, hauteur: 3 } },
+    { id: 'p-embarquement', nom: 'embarquement', plan: { x: 14, y: 3, largeur: 4, hauteur: 3 } },
     { id: 'p-cabine', nom: 'cabine', sousPosition: true },
   ],
   liaisons: [
