@@ -106,6 +106,8 @@ export interface TextesMonde {
     readonly creatureEngourdie: string;
     /** Pont fragile posé en travers d'un vide de la pièce (D-164). */
     readonly pont: string;
+    /** Pont fragile qui a cédé dans un vide de la pièce : ses débris au bord (D-164). */
+    readonly pontBrise: string;
     /** Salle des machines, machines en marche ou arrêtées (D-163). */
     readonly machinesMarche: string;
     readonly machinesArret: string;
@@ -193,6 +195,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   gravite_retablie: ['piece'],
   chambre_bouclee: ['objet', 'piece'],
   bruit_couvert: ['passage'],
+  chute_entendue: ['passage'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -294,6 +297,7 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   creatureRalentie: [],
   creatureEngourdie: [],
   pont: ['objet', 'passage'],
+  pontBrise: ['objet', 'passage'],
   machinesMarche: [],
   machinesArret: [],
   sansGravite: [],

@@ -89,6 +89,7 @@ export const TYPES_EVENEMENT = [
   'gravite_retablie',
   'chambre_bouclee',
   'bruit_couvert',
+  'chute_entendue',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -252,6 +253,8 @@ export type Evenement =
   | { readonly type: 'machines_arretees' | 'machines_relancees'; readonly objet: RefObjet }
   /** La gravité de la zone coupée ou rétablie depuis un interrupteur (D-165, D-238). */
   | { readonly type: 'gravite_coupee' | 'gravite_retablie'; readonly piece: RefPiece }
+  /** Depuis une pièce voisine d'un bord, le passager entend le pont céder et quelque chose tomber, derrière ce passage (D-164, OP-01). */
+  | { readonly type: 'chute_entendue'; readonly passage: RefPassage }
   /** Le passager fait un geste bruyant dans une salle des machines en marche : leur vacarme le couvre (D-163). */
   | { readonly type: 'bruit_couvert'; readonly passage: RefPassage }
   /** Le pupitre ferme d'un coup les portes de la chambre froide (D-170, D-239). */
@@ -508,6 +511,8 @@ export interface Observation {
   readonly creatureEngourdie: boolean;
   /** Ponts fragiles posés en travers d'un vide de la pièce (D-164). */
   readonly ponts: readonly { readonly objet: RefObjet; readonly passage: RefPassage }[];
+  /** Ponts fragiles qui ont cédé dans un vide de la pièce : il en reste des débris au bord (D-164). */
+  readonly pontsBrises: readonly { readonly objet: RefObjet; readonly passage: RefPassage }[];
   /** Machines de la pièce, en marche ou arrêtées ; `null` hors d'une salle des machines (D-163). */
   readonly machines: 'marche' | 'arret' | null;
   /** Gravité de la pièce, coupée ou rétablie ; `null` hors d'une zone à gravité commutable (D-165). */

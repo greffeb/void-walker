@@ -129,6 +129,33 @@ describe('M-08 — passerelle effondrée (D-164, D-169, D-236)', () => {
     expect(choix(monde, portee.partie, { action: 'prendre', cible: 'touret' })).toMatchObject({ disponible: false, raison: 'encombre' });
   });
 
+  it('partie du porteur : la chute s’entend depuis les quartiers, voisins du bord, et la planche manque au retour', () => {
+    // Ses 15 premiers gestes, même graine : il repasse la planche sous les yeux de la créature, qui le voit partir par là.
+    const etapes = parcours('m-08', 'M-08').etapes;
+    const graine = 1775816682;
+    let partie = nouvellePartie(monde, { version: 'morceaux-test', graine });
+    for (const etape of [
+      ...etapes.slice(0, 7),
+      { action: 'ouvrir', cible: 'porte', vers: 'reserve' },
+      { action: 'aller', cible: 'porte', vers: 'reserve' },
+      { action: 'aller', cible: 'porte', vers: 'est' },
+      { action: 'aller', cible: 'vide', vers: 'ouest' },
+      { action: 'aller', cible: 'porte_grippee', vers: 'quartiers' },
+      { action: 'aller', cible: 'porte_grippee', vers: 'ouest' },
+      { action: 'aller', cible: 'vide', vers: 'est' },
+      { action: 'aller', cible: 'vide', vers: 'ouest' },
+    ] as const) {
+      partie = engager(monde, partie, etape).partie;
+    }
+    expect(partie.etat.creature?.indice).toEqual({ piece: 'p-ouest', par: 'l-ouest-est' });
+    // Seizième geste : il part vers les quartiers ; elle le suit par la planche et tombe.
+    const fuite = engager(monde, partie, { action: 'aller', cible: 'porte_grippee', vers: 'quartiers' });
+    expect(fuite.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
+    expect(types(fuite.evenements)).toEqual(['deplacement', 'chute_entendue']);
+    const retour = engager(monde, fuite.partie, { action: 'aller', cible: 'porte_grippee', vers: 'ouest' });
+    expect(observer(monde, retour.partie.etat).pontsBrises.map(({ objet }) => objet.nom)).toEqual(['planche']);
+  });
+
   it('piège : laissée en place, la planche cède sous la créature attirée par un bruit ; le passage est de nouveau coupé', () => {
     const etapes = parcours('m-08', 'M-08').etapes;
     // Jusqu'à la traversée (planche en place), puis retour au bord ouest : la réserve ouverte, un grincement l'attire.
@@ -144,7 +171,7 @@ describe('M-08 — passerelle effondrée (D-164, D-169, D-236)', () => {
     const chute = engager(monde, bruit.partie, { action: 'fermer', cible: 'porte_grippee', vers: 'quartiers' });
     expect(types(chute.evenements)).toEqual(['passage_ferme', 'pont_cede']);
     expect(chute.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
-    expect(chute.partie.etat.objets['o-planche']).toEqual({ type: 'perdu' });
+    expect(chute.partie.etat.objets['o-planche']).toEqual({ type: 'perdu', liaison: 'l-ouest-est' });
     expect(choix(monde, chute.partie, { action: 'aller', cible: 'vide', vers: 'est' })).toMatchObject({ disponible: false, raison: 'sans_pont' });
     // T-10 : la reprise d'une sauvegarde redonne la créature tombée et la planche perdue.
     const sauvegarde = JSON.parse(JSON.stringify({ enregistrement: chute.partie.enregistrement, etat: chute.partie.etat })) as unknown;

@@ -299,7 +299,7 @@ describe('passerelle et pont fragile (D-164, D-236)', () => {
     const chute = engager(PASSERELLE, attiree, 'fermer', 'depot');
     expect(types(chute.evenements)).toEqual(['passage_ferme', 'pont_cede']);
     expect(chute.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
-    expect(chute.partie.etat.objets.planche).toEqual({ type: 'perdu' });
+    expect(chute.partie.etat.objets.planche).toEqual({ type: 'perdu', liaison: 'gouffre' });
     expect(observer(PASSERELLE, chute.partie.etat).ponts).toEqual([]);
     expect(option(PASSERELLE, chute.partie, 'aller', 'est')).toMatchObject({ disponible: false, raison: 'sans_pont' });
     // Neutralisée, elle ne réagit plus jamais.
@@ -329,7 +329,7 @@ describe('passerelle et pont fragile (D-164, D-236)', () => {
     const suivie = placee(PASSERELLE, { ...posee.etat, creature: { piece: 'ouest', ...CALME, indice: { piece: 'est', par: 'gouffre' } } });
     const chute = engager(PASSERELLE, suivie, 'ouvrir', 'fond');
     expect(types(chute.evenements)).toContain('pont_cede');
-    expect(chute.partie.etat.objets.planche).toEqual({ type: 'perdu' });
+    expect(chute.partie.etat.objets.planche).toEqual({ type: 'perdu', liaison: 'gouffre' });
   });
 });
 

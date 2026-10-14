@@ -102,6 +102,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { objet: nomDe(textes, evenement.objet), passage: nomDe(textes, evenement.passage) };
     case 'derive':
     case 'bruit_couvert':
+    case 'chute_entendue':
       return { passage: nomDe(textes, evenement.passage) };
     case 'machines_arretees':
     case 'machines_relancees':
@@ -267,6 +268,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
   if (observation.creatureRalentie) lignes.push(remplir(observation.creatureEngourdie ? modele.creatureEngourdie : modele.creatureRalentie, {}));
   if (observation.creatureInerte) lignes.push(remplir(modele.creatureInerte, {}));
   for (const { objet, passage } of observation.ponts) lignes.push(remplir(modele.pont, { objet: nomDe(textes, objet), passage: nomDe(textes, passage) }));
+  for (const { objet, passage } of observation.pontsBrises) lignes.push(remplir(modele.pontBrise, { objet: nomDe(textes, objet), passage: nomDe(textes, passage) }));
   if (observation.machines !== null) lignes.push(remplir(observation.machines === 'marche' ? modele.machinesMarche : modele.machinesArret, {}));
   if (observation.gravite === 'coupee') lignes.push(remplir(modele.sansGravite, {}));
   if (observation.froid) lignes.push(remplir(modele.froid, {}));

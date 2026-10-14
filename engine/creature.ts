@@ -156,8 +156,8 @@ interface Reponse {
   readonly entendue?: BruitCreature;
   /** Liaison qu'elle a franchie jusqu'au bout pendant cette réaction. */
   readonly franchie?: string;
-  /** Pont fragile tombé avec elle (D-164). */
-  readonly perdu?: string;
+  /** Pont fragile tombé avec elle dans ce vide (D-164). */
+  readonly perdu?: { readonly objet: string; readonly liaison: string };
 }
 
 /** Créature encore active, donc dans la station (D-062). */
@@ -212,16 +212,24 @@ function bordDe(creature: EtatCreature): Pick<EtatCreature, 'bord'> {
 
 /**
  * Elle s'engage sur le pont fragile : il cède, elle tombe, neutralisée pour de bon, et le pont est perdu (D-164). Le passager
- * l'entend s'il est sur l'un des deux bords (D-236).
+ * l'entend s'il est sur l'un des deux bords (D-236), ou dans une pièce voisine de l'un d'eux par un passage qui laisse passer
+ * le son, comme tout mouvement de la créature (OP-01), sauf dans le vacarme d'une salle des machines (D-163).
  */
 function tomber(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, liaison: DefLiaison): Reponse {
   const pont = pontSur(monde, etat, liaison.id);
   const tombee: EtatCreature = { ...sans(creature, 'derive', 'bord', 'garde'), piece: null, neutralisee: 'tombee', indice: null, engagee: null, alcove: false, repit: false };
   if (pont === undefined) throw new Error(`Aucun pont sur ${liaison.id}.`);
-  const evenements: Evenement[] = liaison.entre.includes(etat.piece)
-    ? [{ type: 'pont_cede', objet: refObjet(monde, pont.id), passage: refPassage(monde, etat, liaison, etat.piece) }]
-    : [];
-  return { creature: tombee, evenements, perdu: pont.id };
+  const perdu = { objet: pont.id, liaison: liaison.id };
+  if (liaison.entre.includes(etat.piece)) {
+    return { creature: tombee, evenements: [{ type: 'pont_cede', objet: refObjet(monde, pont.id), passage: refPassage(monde, etat, liaison, etat.piece) }], perdu };
+  }
+  const voisine = assourdie(monde, etat, etat.piece)
+    ? undefined
+    : liaisonsVisibles(monde, etat, etat.piece).find(
+        (lien) => liaison.entre.includes(autreCote(lien, etat.piece)) && laissePasserLeSon(etat, lien) && !assourdie(monde, etat, autreCote(lien, etat.piece)),
+      );
+  const evenements: Evenement[] = voisine === undefined ? [] : [{ type: 'chute_entendue', passage: refPassage(monde, etat, voisine, etat.piece) }];
+  return { creature: tombee, evenements, perdu };
 }
 
 /**
@@ -320,7 +328,7 @@ export function reagir(
   const reponse = reagirRalentie(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
   const creature = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
-  const objets = reponse.perdu === undefined ? etat.objets : { ...etat.objets, [reponse.perdu]: { type: 'perdu' } as const };
+  const objets = reponse.perdu === undefined ? etat.objets : { ...etat.objets, [reponse.perdu.objet]: { type: 'perdu', liaison: reponse.perdu.liaison } as const };
   const apres: EtatPartie = { ...etat, objets, creature };
   const suite: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
   if (creatureEnVue(suite) && !creature.contact) {

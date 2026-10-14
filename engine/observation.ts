@@ -9,6 +9,7 @@ import {
   objetsDans,
   objetsPortes,
   piecesSansAir,
+  pontsBrises,
   pontsDe,
   protectionEnfilee,
   refObjet,
@@ -127,6 +128,11 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     ponts: pontsDe(monde, etat, etat.piece).flatMap((pont) => {
       const emplacement = etat.objets[pont.id];
       const liaison = emplacement?.type === 'pont' ? indexer(monde).liaisons.get(emplacement.liaison) : undefined;
+      return liaison === undefined ? [] : [{ objet: refObjet(monde, pont.id), passage: refPassage(monde, etat, liaison, etat.piece) }];
+    }),
+    pontsBrises: pontsBrises(monde, etat, etat.piece).flatMap((pont) => {
+      const emplacement = etat.objets[pont.id];
+      const liaison = emplacement?.type === 'perdu' ? indexer(monde).liaisons.get(emplacement.liaison) : undefined;
       return liaison === undefined ? [] : [{ objet: refObjet(monde, pont.id), passage: refPassage(monde, etat, liaison, etat.piece) }];
     }),
     machines: piece?.machines === true ? (assourdie(monde, etat, etat.piece) ? 'marche' : 'arret') : null,

@@ -34,6 +34,10 @@ export const EVENEMENTS_MORCEAUX = {
     'Un déclic : la gravité revient dans {le:piece}. Ce qui flottait retombe d’un coup.',
     'La gravité revient dans {le:piece}. La poussière s’abat sur le sol.',
   ],
+  chute_entendue: [
+    'Derrière {le:passage}, un craquement sec, puis le fracas d’une chute dans le noir.',
+    'Un bois qui se brise, quelque part derrière {le:passage}, puis plus rien.',
+  ],
   bruit_couvert: [
     'Le mécanisme grippé grince, mais le vacarme des machines couvre tout.',
     'Le mécanisme grippé hurle ; vous l’entendez à peine dans le fracas des machines.',
@@ -96,6 +100,7 @@ export const OBSERVATION_MORCEAUX = {
   creatureRalentie: 'Le givre la couvre ; elle bouge avec lenteur.',
   creatureEngourdie: 'Le givre la couvre ; engourdie, elle reste figée un instant.',
   pont: '{Le:objet} est posé{e:objet} en travers {de:passage}.',
+  pontBrise: '{Le:objet} n’est plus là : au bord {de:passage}, des éclats de bois pendent dans le noir.',
   machinesMarche: 'Les machines tournent dans un vacarme assourdissant : vous n’entendez rien d’autre.',
   machinesArret: 'Les machines sont à l’arrêt.',
   sansGravite: 'Rien ne pèse ici : vous flottez.',

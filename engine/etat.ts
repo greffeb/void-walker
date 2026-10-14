@@ -10,8 +10,8 @@ export type EmplacementObjet =
   | { readonly type: 'installe'; readonly dans: string }
   /** Pont fragile posé en travers de ce vide, vu et repris depuis ses deux bords (D-164). */
   | { readonly type: 'pont'; readonly liaison: string }
-  /** Tombé dans le vide avec la créature : perdu pour la partie, sans emplacement dans la station (D-164). */
-  | { readonly type: 'perdu' };
+  /** Tombé dans ce vide avec la créature : perdu pour la partie, sans emplacement dans la station ; des débris restent au bord (D-164). */
+  | { readonly type: 'perdu'; readonly liaison: string };
 
 /** Dernier indice perçu non encore inspecté (C-03 §4.2). */
 export interface Indice {
@@ -324,6 +324,14 @@ export function pontSur(monde: DefMonde, etat: EtatPartie, liaison: string): Def
   return monde.objets.find((objet) => {
     const emplacement = etat.objets[objet.id];
     return emplacement?.type === 'pont' && emplacement.liaison === liaison;
+  });
+}
+
+/** Ponts tombés dans un vide de la pièce avec la créature : leurs débris se voient au bord (D-164). */
+export function pontsBrises(monde: DefMonde, etat: EtatPartie, piece: string): DefObjet[] {
+  return monde.objets.filter((objet) => {
+    const emplacement = etat.objets[objet.id];
+    return emplacement?.type === 'perdu' && indexer(monde).liaisons.get(emplacement.liaison)?.entre.includes(piece) === true;
   });
 }
 
