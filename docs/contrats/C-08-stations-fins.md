@@ -22,7 +22,7 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 **Règles d'assemblage :**
 
 - un seul problème final par station, juste avant de partir ; les autres obstacles sont sur le chemin (D-159) ;
-- obstacles en chaîne ou à préparer dans l'ordre libre, selon les morceaux (D-160) ; l'ordre libre : deux obstacles qui partent d'un même couloir, à régler tous les deux avant le final (D-254) ;
+- obstacles en chaîne ou à préparer dans l'ordre libre, selon les morceaux (D-160) ; l'ordre libre peut prendre cette forme : deux obstacles qui partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le final (D-254) ;
 - la créature part d'un endroit prévu par un morceau, tiré au hasard, jamais dans la pièce de départ (D-161) ;
 - le problème final se tire d'abord à pile ou face, puis la station au pur hasard parmi celles qui ont ce final ; une station déjà jouée peut revenir (D-162, D-253) ;
 - au départ, les portes entre deux morceaux sont fermées (D-252) ;
@@ -59,7 +59,7 @@ Après une fin, une nouvelle partie peut reprendre la même station, même état
 | ID | Cas | Attendu |
 | --- | --- | --- |
 | G-01 | Assemblage sans chemin sûr | Station rejetée avec diagnostic |
-| G-02 | Deux morceaux dont le mélange n'a pas encore de règles, tirés ensemble (D-167) | Assemblage refusé |
+| G-02 | Deux morceaux qui jouent sur la même chose, dont le mélange n'a pas encore de règles, tirés ensemble (D-167, D-248) | Assemblage refusé |
 | G-03 | Joueur qui consomme la seule ressource indispensable | Signal « plus aucune sortie », partie toujours jouable |
 | G-04 | Sortie restante cachée et non découverte | Aucun signal, aucune indication de la sortie |
 | G-05 | Rejouer la même station | Même départ, tirages différents |

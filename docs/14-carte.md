@@ -234,7 +234,7 @@ Dans une station, les pièces du même type sont numérotées (CABINE 1, CABINE 
 
 Petites stations d'abord (D-242) : sur 1 000 tirages, toute station proposée a un plan qui passe PL-01 à PL-07 et GE-01 à GE-07 (D-245) ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; même graine, même plan ; une galerie de plans rendus est jointe à la PR.
 
-Pour les grandes stations, si la durée le demande : sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
+Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
 
 ## 6. Ce que le prototype a mesuré
 

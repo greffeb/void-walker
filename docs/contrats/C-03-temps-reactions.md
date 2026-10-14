@@ -1,6 +1,6 @@
 # C-03 — Temps, dangers et réactions — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175, précisés par D-234 à D-239 ; poursuite et ouïe D-177/D-178.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175, précisés par D-234 à D-239 ; air et feu par-dessus le vide de la passerelle D-246/D-247 ; poursuite et ouïe D-177/D-178.
 > **Date :** 2026-10-14.
 > **Implémentation et vérification exécutable :** créature, perception, réaction et premier contact (§2 à §4, T-01, T-07, T-09) dans le moteur depuis #100 ; avertisseur, glissade et feu (§5.1 à §5.3, T-02 à T-06, T-08, T-10) depuis #102 ; vide, brèche, rustine et retour de l'air (§5.4, T-11 à T-14, T-18) depuis #104 ; morceaux du lancement et mélanges (§5.5, T-15 à T-17) proposés par #105, dans quatre stations de test. Pas d'attestation de partie humaine.
 

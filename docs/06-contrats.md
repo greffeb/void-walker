@@ -378,7 +378,7 @@ Réponse unique du porteur aux douze questions : « Ok pour tes reco ».
 | Q-176 Sortie qui demande un coup de dés | Reste une sortie | D-251 |
 | Q-177 Portes entre morceaux | Fermées au départ | D-252 |
 | Q-178 Tirage | Pile ou face du final d'abord | D-253 |
-| Q-179 Ordre libre | Deux obstacles depuis un même couloir | D-254 |
+| Q-179 Ordre libre | Oui : deux obstacles depuis un même couloir | D-254 |
 | Q-180 Version de test | NOUVELLE PARTIE tire une station | D-255 |
 | Q-181 Panneau caché | Contourner la créature par le passage étroit | D-256 |
 
@@ -417,7 +417,7 @@ Q-01 à Q-181 sont répondus ; les prochains numéros d'entretien commencent à 
 
 ### Sujets encore ouverts, sans ordre imposé
 
-- Interactions du vide avec feu, huile ou bloc non définies ; ne pas réintroduire un duel ou compagnon physique pour étendre ce cas.
+- Interactions du vide avec un futur morceau : refusées par défaut tant que leurs règles ne sont pas décidées (D-167, D-248). Pour les dix morceaux actuels, elles sont réglées : feu et huile selon MX-02/MX-03 (D-174), quatre nouveaux morceaux sans règle de plus (D-246) ; le vide ne rencontre jamais le bloc, M-03 et M-06 étant tous deux des morceaux finals (D-172). Ne pas réintroduire un duel ou compagnon physique pour étendre ce cas.
 - Transformations d'objets et ressources au-delà des qualités de C-02 ; quoi omettre volontairement.
 - Règles et risques hors de la portée d'AR-01 ; information visible sans fuite des secrets.
 - Génération, fins, connaissance et cas d'absence de solution.
