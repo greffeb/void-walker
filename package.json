@@ -12,6 +12,7 @@
     "check:imports": "tsx tools/check-imports.ts",
     "check:links": "tsx tools/check-links.ts",
     "check:texts": "tsx tools/check-texts.ts",
+    "check:stations": "tsx tools/verifier-station.ts",
     "parcours": "tsx tools/rejouer-parcours.ts",
     "cli": "tsx cli/main.ts",
     "rejouer": "tsx tools/rejouer-export.ts",

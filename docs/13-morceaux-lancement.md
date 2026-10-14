@@ -219,7 +219,40 @@ Les messages d'IA Station et les descriptions de pièces qui nomment une pièce 
 
 ### 7.3 Risques et écarts relevés
 
-**Coût du vérifieur.** Un essai jetable du 2026-10-14 (clé d'état réduite aux règles, arrêt à la première évacuation sans dé ni blessure) a trouvé un chemin sûr en environ 100 000 états et 11 s pour AR-01, sept pièces, et en 500 à 7 400 états, moins de 2 s, pour AR-02 et m-07 à m-10. Une station à trois obstacles peut coûter bien plus : plafond d'états, vérification à la construction plutôt qu'au tirage, résultats gardés par empreinte. Le signal « plus aucune sortie » doit être exact, mais parcourir tous les états après chaque action est trop lourd pour un téléphone (AR-01 dépasse 190 000 états dés compris) : il faudra un calcul par morceau, prouvé exact contre la recherche complète. Les grandes stations demanderont un vérifieur par morceaux.
+**Vérifieur L1 (#151), proposé.** `npm run check:stations` cherche en largeur par `observer` et `jouer`, sans utiliser les parcours écrits comme raccourci. Un dé, même favorable, ou une blessure exclut la transition ; le premier contact et son action libre restent permis. Le premier chemin trouvé est converti en `Parcours`, puis `executerParcours` contrôle le menu public, l'évacuation indemne sans dé et le rejeu de l'export. Le rapport JSON contient le témoin, les états, le temps et le diagnostic. La commande est une étape obligatoire de `npm run verify`.
+
+Les étapes générées gardent les identifiants **publics** de cible et de paramètre en plus des noms : deux portes homonymes sans destination connue restent distinguables. Ces champs sont facultatifs, les parcours écrits existants ne changent pas. Limite héritée du contrôle de témoin : il attend au moins une option « aller » indisponible au départ, pour tester le refus sans effet. Les six références et le vestibule fermé prévu en L2 satisfont cette condition ; un monde entièrement ouvert au départ n'est pas couvert par ce contrôle actuel.
+
+La clé conserve toutes les données de règles, dont découvertes, répit, passage gardé, ressources et dangers. Seuls compteur d'actions, générateur, mémoire de carte, repères de perception de la créature, messages reçus et pièces visitées sont ignorés : leurs lectures ne changent que les récits, la carte et les avertissements, pas les commandes disponibles ni les effets physiques. Le journal n'est pas conservé dans chaque nœud ; les parents du chemin sont gardés et les états développés libérés. Le plafond par défaut est de 150 000 états ; atteint, il donne **non prouvée**, jamais « sans sortie sûre ». Le plafond se règle avec `--max-etats=200000` ; un verdict autre que prouvé donne un code de sortie non nul.
+
+Mesure locale indicative, hors démarrage de la commande, contrôle du témoin compris ; les durées ne sont pas des assertions de test :
+
+| Station / copie | Verdict sûr | États | Temps | Actions du témoin |
+| --- | --- | ---: | ---: | ---: |
+| AR-01 | Prouvée | 101 335 | 3,43 s | 11 |
+| AR-02 | Prouvée | 2 155 | 0,10 s | 13 |
+| m-07 | Prouvée | 503 | 0,02 s | 9 |
+| m-08 | Prouvée | 694 | 0,03 s | 13 |
+| m-09 | Prouvée | 7 386 | 0,21 s | 11 |
+| m-10 | Prouvée | 804 | 0,03 s | 9 |
+| m-08 sans planche | Sans sortie sûre, graphe épuisé | 48 | 0,009 s | — |
+| AR-01 sans eau (bidon) ni caisse | Sans sortie sûre, graphe épuisé | 405 | 0,035 s | — |
+| AR-01 sans eau seule | Prouvée, maintenance | 57 160 | 2,23 s | 11 |
+
+**Mesure avec les dés.** `npm run check:stations -- --mesurer --max-etats=200000` explore aussi blessure et défaite, jusqu'à épuisement ou au plafond, sans s'arrêter à la première évacuation. Toutes les faces sont énumérées, y compris plusieurs tirages successifs ou conditionnels : ni graine choisie ni seul jet favorable. L'accès facultatif aux dés dans le moteur a été explicitement autorisé par le porteur pour cet outil, sans changement de règle ; **fusion soumise à son accord**. Les journaux de mesure à faces imposées ne sont pas des exports de parties ordinaires ; les témoins sûrs utilisent l'accès normal, sans aucun tirage.
+
+| Station | Graphe | États | Transitions examinées | Temps |
+| --- | --- | ---: | ---: | ---: |
+| AR-01 | Incomplet, plafond | 200 000 | 667 758 | 7,55 s |
+| AR-02 | Incomplet, plafond | 200 000 | 919 331 | 10,55 s |
+| m-07 | Complet | 10 662 | 47 644 | 0,54 s |
+| m-08 | Complet | 162 192 | 673 336 | 8,70 s |
+| m-09 | Incomplet, plafond | 200 000 | 908 385 | 9,82 s |
+| m-10 | Incomplet, plafond | 200 000 | 737 068 | 9,08 s |
+
+**Méthode retenue pour L6 : calcul de viabilité par morceau, composé avec les connexions et les états partagés**, pas une recherche complète après chaque action sur téléphone. Ce n'est pas un simple booléen indépendant par morceau : santé, objets portés, créature, bruit, air, feu et passages entre morceaux doivent rester pris en compte. Même sur ce PC, un graphe achevé coûte 8,70 s pour m-08 ; quatre autres dépassent 200 000 états. Les mesures plafonnées sont des bornes basses, pas des graphes complets ni des preuves d'absence de sortie. En L6, le calcul composé devra être comparé dans les deux sens à l'oracle exhaustif sur tous les états concernés (G-03, G-04, G-06), en conservant une sortie au dé comme sortie. Un oracle plafonné ne valide pas cette comparaison : il faudra achever le graphe hors téléphone ou réduire le modèle avec une équivalence démontrée. Le temps par action sera alors mesuré sur téléphone ; aucune performance mobile n'est revendiquée en L1.
+
+Une station à trois obstacles peut coûter bien plus : plafond d'états, vérification à la construction plutôt qu'au tirage, résultats gardés par empreinte en L2/L3. Les grandes stations restent hors du vérifieur exhaustif de L1.
 
 **Écarts dans les documents :**
 

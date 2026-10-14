@@ -267,14 +267,14 @@ function decompter(etat: EtatPartie): EtatPartie {
 }
 
 /** Joue une commande structurée ; un refus ou une consultation rend la partie inchangée (C-01 §6, C-03 §2). */
-export function jouer(monde: DefMonde, partie: Partie, commande: unknown): Resultat {
+export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: Des): Resultat {
   const validation = valider(monde, partie.etat, commande);
   if (validation.type === 'refus') return { ...validation, partie };
   const { definition, cible, parametre } = validation;
   const contexte = { monde, etat: partie.etat };
   if (!definition.engage) return { type: 'consultation', consultation: definition.consulter(contexte, cible), partie };
 
-  const session = ouvrirDes(partie.etat.generateur);
+  const session = ouvrirDes(partie.etat.generateur, des);
   // Sous ses yeux, l'interception se résout avant le changement de position (C-03 §3 étape 2, C-04 §4.2) ; pas si le vide
   // l'atteint à ce pas, ce que l'effet simulé sans dé suffit à dire.
   const exposition = exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
