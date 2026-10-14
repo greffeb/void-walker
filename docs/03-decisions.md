@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
@@ -1911,6 +1911,7 @@ Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement
 - Origine : réponse Q-178 « Ok pour tes reco ».
 - Décision : une nouvelle station tire d'abord à pile ou face son problème final, énergie ou baie, puis, au pur hasard, une station parmi celles qui ont ce final. Les deux finals sortent ainsi aussi souvent l'un que l'autre, quel que soit le nombre de stations possibles avec chacun.
 - Modifie : D-162 ; les stations n'ont plus toutes la même chance : le problème final se tire d'abord à pile ou face, puis la station au pur hasard parmi celles qui ont ce final. Une station déjà jouée peut toujours revenir, même deux fois de suite.
+- Exception transitoire précisée par D-260 : en L2, seul M-03 est disponible ; le pile ou face s'applique lorsque les deux finals sont disponibles et vérifiés, à partir de L3.
 
 ### D-254 — Ordre libre : deux obstacles qui partent d'un même couloir
 
@@ -1919,6 +1920,7 @@ Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement
 - Décision : les obstacles à préparer « dans l'ordre que le joueur veut » peuvent prendre cette forme : deux obstacles qui partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le problème final, comme l'énergie et l'accès d'AR-01.
 - Précise : D-160.
 - Limite : ce qui rend chaque branche nécessaire (un accès, un objet ou une alimentation que le morceau fournit, GP-01) se propose en L0 et se valide avant L5. [Détail de l'agent] L'exemple, repris de D-160 et accepté tel quel, montre seulement deux préparations menées dans l'ordre qu'on veut : dans les morceaux, l'énergie d'AR-01 est devenue le final M-03 (D-172), qui vient après les deux branches. Les deux branches sont donc deux morceaux de chemin.
+- Précisée par D-259 : chaque branche donne accès à une commande distincte, qui déverrouille l'une de deux cloisons successives avant le final ; ajout explicitement accepté en L0.
 
 ### D-255 — Version de test de #106 : NOUVELLE PARTIE tire une station
 
@@ -1926,6 +1928,7 @@ Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement
 - Origine : réponse Q-180 « Ok pour tes reco ».
 - Décision : dans la version de test de #106, NOUVELLE PARTIE tire une station au hasard ; les aventures de référence restent jouables par un lien.
 - Limite : la question ne portait que sur la version de test ; ce que fait NOUVELLE PARTIE dans la version publique reste à décider. [Détail de l'agent] La question est à poser au porteur avant la fusion de L2, la première livraison où NOUVELLE PARTIE tire une station, puisqu'une fusion publie le jeu (AP-10).
+- Question publique réglée par D-260 : même fonctionnement à partir de L2, avec le démarrage progressif accepté.
 
 ### D-256 — Le panneau caché sert à contourner la créature
 
@@ -1933,6 +1936,43 @@ Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement
 - Origine : réponse Q-181 « Ok pour tes reco ».
 - Décision : dans M-05, la créature peut attendre sur le chemin normal ; le passage étroit derrière le panneau, où elle ne passe jamais, permet de la contourner. Les endroits où elle peut attendre autour de la galerie en feu (M-01) seront proposés de la même façon, avant la première station qui l'utilise.
 - Précise : D-161, D-171 et les fiches M-01 et M-05.
+
+## Décisions validées — cadrage L0 de #106 (#150)
+
+Les quatre propositions de [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-accepté-par-le-porteur) ont été relues indépendamment, puis soumises au porteur le 2026-10-14, avec leurs recommandations et leurs détails. Il a sélectionné explicitement les quatre réponses citées ci-dessous, sans commentaire complémentaire. Il s'agit d'un accord de conception ; aucun code ni parcours humain n'est ajouté par L0.
+
+### D-257 — Un vestibule de réveil sans danger immédiat
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-182 « Oui, ce vestibule ».
+- Décision : la pièce de départ est un vestibule sans danger immédiat, sans créature ni objet, avec une porte ordinaire fermée vers la suite, à ouvrir à la main. En ordre libre, elle donne sur le couloir commun des deux branches. Les objets nécessaires restent dans leur morceau (D-244). Avant la première ouverture, le passager peut lire et consulter sans être atteint par un danger ; après cette ouverture, la pièce n'a aucune protection spéciale. Ouvrir puis franchir restent deux actions ordinaires, sans exemption aux réactions.
+- Précise : GP-04 et le détail de D-252 sur la porte de départ ; fiche [13 §8.1](13-morceaux-lancement.md#81-pièce-de-départ--q-182-d-257).
+- Limite : à implémenter et prouver en L2 ; aucun document du lore ni consommable bonus ajouté au départ.
+
+### D-258 — M-01 : la créature attend seulement sur le palier après la galerie
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-183 « Oui, le palier après la galerie ».
+- Décision : M-01 apporte trois pièces sur le chemin principal : pièce d'entrée avec l'eau, galerie en feu, palier de sortie, avec les deux portes intérieures fermées au départ. Sa seule place déclarée pour la créature est le palier, jamais la galerie ni la pièce avec l'eau. Ce palier appartient à M-01, pas au morceau voisin ni à une annexe. La place participe au tirage ordinaire, sans poids particulier ; aucune deuxième créature n'est ajoutée.
+- Précise : D-161, D-171, D-256 et la fiche M-01 ; détails et preuves [13 §8.2](13-morceaux-lancement.md#82-créature-autour-de-m-01--q-183-d-258).
+- Limite : en L4, prouver une évacuation complète sans dé ni blessure avec cette place, pas seulement l'accès à l'eau et l'extinction. Une composition qui échoue est rejetée ; d'autres places exigeraient un autre accord.
+
+### D-259 — Ordre libre : deux commandes pour deux cloisons avant le final
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-184 « Oui, les deux commandes et cloisons » ; l'ajout de deux commandes fixes et de deux verrouillages a été présenté explicitement, avec son coût et son effet.
+- Décision : en ordre libre seulement, chacun des deux morceaux de chemin donne accès, au-delà de son obstacle, à une commande distincte ; chacune déverrouille l'une de deux cloisons successives sur l'entrée commune du final. Actionner une commande coûte une action discrète, sans dé ni consommable ; le déverrouillage reste acquis pour la partie. Une cloison verrouillée ne s'ouvre pas à la main ; une fois déverrouillée, elle s'ouvre et se ferme normalement, sans ouverture automatique. Les deux cloisons appartiennent au final ; aucun chemin ne les contourne. Après chaque préparation, on revient au couloir commun ; les deux branches ne se rejoignent pas derrière les cloisons.
+- Précise : D-160, D-254 et GP-01. Les deux visites et les deux apports sont nécessaires, pas un itinéraire imposé dans chaque morceau ni une rencontre dans chaque branche : la créature reste unique. Les objets restent dans leur morceau (D-244) et le problème final reste à résoudre après les deux préparations. Apports des huit morceaux et preuves : [13 §8.3](13-morceaux-lancement.md#83-deux-branches-toutes-deux-utiles--q-184-d-259).
+- Limite : à implémenter et prouver en L5, en zone orange pour le moteur et le format ; aucun changement des versions en chaîne ni des stations de test existantes. Pour chaque composition publiée, les deux ordres doivent permettre une évacuation sans dé ni blessure ; omettre l'un ou l'autre des déverrouillages doit rendre toute évacuation impossible, même avec des dés favorables. Une paire permise n'est pas automatiquement une composition en ordre libre valide.
+
+### D-260 — Version publique : une station tirée aussi, avec un démarrage progressif
+
+- Date / statut : 2026-10-14 / **Validé**.
+- Origine : réponse Q-185 « Oui, avec ce démarrage progressif ».
+- Décision : à partir de L2, dans la version publique comme dans celle de test, NOUVELLE PARTIE tire une station parmi les compositions vérifiées disponibles. REJOUER CETTE STATION conserve le même départ avec de nouveaux dés ; les aventures de référence restent jouables par lien. REPRENDRE et les parties en cours ne changent pas.
+- Précise : D-255 et C-08 §5 ; [13 §8.4](13-morceaux-lancement.md#84-nouvelle-partie-dans-la-version-publique--q-185-d-260).
+- Modifie temporairement D-253 : en L2, seul le final énergie M-03 est disponible ; on tire parmi ses compositions vérifiées, sans tirer une baie absente. Dès que les deux finals sont disponibles et vérifiés, à partir de L3, le tirage commence par le pile ou face énergie/baie, puis choisit au pur hasard parmi les compositions de ce final ; une station déjà jouée peut toujours revenir.
+- Limite : L0 reste documentaire ; aucune modification immédiate de la version publique et aucun équilibre entre deux finals revendiqué avant L3.
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 

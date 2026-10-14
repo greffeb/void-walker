@@ -1,7 +1,7 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175.
-> **Date :** 2026-10-11.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8).
+> **Mise à jour :** 2026-10-14.
 > **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256. **Parties sur téléphone :** absentes.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
@@ -23,14 +23,18 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
 Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement. Le morceau final apporte l'embarquement et sa capsule (D-249) ; au départ, les portes entre deux morceaux sont fermées (D-252) ; le tirage choisit d'abord le final à pile ou face (D-253).
 
+En ordre libre, les deux branches donnent chacune accès à une commande distincte, nécessaire pour déverrouiller l'une des deux cloisons successives avant le final (D-259, §8.3). Ce ne sont pas deux itinéraires interchangeables. À partir de L2, NOUVELLE PARTIE tire une station aussi dans la version publique ; seul le final énergie est disponible en L2, puis le pile ou face s'applique dès que les deux finals sont disponibles et vérifiés (D-260, §8.4).
+
 ## 3. Fiches
 
 Chaque fiche donne : les pièces apportées, les objets, les places possibles de la créature (D-161), le chemin sûr et une variante risquée.
 
+La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit au §8.1 (D-257).
+
 ### M-01 — Galerie en feu (AR-01 G)
 
-- **Pièces :** une galerie fermée des deux côtés, avec un foyer ; une pièce voisine contenant le récipient d'eau.
-- **Créature :** jamais dans la galerie ; ses places possibles seront proposées avant la première station qui utilise ce morceau (D-256).
+- **Pièces :** une pièce d'entrée avec le récipient d'eau, une galerie en feu et un palier de sortie ; les deux portes intérieures sont fermées au départ (D-258, §8.2).
+- **Créature :** une seule place déclarée, le palier de sortie ; jamais dans la galerie ni dans la pièce avec l'eau (D-258). Le parcours complet avec cette place reste à prouver en L4.
 - **Sûr :** prendre l'eau, ouvrir, éteindre depuis le seuil (C-03 §5.3).
 - **Risqué :** laisser la porte ouverte deux actions : le feu gagne la pièce voisine.
 
@@ -114,6 +118,60 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 
 Avec ces règles, toutes les paires des dix morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
 
+### 4.1 Table exhaustive des paires (L0, #150)
+
+Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises et une jamais ensemble. Les règles citées sont celles du tableau ci-dessus et du [journal des décisions](03-decisions.md). Cette table autorise une cohabitation, pas une station : chaque composition doit encore respecter les attaches, le nombre d'obstacles et le chemin sûr vérifié (C-08 §2 et §3). L2 la transcrira en données ; aucun code ne change en L0.
+
+| Paire | Verdict | Règle qui la permet, ou motif du refus |
+| --- | --- | --- |
+| M-01 + M-02 | Permise | Objets et obstacles distincts, sans règle de plus (D-248) |
+| M-01 + M-03 | Permise | Feu et énergie, sans règle de plus (D-248) |
+| M-01 + M-04 | Permise | Feu et observation/huile/avertisseur, sans règle de plus (D-248) |
+| M-01 + M-05 | Permise | Feu et passage caché, sans règle de plus (D-248) |
+| M-01 + M-06 | Permise | MX-02 : le vide éteint le feu ; pas de feu dans une pièce sans air (D-174) |
+| M-01 + M-07 | Permise | Feu et machines, sans règle de plus (D-248) |
+| M-01 + M-08 | Permise | Le feu peut gagner l'autre bord de la passerelle ; pas de feu sans air (D-247) |
+| M-01 + M-09 | Permise | Feu et gravité, sans règle de plus (D-248) |
+| M-01 + M-10 | Permise | Feu et froid, sans règle de plus (D-248) |
+| M-02 + M-03 | Permise | Grille/caisse et énergie, sans règle de plus (D-248) ; le bloc ne passe pas le conduit (D-043) |
+| M-02 + M-04 | Permise | Grille/caisse et observation, sans règle de plus (D-248) |
+| M-02 + M-05 | Permise | Grille/caisse et passage caché, sans règle de plus (D-248) |
+| M-02 + M-06 | Permise | Grille/caisse et baie, sans règle de plus (D-248) |
+| M-02 + M-07 | Permise | Grille/caisse et machines, sans règle de plus (D-248) |
+| M-02 + M-08 | Permise | Grille/caisse et passerelle, sans règle de plus (D-248) |
+| M-02 + M-09 | Permise | Grille/caisse et gravité, sans règle de plus (D-248) |
+| M-02 + M-10 | Permise | Grille/caisse et froid, sans règle de plus (D-248) |
+| M-03 + M-04 | Permise | Bruits entre eux : relais et avertisseur suivent les règles existantes (§4, D-174) |
+| M-03 + M-05 | Permise | Énergie et passage caché, sans règle de plus (D-248) ; le bloc ne passe pas le passage étroit (D-043) |
+| M-03 + M-06 | Jamais ensemble | Deux morceaux finals ; un seul final par station (D-159, D-172) |
+| M-03 + M-07 | Permise | Bruits entre eux (§4, D-174) ; interrupteur autonome, indépendant de l'énergie (D-168) |
+| M-03 + M-08 | Permise | Énergie et passerelle, sans règle de plus (D-248) ; planche et bloc encombrants, un seul porté à la fois (D-169) |
+| M-03 + M-09 | Permise | Énergie et gravité, sans règle de plus (D-248) ; interrupteurs autonomes (D-168) |
+| M-03 + M-10 | Permise | Bruits entre eux : relais et compresseur suivent les règles existantes (§4, D-174) |
+| M-04 + M-05 | Permise | Observation et passage caché, sans règle de plus (D-248) |
+| M-04 + M-06 | Permise | MX-03 : vide et huile sans effet l'un sur l'autre (D-174) |
+| M-04 + M-07 | Permise | Bruits entre eux : avertisseur et machines suivent les règles existantes (§4, D-174) |
+| M-04 + M-08 | Permise | Observation/huile et passerelle, sans règle de plus (D-248) |
+| M-04 + M-09 | Permise | MX-01 : ralentissements additionnés ; MX-04 : huile impossible à verser sans gravité (D-174) |
+| M-04 + M-10 | Permise | Bruits entre eux ; MX-01 : ralentissements additionnés ; MX-05 : huile toujours glissante dans le froid (D-174) |
+| M-05 + M-06 | Permise | Passage caché et baie, sans règle de plus (D-248) |
+| M-05 + M-07 | Permise | Passage caché et machines, sans règle de plus (D-248) |
+| M-05 + M-08 | Permise | Passage caché et passerelle, sans règle de plus (D-248) |
+| M-05 + M-09 | Permise | Passage caché et gravité, sans règle de plus (D-248) |
+| M-05 + M-10 | Permise | Passage caché et froid, sans règle de plus (D-248) |
+| M-06 + M-07 | Permise | L'air quitte aussi les machines ; aucune règle de plus (D-246) |
+| M-06 + M-08 | Permise | L'air passe par-dessus le vide de la passerelle (D-246) ; neutralisations définitives, sans règle de plus (§4, D-174) |
+| M-06 + M-09 | Permise | L'air quitte aussi la zone sans gravité ; aucune règle de plus (D-246) |
+| M-06 + M-10 | Permise | L'air quitte aussi la chambre froide ; aucune règle de plus (D-246) |
+| M-07 + M-08 | Permise | Machines et passerelle, sans règle de plus (D-248) |
+| M-07 + M-09 | Permise | Machines et gravité, sans règle de plus (D-248) |
+| M-07 + M-10 | Permise | Bruits entre eux : machines et compresseur suivent les règles existantes (§4, D-174) |
+| M-08 + M-09 | Permise | Passerelle et gravité, sans règle de plus (D-248) |
+| M-08 + M-10 | Permise | Passerelle et froid, sans règle de plus (D-248) |
+| M-09 + M-10 | Permise | MX-01 : traversée sans gravité et ralentissement par le froid additionnés (D-174) |
+
+Une paire absente ou refusée n'est pas autorisée par ressemblance avec une ligne existante. Pour un futur morceau qui touche la même chose qu'un autre, une règle acceptée est nécessaire (D-167, D-248). Une ligne permise n'autorise pas à fusionner deux obstacles dans la même pièce ni à ajouter une interaction absente des fiches.
+
 ## 5. Parcours à prouver
 
 - Pour chaque morceau : un parcours sûr et, s'il existe, un parcours risqué, joués par le moteur dans une station minimale.
@@ -134,12 +192,12 @@ Règles retranscrites dans C-02 §5, C-03 §5.5 et C-04 §3.2. Les textes viendr
 
 | Livraison | Contenu | Sortie (preuves) | Zone | Téléphone |
 | --- | --- | --- | --- | --- |
-| L0 ([#150](https://github.com/greffeb/void-walker/issues/150)) — Cadrage | Table des paires de morceaux en données, chacune avec la règle qui la permet (§4, D-246 à D-248), refus par défaut pour un futur morceau qui joue sur la même chose qu'un autre (D-167, D-248) ; propositions de l'agent, soumises au porteur avant usage (D-171) : fiche de la pièce de départ, places de la créature autour de la galerie en feu (D-256), ce qui rend nécessaire chaque branche de l'ordre libre (D-254) | Documents relus par un autre agent ; aucune règle ajoutée sans réponse du porteur | Verte | Non |
+| L0 ([#150](https://github.com/greffeb/void-walker/issues/150)) — Cadrage | Table documentaire des 45 paires de morceaux (§4.1), chacune avec la règle qui la permet (§4, D-246 à D-248), refus par défaut pour un futur morceau qui joue sur la même chose qu'un autre (D-167, D-248) ; vestibule, place de la créature de M-01, apports des deux branches et tirage public acceptés (§8, D-257 à D-260) | Documents relus par un autre agent ; réponses Q-182 à Q-185 consignées ; aucun code modifié | Verte | Non |
 | L1 ([#151](https://github.com/greffeb/void-walker/issues/151)) — Vérifieur seul | Recherche en largeur sur les vraies règles, par les commandes publiques (GP-05), sans dé ni blessure ; au-delà d'un plafond d'états, la station est « non prouvée » et jamais proposée ; le chemin trouvé est rejoué comme un parcours témoin ; un second mode, qui suit aussi les dés, mesure ce que coûterait le signal « plus aucune sortie » | AR-01, AR-02 et m-07 à m-10 acceptés ; copies cassées exprès rejetées avec diagnostic (G-01) : m-08 sans la planche, AR-01 sans l'eau ni la caisse (sans l'eau seule, AR-01 reste faisable par la grille de maintenance) ; tableau des états et des temps ; méthode du signal choisie par écrit | Verte (outil) | Non |
 | L2 ([#152](https://github.com/greffeb/void-walker/issues/152)) — Première station tirée | Format du morceau (famille, attaches, places de la créature, ce qu'il demande et fournit, tuile de plan) avec une empreinte par morceau ; textes rangés par couches (§7.2) ; pièce de départ ; assemblage départ, un morceau de chemin, final avec son embarquement (D-249), portes entre morceaux fermées (D-252), sur une première composition : M-03 en final, M-07 ou M-10 en chemin (bruits entre eux, §4 ; D-250 pour le chemin sûr de M-10) ; paires lues dans la table de L0, toute paire refusée ou absente écartée avant le plan (D-167) ; plan du chemin principal (GE-01 à GE-07) ; compositions vérifiées par L1 à la construction, et non au tirage ; NOUVELLE PARTIE tire au hasard une station parmi elles (D-253, D-255), REJOUER garde la même, un paramètre de test en force une ; m-07 et m-10 refaits à partir des morceaux | G-02 : avec une copie de la table où la paire tirée est retirée exprès, la composition forcée par le paramètre de test est refusée avec son motif ; G-05 ; même graine, même plan ; parcours de m-07 et m-10 inchangés ; tableau des compositions (verdict, états, temps) ; galerie de plans ; captures ; version de test | Orange | Oui : une partie menée au bout par morceau inclus |
 | L3 ([#153](https://github.com/greffeb/void-walker/issues/153)) — Baie, passerelle, sans gravité | M-06 en final, M-08 et M-09 en chemin ; vide et nouveaux morceaux (D-246) ; deux morceaux de chemin ; MX-01 et la planche avec le bloc (D-169) rencontrés en station assemblée | Temps de vérification d'une station à trois obstacles (premier risque) ; résultats gardés par empreinte ; statistiques de tirage | Orange | Oui : M-06, M-08, M-09 |
 | L4 ([#154](https://github.com/greffeb/void-walker/issues/154)) — Chemins d'AR-01 | M-01, M-02, M-04 (avec sa pièce d'avant : huile et commande de l'avertisseur) et M-05 ; MX-02 à MX-05 et le feu sur la passerelle (D-247) rencontrés en station assemblée | Chaque morceau dans au moins une station vérifiée ; un parcours sûr et, s'il existe, un risqué par morceau | Orange | Oui : les quatre |
-| L5 ([#155](https://github.com/greffeb/void-walker/issues/155)) — Ordre libre et mesures | Deux obstacles qui partent d'un même couloir, à préparer dans l'ordre voulu avant le final (D-254) ; 1 000 tirages | Aucune station non vérifiée proposée ; fréquence par morceau, par final et par place de la créature ; rejets classés par motif ; part des stations où la créature peut être mise hors jeu avant le final (D-241) ; une station rejetée avec son diagnostic | Orange | Oui : une station en ordre libre |
+| L5 ([#155](https://github.com/greffeb/void-walker/issues/155)) — Ordre libre et mesures | Deux obstacles qui partent d'un même couloir, chacun donnant accès à sa commande de déverrouillage avant le final (D-254, D-259, §8.3) ; 1 000 tirages | Deux ordres de préparation sûrs prouvés ; aucune évacuation possible en omettant l'une des commandes, même avec des dés favorables ; aucune station non vérifiée proposée ; fréquence par morceau, par final et par place de la créature ; rejets classés par motif ; part des stations où la créature peut être mise hors jeu avant le final (D-241) ; une station rejetée avec son diagnostic | Orange | Oui : une station en ordre libre |
 | L6 ([#156](https://github.com/greffeb/void-walker/issues/156)) — « Plus aucune sortie » | Calcul après chaque action, selon la méthode choisie en L1 ; une sortie au dé reste une sortie (D-251) ; message, rappel discret (D-144) et textes | G-03, G-04, G-06 ; signal comparé dans les deux sens à la recherche complète sur tous les états atteints : un seul signal faux bloque la livraison ; temps par action mesuré sur téléphone | Orange (moteur) | Oui : une sortie perdue exprès |
 
 **Ordre :** #105 est clos ; L0 et L1 peuvent commencer tout de suite ; L2 attend la table des paires (L0) et le vérifieur (L1) ; puis L3, L4, L5 et L6. L6 touche au moteur, et L2 aussi si l'identifiant de station ne tient pas dans le champ « monde » de la sauvegarde (changer le format de sauvegarde est en zone rouge, C-10 §6). Une livraison qui touche au moteur ne se mène pas en même temps qu'une autre issue moteur ; le travail du lore n'en fait partie que si sa conception demande au moteur plus que « regarder » (D-243, limite).
@@ -172,10 +230,10 @@ Les messages d'IA Station et les descriptions de pièces qui nomment une pièce 
 5. Gravité et dépressurisation : « à décider » selon D-165, absent du tableau du §4. Réglé par D-246.
 6. Paires sans famille commune (feu et froid, feu et machines, caisse et énergie…) : le §4 ne dit pas si ce sont des mélanges, et D-167 ne vise que les morceaux qui jouent sur la même chose. Refusées par défaut, elles écarteraient M-02 et M-05 de toute station, aucun des deux finals ne partageant de famille avec eux, alors qu'AR-01 (D-057) les réunit déjà avec M-03. Réglé par D-248.
 7. Embarquement : le §2 le place après le final, mais la créature de M-06 garde l'embarquement. Réglé par D-249 : le morceau final apporte l'embarquement.
-8. M-01 et M-05 disent seulement où la créature n'est jamais ; D-161 demande ses places possibles. Réglé pour M-05 par D-256 ; celles de M-01 sont proposées en L0 et validées avant L4 (D-171, D-256).
+8. M-01 et M-05 disent seulement où la créature n'est jamais ; D-161 demande ses places possibles. Réglé pour M-05 par D-256 ; pour M-01, D-258 retient le seul palier de sortie (§8.2), à prouver en L4.
 9. Seul, le panneau caché de M-05 ne bloque rien. Réglé par D-256 : la créature peut attendre sur le chemin normal, et le passage étroit, où elle ne passe pas, permet de la contourner.
 10. Le chemin sûr de la chambre froide passe une fois sous les yeux de la créature, grâce à l'action libre qui suit le premier contact (D-184). Réglé par D-250 : il compte comme sûr.
-11. L'ordre libre (D-160) n'avait pas de forme décrite. Réglé par D-254.
+11. L'ordre libre (D-160) n'avait pas de forme décrite. Réglé par D-254 ; les deux apports indispensables sont fixés par D-259 (§8.3), à implémenter et prouver en L5.
 12. D-162 dit que les stations se tirent au pur hasard et qu'une station déjà jouée peut revenir ; il ne dit pas si chaque station possible a la même chance. D-241 compte une créature placée plus souvent près du problème final comme une modification de D-162 ; un pile ou face sur le problème final en serait une aussi. Réglé par D-253, qui modifie D-162 : pile ou face du final, puis pur hasard parmi les stations qui ont ce final.
 13. Les textes qui nomment une pièce voisine seraient faux dans une station assemblée : §7.2.
 
@@ -195,3 +253,75 @@ Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée
 10. Il est déjà décidé que certains obstacles se préparent dans l'ordre que le joueur veut. Concrètement, cela peut-il prendre cette forme : deux obstacles qui partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le problème final ? *Recommandé :* oui, comme l'énergie et l'accès de la première aventure.
 11. Dans la version de test, NOUVELLE PARTIE tire-t-elle une station au hasard, les aventures de référence restant jouables par un lien ? *Recommandé :* oui.
 12. Le panneau caché ne bloque rien à lui seul. *Recommandé :* la créature peut attendre sur le chemin normal, et le passage étroit derrière le panneau, où elle ne passe jamais, permet de la contourner. Les endroits où elle peut attendre autour de la galerie en feu seront proposés de la même façon, avant la première station qui l'utilise.
+
+## 8. Cadrage L0 (#150) accepté par le porteur
+
+> **Statut :** CONCEPTION ACCEPTÉE le 2026-10-14. Après relecture indépendante des propositions, les quatre recommandations ci-dessous ont été soumises au porteur avec leurs détails puis retenues explicitement : Q-182 à Q-185, D-257 à D-260. Elles précisent les fiches et C-08 ; aucun code ne change dans L0. Les preuves moteur et les parties sur téléphone restent à produire dans les livraisons indiquées.
+
+### 8.1 Pièce de départ — Q-182, D-257
+
+**Choix retenu :** un vestibule de réveil, identique dans son rôle pour toutes les stations.
+
+- Une pièce sur le chemin principal, sans danger, sans créature, sans objet nécessaire à un obstacle et sans consommable bonus ; les objets restent dans leur morceau (D-244).
+- Une porte ordinaire vers le premier morceau, fermée au départ, manœuvrable à la main ; pas de porte grippée à cet endroit. En ordre libre, elle donne sur le couloir commun qui dessert les deux branches, pas directement sur l'une d'elles.
+- Avant la première ouverture de la porte, aucun contact ni danger ne peut atteindre le passager dans ce vestibule. Après cette ouverture, les règles ordinaires s'appliquent aussi à la pièce de départ : aucune protection permanente contre un danger qui y serait entré. Lire, consulter les menus et regarder restent gratuits ; ouvrir puis franchir la porte restent deux actions ordinaires, sans exemption nouvelle aux réactions du monde.
+- La description montre la porte et son état, sans nommer une destination encore inconnue ni promettre que toute la station est sûre. Aucun document du lore n'est ajouté par L0 (D-243).
+- Parcours à prouver en L2 : état initial sans danger immédiat (GP-04), consultations sans changement du monde, ouverture et sortie possibles ; le chemin sûr de la station complète reste à vérifier pour chaque composition et chaque place de créature.
+
+**Question :** « Au réveil, je recommande un petit vestibule sans danger ni objet, avec une porte fermée vers la suite, que vous ouvrez à la main quand vous êtes prêt. Cela vous convient-il ? »
+
+**Réponse du porteur :** « Oui, ce vestibule ».
+
+### 8.2 Créature autour de M-01 — Q-183, D-258
+
+**Choix retenu :** une seule place déclarée pour commencer, sur un palier de sortie après la galerie, derrière une porte fermée.
+
+- M-01 apporte trois pièces sur le chemin principal : pièce d'entrée avec l'eau, galerie en feu, palier de sortie. Le palier n'est pas une annexe et n'appartient pas au morceau voisin.
+- Ses deux portes intérieures sont fermées au départ. La place de la créature est le palier seulement : jamais la galerie, jamais la pièce avec l'eau, jamais le vestibule de départ. Le feu ne gagne pas le palier à travers une porte fermée.
+- Le passager peut ainsi prendre l'eau et éteindre le foyer depuis le seuil sans avoir d'abord à prendre l'eau sous les yeux de la créature. Ensuite, le premier contact et les moyens de la station s'appliquent normalement ; aucune immunité n'est ajoutée.
+- La place entre dans le même tirage que celles des autres morceaux (D-161, D-241), sans poids particulier. D'autres places demanderaient une proposition distincte, pas un élargissement implicite en L4.
+- Parcours à prouver en L4 : eau atteignable avant le feu ; foyer éteint sans dé ni blessure ; évacuation complète sans dé ni blessure avec la créature sur le palier. Si ce dernier point échoue, la composition est rejetée, pas déclarée sûre sur la seule extinction du foyer.
+
+**Question :** « Près de la galerie en feu, je recommande que la créature puisse attendre seulement sur un petit palier après les flammes, derrière une porte fermée, jamais près de l'eau. Cela vous convient-il ? »
+
+**Réponse du porteur :** « Oui, le palier après la galerie ».
+
+### 8.3 Deux branches toutes deux utiles — Q-184, D-259
+
+**Constat :** deux chemins qui rejoignent la même pièce offrent un choix d'itinéraire ; ils ne rendent pas les deux branches nécessaires. Les fiches actuelles ne déclarent pas deux apports indépendants qui obligent à visiter les deux branches avant chacun des deux finals. L'énergie d'AR-01 est le final M-03, pas une branche de chemin (D-172, D-254). Déplacer son bloc ou les outils de M-06 dans une branche contredirait D-244.
+
+**Choix retenu :** chaque branche donne accès à une commande qui déverrouille l'une de deux cloisons successives, sur l'accès commun au final. Ces deux nouveaux verrouillages et ces deux commandes fixes ont été explicitement soumis au porteur comme un ajout, accepté par Q-184 ; ils n'étaient pas contenus dans D-254.
+
+- Le couloir dessert deux morceaux de chemin. Au-delà de l'obstacle de chacun, une commande fixe est accessible par les chemins de ce morceau, pas depuis le couloir. La commande de la première branche déverrouille seulement la première cloison ; l'autre commande seulement la seconde.
+- Actionner une commande coûte une action discrète, sans dé ni consommable ; le déverrouillage reste acquis pour la partie. Une cloison verrouillée ne peut pas s'ouvrir à la main ni être contournée ; une fois déverrouillée, elle s'ouvre et se ferme comme une porte ordinaire, sans ouverture automatique.
+- Les deux cloisons sont apportées par l'entrée du morceau final et placées en série, sans annexe ni chemin qui les contourne. Les branches ne se rejoignent pas derrière elles ; le passager revient au couloir après chaque préparation. Ce schéma ne crée pas deux chemins interchangeables vers le final.
+- Le problème final reste ensuite à résoudre : ni énergie fournie par une branche ni baie déjà traitée. Tous les objets nécessaires restent dans leur morceau. Les commandes seront ajoutées aux fiches pour l'ordre libre seulement, pas aux versions en chaîne ni aux stations de test existantes.
+
+| Morceau de chemin | Ce que sa branche fournit (GP-01) |
+| --- | --- |
+| M-01 | Accès à sa commande après la galerie, en plus de la gestion normale du feu et de la créature |
+| M-02 | Accès à sa commande au débouché du conduit, après la caisse et la grille |
+| M-04 | Accès à sa commande au-delà de la zone de passage de l'observation |
+| M-05 | Accès à sa commande après le chemin normal ou le passage caché ; aucun itinéraire imposé |
+| M-07 | Accès à sa commande de l'autre côté des machines |
+| M-08 | Accès à sa commande sur l'autre bord de la passerelle |
+| M-09 | Accès à sa commande au-delà de la coursive sans gravité |
+| M-10 | Accès à sa commande après la chambre froide ; distincte du pupitre qui ferme la chambre |
+
+Une seule créature reste placée dans toute la station : un morceau de menace peut être plus facile si elle attend ailleurs. Les deux visites et les deux apports restent nécessaires, pas une méthode de résolution imposée ni une rencontre obligatoire dans chaque branche.
+
+**Preuves attendues en L5 :** pour chaque composition publiée, les deux ordres de préparation mènent à une évacuation sans dé ni blessure ; sans l'un ou l'autre des déverrouillages, aucune évacuation n'est possible, même avec des dés favorables. Les retours au couloir, les passages étroits, le port encombrant, les portes et la place unique de la créature font partie de ces preuves. Une paire permise en §4.1 n'est pas automatiquement utilisable en ordre libre. Aucun nouveau type de commande, effet ou état n'est implémenté par L0 ; le travail du moteur et du format reste en zone orange pour L5.
+
+**Question :** « Pour les deux détours à faire dans l'ordre que vous voulez, je recommande une commande au fond de chacun : il faut les deux pour déverrouiller deux cloisons avant le dernier problème. Acceptez-vous cet ajout ? »
+
+**Réponse du porteur :** « Oui, les deux commandes et cloisons ».
+
+### 8.4 NOUVELLE PARTIE dans la version publique — Q-185, D-260
+
+**Choix retenu :** à partir de L2, comme dans la version de test, NOUVELLE PARTIE tire une station parmi les compositions vérifiées disponibles ; REJOUER CETTE STATION garde le même départ avec de nouveaux dés. Les aventures de référence restent accessibles par un lien.
+
+Le tirage suit D-253 : pile ou face entre les finals quand les deux sont disponibles, puis pur hasard parmi les compositions de ce final ; une station déjà jouée peut revenir. L2 ne livrant d'abord que M-03, elle ne peut tirer M-06 : seul le final disponible est alors utilisé, sans prétendre mesurer un équilibre à deux finals. Cette exception transitoire est acceptée par D-260 ; le pile ou face s'applique dès L3, lorsque les deux finals sont disponibles et vérifiés. Aucun effet rétroactif sur une partie en cours ni sur le bouton REPRENDRE.
+
+**Question :** « Dans la version publique aussi, je recommande que NOUVELLE PARTIE tire une station, parmi celles déjà vérifiées, et que REJOUER garde la même. Au premier lot, seule l'énergie sera disponible, puis la baie s'ajoutera. Cela vous convient-il ? »
+
+**Réponse du porteur :** « Oui, avec ce démarrage progressif ».

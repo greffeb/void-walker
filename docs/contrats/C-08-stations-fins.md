@@ -1,7 +1,7 @@
 # C-08 — Stations assemblées et fins de partie
 
 > **Statut :** CONTRAT ACCEPTÉ v1.0 — D-102 ; assemble D-013, D-017/D-018, D-050, D-054, D-058, D-083 à D-088 ; GP-01 à GP-05 acceptés par D-101.
-> **Date :** 2026-10-10.
+> **Mise à jour :** 2026-10-14 — cadrage L0, D-257 à D-260 ; conception acceptée, assemblage toujours à implémenter.
 > **Implémentation, vérifieur et tests :** fin par évacuation (§4, conditions de D-054, défaite prioritaire) proposée par #103 pour AR-01 ; abandon et son écran de fin proposés par #96 (D-200, côté appli) ; « plus aucune sortie », écrans de fin de défaite et d'évacuation, assemblage et vérifieur absents.
 
 ## 1. But
@@ -15,20 +15,26 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 - **GP-01 — Contenu d'un morceau :** des pièces, liaisons, objets et effets décrits avec C-02 ; ce qu'il demande pour être franchi ; ce qu'il fournit (accès, objet, alimentation) ; ses points d'attache vers les autres morceaux.
 - **GP-02 — Composition d'une station :** une pièce de départ, des morceaux d'obstacle, un embarquement avec capsule, apporté par le morceau final (D-249), une seule créature placée (D-029).
 - **GP-03 — Premiers morceaux :** découpés dans AR-01 et AR-02. Le vide cohabite avec le feu et l'huile selon MX-02/MX-03 (D-174), et avec les quatre nouveaux morceaux sans règle de plus (D-246) ; il ne rencontre jamais le bloc, M-03 et M-06 étant tous deux des morceaux finals (D-172).
-- **GP-04 — Départ sans danger immédiat :** la pièce de départ laisse lire et explorer avant tout contact (AR-01 §5).
+- **GP-04 — Départ sans danger immédiat :** la pièce de départ laisse lire et explorer avant tout contact (AR-01 §5). Pour les stations assemblées, c'est un vestibule sans danger, sans créature ni objet, avec une porte ordinaire fermée vers la suite, à ouvrir à la main (D-257). En ordre libre, elle donne sur le couloir des deux branches. La sécurité vaut avant la première ouverture, pas comme une immunité permanente ; les actions gardent leur coût ordinaire. Fiche : [13 §8.1](../13-morceaux-lancement.md#81-pièce-de-départ--q-182-d-257).
 
 **Volume du lancement :** dix morceaux, six tirés d'AR-01/AR-02 et quatre nouveaux (D-157/D-158) ; deux ou trois obstacles par station (D-119) ; une seule espèce de créature (D-120).
 
 **Règles d'assemblage :**
 
 - un seul problème final par station, juste avant de partir ; les autres obstacles sont sur le chemin (D-159) ;
-- obstacles en chaîne ou à préparer dans l'ordre libre, selon les morceaux (D-160) ; l'ordre libre peut prendre cette forme : deux obstacles qui partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le final (D-254) ;
+- obstacles en chaîne ou à préparer dans l'ordre libre, selon les morceaux (D-160) ; en ordre libre, deux obstacles partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le final (D-254, D-259) ;
 - la créature part d'un endroit prévu par un morceau, tiré au hasard, jamais dans la pièce de départ (D-161) ;
 - le problème final se tire d'abord à pile ou face, puis la station au pur hasard parmi celles qui ont ce final ; une station déjà jouée peut revenir (D-162, D-253) ;
 - au départ, les portes entre deux morceaux sont fermées (D-252) ;
 - deux morceaux qui jouent sur la même chose ne se mélangent que si leur mélange a reçu ses règles ; sinon l'assemblage le refuse (D-167). Les autres se mélangent sans règle de plus (D-248).
 
 Les dix morceaux, leurs deux familles (final, chemin) et leurs fiches sont décrits dans la [conception des morceaux](../13-morceaux-lancement.md), acceptée par D-172 à D-175 ; leurs règles sont dans C-02 §5, C-03 §5.5 et C-04 §3.2.
+
+**Compatibilité exhaustive :** [13 §4.1](../13-morceaux-lancement.md#41-table-exhaustive-des-paires-l0-150) énumère les 45 paires, chacune avec sa règle ; seule M-03/M-06 est interdite, les deux morceaux étant finals. Une paire permise ne dispense ni du respect des attaches ni du chemin sûr. Toute paire absente ou refusée est écartée par l'assembleur avant le plan ; le défaut de règle pour un futur mélange n'est pas une permission.
+
+**Place de M-01 (D-258) :** la créature peut attendre seulement sur son palier de sortie, jamais dans la galerie en feu ni dans la pièce d'entrée avec l'eau. Les trois pièces appartiennent à M-01 et leurs deux portes intérieures sont fermées au départ ; le palier n'est pas une annexe. Le parcours complet avec cette place reste à prouver en L4 ([13 §8.2](../13-morceaux-lancement.md#82-créature-autour-de-m-01--q-183-d-258)).
+
+**Apports de l'ordre libre (D-259, à implémenter en L5) :** chaque branche donne accès à sa commande fixe, au-delà de son obstacle. Les deux commandes déverrouillent chacune une cloison différente ; les deux cloisons sont successives sur l'entrée du final, sans passage qui les contourne. Actionner une commande coûte une action discrète, sans dé ni consommable ; le déverrouillage est acquis pour la partie. Une cloison verrouillée ne s'ouvre pas à la main ; déverrouillée, elle s'ouvre et se ferme normalement, sans ouverture automatique. Chaque branche ramène au couloir commun, pas derrière les cloisons. Les objets restent dans leur morceau ; le final garde son propre problème à résoudre. Les deux ordres doivent permettre une évacuation sans dé ni blessure ; sans l'un ou l'autre des déverrouillages, aucune évacuation ne doit être possible, même avec des dés favorables. Les versions en chaîne et les stations de test existantes ne reçoivent pas ces commandes. Détail des apports des huit morceaux : [13 §8.3](../13-morceaux-lancement.md#83-deux-branches-toutes-deux-utiles--q-184-d-259).
 
 ## 3. Vérification avant de jouer
 
@@ -54,6 +60,8 @@ Neutraliser la créature n'est jamais une fin (D-018). Une défaite acquise dans
 
 Après une fin, une nouvelle partie peut reprendre la même station, même état de départ, avec de nouveaux tirages (D-087/D-088). La partie terminée reste terminée (D-013).
 
+À partir de L2, NOUVELLE PARTIE tire une station parmi les compositions vérifiées disponibles, dans la version publique comme dans celle de test (D-260). REJOUER CETTE STATION garde le même départ avec de nouveaux dés ; les aventures de référence restent accessibles par lien. En L2, seul M-03 est disponible : le tirage reste parmi ses compositions vérifiées. Dès que M-03 et M-06 sont disponibles et vérifiés, à partir de L3, pile ou face entre les deux finals puis pur hasard parmi les compositions du final retenu (D-253, exception transitoire D-260). REPRENDRE et les parties en cours restent inchangés. L0 ne modifie aucun de ces boutons dans le jeu.
+
 ## 6. Exemples à prouver
 
 | ID | Cas | Attendu |
@@ -64,6 +72,8 @@ Après une fin, une nouvelle partie peut reprendre la même station, même état
 | G-04 | Sortie restante cachée et non découverte | Aucun signal, aucune indication de la sortie |
 | G-05 | Rejouer la même station | Même départ, tirages différents |
 | G-06 | Créature neutralisée sans départ | Aucune fin déclenchée |
+| G-07 | Station en ordre libre préparée dans chacun des deux ordres | Évacuation sans dé ni blessure dans les deux cas (D-259) |
+| G-08 | Station en ordre libre sans l'un ou l'autre des déverrouillages | Aucune évacuation possible, même avec des dés favorables (D-259) |
 
 ## 7. Réserves
 
