@@ -40,6 +40,46 @@ describe('générateur à graine (AP-02)', () => {
     expect(() => ouvrirDes(generateurDepuisGraine(1)).des.lancer(0)).toThrow(RangeError);
   });
 
+  it.each([1, 2, 3, 4, 5, 6])('journalise la face imposée %i sans changer l’avancement du générateur', (face) => {
+    const depart = generateurDepuisGraine(7);
+    const ordinaire = ouvrirDes(depart);
+    ordinaire.des.lancer(6);
+    const imposee = ouvrirDes(depart, { lancer: () => face });
+    expect(imposee.des.lancer(6)).toBe(face);
+    expect(imposee.tirages).toEqual([face]);
+    expect(imposee.etatFinal()).toEqual(ordinaire.etatFinal());
+  });
+
+  it.each([0, 7, 1.5, Number.NaN])('refuse une face imposée invalide (%s) sans consommer le générateur', (face) => {
+    const depart = generateurDepuisGraine(7);
+    const imposee = ouvrirDes(depart, { lancer: () => face });
+    expect(() => imposee.des.lancer(6)).toThrow(RangeError);
+    expect(imposee.tirages).toEqual([]);
+    expect(imposee.etatFinal()).toEqual(depart);
+  });
+
+  it.each([1, 2, 3, 4, 5, 6])('jouer applique la vraie interception avec la face imposée %i', (face) => {
+    const monde: DefMonde = {
+      id: 'des-imposes',
+      depart: 'a',
+      pieces: [{ id: 'a', nom: 'a' }, { id: 'b', nom: 'b' }],
+      liaisons: [{ id: 'ab', nom: 'porte', entre: ['a', 'b'], ouverte: false }],
+      objets: [],
+      creature: { piece: 'b' },
+    };
+    const initiale = nouvellePartie(monde, { version: 'test', graine: 7 });
+    if (initiale.etat.creature === null) throw new Error('Créature absente du test.');
+    const partie = { ...initiale, etat: { ...initiale.etat, creature: { ...initiale.etat.creature, piece: 'a', contact: true, repit: false } } };
+    const option = observer(monde, partie.etat).menu.find((candidate) => candidate.action === 'ouvrir');
+    const resultat = jouer(monde, partie, option?.commande, { lancer: () => face });
+    expect(resultat.type).toBe('engagee');
+    if (resultat.type !== 'engagee') throw new Error('Action non engagée.');
+    expect(resultat.tirages).toEqual([face]);
+    expect(resultat.partie.enregistrement.actions.at(-1)?.tirages).toEqual([face]);
+    expect(resultat.partie.etat.sante).toBe(face <= 3 ? 'blesse' : 'indemne');
+    expect(initiale.etat.sante).toBe('indemne');
+  });
+
   it('aucun tirage pour un refus ou une consultation', () => {
     const monde: DefMonde = {
       id: 'des',

@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-14 (cadrage L0 de #106, #150 : table des 45 paires, choix D-257 à D-260).
+> **Mise à jour :** 2026-10-14 (L1 de #106, #151 : vérifieur et mesures proposés ; fusion soumise à l'accord du porteur).
 
 ## Mission de ce dossier
 
@@ -157,7 +157,9 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 
 **L0, cadrage de #106 (#150) :** la [table des 45 paires](13-morceaux-lancement.md#41-table-exhaustive-des-paires-l0-150) est écrite, 44 permises et seule M-03/M-06 interdite. Après relecture indépendante des propositions, le porteur a retenu explicitement les quatre recommandations ([13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-accepté-par-le-porteur), Q-182 à Q-185, D-257 à D-260) : vestibule, palier de sortie de M-01, deux commandes de déverrouillage en ordre libre, tirage public progressif. Les fiches et C-08 sont mis à jour ; aucun code ne change et aucune partie sur téléphone n'est revendiquée. À implémenter et prouver : départ et tirage public en L2, M-01 en L4, commandes et nécessité des deux branches en L5.
 
-**Prochaine tâche recommandée :** [#151](https://github.com/greffeb/void-walker/issues/151), L1, le vérifieur seul ; L2 attend la livraison documentaire L0 et le vérifieur L1. La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260. Deux issues qui touchent le moteur ne se mènent pas en même temps.
+**L1, vérifieur de #106 (#151), proposé :** `npm run check:stations`, intégré à `verify`, prouve les six stations de référence et rejoue chaque témoin sans dé, indemne, export compris. Les deux copies cassées sont rejetées ; AR-01 sans eau seule reste faisable. Le mode `--mesurer` énumère toutes les faces ; résultats, plafonds et méthode retenue pour L6 sont dans [13 §7.3](13-morceaux-lancement.md#73-risques-et-écarts-relevés). Le porteur a autorisé le petit accès aux dés dans le moteur et demandé d'attendre son accord avant fusion. Aucun changement de règle, d'interface, de scénario ni de sauvegarde ; aucune validation sur téléphone revendiquée.
+
+**Prochaine tâche recommandée après fusion de L1 :** [#152](https://github.com/greffeb/void-walker/issues/152), première station assemblée et tirée ; L2 attend la livraison documentaire L0 et le vérifieur L1. La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260. Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-181 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 

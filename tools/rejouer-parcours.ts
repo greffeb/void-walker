@@ -45,7 +45,9 @@ export function trouverOption(observation: Observation, etape: EtapeParcours): O
     (option) =>
       option.action === etape.action &&
       option.cible.nom === etape.cible &&
+      (etape.cibleId === undefined || option.cible.id === etape.cibleId) &&
       (etape.vers === undefined || (option.cible.sorte === 'passage' && option.cible.vers?.nom === etape.vers)) &&
+      (etape.parametreId === undefined || option.parametre?.id === etape.parametreId) &&
       (etape.parametre === undefined || nomParametre(option.parametre) === etape.parametre),
   );
 }

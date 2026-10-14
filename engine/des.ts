@@ -44,15 +44,16 @@ export interface SessionDes {
   etatFinal(): EtatGenerateur;
 }
 
-export function ouvrirDes(depart: EtatGenerateur): SessionDes {
+export function ouvrirDes(depart: EtatGenerateur, source?: Des): SessionDes {
   let courant = depart;
   const tirages: number[] = [];
   const des: Des = {
     lancer(faces: number): number {
       if (!Number.isInteger(faces) || faces < 1) throw new RangeError(`Nombre de faces invalide : ${faces}.`);
       const tirage = suivant(courant);
+      const resultat = source === undefined ? Math.floor((tirage.valeur / 4294967296) * faces) + 1 : source.lancer(faces);
+      if (!Number.isInteger(resultat) || resultat < 1 || resultat > faces) throw new RangeError(`Résultat de dé invalide : ${resultat} pour ${faces} faces.`);
       courant = tirage.etat;
-      const resultat = Math.floor((tirage.valeur / 4294967296) * faces) + 1;
       tirages.push(resultat);
       return resultat;
     },

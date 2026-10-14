@@ -5,10 +5,12 @@ import type { TextesMonde } from './textes/types';
 export interface EtapeParcours {
   readonly action: IdAction;
   readonly cible: string;
+  readonly cibleId?: string;
   /** Destination du passage visé ; à omettre tant qu'elle est inconnue (le passage se vise alors par son seul nom). */
   readonly vers?: string;
   /** Paramètre comme le menu l'affiche : nom de la position, de la destination du passage, ou de la pièce visée. */
   readonly parametre?: string;
+  readonly parametreId?: string;
 }
 
 export interface Parcours {
