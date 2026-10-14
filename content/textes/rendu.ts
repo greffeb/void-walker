@@ -9,6 +9,7 @@ import type {
   OptionMenu,
   Partie,
   RaisonRefus,
+  RefPassage,
   RefPiece,
   Resultat,
   Savoir,
@@ -133,6 +134,23 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
     const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return [remplir(variante, valeursEvenement(textes, evenement))];
   });
+}
+
+/** Nature du danger dont la phrase d'un événement annonce l'arrivée à la vue : feu ou vide (D-233). */
+export type NatureDanger = 'feu' | 'vide';
+
+const DANGERS: Partial<Record<Evenement['type'], NatureDanger>> = { feu_derriere: 'feu', feu_gagne: 'feu', air_perdu: 'vide' };
+
+/** Pour chaque phrase du récit de `rendreEvenements`, le danger qu'elle annonce, ou `null` (D-233). */
+export function dangersDuRecit(evenements: readonly Evenement[]): (NatureDanger | null)[] {
+  return evenements.filter((evenement) => evenement.type !== 'assistance').map((evenement) => DANGERS[evenement.type] ?? null);
+}
+
+/** Phrase d'observation d'un danger en vue : dans la pièce du passager, ou derrière un passage (mêmes textes que « Regarder »). */
+export function rendreDangerVu(textes: TextesMonde, nature: NatureDanger, passage: RefPassage | null): string {
+  const modele = textes.observation;
+  if (passage === null) return remplir(nature === 'feu' ? modele.feu : modele.sansAir, {});
+  return remplir(nature === 'feu' ? modele.passageEnFeu : modele.passageVide, { passage: nomDe(textes, passage) });
 }
 
 /** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07). */

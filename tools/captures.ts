@@ -1131,6 +1131,59 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   await etroit.close();
 }
 
+/** Danger signalé dans le récit avec son alarme (#138, D-233) : jusqu'à l'étape qui le montre, puis le vérifier et le capturer. */
+interface DangerACapturer {
+  readonly adresse: string;
+  readonly entree: EntreeMonde;
+  readonly parcours: string;
+  readonly etape: (etape: EtapeParcours) => boolean;
+  /** Titre des captures : « AR-01 — Feu découvert », suivi du mode d'animation. */
+  readonly nom: string;
+  readonly texte: RegExp;
+}
+
+/** La ligne du danger, seule, en rouge derrière un triangle qui clignote ; fixe quand le téléphone demande moins d'animations. */
+async function dangerSignale(navigateur: Browser, danger: DangerACapturer, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const etapes = danger.entree.parcours.find((parcours) => parcours.nom.startsWith(danger.parcours))?.etapes;
+  const rang = etapes?.findIndex(danger.etape) ?? -1;
+  if (etapes === undefined || rang === -1) {
+    erreurs.push(`${danger.nom} : parcours ${danger.parcours} ou étape absents.`);
+    return;
+  }
+  const gestes = gestesDuParcours(danger.entree, etapes).slice(0, rang + 1);
+  for (const reduit of [false, true]) {
+    const ou = reduit ? `${danger.nom}, mouvement réduit` : danger.nom;
+    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR', reducedMotion: reduit ? 'reduce' : 'no-preference' });
+    const page = await contexte.newPage();
+    await page.goto(danger.adresse);
+    await nouvelleDepuisAccueil(page);
+    await rejouer(page, gestes);
+    const alertes = page.getByTestId('alerte');
+    if ((await alertes.count()) !== 1) {
+      erreurs.push(`${ou} : ${await alertes.count()} ligne(s) d’alerte au lieu d’une.`);
+      await contexte.close();
+      continue;
+    }
+    const style = await alertes.evaluate((ligne) => {
+      const icone = ligne.querySelector('.icone-alerte');
+      const vue = icone === null ? null : getComputedStyle(icone);
+      return {
+        texte: ligne.textContent ?? '',
+        couleur: getComputedStyle(ligne).color,
+        icone: vue === null ? null : { couleur: vue.color, animation: vue.animationName, duree: vue.animationDuration },
+      };
+    });
+    if (!danger.texte.test(style.texte)) erreurs.push(`${ou} : la ligne d’alerte ne décrit pas le danger (« ${style.texte} »).`);
+    if (style.couleur !== 'rgb(255, 90, 74)' || style.icone?.couleur !== 'rgb(255, 90, 74)') erreurs.push(`${ou} : couleurs ${JSON.stringify(style)}.`);
+    const attendue = reduit ? 'none' : 'alerte';
+    if (style.icone?.animation !== attendue) erreurs.push(`${ou} : animation du triangle « ${style.icone?.animation ?? 'absent'} » au lieu de « ${attendue} ».`);
+    if (!reduit && style.icone?.duree !== '0.5s') erreurs.push(`${ou} : cycle du triangle ${style.icone?.duree ?? '?'} au lieu de 0.5s.`);
+    await capturer(page, reduit ? `${danger.nom}, mouvement réduit : triangle fixe` : `${danger.nom} : ligne en rouge, triangle clignotant`);
+    await verifierEcran(page, ou, erreurs);
+    await contexte.close();
+  }
+}
+
 /**
  * AR-02 par `?monde=ar-02` : P-V1 joué geste par geste, dans un contexte neuf ; captures du départ, de la combinaison enfilée,
  * de l'aperçu de « percer », de la brèche, de l'arrivée devant le corps inerte et de la fin.
@@ -1932,6 +1985,19 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await parcoursAr01(navigateur, racine, ar01, capturerPage, erreursAr01);
     } catch (erreur) {
       erreursAr01.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // Dangers signalés dans le récit avec leur alarme (#138, D-233) : feu d'AR-01, vide d'AR-02, avec et sans animations.
+    const dangers: readonly DangerACapturer[] = [
+      { adresse: racine, entree: ar01, parcours: 'P-B', etape: (etape) => etape.action === 'ouvrir' && etape.vers === 'galerie', nom: 'AR-01 — Feu découvert', texte: /flammes|brûle/ },
+      { adresse: `${racine}?monde=ar-02`, entree: ar02, parcours: 'P-V1', etape: (etape) => etape.action === 'percer', nom: 'AR-02 — Vide : baie percée', texte: /plus d’air/i },
+      { adresse: `${racine}?monde=ar-02`, entree: ar02, parcours: 'P-V1', etape: (etape) => etape.action === 'aller' && etape.vers === 'cabine', nom: 'AR-02 — Vide : entrée sans air', texte: /plus d’air ici/ },
+    ];
+    for (const danger of dangers) {
+      try {
+        await dangerSignale(navigateur, danger, capturerPage, danger.entree === ar01 ? erreursAr01 : erreursAr02);
+      } catch (erreur) {
+        (danger.entree === ar01 ? erreursAr01 : erreursAr02).push(erreur instanceof Error ? erreur.message : String(erreur));
+      }
     }
 
     // AR-02 par `?monde=ar-02` : parcours P-V1, dans un contexte neuf.

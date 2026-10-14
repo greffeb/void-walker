@@ -52,6 +52,8 @@
   --vert-signal: #ddffb8;
   --vert-bordure: #3e7046;
   --vert-separateur: #1f3a24;
+  /* Danger apparu dans le récit (D-233) : seule exception rouge de l'écran de jeu ; 6,4:1 sur `fond`. */
+  --alerte: #ff5a4a;
   --voile-bulle: rgba(10, 9, 7, 0.35);
   --voile-modale: rgba(10, 9, 7, 0.55);
   font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
@@ -419,6 +421,33 @@ button:disabled {
 @keyframes clignote {
   50% {
     opacity: 0;
+  }
+}
+
+/* Danger apparu (D-233) : la phrase en rouge, précédée d'un triangle qui clignote vite, deux fois par seconde (sous le seuil de
+   trois éclats par seconde, WCAG 2.3.1) ; fixe en mouvement réduit. Le triangle est là dès le départ : rien ne se décale. */
+.recit .alerte {
+  color: var(--alerte);
+}
+
+.icone-alerte {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.4em;
+  vertical-align: -0.12em;
+  animation: alerte 0.5s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icone-alerte {
+    animation: none;
+  }
+}
+
+@keyframes alerte {
+  50% {
+    opacity: 0.15;
   }
 }
 

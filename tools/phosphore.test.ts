@@ -64,6 +64,7 @@ describe('direction « Phosphore » (12 §2)', () => {
     ['blanc-secondaire', 'blanc-surface', 4.5],
     ['blanc-surface', 'blanc', 4.5],
     ['blanc', 'fond', 3],
+    ['alerte', 'fond', 4.5],
   ])('contraste de %s sur %s : au moins %s:1 (12 §7)', (avant, arriere, seuil) => {
     expect(contraste(jeton(avant), jeton(arriere))).toBeGreaterThanOrEqual(seuil);
   });
@@ -73,7 +74,7 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(mesures).toEqual(['12.2', '11.1', '6.1', '13.9', '3.3']);
   });
 
-  it('couleurs : ambre partout, cyan pour l’inventaire (D-176), blanc froid pour IA Station (D-192), vert pour la carte (D-211) ; jamais de rouge', () => {
+  it('couleurs : ambre partout, cyan pour l’inventaire (D-176), blanc froid pour IA Station (D-192), vert pour la carte (D-211) ; rouge seulement pour un danger apparu (D-233)', () => {
     const couleurs = [...css.matchAll(/#[0-9a-f]{6}\b|rgba?\([^)]*\)/gi)].map((trouve) => trouve[0]);
     expect(couleurs.length).toBeGreaterThan(10);
     /** Jeton qui déclare la couleur : une couleur hors de l'ambre n'existe que dans son jeton. */
@@ -88,7 +89,9 @@ describe('direction « Phosphore » (12 §2)', () => {
       const blanc = angle >= 180 && angle <= 210 && (Math.max(r, g, b) - Math.min(r, g, b)) / 255 <= 0.1 && jetonDe(couleur).startsWith('blanc');
       // Vert phosphore de la carte : seulement dans ses jetons (14 §2.2).
       const vert = angle >= 85 && angle <= 140 && jetonDe(couleur).startsWith('vert');
-      expect(ambre || cyan || blanc || vert, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
+      // Rouge du danger apparu dans le récit : seulement dans son jeton (D-233).
+      const rouge = (angle <= 10 || angle >= 350) && jetonDe(couleur) === 'alerte';
+      expect(ambre || cyan || blanc || vert || rouge, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('cyan'))).toBe(true);
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('blanc'))).toBe(true);
@@ -140,6 +143,14 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(reduit).toMatch(/\.recit\.ecrire \.car,\s*\.recit \.curseur,\s*\.recit\.ecrire \.curseur\s*\{\s*animation:\s*none;/);
     // Le caractère à venir est caché mais garde sa place : la mise en page ne bouge pas.
     expect(/@keyframes apparait\s*\{\s*from\s*\{\s*visibility:\s*hidden;/.test(css)).toBe(true);
+  });
+
+  it('danger apparu (D-233) : triangle qui clignote sous trois éclats par seconde, fixe en mouvement réduit', () => {
+    const cycle = /\.icone-alerte\s*\{[^}]*animation:\s*alerte\s+([\d.]+)s/.exec(css)?.[1];
+    // Un éclat par cycle : au plus trois par seconde (WCAG 2.3.1).
+    expect(1 / Number(cycle)).toBeLessThanOrEqual(3);
+    expect(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.icone-alerte\s*\{\s*animation:\s*none;/.test(css)).toBe(true);
+    expect(/\.recit \.alerte\s*\{\s*color:\s*var\(--alerte\);/.test(css)).toBe(true);
   });
 
   it('document en français', () => {

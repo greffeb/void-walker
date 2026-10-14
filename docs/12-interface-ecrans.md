@@ -50,7 +50,7 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
 - **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale.
 - **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
-- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)).
+- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)). Exception (D-233) : la phrase d'un danger apparu s'écrit en rouge `alerte` `#FF5A4A` (6,5:1 sur `fond`), précédée d'un triangle d'attention (§3.3).
 
 | Jeton | Valeur | Usage | Contraste sur `cyan-surface` |
 | --- | --- | --- | --- |
@@ -146,7 +146,7 @@ De haut en bas, en colonne : en-tête de pièce (environ 56 px), zone de récit 
 Dans cet ordre :
 
 1. **Rappel de la dernière action**, en `texte-secondaire` : objet · action · paramètre, par exemple « > Caisse · Déplacer · sous la grille haute ». [Validé] Pour un déplacement : « > ALLER VERS · ATELIER DE SERVICE ». Pour l'arrivée dans le jeu : « > REGARDER AUTOUR DE VOUS ».
-2. **Récit** : deux à quatre phrases (C-07).
+2. **Récit** : deux à quatre phrases (C-07). Quand l'alarme du feu ou du vide sonne, la ligne qui décrit ce danger s'écrit en rouge `alerte`, précédée d'un petit triangle d'attention qui clignote deux fois par seconde, fixe en mouvement réduit ; le texte ne clignote pas. Si aucune phrase du récit ne décrit le danger (entrée dans une pièce sans air, voyant rouge apparu), la ligne de « Regarder autour de vous » qui le décrit est ajoutée. Le lecteur d'écran lit « Attention » avant la ligne. [Validé D-233]
 3. **Ligne de bruit** : icône oreille, puis une phrase en italique `signal`, par exemple « Quelque chose bouge derrière la porte du Salon de transit. » [Validé] Le texte nomme le passage, jamais une position (OP-01). Sans bruit : même ligne en `texte-secondaire`, « Vous n'entendez rien de particulier. » [Proposé]
 4. **Lien IA Station**, seulement quand un message vient d'arriver : cadre pointillé, « [ IA STATION ] parle dans l'écouteur › ». Ouvre la modale (§3.9). [Validé] Le message lui-même ne s'écrit pas dans le récit : il se lit dans la modale ; seul celui du réveil est cité en entier (§4.2). [Validé D-192]
 5. **Encadré « Ce qui change »** après une action dont l'effet est notable (§3.10).
