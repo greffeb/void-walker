@@ -413,7 +413,7 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
 2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
-Q-01 à Q-187 sont répondus ; le prochain numéro d'entretien est Q-188. Les questions posées sur le découpage de #106 sont gardées dans [13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur), celles du cadrage L0 (Q-182 à Q-185) dans [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-accepté-par-le-porteur) et celles de L2 (Q-186, Q-187) dans [13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-192 sont répondus ; le prochain numéro d'entretien est Q-193. Les questions posées sur le découpage de #106 sont gardées dans [13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur), celles du cadrage L0 (Q-182 à Q-185) dans [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-accepté-par-le-porteur), celles de L2 (Q-186, Q-187) dans [13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152) et celles de L3 (Q-188 à Q-192) dans [13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 
