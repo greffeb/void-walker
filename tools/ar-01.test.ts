@@ -11,7 +11,7 @@ import {
   type Partie,
 } from '../engine';
 import { libelleOption, MONDES, raconter, rendreApercu, rendreEvenements, rendreObservation, type EntreeMonde, type EtapeParcours } from '../content';
-import { trouverOption } from './rejouer-parcours';
+import { executerParcours, trouverOption } from './rejouer-parcours';
 
 // Cas négatifs d'AR-01 (docs/08-aventure-reference.md §10) et contrats C-02, C-06, C-09, joués par le menu public depuis une
 // nouvelle partie. Ces tests sont ici et non dans content/ : content n'importe que les types du moteur.
@@ -351,5 +351,27 @@ describe('AR-01 : reprise et fin (C-09, AR-01 §11.2)', () => {
     const gestes = [...P_B.slice(0, 10), { action: 'activer', cible: 'console' } as const, ...P_B.slice(10)];
     const fin = suite(depart(), gestes).at(-1);
     expect(fin?.evenements[0]).toEqual({ type: 'evacuation', sources: ['circuit', 'bloc'] });
+  });
+});
+describe('AR-01 : sortie de l’observation fermée, comme dans M-04 (spec L4 §3.3)', () => {
+  const SORTIE = 'l-observation-embarquement';
+  const fermee: EntreeMonde = {
+    ...ENTREE,
+    monde: { ...MONDE, liaisons: MONDE.liaisons.map((liaison) => (liaison.id === SORTIE ? { ...liaison, ouverte: false } : liaison)) },
+  };
+
+  it.each([
+    ['P-B', 20],
+    ['P-C', 17],
+  ] as const)('%s, la cloison ouverte juste avant de sortir de l’observation, finit sans dé ni blessure en %i actions', (prefixe, actions) => {
+    const parcours = ENTREE.parcours.find((candidat) => candidat.nom.startsWith(prefixe));
+    if (parcours === undefined) throw new Error(`Parcours ${prefixe} absent.`);
+    const sortie = parcours.etapes.findIndex((etape) => etape.action === 'aller' && etape.vers === 'embarquement' && etape.cible === 'cloison');
+    expect(sortie).toBeGreaterThan(0);
+    const etapes: EtapeParcours[] = [...parcours.etapes];
+    etapes.splice(sortie, 0, { action: 'ouvrir', cible: 'cloison', vers: 'embarquement' });
+    const rapport = executerParcours(fermee, { ...parcours, etapes, attendu: { ...parcours.attendu, actions } }, VERSION);
+    expect(rapport.erreurs).toEqual([]);
+    expect(MONDE.liaisons.find((liaison) => liaison.id === SORTIE)?.ouverte).toBe(true);
   });
 });

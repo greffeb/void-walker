@@ -13,7 +13,8 @@ import {
 } from '../engine';
 import { piecesSansAir } from '../engine/etat';
 import { CATALOGUE } from './catalogue';
-import { chercherEtat, stationDeReference } from './verifier-station';
+import { trouverOption } from './rejouer-parcours';
+import { chercherEtat, stationDeReference, verifierStation } from './verifier-station';
 
 // Mélanges joués en station assemblée (spec L3 §5) : une station du catalogue, à sa graine de référence, jouée par le moteur.
 // Les noms ne servent qu'à retrouver les options du menu : ce sont les clés de la station.
@@ -176,5 +177,172 @@ describe('le vide gagne les nouveaux morceaux (D-246)', () => {
       (_, courant) => courant.breches.length > 0 && courant.creature?.neutralisee === 'inerte' && courant.creature.piece !== 'm-06/p-panoramique',
     );
     expect(etat.creature?.piece?.startsWith('m-06/')).toBe(false);
+  }, 60000);
+});
+
+describe('parcours des chemins d’AR-01 (spec L4 §9)', () => {
+  const depart = (monde: DefMonde): Partie => nouvellePartie(monde, { version: 'melanges-test', graine: 7 });
+  const fin = (pas: readonly Pas[]): Partie => {
+    const derniere = pas.at(-1)?.partie;
+    if (derniere === undefined) throw new Error('Aucun pas.');
+    return derniere;
+  };
+  const sansRisque = (pas: readonly Pas[]): void => {
+    expect(pas.flatMap((un) => un.tirages)).toEqual([]);
+    expect(pas.every((un) => un.partie.etat.sante === 'indemne')).toBe(true);
+  };
+  const prouvee = (composition: string) => {
+    const reference = stationDeReference(CATALOGUE, composition);
+    if ('refus' in reference) throw new Error(reference.refus);
+    const rapport = verifierStation(reference.entree);
+    expect(rapport.verdict, rapport.diagnostic).toBe('prouvee');
+    if (rapport.parcours === null) throw new Error(`${composition} : pas de témoin.`);
+    return rapport.parcours;
+  };
+
+  it('M-01 sûr, m01-m03-reserve : galerie arrosée depuis le seuil, traversée jusqu’au palier sans blessure', () => {
+    const monde = stationDe('m01-m03-reserve');
+    const avant = suite(monde, depart(monde), [
+      ['ouvrir', 'poste_incendie'],
+      ['aller', 'poste_incendie'],
+      ['prendre', 'bidon'],
+      ['ouvrir', 'galerie'],
+      ['arroser', 'bidon', 'galerie'],
+    ]);
+    expect(fin(avant).etat.feu).not.toContain('m-01/p-galerie');
+    const apres = suite(monde, fin(avant), [
+      ['aller', 'galerie'],
+      ['ouvrir', 'palier'],
+      ['aller', 'palier'],
+    ]);
+    sansRisque([...avant, ...apres]);
+    expect(fin(apres).etat).toMatchObject({ piece: 'm-01/p-palier', feu: [] });
+  });
+
+  it('M-01 risqué, m01-m03-reserve : cloison de la galerie laissée ouverte, le feu gagne le poste incendie (D-188)', () => {
+    const monde = stationDe('m01-m03-reserve');
+    const poste = suite(monde, depart(monde), [
+      ['ouvrir', 'poste_incendie'],
+      ['aller', 'poste_incendie'],
+      ['ouvrir', 'galerie'],
+    ]);
+    expect(fin(poste).etat.feu).toEqual(['m-01/p-galerie']);
+    const pas = attendre(monde, fin(poste), 'vestibule', 2);
+    expect(fin(pas).etat.feu).toContain('m-01/p-poste');
+  });
+
+  it('M-02 sûr, m02-m03-reserve : caisse sous la grille, grille ouverte, salle des pompes atteinte', () => {
+    const monde = stationDe('m02-m03-reserve');
+    const pas = suite(monde, depart(monde), [
+      ['ouvrir', 'atelier'],
+      ['aller', 'atelier'],
+      ['deplacer', 'caisse', 'sous_grille'],
+      ['ouvrir', 'grille'],
+      ['aller', 'grille'],
+    ]);
+    sansRisque(pas);
+    expect(fin(pas).etat.piece).toBe('m-02/p-pompes');
+  });
+
+  it('M-02, créature dans l’atelier, m10-m02-m03-atelier : prouvée, le témoin l’attire hors de l’atelier et passe par la chambre froide', () => {
+    const reference = stationDeReference(CATALOGUE, 'm10-m02-m03-atelier');
+    if ('refus' in reference) throw new Error(reference.refus);
+    const { monde } = reference.entree;
+    const { etapes } = prouvee('m10-m02-m03-atelier');
+    const chambre = etapes.findIndex((etape) => etape.action === 'aller' && etape.vers === 'chambre');
+    const atelier = etapes.findIndex((etape) => etape.action === 'aller' && etape.vers === 'atelier');
+    expect(chambre).toBeGreaterThanOrEqual(0);
+    expect(atelier).toBeGreaterThan(chambre);
+    let courante = depart(monde);
+    for (const etape of etapes.slice(0, atelier + 1)) {
+      const choix = trouverOption(observer(monde, courante.etat), etape);
+      if (choix === undefined) throw new Error(`Étape ${etape.action} ${etape.cible} absente.`);
+      const resultat = jouer(monde, courante, choix.commande);
+      if (resultat.type !== 'engagee') throw new Error(`${etape.action} ${etape.cible} : ${resultat.type}.`);
+      courante = resultat.partie;
+    }
+    expect(courante.etat.piece).toBe('m-02/p-atelier');
+    expect(courante.etat.creature?.piece?.startsWith('m-10/')).toBe(true);
+  }, 60000);
+
+  it('M-04 sûr, m04-m03-observation : test de l’avertisseur, traversée hors de vue, sortie ouverte', () => {
+    const monde = stationDe('m04-m03-observation');
+    const pas = suite(monde, depart(monde), [
+      ['ouvrir', 'controle'],
+      ['aller', 'controle'],
+      ['declencher', 'avertisseur'],
+      ['ouvrir', 'observation'],
+      ['aller', 'observation'],
+      ['ouvrir', 'energie'],
+      ['aller', 'energie'],
+    ]);
+    sansRisque(pas);
+    expect(fin(pas).etat.piece).toBe('m-03/p-energie');
+  });
+
+  it('M-04 sûr, m04-m03-observation : seuil de l’observation huilé, traversée, sortie ouverte', () => {
+    const monde = stationDe('m04-m03-observation');
+    const pas = suite(monde, depart(monde), [
+      ['ouvrir', 'controle'],
+      ['aller', 'controle'],
+      ['prendre', 'burette'],
+      ['verser', 'burette', 'observation'],
+      ['ouvrir', 'observation'],
+      ['aller', 'observation'],
+      ['ouvrir', 'energie'],
+      ['aller', 'energie'],
+    ]);
+    sansRisque(pas);
+    expect(fin(pas).etat.piece).toBe('m-03/p-energie');
+  });
+
+  it('M-04 risqué, m04-m03-observation : traverser exposé, sans rien préparer, demande un dé', () => {
+    const monde = stationDe('m04-m03-observation');
+    const pas = suite(monde, depart(monde), [
+      ['ouvrir', 'controle'],
+      ['aller', 'controle'],
+      ['ouvrir', 'observation'],
+      ['aller', 'observation'],
+    ]);
+    expect(pas.flatMap((un) => un.tirages).length).toBeGreaterThan(0);
+  });
+
+  it('M-05 sûr, m05-m03-tri : panneau ouvert, raccourci jusqu’au hall sans entrer dans la salle de tri', () => {
+    const monde = stationDe('m05-m03-tri');
+    const pas = suite(monde, depart(monde), [
+      ['ouvrir', 'service'],
+      ['aller', 'service'],
+      ['ouvrir', 'panneau'],
+      ['aller', 'quai'],
+    ]);
+    sansRisque(pas);
+    expect(fin(pas).etat.piece).toBe('m-05/p-quai');
+    expect(fin(pas).etat.visitees).not.toContain('m-05/p-tri');
+  });
+
+  it('M-05, panneau vu du mauvais côté : fermé sans destination du local ; absent du hall atteint par la salle de tri', () => {
+    const monde = stationDe('m05-m03-tri');
+    const service = fin(suite(monde, depart(monde), [
+      ['ouvrir', 'service'],
+      ['aller', 'service'],
+    ]));
+    const vue = observer(monde, service.etat);
+    expect(vue.passages.filter((passage) => passage.nom === 'panneau')).toMatchObject([{ vers: null, ouvert: false }]);
+    expect(vue.menu.some((choix) => choix.action === 'aller' && choix.cible.nom === 'panneau')).toBe(false);
+
+    // Créature dans la réserve : quand elle attend dans la salle de tri, la recherche sans dé s'arrête au plafond.
+    const reference = stationDeReference(CATALOGUE, 'm05-m03-reserve');
+    if ('refus' in reference) throw new Error(reference.refus);
+    const recherche = chercherEtat(reference.entree, (etat) => etat.piece === 'm-05/p-quai' && !etat.decouvertes.includes('m-05/l-service-quai'));
+    expect(recherche.issue, `${recherche.etats} états`).toBe('trouve');
+    if (recherche.partie === null) throw new Error('Hall non atteint par la salle de tri.');
+    expect(recherche.partie.etat.visitees).toContain('m-05/p-tri');
+    const quai = observer(reference.entree.monde, recherche.partie.etat);
+    expect(quai.passages.some((passage) => passage.nom === 'panneau')).toBe(false);
+    expect(quai.menu.filter((choix) => choix.cible.nom === 'panneau' || choix.parametre?.nom === 'panneau')).toEqual([]);
+  });
+
+  it('M-01, créature sur le palier, m07-m01-m03-palier : prouvée', () => {
+    prouvee('m07-m01-m03-palier');
   }, 60000);
 });
