@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
-import { App } from './App';
+import { App, EcranRefus } from './App';
 import { BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { APERCU_TAILLE, EcranFin, EcranOptions } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
@@ -684,6 +684,17 @@ describe('fin après abandon (12 §4.11, #96)', () => {
     );
     expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Envoyer ma partie Menu principal');
     expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
+  });
+});
+
+describe('station refusée par l’adresse (#152)', () => {
+  it('accueil avec le motif tel quel ; NOUVELLE PARTIE indisponible et aucun autre bouton', () => {
+    const html = renderToStaticMarkup(<EcranRefus motif="Station inconnue : m07-m03-inconnue-1." reglages={REGLAGES_PAR_DEFAUT} />);
+    expect(html).toContain('<h1 class="titre-accueil" aria-label="VOID WALKER"><span>VOID</span><span>WALKER▮</span></h1>');
+    expect(texte(entre(html, '<section', '</section>'))).toBe('Station refusée : Station inconnue : m07-m03-inconnue-1.');
+    expect(html).toContain('role="alert"');
+    expect(html.match(/<button/g)).toHaveLength(1);
+    expect(html).toContain('<button type="button" class="principal" disabled="">Nouvelle partie</button>');
   });
 });
 
