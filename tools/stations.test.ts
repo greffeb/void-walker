@@ -734,8 +734,9 @@ describe('compositions', () => {
       const avant = chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/'))));
       return !avant.some((chemin) => AIDES.includes(chemin));
     });
-    expect(bouchees.length).toBeGreaterThan(0);
-    for (const { id } of bouchees) expect(COMPOSITIONS_PUBLIEES, id).not.toContain(id);
+    expect(bouchees).toHaveLength(44);
+    const bouchee = new Set(bouchees.map(({ id }) => id));
+    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map(({ id }) => id).filter((id) => !bouchee.has(id)));
   });
 
   it('identifiants de composition uniques, triés, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
