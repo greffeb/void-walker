@@ -1,7 +1,7 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8).
-> **Mise à jour :** 2026-10-14.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5).
+> **Mise à jour :** 2026-10-15.
 > **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256. **Parties sur téléphone :** absentes.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
@@ -73,7 +73,7 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 ### M-07 — Salle des machines (nouveau, D-163)
 
 - **Pièces :** une salle des machines entre deux pièces, avec un interrupteur.
-- **Créature :** dans la soute, ouverte sur la pièce d'entrée, jamais dans la salle des machines (D-261) ; on ne l'entend pas venir.
+- **Créature :** dans la soute, ouverte sur la pièce d'entrée, jamais dans la salle des machines (D-261). Dans la salle des machines en marche, le passager n'entend rien venir (D-163, D-235).
 - **Sûr :** faire dans la salle les gestes bruyants (ouvrir une porte grippée) : rien ne sort. Ou relancer les machines depuis l'interrupteur de la salle pour attirer la créature, puis repartir par l'autre porte (un seul interrupteur, D-173).
 - **Risqué :** entrer sans savoir si elle est là.
 

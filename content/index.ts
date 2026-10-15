@@ -1,13 +1,10 @@
 // Contenu du jeu : n'utilise que les types du moteur (docs/10-architecture.md §3).
-import { MONDE_AR01 } from './ar-01/monde';
 import { MESSAGES_M07 } from './m-07/textes';
 import { TEXTES_PROPRES_M08 } from './m-08/textes';
 import { TEXTES_PROPRES_M09 } from './m-09/textes';
 import { MESSAGES_M10 } from './m-10/textes';
 import { MORCEAUX } from './morceaux';
 import type { TextesMorceau } from './textes/types';
-
-export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
 
 export { MORCEAUX, type EntreeMorceau } from './morceaux';
 export {
