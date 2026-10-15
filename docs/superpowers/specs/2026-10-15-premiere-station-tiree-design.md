@@ -79,7 +79,7 @@ Local énergie (entrée : console du circuit, bloc d'énergie), salle d'embarque
 
 ## 5. Catalogue et tirage
 
-- **Identifiant de station** : `<composition>.<graine du plan>`, par exemple `m07-m03-soute.2718281828`. Il tient dans le champ « monde » de la sauvegarde et de l'export, **format inchangé** ; la station se reconstruit à l'identique depuis lui (même version du jeu).
+- **Identifiant de station** : `<composition>-<graine du plan>`, par exemple `m07-m03-soute-2718281828`. Il tient dans le champ « monde » de la sauvegarde et de l'export, **format inchangé** ; la station se reconstruit à l'identique depuis lui (même version du jeu). Choix de l'agent : seulement des minuscules, chiffres et tirets, 40 caractères au plus, la forme que le service de rapports accepte pour un monde (`report-service/src/rapport.ts`) ; sinon « Envoyer ma partie » et « je valide » seraient refusés depuis une station tirée.
 - **Catalogue vérifié à la construction** : toutes les compositions possibles sont passées au vérifieur de L1 par `npm run check:stations` (dans `verify`), avec verdict, états et temps ; la liste des compositions publiées est écrite dans le contenu et doit correspondre exactement aux compositions prouvées, sinon la vérification échoue. Le tirage ne lance jamais le vérifieur.
 - **Tirage (D-253, D-260)** : final d'abord, à pile ou face entre les finals disponibles (un seul en L2 : M-03), puis composition au hasard parmi celles de ce final, puis graine du plan. Une station déjà jouée peut revenir.
 
@@ -103,7 +103,7 @@ Local énergie (entrée : console du circuit, bloc d'énergie), salle d'embarque
 
 ## 8. Stations de test `m-07` et `m-10`
 
-Refaites à partir des morceaux : le morceau, plus un embarquement d'essai (capsule déjà alimentée, comme aujourd'hui), départ dans les quartiers, créature à sa place actuelle, porte vers l'embarquement ouverte comme aujourd'hui. Leurs parcours ne changent pas et restent dans la vérification complète. Leur plan vient des tuiles du morceau, posées par l'assembleur avec une graine fixe, et non plus d'un plan dessiné à part.
+Refaites à partir des morceaux : le morceau, plus un embarquement d'essai (capsule déjà alimentée, comme aujourd'hui), départ dans les quartiers, créature à sa place actuelle, porte vers l'embarquement dans son état d'aujourd'hui (ouverte pour `m-07`, porte grippée fermée pour `m-10`). Leurs parcours ne changent pas et restent dans la vérification complète. Leur plan vient des tuiles du morceau, posées par l'assembleur avec une graine fixe, et non plus d'un plan dessiné à part.
 
 ## 9. Preuves
 
