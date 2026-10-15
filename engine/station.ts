@@ -68,6 +68,8 @@ export function validerMorceau(morceau: DefMorceau): string[] {
     if (!morceau.fournit.includes('evacuation')) erreurs.push(`${morceau.id} : final qui ne fournit pas l’évacuation.`);
   } else if (morceau.sortie === undefined) erreurs.push(`${morceau.id} : morceau sans sortie.`);
   else if (!pieces.has(morceau.sortie.piece)) erreurs.push(`${morceau.id} : sortie depuis une pièce inconnue ${morceau.sortie.piece}.`);
+  // Aucune position ne peut se trouver sous la porte de sortie, dont l'identifiant n'est pas préfixé : elle ne s'ouvrirait jamais.
+  if (morceau.sortie?.porte.haute !== undefined) erreurs.push(`${morceau.id} : porte de sortie haute.`);
   return erreurs;
 }
 

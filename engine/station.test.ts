@@ -104,6 +104,7 @@ describe('format du morceau', () => {
     ['chemin sans sortie', { ...CHEMIN, sortie: undefined }],
     ['départ sans sortie', { ...DEPART, sortie: undefined }],
     ['sortie depuis une pièce inconnue', { ...CHEMIN, sortie: { piece: 'p-nulle', porte: { nom: 'porte' } } }],
+    ['porte de sortie haute', { ...CHEMIN, sortie: { piece: 'p-machines', porte: { nom: 'porte', haute: 'p-machines' } } }],
     ['final qui ne fournit pas l’évacuation', { ...FINAL, fournit: [] }],
   ])('refuse : %s, d’une seule erreur', (_cas, morceau) => {
     const trouvees = validerMorceau(morceau);
