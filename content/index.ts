@@ -8,10 +8,12 @@ import type { TextesMorceau } from './textes/types';
 
 export { MORCEAUX, type EntreeMorceau } from './morceaux';
 export {
+  COMPOSITIONS_CONTROLEES,
   COMPOSITIONS_PUBLIEES,
   creerCatalogue,
   MONDES,
   numeroter,
+  sansConflit,
   type Catalogue,
   type Composition,
   type Refus,

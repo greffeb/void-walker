@@ -236,6 +236,13 @@ Petites stations d'abord (D-242) : sur 1 000 tirages, toute station proposée a 
 
 Mesures locales de L2 (#152), sans assertion de temps : sur 1 000 tirages par chemin (vestibule, M-07 ou M-10, M-03), 1 000 plans sur 1 000, 0,34 et 0,33 ms en moyenne, 2,33 et 1,69 ms au plus, échecs compris ([13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152)). Une recherche sans plan s'arrête au budget de pose de 2 000 candidats évalués. Mesuré sur des chaînes de tuiles de test qui n'ont aucun plan, pas sur les morceaux réels : à trois tuiles, un échec coûte environ 16 ms en moyenne et 25 ms au plus ; à quatre, environ 44 ms en moyenne et jusqu'à 58 ms, au-delà des 50 ms visés. À reprendre en L3, dont les stations auront quatre tuiles.
 
+Mesures locales de L3 (#153), sans assertion de temps ([13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153)) :
+- 32 chaînes de tuiles : vestibule, un ou deux morceaux de chemin parmi M-07 à M-10, M-03 ou M-06 ;
+- sur 1 000 graines par chaîne : 1 000 plans sur 1 000 pour chacune, au plus 2,74 ms en moyenne pour une chaîne, 7,29 ms pour le pire tirage ;
+- sur 1 000 tirages complets du catalogue : 1 000 stations, 1,08 ms en moyenne et 8,32 ms au plus.
+
+Les échecs de pose mesurés sur des chaînes sans plan ne se produisent pas avec les vraies tuiles.
+
 Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
 
 ## 6. Ce que le prototype a mesuré

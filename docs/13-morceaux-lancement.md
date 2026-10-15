@@ -1,8 +1,8 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5).
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6).
 > **Mise à jour :** 2026-10-15.
-> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256. **Parties sur téléphone :** absentes.
+> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 proposée par sa PR (§7.6). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune pour M-06, M-08, M-09, M-10.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
@@ -65,7 +65,7 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 
 ### M-06 — Baie et vide (AR-02, final)
 
-- **Pièces :** local de sécurité (combinaison, découpeuse) ; salle panoramique (baie, rustine) ; la créature garde l'embarquement.
+- **Pièces :** un couloir de sécurité en entrée (D-265) ; local de sécurité (combinaison, découpeuse) ; salle panoramique (baie, rustine) ; la créature garde l'embarquement, dont la capsule est déjà alimentée.
 - **Créature :** à l'embarquement, devant la capsule.
 - **Sûr :** vider l'embarquement ou attirer puis percer (P-V1/P-V2).
 - **Risqué :** passer en force (P-V3).
@@ -79,15 +79,15 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 
 ### M-08 — Passerelle effondrée (nouveau, D-164/D-169)
 
-- **Pièces :** une salle coupée par un vide ; la planche, encombrante, dans une pièce voisine.
-- **Créature :** de l'autre côté du vide.
+- **Pièces :** une salle coupée par un vide ; la planche, encombrante, dans une pièce voisine ; un magasin de l'autre côté.
+- **Créature :** de l'autre côté du vide, dans le magasin (D-265).
 - **Sûr :** rapporter la planche, la poser, traverser, la retirer derrière soi.
 - **Piège :** laisser la planche en place et attirer la créature dessus : elle tombe, la planche est perdue.
 
 ### M-09 — Zone sans gravité (nouveau, D-165/D-168)
 
-- **Pièces :** une coursive sans gravité, interrupteur à chaque bout.
-- **Créature :** au-delà de la coursive.
+- **Pièces :** une coursive sans gravité, interrupteur à chaque bout ; une cale au-delà.
+- **Créature :** au-delà de la coursive, dans la cale (D-265).
 - **Sûr :** traverser en deux actions pendant qu'elle est occupée ailleurs.
 - **Idée :** couper la gravité quand elle s'y engage : elle met deux réactions de plus à traverser.
 
@@ -254,6 +254,8 @@ Mesure locale indicative, hors démarrage de la commande, contrôle du témoin c
 
 Une station à trois obstacles peut coûter bien plus : plafond d'états, vérification à la construction plutôt qu'au tirage, résultats gardés par empreinte en L2/L3. Les grandes stations restent hors du vérifieur exhaustif de L1.
 
+**Ordre de recherche, L3 (#153, D-265).** En largeur, les stations à trois obstacles atteignent presque toutes le plafond de 150 000 états (maquette jetable, 11 sur 12 mesurées), de même que la baie avec la créature devant la capsule derrière M-08, M-09 ou M-10. Le vérifieur développe donc d'abord les états où le passager est dans le morceau le plus avancé de la station, puis, à égalité, dans l'ordre d'arrivée. Le graphe, la clé d'état, les transitions écartées, le plafond et le rejeu du témoin ne changent pas : une recherche épuisée donne le même verdict « sans sortie sûre » qu'en largeur. Le chemin témoin n'est plus forcément le plus court. Un monde écrit en entier, dont les pièces ne sont pas rattachées à un morceau, garde la largeur et ses résultats ci-dessus. Les résultats gardés par empreinte et la vérification dans un job de CI à part n'ont pas été nécessaires (§7.6) ; un verdict gardé deviendrait faux après un changement de règle, l'empreinte d'un morceau ne couvrant pas le moteur.
+
 **Écarts dans les documents :**
 
 1. C-08 G-02 refusait le vide avec le feu, alors que MX-02 (D-174) les réunit et que le moteur le teste : G-02 est réécrit selon D-167.
@@ -289,7 +291,7 @@ Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée
 
 ### 7.5 Première station tirée L2 (#152)
 
-> **Statut :** implémenté sur la branche `content/152-premiere-station`, en attente de PR (zone orange). Conception : [spec L2](superpowers/specs/2026-10-15-premiere-station-tiree-design.md).
+> **Statut :** fusionné ([PR #160](https://github.com/greffeb/void-walker/pull/160)) après deux parties du porteur sur téléphone, menées au bout et signées (M-07 et M-03, [journal](journal-parties-humaines.md)) ; M-10 n'a pas encore été joué sur téléphone. Conception : [spec L2](superpowers/specs/2026-10-15-premiere-station-tiree-design.md). Depuis L3, la vérification suit l'ordre de recherche du §7.3 : les états et les temps ci-dessous sont ceux de la largeur, les témoins gardent leur longueur.
 
 NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 (Q-186, D-261) et une seule pièce voisine pour celle de M-03 (Q-187, D-262) ; la porte de cette pièce, ouverte au départ, vient de la conception qu'il a approuvée (D-262). Choix des agents : cette pièce s'appelle la réserve, pour ne pas la confondre avec la cabine de la capsule ; les pièces de même nom, numérotées (D-208), portent une lettre (coursive A, coursive B) ; une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
 
@@ -328,6 +330,105 @@ Empreinte de chaque morceau, hachage de sa définition et de ses textes (D-100) 
 **Approbation.** « Le document de conception vous convient-il pour passer au plan de travail ? », avec la liste des choix des agents.
 
 **Réponse du porteur :** « Oui, on passe au plan ». La conception approuvée ([spec L2 §3.5](superpowers/specs/2026-10-15-premiere-station-tiree-design.md#35-m-03--énergie-final)) prévoit la porte de la réserve ouverte au départ (D-262).
+
+### 7.6 Baie, passerelle, sans gravité L3 (#153)
+
+> **Statut :** proposé par la PR de #153 (zone orange), en attente de l'accord du porteur et de parties au bout sur téléphone pour M-06, M-08 et M-09 (**validation humaine requise**, D-098). Conception : [spec L3](superpowers/specs/2026-10-15-baie-passerelle-gravite-design.md), approuvée (D-265) ; réussite fixée par D-264.
+
+NOUVELLE PARTIE tire maintenant parmi **88 compositions** :
+- le vestibule ;
+- un ou deux morceaux de chemin distincts parmi M-07, M-08, M-09, M-10, dans un ordre donné ;
+- le final M-03 ou M-06 ;
+- une place de créature parmi celles de ces morceaux.
+
+Il y a 16 compositions à un chemin et 72 à deux. Le tirage fait pile ou face entre les deux finals (D-253, D-260), puis prend une composition au hasard parmi celles de ce final.
+
+Places de la créature :
+
+| Morceau | Place |
+| --- | --- |
+| M-06 | embarquement |
+| M-08 | magasin |
+| M-09 | cale |
+
+Choix des agents, approuvés avec la conception (D-265) :
+- le magasin et la cale sont renommés pour ne pas se confondre avec la réserve de M-03 et la soute de M-07 ;
+- la baie entre par un couloir de sécurité ;
+- la passerelle n'a pas de touret, la zone sans gravité pas de burette : ils ne servaient qu'aux stations de test, qui restent écrites en entier ;
+- deux pièces de même nom affiché reçoivent une lettre (« quartiers de l'équipage A ») ;
+- une clé de texte que deux morceaux d'une station définissent différemment devient propre à chacun.
+
+Les quatre compositions de L2 donnent exactement les mêmes stations, avec la même empreinte du monde, et M-03, M-07, M-10 gardent leurs empreintes.
+
+**Catalogue.** `npm run check:stations` donne une mesure locale indicative, contrôle du témoin compris. Les durées ne sont pas des assertions. Toutes les compositions sont prouvées, à la graine de plan 0.
+
+| Final, chemins | Compositions | États | Actions du témoin | Temps |
+| --- | ---: | ---: | ---: | ---: |
+| M-03, un | 8 | 326 à 894 | 14 à 19 | 0,40 s en tout |
+| M-03, deux | 36 | 445 à 1 040 | 19 à 26 | 2,12 s en tout |
+| M-06, un | 8 | 449 à 4 258 | 15 à 24 | 1,70 s en tout |
+| M-06, deux | 36 | 568 à 4 404 | 20 à 31 | 7,32 s en tout |
+
+La plus lourde est `m09-m08-m06-embarquement` : 4 404 états, 31 actions, 0,49 s. En largeur, la maquette atteignait le plafond de 150 000 états pour 11 des 12 stations à deux chemins mesurées (§7.3).
+
+**Empreintes** (D-100) :
+
+| Morceau | Empreinte |
+| --- | --- |
+| M-06 | `1f3f876a0661cf` |
+| M-08 | `1e3f11862eb5b2` |
+| M-09 | `13abdc1f1f2757` |
+
+Le vestibule, M-03, M-07 et M-10 gardent celles du §7.5.
+
+**Plans.** Sur 1 000 graines pour chacune des 32 chaînes de morceaux, échecs compris :
+- 1 000 plans sur 1 000 pour chaque chaîne ;
+- au plus 2,74 ms en moyenne par chaîne, 7,29 ms pour le pire tirage.
+
+**Tirages.** Sur 1 000 tirages complets du catalogue, à graine fixe :
+
+| Mesure | Résultat |
+| --- | --- |
+| Finals | M-03 521, M-06 479 |
+| Nombre de chemins | un 189, deux 811 |
+| Morceaux | M-07 481, M-08 441, M-09 446, M-10 443 |
+| Places de la créature | soute 178, magasin 148, cale 157, entrepôt 156, réserve 189, embarquement 172 |
+| Temps de tirage | 1,08 ms en moyenne, 8,32 ms au plus |
+
+Avec la baie, la créature attend devant la capsule une fois sur deux ou sur trois. Ailleurs, la baie peut servir à lui ôter l'air. C'est une question de difficulté, laissée pour plus tard (D-264).
+
+**Mélanges joués en station assemblée** (§4) :
+
+| Mélange | Station | Résultat |
+| --- | --- | --- |
+| Planche et bloc (D-169) | `m08-m03-magasin`, depuis le départ, sans dé | Planche en main, le bloc est refusé sans coût ; planche posée, il se prend |
+| MX-01 | `m10-m09-m03-entrepot`, depuis un état préparé : créature ralentie au bord de la zone | Sept actions pour traverser, comme le test du moteur |
+| Vide (D-246) | Recherches sans dé ni blessure depuis le départ | Voir ci-dessous |
+
+Pour le vide :
+- `m07-m09-m06-embarquement` : l'air quitte la salle des machines et la coursive de transfert ;
+- `m10-m08-m06-embarquement` : il quitte les deux bords de la passerelle et la chambre froide ;
+- `m07-m09-m06-soute` : la créature est rendue inerte hors de la salle panoramique.
+
+Limite : le cas d'une créature derrière une porte fermée, qu'il faut ouvrir sous ses yeux, atteint le plafond de la recherche (magasin, cale, et aussi entrepôt). Il n'est pas couvert par un test.
+
+**Contrôle des textes.** `check:texts` explore six stations fixes, qui couvrent :
+- chaque morceau ;
+- chaque place de la créature ;
+- chaque chemin en première et en seconde position ;
+- les trois mélanges.
+
+Ce sont `m07-m03-soute`, `m07-m08-m06-embarquement`, `m08-m07-m03-magasin`, `m09-m10-m06-cale`, `m10-m03-reserve` et `m10-m09-m03-entrepot`. Chacune est parcourue avec son témoin, ce qui fait rendre l'évacuation. Le contrôle prend environ deux minutes seul, trois dans `npm run verify`, contre 87 s en L2.
+
+**Questions posées au porteur le 2026-10-15**, citées mot pour mot :
+
+| Question | Réponse du porteur |
+| --- | --- |
+| **Q-188, D-264.** « Dans vos deux parties de L2, il vous a suffi de claquer la porte au nez de la créature. Quand vous lancerez une station avec la baie, la passerelle ou la zone sans gravité, qu'est-ce qui vous fera dire « cette livraison est réussie » ? » | « pouvoir arriver a la capsule. (la difficulté on verra plus tard) » |
+| **Q-189.** « Je peux mesurer ces deux points tout de suite sur une maquette jetable, sans rien changer au jeu, avant de vous poser d'autres questions. J'y vais ? » Les deux points : places de la créature des fiches et coût de la vérification à trois obstacles. | « go » |
+| **Q-190.** « Avant que je l'écrive, voyez-vous quelque chose à corriger ou à ajouter ? » Question posée après le résultat de la maquette et la liste des choix par défaut. | « go » |
+| **Q-191, D-265.** « La conception vous convient-elle pour passer au plan de travail ? », avec la liste des choix des agents. | « c'est bon » |
+| **Q-192.** « Le plan vous convient-il, et laquelle de ces deux façons préférez-vous ? » Les deux façons : par tâches confiées ou par l'agent seul. | « ok et par taches confinés. a la fin, fait la PR en autonomie et push » |
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

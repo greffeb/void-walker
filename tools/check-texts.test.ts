@@ -1,7 +1,9 @@
-import { COMPOSITIONS_PUBLIEES, MONDES, type EntreeMonde, type TextesMonde } from '../content';
+import { assemblerStation } from '../engine';
+import { COMPOSITIONS_CONTROLEES, COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, type EntreeMonde, type TextesMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import { compterPhrases, controlerTextes, direBornes, entreesAControler, regrouperAvertissements, verifierTextes } from './check-texts';
-import { stationDeReference } from './verifier-station';
+import { executerParcours } from './rejouer-parcours';
+import { stationDeReference, verifierStation } from './verifier-station';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
 const AR01 = MONDES['ar-01'] as EntreeMonde;
@@ -178,20 +180,78 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('libellé aller sans destination connue : aucun texte (NP-01).');
   });
 
-  it('relit les mondes du catalogue, puis une station par composition publiée, à la graine vérifiée par check:stations', () => {
+  it('relit les mondes du catalogue, puis une station par composition contrôlée, publiée, à la graine vérifiée par check:stations', EXHAUSTIF, () => {
     const entrees = entreesAControler(CATALOGUE);
     const fixes = Object.keys(CATALOGUE.mondes);
     expect(entrees.slice(0, fixes.length).map(([id]) => id)).toEqual(fixes);
     const stations = entrees.slice(fixes.length);
-    expect(stations).toHaveLength(COMPOSITIONS_PUBLIEES.length);
+    expect(stations).toHaveLength(COMPOSITIONS_CONTROLEES.length);
+    expect(COMPOSITIONS_CONTROLEES).toEqual([
+      'm07-m03-soute',
+      'm07-m08-m06-embarquement',
+      'm08-m07-m03-magasin',
+      'm09-m10-m06-cale',
+      'm10-m03-reserve',
+      'm10-m09-m03-entrepot',
+    ]);
+    expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
-      const composition = COMPOSITIONS_PUBLIEES[rang] ?? '';
+      const composition = COMPOSITIONS_CONTROLEES[rang] ?? '';
       const reference = stationDeReference(CATALOGUE, composition);
       if ('refus' in reference || 'refus' in entree) throw new Error(`${composition} sans station.`);
       expect(id).toBe(`${composition}-${reference.graine}`);
-      expect(entree).toBe(reference.entree);
+      expect(entree.monde).toBe(reference.entree.monde);
+      expect(entree.textes).toBe(reference.entree.textes);
       expect(entree.monde.assistance?.map((message) => message.id)).toEqual(expect.arrayContaining(['reveil', 'depart']));
     });
+  });
+
+  it('chaque station contrôlée a exactement un parcours : le témoin de check:stations, qui se rejoue jusqu’à l’évacuation', EXHAUSTIF, () => {
+    const stations = entreesAControler(CATALOGUE).slice(Object.keys(CATALOGUE.mondes).length);
+    expect(stations).toHaveLength(COMPOSITIONS_CONTROLEES.length);
+    for (const [id, entree] of stations) {
+      if ('refus' in entree) throw new Error(`${id} : ${entree.refus}`);
+      expect(entree.parcours, id).toHaveLength(1);
+      const [parcours] = entree.parcours;
+      if (parcours === undefined) throw new Error(`${id} sans parcours.`);
+      expect(parcours, id).toEqual(verifierStation({ ...entree, parcours: [] }).parcours);
+      expect(parcours.attendu.issue, id).toBe('evacuation');
+      expect(executerParcours(entree, parcours, 'check-texts-test').erreurs, id).toEqual([]);
+    }
+  });
+
+  it('une station contrôlée sans évacuation prouvée est refusée, sans parcours', () => {
+    // Vestibule sans porte : aucune action, recherche épuisée aussitôt.
+    const coupe = creerCatalogue((station) => {
+      const resultat = assemblerStation(station);
+      if (resultat.type !== 'station' || station.id === 'm-07' || station.id === 'm-10') return resultat;
+      const { monde } = resultat;
+      return { ...resultat, monde: { ...monde, liaisons: monde.liaisons.filter((liaison) => !liaison.entre.includes(monde.depart)) } };
+    });
+    const stations = entreesAControler(coupe).slice(Object.keys(coupe.mondes).length);
+    expect(stations.map(([, entree]) => ('refus' in entree ? entree.refus : null))).toEqual(
+      COMPOSITIONS_CONTROLEES.map(() => expect.stringMatching(/^Évacuation non prouvée/)),
+    );
+  });
+
+  it('les compositions contrôlées, publiées, couvrent chaque morceau, chaque place, chaque chemin en premier et en second, et les paires à surveiller', () => {
+    const controlees = COMPOSITIONS_CONTROLEES.map((id) => {
+      const composition = CATALOGUE.compositions.find((candidate) => candidate.id === id);
+      if (composition === undefined) throw new Error(`${id} absente du catalogue.`);
+      return composition;
+    });
+    expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
+    const tous = <T>(liste: readonly T[]): T[] => [...new Set(liste)].sort();
+    const morceaux = (compositions: typeof CATALOGUE.compositions): string[] => tous(compositions.flatMap((composition) => [...composition.chemins, composition.final]));
+    expect(morceaux(controlees)).toEqual(morceaux(CATALOGUE.compositions));
+    expect(tous(controlees.map((composition) => composition.creature))).toEqual(tous(CATALOGUE.compositions.map((composition) => composition.creature)));
+    const chemins = tous(CATALOGUE.compositions.flatMap((composition) => composition.chemins));
+    expect(tous(controlees.map((composition) => composition.chemins[0]))).toEqual(chemins);
+    expect(tous(controlees.flatMap((composition) => composition.chemins.slice(1)))).toEqual(chemins);
+    const reunit = (a: string, b: string): boolean => controlees.some((composition) => [...composition.chemins, composition.final].includes(a) && [...composition.chemins, composition.final].includes(b));
+    expect(reunit('m-09', 'm-10'), 'M-09 + M-10').toBe(true);
+    expect(reunit('m-08', 'm-03'), 'M-08 + M-03').toBe(true);
+    for (const chemin of ['m-07', 'm-08', 'm-09', 'm-10']) expect(reunit('m-06', chemin), `M-06 + ${chemin}`).toBe(true);
   });
 
   it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {

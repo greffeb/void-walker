@@ -234,11 +234,11 @@ describe('CLI', () => {
 
   it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon une station tirée', () => {
     const ctx = contexte();
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^m\d\d-m\d\d-[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
     expect(choisirEntree(['nouvelle', '--monde', 'monde-test'], CATALOGUE, ctx.es)).toBe(ENTREE);
     executer(['nouvelle'], ctx);
     expect(choisirEntree(['voir'], CATALOGUE, ctx.es)).toBe(ENTREE);
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^m\d\d-m\d\d-[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
     expect(choisirEntree(['voir', '--monde', 'ailleurs'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
     expect(choisirEntree(['voir', '--monde', 'constructor'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : constructor\./);
     expect(choisirEntree(['voir', '--monde'], CATALOGUE, ctx.es)).toMatch(/--monde <id>/);
@@ -349,7 +349,7 @@ describe('CLI : station tirée (#152)', () => {
     expect(appeler(['jouer', '1'], CATALOGUE, sansTirage)).toEqual(refus);
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
     expect(appeler(['nouvelle'], CATALOGUE, ctx.es).code).toBe(0);
-    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^m\d\d-m\d\d-[a-z]+-\d+$/);
+    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
   });
 
   it('aide : --station, et --monde sans partie donne une station tirée', () => {

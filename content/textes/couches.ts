@@ -27,6 +27,13 @@ function ajouter(cible: Record<string, unknown>, source: object, chemin: string)
   }
 }
 
+/** Texte d'une clé repris tel quel d'un autre jeu de textes, celui d'une station de test ; une clé absente lève une erreur. */
+export function repris<T>(table: Readonly<Record<string, T>>, cle: string): T {
+  const texte = Object.hasOwn(table, cle) ? table[cle] : undefined;
+  if (texte === undefined) throw new Error(`Texte « ${cle} » absent : rien à reprendre.`);
+  return texte;
+}
+
 /** Socle + univers + menace + morceaux (+ messages propres à la station) ; une clé définie deux fois avec deux textes différents lève une erreur. */
 export function reunir(morceaux: readonly TextesMorceau[], assistance: Readonly<Record<string, string>> = {}): TextesMonde {
   const textes: Record<string, unknown> = {};

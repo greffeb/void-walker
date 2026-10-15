@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des parties humaines
 
-> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; aucune validation signée C-10 des aventures ou morceaux du lancement n'est enregistrée.
-> **Mise à jour :** 2026-10-11.
+> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; deux validations signées C-10, reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), sont recopiées telles quelles.
+> **Mise à jour :** 2026-10-15.
 
 ## Règle validée
 
@@ -11,7 +11,12 @@ Un agent peut préparer une fiche ou transcrire un retour humain explicitement f
 
 ## Validations signées
 
-RP-05 : cette liste ne contient que des validations reconnues par le robot de la PR (étiquette `validation-reconnue`). Chaque ligne est recopiée de sa réponse, avec le lien vers la partie signée ; un contrôle automatique refuse une ligne sans ce lien. Aucune pour l'instant.
+RP-05 : cette liste ne contient que des validations reconnues par le robot de la PR (étiquette `validation-reconnue`). Chaque ligne est recopiée de sa réponse, avec le lien vers la partie signée ; un contrôle automatique refuse une ligne sans ce lien.
+
+- M07-M03-RESERVE-2711566566 · version 0.1.0 · commit 847e177 · évacuation en 20 actions · [partie](https://github.com/greffeb/void-walker/pull/160#issuecomment-6193175750)
+- M07-M03-SOUTE-2106958129 · version 0.1.0 · commit 847e177 · évacuation en 18 actions · [partie](https://github.com/greffeb/void-walker/pull/160#issuecomment-6193252290)
+
+Commentaires du porteur joints à ces deux parties : « Aventure générée validée gagnable. A noter : trop facile, j'ai juste eu a claquer la porte au nez de la créature pour être peinard. » ; « Partie validée également, créature dans une autre pièce accessible plus tôt dans l'aventure. (Encore une fois trop facile de lui claquer la porte au nez) ».
 
 ## Informations proposées pour chaque session
 

@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
@@ -2000,6 +2000,38 @@ Deux questions sur la place de la créature dans M-07 et M-03 ont été posées 
 - Décision : en cours de partie, le récit n'a plus de lien ni d'espace réservé pour IA Station ; un message non lu s'annonce par un gros « ! » gras posé à cheval sur le bord haut, côté droit du bouton IA STATION, à la place du carré fixe. Seul ce repère s'anime : deux pulsations rapides, puis une pause d'une seconde, en boucle ; en mouvement réduit il est fixe et visible. Au début (citation encadrée au réveil, 12 §4.2) et à la fin de la partie, IA Station reste dans le récit : à la fin, la navigation ayant disparu, le message de départ s'écrit en entier dans le même encadré, sans lien (retour du porteur du 2026-10-15 : « il faut écrire le message « Écoutille fermée, alimentation confirmée. Départ engagé ; bon voyage. » là-dedans à la place »). Le fonctionnement des non-lus (D-192), le son d'arrivée, l'historique et la citation du réveil ne changent pas.
 - Limite [détail de l'agent] : cycle de 1,5 s : l'opacité du « ! » descend à 0,2 pendant 0,2 s, deux fois, dans les 0,5 premières secondes (deux éclats, sous le seuil de trois par seconde, WCAG 2.3.1), puis il reste plein une seconde ; il ne disparaît jamais tout à fait. Il est hors du flux : le bouton garde sa place, sa taille et sa zone tactile, et il ne reçoit pas le toucher. Le lecteur d'écran lit toujours « IA Station, nouveau message », une fois, sans annonce à chaque pulsation ; le repère lui est masqué. Couleur `accent`, fond `fond` pour ne pas être coupé par le contour du bouton. La variante « i » cerclé a été essayée, puis retirée : elle aurait demandé un cercle, contraire aux angles droits de la feuille de style.
 - Remplace, pour l'écran de jeu en cours de partie : le lien dans le récit et le carré fixe de #98 (D-192). Modifie : 12 §2.6, §3.3, §4.0, §4.7. Conséquence : à l'écran de fin, la fenêtre d'IA Station n'est plus accessible ; le message de départ y est cité en entier, l'historique reste dans la partie.
+
+## Décisions validées — L3 de #106 (#153)
+
+Questions posées au porteur le 2026-10-15, pendant la conception de L3 ; ses réponses sont citées mot pour mot dans [13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153). Elles sont implémentées sur la branche de L3 ; aucune partie sur téléphone de M-06, M-08 ou M-09 n'est revendiquée.
+
+### D-264 — L3 : réussie si chaque station mène à la capsule, la difficulté plus tard
+
+- Date / statut : 2026-10-15 / **Validé**.
+- Origine : réponse Q-188 « pouvoir arriver a la capsule. (la difficulté on verra plus tard) », à la question de ce qui ferait dire que la livraison est réussie. La question rappelait son retour de L2 : les stations étaient trop faciles, il suffisait de claquer la porte au nez de la créature.
+- Décision : L3 est réussie si toute station tirée qui contient la baie, la passerelle ou la zone sans gravité peut se finir à la capsule, sans dé ni blessure pour qui prépare bien, prouvé avant d'être proposé. Le réglage de la difficulté se traite plus tard, hors de L3.
+- Limite : L3 n'ajoute aucune règle de difficulté ; la créature placée plus souvent près du final reste une réserve (D-241).
+
+### D-265 — L3 : conception approuvée, recherche vers le fond de la station
+
+- Date / statut : 2026-10-15 / **Validé**.
+- Origine :
+  - Q-189 « go » : maquette jetable acceptée ;
+  - Q-190 « go » : aucune correction aux choix par défaut annoncés ;
+  - Q-191 « c'est bon » : approbation de la [conception L3](superpowers/specs/2026-10-15-baie-passerelle-gravite-design.md) et de la liste des choix des agents.
+- Décision :
+  - **Vérifieur :** il développe d'abord les états du morceau le plus avancé de la station, sur le même graphe et sous le même plafond. Sans résultats gardés par empreinte ni job de CI à part. Le témoin n'est plus forcément le plus court.
+  - **Places de la créature :** celles des fiches. La réserve de M-08 devient le magasin, la soute de M-09 la cale ; M-06 garde l'embarquement.
+  - **M-06 :** il entre par un couloir de sécurité.
+  - **Stations :** à un ou deux chemins, soit 88 compositions.
+  - **Noms :** une lettre par nom affiché ; une clé de texte en conflit devient propre à chaque morceau.
+  - **Textes :** `check:texts` contrôle une série fixe de six stations.
+- Précise :
+  - D-161 et les fiches M-06, M-08, M-09 ([13 §3](13-morceaux-lancement.md#3-fiches)) ;
+  - D-208 (lettres) ;
+  - D-253 et D-260 (pile ou face dès L3) ;
+  - les parades de l'issue #153 ([13 §7.3](13-morceaux-lancement.md#73-risques-et-écarts-relevés)).
+- Limite : la fusion reste soumise à l'accord du porteur (zone orange) et à une partie au bout sur téléphone pour M-06, M-08 et M-09 (D-098).
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 
