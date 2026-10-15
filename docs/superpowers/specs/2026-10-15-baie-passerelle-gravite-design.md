@@ -1,6 +1,6 @@
 # L3 (#153) — Baie, passerelle, sans gravité : conception
 
-> **Statut :** approuvé par le porteur le 2026-10-15 (« c'est bon »), après une maquette jetable qu'il avait acceptée (« go »). Zone orange (format des scénarios, ordre de recherche du vérifieur, aucune règle de jeu ni format de sauvegarde changé).
+> **Statut :** approuvé par le porteur le 2026-10-15 (« c'est bon »), après une maquette jetable qu'il avait acceptée (« go ») ; D-263, D-264. Implémenté sur la branche `content/153-baie-passerelle-gravite` ; résultats en 13 §7.6. Zone orange (format des scénarios, ordre de recherche du vérifieur, aucune règle de jeu ni format de sauvegarde changé).
 > **Sources :** issue #153 ; 13 §2, §3, §4, §4.1, §7.1, §7.2, §7.5 ; 14 §5.6 ; C-08 ; D-058 à D-074, D-161, D-164, D-165, D-169, D-236 à D-238, D-246, D-249, D-252, D-253, D-260 ; [conception de L2](2026-10-15-premiere-station-tiree-design.md), dont cette livraison reprend le format.
 
 ## 1. Intention
