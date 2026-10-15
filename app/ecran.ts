@@ -19,9 +19,6 @@ import {
 /** Regard sur la pièce elle-même : libellé du réveil et rappel de l'arrivée (12 §3.3, §4.2). */
 export const REGARDER_AUTOUR = 'Regarder autour de vous';
 
-/** Lien du récit vers la fenêtre d'IA Station (12 §3.3) ; « › » ne part jamais seul à la ligne. */
-export const LIEN_IA = '[ IA STATION ] parle dans l’écouteur\u00a0›';
-
 /** Une puce du dock et les options de sa cible. */
 export interface Groupe {
   readonly cible: RefObjet | RefPassage;

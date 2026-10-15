@@ -153,6 +153,24 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(/\.recit \.alerte\s*\{\s*color:\s*var\(--alerte\);/.test(css)).toBe(true);
   });
 
+  it('repère d’IA Station (D-263) : deux pulsations rapides, une seconde de pause, sous trois éclats par seconde, fixe en mouvement réduit', () => {
+    const cycle = Number(/\.notification-ia\s*\{[^}]*animation:\s*notification-ia\s+([\d.]+)s\s+linear\s+infinite/.exec(css)?.[1]);
+    const etapes = [...(/@keyframes notification-ia\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '').matchAll(/([\d.%,\s]+)\{\s*opacity:\s*([\d.]+);/g)].flatMap(([, reperes = '', opacite = '']) =>
+      reperes.split(',').map((repere) => ({ temps: (parseFloat(repere) / 100) * cycle, opacite: Number(opacite) })),
+    );
+    const creux = etapes.filter((etape) => etape.opacite < 1).map((etape) => etape.temps);
+    const hauts = etapes.filter((etape) => etape.opacite === 1).map((etape) => etape.temps);
+    expect(creux).toHaveLength(2);
+    // Le repère ne disparaît jamais tout à fait, et le bouton n'est pas touché.
+    expect(Math.min(...etapes.map((etape) => etape.opacite))).toBeGreaterThan(0);
+    // Deux éclats dans la même demi-seconde (au plus trois par seconde, WCAG 2.3.1), puis une seconde de repos.
+    const derniereFin = Math.max(...hauts.filter((temps) => temps < cycle - 0.001));
+    expect(Math.max(...creux) - Math.min(...creux)).toBeLessThan(1 / 3);
+    expect(cycle - derniereFin).toBeCloseTo(1, 2);
+    expect(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.notification-ia\s*\{\s*animation:\s*none;/.test(css)).toBe(true);
+    expect(css).not.toMatch(/\.nav-ia[^{]*\{[^}]*animation/);
+  });
+
   it('document en français', () => {
     expect(readFileSync(new URL('index.html', APPLI), 'utf8')).toContain('<html lang="fr">');
   });
