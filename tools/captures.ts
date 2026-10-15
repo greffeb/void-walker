@@ -1573,6 +1573,9 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
     }
   };
   for (const [id, entree] of Object.entries(CATALOGUE.mondes)) await dessiner(id, entree, `Plan — ${id}`);
+  const baie = CATALOGUE.resoudre(STATION_BAIE);
+  if ('refus' in baie) erreurs.push(`${STATION_BAIE} : ${baie.refus}`);
+  else await dessiner(STATION_BAIE, baie, `Plan — station à trois obstacles avec la baie ${STATION_BAIE}`);
   let etat = generateurDepuisGraine(GRAINE_GALERIE);
   const hasard = (): number => {
     const tirage = suivant(etat);
