@@ -162,6 +162,31 @@ export function dangersDuRecit(evenements: readonly Evenement[]): (NatureDanger 
   return evenements.filter((evenement) => evenement.type !== 'assistance').map((evenement) => DANGERS[evenement.type] ?? null);
 }
 
+/**
+ * Rangs des phrases du récit de `rendreEvenements` qui touchent à la créature : son arrivée sous les yeux du passager, le premier
+ * contact, la menace (attaque sans blessure) et ses griffes (attaque qui blesse) : en rouge, comme les dangers apparus.
+ */
+export function alertesCreature(evenements: readonly Evenement[]): number[] {
+  return evenements
+    .filter((evenement) => evenement.type !== 'assistance')
+    .flatMap((evenement, rang) => (attaqueOuArriveeCreature(evenement) ? [rang] : []));
+}
+
+function attaqueOuArriveeCreature(evenement: Evenement): boolean {
+  switch (evenement.type) {
+    case 'creature_entre':
+    case 'premier_contact':
+    case 'menace':
+      return true;
+    case 'aggravation_blesse':
+    case 'aggravation_critique':
+    case 'defaite':
+      return evenement.causes.includes('griffes');
+    default:
+      return false;
+  }
+}
+
 /** Phrase d'observation d'un danger en vue : dans la pièce du passager, ou derrière un passage (mêmes textes que « Regarder »). */
 export function rendreDangerVu(textes: TextesMonde, nature: NatureDanger, passage: RefPassage | null): string {
   const modele = textes.observation;

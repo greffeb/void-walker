@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { alertesCreature, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
@@ -555,6 +555,20 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
   it('phrases du récit, sans les messages d’assistance : le feu qui se montre ou gagne une pièce, l’air perdu', () => {
     const evenements = [{ type: 'assistance' }, { type: 'passage_ouvert' }, { type: 'feu_gagne' }, { type: 'feu_eteint' }, { type: 'feu_derriere' }, { type: 'air_perdu' }];
     expect(dangersDuRecit(evenements as Parameters<typeof dangersDuRecit>[0])).toEqual([null, 'feu', null, 'feu', 'vide']);
+  });
+
+  it('phrases du récit en rouge pour la créature : arrivée, premier contact, attaque ratée (menace) ou réussie (griffes)', () => {
+    const evenements = [
+      { type: 'assistance' },
+      { type: 'creature_entre' },
+      { type: 'premier_contact' },
+      { type: 'menace' },
+      { type: 'aggravation_blesse', causes: ['griffes'] },
+      { type: 'aggravation_critique', causes: ['feu'] },
+      { type: 'defaite', causes: ['froid', 'griffes'] },
+      { type: 'bruit_creature' },
+    ];
+    expect(alertesCreature(evenements as Parameters<typeof alertesCreature>[0])).toEqual([0, 1, 2, 3, 5]);
   });
 
   it('aucune alerte avant la découverte du feu', async () => {

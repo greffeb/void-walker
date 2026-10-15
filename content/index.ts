@@ -39,6 +39,7 @@ export { ASSISTANCE_STATION, MOTS_UNIVERS, UNIVERS } from './textes/univers';
 export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir } from './textes/gabarit';
 export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
 export {
+  alertesCreature,
   cleEvacuation,
   dangersDuRecit,
   libelleOption,
