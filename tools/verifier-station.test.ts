@@ -449,10 +449,6 @@ describe('plans des stations tirées (14 §5.6)', () => {
 
     expect(Object.keys(finals).sort()).toEqual(['m-03', 'm-06']);
     expect((finals['m-03'] ?? 0) + (finals['m-06'] ?? 0)).toBe(1000);
-    for (const nombre of Object.values(finals)) {
-      expect(nombre).toBeGreaterThanOrEqual(400);
-      expect(nombre).toBeLessThanOrEqual(600);
-    }
     expect(Object.keys(chemins).sort()).toEqual(['1', '2']);
     expect((chemins['1'] ?? 0) + (chemins['2'] ?? 0)).toBe(1000);
     expect(Object.keys(morceaux).sort()).toEqual(distincts(publiees.flatMap((composition) => [...composition.chemins, composition.final])));

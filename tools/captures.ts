@@ -1558,8 +1558,9 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
 }
 
 /**
- * Plans des stations (14 §4.3) : rendu d'auteur de chaque monde, montré au porteur avant fusion ; puis une galerie de stations
- * tirées (#153), six par groupe (un ou deux chemins, M-03 ou M-06), chacune d'une composition publiée du groupe tirée au hasard.
+ * Plans des stations (14 §4.3) : rendu d'auteur de chaque monde, montré au porteur avant fusion, et de la station à trois
+ * obstacles avec la baie (`STATION_BAIE`) ; puis une galerie de stations tirées (#153), six par groupe (un ou deux chemins,
+ * M-03 ou M-06), chacune d'une composition publiée du groupe tirée au hasard.
  */
 async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const contexte = await navigateur.newContext({ viewport: REFERENCE, locale: 'fr-FR' });
@@ -1684,7 +1685,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'plans'),
       erreursPlans,
       [
-        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
+        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
       ],
     ),
   ];

@@ -61,7 +61,7 @@ export const TEXTES_MORCEAU_M06: TextesMorceau = {
   },
   descriptions: {
     couloir_securite: [
-      'Un couloir étroit, balisé de bandes jaunes et noires. Au-dessus de chaque porte, un voyant dit s’il reste de l’air de l’autre côté.',
+      'Un couloir étroit, sous des plafonniers blafards. Au-dessus de chaque porte, un voyant dit s’il reste de l’air de l’autre côté.',
       'Le couloir de sécurité est nu, ses parois peintes en gris. Chaque porte a son petit voyant d’air, au-dessus du cadre.',
     ],
     local: repris(TEXTES_AR02.descriptions, 'local'),

@@ -316,7 +316,8 @@ export function sansConflit(entrees: readonly EntreeMorceau[]): EntreeMorceau[] 
 
 /**
  * Pièces du même nom affiché désignées par une lettre dans toute la station, dans l'ordre des pièces (D-208, spec L3 §4.2) :
- * `coursive` → `coursive_a`, « coursive A ». Pas de chiffre : la carte et l'écran de fin n'en affichent aucun.
+ * `coursive` → `coursive_a`, « coursive A ». Pas de chiffre dans le nom affiché : la carte et l'écran de fin n'en montrent
+ * aucun ; une clé interne renommée par `sansConflit` peut en avoir (`coursive_m07_a`).
  */
 export function numeroter(entree: EntreeMonde): EntreeMonde {
   const { monde, textes } = entree;

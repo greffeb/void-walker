@@ -40,8 +40,8 @@ export const MORCEAU_M09: DefMorceau = {
 };
 
 // Textes du morceau (C-07) : sas, interrupteur et message d'arrivée repris de la station de test M-09, l'interrupteur sous une
-// clé distincte de celui des machines. La coursive de transfert, décrite sans l'état de sa gravité qui change en partie, et
-// la cale sont écrites pour ce morceau. Texte final non validé.
+// clé distincte de celui des machines. La coursive de transfert et la cale sont écrites pour ce morceau ; la description de la
+// coursive tait sa gravité, qui change en cours de partie, et l'observation la dit. Texte final non validé.
 export const TEXTES_MORCEAU_M09: TextesMorceau = {
   noms: {
     sas_ouest: repris(TEXTES_PROPRES_M09.noms, 'sas_ouest'),
@@ -59,7 +59,7 @@ export const TEXTES_MORCEAU_M09: TextesMorceau = {
     sas_est: repris(TEXTES_PROPRES_M09.descriptions, 'sas_est'),
     cale: [
       'Une cale basse sous des poutrelles nues. Des conteneurs sanglés s’alignent contre les parois.',
-      'Des conteneurs arrimés par des sangles, des filets tendus sous le plafond. Une étiquette sur deux est arrachée.',
+      'Des conteneurs arrimés par des sangles, des filets tendus sous le plafond. Dans un coin, un conteneur cabossé.',
     ],
     interrupteur_gravite: repris(TEXTES_PROPRES_M09.descriptions, 'interrupteur'),
   },

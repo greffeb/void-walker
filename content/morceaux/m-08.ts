@@ -49,7 +49,7 @@ export const TEXTES_MORCEAU_M08: TextesMorceau = {
   descriptions: {
     atelier: [
       'Un atelier de maintenance aux établis renversés. Des outils jonchent le sol.',
-      'Des établis, des étaux, une odeur de graisse. Quelques outils pendent encore au tableau mural.',
+      'Des établis, des étaux, de la limaille sur le sol. Quelques outils pendent encore au tableau mural.',
     ],
     ouest: repris(TEXTES_PROPRES_M08.descriptions, 'ouest'),
     est: repris(TEXTES_PROPRES_M08.descriptions, 'est'),

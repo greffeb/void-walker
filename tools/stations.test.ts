@@ -138,6 +138,46 @@ describe('M-06, M-08 et M-09 (spec L3 §3.1 à §3.3)', () => {
     expect(textes.assistance[message]).toBeDefined();
   });
 
+  it.each([
+    [
+      'm-08',
+      [
+        [['p-quartiers', 'p-atelier'], 'porte', 'ouverte', false, false],
+        [['p-quartiers', 'p-ouest'], 'porte_grippee', 'fermée', true, false],
+        [['p-ouest', 'p-est'], 'vide', 'ouverte', false, true],
+        [['p-est', 'p-magasin'], 'porte', 'fermée', false, false],
+      ],
+      { piece: 'p-est', porte: { nom: 'porte' } },
+    ],
+    [
+      'm-09',
+      [
+        [['p-quartiers', 'p-sas-ouest'], 'porte', 'fermée', false, false],
+        [['p-sas-ouest', 'p-transfert'], 'porte', 'ouverte', false, false],
+        [['p-transfert', 'p-sas-est'], 'porte', 'ouverte', false, false],
+        [['p-sas-est', 'p-cale'], 'porte', 'fermée', false, false],
+      ],
+      { piece: 'p-sas-est', porte: { nom: 'porte' } },
+    ],
+    [
+      'm-06',
+      [
+        [['p-couloir', 'p-local'], 'porte', 'ouverte', false, false],
+        [['p-couloir', 'p-panoramique'], 'porte', 'fermée', false, false],
+        [['p-panoramique', 'p-embarquement'], 'porte_grippee', 'fermée', true, false],
+        [['p-embarquement', 'p-cabine'], 'ecoutille', 'fermée', false, false],
+      ],
+      undefined,
+    ],
+  ] as const)('%s : liaisons [extrémités, nom, état, bruyante, gouffre] et porte de sortie figées', (id, liaisons, sortie) => {
+    const { morceau } = entree(id);
+    expect(
+      morceau.liaisons.map((liaison) => [liaison.entre, liaison.nom, liaison.ouverte ? 'ouverte' : 'fermée', liaison.bruyante === true, liaison.gouffre === true]),
+    ).toEqual(liaisons);
+    expect(morceau.sortie).toEqual(sortie);
+    expect(morceau.sortie?.porte.bruyante).toBeUndefined();
+  });
+
   it('M-08 : la planche, pont encombrant, est dans l’atelier ; pas de touret', () => {
     const { morceau } = entree('m-08');
     expect(morceau.objets).toEqual([{ id: 'o-planche', nom: 'planche', piece: 'p-atelier', pont: true, encombrant: true }]);
