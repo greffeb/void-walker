@@ -312,20 +312,28 @@ describe('catalogue vérifié à la construction (#152)', () => {
     lignes = verifierCatalogue(CATALOGUE);
   }, 300000);
 
-  it('toutes les compositions possibles sont prouvées ; l’ensemble prouvé égale les compositions publiées', () => {
-    expect(lignes.map((ligne) => [ligne.composition, ligne.verdict])).toEqual(CATALOGUE.compositions.map((composition) => [composition.id, 'prouvee']));
+  it('publiées prouvées, les autres sans sortie sûre : palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4) ; l’ensemble prouvé égale les compositions publiées', () => {
+    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
+    const bouchee = ({ chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean => {
+      if (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier') return false;
+      return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
+    };
+    expect(lignes.map((ligne) => [ligne.composition, ligne.verdict])).toEqual(
+      CATALOGUE.compositions.map((composition) => [composition.id, bouchee(composition) ? 'sans_sortie_sure' : 'prouvee']),
+    );
     expect(lignes.filter((ligne) => ligne.verdict === 'prouvee').map((ligne) => ligne.composition)).toEqual(COMPOSITIONS_PUBLIEES);
     for (const ligne of lignes) {
       expect(ligne.etats).toBeGreaterThan(0);
-      expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions/);
+      if (ligne.verdict === 'prouvee') expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions/);
+      else expect(ligne.diagnostic).toContain('Aucune évacuation sans dé ni blessure');
     }
     expect(ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, [])).toEqual([]);
   });
 
-  it('88 compositions prouvées, chacune avec la longueur de son témoin, celle du diagnostic', () => {
-    expect(lignes).toHaveLength(88);
-    for (const ligne of lignes) {
-      expect(ligne.verdict).toBe('prouvee');
+  it('368 compositions, 324 prouvées, chacune avec la longueur de son témoin, celle du diagnostic', () => {
+    expect(lignes).toHaveLength(368);
+    expect(lignes.filter((ligne) => ligne.verdict === 'prouvee')).toHaveLength(324);
+    for (const ligne of lignes.filter(({ verdict }) => verdict === 'prouvee')) {
       expect(ligne.actions).toBe(Number(/prouvée en (\d+) actions/.exec(ligne.diagnostic)?.[1]));
       expect(ligne.actions).toBeGreaterThanOrEqual(1);
       expect(ligne.actions).toBeLessThanOrEqual(60);
@@ -370,14 +378,16 @@ describe('catalogue vérifié à la construction (#152)', () => {
     const attendu: [string, LigneCatalogue['verdict'], number][] = CATALOGUE.compositions.map(({ id, chemins, final }) =>
       chemins.includes('m-07') && final === 'm-03' ? [id, 'refusee', 0] : [id, 'non_prouvee', 1],
     );
-    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(20);
+    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(44);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
     for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
     // Ni refusée ni non prouvée n'a de témoin.
     expect(sans.filter((ligne) => ligne.actions !== null)).toEqual([]);
     expect(assembles.filter((id) => id.split('-').includes('m07') && id.split('-').includes('m03'))).toEqual([]);
     expect(ecartsDuCatalogue(sans, COMPOSITIONS_PUBLIEES, [])).toEqual(
-      attendu.map(([composition, verdict]) => `Composition publiée ${composition} non prouvée (${verdict}).`),
+      attendu
+        .filter(([composition]) => COMPOSITIONS_PUBLIEES.includes(composition))
+        .map(([composition, verdict]) => `Composition publiée ${composition} non prouvée (${verdict}).`),
     );
   });
 
@@ -397,40 +407,18 @@ describe('catalogue vérifié à la construction (#152)', () => {
 describe('plans des stations tirées (14 §5.6)', () => {
   it('sur 1 000 graines, au moins 95 % de plans par chemin ; temps mesurés, non assertés', () => {
     const mesures = mesurerPlans(1000);
-    expect(mesures.map((mesure) => mesure.chemin)).toEqual([
-      'vestibule + m-07 + m-03',
-      'vestibule + m-07 + m-06',
-      'vestibule + m-07 + m-08 + m-03',
-      'vestibule + m-07 + m-08 + m-06',
-      'vestibule + m-07 + m-09 + m-03',
-      'vestibule + m-07 + m-09 + m-06',
-      'vestibule + m-07 + m-10 + m-03',
-      'vestibule + m-07 + m-10 + m-06',
-      'vestibule + m-08 + m-03',
-      'vestibule + m-08 + m-06',
-      'vestibule + m-08 + m-07 + m-03',
-      'vestibule + m-08 + m-07 + m-06',
-      'vestibule + m-08 + m-09 + m-03',
-      'vestibule + m-08 + m-09 + m-06',
-      'vestibule + m-08 + m-10 + m-03',
-      'vestibule + m-08 + m-10 + m-06',
-      'vestibule + m-09 + m-03',
-      'vestibule + m-09 + m-06',
-      'vestibule + m-09 + m-07 + m-03',
-      'vestibule + m-09 + m-07 + m-06',
-      'vestibule + m-09 + m-08 + m-03',
-      'vestibule + m-09 + m-08 + m-06',
-      'vestibule + m-09 + m-10 + m-03',
-      'vestibule + m-09 + m-10 + m-06',
-      'vestibule + m-10 + m-03',
-      'vestibule + m-10 + m-06',
-      'vestibule + m-10 + m-07 + m-03',
-      'vestibule + m-10 + m-07 + m-06',
-      'vestibule + m-10 + m-08 + m-03',
-      'vestibule + m-10 + m-08 + m-06',
-      'vestibule + m-10 + m-09 + m-03',
-      'vestibule + m-10 + m-09 + m-06',
-    ]);
+    const chaines = [...new Set(CATALOGUE.compositions.map(({ chemins, final }) => ['vestibule', ...chemins, final].join(' + ')))];
+    expect(chaines).toHaveLength(128);
+    expect(mesures.map((mesure) => mesure.chemin)).toEqual(chaines);
+    expect(chaines).toEqual(
+      expect.arrayContaining([
+        'vestibule + m-07 + m-03',
+        'vestibule + m-10 + m-09 + m-06',
+        'vestibule + m-01 + m-02 + m-03',
+        'vestibule + m-09 + m-04 + m-06',
+        'vestibule + m-05 + m-10 + m-03',
+      ]),
+    );
     for (const mesure of mesures) {
       expect(mesure.tirages).toBe(1000);
       expect(mesure.trouves).toBeGreaterThanOrEqual(950);
