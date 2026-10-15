@@ -163,16 +163,16 @@ export function dangersDuRecit(evenements: readonly Evenement[]): (NatureDanger 
 }
 
 /**
- * Rangs des phrases du récit de `rendreEvenements` qui touchent à la créature : son arrivée sous les yeux du passager, le premier
- * contact, la menace (attaque sans blessure) et ses griffes (attaque qui blesse) : en rouge, comme les dangers apparus.
+ * Rangs des phrases du récit de `rendreEvenements` qui annoncent la créature ou un dégât subi : son arrivée sous les yeux du passager, le premier
+ * contact, la menace (attaque sans blessure), et tout dégât subi (griffes, feu, froid, vide) : en rouge, comme les dangers apparus.
  */
-export function alertesCreature(evenements: readonly Evenement[]): number[] {
+export function alertesMenace(evenements: readonly Evenement[]): number[] {
   return evenements
     .filter((evenement) => evenement.type !== 'assistance')
-    .flatMap((evenement, rang) => (attaqueOuArriveeCreature(evenement) ? [rang] : []));
+    .flatMap((evenement, rang) => (estMenaceOuDegat(evenement) ? [rang] : []));
 }
 
-function attaqueOuArriveeCreature(evenement: Evenement): boolean {
+function estMenaceOuDegat(evenement: Evenement): boolean {
   switch (evenement.type) {
     case 'creature_entre':
     case 'premier_contact':
@@ -181,7 +181,7 @@ function attaqueOuArriveeCreature(evenement: Evenement): boolean {
     case 'aggravation_blesse':
     case 'aggravation_critique':
     case 'defaite':
-      return evenement.causes.includes('griffes');
+      return true;
     default:
       return false;
   }

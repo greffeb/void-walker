@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { alertesCreature, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
@@ -557,7 +557,7 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
     expect(dangersDuRecit(evenements as Parameters<typeof dangersDuRecit>[0])).toEqual([null, 'feu', null, 'feu', 'vide']);
   });
 
-  it('phrases du récit en rouge pour la créature : arrivée, premier contact, attaque ratée (menace) ou réussie (griffes)', () => {
+  it('phrases du récit en rouge pour la créature : arrivée, premier contact, attaque ratée (menace), dégâts subis (griffes, feu, froid)', () => {
     const evenements = [
       { type: 'assistance' },
       { type: 'creature_entre' },
@@ -568,7 +568,7 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
       { type: 'defaite', causes: ['froid', 'griffes'] },
       { type: 'bruit_creature' },
     ];
-    expect(alertesCreature(evenements as Parameters<typeof alertesCreature>[0])).toEqual([0, 1, 2, 3, 5]);
+    expect(alertesMenace(evenements as Parameters<typeof alertesMenace>[0])).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   it('aucune alerte avant la découverte du feu', async () => {

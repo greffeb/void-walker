@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
-import { alertesCreature, dangersDuRecit, raconter, raconterDerniers, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type Refus, type TextesMonde } from '../content';
+import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
@@ -121,7 +121,7 @@ function signaler(
       lignes.push(rendreDangerVu(textes, nature, passage));
     }
   }
-  alertes.push(...alertesCreature(evenements));
+  alertes.push(...alertesMenace(evenements));
   return { recit: lignes, alertes: [...new Set(alertes)].sort((a, b) => a - b) };
 }
 
