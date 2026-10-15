@@ -180,6 +180,7 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 - **Étape 3, aperçu** (§3.8), puis deux boutons : ANNULER (un tiers de la largeur, contour) et CONFIRMER (deux tiers, vidéo inverse).
 - **Un seul toucher :** prendre, poser ou changer de pièce sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». [Validé D-182, D-229]
 - **Bulle d'un passage :** la ligne du déplacement nomme où il mène, « ▸ Aller dans l'atelier », « ▸ Passer par la grille » si la destination est inconnue ; elle vient en tête, avant « ▸ Ouvrir » ou « ▸ Fermer ». [Détail de l'agent, D-229]
+- **Pupitre de départ :** sa bulle offre aussi « ▸ Fermer l'écoutille » ou « ▸ Ouvrir l'écoutille », au-dessus de « ▸ Lancer » ; mêmes options que le bouton du bas, seule exception à la place unique de §3.4. [Validé D-266]
 - **Fermer sans effet :** « ✕ », ANNULER, toucher hors de la bulle, retour système. [Proposé]
 - La phrase « Rien ne se passe avant confirmation » est retirée. [Validé]
 

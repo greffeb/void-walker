@@ -6,6 +6,7 @@ import {
   composerDock,
   etapeBulle,
   filBulle,
+  libelleLigne,
   lignesActions,
   nomDestination,
   nomParametre,
@@ -439,9 +440,11 @@ function Fil({ textes, groupe, etape }: { readonly textes: TextesMonde; readonly
   if (etape.type === 'apercu' && etape.option.action === 'aller') return filBulle(textes, groupe.cible, etape.option);
   const action = etape.type === 'parametre' ? etape.action : etape.option.action;
   const parametre = etape.type === 'apercu' ? etape.option.parametre : undefined;
+  // L'écoutille choisie au pupitre garde son nom : « ÉCOUTILLE › FERMER » (#159).
+  const cible = etape.type === 'apercu' ? etape.option.cible : groupe.cible;
   return (
     <>
-      {`${nomPuce(textes, groupe.cible)} › ${textes.verbes[action]}`}
+      {`${nomPuce(textes, cible)} › ${textes.verbes[action]}`}
       {parametre !== undefined && <span className="fil-parametre">{` › ${nomParametre(textes, parametre)}`}</span>}
     </>
   );
@@ -587,9 +590,7 @@ function Composer({
       {lignes.length > 0 && (
         <ul className="lignes">
           {lignes.map((action) => {
-            const { libelle, raison } = libelleOption(textes, action);
-            // Dans la bulle d'un passage, le déplacement nomme où il mène : « Aller dans l'atelier », « Passer par la grille » (D-229).
-            const verbe = action.action === 'aller' ? libelle : textes.verbes[action.action];
+            const { libelle: verbe, raison } = libelleLigne(textes, groupe, action);
             return (
               <li key={action.action}>
                 {raison !== null ? (

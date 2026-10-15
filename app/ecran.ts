@@ -1,4 +1,4 @@
-import { former, nomDe, type TextesMonde } from '../content';
+import { former, libelleOption, nomDe, type TextesMonde } from '../content';
 import {
   ACTIONS,
   apercu,
@@ -59,12 +59,24 @@ export function composerDock(observation: Observation, ouverts: readonly string[
     return [{ cible: passage, aller, options: [aller, ...options.filter((option) => option !== aller)] }];
   });
   const autres = observation.menu.filter((option) => option.action !== 'aller' && !deplacements.some((deplacement) => deplacement.options.includes(option)));
+  const manoeuvres = observation.menu.filter((option) => option.cible.sorte === 'passage' && (option.action === 'ouvrir' || option.action === 'fermer'));
   return {
-    piece: grouper([...observation.objets, ...observation.passages], autres),
+    piece: grouper([...observation.objets, ...observation.passages], autres).map((groupe) => avecEcoutille(groupe, manoeuvres)),
     autour: autres.find((option) => option.cible.sorte === 'piece'),
     deplacements,
     inventaire: grouper(observation.inventaire, autres),
   };
+}
+
+/**
+ * Le pupitre de départ ouvre ou ferme aussi l'écoutille de sa cabine, avant « Lancer » comme le dit sa notice (#159). Mêmes
+ * options que le bouton du bas : un seul état, partagé. Seule exception à la place unique de chaque option (12 §3.4).
+ * shortcut: suppose une seule porte à la cabine (vrai pour toutes les capsules), à revoir si une cabine en a deux.
+ */
+function avecEcoutille(groupe: Groupe, manoeuvres: readonly OptionMenu[]): Groupe {
+  const rang = groupe.options.findIndex((option) => option.action === 'lancer');
+  if (rang === -1) return groupe;
+  return { ...groupe, options: [...groupe.options.slice(0, rang), ...manoeuvres, ...groupe.options.slice(rang)] };
 }
 
 /**
@@ -189,6 +201,17 @@ export function nomPuce(textes: TextesMonde, cible: Cible): string {
 /** Destination d'un bouton « Se déplacer vers », ou le passage lui-même tant qu'elle est inconnue ; les capitales viennent du style. */
 export function nomDestination(textes: TextesMonde, option: OptionMenu): string {
   return nomDe(textes, option.cible.sorte === 'passage' ? (option.cible.vers ?? option.cible) : option.cible).texte;
+}
+
+/**
+ * Libellé d'une ligne d'action : le verbe seul, « Fermer » ; le déplacement nomme où il mène (D-229) ; l'écoutille au pupitre
+ * se nomme, « Fermer l'écoutille » (#159).
+ */
+export function libelleLigne(textes: TextesMonde, groupe: Groupe, option: OptionMenu): { readonly libelle: string; readonly raison: string | null } {
+  const { libelle, raison } = libelleOption(textes, option);
+  if (option.action === 'aller') return { libelle, raison };
+  const verbe = textes.verbes[option.action];
+  return { libelle: option.cible.id === groupe.cible.id ? verbe : `${verbe} ${former('le', nomDe(textes, option.cible.sorte === 'passage' ? { ...option.cible, vers: null } : option.cible))}`, raison };
 }
 
 /** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Caisse › Déplacer › sous la grille », « Aller vers › atelier ». */
