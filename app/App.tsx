@@ -431,7 +431,7 @@ export function EcranRefus({ motif, reglages }: { readonly motif: string; readon
           <section className="confirmation-accueil" role="alert">
             <p>Station refusée : {motif}</p>
           </section>
-          <button type="button" className="principal" disabled>
+          <button type="button" className="principal" disabled data-son="clic">
             Nouvelle partie
           </button>
         </div>

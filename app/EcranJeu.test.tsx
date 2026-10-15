@@ -694,7 +694,7 @@ describe('station refusée par l’adresse (#152)', () => {
     expect(texte(entre(html, '<section', '</section>'))).toBe('Station refusée : Station inconnue : m07-m03-inconnue-1.');
     expect(html).toContain('role="alert"');
     expect(html.match(/<button/g)).toHaveLength(1);
-    expect(html).toContain('<button type="button" class="principal" disabled="">Nouvelle partie</button>');
+    expect(html).toContain('<button type="button" class="principal" disabled="" data-son="clic">Nouvelle partie</button>');
   });
 });
 
