@@ -1,39 +1,40 @@
 // Contenu du jeu : n'utilise que les types du moteur (docs/10-architecture.md §3).
-import { MONDE_AR01 } from './ar-01/monde';
-import { PARCOURS_AR01 } from './ar-01/parcours';
-import { TEXTES_AR01 } from './ar-01/textes';
-import { MONDE_AR02 } from './ar-02/monde';
-import { PARCOURS_AR02 } from './ar-02/parcours';
-import { TEXTES_AR02 } from './ar-02/textes';
-import { MONDE_M07 } from './m-07/monde';
-import { PARCOURS_M07 } from './m-07/parcours';
-import { TEXTES_M07 } from './m-07/textes';
-import { MONDE_M08 } from './m-08/monde';
-import { PARCOURS_M08 } from './m-08/parcours';
-import { TEXTES_M08 } from './m-08/textes';
-import { MONDE_M09 } from './m-09/monde';
-import { PARCOURS_M09 } from './m-09/parcours';
-import { TEXTES_M09 } from './m-09/textes';
-import { MONDE_M10 } from './m-10/monde';
-import { PARCOURS_M10 } from './m-10/parcours';
-import { TEXTES_M10 } from './m-10/textes';
-import { MONDE_TEST } from './monde-test/monde';
-import { PARCOURS_MONDE_TEST } from './monde-test/parcours';
-import { TEXTES_MONDE_TEST } from './monde-test/textes';
-import type { EntreeMonde } from './types';
+import { MESSAGES_M07 } from './m-07/textes';
+import { TEXTES_PROPRES_M08 } from './m-08/textes';
+import { TEXTES_PROPRES_M09 } from './m-09/textes';
+import { MESSAGES_M10 } from './m-10/textes';
+import { MORCEAUX } from './morceaux';
+import type { TextesMorceau } from './textes/types';
 
-export const MONDES: Readonly<Record<string, EntreeMonde>> = {
-  [MONDE_AR01.id]: { monde: MONDE_AR01, textes: TEXTES_AR01, parcours: PARCOURS_AR01 },
-  [MONDE_AR02.id]: { monde: MONDE_AR02, textes: TEXTES_AR02, parcours: PARCOURS_AR02 },
-  [MONDE_TEST.id]: { monde: MONDE_TEST, textes: TEXTES_MONDE_TEST, parcours: [PARCOURS_MONDE_TEST] },
-  // Stations de test des nouveaux morceaux (#105) : une par morceau, avec les parcours de sa fiche.
-  [MONDE_M07.id]: { monde: MONDE_M07, textes: TEXTES_M07, parcours: PARCOURS_M07 },
-  [MONDE_M08.id]: { monde: MONDE_M08, textes: TEXTES_M08, parcours: PARCOURS_M08 },
-  [MONDE_M09.id]: { monde: MONDE_M09, textes: TEXTES_M09, parcours: PARCOURS_M09 },
-  [MONDE_M10.id]: { monde: MONDE_M10, textes: TEXTES_M10, parcours: PARCOURS_M10 },
+export { MORCEAUX, type EntreeMorceau } from './morceaux';
+export {
+  COMPOSITIONS_PUBLIEES,
+  creerCatalogue,
+  MONDES,
+  numeroter,
+  type Catalogue,
+  type Composition,
+  type Refus,
+} from './stations/catalogue';
+export { PAIRES, type LignePaire } from './stations/paires';
+
+/**
+ * Textes propres que le contrôle de fuites relit avec le socle (13 §7.2) : ceux des morceaux, puis ceux qui n'appartiennent
+ * qu'à une station de test.
+ */
+export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
+  ...Object.fromEntries(Object.entries(MORCEAUX).map(([id, { textes }]) => [id, textes])),
+  'station m-07': { noms: {}, descriptions: {}, assistance: MESSAGES_M07 },
+  'station m-08': TEXTES_PROPRES_M08,
+  'station m-09': TEXTES_PROPRES_M09,
+  'station m-10': { noms: {}, descriptions: {}, assistance: MESSAGES_M10 },
 };
 
-export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
+export { fuitesDeCouches, reunir } from './textes/couches';
+export { MENACE, MOTS_MENACE } from './textes/menace';
+export { SOCLE } from './textes/socle';
+export { TEXTES_STATION_ESSAI } from './textes/station-essai';
+export { ASSISTANCE_STATION, MOTS_UNIVERS, UNIVERS } from './textes/univers';
 
 export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir } from './textes/gabarit';
 export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
@@ -73,8 +74,10 @@ export {
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
   type CleEvacuation,
+  type Couche,
   type Nom,
   type TextesMonde,
+  type TextesMorceau,
   type TypeAggravation,
   type TypeRecit,
   type Variantes,

@@ -11,7 +11,8 @@ import {
   type OptionMenu,
   type Partie,
 } from '../engine';
-import { MONDES, type EntreeMonde, type EtapeParcours, type Parcours } from '../content';
+import type { EntreeMonde, EtapeParcours, Parcours } from '../content';
+import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 
 // Stations de test des nouveaux morceaux (#105) : parcours sûrs de chaque fiche (docs/13-morceaux-lancement.md §3) et le risqué
@@ -21,7 +22,7 @@ import { executerParcours, trouverOption } from './rejouer-parcours';
 const STATIONS = ['m-07', 'm-08', 'm-09', 'm-10'] as const;
 
 function entree(id: string): EntreeMonde {
-  const trouvee = MONDES[id];
+  const trouvee = CATALOGUE.mondes[id];
   if (trouvee === undefined) throw new Error(`Monde ${id} absent.`);
   return trouvee;
 }
@@ -101,23 +102,23 @@ describe('M-07 — salle des machines (T-15, T-16)', () => {
   it('T-15 : la porte grippée s’ouvre dans la salle en marche ; son grincement n’en sort pas, la créature reste dans la soute', () => {
     const ouvert = engager(monde, dansLaSalle(), { action: 'ouvrir', cible: 'porte_grippee', vers: 'coursive' });
     expect(types(ouvert.evenements)).toEqual(['passage_ouvert', 'bruit_couvert']);
-    expect(ouvert.partie.etat.creature).toMatchObject({ piece: 'p-soute', indice: null });
+    expect(ouvert.partie.etat.creature).toMatchObject({ piece: 'm-07/p-soute', indice: null });
   });
 
   it('T-15, contre-épreuve : machines arrêtées, le même geste l’attire vers la salle', () => {
     const arretees = apres(monde, dansLaSalle(), [{ action: 'arreter', cible: 'interrupteur' }]);
     const ouvert = engager(monde, arretees, { action: 'ouvrir', cible: 'porte_grippee', vers: 'coursive' });
     expect(types(ouvert.evenements)).toContain('bruit_mecanisme');
-    expect(ouvert.partie.etat.creature).toMatchObject({ piece: 'p-quartiers', indice: { piece: 'p-machines', par: null } });
+    expect(ouvert.partie.etat.creature).toMatchObject({ piece: 'm-07/p-quartiers', indice: { piece: 'm-07/p-machines', par: null } });
   });
 
   it('T-16 : la relance est un grand bruit que la créature voisine entend ; elle rejoint la salle', () => {
     const etapes = parcours('m-07', 'M-07 — Relancer').etapes;
     const pas = suite(monde, depart(monde), etapes.slice(0, 6));
     expect(types(pas[4]?.evenements ?? [])).toEqual(['machines_relancees']);
-    expect(pas[4]?.partie.etat.creature).toMatchObject({ piece: 'p-quartiers', indice: { piece: 'p-machines', par: null } });
-    expect(pas[5]?.partie.etat.creature?.piece).toBe('p-machines');
-    expect(pas[5]?.partie.etat.piece).toBe('p-coursive');
+    expect(pas[4]?.partie.etat.creature).toMatchObject({ piece: 'm-07/p-quartiers', indice: { piece: 'm-07/p-machines', par: null } });
+    expect(pas[5]?.partie.etat.creature?.piece).toBe('m-07/p-machines');
+    expect(pas[5]?.partie.etat.piece).toBe('m-07/p-coursive');
   });
 });
 
@@ -212,7 +213,7 @@ describe('M-10 — chambre froide (D-166, D-170, D-239, D-240)', () => {
     const pas = suite(monde, depart(monde), parcours('m-10', debut).etapes);
     expect(Math.max(...pas.map((un) => un.partie.etat.froid))).toBeLessThanOrEqual(2);
     expect(pas.at(-1)?.partie.etat.creature?.ralentie).toBeDefined();
-    expect(pas.at(-1)?.partie.etat.creature?.piece).toBe('p-chambre');
+    expect(pas.at(-1)?.partie.etat.creature?.piece).toBe('m-10/p-chambre');
   });
 
   it('le compresseur l’attire dans la chambre, sous les yeux du passager ; ressortir par l’autre porte est libre (D-184)', () => {

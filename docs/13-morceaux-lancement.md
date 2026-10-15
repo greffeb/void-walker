@@ -1,7 +1,7 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8).
-> **Mise à jour :** 2026-10-14.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5).
+> **Mise à jour :** 2026-10-15.
 > **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256. **Parties sur téléphone :** absentes.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
@@ -47,7 +47,7 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 ### M-03 — Énergie (AR-01 P, final)
 
 - **Pièces :** un local avec la console du circuit et le bloc de secours ; la salle d'embarquement et sa capsule (D-249).
-- **Créature :** dans une pièce voisine reliée au local.
+- **Créature :** dans la réserve reliée au local, porte ouverte au départ (D-262).
 - **Sûr :** isoler le bruit puis réactiver le circuit, ou porter le bloc par les passages normaux et l'installer.
 
 ### M-04 — Salle d'observation (AR-01 O)
@@ -73,7 +73,7 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 ### M-07 — Salle des machines (nouveau, D-163)
 
 - **Pièces :** une salle des machines entre deux pièces, avec un interrupteur.
-- **Créature :** peut attendre dans la salle des machines ; on ne l'entend pas venir.
+- **Créature :** dans la soute, ouverte sur la pièce d'entrée, jamais dans la salle des machines (D-261). Dans la salle des machines en marche, le passager n'entend rien venir (D-163, D-235).
 - **Sûr :** faire dans la salle les gestes bruyants (ouvrir une porte grippée) : rien ne sort. Ou relancer les machines depuis l'interrupteur de la salle pour attirer la créature, puis repartir par l'autre porte (un seul interrupteur, D-173).
 - **Risqué :** entrer sans savoir si elle est là.
 
@@ -286,6 +286,48 @@ Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée
 10. Il est déjà décidé que certains obstacles se préparent dans l'ordre que le joueur veut. Concrètement, cela peut-il prendre cette forme : deux obstacles qui partent d'un même couloir, à régler tous les deux, dans n'importe quel ordre, avant le problème final ? *Recommandé :* oui, comme l'énergie et l'accès de la première aventure.
 11. Dans la version de test, NOUVELLE PARTIE tire-t-elle une station au hasard, les aventures de référence restant jouables par un lien ? *Recommandé :* oui.
 12. Le panneau caché ne bloque rien à lui seul. *Recommandé :* la créature peut attendre sur le chemin normal, et le passage étroit derrière le panneau, où elle ne passe jamais, permet de la contourner. Les endroits où elle peut attendre autour de la galerie en feu seront proposés de la même façon, avant la première station qui l'utilise.
+
+### 7.5 Première station tirée L2 (#152)
+
+> **Statut :** implémenté sur la branche `content/152-premiere-station`, en attente de PR (zone orange). Conception : [spec L2](superpowers/specs/2026-10-15-premiere-station-tiree-design.md).
+
+NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 (Q-186, D-261) et une seule pièce voisine pour celle de M-03 (Q-187, D-262) ; la porte de cette pièce, ouverte au départ, vient de la conception qu'il a approuvée (D-262). Choix des agents : cette pièce s'appelle la réserve, pour ne pas la confondre avec la cabine de la capsule ; les pièces de même nom, numérotées (D-208), portent une lettre (coursive A, coursive B) ; une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
+
+`npm run check:stations` prouve chaque composition publiée à la construction, jamais au tirage, à la plus petite graine de plan qui donne une station : 0 pour les quatre. Une composition publiée non prouvée, ou prouvée non publiée, fait échouer la commande.
+
+Mesure locale indicative, contrôle du témoin compris ; les durées ne sont pas des assertions de test :
+
+| Composition | Verdict sûr | États | Temps | Actions du témoin |
+| --- | --- | ---: | ---: | ---: |
+| m07-m03-reserve | Prouvée | 19 195 | 0,90 s | 16 |
+| m07-m03-soute | Prouvée | 14 380 | 0,53 s | 15 |
+| m10-m03-entrepot | Prouvée | 15 333 | 0,62 s | 14 |
+| m10-m03-reserve | Prouvée | 9 502 | 0,47 s | 16 |
+
+Empreinte de chaque morceau, hachage de sa définition et de ses textes (D-100) :
+
+| Morceau | Empreinte |
+| --- | --- |
+| Vestibule | `1f99a2ef408c3e` |
+| M-07 | `1333e4663e79cd` |
+| M-10 | `1cf828ac42caea` |
+| M-03 | `16cbe101d56cd2` |
+
+**Plans**, sur 1 000 graines par chemin, échecs compris : 1 000 plans sur 1 000 pour chacun des deux chemins, 0,34 ms en moyenne et 2,33 ms au plus avec M-07, 0,33 et 1,69 ms avec M-10 ; le tirage complet du catalogue réussit 1 000 fois sur 1 000, en 0,37 ms en moyenne et 2,96 ms au plus. Seul le taux d'au moins 95 % est asserté (14 §5.6).
+
+**Questions posées au porteur le 2026-10-15**, pendant la conception :
+
+**Q-186, D-261.** « Dans le morceau « salle des machines », où la créature peut-elle attendre au début ? » Précision donnée : « La fiche dit « dans la salle des machines ». Mais cette salle est le seul passage vers la suite : si la créature y est, il n'existe aucune façon de passer sans risque, et la vérification rejette la station. Si elle attend dans la soute à côté des quartiers (comme dans la station de test actuelle), un passage sûr existe (15 actions). » Choix proposés : « Dans la soute seulement, comme la station de test » (recommandé) ou « Soute ou salle des machines ; les cas sans passage sûr sont écartés avant d'être proposés ».
+
+**Réponse du porteur :** « Dans la soute seulement, comme la station de test ».
+
+**Q-187, D-262.** « Dans le morceau final « énergie », dans quelle pièce voisine la créature attend-elle ? » Précision donnée : « La fiche dit « dans une pièce voisine reliée au local », sans dire laquelle. Proposition : le morceau apporte une petite réserve à côté du local, porte ouverte au départ. Remettre la console en marche fait un bruit qui l'attire, sauf si l'on a d'abord fermé cette porte ; porter le bloc d'énergie jusqu'à la capsule ne fait pas de bruit. Passage sûr vérifié avec les deux morceaux de chemin (16 actions). » Choix proposé : « Une réserve, porte ouverte au départ (proposition) », réponse libre permise.
+
+**Réponse du porteur :** « réserve ou cabine ». À la question de précision « Par « réserve ou cabine », voulez-vous dire que la créature peut attendre dans l'une ou l'autre, tirée au hasard ? », il a répondu : « Une seule pièce voisine ; « réserve » ou « cabine », c'est juste son nom ».
+
+**Approbation.** « Le document de conception vous convient-il pour passer au plan de travail ? », avec la liste des choix des agents.
+
+**Réponse du porteur :** « Oui, on passe au plan ». La conception approuvée ([spec L2 §3.5](superpowers/specs/2026-10-15-premiere-station-tiree-design.md#35-m-03--énergie-final)) prévoit la porte de la réserve ouverte au départ (D-262).
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

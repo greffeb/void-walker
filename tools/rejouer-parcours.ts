@@ -14,7 +14,6 @@ import {
 } from '../engine';
 import {
   libelleOption,
-  MONDES,
   rendreAssistance,
   rendreEvenements,
   rendreObservation,
@@ -23,6 +22,7 @@ import {
   type EtapeParcours,
   type Parcours,
 } from '../content';
+import { CATALOGUE } from './catalogue';
 import { isMainModule } from './repo-files';
 import { versionDuJeu } from './version';
 
@@ -151,7 +151,7 @@ export function executerParcours(entree: EntreeMonde, parcours: Parcours, versio
 if (isMainModule(import.meta.url)) {
   const version = versionDuJeu();
   let echecs = 0;
-  for (const entree of Object.values(MONDES)) {
+  for (const entree of Object.values(CATALOGUE.mondes)) {
     for (const parcours of entree.parcours) {
       const rapport = executerParcours(entree, parcours, version);
       console.log(rapport.lignes.join('\n'), '\n');

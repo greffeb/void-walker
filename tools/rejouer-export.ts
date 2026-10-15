@@ -2,7 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { empreinteEtat, lireExport, observer, rejouer } from '../engine';
 import { extrairePartie } from '../report-service/src/rapport';
-import { MONDES, rendreEvenements, rendreObservation } from '../content';
+import { rendreEvenements, rendreObservation } from '../content';
+import { CATALOGUE } from './catalogue';
 import { isMainModule } from './repo-files';
 import { versionDuJeu } from './version';
 
@@ -34,8 +35,8 @@ export interface RapportRejeu {
 
 export function rejouerExport(contenu: string, version: string): RapportRejeu {
   const fichier = lireExport(JSON.parse(contenu) as unknown);
-  const entree = Object.hasOwn(MONDES, fichier.monde) ? MONDES[fichier.monde] : undefined;
-  if (entree === undefined) throw new Error(`Monde inconnu : ${fichier.monde}.`);
+  const entree = CATALOGUE.resoudre(fichier.monde);
+  if ('refus' in entree) throw new Error(`Monde inconnu : ${fichier.monde}. ${entree.refus}`);
   const { partie, etapes } = rejouer(entree.monde, fichier, version);
   const lignes = [`Export : monde « ${fichier.monde} », version ${fichier.version}, graine ${fichier.graine}, ${fichier.actions.length} actions.`];
   if (fichier.commentaire !== undefined) lignes.push(`Commentaire : ${fichier.commentaire}`);

@@ -1,8 +1,9 @@
 import { randomInt } from 'node:crypto';
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { MONDE_PAR_DEFAUT, MONDES } from '../content';
-import { choisirMonde, executer, type EntreesSorties } from './partie-cli';
+import { assemblerStation } from '../engine';
+import { creerCatalogue } from '../content';
+import { choisirEntree, executer, type EntreesSorties } from './partie-cli';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
 
@@ -24,7 +25,7 @@ const es: EntreesSorties = {
 };
 
 const argv = process.argv.slice(2);
-const entree = choisirMonde(argv, MONDES, MONDE_PAR_DEFAUT, es);
+const entree = choisirEntree(argv, creerCatalogue(assemblerStation), es);
 if (typeof entree === 'string') {
   console.log(entree);
   process.exitCode = 1;

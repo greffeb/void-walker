@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
-import { dangersDuRecit, raconter, raconterDerniers, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type EntreeMonde, type TextesMonde } from '../content';
+import { dangersDuRecit, raconter, raconterDerniers, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
@@ -231,8 +231,88 @@ export async function abandonner(env: Pick<Environnement, 'stockage'>): Promise<
   }
 }
 
-/** Monde joué : celui demandé par `?monde=` s'il existe, sinon le monde par défaut ; un identifiant inconnu est ignoré. */
-export function mondeDemande(recherche: string, mondes: Readonly<Record<string, EntreeMonde>>, parDefaut: string): string {
-  const demande = new URLSearchParams(recherche).get('monde');
-  return demande !== null && Object.hasOwn(mondes, demande) ? demande : parDefaut;
+/** Ce que l'adresse demande : un monde fixe (`?monde=`), une station ou une composition (`?station=`), sinon une station tirée. */
+export type Demande = { readonly type: 'monde'; readonly id: string } | { readonly type: 'station'; readonly id: string } | { readonly type: 'tirage' };
+
+/** `?station=` l'emporte sur `?monde=`, même vide ou inconnu (refusé ensuite avec son motif) ; un `?monde=` inconnu est ignoré. */
+export function demandeDe(recherche: string, mondes: Readonly<Record<string, EntreeMonde>>): Demande {
+  const parametres = new URLSearchParams(recherche);
+  const station = parametres.get('station');
+  if (station !== null) return { type: 'station', id: station };
+  const monde = parametres.get('monde');
+  return monde !== null && Object.hasOwn(mondes, monde) ? { type: 'monde', id: monde } : { type: 'tirage' };
+}
+
+/** Base de la partie : l'adresse nue, chaque `?monde=` et chaque `?station=` gardent la leur. */
+export function cleStockage(base: string, demande: Demande): string {
+  return demande.type === 'tirage' ? base : `${base}?${demande.type}=${demande.id}`;
+}
+
+export interface Lancement {
+  /** Monde du lancement ; `null` si l'adresse demande une station refusée. */
+  readonly entree: EntreeMonde | null;
+  /** Motif du catalogue, tel quel, quand `entree` est `null`. */
+  readonly refus: string | null;
+  /** Monde d'une NOUVELLE PARTIE : une autre station tirée, ou le même monde quand l'adresse le fixe. */
+  readonly suivante: () => EntreeMonde;
+}
+
+/** Monde de la partie enregistrée, seul champ lu ; `null` si rien de lisible. */
+async function mondeEnregistre(stockage: Stockage): Promise<string | null> {
+  try {
+    const donnees: unknown = await stockage.lire();
+    if (typeof donnees !== 'object' || donnees === null || !('enregistrement' in donnees)) return null;
+    const { enregistrement } = donnees;
+    if (typeof enregistrement !== 'object' || enregistrement === null || !('monde' in enregistrement)) return null;
+    return typeof enregistrement.monde === 'string' ? enregistrement.monde : null;
+  } catch {
+    return null;
+  }
+}
+
+/** La station de départ, ou le refus ; un nouveau tirage qui échoue garde la station en cours. */
+function lancer(premiere: EntreeMonde | Refus, suivante: () => EntreeMonde | Refus): Lancement {
+  if ('refus' in premiere) {
+    return {
+      entree: null,
+      refus: premiere.refus,
+      suivante: () => {
+        throw new Error(premiere.refus);
+      },
+    };
+  }
+  let courante = premiere;
+  return {
+    entree: premiere,
+    refus: null,
+    suivante: () => {
+      const obtenue = suivante();
+      if (!('refus' in obtenue)) courante = obtenue;
+      return courante;
+    },
+  };
+}
+
+/**
+ * Monde du lancement et des NOUVELLES PARTIES. Adresse nue : la station de la partie enregistrée si elle se résout, sinon une
+ * station tirée, sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque nouvelle partie en tire une
+ * autre. `?station=<composition>` : sa partie enregistrée, sinon un plan tiré ; chaque nouvelle partie tire un autre plan de la
+ * même composition. `?station=<identifiant>` et `?monde=` : ce monde, toujours.
+ */
+export async function preparerLancement(demande: Demande, catalogue: Catalogue, stockage: Stockage, hasard: () => number): Promise<Lancement> {
+  if (demande.type === 'monde') {
+    const fixe = catalogue.resoudre(demande.id);
+    return lancer(fixe, () => fixe);
+  }
+  if (demande.type === 'station' && !catalogue.compositions.some(({ id }) => id === demande.id)) {
+    const exacte = catalogue.resoudre(demande.id);
+    return lancer(exacte, () => exacte);
+  }
+  // Adresse nue : tout le catalogue ; `?station=<composition>` : cette composition, et seulement sa partie enregistrée.
+  const composition = demande.type === 'station' ? demande.id : undefined;
+  const tirer = (): EntreeMonde | Refus => catalogue.tirer(hasard, composition);
+  const enregistre = await mondeEnregistre(stockage);
+  const reprise =
+    enregistre !== null && (composition === undefined || enregistre.slice(0, enregistre.lastIndexOf('-')) === composition) ? catalogue.resoudre(enregistre) : null;
+  return lancer(reprise === null || 'refus' in reprise ? tirer() : reprise, tirer);
 }

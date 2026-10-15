@@ -1,7 +1,24 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { dangersDuRecit, MONDES, type EntreeMonde } from '../content';
-import { abandonner, charger, commencer, demarrer, fichierPartie, historiqueAffiche, jouerOption, lireLus, marquerLus, mondeDemande, sauvegardePresente, type Environnement, type Jeu } from './jeu';
+import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
+import { creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { CATALOGUE } from './catalogue';
+import {
+  abandonner,
+  charger,
+  cleStockage,
+  commencer,
+  demandeDe,
+  demarrer,
+  fichierPartie,
+  historiqueAffiche,
+  jouerOption,
+  lireLus,
+  marquerLus,
+  preparerLancement,
+  sauvegardePresente,
+  type Environnement,
+  type Jeu,
+} from './jeu';
 import { stockageIndexedDB, type Stockage } from './sauvegarde';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
@@ -280,14 +297,185 @@ describe('appli : IA Station, historique et messages lus (#98, 12 §3.9)', () =>
   });
 });
 
+/** Hasard qui avance : un tirage différent à chaque appel, la même suite pour un même départ. */
+function hasardDepuis(depart: number): () => number {
+  let valeur = depart;
+  return () => {
+    valeur = (Math.imul(valeur, 1664525) + 1013904223) >>> 0;
+    return valeur;
+  };
+}
+
+function enMemoire(depart: unknown = null): { readonly stockage: Stockage; readonly ecritures: () => number } {
+  let donnees = depart;
+  let lus: unknown = null;
+  let ecritures = 0;
+  return {
+    stockage: {
+      lire: () => Promise.resolve(donnees),
+      ecrire: (nouvelles) => {
+        ecritures++;
+        donnees = nouvelles;
+        return Promise.resolve();
+      },
+      lireLus: () => Promise.resolve(lus),
+      ecrireLus: (nouveaux) => {
+        ecritures++;
+        lus = nouveaux;
+        return Promise.resolve();
+      },
+      effacer: () => {
+        ecritures++;
+        donnees = null;
+        lus = null;
+        return Promise.resolve();
+      },
+    },
+    ecritures: () => ecritures,
+  };
+}
+
 describe('appli : monde choisi par l’adresse', () => {
-  it('« ?monde= » choisit un monde connu ; un id inconnu ou absent laisse le monde par défaut', () => {
-    expect(mondeDemande('?monde=monde-test', MONDES, 'ar-01')).toBe('monde-test');
-    expect(mondeDemande('?monde=ar-01', MONDES, 'monde-test')).toBe('ar-01');
-    expect(mondeDemande('', MONDES, 'ar-01')).toBe('ar-01');
-    expect(mondeDemande('?monde=', MONDES, 'ar-01')).toBe('ar-01');
-    expect(mondeDemande('?monde=inconnu', MONDES, 'ar-01')).toBe('ar-01');
-    expect(mondeDemande('?monde=toString', MONDES, 'ar-01')).toBe('ar-01');
+  it('« ?monde= » choisit un monde connu ; un id inconnu ou absent donne une station tirée ; « ?station= » l’emporte', () => {
+    expect(demandeDe('?monde=monde-test', CATALOGUE.mondes)).toEqual({ type: 'monde', id: 'monde-test' });
+    expect(demandeDe('?monde=ar-01', CATALOGUE.mondes)).toEqual({ type: 'monde', id: 'ar-01' });
+    expect(demandeDe('', CATALOGUE.mondes)).toEqual({ type: 'tirage' });
+    expect(demandeDe('?monde=', CATALOGUE.mondes)).toEqual({ type: 'tirage' });
+    expect(demandeDe('?monde=inconnu', CATALOGUE.mondes)).toEqual({ type: 'tirage' });
+    expect(demandeDe('?monde=toString', CATALOGUE.mondes)).toEqual({ type: 'tirage' });
+    expect(demandeDe('?monde=__proto__', CATALOGUE.mondes)).toEqual({ type: 'tirage' });
+    expect(demandeDe('?station=m07-m03-soute', CATALOGUE.mondes)).toEqual({ type: 'station', id: 'm07-m03-soute' });
+    expect(demandeDe('?station=x&monde=ar-01', CATALOGUE.mondes)).toEqual({ type: 'station', id: 'x' });
+    expect(demandeDe('?monde=ar-01&station=x', CATALOGUE.mondes)).toEqual({ type: 'station', id: 'x' });
+    expect(demandeDe('?station=', CATALOGUE.mondes)).toEqual({ type: 'station', id: '' });
+  });
+
+  it('l’adresse nue, chaque « ?monde= » et chaque « ?station= » gardent leur partie à part', () => {
+    const base = 'void-walker:/void-walker/';
+    expect(cleStockage(base, { type: 'tirage' })).toBe('void-walker:/void-walker/');
+    expect(cleStockage(base, { type: 'monde', id: 'ar-01' })).toBe('void-walker:/void-walker/?monde=ar-01');
+    expect(cleStockage(base, { type: 'station', id: 'm07-m03-soute' })).toBe('void-walker:/void-walker/?station=m07-m03-soute');
+  });
+});
+
+describe('appli : station tirée au lancement et à chaque nouvelle partie (#152)', () => {
+  const STATION = 'm07-m03-soute-2718281828';
+  const FORME_TIREE = /^m(07|10)-m03-[a-z]+-(0|[1-9][0-9]*)$/;
+  const id = (entree: EntreeMonde | null): string | undefined => entree?.monde.id;
+  const envSur = (entree: EntreeMonde, stockage: Stockage): Environnement => ({ monde: entree.monde, textes: entree.textes, version: 'v-test', stockage, graine: () => 31 });
+  const resolue = (station: string): EntreeMonde => {
+    const entree = CATALOGUE.resoudre(station);
+    if ('refus' in entree) throw new Error(entree.refus);
+    return entree;
+  };
+  /** Station que donne `tirer` pour un hasard parti de `depart`. */
+  const tiree = (depart: number): string => {
+    const entree = CATALOGUE.tirer(hasardDepuis(depart));
+    if ('refus' in entree) throw new Error(entree.refus);
+    return entree.monde.id;
+  };
+
+  it('adresse nue sans partie : station tirée avec le hasard fourni ; NOUVELLE PARTIE en tire une autre ; rien n’est écrit', async () => {
+    const { stockage, ecritures } = enMemoire();
+    const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
+    expect(lancement.refus).toBeNull();
+    expect(id(lancement.entree)).toBe(tiree(1));
+    expect(id(lancement.entree)).toMatch(FORME_TIREE);
+    const suivantes = [lancement.suivante(), lancement.suivante()].map((entree) => entree.monde.id);
+    for (const suivante of suivantes) expect(suivante).toMatch(FORME_TIREE);
+    expect(new Set([id(lancement.entree), ...suivantes]).size).toBe(3);
+    expect(ecritures()).toBe(0);
+  });
+
+  it('adresse nue : une partie enregistrée se reprend sur son monde, AR-01 comme une station tirée ; NOUVELLE PARTIE tire une station', async () => {
+    for (const entree of [CATALOGUE.mondes['ar-01'] as EntreeMonde, resolue(STATION)]) {
+      const { stockage } = enMemoire();
+      await commencer(envSur(entree, stockage));
+      const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
+      expect(id(lancement.entree)).toBe(entree.monde.id);
+      expect((await charger(envSur(lancement.entree ?? entree, stockage))).type).toBe('pret');
+      const suivante = lancement.suivante().monde.id;
+      expect(suivante).toMatch(FORME_TIREE);
+      expect(suivante).not.toBe(entree.monde.id);
+    }
+  });
+
+  it('adresse nue, partie enregistrée sur un monde qui ne se résout pas : station tirée, reprise impossible, sauvegarde intacte', async () => {
+    const ancien = enMemoire();
+    await commencer(envSur(resolue(STATION), ancien.stockage));
+    const sauvegarde = (await ancien.stockage.lire()) as { readonly enregistrement: Record<string, unknown> };
+    for (const monde of ['m99-m03-x-1', 'texte quelconque', 'm07-m03-soute-01', 42]) {
+      const ancienne = { ...sauvegarde, enregistrement: { ...sauvegarde.enregistrement, monde } };
+      const { stockage, ecritures } = enMemoire(ancienne);
+      const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(2));
+      expect(lancement.refus).toBeNull();
+      expect(id(lancement.entree)).toBe(tiree(2));
+      const env = envSur(lancement.entree as EntreeMonde, stockage);
+      expect(await charger(env)).toMatchObject({ type: 'reprise_impossible' });
+      expect(await demarrer(env)).toMatchObject({ type: 'reprise_impossible' });
+      expect(await stockage.lire()).toEqual(ancienne);
+      expect(ecritures()).toBe(0);
+    }
+    // Sauvegarde illisible : une station tirée quand même, sans exception.
+    const illisible: Stockage = { ...enMemoire().stockage, lire: () => Promise.reject(new Error('base verrouillée')) };
+    expect(id((await preparerLancement({ type: 'tirage' }, CATALOGUE, illisible, hasardDepuis(2))).entree)).toBe(tiree(2));
+  });
+
+  it('« ?station= » refusé : son motif, aucune station, jamais d’exception ; rien n’est écrit', async () => {
+    const { stockage, ecritures } = enMemoire();
+    expect(await preparerLancement({ type: 'station', id: 'm07-m03-inconnue-1' }, CATALOGUE, stockage, hasardDepuis(3))).toEqual({
+      entree: null,
+      refus: 'Station inconnue : m07-m03-inconnue-1.',
+      suivante: expect.any(Function),
+    });
+    for (const station of ['', 'M07-M03-SOUTE', 'toString', '__proto__', 'm07-m03-soute-4294967296', 'm07-m03-soute-01', 'm07-m03-cale']) {
+      const lancement = await preparerLancement({ type: 'station', id: station }, CATALOGUE, stockage, hasardDepuis(3));
+      expect(lancement.entree).toBeNull();
+      expect(lancement.refus).toEqual(expect.any(String));
+    }
+    expect(ecritures()).toBe(0);
+  });
+
+  it('G-02 : sans la paire M-03 + M-07 dans la table, « ?station= » est refusé avec le motif de la table', async () => {
+    const catalogue = creerCatalogue(assemblerStation, PAIRES.filter((ligne) => !(ligne.a === 'M-03' && ligne.b === 'M-07')));
+    for (const station of ['m07-m03-soute', STATION]) {
+      expect(await preparerLancement({ type: 'station', id: station }, catalogue, enMemoire().stockage, hasardDepuis(3))).toMatchObject({
+        entree: null,
+        refus: 'Paire M-03 + M-07 absente de la table : refusée par défaut.',
+      });
+    }
+  });
+
+  it('« ?station=<composition> » : plan tiré, NOUVELLE PARTIE garde la composition et change le plan ; sa partie enregistrée se reprend', async () => {
+    const { stockage } = enMemoire();
+    const forcee = await preparerLancement({ type: 'station', id: 'm07-m03-soute' }, CATALOGUE, stockage, hasardDepuis(4));
+    const premiere = forcee.entree as EntreeMonde;
+    const suivante = forcee.suivante().monde.id;
+    for (const station of [premiere.monde.id, suivante]) expect(station).toMatch(/^m07-m03-soute-(0|[1-9][0-9]*)$/);
+    expect(suivante).not.toBe(premiere.monde.id);
+    await commencer(envSur(premiere, stockage));
+    expect(id((await preparerLancement({ type: 'station', id: 'm07-m03-soute' }, CATALOGUE, stockage, hasardDepuis(5))).entree)).toBe(premiere.monde.id);
+    // La partie d'une autre composition ne se reprend pas à cette adresse : un plan tiré.
+    const autre = enMemoire();
+    const m10 = CATALOGUE.tirer(hasardDepuis(6), 'm10-m03-entrepot');
+    if ('refus' in m10) throw new Error(m10.refus);
+    await commencer(envSur(m10, autre.stockage));
+    const tiree10 = await preparerLancement({ type: 'station', id: 'm07-m03-soute' }, CATALOGUE, autre.stockage, hasardDepuis(5));
+    expect(id(tiree10.entree)).toMatch(/^m07-m03-soute-(0|[1-9][0-9]*)$/);
+  });
+
+  it('« ?station=<identifiant> » : cette station exacte, à chaque nouvelle partie', async () => {
+    const exacte = await preparerLancement({ type: 'station', id: STATION }, CATALOGUE, enMemoire().stockage, hasardDepuis(4));
+    expect(exacte.refus).toBeNull();
+    expect(id(exacte.entree)).toBe(STATION);
+    expect(exacte.suivante().monde.id).toBe(STATION);
+  });
+
+  it('« ?monde= » : le monde fixe, à chaque nouvelle partie', async () => {
+    const ar01 = CATALOGUE.mondes['ar-01'];
+    const lancement = await preparerLancement({ type: 'monde', id: 'ar-01' }, CATALOGUE, enMemoire().stockage, hasardDepuis(5));
+    expect(lancement).toMatchObject({ entree: ar01, refus: null });
+    expect(lancement.suivante()).toBe(ar01);
   });
 });
 

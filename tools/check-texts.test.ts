@@ -1,5 +1,7 @@
-import { MONDES, type EntreeMonde, type TextesMonde } from '../content';
-import { compterPhrases, controlerTextes, direBornes, regrouperAvertissements, verifierTextes } from './check-texts';
+import { COMPOSITIONS_PUBLIEES, MONDES, type EntreeMonde, type TextesMonde } from '../content';
+import { CATALOGUE } from './catalogue';
+import { compterPhrases, controlerTextes, direBornes, entreesAControler, regrouperAvertissements, verifierTextes } from './check-texts';
+import { stationDeReference } from './verifier-station';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
 const AR01 = MONDES['ar-01'] as EntreeMonde;
@@ -174,5 +176,28 @@ describe('contrôle des textes (C-07)', () => {
   it('un passage sans destination connue sans texte fait échouer le contrôle', () => {
     const entree = { ...AR01, textes: { ...AR01.textes, allerSansDestination: undefined as unknown as string } };
     expect(verifierTextes(entree)).toContain('libellé aller sans destination connue : aucun texte (NP-01).');
+  });
+
+  it('relit les mondes du catalogue, puis une station par composition publiée, à la graine vérifiée par check:stations', () => {
+    const entrees = entreesAControler(CATALOGUE);
+    const fixes = Object.keys(CATALOGUE.mondes);
+    expect(entrees.slice(0, fixes.length).map(([id]) => id)).toEqual(fixes);
+    const stations = entrees.slice(fixes.length);
+    expect(stations).toHaveLength(COMPOSITIONS_PUBLIEES.length);
+    stations.forEach(([id, entree], rang) => {
+      const composition = COMPOSITIONS_PUBLIEES[rang] ?? '';
+      const reference = stationDeReference(CATALOGUE, composition);
+      if ('refus' in reference || 'refus' in entree) throw new Error(`${composition} sans station.`);
+      expect(id).toBe(`${composition}-${reference.graine}`);
+      expect(entree).toBe(reference.entree);
+      expect(entree.monde.assistance?.map((message) => message.id)).toEqual(expect.arrayContaining(['reveil', 'depart']));
+    });
+  });
+
+  it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {
+    const [, entree] = entreesAControler(CATALOGUE).at(-1) ?? [];
+    if (entree === undefined || 'refus' in entree) throw new Error('Station absente.');
+    const chiffre = { ...entree, textes: { ...entree.textes, assistance: { ...entree.textes.assistance, depart: 'Départ dans 3 secondes.' } } };
+    expect(verifierTextes(chiffre)).toContain('assistance « depart » : chiffre dans « Départ dans 3 secondes. ».');
   });
 });

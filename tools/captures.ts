@@ -4,9 +4,11 @@ import { join } from 'node:path';
 import { chromium, devices, type Browser, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
-import { libelleOption, MONDES, MOTS_CARTE, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
+import { generateurDepuisGraine, suivant } from '../engine/des';
+import { COMPOSITIONS_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
 import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
+import { CATALOGUE } from './catalogue';
 import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
@@ -22,10 +24,16 @@ const TELEPHONE = 'Pixel 7';
 const REFERENCE = { width: 390, height: 844 };
 const ETROIT = { width: 320, height: 568 };
 const PORTEUR = { width: 412, height: 915 };
+/** Station forcée par `?station=` (#152) ; forme d'une station tirée, `<composition>-<graine>`. */
+const STATION_CAPTUREE = 'm07-m03-soute-2718281828';
+const FORME_STATION = /^m(07|10)-m03-[a-z]+-(0|[1-9][0-9]*)$/;
+/** Galerie des plans (#152) : six stations tirées par chemin, au hasard à graine fixe, les mêmes à chaque capture. */
+const STATIONS_PAR_CHEMIN = 6;
+const GRAINE_GALERIE = 20261015;
 
 export interface EtapeCapture {
-  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02, ou les plans des stations. */
-  readonly suite: 'monde-test' | 'ar-01' | 'ar-02' | 'plans' | 'carte';
+  /** Partie du commentaire : parcours du monde de test, AR-01 ou AR-02, carte, stations tirées, ou les plans des stations. */
+  readonly suite: 'monde-test' | 'ar-01' | 'ar-02' | 'plans' | 'carte' | 'station';
   readonly titre: string;
   readonly image: string;
   readonly recit: string;
@@ -137,7 +145,7 @@ export interface CasApercu {
   readonly geste: Geste;
 }
 
-/** Premier aperçu de chaque forme, au plus près du départ ; seuls ceux du monde par défaut existent. */
+/** Premier aperçu de chaque forme, au plus près du départ ; seuls ceux d'AR-01 existent. */
 export function casApercus(entree: EntreeMonde): CasApercu[] {
   const trouves = new Map<string, CasApercu>();
   const vus = new Set<string>();
@@ -716,10 +724,10 @@ async function verifierCommande(page: Page, geste: Geste, ou: string, erreurs: s
   }
 }
 
-/** Partie enregistrée, lue : sa graine et son état ; `null` s'il n'y en a plus. */
-async function partieLue(page: Page): Promise<{ enregistrement: { graine: number }; etat: Record<string, unknown> } | null> {
+/** Partie enregistrée, lue : son monde, sa graine et son état ; `null` s'il n'y en a plus. */
+async function partieLue(page: Page): Promise<{ enregistrement: { monde: string; graine: number }; etat: Record<string, unknown> } | null> {
   const brute = await partieEnregistree(page);
-  return brute === 'null' || brute === 'aucune base' ? null : (JSON.parse(brute) as { enregistrement: { graine: number }; etat: Record<string, unknown> });
+  return brute === 'null' || brute === 'aucune base' ? null : (JSON.parse(brute) as { enregistrement: { monde: string; graine: number }; etat: Record<string, unknown> });
 }
 
 /**
@@ -941,7 +949,7 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
 }
 
 /**
- * AR-01 depuis l'adresse par défaut : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
+ * AR-01 par `?monde=ar-01` (l'adresse nue tire une station, #152) : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
  * la parole d'IA Station au réveil (12 §4.2), puis son lien, sa pastille et sa fenêtre, avant et après reprise (12 §3.9, D-192),
  * et la fin par évacuation ; puis l'étape « OÙ ? » à 320 px de large.
  */
@@ -964,7 +972,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   await attendreSauvegarde(page, 0);
   const depart = nomDe(ar01.textes, observer(ar01.monde, nouvellePartie(ar01.monde, { version: 'gestes', graine: 0 }).etat).piece).texte;
   const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim();
-  if (piece !== depart) erreurs.push(`Adresse par défaut : pièce « ${piece} » au lieu de « ${depart} », le départ d’AR-01.`);
+  if (piece !== depart) erreurs.push(`?monde=ar-01 : pièce « ${piece} » au lieu de « ${depart} », le départ d’AR-01.`);
   await verifierPastille(page, true, 'Départ', erreurs);
   await capturer(page, 'AR-01 — Départ : IA Station nouvelle');
   await verifierEcran(page, 'AR-01, départ', erreurs);
@@ -1258,7 +1266,7 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   }
   const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
   const page = await contexte.newPage();
-  await page.goto(racine);
+  await page.goto(`${racine}?monde=ar-01`);
   await nouvelleDepuisAccueil(page);
   const bouton = page.locator('.nav-carte');
   const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
@@ -1392,16 +1400,179 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   await autre.close();
 }
 
-/** Plans des stations (14 §4.3) : rendu d'auteur de chaque monde, montré au porteur avant fusion. */
+/** Monde de la partie enregistrée ; « aucune partie » s'il n'y en a pas. */
+async function mondeLu(page: Page): Promise<string> {
+  return (await partieLue(page))?.enregistrement.monde ?? 'aucune partie';
+}
+
+/** Pièce du réveil d'un monde, en mots. */
+function departDe({ monde, textes }: EntreeMonde): string {
+  return nomDe(textes, observer(monde, nouvellePartie(monde, { version: 'gestes', graine: 0 }).etat).piece).texte;
+}
+
+/**
+ * Stations tirées (#152), chacune dans un contexte neuf : `?station=<identifiant>` (réveil, plan au départ, NOUVELLE PARTIE garde
+ * la station) ; l'adresse nue (REJOUER garde la station tirée, NOUVELLE PARTIE en tire une autre et mène au réveil, la partie se
+ * reprend sur sa station, `?monde=ar-01` garde la sienne) ; `?station=` refusé, avec son motif.
+ */
+async function parcoursStation(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const exacte = CATALOGUE.resoudre(STATION_CAPTUREE);
+  if ('refus' in exacte) {
+    erreurs.push(`${STATION_CAPTUREE} : ${exacte.refus}`);
+    return;
+  }
+  const regarder = (page: Page): Locator => page.getByRole('button', { name: /^regarder autour de vous$/i });
+  /** Du réveil au jeu : la pièce affichée est celle du départ de `entree`. */
+  const verifierDepart = async (page: Page, entree: EntreeMonde | null, ou: string): Promise<void> => {
+    await regarder(page).click();
+    await attendreSauvegarde(page, 0);
+    const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim();
+    if (entree !== null && piece !== departDe(entree)) erreurs.push(`${ou} : pièce « ${piece} » au lieu de « ${departDe(entree)} ».`);
+  };
+  /** Du jeu à l'écran de fin, par l'abandon des options. */
+  const abandonnerPartie = async (page: Page): Promise<void> => {
+    await ouvrirOptions(page);
+    await page.getByRole('button', { name: /Abandonner la partie en cours/i }).click();
+    await page.getByRole('button', { name: exactement('Abandonner') }).click();
+    await page.getByRole('heading', { name: exactement('Partie abandonnée.') }).waitFor();
+  };
+  /** Station tirée de la partie enregistrée ; `null`, avec une erreur, si ce n'en est pas une. */
+  const stationTiree = async (page: Page, ou: string): Promise<{ readonly id: string; readonly entree: EntreeMonde | null }> => {
+    const id = await mondeLu(page);
+    const entree = CATALOGUE.resoudre(id);
+    if (FORME_STATION.test(id) && !('refus' in entree)) return { id, entree };
+    erreurs.push(`${ou} : partie enregistrée sur « ${id} », pas sur une station tirée.`);
+    return { id, entree: null };
+  };
+
+  // `?station=<identifiant>` : cette station, son réveil et son plan au départ ; NOUVELLE PARTIE la garde.
+  const forcee = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await forcee.newPage();
+  await page.goto(`${racine}?station=${STATION_CAPTUREE}`);
+  await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+  await regarder(page).waitFor();
+  if ((await mondeLu(page)) !== STATION_CAPTUREE) erreurs.push(`?station=${STATION_CAPTUREE} : partie sur « ${await mondeLu(page)} ».`);
+  await verifierParole(page, exacte.textes.assistance.reveil, `?station=${STATION_CAPTUREE}, réveil`, erreurs);
+  await capturer(page, `Station tirée — réveil : ${STATION_CAPTUREE} par l’adresse`);
+  await verifierDepart(page, exacte, `?station=${STATION_CAPTUREE}, départ`);
+  await verifierEcran(page, `?station=${STATION_CAPTUREE}, départ`, erreurs);
+  const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
+  await page.locator('.nav-carte').click();
+  await carte.locator('.carte-piece').first().waitFor();
+  await capturer(page, `Station tirée — plan au départ : ${STATION_CAPTUREE}`);
+  await verifierCarte(page, `?station=${STATION_CAPTUREE}, plan au départ`, erreurs);
+  await page.keyboard.press('Escape');
+  await carte.waitFor({ state: 'detached' });
+  await abandonnerPartie(page);
+  await page.getByRole('button', { name: exactement('Nouvelle partie') }).click();
+  await regarder(page).waitFor();
+  if ((await mondeLu(page)) !== STATION_CAPTUREE) erreurs.push(`?station=${STATION_CAPTUREE}, NOUVELLE PARTIE : partie sur « ${await mondeLu(page)} ».`);
+  await forcee.close();
+
+  // Adresse nue : une station tirée ; REJOUER CETTE STATION la garde, avec d'autres tirages et le même départ.
+  const nue = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const pageNue = await nue.newPage();
+  await pageNue.goto(racine);
+  await pageNue.getByRole('button', { name: /^nouvelle partie$/i }).click();
+  await regarder(pageNue).waitFor();
+  const premiere = await stationTiree(pageNue, 'Adresse nue');
+  if (premiere.entree !== null) await verifierParole(pageNue, premiere.entree.textes.assistance.reveil, 'Adresse nue, réveil', erreurs);
+  await verifierDepart(pageNue, premiere.entree, 'Adresse nue, départ');
+  const abandonnee = await partieLue(pageNue);
+  await abandonnerPartie(pageNue);
+  await pageNue.getByRole('button', { name: exactement('Rejouer cette station') }).click();
+  await regarder(pageNue).waitFor();
+  const rejouee = await partieLue(pageNue);
+  if (rejouee === null || abandonnee === null) erreurs.push('Adresse nue, REJOUER CETTE STATION : partie absente.');
+  else {
+    if (rejouee.enregistrement.monde !== premiere.id) erreurs.push(`Adresse nue, REJOUER CETTE STATION : « ${rejouee.enregistrement.monde} » au lieu de « ${premiere.id} ».`);
+    if (rejouee.enregistrement.graine === abandonnee.enregistrement.graine) erreurs.push('Adresse nue, REJOUER CETTE STATION : mêmes tirages que la partie abandonnée.');
+    if (JSON.stringify({ ...rejouee.etat, generateur: null }) !== JSON.stringify({ ...abandonnee.etat, generateur: null })) erreurs.push('Adresse nue, REJOUER CETTE STATION : autre état de départ.');
+  }
+  await capturer(pageNue, `Station tirée — rejouer : même station ${premiere.id}, nouveaux tirages`);
+
+  // NOUVELLE PARTIE depuis la fin : une autre station tirée, et son réveil, pas l'accueil.
+  await verifierDepart(pageNue, premiere.entree, 'Adresse nue, départ rejoué');
+  await abandonnerPartie(pageNue);
+  await pageNue.getByRole('button', { name: exactement('Nouvelle partie') }).click();
+  await regarder(pageNue)
+    .waitFor({ timeout: 10_000 })
+    .catch(() => {
+      throw new Error('Adresse nue, NOUVELLE PARTIE depuis la fin : pas d’écran de réveil.');
+    });
+  const seconde = await stationTiree(pageNue, 'Adresse nue, NOUVELLE PARTIE');
+  if (seconde.id === premiere.id) erreurs.push(`Adresse nue, NOUVELLE PARTIE : la même station ${seconde.id}.`);
+  if (seconde.entree !== null) await verifierParole(pageNue, seconde.entree.textes.assistance.reveil, 'Adresse nue, NOUVELLE PARTIE, réveil', erreurs);
+  await capturer(pageNue, `Station tirée — nouvelle partie : ${seconde.id} après ${premiere.id}, écran de réveil`);
+
+  // Rechargée, la partie se reprend sur sa station ; NOUVELLE PARTIE confirmée à l'accueil en tire une autre.
+  await pageNue.reload();
+  await reprendreDepuisAccueil(pageNue, 0);
+  if ((await mondeLu(pageNue)) !== seconde.id) erreurs.push(`Adresse nue, reprise : partie sur « ${await mondeLu(pageNue)} » au lieu de « ${seconde.id} ».`);
+  const reprise = ((await pageNue.locator('.titre-piece').textContent()) ?? '').trim();
+  if (seconde.entree !== null && reprise !== departDe(seconde.entree)) erreurs.push(`Adresse nue, reprise : pièce « ${reprise} » au lieu de « ${departDe(seconde.entree)} ».`);
+  await pageNue.reload();
+  await pageNue.getByRole('button', { name: exactement('Nouvelle partie') }).click();
+  await pageNue.getByRole('button', { name: exactement('Commencer') }).click();
+  await regarder(pageNue).waitFor();
+  const troisieme = await stationTiree(pageNue, 'Adresse nue, NOUVELLE PARTIE à l’accueil');
+  if (troisieme.id === seconde.id) erreurs.push(`Adresse nue, NOUVELLE PARTIE à l’accueil : la même station ${troisieme.id}.`);
+
+  // En dernier : `?monde=ar-01` ouvre sa propre base, et la partie lue ne saurait plus de quelle base elle vient.
+  await pageNue.goto(`${racine}?monde=ar-01`);
+  await pageNue.getByRole('button', { name: /^nouvelle partie$/i }).waitFor();
+  if ((await pageNue.getByRole('button', { name: /^reprendre la partie$/i }).count()) !== 0) erreurs.push('?monde=ar-01 : la partie de l’adresse nue s’y reprend.');
+  await nue.close();
+
+  // `?station=` refusé : l'accueil, le motif du catalogue tel quel, NOUVELLE PARTIE indisponible et seule.
+  const refusee = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const pageRefus = await refusee.newPage();
+  await pageRefus.goto(`${racine}?station=m07-m03-inconnue-1`);
+  const alerte = pageRefus.getByRole('alert');
+  await alerte.waitFor();
+  const motif = (await alerte.innerText()).trim();
+  if (motif !== 'Station refusée : Station inconnue : m07-m03-inconnue-1.') erreurs.push(`Station refusée : motif « ${motif} ».`);
+  if ((await pageRefus.locator('.titre-accueil').textContent())?.replace(/\s/g, '') !== 'VOIDWALKER▮') erreurs.push('Station refusée : titre de l’accueil absent.');
+  const boutons = await pageRefus.getByRole('button').count();
+  if (boutons !== 1 || !(await pageRefus.getByRole('button', { name: exactement('Nouvelle partie') }).isDisabled())) {
+    erreurs.push(`Station refusée : ${boutons} bouton(s) ; NOUVELLE PARTIE, indisponible, attendu seul.`);
+  }
+  if ((await partieLue(pageRefus)) !== null) erreurs.push('Station refusée : une partie est enregistrée.');
+  await capturer(pageRefus, 'Station refusée : motif à l’accueil, NOUVELLE PARTIE indisponible');
+  await verifierEcran(pageRefus, 'Station refusée', erreurs);
+  await refusee.close();
+}
+
+/**
+ * Plans des stations (14 §4.3) : rendu d'auteur de chaque monde, montré au porteur avant fusion ; puis une galerie de stations
+ * tirées (#152), six par chemin, les compositions publiées du chemin en alternance.
+ */
 async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const contexte = await navigateur.newContext({ viewport: REFERENCE, locale: 'fr-FR' });
   const page = await contexte.newPage();
-  for (const [id, entree] of Object.entries(MONDES)) {
+  const dessiner = async (id: string, entree: EntreeMonde, titre: string): Promise<void> => {
     try {
       await page.setContent(`<!doctype html><html lang="fr"><body style="margin:0;background:#050A06">${dessinerPlan(entree)}</body></html>`);
-      await capturer(page, `Plan — ${id}`);
+      await capturer(page, titre);
     } catch (erreur) {
       erreurs.push(`${id} : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+    }
+  };
+  for (const [id, entree] of Object.entries(CATALOGUE.mondes)) await dessiner(id, entree, `Plan — ${id}`);
+  let etat = generateurDepuisGraine(GRAINE_GALERIE);
+  const hasard = (): number => {
+    const tirage = suivant(etat);
+    etat = tirage.etat;
+    return tirage.valeur;
+  };
+  const publiees = CATALOGUE.compositions.filter(({ id }) => COMPOSITIONS_PUBLIEES.includes(id));
+  for (const chemin of new Set(publiees.map((composition) => composition.chemin))) {
+    const duChemin = publiees.filter((composition) => composition.chemin === chemin);
+    for (let rang = 0; rang < STATIONS_PAR_CHEMIN; rang++) {
+      const composition = duChemin[rang % duChemin.length]?.id ?? chemin;
+      const station = CATALOGUE.tirer(hasard, composition);
+      if ('refus' in station) erreurs.push(`${composition} : ${station.refus}`);
+      else await dessiner(station.monde.id, station, `Plan — station ${station.monde.id}`);
     }
   }
   await contexte.close();
@@ -1437,6 +1608,7 @@ function commentaire(
   erreursAr02: readonly string[],
   erreursPlans: readonly string[],
   erreursCarte: readonly string[],
+  erreursStation: readonly string[],
   installable: string,
   horsLigne: string,
 ): string {
@@ -1462,7 +1634,7 @@ function commentaire(
       'AR-01, parcours P-C',
       publiees.filter((etape) => etape.suite === 'ar-01'),
       erreursAr01,
-      ['Adresse par défaut, partie neuve, joué geste par geste.'],
+      ['Adresse : `?monde=ar-01`, partie neuve, joué geste par geste.'],
     ),
     ...partieCommentaire(
       'AR-02, parcours P-V1',
@@ -1477,10 +1649,20 @@ function commentaire(
       ['AR-01 au départ et au local énergie (cinq pas de P-C), fiche, liste, texte très grand ; AR-02 au départ. **Validation humaine requise** sur téléphone : lisibilité, gestes, bornes du zoom (14 §9).'],
     ),
     ...partieCommentaire(
+      'Stations tirées (#152)',
+      publiees.filter((etape) => etape.suite === 'station'),
+      erreursStation,
+      [
+        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif.`,
+      ],
+    ),
+    ...partieCommentaire(
       'Plans des stations (#97)',
       publiees.filter((etape) => etape.suite === 'plans'),
       erreursPlans,
-      ['Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. À juger par le porteur avant fusion.'],
+      [
+        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis ${STATIONS_PAR_CHEMIN} stations tirées par chemin (#152), au hasard à graine fixe. À juger par le porteur avant fusion.`,
+      ],
     ),
   ];
   return lignes.join('\n');
@@ -1494,7 +1676,7 @@ function voulue(titre: string): boolean {
 }
 
 export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
-  // Le parcours du monde de test se joue par `?monde=monde-test` ; AR-01, le monde par défaut, par l'adresse nue.
+  // Le parcours du monde de test se joue par `?monde=monde-test`, AR-01 par `?monde=ar-01` ; l'adresse nue tire une station (#152).
   const entree = MONDES['monde-test'];
   const ar01 = MONDES['ar-01'];
   const ar02 = MONDES['ar-02'];
@@ -1509,6 +1691,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
   const erreursAr02: string[] = [];
   const erreursPlans: string[] = [];
   const erreursCarte: string[] = [];
+  const erreursStation: string[] = [];
   let suite: EtapeCapture['suite'] = 'monde-test';
   let installable = 'non vérifiée';
   let horsLigne = 'non vérifié';
@@ -1979,16 +2162,16 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       erreurs.push(`Options : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
     }
 
-    // AR-01, monde par défaut : parcours P-C joué geste par geste depuis l'adresse nue, dans un contexte neuf.
+    // AR-01 par `?monde=ar-01` : parcours P-C joué geste par geste, dans un contexte neuf.
     suite = 'ar-01';
     try {
-      await parcoursAr01(navigateur, racine, ar01, capturerPage, erreursAr01);
+      await parcoursAr01(navigateur, `${racine}?monde=ar-01`, ar01, capturerPage, erreursAr01);
     } catch (erreur) {
       erreursAr01.push(erreur instanceof Error ? erreur.message : String(erreur));
     }
     // Dangers signalés dans le récit avec leur alarme (#138, D-233) : feu d'AR-01, vide d'AR-02, avec et sans animations.
     const dangers: readonly DangerACapturer[] = [
-      { adresse: racine, entree: ar01, parcours: 'P-B', etape: (etape) => etape.action === 'ouvrir' && etape.vers === 'galerie', nom: 'AR-01 — Feu découvert', texte: /flammes|brûle/ },
+      { adresse: `${racine}?monde=ar-01`, entree: ar01, parcours: 'P-B', etape: (etape) => etape.action === 'ouvrir' && etape.vers === 'galerie', nom: 'AR-01 — Feu découvert', texte: /flammes|brûle/ },
       { adresse: `${racine}?monde=ar-02`, entree: ar02, parcours: 'P-V1', etape: (etape) => etape.action === 'percer', nom: 'AR-02 — Vide : baie percée', texte: /plus d’air/i },
       { adresse: `${racine}?monde=ar-02`, entree: ar02, parcours: 'P-V1', etape: (etape) => etape.action === 'aller' && etape.vers === 'cabine', nom: 'AR-02 — Vide : entrée sans air', texte: /plus d’air ici/ },
     ];
@@ -2014,6 +2197,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     } catch (erreur) {
       erreursCarte.push(erreur instanceof Error ? erreur.message : String(erreur));
     }
+    // Stations tirées (#152) : `?station=`, adresse nue, station refusée, dans des contextes neufs.
+    suite = 'station';
+    try {
+      await parcoursStation(navigateur, racine, capturerPage, erreursStation);
+    } catch (erreur) {
+      erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
     // Plans des stations (#97) : rendu d'auteur, dans un contexte neuf.
     suite = 'plans';
     try {
@@ -2029,10 +2219,20 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     if (http !== undefined) await new Promise<void>((resoudre) => http.close(() => resoudre()));
   }
 
-  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, erreursPlans, erreursCarte, etapes };
+  const resultat = { telephone: TELEPHONE, ecrans: [REFERENCE, ETROIT, PORTEUR], installable, horsLigne, erreurs, erreursAr01, erreursAr02, erreursPlans, erreursCarte, erreursStation, etapes };
   writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify(resultat, null, 2)}\n`);
-  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, erreursPlans, erreursCarte, installable, horsLigne));
-  return { etapes, erreurs: [...erreurs, ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`), ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`), ...erreursPlans.map((erreur) => `Plans : ${erreur}`), ...erreursCarte.map((erreur) => `Carte : ${erreur}`)] };
+  writeFileSync(join(SORTIE, 'commentaire.md'), commentaire(etapes, erreurs, erreursAr01, erreursAr02, erreursPlans, erreursCarte, erreursStation, installable, horsLigne));
+  return {
+    etapes,
+    erreurs: [
+      ...erreurs,
+      ...erreursAr01.map((erreur) => `AR-01 : ${erreur}`),
+      ...erreursAr02.map((erreur) => `AR-02 : ${erreur}`),
+      ...erreursPlans.map((erreur) => `Plans : ${erreur}`),
+      ...erreursCarte.map((erreur) => `Carte : ${erreur}`),
+      ...erreursStation.map((erreur) => `Station : ${erreur}`),
+    ],
+  };
 }
 
 if (isMainModule(import.meta.url)) {
@@ -2041,7 +2241,7 @@ if (isMainModule(import.meta.url)) {
   for (const erreur of erreurs) console.error(`ERREUR : ${erreur}`);
   console.log(
     erreurs.length === 0
-      ? 'Captures : parcours du monde de test, P-C d’AR-01 et P-V1 d’AR-02 réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
+      ? 'Captures : parcours du monde de test, P-C d’AR-01, P-V1 d’AR-02 et stations tirées réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
       : 'Captures : ÉCHEC.',
   );
   if (erreurs.length > 0) process.exitCode = 1;

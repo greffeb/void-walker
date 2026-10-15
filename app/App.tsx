@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { observer, type Evenement, type OptionMenu } from '../engine';
+import type { EntreeMonde } from '../content';
 import { EcranJeu, EcranReveil } from './EcranJeu';
 import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
 import {
@@ -66,7 +67,8 @@ function telechargerPartie(env: Environnement, jeu: Jeu): Telechargement {
 }
 
 export function App({
-  env,
+  env: envInitial,
+  nouvelleStation,
   reglages: reglagesInitiaux,
   garderReglages,
   version,
@@ -79,6 +81,8 @@ export function App({
   signataire,
 }: {
   readonly env: Environnement;
+  /** Monde de chaque NOUVELLE PARTIE (#152) ; absent, toujours celui de `env`. REJOUER CETTE STATION garde le monde en cours. */
+  readonly nouvelleStation?: () => EntreeMonde;
   readonly reglages: Reglages;
   /** Garde les réglages sur l'appareil, hors de la sauvegarde de partie (12 §4.10) ; `false` si l'appareil refuse. */
   readonly garderReglages?: (reglages: Reglages) => boolean;
@@ -97,6 +101,9 @@ export function App({
   readonly signataire?: Signataire;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
+  // Le monde change à chaque NOUVELLE PARTIE ; le stockage, la version et la graine restent ceux du lancement.
+  const [env, setEnv] = useState(envInitial);
+  const { stockage } = env;
   const empreinteCle = useMemo(() => (signataire === undefined ? undefined : () => signataire.empreinte()), [signataire]);
   const rapportsEnAttente = useSyncExternalStore(rapports?.abonner ?? SANS_ABONNEMENT, rapports?.enAttente ?? AUCUN, rapports?.enAttente ?? AUCUN);
   const [occupe, setOccupe] = useState(false);
@@ -108,9 +115,10 @@ export function App({
     son.regler(reglages);
   }, [son, reglages]);
 
+  // Accueil au lancement seulement : le stockage ne change pas avec la station, une NOUVELLE PARTIE ne ramène pas à l'accueil.
   useEffect(() => {
     let actif = true;
-    void sauvegardePresente(env).then(
+    void sauvegardePresente({ stockage }).then(
       (partiePresente) => {
         if (actif) setEcran({ type: 'accueil', partiePresente, confirmation: false });
       },
@@ -121,7 +129,7 @@ export function App({
     return () => {
       actif = false;
     };
-  }, [env]);
+  }, [stockage]);
 
   const choisir = useCallback(
     async (jeu: Jeu, option: OptionMenu) => {
@@ -137,14 +145,22 @@ export function App({
     [env],
   );
 
-  const commencerNouvellePartie = useCallback(async () => {
+  /** Partie neuve sur `cible`, qui devient le monde en cours avec l'écran de réveil. */
+  const commencerSur = useCallback(async (cible: Environnement) => {
     setOccupe(true);
     try {
-      setEcran({ type: 'reveil', jeu: await commencer(env), lus: [] });
+      const jeu = await commencer(cible);
+      setEnv(cible);
+      setEcran({ type: 'reveil', jeu, lus: [] });
     } finally {
       setOccupe(false);
     }
-  }, [env]);
+  }, []);
+
+  const commencerNouvellePartie = useCallback(async () => {
+    const station = nouvelleStation?.();
+    await commencerSur(station === undefined ? env : { ...env, monde: station.monde, textes: station.textes });
+  }, [env, nouvelleStation, commencerSur]);
 
   const reprendre = useCallback(async () => {
     setOccupe(true);
@@ -347,7 +363,7 @@ export function App({
             jeu={ecran.jeu}
             env={env}
             occupe={occupe}
-            rejouer={() => void commencerNouvellePartie()}
+            rejouer={() => void commencerSur(env)}
             nouvellePartie={() => void commencerNouvellePartie()}
             menuPrincipal={() => void allerAccueil()}
             envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
@@ -399,5 +415,28 @@ export function App({
         {reglages.balayage && <div className="balayage" aria-hidden="true" />}
       </div>
     </SonContexte.Provider>
+  );
+}
+
+/** `?station=` refusé (#152) : l'accueil, le motif du catalogue tel quel, et rien qui lance une partie. */
+export function EcranRefus({ motif, reglages }: { readonly motif: string; readonly reglages: Reglages }) {
+  return (
+    <div className="ecran" data-taille={reglages.taille}>
+      <main className="jeu accueil">
+        <h1 className="titre-accueil" aria-label="VOID WALKER">
+          <span>VOID</span>
+          <span>WALKER▮</span>
+        </h1>
+        <div className="actions-accueil">
+          <section className="confirmation-accueil" role="alert">
+            <p>Station refusée : {motif}</p>
+          </section>
+          <button type="button" className="principal" disabled data-son="clic">
+            Nouvelle partie
+          </button>
+        </div>
+      </main>
+      {reglages.balayage && <div className="balayage" aria-hidden="true" />}
+    </div>
   );
 }

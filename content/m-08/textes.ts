@@ -1,11 +1,11 @@
-import { DESCRIPTIONS_STATION_ESSAI, NOMS_STATION_ESSAI, TEXTES_STATION_ESSAI } from '../textes/station-essai';
-import type { TextesMonde } from '../textes/types';
+import { TEXTES_MORCEAU_ESSAI } from '../morceaux/essai';
+import { reunir } from '../textes/couches';
+import type { TextesMonde, TextesMorceau } from '../textes/types';
 
-// Textes de la station de test M-08 (C-07) ; le reste est commun aux stations de test. Texte final non validé.
-export const TEXTES_M08: TextesMonde = {
-  ...TEXTES_STATION_ESSAI,
+// Textes propres à la station de test M-08 (C-07) ; la capsule vient de l'embarquement d'essai, le reste du socle, de l'univers
+// et de la menace. Texte final non validé.
+export const TEXTES_PROPRES_M08: TextesMorceau = {
   noms: {
-    ...NOMS_STATION_ESSAI,
     atelier: { texte: 'atelier', genre: 'm', nombre: 's', elision: true },
     ouest: { texte: 'galerie nord', genre: 'f', nombre: 's', elision: false },
     est: { texte: 'galerie sud', genre: 'f', nombre: 's', elision: false },
@@ -15,7 +15,6 @@ export const TEXTES_M08: TextesMonde = {
     touret: { texte: 'touret de câble', genre: 'm', nombre: 's', elision: false },
   },
   descriptions: {
-    ...DESCRIPTIONS_STATION_ESSAI,
     atelier: [
       'Un atelier de maintenance aux établis renversés. Contre le mur, une longue planche et un touret de câble.',
       'Des établis, des outils épars, une odeur de graisse. Une longue planche est appuyée contre la paroi.',
@@ -42,7 +41,9 @@ export const TEXTES_M08: TextesMonde = {
     ],
   },
   assistance: {
-    capsule: 'Une capsule de secours est prête au départ, dans la salle d’embarquement, au-delà de la passerelle.',
+    capsule: 'Une capsule de secours est prête au départ, dans la salle d’embarquement.',
     passerelle: 'Passerelle effondrée. Franchissement interdit sans équipement.',
   },
 };
+
+export const TEXTES_M08: TextesMonde = reunir([TEXTES_PROPRES_M08, TEXTES_MORCEAU_ESSAI]);

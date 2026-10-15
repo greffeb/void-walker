@@ -23,6 +23,7 @@ import {
   rendreListeCarte,
   rendreObservation,
   rendreRefus,
+  type Catalogue,
   type EntreeMonde,
   type TextesMonde,
 } from '../content';
@@ -67,7 +68,8 @@ export const AIDE = [
   'regarder, relire, un aperçu et une action refusée ne coûtent rien.',
   '',
   `Option : --partie <fichier>  (par défaut ${PARTIE_PAR_DEFAUT})`,
-  'Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon AR-01)',
+  'Option : --station <id>  (une composition, ex. m07-m03-soute, au plan tiré ; ou une station exacte, ex. m07-m03-soute-2718281828 ; l’emporte sur --monde)',
+  'Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon une station tirée)',
 ];
 
 interface Arguments {
@@ -108,20 +110,33 @@ function mondeEnregistre(contenu: string | null): string | null {
 }
 
 /**
- * Monde de l'appel : celui de `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon le monde par
- * défaut. Renvoie un message si le monde est inconnu.
+ * Monde de l'appel : la station de `--station` (composition au plan tiré, ou station exacte), sinon le monde fixe de
+ * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une station tirée. Renvoie un message
+ * si le monde est refusé ; une partie enregistrée sur une station inconnue n'est jamais remplacée par un tirage.
  */
-export function choisirMonde(
-  argv: readonly string[],
-  mondes: Readonly<Record<string, EntreeMonde>>,
-  parDefaut: string,
-  es: EntreesSorties,
-): EntreeMonde | string {
+export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): EntreeMonde | string {
   const { positionnels, options } = analyserArguments(argv);
-  const demande = options.monde;
-  if (demande === '') return 'Indiquez le monde : --monde <id>.';
-  const id = demande ?? (positionnels[0] === 'nouvelle' ? null : mondeEnregistre(es.lire(cheminPartie(options)))) ?? parDefaut;
-  return mondes[id] ?? `Monde inconnu : ${id}. Mondes disponibles : ${Object.keys(mondes).join(', ')}.`;
+  const { station, monde } = options;
+  const hasard = (): number => es.graineAleatoire();
+  if (station === '') return 'Indiquez la station : --station <id>.';
+  if (station !== undefined) {
+    const composition = catalogue.compositions.some(({ id }) => id === station);
+    const forcee = composition ? catalogue.tirer(hasard, station) : catalogue.resoudre(station);
+    return 'refus' in forcee ? `Station refusée : ${forcee.refus}` : forcee;
+  }
+  if (monde === '') return 'Indiquez le monde : --monde <id>.';
+  if (monde !== undefined) {
+    const fixe = Object.hasOwn(catalogue.mondes, monde) ? catalogue.mondes[monde] : undefined;
+    return fixe ?? `Monde inconnu : ${monde}. Mondes disponibles : ${Object.keys(catalogue.mondes).join(', ')}.`;
+  }
+  const enregistre = positionnels[0] === 'nouvelle' ? null : mondeEnregistre(es.lire(cheminPartie(options)));
+  if (enregistre !== null) {
+    const reprise = catalogue.resoudre(enregistre);
+    if (!('refus' in reprise)) return reprise;
+    return `La partie enregistrée porte sur une station inconnue (${enregistre}). Commencez une nouvelle partie : nouvelle`;
+  }
+  const tiree = catalogue.tirer(hasard);
+  return 'refus' in tiree ? `Station refusée : ${tiree.refus}` : tiree;
 }
 
 /** Messages de l'IA de la station reçus avec ces événements, après le récit. */

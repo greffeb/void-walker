@@ -1,10 +1,12 @@
-import { empreinteEtat, idPublic, lireExport, rejouer } from '../engine';
-import { MONDE_PAR_DEFAUT, MONDES, type EntreeMonde } from '../content';
-import { choisirMonde, executer, PARTIE_PAR_DEFAUT, type Contexte } from './partie-cli';
+import { assemblerStation, empreinteEtat, idPublic, lireExport, rejouer } from '../engine';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, type Catalogue, type EntreeMonde } from '../content';
+import { AIDE, choisirEntree, executer, PARTIE_PAR_DEFAUT, type Contexte, type EntreesSorties, type Sortie } from './partie-cli';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
 const AR01 = MONDES['ar-01'] as EntreeMonde;
 const VERSION = 'test-cli';
+const CATALOGUE = creerCatalogue(assemblerStation);
+const STATION = 'm07-m03-soute-2718281828';
 
 function contexte(fichiers = new Map<string, string>(), ecritureEnPanne = false, entree = ENTREE): Contexte & { fichiers: Map<string, string> } {
   return {
@@ -230,14 +232,128 @@ describe('CLI', () => {
     });
   });
 
-  it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon AR-01', () => {
+  it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon une station tirée', () => {
     const ctx = contexte();
-    expect(choisirMonde(['nouvelle'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(AR01);
-    expect(choisirMonde(['nouvelle', '--monde', 'monde-test'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(ENTREE);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^m\d\d-m\d\d-[a-z]+-\d+$/);
+    expect(choisirEntree(['nouvelle', '--monde', 'monde-test'], CATALOGUE, ctx.es)).toBe(ENTREE);
     executer(['nouvelle'], ctx);
-    expect(choisirMonde(['voir'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(ENTREE);
-    expect(choisirMonde(['nouvelle'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toBe(AR01);
-    expect(choisirMonde(['voir', '--monde', 'ailleurs'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
-    expect(choisirMonde(['voir', '--monde'], MONDES, MONDE_PAR_DEFAUT, ctx.es)).toMatch(/--monde <id>/);
+    expect(choisirEntree(['voir'], CATALOGUE, ctx.es)).toBe(ENTREE);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^m\d\d-m\d\d-[a-z]+-\d+$/);
+    expect(choisirEntree(['voir', '--monde', 'ailleurs'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
+    expect(choisirEntree(['voir', '--monde', 'constructor'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : constructor\./);
+    expect(choisirEntree(['voir', '--monde'], CATALOGUE, ctx.es)).toMatch(/--monde <id>/);
+  });
+
+  it('une partie enregistrée sur AR-01 reprend sur AR-01 ; --monde ar-01 donne AR-01', () => {
+    const ctx = contexte(new Map(), false, AR01);
+    expect(choisirEntree(['nouvelle', '--monde', 'ar-01'], CATALOGUE, ctx.es)).toBe(AR01);
+    executer(['nouvelle'], ctx);
+    expect(choisirEntree(['voir'], CATALOGUE, ctx.es)).toBe(AR01);
+    expect(choisirEntree(['jouer', '1'], CATALOGUE, ctx.es)).toBe(AR01);
+  });
+});
+
+/** Comme `cli/main.ts` : un monde refusé est dit, code 1. */
+function appeler(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): Sortie {
+  const entree = choisirEntree(argv, catalogue, es);
+  if (typeof entree === 'string') return { lignes: [entree], code: 1 };
+  return executer(argv, { monde: entree.monde, textes: entree.textes, version: VERSION, es });
+}
+
+function idStation(resultat: EntreeMonde | string): string {
+  if (typeof resultat === 'string') throw new Error(resultat);
+  return resultat.monde.id;
+}
+
+function mondeEnregistre(fichiers: ReadonlyMap<string, string>): unknown {
+  return (JSON.parse(fichiers.get(PARTIE_PAR_DEFAUT) ?? 'null') as { enregistrement: { monde: unknown } }).enregistrement.monde;
+}
+
+describe('CLI : station tirée (#152)', () => {
+  it('nouvelle sans option tire une station publiée, réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
+    const ctx = contexte();
+    const debut = appeler(['nouvelle'], CATALOGUE, ctx.es);
+    expect(debut.code).toBe(0);
+    expect(debut.lignes).toContain('Partie enregistrée.');
+    expect(debut.lignes).toContain('Vous êtes dans le vestibule.');
+    const id = String(mondeEnregistre(ctx.fichiers));
+    const [, composition, graine] = /^([a-z0-9-]+)-(0|[1-9][0-9]*)$/.exec(id) ?? [];
+    expect(COMPOSITIONS_PUBLIEES).toContain(composition);
+    expect(Number(graine)).toBeLessThanOrEqual(0xffffffff);
+
+    const ailleurs = creerCatalogue(assemblerStation);
+    expect(idStation(choisirEntree(['voir'], ailleurs, ctx.es))).toBe(id);
+    const reprise = appeler(['voir'], ailleurs, ctx.es);
+    expect(reprise.code).toBe(0);
+    expect(reprise.lignes).toContain('Vous êtes dans le vestibule.');
+    expect(reprise.lignes).toContain('Actions engagées : 0');
+  });
+
+  it('--station <composition> force la composition, plan tiré', () => {
+    const ctx = contexte();
+    for (const composition of COMPOSITIONS_PUBLIEES) {
+      expect(idStation(choisirEntree(['nouvelle', '--station', composition], CATALOGUE, ctx.es))).toMatch(new RegExp(`^${composition}-(0|[1-9][0-9]*)$`));
+    }
+    const sortie = appeler(['nouvelle', '--station', 'm10-m03-entrepot'], CATALOGUE, ctx.es);
+    expect(sortie.code).toBe(0);
+    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^m10-m03-entrepot-/);
+  });
+
+  it('--station <identifiant> force cette station exacte, et l’emporte sur --monde', () => {
+    const ctx = contexte();
+    expect(appeler(['nouvelle', '--station', STATION], CATALOGUE, ctx.es).code).toBe(0);
+    expect(mondeEnregistre(ctx.fichiers)).toBe(STATION);
+    expect(idStation(choisirEntree(['voir'], CATALOGUE, ctx.es))).toBe(STATION);
+    expect(idStation(choisirEntree(['nouvelle', '--monde', 'ar-01', '--station', STATION], CATALOGUE, ctx.es))).toBe(STATION);
+    expect(idStation(choisirEntree(['nouvelle', '--station', STATION, '--monde', 'ar-01'], CATALOGUE, ctx.es))).toBe(STATION);
+  });
+
+  it('station refusée : son motif, code 1, partie enregistrée inchangée', () => {
+    const ctx = contexte();
+    appeler(['nouvelle', '--station', STATION], CATALOGUE, ctx.es);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    expect(appeler(['nouvelle', '--station', 'm07-m03-inconnue-1'], CATALOGUE, ctx.es)).toEqual({
+      lignes: ['Station refusée : Station inconnue : m07-m03-inconnue-1.'],
+      code: 1,
+    });
+    for (const id of ['M07-M03-SOUTE-1', 'm07-m03-soute-4294967296', 'm07-m03-soute-007', 'toString', '__proto__', 'constructor']) {
+      const sortie = appeler(['voir', '--station', id], CATALOGUE, ctx.es);
+      expect(sortie.code).toBe(1);
+      expect(sortie.lignes).toHaveLength(1);
+      expect(sortie.lignes[0]).toMatch(/^Station refusée : /);
+    }
+    expect(appeler(['nouvelle', '--station'], CATALOGUE, ctx.es)).toEqual({ lignes: ['Indiquez la station : --station <id>.'], code: 1 });
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+  });
+
+  it('G-02 : sans la paire M-03 + M-07 dans la table, --station est refusé avec le motif de la table', () => {
+    const catalogue = creerCatalogue(assemblerStation, PAIRES.filter((ligne) => !(ligne.a === 'M-03' && ligne.b === 'M-07')));
+    const refus = { lignes: ['Station refusée : Paire M-03 + M-07 absente de la table : refusée par défaut.'], code: 1 };
+    const ctx = contexte();
+    expect(appeler(['nouvelle', '--station', 'm07-m03-soute'], catalogue, ctx.es)).toEqual(refus);
+    expect(appeler(['nouvelle', '--station', STATION], catalogue, ctx.es)).toEqual(refus);
+    expect(ctx.fichiers.size).toBe(0);
+  });
+
+  it('partie enregistrée sur une station inconnue : le dit, code 1, sans tirer une autre station ; nouvelle la remplace', () => {
+    const ancienne = JSON.stringify({ enregistrement: { monde: 'm07-m03-cale-5' } });
+    const ctx = contexte(new Map([[PARTIE_PAR_DEFAUT, ancienne]]));
+    const sansTirage: EntreesSorties = {
+      ...ctx.es,
+      graineAleatoire: () => {
+        throw new Error('tirage inattendu');
+      },
+    };
+    const refus = { lignes: ['La partie enregistrée porte sur une station inconnue (m07-m03-cale-5). Commencez une nouvelle partie : nouvelle'], code: 1 };
+    expect(appeler(['voir'], CATALOGUE, sansTirage)).toEqual(refus);
+    expect(appeler(['jouer', '1'], CATALOGUE, sansTirage)).toEqual(refus);
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
+    expect(appeler(['nouvelle'], CATALOGUE, ctx.es).code).toBe(0);
+    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^m\d\d-m\d\d-[a-z]+-\d+$/);
+  });
+
+  it('aide : --station, et --monde sans partie donne une station tirée', () => {
+    expect(AIDE.some((ligne) => ligne.startsWith('Option : --station <id>'))).toBe(true);
+    expect(AIDE).toContain('Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon une station tirée)');
   });
 });
