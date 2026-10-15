@@ -37,6 +37,11 @@ export function porteEntre(depuis: string, vers: string): string {
 const PROPORTION = 0.76;
 /** Mur commun minimal entre deux morceaux (14 §5.2). */
 const MUR_MIN = 2;
+/**
+ * Candidats évalués, au plus, pour chercher le plan d'une graine : au-delà, aucun plan. Une chaîne sans solution ne se
+ * parcourt pas en entier (14 §5.6) ; un compte et non une durée, pour que la graine seule décide du plan (GE-06).
+ */
+export const BUDGET_POSE = 2000;
 
 /** Retournement d'une tuile : jamais sur les deux axes, ce serait un demi-tour (GE-02). */
 type Miroir = 'aucun' | 'x' | 'y';
@@ -155,15 +160,25 @@ function poser(posees: readonly PieceTuile[], tuile: readonly PieceTuile[], rese
   return videsEnfermes(rects).length > 0 ? null : reserve;
 }
 
-/** Plan des tuiles posées dans l'ordre du chemin ; `null` si aucune pose ne convient. */
+/** Plan des tuiles posées dans l'ordre du chemin ; `null` si aucune pose ne convient dans le budget. */
 export function poserTuiles(morceaux: readonly DefMorceau[], graine: number): Pose | null {
+  return rechercherPose(morceaux, graine).pose;
+}
+
+/** Recherche du plan, arrêtée après `budget` candidats passés aux contrôles de `poser` ; `evalues` en donne le nombre. */
+export function rechercherPose(
+  morceaux: readonly DefMorceau[],
+  graine: number,
+  budget = BUDGET_POSE,
+): { readonly pose: Pose | null; readonly evalues: number } {
   const tuiles: Tuile[] = [];
   for (const [rang, morceau] of morceaux.entries()) {
     const tuile = tuileDe(morceau, morceaux[rang - 1], morceaux[rang + 1]);
-    if (tuile === null) return null;
+    if (tuile === null) return { pose: null, evalues: 0 };
     tuiles.push(tuile);
   }
-  if (tropDePortes(morceaux)) return null;
+  if (tropDePortes(morceaux)) return { pose: null, evalues: 0 };
+  let evalues = 0;
   let etat = generateurDepuisGraine(graine);
   const tirer = (faces: number): number => {
     const tirage = suivant(etat);
@@ -188,6 +203,9 @@ export function poserTuiles(morceaux: readonly DefMorceau[], graine: number): Po
       })
       .sort((a, b) => a.ecart - b.ecart);
     for (const { placement, pieces } of candidats) {
+      // Budget épuisé : chaque niveau de la recherche s'arrête à son tour.
+      if (evalues >= budget) return null;
+      evalues++;
       const reserve = poser(posees, pieces, reservees);
       if (reserve === null) continue;
       const mur = sortie === undefined ? null : murCommun(sortie, placer(tuile.entree.rect, placement));
@@ -197,5 +215,6 @@ export function poserTuiles(morceaux: readonly DefMorceau[], graine: number): Po
     }
     return null;
   };
-  return chercher(0, [], new Set(), new Map());
+  const pose = chercher(0, [], new Set(), new Map());
+  return { pose, evalues };
 }

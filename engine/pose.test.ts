@@ -1,5 +1,5 @@
 import { caseDevant, casesDe, chevauchent, cleCase, murCommun, panLibre, piecesDeCoque, PROFONDEUR_COQUE, videsEnfermes, type RectPlan } from './plan';
-import { porteEntre, poserTuiles, prefixer, type Pose } from './pose';
+import { BUDGET_POSE, porteEntre, poserTuiles, prefixer, rechercherPose, type Pose } from './pose';
 import { validerMorceau, type DefMorceau } from './station';
 
 // Tuiles des morceaux de test d'engine/station.test.ts, réduites à ce que lit la pose : rectangles, liaisons, coque, attaches.
@@ -141,6 +141,28 @@ const ETOILE: DefMorceau = {
   fournit: ['acces'],
 };
 
+/** Final en anneau autour d'une cour de 2 × 2 : où qu'on le pose, il enferme un vide (GE-03), aucun plan n'existe. */
+const ANNEAU: DefMorceau = {
+  id: 'anneau',
+  famille: 'final',
+  pieces: [
+    { id: 'p-nord', nom: 'nord', plan: { x: 0, y: 0, largeur: 6, hauteur: 2 } },
+    { id: 'p-ouest', nom: 'ouest', plan: { x: 0, y: 2, largeur: 2, hauteur: 2 } },
+    { id: 'p-est', nom: 'est', plan: { x: 4, y: 2, largeur: 2, hauteur: 2 } },
+    { id: 'p-sud', nom: 'sud', plan: { x: 0, y: 4, largeur: 6, hauteur: 2 } },
+  ],
+  liaisons: [
+    { id: 'l-nord-ouest', nom: 'porte', entre: ['p-nord', 'p-ouest'], ouverte: true },
+    { id: 'l-ouest-sud', nom: 'porte', entre: ['p-ouest', 'p-sud'], ouverte: true },
+    { id: 'l-sud-est', nom: 'porte', entre: ['p-sud', 'p-est'], ouverte: true },
+  ],
+  objets: [],
+  entree: 'p-nord',
+  placesCreature: ['p-sud'],
+  demande: [],
+  fournit: ['evacuation'],
+};
+
 const CHAINES: readonly (readonly DefMorceau[])[] = [
   [DEPART, CHEMIN, FINAL],
   [DEPART, RANG, FINAL],
@@ -266,5 +288,36 @@ describe('pose des tuiles', () => {
     // Témoin : avec une porte intérieure de moins, la même chaîne se pose.
     const allegee: DefMorceau = { ...ETOILE, liaisons: ETOILE.liaisons.slice(0, 5) };
     for (const graine of GRAINES.slice(0, 10)) expect(poserTuiles([DEPART, allegee, FINAL], graine)).not.toBeNull();
+  });
+});
+
+describe('recherche bornée (14 §5.6)', () => {
+  it('une dernière tuile qui enferme toujours un vide : aucun plan, sans évaluer plus de BUDGET_POSE candidats', () => {
+    expect(validerMorceau(ANNEAU)).toEqual([]);
+    expect(videsEnfermes(ANNEAU.pieces.flatMap((piece) => (piece.plan === undefined ? [] : [piece.plan])))).not.toEqual([]);
+    for (const chaine of [
+      [DEPART, CHEMIN, ANNEAU],
+      [DEPART, CHEMIN, RANG, ANNEAU],
+    ]) {
+      for (const graine of GRAINES.slice(0, 3)) {
+        expect(poserTuiles(chaine, graine), `${nom(chaine)}, graine ${graine}`).toBeNull();
+        const { pose, evalues } = rechercherPose(chaine, graine);
+        expect(pose).toBeNull();
+        expect(evalues, `${nom(chaine)}, graine ${graine}`).toBeLessThanOrEqual(BUDGET_POSE);
+      }
+    }
+  });
+
+  it('la recherche s’arrête au budget : très bas, aucun plan, même pour une chaîne qui se pose avec le budget par défaut', () => {
+    for (const graine of GRAINES.slice(0, 10)) {
+      expect(rechercherPose([DEPART, CHEMIN, ANNEAU], graine, 10)).toStrictEqual({ pose: null, evalues: 10 });
+      const chaine = [DEPART, CHEMIN, FINAL];
+      const { pose, evalues } = rechercherPose(chaine, graine);
+      expect(pose).not.toBeNull();
+      expect(pose).toStrictEqual(poserTuiles(chaine, graine));
+      expect(rechercherPose(chaine, graine, evalues)).toStrictEqual({ pose, evalues });
+      expect(rechercherPose(chaine, graine, evalues - 1).pose).toBeNull();
+      expect(rechercherPose(chaine, graine, 1).pose).toBeNull();
+    }
   });
 });
