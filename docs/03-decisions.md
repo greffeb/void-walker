@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-14.
+> **Mise à jour :** 2026-10-15.
 
 ## Règles
 
@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
@@ -1973,6 +1973,24 @@ Les quatre propositions de [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-ac
 - Précise : D-255 et C-08 §5 ; [13 §8.4](13-morceaux-lancement.md#84-nouvelle-partie-dans-la-version-publique--q-185-d-260).
 - Modifie temporairement D-253 : en L2, seul le final énergie M-03 est disponible ; on tire parmi ses compositions vérifiées, sans tirer une baie absente. Dès que les deux finals sont disponibles et vérifiés, à partir de L3, le tirage commence par le pile ou face énergie/baie, puis choisit au pur hasard parmi les compositions de ce final ; une station déjà jouée peut toujours revenir.
 - Limite : L0 reste documentaire ; aucune modification immédiate de la version publique et aucun équilibre entre deux finals revendiqué avant L3.
+
+## Décisions validées — L2 de #106 (#152)
+
+Deux questions sur la place de la créature dans M-07 et M-03 ont été posées au porteur le 2026-10-15, pendant la conception de L2 ; ses réponses sont citées ci-dessous. Elles sont implémentées sur la branche de L2 ([13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152)) ; aucune partie sur téléphone n'est revendiquée.
+
+### D-261 — M-07 : la créature attend seulement dans la soute
+
+- Date / statut : 2026-10-15 / **Validé**.
+- Origine : réponse Q-186 « Dans la soute seulement, comme la station de test ».
+- Décision : la seule place déclarée pour la créature dans M-07 est la soute, jamais la salle des machines. La fiche disait « dans la salle des machines », mais cette salle est le seul passage vers la suite : sur une maquette, le vérifieur n'a trouvé aucune sortie sûre avec la créature dans cette salle (station rejetée), alors qu'il en trouve une avec la créature dans la soute.
+- Précise : D-161 et la fiche M-07 ([13 §3](13-morceaux-lancement.md#m-07--salle-des-machines-nouveau-d-163)).
+
+### D-262 — M-03 : une seule pièce voisine, la réserve, porte ouverte au départ
+
+- Date / statut : 2026-10-15 / **Validé**.
+- Origine : réponse Q-187 « réserve ou cabine », précisée « une seule pièce voisine ; « réserve » ou « cabine », c'est juste son nom ».
+- Décision : M-03 apporte une seule pièce voisine où la créature attend, reliée au local énergie par une porte ouverte au départ. [Détail de l'agent] Le nom « réserve » est un choix des agents, pour ne pas confondre cette pièce avec la cabine de la capsule.
+- Précise : D-161 et la fiche M-03 ([13 §3](13-morceaux-lancement.md#m-03--énergie-ar-01-p-final)).
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.
 

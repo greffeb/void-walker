@@ -47,7 +47,7 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 ### M-03 — Énergie (AR-01 P, final)
 
 - **Pièces :** un local avec la console du circuit et le bloc de secours ; la salle d'embarquement et sa capsule (D-249).
-- **Créature :** dans une pièce voisine reliée au local.
+- **Créature :** dans la réserve reliée au local, porte ouverte au départ (D-262).
 - **Sûr :** isoler le bruit puis réactiver le circuit, ou porter le bloc par les passages normaux et l'installer.
 
 ### M-04 — Salle d'observation (AR-01 O)
@@ -73,7 +73,7 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 ### M-07 — Salle des machines (nouveau, D-163)
 
 - **Pièces :** une salle des machines entre deux pièces, avec un interrupteur.
-- **Créature :** peut attendre dans la salle des machines ; on ne l'entend pas venir.
+- **Créature :** dans la soute, ouverte sur la pièce d'entrée, jamais dans la salle des machines (D-261) ; on ne l'entend pas venir.
 - **Sûr :** faire dans la salle les gestes bruyants (ouvrir une porte grippée) : rien ne sort. Ou relancer les machines depuis l'interrupteur de la salle pour attirer la créature, puis repartir par l'autre porte (un seul interrupteur, D-173).
 - **Risqué :** entrer sans savoir si elle est là.
 
@@ -291,7 +291,7 @@ Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée
 
 > **Statut :** implémenté sur la branche `content/152-premiere-station`, en attente de PR (zone orange). Conception : [spec L2](superpowers/specs/2026-10-15-premiere-station-tiree-design.md).
 
-NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 et une réserve pour celle de M-03 ; les pièces de même nom sont désignées par une lettre (coursive A, coursive B) et une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
+NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 (D-261) et une seule pièce voisine pour celle de M-03, porte ouverte au départ (D-262). Choix des agents : cette pièce s'appelle la réserve, pour ne pas la confondre avec la cabine de la capsule ; les pièces de même nom, numérotées (D-208), portent une lettre (coursive A, coursive B) ; une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
 
 `npm run check:stations` prouve chaque composition publiée à la construction, jamais au tirage, à la plus petite graine de plan qui donne une station : 0 pour les quatre. Une composition publiée non prouvée, ou prouvée non publiée, fait échouer la commande.
 
