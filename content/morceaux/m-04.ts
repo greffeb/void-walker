@@ -42,8 +42,8 @@ export const TEXTES_MORCEAU_M04: TextesMorceau = {
   },
   descriptions: {
     controle: [
-      'Une salle de contrôle aux pupitres couverts de voyants morts. Des sièges à roulettes ont été repoussés contre les murs.',
-      'Des claviers abandonnés, des gobelets oubliés sur les pupitres. La salle de contrôle sent le café froid.',
+      'Une salle de contrôle aux tables couvertes de voyants morts. Des sièges à roulettes ont été repoussés contre les murs.',
+      'Des claviers abandonnés, des gobelets oubliés sur les tables. La salle de contrôle sent le café froid.',
     ],
     observation: [
       'Une salle d’observation plongée dans la pénombre. Une paroi opaque isole une alcôve d’équipement.',
