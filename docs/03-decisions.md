@@ -1976,20 +1976,21 @@ Les quatre propositions de [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-ac
 
 ## Décisions validées — L2 de #106 (#152)
 
-Deux questions sur la place de la créature dans M-07 et M-03 ont été posées au porteur le 2026-10-15, pendant la conception de L2 ; ses réponses sont citées ci-dessous. Elles sont implémentées sur la branche de L2 ([13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152)) ; aucune partie sur téléphone n'est revendiquée.
+Deux questions sur la place de la créature dans M-07 et M-03 ont été posées au porteur le 2026-10-15, pendant la conception de L2, puis la conception lui a été soumise ; ses réponses sont citées ci-dessous, mot pour mot dans [13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152). Elles sont implémentées sur la branche de L2 ; aucune partie sur téléphone n'est revendiquée.
 
 ### D-261 — M-07 : la créature attend seulement dans la soute
 
 - Date / statut : 2026-10-15 / **Validé**.
 - Origine : réponse Q-186 « Dans la soute seulement, comme la station de test ».
-- Décision : la seule place déclarée pour la créature dans M-07 est la soute, jamais la salle des machines. La fiche disait « dans la salle des machines », mais cette salle est le seul passage vers la suite : sur une maquette, le vérifieur n'a trouvé aucune sortie sûre avec la créature dans cette salle (station rejetée), alors qu'il en trouve une avec la créature dans la soute.
-- Précise : D-161 et la fiche M-07 ([13 §3](13-morceaux-lancement.md#m-07--salle-des-machines-nouveau-d-163)).
+- Contexte : la question rappelait que la fiche plaçait la créature dans la salle des machines, seul passage vers la suite : avec elle dans cette salle, aucun passage sans risque n'existe et la vérification rejette la station ; avec elle dans la soute, un passage sûr existe (15 actions). Mesure faite par les agents avec le vérifieur sur une maquette jetable [détail de l'agent].
+- Décision : dans M-07, la créature attend seulement dans la soute, comme dans la station de test, jamais dans la salle des machines.
+- Modifie : la fiche M-07 acceptée par D-175, qui disait « dans la salle des machines » ([13 §3](13-morceaux-lancement.md#m-07--salle-des-machines-nouveau-d-163)) ; la place reste déclarée par le morceau (D-161).
 
-### D-262 — M-03 : une seule pièce voisine, la réserve, porte ouverte au départ
+### D-262 — M-03 : une seule pièce voisine, porte ouverte au départ
 
 - Date / statut : 2026-10-15 / **Validé**.
-- Origine : réponse Q-187 « réserve ou cabine », précisée « une seule pièce voisine ; « réserve » ou « cabine », c'est juste son nom ».
-- Décision : M-03 apporte une seule pièce voisine où la créature attend, reliée au local énergie par une porte ouverte au départ. [Détail de l'agent] Le nom « réserve » est un choix des agents, pour ne pas confondre cette pièce avec la cabine de la capsule.
+- Origine : réponse Q-187 « réserve ou cabine », précisée « Une seule pièce voisine ; « réserve » ou « cabine », c'est juste son nom », pour la pièce unique ; approbation de la conception de L2 le 2026-10-15 (« Oui, on passe au plan »), dont la proposition prévoyait la porte ouverte au départ.
+- Décision : M-03 apporte une seule pièce voisine où la créature attend, reliée au local énergie par une porte ouverte au départ. Cette pièce s'appelle la réserve, pour ne pas la confondre avec la cabine de la capsule [détail de l'agent].
 - Précise : D-161 et la fiche M-03 ([13 §3](13-morceaux-lancement.md#m-03--énergie-ar-01-p-final)).
 
 Détails de l'agent pour #108 (signature des validations), proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : clé ECDSA P-256 créée par WebCrypto, privée non exportable, gardée dans une base IndexedDB à part, commune à la version publique et aux versions de test d'une même adresse (un iPhone garde à part l'appli installée et Safari : deux clés possibles, d'où une liste de clés dans le fichier) ; « je valide » n'est offert que pour une partie allée au bout (D-099), depuis une version de test : dans les options pour une partie finie, et par ENVOYER MA PARTIE, ajouté sous NOUVELLE PARTIE à la fin d'une victoire ou d'une défaite ; jamais après un abandon ; l'attestation signée lie la PR, le commit, la version, le monde, la graine, le nombre d'actions, l'empreinte de l'état final, la fin obtenue, l'empreinte de la partie jointe et le commentaire ; le robot refuse une signature étrangère, une autre PR, un commit qui n'est pas dans la PR, une partie changée ou non finie ; il répond dans la PR (reconnue, refusée avec sa raison, ou clé inconnue) et pose l'étiquette `validation-reconnue` ; une case cochée sans signature ne reçoit pas de réponse ; le robot tourne toujours sur le code de la branche principale et se relance à la main après l'ajout d'une clé ; la CI signale toute modification de la clé ou du code qui la vérifie (`app/validation.ts`, `tools/reconnaitre-validation.ts`, le workflow et son script de surveillance) par un avertissement et, dans une PR, par un commentaire du robot, sans échec (d'abord en échec ; le porteur a trouvé la croix rouge trompeuse) ; le panneau d'envoi montre l'empreinte de la clé sous « je valide », car l'écran de fin n'a pas d'options (retour du porteur après essai) ; la réponse du robot donne la ligne à recopier dans le journal des parties humaines.

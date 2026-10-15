@@ -291,7 +291,7 @@ Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée
 
 > **Statut :** implémenté sur la branche `content/152-premiere-station`, en attente de PR (zone orange). Conception : [spec L2](superpowers/specs/2026-10-15-premiere-station-tiree-design.md).
 
-NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 (D-261) et une seule pièce voisine pour celle de M-03, porte ouverte au départ (D-262). Choix des agents : cette pièce s'appelle la réserve, pour ne pas la confondre avec la cabine de la capsule ; les pièces de même nom, numérotées (D-208), portent une lettre (coursive A, coursive B) ; une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
+NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 (Q-186, D-261) et une seule pièce voisine pour celle de M-03 (Q-187, D-262) ; la porte de cette pièce, ouverte au départ, vient de la conception qu'il a approuvée (D-262). Choix des agents : cette pièce s'appelle la réserve, pour ne pas la confondre avec la cabine de la capsule ; les pièces de même nom, numérotées (D-208), portent une lettre (coursive A, coursive B) ; une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
 
 `npm run check:stations` prouve chaque composition publiée à la construction, jamais au tirage, à la plus petite graine de plan qui donne une station : 0 pour les quatre. Une composition publiée non prouvée, ou prouvée non publiée, fait échouer la commande.
 
@@ -314,6 +314,20 @@ Empreinte de chaque morceau, hachage de sa définition et de ses textes (D-100) 
 | M-03 | `16cbe101d56cd2` |
 
 **Plans**, sur 1 000 graines par chemin, échecs compris : 1 000 plans sur 1 000 pour chacun des deux chemins, 0,34 ms en moyenne et 2,33 ms au plus avec M-07, 0,33 et 1,69 ms avec M-10 ; le tirage complet du catalogue réussit 1 000 fois sur 1 000, en 0,37 ms en moyenne et 2,96 ms au plus. Seul le taux d'au moins 95 % est asserté (14 §5.6).
+
+**Questions posées au porteur le 2026-10-15**, pendant la conception :
+
+**Q-186, D-261.** « Dans le morceau « salle des machines », où la créature peut-elle attendre au début ? » Précision donnée : « La fiche dit « dans la salle des machines ». Mais cette salle est le seul passage vers la suite : si la créature y est, il n'existe aucune façon de passer sans risque, et la vérification rejette la station. Si elle attend dans la soute à côté des quartiers (comme dans la station de test actuelle), un passage sûr existe (15 actions). » Choix proposés : « Dans la soute seulement, comme la station de test » (recommandé) ou « Soute ou salle des machines ; les cas sans passage sûr sont écartés avant d'être proposés ».
+
+**Réponse du porteur :** « Dans la soute seulement, comme la station de test ».
+
+**Q-187, D-262.** « Dans le morceau final « énergie », dans quelle pièce voisine la créature attend-elle ? » Précision donnée : « La fiche dit « dans une pièce voisine reliée au local », sans dire laquelle. Proposition : le morceau apporte une petite réserve à côté du local, porte ouverte au départ. Remettre la console en marche fait un bruit qui l'attire, sauf si l'on a d'abord fermé cette porte ; porter le bloc d'énergie jusqu'à la capsule ne fait pas de bruit. Passage sûr vérifié avec les deux morceaux de chemin (16 actions). » Choix proposé : « Une réserve, porte ouverte au départ (proposition) », réponse libre permise.
+
+**Réponse du porteur :** « réserve ou cabine ». À la question de précision « Par « réserve ou cabine », voulez-vous dire que la créature peut attendre dans l'une ou l'autre, tirée au hasard ? », il a répondu : « Une seule pièce voisine ; « réserve » ou « cabine », c'est juste son nom ».
+
+**Approbation.** « Le document de conception vous convient-il pour passer au plan de travail ? », avec la liste des choix des agents.
+
+**Réponse du porteur :** « Oui, on passe au plan ». La conception approuvée ([spec L2 §3.5](superpowers/specs/2026-10-15-premiere-station-tiree-design.md#35-m-03--énergie-final)) prévoit la porte de la réserve ouverte au départ (D-262).
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 
