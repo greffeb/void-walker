@@ -39,8 +39,9 @@ export const MORCEAU_M09: DefMorceau = {
   assistance: [{ id: 'gravite', quand: { type: 'arrivee', piece: 'p-sas-ouest' } }],
 };
 
-// Textes du morceau (C-07) : sas, coursive de transfert, interrupteur et message d'arrivée repris de la station de test M-09,
-// l'interrupteur sous une clé distincte de celui des machines ; la cale écrite pour ce morceau. Texte final non validé.
+// Textes du morceau (C-07) : sas, interrupteur et message d'arrivée repris de la station de test M-09, l'interrupteur sous une
+// clé distincte de celui des machines. La coursive de transfert, décrite sans l'état de sa gravité qui change en partie, et
+// la cale sont écrites pour ce morceau. Texte final non validé.
 export const TEXTES_MORCEAU_M09: TextesMorceau = {
   noms: {
     sas_ouest: repris(TEXTES_PROPRES_M09.noms, 'sas_ouest'),
@@ -51,11 +52,14 @@ export const TEXTES_MORCEAU_M09: TextesMorceau = {
   },
   descriptions: {
     sas_ouest: repris(TEXTES_PROPRES_M09.descriptions, 'sas_ouest'),
-    transfert: repris(TEXTES_PROPRES_M09.descriptions, 'transfert'),
+    transfert: [
+      'Une longue coursive tapissée de poignées, jusqu’au plafond. Une ligne de vie court d’un sas à l’autre.',
+      'Un tube de métal, des barreaux tout du long, sur chaque paroi. Aux deux bouts, la porte d’un sas.',
+    ],
     sas_est: repris(TEXTES_PROPRES_M09.descriptions, 'sas_est'),
     cale: [
       'Une cale basse sous des poutrelles nues. Des conteneurs sanglés s’alignent contre les parois.',
-      'Des conteneurs arrimés par des sangles, des filets tendus sous le plafond. La cale sent la graisse et le métal.',
+      'Des conteneurs arrimés par des sangles, des filets tendus sous le plafond. Une étiquette sur deux est arrachée.',
     ],
     interrupteur_gravite: repris(TEXTES_PROPRES_M09.descriptions, 'interrupteur'),
   },

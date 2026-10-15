@@ -35,7 +35,7 @@ function textesDe(cle: string): TextesMorceau {
 
 describe('textes par couches (13 §7.2)', () => {
   it('aucun mot de l’univers ni de la menace dans le socle, les morceaux ni les textes propres aux stations de test', () => {
-    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(['vestibule', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'essai', 'station m-07', 'station m-08', 'station m-09', 'station m-10']);
+    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(['vestibule', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'm-06', 'essai', 'station m-07', 'station m-08', 'station m-09', 'station m-10']);
     expect(fuitesDeCouches(MORCEAUX_TEXTES)).toEqual([]);
   });
 

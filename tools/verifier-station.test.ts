@@ -355,14 +355,15 @@ describe('catalogue vérifié à la construction (#152)', () => {
     }, table);
     const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
     const sans = verifierCatalogue(catalogue, { maxEtats: 1 });
-    // Toute station qui passe par M-07 se termine par M-03 : refusée ; les autres, vérifiées sur un état, restent non prouvées.
-    const attendu: [string, LigneCatalogue['verdict'], number][] = COMPOSITIONS_PUBLIEES.map((id) =>
-      id.includes('m07') ? [id, 'refusee', 0] : [id, 'non_prouvee', 1],
+    // Toute station qui passe par M-07 et se termine par M-03 est refusée ; les autres, M-07 vers M-06 compris, vérifiées sur un état,
+    // restent non prouvées.
+    const attendu: [string, LigneCatalogue['verdict'], number][] = CATALOGUE.compositions.map(({ id, chemins, final }) =>
+      chemins.includes('m-07') && final === 'm-03' ? [id, 'refusee', 0] : [id, 'non_prouvee', 1],
     );
     expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(20);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
     for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
-    expect(assembles.filter((id) => id.split('-').includes('m07'))).toEqual([]);
+    expect(assembles.filter((id) => id.split('-').includes('m07') && id.split('-').includes('m03'))).toEqual([]);
     expect(ecartsDuCatalogue(sans, COMPOSITIONS_PUBLIEES, [])).toEqual(
       attendu.map(([composition, verdict]) => `Composition publiée ${composition} non prouvée (${verdict}).`),
     );
@@ -386,21 +387,37 @@ describe('plans des stations tirées (14 §5.6)', () => {
     const mesures = mesurerPlans(1000);
     expect(mesures.map((mesure) => mesure.chemin)).toEqual([
       'vestibule + m-07 + m-03',
+      'vestibule + m-07 + m-06',
       'vestibule + m-07 + m-08 + m-03',
+      'vestibule + m-07 + m-08 + m-06',
       'vestibule + m-07 + m-09 + m-03',
+      'vestibule + m-07 + m-09 + m-06',
       'vestibule + m-07 + m-10 + m-03',
+      'vestibule + m-07 + m-10 + m-06',
       'vestibule + m-08 + m-03',
+      'vestibule + m-08 + m-06',
       'vestibule + m-08 + m-07 + m-03',
+      'vestibule + m-08 + m-07 + m-06',
       'vestibule + m-08 + m-09 + m-03',
+      'vestibule + m-08 + m-09 + m-06',
       'vestibule + m-08 + m-10 + m-03',
+      'vestibule + m-08 + m-10 + m-06',
       'vestibule + m-09 + m-03',
+      'vestibule + m-09 + m-06',
       'vestibule + m-09 + m-07 + m-03',
+      'vestibule + m-09 + m-07 + m-06',
       'vestibule + m-09 + m-08 + m-03',
+      'vestibule + m-09 + m-08 + m-06',
       'vestibule + m-09 + m-10 + m-03',
+      'vestibule + m-09 + m-10 + m-06',
       'vestibule + m-10 + m-03',
+      'vestibule + m-10 + m-06',
       'vestibule + m-10 + m-07 + m-03',
+      'vestibule + m-10 + m-07 + m-06',
       'vestibule + m-10 + m-08 + m-03',
+      'vestibule + m-10 + m-08 + m-06',
       'vestibule + m-10 + m-09 + m-03',
+      'vestibule + m-10 + m-09 + m-06',
     ]);
     for (const mesure of mesures) {
       expect(mesure.tirages).toBe(1000);

@@ -53,8 +53,8 @@ function porte(monde: DefMonde, id: string) {
 }
 
 describe('morceaux (13 §8)', () => {
-  it('vestibule, M-07, M-08, M-09, M-10, M-03 et embarquement d’essai, dans cet ordre', () => {
-    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'essai']);
+  it('vestibule, M-07, M-08, M-09, M-10, M-03, M-06 et embarquement d’essai, dans cet ordre', () => {
+    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'm-06', 'essai']);
   });
 
   it.each(Object.entries(MORCEAUX))('%s : morceau valide, identifiant repris', (id, { morceau }) => {
@@ -84,12 +84,48 @@ describe('morceaux (13 §8)', () => {
   });
 });
 
-describe('M-08 et M-09 (spec L3 §3.2, §3.3)', () => {
+describe('M-06, M-08 et M-09 (spec L3 §3.1 à §3.3)', () => {
   function entree(id: string): EntreeMorceau {
     const trouvee = MORCEAUX[id];
     if (trouvee === undefined) throw new Error(`Morceau ${id} absent.`);
     return trouvee;
   }
+
+  it('M-06 : final valide, entrée par le couloir de sécurité, créature à l’embarquement, capsule alimentée, écoutille fermée', () => {
+    const { morceau, textes } = entree('m-06');
+    expect(validerMorceau(morceau)).toEqual([]);
+    expect(morceau).toMatchObject({ famille: 'final', entree: 'p-couloir', placesCreature: ['p-embarquement'], demande: ['acces'], fournit: ['evacuation'] });
+    expect(morceau.objets.find((objet) => objet.capsule !== undefined)?.capsule).toEqual({ interieur: 'p-cabine', alimentee: true });
+    expect(morceau.liaisons.find((liaison) => liaison.nom === 'ecoutille')).toMatchObject({ entre: ['p-embarquement', 'p-cabine'], ouverte: false });
+    expect(textes.noms.couloir_securite).toEqual({ texte: 'couloir de sécurité', genre: 'm', nombre: 's', elision: false });
+  });
+
+  it('M-06 : les objets d’AR-02 sans le terminal, la baie dans la panoramique', () => {
+    const { morceau } = entree('m-06');
+    expect(morceau.objets.map((objet) => [objet.id, objet.piece])).toEqual([
+      ['o-signaletique', 'p-couloir'],
+      ['o-casier', 'p-local'],
+      ['o-combinaison', 'p-local'],
+      ['o-decoupeuse', 'p-local'],
+      ['o-baie', 'p-panoramique'],
+      ['o-kit', 'p-panoramique'],
+      ['o-capsule', 'p-embarquement'],
+      ['o-pupitre', 'p-cabine'],
+    ]);
+    expect(morceau.objets.find((objet) => objet.id === 'o-baie')?.vitrageExterieur).toBe(true);
+    expect(morceau.objets.some((objet) => objet.nom === 'terminal')).toBe(false);
+  });
+
+  it('M-06 : aucun message d’assistance', () => {
+    const { morceau, textes } = entree('m-06');
+    expect(morceau.assistance ?? []).toEqual([]);
+    expect(textes.assistance).toEqual({});
+  });
+
+  it('vigilance 5 : aucun texte de m-06 ne parle des cabines du personnel ni du terminal', () => {
+    const textes = JSON.stringify(entree('m-06').textes).toLocaleLowerCase('fr');
+    for (const mot of ['cabines du personnel', 'terminal']) expect(textes).not.toContain(mot);
+  });
 
   it.each([
     ['m-08', 'p-magasin', 'passerelle', 'p-ouest'],
@@ -128,8 +164,8 @@ describe('M-08 et M-09 (spec L3 §3.2, §3.3)', () => {
     for (const mot of mots) expect(textes).not.toContain(mot);
   });
 
-  it('aucun mot de l’univers ni de la menace dans les textes de M-08 et M-09', () => {
-    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(expect.arrayContaining(['m-08', 'm-09']));
+  it('aucun mot de l’univers ni de la menace dans les textes de M-06, M-08 et M-09', () => {
+    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(expect.arrayContaining(['m-06', 'm-08', 'm-09']));
     expect(fuitesDeCouches(MORCEAUX_TEXTES)).toEqual([]);
   });
 });
@@ -272,54 +308,110 @@ describe('table des paires (13 §4.1)', () => {
 });
 
 describe('compositions', () => {
-  it('8 compositions à un chemin (2 places), 36 à deux (M-07 à M-10 deux à deux, dans les deux ordres, 3 places), triées, sans refus, publiées', () => {
+  it('16 compositions à un chemin (2 places), 72 à deux (M-07 à M-10 deux à deux, dans les deux ordres, 3 places), M-03 ou M-06 au bout, triées, sans refus, publiées', () => {
     expect(CATALOGUE.compositions).toEqual([
       { id: 'm07-m03-reserve', chemins: ['m-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm07-m03-soute', chemins: ['m-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m06-embarquement', chemins: ['m-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm07-m06-soute', chemins: ['m-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm07-m08-m03-magasin', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm07-m08-m03-reserve', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm07-m08-m03-soute', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m08-m06-embarquement', chemins: ['m-07', 'm-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm07-m08-m06-magasin', chemins: ['m-07', 'm-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm07-m08-m06-soute', chemins: ['m-07', 'm-08'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm07-m09-m03-cale', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm07-m09-m03-reserve', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm07-m09-m03-soute', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m09-m06-cale', chemins: ['m-07', 'm-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm07-m09-m06-embarquement', chemins: ['m-07', 'm-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm07-m09-m06-soute', chemins: ['m-07', 'm-09'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm07-m10-m03-entrepot', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm07-m10-m03-reserve', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm07-m10-m03-soute', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m10-m06-embarquement', chemins: ['m-07', 'm-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm07-m10-m06-entrepot', chemins: ['m-07', 'm-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm07-m10-m06-soute', chemins: ['m-07', 'm-10'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm08-m03-magasin', chemins: ['m-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm08-m03-reserve', chemins: ['m-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm08-m06-embarquement', chemins: ['m-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm08-m06-magasin', chemins: ['m-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
       { id: 'm08-m07-m03-magasin', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm08-m07-m03-reserve', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm08-m07-m03-soute', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm08-m07-m06-embarquement', chemins: ['m-08', 'm-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm08-m07-m06-magasin', chemins: ['m-08', 'm-07'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm08-m07-m06-soute', chemins: ['m-08', 'm-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm08-m09-m03-cale', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm08-m09-m03-magasin', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm08-m09-m03-reserve', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm08-m09-m06-cale', chemins: ['m-08', 'm-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm08-m09-m06-embarquement', chemins: ['m-08', 'm-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm08-m09-m06-magasin', chemins: ['m-08', 'm-09'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
       { id: 'm08-m10-m03-entrepot', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm08-m10-m03-magasin', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm08-m10-m03-reserve', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm08-m10-m06-embarquement', chemins: ['m-08', 'm-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm08-m10-m06-entrepot', chemins: ['m-08', 'm-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm08-m10-m06-magasin', chemins: ['m-08', 'm-10'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
       { id: 'm09-m03-cale', chemins: ['m-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm09-m03-reserve', chemins: ['m-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m06-cale', chemins: ['m-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m06-embarquement', chemins: ['m-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
       { id: 'm09-m07-m03-cale', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm09-m07-m03-reserve', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm09-m07-m03-soute', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm09-m07-m06-cale', chemins: ['m-09', 'm-07'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m07-m06-embarquement', chemins: ['m-09', 'm-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm09-m07-m06-soute', chemins: ['m-09', 'm-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm09-m08-m03-cale', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm09-m08-m03-magasin', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm09-m08-m03-reserve', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m08-m06-cale', chemins: ['m-09', 'm-08'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m08-m06-embarquement', chemins: ['m-09', 'm-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm09-m08-m06-magasin', chemins: ['m-09', 'm-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
       { id: 'm09-m10-m03-cale', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm09-m10-m03-entrepot', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm09-m10-m03-reserve', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m10-m06-cale', chemins: ['m-09', 'm-10'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m10-m06-embarquement', chemins: ['m-09', 'm-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm09-m10-m06-entrepot', chemins: ['m-09', 'm-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m03-entrepot', chemins: ['m-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m03-reserve', chemins: ['m-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm10-m06-embarquement', chemins: ['m-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm10-m06-entrepot', chemins: ['m-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m07-m03-entrepot', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m07-m03-reserve', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm10-m07-m03-soute', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm10-m07-m06-embarquement', chemins: ['m-10', 'm-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm10-m07-m06-entrepot', chemins: ['m-10', 'm-07'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm10-m07-m06-soute', chemins: ['m-10', 'm-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
       { id: 'm10-m08-m03-entrepot', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m08-m03-magasin', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
       { id: 'm10-m08-m03-reserve', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm10-m08-m06-embarquement', chemins: ['m-10', 'm-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm10-m08-m06-entrepot', chemins: ['m-10', 'm-08'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm10-m08-m06-magasin', chemins: ['m-10', 'm-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
       { id: 'm10-m09-m03-cale', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
       { id: 'm10-m09-m03-entrepot', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m09-m03-reserve', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm10-m09-m06-cale', chemins: ['m-10', 'm-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
+      { id: 'm10-m09-m06-embarquement', chemins: ['m-10', 'm-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
+      { id: 'm10-m09-m06-entrepot', chemins: ['m-10', 'm-09'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map((composition) => composition.id));
+  });
+
+  it('88 compositions : 44 par final, 16 à un chemin, 72 à deux ; aucune ne réunit M-03 et M-06', () => {
+    const { compositions } = CATALOGUE;
+    expect(compositions).toHaveLength(88);
+    for (const final of ['m-03', 'm-06']) expect(compositions.filter((composition) => composition.final === final), final).toHaveLength(44);
+    expect(compositions.filter((composition) => composition.chemins.length === 1)).toHaveLength(16);
+    expect(compositions.filter((composition) => composition.chemins.length === 2)).toHaveLength(72);
+    for (const composition of compositions) {
+      const morceaux: string[] = [...composition.chemins, composition.final];
+      expect(morceaux.includes('m-03') && morceaux.includes('m-06'), composition.id).toBe(false);
+    }
   });
 
   it('identifiants de composition uniques, triés, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
@@ -339,7 +431,7 @@ describe('compositions', () => {
       const cle = [...composition.chemins, composition.final].join(' + ');
       parStation.set(cle, [...(parStation.get(cle) ?? []), composition]);
     }
-    expect(parStation.size).toBe(16);
+    expect(parStation.size).toBe(32);
     for (const [cle, compositions] of parStation) {
       const morceaux = cle.split(' + ').map((id) => MORCEAUX[id]);
       const places = morceaux.flatMap((entree) => entree?.morceau.placesCreature.map((place) => `${entree.morceau.id}/${place}`) ?? []);
@@ -358,9 +450,9 @@ describe('compositions', () => {
     const { appels, assembler } = espion();
     const catalogue = creerCatalogue(assembler, SANS_M03_M07);
     const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
-    // Toute station qui passe par M-07 se termine par M-03 : elle est refusée ; les autres restent.
+    // Toute station qui passe par M-07 et se termine par M-03 est refusée ; les autres restent, M-07 vers M-06 compris.
     expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual(
-      COMPOSITIONS_PUBLIEES.map((id) => [id, id.includes('m07') ? motif : null]),
+      CATALOGUE.compositions.map(({ id, chemins, final }) => [id, chemins.includes('m-07') && final === 'm-03' ? motif : null]),
     );
     expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(20);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m03-soute'))).toContain('M-03 + M-07');
@@ -382,9 +474,15 @@ describe('compositions', () => {
       'm07-m10-m03-entrepot',
       'm07-m10-m03-reserve',
       'm07-m10-m03-soute',
+      'm07-m10-m06-embarquement',
+      'm07-m10-m06-entrepot',
+      'm07-m10-m06-soute',
       'm10-m07-m03-entrepot',
       'm10-m07-m03-reserve',
       'm10-m07-m03-soute',
+      'm10-m07-m06-embarquement',
+      'm10-m07-m06-entrepot',
+      'm10-m07-m06-soute',
     ]);
     expect(refusDe(catalogue.resoudre('m07-m10-m03-soute-42'))).toBe(motif);
     expect(refusDe(catalogue.construire('m07-m10-m03-soute', 42))).toBe(motif);
@@ -548,9 +646,19 @@ describe('résolution d’un identifiant', () => {
   it('le tirage consomme le hasard dans l’ordre : final, composition, puis graine du plan', () => {
     const manque = espion((station) => (station.graine === 7 ? { type: 'sans_plan' } : assemblerStation(station)));
     const tirage = creerCatalogue(manque.assembler);
-    // Final : 5 % 1 ; composition : 5 % 44 (m07-m09-m03-cale) ; graine 7 sans plan, puis 2718281828.
-    expect(entreeDe(tirage.tirer(suiteDe(5, 5, 7, 2718281828))).monde.id).toBe('m07-m09-m03-cale-2718281828');
+    // Final : 4 % 2 (m-03) ; composition : 5 % 44 (m07-m09-m03-cale) ; graine 7 sans plan, puis 2718281828.
+    expect(entreeDe(tirage.tirer(suiteDe(4, 5, 7, 2718281828))).monde.id).toBe('m07-m09-m03-cale-2718281828');
     expect(manque.appels.map((station) => station.graine)).toEqual([7, 2718281828]);
+  });
+
+  it('pile ou face (D-253) : le premier tirage choisit le final, 0 donne M-03, 1 donne M-06', () => {
+    const graines = Array.from({ length: 50 }, (_, rang) => rang);
+    const finalDe = (resultat: EntreeMonde | Refus): string | undefined => {
+      const { id } = entreeDe(resultat).monde;
+      return CATALOGUE.compositions.find((composition) => composition.id === id.slice(0, id.lastIndexOf('-')))?.final;
+    };
+    expect(finalDe(catalogue.tirer(suiteDe(0, 0, ...graines)))).toBe('m-03');
+    expect(finalDe(catalogue.tirer(suiteDe(1, 0, ...graines)))).toBe('m-06');
   });
 });
 
@@ -626,6 +734,16 @@ describe('stations tirées', () => {
     const partie = exporter(monde, nouvellePartie(monde, { version: '0.1.0', graine: 7 }));
     const demande = { type: 'partie', version: '0.1.0', build: '1', commit: '', pr: 152, commentaire: '', valide: false, partie, ecran: [], validation: null };
     expect(lireDemande(JSON.parse(JSON.stringify(demande)) as unknown)).toMatchObject({ ok: true, demande: { partie: { monde: monde.id } } });
+  });
+
+  it('vigilance 4 : l’export d’une partie neuve de m08-m09-m06-embarquement-2718281828 passe le service de rapports', () => {
+    const { monde } = entreeDe(CATALOGUE.resoudre('m08-m09-m06-embarquement-2718281828'));
+    const partie = exporter(monde, nouvellePartie(monde, { version: '0.1.0', graine: 7 }));
+    const demande = { type: 'partie', version: '0.1.0', build: '1', commit: '', pr: 153, commentaire: '', valide: false, partie, ecran: [], validation: null };
+    expect(lireDemande(JSON.parse(JSON.stringify(demande)) as unknown)).toMatchObject({
+      ok: true,
+      demande: { partie: { monde: 'm08-m09-m06-embarquement-2718281828' } },
+    });
   });
 });
 

@@ -5,13 +5,15 @@ import {
   observer,
   type DefMonde,
   type EtatCreature,
+  type EtatPartie,
   type Evenement,
   type IdAction,
   type OptionMenu,
   type Partie,
 } from '../engine';
+import { piecesSansAir } from '../engine/etat';
 import { CATALOGUE } from './catalogue';
-import { stationDeReference } from './verifier-station';
+import { chercherEtat, stationDeReference } from './verifier-station';
 
 // Mélanges joués en station assemblée (spec L3 §5) : une station du catalogue, à sa graine de référence, jouée par le moteur.
 // Les noms ne servent qu'à retrouver les options du menu : ce sont les clés de la station.
@@ -141,4 +143,38 @@ describe('MX-01 en station assemblée (D-174)', () => {
     // Quatre réactions utiles (entrer, dériver deux fois, franchir), une sur deux : sept actions.
     expect(actions).toBe(7);
   });
+});
+
+describe('le vide gagne les nouveaux morceaux (D-246)', () => {
+  /** État atteint depuis le départ, sans dé ni blessure, par la recherche du vérifieur. */
+  function atteindre(composition: string, but: (monde: DefMonde, etat: EtatPartie) => boolean): EtatPartie {
+    const reference = stationDeReference(CATALOGUE, composition);
+    if ('refus' in reference) throw new Error(reference.refus);
+    const { monde } = reference.entree;
+    const recherche = chercherEtat(reference.entree, (etat) => but(monde, etat));
+    expect(recherche.issue, `${composition} : ${recherche.etats} états`).toBe('trouve');
+    if (recherche.partie === null) throw new Error(`${composition} : but non atteint.`);
+    return recherche.partie.etat;
+  }
+  const exposees = (monde: DefMonde, etat: EtatPartie, pieces: readonly string[]): boolean =>
+    etat.breches.length > 0 && pieces.every((piece) => piecesSansAir(monde, etat).includes(piece));
+
+  it('m07-m09-m06-embarquement : baie percée, l’air quitte aussi la salle des machines et la coursive de transfert', () => {
+    const etat = atteindre('m07-m09-m06-embarquement', (monde, courant) => exposees(monde, courant, ['m-07/p-machines', 'm-09/p-transfert']));
+    expect(etat.sante).toBe('indemne');
+  }, 60000);
+
+  it('m10-m08-m06-embarquement : baie percée, l’air quitte les deux bords de la passerelle et la chambre froide', () => {
+    const etat = atteindre('m10-m08-m06-embarquement', (monde, courant) => exposees(monde, courant, ['m-08/p-ouest', 'm-08/p-est', 'm-10/p-chambre']));
+    expect(etat.sante).toBe('indemne');
+  }, 60000);
+
+  // Soute de M-07 ouverte sur les quartiers dès le départ : l'air la quitte sans porte à ouvrir sous les yeux de la créature.
+  it('m07-m09-m06-soute : la créature, restée dans un chemin, devient inerte hors de la panoramique', () => {
+    const etat = atteindre(
+      'm07-m09-m06-soute',
+      (_, courant) => courant.breches.length > 0 && courant.creature?.neutralisee === 'inerte' && courant.creature.piece !== 'm-06/p-panoramique',
+    );
+    expect(etat.creature?.piece?.startsWith('m-06/')).toBe(false);
+  }, 60000);
 });

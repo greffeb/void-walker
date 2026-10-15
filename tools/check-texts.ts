@@ -52,7 +52,7 @@ import {
 import { CATALOGUE } from './catalogue';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { stationDeReference } from './verifier-station';
+import { stationDeReference, verifierStation } from './verifier-station';
 
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
 
@@ -505,14 +505,19 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
 
 /**
  * Mondes du catalogue, puis une station par composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de
- * plan vérifiée par `check:stations`.
+ * plan vérifiée par `check:stations`. Chaque station porte pour seul parcours le témoin d'évacuation de `verifierStation` ;
+ * sans témoin, elle est refusée.
  */
 export function entreesAControler(catalogue: Catalogue): (readonly [string, EntreeMonde | Refus])[] {
   return [
     ...Object.entries(catalogue.mondes),
     ...COMPOSITIONS_CONTROLEES.map((composition) => {
       const station = stationDeReference(catalogue, composition);
-      return 'refus' in station ? ([composition, station] as const) : ([station.entree.monde.id, station.entree] as const);
+      if ('refus' in station) return [composition, station] as const;
+      const rapport = verifierStation(station.entree);
+      const id = station.entree.monde.id;
+      if (rapport.parcours === null) return [id, { refus: `Évacuation non prouvée (${rapport.verdict}) : ${rapport.diagnostic}` }] as const;
+      return [id, { ...station.entree, parcours: [rapport.parcours] }] as const;
     }),
   ];
 }

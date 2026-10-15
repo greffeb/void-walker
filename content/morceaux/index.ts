@@ -2,6 +2,7 @@ import type { DefMorceau } from '../../engine';
 import type { TextesMorceau } from '../textes/types';
 import { MORCEAU_ESSAI, TEXTES_MORCEAU_ESSAI } from './essai';
 import { MORCEAU_M03, TEXTES_MORCEAU_M03 } from './m-03';
+import { MORCEAU_M06, TEXTES_MORCEAU_M06 } from './m-06';
 import { MORCEAU_M07, TEXTES_MORCEAU_M07 } from './m-07';
 import { MORCEAU_M08, TEXTES_MORCEAU_M08 } from './m-08';
 import { MORCEAU_M09, TEXTES_MORCEAU_M09 } from './m-09';
@@ -21,5 +22,6 @@ export const MORCEAUX: Readonly<Record<string, EntreeMorceau>> = {
   [MORCEAU_M09.id]: { morceau: MORCEAU_M09, textes: TEXTES_MORCEAU_M09 },
   [MORCEAU_M10.id]: { morceau: MORCEAU_M10, textes: TEXTES_MORCEAU_M10 },
   [MORCEAU_M03.id]: { morceau: MORCEAU_M03, textes: TEXTES_MORCEAU_M03 },
+  [MORCEAU_M06.id]: { morceau: MORCEAU_M06, textes: TEXTES_MORCEAU_M06 },
   [MORCEAU_ESSAI.id]: { morceau: MORCEAU_ESSAI, textes: TEXTES_MORCEAU_ESSAI },
 };
