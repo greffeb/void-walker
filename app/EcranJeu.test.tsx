@@ -885,8 +885,10 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
     expect(entre(html, '<header', '</header>')).toContain('<h1 class="titre-piece">cabine de la capsule</h1>');
     expect(fin.assistance).toEqual([ar01.textes.assistance.depart]);
-    // Le dernier message se lit encore dans la fenêtre, par le lien : la navigation n'est plus là (le lien ne reste qu'à la fin, #139).
-    expect(html).toContain('class="lien-ia"');
+    // La navigation n'est plus là : le message de départ s'écrit en entier dans le récit, encadré comme au réveil, sans lien (#139, D-263).
+    expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${ar01.textes.assistance.depart ?? ''}\u00a0»`);
+    expect(html).not.toContain('lien-ia');
+    expect(html).not.toContain('parle dans l’écouteur');
   });
 });
 

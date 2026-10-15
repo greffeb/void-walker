@@ -365,26 +365,6 @@ button:disabled {
   margin-top: 8px;
 }
 
-/* Lien IA Station (12 §3.3) : cadre pointillé, seulement quand un message vient d'arriver ; ouvre la fenêtre. */
-.lien-ia {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  margin: 0 0 12px;
-  padding: 8px 12px;
-  font-size: calc(14px * var(--echelle));
-  line-height: 1.4;
-  text-align: left;
-  color: var(--blanc-texte);
-  background: var(--blanc-surface);
-  border: 1px dashed var(--blanc);
-}
-
-.lien-ia:not(:disabled):active {
-  background: var(--blanc-secondaire);
-  color: var(--blanc-surface);
-}
-
 /* Effet machine à écrire (D-186) : chaque caractère, déjà à sa place, devient visible à son tour ; puis le curseur clignote lentement. */
 .recit.ecrire .car {
   animation: apparait 0s linear both;

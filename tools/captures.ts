@@ -6,7 +6,7 @@ import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { COMPOSITIONS_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
-import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
+import { composerDock, filBulle, nomDestination, nomParametre, nomPuce, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { CATALOGUE } from './catalogue';
 import { rejouerExport } from './rejouer-export';
@@ -730,17 +730,6 @@ async function verifierSansLien(page: Page, ou: string, erreurs: string[]): Prom
   if (dernier !== 'P') erreurs.push(`${ou} : le récit ne se termine pas par un paragraphe (${dernier ?? '?'}).`);
 }
 
-/** Lien « [ IA STATION ] parle dans l'écouteur › », dernier élément du récit en fin de partie, sans la citation (12 §3.3, D-192, D-263). */
-async function verifierLien(page: Page, ou: string, erreurs: string[]): Promise<Locator> {
-  const lien = page.getByTestId('lien-ia');
-  if ((await lien.count()) !== 1 || !(await lien.isVisible())) erreurs.push(`${ou} : lien d’IA Station absent.`);
-  else if ((await lien.innerText()).trim() !== LIEN_IA) erreurs.push(`${ou} : lien d’IA Station « ${await lien.innerText()} ».`);
-  if ((await page.getByTestId('ia-station').count()) > 0) erreurs.push(`${ou} : la citation d’IA Station est dans le récit au lieu du lien.`);
-  const dernier = await page.getByTestId('recit').evaluate((recit) => (recit.lastElementChild as HTMLElement | null)?.dataset.testid);
-  if (dernier !== 'lien-ia') erreurs.push(`${ou} : le lien d’IA Station n’est pas après le récit.`);
-  return lien;
-}
-
 /**
  * Fenêtre d'IA Station (12 §3.9, D-192) : blanche, messages reçus dans l'ordre, NOUVEAU sur ceux qui n'étaient pas lus, un seul bouton ;
  * le focus y reste ; la croix, IA STATION ou le voile la referment sans rien jouer, le focus revient, le repère s'éteint.
@@ -1140,12 +1129,11 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   if (!(await fin.getByRole('button', { name: exactement('Nouvelle partie') }).isVisible())) erreurs.push('Fin : NOUVELLE PARTIE absent.');
   if ((await page.locator('.dock .puce, .dock .deplacements').count()) > 0) erreurs.push('Fin : le dock de la pièce est encore là.');
   if (await page.locator('.navigation').isVisible()) erreurs.push('Fin : INVENTAIRE est encore proposé.');
-  const lienFin = await verifierLien(page, 'Fin', erreurs);
-  await capturer(page, `AR-01 — Fin : « ${phrases.evacuee} », NOUVELLE PARTIE`);
+  // Sans navigation, le message de départ s'écrit en entier dans le récit, encadré comme au réveil, sans lien (D-263).
+  await verifierParole(page, assistance.depart, 'Fin', erreurs);
+  if ((await page.getByTestId('lien-ia').count()) > 0 || ((await page.getByTestId('recit').innerText()).includes('écouteur'))) erreurs.push('Fin : un lien « parle dans l’écouteur » est encore dans le récit.');
+  await capturer(page, `AR-01 — Fin : « ${phrases.evacuee} », message de départ, NOUVELLE PARTIE`);
   await verifierEcran(page, 'AR-01, fin', erreurs);
-  await verifierFenetreIA(page, lienFin, [[assistance.reveil, false], [assistance.energie, false], [assistance.depart, true]], 'Échap', 'Fin, fenêtre', erreurs, () =>
-    capturer(page, 'AR-01 — Fin : fenêtre d’IA Station, départ confirmé'),
-  );
   await contexte.close();
 
   // Départ au format du téléphone du porteur, puis à 320 × 568 où le dock défile au-dessous de six lignes de récit (D-191).

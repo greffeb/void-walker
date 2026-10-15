@@ -148,10 +148,10 @@ Dans cet ordre :
 1. **Rappel de la dernière action**, en `texte-secondaire` : objet · action · paramètre, par exemple « > Caisse · Déplacer · sous la grille haute ». [Validé] Pour un déplacement : « > ALLER VERS · ATELIER DE SERVICE ». Pour l'arrivée dans le jeu : « > REGARDER AUTOUR DE VOUS ».
 2. **Récit** : deux à quatre phrases (C-07). Quand l'alarme du feu ou du vide sonne, la ligne qui décrit ce danger s'écrit en rouge `alerte`, précédée d'un petit triangle d'attention qui clignote deux fois par seconde, fixe en mouvement réduit ; le texte ne clignote pas. Si aucune phrase du récit ne décrit le danger (entrée dans une pièce sans air, voyant rouge apparu), la ligne de « Regarder autour de vous » qui le décrit est ajoutée. Le lecteur d'écran lit « Attention » avant la ligne. [Validé D-233]
 3. **Ligne de bruit** : icône oreille, puis une phrase en italique `signal`, par exemple « Quelque chose bouge derrière la porte du Salon de transit. » [Validé] Le texte nomme le passage, jamais une position (OP-01). Sans bruit : même ligne en `texte-secondaire`, « Vous n'entendez rien de particulier. » [Proposé]
-4. **Message d'IA Station** : rien dans le récit en cours de partie. Un message qui arrive s'annonce par le repère du bouton IA STATION (§4.3) ; il se lit dans la modale (§3.9). Seul celui du réveil est cité en entier (§4.2), et, à la fin de la partie, la navigation ayant disparu, un lien cadré en pointillé « [ IA STATION ] parle dans l'écouteur › » ouvre la modale. [Validé D-192, D-263 : le lien du récit est retiré en cours de partie, conservé au début (citation) et à la fin]
+4. **Message d'IA Station** : rien dans le récit en cours de partie. Un message qui arrive s'annonce par le repère du bouton IA STATION (§3.9, §4.3) ; il se lit dans la modale (§3.9). Au réveil et à la fin de la partie, la navigation n'étant pas (encore ou plus) là, le message est cité en entier sous le récit, dans l'encadré d'IA Station (§4.2). Aucun lien « parle dans l'écouteur ». [Validé D-192, D-263 : le lien du récit est retiré ; à la fin, le message de départ s'écrit à sa place]
 5. **Encadré « Ce qui change »** après une action dont l'effet est notable (§3.10).
 
-**Machine à écrire** [Validé D-186] : tout nouveau texte (rappel, récit, bruit, parole d'IA Station au réveil) s'écrit caractère par caractère, dans l'ordre de lecture, en 500 ms au total. Puis un curseur `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Toucher un bouton pendant l'écriture agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit. Le lecteur d'écran reçoit le texte entier une fois ; le curseur lui est masqué. La place du texte final est réservée dès le début.
+**Machine à écrire** [Validé D-186] : tout nouveau texte (rappel, récit, bruit, parole d'IA Station au réveil et à la fin) s'écrit caractère par caractère, dans l'ordre de lecture, en 500 ms au total. Puis un curseur `▮` clignote lentement à la fin du dernier texte apparu ; un seul curseur à l'écran. Toucher un bouton pendant l'écriture agit normalement et affiche le texte en entier. Un texte déjà affiché n'est pas réécrit. Le lecteur d'écran reçoit le texte entier une fois ; le curseur lui est masqué. La place du texte final est réservée dès le début.
 
 ### 3.4 Dock « Dans la pièce »
 
@@ -264,7 +264,7 @@ Tous sont de vrais boutons ou liens, accessibles au clavier et au lecteur d'écr
 | Écran de jeu | Puce d'objet | Bulle de composition (ou fiche longue) |
 | Écran de jeu | Bouton « → destination » | Aperçu de déplacement |
 | Écran de jeu | CARTE | Carte |
-| Écran de jeu | IA STATION (à la fin de la partie : lien « parle dans l'écouteur ») | Modale IA Station |
+| Écran de jeu | IA STATION | Modale IA Station |
 | Écran de jeu | Engrenage | Options |
 | Aperçu | CONFIRMER | Écran de jeu, résultat de l'action |
 | Aperçu, bulle, fiche | ANNULER, ✕, voile | Écran de jeu, inchangé |
@@ -293,7 +293,7 @@ Texte seul et un bouton. [Validé]
 
 - **Haut :** « > SALON DE TRANSIT_ » en 13 `texte-secondaire`.
 - **Récit long** (autorisé au réveil, D-111), 17 px, interligne 1,65, qui défile si besoin. Le texte du terminal de transit (« CONFINEMENT EN COURS ») est en vidéo inverse.
-- **Parole d'IA Station** encadrée, en blanc froid comme la modale (D-198) : contour `blanc`, fond `blanc-surface`, étiquette « [ IA STATION ] » en 12/600 `blanc-secondaire`, citation en italique `blanc-texte`. Le lien de fin de partie « parle dans l'écouteur » suit les mêmes couleurs, cadre pointillé `blanc`. Ce message entre dans l'historique de la modale.
+- **Parole d'IA Station** encadrée, en blanc froid comme la modale (D-198) : contour `blanc`, fond `blanc-surface`, étiquette « [ IA STATION ] » en 12/600 `blanc-secondaire`, citation en italique `blanc-texte`. Ce message entre dans l'historique de la modale.
 - **Bas :** REGARDER AUTOUR DE VOUS, principal, pleine largeur. Lire étant gratuit, ce bouton n'engage rien.
 
 Texte d'exemple :
@@ -365,7 +365,7 @@ Parcours de référence du prototype (cas A-03 de C-01).
 - **En-tête :** position mise à jour, « > sous la grille haute ».
 - **Récit :** « > Caisse · Déplacer · sous la grille haute » [Validé], puis : « La caisse racle le sol sur toute la longueur de l'atelier. Elle s'arrête sous la grille haute, stable. Le bruit a dû porter loin. »
 - **Bruit :** « Derrière la porte du Salon de transit, le mouvement s'est arrêté. »
-- **IA Station :** aucun lien dans le récit ; « ! » sur l'angle de IA STATION dans la navigation tant que le message n'est pas lu (D-263).
+- **IA Station :** aucun lien dans le récit en cours de partie ; « ! » sur le bord de IA STATION dans la navigation tant que le message n'est pas lu (D-263).
 - Dock et navigation comme en §4.5.
 
 ### 4.8 Carte
