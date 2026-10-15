@@ -19,8 +19,10 @@ import { suivant } from '../engine/des';
 import {
   COMPOSITIONS_PUBLIEES,
   creerCatalogue,
+  fuitesDeCouches,
   MONDES,
   MORCEAUX,
+  MORCEAUX_TEXTES,
   nomLisible,
   numeroter,
   PAIRES,
@@ -51,8 +53,8 @@ function porte(monde: DefMonde, id: string) {
 }
 
 describe('morceaux (13 §8)', () => {
-  it('vestibule, M-07, M-10, M-03 et embarquement d’essai, dans cet ordre', () => {
-    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-07', 'm-10', 'm-03', 'essai']);
+  it('vestibule, M-07, M-08, M-09, M-10, M-03 et embarquement d’essai, dans cet ordre', () => {
+    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'essai']);
   });
 
   it.each(Object.entries(MORCEAUX))('%s : morceau valide, identifiant repris', (id, { morceau }) => {
@@ -79,6 +81,56 @@ describe('morceaux (13 §8)', () => {
     const { morceau } = MORCEAUX.essai ?? {};
     expect(morceau).toMatchObject({ famille: 'final', demande: ['acces'], fournit: ['evacuation'], placesCreature: [] });
     expect(morceau?.objets.find((objet) => objet.capsule !== undefined)?.capsule?.alimentee).toBe(true);
+  });
+});
+
+describe('M-08 et M-09 (spec L3 §3.2, §3.3)', () => {
+  function entree(id: string): EntreeMorceau {
+    const trouvee = MORCEAUX[id];
+    if (trouvee === undefined) throw new Error(`Morceau ${id} absent.`);
+    return trouvee;
+  }
+
+  it.each([
+    ['m-08', 'p-magasin', 'passerelle', 'p-ouest'],
+    ['m-09', 'p-cale', 'gravite', 'p-sas-ouest'],
+  ] as const)('%s : chemin valide, créature en %s, message %s à l’arrivée en %s', (id, place, message, piece) => {
+    const { morceau, textes } = entree(id);
+    expect(validerMorceau(morceau)).toEqual([]);
+    expect(morceau).toMatchObject({ famille: 'chemin', entree: 'p-quartiers', placesCreature: [place], demande: [], fournit: ['acces'] });
+    expect(morceau.assistance).toEqual([{ id: message, quand: { type: 'arrivee', piece } }]);
+    expect(textes.assistance[message]).toBeDefined();
+  });
+
+  it('M-08 : la planche, pont encombrant, est dans l’atelier ; pas de touret', () => {
+    const { morceau } = entree('m-08');
+    expect(morceau.objets).toEqual([{ id: 'o-planche', nom: 'planche', piece: 'p-atelier', pont: true, encombrant: true }]);
+    expect(morceau.objets.some((objet) => objet.nom === 'touret')).toBe(false);
+  });
+
+  it('M-09 : deux interrupteurs de gravité, dans les sas, hors de la coursive ; pas de burette', () => {
+    const { morceau } = entree('m-09');
+    const interrupteurs = morceau.objets.filter((objet) => objet.gravite === 'p-transfert');
+    expect(interrupteurs.map((objet) => [objet.nom, objet.piece])).toEqual([
+      ['interrupteur_gravite', 'p-sas-ouest'],
+      ['interrupteur_gravite', 'p-sas-est'],
+    ]);
+    expect(morceau.pieces.find((piece) => piece.id === 'p-transfert')?.gravite).toBe('coupee');
+    expect(morceau.objets.filter((objet) => objet.piece === 'p-transfert')).toEqual([]);
+    expect(morceau.objets.some((objet) => objet.nom === 'burette')).toBe(false);
+  });
+
+  it.each([
+    ['m-08', ['touret', 'réserve']],
+    ['m-09', ['burette', 'soute']],
+  ] as const)('vigilance 5 : aucun texte de %s ne garde %j de sa station de test', (id, mots) => {
+    const textes = JSON.stringify(entree(id).textes).toLocaleLowerCase('fr');
+    for (const mot of mots) expect(textes).not.toContain(mot);
+  });
+
+  it('aucun mot de l’univers ni de la menace dans les textes de M-08 et M-09', () => {
+    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(expect.arrayContaining(['m-08', 'm-09']));
+    expect(fuitesDeCouches(MORCEAUX_TEXTES)).toEqual([]);
   });
 });
 
@@ -220,18 +272,52 @@ describe('table des paires (13 §4.1)', () => {
 });
 
 describe('compositions', () => {
-  it('4 compositions à un chemin, 6 à deux (M-07 et M-10 dans les deux ordres, 3 places), triées, sans refus, publiées', () => {
+  it('8 compositions à un chemin (2 places), 36 à deux (M-07 à M-10 deux à deux, dans les deux ordres, 3 places), triées, sans refus, publiées', () => {
     expect(CATALOGUE.compositions).toEqual([
       { id: 'm07-m03-reserve', chemins: ['m-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm07-m03-soute', chemins: ['m-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m08-m03-magasin', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm07-m08-m03-reserve', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm07-m08-m03-soute', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m09-m03-cale', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm07-m09-m03-reserve', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm07-m09-m03-soute', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
       { id: 'm07-m10-m03-entrepot', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm07-m10-m03-reserve', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm07-m10-m03-soute', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm08-m03-magasin', chemins: ['m-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm08-m03-reserve', chemins: ['m-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm08-m07-m03-magasin', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm08-m07-m03-reserve', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm08-m07-m03-soute', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm08-m09-m03-cale', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm08-m09-m03-magasin', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm08-m09-m03-reserve', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm08-m10-m03-entrepot', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm08-m10-m03-magasin', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm08-m10-m03-reserve', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m03-cale', chemins: ['m-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m03-reserve', chemins: ['m-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m07-m03-cale', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m07-m03-reserve', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m07-m03-soute', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm09-m08-m03-cale', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m08-m03-magasin', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm09-m08-m03-reserve', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm09-m10-m03-cale', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm09-m10-m03-entrepot', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm09-m10-m03-reserve', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm10-m03-entrepot', chemins: ['m-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m03-reserve', chemins: ['m-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm10-m07-m03-entrepot', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
       { id: 'm10-m07-m03-reserve', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
       { id: 'm10-m07-m03-soute', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm10-m08-m03-entrepot', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm10-m08-m03-magasin', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
+      { id: 'm10-m08-m03-reserve', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm10-m09-m03-cale', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
+      { id: 'm10-m09-m03-entrepot', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm10-m09-m03-reserve', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map((composition) => composition.id));
   });
@@ -253,7 +339,7 @@ describe('compositions', () => {
       const cle = [...composition.chemins, composition.final].join(' + ');
       parStation.set(cle, [...(parStation.get(cle) ?? []), composition]);
     }
-    expect(parStation.size).toBe(4);
+    expect(parStation.size).toBe(16);
     for (const [cle, compositions] of parStation) {
       const morceaux = cle.split(' + ').map((id) => MORCEAUX[id]);
       const places = morceaux.flatMap((entree) => entree?.morceau.placesCreature.map((place) => `${entree.morceau.id}/${place}`) ?? []);
@@ -272,25 +358,19 @@ describe('compositions', () => {
     const { appels, assembler } = espion();
     const catalogue = creerCatalogue(assembler, SANS_M03_M07);
     const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
-    expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual([
-      ['m07-m03-reserve', motif],
-      ['m07-m03-soute', motif],
-      ['m07-m10-m03-entrepot', motif],
-      ['m07-m10-m03-reserve', motif],
-      ['m07-m10-m03-soute', motif],
-      ['m10-m03-entrepot', null],
-      ['m10-m03-reserve', null],
-      ['m10-m07-m03-entrepot', motif],
-      ['m10-m07-m03-reserve', motif],
-      ['m10-m07-m03-soute', motif],
-    ]);
+    // Toute station qui passe par M-07 se termine par M-03 : elle est refusée ; les autres restent.
+    expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual(
+      COMPOSITIONS_PUBLIEES.map((id) => [id, id.includes('m07') ? motif : null]),
+    );
+    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(20);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m03-soute'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.resoudre('m07-m03-soute-42'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.construire('m07-m03-soute', 42))).toContain('M-03 + M-07');
     expect(appels).toEqual([]);
     // Le tirage libre ne propose plus que les compositions qui restent.
+    const restantes = catalogue.compositions.filter((composition) => composition.refus === null).map((composition) => composition.id);
     const hasard = hasardDepuis(2);
-    for (let rang = 0; rang < 20; rang++) expect(entreeDe(catalogue.tirer(hasard)).monde.id).toMatch(/^m10-m03-/);
+    for (let rang = 0; rang < 20; rang++) expect(restantes).toContain(entreeDe(catalogue.tirer(hasard)).monde.id.replace(/-\d+$/, ''));
   });
 
   it('G-02 : sans la paire M-07 + M-10, m07-m10-m03-soute est refusée avec le motif de la table, sans appeler l’assembleur', () => {
@@ -468,8 +548,8 @@ describe('résolution d’un identifiant', () => {
   it('le tirage consomme le hasard dans l’ordre : final, composition, puis graine du plan', () => {
     const manque = espion((station) => (station.graine === 7 ? { type: 'sans_plan' } : assemblerStation(station)));
     const tirage = creerCatalogue(manque.assembler);
-    // Final : 5 % 1 ; composition : 5 % 10 (m10-m03-entrepot) ; graine 7 sans plan, puis 2718281828.
-    expect(entreeDe(tirage.tirer(suiteDe(5, 5, 7, 2718281828))).monde.id).toBe('m10-m03-entrepot-2718281828');
+    // Final : 5 % 1 ; composition : 5 % 44 (m07-m09-m03-cale) ; graine 7 sans plan, puis 2718281828.
+    expect(entreeDe(tirage.tirer(suiteDe(5, 5, 7, 2718281828))).monde.id).toBe('m07-m09-m03-cale-2718281828');
     expect(manque.appels.map((station) => station.graine)).toEqual([7, 2718281828]);
   });
 });

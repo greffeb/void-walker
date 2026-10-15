@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
@@ -360,7 +360,8 @@ describe('appli : monde choisi par l’adresse', () => {
 
 describe('appli : station tirée au lancement et à chaque nouvelle partie (#152)', () => {
   const STATION = 'm07-m03-soute-2718281828';
-  const FORME_TIREE = /^(m(07|10)-){1,2}m03-[a-z]+-(0|[1-9][0-9]*)$/;
+  /** Composition d'une station tirée : ce qui précède la graine décimale, sans zéro de tête ; à chercher parmi les publiées. */
+  const compositionTiree = (station: string | undefined): string | undefined => /^([a-z0-9-]+)-(0|[1-9][0-9]*)$/.exec(station ?? '')?.[1];
   const id = (entree: EntreeMonde | null): string | undefined => entree?.monde.id;
   const envSur = (entree: EntreeMonde, stockage: Stockage): Environnement => ({ monde: entree.monde, textes: entree.textes, version: 'v-test', stockage, graine: () => 31 });
   const resolue = (station: string): EntreeMonde => {
@@ -380,9 +381,9 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
     expect(lancement.refus).toBeNull();
     expect(id(lancement.entree)).toBe(tiree(1));
-    expect(id(lancement.entree)).toMatch(FORME_TIREE);
+    expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(id(lancement.entree)));
     const suivantes = [lancement.suivante(), lancement.suivante()].map((entree) => entree.monde.id);
-    for (const suivante of suivantes) expect(suivante).toMatch(FORME_TIREE);
+    for (const suivante of suivantes) expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(suivante));
     expect(new Set([id(lancement.entree), ...suivantes]).size).toBe(3);
     expect(ecritures()).toBe(0);
   });
@@ -395,7 +396,7 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
       expect(id(lancement.entree)).toBe(entree.monde.id);
       expect((await charger(envSur(lancement.entree ?? entree, stockage))).type).toBe('pret');
       const suivante = lancement.suivante().monde.id;
-      expect(suivante).toMatch(FORME_TIREE);
+      expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(suivante));
       expect(suivante).not.toBe(entree.monde.id);
     }
   });

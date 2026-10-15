@@ -355,18 +355,11 @@ describe('catalogue vérifié à la construction (#152)', () => {
     }, table);
     const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
     const sans = verifierCatalogue(catalogue, { maxEtats: 1 });
-    const attendu: [string, LigneCatalogue['verdict'], number][] = [
-      ['m07-m03-reserve', 'refusee', 0],
-      ['m07-m03-soute', 'refusee', 0],
-      ['m07-m10-m03-entrepot', 'refusee', 0],
-      ['m07-m10-m03-reserve', 'refusee', 0],
-      ['m07-m10-m03-soute', 'refusee', 0],
-      ['m10-m03-entrepot', 'non_prouvee', 1],
-      ['m10-m03-reserve', 'non_prouvee', 1],
-      ['m10-m07-m03-entrepot', 'refusee', 0],
-      ['m10-m07-m03-reserve', 'refusee', 0],
-      ['m10-m07-m03-soute', 'refusee', 0],
-    ];
+    // Toute station qui passe par M-07 se termine par M-03 : refusée ; les autres, vérifiées sur un état, restent non prouvées.
+    const attendu: [string, LigneCatalogue['verdict'], number][] = COMPOSITIONS_PUBLIEES.map((id) =>
+      id.includes('m07') ? [id, 'refusee', 0] : [id, 'non_prouvee', 1],
+    );
+    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(20);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
     for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
     expect(assembles.filter((id) => id.split('-').includes('m07'))).toEqual([]);
@@ -393,9 +386,21 @@ describe('plans des stations tirées (14 §5.6)', () => {
     const mesures = mesurerPlans(1000);
     expect(mesures.map((mesure) => mesure.chemin)).toEqual([
       'vestibule + m-07 + m-03',
+      'vestibule + m-07 + m-08 + m-03',
+      'vestibule + m-07 + m-09 + m-03',
       'vestibule + m-07 + m-10 + m-03',
+      'vestibule + m-08 + m-03',
+      'vestibule + m-08 + m-07 + m-03',
+      'vestibule + m-08 + m-09 + m-03',
+      'vestibule + m-08 + m-10 + m-03',
+      'vestibule + m-09 + m-03',
+      'vestibule + m-09 + m-07 + m-03',
+      'vestibule + m-09 + m-08 + m-03',
+      'vestibule + m-09 + m-10 + m-03',
       'vestibule + m-10 + m-03',
       'vestibule + m-10 + m-07 + m-03',
+      'vestibule + m-10 + m-08 + m-03',
+      'vestibule + m-10 + m-09 + m-03',
     ]);
     for (const mesure of mesures) {
       expect(mesure.tirages).toBe(1000);

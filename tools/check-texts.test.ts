@@ -184,7 +184,7 @@ describe('contrôle des textes (C-07)', () => {
     expect(entrees.slice(0, fixes.length).map(([id]) => id)).toEqual(fixes);
     const stations = entrees.slice(fixes.length);
     expect(stations).toHaveLength(COMPOSITIONS_CONTROLEES.length);
-    expect(COMPOSITIONS_CONTROLEES).toEqual(['m07-m03-reserve', 'm07-m03-soute', 'm10-m03-entrepot', 'm10-m03-reserve', 'm07-m10-m03-soute', 'm10-m07-m03-entrepot']);
+    expect(COMPOSITIONS_CONTROLEES).toEqual(['m07-m03-soute', 'm08-m07-m03-magasin', 'm10-m03-reserve', 'm10-m09-m03-entrepot']);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
       const composition = COMPOSITIONS_CONTROLEES[rang] ?? '';
