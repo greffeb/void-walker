@@ -29,16 +29,24 @@ export interface Dock {
   /** « Dans la pièce » : objets, et passages qui ne se savent pas encore passages (D-147). */
   readonly piece: readonly Groupe[];
   readonly autour: OptionMenu | undefined;
-  /** « Se déplacer vers » : un bouton par passage connu, qui ouvre sa bulle : fiche, aller, ouvrir ou fermer (D-229). */
+  /** « Se déplacer vers » : une ligne par passage connu, son nom fait passer, sa commande ouvre ou ferme la porte (D-267). */
   readonly deplacements: readonly Deplacement[];
   /** Objets portés, ouverts par le bouton INVENTAIRE. */
   readonly inventaire: readonly Groupe[];
 }
 
-/** Bouton « Se déplacer vers » : le passage, ses options (« Aller » en tête) et le déplacement qui le nomme. */
+/** Ce que la ligne d'une salle signale (D-267) : voyant de vide, flammes vues par la porte ouverte, créature entendue derrière. */
+export type Repere = 'vide' | 'feu' | 'bruit';
+
+/** Ligne « Se déplacer vers » : le passage, ses options (« Aller » en tête), ce que joue son nom, sa porte et ses repères. */
 export interface Deplacement extends Groupe {
   readonly cible: RefPassage;
   readonly aller: OptionMenu;
+  /** Joué par le nom : « Dériver jusqu'à… » sans gravité loin du passage (D-237), sinon « Aller », même refusé. */
+  readonly passer: OptionMenu;
+  /** Ouvrir ou fermer la porte ; absent pour un passage sans porte à manœuvrer. */
+  readonly manoeuvre: OptionMenu | undefined;
+  readonly reperes: readonly Repere[];
 }
 
 function grouper(cibles: readonly (RefObjet | RefPassage)[], options: readonly OptionMenu[]): Groupe[] {
@@ -49,14 +57,29 @@ function grouper(cibles: readonly (RefObjet | RefPassage)[], options: readonly O
 
 /**
  * Range chaque option du menu moteur à une seule place de l'écran (12 §3.4). `ouverts` : passages que le passager a déjà
- * ouverts, retrouvés dans l'enregistrement (`passagesOuverts`) ; refermés, ils restent des passages (D-229).
+ * ouverts, retrouvés dans l'enregistrement (`passagesOuverts`) ; refermés, ils restent des passages (D-229). `entendus` : passages
+ * derrière lesquels la créature vient de bouger (`passagesEntendus`).
  */
-export function composerDock(observation: Observation, ouverts: readonly string[] = []): Dock {
+export function composerDock(observation: Observation, ouverts: readonly string[] = [], entendus: readonly string[] = []): Dock {
   const deplacements = observation.passages.flatMap((passage): Deplacement[] => {
     const options = observation.menu.filter((option) => option.cible.id === passage.id);
     const aller = options.find((option) => option.action === 'aller');
     if (aller === undefined || !connuCommePassage(passage, ouverts)) return [];
-    return [{ cible: passage, aller, options: [aller, ...options.filter((option) => option !== aller)] }];
+    const deriver = options.find((option) => option.action === 'deriver' && option.disponible);
+    const reperes: Repere[] = [];
+    if (passage.vide) reperes.push('vide');
+    if (passage.feu) reperes.push('feu');
+    if (entendus.includes(passage.id)) reperes.push('bruit');
+    return [
+      {
+        cible: passage,
+        aller,
+        options: [aller, ...options.filter((option) => option !== aller)],
+        passer: aller.disponible || deriver === undefined ? aller : deriver,
+        manoeuvre: options.find((option) => option.action === 'ouvrir' || option.action === 'fermer'),
+        reperes,
+      },
+    ];
   });
   const autres = observation.menu.filter((option) => option.action !== 'aller' && !deplacements.some((deplacement) => deplacement.options.includes(option)));
   const manoeuvres = observation.menu.filter((option) => option.cible.sorte === 'passage' && (option.action === 'ouvrir' || option.action === 'fermer'));
@@ -90,6 +113,11 @@ function connuCommePassage(passage: RefPassage, ouverts: readonly string[]): boo
 /** Passages que le passager a ouverts au moins une fois, d'après les commandes enregistrées. */
 export function passagesOuverts(partie: Partie): string[] {
   return partie.enregistrement.actions.flatMap(({ commande }) => (commande.action === 'ouvrir' ? [commande.cible] : []));
+}
+
+/** Passages derrière lesquels la créature a bougé au dernier pas : le repère BRUIT dure jusqu'à l'action suivante (D-267). */
+export function passagesEntendus(partie: Partie): string[] {
+  return partie.derniers.flatMap((evenement) => (evenement.type === 'bruit_creature' ? [evenement.passage.id] : []));
 }
 
 /** Première étape d'une bulle (12 §3.5) : la consultation est la fiche, gratuite (D-014) ; le reste, les actions. */
@@ -151,12 +179,18 @@ export function nomParametre(textes: TextesMonde, parametre: NonNullable<OptionM
   return parametre.sorte === 'passage' ? nomPuce(textes, parametre) : nomDe(textes, parametre).texte;
 }
 
-/** Les portes gardent toujours l'aperçu (D-182). */
-const UN_TOUCHER: readonly IdAction[] = ['prendre', 'poser', 'aller'];
+/** Portes et déplacements : toujours d'un seul toucher, même bruyants ou risqués (D-267). */
+const TOUJOURS_UN_TOUCHER: readonly IdAction[] = ['aller', 'deriver', 'ouvrir', 'fermer'];
+const UN_TOUCHER_SANS_RISQUE: readonly IdAction[] = ['prendre', 'poser'];
 
-/** Prendre, poser ou changer de pièce se joue d'un seul toucher quand l'aperçu n'annonce ni risque, ni danger, ni coût (D-182). */
+/**
+ * Prendre ou poser se joue d'un seul toucher quand l'aperçu n'annonce ni risque, ni danger, ni coût (D-182) ; une porte ou un
+ * déplacement, toujours (D-267).
+ */
 export function unToucher(monde: DefMonde, partie: Partie, option: OptionMenu): boolean {
-  if (!option.disponible || !UN_TOUCHER.includes(option.action)) return false;
+  if (!option.disponible) return false;
+  if (TOUJOURS_UN_TOUCHER.includes(option.action)) return true;
+  if (!UN_TOUCHER_SANS_RISQUE.includes(option.action)) return false;
   const resultat = apercu(monde, partie, option.commande);
   if (resultat.type !== 'apercu') return false;
   const { risque, danger, cout } = resultat.apercu;
