@@ -235,7 +235,7 @@ export function EcranJeu({
         )}
       </header>
       <Sauvegarde jeu={jeu} />
-      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={ouverte?.zone === 'ia'} ouvrirIA={ouvrirIA} />
+      <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={ouverte?.zone === 'ia'} ouvrirIA={ouvrirIA} terminee={observation.terminee} />
       {/* Situation en phrases : hors de l'écran, gardée pour le lecteur d'écran comme dans la CLI (C-06 K-07). */}
       <section className="lecteur-seul" data-testid="situation">
         {rendreObservation(textes, observation).map((ligne, index) => (
@@ -342,7 +342,7 @@ export function EcranJeu({
           >
             {NAV_CARTE}
           </button>
-          {/* Carré plein tant qu'un message n'a pas été lu, « nouveau message » pour le lecteur d'écran (12 §2.6). */}
+          {/* Repère animé tant qu'un message n'a pas été lu (D-263) ; masqué au lecteur d'écran, qui lit « nouveau message » sans répétition (12 §2.6). */}
           <button
             type="button"
             className="nav-ia"
@@ -354,7 +354,12 @@ export function EcranJeu({
             data-son={ouverte?.zone === 'ia' ? 'fermer-ia' : 'panneau-ia'}
           >
             {NAV_IA}
-            {nonLus.length > 0 && <span className="pastille" aria-hidden="true" />}
+            {nonLus.length > 0 && (
+              <svg className="notification-ia" viewBox="0 0 12 20" aria-hidden="true">
+                <rect x="3" y="0" width="6" height="12" fill="currentColor" />
+                <rect x="3" y="14" width="6" height="6" fill="currentColor" />
+              </svg>
+            )}
           </button>
         </nav>
       </div>
@@ -402,7 +407,7 @@ export function EcranReveil({
         <p className="lieu-reveil">&gt; {nomDe(env.textes, observation.piece).texte}_</p>
       </header>
       <Sauvegarde jeu={jeu} />
-      <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={false} ouvrirIA={() => undefined} />
+      <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} occupe={occupe} iaOuverte={false} ouvrirIA={() => undefined} terminee={false} />
       <div className="actions-reveil">
         <button type="button" className="principal" disabled={occupe} onClick={regarder} data-son="confirmer">
           Regarder autour de vous
@@ -766,7 +771,8 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
  * Récit (12 §3.3), écrit à la machine quand il est nouveau (D-186). `tabIndex` : le focus y revient quand la puce d'origine a disparu.
  * Chaque bloc existe deux fois : le texte entier pour le lecteur d'écran, et une copie masquée écrite lettre à lettre,
  * qui occupe dès le départ la place du texte final. Le curseur suit le dernier bloc.
- * Au réveil, la parole d'IA Station est encadrée en entier (12 §4.2) ; ensuite, un lien ouvre sa fenêtre (12 §3.3, D-192).
+ * Au réveil, la parole d'IA Station est encadrée en entier (12 §4.2) ; en cours de partie, rien dans le récit : le repère du bouton IA STATION l'annonce ;
+ * à la fin, un lien ouvre sa fenêtre, la navigation ayant disparu (12 §3.3, D-263).
  */
 function Recit({
   jeu,
@@ -776,6 +782,7 @@ function Recit({
   occupe,
   iaOuverte,
   ouvrirIA,
+  terminee,
   sansAssistance = false,
 }: {
   readonly jeu: Jeu;
@@ -786,6 +793,8 @@ function Recit({
   readonly occupe: boolean;
   readonly iaOuverte: boolean;
   readonly ouvrirIA: (depuis: HTMLElement) => void;
+  /** Partie finie : la navigation a disparu, le lien reste le seul accès à la fenêtre d'IA Station. */
+  readonly terminee: boolean;
   readonly sansAssistance?: boolean;
 }) {
   const { rappel } = jeu;
@@ -845,7 +854,7 @@ function Recit({
           ))}
         </section>
       )}
-      {!reveil && !sansAssistance && jeu.assistance.length > 0 && (
+      {terminee && !reveil && !sansAssistance && jeu.assistance.length > 0 && (
         <button
           type="button"
           className="lien-ia"

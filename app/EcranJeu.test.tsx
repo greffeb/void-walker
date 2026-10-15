@@ -293,13 +293,9 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     // Carnet, « → ATELIER », « → SOUTE », INVENTAIRE, CARTE et IA STATION.
     expect(ouvrants).toHaveLength(6);
     expect(ouvrants.every((bouton) => bouton.includes('disabled=""'))).toBe(true);
+    // IA Station n'a plus de lien dans le récit en cours de partie : son bouton de navigation porte le repère (#139, D-263).
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
-    const lien = entre(
-      renderToStaticMarkup(<EcranJeu jeu={arrivee} lus={[]} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />),
-      '<button type="button" class="lien-ia"',
-      '>',
-    );
-    expect(lien).toContain('disabled=""');
+    expect(renderToStaticMarkup(<EcranJeu jeu={arrivee} lus={[]} env={env} machineAEcrire occupe={true} choisir={rien} lireMessages={rienALire} />)).not.toContain('lien-ia');
   });
 
   it('inventaire : l’action choisie montre aussi son aperçu ; « ‹ » revient à la fiche', async () => {
@@ -868,10 +864,12 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     const arrivee = await pc(5);
     expect(arrivee.rappel).toEqual({ texte: 'Aller vers · local énergie', capitales: true });
     expect(arrivee.assistance).toEqual([ar01.textes.assistance.energie]);
-    // En cours de partie, un lien ouvre la fenêtre au lieu de la citation (12 §3.3, D-192).
+    // En cours de partie, ni citation ni lien dans le récit : le repère du bouton IA STATION annonce le message (#139, D-263).
     const html = rendreAr01(arrivee, ['reveil']);
     expect(html).not.toContain('parole-ia');
-    expect(texte(entre(html, '<button type="button" class="lien-ia"', '</button>'))).toBe('[ IA STATION ] parle dans l’écouteur ›');
+    expect(html).not.toContain('lien-ia');
+    expect(html).not.toContain('parle dans l’écouteur');
+    expect(entre(html, '<button type="button" class="nav-ia"', '</button>')).toContain('class="notification-ia"');
     expect((await pc(6)).assistance).toEqual([]);
     expect(rendreAr01(await pc(6), ['reveil'])).not.toContain('lien-ia');
   });
@@ -887,44 +885,45 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
     expect(entre(html, '<header', '</header>')).toContain('<h1 class="titre-piece">cabine de la capsule</h1>');
     expect(fin.assistance).toEqual([ar01.textes.assistance.depart]);
-    // Le dernier message se lit encore dans la fenêtre, par le lien : la navigation n'est plus là.
+    // Le dernier message se lit encore dans la fenêtre, par le lien : la navigation n'est plus là (le lien ne reste qu'à la fin, #139).
     expect(html).toContain('class="lien-ia"');
   });
 });
 
-describe('IA Station : lien, pastille et fenêtre blanche (#98, 12 §3.3, §3.9, D-192)', () => {
+describe('IA Station : repère du bouton, lien de fin et fenêtre blanche (#98, #139, 12 §3.3, §3.9, D-192, D-263)', () => {
   const { reveil = '', atelier = '' } = textes.assistance;
   const navIa = (html: string): string => entre(html, '<button type="button" class="nav-ia"', '</button>');
 
-  it('au réveil : citation encadrée, pas de lien ; pastille et « nouveau message » tant que la fenêtre n’a pas été ouverte', async () => {
+  it('au réveil : citation encadrée, pas de lien ; repère et « nouveau message » tant que la fenêtre n’a pas été ouverte', async () => {
     const jeu = await commencer(env);
     const html = rendre(jeu);
     expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${reveil}\u00a0»`);
     expect(html).not.toContain('lien-ia');
     expect(navIa(html)).toBe(
-      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message" data-son="panneau-ia">IA Sta\u00adtion<span class="pastille" aria-hidden="true"></span></button>',
+      '<button type="button" class="nav-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station, nouveau message" data-son="panneau-ia">IA Sta\u00adtion<svg class="notification-ia" viewBox="0 0 12 20" aria-hidden="true"><rect x="3" y="0" width="6" height="12" fill="currentColor"></rect><rect x="3" y="14" width="6" height="6" fill="currentColor"></rect></svg></button>',
     );
     const lu1 = navIa(rendre(jeu, undefined, true, ['reveil']));
     expect(lu1).toContain('aria-label="IA Station"');
-    expect(lu1).not.toContain('pastille');
+    expect(lu1).not.toContain('notification-ia');
   });
 
-  it('à l’arrivée dans l’atelier : seulement le lien dans le récit, après lui ; à l’action suivante, plus de lien, la pastille reste', async () => {
+  it('à l’arrivée dans l’atelier : rien dans le récit, le repère seul sur le bouton ; il reste aux actions suivantes jusqu’à la lecture', async () => {
     const arrivee = await apres('prendre', 'ouvrir', 'aller');
     expect(arrivee.assistance).toEqual([atelier]);
-    const recit = entre(rendre(arrivee, undefined, true, ['reveil']), '<section class="recit', '</button></section>');
+    const recit = entre(rendre(arrivee, undefined, true, ['reveil']), '<section class="recit', '</section>');
     expect(recit).not.toContain('parole-ia');
+    expect(recit).not.toContain('lien-ia');
     expect(recit).not.toContain(atelier);
-    expect(recit).toMatch(
-      /<button type="button" class="lien-ia" aria-haspopup="dialog" aria-expanded="false" aria-label="IA Station parle dans l’écouteur" data-testid="lien-ia" data-son="panneau-ia">\[ IA STATION \] parle dans l’écouteur\u00a0›<\/button><\/section>$/,
-    );
-    expect(navIa(rendre(arrivee, undefined, true, ['reveil']))).toContain('pastille');
-    expect(navIa(rendre(arrivee, undefined, true, ['reveil', 'atelier']))).not.toContain('pastille');
+    expect(recit).not.toContain('IA STATION');
+    // Le repère remplace le carré : un seul, jamais avec l'ancienne pastille.
+    expect(rendre(arrivee, undefined, true, ['reveil'])).not.toContain('pastille');
+    expect(navIa(rendre(arrivee, undefined, true, ['reveil'])).match(/class="notification-ia"/g)).toHaveLength(1);
+    expect(navIa(rendre(arrivee, undefined, true, ['reveil', 'atelier']))).not.toContain('notification-ia');
     // Seul le message de l'atelier a été lu : celui du réveil reste nouveau.
-    expect(navIa(rendre(arrivee, undefined, true, ['atelier']))).toContain('pastille');
+    expect(navIa(rendre(arrivee, undefined, true, ['atelier']))).toContain('notification-ia');
     const suivant = await jouerOption(env, arrivee, observer(monde, arrivee.partie.etat).menu.find((option) => option.action === 'poser') as OptionMenu);
     expect(rendre(suivant, undefined, true, ['reveil'])).not.toContain('lien-ia');
-    expect(navIa(rendre(suivant, undefined, true, ['reveil']))).toContain('pastille');
+    expect(navIa(rendre(suivant, undefined, true, ['reveil']))).toContain('notification-ia');
   });
 
   it('fenêtre : en-tête, messages du plus ancien au plus récent avec leur repère, NOUVEAU sur les non-lus, une croix pour fermer', async () => {

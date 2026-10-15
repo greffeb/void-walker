@@ -624,13 +624,76 @@ async function policesChargees(page: Page): Promise<string[]> {
 
 type CapturerPage = (page: Page, titre: string, animations?: 'disabled' | 'allow') => Promise<EtapeCapture>;
 
-/** Bouton IA STATION : carré plein et « nouveau message » tant qu'un message n'est pas lu, rien ensuite (12 §2.6). */
-async function verifierPastille(page: Page, attendue: boolean, ou: string, erreurs: string[]): Promise<void> {
+/**
+ * Bouton IA STATION : repère animé et « nouveau message » tant qu'un message n'est pas lu, rien ensuite (12 §2.6, D-263).
+ * Un seul repère, jamais avec l'ancien carré ; en mouvement normal il pulse deux fois puis se repose, en mouvement réduit il est fixe et visible.
+ */
+async function verifierRepere(page: Page, attendue: boolean, ou: string, erreurs: string[]): Promise<void> {
   const bouton = page.locator('.nav-ia');
-  const pastilles = await bouton.locator('.pastille').count();
+  const reperes = await bouton.locator('.notification-ia').count();
   const nom = await bouton.getAttribute('aria-label');
   const voulu = attendue ? 'IA Station, nouveau message' : 'IA Station';
-  if (pastilles !== (attendue ? 1 : 0) || nom !== voulu) erreurs.push(`${ou} : IA STATION « ${nom ?? '?'} », ${pastilles} pastille(s), au lieu de « ${voulu} ».`);
+  if (reperes !== (attendue ? 1 : 0) || nom !== voulu) erreurs.push(`${ou} : IA STATION « ${nom ?? '?'} », ${reperes} repère(s), au lieu de « ${voulu} ».`);
+  if ((await bouton.locator('.pastille').count()) > 0) erreurs.push(`${ou} : l’ancien carré fixe double encore le repère.`);
+  if (!attendue || reperes !== 1) return;
+  const repere = bouton.locator('.notification-ia');
+  if ((await repere.getAttribute('aria-hidden')) !== 'true') erreurs.push(`${ou} : le repère n’est pas masqué au lecteur d’écran.`);
+  const etat = await repere.evaluate((element) => ({ nom: getComputedStyle(element).animationName }));
+  if (etat.nom !== 'notification-ia') erreurs.push(`${ou} : le repère n’est pas animé (« ${etat.nom} »).`);
+  const animationBouton = await bouton.evaluate((element) => getComputedStyle(element).animationName);
+  const libelle = await bouton.evaluate((element) => [...element.children].map((enfant) => getComputedStyle(enfant).animationName));
+  if (animationBouton !== 'none' || libelle.filter((nomAnimation) => nomAnimation !== 'none').length !== 1) erreurs.push(`${ou} : autre chose que le repère s’anime sur IA STATION.`);
+  // Posé à cheval sur le bord haut du bouton, côté droit, sans recouvrir le libellé.
+  const place = await page.evaluate(() => {
+    const bouton = document.querySelector('.nav-ia');
+    const repere = document.querySelector('.nav-ia .notification-ia');
+    if (bouton === null || repere === null) return { dedans: false, libelle: true };
+    const b = bouton.getBoundingClientRect();
+    const r = repere.getBoundingClientRect();
+    const rectsTexte = [...bouton.childNodes]
+      .filter((noeud) => noeud.nodeType === Node.TEXT_NODE)
+      .flatMap((noeud) => {
+        const zone = document.createRange();
+        zone.selectNodeContents(noeud);
+        return [...zone.getClientRects()];
+      });
+    return {
+      dedans: r.left >= b.left && r.right <= b.right + 1 && r.top <= b.top + b.height / 2 && r.bottom >= b.top && r.top >= b.top - 20,
+      libelle: rectsTexte.some((t) => t.left < r.right && t.right > r.left && t.top < r.bottom && t.bottom > r.top),
+    };
+  });
+  if (!place.dedans) erreurs.push(`${ou} : le repère n’est pas posé sur l’angle du bouton IA STATION.`);
+  if (place.libelle) erreurs.push(`${ou} : le repère recouvre le libellé IA STATION.`);
+}
+
+/**
+ * Mouvement réduit (D-263) : le repère reste fixe et visible. La préférence est réglée avant le rechargement, comme un téléphone qui demande
+ * moins d'animations, puis la partie est reprise ; la préférence normale revient ensuite, par le même chemin.
+ */
+async function verifierRepereReduit(page: Page, actions: number, ou: string, erreurs: string[]): Promise<void> {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await reprendreDepuisAccueil(page, actions);
+  const repere = page.locator('.nav-ia .notification-ia');
+  if ((await repere.count()) !== 1) erreurs.push(`${ou} : en mouvement réduit, le repère est absent.`);
+  else {
+    const reduit = await repere.evaluate((element) => ({ nom: getComputedStyle(element).animationName, opacite: getComputedStyle(element).opacity, animations: element.getAnimations().length }));
+    if (reduit.nom !== 'none' || reduit.opacite !== '1' || reduit.animations !== 0 || !(await repere.isVisible())) erreurs.push(`${ou} : en mouvement réduit, le repère n’est pas fixe et visible (${JSON.stringify(reduit)}).`);
+  }
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.reload();
+  await reprendreDepuisAccueil(page, actions);
+}
+
+/** Nombre de pulsations par cycle du repère : deux creux d'opacité, une seconde de repos avant le suivant (D-263). */
+async function verifierRythmeRepere(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  const rythme = await page.locator('.nav-ia .notification-ia').evaluate((element) => {
+    const effet = element.getAnimations()[0];
+    const timing = effet?.effect?.getComputedTiming();
+    const images = (effet?.effect as KeyframeEffect | undefined)?.getKeyframes() ?? [];
+    return { duree: Number(timing?.duration ?? 0), creux: images.filter((image) => Number(image.opacity) < 1).length, iterations: timing?.iterations ?? 0 };
+  });
+  if (rythme.duree !== 1500 || rythme.creux !== 2 || rythme.iterations !== Infinity) erreurs.push(`${ou} : rythme du repère inattendu (${JSON.stringify(rythme)}).`);
 }
 
 async function verifierParole(page: Page, attendue: string | undefined, ou: string, erreurs: string[]): Promise<void> {
@@ -659,7 +722,15 @@ async function verifierParole(page: Page, attendue: string | undefined, ou: stri
   if (placement.curseurs !== 1 || !placement.dansEncadre) erreurs.push(`${ou} : curseur IA Station mal placé.`);
 }
 
-/** Lien « [ IA STATION ] parle dans l'écouteur › », dernier élément du récit, sans la citation (12 §3.3, D-192). */
+/** Aucun lien ni citation d'IA Station dans le récit en cours de partie, ni cadre ou place vide associés (#139, D-263). */
+async function verifierSansLien(page: Page, ou: string, erreurs: string[]): Promise<void> {
+  if ((await page.getByTestId('lien-ia').count()) > 0 || (await page.getByTestId('ia-station').count()) > 0) erreurs.push(`${ou} : IA Station parle encore dans le récit.`);
+  if ((await page.getByTestId('recit').innerText()).includes('écouteur')) erreurs.push(`${ou} : « écouteur » dans le récit.`);
+  const dernier = await page.getByTestId('recit').evaluate((recit) => (recit.lastElementChild as HTMLElement | null)?.tagName);
+  if (dernier !== 'P') erreurs.push(`${ou} : le récit ne se termine pas par un paragraphe (${dernier ?? '?'}).`);
+}
+
+/** Lien « [ IA STATION ] parle dans l'écouteur › », dernier élément du récit en fin de partie, sans la citation (12 §3.3, D-192, D-263). */
 async function verifierLien(page: Page, ou: string, erreurs: string[]): Promise<Locator> {
   const lien = page.getByTestId('lien-ia');
   if ((await lien.count()) !== 1 || !(await lien.isVisible())) erreurs.push(`${ou} : lien d’IA Station absent.`);
@@ -672,7 +743,7 @@ async function verifierLien(page: Page, ou: string, erreurs: string[]): Promise<
 
 /**
  * Fenêtre d'IA Station (12 §3.9, D-192) : blanche, messages reçus dans l'ordre, NOUVEAU sur ceux qui n'étaient pas lus, un seul bouton ;
- * le focus y reste ; la croix, IA STATION ou le voile la referment sans rien jouer, le focus revient, la pastille s'éteint.
+ * le focus y reste ; la croix, IA STATION ou le voile la referment sans rien jouer, le focus revient, le repère s'éteint.
  */
 async function verifierFenetreIA(
   page: Page,
@@ -711,7 +782,7 @@ async function verifierFenetreIA(
   else await page.getByTestId('voile').click({ position: { x: 4, y: 4 } });
   await fenetre.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`${ou} : ${fermeture} ne ferme pas la fenêtre d’IA Station.`));
   if (!(await depuis.evaluate((element) => element === document.activeElement))) erreurs.push(`${ou} : le focus ne revient pas là où la fenêtre a été ouverte.`);
-  await verifierPastille(page, false, `${ou}, après lecture`, erreurs);
+  await verifierRepere(page, false, `${ou}, après lecture`, erreurs);
   const apres = { partie: await partieEnregistree(page), ...(await lire(page)), actions: await page.getByTestId('sauvegarde').getAttribute('data-actions') };
   if (JSON.stringify(apres) !== JSON.stringify(avant)) erreurs.push(`${ou} : lire IA Station a changé la partie, le récit ou la situation.`);
 }
@@ -950,7 +1021,7 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
 
 /**
  * AR-01 par `?monde=ar-01` (l'adresse nue tire une station, #152) : le parcours P-C joué geste par geste, avec l'étape « OÙ ? » (12 §3.5, §4.6),
- * la parole d'IA Station au réveil (12 §4.2), puis son lien, sa pastille et sa fenêtre, avant et après reprise (12 §3.9, D-192),
+ * la parole d'IA Station au réveil (12 §4.2), puis son lien, son repère et sa fenêtre, avant et après reprise (12 §3.9, D-192),
  * et la fin par évacuation ; puis l'étape « OÙ ? » à 320 px de large.
  */
 async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
@@ -973,7 +1044,7 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
   const depart = nomDe(ar01.textes, observer(ar01.monde, nouvellePartie(ar01.monde, { version: 'gestes', graine: 0 }).etat).piece).texte;
   const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim();
   if (piece !== depart) erreurs.push(`?monde=ar-01 : pièce « ${piece} » au lieu de « ${depart} », le départ d’AR-01.`);
-  await verifierPastille(page, true, 'Départ', erreurs);
+  await verifierRepere(page, true, 'Départ', erreurs);
   await capturer(page, 'AR-01 — Départ : IA Station nouvelle');
   await verifierEcran(page, 'AR-01, départ', erreurs);
 
@@ -1032,24 +1103,27 @@ async function parcoursAr01(navigateur: Browser, adresse: string, ar01: EntreeMo
     await verifierEcran(page, ou, erreurs);
     if (geste.versInconnue) {
       // Passage sans signalétique franchi : la pièce d'arrivée est nommée, IA Station parle ; le lien ouvre sa fenêtre (D-147, D-192).
-      const lien = await verifierLien(page, ou, erreurs);
-      await verifierPastille(page, true, ou, erreurs);
-      await capturer(page, `AR-01 — Par « → ${geste.bouton} » : « ${geste.rappel} », lien d’IA Station`);
-      await verifierFenetreIA(page, lien, [[assistance.reveil, true], [assistance.energie, true]], 'croix', `${ou}, fenêtre par le lien`, erreurs, () =>
+      await verifierSansLien(page, ou, erreurs);
+      await verifierRepere(page, true, ou, erreurs);
+      await verifierRythmeRepere(page, ou, erreurs);
+      await verifierRepereReduit(page, index + 1, ou, erreurs);
+      const boite = await page.locator('.nav-ia').boundingBox();
+      await capturer(page, `AR-01 — Par « → ${geste.bouton} » : « ${geste.rappel} », repère sur IA STATION`);
+      await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, true], [assistance.energie, true]], 'croix', `${ou}, fenêtre par le bouton`, erreurs, () =>
         capturer(page, 'AR-01 — Fenêtre d’IA Station : deux messages nouveaux'),
       );
-      // Après reprise : mêmes messages, aucun nouveau ; le lien reste, le message venant d'arriver.
+      // Le repère disparu, le bouton garde sa place et sa taille, donc sa zone tactile.
+      if (JSON.stringify(await page.locator('.nav-ia').boundingBox()) !== JSON.stringify(boite)) erreurs.push(`${ou} : le bouton IA STATION a bougé ou changé de taille à la lecture.`);
+      // Après reprise : mêmes messages, aucun nouveau, toujours rien dans le récit.
       await page.reload();
       await reprendreDepuisAccueil(page, index + 1);
-      await verifierLien(page, `${ou}, après reprise`, erreurs);
-      await verifierPastille(page, false, `${ou}, après reprise`, erreurs);
+      await verifierSansLien(page, `${ou}, après reprise`, erreurs);
+      await verifierRepere(page, false, `${ou}, après reprise`, erreurs);
       await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, false], [assistance.energie, false]], 'IA STATION', `${ou}, fermeture par un second appui sur IA STATION`, erreurs);
       await verifierFenetreIA(page, page.locator('.nav-ia'), [[assistance.reveil, false], [assistance.energie, false]], 'voile', `${ou}, après reprise, par IA STATION`, erreurs, () =>
         capturer(page, 'AR-01 — Fenêtre d’IA Station après reprise : messages lus'),
       );
-    } else if ((await page.getByTestId('ia-station').count()) > 0 || (await page.getByTestId('lien-ia').count()) > 0) {
-      erreurs.push(`${ou} : IA Station signalée sans parole nouvelle.`);
-    }
+    } else await verifierSansLien(page, ou, erreurs);
     if (etape?.action === 'ouvrir' && etape.cible === 'cloison' && etape.vers === 'observation') {
       const situation = (await lire(page)).situation;
       if (!situation.includes(phrases.creatureATerre)) erreurs.push(`${ou} : « ${phrases.creatureATerre} » absent de la situation.`);
