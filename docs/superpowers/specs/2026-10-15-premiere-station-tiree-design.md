@@ -61,7 +61,7 @@ Local énergie (entrée : console du circuit, bloc d'énergie), salle d'embarque
 - La table des 45 paires de 13 §4.1 est transcrite en données avec son verdict et sa règle. Une paire refusée ou absente écarte la composition **avant** tout plan et toute vérification, avec son motif (D-167, G-02).
 - Identifiants préfixés par morceau (`m-07/p-machines`) ; l'identifiant public dépend du monde et de cet identifiant (`idPublic`), donc de la station.
 - Portes entre morceaux fermées au départ (D-252) ; portes intérieures selon le morceau.
-- Pièces du même type numérotées (D-208) : deux pièces de même nom reçoivent un numéro dans toute la station (« coursive 1 », « coursive 2 »). Aucune composition de L2 n'en a ; le mécanisme est en place et testé. Choix de l'agent : des chiffres pour tous les types.
+- Pièces du même type numérotées (D-208) : deux pièces de même nom reçoivent une lettre dans toute la station (« coursive A », « coursive B »). Aucune composition de L2 n'en a ; le mécanisme est en place et testé. Choix de l'agent : des lettres pour tous les types, D-208 citant les deux formes ; des chiffres seraient refusés par les contrôles « aucun chiffre » de la carte et de l'écran de fin.
 
 ### 4.2 Plan du chemin principal (GE-01 à GE-07, PL-01 à PL-07)
 
