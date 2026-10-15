@@ -377,7 +377,7 @@ La plus lourde est `m09-m08-m06-embarquement` : 4 404 états, 31 actions, 0,49 s
 | --- | --- |
 | M-06 | `1f3f876a0661cf` |
 | M-08 | `1e3f11862eb5b2` |
-| M-09 | `19d655c732106a` |
+| M-09 | `13abdc1f1f2757` |
 
 Le vestibule, M-03, M-07 et M-10 gardent celles du §7.5.
 

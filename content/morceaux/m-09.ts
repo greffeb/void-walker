@@ -3,17 +3,17 @@ import { TEXTES_PROPRES_M09 } from '../m-09/textes';
 import { repris } from '../textes/couches';
 import type { TextesMorceau } from '../textes/types';
 
-// M-09 — Zone sans gravité (13 §3, D-165, D-168, D-237, D-238), morceau de chemin. Les quartiers mènent au sas ouest ; la
-// coursive de transfert, gravité coupée au départ, le relie au sas est, et chaque sas a un interrupteur de la gravité de la
-// coursive. Le sas est donne sur la cale, où attend la créature, et sur le morceau suivant. Les règles lisent les qualités
-// déclarées ici, jamais un nom (D-078).
+// M-09 — Zone sans gravité (13 §3, D-165, D-168, D-237, D-238), morceau de chemin. Les quartiers mènent au sas bâbord ;
+// la coursive de transfert, gravité coupée au départ, le relie au sas tribord, et chaque sas a un interrupteur de la gravité
+// de la coursive. Le sas tribord donne sur la cale, où attend la créature, et sur le morceau suivant. Les règles lisent les
+// qualités déclarées ici, jamais un nom (D-078).
 //
-//   quartiers ══porte══ sas ouest ══porte══ coursive de transfert ══porte══ sas est ══porte══ cale
+//   quartiers ══porte══ sas bâbord ══porte══ coursive de transfert ══porte══ sas tribord ══porte══ cale
 //                                                                              ╚══porte══ (suite)
 export const MORCEAU_M09: DefMorceau = {
   id: 'm-09',
   famille: 'chemin',
-  // Tuile (14 §4.3) : quartiers, sas ouest, coursive de transfert, sas est et cale en rang.
+  // Tuile (14 §4.3) : quartiers, sas bâbord, coursive de transfert, sas tribord et cale en rang.
   pieces: [
     { id: 'p-quartiers', nom: 'quartiers', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } },
     { id: 'p-sas-ouest', nom: 'sas_ouest', plan: { x: 4, y: 0, largeur: 4, hauteur: 3 } },
@@ -39,14 +39,15 @@ export const MORCEAU_M09: DefMorceau = {
   assistance: [{ id: 'gravite', quand: { type: 'arrivee', piece: 'p-sas-ouest' } }],
 };
 
-// Textes du morceau (C-07) : sas, interrupteur et message d'arrivée repris de la station de test M-09, l'interrupteur sous une
-// clé distincte de celui des machines. La coursive de transfert et la cale sont écrites pour ce morceau ; la description de la
-// coursive tait sa gravité, qui change en cours de partie, et l'observation la dit. Texte final non validé.
+// Textes du morceau (C-07) : descriptions des sas, interrupteur et message d'arrivée repris de la station de test M-09,
+// l'interrupteur sous une clé distincte de celui des machines. Les sas sont nommés bâbord et tribord : « sas est » donnait
+// « est est ouverte ». La coursive de transfert et la cale sont écrites pour ce morceau ; la description de la coursive tait
+// sa gravité, qui change en cours de partie, et l'observation la dit. Texte final non validé.
 export const TEXTES_MORCEAU_M09: TextesMorceau = {
   noms: {
-    sas_ouest: repris(TEXTES_PROPRES_M09.noms, 'sas_ouest'),
+    sas_ouest: { texte: 'sas bâbord', genre: 'm', nombre: 's', elision: false },
     transfert: repris(TEXTES_PROPRES_M09.noms, 'transfert'),
-    sas_est: repris(TEXTES_PROPRES_M09.noms, 'sas_est'),
+    sas_est: { texte: 'sas tribord', genre: 'm', nombre: 's', elision: false },
     cale: { texte: 'cale', genre: 'f', nombre: 's', elision: false },
     interrupteur_gravite: repris(TEXTES_PROPRES_M09.noms, 'interrupteur'),
   },
