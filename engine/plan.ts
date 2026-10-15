@@ -60,7 +60,7 @@ export function cleCase(x: number, y: number): string {
   return `${x},${y}`;
 }
 
-function casesDe(rects: Iterable<RectPlan>): Set<string> {
+export function casesDe(rects: Iterable<RectPlan>): Set<string> {
   const cases = new Set<string>();
   for (const rect of rects) {
     for (let y = rect.y; y < rect.y + rect.hauteur; y++) for (let x = rect.x; x < rect.x + rect.largeur; x++) cases.add(cleCase(x, y));
@@ -142,11 +142,18 @@ export function videsEnfermes(rects: readonly RectPlan[]): CasePlan[] {
   return vides;
 }
 
+/** Case à `k` cases devant la case `i` du côté `cote` de la pièce. */
+export function caseDevant(piece: RectPlan, cote: Cote, i: number, k: number): CasePlan {
+  return {
+    x: cote === 'gauche' ? piece.x - k : cote === 'droite' ? piece.x + piece.largeur - 1 + k : i,
+    y: cote === 'haut' ? piece.y - k : cote === 'bas' ? piece.y + piece.hauteur - 1 + k : i,
+  };
+}
+
 /** Les PROFONDEUR_COQUE cases devant la case `i` du côté `cote` sont libres. */
 function devantLibre(piece: RectPlan, cote: Cote, i: number, occupees: ReadonlySet<string>): boolean {
   for (let k = 1; k <= PROFONDEUR_COQUE; k++) {
-    const x = cote === 'gauche' ? piece.x - k : cote === 'droite' ? piece.x + piece.largeur - 1 + k : i;
-    const y = cote === 'haut' ? piece.y - k : cote === 'bas' ? piece.y + piece.hauteur - 1 + k : i;
+    const { x, y } = caseDevant(piece, cote, i, k);
     if (occupees.has(cleCase(x, y))) return false;
   }
   return true;
@@ -173,8 +180,8 @@ export function panLibre(piece: RectPlan, occupees: ReadonlySet<string>): PanCoq
   return meilleur;
 }
 
-/** Pièces de coque (14 §4.1) : déclarées, à vitrage extérieur, ou d'embarquement d'une capsule ; dans l'ordre du monde. */
-export function piecesDeCoque(monde: DefMonde): string[] {
+/** Pièces de coque (14 §4.1) : déclarées, à vitrage extérieur, ou d'embarquement d'une capsule ; dans l'ordre du monde, ou du morceau. */
+export function piecesDeCoque(monde: Pick<DefMonde, 'pieces' | 'objets'>): string[] {
   const parObjet = new Set(monde.objets.filter((objet) => objet.vitrageExterieur === true || objet.capsule !== undefined).map((objet) => objet.piece));
   return monde.pieces.filter((piece) => piece.coque === true || parObjet.has(piece.id)).map((piece) => piece.id);
 }

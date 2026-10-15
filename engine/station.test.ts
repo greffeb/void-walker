@@ -1,4 +1,5 @@
 import { validerMonde, type DefMonde } from './index';
+import { poserTuiles } from './pose';
 import { assemblerStation, prefixer, validerMorceau, type DefMorceau, type DefStation, type ResultatAssemblage } from './station';
 
 // Morceaux de test : un départ d'une pièce, un chemin qui porte toutes les sortes de références, un final avec embarquement.
@@ -69,6 +70,35 @@ const FINAL: DefMorceau = {
   assistance: [{ id: 'depart', quand: { type: 'evacuation' } }],
 };
 
+/** Couloir bordé de six pièces : la porte vers le morceau suivant serait sa septième (PL-06), aucun plan possible. */
+const ETOILE: DefMorceau = {
+  id: 'etoile',
+  famille: 'chemin',
+  pieces: [
+    { id: 'p-couloir', nom: 'couloir', plan: { x: 0, y: 2, largeur: 6, hauteur: 2 } },
+    { id: 'p-1', nom: 'cabine', plan: { x: 0, y: 0, largeur: 2, hauteur: 2 } },
+    { id: 'p-2', nom: 'cabine', plan: { x: 2, y: 0, largeur: 2, hauteur: 2 } },
+    { id: 'p-3', nom: 'cabine', plan: { x: 4, y: 0, largeur: 2, hauteur: 2 } },
+    { id: 'p-4', nom: 'cabine', plan: { x: 0, y: 4, largeur: 2, hauteur: 2 } },
+    { id: 'p-5', nom: 'cabine', plan: { x: 2, y: 4, largeur: 2, hauteur: 2 } },
+    { id: 'p-6', nom: 'cabine', plan: { x: 4, y: 4, largeur: 2, hauteur: 2 } },
+  ],
+  liaisons: [
+    { id: 'l-1', nom: 'porte', entre: ['p-couloir', 'p-1'], ouverte: true },
+    { id: 'l-2', nom: 'porte', entre: ['p-couloir', 'p-2'], ouverte: true },
+    { id: 'l-3', nom: 'porte', entre: ['p-couloir', 'p-3'], ouverte: true },
+    { id: 'l-4', nom: 'porte', entre: ['p-couloir', 'p-4'], ouverte: true },
+    { id: 'l-5', nom: 'porte', entre: ['p-couloir', 'p-5'], ouverte: true },
+    { id: 'l-6', nom: 'porte', entre: ['p-couloir', 'p-6'], ouverte: true },
+  ],
+  objets: [],
+  entree: 'p-1',
+  sortie: { piece: 'p-couloir', porte: { nom: 'porte' } },
+  placesCreature: ['p-6'],
+  demande: [],
+  fournit: ['acces'],
+};
+
 const STATION: DefStation = {
   id: 'essai-station',
   morceaux: [DEPART, CHEMIN, FINAL],
@@ -80,6 +110,17 @@ const STATION: DefStation = {
 function monde(resultat: ResultatAssemblage): DefMonde {
   if (resultat.type !== 'station') throw new Error(`Station attendue : ${JSON.stringify(resultat)}`);
   return resultat.monde;
+}
+
+function sansPlan<T extends { readonly plan?: unknown }>(entite: T): T {
+  const copie = { ...entite };
+  delete (copie as { plan?: unknown }).plan;
+  return copie;
+}
+
+/** Le monde sans aucun champ `plan`, ni sur les pièces ni sur les liaisons. */
+function sansPlans(produit: DefMonde): DefMonde {
+  return { ...produit, pieces: produit.pieces.map(sansPlan), liaisons: produit.liaisons.map(sansPlan) };
 }
 
 function erreurs(resultat: ResultatAssemblage): readonly string[] {
@@ -174,8 +215,8 @@ describe('assemblage d’une station', () => {
         { id: 'depart', quand: { type: 'evacuation' } },
       ],
     };
-    // Strict : aucun `plan`, aucune clé laissée à `undefined`.
-    expect(monde(assemblerStation(STATION))).toStrictEqual(attendu);
+    // Strict : aucune clé laissée à `undefined`. Le plan se vérifie à part (« plan de la station »).
+    expect(sansPlans(monde(assemblerStation(STATION)))).toStrictEqual(attendu);
   });
 
   it('produit un monde qui passe validerMonde', () => {
@@ -214,12 +255,47 @@ describe('assemblage d’une station', () => {
       id: 'l-couloir-fin',
       entre: ['couloir/p-machines', 'fin/p-embarquement'],
       ouverte: false,
+      plan: { rang: expect.any(Number) },
     });
   });
 
   it('une demande est satisfaite par un morceau précédent', () => {
     const final: DefMorceau = { ...FINAL, demande: ['acces'] };
     expect(assemblerStation({ ...STATION, morceaux: [DEPART, CHEMIN, final] }).type).toBe('station');
+  });
+});
+
+describe('plan de la station', () => {
+  it('chaque pièce dessinée reçoit son rectangle posé, chaque porte entre morceaux son rang, et le monde passe validerMonde', () => {
+    const produit = monde(assemblerStation(STATION));
+    const pose = poserTuiles(STATION.morceaux, STATION.graine);
+    if (pose === null) throw new Error('Plan attendu.');
+    const dessinees = produit.pieces.filter((piece) => piece.sousPosition !== true);
+    expect(dessinees.map((piece) => piece.id).sort()).toEqual([...pose.rects.keys()].sort());
+    expect(Object.fromEntries(dessinees.map((piece) => [piece.id, piece.plan]))).toStrictEqual(Object.fromEntries(pose.rects));
+    expect(produit.pieces.filter((piece) => piece.sousPosition === true)).toStrictEqual([{ id: 'fin/p-cabine', nom: 'cabine', sousPosition: true }]);
+    const portes = ['l-couloir-fin', 'l-vestibule-couloir'];
+    expect([...pose.portes.keys()].sort()).toEqual(portes);
+    for (const liaison of produit.liaisons) {
+      if (portes.includes(liaison.id)) expect(liaison.plan).toStrictEqual({ rang: pose.portes.get(liaison.id) });
+      else expect(liaison).not.toHaveProperty('plan');
+    }
+    expect(validerMonde(produit)).toEqual([]);
+  });
+
+  it('la graine ne change que le plan : même monde, à l’identifiant et au plan près, pour des graines aux plans différents', () => {
+    const plan = (produit: DefMonde): string => JSON.stringify([produit.pieces.map((piece) => piece.plan), produit.liaisons.map((liaison) => liaison.plan)]);
+    const reference = monde(assemblerStation({ ...STATION, id: 'essai-7', graine: 7 }));
+    const autres = Array.from({ length: 50 }, (_, graine) => monde(assemblerStation({ ...STATION, id: `essai-${graine}`, graine })));
+    expect(autres.some((autre) => plan(autre) !== plan(reference))).toBe(true);
+    // Comparaison profonde, ordre des tableaux compris.
+    for (const autre of autres) expect({ ...sansPlans(autre), id: reference.id }).toStrictEqual(sansPlans(reference));
+  });
+
+  it('aucun plan possible : station sans plan', () => {
+    const morceaux = [DEPART, ETOILE, FINAL];
+    expect(poserTuiles(morceaux, STATION.graine)).toBeNull();
+    expect(assemblerStation({ ...STATION, morceaux, creature: 'etoile/p-6' })).toStrictEqual({ type: 'sans_plan' });
   });
 });
 

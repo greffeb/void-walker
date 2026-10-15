@@ -1,4 +1,7 @@
 import { validerMonde, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition } from './monde';
+import { porteEntre, poserTuiles, prefixer } from './pose';
+
+export { prefixer };
 
 // Morceaux écrits à la main et leur assemblage en station (docs/13-morceaux-lancement.md, GP-01). Aucune règle de jeu ici :
 // l'assembleur produit un monde ordinaire, revalidé par `validerMonde`.
@@ -48,10 +51,6 @@ export type ResultatAssemblage =
 
 export type Assembleur = (station: DefStation) => ResultatAssemblage;
 
-export function prefixer(morceau: string, id: string): string {
-  return `${morceau}/${id}`;
-}
-
 export function validerMorceau(morceau: DefMorceau): string[] {
   const erreurs: string[] = [];
   const pieces = new Set(morceau.pieces.map((piece) => piece.id));
@@ -78,19 +77,13 @@ function ref<K extends string>(morceau: string, cle: K, id: string | undefined):
   return id === undefined ? {} : ({ [cle]: prefixer(morceau, id) } as Record<K, string>);
 }
 
-function sansPlan<T extends { readonly plan?: unknown }>(entite: T): T {
-  const copie = { ...entite };
-  delete (copie as { plan?: unknown }).plan;
-  return copie;
-}
-
 function porteDe(morceau: string, porte: DefPorteSortie): DefPorteSortie {
   return { ...porte, ...ref(morceau, 'haute', porte.haute), ...ref(morceau, 'cachee', porte.cachee), ...ref(morceau, 'manoeuvre', porte.manoeuvre) };
 }
 
 function liaisonDe(morceau: string, liaison: DefLiaison): DefLiaison {
   const [a, b] = liaison.entre;
-  return sansPlan({ ...liaison, ...porteDe(morceau, liaison), id: prefixer(morceau, liaison.id), entre: [prefixer(morceau, a), prefixer(morceau, b)] });
+  return { ...liaison, ...porteDe(morceau, liaison), id: prefixer(morceau, liaison.id), entre: [prefixer(morceau, a), prefixer(morceau, b)] };
 }
 
 function objetDe(morceau: string, objet: DefObjet): DefObjet {
@@ -138,24 +131,34 @@ export const assemblerStation: Assembleur = (station) => {
   const depart = prefixer(premier.id, premier.entree);
   const composition = erreursDeComposition(station, depart);
   if (composition.length > 0) return { type: 'invalide', erreurs: composition };
+  const pose = poserTuiles(morceaux, station.graine);
+  if (pose === null) return { type: 'sans_plan' };
   const ouvertes = new Set(station.sortiesOuvertes ?? []);
   const liaisons = morceaux.flatMap((morceau, rang): DefLiaison[] => {
     const interieures = morceau.liaisons.map((liaison) => liaisonDe(morceau.id, liaison));
     const suivant = morceaux[rang + 1];
     if (morceau.sortie === undefined || suivant === undefined) return interieures;
-    const porte: DefLiaison = {
+    const id = porteEntre(morceau.id, suivant.id);
+    const porte = pose.portes.get(id);
+    const liaison: DefLiaison = {
       ...porteDe(morceau.id, morceau.sortie.porte),
-      id: `l-${morceau.id}-${suivant.id}`,
+      id,
       entre: [prefixer(morceau.id, morceau.sortie.piece), prefixer(suivant.id, suivant.entree)],
       ouverte: ouvertes.has(morceau.id),
+      ...(porte === undefined ? {} : { plan: { rang: porte } }),
     };
-    return [...interieures, porte];
+    return [...interieures, liaison];
   });
   const monde: DefMonde = {
     id: station.id,
     depart,
-    // Le plan des tuiles posées n'est pas encore calculé : la station n'en a aucun.
-    pieces: morceaux.flatMap((morceau) => morceau.pieces.map((piece) => sansPlan({ ...piece, id: prefixer(morceau.id, piece.id) }))),
+    pieces: morceaux.flatMap((morceau) =>
+      morceau.pieces.map((piece) => {
+        const id = prefixer(morceau.id, piece.id);
+        const plan = pose.rects.get(id);
+        return plan === undefined ? { ...piece, id } : { ...piece, id, plan };
+      }),
+    ),
     liaisons,
     objets: morceaux.flatMap((morceau) => morceau.objets.map((objet) => objetDe(morceau.id, objet))),
     positions: morceaux.flatMap((morceau) =>
