@@ -244,7 +244,7 @@ describe('parcours des chemins d’AR-01 (spec L4 §9)', () => {
     expect(fin(pas).etat.piece).toBe('m-02/p-pompes');
   });
 
-  it('M-02, créature dans l’atelier, m10-m02-m03-atelier : prouvée, le témoin l’attire hors de l’atelier et passe par la chambre froide', () => {
+  it('M-02, créature dans l’atelier, m10-m02-m03-atelier : prouvée, la créature est retenue dans M-10 quand le passager arrive à l’atelier', () => {
     const reference = stationDeReference(CATALOGUE, 'm10-m02-m03-atelier');
     if ('refus' in reference) throw new Error(reference.refus);
     const { monde } = reference.entree;
@@ -259,8 +259,10 @@ describe('parcours des chemins d’AR-01 (spec L4 §9)', () => {
       if (choix === undefined) throw new Error(`Étape ${etape.action} ${etape.cible} absente.`);
       const resultat = jouer(monde, courante, choix.commande);
       if (resultat.type !== 'engagee') throw new Error(`${etape.action} ${etape.cible} : ${resultat.type}.`);
+      expect(resultat.tirages, `${etape.action} ${etape.cible}`).toEqual([]);
       courante = resultat.partie;
     }
+    expect(courante.etat.sante).toBe('indemne');
     expect(courante.etat.piece).toBe('m-02/p-atelier');
     expect(courante.etat.creature?.piece?.startsWith('m-10/')).toBe(true);
   }, 60000);

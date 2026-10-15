@@ -353,6 +353,7 @@ describe('AR-01 : reprise et fin (C-09, AR-01 §11.2)', () => {
     expect(fin?.evenements[0]).toEqual({ type: 'evacuation', sources: ['circuit', 'bloc'] });
   });
 });
+
 describe('AR-01 : sortie de l’observation fermée, comme dans M-04 (spec L4 §3.3)', () => {
   const SORTIE = 'l-observation-embarquement';
   const fermee: EntreeMonde = {
