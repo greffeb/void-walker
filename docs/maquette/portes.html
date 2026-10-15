@@ -1,0 +1,168 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portes Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Comparateur : une ligne par salle voisine et sa commande de porte, sans confirmation, avec repère de danger. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --danger: #ff6a3d;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.onglets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.etats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 760px; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.puces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.puce { border: 1px solid var(--bordure); padding: 8px 10px; font-size: 14px; min-height: 46px; display: flex; align-items: center; opacity: .45; }
+
+/* Ligne de salle : nom à gauche (aller), commande de porte à droite. */
+.salle { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: stretch; }
+.aller { font: inherit; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; text-align: left; min-height: 48px; padding: 6px 10px; cursor: pointer; background: var(--texte); color: var(--fond); border: 1px solid var(--texte); display: flex; align-items: center; gap: 8px; }
+.aller.ferme { background: transparent; color: var(--texte); border: 1px dashed var(--bordure); }
+.aller .rep { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 5px; border: 1px solid currentColor; letter-spacing: .06em; }
+.aller.danger { box-shadow: inset 3px 0 0 var(--danger); }
+.aller.danger .rep { color: var(--danger); }
+.aller:not(.ferme).danger .rep { background: var(--fond); }
+.porte { font: inherit; cursor: pointer; min-height: 48px; width: 112px; padding: 0; background: transparent; color: var(--texte); border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.porte[disabled] { cursor: default; opacity: .45; border-style: dashed; font-weight: 400; letter-spacing: .02em; text-transform: none; font-size: 11px; text-align: center; line-height: 1.2; }
+.porte.etat-ouverte { background: var(--surface); }
+/* Variante 1 : interrupteur I / O (croquis du porteur). */
+.inter { display: grid; grid-template-columns: 1fr 1fr; width: 100%; height: 100%; }
+.inter span { display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 400; }
+.inter span.on { background: var(--accent); color: var(--fond); }
+/* Variante 2 : état écrit, avec un témoin. */
+.temoin { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border: 1px solid currentColor; }
+.etat-ouverte .temoin { background: var(--accent); border-color: var(--accent); }
+/* Variante 3 : verbe d'action. */
+.porte.verbe { border-color: var(--texte); }
+
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+.compteur { font-size: 12px; color: var(--secondaire); margin: 0; text-align: center; }
+.compteur b { color: var(--accent); }
+</style>
+
+<div class="page">
+  <p class="chapeau">Choix retenus : une ligne par salle voisine ; toucher le <b>nom</b> = y aller (porte fermée : message et son « indisponible ») ; toucher l'<b>état</b> = ouvrir ou fermer, <b>sans confirmation</b>. Repères <b>VIDE</b> (voyant), <b>FEU</b> (vu porte ouverte), <b>BRUIT</b> (jusqu'à l'action suivante). Passage sans porte : nom pleine largeur. Plus de fiche de passage.</p>
+  <div class="etats" role="tablist" aria-label="Situation">
+    <button class="onglet" role="tab" data-s="calme" aria-selected="true" type="button">CALME</button>
+    <button class="onglet" role="tab" data-s="menace" aria-selected="false" type="button">MENACE</button>
+    <button class="onglet" role="tab" data-s="bloque" aria-selected="false" type="button">BLOQUÉE</button>
+  </div>
+  <div id="maquette"></div>
+  <p id="compteur" class="compteur"></p>
+  <p id="verdict" class="verdict"></p>
+</div>
+
+<script>
+(() => {
+  let v = '2', s = 'calme', touchers = 0, recit = null;
+  const VERDICTS = {
+    '1': "<b>1 · I / O</b> — votre croquis. Très « tableau électrique », se lit d'un coup d'œil quand on connaît la convention ; mais « I » = ouverte ou fermée ? Lu par le lecteur d'écran comme « Porte du local technique, ouverte, interrupteur ».",
+    '2': "<b>2 · État</b> — le bouton dit l'état de la porte (« OUVERTE », « FERMÉE ») avec un témoin plein ou vide ; on le touche pour le changer. Pas d'ambiguïté sur ce qu'on voit ; il faut savoir que toucher l'état le bascule.",
+    '3': "<b>3 · Verbe</b> — le bouton dit ce qu'il fera (« OUVRIR », « FERMER ») ; l'état se lit au nom de la salle (plein = ouverte, pointillé = fermée). Le plus explicite sur l'action ; l'état demande de lire deux choses.",
+  };
+  const base = () => ({
+    tech: { nom: 'Local technique', ouverte: false, danger: null, bloque: null },
+    baie: { nom: 'Baie d’observation', ouverte: true, danger: null, bloque: null },
+    galerie: { nom: 'Galerie', ouverte: false, danger: null, bloque: null },
+    passerelle: { nom: 'Passerelle', ouverte: true, danger: null, bloque: null, sansPorte: true },
+  });
+  let portes = base();
+  function situation() {
+    portes = base();
+    if (s === 'menace') { portes.baie.danger = 'FEU'; portes.galerie.danger = 'VIDE'; portes.tech.danger = 'BRUIT'; }
+    if (s === 'bloque') { portes.galerie.bloque = 'sans énergie'; portes.tech.bloque = 'hors de portée'; }
+    touchers = 0; recit = null;
+  }
+
+  // BRUIT ne dit que ce qu'on vient d'entendre : il disparaît à l'action suivante.
+  function oublierBruit(garde) { Object.values(portes).forEach((q) => { if (q.danger === 'BRUIT') q.danger = null; }); }
+  function commande(id, p) {
+    if (p.bloque) return `<button class="porte" disabled aria-label="Porte : ${p.nom}, ${p.ouverte ? 'ouverte' : 'fermée'}, indisponible : ${p.bloque}">⊘ ${p.bloque}</button>`;
+    const etat = p.ouverte ? 'ouverte' : 'fermée';
+    if (v === '1') return `<button class="porte etat-${p.ouverte ? 'ouverte' : 'fermee'}" data-porte="${id}" aria-label="Porte : ${p.nom}, ${etat}" aria-pressed="${p.ouverte}"><span class="inter"><span class="${p.ouverte ? 'on' : ''}">I</span><span class="${p.ouverte ? '' : 'on'}">O</span></span></button>`;
+    if (v === '2') return `<button class="porte etat-${p.ouverte ? 'ouverte' : 'fermee'}" data-porte="${id}" aria-label="Porte : ${p.nom}, ${etat}" aria-pressed="${p.ouverte}"><span class="temoin" aria-hidden="true"></span>${p.ouverte ? 'Ouverte' : 'Fermée'}</button>`;
+    return `<button class="porte verbe" data-porte="${id}" aria-label="${p.ouverte ? 'Fermer' : 'Ouvrir'} la porte : ${p.nom}">${p.ouverte ? 'Fermer' : 'Ouvrir'}</button>`;
+  }
+  function ligne(id, p) {
+    const classes = ['aller', p.ouverte ? '' : 'ferme', p.danger ? 'danger' : ''].join(' ');
+    const rep = p.danger ? `<span class="rep">${p.danger}</span>` : '';
+    return `<div class="salle"${p.sansPorte ? ' style="grid-template-columns:1fr"' : ''}><button class="${classes}" data-aller="${id}"><span aria-hidden="true">→</span>${p.nom}${rep}</button>${p.sansPorte ? '' : commande(id, p)}</div>`;
+  }
+
+  function rendre() {
+    const r = recit || {
+      cmd: '> Aller vers · local énergie',
+      texte: s === 'menace'
+        ? 'Une odeur de fumée passe par la baie. Quelque chose racle derrière la porte du local technique.'
+        : 'Vous passez par la grille. Vous voici dans le local énergie.',
+    };
+    document.getElementById('maquette').innerHTML = `<div class="tel">
+      <header class="entete"><h1>Local énergie</h1></header>
+      <div class="recit" aria-live="polite"><p class="cmd">${r.cmd}</p><p>${r.texte}</p></div>
+      <div class="dock">
+        <h2 class="titre-section">Dans la pièce</h2>
+        <div class="puces"><span class="puce">▸ Console de départ</span><span class="puce">▸ Bloc d’énergie</span><span class="puce">▸ Panneau</span><span class="puce">▸ Regarder autour</span></div>
+        <h2 class="titre-section">Se déplacer vers</h2>
+        ${Object.entries(portes).map(([id, p]) => ligne(id, p)).join('')}
+      </div>
+      <div class="nav"><span>INVENTAIRE</span><span>CARTE</span><span>IA STATION</span></div>
+    </div>`;
+    document.getElementById('compteur').innerHTML = `Touchers depuis le début : <b>${touchers}</b> · réinitialiser en touchant la situation`;
+    document.getElementById('verdict').innerHTML = VERDICTS[v];
+    document.querySelectorAll('[data-v]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === v)));
+    document.querySelectorAll('[data-s]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.s === s)));
+    document.querySelectorAll('[data-porte]').forEach((b) => b.addEventListener('click', () => {
+      const p = portes[b.dataset.porte];
+      p.ouverte = !p.ouverte; touchers++; oublierBruit(p);
+      if (p.danger === 'FEU' && !p.ouverte) { p.feuCache = true; p.danger = null; } else if (p.feuCache && p.ouverte) { p.danger = 'FEU'; p.feuCache = false; }
+      recit = { cmd: `> ${p.ouverte ? 'Ouvrir' : 'Fermer'} · porte ${p.nom}`, texte: p.ouverte
+        ? (p.danger === 'FEU' ? 'La porte coulisse. Une bouffée de chaleur entre.' : p.danger === 'VIDE' ? 'La porte s’entrouvre. L’air file vers la galerie dans un sifflement.' : 'La porte coulisse.')
+        : 'La porte se referme.' };
+      rendre();
+    }));
+    document.querySelectorAll('[data-aller]').forEach((b) => b.addEventListener('click', () => {
+      const p = portes[b.dataset.aller]; touchers++; oublierBruit(null);
+      recit = p.ouverte
+        ? { cmd: `> Aller vers · ${p.nom}`, texte: `Vous passez dans : ${p.nom.toLowerCase()}. (Ici, la maquette s’arrête.)` }
+        : { cmd: `> Aller vers · ${p.nom}`, texte: `La porte est fermée. <span style="color:var(--secondaire)">[son « indisponible »]</span>` };
+      rendre();
+    }));
+  }
+  document.querySelectorAll('[data-v]').forEach((b) => b.addEventListener('click', () => { v = b.dataset.v; rendre(); }));
+  document.querySelectorAll('[data-s]').forEach((b) => b.addEventListener('click', () => { s = b.dataset.s; situation(); rendre(); }));
+  situation(); rendre();
+})();
+</script>
