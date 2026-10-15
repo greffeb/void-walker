@@ -154,6 +154,33 @@ describe('d’abord le morceau le plus avancé (L3 §6.2)', () => {
     expect(chercherEtat(station(), () => false, { maxEtats: 1 })).toEqual({ issue: 'plafond', partie: null, etats: 1 });
   });
 
+  it('développe d’abord le morceau le plus avancé, même quand un état demandé est plus proche dans un autre', () => {
+    // En largeur, ou rang le plus bas d'abord, la recherche atteint d'abord m-a/reduit (2 pas) ; ici m-b/fond (3 pas, rang 1).
+    const monde = station({
+      depart: 'm-a/depart',
+      pieces: [
+        { id: 'm-a/depart', nom: 'quartiers' },
+        { id: 'm-b/sas', nom: 'sas' },
+        { id: 'm-b/couloir', nom: 'couloir' },
+        { id: 'm-b/fond', nom: 'fond' },
+        { id: 'm-a/annexe', nom: 'annexe' },
+        { id: 'm-a/reduit', nom: 'reduit' },
+      ],
+      liaisons: [
+        { id: 'l-sas', nom: 'porte_sas', entre: ['m-a/depart', 'm-b/sas'], ouverte: true },
+        { id: 'l-couloir', nom: 'porte_couloir', entre: ['m-b/sas', 'm-b/couloir'], ouverte: true },
+        { id: 'l-fond', nom: 'porte_fond', entre: ['m-b/couloir', 'm-b/fond'], ouverte: true },
+        { id: 'l-annexe', nom: 'porte_annexe', entre: ['m-a/depart', 'm-a/annexe'], ouverte: true },
+        { id: 'l-reduit', nom: 'porte_reduit', entre: ['m-a/annexe', 'm-a/reduit'], ouverte: true },
+      ],
+      objets: [],
+    });
+    expect(['m-a/reduit', 'm-b/fond'].map(rangsDesMorceaux(monde.monde))).toEqual([0, 1]);
+    const recherche = chercherEtat(monde, (etat) => etat.piece === 'm-a/reduit' || etat.piece === 'm-b/fond');
+    expect(recherche.issue).toBe('trouve');
+    expect(recherche.partie?.etat.piece).toBe('m-b/fond');
+  });
+
   it('station assemblée sans console ni bloc de M-03 : l’épuisement vaut toujours sans sortie sûre', () => {
     const originale = resolue(SOUTE);
     const retires = ['m-03/o-console', 'm-03/o-bloc'];
