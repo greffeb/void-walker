@@ -38,7 +38,10 @@ export const SOCLE = {
       'Vous enclenchez {le:objet}. Un vacarme régulier monte et résonne contre les parois.',
     ],
     circuit_active: ['Vous réarmez {le:objet}. Le relais claque.'],
-    objet_installe: ['Vous engagez {le:objet} dans {le:capsule}.'],
+    objet_installe: [
+      'Vous engagez {le:objet} dans le connecteur {de:capsule}. Le verrou s’enclenche avec un déclic.',
+      'Vous glissez {le:objet} dans son logement, à l’arrière {de:capsule}. Un voyant vert s’allume.',
+    ],
     passage_decouvert: ['Derrière {le:passage}, un accès mène vers {le:vers}.'],
     combinaison_enfilee: ['Vous enfilez {le:objet} et verrouillez le casque. Le vide ne vous atteindra plus.'],
     combinaison_retiree: ['Vous retirez {le:objet}. Vous l’emportez avec vous.'],
