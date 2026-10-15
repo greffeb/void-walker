@@ -42,12 +42,12 @@ export const TEXTES_MORCEAU_M04: TextesMorceau = {
   },
   descriptions: {
     controle: [
-      'Une salle de contrôle aux écrans éteints. Des sièges à roulettes ont été repoussés contre les murs.',
-      'Des rangées d’écrans noirs, des claviers abandonnés. La salle de contrôle sent la poussière chaude.',
+      'Une salle de contrôle aux pupitres couverts de voyants morts. Des sièges à roulettes ont été repoussés contre les murs.',
+      'Des claviers abandonnés, des gobelets oubliés sur les pupitres. La salle de contrôle sent le café froid.',
     ],
     observation: [
-      'Une salle d’observation plongée dans la pénombre, ses écrans tous noirs. Une paroi opaque isole une alcôve d’équipement.',
-      'Des sièges tournés vers un mur d’écrans éteints. Au fond, une paroi opaque cache une alcôve d’équipement.',
+      'Une salle d’observation plongée dans la pénombre. Une paroi opaque isole une alcôve d’équipement.',
+      'Des sièges tournés vers un grand mur d’écrans, tous noirs. Au fond, une paroi opaque cache une alcôve d’équipement.',
     ],
     burette: repris(TEXTES_AR01.descriptions, 'burette'),
     avertisseur: [

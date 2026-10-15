@@ -258,24 +258,25 @@ describe('M-01, M-02, M-04 et M-05 (spec L4 §3)', () => {
     [
       'm-01',
       [
-        [['p-poste', 'p-galerie'], 'cloison', 'fermée', false, false, false, null, null],
-        [['p-galerie', 'p-palier'], 'cloison', 'fermée', false, false, false, null, null],
+        ['l-poste-galerie', ['p-poste', 'p-galerie'], 'cloison', 'fermée', false, false, false, null, null],
+        ['l-galerie-palier', ['p-galerie', 'p-palier'], 'cloison', 'fermée', false, false, false, null, null],
       ],
     ],
-    ['m-02', [[['p-atelier', 'p-pompes'], 'grille', 'fermée', false, false, true, 'p-atelier', null]]],
-    ['m-04', [[['p-controle', 'p-observation'], 'cloison', 'fermée', true, false, false, null, null]]],
+    ['m-02', [['l-atelier-pompes', ['p-atelier', 'p-pompes'], 'grille', 'fermée', false, false, true, 'p-atelier', null]]],
+    ['m-04', [['l-controle-observation', ['p-controle', 'p-observation'], 'cloison', 'fermée', true, false, false, null, null]]],
     [
       'm-05',
       [
-        [['p-service', 'p-tri'], 'porte', 'fermée', false, false, false, null, null],
-        [['p-tri', 'p-quai'], 'porte', 'fermée', false, false, false, null, null],
-        [['p-service', 'p-quai'], 'panneau', 'fermée', false, false, true, null, 'p-quai'],
+        ['l-service-tri', ['p-service', 'p-tri'], 'porte', 'fermée', false, false, false, null, null],
+        ['l-tri-quai', ['p-tri', 'p-quai'], 'porte', 'fermée', false, false, false, null, null],
+        ['l-service-quai', ['p-service', 'p-quai'], 'panneau', 'fermée', false, false, true, null, 'p-quai'],
       ],
     ],
-  ] as const)('%s : liaisons [extrémités, nom, état, bruyante, gouffre, étroite, haute, cachée] figées', (id, liaisons) => {
+  ] as const)('%s : liaisons [id, extrémités, nom, état, bruyante, gouffre, étroite, haute, cachée] figées', (id, liaisons) => {
     const { morceau } = l4(id);
     expect(
       morceau.liaisons.map((liaison) => [
+        liaison.id,
         liaison.entre,
         liaison.nom,
         liaison.ouverte ? 'ouverte' : 'fermée',
@@ -357,7 +358,7 @@ describe('M-01, M-02, M-04 et M-05 (spec L4 §3)', () => {
 
   it.each([
     ['m-01', ['bidon', 'cloison'], ['bidon']],
-    ['m-02', ['atelier', 'grille', 'sous_grille', 'centre', 'caisse'], ['atelier', 'caisse']],
+    ['m-02', ['atelier', 'grille', 'sous_grille', 'caisse'], ['caisse']],
     ['m-04', ['cloison', 'burette', 'avertisseur'], ['burette']],
     ['m-05', ['panneau'], []],
   ] as const)('%s : noms %j et descriptions %j repris d’AR-01 à l’identique', (id, noms, descriptions) => {
@@ -367,7 +368,8 @@ describe('M-01, M-02, M-04 et M-05 (spec L4 §3)', () => {
   });
 
   it.each([
-    ['m-01', 'galerie', { texte: 'galerie', genre: 'f', nombre: 's', elision: false }],
+    ['m-01', 'galerie', { texte: 'tunnel technique', genre: 'm', nombre: 's', elision: false }],
+    ['m-02', 'centre', { texte: 'au centre de la pièce', genre: 'm', nombre: 's', elision: false }],
     ['m-04', 'observation', { texte: 'salle d’observation', genre: 'f', nombre: 's', elision: false }],
   ] as const)('%s : « %s » a son propre nom, pas celui d’AR-01', (id, cle, nom) => {
     expect(l4(id).textes.noms[cle]).toEqual(nom);
@@ -385,6 +387,73 @@ describe('M-01, M-02, M-04 et M-05 (spec L4 §3)', () => {
         expect(textes, `${autre}/${piece.id}`).not.toContain(nom);
       }
     }
+  });
+
+  const L2_L3 = ['vestibule', 'm-03', 'm-06', 'm-07', 'm-08', 'm-09', 'm-10'] as const;
+
+  function existant(id: string): EntreeMorceau {
+    const trouve = MORCEAUX[id];
+    if (trouve === undefined) throw new Error(`Morceau ${id} absent.`);
+    return trouve;
+  }
+
+  // Les chaînes d'un jeu de textes, sans ses clés, en minuscules.
+  function valeurs(textes: TextesMorceau): string {
+    const chaines: string[] = [];
+    const parcourir = (valeur: unknown): void => {
+      if (typeof valeur === 'string') chaines.push(valeur);
+      else if (typeof valeur === 'object' && valeur !== null) for (const sous of Object.values(valeur)) parcourir(sous);
+    };
+    parcourir(textes);
+    return chaines.join('\n').toLocaleLowerCase('fr');
+  }
+
+  function motif(nom: string): RegExp {
+    return new RegExp(`(?<!\\p{L})${nom.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\p{L})`, 'gu');
+  }
+
+  function nomme(texte: string, nom: string): boolean {
+    return motif(nom).test(texte);
+  }
+
+  function nomsDePieces({ morceau, textes }: { readonly morceau: DefMorceau; readonly textes: TextesMorceau }): string[] {
+    const reunis = reunir([textes]);
+    return morceau.pieces.map((piece) => {
+      const nom = reunis.noms[piece.nom]?.texte;
+      if (nom === undefined) throw new Error(`${morceau.id} : pièce ${piece.id} sans nom.`);
+      return nom.toLocaleLowerCase('fr');
+    });
+  }
+
+  // Les textes d'un morceau, ses propres noms de pièces effacés : « atelier maintenance » ne nomme pas l'atelier de M-08.
+  function horsDesSiens(entree: { readonly morceau: DefMorceau; readonly textes: TextesMorceau }): string {
+    let texte = valeurs(entree.textes);
+    for (const nom of nomsDePieces(entree).sort((a, b) => b.length - a.length)) texte = texte.replace(motif(nom), ' ');
+    return texte;
+  }
+
+  it.each(Object.keys(L4))('vigilance aux noms : aucun texte de %s ne nomme une pièce du vestibule ni de M-03, M-06 à M-10', (id) => {
+    const texte = horsDesSiens(l4(id));
+    for (const autre of L2_L3) for (const nom of nomsDePieces(existant(autre))) expect(nomme(texte, nom), `${autre} : ${nom}`).toBe(false);
+  });
+
+  it.each(L2_L3)('vigilance aux noms : aucun texte de %s ne nomme une pièce de M-01, M-02, M-04 ou M-05', (id) => {
+    const texte = horsDesSiens(existant(id));
+    for (const [autre, entree] of Object.entries(L4)) for (const nom of nomsDePieces(entree)) expect(nomme(texte, nom), `${autre} : ${nom}`).toBe(false);
+  });
+
+  it('vigilance aux noms, cas négatifs : la description d’atelier d’AR-01 et « galerie » de M-08 seraient refusées', () => {
+    const atelier = TEXTES_AR01.descriptions.atelier;
+    if (atelier === undefined) throw new Error('Description d’atelier absente d’AR-01.');
+    const avecAr01 = { morceau: MORCEAU_M02, textes: { ...TEXTES_MORCEAU_M02, descriptions: { ...TEXTES_MORCEAU_M02.descriptions, atelier } } };
+    expect(nomme(horsDesSiens(avecAr01), 'atelier')).toBe(true);
+    expect(nomme(horsDesSiens(l4('m-02')), 'atelier')).toBe(false);
+    expect(nomme(horsDesSiens(existant('m-08')), 'galerie')).toBe(true);
+  });
+
+  it('M-01 : le palier ne fait entendre aucun pas ; M-05 ne dit ni « quai » ni « vide »', () => {
+    expect(valeurs(TEXTES_MORCEAU_M01)).not.toContain('vos pas');
+    for (const mot of ['quai', 'vide']) expect(nomme(valeurs(TEXTES_MORCEAU_M05), mot), mot).toBe(false);
   });
 
   it.each(Object.keys(L4))('PL-04 : chaque nom de pièce de %s tient dans son rectangle', (id) => {

@@ -41,19 +41,23 @@ export const MORCEAU_M02: DefMorceau = {
   fournit: ['acces'],
 };
 
-// Textes du morceau (C-07) : l'atelier, la grille, ses positions et la caisse repris d'AR-01 ; la salle des pompes écrite
-// pour ce morceau. Aucun message d'IA Station. Texte final non validé.
+// Textes du morceau (C-07) : le nom de l'atelier, la grille, la position sous la grille et la caisse repris d'AR-01 ; la
+// description de l'atelier et la position au centre réécrites, sans « l'atelier » seul, nom affiché d'une pièce de M-08 ; la
+// salle des pompes écrite pour ce morceau. Aucun message d'IA Station. Texte final non validé.
 export const TEXTES_MORCEAU_M02: TextesMorceau = {
   noms: {
     atelier: repris(TEXTES_AR01.noms, 'atelier'),
     pompes: { texte: 'salle des pompes', genre: 'f', nombre: 's', elision: false },
     grille: repris(TEXTES_AR01.noms, 'grille'),
     sous_grille: repris(TEXTES_AR01.noms, 'sous_grille'),
-    centre: repris(TEXTES_AR01.noms, 'centre'),
+    centre: { texte: 'au centre de la pièce', genre: 'm', nombre: 's', elision: false },
     caisse: repris(TEXTES_AR01.noms, 'caisse'),
   },
   descriptions: {
-    atelier: repris(TEXTES_AR01.descriptions, 'atelier'),
+    atelier: [
+      'Des établis, des casiers, des outils rangés. Haut sur la cloison, une grille de conduit ; sa poignée est hors de portée sans appui.',
+      'Une odeur d’huile froide flotte entre les établis. Tout en haut de la cloison, une grille ferme un conduit ; il faudrait un appui stable pour l’atteindre.',
+    ],
     pompes: [
       'Une salle basse, encombrée de pompes et de vannes. Leurs carters sont froids ; une odeur d’eau croupie flotte.',
       'Des pompes alignées sur leurs socles, à l’arrêt. Des tuyaux épais montent vers le plafond et s’y perdent.',
