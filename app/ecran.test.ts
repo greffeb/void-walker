@@ -6,6 +6,7 @@ import {
   ECART_BULLE,
   etapeBulle,
   filBulle,
+  libelleLigne,
   lignesActions,
   MARGE_BULLE,
   nomDestination,
@@ -287,6 +288,29 @@ describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
     );
     expect(grille?.options.map((option) => option.action)).toEqual(['aller', 'regarder', 'ouvrir']);
     expect(grille?.aller.disponible).toBe(false);
+  });
+
+  it('pupitre de départ : l’écoutille s’y ouvre et s’y ferme avant « Lancer », mêmes options que le bouton du bas (#159)', () => {
+    const lignes = (partie: Partie): string[] => lignesActions(composer(groupe(partie, 'pupitre')).actions).map((option) => option.action);
+    const ecoutille = (partie: Partie): readonly OptionMenu[] =>
+      composerDock(observer(ar01.monde, partie.etat), passagesOuverts(partie)).deplacements.find((candidat) => candidat.cible.nom === 'ecoutille')?.options ?? [];
+    const manoeuvre = (partie: Partie): OptionMenu | undefined => groupe(partie, 'pupitre').options.find((option) => option.cible.nom === 'ecoutille');
+
+    const ouverte = pc(P_C.length - 2);
+    expect(lignes(ouverte)).toEqual(['fermer', 'lancer']);
+    expect(ecoutille(ouverte)).toContainEqual(manoeuvre(ouverte));
+    const fermer = manoeuvre(ouverte);
+    if (fermer === undefined) throw new Error('Fermer l’écoutille absent du pupitre.');
+    expect(libelleLigne(ar01.textes, groupe(ouverte, 'pupitre'), fermer).libelle).toBe('Fermer l’écoutille');
+    const lancer = groupe(ouverte, 'pupitre').options.find((option) => option.action === 'lancer');
+    if (lancer === undefined) throw new Error('Lancer absent.');
+    expect(libelleLigne(ar01.textes, groupe(ouverte, 'pupitre'), lancer).libelle).toBe('Lancer');
+
+    const resultat = jouer(ar01.monde, ouverte, fermer.commande);
+    if (resultat.type !== 'engagee') throw new Error('Écoutille non fermée.');
+    expect(lignes(resultat.partie)).toEqual(['ouvrir', 'lancer']);
+    expect(ecoutille(resultat.partie).map((option) => option.action)).toContain('ouvrir');
+    expect(ecoutille(resultat.partie)).toContainEqual(manoeuvre(resultat.partie));
   });
 
   it('une ligne par action : plusieurs paramètres, une ligne ; jouable si l’un l’est, sinon la première avec sa raison', () => {
