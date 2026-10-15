@@ -318,12 +318,12 @@ export interface MesureTirages {
   readonly msMax: number;
 }
 
-/** Départ, chemin et final d'une composition (13 §7.1). */
+/** Départ, chemins et final d'une composition (13 §7.1, spec L3 §4.1). */
 function morceauxDe(composition: Composition): EntreeMorceau[] {
   const departs = Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'depart');
   const [depart] = departs;
   if (depart === undefined || departs.length > 1) throw new Error('Un seul morceau de départ attendu.');
-  return [depart, ...[composition.chemin, composition.final].map((id) => {
+  return [depart, ...[...composition.chemins, composition.final].map((id) => {
     const entree = Object.hasOwn(MORCEAUX, id) ? MORCEAUX[id] : undefined;
     if (entree === undefined) throw new Error(`Morceau ${id} absent.`);
     return entree;

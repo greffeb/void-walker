@@ -360,7 +360,7 @@ describe('appli : monde choisi par l’adresse', () => {
 
 describe('appli : station tirée au lancement et à chaque nouvelle partie (#152)', () => {
   const STATION = 'm07-m03-soute-2718281828';
-  const FORME_TIREE = /^m(07|10)-m03-[a-z]+-(0|[1-9][0-9]*)$/;
+  const FORME_TIREE = /^(m(07|10)-){1,2}m03-[a-z]+-(0|[1-9][0-9]*)$/;
   const id = (entree: EntreeMonde | null): string | undefined => entree?.monde.id;
   const envSur = (entree: EntreeMonde, stockage: Stockage): Environnement => ({ monde: entree.monde, textes: entree.textes, version: 'v-test', stockage, graine: () => 31 });
   const resolue = (station: string): EntreeMonde => {

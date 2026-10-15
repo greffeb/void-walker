@@ -1,4 +1,4 @@
-import { COMPOSITIONS_PUBLIEES, MONDES, type EntreeMonde, type TextesMonde } from '../content';
+import { COMPOSITIONS_CONTROLEES, COMPOSITIONS_PUBLIEES, MONDES, type EntreeMonde, type TextesMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import { compterPhrases, controlerTextes, direBornes, entreesAControler, regrouperAvertissements, verifierTextes } from './check-texts';
 import { stationDeReference } from './verifier-station';
@@ -178,14 +178,16 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('libellé aller sans destination connue : aucun texte (NP-01).');
   });
 
-  it('relit les mondes du catalogue, puis une station par composition publiée, à la graine vérifiée par check:stations', () => {
+  it('relit les mondes du catalogue, puis une station par composition contrôlée, publiée, à la graine vérifiée par check:stations', () => {
     const entrees = entreesAControler(CATALOGUE);
     const fixes = Object.keys(CATALOGUE.mondes);
     expect(entrees.slice(0, fixes.length).map(([id]) => id)).toEqual(fixes);
     const stations = entrees.slice(fixes.length);
-    expect(stations).toHaveLength(COMPOSITIONS_PUBLIEES.length);
+    expect(stations).toHaveLength(COMPOSITIONS_CONTROLEES.length);
+    expect(COMPOSITIONS_CONTROLEES).toEqual(['m07-m03-reserve', 'm07-m03-soute', 'm10-m03-entrepot', 'm10-m03-reserve', 'm07-m10-m03-soute', 'm10-m07-m03-entrepot']);
+    expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
-      const composition = COMPOSITIONS_PUBLIEES[rang] ?? '';
+      const composition = COMPOSITIONS_CONTROLEES[rang] ?? '';
       const reference = stationDeReference(CATALOGUE, composition);
       if ('refus' in reference || 'refus' in entree) throw new Error(`${composition} sans station.`);
       expect(id).toBe(`${composition}-${reference.graine}`);

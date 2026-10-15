@@ -1,5 +1,6 @@
 import {
   assemblerStation,
+  empreinte,
   empreinteEtat,
   exporter,
   generateurDepuisGraine,
@@ -24,12 +25,16 @@ import {
   numeroter,
   PAIRES,
   reunir,
+  sansConflit,
+  type Composition,
   type EntreeMonde,
+  type EntreeMorceau,
   type Refus,
   type TextesMorceau,
 } from '../content';
 import { lireDemande } from '../report-service/src/rapport';
 import { CATALOGUE } from './catalogue';
+import { stationDeReference } from './verifier-station';
 
 // Morceaux écrits à la main et stations de test refaites par l'assembleur (#152, 13 §8, GP-01).
 
@@ -215,23 +220,52 @@ describe('table des paires (13 §4.1)', () => {
 });
 
 describe('compositions', () => {
-  it('les quatre compositions possibles, triées, publiées, sans refus', () => {
-    expect(COMPOSITIONS_PUBLIEES).toEqual(['m07-m03-reserve', 'm07-m03-soute', 'm10-m03-entrepot', 'm10-m03-reserve']);
+  it('4 compositions à un chemin, 6 à deux (M-07 et M-10 dans les deux ordres, 3 places), triées, sans refus, publiées', () => {
     expect(CATALOGUE.compositions).toEqual([
-      { id: 'm07-m03-reserve', chemin: 'm-07', final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm07-m03-soute', chemin: 'm-07', final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm10-m03-entrepot', chemin: 'm-10', final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m03-reserve', chemin: 'm-10', final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm07-m03-reserve', chemins: ['m-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm07-m03-soute', chemins: ['m-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm07-m10-m03-entrepot', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm07-m10-m03-reserve', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm07-m10-m03-soute', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
+      { id: 'm10-m03-entrepot', chemins: ['m-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm10-m03-reserve', chemins: ['m-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm10-m07-m03-entrepot', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
+      { id: 'm10-m07-m03-reserve', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
+      { id: 'm10-m07-m03-soute', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
     ]);
+    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map((composition) => composition.id));
   });
 
-  it('identifiants de composition uniques, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
+  it('identifiants de composition uniques, triés, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
     const ids = CATALOGUE.compositions.map((composition) => composition.id);
     for (const id of ids) {
       expect(id).toMatch(/^[a-z0-9-]{1,29}$/);
       expect(`${id}-4294967295`).toMatch(MONDE_ID);
     }
     expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toEqual([...ids].sort());
+    expect(COMPOSITIONS_PUBLIEES).toEqual([...COMPOSITIONS_PUBLIEES].sort());
+  });
+
+  it('places distinctes : par station, une composition par place, aucune place du même nom affiché qu’une autre', () => {
+    const parStation = new Map<string, Composition[]>();
+    for (const composition of CATALOGUE.compositions) {
+      const cle = [...composition.chemins, composition.final].join(' + ');
+      parStation.set(cle, [...(parStation.get(cle) ?? []), composition]);
+    }
+    expect(parStation.size).toBe(4);
+    for (const [cle, compositions] of parStation) {
+      const morceaux = cle.split(' + ').map((id) => MORCEAUX[id]);
+      const places = morceaux.flatMap((entree) => entree?.morceau.placesCreature.map((place) => `${entree.morceau.id}/${place}`) ?? []);
+      expect(compositions.map((composition) => composition.creature).sort(), cle).toEqual([...places].sort());
+      const noms = morceaux.flatMap((entree) =>
+        (entree?.morceau.placesCreature ?? []).map((place) => {
+          const nom = entree?.morceau.pieces.find((piece) => piece.id === place)?.nom ?? place;
+          return entree?.textes.noms[nom]?.texte ?? nom;
+        }),
+      );
+      expect(new Set(noms).size, cle).toBe(noms.length);
+    }
   });
 
   it('G-02 : sans la paire M-03 + M-07, ses compositions sont refusées avec le motif de la table, sans appeler l’assembleur', () => {
@@ -241,8 +275,14 @@ describe('compositions', () => {
     expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual([
       ['m07-m03-reserve', motif],
       ['m07-m03-soute', motif],
+      ['m07-m10-m03-entrepot', motif],
+      ['m07-m10-m03-reserve', motif],
+      ['m07-m10-m03-soute', motif],
       ['m10-m03-entrepot', null],
       ['m10-m03-reserve', null],
+      ['m10-m07-m03-entrepot', motif],
+      ['m10-m07-m03-reserve', motif],
+      ['m10-m07-m03-soute', motif],
     ]);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m03-soute'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.resoudre('m07-m03-soute-42'))).toContain('M-03 + M-07');
@@ -251,6 +291,33 @@ describe('compositions', () => {
     // Le tirage libre ne propose plus que les compositions qui restent.
     const hasard = hasardDepuis(2);
     for (let rang = 0; rang < 20; rang++) expect(entreeDe(catalogue.tirer(hasard)).monde.id).toMatch(/^m10-m03-/);
+  });
+
+  it('G-02 : sans la paire M-07 + M-10, m07-m10-m03-soute est refusée avec le motif de la table, sans appeler l’assembleur', () => {
+    const { appels, assembler } = espion();
+    const catalogue = creerCatalogue(assembler, PAIRES.filter((ligne) => !(ligne.a === 'M-07' && ligne.b === 'M-10')));
+    const motif = 'Paire M-07 + M-10 absente de la table : refusée par défaut.';
+    expect(catalogue.compositions.find((composition) => composition.id === 'm07-m10-m03-soute')?.refus).toBe(motif);
+    expect(catalogue.compositions.filter((composition) => composition.refus !== null).map((composition) => composition.id)).toEqual([
+      'm07-m10-m03-entrepot',
+      'm07-m10-m03-reserve',
+      'm07-m10-m03-soute',
+      'm10-m07-m03-entrepot',
+      'm10-m07-m03-reserve',
+      'm10-m07-m03-soute',
+    ]);
+    expect(refusDe(catalogue.resoudre('m07-m10-m03-soute-42'))).toBe(motif);
+    expect(refusDe(catalogue.construire('m07-m10-m03-soute', 42))).toBe(motif);
+    expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m10-m03-soute'))).toBe(motif);
+    expect(appels).toEqual([]);
+  });
+
+  it('le motif est celui de la première paire refusée : chemin–chemin, puis chaque chemin–final, dans l’ordre de la station', () => {
+    const sans = (...paires: string[]) => PAIRES.filter((ligne) => !paires.includes(`${ligne.a} + ${ligne.b}`));
+    const refus = (table: typeof PAIRES, id: string) => creerCatalogue(assemblerStation, table).compositions.find((composition) => composition.id === id)?.refus;
+    expect(refus(sans('M-07 + M-10', 'M-03 + M-07'), 'm07-m10-m03-soute')).toContain('M-07 + M-10');
+    expect(refus(sans('M-03 + M-07', 'M-03 + M-10'), 'm07-m10-m03-soute')).toContain('M-03 + M-07');
+    expect(refus(sans('M-03 + M-07', 'M-03 + M-10'), 'm10-m07-m03-soute')).toContain('M-03 + M-10');
   });
 
   it('une paire jamais ensemble refuse la composition avec sa règle, sans appeler l’assembleur', () => {
@@ -300,6 +367,10 @@ describe('résolution d’un identifiant', () => {
     'hasOwnProperty-1',
     'm07-m03-inconnue-1',
     `m07-m03-soute-1${'0'.repeat(40)}`,
+    'm07-m07-m03-soute-1',
+    'm03-m07-m03-soute-1',
+    'm07-m10-m07-m03-soute-1',
+    'm07-m10-m99-soute-1',
   ])('vigilance 3 : %j est refusé avec un motif, sans exception ni assemblage', (id) => {
     appels.length = 0;
     let resultat: EntreeMonde | Refus | undefined;
@@ -308,7 +379,18 @@ describe('résolution d’un identifiant', () => {
     expect(appels).toEqual([]);
   });
 
-  it.each(['', 'M07-M03-SOUTE', 'toString', '__proto__', 'm07-m03-inconnue', ID])('tirer avec %j : composition refusée, sans assemblage', (composition) => {
+  it.each([
+    '',
+    'M07-M03-SOUTE',
+    'toString',
+    '__proto__',
+    'm07-m03-inconnue',
+    ID,
+    'm07-m07-m03-soute',
+    'm03-m07-m03-soute',
+    'm07-m10-m07-m03-soute',
+    'm07-m10-m99-soute',
+  ])('tirer avec %j : composition refusée, sans assemblage', (composition) => {
     appels.length = 0;
     expect(refusDe(catalogue.tirer(hasardDepuis(1), composition))).not.toBe('');
     expect(appels).toEqual([]);
@@ -352,6 +434,15 @@ describe('résolution d’un identifiant', () => {
     expect(Object.keys(textes.assistance).sort()).toEqual(['depart', 'energie', 'reveil']);
   });
 
+  it.each([
+    ['m07-m03-reserve-2718281828', '0b87b46ab7436f'],
+    ['m07-m03-soute-2718281828', '1744d5fd8c77e7'],
+    ['m10-m03-entrepot-2718281828', '0364dc6678a99e'],
+    ['m10-m03-reserve-2718281828', '040d5191c45e93'],
+  ])('vigilance 2 : %s, station de L2, est reconstruite à l’identique (empreinte du monde %s)', (id, attendue) => {
+    expect(empreinte(entreeDe(catalogue.resoudre(id)).monde)).toBe(attendue);
+  });
+
   it('messages d’IA Station au réveil et au départ : écrits, sans pièce nommée ni présence détectée', () => {
     const { monde, textes } = entreeDe(catalogue.resoudre(ID));
     const noms = monde.pieces.map((piece) => textes.noms[piece.nom]?.texte.toLocaleLowerCase('fr') ?? piece.nom);
@@ -377,8 +468,8 @@ describe('résolution d’un identifiant', () => {
   it('le tirage consomme le hasard dans l’ordre : final, composition, puis graine du plan', () => {
     const manque = espion((station) => (station.graine === 7 ? { type: 'sans_plan' } : assemblerStation(station)));
     const tirage = creerCatalogue(manque.assembler);
-    // Final : 5 % 1 ; composition : 2 % 4 (m10-m03-entrepot) ; graine 7 sans plan, puis 2718281828.
-    expect(entreeDe(tirage.tirer(suiteDe(5, 2, 7, 2718281828))).monde.id).toBe('m10-m03-entrepot-2718281828');
+    // Final : 5 % 1 ; composition : 5 % 10 (m10-m03-entrepot) ; graine 7 sans plan, puis 2718281828.
+    expect(entreeDe(tirage.tirer(suiteDe(5, 5, 7, 2718281828))).monde.id).toBe('m10-m03-entrepot-2718281828');
     expect(manque.appels.map((station) => station.graine)).toEqual([7, 2718281828]);
   });
 });
@@ -415,7 +506,8 @@ describe('stations tirées', () => {
     expect(aller?.disponible).toBe(true);
     const sortie = jouer(monde, ouverte.partie, aller?.commande);
     expect(sortie).toMatchObject({ type: 'engagee', tirages: [] });
-    expect(sortie.partie.etat.piece).toBe(`${composition.startsWith('m07') ? 'm-07' : 'm-10'}/p-quartiers`);
+    const [premier] = CATALOGUE.compositions.find(({ id }) => id === composition)?.chemins ?? [];
+    expect(sortie.partie.etat.piece).toBe(`${premier ?? ''}/p-quartiers`);
   });
 
   it('PL-04 : sur 50 stations tirées, chaque nom de pièce tient dans son rectangle', () => {
@@ -433,10 +525,10 @@ describe('stations tirées', () => {
     }
   });
 
-  it('200 tirages : toujours une composition publiée, chacune au moins une fois, identifiant conforme et résoluble', () => {
+  it('3 000 tirages : toujours une composition publiée, chacune au moins une fois, identifiant conforme et résoluble', () => {
     const hasard = hasardDepuis(20261015);
     const vues = new Set<string>();
-    for (let rang = 0; rang < 200; rang++) {
+    for (let rang = 0; rang < 3000; rang++) {
       const entree = entreeDe(CATALOGUE.tirer(hasard));
       const { id } = entree.monde;
       expect(id).toMatch(MONDE_ID);
@@ -447,7 +539,7 @@ describe('stations tirées', () => {
       vues.add(composition);
     }
     expect([...vues].sort()).toEqual(COMPOSITIONS_PUBLIEES);
-  });
+  }, 60000);
 
   it('vigilance 5 : l’export d’une partie neuve d’une station tirée passe le service de rapports', () => {
     const { monde } = entreeDe(CATALOGUE.tirer(hasardDepuis(5)));
@@ -459,10 +551,10 @@ describe('stations tirées', () => {
 
 describe('pièces du même nom numérotées (D-208)', () => {
   // Deux chemins de test qui apportent chacun une coursive.
-  const chemin = (id: string): DefMorceau => ({
+  const chemin = (id: string, nom = 'coursive'): DefMorceau => ({
     id,
     famille: 'chemin',
-    pieces: [{ id: 'p-coursive', nom: 'coursive', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } }],
+    pieces: [{ id: 'p-coursive', nom, plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } }],
     liaisons: [],
     objets: [],
     entree: 'p-coursive',
@@ -477,13 +569,14 @@ describe('pièces du même nom numérotées (D-208)', () => {
     assistance: {},
   };
 
-  function deuxCoursives(): EntreeMonde {
+  function deuxCoursives(noms: readonly [string, string] = ['coursive', 'coursive'], propres: TextesMorceau = COURSIVE): EntreeMonde {
     const { vestibule, essai } = MORCEAUX;
     if (vestibule === undefined || essai === undefined) throw new Error('Morceaux absents.');
     for (let graine = 1; graine <= 50; graine++) {
-      const station: DefStation = { id: 'deux-coursives', morceaux: [vestibule.morceau, chemin('c-a'), chemin('c-b'), essai.morceau], creature: 'c-a/p-coursive', graine };
+      const morceaux = [vestibule.morceau, chemin('c-a', noms[0]), chemin('c-b', noms[1]), essai.morceau];
+      const station: DefStation = { id: 'deux-coursives', morceaux, creature: 'c-a/p-coursive', graine };
       const resultat = assemblerStation(station);
-      if (resultat.type === 'station') return { monde: resultat.monde, textes: reunir([vestibule.textes, COURSIVE, essai.textes]), parcours: [] };
+      if (resultat.type === 'station') return { monde: resultat.monde, textes: reunir([vestibule.textes, propres, essai.textes]), parcours: [] };
     }
     throw new Error('Aucun plan pour la station à deux coursives.');
   }
@@ -519,8 +612,84 @@ describe('pièces du même nom numérotées (D-208)', () => {
     }
   });
 
+  it('deux clés différentes au même nom affiché reçoivent aussi une lettre, chacune avec sa description', () => {
+    const nom = { texte: 'coursive', genre: 'f', nombre: 's', elision: false } as const;
+    const propres: TextesMorceau = {
+      noms: { coursive_x: nom, coursive_y: nom },
+      descriptions: { coursive_x: ['Une coursive étroite.'], coursive_y: ['Un couloir de service.'] },
+      assistance: {},
+    };
+    const { monde, textes } = numeroter(deuxCoursives(['coursive_x', 'coursive_y'], propres));
+    const coursives = monde.pieces.filter((piece) => piece.id.endsWith('/p-coursive'));
+    expect(coursives.map((piece) => [piece.nom, textes.noms[piece.nom]?.texte, textes.descriptions[piece.nom]])).toEqual([
+      ['coursive_x_a', 'coursive A', ['Une coursive étroite.']],
+      ['coursive_y_b', 'coursive B', ['Un couloir de service.']],
+    ]);
+    expect(validerMonde(monde)).toEqual([]);
+  });
+
   it('une station sans doublon reste identique', () => {
     const entree = entreeDe(CATALOGUE.resoudre(ID));
     expect(numeroter(entree)).toBe(entree);
+  });
+});
+
+describe('clés de texte en conflit entre morceaux (spec L3 §4.2)', () => {
+  function morceau(id: string): EntreeMorceau {
+    const entree = MORCEAUX[id];
+    if (entree === undefined) throw new Error(`Morceau ${id} absent.`);
+    return entree;
+  }
+
+  it('M-07 et M-10 : coursive devient coursive_m07 et coursive_m10, chacune avec ses textes ; morceaux d’origine inchangés', () => {
+    const [m07, m10] = [morceau('m-07'), morceau('m-10')];
+    const empreintes = [empreinte(m07), empreinte(m10)];
+    expect(() => reunir([m07.textes, m10.textes])).toThrow(/coursive/);
+    const [a, b] = sansConflit([m07, m10]);
+    if (a === undefined || b === undefined) throw new Error('Morceaux absents.');
+    expect(a.morceau.pieces.map((piece) => piece.nom)).toEqual(['quartiers', 'soute', 'machines', 'coursive_m07']);
+    expect(b.morceau.pieces.map((piece) => piece.nom)).toEqual(['quartiers', 'antichambre', 'chambre', 'entrepot', 'coursive_m10']);
+    expect([a.textes.noms.coursive_m07, a.textes.descriptions.coursive_m07]).toEqual([m07.textes.noms.coursive, m07.textes.descriptions.coursive]);
+    expect([b.textes.noms.coursive_m10, b.textes.descriptions.coursive_m10]).toEqual([m10.textes.noms.coursive, m10.textes.descriptions.coursive]);
+    expect(a.textes.descriptions.coursive_m07).not.toEqual(b.textes.descriptions.coursive_m10);
+    for (const { textes } of [a, b]) expect([Object.hasOwn(textes.noms, 'coursive'), Object.hasOwn(textes.descriptions, 'coursive')]).toEqual([false, false]);
+    expect(() => reunir([a.textes, b.textes])).not.toThrow();
+    expect([empreinte(m07), empreinte(m10)]).toEqual(empreintes);
+  });
+
+  it('sans conflit, chaque morceau est rendu tel quel', () => {
+    const entrees = [morceau('vestibule'), morceau('m-07'), morceau('m-03')];
+    sansConflit(entrees).forEach((entree, rang) => expect(entree).toBe(entrees[rang]));
+  });
+
+  it('une clé renommée garde son nom venu des couches', () => {
+    const avecCapsule = (id: string, description: string): EntreeMorceau => ({
+      morceau: {
+        ...morceau('m-07').morceau,
+        id,
+        objets: [{ id: 'o-capsule', nom: 'capsule', piece: 'p-coursive', portable: false }],
+      },
+      textes: { noms: {}, descriptions: { capsule: [description] }, assistance: {} },
+    });
+    const [a, b] = sansConflit([avecCapsule('c-a', 'Une capsule.'), avecCapsule('c-b', 'Une autre capsule.')]);
+    expect(reunir([]).noms.capsule).toBeDefined();
+    expect([a?.morceau.objets[0]?.nom, a?.textes.noms.capsule_ca, a?.textes.descriptions.capsule_ca]).toEqual(['capsule_ca', reunir([]).noms.capsule, ['Une capsule.']]);
+    expect([b?.morceau.objets[0]?.nom, b?.textes.noms.capsule_cb, b?.textes.descriptions.capsule_cb]).toEqual(['capsule_cb', reunir([]).noms.capsule, ['Une autre capsule.']]);
+  });
+
+  it('vigilance 1 : m07-m10-m03-soute se lit « coursive A » puis « coursive B » ; nulle part deux pièces au même nom affiché', () => {
+    const { monde, textes } = entreeDe(CATALOGUE.resoudre('m07-m10-m03-soute-2718281828'));
+    expect(validerMonde(monde)).toEqual([]);
+    const affiche = (id: string): string | undefined => textes.noms[monde.pieces.find((piece) => piece.id === id)?.nom ?? '']?.texte;
+    expect([affiche('m-07/p-coursive'), affiche('m-10/p-coursive')]).toEqual(['coursive A', 'coursive B']);
+    const references = COMPOSITIONS_PUBLIEES.map((composition) => {
+      const reference = stationDeReference(CATALOGUE, composition);
+      if ('refus' in reference) throw new Error(reference.refus);
+      return reference.entree;
+    });
+    for (const station of [{ monde, textes }, ...references]) {
+      const noms = station.monde.pieces.map((piece) => station.textes.noms[piece.nom]?.texte ?? piece.nom);
+      expect(new Set(noms).size, station.monde.id).toBe(noms.length);
+    }
   });
 });

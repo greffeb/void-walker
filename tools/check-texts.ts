@@ -19,7 +19,7 @@ import {
 import {
   analyserGabarit,
   CLES_EVACUATION,
-  COMPOSITIONS_PUBLIEES,
+  COMPOSITIONS_CONTROLEES,
   fuitesDeCouches,
   libelleOption,
   lignesListeCarte,
@@ -503,11 +503,14 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
   return [...controlerTextes(entree, version).erreurs];
 }
 
-/** Mondes du catalogue, puis une station par composition publiée, à la graine de plan vérifiée par `check:stations`. */
+/**
+ * Mondes du catalogue, puis une station par composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de
+ * plan vérifiée par `check:stations`.
+ */
 export function entreesAControler(catalogue: Catalogue): (readonly [string, EntreeMonde | Refus])[] {
   return [
     ...Object.entries(catalogue.mondes),
-    ...COMPOSITIONS_PUBLIEES.map((composition) => {
+    ...COMPOSITIONS_CONTROLEES.map((composition) => {
       const station = stationDeReference(catalogue, composition);
       return 'refus' in station ? ([composition, station] as const) : ([station.entree.monde.id, station.entree] as const);
     }),

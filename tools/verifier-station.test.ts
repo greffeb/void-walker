@@ -346,7 +346,7 @@ describe('catalogue vérifié à la construction (#152)', () => {
     expect(refusees.map((ligne) => [ligne.verdict, ligne.empreintes])).toEqual(lignes.map((ligne) => ['refusee', ligne.empreintes]));
   });
 
-  it('G-02 : sans la paire M-03 + M-07, ses deux compositions sont refusées avec le motif de la table, sans assemblage ni vérification', () => {
+  it('G-02 : sans la paire M-03 + M-07, ses compositions sont refusées avec le motif de la table, sans assemblage ni vérification', () => {
     const assembles: string[] = [];
     const table = PAIRES.filter((ligne) => !(ligne.a === 'M-03' && ligne.b === 'M-07'));
     const catalogue = creerCatalogue((station) => {
@@ -355,20 +355,24 @@ describe('catalogue vérifié à la construction (#152)', () => {
     }, table);
     const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
     const sans = verifierCatalogue(catalogue, { maxEtats: 1 });
-    expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual([
+    const attendu: [string, LigneCatalogue['verdict'], number][] = [
       ['m07-m03-reserve', 'refusee', 0],
       ['m07-m03-soute', 'refusee', 0],
+      ['m07-m10-m03-entrepot', 'refusee', 0],
+      ['m07-m10-m03-reserve', 'refusee', 0],
+      ['m07-m10-m03-soute', 'refusee', 0],
       ['m10-m03-entrepot', 'non_prouvee', 1],
       ['m10-m03-reserve', 'non_prouvee', 1],
-    ]);
-    for (const ligne of sans.slice(0, 2)) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
-    expect(assembles.filter((id) => id.startsWith('m07-'))).toEqual([]);
-    expect(ecartsDuCatalogue(sans, COMPOSITIONS_PUBLIEES, [])).toEqual([
-      'Composition publiée m07-m03-reserve non prouvée (refusee).',
-      'Composition publiée m07-m03-soute non prouvée (refusee).',
-      'Composition publiée m10-m03-entrepot non prouvée (non_prouvee).',
-      'Composition publiée m10-m03-reserve non prouvée (non_prouvee).',
-    ]);
+      ['m10-m07-m03-entrepot', 'refusee', 0],
+      ['m10-m07-m03-reserve', 'refusee', 0],
+      ['m10-m07-m03-soute', 'refusee', 0],
+    ];
+    expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
+    for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
+    expect(assembles.filter((id) => id.split('-').includes('m07'))).toEqual([]);
+    expect(ecartsDuCatalogue(sans, COMPOSITIONS_PUBLIEES, [])).toEqual(
+      attendu.map(([composition, verdict]) => `Composition publiée ${composition} non prouvée (${verdict}).`),
+    );
   });
 
   it('écarts : publiée non prouvée ou absente, prouvée non publiée, moins de 95 % de plans', () => {
@@ -387,7 +391,12 @@ describe('catalogue vérifié à la construction (#152)', () => {
 describe('plans des stations tirées (14 §5.6)', () => {
   it('sur 1 000 graines, au moins 95 % de plans par chemin ; temps mesurés, non assertés', () => {
     const mesures = mesurerPlans(1000);
-    expect(mesures.map((mesure) => mesure.chemin)).toEqual(['vestibule + m-07 + m-03', 'vestibule + m-10 + m-03']);
+    expect(mesures.map((mesure) => mesure.chemin)).toEqual([
+      'vestibule + m-07 + m-03',
+      'vestibule + m-07 + m-10 + m-03',
+      'vestibule + m-10 + m-03',
+      'vestibule + m-10 + m-07 + m-03',
+    ]);
     for (const mesure of mesures) {
       expect(mesure.tirages).toBe(1000);
       expect(mesure.trouves).toBeGreaterThanOrEqual(950);

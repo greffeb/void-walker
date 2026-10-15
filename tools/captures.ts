@@ -1566,8 +1566,8 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
     return tirage.valeur;
   };
   const publiees = CATALOGUE.compositions.filter(({ id }) => COMPOSITIONS_PUBLIEES.includes(id));
-  for (const chemin of new Set(publiees.map((composition) => composition.chemin))) {
-    const duChemin = publiees.filter((composition) => composition.chemin === chemin);
+  for (const chemin of new Set(publiees.map((composition) => composition.chemins.join(' + ')))) {
+    const duChemin = publiees.filter((composition) => composition.chemins.join(' + ') === chemin);
     for (let rang = 0; rang < STATIONS_PAR_CHEMIN; rang++) {
       const composition = duChemin[rang % duChemin.length]?.id ?? chemin;
       const station = CATALOGUE.tirer(hasard, composition);
