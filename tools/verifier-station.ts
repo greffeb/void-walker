@@ -1,5 +1,17 @@
-import { nouvellePartie, observer, jouer, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
-import type { EntreeMonde, EtapeParcours, Parcours } from '../content';
+import { assemblerStation, empreinte, nouvellePartie, observer, jouer, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
+import { generateurDepuisGraine, suivant } from '../engine/des';
+import {
+  COMPOSITIONS_PUBLIEES,
+  creerCatalogue,
+  MORCEAUX,
+  type Catalogue,
+  type Composition,
+  type EntreeMonde,
+  type EntreeMorceau,
+  type EtapeParcours,
+  type Parcours,
+  type Refus,
+} from '../content';
 import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 import { isMainModule } from './repo-files';
@@ -7,6 +19,13 @@ import { isMainModule } from './repo-files';
 const VERSION = 'verifier-station';
 const GRAINE = 20261010;
 const MAX_ETATS = 150000;
+/** Graines de plan essayées, à partir de 0, pour la station de référence d'une composition. */
+const ESSAIS_GRAINE = 50;
+/** 14 §5.6 : sur 1 000 tirages, au moins 95 % de plans trouvés. */
+const TIRAGES_PLANS = 1000;
+const POURCENT_PLANS = 95;
+/** Hasard des tirages mesurés : les mêmes à chaque mesure. */
+const GRAINE_TIRAGES = 20261015;
 
 export interface OptionsVerification {
   readonly maxEtats?: number;
@@ -200,6 +219,139 @@ export function mesurerStation(entree: EntreeMonde, options: OptionsVerification
   return conclure('complete', 'Graphe complet : toutes les commandes et toutes les faces de dés explorées.');
 }
 
+export interface LigneCatalogue {
+  readonly composition: string;
+  readonly verdict: RapportStation['verdict'] | 'refusee';
+  /** Graine de plan vérifiée ; `null` si la composition est refusée ou sans plan. */
+  readonly graine: number | null;
+  readonly etats: number;
+  readonly secondes: number;
+  readonly diagnostic: string;
+  /** `empreinte({ morceau, textes })` par morceau inclus, dans l'ordre de la station. */
+  readonly empreintes: Readonly<Record<string, string>>;
+}
+
+export interface MesurePlans {
+  /** Morceaux de la station, ex. 'vestibule + m-07 + m-03'. */
+  readonly chemin: string;
+  readonly tirages: number;
+  readonly trouves: number;
+  readonly msMoyenne: number;
+  readonly msMax: number;
+}
+
+export interface MesureTirages {
+  readonly tirages: number;
+  readonly reussis: number;
+  readonly msMoyenne: number;
+  readonly msMax: number;
+}
+
+/** Départ, chemin et final d'une composition (13 §7.1). */
+function morceauxDe(composition: Composition): EntreeMorceau[] {
+  const departs = Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'depart');
+  const [depart] = departs;
+  if (depart === undefined || departs.length > 1) throw new Error('Un seul morceau de départ attendu.');
+  return [depart, ...[composition.chemin, composition.final].map((id) => {
+    const entree = Object.hasOwn(MORCEAUX, id) ? MORCEAUX[id] : undefined;
+    if (entree === undefined) throw new Error(`Morceau ${id} absent.`);
+    return entree;
+  })];
+}
+
+/** Station d'une composition à la plus petite graine de plan, à partir de 0, qui donne un plan : celle que l'on vérifie. */
+export function stationDeReference(catalogue: Catalogue, composition: string): { readonly graine: number; readonly entree: EntreeMonde } | Refus {
+  let dernier = '';
+  for (let graine = 0; graine < ESSAIS_GRAINE; graine++) {
+    const station = catalogue.construire(composition, graine);
+    if (!('refus' in station)) return { graine, entree: station };
+    dernier = station.refus;
+  }
+  return { refus: `Composition ${composition} : aucune station pour les graines de plan 0 à ${ESSAIS_GRAINE - 1} ; dernier motif : ${dernier}` };
+}
+
+/**
+ * Chaque composition possible, publiée ou non, vérifiée sur sa station de référence : la preuve vaut pour toutes ses graines,
+ * aucune règle ne lisant le plan (D-078). Une composition refusée par la table l'est sans assemblage ni vérification.
+ */
+export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerification = {}): LigneCatalogue[] {
+  return catalogue.compositions.map((composition): LigneCatalogue => {
+    const empreintes = Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
+    const sansVerification = (verdict: LigneCatalogue['verdict'], diagnostic: string): LigneCatalogue => ({
+      composition: composition.id, verdict, graine: null, etats: 0, secondes: 0, diagnostic, empreintes,
+    });
+    if (composition.refus !== null) return sansVerification('refusee', composition.refus);
+    const station = stationDeReference(catalogue, composition.id);
+    if ('refus' in station) return sansVerification('non_prouvee', station.refus);
+    const { verdict, etats, secondes, diagnostic } = verifierStation(station.entree, options);
+    return { composition: composition.id, verdict, graine: station.graine, etats, secondes, diagnostic, empreintes };
+  });
+}
+
+/** Ce qui fait échouer `check:stations` : publiée non prouvée, prouvée non publiée, moins de 95 % de plans (14 §5.6). */
+export function ecartsDuCatalogue(lignes: readonly LigneCatalogue[], publiees: readonly string[], plans: readonly MesurePlans[]): string[] {
+  const ecarts: string[] = [];
+  for (const composition of publiees) {
+    const ligne = lignes.find((candidate) => candidate.composition === composition);
+    if (ligne === undefined) ecarts.push(`Composition publiée ${composition} absente du catalogue.`);
+    else if (ligne.verdict !== 'prouvee') ecarts.push(`Composition publiée ${composition} non prouvée (${ligne.verdict}).`);
+  }
+  for (const { composition, verdict } of lignes) {
+    if (verdict === 'prouvee' && !publiees.includes(composition)) ecarts.push(`Composition ${composition} prouvée mais non publiée.`);
+  }
+  for (const { chemin, tirages, trouves } of plans) {
+    if (trouves * 100 < tirages * POURCENT_PLANS) ecarts.push(`Plans ${chemin} : ${trouves} trouvés sur ${tirages}, moins de ${POURCENT_PLANS} %.`);
+  }
+  return ecarts;
+}
+
+/** Plans de chaque chemin permis, graines 0 à `tirages` - 1 : plans trouvés et temps d'`assemblerStation`, échecs compris. */
+export function mesurerPlans(tirages: number): MesurePlans[] {
+  const chemins = new Map<string, Composition>();
+  for (const composition of CATALOGUE.compositions) {
+    const chemin = morceauxDe(composition).map(({ morceau }) => morceau.id).join(' + ');
+    if (composition.refus === null && !chemins.has(chemin)) chemins.set(chemin, composition);
+  }
+  return [...chemins].map(([chemin, composition]) => {
+    const morceaux = morceauxDe(composition).map(({ morceau }) => morceau);
+    let trouves = 0;
+    let total = 0;
+    let msMax = 0;
+    for (let graine = 0; graine < tirages; graine++) {
+      const debut = performance.now();
+      const resultat = assemblerStation({ id: `${composition.id}-${graine}`, morceaux, creature: composition.creature, graine });
+      const ms = performance.now() - debut;
+      if (resultat.type === 'station') trouves++;
+      total += ms;
+      msMax = Math.max(msMax, ms);
+    }
+    return { chemin, tirages, trouves, msMoyenne: total / tirages, msMax };
+  });
+}
+
+/** Tirages complets d'un catalogue neuf, retirages compris, au hasard à graine fixe : stations obtenues et temps de `tirer`. */
+export function mesurerTirages(tirages: number): MesureTirages {
+  const catalogue = creerCatalogue(assemblerStation);
+  let etat = generateurDepuisGraine(GRAINE_TIRAGES);
+  const hasard = (): number => {
+    const tirage = suivant(etat);
+    etat = tirage.etat;
+    return tirage.valeur;
+  };
+  let reussis = 0;
+  let total = 0;
+  let msMax = 0;
+  for (let rang = 0; rang < tirages; rang++) {
+    const debut = performance.now();
+    const resultat = catalogue.tirer(hasard);
+    const ms = performance.now() - debut;
+    if (!('refus' in resultat)) reussis++;
+    total += ms;
+    msMax = Math.max(msMax, ms);
+  }
+  return { tirages, reussis, msMoyenne: total / tirages, msMax };
+}
+
 if (isMainModule(import.meta.url)) {
   const argumentsCli = process.argv.slice(2);
   const mesure = argumentsCli.includes('--mesurer');
@@ -214,5 +366,15 @@ if (isMainModule(import.meta.url)) {
     const rapport = mesure ? mesurerStation(entree, options) : verifierStation(entree, options);
     console.log(JSON.stringify({ monde: id, ...rapport }));
     if (rapport.verdict !== (mesure ? 'complete' : 'prouvee')) process.exitCode = 1;
+  }
+  if (demandes.length === 0 && !mesure) {
+    const lignes = verifierCatalogue(CATALOGUE, options);
+    for (const ligne of lignes) console.log(JSON.stringify(ligne));
+    const plans = mesurerPlans(TIRAGES_PLANS);
+    for (const plan of plans) console.log(JSON.stringify(plan));
+    console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS) }));
+    const ecarts = ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, plans);
+    for (const ecart of ecarts) console.error(ecart);
+    if (ecarts.length > 0) process.exitCode = 1;
   }
 }

@@ -19,6 +19,7 @@ import {
 import {
   analyserGabarit,
   CLES_EVACUATION,
+  COMPOSITIONS_PUBLIEES,
   fuitesDeCouches,
   libelleOption,
   lignesListeCarte,
@@ -42,13 +43,16 @@ import {
   ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
+  type Catalogue,
   type EntreeMonde,
+  type Refus,
   type TextesMonde,
   type TypeRecit,
 } from '../content';
 import { CATALOGUE } from './catalogue';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
+import { stationDeReference } from './verifier-station';
 
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
 
@@ -499,11 +503,27 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
   return [...controlerTextes(entree, version).erreurs];
 }
 
+/** Mondes du catalogue, puis une station par composition publiée, à la graine de plan vérifiée par `check:stations`. */
+export function entreesAControler(catalogue: Catalogue): (readonly [string, EntreeMonde | Refus])[] {
+  return [
+    ...Object.entries(catalogue.mondes),
+    ...COMPOSITIONS_PUBLIEES.map((composition) => {
+      const station = stationDeReference(catalogue, composition);
+      return 'refus' in station ? ([composition, station] as const) : ([station.entree.monde.id, station.entree] as const);
+    }),
+  ];
+}
+
 if (isMainModule(import.meta.url)) {
   let total = 0;
-  for (const [id, entree] of Object.entries(CATALOGUE.mondes)) {
+  for (const [id, aControler] of entreesAControler(CATALOGUE)) {
+    if ('refus' in aControler) {
+      total += 1;
+      console.error(`${id} : ${aControler.refus}`);
+      continue;
+    }
     const debut = Date.now();
-    const { erreurs, avertissements, couverture } = controlerTextes(entree);
+    const { erreurs, avertissements, couverture } = controlerTextes(aControler);
     total += erreurs.length;
     for (const erreur of erreurs) console.error(`${id} : ${erreur}`);
     if (erreurs.length === 0) console.log(`${id} : textes complets, trous sûrs, aucun identifiant affiché.`);

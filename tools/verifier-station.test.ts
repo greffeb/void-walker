@@ -1,8 +1,20 @@
-import type { EntreeMonde } from '../content';
-import { jouer, nouvellePartie, observer, type DefMonde } from '../engine';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, type EntreeMonde } from '../content';
+import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { executerParcours } from './rejouer-parcours';
-import { cleEtatRegles, explorerDes, mesurerStation, verifierStation } from './verifier-station';
+import {
+  cleEtatRegles,
+  ecartsDuCatalogue,
+  explorerDes,
+  mesurerPlans,
+  mesurerStation,
+  mesurerTirages,
+  stationDeReference,
+  verifierCatalogue,
+  verifierStation,
+  type LigneCatalogue,
+  type MesurePlans,
+} from './verifier-station';
 
 function entree(id: string): EntreeMonde {
   const trouvee = CATALOGUE.mondes[id];
@@ -211,5 +223,101 @@ describe('stations de référence et contre-exemples G-01', () => {
     const originale = entree('ar-01');
     const sansEau = { ...originale, monde: { ...originale.monde, objets: originale.monde.objets.filter((objet) => objet.nom !== 'bidon') } };
     expect(verifierStation(sansEau).verdict).toBe('prouvee');
+  }, 60000);
+});
+
+describe('catalogue vérifié à la construction (#152)', () => {
+  let lignes: LigneCatalogue[] = [];
+  beforeAll(() => {
+    lignes = verifierCatalogue(CATALOGUE);
+  }, 300000);
+
+  it('toutes les compositions possibles sont prouvées ; l’ensemble prouvé égale les compositions publiées', () => {
+    expect(lignes.map((ligne) => [ligne.composition, ligne.verdict])).toEqual(CATALOGUE.compositions.map((composition) => [composition.id, 'prouvee']));
+    expect(lignes.filter((ligne) => ligne.verdict === 'prouvee').map((ligne) => ligne.composition)).toEqual(COMPOSITIONS_PUBLIEES);
+    for (const ligne of lignes) {
+      expect(ligne.etats).toBeGreaterThan(0);
+      expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions/);
+    }
+    expect(ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, [])).toEqual([]);
+  });
+
+  it('graine de plan vérifiée : la plus petite à partir de 0 qui donne un plan, notée dans la ligne', () => {
+    for (const ligne of lignes) {
+      const { graine } = ligne;
+      if (graine === null) throw new Error(`${ligne.composition} sans graine.`);
+      for (let avant = 0; avant < graine; avant++) expect(CATALOGUE.construire(ligne.composition, avant)).toHaveProperty('refus');
+      const station = CATALOGUE.construire(ligne.composition, graine);
+      expect(station).not.toHaveProperty('refus');
+      expect(stationDeReference(CATALOGUE, ligne.composition)).toEqual({ graine, entree: station });
+    }
+  });
+
+  it('une empreinte par morceau inclus, celle du morceau et de ses textes, stable d’un appel à l’autre', () => {
+    for (const ligne of lignes) {
+      const station = CATALOGUE.construire(ligne.composition, ligne.graine ?? 0);
+      if ('refus' in station) throw new Error(station.refus);
+      const inclus = [...new Set(station.monde.pieces.map((piece) => piece.id.slice(0, piece.id.indexOf('/'))))];
+      expect(Object.keys(ligne.empreintes)).toEqual(inclus);
+      for (const id of inclus) expect(ligne.empreintes[id]).toBe(empreinte(MORCEAUX[id]));
+    }
+    // Table vide : tout est refusé, sans vérification ; les empreintes restent les mêmes.
+    const refusees = verifierCatalogue(creerCatalogue(assemblerStation, []));
+    expect(refusees.map((ligne) => [ligne.verdict, ligne.empreintes])).toEqual(lignes.map((ligne) => ['refusee', ligne.empreintes]));
+  });
+
+  it('G-02 : sans la paire M-03 + M-07, ses deux compositions sont refusées avec le motif de la table, sans assemblage ni vérification', () => {
+    const assembles: string[] = [];
+    const table = PAIRES.filter((ligne) => !(ligne.a === 'M-03' && ligne.b === 'M-07'));
+    const catalogue = creerCatalogue((station) => {
+      assembles.push(station.id);
+      return assemblerStation(station);
+    }, table);
+    const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
+    const sans = verifierCatalogue(catalogue, { maxEtats: 1 });
+    expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual([
+      ['m07-m03-reserve', 'refusee', 0],
+      ['m07-m03-soute', 'refusee', 0],
+      ['m10-m03-entrepot', 'non_prouvee', 1],
+      ['m10-m03-reserve', 'non_prouvee', 1],
+    ]);
+    for (const ligne of sans.slice(0, 2)) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
+    expect(assembles.filter((id) => id.startsWith('m07-'))).toEqual([]);
+    expect(ecartsDuCatalogue(sans, COMPOSITIONS_PUBLIEES, [])).toEqual([
+      'Composition publiée m07-m03-reserve non prouvée (refusee).',
+      'Composition publiée m07-m03-soute non prouvée (refusee).',
+      'Composition publiée m10-m03-entrepot non prouvée (non_prouvee).',
+      'Composition publiée m10-m03-reserve non prouvée (non_prouvee).',
+    ]);
+  });
+
+  it('écarts : publiée non prouvée ou absente, prouvée non publiée, moins de 95 % de plans', () => {
+    const ligne = (composition: string, verdict: LigneCatalogue['verdict']): LigneCatalogue => ({
+      composition, verdict, graine: 0, etats: 1, secondes: 0, diagnostic: '', empreintes: {},
+    });
+    const plans = (trouves: number): MesurePlans => ({ chemin: 'vestibule + m-07 + m-03', tirages: 1000, trouves, msMoyenne: 0, msMax: 0 });
+    expect(ecartsDuCatalogue([ligne('a', 'prouvee'), ligne('b', 'sans_sortie_sure')], ['a'], [plans(950)])).toEqual([]);
+    expect(ecartsDuCatalogue([ligne('a', 'sans_sortie_sure')], ['a'], [])).toEqual(['Composition publiée a non prouvée (sans_sortie_sure).']);
+    expect(ecartsDuCatalogue([], ['a'], [])).toEqual(['Composition publiée a absente du catalogue.']);
+    expect(ecartsDuCatalogue([ligne('b', 'prouvee')], [], [])).toEqual(['Composition b prouvée mais non publiée.']);
+    expect(ecartsDuCatalogue([], [], [plans(949)])).toEqual(['Plans vestibule + m-07 + m-03 : 949 trouvés sur 1000, moins de 95 %.']);
+  });
+});
+
+describe('plans des stations tirées (14 §5.6)', () => {
+  it('sur 1 000 graines, au moins 95 % de plans par chemin ; temps mesurés, non assertés', () => {
+    const mesures = mesurerPlans(1000);
+    expect(mesures.map((mesure) => mesure.chemin)).toEqual(['vestibule + m-07 + m-03', 'vestibule + m-10 + m-03']);
+    for (const mesure of mesures) {
+      expect(mesure.tirages).toBe(1000);
+      expect(mesure.trouves).toBeGreaterThanOrEqual(950);
+      expect(mesure.msMax).toBeGreaterThanOrEqual(mesure.msMoyenne);
+    }
+  }, 300000);
+
+  it('tirage complet, retirages compris : chaque tirage donne une station', () => {
+    const mesure = mesurerTirages(20);
+    expect(mesure).toMatchObject({ tirages: 20, reussis: 20 });
+    expect(mesure.msMax).toBeGreaterThanOrEqual(mesure.msMoyenne);
   }, 60000);
 });
