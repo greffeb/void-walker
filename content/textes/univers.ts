@@ -8,6 +8,7 @@ export const MOTS_UNIVERS: readonly string[] = ['station'];
 
 export const UNIVERS = {
   noms: {
+    vestibule: { texte: 'vestibule', genre: 'm', nombre: 's', elision: false },
     quartiers: { texte: 'quartiers de l’équipage', genre: 'm', nombre: 'p', elision: false },
     embarquement: { texte: 'salle d’embarquement', genre: 'f', nombre: 's', elision: false },
     cabine: { texte: 'cabine de la capsule', genre: 'f', nombre: 's', elision: false },
@@ -18,6 +19,11 @@ export const UNIVERS = {
     pupitre: { texte: 'pupitre de départ', genre: 'm', nombre: 's', elision: false },
   },
   descriptions: {
+    // Pièce du réveil (13 §8.1) : la porte et sa manœuvre, sans destination ni promesse ; son état est dit par l'observation.
+    vestibule: [
+      'Un vestibule étroit et nu, éclairé de veilleuses. Une seule porte, ordinaire, qui s’ouvre à la main.',
+      'Un petit vestibule aux murs gris, sans meuble. Pour en sortir, une porte ordinaire, à ouvrir à la main.',
+    ],
     quartiers: [
       'Des couchettes superposées, des casiers ouverts, des affaires abandonnées en hâte. L’éclairage de service teinte tout de rouge.',
       'Les quartiers de l’équipage sont vides. Une couverture traîne au sol, un gobelet a roulé sous une couchette.',
@@ -29,10 +35,6 @@ export const UNIVERS = {
     cabine: [
       'Une cabine étroite, quatre sièges et leurs sangles. Le pupitre de départ occupe tout l’avant.',
       'Des sièges serrés, des sangles, une odeur de plastique neuf. À l’avant, le pupitre de départ.',
-    ],
-    capsule: [
-      'Une capsule de secours arrimée au quai. Un voyant vert indique : alimentée, prête au départ.',
-      'La capsule de secours est arrimée au quai. Son voyant d’alimentation est vert.',
     ],
     pupitre: [
       'Le pupitre de départ : un levier sous capot, quelques voyants. Une notice rappelle : écoutille fermée avant le départ.',

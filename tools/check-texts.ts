@@ -22,7 +22,6 @@ import {
   fuitesDeCouches,
   libelleOption,
   lignesListeCarte,
-  MONDES,
   MORCEAUX_TEXTES,
   nomLisible,
   rendreApercu,
@@ -47,6 +46,7 @@ import {
   type TextesMonde,
   type TypeRecit,
 } from '../content';
+import { CATALOGUE } from './catalogue';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
 
@@ -501,7 +501,7 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
 
 if (isMainModule(import.meta.url)) {
   let total = 0;
-  for (const [id, entree] of Object.entries(MONDES)) {
+  for (const [id, entree] of Object.entries(CATALOGUE.mondes)) {
     const debut = Date.now();
     const { erreurs, avertissements, couverture } = controlerTextes(entree);
     total += erreurs.length;

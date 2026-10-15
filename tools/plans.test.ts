@@ -1,11 +1,12 @@
 import { emplacementDe, panDeCoque, piecesDeCoque, validerMonde, type DefMonde } from '../engine';
-import { MONDES, nomLisible, type EntreeMonde } from '../content';
+import { nomLisible, type EntreeMonde } from '../content';
+import { CATALOGUE } from './catalogue';
 
 // Plans dessinés à la main (14 §4.3) : AR-01, AR-02, le monde de test et les stations de test des morceaux (#105) passent le
 // vérifieur et les contraintes de leur fiche.
 
 function entree(id: string): EntreeMonde {
-  const trouvee = MONDES[id];
+  const trouvee = CATALOGUE.mondes[id];
   if (trouvee === undefined) throw new Error(`Monde ${id} absent.`);
   return trouvee;
 }

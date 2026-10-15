@@ -2,6 +2,7 @@ import {
   fuitesDeCouches,
   MENACE,
   MONDES,
+  MORCEAUX,
   MORCEAUX_TEXTES,
   MOTS_MENACE,
   MOTS_UNIVERS,
@@ -12,6 +13,7 @@ import {
   type EntreeMonde,
   type TextesMorceau,
 } from '../content';
+import { CATALOGUE } from './catalogue';
 
 // Textes par couches (docs/13-morceaux-lancement.md §7.2) : socle, univers, menace et morceaux réunis en un seul jeu de textes,
 // sans mot de l'univers ni de la menace dans le socle ou un morceau.
@@ -25,9 +27,15 @@ function feuilles(arbre: unknown, chemin = ''): Record<string, unknown> {
 const VIDE: TextesMorceau = { noms: {}, descriptions: {}, assistance: {} };
 const SOUTE = { texte: 'soute', genre: 'f', nombre: 's', elision: false } as const;
 
+function textesDe(cle: string): TextesMorceau {
+  const textes = MORCEAUX_TEXTES[cle];
+  if (textes === undefined) throw new Error(`Textes ${cle} absents.`);
+  return textes;
+}
+
 describe('textes par couches (13 §7.2)', () => {
-  it('aucun mot de l’univers ni de la menace dans le socle ni dans les textes propres aux stations de test', () => {
-    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(['m-07', 'm-08', 'm-09', 'm-10']);
+  it('aucun mot de l’univers ni de la menace dans le socle, les morceaux ni les textes propres aux stations de test', () => {
+    expect(Object.keys(MORCEAUX_TEXTES)).toEqual(['vestibule', 'm-07', 'm-10', 'm-03', 'essai', 'station m-07', 'station m-08', 'station m-09', 'station m-10']);
     expect(fuitesDeCouches(MORCEAUX_TEXTES)).toEqual([]);
   });
 
@@ -73,8 +81,8 @@ describe('textes par couches (13 §7.2)', () => {
     expect(reunir([capsule], { reveil: 'Réveil.' }).assistance).toEqual({ capsule: 'Capsule prête.', reveil: 'Réveil.' });
   });
 
-  it('TEXTES_STATION_ESSAI est la réunion du socle, de l’univers et de la menace, sans clé partagée', () => {
-    const couches = [SOCLE, UNIVERS, MENACE].map((couche) => feuilles(couche));
+  it('TEXTES_STATION_ESSAI est la réunion du socle, de l’univers, de la menace et de l’embarquement d’essai, sans clé partagée', () => {
+    const couches = [SOCLE, UNIVERS, MENACE, textesDe('essai')].map((couche) => feuilles(couche));
     const attendu = Object.assign({}, ...couches) as Record<string, unknown>;
     expect(Object.keys(attendu)).toHaveLength(couches.reduce((total, couche) => total + Object.keys(couche).length, 0));
     expect(feuilles(TEXTES_STATION_ESSAI)).toEqual(attendu);
@@ -85,7 +93,17 @@ describe('textes par couches (13 §7.2)', () => {
     expect(cles(reunir([]))).toEqual(cles((MONDES['ar-01'] as EntreeMonde).textes));
   });
 
-  it('chaque station de test m-07 à m-10 est la réunion des couches communes et de ses textes propres', () => {
-    for (const [id, propres] of Object.entries(MORCEAUX_TEXTES)) expect((MONDES[id] as EntreeMonde).textes).toEqual(reunir([propres]));
+  it('chaque station de test m-07 à m-10 est la réunion des couches communes, de ses morceaux et de ses textes propres', () => {
+    const essai = textesDe('essai');
+    const attendus: Readonly<Record<string, readonly [readonly TextesMorceau[], Readonly<Record<string, string>>]>> = {
+      'm-07': [[textesDe('m-07'), essai], textesDe('station m-07').assistance],
+      'm-08': [[textesDe('station m-08'), essai], {}],
+      'm-09': [[textesDe('station m-09'), essai], {}],
+      'm-10': [[textesDe('m-10'), essai], textesDe('station m-10').assistance],
+    };
+    for (const [id, [morceaux, messages]] of Object.entries(attendus)) {
+      expect((CATALOGUE.mondes[id] as EntreeMonde).textes).toEqual(reunir(morceaux, messages));
+    }
+    expect(Object.keys(MORCEAUX)).toEqual(Object.keys(MORCEAUX_TEXTES).filter((cle) => !cle.startsWith('station ')));
   });
 });

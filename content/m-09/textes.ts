@@ -1,7 +1,9 @@
+import { TEXTES_MORCEAU_ESSAI } from '../morceaux/essai';
 import { reunir } from '../textes/couches';
 import type { TextesMonde, TextesMorceau } from '../textes/types';
 
-// Textes propres à la station de test M-09 (C-07) ; le reste vient du socle, de l'univers et de la menace. Texte final non validé.
+// Textes propres à la station de test M-09 (C-07) ; la capsule vient de l'embarquement d'essai, le reste du socle, de l'univers
+// et de la menace. Texte final non validé.
 export const TEXTES_PROPRES_M09: TextesMorceau = {
   noms: {
     sas_ouest: { texte: 'sas ouest', genre: 'm', nombre: 's', elision: false },
@@ -43,4 +45,4 @@ export const TEXTES_PROPRES_M09: TextesMorceau = {
   },
 };
 
-export const TEXTES_M09: TextesMonde = reunir([TEXTES_PROPRES_M09]);
+export const TEXTES_M09: TextesMonde = reunir([TEXTES_PROPRES_M09, TEXTES_MORCEAU_ESSAI]);

@@ -1,5 +1,6 @@
 import { nouvellePartie, observer, jouer, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
-import { MONDES, type EntreeMonde, type EtapeParcours, type Parcours } from '../content';
+import type { EntreeMonde, EtapeParcours, Parcours } from '../content';
+import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 import { isMainModule } from './repo-files';
 
@@ -208,7 +209,7 @@ if (isMainModule(import.meta.url)) {
   const options = limite === undefined ? {} : { maxEtats: Number(limite.slice('--max-etats='.length)) };
   const demandes = argumentsCli.filter((argument) => !argument.startsWith('--'));
   for (const id of demandes.length > 0 ? demandes : ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10']) {
-    const entree = MONDES[id];
+    const entree = CATALOGUE.mondes[id];
     if (entree === undefined) throw new Error(`Station inconnue : ${id}.`);
     const rapport = mesure ? mesurerStation(entree, options) : verifierStation(entree, options);
     console.log(JSON.stringify({ monde: id, ...rapport }));

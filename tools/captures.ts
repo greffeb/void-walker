@@ -7,6 +7,7 @@ import { apercu, jouer, nouvellePartie, observer, type Commande, type Observatio
 import { libelleOption, MONDES, MOTS_CARTE, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
 import { composerDock, filBulle, LIEN_IA, nomDestination, nomParametre, nomPuce, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
+import { CATALOGUE } from './catalogue';
 import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
@@ -1396,7 +1397,7 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
 async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const contexte = await navigateur.newContext({ viewport: REFERENCE, locale: 'fr-FR' });
   const page = await contexte.newPage();
-  for (const [id, entree] of Object.entries(MONDES)) {
+  for (const [id, entree] of Object.entries(CATALOGUE.mondes)) {
     try {
       await page.setContent(`<!doctype html><html lang="fr"><body style="margin:0;background:#050A06">${dessinerPlan(entree)}</body></html>`);
       await capturer(page, `Plan — ${id}`);

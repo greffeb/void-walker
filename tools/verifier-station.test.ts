@@ -1,10 +1,11 @@
-import { MONDES, type EntreeMonde } from '../content';
+import type { EntreeMonde } from '../content';
 import { jouer, nouvellePartie, observer, type DefMonde } from '../engine';
+import { CATALOGUE } from './catalogue';
 import { executerParcours } from './rejouer-parcours';
 import { cleEtatRegles, explorerDes, mesurerStation, verifierStation } from './verifier-station';
 
 function entree(id: string): EntreeMonde {
-  const trouvee = MONDES[id];
+  const trouvee = CATALOGUE.mondes[id];
   if (trouvee === undefined) throw new Error(`Monde ${id} absent.`);
   return trouvee;
 }

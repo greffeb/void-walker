@@ -1,8 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MONDE_PAR_DEFAUT, MONDES } from '../content';
+import { MONDE_PAR_DEFAUT } from '../content';
 import { registerSW } from 'virtual:pwa-register';
 import { App } from './App';
+import { CATALOGUE } from './catalogue';
 import { mondeDemande, type Environnement } from './jeu';
 import { piloterMiseAJour } from './miseAJour';
 import { creerRapports } from './rapports';
@@ -13,8 +14,8 @@ import { creerMoteur, sessionAmbiante } from './son/moteur';
 import './styles.css';
 
 // AR-01 par défaut ; `?monde=<id>` choisit un autre monde connu (le monde de test pour les captures).
-const idMonde = mondeDemande(window.location.search, MONDES, MONDE_PAR_DEFAUT);
-const entree = MONDES[idMonde];
+const idMonde = mondeDemande(window.location.search, CATALOGUE.mondes, MONDE_PAR_DEFAUT);
+const entree = CATALOGUE.mondes[idMonde];
 const racine = document.getElementById('racine');
 if (entree === undefined || racine === null) throw new Error('Démarrage impossible : monde ou racine absent.');
 

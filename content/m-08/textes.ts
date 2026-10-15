@@ -1,7 +1,9 @@
+import { TEXTES_MORCEAU_ESSAI } from '../morceaux/essai';
 import { reunir } from '../textes/couches';
 import type { TextesMonde, TextesMorceau } from '../textes/types';
 
-// Textes propres à la station de test M-08 (C-07) ; le reste vient du socle, de l'univers et de la menace. Texte final non validé.
+// Textes propres à la station de test M-08 (C-07) ; la capsule vient de l'embarquement d'essai, le reste du socle, de l'univers
+// et de la menace. Texte final non validé.
 export const TEXTES_PROPRES_M08: TextesMorceau = {
   noms: {
     atelier: { texte: 'atelier', genre: 'm', nombre: 's', elision: true },
@@ -44,4 +46,4 @@ export const TEXTES_PROPRES_M08: TextesMorceau = {
   },
 };
 
-export const TEXTES_M08: TextesMonde = reunir([TEXTES_PROPRES_M08]);
+export const TEXTES_M08: TextesMonde = reunir([TEXTES_PROPRES_M08, TEXTES_MORCEAU_ESSAI]);

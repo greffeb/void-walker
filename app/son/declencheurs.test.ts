@@ -1,5 +1,6 @@
 import { jouer, nouvellePartie, observer, type Observation, type Partie } from '../../engine';
 import { MONDES, type EntreeMonde } from '../../content';
+import { CATALOGUE } from '../catalogue';
 import { SIGNAUX, type Signal } from './recettes';
 import { signauxApres } from './declencheurs';
 
@@ -106,7 +107,7 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
   // Exhaustif : 600 parties ; la machine de la PR est plusieurs fois plus lente qu'un poste.
   it('parties tirées au hasard dans les trois mondes : signaux justes, ordonnés, et chacun rencontré', { timeout: 30_000 }, () => {
     const vus = new Set<Signal>();
-    for (const entree of Object.values(MONDES)) {
+    for (const entree of Object.values(CATALOGUE.mondes)) {
       for (let graine = 1; graine <= 200; graine += 1) {
         const hasard = lcg(graine);
         let partie: Partie = nouvellePartie(entree.monde, { version: 't', graine });
@@ -138,7 +139,7 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
       }
     }
     // La victoire demande une évacuation, que le hasard n'atteint pas : les parcours témoins la jouent.
-    for (const entree of Object.values(MONDES)) {
+    for (const entree of Object.values(CATALOGUE.mondes)) {
       for (const parcours of entree.parcours) {
         let partie: Partie = nouvellePartie(entree.monde, { version: 't', graine: 20261010 });
         for (const etape of parcours.etapes) {
