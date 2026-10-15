@@ -64,3 +64,12 @@ export const UNIVERS = {
     momentEvacuation: 'au départ de la capsule',
   },
 } satisfies Couche;
+
+/**
+ * Messages d'IA Station d'une station tirée, au réveil et au départ (#152) : sans pièce nommée ni présence signalée, l'une et
+ * l'autre dépendant du tirage. Texte final non validé.
+ */
+export const ASSISTANCE_STATION: Readonly<Record<string, string>> = {
+  reveil: 'Évacuation conseillée. Une capsule de secours vous attend à bord ; merci de la rejoindre dans le calme.',
+  depart: 'Écoutille fermée, alimentation confirmée. Départ engagé ; bon voyage.',
+};

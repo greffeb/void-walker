@@ -10,7 +10,16 @@ import type { TextesMorceau } from './textes/types';
 export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
 
 export { MORCEAUX, type EntreeMorceau } from './morceaux';
-export { creerCatalogue, MONDES, type Catalogue } from './stations/catalogue';
+export {
+  COMPOSITIONS_PUBLIEES,
+  creerCatalogue,
+  MONDES,
+  numeroter,
+  type Catalogue,
+  type Composition,
+  type Refus,
+} from './stations/catalogue';
+export { PAIRES, type LignePaire } from './stations/paires';
 
 /**
  * Textes propres que le contrôle de fuites relit avec le socle (13 §7.2) : ceux des morceaux, puis ceux qui n'appartiennent
@@ -28,7 +37,7 @@ export { fuitesDeCouches, reunir } from './textes/couches';
 export { MENACE, MOTS_MENACE } from './textes/menace';
 export { SOCLE } from './textes/socle';
 export { TEXTES_STATION_ESSAI } from './textes/station-essai';
-export { MOTS_UNIVERS, UNIVERS } from './textes/univers';
+export { ASSISTANCE_STATION, MOTS_UNIVERS, UNIVERS } from './textes/univers';
 
 export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir } from './textes/gabarit';
 export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
