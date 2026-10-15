@@ -256,7 +256,7 @@ export interface Catalogue {
   tirer(hasard: () => number, composition?: string): EntreeMonde | Refus;
 }
 export function creerCatalogue(assembler: Assembleur, table?: readonly LignePaire[]): Catalogue;
-/** Pièces du même nom numérotées dans toute la station (D-208) : `coursive` → `coursive_1`, « coursive 1 ». */
+/** Pièces du même nom numérotées dans toute la station (D-208) : `coursive` → `coursive_a`, « coursive A ». */
 export function numeroter(entree: EntreeMonde): EntreeMonde;
 ```
 
@@ -272,7 +272,7 @@ Règles : seule la paire chemin–final passe par la table (le vestibule et `ess
   - PL-04 : sur 50 stations tirées, chaque nom de pièce tient dans son rectangle (`nomLisible`).
   - `tirer` avec un hasard à graine fixe, 200 fois : toujours une composition publiée, chaque composition au moins une fois, identifiant conforme à `^[a-z0-9-]{1,40}$`.
   - **Vigilance 5** : l'export d'une partie neuve d'une station tirée passe `lireDemande` de `report-service/src/rapport.ts` (`ok: true`).
-  - `numeroter` : une station de test qui porte deux pièces `coursive` (deux chemins de test écrits dans le fichier) donne `coursive_1`, `coursive_2`, noms « coursive 1 », « coursive 2 », mêmes genre et descriptions ; une station sans doublon reste identique.
+  - `numeroter` : une station de test qui porte deux pièces `coursive` (deux chemins de test écrits dans le fichier) donne `coursive_a`, `coursive_b`, noms « coursive A », « coursive B », mêmes genre et descriptions ; une station sans doublon reste identique.
 - [ ] **Étape 2 : lancer** `npx vitest run tools/stations.test.ts` — attendu : échec.
 - [ ] **Étape 3 : implémenter** `PAIRES` (transcription de 13 §4.1, règles recopiées), compositions, `resoudre`, `tirer`, `numeroter`.
 - [ ] **Étape 4 : lancer** `npx vitest run tools/stations.test.ts` puis `npm run lint`, `npm run typecheck` — attendu : vert.

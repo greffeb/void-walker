@@ -1,6 +1,6 @@
 # L2 (#152) — Première station tirée : conception
 
-> **Statut :** approuvé par le porteur le 2026-10-15, réponses aux deux questions intégrées (§3.3, §3.5, §10). Zone orange (format des scénarios, appli, ajout d'un module au moteur sans changement de règle).
+> **Statut :** approuvé par le porteur le 2026-10-15, réponses aux deux questions intégrées (§3.3, §3.5, §10). Implémenté sur la branche `content/152-premiere-station`, en attente de PR. Zone orange (format des scénarios, appli, ajout d'un module au moteur sans changement de règle).
 > **Sources :** issue #152 ; 13 §2, §3, §4.1, §7, §8 ; 14 §4, §5 ; C-08 ; D-083 à D-088, D-161, D-204, D-208, D-241, D-242, D-245, D-249 à D-253, D-255, D-257, D-260.
 
 ## 1. Intention

@@ -287,6 +287,34 @@ Posées le 2026-10-14, en langage courant, chacune avec la réponse recommandée
 11. Dans la version de test, NOUVELLE PARTIE tire-t-elle une station au hasard, les aventures de référence restant jouables par un lien ? *Recommandé :* oui.
 12. Le panneau caché ne bloque rien à lui seul. *Recommandé :* la créature peut attendre sur le chemin normal, et le passage étroit derrière le panneau, où elle ne passe jamais, permet de la contourner. Les endroits où elle peut attendre autour de la galerie en feu seront proposés de la même façon, avant la première station qui l'utilise.
 
+### 7.5 Première station tirée L2 (#152)
+
+> **Statut :** implémenté sur la branche `content/152-premiere-station`, en attente de PR (zone orange). Conception : [spec L2](superpowers/specs/2026-10-15-premiere-station-tiree-design.md).
+
+NOUVELLE PARTIE tire une station parmi quatre compositions publiées : vestibule, M-07 ou M-10 en chemin, M-03 en final. Le porteur a retenu la soute seule pour la créature de M-07 et une réserve pour celle de M-03 ; les pièces de même nom sont désignées par une lettre (coursive A, coursive B) et une station s'identifie par `<composition>-<graine>`, par exemple `m07-m03-soute-2718281828`.
+
+`npm run check:stations` prouve chaque composition publiée à la construction, jamais au tirage, à la plus petite graine de plan qui donne une station : 0 pour les quatre. Une composition publiée non prouvée, ou prouvée non publiée, fait échouer la commande.
+
+Mesure locale indicative, contrôle du témoin compris ; les durées ne sont pas des assertions de test :
+
+| Composition | Verdict sûr | États | Temps | Actions du témoin |
+| --- | --- | ---: | ---: | ---: |
+| m07-m03-reserve | Prouvée | 19 195 | 0,90 s | 16 |
+| m07-m03-soute | Prouvée | 14 380 | 0,53 s | 15 |
+| m10-m03-entrepot | Prouvée | 15 333 | 0,62 s | 14 |
+| m10-m03-reserve | Prouvée | 9 502 | 0,47 s | 16 |
+
+Empreinte de chaque morceau, hachage de sa définition et de ses textes (D-100) :
+
+| Morceau | Empreinte |
+| --- | --- |
+| Vestibule | `1f99a2ef408c3e` |
+| M-07 | `1333e4663e79cd` |
+| M-10 | `1cf828ac42caea` |
+| M-03 | `16cbe101d56cd2` |
+
+**Plans**, sur 1 000 graines par chemin, échecs compris : 1 000 plans sur 1 000 pour chacun des deux chemins, 0,34 ms en moyenne et 2,33 ms au plus avec M-07, 0,33 et 1,69 ms avec M-10 ; le tirage complet du catalogue réussit 1 000 fois sur 1 000, en 0,37 ms en moyenne et 2,96 ms au plus. Seul le taux d'au moins 95 % est asserté (14 §5.6).
+
 ## 8. Cadrage L0 (#150) accepté par le porteur
 
 > **Statut :** CONCEPTION ACCEPTÉE le 2026-10-14. Après relecture indépendante des propositions, les quatre recommandations ci-dessous ont été soumises au porteur avec leurs détails puis retenues explicitement : Q-182 à Q-185, D-257 à D-260. Elles précisent les fiches et C-08 ; aucun code ne change dans L0. Les preuves moteur et les parties sur téléphone restent à produire dans les livraisons indiquées.

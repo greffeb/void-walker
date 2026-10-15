@@ -234,6 +234,8 @@ Dans une station, les pièces du même type sont numérotées (CABINE 1, CABINE 
 
 Petites stations d'abord (D-242) : sur 1 000 tirages, toute station proposée a un plan qui passe PL-01 à PL-07 et GE-01 à GE-07 (D-245) ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; même graine, même plan ; une galerie de plans rendus est jointe à la PR.
 
+Mesuré en L2 (#152), sans assertion de temps : sur 1 000 tirages par chemin (vestibule, M-07 ou M-10, M-03), 1 000 plans sur 1 000, 0,34 et 0,33 ms en moyenne, 2,33 et 1,69 ms au plus, échecs compris ; une recherche sans plan s'arrête au budget de pose de 2 000 candidats évalués, 16 à 25 ms mesurés sur une chaîne de test de trois tuiles qui n'a aucun plan ([13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152)).
+
 Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
 
 ## 6. Ce que le prototype a mesuré
