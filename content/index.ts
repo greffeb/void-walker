@@ -7,19 +7,20 @@ import { PARCOURS_AR02 } from './ar-02/parcours';
 import { TEXTES_AR02 } from './ar-02/textes';
 import { MONDE_M07 } from './m-07/monde';
 import { PARCOURS_M07 } from './m-07/parcours';
-import { TEXTES_M07 } from './m-07/textes';
+import { TEXTES_M07, TEXTES_PROPRES_M07 } from './m-07/textes';
 import { MONDE_M08 } from './m-08/monde';
 import { PARCOURS_M08 } from './m-08/parcours';
-import { TEXTES_M08 } from './m-08/textes';
+import { TEXTES_M08, TEXTES_PROPRES_M08 } from './m-08/textes';
 import { MONDE_M09 } from './m-09/monde';
 import { PARCOURS_M09 } from './m-09/parcours';
-import { TEXTES_M09 } from './m-09/textes';
+import { TEXTES_M09, TEXTES_PROPRES_M09 } from './m-09/textes';
 import { MONDE_M10 } from './m-10/monde';
 import { PARCOURS_M10 } from './m-10/parcours';
-import { TEXTES_M10 } from './m-10/textes';
+import { TEXTES_M10, TEXTES_PROPRES_M10 } from './m-10/textes';
 import { MONDE_TEST } from './monde-test/monde';
 import { PARCOURS_MONDE_TEST } from './monde-test/parcours';
 import { TEXTES_MONDE_TEST } from './monde-test/textes';
+import type { TextesMorceau } from './textes/types';
 import type { EntreeMonde } from './types';
 
 export const MONDES: Readonly<Record<string, EntreeMonde>> = {
@@ -34,6 +35,20 @@ export const MONDES: Readonly<Record<string, EntreeMonde>> = {
 };
 
 export const MONDE_PAR_DEFAUT = MONDE_AR01.id;
+
+/** Textes propres de chaque station bâtie sur les couches (13 §7.2) : ce que le contrôle de fuites relit avec le socle. */
+export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
+  [MONDE_M07.id]: TEXTES_PROPRES_M07,
+  [MONDE_M08.id]: TEXTES_PROPRES_M08,
+  [MONDE_M09.id]: TEXTES_PROPRES_M09,
+  [MONDE_M10.id]: TEXTES_PROPRES_M10,
+};
+
+export { fuitesDeCouches, reunir } from './textes/couches';
+export { MENACE, MOTS_MENACE } from './textes/menace';
+export { SOCLE } from './textes/socle';
+export { TEXTES_STATION_ESSAI } from './textes/station-essai';
+export { MOTS_UNIVERS, UNIVERS } from './textes/univers';
 
 export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir } from './textes/gabarit';
 export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
@@ -73,8 +88,10 @@ export {
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
   type CleEvacuation,
+  type Couche,
   type Nom,
   type TextesMonde,
+  type TextesMorceau,
   type TypeAggravation,
   type TypeRecit,
   type Variantes,

@@ -1,18 +1,16 @@
+import { MENACE } from './menace';
 import type { TextesMonde } from './types';
 
 // Textes des règles des nouveaux morceaux (#105) écrits à la main (C-07) : passerelle, salle des machines, zone sans gravité,
 // chambre froide, objet encombrant. Partagés par les mondes : ceux qui n'ont pas ces morceaux ne s'en servent que pour la
-// structure commune, les stations de test les racontent tels quels. Texte final non validé.
+// structure commune, les stations de test les racontent tels quels. Ce qui touche à la créature est dans la menace
+// (13 §7.2). Texte final non validé.
 
-
-export const EVENEMENTS_MORCEAUX = {
+/** Règles des morceaux sans la créature : socle. */
+export const EVENEMENTS_REGLES_MORCEAUX = {
   pont_place: [
     'Vous couchez {le:objet} en travers du vide. Ses deux bouts reposent sur les bords.',
     'Vous poussez {le:objet} au-dessus du vide jusqu’à l’autre bord. Le passage est à peine plus large qu’un pied.',
-  ],
-  pont_cede: [
-    'Un craquement sec : {le:objet} cède sous un poids énorme, et quelque chose bascule dans le vide.',
-    '{Le:objet} se brise avec un claquement de bois mort ; une masse lourde tombe dans le noir, sans un cri.',
   ],
   derive: [
     'Vous poussez sur la paroi et dérivez lentement jusqu’à {le:passage}. Vous vous agrippez à son cadre.',
@@ -48,18 +46,21 @@ export const EVENEMENTS_MORCEAUX = {
   ],
 } as const satisfies Partial<TextesMonde['evenements']>;
 
-export const GELURES: TextesMonde['gelures'] = {
+/** Pour les mondes qui ne sont pas rangés par couches (AR-01, AR-02, monde de test) : règles et créature ensemble. */
+export const EVENEMENTS_MORCEAUX = {
+  ...EVENEMENTS_REGLES_MORCEAUX,
+  pont_cede: MENACE.evenements.pont_cede,
+} as const satisfies Partial<TextesMonde['evenements']>;
+
+export const GELURE_FROID = {
   froid: {
     aggravation_blesse: ['Le froid vous mord jusqu’aux os : vous êtes blessé.'],
     aggravation_critique: ['Vos doigts ne répondent plus, le froid vous engourdit : vous êtes grièvement blessé.'],
     defaite: ['Le froid vous gagne tout entier. Vous glissez contre la paroi givrée. Puis plus rien.'],
   },
-  griffes_froid: {
-    aggravation_blesse: ['Des griffes, et ce froid qui mord : vous êtes blessé.'],
-    aggravation_critique: ['Griffé, transi, vous tenez à peine debout : vous êtes grièvement blessé.'],
-    defaite: ['Les griffes vous jettent sur le sol givré. Vous ne vous relevez pas.'],
-  },
-};
+} as const satisfies Partial<TextesMonde['gelures']>;
+
+export const GELURES: TextesMonde['gelures'] = { ...GELURE_FROID, griffes_froid: MENACE.gelures.griffes_froid };
 
 export const REFUS_MORCEAUX = {
   encombre: 'Vous portez déjà un objet encombrant : rien n’a été joué.',
@@ -96,9 +97,8 @@ export const VERBES_MORCEAUX = {
   boucler: 'Fermer la chambre',
 } as const satisfies Partial<TextesMonde['verbes']>;
 
-export const OBSERVATION_MORCEAUX = {
-  creatureRalentie: 'Le givre la couvre ; elle bouge avec lenteur.',
-  creatureEngourdie: 'Le givre la couvre ; engourdie, elle reste figée un instant.',
+/** Règles des morceaux sans la créature : socle. */
+export const OBSERVATION_REGLES_MORCEAUX = {
   pont: '{Le:objet} est posé{e:objet} en travers {de:passage}.',
   pontBrise: '{Le:objet} n’est plus là : au bord {de:passage}, des éclats de bois pendent dans le noir.',
   machinesMarche: 'Les machines tournent dans un vacarme assourdissant : vous n’entendez rien d’autre.',
@@ -106,6 +106,13 @@ export const OBSERVATION_MORCEAUX = {
   sansGravite: 'Rien ne pèse ici : vous flottez.',
   froid: 'Un froid mordant vous saisit.',
   gouffre: 'Un vide vous sépare {de:vers}.',
+} as const satisfies Partial<TextesMonde['observation']>;
+
+/** Pour les mondes qui ne sont pas rangés par couches (AR-01, AR-02, monde de test) : règles et créature ensemble. */
+export const OBSERVATION_MORCEAUX = {
+  ...OBSERVATION_REGLES_MORCEAUX,
+  creatureRalentie: MENACE.observation.creatureRalentie,
+  creatureEngourdie: MENACE.observation.creatureEngourdie,
 } as const satisfies Partial<TextesMonde['observation']>;
 
 /** Regard sur le vide d'une passerelle effondrée (D-164). */

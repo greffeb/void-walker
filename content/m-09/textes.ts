@@ -1,11 +1,9 @@
-import { DESCRIPTIONS_STATION_ESSAI, NOMS_STATION_ESSAI, TEXTES_STATION_ESSAI } from '../textes/station-essai';
-import type { TextesMonde } from '../textes/types';
+import { reunir } from '../textes/couches';
+import type { TextesMonde, TextesMorceau } from '../textes/types';
 
-// Textes de la station de test M-09 (C-07) ; le reste est commun aux stations de test. Texte final non validé.
-export const TEXTES_M09: TextesMonde = {
-  ...TEXTES_STATION_ESSAI,
+// Textes propres à la station de test M-09 (C-07) ; le reste vient du socle, de l'univers et de la menace. Texte final non validé.
+export const TEXTES_PROPRES_M09: TextesMorceau = {
   noms: {
-    ...NOMS_STATION_ESSAI,
     sas_ouest: { texte: 'sas ouest', genre: 'm', nombre: 's', elision: false },
     transfert: { texte: 'coursive de transfert', genre: 'f', nombre: 's', elision: false },
     sas_est: { texte: 'sas est', genre: 'm', nombre: 's', elision: false },
@@ -14,7 +12,6 @@ export const TEXTES_M09: TextesMonde = {
     interrupteur: { texte: 'interrupteur de gravité', genre: 'm', nombre: 's', elision: true },
   },
   descriptions: {
-    ...DESCRIPTIONS_STATION_ESSAI,
     sas_ouest: [
       'Un sas étroit au bout de la coursive de transfert. Au mur, un interrupteur de gravité sous un capot rouge.',
       'Un petit sas aux parois nues. Un interrupteur de gravité y commande la coursive de transfert.',
@@ -41,7 +38,9 @@ export const TEXTES_M09: TextesMonde = {
     ],
   },
   assistance: {
-    capsule: 'Une capsule de secours est prête au départ, dans la salle d’embarquement, au-delà de la coursive de transfert.',
+    capsule: 'Une capsule de secours est prête au départ, dans la salle d’embarquement.',
     gravite: 'Gravité coupée dans la coursive de transfert. Déplacements lents.',
   },
 };
+
+export const TEXTES_M09: TextesMonde = reunir([TEXTES_PROPRES_M09]);

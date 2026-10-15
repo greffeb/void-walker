@@ -147,6 +147,18 @@ export interface TextesMonde {
   };
 }
 
+type Partiel<T> = { readonly [K in keyof T]?: T[K] extends string | Variantes | Nom ? T[K] : Partiel<T[K]> };
+
+/** Part d'un jeu de textes que d'autres couches complètent (13 §7.2) : socle, univers ou menace. */
+export type Couche = Partiel<TextesMonde>;
+
+/** Textes propres à un morceau (13 §7.2) : noms, descriptions et messages d'arrivée. */
+export interface TextesMorceau {
+  readonly noms: Readonly<Record<string, Nom>>;
+  readonly descriptions: Readonly<Record<string, Variantes>>;
+  readonly assistance: Readonly<Record<string, string>>;
+}
+
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */
 export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   reveil: ['piece'],

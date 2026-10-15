@@ -19,9 +19,11 @@ import {
 import {
   analyserGabarit,
   CLES_EVACUATION,
+  fuitesDeCouches,
   libelleOption,
   lignesListeCarte,
   MONDES,
+  MORCEAUX_TEXTES,
   nomLisible,
   rendreApercu,
   rendreAssistance,
@@ -521,6 +523,10 @@ if (isMainModule(import.meta.url)) {
       for (const { combinaison, occurrences, bornes } of groupes) console.warn(`  ${occurrences} × ${combinaison} — ${bornes.join(' ; ')}`);
     }
   }
+  const fuites = fuitesDeCouches(MORCEAUX_TEXTES);
+  total += fuites.length;
+  for (const fuite of fuites) console.error(`couches : ${fuite}`);
+  if (fuites.length === 0) console.log('couches : aucun mot de l’univers ni de la menace dans le socle et les morceaux.');
   if (total > 0) {
     console.error(`\n${total} erreur(s) dans les textes (docs/contrats/C-07-textes.md §4).`);
     process.exitCode = 1;

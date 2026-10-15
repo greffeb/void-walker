@@ -1,11 +1,9 @@
-import { DESCRIPTIONS_STATION_ESSAI, NOMS_STATION_ESSAI, TEXTES_STATION_ESSAI } from '../textes/station-essai';
-import type { TextesMonde } from '../textes/types';
+import { reunir } from '../textes/couches';
+import type { TextesMonde, TextesMorceau } from '../textes/types';
 
-// Textes de la station de test M-10 (C-07) ; le reste est commun aux stations de test. Texte final non validé.
-export const TEXTES_M10: TextesMonde = {
-  ...TEXTES_STATION_ESSAI,
+// Textes propres à la station de test M-10 (C-07) ; le reste vient du socle, de l'univers et de la menace. Texte final non validé.
+export const TEXTES_PROPRES_M10: TextesMorceau = {
   noms: {
-    ...NOMS_STATION_ESSAI,
     antichambre: { texte: 'antichambre', genre: 'f', nombre: 's', elision: true },
     chambre: { texte: 'chambre froide', genre: 'f', nombre: 's', elision: false },
     entrepot: { texte: 'entrepôt', genre: 'm', nombre: 's', elision: true },
@@ -14,7 +12,6 @@ export const TEXTES_M10: TextesMonde = {
     compresseur: { texte: 'compresseur', genre: 'm', nombre: 's', elision: false },
   },
   descriptions: {
-    ...DESCRIPTIONS_STATION_ESSAI,
     antichambre: [
       'Une antichambre carrelée, des blouses isothermes pendues aux patères. Un pupitre commande les portes de la chambre froide.',
       'Des patères, des gants épais, une odeur de javel. Près de la porte de la chambre froide, un pupitre de fermeture.',
@@ -28,8 +25,8 @@ export const TEXTES_M10: TextesMonde = {
       'Des palettes, des caisses, des allées où la lumière ne va pas.',
     ],
     coursive: [
-      'Une coursive de service. Au bout, une porte au mécanisme visiblement grippé mène à l’embarquement.',
-      'Un couloir bas, éclairé de veilleuses. La porte de l’embarquement, au bout, a un mécanisme rouillé.',
+      'Une coursive de service. Au bout, une porte au mécanisme visiblement grippé.',
+      'Un couloir bas, éclairé de veilleuses. La porte du bout a un mécanisme rouillé.',
     ],
     fermeture: [
       'Un pupitre à gros boutons : « Fermeture d’urgence, chambre froide ». Il ferme ses deux portes d’un coup.',
@@ -45,3 +42,5 @@ export const TEXTES_M10: TextesMonde = {
     presence: 'Présence non identifiée détectée dans l’entrepôt.',
   },
 };
+
+export const TEXTES_M10: TextesMonde = reunir([TEXTES_PROPRES_M10]);
