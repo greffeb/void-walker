@@ -297,6 +297,8 @@ export interface LigneCatalogue {
   readonly graine: number | null;
   readonly etats: number;
   readonly secondes: number;
+  /** Longueur du témoin ; `null` si la composition n'est pas prouvée. */
+  readonly actions: number | null;
   readonly diagnostic: string;
   /** `empreinte({ morceau, textes })` par morceau inclus, dans l'ordre de la station. */
   readonly empreintes: Readonly<Record<string, string>>;
@@ -316,6 +318,14 @@ export interface MesureTirages {
   readonly reussis: number;
   readonly msMoyenne: number;
   readonly msMax: number;
+  /** Stations obtenues par final : 'm-03', 'm-06'. */
+  readonly finals: Readonly<Record<string, number>>;
+  /** Par nombre de morceaux de chemin : '1', '2'. */
+  readonly chemins: Readonly<Record<string, number>>;
+  /** Par morceau de chemin et final. */
+  readonly morceaux: Readonly<Record<string, number>>;
+  /** Par place de la créature (`composition.creature`). */
+  readonly places: Readonly<Record<string, number>>;
 }
 
 /** Départ, chemins et final d'une composition (13 §7.1, spec L3 §4.1). */
@@ -349,13 +359,14 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
   return catalogue.compositions.map((composition): LigneCatalogue => {
     const empreintes = Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
     const sansVerification = (verdict: LigneCatalogue['verdict'], diagnostic: string): LigneCatalogue => ({
-      composition: composition.id, verdict, graine: null, etats: 0, secondes: 0, diagnostic, empreintes,
+      composition: composition.id, verdict, graine: null, etats: 0, secondes: 0, actions: null, diagnostic, empreintes,
     });
     if (composition.refus !== null) return sansVerification('refusee', composition.refus);
     const station = stationDeReference(catalogue, composition.id);
     if ('refus' in station) return sansVerification('non_prouvee', station.refus);
-    const { verdict, etats, secondes, diagnostic } = verifierStation(station.entree, options);
-    return { composition: composition.id, verdict, graine: station.graine, etats, secondes, diagnostic, empreintes };
+    const { verdict, etats, secondes, diagnostic, parcours } = verifierStation(station.entree, options);
+    const actions = parcours === null ? null : parcours.etapes.length;
+    return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes };
   });
 }
 
@@ -400,9 +411,20 @@ export function mesurerPlans(tirages: number): MesurePlans[] {
   });
 }
 
-/** Tirages complets d'un catalogue neuf, retirages compris, au hasard à graine fixe : stations obtenues et temps de `tirer`. */
+/**
+ * Tirages complets d'un catalogue neuf, retirages compris, au hasard à graine fixe : stations obtenues et temps de `tirer`,
+ * puis finals, nombres de chemins, morceaux et places des stations obtenues.
+ */
 export function mesurerTirages(tirages: number): MesureTirages {
   const catalogue = creerCatalogue(assemblerStation);
+  const parId = new Map(catalogue.compositions.map((composition) => [composition.id, composition]));
+  const finals: Record<string, number> = {};
+  const chemins: Record<string, number> = {};
+  const morceaux: Record<string, number> = {};
+  const places: Record<string, number> = {};
+  const compter = (table: Record<string, number>, cle: string): void => {
+    table[cle] = (table[cle] ?? 0) + 1;
+  };
   let etat = generateurDepuisGraine(GRAINE_TIRAGES);
   const hasard = (): number => {
     const tirage = suivant(etat);
@@ -416,11 +438,20 @@ export function mesurerTirages(tirages: number): MesureTirages {
     const debut = performance.now();
     const resultat = catalogue.tirer(hasard);
     const ms = performance.now() - debut;
-    if (!('refus' in resultat)) reussis++;
     total += ms;
     msMax = Math.max(msMax, ms);
+    if ('refus' in resultat) continue;
+    reussis++;
+    // Station `<composition>-<graine>`.
+    const id = resultat.monde.id;
+    const composition = parId.get(id.slice(0, id.lastIndexOf('-')));
+    if (composition === undefined) throw new Error(`Composition de la station ${id} absente du catalogue.`);
+    compter(finals, composition.final);
+    compter(chemins, String(composition.chemins.length));
+    for (const morceau of [...composition.chemins, composition.final]) compter(morceaux, morceau);
+    compter(places, composition.creature);
   }
-  return { tirages, reussis, msMoyenne: total / tirages, msMax };
+  return { tirages, reussis, msMoyenne: total / tirages, msMax, finals, chemins, morceaux, places };
 }
 
 if (isMainModule(import.meta.url)) {

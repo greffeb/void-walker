@@ -322,6 +322,16 @@ describe('catalogue vérifié à la construction (#152)', () => {
     expect(ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, [])).toEqual([]);
   });
 
+  it('88 compositions prouvées, chacune avec la longueur de son témoin, celle du diagnostic', () => {
+    expect(lignes).toHaveLength(88);
+    for (const ligne of lignes) {
+      expect(ligne.verdict).toBe('prouvee');
+      expect(ligne.actions).toBe(Number(/prouvée en (\d+) actions/.exec(ligne.diagnostic)?.[1]));
+      expect(ligne.actions).toBeGreaterThanOrEqual(1);
+      expect(ligne.actions).toBeLessThanOrEqual(60);
+    }
+  });
+
   it('graine de plan vérifiée : la plus petite à partir de 0 qui donne un plan, notée dans la ligne', () => {
     for (const ligne of lignes) {
       const { graine } = ligne;
@@ -363,6 +373,8 @@ describe('catalogue vérifié à la construction (#152)', () => {
     expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(20);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
     for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
+    // Ni refusée ni non prouvée n'a de témoin.
+    expect(sans.filter((ligne) => ligne.actions !== null)).toEqual([]);
     expect(assembles.filter((id) => id.split('-').includes('m07') && id.split('-').includes('m03'))).toEqual([]);
     expect(ecartsDuCatalogue(sans, COMPOSITIONS_PUBLIEES, [])).toEqual(
       attendu.map(([composition, verdict]) => `Composition publiée ${composition} non prouvée (${verdict}).`),
@@ -371,7 +383,7 @@ describe('catalogue vérifié à la construction (#152)', () => {
 
   it('écarts : publiée non prouvée ou absente, prouvée non publiée, moins de 95 % de plans', () => {
     const ligne = (composition: string, verdict: LigneCatalogue['verdict']): LigneCatalogue => ({
-      composition, verdict, graine: 0, etats: 1, secondes: 0, diagnostic: '', empreintes: {},
+      composition, verdict, graine: 0, etats: 1, secondes: 0, actions: null, diagnostic: '', empreintes: {},
     });
     const plans = (trouves: number): MesurePlans => ({ chemin: 'vestibule + m-07 + m-03', tirages: 1000, trouves, msMoyenne: 0, msMax: 0 });
     expect(ecartsDuCatalogue([ligne('a', 'prouvee'), ligne('b', 'sans_sortie_sure')], ['a'], [plans(950)])).toEqual([]);
@@ -426,9 +438,27 @@ describe('plans des stations tirées (14 §5.6)', () => {
     }
   }, 300000);
 
-  it('tirage complet, retirages compris : chaque tirage donne une station', () => {
-    const mesure = mesurerTirages(20);
-    expect(mesure).toMatchObject({ tirages: 20, reussis: 20 });
+  it('1 000 tirages complets, retirages compris : chaque tirage donne une station ; finals, chemins, morceaux et places comptés', () => {
+    const mesure = mesurerTirages(1000);
+    expect(mesure).toMatchObject({ tirages: 1000, reussis: 1000 });
     expect(mesure.msMax).toBeGreaterThanOrEqual(mesure.msMoyenne);
-  }, 60000);
+    const { finals, chemins, morceaux, places } = mesure;
+    const somme = (table: Readonly<Record<string, number>>): number => Object.values(table).reduce((total, nombre) => total + nombre, 0);
+    const publiees = CATALOGUE.compositions.filter((composition) => COMPOSITIONS_PUBLIEES.includes(composition.id));
+    const distincts = (ids: readonly string[]): string[] => [...new Set(ids)].sort();
+
+    expect(Object.keys(finals).sort()).toEqual(['m-03', 'm-06']);
+    expect((finals['m-03'] ?? 0) + (finals['m-06'] ?? 0)).toBe(1000);
+    for (const nombre of Object.values(finals)) {
+      expect(nombre).toBeGreaterThanOrEqual(400);
+      expect(nombre).toBeLessThanOrEqual(600);
+    }
+    expect(Object.keys(chemins).sort()).toEqual(['1', '2']);
+    expect((chemins['1'] ?? 0) + (chemins['2'] ?? 0)).toBe(1000);
+    expect(Object.keys(morceaux).sort()).toEqual(distincts(publiees.flatMap((composition) => [...composition.chemins, composition.final])));
+    // Chaque station compte ses chemins et son final.
+    expect(somme(morceaux)).toBe(2 * (chemins['1'] ?? 0) + 3 * (chemins['2'] ?? 0));
+    expect(Object.keys(places).sort()).toEqual(distincts(publiees.map((composition) => composition.creature)));
+    expect(somme(places)).toBe(1000);
+  }, 300000);
 });
