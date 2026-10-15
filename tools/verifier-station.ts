@@ -1,4 +1,4 @@
-import { assemblerStation, empreinte, nouvellePartie, observer, jouer, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
+import { assemblerStation, empreinte, nouvellePartie, observer, jouer, type DefMonde, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import {
   COMPOSITIONS_PUBLIEES,
@@ -110,20 +110,71 @@ function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: n
   return parcours;
 }
 
-export function verifierStation(entree: EntreeMonde, options: OptionsVerification = {}): RapportStation {
-  const debut = performance.now();
-  const maxEtats = plafond(options);
-  const initiale = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
+/** Rang du morceau de chaque pièce, dans l'ordre de `monde.pieces` (préfixe avant « / ») ; 0 pour une pièce sans préfixe. */
+export function rangsDesMorceaux(monde: DefMonde): (piece: string) => number {
+  const morceau = (piece: string): string | null => {
+    const barre = piece.indexOf('/');
+    return barre < 0 ? null : piece.slice(0, barre);
+  };
+  const rangs = new Map<string, number>();
+  for (const { id } of monde.pieces) {
+    const prefixe = morceau(id);
+    if (prefixe !== null && !rangs.has(prefixe)) rangs.set(prefixe, rangs.size);
+  }
+  return (piece) => {
+    const prefixe = morceau(piece);
+    return prefixe === null ? 0 : rangs.get(prefixe) ?? 0;
+  };
+}
+
+export interface Recherche {
+  readonly issue: 'trouve' | 'epuise' | 'plafond';
+  /** Premier état qui satisfait le but, journal vidé ; `null` sinon. */
+  readonly partie: Partie | null;
+  readonly etats: number;
+}
+
+interface Exploration extends Recherche {
+  /** Le dernier nœud est l'état trouvé, s'il y en a un. */
+  readonly parents: readonly (Parent | null)[];
+  readonly ecartes: { readonly des: number; readonly blessures: number };
+}
+
+interface Seau {
+  readonly indices: number[];
+  /** Premier nœud non développé. */
+  tete: number;
+}
+
+/**
+ * Sans dé ni blessure : d'abord le premier nœud non développé du morceau le plus avancé, puis dans l'ordre d'arrivée
+ * (spec L3 §6.2). Même graphe qu'en largeur ; sans préfixe, tout est au rang 0 et c'est la largeur.
+ */
+function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEtats: number): Exploration {
+  const rang = rangsDesMorceaux(entree.monde);
+  const initiale = sansJournal(nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
   const vus = new Set([cleEtatRegles(initiale.etat)]);
-  const file: (Partie | undefined)[] = [sansJournal(initiale)];
   const parents: (Parent | null)[] = [null];
+  // Parallèle à `parents` ; la partie est libérée une fois développée.
+  const noeuds: (Partie | undefined)[] = [initiale];
+  const seaux: Seau[] = [];
   const ecartes = { des: 0, blessures: 0 };
-  const conclure = (verdict: RapportStation['verdict'], diagnostic: string, parcours: Parcours | null = null): RapportStation => ({
-    verdict, diagnostic, parcours, etats: vus.size, secondes: (performance.now() - debut) / 1000, ecartes,
-  });
-  for (let position = 0; position < file.length; position++) {
-    const partie = file[position];
-    file[position] = undefined;
+  const conclure = (issue: Recherche['issue'], partie: Partie | null = null): Exploration => ({ issue, partie, etats: vus.size, parents, ecartes });
+  const ranger = (indice: number, partie: Partie): void => {
+    (seaux[rang(partie.etat.piece)] ??= { indices: [], tete: 0 }).indices.push(indice);
+  };
+  const prochain = (): number | undefined => {
+    for (let r = seaux.length - 1; r >= 0; r--) {
+      const seau = seaux[r];
+      if (seau !== undefined && seau.tete < seau.indices.length) return seau.indices[seau.tete++];
+    }
+    return undefined;
+  };
+  if (but(initiale.etat)) return conclure('trouve', initiale);
+  ranger(0, initiale);
+  for (let indice = prochain(); indice !== undefined; indice = prochain()) {
+    const partie = noeuds[indice];
+    noeuds[indice] = undefined;
     if (partie === undefined) throw new Error('État de recherche absent.');
     for (const option of observer(entree.monde, partie.etat).menu) {
       if (!option.disponible || option.action === 'regarder') continue;
@@ -133,15 +184,35 @@ export function verifierStation(entree: EntreeMonde, options: OptionsVerificatio
       if (resultat.partie.etat.sante !== 'indemne') { ecartes.blessures++; continue; }
       const cle = cleEtatRegles(resultat.partie.etat);
       if (vus.has(cle)) continue;
-      if (vus.size >= maxEtats) return conclure('non_prouvee', `Recherche interrompue au plafond de ${maxEtats} états : évacuation non prouvée.`);
+      if (vus.size >= maxEtats) return conclure('plafond');
       vus.add(cle);
-      parents.push({ precedent: position, etape: etapeDe(option) });
-      if (resultat.partie.etat.fin === 'evacuation') {
-        const parcours = temoin(entree, parents, parents.length - 1);
-        return conclure('prouvee', `Évacuation sans dé ni blessure prouvée en ${parcours.etapes.length} actions ; témoin et export rejoués.`, parcours);
-      }
-      file.push(sansJournal(resultat.partie));
+      const suivante = sansJournal(resultat.partie);
+      parents.push({ precedent: indice, etape: etapeDe(option) });
+      noeuds.push(suivante);
+      if (but(suivante.etat)) return conclure('trouve', suivante);
+      ranger(noeuds.length - 1, suivante);
     }
+  }
+  return conclure('epuise');
+}
+
+/** Recherche sans dé ni blessure (mêmes transitions que `verifierStation`), d'abord dans le morceau le plus avancé (spec L3 §6.2). */
+export function chercherEtat(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, options: OptionsVerification = {}): Recherche {
+  const { issue, partie, etats } = explorer(entree, but, plafond(options));
+  return { issue, partie, etats };
+}
+
+export function verifierStation(entree: EntreeMonde, options: OptionsVerification = {}): RapportStation {
+  const debut = performance.now();
+  const maxEtats = plafond(options);
+  const { issue, etats, parents, ecartes } = explorer(entree, (etat) => etat.fin === 'evacuation', maxEtats);
+  const conclure = (verdict: RapportStation['verdict'], diagnostic: string, parcours: Parcours | null = null): RapportStation => ({
+    verdict, diagnostic, parcours, etats, secondes: (performance.now() - debut) / 1000, ecartes,
+  });
+  if (issue === 'plafond') return conclure('non_prouvee', `Recherche interrompue au plafond de ${maxEtats} états : évacuation non prouvée.`);
+  if (issue === 'trouve') {
+    const parcours = temoin(entree, parents, parents.length - 1);
+    return conclure('prouvee', `Évacuation sans dé ni blessure prouvée en ${parcours.etapes.length} actions ; témoin et export rejoués.`, parcours);
   }
   return conclure('sans_sortie_sure', `Aucune évacuation sans dé ni blessure après exploration complète : ${ecartes.des} transitions avec dé, ${ecartes.blessures} avec blessure écartées.`);
 }

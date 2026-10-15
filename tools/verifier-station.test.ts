@@ -3,12 +3,14 @@ import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefM
 import { CATALOGUE } from './catalogue';
 import { executerParcours } from './rejouer-parcours';
 import {
+  chercherEtat,
   cleEtatRegles,
   ecartsDuCatalogue,
   explorerDes,
   mesurerPlans,
   mesurerStation,
   mesurerTirages,
+  rangsDesMorceaux,
   stationDeReference,
   verifierCatalogue,
   verifierStation,
@@ -19,6 +21,12 @@ import {
 function entree(id: string): EntreeMonde {
   const trouvee = CATALOGUE.mondes[id];
   if (trouvee === undefined) throw new Error(`Monde ${id} absent.`);
+  return trouvee;
+}
+
+function resolue(id: string): EntreeMonde {
+  const trouvee = CATALOGUE.resoudre(id);
+  if ('refus' in trouvee) throw new Error(trouvee.refus);
   return trouvee;
 }
 
@@ -110,6 +118,51 @@ describe('recherche bornée par les commandes publiques', () => {
     const brulante = { ...monde, monde: { ...monde.monde, pieces: monde.monde.pieces.map((piece) => piece.id === 'quai' ? { ...piece, feu: true } : piece) } };
     expect(verifierStation(brulante).verdict).toBe('sans_sortie_sure');
   });
+});
+
+describe('d’abord le morceau le plus avancé (L3 §6.2)', () => {
+  const SOUTE = 'm07-m03-soute-2718281828';
+
+  it('rang du morceau de chaque pièce, dans l’ordre de la station', () => {
+    const rang = rangsDesMorceaux(resolue(SOUTE).monde);
+    expect(['vestibule/p-vestibule', 'm-07/p-soute', 'm-03/p-cabine'].map(rang)).toEqual([0, 1, 2]);
+  });
+
+  it('monde écrit en entier, sans préfixe : toutes ses pièces au rang 0', () => {
+    const { monde } = entree('ar-01');
+    const rang = rangsDesMorceaux(monde);
+    expect(monde.pieces.map((piece) => rang(piece.id))).toEqual(monde.pieces.map(() => 0));
+  });
+
+  it('trouve un état demandé en station assemblée, journal vidé', () => {
+    const recherche = chercherEtat(resolue(SOUTE), (etat) => etat.piece === 'm-03/p-energie');
+    expect(recherche.issue).toBe('trouve');
+    expect(recherche.partie?.etat.piece).toBe('m-03/p-energie');
+    expect(recherche.partie?.etat.sante).toBe('indemne');
+    expect(recherche.partie?.enregistrement.actions).toEqual([]);
+    expect(recherche.etats).toBeGreaterThan(1);
+  });
+
+  it('un but jamais atteint épuise la recherche', () => {
+    const recherche = chercherEtat(station(), () => false);
+    expect(recherche.issue).toBe('epuise');
+    expect(recherche.partie).toBeNull();
+    expect(recherche.etats).toBeGreaterThan(1);
+  });
+
+  it('le plafond interrompt la recherche sans conclure', () => {
+    expect(chercherEtat(station(), () => false, { maxEtats: 1 })).toEqual({ issue: 'plafond', partie: null, etats: 1 });
+  });
+
+  it('station assemblée sans console ni bloc de M-03 : l’épuisement vaut toujours sans sortie sûre', () => {
+    const originale = resolue(SOUTE);
+    const retires = ['m-03/o-console', 'm-03/o-bloc'];
+    expect(retires.every((id) => originale.monde.objets.some((objet) => objet.id === id))).toBe(true);
+    const casse = { ...originale, monde: { ...originale.monde, objets: originale.monde.objets.filter((objet) => !retires.includes(objet.id)) } };
+    const resultat = verifierStation(casse);
+    expect(resultat.verdict).toBe('sans_sortie_sure');
+    expect(resultat.parcours).toBeNull();
+  }, 60000);
 });
 
 describe('clé des données de règles', () => {
