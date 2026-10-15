@@ -144,7 +144,10 @@ function prevoir(table: readonly LignePaire[]): Prevue[] {
   return prevues.sort((x, y) => (x.composition.id < y.composition.id ? -1 : 1));
 }
 
-/** Pièces du même nom numérotées dans toute la station (D-208) : `coursive` → `coursive_1`, « coursive 1 ». */
+/**
+ * Pièces du même nom désignées par une lettre dans toute la station, dans l'ordre des pièces (D-208) : `coursive` →
+ * `coursive_a`, « coursive A ». Pas de chiffre : la carte et l'écran de fin n'en affichent aucun.
+ */
 export function numeroter(entree: EntreeMonde): EntreeMonde {
   const { monde, textes } = entree;
   const total = new Map<string, number>();
@@ -155,11 +158,12 @@ export function numeroter(entree: EntreeMonde): EntreeMonde {
   const rangs = new Map<string, number>();
   const pieces = monde.pieces.map((piece) => {
     if (total.get(piece.nom) === 1) return piece;
-    const rang = (rangs.get(piece.nom) ?? 0) + 1;
-    rangs.set(piece.nom, rang);
-    const cle = `${piece.nom}_${rang}`;
+    const rang = rangs.get(piece.nom) ?? 0;
+    rangs.set(piece.nom, rang + 1);
+    const lettre = String.fromCharCode('A'.charCodeAt(0) + rang);
+    const cle = `${piece.nom}_${lettre.toLowerCase()}`;
     const nom = Object.hasOwn(textes.noms, piece.nom) ? textes.noms[piece.nom] : undefined;
-    if (nom !== undefined) noms[cle] = { ...nom, texte: `${nom.texte} ${rang}` };
+    if (nom !== undefined) noms[cle] = { ...nom, texte: `${nom.texte} ${lettre}` };
     const description = Object.hasOwn(textes.descriptions, piece.nom) ? textes.descriptions[piece.nom] : undefined;
     if (description !== undefined) descriptions[cle] = description;
     return { ...piece, nom: cle };

@@ -225,6 +225,15 @@ describe('compositions', () => {
     ]);
   });
 
+  it('identifiants de composition uniques, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
+    const ids = CATALOGUE.compositions.map((composition) => composition.id);
+    for (const id of ids) {
+      expect(id).toMatch(/^[a-z0-9-]{1,29}$/);
+      expect(`${id}-4294967295`).toMatch(MONDE_ID);
+    }
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('G-02 : sans la paire M-03 + M-07, ses compositions sont refusées avec le motif de la table, sans appeler l’assembleur', () => {
     const { appels, assembler } = espion();
     const catalogue = creerCatalogue(assembler, SANS_M03_M07);
@@ -479,22 +488,35 @@ describe('pièces du même nom numérotées (D-208)', () => {
     throw new Error('Aucun plan pour la station à deux coursives.');
   }
 
-  it('deux coursives deviennent « coursive 1 » et « coursive 2 », mêmes genre et descriptions', () => {
+  it('deux coursives deviennent « coursive A » et « coursive B », mêmes genre et descriptions', () => {
     const entree = deuxCoursives();
     const numerotee = numeroter(entree);
     expect(numerotee.monde.pieces.map((piece) => [piece.id, piece.nom])).toEqual([
       ['vestibule/p-vestibule', 'vestibule'],
-      ['c-a/p-coursive', 'coursive_1'],
-      ['c-b/p-coursive', 'coursive_2'],
+      ['c-a/p-coursive', 'coursive_a'],
+      ['c-b/p-coursive', 'coursive_b'],
       ['essai/p-embarquement', 'embarquement'],
       ['essai/p-cabine', 'cabine'],
     ]);
-    expect(numerotee.textes.noms.coursive_1).toEqual({ texte: 'coursive 1', genre: 'f', nombre: 's', elision: false });
-    expect(numerotee.textes.noms.coursive_2).toEqual({ texte: 'coursive 2', genre: 'f', nombre: 's', elision: false });
-    expect(numerotee.textes.descriptions.coursive_1).toEqual(COURSIVE.descriptions.coursive);
-    expect(numerotee.textes.descriptions.coursive_2).toEqual(COURSIVE.descriptions.coursive);
+    expect(numerotee.textes.noms.coursive_a).toEqual({ texte: 'coursive A', genre: 'f', nombre: 's', elision: false });
+    expect(numerotee.textes.noms.coursive_b).toEqual({ texte: 'coursive B', genre: 'f', nombre: 's', elision: false });
+    expect(numerotee.textes.descriptions.coursive_a).toEqual(COURSIVE.descriptions.coursive);
+    expect(numerotee.textes.descriptions.coursive_b).toEqual(COURSIVE.descriptions.coursive);
     expect(validerMonde(numerotee.monde)).toEqual([]);
     expect(entree.monde.pieces[1]?.nom).toBe('coursive');
+  });
+
+  it('un nom numéroté tient dans son rectangle et ne contient aucun chiffre (carte, écran de fin)', () => {
+    const { monde, textes } = numeroter(deuxCoursives());
+    const numerotees = monde.pieces.filter((piece) => piece.id.endsWith('/p-coursive'));
+    expect(numerotees).toHaveLength(2);
+    for (const piece of numerotees) {
+      const texte = textes.noms[piece.nom]?.texte ?? '';
+      expect(texte).toMatch(/^coursive [A-Z]$/);
+      expect(`${piece.nom} ${texte}`).not.toMatch(/\d/);
+      if (piece.plan === undefined) throw new Error(`${piece.id} sans plan.`);
+      expect(nomLisible(texte, piece.plan.largeur, piece.plan.hauteur)).toBe(true);
+    }
   });
 
   it('une station sans doublon reste identique', () => {
