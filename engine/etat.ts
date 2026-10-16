@@ -151,10 +151,25 @@ export interface EtatPartie {
   readonly messages: readonly string[];
   /** Ce que le passager a vu, pièce par pièce (14 §3.1). */
   readonly memoire: Memoire;
+  /**
+   * Cloisons encore verrouillées, dans l'ordre du monde (D-259) ; absent dans un monde sans cloison verrouillée, pour que l'état
+   * et son empreinte ne changent pas ailleurs.
+   */
+  readonly verrous?: readonly string[];
 }
 
 export function cleZone(zone: ZoneHuile): string {
   return `${zone.liaison}@${zone.piece}`;
+}
+
+function verrousInitiaux(monde: DefMonde): Pick<EtatPartie, 'verrous'> {
+  const verrous = monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  return verrous.length === 0 ? {} : { verrous };
+}
+
+/** La cloison est encore verrouillée (D-259). */
+export function verrouillee(etat: EtatPartie, liaison: string): boolean {
+  return etat.verrous?.includes(liaison) === true;
 }
 
 export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
@@ -197,6 +212,7 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     messages: (monde.assistance ?? []).filter((message) => message.quand.type === 'reveil').map((message) => message.id),
     // Rempli par le regard du réveil (memoire.ts), une fois l'état initial posé.
     memoire: { pieces: {}, liaisons: {} },
+    ...verrousInitiaux(monde),
   };
 }
 

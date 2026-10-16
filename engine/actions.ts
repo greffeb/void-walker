@@ -26,6 +26,7 @@ import {
   sansGravite,
   signalee,
   sourcesDe,
+  verrouillee,
   type Alarme,
   type EtatPartie,
 } from './etat';
@@ -135,6 +136,7 @@ function passageIci(contexte: Contexte, cible: string): DefLiaison {
 function verifierPassage(contexte: Contexte, cible: string): RaisonRefus | null {
   const liaison = liaisonIci(contexte, cible);
   if (liaison === undefined) return 'cible_absente';
+  if (verrouillee(contexte.etat, cible)) return 'verrouillee';
   return horsDePortee(contexte.monde, contexte.etat, liaison, contexte.etat.piece) ? 'hors_de_portee' : null;
 }
 
@@ -889,6 +891,27 @@ const boucler: ActionEngagee = {
   },
 };
 
+/** Commandes de déverrouillage de la pièce dont la cloison est encore verrouillée (`verrouillees`), ou déjà levée. */
+function commandesIci({ monde, etat }: Contexte, verrouillees: boolean): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.deverrouille !== undefined && verrouillee(etat, candidat.deverrouille) === verrouillees);
+}
+
+/** Actionner une commande de déverrouillage : une action discrète, sa cloison n'est plus verrouillée pour la partie (D-259). */
+const actionner: ActionEngagee = {
+  id: 'actionner',
+  engage: true,
+  cibles: (contexte) => commandesIci(contexte, true).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => verifierInterrupteur(commandesIci(contexte, true), commandesIci(contexte, false), cible),
+  prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'deverrouillera', objet: refObjet(monde, cible) }] }),
+  appliquer: ({ monde, etat }, cible) => {
+    const cloison = exiger(objet(monde, cible).deverrouille, 'Cloison absente.');
+    return {
+      etat: { ...etat, verrous: (etat.verrous ?? []).filter((id) => id !== cloison) },
+      evenements: [{ type: 'cloison_deverrouillee', objet: refObjet(monde, cible) }],
+    };
+  },
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
 export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   regarder,
@@ -916,4 +939,5 @@ export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   couper,
   retablir,
   boucler,
+  actionner,
 };

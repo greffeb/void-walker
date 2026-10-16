@@ -28,6 +28,7 @@ export const ACTIONS = [
   'couper',
   'retablir',
   'boucler',
+  'actionner',
 ] as const;
 export type IdAction = (typeof ACTIONS)[number];
 
@@ -90,6 +91,7 @@ export const TYPES_EVENEMENT = [
   'chambre_bouclee',
   'bruit_couvert',
   'chute_entendue',
+  'cloison_deverrouillee',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -123,6 +125,7 @@ export const RAISONS_REFUS = [
   'trop_loin',
   'sans_gravite',
   'deja_fait',
+  'verrouillee',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -142,6 +145,7 @@ export const RAISONS_INDISPONIBILITE = [
   'sans_pont',
   'trop_loin',
   'sans_gravite',
+  'verrouillee',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 
@@ -258,7 +262,9 @@ export type Evenement =
   /** Le passager fait un geste bruyant dans une salle des machines en marche : leur vacarme le couvre (D-163). */
   | { readonly type: 'bruit_couvert'; readonly passage: RefPassage }
   /** Le pupitre ferme d'un coup les portes de la chambre froide (D-170, D-239). */
-  | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece };
+  | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece }
+  /** Une commande de déverrouillage actionnée : sa cloison n'est plus verrouillée (D-259). */
+  | { readonly type: 'cloison_deverrouillee'; readonly objet: RefObjet };
 
 /** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
 export type MomentMessage =
@@ -328,6 +334,7 @@ export const TYPES_SAVOIR = [
   'coupera',
   'retablira',
   'bouclera',
+  'deverrouillera',
 ] as const;
 export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
@@ -366,7 +373,9 @@ export type Savoir =
   /** La gravité de cette zone sera coupée, ou rétablie (D-165). */
   | { readonly type: 'coupera' | 'retablira'; readonly piece: RefPiece }
   /** Les portes de cette chambre froide se fermeront (D-170). */
-  | { readonly type: 'bouclera'; readonly piece: RefPiece };
+  | { readonly type: 'bouclera'; readonly piece: RefPiece }
+  /** La cloison de cette commande ne sera plus verrouillée (D-259). */
+  | { readonly type: 'deverrouillera'; readonly objet: RefObjet };
 
 /** Ancienneté d'un regard, dite en mots (D-151) : jamais le nombre d'actions (14 §3.2). */
 export const PALIERS = ['instant', 'moment', 'longtemps'] as const;

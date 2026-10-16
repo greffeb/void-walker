@@ -1,12 +1,13 @@
 import { validerMonde, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition } from './monde';
-import { porteEntre, poserTuiles, prefixer } from './pose';
+import { liensEnChaine, porteEntre, poserTuiles, prefixer, type Lien } from './pose';
 
 export { prefixer };
 
 // Morceaux écrits à la main et leur assemblage en station (docs/13-morceaux-lancement.md, GP-01). Aucune règle de jeu ici :
 // l'assembleur produit un monde ordinaire, revalidé par `validerMonde`.
 
-export type FamilleMorceau = 'depart' | 'chemin' | 'final';
+/** `carrefour` : couloir et sas de l'ordre libre, qui desservent deux morceaux de chemin puis le final (D-259). */
+export type FamilleMorceau = 'depart' | 'chemin' | 'carrefour' | 'final';
 export type Apport = 'acces' | 'evacuation';
 /** Porte de sortie vers le morceau suivant, décrite par le morceau. */
 export type DefPorteSortie = Omit<DefLiaison, 'id' | 'entre' | 'ouverte' | 'plan'>;
@@ -30,6 +31,29 @@ export interface DefMorceau {
   readonly assistance?: readonly DefAssistance[];
 }
 
+/** Porte qui accroche un morceau, par son entrée, à une pièce d'un morceau placé avant lui (ordre libre, D-259). */
+export interface DefAccroche {
+  /** Morceau d'où part la porte. */
+  readonly depuis: string;
+  /** Pièce de ce morceau, non préfixée. */
+  readonly piece: string;
+  /** Morceau accroché par son entrée. */
+  readonly vers: string;
+  readonly porte: DefPorteSortie;
+}
+
+/** Commande fixe de déverrouillage posée par l'assemblage dans la pièce d'un morceau (ordre libre, D-259, 13 §8.3). */
+export interface DefCommande {
+  /** Identifiant local, préfixé par le morceau. */
+  readonly id: string;
+  readonly nom: string;
+  readonly morceau: string;
+  /** Pièce de ce morceau, non préfixée. */
+  readonly piece: string;
+  /** Liaison de la station qu'elle déverrouille, déjà préfixée, ou porte entre deux morceaux. */
+  readonly cloison: string;
+}
+
 export interface DefStation {
   /** Devient `monde.id`. */
   readonly id: string;
@@ -42,6 +66,12 @@ export interface DefStation {
   readonly assistance?: readonly DefAssistance[];
   /** Stations de test : morceaux dont la porte de sortie est ouverte au départ. */
   readonly sortiesOuvertes?: readonly string[];
+  /**
+   * Ordre libre : chaque morceau après le premier accroché par une seule de ces portes, à un morceau qui le précède ; les
+   * sorties des morceaux ne servent plus. Absent : en chaîne, chaque morceau par sa sortie vers le suivant.
+   */
+  readonly accroches?: readonly DefAccroche[];
+  readonly commandes?: readonly DefCommande[];
 }
 
 export type ResultatAssemblage =
@@ -111,10 +141,31 @@ function assistanceDe(morceau: string, message: DefAssistance): DefAssistance {
 function erreursDeComposition(station: DefStation, depart: string): string[] {
   const { morceaux } = station;
   const erreurs = morceaux.flatMap(validerMorceau);
+  const rangs = new Map(morceaux.map((morceau, rang) => [morceau.id, rang]));
+  if (rangs.size !== morceaux.length) erreurs.push('Morceau en double dans la station.');
+  if (station.accroches !== undefined) {
+    for (const accroche of station.accroches) {
+      const depuis = rangs.get(accroche.depuis);
+      const vers = rangs.get(accroche.vers);
+      if (depuis === undefined || vers === undefined) erreurs.push(`Accroche ${accroche.depuis} → ${accroche.vers} : morceau absent.`);
+      else if (depuis >= vers) erreurs.push(`Accroche ${accroche.depuis} → ${accroche.vers} : vers un morceau placé avant.`);
+      else if (!morceaux[depuis]?.pieces.some((piece) => piece.id === accroche.piece)) erreurs.push(`Accroche ${accroche.depuis} → ${accroche.vers} : pièce inconnue ${accroche.piece}.`);
+    }
+    morceaux.forEach((morceau, rang) => {
+      const nombre = station.accroches?.filter((accroche) => accroche.vers === morceau.id).length ?? 0;
+      if (rang > 0 && nombre !== 1) erreurs.push(`${morceau.id} : ${nombre} accroches au lieu d’une.`);
+      if (rang === 0 && nombre > 0) erreurs.push(`${morceau.id} : premier morceau accroché.`);
+    });
+  }
+  for (const commande of station.commandes ?? []) {
+    const morceau = morceaux.find((candidat) => candidat.id === commande.morceau);
+    if (morceau === undefined || !morceau.pieces.some((piece) => piece.id === commande.piece)) erreurs.push(`Commande ${commande.id} : pièce inconnue.`);
+  }
   morceaux.forEach((morceau, rang) => {
     const dernier = rang === morceaux.length - 1;
     if (morceau.famille === 'final' && !dernier) erreurs.push(`${morceau.id} : final avant le dernier morceau.`);
     if (morceau.famille !== 'final' && dernier) erreurs.push(`${morceau.id} : dernier morceau qui n’est pas un final.`);
+    if (morceau.famille === 'final' && station.accroches?.some((accroche) => accroche.depuis === morceau.id) === true) erreurs.push(`${morceau.id} : final qui dessert un morceau.`);
     const fournis = new Set(morceaux.slice(0, rang).flatMap((precedent) => precedent.fournit));
     for (const apport of morceau.demande) if (!fournis.has(apport)) erreurs.push(`${morceau.id} : demande ${apport}, qu’aucun morceau précédent ne fournit.`);
   });
@@ -124,6 +175,20 @@ function erreursDeComposition(station: DefStation, depart: string): string[] {
   return erreurs;
 }
 
+/** Accroches de la chaîne : la sortie de chaque morceau vers l'entrée du suivant. */
+function chaine(morceaux: readonly DefMorceau[]): DefAccroche[] {
+  return morceaux.flatMap((morceau, rang): DefAccroche[] => {
+    const suivant = morceaux[rang + 1];
+    return morceau.sortie === undefined || suivant === undefined ? [] : [{ depuis: morceau.id, piece: morceau.sortie.piece, vers: suivant.id, porte: morceau.sortie.porte }];
+  });
+}
+
+function exigerMorceau(morceaux: readonly DefMorceau[], id: string): DefMorceau {
+  const morceau = morceaux.find((candidat) => candidat.id === id);
+  if (morceau === undefined) throw new Error(`Morceau absent : ${id}.`);
+  return morceau;
+}
+
 export const assemblerStation: Assembleur = (station) => {
   const { morceaux } = station;
   const premier = morceaux[0];
@@ -131,24 +196,35 @@ export const assemblerStation: Assembleur = (station) => {
   const depart = prefixer(premier.id, premier.entree);
   const composition = erreursDeComposition(station, depart);
   if (composition.length > 0) return { type: 'invalide', erreurs: composition };
-  const pose = poserTuiles(morceaux, station.graine);
+  // Portes entre morceaux, chacune avec la pièce d'où elle part ; en chaîne, la sortie de chaque morceau vers le suivant.
+  const portesEntre = (station.accroches ?? chaine(morceaux)).map((accroche) => ({
+    ...accroche,
+    id: porteEntre(accroche.depuis, accroche.vers),
+    rang: morceaux.findIndex((morceau) => morceau.id === accroche.vers),
+  }));
+  const liens: Lien[] = portesEntre.map((porte) => ({ depuis: prefixer(porte.depuis, porte.piece), vers: porte.rang, porte: porte.id }));
+  const pose = poserTuiles(morceaux, station.graine, station.accroches === undefined ? liensEnChaine(morceaux) : liens);
   if (pose === null) return { type: 'sans_plan' };
   const ouvertes = new Set(station.sortiesOuvertes ?? []);
-  const liaisons = morceaux.flatMap((morceau, rang): DefLiaison[] => {
-    const interieures = morceau.liaisons.map((liaison) => liaisonDe(morceau.id, liaison));
-    const suivant = morceaux[rang + 1];
-    if (morceau.sortie === undefined || suivant === undefined) return interieures;
-    const id = porteEntre(morceau.id, suivant.id);
-    const porte = pose.portes.get(id);
-    const liaison: DefLiaison = {
-      ...porteDe(morceau.id, morceau.sortie.porte),
-      id,
-      entre: [prefixer(morceau.id, morceau.sortie.piece), prefixer(suivant.id, suivant.entree)],
-      ouverte: ouvertes.has(morceau.id),
-      ...(porte === undefined ? {} : { plan: { rang: porte } }),
+  const entreMorceaux = portesEntre.map((porte): DefLiaison => {
+    const vers = exigerMorceau(morceaux, porte.vers);
+    const rang = pose.portes.get(porte.id);
+    return {
+      ...porteDe(porte.depuis, porte.porte),
+      id: porte.id,
+      entre: [prefixer(porte.depuis, porte.piece), prefixer(vers.id, vers.entree)],
+      ouverte: ouvertes.has(porte.depuis),
+      ...(rang === undefined ? {} : { plan: { rang } }),
     };
-    return [...interieures, liaison];
   });
+  // Dans l'ordre d'avant L5 : les liaisons intérieures de chaque morceau, puis sa porte vers le morceau qu'il dessert.
+  const liaisons = morceaux.flatMap((morceau): DefLiaison[] => [
+    ...morceau.liaisons.map((liaison) => liaisonDe(morceau.id, liaison)),
+    ...entreMorceaux.filter((_, indice) => portesEntre[indice]?.depuis === morceau.id),
+  ]);
+  const commandes = (station.commandes ?? []).map(
+    (commande): DefObjet => ({ id: prefixer(commande.morceau, commande.id), nom: commande.nom, piece: prefixer(commande.morceau, commande.piece), portable: false, deverrouille: commande.cloison }),
+  );
   const monde: DefMonde = {
     id: station.id,
     depart,
@@ -160,7 +236,7 @@ export const assemblerStation: Assembleur = (station) => {
       }),
     ),
     liaisons,
-    objets: morceaux.flatMap((morceau) => morceau.objets.map((objet) => objetDe(morceau.id, objet))),
+    objets: [...morceaux.flatMap((morceau) => morceau.objets.map((objet) => objetDe(morceau.id, objet))), ...commandes],
     positions: morceaux.flatMap((morceau) =>
       (morceau.positions ?? []).map((position) => ({
         ...position,

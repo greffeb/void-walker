@@ -63,10 +63,19 @@ interface Tuile {
   /** Pièces dessinées, en coordonnées locales. */
   readonly pieces: readonly PieceTuile[];
   readonly entree: PieceTuile;
-  /** Pièce d'où part la porte vers le morceau suivant, s'il y en a un. */
-  readonly sortie?: PieceTuile;
-  /** Porte depuis le morceau précédent, s'il y en a un. */
-  readonly porte?: string;
+}
+
+/**
+ * Porte qui accroche un morceau à une pièce d'un morceau déjà posé (14 §5.2) : en chaîne, la sortie du précédent ; en ordre
+ * libre, le couloir du carrefour ou son sas (D-259).
+ */
+export interface Lien {
+  /** Pièce préfixée d'où part la porte. */
+  readonly depuis: string;
+  /** Rang, dans la liste des morceaux, du morceau accroché par son entrée ; toujours après celui de `depuis`. */
+  readonly vers: number;
+  /** Identifiant de la porte. */
+  readonly porte: string;
 }
 
 function placer(rect: RectPlan, { miroir, dx, dy }: Placement): RectPlan {
@@ -75,36 +84,43 @@ function placer(rect: RectPlan, { miroir, dx, dy }: Placement): RectPlan {
   return { x: x + dx, y: y + dy, largeur: rect.largeur, hauteur: rect.hauteur };
 }
 
-/** Tuile du morceau ; `null` si une pièce d'attache n'est pas dessinée. */
-function tuileDe(morceau: DefMorceau, avant: DefMorceau | undefined, apres: DefMorceau | undefined): Tuile | null {
+/** Tuile du morceau ; `null` si son entrée n'est pas dessinée. */
+function tuileDe(morceau: DefMorceau): Tuile | null {
   const coque = new Set(piecesDeCoque(morceau));
   const pieces = morceau.pieces.flatMap((piece) =>
     piece.plan === undefined ? [] : [{ id: prefixer(morceau.id, piece.id), rect: piece.plan, coque: coque.has(piece.id) }],
   );
-  const dessinee = (id: string): PieceTuile | undefined => pieces.find((piece) => piece.id === prefixer(morceau.id, id));
-  const entree = dessinee(morceau.entree);
-  const sortie = apres === undefined || morceau.sortie === undefined ? undefined : dessinee(morceau.sortie.piece);
-  if (entree === undefined || (apres !== undefined && sortie === undefined)) return null;
-  return { pieces, entree, ...(sortie === undefined ? {} : { sortie }), ...(avant === undefined ? {} : { porte: porteEntre(avant.id, morceau.id) }) };
+  const entree = pieces.find((piece) => piece.id === prefixer(morceau.id, morceau.entree));
+  return entree === undefined ? null : { pieces, entree };
+}
+
+/** Liens de la chaîne : chaque morceau accroché par son entrée à la sortie du précédent. */
+export function liensEnChaine(morceaux: readonly DefMorceau[]): Lien[] {
+  return morceaux.flatMap((morceau, rang): Lien[] => {
+    const avant = morceaux[rang - 1];
+    if (avant?.sortie === undefined) return [];
+    return [{ depuis: prefixer(avant.id, avant.sortie.piece), vers: rang, porte: porteEntre(avant.id, morceau.id) }];
+  });
 }
 
 /** Une pièce aurait plus de PORTES_MAX portes (PL-06), portes intérieures et portes entre morceaux comprises. */
-function tropDePortes(morceaux: readonly DefMorceau[]): boolean {
+function tropDePortes(morceaux: readonly DefMorceau[], liens: readonly Lien[]): boolean {
   const portes = new Map<string, number>();
   const compter = (piece: string): void => {
     portes.set(piece, (portes.get(piece) ?? 0) + 1);
   };
-  morceaux.forEach((morceau, rang) => {
+  for (const morceau of morceaux) {
     const dessinees = new Set(morceau.pieces.filter((piece) => piece.plan !== undefined).map((piece) => piece.id));
     for (const liaison of morceau.liaisons) {
       if (liaison.entre.every((piece) => dessinees.has(piece))) for (const piece of liaison.entre) compter(prefixer(morceau.id, piece));
     }
-    const apres = morceaux[rang + 1];
-    if (morceau.sortie !== undefined && apres !== undefined) {
-      compter(prefixer(morceau.id, morceau.sortie.piece));
-      compter(prefixer(apres.id, apres.entree));
-    }
-  });
+  }
+  for (const lien of liens) {
+    const vers = morceaux[lien.vers];
+    if (vers === undefined) continue;
+    compter(lien.depuis);
+    compter(prefixer(vers.id, vers.entree));
+  }
   return [...portes.values()].some((nombre) => nombre > PORTES_MAX);
 }
 
@@ -160,24 +176,43 @@ function poser(posees: readonly PieceTuile[], tuile: readonly PieceTuile[], rese
   return videsEnfermes(rects).length > 0 ? null : reserve;
 }
 
-/** Plan des tuiles posées dans l'ordre du chemin ; `null` si aucune pose ne convient dans le budget. */
-export function poserTuiles(morceaux: readonly DefMorceau[], graine: number): Pose | null {
-  return rechercherPose(morceaux, graine).pose;
+/** Plan des tuiles posées dans l'ordre des morceaux ; `null` si aucune pose ne convient dans le budget. */
+export function poserTuiles(morceaux: readonly DefMorceau[], graine: number, liens: readonly Lien[] = liensEnChaine(morceaux)): Pose | null {
+  return rechercherPose(morceaux, graine, BUDGET_POSE, liens).pose;
 }
 
-/** Recherche du plan, arrêtée après `budget` candidats passés aux contrôles de `poser` ; `evalues` en donne le nombre. */
+/**
+ * Recherche du plan, arrêtée après `budget` candidats passés aux contrôles de `poser` ; `evalues` en donne le nombre. Le
+ * premier morceau est posé d'abord, puis chacun dans l'ordre des liens, accroché à une pièce déjà posée ; en chaîne, l'ordre
+ * et le tirage sont ceux d'avant L5.
+ */
 export function rechercherPose(
   morceaux: readonly DefMorceau[],
   graine: number,
   budget = BUDGET_POSE,
+  liens: readonly Lien[] = liensEnChaine(morceaux),
 ): { readonly pose: Pose | null; readonly evalues: number } {
   const tuiles: Tuile[] = [];
-  for (const [rang, morceau] of morceaux.entries()) {
-    const tuile = tuileDe(morceau, morceaux[rang - 1], morceaux[rang + 1]);
+  for (const morceau of morceaux) {
+    const tuile = tuileDe(morceau);
     if (tuile === null) return { pose: null, evalues: 0 };
     tuiles.push(tuile);
   }
-  if (tropDePortes(morceaux)) return { pose: null, evalues: 0 };
+  const lienVers = new Map(liens.map((lien) => [lien.vers, lien]));
+  const dessinees = new Set(tuiles.flatMap((tuile) => tuile.pieces.map((piece) => piece.id)));
+  // Ordre de pose : le premier morceau, puis ceux des liens dans leur ordre ; chaque lien part d'un morceau déjà posé.
+  const ordre = [0, ...liens.map((lien) => lien.vers)];
+  const poses = new Set<number>();
+  const accrochables =
+    liens.length === morceaux.length - 1 &&
+    new Set(ordre).size === morceaux.length &&
+    ordre.every((rang, indice) => {
+      const lien = lienVers.get(rang);
+      const parent = lien === undefined ? -1 : morceaux.findIndex((morceau) => lien.depuis.startsWith(`${morceau.id}/`));
+      poses.add(rang);
+      return indice === 0 ? rang === 0 : lien !== undefined && poses.has(parent) && parent !== rang;
+    });
+  if (!accrochables || liens.some((lien) => !dessinees.has(lien.depuis)) || tropDePortes(morceaux, liens)) return { pose: null, evalues: 0 };
   let evalues = 0;
   let etat = generateurDepuisGraine(graine);
   const tirer = (faces: number): number => {
@@ -191,11 +226,14 @@ export function rechercherPose(
     while (reste.length > 0) melange.push(...reste.splice(tirer(reste.length), 1));
     return melange;
   };
-  const chercher = (rang: number, posees: readonly PieceTuile[], reservees: ReadonlySet<string>, portes: ReadonlyMap<string, number>, sortie?: RectPlan): Pose | null => {
-    const tuile = tuiles[rang];
-    if (tuile === undefined) return { rects: new Map(posees.map((piece) => [piece.id, piece.rect])), portes };
+  const chercher = (indice: number, posees: readonly PieceTuile[], reservees: ReadonlySet<string>, portes: ReadonlyMap<string, number>): Pose | null => {
+    const rang = ordre[indice];
+    const tuile = rang === undefined ? undefined : tuiles[rang];
+    if (rang === undefined || tuile === undefined) return { rects: new Map(posees.map((piece) => [piece.id, piece.rect])), portes };
+    const lien = lienVers.get(rang);
+    const depuis = lien === undefined ? undefined : posees.find((piece) => piece.id === lien.depuis)?.rect;
     // Première tuile : sans translation, seul son miroir est tiré.
-    const placements = rang === 0 ? MIROIRS.map((miroir) => ({ miroir, dx: 0, dy: 0 })) : sortie === undefined ? [] : accroches(sortie, tuile.entree.rect);
+    const placements = rang === 0 ? MIROIRS.map((miroir) => ({ miroir, dx: 0, dy: 0 })) : depuis === undefined ? [] : accroches(depuis, tuile.entree.rect);
     const candidats = melanger(placements)
       .map((placement) => {
         const pieces = tuile.pieces.map((piece) => ({ ...piece, rect: placer(piece.rect, placement) }));
@@ -208,9 +246,9 @@ export function rechercherPose(
       evalues++;
       const reserve = poser(posees, pieces, reservees);
       if (reserve === null) continue;
-      const mur = sortie === undefined ? null : murCommun(sortie, placer(tuile.entree.rect, placement));
-      const avecPorte = mur === null || tuile.porte === undefined ? portes : new Map(portes).set(tuile.porte, mur.debut + tirer(mur.fin - mur.debut));
-      const suite = chercher(rang + 1, [...posees, ...pieces], reserve, avecPorte, tuile.sortie === undefined ? undefined : placer(tuile.sortie.rect, placement));
+      const mur = depuis === undefined ? null : murCommun(depuis, placer(tuile.entree.rect, placement));
+      const avecPorte = mur === null || lien === undefined ? portes : new Map(portes).set(lien.porte, mur.debut + tirer(mur.fin - mur.debut));
+      const suite = chercher(indice + 1, [...posees, ...pieces], reserve, avecPorte);
       if (suite !== null) return suite;
     }
     return null;
