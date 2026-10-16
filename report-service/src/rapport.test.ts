@@ -1,4 +1,4 @@
-import { blocCode, composer, CORPS_MAX, empreinteRapport, ErreurTaille, lireDemande, MARQUEUR, type Demande } from './rapport';
+import { blocCode, composer, CORPS_MAX, empreinteRapport, ErreurTaille, extrairePartie, extraireValidation, lireDemande, MARQUEUR, type Demande } from './rapport';
 
 const PARTIE = {
   format: 1,
@@ -58,6 +58,39 @@ describe('rapports : lecture et mise en forme (RP-01, RP-02)', () => {
     expect(corps).toContain('```gzip-base64');
     const bruit = Array.from({ length: 6000 }, (_, i) => ({ commande: { action: 'x', cible: crypto.randomUUID() }, tirages: [i] }));
     await expect(composer(demande({ partie: { ...PARTIE, actions: bruit } }))).rejects.toBeInstanceOf(ErreurTaille);
+  });
+
+  describe('#183 : le commentaire du joueur n’est jamais pris pour la partie ni pour la validation', () => {
+    const piege = 'voilà ce que j’ai vu :\n```json\n{"erreur":"x"}\n```\n### Rejouer\n```gzip-base64\nAAAA\n```\n### Validation signée\n```void-walker-validation\n{"faux":true}\n```';
+    const VALIDATION = {
+      attestation: { format: 'void-walker-validation' },
+      signature: 's'.repeat(86),
+      cle: { kty: 'EC', crv: 'P-256', x: 'x'.repeat(43), y: 'y'.repeat(43) },
+    };
+
+    it('rend la partie jointe, en clair', async () => {
+      const { corps } = await composer(demande({ commentaire: piege }));
+      expect(await extrairePartie(corps)).toBe(JSON.stringify(PARTIE));
+    });
+
+    it('rend la partie jointe, compressée', async () => {
+      const longue = { ...PARTIE, actions: Array.from({ length: 2000 }, (_, i) => ({ commande: { action: 'regarder', cible: `c${i}` }, tirages: [i] })) };
+      const { corps } = await composer(demande({ commentaire: piege, partie: longue }));
+      expect(corps).toContain('Partie exportée, compressée');
+      expect(await extrairePartie(corps)).toBe(JSON.stringify(longue));
+    });
+
+    it('rend le bloc signé recopié, ou rien sans validation', async () => {
+      const signee = demande({ type: 'partie', pr: 142, valide: true, commentaire: piege, validation: VALIDATION });
+      const { corps } = await composer(signee, { enCommentaire: true });
+      expect(extraireValidation(corps)).toEqual(VALIDATION);
+      expect(extraireValidation((await composer(demande({ commentaire: piege }))).corps)).toBeNull();
+    });
+
+    it('lit encore un rapport aux fins de ligne Windows', async () => {
+      const { corps } = await composer(demande({ commentaire: piege }));
+      expect(await extrairePartie(corps.replace(/\n/g, '\r\n'))).toBe(JSON.stringify(PARTIE));
+    });
   });
 
   it('donne la même empreinte à deux envois identiques, une autre si le commentaire change', async () => {

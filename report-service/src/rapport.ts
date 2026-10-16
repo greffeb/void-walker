@@ -153,6 +153,11 @@ export async function compresser(texte: string): Promise<string> {
 
 export const MARQUEUR = '<!-- void-walker-rapport v1 -->';
 
+/** Titres des sections relues par `extrairePartie` et `extraireValidation`. */
+const TITRE_COMMENTAIRE = '### Commentaire du joueur';
+const TITRE_REJEU = '### Rejouer';
+const TITRE_VALIDATION = '### Validation signée';
+
 export interface Composition {
   readonly titre: string;
   readonly corps: string;
@@ -188,11 +193,11 @@ export async function composer(demande: Demande, options: { readonly enCommentai
     lignes.push(`| Monde | ${partie.monde} |`, `| Actions jouées | ${partie.actions} |`, `| Graine | ${partie.graine} |`);
   }
   if (demande.type === 'partie') lignes.push(`| Case « je valide » | ${caseValide(demande)} |`);
-  lignes.push('', '### Commentaire du joueur', '', demande.commentaire === '' ? '_Aucun._' : blocCode(demande.commentaire, 'text'));
+  lignes.push('', TITRE_COMMENTAIRE, '', demande.commentaire === '' ? '_Aucun._' : blocCode(demande.commentaire, 'text'));
   if (demande.validation !== null) {
     lignes.push(
       '',
-      '### Validation signée',
+      TITRE_VALIDATION,
       '',
       'Reconnue seulement par le robot de la PR, avec la clé enregistrée dans le dépôt (C-10 §4).',
       '',
@@ -206,7 +211,7 @@ export async function composer(demande: Demande, options: { readonly enCommentai
 
   const rejeu = [
     '',
-    '### Rejouer',
+    TITRE_REJEU,
     '',
     options.enCommentaire
       ? 'Copier l’adresse de ce commentaire, puis : `npm run rejouer -- <adresse du commentaire>`.'
@@ -223,12 +228,37 @@ export async function composer(demande: Demande, options: { readonly enCommentai
 }
 
 /**
+ * Section `titre` d'un rapport, jusqu'au titre suivant, cherchée après le bloc du commentaire du joueur : ce qu'il a écrit,
+ * titres et blocs de code compris, n'est jamais lu comme une section (#183). `null` si la section manque.
+ */
+function section(corps: string, titre: string): string | null {
+  const texte = apresCommentaire(corps.replace(/\r\n/g, '\n'));
+  const debut = texte.indexOf(`\n${titre}\n`);
+  if (debut === -1) return null;
+  const fin = texte.indexOf('\n### ', debut + 1);
+  return texte.slice(debut, fin === -1 ? undefined : fin);
+}
+
+/** Texte qui suit le commentaire du joueur. Sa clôture est plus longue que toute suite d'accents graves qu'il contient. */
+function apresCommentaire(texte: string): string {
+  const entete = `\n${TITRE_COMMENTAIRE}\n\n`;
+  const debut = texte.indexOf(entete);
+  if (debut === -1) return texte;
+  const reste = texte.slice(debut + entete.length);
+  const ouverture = /^(`{3,})text\n/.exec(reste);
+  if (ouverture?.[1] === undefined) return reste;
+  const fin = reste.indexOf(`\n${ouverture[1]}\n`, ouverture[0].length - 1);
+  return fin === -1 ? '' : reste.slice(fin + ouverture[1].length + 1);
+}
+
+/**
  * Inverse de `composer` pour les agents (PR-02) : l'export JSON d'une issue ou d'un commentaire de rapport, qu'il soit en
  * clair ou compressé. `null` si le texte n'est pas un rapport avec partie.
  */
 export async function extrairePartie(corps: string): Promise<string | null> {
   if (!corps.includes(MARQUEUR)) return null;
-  const texte = corps.replace(/\r\n/g, '\n');
+  const texte = section(corps, TITRE_REJEU);
+  if (texte === null) return null;
   const clair = /^(`{3,})json\n([\s\S]*?)\n\1$/m.exec(texte);
   if (clair?.[2] !== undefined) return clair[2];
   const compresse = /^(`{3,})gzip-base64\n([\s\S]*?)\n\1$/m.exec(texte);
@@ -242,7 +272,9 @@ export async function extrairePartie(corps: string): Promise<string | null> {
 /** Bloc de validation signée d'un rapport, tel que recopié ; `null` s'il n'y en a pas. Le robot de la PR seul le juge. */
 export function extraireValidation(corps: string): unknown {
   if (!corps.includes(MARQUEUR)) return null;
-  const bloc = new RegExp(`^(\`{3,})${LANGAGE_VALIDATION}\\n([\\s\\S]*?)\\n\\1$`, 'm').exec(corps.replace(/\r\n/g, '\n'));
+  const texte = section(corps, TITRE_VALIDATION);
+  if (texte === null) return null;
+  const bloc = new RegExp(`^(\`{3,})${LANGAGE_VALIDATION}\\n([\\s\\S]*?)\\n\\1$`, 'm').exec(texte);
   if (bloc?.[2] === undefined) return null;
   try {
     return JSON.parse(bloc[2]) as unknown;

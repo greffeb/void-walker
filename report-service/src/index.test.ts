@@ -1,5 +1,5 @@
 import type { Github } from './github';
-import { GardeRapports, gardeDistante, traiter, type Env, type EspaceGarde, type Reponse, type Stockage } from './index';
+import { GardeRapports, gardeDistante, traiter, type Env, type EspaceGarde, type Garde, type Reponse, type Stockage } from './index';
 
 const ORIGINE = 'https://greffeb.github.io';
 const JETON = 'jeton-secret-de-test';
@@ -16,7 +16,7 @@ function stockageMemoire(): Stockage & { readonly valeurs: Map<string, unknown> 
 }
 
 /** Environnement complet : la vraie garde (objet durable) en mémoire, un GitHub factice qui note ses appels. */
-function banc(options: { readonly prOuverte?: boolean; readonly echec?: boolean } = {}) {
+function banc(options: { readonly prOuverte?: boolean; readonly echec?: boolean; readonly confirmationEnPanne?: boolean } = {}) {
   const stockage = stockageMemoire();
   const objet = new GardeRapports({ storage: stockage });
   // Les portes d'entrée de Cloudflare ne laissent pas deux demandes s'intercaler autour du stockage : simulées en file.
@@ -47,6 +47,8 @@ function banc(options: { readonly prOuverte?: boolean; readonly echec?: boolean 
     },
     prOuverte: async () => options.prOuverte ?? true,
   };
+  const distante = gardeDistante(env);
+  const garde: Garde = options.confirmationEnPanne === true ? { ...distante, confirmer: () => Promise.reject(new Error('Garde : 500.')) } : distante;
   const envoyer = async (corps: unknown, entetes: Record<string, string> = {}): Promise<{ statut: number; reponse: Reponse; brut: Response }> => {
     const brut = await traiter(
       new Request('https://rapports.example/rapports', {
@@ -55,7 +57,7 @@ function banc(options: { readonly prOuverte?: boolean; readonly echec?: boolean 
         body: typeof corps === 'string' ? corps : JSON.stringify(corps),
       }),
       env,
-      { garde: gardeDistante(env), gh },
+      { garde, gh },
     );
     return { statut: brut.status, reponse: (await brut.clone().json()) as Reponse, brut };
   };
@@ -102,6 +104,21 @@ describe('service de rapports (AP-06)', () => {
     const refus = reponses.slice(1);
     expect(refus.every(({ statut, reponse }) => statut === 429 && reponse.etat === 'trop')).toBe(true);
     expect(Number(refus[0]?.brut.headers.get('Retry-After'))).toBeGreaterThan(0);
+  });
+
+  it('#182 : deux adresses du même bloc IPv6 /64 sont un seul appareil, deux blocs en sont deux', async () => {
+    const { envoyer, appels } = banc();
+    expect((await envoyer({ ...BUG, commentaire: 'a' }, { 'CF-Connecting-IP': '2001:db8:0:0::1' })).statut).toBe(201);
+    expect((await envoyer({ ...BUG, commentaire: 'b' }, { 'CF-Connecting-IP': '2001:db8::abcd:2' })).statut).toBe(429);
+    expect((await envoyer({ ...BUG, commentaire: 'c' }, { 'CF-Connecting-IP': '2001:db8:0:1::1' })).statut).toBe(201);
+    expect(appels).toHaveLength(2);
+  });
+
+  it('#184 : la garde en panne après la publication ne fait ni échec ni second envoi', async () => {
+    const { envoyer, appels } = banc({ confirmationEnPanne: true });
+    expect(await envoyer(BUG)).toMatchObject({ statut: 201, reponse: { etat: 'publie', adresse: 'https://github.com/greffeb/void-walker/issues/1' } });
+    expect((await envoyer(BUG)).reponse.etat).toBe('doublon');
+    expect(appels).toHaveLength(1);
   });
 
   it('PR-09 : une partie envoyée depuis une version de test devient un commentaire de sa PR', async () => {

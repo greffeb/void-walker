@@ -1,4 +1,4 @@
-import { confirmer, ETAT_VIDE, LIMITES, liberer, reserver, type EtatGarde } from './garde';
+import { cleAppareil, confirmer, ETAT_VIDE, LIMITES, liberer, reserver, type EtatGarde } from './garde';
 
 const T0 = 1_800_000_000_000;
 const MINUTE = 60_000;
@@ -13,6 +13,19 @@ function enchainer(etat: EtatGarde, appareil: string, empreintes: readonly strin
 }
 
 describe('garde anti-abus (RP-03)', () => {
+  it('#182 : compte une adresse IPv6 par bloc /64, quelle que soit son écriture, et une IPv4 telle quelle', () => {
+    const bloc = '2001:db8:0:0::/64';
+    expect(cleAppareil('2001:0db8:0000:0000:0000:0000:0000:0001')).toBe(bloc);
+    expect(cleAppareil('2001:db8::1')).toBe(bloc);
+    expect(cleAppareil('2001:DB8:0:0:ABCD::1')).toBe(bloc);
+    expect(cleAppareil('2001:db8:0:0:ffff:ffff:ffff:ffff')).toBe(bloc);
+    expect(cleAppareil('2001:db8:0:1::1')).toBe('2001:db8:0:1::/64');
+    expect(cleAppareil('::1')).toBe('0:0:0:0::/64');
+    expect(cleAppareil('203.0.113.7')).toBe('203.0.113.7');
+    expect(cleAppareil('::ffff:203.0.113.7')).toBe('203.0.113.7');
+    expect(cleAppareil('inconnue')).toBe('inconnue');
+  });
+
   it('accepte un premier rapport puis le reconnaît comme doublon, sans limite de délai', () => {
     const premier = reserver(ETAT_VIDE, 'a', 'r1', T0);
     expect(premier.decision).toEqual({ type: 'accepte' });
