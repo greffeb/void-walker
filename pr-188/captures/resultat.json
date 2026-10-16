@@ -1,0 +1,165 @@
+{
+  "telephone": "Pixel 7",
+  "ecrans": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 568
+    },
+    {
+      "width": 412,
+      "height": 915
+    }
+  ],
+  "installable": "manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif",
+  "horsLigne": "polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)",
+  "erreurs": [
+    "page.waitForFunction: Timeout 30000ms exceeded."
+  ],
+  "erreursAr01": [],
+  "erreursAr02": [],
+  "erreursPlans": [],
+  "erreursCarte": [],
+  "erreursStation": [],
+  "etapes": [
+    {
+      "suite": "monde-test",
+      "titre": "Accueil sans partie active",
+      "image": "",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Réveil — monde-test",
+      "image": "",
+      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.\n« Merci de rester dans votre cabine jusqu’à nouvel ordre. »",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Accueil avec partie en cours",
+      "image": "",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Confirmation du remplacement",
+      "image": "",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Départ",
+      "image": "",
+      "recit": "Regarder autour de vous\nUne cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Bulle « Carnet » ouverte",
+      "image": "",
+      "recit": "Aller vers · atelier\nCe passage est fermé : vous ne pouvez pas le franchir.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Prendre le carnet",
+      "image": "",
+      "recit": "Carnet · Prendre\nVous prenez le carnet. Le contact est froid sous vos doigts.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 17,3 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Ouvrir la porte de l’atelier",
+      "image": "",
+      "recit": "Porte de l’atelier · Ouvrir\nVous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.\nLa porte de l’atelier a grincé si fort que le bruit a dû porter loin.\nQuelque chose bouge derrière la porte de l’atelier.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 17,3 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Après fermeture et réouverture",
+      "image": "",
+      "recit": "Porte de l’atelier · Ouvrir\nVous tirez sur la poignée de la porte de l’atelier. Le passage s’ouvre devant vous.\nLa porte de l’atelier a grincé si fort que le bruit a dû porter loin.\nQuelque chose bouge derrière la porte de l’atelier.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 17,3 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aller dans l’atelier",
+      "image": "",
+      "recit": "Aller vers · atelier\nVous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.\nUne silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Inventaire ouvert",
+      "image": "",
+      "recit": "Aller vers · atelier\nVous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.\nUne silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Inventaire, fiche « Carnet »",
+      "image": "",
+      "recit": "Aller vers · atelier\nVous passez dans l’atelier, une main sur la cloison. Le plancher vibre faiblement sous vos pieds.\nRien, ici, ne vous est familier.\nUne silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous portez le carnet.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Poser le carnet",
+      "image": "",
+      "recit": "Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet et une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 15,2 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Hors ligne : reprise, police servie par l’appli",
+      "image": "",
+      "recit": "Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet et une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 15,2 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Fin du parcours, 320 px de large",
+      "image": "",
+      "recit": "Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici un carnet et une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 6,0 lignes visibles ; boutons du dock à faire défiler."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "« → atelier » touché deux fois : un seul déplacement",
+      "image": "",
+      "recit": "Aller vers · atelier\nVous franchissez le seuil et entrez dans l’atelier. Vos pas résonnent sur le plancher métallique.\nVous n’aviez encore jamais mis les pieds ici.\nLa chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.",
+      "situation": "Vous êtes dans l’atelier.\nVous voyez ici une trousse de soin.\nLa porte de la cabine est ouverte.\nLa porte de la soute est ouverte.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Aperçu « Carnet › Prendre », risque connu, sans coût",
+      "image": "",
+      "recit": "Carnet · Poser\nVous posez le carnet au sol, près de la cloison. Vos mains sont libres.\nLa créature se jette sur vous ; vous vous dérobez de justesse.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est ouverte.\nLa grille de la soute est fermée.\nLa créature est là, tout près de vous.\nVous ne portez rien.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    }
+  ]
+}
