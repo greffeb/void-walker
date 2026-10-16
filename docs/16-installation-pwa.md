@@ -60,8 +60,8 @@ Selon la disposition des onglets, Partager est derrière le bouton Plus (••�
 
 ## 4. Particularités du dépôt à respecter
 
-- **Versions de test :** chaque PR publiée sous `/void-walker/pr-<n>/` a son propre manifeste et sa propre portée, donc elle est « installable » elle aussi. Ne **jamais** proposer l'installation dans une version de test (`VITE_PR_NUMERO` non vide) : on installerait une version jetable.
-- **`localStorage` est commun à toutes les versions :** même origine pour `/void-walker/` et `/void-walker/pr-<n>/` (déjà le cas des réglages et des rapports, `app/rapports.ts`). Une clé `void-walker:installation` n'aurait de sens que pour la version principale, que la version de test n'écrit pas.
+- **Versions de test :** chaque PR publiée sous `/void-walker/pr-<n>/` a son propre manifeste et sa propre portée, donc elle est « installable » elle aussi. Elle reçoit la même proposition que la version principale : le porteur valide sur la version de test de la PR (D-098) et ne pourrait pas y essayer l'installation autrement. Pour ne pas la confondre avec le jeu, son manifeste porte le numéro de PR dans son nom (« Void Walker (test PR #175) », court : « VW test #175 »). Une première version de cette proposition la masquait ; la CI l'a montré, ses captures ne pouvaient plus rien voir.
+- **`localStorage` est commun à toutes les versions :** même origine pour `/void-walker/` et `/void-walker/pr-<n>/` (déjà le cas des réglages et des rapports, `app/rapports.ts`). La clé d'installation porte donc l'adresse, comme celle de la sauvegarde : `void-walker:installation:<base>`. Installer une version de test ne cache rien à la version principale.
 - **Accueil figé :** 12 §4.1 est **Validé** (« seulement le titre et trois boutons, pas de sous-titre »). Tout ajout à l'accueil est une dérogation à demander.
 - **Fin de partie :** 12 §4.11 est « récit seulement » (D-086). Un bouton d'installation y casserait le ton.
 - **Précédent :** la section « MISE À JOUR » des options (D-227) est le modèle : un module sans React et testable avec de faux navigateurs (`app/miseAJour.ts`), un `useSyncExternalStore`, une ligne `ligne-option` avec son état en `role="status"`.
@@ -83,7 +83,7 @@ Recommandation : livrer A seul d'abord. Il ne harcèle personne, ne touche à au
 - Chromium : le bouton appelle `prompt()` ; `accepted` → drapeau « installée », bouton retiré ; `dismissed` → bouton retiré aussi, retour « Installation refusée. Le menu du navigateur permet de la relancer. » : un événement ne sert qu'une fois, le bouton ne pourrait plus rien ouvrir. Si le navigateur en renvoie un autre plus tard, le bouton revient.
 - iPhone / iPad : le bouton ouvre une bulle (modèle `app/bulle.tsx`, croix et Échap) avec les quatre étapes de §3.1 ; pas d'effet sur le drapeau (rien ne confirme l'installation).
 - Firefox Android : même bulle, avec le chemin de §3.1 ; détection par `Android` et `Firefox` dans l'agent utilisateur, sans événement `beforeinstallprompt`.
-- Ailleurs (Firefox ordinateur, Safari macOS, navigation privée, version de test, déjà installée) : la section n'existe pas, comme « MISE À JOUR » sans service worker.
+- Ailleurs (Firefox ordinateur, Safari macOS, navigation privée, déjà installée) : la section n'existe pas, comme « MISE À JOUR » sans service worker.
 - Mémoire : `localStorage` `void-walker:installation` = `{ installee: true }`, lue et écrite défensivement comme `app/reglages.ts` (navigation privée, quota). Les visites et la date d'un refus ne servent qu'au rappel de l'étape B (§5.1) : elles ne sont pas gardées tant qu'il n'existe pas.
 
 ### 5.3 Accessibilité et textes
@@ -97,7 +97,7 @@ Ordres de grandeur pour un agent, vérification complète comprise ; pas de date
 
 | Issue | Contenu | Taille |
 | --- | --- | --- |
-| **I1 — Installation depuis les options (Chromium)** | `app/installation.ts` (événement gardé dès le départ, `prompt()`, `userChoice`, `appinstalled`, détection mode appli, mémoire) avec tests à faux navigateur ; câblage dans `main.tsx` ; section « INSTALLATION » des options ; cas « version de test » et « déjà installée » ; captures par événement simulé | moyenne (environ la taille de D-227) |
+| **I1 — Installation depuis les options (Chromium)** | `app/installation.ts` (événement gardé dès le départ, `prompt()`, `userChoice`, `appinstalled`, détection mode appli, mémoire) avec tests à faux navigateur ; câblage dans `main.tsx` ; section « INSTALLATION » des options ; cas « déjà installée » et nom de la version de test ; captures par événement simulé | moyenne (environ la taille de D-227) |
 | **I2 — Aide iPhone, iPad et Firefox Android** | détection iOS et Firefox Android hors mode appli ; bulle d'explication à deux textes ; captures | petite |
 | **I3 — Rappel à l'accueil** (si le porteur l'accepte) | compteur de visites, fin d'une première partie, délai de 90 jours, ligne discrète à l'accueil | petite, plus une décision sur 12 §4.1 |
 | **I4 — Manifeste (facultatif)** | `id` explicite (stabilise l'identité de l'appli si l'adresse change) ; `screenshots` pour la fenêtre d'installation enrichie de Chrome ; icône maskable séparée si le graphisme change | petite |
@@ -113,8 +113,10 @@ Preuves que ces issues ne pourront pas fournir seules : l'installation réelle s
 
 ## 8. Première livraison (#174)
 
-Livré : **I1** (module `app/installation.ts`, section « INSTALLATION » des options, invite de Chromium) et **I2** (bulles d'aide de Safari sur iPhone et de Firefox sur Android). Mesuré dans Chromium par `npm run captures` : événement simulé, un seul `prompt()` par toucher, réponse acceptée ou refusée, aides à quatre étapes, fermeture par Échap, voile et ✕ avec retour du focus sur le bouton, aide d'iPhone en 320 px de large et texte « très grand ».
+Livré : **I1** (module `app/installation.ts`, section « INSTALLATION » des options, invite de Chromium) et **I2** (bulles d'aide de Safari sur iPhone et de Firefox sur Android). Mesuré dans Chromium par `npm run captures`, sur une construction de version de test (`PR_NUMERO`, `BASE_PATH`) comme celle de la CI, : événement simulé, un seul `prompt()` par toucher, réponse acceptée ou refusée, aides à quatre étapes, fermeture par Échap, voile et ✕ avec retour du focus sur le bouton, aide d'iPhone en 320 px de large et texte « très grand ».
 
 Pas livré : **I3** (rappel à l'accueil, il déroge à 12 §4.1 : question 1 de §7) et **I4** (manifeste). Pas non plus : la reconnaissance de Chrome, Edge et Firefox sur iPhone (leurs libellés ne sont pas vérifiés, §3.1).
+
+**À confirmer par le porteur** : l'installation est proposée aussi dans les versions de test, dont le nom d'appli porte le numéro de PR.
 
 **Validation humaine requise** : aucune de ces aides n'a été essayée sur un téléphone. À constater sur un Android avec Chrome (boîte du navigateur), sur un iPhone avec Safari (étapes et noms des boutons) et sur un Android avec Firefox (chemin et libellé français « Ajouter l’application à l’écran d’accueil », que seul le porteur a donné).

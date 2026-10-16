@@ -423,7 +423,7 @@ const RETOURS_INSTALLATION: Readonly<Partial<Record<EtatInstallation, string>>> 
 
 /**
  * Installation (#174) : « Installer le jeu » ouvre la boîte du navigateur (Chromium) ou une bulle d'aide (Safari sur iPhone,
- * Firefox sur Android). Absente ailleurs, dans une version de test et dans l'appli déjà installée.
+ * Firefox sur Android). Absente ailleurs et dans l'appli déjà installée ; présente dans une version de test, à valider.
  */
 function SectionInstallation({ installation, occupe }: { readonly installation: Installation | undefined; readonly occupe: boolean }) {
   const lire = installation?.etat ?? INSTALLATION_INDISPONIBLE;

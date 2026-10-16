@@ -4,7 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { App, EcranRefus } from './App';
 import { CATALOGUE } from './catalogue';
 import { cleStockage, demandeDe, preparerLancement, type Environnement } from './jeu';
-import { piloterInstallation } from './installation';
+import { CLE_INSTALLATION, piloterInstallation } from './installation';
 import { piloterMiseAJour } from './miseAJour';
 import { creerRapports } from './rapports';
 import { coffreIndexedDB, creerSignataire } from './validation';
@@ -78,7 +78,8 @@ const installation = piloterInstallation({
   modeAppli: () =>
     ['standalone', 'fullscreen', 'minimal-ui'].some((mode) => window.matchMedia(`(display-mode: ${mode})`).matches) ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true,
-  versionDeTest: Boolean(import.meta.env.VITE_PR_NUMERO),
+  // Chaque adresse a son drapeau : la version principale et les versions de test partagent `localStorage`.
+  cle: `${CLE_INSTALLATION}:${import.meta.env.BASE_URL}`,
   lire: (cle) => window.localStorage.getItem(cle),
   ecrire: (cle, valeur) => window.localStorage.setItem(cle, valeur),
 });

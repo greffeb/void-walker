@@ -981,8 +981,8 @@ async function parcoursInstallation(navigateur: Browser, adresse: string, captur
       const attendu = issue === 'accepted' ? 'Jeu installé. Cherchez-le sur votre écran d’accueil.' : 'Installation refusée. Le menu du navigateur permet de la relancer.';
       await page.getByTestId('installation').getByText(attendu, { exact: true }).waitFor({ timeout: 10_000 });
       if ((await bouton(page).count()) !== 0) erreurs.push(`Installation (${issue}) : le bouton reste après la réponse, l'événement a déjà servi.`);
-      const garde = await page.evaluate(() => window.localStorage.getItem('void-walker:installation'));
-      if ((garde !== null) !== (issue === 'accepted')) erreurs.push(`Installation (${issue}) : drapeau gardé « ${String(garde)} ».`);
+      const gardes = await page.evaluate(() => Object.keys(window.localStorage).filter((cle) => cle.startsWith('void-walker:installation:')));
+      if ((gardes.length > 0) !== (issue === 'accepted')) erreurs.push(`Installation (${issue}) : drapeaux gardés « ${gardes.join(', ')} ».`);
     } finally {
       await contexte.close();
     }

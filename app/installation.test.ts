@@ -15,31 +15,34 @@ const AGENTS = {
 
 type Evenement = 'beforeinstallprompt' | 'appinstalled';
 
+/** Clé de la version principale ; une version de test a la sienne (`/pr-<n>/`). */
+const CLE = `${CLE_INSTALLATION}:/`;
+
 /** Faux navigateur : une page qui reçoit les événements d'installation, un stockage, et une boîte d'installation à laquelle on répond. */
 function banc({
   agent = AGENTS.chromeAndroid,
   pointsTactiles = 5,
   modeAppli = false,
-  versionDeTest = false,
+  cle = CLE,
   gardee = null,
   ecritureImpossible = false,
 }: {
   readonly agent?: string;
   readonly pointsTactiles?: number;
   readonly modeAppli?: boolean;
-  readonly versionDeTest?: boolean;
+  readonly cle?: string;
   readonly gardee?: string | null;
   readonly ecritureImpossible?: boolean;
 } = {}) {
   const ecouteurs = new Map<Evenement, ((evenement: Event) => void)[]>();
   const stockage = new Map<string, string>();
-  if (gardee !== null) stockage.set(CLE_INSTALLATION, gardee);
+  if (gardee !== null) stockage.set(CLE, gardee);
   const installation = piloterInstallation({
     ecouter: (type, ecouteur) => ecouteurs.set(type, [...(ecouteurs.get(type) ?? []), ecouteur]),
     agent,
     pointsTactiles,
     modeAppli: () => modeAppli,
-    versionDeTest,
+    cle,
     lire: (cle) => stockage.get(cle) ?? null,
     ecrire: (cle, valeur) => {
       if (ecritureImpossible) throw new Error('quota');
@@ -148,7 +151,7 @@ describe('installation de l’appli (#174)', () => {
       installation.proposer();
       await repondre('accepted');
       expect(installation.etat()).toBe('installee');
-      expect(JSON.parse(stockage.get(CLE_INSTALLATION) ?? 'null')).toEqual({ installee: true });
+      expect(JSON.parse(stockage.get(CLE) ?? 'null')).toEqual({ installee: true });
     });
 
     it('refusé : refusée, rien n’est gardé', async () => {
@@ -157,7 +160,7 @@ describe('installation de l’appli (#174)', () => {
       installation.proposer();
       await repondre('dismissed');
       expect(installation.etat()).toBe('refusee');
-      expect(stockage.has(CLE_INSTALLATION)).toBe(false);
+      expect(stockage.has(CLE)).toBe(false);
     });
 
     it('boîte qui échoue : refusée, sans erreur dans la page', async () => {
@@ -229,14 +232,25 @@ describe('installation de l’appli (#174)', () => {
   });
 
   describe('là où il ne faut rien proposer', () => {
-    it('version de test : ni invite, ni aide, et l’événement du navigateur reste intact', () => {
-      for (const agent of [AGENTS.chromeAndroid, AGENTS.safariIphone, AGENTS.firefoxAndroid]) {
-        const { installation, recevoirInvite, stockage } = banc({ agent, versionDeTest: true });
-        const { evenement } = recevoirInvite();
-        expect(evenement.defaultPrevented).toBe(false);
-        expect(installation.etat()).toBe('indisponible');
-        expect(stockage.size).toBe(0);
-      }
+    it('version de test : mêmes propositions que la version principale, avec son drapeau à part', () => {
+      const cle = `${CLE_INSTALLATION}:/pr-175/`;
+      const chrome = banc({ agent: AGENTS.chromeAndroid, cle });
+      expect(chrome.recevoirInvite().evenement.defaultPrevented).toBe(true);
+      expect(chrome.installation.etat()).toBe('invite');
+      expect(banc({ agent: AGENTS.safariIphone, cle }).installation.etat()).toBe('guide_ios');
+      expect(banc({ agent: AGENTS.firefoxAndroid, cle }).installation.etat()).toBe('guide_firefox');
+    });
+
+    it('le drapeau « installée » d’une adresse ne cache rien aux autres', async () => {
+      const principale = banc({ agent: AGENTS.firefoxAndroid, gardee: JSON.stringify({ installee: true }) });
+      expect(principale.installation.etat()).toBe('indisponible');
+      expect(banc({ agent: AGENTS.firefoxAndroid, cle: `${CLE_INSTALLATION}:/pr-175/` }).installation.etat()).toBe('guide_firefox');
+      // Installée depuis une version de test : seule sa clé est écrite.
+      const test = banc({ cle: `${CLE_INSTALLATION}:/pr-175/` });
+      const { repondre } = test.recevoirInvite();
+      test.installation.proposer();
+      await repondre('accepted');
+      expect([...test.stockage.keys()]).toEqual([`${CLE_INSTALLATION}:/pr-175/`]);
     });
 
     it('appli ouverte depuis l’écran d’accueil : rien à proposer, et l’installation est gardée', () => {
@@ -244,7 +258,7 @@ describe('installation de l’appli (#174)', () => {
       const { evenement } = recevoirInvite();
       expect(evenement.defaultPrevented).toBe(false);
       expect(installation.etat()).toBe('indisponible');
-      expect(JSON.parse(stockage.get(CLE_INSTALLATION) ?? 'null')).toEqual({ installee: true });
+      expect(JSON.parse(stockage.get(CLE) ?? 'null')).toEqual({ installee: true });
     });
 
     it('lancée une fois depuis l’écran d’accueil, l’aide ne revient pas dans un onglet (Android)', () => {
