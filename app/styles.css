@@ -1247,6 +1247,14 @@ button:disabled {
   color: var(--texte-secondaire);
 }
 
+/* État de la vérification d'une version de test (#180), juste sous la version et le commit. */
+.etat-verification {
+  margin: 4px 0 0;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
+  color: var(--texte-secondaire);
+}
+
 /* Bouton discret (12 §3.12) : contour `bordure`. */
 .discret {
   width: 100%;

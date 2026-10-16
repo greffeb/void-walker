@@ -414,7 +414,7 @@ export function LigneVerification({ verification }: { readonly verification: () 
     };
   }, [verification]);
   return (
-    <p className="pied" data-testid="verification">
+    <p className="etat-verification" data-testid="verification">
       Vérification automatique : {etat === 'lecture' ? 'lecture…' : LIBELLES_VERIFICATION[etat]}
       {etat === 'en_cours' && ' — une validation envoyée maintenant ne comptera que si elle finit verte'}
       {etat === 'echec' && ' — une validation de cette version ne comptera pas'}

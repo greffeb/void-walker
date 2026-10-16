@@ -553,7 +553,7 @@ describe('options (12 §4.10, #96)', () => {
 
   it('version de test : état de la vérification automatique sous la version, lu à l’ouverture ; absent de la version publique (#180)', () => {
     const verification = (): Promise<EtatVerification> => Promise.resolve('en_cours');
-    expect(options({ pr: '42', verification })).toContain('<p class="pied" data-testid="verification">Vérification automatique : lecture…</p>');
+    expect(options({ pr: '42', verification })).toContain('<p class="etat-verification" data-testid="verification">Vérification automatique : lecture…</p>');
     expect(options({ pr: '', verification })).not.toContain('Vérification automatique');
     expect(options({ pr: '42' })).not.toContain('Vérification automatique');
   });
