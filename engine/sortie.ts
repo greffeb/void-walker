@@ -1,7 +1,7 @@
 import { manoeuvrable, pontSur, verrouillee, type EtatPartie } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
 
-// « Plus aucune sortie » (D-085, D-273) : un calcul de chemin sur l'état réel. Les dangers (créature, feu, froid, vide) ne
+// « Plus aucune sortie » (D-085, D-275) : un calcul de chemin sur l'état réel. Les dangers (créature, feu, froid, vide) ne
 // ferment aucun passage : on peut y laisser la vie, pas le chemin. Seul compte ce que l'on ne peut plus franchir ou
 // apporter : vide sans pont, cloison dont la commande est hors d'atteinte, passage haut sans appui, capsule sans énergie.
 

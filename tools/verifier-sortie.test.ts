@@ -5,7 +5,7 @@ import { CATALOGUE } from './catalogue';
 import { chercherEvacuation } from './verifier-sortie';
 import { stationDeReference } from './verifier-station';
 
-// « Plus aucune sortie » (D-085, D-273) : un cas par obstacle qui peut couper le chemin, avec le signal et la recherche complète
+// « Plus aucune sortie » (D-085, D-275) : un cas par obstacle qui peut couper le chemin, avec le signal et la recherche complète
 // du moteur, qui doivent dire la même chose ; puis les cas G-03, G-04 et G-06 de C-08.
 
 function monde(id: string): DefMonde {
@@ -104,7 +104,7 @@ describe('plus aucune sortie', { timeout: 60_000 }, () => {
     expect(signal(etroit, etat(etroit, { objets: { 'm-03/o-bloc': { type: 'installe', dans: 'm-03/o-capsule' } } }))).toBe(false);
   });
 
-  it('feu, blessures et créature ne ferment aucun passage (D-273)', () => {
+  it('feu, blessures et créature ne ferment aucun passage (D-275)', () => {
     const m01 = monde('m01-m03-reserve');
     const brulant = etat(m01, { piece: 'm-01/p-poste', sante: 'critique', feu: ['m-01/p-poste', 'm-01/p-galerie', 'm-01/p-palier'] });
     expect(signal(m01, brulant)).toBe(false);

@@ -6,7 +6,7 @@ import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
 import { isMainModule } from './repo-files';
 import { cleEtatRegles, MONDES_DE_REFERENCE, rangsDesMorceaux, stationDeReference } from './verifier-station';
 
-// Contrôle du signal « plus aucune sortie » (D-085, D-273) : parties au hasard, dés compris ; à chaque état atteint, le signal
+// Contrôle du signal « plus aucune sortie » (D-085, D-275) : parties au hasard, dés compris ; à chaque état atteint, le signal
 // est comparé à une recherche complète du moteur sur le même état, sans créature, feu, froid ni brèche, qui ne ferment aucun
 // passage. Un seul désaccord, ou une recherche qui n'aboutit pas, fait échouer le contrôle.
 

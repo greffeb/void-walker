@@ -81,7 +81,7 @@ jobs:
           VERIFS_CACHE: ${{ runner.temp }}/verifs-cache
 
   sortie:
-    # Signal « plus aucune sortie » (#156, D-273) : parties au hasard comparées à la recherche complète, sans cache.
+    # Signal « plus aucune sortie » (#156, D-275) : parties au hasard comparées à la recherche complète, sans cache.
     name: check:sortie (lot ${{ matrix.lot }}/4)
     runs-on: ubuntu-latest
     strategy:

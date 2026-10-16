@@ -29,6 +29,8 @@ export interface Dock {
   /** « Dans la pièce » : objets, et passages qui ne se savent pas encore passages (D-147). */
   readonly piece: readonly Groupe[];
   readonly autour: OptionMenu | undefined;
+  /** « Attendre », à côté de « Regarder » (D-274). */
+  readonly attendre: OptionMenu | undefined;
   /** « Se déplacer vers » : une ligne par passage connu, son nom fait passer, sa commande ouvre ou ferme la porte (D-267). */
   readonly deplacements: readonly Deplacement[];
   /** Objets portés, ouverts par le bouton INVENTAIRE. */
@@ -85,7 +87,8 @@ export function composerDock(observation: Observation, ouverts: readonly string[
   const manoeuvres = observation.menu.filter((option) => option.cible.sorte === 'passage' && (option.action === 'ouvrir' || option.action === 'fermer'));
   return {
     piece: grouper([...observation.objets, ...observation.passages], autres).map((groupe) => avecEcoutille(groupe, manoeuvres)),
-    autour: autres.find((option) => option.cible.sorte === 'piece'),
+    autour: autres.find((option) => option.cible.sorte === 'piece' && option.action === 'regarder'),
+    attendre: autres.find((option) => option.cible.sorte === 'piece' && option.action === 'attendre'),
     deplacements,
     inventaire: grouper(observation.inventaire, autres),
   };
@@ -179,8 +182,8 @@ export function nomParametre(textes: TextesMonde, parametre: NonNullable<OptionM
   return parametre.sorte === 'passage' ? nomPuce(textes, parametre) : nomDe(textes, parametre).texte;
 }
 
-/** Portes et déplacements : toujours d'un seul toucher, même bruyants ou risqués (D-267). */
-const TOUJOURS_UN_TOUCHER: readonly IdAction[] = ['aller', 'deriver', 'ouvrir', 'fermer'];
+/** Portes, déplacements et attente : toujours d'un seul toucher, même bruyants ou risqués (D-267, D-274). */
+const TOUJOURS_UN_TOUCHER: readonly IdAction[] = ['aller', 'deriver', 'ouvrir', 'fermer', 'attendre'];
 const UN_TOUCHER_SANS_RISQUE: readonly IdAction[] = ['prendre', 'poser'];
 
 /**
@@ -276,11 +279,12 @@ export function filBulle(textes: TextesMonde, cible: Cible, option?: OptionMenu)
 export type Rappel =
   | { readonly type: 'cible'; readonly action: IdAction; readonly cible: RefObjet | RefPassage; readonly parametre?: OptionMenu['parametre'] }
   | { readonly type: 'deplacement'; readonly vers: RefPiece }
-  | { readonly type: 'autour' };
+  | { readonly type: 'autour' }
+  | { readonly type: 'attente' };
 
 export function rappelDe({ action, cible, parametre }: OptionMenu): Rappel {
   // Une position n'est jamais la cible d'une option, seulement son paramètre.
-  if (cible.sorte === 'piece' || cible.sorte === 'position') return { type: 'autour' };
+  if (cible.sorte === 'piece' || cible.sorte === 'position') return { type: action === 'attendre' ? 'attente' : 'autour' };
   if (cible.sorte === 'passage' && action === 'aller' && cible.vers !== null) return { type: 'deplacement', vers: cible.vers };
   return parametre === undefined ? { type: 'cible', action, cible } : { type: 'cible', action, cible, parametre };
 }
@@ -294,6 +298,7 @@ export function rappelRepris(partie: Partie, observation: Observation): Rappel |
   const commande = partie.enregistrement.actions.at(-1)?.commande;
   if (commande === undefined || !estAction(commande.action)) return null;
   if (commande.action === 'aller') return { type: 'deplacement', vers: observation.piece };
+  if (commande.action === 'attendre') return { type: 'attente' };
   const cible = [...observation.objets, ...observation.inventaire, ...observation.passages].find((ref) => ref.id === commande.cible);
   if (cible === undefined) return null;
   if (commande.parametre === undefined) return { type: 'cible', action: commande.action, cible };
@@ -314,6 +319,8 @@ export function texteRappel(textes: TextesMonde, rappel: Rappel): TexteRappel {
   switch (rappel.type) {
     case 'autour':
       return { texte: REGARDER_AUTOUR, capitales: true };
+    case 'attente':
+      return { texte: textes.verbes.attendre, capitales: true };
     case 'deplacement':
       return { texte: `${textes.verbes.aller} · ${nomDe(textes, rappel.vers).texte}`, capitales: true };
     case 'cible': {

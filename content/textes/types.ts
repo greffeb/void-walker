@@ -130,7 +130,7 @@ export interface TextesMonde {
     readonly terminee: string;
     /** Partie conclue par le départ de la capsule. */
     readonly evacuee: string;
-    /** Plus aucune évacuation possible (D-085, D-273) : ne nomme aucune sortie. */
+    /** Plus aucune évacuation possible (D-085, D-275) : ne nomme aucune sortie. */
     readonly sansSortie: string;
     /** Récit court de l'écran de fin après un abandon (12 §4.11), dans la pièce où le passager s'est arrêté. */
     readonly abandon: string;
@@ -173,6 +173,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   bruit_mecanisme: ['passage'],
   bruit_creature: ['passage'],
   creature_entre: ['passage'],
+  attente: [],
   premier_contact: [],
   menace: [],
   aggravation_blesse: [],
@@ -241,6 +242,7 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   retablir: ['cible'],
   boucler: ['cible'],
   actionner: ['cible'],
+  attendre: [],
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;

@@ -190,7 +190,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 - **Reste à faire.** L'accord du porteur, une partie au bout sur téléphone dans une station en ordre libre (**validation humaine requise**, D-098), et sa décision sur la réserve de D-241.
 
 **L6, « plus aucune sortie » (#156), proposée par sa PR en zone orange :**
-- **Règle.** Le porteur l'a fixée (D-273) : le signal vient quand on ne peut plus du tout atteindre la capsule et la faire partir. Dés, blessures, créature, feu, froid et vide ne ferment aucun chemin : on peut y laisser la vie sans signal.
+- **Règle.** Le porteur l'a fixée (D-275) : le signal vient quand on ne peut plus du tout atteindre la capsule et la faire partir. Dés, blessures, créature, feu, froid et vide ne ferment aucun chemin : on peut y laisser la vie sans signal.
 - **Calcul.** Un chemin dans le moteur après chaque action (`engine/sortie.ts`), quelques microsecondes sur le PC ; l'observation publique ne porte que « oui ou non ».
 - **Écran.** L'information du jeu de 12 §5.2 (CONTINUER À JOUER, TERMINER LA PARTIE), puis le rappel « [ plus aucune sortie possible ] » au-dessus du récit (D-144).
 - **Preuve.** `npm run check:sortie` : parties au hasard sur les 470 stations, chaque état comparé à une recherche complète du moteur, 0 désaccord sur 60 640 états ; un test par obstacle. Détail dans [13 §7.9](13-morceaux-lancement.md#79--plus-aucune-sortie--l6-156).

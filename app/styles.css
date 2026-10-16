@@ -138,6 +138,7 @@ button:disabled {
 
 /* Écran de jeu (12 §3.1) : en-tête, récit qui défile, dock à sa hauteur, navigation (D-191). */
 .jeu {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -1054,7 +1055,11 @@ button:disabled {
   border-color: var(--texte);
 }
 
-.puce.autour {
+/* « Regarder » et « Attendre » sur une ligne (D-274). */
+.autour {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
   margin-top: 6px;
 }
 
@@ -1927,19 +1932,118 @@ button:disabled {
   stroke-width: 2;
 }
 
-.carte-traits .losange polygon {
-  fill: none;
-  stroke: var(--vert);
-  stroke-width: 2;
+/* Passager (D-273) : point plein et trois ondes radar, une toutes les 1 s ; en mouvement réduit, deux anneaux fixes à la place. */
+.carte-traits .icone-joueur .point {
+  fill: var(--vert);
 }
 
-.carte-traits .losange circle {
-  fill: var(--vert);
+.carte-traits .icone-joueur .onde,
+.carte-traits .icone-joueur .anneau {
+  fill: none;
+  stroke: var(--vert);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-joueur .onde {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carte-onde 3s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+.carte-traits .icone-joueur .onde-1 {
+  animation-delay: -1s;
+}
+
+.carte-traits .icone-joueur .onde-2 {
+  animation-delay: -2s;
+}
+
+.carte-traits .icone-joueur .anneau {
+  display: none;
+  opacity: 0.7;
+}
+
+/* Créature vue (D-273) : œil rouge `alerte`, contour et pupille pleins ; l'intérieur clignote une fois toutes les 2 s (loin du seuil de
+   trois éclats par seconde, WCAG 2.3.1). Il y a longtemps : fixe, en vert secondaire. Mouvement réduit : intérieur fixe. */
+.carte-traits .icone-creature {
+  --couleur-creature: var(--alerte);
+}
+
+.carte-traits .icone-creature[data-palier='longtemps'] {
+  --couleur-creature: var(--vert-secondaire);
+}
+
+.carte-traits .icone-creature .contour {
+  fill: none;
+  stroke: var(--couleur-creature);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-creature .pupille {
+  fill: var(--couleur-creature);
+}
+
+.carte-traits .icone-creature .interieur {
+  fill: var(--couleur-creature);
+  opacity: 0;
+  animation: carte-clignote 2s ease-in-out infinite;
+}
+
+.carte-traits .icone-creature[data-palier='longtemps'] .interieur {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-traits .icone-joueur .onde {
+    display: none;
+  }
+
+  .carte-traits .icone-joueur .anneau {
+    display: inline;
+  }
+
+  .carte-traits .icone-creature .interieur {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .carte-traits .icone-creature[data-palier='longtemps'] .interieur {
+    opacity: 0;
+  }
+}
+
+@keyframes carte-onde {
+  from {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes carte-clignote {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .carte-piece {
   position: absolute;
-  display: block;
+  /* Texte en haut de la pièce, et non centré comme dans un bouton : les icônes prennent la place dessous (D-273). */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   padding: calc(8px * var(--echelle) * var(--texte-carte, 1));
   overflow: hidden;
   text-align: left;
@@ -1986,7 +2090,7 @@ button:disabled {
   line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
 }
 
-/* Étiquettes d'état en vidéo inverse (14 §2.5) ; « @ VOUS » en vert, sans fond. */
+/* Étiquettes d'état en vidéo inverse (14 §2.5). */
 .carte-etiquette {
   color: var(--vert-fond);
   background: var(--vert);
@@ -1994,11 +2098,6 @@ button:disabled {
 
 .carte-etiquette[data-marque='vide'] {
   background: var(--vert-signal);
-}
-
-.carte-etiquette[data-marque='vous'] {
-  color: var(--vert);
-  background: none;
 }
 
 .carte-anciennete {
@@ -2076,4 +2175,91 @@ button:disabled {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* Brouillage d'un dégât (#166) : texte décalé en rouge et cyan, pixels morts, lignes de balayage déchirées ; 0,7 s, une fois. */
+.jeu.brouille > :not(.brouillage) {
+  animation: aberration 0.7s steps(8);
+}
+
+.brouillage {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.pixel-mort,
+.dechirure {
+  position: absolute;
+  opacity: 0;
+  animation: allume 0.12s steps(1);
+}
+
+.pixel-mort {
+  background: var(--blanc);
+}
+
+.dechirure {
+  left: -10%;
+  right: -10%;
+  background: repeating-linear-gradient(90deg, var(--blanc) 0 6px, transparent 6px 9px, var(--alerte) 9px 13px, transparent 13px 22px);
+}
+
+@keyframes allume {
+  0%,
+  99% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes aberration {
+  0%,
+  100% {
+    transform: none;
+    text-shadow: none;
+  }
+  12% {
+    transform: translateX(-8px);
+    text-shadow: 4px 0 var(--alerte), -4px 0 var(--cyan);
+  }
+  25% {
+    transform: translateX(6px) skewX(-8deg);
+    text-shadow: -5px 0 var(--alerte), 5px 0 var(--cyan);
+  }
+  37% {
+    transform: translateX(-4px);
+    text-shadow: 3px 0 var(--alerte), -3px 0 var(--cyan);
+  }
+  50% {
+    transform: translateX(10px);
+    text-shadow: -6px 0 var(--alerte), 6px 0 var(--cyan);
+  }
+  62% {
+    transform: translateX(-2px) skewX(5deg);
+    text-shadow: 2px 0 var(--alerte), -2px 0 var(--cyan);
+  }
+  75% {
+    transform: translateX(3px);
+    text-shadow: none;
+  }
+}
+
+/* Mouvement réduit : ni décalage ni scintillement, un cadre rouge fixe le temps du brouillage. */
+@media (prefers-reduced-motion: reduce) {
+  .jeu.brouille > :not(.brouillage) {
+    animation: none;
+  }
+
+  .brouillage > * {
+    display: none;
+  }
+
+  .brouillage {
+    box-shadow: inset 0 0 0 3px var(--alerte);
+  }
 }

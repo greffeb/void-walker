@@ -86,6 +86,41 @@ function quitterEntreeBulle(): void {
 const INFORMEES = new Set<string>();
 
 /** Écran de jeu (12 §3.1), lu dans cet ordre : en-tête de pièce, récit, dock, navigation (12 §7). */
+const SIGNAUX_DEGAT: ReadonlySet<Signal> = new Set(['blessure', 'blessure-critique', 'mort']);
+/** L'action a coûté de la santé : blessure, blessure critique ou mort (15 §2.2). */
+export const degatSubi = (signaux: readonly Signal[]): boolean => signaux.some((signal) => SIGNAUX_DEGAT.has(signal));
+export const DUREE_BROUILLAGE_MS = 700;
+/** Textes déjà brouillés jusqu'au bout : revenir des options ou de la carte ne rejoue pas l'effet. */
+const brouilles = new WeakSet<Jeu>();
+/** Pixels morts (gauche %, haut %, côté px, retard ms) et déchirures de balayage (haut %, hauteur px, décalage px, retard ms). */
+const PIXELS = [
+  [8, 12, 6, 40], [71, 6, 4, 120], [34, 27, 8, 260], [88, 33, 5, 80], [15, 48, 4, 330], [56, 44, 7, 190],
+  [79, 58, 4, 400], [23, 66, 6, 140], [62, 73, 5, 300], [41, 85, 8, 60], [92, 81, 4, 220], [5, 92, 5, 360],
+] as const;
+const DECHIRURES = [[18, 4, -14, 90], [39, 2, 18, 240], [57, 6, -8, 380], [76, 3, 12, 160], [90, 5, -18, 450]] as const;
+
+/** Calque du brouillage, au-dessus de tout et sans capter le toucher ; le mouvement réduit l'éteint, en CSS. */
+function Brouillage() {
+  return (
+    <div className="brouillage" aria-hidden="true">
+      {PIXELS.map(([gauche, haut, cote, retard]) => (
+        <span
+          key={`p${gauche}`}
+          className="pixel-mort"
+          style={{ left: `${gauche}%`, top: `${haut}%`, width: cote, height: cote, animationDelay: `${retard}ms` }}
+        />
+      ))}
+      {DECHIRURES.map(([haut, hauteur, decalage, retard]) => (
+        <span
+          key={`d${haut}`}
+          className="dechirure"
+          style={{ top: `${haut}%`, height: hauteur, transform: `translateX(${decalage}px)`, animationDelay: `${retard}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function EcranJeu({
   jeu,
   lus,
@@ -164,6 +199,18 @@ export function EcranJeu({
   useEffect(() => {
     annoncerTexte(son, jeu, ecrire, signaux);
   }, [son, jeu, ecrire, signaux]);
+
+  // Dégât subi (#166) : l'écran se brouille une fois par texte, en même temps que le texte rouge.
+  const [brouilleFini, setBrouilleFini] = useState<Jeu | null>(null);
+  const brouille = degatSubi(signaux) && brouilleFini !== jeu && !brouilles.has(jeu);
+  useEffect(() => {
+    if (!brouille) return;
+    const fin = setTimeout(() => {
+      brouilles.add(jeu);
+      setBrouilleFini(jeu);
+    }, DUREE_BROUILLAGE_MS);
+    return () => clearTimeout(fin);
+  }, [brouille, jeu]);
 
   useEffect(() => {
     const fin = setTimeout(() => marquerEcrit(jeu), DUREE_ECRITURE_MS);
@@ -248,7 +295,8 @@ export function EcranJeu({
   const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
   return (
     // Pendant l'écriture, tout toucher agit normalement et affiche le texte en entier.
-    <main className="jeu" onPointerDownCapture={completer} onKeyDownCapture={completer}>
+    <main className={brouille ? 'jeu brouille' : 'jeu'} onPointerDownCapture={completer} onKeyDownCapture={completer}>
+      {brouille && <Brouillage />}
       <header className="entete-piece">
         <h1 className="titre-piece">{nomDe(textes, observation.piece).texte}</h1>
         <BadgeSante sante={observation.sante} />
@@ -980,10 +1028,10 @@ export function DockPiece({
   /** Cible dont la bulle est ouverte : sa puce ou son bouton passe en vidéo inverse. */
   readonly puceOuverte: string | null;
   readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
-  /** « Regarder autour de vous », déplacements et portes : sans aperçu (D-267). */
+  /** « Regarder autour de vous », « Attendre », déplacements et portes : sans aperçu (D-267, D-274). */
   readonly jouer: Jouer;
 }) {
-  const autour = dock.autour;
+  const { autour, attendre } = dock;
   return (
     <section className="dock">
       <h2 className="titre-section">Dans la pièce</h2>
@@ -1005,11 +1053,21 @@ export function DockPiece({
           </li>
         ))}
       </ul>
-      {autour !== undefined && (
-        <button type="button" className="puce autour" disabled={occupe} onClick={() => jouer(autour)} data-son="confirmer">
-          <span aria-hidden="true">▸ </span>
-          {REGARDER_AUTOUR}
-        </button>
+      {(autour !== undefined || attendre !== undefined) && (
+        <div className="autour">
+          {autour !== undefined && (
+            <button type="button" className="puce" aria-label={REGARDER_AUTOUR} disabled={occupe} onClick={() => jouer(autour)} data-son="confirmer">
+              <span aria-hidden="true">▸ </span>
+              {textes.verbes.regarder}
+            </button>
+          )}
+          {attendre !== undefined && (
+            <button type="button" className="puce" disabled={occupe} onClick={() => jouer(attendre)} data-son="confirmer">
+              <span aria-hidden="true">▸ </span>
+              {textes.verbes.attendre}
+            </button>
+          )}
+        </div>
       )}
       {dock.deplacements.length > 0 && (
         <>

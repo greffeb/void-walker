@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App, EcranRefus } from './App';
-import { BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
+import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { APERCU_TAILLE, EcranFin, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
@@ -151,7 +151,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('dock : objets de la pièce, regard autour de soi ; une ligne par salle, nom et état de sa porte, sans bulle (D-267)', async () => {
     const dock = entre(rendre(await commencer(env)), '<section class="dock"', '</section>');
-    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder autour de vous Se déplacer vers → atelier Fermée → soute Fermée');
+    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder ▸ Attendre Se déplacer vers → atelier Fermée → soute Fermée');
     // Porte fermée : nom en pointillé, toujours touchable ; le moteur refuse sans coût, le son dit le refus.
     const nom = entre(dock, '<button type="button" class="deplacement', '</button>');
     expect(nom).toContain('class="deplacement bloque" aria-label="atelier, La porte de l’atelier est fermée." data-son="refus"');
@@ -159,6 +159,11 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const porte = entre(dock, '<button type="button" class="porte-etat', '</button>');
     expect(porte).toBe(
       '<button type="button" class="porte-etat" aria-label="Porte de l’atelier, fermée" data-son="confirmer"><span class="temoin" aria-hidden="true"></span>Fermée</button>',
+    );
+    // « Regarder » et « Attendre » sur une ligne, d'un toucher ; le lecteur d'écran garde « Regarder autour de vous » (D-274).
+    expect(entre(dock, '<div class="autour">', '</div>')).toBe(
+      '<div class="autour"><button type="button" class="puce" aria-label="Regarder autour de vous" data-son="confirmer"><span aria-hidden="true">▸ </span>Regarder</button>' +
+        '<button type="button" class="puce" data-son="confirmer"><span aria-hidden="true">▸ </span>Attendre</button></div>',
     );
     // Seule la puce du carnet ouvre une bulle.
     expect(dock.match(/aria-haspopup="dialog"/g)).toHaveLength(1);
@@ -488,7 +493,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 });
 
-describe('plus aucune sortie (12 §5.2, D-085, D-144, D-273)', () => {
+describe('plus aucune sortie (12 §5.2, D-085, D-144, D-275)', () => {
   const m08 = MONDES['m-08'] as EntreeMonde;
   const envM08: Environnement = { ...env, monde: m08.monde, textes: m08.textes };
   const ecran = (jeu: Jeu): string =>
@@ -1068,5 +1073,15 @@ describe('danger apparu : triangle rouge devant la phrase du feu (#138, D-233)',
 
   it('avant la découverte, aucun triangle ni ligne d’alerte', async () => {
     for (const nombre of [0, 1, 2, 3]) expect(recitDe(await pb(nombre))).not.toContain('alerte');
+  });
+});
+
+describe('brouillage d’un dégât (#166)', () => {
+  it('se joue sur blessure, blessure critique et mort, pas sur un soin ni une alarme', () => {
+    expect(degatSubi(['blessure'])).toBe(true);
+    expect(degatSubi(['alarme-feu', 'blessure-critique'])).toBe(true);
+    expect(degatSubi(['mort'])).toBe(true);
+    expect(degatSubi(['soin', 'alarme-vide', 'creature', 'ia'])).toBe(false);
+    expect(degatSubi([])).toBe(false);
   });
 });
