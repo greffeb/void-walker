@@ -10,6 +10,15 @@
       "x": "t8cO_gFetnO65EJL2N__U-g6Sx38l_LXl_mvwjoMzPg",
       "y": "CccAuyAtQApP8CCAECLKr0pjb1k1jU-T-J08_Qe2L54"
     }
-    }
+    },
+    {
+  "nom": "Laptop du porteur du projet",
+  "cle": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "9mWMrN-WBZe6ORvy5yPCNtXmlUXz90w5PcN2V3itRcE",
+    "y": "hwVXkIA4nTU9sXJ1dx8BWl8MzwFjxgCFJSBxx6MZ8E4"
+  }
+}
   ]
 }
