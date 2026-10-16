@@ -357,6 +357,36 @@ const GRAVITE: DefMonde = {
   ],
 };
 
+describe('attendre (D-274)', () => {
+  it('un tour sans rien faire : une action, sans dé ni bruit, la créature au calme ne bouge pas', () => {
+    const pas = engager(PASSERELLE, partie(PASSERELLE), 'attendre', 'depot');
+    expect(types(pas.evenements)).toEqual(['attente']);
+    expect(pas.tirages).toEqual([]);
+    expect(pas.partie.etat.actions).toBe(1);
+    expect(pas.partie.etat.creature?.piece).toBe('fond');
+  });
+
+  it('se propose toujours, et seulement pour la pièce du passager', () => {
+    const choix = observer(PASSERELLE, partie(PASSERELLE).etat).menu.filter((un) => un.action === 'attendre');
+    expect(choix).toHaveLength(1);
+    expect(choix[0]).toMatchObject({ disponible: true, cible: { nom: 'depot' } });
+  });
+
+  it('la créature vue partir par la planche : attendre lui laisse son tour, elle suit et tombe (D-177, D-236)', () => {
+    const posee = fin(suite(PASSERELLE, partie(PASSERELLE), [['prendre', 'planche'], ['aller', 'ouest'], ['placer', 'planche', 'est'], ['aller', 'est']]));
+    const suivie = placee(PASSERELLE, { ...posee.etat, creature: { piece: 'ouest', ...CALME, indice: { piece: 'est', par: 'gouffre' } } });
+    const chute = engager(PASSERELLE, suivie, 'attendre', 'est');
+    expect(types(chute.evenements)).toEqual(['attente', 'pont_cede']);
+    expect(chute.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
+  });
+
+  it('sous ses yeux, attendre expose au jet d’interception comme toute action (C-04 §4.2)', () => {
+    const face = placee(PASSERELLE, { creature: { piece: 'depot', ...CALME, contact: true } });
+    const pas = engager(PASSERELLE, face, 'attendre', 'depot');
+    expect(pas.tirages).toHaveLength(1);
+  });
+});
+
 describe('zone sans gravité (D-165, D-237, D-238)', () => {
   it('la fixture est valide ; un interrupteur dans la zone ou loin d’elle est refusé (D-238)', () => {
     expect(validerMonde(GRAVITE)).toEqual([]);

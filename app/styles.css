@@ -976,7 +976,11 @@ button:disabled {
   border-color: var(--texte);
 }
 
-.puce.autour {
+/* « Regarder » et « Attendre » sur une ligne (D-274). */
+.autour {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
   margin-top: 6px;
 }
 

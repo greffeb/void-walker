@@ -48,6 +48,7 @@ export const EVENEMENTS_REGLES_MORCEAUX = {
     'Vous abaissez {le:objet}. Un voyant passe au vert ; au loin, un verrou se lève avec un claquement sourd.',
     'Vous tournez {le:objet} jusqu’en butée. Un voyant vert s’allume : le verrou de la cloison est levé.',
   ],
+  attente: ['Vous restez immobile, l’oreille tendue. Rien ne bouge.', 'Vous retenez votre souffle et attendez. Le silence vous répond.'],
 } as const satisfies Partial<TextesMonde['evenements']>;
 
 /** Pour les mondes qui ne sont pas rangés par couches (AR-01, AR-02, monde de test) : règles et créature ensemble. */
@@ -92,6 +93,7 @@ export const LIBELLES_MORCEAUX = {
   retablir: 'Rétablir la gravité',
   boucler: 'Fermer la chambre depuis {le:cible}',
   actionner: 'Actionner {le:cible}',
+  attendre: 'Attendre',
 } as const satisfies Partial<TextesMonde['libelles']>;
 
 export const VERBES_MORCEAUX = {
@@ -103,6 +105,7 @@ export const VERBES_MORCEAUX = {
   retablir: 'Rétablir',
   boucler: 'Fermer la chambre',
   actionner: 'Actionner',
+  attendre: 'Attendre',
 } as const satisfies Partial<TextesMonde['verbes']>;
 
 /** Règles des morceaux sans la créature : socle. */

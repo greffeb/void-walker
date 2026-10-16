@@ -171,6 +171,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   bruit_mecanisme: ['passage'],
   bruit_creature: ['passage'],
   creature_entre: ['passage'],
+  attente: [],
   premier_contact: [],
   menace: [],
   aggravation_blesse: [],
@@ -239,6 +240,7 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   retablir: ['cible'],
   boucler: ['cible'],
   actionner: ['cible'],
+  attendre: [],
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;

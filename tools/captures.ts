@@ -649,7 +649,7 @@ async function etatEcriture(page: Page, ms?: number): Promise<EtatEcriture> {
 /** Joue « Regarder autour de vous » et attend que son texte remplace le précédent : une nouvelle écriture commence. */
 async function nouveauTexte(page: Page): Promise<void> {
   const ancien = await page.locator('[data-testid="recit"] .car').first().elementHandle();
-  await page.locator('.dock .autour').click();
+  await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
   await page.waitForFunction((car) => car === null || !car.isConnected, ancien);
 }
 

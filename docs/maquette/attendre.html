@@ -1,0 +1,139 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attendre Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Comparateur #132 : placement du bouton ATTENDRE et récit d'un tour d'attente. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --danger: #ff6a3d;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 760px; position: relative; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.recit .ancien { opacity: .5; }
+.recit .danger { color: var(--danger); }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.puces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.puce { font: inherit; text-align: left; color: var(--texte); background: transparent; border: 1px solid var(--bordure); padding: 8px 10px; font-size: 14px; min-height: 46px; display: flex; align-items: center; }
+.puce.fond { opacity: .45; }
+.puce.vise { box-shadow: 0 0 0 2px var(--accent); opacity: 1; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.aller { font: inherit; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; text-align: left; min-height: 48px; padding: 6px 10px; background: var(--texte); color: var(--fond); border: 1px solid var(--texte); display: flex; align-items: center; gap: 8px; opacity: .45; }
+.aller .rep { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 5px; border: 1px solid currentColor; letter-spacing: .06em; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+
+/* Aperçu avec risque, comme pour les autres actions dangereuses. */
+.apercu { position: absolute; left: 12px; right: 12px; bottom: 74px; background: var(--surface); border: 1px solid var(--danger); padding: 12px; display: grid; gap: 8px; font-size: 14px; }
+.apercu .risque { color: var(--danger); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
+.apercu .boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.apercu button { font: inherit; min-height: 46px; border: 1px solid var(--bordure); background: transparent; color: var(--texte); }
+.apercu button.principal { background: var(--texte); color: var(--fond); border-color: var(--texte); font-weight: 600; }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Issue #132. <b>ATTENDRE</b> = un tour : une réaction de la créature, et tout ce qui se propage est raconté. Toujours un seul toucher, sans aperçu, même sous les yeux de la créature. Le bouton visé est entouré.</p>
+
+  <p class="etiquette">Placement</p>
+  <div class="onglets" role="tablist" id="placements">
+    <button class="onglet" role="tab" data-p="A" aria-selected="true">A · côte à côte</button>
+    <button class="onglet" role="tab" data-p="B" aria-selected="false">B · en dessous</button>
+    <button class="onglet" role="tab" data-p="C" aria-selected="false">C · en bas du dock</button>
+  </div>
+
+  <p class="etiquette">Situation après le toucher</p>
+  <div class="onglets" role="tablist" id="situations">
+    <button class="onglet" role="tab" data-s="rien" aria-selected="true">Rien ne bouge</button>
+    <button class="onglet" role="tab" data-s="pont" aria-selected="false">Le pont cède</button>
+    <button class="onglet" role="tab" data-s="vue" aria-selected="false">Créature en vue</button>
+  </div>
+
+  <div class="tel">
+    <header class="entete"><h1>Bord de la passerelle</h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <div id="apercu"></div>
+    <nav class="nav"><span>CARTE</span><span>SAC</span><span>MENU</span></nav>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const RECITS = {
+  rien: `<p class="ancien">Vous franchissez la planche et reprenez pied de l’autre côté du vide.</p>
+    <p class="cmd">&gt; attendre</p>
+    <p>Vous restez immobile, l’oreille tendue. Rien ne bouge.</p>`,
+  pont: `<p class="ancien">Vous franchissez la planche et reprenez pied de l’autre côté du vide.</p>
+    <p class="cmd">&gt; attendre</p>
+    <p>Vous restez immobile, l’oreille tendue.</p>
+    <p class="danger">Un craquement sec : la planche cède sous un poids énorme, et quelque chose bascule dans le vide.</p>`,
+  vue: `<p class="ancien">La créature se tient devant la porte, immobile.</p>
+    <p class="cmd">&gt; attendre</p>
+    <p>Vous restez immobile, l’oreille tendue.</p>
+    <p class="danger">Elle bondit sans prévenir. Ses griffes vous lacèrent l’épaule.</p>`,
+};
+const VERDICTS = {
+  A: '<b>A</b> : les deux gestes sans effet sur la pièce sont groupés. Libellés courts pour tenir sur une demi-largeur.',
+  B: '<b>B</b> : ATTENDRE prend une ligne entière sous REGARDER AUTOUR. Plus lisible, mais une ligne de plus dans le dock.',
+  C: '<b>C</b> : ATTENDRE après les salles, en dernier recours. Loin de REGARDER AUTOUR, moins de risque de le toucher par erreur.',
+};
+let placement = 'A', situation = 'rien';
+
+const objets = `<h2 class="titre-section">Objets</h2>
+  <div class="puces"><span class="puce fond">▸ Extincteur</span><span class="puce fond">▸ Casier</span></div>`;
+const autour = (court) => `<span class="puce fond">▸ ${court ? 'Regarder' : 'Regarder autour de vous'}</span>`;
+const attendre = `<button class="puce vise">▸ Attendre</button>`;
+const salles = `<h2 class="titre-section">Se déplacer vers</h2>
+  <span class="aller">Passerelle<span class="rep">BRUIT</span></span>
+  <span class="aller">Couloir</span>`;
+
+function rendre() {
+  const dock = {
+    A: objets + `<div class="duo">${autour(true)}${attendre}</div>` + salles,
+    B: objets + autour(false) + attendre + salles,
+    C: objets + autour(false) + salles + attendre,
+  }[placement];
+  document.getElementById('dock').innerHTML = dock;
+  document.getElementById('recit').innerHTML = RECITS[situation];
+  document.getElementById('verdict').innerHTML = VERDICTS[placement];
+  for (const b of document.querySelectorAll('[data-p]')) b.setAttribute('aria-selected', b.dataset.p === placement);
+  for (const b of document.querySelectorAll('[data-s]')) b.setAttribute('aria-selected', b.dataset.s === situation);
+}
+document.getElementById('placements').addEventListener('click', (e) => { const p = e.target.closest('[data-p]')?.dataset.p; if (p) { placement = p; rendre(); } });
+document.getElementById('situations').addEventListener('click', (e) => { const s = e.target.closest('[data-s]')?.dataset.s; if (s) { situation = s; rendre(); } });
+rendre();
+</script>

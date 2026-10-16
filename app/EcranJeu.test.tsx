@@ -151,7 +151,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('dock : objets de la pièce, regard autour de soi ; une ligne par salle, nom et état de sa porte, sans bulle (D-267)', async () => {
     const dock = entre(rendre(await commencer(env)), '<section class="dock"', '</section>');
-    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder autour de vous Se déplacer vers → atelier Fermée → soute Fermée');
+    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder ▸ Attendre Se déplacer vers → atelier Fermée → soute Fermée');
     // Porte fermée : nom en pointillé, toujours touchable ; le moteur refuse sans coût, le son dit le refus.
     const nom = entre(dock, '<button type="button" class="deplacement', '</button>');
     expect(nom).toContain('class="deplacement bloque" aria-label="atelier, La porte de l’atelier est fermée." data-son="refus"');
@@ -159,6 +159,11 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     const porte = entre(dock, '<button type="button" class="porte-etat', '</button>');
     expect(porte).toBe(
       '<button type="button" class="porte-etat" aria-label="Porte de l’atelier, fermée" data-son="confirmer"><span class="temoin" aria-hidden="true"></span>Fermée</button>',
+    );
+    // « Regarder » et « Attendre » sur une ligne, d'un toucher ; le lecteur d'écran garde « Regarder autour de vous » (D-274).
+    expect(entre(dock, '<div class="autour">', '</div>')).toBe(
+      '<div class="autour"><button type="button" class="puce" aria-label="Regarder autour de vous" data-son="confirmer"><span aria-hidden="true">▸ </span>Regarder</button>' +
+        '<button type="button" class="puce" data-son="confirmer"><span aria-hidden="true">▸ </span>Attendre</button></div>',
     );
     // Seule la puce du carnet ouvre une bulle.
     expect(dock.match(/aria-haspopup="dialog"/g)).toHaveLength(1);
