@@ -182,7 +182,7 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
 - **Étape 1, action :** une ligne par manipulation plausible, « ▸ Déplacer », « ▸ Monter dessus », « ▸ Prendre », hauteur 44 px, filets entre les lignes. Les actions indisponibles restent visibles (§3.7).
 - **Étape 2, paramètre :** libellé « OÙ ? », puis une ligne par position ou cible. Selon l'action, le libellé peut devenir « SUR QUOI ? » ou « AVEC QUOI ? ». [Proposé] Une action sans paramètre saute cette étape.
 - **Étape 3, aperçu** (§3.8), puis deux boutons : ANNULER (un tiers de la largeur, contour) et CONFIRMER (deux tiers, vidéo inverse).
-- **Un seul toucher :** prendre, poser ou changer de pièce sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». [Validé D-182, D-229]
+- **Un seul toucher :** prendre ou poser sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». Ouvrir ou fermer une porte n'en a jamais, même dans une bulle (l'écoutille au pupitre). [Validé D-182, D-267]
 - **Pupitre de départ :** sa bulle offre aussi « ▸ Fermer l'écoutille » ou « ▸ Ouvrir l'écoutille », au-dessus de « ▸ Lancer » ; mêmes options que le bouton du bas, seule exception à la place unique de §3.4. [Validé D-266]
 - **Fermer sans effet :** « ✕ », ANNULER, toucher hors de la bulle, retour système. [Proposé]
 - La phrase « Rien ne se passe avant confirmation » est retirée. [Validé]

@@ -10,17 +10,19 @@ import {
   lignesActions,
   nomDestination,
   nomParametre,
+  nomLigne,
+  nomPorte,
   nomPuce,
   passagesEntendus,
   passagesOuverts,
   precedente,
   REGARDER_AUTOUR,
+  REPERES,
   unToucher,
   type Deplacement,
   type Dock,
   type Etape,
   type Groupe,
-  type Repere,
 } from './ecran';
 import { Bulle, BulleAncree, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
@@ -929,8 +931,6 @@ export function DockPiece({
   );
 }
 
-const REPERES: Record<Repere, string> = { vide: 'Vide', feu: 'Feu', bruit: 'Bruit' };
-
 /**
  * Ligne « → DESTINATION » (D-267) : le nom fait passer d'un toucher ; impossible (porte fermée), il est en pointillé et le
  * moteur refuse sans coût, le récit dit pourquoi. La commande dit l'état de la porte et l'ouvre ou la ferme d'un toucher ;
@@ -948,13 +948,11 @@ function LigneSalle({
   readonly jouer: Jouer;
 }) {
   const { passer, manoeuvre, reperes, cible } = deplacement;
-  const { raison } = libelleOption(textes, passer);
   const destination = nomDestination(textes, passer);
-  const nom = [destination, ...reperes.map((repere) => REPERES[repere].toLowerCase()), ...(raison === null ? [] : [raison])].join(', ');
   const classes = ['deplacement', ...(passer.disponible ? [] : ['bloque']), ...(reperes.length > 0 ? ['repere-danger'] : [])].join(' ');
   return (
     <li className={manoeuvre === undefined ? 'salle sans-porte' : 'salle'}>
-      <button type="button" className={classes} aria-label={nom} disabled={occupe} onClick={() => jouer(passer)} data-son={passer.disponible ? 'confirmer' : 'refus'}>
+      <button type="button" className={classes} aria-label={nomLigne(textes, deplacement)} disabled={occupe} onClick={() => jouer(passer)} data-son={passer.disponible ? 'confirmer' : 'refus'}>
         <span aria-hidden="true">→ </span>
         {destination}
         {reperes.map((repere) => (
@@ -963,7 +961,7 @@ function LigneSalle({
           </span>
         ))}
       </button>
-      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} textes={textes} occupe={occupe} jouer={jouer} />}
+      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} nom={nomPorte(textes, deplacement)} textes={textes} occupe={occupe} jouer={jouer} />}
     </li>
   );
 }
@@ -971,18 +969,18 @@ function LigneSalle({
 function EtatPorte({
   manoeuvre,
   ouverte,
+  nom,
   textes,
   occupe,
   jouer,
 }: {
   readonly manoeuvre: OptionMenu;
   readonly ouverte: boolean;
+  readonly nom: string;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
   readonly jouer: Jouer;
 }) {
-  const etat = ouverte ? 'ouverte' : 'fermée';
-  const nom = `${nomPuce(textes, manoeuvre.cible)}, ${etat}`;
   const contenu = (
     <>
       <span className="temoin" aria-hidden="true" />

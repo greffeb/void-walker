@@ -248,6 +248,21 @@ export function libelleLigne(textes: TextesMonde, groupe: Groupe, option: Option
   return { libelle: option.cible.id === groupe.cible.id ? verbe : `${verbe} ${former('le', nomDe(textes, option.cible.sorte === 'passage' ? { ...option.cible, vers: null } : option.cible))}`, raison };
 }
 
+/** Repères écrits sur la ligne d'une salle (D-267) ; le lecteur d'écran les lit en minuscules après le nom. */
+export const REPERES: Record<Repere, string> = { vide: 'Vide', feu: 'Feu', bruit: 'Bruit' };
+
+/** Nom accessible du nom d'une salle : destination, repères, puis la raison si l'on ne peut pas passer (D-230, D-267). */
+export function nomLigne(textes: TextesMonde, deplacement: Deplacement): string {
+  const { raison } = libelleOption(textes, deplacement.passer);
+  const reperes = deplacement.reperes.map((repere) => REPERES[repere].toLowerCase());
+  return [nomDestination(textes, deplacement.passer), ...reperes, ...(raison === null ? [] : [raison])].join(', ');
+}
+
+/** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée » (D-267). */
+export function nomPorte(textes: TextesMonde, deplacement: Deplacement): string {
+  return `${nomPuce(textes, deplacement.cible)}, ${deplacement.cible.ouvert ? 'ouverte' : 'fermée'}`;
+}
+
 /** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Caisse › Déplacer › sous la grille », « Aller vers › atelier ». */
 export function filBulle(textes: TextesMonde, cible: Cible, option?: OptionMenu): string {
   if (option?.action === 'aller') return `${textes.verbes.aller} › ${nomDestination(textes, option)}`;

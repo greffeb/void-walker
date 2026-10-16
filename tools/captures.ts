@@ -6,7 +6,7 @@ import { preview } from 'vite';
 import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { COMPOSITIONS_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type EntreeMonde, type EtapeParcours } from '../content';
-import { composerDock, filBulle, nomDestination, nomParametre, nomPuce, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
+import { composerDock, filBulle, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
 import { CLE_REGLAGES } from '../app/reglages';
 import { CATALOGUE } from './catalogue';
 import { rejouerExport } from './rejouer-export';
@@ -48,7 +48,7 @@ export interface EtapeCapture {
 export interface Geste {
   readonly titre: string;
   readonly zone: 'piece' | 'inventaire' | 'deplacement';
-  /** Nom du bouton touché : la puce, ou la destination, suivie de la raison si le déplacement est impossible (D-229). */
+  /** Nom du bouton touché : la puce ; pour un passage, le nom de la salle ou l'état de sa porte, sur sa ligne (D-267). */
   readonly bouton: string;
   /** Nom de la bulle ouverte par le bouton : la puce, ou le passage (« Porte de l’atelier »). */
   readonly bulle: string;
@@ -74,7 +74,7 @@ const SANS_CONFIRMATION = ', sans confirmation';
 const PAUSE_JOUEUR_MS = 700;
 
 function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Observation, option: OptionMenu): Geste {
-  const dock = composerDock(observation, passagesOuverts(partie));
+  const dock = composerDock(observation, passagesOuverts(partie), passagesEntendus(partie));
   const titre = libelleOption(textes, option).libelle;
   const rappel = texteRappel(textes, rappelDe(option)).texte;
   const fil = filBulle(textes, option.cible, option);
@@ -83,8 +83,9 @@ function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Ob
   const deplacement = dock.deplacements.find((candidat) => candidat.options.includes(option));
   if (deplacement !== undefined) {
     const destination = nomDestination(textes, deplacement.aller);
-    const { raison } = libelleOption(textes, deplacement.aller);
-    const bouton = raison === null ? destination : `${destination}, ${raison}`;
+    // Une ligne de salle se joue d'un toucher : le nom fait passer, l'état ouvre ou ferme la porte (D-267).
+    if (option !== deplacement.passer && option !== deplacement.manoeuvre) throw new Error(`${titre} : aucun bouton sur la ligne de ${destination}.`);
+    const bouton = option === deplacement.passer ? nomLigne(textes, deplacement) : nomPorte(textes, deplacement);
     const bulle = nomPuce(textes, deplacement.cible);
     if (option.action !== 'aller') {
       const nom = nomDe(textes, option.cible).texte;
@@ -185,8 +186,9 @@ function exactement(texte: string): RegExp {
   return new RegExp(`^${echapper(texte)}$`, 'i');
 }
 
-/** Ouvre la bulle touchée : la fiche d'une puce ou d'un passage de « Se déplacer vers » (D-229). */
+/** Ouvre la bulle touchée : la fiche d'une puce ; une ligne de « Se déplacer vers » n'en a pas (D-267). */
 async function ouvrir(page: Page, geste: Geste): Promise<void> {
+  if (geste.zone === 'deplacement') return;
   if (geste.zone === 'inventaire') {
     const inventaire = page.getByRole('button', { name: exactement('Inventaire') });
     if ((await inventaire.getAttribute('aria-expanded')) !== 'true') await inventaire.click();
@@ -196,7 +198,7 @@ async function ouvrir(page: Page, geste: Geste): Promise<void> {
   }
 }
 
-/** Puces de la pièce ou boutons « Se déplacer vers » : la puce « Grille » et le bouton « → grille » portent le même nom (D-147). */
+/** Puces de la pièce ou lignes « Se déplacer vers » : la puce « Grille » et le nom « → grille » portent le même nom (D-147). */
 function zoneDuDock(page: Page, geste: Geste): Locator {
   return page.locator(geste.zone === 'deplacement' ? '.dock .deplacements' : '.dock .puces');
 }
@@ -206,9 +208,13 @@ function filQuestion(geste: Geste): string {
   return `${geste.bulle} › ${geste.verbe}`;
 }
 
-/** Joue un geste d'un seul toucher depuis sa bulle ouverte : la ligne de l'action, sans aperçu (D-182). */
+/** Joue un geste d'un seul toucher : la ligne de l'action dans sa bulle ouverte (D-182), ou le bouton de la ligne de salle (D-267). */
 async function toucherLigne(page: Page, geste: Geste): Promise<void> {
   await page.waitForTimeout(PAUSE_JOUEUR_MS);
+  if (geste.zone === 'deplacement') {
+    await zoneDuDock(page, geste).getByRole('button', { name: exactement(geste.bouton) }).click();
+    return;
+  }
   await page.getByRole('dialog', { name: exactement(geste.bulle) }).getByRole('button', { name: exactement(`${geste.verbe}${SANS_CONFIRMATION}`) }).click();
 }
 
@@ -412,8 +418,8 @@ async function partieEnregistree(page: Page): Promise<string> {
 
 const FERMETURES = ['✕', 'voile', 'Échap', 'retour système', 'ANNULER'] as const;
 
-/** Boutons du dock qui ouvrent une bulle : puces des objets, et boutons « Se déplacer vers » (D-229). */
-const OUVRE_BULLE = '.dock .puce[aria-haspopup="dialog"], .dock .deplacement[aria-haspopup="dialog"]';
+/** Boutons du dock qui ouvrent une bulle : les puces des objets ; les lignes de salle n'en ouvrent pas (D-267). */
+const OUVRE_BULLE = '.dock .puce[aria-haspopup="dialog"]';
 
 async function verifierFocusPiege(page: Page, bulle: Locator, ou: string, erreurs: string[]): Promise<void> {
   for (const touche of ['Tab', 'Tab', 'Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
@@ -426,22 +432,44 @@ async function verifierFocusPiege(page: Page, bulle: Locator, ou: string, erreur
 }
 
 /**
+ * Une salle derrière une porte fermée (D-267) : nom en pointillé, sans bulle, son de refus ; touché ou validé au clavier,
+ * le moteur refuse sans coût : le récit dit pourquoi, la partie enregistrée ne change pas.
+ */
+async function verifierSalleFermee(page: Page, erreurs: string[]): Promise<void> {
+  const partie = await partieEnregistree(page);
+  const ferme = page.locator('.dock .deplacements .deplacement.bloque').first();
+  if ((await ferme.count()) === 0) {
+    erreurs.push('Départ : aucune salle derrière une porte fermée.');
+    return;
+  }
+  const attributs = await ferme.evaluate((bouton) => ({ bulle: bouton.hasAttribute('aria-haspopup'), son: bouton.dataset.son, nom: bouton.getAttribute('aria-label') ?? '' }));
+  if (attributs.bulle || attributs.son !== 'refus' || !attributs.nom.includes(', ')) {
+    erreurs.push(`Salle fermée « ${attributs.nom} » : attendue sans bulle, son « refus », nommée avec sa raison.`);
+  }
+  await page.waitForTimeout(PAUSE_JOUEUR_MS);
+  await ferme.click();
+  await ferme.focus();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(500);
+  if ((await partieEnregistree(page)) !== partie) erreurs.push('Toucher une salle fermée a modifié la partie enregistrée.');
+  if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== '0') erreurs.push('Toucher une salle fermée a compté une action.');
+  if (!(await lire(page)).recit.includes('fermé')) erreurs.push('Toucher une salle fermée : le récit ne dit pas pourquoi.');
+}
+
+/**
  * Ouvrir, parcourir et fermer dix fois les bulles ne change rien (C-01 A-01) : cinq fois depuis l'aperçu, cinq fois depuis la fiche.
  * Le focus entre dans la bulle, n'en sort pas au clavier et revient sur la puce à la fermeture (12 §7).
  */
 async function verifierSansEffet(page: Page, erreurs: string[]): Promise<void> {
   const avant = { partie: await partieEnregistree(page), ...(await lire(page)) };
-  // Puces des objets et boutons « Se déplacer vers », qui ouvrent la bulle de leur passage (D-229).
   const puces = await page.locator(OUVRE_BULLE).all();
   if (puces.length === 0) erreurs.push('Aucune puce à ouvrir au départ : bulles non vérifiées.');
   for (let fois = 0; fois < 10; fois++) {
-    // Décalé d'un cran : la première bulle ouverte est celle d'une porte, dont l'action garde l'aperçu.
     const puce = puces[(fois + 1) % puces.length];
     const depuisFiche = fois >= FERMETURES.length;
     const choix = depuisFiche ? (FERMETURES[fois % (FERMETURES.length - 1)] ?? '✕') : (FERMETURES[fois] ?? '✕');
     if (puce === undefined) break;
     await puce.click();
-    // La bulle porte le nom de la puce, ou du passage pour un bouton « → DESTINATION ».
     await page.getByRole('dialog').waitFor();
     const nom = ((await page.getByRole('dialog').locator('.bulle-titre').textContent()) ?? '').trim();
     const fiche = page.getByRole('dialog', { name: exactement(nom) });
@@ -473,15 +501,6 @@ async function verifierSansEffet(page: Page, erreurs: string[]): Promise<void> {
       erreurs.push(`Bulle « ${nom} » fermée par ${fermeture} : le focus ne revient pas sur la puce.`);
     }
   }
-  // Une action indisponible ne joue rien, même touchée ou validée au clavier (12 §3.7) : le déplacement par une porte fermée, dans sa bulle (D-229).
-  await page.locator('.dock .deplacement.bloque').first().click();
-  const bulleFermee = page.getByRole('dialog');
-  const indisponible = bulleFermee.getByRole('button', { name: /, indisponible : /i }).first();
-  await indisponible.click({ force: true });
-  await indisponible.focus();
-  await page.keyboard.press('Enter');
-  await page.keyboard.press('Space');
-  await fermerBulle(page, bulleFermee, '✕');
   const apres = { partie: await partieEnregistree(page), ...(await lire(page)) };
   if (apres.partie !== avant.partie) erreurs.push('Ouvrir et fermer les bulles a modifié la partie enregistrée.');
   if (apres.recit !== avant.recit || apres.situation !== avant.situation) erreurs.push('Ouvrir et fermer les bulles a changé le récit ou la situation.');
@@ -1912,44 +1931,20 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await capturerEtape('Départ');
     await verifierEcran(page, 'Départ', erreurs);
     if ((await page.evaluate(() => document.documentElement.lang)) !== 'fr') erreurs.push('Le document n’est pas déclaré en français.');
-    // Un passage fermé reste dans « Se déplacer vers », en pointillé, nommé avec sa raison ; il ouvre sa bulle (D-229).
-    const passage = gestes.find((geste) => geste.zone === 'deplacement');
-    if (passage?.bouton.includes(', ') === true) {
-      const ferme = zoneDuDock(page, passage).getByRole('button', { name: exactement(passage.bouton) });
-      if (!(await ferme.evaluate((bouton) => bouton.classList.contains('bloque') && bouton.getAttribute('aria-haspopup') === 'dialog'))) {
-        erreurs.push(`« → ${passage.bulle} » devrait être fermé au départ, en pointillé, nommé avec sa raison, et ouvrir sa bulle.`);
-      }
-    }
     await verifierSansEffet(page, erreurs);
+    await verifierSalleFermee(page, erreurs);
     // Premier geste de pièce qui garde l'aperçu : sa bulle est capturée, ici puis à 320 px.
     const premierApercu = gestes.find((geste) => geste.zone === 'piece' && !geste.direct);
 
-    /** Aperçu puis CONFIRMER (12 §3.8) ; l'aperçu d'un déplacement se referme d'abord sans rien jouer, de cinq façons. */
+    /** Aperçu puis CONFIRMER (12 §3.8) ; portes et déplacements n'en ont plus (D-267). */
     const confirmerApres = async (geste: Geste): Promise<void> => {
-      let confirmer = await versApercu(page, geste);
+      const confirmer = await versApercu(page, geste);
       await confirmer.waitFor();
-      if (geste === premierApercu || geste.zone === 'inventaire' || geste.commande.action === 'aller') {
+      if (geste === premierApercu || geste.zone === 'inventaire') {
         const titre = `Aperçu « ${geste.fil} »`;
         await capturerEtape(titre);
         await verifierEcran(page, titre, erreurs);
         await verifierDansEcran(page, titre, erreurs);
-      }
-      if (geste.commande.action === 'aller') {
-        // Le focus revient sur le bouton après chaque fermeture (12 §3.5).
-        const avantFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
-        const bouton = zoneDuDock(page, geste).getByRole('button', { name: exactement(geste.bouton) });
-        await verifierFocusPiege(page, page.getByRole('dialog', { name: exactement(geste.fil) }), `Aperçu « ${geste.fil} »`, erreurs);
-        for (const fermeture of FERMETURES) {
-          if (fermeture !== FERMETURES[0]) await preparer(page, geste);
-          await fermerBulle(page, page.getByRole('dialog', { name: exactement(geste.fil) }), fermeture);
-          await confirmer.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => erreurs.push(`Déplacement : ${fermeture} ne ferme pas l’aperçu.`));
-          if (!(await bouton.evaluate((element) => element === document.activeElement))) {
-            erreurs.push(`Déplacement fermé par ${fermeture} : le focus ne revient pas sur le bouton.`);
-          }
-        }
-        const apresFermetures = { partie: await partieEnregistree(page), ...(await lire(page)) };
-        if (JSON.stringify(apresFermetures) !== JSON.stringify(avantFermetures)) erreurs.push('Fermer l’aperçu du déplacement a changé la partie, le récit ou la situation.');
-        confirmer = await preparer(page, geste);
       }
       await confirmer.click();
     };
@@ -2039,7 +2034,7 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     await verifierPied(page, `Fin, ${ETROIT.width} px`, erreurs);
     await contexte.setOffline(false);
 
-    // Double toucher sur un déplacement d'un seul toucher, dans la bulle du passage (D-229) : un seul déplacement, focus hors des boutons réutilisés (D-182).
+    // Double toucher sur le nom d'une salle (D-267) : un seul déplacement, focus hors des boutons réutilisés (D-182).
     const essai = passageDirect(entree);
     if (essai === undefined) {
       erreurs.push('Aucun déplacement d’un seul toucher à essayer au départ.');
@@ -2048,11 +2043,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       page = await neuf.newPage();
       await page.goto(adresse);
       await nouvelleDepuisAccueil(page);
-      await (await preparer(page, essai.ouvrir)).click();
+      await toucherLigne(page, essai.ouvrir);
       await attendreSauvegarde(page, 1);
-      await ouvrir(page, essai.aller);
       await page.waitForTimeout(PAUSE_JOUEUR_MS);
-      const bouton = page.getByRole('dialog', { name: exactement(essai.aller.bulle) }).getByRole('button', { name: exactement(`${essai.aller.verbe}${SANS_CONFIRMATION}`) });
+      const bouton = zoneDuDock(page, essai.aller).getByRole('button', { name: exactement(essai.aller.bouton) });
       const boite = await bouton.boundingBox();
       if (boite === null) {
         erreurs.push(`« → ${essai.aller.bouton} » d’un seul toucher absent.`);
@@ -2067,22 +2061,18 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
         const actions = await page.getByTestId('sauvegarde').getAttribute('data-actions');
         if (actions !== '2') erreurs.push(`Double toucher sur « → ${essai.aller.bouton} » : ${actions ?? '?'} actions au lieu de 2.`);
         const piece = ((await page.locator('.titre-piece').textContent()) ?? '').trim().toLowerCase();
-        if (piece !== essai.aller.bouton.toLowerCase()) erreurs.push(`Double toucher sur « → ${essai.aller.bouton} » : arrivée en « ${piece} ».`);
-        await capturerEtape(`« → ${essai.aller.bouton} » d’un seul toucher, touché deux fois : un seul déplacement`);
+        if (piece !== essai.aller.nom.toLowerCase()) erreurs.push(`Double toucher sur « → ${essai.aller.bouton} » : arrivée en « ${piece} ».`);
+        await capturerEtape(`« → ${essai.aller.nom} » touché deux fois : un seul déplacement`);
         // Au clavier, retour par le même passage : le focus va au récit ; un second Entrée ne rejoue pas le bouton réutilisé.
-        const retour = page.locator('.dock .deplacements').getByRole('button', { name: exactement(essai.depart) });
+        const retour = page.locator('.dock .deplacements .deplacement').filter({ hasText: new RegExp(`^→\\s*${echapper(essai.depart)}`, 'i') });
         if ((await retour.count()) === 0) {
           erreurs.push('Aucun déplacement d’un seul toucher pour l’essai au clavier.');
         } else {
+          await page.waitForTimeout(PAUSE_JOUEUR_MS);
           await retour.focus();
           await page.keyboard.press('Enter');
-          const ligne = page.getByRole('dialog').getByRole('button', { name: new RegExp(`${echapper(SANS_CONFIRMATION)}$`, 'i') }).first();
-          await ligne.waitFor();
-          await page.waitForTimeout(PAUSE_JOUEUR_MS);
-          await ligne.focus();
-          await page.keyboard.press('Enter');
           await attendreSauvegarde(page, 3);
-          // La bulle refermée, le focus rejoint le récit juste après l'affichage du résultat.
+          // Le focus rejoint le récit juste après l'affichage du résultat.
           await page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'recit', null, { timeout: 2_000 }).catch(() => undefined);
           const focus = await page.evaluate(() => document.activeElement?.getAttribute('data-testid') ?? document.activeElement?.tagName ?? '');
           if (focus !== 'recit') erreurs.push(`Après un déplacement d’un seul toucher au clavier, le focus est sur « ${focus} » et non sur le récit.`);
