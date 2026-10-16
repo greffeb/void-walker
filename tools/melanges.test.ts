@@ -180,17 +180,18 @@ describe('le vide gagne les nouveaux morceaux (D-246)', () => {
   }, 60000);
 });
 
+const depart = (monde: DefMonde): Partie => nouvellePartie(monde, { version: 'melanges-test', graine: 7 });
+const fin = (pas: readonly Pas[]): Partie => {
+  const derniere = pas.at(-1)?.partie;
+  if (derniere === undefined) throw new Error('Aucun pas.');
+  return derniere;
+};
+const sansRisque = (pas: readonly Pas[]): void => {
+  expect(pas.flatMap((un) => un.tirages)).toEqual([]);
+  expect(pas.every((un) => un.partie.etat.sante === 'indemne')).toBe(true);
+};
+
 describe('parcours des chemins d’AR-01 (spec L4 §9)', () => {
-  const depart = (monde: DefMonde): Partie => nouvellePartie(monde, { version: 'melanges-test', graine: 7 });
-  const fin = (pas: readonly Pas[]): Partie => {
-    const derniere = pas.at(-1)?.partie;
-    if (derniere === undefined) throw new Error('Aucun pas.');
-    return derniere;
-  };
-  const sansRisque = (pas: readonly Pas[]): void => {
-    expect(pas.flatMap((un) => un.tirages)).toEqual([]);
-    expect(pas.every((un) => un.partie.etat.sante === 'indemne')).toBe(true);
-  };
   const prouvee = (composition: string) => {
     const reference = stationDeReference(CATALOGUE, composition);
     if ('refus' in reference) throw new Error(reference.refus);
@@ -347,4 +348,180 @@ describe('parcours des chemins d’AR-01 (spec L4 §9)', () => {
   it('M-01, créature sur le palier, m07-m01-m03-palier : prouvée', () => {
     prouvee('m07-m01-m03-palier');
   }, 60000);
+});
+
+describe('mélanges des chemins d’AR-01 (spec L4 §5)', () => {
+  /** Du contrôle de M-04 à sa sortie, burette en main ; `huiler` : seuil de l'observation huilé depuis le contrôle. */
+  const parM04 = (sortie: string, huiler: boolean): Geste[] => [
+    ['ouvrir', 'controle'],
+    ['aller', 'controle'],
+    ['prendre', 'burette'],
+    ...(huiler ? [['verser', 'burette', 'observation'] as const] : []),
+    ['ouvrir', 'observation'],
+    ['aller', 'observation'],
+    ['ouvrir', sortie],
+    ['aller', sortie],
+  ];
+  /** Du couloir de M-06 à la panoramique, combinaison enfilée et découpeuse en main. */
+  const equiperM06: readonly Geste[] = [
+    ['aller', 'local'],
+    ['enfiler', 'combinaison'],
+    ['prendre', 'decoupeuse'],
+    ['aller', 'couloir_securite'],
+    ['ouvrir', 'panoramique'],
+    ['aller', 'panoramique'],
+  ];
+
+  it('MX-02, m01-m06-embarquement : portes ouvertes de la baie percée jusqu’à la galerie en feu, le vide l’éteint et le palier sans air ne brûle pas', () => {
+    const monde = stationDe('m01-m06-embarquement');
+    const pas = suite(monde, depart(monde), [
+      ['ouvrir', 'poste_incendie'],
+      ['aller', 'poste_incendie'],
+      ['prendre', 'bidon'],
+      ['ouvrir', 'galerie'],
+      ['arroser', 'bidon', 'galerie'],
+      ['aller', 'galerie'],
+      ['fermer', 'poste_incendie'],
+      ['ouvrir', 'palier'],
+      ['aller', 'palier'],
+      ['fermer', 'galerie'],
+      ['ouvrir', 'couloir_securite'],
+      ['aller', 'couloir_securite'],
+      ...equiperM06,
+    ]);
+    sansRisque(pas);
+    // Galerie rallumée : on ne la traverse pas en feu sans blessure, et rien ne la rallume une fois arrosée.
+    const equipe: Partie = { ...fin(pas), etat: { ...fin(pas).etat, feu: ['m-01/p-galerie'] } };
+    const percee = suite(monde, equipe, [['percer', 'baie']]);
+    expect(piecesSansAir(monde, fin(percee).etat)).toContain('m-01/p-palier');
+    expect(piecesSansAir(monde, fin(percee).etat)).not.toContain('m-01/p-galerie');
+    expect(fin(percee).etat.feu).toEqual(['m-01/p-galerie']);
+
+    const retour = suite(monde, fin(percee), [
+      ['aller', 'couloir_securite'],
+      ['aller', 'palier'],
+      ['ouvrir', 'galerie'],
+    ]);
+    sansRisque([...percee, ...retour]);
+    expect(retour.at(-2)?.partie.etat.feu).toEqual(['m-01/p-galerie']);
+    const ouverte = fin(retour).etat;
+    expect(piecesSansAir(monde, ouverte)).toEqual(expect.arrayContaining(['m-06/p-panoramique', 'm-06/p-couloir', 'm-01/p-palier', 'm-01/p-galerie']));
+    expect(ouverte.feu).toEqual([]);
+    expect(ouverte.expositions).toEqual([]);
+    expect(retour.at(-1)?.evenements).toContainEqual({ type: 'feu_eteint', piece: expect.objectContaining({ nom: 'galerie' }) });
+  });
+
+  it('MX-03, m04-m06-embarquement : seuil de l’observation huilé, l’air perdu jusqu’à l’observation, l’huile reste', () => {
+    const monde = stationDe('m04-m06-embarquement');
+    const huilee = suite(monde, depart(monde), parM04('couloir_securite', true));
+    const zones = fin(huilee).etat.huile;
+    expect(zones).toEqual([{ liaison: 'm-04/l-controle-observation', piece: 'm-04/p-controle' }]);
+    const percee = suite(monde, fin(huilee), [...equiperM06, ['percer', 'baie']]);
+    sansRisque([...huilee, ...percee]);
+    expect(piecesSansAir(monde, fin(percee).etat)).toEqual(expect.arrayContaining(['m-04/p-observation', 'm-04/p-controle']));
+    expect(fin(percee).etat.huile).toEqual(zones);
+  });
+
+  it('MX-04, m04-m09-m03-reserve : sans gravité, verser est refusé sans coût ; gravité rétablie, il redevient possible', () => {
+    const monde = stationDe('m04-m09-m03-reserve');
+    const pas = suite(monde, depart(monde), [...parM04('quartiers', false), ['ouvrir', 'sas_ouest'], ['aller', 'sas_ouest'], ['aller', 'transfert']]);
+    sansRisque(pas);
+    const coupee = fin(pas);
+    expect(coupee.etat.apesanteur).toContain('m-09/p-transfert');
+    expect(option(monde, coupee, 'verser', 'burette', 'sas_ouest')).toMatchObject({ disponible: false, raison: 'sans_gravite' });
+    expect(refusee(monde, coupee, 'verser', 'burette', 'sas_ouest')).toBe('sans_gravite');
+
+    const retablie = fin(suite(monde, coupee, [['aller', 'sas_ouest'], ['retablir', 'interrupteur_gravite'], ['aller', 'transfert']]));
+    expect(retablie.etat.apesanteur).toEqual([]);
+    expect(option(monde, retablie, 'verser', 'burette', 'sas_ouest')).toMatchObject({ disponible: true });
+    const versee = engager(monde, retablie, 'verser', 'burette', 'sas_ouest');
+    expect(versee.partie.etat.huile).toContainEqual({ liaison: 'm-09/l-sas-ouest-transfert', piece: 'm-09/p-transfert' });
+  });
+
+  it('MX-05, m04-m10-m03-reserve : l’huile versée dans la chambre froide y reste glissante, sans autre effet', () => {
+    const monde = stationDe('m04-m10-m03-reserve');
+    const versee = suite(monde, depart(monde), [
+      ...parM04('quartiers', false),
+      ['aller', 'antichambre'],
+      ['ouvrir', 'chambre'],
+      ['aller', 'chambre'],
+      ['verser', 'burette', 'entrepot'],
+    ]);
+    const zone = { liaison: 'm-10/l-chambre-entrepot', piece: 'm-10/p-chambre' };
+    expect(fin(versee).etat.huile).toEqual([zone]);
+    const sortie = suite(monde, fin(versee), [['aller', 'antichambre']]);
+    const ensuite = attendre(monde, fin(sortie), 'chambre', 2);
+    sansRisque([...versee, ...sortie, ...ensuite]);
+    expect(fin(ensuite).etat.huile).toEqual([zone]);
+    expect(fin(ensuite).etat.creature?.ralentie).toBeUndefined();
+  });
+
+  it('feu et passerelle (D-247), m08-m01-m03-reserve : le feu gagne le poste incendie, la galerie sud, puis la galerie nord par-dessus le vide', () => {
+    const monde = stationDe('m08-m01-m03-reserve');
+    const gestes = suite(monde, depart(monde), [
+      ['ouvrir', 'quartiers'],
+      ['aller', 'quartiers'],
+      ['aller', 'atelier'],
+      ['prendre', 'planche'],
+      ['aller', 'quartiers'],
+      ['ouvrir', 'ouest'],
+      ['aller', 'ouest'],
+      ['placer', 'planche', 'est'],
+      ['aller', 'est'],
+      ['ouvrir', 'poste_incendie'],
+      ['aller', 'poste_incendie'],
+      ['ouvrir', 'galerie'],
+      ['aller', 'est'],
+      ['aller', 'ouest'],
+      ['aller', 'quartiers'],
+      ['fermer', 'ouest'],
+    ]);
+    const pas = [...gestes, ...attendre(monde, fin(gestes), 'atelier', 1)];
+    sansRisque(pas);
+    const ordre: string[] = [];
+    for (const un of pas) for (const piece of un.partie.etat.feu) if (!ordre.includes(piece)) ordre.push(piece);
+    expect(ordre).toEqual(['m-01/p-galerie', 'm-01/p-poste', 'm-08/p-est', 'm-08/p-ouest']);
+    expect(fin(pas).etat.liaisons).toMatchObject({ 'l-m-08-m-01': true, 'm-01/l-poste-galerie': true });
+  });
+
+  describe('vigilance 5 : bloc d’énergie ramené devant un passage étroit, « aller » trop large, refusé sans coût', () => {
+    it('m02-m03-reserve : devant la grille ouverte', () => {
+      const monde = stationDe('m02-m03-reserve');
+      const pas = suite(monde, depart(monde), [
+        ['ouvrir', 'atelier'],
+        ['aller', 'atelier'],
+        ['deplacer', 'caisse', 'sous_grille'],
+        ['ouvrir', 'grille'],
+        ['aller', 'grille'],
+        ['ouvrir', 'energie'],
+        ['aller', 'energie'],
+        ['prendre', 'bloc'],
+        ['aller', 'pompes'],
+      ]);
+      sansRisque(pas);
+      const charge = fin(pas);
+      expect(charge.etat.liaisons['m-02/l-atelier-pompes']).toBe(true);
+      expect(option(monde, charge, 'aller', 'grille')).toMatchObject({ disponible: false, raison: 'trop_large' });
+      expect(refusee(monde, charge, 'aller', 'grille')).toBe('trop_large');
+    });
+
+    it('m05-m03-reserve : devant le panneau ouvert', () => {
+      const monde = stationDe('m05-m03-reserve');
+      const pas = suite(monde, depart(monde), [
+        ['ouvrir', 'service'],
+        ['aller', 'service'],
+        ['ouvrir', 'panneau'],
+        ['aller', 'quai'],
+        ['ouvrir', 'energie'],
+        ['aller', 'energie'],
+        ['prendre', 'bloc'],
+        ['aller', 'quai'],
+      ]);
+      sansRisque(pas);
+      const charge = fin(pas);
+      expect(charge.etat.liaisons['m-05/l-service-quai']).toBe(true);
+      expect(option(monde, charge, 'aller', 'panneau')).toMatchObject({ disponible: false, raison: 'trop_large' });
+      expect(refusee(monde, charge, 'aller', 'panneau')).toBe('trop_large');
+    });
+  });
 });
