@@ -13,7 +13,6 @@ export const MOTS_CARTE = {
   liste: 'LISTE',
   plan: 'PLAN',
   fermer: 'FERMER LA CARTE',
-  vous: '@ VOUS',
   vousEtesIci: 'vous êtes ici',
   etatVu: '── ÉTAT VU ──',
   objetsVus: '── OBJETS VUS ──',

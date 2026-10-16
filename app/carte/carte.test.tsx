@@ -69,16 +69,42 @@ describe('écran de la carte (14 §2)', () => {
     expect(html).toContain('data-statut="actuelle"');
     expect(html).toContain('aria-label="Atelier maintenance, vous êtes ici, FEU, vu à l’instant"');
     expect(html).toContain('aria-label="Local technique, pas encore visitée"');
-    expect(texte(html)).toContain('@ VOUS');
+    expect(texte(html)).not.toContain('@');
+    expect(texte(html)).not.toContain('VOUS');
     expect(texte(html)).not.toMatch(/\d/);
   });
 
-  it('états par motif et étiquette : hachures et FEU, points et VIDE ○, losange et CRÉATURE (D-209)', () => {
+  it('états par motif et étiquette : hachures et FEU, points et VIDE ○, œil et CRÉATURE (D-209, D-273)', () => {
     const html = plan();
     expect(html.match(/url\(#carte-hachures\)/g)).toHaveLength(1);
     expect(html.match(/url\(#carte-points\)/g)).toHaveLength(1);
-    expect(html.match(/class="losange"/g)).toHaveLength(1);
+    expect(html.match(/class="icone-creature"/g)).toHaveLength(1);
+    expect(html).toContain('data-palier="moment"');
     for (const etiquette of ['FEU', 'VIDE ○', 'CRÉATURE']) expect(texte(html)).toContain(etiquette);
+  });
+
+  it('icônes : le passager à ondes radar dans la pièce actuelle, la créature au centre de la place sous le texte (D-273)', () => {
+    const html = plan();
+    expect(html.match(/class="icone-joueur"/g)).toHaveLength(1);
+    expect(html.match(/class="onde onde-\d"/g)).toHaveLength(3);
+    // Atelier (4 × 3 cases, de x 136 à 272) : nom sur deux lignes et FEU, bas du texte à 8 + 3 × 17 = 59 px ; centre de 59 à 102 px.
+    expect(html).toContain('class="icone-joueur" transform="translate(204 80.5) scale(1.3)"');
+    // Salon : nom sur deux lignes, VIDE ○, CRÉATURE ; la place restante est trop basse, l'œil se colle au mur du bas sans toucher le texte.
+    expect(html).toContain('class="icone-creature" data-palier="moment" transform="translate(68 87.7) scale(1.3)"');
+    // Les icônes ne rétrécissent pas avec le plan, et se mettent au centre de la pièce quand plus aucun texte n'y tient.
+    expect(plan(CARTE, { zoom: 0.5, x: 0, y: 0 })).toContain('class="icone-joueur" transform="translate(102 25.5) scale(1.3)"');
+  });
+
+  it('créature vue il y a longtemps : l’œil reste, fixe ; deux icônes dans une pièce se mettent côte à côte (D-273)', () => {
+    const ensemble: CartePublique = {
+      ...CARTE,
+      pieces: CARTE.pieces.map((piece) => (piece.statut === 'actuelle' ? { ...piece, creature: 'longtemps' } : { ...piece, creature: null })),
+    };
+    const html = plan(ensemble);
+    expect(html).toContain('data-palier="longtemps"');
+    expect(html).toMatch(/class="icone-joueur" transform="translate\(([\d.]+) /);
+    const x = (classe: string): number => Number(new RegExp(`class="${classe}"[^>]*translate\\(([\\d.]+) `).exec(html)?.[1]);
+    expect(x('icone-joueur')).toBeLessThan(x('icone-creature'));
   });
 
   it('portes : ouverture, trait fin si fermée, tirets, voyants d’air, « ? » ; capsule arrimée dehors (14 §2.6)', () => {

@@ -1,8 +1,22 @@
 import { useRef, type CSSProperties, type PointerEvent, type WheelEvent } from 'react';
-import type { CartePublique, PassageCarte, PieceCarte } from '../../engine';
-import { libellePiece, nomDe, regardDe, type TextesMonde } from '../../content';
+import type { CartePublique, Palier, PassageCarte, PieceCarte } from '../../engine';
+import { CASE_PX, libellePiece, nomDe, regardDe, type TextesMonde } from '../../content';
 import { pointsTrace, rectCapsule, segmentOuverture } from './dessin';
-import { enPixels, etiquettes, glisser, montrer, pincer, SEUIL_GLISSER_PX, TEXTE_MARQUE, zoneTouchable, type Point, type Vue } from './vue';
+import {
+  centresIcones,
+  enPixels,
+  etiquettes,
+  glisser,
+  ICONE_ECHELLE,
+  iconesDe,
+  montrer,
+  pincer,
+  SEUIL_GLISSER_PX,
+  TEXTE_MARQUE,
+  zoneTouchable,
+  type Point,
+  type Vue,
+} from './vue';
 
 export interface PropsPlan {
   readonly carte: CartePublique;
@@ -17,12 +31,34 @@ export interface PropsPlan {
   readonly ouverte: string | null;
 }
 
-/** Losange de la créature (14 §2.5), avec son point, dans le coin de la pièce. */
-function Losange({ x, y }: { readonly x: number; readonly y: number }) {
+/**
+ * Passager (D-273) : un point plein et trois ondes radar qui s'élargissent en s'estompant ; en mouvement réduit, deux anneaux fixes.
+ * Dessiné autour de (0, 0), puis placé et mis à l'échelle.
+ */
+function Joueur({ centre, echelle }: { readonly centre: Point; readonly echelle: number }) {
   return (
-    <g className="losange">
-      <polygon points={`${x},${y - 7} ${x + 7},${y} ${x},${y + 7} ${x - 7},${y}`} />
-      <circle cx={x} cy={y} r="1.5" />
+    <g className="icone-joueur" transform={`translate(${centre.x} ${centre.y}) scale(${echelle})`}>
+      {[0, 1, 2].map((onde) => (
+        <circle key={onde} className={`onde onde-${onde}`} r="16" />
+      ))}
+      <circle className="anneau" r="8" />
+      <circle className="anneau" r="13" />
+      <circle className="point" r="3.5" />
+    </g>
+  );
+}
+
+/**
+ * Créature vue (D-273) : un œil rouge dont l'intérieur clignote lentement, à l'instant et il y a un moment ; il y a longtemps, il est
+ * fixe et passe en vert secondaire. Le contour et la pupille restent pleins : la forme ne dépend ni du rouge ni du clignotement.
+ */
+function Oeil({ centre, echelle, palier }: { readonly centre: Point; readonly echelle: number; readonly palier: Palier }) {
+  const contour = 'M -9 0 Q 0 -8.5 9 0 Q 0 8.5 -9 0 Z';
+  return (
+    <g className="icone-creature" data-palier={palier} transform={`translate(${centre.x} ${centre.y}) scale(${echelle})`}>
+      <path className="interieur" d={contour} />
+      <path className="contour" d={contour} />
+      <circle className="pupille" r="2.6" />
     </g>
   );
 }
@@ -59,13 +95,15 @@ function Ouverture({ passage, point }: { readonly passage: PassageCarte; readonl
 
 /**
  * Plan de pont (14 §2.4 à §2.6) : traits en SVG, pièces en boutons par-dessus. Glisser d'un doigt le parcourt, pincer le zoome
- * (14 §2.3) ; un toucher sans glissement ouvre la fiche d'une pièce. Aucune animation.
+ * (14 §2.3) ; un toucher sans glissement ouvre la fiche d'une pièce. Seules les icônes s'animent, en CSS, sauf en mouvement réduit.
  */
 export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, toucher, ouverte }: PropsPlan) {
   const doigts = useRef(new Map<number, Point>());
   const depart = useRef<Point | null>(null);
   const glisse = useRef(false);
   const echelle = casePx * vue.zoom;
+  // Échelle de la taille du texte (1 à STANDARD) : les icônes la suivent, pas le zoom (14 §2.5).
+  const echelleTexte = casePx / CASE_PX;
   const point = (x: number, y: number): Point => ({ x: vue.x + x * echelle, y: vue.y + y * echelle });
 
   const appuyer = (evenement: PointerEvent<HTMLDivElement>): void => {
@@ -130,7 +168,6 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
               {piece.feu !== null && <rect className="motif" fill="url(#carte-hachures)" {...forme} />}
               {piece.vide && <rect className="motif" fill="url(#carte-points)" {...forme} />}
               <rect className={`mur mur-${piece.statut}`} {...forme} />
-              {piece.creature !== null && <Losange x={gauche + largeur - 12} y={haut + 12} />}
             </g>
           );
         })}
@@ -143,6 +180,20 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
         {carte.passages.map((passage) => (
           <Ouverture key={passage.id} passage={passage} point={point} />
         ))}
+        {carte.pieces.map((piece) => {
+          const icones = iconesDe(piece);
+          if (piece.rect === null || icones.length === 0) return null;
+          const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom);
+          const centres = centresIcones(enPixels(piece.rect, vue, casePx), textesPiece, icones, echelleTexte);
+          return (
+            <g key={piece.piece.id}>
+              {centres.joueur !== undefined && <Joueur centre={centres.joueur} echelle={ICONE_ECHELLE * echelleTexte} />}
+              {centres.creature !== undefined && piece.creature !== null && (
+                <Oeil centre={centres.creature} echelle={ICONE_ECHELLE * echelleTexte} palier={piece.creature} />
+              )}
+            </g>
+          );
+        })}
       </svg>
       {carte.pieces.map((piece) => {
         if (piece.rect === null) return null;

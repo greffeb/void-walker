@@ -1,5 +1,5 @@
 import type { CartePublique, PieceCarte, RectPlan } from '../../engine';
-import { caracteresParLigne, CASE_PX, couperTexte, MOTS_CARTE, placeDuNom } from '../../content';
+import { caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, MOTS_CARTE, placeDuNom } from '../../content';
 import { rectCapsule } from './dessin';
 
 // Vue du plan à l'écran (14 §2.3) : position et zoom, gestes, et ce qui tient dans chaque pièce à l'échelle courante (14 §2.4).
@@ -40,15 +40,28 @@ export const TEXTE_MIN = 0.75;
 /** Cible tactile minimale (12 §7, 14 §2.9), et part du plan gardée à l'écran quand on glisse. */
 export const CIBLE_MIN_PX = 44;
 
-/** Étiquettes d'état sur le plan (14 §2.5) ; « vous » est le repère de la pièce actuelle. */
-export type Marque = 'vous' | 'feu' | 'vide' | 'creature';
+/** Étiquettes d'état sur le plan (14 §2.5) ; la pièce actuelle n'en a pas, l'icône du passager la marque (D-273). */
+export type Marque = 'feu' | 'vide' | 'creature';
 
 export const TEXTE_MARQUE: Readonly<Record<Marque, string>> = {
-  vous: MOTS_CARTE.vous,
   feu: MOTS_CARTE.feu,
   vide: MOTS_CARTE.vide,
   creature: MOTS_CARTE.creature,
 };
+
+/** Icônes du plan (14 §2.5, D-273) : le passager dans la pièce actuelle, la créature là où elle a été vue. */
+export type Icone = 'joueur' | 'creature';
+
+/** Taille des icônes à la taille de texte STANDARD, par rapport au dessin de base ; elles ne rétrécissent pas au dézoom. */
+export const ICONE_ECHELLE = 1.3;
+/** Hauteur gardée sous le texte pour chaque icône, en px à la taille STANDARD : sa partie fixe et une marge. */
+export const ICONE_HAUTEUR: Readonly<Record<Icone, number>> = { joueur: 30 * ICONE_ECHELLE, creature: 22 * ICONE_ECHELLE };
+/** Écart entre le centre de la pièce et chacune des deux icônes quand elles partagent une pièce. */
+export const ICONE_ECART = 16 * ICONE_ECHELLE;
+
+export function iconesDe(piece: PieceCarte): Icone[] {
+  return [...(piece.statut === 'actuelle' ? (['joueur'] as const) : []), ...(piece.creature === null ? [] : (['creature'] as const))];
+}
 
 export interface Etiquettes {
   readonly nom: readonly string[];
@@ -140,8 +153,8 @@ export function zoneTouchable(boite: BoitePx): BoitePx {
 
 
 /**
- * Ce qui tient dans la pièce au zoom courant (14 §2.3, §2.4) : le nom d'abord, puis les étiquettes d'état, jamais coupées, puis
- * l'ancienneté. Ce qui ne tient pas disparaît ; murs, motifs et losange restent. Le texte et la case grandissent ensemble avec la
+ * Ce qui tient dans la pièce au zoom courant (14 §2.3, §2.4) : le nom d'abord, puis les étiquettes d'état, jamais coupées, puis la
+ * place des icônes sous le texte, puis l'ancienneté (D-273). Ce qui ne tient pas disparaît ; murs, motifs et icônes restent. Le texte et la case grandissent ensemble avec la
  * taille du texte : les mesures de PL-04 valent à toutes les tailles. En dézoomant, le texte rétrécit avec le plan jusqu'à TEXTE_MIN :
  * on mesure alors la place dans des cases ramenées à la taille du texte.
  */
@@ -154,7 +167,6 @@ export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | 
   if (place === null) return rien;
   const max = caracteresParLigne(piece.rect.largeur * casePx);
   const marques: Marque[] = [
-    ...(piece.statut === 'actuelle' ? (['vous'] as const) : []),
     ...(piece.feu === null ? [] : (['feu'] as const)),
     ...(piece.vide ? (['vide'] as const) : []),
     ...(piece.creature === null ? [] : (['creature'] as const)),
@@ -174,5 +186,28 @@ export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | 
     }
   }
   const lignes = anciennete === null ? null : couperTexte(anciennete, piece.rect.largeur * casePx);
-  return { nom: place.lignes, etats, anciennete: lignes !== null && lignes.length <= libres ? lignes : [], texte };
+  if (lignes === null || lignes.length > libres) return { nom: place.lignes, etats, anciennete: [], texte };
+  // L'icône passe avant l'ancienneté : une ancienneté qui lui prendrait sa place s'efface (elle reste dans la fiche et la LISTE).
+  // Hauteurs ramenées à la taille du texte, comme casePx : l'icône, elle, ne rétrécit pas avec le plan.
+  const besoin = Math.max(0, ...iconesDe(piece).map((icone) => ICONE_HAUTEUR[icone])) / texte;
+  const sous = piece.rect.hauteur * casePx - MARGE_PX - LIGNE_PX * (place.lignes.length + etats.length + lignes.length);
+  return { nom: place.lignes, etats, anciennete: besoin > 0 && sous < besoin ? [] : lignes, texte };
+}
+
+/**
+ * Centre des icônes d'une pièce, en px (D-273) : au milieu de la place laissée sous le texte, ou de la pièce entière quand aucun texte
+ * n'y tient (dézoom). Trop basse, la place garde l'icône collée au mur du bas. Deux icônes se mettent côte à côte, le passager à gauche.
+ * `echelle` est l'échelle de la taille du texte (1 à STANDARD).
+ */
+export function centresIcones(boite: BoitePx, textes: Etiquettes, icones: readonly Icone[], echelle: number): Partial<Record<Icone, Point>> {
+  if (icones.length === 0) return {};
+  const lignes = textes.nom.length + textes.etats.length + textes.anciennete.length;
+  const haut = lignes === 0 ? 0 : (MARGE_PX + LIGNE_PX * lignes) * echelle * textes.texte;
+  const besoin = Math.max(...icones.map((icone) => ICONE_HAUTEUR[icone])) * echelle;
+  const libre = boite.hauteur - haut;
+  const y = boite.haut + (libre >= besoin ? haut + libre / 2 : boite.hauteur - besoin / 2);
+  const x = boite.gauche + boite.largeur / 2;
+  if (icones.length === 1) return { [icones[0] as Icone]: { x, y } };
+  const ecart = ICONE_ECART * echelle;
+  return { joueur: { x: x - ecart, y }, creature: { x: x + ecart, y } };
 }
