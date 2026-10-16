@@ -102,6 +102,7 @@ La validation humaine est conservée dans le [journal des parties humaines](jour
 - Mélanges : les obstacles qui ne jouent pas sur la même chose vont ensemble sans règle de plus ; l'air et le feu passent par-dessus le vide de la passerelle ; la baie va avec les nouveaux morceaux.
 - Chemin sûr : l'action libre du premier contact peut en faire partie ; une sortie qui demande un coup de dés reste une sortie.
 - Les règles lisent les qualités des objets, pas leur nom ; port sans limite sauf un seul objet encombrant.
+- Vérification au plus court, mêmes preuves (#180) : catalogue prouvé une fois, 100 plans par chemin, CI en jobs parallèles, version de test publiée dès le début avec l'état de la vérification, mode complet facultatif sur le PC ; une validation envoyée pendant la vérification ne compte que si elle finit verte (D-271, D-272).
 - Pas de LLM requis dans le jeu ; le rôle éventuel d'un LLM est celui d'un joueur de test externe.
 - Développement agentique dans un nouveau dépôt, méthode issue → vérification → revue → preuves.
 - Parcours de référence accepté seulement après une partie du porteur du projet sur téléphone.

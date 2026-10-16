@@ -22,7 +22,8 @@
     "preview": "vite preview",
     "captures": "tsx tools/captures.ts",
     "test": "vitest run",
-    "verify": "tsx tools/verify.ts"
+    "verify": "tsx tools/verify.ts",
+    "verify:complet": "tsx tools/verify.ts --complet"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

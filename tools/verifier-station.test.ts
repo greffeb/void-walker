@@ -1,19 +1,25 @@
 import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, type EntreeMonde } from '../content';
 import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde } from '../engine';
 import { CATALOGUE } from './catalogue';
+import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
 import { executerParcours } from './rejouer-parcours';
 import {
+  cheminsDesPlans,
   chercherEtat,
   cleEtatRegles,
   ecartsDuCatalogue,
+  ecartsDuLot,
+  empreintesDe,
   explorerDes,
   mesurerPlans,
   mesurerStation,
-  mesurerTirages,
   rangsDesMorceaux,
   stationDeReference,
   verifierCatalogue,
+  verifierComposition,
+  verifierLot,
   verifierStation,
+  type CacheVerdicts,
   type LigneCatalogue,
   type MesurePlans,
 } from './verifier-station';
@@ -276,17 +282,6 @@ describe('mesure exhaustive, tous les résultats de dés', () => {
 });
 
 describe('stations de référence et contre-exemples G-01', () => {
-  it.each(['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'])('%s : témoin trouvé et export rejoué sans dé, indemne', (id) => {
-    const monde = entree(id);
-    const resultat = verifierStation(monde);
-    expect(resultat.verdict).toBe('prouvee');
-    if (resultat.parcours === null) throw new Error(resultat.diagnostic);
-    const rapport = executerParcours(monde, resultat.parcours, 'verifier-station');
-    expect(rapport.erreurs).toEqual([]);
-    expect(rapport.lignes).toContain('Aucun dé tiré : oui.');
-    expect(resultat.parcours.attendu.sante).toBe('indemne');
-  }, 60000);
-
   it.each([
     ['m-08', ['planche']],
     ['ar-01', ['bidon', 'caisse']],
@@ -305,75 +300,7 @@ describe('stations de référence et contre-exemples G-01', () => {
     expect(verifierStation(sansEau).verdict).toBe('prouvee');
   }, 60000);
 });
-
-describe('catalogue vérifié à la construction (#152)', () => {
-  let lignes: LigneCatalogue[] = [];
-  beforeAll(() => {
-    lignes = verifierCatalogue(CATALOGUE);
-  }, 900000);
-
-  it('publiées prouvées, les autres sans sortie sûre : en chaîne, palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4) ; en ordre libre, ces places écartées (spec L5 §3.2) ; l’ensemble prouvé égale les compositions publiées', () => {
-    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
-    const bouchee = ({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean => {
-      if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
-      return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
-    };
-    expect(lignes.map((ligne) => [ligne.composition, ligne.verdict])).toEqual(
-      CATALOGUE.compositions.map((composition) => [composition.id, composition.refus !== null ? 'refusee' : bouchee(composition) ? 'sans_sortie_sure' : 'prouvee']),
-    );
-    expect(lignes.filter((ligne) => ligne.verdict === 'prouvee').map((ligne) => ligne.composition)).toEqual(COMPOSITIONS_PUBLIEES);
-    for (const ligne of lignes) {
-      if (ligne.verdict === 'refusee') {
-        expect(ligne).toMatchObject({ etats: 0, graine: null, actions: null });
-        expect(ligne.diagnostic).toContain('D-268');
-        continue;
-      }
-      expect(ligne.etats).toBeGreaterThan(0);
-      if (ligne.verdict === 'prouvee') expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions/);
-      else expect(ligne.diagnostic).toContain('Aucune évacuation sans dé ni blessure');
-      // Ordre libre : les deux ordres de préparation prouvés (spec L5 §4.1).
-      if (ligne.composition.startsWith('ol-')) expect(ligne.ordres).toEqual(['prouvee', 'prouvee']);
-      else expect(ligne.ordres).toBeUndefined();
-    }
-    expect(ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, [])).toEqual([]);
-  });
-
-  it('536 compositions, 324 prouvées en chaîne et 140 en ordre libre, chacune avec la longueur de son témoin, celle du diagnostic', () => {
-    expect(lignes).toHaveLength(536);
-    const prouvees = lignes.filter((ligne) => ligne.verdict === 'prouvee');
-    expect(prouvees.filter((ligne) => !ligne.composition.startsWith('ol-'))).toHaveLength(324);
-    expect(prouvees.filter((ligne) => ligne.composition.startsWith('ol-'))).toHaveLength(140);
-    for (const ligne of prouvees) {
-      expect(ligne.actions).toBe(Number(/prouvée en (\d+) actions/.exec(ligne.diagnostic)?.[1]));
-      expect(ligne.actions).toBeGreaterThanOrEqual(1);
-      expect(ligne.actions).toBeLessThanOrEqual(60);
-    }
-  });
-
-  it('graine de plan vérifiée : la plus petite à partir de 0 qui donne un plan, notée dans la ligne', () => {
-    for (const ligne of lignes.filter(({ verdict }) => verdict !== 'refusee')) {
-      const { graine } = ligne;
-      if (graine === null) throw new Error(`${ligne.composition} sans graine.`);
-      for (let avant = 0; avant < graine; avant++) expect(CATALOGUE.construire(ligne.composition, avant)).toHaveProperty('refus');
-      const station = CATALOGUE.construire(ligne.composition, graine);
-      expect(station).not.toHaveProperty('refus');
-      expect(stationDeReference(CATALOGUE, ligne.composition)).toEqual({ graine, entree: station });
-    }
-  });
-
-  it('une empreinte par morceau inclus, celle du morceau et de ses textes, stable d’un appel à l’autre', () => {
-    for (const ligne of lignes.filter(({ verdict }) => verdict !== 'refusee')) {
-      const station = CATALOGUE.construire(ligne.composition, ligne.graine ?? 0);
-      if ('refus' in station) throw new Error(station.refus);
-      const inclus = [...new Set(station.monde.pieces.map((piece) => piece.id.slice(0, piece.id.indexOf('/'))))];
-      expect(Object.keys(ligne.empreintes)).toEqual(inclus);
-      for (const id of inclus) expect(ligne.empreintes[id]).toBe(empreinte(MORCEAUX[id]));
-    }
-    // Table vide : tout est refusé, sans vérification ; les empreintes restent les mêmes.
-    const refusees = verifierCatalogue(creerCatalogue(assemblerStation, []));
-    expect(refusees.map((ligne) => [ligne.verdict, ligne.empreintes])).toEqual(lignes.map((ligne) => ['refusee', ligne.empreintes]));
-  });
-
+describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)', () => {
   it('G-02 : sans la paire M-03 + M-07, ses compositions sont refusées avec le motif de la table, sans assemblage ni vérification', () => {
     const assembles: string[] = [];
     const table = PAIRES.filter((ligne) => !(ligne.a === 'M-03' && ligne.b === 'M-07'));
@@ -419,49 +346,152 @@ describe('catalogue vérifié à la construction (#152)', () => {
   });
 });
 
-describe('plans des stations tirées (14 §5.6)', () => {
-  it('sur 1 000 graines, au moins 95 % de plans par chemin ; temps mesurés, non assertés', () => {
-    const mesures = mesurerPlans(1000);
+/** Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08 ni M-10 avant. */
+const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
+function bouchee({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean {
+  if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
+  return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
+}
+
+function cacheMemoire(): CacheVerdicts & { readonly cles: string[] } {
+  const valeurs = new Map<string, string>();
+  return {
+    cles: [],
+    lire<T>(cle: string): T | undefined {
+      const lu = valeurs.get(cle);
+      return lu === undefined ? undefined : (JSON.parse(lu) as T);
+    },
+    ecrire(cle: string, valeur: unknown): void {
+      this.cles.push(cle);
+      valeurs.set(cle, JSON.stringify(valeur));
+    },
+  };
+}
+
+describe('publication : ce que check:stations doit prouver (#152, #180)', () => {
+  // La preuve du catalogue entier est faite par check:stations seul (#180) : il échoue si une publiée n'est pas prouvée ou si
+  // une prouvée n'est pas publiée. Ici, la règle de publication elle-même, sans recherche.
+  it('publiées : toutes les compositions permises, sauf les bouchées (palier ou atelier sans aide avant) ; 536 compositions, 324 publiées en chaîne et 140 en ordre libre', () => {
+    expect(CATALOGUE.compositions).toHaveLength(536);
+    const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition)).map((composition) => composition.id);
+    expect(COMPOSITIONS_PUBLIEES).toEqual(attendues);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(324);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(140);
+  });
+
+  // Quelques compositions choisies : une chaîne, une bouchée, un ordre libre, une refusée.
+  const BOUCHEE = CATALOGUE.compositions.find((composition) => composition.refus === null && bouchee(composition));
+  const REFUSEE = CATALOGUE.compositions.find((composition) => composition.refus !== null);
+  const CHOISIES = [
+    ['m07-m03-soute', 'prouvee'],
+    [BOUCHEE?.id ?? '', 'sans_sortie_sure'],
+    ['ol-m02-m08-m06-magasin', 'prouvee'],
+    [REFUSEE?.id ?? '', 'refusee'],
+  ] as const;
+
+  it.each(CHOISIES)('%s : %s, ligne complète (graine la plus petite, empreintes, témoin, ordres)', (id, verdict) => {
+    const composition = CATALOGUE.compositions.find((candidate) => candidate.id === id);
+    if (composition === undefined) throw new Error(`${id} absente.`);
+    const ligne = verifierComposition(CATALOGUE, composition);
+    expect(ligne.verdict).toBe(verdict);
+    expect(COMPOSITIONS_PUBLIEES.includes(id)).toBe(verdict === 'prouvee');
+    if (verdict === 'refusee') {
+      expect(ligne).toMatchObject({ etats: 0, graine: null, actions: null });
+      expect(ligne.diagnostic).toContain('D-268');
+      return;
+    }
+    expect(ligne.etats).toBeGreaterThan(0);
+    const { graine } = ligne;
+    if (graine === null) throw new Error(`${id} sans graine.`);
+    for (let avant = 0; avant < graine; avant++) expect(CATALOGUE.construire(id, avant)).toHaveProperty('refus');
+    const station = CATALOGUE.construire(id, graine);
+    if ('refus' in station) throw new Error(station.refus);
+    expect(stationDeReference(CATALOGUE, id)).toEqual({ graine, entree: station });
+    const inclus = [...new Set(station.monde.pieces.map((piece) => piece.id.slice(0, piece.id.indexOf('/'))))];
+    expect(Object.keys(ligne.empreintes)).toEqual(inclus);
+    for (const morceau of inclus) expect(ligne.empreintes[morceau]).toBe(empreinte(MORCEAUX[morceau]));
+    if (verdict === 'prouvee') {
+      expect(ligne.actions).toBe(Number(/prouvée en (\d+) actions/.exec(ligne.diagnostic)?.[1]));
+      expect(ligne.actions).toBeGreaterThanOrEqual(1);
+    } else {
+      expect(ligne.actions).toBeNull();
+      expect(ligne.diagnostic).toContain('Aucune évacuation sans dé ni blessure');
+    }
+    if (id.startsWith('ol-')) expect(ligne.ordres).toEqual(['prouvee', 'prouvee']);
+    else expect(ligne.ordres).toBeUndefined();
+  }, 120000);
+
+  it('chemins de plans : 128 en chaîne, 56 en ordre libre, chacun mesuré (seuil de 95 % appliqué par check:stations)', () => {
     const chaines = [
       ...new Set(CATALOGUE.compositions.map(({ forme, chemins, final }) => ['vestibule', ...(forme === 'libre' ? ['carrefour'] : []), ...chemins, final].join(' + '))),
     ];
-    // 128 en chaîne, 56 en ordre libre (28 paires de branches × 2 finals).
     expect(chaines).toHaveLength(128 + 56);
+    const mesures = mesurerPlans(2);
     expect(mesures.map((mesure) => mesure.chemin)).toEqual(chaines);
-    expect(chaines).toEqual(
-      expect.arrayContaining([
-        'vestibule + m-07 + m-03',
-        'vestibule + m-10 + m-09 + m-06',
-        'vestibule + m-01 + m-02 + m-03',
-        'vestibule + m-09 + m-04 + m-06',
-        'vestibule + m-05 + m-10 + m-03',
-        'vestibule + carrefour + m-07 + m-08 + m-06',
-      ]),
-    );
+    expect(cheminsDesPlans().map(([chemin]) => chemin)).toEqual(chaines);
     for (const mesure of mesures) {
-      expect(mesure.tirages).toBe(1000);
-      expect(mesure.trouves).toBeGreaterThanOrEqual(950);
+      expect(mesure.tirages).toBe(2);
       expect(mesure.msMax).toBeGreaterThanOrEqual(mesure.msMoyenne);
     }
-  }, 900000);
+  }, 120000);
+});
 
-  it('1 000 tirages complets, retirages compris : chaque tirage donne une station ; finals, chemins, morceaux et places comptés', () => {
-    const mesure = mesurerTirages(1000);
-    expect(mesure).toMatchObject({ tirages: 1000, reussis: 1000 });
-    expect(mesure.msMax).toBeGreaterThanOrEqual(mesure.msMoyenne);
-    const { finals, chemins, morceaux, places } = mesure;
-    const somme = (table: Readonly<Record<string, number>>): number => Object.values(table).reduce((total, nombre) => total + nombre, 0);
-    const publiees = CATALOGUE.compositions.filter((composition) => COMPOSITIONS_PUBLIEES.includes(composition.id));
-    const distincts = (ids: readonly string[]): string[] => [...new Set(ids)].sort();
+describe('lots et verdicts gardés de check:stations (#180)', () => {
+  /** Catalogue dont la station de `cassee` perd toute porte du départ : plus aucune action, recherche épuisée aussitôt. */
+  function catalogueCasse(cassee: string): ReturnType<typeof creerCatalogue> {
+    return creerCatalogue((station) => {
+      const resultat = assemblerStation(station);
+      if (resultat.type !== 'station' || !station.id.startsWith(`${cassee}-`)) return resultat;
+      const { monde } = resultat;
+      return { ...resultat, monde: { ...monde, liaisons: monde.liaisons.filter((liaison) => !liaison.entre.includes(monde.depart)) } };
+    });
+  }
 
-    expect(Object.keys(finals).sort()).toEqual(['m-03', 'm-06']);
-    expect((finals['m-03'] ?? 0) + (finals['m-06'] ?? 0)).toBe(1000);
-    expect(Object.keys(chemins).sort()).toEqual(['1', '2']);
-    expect((chemins['1'] ?? 0) + (chemins['2'] ?? 0)).toBe(1000);
-    expect(Object.keys(morceaux).sort()).toEqual(distincts(publiees.flatMap((composition) => [...composition.chemins, composition.final])));
-    // Chaque station compte ses chemins et son final.
-    expect(somme(morceaux)).toBe(2 * (chemins['1'] ?? 0) + 3 * (chemins['2'] ?? 0));
-    expect(Object.keys(places).sort()).toEqual(distincts(publiees.map((composition) => composition.creature)));
-    expect(somme(places)).toBe(1000);
-  }, 900000);
+  it('une composition publiée cassée exprès fait échouer son lot, quel que soit le partage', () => {
+    const cassee = 'm07-m03-soute';
+    const catalogue = catalogueCasse(cassee);
+    const rang = catalogue.compositions.findIndex((composition) => composition.id === cassee);
+    for (const total of [1, 3, 8]) {
+      const lot: Lot = { numero: (rang % total) + 1, total };
+      // Seule la composition cassée est vérifiée, pour garder le test court ; elle est bien dans le lot que lui donne le partage.
+      expect(dansLeLot(catalogue.compositions, lot).map(({ id }) => id)).toContain(cassee);
+      const resultat = { mondes: [], lignes: dansLeLot(catalogue.compositions, lot).filter(({ id }) => id === cassee).map((composition) => verifierComposition(catalogue, composition)), plans: [], repris: 0 };
+      expect(ecartsDuLot(resultat, lot, catalogue, [cassee])).toEqual([`Composition publiée ${cassee} non prouvée (sans_sortie_sure).`]);
+    }
+  });
+
+  it('écarts d’un lot : seulement ses compositions ; une publiée absente du catalogue revient au lot 1 ; une station de référence non prouvée', () => {
+    const ligne = (composition: string, verdict: LigneCatalogue['verdict']): LigneCatalogue => ({
+      composition, verdict, graine: 0, etats: 1, secondes: 0, actions: null, diagnostic: '', empreintes: {},
+    });
+    const [a, b] = CATALOGUE.compositions;
+    if (a === undefined || b === undefined) throw new Error('Catalogue vide.');
+    const deux = { numero: 2, total: 2 };
+    const vide = { mondes: [], lignes: [], plans: [], repris: 0 };
+    expect(ecartsDuLot(vide, LOT_UNIQUE, CATALOGUE, ['inconnue'])).toEqual(['Composition publiée inconnue absente du catalogue.']);
+    expect(ecartsDuLot(vide, deux, CATALOGUE, ['inconnue'])).toEqual([]);
+    // b est au rang 1 : lot 2 sur 2 ; a n'en est pas.
+    expect(ecartsDuLot({ ...vide, lignes: [ligne(b.id, 'sans_sortie_sure')] }, deux, CATALOGUE, [a.id, b.id])).toEqual([`Composition publiée ${b.id} non prouvée (sans_sortie_sure).`]);
+    const nonProuvee = { monde: 'm-07', verdict: 'non_prouvee' as const, etats: 1, secondes: 0, diagnostic: 'plafond', parcours: null, ecartes: { des: 0, blessures: 0 } };
+    expect(ecartsDuLot({ ...vide, mondes: [nonProuvee] }, LOT_UNIQUE, CATALOGUE, [])).toEqual(['Station de référence m-07 non prouvée (non_prouvee) : plafond']);
+  });
+
+  it('cache : la seconde vérification reprend chaque verdict sans recherche, avec le même résultat ; d’autres options ou d’autres morceaux changent la clé', () => {
+    const lot: Lot = { numero: 5, total: 60 };
+    const cache = cacheMemoire();
+    const premier = verifierLot(lot, { tirages: 2, cache });
+    expect(premier.repris).toBe(0);
+    const total = premier.mondes.length + premier.lignes.length + premier.plans.length;
+    expect(total).toBeGreaterThan(0);
+    expect(cache.cles).toHaveLength(total);
+    const second = verifierLot(lot, { tirages: 2, cache });
+    expect(second.repris).toBe(total);
+    expect(JSON.parse(JSON.stringify(second))).toEqual({ ...JSON.parse(JSON.stringify(premier)), repris: total });
+    // Plafond, nombre de plans : autres clés, rien de repris.
+    expect(verifierLot(lot, { tirages: 3, cache, options: { maxEtats: 1 } }).repris).toBe(0);
+    // Les clés des compositions portent les empreintes de leurs morceaux.
+    for (const composition of dansLeLot(CATALOGUE.compositions, lot)) {
+      expect(cache.cles.some((cle) => cle.startsWith(`composition ${composition.id} `) && cle.includes(JSON.stringify(empreintesDe(composition))))).toBe(true);
+    }
+  }, 120000);
 });

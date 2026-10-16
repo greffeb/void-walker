@@ -1,0 +1,97 @@
+name: Vérification complète
+
+# Vérification complète (AP-08) en jobs parallèles (#180), appelée par « Demande de fusion » et « Branche principale ».
+# Mêmes étapes que `npm run verify` : les courtes dans un job, les longues (check:texts, check:stations, test) en lots qui
+# tournent en même temps, chaque lot sur tous les cœurs de sa machine (--processus=auto). La vérification n'est verte que si tous ses jobs le
+# sont. Les verdicts de check:texts et de check:stations sont repris d'un cache seulement si l'empreinte du code qui les a
+# rendus (moteur, contenu, assemblage, vérifieur, dépendances) est la même (tools/empreinte-code.ts).
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # Hors du dépôt : un fichier ajouté à une PR ne peut pas passer pour un verdict gardé.
+  VERIFS_CACHE: ${{ github.workspace }}/../verifs-cache
+
+jobs:
+  courtes:
+    name: Étapes courtes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Toutes les étapes de `npm run verify` sauf les longues, lancées par les jobs ci-dessous (tools/verify.test.ts).
+      - run: npx tsx tools/verify.ts --sauf=check:texts,check:stations,test
+
+  textes:
+    name: check:texts (lot ${{ matrix.lot }}/2)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lot: [1, 2]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.VERIFS_CACHE }}
+          key: verifs-textes-${{ matrix.lot }}de2-${{ hashFiles('engine/**', 'content/**', 'tools/**', 'package-lock.json') }}
+          restore-keys: verifs-textes-${{ matrix.lot }}de2-
+      - run: npm run check:texts -- --lot=${{ matrix.lot }}/2 --processus=auto
+
+  stations:
+    name: check:stations (lot ${{ matrix.lot }}/3)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lot: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.VERIFS_CACHE }}
+          key: verifs-stations-${{ matrix.lot }}de3-${{ hashFiles('engine/**', 'content/**', 'tools/**', 'package-lock.json') }}
+          restore-keys: verifs-stations-${{ matrix.lot }}de3-
+      - run: npm run check:stations -- --lot=${{ matrix.lot }}/3 --processus=auto
+
+  tests:
+    name: Tests (part ${{ matrix.part }}/2)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test -- --shard=${{ matrix.part }}/2

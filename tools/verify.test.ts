@@ -1,4 +1,7 @@
-import { STEPS, runSteps } from './verify';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { REPO_ROOT } from './repo-files';
+import { LONGUES, STEPS, runSteps, runStepsTogether, stepsDemandees } from './verify';
 
 describe('runSteps', () => {
   it('suit l’ordre de la vérification complète', () => {
@@ -27,5 +30,45 @@ describe('runSteps', () => {
       { step: 'b', status: 'KO', exitCode: 2 },
       { step: 'c', status: 'non lancée', exitCode: undefined },
     ]);
+  });
+});
+
+describe('étapes en parallèle et CI (#180)', () => {
+  it('--sauf retire des étapes, refuse une étape inconnue', () => {
+    expect(stepsDemandees([])).toEqual([...STEPS]);
+    expect(stepsDemandees(['--sauf=check:texts,test'])).toEqual(STEPS.filter((step) => step !== 'check:texts' && step !== 'test'));
+    expect(() => stepsDemandees(['--sauf=tset'])).toThrow('Étape inconnue : tset.');
+  });
+
+  it('lance les étapes longues ensemble et garde chaque code de sortie', async () => {
+    const enCours: string[] = [];
+    let maximum = 0;
+    const results = await runStepsTogether(['a', 'b', 'c'], async (step) => {
+      enCours.push(step);
+      maximum = Math.max(maximum, enCours.length);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      enCours.splice(enCours.indexOf(step), 1);
+      return step === 'b' ? 3 : 0;
+    });
+    expect(maximum).toBe(3);
+    expect(results.map(({ step, status, exitCode }) => [step, status, exitCode])).toEqual([['a', 'OK', 0], ['b', 'KO', 3], ['c', 'OK', 0]]);
+  });
+
+  it('la CI lance toutes les étapes de verify : les courtes dans un job, chaque longue dans ses lots, sans lot oublié', () => {
+    const workflow = readFileSync(join(REPO_ROOT, '.github/workflows/verification.yml'), 'utf8');
+    expect(LONGUES.every((step) => STEPS.includes(step))).toBe(true);
+    expect(workflow).toContain(`npx tsx tools/verify.ts --sauf=${LONGUES.join(',')}`);
+    // Chaque job long : sa matrice compte autant de lots que le total de son --lot (ou de son --shard).
+    const jobs = workflow.split(/\n {2}(?=[a-z-]+:\n)/).slice(1);
+    const lances = new Set<string>();
+    for (const job of jobs) {
+      const etape = /npm run ([\w:]+) -- --(?:lot|shard)=\$\{\{ matrix\.(\w+) \}\}\/(\d+)/.exec(job);
+      if (etape === null) continue;
+      const [, step = '', cle = '', total = ''] = etape;
+      lances.add(step);
+      const valeurs = new RegExp(`${cle}: \\[([\\d, ]+)\\]`).exec(job)?.[1]?.split(',').map((valeur) => Number(valeur.trim()));
+      expect(valeurs, step).toEqual(Array.from({ length: Number(total) }, (_, rang) => rang + 1));
+    }
+    expect([...lances].sort()).toEqual([...LONGUES].sort());
   });
 });

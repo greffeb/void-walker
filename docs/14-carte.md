@@ -234,6 +234,8 @@ Dans une station, les pièces du même type sont numérotées (CABINE 1, CABINE 
 
 Petites stations d'abord (D-242) : sur 1 000 tirages, toute station proposée a un plan qui passe PL-01 à PL-07 et GE-01 à GE-07 (D-245) ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; même graine, même plan ; une galerie de plans rendus est jointe à la PR.
 
+Dans la vérification (#180, D-271), `check:stations` mesure 100 graines par chemin de tuiles, avec le même seuil : au moins 95 % de plans trouvés par chemin, sinon la vérification échoue. Les 1 000 graines par chemin et les 1 000 tirages complets du catalogue restent mesurés à la demande : `npm run verify:complet` (ou `npm run check:stations -- --complet`) et `npm run mesurer:tirages`. Les mesures ci-dessous ont été prises sur 1 000 graines.
+
 Mesures locales de L2 (#152), sans assertion de temps : sur 1 000 tirages par chemin (vestibule, M-07 ou M-10, M-03), 1 000 plans sur 1 000, 0,34 et 0,33 ms en moyenne, 2,33 et 1,69 ms au plus, échecs compris ([13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152)). Une recherche sans plan s'arrête au budget de pose de 2 000 candidats évalués. Mesuré sur des chaînes de tuiles de test qui n'ont aucun plan, pas sur les morceaux réels : à trois tuiles, un échec coûte environ 16 ms en moyenne et 25 ms au plus ; à quatre, environ 44 ms en moyenne et jusqu'à 58 ms, au-delà des 50 ms visés. À reprendre en L3, dont les stations auront quatre tuiles.
 
 Mesures locales de L3 (#153), sans assertion de temps ([13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153)) :

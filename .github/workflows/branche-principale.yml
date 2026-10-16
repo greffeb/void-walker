@@ -1,6 +1,7 @@
 name: Branche principale
 
-# Sur la branche principale (AP-10) : vérification complète puis publication du jeu à la racine de GitHub Pages.
+# Sur la branche principale (AP-10) : vérification complète puis publication du jeu à la racine de GitHub Pages. Le jeu
+# public attend toujours la vérification verte.
 
 on:
   push:
@@ -15,18 +16,9 @@ concurrency:
 
 jobs:
   verification:
-    name: Vérification complète
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run verify
+    name: Vérification
+    # Mêmes jobs parallèles que les PR (#180) ; leurs verdicts gardés servent ensuite de cache aux PR.
+    uses: ./.github/workflows/verification.yml
 
   cle-validation:
     name: Clé de validation
