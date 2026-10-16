@@ -1,12 +1,13 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { isMainModule } from './repo-files';
 
-// Vérification complète (AP-08) : une étape = un script npm. Ajouter les suivantes ici. Les étapes courtes d'abord, dans
-// l'ordre, jusqu'au premier échec ; puis les longues en même temps, chacune dans son processus (#180). La CI lance les mêmes
-// étapes en jobs parallèles (.github/workflows/verification.yml).
+// Vérification complète (AP-08) : une étape = un script npm, dans l'ordre, jusqu'au premier échec. Ajouter les suivantes ici.
+// Les étapes longues se partagent elles-mêmes entre les cœurs (check:stations, check:texts, vitest) : les lancer en même
+// temps n'y gagne presque rien et fait dépasser leurs délais aux tests (#180). La CI lance les mêmes étapes en jobs
+// parallèles (.github/workflows/verification.yml).
 export const STEPS: readonly string[] = ['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'check:stations', 'test', 'parcours', 'build'];
 
-/** Étapes longues, lancées en parallèle en local, en jobs à part dans la CI. */
+/** Étapes longues, en jobs à part dans la CI. */
 export const LONGUES: readonly string[] = ['check:texts', 'check:stations', 'test'];
 
 /**
@@ -44,17 +45,6 @@ export function runSteps(steps: readonly string[], run: (step: string, index: nu
   return results;
 }
 
-/** Lance les étapes toutes en même temps ; chaque résultat garde sa durée. */
-export async function runStepsTogether(steps: readonly string[], run: (step: string) => Promise<number>): Promise<StepResult[]> {
-  return Promise.all(
-    steps.map(async (step) => {
-      const start = performance.now();
-      const exitCode = await run(step);
-      return { step, status: exitCode === 0 ? 'OK' : 'KO', exitCode, seconds: (performance.now() - start) / 1000 } as const;
-    }),
-  );
-}
-
 /** Étapes demandées : toutes, moins celles de `--sauf=a,b` ; une étape inconnue est une erreur. */
 export function stepsDemandees(argumentsCli: readonly string[]): string[] {
   const sauf = argumentsCli.find((argument) => argument.startsWith('--sauf='))?.slice('--sauf='.length).split(',').filter(Boolean) ?? [];
@@ -79,54 +69,25 @@ function runNpmScript(step: string, label: string, complet: boolean): number {
   return result.status ?? 1;
 }
 
-/** Étape longue : sa sortie est gardée puis affichée d'un bloc quand elle finit, pour ne pas mêler les étapes. */
-function runNpmScriptBuffered(step: string, complet: boolean): Promise<number> {
-  return new Promise((resolve) => {
-    const enfant = spawn(commande(step, complet), { shell: true, stdio: ['ignore', 'pipe', 'pipe'], env: environnement(complet) });
-    const morceaux: Buffer[] = [];
-    enfant.stdout.on('data', (morceau: Buffer) => morceaux.push(morceau));
-    enfant.stderr.on('data', (morceau: Buffer) => morceaux.push(morceau));
-    enfant.on('close', (code) => {
-      console.log(`\n[en parallèle] ${commande(step, complet)}`);
-      process.stdout.write(Buffer.concat(morceaux));
-      resolve(code ?? 1);
-    });
-  });
-}
-
 async function main(): Promise<void> {
   const argumentsCli = process.argv.slice(2);
-  const inconnu = argumentsCli.find((argument) => argument !== '--complet' && argument !== '--sequentiel' && !argument.startsWith('--sauf='));
+  const inconnu = argumentsCli.find((argument) => argument !== '--complet' && !argument.startsWith('--sauf='));
   if (inconnu !== undefined) throw new Error(`Option inconnue : ${inconnu}.`);
   const complet = argumentsCli.includes('--complet');
   const steps = stepsDemandees(argumentsCli);
   const debut = performance.now();
-  let results: StepResult[];
-  if (argumentsCli.includes('--sequentiel')) {
-    results = runSteps(steps, (step, index) => runNpmScript(step, `${index + 1}/${steps.length}`, complet));
-  } else {
-    const courtes = steps.filter((step) => !LONGUES.includes(step));
-    const longues = steps.filter((step) => LONGUES.includes(step));
-    results = runSteps(courtes, (step, index) => runNpmScript(step, `${index + 1}/${courtes.length}`, complet));
-    if (results.every((result) => result.status === 'OK') && longues.length > 0) {
-      console.log(`\nÉtapes longues en parallèle : ${longues.join(', ')}…`);
-      results.push(...(await runStepsTogether(longues, (step) => runNpmScriptBuffered(step, complet))));
-    } else {
-      results.push(...longues.map((step) => ({ step, status: 'non lancée' }) as const));
-    }
-    results.sort((a, b) => STEPS.indexOf(a.step) - STEPS.indexOf(b.step));
-  }
+  const results = runSteps(steps, (step, index) => runNpmScript(step, `${index + 1}/${steps.length}`, complet));
   console.log(`\nRésumé de la vérification ${complet ? 'complète, mode complet' : 'complète'} :`);
   for (const result of results) {
     const duration = result.seconds === undefined ? '' : `${result.seconds.toFixed(1)} s`;
     console.log(`  ${result.status.padEnd(10)} ${result.step.padEnd(14)} ${duration}`.trimEnd());
   }
   console.log(`  ${'durée'.padEnd(10)} ${''.padEnd(14)} ${((performance.now() - debut) / 1000).toFixed(1)} s`);
-  const echecs = results.filter((result) => result.status === 'KO');
-  if (echecs.length === 0) {
+  const failure = results.find((result) => result.status === 'KO');
+  if (failure === undefined) {
     console.log('\nVérification complète : toutes les étapes sont vertes.');
   } else {
-    console.error(`\nÉCHEC aux étapes ${echecs.map((echec) => `« ${echec.step} » (code ${echec.exitCode})`).join(', ')} : vérification en échec.`);
+    console.error(`\nÉCHEC à l'étape « ${failure.step} » (code ${failure.exitCode}) : vérification interrompue.`);
     process.exitCode = 1;
   }
 }

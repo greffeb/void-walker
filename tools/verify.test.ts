@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { REPO_ROOT } from './repo-files';
-import { LONGUES, STEPS, runSteps, runStepsTogether, stepsDemandees } from './verify';
+import { LONGUES, STEPS, runSteps, stepsDemandees } from './verify';
 
 describe('runSteps', () => {
   it('suit l’ordre de la vérification complète', () => {
@@ -33,25 +33,11 @@ describe('runSteps', () => {
   });
 });
 
-describe('étapes en parallèle et CI (#180)', () => {
+describe('étapes de la CI (#180)', () => {
   it('--sauf retire des étapes, refuse une étape inconnue', () => {
     expect(stepsDemandees([])).toEqual([...STEPS]);
     expect(stepsDemandees(['--sauf=check:texts,test'])).toEqual(STEPS.filter((step) => step !== 'check:texts' && step !== 'test'));
     expect(() => stepsDemandees(['--sauf=tset'])).toThrow('Étape inconnue : tset.');
-  });
-
-  it('lance les étapes longues ensemble et garde chaque code de sortie', async () => {
-    const enCours: string[] = [];
-    let maximum = 0;
-    const results = await runStepsTogether(['a', 'b', 'c'], async (step) => {
-      enCours.push(step);
-      maximum = Math.max(maximum, enCours.length);
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      enCours.splice(enCours.indexOf(step), 1);
-      return step === 'b' ? 3 : 0;
-    });
-    expect(maximum).toBe(3);
-    expect(results.map(({ step, status, exitCode }) => [step, status, exitCode])).toEqual([['a', 'OK', 0], ['b', 'KO', 3], ['c', 'OK', 0]]);
   });
 
   it('la CI lance toutes les étapes de verify : les courtes dans un job, chaque longue dans ses lots, sans lot oublié', () => {
