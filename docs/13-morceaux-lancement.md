@@ -1,8 +1,8 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6).
-> **Mise à jour :** 2026-10-15.
-> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 proposée par sa PR (§7.6). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune pour M-06, M-08, M-09, M-10.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-267 et D-268 (§7.7).
+> **Mise à jour :** 2026-10-16.
+> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 proposée par sa PR (§7.7). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les huit autres morceaux.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
@@ -33,16 +33,16 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 
 ### M-01 — Galerie en feu (AR-01 G)
 
-- **Pièces :** une pièce d'entrée avec le récipient d'eau, une galerie en feu et un palier de sortie ; les deux portes intérieures sont fermées au départ (D-258, §8.2).
-- **Créature :** une seule place déclarée, le palier de sortie ; jamais dans la galerie ni dans la pièce avec l'eau (D-258). Le parcours complet avec cette place reste à prouver en L4.
-- **Sûr :** prendre l'eau, ouvrir, éteindre depuis le seuil (C-03 §5.3).
+- **Pièces :** le poste incendie, en entrée, avec le bidon d'eau (une dose) ; le tunnel technique, en feu au départ ; le palier, d'où part la sortie. Les deux cloisons intérieures sont fermées au départ (D-258, §8.2), comme la cloison de sortie (D-252).
+- **Créature :** une seule place déclarée, le palier ; jamais dans le tunnel ni dans le poste incendie (D-258). Elle y bouche le seul passage : une station qui l'y place n'est prouvée, donc proposée, que derrière M-04, M-07, M-08 ou M-10 (D-267, §7.7).
+- **Sûr :** prendre l'eau, ouvrir, éteindre depuis le seuil, traverser (C-03 §5.3).
 - **Risqué :** laisser la porte ouverte deux actions : le feu gagne la pièce voisine.
 
 ### M-02 — Grille haute et caisse (AR-01 A–P)
 
-- **Pièces :** un atelier avec une caisse et une grille haute ; un conduit étroit vers une autre pièce.
-- **Créature :** peut attendre dans l'atelier ; ne passe jamais le conduit (D-044).
-- **Sûr :** déplacer la caisse, ouvrir, traverser.
+- **Pièces :** l'atelier maintenance, en entrée, nom repris d'AR-01, avec la caisse au centre et une position sous la grille ; la salle des pompes, au-delà du conduit, d'où part la sortie. La grille est haute côté atelier, étroite, sans signalétique, laisse passer le son et est fermée au départ, comme dans AR-01.
+- **Créature :** peut attendre dans l'atelier ; ne passe jamais le conduit (D-044). Elle y bouche le seul passage : une station qui l'y place n'est prouvée, donc proposée, que derrière M-04, M-07, M-08 ou M-10 (D-267, §7.7).
+- **Sûr :** déplacer la caisse sous la grille, ouvrir, traverser.
 
 ### M-03 — Énergie (AR-01 P, final)
 
@@ -52,15 +52,15 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 
 ### M-04 — Salle d'observation (AR-01 O)
 
-- **Pièces :** une salle avec alcôve et avertisseur commandé depuis la pièce précédente ; un seuil où l'on peut verser de l'huile, l'huile étant posée dans la pièce précédente.
-- **Créature :** sur la zone de passage.
+- **Pièces :** la salle de contrôle, en entrée, avec la burette d'huile (une dose) et la commande du test de l'avertisseur ; la salle d'observation, avec l'alcôve et l'émetteur, d'où part la sortie. Entre elles, une cloison bruyante, fermée ; la cloison de sortie est fermée aussi (D-252). L'observation n'est pas posée contre la coque (D-268) ; le seuil où verser l'huile est celui de la cloison bruyante.
+- **Créature :** dans la salle d'observation, sur la zone de passage.
 - **Sûr :** test de l'avertisseur puis traversée hors de vue, ou seuil huilé.
 - **Risqué :** traverser exposé, un D6 (C-04).
 
 ### M-05 — Panneau et passage caché (AR-01 P–E)
 
-- **Pièces :** un panneau de service ouvrable à la main, avec derrière un passage étroit vers une pièce plus loin.
-- **Créature :** jamais dans le passage ; elle peut attendre sur le chemin normal, que le passage étroit permet de contourner (D-256).
+- **Pièces :** le local de service, en entrée, avec le panneau de service ; la salle de tri, sur le chemin normal ; le hall de chargement, d'où part la sortie. Deux portes fermées au départ : local–salle de tri et salle de tri–hall. Le panneau, fermé, ouvrable à la main, mène par un passage étroit du local au hall ; il est caché vu du hall.
+- **Créature :** jamais dans le passage ; elle attend dans la salle de tri, sur le chemin normal, que le passage étroit permet de contourner (D-256).
 - **Sûr :** ouvrir le panneau, emprunter le raccourci.
 
 ### M-06 — Baie et vide (AR-02, final)
@@ -333,7 +333,7 @@ Empreinte de chaque morceau, hachage de sa définition et de ses textes (D-100) 
 
 ### 7.6 Baie, passerelle, sans gravité L3 (#153)
 
-> **Statut :** proposé par la PR de #153 (zone orange), en attente de l'accord du porteur et de parties au bout sur téléphone pour M-06, M-08 et M-09 (**validation humaine requise**, D-098). Conception : [spec L3](superpowers/specs/2026-10-15-baie-passerelle-gravite-design.md), approuvée (D-265) ; réussite fixée par D-264.
+> **Statut :** fusionné ([PR #168](https://github.com/greffeb/void-walker/pull/168)) ; aucune partie sur téléphone n'est consignée pour M-06, M-08 et M-09 dans le [journal](journal-parties-humaines.md). Conception : [spec L3](superpowers/specs/2026-10-15-baie-passerelle-gravite-design.md), approuvée (D-265) ; réussite fixée par D-264. Depuis L4, le catalogue compte 368 compositions et `check:texts` contrôle dix stations (§7.7) ; les chiffres ci-dessous sont ceux de L3.
 
 NOUVELLE PARTIE tire maintenant parmi **88 compositions** :
 - le vestibule ;
@@ -429,6 +429,142 @@ Ce sont `m07-m03-soute`, `m07-m08-m06-embarquement`, `m08-m07-m03-magasin`, `m09
 | **Q-190.** « Avant que je l'écrive, voyez-vous quelque chose à corriger ou à ajouter ? » Question posée après le résultat de la maquette et la liste des choix par défaut. | « go » |
 | **Q-191, D-265.** « La conception vous convient-elle pour passer au plan de travail ? », avec la liste des choix des agents. | « c'est bon » |
 | **Q-192.** « Le plan vous convient-il, et laquelle de ces deux façons préférez-vous ? » Les deux façons : par tâches confiées ou par l'agent seul. | « ok et par taches confinés. a la fin, fait la PR en autonomie et push » |
+
+### 7.7 Chemins d'AR-01 L4 (#154)
+
+> **Statut :** proposé par la PR de #154 (zone orange), en attente de l'accord du porteur et de parties au bout sur téléphone pour M-01, M-02, M-04 et M-05 (**validation humaine requise**, D-098). Conception : [spec L4](superpowers/specs/2026-10-16-chemins-ar01-design.md), approuvée (D-268) ; réussite celle de L3 (D-264).
+
+Les quatre morceaux de chemin qui restaient sont découpés dans AR-01 et entrent au tirage. Les dix morceaux sont tous tirables. AR-01 reste écrite en entier et ne change pas, parcours compris.
+
+NOUVELLE PARTIE tire maintenant parmi **324 compositions publiées**, sur 368 possibles :
+- le vestibule ;
+- un ou deux morceaux de chemin distincts parmi les huit, dans un ordre donné ;
+- le final M-03 ou M-06 ;
+- une place de créature parmi celles de ces morceaux.
+
+Il y a 32 compositions à un chemin et 336 à deux. Le tirage ne change pas : pile ou face entre les deux finals, puis une composition publiée au hasard parmi celles de ce final.
+
+Pièces et places de la créature (fiches du §3) :
+
+| Morceau | Pièces, de l'entrée à la sortie | Place |
+| --- | --- | --- |
+| M-01 | poste incendie, tunnel technique (en feu), palier | palier |
+| M-02 | atelier maintenance, salle des pompes | atelier maintenance |
+| M-04 | salle de contrôle, salle d'observation | salle d'observation |
+| M-05 | local de service, salle de tri, hall de chargement | salle de tri |
+
+Choix des agents, approuvés avec la conception (D-268) :
+- chaque morceau porte ses objets (D-244) : l'eau dans M-01, l'huile et la commande de l'avertisseur dans M-04 ;
+- la salle d'observation n'est pas posée contre la coque : avec la coque, la chaîne M-09 → M-04 → M-06 n'avait aucun plan dans la maquette ;
+- la sortie de M-04 est fermée (D-252), alors qu'elle est ouverte dans AR-01 ;
+- la vérification complète reste dans `npm run verify`, sans résultats gardés ni job de CI à part ;
+- `check:texts` contrôle une série fixe de dix stations ;
+- les noms affichés sont écrits à la main, finalisés à la relecture des textes (tableau ci-dessus).
+
+Les 88 compositions de L3 donnent exactement les mêmes stations à graine égale : l'empreinte du monde le prouve, pour chacune et pour leur ensemble.
+
+**Sortie de M-04 fermée.** AR-01 garde sa cloison ouverte. Sur une copie d'AR-01 où elle est fermée, P-B et P-C se jouent avec une action de plus, ouvrir la cloison juste avant de sortir de l'observation : 20 et 17 actions, sans dé ni blessure, export rejoué. Dans une station, les deux chemins sûrs de M-04 restent prouvés, chacun seul : test de l'avertisseur, ou seuil huilé.
+
+**Catalogue.** `npm run check:stations` donne une mesure locale indicative, contrôle du témoin compris. Les durées ne sont pas des assertions. Toutes les compositions sont vérifiées à la graine de plan 0.
+
+| Final, chemins | Prouvées | Sans sortie sûre | États des prouvées | Actions du témoin | Temps des prouvées |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| M-03, un | 14 | 2 | 326 à 1 827 | 13 à 19 | 0,54 s en tout |
+| M-03, deux | 148 | 20 | 347 à 32 982 | 17 à 34 | 10,73 s en tout |
+| M-06, un | 14 | 2 | 449 à 13 481 | 14 à 24 | 2,89 s en tout |
+| M-06, deux | 148 | 20 | 470 à 33 385 | 18 à 35 | 37,92 s en tout |
+
+La plus lourde des prouvées est `m08-m01-m06-palier` : 33 385 états, 35 actions, 2,18 s.
+
+Dans `npm run verify`, le 2026-10-16 sur ce PC : `check:stations` 147 s, `check:texts` 181 s, tests 192 s ; la vérification complète prend environ neuf minutes, toutes étapes vertes.
+
+**Les 44 compositions sans sortie sûre** placent toutes la créature sur le palier de M-01 ou dans l'atelier de M-02, sans M-04, M-07, M-08 ni M-10 avant elle : 22 par final. Elle y bouche le seul passage. Le vérifieur épuise la recherche sans trouver d'évacuation sans dé ni blessure ; elles ne sont jamais proposées (D-267). Entre parenthèses, les états explorés :
+- **palier :**
+  - M-01 seul, ou en premier devant n'importe quel autre chemin (309) ;
+  - derrière M-02 (3 986), M-05 (24 955) ou M-09 (**124 356**, 8 à 9 s) ;
+- **atelier :**
+  - M-02 seul, ou en premier devant n'importe quel autre chemin (9) ;
+  - derrière M-01 (881), M-05 (504) ou M-09 (2 112).
+
+Ces 44 prennent 22,5 s en tout. Derrière M-09, la recherche s'épuise à 124 356 états, sous le plafond de 150 000 : une petite extension de M-09 ou de M-01 pourrait la faire passer à « non prouvée », sans changer ce qui est proposé.
+
+Une composition rejetée, forcée par `?station=` ou `--station`, est refusée avec le motif « non prouvée : non proposée ». Elle n'est jamais tirée.
+
+**Empreintes** (D-100) :
+
+| Morceau | Empreinte |
+| --- | --- |
+| M-01 | `07a232404192a1` |
+| M-02 | `12d855443102bb` |
+| M-04 | `16f2dbba8d913d` |
+| M-05 | `0bb43c849c0f7f` |
+
+Le vestibule, M-03, M-07 et M-10 gardent celles du §7.5 ; M-06, M-08 et M-09 celles du §7.6.
+
+**Plans.** Sur 1 000 graines pour chacune des 128 chaînes de morceaux, échecs compris :
+- 1 000 plans sur 1 000 pour chaque chaîne ;
+- au plus 2,06 ms en moyenne par chaîne, 10,42 ms pour le pire tirage.
+
+**Tirages.** Sur 1 000 tirages complets du catalogue, à graine fixe :
+
+| Mesure | Résultat |
+| --- | --- |
+| Finals | M-03 521, M-06 479 |
+| Nombre de chemins | un 83, deux 917 |
+| Morceaux | M-01 185, M-02 166, M-04 274, M-05 265, M-07 244, M-08 262, M-09 266, M-10 255 |
+| Places de la créature | palier 22, atelier 17, observation 87, salle de tri 104, soute 90, magasin 81, cale 109, entrepôt 87, réserve 224, embarquement 179 |
+| Temps de tirage | 0,80 ms en moyenne, 5,21 ms au plus |
+
+Le palier et l'atelier sortent rarement : seules les compositions qui les placent derrière un obstacle utile sont publiées (D-267). C'est une question de difficulté, laissée pour plus tard (D-264).
+
+**Parcours joués en station assemblée** (spec L4 §9). Chacun part du départ, par les commandes publiques, sans dé ni blessure sauf le risqué :
+
+| Morceau | Station | Résultat |
+| --- | --- | --- |
+| M-01, sûr | `m01-m03-reserve` | Prendre l'eau, ouvrir, éteindre le tunnel depuis le seuil, traverser jusqu'au palier |
+| M-01, risqué | `m01-m03-reserve` | Cloison du tunnel laissée ouverte : le feu gagne le poste incendie (D-188) |
+| M-01, créature sur le palier | `m07-m01-m03-palier` | Prouvée |
+| M-02, sûr | `m02-m03-reserve` | Caisse sous la grille, ouvrir, traverser jusqu'à la salle des pompes |
+| M-02, créature dans l'atelier | `m10-m02-m03-atelier` | Prouvée ; le témoin attire la créature hors de l'atelier, vers l'entrepôt de M-10, où elle reste |
+| M-04, sûr | `m04-m03-observation` | Test de l'avertisseur, puis traversée ; ou seuil huilé, puis traversée |
+| M-04, risqué | `m04-m03-observation` | Traverser exposé : au moins un dé |
+| M-05, sûr | `m05-m03-tri` | Ouvrir le panneau, passer au hall sans entrer dans la salle de tri |
+| Panneau vu du local | `m05-m03-tri` | Panneau fermé, sans destination, sans « aller » |
+| Panneau vu du hall | `m05-m03-reserve` | Arrivé par la salle de tri, le hall ne montre pas le panneau |
+| Bloc d'énergie au passage étroit | `m02-m03-reserve`, `m05-m03-reserve` | Grille ou panneau ouvert : « aller » indisponible, trop large, essai refusé sans coût |
+
+Le panneau vu du hall se prouve sur `m05-m03-reserve` : avec la créature dans la salle de tri, la recherche atteint son plafond avant d'arriver au hall par ce chemin. La règle ne dépend pas de la place de la créature.
+
+**Mélanges joués en station assemblée** (§4) :
+
+| Mélange | Station | Résultat |
+| --- | --- | --- |
+| MX-02 | `m01-m06-embarquement`, depuis un état préparé : tunnel rallumé, passager équipé dans la panoramique | Baie percée, portes ouvertes jusqu'au tunnel : l'air s'en va, le feu s'éteint, le palier sans air ne prend pas feu |
+| MX-03 | `m04-m06-embarquement` | L'huile versée au seuil reste glissante quand l'air s'en va |
+| MX-04 | `m04-m09-m03-reserve` | Burette en main, dans la pièce sans gravité de M-09 : verser est impossible, refusé sans coût ; gravité rétablie : verser est possible |
+| MX-05 | `m04-m10-m03-reserve` | L'huile versée dans la chambre froide reste glissante |
+| Feu et passerelle (D-247) | `m08-m01-m03-reserve` | Le feu du tunnel gagne le poste incendie, puis le bord sud de la passerelle par la porte ouverte, et l'autre bord par-dessus le vide |
+
+L'état préparé de MX-02 a une raison : on ne traverse pas le tunnel en feu sans blessure, et rien ne le rallume une fois arrosé. Le cas « le feu ne gagne pas une pièce sans air » n'est pas atteignable en jeu : à chaque action, l'air se règle avant le feu, et le foyer s'éteint avant de pouvoir gagner une pièce sans air. Aucune règle n'est ajoutée au moteur.
+
+**Contrôle des textes.** `check:texts` explore dix stations fixes, qui couvrent :
+- chaque morceau ;
+- chaque place de la créature, palier et atelier compris ;
+- chaque chemin en première et en seconde position ;
+- les morceaux des mélanges du §5 réunis dans une même station : M-01 et M-06, M-04 avec M-06, M-09 ou M-10, et M-08 puis M-01.
+
+Ce sont `m01-m03-reserve`, `m01-m05-m03-tri`, `m02-m06-embarquement`, `m02-m07-m06-soute`, `m04-m09-m06-observation`, `m05-m08-m03-magasin`, `m07-m02-m03-atelier`, `m08-m01-m06-palier`, `m09-m10-m06-cale` et `m10-m04-m03-entrepot`. Chacune est parcourue avec son témoin. Le contrôle prend environ trois minutes, comme en L3. Avec sa borne de 50 000 états par station, il n'exerce pas MX-02 ni MX-03 : leurs cas sont prouvés par leurs tests.
+
+Les récits « arroser » et « déplacer » du socle n'avaient qu'une phrase ; ils en ont deux (D-111). L'extinction est racontée sans supposer d'air. Des récits de plus de quatre phrases restent signalés en avertissement autour du feu, comme dans AR-01 ; la question reste ouverte (D-111).
+
+**Questions posées au porteur le 2026-10-16**, citées mot pour mot :
+
+| Question | Réponse du porteur |
+| --- | --- |
+| **Q-193.** « Pour la livraison précédente, vous aviez dit que ce serait réussi si l'on pouvait « arriver à la capsule », la difficulté se réglant plus tard. Je pars sur la même chose ici. Ces quatre morceaux viennent de la première aventure : attendez-vous autre chose en les retrouvant dans une station tirée au hasard ? » | « 154 » — compris comme un feu vert pour #154, sans autre critère ; la réussite reste celle de D-264, sans nouvelle décision. |
+| **Q-194, D-267.** « Vous convient-il que la créature n'attende sur le palier ou dans l'atelier que dans les stations où un obstacle d'avant permet de s'en débarrasser ? Sinon, voulez-vous qu'elle attende ailleurs dans ces deux morceaux ? » Contexte donné : la maquette jetable montrait la créature sur le palier ou dans l'atelier bouchant le seul passage ; ces stations ne restent que derrière la salle des machines, la passerelle, la chambre froide ou l'observation (16 sur 56 dans la maquette). | « c'est bon » |
+| **Q-195, D-268.** « La conception vous convient-elle pour passer au plan de travail ? », avec la liste des choix des agents (noms des pièces, observation hors coque, vérification d'environ une minute et demie acceptée, série fixe pour le contrôle des textes, liens de validation avec la créature dans le morceau). | « yes » |
+| **Q-196.** « Le plan vous convient-il, et on garde la même façon de faire ? » (tâches confiées une à une, chacune relue, puis PR et push en autonomie) | « oui, travaille en autonomie je vais me coucher, fait la PR quand tu a fini » |
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

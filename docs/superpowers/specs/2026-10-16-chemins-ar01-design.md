@@ -153,7 +153,7 @@ Avec les huit chemins, cela fait 32 compositions à un chemin et 336 à deux, so
 
 **Créature qui bouche le seul passage** (accepté par le porteur le 2026-10-16, « c'est bon »). Sur le palier de M-01 ou dans l'atelier de M-02, la créature bloque le seul passage. Ces compositions ne sont prouvées que si un morceau d'avant permet de l'attirer, de la ralentir ou de l'enfermer : M-04, M-07, M-08 ou M-10.
 
-- Toutes les autres sont rejetées par le vérifieur, donc jamais proposées. Ce sont 40 compositions dans la maquette.
+- Toutes les autres sont rejetées par le vérifieur, donc jamais proposées. Ce sont 44 compositions, mesurées en L4 : 40 à deux chemins et 4 à un chemin (§6).
 - D-258 le prévoyait pour le palier ; même règle pour l'atelier.
 - Ces deux places sortent donc plus rarement au tirage. Les statistiques le montrent.
 
@@ -184,6 +184,7 @@ Mesures faites sur ce PC, avec les quatre morceaux en brouillon et le vérifieur
   - 221 sont prouvées ;
   - 40 n'ont pas de sortie sûre : palier ou atelier, §4 ;
   - 3 n'ont pas de plan : la chaîne M-09 → M-04 → M-06, avec l'observation en coque, §3.5.
+- **Mesure finale, en L4** (correction) : sur les 280 compositions qui contiennent un nouveau morceau, 236 sont prouvées et **44** n'ont pas de sortie sûre, 40 à deux chemins et 4 à un chemin. Toutes sont des places palier ou atelier sans M-04, M-07, M-08 ni M-10 avant. Aucune n'est sans plan.
 - Au plus 33 385 états, pour `m08-m01-m06-palier`, en 2,6 s.
 - Les témoins vont de 13 à 35 actions.
 - **Environ 82 s** pour ces 264. Avec les 88 de L3, `check:stations` passera d'une douzaine de secondes à environ une minute et demie.
@@ -194,7 +195,7 @@ Choix de l'agent : ce temps est accepté dans `verify`, sans résultats gardés 
 - **M-01 :** prendre l'eau, ouvrir la cloison, arroser la galerie depuis le seuil, traverser.
 - **M-04 :** déclencher le test, ouvrir la cloison, traverser, ouvrir la sortie, sortir.
 - **M-05 :** ouvrir le panneau, passer par le raccourci.
-- **M-02 avec la créature dans l'atelier,** derrière M-10 : la créature est enfermée dans la chambre froide avant d'atteindre l'atelier.
+- **M-02 avec la créature dans l'atelier,** derrière M-10 : le témoin attire la créature hors de l'atelier, jusqu'à l'entrepôt de M-10, où elle reste. Il ne l'enferme pas dans la chambre froide (correction, mesuré en L4).
 - **M-01 avec la créature sur le palier,** derrière M-04 : la burette de M-04 sert à huiler le seuil du palier. C'est un usage d'objet libre, permis : l'objet est placé dans son morceau.
 
 **AR-01 avec la cloison fermée :** toujours prouvée. Son plus court chemin sûr passe par la grille et le panneau, en 11 actions, et ne touche pas cette cloison. D'où la preuve par P-B et P-C, au §3.3 : chacun, rejoué avec « ouvrir la cloison » juste avant de sortir de l'observation, finit à la capsule sans dé ni blessure, en 20 et 17 actions.
