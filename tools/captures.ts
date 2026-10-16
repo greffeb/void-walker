@@ -28,6 +28,8 @@ const PORTEUR = { width: 412, height: 915 };
 const STATION_CAPTUREE = 'm07-m03-soute-2718281828';
 /** Station à trois obstacles avec la baie (#153), forcée de même : réveil et plan au départ. */
 const STATION_BAIE = 'm08-m09-m06-embarquement-2718281828';
+/** Chemins d'AR-01 (#154) : trois stations qui, ensemble, couvrent M-01, M-02, M-04 et M-05 ; réveil de la première, plan de chacune. */
+const STATIONS_AR01 = ['m08-m01-m06-palier-2718281828', 'm04-m02-m03-atelier-2718281828', 'm05-m06-tri-2718281828'] as const;
 const FORME_STATION = /^(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)$/;
 /** Galerie des plans (#153) : six stations tirées par groupe (un ou deux chemins, M-03 ou M-06), au hasard à graine fixe, les mêmes à chaque capture. */
 const STATIONS_PAR_GROUPE = 6;
@@ -1511,7 +1513,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   };
 
   /** `?station=<id>` dans un contexte neuf : cette station, son réveil et son plan au départ ; la page reste au jeu, plan refermé. */
-  const forcer = async (id: string, entree: EntreeMonde): Promise<{ readonly contexte: BrowserContext; readonly page: Page }> => {
+  const forcer = async (id: string, entree: EntreeMonde, reveil = `Station tirée — réveil : ${id} par l’adresse`): Promise<{ readonly contexte: BrowserContext; readonly page: Page }> => {
     const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
     const page = await contexte.newPage();
     await page.goto(`${racine}?station=${id}`);
@@ -1519,7 +1521,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
     await regarder(page).waitFor();
     if ((await mondeLu(page)) !== id) erreurs.push(`?station=${id} : partie sur « ${await mondeLu(page)} ».`);
     await verifierParole(page, entree.textes.assistance.reveil, `?station=${id}, réveil`, erreurs);
-    await capturer(page, `Station tirée — réveil : ${id} par l’adresse`);
+    await capturer(page, reveil);
     await verifierDepart(page, entree, `?station=${id}, départ`);
     await verifierEcran(page, `?station=${id}, départ`, erreurs);
     const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
@@ -1544,6 +1546,11 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   const baie = CATALOGUE.resoudre(STATION_BAIE);
   if ('refus' in baie) erreurs.push(`${STATION_BAIE} : ${baie.refus}`);
   else await (await forcer(STATION_BAIE, baie)).contexte.close();
+
+  // Chemins d'AR-01 (#154) : le réveil de la première station.
+  const ar01 = CATALOGUE.resoudre(STATIONS_AR01[0]);
+  if ('refus' in ar01) erreurs.push(`${STATIONS_AR01[0]} : ${ar01.refus}`);
+  else await (await forcer(STATIONS_AR01[0], ar01, `Réveil — chemins d’AR-01 ${STATIONS_AR01[0]}`)).contexte.close();
 
   // Adresse nue : une station tirée ; REJOUER CETTE STATION la garde, avec d'autres tirages et le même départ.
   const nue = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
@@ -1639,6 +1646,11 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
   const baie = CATALOGUE.resoudre(STATION_BAIE);
   if ('refus' in baie) erreurs.push(`${STATION_BAIE} : ${baie.refus}`);
   else await dessiner(STATION_BAIE, baie, `Plan — station à trois obstacles avec la baie ${STATION_BAIE}`);
+  for (const id of STATIONS_AR01) {
+    const station = CATALOGUE.resoudre(id);
+    if ('refus' in station) erreurs.push(`${id} : ${station.refus}`);
+    else await dessiner(id, station, `Plan — chemins d’AR-01 ${id}`);
+  }
   let etat = generateurDepuisGraine(GRAINE_GALERIE);
   const hasard = (): number => {
     const tirage = suivant(etat);
@@ -1739,7 +1751,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'station'),
       erreursStation,
       [
-        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. \`?station=${STATION_BAIE}\`, trois obstacles avec la baie (#153) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif.`,
+        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. \`?station=${STATION_BAIE}\`, trois obstacles avec la baie (#153) : réveil, plan au départ. \`?station=${STATIONS_AR01[0]}\`, chemins d’AR-01 (#154) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif.`,
       ],
     ),
     ...partieCommentaire(
@@ -1747,7 +1759,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'plans'),
       erreursPlans,
       [
-        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
+        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis les chemins d’AR-01 (#154), M-01, M-02, M-04 et M-05 : ${STATIONS_AR01.map((id) => `\`${id}\``).join(', ')}. Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
       ],
     ),
   ];
