@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-16 (L3 de #106 fusionnée, PR #168 ; L4, #154 : chemins d'AR-01, proposée par sa PR, parties sur téléphone à venir).
+> **Mise à jour :** 2026-10-16 (L4 de #106 fusionnée, PR #172 ; L5, #155 : ordre libre et mesures sur 1 000 tirages, proposée par sa PR, partie sur téléphone à venir).
 
 ## Mission de ce dossier
 
@@ -97,6 +97,7 @@ La validation humaine est conservée dans le [journal des parties humaines](jour
 - Assemblage : le morceau final apporte l'embarquement ; portes fermées entre morceaux au départ ; pile ou face du final, puis pur hasard ; ordre libre possible avec deux obstacles qui partent d'un même couloir ; panneau caché pour contourner la créature.
 - Baie, passerelle et sans gravité (L3) : réussie si chaque station mène à la capsule, la difficulté plus tard ; la vérification cherche d'abord vers le fond de la station (D-264, D-265).
 - Chemins d'AR-01 (L4) : la créature n'attend sur le palier de la galerie en feu ou dans l'atelier de la grille que derrière un obstacle qui permet de s'en débarrasser ; conception approuvée (D-268, D-269).
+- Ordre libre (L5) : un couloir commun, deux branches au fond desquelles une commande lève le verrou d'une cloison du sas, mêlé au tirage au pur hasard ; la mesure de D-241 ne compte que les façons sans dé ni blessure, hors du final ; conception approuvée (D-270).
 - Cadrage L0 : vestibule sans danger ni objet au départ ; créature de la galerie en feu seulement sur son palier de sortie ; en ordre libre, chaque branche fournit une commande pour l'une de deux cloisons avant le final ; NOUVELLE PARTIE tire aussi une station dans la version publique à partir de L2, d'abord énergie seule puis pile ou face dès que les deux finals sont disponibles et vérifiés (D-257 à D-260).
 - Mélanges : les obstacles qui ne jouent pas sur la même chose vont ensemble sans règle de plus ; l'air et le feu passent par-dessus le vide de la passerelle ; la baie va avec les nouveaux morceaux.
 - Chemin sûr : l'action libre du premier contact peut en faire partie ; une sortie qui demande un coup de dés reste une sortie.
@@ -173,15 +174,21 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 - **Mesures.** Les mélanges et les tirages sont dans [13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153).
 - **Reste à faire.** Une partie au bout sur téléphone pour chacun de M-06, M-08 et M-09 (**validation humaine requise**, D-098) : aucune n'est encore consignée dans le [journal](journal-parties-humaines.md).
 
-**L4, chemins d'AR-01 (#154), proposée par sa PR en zone orange :**
+**L4, chemins d'AR-01 (#154), fusionnée ([PR #172](https://github.com/greffeb/void-walker/pull/172)) :**
 - **Contenu.** Les quatre morceaux de chemin qui restaient, découpés dans AR-01, entrent au tirage : la galerie en feu (M-01), la grille haute et la caisse (M-02), la salle d'observation (M-04), le panneau et le passage caché (M-05). Les dix morceaux sont tous tirables. AR-01 ne change pas.
 - **Catalogue.** 368 compositions, dont 324 prouvées et publiées. Les 44 autres placent la créature sur le palier ou dans l'atelier, où elle bouche le seul passage, sans obstacle d'avant pour s'en débarrasser : elles ne sont jamais proposées (D-268). Les 88 compositions de L3 donnent les mêmes stations.
 - **Conception.** Approuvée par le porteur, avec les choix des agents (D-269). La réussite reste celle de L3 : arriver à la capsule, la difficulté plus tard (D-264).
 - **Vérification.** `check:stations` prend environ deux minutes et demie, `check:texts` environ trois minutes, dans `npm run verify`.
 - **Mesures.** Catalogue, plans, tirages, empreintes et mélanges sont dans [13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154).
-- **Reste à faire.** L'accord du porteur et une partie au bout sur téléphone pour chacun de M-01, M-02, M-04 et M-05 (**validation humaine requise**, D-098).
+- **Reste à faire.** Une partie au bout sur téléphone pour chacun de M-01, M-02, M-04 et M-05 (**validation humaine requise**, D-098) : aucune n'est encore consignée dans le [journal](journal-parties-humaines.md).
 
-**Prochaine tâche recommandée :** la PR de [#154](https://github.com/greffeb/void-walker/issues/154), à valider sur téléphone par le porteur avant fusion (zone orange), une partie au bout par morceau ; ensuite [#155](https://github.com/greffeb/void-walker/issues/155) (L5 : ordre libre et mesures). La difficulté des stations (« trop faciles » en L2) reste à traiter plus tard, dans une issue à part (D-264). La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260, D-262, D-265 et D-268, modifiée pour M-07 par D-261. Deux issues qui touchent le moteur ne se mènent pas en même temps.
+**L5, ordre libre et mesures (#155), proposée par sa PR en zone orange :**
+- **Contenu.** Une seconde forme de station : le vestibule donne sur un couloir commun, deux branches en partent, et un sas à deux cloisons verrouillées mène au final. Une commande au fond de chaque branche lève l'un des verrous, dans l'ordre qu'on veut (D-259, D-270). Le moteur gagne la cloison verrouillée et l'action « actionner ».
+- **Catalogue.** 536 compositions, dont 464 publiées : 324 en chaîne, inchangées, et 140 en ordre libre, chacune prouvée dans les deux ordres. Les 28 autres placent la créature sur le palier ou dans l'atelier, écartés par D-268.
+- **Mesures.** `npm run mesurer:tirages` : fréquences, rejets par motif, plans et part des stations où la créature peut être mise hors jeu ou enfermée avant le final (D-241) : 36,1 % des stations tirées, 10,6 % indéterminées ; 0 station non prouvée proposée ; détail dans [13 §7.8](13-morceaux-lancement.md#78-ordre-libre-et-mesures-l5-155).
+- **Reste à faire.** L'accord du porteur, une partie au bout sur téléphone dans une station en ordre libre (**validation humaine requise**, D-098), et sa décision sur la réserve de D-241.
+
+**Prochaine tâche recommandée :** la PR de [#155](https://github.com/greffeb/void-walker/issues/155), à valider sur téléphone par le porteur avant fusion (zone orange), une station en ordre libre ; ensuite [#156](https://github.com/greffeb/void-walker/issues/156) (L6 : « plus aucune sortie »). La difficulté des stations (« trop faciles » en L2) reste à traiter plus tard, dans une issue à part (D-264). La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260, D-262, D-265 et D-268, modifiée pour M-07 par D-261. Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-181 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 

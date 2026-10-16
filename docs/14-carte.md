@@ -246,6 +246,11 @@ Mesures locales de L4 (#154), sans assertion de temps ([13 §7.7](13-morceaux-la
 - sur 1 000 graines par chaîne : 1 000 plans sur 1 000 pour chacune, au plus 2,06 ms en moyenne pour une chaîne, 10,42 ms pour le pire tirage ;
 - sur 1 000 tirages complets du catalogue : 1 000 stations, 0,80 ms en moyenne et 5,21 ms au plus.
 
+Mesures locales de L5 (#155), ordre libre, sans assertion de temps ([13 §7.8](13-morceaux-lancement.md#78-ordre-libre-et-mesures-l5-155)) :
+- 56 chaînes de tuiles en arbre : vestibule, carrefour (couloir de 16 cases et sas au bout), final accroché au sas, puis deux branches accrochées au couloir ;
+- sur 1 000 graines par chaîne : au moins 987 plans (M-07 et M-10 avec M-06), au plus 3,3 ms en moyenne pour une chaîne ;
+- les 128 chaînes de L4 gardent leur plan pour chaque graine : l'ordre de pose et le tirage sont ceux d'avant L5.
+
 Les échecs de pose mesurés sur des chaînes sans plan ne se produisent pas avec les vraies tuiles.
 
 Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
