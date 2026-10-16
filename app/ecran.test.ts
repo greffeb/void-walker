@@ -1,4 +1,4 @@
-import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type OptionMenu, type Partie } from '../engine';
+import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type DefMonde, type OptionMenu, type Partie } from '../engine';
 import { MONDES, nomDe, raconter, type EntreeMonde } from '../content';
 import {
   composer,
@@ -12,6 +12,7 @@ import {
   nomDestination,
   nomParametre,
   nomPuce,
+  passagesEntendus,
   passagesOuverts,
   placerBulle,
   precedente,
@@ -28,6 +29,22 @@ const entree = MONDES['monde-test'] as EntreeMonde;
 const { monde, textes } = entree;
 const etapes = entree.parcours[0]?.etapes ?? [];
 const depart = (): Partie => nouvellePartie(monde, { version: 'ecran', graine: 3 });
+
+/** Zone sans gravité réduite (engine/morceaux.test.ts) : ouest ══ zone (gravité coupée) ══ est. */
+const GRAVITE: DefMonde = {
+  id: 'ecran-gravite',
+  depart: 'ouest',
+  pieces: [
+    { id: 'ouest', nom: 'ouest' },
+    { id: 'zone', nom: 'zone', gravite: 'coupee' },
+    { id: 'est', nom: 'est' },
+  ],
+  liaisons: [
+    { id: 'oz', nom: 'porte_oz', entre: ['ouest', 'zone'], ouverte: true },
+    { id: 'ze', nom: 'porte_ze', entre: ['zone', 'est'], ouverte: true },
+  ],
+  objets: [{ id: 'inter-o', nom: 'interrupteur_o', piece: 'ouest', portable: false, gravite: 'zone' }],
+};
 
 function placees(dock: Dock): OptionMenu[] {
   return [
@@ -85,29 +102,68 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     expect([...new Set(ecarts)]).toEqual([]);
   });
 
-  it('départ : puce du carnet, regard sur la pièce, portes et grille dans « Se déplacer vers » avec leurs actions, rien en main (D-229)', () => {
+  it('départ : puce du carnet, regard sur la pièce, une ligne par salle voisine avec sa porte, rien en main (D-267)', () => {
     const dock = composerDock(observer(monde, depart().etat));
     expect(dock.piece.map((groupe) => nomPuce(textes, groupe.cible))).toEqual(['Carnet']);
     expect(dock.piece.map((groupe) => groupe.options.map((option) => textes.verbes[option.action]))).toEqual([['Regarder', 'Prendre']]);
     expect(dock.autour?.cible.sorte).toBe('piece');
-    expect(dock.deplacements.map(({ aller }) => [nomDestination(textes, aller), aller.disponible])).toEqual([
-      ['atelier', false],
-      ['soute', false],
-    ]);
-    // « Aller » en tête : la bulle du bouton dit d'abord si l'on peut passer, puis comment ouvrir.
-    expect(dock.deplacements.map((deplacement) => deplacement.options.map((option) => textes.verbes[option.action]))).toEqual([
-      ['Aller vers', 'Regarder', 'Ouvrir'],
-      ['Aller vers', 'Regarder', 'Ouvrir'],
+    // Le nom joue le déplacement, même impossible (le moteur le refuse sans coût) ; la commande ouvre la porte.
+    expect(dock.deplacements.map(({ passer, manoeuvre, reperes }) => [nomDestination(textes, passer), passer.action, passer.disponible, manoeuvre?.action, reperes])).toEqual([
+      ['atelier', 'aller', false, 'ouvrir', []],
+      ['soute', 'aller', false, 'ouvrir', []],
     ]);
     expect(dock.inventaire).toEqual([]);
   });
 
-  it('une porte ouverte se referme depuis sa bulle de « Se déplacer vers » (D-229)', () => {
+  it('porte ouverte : le nom fait passer, la commande la referme ; la créature entendue derrière se signale jusqu’à l’action suivante (D-267)', () => {
     const ouverte = jouer(monde, depart(), optionDe(depart(), 'ouvrir', 'porte').commande);
     if (ouverte.type !== 'engagee') throw new Error('Porte non ouverte.');
-    const porte = composerDock(observer(monde, ouverte.partie.etat)).deplacements.find((deplacement) => deplacement.cible.nom === 'porte');
-    expect(porte?.aller.disponible).toBe(true);
-    expect(porte?.options.map((option) => option.action)).toEqual(['aller', 'regarder', 'fermer']);
+    const ligne = (partie: Partie) =>
+      composerDock(observer(monde, partie.etat), passagesOuverts(partie), passagesEntendus(partie)).deplacements.find((deplacement) => deplacement.cible.nom === 'porte');
+    expect(passagesEntendus(ouverte.partie)).toEqual([ligne(ouverte.partie)?.cible.id]);
+    expect(ligne(ouverte.partie)).toMatchObject({ passer: { action: 'aller', disponible: true }, manoeuvre: { action: 'fermer' }, reperes: ['bruit'] });
+    // L'action suivante (prendre le carnet, sans bruit derrière la porte) efface le repère.
+    const suite = jouer(monde, ouverte.partie, optionDe(ouverte.partie, 'prendre', 'carnet').commande);
+    if (suite.type !== 'engagee') throw new Error('Carnet non pris.');
+    expect(suite.partie.derniers.some((evenement) => evenement.type === 'bruit_creature')).toBe(false);
+    expect(ligne(suite.partie)?.reperes).toEqual([]);
+  });
+
+  it('repères : voyant de vide et flammes vues par la porte ouverte, dans l’ordre VIDE, FEU, BRUIT (D-267)', () => {
+    const observation = observer(monde, depart().etat);
+    const [premier, second] = observation.passages;
+    if (premier === undefined || second === undefined) throw new Error('Deux passages attendus.');
+    const passages = [{ ...premier, vide: true }, { ...second, ouvert: true, feu: true }];
+    const dock = composerDock({ ...observation, passages }, [], [premier.id]);
+    expect(dock.deplacements.map((deplacement) => deplacement.reperes)).toEqual([['vide', 'bruit'], ['feu']]);
+  });
+
+  it('sans gravité : loin du passage le nom fait dériver, au bord il fait passer (D-237, D-267)', () => {
+    const avant = nouvellePartie(GRAVITE, { version: 'ecran', graine: 7 });
+    const entrer = observer(GRAVITE, avant.etat).menu.find((option) => option.action === 'aller' && option.cible.sorte === 'passage' && option.cible.vers?.nom === 'zone');
+    if (entrer === undefined) throw new Error('Entrée de la zone absente.');
+    const dedans = jouer(GRAVITE, avant, entrer.commande);
+    if (dedans.type !== 'engagee') throw new Error('Zone non atteinte.');
+    const passer = (partie: Partie) =>
+      Object.fromEntries(composerDock(observer(GRAVITE, partie.etat)).deplacements.map((deplacement) => [deplacement.cible.vers?.nom, deplacement.passer.action]));
+    expect(passer(dedans.partie)).toEqual({ ouest: 'aller', est: 'deriver' });
+    const deriver = composerDock(observer(GRAVITE, dedans.partie.etat)).deplacements.find((deplacement) => deplacement.cible.vers?.nom === 'est')?.passer;
+    if (deriver === undefined) throw new Error('Dérive absente.');
+    expect(unToucher(GRAVITE, dedans.partie, deriver)).toBe(true);
+    const auBord = jouer(GRAVITE, dedans.partie, deriver.commande);
+    if (auBord.type !== 'engagee') throw new Error('Dérive non jouée.');
+    expect(passer(auBord.partie)).toEqual({ ouest: 'deriver', est: 'aller' });
+  });
+
+  it('un seul toucher pour toute porte et tout déplacement, même bruyant ou risqué ; prendre garde la règle de D-182 (D-267)', () => {
+    // La porte grippée de l'atelier est bruyante : elle passait par l'aperçu.
+    expect(apercu(monde, depart(), optionDe(depart(), 'ouvrir', 'porte').commande)).toMatchObject({ apercu: { cout: 'bruyant' } });
+    expect(unToucher(monde, depart(), optionDe(depart(), 'ouvrir', 'porte'))).toBe(true);
+    expect(unToucher(monde, depart(), optionDe(depart(), 'prendre', 'carnet'))).toBe(true);
+    // Indisponible : jamais d'un seul toucher, rien ne se joue.
+    const aller = observer(monde, depart().etat).menu.find((option) => option.action === 'aller' && option.cible.nom === 'porte');
+    if (aller === undefined) throw new Error('Aller absent.');
+    expect(unToucher(monde, depart(), aller)).toBe(false);
   });
 
   it('un nom par chose : puce, rappel et récit nomment la même chose (NP-04)', () => {
@@ -371,15 +427,15 @@ describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
   });
 });
 
-describe('un seul toucher (D-182)', () => {
-  it('départ : prendre le carnet d’un toucher ; ouvrir une porte ou une grille garde l’aperçu', () => {
+describe('un seul toucher (D-182, D-267)', () => {
+  it('départ : prendre le carnet, ouvrir une porte ou une grille, tout d’un toucher', () => {
     const partie = depart();
     expect(unToucher(monde, partie, optionDe(partie, 'prendre', 'carnet'))).toBe(true);
-    expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'porte'))).toBe(false);
-    expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'grille'))).toBe(false);
+    expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'porte'))).toBe(true);
+    expect(unToucher(monde, partie, optionDe(partie, 'ouvrir', 'grille'))).toBe(true);
   });
 
-  it('dans tous les états atteignables : jamais pour une porte, une option indisponible, un risque, un danger ou un coût', { timeout: 30_000 }, () => {
+  it('dans tous les états atteignables : portes et déplacements toujours ; prendre et poser jamais avec un risque, un danger ou un coût', { timeout: 30_000 }, () => {
     const vus = new Set<string>();
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
@@ -390,8 +446,9 @@ describe('un seul toucher (D-182)', () => {
           continue;
         }
         vus.add(`${option.action}:${String(direct)}`);
-        if (!direct) continue;
-        if (!['prendre', 'poser', 'aller'].includes(option.action)) ecarts.push(`${option.action} d’un toucher`);
+        const porteOuDeplacement = ['aller', 'deriver', 'ouvrir', 'fermer'].includes(option.action);
+        if (porteOuDeplacement !== direct && !['prendre', 'poser'].includes(option.action)) ecarts.push(`${option.action} : un toucher ${String(direct)}`);
+        if (!direct || porteOuDeplacement) continue;
         const apercu = prevoir({ monde, textes }, partie, option);
         if (apercu.risque !== null || apercu.danger !== null || apercu.cout !== null) {
           ecarts.push(`${option.action} d’un toucher malgré un risque`);
@@ -399,10 +456,8 @@ describe('un seul toucher (D-182)', () => {
       }
     }
     expect([...new Set(ecarts)]).toEqual([]);
-    // Les deux cas existent pour le déplacement : sans danger connu, et vers la créature vue ou entendue.
-    expect([...vus]).toEqual(expect.arrayContaining(['aller:true', 'aller:false', 'prendre:true', 'poser:true', 'ouvrir:false', 'fermer:false']));
-    expect([...vus]).not.toEqual(expect.arrayContaining(['ouvrir:true']));
-    expect([...vus]).not.toEqual(expect.arrayContaining(['fermer:true']));
+    expect([...vus]).toEqual(expect.arrayContaining(['aller:true', 'prendre:true', 'poser:true', 'ouvrir:true', 'fermer:true']));
+    expect([...vus]).not.toEqual(expect.arrayContaining(['aller:false']));
   });
 });
 
