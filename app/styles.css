@@ -926,28 +926,33 @@ button:disabled {
   margin-top: 6px;
 }
 
-/* Deux colonnes comme les puces (D-230) ; une seule quand deux ne tiennent plus (texte agrandi sur un écran étroit). */
+/* Une ligne par salle (D-267) : le nom à gauche, l'état de la porte à droite ; sans porte à manœuvrer, le nom prend la ligne. */
 .deplacements {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(calc(108px * var(--echelle) + 26px), calc(50% - 3px))), 1fr));
   gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.deplacements > li {
-  display: flex;
+.salle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
 }
 
-.deplacements > li > * {
-  flex: 1 1 auto;
-  min-width: 0;
+.salle.sans-porte {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .deplacement {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
   width: 100%;
-  min-height: 46px;
+  min-height: 48px;
   overflow-wrap: break-word;
   padding: 8px 12px;
   font-size: calc(15px * var(--echelle));
@@ -960,17 +965,72 @@ button:disabled {
   border: 1px solid var(--texte);
 }
 
-/* Déplacement impossible (porte fermée) : contour pointillé, sans fond ; le bouton ouvre quand même la bulle du passage (D-229). */
+/* Le nom peut rétrécir et se couper dans un mot trop long pour sa colonne (texte agrandi sur un écran étroit). */
+.deplacement .destination {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Déplacement impossible (porte fermée) : contour pointillé, sans fond ; le toucher fait dire au récit pourquoi (D-267). */
 .deplacement.bloque {
   color: var(--texte);
   background: transparent;
   border: 1px dashed var(--texte);
 }
 
-.deplacement[aria-expanded='true'] {
-  color: var(--fond);
+/* Danger connu derrière le passage : filet d'alerte à gauche, repère encadré poussé à droite du nom (D-267). */
+.deplacement.repere-danger {
+  box-shadow: inset 4px 0 0 var(--alerte);
+}
+
+.repere {
+  margin-left: auto;
+  padding: 0 5px;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.06em;
+  color: var(--alerte);
+  background: var(--fond);
+  border: 1px solid var(--alerte);
+}
+
+/* État de la porte, touché pour le changer : témoin vide fermée, plein ouverte (D-267). */
+.porte-etat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* 112 px au texte standard ; agrandi, la largeur suit le mot (« OUVERTE ») pour laisser sa place au nom. */
+  min-width: 112px;
+  min-height: 48px;
+  padding: 4px 10px;
+  font-size: calc(13px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte);
+  background: transparent;
+  border: 1px solid var(--bordure);
+}
+
+.porte-etat.ouverte {
+  background: var(--surface);
+}
+
+.temoin {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1px solid currentColor;
+}
+
+.porte-etat.ouverte .temoin {
   background: var(--accent);
-  border: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.porte-etat.indisponible {
+  opacity: 0.45;
+  border-style: dashed;
 }
 
 .raison {
@@ -1090,6 +1150,7 @@ button:disabled {
 
 .puce:not(:disabled, [aria-expanded='true']):active,
 .ligne:not(:disabled, .indisponible):active,
+.porte-etat:not(:disabled, .indisponible):active,
 .navigation button:not([aria-expanded='true']):active {
   background: var(--separateur);
 }

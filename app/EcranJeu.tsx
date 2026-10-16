@@ -10,10 +10,14 @@ import {
   lignesActions,
   nomDestination,
   nomParametre,
+  nomLigne,
+  nomPorte,
   nomPuce,
+  passagesEntendus,
   passagesOuverts,
   precedente,
   REGARDER_AUTOUR,
+  REPERES,
   unToucher,
   type Deplacement,
   type Dock,
@@ -119,7 +123,7 @@ export function EcranJeu({
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
-  const dock = composerDock(observation, passagesOuverts(jeu.partie));
+  const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
   /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
@@ -221,7 +225,7 @@ export function EcranJeu({
     lireMessages(jeu);
   };
 
-  const groupeOuvert = ouverte?.zone === 'piece' ? [...dock.piece, ...dock.deplacements].find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
+  const groupeOuvert = ouverte?.zone === 'piece' ? dock.piece.find((groupe) => groupe.cible.id === ouverte.cible) : undefined;
   return (
     // Pendant l'écriture, tout toucher agit normalement et affiche le texte en entier.
     <main className="jeu" onPointerDownCapture={completer} onKeyDownCapture={completer}>
@@ -866,7 +870,7 @@ function IconeAlerte() {
   );
 }
 
-/** Dock (12 §3.4) : une puce par objet de la pièce, puis un bouton par passage connu ; chacun ouvre sa bulle (D-229). */
+/** Dock (12 §3.4) : une puce par objet de la pièce, qui ouvre sa bulle ; puis une ligne par passage connu, jouée d'un toucher (D-267). */
 // Pendant l'enregistrement d'une action, rien ne s'ouvre : une bulle calculée sur l'état d'avant serait périmée (C-01 §4).
 export function DockPiece({
   dock,
@@ -882,7 +886,7 @@ export function DockPiece({
   /** Cible dont la bulle est ouverte : sa puce ou son bouton passe en vidéo inverse. */
   readonly puceOuverte: string | null;
   readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
-  /** « Regarder autour de vous » : gratuit, sans aperçu. */
+  /** « Regarder autour de vous », déplacements et portes : sans aperçu (D-267). */
   readonly jouer: Jouer;
 }) {
   const autour = dock.autour;
@@ -918,15 +922,7 @@ export function DockPiece({
           <h2 className="titre-section">Se déplacer vers</h2>
           <ul className="deplacements">
             {dock.deplacements.map((deplacement) => (
-              <li key={deplacement.cible.id}>
-                <BoutonDeplacement
-                  deplacement={deplacement}
-                  textes={textes}
-                  occupe={occupe}
-                  ouverte={deplacement.cible.id === puceOuverte}
-                  ouvrir={(ancre) => ouvrir(deplacement, ancre)}
-                />
-              </li>
+              <LigneSalle key={deplacement.cible.id} deplacement={deplacement} textes={textes} occupe={occupe} jouer={jouer} />
             ))}
           </ul>
         </>
@@ -936,37 +932,75 @@ export function DockPiece({
 }
 
 /**
- * Bouton « → DESTINATION » : il ouvre la bulle du passage. Un déplacement impossible (porte fermée) se voit au contour
- * pointillé, sans fond ; sa raison est lue avec le nom (12 §2.6, §3.7).
+ * Ligne « → DESTINATION » (D-267) : le nom fait passer d'un toucher ; impossible (porte fermée), il est en pointillé et le
+ * moteur refuse sans coût, le récit dit pourquoi. La commande dit l'état de la porte et l'ouvre ou la ferme d'un toucher ;
+ * indisponible, elle reste visible et inerte, sa raison lue (12 §3.7). Les repères sont lus avec le nom.
  */
-function BoutonDeplacement({
+function LigneSalle({
   deplacement,
   textes,
   occupe,
-  ouverte,
-  ouvrir,
+  jouer,
 }: {
   readonly deplacement: Deplacement;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
-  readonly ouverte: boolean;
-  readonly ouvrir: (ancre: HTMLElement) => void;
+  readonly jouer: Jouer;
 }) {
-  const { raison } = libelleOption(textes, deplacement.aller);
-  const destination = nomDestination(textes, deplacement.aller);
+  const { passer, manoeuvre, reperes, cible } = deplacement;
+  const destination = nomDestination(textes, passer);
+  const classes = ['deplacement', ...(passer.disponible ? [] : ['bloque']), ...(reperes.length > 0 ? ['repere-danger'] : [])].join(' ');
   return (
-    <button
-      type="button"
-      className={raison === null ? 'deplacement' : 'deplacement bloque'}
-      aria-haspopup="dialog"
-      aria-expanded={ouverte}
-      aria-label={raison === null ? undefined : `${destination}, ${raison}`}
-      disabled={occupe}
-      onClick={(evenement) => ouvrir(evenement.currentTarget)}
-      data-son="bulle"
-    >
-      <span aria-hidden="true">→ </span>
-      {destination}
+    <li className={manoeuvre === undefined ? 'salle sans-porte' : 'salle'}>
+      <button type="button" className={classes} aria-label={nomLigne(textes, deplacement)} disabled={occupe} onClick={() => jouer(passer)} data-son={passer.disponible ? 'confirmer' : 'refus'}>
+        <span className="destination">
+          <span aria-hidden="true">→ </span>
+          {destination}
+        </span>
+        {reperes.map((repere) => (
+          <span key={repere} className="repere" aria-hidden="true">
+            {REPERES[repere]}
+          </span>
+        ))}
+      </button>
+      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} nom={nomPorte(textes, deplacement)} textes={textes} occupe={occupe} jouer={jouer} />}
+    </li>
+  );
+}
+
+function EtatPorte({
+  manoeuvre,
+  ouverte,
+  nom,
+  textes,
+  occupe,
+  jouer,
+}: {
+  readonly manoeuvre: OptionMenu;
+  readonly ouverte: boolean;
+  readonly nom: string;
+  readonly textes: TextesMonde;
+  readonly occupe: boolean;
+  readonly jouer: Jouer;
+}) {
+  const contenu = (
+    <>
+      <span className="temoin" aria-hidden="true" />
+      {ouverte ? 'Ouverte' : 'Fermée'}
+    </>
+  );
+  const classe = ouverte ? 'porte-etat ouverte' : 'porte-etat';
+  if (!manoeuvre.disponible) {
+    const { raison } = libelleOption(textes, manoeuvre);
+    return (
+      <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${nom}, indisponible : ${raison ?? ''}`} data-son="refus">
+        {contenu}
+      </button>
+    );
+  }
+  return (
+    <button type="button" className={classe} aria-label={nom} disabled={occupe} onClick={() => jouer(manoeuvre)} data-son="confirmer">
+      {contenu}
     </button>
   );
 }
