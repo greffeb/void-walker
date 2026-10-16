@@ -9,6 +9,7 @@ export const MENACE = {
   evenements: {
     bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],
     creature_entre: ['Quelque chose surgit par {le:passage}.', 'Une masse sombre se coule par {le:passage}.'],
+    pas_entendus: ['Vos pas ont dû porter : quelque chose se met en route.', 'Le sol a dû trahir votre passage ; là-bas, quelque chose a bougé.'],
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',

@@ -36,6 +36,8 @@ export interface SonEmis {
   readonly intensite: Intensite;
   readonly alcove?: boolean;
   readonly relance?: boolean;
+  /** Les pas du passager, que la créature déjà alertée entend et poursuit (D-276). */
+  readonly pas?: boolean;
 }
 
 const FORCE: Readonly<Record<Intensite, number>> = { normal: 1, fort: 2 };
@@ -274,14 +276,17 @@ function reaction(
     // Elle rejoint la source, dans l'alcôve ou hors d'elle : repositionnement local, puis elle y cherche (C-03 §4.3, §5.1).
     return { creature: { ...creature, indice: null, engagee: null, alcove: son.alcove === true }, evenements: [] };
   }
+  // Alertée, elle poursuit les pas qui lui parviennent, même de l'autre bord d'un vide (D-276).
+  const entendus: Evenement[] = son?.pas === true ? [{ type: 'pas_entendus' }] : [];
+  const suite = (reponse: Reponse): Reponse => (entendus.length === 0 ? reponse : { ...reponse, evenements: [...entendus, ...reponse.evenements] });
   const indice: Indice | null = son === undefined ? creature.indice : { piece: son.piece, par: null };
   if (indice === null) return { creature, evenements: [] };
   if (indice.piece === creature.piece) return { creature: { ...creature, indice: null }, evenements: [] };
   // Sortir de l'alcôve est un repositionnement local : une réaction (C-03 §4.3).
-  if (creature.alcove) return { creature: { ...creature, indice, alcove: false }, evenements: [] };
+  if (creature.alcove) return suite({ creature: { ...creature, indice, alcove: false }, evenements: [] });
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
-  if (liaison === undefined) return { creature: { ...creature, indice, engagee: null }, evenements: [] };
-  return deriver(etat, creature, liaison, indice) ?? franchir(monde, etat, creature, liaison, indice);
+  if (liaison === undefined) return suite({ creature: { ...creature, indice, engagee: null }, evenements: [] });
+  return suite(deriver(etat, creature, liaison, indice) ?? franchir(monde, etat, creature, liaison, indice));
 }
 
 /** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */

@@ -173,6 +173,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   bruit_mecanisme: ['passage'],
   bruit_creature: ['passage'],
   creature_entre: ['passage'],
+  pas_entendus: [],
   attente: [],
   premier_contact: [],
   menace: [],

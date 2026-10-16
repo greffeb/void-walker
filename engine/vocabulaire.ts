@@ -54,6 +54,7 @@ export const TYPES_EVENEMENT = [
   'piece_decouverte',
   'bruit_mecanisme',
   'bruit_creature',
+  'pas_entendus',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -214,6 +215,8 @@ export type Evenement =
   /** La créature bouge dans une pièce voisine : situé par le passage, jamais par une position (OP-01). */
   | { readonly type: 'bruit_creature'; readonly passage: RefPassage }
   | { readonly type: 'creature_entre'; readonly passage: RefPassage }
+  /** Alertée, elle a entendu les pas du passager et le poursuit (D-276). */
+  | { readonly type: 'pas_entendus' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

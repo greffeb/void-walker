@@ -77,6 +77,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ],
     bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],
     creature_entre: ['Quelque chose surgit par {le:passage}.', 'Une masse sombre se glisse par {le:passage}.'],
+    pas_entendus: ['Vos pas ont dû porter : quelque chose se met en route.', 'Le sol a dû trahir votre passage ; là-bas, quelque chose a bougé.'],
     premier_contact: [
       'Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.',
       'La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.',
