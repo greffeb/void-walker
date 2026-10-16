@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-16 (L4 de #106 fusionnée, PR #172 ; L5, #155 : ordre libre et mesures sur 1 000 tirages, proposée par sa PR, partie sur téléphone à venir).
+> **Mise à jour :** 2026-10-16 (L5 de #106 fusionnée, PR #179 ; L6, #156 : « plus aucune sortie », proposée par sa PR, sortie perdue exprès sur téléphone à venir).
 
 ## Mission de ce dossier
 
@@ -183,13 +183,20 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 - **Mesures.** Catalogue, plans, tirages, empreintes et mélanges sont dans [13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154).
 - **Reste à faire.** Une partie au bout sur téléphone pour chacun de M-01, M-02, M-04 et M-05 (**validation humaine requise**, D-098) : aucune n'est encore consignée dans le [journal](journal-parties-humaines.md).
 
-**L5, ordre libre et mesures (#155), proposée par sa PR en zone orange :**
+**L5, ordre libre et mesures (#155), fusionnée ([PR #179](https://github.com/greffeb/void-walker/pull/179)) :**
 - **Contenu.** Une seconde forme de station : le vestibule donne sur un couloir commun, deux branches en partent, et un sas à deux cloisons verrouillées mène au final. Une commande au fond de chaque branche lève l'un des verrous, dans l'ordre qu'on veut (D-259, D-270). Le moteur gagne la cloison verrouillée et l'action « actionner ».
 - **Catalogue.** 536 compositions, dont 464 publiées : 324 en chaîne, inchangées, et 140 en ordre libre, chacune prouvée dans les deux ordres. Les 28 autres placent la créature sur le palier ou dans l'atelier, écartés par D-268.
 - **Mesures.** `npm run mesurer:tirages` : fréquences, rejets par motif, plans et part des stations où la créature peut être mise hors jeu ou enfermée avant le final (D-241) : 36,1 % des stations tirées, 10,6 % indéterminées ; 0 station non prouvée proposée ; détail dans [13 §7.8](13-morceaux-lancement.md#78-ordre-libre-et-mesures-l5-155).
 - **Reste à faire.** L'accord du porteur, une partie au bout sur téléphone dans une station en ordre libre (**validation humaine requise**, D-098), et sa décision sur la réserve de D-241.
 
-**Prochaine tâche recommandée :** la PR de [#155](https://github.com/greffeb/void-walker/issues/155), à valider sur téléphone par le porteur avant fusion (zone orange), une station en ordre libre ; ensuite [#156](https://github.com/greffeb/void-walker/issues/156) (L6 : « plus aucune sortie »). La difficulté des stations (« trop faciles » en L2) reste à traiter plus tard, dans une issue à part (D-264). La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260, D-262, D-265 et D-268, modifiée pour M-07 par D-261. Deux issues qui touchent le moteur ne se mènent pas en même temps.
+**L6, « plus aucune sortie » (#156), proposée par sa PR en zone orange :**
+- **Règle.** Le porteur l'a fixée (D-273) : le signal vient quand on ne peut plus du tout atteindre la capsule et la faire partir. Dés, blessures, créature, feu, froid et vide ne ferment aucun chemin : on peut y laisser la vie sans signal.
+- **Calcul.** Un chemin dans le moteur après chaque action (`engine/sortie.ts`), quelques microsecondes sur le PC ; l'observation publique ne porte que « oui ou non ».
+- **Écran.** L'information du jeu de 12 §5.2 (CONTINUER À JOUER, TERMINER LA PARTIE), puis le rappel « [ plus aucune sortie possible ] » au-dessus du récit (D-144).
+- **Preuve.** `npm run check:sortie` : parties au hasard sur les 470 stations, chaque état comparé à une recherche complète du moteur, 0 désaccord sur 60 640 états ; un test par obstacle. Détail dans [13 §7.9](13-morceaux-lancement.md#79--plus-aucune-sortie--l6-156).
+- **Reste à faire.** L'accord du porteur, une sortie perdue exprès sur téléphone, avec le temps par action (**validation humaine requise**, D-098).
+
+**Prochaine tâche recommandée :** la PR de [#156](https://github.com/greffeb/void-walker/issues/156) (L6 : « plus aucune sortie »), à valider sur téléphone par le porteur avant fusion (zone orange) : perdre la planche exprès dans la passerelle (`?monde=m-08`). La difficulté des stations (« trop faciles » en L2) reste à traiter plus tard, dans une issue à part (D-264). La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260, D-262, D-265 et D-268, modifiée pour M-07 par D-261. Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
 **À ne pas refaire :** l'entretien Q-01 à Q-181 sans besoin de changer un choix. Les identités éditoriales et textes de finition peuvent rester ouverts, mais aucune règle physique, sauvegarde ou permission manquante ne doit être inventée par un agent d'implémentation.
 
