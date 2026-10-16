@@ -3,7 +3,7 @@ import { COMPOSITIONS_CONTROLEES, COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES,
 import { CATALOGUE } from './catalogue';
 import { compterPhrases, controlerTextes, direBornes, entreeAControler, entreesAControler, regrouperAvertissements, verifierTextes } from './check-texts';
 import { executerParcours } from './rejouer-parcours';
-import { stationDeReference, verifierStation } from './verifier-station';
+import { stationDeReference, verifierLibre, verifierStation } from './verifier-station';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
 const AR01 = MONDES['ar-01'] as EntreeMonde;
@@ -207,6 +207,8 @@ describe('contrôle des textes (C-07)', () => {
       'm08-m01-m06-palier',
       'm09-m10-m06-cale',
       'm10-m04-m03-entrepot',
+      'ol-m02-m08-m06-magasin',
+      'ol-m05-m10-m03-tri',
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
@@ -228,7 +230,8 @@ describe('contrôle des textes (C-07)', () => {
       expect(entree.parcours, id).toHaveLength(1);
       const [parcours] = entree.parcours;
       if (parcours === undefined) throw new Error(`${id} sans parcours.`);
-      expect(parcours, id).toEqual(verifierStation({ ...entree, parcours: [] }).parcours);
+      const libre = entree.monde.liaisons.some((liaison) => liaison.verrouillee === true);
+      expect(parcours, id).toEqual((libre ? verifierLibre : verifierStation)({ ...entree, parcours: [] }).parcours);
       expect(parcours.attendu.issue, id).toBe('evacuation');
       expect(executerParcours(entree, parcours, 'check-texts-test').erreurs, id).toEqual([]);
     }
@@ -274,6 +277,8 @@ describe('contrôle des textes (C-07)', () => {
     ).toBe(true);
     const places = controlees.map((composition) => composition.creature);
     expect(places).toEqual(expect.arrayContaining(['m-01/p-palier', 'm-02/p-atelier']));
+    // Ordre libre (spec L5 §6) : une station par final, cloisons, commandes et message du couloir.
+    expect(tous(controlees.filter((composition) => composition.forme === 'libre').map((composition) => composition.final))).toEqual(['m-03', 'm-06']);
   });
 
   it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {

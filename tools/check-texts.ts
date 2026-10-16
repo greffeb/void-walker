@@ -52,7 +52,7 @@ import {
 import { CATALOGUE } from './catalogue';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { stationDeReference, verifierStation } from './verifier-station';
+import { stationDeReference, verifierLibre, verifierStation } from './verifier-station';
 
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
 
@@ -505,13 +505,16 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
 
 /**
  * La station d'une composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de plan vérifiée par
- * `check:stations`. Elle porte pour seul parcours le témoin d'évacuation de `verifierStation` ; sans témoin, elle est refusée.
+ * `check:stations`. Elle porte pour seul parcours le témoin d'évacuation de `verifierStation`, ou de `verifierLibre` en ordre
+ * libre ; sans témoin, elle est refusée.
  * Prouver une station coûte environ une seconde : qui n'en veut qu'une n'appelle pas `entreesAControler`.
  */
 export function entreeAControler(catalogue: Catalogue, composition: string): readonly [string, EntreeMonde | Refus] {
   const station = stationDeReference(catalogue, composition);
   if ('refus' in station) return [composition, station];
-  const rapport = verifierStation(station.entree);
+  // Ordre libre : le témoin de `check:stations`, première cloison d'abord (spec L5 §4.1).
+  const libre = station.entree.monde.liaisons.some((liaison) => liaison.verrouillee === true);
+  const rapport = libre ? verifierLibre(station.entree) : verifierStation(station.entree);
   const id = station.entree.monde.id;
   if (rapport.parcours === null) return [id, { refus: `Évacuation non prouvée (${rapport.verdict}) : ${rapport.diagnostic}` }];
   return [id, { ...station.entree, parcours: [rapport.parcours] }];

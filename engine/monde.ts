@@ -57,6 +57,11 @@ export interface DefLiaison {
    * on ne le franchit que sur un pont fragile posé en travers.
    */
   readonly gouffre?: boolean;
+  /**
+   * Cloison verrouillée de l'ordre libre (D-259) : fermée au départ, rien ne l'ouvre tant que sa commande n'a pas été actionnée ;
+   * ensuite, une porte ordinaire.
+   */
+  readonly verrouillee?: boolean;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -126,6 +131,8 @@ export interface DefObjet {
   readonly gravite?: string;
   /** Pupitre qui ferme d'un coup les portes de cette chambre froide, depuis une pièce voisine (D-170, D-239). */
   readonly fermeture?: string;
+  /** Commande fixe qui déverrouille cette cloison, d'où qu'on l'actionne, en une action discrète (D-259). */
+  readonly deverrouille?: string;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -206,6 +213,11 @@ export function validerMonde(monde: DefMonde): string[] {
       if (!liaison.ouverte) erreurs.push(`${liaison.id} : vide fermé.`);
       if (liaison.cachee !== undefined || liaison.manoeuvre !== undefined || liaison.haute !== undefined) erreurs.push(`${liaison.id} : vide caché, manoeuvré ou haut.`);
     }
+    if (liaison.verrouillee === true) {
+      if (liaison.ouverte) erreurs.push(`${liaison.id} : verrouillée mais ouverte au départ.`);
+      if (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true) erreurs.push(`${liaison.id} : cloison verrouillée qui n'est pas une porte pleine.`);
+      if (!monde.objets.some((objet) => objet.deverrouille === liaison.id)) erreurs.push(`${liaison.id} : verrouillée sans commande.`);
+    }
   }
   const voisines = (a: string, b: string): boolean => monde.liaisons.some((liaison) => liaison.entre.includes(a) && liaison.entre.includes(b));
   const defPieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
@@ -243,6 +255,10 @@ export function validerMonde(monde: DefMonde): string[] {
       if (defPieces.get(objet.fermeture)?.froide !== true) erreurs.push(`${objet.id} : ferme une pièce qui n'est pas une chambre froide.`);
       if (objet.fermeture === objet.piece || !voisines(objet.piece, objet.fermeture)) erreurs.push(`${objet.id} : pupitre hors d'une pièce voisine de sa chambre (D-170).`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : pupitre portable.`);
+    }
+    if (objet.deverrouille !== undefined) {
+      if (liaisons.get(objet.deverrouille)?.verrouillee !== true) erreurs.push(`${objet.id} : déverrouille autre chose qu'une cloison verrouillée.`);
+      if (objet.portable !== false) erreurs.push(`${objet.id} : commande portable.`);
     }
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
     if (objet.position !== undefined && objet.deplacable !== true) erreurs.push(`${objet.id} : position sans être déplaçable.`);

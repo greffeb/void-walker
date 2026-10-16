@@ -1,8 +1,8 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7).
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8).
 > **Mise à jour :** 2026-10-16.
-> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 proposée par sa PR (§7.7). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les huit autres morceaux.
+> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 proposée par sa PR (§7.8). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les huit autres morceaux.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
@@ -432,7 +432,7 @@ Ce sont `m07-m03-soute`, `m07-m08-m06-embarquement`, `m08-m07-m03-magasin`, `m09
 
 ### 7.7 Chemins d'AR-01 L4 (#154)
 
-> **Statut :** proposé par la PR de #154 (zone orange), en attente de l'accord du porteur et de parties au bout sur téléphone pour M-01, M-02, M-04 et M-05 (**validation humaine requise**, D-098). Conception : [spec L4](superpowers/specs/2026-10-16-chemins-ar01-design.md), approuvée (D-269) ; réussite celle de L3 (D-264).
+> **Statut :** fusionné ([PR #172](https://github.com/greffeb/void-walker/pull/172)) ; aucune partie au bout sur téléphone n'est consignée pour M-01, M-02, M-04 et M-05 dans le [journal](journal-parties-humaines.md) (**validation humaine requise**, D-098). Conception : [spec L4](superpowers/specs/2026-10-16-chemins-ar01-design.md), approuvée (D-269) ; réussite celle de L3 (D-264).
 
 Les quatre morceaux de chemin qui restaient sont découpés dans AR-01 et entrent au tirage. Les dix morceaux sont tous tirables. AR-01 reste écrite en entier et ne change pas, parcours compris.
 
@@ -566,6 +566,90 @@ Les récits « arroser » et « déplacer » du socle n'avaient qu'une phrase ; 
 | **Q-195, D-269.** « La conception vous convient-elle pour passer au plan de travail ? », avec la liste des choix des agents (noms des pièces, observation hors coque, vérification d'environ une minute et demie acceptée, série fixe pour le contrôle des textes, liens de validation avec la créature dans le morceau). | « yes » |
 | **Q-196.** « Le plan vous convient-il, et on garde la même façon de faire ? » (tâches confiées une à une, chacune relue, puis PR et push en autonomie) | « oui, travaille en autonomie je vais me coucher, fait la PR quand tu a fini » |
 
+### 7.8 Ordre libre et mesures L5 (#155)
+
+> **Statut :** proposé par la PR de #155 (zone orange), en attente de l'accord du porteur et d'une partie au bout sur téléphone dans une station en ordre libre (**validation humaine requise**, D-098). Conception : [spec L5](superpowers/specs/2026-10-16-ordre-libre-mesures-design.md), approuvée (D-270).
+
+**Forme.** Le vestibule donne sur un couloir commun. Deux branches en partent, deux morceaux de chemin qui finissent en cul-de-sac. Au bout du couloir, un sas entre deux cloisons verrouillées mène au final. Au fond de chaque branche, au-delà de son obstacle, une commande lève le verrou d'une cloison : dans sa pièce de sortie, sauf pour M-10, où elle est dans l'entrepôt, après la chambre froide (la coursive de sortie se rejoint des quartiers sans rien franchir, relevé par la relecture) [détail de l'agent]. La commande de la branche A (le plus petit numéro) lève le premier verrou, celle de la branche B le second. Le couloir, le sas et les cloisons forment le **carrefour**, un morceau à part ; M-03 et M-06 ne changent pas. L'IA Station prévient à la première arrivée dans le couloir.
+
+**Moteur.** Deux qualités nouvelles (C-02 §5) : la cloison verrouillée, que rien n'ouvre avant sa commande (« Ouvrir » indisponible, refus sans coût), et la commande de déverrouillage, qu'on **actionne** en une action discrète, sans dé, une seule fois. Une fois levée, la cloison est une porte ordinaire. Un monde sans cloison verrouillée garde exactement le même état.
+
+**Catalogue.** NOUVELLE PARTIE tire maintenant parmi **464 compositions publiées** sur 536 :
+- 324 en chaîne, inchangées depuis L4 ;
+- 140 en ordre libre sur 168 : 28 paires de branches × 2 finals × 3 places de la créature.
+
+Les 28 autres placent la créature sur le palier de M-01 ou dans l'atelier de M-02. Ces places ne sont permises que derrière un obstacle qui permet de s'en débarrasser (D-268), et en ordre libre aucune branche n'en précède une autre : elles sont écartées avant tout plan, avec ce motif [détail de l'agent]. La recherche atteignait sinon son plafond, à 50 s chacune.
+
+Le tirage ne change pas (D-253, Q-198) : pile ou face entre les finals, puis une composition publiée au hasard parmi celles de ce final.
+
+**Preuves (G-07, G-08).**
+- Chaque composition en ordre libre est vérifiée deux fois : une recherche où la seconde commande n'est jamais actionnée avant la première, une autre dans l'ordre inverse. Toutes deux mènent à l'évacuation sans dé ni blessure, témoin et export rejoués. Les 140 sont prouvées dans les deux ordres.
+- Chaque cloison, verrouillée, coupe à elle seule toute capsule du départ : aucune suite de liaisons, quelles qu'elles soient, ne la contourne. Sans l'une des commandes, aucune évacuation n'est donc possible, même avec des dés favorables. Un test du moteur le confirme en explorant tout le graphe d'une petite station, toutes faces de dés comprises : aucune action, aucun dé, ni la créature ni le feu n'ouvrent une cloison verrouillée. Une copie où un passage contourne une cloison est rejetée : « une branche pourrait être sautée ».
+- La recherche de chaque ordre développe d'abord la branche de la commande attendue, puis l'autre, puis le final [détail de l'agent] : même graphe, mêmes transitions, même plafond.
+
+Mesure du serveur de développement, plus lent que le PC du porteur ; les durées ne sont pas des assertions :
+
+| Final, ordre libre | Prouvées | États (deux ordres) | Actions du témoin | Temps des prouvées |
+| --- | ---: | ---: | ---: | ---: |
+| M-03 | 70 | 1 086 à 9 787 | 27 à 41 | 28,1 s en tout |
+| M-06 | 70 | 1 408 à 27 784 | 28 à 45 | 104,0 s en tout |
+
+La plus lourde est `ol-m01-m09-m06-embarquement` : 27 784 états pour les deux ordres. Sur ce serveur, la vérification des compositions prend 189 s en chaîne et 132 s en ordre libre.
+
+**Station rejetée, avec son diagnostic.** `ol-m01-m07-m03-palier`, forcée par `?station=ol-m01-m07-m03-palier-1` ou `--station`, est refusée : « Créature en m-01/p-palier : écartée sans recherche. Cette place n’est permise que derrière un obstacle qui permet de s’en débarrasser (D-268) ; en ordre libre, aucune branche ne précède l’autre. » Avant cette règle, sa vérification atteignait le plafond dans les deux ordres : 300 000 états, « Recherche interrompue au plafond de 150000 états : évacuation non prouvée. »
+
+**Plans.** Couloir de 16 cases, sas au bout ; le final est posé avant les branches [détail de l'agent]. Un couloir de 8 cases donnait jusqu'à 0 % de plans sur les paires les plus longues. Sur 1 000 graines pour chacune des 56 chaînes en ordre libre : au moins 987 plans (M-07 et M-10 avec M-06), 999,8 en moyenne, au plus 3,1 ms en moyenne par chaîne et 41 ms pour le pire tirage. Les 128 chaînes en chaîne gardent 1 000 plans sur 1 000 et le même plan pour la même graine.
+
+**Mesures sur 1 000 tirages** (`npm run mesurer:tirages`, D-241, Q-199) :
+
+Mesures du 2026-10-16 sur ce serveur ; graine fixe, les mêmes à chaque mesure ; 1 465 s, surtout pour D-241.
+
+*Tirages réels* (NOUVELLE PARTIE, 1 000 tirages) : 1 000 stations, 399 compositions distinctes.
+
+| Mesure | Résultat |
+| --- | --- |
+| Finals | M-03 524, M-06 476 |
+| Formes | une chaîne à un chemin 53, à deux 638, ordre libre 309 |
+| Morceaux | M-01 186, M-02 169, M-04 265, M-05 240, M-07 289, M-08 266, M-09 254, M-10 278 ; M-03 524, M-06 476 |
+| Places de la créature | palier 15, atelier 20, observation 96, salle de tri 90, soute 123, magasin 86, cale 92, entrepôt 99, réserve 186, embarquement 193 |
+| Stations non prouvées proposées | **0** |
+| **D-241 :** créature mise hors jeu ou enfermée possible avant le final, sans dé ni blessure, sans entrer dans le final | **361 sur 1 000 (36,1 %)** ; impossible 533 ; indéterminée 106 (plafond de 150 000 états) |
+| Créature hors du morceau final au départ | 621 sur 1 000 (62,1 %) |
+
+*Candidats* (1 000 tirages de la même façon, mais parmi les 536 compositions possibles, avant publication) :
+
+| Motif | Candidats |
+| --- | ---: |
+| acceptés | 864 |
+| paire refusée | 0 |
+| place de la créature écartée en ordre libre (D-268) | 59 |
+| pas de plan | 0 |
+| pas de chemin sûr (palier ou atelier en chaîne, D-268) | 77 |
+| non prouvée (plafond) | 0 |
+| un seul des deux ordres prouvé | 0 |
+
+*Plans* (14 §5.6) : 941 trouvés sur 941 cherchés, 2,05 ms en moyenne et 8,58 ms au plus par station, textes compris.
+
+Lecture de D-241 :
+- Les moyens qui comptent sont la planche de la passerelle (la créature tombe), la chambre froide bouclée et la baie, mais la baie est toujours dans le final et ne compte donc jamais.
+- « Indéterminée » regroupe surtout les stations où la créature part du final, avec la passerelle ou la chambre froide avant : il faudrait l'en faire sortir puis l'attirer au piège. La recherche s'arrête au plafond avant de trancher.
+- La part réelle est donc entre 36,1 % et 46,7 %.
+
+Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature plus souvent près du final) ; rien ne change au tirage.
+
+**Contrôle des textes.** `check:texts` ajoute deux stations en ordre libre, une par final : `ol-m02-m08-m06-magasin` et `ol-m05-m10-m03-tri`. Elles couvrent le couloir, le sas, les cloisons, les commandes et le message d'IA Station ; aucune erreur.
+
+**Empreinte** du carrefour (D-100) : `0ed685a51936e5`. Les dix morceaux gardent les leurs.
+
+**Questions posées au porteur le 2026-10-16**, citées mot pour mot :
+
+| Question | Réponse du porteur |
+| --- | --- |
+| **Q-197, D-270.** « Pour l'ordre libre, je propose : le vestibule donne sur un couloir ; deux ailes en partent, chacune avec son obstacle ; au fond de chaque aile, une commande lève un verrou. Les deux verrous sont sur deux cloisons l'une derrière l'autre, entre le couloir et le problème final. Une commande se manœuvre en une action, sans bruit ni dé. L'IA Station prévient en arrivant dans le couloir. Les deux cloisons appartiennent au couloir, ce qui laisse les morceaux finals inchangés. Cette conception vous convient-elle ? » | « Oui, on y va (Recommandé) » |
+| **Q-198, D-270.** « Au tirage, les stations en ordre libre se mêleraient aux autres au pur hasard, comme aujourd'hui : environ une station sur trois serait en ordre libre (si toutes sont prouvées). Ça vous va ? » | « Au hasard, ~1 sur 3 (Recommandé) » |
+| **Q-199, D-270.** « Pour « la créature peut être mise hors jeu ou enfermée avant le problème final », je compte seulement les manières sans dé ni blessure, sans entrer dans le morceau final. Ça vous va ? » | « Sans dé ni blessure (Recommandé) » |
+| **Q-200, D-270.** « Comment voulez-vous que je travaille ensuite ? » | « En autonomie, puis PR (Recommandé) » |
+
 ## 8. Cadrage L0 (#150) accepté par le porteur
 
 > **Statut :** CONCEPTION ACCEPTÉE le 2026-10-14. Après relecture indépendante des propositions, les quatre recommandations ci-dessous ont été soumises au porteur avec leurs détails puis retenues explicitement : Q-182 à Q-185, D-257 à D-260. Elles précisent les fiches et C-08 ; aucun code ne change dans L0. Les preuves moteur et les parties sur téléphone restent à produire dans les livraisons indiquées.
@@ -621,6 +705,8 @@ Les récits « arroser » et « déplacer » du socle n'avaient qu'une phrase ; 
 | M-10 | Accès à sa commande après la chambre froide ; distincte du pupitre qui ferme la chambre |
 
 Une seule créature reste placée dans toute la station : un morceau de menace peut être plus facile si elle attend ailleurs. Les deux visites et les deux apports restent nécessaires, pas une méthode de résolution imposée ni une rencontre obligatoire dans chaque branche.
+
+**Forme retenue en L5** (§7.8, D-270) : le couloir et le sas forment un morceau à part, le carrefour, qui porte les deux cloisons ; la commande est posée dans la pièce de sortie de la branche.
 
 **Preuves attendues en L5 :** pour chaque composition publiée, les deux ordres de préparation mènent à une évacuation sans dé ni blessure ; sans l'un ou l'autre des déverrouillages, aucune évacuation n'est possible, même avec des dés favorables. Les retours au couloir, les passages étroits, le port encombrant, les portes et la place unique de la créature font partie de ces preuves. Une paire permise en §4.1 n'est pas automatiquement utilisable en ordre libre. Aucun nouveau type de commande, effet ou état n'est implémenté par L0 ; le travail du moteur et du format reste en zone orange pour L5.
 

@@ -44,6 +44,8 @@ export {
   validerMorceau,
   type Apport,
   type Assembleur,
+  type DefAccroche,
+  type DefCommande,
   type DefMorceau,
   type DefPorteSortie,
   type DefStation,

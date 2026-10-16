@@ -59,7 +59,7 @@ function porte(monde: DefMonde, id: string) {
 
 describe('morceaux (13 §8)', () => {
   it('vestibule, M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-03, M-06 et embarquement d’essai, dans cet ordre', () => {
-    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'm-06', 'essai']);
+    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10', 'carrefour', 'm-03', 'm-06', 'essai']);
   });
 
   it.each(Object.entries(MORCEAUX))('%s : morceau valide, identifiant repris', (id, { morceau }) => {
@@ -699,24 +699,49 @@ describe('table des paires (13 §4.1)', () => {
 });
 
 describe('compositions', () => {
-  it('368 compositions : 184 par final ; 32 à un chemin, 2 places chacune ; 336 à deux, 3 places chacune ; aucune ne réunit M-03 et M-06', () => {
+  it('536 compositions : 368 en chaîne (184 par final ; 32 à un chemin, 2 places chacune ; 336 à deux, 3 places chacune) et 168 en ordre libre (28 paires × 2 finals × 3 places) ; aucune ne réunit M-03 et M-06', () => {
     const { compositions } = CATALOGUE;
     const CHEMINS = ['m-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10'];
-    expect(compositions).toHaveLength(368);
-    for (const final of ['m-03', 'm-06']) expect(compositions.filter((composition) => composition.final === final), final).toHaveLength(184);
-    expect(compositions.filter((composition) => composition.chemins.length === 1)).toHaveLength(32);
-    expect(compositions.filter((composition) => composition.chemins.length === 2)).toHaveLength(336);
+    expect(compositions).toHaveLength(536);
+    const chaine = compositions.filter((composition) => composition.forme === 'chaine');
+    const libre = compositions.filter((composition) => composition.forme === 'libre');
+    expect(chaine).toHaveLength(368);
+    expect(libre).toHaveLength(168);
+    for (const final of ['m-03', 'm-06']) expect(chaine.filter((composition) => composition.final === final), final).toHaveLength(184);
+    expect(chaine.filter((composition) => composition.chemins.length === 1)).toHaveLength(32);
+    expect(chaine.filter((composition) => composition.chemins.length === 2)).toHaveLength(336);
     const parStation = new Map<string, number>();
     for (const composition of compositions) {
       const morceaux: string[] = [...composition.chemins, composition.final];
-      expect(composition.refus, composition.id).toBeNull();
       expect(['m-03', 'm-06'], composition.id).toContain(composition.final);
       expect(new Set(composition.chemins).size, composition.id).toBe(composition.chemins.length);
       for (const chemin of composition.chemins) expect(CHEMINS, composition.id).toContain(chemin);
       expect(morceaux.includes('m-03') && morceaux.includes('m-06'), composition.id).toBe(false);
-      parStation.set(morceaux.join(' + '), (parStation.get(morceaux.join(' + ')) ?? 0) + 1);
+      const cle = `${composition.forme} ${morceaux.join(' + ')}`;
+      parStation.set(cle, (parStation.get(cle) ?? 0) + 1);
     }
+    for (const composition of chaine) expect(composition.refus, composition.id).toBeNull();
     for (const [station, places] of parStation) expect(places, station).toBe(station.split(' + ').length);
+    // Ordre libre : deux branches distinctes, A au plus petit numéro, identifiant `ol-<A>-<B>-<final>-<place>`.
+    for (const composition of libre) {
+      const [a, b] = composition.chemins;
+      expect(composition.chemins, composition.id).toHaveLength(2);
+      expect((a ?? '') < (b ?? ''), composition.id).toBe(true);
+      expect(composition.id.startsWith(`ol-${[a, b, composition.final].map((id) => id?.replace('-', '')).join('-')}-`), composition.id).toBe(true);
+    }
+  });
+
+  it('ordre libre (spec L5 §3.2) : créature sur le palier ou dans l’atelier écartée avant tout plan, avec son motif (D-268)', () => {
+    const libre = CATALOGUE.compositions.filter((composition) => composition.forme === 'libre');
+    const ecartees = libre.filter((composition) => composition.refus !== null);
+    expect(ecartees).toHaveLength(28);
+    for (const composition of ecartees) {
+      expect(['m-01/p-palier', 'm-02/p-atelier'], composition.id).toContain(composition.creature);
+      expect(composition.refus).toContain('D-268');
+    }
+    expect(refusDe(CATALOGUE.resoudre('ol-m01-m07-m03-palier-1'))).toContain('D-268');
+    // En chaîne, les mêmes places restent vérifiées, et publiées derrière un obstacle utile (D-268).
+    expect(COMPOSITIONS_PUBLIEES).toContain('m07-m01-m03-palier');
   });
 
   it('les compositions de L3 et toutes les publiées sont dans le catalogue ; celles de L3 restent publiées', () => {
@@ -727,16 +752,16 @@ describe('compositions', () => {
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...PUBLIEES_L3]));
   });
 
-  it('publication (spec L4 §4) : aucune composition palier ou atelier sans M-04, M-07, M-08 ni M-10 avant la place', () => {
+  it('publication (spec L4 §4, L5 §4) : en chaîne, aucune composition palier ou atelier sans M-04, M-07, M-08 ni M-10 avant la place ; en ordre libre, toutes celles que leur place n’écarte pas', () => {
     const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
-    const bouchees = CATALOGUE.compositions.filter(({ chemins, creature }) => {
-      if (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier') return false;
+    const bouchees = CATALOGUE.compositions.filter(({ forme, chemins, creature }) => {
+      if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
       const avant = chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/'))));
       return !avant.some((chemin) => AIDES.includes(chemin));
     });
     expect(bouchees).toHaveLength(44);
     const bouchee = new Set(bouchees.map(({ id }) => id));
-    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map(({ id }) => id).filter((id) => !bouchee.has(id)));
+    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.filter(({ id, refus }) => refus === null && !bouchee.has(id)).map(({ id }) => id));
   });
 
   it('identifiants de composition uniques, triés, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
@@ -753,12 +778,12 @@ describe('compositions', () => {
   it('places distinctes : par station, une composition par place, aucune place du même nom affiché qu’une autre', () => {
     const parStation = new Map<string, Composition[]>();
     for (const composition of CATALOGUE.compositions) {
-      const cle = [...composition.chemins, composition.final].join(' + ');
+      const cle = `${composition.forme} ${[...composition.chemins, composition.final].join(' + ')}`;
       parStation.set(cle, [...(parStation.get(cle) ?? []), composition]);
     }
-    expect(parStation.size).toBe(128);
+    expect(parStation.size).toBe(128 + 56);
     for (const [cle, compositions] of parStation) {
-      const morceaux = cle.split(' + ').map((id) => MORCEAUX[id]);
+      const morceaux = cle.slice(cle.indexOf(' ') + 1).split(' + ').map((id) => MORCEAUX[id]);
       const places = morceaux.flatMap((entree) => entree?.morceau.placesCreature.map((place) => `${entree.morceau.id}/${place}`) ?? []);
       expect(compositions.map((composition) => composition.creature).sort(), cle).toEqual([...places].sort());
       const noms = morceaux.flatMap((entree) =>
@@ -776,10 +801,11 @@ describe('compositions', () => {
     const catalogue = creerCatalogue(assembler, SANS_M03_M07);
     const motif = 'Paire M-03 + M-07 absente de la table : refusée par défaut.';
     // Toute station qui passe par M-07 et se termine par M-03 est refusée ; les autres restent, M-07 vers M-06 compris.
+    // En ordre libre, la paire passe avant la place écartée (D-268).
     expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual(
-      CATALOGUE.compositions.map(({ id, chemins, final }) => [id, chemins.includes('m-07') && final === 'm-03' ? motif : null]),
+      CATALOGUE.compositions.map(({ id, chemins, final, refus }) => [id, chemins.includes('m-07') && final === 'm-03' ? motif : refus]),
     );
-    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(44);
+    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(44 + 21);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m03-soute'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.resoudre('m07-m03-soute-42'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.construire('m07-m03-soute', 42))).toContain('M-03 + M-07');
@@ -808,7 +834,42 @@ describe('compositions', () => {
       'm10-m07-m06-embarquement',
       'm10-m07-m06-entrepot',
       'm10-m07-m06-soute',
+      'ol-m01-m02-m03-atelier',
+      'ol-m01-m02-m03-palier',
+      'ol-m01-m02-m06-atelier',
+      'ol-m01-m02-m06-palier',
+      'ol-m01-m04-m03-palier',
+      'ol-m01-m04-m06-palier',
+      'ol-m01-m05-m03-palier',
+      'ol-m01-m05-m06-palier',
+      'ol-m01-m07-m03-palier',
+      'ol-m01-m07-m06-palier',
+      'ol-m01-m08-m03-palier',
+      'ol-m01-m08-m06-palier',
+      'ol-m01-m09-m03-palier',
+      'ol-m01-m09-m06-palier',
+      'ol-m01-m10-m03-palier',
+      'ol-m01-m10-m06-palier',
+      'ol-m02-m04-m03-atelier',
+      'ol-m02-m04-m06-atelier',
+      'ol-m02-m05-m03-atelier',
+      'ol-m02-m05-m06-atelier',
+      'ol-m02-m07-m03-atelier',
+      'ol-m02-m07-m06-atelier',
+      'ol-m02-m08-m03-atelier',
+      'ol-m02-m08-m06-atelier',
+      'ol-m02-m09-m03-atelier',
+      'ol-m02-m09-m06-atelier',
+      'ol-m02-m10-m03-atelier',
+      'ol-m02-m10-m06-atelier',
+      'ol-m07-m10-m03-entrepot',
+      'ol-m07-m10-m03-reserve',
+      'ol-m07-m10-m03-soute',
+      'ol-m07-m10-m06-embarquement',
+      'ol-m07-m10-m06-entrepot',
+      'ol-m07-m10-m06-soute',
     ]);
+    expect(catalogue.compositions.find((composition) => composition.id === 'ol-m07-m10-m03-soute')?.refus).toBe(motif);
     expect(refusDe(catalogue.resoudre('m07-m10-m03-soute-42'))).toBe(motif);
     expect(refusDe(catalogue.construire('m07-m10-m03-soute', 42))).toBe(motif);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m10-m03-soute'))).toBe(motif);
@@ -1040,8 +1101,10 @@ describe('stations tirées', () => {
     expect(aller?.disponible).toBe(true);
     const sortie = jouer(monde, ouverte.partie, aller?.commande);
     expect(sortie).toMatchObject({ type: 'engagee', tirages: [] });
-    const [premier = ''] = CATALOGUE.compositions.find(({ id }) => id === composition)?.chemins ?? [];
-    expect(sortie.partie.etat.piece).toBe(`${premier}/${MORCEAUX[premier]?.morceau.entree ?? ''}`);
+    // En ordre libre, le vestibule donne sur le couloir commun (13 §8.1).
+    const { forme, chemins: [premier = ''] = [] } = CATALOGUE.compositions.find(({ id }) => id === composition) ?? {};
+    const suivant = forme === 'libre' ? 'carrefour' : premier;
+    expect(sortie.partie.etat.piece).toBe(`${suivant}/${MORCEAUX[suivant]?.morceau.entree ?? ''}`);
   });
 
   it('PL-04 : sur 50 stations tirées, chaque nom de pièce tient dans son rectangle', () => {
