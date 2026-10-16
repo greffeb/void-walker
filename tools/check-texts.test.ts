@@ -1,7 +1,7 @@
 import { assemblerStation } from '../engine';
 import { COMPOSITIONS_CONTROLEES, COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, type EntreeMonde, type TextesMonde } from '../content';
 import { CATALOGUE } from './catalogue';
-import { compterPhrases, controlerTextes, direBornes, entreesAControler, regrouperAvertissements, verifierTextes } from './check-texts';
+import { compterPhrases, controlerTextes, direBornes, entreeAControler, entreesAControler, regrouperAvertissements, verifierTextes } from './check-texts';
 import { executerParcours } from './rejouer-parcours';
 import { stationDeReference, verifierStation } from './verifier-station';
 
@@ -18,6 +18,16 @@ function sans<T extends object>(objet: T, cle: string): T {
 
 /** Ces tests parcourent tous les états atteignables : plusieurs secondes sur la machine de vérification de GitHub. */
 const EXHAUSTIF = { timeout: 30_000 };
+
+/**
+ * Les dix stations contrôlées du catalogue, prouvées une fois : y toucher coûte une dizaine de secondes, et deux tests les relisent
+ * sans les modifier. Un test qui n'en veut qu'une appelle `entreeAControler`.
+ */
+let controleesDuCatalogue: ReturnType<typeof entreesAControler> | undefined;
+function entreesControlees(): ReturnType<typeof entreesAControler> {
+  controleesDuCatalogue ??= entreesAControler(CATALOGUE);
+  return controleesDuCatalogue;
+}
 
 describe('contrôle des textes (C-07)', () => {
   it('les textes du monde de test sont complets et sûrs', EXHAUSTIF, () => {
@@ -181,7 +191,7 @@ describe('contrôle des textes (C-07)', () => {
   });
 
   it('relit les mondes du catalogue, puis une station par composition contrôlée, publiée, à la graine vérifiée par check:stations', EXHAUSTIF, () => {
-    const entrees = entreesAControler(CATALOGUE);
+    const entrees = entreesControlees();
     const fixes = Object.keys(CATALOGUE.mondes);
     expect(entrees.slice(0, fixes.length).map(([id]) => id)).toEqual(fixes);
     const stations = entrees.slice(fixes.length);
@@ -211,7 +221,7 @@ describe('contrôle des textes (C-07)', () => {
   });
 
   it('chaque station contrôlée a exactement un parcours : le témoin de check:stations, qui se rejoue jusqu’à l’évacuation', EXHAUSTIF, () => {
-    const stations = entreesAControler(CATALOGUE).slice(Object.keys(CATALOGUE.mondes).length);
+    const stations = entreesControlees().slice(Object.keys(CATALOGUE.mondes).length);
     expect(stations).toHaveLength(COMPOSITIONS_CONTROLEES.length);
     for (const [id, entree] of stations) {
       if ('refus' in entree) throw new Error(`${id} : ${entree.refus}`);
@@ -267,8 +277,9 @@ describe('contrôle des textes (C-07)', () => {
   });
 
   it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {
-    const [, entree] = entreesAControler(CATALOGUE).at(-1) ?? [];
-    if (entree === undefined || 'refus' in entree) throw new Error('Station absente.');
+    // Une seule station suffit : la dernière, sans prouver les neuf autres.
+    const [, entree] = entreeAControler(CATALOGUE, COMPOSITIONS_CONTROLEES.at(-1) ?? '');
+    if ('refus' in entree) throw new Error('Station absente.');
     const chiffre = { ...entree, textes: { ...entree.textes, assistance: { ...entree.textes.assistance, depart: 'Départ dans 3 secondes.' } } };
     expect(verifierTextes(chiffre)).toContain('assistance « depart » : chiffre dans « Départ dans 3 secondes. ».');
   });

@@ -504,22 +504,22 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
 }
 
 /**
- * Mondes du catalogue, puis une station par composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de
- * plan vérifiée par `check:stations`. Chaque station porte pour seul parcours le témoin d'évacuation de `verifierStation` ;
- * sans témoin, elle est refusée.
+ * La station d'une composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de plan vérifiée par
+ * `check:stations`. Elle porte pour seul parcours le témoin d'évacuation de `verifierStation` ; sans témoin, elle est refusée.
+ * Prouver une station coûte environ une seconde : qui n'en veut qu'une n'appelle pas `entreesAControler`.
  */
+export function entreeAControler(catalogue: Catalogue, composition: string): readonly [string, EntreeMonde | Refus] {
+  const station = stationDeReference(catalogue, composition);
+  if ('refus' in station) return [composition, station];
+  const rapport = verifierStation(station.entree);
+  const id = station.entree.monde.id;
+  if (rapport.parcours === null) return [id, { refus: `Évacuation non prouvée (${rapport.verdict}) : ${rapport.diagnostic}` }];
+  return [id, { ...station.entree, parcours: [rapport.parcours] }];
+}
+
+/** Mondes du catalogue, puis une station par composition contrôlée. */
 export function entreesAControler(catalogue: Catalogue): (readonly [string, EntreeMonde | Refus])[] {
-  return [
-    ...Object.entries(catalogue.mondes),
-    ...COMPOSITIONS_CONTROLEES.map((composition) => {
-      const station = stationDeReference(catalogue, composition);
-      if ('refus' in station) return [composition, station] as const;
-      const rapport = verifierStation(station.entree);
-      const id = station.entree.monde.id;
-      if (rapport.parcours === null) return [id, { refus: `Évacuation non prouvée (${rapport.verdict}) : ${rapport.diagnostic}` }] as const;
-      return [id, { ...station.entree, parcours: [rapport.parcours] }] as const;
-    }),
-  ];
+  return [...Object.entries(catalogue.mondes), ...COMPOSITIONS_CONTROLEES.map((composition) => entreeAControler(catalogue, composition))];
 }
 
 if (isMainModule(import.meta.url)) {
