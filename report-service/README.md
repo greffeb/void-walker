@@ -5,7 +5,7 @@ Worker Cloudflare qui reçoit « Signaler un bug » et « Envoyer ma partie » e
 - **Adresse :** `https://void-walker-rapports.greffe-b.workers.dev/rapports` (POST, JSON dans le corps). Le jeu la reçoit à la construction (`SERVICE_RAPPORTS` dans `vite.config.ts`).
 - **Version publique :** une issue, étiquette `rapport-bug` ou `rapport-partie`.
 - **Version de test d'une PR :** un commentaire sur cette PR (D-132) ; une PR fermée reçoit une issue qui la cite.
-- **Anti-abus (RP-03) :** dans l'objet durable `GardeRapports`. Il applique un délai, un nombre par heure, par jour et pour tout le service, et refuse les doublons (`src/garde.ts`). Une adresse IP n'y entre que hachée avec un sel que l'objet tire lui-même ; tout s'efface en un jour au plus.
+- **Anti-abus (RP-03) :** dans l'objet durable `GardeRapports`. Il applique un délai, un nombre par heure, par jour et pour tout le service, et refuse les doublons (`src/garde.ts`). Un appareil, c'est une adresse IPv4, ou un bloc /64 pour une adresse IPv6 (un abonné en reçoit 2^64, #182). Il n'y entre que haché avec un sel que l'objet tire lui-même ; tout s'efface en un jour au plus.
 - **Origines admises :** la version publiée, les versions de test et les essais locaux (`vars.ORIGINES` de `wrangler.jsonc`).
 
 ## Code et vérification

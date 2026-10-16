@@ -41,6 +41,24 @@ export type Decision =
   | { readonly type: 'doublon'; readonly adresse: string | null }
   | { readonly type: 'trop'; readonly apresMs: number };
 
+/**
+ * Appareil compté par l'anti-abus : l'adresse IPv4, ou le bloc /64 d'une adresse IPv6, car un abonné en reçoit 2^64 et en
+ * changerait à chaque envoi (#182).
+ */
+export function cleAppareil(ip: string): string {
+  if (!ip.includes(':')) return ip;
+  // IPv4 écrite en IPv6 (« ::ffff:1.2.3.4 ») : c'est l'IPv4 qui compte, sinon toutes partageraient le même bloc.
+  if (ip.includes('.')) return ip.slice(ip.lastIndexOf(':') + 1);
+  const [gauche = '', droite = ''] = ip.toLowerCase().split('::');
+  const debut = gauche === '' ? [] : gauche.split(':');
+  const fin = droite === '' ? [] : droite.split(':');
+  const groupes = [...debut, ...Array<string>(Math.max(0, 8 - debut.length - fin.length)).fill('0'), ...fin];
+  return `${groupes
+    .slice(0, 4)
+    .map((groupe) => groupe.replace(/^0+(?=.)/, ''))
+    .join(':')}::/64`;
+}
+
 /** Retire tout ce qui ne compte plus : l'état reste petit sans tâche de nettoyage. */
 export function elaguer(etat: EtatGarde, maintenant: number, limites: Limites = LIMITES): EtatGarde {
   const appareils: Record<string, readonly number[]> = {};

@@ -148,4 +148,14 @@ describe('validation signée par le téléphone (C-10 §4)', () => {
     const c43 = 'A'.repeat(43);
     expect(() => lireCles(`{"cles":[{"nom":"x","cle":{"kty":"EC","crv":"P-256","x":"${c43}","y":"${c43}","d":"${c43}"}}]}`)).toThrow(/privée/);
   });
+
+  it('#183 : un commentaire qui contient de faux blocs json et de validation ne fait pas refuser une validation authentique', async () => {
+    const piege = 'Voilà :\n```json\n{"erreur":"x"}\n```\n### Rejouer\n```void-walker-validation\n{}\n```';
+    const avecPiege: Rapport = {
+      ...composerRapport((MONDES['ar-01'] as EntreeMonde).monde, { version: '0.1.0', build: '412', commit: COMMIT, pr: String(PR) }, 'partie', null, piege, true),
+      partie: FINIE,
+    };
+    const corps = await commentaire(await signerRapport(avecPiege, telephone));
+    expect((await verifier(corps, [await cleDe(telephone)])).type).toBe('reconnue');
+  });
 });

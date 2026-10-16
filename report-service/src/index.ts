@@ -1,6 +1,6 @@
 // Worker Cloudflare du service de rapports (AP-06, D-134) : POST /rapports, JSON dans le corps, HTTPS seulement.
 
-import { confirmer, ETAT_VIDE, liberer, reserver, type Decision, type EtatGarde } from './garde';
+import { cleAppareil, confirmer, ETAT_VIDE, liberer, reserver, type Decision, type EtatGarde } from './garde';
 import { github, type Github } from './github';
 import { composer, empreinteRapport, ErreurTaille, hacher, lireDemande, TAILLE_MAX_DEMANDE, type Demande } from './rapport';
 
@@ -116,7 +116,7 @@ export async function traiter(requete: Request, env: Env, dependances: { readonl
   const { demande } = lecture;
 
   const empreinte = await empreinteRapport(demande);
-  const adresseIp = requete.headers.get('CF-Connecting-IP') ?? 'inconnue';
+  const adresseIp = cleAppareil(requete.headers.get('CF-Connecting-IP') ?? 'inconnue');
   const { decision, appareil, moment } = await dependances.garde.reserver(adresseIp, empreinte);
   if (decision.type === 'doublon') return repondre({ etat: 'doublon', adresse: decision.adresse }, 200, cors);
   if (decision.type === 'trop') {
@@ -124,10 +124,9 @@ export async function traiter(requete: Request, env: Env, dependances: { readonl
     return repondre({ etat: 'trop', apresSecondes }, 429, cors, { 'Retry-After': String(apresSecondes) });
   }
 
+  let adresse: string;
   try {
-    const adresse = await publier(demande, dependances.gh);
-    await dependances.garde.confirmer(empreinte, adresse);
-    return repondre({ etat: 'publie', adresse }, 201, cors);
+    adresse = await publier(demande, dependances.gh);
   } catch (erreur) {
     await dependances.garde.liberer(appareil, empreinte, moment);
     if (erreur instanceof ErreurTaille) return repondre({ etat: 'refuse', raison: 'rapport trop grand' }, 413, cors);
@@ -135,6 +134,13 @@ export async function traiter(requete: Request, env: Env, dependances: { readonl
     console.error(`Publication impossible : ${erreur instanceof Error ? erreur.message : 'erreur inconnue'}`);
     return repondre({ etat: 'echec' }, 502, cors);
   }
+  try {
+    await dependances.garde.confirmer(empreinte, adresse);
+  } catch {
+    // Publié quand même (#184) : la réservation reste et arrête un renvoi pendant une minute ; le jeu, lui, ne renvoie pas.
+    console.error('Confirmation de la garde impossible après publication.');
+  }
+  return repondre({ etat: 'publie', adresse }, 201, cors);
 }
 
 export default {
