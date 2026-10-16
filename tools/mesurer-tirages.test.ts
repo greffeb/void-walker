@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { COMPOSITIONS_PUBLIEES } from '../content';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { CATALOGUE } from './catalogue';
@@ -13,7 +12,7 @@ const ligne = (changement: Partial<LigneCatalogue>): LigneCatalogue => ({
 });
 
 describe('mesurer:tirages', () => {
-  it('sur 1 000 tirages de NOUVELLE PARTIE, aucune station hors des compositions publiées, donc prouvées', () => {
+  it('sur 1 000 tirages de NOUVELLE PARTIE, aucune station hors des compositions publiées (que check:stations exige prouvées)', () => {
     let etat = generateurDepuisGraine(GRAINE_MESURE);
     const hasard = (): number => {
       const tirage = suivant(etat);

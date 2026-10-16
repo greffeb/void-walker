@@ -289,18 +289,23 @@ export function verifierLibre(entree: EntreeMonde, options: OptionsVerification 
   const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
   const [premiere, seconde] = cloisons;
   if (premiere === undefined || seconde === undefined || cloisons.length !== 2) throw new Error(`${entree.monde.id} : deux cloisons verrouillées attendues.`);
-  const rapports = [
+  // Contrôles sans recherche d'abord : chaque cloison coupe la capsule, et les deux commandes sont dans deux morceaux différents.
+  const coupees = cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison));
+  const morceauxCommandes = new Set(entree.monde.objets.filter((objet) => objet.deverrouille !== undefined).map((objet) => morceauDe(objet.piece)));
+  const refuser = (diagnostic: string): RapportLibre => ({
+    verdict: 'sans_sortie_sure', etats: 0, secondes: 0, ecartes: { des: 0, blessures: 0 }, ordres: ['sans_sortie_sure', 'sans_sortie_sure'], coupees, parcours: null, diagnostic,
+  });
+  if (!coupees) return refuser('Une cloison verrouillée ne coupe pas l’accès à la capsule : une branche pourrait être sautée.');
+  if (morceauxCommandes.size !== 2) return refuser('Les deux commandes ne sont pas dans deux branches différentes : une branche pourrait être sautée.');
+  const [ab, ba] = [
     verifierStation(entree, { ...options, ...ordreImpose(entree.monde, premiere, seconde) }),
     verifierStation(entree, { ...options, ...ordreImpose(entree.monde, seconde, premiere) }),
   ] as const;
-  const [ab, ba] = rapports;
-  const coupees = cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison));
   const ordres = [ab.verdict, ba.verdict] as const;
   const etats = ab.etats + ba.etats;
   const secondes = ab.secondes + ba.secondes;
   const ecartes = { des: ab.ecartes.des + ba.ecartes.des, blessures: ab.ecartes.blessures + ba.ecartes.blessures };
   const commun = { etats, secondes, ecartes, ordres, coupees };
-  if (!coupees) return { ...commun, verdict: 'sans_sortie_sure', parcours: null, diagnostic: 'Une cloison verrouillée ne coupe pas l’accès à la capsule : une branche pourrait être sautée.' };
   if (ab.verdict === 'prouvee' && ba.verdict === 'prouvee') {
     return { ...commun, verdict: 'prouvee', parcours: ab.parcours, diagnostic: `Évacuation sans dé ni blessure prouvée en ${ab.parcours?.etapes.length} actions, première cloison d’abord, et en ${ba.parcours?.etapes.length} actions, seconde d’abord ; témoins et exports rejoués ; chaque cloison coupe la capsule.` };
   }
@@ -363,7 +368,8 @@ export function mesurerMiseHorsJeu(entree: EntreeMonde, options: OptionsVerifica
     ...monde.pieces.filter((piece) => piece.froide === true).map((piece) => piece.id),
   ]);
   const distances = distancesDepuis(monde, [...pieges]);
-  const loin = Math.max(...distances.values()) + 1;
+  // Sans piège joignable (un vitrage seul), toutes les distances valent `loin` : la priorité reste le rang du passager.
+  const loin = Math.max(0, ...distances.values()) + 1;
   const rangDe = rangsDesMorceaux(monde);
   const rangs = new Set(monde.pieces.map((piece) => rangDe(piece.id))).size;
   // En ordre libre, d'abord les verrous levés : sans eux, une créature partie du final ne peut pas en sortir.
@@ -524,8 +530,13 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
 }
 
 /** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
+/** `empreinte({ morceau, textes })` de chaque morceau de la composition, dans l'ordre de la station. */
+export function empreintesDe(composition: Composition): Record<string, string> {
+  return Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
+}
+
 export function verifierComposition(catalogue: Catalogue, composition: Composition, options: OptionsVerification = {}): LigneCatalogue {
-  const empreintes = Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
+  const empreintes = empreintesDe(composition);
   const sansVerification = (verdict: LigneCatalogue['verdict'], diagnostic: string): LigneCatalogue => ({
     composition: composition.id, verdict, graine: null, etats: 0, secondes: 0, actions: null, diagnostic, empreintes,
   });

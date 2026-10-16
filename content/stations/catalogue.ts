@@ -645,8 +645,15 @@ const court = (morceau: DefMorceau): string => morceau.id.replaceAll('-', '');
 const PLACES_DERRIERE_UN_OBSTACLE: readonly string[] = ['m-01/p-palier', 'm-02/p-atelier'];
 
 function refusDePlace(creature: string): string {
-  return `Créature en ${creature} : cette place n’est permise que derrière un obstacle qui permet de s’en débarrasser (D-268), et en ordre libre aucune branche n’en précède une autre.`;
+  return `Créature en ${creature} : écartée sans recherche. Cette place n’est permise que derrière un obstacle qui permet de s’en débarrasser (D-268) ; en ordre libre, aucune branche ne précède l’autre.`;
 }
+
+/**
+ * Pièce de la commande d'une branche, « au-delà de son obstacle » (13 §8.3) : sa pièce de sortie, sauf pour M-10, dont la
+ * coursive de sortie se rejoint depuis les quartiers sans rien franchir. Sa commande est dans l'entrepôt, après la chambre
+ * froide, là où attend la créature (spec L5 §3.3).
+ */
+const PIECES_COMMANDE: Readonly<Record<string, string>> = { 'm-10': 'p-entrepot' };
 
 /** Le vestibule en tête ; l'embarquement d'essai n'est le final d'aucune composition. */
 function prevoir(table: readonly LignePaire[]): Prevue[] {
@@ -761,7 +768,7 @@ export function numeroter(entree: EntreeMonde): EntreeMonde {
 /**
  * Station d'une composition pour une graine de plan, et les morceaux dont viennent ses textes. En chaîne : vestibule, chemins,
  * final. En ordre libre (D-259, spec L5 §3) : vestibule, carrefour, branches A et B, final ; les branches s'accrochent au
- * couloir et finissent en cul-de-sac, une commande dans leur pièce de sortie ; le final s'accroche au sas.
+ * couloir et finissent en cul-de-sac, une commande au-delà de leur obstacle (`PIECES_COMMANDE`) ; le final s'accroche au sas.
  */
 function definirStation({ composition, morceaux }: Prevue, graine: number): { readonly station: DefStation; readonly entrees: readonly EntreeMorceau[] } {
   const id = `${composition.id}-${graine}`;
@@ -784,8 +791,8 @@ function definirStation({ composition, morceaux }: Prevue, graine: number): { re
     { depuis: carrefour.id, piece: carrefour.entree, vers: b.id, porte },
   ];
   const commandes: DefCommande[] = [
-    { id: 'o-commande-1', nom: 'commande_1', morceau: a.id, piece: a.sortie.piece, cloison: CLOISON_1 },
-    { id: 'o-commande-2', nom: 'commande_2', morceau: b.id, piece: b.sortie.piece, cloison: cloison2(final.id) },
+    { id: 'o-commande-1', nom: 'commande_1', morceau: a.id, piece: PIECES_COMMANDE[a.id] ?? a.sortie.piece, cloison: CLOISON_1 },
+    { id: 'o-commande-2', nom: 'commande_2', morceau: b.id, piece: PIECES_COMMANDE[b.id] ?? b.sortie.piece, cloison: cloison2(final.id) },
   ];
   return { station: { ...commun, morceaux: [vestibule, carrefour, a, b, final], accroches, commandes }, entrees };
 }

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { COMPOSITIONS_PUBLIEES, type EntreeMonde } from '../content';
 import { nouvellePartie } from '../engine';
 import { CATALOGUE } from './catalogue';
@@ -35,8 +34,14 @@ describe('station en ordre libre assemblée (spec L5 §3)', () => {
     ]);
     expect(monde.objets.filter((objet) => objet.deverrouille !== undefined).map((objet) => [objet.id, objet.piece, objet.deverrouille])).toEqual([
       ['m-05/o-commande-1', 'm-05/p-quai', 'carrefour/l-cloison-1'],
-      ['m-10/o-commande-2', 'm-10/p-coursive', 'l-carrefour-m-03'],
+      ['m-10/o-commande-2', 'm-10/p-entrepot', 'l-carrefour-m-03'],
     ]);
+  });
+
+  it('la commande de M-10 est au-delà de la chambre froide, dans l’entrepôt où attend la créature, pas dans la coursive qu’on rejoint des quartiers', () => {
+    const { monde } = reference('ol-m05-m10-m03-entrepot');
+    expect(monde.objets.find((objet) => objet.deverrouille !== undefined && objet.piece.startsWith('m-10/'))?.piece).toBe('m-10/p-entrepot');
+    expect(monde.creature?.piece).toBe('m-10/p-entrepot');
   });
 
   it('chaque cloison coupe à elle seule toute capsule du départ ; une copie avec un passage qui la contourne ne la coupe plus', () => {
@@ -125,7 +130,12 @@ describe('mesure de D-241 (spec L5 §5)', () => {
     expect(performance.now() - debut).toBeLessThan(50);
   });
 
-  it('le passager n’entre jamais dans le final : la baie de M-06 ne compte pas', () => {
+  it('la baie de M-06, seul moyen de la station, est dans le final : impossible, sans recherche', () => {
     expect(mesurerMiseHorsJeu(reference('m07-m06-soute'))).toBe('impossible');
   });
+
+  it('le passager n’entre jamais dans le final : la créature ne peut être enfermée qu’en restant hors du final', () => {
+    // Créature devant la capsule de M-06, chambre froide de M-10 avant : épuisé sans jamais entrer dans le final.
+    expect(mesurerMiseHorsJeu(reference('m07-m10-m06-embarquement'))).toBe('impossible');
+  }, 60000);
 });

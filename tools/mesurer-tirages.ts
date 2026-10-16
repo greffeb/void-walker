@@ -3,7 +3,7 @@ import { assemblerStation } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { COMPOSITIONS_PUBLIEES, creerCatalogue, type Catalogue, type Composition } from '../content';
 import { isMainModule } from './repo-files';
-import { mesurerMiseHorsJeu, stationDeReference, verifierComposition, type LigneCatalogue, type MiseHorsJeu } from './verifier-station';
+import { empreintesDe, mesurerMiseHorsJeu, stationDeReference, verifierComposition, type LigneCatalogue, type MiseHorsJeu } from './verifier-station';
 
 // Mesures sur 1 000 tirages (#155, spec L5 §5) : variété et équilibre des stations tirées, rejets classés par motif, plans, et
 // part des stations où la créature peut être mise hors jeu ou enfermée avant le problème final (D-241). Rien ne change au
@@ -73,8 +73,8 @@ export function motifDuVerdict(ligne: LigneCatalogue): Motif {
 }
 
 /**
- * `verdicts` : lignes de `check:stations` déjà calculées, par composition ; les compositions absentes sont vérifiées ici, une
- * fois chacune, sur leur station de référence.
+ * `verdicts` : lignes de `check:stations` déjà calculées sur le même commit, par composition ; les compositions absentes, ou
+ * dont un morceau a changé, sont vérifiées ici, une fois chacune, sur leur station de référence.
  */
 export function mesurerTirages(
   catalogue: Catalogue = creerCatalogue(assemblerStation),
@@ -83,9 +83,11 @@ export function mesurerTirages(
 ): MesuresTirages {
   const lignes = new Map(verdicts);
   const parId = new Map(catalogue.compositions.map((composition) => [composition.id, composition]));
+  // Une ligne lue dont les empreintes ne sont plus celles des morceaux est vérifiée de nouveau. Les empreintes ne couvrent ni le
+  // moteur ni l'assemblage : le fichier doit venir de `check:stations` sur le même commit.
   const ligneDe = (composition: Composition): LigneCatalogue => {
     const connue = lignes.get(composition.id);
-    if (connue !== undefined) return connue;
+    if (connue !== undefined && JSON.stringify(connue.empreintes) === JSON.stringify(empreintesDe(composition))) return connue;
     const ligne = verifierComposition(catalogue, composition);
     lignes.set(composition.id, ligne);
     return ligne;

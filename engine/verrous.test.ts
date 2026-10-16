@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { Des } from './des';
 import { etatInitial, type EtatPartie } from './etat';
 import { apercu, jouer, nouvellePartie, observer, validerMonde, type DefMonde, type IdAction, type OptionMenu, type Partie } from './index';
