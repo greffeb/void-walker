@@ -395,7 +395,7 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm10-m09-m06-entrepot',
 ];
 
-/** Compositions publiées que `check:texts` explore (spec L3 §6.4). */
+/** Compositions publiées que `check:texts` explore (spec L3 §6.4, spec L4 §7). */
 export const COMPOSITIONS_CONTROLEES: readonly string[] = [
   'm01-m03-reserve',
   'm01-m05-m03-tri',

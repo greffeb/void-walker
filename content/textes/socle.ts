@@ -26,14 +26,14 @@ export const SOCLE = {
     soin_indemne: ['Vous puisez dans {le:objet} et pansez votre plaie. Vous êtes d’aplomb.'],
     soin_blesse: ['Vous puisez dans {le:objet} et pansez la pire de vos plaies. Vous restez blessé.'],
     objet_deplace: [
-      'Vous poussez {le:objet} {nom:position}. Le frottement résonne un instant contre les parois.',
+      'Vous poussez {le:objet} {nom:position}. Il faut peser de tout votre poids.',
       'Vous faites glisser {le:objet} {nom:position}. Vous reprenez votre souffle.',
     ],
     feu_derriere: ['De l’autre côté {de:passage}, des flammes lèchent les parois.'],
     feu_gagne: ['Les flammes gagnent {le:piece}.'],
     feu_eteint: [
-      'Les flammes {de:piece} faiblissent, vacillent, puis meurent. Une fumée âcre flotte encore.',
-      'Le feu {de:piece} s’éteint. Il ne reste qu’une odeur de brûlé et des parois noircies.',
+      'Le feu {de:piece} s’éteint. Il n’en reste que des traces noires sur les parois.',
+      'Le feu {de:piece} retombe, puis meurt. Des traînées noires marquent les parois.',
     ],
     huile_versee: [
       'Vous videz {le:objet} au pied {de:passage}. Le sol luit, glissant.',
