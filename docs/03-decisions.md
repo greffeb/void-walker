@@ -28,7 +28,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite) |
-| Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont) |
+| Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
 Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D-012 n'a pas été retenue) ; D-097, D-152 et D-193 sont remplacées ; le volume de D-118 est remplacé par D-157. Les précisions partielles apportées à d'autres décisions sont indiquées dans leur entrée.
@@ -2133,6 +2133,22 @@ Demandes du porteur du 2026-10-16, citées mot pour mot dans l'[issue #180](http
 - Décision : une validation signée sur téléphone pendant que la vérification de son commit tourne reste valide si cette vérification finit au vert ; elle n'est pas prise en compte si elle échoue.
 - Précise : C-10 §4 (RP-04), D-130.
 - Limite : la façon de l'appliquer est un choix de l'agent, proposé dans la PR (ci-dessous).
+
+## Décisions validées — repères de la carte (#170)
+
+### D-273 — Sur le plan, le passager est un point à ondes radar, la créature un œil rouge
+
+- Date / statut : 2026-10-16 / **Validé**.
+- Origine : choix du porteur sur maquettes animées (issue #170) : « C · 3 ondes », « sans texte », « C · œil », « C · s'éteint », icônes « au centre » et « un poil plus gros ».
+- Décision :
+  - Passager : un point plein et trois ondes radar qui s'élargissent en s'estompant ; en mouvement réduit, deux anneaux fixes autour du point. Le repère « @ VOUS » disparaît du plan, sans mot à la place.
+  - Créature vue : un œil rouge `alerte` (`#FF5A4A`, 6,1:1 sur `vert-surface`), contour et pupille toujours pleins ; seul l'intérieur clignote, un cycle toutes les 2 s. Il y a longtemps (D-151), l'œil est fixe et passe en `vert-secondaire`. En mouvement réduit, l'intérieur est fixe. L'étiquette CRÉATURE reste verte.
+  - Les deux icônes se placent au centre de la place laissée sous le texte de la pièce, au centre de la pièce quand aucun texte n'y tient ; côte à côte si elles partagent une pièce. Elles ne rétrécissent pas au dézoom et suivent la taille du texte.
+  - Dans une pièce, l'icône passe avant l'ancienneté : une ancienneté qui lui prendrait sa place s'efface du plan ; elle reste dans la fiche et la vue LISTE.
+- Remplace : le losange `vert` avec un point de D-209 et le repère « @ VOUS » de 14 §2.4.
+- Limite : la vue LISTE, la fiche et la CLI gardent « @ vous » ; à juger sur téléphone.
+
+Détails de l'agent pour #170, proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : les icônes font 1,3 fois le dessin des maquettes, soit un œil de 23 px de large et des anneaux figés de 34 px de diamètre à la taille STANDARD ; une onde part toutes les secondes, chacune vivant 3 s ; l'intérieur de l'œil monte à 60 % d'opacité au plus fort du clignotement ; la place gardée sous le texte est de 39 px pour le passager et de 29 px pour la créature ; trop basse, l'icône se colle au mur du bas ; le passager est à gauche quand les deux partagent une pièce ; le texte de toutes les pièces est calé en haut, comme sur les maquettes, et non plus centré en hauteur, pour laisser la place dessous.
 
 Détails de l'agent pour #180, proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : le robot de validation attend la fin de la vérification du commit signé avant de reconnaître une validation (« en attente », puis « reconnue » ou « non prise en compte »), plutôt que de la reconnaître sous réserve puis de la retirer ; la vérification d'un commit est le dernier run du workflow des demandes de fusion pour ce commit, captures comprises ; un run annulé (remplacé par un envoi plus récent) laisse la validation en attente, à relancer depuis l'onglet Actions ; les verdicts de `check:stations` et de `check:texts` sont gardés d'une vérification à l'autre, en local et dans un cache de la CI, tant que l'empreinte du code qui les a rendus est la même (chaque fichier importé de proche en proche par l'outil, `package-lock.json`, version de Node) : une ligne changée dans le moteur, le contenu, l'assemblage ou le vérifieur fait tout revérifier ; en local, `check:stations` et `check:texts` se partagent entre les cœurs du PC, les étapes restant l'une après l'autre (en même temps, elles n'y gagnaient presque rien et les tests dépassaient leurs délais) ; dans la CI, deux lots pour `check:texts`, trois pour `check:stations`, deux parts pour les tests ; les captures tournent en même temps que la vérification, et l'état de la vérification et les captures rejoignent la version de test à la fin.
 

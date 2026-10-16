@@ -29,12 +29,13 @@ La carte a sa propre couleur, comme le cyan de l'inventaire (D-176) et le blanc 
 | --- | --- | --- | --- |
 | `vert-fond` | `#050A06` | Fond de l'écran de la carte | — |
 | `vert-surface` | `#0B140D` | Sol des pièces visitées, bulle de fiche | — |
-| `vert` | `#5CFF7A` | Titre, pièce actuelle, étiquettes FEU et CRÉATURE, losange | 15,2:1 |
+| `vert` | `#5CFF7A` | Titre, pièce actuelle, icône du passager, étiquettes FEU et CRÉATURE | 15,2:1 |
 | `vert-texte` | `#A6F5B0` | Noms des pièces, texte courant, boutons | 15,5:1 |
-| `vert-secondaire` | `#62B06D` | Murs des pièces visitées, ancienneté, titres de section | 7,6:1 |
+| `vert-secondaire` | `#62B06D` | Murs des pièces visitées, ancienneté, titres de section, œil de la créature vue il y a longtemps | 7,6:1 |
 | `vert-signal` | `#DDFFB8` | Vide : points, étiquette, voyant | 18,1:1 |
 | `vert-bordure` | `#3E7046` | Murs en pointillé des pièces connues, contour du bouton LISTE | 3,4:1 |
 | `vert-separateur` | `#1F3A24` | Filets décoratifs seulement | 1,6:1 |
+| `alerte` | `#FF5A4A` | Œil de la créature seulement (D-273), le rouge du danger apparu (12 §2.6) | 6,5:1 (6,1:1 sur `vert-surface`) |
 
 Vidéo inverse pour les étiquettes d'état : `vert-fond` sur `vert` (15,2:1) ou sur `vert-signal` (18,1:1). Les lignes de balayage et la police (IBM Plex Mono) sont celles du jeu (12 §2.2, §2.3).
 
@@ -42,7 +43,7 @@ Vidéo inverse pour les étiquettes d'état : `vert-fond` sur `vert` (15,2:1) ou
 
 - Une case du plan vaut **34 px** à la taille de texte STANDARD. L'échelle suit le réglage de taille du texte dans la même proportion que le récit : 34, 38 et 44 px par case pour 17, 19 et 22 px.
 - **Glisser** un doigt fait parcourir le plan ; **pincer** zoome, de la vue de toute la partie connue jusqu'au double de l'échelle de base. Bornes exactes à juger sur téléphone.
-- En dézoomant, le texte rétrécit avec le plan jusqu'aux trois quarts de sa taille ; au-delà, un nom ou une étiquette qui ne tient plus dans sa pièce disparaît ; les murs, les motifs de sol et le losange restent visibles (§2.5). Seuil choisi après l'essai du porteur sur téléphone (§9).
+- En dézoomant, le texte rétrécit avec le plan jusqu'aux trois quarts de sa taille ; au-delà, un nom ou une étiquette qui ne tient plus dans sa pièce disparaît ; les murs, les motifs de sol et les icônes restent visibles (§2.5). Seuil choisi après l'essai du porteur sur téléphone (§9).
 - Ni bouton « recentrer » ni « vue d'ensemble » : la carte s'ouvre centrée et se pince (D-205).
 - En mouvement réduit (`prefers-reduced-motion`), aucun glissement animé.
 
@@ -50,12 +51,12 @@ Vidéo inverse pour les étiquettes d'état : `vert-fond` sur `vert` (15,2:1) ou
 
 | Pièce | Dessin | Texte |
 | --- | --- | --- |
-| Actuelle | Murs de 3 px en `vert`, sol `vert-surface` | Nom en `vert`, repère « @ VOUS » |
+| Actuelle | Murs de 3 px en `vert`, sol `vert-surface`, icône du passager (§2.5) | Nom en `vert` |
 | Visitée | Murs de 2 px en `vert-secondaire`, sol `vert-surface` | Nom en capitales 13/600 `vert-texte` ; « vu il y a un moment » en 12 `vert-secondaire` |
 | Connue, pas encore visitée (D-202) | Contour entier en pointillé `vert-bordure`, sans sol | Nom en `vert-secondaire` |
 
 - Une pièce connue non visitée est la destination nommée d'une porte signalée, vue depuis une pièce visitée (§3.3). Son contour entier est dessiné, taille comprise.
-- Dans une pièce, l'ordre de priorité est : nom, puis états (§2.5, jamais coupés), puis ancienneté. L'ancienneté passe à la ligne ou s'efface faute de place ; elle reste lisible dans la vue LISTE.
+- Dans une pièce, l'ordre de priorité est : nom, puis états (§2.5, jamais coupés), puis la place des icônes, puis ancienneté (D-273). L'ancienneté passe à la ligne ou s'efface faute de place ; elle reste lisible dans la vue LISTE.
 - Les pièces du même type sont numérotées dans une station (D-208) : CABINE 1, CABINE 2, COULOIR A.
 
 ### 2.5 États (D-209)
@@ -66,9 +67,21 @@ Chaque état est porté par un motif de sol **et** une étiquette en vidéo inve
 | --- | --- | --- | --- |
 | Feu | Souvenir : foyer vu dans la pièce, ou par une porte ouverte (D-213) | Hachures obliques `vert` à 22 % | **FEU**, puis l'ancienneté du regard |
 | Vide | À jour : voyant d'une porte étanche (OP-04) | Points `vert-signal` | **VIDE ○** |
-| Créature | Dernière vue (OP-05, D-141 ; repère de D-180) | Losange `vert` avec un point, dans un coin de la pièce | **CRÉATURE**, puis « vue il y a un moment » |
+| Créature | Dernière vue (OP-05, D-141 ; repère de D-180) | Œil rouge `alerte` (D-273), voir ci-dessous | **CRÉATURE**, puis « vue il y a un moment » |
 
 Ancienneté en mots (D-151) : « à l'instant » (1 action au plus), « il y a un moment » (2 à 5), « il y a longtemps » (6 et plus). Aucun nombre d'actions n'est affiché ni transmis à l'écran.
+
+Icônes (D-273) :
+
+| Icône | Dessin | Animation | Mouvement réduit |
+| --- | --- | --- | --- |
+| Passager, pièce actuelle | Point plein `vert` | Trois ondes radar qui s'élargissent en s'estompant | Deux anneaux fixes autour du point |
+| Créature, à l'instant ou il y a un moment | Œil `alerte` : contour et pupille pleins | L'intérieur clignote, un cycle toutes les 2 s | Intérieur plein, fixe |
+| Créature, il y a longtemps | Œil `vert-secondaire`, intérieur vide | Aucune | Aucune |
+
+- Place : au centre de la place laissée sous le texte de la pièce ; au centre de la pièce quand aucun texte n'y tient ; côte à côte, le passager à gauche, si les deux partagent une pièce. Une ancienneté qui prendrait la place de l'icône s'efface du plan.
+- Taille : fixe au dézoom, elle suit la taille du texte. L'icône marque la pièce, pas une position : les positions restent en mots dans la vue LISTE (§2.8).
+- Jamais la couleur seule : l'œil garde sa forme et l'étiquette CRÉATURE ; le clignotement ne porte aucune information que le texte ne donne pas.
 
 ### 2.6 Portes et passages
 

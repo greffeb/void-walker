@@ -1848,19 +1848,118 @@ button:disabled {
   stroke-width: 2;
 }
 
-.carte-traits .losange polygon {
-  fill: none;
-  stroke: var(--vert);
-  stroke-width: 2;
+/* Passager (D-273) : point plein et trois ondes radar, une toutes les 1 s ; en mouvement réduit, deux anneaux fixes à la place. */
+.carte-traits .icone-joueur .point {
+  fill: var(--vert);
 }
 
-.carte-traits .losange circle {
-  fill: var(--vert);
+.carte-traits .icone-joueur .onde,
+.carte-traits .icone-joueur .anneau {
+  fill: none;
+  stroke: var(--vert);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-joueur .onde {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carte-onde 3s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+.carte-traits .icone-joueur .onde-1 {
+  animation-delay: -1s;
+}
+
+.carte-traits .icone-joueur .onde-2 {
+  animation-delay: -2s;
+}
+
+.carte-traits .icone-joueur .anneau {
+  display: none;
+  opacity: 0.7;
+}
+
+/* Créature vue (D-273) : œil rouge `alerte`, contour et pupille pleins ; l'intérieur clignote une fois toutes les 2 s (loin du seuil de
+   trois éclats par seconde, WCAG 2.3.1). Il y a longtemps : fixe, en vert secondaire. Mouvement réduit : intérieur fixe. */
+.carte-traits .icone-creature {
+  --couleur-creature: var(--alerte);
+}
+
+.carte-traits .icone-creature[data-palier='longtemps'] {
+  --couleur-creature: var(--vert-secondaire);
+}
+
+.carte-traits .icone-creature .contour {
+  fill: none;
+  stroke: var(--couleur-creature);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-creature .pupille {
+  fill: var(--couleur-creature);
+}
+
+.carte-traits .icone-creature .interieur {
+  fill: var(--couleur-creature);
+  opacity: 0;
+  animation: carte-clignote 2s ease-in-out infinite;
+}
+
+.carte-traits .icone-creature[data-palier='longtemps'] .interieur {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-traits .icone-joueur .onde {
+    display: none;
+  }
+
+  .carte-traits .icone-joueur .anneau {
+    display: inline;
+  }
+
+  .carte-traits .icone-creature .interieur {
+    animation: none;
+    opacity: 0.6;
+  }
+
+  .carte-traits .icone-creature[data-palier='longtemps'] .interieur {
+    opacity: 0;
+  }
+}
+
+@keyframes carte-onde {
+  from {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes carte-clignote {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .carte-piece {
   position: absolute;
-  display: block;
+  /* Texte en haut de la pièce, et non centré comme dans un bouton : les icônes prennent la place dessous (D-273). */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   padding: calc(8px * var(--echelle) * var(--texte-carte, 1));
   overflow: hidden;
   text-align: left;
@@ -1907,7 +2006,7 @@ button:disabled {
   line-height: calc(17px * var(--echelle) * var(--texte-carte, 1));
 }
 
-/* Étiquettes d'état en vidéo inverse (14 §2.5) ; « @ VOUS » en vert, sans fond. */
+/* Étiquettes d'état en vidéo inverse (14 §2.5). */
 .carte-etiquette {
   color: var(--vert-fond);
   background: var(--vert);
@@ -1915,11 +2014,6 @@ button:disabled {
 
 .carte-etiquette[data-marque='vide'] {
   background: var(--vert-signal);
-}
-
-.carte-etiquette[data-marque='vous'] {
-  color: var(--vert);
-  background: none;
 }
 
 .carte-anciennete {

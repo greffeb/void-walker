@@ -61,18 +61,23 @@ describe('vue du plan (14 §2.3)', () => {
   });
 
   it('étiquettes : le nom, puis les états entiers, puis l’ancienneté, selon la place au zoom courant (14 §2.4)', () => {
-    const energie = piece('energie', { x: 0, y: 0, largeur: 4, hauteur: 3 }, { feu: 'moment', creature: 'moment' });
+    const energie = piece('energie', { x: 0, y: 0, largeur: 4, hauteur: 3 }, { feu: 'moment' });
     expect(etiquettes(energie, 'local énergie', 'vu il y a un moment', 1)).toEqual({
       nom: ['LOCAL ÉNERGIE'],
-      etats: [['feu', 'creature']],
+      etats: [['feu']],
       anciennete: ['vu il y a un', 'moment'],
       texte: 1,
     });
-    // Très réduit, « ÉNERGIE » ne tient plus, même en petit : plus aucun texte ; motif et losange restent dessinés.
+    // L'icône passe avant l'ancienneté (D-273) : avec la créature, l'ancienneté lui laisserait trop peu de place et s'efface.
+    const vueIci = { ...energie, creature: 'moment' } as const;
+    expect(etiquettes(vueIci, 'local énergie', 'vu il y a un moment', 1)).toEqual({ nom: ['LOCAL ÉNERGIE'], etats: [['feu', 'creature']], anciennete: [], texte: 1 });
+    // Plus haute d'une case, la pièce garde les deux.
+    expect(etiquettes({ ...vueIci, rect: { x: 0, y: 0, largeur: 4, hauteur: 4 } }, 'local énergie', 'vu il y a un moment', 1).anciennete).toEqual(['vu il y a un', 'moment']);
+    // Très réduit, « ÉNERGIE » ne tient plus, même en petit : plus aucun texte ; motif et icônes restent dessinés.
     expect(etiquettes(energie, 'local énergie', 'vu il y a un moment', 0.4)).toEqual({ nom: [], etats: [], anciennete: [], texte: 0.75 });
-    // Deux cases : le nom, deux lignes d'état ; « CRÉATURE » est trop large et disparaît.
+    // Deux cases : le nom, une ligne d'état ; « CRÉATURE » est trop large et disparaît, l'œil reste. Pas d'étiquette pour le passager.
     const cabine = piece('cabine', { x: 0, y: 0, largeur: 2, hauteur: 2 }, { statut: 'actuelle', vide: true, creature: 'instant' });
-    expect(etiquettes(cabine, 'cabine', null, 1)).toEqual({ nom: ['CABINE'], etats: [['vous'], ['vide']], anciennete: [], texte: 1 });
+    expect(etiquettes(cabine, 'cabine', null, 1)).toEqual({ nom: ['CABINE'], etats: [['vide']], anciennete: [], texte: 1 });
   });
 
   it('en dézoomant, le texte rétrécit avec le plan jusqu’aux trois quarts avant qu’un nom ne disparaisse (retour du porteur, 14 §9)', () => {
