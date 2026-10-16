@@ -397,12 +397,16 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
 
 /** Compositions publiées que `check:texts` explore (spec L3 §6.4). */
 export const COMPOSITIONS_CONTROLEES: readonly string[] = [
-  'm07-m03-soute',
-  'm07-m08-m06-embarquement',
-  'm08-m07-m03-magasin',
+  'm01-m03-reserve',
+  'm01-m05-m03-tri',
+  'm02-m06-embarquement',
+  'm02-m07-m06-soute',
+  'm04-m09-m06-observation',
+  'm05-m08-m03-magasin',
+  'm07-m02-m03-atelier',
+  'm08-m01-m06-palier',
   'm09-m10-m06-cale',
-  'm10-m03-reserve',
-  'm10-m09-m03-entrepot',
+  'm10-m04-m03-entrepot',
 ];
 
 export interface Catalogue {

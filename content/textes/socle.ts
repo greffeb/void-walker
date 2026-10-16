@@ -25,10 +25,16 @@ export const SOCLE = {
     bruit_mecanisme: ['Le mécanisme grippé grince longuement ; le bruit a dû porter.', 'Le mécanisme grippé hurle tout du long.'],
     soin_indemne: ['Vous puisez dans {le:objet} et pansez votre plaie. Vous êtes d’aplomb.'],
     soin_blesse: ['Vous puisez dans {le:objet} et pansez la pire de vos plaies. Vous restez blessé.'],
-    objet_deplace: ['Vous poussez {le:objet} {nom:position}.'],
+    objet_deplace: [
+      'Vous poussez {le:objet} {nom:position}. Le frottement résonne un instant contre les parois.',
+      'Vous faites glisser {le:objet} {nom:position}. Vous reprenez votre souffle.',
+    ],
     feu_derriere: ['De l’autre côté {de:passage}, des flammes lèchent les parois.'],
     feu_gagne: ['Les flammes gagnent {le:piece}.'],
-    feu_eteint: ['Le feu {de:piece} s’éteint.'],
+    feu_eteint: [
+      'Les flammes {de:piece} faiblissent, vacillent, puis meurent. Une fumée âcre flotte encore.',
+      'Le feu {de:piece} s’éteint. Il ne reste qu’une odeur de brûlé et des parois noircies.',
+    ],
     huile_versee: [
       'Vous videz {le:objet} au pied {de:passage}. Le sol luit, glissant.',
       'Vous répandez le contenu {de:objet} au pied {de:passage}. Une flaque grasse s’étale.',

@@ -187,12 +187,16 @@ describe('contrôle des textes (C-07)', () => {
     const stations = entrees.slice(fixes.length);
     expect(stations).toHaveLength(COMPOSITIONS_CONTROLEES.length);
     expect(COMPOSITIONS_CONTROLEES).toEqual([
-      'm07-m03-soute',
-      'm07-m08-m06-embarquement',
-      'm08-m07-m03-magasin',
+      'm01-m03-reserve',
+      'm01-m05-m03-tri',
+      'm02-m06-embarquement',
+      'm02-m07-m06-soute',
+      'm04-m09-m06-observation',
+      'm05-m08-m03-magasin',
+      'm07-m02-m03-atelier',
+      'm08-m01-m06-palier',
       'm09-m10-m06-cale',
-      'm10-m03-reserve',
-      'm10-m09-m03-entrepot',
+      'm10-m04-m03-entrepot',
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
@@ -252,6 +256,14 @@ describe('contrôle des textes (C-07)', () => {
     expect(reunit('m-09', 'm-10'), 'M-09 + M-10').toBe(true);
     expect(reunit('m-08', 'm-03'), 'M-08 + M-03').toBe(true);
     for (const chemin of ['m-07', 'm-08', 'm-09', 'm-10']) expect(reunit('m-06', chemin), `M-06 + ${chemin}`).toBe(true);
+    expect(reunit('m-01', 'm-06'), 'M-01 + M-06').toBe(true);
+    for (const autre of ['m-06', 'm-09', 'm-10']) expect(reunit('m-04', autre), `M-04 + ${autre}`).toBe(true);
+    expect(
+      controlees.some((composition) => composition.chemins.join() === 'm-08,m-01'),
+      'M-08 puis M-01',
+    ).toBe(true);
+    const places = controlees.map((composition) => composition.creature);
+    expect(places).toEqual(expect.arrayContaining(['m-01/p-palier', 'm-02/p-atelier']));
   });
 
   it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {
