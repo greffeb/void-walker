@@ -106,6 +106,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { passage: nomDe(textes, evenement.passage) };
     case 'machines_arretees':
     case 'machines_relancees':
+    case 'cloison_deverrouillee':
       return { objet: nomDe(textes, evenement.objet) };
     case 'gravite_coupee':
     case 'gravite_retablie':
@@ -368,6 +369,8 @@ function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom 
     case 'retablira':
     case 'bouclera':
       return { piece: nomDe(textes, savoir.piece) };
+    case 'deverrouillera':
+      return { objet: nomDe(textes, savoir.objet) };
   }
 }
 

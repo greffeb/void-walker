@@ -44,6 +44,10 @@ export const EVENEMENTS_REGLES_MORCEAUX = {
     'Vous appuyez sur {le:objet}. Un voyant confirme : portes {de:piece} fermées.',
     'Vous enfoncez la commande {de:objet}. Les verrous des portes {de:piece} s’enclenchent.',
   ],
+  cloison_deverrouillee: [
+    'Vous abaissez {le:objet}. Un voyant passe au vert ; au loin, un verrou se lève avec un claquement sourd.',
+    'Vous tournez {le:objet} jusqu’en butée. Un voyant vert s’allume : le verrou de la cloison est levé.',
+  ],
 } as const satisfies Partial<TextesMonde['evenements']>;
 
 /** Pour les mondes qui ne sont pas rangés par couches (AR-01, AR-02, monde de test) : règles et créature ensemble. */
@@ -68,6 +72,7 @@ export const REFUS_MORCEAUX = {
   trop_loin: 'Vous flottez trop loin de ce passage : rien n’a été joué.',
   sans_gravite: 'Sans gravité, rien ne se verse : rien n’a été joué.',
   deja_fait: 'C’est déjà fait : rien n’a été joué.',
+  verrouillee: 'Ce passage est verrouillé : rien n’a été joué.',
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
@@ -75,6 +80,7 @@ export const INDISPONIBILITES_MORCEAUX = {
   sans_pont: 'Il faut de quoi franchir {le:cible}.',
   trop_loin: 'Sans gravité, il faut d’abord dériver jusqu’à {le:cible}.',
   sans_gravite: 'Sans gravité, {le:cible} ne se verse pas.',
+  verrouillee: '{Le:cible} est verrouillé{e:cible} : une commande doit d’abord lever le verrou.',
 } as const satisfies Partial<TextesMonde['indisponibilites']>;
 
 export const LIBELLES_MORCEAUX = {
@@ -85,6 +91,7 @@ export const LIBELLES_MORCEAUX = {
   couper: 'Couper la gravité',
   retablir: 'Rétablir la gravité',
   boucler: 'Fermer la chambre depuis {le:cible}',
+  actionner: 'Actionner {le:cible}',
 } as const satisfies Partial<TextesMonde['libelles']>;
 
 export const VERBES_MORCEAUX = {
@@ -95,6 +102,7 @@ export const VERBES_MORCEAUX = {
   couper: 'Couper',
   retablir: 'Rétablir',
   boucler: 'Fermer la chambre',
+  actionner: 'Actionner',
 } as const satisfies Partial<TextesMonde['verbes']>;
 
 /** Règles des morceaux sans la créature : socle. */
@@ -134,4 +142,5 @@ export const SAVOIR_MORCEAUX = {
   coupera: 'La gravité sera coupée dans {le:piece}.',
   retablira: 'La gravité reviendra dans {le:piece}.',
   bouclera: 'Les portes {de:piece} seront fermées d’un coup.',
+  deverrouillera: 'Le verrou que commande {le:objet} sera levé, pour de bon.',
 } as const satisfies Partial<TextesMonde['apercu']['savoir']>;

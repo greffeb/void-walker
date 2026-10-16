@@ -1,5 +1,6 @@
 import type { DefMorceau } from '../../engine';
 import type { TextesMorceau } from '../textes/types';
+import { MORCEAU_CARREFOUR, TEXTES_MORCEAU_CARREFOUR } from './carrefour';
 import { MORCEAU_ESSAI, TEXTES_MORCEAU_ESSAI } from './essai';
 import { MORCEAU_M01, TEXTES_MORCEAU_M01 } from './m-01';
 import { MORCEAU_M02, TEXTES_MORCEAU_M02 } from './m-02';
@@ -18,7 +19,7 @@ export interface EntreeMorceau {
   readonly textes: TextesMorceau;
 }
 
-/** Morceaux écrits à la main (13 §8), par identifiant : départ, chemins, finals. */
+/** Morceaux écrits à la main (13 §8), par identifiant : départ, chemins, carrefour de l'ordre libre, finals. */
 export const MORCEAUX: Readonly<Record<string, EntreeMorceau>> = {
   [MORCEAU_VESTIBULE.id]: { morceau: MORCEAU_VESTIBULE, textes: TEXTES_MORCEAU_VESTIBULE },
   [MORCEAU_M01.id]: { morceau: MORCEAU_M01, textes: TEXTES_MORCEAU_M01 },
@@ -29,6 +30,7 @@ export const MORCEAUX: Readonly<Record<string, EntreeMorceau>> = {
   [MORCEAU_M08.id]: { morceau: MORCEAU_M08, textes: TEXTES_MORCEAU_M08 },
   [MORCEAU_M09.id]: { morceau: MORCEAU_M09, textes: TEXTES_MORCEAU_M09 },
   [MORCEAU_M10.id]: { morceau: MORCEAU_M10, textes: TEXTES_MORCEAU_M10 },
+  [MORCEAU_CARREFOUR.id]: { morceau: MORCEAU_CARREFOUR, textes: TEXTES_MORCEAU_CARREFOUR },
   [MORCEAU_M03.id]: { morceau: MORCEAU_M03, textes: TEXTES_MORCEAU_M03 },
   [MORCEAU_M06.id]: { morceau: MORCEAU_M06, textes: TEXTES_MORCEAU_M06 },
   [MORCEAU_ESSAI.id]: { morceau: MORCEAU_ESSAI, textes: TEXTES_MORCEAU_ESSAI },

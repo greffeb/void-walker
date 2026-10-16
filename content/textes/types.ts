@@ -208,6 +208,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   chambre_bouclee: ['objet', 'piece'],
   bruit_couvert: ['passage'],
   chute_entendue: ['passage'],
+  cloison_deverrouillee: ['objet'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
@@ -237,6 +238,7 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   couper: ['cible'],
   retablir: ['cible'],
   boucler: ['cible'],
+  actionner: ['cible'],
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
@@ -272,6 +274,7 @@ export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
   coupera: ['piece'],
   retablira: ['piece'],
   bouclera: ['piece'],
+  deverrouillera: ['objet'],
 };
 
 export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {

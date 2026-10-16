@@ -1,4 +1,4 @@
-import type { Assembleur, DefAssistance, DefMonde, DefMorceau, DefStation } from '../../engine';
+import type { Assembleur, DefAccroche, DefAssistance, DefCommande, DefMonde, DefMorceau, DefStation } from '../../engine';
 import { MONDE_AR01 } from '../ar-01/monde';
 import { PARCOURS_AR01 } from '../ar-01/parcours';
 import { TEXTES_AR01 } from '../ar-01/textes';
@@ -19,6 +19,7 @@ import { MONDE_TEST } from '../monde-test/monde';
 import { PARCOURS_MONDE_TEST } from '../monde-test/parcours';
 import { TEXTES_MONDE_TEST } from '../monde-test/textes';
 import { MORCEAUX, type EntreeMorceau } from '../morceaux';
+import { CLOISON_1, cloison2, MORCEAU_CARREFOUR, TEXTES_MORCEAU_CARREFOUR } from '../morceaux/carrefour';
 import { MORCEAU_ESSAI, TEXTES_MORCEAU_ESSAI } from '../morceaux/essai';
 import { MORCEAU_M07, TEXTES_MORCEAU_M07 } from '../morceaux/m-07';
 import { MORCEAU_M10, TEXTES_MORCEAU_M10 } from '../morceaux/m-10';
@@ -53,17 +54,25 @@ export interface Refus {
 
 /**
  * Vestibule, un ou deux morceaux de chemin distincts dans un ordre donné, un final et la place de la créature dans l'un de
- * ces morceaux (13 §7.1, D-161, spec L3 §4.1).
+ * ces morceaux (13 §7.1, D-161, spec L3 §4.1). En ordre libre, deux branches qui partent du couloir du carrefour, chacune
+ * avec la commande de l'une des deux cloisons du sas (D-259, spec L5 §3).
  */
 export interface Composition {
-  /** `<chemins>-<final>-<place>`, ex. 'm07-m03-soute', 'm07-m10-m03-soute'. */
+  /** `<chemins>-<final>-<place>`, ex. 'm07-m03-soute', 'm07-m10-m03-soute' ; `ol-<A>-<B>-<final>-<place>` en ordre libre. */
   readonly id: string;
-  /** Un ou deux morceaux de chemin distincts, dans l'ordre de la station : ['m-07', 'm-10']. */
+  readonly forme: 'chaine' | 'libre';
+  /**
+   * Un ou deux morceaux de chemin distincts, dans l'ordre de la station : ['m-07', 'm-10'] ; en ordre libre, les branches A
+   * puis B, A au plus petit numéro, sa commande levant la première cloison.
+   */
   readonly chemins: readonly string[];
   readonly final: string;
   /** Pièce préfixée, ex. 'm-07/p-soute'. */
   readonly creature: string;
-  /** Motif de la première paire refusée de la station, dans l'ordre des morceaux, avant tout plan ; `null` si toutes sont permises. */
+  /**
+   * Motif de la première paire refusée de la station, dans l'ordre des morceaux, avant tout plan ; en ordre libre, ou d'une
+   * place de la créature écartée (D-268) ; `null` si rien n'est refusé.
+   */
   readonly refus: string | null;
 }
 
@@ -393,9 +402,149 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm10-m09-m06-cale',
   'm10-m09-m06-embarquement',
   'm10-m09-m06-entrepot',
+  'ol-m01-m02-m03-reserve',
+  'ol-m01-m02-m06-embarquement',
+  'ol-m01-m04-m03-observation',
+  'ol-m01-m04-m03-reserve',
+  'ol-m01-m04-m06-embarquement',
+  'ol-m01-m04-m06-observation',
+  'ol-m01-m05-m03-reserve',
+  'ol-m01-m05-m03-tri',
+  'ol-m01-m05-m06-embarquement',
+  'ol-m01-m05-m06-tri',
+  'ol-m01-m07-m03-reserve',
+  'ol-m01-m07-m03-soute',
+  'ol-m01-m07-m06-embarquement',
+  'ol-m01-m07-m06-soute',
+  'ol-m01-m08-m03-magasin',
+  'ol-m01-m08-m03-reserve',
+  'ol-m01-m08-m06-embarquement',
+  'ol-m01-m08-m06-magasin',
+  'ol-m01-m09-m03-cale',
+  'ol-m01-m09-m03-reserve',
+  'ol-m01-m09-m06-cale',
+  'ol-m01-m09-m06-embarquement',
+  'ol-m01-m10-m03-entrepot',
+  'ol-m01-m10-m03-reserve',
+  'ol-m01-m10-m06-embarquement',
+  'ol-m01-m10-m06-entrepot',
+  'ol-m02-m04-m03-observation',
+  'ol-m02-m04-m03-reserve',
+  'ol-m02-m04-m06-embarquement',
+  'ol-m02-m04-m06-observation',
+  'ol-m02-m05-m03-reserve',
+  'ol-m02-m05-m03-tri',
+  'ol-m02-m05-m06-embarquement',
+  'ol-m02-m05-m06-tri',
+  'ol-m02-m07-m03-reserve',
+  'ol-m02-m07-m03-soute',
+  'ol-m02-m07-m06-embarquement',
+  'ol-m02-m07-m06-soute',
+  'ol-m02-m08-m03-magasin',
+  'ol-m02-m08-m03-reserve',
+  'ol-m02-m08-m06-embarquement',
+  'ol-m02-m08-m06-magasin',
+  'ol-m02-m09-m03-cale',
+  'ol-m02-m09-m03-reserve',
+  'ol-m02-m09-m06-cale',
+  'ol-m02-m09-m06-embarquement',
+  'ol-m02-m10-m03-entrepot',
+  'ol-m02-m10-m03-reserve',
+  'ol-m02-m10-m06-embarquement',
+  'ol-m02-m10-m06-entrepot',
+  'ol-m04-m05-m03-observation',
+  'ol-m04-m05-m03-reserve',
+  'ol-m04-m05-m03-tri',
+  'ol-m04-m05-m06-embarquement',
+  'ol-m04-m05-m06-observation',
+  'ol-m04-m05-m06-tri',
+  'ol-m04-m07-m03-observation',
+  'ol-m04-m07-m03-reserve',
+  'ol-m04-m07-m03-soute',
+  'ol-m04-m07-m06-embarquement',
+  'ol-m04-m07-m06-observation',
+  'ol-m04-m07-m06-soute',
+  'ol-m04-m08-m03-magasin',
+  'ol-m04-m08-m03-observation',
+  'ol-m04-m08-m03-reserve',
+  'ol-m04-m08-m06-embarquement',
+  'ol-m04-m08-m06-magasin',
+  'ol-m04-m08-m06-observation',
+  'ol-m04-m09-m03-cale',
+  'ol-m04-m09-m03-observation',
+  'ol-m04-m09-m03-reserve',
+  'ol-m04-m09-m06-cale',
+  'ol-m04-m09-m06-embarquement',
+  'ol-m04-m09-m06-observation',
+  'ol-m04-m10-m03-entrepot',
+  'ol-m04-m10-m03-observation',
+  'ol-m04-m10-m03-reserve',
+  'ol-m04-m10-m06-embarquement',
+  'ol-m04-m10-m06-entrepot',
+  'ol-m04-m10-m06-observation',
+  'ol-m05-m07-m03-reserve',
+  'ol-m05-m07-m03-soute',
+  'ol-m05-m07-m03-tri',
+  'ol-m05-m07-m06-embarquement',
+  'ol-m05-m07-m06-soute',
+  'ol-m05-m07-m06-tri',
+  'ol-m05-m08-m03-magasin',
+  'ol-m05-m08-m03-reserve',
+  'ol-m05-m08-m03-tri',
+  'ol-m05-m08-m06-embarquement',
+  'ol-m05-m08-m06-magasin',
+  'ol-m05-m08-m06-tri',
+  'ol-m05-m09-m03-cale',
+  'ol-m05-m09-m03-reserve',
+  'ol-m05-m09-m03-tri',
+  'ol-m05-m09-m06-cale',
+  'ol-m05-m09-m06-embarquement',
+  'ol-m05-m09-m06-tri',
+  'ol-m05-m10-m03-entrepot',
+  'ol-m05-m10-m03-reserve',
+  'ol-m05-m10-m03-tri',
+  'ol-m05-m10-m06-embarquement',
+  'ol-m05-m10-m06-entrepot',
+  'ol-m05-m10-m06-tri',
+  'ol-m07-m08-m03-magasin',
+  'ol-m07-m08-m03-reserve',
+  'ol-m07-m08-m03-soute',
+  'ol-m07-m08-m06-embarquement',
+  'ol-m07-m08-m06-magasin',
+  'ol-m07-m08-m06-soute',
+  'ol-m07-m09-m03-cale',
+  'ol-m07-m09-m03-reserve',
+  'ol-m07-m09-m03-soute',
+  'ol-m07-m09-m06-cale',
+  'ol-m07-m09-m06-embarquement',
+  'ol-m07-m09-m06-soute',
+  'ol-m07-m10-m03-entrepot',
+  'ol-m07-m10-m03-reserve',
+  'ol-m07-m10-m03-soute',
+  'ol-m07-m10-m06-embarquement',
+  'ol-m07-m10-m06-entrepot',
+  'ol-m07-m10-m06-soute',
+  'ol-m08-m09-m03-cale',
+  'ol-m08-m09-m03-magasin',
+  'ol-m08-m09-m03-reserve',
+  'ol-m08-m09-m06-cale',
+  'ol-m08-m09-m06-embarquement',
+  'ol-m08-m09-m06-magasin',
+  'ol-m08-m10-m03-entrepot',
+  'ol-m08-m10-m03-magasin',
+  'ol-m08-m10-m03-reserve',
+  'ol-m08-m10-m06-embarquement',
+  'ol-m08-m10-m06-entrepot',
+  'ol-m08-m10-m06-magasin',
+  'ol-m09-m10-m03-cale',
+  'ol-m09-m10-m03-entrepot',
+  'ol-m09-m10-m03-reserve',
+  'ol-m09-m10-m06-cale',
+  'ol-m09-m10-m06-embarquement',
+  'ol-m09-m10-m06-entrepot',
 ];
 
-/** Compositions publiées que `check:texts` explore (spec L3 §6.4, spec L4 §7). */
+/** Compositions publiées que `check:texts` explore (spec L3 §6.4, spec L4 §7) ; les deux dernières en ordre libre (spec L5 §6). */
 export const COMPOSITIONS_CONTROLEES: readonly string[] = [
   'm01-m03-reserve',
   'm01-m05-m03-tri',
@@ -407,6 +556,8 @@ export const COMPOSITIONS_CONTROLEES: readonly string[] = [
   'm08-m01-m06-palier',
   'm09-m10-m06-cale',
   'm10-m04-m03-entrepot',
+  'ol-m02-m08-m06-magasin',
+  'ol-m05-m10-m03-tri',
 ];
 
 export interface Catalogue {
@@ -423,6 +574,8 @@ export interface Catalogue {
    * `composition` force la composition. `hasard()` rend un entier de 0 à 4294967295.
    */
   tirer(hasard: () => number, composition?: string): EntreeMonde | Refus;
+  /** Définition de la station `<composition>-<graine>`, permise par la table, avant assemblage : pour mesurer les plans. */
+  definir(composition: string, graine: number): DefStation | Refus;
 }
 
 const AU_REVEIL: readonly DefAssistance[] = [
@@ -461,10 +614,11 @@ function motifDeTable(table: readonly LignePaire[], x: DefMorceau, y: DefMorceau
 }
 
 const VESTIBULE: EntreeMorceau = { morceau: MORCEAU_VESTIBULE, textes: TEXTES_MORCEAU_VESTIBULE };
+const CARREFOUR: EntreeMorceau = { morceau: MORCEAU_CARREFOUR, textes: TEXTES_MORCEAU_CARREFOUR };
 
 interface Prevue {
   readonly composition: Composition;
-  /** Chemins puis final, sans le vestibule. */
+  /** Chemins puis final, sans le vestibule ni le carrefour. */
   readonly morceaux: readonly EntreeMorceau[];
 }
 
@@ -481,26 +635,45 @@ function premierRefus(table: readonly LignePaire[], chemins: readonly DefMorceau
   return null;
 }
 
+const court = (morceau: DefMorceau): string => morceau.id.replaceAll('-', '');
+
+/**
+ * Places où la créature bouche le seul passage de son morceau : en chaîne, prouvées seulement derrière un obstacle qui permet
+ * de s'en débarrasser (D-268). En ordre libre, les deux branches partent du même couloir et aucune ne précède l'autre : ces
+ * places y sont écartées avant tout plan (spec L5 §3.2).
+ */
+const PLACES_DERRIERE_UN_OBSTACLE: readonly string[] = ['m-01/p-palier', 'm-02/p-atelier'];
+
+function refusDePlace(creature: string): string {
+  return `Créature en ${creature} : cette place n’est permise que derrière un obstacle qui permet de s’en débarrasser (D-268), et en ordre libre aucune branche n’en précède une autre.`;
+}
+
 /** Le vestibule en tête ; l'embarquement d'essai n'est le final d'aucune composition. */
 function prevoir(table: readonly LignePaire[]): Prevue[] {
   const entrees = Object.values(MORCEAUX);
   const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin');
   const finals = entrees.filter(({ morceau }) => morceau.famille === 'final' && morceau.id !== MORCEAU_ESSAI.id);
-  const suites = [...chemins.map((chemin) => [chemin]), ...chemins.flatMap((x) => chemins.filter((y) => y !== x).map((y) => [x, y]))];
-  const court = (morceau: DefMorceau): string => morceau.id.replaceAll('-', '');
-  const prevues = suites.flatMap((suite) =>
-    finals.flatMap((final) => {
-      const morceaux = [...suite, final];
-      const refus = premierRefus(table, suite.map((chemin) => chemin.morceau), final.morceau);
-      return morceaux.flatMap(({ morceau }) =>
-        morceau.placesCreature.map((place): Prevue => {
-          const nom = morceau.pieces.find((piece) => piece.id === place)?.nom ?? place;
-          const id = [...morceaux.map((entree) => court(entree.morceau)), nom].join('-');
-          const composition = { id, chemins: suite.map((chemin) => chemin.morceau.id), final: final.morceau.id, creature: `${morceau.id}/${place}`, refus };
-          return { composition, morceaux };
-        }),
-      );
-    }),
+  const suites = (forme: Composition['forme']): EntreeMorceau[][] =>
+    forme === 'chaine'
+      ? [...chemins.map((chemin) => [chemin]), ...chemins.flatMap((x) => chemins.filter((y) => y !== x).map((y) => [x, y]))]
+      : chemins.flatMap((x, rang) => chemins.slice(rang + 1).map((y) => [x, y]));
+  const prevues = (['chaine', 'libre'] as const).flatMap((forme) =>
+    suites(forme).flatMap((suite) =>
+      finals.flatMap((final) => {
+        const morceaux = [...suite, final];
+        const refus = premierRefus(table, suite.map((chemin) => chemin.morceau), final.morceau);
+        return morceaux.flatMap(({ morceau }) =>
+          morceau.placesCreature.map((place): Prevue => {
+            const nom = morceau.pieces.find((piece) => piece.id === place)?.nom ?? place;
+            const id = [...(forme === 'libre' ? ['ol'] : []), ...morceaux.map((entree) => court(entree.morceau)), nom].join('-');
+            const creature = `${morceau.id}/${place}`;
+            const refusPlace = forme === 'libre' && PLACES_DERRIERE_UN_OBSTACLE.includes(creature) ? refusDePlace(creature) : null;
+            const composition = { id, forme, chemins: suite.map((chemin) => chemin.morceau.id), final: final.morceau.id, creature, refus: refus ?? refusPlace };
+            return { composition, morceaux };
+          }),
+        );
+      }),
+    ),
   );
   return prevues.sort((x, y) => (x.composition.id < y.composition.id ? -1 : 1));
 }
@@ -585,6 +758,38 @@ export function numeroter(entree: EntreeMonde): EntreeMonde {
   return { ...entree, monde: { ...monde, pieces }, textes: { ...textes, noms, descriptions } };
 }
 
+/**
+ * Station d'une composition pour une graine de plan, et les morceaux dont viennent ses textes. En chaîne : vestibule, chemins,
+ * final. En ordre libre (D-259, spec L5 §3) : vestibule, carrefour, branches A et B, final ; les branches s'accrochent au
+ * couloir et finissent en cul-de-sac, une commande dans leur pièce de sortie ; le final s'accroche au sas.
+ */
+function definirStation({ composition, morceaux }: Prevue, graine: number): { readonly station: DefStation; readonly entrees: readonly EntreeMorceau[] } {
+  const id = `${composition.id}-${graine}`;
+  const commun = { id, creature: composition.creature, graine, assistance: ASSISTANCE_TIREE };
+  if (composition.forme === 'chaine') {
+    const entrees = sansConflit([VESTIBULE, ...morceaux]);
+    return { station: { ...commun, morceaux: entrees.map((entree) => entree.morceau) }, entrees };
+  }
+  const entrees = sansConflit([VESTIBULE, CARREFOUR, ...morceaux]);
+  const [vestibule, carrefour, a, b, final] = entrees.map((entree) => entree.morceau);
+  if (vestibule?.sortie === undefined || carrefour?.sortie === undefined || a?.sortie === undefined || b?.sortie === undefined || final === undefined) {
+    throw new Error(`Composition ${composition.id} : morceaux de l’ordre libre incomplets.`);
+  }
+  const porte = { nom: 'porte' };
+  const accroches: DefAccroche[] = [
+    { depuis: vestibule.id, piece: vestibule.sortie.piece, vers: carrefour.id, porte: vestibule.sortie.porte },
+    // Le final avant les branches : accroché au sas, il est le plus contraint à poser (spec L5 §3.2).
+    { depuis: carrefour.id, piece: carrefour.sortie.piece, vers: final.id, porte: carrefour.sortie.porte },
+    { depuis: carrefour.id, piece: carrefour.entree, vers: a.id, porte },
+    { depuis: carrefour.id, piece: carrefour.entree, vers: b.id, porte },
+  ];
+  const commandes: DefCommande[] = [
+    { id: 'o-commande-1', nom: 'commande_1', morceau: a.id, piece: a.sortie.piece, cloison: CLOISON_1 },
+    { id: 'o-commande-2', nom: 'commande_2', morceau: b.id, piece: b.sortie.piece, cloison: cloison2(final.id) },
+  ];
+  return { station: { ...commun, morceaux: [vestibule, carrefour, a, b, final], accroches, commandes }, entrees };
+}
+
 export function creerCatalogue(
   assembler: Assembleur,
   table: readonly LignePaire[] = PAIRES,
@@ -609,17 +814,10 @@ export function creerCatalogue(
   // Par identifiant de station ; `null` : pas de plan pour cette graine.
   const memoire = new Map<string, EntreeMonde | Refus | null>();
 
-  const assemblerPrevue = ({ composition, morceaux }: Prevue, graine: number): EntreeMonde | Refus | null => {
-    const id = `${composition.id}-${graine}`;
+  const assemblerPrevue = (prevue: Prevue, graine: number): EntreeMonde | Refus | null => {
+    const id = `${prevue.composition.id}-${graine}`;
     if (memoire.has(id)) return memoire.get(id) ?? null;
-    const entrees = sansConflit([VESTIBULE, ...morceaux]);
-    const station: DefStation = {
-      id,
-      morceaux: entrees.map((entree) => entree.morceau),
-      creature: composition.creature,
-      graine,
-      assistance: ASSISTANCE_TIREE,
-    };
+    const { station, entrees } = definirStation(prevue, graine);
     const resultat = assembler(station);
     let obtenu: EntreeMonde | Refus | null = null;
     if (resultat.type === 'station') {
@@ -685,5 +883,10 @@ export function creerCatalogue(
     return { refus: `Composition ${prevue.composition.id} : aucun plan en ${ESSAIS_PLAN} graines tirées.` };
   };
 
-  return { mondes, compositions: prevues.map((prevue) => prevue.composition), construire, resoudre, tirer };
+  const definir = (composition: string, graine: number): DefStation | Refus => {
+    const prevue = prevueDe(composition);
+    return 'refus' in prevue ? prevue : definirStation(prevue, graine).station;
+  };
+
+  return { mondes, compositions: prevues.map((prevue) => prevue.composition), construire, resoudre, tirer, definir };
 }
