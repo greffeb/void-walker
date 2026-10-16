@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-267 à D-268](#d-267--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
@@ -2046,7 +2046,7 @@ Questions posées au porteur le 2026-10-15, pendant la conception de L3 ; ses r�
 
 Questions posées au porteur le 2026-10-16, pendant la conception de L4 ; ses réponses sont citées mot pour mot dans [13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154). Elles sont implémentées sur la branche de L4 ; aucune partie sur téléphone de M-01, M-02, M-04 ou M-05 n'est revendiquée. La réussite reste celle de D-264 : à Q-193, le porteur a répondu « 154 », compris comme un feu vert sans autre critère.
 
-### D-267 — L4 : créature sur le palier ou dans l'atelier seulement derrière un obstacle qui permet de s'en débarrasser
+### D-268 — L4 : créature sur le palier ou dans l'atelier seulement derrière un obstacle qui permet de s'en débarrasser
 
 - Date / statut : 2026-10-16 / **Validé**.
 - Origine : réponse Q-194 « c'est bon ». La question montrait, dans la maquette jetable, la créature sur le palier ou dans l'atelier bouchant le seul passage.
@@ -2057,7 +2057,7 @@ Questions posées au porteur le 2026-10-16, pendant la conception de L4 ; ses r�
 - Précise : D-258 et la fiche M-02 ([13 §3](13-morceaux-lancement.md#3-fiches)).
 - Limite : ces deux places sortent plus rarement au tirage, 22 et 17 fois sur 1 000 ([13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154)). La difficulté reste pour plus tard (D-264).
 
-### D-268 — L4 : conception approuvée
+### D-269 — L4 : conception approuvée
 
 - Date / statut : 2026-10-16 / **Validé**.
 - Origine :
