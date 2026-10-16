@@ -138,6 +138,7 @@ button:disabled {
 
 /* Écran de jeu (12 §3.1) : en-tête, récit qui défile, dock à sa hauteur, navigation (D-191). */
 .jeu {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -2091,4 +2092,91 @@ button:disabled {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* Brouillage d'un dégât (#166) : texte décalé en rouge et cyan, pixels morts, lignes de balayage déchirées ; 0,7 s, une fois. */
+.jeu.brouille > :not(.brouillage) {
+  animation: aberration 0.7s steps(8);
+}
+
+.brouillage {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.pixel-mort,
+.dechirure {
+  position: absolute;
+  opacity: 0;
+  animation: allume 0.12s steps(1);
+}
+
+.pixel-mort {
+  background: var(--blanc);
+}
+
+.dechirure {
+  left: -10%;
+  right: -10%;
+  background: repeating-linear-gradient(90deg, var(--blanc) 0 6px, transparent 6px 9px, var(--alerte) 9px 13px, transparent 13px 22px);
+}
+
+@keyframes allume {
+  0%,
+  99% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes aberration {
+  0%,
+  100% {
+    transform: none;
+    text-shadow: none;
+  }
+  12% {
+    transform: translateX(-8px);
+    text-shadow: 4px 0 var(--alerte), -4px 0 var(--cyan);
+  }
+  25% {
+    transform: translateX(6px) skewX(-8deg);
+    text-shadow: -5px 0 var(--alerte), 5px 0 var(--cyan);
+  }
+  37% {
+    transform: translateX(-4px);
+    text-shadow: 3px 0 var(--alerte), -3px 0 var(--cyan);
+  }
+  50% {
+    transform: translateX(10px);
+    text-shadow: -6px 0 var(--alerte), 6px 0 var(--cyan);
+  }
+  62% {
+    transform: translateX(-2px) skewX(5deg);
+    text-shadow: 2px 0 var(--alerte), -2px 0 var(--cyan);
+  }
+  75% {
+    transform: translateX(3px);
+    text-shadow: none;
+  }
+}
+
+/* Mouvement réduit : ni décalage ni scintillement, un cadre rouge fixe le temps du brouillage. */
+@media (prefers-reduced-motion: reduce) {
+  .jeu.brouille > :not(.brouillage) {
+    animation: none;
+  }
+
+  .brouillage > * {
+    display: none;
+  }
+
+  .brouillage {
+    box-shadow: inset 0 0 0 3px var(--alerte);
+  }
 }

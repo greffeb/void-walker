@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App, EcranRefus } from './App';
-import { BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
+import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { APERCU_TAILLE, EcranFin, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
@@ -1044,5 +1044,15 @@ describe('danger apparu : triangle rouge devant la phrase du feu (#138, D-233)',
 
   it('avant la découverte, aucun triangle ni ligne d’alerte', async () => {
     for (const nombre of [0, 1, 2, 3]) expect(recitDe(await pb(nombre))).not.toContain('alerte');
+  });
+});
+
+describe('brouillage d’un dégât (#166)', () => {
+  it('se joue sur blessure, blessure critique et mort, pas sur un soin ni une alarme', () => {
+    expect(degatSubi(['blessure'])).toBe(true);
+    expect(degatSubi(['alarme-feu', 'blessure-critique'])).toBe(true);
+    expect(degatSubi(['mort'])).toBe(true);
+    expect(degatSubi(['soin', 'alarme-vide', 'creature', 'ia'])).toBe(false);
+    expect(degatSubi([])).toBe(false);
   });
 });
