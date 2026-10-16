@@ -3,10 +3,11 @@ import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App, EcranRefus } from './App';
 import { BulleInventaire, BulleObjet, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
-import { APERCU_TAILLE, EcranFin, EcranOptions } from './EcranOptions';
+import { APERCU_TAILLE, EcranFin, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
+import type { EtatInstallation, Installation } from './installation';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
 import type { Retour } from './rapports';
@@ -495,6 +496,7 @@ function options(
     commit: string;
     pr: string;
     miseAJour: MiseAJour;
+    installation: Installation;
     partieEnregistree: boolean;
     envoyerRapport: () => Promise<Retour>;
     rapportsEnAttente: number;
@@ -516,6 +518,7 @@ function options(
       commit={surcharge.commit ?? ''}
       pr={surcharge.pr ?? ''}
       miseAJour={surcharge.miseAJour}
+      installation={surcharge.installation}
       partieEnregistree={surcharge.partieEnregistree}
       envoyerRapport={surcharge.envoyerRapport}
       rapportsEnAttente={surcharge.rapportsEnAttente}
@@ -558,6 +561,45 @@ describe('options (12 §4.10, #96)', () => {
     expect(section('echec')).toContain('Impossible de vérifier. Le téléphone est-il connecté ?');
     expect(section('prete')).toBe('Mise à jour ▸ Installer la nouvelle version le jeu redémarre, la partie est gardée Une nouvelle version est prête.');
     expect(section('recherche')).toContain('Recherche en cours…');
+  });
+
+  it('installation : bouton ou aide selon l’état, absente quand rien n’est possible (#174)', () => {
+    const section = (etat: EtatInstallation): string => {
+      const installation: Installation = { etat: () => etat, abonner: () => () => undefined, proposer: () => undefined };
+      const html = options({ installation });
+      return html.includes('Installation') ? texte(entre(html, '<h2 class="titre-section">Installation</h2>', '</section>')) : '';
+    };
+    expect(section('indisponible')).toBe('');
+    expect(texte(options())).not.toContain('Installation');
+    expect(section('invite')).toBe('Installation ▸ Installer le jeu s’ouvre en plein écran, sans la barre du navigateur');
+    expect(section('en_cours')).toContain('Installer le jeu');
+    expect(options({ installation: { etat: () => 'en_cours', abonner: () => () => undefined, proposer: () => undefined } })).toMatch(
+      /<button type="button" class="ligne-option" disabled=""[^>]*>[^]*?Installer le jeu/,
+    );
+    expect(section('guide_ios')).toBe('Installation ▸ Installer le jeu marche à suivre pour iPhone et iPad');
+    expect(section('guide_firefox')).toBe('Installation ▸ Installer le jeu marche à suivre pour Firefox');
+    // Une réponse du joueur à la boîte du navigateur : plus de bouton (l'événement a servi), le retour reste écrit.
+    expect(section('installee')).toBe('Installation Jeu installé. Cherchez-le sur votre écran d’accueil.');
+    expect(section('refusee')).toBe('Installation Installation refusée. Le menu du navigateur permet de la relancer.');
+    expect(section('guide_ios')).not.toContain('Jeu installé');
+  });
+
+  it('installation : placée entre le reste et la mise à jour, avec le retour en zone de statut', () => {
+    const installation: Installation = { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined };
+    const miseAJour: MiseAJour = { etat: () => 'inconnu', abonner: () => () => undefined, chercher: () => Promise.resolve() };
+    const html = options({ installation, miseAJour });
+    expect(html.indexOf('Installation</h2>')).toBeGreaterThan(html.indexOf('Partie</h2>'));
+    expect(html.indexOf('Installation</h2>')).toBeLessThan(html.indexOf('Mise à jour</h2>'));
+    expect(html).toContain('<p class="retour-option" role="status" data-testid="installation"></p>');
+  });
+
+  it('installation : les aides disent les boutons tels que le téléphone les nomme (docs/16 §3.1)', () => {
+    const ios = GUIDES_INSTALLATION.guide_ios.etapes.join(' ');
+    for (const nom of ['Plus', 'Partager', 'Sur l’écran d’accueil', 'Ouvrir comme app web', 'Ajouter']) expect(ios).toContain(`« ${nom} »`);
+    expect(GUIDES_INSTALLATION.guide_ios.note).toContain('« Modifier les actions »');
+    const firefox = GUIDES_INSTALLATION.guide_firefox.etapes.join(' ');
+    for (const nom of ['Plus', 'Ajouter l’application à l’écran d’accueil', 'Ajouter']) expect(firefox).toContain(`« ${nom} »`);
+    for (const guide of Object.values(GUIDES_INSTALLATION)) expect(guide.etapes).toHaveLength(4);
   });
 
   it('réglages choisis : la taille active et les bascules sur [NON]', () => {

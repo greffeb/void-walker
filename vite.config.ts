@@ -25,6 +25,9 @@ function numeroDeConstruction(): string {
 // BASE_PATH : « /void-walker/ » pour la version principale, « /void-walker/pr-<n>/ » pour une version de test (AP-05).
 const base = process.env.BASE_PATH ?? '/';
 
+// Une version de test peut s'installer (#174) : son nom porte le numéro de PR, pour ne pas la confondre avec le jeu.
+const pr = process.env.PR_NUMERO ?? '';
+
 export default defineConfig({
   root: 'app',
   base,
@@ -51,8 +54,8 @@ export default defineConfig({
       registerType: 'prompt',
       injectRegister: false,
       manifest: {
-        name: 'Void Walker',
-        short_name: 'Void Walker',
+        name: pr === '' ? 'Void Walker' : `Void Walker (test PR #${pr})`,
+        short_name: pr === '' ? 'Void Walker' : `VW test #${pr}`,
         description: 'Récit d’horreur spatiale.',
         lang: 'fr',
         display: 'standalone',

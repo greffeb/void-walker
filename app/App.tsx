@@ -16,6 +16,7 @@ import {
   type Environnement,
   type Jeu,
 } from './jeu';
+import type { Installation } from './installation';
 import type { MiseAJour } from './miseAJour';
 import { composerRapport, signerRapport, type Rapports, type Retour, type TypeRapport } from './rapports';
 import type { Signataire } from './validation';
@@ -77,6 +78,7 @@ export function App({
   pr,
   son = SILENCE,
   miseAJour,
+  installation,
   rapports,
   signataire,
 }: {
@@ -95,6 +97,8 @@ export function App({
   readonly son?: Son;
   /** Mise à jour de l'appli installée (D-227) ; absente hors du navigateur. */
   readonly miseAJour?: MiseAJour;
+  /** Installation sur l'écran d'accueil (#174) ; absente hors du navigateur. */
+  readonly installation?: Installation;
   /** Service de rapports (C-10 §3) ; absent, pas de « Signaler un bug » ni d'« Envoyer ma partie ». */
   readonly rapports?: Rapports;
   /** Clé de validation du téléphone (C-10 §4) ; absente, « je valide » part sans signature. */
@@ -352,6 +356,7 @@ export function App({
             commit={commit}
             pr={pr}
             miseAJour={miseAJour}
+            installation={installation}
             partieEnregistree={ecran.jeu !== null}
             envoyerRapport={rapports === undefined ? undefined : (type, commentaire, valide) => envoyerRapport(type, ecran.jeu, commentaire, valide)}
             rapportsEnAttente={rapportsEnAttente}

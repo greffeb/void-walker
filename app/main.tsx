@@ -4,6 +4,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { App, EcranRefus } from './App';
 import { CATALOGUE } from './catalogue';
 import { cleStockage, demandeDe, preparerLancement, type Environnement } from './jeu';
+import { CLE_INSTALLATION, piloterInstallation } from './installation';
 import { piloterMiseAJour } from './miseAJour';
 import { creerRapports } from './rapports';
 import { coffreIndexedDB, creerSignataire } from './validation';
@@ -69,6 +70,20 @@ const miseAJour = piloterMiseAJour({
   recharger: () => window.location.reload(),
 });
 
+// Installation sur l'écran d'accueil (#174) : l'événement du navigateur peut arriver avant le premier rendu, on l'écoute dès ici.
+const installation = piloterInstallation({
+  ecouter: (type, ecouteur) => window.addEventListener(type, ecouteur),
+  agent: navigator.userAgent,
+  pointsTactiles: navigator.maxTouchPoints,
+  modeAppli: () =>
+    ['standalone', 'fullscreen', 'minimal-ui'].some((mode) => window.matchMedia(`(display-mode: ${mode})`).matches) ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true,
+  // Chaque adresse a son drapeau : la version principale et les versions de test partagent `localStorage`.
+  cle: `${CLE_INSTALLATION}:${import.meta.env.BASE_URL}`,
+  lire: (cle) => window.localStorage.getItem(cle),
+  ecrire: (cle, valeur) => window.localStorage.setItem(cle, valeur),
+});
+
 // Rapports (C-10 §3) : ceux gardés sans réseau repartent au lancement et au retour du réseau (PR-01).
 const rapports = creerRapports({
   adresse: import.meta.env.VITE_SERVICE_RAPPORTS,
@@ -104,6 +119,7 @@ createRoot(racine).render(
         pr={import.meta.env.VITE_PR_NUMERO ?? ''}
         son={son}
         miseAJour={miseAJour}
+        installation={installation}
         rapports={rapports}
         signataire={signataire}
       />

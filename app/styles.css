@@ -545,6 +545,59 @@ button:disabled {
   border-bottom: 1px solid var(--couleur-menu);
 }
 
+/* Aide à l'installation (#174) : la même bulle, posée au milieu de l'écran des options, sans flèche. */
+.bulle-installation {
+  position: fixed;
+  z-index: 7;
+  top: 50%;
+  transform: translateY(-50%);
+  left: max(16px, calc((100vw - 30rem) / 2 + 16px));
+  right: max(16px, calc((100vw - 30rem) / 2 + 16px));
+  max-height: calc(100dvh - 32px);
+}
+
+.bulle-installation::after {
+  display: none;
+}
+
+.etapes-installation {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: etape;
+}
+
+.etapes-installation li {
+  display: grid;
+  grid-template-columns: calc(24px * var(--echelle)) minmax(0, 1fr);
+  gap: 8px;
+  font-size: calc(15px * var(--echelle));
+  line-height: 1.45;
+  color: var(--texte-menu);
+}
+
+.etapes-installation li::before {
+  counter-increment: etape;
+  content: counter(etape);
+  display: grid;
+  place-items: center;
+  width: calc(24px * var(--echelle));
+  height: calc(24px * var(--echelle));
+  font-size: calc(13px * var(--echelle));
+  font-weight: 600;
+  color: var(--fond);
+  background: var(--couleur-menu);
+}
+
+.note-installation {
+  margin: 12px 0 0;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
+  color: var(--secondaire-menu);
+}
+
 .bulle-entete {
   flex: none;
   display: flex;
