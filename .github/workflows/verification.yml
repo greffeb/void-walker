@@ -12,10 +12,6 @@ on:
 permissions:
   contents: read
 
-env:
-  # Hors du dépôt : un fichier ajouté à une PR ne peut pas passer pour un verdict gardé.
-  VERIFS_CACHE: ${{ github.workspace }}/../verifs-cache
-
 jobs:
   courtes:
     name: Étapes courtes
@@ -50,10 +46,13 @@ jobs:
       - run: npm ci
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ${{ env.VERIFS_CACHE }}
+          # Hors du dépôt : un fichier ajouté à une PR ne peut pas passer pour un verdict gardé.
+          path: ${{ runner.temp }}/verifs-cache
           key: verifs-textes-${{ matrix.lot }}de2-${{ hashFiles('engine/**', 'content/**', 'tools/**', 'package-lock.json') }}
           restore-keys: verifs-textes-${{ matrix.lot }}de2-
       - run: npm run check:texts -- --lot=${{ matrix.lot }}/2 --processus=auto
+        env:
+          VERIFS_CACHE: ${{ runner.temp }}/verifs-cache
 
   stations:
     name: check:stations (lot ${{ matrix.lot }}/3)
@@ -73,10 +72,13 @@ jobs:
       - run: npm ci
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ${{ env.VERIFS_CACHE }}
+          # Hors du dépôt : un fichier ajouté à une PR ne peut pas passer pour un verdict gardé.
+          path: ${{ runner.temp }}/verifs-cache
           key: verifs-stations-${{ matrix.lot }}de3-${{ hashFiles('engine/**', 'content/**', 'tools/**', 'package-lock.json') }}
           restore-keys: verifs-stations-${{ matrix.lot }}de3-
       - run: npm run check:stations -- --lot=${{ matrix.lot }}/3 --processus=auto
+        env:
+          VERIFS_CACHE: ${{ runner.temp }}/verifs-cache
 
   tests:
     name: Tests (part ${{ matrix.part }}/2)
