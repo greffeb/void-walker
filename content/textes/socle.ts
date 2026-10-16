@@ -174,6 +174,7 @@ export const SOCLE = {
     blesse: 'Vous êtes blessé.',
     critique: 'Vous êtes grièvement blessé.',
     terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',
+    sansSortie: 'Plus aucun chemin ne mène à une capsule de secours.',
     abandon: 'Vous en restez là, dans {le:piece}.',
     ...OBSERVATION_REGLES_MORCEAUX,
   },

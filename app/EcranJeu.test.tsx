@@ -488,6 +488,30 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   });
 });
 
+describe('plus aucune sortie (12 §5.2, D-085, D-144, D-273)', () => {
+  const m08 = MONDES['m-08'] as EntreeMonde;
+  const envM08: Environnement = { ...env, monde: m08.monde, textes: m08.textes };
+  const ecran = (jeu: Jeu): string =>
+    renderToStaticMarkup(
+      <EcranJeu jeu={jeu} lus={[]} env={envM08} machineAEcrire={false} occupe={false} choisir={rien} lireMessages={rienALire} terminerPartie={() => Promise.resolve(true)} />,
+    );
+
+  it('planche tombée du mauvais côté : information du jeu, sans nommer de sortie, puis le rappel en tête du récit', async () => {
+    const depart = await commencer(envM08);
+    expect(ecran(depart)).not.toContain('alertdialog');
+    expect(ecran(depart)).not.toContain('plus aucune sortie possible');
+    const etat = { ...depart.partie.etat, piece: 'p-ouest', objets: { ...depart.partie.etat.objets, 'o-planche': { type: 'perdu', liaison: 'l-ouest-est' } as const } };
+    const html = ecran({ ...depart, partie: { ...depart.partie, etat } });
+    expect(html).toContain('role="alertdialog" aria-modal="true"');
+    expect(texte(entre(html, '<section class="information-jeu"', '</section>'))).toBe(
+      'Information du jeu Plus aucune sortie possible. Plus aucun chemin ne mène à une capsule de secours. Vous pouvez continuer à jouer et explorer la station. Continuer à jouer Terminer la partie la partie s’arrête ici',
+    );
+    expect(html).toContain('<p class="rappel-sans-sortie" data-testid="sans-sortie">[ plus aucune sortie possible ]</p>');
+    // La partie continue : le dock reste là.
+    expect(html).not.toContain('fin-partie');
+  });
+});
+
 function options(
   surcharge: Partial<{
     reglages: Reglages;

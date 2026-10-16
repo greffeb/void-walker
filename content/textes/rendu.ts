@@ -304,6 +304,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       ? remplir(modele.inventaire, { liste: observation.inventaire.map((objet) => nomDe(textes, objet)) })
       : remplir(modele.inventaireVide, {}),
   );
+  if (observation.sansSortie) lignes.push(remplir(modele.sansSortie, {}));
   if (observation.issue === 'evacuation') lignes.push(remplir(modele.evacuee, {}));
   else if (observation.terminee) lignes.push(remplir(modele.terminee, {}));
   return lignes;
