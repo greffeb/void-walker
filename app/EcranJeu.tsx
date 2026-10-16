@@ -934,10 +934,10 @@ export function DockPiece({
   /** Cible dont la bulle est ouverte : sa puce ou son bouton passe en vidéo inverse. */
   readonly puceOuverte: string | null;
   readonly ouvrir: (groupe: Groupe, ancre: HTMLElement) => void;
-  /** « Regarder autour de vous », déplacements et portes : sans aperçu (D-267). */
+  /** « Regarder autour de vous », « Attendre », déplacements et portes : sans aperçu (D-267, D-274). */
   readonly jouer: Jouer;
 }) {
-  const autour = dock.autour;
+  const { autour, attendre } = dock;
   return (
     <section className="dock">
       <h2 className="titre-section">Dans la pièce</h2>
@@ -959,11 +959,21 @@ export function DockPiece({
           </li>
         ))}
       </ul>
-      {autour !== undefined && (
-        <button type="button" className="puce autour" disabled={occupe} onClick={() => jouer(autour)} data-son="confirmer">
-          <span aria-hidden="true">▸ </span>
-          {REGARDER_AUTOUR}
-        </button>
+      {(autour !== undefined || attendre !== undefined) && (
+        <div className="autour">
+          {autour !== undefined && (
+            <button type="button" className="puce" aria-label={REGARDER_AUTOUR} disabled={occupe} onClick={() => jouer(autour)} data-son="confirmer">
+              <span aria-hidden="true">▸ </span>
+              {textes.verbes.regarder}
+            </button>
+          )}
+          {attendre !== undefined && (
+            <button type="button" className="puce" disabled={occupe} onClick={() => jouer(attendre)} data-son="confirmer">
+              <span aria-hidden="true">▸ </span>
+              {textes.verbes.attendre}
+            </button>
+          )}
+        </div>
       )}
       {dock.deplacements.length > 0 && (
         <>

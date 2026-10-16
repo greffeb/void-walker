@@ -29,6 +29,7 @@ export const ACTIONS = [
   'retablir',
   'boucler',
   'actionner',
+  'attendre',
 ] as const;
 export type IdAction = (typeof ACTIONS)[number];
 
@@ -54,6 +55,7 @@ export const TYPES_EVENEMENT = [
   'bruit_mecanisme',
   'bruit_creature',
   'creature_entre',
+  'attente',
   'premier_contact',
   'menace',
   'aggravation_blesse',
@@ -213,6 +215,7 @@ export type Evenement =
   | { readonly type: 'bruit_creature'; readonly passage: RefPassage }
   | { readonly type: 'creature_entre'; readonly passage: RefPassage }
   /** Une seule fois par partie (C-03 §4.4). */
+  | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }
   /** Elle le menace sans le blesser : action libre après le premier contact, arrivée sous ses yeux, ou dé favorable (C-04 §4). */
   | { readonly type: 'menace' }

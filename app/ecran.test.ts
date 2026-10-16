@@ -50,6 +50,7 @@ function placees(dock: Dock): OptionMenu[] {
   return [
     ...dock.piece.flatMap((groupe) => groupe.options),
     ...(dock.autour === undefined ? [] : [dock.autour]),
+    ...(dock.attendre === undefined ? [] : [dock.attendre]),
     ...dock.deplacements.flatMap((deplacement) => deplacement.options),
     ...dock.inventaire.flatMap((groupe) => groupe.options),
   ];
@@ -106,7 +107,8 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     const dock = composerDock(observer(monde, depart().etat));
     expect(dock.piece.map((groupe) => nomPuce(textes, groupe.cible))).toEqual(['Carnet']);
     expect(dock.piece.map((groupe) => groupe.options.map((option) => textes.verbes[option.action]))).toEqual([['Regarder', 'Prendre']]);
-    expect(dock.autour?.cible.sorte).toBe('piece');
+    expect(dock.autour).toMatchObject({ action: 'regarder', cible: { sorte: 'piece' } });
+    expect(dock.attendre).toMatchObject({ action: 'attendre', cible: { sorte: 'piece' }, disponible: true });
     // Le nom joue le déplacement, même impossible (le moteur le refuse sans coût) ; la commande ouvre la porte.
     expect(dock.deplacements.map(({ passer, manoeuvre, reperes }) => [nomDestination(textes, passer), passer.action, passer.disponible, manoeuvre?.action, reperes])).toEqual([
       ['atelier', 'aller', false, 'ouvrir', []],
@@ -160,6 +162,7 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     expect(apercu(monde, depart(), optionDe(depart(), 'ouvrir', 'porte').commande)).toMatchObject({ apercu: { cout: 'bruyant' } });
     expect(unToucher(monde, depart(), optionDe(depart(), 'ouvrir', 'porte'))).toBe(true);
     expect(unToucher(monde, depart(), optionDe(depart(), 'prendre', 'carnet'))).toBe(true);
+    expect(unToucher(monde, depart(), optionDe(depart(), 'attendre', observer(monde, depart().etat).piece.nom))).toBe(true);
     // Indisponible : jamais d'un seul toucher, rien ne se joue.
     const aller = observer(monde, depart().etat).menu.find((option) => option.action === 'aller' && option.cible.nom === 'porte');
     if (aller === undefined) throw new Error('Aller absent.');
@@ -191,6 +194,8 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     const dock = composerDock(observer(monde, depart().etat));
     if (dock.autour === undefined) throw new Error('Regard sur la pièce absent.');
     expect(texteRappel(textes, rappelDe(dock.autour))).toEqual({ texte: 'Regarder autour de vous', capitales: true });
+    if (dock.attendre === undefined) throw new Error('Attendre absent.');
+    expect(texteRappel(textes, rappelDe(dock.attendre))).toEqual({ texte: 'Attendre', capitales: true });
     expect(texteRappel(textes, rappelDe(optionDe(depart(), 'prendre', 'carnet')))).toEqual({ texte: 'Carnet · Prendre', capitales: false });
   });
 
@@ -446,7 +451,7 @@ describe('un seul toucher (D-182, D-267)', () => {
           continue;
         }
         vus.add(`${option.action}:${String(direct)}`);
-        const porteOuDeplacement = ['aller', 'deriver', 'ouvrir', 'fermer'].includes(option.action);
+        const porteOuDeplacement = ['aller', 'deriver', 'ouvrir', 'fermer', 'attendre'].includes(option.action);
         if (porteOuDeplacement !== direct && !['prendre', 'poser'].includes(option.action)) ecarts.push(`${option.action} : un toucher ${String(direct)}`);
         if (!direct || porteOuDeplacement) continue;
         const apercu = prevoir({ monde, textes }, partie, option);
@@ -456,7 +461,7 @@ describe('un seul toucher (D-182, D-267)', () => {
       }
     }
     expect([...new Set(ecarts)]).toEqual([]);
-    expect([...vus]).toEqual(expect.arrayContaining(['aller:true', 'prendre:true', 'poser:true', 'ouvrir:true', 'fermer:true']));
+    expect([...vus]).toEqual(expect.arrayContaining(['aller:true', 'prendre:true', 'poser:true', 'ouvrir:true', 'fermer:true', 'attendre:true']));
     expect([...vus]).not.toEqual(expect.arrayContaining(['aller:false']));
   });
 });
@@ -466,7 +471,8 @@ describe('aperçu affiché (D-187)', () => {
     const formes = new Set<string>();
     const ecarts: string[] = [];
     for (const partie of atteignables()) {
-      for (const option of observer(monde, partie.etat).menu.filter((choix) => choix.disponible && CATALOGUE[choix.action].engage)) {
+      // « Attendre » se joue d'un toucher, sans aperçu (D-274).
+      for (const option of observer(monde, partie.etat).menu.filter((choix) => choix.disponible && CATALOGUE[choix.action].engage && choix.action !== 'attendre')) {
         const moteur = apercu(monde, partie, option.commande);
         if (moteur.type !== 'apercu') continue;
         const { risque, danger, cout } = moteur.apercu;

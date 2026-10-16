@@ -912,6 +912,16 @@ const actionner: ActionEngagee = {
   },
 };
 
+/** Attendre : un tour sans rien faire, la créature réagit une fois et les dangers se propagent comme à toute action (D-274). */
+const attendre: ActionEngagee = {
+  id: 'attendre',
+  engage: true,
+  cibles: ({ etat }) => [etat.piece],
+  verifier: ({ etat }, cible) => (cible === etat.piece ? null : 'cible_absente'),
+  prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
+  appliquer: ({ etat }) => ({ etat, evenements: [{ type: 'attente' }] }),
+};
+
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
 export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   regarder,
@@ -940,4 +950,5 @@ export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   retablir,
   boucler,
   actionner,
+  attendre,
 };
