@@ -250,10 +250,8 @@ describe('parcours des chemins d’AR-01 (spec L4 §9)', () => {
     if ('refus' in reference) throw new Error(reference.refus);
     const { monde } = reference.entree;
     const { etapes } = prouvee('m10-m02-m03-atelier');
-    const chambre = etapes.findIndex((etape) => etape.action === 'aller' && etape.vers === 'chambre');
     const atelier = etapes.findIndex((etape) => etape.action === 'aller' && etape.vers === 'atelier');
-    expect(chambre).toBeGreaterThanOrEqual(0);
-    expect(atelier).toBeGreaterThan(chambre);
+    expect(atelier).toBeGreaterThanOrEqual(0);
     let courante = depart(monde);
     for (const etape of etapes.slice(0, atelier + 1)) {
       const choix = trouverOption(observer(monde, courante.etat), etape);

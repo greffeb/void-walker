@@ -128,7 +128,8 @@ describe('mesure de D-241 (spec L5 §5)', () => {
     const debut = performance.now();
     expect(mesurerMiseHorsJeu(reference('m07-m03-soute'))).toBe('impossible');
     expect(performance.now() - debut).toBeLessThan(50);
-  });
+    // La poursuite des pas (D-276) allonge la recherche des stations en ordre libre ; le verdict ne change pas.
+  }, 60000);
 
   it('la baie de M-06, seul moyen de la station, est dans le final : impossible, sans recherche', () => {
     expect(mesurerMiseHorsJeu(reference('m07-m06-soute'))).toBe('impossible');

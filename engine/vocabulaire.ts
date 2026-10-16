@@ -55,6 +55,7 @@ export const TYPES_EVENEMENT = [
   'bruit_mecanisme',
   'bruit_creature',
   'pas_entendus',
+  'souffle_entendu',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -217,6 +218,8 @@ export type Evenement =
   | { readonly type: 'creature_entre'; readonly passage: RefPassage }
   /** Alertée, elle a entendu les pas du passager et le poursuit (D-276). */
   | { readonly type: 'pas_entendus' }
+  /** Alertée, elle écoute encore : elle entend le passager immobile et vient (D-276). */
+  | { readonly type: 'souffle_entendu' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

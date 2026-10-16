@@ -285,8 +285,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   const { vide, feu, froid } = mettreAJourDangers(monde, partie.etat, effet);
   const brulure = brule(froid.etat);
   // Étape 4 : une réaction au plus, avec les sons des alarmes en cours puis ceux de l'action, plus récents (C-03 §3, §4.2, §5.1).
-  // Alertée, la créature entend aussi les pas du passager qui change de pièce (D-276).
-  const pas: readonly SonEmis[] = froid.etat.creature?.contact === true && effet.franchie !== undefined ? [{ piece: froid.etat.piece, intensite: 'normal', pas: true }] : [];
+  // Alertée, la créature entend les pas du passager qui change de pièce, et son souffle tant qu'elle écoute encore (D-276).
+  const alertee = froid.etat.creature?.contact === true;
+  const genre = effet.franchie !== undefined ? 'pas' : (froid.etat.creature?.ecoute ?? 0) > 0 ? 'souffle' : undefined;
+  const pas: readonly SonEmis[] = alertee && genre !== undefined ? [{ piece: froid.etat.piece, intensite: 'normal', pas: genre }] : [];
   const sons = [...froid.etat.alarmes.map((alarme) => sonAlarme(monde, alarme)), ...(effet.sons ?? []), ...pas];
   const reponse = reagir(monde, froid.etat, sons, partie.etat.piece, effet.franchie, exposition);
   const causes: Cause[] = [
