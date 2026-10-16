@@ -29,6 +29,10 @@ const GRAINE_TIRAGES = 20261015;
 
 export interface OptionsVerification {
   readonly maxEtats?: number;
+  /** États permis à la recherche (ex. un ordre imposé entre les deux commandes de l'ordre libre) ; les autres sont écartés. */
+  readonly admissible?: (etat: EtatPartie) => boolean;
+  /** Priorité d'un état, la plus haute développée d'abord ; par défaut, le rang du morceau du passager (spec L3 §6.2). */
+  readonly priorite?: (etat: EtatPartie) => number;
 }
 
 export interface RapportStation {
@@ -150,8 +154,10 @@ interface Seau {
  * Sans dé ni blessure : d'abord le premier nœud non développé du morceau le plus avancé, puis dans l'ordre d'arrivée
  * (spec L3 §6.2). Même graphe qu'en largeur ; sans préfixe, tout est au rang 0 et c'est la largeur.
  */
-function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEtats: number): Exploration {
-  const rang = rangsDesMorceaux(entree.monde);
+function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEtats: number, options: OptionsVerification = {}): Exploration {
+  const rangDe = rangsDesMorceaux(entree.monde);
+  const admissible = options.admissible ?? (() => true);
+  const rang = options.priorite ?? ((etat: EtatPartie): number => rangDe(etat.piece));
   const initiale = sansJournal(nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
   const vus = new Set([cleEtatRegles(initiale.etat)]);
   const parents: (Parent | null)[] = [null];
@@ -161,7 +167,7 @@ function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEt
   const ecartes = { des: 0, blessures: 0 };
   const conclure = (issue: Recherche['issue'], partie: Partie | null = null): Exploration => ({ issue, partie, etats: vus.size, parents, ecartes });
   const ranger = (indice: number, partie: Partie): void => {
-    (seaux[rang(partie.etat.piece)] ??= { indices: [], tete: 0 }).indices.push(indice);
+    (seaux[rang(partie.etat)] ??= { indices: [], tete: 0 }).indices.push(indice);
   };
   const prochain = (): number | undefined => {
     for (let r = seaux.length - 1; r >= 0; r--) {
@@ -182,6 +188,7 @@ function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEt
       if (resultat.type !== 'engagee') continue;
       if (resultat.tirages.length > 0) { ecartes.des++; continue; }
       if (resultat.partie.etat.sante !== 'indemne') { ecartes.blessures++; continue; }
+      if (!admissible(resultat.partie.etat)) continue;
       const cle = cleEtatRegles(resultat.partie.etat);
       if (vus.has(cle)) continue;
       if (vus.size >= maxEtats) return conclure('plafond');
@@ -198,14 +205,43 @@ function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEt
 
 /** Recherche sans dé ni blessure (mêmes transitions que `verifierStation`), d'abord dans le morceau le plus avancé (spec L3 §6.2). */
 export function chercherEtat(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, options: OptionsVerification = {}): Recherche {
-  const { issue, partie, etats } = explorer(entree, but, plafond(options));
+  const { issue, partie, etats } = explorer(entree, but, plafond(options), options);
   return { issue, partie, etats };
+}
+
+/** Morceau d'une pièce préfixée (« m-07/p-soute » → « m-07 ») ; `null` sans préfixe. */
+function morceauDe(piece: string): string | null {
+  const barre = piece.indexOf('/');
+  return barre < 0 ? null : piece.slice(0, barre);
+}
+
+/**
+ * Ordre libre (spec L5 §4) : la recherche où la cloison `premiere` est déverrouillée avant `seconde`. Seuls les états où
+ * `seconde` n'est pas levée avant `premiere` sont admis ; la priorité va à l'étape suivante (la branche de la commande
+ * attendue, puis le final), puis au carrefour, puis au reste.
+ */
+export function ordreImpose(monde: DefMonde, premiere: string, seconde: string): Required<Pick<OptionsVerification, 'admissible' | 'priorite'>> {
+  const brancheDe = (cloison: string): string | null => {
+    const commande = monde.objets.find((objet) => objet.deverrouille === cloison);
+    return commande === undefined ? null : morceauDe(commande.piece);
+  };
+  const capsule = monde.objets.find((objet) => objet.capsule !== undefined);
+  const etapes = [brancheDe(premiere), brancheDe(seconde), capsule === undefined ? null : morceauDe(capsule.piece)];
+  const leve = (etat: EtatPartie, cloison: string): boolean => etat.verrous?.includes(cloison) !== true;
+  return {
+    admissible: (etat) => leve(etat, premiere) || !leve(etat, seconde),
+    priorite: (etat) => {
+      const etape = leve(etat, premiere) ? (leve(etat, seconde) ? 2 : 1) : 0;
+      const ici = morceauDe(etat.piece);
+      return etape * 3 + (ici === etapes[etape] ? 2 : ici === 'carrefour' ? 1 : 0);
+    },
+  };
 }
 
 export function verifierStation(entree: EntreeMonde, options: OptionsVerification = {}): RapportStation {
   const debut = performance.now();
   const maxEtats = plafond(options);
-  const { issue, etats, parents, ecartes } = explorer(entree, (etat) => etat.fin === 'evacuation', maxEtats);
+  const { issue, etats, parents, ecartes } = explorer(entree, (etat) => etat.fin === 'evacuation', maxEtats, options);
   const conclure = (verdict: RapportStation['verdict'], diagnostic: string, parcours: Parcours | null = null): RapportStation => ({
     verdict, diagnostic, parcours, etats, secondes: (performance.now() - debut) / 1000, ecartes,
   });
@@ -215,6 +251,131 @@ export function verifierStation(entree: EntreeMonde, options: OptionsVerificatio
     return conclure('prouvee', `Évacuation sans dé ni blessure prouvée en ${parcours.etapes.length} actions ; témoin et export rejoués.`, parcours);
   }
   return conclure('sans_sortie_sure', `Aucune évacuation sans dé ni blessure après exploration complète : ${ecartes.des} transitions avec dé, ${ecartes.blessures} avec blessure écartées.`);
+}
+
+/**
+ * Sans `cloison`, aucune suite de liaisons ne relie le départ à une capsule ni à son intérieur, quelles que soient leurs qualités
+ * (étroites, hautes, cachées, gouffres, grilles) : aucune action, aucun dé ne peut alors mener à l'évacuation (spec L5 §4.2).
+ */
+export function capsuleCoupee(monde: DefMonde, cloison: string): boolean {
+  const atteintes = new Set([monde.depart]);
+  const file = [monde.depart];
+  for (let piece = file.pop(); piece !== undefined; piece = file.pop()) {
+    for (const liaison of monde.liaisons) {
+      if (liaison.id === cloison || !liaison.entre.includes(piece)) continue;
+      const autre = liaison.entre[0] === piece ? liaison.entre[1] : liaison.entre[0];
+      if (!atteintes.has(autre)) {
+        atteintes.add(autre);
+        file.push(autre);
+      }
+    }
+  }
+  return monde.objets.every((objet) => objet.capsule === undefined || (!atteintes.has(objet.piece) && !atteintes.has(objet.capsule.interieur)));
+}
+
+export interface RapportLibre extends RapportStation {
+  /** Verdict de chaque ordre : cloison 1 puis 2, et 2 puis 1. */
+  readonly ordres: readonly [RapportStation['verdict'], RapportStation['verdict']];
+  /** Chaque cloison, verrouillée, coupe toute capsule du départ. */
+  readonly coupees: boolean;
+}
+
+/**
+ * Ordre libre (spec L5 §4) : prouvée seulement si les deux ordres de préparation mènent à l'évacuation sans dé ni blessure,
+ * témoins rejoués, et si chaque cloison coupe à elle seule l'accès à la capsule. Les états et les temps s'additionnent ;
+ * le témoin rendu est celui du premier ordre.
+ */
+export function verifierLibre(entree: EntreeMonde, options: OptionsVerification = {}): RapportLibre {
+  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const [premiere, seconde] = cloisons;
+  if (premiere === undefined || seconde === undefined || cloisons.length !== 2) throw new Error(`${entree.monde.id} : deux cloisons verrouillées attendues.`);
+  const rapports = [
+    verifierStation(entree, { ...options, ...ordreImpose(entree.monde, premiere, seconde) }),
+    verifierStation(entree, { ...options, ...ordreImpose(entree.monde, seconde, premiere) }),
+  ] as const;
+  const [ab, ba] = rapports;
+  const coupees = cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison));
+  const ordres = [ab.verdict, ba.verdict] as const;
+  const etats = ab.etats + ba.etats;
+  const secondes = ab.secondes + ba.secondes;
+  const ecartes = { des: ab.ecartes.des + ba.ecartes.des, blessures: ab.ecartes.blessures + ba.ecartes.blessures };
+  const commun = { etats, secondes, ecartes, ordres, coupees };
+  if (!coupees) return { ...commun, verdict: 'sans_sortie_sure', parcours: null, diagnostic: 'Une cloison verrouillée ne coupe pas l’accès à la capsule : une branche pourrait être sautée.' };
+  if (ab.verdict === 'prouvee' && ba.verdict === 'prouvee') {
+    return { ...commun, verdict: 'prouvee', parcours: ab.parcours, diagnostic: `Évacuation sans dé ni blessure prouvée en ${ab.parcours?.etapes.length} actions, première cloison d’abord, et en ${ba.parcours?.etapes.length} actions, seconde d’abord ; témoins et exports rejoués ; chaque cloison coupe la capsule.` };
+  }
+  const echec = ab.verdict === 'prouvee' ? ba : ab;
+  const trouve = ab.verdict === 'prouvee' || ba.verdict === 'prouvee';
+  const prefixe = trouve ? 'Un seul des deux ordres prouvé. ' : '';
+  return { ...commun, verdict: echec.verdict, parcours: null, diagnostic: `${prefixe}${ab.verdict === 'prouvee' ? 'Seconde cloison d’abord' : 'Première cloison d’abord'} : ${echec.diagnostic}` };
+}
+
+/** Nombre de liaisons, quelles qu'elles soient, de chaque pièce à la plus proche des `sources`. */
+function distancesDepuis(monde: DefMonde, sources: readonly string[]): Map<string, number> {
+  const distances = new Map(sources.map((source) => [source, 0]));
+  const file = [...sources];
+  for (let tete = 0; tete < file.length; tete++) {
+    const piece = file[tete];
+    if (piece === undefined) break;
+    const distance = distances.get(piece) ?? 0;
+    for (const liaison of monde.liaisons) {
+      if (!liaison.entre.includes(piece)) continue;
+      const autre = liaison.entre[0] === piece ? liaison.entre[1] : liaison.entre[0];
+      if (!distances.has(autre)) {
+        distances.set(autre, distance + 1);
+        file.push(autre);
+      }
+    }
+  }
+  return distances;
+}
+
+export type MiseHorsJeu = 'possible' | 'impossible' | 'indeterminee';
+
+/** La créature est hors jeu (tombée, inerte, expulsée) ou enfermée : dans une chambre froide dont toutes les portes sont fermées (D-241). */
+export function creatureHorsJeu(monde: DefMonde, etat: EtatPartie): boolean {
+  const creature = etat.creature;
+  if (creature === null) return false;
+  if (creature.neutralisee !== undefined) return true;
+  const piece = monde.pieces.find((candidate) => candidate.id === creature.piece);
+  return piece?.froide === true && monde.liaisons.every((liaison) => !liaison.entre.includes(piece.id) || etat.liaisons[liaison.id] !== true);
+}
+
+/**
+ * D-241 (spec L5 §5) : la créature peut-elle être mise hors jeu ou enfermée, sans dé ni blessure et sans que le passager entre
+ * dans le morceau final (celui de la capsule) ? Seuls un gouffre, une chambre froide ou un vitrage extérieur le permettent :
+ * sans aucun d'eux hors du final, c'est impossible sans recherche. Une recherche au plafond est « indéterminée ».
+ */
+export function mesurerMiseHorsJeu(entree: EntreeMonde, options: OptionsVerification = {}): MiseHorsJeu {
+  const { monde } = entree;
+  const capsule = monde.objets.find((objet) => objet.capsule !== undefined);
+  const final = capsule === undefined ? null : morceauDe(capsule.piece);
+  const horsFinal = (piece: string): boolean => morceauDe(piece) !== final;
+  const moyens =
+    monde.liaisons.some((liaison) => liaison.gouffre === true && liaison.entre.some(horsFinal)) ||
+    monde.pieces.some((piece) => piece.froide === true && horsFinal(piece.id)) ||
+    monde.objets.some((objet) => objet.vitrageExterieur === true && horsFinal(objet.piece));
+  if (!moyens) return 'impossible';
+  // Priorité aux états où la créature est la plus proche d'un piège (bord d'un gouffre, chambre froide), puis au rang du
+  // morceau du passager : même graphe, même verdict une fois épuisé, mais le but est trouvé bien plus tôt.
+  const pieges = new Set([
+    ...monde.liaisons.filter((liaison) => liaison.gouffre === true).flatMap((liaison) => liaison.entre),
+    ...monde.pieces.filter((piece) => piece.froide === true).map((piece) => piece.id),
+  ]);
+  const distances = distancesDepuis(monde, [...pieges]);
+  const loin = Math.max(...distances.values()) + 1;
+  const rangDe = rangsDesMorceaux(monde);
+  const rangs = new Set(monde.pieces.map((piece) => rangDe(piece.id))).size;
+  // En ordre libre, d'abord les verrous levés : sans eux, une créature partie du final ne peut pas en sortir.
+  const cloisons = monde.liaisons.filter((liaison) => liaison.verrouillee === true).length;
+  const priorite = (etat: EtatPartie): number => {
+    const piece = etat.creature?.piece;
+    const distance = piece === null || piece === undefined ? 0 : distances.get(piece) ?? loin;
+    const levees = cloisons - (etat.verrous?.length ?? 0);
+    return (levees * (loin + 1) + loin - distance) * rangs + rangDe(etat.piece);
+  };
+  const { issue } = chercherEtat(entree, (etat) => creatureHorsJeu(monde, etat), { ...options, priorite, admissible: (etat) => horsFinal(etat.piece) });
+  return issue === 'trouve' ? 'possible' : issue === 'epuise' ? 'impossible' : 'indeterminee';
 }
 
 class DemandeDe extends Error {
@@ -302,6 +463,8 @@ export interface LigneCatalogue {
   readonly diagnostic: string;
   /** `empreinte({ morceau, textes })` par morceau inclus, dans l'ordre de la station. */
   readonly empreintes: Readonly<Record<string, string>>;
+  /** Ordre libre : verdict de chaque ordre de préparation (spec L5 §4). */
+  readonly ordres?: RapportLibre['ordres'];
 }
 
 export interface MesurePlans {
@@ -333,7 +496,8 @@ function morceauxDe(composition: Composition): EntreeMorceau[] {
   const departs = Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'depart');
   const [depart] = departs;
   if (depart === undefined || departs.length > 1) throw new Error('Un seul morceau de départ attendu.');
-  return [depart, ...[...composition.chemins, composition.final].map((id) => {
+  const carrefour = composition.forme === 'libre' ? ['carrefour'] : [];
+  return [depart, ...[...carrefour, ...composition.chemins, composition.final].map((id) => {
     const entree = Object.hasOwn(MORCEAUX, id) ? MORCEAUX[id] : undefined;
     if (entree === undefined) throw new Error(`Morceau ${id} absent.`);
     return entree;
@@ -356,18 +520,23 @@ export function stationDeReference(catalogue: Catalogue, composition: string): {
  * aucune règle ne lisant le plan (D-078). Une composition refusée par la table l'est sans assemblage ni vérification.
  */
 export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerification = {}): LigneCatalogue[] {
-  return catalogue.compositions.map((composition): LigneCatalogue => {
-    const empreintes = Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
-    const sansVerification = (verdict: LigneCatalogue['verdict'], diagnostic: string): LigneCatalogue => ({
-      composition: composition.id, verdict, graine: null, etats: 0, secondes: 0, actions: null, diagnostic, empreintes,
-    });
-    if (composition.refus !== null) return sansVerification('refusee', composition.refus);
-    const station = stationDeReference(catalogue, composition.id);
-    if ('refus' in station) return sansVerification('non_prouvee', station.refus);
-    const { verdict, etats, secondes, diagnostic, parcours } = verifierStation(station.entree, options);
-    const actions = parcours === null ? null : parcours.etapes.length;
-    return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes };
+  return catalogue.compositions.map((composition) => verifierComposition(catalogue, composition, options));
+}
+
+/** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
+export function verifierComposition(catalogue: Catalogue, composition: Composition, options: OptionsVerification = {}): LigneCatalogue {
+  const empreintes = Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
+  const sansVerification = (verdict: LigneCatalogue['verdict'], diagnostic: string): LigneCatalogue => ({
+    composition: composition.id, verdict, graine: null, etats: 0, secondes: 0, actions: null, diagnostic, empreintes,
   });
+  if (composition.refus !== null) return sansVerification('refusee', composition.refus);
+  const station = stationDeReference(catalogue, composition.id);
+  if ('refus' in station) return sansVerification('non_prouvee', station.refus);
+  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, options) : null;
+  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, options);
+  const actions = parcours === null ? null : parcours.etapes.length;
+  const ordres = libre === null ? {} : { ordres: libre.ordres };
+  return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes, ...ordres };
 }
 
 /** Ce qui fait échouer `check:stations` : publiée non prouvée, prouvée non publiée, moins de 95 % de plans (14 §5.6). */
@@ -395,13 +564,14 @@ export function mesurerPlans(tirages: number): MesurePlans[] {
     if (composition.refus === null && !chemins.has(chemin)) chemins.set(chemin, composition);
   }
   return [...chemins].map(([chemin, composition]) => {
-    const morceaux = morceauxDe(composition).map(({ morceau }) => morceau);
     let trouves = 0;
     let total = 0;
     let msMax = 0;
     for (let graine = 0; graine < tirages; graine++) {
       const debut = performance.now();
-      const resultat = assemblerStation({ id: `${composition.id}-${graine}`, morceaux, creature: composition.creature, graine });
+      const station = CATALOGUE.definir(composition.id, graine);
+      if ('refus' in station) throw new Error(station.refus);
+      const resultat = assemblerStation(station);
       const ms = performance.now() - debut;
       if (resultat.type === 'station') trouves++;
       total += ms;

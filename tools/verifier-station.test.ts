@@ -312,28 +312,38 @@ describe('catalogue vérifié à la construction (#152)', () => {
     lignes = verifierCatalogue(CATALOGUE);
   }, 900000);
 
-  it('publiées prouvées, les autres sans sortie sûre : palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4) ; l’ensemble prouvé égale les compositions publiées', () => {
+  it('publiées prouvées, les autres sans sortie sûre : en chaîne, palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4) ; en ordre libre, ces places écartées (spec L5 §3.2) ; l’ensemble prouvé égale les compositions publiées', () => {
     const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
-    const bouchee = ({ chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean => {
-      if (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier') return false;
+    const bouchee = ({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean => {
+      if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
       return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
     };
     expect(lignes.map((ligne) => [ligne.composition, ligne.verdict])).toEqual(
-      CATALOGUE.compositions.map((composition) => [composition.id, bouchee(composition) ? 'sans_sortie_sure' : 'prouvee']),
+      CATALOGUE.compositions.map((composition) => [composition.id, composition.refus !== null ? 'refusee' : bouchee(composition) ? 'sans_sortie_sure' : 'prouvee']),
     );
     expect(lignes.filter((ligne) => ligne.verdict === 'prouvee').map((ligne) => ligne.composition)).toEqual(COMPOSITIONS_PUBLIEES);
     for (const ligne of lignes) {
+      if (ligne.verdict === 'refusee') {
+        expect(ligne).toMatchObject({ etats: 0, graine: null, actions: null });
+        expect(ligne.diagnostic).toContain('D-268');
+        continue;
+      }
       expect(ligne.etats).toBeGreaterThan(0);
       if (ligne.verdict === 'prouvee') expect(ligne.diagnostic).toMatch(/prouvée en \d+ actions/);
       else expect(ligne.diagnostic).toContain('Aucune évacuation sans dé ni blessure');
+      // Ordre libre : les deux ordres de préparation prouvés (spec L5 §4.1).
+      if (ligne.composition.startsWith('ol-')) expect(ligne.ordres).toEqual(['prouvee', 'prouvee']);
+      else expect(ligne.ordres).toBeUndefined();
     }
     expect(ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, [])).toEqual([]);
   });
 
-  it('368 compositions, 324 prouvées, chacune avec la longueur de son témoin, celle du diagnostic', () => {
-    expect(lignes).toHaveLength(368);
-    expect(lignes.filter((ligne) => ligne.verdict === 'prouvee')).toHaveLength(324);
-    for (const ligne of lignes.filter(({ verdict }) => verdict === 'prouvee')) {
+  it('536 compositions, 324 prouvées en chaîne et 140 en ordre libre, chacune avec la longueur de son témoin, celle du diagnostic', () => {
+    expect(lignes).toHaveLength(536);
+    const prouvees = lignes.filter((ligne) => ligne.verdict === 'prouvee');
+    expect(prouvees.filter((ligne) => !ligne.composition.startsWith('ol-'))).toHaveLength(324);
+    expect(prouvees.filter((ligne) => ligne.composition.startsWith('ol-'))).toHaveLength(140);
+    for (const ligne of prouvees) {
       expect(ligne.actions).toBe(Number(/prouvée en (\d+) actions/.exec(ligne.diagnostic)?.[1]));
       expect(ligne.actions).toBeGreaterThanOrEqual(1);
       expect(ligne.actions).toBeLessThanOrEqual(60);
@@ -341,7 +351,7 @@ describe('catalogue vérifié à la construction (#152)', () => {
   });
 
   it('graine de plan vérifiée : la plus petite à partir de 0 qui donne un plan, notée dans la ligne', () => {
-    for (const ligne of lignes) {
+    for (const ligne of lignes.filter(({ verdict }) => verdict !== 'refusee')) {
       const { graine } = ligne;
       if (graine === null) throw new Error(`${ligne.composition} sans graine.`);
       for (let avant = 0; avant < graine; avant++) expect(CATALOGUE.construire(ligne.composition, avant)).toHaveProperty('refus');
@@ -352,7 +362,7 @@ describe('catalogue vérifié à la construction (#152)', () => {
   });
 
   it('une empreinte par morceau inclus, celle du morceau et de ses textes, stable d’un appel à l’autre', () => {
-    for (const ligne of lignes) {
+    for (const ligne of lignes.filter(({ verdict }) => verdict !== 'refusee')) {
       const station = CATALOGUE.construire(ligne.composition, ligne.graine ?? 0);
       if ('refus' in station) throw new Error(station.refus);
       const inclus = [...new Set(station.monde.pieces.map((piece) => piece.id.slice(0, piece.id.indexOf('/'))))];
@@ -375,12 +385,17 @@ describe('catalogue vérifié à la construction (#152)', () => {
     const sans = verifierCatalogue(catalogue, { maxEtats: 1 });
     // Toute station qui passe par M-07 et se termine par M-03 est refusée ; les autres, M-07 vers M-06 compris, vérifiées sur un état,
     // restent non prouvées.
-    const attendu: [string, LigneCatalogue['verdict'], number][] = CATALOGUE.compositions.map(({ id, chemins, final }) =>
-      chemins.includes('m-07') && final === 'm-03' ? [id, 'refusee', 0] : [id, 'non_prouvee', 1],
+    // Ordre libre : deux recherches, une par ordre, d'un état chacune ; une place écartée (D-268) l'est sans recherche.
+    const attendu: [string, LigneCatalogue['verdict'], number][] = CATALOGUE.compositions.map(({ id, forme, chemins, final, refus }) =>
+      (chemins.includes('m-07') && final === 'm-03') || refus !== null ? [id, 'refusee', 0] : [id, 'non_prouvee', forme === 'libre' ? 2 : 1],
     );
-    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(44);
+    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(44 + 21 + 26);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
-    for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: motif });
+    for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) {
+      const composition = CATALOGUE.compositions.find(({ id }) => id === ligne.composition);
+      const paire = composition?.chemins.includes('m-07') === true && composition.final === 'm-03';
+      expect(ligne).toMatchObject({ graine: null, secondes: 0, diagnostic: paire ? motif : composition?.refus });
+    }
     // Ni refusée ni non prouvée n'a de témoin.
     expect(sans.filter((ligne) => ligne.actions !== null)).toEqual([]);
     expect(assembles.filter((id) => id.split('-').includes('m07') && id.split('-').includes('m03'))).toEqual([]);
@@ -407,8 +422,11 @@ describe('catalogue vérifié à la construction (#152)', () => {
 describe('plans des stations tirées (14 §5.6)', () => {
   it('sur 1 000 graines, au moins 95 % de plans par chemin ; temps mesurés, non assertés', () => {
     const mesures = mesurerPlans(1000);
-    const chaines = [...new Set(CATALOGUE.compositions.map(({ chemins, final }) => ['vestibule', ...chemins, final].join(' + ')))];
-    expect(chaines).toHaveLength(128);
+    const chaines = [
+      ...new Set(CATALOGUE.compositions.map(({ forme, chemins, final }) => ['vestibule', ...(forme === 'libre' ? ['carrefour'] : []), ...chemins, final].join(' + '))),
+    ];
+    // 128 en chaîne, 56 en ordre libre (28 paires de branches × 2 finals).
+    expect(chaines).toHaveLength(128 + 56);
     expect(mesures.map((mesure) => mesure.chemin)).toEqual(chaines);
     expect(chaines).toEqual(
       expect.arrayContaining([
@@ -417,6 +435,7 @@ describe('plans des stations tirées (14 §5.6)', () => {
         'vestibule + m-01 + m-02 + m-03',
         'vestibule + m-09 + m-04 + m-06',
         'vestibule + m-05 + m-10 + m-03',
+        'vestibule + carrefour + m-07 + m-08 + m-06',
       ]),
     );
     for (const mesure of mesures) {
