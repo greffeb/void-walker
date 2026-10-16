@@ -23,7 +23,40 @@ export type Reconnaissance =
   | { readonly type: 'aucune' }
   | { readonly type: 'cle_inconnue'; readonly empreinte: string; readonly cle: ClePublique }
   | { readonly type: 'refusee'; readonly raison: string }
-  | { readonly type: 'reconnue'; readonly attestation: Attestation; readonly nom: string; readonly empreinte: string };
+  | { readonly type: 'reconnue'; readonly attestation: Attestation; readonly nom: string; readonly empreinte: string }
+  /** Signature valide, mais la vérification automatique du commit signé n'a pas fini au vert : rien n'est encore reconnu (#180). */
+  | { readonly type: 'en_attente'; readonly attestation: Attestation; readonly nom: string; readonly empreinte: string; readonly verification: Exclude<EtatCommit, 'verte' | 'echec'> }
+  /** Signature valide, mais la vérification automatique du commit signé a échoué : la validation ne compte pas (#180). */
+  | { readonly type: 'ecartee'; readonly attestation: Attestation; readonly nom: string; readonly empreinte: string };
+
+/**
+ * Vérification automatique d'un commit (#180) : celle du dernier run du workflow des demandes de fusion pour ce commit.
+ * `interrompue` : run annulé (un envoi plus récent l'a remplacé) ; `inconnue` : aucun run trouvé.
+ */
+export type EtatCommit = 'en_cours' | 'verte' | 'echec' | 'interrompue' | 'inconnue';
+
+export const WORKFLOW_VERIFICATION = 'demande-de-fusion.yml';
+
+/** État d'un commit d'après les runs du workflow pour ce commit (API GitHub), le plus récent faisant foi. */
+export function etatDesRuns(runs: readonly { readonly status: string; readonly conclusion: string | null; readonly created_at: string; readonly run_attempt?: number }[]): EtatCommit {
+  const dernier = [...runs].sort((a, b) => (a.created_at === b.created_at ? (b.run_attempt ?? 1) - (a.run_attempt ?? 1) : a.created_at < b.created_at ? 1 : -1))[0];
+  if (dernier === undefined) return 'inconnue';
+  if (dernier.status !== 'completed') return 'en_cours';
+  if (dernier.conclusion === 'success') return 'verte';
+  if (dernier.conclusion === 'failure' || dernier.conclusion === 'timed_out' || dernier.conclusion === 'startup_failure') return 'echec';
+  return 'interrompue';
+}
+
+/**
+ * Décision du porteur (2026-10-16, #180) : une validation signée pendant la vérification de son commit reste valide si
+ * cette vérification finit au vert, et n'est pas prise en compte si elle échoue. Le robot attend donc la fin : rien n'est
+ * reconnu avant, et il revient sur la validation quand la vérification du commit finit.
+ */
+export function selonVerification(resultat: Reconnaissance, verification: EtatCommit): Reconnaissance {
+  if (resultat.type !== 'reconnue' || verification === 'verte') return resultat;
+  const { attestation, nom, empreinte } = resultat;
+  return verification === 'echec' ? { type: 'ecartee', attestation, nom, empreinte } : { type: 'en_attente', attestation, nom, empreinte, verification };
+}
 
 /** Clés publiques du porteur du projet ; un fichier illisible n'en donne aucune, jamais une clé par défaut. */
 export function lireCles(texte: string): CleEnregistree[] {
@@ -96,6 +129,12 @@ export async function reconnaitre(entree: {
   return { type: 'reconnue', attestation, nom: connue.nom, empreinte };
 }
 
+const ATTENTES: Readonly<Record<Extract<Reconnaissance, { type: 'en_attente' }>['verification'], string>> = {
+  en_cours: 'est encore en cours',
+  interrompue: 'a été interrompue (un envoi plus récent l’a remplacée) : relancez-la (onglet Actions, « Re-run jobs ») pour que la validation compte',
+  inconnue: 'est introuvable',
+};
+
 const FINS: Readonly<Record<Attestation['issue'], string>> = { evacuation: 'évacuation', defaite: 'défaite' };
 
 /** Réponse du robot dans la PR ; `null` quand il n'a rien à dire. */
@@ -118,6 +157,10 @@ export function reponse(resultat: Reconnaissance, adresseCommentaire: string): s
         JSON.stringify({ nom: 'Téléphone du porteur du projet', cle: resultat.cle }, null, 2),
         '```',
       ].join('\n');
+    case 'en_attente':
+      return `${MARQUEUR_ROBOT}\n**Validation en attente** : la [partie](${adresseCommentaire}) est bien signée par « ${resultat.nom} », mais la vérification automatique du commit \`${resultat.attestation.commit.slice(0, 7)}\` ${ATTENTES[resultat.verification]}. Elle sera reconnue si cette vérification finit au vert, et ne comptera pas si elle échoue (#180).`;
+    case 'ecartee':
+      return `${MARQUEUR_ROBOT}\n**Validation non prise en compte** : la [partie](${adresseCommentaire}) est bien signée par « ${resultat.nom} », mais la vérification automatique du commit \`${resultat.attestation.commit.slice(0, 7)}\` a échoué (#180). Le commentaire reste un simple retour.`;
     case 'reconnue': {
       const a = resultat.attestation;
       const ligne = `${a.monde.toUpperCase()} · version ${a.version} · commit ${a.commit.slice(0, 7)} · ${FINS[a.issue]} en ${a.actions} actions · [partie](${adresseCommentaire})`;
@@ -144,40 +187,88 @@ function gh(...args: string[]): string {
 }
 
 const ADRESSE = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/(\d+)#issuecomment-(\d+)$/;
+const MARQUEUR_RAPPORT = '<!-- void-walker-rapport v1 -->';
 
-/** Action GitHub : commentaire créé (événement) ou relance à la main (adresse du commentaire). */
+/** Marqueur de la réponse du robot à un commentaire : elle est mise à jour, pas répétée, quand la vérification finit. */
+export function marqueurReponse(commentaire: number): string {
+  return `<!-- void-walker:validation-de ${commentaire} -->`;
+}
+
+/** Commit signé dans un commentaire de rapport ; `null` sans validation lisible. */
+export function commitSigne(corps: string): string | null {
+  const bloc = extraireValidation(corps) as { attestation?: { commit?: unknown } } | null | undefined;
+  const commit = typeof bloc === 'object' && bloc !== null ? bloc.attestation?.commit : undefined;
+  return typeof commit === 'string' ? commit : null;
+}
+
+interface Commentaire {
+  readonly id: number;
+  readonly corps: string;
+  readonly adresse: string;
+}
+
+function etatDuCommit(depot: string, commit: string): EtatCommit {
+  const runs = JSON.parse(
+    gh('api', `repos/${depot}/actions/workflows/${WORKFLOW_VERIFICATION}/runs?head_sha=${commit}&event=pull_request&per_page=100`, '--jq', '[.workflow_runs[] | {status, conclusion, created_at, run_attempt}]'),
+  ) as Parameters<typeof etatDesRuns>[0];
+  return etatDesRuns(runs);
+}
+
+async function traiter(depot: string, pr: number, commentaire: Commentaire, cles: readonly CleEnregistree[]): Promise<void> {
+  const commits = gh('api', `repos/${depot}/pulls/${pr}/commits`, '--paginate', '--jq', '.[].sha').split('\n').filter(Boolean);
+  const signe = await reconnaitre({ corps: commentaire.corps, pr, commits, cles });
+  const resultat = signe.type === 'reconnue' ? selonVerification(signe, etatDuCommit(depot, signe.attestation.commit)) : signe;
+  console.log(`Reconnaissance du commentaire ${commentaire.id} : ${resultat.type}${resultat.type === 'refusee' ? ` (${resultat.raison})` : ''}.`);
+  const texte = reponse(resultat, commentaire.adresse);
+  if (texte === null) return;
+  const marqueur = marqueurReponse(commentaire.id);
+  const fichier = join(process.env.RUNNER_TEMP ?? REPO_ROOT, `reponse-validation-${commentaire.id}.md`);
+  writeFileSync(fichier, `${texte}\n${marqueur}\n`);
+  const existante = gh('api', `repos/${depot}/issues/${pr}/comments`, '--paginate', '--jq', `.[] | select(.user.login == "github-actions[bot]" and (.body | contains("${marqueur}"))) | .id`)
+    .split('\n')
+    .filter(Boolean)
+    .at(-1);
+  if (existante === undefined) gh('api', '-X', 'POST', `repos/${depot}/issues/${pr}/comments`, '-F', `body=@${fichier}`);
+  else gh('api', '-X', 'PATCH', `repos/${depot}/issues/comments/${existante}`, '-F', `body=@${fichier}`);
+  if (resultat.type === 'reconnue') gh('api', '-X', 'POST', `repos/${depot}/issues/${pr}/labels`, '-f', `labels[]=${ETIQUETTE}`);
+}
+
+/**
+ * Action GitHub : commentaire créé (événement), relance à la main (adresse du commentaire), ou fin de la vérification d'un
+ * commit (#180) : chaque validation signée pour ce commit dans ses PR est alors jugée de nouveau.
+ */
 async function principal(): Promise<void> {
   const depot = process.env.GITHUB_REPOSITORY ?? '';
-  let corps: string;
-  let pr: number;
-  let adresse: string;
+  const cles = lireCles(readFileSync(join(REPO_ROOT, FICHIER_CLES), 'utf8'));
   const relance = process.env.COMMENTAIRE ?? '';
   if (relance !== '') {
     const trouve = ADRESSE.exec(relance);
     if (trouve === null) throw new Error(`Adresse de commentaire de PR attendue : ${relance}`);
-    pr = Number(trouve[1]);
-    corps = gh('api', `repos/${depot}/issues/comments/${trouve[2]}`, '--jq', '.body');
-    adresse = relance;
-  } else {
-    const evenement = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH ?? '', 'utf8')) as {
-      issue: { number: number; pull_request?: unknown };
-      comment: { body: string; html_url: string };
-    };
-    if (evenement.issue.pull_request === undefined) return;
-    pr = evenement.issue.number;
-    corps = evenement.comment.body;
-    adresse = evenement.comment.html_url;
+    const id = Number(trouve[2]);
+    await traiter(depot, Number(trouve[1]), { id, corps: gh('api', `repos/${depot}/issues/comments/${id}`, '--jq', '.body'), adresse: relance }, cles);
+    return;
   }
-  const commits = gh('api', `repos/${depot}/pulls/${pr}/commits`, '--paginate', '--jq', '.[].sha').split('\n').filter(Boolean);
-  const cles = lireCles(readFileSync(join(REPO_ROOT, FICHIER_CLES), 'utf8'));
-  const resultat = await reconnaitre({ corps, pr, commits, cles });
-  console.log(`Reconnaissance : ${resultat.type}${resultat.type === 'refusee' ? ` (${resultat.raison})` : ''}.`);
-  const texte = reponse(resultat, adresse);
-  if (texte === null) return;
-  const fichier = join(process.env.RUNNER_TEMP ?? REPO_ROOT, 'reponse-validation.md');
-  writeFileSync(fichier, texte);
-  gh('api', '-X', 'POST', `repos/${depot}/issues/${pr}/comments`, '-F', `body=@${fichier}`);
-  if (resultat.type === 'reconnue') gh('api', '-X', 'POST', `repos/${depot}/issues/${pr}/labels`, '-f', `labels[]=${ETIQUETTE}`);
+  const evenement = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH ?? '', 'utf8')) as {
+    issue?: { number: number; pull_request?: unknown };
+    comment?: { id: number; body: string; html_url: string };
+    workflow_run?: { head_sha: string; pull_requests?: readonly { number: number }[] };
+  };
+  if (evenement.workflow_run !== undefined) {
+    const { head_sha: commit, pull_requests: prs = [] } = evenement.workflow_run;
+    for (const { number: pr } of prs) {
+      // Une ligne JSON par commentaire de rapport, toutes pages confondues.
+      const commentaires = gh('api', `repos/${depot}/issues/${pr}/comments`, '--paginate', '--jq', `.[] | select(.body | contains("${MARQUEUR_RAPPORT}")) | {id, body, html_url} | tojson`)
+        .split('\n')
+        .filter(Boolean)
+        .map((ligne) => JSON.parse(ligne) as { id: number; body: string; html_url: string });
+      for (const { id, body, html_url } of commentaires) {
+        if (commitSigne(body) === commit) await traiter(depot, pr, { id, corps: body, adresse: html_url }, cles);
+      }
+    }
+    return;
+  }
+  if (evenement.issue?.pull_request === undefined || evenement.comment === undefined) return;
+  await traiter(depot, evenement.issue.number, { id: evenement.comment.id, corps: evenement.comment.body, adresse: evenement.comment.html_url }, cles);
 }
 
 if (isMainModule(import.meta.url)) {

@@ -9,6 +9,7 @@ import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { EnvoyerMaPartie, PanneauRapport, RETOURS } from './PanneauRapport';
 import type { Retour, TypeRapport } from './rapports';
 import { empreinteLisible } from './validation';
+import { LIBELLES_VERIFICATION, type EtatVerification } from './verification';
 import { TAILLES, type Reglages, type Taille } from './reglages';
 import { useSon } from './son/contexte';
 
@@ -45,6 +46,7 @@ export function EcranOptions({
   rapportsEnAttente = 0,
   partieFinie = false,
   empreinteCle,
+  verification,
 }: {
   readonly reglages: Reglages;
   readonly changerReglages: (reglages: Reglages) => void;
@@ -74,6 +76,8 @@ export function EcranOptions({
   readonly partieFinie?: boolean;
   /** Empreinte de la clé de validation du téléphone (C-10 §4), lue dans les versions de test seulement. */
   readonly empreinteCle?: () => Promise<string | null>;
+  /** État de la vérification automatique de ce commit (#180), lu dans les versions de test seulement. */
+  readonly verification?: () => Promise<EtatVerification>;
 }) {
   const idTaille = useId();
   const titre = useRef<HTMLHeadingElement>(null);
@@ -239,6 +243,7 @@ export function EcranOptions({
           {commit !== '' && ` · ${commit.slice(0, 7)}`}
           {pr !== '' && ` · test PR #${pr}`}
         </p>
+        {pr !== '' && verification !== undefined && <LigneVerification verification={verification} />}
       </div>
       <div className="options-bas">
         <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal} data-son="clic">
@@ -385,6 +390,35 @@ export function SectionValidation({ empreinteCle }: { readonly empreinteCle: () 
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * Version de test publiée avant la fin de sa vérification (#180) : l'état est lu à l'ouverture des options. Une validation
+ * signée pendant la vérification ne compte que si celle-ci finit verte.
+ */
+export function LigneVerification({ verification }: { readonly verification: () => Promise<EtatVerification> }) {
+  const [etat, setEtat] = useState<EtatVerification | 'lecture'>('lecture');
+  useEffect(() => {
+    let actif = true;
+    verification().then(
+      (lu) => {
+        if (actif) setEtat(lu);
+      },
+      () => {
+        if (actif) setEtat('inconnue');
+      },
+    );
+    return () => {
+      actif = false;
+    };
+  }, [verification]);
+  return (
+    <p className="etat-verification" data-testid="verification">
+      Vérification automatique : {etat === 'lecture' ? 'lecture…' : LIBELLES_VERIFICATION[etat]}
+      {etat === 'en_cours' && ' — une validation envoyée maintenant ne comptera que si elle finit verte'}
+      {etat === 'echec' && ' — une validation de cette version ne comptera pas'}
+    </p>
   );
 }
 

@@ -1,6 +1,9 @@
 name: Demande de fusion
 
-# Sur chaque PR (AP-10) : vérification complète, captures sur téléphone simulé, version de test dans /pr-<numéro>/.
+# Sur chaque PR (AP-10, #180) : la version de test est publiée dans /pr-<numéro>/ dès le début, pendant que la vérification
+# complète (en jobs parallèles) et les captures tournent ; à la fin, le bilan dépose l'état de la vérification et les
+# captures à côté de la version, puis met à jour le commentaire du robot. La PR n'est verte que si tous les jobs le sont.
+# Une validation signée n'est reconnue qu'une fois la vérification de son commit finie au vert (validation.yml).
 
 on:
   pull_request:
@@ -13,20 +16,52 @@ concurrency:
   group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+env:
+  PR_NUMERO: ${{ github.event.pull_request.number }}
+  BASE_PATH: /${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
+  VERSION_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
+  CAPTURES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/captures/
+  COMMIT: ${{ github.event.pull_request.head.sha }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
 jobs:
-  verification:
-    name: Vérification complète
+  version-de-test:
+    name: Version de test, tout de suite
+    # Seules les branches de ce dépôt publient : une PR venue d'un fork n'a pas les droits d'écriture.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Historique complet : le numéro de construction compte les commits (D-227).
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run verify
+      - run: npm run build
+      - name: Publier dans /pr-${{ github.event.pull_request.number }}/, vérification en cours
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "${COMMIT}" > dist/version.txt
+          npx tsx tools/etat-verification.ts --etat=en_cours --json=dist/verification.json --commentaire="${RUNNER_TEMP}/commentaire.md"
+          bash .github/scripts/publier-pages.sh "pr-${PR_NUMERO}" dist
+      - name: Attendre que la version de test soit en ligne
+        run: bash .github/scripts/attendre-pages.sh "${VERSION_URL}version.txt" "${COMMIT}"
+      - name: Poster le lien dans la PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/commenter-pr.sh "${PR_NUMERO}" "${RUNNER_TEMP}/commentaire.md"
+
+  verification:
+    name: Vérification
+    uses: ./.github/workflows/verification.yml
 
   cle-validation:
     name: Clé de validation
@@ -47,7 +82,6 @@ jobs:
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMERO: ${{ github.event.pull_request.number }}
         run: |
           if [[ -f "${RUNNER_TEMP}/cle-validation.md" ]]; then
             bash .github/scripts/commenter-pr.sh "${PR_NUMERO}" "${RUNNER_TEMP}/cle-validation.md" '<!-- void-walker:cle-validation -->'
@@ -55,20 +89,14 @@ jobs:
 
   captures:
     name: Captures sur téléphone simulé
-    needs: verification
+    # En même temps que la vérification : elles jouent la version construite, sans dépendre de ses résultats.
     runs-on: ubuntu-latest
     env:
-      PR_NUMERO: ${{ github.event.pull_request.number }}
-      BASE_PATH: /${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
-      VERSION_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
-      CAPTURES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/captures/
-      COMMIT: ${{ github.event.pull_request.head.sha }}
       PR_BODY: ${{ github.event.pull_request.body }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # Historique complet : le numéro de construction compte les commits (D-227).
           fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -78,51 +106,50 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run captures
-      - name: Joindre les captures et la version de test
+      - name: Joindre les captures
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: version-de-test
-          path: |
-            dist/
-            captures/
+          name: captures
+          path: captures/
           if-no-files-found: ignore
-          # L'artefact ne sert qu'à passer la version au job suivant, qui la publie dans GitHub Pages :
-          # un jour suffit (90 jours par défaut, qui remplissaient le stockage Actions inclus).
+          # L'artefact ne sert qu'à passer les captures au bilan, qui les publie dans GitHub Pages.
           retention-days: 1
 
-  publication:
-    name: Publication de la version de test
-    needs: captures
-    # Publie aussi quand les captures échouent, pour que l'échec soit visible dans la PR ; la PR reste en rouge.
-    # Seules les branches de ce dépôt publient : une PR venue d'un fork n'a pas les droits d'écriture.
-    if: ${{ !cancelled() && needs.captures.result != 'skipped' && github.event.pull_request.head.repo.full_name == github.repository }}
+  bilan:
+    name: Bilan dans la PR et la version de test
+    needs: [version-de-test, verification, captures]
+    # Après tous les jobs, réussis ou non ; pas après une annulation (un envoi plus récent republie la version).
+    if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     env:
-      PR_NUMERO: ${{ github.event.pull_request.number }}
-      COMMIT: ${{ github.event.pull_request.head.sha }}
-      VERSION_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
+      VERIFIEE: ${{ needs.version-de-test.result == 'success' && needs.verification.result == 'success' && needs.captures.result == 'success' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          sparse-checkout: .github/scripts
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          name: version-de-test
-          path: artefact
-      - name: Publier dans /pr-${{ github.event.pull_request.number }}/
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: captures
+          path: ajout/captures
+      - name: Déposer l'état de la vérification et les captures dans /pr-${{ github.event.pull_request.number }}/
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          printf '%s' "${COMMIT}" > artefact/dist/version.txt
-          bash .github/scripts/publier-pages.sh "pr-${PR_NUMERO}" artefact/dist artefact/captures
-      - name: Attendre que la version de test soit en ligne
-        run: bash .github/scripts/attendre-pages.sh "${VERSION_URL}version.txt" "${COMMIT}"
-      - name: Poster le lien et les captures dans la PR
+          etat=$([[ "${VERIFIEE}" == 'true' ]] && echo verte || echo echec)
+          mkdir -p ajout
+          npx tsx tools/etat-verification.ts --etat="${etat}" --json=ajout/verification.json --captures=ajout/captures/commentaire.md --commentaire="${RUNNER_TEMP}/commentaire.md"
+          bash .github/scripts/ajouter-pages.sh "pr-${PR_NUMERO}" ajout
+      - name: Mettre à jour le commentaire du robot
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash .github/scripts/commenter-pr.sh "${PR_NUMERO}" artefact/captures/commentaire.md
+        run: bash .github/scripts/commenter-pr.sh "${PR_NUMERO}" "${RUNNER_TEMP}/commentaire.md"

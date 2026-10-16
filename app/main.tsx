@@ -11,6 +11,7 @@ import { coffreIndexedDB, creerSignataire } from './validation';
 import { ecrireReglages, lireReglages } from './reglages';
 import { stockageIndexedDB } from './sauvegarde';
 import { creerMoteur, sessionAmbiante } from './son/moteur';
+import { lireVerification } from './verification';
 import './styles.css';
 
 // Adresse nue : une station tirée, ou celle de la partie enregistrée (#152) ; `?monde=<id>` garde un monde fixe (AR-01, le monde
@@ -98,6 +99,12 @@ window.addEventListener('online', () => void rapports.renvoyer());
 // Clé de validation (C-10 §4) : seulement dans une version de test, où « je valide » existe (D-132).
 const signataire = import.meta.env.VITE_PR_NUMERO ? creerSignataire(coffreIndexedDB()) : undefined;
 
+// État de la vérification automatique (#180) : seulement dans une version de test, publiée avant la fin de sa vérification.
+const commit = import.meta.env.VITE_COMMIT ?? '';
+const verification = import.meta.env.VITE_PR_NUMERO
+  ? () => lireVerification((adresse, init) => window.fetch(adresse, init), import.meta.env.BASE_URL, commit)
+  : undefined;
+
 // Attendu en dernier : la mise à jour et les rapports partent même si la base tarde.
 const lancement = await preparerLancement(demande, CATALOGUE, stockage, hasard);
 const env: Environnement | null =
@@ -115,13 +122,14 @@ createRoot(racine).render(
         garderReglages={(reglages) => ecrireReglages((cle, valeur) => window.localStorage.setItem(cle, valeur), reglages)}
         version={version}
         build={import.meta.env.VITE_BUILD ?? ''}
-        commit={import.meta.env.VITE_COMMIT ?? ''}
+        commit={commit}
         pr={import.meta.env.VITE_PR_NUMERO ?? ''}
         son={son}
         miseAJour={miseAJour}
         installation={installation}
         rapports={rapports}
         signataire={signataire}
+        verification={verification}
       />
     )}
   </StrictMode>,

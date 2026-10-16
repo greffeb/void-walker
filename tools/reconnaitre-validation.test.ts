@@ -4,7 +4,7 @@ import { MONDES, type EntreeMonde } from '../content';
 import { composerRapport, signerRapport, type Rapport } from '../app/rapports';
 import { attester, creerSignataire, empreinteLisible, type ClesTelephone, type Coffre, type Signataire } from '../app/validation';
 import { composer, lireDemande } from '../report-service/src/rapport';
-import { FICHIER_CLES, lireCles, reconnaitre, reponse, type CleEnregistree } from './reconnaitre-validation';
+import { commitSigne, etatDesRuns, FICHIER_CLES, lireCles, marqueurReponse, reconnaitre, reponse, selonVerification, type CleEnregistree } from './reconnaitre-validation';
 import { executerParcours } from './rejouer-parcours';
 import { REPO_ROOT } from './repo-files';
 
@@ -147,5 +147,60 @@ describe('validation signée par le téléphone (C-10 §4)', () => {
     expect(() => lireCles('{"cles":[{"nom":"x","cle":{"kty":"EC","crv":"P-256","x":"a","y":"b"}}]}')).toThrow(/illisible/);
     const c43 = 'A'.repeat(43);
     expect(() => lireCles(`{"cles":[{"nom":"x","cle":{"kty":"EC","crv":"P-256","x":"${c43}","y":"${c43}","d":"${c43}"}}]}`)).toThrow(/privée/);
+  });
+});
+
+describe('validation envoyée pendant la vérification de son commit (#180)', () => {
+  const adresse = 'https://github.com/greffeb/void-walker/pull/142#issuecomment-7';
+  const run = (status: string, conclusion: string | null, created_at: string, run_attempt = 1) => ({ status, conclusion, created_at, run_attempt });
+
+  it('attendue tant que la vérification tourne, puis reconnue si elle finit au vert', async () => {
+    const cles = [await cleDe(telephone)];
+    const corps = await commentaire(await signerRapport(rapport(true), telephone));
+    expect(commitSigne(corps)).toBe(COMMIT);
+    const signee = await verifier(corps, cles);
+    expect(signee.type).toBe('reconnue');
+
+    const pendant = selonVerification(signee, etatDesRuns([run('in_progress', null, '2026-10-16T10:00:00Z')]));
+    expect(pendant).toMatchObject({ type: 'en_attente', verification: 'en_cours', nom: 'Téléphone du porteur du projet' });
+    const attente = reponse(pendant, adresse) ?? '';
+    expect(attente).toContain('**Validation en attente**');
+    expect(attente).toContain('commit `e27d220` est encore en cours');
+    expect(attente).not.toContain('Validation reconnue');
+
+    const apres = selonVerification(signee, etatDesRuns([run('completed', 'success', '2026-10-16T10:00:00Z')]));
+    expect(apres).toEqual(signee);
+    expect(reponse(apres, adresse)).toContain('**Validation reconnue**');
+  });
+
+  it('non prise en compte si la vérification de ce commit échoue', async () => {
+    const cles = [await cleDe(telephone)];
+    const signee = await verifier(await commentaire(await signerRapport(rapport(true), telephone)), cles);
+    const apres = selonVerification(signee, etatDesRuns([run('completed', 'failure', '2026-10-16T10:00:00Z')]));
+    expect(apres.type).toBe('ecartee');
+    const texte = reponse(apres, adresse) ?? '';
+    expect(texte).toContain('**Validation non prise en compte**');
+    expect(texte).toContain('a échoué');
+    expect(texte).not.toContain('Validation reconnue');
+  });
+
+  it('vérification interrompue ou introuvable : en attente, jamais reconnue', async () => {
+    const signee = await verifier(await commentaire(await signerRapport(rapport(true), telephone)), [await cleDe(telephone)]);
+    expect(selonVerification(signee, etatDesRuns([run('completed', 'cancelled', '2026-10-16T10:00:00Z')]))).toMatchObject({ type: 'en_attente', verification: 'interrompue' });
+    expect(selonVerification(signee, etatDesRuns([]))).toMatchObject({ type: 'en_attente', verification: 'inconnue' });
+  });
+
+  it('le dernier run du commit fait foi, tentatives comprises', () => {
+    expect(etatDesRuns([run('completed', 'failure', '2026-10-16T10:00:00Z'), run('completed', 'success', '2026-10-16T11:00:00Z')])).toBe('verte');
+    expect(etatDesRuns([run('completed', 'success', '2026-10-16T10:00:00Z'), run('queued', null, '2026-10-16T11:00:00Z')])).toBe('en_cours');
+    expect(etatDesRuns([run('completed', 'failure', '2026-10-16T10:00:00Z', 1), run('completed', 'success', '2026-10-16T10:00:00Z', 2)])).toBe('verte');
+    expect(etatDesRuns([run('completed', 'timed_out', '2026-10-16T10:00:00Z')])).toBe('echec');
+  });
+
+  it('les refus et les simples retours ne dépendent pas de la vérification', async () => {
+    expect(selonVerification({ type: 'aucune' }, 'echec')).toEqual({ type: 'aucune' });
+    expect(selonVerification({ type: 'refusee', raison: 'x' }, 'verte')).toEqual({ type: 'refusee', raison: 'x' });
+    expect(commitSigne('pas de validation')).toBeNull();
+    expect(marqueurReponse(7)).toBe('<!-- void-walker:validation-de 7 -->');
   });
 });

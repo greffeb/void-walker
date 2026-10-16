@@ -49,10 +49,13 @@ import {
   type TextesMonde,
   type TypeRecit,
 } from '../content';
+import { fileURLToPath } from 'node:url';
 import { CATALOGUE } from './catalogue';
+import { empreinteCode, ouvrirCache, purgerCache } from './empreinte-code';
+import { dansLeLot, lancerSousLots, lireOptionsLots, type Lot } from './lots';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { stationDeReference, verifierLibre, verifierStation } from './verifier-station';
+import { stationDeReference, verifierLibre, verifierStation, type CacheVerdicts } from './verifier-station';
 
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
 
@@ -525,41 +528,121 @@ export function entreesAControler(catalogue: Catalogue): (readonly [string, Entr
   return [...Object.entries(catalogue.mondes), ...COMPOSITIONS_CONTROLEES.map((composition) => entreeAControler(catalogue, composition))];
 }
 
-if (isMainModule(import.meta.url)) {
-  let total = 0;
-  for (const [id, aControler] of entreesAControler(CATALOGUE)) {
-    if ('refus' in aControler) {
-      total += 1;
-      console.error(`${id} : ${aControler.refus}`);
+/** Une ligne de compte rendu de `check:texts`, sur la sortie standard (`log`) ou d'erreur. */
+export interface LigneCompteRendu {
+  readonly niveau: 'log' | 'warn' | 'error';
+  readonly texte: string;
+}
+
+/** Compte rendu d'une entrée à contrôler : ses lignes et son nombre d'erreurs. */
+export interface CompteRendu {
+  readonly lignes: readonly LigneCompteRendu[];
+  readonly erreurs: number;
+}
+
+export function controlerEntree(id: string, aControler: EntreeMonde | Refus): CompteRendu {
+  const lignes: LigneCompteRendu[] = [];
+  const dire = (niveau: LigneCompteRendu['niveau'], texte: string): void => {
+    lignes.push({ niveau, texte });
+  };
+  if ('refus' in aControler) {
+    dire('error', `${id} : ${aControler.refus}`);
+    return { lignes, erreurs: 1 };
+  }
+  const debut = Date.now();
+  const { erreurs, avertissements, couverture } = controlerTextes(aControler);
+  for (const erreur of erreurs) dire('error', `${id} : ${erreur}`);
+  if (erreurs.length === 0) dire('log', `${id} : textes complets, trous sûrs, aucun identifiant affiché.`);
+  if (couverture !== null) {
+    const borne = couverture.complete ? 'exploration complète' : `borne de ${MAX_ETATS} états atteinte`;
+    dire('log', `${id} : ${couverture.etats} états rendus (${borne} ; parcours témoins et voisins, ${MARCHES} marches au hasard) en ${Math.round((Date.now() - debut) / 1000)} s.`);
+    dire('log', `${id} : événements racontés ${couverture.rendus.length}/${TYPES_EVENEMENT.length} : ${couverture.rendus.join(', ')}.`);
+    if (couverture.jamais.length > 0) dire('warn', `${id} : avertissement, jamais rendus : ${couverture.jamais.join(', ')}.`);
+  }
+  if (avertissements.length > 0) {
+    const groupes = regrouperAvertissements(avertissements);
+    dire(
+      'warn',
+      `${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors des pas joués par les parcours témoins (un par état et par action explorés, pas une fréquence en partie), en ${groupes.length} combinaison(s) d’événements (D-111, à arbitrer) :`,
+    );
+    for (const { combinaison, occurrences, bornes } of groupes) dire('warn', `  ${occurrences} × ${combinaison} — ${bornes.join(' ; ')}`);
+  }
+  return { lignes, erreurs: erreurs.length };
+}
+
+/** Ce que contrôle `check:texts`, dans l'ordre : mondes du catalogue, puis compositions contrôlées. */
+export function idsAControler(catalogue: Catalogue): string[] {
+  return [...Object.keys(catalogue.mondes), ...COMPOSITIONS_CONTROLEES];
+}
+
+/**
+ * Lot de `check:texts` (#180) : chaque entrée du lot est contrôlée, ou son compte rendu repris du cache quand le même code l'a
+ * déjà rendue sans erreur ; le lot 1 contrôle aussi les couches des textes.
+ */
+export function controlerLot(lot: Lot, catalogue: Catalogue = CATALOGUE, cache?: CacheVerdicts): CompteRendu & { readonly repris: number } {
+  const lignes: LigneCompteRendu[] = [];
+  let erreurs = 0;
+  let repris = 0;
+  for (const id of dansLeLot(idsAControler(catalogue), lot)) {
+    const connu = cache?.lire<CompteRendu>(`entree ${id}`);
+    if (connu !== undefined) {
+      repris++;
+      lignes.push(...connu.lignes.map((ligne) => (ligne.niveau === 'log' && ligne.texte.includes(' états rendus ') ? { ...ligne, texte: `${ligne.texte} (repris du cache)` } : ligne)));
       continue;
     }
-    const debut = Date.now();
-    const { erreurs, avertissements, couverture } = controlerTextes(aControler);
-    total += erreurs.length;
-    for (const erreur of erreurs) console.error(`${id} : ${erreur}`);
-    if (erreurs.length === 0) console.log(`${id} : textes complets, trous sûrs, aucun identifiant affiché.`);
-    if (couverture !== null) {
-      const borne = couverture.complete ? 'exploration complète' : `borne de ${MAX_ETATS} états atteinte`;
-      console.log(
-        `${id} : ${couverture.etats} états rendus (${borne} ; parcours témoins et voisins, ${MARCHES} marches au hasard) en ${Math.round((Date.now() - debut) / 1000)} s.`,
-      );
-      console.log(`${id} : événements racontés ${couverture.rendus.length}/${TYPES_EVENEMENT.length} : ${couverture.rendus.join(', ')}.`);
-      if (couverture.jamais.length > 0) console.warn(`${id} : avertissement, jamais rendus : ${couverture.jamais.join(', ')}.`);
-    }
-    if (avertissements.length > 0) {
-      const groupes = regrouperAvertissements(avertissements);
-      console.warn(
-        `${id} : avertissement, ${avertissements.length} récit(s) de plus de quatre phrases hors des pas joués par les parcours témoins (un par état et par action explorés, pas une fréquence en partie), en ${groupes.length} combinaison(s) d’événements (D-111, à arbitrer) :`,
-      );
-      for (const { combinaison, occurrences, bornes } of groupes) console.warn(`  ${occurrences} × ${combinaison} — ${bornes.join(' ; ')}`);
-    }
+    const monde = catalogue.mondes[id];
+    const compte = controlerEntree(...(monde === undefined ? entreeAControler(catalogue, id) : ([id, monde] as const)));
+    lignes.push(...compte.lignes);
+    erreurs += compte.erreurs;
+    if (compte.erreurs === 0) cache?.ecrire(`entree ${id}`, compte);
   }
-  const fuites = fuitesDeCouches(MORCEAUX_TEXTES);
-  total += fuites.length;
-  for (const fuite of fuites) console.error(`couches : ${fuite}`);
-  if (fuites.length === 0) console.log('couches : aucun mot de l’univers ni de la menace dans le socle et les morceaux.');
-  if (total > 0) {
-    console.error(`\n${total} erreur(s) dans les textes (docs/contrats/C-07-textes.md §4).`);
+  if (lot.numero === 1) {
+    const fuites = fuitesDeCouches(MORCEAUX_TEXTES);
+    erreurs += fuites.length;
+    for (const fuite of fuites) lignes.push({ niveau: 'error', texte: `couches : ${fuite}` });
+    if (fuites.length === 0) lignes.push({ niveau: 'log', texte: 'couches : aucun mot de l’univers ni de la menace dans le socle et les morceaux.' });
+  }
+  return { lignes, erreurs, repris };
+}
+
+async function principal(): Promise<void> {
+  const argumentsCli = process.argv.slice(2);
+  const inconnu = argumentsCli.find((argument) => argument !== '--sans-cache' && !argument.startsWith('--lot=') && !argument.startsWith('--processus='));
+  if (inconnu !== undefined) throw new Error(`Option inconnue : ${inconnu}.`);
+  const { lot, parts, reste } = lireOptionsLots(argumentsCli);
+  const debut = Date.now();
+  if (parts > 1) {
+    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, reste);
+    for (const { sortie, erreurs } of sorties) {
+      process.stdout.write(sortie);
+      process.stderr.write(erreurs);
+    }
+    const echecs = sorties.filter(({ code }) => code !== 0).length;
+    console.log(`check:texts : lot ${lot.numero}/${lot.total} en ${parts} processus, ${Math.round((Date.now() - debut) / 1000)} s.`);
+    if (echecs > 0) {
+      console.error(`\n${echecs} processus en échec : erreurs dans les textes (docs/contrats/C-07-textes.md §4).`);
+      process.exitCode = 1;
+    }
+    return;
+  }
+  let cache: CacheVerdicts | undefined;
+  if (!argumentsCli.includes('--sans-cache')) {
+    const empreinte = empreinteCode(['tools/check-texts.ts']);
+    purgerCache('check-texts', empreinte);
+    cache = ouvrirCache('check-texts', empreinte);
+  }
+  const { lignes, erreurs, repris } = controlerLot(lot, CATALOGUE, cache);
+  for (const { niveau, texte } of lignes) console[niveau](texte);
+  console.log(`check:texts : lot ${lot.numero}/${lot.total}, ${repris} entrée(s) reprise(s) du cache, ${Math.round((Date.now() - debut) / 1000)} s.`);
+  if (erreurs > 0) {
+    console.error(`\n${erreurs} erreur(s) dans les textes (docs/contrats/C-07-textes.md §4).`);
     process.exitCode = 1;
   }
+}
+
+if (isMainModule(import.meta.url)) {
+  principal().catch((erreur: unknown) => {
+    console.error(erreur instanceof Error ? erreur.stack ?? erreur.message : String(erreur));
+    process.exitCode = 1;
+  });
 }

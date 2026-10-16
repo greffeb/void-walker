@@ -2,12 +2,18 @@ name: Validation sur téléphone
 
 # Reconnaissance des validations signées (C-10 §4, AP-07, RP-04) : à chaque commentaire de rapport posté dans une PR,
 # vérifie la signature avec docs/validation-key.json de la branche principale, puis pose l'étiquette et répond.
+# Une validation n'est reconnue qu'une fois la vérification automatique du commit signé finie au vert ; si elle échoue, la
+# validation n'est pas prise en compte (décision du porteur, #180). À la fin de chaque vérification d'une PR, les
+# validations signées pour ce commit sont jugées de nouveau et la réponse du robot mise à jour.
 # Le code lancé est toujours celui de la branche principale : une PR ne peut pas changer ce qui la juge.
 # Relance à la main (après l'ajout d'une clé) : onglet Actions, « Run workflow », adresse du commentaire.
 
 on:
   issue_comment:
     types: [created]
+  workflow_run:
+    workflows: [Demande de fusion]
+    types: [completed]
   workflow_dispatch:
     inputs:
       commentaire:
@@ -20,9 +26,11 @@ permissions:
 jobs:
   reconnaissance:
     name: Reconnaissance
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.issue.pull_request && contains(github.event.comment.body, '<!-- void-walker-rapport v1 -->')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request') || (github.event.issue.pull_request && contains(github.event.comment.body, '<!-- void-walker-rapport v1 -->')) }}
     runs-on: ubuntu-latest
     permissions:
+      # État de la vérification du commit signé : runs du workflow des demandes de fusion.
+      actions: read
       contents: read
       issues: write
       pull-requests: write

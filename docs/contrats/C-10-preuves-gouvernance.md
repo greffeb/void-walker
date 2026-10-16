@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.1 — D-102 ; assemble D-001, D-010, D-092 à D-101, D-104 à D-108, D-116, D-125 à D-132 et le [workflow agentique](../04-workflow-agentique.md) ; RP-01 à RP-05 acceptés par D-101. v1.1 : validation signée par le téléphone (D-130) et passage par la PR (D-129, D-131, D-132).
 > **Date :** 2026-10-10.
-> **Implémentation et tests :** rapports (§3, PR-01, PR-02, PR-06, PR-09) livrés par #107 ; signature et reconnaissance des validations (§4, PR-03, PR-04, PR-05, PR-10) proposées par #108 ; retrait automatique d'une validation (PR-07, PR-08) absent.
+> **Implémentation et tests :** rapports (§3, PR-01, PR-02, PR-06, PR-09) livrés par #107 ; signature et reconnaissance des validations (§4, PR-03, PR-04, PR-05, PR-10) proposées par #108 ; attente de la vérification du commit signé (RP-06) proposée par #180 ; retrait automatique d'une validation (PR-07, PR-08) absent.
 
 ## 1. But
 
@@ -41,6 +41,7 @@ Un niveau n'implique jamais le suivant (D-010). Aucun agent ne coche une partie 
 
 - **RP-04 —** Le contrôle automatique marque la validation reconnue d'une étiquette ; il cite la version, l'aventure ou les morceaux couverts. Une case cochée sans signature valide reste un simple retour.
 - **RP-05 —** Le journal des parties humaines référence ces validations signées ; il n'est jamais rempli sans elles.
+- **RP-06 — Pendant la vérification (D-272) :** la version de test est publiée avant la fin de la vérification automatique de son commit (D-271). Une validation signée pendant que cette vérification tourne reste valide si elle finit au vert ; elle n'est pas prise en compte si elle échoue. Le contrôle automatique attend la fin de la vérification du commit signé avant de poser l'étiquette : d'ici là, il répond « en attente » ; il revient sur la validation quand la vérification finit.
 
 ## 5. Sécurité imposée
 

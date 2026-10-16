@@ -25,6 +25,7 @@ import { SonContexte, sonDeFermeture, sonDuToucher } from './son/contexte';
 import { signauxApres } from './son/declencheurs';
 import { SILENCE, type Son } from './son/moteur';
 import type { Signal } from './son/recettes';
+import type { EtatVerification } from './verification';
 
 const AUCUN_SIGNAL: readonly Signal[] = [];
 const SANS_ABONNEMENT = (): (() => void) => () => undefined;
@@ -81,6 +82,7 @@ export function App({
   installation,
   rapports,
   signataire,
+  verification,
 }: {
   readonly env: Environnement;
   /** Monde de chaque NOUVELLE PARTIE (#152) ; absent, toujours celui de `env`. REJOUER CETTE STATION garde le monde en cours. */
@@ -103,6 +105,8 @@ export function App({
   readonly rapports?: Rapports;
   /** Clé de validation du téléphone (C-10 §4) ; absente, « je valide » part sans signature. */
   readonly signataire?: Signataire;
+  /** État de la vérification automatique de la version de test (#180). */
+  readonly verification?: () => Promise<EtatVerification>;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   // Le monde change à chaque NOUVELLE PARTIE ; le stockage, la version et la graine restent ceux du lancement.
@@ -362,6 +366,7 @@ export function App({
             rapportsEnAttente={rapportsEnAttente}
             partieFinie={ecran.jeu !== null && observer(env.monde, ecran.jeu.partie.etat).terminee}
             empreinteCle={empreinteCle}
+            verification={verification}
           />
         ) : ecran.type === 'fin' ? (
           <EcranFin

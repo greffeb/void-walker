@@ -13,6 +13,7 @@ import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
 import type { Retour } from './rapports';
 import { REGLAGES_PAR_DEFAUT, type Reglages } from './reglages';
 import type { Stockage } from './sauvegarde';
+import type { EtatVerification } from './verification';
 
 const { monde, textes } = MONDES['monde-test'] as EntreeMonde;
 
@@ -501,6 +502,7 @@ function options(
     envoyerRapport: () => Promise<Retour>;
     rapportsEnAttente: number;
     empreinteCle: () => Promise<string | null>;
+    verification: () => Promise<EtatVerification>;
   }> = {},
 ): string {
   return renderToStaticMarkup(
@@ -523,6 +525,7 @@ function options(
       envoyerRapport={surcharge.envoyerRapport}
       rapportsEnAttente={surcharge.rapportsEnAttente}
       empreinteCle={surcharge.empreinteCle}
+      verification={surcharge.verification}
     />,
   );
 }
@@ -546,6 +549,13 @@ describe('options (12 §4.10, #96)', () => {
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Lignes de balayage"');
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Effet machine à écrire"');
     expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
+  });
+
+  it('version de test : état de la vérification automatique sous la version, lu à l’ouverture ; absent de la version publique (#180)', () => {
+    const verification = (): Promise<EtatVerification> => Promise.resolve('en_cours');
+    expect(options({ pr: '42', verification })).toContain('<p class="etat-verification" data-testid="verification">Vérification automatique : lecture…</p>');
+    expect(options({ pr: '', verification })).not.toContain('Vérification automatique');
+    expect(options({ pr: '42' })).not.toContain('Vérification automatique');
   });
 
   it('mise à jour : bouton selon l’état, absent sans service worker (D-227)', () => {

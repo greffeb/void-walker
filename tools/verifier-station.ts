@@ -14,6 +14,9 @@ import {
 } from '../content';
 import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
+import { fileURLToPath } from 'node:url';
+import { empreinteCode, ouvrirCache, purgerCache } from './empreinte-code';
+import { dansLeLot, lancerSousLots, lireOptionsLots, type Lot } from './lots';
 import { isMainModule } from './repo-files';
 
 const VERSION = 'verifier-station';
@@ -21,8 +24,9 @@ const GRAINE = 20261010;
 const MAX_ETATS = 150000;
 /** Graines de plan essayées, à partir de 0, pour la station de référence d'une composition. */
 const ESSAIS_GRAINE = 50;
-/** 14 §5.6 : sur 1 000 tirages, au moins 95 % de plans trouvés. */
-const TIRAGES_PLANS = 1000;
+/** 14 §5.6 : par chemin, au moins 95 % de plans trouvés, sur 100 graines dans `check:stations` (#180), 1 000 en mode complet. */
+export const TIRAGES_PLANS = 100;
+export const TIRAGES_PLANS_COMPLET = 1000;
 const POURCENT_PLANS = 95;
 /** Hasard des tirages mesurés : les mêmes à chaque mesure. */
 const GRAINE_TIRAGES = 20261015;
@@ -567,29 +571,37 @@ export function ecartsDuCatalogue(lignes: readonly LigneCatalogue[], publiees: r
   return ecarts;
 }
 
-/** Plans de chaque chemin permis, graines 0 à `tirages` - 1 : plans trouvés et temps d'`assemblerStation`, échecs compris. */
-export function mesurerPlans(tirages: number): MesurePlans[] {
+/** Un chemin de plans par suite de morceaux permise, avec la première composition qui la porte, dans l'ordre du catalogue. */
+export function cheminsDesPlans(catalogue: Catalogue = CATALOGUE): (readonly [string, Composition])[] {
   const chemins = new Map<string, Composition>();
-  for (const composition of CATALOGUE.compositions) {
+  for (const composition of catalogue.compositions) {
     const chemin = morceauxDe(composition).map(({ morceau }) => morceau.id).join(' + ');
     if (composition.refus === null && !chemins.has(chemin)) chemins.set(chemin, composition);
   }
-  return [...chemins].map(([chemin, composition]) => {
-    let trouves = 0;
-    let total = 0;
-    let msMax = 0;
-    for (let graine = 0; graine < tirages; graine++) {
-      const debut = performance.now();
-      const station = CATALOGUE.definir(composition.id, graine);
-      if ('refus' in station) throw new Error(station.refus);
-      const resultat = assemblerStation(station);
-      const ms = performance.now() - debut;
-      if (resultat.type === 'station') trouves++;
-      total += ms;
-      msMax = Math.max(msMax, ms);
-    }
-    return { chemin, tirages, trouves, msMoyenne: total / tirages, msMax };
-  });
+  return [...chemins];
+}
+
+/** Plans d'un chemin, graines 0 à `tirages` - 1 : plans trouvés et temps d'`assemblerStation`, échecs compris. */
+export function mesurerPlan(chemin: string, composition: Composition, tirages: number, catalogue: Catalogue = CATALOGUE): MesurePlans {
+  let trouves = 0;
+  let total = 0;
+  let msMax = 0;
+  for (let graine = 0; graine < tirages; graine++) {
+    const debut = performance.now();
+    const station = catalogue.definir(composition.id, graine);
+    if ('refus' in station) throw new Error(station.refus);
+    const resultat = assemblerStation(station);
+    const ms = performance.now() - debut;
+    if (resultat.type === 'station') trouves++;
+    total += ms;
+    msMax = Math.max(msMax, ms);
+  }
+  return { chemin, tirages, trouves, msMoyenne: total / tirages, msMax };
+}
+
+/** Plans de chaque chemin permis, graines 0 à `tirages` - 1. */
+export function mesurerPlans(tirages: number): MesurePlans[] {
+  return cheminsDesPlans().map(([chemin, composition]) => mesurerPlan(chemin, composition, tirages));
 }
 
 /**
@@ -635,29 +647,145 @@ export function mesurerTirages(tirages: number): MesureTirages {
   return { tirages, reussis, msMoyenne: total / tirages, msMax, finals, chemins, morceaux, places };
 }
 
-if (isMainModule(import.meta.url)) {
-  const argumentsCli = process.argv.slice(2);
-  const mesure = argumentsCli.includes('--mesurer');
-  const inconnu = argumentsCli.find((argument) => argument.startsWith('--') && argument !== '--mesurer' && !argument.startsWith('--max-etats='));
-  if (inconnu !== undefined) throw new Error(`Option inconnue : ${inconnu}.`);
-  const limite = argumentsCli.find((argument) => argument.startsWith('--max-etats='));
-  const options = limite === undefined ? {} : { maxEtats: Number(limite.slice('--max-etats='.length)) };
-  const demandes = argumentsCli.filter((argument) => !argument.startsWith('--'));
-  for (const id of demandes.length > 0 ? demandes : ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10']) {
-    const entree = CATALOGUE.mondes[id];
+
+/** Stations écrites en entier (et M-07, M-10 assemblées seules), vérifiées avant le catalogue. */
+export const MONDES_DE_REFERENCE: readonly string[] = ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'];
+
+/** Ce que vérifie `check:stations` (#180) : verdicts, puis plans de chaque chemin. */
+export interface ResultatLot {
+  readonly mondes: readonly ({ readonly monde: string } & RapportStation)[];
+  readonly lignes: readonly LigneCatalogue[];
+  readonly plans: readonly MesurePlans[];
+  /** Verdicts et plans repris du cache, sans recherche. */
+  readonly repris: number;
+}
+
+/** Cache des verdicts : une entrée par station, composition ou chemin, pour une empreinte du code de ce fichier. */
+export interface CacheVerdicts {
+  lire<T>(cle: string): T | undefined;
+  ecrire(cle: string, valeur: unknown): void;
+}
+
+/**
+ * Le lot `lot` de `check:stations` : stations de référence, compositions et chemins de plans de rang `lot`. Avec `cache`, un
+ * verdict déjà rendu par le même code est repris (l'empreinte du code est celle du dossier du cache) ; les options de
+ * recherche changent la clé.
+ */
+export function verifierLot(
+  lot: Lot,
+  { catalogue = CATALOGUE, tirages = TIRAGES_PLANS, options = {}, cache }: { readonly catalogue?: Catalogue; readonly tirages?: number; readonly options?: OptionsVerification; readonly cache?: CacheVerdicts } = {},
+): ResultatLot {
+  let repris = 0;
+  const suffixe = options.maxEtats === undefined ? '' : ` max ${options.maxEtats}`;
+  const avecCache = <T>(cle: string, calculer: () => T): T => {
+    const connu = cache?.lire<T>(`${cle}${suffixe}`);
+    if (connu !== undefined) {
+      repris++;
+      return connu;
+    }
+    const valeur = calculer();
+    cache?.ecrire(`${cle}${suffixe}`, valeur);
+    return valeur;
+  };
+  const mondes = dansLeLot(MONDES_DE_REFERENCE, lot).map((id) => {
+    const entree = catalogue.mondes[id];
     if (entree === undefined) throw new Error(`Station inconnue : ${id}.`);
-    const rapport = mesure ? mesurerStation(entree, options) : verifierStation(entree, options);
-    console.log(JSON.stringify({ monde: id, ...rapport }));
-    if (rapport.verdict !== (mesure ? 'complete' : 'prouvee')) process.exitCode = 1;
+    return avecCache(`monde ${id}`, () => ({ monde: id, ...verifierStation(entree, options) }));
+  });
+  const lignes = dansLeLot(catalogue.compositions, lot).map((composition) =>
+    avecCache(`composition ${composition.id} ${JSON.stringify(empreintesDe(composition))}`, () => verifierComposition(catalogue, composition, options)),
+  );
+  const plans = dansLeLot(cheminsDesPlans(catalogue), lot).map(([chemin, composition]) =>
+    avecCache(`plans ${chemin} ${tirages}`, () => mesurerPlan(chemin, composition, tirages, catalogue)),
+  );
+  return { mondes, lignes, plans, repris };
+}
+
+/**
+ * Écarts d'un lot : ceux du catalogue (`ecartsDuCatalogue`) restreints aux compositions du lot, plus une station de
+ * référence non prouvée. Une composition publiée absente du catalogue revient au lot 1.
+ */
+export function ecartsDuLot(resultat: ResultatLot, lot: Lot, catalogue: Catalogue = CATALOGUE, publiees: readonly string[] = COMPOSITIONS_PUBLIEES): string[] {
+  const duLot = new Set(dansLeLot(catalogue.compositions, lot).map((composition) => composition.id));
+  const connues = new Set(catalogue.compositions.map((composition) => composition.id));
+  const publieesDuLot = publiees.filter((id) => duLot.has(id) || (!connues.has(id) && lot.numero === 1));
+  return [
+    ...resultat.mondes.filter((rapport) => rapport.verdict !== 'prouvee').map((rapport) => `Station de référence ${rapport.monde} non prouvée (${rapport.verdict}) : ${rapport.diagnostic}`),
+    ...ecartsDuCatalogue(resultat.lignes, publieesDuLot, resultat.plans),
+  ];
+}
+
+const OPTIONS_CLI = ['--mesurer', '--complet', '--sans-cache'];
+const OPTIONS_CLI_VALEUR = ['--max-etats=', '--lot=', '--processus=', '--plans='];
+
+async function principal(): Promise<void> {
+  const argumentsCli = process.argv.slice(2);
+  const inconnu = argumentsCli.find((argument) => argument.startsWith('--') && !OPTIONS_CLI.includes(argument) && !OPTIONS_CLI_VALEUR.some((prefixe) => argument.startsWith(prefixe)));
+  if (inconnu !== undefined) throw new Error(`Option inconnue : ${inconnu}.`);
+  const valeur = (prefixe: string): string | undefined => argumentsCli.find((argument) => argument.startsWith(prefixe))?.slice(prefixe.length);
+  const mesure = argumentsCli.includes('--mesurer');
+  const complet = argumentsCli.includes('--complet');
+  const limite = valeur('--max-etats=');
+  const options = limite === undefined ? {} : { maxEtats: Number(limite) };
+  const demandes = argumentsCli.filter((argument) => !argument.startsWith('--'));
+
+  if (demandes.length > 0 || mesure) {
+    for (const id of demandes.length > 0 ? demandes : MONDES_DE_REFERENCE) {
+      const entree = CATALOGUE.mondes[id];
+      if (entree === undefined) throw new Error(`Station inconnue : ${id}.`);
+      const rapport = mesure ? mesurerStation(entree, options) : verifierStation(entree, options);
+      console.log(JSON.stringify({ monde: id, ...rapport }));
+      if (rapport.verdict !== (mesure ? 'complete' : 'prouvee')) process.exitCode = 1;
+    }
+    return;
   }
-  if (demandes.length === 0 && !mesure) {
-    const lignes = verifierCatalogue(CATALOGUE, options);
-    for (const ligne of lignes) console.log(JSON.stringify(ligne));
-    const plans = mesurerPlans(TIRAGES_PLANS);
-    for (const plan of plans) console.log(JSON.stringify(plan));
-    console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS) }));
-    const ecarts = ecartsDuCatalogue(lignes, COMPOSITIONS_PUBLIEES, plans);
-    for (const ecart of ecarts) console.error(ecart);
-    if (ecarts.length > 0) process.exitCode = 1;
+
+  const { lot, parts, reste } = lireOptionsLots(argumentsCli);
+  const debut = performance.now();
+  const duree = (): string => `${((performance.now() - debut) / 1000).toFixed(1)} s`;
+  // Mode complet (#180) : 1 000 plans par chemin, sans cache, puis les 1 000 tirages de NOUVELLE PARTIE.
+  const sansCache = complet || argumentsCli.includes('--sans-cache');
+  const textePlans = valeur('--plans=');
+  const tirages = textePlans === undefined ? (complet ? TIRAGES_PLANS_COMPLET : TIRAGES_PLANS) : Number(textePlans);
+  if (!Number.isSafeInteger(tirages) || tirages < 1) throw new RangeError(`Nombre de plans invalide : ${textePlans}.`);
+
+  if (parts > 1) {
+    const passer = [
+      ...reste.filter((argument) => !argument.startsWith('--plans=') && argument !== '--complet' && argument !== '--sans-cache'),
+      `--plans=${tirages}`,
+      ...(sansCache ? ['--sans-cache'] : []),
+    ];
+    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, passer);
+    for (const { sortie, erreurs } of sorties) {
+      process.stdout.write(sortie);
+      process.stderr.write(erreurs);
+    }
+    if (complet) console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS_COMPLET) }));
+    const echecs = sorties.filter(({ code }) => code !== 0).length;
+    console.error(`check:stations : lot ${lot.numero}/${lot.total} en ${parts} processus, ${duree()}${echecs > 0 ? `, ${echecs} processus en échec` : ''}.`);
+    if (echecs > 0) process.exitCode = 1;
+    return;
   }
+
+  let cache: CacheVerdicts | undefined;
+  if (!sansCache) {
+    const empreinte = empreinteCode(['tools/verifier-station.ts']);
+    purgerCache('check-stations', empreinte);
+    cache = ouvrirCache('check-stations', empreinte);
+  }
+  const resultat = verifierLot(lot, { tirages, options, cache });
+  for (const ligne of [...resultat.mondes, ...resultat.lignes, ...resultat.plans]) console.log(JSON.stringify(ligne));
+  if (complet) console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS_COMPLET) }));
+  const ecarts = ecartsDuLot(resultat, lot);
+  for (const ecart of ecarts) console.error(ecart);
+  const total = resultat.mondes.length + resultat.lignes.length + resultat.plans.length;
+  console.error(`check:stations : lot ${lot.numero}/${lot.total}, ${total} verdicts (${tirages} plans par chemin) dont ${resultat.repris} repris du cache, ${duree()}.`);
+  if (ecarts.length > 0) process.exitCode = 1;
+}
+
+if (isMainModule(import.meta.url)) {
+  principal().catch((erreur: unknown) => {
+    console.error(erreur instanceof Error ? erreur.stack ?? erreur.message : String(erreur));
+    process.exitCode = 1;
+  });
 }
