@@ -34,6 +34,11 @@ import {
   type Refus,
   type TextesMorceau,
 } from '../content';
+import { TEXTES_AR01 } from '../content/ar-01/textes';
+import { MORCEAU_M01, TEXTES_MORCEAU_M01 } from '../content/morceaux/m-01';
+import { MORCEAU_M02, TEXTES_MORCEAU_M02 } from '../content/morceaux/m-02';
+import { MORCEAU_M04, TEXTES_MORCEAU_M04 } from '../content/morceaux/m-04';
+import { MORCEAU_M05, TEXTES_MORCEAU_M05 } from '../content/morceaux/m-05';
 import { lireDemande } from '../report-service/src/rapport';
 import { CATALOGUE } from './catalogue';
 import { stationDeReference } from './verifier-station';
@@ -53,8 +58,8 @@ function porte(monde: DefMonde, id: string) {
 }
 
 describe('morceaux (13 §8)', () => {
-  it('vestibule, M-07, M-08, M-09, M-10, M-03, M-06 et embarquement d’essai, dans cet ordre', () => {
-    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'm-06', 'essai']);
+  it('vestibule, M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-03, M-06 et embarquement d’essai, dans cet ordre', () => {
+    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10', 'm-03', 'm-06', 'essai']);
   });
 
   it.each(Object.entries(MORCEAUX))('%s : morceau valide, identifiant repris', (id, { morceau }) => {
@@ -210,6 +215,260 @@ describe('M-06, M-08 et M-09 (spec L3 §3.1 à §3.3)', () => {
   });
 });
 
+describe('M-01, M-02, M-04 et M-05 (spec L4 §3)', () => {
+  const L4: Readonly<Record<string, { readonly morceau: DefMorceau; readonly textes: TextesMorceau }>> = {
+    'm-01': { morceau: MORCEAU_M01, textes: TEXTES_MORCEAU_M01 },
+    'm-02': { morceau: MORCEAU_M02, textes: TEXTES_MORCEAU_M02 },
+    'm-04': { morceau: MORCEAU_M04, textes: TEXTES_MORCEAU_M04 },
+    'm-05': { morceau: MORCEAU_M05, textes: TEXTES_MORCEAU_M05 },
+  };
+
+  function l4(id: string): { readonly morceau: DefMorceau; readonly textes: TextesMorceau } {
+    const trouve = L4[id];
+    if (trouve === undefined) throw new Error(`Morceau ${id} absent.`);
+    return trouve;
+  }
+
+  it.each([
+    ['m-01', 'p-poste', 'p-palier', 'p-palier', 'cloison'],
+    ['m-02', 'p-atelier', 'p-pompes', 'p-atelier', 'porte'],
+    ['m-04', 'p-controle', 'p-observation', 'p-observation', 'cloison'],
+    ['m-05', 'p-service', 'p-quai', 'p-tri', 'porte'],
+  ] as const)('%s : chemin valide, entrée %s, sortie depuis %s, créature en %s, porte de sortie %s', (id, entree, sortie, place, porte) => {
+    const { morceau, textes } = l4(id);
+    expect(validerMorceau(morceau)).toEqual([]);
+    expect(morceau).toMatchObject({ id, famille: 'chemin', entree, placesCreature: [place], demande: [], fournit: ['acces'] });
+    expect(morceau.sortie).toEqual({ piece: sortie, porte: { nom: porte } });
+    expect(morceau.assistance).toBeUndefined();
+    expect(textes.assistance).toEqual({});
+  });
+
+  it.each([
+    ['m-01', [['p-poste', 'poste_incendie', 0, 0], ['p-galerie', 'galerie', 4, 0], ['p-palier', 'palier', 8, 0]]],
+    ['m-02', [['p-atelier', 'atelier', 0, 0], ['p-pompes', 'pompes', 4, 0]]],
+    ['m-04', [['p-controle', 'controle', 0, 0], ['p-observation', 'observation', 4, 0]]],
+    ['m-05', [['p-service', 'service', 0, 0], ['p-tri', 'tri', 4, 0], ['p-quai', 'quai', 0, 3]]],
+  ] as const)('%s : pièces [id, nom, x, y] figées, tuiles de 4 × 3 sauf le quai de 8 × 3', (id, pieces) => {
+    const { morceau } = l4(id);
+    expect(morceau.pieces.map((piece) => [piece.id, piece.nom, piece.plan?.x, piece.plan?.y])).toEqual(pieces);
+    for (const piece of morceau.pieces) expect([piece.plan?.largeur, piece.plan?.hauteur]).toEqual([piece.id === 'p-quai' ? 8 : 4, 3]);
+  });
+
+  it.each([
+    [
+      'm-01',
+      [
+        ['l-poste-galerie', ['p-poste', 'p-galerie'], 'cloison', 'fermée', false, false, false, null, null],
+        ['l-galerie-palier', ['p-galerie', 'p-palier'], 'cloison', 'fermée', false, false, false, null, null],
+      ],
+    ],
+    ['m-02', [['l-atelier-pompes', ['p-atelier', 'p-pompes'], 'grille', 'fermée', false, false, true, 'p-atelier', null]]],
+    ['m-04', [['l-controle-observation', ['p-controle', 'p-observation'], 'cloison', 'fermée', true, false, false, null, null]]],
+    [
+      'm-05',
+      [
+        ['l-service-tri', ['p-service', 'p-tri'], 'porte', 'fermée', false, false, false, null, null],
+        ['l-tri-quai', ['p-tri', 'p-quai'], 'porte', 'fermée', false, false, false, null, null],
+        ['l-service-quai', ['p-service', 'p-quai'], 'panneau', 'fermée', false, false, true, null, 'p-quai'],
+      ],
+    ],
+  ] as const)('%s : liaisons [id, extrémités, nom, état, bruyante, gouffre, étroite, haute, cachée] figées', (id, liaisons) => {
+    const { morceau } = l4(id);
+    expect(
+      morceau.liaisons.map((liaison) => [
+        liaison.id,
+        liaison.entre,
+        liaison.nom,
+        liaison.ouverte ? 'ouverte' : 'fermée',
+        liaison.bruyante === true,
+        liaison.gouffre === true,
+        liaison.etroite === true,
+        liaison.haute ?? null,
+        liaison.cachee ?? null,
+      ]),
+    ).toEqual(liaisons);
+  });
+
+  it('M-02 : la grille d’AR-01, son au travers et sans signalétique ; caisse au centre, position sous la grille', () => {
+    const { morceau } = l4('m-02');
+    expect(morceau.liaisons[0]).toMatchObject({ id: 'l-atelier-pompes', sonAuTravers: true, sansSignaletique: true });
+    expect(morceau.positions).toEqual([
+      { id: 'pos-sous-grille', nom: 'sous_grille', piece: 'p-atelier', sous: 'l-atelier-pompes' },
+      { id: 'pos-centre', nom: 'centre', piece: 'p-atelier' },
+    ]);
+    expect(morceau.objets).toEqual([
+      { id: 'o-caisse', nom: 'caisse', piece: 'p-atelier', position: 'pos-centre', portable: false, deplacable: true, appui: true },
+    ]);
+  });
+
+  it('M-01 : le bidon dans le poste incendie ; seule la galerie est en feu', () => {
+    const { morceau } = l4('m-01');
+    expect(morceau.objets).toEqual([{ id: 'o-bidon', nom: 'bidon', piece: 'p-poste', extinction: 1 }]);
+    expect(morceau.pieces.filter((piece) => piece.feu === true).map((piece) => piece.id)).toEqual(['p-galerie']);
+  });
+
+  it('M-04 : burette et avertisseur dans la salle de contrôle, émetteur dans l’alcôve de l’observation, hors coque', () => {
+    const { morceau } = l4('m-04');
+    expect(morceau.objets).toEqual([
+      { id: 'o-burette', nom: 'burette', piece: 'p-controle', glissant: 1 },
+      { id: 'o-avertisseur', nom: 'avertisseur', piece: 'p-controle', portable: false, avertisseur: { piece: 'p-observation', alcove: true } },
+    ]);
+    expect(morceau.pieces.find((piece) => piece.id === 'p-observation')?.coque).toBeUndefined();
+  });
+
+  it('M-05 : aucun objet ; le panneau n’a ni son au travers ni signalétique déclarée', () => {
+    const { morceau } = l4('m-05');
+    expect(morceau.objets).toEqual([]);
+    expect(morceau.positions).toBeUndefined();
+    expect(morceau.liaisons.find((liaison) => liaison.nom === 'panneau')).toEqual({
+      id: 'l-service-quai',
+      nom: 'panneau',
+      entre: ['p-service', 'p-quai'],
+      ouverte: false,
+      etroite: true,
+      cachee: 'p-quai',
+    });
+  });
+
+  it.each([
+    ['m-01', ['burette', 'caisse', 'trousse']],
+    ['m-02', ['bidon', 'burette', 'trousse']],
+    ['m-04', ['bidon', 'caisse', 'trousse']],
+    ['m-05', ['bidon', 'burette', 'caisse', 'trousse']],
+  ] as const)('%s : aucun objet d’AR-01 placé dans un autre morceau (%j)', (id, absents) => {
+    const noms = l4(id).morceau.objets.map((objet) => objet.nom);
+    for (const nom of absents) expect(noms).not.toContain(nom);
+  });
+
+  it.each(Object.keys(L4))('%s : chaque pièce, objet, position et liaison a un nom ; pièces et objets ont deux descriptions', (id) => {
+    const { morceau, textes } = l4(id);
+    const reunis = reunir([textes]);
+    const cles = [
+      ...morceau.pieces.map((piece) => piece.nom),
+      ...morceau.objets.map((objet) => objet.nom),
+      ...(morceau.positions ?? []).map((position) => position.nom),
+      ...morceau.liaisons.map((liaison) => liaison.nom),
+      ...(morceau.sortie === undefined ? [] : [morceau.sortie.porte.nom]),
+    ];
+    for (const cle of cles) expect(reunis.noms[cle], cle).toBeDefined();
+    for (const cle of [...morceau.pieces.map((piece) => piece.nom), ...morceau.objets.map((objet) => objet.nom)]) {
+      expect(reunis.descriptions[cle]?.length, cle).toBe(2);
+    }
+  });
+
+  it.each([
+    ['m-01', ['bidon', 'cloison'], ['bidon']],
+    ['m-02', ['atelier', 'grille', 'sous_grille', 'caisse'], ['caisse']],
+    ['m-04', ['cloison', 'burette', 'avertisseur'], ['burette']],
+    ['m-05', ['panneau'], []],
+  ] as const)('%s : noms %j et descriptions %j repris d’AR-01 à l’identique', (id, noms, descriptions) => {
+    const { textes } = l4(id);
+    for (const cle of noms) expect(textes.noms[cle], cle).toEqual(TEXTES_AR01.noms[cle]);
+    for (const cle of descriptions) expect(textes.descriptions[cle], cle).toEqual(TEXTES_AR01.descriptions[cle]);
+  });
+
+  it.each([
+    ['m-01', 'galerie', { texte: 'tunnel technique', genre: 'm', nombre: 's', elision: false }],
+    ['m-02', 'centre', { texte: 'au centre de la pièce', genre: 'm', nombre: 's', elision: false }],
+    ['m-04', 'observation', { texte: 'salle d’observation', genre: 'f', nombre: 's', elision: false }],
+  ] as const)('%s : « %s » a son propre nom, pas celui d’AR-01', (id, cle, nom) => {
+    expect(l4(id).textes.noms[cle]).toEqual(nom);
+    expect(TEXTES_AR01.noms[cle]).not.toEqual(nom);
+  });
+
+  it.each(Object.keys(L4))('vigilance aux noms : aucun texte de %s ne nomme une pièce d’AR-01 hors du morceau, ni une pièce des trois autres', (id) => {
+    const textes = JSON.stringify(l4(id).textes).toLocaleLowerCase('fr');
+    for (const mot of ['salon', 'local énergie', 'embarquement', 'baie', 'local technique']) expect(textes).not.toContain(mot);
+    for (const [autre, { morceau, textes: siens }] of Object.entries(L4)) {
+      if (autre === id) continue;
+      for (const piece of morceau.pieces) {
+        const nom = siens.noms[piece.nom]?.texte.toLocaleLowerCase('fr');
+        expect(nom, `${autre}/${piece.id}`).toBeDefined();
+        expect(textes, `${autre}/${piece.id}`).not.toContain(nom);
+      }
+    }
+  });
+
+  const L2_L3 = ['vestibule', 'm-03', 'm-06', 'm-07', 'm-08', 'm-09', 'm-10'] as const;
+
+  function existant(id: string): EntreeMorceau {
+    const trouve = MORCEAUX[id];
+    if (trouve === undefined) throw new Error(`Morceau ${id} absent.`);
+    return trouve;
+  }
+
+  // Les chaînes d'un jeu de textes, sans ses clés, en minuscules.
+  function valeurs(textes: TextesMorceau): string {
+    const chaines: string[] = [];
+    const parcourir = (valeur: unknown): void => {
+      if (typeof valeur === 'string') chaines.push(valeur);
+      else if (typeof valeur === 'object' && valeur !== null) for (const sous of Object.values(valeur)) parcourir(sous);
+    };
+    parcourir(textes);
+    return chaines.join('\n').toLocaleLowerCase('fr');
+  }
+
+  function motif(nom: string): RegExp {
+    return new RegExp(`(?<!\\p{L})${nom.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\p{L})`, 'gu');
+  }
+
+  function nomme(texte: string, nom: string): boolean {
+    return motif(nom).test(texte);
+  }
+
+  function nomsDePieces({ morceau, textes }: { readonly morceau: DefMorceau; readonly textes: TextesMorceau }): string[] {
+    const reunis = reunir([textes]);
+    return morceau.pieces.map((piece) => {
+      const nom = reunis.noms[piece.nom]?.texte;
+      if (nom === undefined) throw new Error(`${morceau.id} : pièce ${piece.id} sans nom.`);
+      return nom.toLocaleLowerCase('fr');
+    });
+  }
+
+  // Les textes d'un morceau, ses propres noms de pièces effacés : « atelier maintenance » ne nomme pas l'atelier de M-08.
+  function horsDesSiens(entree: { readonly morceau: DefMorceau; readonly textes: TextesMorceau }): string {
+    let texte = valeurs(entree.textes);
+    for (const nom of nomsDePieces(entree).sort((a, b) => b.length - a.length)) texte = texte.replace(motif(nom), ' ');
+    return texte;
+  }
+
+  it.each(Object.keys(L4))('vigilance aux noms : aucun texte de %s ne nomme une pièce du vestibule ni de M-03, M-06 à M-10', (id) => {
+    const texte = horsDesSiens(l4(id));
+    for (const autre of L2_L3) for (const nom of nomsDePieces(existant(autre))) expect(nomme(texte, nom), `${autre} : ${nom}`).toBe(false);
+  });
+
+  it.each(L2_L3)('vigilance aux noms : aucun texte de %s ne nomme une pièce de M-01, M-02, M-04 ou M-05', (id) => {
+    const texte = horsDesSiens(existant(id));
+    for (const [autre, entree] of Object.entries(L4)) for (const nom of nomsDePieces(entree)) expect(nomme(texte, nom), `${autre} : ${nom}`).toBe(false);
+  });
+
+  it('vigilance aux noms, cas négatifs : la description d’atelier d’AR-01 et « galerie » de M-08 seraient refusées', () => {
+    const atelier = TEXTES_AR01.descriptions.atelier;
+    if (atelier === undefined) throw new Error('Description d’atelier absente d’AR-01.');
+    const avecAr01 = { morceau: MORCEAU_M02, textes: { ...TEXTES_MORCEAU_M02, descriptions: { ...TEXTES_MORCEAU_M02.descriptions, atelier } } };
+    expect(nomme(horsDesSiens(avecAr01), 'atelier')).toBe(true);
+    expect(nomme(horsDesSiens(l4('m-02')), 'atelier')).toBe(false);
+    expect(nomme(horsDesSiens(existant('m-08')), 'galerie')).toBe(true);
+  });
+
+  it('M-01 : le palier ne fait entendre aucun pas ; M-05 ne dit ni « quai » ni « vide »', () => {
+    expect(valeurs(TEXTES_MORCEAU_M01)).not.toContain('vos pas');
+    for (const mot of ['quai', 'vide']) expect(nomme(valeurs(TEXTES_MORCEAU_M05), mot), mot).toBe(false);
+  });
+
+  it.each(Object.keys(L4))('PL-04 : chaque nom de pièce de %s tient dans son rectangle', (id) => {
+    const { morceau, textes } = l4(id);
+    for (const piece of morceau.pieces) {
+      const nom = reunir([textes]).noms[piece.nom]?.texte ?? '';
+      expect(nomLisible(nom, piece.plan?.largeur ?? 0, piece.plan?.hauteur ?? 0), nom).toBe(true);
+    }
+  });
+
+  it('aucun mot de l’univers ni de la menace dans les textes de M-01, M-02, M-04 et M-05', () => {
+    expect(fuitesDeCouches(Object.fromEntries(Object.entries(L4).map(([id, { textes }]) => [id, textes])))).toEqual([]);
+  });
+});
+
 describe('stations de test refaites par l’assembleur', () => {
   it('le catalogue a les mondes fixes plus m-07 et m-10, dans l’ordre d’avant', () => {
     expect(Object.keys(MONDES)).toEqual(['ar-01', 'ar-02', 'monde-test', 'm-08', 'm-09']);
@@ -282,6 +541,98 @@ describe('stations de test refaites par l’assembleur', () => {
 
 const ID = 'm07-m03-soute-2718281828';
 const MONDE_ID = /^[a-z0-9-]{1,40}$/;
+
+/** Compositions publiées de L3 (#153), figées avant l'arrivée de M-01, M-02, M-04 et M-05. */
+const PUBLIEES_L3: readonly string[] = [
+  'm07-m03-reserve',
+  'm07-m03-soute',
+  'm07-m06-embarquement',
+  'm07-m06-soute',
+  'm07-m08-m03-magasin',
+  'm07-m08-m03-reserve',
+  'm07-m08-m03-soute',
+  'm07-m08-m06-embarquement',
+  'm07-m08-m06-magasin',
+  'm07-m08-m06-soute',
+  'm07-m09-m03-cale',
+  'm07-m09-m03-reserve',
+  'm07-m09-m03-soute',
+  'm07-m09-m06-cale',
+  'm07-m09-m06-embarquement',
+  'm07-m09-m06-soute',
+  'm07-m10-m03-entrepot',
+  'm07-m10-m03-reserve',
+  'm07-m10-m03-soute',
+  'm07-m10-m06-embarquement',
+  'm07-m10-m06-entrepot',
+  'm07-m10-m06-soute',
+  'm08-m03-magasin',
+  'm08-m03-reserve',
+  'm08-m06-embarquement',
+  'm08-m06-magasin',
+  'm08-m07-m03-magasin',
+  'm08-m07-m03-reserve',
+  'm08-m07-m03-soute',
+  'm08-m07-m06-embarquement',
+  'm08-m07-m06-magasin',
+  'm08-m07-m06-soute',
+  'm08-m09-m03-cale',
+  'm08-m09-m03-magasin',
+  'm08-m09-m03-reserve',
+  'm08-m09-m06-cale',
+  'm08-m09-m06-embarquement',
+  'm08-m09-m06-magasin',
+  'm08-m10-m03-entrepot',
+  'm08-m10-m03-magasin',
+  'm08-m10-m03-reserve',
+  'm08-m10-m06-embarquement',
+  'm08-m10-m06-entrepot',
+  'm08-m10-m06-magasin',
+  'm09-m03-cale',
+  'm09-m03-reserve',
+  'm09-m06-cale',
+  'm09-m06-embarquement',
+  'm09-m07-m03-cale',
+  'm09-m07-m03-reserve',
+  'm09-m07-m03-soute',
+  'm09-m07-m06-cale',
+  'm09-m07-m06-embarquement',
+  'm09-m07-m06-soute',
+  'm09-m08-m03-cale',
+  'm09-m08-m03-magasin',
+  'm09-m08-m03-reserve',
+  'm09-m08-m06-cale',
+  'm09-m08-m06-embarquement',
+  'm09-m08-m06-magasin',
+  'm09-m10-m03-cale',
+  'm09-m10-m03-entrepot',
+  'm09-m10-m03-reserve',
+  'm09-m10-m06-cale',
+  'm09-m10-m06-embarquement',
+  'm09-m10-m06-entrepot',
+  'm10-m03-entrepot',
+  'm10-m03-reserve',
+  'm10-m06-embarquement',
+  'm10-m06-entrepot',
+  'm10-m07-m03-entrepot',
+  'm10-m07-m03-reserve',
+  'm10-m07-m03-soute',
+  'm10-m07-m06-embarquement',
+  'm10-m07-m06-entrepot',
+  'm10-m07-m06-soute',
+  'm10-m08-m03-entrepot',
+  'm10-m08-m03-magasin',
+  'm10-m08-m03-reserve',
+  'm10-m08-m06-embarquement',
+  'm10-m08-m06-entrepot',
+  'm10-m08-m06-magasin',
+  'm10-m09-m03-cale',
+  'm10-m09-m03-entrepot',
+  'm10-m09-m03-reserve',
+  'm10-m09-m06-cale',
+  'm10-m09-m06-embarquement',
+  'm10-m09-m06-entrepot',
+];
 const SANS_M03_M07 = PAIRES.filter((ligne) => !(ligne.a === 'M-03' && ligne.b === 'M-07'));
 
 function hasardDepuis(graine: number): () => number {
@@ -348,110 +699,44 @@ describe('table des paires (13 §4.1)', () => {
 });
 
 describe('compositions', () => {
-  it('16 compositions à un chemin (2 places), 72 à deux (M-07 à M-10 deux à deux, dans les deux ordres, 3 places), M-03 ou M-06 au bout, triées, sans refus, publiées', () => {
-    expect(CATALOGUE.compositions).toEqual([
-      { id: 'm07-m03-reserve', chemins: ['m-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm07-m03-soute', chemins: ['m-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m06-embarquement', chemins: ['m-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm07-m06-soute', chemins: ['m-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m08-m03-magasin', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm07-m08-m03-reserve', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm07-m08-m03-soute', chemins: ['m-07', 'm-08'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m08-m06-embarquement', chemins: ['m-07', 'm-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm07-m08-m06-magasin', chemins: ['m-07', 'm-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm07-m08-m06-soute', chemins: ['m-07', 'm-08'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m09-m03-cale', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm07-m09-m03-reserve', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm07-m09-m03-soute', chemins: ['m-07', 'm-09'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m09-m06-cale', chemins: ['m-07', 'm-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm07-m09-m06-embarquement', chemins: ['m-07', 'm-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm07-m09-m06-soute', chemins: ['m-07', 'm-09'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m10-m03-entrepot', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm07-m10-m03-reserve', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm07-m10-m03-soute', chemins: ['m-07', 'm-10'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm07-m10-m06-embarquement', chemins: ['m-07', 'm-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm07-m10-m06-entrepot', chemins: ['m-07', 'm-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm07-m10-m06-soute', chemins: ['m-07', 'm-10'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm08-m03-magasin', chemins: ['m-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m03-reserve', chemins: ['m-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm08-m06-embarquement', chemins: ['m-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm08-m06-magasin', chemins: ['m-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m07-m03-magasin', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m07-m03-reserve', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm08-m07-m03-soute', chemins: ['m-08', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm08-m07-m06-embarquement', chemins: ['m-08', 'm-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm08-m07-m06-magasin', chemins: ['m-08', 'm-07'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m07-m06-soute', chemins: ['m-08', 'm-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm08-m09-m03-cale', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm08-m09-m03-magasin', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m09-m03-reserve', chemins: ['m-08', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm08-m09-m06-cale', chemins: ['m-08', 'm-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm08-m09-m06-embarquement', chemins: ['m-08', 'm-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm08-m09-m06-magasin', chemins: ['m-08', 'm-09'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m10-m03-entrepot', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm08-m10-m03-magasin', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm08-m10-m03-reserve', chemins: ['m-08', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm08-m10-m06-embarquement', chemins: ['m-08', 'm-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm08-m10-m06-entrepot', chemins: ['m-08', 'm-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm08-m10-m06-magasin', chemins: ['m-08', 'm-10'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm09-m03-cale', chemins: ['m-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m03-reserve', chemins: ['m-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm09-m06-cale', chemins: ['m-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m06-embarquement', chemins: ['m-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm09-m07-m03-cale', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m07-m03-reserve', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm09-m07-m03-soute', chemins: ['m-09', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm09-m07-m06-cale', chemins: ['m-09', 'm-07'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m07-m06-embarquement', chemins: ['m-09', 'm-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm09-m07-m06-soute', chemins: ['m-09', 'm-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm09-m08-m03-cale', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m08-m03-magasin', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm09-m08-m03-reserve', chemins: ['m-09', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm09-m08-m06-cale', chemins: ['m-09', 'm-08'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m08-m06-embarquement', chemins: ['m-09', 'm-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm09-m08-m06-magasin', chemins: ['m-09', 'm-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm09-m10-m03-cale', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m10-m03-entrepot', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm09-m10-m03-reserve', chemins: ['m-09', 'm-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm09-m10-m06-cale', chemins: ['m-09', 'm-10'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm09-m10-m06-embarquement', chemins: ['m-09', 'm-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm09-m10-m06-entrepot', chemins: ['m-09', 'm-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m03-entrepot', chemins: ['m-10'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m03-reserve', chemins: ['m-10'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm10-m06-embarquement', chemins: ['m-10'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm10-m06-entrepot', chemins: ['m-10'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m07-m03-entrepot', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m07-m03-reserve', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm10-m07-m03-soute', chemins: ['m-10', 'm-07'], final: 'm-03', creature: 'm-07/p-soute', refus: null },
-      { id: 'm10-m07-m06-embarquement', chemins: ['m-10', 'm-07'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm10-m07-m06-entrepot', chemins: ['m-10', 'm-07'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m07-m06-soute', chemins: ['m-10', 'm-07'], final: 'm-06', creature: 'm-07/p-soute', refus: null },
-      { id: 'm10-m08-m03-entrepot', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m08-m03-magasin', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm10-m08-m03-reserve', chemins: ['m-10', 'm-08'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm10-m08-m06-embarquement', chemins: ['m-10', 'm-08'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm10-m08-m06-entrepot', chemins: ['m-10', 'm-08'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m08-m06-magasin', chemins: ['m-10', 'm-08'], final: 'm-06', creature: 'm-08/p-magasin', refus: null },
-      { id: 'm10-m09-m03-cale', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-09/p-cale', refus: null },
-      { id: 'm10-m09-m03-entrepot', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-10/p-entrepot', refus: null },
-      { id: 'm10-m09-m03-reserve', chemins: ['m-10', 'm-09'], final: 'm-03', creature: 'm-03/p-reserve', refus: null },
-      { id: 'm10-m09-m06-cale', chemins: ['m-10', 'm-09'], final: 'm-06', creature: 'm-09/p-cale', refus: null },
-      { id: 'm10-m09-m06-embarquement', chemins: ['m-10', 'm-09'], final: 'm-06', creature: 'm-06/p-embarquement', refus: null },
-      { id: 'm10-m09-m06-entrepot', chemins: ['m-10', 'm-09'], final: 'm-06', creature: 'm-10/p-entrepot', refus: null },
-    ]);
-    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map((composition) => composition.id));
-  });
-
-  it('88 compositions : 44 par final, 16 à un chemin, 72 à deux ; aucune ne réunit M-03 et M-06', () => {
+  it('368 compositions : 184 par final ; 32 à un chemin, 2 places chacune ; 336 à deux, 3 places chacune ; aucune ne réunit M-03 et M-06', () => {
     const { compositions } = CATALOGUE;
-    expect(compositions).toHaveLength(88);
-    for (const final of ['m-03', 'm-06']) expect(compositions.filter((composition) => composition.final === final), final).toHaveLength(44);
-    expect(compositions.filter((composition) => composition.chemins.length === 1)).toHaveLength(16);
-    expect(compositions.filter((composition) => composition.chemins.length === 2)).toHaveLength(72);
+    const CHEMINS = ['m-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10'];
+    expect(compositions).toHaveLength(368);
+    for (const final of ['m-03', 'm-06']) expect(compositions.filter((composition) => composition.final === final), final).toHaveLength(184);
+    expect(compositions.filter((composition) => composition.chemins.length === 1)).toHaveLength(32);
+    expect(compositions.filter((composition) => composition.chemins.length === 2)).toHaveLength(336);
+    const parStation = new Map<string, number>();
     for (const composition of compositions) {
       const morceaux: string[] = [...composition.chemins, composition.final];
+      expect(composition.refus, composition.id).toBeNull();
+      expect(['m-03', 'm-06'], composition.id).toContain(composition.final);
+      expect(new Set(composition.chemins).size, composition.id).toBe(composition.chemins.length);
+      for (const chemin of composition.chemins) expect(CHEMINS, composition.id).toContain(chemin);
       expect(morceaux.includes('m-03') && morceaux.includes('m-06'), composition.id).toBe(false);
+      parStation.set(morceaux.join(' + '), (parStation.get(morceaux.join(' + ')) ?? 0) + 1);
     }
+    for (const [station, places] of parStation) expect(places, station).toBe(station.split(' + ').length);
+  });
+
+  it('les compositions de L3 et toutes les publiées sont dans le catalogue ; celles de L3 restent publiées', () => {
+    const ids = CATALOGUE.compositions.map((composition) => composition.id);
+    expect(PUBLIEES_L3).toHaveLength(88);
+    expect(ids).toEqual(expect.arrayContaining([...PUBLIEES_L3]));
+    expect(ids).toEqual(expect.arrayContaining([...COMPOSITIONS_PUBLIEES]));
+    expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...PUBLIEES_L3]));
+  });
+
+  it('publication (spec L4 §4) : aucune composition palier ou atelier sans M-04, M-07, M-08 ni M-10 avant la place', () => {
+    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
+    const bouchees = CATALOGUE.compositions.filter(({ chemins, creature }) => {
+      if (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier') return false;
+      const avant = chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/'))));
+      return !avant.some((chemin) => AIDES.includes(chemin));
+    });
+    expect(bouchees).toHaveLength(44);
+    const bouchee = new Set(bouchees.map(({ id }) => id));
+    expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.map(({ id }) => id).filter((id) => !bouchee.has(id)));
   });
 
   it('identifiants de composition uniques, triés, minuscules, chiffres et tirets, 29 caractères au plus : avec la graine, 40 au plus', () => {
@@ -471,7 +756,7 @@ describe('compositions', () => {
       const cle = [...composition.chemins, composition.final].join(' + ');
       parStation.set(cle, [...(parStation.get(cle) ?? []), composition]);
     }
-    expect(parStation.size).toBe(32);
+    expect(parStation.size).toBe(128);
     for (const [cle, compositions] of parStation) {
       const morceaux = cle.split(' + ').map((id) => MORCEAUX[id]);
       const places = morceaux.flatMap((entree) => entree?.morceau.placesCreature.map((place) => `${entree.morceau.id}/${place}`) ?? []);
@@ -494,7 +779,7 @@ describe('compositions', () => {
     expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual(
       CATALOGUE.compositions.map(({ id, chemins, final }) => [id, chemins.includes('m-07') && final === 'm-03' ? motif : null]),
     );
-    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(20);
+    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(44);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m03-soute'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.resoudre('m07-m03-soute-42'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.construire('m07-m03-soute', 42))).toContain('M-03 + M-07');
@@ -559,6 +844,18 @@ describe('compositions', () => {
     expect(entreeDe(catalogue.construire('m10-m03-entrepot', 2718281828)).monde.id).toBe('m10-m03-entrepot-2718281828');
     const hasard = hasardDepuis(3);
     for (let rang = 0; rang < 10; rang++) expect(entreeDe(catalogue.tirer(hasard)).monde.id).toMatch(/^m07-m03-soute-/);
+  });
+
+  it.each(['m01-m03-palier', 'm02-m06-atelier'])('vigilance 2 (spec L4 §4) : %s, possible mais non prouvée, n’est ni résolue ni tirée', (composition) => {
+    const { appels, assembler } = espion();
+    const catalogue = creerCatalogue(assembler);
+    expect(catalogue.compositions.find(({ id }) => id === composition)?.refus).toBeNull();
+    expect(COMPOSITIONS_PUBLIEES).not.toContain(composition);
+    let resultat: EntreeMonde | Refus | undefined;
+    expect(() => (resultat = catalogue.resoudre(`${composition}-1`))).not.toThrow();
+    expect(refusDe(resultat as EntreeMonde | Refus)).toBe(`Composition ${composition} non prouvée : non proposée.`);
+    expect(refusDe(catalogue.tirer(hasardDepuis(1), composition))).toContain('non prouvée');
+    expect(appels).toEqual([]);
   });
 });
 
@@ -661,6 +958,15 @@ describe('résolution d’un identifiant', () => {
     expect(empreinte(entreeDe(catalogue.resoudre(id)).monde)).toBe(attendue);
   });
 
+  it('vigilance 1 (spec L4 §4) : les 88 stations de L3 sont reconstruites à l’identique à la graine 2718281828', () => {
+    const monde = (composition: string): DefMonde => entreeDe(catalogue.resoudre(`${composition}-2718281828`)).monde;
+    const mondes = PUBLIEES_L3.map(monde);
+    expect(empreinte(Object.fromEntries(mondes.map((station) => [station.id, empreinte(station)])))).toBe('152494a91b63a3');
+    expect(empreinte(monde('m08-m09-m06-embarquement'))).toBe('147ebc16edcecc');
+    expect(empreinte(monde('m10-m09-m03-entrepot'))).toBe('137409808e604c');
+    expect(empreinte(monde('m07-m10-m06-soute'))).toBe('0a4e45868f1f76');
+  });
+
   it('messages d’IA Station au réveil et au départ : écrits, sans pièce nommée ni présence détectée', () => {
     const { monde, textes } = entreeDe(catalogue.resoudre(ID));
     const noms = monde.pieces.map((piece) => textes.noms[piece.nom]?.texte.toLocaleLowerCase('fr') ?? piece.nom);
@@ -686,8 +992,8 @@ describe('résolution d’un identifiant', () => {
   it('le tirage consomme le hasard dans l’ordre : final, composition, puis graine du plan', () => {
     const manque = espion((station) => (station.graine === 7 ? { type: 'sans_plan' } : assemblerStation(station)));
     const tirage = creerCatalogue(manque.assembler);
-    // Final : 4 % 2 (m-03) ; composition : 5 % 44 (m07-m09-m03-cale) ; graine 7 sans plan, puis 2718281828.
-    expect(entreeDe(tirage.tirer(suiteDe(4, 5, 7, 2718281828))).monde.id).toBe('m07-m09-m03-cale-2718281828');
+    // Final : 4 % 2 (m-03) ; composition : 5 % 162 (m01-m05-m03-tri) ; graine 7 sans plan, puis 2718281828.
+    expect(entreeDe(tirage.tirer(suiteDe(4, 5, 7, 2718281828))).monde.id).toBe('m01-m05-m03-tri-2718281828');
     expect(manque.appels.map((station) => station.graine)).toEqual([7, 2718281828]);
   });
 
@@ -734,8 +1040,8 @@ describe('stations tirées', () => {
     expect(aller?.disponible).toBe(true);
     const sortie = jouer(monde, ouverte.partie, aller?.commande);
     expect(sortie).toMatchObject({ type: 'engagee', tirages: [] });
-    const [premier] = CATALOGUE.compositions.find(({ id }) => id === composition)?.chemins ?? [];
-    expect(sortie.partie.etat.piece).toBe(`${premier ?? ''}/p-quartiers`);
+    const [premier = ''] = CATALOGUE.compositions.find(({ id }) => id === composition)?.chemins ?? [];
+    expect(sortie.partie.etat.piece).toBe(`${premier}/${MORCEAUX[premier]?.morceau.entree ?? ''}`);
   });
 
   it('PL-04 : sur 50 stations tirées, chaque nom de pièce tient dans son rectangle', () => {
@@ -915,11 +1221,18 @@ describe('clés de texte en conflit entre morceaux (spec L3 §4.2)', () => {
     expect([b?.morceau.objets[0]?.nom, b?.textes.noms.capsule_cb, b?.textes.descriptions.capsule_cb]).toEqual(['capsule_cb', reunir([]).noms.capsule, ['Une autre capsule.']]);
   });
 
-  it('vigilance 1 : m07-m10-m03-soute se lit « coursive A » puis « coursive B » ; nulle part deux pièces au même nom affiché', () => {
+  it('vigilance 1 de L3 et 3 de L4 : m07-m10-m03-soute se lit « coursive A » puis « coursive B » ; m02-m08-m03-reserve, « atelier maintenance » et « atelier » ; nulle part deux pièces au même nom affiché', () => {
     const { monde, textes } = entreeDe(CATALOGUE.resoudre('m07-m10-m03-soute-2718281828'));
     expect(validerMonde(monde)).toEqual([]);
     const affiche = (id: string): string | undefined => textes.noms[monde.pieces.find((piece) => piece.id === id)?.nom ?? '']?.texte;
     expect([affiche('m-07/p-coursive'), affiche('m-10/p-coursive')]).toEqual(['coursive A', 'coursive B']);
+    const reference = stationDeReference(CATALOGUE, 'm02-m08-m03-reserve');
+    if ('refus' in reference) throw new Error(reference.refus);
+    const ateliers = reference.entree;
+    const afficheAtelier = (id: string): string | undefined =>
+      ateliers.textes.noms[ateliers.monde.pieces.find((piece) => piece.id === id)?.nom ?? '']?.texte;
+    expect([afficheAtelier('m-02/p-atelier'), afficheAtelier('m-08/p-atelier')]).toEqual(['atelier maintenance', 'atelier']);
+    expect(COMPOSITIONS_PUBLIEES.length).toBeGreaterThan(PUBLIEES_L3.length);
     const references = COMPOSITIONS_PUBLIEES.map((composition) => {
       const reference = stationDeReference(CATALOGUE, composition);
       if ('refus' in reference) throw new Error(reference.refus);

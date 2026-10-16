@@ -241,6 +241,11 @@ Mesures locales de L3 (#153), sans assertion de temps ([13 §7.6](13-morceaux-la
 - sur 1 000 graines par chaîne : 1 000 plans sur 1 000 pour chacune, au plus 2,74 ms en moyenne pour une chaîne, 7,29 ms pour le pire tirage ;
 - sur 1 000 tirages complets du catalogue : 1 000 stations, 1,08 ms en moyenne et 8,32 ms au plus.
 
+Mesures locales de L4 (#154), sans assertion de temps ([13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154)) :
+- 128 chaînes de tuiles : vestibule, un ou deux morceaux de chemin parmi les huit, M-03 ou M-06 ;
+- sur 1 000 graines par chaîne : 1 000 plans sur 1 000 pour chacune, au plus 2,06 ms en moyenne pour une chaîne, 10,42 ms pour le pire tirage ;
+- sur 1 000 tirages complets du catalogue : 1 000 stations, 0,80 ms en moyenne et 5,21 ms au plus.
+
 Les échecs de pose mesurés sur des chaînes sans plan ne se produisent pas avec les vraies tuiles.
 
 Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
