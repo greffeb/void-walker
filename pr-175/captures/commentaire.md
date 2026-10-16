@@ -2,25 +2,52 @@
 ## Version de test
 
 **Adresse :** https://greffeb.github.io/void-walker/pr-175/
-Commit `03f7eea`
+Commit `2e398cc`
 
 Captures d’un navigateur automatique sur téléphone simulé (Pixel 7, 390 × 844 puis 320 px de large ; départ d’AR-01 aussi en 412 × 915). Niveau de preuve : **vérifié automatiquement**, ce n’est pas une validation humaine.
 
 ### Parcours du monde de test
 
-**Parcours du monde de test : ÉCHEC.**
-
-- Installation : locator.waitFor: Timeout 10000ms exceeded.
-Call log:
-  - waiting for getByRole('button', { name: /^Installer le jeu/i }) to be visible
-
+**Parcours du monde de test : réussi.**
 Adresse : `?monde=monde-test`.
 Installation : manifeste présent (icônes 192x192, 512x512, 512x512), service worker actif
 Hors ligne : polices chargées : 400 normal, 600 normal ; IBMPlexMono-SemiBold.woff2 (service worker), IBMPlexMono-Regular.woff2 (service worker)
 
-
+<img src="https://greffeb.github.io/void-walker/pr-175/captures/01.png?v=2e398cc" width="200" alt="Options : installation, invite du navigateur"> <img src="https://greffeb.github.io/void-walker/pr-175/captures/02.png?v=2e398cc" width="200" alt="Options : installation, aide iPhone"> <img src="https://greffeb.github.io/void-walker/pr-175/captures/03.png?v=2e398cc" width="200" alt="Options : installation, aide Firefox"> <img src="https://greffeb.github.io/void-walker/pr-175/captures/04.png?v=2e398cc" width="200" alt="Options : installation, aide iPhone, écran étroit et texte très grand">
 
 <details><summary>Texte affiché à chaque étape</summary>
+
+#### Options : installation, invite du navigateur
+
+> 
+
+```text
+
+```
+
+#### Options : installation, aide iPhone
+
+> 
+
+```text
+
+```
+
+#### Options : installation, aide Firefox
+
+> 
+
+```text
+
+```
+
+#### Options : installation, aide iPhone, écran étroit et texte très grand
+
+> 
+
+```text
+
+```
 
 </details>
 
