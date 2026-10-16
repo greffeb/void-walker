@@ -286,9 +286,11 @@ function reaction(
   // Le passager n'en est averti que si cela lui donne une piste qu'elle n'avait pas.
   const nouvelle = son?.pas !== undefined && creature.indice?.piece !== son.piece;
   const entendus: Evenement[] = !nouvelle ? [] : son.pas === 'pas' ? [{ type: 'pas_entendus' }] : [{ type: 'souffle_entendu' }];
+  // Le passager l'entend déjà bouger ou arriver : le récit n'a pas besoin de l'indice en plus (D-111, récits de 2 à 4 phrases).
+  const annonce = (reponse: Reponse): boolean => reponse.evenements.some((evenement) => ['bruit_creature', 'creature_entre', 'creature_glisse'].includes(evenement.type));
   const suite = (reponse: Reponse): Reponse => ({
     ...reponse,
-    evenements: [...entendus, ...reponse.evenements],
+    evenements: annonce(reponse) ? reponse.evenements : [...entendus, ...reponse.evenements],
     ...(son?.pas === 'pas' ? { ecoutee: true } : {}),
   });
   // Une nouvelle piste lui rend le droit de fouiller autour de son bout.

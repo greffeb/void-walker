@@ -145,7 +145,7 @@ describe('M-08 — passerelle effondrée (D-164, D-169, D-236)', () => {
     }
     // Il repasse le vide : elle ne l'a pas vu partir, mais elle entend ses pas et le raconte.
     const traversee = engager(monde, partie, { action: 'aller', cible: 'vide', vers: 'ouest' });
-    expect(types(traversee.evenements)).toEqual(['deplacement', 'pas_entendus', 'bruit_creature']);
+    expect(types(traversee.evenements)).toEqual(['deplacement', 'bruit_creature']);
     expect(traversee.partie.etat.creature).toMatchObject({ piece: 'p-est', indice: { piece: 'p-ouest', par: null } });
     // Il n'a plus qu'à attendre au bord : elle le poursuit sur la planche, qui cède.
     const attente = jouer(monde, traversee.partie, { action: 'attendre', cible: observer(monde, traversee.partie.etat).piece.id });

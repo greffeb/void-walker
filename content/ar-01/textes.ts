@@ -130,7 +130,7 @@ export const TEXTES_AR01: TextesMonde = {
     bruit_mecanisme: ['{Le:passage} grince longuement ; le bruit a dû porter.', 'Le mécanisme grippé hurle tout du long.'],
     bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],
     creature_entre: ['Quelque chose surgit par {le:passage}.', 'Une masse sombre se coule par {le:passage}.'],
-    pas_entendus: ['Vos pas ont dû porter : quelque chose se met en route.', 'Le sol a dû trahir votre passage ; là-bas, quelque chose a bougé.'],
+    pas_entendus: ['Vos pas ont dû porter : quelque chose se met en route.'],
     souffle_entendu: ['Même votre souffle semble porter : là-bas, quelque chose écoute.', 'Vous n’osez plus respirer : quelque chose, là-bas, tend l’oreille.'],
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',

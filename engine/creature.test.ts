@@ -234,7 +234,7 @@ describe('perception et réaction (C-03 §4)', () => {
     // Il sort par B puis continue vers A, ou reste en B : elle fait le même pas, vers B, puis, alertée, suit ses pas (D-276).
     const loin = suite(monde, vue, [['aller', 'salle_b'], ['aller', 'salle_a'], ['prendre', 'boite']]);
     const pres = suite(monde, vue, [['aller', 'salle_b'], ['prendre', 'cle']]);
-    expect(loin.evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'pas_entendus', 'bruit_creature'], ['objet_pris', 'creature_entre']]);
+    expect(loin.evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'bruit_creature'], ['objet_pris', 'creature_entre']]);
     expect(pres.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre']]);
     expect(loin.partie.etat.creature).toMatchObject({ piece: 'a', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null });
     expect(pres.partie.etat.creature).toMatchObject({ piece: 'b', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null });
@@ -431,7 +431,7 @@ describe('danger connu derrière un passage où elle a été perçue (D-180, D-1
     expect(apercuDe(monde, avant, 'aller', 'salle_b')).toEqual({ risque: 'modere', danger: ['creature_entendue', 'porte_ab'] });
     // Il retourne en C par la grille : alertée, elle entend ses pas et le rejoint en C, où il la voit (D-276) ; la vue remplace le bruit.
     const { partie: fin, evenements } = suite(monde, avant, [['aller', 'grille_ac']]);
-    expect(types(evenements[0] ?? [])).toEqual(['deplacement', 'pas_entendus', 'creature_entre']);
+    expect(types(evenements[0] ?? [])).toEqual(['deplacement', 'creature_entre']);
     expect(fin.etat.reperes).toEqual({ vue: { piece: 'c', depuis: 0 }, entendue: null });
   });
 
@@ -503,9 +503,9 @@ describe('poursuite des pas, écoute et fouille (D-276)', () => {
     expect(pieceCreature(fin)).toBe('c');
   });
 
-  it('alertée, elle entend ses pas dans une autre pièce, va vers lui et le prévient', () => {
+  it('alertée, elle entend ses pas dans une autre pièce et va vers lui ; le bruit de sa marche suffit au récit', () => {
     const { partie: fin, evenements } = suite(monde, alertee(monde, 'd'), [['aller', 'salle_b'], ['prendre', 'cle']]);
-    expect(types(evenements[0] ?? [])).toEqual(['deplacement', 'piece_decouverte', 'pas_entendus', 'bruit_creature']);
+    expect(types(evenements[0] ?? [])).toEqual(['deplacement', 'piece_decouverte', 'bruit_creature']);
     expect(pieceCreature(fin)).toBe('b');
     expect(types(evenements[1] ?? [])).toEqual(['objet_pris', 'creature_entre']);
   });
