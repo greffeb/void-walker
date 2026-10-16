@@ -148,7 +148,34 @@ export interface CasApercu {
   readonly geste: Geste;
 }
 
-/** Premier aperçu de chaque forme, au plus près du départ ; seuls ceux d'AR-01 existent. */
+/** Graines d'essai : la partie du navigateur tire la sienne au hasard (AP-02). */
+const GRAINES_ESSAI = [1, 2, 3, 7, 11, 2718281828];
+
+/**
+ * Un chemin se rejoue à l'identique dans le navigateur quelle que soit la graine : chaque geste y reste jouable de la même
+ * façon (d'un toucher ou par l'aperçu), et le dernier y montre la même forme d'aperçu.
+ */
+function reproductible(entree: EntreeMonde, chemin: readonly Geste[], geste: Geste, forme: string): boolean {
+  return GRAINES_ESSAI.every((graine) => {
+    let partie: Partie = nouvellePartie(entree.monde, { version: 'gestes', graine });
+    for (const pas of chemin) {
+      const option = observer(entree.monde, partie.etat).menu.find((choix) => JSON.stringify(choix.commande) === JSON.stringify(pas.commande));
+      if (option === undefined || unToucher(entree.monde, partie, option) !== pas.direct) return false;
+      const resultat = jouer(entree.monde, partie, option.commande);
+      if (resultat.type !== 'engagee') return false;
+      partie = resultat.partie;
+    }
+    const option = observer(entree.monde, partie.etat).menu.find((choix) => JSON.stringify(choix.commande) === JSON.stringify(geste.commande));
+    const prevu = option === undefined || unToucher(entree.monde, partie, option) ? undefined : apercu(entree.monde, partie, option.commande);
+    if (prevu?.type !== 'apercu') return false;
+    return `${String(prevu.apercu.risque !== 'aucun' || prevu.apercu.danger !== null)}:${String(prevu.apercu.cout !== 'aucun')}` === forme;
+  });
+}
+
+/**
+ * Premier aperçu de chaque forme, au plus près du départ, parmi ceux qui se rejouent quelle que soit la graine ; portes et
+ * déplacements n'en ont plus (D-267), le monde de test n'en montre donc pas les quatre formes.
+ */
 export function casApercus(entree: EntreeMonde): CasApercu[] {
   const trouves = new Map<string, CasApercu>();
   const vus = new Set<string>();
@@ -161,16 +188,18 @@ export function casApercus(entree: EntreeMonde): CasApercu[] {
       vus.add(etat);
       const observation = observer(entree.monde, partie.etat);
       for (const option of observation.menu.filter((choix) => choix.disponible)) {
+        // Une consultation (regarder une porte) n'a ni aperçu ni bouton à rejouer (D-267).
+        const resultat = jouer(entree.monde, partie, option.commande);
+        if (resultat.type !== 'engagee') continue;
         const geste = gesteDe(entree, partie, observation, option);
         const prevu = apercu(entree.monde, partie, option.commande);
         if (prevu.type === 'apercu' && !geste.direct) {
           const risque = prevu.apercu.risque !== 'aucun' || prevu.apercu.danger !== null;
           const cout = prevu.apercu.cout !== 'aucun';
           const forme = `${String(risque)}:${String(cout)}`;
-          if (!trouves.has(forme)) trouves.set(forme, { risque, cout, chemin, geste });
+          if (!trouves.has(forme) && reproductible(entree, chemin, geste, forme)) trouves.set(forme, { risque, cout, chemin, geste });
         }
-        const resultat = jouer(entree.monde, partie, option.commande);
-        if (resultat.type === 'engagee') suivante.push({ partie: resultat.partie, chemin: [...chemin, geste] });
+        suivante.push({ partie: resultat.partie, chemin: [...chemin, geste] });
       }
     }
     frontiere = suivante;
@@ -951,8 +980,8 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   await capturer(page, 'Jeu en « très grande », sans lignes de balayage');
   await verifierEcran(page, 'Jeu, très grande', erreurs);
   await verifierSansTroncature(page, 'Jeu, très grande', erreurs);
-  const puce = page.locator(OUVRE_BULLE).first();
-  await puce.click();
+  // Une puce de la pièce, ou l'inventaire quand la pièce n'en a plus (carnet en main).
+  await page.locator(`${OUVRE_BULLE}, .navigation .nav-inventaire`).first().click();
   await verifierDansEcran(page, 'Bulle, très grande', erreurs);
   await verifierSansTroncature(page, 'Bulle, très grande', erreurs);
   await capturer(page, 'Bulle en « très grande »');
@@ -2104,7 +2133,10 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
             await page.waitForTimeout(1_000);
           }
           if ((await page.getByTestId('sauvegarde').getAttribute('data-actions')) !== '4') erreurs.push(`Double toucher sur « ${pose.bouton} » dans l’inventaire : l’objet a été posé.`);
-          if (!(await page.getByRole('dialog', { name: exactement(pose.bouton) }).isVisible())) erreurs.push(`Double toucher sur « ${pose.bouton} » : la fiche n’est pas restée ouverte.`);
+          // Créature dans la pièce (graine tirée au hasard) : « Poser » garde son aperçu, que le second toucher peut ouvrir sans rien jouer.
+          const fiche = page.getByRole('dialog', { name: exactement(pose.bouton) });
+          const apercuPose = page.getByRole('dialog', { name: exactement(`${pose.bouton} › ${pose.verbe}`) });
+          if (!(await fiche.isVisible()) && !(await apercuPose.isVisible())) erreurs.push(`Double toucher sur « ${pose.bouton} » : la bulle s’est refermée.`);
         }
       }
       await neuf.close();
@@ -2112,7 +2144,8 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
 
     // Les quatre formes de l'aperçu, chacune depuis une partie neuve.
     const formes = casApercus(entree);
-    if (formes.length < 4) erreurs.push(`Seulement ${formes.length} formes d’aperçu sur quatre dans le monde de test.`);
+    // Les quatre formes se vérifient au rendu (EcranJeu.test.tsx, D-187) ; ici, celles que le monde de test atteint sans dé.
+    if (formes.length === 0) erreurs.push('Aucune forme d’aperçu à capturer dans le monde de test.');
     for (const forme of formes) {
       const neuf = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
       page = await neuf.newPage();

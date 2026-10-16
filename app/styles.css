@@ -965,6 +965,12 @@ button:disabled {
   border: 1px solid var(--texte);
 }
 
+/* Le nom peut rétrécir et se couper dans un mot trop long pour sa colonne (texte agrandi sur un écran étroit). */
+.deplacement .destination {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* Déplacement impossible (porte fermée) : contour pointillé, sans fond ; le toucher fait dire au récit pourquoi (D-267). */
 .deplacement.bloque {
   color: var(--texte);
@@ -993,9 +999,10 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: calc(112px * var(--echelle));
+  /* 112 px au texte standard ; agrandi, la largeur suit le mot (« OUVERTE ») pour laisser sa place au nom. */
+  min-width: 112px;
   min-height: 48px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-size: calc(13px * var(--echelle));
   font-weight: 600;
   letter-spacing: 0.06em;

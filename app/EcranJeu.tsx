@@ -953,8 +953,10 @@ function LigneSalle({
   return (
     <li className={manoeuvre === undefined ? 'salle sans-porte' : 'salle'}>
       <button type="button" className={classes} aria-label={nomLigne(textes, deplacement)} disabled={occupe} onClick={() => jouer(passer)} data-son={passer.disponible ? 'confirmer' : 'refus'}>
-        <span aria-hidden="true">→ </span>
-        {destination}
+        <span className="destination">
+          <span aria-hidden="true">→ </span>
+          {destination}
+        </span>
         {reperes.map((repere) => (
           <span key={repere} className="repere" aria-hidden="true">
             {REPERES[repere]}
