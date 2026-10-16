@@ -82,6 +82,9 @@ function quitterEntreeBulle(): void {
   if (typeof etat === 'object' && etat !== null && ENTREE_BULLE in etat) window.history.back();
 }
 
+/** Parties dont l'information « plus aucune sortie » a été lue, le temps de la session : options et retour ne la rouvrent pas. */
+const INFORMEES = new Set<string>();
+
 /** Écran de jeu (12 §3.1), lu dans cet ordre : en-tête de pièce, récit, dock, navigation (12 §7). */
 const SIGNAUX_DEGAT: ReadonlySet<Signal> = new Set(['blessure', 'blessure-critique', 'mort']);
 /** L'action a coûté de la santé : blessure, blessure critique ou mort (15 §2.2). */
@@ -132,6 +135,7 @@ export function EcranJeu({
   envoyerPartie,
   pr = '',
   empreinteCle,
+  terminerPartie,
 }: {
   readonly jeu: Jeu;
   /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
@@ -147,6 +151,8 @@ export function EcranJeu({
   readonly ouvrirOptions?: () => void;
   /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
   readonly nouvellePartie?: () => void;
+  /** TERMINER LA PARTIE de l'information « plus aucune sortie » (12 §5.2) : un abandon ; `false` s'il n'a pas pu être enregistré. */
+  readonly terminerPartie?: () => Promise<boolean>;
   /** Signaux de la dernière action (15 §2.2), annoncés après l'écriture du texte. */
   readonly signaux?: readonly Signal[];
   /** ENVOYER MA PARTIE après la fin (12 §4.11) ; dans une version de test, la partie finie peut porter « je valide ». */
@@ -176,6 +182,11 @@ export function EcranJeu({
   const dernierChangement = useRef(Number.NEGATIVE_INFINITY);
   /** Texte affiché en entier avant la fin de l'écriture : touché ou clavier pendant l'effet (D-186). */
   const [complet, setComplet] = useState<Jeu | null>(null);
+  /** CONTINUER À JOUER touché pour cette partie : l'information ne revient pas, seul le rappel reste (D-144). */
+  const [, setInforme] = useState(0);
+  const partieInformee = `${env.monde.id}:${jeu.partie.enregistrement.graine}`;
+  const sansSortie = observation.sansSortie && !observation.terminee;
+  const information = sansSortie && !INFORMEES.has(partieInformee);
   const ecrire = machineAEcrire && complet !== jeu && !dejaEcrit(jeu);
   const completer = (): void => {
     marquerEcrit(jeu);
@@ -224,8 +235,17 @@ export function EcranJeu({
     const depuis = aRendre.current;
     if (depuis === null) return;
     aRendre.current = null;
+    // L'information « plus aucune sortie » vient de s'ouvrir : le focus est à elle (12 §7).
+    if (information) return;
     (depuis.isConnected ? depuis : recit.current)?.focus();
-  }, [jeu]);
+  }, [jeu, information]);
+  /** Après CONTINUER À JOUER, le focus revient au récit, sous le rappel (12 §7). */
+  const rendreAuRecit = useRef(false);
+  useEffect(() => {
+    if (information || !rendreAuRecit.current) return;
+    rendreAuRecit.current = false;
+    recit.current?.focus();
+  }, [information]);
 
   /** Ouvre une bulle ou change d'étape. */
   const montrer = (suivante: Ouverte): void => {
@@ -287,6 +307,12 @@ export function EcranJeu({
         )}
       </header>
       <Sauvegarde jeu={jeu} />
+      {/* Rappel discret jusqu'à la fin de la partie (D-144) ; il ne nomme aucune sortie (D-085). */}
+      {sansSortie && (
+        <p className="rappel-sans-sortie" data-testid="sans-sortie">
+          [ plus aucune sortie possible ]
+        </p>
+      )}
       <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} terminee={observation.terminee} />
       {/* Situation en phrases : hors de l'écran, gardée pour le lecteur d'écran comme dans la CLI (C-06 K-07). */}
       <section className="lecteur-seul" data-testid="situation">
@@ -415,7 +441,75 @@ export function EcranJeu({
           </button>
         </nav>
       </div>
+      {information && (
+        <InformationSansSortie
+          occupe={occupe}
+          continuer={() => {
+            INFORMEES.add(partieInformee);
+            rendreAuRecit.current = true;
+            setInforme((n) => n + 1);
+          }}
+          terminer={terminerPartie}
+        />
+      )}
     </main>
+  );
+}
+
+/**
+ * Information du jeu « plus aucune sortie » (12 §3.11, §5.2) : la voix du système, rare, en carte pleine. Elle ne se referme
+ * que par l'un de ses deux boutons ; aucune sortie n'y est nommée (D-085).
+ */
+export function InformationSansSortie({
+  occupe,
+  continuer,
+  terminer,
+}: {
+  readonly occupe: boolean;
+  readonly continuer: () => void;
+  /** TERMINER LA PARTIE : un abandon ; `false` s'il n'a pas pu être enregistré, la partie reste en cours. */
+  readonly terminer?: () => Promise<boolean>;
+}) {
+  const zone = useRef<HTMLElement>(null);
+  const idTitre = useId();
+  const idTexte = useId();
+  const [refus, setRefus] = useState(false);
+  useEffect(() => zone.current?.focus(), []);
+  return (
+    <>
+      <div className="voile voile-information" />
+      {/* Le focus y entre et n'en sort pas ; Échap ne la referme pas : seuls ses boutons le font. */}
+      <section
+        ref={zone}
+        className="information-jeu"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby={idTitre}
+        aria-describedby={idTexte}
+        tabIndex={-1}
+        onKeyDown={(evenement) => garderFocus(evenement, () => undefined)}
+      >
+        <p className="etiquette-information">Information du jeu</p>
+        <h2 id={idTitre}>Plus aucune sortie possible.</h2>
+        <p id={idTexte}>Plus aucun chemin ne mène à une capsule de secours. Vous pouvez continuer à jouer et explorer la station.</p>
+        <button type="button" className="continuer" disabled={occupe} onClick={continuer} data-son="clic">
+          Continuer à jouer
+        </button>
+        {terminer !== undefined && (
+          <>
+            <button type="button" className="terminer" disabled={occupe} onClick={() => void terminer().then((fait) => setRefus(!fait))} data-son="confirmer">
+              Terminer la partie
+            </button>
+            <p className="note-information">la partie s’arrête ici</p>
+            {refus && (
+              <p className="note-information" role="alert">
+                L’abandon n’a pas pu être enregistré. La partie est toujours en cours.
+              </p>
+            )}
+          </>
+        )}
+      </section>
+    </>
   );
 }
 

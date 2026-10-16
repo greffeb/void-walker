@@ -536,6 +536,8 @@ export interface Observation {
   readonly terminee: boolean;
   /** Comment elle s'est conclue ; `null` tant qu'elle continue. */
   readonly issue: Issue | null;
+  /** Plus aucune évacuation possible, quels que soient les dés et les blessures (D-085, D-275) ; ne nomme aucune sortie. */
+  readonly sansSortie: boolean;
   /** Messages d'assistance reçus, dans l'ordre, pour les relire. */
   readonly messages: readonly string[];
   readonly menu: readonly OptionMenu[];

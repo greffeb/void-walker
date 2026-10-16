@@ -368,6 +368,7 @@ export const TEXTES_AR01: TextesMonde = {
     blesse: 'Vous êtes blessé.',
     critique: 'Vous êtes grièvement blessé.',
     terminee: 'Cette partie est terminée. Elle ne peut pas être reprise.',
+    sansSortie: 'Plus aucun chemin ne mène à une capsule de secours.',
     evacuee: 'La capsule s’est détachée. Vous avez quitté la station.',
     abandon: 'Vous en restez là, dans {le:piece}.',
     momentReveil: 'au réveil · {Nom:piece}',

@@ -23,7 +23,8 @@
     "captures": "tsx tools/captures.ts",
     "test": "vitest run",
     "verify": "tsx tools/verify.ts",
-    "verify:complet": "tsx tools/verify.ts --complet"
+    "verify:complet": "tsx tools/verify.ts --complet",
+    "check:sortie": "tsx tools/verifier-sortie.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

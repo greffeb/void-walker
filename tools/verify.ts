@@ -5,10 +5,10 @@ import { isMainModule } from './repo-files';
 // Les étapes longues se partagent elles-mêmes entre les cœurs (check:stations, check:texts, vitest) : les lancer en même
 // temps n'y gagne presque rien et fait dépasser leurs délais aux tests (#180). La CI lance les mêmes étapes en jobs
 // parallèles (.github/workflows/verification.yml).
-export const STEPS: readonly string[] = ['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'check:stations', 'test', 'parcours', 'build'];
+export const STEPS: readonly string[] = ['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'check:stations', 'check:sortie', 'test', 'parcours', 'build'];
 
 /** Étapes longues, en jobs à part dans la CI. */
-export const LONGUES: readonly string[] = ['check:texts', 'check:stations', 'test'];
+export const LONGUES: readonly string[] = ['check:texts', 'check:stations', 'check:sortie', 'test'];
 
 /**
  * Mode complet (#180), facultatif, hors CI : tout refaire en entier. Catalogue prouvé deux fois (check:stations et le test

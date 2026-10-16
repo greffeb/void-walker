@@ -13,7 +13,7 @@ import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
-import { verifierLibre } from './verifier-station';
+import { cleEtatRegles, verifierLibre } from './verifier-station';
 import { versionDuJeu } from './version';
 
 // Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large ;
@@ -1681,6 +1681,74 @@ function departDe({ monde, textes }: EntreeMonde): string {
 }
 
 /**
+ * Plus courte partie de M-08 sans dé ni blessure où plus aucune sortie n'est possible (G-03) : la planche posée cède sous la
+ * créature, le passager resté du mauvais côté. Aucun dé : elle se rejoue quelle que soit la graine.
+ */
+export function gestesSansSortie(entree: EntreeMonde): Geste[] | null {
+  const vus = new Set<string>();
+  let frontiere: { partie: Partie; chemin: Geste[] }[] = [{ partie: nouvellePartie(entree.monde, { version: 'gestes', graine: 0 }), chemin: [] }];
+  while (frontiere.length > 0) {
+    const suivante: { partie: Partie; chemin: Geste[] }[] = [];
+    for (const { partie, chemin } of frontiere) {
+      const observation = observer(entree.monde, partie.etat);
+      if (observation.sansSortie) return chemin;
+      const cle = cleEtatRegles(partie.etat);
+      if (vus.has(cle) || observation.terminee) continue;
+      vus.add(cle);
+      for (const option of observation.menu.filter((choix) => choix.disponible && choix.action !== 'regarder')) {
+        const resultat = jouer(entree.monde, partie, option.commande);
+        if (resultat.type !== 'engagee' || resultat.tirages.length > 0 || resultat.partie.etat.sante !== partie.etat.sante) continue;
+        suivante.push({ partie: resultat.partie, chemin: [...chemin, gesteDe(entree, partie, observation, option)] });
+      }
+    }
+    frontiere = suivante;
+  }
+  return null;
+}
+
+/**
+ * « Plus aucune sortie » (#156, 12 §5.2) : `?monde=m-08`, la planche perdue exprès ; l'information du jeu, CONTINUER À JOUER,
+ * le rappel en tête du récit, la partie qui continue ; options puis retour ne rouvrent pas l'information (D-144).
+ */
+async function parcoursSansSortie(navigateur: Browser, racine: string, m08: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const chemin = gestesSansSortie(m08);
+  if (chemin === null) {
+    erreurs.push('M-08 : aucune partie sans dé où la planche se perd.');
+    return;
+  }
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  const page = await contexte.newPage();
+  await page.goto(`${racine}?monde=m-08`);
+  await nouvelleDepuisAccueil(page);
+  const information = page.getByRole('alertdialog', { name: exactement('Plus aucune sortie possible.') });
+  await rejouer(page, chemin.slice(0, -1));
+  if ((await information.count()) !== 0) erreurs.push('Plus aucune sortie : information avant la perte de la planche.');
+  await rejouer(page, chemin.slice(-1), chemin.length - 1);
+  await information.waitFor();
+  await capturer(page, 'Plus aucune sortie — information du jeu');
+  // Le texte du jeu, rien d'autre : aucune sortie nommée (D-085).
+  const attendu = 'Information du jeu Plus aucune sortie possible. Plus aucun chemin ne mène à une capsule de secours. Vous pouvez continuer à jouer et explorer la station. Continuer à jouer Terminer la partie la partie s’arrête ici';
+  const lu = await information.innerText();
+  if (lu.replace(/\s+/g, '').toLowerCase() !== attendu.replace(/\s+/g, '').toLowerCase()) erreurs.push(`Plus aucune sortie : information « ${lu} ».`);
+  // Le focus est dans l'information à son ouverture et n'en sort pas au clavier (12 §7).
+  if (!(await information.evaluate((element) => element.contains(document.activeElement)))) erreurs.push('Plus aucune sortie : le focus n’est pas dans l’information.');
+  await verifierFocusPiege(page, information, 'Plus aucune sortie', erreurs);
+  await information.getByRole('button', { name: exactement('Continuer à jouer') }).click();
+  await information.waitFor({ state: 'detached' });
+  if (!(await page.getByTestId('recit').evaluate((element) => element === document.activeElement))) erreurs.push('Plus aucune sortie : le focus ne revient pas au récit.');
+  const rappel = page.getByTestId('sans-sortie');
+  if (((await rappel.textContent()) ?? '').trim() !== '[ plus aucune sortie possible ]') erreurs.push('Plus aucune sortie : rappel absent après CONTINUER À JOUER.');
+  if ((await page.locator('.dock .autour').count()) === 0) erreurs.push('Plus aucune sortie : la partie ne continue pas.');
+  await capturer(page, 'Plus aucune sortie — rappel, la partie continue');
+  await verifierEcran(page, 'Plus aucune sortie, rappel', erreurs);
+  await ouvrirOptions(page);
+  await page.getByRole('button', { name: /^reprendre la partie$/i }).click();
+  await rappel.waitFor();
+  if ((await information.count()) !== 0) erreurs.push('Plus aucune sortie : l’information revient après les options.');
+  await contexte.close();
+}
+
+/**
  * Stations tirées (#152), chacune dans un contexte neuf : `?station=<identifiant>` (réveil, plan au départ, NOUVELLE PARTIE garde
  * la station), puis la station à trois obstacles avec la baie (#153, réveil et plan au départ) ; l'adresse nue (REJOUER garde la
  * station tirée, NOUVELLE PARTIE en tire une autre et mène au réveil, la partie se reprend sur sa station, `?monde=ar-01` garde
@@ -1982,7 +2050,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'station'),
       erreursStation,
       [
-        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. \`?station=${STATION_BAIE}\`, trois obstacles avec la baie (#153) : réveil, plan au départ. \`?station=${STATIONS_AR01[0]}\`, chemins d’AR-01 (#154) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif.`,
+        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. \`?station=${STATION_BAIE}\`, trois obstacles avec la baie (#153) : réveil, plan au départ. \`?station=${STATIONS_AR01[0]}\`, chemins d’AR-01 (#154) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif. \`?monde=m-08\`, planche perdue exprès (#156) : information « plus aucune sortie », puis le rappel, la partie continue.`,
       ],
     ),
     ...partieCommentaire(
@@ -2512,6 +2580,14 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     suite = 'station';
     try {
       await parcoursStation(navigateur, racine, capturerPage, erreursStation);
+    } catch (erreur) {
+      erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // Plus aucune sortie (#156) : M-08, la planche perdue exprès, dans un contexte neuf.
+    try {
+      const m08 = MONDES['m-08'];
+      if (m08 === undefined) throw new Error('M-08 absent des mondes.');
+      await parcoursSansSortie(navigateur, racine, m08, capturerPage, erreursStation);
     } catch (erreur) {
       erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
     }

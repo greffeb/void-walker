@@ -21,6 +21,7 @@ import {
 } from './etat';
 import { carte } from './carte';
 import { indexer, type DefMonde } from './monde';
+import { sortiePossible } from './sortie';
 import {
   ACTIONS,
   RAISONS_INDISPONIBILITE,
@@ -141,6 +142,7 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
     sante: etat.sante,
     terminee: terminee(etat),
     issue: etat.fin ?? (etat.sante === 'vaincu' ? 'defaite' : null),
+    sansSortie: !sortiePossible(monde, etat),
     messages: etat.messages,
     menu: menu(monde, etat),
     carte: carte(monde, etat),

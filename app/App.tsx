@@ -397,6 +397,7 @@ export function App({
             choisir={choisir}
             lireMessages={lireMessages}
             ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
+            terminerPartie={() => abandonnerPartie(ecran.jeu)}
           signaux={ecran.signaux}
             nouvellePartie={() => void commencerNouvellePartie()}
             envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}

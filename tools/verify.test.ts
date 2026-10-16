@@ -5,7 +5,7 @@ import { LONGUES, STEPS, runSteps, stepsDemandees } from './verify';
 
 describe('runSteps', () => {
   it('suit l’ordre de la vérification complète', () => {
-    expect(STEPS).toEqual(['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'check:stations', 'test', 'parcours', 'build']);
+    expect(STEPS).toEqual(['lint', 'typecheck', 'check:imports', 'check:links', 'check:texts', 'check:stations', 'check:sortie', 'test', 'parcours', 'build']);
   });
 
   it('lance toutes les étapes quand elles réussissent', () => {

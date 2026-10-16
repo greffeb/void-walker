@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.0 — D-102 ; assemble D-013, D-017/D-018, D-050, D-054, D-058, D-083 à D-088 ; GP-01 à GP-05 acceptés par D-101.
 > **Mise à jour :** 2026-10-14 — cadrage L0, D-257 à D-260 ; conception acceptée, assemblage toujours à implémenter.
-> **Implémentation, vérifieur et tests :** fin par évacuation (§4, conditions de D-054, défaite prioritaire) proposée par #103 pour AR-01 ; abandon et son écran de fin proposés par #96 (D-200, côté appli) ; « plus aucune sortie », écrans de fin de défaite et d'évacuation, assemblage et vérifieur absents.
+> **Implémentation, vérifieur et tests :** fin par évacuation (§4, conditions de D-054, défaite prioritaire) proposée par #103 pour AR-01 ; abandon et son écran de fin proposés par #96 (D-200, côté appli) ; assemblage et vérifieur par L1 à L5 de #106 ; « plus aucune sortie » proposé par L6 (#156, D-275), G-03, G-04 et G-06 testés ; écrans de fin de défaite et d'évacuation absents.
 
 ## 1. But
 
@@ -52,7 +52,7 @@ Toute station assemblée est vérifiée avant d'être proposée (D-084) : il exi
 
 Neutraliser la créature n'est jamais une fin (D-018). Une défaite acquise dans un pas l'emporte sur une évacuation (C-03 §3).
 
-**Plus aucune sortie possible (D-085).** Après chaque action, le jeu vérifie sur l'état réel s'il reste une évacuation possible. Sinon, il le dit ; la partie continue jusqu'à l'abandon ou la défaite. Une évacuation encore possible au prix d'un coup de dés est une sortie : pas de signal (D-251). Le signal n'est jamais faux et ne nomme jamais la sortie restante.
+**Plus aucune sortie possible (D-085, D-275).** Après chaque action, le jeu vérifie sur l'état réel s'il reste une évacuation possible. Sinon, il le dit ; la partie continue jusqu'à l'abandon ou la défaite. Une évacuation encore possible au prix d'un coup de dés est une sortie : pas de signal (D-251). Le signal n'est jamais faux et ne nomme jamais la sortie restante. « Possible » se juge sur le chemin seul (D-275) : passages, objets à apporter, commandes des cloisons et énergie de la capsule ; dés, blessures, créature, feu, froid et vide ne ferment aucun chemin, et un passager trop blessé pour passer n'a pas le signal.
 
 **Écran de fin (D-086).** Le récit seulement, fidèle aux faits ; ni score ni bilan chiffré.
 
