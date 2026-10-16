@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSPrope
 import { observer } from '../engine';
 import { nomDe, remplir } from '../content';
 import { nomPuce } from './ecran';
+import { Bulle } from './bulle';
+import type { EtatInstallation, Installation } from './installation';
 import type { Environnement, Jeu } from './jeu';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { EnvoyerMaPartie, PanneauRapport, RETOURS } from './PanneauRapport';
@@ -37,6 +39,7 @@ export function EcranOptions({
   commit,
   pr,
   miseAJour,
+  installation,
   partieEnregistree = partieEnCours,
   envoyerRapport,
   rapportsEnAttente = 0,
@@ -59,6 +62,8 @@ export function EcranOptions({
   readonly commit: string;
   readonly pr: string;
   readonly miseAJour?: MiseAJour;
+  /** Installation sur l'écran d'accueil (#174) ; absente, ou état « indisponible », pas de section. */
+  readonly installation?: Installation;
   /** Une partie est enregistrée, en cours ou finie : elle peut être envoyée. */
   readonly partieEnregistree?: boolean;
   /** Rapports (C-10 §3) ; absents, ni « Signaler un bug » ni « Envoyer ma partie ». */
@@ -226,6 +231,7 @@ export function EcranOptions({
           </section>
         )}
         {pr !== '' && empreinteCle !== undefined && <SectionValidation key={envois} empreinteCle={empreinteCle} />}
+        <SectionInstallation installation={installation} occupe={occupe} />
         <SectionMiseAJour miseAJour={miseAJour} partieEnCours={partieEnCours} occupe={occupe} />
         <p className="pied">
           V{version}
@@ -384,6 +390,97 @@ export function SectionValidation({ empreinteCle }: { readonly empreinteCle: () 
 
 const SANS_ABONNEMENT = (): (() => void) => () => undefined;
 const INDISPONIBLE = (): EtatMiseAJour => 'indisponible';
+const INSTALLATION_INDISPONIBLE = (): EtatInstallation => 'indisponible';
+
+/** Aide pas à pas là où le navigateur ne laisse pas la page lancer l'installation (#174) ; noms des boutons : docs/16 §3.1. */
+export const GUIDES_INSTALLATION = {
+  guide_ios: {
+    detail: 'marche à suivre pour iPhone et iPad',
+    etapes: [
+      'Touchez ••• (le bouton « Plus »), puis « Partager ».',
+      'Faites défiler la liste, puis touchez « Sur l’écran d’accueil ».',
+      'Activez « Ouvrir comme app web ».',
+      'Touchez « Ajouter ».',
+    ],
+    note: 'Onglets en bas ou en haut ? Touchez directement « Partager ». Pas de « Sur l’écran d’accueil » dans la liste ? Touchez « Modifier les actions », en bas, puis « Sur l’écran d’accueil ».',
+  },
+  guide_firefox: {
+    detail: 'marche à suivre pour Firefox',
+    etapes: [
+      'Touchez ⋮, le menu de Firefox.',
+      'Touchez « Plus ».',
+      'Touchez « Ajouter l’application à l’écran d’accueil ».',
+      'Touchez « Ajouter », puis encore une fois si Android le demande.',
+    ],
+    note: 'Le jeu s’ouvrira ensuite en plein écran, comme une appli.',
+  },
+} as const;
+
+const RETOURS_INSTALLATION: Readonly<Partial<Record<EtatInstallation, string>>> = {
+  installee: 'Jeu installé. Cherchez-le sur votre écran d’accueil.',
+  refusee: 'Installation refusée. Le menu du navigateur permet de la relancer.',
+};
+
+/**
+ * Installation (#174) : « Installer le jeu » ouvre la boîte du navigateur (Chromium) ou une bulle d'aide (Safari sur iPhone,
+ * Firefox sur Android). Absente ailleurs, dans une version de test et dans l'appli déjà installée.
+ */
+function SectionInstallation({ installation, occupe }: { readonly installation: Installation | undefined; readonly occupe: boolean }) {
+  const lire = installation?.etat ?? INSTALLATION_INDISPONIBLE;
+  const etat = useSyncExternalStore(installation?.abonner ?? SANS_ABONNEMENT, lire, lire);
+  const [aide, setAide] = useState(false);
+  const bouton = useRef<HTMLButtonElement>(null);
+  const bulle = useRef<HTMLElement>(null);
+  /** Le focus revient sur le bouton quand la bulle se referme (12 §7). */
+  const aEteOuverte = useRef(false);
+
+  useEffect(() => {
+    if (aide) aEteOuverte.current = true;
+    else if (aEteOuverte.current) bouton.current?.focus();
+  }, [aide]);
+
+  if (installation === undefined || etat === 'indisponible') return null;
+  const guide = etat === 'guide_ios' || etat === 'guide_firefox' ? GUIDES_INSTALLATION[etat] : null;
+  const proposable = etat === 'invite' || etat === 'en_cours' || guide !== null;
+  return (
+    <section>
+      <h2 className="titre-section">Installation</h2>
+      {proposable && (
+        <button
+          ref={bouton}
+          type="button"
+          className="ligne-option"
+          disabled={occupe || etat === 'en_cours'}
+          aria-haspopup={guide === null ? undefined : 'dialog'}
+          onClick={() => (guide === null ? installation.proposer() : setAide(true))}
+          data-son="clic"
+        >
+          <span>
+            <span aria-hidden="true">▸ </span>
+            Installer le jeu
+          </span>
+          <span className="detail-option">{guide?.detail ?? 's’ouvre en plein écran, sans la barre du navigateur'}</span>
+        </button>
+      )}
+      <p className="retour-option" role="status" data-testid="installation">
+        {RETOURS_INSTALLATION[etat]}
+      </p>
+      {aide && guide !== null && (
+        <>
+          <div className="voile voile-haut" data-testid="voile-installation" data-son="fermer" onClick={() => setAide(false)} />
+          <Bulle zone={bulle} classe="bulle-installation" titre="Installer le jeu" etape="installation" fermer={() => setAide(false)}>
+            <ol className="etapes-installation">
+              {guide.etapes.map((etape) => (
+                <li key={etape}>{etape}</li>
+              ))}
+            </ol>
+            <p className="note-installation">{guide.note}</p>
+          </Bulle>
+        </>
+      )}
+    </section>
+  );
+}
 
 /**
  * Mise à jour (D-227) : le jeu se met à jour seul ; ce bouton la force. Absent sans service worker (développement).

@@ -899,6 +899,158 @@ async function verifierSon(navigateur: Browser, adresse: string, erreurs: string
   }
 }
 
+const AGENT_SAFARI_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+const AGENT_FIREFOX_ANDROID = 'Mozilla/5.0 (Android 14; Mobile; rv:131.0) Gecko/131.0 Firefox/131.0';
+
+interface FenetreInvite {
+  __invites: string[];
+  __repondre: (issue: 'accepted' | 'dismissed') => void;
+}
+
+/**
+ * Joue ce que fait Chrome quand le jeu est installable : un `beforeinstallprompt` dont `prompt()` ouvre une boîte à laquelle on
+ * répond. Script en chaîne : une fonction nommée passée à `evaluate` reçoit l'aide `__name` de la compilation, absente du navigateur.
+ */
+async function envoyerInvite(page: Page): Promise<void> {
+  await page.evaluate(`(() => {
+    window.__invites = [];
+    const evenement = new Event('beforeinstallprompt', { cancelable: true });
+    evenement.prompt = () => {
+      window.__invites.push('prompt');
+      return Promise.resolve();
+    };
+    evenement.userChoice = new Promise((resoudre) => {
+      window.__repondre = (outcome) => resoudre({ outcome });
+    });
+    window.dispatchEvent(evenement);
+  })()`);
+}
+
+/** Options depuis l'accueil, sans partie ; `avant` joue ce qui doit arriver avant l'ouverture (l'événement d'installation). */
+async function optionsDepuisAccueilNeuf(page: Page, adresse: string, avant?: (page: Page) => Promise<void>): Promise<void> {
+  await page.goto(adresse);
+  await page.getByRole('button', { name: exactement('Nouvelle partie') }).waitFor();
+  await avant?.(page);
+  await page.getByRole('button', { name: exactement('Options') }).click();
+  await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+}
+
+/**
+ * Installation (#174, docs/16) : l'invite du navigateur jouée par un événement simulé (le Chromium des captures est en navigation
+ * privée, il n'en envoie pas), puis les aides de Safari sur iPhone et de Firefox sur Android, reconnus à leur agent utilisateur.
+ * Sans événement ni agent connu, la section n'existe pas.
+ */
+async function parcoursInstallation(navigateur: Browser, adresse: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const contexteDe = (agent?: string, viewport = REFERENCE, taille?: string): Promise<BrowserContext> =>
+    navigateur.newContext({ ...devices[TELEPHONE], ...(agent === undefined ? {} : { userAgent: agent }), viewport, locale: 'fr-FR' }).then(async (contexte) => {
+      if (taille !== undefined) await contexte.addInitScript(([cle, valeur]) => window.localStorage.setItem(cle as string, valeur as string), [CLE_REGLAGES, JSON.stringify({ taille })]);
+      return contexte;
+    });
+  const bouton = (page: Page): Locator => page.getByRole('button', { name: /^Installer le jeu/i });
+  const sectionAffichee = (page: Page): Promise<number> => page.getByRole('heading', { name: exactement('Installation'), level: 2 }).count();
+
+  // Sans événement ni navigateur connu : pas de section.
+  {
+    const contexte = await contexteDe();
+    try {
+      const page = await contexte.newPage();
+      await optionsDepuisAccueilNeuf(page, adresse);
+      if ((await sectionAffichee(page)) !== 0) erreurs.push('Installation : section affichée sans événement ni navigateur connu.');
+    } finally {
+      await contexte.close();
+    }
+  }
+
+  // Chromium : l'événement est retenu, le bouton ouvre la boîte du navigateur, la réponse s'écrit.
+  for (const issue of ['dismissed', 'accepted'] as const) {
+    const contexte = await contexteDe();
+    try {
+      const page = await contexte.newPage();
+      await optionsDepuisAccueilNeuf(page, adresse, envoyerInvite);
+      await bouton(page).waitFor({ timeout: 10_000 });
+      if (issue === 'dismissed') {
+        await bouton(page).scrollIntoViewIfNeeded();
+        await capturer(page, 'Options : installation, invite du navigateur');
+        await verifierSansTroncature(page, 'Options : installation', erreurs);
+      }
+      await bouton(page).click();
+      const ouvertes = await page.evaluate(() => (window as unknown as FenetreInvite).__invites.length);
+      if (ouvertes !== 1) erreurs.push(`Installation : ${ouvertes} boîte(s) ouverte(s) au toucher, 1 attendue.`);
+      if (!(await bouton(page).isDisabled())) erreurs.push('Installation : le bouton reste actif pendant que la boîte est ouverte.');
+      await page.evaluate((reponse) => (window as unknown as FenetreInvite).__repondre(reponse), issue);
+      const attendu = issue === 'accepted' ? 'Jeu installé. Cherchez-le sur votre écran d’accueil.' : 'Installation refusée. Le menu du navigateur permet de la relancer.';
+      await page.getByTestId('installation').getByText(attendu, { exact: true }).waitFor({ timeout: 10_000 });
+      if ((await bouton(page).count()) !== 0) erreurs.push(`Installation (${issue}) : le bouton reste après la réponse, l'événement a déjà servi.`);
+      const garde = await page.evaluate(() => window.localStorage.getItem('void-walker:installation'));
+      if ((garde !== null) !== (issue === 'accepted')) erreurs.push(`Installation (${issue}) : drapeau gardé « ${String(garde)} ».`);
+    } finally {
+      await contexte.close();
+    }
+  }
+
+  // Aides pas à pas : même bulle, mêmes fermetures ; quatre étapes, les boutons nommés comme le téléphone les nomme.
+  const aides = [
+    { nom: 'iPhone', agent: AGENT_SAFARI_IPHONE, mots: ['« Plus »', '« Partager »', '« Sur l’écran d’accueil »', '« Ouvrir comme app web »', '« Ajouter »'] },
+    { nom: 'Firefox', agent: AGENT_FIREFOX_ANDROID, mots: ['« Plus »', '« Ajouter l’application à l’écran d’accueil »', '« Ajouter »'] },
+  ] as const;
+  for (const aide of aides) {
+    const contexte = await contexteDe(aide.agent);
+    try {
+      const page = await contexte.newPage();
+      await optionsDepuisAccueilNeuf(page, adresse);
+      await bouton(page).waitFor({ timeout: 10_000 });
+      await bouton(page).scrollIntoViewIfNeeded();
+      await bouton(page).click();
+      const dialogue = page.getByRole('dialog', { name: exactement('Installer le jeu') });
+      await dialogue.waitFor();
+      const etapes = await dialogue.locator('li').allInnerTexts();
+      if (etapes.length !== 4) erreurs.push(`Installation, aide ${aide.nom} : ${etapes.length} étapes, 4 attendues.`);
+      for (const mot of aide.mots) if (!etapes.join(' ').includes(mot)) erreurs.push(`Installation, aide ${aide.nom} : ${mot} absent des étapes.`);
+      await capturer(page, `Options : installation, aide ${aide.nom}`);
+      await verifierDansEcran(page, `Installation, aide ${aide.nom}`, erreurs);
+      await verifierSansTroncature(page, `Installation, aide ${aide.nom}`, erreurs);
+      // Échap, le voile et ✕ referment ; le focus revient sur le bouton (12 §7).
+      for (const geste of ['Échap', 'voile', '✕'] as const) {
+        if (geste === 'Échap') await page.keyboard.press('Escape');
+        else if (geste === 'voile') await page.mouse.click(8, 8);
+        else await dialogue.getByRole('button', { name: exactement('Fermer') }).click();
+        await dialogue.waitFor({ state: 'hidden' });
+        if (!(await bouton(page).evaluate((element) => element === document.activeElement))) erreurs.push(`Installation, aide ${aide.nom} : le focus ne revient pas sur le bouton après ${geste}.`);
+        if (geste !== '✕') {
+          await bouton(page).click();
+          await dialogue.waitFor();
+        }
+      }
+    } finally {
+      await contexte.close();
+    }
+  }
+
+  // Écran étroit, texte « très grand » : l'aide la plus longue tient dans l'écran, ses étapes défilent si besoin.
+  const etroit = await contexteDe(AGENT_SAFARI_IPHONE, ETROIT, 'tres_grande');
+  try {
+    const page = await etroit.newPage();
+    await optionsDepuisAccueilNeuf(page, adresse);
+    await bouton(page).scrollIntoViewIfNeeded();
+    await bouton(page).click();
+    await page.getByRole('dialog', { name: exactement('Installer le jeu') }).waitFor();
+    await capturer(page, 'Options : installation, aide iPhone, écran étroit et texte très grand');
+    await verifierDansEcran(page, 'Installation, aide iPhone étroite', erreurs);
+    await verifierSansTroncature(page, 'Installation, aide iPhone étroite', erreurs);
+    // La dernière étape et la note se lisent en faisant défiler la bulle : elles tombent dans sa boîte, sans rien chevaucher.
+    const bulle = page.getByRole('dialog', { name: exactement('Installer le jeu') });
+    await bulle.locator('.note-installation').scrollIntoViewIfNeeded();
+    const [boite, derniere, note] = await Promise.all([bulle.boundingBox(), bulle.locator('li').last().boundingBox(), bulle.locator('.note-installation').boundingBox()]);
+    if (boite === null || derniere === null || note === null) erreurs.push('Installation, aide iPhone étroite : étape ou note introuvable.');
+    else {
+      if (note.y + note.height > boite.y + boite.height + 1) erreurs.push('Installation, aide iPhone étroite : la note déborde de la bulle.');
+      if (derniere.y + derniere.height > note.y + 1) erreurs.push('Installation, aide iPhone étroite : la note chevauche la dernière étape.');
+    }
+  } finally {
+    await etroit.close();
+  }
+}
+
 /**
  * Options (#96, 12 §4.10, §4.11) dans le monde de test : depuis l'accueil sans partie, puis en cours de partie sans rien changer ;
  * taille « très grande » partout, lignes de balayage coupées, réglages gardés au rechargement ; téléchargement rejoué par le
@@ -2281,6 +2433,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       await parcoursOptions(navigateur, adresse, entree, gestes, capturerPage, erreurs);
     } catch (erreur) {
       erreurs.push(`Options : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+    }
+
+    // Installation (#174) : invite du navigateur simulée, aides d'iPhone et de Firefox, dans des contextes neufs.
+    try {
+      await parcoursInstallation(navigateur, adresse, capturerPage, erreurs);
+    } catch (erreur) {
+      erreurs.push(`Installation : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
     }
 
     // AR-01 par `?monde=ar-01` : parcours P-C joué geste par geste, dans un contexte neuf.

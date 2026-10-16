@@ -1,6 +1,6 @@
 # 16 — Proposer l'installation de la PWA (investigation #174)
 
-> **Statut :** investigation, aucune décision prise, aucun code d'appli changé. Tout ce qui suit est **[Proposé]** ; seul le porteur du projet valide (zone orange pour `app/`, C-10 §6).
+> **Statut :** investigation, puis première livraison (§8) : l'étape A, avec les aides d'iPhone et de Firefox Android. Aucune décision prise ; tout ce qui suit est **[Proposé]** et seul le porteur du projet valide (zone orange pour `app/`, C-10 §6).
 > **Source :** [issue #174](https://github.com/greffeb/void-walker/issues/174).
 
 ## 1. Réponse courte
@@ -80,11 +80,11 @@ Recommandation : livrer A seul d'abord. Il ne harcèle personne, ne touche à au
 
 ### 5.2 Comportement
 
-- Chromium : le bouton appelle `prompt()` ; `accepted` → drapeau « installée », entrée masquée ; `dismissed` → date du refus gardée, retour « Installation refusée. Vous pouvez la relancer depuis les options. » (le bouton des options reste actif : un geste explicite n'est pas du harcèlement).
+- Chromium : le bouton appelle `prompt()` ; `accepted` → drapeau « installée », bouton retiré ; `dismissed` → bouton retiré aussi, retour « Installation refusée. Le menu du navigateur permet de la relancer. » : un événement ne sert qu'une fois, le bouton ne pourrait plus rien ouvrir. Si le navigateur en renvoie un autre plus tard, le bouton revient.
 - iPhone / iPad : le bouton ouvre une bulle (modèle `app/bulle.tsx`, croix et Échap) avec les quatre étapes de §3.1 ; pas d'effet sur le drapeau (rien ne confirme l'installation).
 - Firefox Android : même bulle, avec le chemin de §3.1 ; détection par `Android` et `Firefox` dans l'agent utilisateur, sans événement `beforeinstallprompt`.
 - Ailleurs (Firefox ordinateur, Safari macOS, navigation privée, version de test, déjà installée) : la section n'existe pas, comme « MISE À JOUR » sans service worker.
-- Mémoire : `localStorage` `void-walker:installation` = `{ visites, refus?, installee? }`, lue et écrite défensivement comme `app/reglages.ts` (navigation privée, quota).
+- Mémoire : `localStorage` `void-walker:installation` = `{ installee: true }`, lue et écrite défensivement comme `app/reglages.ts` (navigation privée, quota). Les visites et la date d'un refus ne servent qu'au rappel de l'étape B (§5.1) : elles ne sont pas gardées tant qu'il n'existe pas.
 
 ### 5.3 Accessibilité et textes
 
@@ -110,3 +110,11 @@ Preuves que ces issues ne pourront pas fournir seules : l'installation réelle s
 2. Si rappel il y a : après une partie terminée, à la 2ᵉ visite, ou les deux ? Combien de temps sans le reproposer après un refus (90 jours proposés) ?
 3. Sur iPhone et Firefox Android, une bulle d'explication à la demande suffit-elle ? C'est tout ce qui est possible techniquement.
 4. On crée I1 à I4 telles quelles ?
+
+## 8. Première livraison (#174)
+
+Livré : **I1** (module `app/installation.ts`, section « INSTALLATION » des options, invite de Chromium) et **I2** (bulles d'aide de Safari sur iPhone et de Firefox sur Android). Mesuré dans Chromium par `npm run captures` : événement simulé, un seul `prompt()` par toucher, réponse acceptée ou refusée, aides à quatre étapes, fermeture par Échap, voile et ✕ avec retour du focus sur le bouton, aide d'iPhone en 320 px de large et texte « très grand ».
+
+Pas livré : **I3** (rappel à l'accueil, il déroge à 12 §4.1 : question 1 de §7) et **I4** (manifeste). Pas non plus : la reconnaissance de Chrome, Edge et Firefox sur iPhone (leurs libellés ne sont pas vérifiés, §3.1).
+
+**Validation humaine requise** : aucune de ces aides n'a été essayée sur un téléphone. À constater sur un Android avec Chrome (boîte du navigateur), sur un iPhone avec Safari (étapes et noms des boutons) et sur un Android avec Firefox (chemin et libellé français « Ajouter l’application à l’écran d’accueil », que seul le porteur a donné).
