@@ -29,7 +29,7 @@ La [carte en plan de pont](14-carte.md) remplace la carte de la maquette (12 §4
 
 Le [son](15-son.md) précise la section SON de 12 §4.10 : bruitages du terminal, signaux de blessure, de soin et d'alarme, ambiance de bruit brun et de carlingue, trois rails dans les options (D-216 à D-226). Conception validée par parties à l'oreille, sur un [banc d'écoute](maquette/banc-sons.html) ; implémentation proposée.
 
-L'[installation de la PWA](16-installation-pwa.md) (#174, investigation) : le jeu est déjà éligible à l'invite d'installation de Chrome ; bouton seulement sur Chromium, simple explication sur iPhone. Proposition de design et d'issues, en attente du porteur ; aucune décision prise.
+L'[installation de la PWA](16-installation-pwa.md) (#174, investigation) : le jeu est déjà éligible à l'invite d'installation de Chrome ; bouton seulement sur Chromium, simple explication sur iPhone et Firefox Android. Proposition de design et d'issues, en attente du porteur ; aucune décision prise.
 
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 

@@ -32,9 +32,9 @@ Non vérifié ici : tout ce qui n'est pas Chromium (§3, colonne « Statut »), 
 | Navigateur | Installer depuis la page | Comment l'utilisateur installe sans nous | Statut |
 | --- | --- | --- | --- |
 | Chrome, Edge, Samsung Internet, Opera (Android, ordinateur) | **Oui** : `beforeinstallprompt` puis `prompt()` depuis un geste ; `userChoice` donne `accepted` / `dismissed` ; `appinstalled` confirme | Menu ⋮ → « Installer l'application » ; icône dans la barre d'adresse sur ordinateur | Événement constaté dans Chromium ; reste à voir sur téléphone |
-| Safari iPhone / iPad | **Non** | Partager → « Sur l'écran d'accueil » | Documenté, à confirmer |
-| Chrome, Edge, Firefox sur iPhone (moteur WebKit) | **Non** | Même geste via le menu Partager du navigateur (iOS 16.4 et suivants) | Documenté, à confirmer |
-| Firefox Android | **Non** | Menu → « Installer » | Documenté, à confirmer |
+| Safari iPhone / iPad | **Non** | Bouton Plus (•••) → « Partager » → « Sur l’écran d’accueil » → « Ajouter » | **Libellés vérifiés** dans le guide Apple en français (§3.1) |
+| Chrome, Edge, Firefox sur iPhone (moteur WebKit) | **Non** | Même geste via le menu Partager du navigateur (iOS 16.4 et suivants) ; libellés non vérifiés | Documenté, à confirmer |
+| Firefox Android | **Non** (pas d'événement) | Menu ⋮ → « Plus » → « Ajouter l’application à l’écran d’accueil » → « Ajouter » | Chemin donné par le porteur, cohérent avec la source de Firefox (§3.1) ; libellé français non vérifié |
 | Firefox ordinateur | **Non** | Installation des PWA non prise en charge | Documenté, à confirmer |
 | Safari macOS | **Non** | Fichier → « Ajouter au Dock » | Documenté, à confirmer |
 
@@ -42,8 +42,21 @@ Points d'attention :
 
 - **Chromium :** l'événement n'est pas déclenché si l'appli est déjà installée. Il peut arriver avant que React ne soit monté : il faut l'écouter dès `main.tsx`, comme `piloterMiseAJour`, et le garder. `prompt()` ne marche que dans un geste du joueur et une seule fois par événement ; après un refus, Chrome tarde à en renvoyer un.
 - **Mini-barre de Chrome sur Android :** `preventDefault()` sur l'événement reprend la main sur l'invite du navigateur. À constater sur téléphone.
-- **iOS :** ni événement, ni API pour savoir si le jeu est installé depuis Safari. On détecte « iPhone ou iPad » (l'iPad récent se présente comme un Mac : `navigator.maxTouchPoints > 1`) et « pas en mode appli ». Depuis iOS 26, ajouter un site à l'écran d'accueil l'ouvre par défaut comme une appli, ce qui ne change rien au geste à expliquer.
+- **iOS :** ni événement, ni API pour savoir si le jeu est installé depuis Safari. On détecte « iPhone ou iPad » (l'iPad récent se présente comme un Mac : `navigator.maxTouchPoints > 1`) et « pas en mode appli ».
 - **Détection « déjà installé » :** `matchMedia('(display-mode: standalone)')` (et `fullscreen`, `minimal-ui`) plus `navigator.standalone` pour iOS. Un onglet ordinaire ouvert par quelqu'un qui a déjà installé n'est pas en mode appli : sur Chromium l'absence d'événement le trahit, sur iOS non ; on garde donc aussi un drapeau « installée » (`appinstalled`, ou premier lancement en mode appli) dans `localStorage`.
+
+### 3.1 Libellés vérifiés pour les bulles d'aide
+
+**iPhone, Safari (iOS 26 et 27), français.** Source : [Transformer un site web en app dans Safari sur l'iPhone](https://support.apple.com/fr-ch/guide/iphone/iphea86e5236/26/ios/26) et [Ajouter un signet à un site web dans Safari](https://support.apple.com/fr-fr/guide/iphone/iph42ab2f3a7/ios), guides d'Apple lus en entier. Les étapes, mot pour mot :
+
+1. « Touchez [le bouton Plus ⋯], puis touchez « Partager ». » Si la disposition des onglets est « En bas » ou « En haut », on touche directement [le bouton Partager].
+2. « Faites défiler la liste des options, puis touchez « Sur l’écran d’accueil ». » Si l'option manque : « touchez « Modifier les actions », puis touchez « Sur l’écran d’accueil » » en bas de la liste.
+3. « Activez « Ouvrir comme app web ». » (le guide d'iOS 26 ; celui d'iOS 27 dit « Vous pouvez choisir »).
+4. « Touchez Ajouter. »
+
+Selon la disposition des onglets, Partager est derrière le bouton Plus (•••) ou directement dans la barre : la bulle nomme les deux.
+
+**Firefox Android.** Source : fichier des textes de Firefox ([`strings.xml`](https://github.com/mozilla-firefox/firefox/blob/main/mobile/android/fenix/app/src/main/res/values/strings.xml), version actuelle, anglais) : le groupe replié du menu s'appelle « More » ; il contient « Add to Home screen » (raccourci) et « Add app to Home screen » (application web) ; le bouton de la fenêtre de confirmation est « Add ». Le chemin donné par le porteur correspond : menu ⋮ → « Plus » → « Ajouter l'application à l'écran d'accueil » → « Ajouter ». **La traduction française exacte n'a pas pu être lue** : les pages d'aide de Mozilla ont refusé le téléchargement et le fichier des traductions n'a pas été trouvé. Le libellé français vient du porteur ; à confirmer sur un téléphone. D'après un résumé de recherche du support de Mozilla (non relu), ce menu avec « Plus » date de Firefox 141 ; avant, l'entrée est directement dans le menu ⋮. La bulle ne vise que le menu actuel.
 
 ## 4. Particularités du dépôt à respecter
 
@@ -68,8 +81,9 @@ Recommandation : livrer A seul d'abord. Il ne harcèle personne, ne touche à au
 ### 5.2 Comportement
 
 - Chromium : le bouton appelle `prompt()` ; `accepted` → drapeau « installée », entrée masquée ; `dismissed` → date du refus gardée, retour « Installation refusée. Vous pouvez la relancer depuis les options. » (le bouton des options reste actif : un geste explicite n'est pas du harcèlement).
-- iPhone / iPad : le bouton ouvre une bulle (modèle `app/bulle.tsx`, croix et Échap) : « Touchez Partager, puis Sur l'écran d'accueil. » ; pas d'effet sur le drapeau (rien ne confirme l'installation).
-- Ailleurs (Firefox, Safari macOS, navigation privée, version de test, déjà installée) : la section n'existe pas, comme « MISE À JOUR » sans service worker.
+- iPhone / iPad : le bouton ouvre une bulle (modèle `app/bulle.tsx`, croix et Échap) avec les quatre étapes de §3.1 ; pas d'effet sur le drapeau (rien ne confirme l'installation).
+- Firefox Android : même bulle, avec le chemin de §3.1 ; détection par `Android` et `Firefox` dans l'agent utilisateur, sans événement `beforeinstallprompt`.
+- Ailleurs (Firefox ordinateur, Safari macOS, navigation privée, version de test, déjà installée) : la section n'existe pas, comme « MISE À JOUR » sans service worker.
 - Mémoire : `localStorage` `void-walker:installation` = `{ visites, refus?, installee? }`, lue et écrite défensivement comme `app/reglages.ts` (navigation privée, quota).
 
 ### 5.3 Accessibilité et textes
@@ -84,7 +98,7 @@ Ordres de grandeur pour un agent, vérification complète comprise ; pas de date
 | Issue | Contenu | Taille |
 | --- | --- | --- |
 | **I1 — Installation depuis les options (Chromium)** | `app/installation.ts` (événement gardé dès le départ, `prompt()`, `userChoice`, `appinstalled`, détection mode appli, mémoire) avec tests à faux navigateur ; câblage dans `main.tsx` ; section « INSTALLATION » des options ; cas « version de test » et « déjà installée » ; captures par événement simulé | moyenne (environ la taille de D-227) |
-| **I2 — Aide iPhone / iPad** | détection iOS hors mode appli ; bulle d'explication ; captures | petite |
+| **I2 — Aide iPhone, iPad et Firefox Android** | détection iOS et Firefox Android hors mode appli ; bulle d'explication à deux textes ; captures | petite |
 | **I3 — Rappel à l'accueil** (si le porteur l'accepte) | compteur de visites, fin d'une première partie, délai de 90 jours, ligne discrète à l'accueil | petite, plus une décision sur 12 §4.1 |
 | **I4 — Manifeste (facultatif)** | `id` explicite (stabilise l'identité de l'appli si l'adresse change) ; `screenshots` pour la fenêtre d'installation enrichie de Chrome ; icône maskable séparée si le graphisme change | petite |
 
@@ -94,5 +108,5 @@ Preuves que ces issues ne pourront pas fournir seules : l'installation réelle s
 
 1. Voulez-vous un simple bouton « Installer le jeu » dans les options (A), ou aussi un rappel discret à l'accueil après une première partie (B), ce qui change l'accueil validé ?
 2. Si rappel il y a : après une partie terminée, à la 2ᵉ visite, ou les deux ? Combien de temps sans le reproposer après un refus (90 jours proposés) ?
-3. Sur iPhone, une bulle d'explication à la demande suffit-elle ? C'est tout ce qui est possible techniquement.
+3. Sur iPhone et Firefox Android, une bulle d'explication à la demande suffit-elle ? C'est tout ce qui est possible techniquement.
 4. On crée I1 à I4 telles quelles ?
