@@ -310,7 +310,7 @@ describe('catalogue vérifié à la construction (#152)', () => {
   let lignes: LigneCatalogue[] = [];
   beforeAll(() => {
     lignes = verifierCatalogue(CATALOGUE);
-  }, 300000);
+  }, 900000);
 
   it('publiées prouvées, les autres sans sortie sûre : palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4) ; l’ensemble prouvé égale les compositions publiées', () => {
     const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
@@ -424,7 +424,7 @@ describe('plans des stations tirées (14 §5.6)', () => {
       expect(mesure.trouves).toBeGreaterThanOrEqual(950);
       expect(mesure.msMax).toBeGreaterThanOrEqual(mesure.msMoyenne);
     }
-  }, 300000);
+  }, 900000);
 
   it('1 000 tirages complets, retirages compris : chaque tirage donne une station ; finals, chemins, morceaux et places comptés', () => {
     const mesure = mesurerTirages(1000);
@@ -444,5 +444,5 @@ describe('plans des stations tirées (14 §5.6)', () => {
     expect(somme(morceaux)).toBe(2 * (chemins['1'] ?? 0) + 3 * (chemins['2'] ?? 0));
     expect(Object.keys(places).sort()).toEqual(distincts(publiees.map((composition) => composition.creature)));
     expect(somme(places)).toBe(1000);
-  }, 300000);
+  }, 900000);
 });

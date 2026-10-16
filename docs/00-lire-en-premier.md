@@ -169,7 +169,7 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 - **Réussite.** Le porteur l'a fixée : chaque station doit mener à la capsule ; la difficulté se règlera plus tard (D-264).
 - **Vérification.** Le vérifieur cherche d'abord vers le fond de la station, avec les mêmes règles et le même plafond (D-265). Les 88 compositions sont prouvées en une douzaine de secondes.
 - **Mesures.** Les mélanges et les tirages sont dans [13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153).
-- **Reste à faire.** Aucune partie sur téléphone n'est consignée pour M-06, M-08 et M-09 dans le [journal](journal-parties-humaines.md).
+- **Reste à faire.** Une partie au bout sur téléphone pour chacun de M-06, M-08 et M-09 (**validation humaine requise**, D-098) : aucune n'est encore consignée dans le [journal](journal-parties-humaines.md).
 
 **L4, chemins d'AR-01 (#154), proposée par sa PR en zone orange :**
 - **Contenu.** Les quatre morceaux de chemin qui restaient, découpés dans AR-01, entrent au tirage : la galerie en feu (M-01), la grille haute et la caisse (M-02), la salle d'observation (M-04), le panneau et le passage caché (M-05). Les dix morceaux sont tous tirables. AR-01 ne change pas.

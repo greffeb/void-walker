@@ -2065,11 +2065,11 @@ Questions posées au porteur le 2026-10-16, pendant la conception de L4 ; ses r�
   - Q-196 : même façon de faire qu'en L3, tâches confiées une à une, chacune relue, puis PR et push en autonomie.
 - Décision :
   - **Pièces :** celles de la conception ; chaque morceau porte ses objets, l'eau dans M-01, l'huile et la commande de l'avertisseur dans M-04 (D-244).
-  - **Noms affichés,** retenus après relecture : M-01 « poste incendie », « tunnel technique », « palier » ; M-02 « atelier maintenance », « salle des pompes » ; M-04 « salle de contrôle », « salle d'observation » ; M-05 « local de service », « salle de tri », « hall de chargement ».
+  - **Noms affichés** [détail de l'agent] : la conception les laissait « à finaliser » ; retenus après relecture, sans nouvelle question au porteur : M-01 « poste incendie », « tunnel technique », « palier » ; M-02 « atelier maintenance », « salle des pompes » ; M-04 « salle de contrôle », « salle d'observation » ; M-05 « local de service », « salle de tri », « hall de chargement ».
   - **Observation hors coque :** la salle d'observation n'est pas posée contre la coque.
-  - **Sortie de M-04 fermée** (D-252) : prouvé sur une copie d'AR-01, où P-B et P-C se jouent avec une action de plus.
-  - **Vérification :** la vérification complète reste dans `npm run verify`, sans résultats gardés ni job de CI à part.
-  - **Textes :** `check:texts` contrôle une série fixe de dix stations.
+  - **Sortie de M-04 fermée** (D-252) : la conception prévoyait la preuve sur une copie d'AR-01 ; P-B et P-C s'y jouent avec une action de plus [détail de l'agent pour le résultat].
+  - **Vérification :** la vérification complète reste dans `npm run verify`, sans résultats gardés ni job de CI à part. Le porteur a accepté « environ une minute et demie » ; la mesure est au-delà : `check:stations` environ 2 min 30, le catalogue prouvé une seconde fois dans les tests, `verify` environ 9 min en local. **Point ouvert**, posé au porteur dans la PR.
+  - **Textes** [détail de l'agent pour le nombre] : `check:texts` contrôle une série fixe, de dix stations.
   - **Preuves :** captures des nouvelles stations et liens de validation avec la créature dans le morceau.
 - Limite : la fusion reste soumise à l'accord du porteur (zone orange) et à une partie au bout sur téléphone pour M-01, M-02, M-04 et M-05 (D-098).
 

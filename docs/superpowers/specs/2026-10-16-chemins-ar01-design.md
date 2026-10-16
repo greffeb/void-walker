@@ -187,7 +187,7 @@ Mesures faites sur ce PC, avec les quatre morceaux en brouillon et le vérifieur
 - **Mesure finale, en L4** (correction) : sur les 280 compositions qui contiennent un nouveau morceau, 236 sont prouvées et **44** n'ont pas de sortie sûre, 40 à deux chemins et 4 à un chemin. Toutes sont des places palier ou atelier sans M-04, M-07, M-08 ni M-10 avant. Aucune n'est sans plan.
 - Au plus 33 385 états, pour `m08-m01-m06-palier`, en 2,6 s.
 - Les témoins vont de 13 à 35 actions.
-- **Environ 82 s** pour ces 264. Avec les 88 de L3, `check:stations` passera d'une douzaine de secondes à environ une minute et demie.
+- **Environ 82 s** pour ces 264. Avec les 88 de L3, `check:stations` passera d'une douzaine de secondes à environ une minute et demie. Mesure de l'implémentation : 147 s, et `verify` environ neuf minutes (13 §7.7) ; point ouvert.
 
 Choix de l'agent : ce temps est accepté dans `verify`, sans résultats gardés ni job de CI à part. Les raisons sont celles de L3 §6.3.
 

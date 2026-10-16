@@ -372,7 +372,7 @@ describe('mélanges des chemins d’AR-01 (spec L4 §5)', () => {
     ['aller', 'panoramique'],
   ];
 
-  it('MX-02, m01-m06-embarquement : portes ouvertes de la baie percée jusqu’à la galerie en feu, le vide l’éteint et le palier sans air ne brûle pas', () => {
+  it('MX-02, m01-m06-embarquement : portes ouvertes de la baie percée jusqu’à la galerie en feu, le vide l’éteint ; le palier sans air reste sans feu', () => {
     const monde = stationDe('m01-m06-embarquement');
     const pas = suite(monde, depart(monde), [
       ['ouvrir', 'poste_incendie'],

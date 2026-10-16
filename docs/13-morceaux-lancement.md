@@ -453,15 +453,15 @@ Pièces et places de la créature (fiches du §3) :
 | M-04 | salle de contrôle, salle d'observation | salle d'observation |
 | M-05 | local de service, salle de tri, hall de chargement | salle de tri |
 
-Choix des agents, approuvés avec la conception (D-268) :
+Choix des agents, approuvés avec la conception (D-268), sauf mention :
 - chaque morceau porte ses objets (D-244) : l'eau dans M-01, l'huile et la commande de l'avertisseur dans M-04 ;
 - la salle d'observation n'est pas posée contre la coque : avec la coque, la chaîne M-09 → M-04 → M-06 n'avait aucun plan dans la maquette ;
 - la sortie de M-04 est fermée (D-252), alors qu'elle est ouverte dans AR-01 ;
-- la vérification complète reste dans `npm run verify`, sans résultats gardés ni job de CI à part ;
-- `check:texts` contrôle une série fixe de dix stations ;
-- les noms affichés sont écrits à la main, finalisés à la relecture des textes (tableau ci-dessus).
+- la vérification complète reste dans `npm run verify`, sans résultats gardés ni job de CI à part ; le porteur a accepté « environ une minute et demie », la mesure est au-delà (ci-dessous), point ouvert posé dans la PR ;
+- `check:texts` contrôle une série fixe, de dix stations [détail de l'agent pour le nombre] ;
+- les noms affichés sont écrits à la main, finalisés à la relecture des textes, sans nouvelle question au porteur (tableau ci-dessus) [détail de l'agent].
 
-Les 88 compositions de L3 donnent exactement les mêmes stations à graine égale : l'empreinte du monde le prouve, pour chacune et pour leur ensemble.
+Les 88 compositions de L3 donnent exactement les mêmes stations à la graine 2718281828 : l'empreinte du monde le prouve, pour chacune et pour leur ensemble. Aucune règle ne lit la graine hors du plan.
 
 **Sortie de M-04 fermée.** AR-01 garde sa cloison ouverte. Sur une copie d'AR-01 où elle est fermée, P-B et P-C se jouent avec une action de plus, ouvrir la cloison juste avant de sortir de l'observation : 20 et 17 actions, sans dé ni blessure, export rejoué. Dans une station, les deux chemins sûrs de M-04 restent prouvés, chacun seul : test de l'avertisseur, ou seuil huilé.
 
@@ -476,7 +476,7 @@ Les 88 compositions de L3 donnent exactement les mêmes stations à graine égal
 
 La plus lourde des prouvées est `m08-m01-m06-palier` : 33 385 états, 35 actions, 2,18 s.
 
-Dans `npm run verify`, le 2026-10-16 sur ce PC : `check:stations` 147 s, `check:texts` 181 s, tests 192 s ; la vérification complète prend environ neuf minutes, toutes étapes vertes.
+Dans `npm run verify`, le 2026-10-16 sur ce PC : `check:stations` 147 s, `check:texts` 181 s, tests 192 s (dont le catalogue prouvé une seconde fois par `tools/verifier-station.test.ts`) ; la vérification complète prend environ neuf minutes, toutes étapes vertes. C'est plus que la minute et demie annoncée au porteur pour `check:stations` : point ouvert.
 
 **Les 44 compositions sans sortie sûre** placent toutes la créature sur le palier de M-01 ou dans l'atelier de M-02, sans M-04, M-07, M-08 ni M-10 avant elle : 22 par final. Elle y bouche le seul passage. Le vérifieur épuise la recherche sans trouver d'évacuation sans dé ni blessure ; elles ne sont jamais proposées (D-267). Entre parenthèses, les états explorés :
 - **palier :**
@@ -539,7 +539,7 @@ Le panneau vu du hall se prouve sur `m05-m03-reserve` : avec la créature dans l
 
 | Mélange | Station | Résultat |
 | --- | --- | --- |
-| MX-02 | `m01-m06-embarquement`, depuis un état préparé : tunnel rallumé, passager équipé dans la panoramique | Baie percée, portes ouvertes jusqu'au tunnel : l'air s'en va, le feu s'éteint, le palier sans air ne prend pas feu |
+| MX-02 | `m01-m06-embarquement`, depuis un état préparé : tunnel rallumé, passager équipé dans la panoramique | Baie percée, portes ouvertes jusqu'au tunnel : l'air s'en va, le feu s'éteint à l'instant où l'air le gagne. Le palier, déjà sans air, ne prend pas feu ; la garde « pas de feu sans air » du moteur n'est pas atteinte en jeu, l'air se réglant avant le feu |
 | MX-03 | `m04-m06-embarquement` | L'huile versée au seuil reste glissante quand l'air s'en va |
 | MX-04 | `m04-m09-m03-reserve` | Burette en main, dans la pièce sans gravité de M-09 : verser est impossible, refusé sans coût ; gravité rétablie : verser est possible |
 | MX-05 | `m04-m10-m03-reserve` | L'huile versée dans la chambre froide reste glissante |
