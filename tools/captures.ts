@@ -1769,7 +1769,8 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
     if (couloir < 0 || commande < couloir) erreurs.push(`${STATION_LIBRE} : témoin sans arrivée au couloir commun puis commande actionnée.`);
     else {
       await rejouer(pageLibre, gestes.slice(0, couloir + 1));
-      await verifierParole(pageLibre, libre.textes.assistance.carrefour, `${STATION_LIBRE}, couloir commun`, erreurs);
+      // En cours de partie, le repère du bouton IA STATION annonce le message, sans citation dans le récit (D-263).
+      if ((await pageLibre.locator('.nav-ia .notification-ia').count()) !== 1) erreurs.push(`${STATION_LIBRE}, couloir commun : repère d’IA Station absent.`);
       await capturer(pageLibre, `Ordre libre — couloir commun : deux ailes, première cloison verrouillée`);
       await rejouer(pageLibre, gestes.slice(couloir + 1, commande + 1), couloir + 1);
       await capturer(pageLibre, `Ordre libre — première commande actionnée`);
