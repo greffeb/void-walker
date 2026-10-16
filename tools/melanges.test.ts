@@ -431,10 +431,12 @@ describe('mélanges des chemins d’AR-01 (spec L4 §5)', () => {
     expect(option(monde, coupee, 'verser', 'burette', 'sas_ouest')).toMatchObject({ disponible: false, raison: 'sans_gravite' });
     expect(refusee(monde, coupee, 'verser', 'burette', 'sas_ouest')).toBe('sans_gravite');
 
-    const retablie = fin(suite(monde, coupee, [['aller', 'sas_ouest'], ['retablir', 'interrupteur_gravite'], ['aller', 'transfert']]));
+    const retour = suite(monde, coupee, [['aller', 'sas_ouest'], ['retablir', 'interrupteur_gravite'], ['aller', 'transfert']]);
+    const retablie = fin(retour);
     expect(retablie.etat.apesanteur).toEqual([]);
     expect(option(monde, retablie, 'verser', 'burette', 'sas_ouest')).toMatchObject({ disponible: true });
     const versee = engager(monde, retablie, 'verser', 'burette', 'sas_ouest');
+    sansRisque([...retour, versee]);
     expect(versee.partie.etat.huile).toContainEqual({ liaison: 'm-09/l-sas-ouest-transfert', piece: 'm-09/p-transfert' });
   });
 
