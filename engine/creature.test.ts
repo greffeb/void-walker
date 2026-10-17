@@ -16,6 +16,7 @@ import {
   type Partie,
 } from './index';
 import { dangerConnu, reagir } from './creature';
+import { ATTEINT_JUSQUA } from './sante';
 
 // Créature (C-03 §3, §4 ; C-02 §4.2 ; OP-01). Fixtures nommées par leur rôle ; aucune règle ne lit un nom.
 //
@@ -65,6 +66,13 @@ function engager(monde: DefMonde, courante: Partie, action: IdAction, nom: strin
   const resultat = jouer(monde, courante, option.commande);
   if (resultat.type !== 'engagee') throw new Error(`${action} ${nom} : ${resultat.type}.`);
   return { partie: resultat.partie, evenements: resultat.evenements };
+}
+
+/** Ce que raconte un jet d'interception : une blessure s'il touche, sinon la menace (C-04 §4.2). */
+function apresJet(partie: Partie, rang: number): string {
+  const tirages = partie.enregistrement.actions[rang]?.tirages ?? [];
+  expect(tirages).toHaveLength(1);
+  return (tirages[0] ?? 0) <= ATTEINT_JUSQUA ? 'aggravation_blesse' : 'menace';
 }
 
 function suite(monde: DefMonde, depart: Partie, gestes: readonly (readonly [IdAction, string])[]): { partie: Partie; evenements: (readonly Evenement[])[] } {
@@ -197,12 +205,12 @@ describe('perception et réaction (C-03 §4)', () => {
     const fuite = jouer(MONDE, repit.partie, optionAller(MONDE, repit.partie, 'salle_b'));
     if (fuite.type !== 'engagee') throw new Error('Fuite non engagée.');
     expect(fuite.tirages).toHaveLength(1);
-    const interception = (fuite.tirages[0] ?? 0) <= 3 ? 'aggravation_blesse' : 'menace';
+    const interception = (fuite.tirages[0] ?? 0) <= ATTEINT_JUSQUA ? 'aggravation_blesse' : 'menace';
     expect(types(fuite.evenements)).toEqual([interception, 'deplacement', 'piece_decouverte']);
   });
 
   it('arriver dans la pièce du passager et l’attaquer ne tiennent pas dans la même réaction (C-03 §4.3)', () => {
-    // Contact en A ; le passager repasse en B par la porte qu'elle vient de franchir (un dé, ici favorable, D-195), referme,
+    // Contact en A ; le passager repasse en B par la porte qu'elle vient de franchir (un dé, D-195), referme,
     // puis rouvre bruyamment A–B depuis B.
     const { partie: fin, evenements } = suite(MONDE, partie(), [
       ['ouvrir', 'porte_ab'],
@@ -212,10 +220,10 @@ describe('perception et réaction (C-03 §4)', () => {
       ['ouvrir', 'porte_ab'],
       ['prendre', 'cle'],
     ]);
-    expect(types(evenements[2] ?? [])).toEqual(['menace', 'deplacement', 'piece_decouverte']);
+    expect(types(evenements[2] ?? [])).toEqual([apresJet(fin, 2), 'deplacement', 'piece_decouverte']);
     expect(types(evenements[4] ?? [])).toEqual(['passage_ouvert', 'bruit_mecanisme', 'creature_entre']);
     // Action suivante sous ses yeux : le dé de D-183, quel qu'en soit le résultat.
-    expect(types(evenements[5] ?? [])).toEqual(['objet_pris', expect.stringMatching(/^(menace|aggravation_blesse)$/)]);
+    expect(types(evenements[5] ?? [])).toEqual(['objet_pris', expect.stringMatching(/^(menace|aggravation_blesse|aggravation_critique)$/)]);
     expect(pieceCreature(fin)).toBe('b');
   });
 
@@ -251,7 +259,7 @@ describe('poursuite par le passage vu (D-177)', () => {
       ['prendre', 'cle'],
       ['poser', 'cle'],
     ]);
-    expect(evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre'], ['objet_pose', 'menace']]);
+    expect(evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre'], ['objet_pose', apresJet(fin, fin.enregistrement.actions.length - 1)]]);
     expect(pieceCreature(fin)).toBe('b');
   });
 
@@ -287,7 +295,8 @@ describe('poursuite par le passage vu (D-177)', () => {
       expect(parPorte.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre']]);
       const parGrille = suite(double, vue, [['aller', 'grille_bc'], ['prendre', 'cle'], ['poser', 'cle']]);
       // Elle ne passe pas par la grille, trop étroite, mais entend ses pas et rejoint B par la porte (D-276).
-      expect(parGrille.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre'], ['objet_pose', 'menace']]);
+      const dernier = parGrille.partie.enregistrement.actions.length - 1;
+      expect(parGrille.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre'], ['objet_pose', apresJet(parGrille.partie, dernier)]]);
       expect(parGrille.partie.etat.creature).toMatchObject({ piece: 'b' });
     }
   });

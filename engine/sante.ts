@@ -5,8 +5,8 @@ import type { Cause, Danger, Evenement, NiveauRisque, Sante } from './vocabulair
 // Blessures, soin et interception (C-04 §2 à §4).
 
 /** D-055 : un D6 ; de 1 à 3, une aggravation. */
-const FACES = 6;
-const ATTEINT_JUSQUA = 3;
+export const FACES = 6;
+export const ATTEINT_JUSQUA = 3;
 
 const APRES_AGGRAVATION: Readonly<Record<Exclude<Sante, 'vaincu'>, Exclude<Sante, 'indemne'>>> = {
   indemne: 'blesse',

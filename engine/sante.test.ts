@@ -10,7 +10,7 @@ import {
   type IdAction,
   type Partie,
 } from './index';
-import { aggraver } from './sante';
+import { aggraver, ATTEINT_JUSQUA, FACES } from './sante';
 
 // Blessures, soin et fuite exposée (C-04 §2 à §4 ; D-183 à D-185). Fixtures nommées par leur rôle.
 //
@@ -72,8 +72,10 @@ function graineOu(action: IdAction, nom: string, voulu: (jet: number) => boolean
   throw new Error('Aucune graine ne donne ce jet.');
 }
 
-const defavorable = (jet: number): boolean => jet <= 3;
-const favorable = (jet: number): boolean => jet >= 4;
+const defavorable = (jet: number): boolean => jet <= ATTEINT_JUSQUA;
+const favorable = (jet: number): boolean => jet > ATTEINT_JUSQUA;
+/** Une face au moins laisse le passager indemne ; sans elle, chaque jet touche (variante V1 de #194). */
+const ESQUIVE_POSSIBLE = ATTEINT_JUSQUA < FACES;
 const types = (evenements: readonly { type: string }[]): string[] => evenements.map((evenement) => evenement.type);
 
 /** État injecté : seule la santé change, pour atteindre « critique » sans dépendre des dés. */
@@ -89,16 +91,20 @@ describe('fuite exposée (C-04 §4, D-052, D-055)', () => {
     expect(types(blesse.evenements)).toEqual(['aggravation_blesse', 'deplacement']);
     expect(blesse.evenements[0]).toEqual({ type: 'aggravation_blesse', causes: ['griffes'] });
     expect(blesse.partie.etat).toMatchObject({ piece: 'a', sante: 'blesse' });
+    if (!ESQUIVE_POSSIBLE) {
+      expect(() => graineOu('aller', 'salle_a', favorable)).toThrow(/Aucune graine/);
+      return;
+    }
     const indemne = engager(expose(graineOu('aller', 'salle_a', favorable)), 'aller', 'salle_a');
     expect(types(indemne.evenements)).toEqual(['menace', 'deplacement']);
     expect(indemne.partie.etat).toMatchObject({ piece: 'a', sante: 'indemne' });
   });
 
-  it('D-055 : chaque face du D6 enregistrée ; de 1 à 3 une blessure, de 4 à 6 aucune', () => {
+  it('D-055 : chaque face du D6 enregistrée ; jusqu’au seuil une blessure, au-delà aucune', () => {
     for (let face = 1; face <= 6; face++) {
       const resultat = engager(expose(graineOu('aller', 'salle_a', (jet) => jet === face)), 'aller', 'salle_a');
       expect(resultat.tirages).toEqual([face]);
-      expect(resultat.partie.etat.sante, `face ${face}`).toBe(face <= 3 ? 'blesse' : 'indemne');
+      expect(resultat.partie.etat.sante, `face ${face}`).toBe(face <= ATTEINT_JUSQUA ? 'blesse' : 'indemne');
     }
   });
 
@@ -161,16 +167,21 @@ describe('rester sous ses yeux (D-183) et action libre après le premier contact
     expect(rester.partie.etat.sante).toBe('indemne');
   });
 
-  it('ensuite, chaque action dans sa pièce passe par le même dé : 1 à 3, une blessure', () => {
+  it('ensuite, chaque action dans sa pièce passe par le même dé : jusqu’au seuil, une blessure', () => {
     const mal = engager(expose(graineOu('poser', 'cle', defavorable)), 'poser', 'cle');
     expect(types(mal.evenements)).toEqual(['objet_pose', 'aggravation_blesse']);
+    if (!ESQUIVE_POSSIBLE) {
+      expect(() => graineOu('poser', 'cle', favorable)).toThrow(/Aucune graine/);
+      return;
+    }
     const bien = engager(expose(graineOu('poser', 'cle', favorable)), 'poser', 'cle');
     expect(types(bien.evenements)).toEqual(['objet_pose', 'menace']);
     expect(bien.partie.etat.sante).toBe('indemne');
   });
 
   it('entrer de nouveau dans sa pièce : une menace, pas de dé ce pas-là', () => {
-    const graine = graineOu('aller', 'salle_a', favorable);
+    // Sorti indemne si une face le permet ; blessé sinon, ce qui ne change rien à ce pas-là.
+    const graine = graineOu('aller', 'salle_a', ESQUIVE_POSSIBLE ? favorable : () => true);
     const dehors = engager(expose(graine), 'aller', 'salle_a').partie;
     const retour = engager({ ...dehors, etat: { ...dehors.etat, creature: { piece: 'b', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null } } }, 'aller', 'salle_b');
     expect(retour.tirages).toEqual([]);
