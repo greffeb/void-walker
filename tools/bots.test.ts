@@ -19,10 +19,12 @@ describe('bots', () => {
     }
   });
 
-  it('le prudent et le pressé évacuent cette station ; aucun ne se jette dans le vide', () => {
-    // La créature y attend sur le chemin : combien survivent dépend du seuil d'esquive (4 sur 8 avec celui du jeu, 2 sans esquive).
+  it('le prudent et le pressé évacuent une station où la créature ne barre pas le chemin ; aucun ne se jette dans le vide', () => {
+    // Sur la soute de M-07, la créature attend sur le chemin : combien survivent y dépend des réglages de difficulté (#194).
+    const tri = CATALOGUE.resoudre('m05-m06-tri-2718281828');
+    if ('refus' in tri) throw new Error(tri.refus);
     for (const profil of ['prudent', 'presse'] as const) {
-      const parties = Array.from({ length: 8 }, (_, graine) => jouerAvecBot(entree, creerBot(profil, graine), graine).indicateurs);
+      const parties = Array.from({ length: 8 }, (_, graine) => jouerAvecBot(tri, creerBot(profil, graine), graine).indicateurs);
       expect(parties.filter((partie) => partie.issue === 'evacuation').length).toBeGreaterThanOrEqual(2);
       expect(parties.every((partie) => partie.parCause.vide === 0)).toBe(true);
     }

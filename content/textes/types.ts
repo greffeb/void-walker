@@ -214,6 +214,8 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   bruit_couvert: ['passage'],
   chute_entendue: ['passage'],
   cloison_deverrouillee: ['objet'],
+  porte_secouee: ['passage'],
+  porte_enfoncee: ['passage'],
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {

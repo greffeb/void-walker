@@ -27,6 +27,7 @@ import {
   signalee,
   sourcesDe,
   verrouillee,
+  enfoncee,
   type Alarme,
   type EtatPartie,
 } from './etat';
@@ -279,7 +280,9 @@ const fermer: ActionEngagee = {
       .map((liaison) => liaison.id),
   verifier: (contexte, cible) => {
     if (manoeuvrableIci(contexte, cible) === undefined) return 'cible_absente';
-    return contexte.etat.liaisons[cible] === true ? verifierPassage(contexte, cible) : 'deja_ferme';
+    if (contexte.etat.liaisons[cible] !== true) return 'deja_ferme';
+    // Une porte enfoncée par la créature ne ferme plus (D-279).
+    return enfoncee(contexte.etat, cible) ? 'enfoncee' : verifierPassage(contexte, cible);
   },
   prevoir: (contexte, cible) => ({
     ...SANS_DANGER,

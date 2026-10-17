@@ -65,6 +65,8 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'creature_entre':
     case 'feu_derriere':
     case 'creature_glisse':
+    case 'porte_secouee':
+    case 'porte_enfoncee':
       return { passage: nomDe(textes, evenement.passage) };
     case 'attente':
     case 'pas_entendus':

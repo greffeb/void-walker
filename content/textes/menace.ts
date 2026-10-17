@@ -26,6 +26,14 @@ export const MENACE = {
       'Vous ne sentez presque pas le dernier coup. Le sol vient à votre rencontre. Au plafond, les lumières rouges clignotent encore.',
     ],
     creature_glisse: ['Quelque chose franchit {le:passage} et part en glissade.', 'Une masse lourde dérape au pied {de:passage} et s’effondre.'],
+    porte_secouee: [
+      'Des coups sourds ébranlent {le:passage} : de l’autre côté, quelque chose s’acharne.',
+      '{Le:passage} tremble sous des chocs lourds ; le métal gémit et se creuse.',
+    ],
+    porte_enfoncee: [
+      'Un dernier choc, un fracas de métal tordu : {le:passage} cède et s’ouvre en grand.',
+      '{Le:passage} s’arrache de son cadre dans un hurlement de métal.',
+    ],
     creature_expulsee: ['La créature est arrachée du sol, happée par la brèche, et disparaît dans le noir.'],
     creature_inerte: ['Au sol, une masse plus haute qu’un homme, sans yeux, ne bouge plus.'],
     pont_cede: [

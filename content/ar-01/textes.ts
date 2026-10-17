@@ -10,6 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
 // Textes d'AR-01 écrits à la main (C-07) : vouvoiement, phrases courtes, un nom par chose (NP-04), rien de non perçu (NP-05).
@@ -200,6 +201,8 @@ export const TEXTES_AR01: TextesMonde = {
     air_revenu: ['L’air revient dans {le:pieces}.'],
     creature_expulsee: ['La créature est aspirée par la brèche et disparaît.'],
     creature_inerte: ['La créature gît au sol, inerte.'],
+    porte_secouee: MENACE.evenements.porte_secouee,
+    porte_enfoncee: MENACE.evenements.porte_enfoncee,
     ...EVENEMENTS_MORCEAUX,
   },
   brulures: {

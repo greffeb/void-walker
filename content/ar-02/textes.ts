@@ -10,6 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
 // Textes d'AR-02 écrits à la main (C-07) : vouvoiement, phrases courtes, un nom par chose (NP-04), rien de non perçu (NP-05).
@@ -161,6 +162,8 @@ export const TEXTES_AR02: TextesMonde = {
       'Au sol gît une forme inerte, plus haute qu’un homme, une tête sans yeux.',
       'Au sol, une masse plus haute qu’un homme, sans yeux, ne bouge plus.',
     ],
+    porte_secouee: MENACE.evenements.porte_secouee,
+    porte_enfoncee: MENACE.evenements.porte_enfoncee,
     ...EVENEMENTS_MORCEAUX,
   },
   brulures: {
