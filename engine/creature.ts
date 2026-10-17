@@ -72,12 +72,13 @@ function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depu
 }
 
 /**
- * Porte qu'elle peut forcer depuis `depuis` (D-279) : fermée, assez large, sans vide, sans verrou, ni écoutille manoeuvrée de
- * l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
+ * Porte qu'elle peut forcer depuis `depuis` (D-279) : fermée, assez large, sans vide, sans verrou, ni écoutille de capsule ou
+ * manoeuvrée de l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
  */
-function forcable(etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+function forcable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
   if (etat.liaisons[liaison.id] === true || liaison.etroite === true || liaison.gouffre === true || verrouillee(etat, liaison.id)) return false;
-  return liaison.manoeuvre === undefined && liaison.cachee === undefined && liaison.haute === undefined && !enFeu(etat, autreCote(liaison, depuis));
+  if (liaison.manoeuvre !== undefined || liaison.cachee !== undefined || liaison.haute !== undefined || enFeu(etat, autreCote(liaison, depuis))) return false;
+  return !monde.objets.some((objet) => objet.capsule !== undefined && liaison.entre.includes(objet.capsule.interieur));
 }
 
 /** Plus court chemin de liaisons acceptées, dans l'ordre stable du monde ; `null` si aucun. */
@@ -338,11 +339,11 @@ function reaction(
 function versLaPiste(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, indice: Indice): { forcer: DefLiaison } | { franchir: DefLiaison } | undefined {
   if (indice.par !== null) {
     const vue = liaisonsDe(monde, creature.piece).find((lien) => lien.id === indice.par && autreCote(lien, creature.piece) === indice.piece);
-    return vue !== undefined && forcable(etat, vue, creature.piece) ? { forcer: vue } : undefined;
+    return vue !== undefined && forcable(monde, etat, vue, creature.piece) ? { forcer: vue } : undefined;
   }
-  const premier = chemin(monde, creature.piece, indice.piece, (lien, piece) => praticable(monde, etat, lien, piece) || forcable(etat, lien, piece))?.[0];
+  const premier = chemin(monde, creature.piece, indice.piece, (lien, piece) => praticable(monde, etat, lien, piece) || forcable(monde, etat, lien, piece))?.[0];
   if (premier === undefined) return undefined;
-  return forcable(etat, premier, creature.piece) ? { forcer: premier } : { franchir: premier };
+  return forcable(monde, etat, premier, creature.piece) ? { forcer: premier } : { franchir: premier };
 }
 
 /**
