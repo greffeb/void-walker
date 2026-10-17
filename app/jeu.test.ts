@@ -593,6 +593,43 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
   });
 });
 
+describe('appli : regard automatique à l’arrivée (#177)', () => {
+  const ar01 = MONDES['ar-01'] as EntreeMonde;
+  const P_B = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-B'))?.etapes ?? [];
+  const env = (fabrique: IDBFactory): Environnement => ({ monde: ar01.monde, textes: ar01.textes, version: 'v-test', stockage: stockageIndexedDB('ar-01', fabrique), graine: () => 20261010 });
+
+  it('une pièce jamais vue ajoute sa description sous le déplacement ; une pièce déjà vue, rien ; la reprise relit le même récit', async () => {
+    const fabrique = new IDBFactory();
+    const e = env(fabrique);
+    let jeu = await pret(e);
+    const arrivees: { nouvelle: boolean; decrite: boolean; menace: boolean }[] = [];
+    for (const etape of P_B) {
+      const avant = observer(ar01.monde, jeu.partie.etat);
+      const option = avant.menu.find(
+        (choix) =>
+          choix.action === etape.action &&
+          choix.cible.nom === etape.cible &&
+          (etape.vers === undefined || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === etape.vers)) &&
+          (etape.parametre === undefined || (choix.parametre?.sorte === 'passage' ? choix.parametre.vers?.nom : choix.parametre?.nom) === etape.parametre),
+      );
+      if (option === undefined) throw new Error(`Option ${JSON.stringify(etape)} absente.`);
+      jeu = await jouerOption(e, jeu, option);
+      if (etape.action !== 'aller') continue;
+      const apres = observer(ar01.monde, jeu.partie.etat);
+      const descriptions: readonly string[] = ar01.textes.descriptions[apres.piece.nom] ?? [];
+      arrivees.push({
+        nouvelle: !avant.visitees.some((piece) => piece.id === apres.piece.id),
+        decrite: jeu.recit.some((ligne) => descriptions.includes(ligne)),
+        menace: apres.creatureVisible || jeu.alertes.length > 0,
+      });
+      expect((await pret(e)).recit).toEqual(jeu.recit);
+    }
+    expect(arrivees.length).toBeGreaterThan(0);
+    for (const { nouvelle, decrite, menace } of arrivees) if (!menace) expect(decrite).toBe(nouvelle);
+    expect(arrivees.some(({ nouvelle, menace }) => nouvelle && !menace)).toBe(true);
+  });
+});
+
 describe('appli : vide apparu signalé avec son alarme (D-233)', () => {
   const ar02 = MONDES['ar-02'] as EntreeMonde;
   const P_V1 = ar02.parcours.find((parcours) => parcours.nom.startsWith('P-V1'))?.etapes ?? [];
