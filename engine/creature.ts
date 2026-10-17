@@ -36,9 +36,14 @@ export interface SonEmis {
   readonly intensite: Intensite;
   readonly alcove?: boolean;
   readonly relance?: boolean;
+  /** Alertée : ses pas en changeant de pièce, qui relancent son écoute, ou son souffle quand il reste là, tant qu'elle écoute (D-276). */
+  readonly pas?: 'pas' | 'souffle';
 }
 
 const FORCE: Readonly<Record<Intensite, number>> = { normal: 1, fort: 2 };
+
+/** Réactions pendant lesquelles la créature alertée garde l'oreille ouverte après avoir vu ou entendu les pas du passager (D-276). */
+export const ECOUTE = 3;
 
 /** Réactions perdues après une glissade sur un sol huilé inconnu (C-03 §5.2). */
 export const REACTIONS_PERDUES = 2;
@@ -154,6 +159,8 @@ interface Reponse {
   readonly creature: EtatCreature;
   readonly evenements: Evenement[];
   readonly entendue?: BruitCreature;
+  /** Elle a entendu les pas du passager changer de pièce : son écoute se rouvre (D-276). */
+  readonly ecoutee?: boolean;
   /** Liaison qu'elle a franchie jusqu'au bout pendant cette réaction. */
   readonly franchie?: string;
   /** Pont fragile tombé avec elle dans ce vide (D-164). */
@@ -188,6 +195,7 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, l
     alcove: false,
     engagee: null,
     indice: piece === indice.piece ? null : indice,
+    ...(piece === arrivee ? { venue: liaison.id } : {}),
     ...(glisse === null
       ? {}
       : { perdues: REACTIONS_PERDUES, connues: [...creature.connues, cleZone({ liaison: liaison.id, piece: glisse })].sort() }),
@@ -200,7 +208,7 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, l
 }
 
 /** La créature sans ces champs facultatifs. */
-function sans(creature: EtatCreature, ...cles: readonly ('bord' | 'derive' | 'garde')[]): EtatCreature {
+function sans(creature: EtatCreature, ...cles: readonly ('bord' | 'derive' | 'garde' | 'fouille' | 'ecoute')[]): EtatCreature {
   const copie = { ...creature };
   for (const cle of cles) delete copie[cle];
   return copie;
@@ -263,25 +271,53 @@ function reaction(
   if (creature.perdues > 0) return { creature: { ...creature, perdues: creature.perdues - 1 }, evenements: [] };
   if (creature.piece === etat.piece && !creature.alcove) {
     // L'avertissement donne une action pour réagir avant toute conséquence hostile (C-03 §4.4).
-    return { creature: { ...creature, indice: null, engagee: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
+    return { creature: { ...sans(creature, 'fouille'), indice: null, engagee: null }, evenements: creature.contact ? [{ type: 'menace' }] : [] };
   }
   if (creature.piece === depuis && !creature.alcove) {
     // Elle l'a vu partir : sa réaction est de retenir le passage pris, qu'elle suivra au pas suivant (D-177).
-    return { creature: { ...creature, indice: { piece: etat.piece, par: franchie ?? null }, engagee: null }, evenements: [] };
+    return { creature: { ...sans(creature, 'fouille'), indice: { piece: etat.piece, par: franchie ?? null }, engagee: null }, evenements: [] };
   }
   const son = sonRetenu(monde, etat, creature.piece, sons);
   if (son !== undefined && son.piece === creature.piece) {
     // Elle rejoint la source, dans l'alcôve ou hors d'elle : repositionnement local, puis elle y cherche (C-03 §4.3, §5.1).
     return { creature: { ...creature, indice: null, engagee: null, alcove: son.alcove === true }, evenements: [] };
   }
+  // Alertée, elle poursuit les pas qui lui parviennent, même de l'autre bord d'un vide, et son souffle tant qu'elle écoute (D-276).
+  // Le passager n'en est averti que si cela lui donne une piste qu'elle n'avait pas.
+  const nouvelle = son?.pas !== undefined && creature.indice?.piece !== son.piece;
+  const entendus: Evenement[] = !nouvelle ? [] : son.pas === 'pas' ? [{ type: 'pas_entendus' }] : [{ type: 'souffle_entendu' }];
+  // Le passager l'entend déjà bouger ou arriver : le récit n'a pas besoin de l'indice en plus (D-111, récits de 2 à 4 phrases).
+  const annonce = (reponse: Reponse): boolean => reponse.evenements.some((evenement) => ['bruit_creature', 'creature_entre', 'creature_glisse'].includes(evenement.type));
+  const suite = (reponse: Reponse): Reponse => ({
+    ...reponse,
+    evenements: annonce(reponse) ? reponse.evenements : [...entendus, ...reponse.evenements],
+    ...(son?.pas === 'pas' ? { ecoutee: true } : {}),
+  });
+  // Une nouvelle piste lui rend le droit de fouiller autour de son bout.
+  const piste = son === undefined ? creature : (sans(creature, 'fouille') as CreatureActive);
   const indice: Indice | null = son === undefined ? creature.indice : { piece: son.piece, par: null };
-  if (indice === null) return { creature, evenements: [] };
+  if (indice === null) return fouiller(monde, etat, creature);
   if (indice.piece === creature.piece) return { creature: { ...creature, indice: null }, evenements: [] };
   // Sortir de l'alcôve est un repositionnement local : une réaction (C-03 §4.3).
-  if (creature.alcove) return { creature: { ...creature, indice, alcove: false }, evenements: [] };
+  if (creature.alcove) return suite({ creature: { ...piste, indice, alcove: false }, evenements: [] });
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
-  if (liaison === undefined) return { creature: { ...creature, indice, engagee: null }, evenements: [] };
-  return deriver(etat, creature, liaison, indice) ?? franchir(monde, etat, creature, liaison, indice);
+  if (liaison === undefined) return suite({ creature: { ...piste, indice, engagee: null }, evenements: [] });
+  return suite(deriver(etat, piste, liaison, indice) ?? franchir(monde, etat, piste, liaison, indice));
+}
+
+/**
+ * Alertée et au bout de sa piste sans le trouver, elle passe une réaction dans une pièce voisine, par le premier passage ouvert
+ * autre que celui par où elle est venue (D-276) ; une seule fois par piste, et aucune patrouille sans alerte (D-048).
+ */
+function fouiller(monde: DefMonde, etat: EtatPartie, creature: CreatureActive): Reponse {
+  if (!creature.contact || creature.fouille === true || creature.alcove) return { creature, evenements: [] };
+  const fouillee: CreatureActive = { ...creature, fouille: true };
+  const liaison = liaisonsDe(monde, creature.piece)
+    .filter((lien) => lien.id !== creature.venue && praticable(monde, etat, lien, creature.piece))
+    .sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+  if (liaison === undefined) return { creature: fouillee, evenements: [] };
+  const indice: Indice = { piece: autreCote(liaison, creature.piece), par: liaison.id };
+  return deriver(etat, fouillee, liaison, indice) ?? franchir(monde, etat, fouillee, liaison, indice);
 }
 
 /** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */
@@ -327,10 +363,12 @@ export function reagir(
   }
   const reponse = reagirRalentie(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
-  const creature = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
+  const reglee = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
   const objets = reponse.perdu === undefined ? etat.objets : { ...etat.objets, [reponse.perdu.objet]: { type: 'perdu', liaison: reponse.perdu.liaison } as const };
-  const apres: EtatPartie = { ...etat, objets, creature };
-  const suite: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
+  const apres: EtatPartie = { ...etat, objets, creature: reglee };
+  const vue: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
+  const creature = ecouter(vue, reglee, reponse.ecoutee === true);
+  const suite: EtatPartie = { ...vue, creature };
   if (creatureEnVue(suite) && !creature.contact) {
     // Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir (D-195).
     const garde = creature.piece === suite.piece && piece !== suite.piece && reponse.franchie !== undefined ? { garde: reponse.franchie } : {};
@@ -340,6 +378,17 @@ export function reagir(
     };
   }
   return { etat: suite, evenements: reponse.evenements };
+}
+
+/**
+ * Son écoute à la fin du pas (D-276) : alertée, elle la rouvre au plein quand elle le voit ou entend ses pas ; sinon elle
+ * s'use d'une réaction. Jamais avant le premier contact.
+ */
+function ecouter(etat: EtatPartie, creature: EtatCreature, pas: boolean): EtatCreature {
+  const alertee = creature.contact || creatureEnVue(etat);
+  const restant = !alertee ? 0 : creatureEnVue(etat) || pas ? ECOUTE : Math.max(0, (creature.ecoute ?? 0) - 1);
+  if (restant > 0) return { ...creature, ecoute: restant };
+  return creature.ecoute === undefined ? creature : sans(creature, 'ecoute');
 }
 
 /**

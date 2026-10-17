@@ -130,8 +130,8 @@ describe('M-08 — passerelle effondrée (D-164, D-169, D-236)', () => {
     expect(choix(monde, portee.partie, { action: 'prendre', cible: 'touret' })).toMatchObject({ disponible: false, raison: 'encombre' });
   });
 
-  it('partie du porteur : la chute s’entend depuis les quartiers, voisins du bord, et la planche manque au retour', () => {
-    // Ses 15 premiers gestes, même graine : il repasse la planche sous les yeux de la créature, qui le voit partir par là.
+  it('partie du porteur : alertée, elle suit les pas de l’autre côté du vide et tombe ; la planche manque au retour (D-276)', () => {
+    // Ses 11 premiers gestes, même graine : il repasse la planche sous les yeux de la créature, qui le voit partir par là.
     const etapes = parcours('m-08', 'M-08').etapes;
     const graine = 1775816682;
     let partie = nouvellePartie(monde, { version: 'morceaux-test', graine });
@@ -140,21 +140,20 @@ describe('M-08 — passerelle effondrée (D-164, D-169, D-236)', () => {
       { action: 'ouvrir', cible: 'porte', vers: 'reserve' },
       { action: 'aller', cible: 'porte', vers: 'reserve' },
       { action: 'aller', cible: 'porte', vers: 'est' },
-      { action: 'aller', cible: 'vide', vers: 'ouest' },
-      { action: 'aller', cible: 'porte_grippee', vers: 'quartiers' },
-      { action: 'aller', cible: 'porte_grippee', vers: 'ouest' },
-      { action: 'aller', cible: 'vide', vers: 'est' },
-      { action: 'aller', cible: 'vide', vers: 'ouest' },
     ] as const) {
       partie = engager(monde, partie, etape).partie;
     }
-    expect(partie.etat.creature?.indice).toEqual({ piece: 'p-ouest', par: 'l-ouest-est' });
-    // Seizième geste : il part vers les quartiers ; elle le suit par la planche et tombe.
-    const fuite = engager(monde, partie, { action: 'aller', cible: 'porte_grippee', vers: 'quartiers' });
-    expect(fuite.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
-    expect(types(fuite.evenements)).toEqual(['deplacement', 'chute_entendue']);
-    const retour = engager(monde, fuite.partie, { action: 'aller', cible: 'porte_grippee', vers: 'ouest' });
-    expect(observer(monde, retour.partie.etat).pontsBrises.map(({ objet }) => objet.nom)).toEqual(['planche']);
+    // Il repasse le vide : elle ne l'a pas vu partir, mais elle entend ses pas et le raconte.
+    const traversee = engager(monde, partie, { action: 'aller', cible: 'vide', vers: 'ouest' });
+    expect(types(traversee.evenements)).toEqual(['deplacement', 'bruit_creature']);
+    expect(traversee.partie.etat.creature).toMatchObject({ piece: 'p-est', indice: { piece: 'p-ouest', par: null } });
+    // Il n'a plus qu'à attendre au bord : elle le poursuit sur la planche, qui cède.
+    const attente = jouer(monde, traversee.partie, { action: 'attendre', cible: observer(monde, traversee.partie.etat).piece.id });
+    if (attente.type !== 'engagee') throw new Error(`Attente : ${attente.type}.`);
+    const chute = { partie: attente.partie, evenements: attente.evenements };
+    expect(chute.partie.etat.creature).toMatchObject({ piece: null, neutralisee: 'tombee' });
+    expect(types(chute.evenements)).toEqual(['attente', 'pont_cede']);
+    expect(observer(monde, chute.partie.etat).pontsBrises.map(({ objet }) => objet.nom)).toEqual(['planche']);
   });
 
   it('piège : laissée en place, la planche cède sous la créature attirée par un bruit ; le passage est de nouveau coupé', () => {
@@ -213,7 +212,8 @@ describe('M-10 — chambre froide (D-166, D-170, D-239, D-240)', () => {
     const pas = suite(monde, depart(monde), parcours('m-10', debut).etapes);
     expect(Math.max(...pas.map((un) => un.partie.etat.froid))).toBeLessThanOrEqual(2);
     expect(pas.at(-1)?.partie.etat.creature?.ralentie).toBeDefined();
-    expect(pas.at(-1)?.partie.etat.creature?.piece).toBe('m-10/p-chambre');
+    // Le compresseur la garde dans la chambre ; dans le parcours risqué, un autre chemin lui reste ouvert et elle suit les pas (D-276).
+    if (debut === 'M-10 — Compresseur') expect(pas.at(-1)?.partie.etat.creature?.piece).toBe('m-10/p-chambre');
   });
 
   it('le compresseur l’attire dans la chambre, sous les yeux du passager ; ressortir par l’autre porte est libre (D-184)', () => {

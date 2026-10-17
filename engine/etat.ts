@@ -49,6 +49,12 @@ export interface EtatCreature {
   readonly bord?: string;
   /** Sans gravité, elle dérive vers ce passage ; réactions de dérive qui restent avant d'y être (D-237). */
   readonly derive?: { readonly vers: string; readonly restant: number };
+  /** Alertée, réactions pendant lesquelles elle entend encore le passager même immobile, de 3 à 0 ; absent à 0 (D-276). */
+  readonly ecoute?: number;
+  /** Elle a déjà fouillé autour du bout de sa piste : une seule pièce voisine par piste (D-276). */
+  readonly fouille?: true;
+  /** Passage par lequel elle est entrée dans sa pièce : la fouille ne revient pas dessus (D-276). */
+  readonly venue?: string;
 }
 
 /** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */
