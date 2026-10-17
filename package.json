@@ -14,6 +14,8 @@
     "check:texts": "tsx tools/check-texts.ts",
     "check:stations": "tsx tools/verifier-station.ts",
     "mesurer:tirages": "tsx tools/mesurer-tirages.ts",
+    "mesurer:parties": "tsx tools/mesurer-parties.ts",
+    "mesurer:difficulte": "tsx tools/mesurer-difficulte.ts",
     "parcours": "tsx tools/rejouer-parcours.ts",
     "cli": "tsx cli/main.ts",
     "rejouer": "tsx tools/rejouer-export.ts",
