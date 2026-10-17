@@ -4,7 +4,7 @@ import type { Cause, Danger, Evenement, NiveauRisque, Sante } from './vocabulair
 
 // Blessures, soin et interception (C-04 §2 à §4).
 
-/** D-055 : un D6 ; de 1 à 3, une aggravation. Variante V1 de #194 (D-278, proposée) : de 1 à 6, aucune esquive. */
+/** D-055, modifiée par D-278 : un D6 ; de 1 à 6, une aggravation, sans esquive. */
 export const FACES = 6;
 export const ATTEINT_JUSQUA = 6;
 
