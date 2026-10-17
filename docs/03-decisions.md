@@ -27,7 +27,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit) |
-| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille) |
+| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
@@ -460,6 +460,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Décision : un D6 ; 4–6 = franchissement sans aggravation due à cette interception ; 1–3 = franchissement avec une aggravation. Un seul jet résout l'interception et consomme la réaction de cette menace pour cet engagement ; pas de seconde attaque ni déplacement supplémentaire dans le même pas.
 - Portée : risque résiduel d'une fuite exposée d'AR-01, non d'une action impossible. Interface qualitative, parcours préparés sans ce jet, plafond de D-053 conservé pour les causes combinées.
 - Limite : valeur à éprouver et éventuellement rééquilibrer par décision explicite ; pas un équilibre universel imposé à la génération ou à la deuxième référence.
+- Modifiée par D-278 : le jet touche de 1 à 6, plus d'esquive.
 
 ### D-056 — Ordre de tour et délai de propagation d'AR-01
 
@@ -2228,3 +2229,13 @@ Détails de l'agent pour #190, à relire par le porteur ; aucun n'est une décis
   - **Le bouton « Regarder » du dock reste** : il sert à relire une pièce déjà visitée. Le retirer, pour libérer sa place, reste au porteur.
 - Précise : D-267 (dock), D-233 (danger signalé dans le récit), 12 §3.3.
 - Limite : une poursuite où la créature n'est ni en vue ni signalée par un événement du pas (alertée, à l'écoute) n'est pas exclue ; elle n'ajoute le regard que dans une pièce jamais vue.
+
+### D-278 — Le jet d'interception touche toujours (V1 de #194)
+
+- Date / statut : 2026-10-17 / **Validé** (« on garde V1 », après deux parties signées sur la version de test de la PR #196 et le rapport des bots dans #194).
+- Origine : porteur, dans la discussion de #194 : « rendre l'erreur plus chère c'est déjà un bon début. tester avec 0 % esquive » ; plaisir visé : « puzzle où on évite la créature » ; rapport #191 : « faire des essais avec 100 % de réussite pour l'attaque de la créature pour obliger à être malin ».
+- Décision : variante V1 de #194, une seule variable changée. Le D6 d'interception de D-055 touche de 1 à 6 au lieu de 1 à 3 : chaque jet sous les yeux de la créature est une aggravation. Le dé reste lancé et enregistré, pour ne pas changer le format des parties. Le reste ne change pas : quand elle intercepte (C-04 §4, D-183, D-184, D-195), l'aperçu « risque élevé », les textes, trois paliers avant la défaite.
+- Modifie : D-055 et C-04 §4.2.
+- Piste notée par le porteur, sans décision : un mode facile pourra régler ce même dé, avec 50 % ou 30 % d'esquive. Les modes de difficulté restent hors de #194 tant qu'ils ne sont pas décidés.
+- Écarté par le porteur : faire jouer le dé dès qu'on entre dans la pièce de la créature (« pas de variante d'entrée ») ; entrer reste libre, sortir ou agir sous ses yeux se joue (C-04 §4.2).
+- Limite : l'aperçu annonce encore « élevé » pour une blessure devenue certaine, et les textes d'esquive ne servent plus. Ils seront revus à part (interface et textes). Le monde de test passe de 24 213 à 89 183 états atteignables ; `check:texts` lui donne sa propre borne pour l'explorer en entier.

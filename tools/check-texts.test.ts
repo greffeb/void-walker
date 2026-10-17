@@ -13,8 +13,11 @@ function sans<T extends object>(objet: T, cle: string): T {
   return Object.fromEntries(Object.entries(objet).filter(([nom]) => nom !== cle)) as T;
 }
 
-/** Ces tests parcourent tous les états atteignables : plusieurs secondes sur la machine de vérification de GitHub. */
-const EXHAUSTIF = { timeout: 30_000 };
+/**
+ * Ces tests parcourent tous les états atteignables du monde de test : plusieurs dizaines de secondes sur la machine de
+ * vérification de GitHub quand le jet touche toujours (variante V1 de #194, 89 183 états).
+ */
+const EXHAUSTIF = { timeout: 180_000 };
 
 describe('contrôle des textes (C-07)', () => {
   it('lot de check:texts : le monde de test complet, sûr, exploré en entier ; repris du cache la seconde fois, sans nouvelle exploration (#180)', EXHAUSTIF, () => {

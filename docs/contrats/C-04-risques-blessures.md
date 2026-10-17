@@ -1,6 +1,6 @@
 # C-04 — Risques, blessures et soin — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175, précisés par D-237/D-240 ; interception et soin précisés par D-183 à D-185.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-041/D-042/D-052/D-053/D-055/D-057 ; vide D-059/D-060/D-072/D-073/D-074 ; morceaux D-165/D-166/D-175, précisés par D-237/D-240 ; interception et soin précisés par D-183 à D-185 ; jet d'interception sans esquive, D-278.
 > **Date :** 2026-10-14.
 > **Implémentation :** §2 à §4 et RSK-01 à RSK-09 (#101) ; brûlure du feu, certaine et annoncée (D-188, #102) ; vide sans combinaison et créature neutralisée (RSK-10, RSK-11) depuis #104 ; froid de la chambre froide et dérive sans gravité (§3.2) proposés par #105. **Calibrage humain et validation téléphone :** non réalisés.
 
@@ -53,8 +53,9 @@ Porte fermée, gabarit incompatible, objet absent, commande périmée : refus se
 
 | D6 enregistré | Résultat mécanique |
 | --- | --- |
-| 4, 5 ou 6 | Franchissement accompli, sans aggravation due à cette interception |
-| 1, 2 ou 3 | Franchissement accompli, une aggravation ordinaire |
+| 1 à 6 | Franchissement accompli, une aggravation ordinaire |
+
+Depuis D-278 (V1 de #194), chaque jet touche : il n'y a plus d'esquive. Le dé reste lancé et enregistré, pour garder le format des parties et pour un éventuel mode facile, qui pourrait rendre une esquive à ce même dé (piste sans décision). Le réglage précédent de D-055 était : 4, 5 ou 6, franchissement sans aggravation ; 1, 2 ou 3, une aggravation.
 
 Le jet résout l'interception **avant le changement de position** au sens de la validation ; son résultat contient ensuite le déplacement et l'aggravation éventuelle comme une transition cohérente. Sur résultat défavorable, le personnage ne reste pas immobile : D-052 exige le succès partiel.
 
@@ -81,7 +82,7 @@ Une nouvelle tentative est un nouvel engagement dans le nouvel état, avec ses c
 | ID | Cas | Attente |
 | --- | --- | --- |
 | RSK-01 | Même franchissement préparé, flux RNG différents | Pas de dé nécessaire, même effet matériel |
-| RSK-02 | Fuite exposée avec D6 = 1 puis D6 = 6, sur deux fixtures distinctes | Destination atteinte dans les deux ; aggravation uniquement dans la première |
+| RSK-02 | Fuite exposée avec D6 = 1 puis D6 = 6, sur deux fixtures distinctes | Destination atteinte dans les deux ; aggravation dans les deux depuis D-278 (dans la première seulement avec D-055) |
 | RSK-03 | Bloc trop large au conduit, D6 favorable disponible | Refus sans tirage, sans perte/dépôt de bloc et sans déplacement |
 | RSK-04 | Interception et foyer provoquent chacun un incident dans un pas | Causes conservées, une seule aggravation ordinaire |
 | RSK-05 | Fuite résolue, créature avec réaction nominalement disponible | Pas de seconde attaque ni mouvement gratuit après le même jet |
@@ -96,6 +97,6 @@ Les fixtures de tests doivent identifier leurs injections d'état. Les témoins 
 
 ## 7. Calibrage et limites
 
-Le seuil du D6 est un **paramètre accepté pour les essais**, pas une mesure du plaisir ou de la difficulté humaine. Toute modification ultérieure requiert une décision d'équilibrage, une nouvelle mesure et l'évaluation de l'impact sur les références acceptées.
+Le seuil du D6 est un **paramètre accepté pour les essais**, pas une mesure du plaisir ou de la difficulté humaine. Toute modification ultérieure requiert une décision d'équilibrage, une nouvelle mesure et l'évaluation de l'impact sur les références acceptées. D-278 l'a porté de 3 à 6 après les mesures de #194 (bots et parties du porteur) : un nouveau joueur attentif évacue environ 55 % des fois au lieu de 84 %.
 
 Aucune classe, statistique cachée, chance, dégâts numériques, soin automatique sur critique, table d'échec universelle ou mécanique de duel n'est ajoutée par ce contrat. Les risques d'autres familles d'action ne sont pas tous ramenés arbitrairement à ce D6.

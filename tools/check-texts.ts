@@ -73,6 +73,16 @@ const MOMENTS_FORTS: readonly TypeEvenement[] = ['premier_contact', 'defaite', '
  * des parcours témoins, leurs voisins et des marches au hasard à graine fixe complètent la couverture.
  */
 export const MAX_ETATS = 50000;
+/**
+ * Borne du monde de test, pour qu'il reste exploré en entier : 24 213 états quand le jet peut rater, 89 183 quand il touche
+ * toujours (variante V1 de #194), la santé variant davantage.
+ */
+export const MAX_ETATS_MONDE_TEST = 150000;
+
+/** Borne d'exploration d'une entrée : le monde de test à part. */
+export function borneDe(entree: EntreeMonde): number {
+  return entree.monde.id === 'monde-test' ? MAX_ETATS_MONDE_TEST : MAX_ETATS;
+}
 /** Marches au hasard à graine fixe : nombre et longueur, pour atteindre des états profonds (feu propagé, blessures). */
 const MARCHES = 40;
 const LONGUEUR_MARCHE = 80;
@@ -550,11 +560,11 @@ export function controlerEntree(id: string, aControler: EntreeMonde | Refus): Co
     return { lignes, erreurs: 1 };
   }
   const debut = Date.now();
-  const { erreurs, avertissements, couverture } = controlerTextes(aControler);
+  const { erreurs, avertissements, couverture } = controlerTextes(aControler, undefined, borneDe(aControler));
   for (const erreur of erreurs) dire('error', `${id} : ${erreur}`);
   if (erreurs.length === 0) dire('log', `${id} : textes complets, trous sûrs, aucun identifiant affiché.`);
   if (couverture !== null) {
-    const borne = couverture.complete ? 'exploration complète' : `borne de ${MAX_ETATS} états atteinte`;
+    const borne = couverture.complete ? 'exploration complète' : `borne de ${borneDe(aControler)} états atteinte`;
     dire('log', `${id} : ${couverture.etats} états rendus (${borne} ; parcours témoins et voisins, ${MARCHES} marches au hasard) en ${Math.round((Date.now() - debut) / 1000)} s.`);
     dire('log', `${id} : événements racontés ${couverture.rendus.length}/${TYPES_EVENEMENT.length} : ${couverture.rendus.join(', ')}.`);
     if (couverture.jamais.length > 0) dire('warn', `${id} : avertissement, jamais rendus : ${couverture.jamais.join(', ')}.`);
