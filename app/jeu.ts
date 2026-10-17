@@ -76,7 +76,11 @@ export async function charger(env: Environnement): Promise<Demarrage | { readonl
     const partie = reprendrePartie(env.monde, donnees, env.version);
     const repris = rappelRepris(partie, observer(env.monde, partie.etat));
     const rappel = repris === null ? null : texteRappel(env.textes, repris);
-    const { recit, alertes } = signaler(env.textes, observationAvant(env, partie), observer(env.monde, partie.etat), partie.derniers, raconterDerniers(env.textes, partie));
+    const avant = observationAvant(env, partie);
+    const { recit, alertes } = signaler(env.textes, avant, observer(env.monde, partie.etat), partie.derniers, [
+      ...raconterDerniers(env.textes, partie),
+      ...regardArrivee(env, avant, partie, partie.derniers),
+    ]);
     const jeu: Jeu = {
       partie,
       recit,
@@ -125,6 +129,26 @@ function signaler(
   return { recit: lignes, alertes: [...new Set(alertes)].sort((a, b) => a - b) };
 }
 
+/** Événements de la créature ou de ses coups : le récit reste court tant qu'elle est là (#177). */
+function evenementDeMenace(evenement: Evenement): boolean {
+  return /creature|aggravation|defaite/.test(evenement.type) || ['menace', 'premier_contact', 'pas_entendus', 'souffle_entendu'].includes(evenement.type);
+}
+
+/**
+ * Entrer pour la première fois dans une pièce, c'est aussi la regarder : « Regarder autour de vous » se lit tout seul, sous le
+ * récit du déplacement (#177). Pas dans une pièce déjà visitée, ni quand la créature est en vue ou se manifeste : peu de texte
+ * pendant une poursuite. Gratuit, donc sans écriture ; retrouvé à la reprise comme le reste du récit.
+ */
+function regardArrivee(env: Pick<Environnement, 'monde' | 'textes'>, avant: Observation, partie: Partie, evenements: readonly Evenement[]): string[] {
+  const apres = observer(env.monde, partie.etat);
+  if (!evenements.some((evenement) => evenement.type === 'deplacement') || avant.visitees.some((piece) => piece.id === apres.piece.id)) return [];
+  if (apres.creatureVisible || evenements.some(evenementDeMenace)) return [];
+  const option = apres.menu.find((choix) => choix.action === 'regarder' && choix.cible.sorte === 'piece');
+  if (option === undefined) return [];
+  const resultat = jouer(env.monde, partie, option.commande);
+  return resultat.type === 'consultation' ? raconter(env.textes, resultat) : [];
+}
+
 /** Ce que le passager voyait avant sa dernière action, rejouée sans elle : la reprise signale les mêmes dangers (C-09 §3). */
 function observationAvant(env: Pick<Environnement, 'monde' | 'version'>, partie: Partie): Observation {
   const { enregistrement } = partie;
@@ -164,7 +188,11 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
   const arrivee = option.action === 'aller' ? observer(env.monde, resultat.partie.etat).piece : null;
   const rappel = texteRappel(env.textes, arrivee === null ? rappelDe(option) : { type: 'deplacement', vers: arrivee });
   const assistance = rendreAssistance(env.textes, resultat.evenements);
-  const signale = signaler(env.textes, observer(env.monde, jeu.partie.etat), observer(env.monde, resultat.partie.etat), resultat.evenements, recit);
+  const avant = observer(env.monde, jeu.partie.etat);
+  const signale = signaler(env.textes, avant, observer(env.monde, resultat.partie.etat), resultat.evenements, [
+    ...recit,
+    ...regardArrivee(env, avant, resultat.partie, resultat.evenements),
+  ]);
   return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
 }
 
