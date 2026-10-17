@@ -10,6 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
 // Textes écrits à la main (C-07) : vouvoiement, phrases courtes, aucune promesse d'effet non observé.
@@ -149,6 +150,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     air_revenu: ['L’air revient dans {le:pieces}.'],
     creature_expulsee: ['La créature est aspirée par la brèche et disparaît.'],
     creature_inerte: ['La créature gît au sol, inerte.'],
+    porte_secouee: MENACE.evenements.porte_secouee,
+    porte_enfoncee: MENACE.evenements.porte_enfoncee,
     ...EVENEMENTS_MORCEAUX,
   },
   brulures: {

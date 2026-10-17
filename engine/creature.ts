@@ -12,6 +12,7 @@ import {
   refPassage,
   refPiece,
   sansGravite,
+  verrouillee,
   type BruitCreature,
   type EtatCreature,
   type EtatPartie,
@@ -51,6 +52,12 @@ export const REACTIONS_PERDUES = 2;
 /** Réactions de plus pour dériver, gravité coupée, jusqu'à un autre passage de la zone (D-165, D-237). */
 export const REACTIONS_DERIVE = 2;
 
+/** Réactions pour forcer une porte fermée qui barre sa piste ; elle cède à la dernière (V2 de #194, D-279). */
+export const REACTIONS_FORCER = 2;
+
+/** Une porte enfoncée ne ferme plus (V2a de #194) ; sinon on peut la refermer, et elle doit la forcer de nouveau (V2b). */
+export const PORTE_DETRUITE = true;
+
 function laissePasserLeSon(etat: EtatPartie, liaison: DefLiaison): boolean {
   return etat.liaisons[liaison.id] === true || liaison.sonAuTravers === true;
 }
@@ -62,6 +69,15 @@ function laissePasserLeSon(etat: EtatPartie, liaison: DefLiaison): boolean {
 function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
   if (liaison.gouffre === true && pontSur(monde, etat, liaison.id) === undefined) return false;
   return etat.liaisons[liaison.id] === true && liaison.etroite !== true && !enFeu(etat, autreCote(liaison, depuis));
+}
+
+/**
+ * Porte qu'elle peut forcer depuis `depuis` (D-279) : fermée, assez large, sans vide, sans verrou, ni écoutille manoeuvrée de
+ * l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
+ */
+function forcable(etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  if (etat.liaisons[liaison.id] === true || liaison.etroite === true || liaison.gouffre === true || verrouillee(etat, liaison.id)) return false;
+  return liaison.manoeuvre === undefined && liaison.cachee === undefined && liaison.haute === undefined && !enFeu(etat, autreCote(liaison, depuis));
 }
 
 /** Plus court chemin de liaisons acceptées, dans l'ordre stable du monde ; `null` si aucun. */
@@ -165,6 +181,10 @@ interface Reponse {
   readonly franchie?: string;
   /** Pont fragile tombé avec elle dans ce vide (D-164). */
   readonly perdu?: { readonly objet: string; readonly liaison: string };
+  /** Porte qu'elle force à cette réaction, sans qu'elle cède encore (D-279). */
+  readonly secouee?: string;
+  /** Porte qui cède à cette réaction : elle s'ouvre (D-279). */
+  readonly enfoncee?: string;
 }
 
 /** Créature encore active, donc dans la station (D-062). */
@@ -208,7 +228,7 @@ function franchir(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, l
 }
 
 /** La créature sans ces champs facultatifs. */
-function sans(creature: EtatCreature, ...cles: readonly ('bord' | 'derive' | 'garde' | 'fouille' | 'ecoute')[]): EtatCreature {
+function sans(creature: EtatCreature, ...cles: readonly ('bord' | 'derive' | 'garde' | 'fouille' | 'ecoute' | 'force')[]): EtatCreature {
   const copie = { ...creature };
   for (const cle of cles) delete copie[cle];
   return copie;
@@ -287,7 +307,8 @@ function reaction(
   const nouvelle = son?.pas !== undefined && creature.indice?.piece !== son.piece;
   const entendus: Evenement[] = !nouvelle ? [] : son.pas === 'pas' ? [{ type: 'pas_entendus' }] : [{ type: 'souffle_entendu' }];
   // Le passager l'entend déjà bouger ou arriver : le récit n'a pas besoin de l'indice en plus (D-111, récits de 2 à 4 phrases).
-  const annonce = (reponse: Reponse): boolean => reponse.evenements.some((evenement) => ['bruit_creature', 'creature_entre', 'creature_glisse'].includes(evenement.type));
+  const annonce = (reponse: Reponse): boolean =>
+    reponse.evenements.some((evenement) => ['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee'].includes(evenement.type));
   const suite = (reponse: Reponse): Reponse => ({
     ...reponse,
     evenements: annonce(reponse) ? reponse.evenements : [...entendus, ...reponse.evenements],
@@ -301,8 +322,41 @@ function reaction(
   // Sortir de l'alcôve est un repositionnement local : une réaction (C-03 §4.3).
   if (creature.alcove) return suite({ creature: { ...piste, indice, alcove: false }, evenements: [] });
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
-  if (liaison === undefined) return suite({ creature: { ...piste, indice, engagee: null }, evenements: [] });
-  return suite(deriver(etat, piste, liaison, indice) ?? franchir(monde, etat, piste, liaison, indice));
+  if (liaison !== undefined) return suite(deriver(etat, piste, liaison, indice) ?? franchir(monde, etat, piste, liaison, indice));
+  // Alertée, une porte fermée sur sa piste ne l'arrête plus : elle la force (D-279).
+  const voie = piste.contact ? versLaPiste(monde, etat, piste as CreatureActive, indice) : undefined;
+  if (voie === undefined) return suite({ creature: { ...piste, indice, engagee: null }, evenements: [] });
+  if ('forcer' in voie) return suite(forcer(monde, etat, piste as CreatureActive, voie.forcer, indice));
+  return suite(deriver(etat, piste as CreatureActive, voie.franchir, indice) ?? franchir(monde, etat, piste as CreatureActive, voie.franchir, indice));
+}
+
+/**
+ * Sa piste passe par une porte fermée (D-279) : celle qu'elle l'a vu prendre, ou la première du plus court chemin vers les pas
+ * entendus qui ne passe que par des liaisons praticables ou des portes à forcer. `franchir` : le premier pas de ce chemin, quand la
+ * porte est plus loin.
+ */
+function versLaPiste(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, indice: Indice): { forcer: DefLiaison } | { franchir: DefLiaison } | undefined {
+  if (indice.par !== null) {
+    const vue = liaisonsDe(monde, creature.piece).find((lien) => lien.id === indice.par && autreCote(lien, creature.piece) === indice.piece);
+    return vue !== undefined && forcable(etat, vue, creature.piece) ? { forcer: vue } : undefined;
+  }
+  const premier = chemin(monde, creature.piece, indice.piece, (lien, piece) => praticable(monde, etat, lien, piece) || forcable(etat, lien, piece))?.[0];
+  if (premier === undefined) return undefined;
+  return forcable(etat, premier, creature.piece) ? { forcer: premier } : { franchir: premier };
+}
+
+/**
+ * Une réaction à forcer `porte` (D-279) : elle cède à la `REACTIONS_FORCER`-ième de suite sur la même porte, et s'ouvre. Le
+ * passager l'entend s'il est dans l'une de ses deux pièces, hors du vacarme d'une salle des machines (D-163).
+ */
+function forcer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, porte: DefLiaison, indice: Indice): Reponse {
+  const restant = (creature.force?.liaison === porte.id ? creature.force.restant : REACTIONS_FORCER) - 1;
+  const cede = restant <= 0;
+  const entendue = porte.entre.includes(etat.piece) && !assourdie(monde, etat, etat.piece);
+  const vue = cede ? { ...etat, liaisons: { ...etat.liaisons, [porte.id]: true } } : etat;
+  const evenements: Evenement[] = entendue ? [{ type: cede ? 'porte_enfoncee' : 'porte_secouee', passage: refPassage(monde, vue, porte, etat.piece) }] : [];
+  const suite: EtatCreature = { ...sans(creature, 'force'), indice, engagee: null, ...(cede ? {} : { force: { liaison: porte.id, restant } }) };
+  return { creature: suite, evenements, ...(cede ? { enfoncee: porte.id } : { secouee: porte.id }) };
 }
 
 /**
@@ -363,9 +417,14 @@ export function reagir(
   }
   const reponse = reagirRalentie(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
-  const reglee = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
+  const repit = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
+  // Une porte qu'elle cesse de forcer reprend tout à zéro (D-279).
+  const reglee = reponse.secouee === undefined ? sans(repit, 'force') : repit;
   const objets = reponse.perdu === undefined ? etat.objets : { ...etat.objets, [reponse.perdu.objet]: { type: 'perdu', liaison: reponse.perdu.liaison } as const };
-  const apres: EtatPartie = { ...etat, objets, creature: reglee };
+  const ouverte = reponse.enfoncee;
+  const liaisons = ouverte === undefined ? etat.liaisons : { ...etat.liaisons, [ouverte]: true };
+  const enfoncees = ouverte === undefined || !PORTE_DETRUITE ? {} : { enfoncees: [...(etat.enfoncees ?? []), ouverte] };
+  const apres: EtatPartie = { ...etat, objets, liaisons, ...enfoncees, creature: reglee };
   const vue: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
   const creature = ecouter(vue, reglee, reponse.ecoutee === true);
   const suite: EtatPartie = { ...vue, creature };

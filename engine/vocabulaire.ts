@@ -96,6 +96,8 @@ export const TYPES_EVENEMENT = [
   'bruit_couvert',
   'chute_entendue',
   'cloison_deverrouillee',
+  'porte_secouee',
+  'porte_enfoncee',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -130,6 +132,7 @@ export const RAISONS_REFUS = [
   'sans_gravite',
   'deja_fait',
   'verrouillee',
+  'enfoncee',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -150,6 +153,7 @@ export const RAISONS_INDISPONIBILITE = [
   'trop_loin',
   'sans_gravite',
   'verrouillee',
+  'enfoncee',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 
@@ -273,7 +277,12 @@ export type Evenement =
   /** Le pupitre ferme d'un coup les portes de la chambre froide (D-170, D-239). */
   | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece }
   /** Une commande de déverrouillage actionnée : sa cloison n'est plus verrouillée (D-259). */
-  | { readonly type: 'cloison_deverrouillee'; readonly objet: RefObjet };
+  | { readonly type: 'cloison_deverrouillee'; readonly objet: RefObjet }
+  /**
+   * Alertée, la créature force une porte fermée sur sa piste : le passager l'entend s'acharner, puis la porte cède et s'ouvre
+   * (D-279) ; seulement s'il est dans l'une des deux pièces de la porte.
+   */
+  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage };
 
 /** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
 export type MomentMessage =

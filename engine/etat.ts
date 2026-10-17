@@ -55,6 +55,8 @@ export interface EtatCreature {
   readonly fouille?: true;
   /** Passage par lequel elle est entrée dans sa pièce : la fouille ne revient pas dessus (D-276). */
   readonly venue?: string;
+  /** Porte fermée qu'elle force pour suivre sa piste, et réactions qu'il lui faut encore pour la faire céder (D-279). */
+  readonly force?: { readonly liaison: string; readonly restant: number };
 }
 
 /** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */
@@ -162,6 +164,11 @@ export interface EtatPartie {
    * et son empreinte ne changent pas ailleurs.
    */
   readonly verrous?: readonly string[];
+  /**
+   * Portes que la créature a enfoncées et qui ne ferment plus, dans l'ordre où elles ont cédé (D-279) ; absent tant qu'aucune n'a
+   * cédé, pour que l'état et son empreinte ne changent pas ailleurs.
+   */
+  readonly enfoncees?: readonly string[];
 }
 
 export function cleZone(zone: ZoneHuile): string {
@@ -176,6 +183,11 @@ function verrousInitiaux(monde: DefMonde): Pick<EtatPartie, 'verrous'> {
 /** La cloison est encore verrouillée (D-259). */
 export function verrouillee(etat: EtatPartie, liaison: string): boolean {
   return etat.verrous?.includes(liaison) === true;
+}
+
+/** La créature a enfoncé cette porte : elle ne ferme plus (D-279). */
+export function enfoncee(etat: EtatPartie, liaison: string): boolean {
+  return etat.enfoncees?.includes(liaison) === true;
 }
 
 export function etatInitial(monde: DefMonde, graine: number): EtatPartie {

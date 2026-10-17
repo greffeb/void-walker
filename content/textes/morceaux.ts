@@ -74,6 +74,7 @@ export const REFUS_MORCEAUX = {
   sans_gravite: 'Sans gravité, rien ne se verse : rien n’a été joué.',
   deja_fait: 'C’est déjà fait : rien n’a été joué.',
   verrouillee: 'Ce passage est verrouillé : rien n’a été joué.',
+  enfoncee: 'Cette porte a été enfoncée et ne ferme plus : rien n’a été joué.',
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
@@ -82,6 +83,7 @@ export const INDISPONIBILITES_MORCEAUX = {
   trop_loin: 'Sans gravité, il faut d’abord dériver jusqu’à {le:cible}.',
   sans_gravite: 'Sans gravité, {le:cible} ne se verse pas.',
   verrouillee: '{Le:cible} est verrouillé{e:cible} : une commande doit d’abord lever le verrou.',
+  enfoncee: '{Le:cible}, enfoncé{e:cible}, ne ferme plus.',
 } as const satisfies Partial<TextesMonde['indisponibilites']>;
 
 export const LIBELLES_MORCEAUX = {
