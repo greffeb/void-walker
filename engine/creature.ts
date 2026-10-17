@@ -56,7 +56,7 @@ export const REACTIONS_DERIVE = 2;
 export const REACTIONS_FORCER = 2;
 
 /** Une porte enfoncée ne ferme plus (V2a de #194) ; sinon on peut la refermer, et elle doit la forcer de nouveau (V2b). */
-export const PORTE_DETRUITE = true;
+export const PORTE_DETRUITE = false;
 
 function laissePasserLeSon(etat: EtatPartie, liaison: DefLiaison): boolean {
   return etat.liaisons[liaison.id] === true || liaison.sonAuTravers === true;
