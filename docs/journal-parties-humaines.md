@@ -1,6 +1,6 @@
 # Void Walker V2 — journal des parties humaines
 
-> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; quatre validations signées C-10 sont recopiées telles quelles : deux reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), deux par celui de la PR #196 (variante V1 de #194).
+> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; cinq validations signées C-10 sont recopiées telles quelles : deux reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), deux par celui de la PR #196 (variante V1 de #194), une par celui de la PR #199 (variante V2b de #194).
 > **Mise à jour :** 2026-10-17.
 
 ## Règle validée
@@ -22,6 +22,10 @@ Commentaires du porteur joints à ces deux parties : « Aventure générée vali
 - OL-M09-M10-M03-ENTREPOT-962327633 · version 0.1.0 · commit d0d3c14 · défaite en 28 actions · [partie](https://github.com/greffeb/void-walker/pull/196#issuecomment-6240492901)
 
 Jouées sur la version de test de la variante V1 de #194 (D-278 : le jet d'interception touche toujours). Commentaires du porteur joints à ces deux parties : « La configuration intéressante obligeant a se servir de l'huile pour gagner un tour sans se prendre de dégâts et passer outre la créature » ; « Pas mal aussi, ici j'ai réussi a enfermer la créature dans la chambre froide. J'ai ensuite volontairement ouvert pour mesurer la prise des dégâts. Je remarque que fois un dégât pris (en changeant de salle). On peut revenir dans la pièce ou il y a la créature directement mais rien ne se passe, elle attaque pas tout de suite ».
+
+- M01-M07-M03-SOUTE-1134041699 · version 0.1.0 · commit 33981e4 · défaite en 40 actions · [partie](https://github.com/greffeb/void-walker/pull/199#issuecomment-6241798750)
+
+Jouée sur la version de test de la variante V2b de #194 (D-279 : la créature force une porte fermée, qu'on peut refermer). Commentaire du porteur joint : « Pas mal mais je préfère la version ou la porte reste arrachée je pense ».
 
 ## Informations proposées pour chaque session
 
