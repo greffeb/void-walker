@@ -1,6 +1,6 @@
 # Void Walker V2 — journal des parties humaines
 
-> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; cinq validations signées C-10 sont recopiées telles quelles : deux reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), deux par celui de la PR #196 (variante V1 de #194), une par celui de la PR #199 (variante V2b de #194).
+> **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; neuf validations signées C-10 sont recopiées telles quelles : deux reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), deux par celui de la PR #196 (variante V1 de #194), une par celui de la PR #199 (variante V2b de #194), quatre par celui de la PR #198 (variante V2a de #194).
 > **Mise à jour :** 2026-10-17.
 
 ## Règle validée
@@ -26,6 +26,13 @@ Jouées sur la version de test de la variante V1 de #194 (D-278 : le jet d'inter
 - M01-M07-M03-SOUTE-1134041699 · version 0.1.0 · commit 33981e4 · défaite en 40 actions · [partie](https://github.com/greffeb/void-walker/pull/199#issuecomment-6241798750)
 
 Jouée sur la version de test de la variante V2b de #194 (D-279 : la créature force une porte fermée, qu'on peut refermer). Commentaire du porteur joint : « Pas mal mais je préfère la version ou la porte reste arrachée je pense ».
+
+- M09-M06-CALE-1626623942 · version 0.1.0 · commit 51458ad · évacuation en 36 actions · [partie](https://github.com/greffeb/void-walker/pull/198#issuecomment-6241983422)
+- OL-M07-M08-M03-RESERVE-1897680555 · version 0.1.0 · commit 51458ad · évacuation en 53 actions · [partie](https://github.com/greffeb/void-walker/pull/198#issuecomment-6242075812)
+- OL-M08-M09-M06-EMBARQUEMENT-389857338 · version 0.1.0 · commit 51458ad · évacuation en 53 actions · [partie](https://github.com/greffeb/void-walker/pull/198#issuecomment-6242320198)
+- OL-M02-M07-M03-RESERVE-1177069346 · version 0.1.0 · commit 51458ad · évacuation en 35 actions · [partie](https://github.com/greffeb/void-walker/pull/198#issuecomment-6242380235)
+
+Jouées sur la version de test de la variante V2a de #194 à trois réactions (D-279 : la créature force une porte fermée, qui reste enfoncée). Commentaires du porteur joints à ces quatre parties : « Je sais pas si passer a 3 était une bonne idée, j'ai réussi a perdre la créature facilement et elle a pas essaye de forcer les portes suivantes. » ; « Je confirme, le temps supplémentaire ma permis de gagner malgré une erreur. Pas sûr de vouloir rester a 3 et de pas revenir a 2 (réglage de difficulté 3 moyen et 2 difficile ?) » ; « Partie finie qui doit compléter des modules pas encore validés. Mais pas représentatif des essais V2b » ; « On repasse a 2 réactions ».
 
 ## Informations proposées pour chaque session
 

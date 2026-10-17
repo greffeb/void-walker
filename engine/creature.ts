@@ -53,7 +53,7 @@ export const REACTIONS_PERDUES = 2;
 export const REACTIONS_DERIVE = 2;
 
 /** Réactions pour forcer une porte fermée qui barre sa piste ; elle cède à la dernière (V2 de #194, D-279). */
-export const REACTIONS_FORCER = 3;
+export const REACTIONS_FORCER = 2;
 
 /** Une porte enfoncée ne ferme plus (V2a de #194) ; sinon on peut la refermer, et elle doit la forcer de nouveau (V2b). */
 export const PORTE_DETRUITE = true;

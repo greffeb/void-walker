@@ -521,7 +521,7 @@ describe('porte forcée par la créature en poursuite (D-279)', () => {
     suite(monde, fermee, Array.from({ length: REACTIONS_FORCER - 1 }, (_, rang) => [rang % 2 === 0 ? 'prendre' : 'poser', 'cle'] as const));
 
   it(`claquer la porte ne l’arrête plus : ${REACTIONS_FORCER} réactions de coups, la porte cède, puis elle passe`, () => {
-    expect(REACTIONS_FORCER).toBe(3);
+    expect(REACTIONS_FORCER).toBe(2);
     const { partie: fermee, evenements } = claquee();
     expect(types(evenements[1] ?? [])).toEqual(['passage_ferme', 'porte_secouee']);
     expect(fermee.etat.creature).toMatchObject({ piece: 'c', force: { liaison: 'bc', restant: REACTIONS_FORCER - 1 } });
