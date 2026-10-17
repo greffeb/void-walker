@@ -72,7 +72,10 @@ export interface PartieJouee {
   readonly actions: number;
   readonly sante: IndicateursPartie['sante'];
   readonly des: number;
-  /** Jets qui ont touché : de 1 à 3, le seuil de toutes les versions publiées jusqu'ici (D-055). */
+  /**
+   * Jets qui ont touché : comptés par le rejeu quand il est identique ; sinon de 1 à 3, le seuil de toutes les versions
+   * publiées jusqu'ici (D-055).
+   */
   readonly touches: number;
 }
 
@@ -147,7 +150,9 @@ export async function mesurerRapport(rapport: Rapport, seuil: number = SEUIL_SAN
     return { ...base, rejeu: { identique: false, motif }, indicateurs: null, contrefactuel: approche };
   }
   const autre = rejouerPourMesure(entree.monde, fichier, undefined, seuil).indicateurs;
-  return { ...base, rejeu: { identique: true }, indicateurs: rejeu.indicateurs, contrefactuel: { issue: autre.issue, actions: autre.actions, exact: true } };
+  // Rejouée à l'identique, la partie dit elle-même quels jets ont touché, au seuil de sa version.
+  const jouee = { ...base.jouee, touches: rejeu.indicateurs.parCause.griffes };
+  return { ...base, jouee, rejeu: { identique: true }, indicateurs: rejeu.indicateurs, contrefactuel: { issue: autre.issue, actions: autre.actions, exact: true } };
 }
 
 const ISSUES: Readonly<Record<IssueMesuree, string>> = { evacuation: 'évacuation', defaite: 'défaite', en_cours: 'en cours' };

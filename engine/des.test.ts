@@ -1,4 +1,5 @@
 import { generateurDepuisGraine, graineValide, jouer, nouvellePartie, observer, ouvrirDes, type DefMonde } from './index';
+import { ATTEINT_JUSQUA } from './sante';
 
 function suite(graine: number, nombre: number, faces = 6): number[] {
   const session = ouvrirDes(generateurDepuisGraine(graine));
@@ -76,7 +77,7 @@ describe('générateur à graine (AP-02)', () => {
     if (resultat.type !== 'engagee') throw new Error('Action non engagée.');
     expect(resultat.tirages).toEqual([face]);
     expect(resultat.partie.enregistrement.actions.at(-1)?.tirages).toEqual([face]);
-    expect(resultat.partie.etat.sante).toBe(face <= 3 ? 'blesse' : 'indemne');
+    expect(resultat.partie.etat.sante).toBe(face <= ATTEINT_JUSQUA ? 'blesse' : 'indemne');
     expect(initiale.etat.sante).toBe('indemne');
   });
 

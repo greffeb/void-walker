@@ -2,13 +2,14 @@ import { exporter, type ExportPartie } from '../engine';
 import { MARQUEUR } from '../report-service/src/rapport';
 import { creerBot, jouerAvecBot } from './bots';
 import { CATALOGUE } from './catalogue';
+import { rejouerPourMesure } from './indicateurs-partie';
 import { contrefactuelApproche, enMarkdown, lireRapport, mediane, mesurerRapport, partieJouee, rapportsDuDepot, type LecteurJson } from './mesurer-parties';
 
 // Parties humaines (#194 §2.1) : lecture des rapports, indicateurs tirés de l'export et contrefactuel du seuil d'esquive.
 
 const entree = CATALOGUE.resoudre('m07-m03-soute-2718281828');
 if ('refus' in entree) throw new Error(entree.refus);
-/** Évacuation indemne après deux jets ratés (6 puis 4). */
+/** Partie du bot pressé, graine 1 : au moins un jet d'interception. */
 const fichier = exporter(entree.monde, jouerAvecBot(entree, creerBot('presse', 1), 1).partie);
 
 /** Export minimal, sans rejeu possible : seuls les tirages, la santé et l'issue comptent. */
@@ -33,9 +34,11 @@ describe('mesurer:parties', () => {
   it('contrefactuel exact quand le moteur actuel rejoue la partie', async () => {
     const partie = await mesurerRapport({ adresse: 'fichier.json', corps: JSON.stringify(fichier) });
     expect(partie?.rejeu).toEqual({ identique: true });
-    expect(partie?.jouee).toMatchObject({ issue: 'evacuation', des: 2, touches: 0 });
-    expect(partie?.contrefactuel).toEqual({ issue: 'evacuation', actions: fichier.actions.length, exact: true });
-    expect(partie?.indicateurs?.parCause.griffes).toBe(0);
+    expect(partie?.jouee.des).toBe(fichier.actions.flatMap((entreeJournal) => entreeJournal.tirages).length);
+    // Rejouée à l'identique : les jets qui ont touché sont ceux du rejeu, au seuil de sa version.
+    expect(partie?.jouee.touches).toBe(partie?.indicateurs?.parCause.griffes);
+    const autre = rejouerPourMesure(entree.monde, fichier, undefined, 6).indicateurs;
+    expect(partie?.contrefactuel).toEqual({ issue: autre.issue, actions: autre.actions, exact: true });
   });
 
   it('un monde disparu garde les indicateurs de l’export et un contrefactuel approché', async () => {
@@ -80,10 +83,11 @@ describe('mesurer:parties', () => {
     const partie = await mesurerRapport({ adresse: 'https://github.com/o/r/pull/160#issuecomment-1', corps: JSON.stringify(fichier) });
     if (partie === null) throw new Error('Partie absente.');
     const texte = enMarkdown([partie]);
-    expect(texte).toContain('dont 1 finies sur une station tirée');
+    expect(texte).toContain(`dont ${partie.jouee.issue === 'en_cours' ? 0 : 1} finies sur une station tirée`);
     expect(texte).toContain('| [#160](https://github.com/o/r/pull/160#issuecomment-1) | m07-m03-soute-2718281828 |');
     expect(texte).toContain('| Parties sans aucun dé | 0 sur 1 |');
-    expect(texte).toContain('| Avec le jet qui touche de 1 à 6, à décisions identiques : issue changée | 0 sur 1 |');
+    const changee = partie.contrefactuel.issue === partie.jouee.issue ? 0 : 1;
+    expect(texte).toContain(`| Avec le jet qui touche de 1 à 6, à décisions identiques : issue changée | ${changee} sur 1 |`);
   });
 
   it('médiane', () => {

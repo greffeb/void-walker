@@ -14,6 +14,7 @@ import {
   type OptionMenu,
   type Partie,
 } from './index';
+import { ATTEINT_JUSQUA, FACES } from './sante';
 
 // Feu, huile, avertisseur et appui stable (C-03 §5.1 à §5.3, C-02 §5, D-188 à D-190).
 // Fixture réduite d'AR-01 ; les noms ne servent qu'à retrouver les options du menu : aucune règle ne lit un nom (D-078).
@@ -294,10 +295,11 @@ describe('feu confiné et propagation (C-03 §5.3, D-188)', () => {
       expect(resultat.tirages).toHaveLength(1);
       const aggravations = resultat.evenements.filter((evenement) => evenement.type.startsWith('aggravation') || evenement.type === 'defaite');
       expect(aggravations).toHaveLength(1);
-      const atteint = (resultat.tirages[0] ?? 6) <= 3;
+      const atteint = (resultat.tirages[0] ?? FACES) <= ATTEINT_JUSQUA;
       expect(aggravations[0]).toEqual({ type: 'aggravation_blesse', causes: atteint ? ['griffes', 'feu'] : ['feu'] });
     }
-    expect(new Set(exposes.map((resultat) => (resultat.tirages[0] ?? 6) <= 3)).size).toBe(2);
+    // Les deux issues du jet sur vingt graines, sauf s'il touche toujours (variante V1 de #194).
+    expect(new Set(exposes.map((resultat) => (resultat.tirages[0] ?? FACES) <= ATTEINT_JUSQUA)).size).toBe(ATTEINT_JUSQUA < FACES ? 2 : 1);
   });
 
   it('D-189 : la créature ne traverse jamais une pièce en feu ; elle attend du côté où elle est', () => {

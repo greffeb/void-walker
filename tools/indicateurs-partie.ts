@@ -1,4 +1,5 @@
 import { CAUSES, empreinteEtat, jouer, nouvellePartie, observer, type Cause, type DefMonde, type Des, type Enregistrement, type EtatPartie, type Evenement, type Partie, type Sante } from '../engine';
+import { ATTEINT_JUSQUA } from '../engine/sante';
 import { creatureHorsJeu } from './verifier-station';
 
 // Indicateurs de difficulté d'une partie (#194 §1), humaine ou jouée par un bot : comptés depuis les événements et l'état de
@@ -84,8 +85,8 @@ export interface RejeuMesure {
 }
 
 /**
- * Un jet d'interception touche toujours sur 1 et rate toujours sur 6, quel que soit le seuil du moteur : pour relire un tirage
- * enregistré avec un autre seuil, on rend 1 s'il touche au nouveau seuil (résultat de 1 à `seuil`), 6 sinon.
+ * Relit chaque tirage enregistré à un autre seuil : on rend au moteur 1 si le jet touche au nouveau seuil (de 1 à `seuil`),
+ * sinon la première face que le moteur fait rater. Un moteur où chaque face touche ne peut pas rejouer un jet raté.
  */
 export function desAuSeuil(tirages: readonly number[], seuil: number): Des {
   const file = [...tirages];
@@ -93,7 +94,9 @@ export function desAuSeuil(tirages: readonly number[], seuil: number): Des {
     lancer(faces: number): number {
       const tirage = file.shift();
       if (tirage === undefined) throw new Error('Dé demandé sans tirage enregistré.');
-      return tirage <= seuil ? 1 : faces;
+      if (tirage <= seuil) return 1;
+      if (ATTEINT_JUSQUA >= faces) throw new Error(`Le moteur fait toucher chaque face de 1 à ${faces} : aucun jet raté à rejouer.`);
+      return ATTEINT_JUSQUA + 1;
     },
   };
 }
