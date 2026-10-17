@@ -134,7 +134,8 @@ describe('cloison verrouillée (D-259)', () => {
     }
     // Le graphe est fini et complet : le passager s'y bat, fuit, se soigne, et le feu reste derrière la cloison.
     expect(explores).toBeGreaterThan(50);
-  });
+    // Exploration complète : plusieurs secondes sur la machine de vérification de GitHub depuis que la créature force les portes (D-279).
+  }, 60_000);
 
   it('est refusée par la validation hors de sa forme', () => {
     const avec = (changement: Partial<DefMonde>): string[] => validerMonde({ ...MONDE, ...changement });
