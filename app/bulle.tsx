@@ -6,6 +6,8 @@ import type { Geste } from './son/recettes';
 
 /** Le focus reste dans la bulle ou la fenêtre ; Échap la referme. */
 export function garderFocus(evenement: KeyboardEvent<HTMLElement>, fermer: () => void): void {
+  // Une bulle ouverte dans une autre (l'aide à l'installation dans la bulle Application) a déjà traité la touche.
+  if (evenement.defaultPrevented) return;
   if (evenement.key === 'Escape') {
     evenement.preventDefault();
     fermer();

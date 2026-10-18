@@ -407,23 +407,30 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 
 ### 4.10 Options
 
-Écran accessible depuis l'accueil (OPTIONS) et depuis le jeu (engrenage). Il regroupe la taille du texte, le signalement de bug, la gestion de la sauvegarde, le son et l'abandon de la partie en cours. [Validé]
+Écran accessible depuis l'accueil (OPTIONS) et depuis le jeu (engrenage). Il regroupe la taille du texte, le signalement de bug, la gestion de la sauvegarde, le son et l'abandon de la partie en cours. [Validé] Rangé en trois sous-menus (#201) : maquette [options-menus](maquette/options-menus.html). [Validé D-287, D-288]
 
 - **En-tête :** « OPTIONS » en `accent` 17/600, puis « le jeu est en pause » en 12.
-- **Contenu qui défile**, par sections :
+- **Sommaire**, qui défile si besoin : trois lignes, chacune avec son détail en dessous, puis l'abandon. [Validé D-287]
+  - « ▸ Son et texte », « taille du texte, son, affichage » ;
+  - « ▸ Rapports », « signaler un bug, envoyer ou télécharger ma partie » (« signaler un bug, envoyer ma partie » pour une partie finie, « signaler un bug » sans partie) ;
+  - « ▸ Application », « installation, mise à jour, version » (« mise à jour, version » quand le navigateur ne permet pas d'installer le jeu) ;
+  - « ⊘ Abandonner la partie en cours », bouton danger. Il ouvre une confirmation dans la page : « Abandonner ? Cette partie ne pourra pas être reprise. », ANNULER / ABANDONNER. ABANDONNER mène à l'écran de fin, version abandon (C-08 §4).
+- **Sous-menu en bulle** : toucher une ligne ouvre la bulle ambre des menus (§2.7), titrée « SON ET TEXTE », « RAPPORTS » ou « APPLICATION », avec ✕. Elle survole le sommaire voilé, sous l'en-tête, sans flèche ; sa hauteur suit son contenu jusqu'au bas, au-delà il défile. ✕, le voile, Échap et le retour du téléphone la referment ; le focus revient sur la ligne touchée. [Validé D-288]
+- **Son et texte**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
   2. **── SON ──** : trois rails de 0 à 100, « Général » 80, « Effets sonores » 80, « Ambiance » 60 par défaut (D-223) ; à 0, « COUPÉE » ou « COUPÉS ». [Validé D-220, remplaçant « Ambiance » COUPÉE / BASSE / NORMALE et « Effets sonores » COUPÉS / ACTIFS] Bruitages du terminal synthétisés pour le projet (D-216, D-217), signaux de blessure, de soin et d'alarme (D-218), ambiance de bruit brun et de carlingue (D-219), pas de bande-son pour le moment (D-221) : détail dans [15 — son](15-son.md). IA Station n'a pas de voix : un effet sonore signale l'arrivée d'un message (D-155). Tout reste lisible sans le son.
   3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé] « Effet machine à écrire [OUI] / [NON] », [OUI] par défaut ; sur [NON], texte immédiat et curseur fixe. [Validé D-186]
-  4. **── PARTIE ──** :
-     - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
-     - « ▸ Signaler un bug », avec « la partie en cours est jointe ». La partie est jointe automatiquement (RP-01). [Validé]
-     - « ▸ Envoyer ma partie », avec « partie et commentaire », dans toutes les versions (D-095, D-142). [Validé]
-     - Pas d'import de partie au lancement (D-149).
-     - « ⊘ Abandonner la partie en cours », bouton danger. Il ouvre une confirmation dans la page : « Abandonner ? Cette partie ne pourra pas être reprise. », ANNULER / ABANDONNER. ABANDONNER mène à l'écran de fin, version abandon (C-08 §4).
-  5. **── INSTALLATION ── [Proposé, #174, [16](16-installation-pwa.md)]** : « ▸ Installer le jeu », avec en dessous « s’ouvre en plein écran, sans la barre du navigateur ». Sur Chrome, Edge et les autres navigateurs qui le permettent, le bouton ouvre la boîte d’installation du navigateur ; retour « Jeu installé. Cherchez-le sur votre écran d’accueil. » ou « Installation refusée. Le menu du navigateur permet de la relancer. ». Sur Safari (iPhone, iPad) et Firefox (Android), qui ne laissent pas la page lancer l’installation, la ligne dit « marche à suivre pour iPhone et iPad » ou « pour Firefox » et ouvre une bulle « INSTALLER LE JEU » de quatre étapes (3.5, voile, ✕ et Échap). Absente ailleurs et dans l’appli déjà installée ; présente dans les versions de test, dont le nom d’appli porte le numéro de PR.
-  6. **── MISE À JOUR ──** : « ▸ Chercher une mise à jour », ou « ▸ Installer la nouvelle version » quand elle est prête, avec en dessous « le jeu redémarre, la partie est gardée » ; retour « Le jeu est à jour. », « Une nouvelle version est prête. » ou « Impossible de vérifier. Le téléphone est-il connecté ? ». Le jeu se met aussi à jour seul. Absente sans service worker. [Validé D-227]
-- **Pied de page :** « V0.1.0 (365) · e27d220 · test PR #121 » : version, numéro de construction, commit, PR des versions de test. [Validé D-191, D-227]
-- **Bas, fixe :** MENU PRINCIPAL (secondaire) et REPRENDRE LA PARTIE (principal).
+- **Rapports** :
+  1. « ▸ Signaler un bug », avec « la partie en cours est jointe ». La partie est jointe automatiquement (RP-01). [Validé]
+  2. « ▸ Envoyer ma partie », avec « partie et commentaire », dans toutes les versions (D-095, D-142). [Validé]
+  3. « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
+  4. **── VALIDATION ──**, dans les versions de test seulement : la clé du téléphone (D-232).
+  - Pas d'import de partie au lancement (D-149).
+- **Application**, par sections :
+  1. **── INSTALLATION ── [Proposé, #174, [16](16-installation-pwa.md)]** : « ▸ Installer le jeu », avec en dessous « s’ouvre en plein écran, sans la barre du navigateur ». Sur Chrome, Edge et les autres navigateurs qui le permettent, le bouton ouvre la boîte d’installation du navigateur ; retour « Jeu installé. Cherchez-le sur votre écran d’accueil. » ou « Installation refusée. Le menu du navigateur permet de la relancer. ». Sur Safari (iPhone, iPad) et Firefox (Android), qui ne laissent pas la page lancer l’installation, la ligne dit « marche à suivre pour iPhone et iPad » ou « pour Firefox » et ouvre une bulle « INSTALLER LE JEU » de quatre étapes (3.5, voile, ✕ et Échap). Absente ailleurs et dans l’appli déjà installée ; présente dans les versions de test, dont le nom d’appli porte le numéro de PR.
+  2. **── MISE À JOUR ──** : « ▸ Chercher une mise à jour », ou « ▸ Installer la nouvelle version » quand elle est prête, avec en dessous « le jeu redémarre, la partie est gardée » ; retour « Le jeu est à jour. », « Une nouvelle version est prête. » ou « Impossible de vérifier. Le téléphone est-il connecté ? ». Le jeu se met aussi à jour seul. Absente sans service worker. [Validé D-227]
+  3. **Pied de page :** « V0.1.0 (365) · e27d220 · test PR #121 » : version, numéro de construction, commit, PR des versions de test ; puis, dans une version de test, l'état de la vérification automatique (#180). [Validé D-191, D-227, D-287]
+- **Bas, fixe :** MENU PRINCIPAL (secondaire) et REPRENDRE LA PARTIE (principal), au-dessus du voile : utilisables bulle ouverte (D-288).
 - **Sans partie en cours :** masquer Télécharger, Abandonner et REPRENDRE LA PARTIE. [Proposé]
 - Les réglages sont conservés sur l'appareil, hors de la sauvegarde de partie. [Proposé]
 
@@ -602,7 +609,7 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER, sauf prendre, poser et changer de pièce sans risque connu ni coût, joués d'un seul toucher (§3.8, D-182) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
 | Indisponible | Bouton grisé, raison en dessous (« La porte est fermée. ») | « ⊘ », raison courte à droite, filet pointillé (§3.7) | Raison publique déjà fournie par le moteur |
 | Sauvegarde | Ligne permanente « Partie sauvegardée · 3 action(s) » | Pas de compteur d'actions affiché (§1) ; réussite discrète ou silencieuse, échec toujours visible et persistant (§6) | Garder les attributs `data-testid="sauvegarde"`, `data-actions`, `data-etat` utilisés par les captures (AP-09) |
-| Pied de page | Dans les options, en petit, en bas : « V0.1.0 (365) · e27d220 · test PR #121 » (#96, D-191, D-227) ; plus sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
+| Pied de page | Dans le sous-menu Application des options, en petit, en bas : « V0.1.0 (365) · e27d220 · test PR #121 » (#96, D-191, D-227, D-287) ; plus sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
 | Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
 | Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
 | Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |

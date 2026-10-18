@@ -354,9 +354,13 @@ function decrirePartage(mesure: { lignes: number; defile: boolean } | null): str
   return `Récit : ${lignes} lignes visibles ; boutons du dock ${mesure.defile ? 'à faire défiler' : 'tous visibles'}.`;
 }
 
-/** Le pied de page (version, commit, numéro de PR) est en bas des options, sur une ligne (D-191, #96) ; on revient ensuite au jeu. */
+/**
+ * Le pied de page (version, commit, numéro de PR) est en bas de la bulle Application des options, sur une ligne (D-191, D-287) ;
+ * on revient ensuite au jeu par REPRENDRE LA PARTIE, bulle ouverte (D-288).
+ */
 async function verifierPied(page: Page, ou: string, erreurs: string[]): Promise<void> {
   await ouvrirOptions(page);
+  await ouvrirSousMenu(page, 'Application');
   const pied = page.locator('.options .pied');
   if ((await page.locator('.pied').count()) !== 1) erreurs.push(`${ou} : le pied de page n’est pas seulement dans les options.`);
   const lignes = await pied.evaluate((element) => {
@@ -374,8 +378,84 @@ async function ouvrirOptions(page: Page): Promise<void> {
   await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
 }
 
-/** Touche une taille du groupe segmenté (12 §4.10). */
+/** Sous-menus des options, dans l'ordre du sommaire (D-287). */
+const SOUS_MENUS = ['Son et texte', 'Rapports', 'Application'] as const;
+
+/** Ouvre un sous-menu des options en touchant sa ligne : sa bulle, nommée par son titre (D-288). */
+async function ouvrirSousMenu(page: Page, nom: (typeof SOUS_MENUS)[number]): Promise<Locator> {
+  await ligneSousMenu(page, nom).click();
+  const bulle = page.getByRole('dialog', { name: exactement(nom) });
+  await bulle.waitFor();
+  return bulle;
+}
+
+/** Ligne du sommaire des options : son nom lu, puis son détail. */
+function ligneSousMenu(page: Page, nom: (typeof SOUS_MENUS)[number]): Locator {
+  return page.locator('.options-corps').getByRole('button', { name: new RegExp(`^${echapper(nom)}`) });
+}
+
+/** Une entrée d'historique de sous-menu reste après sa fermeture (D-288). */
+function entreeSousMenuRestee(page: Page): Promise<boolean> {
+  return page.evaluate(() => {
+    const etat: unknown = window.history.state;
+    return typeof etat === 'object' && etat !== null && 'void-walker:sous-menu' in etat;
+  });
+}
+
+/**
+ * Sous-menus des options (D-287, D-288), depuis le sommaire : chaque ligne ouvre sa bulle, au toucher ou au clavier, nommée par
+ * son titre et focalisée, sous l'en-tête, au-dessus du bas resté utilisable ; ✕, le voile, Échap et le retour du téléphone la
+ * referment, le focus revient sur la ligne et l'entrée d'historique s'en va. On reste dans les options.
+ */
+async function verifierSousMenus(page: Page, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const entete = await page.locator('.entete-options').boundingBox();
+  const bas = await page.locator('.options-bas').boundingBox();
+  for (const nom of SOUS_MENUS) {
+    const ligne = ligneSousMenu(page, nom);
+    if ((await ligne.count()) !== 1) {
+      erreurs.push(`Options : ligne « ${nom} » absente du sommaire.`);
+      continue;
+    }
+    for (const geste of ['✕', 'voile', 'Échap', 'retour'] as const) {
+      const ou = `Sous-menu ${nom}, fermé par ${geste}`;
+      // Au clavier pour Échap : le focus sur la ligne, Entrée ; au toucher sinon.
+      if (geste === 'Échap') {
+        await ligne.focus();
+        await page.keyboard.press('Enter');
+      } else await ligne.click();
+      const bulle = page.getByRole('dialog', { name: exactement(nom) });
+      await bulle.waitFor();
+      if (!(await bulle.evaluate((element) => element.contains(document.activeElement)))) erreurs.push(`${ou} : le focus n’entre pas dans la bulle.`);
+      const boite = await bulle.boundingBox();
+      if (boite === null || entete === null || bas === null) erreurs.push(`${ou} : bulle, en-tête ou bas introuvable.`);
+      else {
+        if (boite.y < entete.y + entete.height) erreurs.push(`${ou} : la bulle passe sur l’en-tête.`);
+        if (boite.y + boite.height > bas.y + 1) erreurs.push(`${ou} : la bulle passe sur MENU PRINCIPAL et REPRENDRE LA PARTIE.`);
+      }
+      // Le bas reste au-dessus du voile : c'est lui qui reçoit le toucher.
+      const reprendre = page.locator('.options-bas').getByRole('button', { name: exactement('Reprendre la partie') });
+      if (!(await reprendre.evaluate((bouton) => {
+        const { x, y, width, height } = bouton.getBoundingClientRect();
+        return document.elementFromPoint(x + width / 2, y + height / 2) === bouton;
+      }))) erreurs.push(`${ou} : REPRENDRE LA PARTIE est sous le voile.`);
+      if (geste === '✕') {
+        await capturer(page, `Options : sous-menu ${nom}`);
+        await verifierSansTroncature(page, `Options, sous-menu ${nom}`, erreurs);
+        await bulle.getByRole('button', { name: exactement('Fermer') }).click();
+      } else if (geste === 'voile') await page.mouse.click(8, 8);
+      else if (geste === 'Échap') await page.keyboard.press('Escape');
+      else await page.goBack();
+      await bulle.waitFor({ state: 'detached' });
+      if (!(await ligne.evaluate((element) => element === document.activeElement))) erreurs.push(`${ou} : le focus ne revient pas sur sa ligne.`);
+      if (await entreeSousMenuRestee(page)) erreurs.push(`${ou} : l’entrée d’historique du sous-menu reste.`);
+      if ((await page.getByRole('heading', { name: exactement('Options'), level: 1 }).count()) !== 1) erreurs.push(`${ou} : on a quitté les options.`);
+    }
+  }
+}
+
+/** Touche une taille du groupe segmenté, dans la bulle Son et texte qu'elle ouvre au besoin (12 §4.10, D-288). */
 async function choisirTaille(page: Page, libelle: 'Standard' | 'Grande' | 'Très grande'): Promise<void> {
+  if ((await page.getByRole('dialog', { name: exactement('Son et texte') }).count()) === 0) await ouvrirSousMenu(page, 'Son et texte');
   await page.locator('label.segment', { has: page.getByText(libelle, { exact: true }) }).click();
 }
 
@@ -896,8 +976,14 @@ async function verifierSon(navigateur: Browser, adresse: string, erreurs: string
     if (echap !== 1) erreurs.push(`Son : Échap qui referme la bulle fait partir ${echap} source(s), 1 attendue.`);
     await page.locator('.engrenage').click();
     await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+    const sousMenu = await ecart(async () => {
+      await ouvrirSousMenu(page, 'Son et texte');
+    });
+    if (sousMenu !== 2) erreurs.push(`Son : ouvrir un sous-menu des options fait partir ${sousMenu} source(s), 2 attendues.`);
     const segment = await ecart(() => page.locator('label.segment').getByText('Grande', { exact: true }).click());
     if (segment !== 2) erreurs.push(`Son : toucher un segment fait partir ${segment} source(s), 2 attendues (un seul clic).`);
+    const fermeture = await ecart(() => page.keyboard.press('Escape'));
+    if (fermeture !== 1) erreurs.push(`Son : Échap qui referme un sous-menu fait partir ${fermeture} source(s), 1 attendue.`);
   } finally {
     await contexte.close();
   }
@@ -930,13 +1016,17 @@ async function envoyerInvite(page: Page): Promise<void> {
   })()`);
 }
 
-/** Options depuis l'accueil, sans partie ; `avant` joue ce qui doit arriver avant l'ouverture (l'événement d'installation). */
+/**
+ * Options depuis l'accueil, sans partie, ouvertes sur la bulle Application (D-287) ; `avant` joue ce qui doit arriver avant
+ * l'ouverture (l'événement d'installation).
+ */
 async function optionsDepuisAccueilNeuf(page: Page, adresse: string, avant?: (page: Page) => Promise<void>): Promise<void> {
   await page.goto(adresse);
   await page.getByRole('button', { name: exactement('Nouvelle partie') }).waitFor();
   await avant?.(page);
   await page.getByRole('button', { name: exactement('Options') }).click();
   await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
+  await ouvrirSousMenu(page, 'Application');
 }
 
 /**
@@ -1020,6 +1110,8 @@ async function parcoursInstallation(navigateur: Browser, adresse: string, captur
         else await dialogue.getByRole('button', { name: exactement('Fermer') }).click();
         await dialogue.waitFor({ state: 'hidden' });
         if (!(await bouton(page).evaluate((element) => element === document.activeElement))) erreurs.push(`Installation, aide ${aide.nom} : le focus ne revient pas sur le bouton après ${geste}.`);
+        // L'aide s'ouvre par-dessus la bulle Application (D-288) : la refermer laisse celle-ci ouverte.
+        if (!(await page.getByRole('dialog', { name: exactement('Application') }).isVisible())) erreurs.push(`Installation, aide ${aide.nom} : ${geste} referme aussi la bulle Application.`);
         if (geste !== '✕') {
           await bouton(page).click();
           await dialogue.waitFor();
@@ -1066,8 +1158,13 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   await page.goto(adresse);
   await page.getByRole('button', { name: exactement('Options') }).click();
   await page.getByRole('heading', { name: exactement('Options'), level: 1 }).waitFor();
-  for (const absent of [/Télécharger ma partie/i, /Abandonner la partie en cours/i, /^Reprendre la partie$/i]) {
+  for (const absent of [/Abandonner la partie en cours/i, /^Reprendre la partie$/i]) {
     if ((await page.getByRole('button', { name: absent }).count()) > 0) erreurs.push(`Options sans partie : « ${absent.source} » est proposé.`);
+  }
+  if ((await ligneSousMenu(page, 'Rapports').count()) > 0) {
+    await ouvrirSousMenu(page, 'Rapports');
+    if ((await page.getByRole('dialog', { name: exactement('Rapports') }).getByRole('button', { name: /^Télécharger ma partie/i }).count()) > 0) erreurs.push('Options sans partie : « Télécharger ma partie » est proposé.');
+    await page.keyboard.press('Escape');
   }
   if ((await partieLue(page)) !== null) erreurs.push('Options sans partie : une partie a été créée.');
   await capturer(page, 'Options depuis l’accueil, sans partie');
@@ -1083,8 +1180,11 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   if (!(await page.getByText('le jeu est en pause', { exact: true }).isVisible())) erreurs.push('Options en partie : « le jeu est en pause » absent.');
   await capturer(page, 'Options en cours de partie');
   await verifierSansTroncature(page, 'Options en cours de partie', erreurs);
+  await verifierSousMenus(page, capturer, erreurs);
 
-  // Mise à jour (D-227) : le bouton cherche, ne trouve rien de plus récent et le dit ; le pied de page porte la version.
+  // Mise à jour (D-227), dans la bulle Application : le bouton cherche, ne trouve rien de plus récent et le dit ; le pied de page
+  // porte la version.
+  await ouvrirSousMenu(page, 'Application');
   const chercherMiseAJour = page.getByRole('button', { name: /Chercher une mise à jour/i });
   try {
     await chercherMiseAJour.waitFor({ timeout: 10_000 });
@@ -1095,8 +1195,11 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   }
   await page.locator('.options .pied').scrollIntoViewIfNeeded();
   await capturer(page, 'Options : mise à jour et numéro de version');
+  await page.keyboard.press('Escape');
 
-  // Son (15 §4, D-220, D-223) : trois rails à 80, 80 et 60 ; « Ambiance » à 0 au clavier s'écrit COUPÉE et se garde.
+  // Son (15 §4, D-220, D-223), dans la bulle Son et texte : trois rails à 80, 80 et 60 ; « Ambiance » à 0 au clavier s'écrit
+  // COUPÉE et se garde.
+  await ouvrirSousMenu(page, 'Son et texte');
   const rails = page.locator('.curseur-rail');
   if ((await rails.count()) !== 3) erreurs.push(`Options : ${await rails.count()} rails de son, 3 attendus.`);
   const niveaux = await rails.evaluateAll((liste) => liste.map((rail) => (rail as HTMLInputElement).value));
@@ -1108,9 +1211,11 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   if (sonGarde.ambiance !== 0) erreurs.push(`Options : ambiance gardée à ${String(sonGarde.ambiance)}, 0 attendu.`);
   await page.locator('.rail').first().scrollIntoViewIfNeeded();
   await capturer(page, 'Options : section SON, ambiance coupée');
+  await page.keyboard.press('Escape');
 
-  // Télécharger ma partie : le fichier se rejoue avec le rejoueur et donne le même état (C-09 S-03, SP-05).
-  const [telechargement] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Télécharger ma partie/i }).click()]);
+  // Télécharger ma partie, dans la bulle Rapports : le fichier se rejoue avec le rejoueur et donne le même état (C-09 S-03, SP-05).
+  await ouvrirSousMenu(page, 'Rapports');
+  const [telechargement] = await Promise.all([page.waitForEvent('download'), page.getByRole('dialog', { name: exactement('Rapports') }).getByRole('button', { name: /^Télécharger ma partie/i }).click()]);
   const chemin = join(tmpdir(), `void-walker-captures-${process.pid}.json`);
   await telechargement.saveAs(chemin);
   const rapport = rejouerExport(readFileSync(chemin, 'utf8'), versionDuJeu());
@@ -1119,17 +1224,22 @@ async function parcoursOptions(navigateur: Browser, adresse: string, entree: Ent
   const retour = ((await page.getByTestId('telechargement').textContent()) ?? '').trim();
   if (retour !== `Fichier prêt : ${telechargement.suggestedFilename()}`) erreurs.push(`Téléchargement : retour « ${retour} ».`);
   if ((await partieEnregistree(page)) !== avant.partie) erreurs.push('Télécharger ma partie a modifié la partie enregistrée.');
+  await capturer(page, 'Options : sous-menu Rapports, fichier prêt');
+  await page.keyboard.press('Escape');
 
   // Très grande : aperçu à 22 px ; lignes de balayage coupées.
   await choisirTaille(page, 'Très grande');
   if ((await tailleRecit(page)) !== '22px') erreurs.push(`Options : aperçu à ${await tailleRecit(page)} en « très grande ».`);
   await page.getByRole('switch', { name: exactement('Lignes de balayage') }).click();
   if ((await page.locator('.balayage').count()) !== 0) erreurs.push('Lignes de balayage sur [NON] : la couche est toujours là.');
-  await capturer(page, 'Options : taille « très grande », lignes de balayage sur [NON], fichier prêt');
+  await capturer(page, 'Options : taille « très grande », lignes de balayage sur [NON]');
   await verifierSansTroncature(page, 'Options, très grande', erreurs);
 
+  // REPRENDRE LA PARTIE, bulle Son et texte ouverte (D-288) : retour au jeu, sans entrée d'historique laissée derrière.
   await page.getByRole('button', { name: exactement('Reprendre la partie') }).click();
   await page.getByTestId('recit').waitFor();
+  await page.waitForTimeout(200);
+  if (await entreeSousMenuRestee(page)) erreurs.push('REPRENDRE bulle ouverte : l’entrée d’historique du sous-menu reste.');
   const ecriture = await etatEcriture(page);
   if (ecriture.animees > 0 || ecriture.visibles !== ecriture.total) erreurs.push('Retour des options : le récit se réécrit.');
   const apres = { partie: await partieEnregistree(page), ...(await lire(page)) };

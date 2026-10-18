@@ -1378,6 +1378,54 @@ button:disabled {
   margin-top: 14px;
 }
 
+/* Sommaire (D-287) : les trois sous-menus en gras, l'abandon un peu à l'écart. */
+.nom-sous-menu {
+  font-weight: 600;
+}
+
+.options-corps > .danger,
+.options-corps > .confirmation-options {
+  margin-top: 14px;
+}
+
+/* Sous-menu (D-288) : la bulle ambre des menus, sans flèche, sous l'en-tête et jusqu'au bas ; sa hauteur suit son contenu. */
+.options-zone {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bulle-options {
+  position: absolute;
+  z-index: 7;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  max-height: calc(100% - 24px);
+}
+
+.bulle-options::after {
+  display: none;
+}
+
+.bulle-options .bulle-corps > section + section {
+  margin-top: 14px;
+}
+
+/* La bulle est plus étroite que l'écran : « TRÈS GRANDE » tient encore sur une ligne en taille standard. */
+.bulle-options .segment {
+  padding-inline: 4px;
+}
+
+/* Le bas reste au-dessus du voile : MENU PRINCIPAL et REPRENDRE LA PARTIE, utilisables bulle ouverte (D-288). */
+.options-bas {
+  position: relative;
+  z-index: 5;
+  background: var(--fond);
+}
+
 /* Groupe segmenté (12 §3.12) : de vrais boutons radio, la valeur active en vidéo inverse ; à la ligne si la place manque. */
 .segments {
   display: flex;

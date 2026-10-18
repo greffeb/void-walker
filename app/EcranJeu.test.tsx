@@ -479,9 +479,10 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(sans).toContain('<div class="ecran" data-taille="tres_grande">');
   });
 
-  it('pied de page court, déplacé dans les options : version, commit et numéro de PR sur une ligne (D-191)', async () => {
+  it('pied de page court, déplacé dans la bulle Application des options : version, commit et numéro de PR sur une ligne (D-191, D-287)', async () => {
     const pied = (commit: string, pr: string, build = ''): string =>
-      texte(entre(options({ commit, pr, build, version: '0.1.0' }), '<p class="pied">', '</p>'));
+      texte(entre(options({ commit, pr, build, version: '0.1.0', sousMenuInitial: 'application' }), '<p class="pied">', '</p>'));
+    expect(options({ commit: 'e27d2204f1c3', pr: '121' })).not.toContain('class="pied"');
     expect(pied('e27d2204f1c3', '121')).toBe('V0.1.0 · e27d220 · test PR #121');
     expect(pied('e27d2204f1c3', '')).toBe('V0.1.0 · e27d220');
     expect(pied('', '')).toBe('V0.1.0');
@@ -532,6 +533,7 @@ function options(
     rapportsEnAttente: number;
     empreinteCle: () => Promise<string | null>;
     verification: () => Promise<EtatVerification>;
+    sousMenuInitial: 'son_texte' | 'rapports' | 'application';
   }> = {},
 ): string {
   return renderToStaticMarkup(
@@ -555,46 +557,118 @@ function options(
       rapportsEnAttente={surcharge.rapportsEnAttente}
       empreinteCle={surcharge.empreinteCle}
       verification={surcharge.verification}
+      sousMenuInitial={surcharge.sousMenuInitial}
     />,
   );
 }
 
-describe('options (12 §4.10, #96)', () => {
-  it('en-tête, taille du texte en trois boutons radio avec aperçu, affichage en deux bascules, partie, puis MENU PRINCIPAL et REPRENDRE', () => {
+/** La bulle du sous-menu ouvert (D-288), jusqu'au bas des options. */
+function bulleOptions(html: string): string {
+  return entre(html, '<section class="bulle bulle-options"', '<div class="options-bas">');
+}
+
+describe('options (12 §4.10, #96, #201)', () => {
+  it('sommaire : trois lignes qui ouvrent chacune une bulle, l’abandon, puis MENU PRINCIPAL et REPRENDRE (D-287)', () => {
     const html = options();
     expect(texte(html)).toBe(
       [
         'Options le jeu est en pause',
+        '▸ Son et texte taille du texte, son, affichage',
+        '▸ Rapports télécharger ma partie',
+        '▸ Application mise à jour, version',
+        '⊘ Abandonner la partie en cours',
+        'Menu principal Reprendre la partie',
+      ].join(' '),
+    );
+    expect(html.match(/<button type="button" class="ligne-option" aria-haspopup="dialog" data-son="bulle">/g)).toHaveLength(3);
+    expect(html).not.toContain('role="dialog"');
+    expect(html).not.toContain('voile');
+  });
+
+  it('détail des lignes : ce que la bulle contient vraiment (D-287)', () => {
+    const envoyerRapport = (): Promise<Retour> => Promise.resolve('envoye');
+    const installation: Installation = { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined };
+    const detail = (html: string, ligne: string): string | undefined => new RegExp(`${ligne}</span><span class="detail-option">([^<]*)</span>`).exec(html)?.[1];
+    expect(detail(options({ envoyerRapport }), 'Rapports')).toBe('signaler un bug, envoyer ou télécharger ma partie');
+    expect(detail(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true }), 'Rapports')).toBe('signaler un bug, envoyer ma partie');
+    expect(detail(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false }), 'Rapports')).toBe('signaler un bug');
+    expect(detail(options({ installation }), 'Application')).toBe('installation, mise à jour, version');
+    expect(detail(options(), 'Son et texte')).toBe('taille du texte, son, affichage');
+  });
+
+  it('bulle Son et texte : dialogue ambre titré avec ✕ sur le sommaire voilé ; taille du texte en trois boutons radio avec aperçu, son, affichage (D-288)', () => {
+    const html = options({ sousMenuInitial: 'son_texte' });
+    const bulle = bulleOptions(html);
+    expect(bulle).toMatch(/^<section class="bulle bulle-options" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1" data-son-fermer="fermer">/);
+    expect(texte(bulle)).toBe(
+      [
+        'Son et texte ✕',
         'Taille du texte Standard Grande Très grande',
         APERCU_TAILLE,
         'Son Général 80 Effets sonores bips et clics du terminal 80 Ambiance bruit brun et carlingue 60',
         'Affichage Lignes de balayage [OUI] Effet machine à écrire [OUI]',
-        'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone ⊘ Abandonner la partie en cours',
-        'Vv-test Menu principal Reprendre la partie',
       ].join(' '),
     );
+    expect(html).toContain('<div class="voile" data-testid="voile-options" data-son="fermer"></div>');
+    expect(html.indexOf('voile-options')).toBeGreaterThan(html.indexOf('Abandonner la partie en cours'));
     expect(html.match(/type="radio"/g)).toHaveLength(3);
     expect(html).toMatch(/<label class="segment actif" data-son="clic"><input type="radio"[^>]*name="taille" checked=""\/><span>Standard<\/span><\/label>/);
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Lignes de balayage"');
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Effet machine à écrire"');
-    expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
+  });
+
+  it('chaque option a sa place : sommaire et trois bulles, rien de perdu (D-287)', () => {
+    const tout = {
+      envoyerRapport: (): Promise<Retour> => Promise.resolve('envoye'),
+      pr: '142',
+      empreinteCle: (): Promise<string | null> => Promise.resolve(null),
+      verification: (): Promise<EtatVerification> => Promise.resolve('verte'),
+      installation: { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined } satisfies Installation,
+      miseAJour: { etat: () => 'inconnu', abonner: () => () => undefined, chercher: () => Promise.resolve() } satisfies MiseAJour,
+    };
+    const places = {
+      sommaire: texte(options(tout)),
+      son_texte: texte(bulleOptions(options({ ...tout, sousMenuInitial: 'son_texte' }))),
+      rapports: texte(bulleOptions(options({ ...tout, sousMenuInitial: 'rapports' }))),
+      application: texte(bulleOptions(options({ ...tout, sousMenuInitial: 'application' }))),
+    };
+    const attendues: Readonly<Record<keyof typeof places, readonly string[]>> = {
+      sommaire: ['Son et texte', 'Rapports', 'Application', 'Abandonner la partie en cours', 'Menu principal', 'Reprendre la partie'],
+      son_texte: ['Taille du texte', 'Standard', 'Très grande', APERCU_TAILLE, 'Général', 'Effets sonores', 'Ambiance', 'Lignes de balayage', 'Effet machine à écrire'],
+      rapports: ['Signaler un bug', 'Envoyer ma partie', 'Télécharger ma partie', 'Clé de ce téléphone'],
+      application: ['Installer le jeu', 'Chercher une mise à jour', 'Vv-test · test PR #142', 'Vérification automatique'],
+    };
+    for (const [place, libelles] of Object.entries(attendues) as [keyof typeof places, readonly string[]][]) {
+      for (const libelle of libelles) {
+        expect(places[place], `${libelle} dans ${place}`).toContain(libelle);
+        if (place === 'sommaire') continue;
+        for (const autre of ['son_texte', 'rapports', 'application'] as const) {
+          if (autre !== place) expect(places[autre], `${libelle} seulement dans ${place}`).not.toContain(libelle);
+        }
+      }
+    }
+    // Le sommaire ne montre aucun réglage : seulement ses lignes, l'abandon et le bas.
+    for (const option of [...attendues.son_texte, ...attendues.rapports, ...attendues.application]) expect(places.sommaire).not.toContain(option);
+    expect(texte(bulleOptions(options({ ...tout, sousMenuInitial: 'rapports' })))).toMatch(/Signaler un bug.*Envoyer ma partie.*Télécharger ma partie.*Validation/);
   });
 
   it('version de test : état de la vérification automatique sous la version, lu à l’ouverture ; absent de la version publique (#180)', () => {
     const verification = (): Promise<EtatVerification> => Promise.resolve('en_cours');
-    expect(options({ pr: '42', verification })).toContain('<p class="etat-verification" data-testid="verification">Vérification automatique : lecture…</p>');
-    expect(options({ pr: '', verification })).not.toContain('Vérification automatique');
-    expect(options({ pr: '42' })).not.toContain('Vérification automatique');
+    const application = { sousMenuInitial: 'application' } as const;
+    expect(options({ pr: '42', verification, ...application })).toContain('<p class="etat-verification" data-testid="verification">Vérification automatique : lecture…</p>');
+    expect(options({ pr: '', verification, ...application })).not.toContain('Vérification automatique');
+    expect(options({ pr: '42', ...application })).not.toContain('Vérification automatique');
+    expect(options({ pr: '42', verification })).not.toContain('Vérification automatique');
   });
 
   it('mise à jour : bouton selon l’état, absent sans service worker (D-227)', () => {
     const section = (etat: EtatMiseAJour, partieEnCours = true): string => {
       const miseAJour: MiseAJour = { etat: () => etat, abonner: () => () => undefined, chercher: () => Promise.resolve() };
-      const html = options({ miseAJour, partieEnCours });
-      return html.includes('Mise à jour') ? texte(entre(html, '<h2 class="titre-section">Mise à jour</h2>', '</section>')) : '';
+      const html = options({ miseAJour, partieEnCours, sousMenuInitial: 'application' });
+      return html.includes('Mise à jour</h2>') ? texte(entre(html, '<h2 class="titre-section">Mise à jour</h2>', '</section>')) : '';
     };
     expect(section('indisponible')).toBe('');
-    expect(texte(options())).not.toContain('Mise à jour');
+    expect(texte(bulleOptions(options({ sousMenuInitial: 'application' })))).toBe('Application ✕ Vv-test');
     expect(section('inconnu')).toBe('Mise à jour ▸ Chercher une mise à jour le jeu redémarre, la partie est gardée');
     expect(section('a_jour', false)).toBe('Mise à jour ▸ Chercher une mise à jour le jeu redémarre s’il en trouve une Le jeu est à jour.');
     expect(section('echec')).toContain('Impossible de vérifier. Le téléphone est-il connecté ?');
@@ -605,14 +679,14 @@ describe('options (12 §4.10, #96)', () => {
   it('installation : bouton ou aide selon l’état, absente quand rien n’est possible (#174)', () => {
     const section = (etat: EtatInstallation): string => {
       const installation: Installation = { etat: () => etat, abonner: () => () => undefined, proposer: () => undefined };
-      const html = options({ installation });
-      return html.includes('Installation') ? texte(entre(html, '<h2 class="titre-section">Installation</h2>', '</section>')) : '';
+      const html = options({ installation, sousMenuInitial: 'application' });
+      return html.includes('Installation</h2>') ? texte(entre(html, '<h2 class="titre-section">Installation</h2>', '</section>')) : '';
     };
     expect(section('indisponible')).toBe('');
-    expect(texte(options())).not.toContain('Installation');
+    expect(texte(options({ sousMenuInitial: 'application' }))).not.toContain('Installation');
     expect(section('invite')).toBe('Installation ▸ Installer le jeu s’ouvre en plein écran, sans la barre du navigateur');
     expect(section('en_cours')).toContain('Installer le jeu');
-    expect(options({ installation: { etat: () => 'en_cours', abonner: () => () => undefined, proposer: () => undefined } })).toMatch(
+    expect(options({ installation: { etat: () => 'en_cours', abonner: () => () => undefined, proposer: () => undefined }, sousMenuInitial: 'application' })).toMatch(
       /<button type="button" class="ligne-option" disabled=""[^>]*>[^]*?Installer le jeu/,
     );
     expect(section('guide_ios')).toBe('Installation ▸ Installer le jeu marche à suivre pour iPhone et iPad');
@@ -623,12 +697,13 @@ describe('options (12 §4.10, #96)', () => {
     expect(section('guide_ios')).not.toContain('Jeu installé');
   });
 
-  it('installation : placée entre le reste et la mise à jour, avec le retour en zone de statut', () => {
+  it('bulle Application : installation, mise à jour, puis la version ; le retour de l’installation en zone de statut (D-287)', () => {
     const installation: Installation = { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined };
     const miseAJour: MiseAJour = { etat: () => 'inconnu', abonner: () => () => undefined, chercher: () => Promise.resolve() };
-    const html = options({ installation, miseAJour });
-    expect(html.indexOf('Installation</h2>')).toBeGreaterThan(html.indexOf('Partie</h2>'));
+    const html = bulleOptions(options({ installation, miseAJour, sousMenuInitial: 'application' }));
+    expect(html.indexOf('Installation</h2>')).toBeGreaterThan(0);
     expect(html.indexOf('Installation</h2>')).toBeLessThan(html.indexOf('Mise à jour</h2>'));
+    expect(html.indexOf('Mise à jour</h2>')).toBeLessThan(html.indexOf('<p class="pied">'));
     expect(html).toContain('<p class="retour-option" role="status" data-testid="installation"></p>');
   });
 
@@ -642,7 +717,7 @@ describe('options (12 §4.10, #96)', () => {
   });
 
   it('réglages choisis : la taille active et les bascules sur [NON]', () => {
-    const html = options({ reglages: { ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false, machineAEcrire: false } });
+    const html = options({ reglages: { ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false, machineAEcrire: false }, sousMenuInitial: 'son_texte' });
     expect(html).toMatch(/<label class="segment actif" data-son="clic"><input[^>]*checked=""\/><span>Très grande<\/span>/);
     expect(html.match(/class="segment actif"/g)).toHaveLength(1);
     expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
@@ -650,51 +725,54 @@ describe('options (12 §4.10, #96)', () => {
   });
 
   it('son : trois rails de 0 à 100, valeur écrite à droite, COUPÉE ou COUPÉS à 0 (15 §4, D-220)', () => {
-    const html = options();
+    const html = options({ sousMenuInitial: 'son_texte' });
     const rails = html.match(/<input[^>]*class="curseur-rail"[^>]*>/g) ?? [];
     expect(rails).toHaveLength(3);
     for (const rail of rails) expect(rail).toMatch(/type="range" min="0" max="100" step="1"/);
     expect(rails.map((rail) => /value="(\d+)"/.exec(rail)?.[1])).toEqual(['80', '80', '60']);
-    const coupe = texte(options({ reglages: { ...REGLAGES_PAR_DEFAUT, general: 0, effets: 0, ambiance: 0 } }));
+    const coupe = texte(options({ reglages: { ...REGLAGES_PAR_DEFAUT, general: 0, effets: 0, ambiance: 0 }, sousMenuInitial: 'son_texte' }));
     expect(coupe).toContain('Son Général COUPÉE Effets sonores bips et clics du terminal COUPÉS Ambiance bruit brun et carlingue COUPÉE');
-    expect(options()).toContain('aria-valuetext="60"');
+    expect(html).toContain('aria-valuetext="60"');
   });
 
   it('sans partie en cours : ni Télécharger, ni Abandonner, ni REPRENDRE LA PARTIE, ni « en pause »', () => {
     const html = texte(options({ partieEnCours: false }));
-    for (const absent of ['Télécharger', 'Abandonner', 'Reprendre', 'en pause', 'Partie ']) expect(html).not.toContain(absent);
-    expect(html).toContain('Menu principal');
+    for (const absent of ['Télécharger', 'Abandonner', 'Reprendre', 'en pause']) expect(html).not.toContain(absent);
+    // Sans partie ni service de rapports, la bulle Rapports n'aurait rien : pas de ligne.
+    expect(html).toBe('Options ▸ Son et texte taille du texte, son, affichage ▸ Application mise à jour, version Menu principal');
   });
 });
 
 describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
   const envoyerRapport = (): Promise<Retour> => Promise.resolve('envoye');
 
-  it('partie en cours : Télécharger, Signaler un bug, Envoyer ma partie, puis Abandonner', () => {
-    expect(texte(entre(options({ envoyerRapport }), '<h2 class="titre-section">Partie</h2>', '</section>'))).toBe(
+  it('partie en cours : Signaler un bug, Envoyer ma partie, puis Télécharger ma partie, dans la bulle Rapports (D-287)', () => {
+    const html = options({ envoyerRapport, sousMenuInitial: 'rapports' });
+    expect(texte(bulleOptions(html))).toBe(
       [
-        'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone',
+        'Rapports ✕',
         '▸ Signaler un bug la partie en cours est jointe',
         '▸ Envoyer ma partie partie et commentaire',
-        '⊘ Abandonner la partie en cours',
+        '▸ Télécharger ma partie fichier enregistré sur le téléphone',
       ].join(' '),
     );
-    expect(options({ envoyerRapport })).toContain('aria-expanded="false"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
   });
 
   it('sans partie : seulement Signaler un bug, sans partie jointe ; partie finie : on peut encore l’envoyer', () => {
-    const sans = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false }));
-    expect(sans).toContain('Partie ▸ Signaler un bug aucune partie à joindre');
+    const sans = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false, sousMenuInitial: 'rapports' }));
+    expect(sans).toContain('Rapports ✕ ▸ Signaler un bug aucune partie à joindre');
     for (const absent of ['Envoyer ma partie', 'Télécharger', 'Abandonner']) expect(sans).not.toContain(absent);
-    const finie = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true }));
+    const finie = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true, sousMenuInitial: 'rapports' }));
     expect(finie).toContain('▸ Signaler un bug la partie est jointe ▸ Envoyer ma partie partie et commentaire');
     expect(finie).not.toContain('Abandonner');
   });
 
   it('rapports gardés sans réseau : le nombre en attente est dit en mots courants', () => {
-    expect(texte(options({ envoyerRapport, rapportsEnAttente: 1 }))).toContain('Un rapport attend le réseau pour partir.');
-    expect(texte(options({ envoyerRapport, rapportsEnAttente: 3 }))).toContain('3 rapports attendent le réseau pour partir.');
-    expect(options({ envoyerRapport })).not.toContain('rapports-en-attente');
+    expect(texte(options({ envoyerRapport, rapportsEnAttente: 1, sousMenuInitial: 'rapports' }))).toContain('Un rapport attend le réseau pour partir.');
+    expect(texte(options({ envoyerRapport, rapportsEnAttente: 3, sousMenuInitial: 'rapports' }))).toContain('3 rapports attendent le réseau pour partir.');
+    expect(options({ envoyerRapport, sousMenuInitial: 'rapports' })).not.toContain('rapports-en-attente');
   });
 
   it('panneau de bug : commentaire facultatif borné, ce qui est joint, ANNULER et ENVOYER ; pas de case « je valide »', () => {
@@ -716,10 +794,11 @@ describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
 
   it('section VALIDATION : seulement dans une version de test, avec la clé du téléphone (D-232)', () => {
     const empreinteCle = (): Promise<string | null> => Promise.resolve(null);
-    const test = options({ envoyerRapport, pr: '142', empreinteCle });
+    const rapports = { sousMenuInitial: 'rapports' } as const;
+    const test = options({ envoyerRapport, pr: '142', empreinteCle, ...rapports });
     expect(texte(entre(test, '<h2 class="titre-section">Validation</h2>', '</section>'))).toBe('Validation Clé de ce téléphone lecture…');
-    expect(texte(options({ envoyerRapport, pr: '', empreinteCle }))).not.toContain('Validation');
-    expect(texte(options({ envoyerRapport, pr: '142' }))).not.toContain('Validation');
+    expect(texte(options({ envoyerRapport, pr: '', empreinteCle, ...rapports }))).not.toContain('Validation');
+    expect(texte(options({ envoyerRapport, pr: '142', ...rapports }))).not.toContain('Validation');
   });
 
   it('retours : le panneau se ferme quand le rapport est parti ou gardé, reste ouvert sinon', () => {
