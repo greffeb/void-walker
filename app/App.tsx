@@ -3,7 +3,8 @@ import { observer, type Evenement, type OptionMenu, type Partie } from '../engin
 import type { EntreeMonde } from '../content';
 import type { Chronometre } from './duree';
 import { EcranJeu, EcranReveil } from './EcranJeu';
-import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
+import { EcranFin } from './EcranFin';
+import { EcranOptions, type Telechargement } from './EcranOptions';
 import {
   abandonner,
   charger,
@@ -47,7 +48,7 @@ type Ecran =
   | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[]; readonly signaux: readonly Signal[] }
   /** Options (12 §4.10) ouvertes depuis l'accueil ou le jeu ; `jeu` : la partie enregistrée, `null` s'il n'y en a pas. */
   | { readonly type: 'options'; readonly depuis: 'accueil' | 'jeu'; readonly jeu: Jeu | null; readonly lus: readonly string[] }
-  /** Fin après abandon (12 §4.11) : la partie n'est plus enregistrée. */
+  /** Fin (12 §4.11) : après un abandon, la partie n'est plus enregistrée ; après une défaite ou une évacuation, elle l'est encore. */
   | { readonly type: 'fin'; readonly jeu: Jeu };
 
 /** Télécharge l'export de la partie sur l'appareil (C-09 §5) ; le retour est visible, prêt ou échec. */
@@ -180,6 +181,11 @@ export function App({
       const demarrage = await demarrer(env);
       if (demarrage.type !== 'pret') {
         setEcran({ type: 'reprise_impossible' });
+        return;
+      }
+      // Une partie finie rouvre sur son écran de fin (C-09 S-05, D-286).
+      if (observer(env.monde, demarrage.jeu.partie.etat).terminee) {
+        setEcran({ type: 'fin', jeu: demarrage.jeu });
         return;
       }
       if (demarrage.jeu.partie.etat.actions === 0) {
@@ -390,12 +396,14 @@ export function App({
           <EcranFin
             jeu={ecran.jeu}
             env={env}
+            machineAEcrire={reglages.machineAEcrire}
             occupe={occupe}
             rejouer={() => void commencerSur(env)}
             nouvellePartie={() => void commencerNouvellePartie()}
             menuPrincipal={() => void allerAccueil()}
             envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
             pr={pr}
+            empreinteCle={empreinteCle}
           />
         ) : ecran.type === 'reveil' ? (
           <EcranReveil
@@ -416,11 +424,8 @@ export function App({
             lireMessages={lireMessages}
             ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
             terminerPartie={() => abandonnerPartie(ecran.jeu)}
-          signaux={ecran.signaux}
-            nouvellePartie={() => void commencerNouvellePartie()}
-            envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
-            pr={pr}
-            empreinteCle={empreinteCle}
+            signaux={ecran.signaux}
+            continuer={() => setEcran({ type: 'fin', jeu: ecran.jeu })}
           />
         ) : (
           <main className="jeu">

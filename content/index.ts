@@ -32,7 +32,8 @@ export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
   'station m-10': { noms: {}, descriptions: {}, assistance: MESSAGES_M10 },
 };
 
-export { fuitesDeCouches, reunir } from './textes/couches';
+export { FIN, fuitesDeCouches, reunir } from './textes/couches';
+export { cleMort, MOMENTS_MAX, raconterFin, type FinDePartie, type RecitFin } from './textes/fin';
 export { MENACE, MOTS_MENACE } from './textes/menace';
 export { SOCLE } from './textes/socle';
 export { TEXTES_STATION_ESSAI } from './textes/station-essai';
@@ -66,19 +67,25 @@ export {
 } from './textes/rendu';
 export {
   CLES_EVACUATION,
+  CLES_MOMENT,
+  CLES_MORT,
   ROLES_ALLER_SANS_DESTINATION,
   ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
+  ROLES_MOMENT,
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
   ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
   type CleEvacuation,
+  type CleMoment,
+  type CleMort,
   type Couche,
   type Nom,
+  type PhraseFin,
   type TextesMonde,
   type TextesMorceau,
   type TypeAggravation,

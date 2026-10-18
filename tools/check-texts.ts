@@ -19,6 +19,8 @@ import {
 import {
   analyserGabarit,
   CLES_EVACUATION,
+  CLES_MOMENT,
+  CLES_MORT,
   COMPOSITIONS_CONTROLEES,
   fuitesDeCouches,
   libelleOption,
@@ -38,6 +40,7 @@ import {
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
+  ROLES_MOMENT,
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
   ROLES_PASSAGE_SANS_DESTINATION,
@@ -115,6 +118,30 @@ function verifierGabarit(erreurs: string[], ou: string, gabarit: unknown, roles:
   for (const erreur of analyserGabarit(gabarit, roles)) erreurs.push(`${ou} : ${erreur}.`);
 }
 
+/**
+ * Phrase du récit de fin (D-281) : `ici` toujours, sans la pièce ; `ailleurs`, s'il existe, la nomme ; les formes reprises
+ * vont avec les formes qu'elles suivent.
+ */
+function verifierPhraseFin(erreurs: string[], ou: string, phrase: unknown, roles: readonly string[]): void {
+  if (typeof phrase !== 'object' || phrase === null) {
+    erreurs.push(`${ou} : aucun texte (NP-01).`);
+    return;
+  }
+  const { ici, ailleurs, iciReprise, ailleursReprise } = phrase as Record<string, unknown>;
+  const piece = /\{[^{}:]*:piece\}/;
+  verifierGabarit(erreurs, `${ou}, ici`, ici, roles);
+  if (typeof ici === 'string' && piece.test(ici)) erreurs.push(`${ou}, ici : redit la pièce.`);
+  if (iciReprise !== undefined) verifierGabarit(erreurs, `${ou}, ici après la créature`, iciReprise, roles);
+  if (ailleurs !== undefined) {
+    verifierGabarit(erreurs, `${ou}, ailleurs`, ailleurs, [...roles, 'piece']);
+    if (typeof ailleurs !== 'string' || !piece.test(ailleurs)) erreurs.push(`${ou}, ailleurs : ne nomme pas la pièce.`);
+  }
+  if (ailleursReprise !== undefined) verifierGabarit(erreurs, `${ou}, ailleurs après la créature`, ailleursReprise, [...roles, 'piece']);
+  // Une phrase qui nomme la créature l'a sous toutes ses formes : reprise ici, et ailleurs si elle dit la pièce.
+  const incomplete = iciReprise === undefined ? ailleursReprise !== undefined : ailleurs !== undefined && ailleursReprise === undefined;
+  if (incomplete) erreurs.push(`${ou} : formes après la créature incomplètes.`);
+}
+
 function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): void {
   for (const type of TYPES_RECIT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
   for (const causes of ['feu', 'griffes_feu'] as const) {
@@ -153,6 +180,11 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     for (const erreur of analyserGabarit(message, [])) erreurs.push(`assistance « ${id} » : ${erreur}.`);
     if (/\d/.test(message)) erreurs.push(`assistance « ${id} » : chiffre dans « ${message} ».`);
   }
+  for (const cle of CLES_MOMENT) verifierPhraseFin(erreurs, `fin, moment ${cle}`, textes.fin.moments[cle], ROLES_MOMENT[cle]);
+  for (const cle of CLES_MORT) verifierPhraseFin(erreurs, `fin, mort ${cle}`, textes.fin.morts[cle], []);
+  for (const [cle, titre] of Object.entries(textes.fin.titres)) verifierGabarit(erreurs, `fin, titre ${cle}`, titre, []);
+  verifierGabarit(erreurs, 'fin, réveil', textes.fin.reveil, ['piece']);
+  for (const [cle, phrase] of [...Object.entries(textes.fin.sante), ...Object.entries(textes.fin.creature)]) verifierGabarit(erreurs, `fin, départ ${cle}`, phrase, []);
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);
   for (const raison of RAISONS_INDISPONIBILITE) {
     verifierGabarit(erreurs, `indisponibilité ${raison}`, textes.indisponibilites[raison], ROLES_INDISPONIBILITE);

@@ -28,8 +28,6 @@ import { Bulle, BulleAncree, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
-import { EnvoyerMaPartie } from './PanneauRapport';
-import type { Retour } from './rapports';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 
@@ -130,11 +128,8 @@ export function EcranJeu({
   choisir,
   lireMessages,
   ouvrirOptions,
-  nouvellePartie,
+  continuer,
   signaux = AUCUN_SIGNAL,
-  envoyerPartie,
-  pr = '',
-  empreinteCle,
   terminerPartie,
 }: {
   readonly jeu: Jeu;
@@ -149,18 +144,12 @@ export function EcranJeu({
   readonly lireMessages: (jeu: Jeu) => void;
   /** Engrenage des options (12 §3.2) ; absent, ou partie terminée : pas d'engrenage. */
   readonly ouvrirOptions?: () => void;
-  /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
-  readonly nouvellePartie?: () => void;
+  /** Après la fin de la partie, seul geste possible : CONTINUER mène à l'écran de fin (12 §4.11, D-286). */
+  readonly continuer?: () => void;
   /** TERMINER LA PARTIE de l'information « plus aucune sortie » (12 §5.2) : un abandon ; `false` s'il n'a pas pu être enregistré. */
   readonly terminerPartie?: () => Promise<boolean>;
   /** Signaux de la dernière action (15 §2.2), annoncés après l'écriture du texte. */
   readonly signaux?: readonly Signal[];
-  /** ENVOYER MA PARTIE après la fin (12 §4.11) ; dans une version de test, la partie finie peut porter « je valide ». */
-  readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
-  /** Numéro de PR de la version de test, vide pour la version publique. */
-  readonly pr?: string;
-  /** Empreinte de la clé de validation, montrée sous « je valide » (D-232) : l'écran de fin n'a pas d'options. */
-  readonly empreinteCle?: () => Promise<string | null>;
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
@@ -321,15 +310,13 @@ export function EcranJeu({
         ))}
       </section>
       {observation.terminee ? (
+        // Le dernier texte reste à lire ; la fin vient au toucher (D-286).
         <section className="dock fin-partie">
-          {/* Déjà lue dans la situation, en tête de page pour le lecteur d'écran. */}
-          <p aria-hidden="true">{remplir(observation.issue === 'evacuation' ? textes.observation.evacuee : textes.observation.terminee, {})}</p>
-          {nouvellePartie !== undefined && (
-            <button type="button" className="principal" disabled={occupe} onClick={nouvellePartie} data-son="clic">
-              Nouvelle partie
+          {continuer !== undefined && (
+            <button type="button" className="principal" disabled={occupe} onClick={continuer} data-son="clic">
+              Continuer
             </button>
           )}
-          {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={pr !== ''} empreinteCle={empreinteCle} occupe={occupe} />}
         </section>
       ) : (
         <DockPiece
@@ -920,13 +907,14 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
  * Au réveil et à la fin de la partie, la parole d'IA Station est encadrée en entier (12 §4.2) ; en cours de partie, rien dans le récit :
  * le repère du bouton IA STATION l'annonce (12 §3.3, D-263).
  */
-function Recit({
+export function Recit({
   jeu,
   zone,
   ecrire,
   fixe,
   terminee,
   sansAssistance = false,
+  accent = null,
 }: {
   readonly jeu: Jeu;
   readonly zone: RefObject<HTMLElement | null>;
@@ -936,6 +924,8 @@ function Recit({
   /** Partie finie : la navigation a disparu, le dernier message d'IA Station s'écrit alors dans le récit, comme au réveil. */
   readonly terminee: boolean;
   readonly sansAssistance?: boolean;
+  /** Rang de la phrase du récit écrite en `accent` : la mort, à l'écran de fin (D-282). */
+  readonly accent?: number | null;
 }) {
   const { rappel } = jeu;
   const reveil = jeu.partie.etat.actions === 0;
@@ -977,7 +967,7 @@ function Recit({
             {copie(index + decalage)}
           </p>
         ) : (
-          <p key={index}>
+          <p key={index} className={index === accent ? 'cause' : undefined}>
             <span className="lecteur-seul">{phrase}</span>
             {copie(index + decalage)}
           </p>

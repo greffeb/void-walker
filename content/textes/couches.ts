@@ -41,6 +41,9 @@ export function reunir(morceaux: readonly TextesMorceau[], assistance: Readonly<
   return textes as unknown as TextesMonde;
 }
 
+/** Textes de fin des trois couches (D-281), repris tels quels par les mondes écrits en entier (AR-01, AR-02, monde de test). */
+export const FIN: TextesMonde['fin'] = reunir([]).fin;
+
 function minuscules(texte: string): string {
   return texte.normalize('NFC').toLocaleLowerCase('fr');
 }
