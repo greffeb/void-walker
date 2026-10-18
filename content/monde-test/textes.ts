@@ -10,6 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { FIN } from '../textes/couches';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -314,6 +315,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     momentEvacuation: 'au départ de la capsule',
     ...OBSERVATION_MORCEAUX,
   },
+  fin: FIN,
   apercu: {
     risques: {
       aucun: 'aucun risque connu',

@@ -3,10 +3,11 @@ import { observer, type IdAction, type OptionMenu } from '../engine';
 import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
 import { App, EcranRefus } from './App';
 import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
-import { APERCU_TAILLE, EcranFin, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
+import { EcranFin } from './EcranFin';
+import { APERCU_TAILLE, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
 import { composerDock, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
-import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
+import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
 import type { EtatInstallation, Installation } from './installation';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
@@ -413,7 +414,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(entre(rendre(avec('blesse')), 'data-testid="situation"', '</section>'))).toContain('Vous êtes blessé.');
   });
 
-  it('défaite : plus d’action ni d’inventaire, la phrase de fin et NOUVELLE PARTIE (D-013)', async () => {
+  it('défaite : plus d’action ni d’inventaire, le dernier texte reste et CONTINUER seul (D-013, D-286)', async () => {
     const jeu = await commencer(env);
     const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
     const html = renderToStaticMarkup(
@@ -426,40 +427,17 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
         choisir={rien}
         lireMessages={rienALire}
         ouvrirOptions={() => undefined}
-        nouvellePartie={() => undefined}
+        continuer={() => undefined}
       />,
     );
     expect(html).not.toContain('badge-sante');
     expect(html).not.toContain('class="puce"');
     // Partie terminée : rien à mettre en pause, l'engrenage disparaît comme la navigation.
     expect(html).not.toContain('aria-label="Options"');
-    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
-      'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie',
+    expect(entre(html, '<section class="dock fin-partie"', '</section>')).toBe(
+      '<section class="dock fin-partie"><button type="button" class="principal" data-son="clic">Continuer</button></section>',
     );
     expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
-  });
-
-  it('fin de partie : ENVOYER MA PARTIE, discret, sous NOUVELLE PARTIE quand le service est là (12 §4.11, #108)', async () => {
-    const jeu = await commencer(env);
-    const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
-    const html = renderToStaticMarkup(
-      <EcranJeu
-        jeu={vaincu}
-        lus={[]}
-        env={env}
-        machineAEcrire
-        occupe={false}
-        choisir={rien}
-        lireMessages={rienALire}
-        nouvellePartie={() => undefined}
-        envoyerPartie={() => Promise.resolve('envoye')}
-        pr="142"
-      />,
-    );
-    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
-      'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie Envoyer ma partie',
-    );
-    expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
   });
 
   it('situation en phrases : hors de l’écran, gardée pour le lecteur d’écran comme dans la CLI (C-06 K-07)', async () => {
@@ -808,31 +786,59 @@ describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
   });
 });
 
-describe('fin après abandon (12 §4.11, #96)', () => {
-  it('titre, récit court, pièces visitées en mots, phrase de fin, puis REJOUER, NOUVELLE PARTIE et MENU PRINCIPAL ; aucun chiffre', async () => {
+describe('écran de fin (12 §4.11, #96, #208, D-281 à D-286)', () => {
+  /** Plus courte défaite du monde de test, sans dé : la créature vient à la cabine pendant qu'on fait du bruit. */
+  async function vaincu(): Promise<Jeu> {
+    let jeu = await commencer(env);
+    for (const [action, cible] of [['ouvrir', 'porte'], ['prendre', 'carnet'], ['poser', 'carnet'], ['prendre', 'carnet'], ['poser', 'carnet'], ['prendre', 'carnet']] as const) {
+      const option = observer(monde, jeu.partie.etat).menu.find((choix) => choix.action === action && choix.cible.nom === cible && choix.disponible);
+      if (option === undefined) throw new Error(`Option ${action} ${cible} absente.`);
+      jeu = await jouerOption(env, jeu, option);
+    }
+    expect(observer(monde, jeu.partie.etat).issue).toBe('defaite');
+    return jeu;
+  }
+
+  const fin = (jeu: Jeu, entree: Environnement = env, envoyer?: () => Promise<Retour>, pr = ''): string =>
+    renderToStaticMarkup(
+      <EcranFin jeu={jeu} env={entree} machineAEcrire occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} envoyerPartie={envoyer} pr={pr} />,
+    );
+
+  it('défaite : titre, récit de la partie, la mort en ambre, « ne peut pas être reprise », quatre boutons ; ni pièce ni chiffre', async () => {
+    const jeu = await vaincu();
+    const recit = recitDeFin(env, jeu.partie);
+    const html = fin(jeu, env, () => Promise.resolve('envoye'));
+    expect(entre(html, '<header', '</header>')).toContain('&gt; Fin de la partie_');
+    expect(html).toContain('<h1 class="titre-fin" tabindex="-1">Vous n’avez pas atteint la capsule.</h1>');
+    expect(lu(entre(html, '<section class="recit', '</section>'))).toBe(recit.paragraphes.join(' | '));
+    expect(recit.paragraphes).toEqual([
+      'Vous vous êtes réveillé dans la cabine. Vous y avez vu la créature pour la première fois.',
+      'Elle vous y a blessé. Puis elle vous a grièvement blessé.',
+      'Vous y êtes mort, sous ses griffes.',
+    ]);
+    // La mort et sa cause en `accent`, seule (D-282).
+    expect(html.match(/<p class="cause">/g)).toHaveLength(1);
+    expect(lu(entre(html, '<p class="cause">', '</p>'))).toBe('Vous y êtes mort, sous ses griffes.');
+    expect(texte(entre(html, '<div class="bilan-fin">', '</div>'))).toBe('Cette partie est terminée. Elle ne peut pas être reprise.');
+    expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Envoyer ma partie Menu principal');
+    expect(html).not.toContain('Pièces visitées');
+    expect(html).not.toContain('parole-ia');
+    expect(lu(html)).not.toMatch(/\d/);
+  });
+
+  it('abandon : titre, la pièce où l’on s’est arrêté, « ne peut pas être reprise » ; sans liste des pièces (D-284)', async () => {
     const jeu = await apres('prendre', 'ouvrir', 'aller');
-    const html = renderToStaticMarkup(
-      <EcranFin jeu={jeu} env={env} occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} />,
-    );
-    expect(texte(html)).toBe(
-      [
-        '&gt; Fin de la partie_',
-        'Partie abandonnée.',
-        'Vous en restez là, dans l’atelier.',
-        'Pièces visitées : Cabine, Atelier',
-        'Cette partie est terminée. Elle ne peut pas être reprise.',
-        'Rejouer cette station Nouvelle partie Menu principal',
-      ].join(' '),
-    );
-    expect(texte(html)).not.toMatch(/\d/);
+    const html = fin(jeu);
+    expect(html).toContain('<h1 class="titre-fin" tabindex="-1">Partie abandonnée.</h1>');
+    expect(lu(entre(html, '<section class="recit', '</section>'))).toBe('Vous en restez là, dans l’atelier.');
+    expect(texte(entre(html, '<div class="bilan-fin">', '</div>'))).toBe('Cette partie est terminée. Elle ne peut pas être reprise.');
+    expect(html).not.toContain('Pièces visitées');
+    expect(lu(html)).not.toMatch(/\d/);
     expect(html).toContain('<button type="button" class="principal" data-son="clic">Rejouer cette station</button>');
   });
 
   it('ENVOYER MA PARTIE, discret, entre NOUVELLE PARTIE et MENU PRINCIPAL quand le service est là (#107)', async () => {
-    const jeu = await apres('prendre');
-    const html = renderToStaticMarkup(
-      <EcranFin jeu={jeu} env={env} occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} envoyerPartie={() => Promise.resolve('envoye')} />,
-    );
+    const html = fin(await apres('prendre'), env, () => Promise.resolve('envoye'));
     expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Envoyer ma partie Menu principal');
     expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
   });
@@ -918,7 +924,7 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
 
   function rendreAr01(jeu: Jeu, lus: readonly string[] = []): string {
     return renderToStaticMarkup(
-      <EcranJeu jeu={jeu} lus={lus} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+      <EcranJeu jeu={jeu} lus={lus} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} continuer={() => undefined} />,
     );
   }
 
@@ -1029,11 +1035,11 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(rendreAr01(await pc(6), ['reveil'])).not.toContain('lien-ia');
   });
 
-  it('évacuation : seize actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
+  it('évacuation : seize actions, le texte du départ et CONTINUER à la place du dock ; en-tête inchangé (D-286)', async () => {
     const fin = await pc(P_C.length);
     expect(fin.partie.etat.actions).toBe(16);
     const html = rendreAr01(fin);
-    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe('La capsule s’est détachée. Vous avez quitté la station. Nouvelle partie');
+    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe('Continuer');
     expect(html).not.toContain('Cette partie est terminée');
     expect(html).not.toContain('class="puce"');
     expect(html).not.toContain('class="deplacements"');
@@ -1044,6 +1050,22 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${ar01.textes.assistance.depart ?? ''}\u00a0»`);
     expect(html).not.toContain('lien-ia');
     expect(html).not.toContain('parle dans l’écouteur');
+  });
+
+  it('écran de fin après l’évacuation : le récit de la partie, puis le message de départ d’IA Station ; ni « ne peut pas être reprise » ni pièces (D-283)', async () => {
+    const jeu = await pc(P_C.length);
+    const recit = recitDeFin(envAr01, jeu.partie);
+    const html = renderToStaticMarkup(
+      <EcranFin jeu={jeu} env={envAr01} machineAEcrire occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} />,
+    );
+    expect(html).toContain('<h1 class="titre-fin" tabindex="-1">La capsule s’est détachée.</h1>');
+    expect(recit.assistance).toEqual([ar01.textes.assistance.depart]);
+    expect(lu(entre(html, '<section class="recit', '</section></section>'))).toBe([...recit.paragraphes, `«\u00a0${ar01.textes.assistance.depart ?? ''}\u00a0»`].join(' | '));
+    expect(recit.paragraphes.at(-1)).toMatch(/Vous partez (indemne|blessé|grièvement blessé, mais vivant)\./);
+    expect(html).not.toContain('class="cause"');
+    expect(html).not.toContain('bilan-fin');
+    expect(html).not.toContain('Pièces visitées');
+    expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Menu principal');
   });
 });
 
@@ -1128,7 +1150,7 @@ describe('danger apparu : triangle rouge devant la phrase du feu (#138, D-233)',
   const recitDe = (jeu: Jeu): string =>
     entre(
       renderToStaticMarkup(
-        <EcranJeu jeu={jeu} lus={[]} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+        <EcranJeu jeu={jeu} lus={[]} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} continuer={() => undefined} />,
       ),
       'data-testid="recit"',
       '<section class="dock"',

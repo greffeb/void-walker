@@ -4,6 +4,7 @@ import {
   jouer,
   nouvellePartie,
   observer,
+  rejouer,
   reprendrePartie,
   type DefMonde,
   type Evenement,
@@ -18,6 +19,7 @@ import {
   lignesListeCarte,
   raconter,
   raconterDerniers,
+  raconterFin,
   rendreApercu,
   rendreAssistance,
   rendreListeCarte,
@@ -144,6 +146,25 @@ function afficherAssistance(textes: TextesMonde, evenements: readonly Evenement[
   return rendreAssistance(textes, evenements).map((message) => `[ IA STATION ] « ${message} »`);
 }
 
+/**
+ * Écran de fin d'une défaite ou d'une évacuation, mêmes mots que l'appli (12 §4.11, D-281, C-06 K-07) : la partie relue du
+ * réveil à sa dernière action. Rien pour une partie en cours ; « ne peut pas être reprise » est déjà dans la situation.
+ */
+export function afficherFin(monde: DefMonde, textes: TextesMonde, partie: Partie): string[] {
+  const { issue, sante } = observer(monde, partie.etat);
+  if (issue === null) return [];
+  const { version, graine } = partie.enregistrement;
+  const etapes = [nouvellePartie(monde, { version, graine }).derniers, ...rejouer(monde, partie.enregistrement, version).etapes];
+  const { titre, paragraphes, assistance } = raconterFin(textes, etapes, { issue, sante, graine, menace: monde.creature !== undefined });
+  return [
+    '',
+    '> FIN DE LA PARTIE',
+    titre,
+    ...paragraphes.flatMap((paragraphe) => ['', paragraphe]),
+    ...assistance.map((message) => `[ IA STATION ] « ${message} »`),
+  ];
+}
+
 export function afficherSituation(textes: TextesMonde, observation: Observation, avecIds = false): string[] {
   const lignes = ['', ...rendreObservation(textes, observation), ''];
   if (observation.terminee) lignes.push('Partie terminée : plus aucune action possible.');
@@ -207,6 +228,7 @@ function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
     lignes.push(enregistrer(contexte, chemin, resultat.partie));
   }
   lignes.push(...afficherSituation(contexte.textes, observer(contexte.monde, resultat.partie.etat)));
+  lignes.push(...afficherFin(contexte.monde, contexte.textes, resultat.partie));
   return { lignes, code: 0 };
 }
 
@@ -235,7 +257,7 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
       const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
-      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation], code: 0 };
+      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation, ...afficherFin(monde, textes, partie)], code: 0 };
     }
     case 'carte': {
       const partie = charger(contexte, chemin);

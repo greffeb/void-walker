@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-18.
+> **Mise à jour :** 2026-10-18 (écrans de fin, #208).
 
 ## Règles
 
@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule), [D-281 à D-286](#d-281--fin-de-partie--le-récit-de-la-partie-à-partir-de-ses-moments-marquants) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
@@ -2269,6 +2269,53 @@ Questions posées le 2026-10-18, en langage courant, avant de coder ; le porteur
   - **Affichage.** Dans le rapport seulement : une ligne « Durée, écran allumé » au tableau de chaque rapport qui joint une partie. Rien à l'écran de fin, qui reste sans score (D-086).
 - Précise : D-008 (durée visée), D-242 (grandes stations si la durée le demande), C-10 RP-01 et RP-02.
 - Limite [détail de l'agent] : la durée est gardée dans `localStorage`, une clé par adresse (`void-walker:duree:<adresse>`), avec le monde et la graine de sa partie. Un minuteur la compte et l'écrit toutes les 5 s ; plus de 15 s sans compte est une absence (appareil endormi sans que la page l'ait dit), qui ne compte pas. Une partie déjà commencée sans durée gardée (en cours lors de la mise à jour, ou stockage effacé) n'est pas mesurée : le rapport dit « non mesurée », comme ceux d'un jeu plus ancien. Un écran laissé allumé sans geste compte, sans plafond. La durée part aussi avec un bug quand la partie est jointe ; elle est arrondie à la seconde, n'entre pas dans l'empreinte des doublons et n'est pas signée.
+
+## Décisions validées — écrans de fin (#208)
+
+Questions posées le 2026-10-18, une par une, en langage courant, après des maquettes au format téléphone (`docs/maquette/fins.html`) ; pour la première, le porteur a demandé une démo avant de choisir : un prototype jetable a composé le récit de 1 246 parties jouées par les bots du projet, sur 400 stations tirées et AR-02, montré en sept images. Accord sur la description complète : « Oui, vas-y ».
+
+### D-281 — Fin de partie : le récit de la partie, à partir de ses moments marquants
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Fais moi une démo de B. Et je jugerai de savoir si c'est bien ou pas et si c'est pas bien, on passera sur a » ; après la démo : « B me conviens, sans la liste des pièces visitées. et il y a des phrases de ta démo qui sont fausses grammaticalement : "le vide a emporté elle hors de la station" attention de faire du vrai français, pas de l'anglais traduit ».
+- Décision : à la défaite et à l'évacuation, l'écran de fin (12 §4.11) raconte la partie jouée : le réveil, puis les moments marquants dans l'ordre de la partie, puis la fin. Les moments viennent de la partie enregistrée, relue du début ; rien n'est ajouté à l'état du moteur. La liste « PIÈCES VISITÉES » est retirée. Chaque phrase est écrite à la main en entier, sous chaque forme dont le récit a besoin (pièce redite ou non, créature nommée ou reprise par « elle », « l' », « ses ») ; le jeu ne remplit que les noms, il ne remplace jamais un mot par un pronom.
+- Précise : D-086 (le récit seulement), D-111 (récit plus long à la fin), D-112 (phrases écrites à la main), C-05 (aucun fait non appliqué) et NP-05 (rien de non perçu).
+- Limite [détail de l'agent] : trois moments au plus, choisis par importance puis remis dans l'ordre : la créature vue pour la première fois et la créature mise hors jeu sous les yeux du passager, puis les blessures, puis les bruits et gestes de la créature, puis les obstacles franchis et les soins. Un geste défait plus tard (combinaison retirée, brèche rebouchée, machines relancées, gravité rétablie) n'est pas raconté. L'écran d'abandon perd aussi sa liste et garde son texte.
+
+### D-282 — La défaite nomme sa cause et sa pièce
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Oui, comme la démo (Recommandé) ».
+- Décision : la dernière phrase du récit d'une défaite dit où le passager est mort et ce qui l'a tué : la créature, le feu, le froid, le vide, ou la créature avec le feu ou le froid. Elle s'écrit en `accent`, comme les titres.
+- Précise : D-013 ; la mention « Cette partie est terminée. Elle ne peut pas être reprise. » reste sous un filet.
+- Limite : rien n'est dit de ce qui aurait sauvé le passager (le joueur apprend en rejouant).
+
+### D-283 — L'évacuation dit le départ, la santé et le sort de la créature
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « les trois (ps : en codant, penser au futur ou ça sera d'autres enemis et d'autres missions) ».
+- Décision : la fin d'une évacuation reprend le texte de départ selon ce qui alimentait la capsule (circuit, bloc, les deux ou la réserve), dit la santé du passager (indemne, blessé, grièvement blessé) et ce qu'il sait de la créature : rien de plus si un moment l'a déjà mise hors jeu, sinon laissée derrière lui, entendue sans être vue, ou jamais vue. Le message de départ d'IA Station est cité en entier dessous (D-263).
+- Limite : les phrases sur la créature sont dans la couche menace, celles du départ et de la capsule dans la couche univers ; un autre ennemi ou une autre mission apportera les siennes sans toucher au reste.
+
+### D-284 — Aucun bilan à l'écran de fin
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « sans la liste des pièces visitées » (D-281), puis l'accord sur la description complète.
+- Décision : ni liste de pièces, ni nombre d'actions, ni durée, ni autre repère : seulement le récit.
+- Précise : D-086 et D-280 (durée dans le rapport seulement).
+
+### D-285 — Les missions auront leur phrase de fin, plus tard
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Oui, plus tard (Recommandé) ».
+- Décision : quand d'autres missions existeront (#210), la fin dira si l'objectif de la mission est rempli, par une phrase écrite dans la couche de la mission. Rien à l'écran tant qu'il n'y a qu'une mission.
+
+### D-286 — CONTINUER avant l'écran de fin
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Après CONTINUER (Recommandé) ».
+- Décision : à l'action qui finit la partie, l'écran de jeu reste, avec son dernier texte (rouge, brouillage et sons compris) ; le dock laisse la place à un seul bouton CONTINUER, sans navigation ni engrenage. CONTINUER mène à l'écran de fin. Rouvrir le jeu après une défaite ou une évacuation mène directement à l'écran de fin (C-09 S-05).
+- Limite [détail de l'agent] : NOUVELLE PARTIE et ENVOYER MA PARTIE quittent le dock et ne sont plus que sur l'écran de fin ; ENVOYER MA PARTIE y garde « je valide » dans une version de test.
 
 ## Décisions validées — options en sous-menus (#201)
 

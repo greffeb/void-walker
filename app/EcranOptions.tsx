@@ -1,12 +1,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
-import { observer } from '../engine';
-import { nomDe, remplir } from '../content';
-import { nomPuce } from './ecran';
 import { Bulle } from './bulle';
 import type { EtatInstallation, Installation } from './installation';
-import type { Environnement, Jeu } from './jeu';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
-import { EnvoyerMaPartie, PanneauRapport, RETOURS } from './PanneauRapport';
+import { PanneauRapport, RETOURS } from './PanneauRapport';
 import type { Retour, TypeRapport } from './rapports';
 import { empreinteLisible } from './validation';
 import { LIBELLES_VERIFICATION, type EtatVerification } from './verification';
@@ -718,68 +714,5 @@ function Rail({
         }}
       />
     </div>
-  );
-}
-
-/** Écran de fin après un abandon (12 §4.11) : le récit seulement, sans score (D-086) ; la partie ne se reprend pas (D-013). */
-export function EcranFin({
-  jeu,
-  env,
-  occupe,
-  rejouer,
-  nouvellePartie,
-  menuPrincipal,
-  envoyerPartie,
-  pr = '',
-}: {
-  readonly jeu: Jeu;
-  readonly env: Pick<Environnement, 'monde' | 'textes'>;
-  readonly occupe: boolean;
-  /** Même état de départ, nouveaux tirages (D-087, D-088). */
-  readonly rejouer: () => void;
-  readonly nouvellePartie: () => void;
-  readonly menuPrincipal: () => void;
-  /** ENVOYER MA PARTIE (12 §4.11) ; absent, pas de bouton. */
-  readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
-  readonly pr?: string;
-}) {
-  const { textes } = env;
-  const observation = observer(env.monde, jeu.partie.etat);
-  const visitees = observation.visitees.map((piece) => nomPuce(textes, piece)).join(', ');
-  const titre = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    titre.current?.focus();
-  }, []);
-  return (
-    <main className="jeu fin">
-      <header className="entete-piece entete-reveil">
-        <p className="lieu-reveil">&gt; Fin de la partie_</p>
-      </header>
-      <section className="recit-fin" data-testid="fin">
-        <h1 ref={titre} className="titre-fin" tabIndex={-1}>
-          Partie abandonnée.
-        </h1>
-        <p>{remplir(textes.observation.abandon, { piece: nomDe(textes, observation.piece) })}</p>
-        <div className="bilan-fin">
-          <p>
-            <span className="etiquette-fin">Pièces visitées :</span> {visitees}
-          </p>
-          <p>{remplir(textes.observation.terminee, {})}</p>
-        </div>
-      </section>
-      <div className="actions-fin">
-        <button type="button" className="principal" disabled={occupe} onClick={rejouer} data-son="clic">
-          Rejouer cette station
-        </button>
-        <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
-          Nouvelle partie
-        </button>
-        {/* Un abandon ne valide pas (D-099) : pas de « je valide » ici. */}
-        {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={false} occupe={occupe} />}
-        <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
-          Menu principal
-        </button>
-      </div>
-    </main>
   );
 }

@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
-import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type Refus, type TextesMonde } from '../content';
+import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
@@ -241,6 +241,15 @@ export async function marquerLus(env: Environnement, partie: Partie): Promise<vo
   } catch {
     // Rien à signaler au joueur : la partie, elle, est enregistrée à part.
   }
+}
+
+/** Récit de l'écran de fin d'une défaite ou d'une évacuation (D-281) : la partie relue du réveil à sa dernière action. */
+export function recitDeFin(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie): RecitFin {
+  const { issue, sante } = observer(env.monde, partie.etat);
+  if (issue === null) throw new Error('La partie n’est pas finie : pas de récit de fin.');
+  const { version, graine } = partie.enregistrement;
+  const etapes = [nouvellePartie(env.monde, { version, graine }).derniers, ...rejouer(env.monde, partie.enregistrement, version).etapes];
+  return raconterFin(env.textes, etapes, { issue, sante, graine, menace: env.monde.creature !== undefined });
 }
 
 /** Fichier « Télécharger ma partie » : l'export qui rejoue toute la partie (C-09 §5), sans la modifier (SP-05). */

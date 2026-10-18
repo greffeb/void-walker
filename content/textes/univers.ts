@@ -57,6 +57,20 @@ export const UNIVERS = {
       'Le levier descend ; la réserve de la capsule répond. Un choc, puis plus rien ne vous retient à la station.',
     ],
   },
+  // Écran de fin (12 §4.11, D-281, D-283).
+  fin: {
+    titres: {
+      abandon: 'Partie abandonnée.',
+      defaite: 'Vous n’avez pas atteint la capsule.',
+      evacuation: 'La capsule s’est détachée.',
+    },
+    reveil: 'Vous vous êtes réveillé dans {le:piece}.',
+    sante: {
+      indemne: 'Vous partez indemne.',
+      blesse: 'Vous partez blessé.',
+      critique: 'Vous partez grièvement blessé, mais vivant.',
+    },
+  },
   observation: {
     evacuee: 'La capsule s’est détachée. Vous avez quitté la station.',
     momentReveil: 'au réveil · {Nom:piece}',
