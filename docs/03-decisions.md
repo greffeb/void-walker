@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-15.
+> **Mise à jour :** 2026-10-18.
 
 ## Règles
 
@@ -23,7 +23,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
 | Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule) |
-| Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options) |
+| Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit) |
@@ -2253,3 +2253,19 @@ Détails de l'agent pour #190, à relire par le porteur ; aucun n'est une décis
 - Limite : une créature enfermée dans la chambre froide, ses deux portes fermées, peut en sortir en forçant une porte, ralentie (D-166) : le moyen d'enfermement de M-10 n'est plus définitif. Toutes les compositions publiées restent prouvées sans dé ni blessure, avec deux comme avec trois réactions.
 - Piste notée par le porteur, sans décision : un mode de difficulté pourra régler ce nombre de réactions (3 pour un mode moyen, 2 pour un mode difficile).
 - Limite connue, à décider à part : pendant qu'elle force, la créature peut perdre la trace du passager (l'écoute de D-276 expire, ses pas ne passent pas la porte fermée).
+
+## Décisions validées — durée des parties (#204)
+
+Questions posées le 2026-10-18, en langage courant, avant de coder ; le porteur a retenu chaque fois l'option recommandée.
+
+### D-280 — Durée d'une partie : le temps d'écran allumé, du réveil à la fin
+
+- Date / statut : 2026-10-18 / **Validé** ; essai sur téléphone, écran verrouillé, à venir (zone orange pour l'appli).
+- Origine : #204, « seul le temps d'écran allumé compte » ; réponses du porteur : « Du réveil à la fin », « Repart de zéro », « À côté de la partie », « Dans le rapport seulement ».
+- Décision :
+  - **Début et fin.** Le temps court dès l'écran de réveil d'une partie neuve, jusqu'à l'action qui la termine (évacuation ou mort) ou jusqu'à l'abandon. Récit, carte, IA Station et options ouvertes en cours de partie comptent ; l'accueil et l'écran de fin, non. Écran éteint, onglet en arrière-plan ou appli quittée : pause, reprise au retour.
+  - **REJOUER CETTE STATION** est une nouvelle partie : sa durée repart de zéro, comme NOUVELLE PARTIE.
+  - **Rangement.** Sur l'appareil, à part de la sauvegarde, comme les réglages : ni la sauvegarde ni le fichier « Télécharger ma partie » ne changent.
+  - **Affichage.** Dans le rapport seulement : une ligne « Durée, écran allumé » au tableau de chaque rapport qui joint une partie. Rien à l'écran de fin, qui reste sans score (D-086).
+- Précise : D-008 (durée visée), D-242 (grandes stations si la durée le demande), C-10 RP-01 et RP-02.
+- Limite [détail de l'agent] : la durée est gardée dans `localStorage`, une clé par adresse (`void-walker:duree:<adresse>`), avec le monde et la graine de sa partie. Un minuteur la compte et l'écrit toutes les 5 s ; plus de 15 s sans compte est une absence (appareil endormi sans que la page l'ait dit), qui ne compte pas. Une partie déjà commencée sans durée gardée (en cours lors de la mise à jour, ou stockage effacé) n'est pas mesurée : le rapport dit « non mesurée », comme ceux d'un jeu plus ancien. Un écran laissé allumé sans geste compte, sans plafond. La durée part aussi avec un bug quand la partie est jointe ; elle est arrondie à la seconde, n'entre pas dans l'empreinte des doublons et n'est pas signée.

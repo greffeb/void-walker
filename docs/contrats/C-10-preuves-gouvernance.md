@@ -25,6 +25,7 @@ Un niveau n'implique jamais le suivant (D-010). Aucun agent ne coche une partie 
 - Les agents mettent à jour et déploient eux-mêmes le service, en même temps que la fonctionnalité du jeu qui en a besoin (D-125/D-127).
 - **RP-01 — Issue de bug :** version, partie exportée (C-09) jusqu'à l'action signalée, observation publique de cette action, commentaire. De quoi rejouer la situation exactement.
 - **RP-02 — Issue d'envoi de partie :** partie exportée complète, fin obtenue, commentaire, et l'état de la case « je valide ».
+- **Durée (D-280) :** tout rapport qui joint une partie dit sa durée en temps d'écran allumé, ou « non mesurée ».
 - **RP-03 — Anti-abus :** limites de nombre, de délai et de doublons appliquées par le service, en plus du jeu ; un rapport non envoyé est gardé pour un nouvel essai (comme en V1).
 
 ## 4. Validation sur téléphone
