@@ -1,7 +1,21 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, writeFileSync, type RmOptions } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { empreinteCode, fermetureDesImports, ouvrirCache, purgerCache } from './empreinte-code';
+
+// Refus du système, par chemin : sous Windows, un dossier qu'un autre processus est en train de retirer refuse l'accès.
+const refus = vi.hoisted(() => new Map<string, string>());
+vi.mock('node:fs', async (importOriginal) => {
+  const fs = await importOriginal<typeof import('node:fs')>();
+  return {
+    ...fs,
+    rmSync: (chemin: string, options?: RmOptions): void => {
+      const code = refus.get(chemin);
+      if (code !== undefined) throw Object.assign(new Error(`${code}, refusé : ${chemin}`), { code });
+      fs.rmSync(chemin, options);
+    },
+  };
+});
 
 function depot(fichiers: Record<string, string>): string {
   const racine = mkdtempSync(join(tmpdir(), 'empreinte-'));
@@ -49,5 +63,16 @@ describe('empreinte du code qui rend un verdict (#180)', () => {
     expect(ouvrirCache('outil', 'b', racine).lire('cle')).toBeUndefined();
     purgerCache('outil', 'b', racine);
     expect(ouvrirCache('outil', 'a', racine).lire('cle')).toBeUndefined();
+  });
+
+  it('purge : un dossier périmé qu’un processus voisin retire déjà (EPERM sous Windows) lui est laissé ; la courante reste lisible', () => {
+    const racine = mkdtempSync(join(tmpdir(), 'cache-'));
+    for (const empreinte of ['courante', 'chez-le-voisin', 'perimee']) ouvrirCache('outil', empreinte, racine).ecrire('cle', empreinte);
+    refus.set(join(racine, 'outil', 'chez-le-voisin'), 'EPERM');
+    purgerCache('outil', 'courante', racine);
+    expect(readdirSync(join(racine, 'outil')).sort()).toEqual(['chez-le-voisin', 'courante']);
+    expect(ouvrirCache('outil', 'courante', racine).lire('cle')).toBe('courante');
+    refus.set(join(racine, 'outil', 'chez-le-voisin'), 'EIO');
+    expect(() => purgerCache('outil', 'courante', racine)).toThrow('EIO');
   });
 });

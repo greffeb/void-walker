@@ -94,9 +94,19 @@ export function ouvrirCache(outil: string, empreinte: string, racine = racineDuC
   };
 }
 
-/** Retire les dossiers d'empreintes périmées d'un outil ; garde celle donnée. */
+/**
+ * Retire les dossiers d'empreintes périmées d'un outil ; garde celle donnée. Les sous-processus d'un lot purgent en même
+ * temps : sous Windows, un dossier qu'un voisin retire déjà refuse l'accès (EPERM, EBUSY, ENOTEMPTY) ; il est laissé au voisin.
+ */
 export function purgerCache(outil: string, garder: string, racine = racineDuCache()): void {
   const dossier = join(racine, outil);
   if (!existsSync(dossier)) return;
-  for (const entree of readdirSync(dossier)) if (entree !== garder) rmSync(join(dossier, entree), { recursive: true, force: true });
+  for (const entree of readdirSync(dossier)) {
+    if (entree === garder) continue;
+    try {
+      rmSync(join(dossier, entree), { recursive: true, force: true });
+    } catch (erreur) {
+      if (!['EPERM', 'EBUSY', 'ENOTEMPTY'].includes((erreur as NodeJS.ErrnoException).code ?? '')) throw erreur;
+    }
+  }
 }
