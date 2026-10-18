@@ -1,0 +1,187 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fins Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Comparateur #208 : écrans de fin de défaite et d'évacuation (12 §4.11). 390 px, Phosphore. Textes d'exemple, non validés. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --alerte: #ff5a4a;
+  --blanc: #eef6f8;
+  --blanc-texte: #dce8ec;
+  --blanc-secondaire: #8c9ca2;
+  --blanc-surface: #0a0e0f;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.onglets.deux { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; height: 844px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.tel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px); }
+.entete { flex: none; height: 56px; display: flex; align-items: flex-end; padding: 0 16px 8px; box-sizing: border-box; border-bottom: 1px solid var(--separateur); }
+.entete p { margin: 0; font-size: 13px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; }
+.recit { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 12px 16px; font-size: 17px; line-height: 1.6; }
+.recit h1 { margin: 0 0 16px; font-size: 24px; font-weight: 600; line-height: 1.3; color: var(--accent); }
+.recit p { margin: 0 0 12px; }
+.recit .cause { color: var(--accent); }
+.recit .curseur { color: var(--accent); }
+.ia { margin: 4px 0 12px; padding: 8px 12px; background: var(--blanc-surface); border: 1px solid var(--blanc); }
+.ia .lib { margin: 0 0 4px; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--blanc-secondaire); line-height: 1.4; }
+.ia .cit { margin: 0; font-style: italic; color: var(--blanc-texte); }
+.bilan { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--separateur); }
+.bilan p { font-size: 15px; line-height: 1.5; margin: 0 0 10px; }
+.bilan .lib { text-transform: uppercase; letter-spacing: .04em; color: var(--secondaire); }
+.actions { flex: none; display: grid; gap: 10px; padding: 8px 16px 16px; }
+.actions span { display: flex; align-items: center; justify-content: center; min-height: 46px; font-size: 15px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--texte); }
+.actions .principal { background: var(--texte); color: var(--fond); min-height: 50px; }
+.actions .discrets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.actions .discret { border-color: var(--bordure); font-weight: 400; font-size: 13px; min-height: 44px; }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Issue #208. Écran de fin de la <b>défaite</b> et de l'<b>évacuation</b>, sur le modèle de l'écran d'abandon. Textes d'exemple, à écrire à la main ensuite. <b>Choix du porteur : B, sans la liste des pièces visitées (D-281, D-284).</b></p>
+
+  <p class="etiquette">Fin</p>
+  <div class="onglets" role="tablist" id="fins">
+    <button class="onglet" role="tab" data-f="griffes" aria-selected="true">Créature</button>
+    <button class="onglet" role="tab" data-f="feu" aria-selected="false">Feu</button>
+    <button class="onglet" role="tab" data-f="froid" aria-selected="false">Froid</button>
+    <button class="onglet" role="tab" data-f="vide" aria-selected="false">Vide</button>
+    <button class="onglet" role="tab" data-f="reserve" aria-selected="false">Départ · réserve</button>
+    <button class="onglet" role="tab" data-f="bloc" aria-selected="false">Départ · bloc</button>
+  </div>
+
+  <p class="etiquette">Récit</p>
+  <div class="onglets deux" role="tablist" id="recits">
+    <button class="onglet" role="tab" data-r="A" aria-selected="true">A · texte fixe</button>
+    <button class="onglet" role="tab" data-r="B" aria-selected="false">B · récit de la partie</button>
+  </div>
+
+  <div class="tel" id="tel">
+    <header class="entete"><p>&gt; Fin de la partie_</p></header>
+    <section class="recit" id="recit"></section>
+    <div class="actions">
+      <span class="principal">Rejouer cette station</span>
+      <span>Nouvelle partie</span>
+      <div class="discrets"><span class="discret">Envoyer ma partie</span><span class="discret">Menu principal</span></div>
+    </div>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const DEFAITE = 'Vous n’avez pas atteint la capsule.';
+const DEPART = 'La capsule s’est détachée.';
+const IA = '<div class="ia"><p class="lib">[ IA STATION ]</p><p class="cit">« Écoutille fermée, alimentation confirmée. Départ engagé ; bon voyage. »<span class="curseur">▮</span></p></div>';
+const FINIE = '<p>Cette partie est terminée. Elle ne peut pas être reprise.</p>';
+const visitees = (liste) => `<p><span class="lib">Pièces visitées :</span> ${liste}</p>`;
+
+// Une fin : titre, puis le récit A (texte fixe, cause nommée) et B (récit composé des moments de la partie).
+const FINS = {
+  griffes: {
+    titre: DEFAITE,
+    A: ['Les griffes vous atteignent une fois de trop. Vos jambes cèdent. Le sol froid vient à votre rencontre, puis plus rien.', '<span class="cause">Vous êtes mort dans la soute, sous les griffes de la créature.</span>'],
+    B: [
+      'Vous vous êtes réveillé dans le vestibule. Vous avez rejoint le couloir commun, puis la salle des machines.',
+      'Dans la soute, la créature vous a vu. Ses griffes vous ont blessé une première fois.',
+      '<span class="cause">Vous êtes mort dans la soute, sous ses griffes.</span>',
+    ],
+    pieces: 'Vestibule, Couloir commun, Salle des machines, Soute',
+  },
+  feu: {
+    titre: DEFAITE,
+    A: ['Les flammes se referment sur vous. Puis plus rien.', '<span class="cause">Vous êtes mort dans le tunnel technique, pris par le feu.</span>'],
+    B: [
+      'Vous vous êtes réveillé dans le vestibule. Vous avez trouvé le poste incendie, sans y prendre l’extincteur.',
+      'Le tunnel technique brûlait. Vous y êtes entré ; la chaleur vous a blessé.',
+      '<span class="cause">Vous êtes mort dans le tunnel technique, pris par le feu.</span>',
+    ],
+    pieces: 'Vestibule, Poste incendie, Tunnel technique',
+  },
+  froid: {
+    titre: DEFAITE,
+    A: ['Le froid vous gagne tout entier. Vous glissez contre la paroi givrée. Puis plus rien.', '<span class="cause">Vous êtes mort dans la chambre froide, gagné par le froid.</span>'],
+    B: [
+      'Vous vous êtes réveillé dans le vestibule. Par l’antichambre, vous avez gagné la chambre froide.',
+      'Vous y êtes resté trop longtemps : le froid vous a blessé, puis engourdi.',
+      '<span class="cause">Vous êtes mort dans la chambre froide, gagné par le froid.</span>',
+    ],
+    pieces: 'Vestibule, Antichambre, Chambre froide',
+  },
+  vide: {
+    titre: DEFAITE,
+    A: ['L’air vous quitte d’un coup. Vos poumons brûlent, votre vue se brouille. Puis plus rien.', '<span class="cause">Vous êtes mort dans la salle panoramique, sans air, exposé au vide.</span>'],
+    B: [
+      'Vous vous êtes réveillé dans les cabines du personnel. Vous avez trouvé une combinaison étanche, sans l’enfiler.',
+      'Dans la salle panoramique, vous avez percé la baie. L’air a filé par la brèche.',
+      '<span class="cause">Vous êtes mort dans la salle panoramique, sans air, exposé au vide.</span>',
+    ],
+    pieces: 'Cabines du personnel, Local de sécurité, Salle panoramique',
+  },
+  reserve: {
+    titre: DEPART,
+    A: ['La capsule part sur sa propre réserve. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.'],
+    B: [
+      'Vous vous êtes réveillé dans le vestibule. Vous avez traversé le couloir commun et la salle des machines sans croiser personne.',
+      'La capsule part sur sa propre réserve. Elle se détache du quai dans un choc sourd. Derrière le hublot, la station s’éloigne.',
+      'Vous partez indemne. Vous n’avez jamais vu ce qui bougeait dans la soute.',
+    ],
+    pieces: 'Vestibule, Couloir commun, Salle des machines, Salle d’embarquement, Cabine de la capsule',
+    ia: true,
+  },
+  bloc: {
+    titre: DEPART,
+    A: ['Le bloc tient. La capsule se détache du quai.'],
+    B: [
+      'Vous vous êtes réveillé dans le vestibule. Vous avez pris le bloc d’énergie dans la réserve et l’avez porté jusqu’à la capsule.',
+      'Le bloc tient. La capsule se détache du quai.',
+      'Vous partez blessé. Derrière vous, la créature reste enfermée dans la réserve.',
+    ],
+    pieces: 'Vestibule, Couloir commun, Local énergie, Réserve, Salle d’embarquement, Cabine de la capsule',
+    ia: true,
+  },
+};
+const VERDICTS = {
+  A: '<b>A</b> : le dernier texte de la partie, déjà écrit, puis, pour une défaite, une phrase qui nomme la cause et la pièce (créature, feu, froid, vide). Évacuation : le texte de départ, selon ce qui alimente la capsule, puis IA Station. Aucun changement du moteur. <b>Recommandé pour commencer.</b>',
+  B: '<b>B</b> : la partie racontée en trois temps : le chemin, le moment marquant, la fin. Possible sans toucher au moteur, en relisant la partie enregistrée ; mais chaque moment demande ses phrases écrites à la main. Livraison suivante.',
+};
+let fin = 'griffes', recit = 'A';
+
+function rendre() {
+  const f = FINS[fin];
+  const paragraphes = f[recit].map((texte, i, tous) => `<p>${texte}${!f.ia && i === tous.length - 1 ? '<span class="curseur">▮</span>' : ''}</p>`).join('');
+  document.getElementById('recit').innerHTML =
+    `<h1>${f.titre}</h1>${paragraphes}${f.ia ? IA : ''}<div class="bilan">${visitees(f.pieces)}${f.ia ? '' : FINIE}</div>`;
+  document.getElementById('verdict').innerHTML = VERDICTS[recit];
+  for (const b of document.querySelectorAll('[data-f]')) b.setAttribute('aria-selected', b.dataset.f === fin);
+  for (const b of document.querySelectorAll('[data-r]')) b.setAttribute('aria-selected', b.dataset.r === recit);
+}
+document.getElementById('fins').addEventListener('click', (e) => { const v = e.target.closest('[data-f]')?.dataset.f; if (v) { fin = v; rendre(); } });
+document.getElementById('recits').addEventListener('click', (e) => { const v = e.target.closest('[data-r]')?.dataset.r; if (v) { recit = v; rendre(); } });
+const depart = new URLSearchParams(location.search);
+if (FINS[depart.get('fin')]) fin = depart.get('fin');
+if (VERDICTS[depart.get('recit')]) recit = depart.get('recit');
+rendre();
+</script>
