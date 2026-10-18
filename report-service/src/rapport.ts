@@ -23,6 +23,8 @@ export interface Demande {
    * (AP-07) ; le service ne décide jamais d'une validation.
    */
   readonly validation: Readonly<Record<string, unknown>> | null;
+  /** Durée de la partie en secondes d'écran allumé (#204) ; `null` si elle n'est pas mesurée, ou depuis un jeu d'avant #204. */
+  readonly duree: number | null;
 }
 
 /** Ce que le service lit de l'export ; le reste est recopié sans être interprété. */
@@ -51,6 +53,8 @@ const EMPREINTE = /^[0-9A-Za-z_-]{1,128}$/;
 const SIGNATURE = /^[A-Za-z0-9_-]{40,200}$/;
 const COORDONNEE = /^[A-Za-z0-9_-]{43}$/;
 const VALIDATION_MAX = 4000;
+/** Plus de onze jours d'écran allumé : au-delà, ce n'est pas une partie. */
+const DUREE_MAX = 1_000_000;
 
 /** Forme du bloc signé, sans le vérifier : la signature, la clé publique, et une attestation de taille bornée. */
 function lireValidation(valeur: unknown): Readonly<Record<string, unknown>> | string {
@@ -83,7 +87,7 @@ function lirePartie(valeur: unknown): PartieJointe | string {
 export function lireDemande(donnees: unknown): Lecture {
   const refus = (raison: string): Lecture => ({ ok: false, raison });
   if (!objet(donnees)) return refus('demande illisible');
-  const { type, version, build = '', commit = '', pr = null, commentaire = '', valide = false, partie = null, ecran = [], validation = null } = donnees;
+  const { type, version, build = '', commit = '', pr = null, commentaire = '', valide = false, partie = null, ecran = [], validation = null, duree = null } = donnees;
   if (type !== 'bug' && type !== 'partie') return refus('type inconnu');
   if (typeof version !== 'string' || !VERSION.test(version)) return refus('version illisible');
   if (typeof build !== 'string' || !BUILD.test(build)) return refus('numéro de construction illisible');
@@ -101,6 +105,7 @@ export function lireDemande(donnees: unknown): Lecture {
     jointe = lue;
   }
   if (type === 'partie' && jointe === null) return refus('partie absente');
+  if (duree !== null && (typeof duree !== 'number' || !Number.isInteger(duree) || duree < 0 || duree > DUREE_MAX)) return refus('durée illisible');
   let signee: Readonly<Record<string, unknown>> | null = null;
   if (validation !== null) {
     if (!valide || pr === null) return refus('validation seulement avec « je valide », depuis une version de test');
@@ -110,7 +115,7 @@ export function lireDemande(donnees: unknown): Lecture {
   }
   return {
     ok: true,
-    demande: { type, version, build, commit, pr, commentaire: commentaire.trim(), valide, partie: jointe, ecran, validation: signee },
+    demande: { type, version, build, commit, pr, commentaire: commentaire.trim(), valide, partie: jointe, ecran, validation: signee, duree },
   };
 }
 
@@ -176,6 +181,14 @@ function versionAffichee(demande: Demande): string {
   return `${demande.version}${demande.build === '' ? '' : ` (${demande.build})`}${demande.commit === '' ? '' : ` · ${demande.commit.slice(0, 7)}`}`;
 }
 
+/** « 12 min 34 s (754 s) » : lisible, puis le compte exact pour les outils de mesure. */
+function dureeAffichee(secondes: number): string {
+  const deux = (nombre: number): string => String(nombre).padStart(2, '0');
+  const [heures, minutes, reste] = [Math.floor(secondes / 3600), Math.floor((secondes % 3600) / 60), secondes % 60];
+  if (heures > 0) return `${heures} h ${deux(minutes)} min ${deux(reste)} s (${secondes} s)`;
+  return minutes > 0 ? `${minutes} min ${deux(reste)} s (${secondes} s)` : `${reste} s`;
+}
+
 /**
  * Issue (version publique) ou commentaire de PR (version de test, D-132) : RP-01 pour un bug, RP-02 pour un envoi de
  * partie. `prFermee` : la PR d'une version de test n'est plus ouverte, le rapport devient une issue qui la cite.
@@ -191,6 +204,7 @@ export async function composer(demande: Demande, options: { readonly enCommentai
   lignes.push('| | |', '| --- | --- |', `| Version | ${versionAffichee(demande)} |`);
   if (partie !== null) {
     lignes.push(`| Monde | ${partie.monde} |`, `| Actions jouées | ${partie.actions} |`, `| Graine | ${partie.graine} |`);
+    lignes.push(`| Durée, écran allumé | ${demande.duree === null ? 'non mesurée' : dureeAffichee(demande.duree)} |`);
   }
   if (demande.type === 'partie') lignes.push(`| Case « je valide » | ${caseValide(demande)} |`);
   lignes.push('', TITRE_COMMENTAIRE, '', demande.commentaire === '' ? '_Aucun._' : blocCode(demande.commentaire, 'text'));

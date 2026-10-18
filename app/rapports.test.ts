@@ -1,6 +1,6 @@
 import { CLE_FILE, creerRapports, FILE_MAX, PATIENCE_MS, type DependancesRapports, type Rapport } from './rapports';
 
-const RAPPORT: Rapport = { type: 'bug', version: '0.1.0', build: '', commit: '', pr: null, commentaire: 'a', valide: false, partie: null, ecran: [], validation: null };
+const RAPPORT: Rapport = { type: 'bug', version: '0.1.0', build: '', commit: '', pr: null, commentaire: 'a', valide: false, partie: null, ecran: [], validation: null, duree: null };
 
 /** Service factice : répond le statut voulu, ou « hors ligne » ; l'appareil garde ce qu'on lui confie. */
 function banc(options: { ecritureRefusee?: boolean } = {}) {

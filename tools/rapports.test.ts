@@ -153,6 +153,13 @@ describe('rapports de bout en bout (C-10)', () => {
     expect(rejouerExport(json, '0.1.0').identique).toBe(true);
   });
 
+  it('#204 : la partie envoyée dit sa durée d’écran allumé', async () => {
+    const jeu = await jouer('prendre');
+    const { rapports, publies } = service();
+    expect(await rapports.envoyer(composerRapport(env.monde, PUBLIQUE, 'partie', jeu, '', false, 754))).toBe('envoye');
+    expect(publies[0]?.corps).toContain('| Durée, écran allumé | 12 min 34 s (754 s) |');
+  });
+
   it('PR-06 : le même rapport envoyé en rafale depuis plusieurs appareils n’est publié qu’une fois', async () => {
     const jeu = await jouer('prendre');
     const { publies, appareilJeu } = service();

@@ -97,4 +97,27 @@ describe('rapports : lecture et mise en forme (RP-01, RP-02)', () => {
     expect(await empreinteRapport(demande({ commentaire: 'a' }))).toBe(await empreinteRapport(demande({ commentaire: 'a' })));
     expect(await empreinteRapport(demande({ commentaire: 'a' }))).not.toBe(await empreinteRapport(demande({ commentaire: 'b' })));
   });
+
+  describe('#204 : durée de la partie, écran allumé', () => {
+    it('lit la durée en secondes ; absente (jeu d’avant #204), elle n’est pas mesurée', () => {
+      expect(demande({ duree: 754 }).duree).toBe(754);
+      expect(demande().duree).toBeNull();
+    });
+
+    it('refuse une durée qui n’est pas un nombre entier de secondes, borné', () => {
+      for (const duree of [-1, 1.5, '754', 1e9]) expect(lireDemande({ type: 'bug', version: '0.1.0', partie: PARTIE, duree })).toEqual({ ok: false, raison: 'durée illisible' });
+    });
+
+    it('l’écrit dans le tableau, lisible puis en secondes, quand une partie est jointe', async () => {
+      expect((await composer(demande({ duree: 754 }))).corps).toContain('| Durée, écran allumé | 12 min 34 s (754 s) |');
+      expect((await composer(demande({ duree: 45 }))).corps).toContain('| Durée, écran allumé | 45 s |');
+      expect((await composer(demande({ duree: 3725 }))).corps).toContain('| Durée, écran allumé | 1 h 02 min 05 s (3725 s) |');
+      expect((await composer(demande())).corps).toContain('| Durée, écran allumé | non mesurée |');
+      expect((await composer(demande({ partie: null }))).corps).not.toContain('Durée');
+    });
+
+    it('un même rapport envoyé un peu plus tard reste un doublon', async () => {
+      expect(await empreinteRapport(demande({ duree: 60 }))).toBe(await empreinteRapport(demande({ duree: 80 })));
+    });
+  });
 });

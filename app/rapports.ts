@@ -25,6 +25,8 @@ export interface Rapport {
   /** « Je valide » signé par le téléphone (C-10 §4) ; 
 ull pour un simple retour. */
   readonly validation: Validation | null;
+  /** Secondes d'écran allumé de la partie jointe (#204) ; `null` si elle n'a pas été mesurée depuis son début. */
+  readonly duree: number | null;
 }
 
 /**
@@ -76,6 +78,7 @@ export function composerRapport(
   jeu: Jeu | null,
   commentaire: string,
   valide: boolean,
+  duree: number | null = null,
 ): Rapport {
   const { version, build, commit, pr } = construction;
   return {
@@ -89,6 +92,7 @@ export function composerRapport(
     partie: jeu === null ? null : exporter(monde, jeu.partie),
     ecran: type === 'bug' && jeu !== null ? [...jeu.recit, ...jeu.assistance] : [],
     validation: null,
+    duree,
   };
 }
 

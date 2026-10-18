@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { App, EcranRefus } from './App';
 import { CATALOGUE } from './catalogue';
+import { BATTEMENT_MS, CLE_DUREE, creerChronometre } from './duree';
 import { cleStockage, demandeDe, preparerLancement, type Environnement } from './jeu';
 import { CLE_INSTALLATION, piloterInstallation } from './installation';
 import { piloterMiseAJour } from './miseAJour';
@@ -54,11 +55,35 @@ const son = creerMoteur(
   reglages,
 );
 sessionAmbiante(navigator);
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) son.cacher();
-  else son.montrer();
+
+// Durée de la partie (#204) : seul le temps d'écran allumé compte. Le battement la garde et repère un appareil endormi
+// sans que la page l'ait dit ; chaque adresse a la sienne, comme sa partie.
+const chronometre = creerChronometre({
+  cle: cleStockage(`${CLE_DUREE}:${import.meta.env.BASE_URL}`, demande),
+  lire: (cle) => window.localStorage.getItem(cle),
+  ecrire: (cle, valeur) => window.localStorage.setItem(cle, valeur),
+  maintenant: () => performance.now(),
+  visible: !document.hidden,
 });
-window.addEventListener('pagehide', () => son.cacher());
+window.setInterval(() => chronometre.battre(), BATTEMENT_MS);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    son.cacher();
+    chronometre.cacher();
+  } else {
+    son.montrer();
+    chronometre.montrer();
+  }
+});
+window.addEventListener('pagehide', () => {
+  son.cacher();
+  chronometre.cacher();
+});
+// Retour d'une page gardée en mémoire par le navigateur après `pagehide`.
+window.addEventListener('pageshow', () => {
+  if (!document.hidden) chronometre.montrer();
+});
 
 // Mise à jour de l'appli installée (D-227) : cherchée au lancement, au retour dans l'appli et toutes les demi-heures.
 const miseAJour = piloterMiseAJour({
@@ -130,6 +155,7 @@ createRoot(racine).render(
         rapports={rapports}
         signataire={signataire}
         verification={verification}
+        chronometre={chronometre}
       />
     )}
   </StrictMode>,

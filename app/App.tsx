@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { observer, type Evenement, type OptionMenu } from '../engine';
+import { observer, type Evenement, type OptionMenu, type Partie } from '../engine';
 import type { EntreeMonde } from '../content';
+import type { Chronometre } from './duree';
 import { EcranJeu, EcranReveil } from './EcranJeu';
 import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
 import {
@@ -83,6 +84,7 @@ export function App({
   rapports,
   signataire,
   verification,
+  chronometre,
 }: {
   readonly env: Environnement;
   /** Monde de chaque NOUVELLE PARTIE (#152) ; absent, toujours celui de `env`. REJOUER CETTE STATION garde le monde en cours. */
@@ -107,6 +109,8 @@ export function App({
   readonly signataire?: Signataire;
   /** État de la vérification automatique de la version de test (#180). */
   readonly verification?: () => Promise<EtatVerification>;
+  /** Durée de la partie, écran allumé (#204) ; absent, les rapports la disent non mesurée. */
+  readonly chronometre?: Chronometre;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   // Le monde change à chaque NOUVELLE PARTIE ; le stockage, la version et la graine restent ceux du lancement.
@@ -265,7 +269,8 @@ export function App({
 
   const envoyerRapport = (type: TypeRapport, jeu: Jeu | null, commentaire: string, valide: boolean): Promise<Retour> => {
     if (rapports === undefined) return Promise.resolve('refuse');
-    const rapport = composerRapport(env.monde, { version, build, commit, pr }, type, jeu, commentaire, valide);
+    const duree = jeu === null ? null : (chronometre?.secondes(jeu.partie) ?? null);
+    const rapport = composerRapport(env.monde, { version, build, commit, pr }, type, jeu, commentaire, valide, duree);
     return signerRapport(rapport, signataire).then((signe) => rapports.envoyer(signe));
   };
 
@@ -274,6 +279,19 @@ export function App({
     setEcran({ type: 'options', depuis: 'jeu', jeu, lus });
   };
   const enCours = ecran.type === 'options' && ecran.jeu !== null && !observer(env.monde, ecran.jeu.partie.etat).terminee ? ecran.jeu : null;
+
+  // Le temps court du réveil à l'action qui finit la partie, options ouvertes en cours de partie comprises (D-280).
+  const partieQuiCourt: Partie | null =
+    ecran.type === 'reveil'
+      ? ecran.jeu.partie
+      : ecran.type === 'jeu' && !observer(env.monde, ecran.jeu.partie.etat).terminee
+        ? ecran.jeu.partie
+        : ecran.type === 'options' && ecran.depuis === 'jeu'
+          ? (enCours?.partie ?? null)
+          : null;
+  useEffect(() => {
+    chronometre?.suivre(partieQuiCourt);
+  }, [chronometre, partieQuiCourt]);
 
   return (
     <SonContexte.Provider value={son}>
