@@ -8,4 +8,5 @@ captures/
 .void-walker/
 .worktrees/
 .claude/launch.json
+.claude/worktrees/
 .cache/
