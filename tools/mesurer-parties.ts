@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { lireExport, type ExportPartie } from '../engine';
-import { extrairePartie, MARQUEUR } from '../report-service/src/rapport';
+import { extraireDuree, extrairePartie, MARQUEUR } from '../report-service/src/rapport';
 import { CATALOGUE } from './catalogue';
 import { rejouerPourMesure, type IndicateursPartie, type IssueMesuree } from './indicateurs-partie';
 import { isMainModule } from './repo-files';
@@ -91,6 +91,8 @@ export interface PartieMesuree {
   readonly monde: string;
   /** Station tirée, pas un monde de référence ni de test. */
   readonly tiree: boolean;
+  /** Secondes d'écran allumé, lues dans le tableau du rapport (#204) ; `null` si non mesurée ou pour un export seul. */
+  readonly duree: number | null;
   readonly jouee: PartieJouee;
   /** Rejouée à l'identique par le moteur actuel ; sinon, pourquoi pas. */
   readonly rejeu: { readonly identique: true } | { readonly identique: false; readonly motif: string };
@@ -140,7 +142,7 @@ async function exportDe(rapport: Rapport): Promise<ExportPartie | null> {
 export async function mesurerRapport(rapport: Rapport, seuil: number = SEUIL_SANS_ESQUIVE): Promise<PartieMesuree | null> {
   const fichier = await exportDe(rapport);
   if (fichier === null) return null;
-  const base = { adresse: rapport.adresse, monde: fichier.monde, tiree: !Object.hasOwn(CATALOGUE.mondes, fichier.monde), jouee: partieJouee(fichier) };
+  const base = { adresse: rapport.adresse, monde: fichier.monde, tiree: !Object.hasOwn(CATALOGUE.mondes, fichier.monde), duree: extraireDuree(rapport.corps), jouee: partieJouee(fichier) };
   const approche = contrefactuelApproche(fichier, seuil);
   const entree = CATALOGUE.resoudre(fichier.monde);
   if ('refus' in entree) return { ...base, rejeu: { identique: false, motif: `monde introuvable aujourd'hui (${entree.refus})` }, indicateurs: null, contrefactuel: approche };
@@ -159,6 +161,7 @@ const ISSUES: Readonly<Record<IssueMesuree, string>> = { evacuation: 'évacuatio
 const SANTES: Readonly<Record<IndicateursPartie['sante'], string>> = { indemne: 'indemne', blesse: 'blessé', critique: 'critique', vaincu: '—' };
 
 const virgule = (nombre: number, decimales = 1): string => nombre.toFixed(decimales).replace('.', ',');
+const minutes = (secondes: number): string => `${virgule(secondes / 60)} min`;
 
 export function mediane(valeurs: readonly number[]): number {
   if (valeurs.length === 0) return 0;
@@ -203,15 +206,16 @@ export function enMarkdown(parties: readonly PartieMesuree[], seuil: number = SE
     const coups = i === null ? '—' : coupsEnClair(i);
     const contact = i === null ? '—' : String(i.premierContact ?? 'jamais');
     const horsJeu = i === null ? '—' : String(i.horsJeu ?? 'non');
-    return `| ${lien(partie.adresse)} | ${partie.monde} | ${jouee.actions} | ${ISSUES[jouee.issue]} | ${SANTES[jouee.sante]} | ${jouee.des} | ${jouee.touches} | ${coups} | ${contact} | ${horsJeu} | ${rejeu} | ${contrefactuelEnClair(partie)} |`;
+    return `| ${lien(partie.adresse)} | ${partie.monde} | ${jouee.actions} | ${partie.duree === null ? '—' : minutes(partie.duree)} | ${ISSUES[jouee.issue]} | ${SANTES[jouee.sante]} | ${jouee.des} | ${jouee.touches} | ${coups} | ${contact} | ${horsJeu} | ${rejeu} | ${contrefactuelEnClair(partie)} |`;
   });
   const part = (nombre: number): string => `${nombre} sur ${finies.length}`;
+  const durees = finies.flatMap((partie) => (partie.duree === null ? [] : [partie.duree]));
   const moyenne = (valeurs: readonly number[]): string => virgule(valeurs.length === 0 ? 0 : valeurs.reduce((somme, valeur) => somme + valeur, 0) / valeurs.length);
   return [
     `**Parties humaines** : ${triees.length} rapports avec une partie, dont ${finies.length} finies sur une station tirée (la synthèse ne compte qu'elles).`,
     '',
-    `| Partie | Monde | Actions | Issue | Santé finale | Dés lancés | Jets qui ont touché | Coups reçus, par cause | Premier contact (action) | Créature hors jeu (action) | Rejeu par le moteur actuel | ${enTete} |`,
-    '| --- | --- | ---: | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- |',
+    `| Partie | Monde | Actions | Durée | Issue | Santé finale | Dés lancés | Jets qui ont touché | Coups reçus, par cause | Premier contact (action) | Créature hors jeu (action) | Rejeu par le moteur actuel | ${enTete} |`,
+    '| --- | --- | ---: | ---: | --- | --- | ---: | ---: | --- | ---: | ---: | --- | --- |',
     ...lignes,
     '',
     '| Synthèse : parties finies sur une station tirée | Résultat |',
@@ -219,6 +223,7 @@ export function enMarkdown(parties: readonly PartieMesuree[], seuil: number = SE
     `| Évacuations | ${part(finies.filter((partie) => partie.jouee.issue === 'evacuation').length)} |`,
     `| Défaites | ${part(finies.filter((partie) => partie.jouee.issue === 'defaite').length)} |`,
     `| Actions, médiane | ${virgule(mediane(finies.map((partie) => partie.jouee.actions)))} |`,
+    `| Durée, médiane | ${durees.length === 0 ? '—' : minutes(mediane(durees))} (${part(durees.length)} mesurées) |`,
     `| Dés lancés par partie, moyenne | ${moyenne(finies.map((partie) => partie.jouee.des))} |`,
     `| Parties sans aucun dé | ${part(finies.filter((partie) => partie.jouee.des === 0).length)} |`,
     `| Évacuées indemnes | ${part(finies.filter((partie) => partie.jouee.issue === 'evacuation' && partie.jouee.sante === 'indemne').length)} |`,
