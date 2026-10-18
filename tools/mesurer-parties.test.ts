@@ -1,5 +1,5 @@
 import { exporter, type ExportPartie } from '../engine';
-import { MARQUEUR } from '../report-service/src/rapport';
+import { composer, lireDemande, MARQUEUR } from '../report-service/src/rapport';
 import { creerBot, jouerAvecBot } from './bots';
 import { CATALOGUE } from './catalogue';
 import { rejouerPourMesure } from './indicateurs-partie';
@@ -88,6 +88,21 @@ describe('mesurer:parties', () => {
     expect(texte).toContain('| Parties sans aucun dé | 0 sur 1 |');
     const changee = partie.contrefactuel.issue === partie.jouee.issue ? 0 : 1;
     expect(texte).toContain(`| Avec le jet qui touche de 1 à 6, à décisions identiques : issue changée | ${changee} sur 1 |`);
+  });
+
+  it('lit la durée du rapport : colonne, puis médiane des seules parties mesurées (#204)', async () => {
+    const lue = lireDemande({ type: 'partie', version: fichier.version, partie: fichier, duree: 754 });
+    if (!lue.ok) throw new Error(lue.raison);
+    const partie = await mesurerRapport({ adresse: 'https://github.com/o/r/issues/161', corps: (await composer(lue.demande)).corps });
+    if (partie === null) throw new Error('Partie absente.');
+    expect(partie.duree).toBe(754);
+    expect((await mesurerRapport({ adresse: 'x', corps: JSON.stringify(fichier) }))?.duree).toBeNull();
+    const finie = { ...partie, jouee: { ...partie.jouee, issue: 'evacuation' as const } };
+    const texte = enMarkdown([finie, { ...finie, duree: 1800 }, { ...finie, duree: 600 }, { ...finie, duree: null }]);
+    expect(texte).toContain(`| [#161](https://github.com/o/r/issues/161) | m07-m03-soute-2718281828 | ${partie.jouee.actions} | 12,6 min | évacuation |`);
+    expect(texte).toContain(`| ${partie.jouee.actions} | — | évacuation |`);
+    expect(texte).toContain('| Durée, médiane | 12,6 min (3 sur 4 mesurées) |');
+    expect(enMarkdown([{ ...finie, duree: null }])).toContain('| Durée, médiane | — (0 sur 1 mesurées) |');
   });
 
   it('médiane', () => {
