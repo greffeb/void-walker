@@ -1,0 +1,221 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menus des options Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Comparateur (#201) : regroupements des options en sous-menus, à 390 px, Phosphore. Une variante par ligne, le sommaire puis chaque sous-menu. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.variante { padding: 16px; display: grid; gap: 10px; width: max-content; }
+.variante > h2 { margin: 0; font-size: 17px; color: var(--accent); letter-spacing: .04em; }
+.variante > p { margin: 0; font-size: 13px; color: var(--secondaire); max-width: 1200px; }
+.rangee { display: flex; gap: 20px; align-items: flex-start; }
+.ecran { display: grid; gap: 6px; }
+.ecran > span { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+
+.tel { width: 390px; height: 800px; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; }
+.entete { min-height: 56px; padding: 8px 16px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.entete p { margin: 2px 0 0; font-size: 12px; color: var(--secondaire); }
+.retour-haut { display: inline-flex; align-items: center; min-height: 44px; margin: -6px 0 -4px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--secondaire); }
+.corps { flex: 1; min-height: 0; overflow: hidden; padding: 4px 16px 12px; display: grid; gap: 14px; align-content: start; }
+.sommaire { gap: 0; }
+.sommaire > .estompe { margin-top: 14px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.ligne { display: grid; align-content: center; gap: 2px; min-height: 46px; padding: 8px 4px; border-top: 1px solid var(--separateur); font-size: 15px; line-height: 1.3; }
+.ligne small, .detail { font-size: 12px; color: var(--secondaire); }
+.sommaire .ligne { min-height: 56px; }
+.sommaire .ligne b { font-weight: 600; }
+.danger { min-height: 50px; padding: 8px 12px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; font-size: 15px; }
+.segments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 13px; text-align: center; text-transform: uppercase; }
+.segments span { border: 1px solid var(--bordure); padding: 12px 2px; }
+.segments .actif { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.apercu { margin: 10px 0 0; padding: 8px 12px; border: 1px dashed var(--separateur); font-size: 17px; line-height: 1.6; }
+.rail { border-top: 1px solid var(--separateur); padding: 8px 4px 0; }
+.rail-haut { display: flex; justify-content: space-between; gap: 12px; line-height: 1.3; }
+.rail-haut .detail { display: block; }
+.rail-haut b { color: var(--accent); }
+.piste { height: 44px; display: flex; align-items: center; position: relative; }
+.piste::before { content: ''; height: 6px; width: 100%; background: linear-gradient(to right, var(--accent) var(--p), var(--separateur) var(--p)); }
+.piste::after { content: ''; position: absolute; left: calc(var(--p) - 11px); width: 22px; height: 22px; background: var(--texte); outline: 1px solid var(--accent); }
+.bascule { display: flex; justify-content: space-between; border-top: 1px solid var(--separateur); padding: 12px 4px; }
+.bascule b { color: var(--accent); }
+.pied { margin: 6px 0 0; font-size: 12px; color: var(--secondaire); }
+.pied.verif { margin-top: 0; }
+.sommaire > .danger { margin-top: 14px; }
+.sommaire > .pied:first-of-type { margin-top: 20px; }
+.estompe { opacity: .35; }
+.note { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: -8px 0 0; }
+.bas { display: grid; gap: 10px; padding: 8px 16px 16px; border-top: 1px solid var(--separateur); }
+.bas span { min-height: 50px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.bas .s { border: 1px solid var(--texte); }
+.bas .p { background: var(--texte); color: var(--fond); }
+
+/* Sous-menu en bulle (retour du porteur à la question 3) : la bulle ambre des menus, sur le sommaire voilé. */
+.tel.avec-bulle { position: relative; }
+.voile { position: absolute; inset: 0; background: rgba(10, 9, 7, .35); }
+.tel.avec-bulle .bas { position: relative; z-index: 2; background: var(--fond); }
+.bulle { position: absolute; left: 16px; right: 16px; z-index: 3; display: flex; flex-direction: column; border: 1px solid var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--fond); }
+.bulle-entete { display: flex; align-items: center; border-bottom: 1px solid var(--separateur); }
+.bulle-entete h2 { flex: 1; margin: 0; padding: 11px 12px; font-size: 15px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+.bulle-entete span { width: 44px; height: 44px; display: grid; place-items: center; font-size: 20px; color: var(--accent); }
+.bulle-corps { flex: 1; min-height: 0; overflow: hidden; padding: 8px 12px 12px; display: grid; gap: 14px; align-content: start; position: relative; }
+.bulle-corps.defile::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 36px; background: linear-gradient(transparent, var(--surface)); }
+.fleche { position: absolute; width: 12px; height: 12px; background: var(--surface); transform: rotate(45deg); border-left: 1px solid var(--accent); border-top: 1px solid var(--accent); top: -7px; left: calc(50% - 6px); }
+.bulle .segments span { padding: 10px 2px; }
+</style>
+
+<div id="maquettes"></div>
+
+<script>
+(() => {
+  const e = (texte) => texte.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const entree = (libelle, detail) => `<div class="ligne"><span><span aria-hidden="true">▸ </span><b>${e(libelle)}</b></span><small>${e(detail)}</small></div>`;
+  const ligne = (libelle, detail) => `<div class="ligne"><span>▸ ${e(libelle)}</span><small>${e(detail)}</small></div>`;
+  const section = (titre, contenu, classe = '') => `<section class="${classe}"><h2 class="titre-section">${e(titre)}</h2>${contenu}</section>`;
+  const rail = (libelle, detail, valeur) =>
+    `<div class="rail"><div class="rail-haut"><span>${e(libelle)}${detail ? `<span class="detail">${e(detail)}</span>` : ''}</span><b>${valeur}</b></div><div class="piste" style="--p:${valeur}%"></div></div>`;
+  const bascule = (libelle) => `<div class="bascule"><span>${e(libelle)}</span><b>[OUI]</b></div>`;
+  const abandon = '<div class="danger">⊘ Abandonner la partie en cours</div>';
+  const pied = '<p class="pied">V0.1.0 (412) · 1a48c7e · test PR #201</p><p class="pied verif">Vérification automatique : verte</p>';
+  const plus_tard = (contenu) => `<div class="estompe">${contenu}</div>`;
+
+  const taille = section('Taille du texte', '<div class="segments"><span class="actif">Standard</span><span>Grande</span><span>Très grande</span></div><p class="apercu">Un voyant clignote au-dessus de la porte. Rien d’autre ne bouge.</p>');
+  const son = section('Son', rail('Général', '', 80) + rail('Effets sonores', 'bips et clics du terminal', 80) + rail('Ambiance', 'bruit brun et carlingue', 60));
+  const affichage = section('Affichage', bascule('Lignes de balayage') + bascule('Effet machine à écrire'));
+  const telecharger = ligne('Télécharger ma partie', 'fichier enregistré sur le téléphone');
+  const bug = ligne('Signaler un bug', 'la partie en cours est jointe');
+  const envoyer = ligne('Envoyer ma partie', 'partie et commentaire');
+  const validation = section('Validation', '<div class="ligne"><span>Clé de ce téléphone</span><small>7F3A·91C2·0B4E·D815 — version de test seulement</small></div>');
+  const installation = section('Installation', ligne('Installer le jeu', 's’ouvre en plein écran, sans la barre du navigateur'));
+  const miseAJour = section('Mise à jour', ligne('Chercher une mise à jour', 'le jeu redémarre, la partie est gardée'));
+
+  const tel = (nom, { titre, sousMenu = false, corps, sommaire = false, partie = true, retourHaut = sousMenu ? 'estompe' : '', bas = null }) => `
+    <div class="ecran"><span>${e(nom)}</span><div class="tel">
+      <header class="entete">${retourHaut === '' ? '' : `<span class="retour-haut ${retourHaut}">‹ Options</span>`}<h1>${e(titre)}</h1>${partie ? '<p>le jeu est en pause</p>' : ''}</header>
+      <div class="corps${sommaire ? ' sommaire' : ''}">${corps}</div>
+      ${bas ?? `<div class="bas${sousMenu ? ' estompe' : ''}">${sousMenu && partie ? '' : '<span class="s">Menu principal</span>'}${partie ? '<span class="p">Reprendre la partie</span>' : ''}</div>`}
+    </div></div>`;
+  const telBulle = (nom, { titreBulle, corpsBulle, haut, bas, fleche = false, defile = false, sous = ENTREES }) => `
+    <div class="ecran"><span>${e(nom)}</span><div class="tel avec-bulle">
+      <header class="entete"><h1>Options</h1><p>le jeu est en pause</p></header>
+      <div class="corps sommaire">${sous + abandon}</div>
+      <div class="voile"></div>
+      <section class="bulle" style="top:${haut}px;${bas === null ? '' : `bottom:${bas}px`}">${fleche ? '<i class="fleche"></i>' : ''}
+        <div class="bulle-entete"><h2>${e(titreBulle)}</h2><span>✕</span></div>
+        <div class="bulle-corps${defile ? ' defile' : ''}">${corpsBulle}</div>
+      </section>
+      <div class="bas"><span class="s">Menu principal</span><span class="p">Reprendre la partie</span></div>
+    </div></div>`;
+  const ENTREES = entree('Son et texte', 'taille du texte, son, affichage') + entree('Rapports', 'signaler un bug, envoyer ou télécharger ma partie') + entree('Application', 'installation, mise à jour');
+  const bugSansPartie = ligne('Signaler un bug', 'aucune partie à joindre');
+
+  const VARIANTES = [
+    {
+      id: 'a',
+      titre: 'A · Deux sous-menus, ceux de l’issue',
+      texte: 'Son et texte, Rapports. Tout le reste reste au premier niveau (en grisé : sa place se décide à la question suivante).',
+      ecrans: [
+        ['Options', { titre: 'Options', sommaire: true, corps: entree('Son et texte', 'taille du texte, son, affichage') + entree('Rapports', 'signaler un bug, envoyer ma partie') + plus_tard(section('Partie', telecharger + abandon) + installation + miseAJour + pied) }],
+        ['▸ Son et texte', { titre: 'Son et texte', sousMenu: true, corps: taille + son + affichage }],
+        ['▸ Rapports', { titre: 'Rapports', sousMenu: true, corps: section('Rapports', bug + envoyer) + validation }],
+      ],
+    },
+    {
+      id: 'b',
+      titre: 'B · Trois sous-menus (recommandé)',
+      texte: 'Son et texte ; Rapports, avec tout ce qui envoie ou sort la partie du téléphone ; Application pour l’installation et la mise à jour. Au premier niveau, il ne reste que l’abandon et la version (en grisé : question suivante).',
+      ecrans: [
+        ['Options', { titre: 'Options', sommaire: true, corps: entree('Son et texte', 'taille du texte, son, affichage') + entree('Rapports', 'signaler un bug, envoyer ou télécharger ma partie') + entree('Application', 'installation, mise à jour') + plus_tard(section('Partie', abandon) + pied) }],
+        ['▸ Son et texte', { titre: 'Son et texte', sousMenu: true, corps: taille + son + affichage }],
+        ['▸ Rapports', { titre: 'Rapports', sousMenu: true, corps: section('Rapports', bug + envoyer + telecharger) + validation }],
+        ['▸ Application', { titre: 'Application', sousMenu: true, corps: installation + miseAJour }],
+      ],
+    },
+    {
+      id: 'c',
+      titre: 'C · Le brouillon déjà commencé',
+      texte: 'Son et affichage ; Partie et rapports, abandon compris ; Système, avec la version. Le premier niveau ne garde que trois lignes et la version.',
+      ecrans: [
+        ['Options', { titre: 'Options', sommaire: true, corps: entree('Son et affichage', 'taille du texte, volumes, balayage') + entree('Partie et rapports', 'sauvegarde, signalement de bug, abandon') + entree('Système', 'installation, mise à jour, version') + pied }],
+        ['▸ Son et affichage', { titre: 'Son et affichage', sousMenu: true, corps: taille + son + affichage }],
+        ['▸ Partie et rapports', { titre: 'Partie et rapports', sousMenu: true, corps: section('Partie', telecharger + bug + envoyer + abandon) }],
+        ['▸ Système', { titre: 'Système', sousMenu: true, corps: validation + installation + miseAJour + pied }],
+      ],
+    },
+    {
+      id: 'q2-a',
+      titre: 'Question 2 · A · L’abandon et la version restent au premier niveau (recommandé)',
+      texte: 'L’abandon garde sa confirmation dans la page, sous les trois lignes. La version et, dans une version de test, l’état de la vérification restent en bas du sommaire, visibles d’un coup d’œil. Sans partie (depuis l’accueil), pas d’abandon ni de REPRENDRE.',
+      ecrans: [
+        ['En partie', { titre: 'Options', sommaire: true, corps: ENTREES + abandon + pied }],
+        ['En partie, après ⊘', { titre: 'Options', sommaire: true, corps: ENTREES + '<div class="danger" style="display:grid;gap:10px;align-items:start;color:var(--texte)"><span>Abandonner ? Cette partie ne pourra pas être reprise.</span><span style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;text-align:center"><span style="border:1px solid var(--texte);padding:12px 0">Annuler</span><span style="background:var(--texte);color:var(--fond);padding:12px 0">Abandonner</span></span></div>' + pied }],
+        ['Depuis l’accueil', { titre: 'Options', sommaire: true, partie: false, corps: ENTREES + pied }],
+      ],
+    },
+    {
+      id: 'q2-b',
+      titre: 'Question 2 · B · L’abandon reste, la version part dans Application',
+      texte: 'Le sommaire ne garde que les trois lignes et l’abandon ; la version et la vérification se lisent dans Application.',
+      ecrans: [
+        ['En partie', { titre: 'Options', sommaire: true, corps: ENTREES + abandon }],
+        ['Depuis l’accueil', { titre: 'Options', sommaire: true, partie: false, corps: ENTREES }],
+        ['▸ Application', { titre: 'Application', sousMenu: true, corps: installation + miseAJour + pied }],
+      ],
+    },
+    {
+      id: 'q3',
+      titre: 'Question 3 · Entrer dans un sous-menu et en revenir',
+      texte: 'Dans les trois cas : toucher une ligne du sommaire ouvre le sous-menu, son titre est lu par le lecteur d’écran ; le retour du téléphone (geste ou bouton d’Android) et la touche Échap remontent au sommaire, comme pour les bulles, et le focus revient sur la ligne touchée.',
+      ecrans: [
+        ['A · ‹ en haut, bas inchangé (recommandé)', { titre: 'Application', sousMenu: true, retourHaut: 'oui', corps: installation + miseAJour + pied, bas: '<div class="bas"><span class="s">Menu principal</span><span class="p">Reprendre la partie</span></div>' }],
+        ['B · RETOUR en bas', { titre: 'Application', sousMenu: true, retourHaut: '', corps: installation + miseAJour + pied, bas: '<div class="bas"><span class="s">Retour</span><span class="p">Reprendre la partie</span></div>' }],
+        ['C · Les deux (brouillon)', { titre: 'Application', sousMenu: true, retourHaut: 'oui', corps: installation + miseAJour + pied, bas: '<div class="bas"><span class="s">Retour aux options</span><span class="p">Reprendre la partie</span></div>' }],
+      ],
+    },
+    {
+      id: 'q3-bulle',
+      titre: 'Question 3 bis · Le sous-menu en bulle',
+      texte: 'La bulle ambre des menus survole le sommaire voilé. ✕, le voile, Échap ou le retour du téléphone la referment, et le focus revient sur la ligne touchée. MENU PRINCIPAL et REPRENDRE LA PARTIE restent dessous, utilisables. Un contenu trop long défile dans la bulle.',
+      ecrans: [
+        ['A · Sous l’en-tête, sans flèche (recommandé)', { bulle: { titreBulle: 'Son et texte', corpsBulle: taille + son + affichage, haut: 85, bas: 147, defile: true } }],
+        ['A · Application', { bulle: { titreBulle: 'Application', corpsBulle: installation + miseAJour + pied, haut: 85, bas: null } }],
+        ['B · Sous la ligne, avec flèche', { bulle: { titreBulle: 'Son et texte', corpsBulle: taille + son + affichage, haut: 146, bas: 147, fleche: true, defile: true } }],
+        ['B · Application', { bulle: { titreBulle: 'Application', corpsBulle: installation + miseAJour + pied, haut: 296, bas: 147, fleche: true, defile: true } }],
+      ],
+    },
+    {
+      id: 'q4',
+      titre: 'Question 4 · Libellés et ordre',
+      texte: 'Ordre retenu partout : Son et texte, Rapports, Application, puis l’abandon. Dans Rapports : Signaler un bug, Envoyer ma partie, Télécharger ma partie, puis la clé VALIDATION dans une version de test. Dans Application : installation, mise à jour, version.',
+      ecrans: [
+        ['A · Son et texte, Application (recommandé)', { titre: 'Options', sommaire: true, corps: entree('Son et texte', 'taille du texte, son, affichage') + entree('Rapports', 'signaler un bug, envoyer ou télécharger ma partie') + entree('Application', 'installation, mise à jour, version') + abandon }],
+        ['B · Son et affichage', { titre: 'Options', sommaire: true, corps: entree('Son et affichage', 'taille du texte, son, effets d’écran') + entree('Rapports', 'signaler un bug, envoyer ou télécharger ma partie') + entree('Application', 'installation, mise à jour, version') + abandon }],
+        ['C · Installation et version', { titre: 'Options', sommaire: true, corps: entree('Son et texte', 'taille du texte, son, affichage') + entree('Rapports', 'signaler un bug, envoyer ou télécharger ma partie') + entree('Installation et version', 'installer, mettre à jour') + abandon }],
+        ['Rapports, ouvert', { bulle: { titreBulle: 'Rapports', corpsBulle: bug + envoyer + telecharger + validation, haut: 85, bas: null, sous: entree('Son et texte', 'taille du texte, son, affichage') + entree('Rapports', 'signaler un bug, envoyer ou télécharger ma partie') + entree('Application', 'installation, mise à jour, version') } }],
+      ],
+    },
+  ];
+
+  document.getElementById('maquettes').innerHTML = VARIANTES.map(
+    (v) => `<section class="variante" id="variante-${v.id}"><h2>${e(v.titre)}</h2><p>${e(v.texte)}</p><div class="rangee">${v.ecrans.map(([nom, ecran]) => (ecran.bulle ? telBulle(nom, ecran.bulle) : tel(nom, ecran))).join('')}</div></section>`,
+  ).join('');
+})();
+</script>
