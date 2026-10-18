@@ -1,7 +1,7 @@
 # Void Walker V2 — interface : description des écrans
 
 > **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-155 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-18 (§4.11, écrans de fin, #208, D-281 à D-286).
 > **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
 > **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
 > **Maquette de référence :** [maquette-ui-v1.pdf](maquette/maquette-ui-v1.pdf), 13 écrans exportés du canevas « Void Walker — UI » sur claude.ai. Le PDF montre encore le panneau bas et la bordure `#6B5530` : ce document prime. Il se suffit à lui-même : un agent qui ne voit pas la maquette doit pouvoir reproduire chaque écran.
@@ -276,6 +276,7 @@ Tous sont de vrais boutons ou liens, accessibles au clavier et au lecteur d'écr
 | Options | MENU PRINCIPAL / REPRENDRE LA PARTIE | Accueil / écran de jeu |
 | Options | ABANDONNER (après confirmation) | Fin (abandon) |
 | Plus aucune sortie | TERMINER LA PARTIE | Fin (abandon), puis menu principal |
+| Écran de jeu, partie finie | CONTINUER | Fin (défaite ou évacuation) |
 | Fin | REJOUER CETTE STATION / NOUVELLE PARTIE | Réveil |
 | Fin | MENU PRINCIPAL | Accueil |
 
@@ -429,27 +430,33 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 
 ### 4.11 Fin de partie
 
-Récit seulement, ni score ni étoiles (D-086). [Validé]
+Récit seulement, ni score ni étoiles (D-086). [Validé] Maquettes : [fins.html](maquette/fins.html).
 
+- **Arrivée** [Validé D-286] : à l'action qui finit la partie (défaite ou évacuation), l'écran de jeu reste avec son dernier texte, rouge, brouillage et sons compris ; le dock laisse la place à un seul bouton CONTINUER (principal), sans navigation ni engrenage. CONTINUER mène à l'écran de fin. L'abandon y mène directement (§4.10, §5.2). Rouvrir le jeu après une défaite ou une évacuation mène directement à l'écran de fin (C-09 S-05).
 - **Haut :** « > FIN DE LA PARTIE_ » en 13 `texte-secondaire`, à 56 px du haut.
-- **Titre** en `accent` 24/600 :
+- **Titre** en `accent` 24/600, qui reçoit le focus :
   - abandon : « Partie abandonnée. » ;
   - défaite : « Vous n'avez pas atteint la capsule. » ;
   - évacuation : « La capsule s'est détachée. »
-- **Récit de fin** (plus long, D-111), 17 px. Les paragraphes sont séparés.
-- **Sous un filet pointillé :** « PIÈCES VISITÉES : Salon de transit, Atelier de service » [Proposé ; liste en mots, sans chiffre]. Pour l'abandon et la défaite, ajouter « Cette partie est terminée. Elle ne peut pas être reprise. » (D-013).
+- **Récit de la partie** [Validé D-281], 17 px, écrit à la machine (D-186), en paragraphes séparés : le réveil et le premier moment marquant ; les autres moments, trois au plus en tout, dans l'ordre de la partie ; puis la fin.
+  - Défaite : la dernière phrase dit la pièce et la cause (créature, feu, froid, vide, ou la créature avec le feu ou le froid), en `accent` [Validé D-282] : « Vous êtes mort dans la salle des pompes, sous ses griffes. »
+  - Évacuation : le texte de départ selon ce qui alimentait la capsule, la santé, puis ce que le passager sait de la créature [Validé D-283] ; dessous, le message de départ d'IA Station en entier, dans l'encadré du réveil (D-263).
+  - Abandon : « Vous en restez là, dans {le:piece}. »
+  - Chaque phrase est écrite à la main en entier sous chacune de ses formes : pièce redite ou non, créature nommée ou reprise (« elle », « l' », « ses »). Aucun pronom n'est substitué par le jeu.
+- **Sous un filet pointillé**, pour l'abandon et la défaite : « Cette partie est terminée. Elle ne peut pas être reprise. » (D-013). Pas de liste des pièces visitées, aucun chiffre ni durée [Validé D-284].
 - **Boutons :**
   - REJOUER CETTE STATION, principal : même état de départ, nouveaux tirages (D-087, D-088). Pas de mention « même station, nouveaux dés ». [Validé]
   - NOUVELLE PARTIE, secondaire.
-  - En dessous, discrets : ENVOYER MA PARTIE et MENU PRINCIPAL. Pas d'« Exporter ». [Validé]
+  - En dessous, discrets : ENVOYER MA PARTIE (avec « je valide » dans une version de test, sauf après un abandon, D-099) et MENU PRINCIPAL. Pas d'« Exporter ». [Validé]
+- **Missions** : quand il y en aura d'autres (#210), une phrase de la mission dira si son objectif est rempli (D-285).
 
-Récit d'exemple, défaite :
+Récit d'exemple, défaite (partie de bot, station `m02-m06-embarquement`) :
 
-> Vous avez quitté votre siège quand personne d'autre ne bougeait. Vous avez lu le poste d'appel, rejoint l'atelier, traîné une caisse sous la grille haute.
+> Vous vous êtes réveillé dans le vestibule. Dans la salle panoramique, vous avez vu la créature pour la première fois.
 >
-> Le bruit a porté. Ce qui bougeait derrière la porte du Salon de transit est venu.
+> Dans le local de sécurité, elle vous a blessé. Dans le couloir de sécurité, elle vous a grièvement blessé.
 >
-> Dans l'écouteur, IA Station a annoncé la fin de l'embarquement.
+> Vous êtes mort dans la salle des pompes, sous ses griffes.
 
 ## 5. Autres états maquettés
 
@@ -606,4 +613,4 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
 | Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
 | Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |
-| Absents | Carte, son, rapports, fins de défaite et d'évacuation (options et fin d'abandon : #96, D-200) | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun. Santé : #101 ; IA Station : #98 |
+| Absents | Carte, son, rapports (options et fin d'abandon : #96, D-200 ; fins de défaite et d'évacuation : #208, D-281 à D-286) | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun. Santé : #101 ; IA Station : #98 |

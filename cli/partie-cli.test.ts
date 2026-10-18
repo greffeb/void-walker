@@ -1,5 +1,5 @@
-import { assemblerStation, empreinteEtat, idPublic, lireExport, rejouer } from '../engine';
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, type Catalogue, type EntreeMonde } from '../content';
+import { assemblerStation, empreinteEtat, idPublic, lireExport, nouvellePartie, observer, rejouer, reprendrePartie } from '../engine';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, type Catalogue, type EntreeMonde } from '../content';
 import { AIDE, choisirEntree, executer, PARTIE_PAR_DEFAUT, type Contexte, type EntreesSorties, type Sortie } from './partie-cli';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
@@ -224,6 +224,19 @@ describe('CLI', () => {
     expect(fin).not.toContain('Cette partie est terminée. Elle ne peut pas être reprise.');
     expect(fin).toContain('Partie terminée : plus aucune action possible.');
     expect(fin).toContain('Actions engagées : 14');
+    // L'écran de fin, mêmes mots que l'appli (D-281, C-06 K-07) : titre, récit de la partie, message de départ.
+    const ecranFin = fin.slice(fin.indexOf('> FIN DE LA PARTIE'));
+    expect(ecranFin[1]).toBe('La capsule s’est détachée.');
+    expect(ecranFin[3]).toBe('Vous vous êtes réveillé dans le salon de transit. Dans le local énergie, vous avez découvert un passage caché.');
+    expect(ecranFin.at(-2)).toMatch(/Vous partez indemne\. Vous n’avez jamais vu ce qui rôdait à bord\.$/);
+    expect(ecranFin.at(-1)).toBe('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
+    expect(executer(['voir'], ctx).lignes.slice(-ecranFin.length)).toEqual(ecranFin);
+    // Même récit que l'appli : celui de la partie enregistrée, relue du réveil (D-281).
+    const partie = reprendrePartie(AR01.monde, JSON.parse(ctx.fichiers.get(PARTIE_PAR_DEFAUT) ?? 'null') as unknown, VERSION);
+    const { graine } = partie.enregistrement;
+    const pas = [nouvellePartie(AR01.monde, { version: VERSION, graine }).derniers, ...rejouer(AR01.monde, partie.enregistrement, VERSION).etapes];
+    const recit = raconterFin(AR01.textes, pas, { issue: 'evacuation', sante: observer(AR01.monde, partie.etat).sante, graine, menace: true });
+    expect(ecranFin).toEqual(['> FIN DE LA PARTIE', recit.titre, ...recit.paragraphes.flatMap((paragraphe) => ['', paragraphe]), `[ IA STATION ] « ${recit.assistance.join('')} »`]);
     expect(executer(['jouer', '1'], ctx)).toEqual({ lignes: ['Cette partie est terminée : rien n’a été joué.'], code: 1 });
     expect(executer(['voir'], ctx).lignes).toContain('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
     expect(executer(['exporter', 'fin.json'], ctx)).toEqual({

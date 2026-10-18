@@ -276,20 +276,9 @@ button:disabled {
   margin-left: 0;
 }
 
-/* Partie terminée (D-013) : en attendant l'écran de fin (12 §4.11), la phrase de fin et NOUVELLE PARTIE. */
-.fin-partie p {
-  margin: 0 0 16px;
-}
-
-/* ENVOYER MA PARTIE sous NOUVELLE PARTIE (12 §4.11) ; son panneau s'ouvre à sa place. */
-.fin-partie .discret,
-.fin-partie .panneau-rapport {
+/* Partie terminée (D-286) : le dernier texte reste à lire, CONTINUER seul à la place du dock. */
+.fin-partie .principal {
   width: 100%;
-  margin-top: 10px;
-}
-
-.fin-partie .panneau-rapport p {
-  margin: 0;
 }
 
 .engrenage {
@@ -1733,6 +1722,28 @@ button:disabled {
   border-top: 1px solid var(--separateur);
 }
 
+/* ENVOYER MA PARTIE et MENU PRINCIPAL côte à côte (maquette de #208) ; le panneau d'envoi garde sa place et toute la ligne,
+   son retour passe dessous. */
+.discrets-fin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.discrets-fin > .discret {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.discrets-fin > .panneau-rapport,
+.discrets-fin > .retour-option {
+  flex-basis: 100%;
+}
+
+.discrets-fin > .retour-option {
+  order: 1;
+}
+
 /* Fin de partie (12 §4.11) : le récit seulement, puis les pièces visitées en mots sous un filet pointillé. */
 .recit-fin {
   flex: 1 1 auto;
@@ -1751,6 +1762,19 @@ button:disabled {
 
 .recit-fin p {
   margin: 0 0 12px;
+}
+
+/* Le récit de fin défile avec son titre : il ne garde ni sa hauteur ni son défilement propres. */
+.recit-fin .recit {
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+/* La mort et sa cause (D-282). */
+.recit .cause {
+  color: var(--accent);
 }
 
 .bilan-fin {

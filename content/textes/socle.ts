@@ -1,6 +1,8 @@
 import {
   DANGERS_MORCEAUX,
   EVENEMENTS_REGLES_MORCEAUX,
+  FIN_MOMENTS_MORCEAUX,
+  FIN_MORTS_MORCEAUX,
   GELURE_FROID,
   INDISPONIBILITES_MORCEAUX,
   LIBELLES_MORCEAUX,
@@ -177,6 +179,28 @@ export const SOCLE = {
     sansSortie: 'Plus aucun chemin ne mène à une capsule de secours.',
     abandon: 'Vous en restez là, dans {le:piece}.',
     ...OBSERVATION_REGLES_MORCEAUX,
+  },
+  // Récit de fin (D-281, D-282) : chaque phrase en entier, sous chacune de ses formes.
+  fin: {
+    moments: {
+      blesse_feu: { ailleurs: 'Dans {le:piece}, le feu vous a brûlé.', ici: 'Le feu vous y a brûlé.' },
+      critique_feu: { ailleurs: 'Dans {le:piece}, le feu vous a grièvement brûlé.', ici: 'Puis le feu vous a grièvement brûlé.' },
+      soin: { ici: 'Vous vous êtes soigné avec {le:objet}.' },
+      feu_eteint: { ici: 'Vous avez éteint le feu {de:lieu}.' },
+      feu_eteint_derriere: { ici: 'Vous avez éteint le feu derrière {le:lieu}.' },
+      breche_ouverte: { ici: 'Vous avez percé {le:objet} ; l’air a filé par la brèche.' },
+      passage_decouvert: { ailleurs: 'Dans {le:piece}, vous avez découvert un passage caché.', ici: 'Vous y avez découvert un passage caché.' },
+      combinaison_enfilee: { ici: 'Vous avez enfilé {le:objet}.' },
+      alarme_declenchee: { ici: 'Vous avez déclenché {le:objet}.' },
+      circuit_active: { ici: 'Vous avez réarmé {le:objet}.' },
+      objet_installe: { ici: 'Vous avez installé {le:objet} dans {le:capsule}.' },
+      ...FIN_MOMENTS_MORCEAUX,
+    },
+    morts: {
+      feu: { ailleurs: 'Vous êtes mort dans {le:piece}, pris par le feu.', ici: 'Vous y êtes mort, pris par le feu.' },
+      vide: { ailleurs: 'Vous êtes mort dans {le:piece}, sans air, exposé au vide.', ici: 'Vous y êtes mort, sans air, exposé au vide.' },
+      ...FIN_MORTS_MORCEAUX,
+    },
   },
   apercu: {
     risques: {

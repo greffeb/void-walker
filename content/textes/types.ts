@@ -1,6 +1,7 @@
 import type {
   Cout,
   IdAction,
+  Issue,
   NiveauRisque,
   RaisonIndisponibilite,
   RaisonRefus,
@@ -32,6 +33,62 @@ export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance'>;
 /** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, les deux, ou la réserve d'une capsule déjà prête (AR-02). */
 export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc', 'reserve'] as const;
 export type CleEvacuation = (typeof CLES_EVACUATION)[number];
+
+/**
+ * Moments marquants que l'écran de fin peut raconter (12 §4.11, D-281), par clé : une blessure se dit selon sa gravité et ses
+ * causes, comme les textes d'aggravation (le feu l'emporte sur le froid) ; le feu éteint, selon qu'on sait nommer sa pièce.
+ */
+export const CLES_MOMENT = [
+  'premier_contact',
+  'creature_expulsee',
+  'creature_inerte',
+  'blesse_griffes',
+  'blesse_feu',
+  'blesse_froid',
+  'blesse_griffes_feu',
+  'blesse_griffes_froid',
+  'critique_griffes',
+  'critique_feu',
+  'critique_froid',
+  'critique_griffes_feu',
+  'critique_griffes_froid',
+  'pont_cede',
+  'chute_entendue',
+  'creature_glisse',
+  'porte_enfoncee',
+  'soin',
+  'feu_eteint',
+  'feu_eteint_derriere',
+  'breche_ouverte',
+  'passage_decouvert',
+  'combinaison_enfilee',
+  'alarme_declenchee',
+  'circuit_active',
+  'objet_installe',
+  'pont_place',
+  'chambre_bouclee',
+  'cloison_deverrouillee',
+  'machines_arretees',
+  'gravite_coupee',
+] as const;
+export type CleMoment = (typeof CLES_MOMENT)[number];
+
+/** Ce qui a tué, clé de la dernière phrase d'une défaite (D-282) : le vide l'emporte sur tout, puis le feu sur le froid. */
+export const CLES_MORT = ['griffes', 'feu', 'froid', 'vide', 'griffes_feu', 'griffes_froid'] as const;
+export type CleMort = (typeof CLES_MORT)[number];
+
+/**
+ * Une phrase du récit de fin, écrite à la main en entier sous chaque forme dont le récit a besoin (D-281) : `ailleurs` nomme la
+ * pièce ({le:piece}), `ici` suit une phrase qui l'a déjà nommée ; les formes `…Reprise` suivent une phrase qui a nommé la
+ * créature (« elle », « l' », « ses »). Sans `ailleurs`, le moment ne dit pas de pièce ; sans reprise, il ne nomme pas la
+ * créature. Le jeu choisit une forme, il ne remplace jamais un mot par un pronom.
+ */
+export interface PhraseFin {
+  readonly ici: string;
+  readonly ailleurs?: string;
+  readonly iciReprise?: string;
+  readonly ailleursReprise?: string;
+}
 
 export interface TextesMonde {
   readonly noms: Readonly<Record<string, Nom>>;
@@ -138,6 +195,19 @@ export interface TextesMonde {
     readonly momentReveil: string;
     readonly momentArrivee: string;
     readonly momentEvacuation: string;
+  };
+  /** Écran de fin (12 §4.11, D-281 à D-283) : titres, puis le récit de la partie, phrase par phrase. */
+  readonly fin: {
+    readonly titres: Readonly<Record<'abandon' | Issue, string>>;
+    /** Première phrase du récit, dans la pièce du réveil. */
+    readonly reveil: string;
+    readonly moments: Readonly<Record<CleMoment, PhraseFin>>;
+    /** Dernière phrase d'une défaite : la pièce et ce qui a tué (D-282). */
+    readonly morts: Readonly<Record<CleMort, PhraseFin>>;
+    /** Santé au départ de la capsule (D-283). */
+    readonly sante: Readonly<Record<'indemne' | 'blesse' | 'critique', string>>;
+    /** Ce que le passager sait de la créature au départ, si aucun moment ne l'a mise hors jeu (D-283). */
+    readonly creature: Readonly<Record<'laissee' | 'entendue' | 'jamais', string>>;
   };
   /** Aperçu avant confirmation (12 §3.8) : mots du risque, du danger connu et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
@@ -247,6 +317,43 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   boucler: ['cible'],
   actionner: ['cible'],
   attendre: [],
+};
+
+/** Rôles des phrases de fin, en plus de `piece` pour leur forme `ailleurs` (D-281). */
+export const ROLES_MOMENT: Readonly<Record<CleMoment, readonly string[]>> = {
+  premier_contact: [],
+  creature_expulsee: [],
+  creature_inerte: [],
+  blesse_griffes: [],
+  blesse_feu: [],
+  blesse_froid: [],
+  blesse_griffes_feu: [],
+  blesse_griffes_froid: [],
+  critique_griffes: [],
+  critique_feu: [],
+  critique_froid: [],
+  critique_griffes_feu: [],
+  critique_griffes_froid: [],
+  pont_cede: ['objet'],
+  chute_entendue: ['passage'],
+  creature_glisse: ['passage'],
+  porte_enfoncee: ['passage'],
+  soin: ['objet'],
+  // `lieu` : la pièce du foyer éteint, ou le passage derrière lequel il brûlait tant que sa destination est inconnue.
+  feu_eteint: ['lieu'],
+  feu_eteint_derriere: ['lieu'],
+  breche_ouverte: ['objet'],
+  passage_decouvert: [],
+  combinaison_enfilee: ['objet'],
+  alarme_declenchee: ['objet'],
+  circuit_active: ['objet'],
+  objet_installe: ['objet', 'capsule'],
+  pont_place: ['objet'],
+  // `lieu` : la chambre bouclée, la zone dont la gravité est coupée.
+  chambre_bouclee: ['lieu'],
+  cloison_deverrouillee: ['objet'],
+  machines_arretees: [],
+  gravite_coupee: ['lieu'],
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;

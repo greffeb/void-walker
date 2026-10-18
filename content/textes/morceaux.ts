@@ -57,6 +57,24 @@ export const EVENEMENTS_MORCEAUX = {
   pont_cede: MENACE.evenements.pont_cede,
 } as const satisfies Partial<TextesMonde['evenements']>;
 
+/**
+ * Récit de fin (D-281) : moments et mort des règles des morceaux, écrits à la main sous chaque forme utile ; repris dans le
+ * socle. `ailleurs` dit la pièce, `ici` suit une phrase qui l'a déjà nommée.
+ */
+export const FIN_MOMENTS_MORCEAUX = {
+  blesse_froid: { ailleurs: 'Dans {le:piece}, le froid vous a blessé.', ici: 'Le froid vous y a blessé.' },
+  critique_froid: { ailleurs: 'Dans {le:piece}, le froid vous a grièvement blessé.', ici: 'Puis le froid vous a grièvement blessé.' },
+  pont_place: { ici: 'Vous avez couché {le:objet} en travers du vide.' },
+  chambre_bouclee: { ici: 'Vous avez bouclé {le:lieu}.' },
+  cloison_deverrouillee: { ici: 'Vous avez actionné {le:objet}.' },
+  machines_arretees: { ici: 'Vous avez arrêté les machines.' },
+  gravite_coupee: { ici: 'Vous avez coupé la gravité dans {le:lieu}.' },
+} as const satisfies Partial<TextesMonde['fin']['moments']>;
+
+export const FIN_MORTS_MORCEAUX = {
+  froid: { ailleurs: 'Vous êtes mort dans {le:piece}, gagné par le froid.', ici: 'Vous y êtes mort, gagné par le froid.' },
+} as const satisfies Partial<TextesMonde['fin']['morts']>;
+
 export const GELURE_FROID = {
   froid: {
     aggravation_blesse: ['Le froid vous mord jusqu’aux os : vous êtes blessé.'],
