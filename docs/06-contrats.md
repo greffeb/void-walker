@@ -384,26 +384,26 @@ Réponse unique du porteur aux douze questions : « Ok pour tes reco ».
 
 ### Bloc AG — grandes stations habitées : répondu
 
-Questions posées le 2026-10-18, une par une, pour #202, #205, #206, #207 et #209 ; réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot). Conception approuvée : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. »
+Questions posées le 2026-10-18, une par une, pour #202, #205, #206, #207 et #209 ; réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot). Conception approuvée : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225).
 
 | Question | Réponse utilisateur | Décision |
 | --- | --- | --- |
-| Q-204 La partie idéale | 25 minutes : traces, bruits, documents, puis la rencontre, la poursuite, les portes défoncées, l'objectif | D-289, D-293, D-294 |
-| Q-205 Variété | « franchement, tout pourrait changer, j'aime la variété » | D-298 |
-| Q-206 Grand mystère sur plusieurs parties | « trop ambitieux et casse gueule niveau faisabilité. » | D-298 |
-| Q-207 Difficulté | Deux ou trois morts sur quatre parties ; la difficulté actuelle convient | D-290 |
-| Q-208 Taille et durée | « rien ne me gène » | D-289 |
-| Q-209 Butin | Oui, ouvert aux objets futurs | D-296 |
-| Q-210 Clés dispersées | « la caisse peut bouger, sinon OK » | D-295 |
-| Q-211 Cadre et histoire de la créature | « c'est bien » | D-298 |
-| Q-212 Forme des documents | Chiffres à l'écran et indice de passage caché | D-299 |
-| Q-213 Catalogue des pièces | « ok » | D-292 |
-| Q-214 Créature immobile avant le contact | « oui » | D-297 |
-| Q-215 Affichage d'un document | « B, la fiche document dans la bulle. » | D-300 |
-| Q-216 Taille, après relecture | 22 à 28 pièces | D-289 |
-| Q-217 Rythme de la créature | Tardive et utile | D-291 |
-| Q-218 Traces | Une piste | D-293 |
-| Q-219 Validations signées | Gardées | D-301 |
+| Q-204 La partie idéale | 25 minutes : traces, bruits, documents, puis la rencontre, la poursuite, les portes défoncées, l'objectif | D-290, D-294, D-295 |
+| Q-205 Variété | « franchement, tout pourrait changer, j'aime la variété » | D-299 |
+| Q-206 Grand mystère sur plusieurs parties | « trop ambitieux et casse gueule niveau faisabilité. » | D-299 |
+| Q-207 Difficulté | Deux ou trois morts sur quatre parties ; la difficulté actuelle convient | D-291 |
+| Q-208 Taille et durée | « rien ne me gène » | D-290 |
+| Q-209 Butin | Oui, ouvert aux objets futurs | D-297 |
+| Q-210 Clés dispersées | « la caisse peut bouger, sinon OK » | D-296 |
+| Q-211 Cadre et histoire de la créature | « c'est bien » | D-299 |
+| Q-212 Forme des documents | Chiffres à l'écran et indice de passage caché | D-300 |
+| Q-213 Catalogue des pièces | « ok » | D-293 |
+| Q-214 Créature immobile avant le contact | « oui » | D-298 |
+| Q-215 Affichage d'un document | « B, la fiche document dans la bulle. » | D-301 |
+| Q-216 Taille, après relecture | 22 à 28 pièces | D-290 |
+| Q-217 Rythme de la créature | Tardive et utile | D-292 |
+| Q-218 Traces | Une piste | D-294 |
+| Q-219 Validations signées | Gardées | D-302 |
 
 ## 5. Socles formels acceptés
 

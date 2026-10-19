@@ -5,7 +5,7 @@ import { CLOISON_1, cloison2 } from '../morceaux/carrefour';
 import { court, premierRefus, type LignePaire } from './paires';
 import { sansConflit } from './textes-station';
 
-// Grandes stations (spec 2026-10-18 §4, D-289, D-291) : vestibule, deux chemins matériels, un troisième chemin, un final, et de
+// Grandes stations (spec 2026-10-18 §4, D-290, D-292) : vestibule, deux chemins matériels, un troisième chemin, un final, et de
 // six à dix pièces du catalogue. La créature attend dans le troisième chemin ou le final ; un chemin dont le seul obstacle est
 // la créature n'est tiré que s'il l'accueille. En ordre libre, les deux branches sont les chemins matériels, et le troisième
 // suit le sas (D-257, D-270).
@@ -67,7 +67,7 @@ export function prevoirGrandes(table: readonly LignePaire[]): GrandePrevue[] {
         .filter((c) => c !== a && c !== b)
         .flatMap((c) =>
           finals.flatMap((final) => {
-            // La créature dans le troisième chemin ; dans le final aussi si ce chemin a un obstacle matériel (D-291).
+            // La créature dans le troisième chemin ; dans le final aussi si ce chemin a un obstacle matériel (D-292).
             const hotes = c.morceau.grande?.obstacle === 'creature' ? [c] : [c, final];
             const suite = [a, b, c].filter((entree): entree is EntreeMorceau => entree !== undefined);
             const refus = premierRefus(table, suite.map((entree) => entree.morceau), final.morceau);

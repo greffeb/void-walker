@@ -4,10 +4,10 @@ import { CATALOGUE } from './catalogue';
 import { ecartsDesGrandes, lireTemoins, publierGrandes, temoinValable, verifierGrande, verifierPubliee, verifierPublieesDuLot } from './verifier-grandes';
 import { rangsDesSegments } from './verifier-station';
 
-// Preuve des grandes stations (spec 2026-10-18 §7, D-302) : contrôles, puis témoin du chemin principal rejoué dans la grande
+// Preuve des grandes stations (spec 2026-10-18 §7, D-303) : contrôles, puis témoin du chemin principal rejoué dans la grande
 // station, ou recherche directe ; en ordre libre, les deux ordres.
 
-/** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-294). */
+/** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-295). */
 function avecPlan(composition: string): string {
   const graine = Array.from({ length: 50 }, (_, rang) => rang).find((rang) => !('refus' in CATALOGUE.construireGrande(composition, rang)));
   if (graine === undefined) throw new Error(`${composition} : aucun plan sur 50 graines.`);

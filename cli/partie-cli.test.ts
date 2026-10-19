@@ -283,7 +283,7 @@ function mondeEnregistre(fichiers: ReadonlyMap<string, string>): unknown {
 }
 
 describe('CLI : station tirée (#152)', () => {
-  it('nouvelle sans option tire une grande station publiée (D-289), réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
+  it('nouvelle sans option tire une grande station publiée (D-290), réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
     const ctx = contexte();
     const debut = appeler(['nouvelle'], CATALOGUE, ctx.es);
     expect(debut.code).toBe(0);

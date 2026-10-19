@@ -6,7 +6,7 @@ import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
 import { isMainModule, REPO_ROOT } from './repo-files';
 import { FICHIER_TEMOINS, publierGrandes, type PasTemoin } from './verifier-grandes';
 
-// Publication des grandes stations (spec 2026-10-18 §7.2, D-302) : `npm run publier:grandes` prouve, pour chaque grande
+// Publication des grandes stations (spec 2026-10-18 §7.2, D-303) : `npm run publier:grandes` prouve, pour chaque grande
 // composition, ses premières graines, puis écrit la liste publiée (contenu) et les témoins (outils), que `check:stations`
 // rejoue. Long : à lancer une fois, quand le générateur ou les règles changent. `--par=<n>` graines par composition (2),
 // `--essais=<n>` graines prouvées au plus (8), sans compter celles qui n’ont pas de plan, `--processus=<n>` en parallèle.
@@ -14,7 +14,7 @@ import { FICHIER_TEMOINS, publierGrandes, type PasTemoin } from './verifier-gran
 export const FICHIER_LISTE = 'content/stations/grandes-publiees.ts';
 
 export function ecrireListe(publiees: readonly string[]): string {
-  return `// Grandes stations publiées (spec 2026-10-18 §7.2, D-302) : chacune assemblée, contrôlée et prouvée sans dé ni blessure par
+  return `// Grandes stations publiées (spec 2026-10-18 §7.2, D-303) : chacune assemblée, contrôlée et prouvée sans dé ni blessure par
 // \`npm run publier:grandes\`, qui écrit ce fichier. Le jeu ne tire que dans cette liste.
 
 export const GRANDES_PUBLIEES: readonly string[] = [

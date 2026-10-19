@@ -68,7 +68,7 @@ export function segmentsDe(monde: DefMonde, station: DefStation): Map<string, nu
   return segments;
 }
 
-/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-294), pour cette graine. */
+/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-295), pour cette graine. */
 export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefStationGrande): DefMonde | null {
   const { morceaux, graine, creature } = station;
   const segments = segmentsDe(monde, station);

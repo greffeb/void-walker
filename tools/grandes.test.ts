@@ -3,7 +3,7 @@ import { assemblerStation } from '../engine';
 import { MORCEAUX, VERSION_GENERATEUR, type CompositionGrande } from '../content';
 import { CATALOGUE } from './catalogue';
 
-// Grandes stations (spec 2026-10-18 §4, D-289, D-291) : deux chemins matériels, un troisième chemin, un final ; la créature
+// Grandes stations (spec 2026-10-18 §4, D-290, D-292) : deux chemins matériels, un troisième chemin, un final ; la créature
 // dans le troisième chemin ou le final ; un chemin dont le seul obstacle est la créature seulement s'il l'accueille.
 
 const MONDE_ID = /^[a-z0-9-]{1,40}$/;
@@ -13,7 +13,7 @@ const dessinees = (ids: readonly string[]): number =>
   ids.reduce((total, id) => total + (MORCEAUX[id]?.morceau.pieces.filter((piece) => piece.plan !== undefined).length ?? 0), 0);
 const morceauxDe = (composition: CompositionGrande): string[] => ['vestibule', ...(composition.forme === 'libre' ? ['carrefour'] : []), ...composition.chemins, composition.final];
 
-describe('compositions des grandes stations (D-289, D-291)', () => {
+describe('compositions des grandes stations (D-290, D-292)', () => {
   const { grandes } = CATALOGUE;
 
   it('192 en chaîne et 96 en ordre libre, avant refus des paires', () => {
@@ -66,7 +66,7 @@ describe('compositions des grandes stations (D-289, D-291)', () => {
     ]);
   });
 
-  // Une graine sans porte de boucle n'a pas de plan (D-294) : une sur deux environ ; la publication les saute sans les prouver.
+  // Une graine sans porte de boucle n'a pas de plan (D-295) : une sur deux environ ; la publication les saute sans les prouver.
   it('assemblage : chaque plan a une à trois portes de boucle et 21 à 28 pièces dessinées ; au moins 40 % de plans, moins de 50 ms par station en moyenne', () => {
     const echantillon = grandes.filter((composition, rang) => composition.refus === null && rang % 4 === 0);
     let essais = 0;

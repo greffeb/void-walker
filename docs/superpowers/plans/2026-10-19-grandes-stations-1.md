@@ -4,7 +4,7 @@
 
 **Goal:** NOUVELLE PARTIE tire une grande station de 21 à 28 pièces (trois chemins, final, 6 à 10 pièces du catalogue, une à trois portes de boucle, une piste de traces, des bruits de station), prise dans une liste publiée où chaque station est prouvée ; les petites stations restent strictement inchangées.
 
-**Architecture:** l'assembleur du moteur (`engine/station.ts`) garde la pose du chemin principal et, quand `DefStation.grande` est présent, y ajoute trois étapes pures dans de nouveaux modules (`annexes.ts`, `boucles.ts`, `piste.ts`), chacune sur sa sous-graine. Le contenu décrit le catalogue des pièces, les déclarations des morceaux et les compositions D-291 (`content/stations/grandes.ts`) ; les outils prouvent chaque station et écrivent la liste publiée. Les clés restent chez elles (livraison 2) ; aucun document (livraison 3).
+**Architecture:** l'assembleur du moteur (`engine/station.ts`) garde la pose du chemin principal et, quand `DefStation.grande` est présent, y ajoute trois étapes pures dans de nouveaux modules (`annexes.ts`, `boucles.ts`, `piste.ts`), chacune sur sa sous-graine. Le contenu décrit le catalogue des pièces, les déclarations des morceaux et les compositions D-292 (`content/stations/grandes.ts`) ; les outils prouvent chaque station et écrivent la liste publiée. Les clés restent chez elles (livraison 2) ; aucun document (livraison 3).
 
 **Tech Stack:** TypeScript 6, Vitest 4, React 19 (appli), tsx pour les outils ; aucun ajout de dépendance.
 
@@ -12,8 +12,8 @@
 
 ## Global Constraints
 
-- Une grande station : vestibule, deux chemins matériels (M-01, M-02, M-08, M-09), un troisième chemin matériel ou de type créature qui l'accueille (M-04, M-05, M-07, M-10), un final (M-03, M-06) ; place de la créature dans le troisième chemin ou le final (D-291).
-- Annexes : `clamp(24 − pièces dessinées des morceaux, 6, 10)` ; total 21 à 28 pièces dessinées (D-289).
+- Une grande station : vestibule, deux chemins matériels (M-01, M-02, M-08, M-09), un troisième chemin matériel ou de type créature qui l'accueille (M-04, M-05, M-07, M-10), un final (M-03, M-06) ; place de la créature dans le troisième chemin ou le final (D-292).
+- Annexes : `clamp(24 − pièces dessinées des morceaux, 6, 10)` ; total 21 à 28 pièces dessinées (D-290).
 - Boucles : une à trois, même segment, cycle d'au moins quatre pièces, jamais sur une impasse ni sur la pièce de la créature, touchent seulement un couloir ou un passage du catalogue ou une pièce accueillante de morceau (§6.4).
 - Piste : de 3 à 6 portes entre l'origine et le repaire ; trace « forte » à 2 portes ou moins du repaire, « légère » au-delà ; jamais dans la pièce de départ (§5.4).
 - Bruit de station : une chance sur 7 par action engagée, avant le premier contact, dans une grande station seulement, sans rien écrire dans l'état (§5.5).
@@ -61,7 +61,7 @@
     readonly surCouloirDe?: string;
   }
   export interface DefGrandeMorceau {
-    /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-291) ; absent pour départ, carrefour, final. */
+    /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-292) ; absent pour départ, carrefour, final. */
     readonly obstacle?: 'materiel' | 'creature';
     /** Pièces où une annexe peut s'accrocher, avec leur catégorie (GE-08, GE-09). */
     readonly accueillantes: Readonly<Record<string, CategoriePiece>>;
@@ -345,7 +345,7 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
 - [ ] **Step 4 :** → PASS, avec les empreintes figées inchangées.
 - [ ] **Step 5 :** commit `engine: assemblage d'une grande station en trois temps (#205, spec §6.2)`.
 
-### Task 7 : compositions D-291 et catalogue des grandes stations
+### Task 7 : compositions D-292 et catalogue des grandes stations
 
 **Files:**
 - Create: `content/stations/grandes.ts`
@@ -380,7 +380,7 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
   construireGrande(composition: string, graine: number): EntreeMonde | Refus;
   // creerCatalogue(assembler, table, publiees, grandesPubliees = GRANDES_PUBLIEES)
   ```
-- `prevoirGrandes(table)` : compositions D-291 (chaîne : couples ordonnés de chemins matériels × troisième chemin × final × place ; ordre libre : paires non ordonnées de matériels, branche A au plus petit numéro). La place est celle du troisième chemin s'il est de type créature, sinon celle du troisième chemin matériel ou celle du final. Toutes les paires de morceaux de la station passent `PAIRES`. `annexes = clamp(24 − pièces dessinées, 6, 10)`.
+- `prevoirGrandes(table)` : compositions D-292 (chaîne : couples ordonnés de chemins matériels × troisième chemin × final × place ; ordre libre : paires non ordonnées de matériels, branche A au plus petit numéro). La place est celle du troisième chemin s'il est de type créature, sinon celle du troisième chemin matériel ou celle du final. Toutes les paires de morceaux de la station passent `PAIRES`. `annexes = clamp(24 − pièces dessinées, 6, 10)`.
 - `definirGrande(composition, graine)` : en chaîne, `[vestibule, c1, c2, c3, final]` ; en ordre libre, accroches vestibule → couloir, couloir → A, couloir → B, sas → C, sortie de C → final (D-257, D-270), commandes dans A et B comme aujourd'hui (D-259). La cloison 2 mène désormais à C : la commande de B vise `cloison2(C)` (`content/morceaux/carrefour.ts:33`, `l-carrefour-<morceau>`), et le test de l'ordre libre le vérifie.
 - `TextesMorceau` gagne `calmes?: Readonly<Record<string, Variantes>>` (`content/textes/types.ts`), rempli en tâche 11. Ajoute `grande: { version: 1, catalogue, annexes, boucles: 3 }`.
 - Textes : `reunir` des morceaux, puis du catalogue, puis remplacement des descriptions par `TextesMorceau.calmes` quand elles existent (tâche 11), puis `numeroter`.
@@ -399,7 +399,7 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
 - [ ] **Step 2 :** `npx vitest run tools/grandes.test.ts tools/stations.test.ts` → FAIL.
 - [ ] **Step 3 :** `grandes.ts`, extension du catalogue.
 - [ ] **Step 4 :** → PASS.
-- [ ] **Step 5 :** commit `content: compositions des grandes stations, créature tardive (#205, D-291)`.
+- [ ] **Step 5 :** commit `content: compositions des grandes stations, créature tardive (#205, D-292)`.
 
 ### Task 8 : contrôles structurels
 
@@ -475,7 +475,7 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
 - [ ] **Step 2 :** `npx vitest run tools/verifier-station.test.ts tools/publier-grandes.test.ts` → FAIL.
 - [ ] **Step 3 :** implémentation ; puis `npm run publier:grandes` (en arrière-plan, long) pour remplir `grandes-publiees.ts`.
 - [ ] **Step 4 :** tests → PASS ; `npm run check:stations` et `npm run check:sortie` verts ; temps relevés.
-- [ ] **Step 5 :** commit `tools, content: preuve et liste des grandes stations publiées (#205, D-302)`.
+- [ ] **Step 5 :** commit `tools, content: preuve et liste des grandes stations publiées (#205, D-303)`.
 
 ### Task 10 : bruits de station
 
@@ -582,7 +582,7 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
 
 **Files:**
 - Modify:
-  - `docs/03-decisions.md` : D-289 à D-303, D-276 et D-279 validées, lignes « Modifiée par » et « Précisée par », index, date ;
+  - `docs/03-decisions.md` : D-290 à D-304, D-276 et D-279 validées, lignes « Modifiée par » et « Précisée par », index, date ;
   - `docs/06-contrats.md` : Q-204 à Q-219, prochain numéro ;
   - `docs/13-morceaux-lancement.md` : §3 déclarations, §7 mesures de la livraison 1 ;
   - `docs/14-carte.md` : §5.3 à §5.6, GE-08, GE-13, libellé de D-208 ;
@@ -596,11 +596,11 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
 - [ ] **Step 1 :** entrées de décision au format du journal (exemple D-280, `03:2257-2271`), réponses du porteur mot pour mot (annexe A de la spec).
 - [ ] **Step 2 :** `npm run check:links` vert.
 - [ ] **Step 3 :** galerie générée, relue.
-- [ ] **Step 4 :** commit `docs: décisions et documents des grandes stations, livraison 1 (#205, #206, D-289 à D-303)`.
+- [ ] **Step 4 :** commit `docs: décisions et documents des grandes stations, livraison 1 (#205, #206, D-290 à D-304)`.
 
 ### Task 15 : vérification complète de la livraison 1
 
 - [ ] **Step 1 :** `npm run verify` → vert (lint, types, imports, liens, tests, `check:texts`, `check:stations`, `check:sortie`).
 - [ ] **Step 2 :** relecture des mesures (tâches 9 et 13) et des captures (tâche 12) par l'agent principal ; écarts au critère du §11 listés pour le porteur.
-- [ ] **Step 3 :** pousser la branche, ouvrir la PR en brouillon (D-303), avec galerie, mesures et mention « validation humaine requise ».
+- [ ] **Step 3 :** pousser la branche, ouvrir la PR en brouillon (D-304), avec galerie, mesures et mention « validation humaine requise ».
 - [ ] **Step 4 :** demander au porteur l'essai sur téléphone s'il le souhaite. Livraison 2 ensuite, sur la même branche, avec son propre plan.

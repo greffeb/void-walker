@@ -341,7 +341,7 @@ describe('déclarations des grandes stations (spec 2026-10-18 §6.1, §6.3)', ()
     expect(Object.keys(morceau.grande?.accueillantes ?? {}).filter((piece) => speciales.has(piece))).toEqual([]);
   });
 
-  it('seuls les chemins déclarent la nature de leur obstacle (D-291)', () => {
+  it('seuls les chemins déclarent la nature de leur obstacle (D-292)', () => {
     for (const { morceau } of declares) expect(morceau.grande?.obstacle !== undefined).toBe(morceau.famille === 'chemin');
   });
 });

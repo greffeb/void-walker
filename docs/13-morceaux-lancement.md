@@ -1,6 +1,6 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; conception des grandes stations habitées approuvée par D-289 à D-303 (§7.10).
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; conception des grandes stations habitées approuvée par D-290 à D-304 (§7.10).
 > **Mise à jour :** 2026-10-19.
 > **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 fusionnée (PR #179) ; L6 fusionnée (PR #189) ; grandes stations, livraison 1 proposée par sa PR (§7.10). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les huit autres morceaux.
 
@@ -204,7 +204,7 @@ Règles retranscrites dans C-02 §5, C-03 §5.5 et C-04 §3.2. Les textes viendr
 
 **Ordre :** #105 est clos ; L0 et L1 peuvent commencer tout de suite ; L2 attend la table des paires (L0) et le vérifieur (L1) ; puis L3, L4, L5 et L6. L6 touche au moteur, et L2 aussi si l'identifiant de station ne tient pas dans le champ « monde » de la sauvegarde (changer le format de sauvegarde est en zone rouge, C-10 §6). Une livraison qui touche au moteur ne se mène pas en même temps qu'une autre issue moteur ; le travail du lore n'en fait partie que si sa conception demande au moteur plus que « regarder » (D-243, limite).
 
-**Hors #106 :** annexes, boucles et grandes stations (D-289 à D-294, livraison 1 des grandes stations, §7.10) ; objets placés hors de leur morceau et salles de butin (D-295, D-296, livraison 2) ; documents du lore (D-298 à D-300, livraison 3) ; créature placée dans le dernier chemin ou le final des grandes stations (D-291, qui tranche la réserve de D-241) ; écrans de fin de défaite et d'évacuation (D-281 à D-286, #208) ; retrait automatique d'une validation quand un morceau change (D-100).
+**Hors #106 :** annexes, boucles et grandes stations (D-290 à D-295, livraison 1 des grandes stations, §7.10) ; objets placés hors de leur morceau et salles de butin (D-296, D-297, livraison 2) ; documents du lore (D-299 à D-301, livraison 3) ; créature placée dans le dernier chemin ou le final des grandes stations (D-292, qui tranche la réserve de D-241) ; écrans de fin de défaite et d'évacuation (D-281 à D-286, #208) ; retrait automatique d'une validation quand un morceau change (D-100).
 
 ### 7.2 Textes par couches
 
@@ -676,9 +676,9 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 
 ### 7.10 Grandes stations, livraison 1 (#205, #206)
 
-> **Statut :** proposé par la PR des grandes stations, en brouillon (D-303, zone orange) ; **validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-301). Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md), décisions D-289 à D-303. Les clés et le butin (livraison 2), puis le lore (livraison 3) viennent sur la même branche.
+> **Statut :** proposé par la PR des grandes stations, en brouillon (D-304, zone orange) ; **validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-302). Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md), décisions D-290 à D-304. Les clés et le butin (livraison 2), puis le lore (livraison 3) viennent sur la même branche.
 
-**Ce que la livraison 1 apporte.** Le catalogue de quinze pièces sans obstacle (D-292), leurs descriptions calmes, la pose en trois temps et les portes de boucle (14 §5.3), la piste de la créature et ses traces (D-293), les bruits de station avant la rencontre (D-297), les identifiants versionnés `g1-…` et la liste publiée (D-302). NOUVELLE PARTIE et l'adresse nue tirent une grande station publiée ; les petites stations restent jouables par leur identifiant.
+**Ce que la livraison 1 apporte.** Le catalogue de quinze pièces sans obstacle (D-293), leurs descriptions calmes, la pose en trois temps et les portes de boucle (14 §5.3), la piste de la créature et ses traces (D-294), les bruits de station avant la rencontre (D-298), les identifiants versionnés `g1-…` et la liste publiée (D-303). NOUVELLE PARTIE et l'adresse nue tirent une grande station publiée ; les petites stations restent jouables par leur identifiant.
 
 **Déclarations des morceaux** (spec §6.1). Chaque morceau déclare les pièces où une annexe peut s'accrocher, avec leur catégorie (GE-08), et ses coupes : la liaison qui franchit son obstacle. Une coupe sépare deux zones ; une porte de boucle ne relie jamais deux zones (GE-13). Toute cloison verrouillée est aussi une coupe.
 
@@ -702,7 +702,7 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 - les sanitaires attendent un couloir qui dessert des couchettes, puis se posent aussitôt (GE-10) ;
 - un couloir du catalogue se pose avec ses deux premières pièces, sinon ailleurs (24 essais au plus) ;
 - la porte d'une annexe est ouverte, fermée ou tirée au sort selon la pièce ;
-- une graine où aucune porte de boucle ne trouve sa place n'a pas de plan (D-294).
+- une graine où aucune porte de boucle ne trouve sa place n'a pas de plan (D-295).
 
 **Assemblage**, mesures locales sans assertion de temps (`tools/grandes.test.ts`), sur 3 graines par grande composition :
 - sur 864 graines (3 par grande composition), 439 plans (50,8 %), chacun avec une à trois portes de boucle (1,3 en moyenne) ;
@@ -710,7 +710,7 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 
 Écart au critère de la conception (§11, « au moins 95 % trouvent un plan ») : une graine sur deux seulement donne un plan, parce qu'une station sans porte de boucle n'en a pas. Le jeu ne tire que des stations publiées, qui ont toutes un plan ; la publication saute les graines sans plan sans les compter. Seize nouvelles poses par graine donnaient 94 % de plans en chaîne et 81 % en ordre libre, mais jusqu'à 420 ms d'assemblage sur PC, donc une à deux secondes sur téléphone au lancement d'une partie.
 
-**Publication** (`npm run publier:grandes`, D-302) :
+**Publication** (`npm run publier:grandes`, D-303) :
 - 542 stations publiées sur 288 compositions, dont 171 en ordre libre (32 %) : deux graines prouvées au plus par composition, huit essais de preuve au plus, les graines sans plan sautées sans être comptées ;
 - 182 graines essayées n'ont pas été prouvées dans le plafond de la recherche ;
 - 2 626 s sur 14 processus ; les témoins (`tools/grandes-temoins.json`) sont rejoués par `check:stations`.
@@ -739,11 +739,11 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 | Défaites dans la seconde moitié de la station | 74,1 % | 70,8 % |
 | Créature hors jeu | 9,1 % | 17,0 % |
 
-Le profil averti (B4) évacue dans 13,5 % des grandes stations et 26,9 % des petites : lire les traces ne l'aide pas encore. Sur les petites stations, B2 évacuait dans 29,5 % des parties avant l'adaptation des bots (spec §15). La cible de la conception, 25 à 35 % pour B2 avec le butin (D-290, D-296), se mesurera en livraison 2.
+Le profil averti (B4) évacue dans 13,5 % des grandes stations et 26,9 % des petites : lire les traces ne l'aide pas encore. Sur les petites stations, B2 évacuait dans 29,5 % des parties avant l'adaptation des bots (spec §15). La cible de la conception, 25 à 35 % pour B2 avec le butin (D-291, D-297), se mesurera en livraison 2.
 
 **Bots adaptés** (spec §11) : une pièce visitée n'est revue que si un passage ou un geste y était impossible ; le plafond passe à 600 actions ; le profil B4, averti, regarde chaque pièce et hésite avant d'aller plus loin depuis une pièce marquée d'une trace forte, tant qu'il n'a pas rencontré la créature. Les parties abandonnées au plafond sont presque toutes des bots perdus dans les énigmes de l'ordre libre, sans rencontre : la station est prouvée, le bot ne trouve pas le geste. Le tableau du rythme les sépare des parties finies.
 
-**Alerte au porteur** (spec §10, D-297). Les deux seuils sont dépassés. Pour B2, la rencontre arrive à la 113ᵉ action en médiane (seuil : environ 45), à 93 % de la partie ; 10,8 % des parties finies n'ont aucune rencontre (seuil : 10 %) ; plus d'une évacuation sur deux se fait sans jamais croiser la créature. La cause est structurelle : la créature attend dans le dernier chemin ou le final (D-291) et ne bouge pas avant le contact (D-297), et la grande station allonge l'exploration qui la précède. La décision revient au porteur, avec #217 : une ronde, ou par exemple un bruit fort qui la met en route à mi-parcours.
+**Alerte au porteur** (spec §10, D-298). Les deux seuils sont dépassés. Pour B2, la rencontre arrive à la 113ᵉ action en médiane (seuil : environ 45), à 93 % de la partie ; 10,8 % des parties finies n'ont aucune rencontre (seuil : 10 %) ; plus d'une évacuation sur deux se fait sans jamais croiser la créature. La cause est structurelle : la créature attend dans le dernier chemin ou le final (D-292) et ne bouge pas avant le contact (D-298), et la grande station allonge l'exploration qui la précède. La décision revient au porteur, avec #217 : une ronde, ou par exemple un bruit fort qui la met en route à mi-parcours.
 
 **Reporté, avec l'accord de la conception :** `check:sortie` sur les grandes stations (livraison 2, où la caisse portable et les clés déplacées touchent au signal) ; clés dispersées et butin (livraison 2) ; bible, documents et fiche document (livraison 3).
 

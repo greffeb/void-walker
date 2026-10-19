@@ -1,6 +1,6 @@
 # Grandes stations habitées : catalogue, clés dispersées, butin et lore (#202, #205, #206, #207, #209) — conception
 
-> **Statut :** conception relue par quatre relecteurs indépendants (constructeur, code, game design, décisions) ; réponses du porteur du 2026-10-18 et du 2026-10-19 intégrées (§3, annexe A). À approuver par le porteur, avec les deux choix de l'agent D-302 et D-303 et la validation de D-276 et D-279 (§3.3).
+> **Statut :** conception relue par quatre relecteurs indépendants (constructeur, code, game design, décisions) ; réponses du porteur du 2026-10-18 et du 2026-10-19 intégrées (§3, annexe A). Approuvée par le porteur : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » Décisions renumérotées D-290 à D-304 le 2026-10-19, D-289 étant prise par #225 : les deux choix de l'agent cités, D-302 et D-303, sont devenus D-303 et D-304.
 > **Zones :** orange pour le moteur, l'assembleur, le format des morceaux, le vérifieur, l'appli et chaque seuil d'équilibrage (montré au porteur avec ses mesures) ; verte pour les textes, les documents et la bible. Le format de sauvegarde ne change pas, et un test le prouve ; sinon, zone rouge et essai manuel.
 > **Sources :** issues #202, #205, #206, #207, #209 ; D-008, D-014, D-016, D-031, D-046, D-048, D-051, D-068, D-078, D-079, D-083, D-084, D-098, D-100, D-111, D-119, D-161, D-162, D-169, D-172, D-205 à D-208, D-241 à D-245, D-249, D-252 à D-260, D-265, D-268 à D-270, D-275 à D-281 ; C-02, C-05, C-06, C-07, C-08, C-10 ; 12 §1, §3, §4 ; 13 §3, §7 ; 14 §5 ; maquette `docs/maquette/documents.html`.
 
@@ -66,69 +66,69 @@ La poursuite elle-même existe déjà dans le code. Après le premier contact, l
 
 Questions posées une à une, en langage courant, avant de coder (Q-204 à Q-219, réponses mot pour mot en annexe A). À consigner dans `docs/03-decisions.md` sous le titre « Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209) », avec les lignes « Modifiée par » ou « Précisée par » sur chaque ancienne entrée.
 
-**D-289 Taille et forme.**
+**D-290 Taille et forme.**
 - 22 à 28 pièces dessinées : les morceaux, plus **6 à 10 pièces du catalogue** selon leur poids (§4.1).
 - Trois morceaux de chemin plus le final.
 - Une seule taille au tirage : les petites stations sortent de NOUVELLE PARTIE.
 - Durée visée : 15 à 20 minutes de découverte, 25 à 30 avec de nouveaux obstacles plus tard (#203).
 - Modifie : D-119, D-172, D-249, D-255, D-260, D-265 (compte des compositions), C-08 §5. Précise : D-008, D-242 (la condition est jugée remplie par le porteur, sans durée mesurée sur téléphone), D-270.
 
-**D-290 Difficulté.** Un joueur qui découvre meurt deux ou trois fois sur ses quatre premières parties. La difficulté actuelle convient. Le butin compense l'exposition plus longue ; il ne rend pas la partie plus facile. Précise : D-264.
+**D-291 Difficulté.** Un joueur qui découvre meurt deux ou trois fois sur ses quatre premières parties. La difficulté actuelle convient. Le butin compense l'exposition plus longue ; il ne rend pas la partie plus facile. Précise : D-264.
 
-**D-291 Rythme : créature tardive, chemins utiles.**
+**D-292 Rythme : créature tardive, chemins utiles.**
 - La place de la créature est tirée dans le **dernier chemin ou le final**.
 - Un chemin dont le seul obstacle est la créature (M-04, M-05, M-07, M-10) n'est tiré que s'il l'accueille : c'est alors le dernier chemin.
 - Les autres chemins sont des obstacles matériels (M-01 feu, M-02 grille, M-08 vide, M-09 gravité).
 - Précise : D-161, D-162. Tranche la réserve de D-241.
 
-**D-292 Catalogue.**
+**D-293 Catalogue.**
 - Station de transit et de fret, quinze pièces environ, par catégorie (§5).
 - Pas d'objet de décor à toucher.
 - La créature ne part jamais d'une pièce du catalogue.
 - Précise : GE-08, D-206, D-214.
 
-**D-293 Traces en piste.** Les pièces sur le trajet de la créature, de la zone de fret jusqu'à son repaire, portent des traces de plus en plus marquées vers lui. Une pièce calme n'est pas forcément sûre (§5.4). Remplace la règle du rayon proposée le 2026-10-18.
+**D-294 Traces en piste.** Les pièces sur le trajet de la créature, de la zone de fret jusqu'à son repaire, portent des traces de plus en plus marquées vers lui. Une pièce calme n'est pas forcément sûre (§5.4). Remplace la règle du rayon proposée le 2026-10-18.
 
-**D-294 Boucles.** Une à trois portes de boucle par station, dès ce lot. Elles ne passent jamais à travers un obstacle ; ce sont des portes ordinaires, que la créature alertée enfonce. Précise : GE-13, D-205, D-207.
+**D-295 Boucles.** Une à trois portes de boucle par station, dès ce lot. Elles ne passent jamais à travers un obstacle ; ce sont des portes ordinaires, que la créature alertée enfonce. Précise : GE-13, D-205, D-207.
 
-**D-295 Clés dispersées.**
+**D-296 Clés dispersées.**
 - Les objets portables qui résolvent un obstacle sont posés dans une pièce plausible, accessible avant leur obstacle, à distance bornée.
 - Leur pièce d'origine reste un tirage possible.
 - La caisse devient portable et encombrante dans les grandes stations, et se pousse sous la grille.
 - Modifie : C-02 (tableau des objets), D-051, D-083, D-169, D-258, D-269. Tranche : D-244.
 
-**D-296 Butin.**
+**D-297 Butin.**
 - Une trousse de soin ou une burette de réserve, dans deux ou trois salles de butin en impasse, zéro ou un objet chacune.
 - Rien dans l'interface ne les signale.
 - La station reste prouvée sans le butin.
 - La table est ouverte aux objets futurs.
 - Précise : D-041, D-051, D-084, D-185.
 
-**D-297 Créature avant le contact.** Elle reste immobile avant le premier contact dans ce lot. On mesure le temps sans menace dans les grandes stations, puis on décide d'une ronde chiffres en main (#217). Garde : D-048.
+**D-298 Créature avant le contact.** Elle reste immobile avant le premier contact dans ce lot. On mesure le temps sans menace dans les grandes stations, puis on décide d'une ronde chiffres en main (#217). Garde : D-048.
 
-**D-298 Univers.**
+**D-299 Univers.**
 - Cadre commun (§8.1) et histoire de la créature (§8.2).
 - Pas de grand mystère sur plusieurs parties.
 - Précise : D-016, D-030, D-031, D-032, D-046, D-243.
 
-**D-299 Documents.**
+**D-300 Documents.**
 - Cinq supports, une à cinq phrases, environ un document toutes les trois ou quatre pièces, indices vrais.
 - **Chiffres permis dans les documents seulement** (« ça fait plus log technique »).
 - **Indices à mots couverts sur un passage caché**, dans le même morceau.
 - Exception à C-07 §2, C-07 §6 et C-06 §5 (§8.4) ; exception à 12 §1.5. D-111 ne s'applique pas aux documents.
 
-**D-300 Affichage.** Fiche document dans la bulle, variante B de la maquette. Précise : 12 §3.5, §4.4.
+**D-301 Affichage.** Fiche document dans la bulle, variante B de la maquette. Précise : 12 §3.5, §4.4.
 
-**D-301 Validations.**
+**D-302 Validations.**
 - Les 9 validations sur téléphone restent valables pour les petites stations.
 - Chaque morceau doit être joué au moins une fois dans une grande station, au fil des essais du porteur, avant que les grandes stations soient validées.
 - Précise : D-098, D-100.
 
 ### 3.2 Choix de l'agent, à valider avec ce document
 
-**D-302 Preuve par station publiée.** Les grandes stations sont prouvées une à une, puis publiées dans une liste versionnée. Le jeu ne tire que dans cette liste (§7). Modifie : la limite de D-207 (contrôle structurel de GE-13 en plus de la preuve de jeu), GE-13 (on ne pose pas une porte qui contournerait un obstacle, au lieu de la faire fermer par l'incident).
+**D-303 Preuve par station publiée.** Les grandes stations sont prouvées une à une, puis publiées dans une liste versionnée. Le jeu ne tire que dans cette liste (§7). Modifie : la limite de D-207 (contrôle structurel de GE-13 en plus de la preuve de jeu), GE-13 (on ne pose pas une porte qui contournerait un obstacle, au lieu de la faire fermer par l'incident).
 
-**D-303 Une branche, trois livraisons, une PR.**
+**D-304 Une branche, trois livraisons, une PR.**
 - Une seule suite de travaux sur le moteur, en trois livraisons sur une même branche, dans une même PR, comme pour la carte (#97). La PR est ouverte en brouillon dès la livraison 1, pour un essai sur téléphone si le porteur le souhaite.
 - La fusion n'a lieu qu'à la fin : `main` ne voit jamais une grande station qui changerait ensuite sous le même identifiant (§12).
 
@@ -152,7 +152,7 @@ Une grande station se compose ainsi :
 
 **Taille.** Les morceaux pèsent de 11 à 22 pièces dessinées (vestibule 1 ; M-02 et M-04 2 ; M-01, M-05 et M-03 3 ; M-07 et M-06 4 ; M-08, M-09 et M-10 5 ; carrefour 2). Une station compte donc de 21 à 28 pièces dessinées, et la plupart entre 22 et 26.
 
-**Créature** (D-291). Sa place est tirée parmi celles du troisième chemin et du final. Quand le troisième chemin est de type créature, elle est dans sa pièce.
+**Créature** (D-292). Sa place est tirée parmi celles du troisième chemin et du final. Quand le troisième chemin est de type créature, elle est dans sa pièce.
 
 **Deux formes** :
 - **en chaîne** : vestibule, chemin 1, chemin 2, chemin 3, final ;
@@ -244,7 +244,7 @@ Une description calme peut porter un bruit de station lointain : la ventilation 
 
 Les traces et le pillage ne sont pas dans la description de la pièce. Ce sont des **phrases à part**, ajoutées à la description par la station (§5.4, §6.6). On n'écrit pas trois fois chaque pièce, et une autre menace apportera ses propres traces.
 
-### 5.4 Les traces suivent la piste (D-293)
+### 5.4 Les traces suivent la piste (D-294)
 
 **La piste.** L'assembleur trace le plus court chemin entre une **origine** et le repaire, la place de départ de la créature :
 - l'origine est une pièce de fret (plateforme de fret si elle est posée) ;
@@ -429,7 +429,7 @@ Ces données sont des champs facultatifs, absents des petites stations.
 
 Le contenu continue de n'importer que les types du moteur (`tools/check-imports.ts`) : le catalogue reçoit l'assembleur par injection, comme aujourd'hui.
 
-## 7. Preuve et publication (choix de l'agent, D-302)
+## 7. Preuve et publication (choix de l'agent, D-303)
 
 ### 7.1 Pourquoi changer de méthode
 
@@ -499,7 +499,7 @@ Une retouche de texte ne relance pas les preuves ; les erreurs de rendu restent 
 - elle n'entre jamais dans le feu ;
 - une porte fermée ne l'arrête pas longtemps une fois qu'elle vous cherche (écrit seulement si D-279 est validée).
 
-**Quatre étapes** : premiers signes, disparition, confinement, derniers mots. Chaque document de la menace en porte une. Ils sont posés **dans l'ordre du trajet** : premières étapes près du réveil, dernières près de la fin. L'histoire suit le joueur, et comme la créature est placée tard (D-291), les derniers mots se lisent près de son repaire. La proximité, elle, est dite par les traces.
+**Quatre étapes** : premiers signes, disparition, confinement, derniers mots. Chaque document de la menace en porte une. Ils sont posés **dans l'ordre du trajet** : premières étapes près du réveil, dernières près de la fin. L'histoire suit le joueur, et comme la créature est placée tard (D-292), les derniers mots se lisent près de son repaire. La proximité, elle, est dite par les traces.
 
 Une autre menace (#216, #219) aura plus tard sa propre histoire, construite de la même façon, dans le même cadre.
 
@@ -546,7 +546,7 @@ Chaque document a son propre nom de puce, et une station n'en montre jamais deux
 - une tentative sur un obstacle (couche morceau) ;
 - la place d'une clé ou d'une trousse : la pièce est remplie à l'assemblage avec la vraie pièce, lettre comprise. C'est vrai par construction.
 
-**Exceptions décidées par le porteur** (D-299) :
+**Exceptions décidées par le porteur** (D-300) :
 - **Passage caché.** Un indice est permis **à mots couverts, dans le morceau qui le porte** (exception à C-07 §2 et C-06 §5). Par exemple, pour M-05 : « Quand le hall est encombré, ceux du tri ont leurs raccourcis. »
 - **Pièce hors de vue.** Une note de rangement nomme une pièce hors de vue et ce qu'elle contient (exception à C-06 §5). C'est la parole d'un équipier, vraie au moment de l'assemblage. La lecture n'ajoute rien à ce que sait le passager : aucune connaissance, aucune carte (C-07 §6).
 
@@ -565,7 +565,7 @@ Chaque document a son propre nom de puce, et une station n'en montre jamais deux
 | Menace | phrases de trace, documents de la menace | « station » (« à bord », « ici ») |
 | Morceaux | documents des morceaux, variantes calmes | tout mot réservé |
 
-**Chiffres.** Ils sont permis dans le corps des documents seulement : heures, dates, codes, numéros (D-299). Ailleurs, la règle « aucun chiffre à l'écran » reste (12 §1.5). Les tests et les captures épargnent le corps d'un document, et lui seul.
+**Chiffres.** Ils sont permis dans le corps des documents seulement : heures, dates, codes, numéros (D-300). Ailleurs, la règle « aucun chiffre à l'écran » reste (12 §1.5). Les tests et les captures épargnent le corps d'un document, et lui seul.
 
 **Écriture.** L'assistant principal écrit lui-même la bible, les documents, les descriptions du catalogue, les traces, les phrases de pillage et les bruits de station (D-243). Puis un relecteur indépendant relit la qualité de l'écriture et la cohérence avec la bible (D-116).
 
@@ -590,7 +590,7 @@ Le seul trou permis est la pièce d'une note de rangement (rôle `piece`, formes
 
 ## 9. Interface
 
-### 9.1 Fiche document dans la bulle (D-300)
+### 9.1 Fiche document dans la bulle (D-301)
 
 C'est la variante B de `docs/maquette/documents.html`. On touche la puce du document et la bulle s'ouvre, comme pour tout objet. La fiche montre :
 - en haut, le support en capitales et la ligne « où » ;
@@ -628,7 +628,7 @@ Ni les clés, ni le butin, ni les documents ne portent de marque spéciale dans 
 
 ## 10. Créature et tension
 
-**Les règles de la créature ne changent pas** (D-297). Elle part d'une place déclarée par un morceau, désormais tirée tard (D-291). Elle attend sans ronde avant le premier contact, puis poursuit, écoute, fouille et enfonce les portes (D-276, D-279).
+**Les règles de la créature ne changent pas** (D-298). Elle part d'une place déclarée par un morceau, désormais tirée tard (D-292). Elle attend sans ronde avant le premier contact, puis poursuit, écoute, fouille et enfonce les portes (D-276, D-279).
 
 La tension du premier temps repose sur :
 - la piste et ses traces (§5.4) ;
@@ -683,18 +683,18 @@ Une galerie de plans rendus est jointe à la PR.
 
 **Téléphone :**
 - le porteur joue des grandes stations ; la durée d'écran allumé (D-280) est relevée par les rapports, avec une cible de 15 à 20 minutes en découverte ;
-- chaque morceau est joué au moins une fois dans une grande station (D-301) ;
+- chaque morceau est joué au moins une fois dans une grande station (D-302) ;
 - le porteur donne son avis sur l'écriture ;
 - la validation est signée, jamais cochée par un agent (D-001, C-10).
 
-## 12. Livraisons (choix de l'agent, D-303)
+## 12. Livraisons (choix de l'agent, D-304)
 
 Une seule branche, une seule PR, trois livraisons dans l'ordre. Jamais deux suites de travaux sur le moteur en parallèle (00, 13 §7, 14 §7).
 
 1. **Grandes stations** (#205, #206) :
    - famille annexe, déclarations des morceaux (accueil, coupes, côtés), segments ;
    - catalogue (tuiles, descriptions calmes, écrites par l'assistant principal) ;
-   - pose en trois temps, boucles, composition D-291 ;
+   - pose en trois temps, boucles, composition D-292 ;
    - piste, traces, bruits de station ;
    - identifiants versionnés, liste publiée et preuve, cache refondu ;
    - carte et dock ;
@@ -710,16 +710,16 @@ La PR est ouverte en brouillon dès la livraison 1. La version du générateur n
 
 **Ce qui est préservé :**
 - les petites stations, leurs sauvegardes et leurs rapports (§4.2) ;
-- les 9 validations signées, pour les petites stations (D-301).
+- les 9 validations signées, pour les petites stations (D-302).
 
-**Ce que le porteur doit refaire.** Chaque morceau doit être joué au moins une fois dans une grande station (D-301).
+**Ce que le porteur doit refaire.** Chaque morceau doit être joué au moins une fois dans une grande station (D-302).
 
 **Décisions et contrats modifiés ou précisés.** Chaque ancienne entrée reçoit sa ligne « Modifiée par » ou « Précisée par ».
 - Décisions : D-008, D-041, D-051, D-083, D-098, D-100, D-111, D-119, D-161, D-162, D-169, D-172, D-177, D-185, D-206, D-207, D-214, D-241, D-242, D-244, D-249, D-255, D-258, D-260, D-264, D-265, D-269, D-270.
 - Contrats et règles : C-02 (tableau des objets), C-03 §4.3 (avec D-279), C-06 §5, C-07 §2 et §6, C-08 §5 et GP-01, GE-08, GE-13, 12 §1.5.
 
 **Docs à mettre à jour.**
-- 03 : D-289 à D-303, statut de D-276 et D-279, index, date ;
+- 03 : D-290 à D-304, statut de D-276 et D-279, index, date ;
 - 06 : questions Q-204 à Q-219, et correction du « prochain numéro Q-197 », périmé ;
 - 13 : §3 (fiches de M-01, M-02, M-03, M-04, M-06, M-08), §7.1, §7.2, liste « hors #106 » ;
 - 14 : §5.3 à §5.6, liste GE-08, GE-13 ;
@@ -764,7 +764,7 @@ Les chiffres ci-dessous sont des mesures locales des lecteurs, à consigner dans
 
 - **Coût de la preuve** avec des clés éloignées. La parade est la preuve guidée par témoin ; à mesurer dès la livraison 1 avec les annexes.
 - **Temps de CI.** Il est réglé par la taille de la liste et par le cache refondu.
-- **Variété réduite par D-291.** Au moins deux obstacles matériels sur quatre possibles reviennent souvent, jusqu'aux nouveaux morceaux de #203.
+- **Variété réduite par D-292.** Au moins deux obstacles matériels sur quatre possibles reviennent souvent, jusqu'aux nouveaux morceaux de #203.
 - **Durée insuffisante.** Si la découverte reste sous 15 minutes, le levier suivant est #203 (nouveaux obstacles), pas plus de couloirs.
 - **Calme du premier temps** sans ronde : mesuré, alerte au porteur, puis #217.
 - **Lisibilité de la carte** à 28 pièces sur téléphone.

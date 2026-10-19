@@ -369,7 +369,7 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     if ('refus' in entree) throw new Error(entree.refus);
     return entree;
   };
-  /** Grande station que donne `tirerGrande` pour un hasard parti de `depart` (D-289 : NOUVELLE PARTIE tire une grande station). */
+  /** Grande station que donne `tirerGrande` pour un hasard parti de `depart` (D-290 : NOUVELLE PARTIE tire une grande station). */
   const tiree = (depart: number): string => {
     const entree = CATALOGUE.tirerGrande(hasardDepuis(depart));
     if ('refus' in entree) throw new Error(entree.refus);

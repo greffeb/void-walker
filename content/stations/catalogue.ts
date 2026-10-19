@@ -588,7 +588,7 @@ export interface Catalogue {
   /** Grandes stations publiées et prouvées : identifiants complets `g1-…-<graine>` (spec §7.2). */
   readonly publiees: readonly string[];
   /**
-   * NOUVELLE PARTIE (D-289) : pile ou face sur le final (D-253), une station sur trois en ordre libre (D-270), puis une grande
+   * NOUVELLE PARTIE (D-290) : pile ou face sur le final (D-253), une station sur trois en ordre libre (D-270), puis une grande
    * station publiée au hasard ; `composition` force une grande composition.
    */
   tirerGrande(hasard: () => number, composition?: string): EntreeMonde | Refus;
