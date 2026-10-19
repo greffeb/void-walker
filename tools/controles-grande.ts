@@ -14,6 +14,10 @@ const SERVIES_MAX = 4;
 const CHEMIN_MIN = 3;
 /** Une trace est forte à deux portes ou moins du repaire (spec §5.4). */
 const TRACE_FORTE = 2;
+/** Champs permis à un butin (spec §6.6) : ses seuls effets sont ses actions, aucune qualité passive. */
+const CHAMPS_BUTIN = new Set(['id', 'nom', 'piece', 'butin', 'soin', 'glissant']);
+/** La burette de réserve rendrait triviale la coupe de M-04 si on l'atteignait avant elle (spec §6.6). */
+const COUPE_DU_GLISSANT = 'm-04';
 
 const estPorteAnnexe = (liaison: DefLiaison): boolean => /^l-a\d+-/.test(liaison.id);
 /** Annexe du catalogue d'une pièce d'annexe : 'a3-couchettes/p-piece' → 'a-couchettes'. */
@@ -123,6 +127,74 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
     if (sansElle < CHEMIN_MIN) ecarts.push(`Boucle ${id} : cycle de ${sansElle + 1} pièces, moins de quatre.`);
   }
 
+  // Clés dispersées (spec §6.5) : dans leur pièce d'origine, ou dans une annexe d'une de leurs étiquettes, dans la zone avant de
+  // leur morceau ou de celui d'où part son entrée ; en ordre libre, une branche dans la zone du vestibule, sous elle-même ou
+  // sous le carrefour.
+  const enChaine = (piece: string): string[] => {
+    const chaine: string[] = [];
+    for (let haut = accrocheDe.get(piece); haut !== undefined; haut = accrocheDe.get(haut)) chaine.push(haut);
+    return chaine;
+  };
+  const etiquettesAnnexe = (piece: string): readonly string[] => (pieces.get(piece)?.forme === undefined ? [] : (annexeDe(piece)?.annexe?.etiquettes ?? []));
+  const zone = (piece: string): number[] => {
+    const segment = pieces.get(piece)?.segment;
+    return segment === undefined ? [] : [segment];
+  };
+  const zonesAvant = (morceau: DefMorceau | undefined): number[] => morceau?.grande?.avant.flatMap((piece) => zone(prefixer(morceau.id, piece))) ?? [];
+  const carrefour = station.morceaux.find((morceau) => morceau.famille === 'carrefour');
+  // Pièces d'où l'on apporte un objet large à l'intérieur d'une capsule, par des passages ni étroits, ni vides, ni hauts, ni cachés.
+  const larges = monde.liaisons.filter((liaison) => liaison.etroite !== true && liaison.gouffre !== true && liaison.haute === undefined && liaison.cachee === undefined);
+  const apportables = new Set(monde.objets.flatMap((objet) => (objet.capsule === undefined ? [] : [...distances(objet.capsule.interieur, larges).keys()])));
+  const cles = station.morceaux.flatMap((morceau, rang) => {
+    const accroche = station.accroches?.find((candidate) => candidate.vers === morceau.id);
+    const precedent = accroche === undefined ? station.morceaux[rang - 1] : station.morceaux.find((candidat) => candidat.id === accroche.depuis);
+    const branche = carrefour !== undefined && accroche?.depuis === carrefour.id && accroche.piece === carrefour.entree;
+    const zones = branche ? zone(monde.depart) : [...zonesAvant(morceau), ...zonesAvant(precedent)];
+    return Object.entries(morceau.grande?.cles ?? {}).flatMap(([id, cle]) => {
+      const objet = monde.objets.find((candidat) => candidat.id === prefixer(morceau.id, id));
+      const origine = morceau.objets.find((candidat) => candidat.id === id)?.piece;
+      if (objet === undefined || origine === undefined) {
+        ecarts.push(`Clé ${prefixer(morceau.id, id)} absente.`);
+        return [];
+      }
+      const deplacee = objet.piece !== prefixer(morceau.id, origine);
+      if (deplacee) {
+        const racine = enChaine(objet.piece).at(-1) ?? objet.piece;
+        const sousSaBranche = !branche || [morceau.id, carrefour.id].includes(racine.slice(0, racine.indexOf('/')));
+        if (!etiquettesAnnexe(objet.piece).some((etiquette) => cle.etiquettes.includes(etiquette))) ecarts.push(`Clé ${objet.id} dans ${objet.piece} : ni sa pièce d’origine, ni une annexe d’une de ses étiquettes.`);
+        if (!zone(objet.piece).some((segment) => zones.includes(segment)) || !sousSaBranche) ecarts.push(`Clé ${objet.id} dans ${objet.piece}, hors de sa zone permise.`);
+        if (objet.large === true && !apportables.has(objet.piece)) ecarts.push(`Clé large ${objet.id} dans ${objet.piece}, d’où on ne l’apporte pas à la capsule.`);
+      }
+      return [{ objet, morceau: morceau.id, deplacee }];
+    });
+  });
+  const encombrantes = cles.filter((cle) => cle.deplacee && cle.objet.encombrant === true).map((cle) => cle.objet.id);
+  if (encombrantes.length > 1) ecarts.push(`Plus d’une clé encombrante déplacée : ${encombrantes.join(', ')}.`);
+  for (const piece of new Set(cles.map((cle) => cle.objet.piece))) {
+    const morceaux = new Set(cles.filter((cle) => cle.objet.piece === piece).map((cle) => cle.morceau));
+    if (morceaux.size > 1) ecarts.push(`Clés de morceaux différents dans ${piece} : ${[...morceaux].join(', ')}.`);
+  }
+
+  // Butin (spec §6.6) : sans qualité passive, seulement dans une salle de butin, impasse du catalogue d'étiquette butin, garnie ;
+  // une pièce pillée est une salle de butin vide.
+  const salleDeButin = (piece: string): boolean => pieces.get(piece)?.forme === 'impasse' && etiquettesAnnexe(piece).includes('butin');
+  const butins = monde.objets.filter((objet) => objet.butin === true);
+  const coupeDuGlissant = station.morceaux.some((morceau) => morceau.id === COUPE_DU_GLISSANT) ? groupesDeCoupes(station, monde.liaisons).find((groupe) => groupe.nom === COUPE_DU_GLISSANT) : undefined;
+  const sansLaCoupe = coupeDuGlissant === undefined ? undefined : distances(monde.depart, monde.liaisons.filter((liaison) => !coupeDuGlissant.ids.has(liaison.id)));
+  for (const objet of butins) {
+    for (const champ of Object.keys(objet)) if (!CHAMPS_BUTIN.has(champ)) ecarts.push(`Butin ${objet.id} : qualité passive ${champ}.`);
+    if (!salleDeButin(objet.piece) || pieces.get(objet.piece)?.pillee === true) ecarts.push(`Butin ${objet.id} dans ${objet.piece}, hors d’une salle de butin garnie.`);
+    if (objet.glissant !== undefined && sansLaCoupe?.has(objet.piece) === true) ecarts.push(`Butin ${objet.id} dans ${objet.piece} : glissant, atteint sans franchir la coupe de ${COUPE_DU_GLISSANT}.`);
+  }
+  for (const piece of monde.pieces) {
+    if (piece.pillee === true && (!salleDeButin(piece.id) || monde.objets.some((objet) => objet.piece === piece.id))) ecarts.push(`${piece.id} pillée : ni salle de butin du catalogue, ni vide.`);
+  }
+  // La première salle pend à la piste, directement ou par des couloirs du catalogue, dès qu'une impasse de butin sans clé y pend.
+  const salles = new Set([...monde.pieces.filter((piece) => piece.pillee === true).map((piece) => piece.id), ...butins.map((objet) => objet.piece)]);
+  const surLaPiste = (piece: string): boolean =>
+    salleDeButin(piece) && !cles.some((cle) => cle.objet.piece === piece) && enChaine(piece).some((haut) => pieces.get(haut)?.trace !== undefined);
+  if (station.grande?.butin !== undefined && monde.pieces.some((piece) => surLaPiste(piece.id)) && ![...salles].some(surLaPiste)) ecarts.push('Butin : aucune salle de butin accrochée à la piste.');
+
   // Vestibule (D-257) : une seule porte, aucun objet.
   if (monde.liaisons.filter((liaison) => liaison.entre.includes(monde.depart)).length !== 1) ecarts.push('Vestibule : plus d’une porte.');
   if (monde.objets.some((objet) => objet.piece === monde.depart)) ecarts.push('Vestibule : un objet.');
@@ -144,10 +216,11 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
     }
   }
 
-  // Taille (D-290) et noms (NP-04).
+  // Taille (D-290) et noms (NP-04), objets compris.
   const dessinees = monde.pieces.filter((piece) => piece.plan !== undefined).length;
   if (dessinees < PIECES_MIN || dessinees > PIECES_MAX) ecarts.push(`Taille : ${dessinees} pièces dessinées.`);
-  const noms = monde.pieces.map((piece) => textes.noms[piece.nom]?.texte ?? piece.nom);
+  // Deux objets d'une même clé de nom sont une même chose (les deux interrupteurs de gravité de M-09, D-238) : un seul nom.
+  const noms = [...monde.pieces.map((piece) => piece.nom), ...new Set(monde.objets.map((objet) => objet.nom))].map((nom) => textes.noms[nom]?.texte ?? nom);
   for (const nom of new Set(noms)) if (noms.filter((autre) => autre === nom).length > 1) ecarts.push(`Nom affiché en double : ${nom}.`);
   return ecarts;
 }
