@@ -27,7 +27,7 @@ export const PIECES_CATALOGUE: readonly DefMorceau[] = [
   annexe('a-infirmerie', 'cat_infirmerie', 4, 3, { categorie: 'vie', forme: 'impasse', etiquettes: ['soin', 'document', 'butin'], porte: 'fermee' }),
   annexe('a-buanderie', 'cat_buanderie', 4, 3, { categorie: 'vie', forme: 'impasse', etiquettes: ['eau', 'document', 'butin'], porte: 'tiree' }),
   annexe('a-outillage', 'cat_outillage', 4, 3, { categorie: 'technique', forme: 'impasse', etiquettes: ['outillage', 'rangement', 'document'], porte: 'tiree' }),
-  annexe('a-consigne', 'cat_consigne', 4, 3, { categorie: 'technique', forme: 'impasse', etiquettes: ['rangement', 'document', 'butin'], porte: 'fermee' }),
+  annexe('a-consigne', 'cat_consigne', 4, 3, { categorie: 'technique', forme: 'impasse', etiquettes: ['rangement', 'lourd', 'document', 'butin'], porte: 'fermee' }),
   annexe('a-depot', 'cat_depot', 4, 3, { categorie: 'technique', forme: 'impasse', etiquettes: ['rangement', 'lourd', 'document'], porte: 'fermee' }),
   annexe('a-vestiaire', 'cat_vestiaire', 3, 3, { categorie: 'technique', forme: 'impasse', etiquettes: ['securite', 'document'], porte: 'tiree' }),
   annexe('a-ventilation', 'cat_ventilation', 4, 3, { categorie: 'technique', forme: 'impasse', etiquettes: ['outillage', 'document'], porte: 'fermee' }),

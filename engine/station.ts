@@ -26,6 +26,14 @@ export interface DefAnnexe {
   readonly surCouloirDe?: string;
 }
 
+/** Clé déplaçable d'un morceau (spec §6.5) : un objet portable qui résout un obstacle et peut attendre ailleurs que chez lui. */
+export interface DefCle {
+  /** Étiquettes de pièce du catalogue où la clé peut attendre (spec §5.2). */
+  readonly etiquettes: readonly string[];
+  /** Dans une grande station, un appui déplaçable devient portable et encombrant (la caisse, spec §6.5). */
+  readonly portableEnGrande?: true;
+}
+
 /** Déclarations d'un morceau pour les grandes stations (spec §4.2, §6.3) ; jamais recopiées dans le monde. */
 export interface DefGrandeMorceau {
   /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-292) ; absent pour départ, carrefour et final. */
@@ -36,6 +44,8 @@ export interface DefGrandeMorceau {
   readonly avant: readonly string[];
   /** Liaisons intérieures à franchir pour passer d'avant à après ; 'sortie' désigne la porte de sortie du morceau. */
   readonly coupe: readonly string[];
+  /** Clés déplaçables du morceau, par identifiant d'objet non préfixé (spec §6.5). */
+  readonly cles?: Readonly<Record<string, DefCle>>;
 }
 /** Porte de sortie vers le morceau suivant, décrite par le morceau. */
 export type DefPorteSortie = Omit<DefLiaison, 'id' | 'entre' | 'ouverte' | 'plan'>;
@@ -116,6 +126,24 @@ export interface DefStationGrande {
   readonly annexes: number;
   /** Portes de boucle voulues, de 1 à 3 (spec §6.4). */
   readonly boucles: number;
+  /** Butin des salles de butin (spec §6.6) ; absent : aucune salle de butin. */
+  readonly butin?: TableButin;
+}
+
+/** Entrée de la table de butin (spec §6.6) : un objet sans qualité passive, son poids de tirage et sa condition de place. */
+export interface EntreeButin {
+  readonly objet: DefObjet;
+  readonly poids: number;
+  /** Ne se pose que dans un segment situé après la coupe de ce morceau, s'il est dans la station (la burette, après M-04). */
+  readonly apresCoupeDe?: string;
+}
+
+/** Table de butin du contenu : entrées pondérées, poids de la salle vide, nombre de salles de butin (bornes comprises). */
+export interface TableButin {
+  readonly entrees: readonly EntreeButin[];
+  /** Poids de la salle vide, dans le même tirage que les entrées. */
+  readonly vide: number;
+  readonly salles: readonly [number, number];
 }
 
 export type ResultatAssemblage =
@@ -148,6 +176,12 @@ export function validerMorceau(morceau: DefMorceau): string[] {
       if (!pieces.has(piece)) erreurs.push(`${morceau.id} : pièce de grande station inconnue ${piece}.`);
     }
     for (const liaison of morceau.grande.coupe) if (liaison !== 'sortie' && !liaisons.has(liaison)) erreurs.push(`${morceau.id} : coupe inconnue ${liaison}.`);
+    for (const [id, cle] of Object.entries(morceau.grande.cles ?? {})) {
+      const objet = morceau.objets.find((candidat) => candidat.id === id);
+      if (objet === undefined) erreurs.push(`${morceau.id} : clé qui n'est pas un objet du morceau ${id}.`);
+      else if (objet.portable === false && cle.portableEnGrande !== true) erreurs.push(`${morceau.id} : clé qui ne se porte pas ${id}.`);
+      if (cle.etiquettes.includes('')) erreurs.push(`${morceau.id} : clé ${id} avec une étiquette vide.`);
+    }
   }
   if (morceau.famille === 'final') {
     if (morceau.sortie !== undefined) erreurs.push(`${morceau.id} : final avec une sortie.`);

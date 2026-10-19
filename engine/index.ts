@@ -48,6 +48,7 @@ export {
   type CategoriePiece,
   type DefAccroche,
   type DefAnnexe,
+  type DefCle,
   type DefCommande,
   type DefGrandeMorceau,
   type DefMorceau,
@@ -55,7 +56,9 @@ export {
   type DefPorteSortie,
   type DefStation,
   type DefStationGrande,
+  type EntreeButin,
   type FamilleMorceau,
   type ResultatAssemblage,
+  type TableButin,
 } from './station';
 export * from './vocabulaire';

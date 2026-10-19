@@ -36,6 +36,8 @@ export interface DefPiece {
   readonly trace?: IntensiteTrace;
   /** Grande station : zone entre deux coupes, numérotée dans l'ordre de découverte depuis le départ ; une annexe a celle de sa pièce d’accroche (spec §6.3). */
   readonly segment?: number;
+  /** Grande station : salle de butin dont l'objet a été pris avant le joueur ; elle reçoit une phrase de pillage (spec §6.6). */
+  readonly pillee?: true;
   /** Pièce du catalogue (spec §5.2) : sa catégorie et sa forme. */
   readonly categorie?: CategoriePiece;
   readonly forme?: FormeAnnexe;
@@ -148,6 +150,8 @@ export interface DefObjet {
   readonly fermeture?: string;
   /** Commande fixe qui déverrouille cette cloison, d'où qu'on l'actionne, en une action discrète (D-259). */
   readonly deverrouille?: string;
+  /** Grande station : objet de butin, sans aucune qualité passive (spec §6.6). */
+  readonly butin?: true;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -261,7 +265,8 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.vitrageExterieur === true && objet.portable !== false) erreurs.push(`${objet.id} : vitrage portable.`);
     if (objet.rebouche !== undefined && objet.portable !== false) erreurs.push(`${objet.id} : kit de rustine portable.`);
     if (objet.protection === true && objet.portable === false) erreurs.push(`${objet.id} : protection qui ne se porte pas.`);
-    if (objet.deplacable === true && objet.portable !== false) erreurs.push(`${objet.id} : déplaçable mais portable.`);
+    // Seule la caisse d'une grande station est à la fois déplaçable et portable : un appui encombrant (spec 2026-10-18 §6.5).
+    if (objet.deplacable === true && objet.portable !== false && !(objet.appui === true && objet.encombrant === true)) erreurs.push(`${objet.id} : déplaçable mais portable.`);
     if (objet.pont === true && (objet.portable === false || objet.encombrant !== true)) erreurs.push(`${objet.id} : pont fragile non portable ou non encombrant (D-169).`);
     if (objet.encombrant === true && objet.portable === false) erreurs.push(`${objet.id} : encombrant qui ne se porte pas.`);
     if (objet.machines !== undefined) {

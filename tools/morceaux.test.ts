@@ -12,7 +12,7 @@ import {
   type OptionMenu,
   type Partie,
 } from '../engine';
-import { MORCEAUX, type EntreeMonde, type EtapeParcours, type Parcours } from '../content';
+import { CATALOGUE_PIECES, MORCEAUX, type EntreeMonde, type EtapeParcours, type Parcours } from '../content';
 import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 
@@ -343,5 +343,34 @@ describe('déclarations des grandes stations (spec 2026-10-18 §6.1, §6.3)', ()
 
   it('seuls les chemins déclarent la nature de leur obstacle (D-292)', () => {
     for (const { morceau } of declares) expect(morceau.grande?.obstacle !== undefined).toBe(morceau.famille === 'chemin');
+  });
+});
+
+// Clés dispersées (spec 2026-10-18 §6.5, #202) : les objets portables qui résolvent un obstacle se déclarent déplaçables, avec les
+// étiquettes de pièce du catalogue où ils peuvent attendre. Les commandes fixes n'en font pas partie ; la caisse, qui ne se porte
+// pas dans une petite station, devient portable en grande station seulement.
+describe('clés déclarées par les morceaux (spec §6.5)', () => {
+  const ATTENDUES: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>> = {
+    'm-01': { 'o-bidon': ['eau'] },
+    'm-02': { 'o-caisse': ['rangement', 'lourd'] },
+    'm-03': { 'o-bloc': ['lourd'] },
+    'm-04': { 'o-burette': ['outillage'] },
+    'm-06': { 'o-combinaison': ['securite'], 'o-decoupeuse': ['securite'] },
+    'm-08': { 'o-planche': ['rangement'] },
+  };
+  const morceaux = Object.values(MORCEAUX).map(({ morceau }) => morceau);
+
+  it.each(morceaux.map((morceau) => [morceau.id, morceau] as const))('%s : exactement les clés de la spec, avec leurs étiquettes', (id, morceau) => {
+    const declarees = Object.fromEntries(Object.entries(morceau.grande?.cles ?? {}).map(([objet, cle]) => [objet, cle.etiquettes]));
+    expect(declarees).toEqual(ATTENDUES[id] ?? {});
+  });
+
+  it('seule la caisse de M-02 devient portable en grande station', () => {
+    const portables = morceaux.flatMap((morceau) => Object.entries(morceau.grande?.cles ?? {}).filter(([, cle]) => cle.portableEnGrande === true).map(([objet]) => `${morceau.id}/${objet}`));
+    expect(portables).toEqual(['m-02/o-caisse']);
+  });
+
+  it('la consigne du catalogue peut recevoir une clé lourde', () => {
+    expect(CATALOGUE_PIECES['a-consigne']?.morceau.annexe?.etiquettes).toContain('lourd');
   });
 });

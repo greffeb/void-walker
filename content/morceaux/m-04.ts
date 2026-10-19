@@ -28,7 +28,7 @@ export const MORCEAU_M04: DefMorceau = {
   demande: [],
   fournit: ['acces'],
   // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
-  grande: { obstacle: 'creature', accueillantes: { 'p-controle': 'commandement' }, avant: ['p-controle'], coupe: ['l-controle-observation'] },
+  grande: { obstacle: 'creature', accueillantes: { 'p-controle': 'commandement' }, avant: ['p-controle'], coupe: ['l-controle-observation'], cles: { 'o-burette': { etiquettes: ['outillage'] } } },
 };
 
 // Textes du morceau (C-07) : la cloison, la burette et le nom du test d'avertisseur repris d'AR-01 ; la description du test
