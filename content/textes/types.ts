@@ -251,6 +251,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   pas_entendus: [],
   souffle_entendu: [],
   attente: [],
+  bruit_station: [],
   premier_contact: [],
   menace: [],
   aggravation_blesse: [],

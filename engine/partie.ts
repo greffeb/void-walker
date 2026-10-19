@@ -1,4 +1,5 @@
 import { CATALOGUE, type ActionEngagee, type DefAction, type Effet } from './actions';
+import { bruitDeStation } from './bruits';
 import { reagir, type SonEmis } from './creature';
 import { graineValide, ouvrirDes, type Des } from './des';
 import { etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
@@ -328,6 +329,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
       conclu = { ...conclu, fin: 'evacuation', messages: [...conclu.messages, ...depart] };
       evenements.push({ type: 'evacuation', sources: effet.evacuation }, ...depart.map((message) => ({ type: 'assistance', message }) as const));
     }
+  }
+  // Grande station : avant la rencontre, un bruit de station de temps en temps (spec 2026-10-18 §5.5) ; rien dans l'état.
+  if (monde.bruitsStation === true && !vaincu && conclu.fin === null && conclu.creature?.contact !== true && bruitDeStation(partie.enregistrement.graine, partie.etat.actions + 1)) {
+    evenements.push({ type: 'bruit_station' });
   }
   const tirages = [...session.tirages];
   // Le regard de fin d'action met à jour la mémoire du passager, avec le compte d'actions confirmées (14 §3.1).

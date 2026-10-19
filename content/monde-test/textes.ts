@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { FIN, TRACES } from '../textes/couches';
+import { BRUITS_STATION, FIN, TRACES } from '../textes/couches';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -48,6 +48,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ],
   },
   evenements: {
+    bruit_station: BRUITS_STATION,
     reveil: [
       'Vous ouvrez les yeux dans {le:piece}. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.',
       'Vous vous réveillez dans {le:piece}, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.',

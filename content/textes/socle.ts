@@ -18,6 +18,22 @@ import type { Couche } from './types';
 // morceaux, écrits à la main (C-07) sans rien de l'univers ni de la menace. Texte final non validé.
 export const SOCLE = {
   evenements: {
+    // Bruits de station (spec 2026-10-18 §5.5) : la coque, l'air, l'eau, le courant ; jamais les mots de la créature (bouger,
+    // lourd, pas, souffle, écouter). Écrits par l'assistant principal (D-243).
+    bruit_station: [
+      'Quelque part dans la coque, une tôle craque longuement, puis se tait.',
+      'La ventilation s’arrête, puis repart avec un hoquet.',
+      'Au loin, une canalisation cogne trois fois.',
+      'Un néon grésille au-dessus de vous, s’éteint une seconde, se rallume.',
+      'Derrière une cloison, de l’eau goutte dans un bac, à intervalles réguliers.',
+      'Les lumières de service baissent un instant, comme si le circuit avait failli.',
+      'Un long gémissement de métal parcourt la structure, puis le silence revient.',
+      'Quelque part, une pompe se met en route, tourne un moment, puis s’arrête.',
+      'Les haut-parleurs crachotent un instant, sans qu’aucune voix ne suive.',
+      'Un ventilateur, au loin, tourne à vide avec un cliquetis régulier.',
+      'Le sol vibre un instant sous vos semelles, puis s’apaise.',
+      'Un sifflement d’air court le long d’un conduit, puis s’éteint.',
+    ],
     objet_pris: ['Vous prenez {le:objet}. Vous l’avez en main.', 'Vous soulevez {le:objet}. Vous l’emportez avec vous.'],
     objet_pose: ['Vous posez {le:objet} au sol. Vos mains sont libres.', 'Vous déposez {le:objet} à vos pieds. Vous gardez les mains libres.'],
     passage_ouvert: ['Vous ouvrez {le:passage}. Le passage est dégagé.', 'Vous tirez sur la poignée {de:passage}. Le passage s’ouvre devant vous.'],

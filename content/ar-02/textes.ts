@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { FIN, TRACES } from '../textes/couches';
+import { BRUITS_STATION, FIN, TRACES } from '../textes/couches';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -96,6 +96,7 @@ export const TEXTES_AR02: TextesMonde = {
     ],
   },
   evenements: {
+    bruit_station: BRUITS_STATION,
     reveil: [
       'Vous vous réveillez dans {le:piece}, la nuque raide. Les lumières de service sont au rouge. Votre terminal personnel clignote.',
       'Une secousse vous tire du sommeil. Vous êtes dans {le:piece}, sous un éclairage rouge. Votre terminal personnel clignote.',

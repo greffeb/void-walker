@@ -80,6 +80,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'assistance':
     case 'creature_expulsee':
     case 'creature_inerte':
+    case 'bruit_station':
       return {};
     case 'combinaison_enfilee':
     case 'combinaison_retiree':

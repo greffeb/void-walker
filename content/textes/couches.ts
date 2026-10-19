@@ -44,6 +44,9 @@ export function reunir(morceaux: readonly TextesMorceau[], assistance: Readonly<
 /** Textes de fin des trois couches (D-281), repris tels quels par les mondes écrits en entier (AR-01, AR-02, monde de test). */
 export const FIN: TextesMonde['fin'] = reunir([]).fin;
 
+/** Bruits de station du socle (spec 2026-10-18 §5.5), repris par les mondes écrits en entier, qui n’en font jamais entendre. */
+export const BRUITS_STATION: TextesMonde['evenements']['bruit_station'] = reunir([]).evenements.bruit_station;
+
 /** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 

@@ -99,6 +99,7 @@ export const TYPES_EVENEMENT = [
   'cloison_deverrouillee',
   'porte_secouee',
   'porte_enfoncee',
+  'bruit_station',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -283,7 +284,9 @@ export type Evenement =
    * Alertée, la créature force une porte fermée sur sa piste : le passager l'entend s'acharner, puis la porte cède et s'ouvre
    * (D-279) ; seulement s'il est dans l'une des deux pièces de la porte.
    */
-  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage };
+  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage }
+  /** Bruit de la station, avant la rencontre, dans une grande station (spec 2026-10-18 §5.5). */
+  | { readonly type: 'bruit_station' };
 
 /** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
 export type MomentMessage =

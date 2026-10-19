@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { FIN, TRACES } from '../textes/couches';
+import { BRUITS_STATION, FIN, TRACES } from '../textes/couches';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -119,6 +119,7 @@ export const TEXTES_AR01: TextesMonde = {
     ],
   },
   evenements: {
+    bruit_station: BRUITS_STATION,
     reveil: [
       'Le siège se redresse sans prévenir. Vous êtes dans {le:piece}. Au plafond, les flèches d’embarquement sont rouges. Votre terminal de transit affiche : CONFINEMENT EN COURS.',
       'Vous vous réveillez d’un coup, sanglé à votre siège, dans {le:piece}. Les flèches d’embarquement brillent en rouge. Votre terminal de transit affiche : CONFINEMENT EN COURS.',
