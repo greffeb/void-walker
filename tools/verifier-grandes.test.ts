@@ -1,11 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import type { Catalogue } from '../content';
+import type { Catalogue, EntreeMonde, EtapeParcours } from '../content';
 import { CATALOGUE } from './catalogue';
-import { ecartsDesGrandes, lireTemoins, publierGrandes, temoinValable, verifierGrande, verifierPubliee, verifierPublieesDuLot } from './verifier-grandes';
+import {
+  ecartsDesGrandes,
+  lireTemoins,
+  publierGrandes,
+  rejouerTemoin,
+  reparerTemoin,
+  sansButin,
+  temoinValable,
+  verifierGrande,
+  verifierPubliee,
+  verifierPublieesDuLot,
+  type LigneGrande,
+} from './verifier-grandes';
 import { rangsDesSegments } from './verifier-station';
 
 // Preuve des grandes stations (spec 2026-10-18 §7, D-303) : contrôles, puis témoin du chemin principal rejoué dans la grande
-// station, ou recherche directe ; en ordre libre, les deux ordres.
+// station privée de son butin, tel quel ou réparé, ou recherche directe ; en ordre libre, les deux ordres.
 
 /** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-295). */
 function avecPlan(composition: string): string {
@@ -18,6 +30,65 @@ const CHAINE = 'g1-m01-m02-m09-m06-cale';
 const STATION = avecPlan(CHAINE);
 const LIBRE = avecPlan('g1-ol-m01-m02-m09-m06-cale');
 const graineDe = (station: string): number => Number(station.slice(station.lastIndexOf('-') + 1));
+
+function construite(station: string): EntreeMonde {
+  const entree = CATALOGUE.construireGrande(station.slice(0, station.lastIndexOf('-')), graineDe(station));
+  if ('refus' in entree) throw new Error(entree.refus);
+  return entree;
+}
+
+/** Première station de la composition, sur 200 graines, dont la caisse de M-02 a quitté son morceau et qui garde du butin. */
+function caisseDeplacee(composition: string): string {
+  const graine = Array.from({ length: 200 }, (_, rang) => rang).find((rang) => {
+    const entree = CATALOGUE.construireGrande(composition, rang);
+    return !('refus' in entree) && entree.monde.objets.some((objet) => objet.butin === true) && entree.monde.objets.some((objet) => objet.id === 'm-02/o-caisse' && !objet.piece.startsWith('m-02/'));
+  });
+  if (graine === undefined) throw new Error(`${composition} : caisse jamais déplacée avec du butin sur 200 graines.`);
+  return `${composition}-${graine}`;
+}
+
+const CAISSE = caisseDeplacee(CHAINE);
+const preuves = new Map<string, LigneGrande>();
+/** Une preuve par station pour tout le fichier : elle coûte. */
+function prouvee(station: string): LigneGrande {
+  const ligne = preuves.get(station) ?? verifierGrande(CATALOGUE, station);
+  preuves.set(station, ligne);
+  return ligne;
+}
+
+/**
+ * Petite station où le passager prend la source, l'installe dans la capsule, monte à bord et part. `source` : sa pièce ; le
+ * réduit ne s'atteint que par l'antre, où dort la `creature` si elle est donnée.
+ */
+function petite(source: string, creature?: string): EntreeMonde {
+  const reference = CATALOGUE.mondes['m-07'];
+  if (reference === undefined) throw new Error('Monde m-07 absent.');
+  return {
+    ...reference,
+    monde: {
+      id: 'reparation-test',
+      depart: 'a',
+      pieces: [{ id: 'a', nom: 'quartiers' }, { id: 'quai', nom: 'embarquement' }, { id: 'cabine', nom: 'cabine', sousPosition: true }, { id: 'antre', nom: 'antre' }, { id: 'reduit', nom: 'reduit' }],
+      liaisons: [
+        { id: 'porte', nom: 'porte', entre: ['a', 'quai'], ouverte: false },
+        { id: 'ecoutille', nom: 'ecoutille', entre: ['quai', 'cabine'], ouverte: false },
+        { id: 'sas', nom: 'sas', entre: ['a', 'antre'], ouverte: false },
+        { id: 'trappe', nom: 'trappe', entre: ['antre', 'reduit'], ouverte: false },
+      ],
+      objets: [
+        { id: 'capsule', nom: 'capsule', piece: 'quai', portable: false, capsule: { interieur: 'cabine' } },
+        { id: 'pupitre', nom: 'pupitre', piece: 'cabine', portable: false, depart: 'capsule' },
+        { id: 'source', nom: 'source', piece: source, source: true },
+      ],
+      ...(creature === undefined ? {} : { creature: { piece: creature } }),
+    },
+  };
+}
+
+/** Témoin de la petite station quand la source attend au départ. */
+const TEMOIN_PETITE: readonly EtapeParcours[] = (
+  [['prendre', 'source'], ['ouvrir', 'porte'], ['aller', 'porte'], ['installer', 'source'], ['ouvrir', 'ecoutille'], ['aller', 'ecoutille'], ['fermer', 'ecoutille'], ['lancer', 'pupitre']] as const
+).map(([action, cible]) => ({ action, cible }));
 
 describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
   it('rangsDesSegments suit le segment des pièces d’une grande station', () => {
@@ -74,6 +145,43 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(verifierPubliee(CATALOGUE, STATION, temoins).verdict).toBe('prouvee');
     expect(verifierPubliee(CATALOGUE, STATION, temoins.map((pas) => pas.slice(0, -1))).verdict).toBe('non_prouvee');
     expect(verifierPubliee(CATALOGUE, STATION, undefined).verdict).toBe('non_prouvee');
+  });
+
+  it('sansButin : le même monde, même id, privé de ses seuls objets de butin', () => {
+    const entree = construite(CAISSE);
+    const prive = sansButin(entree);
+    expect(prive.monde.id).toBe(entree.monde.id);
+    expect(prive.monde.objets).toEqual(entree.monde.objets.filter((objet) => objet.butin !== true));
+    expect(prive.monde.objets.length).toBeLessThan(entree.monde.objets.length);
+    expect({ ...prive.monde, objets: [] }).toEqual({ ...entree.monde, objets: [] });
+  });
+
+  it('une grande station dont la caisse a quitté son morceau est prouvée par témoin réparé, sans dé ni blessure', () => {
+    const ligne = prouvee(CAISSE);
+    expect(ligne.verdict, JSON.stringify(ligne.ecarts)).toBe('prouvee');
+    expect(ligne.methode).toBe('repare');
+    const [temoin] = ligne.temoins ?? [];
+    if (temoin === undefined) throw new Error('Témoin absent.');
+    expect(rejouerTemoin(sansButin(construite(CAISSE)), temoin)).not.toBeNull();
+    expect(verifierPubliee(CATALOGUE, CAISSE, ligne.temoins ?? undefined).verdict).toBe('prouvee');
+  }, 300_000);
+
+  it('ce témoin se rejoue aussi sur la station complète, butin compris', () => {
+    const entree = construite(CAISSE);
+    expect(entree.monde.objets.some((objet) => objet.butin === true)).toBe(true);
+    const [temoin] = prouvee(CAISSE).temoins ?? [];
+    if (temoin === undefined) throw new Error('Témoin absent.');
+    expect(rejouerTemoin(entree, temoin)).not.toBeNull();
+  }, 300_000);
+
+  it('témoin réparé : un détour sans danger est inséré ; un détour qui exigerait un dé est refusé (une seule voie, sous les yeux de la créature)', () => {
+    expect(reparerTemoin(petite('a'), TEMOIN_PETITE)).toEqual(TEMOIN_PETITE);
+    expect(reparerTemoin(petite('a', 'antre'), TEMOIN_PETITE)).toEqual(TEMOIN_PETITE);
+    const repare = reparerTemoin(petite('reduit'), TEMOIN_PETITE);
+    if (repare === null) throw new Error('Détour vers le réduit non trouvé.');
+    expect(repare.length).toBeGreaterThan(TEMOIN_PETITE.length);
+    expect(temoinValable(petite('reduit'), repare)).toBe(true);
+    expect(reparerTemoin(petite('reduit', 'antre'), TEMOIN_PETITE)).toBeNull();
   });
 
   it('ordre libre : deux témoins du même ordre ne suffisent pas (G-07)', () => {

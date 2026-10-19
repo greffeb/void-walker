@@ -2,10 +2,11 @@ import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, type EntreeMon
 import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
-import { executerParcours } from './rejouer-parcours';
+import { executerParcours, trouverOption } from './rejouer-parcours';
 import {
   cheminsDesPlans,
   chercherEtat,
+  chercherJusqua,
   cleEtatRegles,
   ecartsDuCatalogue,
   ecartsDuLot,
@@ -196,6 +197,42 @@ describe('d’abord le morceau le plus avancé (L3 §6.2)', () => {
     expect(resultat.verdict).toBe('sans_sortie_sure');
     expect(resultat.parcours).toBeNull();
   }, 60000);
+});
+
+describe('recherche depuis un état donné (spec 2026-10-18 §7.4)', () => {
+  it('chercherJusqua, depuis un état du milieu de partie, trouve une clé posée dans une pièce du catalogue', () => {
+    const composition = 'g1-m01-m02-m09-m06-cale';
+    const caisse = 'm-02/o-caisse';
+    const grande = Array.from({ length: 200 }, (_, graine) => CATALOGUE.construireGrande(composition, graine)).find(
+      (candidate): candidate is EntreeMonde => !('refus' in candidate) && candidate.monde.objets.some((objet) => objet.id === caisse && !objet.piece.startsWith('m-02/')),
+    );
+    if (grande === undefined) throw new Error(`${composition} : caisse jamais déplacée sur 200 graines.`);
+    const piece = grande.monde.objets.find((objet) => objet.id === caisse)?.piece;
+    expect(grande.monde.pieces.find((candidate) => candidate.id === piece)?.forme).toBeDefined();
+    // Milieu de partie : le passager arrive à l'atelier d'où la caisse est partie.
+    const milieu = chercherEtat(grande, (etat) => etat.piece === 'm-02/p-atelier').partie;
+    if (milieu === null) throw new Error('Atelier de M-02 non atteint.');
+    const etapes = chercherJusqua(grande, milieu, (etat) => etat.objets[caisse]?.type === 'passager', 20_000);
+    if (etapes === null) throw new Error('Caisse non trouvée.');
+    expect(etapes.at(-1)?.action).toBe('prendre');
+    let partie = milieu;
+    for (const etape of etapes) {
+      const option = trouverOption(observer(grande.monde, partie.etat), etape);
+      if (option === undefined || !option.disponible) throw new Error(`Étape ${etape.action} ${etape.cible} indisponible.`);
+      const resultat = jouer(grande.monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`Étape ${etape.action} ${etape.cible} : ${resultat.type}.`);
+      expect(resultat.tirages).toEqual([]);
+      expect(resultat.partie.etat.sante).toBe('indemne');
+      partie = resultat.partie;
+    }
+    expect(partie.etat.objets[caisse]).toEqual({ type: 'passager' });
+  }, 120_000);
+
+  it('chercherJusqua rend un témoin vide quand le but est déjà atteint, null quand il ne l’est jamais', () => {
+    const depart = nouvellePartie(station().monde, { version: 'test', graine: 1 });
+    expect(chercherJusqua(station(), depart, () => true, 10)).toEqual([]);
+    expect(chercherJusqua(station(), depart, () => false, 10_000)).toBeNull();
+  });
 });
 
 describe('clé des données de règles', () => {

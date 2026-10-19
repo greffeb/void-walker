@@ -37,6 +37,8 @@ export interface OptionsVerification {
   readonly admissible?: (etat: EtatPartie) => boolean;
   /** Priorité d'un état, la plus haute développée d'abord ; par défaut, le rang du morceau du passager (spec L3 §6.2). */
   readonly priorite?: (etat: EtatPartie) => number;
+  /** La recherche part de cet état au lieu du réveil ; pour `chercherEtat` et `chercherJusqua` seulement, le témoin de `verifierStation` se rejouant du réveil. */
+  readonly depart?: Partie;
 }
 
 export interface RapportStation {
@@ -80,7 +82,8 @@ interface Parent {
   readonly etape: EtapeParcours;
 }
 
-function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: number): Parcours {
+/** Étapes du nœud de départ jusqu'au nœud `fin`. */
+function etapesJusqua(parents: readonly (Parent | null)[], fin: number): EtapeParcours[] {
   const etapes: EtapeParcours[] = [];
   let indice = fin;
   while (indice > 0) {
@@ -89,7 +92,11 @@ function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: n
     etapes.push(parent.etape);
     indice = parent.precedent;
   }
-  etapes.reverse();
+  return etapes.reverse();
+}
+
+function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: number): Parcours {
+  const etapes = etapesJusqua(parents, fin);
   let partie = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
   for (const etape of etapes) {
     const option = trouverOption(observer(entree.monde, partie.etat), etape);
@@ -172,7 +179,7 @@ function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEt
   const rangDe = rangsDesSegments(entree.monde);
   const admissible = options.admissible ?? (() => true);
   const rang = options.priorite ?? ((etat: EtatPartie): number => rangDe(etat.piece));
-  const initiale = sansJournal(nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
+  const initiale = sansJournal(options.depart ?? nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
   const vus = new Set([cleEtatRegles(initiale.etat)]);
   const parents: (Parent | null)[] = [null];
   // Parallèle à `parents` ; la partie est libérée une fois développée.
@@ -221,6 +228,21 @@ function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEt
 export function chercherEtat(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, options: OptionsVerification = {}): Recherche {
   const { issue, partie, etats } = explorer(entree, but, plafond(options), options);
   return { issue, partie, etats };
+}
+
+/**
+ * Gestes sans dé ni blessure qui mènent de `depart` à un état où `but` est vrai (spec 2026-10-18 §7.4) : mêmes transitions que
+ * `verifierStation` ; vide si `depart` le satisfait déjà, `null` si la recherche s'épuise ou atteint `maxEtats`.
+ */
+export function chercherJusqua(
+  entree: EntreeMonde,
+  depart: Partie,
+  but: (etat: EtatPartie) => boolean,
+  maxEtats: number,
+  options: Pick<OptionsVerification, 'admissible' | 'priorite'> = {},
+): readonly EtapeParcours[] | null {
+  const { issue, parents } = explorer(entree, but, plafond({ maxEtats }), { ...options, depart });
+  return issue === 'trouve' ? etapesJusqua(parents, parents.length - 1) : null;
 }
 
 /** Morceau d'une pièce préfixée (« m-07/p-soute » → « m-07 ») ; `null` sans préfixe. */
