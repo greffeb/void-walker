@@ -1,4 +1,5 @@
 import { generateurDepuisGraine, suivant } from './des';
+import { hacher } from './hachage';
 import {
   caseDevant,
   casesDe,
@@ -28,6 +29,14 @@ export function prefixer(morceau: string, id: string): string {
   return `${morceau}/${id}`;
 }
 
+/**
+ * Sous-graine d’une étape de l’assemblage d’une grande station (spec 2026-10-18 §6.2) : un réglage d’une étape ne rebat pas
+ * les tirages des autres.
+ */
+export function sousGraine(graine: number, etape: 'annexes' | 'boucles' | 'piste'): number {
+  return Number.parseInt(hacher(`${graine}:${etape}`).slice(-8), 16) >>> 0;
+}
+
 /** Identifiant de la porte entre un morceau et le suivant. */
 export function porteEntre(depuis: string, vers: string): string {
   return `l-${depuis}-${vers}`;
@@ -47,7 +56,7 @@ export const BUDGET_POSE = 2000;
 type Miroir = 'aucun' | 'x' | 'y';
 const MIROIRS: readonly Miroir[] = ['aucun', 'x', 'y'];
 
-interface Placement {
+export interface Placement {
   readonly miroir: Miroir;
   readonly dx: number;
   readonly dy: number;
@@ -78,7 +87,7 @@ export interface Lien {
   readonly porte: string;
 }
 
-function placer(rect: RectPlan, { miroir, dx, dy }: Placement): RectPlan {
+export function placer(rect: RectPlan, { miroir, dx, dy }: Placement): RectPlan {
   const x = miroir === 'x' ? -rect.x - rect.largeur : rect.x;
   const y = miroir === 'y' ? -rect.y - rect.hauteur : rect.y;
   return { x: x + dx, y: y + dy, largeur: rect.largeur, hauteur: rect.hauteur };
@@ -125,7 +134,7 @@ function tropDePortes(morceaux: readonly DefMorceau[], liens: readonly Lien[]): 
 }
 
 /** Placements où l'entrée touche la sortie posée par un mur d'au moins MUR_MIN cases : chaque miroir, chaque côté, chaque glissement. */
-function accroches(sortie: RectPlan, entree: RectPlan): Placement[] {
+export function accroches(sortie: RectPlan, entree: RectPlan): Placement[] {
   const placements: Placement[] = [];
   for (const miroir of MIROIRS) {
     const retournee = placer(entree, { miroir, dx: 0, dy: 0 });
