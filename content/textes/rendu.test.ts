@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { Consultation } from '../../engine';
 import { reunir } from './couches';
 import { rendreConsultation } from './rendu';

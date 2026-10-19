@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { poserAnnexes, type AnnexePosee } from './annexes';
 import { chevauchent, murCommun, type RectPlan } from './plan';
 import type { CategoriePiece, DefAnnexe, DefMorceau } from './station';

@@ -232,6 +232,8 @@ export interface TextesMorceau {
   readonly noms: Readonly<Record<string, Nom>>;
   readonly descriptions: Readonly<Record<string, Variantes>>;
   readonly assistance: Readonly<Record<string, string>>;
+  /** Descriptions calmes, sans trace, qui remplacent les leurs dans une grande station (spec 2026-10-18 §5.4). */
+  readonly calmes?: Readonly<Record<string, Variantes>>;
 }
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */

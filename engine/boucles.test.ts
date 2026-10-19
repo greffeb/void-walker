@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { poserBoucles, type BouclePosee, type PieceBouclable } from './boucles';
 import { murCommun, type RectPlan } from './plan';
 

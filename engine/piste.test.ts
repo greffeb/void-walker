@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { jouer, nouvellePartie, observer, type DefMonde } from './index';
 import { PISTE_MAX, PISTE_MIN, TRACE_FORTE, tracerPiste } from './piste';
 
