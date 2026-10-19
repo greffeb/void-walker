@@ -140,10 +140,14 @@ export interface DefCreature {
   readonly piece: string;
 }
 
-/** Message de l'IA de la station, délivré une fois : au réveil, à la première arrivée dans une pièce, ou au départ. */
+/** Message de l'IA de la station, délivré une fois : au réveil, à la première arrivée dans une pièce, au départ, ou à la 15e attente de suite (#225). */
 export interface DefAssistance {
   readonly id: string;
-  readonly quand: { readonly type: 'reveil' } | { readonly type: 'arrivee'; readonly piece: string } | { readonly type: 'evacuation' };
+  readonly quand:
+    | { readonly type: 'reveil' }
+    | { readonly type: 'arrivee'; readonly piece: string }
+    | { readonly type: 'evacuation' }
+    | { readonly type: 'patience' };
 }
 
 export interface DefMonde {

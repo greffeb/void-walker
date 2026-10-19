@@ -315,6 +315,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
     ...OBSERVATION_MORCEAUX,
   },
   fin: FIN,

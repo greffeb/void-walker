@@ -10,7 +10,6 @@ export const MOTS_UNIVERS: readonly string[] = ['station'];
 export const ATTENTES_LONGUES = {
   5: 'Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous.',
   10: 'Les lumières baissent d’un cran, puis reviennent. La station, elle aussi, attend.',
-  15: 'Aucune activité détectée. Merci de rejoindre la capsule de secours.',
 } as const satisfies TextesMonde['attentesLongues'];
 
 export const UNIVERS = {
@@ -83,15 +82,17 @@ export const UNIVERS = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
   },
   attentesLongues: ATTENTES_LONGUES,
 } satisfies Couche;
 
 /**
- * Messages d'IA Station d'une station tirée, au réveil et au départ (#152) : sans pièce nommée ni présence signalée, l'une et
- * l'autre dépendant du tirage. Texte final non validé.
+ * Messages d'IA Station d'une station tirée, au réveil, au départ, et à la 15e attente de suite (#152, #225) : sans pièce
+ * nommée ni présence signalée, l'une et l'autre dépendant du tirage. Texte final non validé.
  */
 export const ASSISTANCE_STATION: Readonly<Record<string, string>> = {
   reveil: 'Évacuation conseillée. Une capsule de secours vous attend à bord ; merci de la rejoindre dans le calme.',
   depart: 'Écoutille fermée, alimentation confirmée. Départ engagé ; bon voyage.',
+  patience: 'Aucune activité détectée. Merci de rejoindre la capsule de secours.',
 };

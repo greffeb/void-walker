@@ -152,8 +152,9 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
-  const longue = cle.attentes === 5 || cle.attentes === 10 ? attenteSeule(textes, evenements, cle.attentes) : undefined;
-  if (longue !== undefined) return [longue];
+  const recit = evenements.filter((evenement) => evenement.type !== 'assistance');
+  const seule = recit.length === 1 && recit[0]?.type === 'attente';
+  if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
     const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
@@ -203,25 +204,9 @@ export function rendreDangerVu(textes: TextesMonde, nature: NatureDanger, passag
   return remplir(nature === 'feu' ? modele.passageEnFeu : modele.passageVide, { passage: nomDe(textes, passage) });
 }
 
-/** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07) ; à la 15e attente de suite, l'IA parle (#225). */
-export function rendreAssistance(textes: TextesMonde, evenements: readonly Evenement[], attentes = 0): string[] {
-  const messages = evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [texteAssistance(textes, evenement.message)] : []));
-  const patience = attentes === 15 ? attenteSeule(textes, evenements, 15) : undefined;
-  return patience === undefined ? messages : [...messages, patience];
-}
-
-/** Texte d'une longue attente, seulement si l'attente est seule à raconter. */
-function attenteSeule(textes: TextesMonde, evenements: readonly Evenement[], attentes: 5 | 10 | 15): string | undefined {
-  const recit = evenements.filter((evenement) => evenement.type !== 'assistance');
-  return recit.length === 1 && recit[0]?.type === 'attente' ? textes.attentesLongues[attentes] : undefined;
-}
-
-/** Attentes de suite à la fin du journal de la partie (#225). */
-export function attentesDeSuite(partie: Partie): number {
-  const { actions } = partie.enregistrement;
-  let attentes = 0;
-  while (actions[actions.length - 1 - attentes]?.commande.action === 'attendre') attentes += 1;
-  return attentes;
+/** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07). */
+export function rendreAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
+  return evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [texteAssistance(textes, evenement.message)] : []));
 }
 
 /** Texte d'un message d'assistance, par son identifiant. */
@@ -233,8 +218,9 @@ export function texteAssistance(textes: TextesMonde, message: string): string {
 
 /** Repère du moment où un message a été reçu, sans heure : « au réveil · Salon de transit » (12 §3.9). */
 export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string {
-  const { momentReveil, momentArrivee, momentEvacuation } = textes.observation;
+  const { momentReveil, momentArrivee, momentEvacuation, momentPatience } = textes.observation;
   if (moment.type === 'evacuation') return remplir(momentEvacuation, {});
+  if (moment.type === 'patience') return remplir(momentPatience, {});
   return remplir(moment.type === 'reveil' ? momentReveil : momentArrivee, { piece: nomDe(textes, moment.piece) });
 }
 
@@ -262,7 +248,10 @@ export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {
 }
 
 function repere(partie: Partie): CleTexte {
-  return { graine: partie.enregistrement.graine, action: partie.etat.actions, attentes: attentesDeSuite(partie) };
+  const { graine, actions } = partie.enregistrement;
+  let attentes = 0;
+  while (actions[actions.length - 1 - attentes]?.commande.action === 'attendre') attentes += 1;
+  return { graine, action: partie.etat.actions, attentes };
 }
 
 /** Récit de la dernière action engagée, identique après une reprise ou un rejeu. */

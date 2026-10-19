@@ -10,7 +10,7 @@ import {
   type OptionMenu,
   type Partie,
 } from '../engine';
-import { attentesDeSuite, libelleOption, MONDES, raconter, rendreApercu, rendreAssistance, rendreEvenements, rendreObservation, type EntreeMonde, type EtapeParcours } from '../content';
+import { libelleOption, MONDES, raconter, rendreApercu, rendreEvenements, rendreObservation, type EntreeMonde, type EtapeParcours } from '../content';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 
 // Cas négatifs d'AR-01 (docs/08-aventure-reference.md §10) et contrats C-02, C-06, C-09, joués par le menu public depuis une
@@ -378,31 +378,26 @@ describe('AR-01 : sortie de l’observation fermée, comme dans M-04 (spec L4 §
 });
 
 describe('AR-01 : attentes à la suite (#225)', () => {
-  it('5e et 10e attente de suite : le récit change ; 15e : l’IA parle ; une autre action remet la série à zéro', () => {
+  it('5e et 10e attente de suite : le récit change ; une autre action remet la série à zéro', () => {
     let partie = depart();
-    const engager = (action: string): { recit: string; ia: readonly string[] } => {
+    const engager = (action: string): string => {
       const option = observer(MONDE, partie.etat).menu.find((choix) => choix.disponible && choix.action === action);
       if (option === undefined) throw new Error(`${action} absent.`);
       const resultat = jouer(MONDE, partie, option.commande);
       if (resultat.type !== 'engagee') throw new Error(`${action} non engagé.`);
       partie = resultat.partie;
-      return { recit: raconter(ENTREE.textes, resultat).join(' '), ia: rendreAssistance(ENTREE.textes, resultat.evenements, attentesDeSuite(partie)) };
+      return raconter(ENTREE.textes, resultat).join(' ');
     };
     const { attentesLongues } = ENTREE.textes;
     const longues: readonly string[] = Object.values(attentesLongues);
-    const speciales = (pas: { recit: string; ia: readonly string[] }[]): unknown[] =>
-      pas.flatMap(({ recit, ia }, rang) => [recit, ...ia].filter((texte) => longues.includes(texte)).map((texte) => [rang + 1, texte]));
+    const speciales = (recits: string[]): unknown[] => recits.flatMap((recit, rang) => (longues.includes(recit) ? [[rang + 1, recit]] : []));
     const avant = Array.from({ length: 4 }, () => engager('attendre'));
     engager('fermer');
-    const pas = Array.from({ length: 16 }, () => engager('attendre'));
+    const recits = Array.from({ length: 16 }, () => engager('attendre'));
     expect(speciales(avant)).toEqual([]);
-    expect(speciales(pas)).toEqual([
+    expect(speciales(recits)).toEqual([
       [5, attentesLongues[5]],
       [10, attentesLongues[10]],
-      [15, attentesLongues[15]],
     ]);
-    // La 15e garde une phrase de silence dans le récit ; la parole de l'IA va dans sa fenêtre seulement.
-    expect(pas[14]?.ia).toEqual([attentesLongues[15]]);
-    expect(ENTREE.textes.evenements.attente).toContain(pas[14]?.recit);
   });
 });

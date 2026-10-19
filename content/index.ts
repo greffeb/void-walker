@@ -43,7 +43,6 @@ export { analyserGabarit, choisirVariante, ErreurTexte, FORMES, former, remplir 
 export { CARACTERE_PX, caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, nomLisible, nomSurPlan, placeDuNom } from './textes/lisibilite';
 export {
   alertesMenace,
-  attentesDeSuite,
   cleEvacuation,
   dangersDuRecit,
   libelleOption,

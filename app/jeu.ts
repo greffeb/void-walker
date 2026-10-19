@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
-import { alertesMenace, attentesDeSuite, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
+import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
@@ -86,7 +86,7 @@ export async function charger(env: Environnement): Promise<Demarrage | { readonl
       recit,
       alertes,
       rappel,
-      assistance: rendreAssistance(env.textes, partie.derniers, attentesDeSuite(partie)),
+      assistance: rendreAssistance(env.textes, partie.derniers),
       sauvegarde: 'sauvegardee',
     };
     return { type: 'pret', jeu };
@@ -187,7 +187,7 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
   // Un déplacement se rappelle par la pièce d'arrivée, connue même quand le passage ne la nommait pas (D-147).
   const arrivee = option.action === 'aller' ? observer(env.monde, resultat.partie.etat).piece : null;
   const rappel = texteRappel(env.textes, arrivee === null ? rappelDe(option) : { type: 'deplacement', vers: arrivee });
-  const assistance = rendreAssistance(env.textes, resultat.evenements, attentesDeSuite(resultat.partie));
+  const assistance = rendreAssistance(env.textes, resultat.evenements);
   const avant = observer(env.monde, jeu.partie.etat);
   const signale = signaler(env.textes, avant, observer(env.monde, resultat.partie.etat), resultat.evenements, [
     ...recit,

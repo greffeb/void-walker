@@ -1004,17 +1004,19 @@ describe('résolution d’un identifiant', () => {
     expect(monde.assistance).toEqual([
       { id: 'reveil', quand: { type: 'reveil' } },
       { id: 'depart', quand: { type: 'evacuation' } },
+      { id: 'patience', quand: { type: 'patience' } },
       { id: 'energie', quand: { type: 'arrivee', piece: 'm-03/p-energie' } },
     ]);
     expect(parcours).toEqual([]);
-    expect(Object.keys(textes.assistance).sort()).toEqual(['depart', 'energie', 'reveil']);
+    expect(Object.keys(textes.assistance).sort()).toEqual(['depart', 'energie', 'patience', 'reveil']);
   });
 
+  // Empreintes relevées avec le message de patience (#225) ; sans lui, ce sont celles d'avant, plans inchangés.
   it.each([
-    ['m07-m03-reserve-2718281828', '0b87b46ab7436f'],
-    ['m07-m03-soute-2718281828', '1744d5fd8c77e7'],
-    ['m10-m03-entrepot-2718281828', '0364dc6678a99e'],
-    ['m10-m03-reserve-2718281828', '040d5191c45e93'],
+    ['m07-m03-reserve-2718281828', '06b30f6d5e2988'],
+    ['m07-m03-soute-2718281828', '10334387143f1d'],
+    ['m10-m03-entrepot-2718281828', '0911ccb5fafe7b'],
+    ['m10-m03-reserve-2718281828', '0b24637e459cc3'],
   ])('vigilance 2 : %s, station de L2, est reconstruite à l’identique (empreinte du monde %s)', (id, attendue) => {
     expect(empreinte(entreeDe(catalogue.resoudre(id)).monde)).toBe(attendue);
   });
@@ -1022,10 +1024,12 @@ describe('résolution d’un identifiant', () => {
   it('vigilance 1 (spec L4 §4) : les 88 stations de L3 sont reconstruites à l’identique à la graine 2718281828', () => {
     const monde = (composition: string): DefMonde => entreeDe(catalogue.resoudre(`${composition}-2718281828`)).monde;
     const mondes = PUBLIEES_L3.map(monde);
-    expect(empreinte(Object.fromEntries(mondes.map((station) => [station.id, empreinte(station)])))).toBe('152494a91b63a3');
-    expect(empreinte(monde('m08-m09-m06-embarquement'))).toBe('147ebc16edcecc');
-    expect(empreinte(monde('m10-m09-m03-entrepot'))).toBe('137409808e604c');
-    expect(empreinte(monde('m07-m10-m06-soute'))).toBe('0a4e45868f1f76');
+    expect(empreinte(Object.fromEntries(mondes.map((station) => [station.id, empreinte(station)])))).toBe('0cd581b911ddba');
+    expect(['m08-m09-m06-embarquement', 'm10-m09-m03-entrepot', 'm07-m10-m06-soute'].map((id) => empreinte(monde(id)))).toEqual([
+      '0b01d3ed5cc2ff',
+      '00650eb3d7f7ae',
+      '00a41aaab24725',
+    ]);
   });
 
   it('messages d’IA Station au réveil et au départ : écrits, sans pièce nommée ni présence détectée', () => {

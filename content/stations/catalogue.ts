@@ -587,10 +587,11 @@ const AU_REVEIL: readonly DefAssistance[] = [
 const STATION_M07: DefStation = { id: 'm-07', morceaux: [MORCEAU_M07, MORCEAU_ESSAI], creature: 'm-07/p-soute', graine: 1, sortiesOuvertes: ['m-07'], assistance: AU_REVEIL };
 const STATION_M10: DefStation = { id: 'm-10', morceaux: [MORCEAU_M10, MORCEAU_ESSAI], creature: 'm-10/p-entrepot', graine: 1, assistance: AU_REVEIL };
 
-// Station tirée : le réveil et le départ ; pas de message de présence, qui nommerait la place tirée.
+// Station tirée : le réveil, le départ et la longue attente (#225) ; pas de message de présence, qui nommerait la place tirée.
 const ASSISTANCE_TIREE: readonly DefAssistance[] = [
   { id: 'reveil', quand: { type: 'reveil' } },
   { id: 'depart', quand: { type: 'evacuation' } },
+  { id: 'patience', quand: { type: 'patience' } },
 ];
 
 /** Celle du moteur (`engine/des.ts`), que le contenu ne peut pas importer. */

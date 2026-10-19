@@ -84,7 +84,7 @@ export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
   return etat.messages.map((message) => {
     const quand = (monde.assistance ?? []).find((def) => def.id === message)?.quand;
     if (quand === undefined) throw new Error(`Message d'assistance inconnu : ${message}.`);
-    if (quand.type === 'evacuation') return { message, moment: quand };
+    if (quand.type === 'evacuation' || quand.type === 'patience') return { message, moment: quand };
     return { message, moment: { type: quand.type, piece: refPiece(monde, quand.type === 'reveil' ? monde.depart : quand.piece) } };
   });
 }

@@ -15,7 +15,6 @@ import {
   type ResultatApercu,
 } from '../engine';
 import {
-  attentesDeSuite,
   libelleOption,
   lignesListeCarte,
   raconter,
@@ -143,8 +142,8 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
 }
 
 /** Messages de l'IA de la station reçus avec ces événements, après le récit. */
-function afficherAssistance(textes: TextesMonde, evenements: readonly Evenement[], attentes = 0): string[] {
-  return rendreAssistance(textes, evenements, attentes).map((message) => `[ IA STATION ] « ${message} »`);
+function afficherAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
+  return rendreAssistance(textes, evenements).map((message) => `[ IA STATION ] « ${message} »`);
 }
 
 /**
@@ -225,7 +224,7 @@ function enregistrer(contexte: Contexte, chemin: string, partie: Partie): string
 function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
   const lignes = [...raconter(contexte.textes, resultat)];
   if (resultat.type === 'engagee') {
-    lignes.push(...afficherAssistance(contexte.textes, resultat.evenements, attentesDeSuite(resultat.partie)));
+    lignes.push(...afficherAssistance(contexte.textes, resultat.evenements));
     lignes.push(enregistrer(contexte, chemin, resultat.partie));
   }
   lignes.push(...afficherSituation(contexte.textes, observer(contexte.monde, resultat.partie.etat)));
@@ -258,7 +257,7 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
       const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
-      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers, attentesDeSuite(partie)), ...situation, ...afficherFin(monde, textes, partie)], code: 0 };
+      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation, ...afficherFin(monde, textes, partie)], code: 0 };
     }
     case 'carte': {
       const partie = charger(contexte, chemin);
