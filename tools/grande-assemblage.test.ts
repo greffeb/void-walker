@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { assemblerStation, prefixer, type DefMonde, type DefStation } from '../engine';
 import { MORCEAUX, PIECES_CATALOGUE } from '../content';
+import { CATALOGUE } from './catalogue';
 
 // Assemblage d'une grande station (spec 2026-10-18 §6.2) avec les vrais morceaux et le vrai catalogue : vestibule, M-01, M-08,
 // M-07, M-03, créature dans la réserve du final. Les morceaux pèsent 16 pièces dessinées : 8 annexes, 24 pièces en tout.
@@ -117,4 +118,69 @@ describe('segments : zones entre deux coupes (spec 2026-10-18 §6.3, GE-13)', ()
       expect(new Set(ordre).size).toBe(ordre.length);
     }
   });
+});
+
+describe('clés dispersées (spec 2026-10-18 §6.5)', () => {
+  const morceauDe = (piece: string): string => piece.slice(0, piece.indexOf('/'));
+
+  it('sur 300 graines de vraies compositions, chaque clé est chez elle ou dans une pièce du catalogue de sa zone permise', () => {
+    const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null);
+    const parForme = [compositions.filter((composition) => composition.forme === 'chaine'), compositions.filter((composition) => composition.forme === 'libre')];
+    let stations = 0;
+    let cles = 0;
+    let deplacees = 0;
+    for (let graine = 0; graine < 300; graine++) {
+      const liste = parForme[graine % 2] ?? [];
+      const composition = liste[Math.floor(graine / 2) % liste.length];
+      if (composition === undefined) throw new Error('Aucune grande composition.');
+      const station = CATALOGUE.definirGrande(composition.id, graine);
+      if ('refus' in station) throw new Error(station.refus);
+      const resultat = assemblerStation(station);
+      if (resultat.type === 'invalide') throw new Error(`${station.id} : ${resultat.erreurs.join(' ')}`);
+      if (resultat.type !== 'station') continue;
+      stations++;
+      const { monde } = resultat;
+      const parId = new Map(monde.pieces.map((piece) => [piece.id, piece]));
+      // Pièce du chemin principal d'où pend une annexe, en remontant les couloirs du catalogue.
+      const accrocheDe = new Map(monde.liaisons.filter((liaison) => /^l-a\d+-/.test(liaison.id)).map((liaison) => [liaison.entre[1], liaison.entre[0]]));
+      const racine = (piece: string): string => {
+        let haut = piece;
+        for (let suivante = accrocheDe.get(haut); suivante !== undefined; suivante = accrocheDe.get(haut)) haut = suivante;
+        return haut;
+      };
+      const segmentsAvant = (id: string): (number | undefined)[] => (station.morceaux.find((candidat) => candidat.id === id)?.grande?.avant ?? []).map((piece) => parId.get(prefixer(id, piece))?.segment);
+      const carrefour = station.morceaux.find((candidat) => candidat.famille === 'carrefour');
+      let encombrantes = 0;
+      station.morceaux.forEach((leMorceau, rang) => {
+        const accroche = station.accroches?.find((candidate) => candidate.vers === leMorceau.id);
+        // La zone qui précède : celle du morceau d'où part son entrée ; une branche de l'ordre libre part du couloir commun.
+        const parent = accroche?.depuis ?? station.morceaux[rang - 1]?.id ?? leMorceau.id;
+        const branche = carrefour !== undefined && accroche?.depuis === carrefour.id && accroche.piece === carrefour.entree;
+        const zones = [...segmentsAvant(leMorceau.id), ...segmentsAvant(parent)];
+        for (const [id, declaration] of Object.entries(leMorceau.grande?.cles ?? {})) {
+          const objet = monde.objets.find((candidat) => candidat.id === prefixer(leMorceau.id, id));
+          const origine = leMorceau.objets.find((candidat) => candidat.id === id)?.piece;
+          if (objet === undefined || origine === undefined) throw new Error(`${station.id} : clé ${id} absente.`);
+          cles++;
+          expect(objet.piece, station.id).not.toBe(monde.depart);
+          if (objet.piece === prefixer(leMorceau.id, origine)) continue;
+          deplacees++;
+          if (objet.encombrant === true) encombrantes++;
+          // Instance 'a3-consigne' de l'annexe 'a-consigne'.
+          const annexe = PIECES_CATALOGUE.find((candidate) => objet.piece.replace(/^a\d+-/, 'a-') === prefixer(candidate.id, 'p-piece'));
+          expect(annexe?.annexe?.etiquettes.some((etiquette) => declaration.etiquettes.includes(etiquette)), `${station.id} : ${objet.id} dans ${objet.piece}`).toBe(true);
+          expect(zones, `${station.id} : ${objet.id} dans ${objet.piece}`).toContain(parId.get(objet.piece)?.segment);
+          if (branche) expect([leMorceau.id, carrefour.id], `${station.id} : ${objet.id} dans ${objet.piece}`).toContain(morceauDe(racine(objet.piece)));
+        }
+      });
+      expect(encombrantes, station.id).toBeLessThanOrEqual(1);
+      const caisse = monde.objets.find((objet) => objet.id === 'm-02/o-caisse');
+      if (caisse !== undefined) {
+        expect([caisse.portable, caisse.encombrant], station.id).toEqual([true, true]);
+        expect(caisse.position, station.id).toBe(caisse.piece === 'm-02/p-atelier' ? 'm-02/pos-centre' : undefined);
+      }
+    }
+    expect(deplacees).toBeGreaterThan(0);
+    console.log(`clés dispersées : ${deplacees}/${cles} déplacées (${((deplacees / cles) * 100).toFixed(0)} %) sur ${stations} stations`);
+  }, 120_000);
 });

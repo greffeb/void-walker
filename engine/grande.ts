@@ -1,13 +1,14 @@
-import { pieceAnnexe, poserAnnexes } from './annexes';
+import { pieceAnnexe, poserAnnexes, type AnnexePosee } from './annexes';
 import { poserBoucles } from './boucles';
-import type { CategoriePiece, DefLiaison, DefMonde, DefPiece } from './monde';
+import { poserCles, type CleAPoser, type PieceCandidate } from './cles';
+import type { CategoriePiece, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
 import { tracerPiste } from './piste';
 import { piecesDeCoque, type RectPlan } from './plan';
 import { prefixer, sousGraine } from './pose';
-import type { DefStation, DefStationGrande } from './station';
+import type { DefMorceau, DefStation, DefStationGrande } from './station';
 
 // Grande station (spec 2026-10-18 §6.2) : autour du chemin principal déjà posé, les annexes, puis les portes de boucle, puis la
-// piste de la créature, chacune sur sa sous-graine. Le monde reste un monde ordinaire, revalidé par l'assembleur.
+// piste de la créature, puis les clés, chacune sur sa sous-graine. Le monde reste un monde ordinaire, revalidé par l'assembleur.
 
 /** Une liaison que la créature peut franchir, au besoin en forçant la porte (D-279) : la piste ne passe que par elles. */
 export function franchissable(liaison: DefLiaison): boolean {
@@ -66,6 +67,67 @@ export function segmentsDe(monde: DefMonde, station: DefStation): Map<string, nu
     couche = suivante;
   }
   return segments;
+}
+
+/**
+ * Objets du monde, clés dispersées (spec §6.5) : une clé tirée dans une annexe y perd sa position ; un appui `portableEnGrande`
+ * devient portable et encombrant, qu'il bouge ou non.
+ */
+function disperserCles(monde: DefMonde, station: DefStation, annexes: readonly AnnexePosee[], segments: ReadonlyMap<string, number>, liaisons: readonly DefLiaison[]): DefObjet[] {
+  const { morceaux } = station;
+  // Dans l'ordre du chemin, puis des identifiants : le tirage ne dépend pas de l'ordre des déclarations.
+  const cles = morceaux.flatMap((morceau) =>
+    Object.entries(morceau.grande?.cles ?? {})
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([id, cle]): CleAPoser => {
+        const objet = monde.objets.find((candidat) => candidat.id === prefixer(morceau.id, id));
+        if (objet === undefined) throw new Error(`${morceau.id} : clé absente ${id}.`);
+        return { objet: objet.id, morceau: morceau.id, origine: objet.piece, cle, encombrante: objet.encombrant === true || cle.portableEnGrande === true, large: objet.large === true };
+      }),
+  );
+
+  // Zones permises : le côté avant du morceau et celui du morceau d'où part son entrée ; pour le final, celui du dernier chemin.
+  const avant = (morceau: DefMorceau | undefined): (number | undefined)[] => morceau?.grande?.avant.map((piece) => segments.get(prefixer(morceau.id, piece))) ?? [];
+  const carrefour = morceaux.find((morceau) => morceau.famille === 'carrefour');
+  const zones = new Map<string, ReadonlySet<number | undefined>>();
+  const racines = new Map<string, ReadonlySet<string>>();
+  morceaux.forEach((morceau, rang) => {
+    const accroche = station.accroches?.find((candidate) => candidate.vers === morceau.id);
+    const precedent = accroche === undefined ? morceaux[rang - 1] : morceaux.find((candidat) => candidat.id === accroche.depuis);
+    zones.set(morceau.id, new Set([...avant(morceau), ...avant(precedent)]));
+    // Ordre libre : les deux branches partent du couloir commun et partagent sa zone ; la clé de l'une n'y pend jamais à l'autre.
+    if (carrefour !== undefined && accroche?.depuis === carrefour.id && accroche.piece === carrefour.entree) racines.set(morceau.id, new Set([morceau.id, carrefour.id]));
+  });
+
+  const accrocheDe = new Map(annexes.map((posee) => [pieceAnnexe(posee), posee.accroche]));
+  const racine = (piece: string): string => {
+    let haut = piece;
+    for (let suivante = accrocheDe.get(haut); suivante !== undefined; suivante = accrocheDe.get(haut)) haut = suivante;
+    return haut;
+  };
+  const candidates = annexes.map((posee): PieceCandidate => {
+    const id = pieceAnnexe(posee);
+    return { id, etiquettes: posee.annexe.annexe?.etiquettes ?? [], segment: segments.get(id) ?? -1, racine: racine(id) };
+  });
+  const permise = (cle: CleAPoser, candidate: PieceCandidate): boolean =>
+    zones.get(cle.morceau)?.has(candidate.segment) === true && (racines.get(cle.morceau)?.has(candidate.racine.slice(0, candidate.racine.indexOf('/'))) ?? true);
+
+  // Pièces d'où l'on apporte un objet large à l'intérieur d'une capsule, toutes portes supposées ouvertes (logique de
+  // `apportablesVers`, sortie.ts) ; aussi sans passage haut, caché ni vide, par prudence.
+  const larges = liaisons.filter((liaison) => liaison.etroite !== true && liaison.gouffre !== true && liaison.haute === undefined && liaison.cachee === undefined);
+  const apportables = new Set(monde.objets.flatMap((objet) => (objet.capsule === undefined ? [] : [objet.capsule.interieur])));
+  for (const piece of apportables) for (const liaison of larges) if (liaison.entre.includes(piece)) for (const autre of liaison.entre) apportables.add(autre);
+
+  const poses = poserCles(cles, candidates, permise, (piece) => apportables.has(piece), sousGraine(station.graine, 'cles'));
+  const portablesEnGrande = new Set(cles.filter((cle) => cle.cle.portableEnGrande === true).map((cle) => cle.objet));
+  return monde.objets.map((objet) => {
+    const leve = portablesEnGrande.has(objet.id) ? { ...objet, portable: true, encombrant: true } : objet;
+    const piece = poses.get(objet.id) ?? objet.piece;
+    if (piece === objet.piece) return leve;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- la position appartient à la pièce d'origine.
+    const { position, ...ailleurs } = leve;
+    return { ...ailleurs, piece };
+  });
 }
 
 /** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-295), pour cette graine. */
@@ -127,6 +189,7 @@ export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefS
   return {
     ...monde,
     pieces: [...monde.pieces, ...piecesAnnexes].map(marquer),
+    objets: disperserCles(monde, station, annexes, segments, [...liaisons, ...liaisonsBoucles]),
     liaisons: [...liaisons, ...liaisonsBoucles],
     boucles: liaisonsBoucles.map((liaison) => liaison.id),
     bruitsStation: true,
