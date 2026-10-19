@@ -10,7 +10,7 @@ import type { DefStation, DefStationGrande } from './station';
 // piste de la créature, chacune sur sa sous-graine. Le monde reste un monde ordinaire, revalidé par l'assembleur.
 
 /** Une liaison que la créature peut franchir, au besoin en forçant la porte (D-279) : la piste ne passe que par elles. */
-function franchissable(liaison: DefLiaison): boolean {
+export function franchissable(liaison: DefLiaison): boolean {
   return liaison.etroite !== true && liaison.gouffre !== true && liaison.verrouillee !== true && liaison.haute === undefined && liaison.cachee === undefined && liaison.manoeuvre === undefined;
 }
 

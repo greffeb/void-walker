@@ -18,6 +18,7 @@ export {
   type PlanLiaison,
   type RectPlan,
 } from './plan';
+export { coupesDe, franchissable, segmentsDe } from './grande';
 export { historique, menu, observer } from './observation';
 export {
   apercu,
@@ -53,6 +54,7 @@ export {
   type FormeAnnexe,
   type DefPorteSortie,
   type DefStation,
+  type DefStationGrande,
   type FamilleMorceau,
   type ResultatAssemblage,
 } from './station';
