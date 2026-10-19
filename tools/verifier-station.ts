@@ -135,6 +135,16 @@ export function rangsDesMorceaux(monde: DefMonde): (piece: string) => number {
   };
 }
 
+/**
+ * Priorité de recherche d’une grande station (spec 2026-10-18 §7.4) : le segment de la pièce du passager, le plus avancé d’abord ;
+ * sans segment (petites stations), le rang de son morceau, comme avant.
+ */
+export function rangsDesSegments(monde: DefMonde): (piece: string) => number {
+  if (!monde.pieces.some((piece) => piece.segment !== undefined)) return rangsDesMorceaux(monde);
+  const segments = new Map(monde.pieces.map((piece) => [piece.id, piece.segment ?? 0]));
+  return (piece) => segments.get(piece) ?? 0;
+}
+
 export interface Recherche {
   readonly issue: 'trouve' | 'epuise' | 'plafond';
   /** Premier état qui satisfait le but, journal vidé ; `null` sinon. */
@@ -159,7 +169,7 @@ interface Seau {
  * (spec L3 §6.2). Même graphe qu'en largeur ; sans préfixe, tout est au rang 0 et c'est la largeur.
  */
 function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEtats: number, options: OptionsVerification = {}): Exploration {
-  const rangDe = rangsDesMorceaux(entree.monde);
+  const rangDe = rangsDesSegments(entree.monde);
   const admissible = options.admissible ?? (() => true);
   const rang = options.priorite ?? ((etat: EtatPartie): number => rangDe(etat.piece));
   const initiale = sansJournal(nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
@@ -232,12 +242,17 @@ export function ordreImpose(monde: DefMonde, premiere: string, seconde: string):
   const capsule = monde.objets.find((objet) => objet.capsule !== undefined);
   const etapes = [brancheDe(premiere), brancheDe(seconde), capsule === undefined ? null : morceauDe(capsule.piece)];
   const leve = (etat: EtatPartie, cloison: string): boolean => etat.verrous?.includes(cloison) !== true;
+  // Grande station : après les deux cloisons, le troisième chemin puis le final, le segment le plus avancé d’abord (spec 2026-10-18 §7.4).
+  const grande = monde.pieces.some((piece) => piece.segment !== undefined);
+  const segmentDe = rangsDesSegments(monde);
   return {
     admissible: (etat) => leve(etat, premiere) || !leve(etat, seconde),
     priorite: (etat) => {
       const etape = leve(etat, premiere) ? (leve(etat, seconde) ? 2 : 1) : 0;
       const ici = morceauDe(etat.piece);
-      return etape * 3 + (ici === etapes[etape] ? 2 : ici === 'carrefour' ? 1 : 0);
+      const proche = ici === etapes[etape] ? 2 : ici === 'carrefour' ? 1 : 0;
+      if (!grande) return etape * 3 + proche;
+      return etape * 1000 + (etape === 2 ? 10 + segmentDe(etat.piece) : proche);
     },
   };
 }
@@ -776,9 +791,13 @@ async function principal(): Promise<void> {
   const resultat = verifierLot(lot, { tirages, options, cache });
   for (const ligne of [...resultat.mondes, ...resultat.lignes, ...resultat.plans]) console.log(JSON.stringify(ligne));
   if (complet) console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS_COMPLET) }));
-  const ecarts = ecartsDuLot(resultat, lot);
+  // Grandes stations publiées (spec 2026-10-18 §7.4) : rejeu de leurs témoins, rapide ; import dynamique, le module importe celui-ci.
+  const { ecartsDesGrandes, verifierPublieesDuLot } = await import('./verifier-grandes');
+  const grandes = verifierPublieesDuLot(lot);
+  for (const ligne of grandes) console.log(JSON.stringify({ ...ligne, temoins: undefined }));
+  const ecarts = [...ecartsDuLot(resultat, lot), ...ecartsDesGrandes(grandes)];
   for (const ecart of ecarts) console.error(ecart);
-  const total = resultat.mondes.length + resultat.lignes.length + resultat.plans.length;
+  const total = resultat.mondes.length + resultat.lignes.length + resultat.plans.length + grandes.length;
   console.error(`check:stations : lot ${lot.numero}/${lot.total}, ${total} verdicts (${tirages} plans par chemin) dont ${resultat.repris} repris du cache, ${duree()}.`);
   if (ecarts.length > 0) process.exitCode = 1;
 }
