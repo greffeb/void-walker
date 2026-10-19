@@ -23,6 +23,9 @@ import {
   CLES_MORT,
   COMPOSITIONS_CONTROLEES,
   fuitesDeCouches,
+  fuitesDuCatalogue,
+  MORCEAUX,
+  UNIVERS,
   libelleOption,
   lignesListeCarte,
   MORCEAUX_TEXTES,
@@ -643,8 +646,24 @@ export function controlerLot(lot: Lot, catalogue: Catalogue = CATALOGUE, cache?:
     erreurs += fuites.length;
     for (const fuite of fuites) lignes.push({ niveau: 'error', texte: `couches : ${fuite}` });
     if (fuites.length === 0) lignes.push({ niveau: 'log', texte: 'couches : aucun mot de l’univers ni de la menace dans le socle et les morceaux.' });
+    const traces = tracesHorsPiste();
+    erreurs += traces.length;
+    for (const trace of traces) lignes.push({ niveau: 'error', texte: `grandes stations : ${trace}` });
+    if (traces.length === 0) lignes.push({ niveau: 'log', texte: 'grandes stations : aucune trace hors de la piste dans les descriptions calmes.' });
   }
   return { lignes, erreurs, repris };
+}
+
+/**
+ * Descriptions qu’une grande station montre (spec 2026-10-18 §5.4) : celles des morceaux, ou leur variante calme, et celles de
+ * l’univers. Aucune ne porte un mot réservé aux traces : dans une grande station, seule la piste en ajoute, et elle dit vrai.
+ */
+export function tracesHorsPiste(): string[] {
+  const morceaux = Object.values(MORCEAUX).filter(({ morceau }) => morceau.grande !== undefined);
+  return [
+    ...morceaux.flatMap(({ morceau, textes }) => fuitesDuCatalogue({ noms: {}, descriptions: { ...textes.descriptions, ...textes.calmes }, assistance: {} }).map((fuite) => `morceau ${morceau.id}, ${fuite}`)),
+    ...fuitesDuCatalogue({ noms: {}, descriptions: UNIVERS.descriptions, assistance: {} }).map((fuite) => `univers, ${fuite}`),
+  ];
 }
 
 async function principal(): Promise<void> {

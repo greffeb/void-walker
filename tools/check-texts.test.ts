@@ -1,6 +1,6 @@
 import { COMPOSITIONS_CONTROLEES, MONDES, type EntreeMonde, type TextesMonde } from '../content';
 import { CATALOGUE } from './catalogue';
-import { compterPhrases, controlerEntree, controlerLot, controlerTextes, direBornes, idsAControler, regrouperAvertissements, verifierTextes } from './check-texts';
+import { compterPhrases, controlerEntree, controlerLot, controlerTextes, direBornes, idsAControler, regrouperAvertissements, tracesHorsPiste, verifierTextes } from './check-texts';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
 const AR01 = MONDES['ar-01'] as EntreeMonde;
@@ -196,4 +196,10 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('libellé aller sans destination connue : aucun texte (NP-01).');
   });
 
+});
+
+describe('textes calmes des grandes stations (spec 2026-10-18 §5.4)', () => {
+  it('aucune description qu’une grande station montre ne porte un mot de trace : les traces viennent de la piste', () => {
+    expect(tracesHorsPiste()).toEqual([]);
+  });
 });

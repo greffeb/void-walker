@@ -68,6 +68,13 @@ export const TEXTES_MORCEAU_M03: TextesMorceau = {
       'La capsule de secours est arrimée au quai. Sous une trappe, un connecteur accepte une source compatible ; une plaque renvoie aussi au circuit de départ.',
     ],
   },
+  // Grande station (spec 2026-10-18 §5.4) : la réserve sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    reserve: [
+      'Une réserve étroite, des étagères chargées de cartons et de pièces détachées. Le fond reste dans l’ombre.',
+      'Des étagères jusqu’au plafond, des cartons empilés. La lumière n’atteint pas le fond de la réserve.',
+    ],
+  },
   assistance: {
     energie: 'Le circuit de départ se réarme depuis sa console ; son relais est bruyant. Une source locale compatible peut aussi alimenter la capsule.',
   },

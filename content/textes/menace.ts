@@ -7,9 +7,9 @@ export const MOTS_MENACE: readonly string[] = ['créature', 'griff', 'gueule', '
 
 /**
  * Radicaux réservés aux traces de la créature (spec 2026-10-18 §5.4) : une description calme n’en porte aucun, pour qu’une trace
- * dise toujours « elle est passée par ici » (grammaire des signes, §8.1).
+ * dise toujours « elle est passée par ici » (grammaire des signes, §8.1). Un « $ » final : le mot exact (« sang », pas « sangle »).
  */
-export const MOTS_TRACES: readonly string[] = ['sang', 'traînée', 'éventr', 'renvers', 'poiss', 'lacér', 'griff', 'douceâtre', 'éclabouss'];
+export const MOTS_TRACES: readonly string[] = ['sang$', 'sanglant', 'traînée', 'éventr', 'renvers', 'poiss', 'lacér', 'griff', 'douceâtre', 'éclabouss'];
 
 export const MENACE = {
   evenements: {

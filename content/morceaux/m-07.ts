@@ -57,5 +57,12 @@ export const TEXTES_MORCEAU_M07: TextesMorceau = {
       'Un levier massif sous un capot jaune. On peut arrêter les machines, puis les relancer.',
     ],
   },
+  // Grande station (spec 2026-10-18 §5.4) : la soute sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    soute: [
+      'Une soute basse, encombrée de caisses arrimées. L’air y sent l’humidité et le métal.',
+      'Des rayonnages, des sangles qui pendent. Une étiquette de pesée claque doucement dans un courant d’air.',
+    ],
+  },
   assistance: {},
 };

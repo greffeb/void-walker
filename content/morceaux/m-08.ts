@@ -61,6 +61,17 @@ export const TEXTES_MORCEAU_M08: TextesMorceau = {
     ],
     planche: repris(TEXTES_PROPRES_M08.descriptions, 'planche'),
   },
+  // Grande station (spec 2026-10-18 §5.4) : l'atelier et le magasin sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    atelier: [
+      'Un atelier de maintenance aux établis encombrés. Des outils traînent sur les plans de travail.',
+      'Des établis, des étaux, de la limaille sur le sol. Quelques outils pendent encore au tableau mural.',
+    ],
+    magasin: [
+      'Un magasin de pièces détachées. Des bacs étiquetés montent jusqu’au plafond, rangés par taille.',
+      'Des casiers grillagés, des bacs de visserie, un comptoir de distribution. Le fond du magasin reste sombre.',
+    ],
+  },
   assistance: {
     passerelle: repris(TEXTES_PROPRES_M08.assistance, 'passerelle'),
   },

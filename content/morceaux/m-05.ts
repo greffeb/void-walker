@@ -59,5 +59,12 @@ export const TEXTES_MORCEAU_M05: TextesMorceau = {
       'Le hall de chargement est désert. Des sangles d’arrimage pendent aux anneaux du mur.',
     ],
   },
+  // Grande station (spec 2026-10-18 §5.4) : la salle de tri sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    tri: [
+      'Une salle de tri aux tapis roulants immobiles. Des colis attendent encore sur les bandes, l’adresse tournée vers le plafond.',
+      'Des bacs de tri, des étiquettes partout, un tapis arrêté net. L’air sent le carton humide.',
+    ],
+  },
   assistance: {},
 };
