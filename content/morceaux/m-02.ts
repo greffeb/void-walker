@@ -66,5 +66,12 @@ export const TEXTES_MORCEAU_M02: TextesMorceau = {
     ],
     caisse: repris(TEXTES_AR01.descriptions, 'caisse'),
   },
+  // Dans une grande station la caisse se porte (spec §6.5) : sa description ne dit plus qu'elle reste au sol.
+  calmes: {
+    caisse: [
+      'Une caisse de service au couvercle plat et stable. Lourde, elle se soulève à deux bras ou se pousse au sol ; montée dessus, on atteint bien plus haut.',
+      'Une caisse renforcée, encombrante, qu’on soulève à deux bras. Son couvercle plat ferait un appui stable.',
+    ],
+  },
   assistance: {},
 };

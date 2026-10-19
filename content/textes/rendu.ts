@@ -243,9 +243,12 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
   const description = textes.descriptions[consultation.cible.nom];
   if (description === undefined) throw new ErreurTexte(`Description absente : ${consultation.cible.nom}.`);
   const regard = remplir(choisirVariante(description, repere), {});
-  // Sur la piste de la créature, une phrase de trace suit la description (spec 2026-10-18 §5.4).
-  if (consultation.type !== 'regarder_piece' || consultation.trace === undefined) return regard;
-  return `${regard} ${remplir(choisirVariante(textes.traces[consultation.trace], `${cle.graine}:trace:${consultation.cible.id}`), {})}`;
+  if (consultation.type !== 'regarder_piece') return regard;
+  // Sur la piste de la créature, une phrase de trace suit la description (spec 2026-10-18 §5.4) ; dans une salle de butin
+  // pillée, une phrase de pillage vient ensuite (§6.6). Chacune reste la même toute la partie.
+  const trace = consultation.trace === undefined ? '' : ` ${remplir(choisirVariante(textes.traces[consultation.trace], `${cle.graine}:trace:${consultation.cible.id}`), {})}`;
+  const pillage = consultation.pillee === true ? ` ${remplir(choisirVariante(textes.pillages, `${cle.graine}:pillage:${consultation.cible.id}`), {})}` : '';
+  return `${regard}${trace}${pillage}`;
 }
 
 export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {

@@ -1,4 +1,6 @@
-import { COMPOSITIONS_CONTROLEES, MONDES, type EntreeMonde, type TextesMonde } from '../content';
+import { prefixer } from '../engine';
+import { COMPOSITIONS_CONTROLEES, MONDES, MORCEAUX, type EntreeMonde, type TextesMonde } from '../content';
+import { TEXTES_AR01 } from '../content/ar-01/textes';
 import { CATALOGUE } from './catalogue';
 import { compterPhrases, controlerEntree, controlerLot, controlerTextes, direBornes, idsAControler, regrouperAvertissements, tracesHorsPiste, verifierTextes } from './check-texts';
 
@@ -201,5 +203,43 @@ describe('contrôle des textes (C-07)', () => {
 describe('textes calmes des grandes stations (spec 2026-10-18 §5.4)', () => {
   it('aucune description qu’une grande station montre ne porte un mot de trace : les traces viennent de la piste', () => {
     expect(tracesHorsPiste()).toEqual([]);
+  });
+
+  /** Première station, grande ou petite, d'une composition qui a un plan : la plupart des graines n'en ont pas. */
+  function premiere(construire: (graine: number) => EntreeMonde | { readonly refus: string }): EntreeMonde {
+    for (let graine = 0; graine < 200; graine++) {
+      const station = construire(graine);
+      if (!('refus' in station)) return station;
+    }
+    throw new Error('Aucune graine avec un plan.');
+  }
+
+  it('M-02 : la caisse des grandes stations ne dit plus qu’elle ne se porte pas ; en petite station, le texte d’AR-01', () => {
+    const grande = CATALOGUE.grandes.find((composition) => composition.refus === null && [...composition.chemins, composition.final].includes('m-02'));
+    expect(grande).toBeDefined();
+    const station = premiere((graine) => CATALOGUE.construireGrande(grande?.id ?? '', graine));
+    const variantes = station.textes.descriptions.caisse ?? [];
+    expect(variantes.length).toBeGreaterThanOrEqual(2);
+    for (const variante of variantes) expect(variante).not.toMatch(/(?<!\p{L})port(?:é|ée|és|ées|er)(?!\p{L})/u);
+    expect(variantes).not.toEqual(TEXTES_AR01.descriptions.caisse);
+    const petite = premiere((graine) => CATALOGUE.construire('m02-m06-embarquement', graine));
+    expect(petite.textes.descriptions.caisse).toEqual(TEXTES_AR01.descriptions.caisse);
+  });
+
+  it('la description de la pièce d’origine de chaque clé ne nomme pas sa clé (spec §6.5)', () => {
+    const cles = Object.values(MORCEAUX).flatMap(({ morceau }) => Object.keys(morceau.grande?.cles ?? {}).map((objet) => ({ id: morceau.id, objet })));
+    expect(cles.length).toBeGreaterThanOrEqual(7);
+    for (const { id, objet } of cles) {
+      const composition = CATALOGUE.grandes.find((candidate) => candidate.refus === null && [...candidate.chemins, candidate.final].includes(id));
+      expect(composition, id).toBeDefined();
+      const { monde, textes } = premiere((graine) => CATALOGUE.construireGrande(composition?.id ?? '', graine));
+      const cle = monde.objets.find((candidat) => candidat.id === prefixer(id, objet));
+      const origine = monde.pieces.find((piece) => piece.id === prefixer(id, MORCEAUX[id]?.morceau.objets.find((candidat) => candidat.id === objet)?.piece ?? ''));
+      expect(cle, `${id} ${objet}`).toBeDefined();
+      expect(origine, `${id} ${objet}`).toBeDefined();
+      const nom = textes.noms[cle?.nom ?? '']?.texte.split(/[\s’']+/)[0]?.toLocaleLowerCase('fr') ?? '';
+      expect(nom, `${id} ${objet}`).not.toBe('');
+      for (const description of textes.descriptions[origine?.nom ?? ''] ?? []) expect(description.toLocaleLowerCase('fr'), `${id} ${objet} : ${description}`).not.toContain(nom);
+    }
   });
 });

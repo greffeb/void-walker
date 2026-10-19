@@ -110,6 +110,8 @@ export interface TextesMonde {
   readonly asphyxie: Variantes;
   /** Phrase ajoutée au regard d’une pièce sur la piste de la créature (spec 2026-10-18 §5.4), couche menace. */
   readonly traces: Readonly<Record<IntensiteTrace, Variantes>>;
+  /** Phrase ajoutée au regard d’une pièce pillée avant le joueur (spec 2026-10-18 §6.6), couche univers, après la trace s’il y en a une. */
+  readonly pillages: Variantes;
   /** Attente seule à raconter, 5e et 10e de suite (#225). */
   readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */

@@ -22,6 +22,9 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_plateforme: { texte: 'plateforme de fret', genre: 'f', nombre: 's', elision: false },
     cat_bureau_fret: { texte: 'bureau du fret', genre: 'm', nombre: 's', elision: false },
     cat_laboratoire: { texte: 'laboratoire', genre: 'm', nombre: 's', elision: false },
+    // Objets du butin (spec §6.6) : leur nom n'est celui d'aucun morceau ni d'aucune pièce (NP-04).
+    cat_trousse: { texte: 'trousse de soin', genre: 'f', nombre: 's', elision: false },
+    cat_burette_reserve: { texte: 'burette de réserve', genre: 'f', nombre: 's', elision: false },
   },
   descriptions: {
     cat_couchettes: [
@@ -86,6 +89,14 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_laboratoire: [
       'Un laboratoire de contrôle sanitaire, paillasses blanches et hottes éteintes. Les flacons d’échantillons sont rangés par lots, étiquetés à la main.',
       'Des microscopes sous housse, une enceinte de confinement vide, sa vitre relevée. Le registre des contrôles est ouvert sur une page blanche.',
+    ],
+    cat_trousse: [
+      'Une trousse de soin en toile, une croix blanche sur le rabat. Quelqu’un l’a manquée en fouillant.',
+      'Une trousse de soin d’urgence, les attaches encore scellées. Elle a échappé à ceux qui sont passés avant vous.',
+    ],
+    cat_burette_reserve: [
+      'Une burette de réserve, pleine, le bouchon encore plombé. L’étiquette précise : lubrifiant glissant, non inflammable.',
+      'Une petite burette de réserve à bec court. L’étiquette précise : glissant, non inflammable.',
     ],
   },
   assistance: {},

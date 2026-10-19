@@ -3,6 +3,7 @@ import type { TextesMorceau } from '../textes/types';
 import { PIECES_CATALOGUE } from './pieces';
 import { TEXTES_CATALOGUE } from './textes';
 
+export { TABLE_BUTIN } from './butin';
 export { PIECES_CATALOGUE } from './pieces';
 export { TEXTES_CATALOGUE } from './textes';
 

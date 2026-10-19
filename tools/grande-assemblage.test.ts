@@ -230,7 +230,8 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
     let burettesM04 = 0;
     for (let graine = 0; graine < 300; graine++) {
       const station = stationReelle(graine);
-      const sans = assemblerStation(station);
+      // Référence : la station sans table de butin, que le contenu branche désormais dans les vraies stations.
+      const sans = assemblerStation({ ...station, grande: Object.fromEntries(Object.entries(station.grande ?? {}).filter(([cle]) => cle !== 'butin')) as unknown as DefStation['grande'] });
       const avec = assemblerStation({ ...station, grande: station.grande === undefined ? undefined : { ...station.grande, butin: TABLE } });
       if (sans.type === 'invalide' || avec.type === 'invalide') throw new Error(`${station.id} : invalide.`);
       if (sans.type !== 'station') sansPlanAvant++;

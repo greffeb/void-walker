@@ -50,6 +50,9 @@ export const BRUITS_STATION: TextesMonde['evenements']['bruit_station'] = reunir
 /** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 
+/** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
+export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
+
 function minuscules(texte: string): string {
   return texte.normalize('NFC').toLocaleLowerCase('fr');
 }

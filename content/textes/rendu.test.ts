@@ -1,5 +1,5 @@
 import type { Consultation } from '../../engine';
-import { reunir } from './couches';
+import { fuitesDuCatalogue, reunir } from './couches';
 import { rendreConsultation, rendreEvenements } from './rendu';
 
 // Une pièce marquée par la piste de la créature (spec 2026-10-18 §5.4) : sa description, puis une phrase de trace de la couche
@@ -33,6 +33,51 @@ describe('trace d’une pièce (spec 2026-10-18 §5.4)', () => {
       expect(phrase).not.toMatch(/[0-9{}]/);
       expect(phrase.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '')).toHaveLength(1);
     }
+  });
+});
+
+// Une pièce pillée (spec 2026-10-18 §6.6) : sa description, sa trace s'il y en a une, puis une phrase de pillage de la couche
+// univers, la même pendant toute la partie.
+
+const regardPillee = (trace?: 'legere' | 'forte'): Consultation => ({ type: 'regarder_piece', cible: { sorte: 'piece', id: 'e00000001', nom: 'salle' }, pillee: true, ...(trace === undefined ? {} : { trace }) });
+
+describe('pièce pillée (spec 2026-10-18 §6.6)', () => {
+  it('sans trace : la description, puis une phrase de pillage', () => {
+    const texte = rendreConsultation(TEXTES, regardPillee(), { graine: 3, action: 0 });
+    expect(texte.startsWith(`${DESCRIPTION} `)).toBe(true);
+    expect(TEXTES.pillages).toContain(texte.slice(DESCRIPTION.length + 1));
+  });
+
+  it.each(['legere', 'forte'] as const)('trace %s : la description, la trace, puis le pillage', (intensite) => {
+    const texte = rendreConsultation(TEXTES, regardPillee(intensite), { graine: 3, action: 0 });
+    expect(texte.startsWith(`${DESCRIPTION} `)).toBe(true);
+    const reste = texte.slice(DESCRIPTION.length + 1);
+    const trace = TEXTES.traces[intensite].find((phrase) => reste.startsWith(`${phrase} `));
+    expect(trace).toBeDefined();
+    expect(TEXTES.pillages).toContain(reste.slice((trace?.length ?? 0) + 1));
+  });
+
+  it('une pièce non pillée ne dit rien du pillage', () => {
+    for (const phrase of TEXTES.pillages) expect(rendreConsultation(TEXTES, regard('forte'), { graine: 3, action: 0 })).not.toContain(phrase);
+    expect(rendreConsultation(TEXTES, regard(), { graine: 3, action: 0 })).toBe(DESCRIPTION);
+  });
+
+  it('même partie, même phrase de pillage ; une autre partie peut en tirer une autre', () => {
+    const premiere = rendreConsultation(TEXTES, regardPillee(), { graine: 3, action: 0 });
+    expect(rendreConsultation(TEXTES, regardPillee(), { graine: 3, action: 9 })).toBe(premiere);
+    const autres = new Set(Array.from({ length: 30 }, (_, graine) => rendreConsultation(TEXTES, regardPillee(), { graine, action: 0 })));
+    expect(autres.size).toBeGreaterThan(1);
+  });
+
+  it('au moins six phrases, chacune entière, sans chiffre ni trou, sans mot de trace ni de menace', () => {
+    expect(TEXTES.pillages.length).toBeGreaterThanOrEqual(6);
+    for (const phrase of TEXTES.pillages) {
+      expect(phrase).toMatch(/^[A-ZÀ-Ý].*\.$/u);
+      expect(phrase).not.toMatch(/[0-9{}]/);
+      expect(phrase.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '')).toHaveLength(1);
+    }
+    // Mêmes radicaux que le catalogue : la trace dit « elle est passée par ici », le pillage « quelqu'un a pris ».
+    expect(fuitesDuCatalogue({ noms: {}, descriptions: { pillage: TEXTES.pillages }, assistance: {} })).toEqual([]);
   });
 });
 

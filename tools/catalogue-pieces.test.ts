@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { validerMorceau } from '../engine';
-import { CATALOGUE_PIECES, fuitesDuCatalogue, MORCEAUX, nomLisible, UNIVERS } from '../content';
+import { CATALOGUE_PIECES, fuitesDuCatalogue, MORCEAUX, nomLisible, TABLE_BUTIN, TEXTES_CATALOGUE, UNIVERS } from '../content';
+import { CATALOGUE } from './catalogue';
 import { compterPhrases } from './check-texts';
 
 // Catalogue des pièces sans obstacle (spec 2026-10-18 §5, #206) : quinze pièces d'une station de transit et de fret, chacune
@@ -78,5 +79,59 @@ describe('catalogue des pièces sans obstacle (#206, spec §5)', () => {
   it('fuitesDuCatalogue lit aussi les noms, même quand une description porte la même clé', () => {
     const fuites = fuitesDuCatalogue({ noms: { cat_essai: { texte: 'salle griffée', genre: 'f', nombre: 's', elision: false } }, descriptions: { cat_essai: ['Une salle calme. Rien à signaler.'] }, assistance: {} });
     expect(fuites).toHaveLength(1);
+  });
+});
+
+// Table de butin (spec §6.6, #207) : une trousse de soin et une burette de réserve, sans aucune qualité passive, aux noms qui
+// ne reprennent jamais ceux des morceaux, de l'univers ni des pièces du catalogue (NP-04).
+
+/** Qualités passives d'un objet : un butin n'en porte aucune (Global Constraints). */
+const QUALITES_PASSIVES = ['encombrant', 'large', 'appui', 'pont', 'source', 'alimente', 'deverrouille', 'capsule', 'vitrageExterieur', 'machines', 'gravite', 'fermeture', 'avertisseur'];
+
+describe('table de butin (#207, spec §6.6)', () => {
+  it('vide 2, deux à trois salles ; la trousse (soin 1, poids 1) et la burette (glissant 1, poids 2, après M-04)', () => {
+    expect(TABLE_BUTIN.vide).toBe(2);
+    expect(TABLE_BUTIN.salles).toEqual([2, 3]);
+    expect(TABLE_BUTIN.entrees.map(({ objet, poids, apresCoupeDe }) => [objet.nom, objet.soin, objet.glissant, poids, apresCoupeDe])).toEqual([
+      ['cat_trousse', 1, undefined, 1, undefined],
+      ['cat_burette_reserve', undefined, 1, 2, 'm-04'],
+    ]);
+  });
+
+  it('aucun objet de la table ne porte une qualité passive', () => {
+    for (const { objet } of TABLE_BUTIN.entrees) for (const qualite of QUALITES_PASSIVES) expect(objet, `${objet.nom} : ${qualite}`).not.toHaveProperty(qualite);
+  });
+
+  it('« trousse de soin » et « burette de réserve » : un nom que ni un morceau, ni l’univers, ni le catalogue ne portent', () => {
+    const noms = TABLE_BUTIN.entrees.map(({ objet }) => TEXTES_CATALOGUE.noms[objet.nom]?.texte.toLocaleLowerCase('fr'));
+    expect(noms).toEqual(['trousse de soin', 'burette de réserve']);
+    for (const nom of noms) expect(NOMS_PRIS.has(nom ?? '')).toBe(false);
+    const ceuxDuCatalogue = ENTREES.map(([, { morceau, textes }]) => textes.noms[morceau.pieces[0]!.nom]!.texte.toLocaleLowerCase('fr'));
+    for (const nom of noms) expect(ceuxDuCatalogue).not.toContain(nom);
+  });
+
+  it('nom et deux descriptions de chaque objet, sans chiffre, sans mot de la menace ni de trace', () => {
+    for (const { objet } of TABLE_BUTIN.entrees) {
+      const textes = { noms: { [objet.nom]: TEXTES_CATALOGUE.noms[objet.nom]! }, descriptions: { [objet.nom]: TEXTES_CATALOGUE.descriptions[objet.nom]! }, assistance: {} };
+      expect(textes.descriptions[objet.nom]).toHaveLength(2);
+      expect(fuitesDuCatalogue(textes)).toEqual([]);
+      expect(JSON.stringify(textes)).not.toMatch(/[0-9]/);
+    }
+  });
+
+  it('dans les vraies grandes stations, chaque objet de butin a son nom et sa description', () => {
+    const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null);
+    let butins = 0;
+    for (let graine = 0; graine < 40; graine++) {
+      const composition = compositions[(graine * 7) % compositions.length]!;
+      const station = CATALOGUE.construireGrande(composition.id, graine);
+      if ('refus' in station) continue;
+      for (const objet of station.monde.objets.filter((candidat) => candidat.butin === true)) {
+        butins++;
+        expect(station.textes.noms[objet.nom], objet.nom).toBeDefined();
+        expect(station.textes.descriptions[objet.nom], objet.nom).toBeDefined();
+      }
+    }
+    expect(butins).toBeGreaterThan(0);
   });
 });
