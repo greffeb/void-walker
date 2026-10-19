@@ -1,6 +1,6 @@
 import { pieceAnnexe, poserAnnexes, type AnnexePosee } from './annexes';
 import { poserBoucles } from './boucles';
-import { poserButin } from './butin';
+import { poserButin, type ImpasseButin } from './butin';
 import { poserCles, type CleAPoser, type PieceCandidate } from './cles';
 import type { CategoriePiece, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
 import { tracerPiste } from './piste';
@@ -70,6 +70,33 @@ export function segmentsDe(monde: DefMonde, station: DefStation): Map<string, nu
   return segments;
 }
 
+/** Pièce où pend une annexe, puis, tant que c'est un couloir du catalogue, celle où ce couloir pend, jusqu'au chemin principal. */
+function accrochesDe(annexes: readonly AnnexePosee[]): (piece: string) => string[] {
+  const accrocheDe = new Map(annexes.map((posee) => [pieceAnnexe(posee), posee.accroche]));
+  return (piece) => {
+    const chaine: string[] = [];
+    for (let haut = accrocheDe.get(piece); haut !== undefined; haut = accrocheDe.get(haut)) chaine.push(haut);
+    return chaine;
+  };
+}
+
+/** Portes à franchir depuis `depart` jusqu'à chaque pièce atteinte, portes ouvertes ou non, sans les liaisons `sauf`. */
+function distancesDepuis(depart: string, liaisons: readonly DefLiaison[], sauf: ReadonlySet<string> = new Set()): Map<string, number> {
+  const distances = new Map([[depart, 0]]);
+  const file = [depart];
+  for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
+    for (const liaison of liaisons) {
+      if (sauf.has(liaison.id) || !liaison.entre.includes(piece)) continue;
+      for (const autre of liaison.entre) {
+        if (distances.has(autre)) continue;
+        distances.set(autre, (distances.get(piece) ?? 0) + 1);
+        file.push(autre);
+      }
+    }
+  }
+  return distances;
+}
+
 /**
  * Objets du monde, clés dispersées (spec §6.5) : une clé tirée dans une annexe y perd sa position ; un appui `portableEnGrande`
  * devient portable et encombrant, qu'il bouge ou non.
@@ -100,12 +127,8 @@ function disperserCles(monde: DefMonde, station: DefStation, annexes: readonly A
     if (carrefour !== undefined && accroche?.depuis === carrefour.id && accroche.piece === carrefour.entree) racines.set(morceau.id, new Set([morceau.id, carrefour.id]));
   });
 
-  const accrocheDe = new Map(annexes.map((posee) => [pieceAnnexe(posee), posee.accroche]));
-  const racine = (piece: string): string => {
-    let haut = piece;
-    for (let suivante = accrocheDe.get(haut); suivante !== undefined; suivante = accrocheDe.get(haut)) haut = suivante;
-    return haut;
-  };
+  const accroches = accrochesDe(annexes);
+  const racine = (piece: string): string => accroches(piece).at(-1) ?? piece;
   const candidates = annexes.map((posee): PieceCandidate => {
     const id = pieceAnnexe(posee);
     return { id, etiquettes: posee.annexe.annexe?.etiquettes ?? [], segment: segments.get(id) ?? -1, racine: racine(id) };
@@ -140,27 +163,12 @@ function apresCoupe(monde: DefMonde, station: DefStation, liaisons: readonly Def
   return (id, segment) => {
     const morceau = station.morceaux.find((candidat) => candidat.id === id);
     if (morceau === undefined) return true;
-    const coupes = new Set(coupesDuMorceau(monde, morceau));
-    const vues = new Set([monde.depart]);
-    const file = [monde.depart];
-    for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
-      for (const liaison of liaisons) {
-        if (coupes.has(liaison.id) || !liaison.entre.includes(piece)) continue;
-        for (const autre of liaison.entre) {
-          if (vues.has(autre)) continue;
-          vues.add(autre);
-          file.push(autre);
-        }
-      }
-    }
-    return ![...vues].some((piece) => segments.get(piece) === segment);
+    const vues = distancesDepuis(monde.depart, liaisons, new Set(coupesDuMorceau(monde, morceau)));
+    return ![...vues.keys()].some((piece) => segments.get(piece) === segment);
   };
 }
 
-/**
- * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-295), ou si
- * aucune impasse de butin ne pend à la piste, pour cette graine.
- */
+/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-295), pour cette graine. */
 export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefStationGrande): DefMonde | null {
   const { morceaux, graine, creature } = station;
   const segments = segmentsDe(monde, station);
@@ -215,11 +223,15 @@ export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefS
   const objets = disperserCles(monde, station, annexes, segments, toutes);
 
   // Butin (spec §6.6) : seulement si le contenu donne une table ; jamais dans une impasse qui garde déjà une clé.
+  const accroches = accrochesDe(annexes);
+  const auRepaire = distancesDepuis(creature, toutes);
   const impasses = annexes
     .filter((posee) => posee.annexe.annexe?.forme === 'impasse' && !objets.some((objet) => objet.piece === pieceAnnexe(posee)))
-    .map((posee) => ({ id: pieceAnnexe(posee), etiquettes: posee.annexe.annexe?.etiquettes ?? [], accroche: posee.accroche, segment: segments.get(pieceAnnexe(posee)) ?? 0 }));
+    .map((posee): ImpasseButin => {
+      const id = pieceAnnexe(posee);
+      return { id, etiquettes: posee.annexe.annexe?.etiquettes ?? [], accroches: accroches(id), segment: segments.get(id) ?? 0, distance: auRepaire.get(id) ?? Infinity };
+    });
   const salles = grande.butin === undefined ? [] : poserButin(impasses, piste, creature, grande.butin, apresCoupe(monde, station, toutes, segments), sousGraine(graine, 'butin'));
-  if (salles === null) return null;
   const pillees = new Set(salles.flatMap((salle) => (salle.objet === null ? [salle.piece] : [])));
 
   const marquer = (piece: DefPiece): DefPiece => {

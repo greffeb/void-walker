@@ -201,13 +201,33 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
     salles: [2, 3],
   };
 
-  it('sur 300 graines de vraies compositions : impasses butin sans clé, une sur la piste, burette après M-04, rien d’autre ne change', () => {
+  /** Portes à franchir depuis `depart` pour chaque pièce atteinte, portes ouvertes ou non, sans les liaisons `sauf`. */
+  const distances = (monde: DefMonde, depart: string, sauf: ReadonlySet<string> = new Set()): Map<string, number> => {
+    const vues = new Map([[depart, 0]]);
+    const file = [depart];
+    for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
+      for (const liaison of monde.liaisons) {
+        if (sauf.has(liaison.id) || !liaison.entre.includes(piece)) continue;
+        for (const autre of liaison.entre) {
+          if (vues.has(autre)) continue;
+          vues.set(autre, (vues.get(piece) ?? 0) + 1);
+          file.push(autre);
+        }
+      }
+    }
+    return vues;
+  };
+  const coupesM04 = (station: DefStation): Set<string> => new Set((station.morceaux.find((leMorceau) => leMorceau.id === 'm-04')?.grande?.coupe ?? []).map((coupe) => prefixer('m-04', coupe)));
+
+  it('sur 300 graines de vraies compositions : impasses butin sans clé, la première sur la piste ou au plus près du repaire, burette après M-04, rien d’autre ne change', () => {
     let sansPlanAvant = 0;
     let sansPlanApres = 0;
     let stations = 0;
     let salles = 0;
     let pillees = 0;
-    let uneSeule = 0;
+    const parNombre = [0, 0, 0, 0];
+    const premieres = { directe: 0, couloir: 0, repli: 0, aucune: 0 };
+    let burettesM04 = 0;
     for (let graine = 0; graine < 300; graine++) {
       const station = stationReelle(graine);
       const sans = assemblerStation(station);
@@ -226,33 +246,47 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
       salles += lesSalles.length;
       pillees += vides.length;
       // Deux ou trois, moins si la station n'a pas assez d'impasses butin sans clé.
-      expect(lesSalles.length, station.id).toBeGreaterThanOrEqual(1);
       expect(lesSalles.length, station.id).toBeLessThanOrEqual(3);
-      if (lesSalles.length < 2) uneSeule++;
+      parNombre[lesSalles.length] = (parNombre[lesSalles.length] ?? 0) + 1;
       // Une salle avec objet n'est pas pillée ; une salle ne reçoit qu'un objet.
       expect(new Set(lesSalles).size, station.id).toBe(lesSalles.length);
-      for (const salle of lesSalles) {
-        const annexe = PIECES_CATALOGUE.find((candidate) => salle.replace(/^a\d+-/, 'a-') === prefixer(candidate.id, 'p-piece'))?.annexe;
-        expect(annexe?.forme, `${station.id} : ${salle}`).toBe('impasse');
-        expect(annexe?.etiquettes, `${station.id} : ${salle}`).toContain('butin');
-        expect(monde.objets.filter((objet) => objet.piece === salle && objet.butin !== true), `${station.id} : clé dans ${salle}`).toEqual([]);
+
+      // Candidates : impasses du catalogue d'étiquette butin, sans clé ; chaque salle en est une.
+      const candidates = [...accrocheDe.keys()].filter((piece) => {
+        const annexe = PIECES_CATALOGUE.find((candidate) => piece.replace(/^a\d+-/, 'a-') === prefixer(candidate.id, 'p-piece'))?.annexe;
+        return annexe?.forme === 'impasse' && annexe.etiquettes.includes('butin') && !monde.objets.some((objet) => objet.piece === piece && objet.butin !== true);
+      });
+      for (const salle of lesSalles) expect(candidates, `${station.id} : ${salle}`).toContain(salle);
+
+      // La première salle : sur la piste par sa chaîne d'accroches (forte d'abord), sinon parmi les plus proches du repaire.
+      const chaine = (piece: string): string[] => {
+        const haut: string[] = [];
+        for (let suivante = accrocheDe.get(piece); suivante !== undefined; suivante = accrocheDe.get(suivante)) haut.push(suivante);
+        return haut;
+      };
+      const trace = (piece: string) => chaine(piece).map((haut) => parId.get(haut)?.trace).find((intensite) => intensite !== undefined);
+      const fortes = candidates.filter((piece) => trace(piece) === 'forte');
+      const surPiste = fortes.length > 0 ? fortes : candidates.filter((piece) => trace(piece) === 'legere');
+      const auRepaire = distances(monde, station.creature);
+      const proche = Math.min(...candidates.map((piece) => auRepaire.get(piece) ?? Infinity));
+      const preferees = surPiste.length > 0 ? surPiste : candidates.filter((piece) => auRepaire.get(piece) === proche);
+      if (candidates.length === 0) {
+        expect(lesSalles, station.id).toEqual([]);
+        premieres.aucune++;
+        continue;
       }
-      expect(lesSalles.some((salle) => parId.get(accrocheDe.get(salle) ?? '')?.trace !== undefined), station.id).toBe(true);
+      const premiere = lesSalles.filter((salle) => preferees.includes(salle));
+      expect(premiere, station.id).not.toEqual([]);
+      if (surPiste.length === 0) premieres.repli++;
+      else if (premiere.some((salle) => parId.get(accrocheDe.get(salle) ?? '')?.trace !== undefined)) premieres.directe++;
+      else premieres.couloir++;
 
       // La burette, si M-04 est là, dans une salle qu'on n'atteint pas du départ sans franchir sa coupe, portes ouvertes ou non.
       const burette = butins.find((objet) => objet.nom === 'burette de reserve');
-      const coupes = new Set((station.morceaux.find((leMorceau) => leMorceau.id === 'm-04')?.grande?.coupe ?? []).map((coupe) => prefixer('m-04', coupe)));
+      const coupes = coupesM04(station);
       if (burette !== undefined && coupes.size > 0) {
-        const atteintes = new Set([monde.depart]);
-        for (let ajout = true; ajout; ) {
-          ajout = false;
-          for (const liaison of monde.liaisons) {
-            if (coupes.has(liaison.id) || !liaison.entre.some((piece) => atteintes.has(piece)) || liaison.entre.every((piece) => atteintes.has(piece))) continue;
-            for (const piece of liaison.entre) atteintes.add(piece);
-            ajout = true;
-          }
-        }
-        expect(atteintes.has(burette.piece), `${station.id} : burette dans ${burette.piece}`).toBe(false);
+        burettesM04++;
+        expect(distances(monde, monde.depart, coupes).has(burette.piece), `${station.id} : burette dans ${burette.piece}`).toBe(false);
       }
 
       // Une sous-graine à part : sans le butin, le monde est celui assemblé sans table.
@@ -266,10 +300,38 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
         for (const champ of ['pillee', 'butin']) expect(texte, `${station.id} : ${salle}`).not.toContain(`"${champ}"`);
       }
     }
+    // Le butin ne retire jamais son plan à une graine.
+    expect(sansPlanApres).toBe(sansPlanAvant);
     expect(pillees).toBeGreaterThan(0);
     expect(salles).toBeGreaterThan(pillees);
+    // La règle « après la coupe de M-04 » a été éprouvée : des burettes posées dans des stations qui ont M-04.
+    expect(burettesM04).toBeGreaterThan(0);
     console.log(
-      `butin : sans plan ${sansPlanAvant}/300 avant (${(sansPlanAvant / 3).toFixed(1)} %), ${sansPlanApres}/300 après (${(sansPlanApres / 3).toFixed(1)} %) ; ${salles} salles dont ${pillees} pillées sur ${stations} stations, ${uneSeule} avec une seule salle`,
+      `butin : sans plan ${sansPlanAvant}/300 avant (${(sansPlanAvant / 3).toFixed(1)} %), ${sansPlanApres}/300 après (${(sansPlanApres / 3).toFixed(1)} %) ; ${salles} salles dont ${pillees} pillées sur ${stations} stations ; ` +
+        `stations à 0, 1, 2, 3 salles : ${parNombre.join(', ')} ; première salle sur la piste directement ${premieres.directe}, par un couloir ${premieres.couloir}, au plus près du repaire ${premieres.repli}, aucune candidate ${premieres.aucune} ; ` +
+        `burettes posées avec M-04 : ${burettesM04}`,
     );
   }, 300_000);
+
+  it('avec M-04, la burette se pose, et seulement dans une salle qu’on n’atteint qu’en franchissant sa coupe', () => {
+    const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null && composition.chemins.includes('m-04'));
+    let stations = 0;
+    let burettes = 0;
+    for (let graine = 0; graine < 150; graine++) {
+      const composition = compositions[graine % compositions.length];
+      if (composition === undefined) throw new Error('Aucune grande composition avec M-04.');
+      const station = CATALOGUE.definirGrande(composition.id, graine);
+      if ('refus' in station) throw new Error(station.refus);
+      const resultat = assemblerStation({ ...station, grande: station.grande === undefined ? undefined : { ...station.grande, butin: TABLE } });
+      if (resultat.type === 'invalide') throw new Error(`${station.id} : ${resultat.erreurs.join(' ')}`);
+      if (resultat.type !== 'station') continue;
+      stations++;
+      const burette = resultat.monde.objets.find((objet) => objet.butin === true && objet.nom === 'burette de reserve');
+      if (burette === undefined) continue;
+      burettes++;
+      expect(distances(resultat.monde, resultat.monde.depart, coupesM04(station)).has(burette.piece), `${station.id} : burette dans ${burette.piece}`).toBe(false);
+    }
+    expect(burettes).toBeGreaterThan(5);
+    console.log(`burette avec M-04 : posée dans ${burettes} stations sur ${stations}`);
+  }, 120_000);
 });

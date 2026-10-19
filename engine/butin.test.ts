@@ -1,17 +1,16 @@
-import { poserButin, type SalleButin } from './butin';
+import { poserButin, type ImpasseButin, type SalleButin } from './butin';
 import { jouer, nouvellePartie, observer, type DefMonde, type IntensiteTrace, type TableButin } from './index';
 
-// Salles de butin d'une grande station (spec 2026-10-18 §6.6) sur des impasses construites : la piste, la table et la règle
-// « après la coupe » sont données par l'appelant.
+// Salles de butin d'une grande station (spec 2026-10-18 §6.6) sur des impasses construites : la piste, la table, la règle
+// « après la coupe », la chaîne d'accroche et la distance au repaire sont données par l'appelant.
 
-interface Impasse {
-  readonly id: string;
-  readonly etiquettes: readonly string[];
-  readonly accroche: string;
-  readonly segment: number;
-}
-
-const impasse = (id: string, accroche: string, segment = 0, etiquettes: readonly string[] = ['document', 'butin']): Impasse => ({ id: `${id}/p-piece`, etiquettes, accroche, segment });
+const impasse = (id: string, accroches: string | readonly string[], segment = 0, etiquettes: readonly string[] = ['document', 'butin'], distance = 5): ImpasseButin => ({
+  id: `${id}/p-piece`,
+  etiquettes,
+  accroches: typeof accroches === 'string' ? [accroches] : accroches,
+  segment,
+  distance,
+});
 
 const PISTE: ReadonlyMap<string, IntensiteTrace> = new Map([
   ['m-07/p-soute', 'forte'],
@@ -41,19 +40,15 @@ const TABLE: TableButin = {
 
 const toujours = (): boolean => true;
 const GRAINES = Array.from({ length: 300 }, (_, graine) => graine);
-const poser = (graine: number, options: { impasses?: readonly Impasse[]; piste?: ReadonlyMap<string, IntensiteTrace>; table?: TableButin; apresCoupe?: (morceau: string, segment: number) => boolean } = {}): readonly SalleButin[] | null =>
+const poser = (graine: number, options: { impasses?: readonly ImpasseButin[]; piste?: ReadonlyMap<string, IntensiteTrace>; table?: TableButin; apresCoupe?: (morceau: string, segment: number) => boolean } = {}): readonly SalleButin[] =>
   poserButin(options.impasses ?? IMPASSES, options.piste ?? PISTE, REPAIRE, options.table ?? TABLE, options.apresCoupe ?? toujours, graine);
-const exiger = (salles: readonly SalleButin[] | null): readonly SalleButin[] => {
-  if (salles === null) throw new Error('Aucune salle de butin.');
-  return salles;
-};
 
 describe('salles de butin (spec 2026-10-18 §6.6)', () => {
   it('deux ou trois salles distinctes, toutes des impasses d’étiquette butin ; la première accrochée à une pièce forte de la piste', () => {
     const nombres = new Set<number>();
     const premieres = new Set<string>();
     for (const graine of GRAINES) {
-      const salles = exiger(poser(graine));
+      const salles = poser(graine);
       nombres.add(salles.length);
       expect(new Set(salles.map((salle) => salle.piece)).size).toBe(salles.length);
       for (const salle of salles) expect(IMPASSES.filter((candidate) => candidate.etiquettes.includes('butin')).map((candidate) => candidate.id)).toContain(salle.piece);
@@ -66,23 +61,46 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
 
   it('sans impasse butin accrochée à une pièce forte, la première est accrochée à une pièce légère', () => {
     const impasses = IMPASSES.filter((candidate) => candidate.id !== 'a3-infirmerie/p-piece');
-    for (const graine of GRAINES) expect(exiger(poser(graine, { impasses }))[0]?.piece).toBe('a2-cambuse/p-piece');
+    for (const graine of GRAINES) expect(poser(graine, { impasses })[0]?.piece).toBe('a2-cambuse/p-piece');
   });
 
-  it('aucune impasse butin accrochée à la piste : pas de plan pour cette graine', () => {
-    const impasses = IMPASSES.filter((candidate) => !PISTE.has(candidate.accroche) || !candidate.etiquettes.includes('butin'));
-    for (const graine of GRAINES) expect(poser(graine, { impasses })).toBeNull();
+  it('une impasse pendue à un couloir du catalogue est sur la piste si la chaîne de ses accroches y mène ; la plus proche trace compte', () => {
+    const impasses = [
+      // Couloir hors piste, accroché à la coursive (forte) : l'impasse compte comme forte.
+      impasse('a6-laboratoire', ['a5-couloir/p-piece', 'm-07/p-coursive'], 2),
+      impasse('a2-cambuse', 'm-07/p-quartiers', 2),
+      // Couloir marqué léger, accroché à la soute (forte) : la trace la plus proche, légère, compte.
+      impasse('a7-buanderie', ['a8-couloir/p-piece', 'm-07/p-soute'], 2),
+    ];
+    const piste = new Map([...PISTE, ['a8-couloir/p-piece', 'legere' as const]]);
+    for (const graine of GRAINES) expect(poser(graine, { impasses, piste })[0]?.piece).toBe('a6-laboratoire/p-piece');
+  });
+
+  it('aucune impasse butin sur la piste : la première est la plus proche du repaire, à égalité tirée par la graine', () => {
+    const impasses = [
+      impasse('a1-couchettes', 'm-01/p-palier', 0, undefined, 4),
+      impasse('a4-consigne', 'm-08/p-est', 1, undefined, 2),
+      impasse('a9-cambuse', ['a8-couloir/p-piece', 'm-08/p-ouest'], 1, undefined, 2),
+      impasse('a5-atelier', 'm-07/p-soute', 2, ['outillage'], 1),
+    ];
+    const premieres = new Set(GRAINES.map((graine) => poser(graine, { impasses })[0]?.piece));
+    expect([...premieres].sort()).toEqual(['a4-consigne/p-piece', 'a9-cambuse/p-piece']);
+  });
+
+  it('aucune impasse butin : aucune salle, et la graine garde son plan', () => {
+    const impasses = IMPASSES.filter((candidate) => !candidate.etiquettes.includes('butin'));
+    for (const graine of GRAINES) expect(poser(graine, { impasses })).toEqual([]);
   });
 
   it('moins de candidates que de salles tirées : toutes les candidates, sans plus', () => {
     const impasses = [impasse('a3-infirmerie', 'm-07/p-coursive', 2)];
-    for (const graine of GRAINES) expect(exiger(poser(graine, { impasses })).map((salle) => salle.piece)).toEqual(['a3-infirmerie/p-piece']);
+    for (const graine of GRAINES) expect(poser(graine, { impasses }).map((salle) => salle.piece)).toEqual(['a3-infirmerie/p-piece']);
   });
 
   it('objets tirés sans remise selon les poids, la salle vide comprise ; chacun dans sa salle, marqué butin, numéroté', () => {
     const premiers = new Map<string, number>();
     for (let graine = 0; graine < 5000; graine++) {
-      const salles = exiger(poser(graine));
+      const salles = poser(graine);
       const objets = salles.flatMap((salle) => (salle.objet === null ? [] : [salle.objet]));
       expect(new Set(objets.map((objet) => objet.nom)).size).toBe(objets.length);
       objets.forEach((objet, rang) => {
@@ -107,7 +125,7 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
     const apresCoupe = (morceau: string, segment: number): boolean => morceau === 'm-04' && segment === 1;
     let burettes = 0;
     for (const graine of GRAINES) {
-      for (const salle of exiger(poser(graine, { apresCoupe }))) {
+      for (const salle of poser(graine, { apresCoupe })) {
         if (salle.objet?.nom !== 'burette de reserve') continue;
         burettes++;
         expect(IMPASSES.find((candidate) => candidate.id === salle.piece)?.segment).toBe(1);
