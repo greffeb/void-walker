@@ -5,6 +5,12 @@ import type { Couche } from './types';
 /** Radicaux propres à la menace : un mot du socle ou d'un morceau qui commence par l'un d'eux est une fuite. */
 export const MOTS_MENACE: readonly string[] = ['créature', 'griff', 'gueule', 'masse'];
 
+/**
+ * Radicaux réservés aux traces de la créature (spec 2026-10-18 §5.4) : une description calme n’en porte aucun, pour qu’une trace
+ * dise toujours « elle est passée par ici » (grammaire des signes, §8.1).
+ */
+export const MOTS_TRACES: readonly string[] = ['sang', 'traînée', 'éventr', 'renvers', 'poiss', 'lacér', 'griff', 'douceâtre', 'éclabouss'];
+
 export const MENACE = {
   evenements: {
     bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],

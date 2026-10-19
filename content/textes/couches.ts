@@ -1,4 +1,4 @@
-import { MENACE, MOTS_MENACE } from './menace';
+import { MENACE, MOTS_MENACE, MOTS_TRACES } from './menace';
 import { SOCLE } from './socle';
 import type { Couche, TextesMonde, TextesMorceau } from './types';
 import { MOTS_UNIVERS, UNIVERS } from './univers';
@@ -75,5 +75,28 @@ export function fuitesDeCouches(morceaux: Readonly<Record<string, TextesMorceau>
   };
   lire('socle', '', socle);
   for (const [id, textes] of Object.entries(morceaux)) lire(`morceau ${id}`, '', textes);
+  return fuites;
+}
+
+const RADICAUX_CALMES = [
+  ...MOTS_MENACE.map((radical) => ({ radical: minuscules(radical), couche: 'la menace' })),
+  ...MOTS_TRACES.map((radical) => ({ radical: minuscules(radical), couche: 'des traces' })),
+];
+
+/**
+ * Fuites d’un texte du catalogue (spec 2026-10-18 §5.3) : couche univers, il peut dire « station », mais ni un mot de la menace
+ * ni un mot réservé aux traces, qui viennent de la piste.
+ */
+export function fuitesDuCatalogue(textes: TextesMorceau): string[] {
+  const fuites: string[] = [];
+  for (const [cle, valeur] of Object.entries({ ...textes.noms, ...textes.descriptions })) {
+    const textesCle = typeof valeur === 'object' && 'texte' in valeur ? [valeur.texte] : (valeur as readonly string[]);
+    for (const texte of textesCle) {
+      for (const mot of mots(texte)) {
+        const fuite = RADICAUX_CALMES.find(({ radical }) => minuscules(mot).startsWith(radical));
+        if (fuite !== undefined) fuites.push(`catalogue, ${cle} : « ${mot} », mot ${fuite.couche === 'la menace' ? 'de la menace' : 'réservé aux traces'}.`);
+      }
+    }
+  }
   return fuites;
 }

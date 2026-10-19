@@ -6,6 +6,7 @@ import { MESSAGES_M10 } from './m-10/textes';
 import { MORCEAUX } from './morceaux';
 import type { TextesMorceau } from './textes/types';
 
+export { CATALOGUE_PIECES, PIECES_CATALOGUE, TEXTES_CATALOGUE } from './catalogue';
 export { MORCEAUX, type EntreeMorceau } from './morceaux';
 export {
   COMPOSITIONS_CONTROLEES,
@@ -32,9 +33,9 @@ export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
   'station m-10': { noms: {}, descriptions: {}, assistance: MESSAGES_M10 },
 };
 
-export { FIN, fuitesDeCouches, reunir } from './textes/couches';
+export { FIN, fuitesDeCouches, fuitesDuCatalogue, reunir } from './textes/couches';
 export { cleMort, MOMENTS_MAX, raconterFin, type FinDePartie, type RecitFin } from './textes/fin';
-export { MENACE, MOTS_MENACE } from './textes/menace';
+export { MENACE, MOTS_MENACE, MOTS_TRACES } from './textes/menace';
 export { SOCLE } from './textes/socle';
 export { TEXTES_STATION_ESSAI } from './textes/station-essai';
 export { ASSISTANCE_STATION, MOTS_UNIVERS, UNIVERS } from './textes/univers';
