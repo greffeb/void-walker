@@ -372,6 +372,13 @@ describe('CLI : station tirée (#152)', () => {
     expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
   });
 
+  it('partie enregistrée sur une grande station d’une autre version des stations : le dit, code 1, sans y toucher (spec 2026-10-18 §4.3)', () => {
+    const ancienne = JSON.stringify({ enregistrement: { monde: `g0-${(CATALOGUE.publiees[0] ?? '').slice(3)}` } });
+    const ctx = contexte(new Map([[PARTIE_PAR_DEFAUT, ancienne]]));
+    expect(appeler(['voir'], CATALOGUE, ctx.es)).toEqual({ lignes: ['Station d’une version précédente des stations : la partie ne peut pas être reprise. Commencez une nouvelle partie : nouvelle'], code: 1 });
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
+  });
+
   it('aide : --station, et --monde sans partie donne une station tirée', () => {
     expect(AIDE.some((ligne) => ligne.startsWith('Option : --station <id>'))).toBe(true);
     expect(AIDE).toContain('Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon une station tirée)');

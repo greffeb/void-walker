@@ -34,7 +34,7 @@ export interface DefPiece {
   readonly froide?: boolean;
   /** Trace de la piste de la créature, dans une grande station (spec 2026-10-18 §5.4) : ce que l’on voit en regardant la pièce. */
   readonly trace?: IntensiteTrace;
-  /** Grande station : rang du morceau sur le chemin puis côté de sa coupe ; une annexe a celui de sa pièce d’accroche (spec §6.3). */
+  /** Grande station : zone entre deux coupes, numérotée dans l'ordre de découverte depuis le départ ; une annexe a celle de sa pièce d’accroche (spec §6.3). */
   readonly segment?: number;
   /** Pièce du catalogue (spec §5.2) : sa catégorie et sa forme. */
   readonly categorie?: CategoriePiece;

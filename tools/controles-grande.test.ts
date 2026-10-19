@@ -59,6 +59,12 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     expect(controlerGrande(fautive.entree, fautive.station)).toContain('Aucune porte de boucle (D-295).');
   });
 
+  it('une station à plus de trois portes de boucle est signalée (D-295)', () => {
+    const construite = premiere(() => true);
+    const fautive = modifier(construite, (monde) => ({ ...monde, boucles: ['l-boucle-1', 'l-boucle-2', 'l-boucle-3', 'l-boucle-4'] }));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain('4 portes de boucle, plus de trois (D-295).');
+  });
+
   it('ordre libre : l’entrée de chaque branche est dans la zone du couloir commun ; seules les cloisons et les obstacles coupent', () => {
     const { entree } = premiere((composition) => composition.forme === 'libre');
     const segment = (id: string): number | undefined => entree.monde.pieces.find((piece) => piece.id === id)?.segment;

@@ -1805,7 +1805,30 @@ async function parcoursGrandeStation(navigateur: Browser, racine: string, captur
     erreurs.push(`${id} : chemin principal sans témoin.`);
     return;
   }
-  const gestes = gestesDuParcours(entree, preuve.parcours.etapes).slice(0, Math.ceil(preuve.parcours.etapes.length / 2));
+  const tousLesGestes = gestesDuParcours(entree, preuve.parcours.etapes);
+  const gestes = tousLesGestes.slice(0, Math.ceil(preuve.parcours.etapes.length / 2));
+
+  // Review Focus 5 : la pièce du témoin qui a le plus de portes, au dock en 320 px ; la navigation reste visible.
+  const portes = (piece: string): number => entree.monde.liaisons.filter((liaison) => liaison.entre.includes(piece)).length;
+  let partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+  let plusChargee = { pas: 0, portes: portes(partie.etat.piece) };
+  for (const [rang, etape] of preuve.parcours.etapes.entries()) {
+    const option = trouverOption(observer(entree.monde, partie.etat), etape);
+    const resultat = option === undefined ? null : jouer(entree.monde, partie, option.commande);
+    if (resultat?.type !== 'engagee') break;
+    partie = resultat.partie;
+    if (portes(partie.etat.piece) > plusChargee.portes) plusChargee = { pas: rang + 1, portes: portes(partie.etat.piece) };
+  }
+  if (plusChargee.portes < 4) erreurs.push(`${id} : aucune pièce du témoin n’a quatre portes ou plus.`);
+  const chargee = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
+  const pageChargee = await chargee.newPage();
+  await pageChargee.goto(`${racine}?station=${id}`);
+  await nouvelleDepuisAccueil(pageChargee);
+  await rejouer(pageChargee, tousLesGestes.slice(0, plusChargee.pas));
+  await capturer(pageChargee, `Grande station 320 px — dock dans la pièce aux ${plusChargee.portes} portes`);
+  await verifierEcran(pageChargee, `Grande station 320 px, pièce aux ${plusChargee.portes} portes`, erreurs);
+  await chargee.close();
+
   for (const [largeur, viewport] of [['390', REFERENCE], ['320', ETROIT]] as const) {
     const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport, locale: 'fr-FR' });
     const page = await contexte.newPage();

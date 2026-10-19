@@ -66,7 +66,7 @@ export const MENACE = {
       'L’odeur, ici, est épaisse, douceâtre, presque chaude.',
       'Des griffures fraîches lacèrent la porte ; des éclats de peinture jonchent encore le sol.',
       'Un casier gît renversé, éventré, son contenu piétiné.',
-      'Le sol est poisseux et l’air sent la bête : quelque chose s’est tenu ici, longtemps.',
+      'Le sol est poisseux, et l’air sent la bête à vous lever le cœur.',
       'Sur le mur, de longues entailles parallèles montent jusqu’au plafond.',
     ],
   },

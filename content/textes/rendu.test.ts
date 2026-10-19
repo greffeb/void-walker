@@ -1,6 +1,6 @@
 import type { Consultation } from '../../engine';
 import { reunir } from './couches';
-import { rendreConsultation } from './rendu';
+import { rendreConsultation, rendreEvenements } from './rendu';
 
 // Une pièce marquée par la piste de la créature (spec 2026-10-18 §5.4) : sa description, puis une phrase de trace de la couche
 // menace, la même pendant toute la partie.
@@ -33,5 +33,21 @@ describe('trace d’une pièce (spec 2026-10-18 §5.4)', () => {
       expect(phrase).not.toMatch(/[0-9{}]/);
       expect(phrase.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '')).toHaveLength(1);
     }
+  });
+});
+
+describe('bruit de station et attentes à la suite (spec 2026-10-18 §5.5, D-289)', () => {
+  it('à la 5e et à la 10e attente, le texte de la station reste, même si un bruit de station tombe sur la même action', () => {
+    for (const attentes of [5, 10] as const) {
+      const cle = { graine: 3, action: attentes, attentes };
+      expect(rendreEvenements(TEXTES, [{ type: 'attente' }, { type: 'bruit_station' }], cle)).toEqual([TEXTES.attentesLongues[attentes]]);
+      expect(rendreEvenements(TEXTES, [{ type: 'attente' }], cle)).toEqual([TEXTES.attentesLongues[attentes]]);
+    }
+  });
+
+  it('ailleurs, le bruit de station se raconte après l’attente', () => {
+    const texte = rendreEvenements(TEXTES, [{ type: 'attente' }, { type: 'bruit_station' }], { graine: 3, action: 4, attentes: 4 });
+    expect(texte).toHaveLength(2);
+    expect(TEXTES.evenements.bruit_station).toContain(texte[1]);
   });
 });

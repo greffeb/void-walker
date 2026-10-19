@@ -59,6 +59,19 @@ const MENACES: ReadonlySet<Evenement['type']> = new Set(['premier_contact', 'men
 
 const GESTES_DE_PASSAGE: ReadonlySet<OptionMenu['action']> = new Set(['aller', 'ouvrir', 'fermer', 'attendre', 'poser', 'retirer', 'regarder']);
 
+/** Gestes dont l'indisponibilité ne dit rien de la pièce : « aller » par une porte fermée, « fermer » une porte déjà fermée. */
+const SANS_BLOCAGE: ReadonlySet<OptionMenu['action']> = new Set(['aller', 'ouvrir', 'fermer', 'attendre', 'regarder']);
+
+/**
+ * Pièce à revoir quand on porte autre chose (spec 2026-10-18 §11) : un passage qu'on ne peut ni franchir ni ouvrir, ou un geste
+ * indisponible autre qu'un geste de passage. Une porte fermée qu'on peut ouvrir ne compte pas.
+ */
+export function aRevoirIci(observation: Observation): boolean {
+  const options = optionsJouables(observation);
+  const bloque = observation.passages.some((passage) => !options.some((option) => (option.action === 'aller' || option.action === 'ouvrir') && option.cible.id === passage.id));
+  return bloque || observation.menu.some((option) => !option.disponible && !SANS_BLOCAGE.has(option.action));
+}
+
 /** Malus d'un risque annoncé pour le bot prudent ; le bot pressé ne garde que les deux derniers. */
 const MALUS_PRUDENT: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 10, modere: 40, eleve: 150, certain: 5000, mortel: 10000 };
 const MALUS_PRESSE: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 0, modere: 0, eleve: 0, certain: 5000, mortel: 10000 };
@@ -201,12 +214,11 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
       const ici = situation(observation);
       vues.add(`${observation.piece.id}#${inventaire(observation)}`);
       rencontre ||= observation.creatureVisible || evenements.some((evenement) => evenement.type === 'premier_contact');
-      if (observation.menu.some((option) => !option.disponible)) aRevoir.add(observation.piece.id);
+      if (aRevoirIci(observation)) aRevoir.add(observation.piece.id);
       // Un passage d'ici qu'on ne peut ni franchir ni ouvrir est bloqué pour l'instant : porte verrouillée, vide sans pont…
       for (const passage of observation.passages) {
         const praticable = options.some((option) => (option.action === 'aller' || option.action === 'ouvrir') && option.cible.id === passage.id);
         if (!praticable && !bloque(passage.id, observation.actions)) bloques.set(passage.id, observation.actions);
-        if (!praticable) aRevoir.add(observation.piece.id);
       }
       const menace = observation.creatureVisible || evenements.some((evenement) => MENACES.has(evenement.type));
       const vers = etape(observation);
@@ -236,13 +248,13 @@ export function creerBot(profil: Profil, graine: number): Bot {
   return profil === 'aleatoire' ? botAleatoire(graine) : botExplorateur(graine, profil);
 }
 
-/** Joue une partie complète avec un bot, depuis le réveil, et en rend les indicateurs. */
 /** Trace de la pièce du passager, par la consultation gratuite « regarder » : ce que le joueur lit en regardant la pièce. */
 function traceIci(monde: DefMonde, partie: Partie, piece: string): IntensiteTrace | null {
   const resultat = jouer(monde, partie, { action: 'regarder', cible: piece });
   return resultat.type === 'consultation' && resultat.consultation.type === 'regarder_piece' ? (resultat.consultation.trace ?? null) : null;
 }
 
+/** Joue une partie complète avec un bot, depuis le réveil, et en rend les indicateurs. */
 export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plafond = PLAFOND_ACTIONS): { readonly indicateurs: IndicateursPartie; readonly partie: Partie } {
   const { monde } = entree;
   let partie = nouvellePartie(monde, { version: 'bot', graine });

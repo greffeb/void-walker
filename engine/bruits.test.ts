@@ -16,8 +16,8 @@ const MONDE: DefMonde = {
 };
 
 /** Actions jouées par le menu (`aller` d'abord si demandé, puis `attente`) : les événements de chaque action, et la partie finale. */
-function attendre(monde: DefMonde, fois: number, entrer = false): { readonly evenements: readonly Evenement[][]; readonly partie: Partie } {
-  let partie = nouvellePartie(monde, { version: 'bruits', graine: 4 });
+function attendre(monde: DefMonde, fois: number, entrer = false, graine = 4): { readonly evenements: readonly Evenement[][]; readonly partie: Partie } {
+  let partie = nouvellePartie(monde, { version: 'bruits', graine });
   const evenements: Evenement[][] = [];
   for (let rang = 0; rang < fois && observer(monde, partie.etat).issue === null; rang++) {
     const action = entrer && rang === 0 ? 'aller' : 'attendre';
@@ -49,11 +49,16 @@ describe('bruits de station (spec 2026-10-18 §5.5)', () => {
   });
 
   it('jamais après le premier contact', () => {
-    // Le passager entre dans la pièce de la créature : la rencontre a lieu tout de suite, puis il attend.
+    // Le passager entre dans la pièce de la créature : la rencontre a lieu à la première action, puis il attend jusqu'à la défaite
+    // (cinquième action). La graine est choisie pour qu'un bruit tombe entre les deux : sans la règle, il sortirait.
+    const graine = Array.from({ length: 200 }, (_, rang) => rang + 1).find((candidate) => [2, 3, 4].some((action) => bruitDeStation(candidate, action)));
+    if (graine === undefined) throw new Error('Aucune graine ne fait tomber un bruit après la rencontre.');
     const monde: DefMonde = { ...MONDE, bruitsStation: true, liaisons: [{ ...MONDE.liaisons[0]!, ouverte: true }], creature: { piece: 'p-b' } };
-    const { evenements } = attendre(monde, 40, true);
+    const { evenements } = attendre(monde, 40, true, graine);
     const contact = evenements.findIndex((pas) => pas.some((evenement) => evenement.type === 'premier_contact'));
-    expect(contact).toBeGreaterThanOrEqual(0);
+    expect(contact).toBe(0);
+    const apres = evenements.map((_, rang) => rang + 1).filter((action) => action > contact + 1);
+    expect(apres.some((action) => bruitDeStation(graine, action))).toBe(true);
     expect(bruits(evenements.slice(contact))).toBe(0);
   });
 

@@ -136,6 +136,8 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
   if (enregistre !== null) {
     const reprise = catalogue.resoudre(enregistre);
     if (!('refus' in reprise)) return reprise;
+    // Une grande station dit pourquoi elle ne se reprend pas : autre version des stations, ou station non publiée (spec §4.3).
+    if (/^g\d+-/.test(enregistre)) return `${reprise.refus} Commencez une nouvelle partie : nouvelle`;
     return `La partie enregistrée porte sur une station inconnue (${enregistre}). Commencez une nouvelle partie : nouvelle`;
   }
   const tiree = catalogue.tirerGrande(hasard);

@@ -97,8 +97,9 @@ export function fuitesDuCatalogue(textes: TextesMorceau): string[] {
   const fuites: string[] = [];
   // Un radical qui finit par « $ » ne vaut que pour le mot exact (« sang », pas « sangle »).
   const reserve = (mot: string, radical: string): boolean => (radical.endsWith('$') ? minuscules(mot) === radical.slice(0, -1) : minuscules(mot).startsWith(radical));
-  for (const [cle, valeur] of Object.entries({ ...textes.noms, ...textes.descriptions })) {
-    const textesCle = typeof valeur === 'object' && 'texte' in valeur ? [valeur.texte] : (valeur as readonly string[]);
+  // Noms et descriptions partagent leurs clés : on les lit l'un après l'autre, sans qu'une description écrase un nom.
+  const textesParCle = [...Object.entries(textes.noms).map(([cle, nom]) => [cle, [nom.texte]] as const), ...Object.entries(textes.descriptions).map(([cle, variantes]) => [cle, variantes as readonly string[]] as const)];
+  for (const [cle, textesCle] of textesParCle) {
     for (const texte of textesCle) {
       for (const mot of mots(texte)) {
         const fuite = RADICAUX_CALMES.find(({ radical }) => reserve(mot, radical));

@@ -21,7 +21,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_couloir: { texte: 'couloir', genre: 'm', nombre: 's', elision: false },
     cat_plateforme: { texte: 'plateforme de fret', genre: 'f', nombre: 's', elision: false },
     cat_bureau_fret: { texte: 'bureau du fret', genre: 'm', nombre: 's', elision: false },
-    cat_laboratoire: { texte: 'laboratoire', genre: 'm', nombre: 's', elision: true },
+    cat_laboratoire: { texte: 'laboratoire', genre: 'm', nombre: 's', elision: false },
   },
   descriptions: {
     cat_couchettes: [
@@ -31,7 +31,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     ],
     cat_sanitaires: [
       'Des lavabos en inox, des cabines aux portes battantes. Un robinet goutte dans le silence, à intervalles réguliers.',
-      'Des sanitaires carrelés de blanc, propres comme au jour de l’inspection. Sur le miroir, quelqu’un a collé un planning de ménage, rempli à moitié.',
+      'Des sanitaires carrelés de blanc, aux joints grisés par les années. Sur le miroir, quelqu’un a collé un planning de ménage, rempli à moitié.',
     ],
     cat_refectoire: [
       'De longues tables vissées au sol, des bancs alignés. Les plateaux sont restés en place, les repas à peine entamés.',
@@ -52,7 +52,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     ],
     cat_outillage: [
       'Des outils pendus à un panneau perforé, chacun devant sa silhouette peinte. Un établi propre, un étau fermé, une lampe articulée repliée.',
-      'Ici, tout a sa place : clés rangées par taille, câbles enroulés, gants de travail par paires. Quelqu’un tenait à l’ordre.',
+      'Des clés rangées par taille, des câbles enroulés, des gants de travail par paires. Quelqu’un tenait à l’ordre.',
     ],
     cat_consigne: [
       'Des casiers à bagages du sol au plafond, numérotés et cadenassés pour la plupart. Quelques valises attendent sur un chariot, jamais réclamées.',
@@ -76,7 +76,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     ],
     cat_plateforme: [
       'Une plateforme de fret haute de plafond. Des rails de levage courent sous la voûte ; un conteneur vide est resté suspendu, à mi-course.',
-      'Des palettes filmées, des élingues roulées au sol, des marquages jaunes à demi effacés. Rien n’a bougé depuis le dernier déchargement.',
+      'Des palettes filmées, des élingues roulées au sol, des marquages jaunes à demi effacés. Le dernier déchargement est resté en plan.',
       'La plateforme de fret est déserte. Quelque part au-dessus, la charpente métallique craque longuement.',
     ],
     cat_bureau_fret: [

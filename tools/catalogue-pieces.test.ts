@@ -59,6 +59,13 @@ describe('catalogue des pièces sans obstacle (#206, spec §5)', () => {
     for (const objet of OBJETS) expect(tout.toLocaleLowerCase('fr')).not.toContain(objet);
   });
 
+  it('élision des noms : « l’infirmerie », jamais « l’laboratoire »', () => {
+    for (const [, { morceau, textes }] of ENTREES) {
+      const nom = textes.noms[morceau.pieces[0]!.nom]!;
+      expect(nom.elision, nom.texte).toBe(/^[aâeéèêiîoôuy]/i.test(nom.texte));
+    }
+  });
+
   it.each(ENTREES)('%s : clés de texte propres au catalogue', (_id, { textes }) => {
     for (const cle of [...Object.keys(textes.noms), ...Object.keys(textes.descriptions)]) expect(cle).toMatch(/^cat_/);
   });
@@ -66,5 +73,10 @@ describe('catalogue des pièces sans obstacle (#206, spec §5)', () => {
   it('fuitesDuCatalogue relève un mot de la menace et un mot de trace', () => {
     const fuites = fuitesDuCatalogue({ noms: {}, descriptions: { cat_essai: ['Des griffures sur la porte. Du sang séché au sol.'] }, assistance: {} });
     expect(fuites).toHaveLength(2);
+  });
+
+  it('fuitesDuCatalogue lit aussi les noms, même quand une description porte la même clé', () => {
+    const fuites = fuitesDuCatalogue({ noms: { cat_essai: { texte: 'salle griffée', genre: 'f', nombre: 's', elision: false } }, descriptions: { cat_essai: ['Une salle calme. Rien à signaler.'] }, assistance: {} });
+    expect(fuites).toHaveLength(1);
   });
 });

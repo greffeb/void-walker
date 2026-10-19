@@ -153,7 +153,8 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
-  const recit = evenements.filter((evenement) => evenement.type !== 'assistance');
+  // Un bruit de station ne retire pas à l'attente son texte de la 5e ou de la 10e : la station parle déjà (D-289, spec §5.5).
+  const recit = evenements.filter((evenement) => evenement.type !== 'assistance' && evenement.type !== 'bruit_station');
   const seule = recit.length === 1 && recit[0]?.type === 'attente';
   if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {

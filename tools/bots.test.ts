@@ -1,6 +1,6 @@
 import { idPublic, jouer, observer, type DefMonde, type Observation } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, type Bot } from './bots';
+import { aRevoirIci, botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, type Bot } from './bots';
 import { CATALOGUE } from './catalogue';
 
 // Bots de mesure (#194 §2.3) : ils jouent par le menu public, de façon reproductible.
@@ -95,6 +95,18 @@ describe('bots', () => {
     }
     const choix = creerBot('prudent', 1).choisir({ observation: observer(monde, partie.etat), evenements: [], apercu: () => null, trace: null });
     expect(choix).toEqual({ action: 'aller', cible: idPublic('revoir', 'l-s-x') });
+  });
+
+  it('une pièce n’est à revoir que si un passage n’y est ni franchissable ni ouvrable : une porte fermée ne compte pas', () => {
+    const pieces = [{ id: 'p-s', nom: 's' }, { id: 'p-a', nom: 'a' }];
+    const ici = (liaison: DefMonde['liaisons'][number]): Observation => {
+      const monde: DefMonde = { id: 'revoir-ici', depart: 'p-s', pieces, liaisons: [liaison], objets: [] };
+      return observer(monde, jouerAvecBot({ monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] }, { choisir: () => null }, 1).partie.etat);
+    };
+    expect(aRevoirIci(ici({ id: 'l-s-a', nom: 'porte', entre: ['p-s', 'p-a'], ouverte: false }))).toBe(false);
+    expect(aRevoirIci(ici({ id: 'l-s-a', nom: 'porte', entre: ['p-s', 'p-a'], ouverte: true }))).toBe(false);
+    // Une grille haute, hors de portée sans appui : ni franchissable ni ouvrable d'ici.
+    expect(aRevoirIci(ici({ id: 'l-s-a', nom: 'grille', entre: ['p-s', 'p-a'], ouverte: false, haute: 'p-s' }))).toBe(true);
   });
 
   it('refuse un bot qui propose une commande hors du menu', () => {

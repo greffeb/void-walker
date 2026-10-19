@@ -108,6 +108,7 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
 
   // Boucles (spec §6.4) : une à trois (D-295).
   if (boucles.size === 0) ecarts.push('Aucune porte de boucle (D-295).');
+  if (boucles.size > 3) ecarts.push(`${boucles.size} portes de boucle, plus de trois (D-295).`);
   for (const id of boucles) {
     const liaison = monde.liaisons.find((candidate) => candidate.id === id);
     if (liaison === undefined) {
