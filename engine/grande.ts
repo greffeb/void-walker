@@ -68,7 +68,7 @@ export function segmentsDe(monde: DefMonde, station: DefStation): Map<string, nu
   return segments;
 }
 
-/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas pour cette graine. */
+/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-294), pour cette graine. */
 export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefStationGrande): DefMonde | null {
   const { morceaux, graine, creature } = station;
   const segments = segmentsDe(monde, station);
@@ -106,6 +106,7 @@ export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefS
     grande.boucles,
     sousGraine(graine, 'boucles'),
   );
+  if (boucles.length === 0) return null;
   const liaisonsBoucles = boucles.map((boucle): DefLiaison => ({ id: boucle.id, nom: 'porte', entre: boucle.entre, ouverte: false, plan: { rang: boucle.rang } }));
 
   const etiquettes = new Map(annexes.map((posee) => [pieceAnnexe(posee), posee.annexe.annexe?.etiquettes ?? []]));

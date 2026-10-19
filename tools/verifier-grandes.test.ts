@@ -7,25 +7,34 @@ import { rangsDesSegments } from './verifier-station';
 // Preuve des grandes stations (spec 2026-10-18 §7, D-302) : contrôles, puis témoin du chemin principal rejoué dans la grande
 // station, ou recherche directe ; en ordre libre, les deux ordres.
 
+/** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-294). */
+function avecPlan(composition: string): string {
+  const graine = Array.from({ length: 50 }, (_, rang) => rang).find((rang) => !('refus' in CATALOGUE.construireGrande(composition, rang)));
+  if (graine === undefined) throw new Error(`${composition} : aucun plan sur 50 graines.`);
+  return `${composition}-${graine}`;
+}
+
 const CHAINE = 'g1-m01-m02-m09-m06-cale';
-const LIBRE = 'g1-ol-m01-m02-m09-m06-cale';
+const STATION = avecPlan(CHAINE);
+const LIBRE = avecPlan('g1-ol-m01-m02-m09-m06-cale');
+const graineDe = (station: string): number => Number(station.slice(station.lastIndexOf('-') + 1));
 
 describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
   it('rangsDesSegments suit le segment des pièces d’une grande station', () => {
-    const entree = CATALOGUE.construireGrande(CHAINE, 0);
+    const entree = CATALOGUE.construireGrande(CHAINE, graineDe(STATION));
     if ('refus' in entree) throw new Error(entree.refus);
     const rang = rangsDesSegments(entree.monde);
     for (const piece of entree.monde.pieces) expect(rang(piece.id)).toBe(piece.segment);
   });
 
   it('une grande station en chaîne est prouvée', () => {
-    const ligne = verifierGrande(CATALOGUE, `${CHAINE}-0`);
+    const ligne = verifierGrande(CATALOGUE, STATION);
     expect(ligne.verdict, JSON.stringify(ligne)).toBe('prouvee');
     expect(ligne.actions).toBeGreaterThan(0);
   });
 
   it('une grande station en ordre libre est prouvée dans les deux ordres', () => {
-    const ligne = verifierGrande(CATALOGUE, `${LIBRE}-0`);
+    const ligne = verifierGrande(CATALOGUE, LIBRE);
     expect(ligne.ordres).toEqual(['prouvee', 'prouvee']);
     expect(ligne.verdict).toBe('prouvee');
   }, 120_000);
@@ -39,13 +48,13 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
         return { ...entree, monde: { ...entree.monde, pieces: entree.monde.pieces.map((piece) => (piece.id === entree.monde.depart ? { ...piece, trace: 'forte' as const } : piece)) } };
       },
     };
-    const ligne = verifierGrande(fautif, `${CHAINE}-0`);
+    const ligne = verifierGrande(fautif, STATION);
     expect(ligne.verdict).toBe('ecartee');
     expect(ligne.etats).toBe(0);
   });
 
   it('un témoin interrompu n’est pas une preuve', () => {
-    const entree = CATALOGUE.construireGrande(CHAINE, 0);
+    const entree = CATALOGUE.construireGrande(CHAINE, graineDe(STATION));
     if ('refus' in entree) throw new Error(entree.refus);
     expect(temoinValable(entree, [])).toBe(false);
   });
@@ -60,18 +69,18 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
   }, 120_000);
 
   it('une station publiée se vérifie par le rejeu de ses témoins ; un témoin tronqué ne prouve rien', () => {
-    const ligne = verifierGrande(CATALOGUE, `${CHAINE}-0`);
+    const ligne = verifierGrande(CATALOGUE, STATION);
     const temoins = ligne.temoins ?? [];
-    expect(verifierPubliee(CATALOGUE, `${CHAINE}-0`, temoins).verdict).toBe('prouvee');
-    expect(verifierPubliee(CATALOGUE, `${CHAINE}-0`, temoins.map((pas) => pas.slice(0, -1))).verdict).toBe('non_prouvee');
-    expect(verifierPubliee(CATALOGUE, `${CHAINE}-0`, undefined).verdict).toBe('non_prouvee');
+    expect(verifierPubliee(CATALOGUE, STATION, temoins).verdict).toBe('prouvee');
+    expect(verifierPubliee(CATALOGUE, STATION, temoins.map((pas) => pas.slice(0, -1))).verdict).toBe('non_prouvee');
+    expect(verifierPubliee(CATALOGUE, STATION, undefined).verdict).toBe('non_prouvee');
   });
 
   it('ordre libre : deux témoins du même ordre ne suffisent pas (G-07)', () => {
-    const ligne = verifierGrande(CATALOGUE, `${LIBRE}-0`);
+    const ligne = verifierGrande(CATALOGUE, LIBRE);
     const [premier, second] = ligne.temoins ?? [];
-    expect(verifierPubliee(CATALOGUE, `${LIBRE}-0`, [premier!, second!]).verdict).toBe('prouvee');
-    expect(verifierPubliee(CATALOGUE, `${LIBRE}-0`, [premier!, premier!]).verdict).toBe('non_prouvee');
+    expect(verifierPubliee(CATALOGUE, LIBRE, [premier!, second!]).verdict).toBe('prouvee');
+    expect(verifierPubliee(CATALOGUE, LIBRE, [premier!, premier!]).verdict).toBe('non_prouvee');
   }, 120_000);
 });
 

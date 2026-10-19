@@ -52,6 +52,22 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     expect(controlerGrande(fautive.entree, fautive.station).some((ecart) => /coupe/i.test(ecart))).toBe(true);
   });
 
+  it('une station sans porte de boucle est signalée (D-294)', () => {
+    const construite = premiere(() => true);
+    const boucles = new Set(construite.entree.monde.boucles);
+    const fautive = modifier(construite, (monde) => ({ ...monde, liaisons: monde.liaisons.filter((liaison) => !boucles.has(liaison.id)), boucles: [] }));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain('Aucune porte de boucle (D-294).');
+  });
+
+  it('ordre libre : l’entrée de chaque branche est dans la zone du couloir commun ; seules les cloisons et les obstacles coupent', () => {
+    const { entree } = premiere((composition) => composition.forme === 'libre');
+    const segment = (id: string): number | undefined => entree.monde.pieces.find((piece) => piece.id === id)?.segment;
+    const couloir = segment('carrefour/p-couloir');
+    const entrees = entree.monde.liaisons.filter((liaison) => liaison.id.startsWith('l-carrefour-') && liaison.verrouillee !== true).map((liaison) => liaison.entre[1]);
+    expect(entrees).toHaveLength(2);
+    for (const piece of entrees) expect(segment(piece), piece).toBe(couloir);
+  });
+
   it('une annexe accrochée à la chambre froide est signalée', () => {
     const construite = premiere((composition) => composition.chemins.includes('m-10'));
     const fautive = modifier(construite, (monde) => {
@@ -84,6 +100,7 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
       controlees++;
       expect(controlerGrande(construite.entree, construite.station), construite.entree.monde.id).toEqual([]);
     }
-    expect(controlees).toBeGreaterThanOrEqual(950);
+    // Une graine sur deux environ n'a pas de plan : aucune porte de boucle (D-294).
+    expect(controlees).toBeGreaterThanOrEqual(400);
   }, 300_000);
 });

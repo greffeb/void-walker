@@ -66,7 +66,8 @@ describe('compositions des grandes stations (D-289, D-291)', () => {
     ]);
   });
 
-  it('assemblage : au moins 95 % de plans, de 21 à 28 pièces dessinées, moins de 50 ms par station en moyenne', () => {
+  // Une graine sans porte de boucle n'a pas de plan (D-294) : une sur deux environ ; la publication les saute sans les prouver.
+  it('assemblage : chaque plan a une à trois portes de boucle et 21 à 28 pièces dessinées ; au moins 40 % de plans, moins de 50 ms par station en moyenne', () => {
     const echantillon = grandes.filter((composition, rang) => composition.refus === null && rang % 4 === 0);
     let essais = 0;
     let plans = 0;
@@ -88,18 +89,21 @@ describe('compositions des grandes stations (D-289, D-291)', () => {
         const nombre = resultat.monde.pieces.filter((piece) => piece.plan !== undefined).length;
         expect(nombre, station.id).toBeGreaterThanOrEqual(21);
         expect(nombre, station.id).toBeLessThanOrEqual(28);
+        expect(resultat.monde.boucles?.length ?? 0, station.id).toBeGreaterThanOrEqual(1);
+        expect(resultat.monde.boucles?.length ?? 0, station.id).toBeLessThanOrEqual(3);
       }
     }
-    expect(plans / essais).toBeGreaterThanOrEqual(0.95);
+    expect(plans / essais).toBeGreaterThanOrEqual(0.4);
     expect(total / essais).toBeLessThan(50);
     console.log(`grandes stations : ${plans}/${essais} plans, ${(total / essais).toFixed(1)} ms en moyenne, ${pire.toFixed(1)} ms au pire`);
   }, 120_000);
 
   it('construireGrande rend une station complète, textes du catalogue compris, aux noms de pièces tous différents', () => {
     const composition = grandes.find((candidate) => candidate.refus === null);
-    const entree = CATALOGUE.construireGrande(composition!.id, 1);
+    const graine = Array.from({ length: 50 }, (_, rang) => rang).find((rang) => !('refus' in CATALOGUE.construireGrande(composition!.id, rang)))!;
+    const entree = CATALOGUE.construireGrande(composition!.id, graine);
     if ('refus' in entree) throw new Error(entree.refus);
-    expect(entree.monde.id).toBe(`${composition!.id}-1`);
+    expect(entree.monde.id).toBe(`${composition!.id}-${graine}`);
     const noms = entree.monde.pieces.map((piece) => entree.textes.noms[piece.nom]?.texte);
     expect(noms.every((nom) => nom !== undefined)).toBe(true);
     expect(new Set(noms).size).toBe(noms.length);

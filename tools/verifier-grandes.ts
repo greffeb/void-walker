@@ -1,5 +1,5 @@
 import { assemblerStation, jouer, nouvellePartie, observer, type DefStation } from '../engine';
-import { numeroter, type Catalogue, type EntreeMonde, type EtapeParcours } from '../content';
+import { GRAINE_GRANDE_MAX, numeroter, type Catalogue, type EntreeMonde, type EtapeParcours } from '../content';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CATALOGUE } from './catalogue';
@@ -157,7 +157,10 @@ export function publierGrandes(
   const temoins: Record<string, readonly (readonly PasTemoin[])[]> = {};
   for (const composition of compositions) {
     let trouvees = 0;
-    for (let graine = 0; graine < essais && trouvees < parComposition; graine++) {
+    // Une graine sans plan (annexes sans place, aucune boucle) ne coûte presque rien : elle ne compte pas parmi les essais.
+    for (let graine = 0, essayees = 0; graine <= GRAINE_GRANDE_MAX && essayees < essais && trouvees < parComposition; graine++) {
+      if ('refus' in catalogue.construireGrande(composition, graine)) continue;
+      essayees++;
       const ligne = verifierGrande(catalogue, `${composition}-${graine}`, options);
       journal(ligne);
       if (ligne.verdict === 'prouvee' && ligne.temoins !== null) {

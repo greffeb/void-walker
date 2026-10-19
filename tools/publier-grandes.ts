@@ -9,7 +9,7 @@ import { FICHIER_TEMOINS, publierGrandes, type PasTemoin } from './verifier-gran
 // Publication des grandes stations (spec 2026-10-18 §7.2, D-302) : `npm run publier:grandes` prouve, pour chaque grande
 // composition, ses premières graines, puis écrit la liste publiée (contenu) et les témoins (outils), que `check:stations`
 // rejoue. Long : à lancer une fois, quand le générateur ou les règles changent. `--par=<n>` graines par composition (2),
-// `--essais=<n>` graines essayées au plus (8), `--processus=<n>` en parallèle.
+// `--essais=<n>` graines prouvées au plus (8), sans compter celles qui n’ont pas de plan, `--processus=<n>` en parallèle.
 
 export const FICHIER_LISTE = 'content/stations/grandes-publiees.ts';
 

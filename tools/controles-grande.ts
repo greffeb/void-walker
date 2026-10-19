@@ -106,7 +106,8 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
     if (portes > PORTES_MAX) ecarts.push(`PL-06 : ${piece.id} a ${portes} portes.`);
   }
 
-  // Boucles (spec §6.4).
+  // Boucles (spec §6.4) : une à trois (D-294).
+  if (boucles.size === 0) ecarts.push('Aucune porte de boucle (D-294).');
   for (const id of boucles) {
     const liaison = monde.liaisons.find((candidate) => candidate.id === id);
     if (liaison === undefined) {
