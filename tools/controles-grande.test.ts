@@ -214,6 +214,40 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     expect(ecarts).toContain(`${trouve.piece} pillée : ni salle de butin du catalogue, ni vide.`);
   });
 
+  it('un butin ou une pièce pillée dans une impasse sans étiquette butin est signalé (spec §6.6)', () => {
+    const { construite, trouve } = chercher(
+      () => true,
+      ({ entree: { monde } }) => {
+        const butin = monde.objets.find((objet) => objet.butin === true);
+        const impasse = annexes(monde, 'impasse').find((piece) => !etiquettesDe(piece).includes('butin') && !monde.objets.some((objet) => objet.piece === piece));
+        return butin === undefined || impasse === undefined ? undefined : { butin, impasse };
+      },
+    );
+    const garnie = modifier(construite, (monde) => deplacer(monde, trouve.butin.id, trouve.impasse));
+    expect(controlerGrande(garnie.entree, garnie.station)).toContain(`Butin ${trouve.butin.id} dans ${trouve.impasse}, hors d’une salle de butin garnie.`);
+    const pillee = modifier(construite, (monde) => ({ ...monde, pieces: monde.pieces.map((piece) => (piece.id === trouve.impasse ? { ...piece, pillee: true as const } : piece)) }));
+    expect(controlerGrande(pillee.entree, pillee.station)).toContain(`${trouve.impasse} pillée : ni salle de butin du catalogue, ni vide.`);
+  });
+
+  it('un butin ou une pièce pillée dans une annexe d’étiquette butin qui n’est pas une impasse est signalé (spec §6.6)', () => {
+    // Aucune annexe d'étiquette butin n'est un passage au catalogue : une salle garnie et une salle pillée le deviennent.
+    const { construite, trouve } = chercher(
+      () => true,
+      ({ entree: { monde } }) => {
+        const butin = monde.objets.find((objet) => objet.butin === true);
+        const pillee = monde.pieces.find((piece) => piece.pillee === true)?.id;
+        return butin === undefined || pillee === undefined ? undefined : { butin, pillee };
+      },
+    );
+    const fautive = modifier(construite, (monde) => ({
+      ...monde,
+      pieces: monde.pieces.map((piece) => (piece.id === trouve.butin.piece || piece.id === trouve.pillee ? { ...piece, forme: 'passage' as const } : piece)),
+    }));
+    const ecarts = controlerGrande(fautive.entree, fautive.station);
+    expect(ecarts).toContain(`Butin ${trouve.butin.id} dans ${trouve.butin.piece}, hors d’une salle de butin garnie.`);
+    expect(ecarts).toContain(`${trouve.pillee} pillée : ni salle de butin du catalogue, ni vide.`);
+  });
+
   it('une burette de réserve atteinte sans franchir la coupe de M-04 est signalée (spec §6.6)', () => {
     const { construite, trouve } = chercher(
       (composition) => composition.chemins.includes('m-04'),
