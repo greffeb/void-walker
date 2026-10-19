@@ -2241,7 +2241,7 @@ Détails de l'agent pour #156, proposés dans la PR et à revoir par le porteur 
 
 ### D-276 — Alertée, la créature poursuit, écoute et fouille
 
-- Date / statut : 2026-10-16 / **Validé** le 2026-10-18 avec la conception des grandes stations : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Pistes choisies par le porteur le 2026-10-16 : « poursuite » avec « un indice dans le récit », puis « option 1 avec 2, version courte » pour la traque ; nombres et textes à relire.
+- Date / statut : 2026-10-16 / **Validé** le 2026-10-19 avec la conception des grandes stations : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Pistes choisies par le porteur le 2026-10-16 : « poursuite » avec « un indice dans le récit », puis « option 1 avec 2, version courte » pour la traque ; nombres et textes à relire.
 - Origine : partie du porteur sur la passerelle (M-08), « il faut regarder pourquoi la créature ne m'a pas suivi, alors que j'ai beaucoup cliqué sur le bouton attendre » ; question du porteur sur les boucles : « la créature peut-elle nous entendre via toutes ces ouvertures ? Et nous traquer ? Ça serait bien que oui ».
 - Décision (elle ne vaut qu'**après le premier contact** ; aucune patrouille sans alerte, D-048) :
   - **Les pas.** Chaque fois que le passager change de pièce, la créature entend ses pas par toute suite de liaisons qui laisse passer le son, y compris par-dessus un vide ou à travers une grille trop étroite pour elle (D-178, D-236). Elle va vers la pièce où il vient d'arriver par le plus court chemin praticable, donc par une boucle si la porte directe est fermée. Les pas sont un bruit normal : un bruit plus fort passe avant, une porte fermée ou une salle des machines en marche les étouffe (D-163).
@@ -2279,7 +2279,7 @@ Détails de l'agent pour #190, à relire par le porteur ; aucun n'est une décis
 
 ### D-279 — Alertée, la créature force une porte fermée sur sa piste (V2 de #194)
 
-- Date / statut : 2026-10-17 / **Validé** le 2026-10-18 avec la conception des grandes stations : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Réglage retenu : V2a, deux réactions, porte détruite (« je préfère la version où la porte reste arrachée je pense »).
+- Date / statut : 2026-10-17 / **Validé** le 2026-10-19 avec la conception des grandes stations : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Réglage retenu : V2a, deux réactions, porte détruite (« je préfère la version où la porte reste arrachée je pense »).
 - Origine : porteur, dans #194 : « les portes sont une vraie solution mais à rendre moins gratuite (forçable…) » ; pour V2 : « 2 réactions, porte détruite & porte refermable après. mesure les deux pour avoir les chiffres. (son de porte en train d'être forcée à mettre dans les textes de narration) ». Après une partie sur V2a : « la créature casse trop vite les portes, ça ne laisse pas le temps d'actionner un bouton ou ramasser un objet […] Peut être ajouter +1 tour avant destruction », puis « passe à 3 réactions sur V2a que je teste ». Après deux parties à trois réactions : « j'ai réussi à perdre la créature facilement et elle n'a pas essayé de forcer les portes suivantes » ; « le temps supplémentaire m'a permis de gagner malgré une erreur. Pas sûr de vouloir rester à 3 et de pas revenir à 2 (réglage de difficulté 3 moyen et 2 difficile ?) », puis « on repasse à 2 réactions ». Après une partie sur V2b : « je préfère la version où la porte reste arrachée je pense ».
 - Décision : une seule variable par rapport à V0 + V1. Après le premier contact, quand sa piste passe par une porte fermée (celle qu'elle a vu le passager prendre, ou la première d'un plus court chemin vers les pas entendus), la créature la force au lieu de s'arrêter : deux réactions de suite sur la même porte (trois à l'essai, revenues à deux), et elle cède et s'ouvre ; elle passe à la réaction suivante. Une porte qu'elle cesse de forcer reprend à zéro.
   - **Ce qui ne se force pas :** passage étroit, vide, cloison encore verrouillée, écoutille manoeuvrée de l'intérieur, panneau caché, passage hors de portée, porte vers une pièce en feu.
@@ -2406,7 +2406,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Une seule taille au tirage.** NOUVELLE PARTIE et l'adresse nue tirent une grande station ; les petites stations ne sortent plus au tirage.
   - **Durée visée.** 15 à 20 minutes de découverte ; 25 à 30 quand de nouveaux obstacles viendront (#203).
 - Modifie : D-119, D-172, D-249, D-255, D-260, D-265 (compte des compositions), C-08 §5. Précise : D-008, D-242 (la condition est jugée remplie par le porteur, sans durée mesurée sur téléphone), D-270.
-- Limite [détail de l'agent] : une pièce du catalogue qui ne trouve pas de place n'est pas remplacée, et une station peut compter 21 pièces (spec §11). Les petites stations restent jouables par leur identifiant, leurs sauvegardes et leurs rapports. Une partie enregistrée sur une autre version des grandes stations ne se reprend pas : « Station d’une version précédente des stations : la partie ne peut pas être reprise. »
+- Limite [détail de l'agent] : quand toutes les pièces du catalogue voulues ne trouvent pas leur place, la station en garde au moins six ; elle peut alors compter 21 pièces (spec §11). Les petites stations restent jouables par leur identifiant, leurs sauvegardes et leurs rapports. Une partie enregistrée sur une autre version des grandes stations ne se reprend pas : « Station d’une version précédente des stations : la partie ne peut pas être reprise. »
 
 ### D-291 — Difficulté : deux ou trois morts sur les quatre premières parties
 
@@ -2434,9 +2434,9 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - Quinze pièces, chacune avec sa catégorie : couchettes, sanitaires, réfectoire, cambuse, infirmerie, buanderie (vie) ; salle d'outillage, consigne, dépôt, vestiaire, salle de ventilation (technique) ; couloir (circulation) ; plateforme de fret (fret) ; bureau du fret (commandement) ; laboratoire (science).
   - Pas d'objet de décor à toucher : on y passe, on y regarde.
   - La créature ne part jamais d'une pièce du catalogue.
-  - Leurs descriptions sont calmes : ni sang, ni odeur, ni griffures. Ces mots sont réservés aux traces (D-294).
+  - Leurs descriptions sont calmes : ni sang ni griffures, mots réservés aux traces (D-294). Rien n'y affirme que tout est intact, pour qu'une trace puisse suivre la description.
 - Précise : GE-08, D-206, D-214.
-- Limite [détail de l'agent] : une pièce se pose en impasse, en passage ou en couloir qui en dessert d'autres ; sa porte est ouverte, fermée ou tirée au sort. Les sanitaires ne s'ouvrent que sur un couloir qui dessert des couchettes (GE-10). Les descriptions sont écrites par l'assistant principal (D-243) ; quatre pièces de morceau ont reçu une variante calme pour les grandes stations (tri, soute, atelier et magasin, réserve).
+- Limite [détail de l'agent] : une pièce se pose en impasse, en passage ou en couloir qui en dessert d'autres ; sa porte est ouverte, fermée ou tirée au sort. Les sanitaires ne s'ouvrent que sur un couloir qui dessert des couchettes (GE-10). Les descriptions sont écrites par l'assistant principal (D-243) ; cinq pièces de morceau ont reçu une variante calme pour les grandes stations (tri, soute, atelier, magasin, réserve).
 
 ### D-294 — Les traces suivent la piste de la créature
 
@@ -2444,7 +2444,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : la partie idéale : « des traces (sang, désordre, odeurs) » ; Q-218 : « Une piste ».
 - Décision : les pièces sur le trajet de la créature, depuis la zone de fret jusqu'à son repaire, portent des traces de plus en plus marquées vers lui. On les lit en regardant la pièce. Une pièce calme n'est pas forcément sûre.
 - Remplace la règle du rayon proposée le 2026-10-18.
-- Limite [détail de l'agent] : la piste suit le plus court chemin que la créature peut franchir, depuis une pièce marquée comme origine (la plateforme de fret quand elle est posée) à trois à six portes du repaire, jamais depuis la pièce de départ. La trace est forte à deux portes du repaire ou moins, légère au-delà ; sept phrases par intensité, dans la couche menace. `check:texts` refuse une trace hors de la piste et un mot réservé dans le catalogue. Ces seuils sont montrés au porteur avec les mesures.
+- Limite [détail de l'agent] : la piste suit le plus court chemin que la créature peut franchir, depuis une pièce marquée comme origine (la plateforme de fret quand elle est posée) à trois à six portes du repaire, jamais depuis la pièce de départ. La trace est forte à deux portes du repaire ou moins, légère au-delà ; sept phrases par intensité, dans la couche menace. `check:texts` refuse une trace hors de la piste ; un test refuse un mot réservé dans le catalogue. Ces seuils sont montrés au porteur avec les mesures.
 
 ### D-295 — Une à trois portes de boucle par station
 
@@ -2533,3 +2533,4 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision :
   - Une seule suite de travaux sur le moteur, en trois livraisons sur une même branche, dans une même PR, comme pour la carte (#97). La PR est ouverte en brouillon dès la livraison 1, pour un essai sur téléphone si le porteur le souhaite.
   - La fusion n'a lieu qu'à la fin : `main` ne voit jamais une grande station qui changerait ensuite sous le même identifiant.
+- Limite : à la demande du porteur, la PR #230 s'est ouverte prête à relire et non en brouillon, pour l'essai sur téléphone ; la fusion attend toujours les livraisons 2 et 3 et son accord.

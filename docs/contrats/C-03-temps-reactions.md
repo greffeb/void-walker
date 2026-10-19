@@ -55,9 +55,9 @@ Le chemin sonore vers une origine peut être impraticable pour le gabarit de la 
 
 Après inspection d'une source silencieuse, sans nouvel indice, la créature reste là. Ni patrouille permanente ni retour artificiel à son emplacement initial. Réaction au stimulus n'implique pas suivi omniscient de la trajectoire réelle du joueur.
 
-**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice.
+**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Avant l'alerte, un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice.
 
-**Créature alertée (D-276, D-279).** Après le premier contact, elle entend les pas du passager par toute suite de liaisons qui laisse passer le son et va vers lui par le plus court chemin praticable ; elle garde l'oreille ouverte trois actions, puis fouille une pièce voisine. Quand sa piste passe par une porte fermée, elle la force : deux réactions de suite sur la même porte, puis la porte cède, s'ouvre et ne ferme plus. Ne se forcent pas : passage étroit, vide, cloison encore verrouillée, écoutille manœuvrée de l'intérieur, panneau caché, passage hors de portée, porte vers une pièce en feu.
+**Créature alertée (D-276, D-279).** Après le premier contact, elle entend les pas du passager par toute suite de liaisons qui laisse passer le son et va vers lui par le plus court chemin praticable ; elle garde l'oreille ouverte trois actions ; arrivée au bout de sa piste sans le trouver, elle fouille une pièce voisine. Quand sa piste passe par une porte fermée, elle la force : deux réactions de suite sur la même porte, puis la porte cède, s'ouvre et ne ferme plus. Ne se forcent pas : passage étroit, vide, cloison encore verrouillée, écoutille manœuvrée de l'intérieur, panneau caché, passage hors de portée, porte vers une pièce en feu.
 
 ### 4.4 Premier contact
 

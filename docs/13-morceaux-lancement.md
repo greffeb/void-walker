@@ -676,7 +676,7 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 
 ### 7.10 Grandes stations, livraison 1 (#205, #206)
 
-> **Statut :** proposé par la PR des grandes stations, en brouillon (D-304, zone orange) ; **validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-302). Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md), décisions D-290 à D-304. Les clés et le butin (livraison 2), puis le lore (livraison 3) viennent sur la même branche.
+> **Statut :** proposé par la PR #230, ouverte prête à relire à la demande du porteur, à ne pas fusionner avant les livraisons 2 et 3 (D-304, zone orange) ; **validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-302). Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md), décisions D-290 à D-304. Les clés et le butin (livraison 2), puis le lore (livraison 3) viennent sur la même branche.
 
 **Ce que la livraison 1 apporte.** Le catalogue de quinze pièces sans obstacle (D-293), leurs descriptions calmes, la pose en trois temps et les portes de boucle (14 §5.3), la piste de la créature et ses traces (D-294), les bruits de station avant la rencontre (D-298), les identifiants versionnés `g1-…` et la liste publiée (D-303). NOUVELLE PARTIE et l'adresse nue tirent une grande station publiée ; les petites stations restent jouables par leur identifiant.
 
@@ -704,7 +704,7 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 - la porte d'une annexe est ouverte, fermée ou tirée au sort selon la pièce ;
 - une graine où aucune porte de boucle ne trouve sa place n'a pas de plan (D-295).
 
-**Assemblage**, mesures locales sans assertion de temps (`tools/grandes.test.ts`), sur 3 graines par grande composition :
+**Assemblage**, mesure locale par un script jetable, sur 3 graines par grande composition (`tools/grandes.test.ts` vérifie, sur un quart des compositions, au moins 40 % de plans et moins de 50 ms en moyenne) :
 - sur 864 graines (3 par grande composition), 439 plans (50,8 %), chacun avec une à trois portes de boucle (1,3 en moyenne) ;
 - 13,3 ms en moyenne par plan trouvé, 11,6 ms en médiane, 88 ms au pire.
 
@@ -725,27 +725,27 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 
 | Profil prudent (B2) | Grandes stations | Petites stations |
 | --- | ---: | ---: |
-| Évacuation | 14,4 % | 25,8 % |
-| Défaite | 61,3 % | 72,3 % |
-| Abandon au plafond (bot perdu) | 24,3 % | 1,9 % |
-| Actions d'une évacuation (médiane ; 9 sur 10 en dessous de) | 136 ; 219 | 54,5 ; 117 |
+| Évacuation | 16,5 % | 28,4 % |
+| Défaite | 59,5 % | 69,9 % |
+| Abandon au plafond (bot perdu) | 24,0 % | 1,7 % |
+| Actions d'une évacuation (médiane ; 9 sur 10 en dessous de) | 116 ; 213 | 52 ; 109 |
 | Chemin prouvé, B0 (médiane ; 9 sur 10 en dessous de) | 34 ; 46 | 24 ; 37 |
-| Actions avant la rencontre (médiane) | 113 | 29 |
-| Moment de la rencontre dans la partie (médiane) | 93 % | 74 % |
-| Jamais de contact, parties finies | 10,8 % | 9,3 % |
-| Évacuations sans rencontre | 56,9 % | 35,3 % |
+| Actions avant la rencontre (médiane) | 96 | 29 |
+| Moment de la rencontre dans la partie (médiane) | 92 % | 73 % |
+| Jamais de contact, parties finies | 12,0 % | 9,8 % |
+| Évacuations sans rencontre | 55,2 % | 33,8 % |
 | Pièces visitées (médiane) | 19 | 10 |
-| Poursuites par une porte de boucle | 16,8 % | 0 % |
-| Défaites dans la seconde moitié de la station | 74,1 % | 70,8 % |
-| Créature hors jeu | 9,1 % | 17,0 % |
+| Poursuites par une porte de boucle | 13,2 % | 0 % |
+| Défaites dans la seconde moitié de la station | 74,3 % | 73,0 % |
+| Créature hors jeu | 9,1 % | 19,4 % |
 
-Le profil averti (B4) évacue dans 13,5 % des grandes stations et 26,9 % des petites : lire les traces ne l'aide pas encore. Sur les petites stations, B2 évacuait dans 29,5 % des parties avant l'adaptation des bots (spec §15). La cible de la conception, 25 à 35 % pour B2 avec le butin (D-291, D-297), se mesurera en livraison 2.
+Le profil averti (B4) évacue dans 14,0 % des grandes stations et 26,6 % des petites : lire les traces ne l'aide pas encore. Sur les petites stations, B2 évacuait dans 29,5 % des parties avant l'adaptation des bots (spec §15). La cible de la conception, 25 à 35 % pour B2 avec le butin (D-291, D-297), se mesurera en livraison 2.
 
 **Bots adaptés** (spec §11) : une pièce visitée n'est revue que si un passage ou un geste y était impossible ; le plafond passe à 600 actions ; le profil B4, averti, regarde chaque pièce et hésite avant d'aller plus loin depuis une pièce marquée d'une trace forte, tant qu'il n'a pas rencontré la créature. Les parties abandonnées au plafond sont presque toutes des bots perdus dans les énigmes de l'ordre libre, sans rencontre : la station est prouvée, le bot ne trouve pas le geste. Le tableau du rythme les sépare des parties finies.
 
-**Alerte au porteur** (spec §10, D-298). Les deux seuils sont dépassés. Pour B2, la rencontre arrive à la 113ᵉ action en médiane (seuil : environ 45), à 93 % de la partie ; 10,8 % des parties finies n'ont aucune rencontre (seuil : 10 %) ; plus d'une évacuation sur deux se fait sans jamais croiser la créature. La cause est structurelle : la créature attend dans le dernier chemin ou le final (D-292) et ne bouge pas avant le contact (D-298), et la grande station allonge l'exploration qui la précède. La décision revient au porteur, avec #217 : une ronde, ou par exemple un bruit fort qui la met en route à mi-parcours.
+**Alerte au porteur** (spec §10, D-298). Les deux seuils sont dépassés. Pour B2, la rencontre arrive à la 96ᵉ action en médiane (seuil : environ 45), à 92 % de la partie ; 12,0 % des parties finies n'ont aucune rencontre (seuil : 10 %) ; plus d'une évacuation sur deux se fait sans jamais croiser la créature. La cause est structurelle : la créature attend dans le dernier chemin ou le final (D-292) et ne bouge pas avant le contact (D-298), et la grande station allonge l'exploration qui la précède. La décision revient au porteur, avec #217 : une ronde, ou par exemple un bruit fort qui la met en route à mi-parcours.
 
-**Reporté, avec l'accord de la conception :** `check:sortie` sur les grandes stations (livraison 2, où la caisse portable et les clés déplacées touchent au signal) ; clés dispersées et butin (livraison 2) ; bible, documents et fiche document (livraison 3).
+**Reporté :** la refonte du cache des verdicts (le rejeu des témoins rend les grandes stations presque gratuites à revérifier) ; avec l'accord de la conception, `check:sortie` sur les grandes stations (livraison 2, où la caisse portable et les clés déplacées touchent au signal) ; clés dispersées et butin (livraison 2) ; bible, documents et fiche document (livraison 3).
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

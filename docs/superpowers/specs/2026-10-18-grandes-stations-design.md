@@ -136,7 +136,7 @@ Questions posées une à une, en langage courant, avant de coder (Q-204 à Q-219
 
 D-276 (créature alertée : poursuit, écoute, fouille) et D-279 (elle force une porte fermée en deux réactions, la porte est détruite) sont codées et fusionnées (PR #198), mais encore « Proposé » dans le journal. La poursuite du lot (portes de boucle enfoncées, indice « une porte fermée ne l'arrête pas longtemps ») repose sur elles.
 
-Le porteur les a décrites comme voulues : « on ferme les portes derrière soi mais il les défonce, super terrifiant ». L'approbation de ce document demande donc aussi leur validation explicite : D-279 modifie D-177 et C-03 §4.3.
+Le porteur les a décrites comme voulues : « on ferme les portes derrière soi mais il les défonse, super terrifiant ». L'approbation de ce document demande donc aussi leur validation explicite : D-279 modifie D-177 et C-03 §4.3.
 
 ## 4. Forme d'une grande station
 
@@ -350,7 +350,7 @@ L'assembleur renvoie les segments avec le monde. Le vérifieur, les contrôles e
 
 **Nombre et place.** Une à trois portes de boucle, posées d'abord dans le segment du repaire et dans le segment voisin par lequel on fuit, là où la poursuite se joue.
 
-**Comportement.** Ce sont des portes ordinaires, fermées au départ, qu'on ouvre et ferme, et que la créature alertée enfonce (D-279). Une station sans paire possible n'a pas de boucle et reste publiable.
+**Comportement.** Ce sont des portes ordinaires, fermées au départ, qu'on ouvre et ferme, et que la créature alertée enfonce (D-279). Une graine sans paire possible n'a pas de plan : elle n'est pas publiée, et la publication passe à la suivante (D-295, précisé le 2026-10-19 ; une station sans boucle restait d'abord publiable).
 
 ### 6.5 Clés dispersées (#202)
 

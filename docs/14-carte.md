@@ -219,7 +219,7 @@ Chaque morceau (C-08 GP-01) porte son plan : ses pièces en cases, ses portes in
 
 ### 5.3 Grandes stations et petites pièces (D-205, D-206, D-290)
 
-Les grandes stations (#205, D-290) comptent 22 à 28 pièces dessinées, et seules elles sortent au tirage. Une petite station n'a que le premier temps ci-dessous. Une grande station se construit en trois temps, chacun sur sa propre sous-graine (même graine, même plan, GE-06) :
+Les grandes stations (#205, D-290) comptent 22 à 28 pièces dessinées (21 quand une pièce du catalogue ne trouve pas sa place), et seules elles sortent au tirage. Une petite station n'a que le premier temps ci-dessous. Une grande station se construit en trois temps, chacun sur sa propre sous-graine (même graine, même plan, GE-06) :
 
 1. le chemin principal (départ, trois morceaux de chemin, final, embarquement), par recherche ;
 2. les annexes, pièces du catalogue (D-293), posées une à une sans défaire ce qui est posé : les couloirs d'abord, chacun avec ses deux premières pièces ; puis deux passages posés exprès pour qu'une porte de boucle puisse fermer un cycle (les connecteurs) ; puis les autres. Une annexe sans place essaie une autre pièce d'accroche ;
