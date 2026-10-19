@@ -26,14 +26,32 @@ describe('mesurer:difficulte', () => {
     }
   }, 60000);
 
+  it('mesure les grandes stations publiées : B0 est leur témoin publié, et le rythme de chaque profil', () => {
+    const mesure = mesurerDifficulte({ catalogue: CATALOGUE, parties: 20, grandes: true, plafond: 150, profils: ['prudent', 'averti'] });
+    expect(mesure.parties).toBe(20);
+    expect(mesure.prouve.prouvees).toBe(20);
+    expect(mesure.prouve.longueurs.every((longueur) => longueur > 20)).toBe(true);
+    for (const profil of ['prudent', 'averti'] as const) {
+      const m = mesure.profils[profil];
+      expect(m.parties).toBe(20);
+      expect(m.piecesVisitees).toHaveLength(20);
+      expect(m.actionsAvantContact).toHaveLength(20 - m.sansContact);
+      expect(m.defaitesTardives).toBeLessThanOrEqual(m.defaites);
+    }
+    expect(mesure.grandes).toBe(true);
+    expect(enMarkdown(mesure)).toContain('B0 : témoin publié de la station tirée');
+  }, 240000);
+
   it('rend le rapport au format de #194', () => {
     const profil: MesureProfil = {
       parties: 10, evacuations: 6, defaites: 3, abandons: 1, actionsEvacuees: [20, 30, 40, 50, 60, 70], des: 15, coups: 9,
       parCause: { ...sansCause(), griffes: 8, feu: 1 }, sansContact: 2, horsJeu: 1, sansSortie: 0,
+      actionsAvantContact: [30, 40, 50, 60, 70, 80, 90, 100], piecesVisitees: [10, 12, 14, 16, 18, 20, 22, 24, 26, 28], boucles: 2, defaitesTardives: 2,
+      abandonsSansContact: 1, evacueesSansContact: 1, momentsContact: [0.5, 0.75, 0.8],
     };
     const mesures: MesuresDifficulte = {
       variante: 'V0', commit: 'abc1234', graine: 1, parties: 10, compositions: { publiees: 50, tirees: 9 },
-      prouve: { prouvees: 10, longueurs: [18, 22] }, profils: { aleatoire: profil, prudent: profil, presse: profil },
+      prouve: { prouvees: 10, longueurs: [18, 22] }, profils: { aleatoire: profil, prudent: profil, presse: profil, averti: profil },
       morceaux: { 'm-07': { parties: 4, evacuations: 3, defaites: 1 } }, secondes: 2,
     };
     const texte = enMarkdown(mesures);
@@ -41,6 +59,9 @@ describe('mesurer:difficulte', () => {
     expect(texte).toContain('| B0, chemin prouvé | 100,0 % | 0 % | — | 20,0 ; 22 |');
     expect(texte).toContain('| B2, prudent | 60,0 % | 30,0 % | 10,0 % | 45,0 ; 70 | 1,50 | 0,90 | griffes 8, feu 1 | 20,0 % | 10,0 % | 0,0 % |');
     expect(texte).toContain('| m-07 | 4 | 75,0 % | 25,0 % |');
+    // Rythme : médianes, poursuites par une boucle sur les parties avec rencontre, défaites dans la seconde moitié.
+    // Jamais de contact sur les parties finies : (2 − 1) sur (10 − 1) ; une évacuation sur six sans rencontre.
+    expect(texte).toContain('| B4, averti | 65,0 | 19,0 | 25,0 % | 66,7 % | 11,1 % | 16,7 % | 75 % |');
   });
 
   it('centile', () => {

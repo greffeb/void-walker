@@ -1,8 +1,8 @@
-import { empreinteEtat, exporter, type DefMonde, type Enregistrement } from '../engine';
+import { empreinteEtat, exporter, idPublic, nouvellePartie, type DefMonde, type Enregistrement, type Evenement } from '../engine';
 import { ATTEINT_JUSQUA, FACES } from '../engine/sante';
 import { creerBot, jouerAvecBot } from './bots';
 import { CATALOGUE } from './catalogue';
-import { desAuSeuil, rejouerPourMesure } from './indicateurs-partie';
+import { desAuSeuil, rejouerPourMesure, SuiviPartie } from './indicateurs-partie';
 
 // Indicateurs de difficulté (#194 §1) et contrefactuel du seuil d'esquive (#194 §2.1). Les attentes valent quel que soit le
 // seuil du moteur : celui du jeu (D-055) ou celui d'une variante à l'essai.
@@ -85,5 +85,42 @@ describe('indicateurs de partie', () => {
     if (ATTEINT_JUSQUA >= FACES) expect(() => des.lancer(6)).toThrow(/aucun jet raté/);
     else expect(des.lancer(6)).toBe(ATTEINT_JUSQUA + 1);
     expect(() => des.lancer(6)).toThrow(/sans tirage/);
+  });
+});
+
+describe('indicateurs des grandes stations (spec 2026-10-18 §11)', () => {
+  // Deux pièces aux segments 0 et 2, reliées par une porte de boucle.
+  const monde: DefMonde = {
+    id: 'indicateurs',
+    depart: 'p-a',
+    pieces: [{ id: 'p-a', nom: 'a', segment: 0 }, { id: 'p-b', nom: 'b', segment: 2 }],
+    liaisons: [{ id: 'l-boucle-1', nom: 'porte', entre: ['p-a', 'p-b'], ouverte: true }],
+    objets: [],
+    boucles: ['l-boucle-1'],
+  };
+  const depart = nouvellePartie(monde, { version: 'indicateurs', graine: 1 });
+  const passage = { sorte: 'passage', id: idPublic('indicateurs', 'l-boucle-1'), nom: 'porte', vers: null } as unknown as Extract<Evenement, { type: 'deplacement' }>['passage'];
+  const piece = { sorte: 'piece', id: idPublic('indicateurs', 'p-b'), nom: 'b' } as const;
+
+  it('une partie sans rencontre le dit, et compte les pièces visitées', () => {
+    const suivi = new SuiviPartie(monde, depart);
+    suivi.noter([], [], depart.etat);
+    expect(suivi.resultat()).toMatchObject({ sansContact: true, boucleEnPoursuite: false, avancementDefaite: null, piecesVisitees: 1 });
+  });
+
+  it('une porte de boucle franchie après la rencontre compte pour une poursuite par une boucle ; avant, non', () => {
+    const avant = new SuiviPartie(monde, depart);
+    avant.noter([{ type: 'deplacement', passage, piece }], [], depart.etat);
+    expect(avant.resultat().boucleEnPoursuite).toBe(false);
+    const apres = new SuiviPartie(monde, depart);
+    apres.noter([{ type: 'premier_contact' }], [], depart.etat);
+    apres.noter([{ type: 'deplacement', passage, piece }], [], depart.etat);
+    expect(apres.resultat()).toMatchObject({ sansContact: false, boucleEnPoursuite: true });
+  });
+
+  it('l’avancement de la défaite : le segment de la pièce de la mort, rapporté au plus avancé', () => {
+    const suivi = new SuiviPartie(monde, depart);
+    suivi.noter([], [], { ...depart.etat, piece: 'p-b', sante: 'vaincu' });
+    expect(suivi.resultat().avancementDefaite).toBe(1);
   });
 });

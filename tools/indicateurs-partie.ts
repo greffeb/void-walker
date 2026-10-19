@@ -1,6 +1,7 @@
 import { CAUSES, empreinteEtat, jouer, nouvellePartie, observer, type Cause, type DefMonde, type Des, type Enregistrement, type EtatPartie, type Evenement, type Partie, type Sante } from '../engine';
+import { indexer } from '../engine/monde';
 import { ATTEINT_JUSQUA } from '../engine/sante';
-import { creatureHorsJeu } from './verifier-station';
+import { creatureHorsJeu, rangsDesSegments } from './verifier-station';
 
 // Indicateurs de difficulté d'une partie (#194 §1), humaine ou jouée par un bot : comptés depuis les événements et l'état de
 // chaque pas. Le rejeu d'un export peut changer le seuil d'esquive (#194 §2.1) : un contrefactuel, à décisions identiques.
@@ -24,6 +25,14 @@ export interface IndicateursPartie {
   readonly horsJeu: number | null;
   /** Première action finie sans aucune sortie possible (D-275) ; `null` sinon. */
   readonly sansSortie: number | null;
+  /** Aucun premier contact de toute la partie (spec 2026-10-18 §11). */
+  readonly sansContact: boolean;
+  /** Une porte de boucle franchie après la rencontre : la boucle a servi à la poursuite. */
+  readonly boucleEnPoursuite: boolean;
+  /** Défaite : segment de la pièce de la mort rapporté au plus avancé de la station, de 0 à 1 ; `null` sans défaite. */
+  readonly avancementDefaite: number | null;
+  /** Pièces distinctes où le passager est passé, départ compris. */
+  readonly piecesVisitees: number;
 }
 
 /** Comptes d'une partie en cours, pas après pas. */
@@ -35,10 +44,13 @@ export class SuiviPartie {
   private premierContact: number | null = null;
   private horsJeu: number | null = null;
   private sansSortie: number | null = null;
+  private boucleEnPoursuite = false;
+  private readonly visitees: Set<string>;
   private etat: EtatPartie;
 
   constructor(private readonly monde: DefMonde, depart: Partie) {
     this.etat = depart.etat;
+    this.visitees = new Set([depart.etat.piece]);
   }
 
   /** Une action engagée : ses événements, ses tirages et l'état qui la suit. */
@@ -47,6 +59,7 @@ export class SuiviPartie {
     this.des += tirages.length;
     for (const evenement of evenements) {
       if (evenement.type === 'premier_contact') this.premierContact ??= this.actions;
+      if (evenement.type === 'deplacement' && this.premierContact !== null && (this.monde.boucles ?? []).includes(indexer(this.monde).versInterne.get(evenement.passage.id) ?? '')) this.boucleEnPoursuite = true;
       if (evenement.type === 'aggravation_blesse' || evenement.type === 'aggravation_critique' || evenement.type === 'defaite') {
         this.coups++;
         for (const cause of new Set(evenement.causes)) this.parCause[cause]++;
@@ -54,11 +67,14 @@ export class SuiviPartie {
     }
     if (this.horsJeu === null && creatureHorsJeu(this.monde, etat)) this.horsJeu = this.actions;
     if (this.sansSortie === null && observer(this.monde, etat).sansSortie) this.sansSortie = this.actions;
+    this.visitees.add(etat.piece);
     this.etat = etat;
   }
 
   resultat(): IndicateursPartie {
     const issue: IssueMesuree = this.etat.fin === 'evacuation' ? 'evacuation' : this.etat.sante === 'vaincu' ? 'defaite' : 'en_cours';
+    const rang = rangsDesSegments(this.monde);
+    const plusLoin = Math.max(...this.monde.pieces.map((piece) => rang(piece.id)));
     return {
       monde: this.monde.id,
       issue,
@@ -70,6 +86,10 @@ export class SuiviPartie {
       premierContact: this.premierContact,
       horsJeu: this.horsJeu,
       sansSortie: this.sansSortie,
+      sansContact: this.premierContact === null,
+      boucleEnPoursuite: this.boucleEnPoursuite,
+      avancementDefaite: issue === 'defaite' ? (plusLoin === 0 ? 0 : rang(this.etat.piece) / plusLoin) : null,
+      piecesVisitees: this.visitees.size,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { apercu, jouer, nouvellePartie, observer, type Apercu, type Commande, type Evenement, type NiveauRisque, type Observation, type OptionMenu, type Partie } from '../engine';
+import { apercu, jouer, nouvellePartie, observer, type Apercu, type Commande, type DefMonde, type Evenement, type IntensiteTrace, type NiveauRisque, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { SuiviPartie, type IndicateursPartie } from './indicateurs-partie';
 import type { EntreeMonde } from '../content';
@@ -7,11 +7,11 @@ import type { EntreeMonde } from '../content';
 // de la dernière action), jamais l'état caché du moteur. Leur seule mémoire est la leur. Ils servent à mesurer, pas à prouver :
 // la preuve d'une station reste celle de `check:stations`.
 
-export const PROFILS = ['aleatoire', 'prudent', 'presse'] as const;
+export const PROFILS = ['aleatoire', 'prudent', 'presse', 'averti'] as const;
 export type Profil = (typeof PROFILS)[number];
 
-/** Plafond d'actions d'une partie de bot : au-delà, la partie est abandonnée (issue « en cours »). */
-export const PLAFOND_ACTIONS = 300;
+/** Plafond d'actions d'une partie de bot : au-delà, la partie est abandonnée (issue « en cours ») ; 600 pour les grandes stations (spec 2026-10-18 §11). */
+export const PLAFOND_ACTIONS = 600;
 
 /** Ce qu'un bot voit avant de choisir. */
 export interface VueBot {
@@ -20,6 +20,8 @@ export interface VueBot {
   readonly evenements: readonly Evenement[];
   /** Aperçu de chaque option engagée et disponible, par commande. */
   readonly apercu: (option: OptionMenu) => Apercu | null;
+  /** Trace de la pièce, telle que la montre « regarder » (spec 2026-10-18 §5.4) ; `null` sans trace. */
+  readonly trace: IntensiteTrace | null;
 }
 
 export interface Bot {
@@ -61,6 +63,9 @@ const GESTES_DE_PASSAGE: ReadonlySet<OptionMenu['action']> = new Set(['aller', '
 const MALUS_PRUDENT: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 10, modere: 40, eleve: 150, certain: 5000, mortel: 10000 };
 const MALUS_PRESSE: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 0, modere: 0, eleve: 0, certain: 5000, mortel: 10000 };
 
+/** Malus d'aller plus loin depuis une pièce à trace forte, pour le bot averti, avant la rencontre ; il s'use de 50 par geste. */
+const MALUS_TRACE = 200;
+
 /** Actions après lesquelles le bot réessaie un passage qu'il n'a pas pu ouvrir. */
 const OUBLI = 20;
 
@@ -85,11 +90,16 @@ function situation(observation: Observation): string {
  * Explorateur qui cherche la capsule comme un joueur attentif : il essaie une fois chaque geste dans chaque situation, ramasse,
  * ouvre, va vers les pièces qu'il n'a pas vues ou pas revues depuis qu'il porte autre chose, et ferme la porte derrière lui
  * quand le récit annonce la créature. Prudent, il évite les risques annoncés quand il a le choix ; pressé, seulement le mortel
- * et le certain.
+ * et le certain. Averti, il est prudent et lit les traces : avant la rencontre, une trace forte le fait hésiter à aller plus loin.
  */
-export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bot {
+export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'averti'): Bot {
   const hasard = hasardDe(graine);
-  const malus = profil === 'prudent' ? MALUS_PRUDENT : MALUS_PRESSE;
+  const malus = profil === 'presse' ? MALUS_PRESSE : MALUS_PRUDENT;
+  let rencontre = false;
+  /** Gestes déjà choisis dans chaque pièce à trace forte : l'hésitation s'use, pour ne pas tourner en rond. */
+  const hesitations = new Map<string, number>();
+  /** Pièces où un passage ou un geste n'était pas possible : les seules qui valent d'être revues avec autre chose en main. */
+  const aRevoir = new Set<string>();
   const essais = new Map<string, number>();
   const ouverts = new Set<string>();
   /**
@@ -115,7 +125,7 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
     const avecCe = inventaire(observation);
     return new Set(
       observation.carte.pieces
-        .filter((piece) => piece.statut === 'connue' || (piece.statut === 'visitee' && !vues.has(`${piece.piece.id}#${avecCe}`)))
+        .filter((piece) => piece.statut === 'connue' || (piece.statut === 'visitee' && aRevoir.has(piece.piece.id) && !vues.has(`${piece.piece.id}#${avecCe}`)))
         .map((piece) => piece.piece.id),
     );
   };
@@ -175,6 +185,10 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
     else if (action === 'prendre') points = essai === 0 ? 150 : 2;
     else if (!GESTES_DE_PASSAGE.has(action)) points = essai === 0 ? 200 : 5;
     if (essai > 0 && action !== 'aller' && surLaRoute === 0) points -= 10 * essai;
+    if (profil === 'averti' && !rencontre && vue.trace === 'forte') {
+      const versInconnue = action === 'aller' && cible.sorte === 'passage' && (cible.vers === null || !observation.visitees.some((piece) => piece.id === cible.vers?.id));
+      if (action === 'ouvrir' || versInconnue) points -= Math.max(0, MALUS_TRACE - 50 * (hesitations.get(observation.piece.id) ?? 0));
+    }
     const risque = vue.apercu(option)?.risque ?? 'aucun';
     return points - malus[risque] + hasard();
   };
@@ -186,10 +200,13 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
       if (options.length === 0) return null;
       const ici = situation(observation);
       vues.add(`${observation.piece.id}#${inventaire(observation)}`);
+      rencontre ||= observation.creatureVisible || evenements.some((evenement) => evenement.type === 'premier_contact');
+      if (observation.menu.some((option) => !option.disponible)) aRevoir.add(observation.piece.id);
       // Un passage d'ici qu'on ne peut ni franchir ni ouvrir est bloqué pour l'instant : porte verrouillée, vide sans pont…
       for (const passage of observation.passages) {
         const praticable = options.some((option) => (option.action === 'aller' || option.action === 'ouvrir') && option.cible.id === passage.id);
         if (!praticable && !bloque(passage.id, observation.actions)) bloques.set(passage.id, observation.actions);
+        if (!praticable) aRevoir.add(observation.piece.id);
       }
       const menace = observation.creatureVisible || evenements.some((evenement) => MENACES.has(evenement.type));
       const vers = etape(observation);
@@ -200,6 +217,7 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
         if (points > meilleurScore) [meilleure, meilleurScore] = [option, points];
       }
       if (meilleure === undefined) return null;
+      if (vue.trace === 'forte' && !rencontre) hesitations.set(observation.piece.id, (hesitations.get(observation.piece.id) ?? 0) + 1);
       const { action, commande } = meilleure;
       const nom = `${ici}|${cle(commande)}`;
       essais.set(nom, (essais.get(nom) ?? 0) + 1);
@@ -219,6 +237,12 @@ export function creerBot(profil: Profil, graine: number): Bot {
 }
 
 /** Joue une partie complète avec un bot, depuis le réveil, et en rend les indicateurs. */
+/** Trace de la pièce du passager, par la consultation gratuite « regarder » : ce que le joueur lit en regardant la pièce. */
+function traceIci(monde: DefMonde, partie: Partie, piece: string): IntensiteTrace | null {
+  const resultat = jouer(monde, partie, { action: 'regarder', cible: piece });
+  return resultat.type === 'consultation' && resultat.consultation.type === 'regarder_piece' ? (resultat.consultation.trace ?? null) : null;
+}
+
 export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plafond = PLAFOND_ACTIONS): { readonly indicateurs: IndicateursPartie; readonly partie: Partie } {
   const { monde } = entree;
   let partie = nouvellePartie(monde, { version: 'bot', graine });
@@ -235,6 +259,7 @@ export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plaf
         const resultat = apercu(monde, enCours, option.commande);
         return resultat.type === 'apercu' ? resultat.apercu : null;
       },
+      trace: traceIci(monde, partie, observation.piece.id),
     });
     if (commande === null) break;
     const resultat = jouer(monde, partie, commande);

@@ -1,5 +1,6 @@
-import { observer, type Observation } from '../engine';
-import { botAleatoire, creerBot, jouerAvecBot, optionsJouables, PROFILS, type Bot } from './bots';
+import { idPublic, jouer, observer, type DefMonde, type Observation } from '../engine';
+import { MONDES, type EntreeMonde } from '../content';
+import { botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, type Bot } from './bots';
 import { CATALOGUE } from './catalogue';
 
 // Bots de mesure (#194 §2.3) : ils jouent par le menu public, de façon reproductible.
@@ -14,7 +15,7 @@ describe('bots', () => {
         const premiere = jouerAvecBot(entree, creerBot(profil, graine), graine);
         const seconde = jouerAvecBot(entree, creerBot(profil, graine), graine);
         expect(seconde.partie.enregistrement).toEqual(premiere.partie.enregistrement);
-        expect(premiere.indicateurs.actions).toBeLessThanOrEqual(300);
+        expect(premiere.indicateurs.actions).toBeLessThanOrEqual(PLAFOND_ACTIONS);
       }
     }
   });
@@ -34,7 +35,7 @@ describe('bots', () => {
     const vus: Observation[] = [];
     const espion: Bot = {
       choisir(vue) {
-        expect(Object.keys(vue).sort()).toEqual(['apercu', 'evenements', 'observation']);
+        expect(Object.keys(vue).sort()).toEqual(['apercu', 'evenements', 'observation', 'trace']);
         vus.push(vue.observation);
         return vus.length > 3 ? null : (optionsJouables(vue.observation)[0]?.commande ?? null);
       },
@@ -48,6 +49,52 @@ describe('bots', () => {
     const { indicateurs, partie } = jouerAvecBot(entree, botAleatoire(3), 3, 12);
     expect(indicateurs.actions).toBeLessThanOrEqual(12);
     expect(partie.enregistrement.actions.some((action) => action.commande.action === 'regarder')).toBe(false);
+  });
+
+  it('plafond de 600 actions par partie (spec 2026-10-18 §11)', () => {
+    expect(PLAFOND_ACTIONS).toBe(600);
+  });
+
+  it('le profil averti, avant la rencontre, tarde à ouvrir plus loin depuis une pièce marquée d’une trace forte', () => {
+    // A ouvre sur B, marquée d'une trace forte ; la porte de B vers C est fermée.
+    const monde: DefMonde = {
+      id: 'averti',
+      depart: 'p-a',
+      pieces: [{ id: 'p-a', nom: 'a' }, { id: 'p-b', nom: 'b', trace: 'forte' }, { id: 'p-c', nom: 'c' }],
+      liaisons: [
+        { id: 'l-a-b', nom: 'porte', entre: ['p-a', 'p-b'], ouverte: true },
+        { id: 'l-b-c', nom: 'porte', entre: ['p-b', 'p-c'], ouverte: false },
+      ],
+      objets: [],
+    };
+    const station: EntreeMonde = { monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] };
+    const ouverture = (profil: 'prudent' | 'averti'): number =>
+      jouerAvecBot(station, creerBot(profil, 1), 1, 40).partie.enregistrement.actions.findIndex((action) => action.commande.action === 'ouvrir' && action.commande.cible === idPublic('averti', 'l-b-c'));
+    const prudent = ouverture('prudent');
+    const averti = ouverture('averti');
+    expect(prudent).toBeGreaterThanOrEqual(0);
+    expect(averti === -1 || averti > prudent).toBe(true);
+  });
+
+  it('une pièce visitée sans rien de bloqué ne redevient pas à voir quand l’inventaire change (spec 2026-10-18 §11)', () => {
+    // D, impasse, et X, qui mène à M, sont déjà vues ; l'objet est en N. Revenu en S avec l'objet, il file vers M sans revoir D.
+    const monde: DefMonde = {
+      id: 'revoir',
+      depart: 'p-s',
+      pieces: ['s', 'd', 'x', 'm', 'n'].map((nom) => ({ id: `p-${nom}`, nom })),
+      liaisons: [['s', 'd'], ['s', 'x'], ['x', 'm'], ['s', 'n']].map(([a, b]) => ({ id: `l-${a}-${b}`, nom: 'porte', entre: [`p-${a}`, `p-${b}`] as const, ouverte: true })),
+      objets: [{ id: 'o-outil', nom: 'outil', piece: 'p-n' }],
+    };
+    const station: EntreeMonde = { monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] };
+    // Gestes imposés, puis un bot neuf choisit : son but n'est pas celui d'avant, qu'il garderait jusqu'à l'atteindre.
+    let partie = jouerAvecBot(station, { choisir: () => null }, 1).partie;
+    for (const [action, cible] of [['aller', 'l-s-d'], ['aller', 'l-s-d'], ['aller', 'l-s-x'], ['aller', 'l-s-x'], ['aller', 'l-s-n'], ['prendre', 'o-outil'], ['aller', 'l-s-n']] as const) {
+      const resultat = jouer(monde, partie, { action, cible: idPublic('revoir', cible) });
+      if (resultat.type !== 'engagee') throw new Error(`${action} ${cible} refusé.`);
+      partie = resultat.partie;
+    }
+    const choix = creerBot('prudent', 1).choisir({ observation: observer(monde, partie.etat), evenements: [], apercu: () => null, trace: null });
+    expect(choix).toEqual({ action: 'aller', cible: idPublic('revoir', 'l-s-x') });
   });
 
   it('refuse un bot qui propose une commande hors du menu', () => {
