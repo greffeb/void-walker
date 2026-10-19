@@ -292,7 +292,9 @@ export type Evenement =
 export type MomentMessage =
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'arrivee'; readonly piece: RefPiece }
-  | { readonly type: 'evacuation' };
+  | { readonly type: 'evacuation' }
+  /** À la 15e attente de suite où rien ne se passe (#225). */
+  | { readonly type: 'patience' };
 
 export interface MessageRecu {
   readonly message: string;

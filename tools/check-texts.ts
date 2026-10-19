@@ -174,6 +174,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const variante of textes.asphyxie as readonly unknown[]) {
     if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push('défaite par le vide : plus de quatre phrases (garde-fou du contrôle).');
   }
+  for (const [cle, phrase] of Object.entries(textes.attentesLongues)) verifierGabarit(erreurs, `attente longue ${cle}`, phrase, []);
   for (const { id } of monde.assistance ?? []) {
     const message = textes.assistance[id] as unknown;
     if (typeof message !== 'string' || message.trim() === '') {

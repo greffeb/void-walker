@@ -110,6 +110,8 @@ export interface TextesMonde {
   readonly asphyxie: Variantes;
   /** Phrase ajoutée au regard d’une pièce sur la piste de la créature (spec 2026-10-18 §5.4), couche menace. */
   readonly traces: Readonly<Record<IntensiteTrace, Variantes>>;
+  /** Attente seule à raconter, 5e et 10e de suite (#225). */
+  readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
@@ -194,10 +196,11 @@ export interface TextesMonde {
     readonly sansSortie: string;
     /** Récit court de l'écran de fin après un abandon (12 §4.11), dans la pièce où le passager s'est arrêté. */
     readonly abandon: string;
-    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ. */
+    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ, après une longue attente. */
     readonly momentReveil: string;
     readonly momentArrivee: string;
     readonly momentEvacuation: string;
+    readonly momentPatience: string;
   };
   /** Écran de fin (12 §4.11, D-281 à D-283) : titres, puis le récit de la partie, phrase par phrase. */
   readonly fin: {
@@ -452,4 +455,5 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   momentReveil: ['piece'],
   momentArrivee: ['piece'],
   momentEvacuation: [],
+  momentPatience: [],
 };

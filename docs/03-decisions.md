@@ -2379,6 +2379,19 @@ Questions posées le 2026-10-18, une par une, sur des maquettes au format télé
 - Précise : D-228 (✕ plutôt que RETOUR) ; l'aide à l'installation (#174) s'ouvre par-dessus la bulle Application.
 - Limite [détail de l'agent] : la ligne sonne comme l'ouverture d'une bulle d'objet, ✕ et le voile comme sa fermeture. Le lecteur d'écran lit la ligne comme un bouton qui ouvre un dialogue, puis le dialogue par son titre ; au clavier, le focus reste dans la bulle tant qu'elle est ouverte (12 §7). Un réglage changé ou un rapport envoyé dans une bulle le reste quand elle se referme.
 
+## Décisions validées — attentes à la suite (#225)
+
+### D-289 — À force d'attendre, la station répond
+
+- Date / statut : 2026-10-19 / **Validé** ; textes à relire, essai sur téléphone à venir (zone orange).
+- Origine : #225, « J'ai attendu dans une salle plusieurs fois, ya que deux options de silence. Je m'attendais à un easter egg » ; réponses du porteur : « piste B et au 15eme c'est l'IA Station qui fait une remarque », « Dès qu'on fait autre chose », « garde juste le texte écrit directement dans la fenêtre dédiée à l'IA », « Vrai message de l'IA », variante « 1 ».
+- Décision : on compte les ATTENDRE à la suite ; toute autre action engagée remet le compte à zéro (« Regarder » ne compte pas : ce n'est pas une action). Quand l'attente est seule à raconter :
+  - **5e :** le récit dit « Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous. »
+  - **10e :** « Les lumières baissent d'un cran, puis reviennent. La station, elle aussi, attend. »
+  - **15e :** le récit garde une phrase de silence ; IA Station envoie un vrai message, « Aucune activité détectée. Merci de rejoindre la capsule de secours. », daté « en attendant » dans sa fenêtre. Une fois par partie, comme tout message (D-081).
+- Précise : D-274 (textes d'ATTENDRE). Rien ne change au jeu : la créature, les dangers et le décompte jouent comme avant.
+- Limite [détail de l'agent] : le message n'existe que dans les stations tirées ; AR-01, AR-02, M-08, M-09 et le monde de test ne le déclarent pas. Une partie sauvegardée avant cette version après 15 attentes de suite ou plus ne se reprend plus (son état ne correspond plus à son journal rejoué) ; il en va de même pour le rejeu d'un tel export.
+
 ## Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209)
 
 Questions posées le 2026-10-18, une par une, en langage courant, avant de coder (Q-204 à Q-219, réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot)) ; maquette des documents au format téléphone ([documents](maquette/documents.html)). Accord du porteur sur la conception : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Le travail se livre en trois temps sur une même branche (D-304) : la livraison 1 (#205, #206) applique D-290 à D-295, D-298, D-303 et D-304 ; les clés et le butin (livraison 2, #202, #207), puis le lore (livraison 3, #209) suivent.

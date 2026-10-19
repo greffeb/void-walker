@@ -11,6 +11,7 @@ import {
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
 import { BRUITS_STATION, FIN, TRACES } from '../textes/couches';
+import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -185,6 +186,7 @@ export const TEXTES_AR02: TextesMonde = {
     'L’air vous quitte d’un coup. Vos poumons brûlent, votre vue se brouille. Puis plus rien.',
     'Le vide vous arrache le souffle. Vous tombez à genoux, la vue noire. Plus rien.',
   ],
+  attentesLongues: ATTENTES_LONGUES,
   evacuations: {
     circuit: ['Le circuit tient. La capsule se détache du quai.'],
     bloc: ['Le bloc tient. La capsule se détache du quai.'],
@@ -323,6 +325,7 @@ export const TEXTES_AR02: TextesMonde = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
     ...OBSERVATION_MORCEAUX,
   },
   fin: FIN,

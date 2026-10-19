@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des parties humaines
 
 > **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; neuf validations signées C-10 sont recopiées telles quelles : deux reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), deux par celui de la PR #196 (variante V1 de #194), une par celui de la PR #199 (variante V2b de #194), quatre par celui de la PR #198 (variante V2a de #194).
-> **Mise à jour :** 2026-10-17.
+> **Mise à jour :** 2026-10-19 (deux parties envoyées non signées, #226 et #227, consignées dans les sessions).
 
 ## Règle validée
 
@@ -48,6 +48,17 @@ Jouées sur la version de test de la variante V2a de #194 à trois réactions (D
 Une mise à jour de référence par un agent produit un candidat. Le maintien ou l'invalidation d'une ancienne acceptation devra suivre une règle explicite liée aux changements, pas une case conservée sans justification.
 
 ## Sessions
+
+### Parties envoyées #226 et #227
+
+- Date : 2026-10-19.
+- Testeur : porteur du projet.
+- Build : version 0.1.0 (547), commit `d837083`, version publique.
+- Monde : `m07-m02-m03-atelier-3665680452`, deux graines différentes. Pas de métrique d'appareil, de système ni de navigateur dans les rapports.
+- [#226](https://github.com/greffeb/void-walker/issues/226) · graine 3964738638 · évacuation en 26 actions (santé critique), 1 min 21 s écran allumé. Commentaire : « J'ai gagné ».
+- [#227](https://github.com/greffeb/void-walker/issues/227) · graine 2653505892 · défaite en 27 actions (vaincu dans la coursive), 1 min 05 s écran allumé. Commentaire : « C'est ma partie n°2 (j'ai refait car j'ai oublié de l'envoyer). Je pensais que la salle des machines était ce qui manquait pour l'alim de la capsule ». Le rapport montre que le joueur a arrêté l'interrupteur de la salle des machines (action 5), n'a pas pris le bloc de la salle d'énergie ni activé la console, et que la défaite survient dans la coursive, à côté de l'atelier où se trouve la créature.
+- Verdict humain : aucun. La case « je valide » est non cochée sur les deux rapports.
+- Limite : parties envoyées sans validation signée, donc non reconnues par le robot de la PR (C-10 §4). Elles ne valident aucun parcours de référence et ne figurent pas dans la liste des validations signées.
 
 ### Retour sur l'interface #92
 
