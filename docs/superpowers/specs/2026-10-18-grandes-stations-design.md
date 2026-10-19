@@ -185,7 +185,7 @@ NOUVELLE PARTIE joue à pile ou face sur le final (D-253), puis tire une grande 
 - Pour une grande composition, `?station=` tire dans la liste publiée.
 
 **Une grande station d'une version de générateur que le jeu ne sait plus construire :**
-- sa sauvegarde est refusée proprement, avec un message clair, sans jamais reprendre sur un autre monde (D-090) ;
+- sa sauvegarde n'est jamais reprise sur un autre monde (D-090) : l'appli la laisse intacte, dit « La partie enregistrée ne peut pas être reprise. Vous pouvez commencer une nouvelle partie. », comme pour tout monde qui ne se résout plus, et tire une nouvelle station ; la CLI et les outils disent « Station d’une version précédente des stations : la partie ne peut pas être reprise. » ;
 - ses rapports sont signalés « version de génération ancienne » par les outils de rejeu.
 
 Toute retouche du catalogue, de la table de butin ou de la réserve de documents qui change les stations publiées augmente la version.
