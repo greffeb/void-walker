@@ -1,3 +1,4 @@
+import type { IntensiteTrace } from './monde';
 import type { EmplacementPassage, PanCoque, RectPlan } from './plan';
 
 // Vocabulaire public du moteur : commandes, événements, consultations, raisons. Aucun texte.
@@ -302,7 +303,7 @@ export type SourceEvacuation = 'circuit' | 'bloc' | 'reserve';
 export type Issue = 'evacuation' | 'defaite';
 
 export type Consultation =
-  | { readonly type: 'regarder_piece'; readonly cible: RefPiece }
+  | { readonly type: 'regarder_piece'; readonly cible: RefPiece; readonly trace?: IntensiteTrace }
   | { readonly type: 'regarder_objet'; readonly cible: RefObjet }
   | { readonly type: 'regarder_passage'; readonly cible: RefPassage };
 

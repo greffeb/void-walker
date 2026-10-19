@@ -176,7 +176,11 @@ const regarder: ActionConsultation = {
     const { monde, etat } = contexte;
     const liaison = liaisonIci(contexte, cible);
     if (liaison !== undefined) return { type: 'regarder_passage', cible: refPassage(monde, etat, liaison, etat.piece) };
-    if (cible === etat.piece) return { type: 'regarder_piece', cible: refPiece(monde, cible) };
+    if (cible === etat.piece) {
+      // La trace de la piste se voit en regardant la pièce (spec 2026-10-18 §5.4) ; une pièce sans trace est rendue comme avant.
+      const trace = indexer(monde).pieces.get(cible)?.trace;
+      return { type: 'regarder_piece', cible: refPiece(monde, cible), ...(trace === undefined ? {} : { trace }) };
+    }
     return { type: 'regarder_objet', cible: refObjet(monde, cible) };
   },
 };

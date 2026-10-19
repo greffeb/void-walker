@@ -1,5 +1,6 @@
 import type {
   Cout,
+  IntensiteTrace,
   IdAction,
   Issue,
   NiveauRisque,
@@ -107,6 +108,8 @@ export interface TextesMonde {
   readonly gelures: Readonly<Record<'froid' | 'griffes_froid', Readonly<Record<TypeAggravation, Variantes>>>>;
   /** Défaite par le vide, sans combinaison dans une pièce sans air (C-04 §3.1), à la place des autres textes de défaite. */
   readonly asphyxie: Variantes;
+  /** Phrase ajoutée au regard d’une pièce sur la piste de la créature (spec 2026-10-18 §5.4), couche menace. */
+  readonly traces: Readonly<Record<IntensiteTrace, Variantes>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */

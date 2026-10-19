@@ -4,6 +4,9 @@ import { validerPlan, type PlanLiaison, type RectPlan } from './plan';
 // Forme commune d'un monde (C-02). `nom` est une clé publique vers le texte ; `id` reste interne.
 // Les règles lisent des qualités déclarées, jamais un nom (D-078).
 
+/** Intensité d’une trace de la piste (spec 2026-10-18 §5.4). */
+export type IntensiteTrace = 'legere' | 'forte';
+
 export interface DefPiece {
   readonly id: string;
   readonly nom: string;
@@ -24,6 +27,8 @@ export interface DefPiece {
   readonly gravite?: 'coupee' | 'retablie';
   /** Chambre froide (C-02 §5, D-166) : y rester blesse (D-240), la créature y est ralentie quand une porte se ferme sur elle (D-239). */
   readonly froide?: boolean;
+  /** Trace de la piste de la créature, dans une grande station (spec 2026-10-18 §5.4) : ce que l’on voit en regardant la pièce. */
+  readonly trace?: IntensiteTrace;
 }
 
 export interface DefLiaison {

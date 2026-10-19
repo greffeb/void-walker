@@ -44,6 +44,9 @@ export function reunir(morceaux: readonly TextesMorceau[], assistance: Readonly<
 /** Textes de fin des trois couches (D-281), repris tels quels par les mondes écrits en entier (AR-01, AR-02, monde de test). */
 export const FIN: TextesMonde['fin'] = reunir([]).fin;
 
+/** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
+export const TRACES: TextesMonde['traces'] = reunir([]).traces;
+
 function minuscules(texte: string): string {
   return texte.normalize('NFC').toLocaleLowerCase('fr');
 }
