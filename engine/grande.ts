@@ -1,5 +1,6 @@
 import { pieceAnnexe, poserAnnexes, type AnnexePosee } from './annexes';
 import { poserBoucles } from './boucles';
+import { poserButin } from './butin';
 import { poserCles, type CleAPoser, type PieceCandidate } from './cles';
 import type { CategoriePiece, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
 import { tracerPiste } from './piste';
@@ -8,24 +9,24 @@ import { prefixer, sousGraine } from './pose';
 import type { DefMorceau, DefStation, DefStationGrande } from './station';
 
 // Grande station (spec 2026-10-18 §6.2) : autour du chemin principal déjà posé, les annexes, puis les portes de boucle, puis la
-// piste de la créature, puis les clés, chacune sur sa sous-graine. Le monde reste un monde ordinaire, revalidé par l'assembleur.
+// piste de la créature, puis les clés, puis le butin, chacun sur sa sous-graine. Le monde reste un monde ordinaire, revalidé
+// par l'assembleur.
 
 /** Une liaison que la créature peut franchir, au besoin en forçant la porte (D-279) : la piste ne passe que par elles. */
 export function franchissable(liaison: DefLiaison): boolean {
   return liaison.etroite !== true && liaison.gouffre !== true && liaison.verrouillee !== true && liaison.haute === undefined && liaison.cachee === undefined && liaison.manoeuvre === undefined;
 }
 
+/** Liaisons qui coupent l'obstacle d'un morceau, porte de sortie comprise. */
+function coupesDuMorceau(monde: DefMonde, morceau: DefMorceau): string[] {
+  // La porte de sortie : celle qui part de ce morceau vers le suivant (porteEntre).
+  const sortie = monde.liaisons.filter((liaison) => liaison.id.startsWith(`l-${morceau.id}-`)).map((liaison) => liaison.id);
+  return (morceau.grande?.coupe ?? []).flatMap((coupe) => (coupe === 'sortie' ? sortie : [prefixer(morceau.id, coupe)]));
+}
+
 /** Liaisons de la station qui coupent un obstacle : coupes déclarées par les morceaux, porte de sortie comprise, et cloisons verrouillées. */
 export function coupesDe(monde: DefMonde, station: DefStation): Set<string> {
-  const coupes = new Set(monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id));
-  for (const morceau of station.morceaux) {
-    for (const coupe of morceau.grande?.coupe ?? []) {
-      if (coupe !== 'sortie') coupes.add(prefixer(morceau.id, coupe));
-      // La porte de sortie : celle qui part de ce morceau vers le suivant (porteEntre).
-      else for (const liaison of monde.liaisons) if (liaison.id.startsWith(`l-${morceau.id}-`)) coupes.add(liaison.id);
-    }
-  }
-  return coupes;
+  return new Set([...monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id), ...station.morceaux.flatMap((morceau) => coupesDuMorceau(monde, morceau))]);
 }
 
 /**
@@ -130,7 +131,36 @@ function disperserCles(monde: DefMonde, station: DefStation, annexes: readonly A
   });
 }
 
-/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-295), pour cette graine. */
+/**
+ * Vrai si ce segment n'est atteint du départ qu'en franchissant une coupe de ce morceau, portes ouvertes ou non ; vrai aussi
+ * quand le morceau n'est pas dans la station. Les zones sont numérotées dans l'ordre où on les découvre, pas dans celui du
+ * chemin : un rang de segment ne le dit pas.
+ */
+function apresCoupe(monde: DefMonde, station: DefStation, liaisons: readonly DefLiaison[], segments: ReadonlyMap<string, number>): (morceau: string, segment: number) => boolean {
+  return (id, segment) => {
+    const morceau = station.morceaux.find((candidat) => candidat.id === id);
+    if (morceau === undefined) return true;
+    const coupes = new Set(coupesDuMorceau(monde, morceau));
+    const vues = new Set([monde.depart]);
+    const file = [monde.depart];
+    for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
+      for (const liaison of liaisons) {
+        if (coupes.has(liaison.id) || !liaison.entre.includes(piece)) continue;
+        for (const autre of liaison.entre) {
+          if (vues.has(autre)) continue;
+          vues.add(autre);
+          file.push(autre);
+        }
+      }
+    }
+    return ![...vues].some((piece) => segments.get(piece) === segment);
+  };
+}
+
+/**
+ * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-295), ou si
+ * aucune impasse de butin ne pend à la piste, pour cette graine.
+ */
 export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefStationGrande): DefMonde | null {
   const { morceaux, graine, creature } = station;
   const segments = segmentsDe(monde, station);
@@ -181,16 +211,27 @@ export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefS
     creature,
     sousGraine(graine, 'piste'),
   );
+  const toutes = [...liaisons, ...liaisonsBoucles];
+  const objets = disperserCles(monde, station, annexes, segments, toutes);
+
+  // Butin (spec §6.6) : seulement si le contenu donne une table ; jamais dans une impasse qui garde déjà une clé.
+  const impasses = annexes
+    .filter((posee) => posee.annexe.annexe?.forme === 'impasse' && !objets.some((objet) => objet.piece === pieceAnnexe(posee)))
+    .map((posee) => ({ id: pieceAnnexe(posee), etiquettes: posee.annexe.annexe?.etiquettes ?? [], accroche: posee.accroche, segment: segments.get(pieceAnnexe(posee)) ?? 0 }));
+  const salles = grande.butin === undefined ? [] : poserButin(impasses, piste, creature, grande.butin, apresCoupe(monde, station, toutes, segments), sousGraine(graine, 'butin'));
+  if (salles === null) return null;
+  const pillees = new Set(salles.flatMap((salle) => (salle.objet === null ? [salle.piece] : [])));
+
   const marquer = (piece: DefPiece): DefPiece => {
     const trace = piste.get(piece.id);
     const segment = segments.get(piece.id);
-    return { ...piece, ...(segment === undefined ? {} : { segment }), ...(trace === undefined ? {} : { trace }) };
+    return { ...piece, ...(segment === undefined ? {} : { segment }), ...(trace === undefined ? {} : { trace }), ...(pillees.has(piece.id) ? { pillee: true } : {}) };
   };
   return {
     ...monde,
     pieces: [...monde.pieces, ...piecesAnnexes].map(marquer),
-    objets: disperserCles(monde, station, annexes, segments, [...liaisons, ...liaisonsBoucles]),
-    liaisons: [...liaisons, ...liaisonsBoucles],
+    objets: [...objets, ...salles.flatMap((salle) => (salle.objet === null ? [] : [salle.objet]))],
+    liaisons: toutes,
     boucles: liaisonsBoucles.map((liaison) => liaison.id),
     bruitsStation: true,
   };

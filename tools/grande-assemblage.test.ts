@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assemblerStation, prefixer, type DefMonde, type DefStation } from '../engine';
+import { assemblerStation, exporter, nouvellePartie, prefixer, type DefMonde, type DefStation, type TableButin } from '../engine';
 import { MORCEAUX, PIECES_CATALOGUE } from '../content';
 import { CATALOGUE } from './catalogue';
 
@@ -26,6 +26,17 @@ function station(graine: number): DefStation {
 
 function mondes(nombre: number): DefMonde[] {
   return Array.from({ length: nombre }, (_, graine) => assemblerStation(station(graine))).flatMap((resultat) => (resultat.type === 'station' ? [resultat.monde] : []));
+}
+
+/** Vraie composition publiable pour cette graine, chaîne et ordre libre en alternance. */
+function stationReelle(graine: number): DefStation {
+  const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null);
+  const liste = compositions.filter((composition) => composition.forme === (graine % 2 === 0 ? 'chaine' : 'libre'));
+  const composition = liste[Math.floor(graine / 2) % liste.length];
+  if (composition === undefined) throw new Error('Aucune grande composition.');
+  const station = CATALOGUE.definirGrande(composition.id, graine);
+  if ('refus' in station) throw new Error(station.refus);
+  return station;
 }
 
 const MONDES = mondes(40);
@@ -94,7 +105,7 @@ describe('assemblage d’une grande station (spec 2026-10-18 §6.2)', () => {
     const resultat = assemblerStation({ ...station(3), grande: undefined });
     expect(resultat.type).toBe('station');
     const texte = JSON.stringify(resultat);
-    for (const champ of ['segment', 'trace', 'categorie', 'forme', 'boucles', 'bruitsStation', 'accueillantes']) expect(texte).not.toContain(`"${champ}"`);
+    for (const champ of ['segment', 'trace', 'categorie', 'forme', 'boucles', 'bruitsStation', 'accueillantes', 'pillee', 'butin']) expect(texte).not.toContain(`"${champ}"`);
   });
 });
 
@@ -124,17 +135,11 @@ describe('clés dispersées (spec 2026-10-18 §6.5)', () => {
   const morceauDe = (piece: string): string => piece.slice(0, piece.indexOf('/'));
 
   it('sur 300 graines de vraies compositions, chaque clé est chez elle ou dans une pièce du catalogue de sa zone permise', () => {
-    const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null);
-    const parForme = [compositions.filter((composition) => composition.forme === 'chaine'), compositions.filter((composition) => composition.forme === 'libre')];
     let stations = 0;
     let cles = 0;
     let deplacees = 0;
     for (let graine = 0; graine < 300; graine++) {
-      const liste = parForme[graine % 2] ?? [];
-      const composition = liste[Math.floor(graine / 2) % liste.length];
-      if (composition === undefined) throw new Error('Aucune grande composition.');
-      const station = CATALOGUE.definirGrande(composition.id, graine);
-      if ('refus' in station) throw new Error(station.refus);
+      const station = stationReelle(graine);
       const resultat = assemblerStation(station);
       if (resultat.type === 'invalide') throw new Error(`${station.id} : ${resultat.erreurs.join(' ')}`);
       if (resultat.type !== 'station') continue;
@@ -183,4 +188,88 @@ describe('clés dispersées (spec 2026-10-18 §6.5)', () => {
     expect(deplacees).toBeGreaterThan(0);
     console.log(`clés dispersées : ${deplacees}/${cles} déplacées (${((deplacees / cles) * 100).toFixed(0)} %) sur ${stations} stations`);
   }, 120_000);
+});
+
+describe('salles de butin (spec 2026-10-18 §6.6)', () => {
+  // Table de test, injectée ici : le contenu branche la vraie plus tard.
+  const TABLE: TableButin = {
+    entrees: [
+      { objet: { id: 'o-trousse', nom: 'trousse', piece: '', soin: 1 }, poids: 1 },
+      { objet: { id: 'o-burette-reserve', nom: 'burette de reserve', piece: '', glissant: 1 }, poids: 2, apresCoupeDe: 'm-04' },
+    ],
+    vide: 2,
+    salles: [2, 3],
+  };
+
+  it('sur 300 graines de vraies compositions : impasses butin sans clé, une sur la piste, burette après M-04, rien d’autre ne change', () => {
+    let sansPlanAvant = 0;
+    let sansPlanApres = 0;
+    let stations = 0;
+    let salles = 0;
+    let pillees = 0;
+    let uneSeule = 0;
+    for (let graine = 0; graine < 300; graine++) {
+      const station = stationReelle(graine);
+      const sans = assemblerStation(station);
+      const avec = assemblerStation({ ...station, grande: station.grande === undefined ? undefined : { ...station.grande, butin: TABLE } });
+      if (sans.type === 'invalide' || avec.type === 'invalide') throw new Error(`${station.id} : invalide.`);
+      if (sans.type !== 'station') sansPlanAvant++;
+      if (avec.type !== 'station') sansPlanApres++;
+      if (sans.type !== 'station' || avec.type !== 'station') continue;
+      stations++;
+      const { monde } = avec;
+      const parId = new Map(monde.pieces.map((piece) => [piece.id, piece]));
+      const accrocheDe = new Map(monde.liaisons.filter((liaison) => /^l-a\d+-/.test(liaison.id)).map((liaison) => [liaison.entre[1], liaison.entre[0]]));
+      const butins = monde.objets.filter((objet) => objet.butin === true);
+      const vides = monde.pieces.filter((piece) => piece.pillee === true).map((piece) => piece.id);
+      const lesSalles = [...butins.map((objet) => objet.piece), ...vides];
+      salles += lesSalles.length;
+      pillees += vides.length;
+      // Deux ou trois, moins si la station n'a pas assez d'impasses butin sans clé.
+      expect(lesSalles.length, station.id).toBeGreaterThanOrEqual(1);
+      expect(lesSalles.length, station.id).toBeLessThanOrEqual(3);
+      if (lesSalles.length < 2) uneSeule++;
+      // Une salle avec objet n'est pas pillée ; une salle ne reçoit qu'un objet.
+      expect(new Set(lesSalles).size, station.id).toBe(lesSalles.length);
+      for (const salle of lesSalles) {
+        const annexe = PIECES_CATALOGUE.find((candidate) => salle.replace(/^a\d+-/, 'a-') === prefixer(candidate.id, 'p-piece'))?.annexe;
+        expect(annexe?.forme, `${station.id} : ${salle}`).toBe('impasse');
+        expect(annexe?.etiquettes, `${station.id} : ${salle}`).toContain('butin');
+        expect(monde.objets.filter((objet) => objet.piece === salle && objet.butin !== true), `${station.id} : clé dans ${salle}`).toEqual([]);
+      }
+      expect(lesSalles.some((salle) => parId.get(accrocheDe.get(salle) ?? '')?.trace !== undefined), station.id).toBe(true);
+
+      // La burette, si M-04 est là, dans une salle qu'on n'atteint pas du départ sans franchir sa coupe, portes ouvertes ou non.
+      const burette = butins.find((objet) => objet.nom === 'burette de reserve');
+      const coupes = new Set((station.morceaux.find((leMorceau) => leMorceau.id === 'm-04')?.grande?.coupe ?? []).map((coupe) => prefixer('m-04', coupe)));
+      if (burette !== undefined && coupes.size > 0) {
+        const atteintes = new Set([monde.depart]);
+        for (let ajout = true; ajout; ) {
+          ajout = false;
+          for (const liaison of monde.liaisons) {
+            if (coupes.has(liaison.id) || !liaison.entre.some((piece) => atteintes.has(piece)) || liaison.entre.every((piece) => atteintes.has(piece))) continue;
+            for (const piece of liaison.entre) atteintes.add(piece);
+            ajout = true;
+          }
+        }
+        expect(atteintes.has(burette.piece), `${station.id} : burette dans ${burette.piece}`).toBe(false);
+      }
+
+      // Une sous-graine à part : sans le butin, le monde est celui assemblé sans table.
+      const sansButin = { ...monde, objets: monde.objets.filter((objet) => objet.butin !== true) };
+      expect(JSON.stringify(sansButin, (cle: string, valeur: unknown) => (cle === 'pillee' ? undefined : valeur)), station.id).toBe(JSON.stringify(sans.monde));
+
+      // Rien ne signale une salle de butin : ni l'observation, ni la carte, ni l'export.
+      const partie = nouvellePartie(monde, { version: 'test', graine });
+      for (const salle of lesSalles) {
+        const texte = JSON.stringify(exporter(monde, { ...partie, etat: { ...partie.etat, piece: salle } }));
+        for (const champ of ['pillee', 'butin']) expect(texte, `${station.id} : ${salle}`).not.toContain(`"${champ}"`);
+      }
+    }
+    expect(pillees).toBeGreaterThan(0);
+    expect(salles).toBeGreaterThan(pillees);
+    console.log(
+      `butin : sans plan ${sansPlanAvant}/300 avant (${(sansPlanAvant / 3).toFixed(1)} %), ${sansPlanApres}/300 après (${(sansPlanApres / 3).toFixed(1)} %) ; ${salles} salles dont ${pillees} pillées sur ${stations} stations, ${uneSeule} avec une seule salle`,
+    );
+  }, 300_000);
 });

@@ -177,9 +177,11 @@ const regarder: ActionConsultation = {
     const liaison = liaisonIci(contexte, cible);
     if (liaison !== undefined) return { type: 'regarder_passage', cible: refPassage(monde, etat, liaison, etat.piece) };
     if (cible === etat.piece) {
-      // La trace de la piste se voit en regardant la pièce (spec 2026-10-18 §5.4) ; une pièce sans trace est rendue comme avant.
-      const trace = indexer(monde).pieces.get(cible)?.trace;
-      return { type: 'regarder_piece', cible: refPiece(monde, cible), ...(trace === undefined ? {} : { trace }) };
+      // La trace de la piste et le pillage se voient en regardant la pièce (spec 2026-10-18 §5.4, §6.6) ; une pièce sans l'un
+      // ni l'autre est rendue comme avant.
+      const piece = indexer(monde).pieces.get(cible);
+      const trace = piece?.trace;
+      return { type: 'regarder_piece', cible: refPiece(monde, cible), ...(trace === undefined ? {} : { trace }), ...(piece?.pillee === true ? { pillee: true } : {}) };
     }
     return { type: 'regarder_objet', cible: refObjet(monde, cible) };
   },

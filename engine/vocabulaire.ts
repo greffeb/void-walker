@@ -308,7 +308,7 @@ export type SourceEvacuation = 'circuit' | 'bloc' | 'reserve';
 export type Issue = 'evacuation' | 'defaite';
 
 export type Consultation =
-  | { readonly type: 'regarder_piece'; readonly cible: RefPiece; readonly trace?: IntensiteTrace }
+  | { readonly type: 'regarder_piece'; readonly cible: RefPiece; readonly trace?: IntensiteTrace; readonly pillee?: true }
   | { readonly type: 'regarder_objet'; readonly cible: RefObjet }
   | { readonly type: 'regarder_passage'; readonly cible: RefPassage };
 
