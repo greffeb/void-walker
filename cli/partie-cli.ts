@@ -113,7 +113,7 @@ function mondeEnregistre(contenu: string | null): string | null {
 
 /**
  * Monde de l'appel : la station de `--station` (composition au plan tiré, ou station exacte), sinon le monde fixe de
- * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une station tirée. Renvoie un message
+ * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une grande station tirée (D-289). Renvoie un message
  * si le monde est refusé ; une partie enregistrée sur une station inconnue n'est jamais remplacée par un tirage.
  */
 export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): EntreeMonde | string {
@@ -122,8 +122,9 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
   const hasard = (): number => es.graineAleatoire();
   if (station === '') return 'Indiquez la station : --station <id>.';
   if (station !== undefined) {
-    const composition = catalogue.compositions.some(({ id }) => id === station);
-    const forcee = composition ? catalogue.tirer(hasard, station) : catalogue.resoudre(station);
+    const petite = catalogue.compositions.some(({ id }) => id === station);
+    const grande = catalogue.grandes.some(({ id }) => id === station);
+    const forcee = petite ? catalogue.tirer(hasard, station) : grande ? catalogue.tirerGrande(hasard, station) : catalogue.resoudre(station);
     return 'refus' in forcee ? `Station refusée : ${forcee.refus}` : forcee;
   }
   if (monde === '') return 'Indiquez le monde : --monde <id>.';
@@ -137,7 +138,7 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
     if (!('refus' in reprise)) return reprise;
     return `La partie enregistrée porte sur une station inconnue (${enregistre}). Commencez une nouvelle partie : nouvelle`;
   }
-  const tiree = catalogue.tirer(hasard);
+  const tiree = catalogue.tirerGrande(hasard);
   return 'refus' in tiree ? `Station refusée : ${tiree.refus}` : tiree;
 }
 

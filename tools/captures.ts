@@ -15,7 +15,8 @@ import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
-import { cleEtatRegles, verifierLibre } from './verifier-station';
+import { cheminPrincipal } from './verifier-grandes';
+import { cleEtatRegles, verifierLibre, verifierStation } from './verifier-station';
 import { versionDuJeu } from './version';
 
 // Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large ;
@@ -35,7 +36,8 @@ const STATION_BAIE = 'm08-m09-m06-embarquement-2718281828';
 const STATIONS_AR01 = ['m08-m01-m06-palier-2718281828', 'm04-m02-m03-atelier-2718281828', 'm05-m06-tri-2718281828'] as const;
 /** Ordre libre (#155) : deux branches, M-07 et M-10, et le final M-03 ; réveil, plan, couloir commun et première commande. */
 const STATION_LIBRE = 'ol-m07-m10-m03-soute-2718281828';
-const FORME_STATION = /^(ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)$/;
+// Petite station (#152) ou grande station (spec 2026-10-18 §7.4) : l'adresse nue tire désormais les grandes.
+const FORME_STATION = /^((ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)|g1-(ol-)?(m[0-9]{2}-){4}[a-z]+-[0-9]+)$/;
 /** Galerie des plans (#153) : six stations tirées par groupe (un ou deux chemins, M-03 ou M-06), au hasard à graine fixe, les mêmes à chaque capture. */
 const STATIONS_PAR_GROUPE = 6;
 const GRAINE_GALERIE = 20261015;
@@ -1785,6 +1787,50 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   await autre.close();
 }
 
+/**
+ * Grande station (spec 2026-10-18 §9.3, §11) : la moitié du chemin principal jouée par son témoin, puis la carte au zoom
+ * normal et au zoom d'ensemble, et le dock, à 390 puis 320 px. Aucun chiffre, rien ne déborde, cibles de 44 px.
+ */
+async function parcoursGrandeStation(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const id = CATALOGUE.publiees.find((station) => !station.startsWith('g1-ol-'));
+  const entree = id === undefined ? undefined : CATALOGUE.resoudre(id);
+  const definition = id === undefined ? undefined : CATALOGUE.definirGrande(id.slice(0, id.lastIndexOf('-')), Number(id.slice(id.lastIndexOf('-') + 1)));
+  if (id === undefined || entree === undefined || definition === undefined || 'refus' in entree || 'refus' in definition) {
+    erreurs.push('Aucune grande station en chaîne publiée.');
+    return;
+  }
+  const base = cheminPrincipal(entree, definition);
+  const preuve = base === null ? null : verifierStation(base);
+  if (preuve?.parcours === null || preuve === null) {
+    erreurs.push(`${id} : chemin principal sans témoin.`);
+    return;
+  }
+  const gestes = gestesDuParcours(entree, preuve.parcours.etapes).slice(0, Math.ceil(preuve.parcours.etapes.length / 2));
+  for (const [largeur, viewport] of [['390', REFERENCE], ['320', ETROIT]] as const) {
+    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport, locale: 'fr-FR' });
+    const page = await contexte.newPage();
+    await page.goto(`${racine}?station=${id}`);
+    await nouvelleDepuisAccueil(page);
+    await rejouer(page, gestes);
+    await capturer(page, `Grande station ${largeur} px — dock à mi-chemin`);
+    await verifierEcran(page, `Grande station ${largeur} px, dock`, erreurs);
+    await page.locator('.nav-carte').click();
+    const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
+    await carte.locator('.carte-piece').first().waitFor();
+    await capturer(page, `Grande station ${largeur} px — carte à mi-chemin`);
+    await verifierCarte(page, `Grande station ${largeur} px, carte`, erreurs);
+    // Zoom d'ensemble : la molette jusqu'à la borne basse, comme un pincement.
+    const zone = await carte.locator('.carte-zone').boundingBox();
+    if (zone !== null) {
+      await page.mouse.move(zone.x + zone.width / 2, zone.y + zone.height / 2);
+      for (let cran = 0; cran < 20; cran++) await page.mouse.wheel(0, 400);
+    }
+    await capturer(page, `Grande station ${largeur} px — carte au zoom d’ensemble`);
+    await verifierCarte(page, `Grande station ${largeur} px, zoom d’ensemble`, erreurs);
+    await contexte.close();
+  }
+}
+
 /** Monde de la partie enregistrée ; « aucune partie » s'il n'y en a pas. */
 async function mondeLu(page: Page): Promise<string> {
   return (await partieLue(page))?.enregistrement.monde ?? 'aucune partie';
@@ -2064,6 +2110,17 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
   const libre = CATALOGUE.resoudre(STATION_LIBRE);
   if ('refus' in libre) erreurs.push(`${STATION_LIBRE} : ${libre.refus}`);
   else await dessiner(STATION_LIBRE, libre, `Plan — ordre libre ${STATION_LIBRE}`);
+  // Grandes stations (spec 2026-10-18 §11) : deux par final et par forme, prises dans la liste publiée.
+  for (const final of ['m03', 'm06']) {
+    for (const libreOuNon of [false, true]) {
+      const parmi = CATALOGUE.publiees.filter((id) => id.startsWith('g1-ol-') === libreOuNon && id.includes(`-${final}-`));
+      for (const id of parmi.filter((_, rang) => rang % Math.max(1, Math.floor(parmi.length / 2)) === 0).slice(0, 2)) {
+        const grande = CATALOGUE.resoudre(id);
+        if ('refus' in grande) erreurs.push(`${id} : ${grande.refus}`);
+        else await dessiner(id, grande, `Plan — grande station ${id}`);
+      }
+    }
+  }
   let etat = generateurDepuisGraine(GRAINE_GALERIE);
   const hasard = (): number => {
     const tirage = suivant(etat);
@@ -2867,6 +2924,12 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     suite = 'station';
     try {
       await parcoursStation(navigateur, racine, capturerPage, erreursStation);
+    } catch (erreur) {
+      erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // Grandes stations (#205) : dock et carte à mi-chemin, à 390 et 320 px.
+    try {
+      await parcoursGrandeStation(navigateur, racine, capturerPage, erreursStation);
     } catch (erreur) {
       erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
     }

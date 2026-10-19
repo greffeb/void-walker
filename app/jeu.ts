@@ -333,22 +333,23 @@ function lancer(premiere: EntreeMonde | Refus, suivante: () => EntreeMonde | Ref
 
 /**
  * Monde du lancement et des NOUVELLES PARTIES. Adresse nue : la station de la partie enregistrée si elle se résout, sinon une
- * station tirée, sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque nouvelle partie en tire une
- * autre. `?station=<composition>` : sa partie enregistrée, sinon un plan tiré ; chaque nouvelle partie tire un autre plan de la
- * même composition. `?station=<identifiant>` et `?monde=` : ce monde, toujours.
+ * grande station publiée tirée (D-289), sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque
+ * nouvelle partie en tire une autre. `?station=<composition>`, petite ou grande : sa partie enregistrée, sinon un plan tiré ;
+ * chaque nouvelle partie tire un autre plan de la même composition. `?station=<identifiant>` et `?monde=` : ce monde, toujours.
  */
 export async function preparerLancement(demande: Demande, catalogue: Catalogue, stockage: Stockage, hasard: () => number): Promise<Lancement> {
   if (demande.type === 'monde') {
     const fixe = catalogue.resoudre(demande.id);
     return lancer(fixe, () => fixe);
   }
-  if (demande.type === 'station' && !catalogue.compositions.some(({ id }) => id === demande.id)) {
+  const grande = (id: string): boolean => catalogue.grandes.some((composition) => composition.id === id);
+  if (demande.type === 'station' && !catalogue.compositions.some(({ id }) => id === demande.id) && !grande(demande.id)) {
     const exacte = catalogue.resoudre(demande.id);
     return lancer(exacte, () => exacte);
   }
   // Adresse nue : tout le catalogue ; `?station=<composition>` : cette composition, et seulement sa partie enregistrée.
   const composition = demande.type === 'station' ? demande.id : undefined;
-  const tirer = (): EntreeMonde | Refus => catalogue.tirer(hasard, composition);
+  const tirer = (): EntreeMonde | Refus => (composition === undefined || grande(composition) ? catalogue.tirerGrande(hasard, composition) : catalogue.tirer(hasard, composition));
   const enregistre = await mondeEnregistre(stockage);
   const reprise =
     enregistre !== null && (composition === undefined || enregistre.slice(0, enregistre.lastIndexOf('-')) === composition) ? catalogue.resoudre(enregistre) : null;

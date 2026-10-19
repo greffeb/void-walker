@@ -247,11 +247,11 @@ describe('CLI', () => {
 
   it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon une station tirée', () => {
     const ctx = contexte();
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
     expect(choisirEntree(['nouvelle', '--monde', 'monde-test'], CATALOGUE, ctx.es)).toBe(ENTREE);
     executer(['nouvelle'], ctx);
     expect(choisirEntree(['voir'], CATALOGUE, ctx.es)).toBe(ENTREE);
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
     expect(choisirEntree(['voir', '--monde', 'ailleurs'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
     expect(choisirEntree(['voir', '--monde', 'constructor'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : constructor\./);
     expect(choisirEntree(['voir', '--monde'], CATALOGUE, ctx.es)).toMatch(/--monde <id>/);
@@ -283,16 +283,14 @@ function mondeEnregistre(fichiers: ReadonlyMap<string, string>): unknown {
 }
 
 describe('CLI : station tirée (#152)', () => {
-  it('nouvelle sans option tire une station publiée, réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
+  it('nouvelle sans option tire une grande station publiée (D-289), réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
     const ctx = contexte();
     const debut = appeler(['nouvelle'], CATALOGUE, ctx.es);
     expect(debut.code).toBe(0);
     expect(debut.lignes).toContain('Partie enregistrée.');
     expect(debut.lignes).toContain('Vous êtes dans le vestibule.');
     const id = String(mondeEnregistre(ctx.fichiers));
-    const [, composition, graine] = /^([a-z0-9-]+)-(0|[1-9][0-9]*)$/.exec(id) ?? [];
-    expect(COMPOSITIONS_PUBLIEES).toContain(composition);
-    expect(Number(graine)).toBeLessThanOrEqual(0xffffffff);
+    expect(CATALOGUE.publiees).toContain(id);
 
     const ailleurs = creerCatalogue(assemblerStation);
     expect(idStation(choisirEntree(['voir'], ailleurs, ctx.es))).toBe(id);
@@ -310,6 +308,15 @@ describe('CLI : station tirée (#152)', () => {
     const sortie = appeler(['nouvelle', '--station', 'm10-m03-entrepot'], CATALOGUE, ctx.es);
     expect(sortie.code).toBe(0);
     expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^m10-m03-entrepot-/);
+  });
+
+  it('--station <grande composition> : une grande station publiée de cette composition', () => {
+    const ctx = contexte();
+    const station = CATALOGUE.publiees[0] ?? '';
+    const composition = station.slice(0, station.lastIndexOf('-'));
+    const forcee = idStation(choisirEntree(['nouvelle', '--station', composition], CATALOGUE, ctx.es));
+    expect(CATALOGUE.publiees).toContain(forcee);
+    expect(forcee.startsWith(`${composition}-`)).toBe(true);
   });
 
   it('--station <identifiant> force cette station exacte, et l’emporte sur --monde', () => {
@@ -362,7 +369,7 @@ describe('CLI : station tirée (#152)', () => {
     expect(appeler(['jouer', '1'], CATALOGUE, sansTirage)).toEqual(refus);
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
     expect(appeler(['nouvelle'], CATALOGUE, ctx.es).code).toBe(0);
-    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
+    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
   });
 
   it('aide : --station, et --monde sans partie donne une station tirée', () => {

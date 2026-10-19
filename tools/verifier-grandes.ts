@@ -96,6 +96,12 @@ function prouver(
   return { verdict: directe.verdict, etats: principal.etats + directe.etats, actions: directe.parcours?.etapes.length ?? null, methode: 'recherche', temoin: directe.parcours === null ? null : compacter(directe.parcours.etapes) };
 }
 
+/** Le chemin principal seul d'une grande station : sans annexes ni boucles, aux mêmes identifiants et aux mêmes noms. */
+export function cheminPrincipal(entree: EntreeMonde, definition: DefStation): EntreeMonde | null {
+  const assemblee = assemblerStation({ ...definition, grande: undefined });
+  return assemblee.type === 'station' ? numeroter({ monde: assemblee.monde, textes: entree.textes, parcours: [] }) : null;
+}
+
 /** Une grande station `g1-…-<graine>`, contrôlée puis prouvée. */
 export function verifierGrande(catalogue: Catalogue, station: string, options: OptionsVerification = {}): LigneGrande {
   const debut = performance.now();
@@ -109,10 +115,8 @@ export function verifierGrande(catalogue: Catalogue, station: string, options: O
   if ('refus' in definition) return conclure({ verdict: 'non_prouvee', ecarts: [definition.refus], etats: 0, actions: null, methode: null, temoins: null });
   const ecarts = controlerGrande(entree, definition);
   if (ecarts.length > 0) return conclure({ verdict: 'ecartee', ecarts, etats: 0, actions: null, methode: null, temoins: null });
-  // Le chemin principal seul : même station, sans annexes ni boucles, aux mêmes identifiants et aux mêmes noms.
-  const assemblee = assemblerStation({ ...definition, grande: undefined });
-  if (assemblee.type !== 'station') return conclure({ verdict: 'non_prouvee', ecarts: [`Chemin principal non assemblé (${assemblee.type}).`], etats: 0, actions: null, methode: null, temoins: null });
-  const base = numeroter({ monde: assemblee.monde, textes: entree.textes, parcours: [] });
+  const base = cheminPrincipal(entree, definition);
+  if (base === null) return conclure({ verdict: 'non_prouvee', ecarts: ['Chemin principal non assemblé.'], etats: 0, actions: null, methode: null, temoins: null });
 
   const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
   if (cloisons.length === 0) {

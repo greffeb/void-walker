@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { alertesMenace, COMPOSITIONS_PUBLIEES, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
@@ -369,9 +369,9 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     if ('refus' in entree) throw new Error(entree.refus);
     return entree;
   };
-  /** Station que donne `tirer` pour un hasard parti de `depart`. */
+  /** Grande station que donne `tirerGrande` pour un hasard parti de `depart` (D-289 : NOUVELLE PARTIE tire une grande station). */
   const tiree = (depart: number): string => {
-    const entree = CATALOGUE.tirer(hasardDepuis(depart));
+    const entree = CATALOGUE.tirerGrande(hasardDepuis(depart));
     if ('refus' in entree) throw new Error(entree.refus);
     return entree.monde.id;
   };
@@ -381,22 +381,22 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
     expect(lancement.refus).toBeNull();
     expect(id(lancement.entree)).toBe(tiree(1));
-    expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(id(lancement.entree)));
+    expect(CATALOGUE.publiees).toContain(id(lancement.entree));
     const suivantes = [lancement.suivante(), lancement.suivante()].map((entree) => entree.monde.id);
-    for (const suivante of suivantes) expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(suivante));
+    for (const suivante of suivantes) expect(CATALOGUE.publiees).toContain(suivante);
     expect(new Set([id(lancement.entree), ...suivantes]).size).toBe(3);
     expect(ecritures()).toBe(0);
   });
 
-  it('adresse nue : une partie enregistrée se reprend sur son monde, AR-01 comme une station tirée ; NOUVELLE PARTIE tire une station', async () => {
-    for (const entree of [CATALOGUE.mondes['ar-01'] as EntreeMonde, resolue(STATION)]) {
+  it('adresse nue : une partie enregistrée se reprend sur son monde, AR-01, une petite ou une grande station ; NOUVELLE PARTIE tire une grande station', async () => {
+    for (const entree of [CATALOGUE.mondes['ar-01'] as EntreeMonde, resolue(STATION), resolue(CATALOGUE.publiees[0] ?? '')]) {
       const { stockage } = enMemoire();
       await commencer(envSur(entree, stockage));
       const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
       expect(id(lancement.entree)).toBe(entree.monde.id);
       expect((await charger(envSur(lancement.entree ?? entree, stockage))).type).toBe('pret');
       const suivante = lancement.suivante().monde.id;
-      expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(suivante));
+      expect(CATALOGUE.publiees).toContain(suivante);
       expect(suivante).not.toBe(entree.monde.id);
     }
   });
@@ -405,7 +405,8 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     const ancien = enMemoire();
     await commencer(envSur(resolue(STATION), ancien.stockage));
     const sauvegarde = (await ancien.stockage.lire()) as { readonly enregistrement: Record<string, unknown> };
-    for (const monde of ['m99-m03-x-1', 'texte quelconque', 'm07-m03-soute-01', 42]) {
+    // g0- : une grande station d'une version précédente du générateur (spec 2026-10-18 §4.3).
+    for (const monde of ['m99-m03-x-1', 'texte quelconque', 'm07-m03-soute-01', 42, `g0-${(CATALOGUE.publiees[0] ?? '').slice(3)}`]) {
       const ancienne = { ...sauvegarde, enregistrement: { ...sauvegarde.enregistrement, monde } };
       const { stockage, ecritures } = enMemoire(ancienne);
       const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(2));
@@ -463,6 +464,17 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     await commencer(envSur(m10, autre.stockage));
     const tiree10 = await preparerLancement({ type: 'station', id: 'm07-m03-soute' }, CATALOGUE, autre.stockage, hasardDepuis(5));
     expect(id(tiree10.entree)).toMatch(/^m07-m03-soute-(0|[1-9][0-9]*)$/);
+  });
+
+  it('« ?station=<grande composition> » : une grande station publiée de cette composition, à chaque nouvelle partie', async () => {
+    const station = CATALOGUE.publiees[0] ?? '';
+    const composition = compositionTiree(station) ?? '';
+    const forcee = await preparerLancement({ type: 'station', id: composition }, CATALOGUE, enMemoire().stockage, hasardDepuis(4));
+    expect(forcee.refus).toBeNull();
+    for (const tiree of [id(forcee.entree), forcee.suivante().monde.id]) {
+      expect(CATALOGUE.publiees).toContain(tiree);
+      expect(compositionTiree(tiree)).toBe(composition);
+    }
   });
 
   it('« ?station=<identifiant> » : cette station exacte, à chaque nouvelle partie', async () => {
