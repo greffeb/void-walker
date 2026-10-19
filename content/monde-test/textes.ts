@@ -10,6 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { ATTENTES_LONGUES } from '../textes/univers';
 import { FIN } from '../textes/couches';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -184,6 +185,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   },
   gelures: GELURES,
   asphyxie: ['L’air vous quitte d’un coup. Votre vue se brouille, puis plus rien.'],
+  attentesLongues: ATTENTES_LONGUES,
   evacuations: {
     circuit: ['Le circuit tient. La capsule se détache et file dans le noir.'],
     bloc: ['Le bloc tient. La capsule se détache et file dans le noir.'],
@@ -313,6 +315,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
     ...OBSERVATION_MORCEAUX,
   },
   fin: FIN,

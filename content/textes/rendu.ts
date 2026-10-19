@@ -18,10 +18,11 @@ import type {
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
 
-/** Repère pour choisir les variantes : la graine de la partie et le numéro de l'action. */
+/** Repère pour choisir les variantes : la graine de la partie et le numéro de l'action ; `attentes` : attentes de suite (#225). */
 export interface CleTexte {
   readonly graine: number;
   readonly action: number;
+  readonly attentes?: number;
 }
 
 /**
@@ -151,6 +152,9 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
+  const recit = evenements.filter((evenement) => evenement.type !== 'assistance');
+  const seule = recit.length === 1 && recit[0]?.type === 'attente';
+  if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
     const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
@@ -214,8 +218,9 @@ export function texteAssistance(textes: TextesMonde, message: string): string {
 
 /** Repère du moment où un message a été reçu, sans heure : « au réveil · Salon de transit » (12 §3.9). */
 export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string {
-  const { momentReveil, momentArrivee, momentEvacuation } = textes.observation;
+  const { momentReveil, momentArrivee, momentEvacuation, momentPatience } = textes.observation;
   if (moment.type === 'evacuation') return remplir(momentEvacuation, {});
+  if (moment.type === 'patience') return remplir(momentPatience, {});
   return remplir(moment.type === 'reveil' ? momentReveil : momentArrivee, { piece: nomDe(textes, moment.piece) });
 }
 
@@ -243,7 +248,10 @@ export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {
 }
 
 function repere(partie: Partie): CleTexte {
-  return { graine: partie.enregistrement.graine, action: partie.etat.actions };
+  const { graine, actions } = partie.enregistrement;
+  let attentes = 0;
+  while (actions[actions.length - 1 - attentes]?.commande.action === 'attendre') attentes += 1;
+  return { graine, action: partie.etat.actions, attentes };
 }
 
 /** Récit de la dernière action engagée, identique après une reprise ou un rejeu. */

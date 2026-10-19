@@ -2341,3 +2341,16 @@ Questions posées le 2026-10-18, une par une, sur des maquettes au format télé
 - Décision : toucher une ligne du sommaire ouvre la bulle ambre des menus (12 §2.7), titrée du nom du sous-menu, avec ✕. Elle survole le sommaire voilé, sous l'en-tête, sans flèche ; sa hauteur suit son contenu jusqu'au bas de l'écran, au-delà le contenu défile. ✕, le voile, Échap et le retour du téléphone la referment, et le focus revient sur la ligne touchée. Le bas ne change pas : MENU PRINCIPAL et REPRENDRE LA PARTIE restent au-dessus du voile, utilisables bulle ouverte. Pas de bouton RETOUR.
 - Précise : D-228 (✕ plutôt que RETOUR) ; l'aide à l'installation (#174) s'ouvre par-dessus la bulle Application.
 - Limite [détail de l'agent] : la ligne sonne comme l'ouverture d'une bulle d'objet, ✕ et le voile comme sa fermeture. Le lecteur d'écran lit la ligne comme un bouton qui ouvre un dialogue, puis le dialogue par son titre ; au clavier, le focus reste dans la bulle tant qu'elle est ouverte (12 §7). Un réglage changé ou un rapport envoyé dans une bulle le reste quand elle se referme.
+
+## Décisions validées — attentes à la suite (#225)
+
+### D-289 — À force d'attendre, la station répond
+
+- Date / statut : 2026-10-19 / **Validé** ; textes à relire, essai sur téléphone à venir (zone orange).
+- Origine : #225, « J'ai attendu dans une salle plusieurs fois, ya que deux options de silence. Je m'attendais à un easter egg » ; réponses du porteur : « piste B et au 15eme c'est l'IA Station qui fait une remarque », « Dès qu'on fait autre chose », « garde juste le texte écrit directement dans la fenêtre dédiée à l'IA », « Vrai message de l'IA », variante « 1 ».
+- Décision : on compte les ATTENDRE à la suite ; toute autre action engagée remet le compte à zéro (« Regarder » ne compte pas : ce n'est pas une action). Quand l'attente est seule à raconter :
+  - **5e :** le récit dit « Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous. »
+  - **10e :** « Les lumières baissent d'un cran, puis reviennent. La station, elle aussi, attend. »
+  - **15e :** le récit garde une phrase de silence ; IA Station envoie un vrai message, « Aucune activité détectée. Merci de rejoindre la capsule de secours. », daté « en attendant » dans sa fenêtre. Une fois par partie, comme tout message (D-081).
+- Précise : D-274 (textes d'ATTENDRE). Rien ne change au jeu : la créature, les dangers et le décompte jouent comme avant.
+- Limite [détail de l'agent] : le message n'existe que dans les stations tirées ; AR-01, AR-02, M-08, M-09 et le monde de test ne le déclarent pas. Une partie sauvegardée avant cette version après 15 attentes de suite ou plus ne se reprend plus (son état ne correspond plus à son journal rejoué) ; il en va de même pour le rejeu d'un tel export.

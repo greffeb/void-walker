@@ -1,10 +1,16 @@
-import type { Couche } from './types';
+import type { Couche, TextesMonde } from './types';
 
 // Univers (13 §7.2) : réveil, départ de la capsule, repères de moment et pièces communes des stations, écrits à la main (C-07) :
 // vouvoiement, phrases courtes, un nom par chose (NP-04), rien de non perçu (NP-05). Texte final non validé.
 
 /** Radicaux propres à l'univers : un mot du socle ou d'un morceau qui commence par l'un d'eux est une fuite. */
 export const MOTS_UNIVERS: readonly string[] = ['station'];
+
+/** Attentes à la suite (#225) : la station finit par répondre. */
+export const ATTENTES_LONGUES = {
+  5: 'Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous.',
+  10: 'Les lumières baissent d’un cran, puis reviennent. La station, elle aussi, attend.',
+} as const satisfies TextesMonde['attentesLongues'];
 
 export const UNIVERS = {
   noms: {
@@ -76,14 +82,17 @@ export const UNIVERS = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
   },
+  attentesLongues: ATTENTES_LONGUES,
 } satisfies Couche;
 
 /**
- * Messages d'IA Station d'une station tirée, au réveil et au départ (#152) : sans pièce nommée ni présence signalée, l'une et
- * l'autre dépendant du tirage. Texte final non validé.
+ * Messages d'IA Station d'une station tirée, au réveil, au départ, et à la 15e attente de suite (#152, #225) : sans pièce
+ * nommée ni présence signalée, l'une et l'autre dépendant du tirage. Texte final non validé.
  */
 export const ASSISTANCE_STATION: Readonly<Record<string, string>> = {
   reveil: 'Évacuation conseillée. Une capsule de secours vous attend à bord ; merci de la rejoindre dans le calme.',
   depart: 'Écoutille fermée, alimentation confirmée. Départ engagé ; bon voyage.',
+  patience: 'Aucune activité détectée. Merci de rejoindre la capsule de secours.',
 };

@@ -92,6 +92,17 @@ function messagesEvacuation(monde: DefMonde, etat: EtatPartie): string[] {
   return (monde.assistance ?? []).filter((message) => message.quand.type === 'evacuation' && !etat.messages.includes(message.id)).map((message) => message.id);
 }
 
+/** Attentes de suite qui déclenchent le message de patience (#225). */
+const ATTENTES_PATIENCE = 15;
+
+/** Message de patience, une fois : à la 15e attente de suite dont l'attente est le seul événement (#225). */
+function messagesPatience(monde: DefMonde, partie: Partie, commande: Commande, evenements: readonly Evenement[]): string[] {
+  if (commande.action !== 'attendre' || evenements.length !== 1 || evenements[0]?.type !== 'attente') return [];
+  const precedentes = partie.enregistrement.actions.slice(-(ATTENTES_PATIENCE - 1));
+  if (precedentes.length < ATTENTES_PATIENCE - 1 || precedentes.some((entree) => entree.commande.action !== 'attendre')) return [];
+  return (monde.assistance ?? []).filter((message) => message.quand.type === 'patience' && !partie.etat.messages.includes(message.id)).map((message) => message.id);
+}
+
 function estCommande(valeur: unknown): valeur is Commande {
   if (typeof valeur !== 'object' || valeur === null) return false;
   const { action, cible, parametre } = valeur as Record<string, unknown>;
@@ -320,7 +331,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   // Étape 5 : messages d'arrivée, puis conclusion ; une défaite l'emporte sur le départ de la capsule.
   let conclu: EtatPartie = blessure.etat;
   if (!vaincu) {
-    const arrivees = messagesArrivee(monde, conclu);
+    const arrivees = [...messagesArrivee(monde, conclu), ...messagesPatience(monde, partie, validation.commande, evenements)];
     conclu = { ...conclu, messages: [...conclu.messages, ...arrivees] };
     evenements.push(...arrivees.map((message) => ({ type: 'assistance', message }) as const));
     if (effet.evacuation !== undefined) {

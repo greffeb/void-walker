@@ -376,3 +376,28 @@ describe('AR-01 : sortie de l’observation fermée, comme dans M-04 (spec L4 §
     expect(MONDE.liaisons.find((liaison) => liaison.id === SORTIE)?.ouverte).toBe(true);
   });
 });
+
+describe('AR-01 : attentes à la suite (#225)', () => {
+  it('5e et 10e attente de suite : le récit change ; une autre action remet la série à zéro', () => {
+    let partie = depart();
+    const engager = (action: string): string => {
+      const option = observer(MONDE, partie.etat).menu.find((choix) => choix.disponible && choix.action === action);
+      if (option === undefined) throw new Error(`${action} absent.`);
+      const resultat = jouer(MONDE, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`${action} non engagé.`);
+      partie = resultat.partie;
+      return raconter(ENTREE.textes, resultat).join(' ');
+    };
+    const { attentesLongues } = ENTREE.textes;
+    const longues: readonly string[] = Object.values(attentesLongues);
+    const speciales = (recits: string[]): unknown[] => recits.flatMap((recit, rang) => (longues.includes(recit) ? [[rang + 1, recit]] : []));
+    const avant = Array.from({ length: 4 }, () => engager('attendre'));
+    engager('fermer');
+    const recits = Array.from({ length: 16 }, () => engager('attendre'));
+    expect(speciales(avant)).toEqual([]);
+    expect(speciales(recits)).toEqual([
+      [5, attentesLongues[5]],
+      [10, attentesLongues[10]],
+    ]);
+  });
+});
