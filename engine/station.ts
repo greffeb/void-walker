@@ -6,9 +6,39 @@ export { prefixer };
 // Morceaux écrits à la main et leur assemblage en station (docs/13-morceaux-lancement.md, GP-01). Aucune règle de jeu ici :
 // l'assembleur produit un monde ordinaire, revalidé par `validerMonde`.
 
-/** `carrefour` : couloir et sas de l'ordre libre, qui desservent deux morceaux de chemin puis le final (D-259). */
-export type FamilleMorceau = 'depart' | 'chemin' | 'carrefour' | 'final';
+/**
+ * `carrefour` : couloir et sas de l'ordre libre, qui desservent deux morceaux de chemin puis le final (D-259). `annexe` : pièce
+ * sans obstacle du catalogue, accrochée au chemin d'une grande station (spec 2026-10-18 §6.1).
+ */
+export type FamilleMorceau = 'depart' | 'chemin' | 'carrefour' | 'final' | 'annexe';
 export type Apport = 'acces' | 'evacuation';
+/** Catégorie d'une pièce (GE-08), complétée de « fret » par le catalogue (spec 2026-10-18 §5.2). */
+export type CategoriePiece = 'vie' | 'technique' | 'circulation' | 'science' | 'commandement' | 'evacuation' | 'fret';
+/** Une impasse n'a qu'une porte ; un passage peut recevoir une porte de boucle ; un couloir dessert d'autres pièces (D-206, GE-11). */
+export type FormeAnnexe = 'impasse' | 'passage' | 'couloir';
+
+export interface DefAnnexe {
+  readonly categorie: CategoriePiece;
+  readonly forme: FormeAnnexe;
+  /** Étiquettes lues par la pose des clés, du butin et des documents (spec §5.2) ; jamais un nom (D-078). */
+  readonly etiquettes: readonly string[];
+  /** Porte vers la pièce d'accroche au départ ; 'tiree' : ouverte une fois sur deux, selon la graine (spec §6.1). */
+  readonly porte: 'ouverte' | 'fermee' | 'tiree';
+  /** Ne s'accroche qu'à un couloir du catalogue qui dessert déjà une pièce portant cette étiquette (GE-10). */
+  readonly surCouloirDe?: string;
+}
+
+/** Déclarations d'un morceau pour les grandes stations (spec §4.2, §6.3) ; jamais recopiées dans le monde. */
+export interface DefGrandeMorceau {
+  /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-291) ; absent pour départ, carrefour et final. */
+  readonly obstacle?: 'materiel' | 'creature';
+  /** Pièces où une annexe peut s'accrocher, avec leur catégorie (GE-08, GE-09). */
+  readonly accueillantes: Readonly<Record<string, CategoriePiece>>;
+  /** Pièces situées avant la coupe de l'obstacle. */
+  readonly avant: readonly string[];
+  /** Liaisons intérieures à franchir pour passer d'avant à après ; 'sortie' désigne la porte de sortie du morceau. */
+  readonly coupe: readonly string[];
+}
 /** Porte de sortie vers le morceau suivant, décrite par le morceau. */
 export type DefPorteSortie = Omit<DefLiaison, 'id' | 'entre' | 'ouverte' | 'plan'>;
 
@@ -29,6 +59,9 @@ export interface DefMorceau {
   readonly demande: readonly Apport[];
   readonly fournit: readonly Apport[];
   readonly assistance?: readonly DefAssistance[];
+  /** Pour la famille `annexe` seulement. */
+  readonly annexe?: DefAnnexe;
+  readonly grande?: DefGrandeMorceau;
 }
 
 /** Porte qui accroche un morceau, par son entrée, à une pièce d'un morceau placé avant lui (ordre libre, D-259). */
@@ -92,11 +125,27 @@ export function validerMorceau(morceau: DefMorceau): string[] {
   for (const liaison of morceau.liaisons) if (liaison.plan !== undefined) erreurs.push(`${prefixer(morceau.id, liaison.id)} : liaison avec un plan.`);
   if (!pieces.has(morceau.entree)) erreurs.push(`${morceau.id} : entrée inconnue ${morceau.entree}.`);
   for (const place of morceau.placesCreature) if (!pieces.has(place)) erreurs.push(`${morceau.id} : place de la créature inconnue ${place}.`);
+  if (morceau.famille === 'annexe') {
+    if (morceau.annexe === undefined) erreurs.push(`${morceau.id} : famille annexe sans déclaration d’annexe.`);
+    if (morceau.sortie !== undefined) erreurs.push(`${morceau.id} : annexe avec une sortie.`);
+    if (morceau.pieces.length !== 1 || morceau.pieces[0]?.plan === undefined) erreurs.push(`${morceau.id} : une annexe a une seule pièce, dessinée.`);
+    if (morceau.placesCreature.length > 0) erreurs.push(`${morceau.id} : annexe avec une place de créature.`);
+  } else if (morceau.annexe !== undefined) erreurs.push(`${morceau.id} : déclaration d’annexe hors de la famille annexe.`);
+  if (morceau.grande !== undefined) {
+    const liaisons = new Set(morceau.liaisons.map((liaison) => liaison.id));
+    for (const piece of [...Object.keys(morceau.grande.accueillantes), ...morceau.grande.avant]) {
+      if (!pieces.has(piece)) erreurs.push(`${morceau.id} : pièce de grande station inconnue ${piece}.`);
+    }
+    for (const liaison of morceau.grande.coupe) if (liaison !== 'sortie' && !liaisons.has(liaison)) erreurs.push(`${morceau.id} : coupe inconnue ${liaison}.`);
+  }
   if (morceau.famille === 'final') {
     if (morceau.sortie !== undefined) erreurs.push(`${morceau.id} : final avec une sortie.`);
     if (!morceau.fournit.includes('evacuation')) erreurs.push(`${morceau.id} : final qui ne fournit pas l’évacuation.`);
-  } else if (morceau.sortie === undefined) erreurs.push(`${morceau.id} : morceau sans sortie.`);
-  else if (!pieces.has(morceau.sortie.piece)) erreurs.push(`${morceau.id} : sortie depuis une pièce inconnue ${morceau.sortie.piece}.`);
+  } else if (morceau.famille !== 'annexe') {
+    // Une annexe finit en cul-de-sac : son absence de sortie est contrôlée plus haut.
+    if (morceau.sortie === undefined) erreurs.push(`${morceau.id} : morceau sans sortie.`);
+    else if (!pieces.has(morceau.sortie.piece)) erreurs.push(`${morceau.id} : sortie depuis une pièce inconnue ${morceau.sortie.piece}.`);
+  }
   // Aucune position ne peut se trouver sous la porte de sortie, dont l'identifiant n'est pas préfixé : elle ne s'ouvrirait jamais.
   if (morceau.sortie?.porte.haute !== undefined) erreurs.push(`${morceau.id} : porte de sortie haute.`);
   return erreurs;

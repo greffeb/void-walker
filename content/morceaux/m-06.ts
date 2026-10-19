@@ -42,6 +42,8 @@ export const MORCEAU_M06: DefMorceau = {
   placesCreature: ['p-embarquement'],
   demande: ['acces'],
   fournit: ['evacuation'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { accueillantes: { 'p-couloir': 'circulation' }, avant: ['p-couloir', 'p-local'], coupe: ['l-couloir-panoramique'] },
 };
 
 // Textes du morceau (C-07) : local, panoramique et leurs objets repris d'AR-02 ; la capsule alimentée de l'embarquement

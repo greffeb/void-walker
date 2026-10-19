@@ -158,6 +158,53 @@ describe('format du morceau', () => {
   });
 });
 
+// Grandes stations (spec 2026-10-18 §6.1, §6.3) : une pièce du catalogue est un morceau `annexe` d'une seule pièce ; les
+// morceaux déclarent où une annexe peut s'accrocher et où passe la coupe de leur obstacle.
+const ANNEXE: DefMorceau = {
+  id: 'a-couchettes',
+  famille: 'annexe',
+  pieces: [{ id: 'p-piece', nom: 'cat_couchettes', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } }],
+  liaisons: [],
+  objets: [],
+  entree: 'p-piece',
+  placesCreature: [],
+  demande: [],
+  fournit: [],
+  annexe: { categorie: 'vie', forme: 'impasse', etiquettes: ['couchage'], porte: 'tiree' },
+};
+
+const GRAND: DefMorceau = {
+  ...CHEMIN,
+  grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie' }, avant: ['p-quartiers'], coupe: ['l-quartiers-machines'] },
+};
+
+describe('format du morceau : grandes stations', () => {
+  it('une annexe et un morceau qui déclare sa coupe sont valides', () => {
+    expect(validerMorceau(ANNEXE)).toEqual([]);
+    expect(validerMorceau(GRAND)).toEqual([]);
+  });
+
+  it('la coupe peut être la porte de sortie', () => {
+    expect(validerMorceau({ ...GRAND, grande: { ...GRAND.grande!, coupe: ['sortie'] } })).toEqual([]);
+  });
+
+  it.each<[string, DefMorceau, RegExp]>([
+    ['annexe avec une sortie', { ...ANNEXE, sortie: { piece: 'p-piece', porte: { nom: 'porte' } } }, /annexe avec une sortie/],
+    ['annexe à deux pièces', { ...ANNEXE, pieces: [...ANNEXE.pieces, { id: 'p-autre', nom: 'cat_autre', plan: { x: 4, y: 0, largeur: 2, hauteur: 2 } }] }, /une seule pièce/],
+    ['annexe avec une place de créature', { ...ANNEXE, placesCreature: ['p-piece'] }, /place de créature/],
+    ['famille annexe sans déclaration', { ...ANNEXE, annexe: undefined }, /sans déclaration d’annexe/],
+    ['déclaration d’annexe hors de la famille', { ...CHEMIN, annexe: ANNEXE.annexe }, /déclaration d’annexe/],
+    ['coupe inconnue', { ...GRAND, grande: { ...GRAND.grande!, coupe: ['l-nulle'] } }, /l-nulle/],
+    ['pièce accueillante inconnue', { ...GRAND, grande: { ...GRAND.grande!, accueillantes: { 'p-nulle': 'vie' } } }, /p-nulle/],
+    ['pièce d’avant inconnue', { ...GRAND, grande: { ...GRAND.grande!, avant: ['p-nulle'] } }, /p-nulle/],
+  ])('refuse : %s, d’une seule erreur', (_cas, morceau, motif) => {
+    const trouvees = validerMorceau(morceau);
+    expect(trouvees).toHaveLength(1);
+    expect(trouvees[0]).toMatch(new RegExp(`^${morceau.id}`));
+    expect(trouvees[0]).toMatch(motif);
+  });
+});
+
 describe('assemblage d’une station', () => {
   it('préfixe chaque identifiant et chaque référence, relie les morceaux par des portes fermées, garde l’ordre des morceaux', () => {
     const attendu: DefMonde = {

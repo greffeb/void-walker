@@ -6,12 +6,13 @@ import {
   observer,
   reprendrePartie,
   validerMonde,
+  validerMorceau,
   type DefMonde,
   type Evenement,
   type OptionMenu,
   type Partie,
 } from '../engine';
-import type { EntreeMonde, EtapeParcours, Parcours } from '../content';
+import { MORCEAUX, type EntreeMonde, type EtapeParcours, type Parcours } from '../content';
 import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 
@@ -304,5 +305,43 @@ describe('aucune règle ne lit le nom ni l’identifiant d’une pièce ou d’u
     const [fin, finCopie] = [original.at(-1)?.partie, copie.at(-1)?.partie];
     expect(finCopie?.etat.actions).toBe(fin?.etat.actions);
     expect(observer(renomme.monde, finCopie?.etat ?? depart(renomme.monde).etat).issue).toBe('evacuation');
+  });
+});
+
+// Grandes stations (spec 2026-10-18 §6.1, §6.3) : chaque morceau déclare ses pièces accueillantes et la coupe de son obstacle.
+// Une annexe ne s'accroche jamais à une pièce d'énigme : feu, froid, gravité commutable et ses abords, bord d'un vide, salle des
+// machines, baie, sas d'une cloison verrouillée, intérieur d'une capsule.
+describe('déclarations des grandes stations (spec 2026-10-18 §6.1, §6.3)', () => {
+  const declares = Object.values(MORCEAUX).filter(({ morceau }) => morceau.id !== 'essai');
+
+  it.each(declares.map(({ morceau }) => [morceau.id, morceau] as const))('%s : déclaration présente et valide', (_id, morceau) => {
+    expect(morceau.grande).toBeDefined();
+    expect(validerMorceau(morceau)).toEqual([]);
+  });
+
+  it.each(declares.map(({ morceau }) => [morceau.id, morceau] as const))('%s : aucune pièce accueillante n’est une pièce d’énigme', (_id, morceau) => {
+    const speciales = new Set<string>();
+    for (const piece of morceau.pieces) if (piece.feu === true || piece.froide === true || piece.gravite !== undefined || piece.machines === true) speciales.add(piece.id);
+    for (const objet of morceau.objets) {
+      if (objet.vitrageExterieur === true) speciales.add(objet.piece);
+      if (objet.capsule !== undefined) speciales.add(objet.capsule.interieur);
+    }
+    const gravites = new Set(morceau.pieces.filter((piece) => piece.gravite !== undefined).map((piece) => piece.id));
+    // Le sas est pris entre deux cloisons verrouillées ; le couloir commun, qui n’en touche qu’une, dessert les branches.
+    const verrous = new Map<string, number>();
+    const verrouiller = (piece: string): void => {
+      verrous.set(piece, (verrous.get(piece) ?? 0) + 1);
+    };
+    for (const liaison of morceau.liaisons) {
+      if (liaison.gouffre === true || liaison.entre.some((piece) => gravites.has(piece))) for (const piece of liaison.entre) speciales.add(piece);
+      if (liaison.verrouillee === true) for (const piece of liaison.entre) verrouiller(piece);
+    }
+    if (morceau.sortie?.porte.verrouillee === true) verrouiller(morceau.sortie.piece);
+    for (const [piece, nombre] of verrous) if (nombre >= 2) speciales.add(piece);
+    expect(Object.keys(morceau.grande?.accueillantes ?? {}).filter((piece) => speciales.has(piece))).toEqual([]);
+  });
+
+  it('seuls les chemins déclarent la nature de leur obstacle (D-291)', () => {
+    for (const { morceau } of declares) expect(morceau.grande?.obstacle !== undefined).toBe(morceau.famille === 'chemin');
   });
 });

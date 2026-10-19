@@ -28,6 +28,8 @@ export const MORCEAU_M01: DefMorceau = {
   placesCreature: ['p-palier'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'materiel', accueillantes: { 'p-poste': 'technique', 'p-palier': 'circulation' }, avant: ['p-poste'], coupe: ['l-poste-galerie'] },
 };
 
 // Textes du morceau (C-07) : le bidon et la cloison repris d'AR-01 ; le poste incendie, le tunnel technique et le palier écrits

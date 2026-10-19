@@ -36,6 +36,8 @@ export const MORCEAU_M09: DefMorceau = {
   placesCreature: ['p-cale'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie', 'p-cale': 'fret' }, avant: ['p-quartiers', 'p-sas-ouest'], coupe: ['l-sas-ouest-transfert'] },
   assistance: [{ id: 'gravite', quand: { type: 'arrivee', piece: 'p-sas-ouest' } }],
 };
 

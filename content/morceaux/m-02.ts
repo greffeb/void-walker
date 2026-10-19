@@ -39,6 +39,8 @@ export const MORCEAU_M02: DefMorceau = {
   placesCreature: ['p-atelier'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'materiel', accueillantes: { 'p-atelier': 'technique', 'p-pompes': 'technique' }, avant: ['p-atelier'], coupe: ['l-atelier-pompes'] },
 };
 
 // Textes du morceau (C-07) : le nom de l'atelier, la grille, la position sous la grille et la caisse repris d'AR-01 ; la
