@@ -107,6 +107,8 @@ export interface TextesMonde {
   readonly gelures: Readonly<Record<'froid' | 'griffes_froid', Readonly<Record<TypeAggravation, Variantes>>>>;
   /** Défaite par le vide, sans combinaison dans une pièce sans air (C-04 §3.1), à la place des autres textes de défaite. */
   readonly asphyxie: Variantes;
+  /** Attente seule, sans rien d'autre à raconter, à la 5e, 10e et 15e attente de suite (#225) ; la 15e est l'IA de la station. */
+  readonly attentesLongues: Readonly<Record<5 | 10 | 15, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */

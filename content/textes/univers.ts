@@ -1,10 +1,17 @@
-import type { Couche } from './types';
+import type { Couche, TextesMonde } from './types';
 
 // Univers (13 §7.2) : réveil, départ de la capsule, repères de moment et pièces communes des stations, écrits à la main (C-07) :
 // vouvoiement, phrases courtes, un nom par chose (NP-04), rien de non perçu (NP-05). Texte final non validé.
 
 /** Radicaux propres à l'univers : un mot du socle ou d'un morceau qui commence par l'un d'eux est une fuite. */
 export const MOTS_UNIVERS: readonly string[] = ['station'];
+
+/** Attentes à la suite (#225) : la station finit par répondre. */
+export const ATTENTES_LONGUES = {
+  5: 'Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous.',
+  10: 'Les lumières baissent d’un cran, puis reviennent. La station, elle aussi, attend.',
+  15: 'Une voix synthétique, très douce, tombe du plafond : « Passager, votre patience a été notée. » Puis plus rien.',
+} as const satisfies TextesMonde['attentesLongues'];
 
 export const UNIVERS = {
   noms: {
@@ -77,6 +84,7 @@ export const UNIVERS = {
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
   },
+  attentesLongues: ATTENTES_LONGUES,
 } satisfies Couche;
 
 /**
