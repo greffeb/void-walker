@@ -10,7 +10,7 @@ export const MOTS_UNIVERS: readonly string[] = ['station'];
 export const ATTENTES_LONGUES = {
   5: 'Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous.',
   10: 'Les lumières baissent d’un cran, puis reviennent. La station, elle aussi, attend.',
-  15: 'Une voix synthétique, très douce, tombe du plafond : « Passager, votre patience a été notée. » Puis plus rien.',
+  15: 'Passager, votre patience a été notée.',
 } as const satisfies TextesMonde['attentesLongues'];
 
 export const UNIVERS = {
