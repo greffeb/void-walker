@@ -4,6 +4,11 @@ import { validerPlan, type PlanLiaison, type RectPlan } from './plan';
 // Forme commune d'un monde (C-02). `nom` est une clé publique vers le texte ; `id` reste interne.
 // Les règles lisent des qualités déclarées, jamais un nom (D-078).
 
+/** Catégorie d’une pièce (GE-08), complétée de « fret » par le catalogue (spec 2026-10-18 §5.2). */
+export type CategoriePiece = 'vie' | 'technique' | 'circulation' | 'science' | 'commandement' | 'evacuation' | 'fret';
+/** Une impasse n’a qu’une porte ; un passage peut recevoir une porte de boucle ; un couloir dessert d’autres pièces (D-206, GE-11). */
+export type FormeAnnexe = 'impasse' | 'passage' | 'couloir';
+
 /** Intensité d’une trace de la piste (spec 2026-10-18 §5.4). */
 export type IntensiteTrace = 'legere' | 'forte';
 
@@ -29,6 +34,11 @@ export interface DefPiece {
   readonly froide?: boolean;
   /** Trace de la piste de la créature, dans une grande station (spec 2026-10-18 §5.4) : ce que l’on voit en regardant la pièce. */
   readonly trace?: IntensiteTrace;
+  /** Grande station : rang du morceau sur le chemin puis côté de sa coupe ; une annexe a celui de sa pièce d’accroche (spec §6.3). */
+  readonly segment?: number;
+  /** Pièce du catalogue (spec §5.2) : sa catégorie et sa forme. */
+  readonly categorie?: CategoriePiece;
+  readonly forme?: FormeAnnexe;
 }
 
 export interface DefLiaison {
@@ -160,6 +170,10 @@ export interface DefMonde {
   readonly positions?: readonly DefPosition[];
   readonly creature?: DefCreature;
   readonly assistance?: readonly DefAssistance[];
+  /** Grande station : identifiants des portes de boucle (spec §6.4). */
+  readonly boucles?: readonly string[];
+  /** Grande station : des bruits de station ponctuent le récit avant la rencontre (spec §5.5). */
+  readonly bruitsStation?: true;
 }
 
 export interface IndexMonde {

@@ -1,7 +1,9 @@
-import { validerMonde, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition } from './monde';
+import { etendreGrande } from './grande';
+import { validerMonde, type CategoriePiece, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition, type FormeAnnexe } from './monde';
 import { liensEnChaine, porteEntre, poserTuiles, prefixer, type Lien } from './pose';
 
 export { prefixer };
+export type { CategoriePiece, FormeAnnexe };
 
 // Morceaux écrits à la main et leur assemblage en station (docs/13-morceaux-lancement.md, GP-01). Aucune règle de jeu ici :
 // l'assembleur produit un monde ordinaire, revalidé par `validerMonde`.
@@ -12,10 +14,6 @@ export { prefixer };
  */
 export type FamilleMorceau = 'depart' | 'chemin' | 'carrefour' | 'final' | 'annexe';
 export type Apport = 'acces' | 'evacuation';
-/** Catégorie d'une pièce (GE-08), complétée de « fret » par le catalogue (spec 2026-10-18 §5.2). */
-export type CategoriePiece = 'vie' | 'technique' | 'circulation' | 'science' | 'commandement' | 'evacuation' | 'fret';
-/** Une impasse n'a qu'une porte ; un passage peut recevoir une porte de boucle ; un couloir dessert d'autres pièces (D-206, GE-11). */
-export type FormeAnnexe = 'impasse' | 'passage' | 'couloir';
 
 export interface DefAnnexe {
   readonly categorie: CategoriePiece;
@@ -105,6 +103,19 @@ export interface DefStation {
    */
   readonly accroches?: readonly DefAccroche[];
   readonly commandes?: readonly DefCommande[];
+  /** Grande station (spec 2026-10-18 §6) : annexes, boucles, piste et bruits de station, autour du chemin principal. */
+  readonly grande?: DefStationGrande;
+}
+
+export interface DefStationGrande {
+  /** Version du générateur, 1 pour ce lot (spec §4.3). */
+  readonly version: number;
+  /** Pièces du catalogue, morceaux de famille annexe. */
+  readonly catalogue: readonly DefMorceau[];
+  /** Annexes à poser (spec §4.1 : 24 moins les pièces dessinées des morceaux, de 6 à 10). */
+  readonly annexes: number;
+  /** Portes de boucle voulues, de 1 à 3 (spec §6.4). */
+  readonly boucles: number;
 }
 
 export type ResultatAssemblage =
@@ -297,6 +308,8 @@ export const assemblerStation: Assembleur = (station) => {
     creature: { piece: station.creature },
     assistance: [...(station.assistance ?? []), ...morceaux.flatMap((morceau) => (morceau.assistance ?? []).map((message) => assistanceDe(morceau.id, message)))],
   };
-  const erreurs = validerMonde(monde);
-  return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde };
+  const final = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
+  if (final === null) return { type: 'sans_plan' };
+  const erreurs = validerMonde(final);
+  return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde: final };
 };

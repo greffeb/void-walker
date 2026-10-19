@@ -335,7 +335,7 @@ Le même identifiant donne la même station : plan, annexes, boucles, piste, cl�
 
 Par exemple, M-08 déclare avant : atelier, quartiers, galerie nord ; coupe : le vide.
 
-**Le segment** d'une pièce vaut le rang de son morceau sur le chemin principal, puis son côté. Une annexe prend le segment de la pièce où elle s'accroche. En ordre libre, les deux branches sont deux segments sans ordre entre eux ; le tronc (vestibule, couloir commun et leurs annexes) les précède.
+**Le segment** d'une pièce est la zone qu'on parcourt sans franchir une coupe : « du même côté des obstacles » (GE-13). Les coupes sont celles que déclarent les morceaux, porte de sortie comprise quand elle en est une, plus les cloisons verrouillées. La fin d'un morceau et le début du suivant, séparés par une porte ordinaire, forment donc un seul segment. Les segments sont numérotés par le nombre de coupes à franchir depuis le départ : en ordre libre, les deux branches, au même rang, restent deux segments distincts. Une annexe prend le segment de la pièce où elle s'accroche. *(Précisé à l'exécution, le 2026-10-19 : la première définition, « rang du morceau puis côté », séparait à tort deux pièces que rien n'oppose et rendait les boucles presque impossibles.)*
 
 L'assembleur renvoie les segments avec le monde. Le vérifieur, les contrôles et les mesures s'en servent, au lieu du préfixe de morceau des identifiants.
 
