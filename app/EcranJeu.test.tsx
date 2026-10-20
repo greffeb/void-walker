@@ -1,13 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
-import { MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
+import { libelleOption, MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
 import { FicheDocument } from './bulle';
 import { CATALOGUE } from './catalogue';
 import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { EcranFin } from './EcranFin';
 import { APERCU_TAILLE, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
-import { composerDock, etapeBulle, unToucher, type Groupe } from './ecran';
+import { composerDock, etapeBulle, libelleLigne, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, consulterDocument, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
 import type { EtatInstallation, Installation } from './installation';
@@ -1453,6 +1453,9 @@ describe('grande station : poser la caisse portée sous la grille d’un seul ge
     const sous = poses.find((option) => option.parametre?.nom === 'sous_grille');
     if (sous?.parametre === undefined) throw new Error('Position sous la grille absente.');
     expect(texte(inventaire(jeu, 'poser', sous.parametre.id))).toBe('‹ Caisse › Poser › sous la grille ✕ Savoir La caisse sera sous la grille. Annuler Confirmer');
+    // La ligne de l'étape 1 reste le verbe seul ; le libellé du menu (CLI, captures) nomme la position de chaque option.
+    expect(libelleLigne(grande.textes, caisse, sous).libelle).toBe('Poser');
+    expect(poses.map((option) => libelleOption(grande.textes, option).libelle)).toEqual(['Poser la caisse sous la grille', 'Poser la caisse au centre de la pièce']);
   });
 
   it('confirmé sous la grille : la caisse y est, le récit et le rappel le disent, la grille se touche', async () => {

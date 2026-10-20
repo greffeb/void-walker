@@ -55,6 +55,7 @@ import {
   reunir,
   variantesDe,
   ROLES_ALLER_SANS_DESTINATION,
+  ROLES_POSER_A_POSITION,
   ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
@@ -237,6 +238,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   verifierVariantes(erreurs, 'regarder un passage ouvert sans destination connue', textes.passages.ouvertSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierVariantes(erreurs, 'regarder un passage fermé sans destination connue', textes.passages.fermeSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierGabarit(erreurs, 'libellé aller sans destination connue', textes.allerSansDestination, ROLES_ALLER_SANS_DESTINATION);
+  verifierGabarit(erreurs, 'libellé poser à une position', textes.poserAPosition, ROLES_POSER_A_POSITION);
   verifierGabarit(erreurs, 'voyant d’une porte étanche sans air derrière', textes.passages.voyantVide, []);
   verifierVariantes(erreurs, 'regarder le vide d’une passerelle', textes.passages.gouffre, ROLES_PASSAGE);
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {

@@ -235,6 +235,12 @@ describe('contrôle des textes (C-07)', () => {
     expect(verifierTextes(entree)).toContain('libellé aller sans destination connue : aucun texte (NP-01).');
   });
 
+  it('le libellé de « poser » à une position est contrôlé : absent, ou avec un rôle inconnu, il fait échouer le contrôle', () => {
+    const avec = (poserAPosition: string): EntreeMonde => ({ ...AR01, textes: { ...AR01.textes, poserAPosition } });
+    expect(verifierTextes(avec(undefined as unknown as string))).toContain('libellé poser à une position : aucun texte (NP-01).');
+    expect(verifierTextes(avec('Poser {le:cible} {nom:piece}'))).toContain('libellé poser à une position : rôle inconnu « piece ».');
+  });
+
 });
 
 describe('textes calmes des grandes stations (spec 2026-10-18 §5.4)', () => {

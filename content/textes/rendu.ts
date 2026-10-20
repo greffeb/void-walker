@@ -427,6 +427,13 @@ export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
   };
 }
 
+/** Gabarit du libellé : celui d'« aller » sans destination connue, celui de « poser » à une position, sinon celui de l'action. */
+function gabaritLibelle(textes: TextesMonde, { action, cible, parametre }: OptionMenu): string {
+  if (action === 'aller' && cible.sorte === 'passage' && cible.vers === null) return textes.allerSansDestination;
+  if (action === 'poser' && parametre?.sorte === 'position') return textes.poserAPosition;
+  return textes.libelles[action];
+}
+
 export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleOption {
   const { cible, parametre } = option;
   const valeurs: Record<string, Nom> = { cible: nomDe(textes, cible) };
@@ -438,8 +445,7 @@ export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleO
     valeurs.piece = nomDe(textes, parametre.vers ?? parametre);
   }
   if (parametre?.sorte === 'piece') valeurs.piece = nomDe(textes, parametre);
-  const gabarit = option.action === 'aller' && cible.sorte === 'passage' && cible.vers === null ? textes.allerSansDestination : textes.libelles[option.action];
-  const libelle = remplir(gabarit, valeurs);
+  const libelle = remplir(gabaritLibelle(textes, option), valeurs);
   if (option.disponible) return { libelle, raison: null };
   if (option.raison === undefined) throw new ErreurTexte(`Option indisponible sans raison : ${option.action}.`);
   return { libelle, raison: remplir(textes.indisponibilites[option.raison], { cible: valeurs.cible as Nom }) };

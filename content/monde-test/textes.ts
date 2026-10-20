@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, SUPPORTS, TRACES } from '../textes/couches';
+import { BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -265,6 +265,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ...LIBELLES_MORCEAUX,
   },
   allerSansDestination: 'Passer par {le:cible}',
+  poserAPosition: POSER_A_POSITION,
   verbes: {
     regarder: 'Regarder',
     prendre: 'Prendre',

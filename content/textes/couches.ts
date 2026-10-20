@@ -52,6 +52,9 @@ export const BRUITS_STATION: TextesMonde['evenements']['bruit_station'] = reunir
 /** Pose d’un appui à une position (demande du porteur), reprise par les mondes écrits en entier, où la caisse ne se porte jamais. */
 export const POSE_POSITION: TextesMonde['evenements']['objet_pose_position'] = reunir([]).evenements.objet_pose_position;
 
+/** Libellé de « poser » à une position (demande du porteur), repris par les mondes écrits en entier, où la caisse ne se porte jamais. */
+export const POSER_A_POSITION: TextesMonde['poserAPosition'] = reunir([]).poserAPosition;
+
 /** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 

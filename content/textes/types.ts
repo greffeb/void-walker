@@ -160,6 +160,8 @@ export interface TextesMonde {
   readonly libelles: Readonly<Record<IdAction, string>>;
   /** Libellé d'« aller » par un passage dont la destination n'est pas connue : nommé par le passage seul. */
   readonly allerSansDestination: string;
+  /** Libellé de « poser » à une position de la pièce (la caisse d'une grande station), nommée comme dans celui de « déplacer ». */
+  readonly poserAPosition: string;
   /** Verbe seul, sans trou : options d'une puce et rappel de la dernière action (« > Carnet · Prendre »). */
   readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
@@ -400,6 +402,7 @@ export const ROLES_MOMENT: Readonly<Record<CleMoment, readonly string[]>> = {
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
+export const ROLES_POSER_A_POSITION = ['cible', 'position'] as const;
 export const ROLES_PASSAGE = ['passage', 'vers'] as const;
 export const ROLES_PASSAGE_SANS_DESTINATION = ['passage'] as const;
 export const ROLES_INDISPONIBILITE = ['cible'] as const;

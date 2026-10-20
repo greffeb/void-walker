@@ -159,6 +159,8 @@ export const SOCLE = {
     ...LIBELLES_MORCEAUX,
   },
   allerSansDestination: 'Passer par {le:cible}',
+  // Écrit par l'assistant principal (D-243) : même forme que « Déplacer {le:cible} {nom:position} ».
+  poserAPosition: 'Poser {le:cible} {nom:position}',
   verbes: {
     regarder: 'Regarder',
     prendre: 'Prendre',

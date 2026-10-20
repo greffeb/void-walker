@@ -1,7 +1,7 @@
-import type { Consultation, Evenement } from '../../engine';
+import type { Consultation, Evenement, OptionMenu } from '../../engine';
 import { MONDES } from '../index';
 import { fuitesDuCatalogue, reunir } from './couches';
-import { rendreConsultation, rendreEvenements } from './rendu';
+import { libelleOption, rendreConsultation, rendreEvenements } from './rendu';
 
 // Une pièce marquée par la piste de la créature (spec 2026-10-18 §5.4) : sa description, puis une phrase de trace de la couche
 // menace, la même pendant toute la partie.
@@ -132,5 +132,28 @@ describe('pose à une position (demande du porteur, grandes stations)', () => {
 
   it('AR-01, AR-02 et le monde de test, écrits en entier, reprennent les mêmes textes', () => {
     for (const id of ['ar-01', 'ar-02', 'monde-test']) expect(MONDES[id]?.textes.evenements.objet_pose_position, id).toEqual(TEXTES_POSE);
+  });
+});
+
+describe('libellé de « Poser » à une position (demande du porteur, menu de la CLI)', () => {
+  const caisse = { sorte: 'objet', id: 'e00000002', nom: 'caisse' } as const;
+  const sousLaGrille = { sorte: 'position', id: 'e00000003', nom: 'sous_grille' } as const;
+  const poser = (parametre?: typeof sousLaGrille): OptionMenu => ({
+    action: 'poser',
+    cible: caisse,
+    commande: { action: 'poser', cible: caisse.id, ...(parametre === undefined ? {} : { parametre: parametre.id }) },
+    disponible: true,
+    ...(parametre === undefined ? {} : { parametre }),
+  });
+
+  it('avec une position, le libellé la nomme ; sans position, il ne change pas', () => {
+    expect(libelleOption(NOMS_POSE, poser(sousLaGrille)).libelle).toBe('Poser la caisse sous la grille');
+    expect(libelleOption(NOMS_POSE, poser()).libelle).toBe('Poser la caisse');
+  });
+
+  it('même forme que « Déplacer » ; les mondes écrits en entier reprennent le même libellé', () => {
+    expect(NOMS_POSE.poserAPosition).toBe('Poser {le:cible} {nom:position}');
+    expect(libelleOption(NOMS_POSE, { ...poser(sousLaGrille), action: 'deplacer' }).libelle).toBe('Déplacer la caisse sous la grille');
+    for (const id of ['ar-01', 'ar-02', 'monde-test']) expect(MONDES[id]?.textes.poserAPosition, id).toBe(NOMS_POSE.poserAPosition);
   });
 });

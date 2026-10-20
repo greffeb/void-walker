@@ -529,11 +529,17 @@ describe('CLI : poser un appui porté à une position (demande du porteur, grand
     return { ctx, lignes: sortie.lignes, brutes, sous: sous ?? [], centre: centre ?? [] };
   }
 
-  it('une ligne « Poser » par position de l’atelier ; l’aperçu et « jouer » suivent la ligne choisie', () => {
+  it('une ligne « Poser » par position, chacune nommant la sienne ; l’aperçu et « jouer » suivent la ligne choisie', () => {
     const { ctx, lignes, brutes } = caisseEnMain();
     expect(brutes).toHaveLength(2);
-    const [sous = '', centre = ''] = lignes.filter((ligne) => ligne.includes('Poser la caisse')).map((ligne) => ligne.trim().match(/^(\d+)\./)?.[1] ?? '');
+    const poses = lignes.filter((ligne) => ligne.includes('Poser la caisse')).map((ligne) => ligne.trim().replace(/^\d+\. /, ''));
+    expect(poses).toEqual(['Poser la caisse sous la grille', 'Poser la caisse au centre de l’atelier']);
+    const sous = numero(lignes, 'Poser la caisse sous la grille');
+    const centre = numero(lignes, 'Poser la caisse au centre de l’atelier');
+    expect(sous).not.toBe(centre);
+    expect(executer(['apercu', sous], ctx).lignes).toContain('Aperçu : Poser la caisse sous la grille');
     expect(executer(['apercu', sous], ctx).lignes).toContain('  La caisse sera sous la grille.');
+    expect(executer(['apercu', centre], ctx).lignes).toContain('Aperçu : Poser la caisse au centre de l’atelier');
     expect(executer(['apercu', centre], ctx).lignes).toContain('  La caisse sera au centre de l’atelier.');
     const sortie = executer(['jouer', sous], ctx);
     expect(sortie.code).toBe(0);
