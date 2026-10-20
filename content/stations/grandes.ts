@@ -17,6 +17,8 @@ export const VERSION_GENERATEUR = 1;
 export const GRAINE_GRANDE_MAX = 9999;
 /** Une grande station compte environ 24 pièces dessinées : les annexes complètent les morceaux, de 6 à 10 (spec §4.1). */
 const PIECES_VISEES = 24;
+/** Pièces dessinées au moins (spec §4.1, §11) : une graine dont le plan en compterait moins n'a pas de plan. */
+const PIECES_MIN = 21;
 const ANNEXES_MIN = 6;
 const ANNEXES_MAX = 10;
 /** Portes de boucle voulues (spec §6.4). */
@@ -111,7 +113,7 @@ export function definirGrande({ composition, morceaux }: GrandePrevue, graine: n
       { id: 'reveil', quand: { type: 'reveil' } },
       { id: 'depart', quand: { type: 'evacuation' } },
     ] as const,
-    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS },
+    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, piecesMin: PIECES_MIN, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS },
   };
   const vestibule = exiger(VESTIBULE, 'vestibule');
   if (composition.forme === 'chaine') {

@@ -182,12 +182,16 @@ function facesDe(monde: DefMonde, station: DefStation, segments: ReadonlyMap<str
 }
 
 /**
- * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-295), ou si,
- * avec des documents, une pièce du catalogue ne porte rien même à six annexes (§7.3), pour cette graine.
+ * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-295), si,
+ * avec des documents, une pièce du catalogue ne porte rien même à six annexes (§7.3), ou si le monde compte moins de
+ * `piecesMin` pièces dessinées (§4.1), reprise de couverture comprise, pour cette graine.
  */
 export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefStationGrande): DefMonde | null {
   const etendu = etendreUneFois(monde, station, grande);
-  if (etendu === null || etendu.couvert) return etendu?.monde ?? null;
+  if (etendu === null) return null;
+  // Une annexe de moins n'ajoute aucune pièce : un monde déjà sous le minimum ne se rattrape pas.
+  if (grande.piecesMin !== undefined && etendu.monde.pieces.filter((piece) => piece.plan !== undefined).length < grande.piecesMin) return null;
+  if (etendu.couvert) return etendu.monde;
   // Couverture (spec §7.3) : une annexe de moins plutôt qu'une pièce du catalogue qui ne porte rien ; les sous-graines ne changent pas.
   return grande.annexes > ANNEXES_MIN ? etendreGrande(monde, station, { ...grande, annexes: grande.annexes - 1 }) : null;
 }

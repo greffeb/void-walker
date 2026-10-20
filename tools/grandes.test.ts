@@ -67,13 +67,12 @@ describe('compositions des grandes stations (D-290, D-292)', () => {
   });
 
   // Une graine sans porte de boucle n'a pas de plan (D-295) : une sur deux environ ; la publication les saute sans les prouver.
-  it('assemblage : chaque plan a une à trois portes de boucle et 20 à 28 pièces dessinées ; au moins 40 % de plans, moins de 50 ms par station en moyenne', () => {
+  it('assemblage : chaque plan a une à trois portes de boucle et 21 à 28 pièces dessinées ; au moins 40 % de plans, moins de 50 ms par station en moyenne', () => {
     const echantillon = grandes.filter((composition, rang) => composition.refus === null && rang % 4 === 0);
     let essais = 0;
     let plans = 0;
     let total = 0;
     let pire = 0;
-    let vingt = 0;
     for (const composition of echantillon) {
       for (let graine = 0; graine < 10; graine++) {
         const station = CATALOGUE.definirGrande(composition.id, graine);
@@ -88,9 +87,8 @@ describe('compositions des grandes stations (D-290, D-292)', () => {
         if (resultat.type !== 'station') continue;
         plans++;
         const nombre = resultat.monde.pieces.filter((piece) => piece.plan !== undefined).length;
-        // 6 à 10 annexes (spec §4.1) : avec les documents, une station peut en garder 6 et compter 20 pièces dessinées.
-        expect(nombre, station.id).toBeGreaterThanOrEqual(20);
-        if (nombre === 20) vingt++;
+        // Spec §4.1 : `piecesMin` écarte les graines que la couverture des documents ferait tomber sous 21 pièces.
+        expect(nombre, station.id).toBeGreaterThanOrEqual(21);
         expect(nombre, station.id).toBeLessThanOrEqual(28);
         expect(resultat.monde.boucles?.length ?? 0, station.id).toBeGreaterThanOrEqual(1);
         expect(resultat.monde.boucles?.length ?? 0, station.id).toBeLessThanOrEqual(3);
@@ -98,7 +96,7 @@ describe('compositions des grandes stations (D-290, D-292)', () => {
     }
     expect(plans / essais).toBeGreaterThanOrEqual(0.4);
     expect(total / essais).toBeLessThan(50);
-    console.log(`grandes stations : ${plans}/${essais} plans, dont ${vingt} de 20 pièces dessinées, ${(total / essais).toFixed(1)} ms en moyenne, ${pire.toFixed(1)} ms au pire`);
+    console.log(`grandes stations : ${plans}/${essais} plans, ${(total / essais).toFixed(1)} ms en moyenne, ${pire.toFixed(1)} ms au pire`);
   }, 120_000);
 
   it('construireGrande rend une station complète, textes du catalogue compris, aux noms de pièces tous différents', () => {

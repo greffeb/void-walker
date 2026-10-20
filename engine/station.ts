@@ -126,6 +126,8 @@ export interface DefStationGrande {
   readonly annexes: number;
   /** Portes de boucle voulues, de 1 à 3 (spec §6.4). */
   readonly boucles: number;
+  /** Pièces dessinées au moins (spec §4.1) : un plan qui en compte moins, reprise de couverture comprise, n'existe pas pour cette graine. */
+  readonly piecesMin?: number;
   /** Butin des salles de butin (spec §6.6) ; absent : aucune salle de butin. */
   readonly butin?: TableButin;
   /** Réserve de documents à lire (spec §8.4) ; absente : aucun document. */

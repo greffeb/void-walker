@@ -426,3 +426,33 @@ describe('documents et couverture (spec 2026-10-18 §8.4, §7.3)', () => {
     );
   }, 300_000);
 });
+
+describe('taille minimale d’une grande station (spec 2026-10-18 §4.1, §11)', () => {
+  // Les morceaux de M-01, M-02, M-05 et M-03 dessinent 12 pièces : 10 annexes en tout, 22 pièces ; la couverture des documents en
+  // retire jusqu'à trois, et la station passerait sous 21 pièces.
+  const COMPOSITION = 'g1-m01-m02-m05-m03-tri';
+  const dessinees = (monde: DefMonde): number => monde.pieces.filter((piece) => piece.plan !== undefined).length;
+
+  it('une station qui tomberait sous piecesMin n’a pas de plan pour cette graine ; les autres sont inchangées', () => {
+    let sous = 0;
+    let gardees = 0;
+    for (let graine = 0; graine < 20; graine++) {
+      const station = CATALOGUE.definirGrande(COMPOSITION, graine);
+      if ('refus' in station) throw new Error(station.refus);
+      expect(station.grande?.piecesMin, station.id).toBe(21);
+      const libre = assemblerStation({ ...station, grande: station.grande === undefined ? undefined : { ...station.grande, piecesMin: undefined } });
+      const bornee = assemblerStation(station);
+      if (libre.type !== 'station') {
+        expect(bornee.type, station.id).toBe(libre.type);
+      } else if (dessinees(libre.monde) < 21) {
+        sous++;
+        expect(bornee.type, station.id).toBe('sans_plan');
+      } else {
+        gardees++;
+        expect(JSON.stringify(bornee), station.id).toBe(JSON.stringify(libre));
+      }
+    }
+    expect(sous).toBeGreaterThan(0);
+    expect(gardees).toBeGreaterThan(0);
+  });
+});

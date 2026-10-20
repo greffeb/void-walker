@@ -253,7 +253,7 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
       (composition) => composition.chemins.includes('m-04'),
       ({ entree: { monde } }) =>
         annexes(monde, 'impasse').find(
-          (piece) => etiquettesDe(piece).includes('butin') && segment(monde, piece) === segment(monde, monde.depart) && !monde.objets.some((objet) => objet.piece === piece) && monde.pieces.find((candidate) => candidate.id === piece)?.pillee !== true,
+          (piece) => etiquettesDe(piece).includes('butin') && segment(monde, piece) === segment(monde, monde.depart) && !monde.objets.some((objet) => objet.piece === piece && objet.document !== true) && monde.pieces.find((candidate) => candidate.id === piece)?.pillee !== true,
         ),
     );
     const fautive = modifier(construite, (monde) => ({ ...monde, objets: [...monde.objets, { id: 'o-butin-9', nom: 'cat_burette_reserve', piece: trouve, butin: true, glissant: 1 }] }));
