@@ -31,6 +31,8 @@ Le [son](15-son.md) précise la section SON de 12 §4.10 : bruitages du terminal
 
 L'[installation de la PWA](16-installation-pwa.md) (#174, investigation) : le jeu est déjà éligible à l'invite d'installation de Chrome ; bouton seulement sur Chromium, simple explication sur iPhone et Firefox Android. Première livraison : section « INSTALLATION » des options, invite de Chromium et bulles d'aide d'iPhone et de Firefox, validation humaine requise sur téléphone ; le rappel à l'accueil attend le porteur ; aucune décision prise.
 
+[Ajouter un morceau de station](17-ajouter-un-morceau.md) : guide de travail des agents, écrit après M-11 (#203). Tout ce que touche un nouveau morceau (moteur, textes, tirage, tests épinglés, vérifications, documents, PR), dans l'ordre, avec les pièges déjà rencontrés. À lire avant de préparer un morceau.
+
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
 L'[aventure AR-02](09-aventure-reference-vide.md), courte référence de la dépressurisation, est **acceptée comme conception** (D-074). Ses trois témoins P-V1/P-V2/P-V3 restent à prouver, aucun n'a été joué. Elle contient aussi des solutions d'auteur.
