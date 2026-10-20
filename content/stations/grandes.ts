@@ -57,7 +57,8 @@ const dessinees = (morceaux: readonly DefMorceau[]): number => morceaux.reduce((
 /** Toutes les grandes compositions, triées par identifiant. */
 export function prevoirGrandes(table: readonly LignePaire[]): GrandePrevue[] {
   const entrees = Object.values(MORCEAUX);
-  const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin');
+  // Un chemin sans déclarations de grande station (M-11, M-12, venus de main après la conception) n'y est pas tiré.
+  const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin' && morceau.grande !== undefined);
   const materiels = chemins.filter(({ morceau }) => morceau.grande?.obstacle === 'materiel');
   const finals = entrees.filter(({ morceau }) => morceau.famille === 'final' && morceau.grande !== undefined && morceau.id !== 'essai');
   const vestibule = exiger(VESTIBULE, 'vestibule');

@@ -24,7 +24,7 @@ function entree(id: string): EntreeMonde {
 const COMPLET = process.env.VERIFY_COMPLET === '1';
 
 describe.runIf(COMPLET)('stations de référence, en entier', () => {
-  it.each(['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'])('%s : témoin trouvé et export rejoué sans dé, indemne', (id) => {
+  it.each(['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10', 'm-12'])('%s : témoin trouvé et export rejoué sans dé, indemne', (id) => {
     const monde = entree(id);
     const resultat = verifierStation(monde);
     expect(resultat.verdict).toBe('prouvee');
@@ -43,8 +43,8 @@ describe.runIf(COMPLET)('catalogue vérifié à la construction (#152), en entie
     lignes = verifierCatalogue(CATALOGUE);
   }, 900000);
 
-  it('publiées prouvées, les autres sans sortie sûre : en chaîne, palier ou atelier sans M-04, M-07, M-08 ni M-10 avant (spec L4 §4) ; en ordre libre, ces places écartées (spec L5 §3.2) ; l’ensemble prouvé égale les compositions publiées', () => {
-    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
+  it('publiées prouvées, les autres sans sortie sûre : en chaîne, palier ou atelier sans M-04, M-07, M-08, M-10 ni M-12 avant (spec L4 §4, #232) ; en ordre libre, ces places écartées (spec L5 §3.2) ; l’ensemble prouvé égale les compositions publiées', () => {
+    const AIDES = ['m-04', 'm-07', 'm-08', 'm-10', 'm-12'];
     const bouchee = ({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean => {
       if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
       return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));

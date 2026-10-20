@@ -3,7 +3,7 @@ import { COMPOSITIONS_CONTROLEES, COMPOSITIONS_PUBLIEES, creerCatalogue } from '
 import { CATALOGUE } from './catalogue';
 import { entreeAControler, entreesAControler, verifierTextes } from './check-texts';
 import { executerParcours } from './rejouer-parcours';
-import { stationDeReference, verifierLibre, verifierStation } from './verifier-station';
+import { cloisonsDuCarrefour, stationDeReference, verifierLibre, verifierStation } from './verifier-station';
 
 // Stations tirées que check:texts contrôle (spec L3 §6.4, L5 §6), à part des autres tests des textes : vitest lance les
 // fichiers en parallèle (#180).
@@ -36,11 +36,16 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
       'm04-m09-m06-observation',
       'm05-m08-m03-magasin',
       'm07-m02-m03-atelier',
-      'm08-m01-m06-palier',
+      'm08-m01-m06-magasin',
       'm09-m10-m06-cale',
+      'm10-m01-m06-palier',
       'm10-m04-m03-entrepot',
+      'm11-m03-remise',
+      'm12-m03-stockage',
       'ol-m02-m08-m06-magasin',
       'ol-m05-m10-m03-tri',
+      'ol-m05-m12-m03-tri',
+      'ol-m07-m11-m06-soute',
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
@@ -62,7 +67,7 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
       expect(entree.parcours, id).toHaveLength(1);
       const [parcours] = entree.parcours;
       if (parcours === undefined) throw new Error(`${id} sans parcours.`);
-      const libre = entree.monde.liaisons.some((liaison) => liaison.verrouillee === true);
+      const libre = cloisonsDuCarrefour(entree.monde).length > 0;
       expect(parcours, id).toEqual((libre ? verifierLibre : verifierStation)({ ...entree, parcours: [] }).parcours);
       expect(parcours.attendu.issue, id).toBe('evacuation');
       expect(executerParcours(entree, parcours, 'check-texts-test').erreurs, id).toEqual([]);
@@ -114,8 +119,9 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
   });
 
   it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {
-    // Une seule station suffit : la dernière, sans prouver les neuf autres.
-    const [, entree] = entreeAControler(CATALOGUE, COMPOSITIONS_CONTROLEES.at(-1) ?? '');
+    // Une seule station suffit : la première, la moins coûteuse à prouver, sans prouver les autres (une station M-12 coûte bien
+    // plus que le délai du test).
+    const [, entree] = entreeAControler(CATALOGUE, COMPOSITIONS_CONTROLEES[0] ?? '');
     if ('refus' in entree) throw new Error('Station absente.');
     const chiffre = { ...entree, textes: { ...entree.textes, assistance: { ...entree.textes.assistance, depart: 'Départ dans 3 secondes.' } } };
     expect(verifierTextes(chiffre)).toContain('assistance « depart » : chiffre dans « Départ dans 3 secondes. ».');

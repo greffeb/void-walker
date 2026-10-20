@@ -2,10 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { App, EcranRefus } from './App';
+import { GRANDES_PUBLIEES } from '../content';
 import { CATALOGUE } from './catalogue';
 import { BATTEMENT_MS, CLE_DUREE, creerChronometre } from './duree';
 import { cleStockage, demandeDe, preparerLancement, type Environnement } from './jeu';
 import { CLE_INSTALLATION, piloterInstallation } from './installation';
+import { creerIntro, dependancesGrandes } from './intro';
 import { piloterMiseAJour } from './miseAJour';
 import { creerRapports } from './rapports';
 import { coffreIndexedDB, creerSignataire } from './validation';
@@ -130,6 +132,13 @@ const verification = import.meta.env.VITE_PR_NUMERO
   ? () => lireVerification((adresse, init) => window.fetch(adresse, init), import.meta.env.BASE_URL, commit)
   : undefined;
 
+// Intro de NOUVELLE PARTIE (D-308) : plans du défilé tirés parmi les grandes stations publiées, que NOUVELLE PARTIE tire (D-313).
+const intro = creerIntro({
+  ...dependancesGrandes(GRANDES_PUBLIEES, (id) => CATALOGUE.resoudre(id)),
+  hasard: hasardSon,
+  mouvementReduit: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+});
+
 // Attendu en dernier : la mise à jour et les rapports partent même si la base tarde.
 const lancement = await preparerLancement(demande, CATALOGUE, stockage, hasard);
 const env: Environnement | null =
@@ -156,6 +165,7 @@ createRoot(racine).render(
         signataire={signataire}
         verification={verification}
         chronometre={chronometre}
+        intro={intro}
       />
     )}
   </StrictMode>,

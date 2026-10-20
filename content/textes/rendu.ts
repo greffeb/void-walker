@@ -53,6 +53,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'objet_pose':
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
     case 'passage_ouvert':
+    case 'passage_ouvert_encombre':
     case 'passage_ferme':
       return { passage: nomDe(textes, evenement.passage) };
     case 'passage_decouvert': {
@@ -64,6 +65,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { passage: nomDe(textes, evenement.passage), piece: nomDe(textes, evenement.piece) };
     case 'bruit_mecanisme':
     case 'bruit_creature':
+    case 'drone_bruit_arrete':
     case 'creature_entre':
     case 'feu_derriere':
     case 'creature_glisse':
@@ -116,6 +118,15 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'machines_arretees':
     case 'machines_relancees':
     case 'cloison_deverrouillee':
+    case 'drone_envoye':
+    case 'drone_maintient':
+    case 'drone_deraille':
+    case 'drone_replace':
+    case 'drone_rearme':
+    case 'drone_arrete':
+    case 'drone_termine':
+    case 'poignee_tenue':
+    case 'poignee_lachee':
       return { objet: nomDe(textes, evenement.objet) };
     case 'gravite_coupee':
     case 'gravite_retablie':
@@ -299,7 +310,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       lignes.push(remplir(modele.gouffre, { passage: nomDe(textes, passage), vers: nomDe(textes, passage.vers ?? passage) }));
       continue;
     }
-    const modeleOuvert = passage.feu ? modele.passageEnFeu : modele.passageOuvert;
+    const modeleOuvert = passage.encombre === true ? modele.passageEncombre : passage.feu ? modele.passageEnFeu : modele.passageOuvert;
     lignes.push(remplir(passage.ouvert ? modeleOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
     if (passage.huile) lignes.push(remplir(modele.huile, { passage: nomDe(textes, passage) }));
     if (passage.vide) lignes.push(remplir(modele.passageVide, { passage: nomDe(textes, passage) }));
@@ -311,6 +322,9 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
     lignes.push(remplir(modele.installe, { objet: nomDe(textes, objet), capsule: nomDe(textes, capsule) }));
   }
   for (const objet of observation.actives) lignes.push(remplir(modele.active, { objet: nomDe(textes, objet) }));
+  for (const { objet, phase } of observation.drones ?? []) lignes.push(remplir(modele[`drone_${phase}`], { objet: nomDe(textes, objet) }));
+  if (observation.poigneeTenue !== undefined) lignes.push(remplir(modele.poigneeTenue, { objet: nomDe(textes, observation.poigneeTenue) }));
+  for (const { objet, desserre } of observation.freins ?? []) lignes.push(remplir(desserre ? modele.freinDesserre : modele.freinSerre, { objet: nomDe(textes, objet) }));
   if (observation.feu) lignes.push(remplir(modele.feu, {}));
   if (observation.sansAir) lignes.push(remplir(modele.sansAir, {}));
   for (const objet of observation.percees) lignes.push(remplir(modele.percee, { objet: nomDe(textes, objet) }));
@@ -353,6 +367,12 @@ export interface ApercuTexte {
 function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom | readonly Nom[]> {
   switch (savoir.type) {
     case 'portera':
+    case 'enverra_drone':
+    case 'tiendra':
+    case 'lachera':
+    case 'replacera_drone':
+    case 'rearmera_drone':
+    case 'arretera_drone':
     case 'protegera':
     case 'gardera':
     case 'percera':

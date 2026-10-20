@@ -13,10 +13,12 @@ import {
   ordonnerSignaux,
   RECETTES_GESTES,
   RECETTES_SIGNAUX,
+  recetteIntro,
   type ElementSon,
   type Geste,
   type Recette,
   type Signal,
+  type SonIntro,
 } from './recettes';
 
 /** Rails des options, de 0 à 100 (15 §4, D-220). */
@@ -44,6 +46,8 @@ export interface Son {
   /** À chaque toucher : ouvre l'audio la première fois, le reprend ensuite (15 §5). */
   debloquer(): void;
   geste(geste: Geste): void;
+  /** Un pas de l'intro de NOUVELLE PARTIE (15 §2.6) : joué tout de suite, comme un geste. */
+  intro(son: SonIntro): void;
   /** Nouveau texte affiché : crépitement s'il s'écrit, puis les signaux dans l'ordre (15 §2.3, §2.4). */
   nouveauTexte(ecriture: boolean, signaux: readonly Signal[]): void;
   /** Texte affiché en entier avant la fin de l'écriture : le crépitement s'arrête net, les signaux partent. */
@@ -57,7 +61,7 @@ export interface Son {
 const rien = (): void => undefined;
 
 /** Son muet : rendu côté serveur, tests des écrans. */
-export const SILENCE: Son = { debloquer: rien, geste: rien, nouveauTexte: rien, taire: rien, regler: rien, cacher: rien, montrer: rien };
+export const SILENCE: Son = { debloquer: rien, geste: rien, intro: rien, nouveauTexte: rien, taire: rien, regler: rien, cacher: rien, montrer: rien };
 
 /** Gain d'un rail : carré du niveau, pour une pente perçue régulière (15 §4). */
 export function gainDe(niveau: number): number {
@@ -477,6 +481,12 @@ export function creerMoteur(deps: Dependances, niveauxDeDepart: Niveaux): Son {
       sur(() => {
         if (bus === null || !audible('effets')) return;
         jouerRecette(bus, RECETTES_GESTES[geste], bus.ctx.currentTime + DEPART);
+      });
+    },
+    intro(son) {
+      sur(() => {
+        if (bus === null || !audible('effets')) return;
+        jouerRecette(bus, recetteIntro(son, deps.hasard), bus.ctx.currentTime + DEPART);
       });
     },
     nouveauTexte(ecrit, signaux) {

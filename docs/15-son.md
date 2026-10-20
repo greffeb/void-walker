@@ -64,6 +64,24 @@ Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis l
 
 Un fond continu de bruit brun profond, sous lequel la carlingue travaille : craquements lointains tirés au hasard (Mélange), un toutes les 20 à 60 s. L'ambiance tourne sur tous les écrans, accueil et options compris, dès le premier toucher, pour que le réglage s'entende.
 
+### 2.6 Intro de NOUVELLE PARTIE (D-311)
+
+Chaque pas de l'intro ([12 §4.1 bis](12-interface-ecrans.md#41-bis-intro-de-nouvelle-partie)) a son bruitage, joué sur le rail des effets, sous lequel le fond brun continue (§2.5). Banc d'écoute : la [maquette de l'intro](maquette/intro-generation.html).
+
+| Pas | Son |
+| --- | --- |
+| Mise sous tension | Interrupteur : coup sourd, ressort, rebond métallique, montée du tube |
+| `boot -a --v` | Cliquetis de saisie, un par lettre |
+| Deux lignes d'un coup ; une station tirée ; DÉMARRER | Relais ; Confirmer pour DÉMARRER (§2.1) |
+| `campaign_mode; console_log(01);` | Touche à ressort flambant, une par lettre |
+| Saut d'image | Statique : souffle aigu, crépitements, porteuse radio qui saute de fréquence |
+| Défilé des stations ; arrêt | Déclic de bande à chaque plan ; bande qui ralentit puis clac |
+| Une ligne | Déclic de relais léger |
+| ERREUR : Menace détectée | Blessure (§3.2), recette exacte |
+| Station prête | Interrupteur, sans le ronron du tube |
+
+Rien ne sonne quand l'intro est passée d'un toucher, ni quand elle s'affiche d'emblée finie (effet machine à écrire coupé, mouvement réduit).
+
 ## 3. Recettes
 
 Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles reprennent exactement les valeurs du [banc](maquette/banc-sons.html), qui fait foi en cas de doute.
@@ -117,6 +135,23 @@ Quatre sons, tirés par le Mélange avec les poids Gémissement 2, Craquement 2,
 | Gong | un coup de masse : base b de 55 à 82 Hz ; partiels (rapport, niveau, durée) (1 ; 1 ; 5,5 s), (1,48 ; 0,7 ; 4,2), (2,15 ; 0,55 ; 3,4), (2,71 ; 0,4 ; 2,6), (3,6 ; 0,25 ; 1,9), (4,93 ; 0,12 ; 1,3), chacun en deux sinus désaccordés de ± 0,25 Hz × rapport, niveau × 0,6, montée 12 ms ; choc : souffle 50 ms passe-bas 260, Q 0,7, vol 2,5 ; passe-bas 1 000 à 1 400 ; direct 0,35 |
 
 Programmation : après chaque craquement, le suivant est tiré entre 20 et 60 s plus tard. Rien n'est programmé pendant que l'appli est en arrière-plan ni quand l'ambiance est à 0.
+
+### 3.5 Intro de NOUVELLE PARTIE
+
+Recettes de `recetteIntro` (§2.6), avec le grain cassette des bruitages. « ±e » : fréquence décalée au hasard de ± e à chaque fois.
+
+| Son | Recette |
+| --- | --- |
+| Interrupteur | ton sinus 320 ms de 75 à 32, vol 0,6, chute 250 ms ; souffle 140 ms passe-bas 380, vol 0,6, chute 100 ms ; souffle 25 ms, f 1 900, Q 6, vol 0,5 ; à 55 ms, souffle 20 ms, f 2 400, Q 8, vol 0,25 ; à 20 ms, ton en dents de scie 600 ms à 50, passe-bas 180, vol 0,12, chute 500 ms |
+| Station prête | les trois premiers éléments de l'interrupteur |
+| Cliquetis | souffle 12 ms, f 4 200 ±15 %, Q 3, vol 0,28 |
+| Touche à ressort | souffle 22 ms, f 2 600 ±12 %, Q 9, vol 0,55 ; ton triangle 50 ms à 1 650 ±5 %, vol 0,05, chute 45 ms ; à 14 ms, souffle 35 ms passe-bas 520, vol 0,6 |
+| Relais | souffle 30 ms, f 1 250, Q 2, vol 0,45 ; souffle 50 ms passe-bas 220, vol 0,4 ; à 35 ms, souffle 12 ms, f 3 200, Q 4, vol 0,12 |
+| Statique | 850 ms : souffle passe-haut 3 000, vol 0,12, chute 150 ms ; tous les 20 à 60 ms, souffle de 10 à 40 ms, f 400 à 5 400, Q 1,5, vol 0,2 à 0,6 ; toutes les 50 ms, ton en dents de scie 50 ms de 300 à 2 100, passe-bas 2 500, vol 0,06 |
+| Déclic de bande | souffle 12 ms, f 1 700 ±20 %, Q 4, vol 0,18 |
+| Arrêt | ton en dents de scie 400 ms de 420 à 60, passe-bas 900, vol 0,1, chute 300 ms ; souffle 350 ms, f 2 600 glissant à 300, Q 2, vol 0,12 ; à 360 ms, souffle 50 ms passe-bas 240, vol 0,5 |
+| Ligne | souffle 18 ms, f 1 400 ±15 %, Q 2, vol 0,22 ; souffle 30 ms passe-bas 220, vol 0,18 |
+| Menace | Blessure (§3.2), h = 1 |
 
 ## 4. Options › SON (D-220)
 

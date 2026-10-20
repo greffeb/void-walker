@@ -1,6 +1,7 @@
 import { generateurDepuisGraine, type EtatGenerateur } from './des';
+import { dronesInitiaux, obstacleSur } from './drone';
 import { dosesDe, indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { RefObjet, RefPassage, RefPiece, RefPosition, Sante, SourceEvacuation } from './vocabulaire';
+import type { PhaseDrone, RefObjet, RefPassage, RefPiece, RefPosition, Sante, SourceEvacuation } from './vocabulaire';
 
 export type EmplacementObjet =
   | { readonly type: 'piece'; readonly piece: string; readonly position?: string }
@@ -169,6 +170,12 @@ export interface EtatPartie {
    * cédé, pour que l'état et son empreinte ne changent pas ailleurs.
    */
   readonly enfoncees?: readonly string[];
+  /** Présent uniquement avec des drones ; phases et ordre des sources sonores actifs, sans horloge non bornée. */
+  readonly drones?: {
+    readonly phases: Readonly<Record<string, PhaseDrone>>;
+    readonly tenue: string | null;
+    readonly bruits: readonly string[];
+  };
 }
 
 export function cleZone(zone: ZoneHuile): string {
@@ -231,6 +238,7 @@ export function etatInitial(monde: DefMonde, graine: number): EtatPartie {
     // Rempli par le regard du réveil (memoire.ts), une fois l'état initial posé.
     memoire: { pieces: {}, liaisons: {} },
     ...verrousInitiaux(monde),
+    ...dronesInitiaux(monde),
   };
 }
 
@@ -447,6 +455,7 @@ export function refPassage(monde: DefMonde, etat: EtatPartie, liaison: DefLiaiso
     id: publicDe(monde, liaison.id),
     nom: liaison.nom,
     ouvert,
+    ...(ouvert && obstacleSur(monde, etat, liaison.id) !== undefined ? { encombre: true as const } : {}),
     vers: destinationConnue(etat, liaison) ? refPiece(monde, vers) : null,
     signale: signalee(liaison),
     feu: ouvert && enFeu(etat, vers),

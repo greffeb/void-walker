@@ -85,7 +85,7 @@ import { empreinteCode, ouvrirCache, purgerCache } from './empreinte-code';
 import { dansLeLot, lancerSousLots, lireOptionsLots, type Lot } from './lots';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { stationDeReference, verifierLibre, verifierStation, type CacheVerdicts } from './verifier-station';
+import { cloisonsDuCarrefour, stationDeReference, verifierLibre, verifierStation, type CacheVerdicts } from './verifier-station';
 
 // Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur ; et, sans station,
 // la réserve de documents des grandes stations, leurs phrases de pillage, de trace et de bruit (spec 2026-10-18 §11).
@@ -612,7 +612,7 @@ export function entreeAControler(catalogue: Catalogue, composition: string): rea
   const station = stationDeReference(catalogue, composition);
   if ('refus' in station) return [composition, station];
   // Ordre libre : le témoin de `check:stations`, première cloison d'abord (spec L5 §4.1).
-  const libre = station.entree.monde.liaisons.some((liaison) => liaison.verrouillee === true);
+  const libre = cloisonsDuCarrefour(station.entree.monde).length > 0;
   const rapport = libre ? verifierLibre(station.entree) : verifierStation(station.entree);
   const id = station.entree.monde.id;
   if (rapport.parcours === null) return [id, { refus: `Évacuation non prouvée (${rapport.verdict}) : ${rapport.diagnostic}` }];

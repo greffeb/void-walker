@@ -118,6 +118,27 @@ describe('écran de la carte (14 §2)', () => {
     expect(html.match(/class="capsule"/g)).toHaveLength(1);
   });
 
+  it('le drone repéré a son pictogramme sans créer une icône de créature', () => {
+    const drone = { objet: { sorte: 'objet', id: 'e-drone', nom: 'caisse' } as const, position: null, drone: true as const };
+    const carte: CartePublique = {
+      ...CARTE,
+      pieces: CARTE.pieces.map((piece) => ({ ...piece, creature: null, objets: piece.statut === 'actuelle' ? [drone] : [] })),
+    };
+    const html = plan(carte);
+    expect(html.match(/class="icone-drone"/g)).toHaveLength(1);
+    expect(html.match(/class="icone-joueur"/g)).toHaveLength(1);
+    expect(html).not.toContain('class="icone-creature"');
+  });
+
+  it('le pictogramme garde un drone mémorisé, sans en annoncer un dans une pièce non visitée', () => {
+    const objet = { objet: { sorte: 'objet', id: 'e-drone', nom: 'caisse' } as const, position: null, drone: true as const };
+    const carte: CartePublique = {
+      ...CARTE,
+      pieces: CARTE.pieces.map((piece) => ({ ...piece, creature: null, objets: piece.statut === 'visitee' || piece.statut === 'connue' ? [objet] : [] })),
+    };
+    expect(plan(carte).match(/class="icone-drone"/g)).toHaveLength(2);
+  });
+
   it('réduite, la carte garde murs et motifs, et efface les noms qui ne tiennent plus (14 §2.3)', () => {
     const html = plan(CARTE, { zoom: 0.5, x: 0, y: 0 });
     expect(texte(html)).not.toContain('MAINTENANCE');

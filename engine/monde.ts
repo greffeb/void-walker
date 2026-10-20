@@ -1,4 +1,5 @@
 import { hacher } from './hachage';
+import { validerDrones } from './drone';
 import { validerPlan, type PlanLiaison, type RectPlan } from './plan';
 
 // Forme commune d'un monde (C-02). `nom` est une clé publique vers le texte ; `id` reste interne.
@@ -79,6 +80,8 @@ export interface DefLiaison {
    * ensuite, une porte ordinaire.
    */
   readonly verrouillee?: boolean;
+  /** Porte blindée (#203) : la créature ne la force jamais, même alertée (D-279 ne s'y applique pas). */
+  readonly blindee?: boolean;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -156,6 +159,14 @@ export interface DefObjet {
   readonly document?: true;
   /** Note de rangement : pièce qu'elle nomme, rendue en référence publique à la lecture pour remplir le trou (spec §8.5). */
   readonly designe?: string;
+  /** Objet portable à tenir en main pour actionner cette commande (#203, lecteur de carte). */
+  readonly exige?: string;
+  /** Poignée à maintenir sur place ; toute autre manipulation demande de lâcher. */
+  readonly poignee?: boolean;
+  /** Drone non portable, fixé à une liaison locale jusqu'à cette poignée. */
+  readonly drone?: { readonly rail: string; readonly poignee: string };
+  /** Obstacle matériel, sans effet sur l'air, le son ni le feu de son passage. */
+  readonly obstacle?: { readonly passage: string; readonly rangement: string; readonly maintien: string };
 }
 
 /** Champs permis à un document : son identité, sa pièce, `portable: false`, et ce qui en fait un document (spec §8.5). */
@@ -252,11 +263,15 @@ export function validerMonde(monde: DefMonde): string[] {
       if (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true) erreurs.push(`${liaison.id} : cloison verrouillée qui n'est pas une porte pleine.`);
       if (!monde.objets.some((objet) => objet.deverrouille === liaison.id)) erreurs.push(`${liaison.id} : verrouillée sans commande.`);
     }
+    if (liaison.blindee === true && (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true || liaison.etroite === true)) {
+      erreurs.push(`${liaison.id} : porte blindée qui n'est pas une porte pleine.`);
+    }
   }
   const voisines = (a: string, b: string): boolean => monde.liaisons.some((liaison) => liaison.entre.includes(a) && liaison.entre.includes(b));
   const defPieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
   const positionsConnues = new Map(positions.map((position) => [position.id, position]));
   const objets = new Map(monde.objets.map((objet) => [objet.id, objet]));
+  erreurs.push(...validerDrones(monde));
   for (const position of positions) {
     if (!pieces.has(position.piece)) erreurs.push(`${position.id} : pièce inconnue ${position.piece}.`);
     if (position.sous !== undefined && liaisons.get(position.sous)?.haute !== position.piece) {
@@ -294,6 +309,10 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.deverrouille !== undefined) {
       if (liaisons.get(objet.deverrouille)?.verrouillee !== true) erreurs.push(`${objet.id} : déverrouille autre chose qu'une cloison verrouillée.`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : commande portable.`);
+    }
+    if (objet.exige !== undefined) {
+      if (objet.deverrouille === undefined) erreurs.push(`${objet.id} : exige sans être une commande.`);
+      if (objets.get(objet.exige) === undefined || objets.get(objet.exige)?.portable === false) erreurs.push(`${objet.id} : exige un objet inconnu ou non portable.`);
     }
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
     if (objet.position !== undefined && objet.deplacable !== true) erreurs.push(`${objet.id} : position sans être déplaçable.`);

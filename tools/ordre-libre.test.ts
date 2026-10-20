@@ -100,7 +100,7 @@ describe('preuve des deux ordres (spec L5 §4.1, G-07)', () => {
   it('toutes les compositions publiées en ordre libre ont la forme `ol-…`, les autres non', () => {
     const libres = CATALOGUE.compositions.filter((composition) => composition.forme === 'libre').map((composition) => composition.id);
     expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toEqual(libres.filter((id) => COMPOSITIONS_PUBLIEES.includes(id)));
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(140);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(234);
   });
 });
 

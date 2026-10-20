@@ -118,6 +118,14 @@ Règles des nouveaux morceaux de la [conception des morceaux](../13-morceaux-lan
 
 **Mélanges (D-174).** Les ralentissements s'additionnent : le froid saute une réaction sur deux ; réactions perdues (huile) et traversée sans gravité se comptent sur les réactions qui restent (MX-01). Le vide éteint un foyer qu'il atteint, et le feu ne gagne pas une pièce sans air (MX-02). Vide et huile s'ignorent (MX-03). L'huile ne se verse pas gravité coupée (MX-04) et reste glissante dans la chambre froide (MX-05). L'air et le feu passent par-dessus le vide de la passerelle, toujours ouvert, comme par un passage ouvert ; l'air quitte la salle des machines, la zone sans gravité et la chambre froide comme toute autre pièce (D-246, D-247).
 
+### 5.6 Coopération et drone réparable M-12
+
+D-304 à D-306 : le drone exécute un trajet local puis maintient une commande pendant les gestes suivants du passager. Lire, consulter, ouvrir un menu ou recevoir un refus ne font avancer ni son déplacement ni sa tâche. Le maintien permet au passager de pousser le chariot ailleurs ; le passage reste dégagé lorsque la tâche est terminée.
+
+Le bruit du déplacement et du maintien est un son fort soumis à §4.1 et §4.2 : ni localisation omnisciente de la créature, ni priorité artificielle aux pas. Les autres sources sonores gardent leurs règles ; les machines peuvent couvrir le bruit. Si la créature atteint le drone et réagit contre cette source, elle peut le faire dérailler en une réaction. Arriver puis attaquer ne constitue pas une double réaction gratuite. Un passager effectivement visible reste prioritaire.
+
+Le déraillement coupe le moteur et relâche la commande. La remise sur rail et le réarmement sont deux engagements distincts ; entre les deux, le frein n'est pas desserré. Les réactions, dés et blessures restent ceux de C-04. Réparer ne soigne pas et ne suspend pas la menace. Les règles de C-03/C-04 priment sur les simplifications de la maquette de conception.
+
 ## 6. Attentes de test, non exécutées
 
 | ID | Mise en situation | Attente |

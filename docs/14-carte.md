@@ -78,10 +78,13 @@ Icônes (D-273) :
 | Passager, pièce actuelle | Point plein `vert` | Trois ondes radar qui s'élargissent en s'estompant | Deux anneaux fixes autour du point |
 | Créature, à l'instant ou il y a un moment | Œil `alerte` : contour et pupille pleins | L'intérieur clignote, un cycle toutes les 2 s | Intérieur plein, fixe |
 | Créature, il y a longtemps | Œil `vert-secondaire`, intérieur vide | Aucune | Aucune |
+| Drone observé (D-307, #232) | Petite tête mécanique verte en pixels, œil central et pince ; dernier emplacement observé | Aucune | Aucune |
 
 - Place : au centre de la place laissée sous le texte de la pièce ; au centre de la pièce quand aucun texte n'y tient ; côte à côte, le passager à gauche, si les deux partagent une pièce. Une ancienneté qui prendrait la place de l'icône s'efface du plan.
 - Taille : fixe au dézoom, elle suit la taille du texte. L'icône marque la pièce, pas une position : les positions restent en mots dans la vue LISTE (§2.8).
 - Jamais la couleur seule : l'œil garde sa forme et l'étiquette CRÉATURE ; le clignotement ne porte aucune information que le texte ne donne pas.
+- Le drone se déduit des objets mémorisés, jamais de sa position actuelle cachée. Une pièce seulement connue ne reçoit pas son pictogramme. Sa présence reste accessible par le libellé de la pièce et sa fiche.
+- Avec trois présences, chaque symbole conserve son propre centre. Dans les petites pièces au dézoom, les trois dessins sont réduits ensemble pour tenir dans la pièce ; les cas à une ou deux présences restent inchangés (détail de réalisation de D-307, à vérifier sur téléphone).
 
 ### 2.6 Portes et passages
 
