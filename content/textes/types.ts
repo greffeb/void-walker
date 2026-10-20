@@ -91,6 +91,25 @@ export interface PhraseFin {
   readonly ailleursReprise?: string;
 }
 
+/** Les cinq supports d'un document à lire (spec 2026-10-18 §8.4). */
+export type SupportDocument = 'note' | 'journal' | 'message' | 'inscription' | 'affiche';
+
+/**
+ * Textes d'un document des grandes stations (spec §8.5), dans la section `documents` à part : les descriptions refusent tout trou.
+ * Le seul trou permis est la pièce d'une note de rangement : `{le:piece}`, `{de:piece}` ou `{a:piece}`.
+ */
+export interface TexteDocument {
+  /** Nom de puce affiché, avec genre, nombre et élision ; sans chiffre. */
+  readonly puce: Nom;
+  readonly support: SupportDocument;
+  /** Ligne « où », vraie dans toute pièce que les étiquettes du document autorisent. */
+  readonly ou: string;
+  /** Paragraphes ; pour un journal, lignes « hh:mm  texte » (deux espaces). */
+  readonly corps: readonly string[];
+  /** Note : prénom de l'auteur. */
+  readonly signature?: string;
+}
+
 export interface TextesMonde {
   readonly noms: Readonly<Record<string, Nom>>;
   /** Description des pièces et objets, par clé de nom, pour « regarder ». */
@@ -118,6 +137,13 @@ export interface TextesMonde {
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
   readonly assistance: Readonly<Record<string, string>>;
+  /**
+   * Documents des grandes stations, par clé de nom du document (spec §8.5) ; la réunion des textes ajoute chaque puce à `noms` sous
+   * la même clé, pour que `nomDe` traite un document comme tout objet.
+   */
+  readonly documents: Readonly<Record<string, TexteDocument>>;
+  /** Étiquette du support d'un document, que l'appli met en capitales (spec §8.4, §9.1). */
+  readonly supports: Readonly<Record<SupportDocument, string>>;
   readonly passages: {
     readonly ouvert: Variantes;
     readonly ferme: Variantes;
@@ -242,6 +268,8 @@ export interface TextesMorceau {
    * trace, et les variantes d'une description d'objet que la grande station change (la caisse portable de M-02).
    */
   readonly calmes?: Readonly<Record<string, Variantes>>;
+  /** Documents que porte la station (spec 2026-10-18 §8.5) : leurs puces rejoignent `noms` à la réunion des textes. */
+  readonly documents?: Readonly<Record<string, TexteDocument>>;
 }
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */

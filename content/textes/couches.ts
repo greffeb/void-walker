@@ -36,8 +36,10 @@ export function repris<T>(table: Readonly<Record<string, T>>, cle: string): T {
 
 /** Socle + univers + menace + morceaux (+ messages propres à la station) ; une clé définie deux fois avec deux textes différents lève une erreur. */
 export function reunir(morceaux: readonly TextesMorceau[], assistance: Readonly<Record<string, string>> = {}): TextesMonde {
-  const textes: Record<string, unknown> = {};
-  for (const couche of [SOCLE, UNIVERS, MENACE, ...morceaux, { assistance }]) ajouter(textes, couche, '');
+  // Le nom de puce d'un document est son nom affiché : il rejoint `noms` sous la clé du document (spec 2026-10-18 §8.5).
+  const puces = morceaux.map(({ documents = {} }) => ({ noms: Object.fromEntries(Object.entries(documents).map(([cle, { puce }]) => [cle, puce])) }));
+  const textes: Record<string, unknown> = { documents: {} };
+  for (const couche of [SOCLE, UNIVERS, MENACE, ...morceaux, ...puces, { assistance }]) ajouter(textes, couche, '');
   return textes as unknown as TextesMonde;
 }
 
@@ -52,6 +54,9 @@ export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 
 /** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
+
+/** Étiquettes des supports de document du socle (spec 2026-10-18 §8.4), reprises par les mondes écrits en entier, qui n’en portent aucun. */
+export const SUPPORTS: TextesMonde['supports'] = reunir([]).supports;
 
 function minuscules(texte: string): string {
   return texte.normalize('NFC').toLocaleLowerCase('fr');

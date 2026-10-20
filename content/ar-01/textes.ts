@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { BRUITS_STATION, FIN, PILLAGES, TRACES } from '../textes/couches';
+import { BRUITS_STATION, FIN, PILLAGES, SUPPORTS, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -389,6 +389,8 @@ export const TEXTES_AR01: TextesMonde = {
   fin: FIN,
   traces: TRACES,
   pillages: PILLAGES,
+  documents: {},
+  supports: SUPPORTS,
   apercu: {
     risques: {
       aucun: 'aucun risque connu',

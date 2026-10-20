@@ -84,6 +84,14 @@ export const SOCLE = {
   },
   gelures: GELURE_FROID,
   asphyxie: ['L’air vous quitte d’un coup. Vos poumons brûlent, votre vue se brouille. Puis plus rien.'],
+  // Étiquettes des cinq supports d'un document (spec 2026-10-18 §8.4), que l'appli met en capitales : neutres, pour tout monde.
+  supports: {
+    note: 'Note manuscrite',
+    journal: 'Journal de terminal',
+    message: 'Message enregistré',
+    inscription: 'Inscription',
+    affiche: 'Affiche de la compagnie',
+  },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Le seuil donne sur {le:vers}.', '{Le:passage} est ouvert{e:passage}. Par là, on rejoint {le:vers}.'],
     ferme: ['{Le:passage} est fermé{e:passage}. De l’autre côté, il y a {le:vers}.', '{Le:passage} est fermé{e:passage}. Il faut l’ouvrir pour rejoindre {le:vers}.'],

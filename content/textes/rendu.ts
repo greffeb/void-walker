@@ -15,6 +15,7 @@ import type {
   Savoir,
   SourceEvacuation,
 } from '../../engine';
+import { rendreDocument, texteDocument } from './document';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
 
@@ -229,6 +230,8 @@ export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string
 export function rendreConsultation(textes: TextesMonde, consultation: Consultation, cle: CleTexte): string {
   // Une même chose garde la même description pendant toute la partie.
   const repere = `${cle.graine}:${consultation.type}:${consultation.cible.id}`;
+  // Un document n'a qu'un texte, sans variante ; l'appli et la CLI lisent son rendu structuré (`rendreDocument`).
+  if (consultation.type === 'regarder_document') return texteDocument(rendreDocument(textes, consultation));
   if (consultation.type === 'regarder_passage') {
     const { cible } = consultation;
     if (cible.vers === null) {
