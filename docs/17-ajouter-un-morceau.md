@@ -68,7 +68,7 @@ Modèle : `m-10.ts` ou `m-11.ts`. En tête, un commentaire avec le schéma des p
 - `content/stations/paires.ts` : une ligne par morceau existant, `a < b` (`'M-01'` … `'M-NN'`), à sa place dans l'ordre ; règle sur le modèle `'<obstacle de l'autre> et <obstacle du nouveau>, sans règle de plus (D-248)'`. Mettre à jour le commentaire `'M-01' à 'M-NN'`.
 - `content/stations/catalogue.ts` :
   - `COMPOSITIONS_PUBLIEES` : liste triée, **régénérée** par un script jetable (`tools/tmp-*.ts`, supprimé ensuite) qui imprime `CATALOGUE.compositions.filter((c) => c.refus === null && !bouchee(c)).map((c) => c.id)` avec la règle `bouchee` du test (§3.1). Ne jamais la recopier à la main.
-  - `COMPOSITIONS_CONTROLEES` : ajouter une chaîne et un ordre libre avec le nouveau morceau, à leur place triée.
+  - `COMPOSITIONS_CONTROLEES` : ajouter une chaîne et un ordre libre avec le nouveau morceau, à leur place triée. **Choisir les moins coûteuses à prouver** qui gardent la couverture du test : deux tests de `check-texts-stations` prouvent toute la liste en 30 s, et M-12 l'a fait dépasser en CI (39 s). Mesurer le coût de chaque candidate avec `verifierStation`/`verifierLibre` (script jetable) ; un ordre libre peut coûter dix fois plus qu'un autre.
 - `tools/captures.ts` : une constante `STATION_<NOM> = '<composition>-2718281828'` dessinée dans `capturerPlans` (`Plan — <titre> ${STATION_…}`) et citée dans le commentaire « plans ». Le motif `FORME_STATION` n'accepte que les finals `m03`/`m06` : l'étendre pour un nouveau final.
 
 ## 4. Tests qui épinglent des nombres
@@ -105,6 +105,11 @@ Commandes, dans la copie de travail. Durées mesurées sur le PC du porteur (Win
 | `npm run verify` | Tout, dans l'ordre | 40 min et plus |
 
 Lire le rapport de `check:stations` (sortie JSON, une ligne par composition) : compter les verdicts du nouveau morceau (`prouvee`, `refusee`, `sans_sortie_sure`, `non_prouvee`) et expliquer chaque composition non publiée (D-268 le plus souvent). Une composition **publiée non prouvée** est un blocage : arrêter et rapporter au porteur.
+
+Leçons de M-12 (#232) :
+
+- **« Prouvée mais non publiée »** : le nouveau morceau permet peut-être de se débarrasser de la créature (M-12 l'attire en arrière avec le bruit du drone). Le vérifier sur toutes ses compositions bouchées, puis l'ajouter à `AIDES` (trois tests) et le dire au porteur, plutôt que de deviner à l'avance.
+- **`non_prouvee` au plafond** (150 000 états, `MAX_ETATS`) : ce n'est pas une impasse. Relancer la composition avec un plafond plus haut (`verifierStation(entree, { maxEtats })`). Si elle se prouve, relever le plafond pour les seules compositions du morceau (`PLAFONDS_ELARGIS`, `tools/verifier-station.ts`) : relever le plafond de tout le catalogue changerait le verdict d'autres compositions bouchées et la liste publiée.
 
 **Partie en ligne de commande** : `npm run cli -- nouvelle --station <composition>-<graine> --partie ../essai.json`, puis `npm run cli -- jouer <n> --partie ../essai.json` : sans `--station`, la partie enregistrée reprend sa station. Ne jamais passer la composition sans graine (`--station m11-m03-remise`) : chaque appel tire un autre plan et la partie ne se reprend plus. Jouer le chemin sûr et regarder chaque texte nouveau (descriptions, refus, indisponibilité, événement).
 

@@ -26,6 +26,7 @@ export const MOTS_CARTE = {
   feu: 'FEU',
   vide: 'VIDE ○',
   creature: 'CRÉATURE',
+  droneRepere: 'drone repéré',
   blocIci: 'ICI',
   blocVisitees: 'VISITÉES, DE LA PLUS PROCHE',
   blocConnues: 'CONNUES, PAS ENCORE VISITÉES',
@@ -173,5 +174,6 @@ export function libellePlan(textes: TextesMonde, carte: CartePublique): string {
 /** Nom accessible d'une pièce du plan : son nom, son statut, ses états (14 §2.9). */
 export function libellePiece(textes: TextesMonde, piece: PieceCarte): string {
   const statut = piece.statut === 'actuelle' ? MOTS_CARTE.vousEtesIci : piece.statut === 'connue' ? MOTS_CARTE.pasVisitee : regardDe(piece);
-  return [former('Nom', nomDe(textes, piece.piece)), ...(statut === null ? [] : [statut]), ...etatsDe(piece)].join(', ');
+  const drone = piece.statut !== 'connue' && piece.objets.some((objet) => objet.drone === true);
+  return [former('Nom', nomDe(textes, piece.piece)), ...(statut === null ? [] : [statut]), ...etatsDe(piece), ...(drone ? [MOTS_CARTE.droneRepere] : [])].join(', ');
 }

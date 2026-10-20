@@ -46,6 +46,7 @@ describe('textes par couches (13 §7.2)', () => {
       'm-09',
       'm-10',
       'm-11',
+      'm-12',
       'carrefour',
       'm-03',
       'm-06',

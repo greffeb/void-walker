@@ -36,12 +36,15 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
       'm04-m09-m06-observation',
       'm05-m08-m03-magasin',
       'm07-m02-m03-atelier',
-      'm08-m01-m06-palier',
+      'm08-m01-m06-magasin',
       'm09-m10-m06-cale',
+      'm10-m01-m06-palier',
       'm10-m04-m03-entrepot',
       'm11-m03-remise',
+      'm12-m03-stockage',
       'ol-m02-m08-m06-magasin',
       'ol-m05-m10-m03-tri',
+      'ol-m05-m12-m03-tri',
       'ol-m07-m11-m06-soute',
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
@@ -116,8 +119,9 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
   });
 
   it('un message d’IA Station chiffré dans une station tirée fait échouer le contrôle', () => {
-    // Une seule station suffit : la dernière, sans prouver les neuf autres.
-    const [, entree] = entreeAControler(CATALOGUE, COMPOSITIONS_CONTROLEES.at(-1) ?? '');
+    // Une seule station suffit : la première, la moins coûteuse à prouver, sans prouver les autres (une station M-12 coûte bien
+    // plus que le délai du test).
+    const [, entree] = entreeAControler(CATALOGUE, COMPOSITIONS_CONTROLEES[0] ?? '');
     if ('refus' in entree) throw new Error('Station absente.');
     const chiffre = { ...entree, textes: { ...entree.textes, assistance: { ...entree.textes.assistance, depart: 'Départ dans 3 secondes.' } } };
     expect(verifierTextes(chiffre)).toContain('assistance « depart » : chiffre dans « Départ dans 3 secondes. ».');

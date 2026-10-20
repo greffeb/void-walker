@@ -26,6 +26,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
+| Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
@@ -2354,6 +2355,43 @@ Questions posées le 2026-10-18, une par une, sur des maquettes au format télé
   - **15e :** le récit garde une phrase de silence ; IA Station envoie un vrai message, « Aucune activité détectée. Merci de rejoindre la capsule de secours. », daté « en attendant » dans sa fenêtre. Une fois par partie, comme tout message (D-081).
 - Précise : D-274 (textes d'ATTENDRE). Rien ne change au jeu : la créature, les dangers et le décompte jouent comme avant.
 - Limite [détail de l'agent] : le message n'existe que dans les stations tirées ; AR-01, AR-02, M-08, M-09 et le monde de test ne le déclarent pas. Une partie sauvegardée avant cette version après 15 attentes de suite ou plus ne se reprend plus (son état ne correspond plus à son journal rejoué) ; il en va de même pour le rejeu d'un tel export.
+
+## Décisions validées — chariot et drone M-12 (#232, issu de #203)
+
+Les numéros D-304 à D-307 évitent les entrées préparées dans les chantiers parallèles M-11 et grandes stations. Les choix ci-dessous portent sur la conception et l'intégration demandée ; aucune validation sur téléphone n'est revendiquée.
+
+### D-304 — M-12 repose sur une coopération nécessaire
+
+- Date / statut : 2026-10-20 / **Validé comme conception à intégrer et tester**.
+- Origine : choix du porteur « Coopération nécessaire dans cette situation », puis « on va la tester comme ça, intègre ce morceau M-12 (un M-11) est en cours dans un worktree. travaille aussi dans un worktree. »
+- Décision : un chariot bloque le chemin vers la suite de la station. Le passager doit le pousser au palier pendant qu'une poignée reste maintenue au poste. Il peut tenir lui-même cette poignée, mais la relâche en quittant le poste ; il ne peut donc accomplir seul les deux gestes. Un drone de manutention effectue le maintien à sa place. Le déplacement du chariot est durable ; la tâche du drone est alors terminée.
+- Complète : D-156, D-157 et D-172. M-12 est un morceau de chemin, pas un deuxième problème final. Son intérêt recherché est la variété des situations, pas un nombre de minutes ajouté.
+- Limite : la maquette V3 est une référence de conception, pas le moteur. Ses blessures déterministes et sa poursuite simplifiée ne remplacent pas C-03 et C-04.
+
+### D-305 — Une panne du drone se récupère sur place en deux gestes
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : réponses du porteur « Explorer une panne réparable du drone » puis « Remise en route sur place en deux gestes ».
+- Décision : une attaque de la créature peut faire sortir le drone de son rail. Il lâche la poignée et son moteur s'arrête. Le passager peut le replacer sur le rail, puis le réarmer et le relancer : deux actions engageantes distinctes, sur place, sans nouvel objet ni consommable pour ce premier lot.
+- La panne ne termine pas automatiquement la partie et n'est pas une perte irréversible du passage. La réparation ne soigne pas, ne protège pas le passager et ne suspend pas les réactions. Ni remise en route automatique, ni retour gratuit à l'atelier.
+- Précise : C-01, C-03, C-04, C-05 et C-08. Après une réparation, la coopération reste nécessaire.
+
+### D-306 — Le drone reste un équipement mécanique local
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : choix du porteur « Seule la créature fait dérailler le drone pour ce premier lot ».
+- Décision : le drone suit son trajet local de manutention et maintient la commande prévue. Il ne combat pas, ne transporte rien et ne suit pas le passager dans les autres morceaux. Son déplacement et son maintien font du bruit, soumis aux règles ordinaires de perception et de réaction ; aucune priorité artificielle aux pas du passager ne le protège.
+- Le vide, le froid et le feu ne le font pas tomber en panne dans ce lot. Les dangers et les réactions du passager et de la créature restent inchangés. Un passage fermé ne se traverse pas gratuitement.
+- Mélanges : le bruit suit C-03 §4.2 et le masquage des machines ; les ralentissements existants portent sur les réactions de la créature, pas sur le nombre de gestes de réparation. Aucun effet supplémentaire n'est déduit du nom d'un morceau.
+
+### D-307 — M-12 entre au tirage et le drone a son pictogramme
+
+- Date / statut : 2026-10-20 / **Validé comme périmètre**, validation sur téléphone requise.
+- Origine : choix du porteur « Station d'essai et tirage aléatoire dès cette PR », puis « on va avoir besoin d'un petit icone pour le drone sur la map », avec une référence visuelle verte en pixels.
+- Décision : fournir une station d'essai et des compositions publiques prouvées contenant M-12. Le moteur, la CLI, les textes, la sauvegarde et le vérificateur doivent décrire le même comportement.
+- Carte : petit pictogramme de drone vert et pixelisé, distinct du passager et de la créature. Il représente un objet observé ; hors de vue, il reste un souvenir, pas un suivi en direct. Ne pas annoncer un drone dans une pièce seulement connue par signalétique.
+- Détail de réalisation à vérifier sur téléphone : les trois symboles se répartissent sous le texte ; si trois présences doivent tenir dans une petite pièce au dézoom, leur dessin se réduit juste assez pour ne pas chevaucher les murs. L'affichage à une ou deux présences reste inchangé.
+- Limite [détail de l'agent, à confirmer par le porteur] : `check:stations` prouve que M-12 permet de se débarrasser de la créature qui bouche le seul passage de M-01 (palier) ou de M-02 (atelier) quand il les précède : le bruit du drone l'attire en arrière. M-12 rejoint donc M-04, M-07, M-08 et M-10 dans la règle de D-268 ; quatre compositions de plus entrent au tirage (`m12-m01-m03-palier`, `m12-m01-m06-palier`, `m12-m02-m03-atelier`, `m12-m02-m06-atelier`). Pour prouver les compositions avec M-12, le vérificateur leur accorde 600 000 états au lieu de 150 000 (`m10-m12-m03-stockage` en demande 405 000) ; les autres compositions gardent leur plafond, et donc leur verdict.
 
 ## Décisions validées — sas de sécurité M-11 (#203)
 

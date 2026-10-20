@@ -130,6 +130,12 @@ function objetDe(morceau: string, objet: DefObjet): DefObjet {
     ...ref(morceau, 'fermeture', objet.fermeture),
     ...ref(morceau, 'deverrouille', objet.deverrouille),
     ...ref(morceau, 'exige', objet.exige),
+    ...(objet.drone === undefined ? {} : { drone: { rail: prefixer(morceau, objet.drone.rail), poignee: prefixer(morceau, objet.drone.poignee) } }),
+    ...(objet.obstacle === undefined ? {} : { obstacle: {
+      passage: prefixer(morceau, objet.obstacle.passage),
+      rangement: prefixer(morceau, objet.obstacle.rangement),
+      maintien: prefixer(morceau, objet.obstacle.maintien),
+    } }),
     ...(capsule === undefined ? {} : { capsule: { ...capsule, interieur: prefixer(morceau, capsule.interieur) } }),
     ...(avertisseur === undefined ? {} : { avertisseur: { ...avertisseur, piece: prefixer(morceau, avertisseur.piece) } }),
   };

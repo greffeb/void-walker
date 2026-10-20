@@ -49,18 +49,22 @@ export const TEXTE_MARQUE: Readonly<Record<Marque, string>> = {
   creature: MOTS_CARTE.creature,
 };
 
-/** Icônes du plan (14 §2.5, D-273) : le passager dans la pièce actuelle, la créature là où elle a été vue. */
-export type Icone = 'joueur' | 'creature';
+/** Présences du plan : position du passager, derniers emplacements observés des autres. */
+export type Icone = 'joueur' | 'creature' | 'drone';
 
 /** Taille des icônes à la taille de texte STANDARD, par rapport au dessin de base ; elles ne rétrécissent pas au dézoom. */
 export const ICONE_ECHELLE = 1.3;
 /** Hauteur gardée sous le texte pour chaque icône, en px à la taille STANDARD : sa partie fixe et une marge. */
-export const ICONE_HAUTEUR: Readonly<Record<Icone, number>> = { joueur: 30 * ICONE_ECHELLE, creature: 22 * ICONE_ECHELLE };
+export const ICONE_HAUTEUR: Readonly<Record<Icone, number>> = { joueur: 30 * ICONE_ECHELLE, creature: 22 * ICONE_ECHELLE, drone: 24 * ICONE_ECHELLE };
 /** Écart entre le centre de la pièce et chacune des deux icônes quand elles partagent une pièce. */
 export const ICONE_ECART = 16 * ICONE_ECHELLE;
 
 export function iconesDe(piece: PieceCarte): Icone[] {
-  return [...(piece.statut === 'actuelle' ? (['joueur'] as const) : []), ...(piece.creature === null ? [] : (['creature'] as const))];
+  return [
+    ...(piece.statut === 'actuelle' ? (['joueur'] as const) : []),
+    ...(piece.creature === null ? [] : (['creature'] as const)),
+    ...(piece.statut !== 'connue' && piece.objets.some((objet) => objet.drone === true) ? (['drone'] as const) : []),
+  ];
 }
 
 export interface Etiquettes {
@@ -196,7 +200,7 @@ export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | 
 
 /**
  * Centre des icônes d'une pièce, en px (D-273) : au milieu de la place laissée sous le texte, ou de la pièce entière quand aucun texte
- * n'y tient (dézoom). Trop basse, la place garde l'icône collée au mur du bas. Deux icônes se mettent côte à côte, le passager à gauche.
+ * n'y tient (dézoom). Trop basse, la place garde l'icône collée au mur du bas. Les icônes se mettent côte à côte, le passager à gauche.
  * `echelle` est l'échelle de la taille du texte (1 à STANDARD).
  */
 export function centresIcones(boite: BoitePx, textes: Etiquettes, icones: readonly Icone[], echelle: number): Partial<Record<Icone, Point>> {
@@ -207,7 +211,10 @@ export function centresIcones(boite: BoitePx, textes: Etiquettes, icones: readon
   const libre = boite.hauteur - haut;
   const y = boite.haut + (libre >= besoin ? haut + libre / 2 : boite.hauteur - besoin / 2);
   const x = boite.gauche + boite.largeur / 2;
-  if (icones.length === 1) return { [icones[0] as Icone]: { x, y } };
-  const ecart = ICONE_ECART * echelle;
-  return { joueur: { x: x - ecart, y }, creature: { x: x + ecart, y } };
+  const pas = icones.length > 2 ? Math.min(2 * ICONE_ECART * echelle, boite.largeur / icones.length) : 2 * ICONE_ECART * echelle;
+  const centres: Partial<Record<Icone, Point>> = {};
+  icones.forEach((icone, index) => {
+    centres[icone] = { x: x + (index - (icones.length - 1) / 2) * pas, y };
+  });
+  return centres;
 }

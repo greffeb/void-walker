@@ -21,6 +21,7 @@ import {
   type VueCreature,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde } from './monde';
+import { obstacleSur, renverserDrone } from './drone';
 import { LONGTEMPS, palier } from './anciennete';
 import type { Danger, Evenement, NiveauRisque, Palier } from './vocabulaire';
 
@@ -39,6 +40,8 @@ export interface SonEmis {
   readonly relance?: boolean;
   /** Alertée : ses pas en changeant de pièce, qui relancent son écoute, ou son souffle quand il reste là, tant qu'elle écoute (D-276). */
   readonly pas?: 'pas' | 'souffle';
+  /** Source mécanique active que la créature peut renverser lors de son inspection. */
+  readonly drone?: string;
 }
 
 const FORCE: Readonly<Record<Intensite, number>> = { normal: 1, fort: 2 };
@@ -67,6 +70,7 @@ function laissePasserLeSon(etat: EtatPartie, liaison: DefLiaison): boolean {
  * elle n'entre jamais dans une pièce en feu (D-189). Un vide ne se franchit que sur un pont, qu'elle croit solide (D-164).
  */
 function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  if (obstacleSur(monde, etat, liaison.id) !== undefined) return false;
   if (liaison.gouffre === true && pontSur(monde, etat, liaison.id) === undefined) return false;
   return etat.liaisons[liaison.id] === true && liaison.etroite !== true && !enFeu(etat, autreCote(liaison, depuis));
 }
@@ -76,6 +80,7 @@ function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depu
  * ni écoutille de capsule ou manoeuvrée de l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
  */
 function forcable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  if (obstacleSur(monde, etat, liaison.id) !== undefined) return false;
   if (etat.liaisons[liaison.id] === true || liaison.etroite === true || liaison.gouffre === true || liaison.blindee === true || verrouillee(etat, liaison.id)) return false;
   if (liaison.manoeuvre !== undefined || liaison.cachee !== undefined || liaison.haute !== undefined || enFeu(etat, autreCote(liaison, depuis))) return false;
   return !monde.objets.some((objet) => objet.capsule !== undefined && liaison.entre.includes(objet.capsule.interieur));
@@ -173,6 +178,7 @@ function percuParLePassager(
 }
 
 interface Reponse {
+  readonly droneRenverse?: string;
   readonly creature: EtatCreature;
   readonly evenements: Evenement[];
   readonly entendue?: BruitCreature;
@@ -300,6 +306,9 @@ function reaction(
   }
   const son = sonRetenu(monde, etat, creature.piece, sons);
   if (son !== undefined && son.piece === creature.piece) {
+    if (son.drone !== undefined && !creature.alcove) {
+      return { creature: { ...creature, indice: null, engagee: null }, evenements: [], droneRenverse: son.drone };
+    }
     // Elle rejoint la source, dans l'alcôve ou hors d'elle : repositionnement local, puis elle y cherche (C-03 §4.3, §5.1).
     return { creature: { ...creature, indice: null, engagee: null, alcove: son.alcove === true }, evenements: [] };
   }
@@ -425,7 +434,9 @@ export function reagir(
   const ouverte = reponse.enfoncee;
   const liaisons = ouverte === undefined ? etat.liaisons : { ...etat.liaisons, [ouverte]: true };
   const enfoncees = ouverte === undefined || !PORTE_DETRUITE ? {} : { enfoncees: [...(etat.enfoncees ?? []), ouverte] };
-  const apres: EtatPartie = { ...etat, objets, liaisons, ...enfoncees, creature: reglee };
+  const mecanique = reponse.droneRenverse === undefined ? { etat, evenements: [] } : renverserDrone(monde, etat, reponse.droneRenverse);
+  reponse.evenements.push(...mecanique.evenements);
+  const apres: EtatPartie = { ...mecanique.etat, objets, liaisons, ...enfoncees, creature: reglee };
   const vue: EtatPartie = { ...apres, reperes: retenir(apres, reponse.entendue) };
   const creature = ecouter(vue, reglee, reponse.ecoutee === true);
   const suite: EtatPartie = { ...vue, creature };

@@ -1,5 +1,5 @@
 import type { CartePublique, PieceCarte, RectPlan, RefPiece } from '../../engine';
-import { borner, cadreConnu, CIBLE_MIN_PX, enPixels, etiquettes, glisser, MARGE_VUE_PX, montrer, pincer, vueInitiale, ZOOM_MAX, zoneTouchable, zoomMin } from './vue';
+import { borner, cadreConnu, centresIcones, CIBLE_MIN_PX, enPixels, etiquettes, glisser, iconesDe, MARGE_VUE_PX, montrer, pincer, vueInitiale, ZOOM_MAX, zoneTouchable, zoomMin } from './vue';
 
 const ref = (nom: string): RefPiece => ({ sorte: 'piece', id: `e-${nom}`, nom });
 
@@ -21,6 +21,18 @@ const CARTE: CartePublique = {
 const ZONE = { largeur: 390, hauteur: 600 };
 
 describe('vue du plan (14 §2.3)', () => {
+  it('les trois présences conservent chacune leur centre, sans icône fantôme', () => {
+    const drone = { objet: { sorte: 'objet', id: 'e-drone', nom: 'caisse' } as const, position: null, drone: true as const };
+    const vue = piece('atelier', { x: 0, y: 0, largeur: 4, hauteur: 3 }, { statut: 'actuelle', creature: 'instant', objets: [drone] });
+    const icones = iconesDe(vue);
+    expect(icones).toEqual(['joueur', 'creature', 'drone']);
+    const centres = centresIcones({ gauche: 0, haut: 0, largeur: 136, hauteur: 102 }, { nom: [], etats: [], anciennete: [], texte: 1 }, icones, 1);
+    expect(Object.keys(centres)).toEqual(['joueur', 'creature', 'drone']);
+    expect(new Set(Object.values(centres).map((centre) => centre?.x)).size).toBe(3);
+    const seul = centresIcones({ gauche: 0, haut: 0, largeur: 136, hauteur: 102 }, { nom: [], etats: [], anciennete: [], texte: 1 }, ['drone'], 1);
+    expect(seul).toEqual({ drone: { x: 68, y: 51 } });
+  });
+
   it('cadre de la partie connue, capsule arrimée comprise ; aucun sans plan', () => {
     expect(cadreConnu(CARTE)).toEqual({ x: 0, y: 0, largeur: 10, hauteur: 11 });
     expect(cadreConnu({ ...CARTE, pieces: CARTE.pieces.map((vue) => ({ ...vue, rect: null })), capsules: [] })).toBeNull();
