@@ -1,5 +1,6 @@
 import { interpreterVerification } from '../app/verification';
-import { composerCommentaire, fichierVerification, MARQUEUR_VERSION } from './etat-verification';
+import { CATALOGUE } from './catalogue';
+import { aTester, composerCommentaire, fichierVerification, liensDeTest, MARQUEUR_VERSION } from './etat-verification';
 
 const COMMIT = 'e27d2204f1c3a9b8c7d6e5f4a3b2c1d0e9f8a7b6';
 const ADRESSE = 'https://greffeb.github.io/void-walker/pr-42/';
@@ -29,5 +30,34 @@ describe('état de la vérification publié avec la version de test (#180)', () 
     const echec = composerCommentaire({ etat: 'echec', adresse: ADRESSE, commit: COMMIT, captures: null });
     expect(echec).toContain('**Vérification automatique :** en échec. Une validation envoyée depuis cette version ne comptera pas.');
     expect(echec).toContain('Captures : absentes');
+  });
+
+  it('la ligne « Tester : » du corps de la PR : identifiants dans l’ordre, sans doublon ni phrase', () => {
+    expect(aTester('Résumé\n\nTester : m-12 ; `M12-m03-stockage` ; m-12 ; jouer la partie au bout\nCaptures : M12')).toEqual(['m-12', 'm12-m03-stockage']);
+    expect(aTester('Rien à tester ici.')).toEqual([]);
+  });
+
+  it('liens construits comme le jeu lit l’adresse : monde fixe, composition, station exacte, refus avec son motif', () => {
+    expect(liensDeTest([], ADRESSE, CATALOGUE)).toEqual([]);
+    expect(liensDeTest(['m-12', 'm12-m03-stockage', 'm07-m03-soute-2718281828', 'inconnu-1'], ADRESSE, CATALOGUE)).toEqual([
+      '**À tester :**',
+      `- [m-12](${ADRESSE}?monde=m-12)`,
+      `- [m12-m03-stockage](${ADRESSE}?station=m12-m03-stockage), un plan tiré à chaque nouvelle partie`,
+      `- [m07-m03-soute-2718281828](${ADRESSE}?station=m07-m03-soute-2718281828)`,
+      '- `inconnu-1` : refusé par le jeu (Station inconnue : inconnu-1.)',
+    ]);
+  });
+
+  it('les liens suivent l’état, au début comme à la fin de la CI', () => {
+    const liens = liensDeTest(['m-12'], ADRESSE, CATALOGUE);
+    const debut = composerCommentaire({ etat: 'en_cours', adresse: ADRESSE, commit: COMMIT, liens }).split('\n');
+    expect(debut.slice(debut.indexOf('**À tester :**') - 2, debut.indexOf('**À tester :**') + 2)).toEqual([
+      expect.stringMatching(/^\*\*Vérification automatique :\*\*/), '', '**À tester :**', `- [m-12](${ADRESSE}?monde=m-12)`,
+    ]);
+    const captures = [MARQUEUR_VERSION, '## Version de test', '', `**Adresse :** ${ADRESSE}`, 'Commit `e27d220`', '', 'Captures d’un navigateur…', ''].join('\n');
+    expect(composerCommentaire({ etat: 'verte', adresse: ADRESSE, commit: COMMIT, captures, liens }).split('\n')).toEqual([
+      MARQUEUR_VERSION, '## Version de test', '', `**Adresse :** ${ADRESSE}`, 'Commit `e27d220`', '', '**Vérification automatique :** verte.', '',
+      '**À tester :**', `- [m-12](${ADRESSE}?monde=m-12)`, '', 'Captures d’un navigateur…', '',
+    ]);
   });
 });

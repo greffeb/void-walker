@@ -135,6 +135,6 @@ Leçons de M-12 (#232) :
 ## 7. PR
 
 - Une issue, une branche (`content/<issue>-<nom>`), une PR, en **zone orange** : pas de fusion avant l'accord du porteur et sa partie au bout sur téléphone avec le morceau (**validation humaine requise** ; aucune case cochée par un agent).
-- Corps : ce qui change pour le joueur ; tableau critères ↔ preuves ; tests mis à jour et pourquoi ; limites à confirmer (mélanges sans règle, choix de l'agent) ; ligne `Captures : Plan — <titre>`.
+- Corps : ce qui change pour le joueur ; tableau critères ↔ preuves ; tests mis à jour et pourquoi ; limites à confirmer (mélanges sans règle, choix de l'agent) ; ligne `Captures : Plan — <titre>` ; ligne `Tester : m-NN ; <composition avec la créature dans le morceau>` (ex. `Tester : m-12 ; m12-m03-stockage`), d'où le robot tire les liens cliquables de la version de test pour la partie sur téléphone.
 - Faire relire le diff par un agent indépendant avant de pousser ; traiter les points bloquants, citer les autres dans la PR.
 - `gh` n'est pas installé sur le PC : écrire le corps de PR dans un fichier que le porteur peut ouvrir (par exemple `C:\Users\greffebe\Personal\pr-<issue>.md`) et lui donner l'adresse `https://github.com/greffeb/void-walker/compare/main...<branche>?expand=1`.
