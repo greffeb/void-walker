@@ -100,6 +100,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'objet_installe':
       return { objet: nomDe(textes, evenement.objet), capsule: nomDe(textes, evenement.capsule) };
     case 'objet_deplace':
+    case 'objet_pose_position':
       return { objet: nomDe(textes, evenement.objet), position: nomDe(textes, evenement.position) };
     case 'feu_gagne':
     case 'feu_eteint':

@@ -511,3 +511,47 @@ describe('regarder un document (#209, spec 2026-10-18 §9.2)', () => {
     expect(sortie.lignes[1]).toBe('');
   });
 });
+
+describe('CLI : poser un appui porté à une position (demande du porteur, grandes stations)', () => {
+  // La caisse se porte en grande station (spec 2026-10-18 §6.5) : AR-01, dont l'atelier a déjà ses positions, la rend portable.
+  const PORTABLE: EntreeMonde = {
+    ...AR01,
+    monde: { ...AR01.monde, objets: AR01.monde.objets.map((objet) => (objet.id === 'o-caisse' ? { ...objet, portable: true, encombrant: true } : objet)) },
+  };
+
+  /** Caisse en main dans l'atelier ; renvoie le contexte et les commandes brutes des lignes « Poser la caisse », sous la grille d'abord. */
+  function caisseEnMain() {
+    const ctx = contexte(new Map(), false, PORTABLE);
+    let sortie = executer(['nouvelle', '--graine', '5'], ctx);
+    for (const libelle of ['Aller dans l’atelier maintenance', 'Prendre la caisse']) sortie = executer(['jouer', numero(sortie.lignes, libelle)], ctx);
+    const brutes = executer(['voir', '--ids'], ctx).lignes.filter((ligne) => ligne.includes('Poser la caisse'));
+    const [sous, centre] = brutes.map((ligne) => ligne.match(/\[poser (e[0-9a-f]{8}) (e[0-9a-f]{8})\]/)?.slice(1) ?? []);
+    return { ctx, lignes: sortie.lignes, brutes, sous: sous ?? [], centre: centre ?? [] };
+  }
+
+  it('une ligne « Poser » par position de l’atelier ; l’aperçu et « jouer » suivent la ligne choisie', () => {
+    const { ctx, lignes, brutes } = caisseEnMain();
+    expect(brutes).toHaveLength(2);
+    const [sous = '', centre = ''] = lignes.filter((ligne) => ligne.includes('Poser la caisse')).map((ligne) => ligne.trim().match(/^(\d+)\./)?.[1] ?? '');
+    expect(executer(['apercu', sous], ctx).lignes).toContain('  La caisse sera sous la grille.');
+    expect(executer(['apercu', centre], ctx).lignes).toContain('  La caisse sera au centre de l’atelier.');
+    const sortie = executer(['jouer', sous], ctx);
+    expect(sortie.code).toBe(0);
+    expect(sortie.lignes[0]).toMatch(/^Vous (posez|déposez) la caisse sous la grille/);
+    expect(sortie.lignes).toContain('Actions engagées : 3');
+    expect(sortie.lignes.some((ligne) => ligne.includes('Ouvrir la grille') && !ligne.includes('indisponible'))).toBe(true);
+  });
+
+  it('« commande poser » accepte la position ; sans elle, ou d’ailleurs, rien n’est joué', () => {
+    const { ctx, sous, centre } = caisseEnMain();
+    const [caisse = '', position = ''] = sous;
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    expect(executer(['commande', 'poser', caisse], ctx).lignes[0]).toBe('Ce n’est pas possible ici : rien n’a été joué.');
+    expect(executer(['commande', 'poser', caisse, caisse], ctx).lignes[0]).toBe('Ce n’est pas possible ici : rien n’a été joué.');
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    expect(centre[0]).toBe(caisse);
+    const sortie = executer(['commande', 'poser', caisse, position], ctx);
+    expect(sortie.lignes[0]).toMatch(/^Vous (posez|déposez) la caisse sous la grille/);
+    expect(sortie.lignes).toContain('Actions engagées : 3');
+  });
+});

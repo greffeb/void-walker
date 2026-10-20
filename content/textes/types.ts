@@ -296,6 +296,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   soin_indemne: ['objet'],
   soin_blesse: ['objet'],
   objet_deplace: ['objet', 'position'],
+  objet_pose_position: ['objet', 'position'],
   feu_derriere: ['passage'],
   feu_gagne: ['piece'],
   feu_eteint: ['piece'],

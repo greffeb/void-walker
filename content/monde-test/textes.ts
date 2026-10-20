@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { BRUITS_STATION, FIN, PILLAGES, SUPPORTS, TRACES } from '../textes/couches';
+import { BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, SUPPORTS, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -50,6 +50,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   },
   evenements: {
     bruit_station: BRUITS_STATION,
+    objet_pose_position: POSE_POSITION,
     reveil: [
       'Vous ouvrez les yeux dans {le:piece}. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.',
       'Vous vous réveillez dans {le:piece}, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.',

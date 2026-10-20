@@ -3,10 +3,11 @@ import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engi
 import { MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
 import { FicheDocument } from './bulle';
+import { CATALOGUE } from './catalogue';
 import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { EcranFin } from './EcranFin';
 import { APERCU_TAILLE, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
-import { composerDock, unToucher, type Groupe } from './ecran';
+import { composerDock, etapeBulle, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
 import { commencer, consulter, consulterDocument, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
 import type { EtatInstallation, Installation } from './installation';
@@ -1398,5 +1399,71 @@ describe('fiche d’un document (#209, D-301, spec 2026-10-18 §9.1)', () => {
     const puces = [...entre(html, '<ul class="puces">', '</ul>').matchAll(/<button type="button" class="puce"([^>]*)><span aria-hidden="true">▸ <\/span>([^<]*)<\/button>/g)];
     expect(puces.map(([, , libelle]) => libelle).sort()).toEqual(['Affiche', 'Carnet', 'Enregistreur', 'Inscription', 'Mot de Léa', 'Mot de Malik', 'Terminal de quart']);
     expect(new Set(puces.map(([, attributs]) => attributs)).size).toBe(1);
+  });
+});
+
+describe('grande station : poser la caisse portée sous la grille d’un seul geste (demande du porteur)', () => {
+  // La caisse de M-02 se porte en grande station (spec 2026-10-18 §6.5) ; état placé à la main, la route de l'atelier ne compte pas ici.
+  const COMPOSITION = 'g1-m01-m02-m09-m06-cale';
+  const grande = ((): EntreeMonde => {
+    for (let graine = 0; graine < 50; graine += 1) {
+      const entree = CATALOGUE.construireGrande(COMPOSITION, graine);
+      if (!('refus' in entree)) return entree;
+    }
+    throw new Error(`${COMPOSITION} : aucun plan sur 50 graines.`);
+  })();
+  const envGrande: Environnement = { monde: grande.monde, textes: grande.textes, version: 'v-test', stockage: memoire(), graine: () => 20261010 };
+
+  async function atelierCaisseEnMain(): Promise<Jeu> {
+    const jeu = await commencer(envGrande);
+    const etat = { ...jeu.partie.etat, piece: 'm-02/p-atelier', objets: { ...jeu.partie.etat.objets, 'm-02/o-caisse': { type: 'passager' as const } } };
+    return { ...jeu, partie: { ...jeu.partie, etat } };
+  }
+
+  const caisseDe = (jeu: Jeu): Groupe => {
+    const groupe = composerDock(observer(grande.monde, jeu.partie.etat)).inventaire.find((candidat) => candidat.cible.nom === 'caisse');
+    if (groupe === undefined) throw new Error('Caisse absente de l’inventaire.');
+    return groupe;
+  };
+
+  const inventaire = (jeu: Jeu, action: IdAction | null, parametre: string | null = null): string =>
+    renderToStaticMarkup(
+      <BulleInventaire
+        id="inventaire"
+        groupes={composerDock(observer(grande.monde, jeu.partie.etat)).inventaire}
+        cible={caisseDe(jeu).cible.id}
+        choisir={rienAJouer}
+        {...composition(jeu, action, parametre, envGrande)}
+      />,
+    );
+
+  it('de la fiche, « Poser » n’est pas d’un seul toucher : il ouvre « OÙ ? » avec les positions de l’atelier, puis l’aperçu', async () => {
+    const jeu = await atelierCaisseEnMain();
+    const caisse = caisseDe(jeu);
+    const poses = caisse.options.filter((option) => option.action === 'poser');
+    expect(poses.map((option) => option.parametre?.nom)).toEqual(['sous_grille', 'centre']);
+    expect(poses.map((option) => unToucher(grande.monde, jeu.partie, option))).toEqual([false, false]);
+    expect(etapeBulle(caisse, 'poser', null)).toMatchObject({ type: 'parametre', action: 'poser' });
+
+    const fiche = inventaire(jeu, null);
+    expect(texte(fiche)).toMatch(/^‹ Caisse ✕ .* ▸ Poser$/);
+    expect(fiche).not.toContain('sans confirmation');
+
+    expect(texte(inventaire(jeu, 'poser'))).toBe('‹ Caisse › Poser ✕ Où ? ▸ sous la grille ▸ au centre de la pièce');
+    const sous = poses.find((option) => option.parametre?.nom === 'sous_grille');
+    if (sous?.parametre === undefined) throw new Error('Position sous la grille absente.');
+    expect(texte(inventaire(jeu, 'poser', sous.parametre.id))).toBe('‹ Caisse › Poser › sous la grille ✕ Savoir La caisse sera sous la grille. Annuler Confirmer');
+  });
+
+  it('confirmé sous la grille : la caisse y est, le récit et le rappel le disent, la grille se touche', async () => {
+    const jeu = await atelierCaisseEnMain();
+    const sous = caisseDe(jeu).options.find((option) => option.action === 'poser' && option.parametre?.nom === 'sous_grille');
+    if (sous === undefined) throw new Error('Poser sous la grille absent.');
+    const pose = await jouerOption(envGrande, jeu, sous);
+    expect(pose.recit.join(' ')).toMatch(/Vous (posez|déposez) la caisse sous la grille/);
+    expect(pose.rappel).toEqual({ texte: 'Caisse · Poser · sous la grille', capitales: false });
+    expect(pose.partie.etat.objets['m-02/o-caisse']).toMatchObject({ type: 'piece', piece: 'm-02/p-atelier' });
+    const grille = observer(grande.monde, pose.partie.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
+    expect(grille).toMatchObject({ disponible: true });
   });
 });

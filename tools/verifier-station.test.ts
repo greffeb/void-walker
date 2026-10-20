@@ -1,5 +1,5 @@
 import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, type EntreeMonde } from '../content';
-import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde } from '../engine';
+import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde, type Partie } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
 import { executerParcours, trouverOption } from './rejouer-parcours';
@@ -233,6 +233,55 @@ describe('recherche depuis un état donné (spec 2026-10-18 §7.4)', () => {
     expect(chercherJusqua(station(), depart, () => true, 10)).toEqual([]);
     expect(chercherJusqua(station(), depart, () => false, 10_000)).toBeNull();
   });
+});
+
+describe('poser la caisse sous la grille d’un seul geste (demande du porteur, grandes stations)', () => {
+  const caisse = 'm-02/o-caisse';
+  /** Première station de la composition, sur 50 graines, dont la caisse de M-02 attend encore dans son atelier. */
+  const grande = ((): EntreeMonde => {
+    for (let graine = 0; graine < 50; graine += 1) {
+      const entree = CATALOGUE.construireGrande('g1-m01-m02-m04-m03-observation', graine);
+      if (!('refus' in entree) && entree.monde.objets.some((objet) => objet.id === caisse && objet.piece === 'm-02/p-atelier')) return entree;
+    }
+    throw new Error('Aucune station avec la caisse dans l’atelier sur 50 graines.');
+  })();
+
+  it('en main dans l’atelier de M-02, la caisse se pose sous la grille ou au centre ; ailleurs, « Poser » ne change pas', () => {
+    const depart = nouvellePartie(grande.monde, { version: 'test', graine: 1 });
+    const avecPositions = new Set((grande.monde.positions ?? []).map((position) => position.piece));
+    expect([...avecPositions]).toEqual(['m-02/p-atelier']);
+    for (const piece of grande.monde.pieces) {
+      const etat = { ...depart.etat, piece: piece.id, objets: { ...depart.etat.objets, [caisse]: { type: 'passager' as const } } };
+      const poses = observer(grande.monde, etat).menu.filter((option) => option.action === 'poser' && option.cible.nom === 'caisse');
+      expect(poses.map((option) => option.parametre?.nom), piece.id).toEqual(avecPositions.has(piece.id) ? ['sous_grille', 'centre'] : [undefined]);
+    }
+  });
+
+  it('depuis le départ : la caisse prise dans l’atelier, une seule action la pose sous la grille, que le passager peut alors ouvrir', () => {
+    const depart = nouvellePartie(grande.monde, { version: 'test', graine: 1 });
+    const etapes = chercherJusqua(grande, depart, (etat) => etat.piece === 'm-02/p-atelier' && etat.objets[caisse]?.type === 'passager', 20_000);
+    if (etapes === null) throw new Error('Caisse en main dans l’atelier non atteinte.');
+    let partie = depart;
+    for (const etape of etapes) {
+      const option = trouverOption(observer(grande.monde, partie.etat), etape);
+      if (option === undefined || !option.disponible) throw new Error(`Étape ${etape.action} ${etape.cible} indisponible.`);
+      const resultat = jouer(grande.monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`Étape ${etape.action} ${etape.cible} : ${resultat.type}.`);
+      partie = resultat.partie;
+    }
+    const grille = (courante: Partie) => observer(grande.monde, courante.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
+    expect(grille(partie)).toMatchObject({ disponible: false, raison: 'hors_de_portee' });
+    const sous = observer(grande.monde, partie.etat).menu.find((option) => option.action === 'poser' && option.parametre?.nom === 'sous_grille');
+    if (sous === undefined) throw new Error('« Poser » sous la grille absent.');
+    const avant = partie.etat.actions;
+    const pose = jouer(grande.monde, partie, sous.commande);
+    if (pose.type !== 'engagee') throw new Error(`Poser sous la grille : ${pose.type}.`);
+    expect(pose.partie.etat.actions).toBe(avant + 1);
+    expect(pose.tirages).toEqual([]);
+    expect(pose.evenements.map((evenement) => evenement.type)).toEqual(['objet_pose_position']);
+    expect(pose.partie.etat.objets[caisse]).toMatchObject({ type: 'piece', piece: 'm-02/p-atelier', position: 'm-02/pos-sous-grille' });
+    expect(grille(pose.partie)).toMatchObject({ disponible: true });
+  }, 60_000);
 });
 
 describe('clé des données de règles', () => {

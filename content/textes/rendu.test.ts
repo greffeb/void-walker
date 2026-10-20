@@ -1,4 +1,5 @@
-import type { Consultation } from '../../engine';
+import type { Consultation, Evenement } from '../../engine';
+import { MONDES } from '../index';
 import { fuitesDuCatalogue, reunir } from './couches';
 import { rendreConsultation, rendreEvenements } from './rendu';
 
@@ -94,5 +95,42 @@ describe('bruit de station et attentes à la suite (spec 2026-10-18 §5.5, D-289
     const texte = rendreEvenements(TEXTES, [{ type: 'attente' }, { type: 'bruit_station' }], { graine: 3, action: 4, attentes: 4 });
     expect(texte).toHaveLength(2);
     expect(TEXTES.evenements.bruit_station).toContain(texte[1]);
+  });
+});
+
+// Poser un appui porté à une position de la pièce (demande du porteur, grandes stations) : « Vous posez la caisse sous la grille. »
+
+const NOMS_POSE = reunir([
+  {
+    noms: {
+      caisse: { texte: 'caisse', genre: 'f', nombre: 's', elision: false },
+      sous_grille: { texte: 'sous la grille', genre: 'f', nombre: 's', elision: false },
+    },
+    descriptions: {},
+    assistance: {},
+  },
+]);
+const POSE_SOUS_LA_GRILLE: Evenement = {
+  type: 'objet_pose_position',
+  objet: { sorte: 'objet', id: 'e00000002', nom: 'caisse' },
+  position: { sorte: 'position', id: 'e00000003', nom: 'sous_grille' },
+};
+const TEXTES_POSE = ['Vous posez {le:objet} {nom:position}. Vos mains sont libres.', 'Vous déposez {le:objet} {nom:position}, bien d’aplomb. Vous gardez les mains libres.'];
+
+describe('pose à une position (demande du porteur, grandes stations)', () => {
+  it('le socle donne les deux textes de l’événement, avec l’objet et la position', () => {
+    expect(NOMS_POSE.evenements.objet_pose_position).toEqual(TEXTES_POSE);
+  });
+
+  it('se raconte avec le nom de l’objet et celui de la position, sous l’une ou l’autre forme', () => {
+    const phrases = new Set(Array.from({ length: 30 }, (_, graine) => rendreEvenements(NOMS_POSE, [POSE_SOUS_LA_GRILLE], { graine, action: 0 })[0]));
+    expect([...phrases].sort()).toEqual([
+      'Vous déposez la caisse sous la grille, bien d’aplomb. Vous gardez les mains libres.',
+      'Vous posez la caisse sous la grille. Vos mains sont libres.',
+    ]);
+  });
+
+  it('AR-01, AR-02 et le monde de test, écrits en entier, reprennent les mêmes textes', () => {
+    for (const id of ['ar-01', 'ar-02', 'monde-test']) expect(MONDES[id]?.textes.evenements.objet_pose_position, id).toEqual(TEXTES_POSE);
   });
 });

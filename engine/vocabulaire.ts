@@ -67,6 +67,7 @@ export const TYPES_EVENEMENT = [
   'soin_indemne',
   'soin_blesse',
   'objet_deplace',
+  'objet_pose_position',
   'feu_derriere',
   'feu_gagne',
   'feu_eteint',
@@ -236,6 +237,8 @@ export type Evenement =
   | { readonly type: 'soin_indemne'; readonly objet: RefObjet }
   | { readonly type: 'soin_blesse'; readonly objet: RefObjet }
   | { readonly type: 'objet_deplace'; readonly objet: RefObjet; readonly position: RefPosition }
+  /** Un appui déplaçable porté se pose directement à une position de la pièce : sous la grille, sans passer par le sol (grandes stations). */
+  | { readonly type: 'objet_pose_position'; readonly objet: RefObjet; readonly position: RefPosition }
   /** Le passager voit des flammes par le passage qu'il vient d'ouvrir, ou par un passage ouvert dont il ignore la destination. */
   | { readonly type: 'feu_derriere'; readonly passage: RefPassage }
   /** Le feu gagne une pièce que le passager voit et sait nommer : la sienne, ou une voisine par un passage ouvert (C-03 §5.3). */

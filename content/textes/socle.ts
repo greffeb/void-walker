@@ -36,6 +36,8 @@ export const SOCLE = {
     ],
     objet_pris: ['Vous prenez {le:objet}. Vous l’avez en main.', 'Vous soulevez {le:objet}. Vous l’emportez avec vous.'],
     objet_pose: ['Vous posez {le:objet} au sol. Vos mains sont libres.', 'Vous déposez {le:objet} à vos pieds. Vous gardez les mains libres.'],
+    // Un appui porté se pose directement à une position de la pièce (demande du porteur). Écrits par l'assistant principal (D-243).
+    objet_pose_position: ['Vous posez {le:objet} {nom:position}. Vos mains sont libres.', 'Vous déposez {le:objet} {nom:position}, bien d’aplomb. Vous gardez les mains libres.'],
     passage_ouvert: ['Vous ouvrez {le:passage}. Le passage est dégagé.', 'Vous tirez sur la poignée {de:passage}. Le passage s’ouvre devant vous.'],
     passage_ferme: ['Vous fermez {le:passage}. Le joint se plaque contre le cadre.', 'Vous refermez {le:passage}. Le loquet s’enclenche.'],
     deplacement: ['Vous passez par {le:passage}. Vous voici dans {le:piece}.', 'Vous franchissez {le:passage}. Vous entrez dans {le:piece}.'],

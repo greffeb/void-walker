@@ -49,6 +49,9 @@ export const FIN: TextesMonde['fin'] = reunir([]).fin;
 /** Bruits de station du socle (spec 2026-10-18 §5.5), repris par les mondes écrits en entier, qui n’en font jamais entendre. */
 export const BRUITS_STATION: TextesMonde['evenements']['bruit_station'] = reunir([]).evenements.bruit_station;
 
+/** Pose d’un appui à une position (demande du porteur), reprise par les mondes écrits en entier, où la caisse ne se porte jamais. */
+export const POSE_POSITION: TextesMonde['evenements']['objet_pose_position'] = reunir([]).evenements.objet_pose_position;
+
 /** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 
