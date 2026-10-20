@@ -133,7 +133,7 @@ describe('validation signée par le téléphone (C-10 §4)', () => {
   });
 
   it('RP-05 : le journal des parties humaines ne liste que des validations reconnues, chacune liée à sa partie signée', () => {
-    const journal = readFileSync(`${REPO_ROOT}/docs/journal-parties-humaines.md`, 'utf8');
+    const journal = readFileSync(`${REPO_ROOT}/docs/journal-parties-humaines.md`, 'utf8').replaceAll('\r\n', '\n');
     const section = /^## Validations signées\n([\s\S]*?)(?=^## )/m.exec(journal)?.[1];
     expect(section).toBeDefined();
     const lignes = (section ?? '').split('\n').filter((ligne) => ligne.startsWith('- '));

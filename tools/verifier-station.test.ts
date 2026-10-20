@@ -316,7 +316,7 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
     const attendu: [string, LigneCatalogue['verdict'], number][] = CATALOGUE.compositions.map(({ id, forme, chemins, final, refus }) =>
       (chemins.includes('m-07') && final === 'm-03') || refus !== null ? [id, 'refusee', 0] : [id, 'non_prouvee', forme === 'libre' ? 2 : 1],
     );
-    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(50 + 24 + 30);
+    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(56 + 27 + 34);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
     for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) {
       const composition = CATALOGUE.compositions.find(({ id }) => id === ligne.composition);
@@ -371,12 +371,12 @@ function cacheMemoire(): CacheVerdicts & { readonly cles: string[] } {
 describe('publication : ce que check:stations doit prouver (#152, #180)', () => {
   // La preuve du catalogue entier est faite par check:stations seul (#180) : il échoue si une publiée n'est pas prouvée ou si
   // une prouvée n'est pas publiée. Ici, la règle de publication elle-même, sans recherche.
-  it('publiées : toutes les compositions permises, sauf les bouchées (palier ou atelier sans aide avant) ; 684 compositions, 416 publiées en chaîne et 184 en ordre libre', () => {
-    expect(CATALOGUE.compositions).toHaveLength(684);
+  it('publiées : toutes les compositions permises sauf les bouchées ; 850 compositions, 520 publiées en chaîne et 234 en ordre libre', () => {
+    expect(CATALOGUE.compositions).toHaveLength(850);
     const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition)).map((composition) => composition.id);
     expect(COMPOSITIONS_PUBLIEES).toEqual(attendues);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(416);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(184);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(520);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(234);
   });
 
   // Quelques compositions choisies : une chaîne, une bouchée, un ordre libre, une refusée.
@@ -421,11 +421,11 @@ describe('publication : ce que check:stations doit prouver (#152, #180)', () => 
     else expect(ligne.ordres).toBeUndefined();
   }, 120000);
 
-  it('chemins de plans : 162 en chaîne, 72 en ordre libre, chacun mesuré (seuil de 95 % appliqué par check:stations)', () => {
+  it('chemins de plans : 200 en chaîne, 90 en ordre libre, chacun mesuré (seuil de 95 % appliqué par check:stations)', () => {
     const chaines = [
       ...new Set(CATALOGUE.compositions.map(({ forme, chemins, final }) => ['vestibule', ...(forme === 'libre' ? ['carrefour'] : []), ...chemins, final].join(' + '))),
     ];
-    expect(chaines).toHaveLength(162 + 72);
+    expect(chaines).toHaveLength(200 + 90);
     const mesures = mesurerPlans(2);
     expect(mesures.map((mesure) => mesure.chemin)).toEqual(chaines);
     expect(cheminsDesPlans().map(([chemin]) => chemin)).toEqual(chaines);

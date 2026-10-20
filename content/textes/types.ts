@@ -132,6 +132,17 @@ export interface TextesMonde {
   /** Verbe seul, sans trou : options d'une puce et rappel de la dernière action (« > Carnet · Prendre »). */
   readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
+    readonly drone_veille: string;
+    readonly drone_trajet: string;
+    readonly drone_maintien: string;
+    readonly drone_deraille: string;
+    readonly drone_a_rearmer: string;
+    readonly drone_arrete: string;
+    readonly drone_termine: string;
+    readonly poigneeTenue: string;
+    readonly freinSerre: string;
+    readonly freinDesserre: string;
+    readonly passageEncombre: string;
     readonly lieu: string;
     readonly objets: string;
     readonly aucunObjet: string;
@@ -236,6 +247,17 @@ export interface TextesMorceau {
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */
 export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
+  drone_envoye: ['objet'],
+  drone_maintient: ['objet'],
+  drone_deraille: ['objet'],
+  drone_replace: ['objet'],
+  drone_rearme: ['objet'],
+  drone_arrete: ['objet'],
+  drone_termine: ['objet'],
+  drone_bruit_arrete: ['passage'],
+  poignee_tenue: ['objet'],
+  poignee_lachee: ['objet'],
+  passage_ouvert_encombre: ['passage'],
   reveil: ['piece'],
   objet_pris: ['objet', 'piece'],
   objet_pose: ['objet', 'piece'],
@@ -292,6 +314,13 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
+  envoyer: ['cible'],
+  tenir: ['cible'],
+  lacher: ['cible'],
+  replacer: ['cible'],
+  rearmer: ['cible'],
+  arreter_drone: ['cible'],
+  reprendre_drone: ['cible'],
   regarder: ['cible'],
   prendre: ['cible'],
   poser: ['cible'],
@@ -365,6 +394,12 @@ export const ROLES_PASSAGE_SANS_DESTINATION = ['passage'] as const;
 export const ROLES_INDISPONIBILITE = ['cible'] as const;
 
 export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
+  enverra_drone: ['objet'],
+  tiendra: ['objet'],
+  lachera: ['objet'],
+  replacera_drone: ['objet'],
+  rearmera_drone: ['objet'],
+  arretera_drone: ['objet'],
   portera: ['objet'],
   laissera: ['objet', 'piece'],
   ouvrira: ['passage'],
@@ -410,6 +445,17 @@ export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
 };
 
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
+  drone_veille: ['objet'],
+  drone_trajet: ['objet'],
+  drone_maintien: ['objet'],
+  drone_deraille: ['objet'],
+  drone_a_rearmer: ['objet'],
+  drone_arrete: ['objet'],
+  drone_termine: ['objet'],
+  poigneeTenue: ['objet'],
+  freinSerre: ['objet'],
+  freinDesserre: ['objet'],
+  passageEncombre: ['passage'],
   lieu: ['piece'],
   objets: ['liste'],
   aucunObjet: [],

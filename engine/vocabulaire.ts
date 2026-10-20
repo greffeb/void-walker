@@ -29,6 +29,13 @@ export const ACTIONS = [
   'retablir',
   'boucler',
   'actionner',
+  'envoyer',
+  'tenir',
+  'lacher',
+  'replacer',
+  'rearmer',
+  'arreter_drone',
+  'reprendre_drone',
   'attendre',
 ] as const;
 export type IdAction = (typeof ACTIONS)[number];
@@ -49,6 +56,7 @@ export const TYPES_EVENEMENT = [
   'objet_pris',
   'objet_pose',
   'passage_ouvert',
+  'passage_ouvert_encombre',
   'passage_ferme',
   'deplacement',
   'piece_decouverte',
@@ -98,6 +106,16 @@ export const TYPES_EVENEMENT = [
   'cloison_deverrouillee',
   'porte_secouee',
   'porte_enfoncee',
+  'drone_envoye',
+  'drone_maintient',
+  'drone_deraille',
+  'drone_replace',
+  'drone_rearme',
+  'drone_arrete',
+  'drone_termine',
+  'drone_bruit_arrete',
+  'poignee_tenue',
+  'poignee_lachee',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
@@ -134,6 +152,9 @@ export const RAISONS_REFUS = [
   'verrouillee',
   'enfoncee',
   'sans_carte',
+  'lacher_poignee',
+  'frein_serre',
+  'encombre_par_obstacle',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -156,6 +177,9 @@ export const RAISONS_INDISPONIBILITE = [
   'verrouillee',
   'enfoncee',
   'sans_carte',
+  'lacher_poignee',
+  'frein_serre',
+  'encombre_par_obstacle',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 
@@ -176,6 +200,7 @@ export interface RefObjet {
  * destination d'un passage sans signalétique n'est pas découverte (C-06 §3, K-05).
  */
 export interface RefPassage {
+  readonly encombre?: true;
   readonly sorte: 'passage';
   readonly id: string;
   readonly nom: string;
@@ -210,10 +235,13 @@ export interface Commande {
 }
 
 export type Evenement =
+  | { readonly type: 'drone_envoye' | 'drone_maintient' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine' | 'poignee_tenue' | 'poignee_lachee'; readonly objet: RefObjet }
+  | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'objet_pris'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'objet_pose'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'passage_ouvert'; readonly passage: RefPassage }
+  | { readonly type: 'passage_ouvert_encombre'; readonly passage: RefPassage }
   | { readonly type: 'passage_ferme'; readonly passage: RefPassage }
   | { readonly type: 'deplacement'; readonly passage: RefPassage; readonly piece: RefPiece }
   | { readonly type: 'piece_decouverte'; readonly piece: RefPiece }
@@ -357,11 +385,18 @@ export const TYPES_SAVOIR = [
   'retablira',
   'bouclera',
   'deverrouillera',
+  'enverra_drone',
+  'tiendra',
+  'lachera',
+  'replacera_drone',
+  'rearmera_drone',
+  'arretera_drone',
 ] as const;
 export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
 /** Conséquence connue du passager avant d'agir (C-06 §4) : jamais un secret ni un résultat de dé. */
 export type Savoir =
+  | { readonly type: 'enverra_drone' | 'tiendra' | 'lachera' | 'replacera_drone' | 'rearmera_drone' | 'arretera_drone'; readonly objet: RefObjet }
   | { readonly type: 'portera'; readonly objet: RefObjet }
   | { readonly type: 'laissera'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'ouvrira'; readonly passage: RefPassage }
@@ -452,7 +487,11 @@ export type DessinPassage = 'porte' | 'tirets';
 export interface ObjetCarte {
   readonly objet: RefObjet;
   readonly position: RefPosition | null;
+  /** Identité d'un objet déjà vu ; aucune position réelle ni phase hors de vue. */
+  readonly drone?: true;
 }
+
+export type PhaseDrone = 'veille' | 'trajet' | 'maintien' | 'deraille' | 'a_rearmer' | 'arrete' | 'termine';
 
 /** Une pièce que le passager connaît, telle qu'il l'a vue (14 §3.4). */
 export interface PieceCarte {
@@ -509,6 +548,10 @@ export interface CartePublique {
 
 /** Tout ce que le passager sait (C-06) ; seule sortie vers le joueur. */
 export interface Observation {
+  /** Seulement dans les mondes concernés ; seuls les drones de la pièce actuelle sont renseignés. */
+  readonly drones?: readonly { readonly objet: RefObjet; readonly phase: PhaseDrone }[];
+  readonly poigneeTenue?: RefObjet;
+  readonly freins?: readonly { readonly objet: RefObjet; readonly desserre: boolean }[];
   readonly piece: RefPiece;
   readonly objets: readonly RefObjet[];
   /** Objets déplaçables de la pièce posés à une position (C-02 §2), comme la caisse sous la grille. */

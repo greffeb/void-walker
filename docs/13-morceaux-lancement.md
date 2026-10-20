@@ -8,7 +8,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
 ## 1. Cadre accepté
 
-- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232) ; M-11 est développé séparément.
+- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-11, sas de sécurité, a rejoint la branche principale par #231. M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232).
 - Une station : une pièce de départ, deux ou trois obstacles dont **un seul problème final**, l'embarquement avec sa capsule, une seule créature (D-119, D-159, GP-02).
 - Obstacles en chaîne ou en ordre libre (D-160) ; créature placée à un endroit prévu par un morceau, jamais au départ (D-161) ; tirage du problème final à pile ou face, puis de la station au pur hasard parmi celles qui ont ce final, une station déjà jouée pouvant revenir (D-162, D-253).
 - Deux morceaux qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) ne se mélangent qu'une fois leurs règles décidées (D-167) ; les autres se mélangent sans règle de plus (D-248).
@@ -138,7 +138,7 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 
 Avec ces règles, toutes les paires des onze morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). M-11 ne joue sur aucune de ces familles : ses dix paires sont permises sans règle de plus (D-248, D-290). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
 
-Pour M-12 (D-306), le bruit suit la même sélection et le même masquage que les équipements existants ; aucun changement des priorités générales de la créature. L'huile, le froid et la gravité gardent leurs effets sur ses réactions. Les équipements de M-12 ne sont pas détruits par le feu ou le vide ; le passager, lui, garde tous ses risques. Le chariot est une obstruction de déplacement, pas une cloison étanche : les autres canaux conservent les qualités déclarées de la liaison. La permission d'une paire ne remplace jamais la preuve d'une station complète. La paire M-11/M-12 attend leur intégration commune ; M-11 n'est pas importé depuis un worktree en cours.
+Pour M-12 (D-306), le bruit suit la même sélection et le même masquage que les équipements existants ; aucun changement des priorités générales de la créature. L'huile, le froid et la gravité gardent leurs effets sur ses réactions. Les équipements de M-12 ne sont pas détruits par le feu ou le vide ; le passager, lui, garde tous ses risques. Le chariot est une obstruction de déplacement, pas une cloison étanche : les autres canaux conservent les qualités déclarées de la liaison. La permission d'une paire ne remplace jamais la preuve d'une station complète. M-11/M-12 gardent leurs règles indépendantes (D-248), notamment le blindage de M-11 ; leurs compositions doivent être prouvées ensemble sur la branche principale actualisée.
 
 ### 4.1 Table exhaustive des paires (L0, #150)
 
@@ -723,6 +723,33 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 | **Q-204, D-290.** Le sas de sécurité reste-t-il dans une station d'essai, ou entre-t-il aussi dans le tirage de NOUVELLE PARTIE ? | « Aussi dans le tirage public » |
 | **Q-205, D-291.** Comment la carte ouvre-t-elle la porte blindée : un lecteur qui lève le verrou une fois pour toutes, ou autre chose ? | « Lecteur, une fois pour toutes » |
 | **Q-206, D-293.** Où attend la créature dans ce morceau ? | « Pièce à part, fermée » |
+
+### 7.11 Chariot et drone M-12 (#232)
+
+**Conception retenue pour intégration, validation sur téléphone à venir.** La maquette V3 a permis d'essayer la coopération puis une panne récupérable. Elle ne prouve ni les réactions du vrai moteur, ni le passage des stations générées. L'intégration reprend la branche principale contenant M-11 et suit [17 — Ajouter un morceau](17-ajouter-un-morceau.md).
+
+Questions consignées lors de l'intégration du 20 octobre, à partir des échanges des 19 et 20 octobre :
+
+| Question | Choix du porteur | Décision |
+| --- | --- | --- |
+| Q-207 — Coopération nécessaire ou alternative consommant un objet utile ? | « Coopération nécessaire dans cette situation » | D-304 |
+| Q-208 — Commander plus près ou explorer une panne réparable ? | « Explorer une panne réparable du drone » | D-305 |
+| Q-209 — Remise en route sur place ou retour à l'atelier ? | « Remise en route sur place en deux gestes » | D-305 |
+| Q-210 — Station d'essai seule ou aussi tirage public ? | « Station d'essai et tirage aléatoire dès cette PR » | D-307 |
+| Q-211 — Autres causes de panne ou seulement la créature pour le premier lot ? | « Seule la créature fait dérailler le drone pour ce premier lot » | D-306 |
+
+Le pictogramme de carte est une demande directe, accompagnée d'une référence visuelle, pas une question supplémentaire (D-307).
+
+**Points de preuve avant publication :**
+
+- états/empreintes et rejeux des anciens mondes préservés ; états du drone bornés dans la recherche ;
+- vraie coopération, remise sur rail puis réarmement, sans faux signal de sortie perdue ;
+- objets indispensables inclus dans l'élagage de `verifier-sortie`, commandes de carrefour seules comptées pour l'ordre libre ;
+- place de créature et clés de textes sans collision avec M-03 et M-11 ; aucun état changeant ni solution révélée par une description statique ;
+- liste publique régénérée et chaque composition publiée prouvée ; nombres dérivés des formules de [17 §4](17-ajouter-un-morceau.md#4-tests-qui-épinglent-des-nombres), pas d'une valeur reçue dans un test ;
+- plan et pictogramme, parcours CLI public, contrôle des textes et vérification complète.
+
+Les nombres de compositions effectivement publiées, leurs refus et les mesures de plans restent à reporter après les vérifications de #232 ; aucune preuve de catalogue M-12 n'est revendiquée à ce stade.
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

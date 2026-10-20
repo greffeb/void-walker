@@ -88,13 +88,13 @@ Qualités de l'ordre libre (D-259, L5 #155) : **cloison verrouillée**, liaison 
 
 Qualités du sas de sécurité (#203, D-291, D-292) : **porte blindée**, porte pleine que la créature ne force jamais, même alertée (D-279 ne s'y applique pas) ; ouverte, elle se traverse comme une autre ; **commande à carte**, commande de déverrouillage qui exige un objet portable désigné en main (la carte de sécurité) : sans lui, elle est indisponible ; avec lui, elle lève le verrou comme une autre et l'objet reste porté.
 
-Une qualité absente de cette table n'existe pas encore. En ajouter une, ou combiner deux qualités sans règle acceptée (par exemple un liquide glissant inflammable, D-051), demande une décision. La dépressurisation de la baie (M-06) et le feu ont leur règle depuis MX-02 (D-174) ; l'air et le feu passent par-dessus le vide de la passerelle (D-246, D-247).
-
-## 6. Port et transferts
-
 **Équipement de coopération M-12 (D-304 à D-306).** Une poignée à maintien commande le frein d'un chariot, dont le déplacement dégage un passage. Le passager doit être au poste pour tenir la poignée et la relâche en se déplaçant ; il ne peut pas maintenir et pousser dans une autre pièce. Un drone local peut assurer le maintien à sa place. Le drone et le chariot ne sont pas des objets que le passager emporte dans l'inventaire.
 
 Le drone conserve un emplacement réel et une phase de fonctionnement. Son trajet emprunte les liaisons autorisées, pas un déplacement à travers une porte fermée. Un déraillement interrompt le maintien et coupe le bruit, mais reste récupérable : replacer sur rail puis réarmer/relancer, deux actions sur place, sans consommable. Le feu, le vide et le froid ne créent pas d'autre panne pour ce premier lot. Aucune règle ne teste un nom de contenu.
+
+Une qualité absente de cette table n'existe pas encore. En ajouter une, ou combiner deux qualités sans règle acceptée (par exemple un liquide glissant inflammable, D-051), demande une décision. La dépressurisation de la baie (M-06) et le feu ont leur règle depuis MX-02 (D-174) ; l'air et le feu passent par-dessus le vide de la passerelle (D-246, D-247).
+
+## 6. Port et transferts
 
 - Prendre, déposer, installer, enfiler, retirer : une action chacune (D-039).
 - **MP-02 —** Tout objet porté peut être déposé à la position actuelle du passager, en une action ; il y reste.

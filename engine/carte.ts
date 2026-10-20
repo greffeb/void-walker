@@ -93,6 +93,7 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
         objets: (souvenir?.objets ?? []).map(({ objet, position }) => ({
           objet: refObjet(monde, objet),
           position: position === undefined ? null : refPosition(monde, position),
+          ...(monde.objets.some((definition) => definition.id === objet && definition.drone !== undefined) ? { drone: true as const } : {}),
         })),
         distance: parcours.get(piece.id) ?? null,
       };

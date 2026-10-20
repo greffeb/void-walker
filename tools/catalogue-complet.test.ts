@@ -24,7 +24,7 @@ function entree(id: string): EntreeMonde {
 const COMPLET = process.env.VERIFY_COMPLET === '1';
 
 describe.runIf(COMPLET)('stations de référence, en entier', () => {
-  it.each(['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'])('%s : témoin trouvé et export rejoué sans dé, indemne', (id) => {
+  it.each(['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10', 'm-12'])('%s : témoin trouvé et export rejoué sans dé, indemne', (id) => {
     const monde = entree(id);
     const resultat = verifierStation(monde);
     expect(resultat.verdict).toBe('prouvee');

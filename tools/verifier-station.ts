@@ -655,7 +655,7 @@ export function mesurerTirages(tirages: number): MesureTirages {
 
 
 /** Stations écrites en entier (et M-07, M-10 assemblées seules), vérifiées avant le catalogue. */
-export const MONDES_DE_REFERENCE: readonly string[] = ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'];
+export const MONDES_DE_REFERENCE: readonly string[] = ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10', 'm-12'];
 
 /** Ce que vérifie `check:stations` (#180) : verdicts, puis plans de chaque chemin. */
 export interface ResultatLot {
