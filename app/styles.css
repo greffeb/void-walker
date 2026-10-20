@@ -210,7 +210,7 @@ button:disabled {
   text-transform: uppercase;
 }
 
-/* Rang de la station tirée (D-309) : discret, à droite du nom de la pièce. */
+/* Rang de la station tirée (D-312) : discret, à droite du nom de la pièce. */
 .numero-station {
   margin: 0 0 0 auto;
   padding-left: 12px;
@@ -2349,10 +2349,10 @@ button:disabled {
   }
 }
 
-/* Intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309) : écran CRT réservé à l'intro (D-308) ; tout y est décoratif sauf le texte
+/* Intro de NOUVELLE PARTIE (12 §4.1 bis, D-308 à D-312) : écran CRT réservé à l'intro (D-311) ; tout y est décoratif sauf le texte
    du tirage et DÉMARRER. Lueur du phosphore, couleurs légèrement décalées, trame, verre bombé, scintillement, bande qui remonte. */
 .intro {
-  /* Écran CRT de l'intro (D-308) : seule exception à l'ambre hors des jetons de 12 §2.1, trame et franges de couleur du tube. */
+  /* Écran CRT de l'intro (D-311) : seule exception à l'ambre hors des jetons de 12 §2.1, trame et franges de couleur du tube. */
   --crt-trame-rouge: rgba(255, 0, 0, 0.035);
   --crt-trame-verte: rgba(0, 255, 0, 0.025);
   --crt-trame-bleue: rgba(0, 80, 255, 0.035);

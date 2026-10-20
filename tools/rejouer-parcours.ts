@@ -80,12 +80,19 @@ export function executerParcours(entree: EntreeMonde, parcours: Parcours, versio
     if (!intact) erreurs.push(`Refus attendu sans effet pour « ${quoi} », obtenu : ${resultat.type}.`);
   };
 
-  const fermee = observer(monde, partie.etat).menu.find((option) => option.action === 'aller' && !option.disponible);
-  if (fermee === undefined) erreurs.push('Aucune option « aller » indisponible au départ.');
-  else verifierRefus(fermee.commande, 'aller par une porte fermée');
+  let refusPassageVerifie = false;
+  const verifierPassageIndisponible = (): void => {
+    if (refusPassageVerifie) return;
+    const option = observer(monde, partie.etat).menu.find((candidate) => candidate.action === 'aller' && !candidate.disponible);
+    if (option === undefined) return;
+    verifierRefus(option.commande, option.raison === 'ferme' ? 'aller par une porte fermée' : 'franchir un passage indisponible');
+    refusPassageVerifie = true;
+  };
+  verifierPassageIndisponible();
 
   let commandesPassees: Commande[] = [];
   for (const [index, etape] of parcours.etapes.entries()) {
+    verifierPassageIndisponible();
     const observation = observer(monde, partie.etat);
     lignes.push('', ...rendreObservation(textes, observation));
     const option = trouverOption(observation, etape);
@@ -109,6 +116,7 @@ export function executerParcours(entree: EntreeMonde, parcours: Parcours, versio
     for (const ancienne of commandesPassees) verifierRefus(ancienne, `rejouer « ${ancienne.action} » déjà joué`);
     commandesPassees = etape.action === 'prendre' ? [option.commande] : [];
   }
+  if (!refusPassageVerifie) erreurs.push('Aucun déplacement indisponible vérifié pendant le parcours.');
 
   const fin = observer(monde, partie.etat);
   lignes.push('', ...rendreObservation(textes, fin));

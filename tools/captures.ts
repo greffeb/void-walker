@@ -11,6 +11,7 @@ import { recitDeFin } from '../app/jeu';
 import { CLE_REGLAGES } from '../app/reglages';
 import { creerBot, jouerAvecBot, PROFILS } from './bots';
 import { CATALOGUE } from './catalogue';
+import { PARCOURS_REPARATION_M12 } from '../content/m-12/parcours';
 import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
@@ -37,6 +38,7 @@ const STATIONS_AR01 = ['m08-m01-m06-palier-2718281828', 'm04-m02-m03-atelier-271
 const STATION_LIBRE = 'ol-m07-m10-m03-soute-2718281828';
 /** Sas de sécurité M-11 (#203) : porte blindée, lecteur de carte et remise ; plan de la station. */
 const STATION_SAS = 'm11-m03-remise-2718281828';
+const STATION_DRONE = 'm12-m03-stockage-2718281828';
 const FORME_STATION = /^(ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)$/;
 /** Galerie des plans (#153) : six stations tirées par groupe (un ou deux chemins, M-03 ou M-06), au hasard à graine fixe, les mêmes à chaque capture. */
 const STATIONS_PAR_GROUPE = 6;
@@ -285,7 +287,10 @@ async function preparer(page: Page, geste: Geste): Promise<Locator> {
 async function rejouer(page: Page, chemin: readonly Geste[], deja = 0): Promise<void> {
   for (const [rang, geste] of chemin.entries()) {
     const index = deja + rang;
-    if (geste.direct) {
+    if (geste.commande.action === 'attendre') {
+      await page.waitForTimeout(PAUSE_JOUEUR_MS);
+      await page.getByRole('button', { name: exactement(geste.verbe) }).click();
+    } else if (geste.direct) {
       await ouvrir(page, geste);
       await toucherLigne(page, geste);
     } else {
@@ -302,7 +307,7 @@ async function attendreSauvegarde(page: Page, actions: number): Promise<void> {
     .waitFor({ state: 'attached', timeout: 10_000 });
 }
 
-/** Intro de NOUVELLE PARTIE (D-305), pour une station tirée : passée d'un toucher, puis DÉMARRER ; un monde fixe n'en a pas. */
+/** Intro de NOUVELLE PARTIE (D-308), pour une station tirée : passée d'un toucher, puis DÉMARRER ; un monde fixe n'en a pas. */
 async function passerIntroSiPresente(page: Page): Promise<void> {
   const intro = page.getByRole('main', { name: 'Tirage de la station' });
   const regarder = page.getByRole('button', { name: /^regarder autour de vous$/i });
@@ -1890,7 +1895,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   }
   const regarder = (page: Page): Locator => page.getByRole('button', { name: /^regarder autour de vous$/i });
   /**
-   * Intro de NOUVELLE PARTIE (D-305) : une station tirée y passe avant le réveil. Un toucher l'amène à son état final, DÉMARRER mène
+   * Intro de NOUVELLE PARTIE (D-308) : une station tirée y passe avant le réveil. Un toucher l'amène à son état final, DÉMARRER mène
    * au réveil. `titre` : l'état final est aussi capturé, et son texte vérifié (numéro, total, erreur en rouge).
    */
   const passerIntro = async (page: Page, ou: string, titre?: string): Promise<void> => {
@@ -2074,6 +2079,45 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
  * obstacles avec la baie (`STATION_BAIE`) ; puis une galerie de stations tirées (#153), six par groupe (un ou deux chemins,
  * M-03 ou M-06), chacune d'une composition publiée du groupe tirée au hasard.
  */
+/** M12 : vraie panne, deux réparations distinctes, reprise sauvegardée et coopération sous les règles du moteur. */
+async function parcoursDrone(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const entree = CATALOGUE.mondes['m-12'];
+  if (entree === undefined) throw new Error('Station d’essai M12 absente.');
+  const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+  try {
+    const page = await contexte.newPage();
+    await page.goto(`${racine}?monde=m-12`);
+    await nouvelleDepuisAccueil(page);
+    const gestes = gestesDuParcours(entree, PARCOURS_REPARATION_M12.etapes);
+    await rejouer(page, gestes.slice(0, 4));
+    await capturer(page, 'M12 — drone renversé, réparation possible');
+    await page.locator('.nav-carte').click();
+    const carte = page.getByRole('dialog', { name: MOTS_CARTE.titrePlan });
+    await carte.locator('.carte-piece').first().waitFor();
+    if ((await carte.locator('.icone-drone').count()) !== 1) erreurs.push('M12 : un seul drone observé attendu sur la carte.');
+    if ((await carte.getByRole('button', { name: /drone repéré/ }).count()) !== 1) erreurs.push('M12 : drone absent du nom accessible de la pièce.');
+    await capturer(page, 'Carte — drone renversé observé au poste');
+    await page.keyboard.press('Escape');
+    await carte.waitFor({ state: 'detached' });
+    await rejouer(page, gestes.slice(4, 5), 4);
+    await capturer(page, 'M12 — remise sur rail, moteur encore coupé');
+    const sauvegardee = await partieEnregistree(page);
+    await page.reload();
+    await reprendreDepuisAccueil(page, 5);
+    if ((await partieEnregistree(page)) !== sauvegardee) erreurs.push('M12 : reprise différente après la remise sur rail.');
+    await rejouer(page, gestes.slice(5, 10), 5);
+    await capturer(page, 'M12 — réarmement sur place, blessures conservées');
+    await rejouer(page, gestes.slice(10, 12), 10);
+    await capturer(page, 'M12 — chariot rangé par le passager, coopération accomplie');
+    await rejouer(page, gestes.slice(12), 12);
+    const partie = await partieLue(page);
+    if (partie?.etat.fin !== 'evacuation' || partie.etat.sante !== 'critique') erreurs.push('M12 : évacuation réelle après réparation non retrouvée.');
+    await capturer(page, 'M12 — évacuation après réparation');
+  } finally {
+    await contexte.close();
+  }
+}
+
 async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const contexte = await navigateur.newContext({ viewport: REFERENCE, locale: 'fr-FR' });
   const page = await contexte.newPage();
@@ -2100,6 +2144,9 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
   const sas = CATALOGUE.resoudre(STATION_SAS);
   if ('refus' in sas) erreurs.push(`${STATION_SAS} : ${sas.refus}`);
   else await dessiner(STATION_SAS, sas, `Plan — sas de sécurité ${STATION_SAS}`);
+  const drone = CATALOGUE.resoudre(STATION_DRONE);
+  if ('refus' in drone) erreurs.push(`${STATION_DRONE} : ${drone.refus}`);
+  else await dessiner(STATION_DRONE, drone, `Plan — chariot et drone ${STATION_DRONE}`);
   let etat = generateurDepuisGraine(GRAINE_GALERIE);
   const hasard = (): number => {
     const tirage = suivant(etat);
@@ -2380,7 +2427,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'plans'),
       erreursPlans,
       [
-        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis les chemins d’AR-01 (#154), M-01, M-02, M-04 et M-05 : ${STATIONS_AR01.map((id) => `\`${id}\``).join(', ')}. Puis l’ordre libre, \`${STATION_LIBRE}\` (#155), et le sas de sécurité M-11, \`${STATION_SAS}\` (#203). Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
+        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis les chemins d’AR-01 (#154), M-01, M-02, M-04 et M-05 : ${STATIONS_AR01.map((id) => `\`${id}\``).join(', ')}. Puis l’ordre libre, \`${STATION_LIBRE}\` (#155), le sas de sécurité M-11, \`${STATION_SAS}\` (#203), et le chariot avec son drone M-12, \`${STATION_DRONE}\` (#232). Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
       ],
     ),
   ];
@@ -2394,7 +2441,7 @@ function voulue(titre: string): boolean {
   return MOTIFS === null || MOTIFS.some((motif) => titre.toLowerCase().includes(motif));
 }
 
-export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
+export async function capturer(options: { readonly droneSeul?: boolean } = {}): Promise<{ etapes: EtapeCapture[]; erreurs: string[] }> {
   // Le parcours du monde de test se joue par `?monde=monde-test`, AR-01 par `?monde=ar-01` ; l'adresse nue tire une station (#152).
   const entree = MONDES['monde-test'];
   const ar01 = MONDES['ar-01'];
@@ -2435,6 +2482,13 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
       return etape;
     };
     const capturerEtape = (titre: string, animations: 'disabled' | 'allow' = 'disabled'): Promise<EtapeCapture> => capturerPage(page, titre, animations);
+
+    if (options.droneSeul === true) {
+      suite = 'station';
+      await parcoursDrone(navigateur, racine, capturerPage, erreurs);
+      writeFileSync(join(SORTIE, 'resultat.json'), `${JSON.stringify({ etapes, erreurs }, null, 2)}\n`);
+      return { etapes, erreurs };
+    }
 
     await page.goto(adresse);
     await page.getByRole('button', { name: /^nouvelle partie$/i }).waitFor();
@@ -2908,6 +2962,11 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     }
     // Plus aucune sortie (#156) : M-08, la planche perdue exprès, dans un contexte neuf.
     try {
+      await parcoursDrone(navigateur, racine, capturerPage, erreursStation);
+    } catch (erreur) {
+      erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    try {
       const m08 = MONDES['m-08'];
       if (m08 === undefined) throw new Error('M-08 absent des mondes.');
       await parcoursSansSortie(navigateur, racine, m08, capturerPage, erreursStation);
@@ -2954,12 +3013,14 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
 }
 
 if (isMainModule(import.meta.url)) {
-  const { etapes, erreurs } = await capturer();
+  const { etapes, erreurs } = await capturer({ droneSeul: process.argv.includes('--drone') });
   for (const etape of etapes.filter((vue) => vue.image !== '')) console.log(`[${etape.image}] ${etape.titre}\n${etape.recit}\n${etape.situation}\n`);
   for (const erreur of erreurs) console.error(`ERREUR : ${erreur}`);
   console.log(
     erreurs.length === 0
-      ? 'Captures : parcours du monde de test, P-C d’AR-01, P-V1 d’AR-02 et stations tirées réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
+      ? process.argv.includes('--drone')
+        ? 'Captures M12 : carte, remise sur rail, reprise sauvegardée, réarmement et évacuation vérifiés dans l’appli.'
+        : 'Captures : parcours du monde de test, P-C d’AR-01, P-V1 d’AR-02 et stations tirées réussis dans l’appli, reprise au dernier geste, police servie hors ligne.'
       : 'Captures : ÉCHEC.',
   );
   if (erreurs.length > 0) process.exitCode = 1;

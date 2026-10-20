@@ -30,7 +30,7 @@ function rendre(instantane: boolean): string {
   return renderToStaticMarkup(<EcranIntro intro={intro} numero={372} instantane={instantane} occupe={false} demarrer={() => undefined} />);
 }
 
-describe('écran d’intro (12 §4.1 bis, D-305 à D-309)', () => {
+describe('écran d’intro (12 §4.1 bis, D-308 à D-312)', () => {
   it('au départ : écran noir, rien à lire, pas encore de DÉMARRER', () => {
     const html = rendre(false);
     expect(html).toContain('aria-label="Tirage de la station"');
@@ -55,7 +55,7 @@ describe('écran d’intro (12 §4.1 bis, D-305 à D-309)', () => {
   });
 });
 
-describe('réveil : rang de la station en haut à droite (D-309)', () => {
+describe('réveil : rang de la station en haut à droite (D-312)', () => {
   function memoire(): Stockage {
     let donnees: unknown = null;
     return {

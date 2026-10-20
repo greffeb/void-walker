@@ -132,7 +132,7 @@ const verification = import.meta.env.VITE_PR_NUMERO
   ? () => lireVerification((adresse, init) => window.fetch(adresse, init), import.meta.env.BASE_URL, commit)
   : undefined;
 
-// Intro de NOUVELLE PARTIE (D-305) : plans du défilé tirés au catalogue publié.
+// Intro de NOUVELLE PARTIE (D-308) : plans du défilé tirés au catalogue publié.
 const intro = creerIntro({
   compositions: COMPOSITIONS_PUBLIEES,
   construire: (composition, graine) => CATALOGUE.construire(composition, graine),

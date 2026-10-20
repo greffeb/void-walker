@@ -13,6 +13,7 @@ import { MORCEAU_M08, TEXTES_MORCEAU_M08 } from './m-08';
 import { MORCEAU_M09, TEXTES_MORCEAU_M09 } from './m-09';
 import { MORCEAU_M10, TEXTES_MORCEAU_M10 } from './m-10';
 import { MORCEAU_M11, TEXTES_MORCEAU_M11 } from './m-11';
+import { MORCEAU_M12, TEXTES_MORCEAU_M12 } from './m-12';
 import { MORCEAU_VESTIBULE, TEXTES_MORCEAU_VESTIBULE } from './vestibule';
 
 export interface EntreeMorceau {
@@ -32,6 +33,7 @@ export const MORCEAUX: Readonly<Record<string, EntreeMorceau>> = {
   [MORCEAU_M09.id]: { morceau: MORCEAU_M09, textes: TEXTES_MORCEAU_M09 },
   [MORCEAU_M10.id]: { morceau: MORCEAU_M10, textes: TEXTES_MORCEAU_M10 },
   [MORCEAU_M11.id]: { morceau: MORCEAU_M11, textes: TEXTES_MORCEAU_M11 },
+  [MORCEAU_M12.id]: { morceau: MORCEAU_M12, textes: TEXTES_MORCEAU_M12 },
   [MORCEAU_CARREFOUR.id]: { morceau: MORCEAU_CARREFOUR, textes: TEXTES_MORCEAU_CARREFOUR },
   [MORCEAU_M03.id]: { morceau: MORCEAU_M03, textes: TEXTES_MORCEAU_M03 },
   [MORCEAU_M06.id]: { morceau: MORCEAU_M06, textes: TEXTES_MORCEAU_M06 },

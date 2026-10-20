@@ -8,7 +8,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
 ## 1. Cadre accepté
 
-- Dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158).
+- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-11, sas de sécurité, a rejoint la branche principale par #231. M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232).
 - Une station : une pièce de départ, deux ou trois obstacles dont **un seul problème final**, l'embarquement avec sa capsule, une seule créature (D-119, D-159, GP-02).
 - Obstacles en chaîne ou en ordre libre (D-160) ; créature placée à un endroit prévu par un morceau, jamais au départ (D-161) ; tirage du problème final à pile ou face, puis de la station au pur hasard parmi celles qui ont ce final, une station déjà jouée pouvant revenir (D-162, D-253).
 - Deux morceaux qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) ne se mélangent qu'une fois leurs règles décidées (D-167) ; les autres se mélangent sans règle de plus (D-248).
@@ -19,7 +19,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 | Famille | Rôle | Morceaux |
 | --- | --- | --- |
 | **Final** | Le problème à régler juste avant de partir | M-03 Énergie, M-06 Baie |
-| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-11 |
+| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-11, M-12 |
 
 Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement. Le morceau final apporte l'embarquement et sa capsule (D-249) ; au départ, les portes entre deux morceaux sont fermées (D-252) ; le tirage choisit d'abord le final à pile ou face (D-253).
 
@@ -105,6 +105,19 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 - **Sûr :** prendre la carte au vestiaire, revenir au poste, actionner le lecteur carte en main (le verrou est levé pour la partie, D-291), ouvrir la porte blindée et passer.
 - **Risqué :** ouvrir la remise et réveiller la créature, puis se réfugier derrière la porte blindée refermée, qu'elle ne peut pas enfoncer.
 
+### M-12 — Le chariot bloqué et le drone réparable (#232)
+
+- **But :** dégager un chariot qui barre le chemin vers la suite. Il faut maintenir une poignée au poste pendant que le passager pousse au palier : deux lieux, deux rôles.
+- **Pièces :** atelier du drone, galerie de détour, poste, palier du chariot, réserve et quai de sortie. Le plan distingue le trajet du passager et le trajet local du drone ; aucune commande ne téléporte un objet à travers une porte fermée.
+- **Créature :** place prévue dans la réserve. Une fermeture peut gagner du temps après la rencontre ; elle ne garantit pas une protection permanente. L'ouverture de la porte de réserve et les autres passages sont décrits dans le contenu.
+- **Demande / fournit :** coopération avec le drone ; accès durable une fois le chariot rangé. Sans drone en maintien, le passager ne peut pas tenir la poignée et pousser ailleurs. Il n'y a pas la manivelle autonome de la première maquette.
+- **Drone :** activation locale, trajet de manutention puis maintien bruyant. Il ne combat pas, ne ramasse rien et ne devient pas un compagnon universel. La tâche se termine quand le chariot est déplacé.
+- **Panne récupérable :** une attaque le sort du rail, interrompt le maintien et coupe le moteur. Deux gestes sur place : replacer, puis réarmer/relancer. Aucun consommable ; les dangers continuent pendant ces gestes.
+- **Préparation sûre à prouver :** isoler le bruit de la réserve avant la mise en route, déléguer le maintien, rejoindre le palier, pousser et poursuivre la station.
+- **Variante risquée à prouver :** après une rencontre ou une panne, reprendre la coopération en utilisant le plan, les portes et le répit réel. Le coût en blessures dépend de C-04, pas des résultats déterministes de la maquette.
+- **Carte :** pictogramme vert du drone dans son dernier emplacement observé, sans déplacement omniscient hors de vue (D-307).
+- **État des preuves :** conception retenue pour intégration ; tests, parcours complets, vérification du catalogue, relecture et partie sur téléphone doivent être fournis par la PR. Les essais de maquette ne valident pas une partie du vrai jeu.
+
 ## 4. Mélanges
 
 Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur), ralentissement (M-04 huile, M-09, M-10), neutralisation (M-06, M-08), air (M-06).
@@ -124,6 +137,8 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 | Morceaux qui ne jouent pas sur la même chose | Aucune règle nouvelle (D-248) |
 
 Avec ces règles, toutes les paires des onze morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). M-11 ne joue sur aucune de ces familles : ses dix paires sont permises sans règle de plus (D-248, D-290). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
+
+Pour M-12 (D-306), le bruit suit la même sélection et le même masquage que les équipements existants ; aucun changement des priorités générales de la créature. L'huile, le froid et la gravité gardent leurs effets sur ses réactions. Les équipements de M-12 ne sont pas détruits par le feu ou le vide ; le passager, lui, garde tous ses risques. Le chariot est une obstruction de déplacement, pas une cloison étanche : les autres canaux conservent les qualités déclarées de la liaison. La permission d'une paire ne remplace jamais la preuve d'une station complète. M-11/M-12 gardent leurs règles indépendantes (D-248), notamment le blindage de M-11 ; leurs compositions doivent être prouvées ensemble sur la branche principale actualisée.
 
 ### 4.1 Table exhaustive des paires (L0, #150)
 
@@ -708,6 +723,41 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 | **Q-204, D-290.** Le sas de sécurité reste-t-il dans une station d'essai, ou entre-t-il aussi dans le tirage de NOUVELLE PARTIE ? | « Aussi dans le tirage public » |
 | **Q-205, D-291.** Comment la carte ouvre-t-elle la porte blindée : un lecteur qui lève le verrou une fois pour toutes, ou autre chose ? | « Lecteur, une fois pour toutes » |
 | **Q-206, D-293.** Où attend la créature dans ce morceau ? | « Pièce à part, fermée » |
+
+### 7.11 Chariot et drone M-12 (#232)
+
+**Conception retenue pour intégration, validation sur téléphone à venir.** La maquette V3 a permis d'essayer la coopération puis une panne récupérable. Elle ne prouve ni les réactions du vrai moteur, ni le passage des stations générées. L'intégration reprend la branche principale contenant M-11 et suit [17 — Ajouter un morceau](17-ajouter-un-morceau.md).
+
+Questions consignées lors de l'intégration du 20 octobre, à partir des échanges des 19 et 20 octobre :
+
+| Question | Choix du porteur | Décision |
+| --- | --- | --- |
+| Q-207 — Coopération nécessaire ou alternative consommant un objet utile ? | « Coopération nécessaire dans cette situation » | D-304 |
+| Q-208 — Commander plus près ou explorer une panne réparable ? | « Explorer une panne réparable du drone » | D-305 |
+| Q-209 — Remise en route sur place ou retour à l'atelier ? | « Remise en route sur place en deux gestes » | D-305 |
+| Q-210 — Station d'essai seule ou aussi tirage public ? | « Station d'essai et tirage aléatoire dès cette PR » | D-307 |
+| Q-211 — Autres causes de panne ou seulement la créature pour le premier lot ? | « Seule la créature fait dérailler le drone pour ce premier lot » | D-306 |
+
+Le pictogramme de carte est une demande directe, accompagnée d'une référence visuelle, pas une question supplémentaire (D-307).
+
+**Points de preuve avant publication :**
+
+- états/empreintes et rejeux des anciens mondes préservés ; états du drone bornés dans la recherche ;
+- vraie coopération, remise sur rail puis réarmement, sans faux signal de sortie perdue ;
+- objets indispensables inclus dans l'élagage de `verifier-sortie`, commandes de carrefour seules comptées pour l'ordre libre ;
+- place de créature et clés de textes sans collision avec M-03 et M-11 ; aucun état changeant ni solution révélée par une description statique ;
+- liste publique régénérée et chaque composition publiée prouvée ; nombres dérivés des formules de [17 §4](17-ajouter-un-morceau.md#4-tests-qui-épinglent-des-nombres), pas d'une valeur reçue dans un test ;
+- plan et pictogramme, parcours CLI public, contrôle des textes et vérification complète.
+
+La preuve de jeu de chaque composition publiée (`check:stations`), le signal « plus aucune sortie » (`check:sortie`) et les mesures de plans sont attendus de la CI de la PR de #232, trop longs pour le PC du porteur : aucune preuve de catalogue M-12 n'est revendiquée avant ce résultat.
+
+**Catalogue après M-12 (calculé, tests verts sur le PC ; preuve de jeu par la CI).** Avec 10 chemins et 2 finals : 66 paires, 65 permises ; 850 compositions, 580 en chaîne (40 à un chemin, 540 à deux) et 270 en ordre libre. 758 publiées : 524 en chaîne, 234 en ordre libre ; 158 contiennent M-12 (108 en chaîne, 50 en ordre libre). Les non publiées le sont pour les raisons déjà en vigueur : paire M-03/M-06, créature qui bouche le seul passage sans obstacle qui permette de s'en débarrasser (D-268), places écartées en ordre libre. **M-12 compte parmi ces obstacles** (D-307, détail de l'agent à confirmer) : la première CI l'a montré en prouvant `m12-m02-m03-atelier` et `m12-m02-m06-atelier`, alors non publiées ; `m12-m01-m03-palier` est prouvée avec 253 000 états. La liste est régénérée depuis la règle de publication, puis vérifiée par le test qui la compare au catalogue.
+
+**Plafond de recherche.** La première CI a aussi arrêté `m10-m12-m03-stockage` et `m10-m12-m06-stockage` au plafond de 150 000 états : M-10 et M-12 ont chacun beaucoup de portes, et leurs états se multiplient. `m10-m12-m03-stockage` est prouvée avec 405 000 états, en 27 actions sans dé ni blessure. `check:stations` accorde donc 600 000 états aux seules compositions avec M-12 (`PLAFONDS_ELARGIS`, `tools/verifier-station.ts`) ; les autres gardent 150 000, et leur verdict ne change pas.
+
+**Coût mesuré sur le PC du porteur.** Prouver une station M-12 coûte plus cher qu'une autre : 2,3 à 4 s pour une chaîne qui commence par M-12, jusqu'à 20 s pour certains ordres libres (`ol-m11-m12-m06-embarquement`), contre moins d'une seconde pour la plupart des stations. Deux tests de `check-texts-stations` prouvent toute la liste contrôlée en 30 s : avec `ol-m11-m12-m06-stockage` (12,5 s) et `m08-m01-m06-palier` (20 à 35 s, déjà lourde sur `main`), le premier a pris 39 s en CI. La liste contrôlée garde la même couverture avec des compositions moins coûteuses : `ol-m05-m12-m03-tri` (1,1 s) pour M-12 en second, `m08-m01-m06-magasin` pour M-08 puis M-01, `m10-m01-m06-palier` pour la créature sur le palier de M-01. Sur le PC, les deux tests passent en 20 s. Les textes des stations M-12 contrôlées passent `check:texts` sans erreur. Le test du message chiffré prouve la première station contrôlée, la moins coûteuse, avec la même assertion.
+
+**Poursuite après la rencontre (station d'essai, recherche exhaustive du 20 octobre).** Après avoir réveillé la créature dans la réserve, le chariot peut encore être rangé indemne (16 gestes), mais aucune évacuation n'est possible sans blessure : la créature alertée suit le passager jusqu'à l'embarquement. En acceptant les coups, une évacuation existe en 16 gestes, santé critique : fermer la réserve, envoyer le drone, rejoindre le palier par le poste, pousser, puis fuir vers la capsule. La rencontre se paie donc, comme le voulait la maquette ; à confirmer par le porteur.
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

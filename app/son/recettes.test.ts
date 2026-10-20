@@ -144,7 +144,7 @@ describe('recettes des sons (15 §3)', () => {
     }
   });
 
-  it('intro (D-308) : la menace est la blessure du jeu ; statique de 0,85 s ; un pas de l’intro dure moins d’une seconde', () => {
+  it('intro (D-311) : la menace est la blessure du jeu ; statique de 0,85 s ; un pas de l’intro dure moins d’une seconde', () => {
     expect(recetteIntro('menace', lcg(1))).toBe(RECETTES_SIGNAUX.blessure);
     for (const nom of SONS_INTRO) expect(dureeRecette(recetteIntro(nom, lcg(9))), nom).toBeLessThan(1);
     const statique = recetteIntro('statique', lcg(5));

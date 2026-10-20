@@ -80,7 +80,7 @@ function Silhouette({ plan }: { readonly plan: Plan | null }) {
 }
 
 /**
- * Intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309). Toucher l'écran l'amène tout de suite à son état final ; seul DÉMARRER
+ * Intro de NOUVELLE PARTIE (12 §4.1 bis, D-308 à D-312). Toucher l'écran l'amène tout de suite à son état final ; seul DÉMARRER
  * mène au réveil. `instantane` : effet machine à écrire coupé ou mouvement réduit, l'intro s'affiche d'emblée finie, sans son.
  */
 export function EcranIntro({
@@ -145,7 +145,7 @@ export function EcranIntro({
     setVue((avant) => finale(avant, carte));
   }, [finale, unPlan]);
 
-  // Déroulé (D-307) : chaque pas attend, sauf si le joueur a passé l'intro ; tout s'arrête alors, l'état final est déjà posé.
+  // Déroulé (D-310) : chaque pas attend, sauf si le joueur a passé l'intro ; tout s'arrête alors, l'état final est déjà posé.
   useEffect(() => {
     if (passe.current) return;
     let actif = true;

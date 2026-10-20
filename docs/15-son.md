@@ -64,7 +64,7 @@ Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis l
 
 Un fond continu de bruit brun profond, sous lequel la carlingue travaille : craquements lointains tirés au hasard (Mélange), un toutes les 20 à 60 s. L'ambiance tourne sur tous les écrans, accueil et options compris, dès le premier toucher, pour que le réglage s'entende.
 
-### 2.6 Intro de NOUVELLE PARTIE (D-308)
+### 2.6 Intro de NOUVELLE PARTIE (D-311)
 
 Chaque pas de l'intro ([12 §4.1 bis](12-interface-ecrans.md#41-bis-intro-de-nouvelle-partie)) a son bruitage, joué sur le rail des effets, sous lequel le fond brun continue (§2.5). Banc d'écoute : la [maquette de l'intro](maquette/intro-generation.html).
 

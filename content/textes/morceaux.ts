@@ -1,5 +1,6 @@
 import { MENACE } from './menace';
 import type { TextesMonde } from './types';
+import { EVENEMENTS_DRONE, LIBELLES_DRONE, OBSERVATION_DRONE, REFUS_DRONE, SAVOIR_DRONE, VERBES_DRONE } from './drone';
 
 // Textes des règles des nouveaux morceaux (#105) écrits à la main (C-07) : passerelle, salle des machines, zone sans gravité,
 // chambre froide, objet encombrant. Partagés par les mondes : ceux qui n'ont pas ces morceaux ne s'en servent que pour la
@@ -8,6 +9,7 @@ import type { TextesMonde } from './types';
 
 /** Règles des morceaux sans la créature : socle. */
 export const EVENEMENTS_REGLES_MORCEAUX = {
+  ...EVENEMENTS_DRONE,
   pont_place: [
     'Vous couchez {le:objet} en travers du vide. Ses deux bouts reposent sur les bords.',
     'Vous poussez {le:objet} au-dessus du vide jusqu’à l’autre bord. Le passage est à peine plus large qu’un pied.',
@@ -86,6 +88,7 @@ export const GELURE_FROID = {
 export const GELURES: TextesMonde['gelures'] = { ...GELURE_FROID, griffes_froid: MENACE.gelures.griffes_froid };
 
 export const REFUS_MORCEAUX = {
+  ...REFUS_DRONE,
   encombre: 'Vous portez déjà un objet encombrant : rien n’a été joué.',
   sans_pont: 'Rien ne permet de franchir ce vide : rien n’a été joué.',
   trop_loin: 'Vous flottez trop loin de ce passage : rien n’a été joué.',
@@ -97,6 +100,7 @@ export const REFUS_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
+  ...REFUS_DRONE,
   encombre: 'Vous avez déjà les bras pris par un objet encombrant.',
   sans_pont: 'Il faut de quoi franchir {le:cible}.',
   trop_loin: 'Sans gravité, il faut d’abord dériver jusqu’à {le:cible}.',
@@ -107,6 +111,7 @@ export const INDISPONIBILITES_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['indisponibilites']>;
 
 export const LIBELLES_MORCEAUX = {
+  ...LIBELLES_DRONE,
   placer: 'Poser {le:cible} en travers {de:passage}',
   deriver: 'Dériver jusqu’à {le:cible}',
   arreter: 'Arrêter les machines',
@@ -119,6 +124,7 @@ export const LIBELLES_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['libelles']>;
 
 export const VERBES_MORCEAUX = {
+  ...VERBES_DRONE,
   placer: 'Poser en travers',
   deriver: 'Dériver',
   arreter: 'Arrêter',
@@ -132,6 +138,7 @@ export const VERBES_MORCEAUX = {
 
 /** Règles des morceaux sans la créature : socle. */
 export const OBSERVATION_REGLES_MORCEAUX = {
+  ...OBSERVATION_DRONE,
   pont: '{Le:objet} est posé{e:objet} en travers {de:passage}.',
   pontBrise: '{Le:objet} n’est plus là : au bord {de:passage}, des éclats de bois pendent dans le noir.',
   machinesMarche: 'Les machines tournent dans un vacarme assourdissant : vous n’entendez rien d’autre.',
@@ -160,6 +167,7 @@ export const DANGERS_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['apercu']['dangers']>;
 
 export const SAVOIR_MORCEAUX = {
+  ...SAVOIR_DRONE,
   placera: '{Le:objet} sera posé{e:objet} en travers {de:passage} : on pourra passer.',
   derivera: 'Vous dériverez jusqu’à {le:passage} ; le franchir demandera une action de plus.',
   arreteront: 'Les machines s’arrêteront ; le silence reviendra.',

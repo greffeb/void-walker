@@ -168,7 +168,7 @@ export function crepitement(duree: number, hasard: () => number): Ton[] {
   return tics;
 }
 
-/** Sons de l'intro de NOUVELLE PARTIE (15 §2.6, D-308) : un vieux terminal démarre puis tire la station. */
+/** Sons de l'intro de NOUVELLE PARTIE (15 §2.6, D-311) : un vieux terminal démarre puis tire la station. */
 export const SONS_INTRO = ['interrupteur', 'cliquetis', 'clac', 'relais', 'statique', 'tic', 'arret', 'ligne', 'menace', 'pret'] as const;
 export type SonIntro = (typeof SONS_INTRO)[number];
 
@@ -199,7 +199,7 @@ function statique(hasard: () => number): Recette {
 }
 
 /**
- * Recette d'un son de l'intro (15 §3.5, banc : docs/maquette/intro-generation.html). La menace reprend la blessure du jeu (D-308) ;
+ * Recette d'un son de l'intro (15 §3.5, banc : docs/maquette/intro-generation.html). La menace reprend la blessure du jeu (D-311) ;
  * les touches et les lignes varient un peu de hauteur à chaque fois.
  */
 export function recetteIntro(son: SonIntro, hasard: () => number): Recette {

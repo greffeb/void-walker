@@ -41,7 +41,7 @@ describe('étapes de la CI (#180)', () => {
   });
 
   it('la CI lance toutes les étapes de verify : les courtes dans un job, chaque longue dans ses lots, sans lot oublié', () => {
-    const workflow = readFileSync(join(REPO_ROOT, '.github/workflows/verification.yml'), 'utf8');
+    const workflow = readFileSync(join(REPO_ROOT, '.github/workflows/verification.yml'), 'utf8').replaceAll('\r\n', '\n');
     expect(LONGUES.every((step) => STEPS.includes(step))).toBe(true);
     expect(workflow).toContain(`npx tsx tools/verify.ts --sauf=${LONGUES.join(',')}`);
     // Chaque job long : sa matrice compte autant de lots que le total de son --lot (ou de son --shard).

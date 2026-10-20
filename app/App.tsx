@@ -44,7 +44,7 @@ function evenementsDuPas(avant: Jeu, apres: Jeu): readonly Evenement[] {
 type Ecran =
   | { readonly type: 'chargement' }
   | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean }
-  /** Intro de NOUVELLE PARTIE (12 §4.1 bis, D-305) : la partie est déjà créée et enregistrée, DÉMARRER mène au réveil. */
+  /** Intro de NOUVELLE PARTIE (12 §4.1 bis, D-308) : la partie est déjà créée et enregistrée, DÉMARRER mène au réveil. */
   | { readonly type: 'intro'; readonly jeu: Jeu; readonly numero: number }
   | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
   | { readonly type: 'reprise_impossible' }
@@ -117,7 +117,7 @@ export function App({
   readonly verification?: () => Promise<EtatVerification>;
   /** Durée de la partie, écran allumé (#204) ; absent, les rapports la disent non mesurée. */
   readonly chronometre?: Chronometre;
-  /** Intro de NOUVELLE PARTIE (D-305) ; absente, NOUVELLE PARTIE mène droit au réveil. */
+  /** Intro de NOUVELLE PARTIE (D-308) ; absente, NOUVELLE PARTIE mène droit au réveil. */
   readonly intro?: Intro;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
@@ -167,7 +167,7 @@ export function App({
 
   /**
    * Partie neuve sur `cible`, qui devient le monde en cours avec l'écran de réveil ; avec `avecIntro`, l'intro passe d'abord
-   * pour une station tirée (D-305). REJOUER CETTE STATION n'en a pas.
+   * pour une station tirée (D-308). REJOUER CETTE STATION n'en a pas.
    */
   const commencerSur = useCallback(
     async (cible: Environnement, avecIntro = false) => {

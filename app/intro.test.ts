@@ -20,7 +20,7 @@ function deps(): DependancesIntro {
   };
 }
 
-describe('intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309)', () => {
+describe('intro de NOUVELLE PARTIE (12 §4.1 bis, D-308 à D-312)', () => {
   it('numéro : rang de la composition parmi les stations publiées, sans la graine du plan ; aucun pour un monde fixe', () => {
     const [premiere] = COMPOSITIONS_PUBLIEES;
     const derniere = COMPOSITIONS_PUBLIEES.at(-1);
@@ -45,7 +45,7 @@ describe('intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309)', () => {
     expect(planDe(monde)).toHaveLength(monde.pieces.filter((piece) => piece.plan !== undefined).length);
   });
 
-  it('lignes : départ, passage et final, trois textes d’ambiance distincts tirés au hasard, capsule et sortie (D-306)', () => {
+  it('lignes : départ, passage et final, trois textes d’ambiance distincts tirés au hasard, capsule et sortie (D-309)', () => {
     for (let graine = 0; graine < 50; graine += 1) {
       const lignes = lignesDuTirage(lcg(graine));
       expect(lignes).toHaveLength(8);

@@ -1,4 +1,4 @@
-// Intro de NOUVELLE PARTIE (12 §4.1 bis, #200, D-305 à D-309) : un vieux terminal démarre, des stations défilent et s'arrêtent sur
+// Intro de NOUVELLE PARTIE (12 §4.1 bis, #200, D-308 à D-312) : un vieux terminal démarre, des stations défilent et s'arrêtent sur
 // une silhouette voilée, puis la station tirée est prête. Elle montre au joueur non briefé que la station change à chaque partie,
 // sans rien en dévoiler. Ce module en fixe le texte et le rythme ; l'écran est dans `EcranIntro.tsx`.
 
@@ -59,9 +59,9 @@ export function creerIntro(deps: DependancesIntro): Intro {
   };
 }
 
-/* ---------- Texte (D-306, textes d'exemple validés sur maquette) ---------- */
+/* ---------- Texte (D-309, textes d'exemple validés sur maquette) ---------- */
 
-/** Démarrage du terminal, tel que le porteur l'a écrit (D-306). */
+/** Démarrage du terminal, tel que le porteur l'a écrit (D-309). */
 export const COMMANDE_BOOT = 'boot -a --v';
 export const CHARGEMENT = ['Loading terminal system...', 'ready'] as const;
 export const COMMANDE_CAMPAGNE = 'campaign_mode; console_log(01);';
@@ -82,7 +82,7 @@ const apres: readonly LigneIntro[] = [
   { libelle: 'Vérification de la sortie', valeur: 'ok' },
 ];
 
-/** Textes d'ambiance : trois au hasard à chaque tirage (D-306) ; certains portent une valeur tirée. */
+/** Textes d'ambiance : trois au hasard à chaque tirage (D-309) ; certains portent une valeur tirée. */
 export const AMBIANCE: readonly ((hasard: () => number) => LigneIntro)[] = [
   () => ({ libelle: 'Pressurisation des coursives', valeur: 'ok' }),
   (hasard) => ({ libelle: 'Éclairage de secours', valeur: `${12 + Math.floor(hasard() * 60)} %` }),
@@ -99,14 +99,14 @@ export const AMBIANCE: readonly ((hasard: () => number) => LigneIntro)[] = [
   () => ({ libelle: 'Équipage à bord', valeur: '?' }),
 ];
 
-/** Dernière ligne, en rouge, avec le triangle des dangers (D-233, D-306). */
+/** Dernière ligne, en rouge, avec le triangle des dangers (D-233, D-309). */
 export const MENACE = 'ERREUR : Menace détectée';
 export const SUITE = 'La prochaine partie en tirera une autre.';
 
 export const tirage = (total: number): string => `Tirage parmi ${total} stations…`;
 export const prete = (numero: number): string => `Station ${numero} prête`;
 
-/** Un pas irrégulier entre deux lignes (D-306) : rafales rapides, pas ordinaires, quelques temps de traitement plus longs. */
+/** Un pas irrégulier entre deux lignes (D-309) : rafales rapides, pas ordinaires, quelques temps de traitement plus longs. */
 export function pasLigne(hasard: () => number): number {
   const jet = hasard();
   if (jet < 0.3) return 25 + Math.floor(hasard() * 35);
@@ -125,7 +125,7 @@ export function lignesDuTirage(hasard: () => number): readonly (LigneIntro & { r
   return [...avant, ...ambiance, ...apres].map((ligne) => ({ ...ligne, pas: pasLigne(hasard) }));
 }
 
-/* ---------- Rythme (D-307) : démarrage complet à chaque intro, en millisecondes ---------- */
+/* ---------- Rythme (D-310) : démarrage complet à chaque intro, en millisecondes ---------- */
 
 export const RYTHME = {
   /** Écran noir avant la mise sous tension. */

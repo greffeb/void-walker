@@ -1,4 +1,5 @@
 import { hacher } from './hachage';
+import { validerDrones } from './drone';
 import { validerPlan, type PlanLiaison, type RectPlan } from './plan';
 
 // Forme commune d'un monde (C-02). `nom` est une clé publique vers le texte ; `id` reste interne.
@@ -137,6 +138,12 @@ export interface DefObjet {
   readonly deverrouille?: string;
   /** Objet portable à tenir en main pour actionner cette commande (#203, lecteur de carte). */
   readonly exige?: string;
+  /** Poignée à maintenir sur place ; toute autre manipulation demande de lâcher. */
+  readonly poignee?: boolean;
+  /** Drone non portable, fixé à une liaison locale jusqu'à cette poignée. */
+  readonly drone?: { readonly rail: string; readonly poignee: string };
+  /** Obstacle matériel, sans effet sur l'air, le son ni le feu de son passage. */
+  readonly obstacle?: { readonly passage: string; readonly rangement: string; readonly maintien: string };
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -234,6 +241,7 @@ export function validerMonde(monde: DefMonde): string[] {
   const defPieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
   const positionsConnues = new Map(positions.map((position) => [position.id, position]));
   const objets = new Map(monde.objets.map((objet) => [objet.id, objet]));
+  erreurs.push(...validerDrones(monde));
   for (const position of positions) {
     if (!pieces.has(position.piece)) erreurs.push(`${position.id} : pièce inconnue ${position.piece}.`);
     if (position.sous !== undefined && liaisons.get(position.sous)?.haute !== position.piece) {

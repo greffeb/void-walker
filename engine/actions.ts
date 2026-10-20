@@ -1,4 +1,5 @@
 import { dangerConnu, type SonEmis } from './creature';
+import { ACTIONS_DRONE, avecMaintien, frein, obstacleSur, range } from './drone';
 import type { Des } from './des';
 import {
   assourdie,
@@ -146,7 +147,7 @@ function basculer(contexte: Contexte, cible: string, ouverte: boolean): Effet {
   const liaison = exiger(indexer(monde).liaisons.get(cible), `Liaison inconnue : ${cible}.`);
   const suivant: EtatPartie = { ...etat, liaisons: { ...etat.liaisons, [cible]: ouverte } };
   const passage = refPassage(monde, suivant, liaison, etat.piece);
-  const evenements: Evenement[] = [{ type: ouverte ? 'passage_ouvert' : 'passage_ferme', passage }];
+  const evenements: Evenement[] = [{ type: ouverte ? passage.encombre === true ? 'passage_ouvert_encombre' : 'passage_ouvert' : 'passage_ferme', passage }];
   // Ouvrir sur un foyer le montre (AR-01 P-B pas 4).
   if (passage.feu) evenements.push({ type: 'feu_derriere', passage });
   return { etat: suivant, evenements };
@@ -302,6 +303,7 @@ const aller: ActionEngagee = {
     const liaison = liaisonIci(contexte, cible);
     if (liaison === undefined || !franchissable(contexte, liaison)) return 'cible_absente';
     if (contexte.etat.liaisons[cible] !== true) return 'ferme';
+    if (obstacleSur(contexte.monde, contexte.etat, cible) !== undefined) return 'encombre_par_obstacle';
     const portee = verifierPassage(contexte, cible);
     if (portee !== null) return portee;
     // Le gabarit d'un passage étroit se voit, même sans destination connue (D-044).
@@ -365,7 +367,7 @@ const soigner: ActionEngagee = {
 };
 
 function deplacablesIci({ monde, etat }: Contexte): DefObjet[] {
-  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.deplacable === true);
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.deplacable === true && !range(etat, candidat));
 }
 
 /** Pousser un objet au sol vers une autre position de la pièce (C-02 §4.3, AR-01 P-A pas 2) ; geste discret (AR-01 §12). */
@@ -374,11 +376,16 @@ const deplacer: ActionEngagee = {
   engage: true,
   cibles: (contexte) => deplacablesIci(contexte).map((candidat) => candidat.id),
   parametres: ({ monde, etat }, cible) => {
+    const obstacle = indexer(monde).objets.get(cible)?.obstacle;
+    if (obstacle !== undefined) return [obstacle.rangement];
     const emplacement = etat.objets[cible];
     const actuelle = emplacement?.type === 'piece' ? emplacement.position : undefined;
     return (monde.positions ?? []).filter((position) => position.piece === etat.piece && position.id !== actuelle).map((position) => position.id);
   },
-  verifier: (contexte, cible) => (deplacablesIci(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente'),
+  verifier: (contexte, cible) => {
+    const candidat = deplacablesIci(contexte).find((objet) => objet.id === cible);
+    return candidat === undefined ? 'cible_absente' : frein(contexte.monde, contexte.etat, candidat);
+  },
   prevoir: ({ monde }, cible, parametre) => ({
     ...SANS_DANGER,
     savoir: [{ type: 'deplacera', objet: refObjet(monde, cible), position: refPosition(monde, exiger(parametre, 'Position absente.')) }],
@@ -933,7 +940,8 @@ const attendre: ActionEngagee = {
 };
 
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
-export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
+const DEFINITIONS: Readonly<Record<IdAction, DefAction>> = {
+  ...ACTIONS_DRONE,
   regarder,
   prendre,
   poser,
@@ -962,3 +970,5 @@ export const CATALOGUE: Readonly<Record<IdAction, DefAction>> = {
   actionner,
   attendre,
 };
+
+export const CATALOGUE = Object.fromEntries(Object.entries(DEFINITIONS).map(([id, action]) => [id, avecMaintien(action)])) as Readonly<Record<IdAction, DefAction>>;

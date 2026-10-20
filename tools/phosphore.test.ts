@@ -91,7 +91,7 @@ describe('direction « Phosphore » (12 §2)', () => {
       const vert = angle >= 85 && angle <= 140 && jetonDe(couleur).startsWith('vert');
       // Rouge du danger apparu dans le récit : seulement dans son jeton (D-233).
       const rouge = (angle <= 10 || angle >= 350) && jetonDe(couleur) === 'alerte';
-      // Trame et franges du tube cathodique de l'intro, à peine visibles : seulement dans leurs jetons (D-308).
+      // Trame et franges du tube cathodique de l'intro, à peine visibles : seulement dans leurs jetons (D-311).
       const crt = jetonDe(couleur).startsWith('crt-');
       expect(ambre || cyan || blanc || vert || rouge || crt, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
@@ -100,7 +100,7 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('vert'))).toBe(true);
   });
 
-  it('angles droits partout, sauf le verre bombé du tube de l’intro (D-308)', () => {
+  it('angles droits partout, sauf le verre bombé du tube de l’intro (D-311)', () => {
     for (const trouve of css.matchAll(/border-radius:\s*([^;]+);/g)) {
       const debut = css.lastIndexOf('}', trouve.index) + 1;
       const selecteur = css.slice(debut, css.indexOf('{', debut)).trim();
