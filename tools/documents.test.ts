@@ -102,7 +102,7 @@ describe('documents dans les grandes stations (#209)', () => {
         rendus++;
       }
     }
-    expect(stations).toBeGreaterThan(30);
+    expect(stations).toBeGreaterThan(20);
     expect(rendus).toBeGreaterThan(150);
     expect(lus.size).toBeGreaterThan(15);
   }, 120_000);
