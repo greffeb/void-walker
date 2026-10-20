@@ -27,6 +27,7 @@ body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-heig
 .chapeau b { color: var(--texte); font-weight: 600; }
 .etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
 .onglets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.onglets.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .onglet, .relancer { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
 .onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
 .relancer { text-transform: uppercase; }
@@ -147,6 +148,14 @@ svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-wid
     <button class="onglet" role="tab" data-s="oui" aria-selected="true">Activé</button>
     <button class="onglet" role="tab" data-s="non" aria-selected="false">Coupé</button>
   </div>
+  <p class="etiquette">Son de la menace · toucher pour écouter</p>
+  <div class="onglets trois" role="tablist" id="menaces">
+    <button class="onglet" role="tab" data-m="radio" aria-selected="true">1 · Radio déréglée</button>
+    <button class="onglet" role="tab" data-m="buzzer" aria-selected="false">2 · Buzzer de console</button>
+    <button class="onglet" role="tab" data-m="bips" aria-selected="false">3 · Bips d'erreur</button>
+    <button class="onglet" role="tab" data-m="coeur" aria-selected="false">4 · Battement sourd</button>
+    <button class="onglet" role="tab" data-m="bande" aria-selected="false">5 · Bande qui ralentit</button>
+  </div>
 
   <button class="relancer" id="relancer">Revenir à l'accueil</button>
 
@@ -233,8 +242,8 @@ function enveloppe(gain, debut, e) {
 }
 
 /** Joue une recette (liste de tons et de souffles) ; rend les sources, pour arrêter un son long. */
-function jouer(recette) {
-  if (!sonActif || passe || audio === null) return [];
+function jouer(recette, apercu = false) {
+  if (!sonActif || (passe && !apercu) || audio === null) return [];
   const t0 = audio.currentTime + 0.01;
   const sources = [];
   for (const e of recette) {
@@ -321,12 +330,8 @@ const SONS = {
     souffle(0, 0.35, 2600, 0.12, { fin: 300, q: 2 }),
     souffle(0.36, 0.05, 240, 0.5, { filtre: 'lowpass' }),
   ],
-  /** Fréquence radio déréglée, pour la ligne de la menace. */
-  menace: () => [
-    ton(0, 0.7, 196, 0.07, { onde: 'square', passeBas: 1100, vibrato: [7, 9] }),
-    ton(0, 0.7, 201, 0.07, { onde: 'square', passeBas: 1100, vibrato: [5.3, 12] }),
-    souffle(0, 0.7, 1500, 0.08, { q: 5, fin: 700 }),
-  ],
+  /** Son de la ligne de la menace : celui choisi dans MENACES. */
+  menace: () => MENACES[choixMenace](),
   /** Statique : crépitements au hasard, porteuse radio qui saute de fréquence. */
   statique: (duree) => {
     const recette = [souffle(0, duree, 3000, 0.12, { filtre: 'highpass', chute: 0.15 })];
@@ -373,6 +378,43 @@ function fondBrun() {
   lecteur.start(t, Math.random());
   return [lecteur];
 }
+
+/** Cinq sons pour « ERREUR : Menace détectée », à comparer ; chacun dure moins de 1,2 s. */
+let choixMenace = 'radio';
+const MENACES = {
+  /** 1. Radio déréglée : deux porteuses presque accordées qui battent, souffle qui glisse. */
+  radio: () => [
+    ton(0, 0.7, 196, 0.07, { onde: 'square', passeBas: 1100, vibrato: [7, 9] }),
+    ton(0, 0.7, 201, 0.07, { onde: 'square', passeBas: 1100, vibrato: [5.3, 12] }),
+    souffle(0, 0.7, 1500, 0.08, { q: 5, fin: 700 }),
+  ],
+  /** 2. Buzzer de console : deux « bzzt » graves et rugueux, comme un pupitre qui refuse. */
+  buzzer: () => [0, 0.5].flatMap((t) => [
+    ton(t, 0.38, 110, 0.11, { onde: 'sawtooth', passeBas: 900 }),
+    ton(t, 0.38, 116, 0.06, { onde: 'square', passeBas: 700 }),
+    souffle(t, 0.02, 1200, 0.3, { q: 2 }),
+  ]),
+  /** 3. Bips d'erreur : trois bips secs puis un bip long plus bas, code d'erreur d'un vieux poste. */
+  bips: () => [
+    ...[0, 0.13, 0.26].map((t) => ton(t, 0.08, 1040, 0.1, { passeBas: 3000, chute: 0.01 })),
+    ton(0.42, 0.42, 520, 0.11, { passeBas: 2200, chute: 0.08 }),
+  ],
+  /** 4. Battement sourd : deux coups graves comme un cœur, puis la coque qui grince au loin. */
+  coeur: () => [
+    ton(0, 0.2, 60, 0.4, { onde: 'sine', fin: 38, chute: 0.15 }),
+    souffle(0, 0.1, 160, 0.3, { filtre: 'lowpass' }),
+    ton(0.24, 0.22, 52, 0.28, { onde: 'sine', fin: 34, chute: 0.18 }),
+    souffle(0.24, 0.1, 140, 0.2, { filtre: 'lowpass' }),
+    souffle(0.5, 0.65, 950, 0.06, { q: 14, fin: 620, montee: 0.1, chute: 0.3 }),
+  ],
+  /** 5. Bande qui ralentit : tout le terminal semble perdre son courant, la hauteur s'effondre. */
+  bande: () => [
+    ton(0, 0.95, 520, 0.12, { onde: 'sawtooth', fin: 45, passeBas: 1400, chute: 0.3 }),
+    ton(0, 0.95, 263, 0.055, { onde: 'square', fin: 22, passeBas: 800, chute: 0.3 }),
+    souffle(0, 0.95, 3000, 0.08, { q: 1.5, fin: 200, chute: 0.3 }),
+    souffle(0.95, 0.05, 220, 0.4, { filtre: 'lowpass' }),
+  ],
+};
 
 function couperRonron() {
   if (audio === null) return;
@@ -650,6 +692,7 @@ function onglets(id, attribut, choisir, relancer) {
 
 onglets('durees', 'd', (d) => (duree = d), true);
 onglets('sons', 's', (s) => { sonActif = s === 'oui'; if (!sonActif) couperRonron(); }, false);
+onglets('menaces', 'm', (m) => { choixMenace = m; ouvrirAudio(); jouer(SONS.menace(), true); }, false);
 $('nouvelle').addEventListener('click', lancer);
 $('ecran-intro').addEventListener('pointerdown', (e) => { if (e.target.id !== 'demarrer') passer(); });
 $('regarder').addEventListener('click', accueil);
