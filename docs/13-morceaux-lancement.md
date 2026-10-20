@@ -8,7 +8,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
 ## 1. Cadre accepté
 
-- Dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158).
+- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232) ; M-11 est développé séparément.
 - Une station : une pièce de départ, deux ou trois obstacles dont **un seul problème final**, l'embarquement avec sa capsule, une seule créature (D-119, D-159, GP-02).
 - Obstacles en chaîne ou en ordre libre (D-160) ; créature placée à un endroit prévu par un morceau, jamais au départ (D-161) ; tirage du problème final à pile ou face, puis de la station au pur hasard parmi celles qui ont ce final, une station déjà jouée pouvant revenir (D-162, D-253).
 - Deux morceaux qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) ne se mélangent qu'une fois leurs règles décidées (D-167) ; les autres se mélangent sans règle de plus (D-248).
@@ -19,7 +19,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 | Famille | Rôle | Morceaux |
 | --- | --- | --- |
 | **Final** | Le problème à régler juste avant de partir | M-03 Énergie, M-06 Baie |
-| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10 |
+| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-12 |
 
 Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement. Le morceau final apporte l'embarquement et sa capsule (D-249) ; au départ, les portes entre deux morceaux sont fermées (D-252) ; le tirage choisit d'abord le final à pile ou face (D-253).
 
@@ -98,6 +98,19 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 - **Sûr :** déclencher le compresseur, ressortir, fermer depuis le pupitre quand elle est entrée.
 - **Risqué :** se faire suivre à travers la chambre et refermer derrière soi ; au-delà de deux actions dedans, une blessure.
 
+### M-12 — Le chariot bloqué et le drone réparable (#232)
+
+- **But :** dégager un chariot qui barre le chemin vers la suite. Il faut maintenir une poignée au poste pendant que le passager pousse au palier : deux lieux, deux rôles.
+- **Pièces :** atelier du drone, galerie de détour, poste, palier du chariot, réserve et quai de sortie. Le plan distingue le trajet du passager et le trajet local du drone ; aucune commande ne téléporte un objet à travers une porte fermée.
+- **Créature :** place prévue dans la réserve. Une fermeture peut gagner du temps après la rencontre ; elle ne garantit pas une protection permanente. L'ouverture de la porte de réserve et les autres passages sont décrits dans le contenu.
+- **Demande / fournit :** coopération avec le drone ; accès durable une fois le chariot rangé. Sans drone en maintien, le passager ne peut pas tenir la poignée et pousser ailleurs. Il n'y a pas la manivelle autonome de la première maquette.
+- **Drone :** activation locale, trajet de manutention puis maintien bruyant. Il ne combat pas, ne ramasse rien et ne devient pas un compagnon universel. La tâche se termine quand le chariot est déplacé.
+- **Panne récupérable :** une attaque le sort du rail, interrompt le maintien et coupe le moteur. Deux gestes sur place : replacer, puis réarmer/relancer. Aucun consommable ; les dangers continuent pendant ces gestes.
+- **Préparation sûre à prouver :** isoler le bruit de la réserve avant la mise en route, déléguer le maintien, rejoindre le palier, pousser et poursuivre la station.
+- **Variante risquée à prouver :** après une rencontre ou une panne, reprendre la coopération en utilisant le plan, les portes et le répit réel. Le coût en blessures dépend de C-04, pas des résultats déterministes de la maquette.
+- **Carte :** pictogramme vert du drone dans son dernier emplacement observé, sans déplacement omniscient hors de vue (D-307).
+- **État des preuves :** conception retenue pour intégration ; tests, parcours complets, vérification du catalogue, relecture et partie sur téléphone doivent être fournis par la PR. Les essais de maquette ne valident pas une partie du vrai jeu.
+
 ## 4. Mélanges
 
 Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur), ralentissement (M-04 huile, M-09, M-10), neutralisation (M-06, M-08), air (M-06).
@@ -117,6 +130,8 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 | Morceaux qui ne jouent pas sur la même chose | Aucune règle nouvelle (D-248) |
 
 Avec ces règles, toutes les paires des dix morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
+
+Pour M-12 (D-306), le bruit suit la même sélection et le même masquage que les équipements existants ; aucun changement des priorités générales de la créature. L'huile, le froid et la gravité gardent leurs effets sur ses réactions. Les équipements de M-12 ne sont pas détruits par le feu ou le vide ; le passager, lui, garde tous ses risques. Le chariot est une obstruction de déplacement, pas une cloison étanche : les autres canaux conservent les qualités déclarées de la liaison. La permission d'une paire ne remplace jamais la preuve d'une station complète. La paire M-11/M-12 attend leur intégration commune ; M-11 n'est pas importé depuis un worktree en cours.
 
 ### 4.1 Table exhaustive des paires (L0, #150)
 

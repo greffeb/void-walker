@@ -38,6 +38,8 @@ Les dix morceaux, leurs deux familles (final, chemin) et leurs fiches sont décr
 
 ## 3. Vérification avant de jouer
 
+**Extension M-12 (D-304 à D-307, #232).** Le chariot et le drone ajoutent un morceau de chemin au socle de dix morceaux. Il est disponible en station d'essai et dans les compositions publiques prouvées. L'obstacle matériel reste réel même si la créature est ailleurs ou neutralisée. Une panne réparable ne doit pas produire un faux « plus aucune sortie » : le calcul considère la possibilité de rejoindre le drone, de le remettre en route et d'accomplir la coopération. Il ne suppose pas qu'un passager peut maintenir une poignée dans une pièce tout en poussant dans une autre. M-11 est intégré séparément ; la paire M-11/M-12 attend une preuve commune.
+
 Toute station assemblée est vérifiée avant d'être proposée (D-084) : il existe au moins un chemin d'évacuation sans dé ni blessure si l'on prépare bien. Une station qui échoue est rejetée, avec un diagnostic ; elle n'est jamais jouée. Un chemin qui passe une fois sous les yeux de la créature grâce à l'action libre du premier contact compte comme sûr (D-250).
 
 - **GP-05 —** Le vérifieur utilise les vraies règles et les vraies commandes, sur l'état complet ; il ne remplace pas la découvrabilité, mesurée par des parties humaines.

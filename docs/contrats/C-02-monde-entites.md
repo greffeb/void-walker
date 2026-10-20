@@ -90,6 +90,10 @@ Une qualité absente de cette table n'existe pas encore. En ajouter une, ou comb
 
 ## 6. Port et transferts
 
+**Équipement de coopération M-12 (D-304 à D-306).** Une poignée à maintien commande le frein d'un chariot, dont le déplacement dégage un passage. Le passager doit être au poste pour tenir la poignée et la relâche en se déplaçant ; il ne peut pas maintenir et pousser dans une autre pièce. Un drone local peut assurer le maintien à sa place. Le drone et le chariot ne sont pas des objets que le passager emporte dans l'inventaire.
+
+Le drone conserve un emplacement réel et une phase de fonctionnement. Son trajet emprunte les liaisons autorisées, pas un déplacement à travers une porte fermée. Un déraillement interrompt le maintien et coupe le bruit, mais reste récupérable : replacer sur rail puis réarmer/relancer, deux actions sur place, sans consommable. Le feu, le vide et le froid ne créent pas d'autre panne pour ce premier lot. Aucune règle ne teste un nom de contenu.
+
 - Prendre, déposer, installer, enfiler, retirer : une action chacune (D-039).
 - **MP-02 —** Tout objet porté peut être déposé à la position actuelle du passager, en une action ; il y reste.
 - Un transfert refusé laisse l'objet à son origine, avec une raison publique (C-05 §4) : deuxième objet encombrant, gabarit trop large, destination invalide.
