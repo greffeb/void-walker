@@ -73,7 +73,7 @@ export const TEXTES_MORCEAU_M04: TextesMorceau = {
       puce: { texte: 'pense-bête', genre: 'm', nombre: 's', elision: false },
       support: 'note',
       ou: 'collée à la paroi, à hauteur d’épaule',
-      corps: ['Burette d’huile rangée dans {le:piece}, avec les graisses.', 'Quand on emprunte, on rapporte.'],
+      corps: ['Burette d’huile rangée dans {le:piece}.', 'Quand on emprunte, on rapporte.'],
       signature: 'Bastien',
     },
   },
