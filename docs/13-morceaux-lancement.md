@@ -749,7 +749,11 @@ Le pictogramme de carte est une demande directe, accompagnée d'une référence 
 - liste publique régénérée et chaque composition publiée prouvée ; nombres dérivés des formules de [17 §4](17-ajouter-un-morceau.md#4-tests-qui-épinglent-des-nombres), pas d'une valeur reçue dans un test ;
 - plan et pictogramme, parcours CLI public, contrôle des textes et vérification complète.
 
-Les nombres de compositions effectivement publiées, leurs refus et les mesures de plans restent à reporter après les vérifications de #232 ; aucune preuve de catalogue M-12 n'est revendiquée à ce stade.
+La preuve de jeu de chaque composition publiée (`check:stations`), le signal « plus aucune sortie » (`check:sortie`) et les mesures de plans sont attendus de la CI de la PR de #232, trop longs pour le PC du porteur : aucune preuve de catalogue M-12 n'est revendiquée avant ce résultat.
+
+**Catalogue après M-12 (calculé, tests verts sur le PC ; preuve de jeu attendue de la CI).** Avec 10 chemins et 2 finals : 66 paires, 65 permises ; 850 compositions, 580 en chaîne (40 à un chemin, 540 à deux) et 270 en ordre libre. 754 publiées : 520 en chaîne, 234 en ordre libre ; 154 contiennent M-12 (104 en chaîne, 50 en ordre libre). Les non publiées le sont pour les raisons déjà en vigueur : paire M-03/M-06, créature qui bouche le seul passage sans obstacle qui permette de s'en débarrasser (D-268), places écartées en ordre libre. M-12 ne figure pas parmi les obstacles qui permettent de se débarrasser de la créature. La liste est régénérée depuis la règle de publication, puis vérifiée par le test qui la compare au catalogue.
+
+**Coût mesuré sur le PC du porteur.** Prouver une station M-12 coûte plus cher qu'une autre : 2,9 s pour `m12-m03-stockage` contre 0,35 s pour `m11-m03-remise`, 13,6 s pour `ol-m11-m12-m06-stockage` contre 3,6 s pour `ol-m07-m11-m06-soute`. Les textes des trois stations M-12 contrôlées passent `check:texts` sans erreur, en un temps comparable aux autres. Le test du message chiffré prouve désormais la première station contrôlée, la moins coûteuse, avec la même assertion.
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

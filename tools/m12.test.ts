@@ -1,7 +1,7 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { commencer, charger, jouerOption, type Environnement } from '../app/jeu';
 import { stockageIndexedDB } from '../app/sauvegarde';
-import { exporter, nouvellePartie, observer, rejouer, validerMonde } from '../engine';
+import { exporter, jouer, nouvellePartie, observer, rejouer, validerMonde } from '../engine';
 import { fuitesDeCouches, libellePiece, MORCEAUX_TEXTES } from '../content';
 import { PARCOURS_REPARATION_M12 } from '../content/m-12/parcours';
 import { CATALOGUE } from './catalogue';
@@ -72,6 +72,36 @@ describe('M12 assemblé et joué par les surfaces réelles', () => {
     const etat = nouvellePartie(monde, { version: 'cle', graine: 203 }).etat;
     expect(cleEtatRegles(etat)).toBe(cleEtatRegles({ ...etat, actions: 1000000 }));
     expect(Object.keys(etat.drones ?? {})).toEqual(['phases', 'tenue', 'bruits']);
+  });
+
+  it('le drone qui termine sa tâche hors de vue n’est pas raconté (C-06 §5)', () => {
+    type Etape = { readonly action: string; readonly cible: string; readonly parametre?: string };
+    const nom = (ref: { readonly nom: string; readonly vers?: { readonly nom: string } | null } | undefined): string | undefined =>
+      ref === undefined ? undefined : 'vers' in ref && ref.vers !== null && ref.vers !== undefined ? ref.vers.nom : ref.nom;
+    let partie = nouvellePartie(monde, { version: 'hors-de-vue', graine: 5 });
+    const jouerEtape = ({ action, cible, parametre }: Etape): readonly string[] => {
+      const option = observer(monde, partie.etat).menu.find(
+        (candidate) => candidate.disponible && candidate.action === action && nom(candidate.cible) === cible && (parametre === undefined || candidate.parametre?.nom === parametre),
+      );
+      if (option === undefined) throw new Error(`Option absente : ${action} ${cible}.`);
+      const resultat = jouer(monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`${action} non engagée.`);
+      partie = resultat.partie;
+      return resultat.evenements.map((evenement) => evenement.type);
+    };
+    for (const etape of [
+      { action: 'aller', cible: 'poste_drone' },
+      { action: 'fermer', cible: 'stockage' },
+      { action: 'fermer', cible: 'palier_chariot' },
+      { action: 'aller', cible: 'atelier_drone' },
+      { action: 'envoyer', cible: 'drone' },
+      { action: 'aller', cible: 'galerie_drone' },
+      { action: 'aller', cible: 'palier_chariot' },
+    ]) jouerEtape(etape);
+    const evenements = jouerEtape({ action: 'deplacer', cible: 'chariot', parametre: 'dans_rangement' });
+    expect(evenements).toContain('objet_deplace');
+    expect(evenements).not.toContain('drone_termine');
+    expect(partie.etat.drones?.phases['m-12/o-drone']).toBe('termine');
   });
 
   it('M11/M12 en ordre libre conserve le blindage, la carte exigée et seulement les cloisons du carrefour', () => {

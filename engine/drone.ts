@@ -179,8 +179,8 @@ export function avancerDrones(monde: DefMonde, avant: EtatPartie, effet: Effet):
     if (poignee === undefined || place?.type !== 'piece') continue;
     if (phase !== 'termine' && fini(monde, etat, poignee.id)) {
       etat = changerPhase(etat, objet.id, 'termine');
-      // L'obstacle déplacé donne un retour mécanique local, sans annoncer une créature distante.
-      evenements.push({ type: 'drone_termine', objet: refObjet(monde, objet.id) });
+      // Seul un passager dans sa pièce le voit lâcher la poignée : hors de vue, rien n'est raconté (C-06 §5).
+      if (etat.piece === place.piece) evenements.push({ type: 'drone_termine', objet: refObjet(monde, objet.id) });
     } else if (phase === 'trajet') {
       if (place.piece === poignee.piece) {
         etat = changerPhase(etat, objet.id, 'maintien');
