@@ -168,6 +168,73 @@ export function crepitement(duree: number, hasard: () => number): Ton[] {
   return tics;
 }
 
+/** Sons de l'intro de NOUVELLE PARTIE (15 §2.6, D-311) : un vieux terminal démarre puis tire la station. */
+export const SONS_INTRO = ['interrupteur', 'cliquetis', 'clac', 'relais', 'statique', 'tic', 'arret', 'ligne', 'menace', 'pret'] as const;
+export type SonIntro = (typeof SONS_INTRO)[number];
+
+/** Durée de la statique du saut d'image, en secondes ; l'écran saute aussi longtemps. */
+export const DUREE_STATIQUE = 0.85;
+
+/** Valeur décalée au hasard de ± `ecart` (une touche ne sonne jamais deux fois tout à fait pareil). */
+const varier = (valeur: number, ecart: number, hasard: () => number): number => valeur * (1 + (hasard() * 2 - 1) * ecart);
+
+const interrupteur: Recette = [
+  ton(0, 0.32, 75, { onde: 'sine', fin: 32, vol: 0.6, chute: 0.25 }),
+  souffle(0, 0.14, 380, { filtre: 'lowpass', vol: 0.6, chute: 0.1 }),
+  souffle(0, 0.025, 1900, { q: 6, vol: 0.5 }),
+  souffle(0.055, 0.02, 2400, { q: 8, vol: 0.25 }),
+  ton(0.02, 0.6, 50, { onde: 'sawtooth', passeBas: 180, vol: 0.12, chute: 0.5 }),
+];
+
+/** Statique : souffle aigu, crépitements au hasard et porteuse radio qui saute de fréquence toutes les 50 ms. */
+function statique(hasard: () => number): Recette {
+  const recette: ElementSon[] = [souffle(0, DUREE_STATIQUE, 3000, { filtre: 'highpass', vol: 0.12, chute: 0.15 })];
+  for (let t = 0; t < DUREE_STATIQUE; t += 0.02 + hasard() * 0.04) {
+    recette.push(souffle(t, 0.01 + hasard() * 0.03, 400 + hasard() * 5000, { q: 1.5, vol: 0.2 + hasard() * 0.4 }));
+  }
+  for (let t = 0; t < DUREE_STATIQUE - 0.05; t += 0.05) {
+    recette.push(ton(t, 0.05, 300 + hasard() * 1800, { onde: 'sawtooth', passeBas: 2500, vol: 0.06 }));
+  }
+  return recette;
+}
+
+/**
+ * Recette d'un son de l'intro (15 §3.5, banc : docs/maquette/intro-generation.html). La menace reprend la blessure du jeu (D-311) ;
+ * les touches et les lignes varient un peu de hauteur à chaque fois.
+ */
+export function recetteIntro(son: SonIntro, hasard: () => number): Recette {
+  switch (son) {
+    case 'interrupteur':
+      return interrupteur;
+    case 'pret':
+      return interrupteur.slice(0, 3);
+    case 'cliquetis':
+      return [souffle(0, 0.012, varier(4200, 0.15, hasard), { q: 3, vol: 0.28 })];
+    case 'clac':
+      return [
+        souffle(0, 0.022, varier(2600, 0.12, hasard), { q: 9, vol: 0.55 }),
+        ton(0, 0.05, varier(1650, 0.05, hasard), { onde: 'triangle', vol: 0.05, chute: 0.045 }),
+        souffle(0.014, 0.035, 520, { filtre: 'lowpass', vol: 0.6, chute: 0.03 }),
+      ];
+    case 'relais':
+      return [souffle(0, 0.03, 1250, { q: 2, vol: 0.45 }), souffle(0, 0.05, 220, { filtre: 'lowpass', vol: 0.4 }), souffle(0.035, 0.012, 3200, { q: 4, vol: 0.12 })];
+    case 'statique':
+      return statique(hasard);
+    case 'tic':
+      return [souffle(0, 0.012, varier(1700, 0.2, hasard), { q: 4, vol: 0.18 })];
+    case 'arret':
+      return [
+        ton(0, 0.4, 420, { onde: 'sawtooth', fin: 60, passeBas: 900, vol: 0.1, chute: 0.3 }),
+        souffle(0, 0.35, 2600, { fin: 300, q: 2, vol: 0.12 }),
+        souffle(0.36, 0.05, 240, { filtre: 'lowpass', vol: 0.5 }),
+      ];
+    case 'ligne':
+      return [souffle(0, 0.018, varier(1400, 0.15, hasard), { q: 2, vol: 0.22 }), souffle(0, 0.03, 220, { filtre: 'lowpass', vol: 0.18 })];
+    case 'menace':
+      return RECETTES_SIGNAUX.blessure;
+  }
+}
+
 /** Grain cassette des bruitages (15 §3.2) : saturation douce (tanh) puis passe-bas ; l'ambiance n'y passe pas. */
 export const GRAIN = { saturation: 2.2, passeBas: 5200, q: 0.5 } as const;
 

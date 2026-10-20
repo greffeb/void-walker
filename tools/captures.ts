@@ -307,8 +307,19 @@ async function attendreSauvegarde(page: Page, actions: number): Promise<void> {
     .waitFor({ state: 'attached', timeout: 10_000 });
 }
 
+/** Intro de NOUVELLE PARTIE (D-308), pour une station tirée : passée d'un toucher, puis DÉMARRER ; un monde fixe n'en a pas. */
+async function passerIntroSiPresente(page: Page): Promise<void> {
+  const intro = page.getByRole('main', { name: 'Tirage de la station' });
+  const regarder = page.getByRole('button', { name: /^regarder autour de vous$/i });
+  await intro.or(regarder).first().waitFor();
+  if ((await intro.count()) === 0) return;
+  await intro.click({ position: { x: 24, y: 24 } });
+  await page.getByRole('button', { name: exactement('Démarrer') }).click();
+}
+
 async function nouvelleDepuisAccueil(page: Page): Promise<void> {
   await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
+  await passerIntroSiPresente(page);
   await page.getByRole('button', { name: /^regarder autour de vous$/i }).click();
   await attendreSauvegarde(page, 0);
 }
@@ -1883,6 +1894,30 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
     return;
   }
   const regarder = (page: Page): Locator => page.getByRole('button', { name: /^regarder autour de vous$/i });
+  /**
+   * Intro de NOUVELLE PARTIE (D-308) : une station tirée y passe avant le réveil. Un toucher l'amène à son état final, DÉMARRER mène
+   * au réveil. `titre` : l'état final est aussi capturé, et son texte vérifié (numéro, total, erreur en rouge).
+   */
+  const passerIntro = async (page: Page, ou: string, titre?: string): Promise<void> => {
+    const intro = page.getByRole('main', { name: 'Tirage de la station' });
+    await intro.or(regarder(page)).first().waitFor();
+    if ((await intro.count()) === 0) {
+      erreurs.push(`${ou} : pas d’intro avant le réveil.`);
+      return;
+    }
+    await intro.click({ position: { x: 24, y: 24 } });
+    const demarrer = page.getByRole('button', { name: exactement('Démarrer') });
+    await demarrer.waitFor();
+    const lu = (await intro.innerText()).replace(/\s+/g, ' ');
+    const numero = /Station (\d+) sur (\d+)/.exec(lu);
+    if (numero === null || Number(numero[2]) !== COMPOSITIONS_PUBLIEES.length) erreurs.push(`${ou}, intro : « Station N sur ${COMPOSITIONS_PUBLIEES.length} » absent.`);
+    if ((await intro.locator('.intro-menace', { hasText: 'ERREUR : Menace détectée' }).count()) !== 1) erreurs.push(`${ou}, intro : ligne de l’erreur absente.`);
+    if (titre !== undefined) await capturer(page, titre);
+    await demarrer.click();
+    await regarder(page).waitFor();
+    const rappel = ((await page.locator('.numero-station').textContent()) ?? '').trim();
+    if (numero !== null && rappel !== `Station ${numero[1]}`) erreurs.push(`${ou}, réveil : rappel « ${rappel} » au lieu de « Station ${numero[1]} ».`);
+  };
   /** Du réveil au jeu : la pièce affichée est celle du départ de `entree`. */
   const verifierDepart = async (page: Page, entree: EntreeMonde | null, ou: string): Promise<void> => {
     await regarder(page).click();
@@ -1912,7 +1947,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
     const page = await contexte.newPage();
     await page.goto(`${racine}?station=${id}`);
     await page.getByRole('button', { name: /^nouvelle partie$/i }).click();
-    await regarder(page).waitFor();
+    await passerIntro(page, `?station=${id}`);
     if ((await mondeLu(page)) !== id) erreurs.push(`?station=${id} : partie sur « ${await mondeLu(page)} ».`);
     await verifierParole(page, entree.textes.assistance.reveil, `?station=${id}, réveil`, erreurs);
     await capturer(page, reveil);
@@ -1932,7 +1967,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   const { contexte: forcee, page } = await forcer(STATION_CAPTUREE, exacte);
   await abandonnerPartie(page);
   await page.getByRole('button', { name: exactement('Nouvelle partie') }).click();
-  await regarder(page).waitFor();
+  await passerIntro(page, `?station=${STATION_CAPTUREE}, NOUVELLE PARTIE`);
   if ((await mondeLu(page)) !== STATION_CAPTUREE) erreurs.push(`?station=${STATION_CAPTUREE}, NOUVELLE PARTIE : partie sur « ${await mondeLu(page)} ».`);
   await forcee.close();
 
@@ -1974,7 +2009,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   const pageNue = await nue.newPage();
   await pageNue.goto(racine);
   await pageNue.getByRole('button', { name: /^nouvelle partie$/i }).click();
-  await regarder(pageNue).waitFor();
+  await passerIntro(pageNue, 'Adresse nue', 'Intro de NOUVELLE PARTIE — station tirée parmi les autres, DÉMARRER');
   const premiere = await stationTiree(pageNue, 'Adresse nue');
   if (premiere.entree !== null) await verifierParole(pageNue, premiere.entree.textes.assistance.reveil, 'Adresse nue, réveil', erreurs);
   await verifierDepart(pageNue, premiere.entree, 'Adresse nue, départ');
@@ -1995,11 +2030,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   await verifierDepart(pageNue, premiere.entree, 'Adresse nue, départ rejoué');
   await abandonnerPartie(pageNue);
   await pageNue.getByRole('button', { name: exactement('Nouvelle partie') }).click();
-  await regarder(pageNue)
-    .waitFor({ timeout: 10_000 })
-    .catch(() => {
-      throw new Error('Adresse nue, NOUVELLE PARTIE depuis la fin : pas d’écran de réveil.');
-    });
+  await passerIntro(pageNue, 'Adresse nue, NOUVELLE PARTIE depuis la fin');
   const seconde = await stationTiree(pageNue, 'Adresse nue, NOUVELLE PARTIE');
   if (seconde.id === premiere.id) erreurs.push(`Adresse nue, NOUVELLE PARTIE : la même station ${seconde.id}.`);
   if (seconde.entree !== null) await verifierParole(pageNue, seconde.entree.textes.assistance.reveil, 'Adresse nue, NOUVELLE PARTIE, réveil', erreurs);
@@ -2014,7 +2045,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
   await pageNue.reload();
   await pageNue.getByRole('button', { name: exactement('Nouvelle partie') }).click();
   await pageNue.getByRole('button', { name: exactement('Commencer') }).click();
-  await regarder(pageNue).waitFor();
+  await passerIntro(pageNue, 'Adresse nue, NOUVELLE PARTIE à l’accueil');
   const troisieme = await stationTiree(pageNue, 'Adresse nue, NOUVELLE PARTIE à l’accueil');
   if (troisieme.id === seconde.id) erreurs.push(`Adresse nue, NOUVELLE PARTIE à l’accueil : la même station ${troisieme.id}.`);
 

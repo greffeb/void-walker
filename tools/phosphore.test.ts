@@ -91,15 +91,22 @@ describe('direction « Phosphore » (12 §2)', () => {
       const vert = angle >= 85 && angle <= 140 && jetonDe(couleur).startsWith('vert');
       // Rouge du danger apparu dans le récit : seulement dans son jeton (D-233).
       const rouge = (angle <= 10 || angle >= 350) && jetonDe(couleur) === 'alerte';
-      expect(ambre || cyan || blanc || vert || rouge, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
+      // Trame et franges du tube cathodique de l'intro, à peine visibles : seulement dans leurs jetons (D-311).
+      const crt = jetonDe(couleur).startsWith('crt-');
+      expect(ambre || cyan || blanc || vert || rouge || crt, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('cyan'))).toBe(true);
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('blanc'))).toBe(true);
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('vert'))).toBe(true);
   });
 
-  it('angles droits partout', () => {
-    for (const [, valeur] of css.matchAll(/border-radius:\s*([^;]+);/g)) expect(valeur).toBe('0');
+  it('angles droits partout, sauf le verre bombé du tube de l’intro (D-311)', () => {
+    for (const trouve of css.matchAll(/border-radius:\s*([^;]+);/g)) {
+      const debut = css.lastIndexOf('}', trouve.index) + 1;
+      const selecteur = css.slice(debut, css.indexOf('{', debut)).trim();
+      if (selecteur === '.intro-crt') continue;
+      expect(trouve[1], selecteur).toBe('0');
+    }
   });
 
   it('police IBM Plex Mono 400, 600 et 400 italique embarquée dans l’appli, licence OFL jointe', () => {
