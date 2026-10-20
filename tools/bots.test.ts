@@ -35,7 +35,7 @@ describe('bots', () => {
     const vus: Observation[] = [];
     const espion: Bot = {
       choisir(vue) {
-        expect(Object.keys(vue).sort()).toEqual(['apercu', 'evenements', 'observation', 'trace']);
+        expect(Object.keys(vue).sort()).toEqual(['apercu', 'consulter', 'evenements', 'observation', 'trace']);
         vus.push(vue.observation);
         return vus.length > 3 ? null : (optionsJouables(vue.observation)[0]?.commande ?? null);
       },
@@ -76,6 +76,43 @@ describe('bots', () => {
     expect(averti === -1 || averti > prudent).toBe(true);
   });
 
+  describe('le profil averti lit les documents (#209, spec 2026-10-20 §11)', () => {
+    // A ouvre sur B, où une note de rangement désigne C ; B ouvre aussi sur D, qui porte un autre document, et sur E.
+    const monde: DefMonde = {
+      id: 'docs',
+      depart: 'p-a',
+      pieces: ['a', 'b', 'c', 'd', 'e'].map((nom) => ({ id: `p-${nom}`, nom })),
+      liaisons: [['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e']].map(([a, b]) => ({ id: `l-${a}-${b}`, nom: 'porte', entre: [`p-${a}`, `p-${b}`] as const, ouverte: true })),
+      objets: [
+        { id: 'o-note', nom: 'note', piece: 'p-b', portable: false, document: true, designe: 'p-c' },
+        { id: 'o-lettre', nom: 'lettre', piece: 'p-d', portable: false, document: true },
+      ],
+    };
+    const station: EntreeMonde = { monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] };
+    const versC = (profil: 'prudent' | 'averti', graine: number): number =>
+      jouerAvecBot(station, creerBot(profil, graine), graine, 40).partie.enregistrement.actions.findIndex((action) => action.commande.action === 'aller' && action.commande.cible === idPublic('docs', 'l-b-c'));
+
+    it('il regarde chaque document à sa première visite de la pièce, et pas une seconde fois ; le prudent ne regarde rien', () => {
+      const regardes = (profil: 'prudent' | 'averti'): string[] => {
+        const vus: string[] = [];
+        const bot = creerBot(profil, 1);
+        const espion: Bot = { choisir: (vue) => bot.choisir({ ...vue, consulter: (cible) => (vus.push(cible), vue.consulter(cible)) }) };
+        jouerAvecBot(station, espion, 1, 40);
+        return vus;
+      };
+      const averti = regardes('averti');
+      for (const document of ['o-note', 'o-lettre']) expect(averti.filter((cible) => cible === idPublic('docs', document))).toHaveLength(1);
+      expect(regardes('prudent')).toEqual([]);
+    });
+
+    it('après une note de rangement, il va droit vers la pièce qu’elle nomme, plus tôt que le prudent', () => {
+      const graines = [0, 1, 2, 3, 4, 5, 6, 7];
+      // L'action 0 mène à B, où il lit la note ; l'action 1 est le passage vers C.
+      for (const graine of graines) expect(versC('averti', graine), `graine ${String(graine)}`).toBe(1);
+      expect(graines.some((graine) => versC('prudent', graine) !== 1)).toBe(true);
+    });
+  });
+
   it('une pièce visitée sans rien de bloqué ne redevient pas à voir quand l’inventaire change (spec 2026-10-18 §11)', () => {
     // D, impasse, et X, qui mène à M, sont déjà vues ; l'objet est en N. Revenu en S avec l'objet, il file vers M sans revoir D.
     const monde: DefMonde = {
@@ -93,7 +130,7 @@ describe('bots', () => {
       if (resultat.type !== 'engagee') throw new Error(`${action} ${cible} refusé.`);
       partie = resultat.partie;
     }
-    const choix = creerBot('prudent', 1).choisir({ observation: observer(monde, partie.etat), evenements: [], apercu: () => null, trace: null });
+    const choix = creerBot('prudent', 1).choisir({ observation: observer(monde, partie.etat), evenements: [], apercu: () => null, trace: null, consulter: () => null });
     expect(choix).toEqual({ action: 'aller', cible: idPublic('revoir', 'l-s-x') });
   });
 

@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
@@ -457,6 +457,35 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     // Le monde d'avant la livraison 2 : le même identifiant, sans ses objets de butin.
     const ancienne: EntreeMonde = { ...grande, monde: { ...grande.monde, objets: grande.monde.objets.filter((objet) => objet.butin !== true) } };
     expect(ancienne.monde.objets.length).toBeLessThan(grande.monde.objets.length);
+    const { stockage: ecrit } = enMemoire();
+    const envAncienne = envSur(ancienne, ecrit);
+    let jeu = await commencer(envAncienne);
+    for (let pas = 0; pas < 3; pas++) {
+      const option = observer(ancienne.monde, jeu.partie.etat).menu.find((choix) => choix.disponible && choix.action !== 'regarder');
+      if (option === undefined) throw new Error('Aucune option jouable.');
+      jeu = await jouerOption(envAncienne, jeu, option);
+    }
+    const sauvegarde = await ecrit.lire();
+    expect((await charger(envAncienne)).type).toBe('pret');
+    const { stockage, ecritures } = enMemoire(sauvegarde);
+    const env = envSur(grande, stockage);
+    expect(await charger(env)).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('incohérente') });
+    expect(await demarrer(env)).toMatchObject({ type: 'reprise_impossible' });
+    expect(await stockage.lire()).toEqual(sauvegarde);
+    expect(ecritures()).toBe(0);
+  });
+
+  it('grande station : la sauvegarde d’une partie faite sans les documents (même station, sans sa réserve) n’est pas reprise, rien n’est écrit, la sauvegarde reste intacte (#209)', async () => {
+    const grande = resolue(CATALOGUE.publiees[0] ?? '');
+    const tiret = grande.monde.id.lastIndexOf('-');
+    const definie = CATALOGUE.definirGrande(grande.monde.id.slice(0, tiret), Number(grande.monde.id.slice(tiret + 1)));
+    if ('refus' in definie) throw new Error(definie.refus);
+    // Le monde d'avant la livraison 3 : le même identifiant, assemblé sans la réserve de documents.
+    const sans = assemblerStation({ ...definie, grande: definie.grande === undefined ? undefined : { ...definie.grande, documents: undefined } });
+    if (sans.type !== 'station') throw new Error('Station sans documents non assemblée.');
+    const ancienne = numeroter({ ...grande, monde: sans.monde });
+    expect(grande.monde.objets.some((objet) => objet.document === true)).toBe(true);
+    expect(ancienne.monde.objets.some((objet) => objet.document === true)).toBe(false);
     const { stockage: ecrit } = enMemoire();
     const envAncienne = envSur(ancienne, ecrit);
     let jeu = await commencer(envAncienne);
