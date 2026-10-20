@@ -150,11 +150,9 @@ svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-wid
   </div>
   <p class="etiquette">Son de la menace · toucher pour écouter</p>
   <div class="onglets trois" role="tablist" id="menaces">
-    <button class="onglet" role="tab" data-m="radio" aria-selected="true">1 · Radio déréglée</button>
-    <button class="onglet" role="tab" data-m="buzzer" aria-selected="false">2 · Buzzer de console</button>
-    <button class="onglet" role="tab" data-m="bips" aria-selected="false">3 · Bips d'erreur</button>
-    <button class="onglet" role="tab" data-m="coeur" aria-selected="false">4 · Battement sourd</button>
-    <button class="onglet" role="tab" data-m="bande" aria-selected="false">5 · Bande qui ralentit</button>
+    <button class="onglet" role="tab" data-m="buzzer" aria-selected="true">1 · Buzzer d'erreur</button>
+    <button class="onglet" role="tab" data-m="bip" aria-selected="false">2 · Bip seul sourd</button>
+    <button class="onglet" role="tab" data-m="blessure" aria-selected="false">3 · Son de la blessure</button>
   </div>
 
   <button class="relancer" id="relancer">Revenir à l'accueil</button>
@@ -216,27 +214,49 @@ const attentes = new Set();
 /* ---------- Sons : recettes au format de app/son/recettes.ts, plus `vibrato` ---------- */
 let audio = null;
 let maitre = null;
+let grain = null;
 let ronron = [];
 let bruitBlanc = null;
 
 function ouvrirAudio() {
-  if (audio === null) {
-    audio = new AudioContext();
-    maitre = audio.createGain();
-    maitre.gain.value = 0.55;
-    maitre.connect(audio.destination);
-    bruitBlanc = audio.createBuffer(1, audio.sampleRate * 2, audio.sampleRate);
-    const d = bruitBlanc.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  }
+  if (audio === null) monterBus(new AudioContext());
   if (audio.state === 'suspended') audio.resume();
+}
+
+/** Bus de la maquette sur un contexte audio (un contexte hors ligne sert à mesurer les niveaux). */
+function monterBus(contexte) {
+  audio = contexte;
+  maitre = audio.createGain();
+  maitre.gain.value = 0.55;
+  maitre.connect(audio.destination);
+  // Chaîne des bruitages du jeu (moteur.ts monter) : saturation tanh k 2,2, passe-bas 5 200 Hz Q 0,5, effets 80² et général 80².
+  grain = audio.createGain();
+  const saturation = audio.createWaveShaper();
+  const courbe = new Float32Array(1024);
+  for (let i = 0; i < courbe.length; i++) courbe[i] = Math.tanh(2.2 * ((i * 2) / courbe.length - 1)) / Math.tanh(2.2);
+  saturation.curve = courbe;
+  saturation.oversample = '2x';
+  const cassette = audio.createBiquadFilter();
+  cassette.type = 'lowpass';
+  cassette.frequency.value = 5200;
+  cassette.Q.value = 0.5;
+  const effets = audio.createGain();
+  effets.gain.value = (0.8 ** 2 * 0.8 ** 2) / maitre.gain.value;
+  grain.connect(saturation);
+  saturation.connect(cassette);
+  cassette.connect(effets);
+  effets.connect(maitre);
+  bruitBlanc = audio.createBuffer(1, audio.sampleRate * 2, audio.sampleRate);
+  const d = bruitBlanc.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
 }
 
 function enveloppe(gain, debut, e) {
   const montee = e.montee ?? (e.sorte === 'ton' ? 0.002 : 0.001);
   const chute = e.chute ?? Math.min(0.03, e.duree / 2);
-  gain.gain.setValueAtTime(0, debut);
-  gain.gain.linearRampToValueAtTime(e.vol, debut + montee);
+  // Comme le jeu (moteur.ts enveloppe) : montée et chute exponentielles depuis et vers le silence.
+  gain.gain.setValueAtTime(0.0001, debut);
+  gain.gain.exponentialRampToValueAtTime(e.vol, debut + montee);
   gain.gain.setValueAtTime(e.vol, debut + Math.max(montee, e.duree - chute));
   gain.gain.exponentialRampToValueAtTime(0.0001, debut + e.duree);
 }
@@ -250,7 +270,25 @@ function jouer(recette, apercu = false) {
     const debut = t0 + e.t;
     const gain = audio.createGain();
     enveloppe(gain, debut, e);
-    gain.connect(maitre);
+    const vers = e.jeu ? grain : maitre;
+    if (e.trem === undefined) gain.connect(vers);
+    else {
+      // Bourdonnement du jeu : amplitude modulée en carré entre 0 et 1.
+      const lfo = audio.createOscillator();
+      lfo.type = 'square';
+      lfo.frequency.value = e.trem;
+      const profondeur = audio.createGain();
+      profondeur.gain.value = 0.5;
+      const porte = audio.createGain();
+      porte.gain.value = 0.5;
+      lfo.connect(profondeur);
+      profondeur.connect(porte.gain);
+      gain.connect(porte);
+      porte.connect(vers);
+      lfo.start(debut);
+      lfo.stop(debut + e.duree + 0.02);
+      sources.push(lfo);
+    }
     let source;
     if (e.sorte === 'ton') {
       source = audio.createOscillator();
@@ -379,41 +417,23 @@ function fondBrun() {
   return [lecteur];
 }
 
-/** Cinq sons pour « ERREUR : Menace détectée », à comparer ; chacun dure moins de 1,2 s. */
-let choixMenace = 'radio';
+/** Sons pour « ERREUR : Menace détectée », à comparer ; tous passent par la chaîne des bruitages du jeu. */
+const parLeJeu = (recette) => recette.map((e) => ({ ...e, jeu: true }));
+let choixMenace = 'buzzer';
 const MENACES = {
-  /** 1. Radio déréglée : deux porteuses presque accordées qui battent, souffle qui glisse. */
-  radio: () => [
-    ton(0, 0.7, 196, 0.07, { onde: 'square', passeBas: 1100, vibrato: [7, 9] }),
-    ton(0, 0.7, 201, 0.07, { onde: 'square', passeBas: 1100, vibrato: [5.3, 12] }),
-    souffle(0, 0.7, 1500, 0.08, { q: 5, fin: 700 }),
-  ],
-  /** 2. Buzzer de console : deux « bzzt » graves et rugueux, comme un pupitre qui refuse. */
-  buzzer: () => [0, 0.5].flatMap((t) => [
-    ton(t, 0.38, 110, 0.11, { onde: 'sawtooth', passeBas: 900 }),
-    ton(t, 0.38, 116, 0.06, { onde: 'square', passeBas: 700 }),
-    souffle(t, 0.02, 1200, 0.3, { q: 2 }),
+  /** 1. Buzzer d'erreur : un seul « bzzzt » grave et bourdonnant, de la famille du refus du jeu (120 Hz), plus long et plus bas. */
+  buzzer: () => parLeJeu([
+    ton(0, 0.38, 98, 0.14, { passeBas: 1300, trem: 30, chute: 0.05 }),
+    ton(0, 0.38, 103, 0.07, { passeBas: 900, chute: 0.05 }),
+    souffle(0, 0.38, 900, 0.1, { q: 1.2, chute: 0.05 }),
   ]),
-  /** 3. Bips d'erreur : trois bips secs puis un bip long plus bas, code d'erreur d'un vieux poste. */
-  bips: () => [
-    ...[0, 0.13, 0.26].map((t) => ton(t, 0.08, 1040, 0.1, { passeBas: 3000, chute: 0.01 })),
-    ton(0.42, 0.42, 520, 0.11, { passeBas: 2200, chute: 0.08 }),
-  ],
-  /** 4. Battement sourd : deux coups graves comme un cœur, puis la coque qui grince au loin. */
-  coeur: () => [
-    ton(0, 0.2, 60, 0.4, { onde: 'sine', fin: 38, chute: 0.15 }),
-    souffle(0, 0.1, 160, 0.3, { filtre: 'lowpass' }),
-    ton(0.24, 0.22, 52, 0.28, { onde: 'sine', fin: 34, chute: 0.18 }),
-    souffle(0.24, 0.1, 140, 0.2, { filtre: 'lowpass' }),
-    souffle(0.5, 0.65, 950, 0.06, { q: 14, fin: 620, montee: 0.1, chute: 0.3 }),
-  ],
-  /** 5. Bande qui ralentit : tout le terminal semble perdre son courant, la hauteur s'effondre. */
-  bande: () => [
-    ton(0, 0.95, 520, 0.12, { onde: 'sawtooth', fin: 45, passeBas: 1400, chute: 0.3 }),
-    ton(0, 0.95, 263, 0.055, { onde: 'square', fin: 22, passeBas: 800, chute: 0.3 }),
-    souffle(0, 0.95, 3000, 0.08, { q: 1.5, fin: 200, chute: 0.3 }),
-    souffle(0.95, 0.05, 220, 0.4, { filtre: 'lowpass' }),
-  ],
+  /** 2. Bip seul sourd : un bip feutré, grave et étouffé, plus long que ceux des menus. */
+  bip: () => parLeJeu([ton(0, 0.32, 300, 0.2, { onde: 'triangle', passeBas: 650, montee: 0.012, chute: 0.2 })]),
+  /** 3. Blessure : le son du jeu quand on prend un dégât, recette exacte (app/son/recettes.ts, blessure(1)). */
+  blessure: () => parLeJeu([
+    souffle(0, 0.04, 700, 0.3, { filtre: 'lowpass', q: 1 }),
+    ton(0.02, 0.13, 220, 0.09, { passeBas: 1500, trem: 40 }),
+  ]),
 };
 
 function couperRonron() {
