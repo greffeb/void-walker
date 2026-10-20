@@ -22,7 +22,7 @@ export interface AnnexePosee {
 }
 
 /** Une grande station reçoit au moins six annexes (spec §4.1) : en deçà, pas de plan pour cette graine. */
-const ANNEXES_MIN = 6;
+export const ANNEXES_MIN = 6;
 /** Un couloir du catalogue dessert de deux à quatre pièces (GE-11). */
 const SERVIES_MIN = 2;
 const SERVIES_MAX = 4;

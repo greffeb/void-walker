@@ -1,7 +1,8 @@
-import { pieceAnnexe, poserAnnexes, type AnnexePosee } from './annexes';
+import { ANNEXES_MIN, pieceAnnexe, poserAnnexes, type AnnexePosee } from './annexes';
 import { poserBoucles } from './boucles';
 import { poserButin, type ImpasseButin } from './butin';
 import { poserCles, type CleAPoser, type PieceCandidate } from './cles';
+import { poserDocuments, type PieceDocument } from './documents';
 import type { CategoriePiece, DefLiaison, DefMonde, DefObjet, DefPiece } from './monde';
 import { tracerPiste } from './piste';
 import { piecesDeCoque, type RectPlan } from './plan';
@@ -9,8 +10,8 @@ import { prefixer, sousGraine } from './pose';
 import type { DefMorceau, DefStation, DefStationGrande } from './station';
 
 // Grande station (spec 2026-10-18 §6.2) : autour du chemin principal déjà posé, les annexes, puis les portes de boucle, puis la
-// piste de la créature, puis les clés, puis le butin, chacun sur sa sous-graine. Le monde reste un monde ordinaire, revalidé
-// par l'assembleur.
+// piste de la créature, puis les clés, puis le butin, puis les documents, chacun sur sa sous-graine. Le monde reste un monde
+// ordinaire, revalidé par l'assembleur.
 
 /** Une liaison que la créature peut franchir, au besoin en forçant la porte (D-279) : la piste ne passe que par elles. */
 export function franchissable(liaison: DefLiaison): boolean {
@@ -168,8 +169,31 @@ function apresCoupe(monde: DefMonde, station: DefStation, liaisons: readonly Def
   };
 }
 
-/** Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, ou si aucune porte de boucle ne se pose (D-295), pour cette graine. */
+/** Pièce face à l'obstacle de chaque morceau : le bout, du côté avant, d'une liaison de sa coupe (spec §6.5). */
+function facesDe(monde: DefMonde, station: DefStation, segments: ReadonlyMap<string, number>): Map<string, string> {
+  return new Map(
+    station.morceaux.flatMap((morceau) => {
+      const avant = new Set(morceau.grande?.avant.map((piece) => segments.get(prefixer(morceau.id, piece))));
+      const coupes = new Set(coupesDuMorceau(monde, morceau));
+      const face = monde.liaisons.filter((liaison) => coupes.has(liaison.id)).flatMap((liaison) => liaison.entre).find((piece) => avant.has(segments.get(piece)));
+      return face === undefined ? [] : [[morceau.id, face] as const];
+    }),
+  );
+}
+
+/**
+ * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-295), ou si,
+ * avec des documents, une pièce du catalogue ne porte rien même à six annexes (§7.3), pour cette graine.
+ */
 export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefStationGrande): DefMonde | null {
+  const etendu = etendreUneFois(monde, station, grande);
+  if (etendu === null || etendu.couvert) return etendu?.monde ?? null;
+  // Couverture (spec §7.3) : une annexe de moins plutôt qu'une pièce du catalogue qui ne porte rien ; les sous-graines ne changent pas.
+  return grande.annexes > ANNEXES_MIN ? etendreGrande(monde, station, { ...grande, annexes: grande.annexes - 1 }) : null;
+}
+
+/** Une extension, et si chaque pièce du catalogue porte quelque chose ; toujours vrai sans réserve de documents. */
+function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStationGrande): { readonly monde: DefMonde; readonly couvert: boolean } | null {
   const { morceaux, graine, creature } = station;
   const segments = segmentsDe(monde, station);
   const principales = new Map(monde.pieces.flatMap((piece): (readonly [string, RectPlan])[] => (piece.plan === undefined ? [] : [[piece.id, piece.plan]])));
@@ -233,6 +257,38 @@ export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefS
     });
   const salles = grande.butin === undefined ? [] : poserButin(impasses, piste, creature, grande.butin, apresCoupe(monde, station, toutes, segments), sousGraine(graine, 'butin'));
   const pillees = new Set(salles.flatMap((salle) => (salle.objet === null ? [salle.piece] : [])));
+  const butins = salles.flatMap((salle) => (salle.objet === null ? [] : [salle.objet]));
+
+  // Documents (spec §8.4) : seulement si le contenu donne une réserve. Une pièce porte quelque chose (§7.3) : un objet, une salle
+  // de butin, un bout de porte de boucle, une trace, puis un document.
+  const catalogue = new Set(annexes.map(pieceAnnexe));
+  const portent = new Set([...[...objets, ...butins].map((objet) => objet.piece), ...pillees, ...piste.keys(), ...liaisonsBoucles.flatMap((liaison) => liaison.entre)]);
+  const faces = facesDe(monde, station, segments);
+  const morceauDeFace = new Map([...faces].map(([morceau, face]) => [face, morceau]));
+  const auDepart = distancesDepuis(monde.depart, toutes);
+  const piecesDocuments = parcourables.map(
+    (piece): PieceDocument => ({
+      id: piece.id,
+      etiquettes: etiquettes.get(piece.id) ?? [],
+      morceau: morceauDeFace.get(accroches(piece.id).at(-1) ?? piece.id) ?? null,
+      rang: auDepart.get(piece.id) ?? 0,
+      catalogue: catalogue.has(piece.id),
+      vide: !portent.has(piece.id),
+    }),
+  );
+  const origines = new Map(monde.objets.map((objet) => [objet.id, objet.piece]));
+  const morceauDeCle = new Map(morceaux.flatMap((morceau) => Object.keys(morceau.grande?.cles ?? {}).map((id) => [prefixer(morceau.id, id), morceau.id] as const)));
+  const clesDeplacees = new Map(
+    objets.flatMap((objet) => {
+      const origine = origines.get(objet.id);
+      const face = faces.get(morceauDeCle.get(objet.id) ?? '');
+      return origine === undefined || origine === objet.piece || face === undefined ? [] : [[objet.id, { piece: objet.piece, face, origine }] as const];
+    }),
+  );
+  const trousse = butins.find((objet) => objet.soin !== undefined)?.piece ?? null;
+  const documents =
+    grande.documents === undefined ? [] : poserDocuments(grande.documents, piecesDocuments, clesDeplacees, trousse, new Set(morceaux.map((morceau) => morceau.id)), monde.depart, sousGraine(graine, 'documents'));
+  for (const pose of documents) portent.add(pose.piece);
 
   const marquer = (piece: DefPiece): DefPiece => {
     const trace = piste.get(piece.id);
@@ -240,11 +296,18 @@ export function etendreGrande(monde: DefMonde, station: DefStation, grande: DefS
     return { ...piece, ...(segment === undefined ? {} : { segment }), ...(trace === undefined ? {} : { trace }), ...(pillees.has(piece.id) ? { pillee: true } : {}) };
   };
   return {
-    ...monde,
-    pieces: [...monde.pieces, ...piecesAnnexes].map(marquer),
-    objets: [...objets, ...salles.flatMap((salle) => (salle.objet === null ? [] : [salle.objet]))],
-    liaisons: toutes,
-    boucles: liaisonsBoucles.map((liaison) => liaison.id),
-    bruitsStation: true,
+    monde: {
+      ...monde,
+      pieces: [...monde.pieces, ...piecesAnnexes].map(marquer),
+      objets: [
+        ...objets,
+        ...butins,
+        ...documents.map((pose, indice): DefObjet => ({ id: `o-doc-${indice + 1}`, nom: pose.emplacement.id, piece: pose.piece, portable: false, document: true, ...(pose.designe === undefined ? {} : { designe: pose.designe }) })),
+      ],
+      liaisons: toutes,
+      boucles: liaisonsBoucles.map((liaison) => liaison.id),
+      bruitsStation: true,
+    },
+    couvert: grande.documents === undefined || [...catalogue].every((piece) => portent.has(piece)),
   };
 }
