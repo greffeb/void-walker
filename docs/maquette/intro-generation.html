@@ -1,0 +1,324 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intro Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Comparateur #200 : intro de NOUVELLE PARTIE qui montre que la station est tirée au hasard. 390 px, Phosphore. Textes d'exemple, non validés.
+   Les plans sont 40 vraies stations publiées (catalogue, graines au hasard) ; le numéro de station est tiré au hasard, sa règle reste à définir. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.onglets.deux { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onglet, .relancer { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.relancer { text-transform: uppercase; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; height: 844px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); position: relative; overflow: hidden; }
+.tel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px); z-index: 5; }
+.ecran { position: absolute; inset: 0; display: none; flex-direction: column; }
+.ecran.visible { display: flex; }
+
+/* Accueil */
+.accueil { justify-content: space-between; padding: 0 16px 16px; }
+.titre { margin: 180px 0 0; font-size: 48px; font-weight: 600; line-height: 1.05; color: var(--accent); letter-spacing: .02em; }
+.titre span { display: block; }
+.boutons { display: grid; gap: 10px; }
+.bouton { font: inherit; display: flex; align-items: center; justify-content: center; min-height: 46px; font-size: 15px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--texte); background: transparent; color: var(--texte); cursor: pointer; }
+.bouton.principal { background: var(--texte); color: var(--fond); min-height: 50px; }
+.bouton.discret { border-color: var(--bordure); font-weight: 400; font-size: 13px; min-height: 44px; }
+
+/* Intro */
+.intro { cursor: pointer; }
+.passer { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--secondaire); letter-spacing: .06em; text-transform: uppercase; margin: 0; z-index: 2; }
+.scene { flex: 1; position: relative; display: flex; flex-direction: column; padding: 16px 16px 44px; box-sizing: border-box; }
+
+svg.plan { display: block; overflow: visible; }
+svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-width: .12; }
+
+/* A : le plan se construit pièce par pièce */
+.a-cadre { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+.a-cadre svg { width: 100%; height: 440px; transition: filter .5s, opacity .5s; }
+.a-cadre rect { opacity: 0; }
+.a-cadre rect.pose { animation: poser .28s ease-out forwards; }
+@keyframes poser { 0% { opacity: 0; transform: scale(1.25); stroke: var(--accent); fill: rgba(255,178,63,.35); } 100% { opacity: 1; transform: scale(1); } }
+.a-cadre rect { transform-box: fill-box; transform-origin: center; }
+.a-cadre.voile svg { filter: blur(6px); opacity: .35; }
+.inconnu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 64px; color: var(--accent); opacity: 0; transition: opacity .5s; }
+.voile .inconnu { opacity: 1; }
+.balayage { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); opacity: .7; top: 0; animation: balayer 1.1s linear infinite; }
+.voile .balayage { display: none; }
+@keyframes balayer { from { top: 10%; } to { top: 90%; } }
+
+/* Lignes de terminal (A, B, C) */
+.terminal { margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.7; }
+.terminal li { white-space: pre-wrap; }
+.terminal .faible { color: var(--secondaire); }
+.terminal .ok { color: var(--accent); }
+.terminal .fort { color: var(--accent); font-size: 20px; font-weight: 600; margin: 6px 0; line-height: 1.4; }
+.terminal .masque { letter-spacing: -.05em; color: var(--bordure); }
+.curseur { animation: clignoter 1s steps(1) infinite; color: var(--accent); }
+@keyframes clignoter { 50% { opacity: 0; } }
+.b-scene { justify-content: flex-start; padding-top: 72px; }
+
+/* C : défilé de stations */
+.mosaique { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 10px; padding: 10px; opacity: .16; }
+.mosaique svg { width: 100%; height: 100%; }
+.c-centre { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.c-carte { width: 270px; height: 300px; background: var(--fond); border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; padding: 14px; box-sizing: border-box; position: relative; }
+.c-carte svg { width: 100%; height: 100%; transition: filter .5s, opacity .5s; }
+.c-carte.voile svg { filter: blur(6px); opacity: .35; }
+.compteur { font-size: 22px; font-weight: 600; color: var(--accent); min-height: 34px; text-align: center; font-variant-numeric: tabular-nums; }
+.compteur .sur { color: var(--secondaire); font-weight: 400; font-size: 16px; }
+.c-pied { position: relative; z-index: 1; background: var(--fond); padding: 6px 0 36px; min-height: 96px; }
+
+/* Réveil */
+.entete { flex: none; min-height: 48px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px 8px; box-sizing: border-box; }
+.entete p { margin: 0; font-size: 13px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; }
+.entete .num { font-size: 11px; color: var(--bordure); }
+.recit { flex: 1 1 auto; padding: 12px 16px; font-size: 17px; line-height: 1.65; }
+.recit p { margin: 0 0 12px; }
+.actions { flex: none; padding: 8px 16px 16px; }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Issue #200. Après NOUVELLE PARTIE, une courte intro montre au joueur non briefé que sa station est <b>tirée au hasard parmi beaucoup d'autres</b>. Toucher l'écran passe l'intro. Les plans affichés sont de vraies stations du catalogue. Textes d'exemple, à écrire à la main ensuite.</p>
+
+  <p class="etiquette">Variante</p>
+  <div class="onglets" role="tablist" id="variantes">
+    <button class="onglet" role="tab" data-v="A" aria-selected="false">A · plan qui se construit</button>
+    <button class="onglet" role="tab" data-v="B" aria-selected="false">B · terminal</button>
+    <button class="onglet" role="tab" data-v="C" aria-selected="true">C · défilé de stations</button>
+  </div>
+
+  <p class="etiquette">Partie</p>
+  <div class="onglets deux" role="tablist" id="durees">
+    <button class="onglet" role="tab" data-d="longue" aria-selected="true">Premières parties · ~3 s</button>
+    <button class="onglet" role="tab" data-d="courte" aria-selected="false">Parties suivantes · ~1 s</button>
+  </div>
+
+  <button class="relancer" id="relancer">Revenir à l'accueil</button>
+
+  <div class="tel" id="tel">
+    <section class="ecran accueil visible" id="ecran-accueil" aria-label="Accueil">
+      <h1 class="titre"><span>VOID</span><span>WALKER▮</span></h1>
+      <div class="boutons">
+        <button class="bouton principal" id="nouvelle">Nouvelle partie</button>
+        <button class="bouton discret" disabled>Options</button>
+      </div>
+    </section>
+
+    <section class="ecran intro" id="ecran-intro" aria-label="Tirage de la station">
+      <div class="scene" id="scene"></div>
+      <p class="passer">Toucher pour passer</p>
+    </section>
+
+    <section class="ecran" id="ecran-reveil" aria-label="Réveil">
+      <header class="entete"><p>&gt; Vestibule_</p><p class="num" id="num-reveil"></p></header>
+      <div class="recit"><p>Un vestibule étroit et nu, éclairé de veilleuses. Une seule porte, ordinaire, qui s’ouvre à la main.</p></div>
+      <div class="actions"><button class="bouton principal" id="regarder">Regarder autour de vous</button></div>
+    </section>
+  </div>
+
+  <p class="verdict">Pistes à juger avec la maquette : le numéro « Station 347 sur 600 » suffit-il à faire comprendre ? Faut-il le rappeler discrètement en haut de l'écran de réveil (à droite ici) et sur l'écran de fin ? REJOUER CETTE STATION ne joue pas l'intro. <b>Choix du porteur : à venir.</b></p>
+</div>
+
+<script>
+const PLANS = [{"id":"m02-m09-m06-cale","p":[[0,0,4,3],[0,3,4,3],[-4,3,4,3],[-4,6,4,3],[0,6,4,3],[4,6,6,3],[10,6,4,3],[14,6,4,3],[11,9,4,3],[15,9,3,3],[7,9,4,3],[7,12,4,3]]},{"id":"m10-m05-m03-entrepot","p":[[0,-3,4,3],[2,-6,4,3],[2,-9,4,3],[-2,-9,4,3],[-6,-9,4,3],[-6,-6,8,3],[-8,-3,4,3],[-4,-3,4,3],[-8,0,8,3],[-3,3,4,3],[1,3,4,3],[-3,6,4,3]]},{"id":"m08-m01-m03-magasin","p":[[-4,0,4,3],[-5,-3,4,3],[-9,-3,4,3],[-1,-3,4,3],[-1,-6,4,3],[3,-6,4,3],[0,-9,4,3],[-4,-9,4,3],[-8,-9,4,3],[-6,-12,4,3],[-2,-12,4,3],[-6,-15,4,3]]},{"id":"ol-m01-m05-m06-embarquement","p":[[-4,0,4,3],[-12,3,16,3],[-16,3,4,3],[-9,0,4,3],[-13,0,4,3],[-17,0,4,3],[0,0,4,3],[4,0,4,3],[0,-3,8,3],[-15,6,4,3],[-18,6,3,3],[-11,6,4,3],[-11,9,4,3]]},{"id":"m01-m10-m03-entrepot","p":[[-4,0,4,3],[-4,3,4,3],[0,3,4,3],[4,3,4,3],[2,6,4,3],[2,9,4,3],[6,9,4,3],[10,9,4,3],[6,6,8,3],[10,3,4,3],[14,3,4,3],[10,0,4,3]]},{"id":"m04-m02-m03-reserve","p":[[-4,0,4,3],[-6,3,4,3],[-2,3,4,3],[-3,6,4,3],[-7,6,4,3],[-9,9,4,3],[-5,9,4,3],[-9,12,4,3]]},{"id":"m09-m10-m03-cale","p":[[0,0,4,3],[-1,-3,4,3],[3,-3,4,3],[7,-3,6,3],[13,-3,4,3],[17,-3,4,3],[12,-6,4,3],[12,-9,4,3],[16,-9,4,3],[20,-9,4,3],[16,-6,8,3],[24,-7,4,3],[28,-7,4,3],[24,-10,4,3]]},{"id":"m09-m02-m03-cale","p":[[-4,0,4,3],[-4,-3,4,3],[0,-3,4,3],[4,-3,6,3],[10,-3,4,3],[14,-3,4,3],[8,-6,4,3],[12,-6,4,3],[12,-9,4,3],[16,-9,4,3],[12,-12,4,3]]},{"id":"m02-m01-m03-reserve","p":[[-4,0,4,3],[-6,3,4,3],[-2,3,4,3],[0,6,4,3],[-4,6,4,3],[-8,6,4,3],[-9,9,4,3],[-5,9,4,3],[-9,12,4,3]]},{"id":"m09-m04-m03-reserve","p":[[0,0,4,3],[-1,3,4,3],[-5,3,4,3],[-11,3,6,3],[-15,3,4,3],[-19,3,4,3],[-14,6,4,3],[-10,6,4,3],[-11,9,4,3],[-7,9,4,3],[-11,12,4,3]]},{"id":"ol-m01-m02-m03-reserve","p":[[0,0,4,3],[-13,-3,16,3],[3,-3,4,3],[-12,0,4,3],[-8,0,4,3],[-4,0,4,3],[-9,-6,4,3],[-13,-6,4,3],[1,-6,4,3],[5,-6,4,3],[1,-9,4,3]]},{"id":"m08-m07-m06-magasin","p":[[-4,0,4,3],[-5,3,4,3],[-9,3,4,3],[-1,3,4,3],[-1,6,4,3],[3,6,4,3],[-1,9,4,3],[3,9,4,3],[-5,9,4,3],[-9,9,4,3],[-8,12,4,3],[-11,12,3,3],[-4,12,4,3],[-4,15,4,3]]},{"id":"m11-m03-remise","p":[[-4,0,4,3],[-6,3,4,3],[-2,3,4,3],[-6,6,4,3],[-2,6,4,3],[-8,9,4,3],[-4,9,4,3],[-8,12,4,3]]},{"id":"m11-m09-m06-embarquement","p":[[0,-3,4,3],[0,0,4,3],[4,0,4,3],[0,3,4,3],[4,3,4,3],[-1,6,4,3],[3,6,4,3],[7,6,6,3],[13,6,4,3],[17,6,4,3],[14,9,4,3],[11,9,3,3],[18,9,4,3],[18,12,4,3]]},{"id":"m05-m02-m03-reserve","p":[[-4,0,4,3],[-2,3,4,3],[-6,3,4,3],[-6,6,8,3],[-6,9,4,3],[-2,9,4,3],[-1,12,4,3],[3,12,4,3],[-1,15,4,3]]},{"id":"m10-m08-m03-reserve","p":[[0,-3,4,3],[2,-6,4,3],[2,-9,4,3],[-2,-9,4,3],[-6,-9,4,3],[-6,-6,8,3],[-8,-3,4,3],[-12,-3,4,3],[-4,-3,4,3],[-4,0,4,3],[0,0,4,3],[-6,3,4,3],[-2,3,4,3],[-6,6,4,3]]},{"id":"m01-m02-m03-reserve","p":[[0,0,4,3],[0,-3,4,3],[-4,-3,4,3],[-8,-3,4,3],[-8,-6,4,3],[-4,-6,4,3],[-3,-9,4,3],[1,-9,4,3],[-3,-12,4,3]]},{"id":"m04-m01-m03-observation","p":[[-4,0,4,3],[-4,-3,4,3],[-8,-3,4,3],[-10,-6,4,3],[-6,-6,4,3],[-2,-6,4,3],[-2,-9,4,3],[2,-9,4,3],[-2,-12,4,3]]},{"id":"m05-m08-m06-magasin","p":[[-4,0,4,3],[-2,3,4,3],[-6,3,4,3],[-6,6,8,3],[-6,9,4,3],[-10,9,4,3],[-2,9,4,3],[-2,12,4,3],[2,12,4,3],[-1,15,4,3],[-4,15,3,3],[3,15,4,3],[3,18,4,3]]},{"id":"m05-m04-m03-tri","p":[[0,-3,4,3],[2,0,4,3],[6,0,4,3],[2,3,8,3],[2,6,4,3],[6,6,4,3],[6,9,4,3],[10,9,4,3],[6,12,4,3]]},{"id":"m09-m11-m03-reserve","p":[[-4,0,4,3],[-4,3,4,3],[0,3,4,3],[4,3,6,3],[10,3,4,3],[14,3,4,3],[12,6,4,3],[8,6,4,3],[12,9,4,3],[8,9,4,3],[11,12,4,3],[7,12,4,3],[11,15,4,3]]},{"id":"m07-m05-m03-reserve","p":[[0,-3,4,3],[0,-6,4,3],[-4,-6,4,3],[4,-6,4,3],[8,-6,4,3],[6,-9,4,3],[10,-9,4,3],[6,-12,8,3],[4,-15,4,3],[8,-15,4,3],[4,-18,4,3]]},{"id":"m01-m05-m03-tri","p":[[0,-3,4,3],[1,-6,4,3],[-3,-6,4,3],[-7,-6,4,3],[-7,-9,4,3],[-3,-9,4,3],[-7,-12,8,3],[-7,-15,4,3],[-3,-15,4,3],[-7,-18,4,3]]},{"id":"m10-m09-m06-embarquement","p":[[0,0,4,3],[-2,-3,4,3],[-2,-6,4,3],[2,-6,4,3],[6,-6,4,3],[2,-3,8,3],[4,0,4,3],[8,0,4,3],[12,0,6,3],[18,0,4,3],[22,0,4,3],[16,3,4,3],[20,3,3,3],[12,3,4,3],[12,6,4,3]]},{"id":"ol-m02-m09-m06-cale","p":[[0,-3,4,3],[-7,0,16,3],[-11,0,4,3],[-8,-3,4,3],[-4,-3,4,3],[3,3,4,3],[7,3,4,3],[11,3,6,3],[17,3,4,3],[21,3,4,3],[-9,3,4,3],[-12,3,3,3],[-5,3,4,3],[-5,6,4,3]]},{"id":"m11-m07-m03-remise","p":[[0,-3,4,3],[-1,-6,4,3],[3,-6,4,3],[-1,-9,4,3],[3,-9,4,3],[-1,-12,4,3],[-5,-12,4,3],[3,-12,4,3],[7,-12,4,3],[6,-15,4,3],[10,-15,4,3],[6,-18,4,3]]},{"id":"m07-m10-m06-entrepot","p":[[0,0,4,3],[-2,3,4,3],[-6,3,4,3],[2,3,4,3],[6,3,4,3],[4,6,4,3],[4,9,4,3],[8,9,4,3],[12,9,4,3],[8,6,8,3],[13,3,4,3],[10,3,3,3],[17,3,4,3],[17,6,4,3]]},{"id":"ol-m07-m11-m03-soute","p":[[-4,0,4,3],[-15,-3,16,3],[1,-3,4,3],[-10,-6,4,3],[-6,-6,4,3],[-14,-6,4,3],[-18,-6,4,3],[-8,0,4,3],[-12,0,4,3],[-8,3,4,3],[-12,3,4,3],[-1,-6,4,3],[3,-6,4,3],[-1,-9,4,3]]},{"id":"ol-m05-m08-m06-magasin","p":[[-4,0,4,3],[-14,3,16,3],[2,3,4,3],[-15,0,4,3],[-11,0,4,3],[-15,-3,8,3],[-16,6,4,3],[-12,6,4,3],[-20,6,4,3],[-20,9,4,3],[-24,9,4,3],[0,6,4,3],[4,6,3,3],[-4,6,4,3],[-4,9,4,3]]},{"id":"ol-m09-m10-m03-reserve","p":[[0,0,4,3],[-4,3,16,3],[12,3,4,3],[4,0,4,3],[8,0,4,3],[12,0,6,3],[18,0,4,3],[22,0,4,3],[-5,0,4,3],[-5,-3,4,3],[-9,-3,4,3],[-13,-3,4,3],[-13,0,8,3],[10,6,4,3],[14,6,4,3],[10,9,4,3]]},{"id":"m07-m08-m03-magasin","p":[[-4,0,4,3],[-4,3,4,3],[-8,3,4,3],[0,3,4,3],[4,3,4,3],[3,6,4,3],[7,6,4,3],[-1,6,4,3],[-1,9,4,3],[-5,9,4,3],[-1,12,4,3],[-5,12,4,3],[-1,15,4,3]]},{"id":"m02-m05-m03-tri","p":[[0,0,4,3],[0,-3,4,3],[-4,-3,4,3],[-2,-6,4,3],[2,-6,4,3],[-2,-9,8,3],[0,-12,4,3],[4,-12,4,3],[0,-15,4,3]]},{"id":"m04-m08-m06-magasin","p":[[0,0,4,3],[0,3,4,3],[4,3,4,3],[4,6,4,3],[0,6,4,3],[8,6,4,3],[8,9,4,3],[12,9,4,3],[9,12,4,3],[13,12,3,3],[5,12,4,3],[5,15,4,3]]},{"id":"ol-m07-m08-m06-magasin","p":[[0,-3,4,3],[1,-6,16,3],[-3,-6,4,3],[12,-3,4,3],[16,-3,4,3],[8,-3,4,3],[4,-3,4,3],[14,-9,4,3],[10,-9,4,3],[18,-9,4,3],[18,-12,4,3],[22,-12,4,3],[-2,-9,4,3],[-5,-9,3,3],[2,-9,4,3],[2,-12,4,3]]},{"id":"m07-m01-m06-palier","p":[[-4,0,4,3],[-2,3,4,3],[2,3,4,3],[-6,3,4,3],[-10,3,4,3],[-8,6,4,3],[-4,6,4,3],[0,6,4,3],[-1,9,4,3],[3,9,3,3],[-5,9,4,3],[-5,12,4,3]]},{"id":"m11-m01-m03-remise","p":[[0,0,4,3],[0,3,4,3],[4,3,4,3],[0,6,4,3],[4,6,4,3],[-2,9,4,3],[2,9,4,3],[6,9,4,3],[7,12,4,3],[3,12,4,3],[7,15,4,3]]},{"id":"ol-m01-m08-m06-embarquement","p":[[0,0,4,3],[-4,-3,16,3],[12,-3,4,3],[6,0,4,3],[10,0,4,3],[14,0,4,3],[-1,-6,4,3],[-5,-6,4,3],[3,-6,4,3],[3,-9,4,3],[7,-9,4,3],[10,-6,4,3],[7,-6,3,3],[14,-6,4,3],[14,-9,4,3]]},{"id":"m08-m02-m03-reserve","p":[[0,0,4,3],[0,3,4,3],[-4,3,4,3],[4,3,4,3],[4,6,4,3],[8,6,4,3],[2,9,4,3],[6,9,4,3],[7,12,4,3],[3,12,4,3],[7,15,4,3]]},{"id":"m10-m07-m03-entrepot","p":[[-4,0,4,3],[-3,-3,4,3],[-3,-6,4,3],[-7,-6,4,3],[-11,-6,4,3],[-11,-3,8,3],[-12,0,4,3],[-8,0,4,3],[-16,0,4,3],[-20,0,4,3],[-20,3,4,3],[-16,3,4,3],[-20,6,4,3]]},{"id":"m10-m01-m06-entrepot","p":[[-4,0,4,3],[-4,-3,4,3],[-4,-6,4,3],[0,-6,4,3],[4,-6,4,3],[0,-3,8,3],[0,0,4,3],[4,0,4,3],[8,0,4,3],[6,3,4,3],[10,3,3,3],[2,3,4,3],[2,6,4,3]]}];
+const TOTAL = 600; // dans le jeu : COMPOSITIONS_PUBLIEES.length, jamais écrit en dur
+
+const $ = (id) => document.getElementById(id);
+let variante = 'C';
+let duree = 'longue';
+let jeton = 0;
+let numero = 0;
+
+const hasard = (n) => Math.floor(Math.random() * n);
+const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function svgPlan(plan, marge = 1) {
+  const xs = plan.p.flatMap(([x, , l]) => [x, x + l]);
+  const ys = plan.p.flatMap(([, y, , h]) => [y, y + h]);
+  const x0 = Math.min(...xs) - marge, y0 = Math.min(...ys) - marge;
+  const l = Math.max(...xs) - x0 + marge, h = Math.max(...ys) - y0 + marge;
+  const rects = plan.p.map(([x, y, w, hh]) => `<rect x="${x}" y="${y}" width="${w}" height="${hh}"/>`).join('');
+  return `<svg class="plan" viewBox="${x0} ${y0} ${l} ${h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${rects}</svg>`;
+}
+
+/** Nombre de morceaux de chemin d'une composition : 'ol-m07-m11-m06-soute' → 2, 'm01-m03-reserve' → 1. */
+const chemins = (id) => id.replace(/^ol-/, '').split('-').filter((s) => /^m\d\d$/.test(s)).length - 1;
+const masque = (n) => '█'.repeat(n);
+
+function afficher(ecran) {
+  for (const id of ['ecran-accueil', 'ecran-intro', 'ecran-reveil']) $(id).classList.toggle('visible', id === ecran);
+}
+
+function accueil() {
+  jeton++;
+  afficher('ecran-accueil');
+}
+
+function reveil() {
+  jeton++;
+  $('num-reveil').textContent = `Station ${numero}`;
+  afficher('ecran-reveil');
+}
+
+async function lancer() {
+  const moi = ++jeton;
+  numero = 1 + hasard(TOTAL);
+  const plan = PLANS[hasard(PLANS.length)];
+  const facteur = reduit ? 0.05 : duree === 'courte' ? 0.33 : 1;
+  const dormir = (ms) => new Promise((r) => setTimeout(r, ms * facteur));
+  const vivant = () => moi === jeton;
+  afficher('ecran-intro');
+  $('scene').className = 'scene';
+  $('scene').innerHTML = '';
+  await ({ A: introA, B: introB, C: introC })[variante]({ plan, dormir, vivant, courte: duree === 'courte' });
+  if (vivant()) reveil();
+}
+
+function ligne(liste, html, classe = '') {
+  const li = document.createElement('li');
+  li.innerHTML = html;
+  if (classe) li.className = classe;
+  liste.append(li);
+  return li;
+}
+
+/* A : le vrai plan se pose pièce par pièce, puis se voile : on ne dévoile pas la station à explorer. */
+async function introA({ plan, dormir, vivant }) {
+  const scene = $('scene');
+  scene.innerHTML = `<div class="a-cadre" id="a-cadre">${svgPlan(plan)}<div class="balayage"></div><div class="inconnu">?</div></div>
+    <ul class="terminal" id="a-term"></ul>`;
+  const term = $('a-term');
+  ligne(term, `&gt; Assemblage de la station <span class="ok">${numero}</span> <span class="faible">sur ${TOTAL}</span>`);
+  const etat = ligne(term, '', 'faible');
+  const rects = [...scene.querySelectorAll('rect')];
+  for (const [i, r] of rects.entries()) {
+    await dormir(2200 / rects.length);
+    if (!vivant()) return;
+    r.classList.add('pose');
+    etat.textContent = `  pièce ${i + 1}/${rects.length}`;
+  }
+  await dormir(300);
+  if (!vivant()) return;
+  etat.innerHTML = `  plan à découvrir<span class="curseur">_</span>`;
+  $('a-cadre').classList.add('voile');
+  await dormir(900);
+}
+
+/* B : lignes de terminal ; les noms des morceaux sont masqués pour ne rien dévoiler. */
+async function introB({ plan, dormir, vivant, courte }) {
+  const scene = $('scene');
+  scene.classList.add('b-scene');
+  scene.innerHTML = '<ul class="terminal" id="b-term"></ul>';
+  const term = $('b-term');
+  const n = chemins(plan.id);
+  const etapes = courte
+    ? [['&gt; Tirage d’une station…'], [`Station ${numero} <span class="sur faible">sur ${TOTAL}</span>`, 'fort']]
+    : [
+        ['&gt; Nouvelle partie', 'faible'],
+        ['&gt; Tirage d’une station parmi ' + TOTAL + '…'],
+        [`Station ${numero} <span class="sur faible">sur ${TOTAL}</span>`, 'fort'],
+        ['&gt; Section de départ ........ ', '', 'ok'],
+        ...Array.from({ length: n }, (_, i) => [`&gt; Section ${i + 1} : <span class="masque">${masque(6 + hasard(5))}</span> .... `, '', 'ok']),
+        [`&gt; Section finale : <span class="masque">${masque(5 + hasard(3))}</span> .. `, '', 'ok'],
+        ['&gt; Vérification du chemin de sortie ', '', 'ok'],
+        ['&gt; Arrimage de la capsule ...... ', '', 'ok'],
+      ];
+  for (const [html, classe = '', suffixe] of etapes) {
+    await dormir(classe === 'fort' ? 450 : 260);
+    if (!vivant()) return;
+    const li = ligne(term, html, classe);
+    if (suffixe) {
+      await dormir(140);
+      if (!vivant()) return;
+      li.insertAdjacentHTML('beforeend', '<span class="ok">ok</span>');
+    }
+  }
+  await dormir(250);
+  if (!vivant()) return;
+  ligne(term, `&gt; Station ${numero} prête<span class="curseur">_</span>`, 'ok');
+  await dormir(900);
+}
+
+/* C : des stations défilent de plus en plus lentement et s'arrêtent sur une silhouette voilée, avec le numéro. */
+async function introC({ dormir, vivant, courte }) {
+  const scene = $('scene');
+  scene.innerHTML = `<div class="mosaique" id="mosaique"></div>
+    <div class="c-centre"><div class="c-carte" id="c-carte"></div><div class="compteur" id="compteur"></div></div>
+    <div class="c-pied"><ul class="terminal" id="c-term"></ul></div>`;
+  const mosaique = $('mosaique');
+  const cases = Array.from({ length: 24 }, () => {
+    const d = document.createElement('div');
+    d.innerHTML = svgPlan(PLANS[hasard(PLANS.length)]);
+    mosaique.append(d);
+    return d;
+  });
+  const term = $('c-term');
+  ligne(term, `&gt; Tirage parmi ${TOTAL} stations…`);
+  let pause = 55;
+  let total = 0;
+  const limite = courte ? 1300 : 2600;
+  let dernier;
+  while (total < limite) {
+    dernier = PLANS[hasard(PLANS.length)];
+    $('c-carte').innerHTML = svgPlan(dernier);
+    $('compteur').innerHTML = `Station ${1 + hasard(TOTAL)}`;
+    cases[hasard(cases.length)].innerHTML = svgPlan(PLANS[hasard(PLANS.length)]);
+    await dormir(pause);
+    if (!vivant()) return;
+    total += pause;
+    pause *= 1.12;
+  }
+  $('compteur').innerHTML = `Station ${numero} <span class="sur">sur ${TOTAL}</span>`;
+  $('c-carte').classList.add('voile');
+  $('c-carte').insertAdjacentHTML('beforeend', '<div class="inconnu" style="opacity:1">?</div>');
+  await dormir(250);
+  if (!vivant()) return;
+  ligne(term, 'La prochaine partie en tirera une autre.', 'faible');
+  await dormir(300);
+  if (!vivant()) return;
+  ligne(term, `&gt; Station ${numero} prête<span class="curseur">_</span>`, 'ok');
+  await dormir(1100);
+}
+
+function onglets(id, attribut, choisir) {
+  const boutons = [...$(id).querySelectorAll('.onglet')];
+  for (const b of boutons) {
+    b.addEventListener('click', () => {
+      for (const autre of boutons) autre.setAttribute('aria-selected', String(autre === b));
+      choisir(b.dataset[attribut]);
+      lancer();
+    });
+  }
+}
+
+onglets('variantes', 'v', (v) => (variante = v));
+onglets('durees', 'd', (d) => (duree = d));
+$('nouvelle').addEventListener('click', lancer);
+$('ecran-intro').addEventListener('pointerdown', reveil);
+$('regarder').addEventListener('click', accueil);
+$('relancer').addEventListener('click', accueil);
+</script>
