@@ -899,12 +899,19 @@ function commandesIci({ monde, etat }: Contexte, verrouillees: boolean): DefObje
   return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.deverrouille !== undefined && verrouillee(etat, candidat.deverrouille) === verrouillees);
 }
 
-/** Actionner une commande de déverrouillage : une action discrète, sa cloison n'est plus verrouillée pour la partie (D-259). */
+/**
+ * Actionner une commande de déverrouillage : une action discrète, sa cloison n'est plus verrouillée pour la partie (D-259) ;
+ * un lecteur de carte veut de plus la carte en main, qui reste dans l'inventaire (#203).
+ */
 const actionner: ActionEngagee = {
   id: 'actionner',
   engage: true,
   cibles: (contexte) => commandesIci(contexte, true).map((candidat) => candidat.id),
-  verifier: (contexte, cible) => verifierInterrupteur(commandesIci(contexte, true), commandesIci(contexte, false), cible),
+  verifier: (contexte, cible) => {
+    const raison = verifierInterrupteur(commandesIci(contexte, true), commandesIci(contexte, false), cible);
+    const carte = raison === null ? objet(contexte.monde, cible).exige : undefined;
+    return carte !== undefined && contexte.etat.objets[carte]?.type !== 'passager' ? 'sans_carte' : raison;
+  },
   prevoir: ({ monde }, cible) => ({ ...SANS_DANGER, savoir: [{ type: 'deverrouillera', objet: refObjet(monde, cible) }] }),
   appliquer: ({ monde, etat }, cible) => {
     const cloison = exiger(objet(monde, cible).deverrouille, 'Cloison absente.');

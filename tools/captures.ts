@@ -35,6 +35,8 @@ const STATION_BAIE = 'm08-m09-m06-embarquement-2718281828';
 const STATIONS_AR01 = ['m08-m01-m06-palier-2718281828', 'm04-m02-m03-atelier-2718281828', 'm05-m06-tri-2718281828'] as const;
 /** Ordre libre (#155) : deux branches, M-07 et M-10, et le final M-03 ; réveil, plan, couloir commun et première commande. */
 const STATION_LIBRE = 'ol-m07-m10-m03-soute-2718281828';
+/** Sas de sécurité M-11 (#203) : porte blindée, lecteur de carte et remise ; plan de la station. */
+const STATION_SAS = 'm11-m03-remise-2718281828';
 const FORME_STATION = /^(ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)$/;
 /** Galerie des plans (#153) : six stations tirées par groupe (un ou deux chemins, M-03 ou M-06), au hasard à graine fixe, les mêmes à chaque capture. */
 const STATIONS_PAR_GROUPE = 6;
@@ -2064,6 +2066,9 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
   const libre = CATALOGUE.resoudre(STATION_LIBRE);
   if ('refus' in libre) erreurs.push(`${STATION_LIBRE} : ${libre.refus}`);
   else await dessiner(STATION_LIBRE, libre, `Plan — ordre libre ${STATION_LIBRE}`);
+  const sas = CATALOGUE.resoudre(STATION_SAS);
+  if ('refus' in sas) erreurs.push(`${STATION_SAS} : ${sas.refus}`);
+  else await dessiner(STATION_SAS, sas, `Plan — sas de sécurité ${STATION_SAS}`);
   let etat = generateurDepuisGraine(GRAINE_GALERIE);
   const hasard = (): number => {
     const tirage = suivant(etat);
@@ -2344,7 +2349,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'plans'),
       erreursPlans,
       [
-        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis les chemins d’AR-01 (#154), M-01, M-02, M-04 et M-05 : ${STATIONS_AR01.map((id) => `\`${id}\``).join(', ')}. Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
+        `Rendu d’auteur de chaque plan (14 §4.3) : toutes les pièces, portes et capsules, sans la mémoire du passager. Puis la station à trois obstacles avec la baie, \`${STATION_BAIE}\` (#153). Puis les chemins d’AR-01 (#154), M-01, M-02, M-04 et M-05 : ${STATIONS_AR01.map((id) => `\`${id}\``).join(', ')}. Puis l’ordre libre, \`${STATION_LIBRE}\` (#155), et le sas de sécurité M-11, \`${STATION_SAS}\` (#203). Puis ${STATIONS_PAR_GROUPE} stations tirées par groupe (#153), au hasard à graine fixe : final M-03 à un puis deux chemins, final M-06 à un puis deux chemins. À juger par le porteur avant fusion.`,
       ],
     ),
   ];

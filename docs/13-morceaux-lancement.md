@@ -1,8 +1,8 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8).
-> **Mise à jour :** 2026-10-16.
-> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 proposée par sa PR (§7.8). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les huit autres morceaux.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; M-11, sas de sécurité (#203), fixé par D-290 à D-293 et proposé par sa PR en zone orange (§7.10).
+> **Mise à jour :** 2026-10-20.
+> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 proposée par sa PR (§7.8) ; M-11 proposé par la PR de #203 (§7.10). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les neuf autres morceaux.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 
@@ -19,7 +19,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 | Famille | Rôle | Morceaux |
 | --- | --- | --- |
 | **Final** | Le problème à régler juste avant de partir | M-03 Énergie, M-06 Baie |
-| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-12 |
+| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-11, M-12 |
 
 Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement. Le morceau final apporte l'embarquement et sa capsule (D-249) ; au départ, les portes entre deux morceaux sont fermées (D-252) ; le tirage choisit d'abord le final à pile ou face (D-253).
 
@@ -98,6 +98,13 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 - **Sûr :** déclencher le compresseur, ressortir, fermer depuis le pupitre quand elle est entrée.
 - **Risqué :** se faire suivre à travers la chambre et refermer derrière soi ; au-delà de deux actions dedans, une blessure.
 
+### M-11 — Sas de sécurité (nouveau, #203)
+
+- **Pièces :** le poste de sécurité, en entrée, avec le lecteur de carte, fixe ; le vestiaire, porte ouverte, avec la carte de sécurité ; la remise, au-delà du vestiaire, porte fermée ; le sas de sécurité, derrière la porte blindée, verrouillée, d'où part la sortie (D-290 à D-293).
+- **Créature :** une seule place, la remise, porte fermée au départ ; on n'a pas besoin de l'ouvrir (D-293). Elle ne force jamais la porte blindée (D-292).
+- **Sûr :** prendre la carte au vestiaire, revenir au poste, actionner le lecteur carte en main (le verrou est levé pour la partie, D-291), ouvrir la porte blindée et passer.
+- **Risqué :** ouvrir la remise et réveiller la créature, puis se réfugier derrière la porte blindée refermée, qu'elle ne peut pas enfoncer.
+
 ### M-12 — Le chariot bloqué et le drone réparable (#232)
 
 - **But :** dégager un chariot qui barre le chemin vers la suite. Il faut maintenir une poignée au poste pendant que le passager pousse au palier : deux lieux, deux rôles.
@@ -129,13 +136,13 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 | Feu et passerelle | Le feu gagne l'autre bord comme par une porte ouverte ; jamais une pièce sans air (D-247) |
 | Morceaux qui ne jouent pas sur la même chose | Aucune règle nouvelle (D-248) |
 
-Avec ces règles, toutes les paires des dix morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
+Avec ces règles, toutes les paires des onze morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). M-11 ne joue sur aucune de ces familles : ses dix paires sont permises sans règle de plus (D-248, D-290). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
 
 Pour M-12 (D-306), le bruit suit la même sélection et le même masquage que les équipements existants ; aucun changement des priorités générales de la créature. L'huile, le froid et la gravité gardent leurs effets sur ses réactions. Les équipements de M-12 ne sont pas détruits par le feu ou le vide ; le passager, lui, garde tous ses risques. Le chariot est une obstruction de déplacement, pas une cloison étanche : les autres canaux conservent les qualités déclarées de la liaison. La permission d'une paire ne remplace jamais la preuve d'une station complète. La paire M-11/M-12 attend leur intégration commune ; M-11 n'est pas importé depuis un worktree en cours.
 
 ### 4.1 Table exhaustive des paires (L0, #150)
 
-Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises et une jamais ensemble. Les règles citées sont celles du tableau ci-dessus et du [journal des décisions](03-decisions.md). Cette table autorise une cohabitation, pas une station : chaque composition doit encore respecter les attaches, le nombre d'obstacles et le chemin sûr vérifié (C-08 §2 et §3). L2 la transcrira en données ; aucun code ne change en L0.
+Chaque paire non ordonnée figure une seule fois : 55 paires, dont 54 permises et une jamais ensemble (les dix lignes de M-11 ajoutées par #203, D-290). Les règles citées sont celles du tableau ci-dessus et du [journal des décisions](03-decisions.md). Cette table autorise une cohabitation, pas une station : chaque composition doit encore respecter les attaches, le nombre d'obstacles et le chemin sûr vérifié (C-08 §2 et §3). L2 la transcrira en données ; aucun code ne change en L0.
 
 | Paire | Verdict | Règle qui la permet, ou motif du refus |
 | --- | --- | --- |
@@ -148,6 +155,7 @@ Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises e
 | M-01 + M-08 | Permise | Le feu peut gagner l'autre bord de la passerelle ; pas de feu sans air (D-247) |
 | M-01 + M-09 | Permise | Feu et gravité, sans règle de plus (D-248) |
 | M-01 + M-10 | Permise | Feu et froid, sans règle de plus (D-248) |
+| M-01 + M-11 | Permise | Feu et sas de sécurité, sans règle de plus (D-248) |
 | M-02 + M-03 | Permise | Grille/caisse et énergie, sans règle de plus (D-248) ; le bloc ne passe pas le conduit (D-043) |
 | M-02 + M-04 | Permise | Grille/caisse et observation, sans règle de plus (D-248) |
 | M-02 + M-05 | Permise | Grille/caisse et passage caché, sans règle de plus (D-248) |
@@ -156,6 +164,7 @@ Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises e
 | M-02 + M-08 | Permise | Grille/caisse et passerelle, sans règle de plus (D-248) |
 | M-02 + M-09 | Permise | Grille/caisse et gravité, sans règle de plus (D-248) |
 | M-02 + M-10 | Permise | Grille/caisse et froid, sans règle de plus (D-248) |
+| M-02 + M-11 | Permise | Grille/caisse et sas de sécurité, sans règle de plus (D-248) |
 | M-03 + M-04 | Permise | Bruits entre eux : relais et avertisseur suivent les règles existantes (§4, D-174) |
 | M-03 + M-05 | Permise | Énergie et passage caché, sans règle de plus (D-248) ; le bloc ne passe pas le passage étroit (D-043) |
 | M-03 + M-06 | Jamais ensemble | Deux morceaux finals ; un seul final par station (D-159, D-172) |
@@ -163,27 +172,35 @@ Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises e
 | M-03 + M-08 | Permise | Énergie et passerelle, sans règle de plus (D-248) ; planche et bloc encombrants, un seul porté à la fois (D-169) |
 | M-03 + M-09 | Permise | Énergie et gravité, sans règle de plus (D-248) ; interrupteurs autonomes (D-168) |
 | M-03 + M-10 | Permise | Bruits entre eux : relais et compresseur suivent les règles existantes (§4, D-174) |
+| M-03 + M-11 | Permise | Énergie et sas de sécurité, sans règle de plus (D-248) |
 | M-04 + M-05 | Permise | Observation et passage caché, sans règle de plus (D-248) |
 | M-04 + M-06 | Permise | MX-03 : vide et huile sans effet l'un sur l'autre (D-174) |
 | M-04 + M-07 | Permise | Bruits entre eux : avertisseur et machines suivent les règles existantes (§4, D-174) |
 | M-04 + M-08 | Permise | Observation/huile et passerelle, sans règle de plus (D-248) |
 | M-04 + M-09 | Permise | MX-01 : ralentissements additionnés ; MX-04 : huile impossible à verser sans gravité (D-174) |
 | M-04 + M-10 | Permise | Bruits entre eux ; MX-01 : ralentissements additionnés ; MX-05 : huile toujours glissante dans le froid (D-174) |
+| M-04 + M-11 | Permise | Observation/huile/avertisseur et sas de sécurité, sans règle de plus (D-248) |
 | M-05 + M-06 | Permise | Passage caché et baie, sans règle de plus (D-248) |
 | M-05 + M-07 | Permise | Passage caché et machines, sans règle de plus (D-248) |
 | M-05 + M-08 | Permise | Passage caché et passerelle, sans règle de plus (D-248) |
 | M-05 + M-09 | Permise | Passage caché et gravité, sans règle de plus (D-248) |
 | M-05 + M-10 | Permise | Passage caché et froid, sans règle de plus (D-248) |
+| M-05 + M-11 | Permise | Passage caché et sas de sécurité, sans règle de plus (D-248) |
 | M-06 + M-07 | Permise | L'air quitte aussi les machines ; aucune règle de plus (D-246) |
 | M-06 + M-08 | Permise | L'air passe par-dessus le vide de la passerelle (D-246) ; neutralisations définitives, sans règle de plus (§4, D-174) |
 | M-06 + M-09 | Permise | L'air quitte aussi la zone sans gravité ; aucune règle de plus (D-246) |
 | M-06 + M-10 | Permise | L'air quitte aussi la chambre froide ; aucune règle de plus (D-246) |
+| M-06 + M-11 | Permise | Baie et sas de sécurité, sans règle de plus (D-248) |
 | M-07 + M-08 | Permise | Machines et passerelle, sans règle de plus (D-248) |
 | M-07 + M-09 | Permise | Machines et gravité, sans règle de plus (D-248) |
 | M-07 + M-10 | Permise | Bruits entre eux : machines et compresseur suivent les règles existantes (§4, D-174) |
+| M-07 + M-11 | Permise | Machines et sas de sécurité, sans règle de plus (D-248) |
 | M-08 + M-09 | Permise | Passerelle et gravité, sans règle de plus (D-248) |
 | M-08 + M-10 | Permise | Passerelle et froid, sans règle de plus (D-248) |
+| M-08 + M-11 | Permise | Passerelle et sas de sécurité, sans règle de plus (D-248) |
 | M-09 + M-10 | Permise | MX-01 : traversée sans gravité et ralentissement par le froid additionnés (D-174) |
+| M-09 + M-11 | Permise | Gravité et sas de sécurité, sans règle de plus (D-248) |
+| M-10 + M-11 | Permise | Froid et sas de sécurité, sans règle de plus (D-248) |
 
 Une paire absente ou refusée n'est pas autorisée par ressemblance avec une ligne existante. Pour un futur morceau qui touche la même chose qu'un autre, une règle acceptée est nécessaire (D-167, D-248). Une ligne permise n'autorise pas à fusionner deux obstacles dans la même pièce ni à ajouter une interaction absente des fiches.
 
@@ -686,6 +703,26 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 | **Q-201, D-275.** « Pour l'annonce « plus aucune sortie », l'issue demande de vérifier que le jeu ne se trompe jamais. […] La vérification « sur tout » n'est donc pas faisable telle quelle. Comment voulez-vous qu'on prouve que l'annonce ne se trompe jamais ? » | Réponse libre, citée dans D-275 |
 | **Q-202, D-275.** « Oui, c'est possible et simple : un calcul de chemin […]. Arriver à la capsule ne suffit pas : elle doit aussi pouvoir partir […]. Et certains passages ne se ferment pas, mais tuent : le feu brûle à chaque action, le froid aussi. Que doit compter le calcul ? » | « chemin + capsule seulement. on laisse le joueur prendre des dégâts jusqu'a la mort, c'est plus intéressant que de lui couper l'herbe sous le pied » |
 | **Q-203, D-275.** « Comment vérifier que ce calcul ne se trompe pas ? » | « Tests par obstacle + parties au hasard » |
+
+### 7.10 Sas de sécurité M-11 (#203)
+
+> **Statut :** proposé par la PR de #203 (zone orange : moteur, format des morceaux), en attente de l'accord du porteur et d'une partie au bout sur téléphone avec M-11 (**validation humaine requise**, D-098). Règles fixées par D-290 à D-293 ; fiche au §3.
+
+**Moteur.** Deux qualités (C-02 §5) : `blindee` sur une liaison, que `forcable` (`engine/creature.ts`) écarte toujours ; `exige` sur une commande de déverrouillage, que `actionner` (`engine/actions.ts`) refuse sans l'objet en main (`sans_carte`), et que `sortiePossible` (`engine/sortie.ts`) ne compte que si l'objet est à portée. `validerMonde` refuse une porte blindée qui n'est pas une porte pleine, et un `exige` hors d'une commande ou vers un objet inconnu ou non portable.
+
+**Catalogue** (`check:stations` du 2026-10-20, 8 processus, 449 s). 684 compositions, dont 600 publiées : 416 en chaîne et 184 en ordre libre (avant : 536, dont 464). 148 contiennent M-11 : 136 publiées ; les 12 autres placent la créature sur le palier de M-01 ou dans l'atelier de M-02 sans obstacle d'avant pour s'en débarrasser (D-268, D-293) : 4 écartées sans recherche en ordre libre, 6 sans sortie sûre, 2 non prouvées. Plans : 100 tirages sur 100 posés pour chaque chemin mesuré avec M-11.
+
+**Plan.** Poste et vestiaire en haut, sas et remise dessous (tuile de 8 × 6) : seule forme essayée qui pose toutes les chaînes, y compris M-09 puis M-11 puis M-06.
+
+**Ordre libre.** La porte blindée est verrouillée, mais ce n'est pas une cloison du carrefour : la preuve des deux ordres (§7.8) ne lit que les cloisons du carrefour (`cloisonsDuCarrefour`, `tools/verifier-station.ts`).
+
+**Questions posées au porteur le 2026-10-20**, résumées ; les réponses sont citées mot pour mot :
+
+| Question | Réponse du porteur |
+| --- | --- |
+| **Q-204, D-290.** Le sas de sécurité reste-t-il dans une station d'essai, ou entre-t-il aussi dans le tirage de NOUVELLE PARTIE ? | « Aussi dans le tirage public » |
+| **Q-205, D-291.** Comment la carte ouvre-t-elle la porte blindée : un lecteur qui lève le verrou une fois pour toutes, ou autre chose ? | « Lecteur, une fois pour toutes » |
+| **Q-206, D-293.** Où attend la créature dans ce morceau ? | « Pièce à part, fermée » |
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 
