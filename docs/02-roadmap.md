@@ -84,7 +84,7 @@ Intentions déjà demandées :
 - Visuels et audio selon périmètre ; provenance et licences documentées.
 - Accessibilité, ergonomie des actions composées, installation et reprise sur appareils ciblés.
 - Équilibrage après correction des contrats, pas en compensation des bugs.
-- Lore léger (D-243) : conception faite avec les grandes stations (D-299 à D-301) ; 36 documents écrits par l'assistant principal, livrés par la livraison 3, proposée par sa PR ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)). Lire reste gratuit (D-014). Lus par « regarder », qui ne coûte rien et montre déjà la description d'un objet, ils n'ont demandé ni action à part ni effet de la lecture : le moteur n'a gagné qu'un objet fixe à lire et l'étape d'assemblage qui le pose [détail de l'agent].
+- Lore léger (D-243) : conception faite avec les grandes stations (D-299 à D-301) ; 36 documents écrits par l'assistant principal, livrés par la livraison 3, proposée par sa PR ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)). Lire reste gratuit (D-014). Lus par « regarder », qui ne coûte rien et montre déjà la description d'un objet, ils n'ont demandé ni action à part ni effet de la lecture : le moteur n'a gagné qu'un objet fixe à lire, la consultation gratuite `regarder_document` et l'étape d'assemblage qui le pose [détail de l'agent].
 - Mesures : bots sur 1 000 stations et parties du porteur ; durée, difficulté, part des stations où la créature peut être mise hors jeu tôt (D-241).
 
 **Sortie proposée :** contenu fini, cohérence et expérience acceptées, critères de lancement satisfaits.

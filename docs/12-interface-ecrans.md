@@ -356,7 +356,7 @@ Consultation gratuite (D-014). Elle s'ouvre en touchant la puce, dans une bulle 
   | Affiche | double cadre ; la première ligne est le titre, la dernière le pied |
 
 - **Pièce soulignée :** dans une note de rangement, le nom de la pièce désignée est souligné en pointillé partout où il apparaît dans le corps, mot entier seulement. Ni la ligne « où » ni la signature ne sont soulignées, et aucune autre aide ne s'y ajoute : la lecture n'ajoute rien à la carte ni aux connaissances du passager (C-06 §5, exception de D-300).
-- **Chiffres :** heures, températures et codes sont permis dans le corps seulement (§1.5) ; jamais dans le titre, le support ni la ligne « où ».
+- **Chiffres :** heures, températures et codes sont permis dans le corps seulement (§1.5) ; jamais dans le titre, le support, la ligne « où » ni la signature.
 - **Défilement :** une fiche longue défile dans la bulle (§3.6) ; rien n'indique à l'œil qu'elle défile. [Ouvert, à juger sur téléphone]
 - **Lecteur d'écran :** la fiche est la description de la bulle ; il lit le support, la ligne « où », le corps, puis la signature, sans relire le titre de la barre du journal.
 - **CLI :** « Regarder » affiche le support, la ligne « où », le corps ligne à ligne (journal : heure, deux espaces, texte), puis la signature.
