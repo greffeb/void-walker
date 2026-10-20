@@ -86,14 +86,12 @@ function Silhouette({ plan }: { readonly plan: Plan | null }) {
 export function EcranIntro({
   intro,
   numero,
-  complet,
   instantane,
   occupe,
   demarrer,
 }: {
   readonly intro: Intro;
   readonly numero: number;
-  readonly complet: boolean;
   readonly instantane: boolean;
   readonly occupe: boolean;
   readonly demarrer: () => void;
@@ -178,52 +176,48 @@ export function EcranIntro({
         await dormir(pas);
       }
     };
-    const duree = complet ? 'complet' : 'court';
-
     void (async () => {
       // 0:00 écran noir, puis mise sous tension tardive.
-      await dormir(RYTHME.noir[duree]);
+      await dormir(RYTHME.noir);
       if (!enCours()) return;
       jouer('interrupteur');
       montrer((avant) => ({ ...avant, allume: true, ouverture: true }));
-      await dormir(RYTHME.allumage[duree]);
+      await dormir(RYTHME.allumage);
       if (!enCours()) return;
       montrer((avant) => ({ ...avant, ouverture: false }));
 
-      if (complet) {
-        // 0:01 saisie machine rapide ; 0:02 deux lignes d'un coup, curseur dessous ; 0:04 saisie au clavier mécanique.
-        montrer((avant) => ({ ...avant, frappe: '' }));
-        await taper(COMMANDE_BOOT, RYTHME.frappeMachine, 'cliquetis');
-        montrer((avant) => ({ ...avant, frappe: null, boot: [{ texte: COMMANDE_BOOT, ton: 'commande' }] }));
-        await dormir(RYTHME.apresBoot);
-        if (!enCours()) return;
-        jouer('relais');
-        montrer((avant) => ({
-          ...avant,
-          boot: [...avant.boot, { texte: CHARGEMENT[0], ton: 'faible' }, { texte: CHARGEMENT[1], ton: 'ok' }],
-          frappe: '',
-        }));
-        await dormir(RYTHME.apresChargement);
-        if (!enCours()) return;
-        await taper(COMMANDE_CAMPAGNE, RYTHME.frappeClavier, 'clac');
-        await dormir(RYTHME.avantSaut);
-        if (!enCours()) return;
-        // 0:05 l'écran saute.
-        jouer('statique');
-        montrer((avant) => ({ ...avant, saut: true }));
-        await dormir(DUREE_STATIQUE * 1000);
-        if (!enCours()) return;
-        montrer((avant) => ({ ...avant, saut: false, boot: [], frappe: null }));
-        await dormir(RYTHME.apresSaut);
-        if (!enCours()) return;
-      }
+      // 0:01 saisie machine rapide ; 0:02 deux lignes d'un coup, curseur dessous ; 0:04 saisie au clavier mécanique.
+      montrer((avant) => ({ ...avant, frappe: '' }));
+      await taper(COMMANDE_BOOT, RYTHME.frappeMachine, 'cliquetis');
+      montrer((avant) => ({ ...avant, frappe: null, boot: [{ texte: COMMANDE_BOOT, ton: 'commande' }] }));
+      await dormir(RYTHME.apresBoot);
+      if (!enCours()) return;
+      jouer('relais');
+      montrer((avant) => ({
+        ...avant,
+        boot: [...avant.boot, { texte: CHARGEMENT[0], ton: 'faible' }, { texte: CHARGEMENT[1], ton: 'ok' }],
+        frappe: '',
+      }));
+      await dormir(RYTHME.apresChargement);
+      if (!enCours()) return;
+      await taper(COMMANDE_CAMPAGNE, RYTHME.frappeClavier, 'clac');
+      await dormir(RYTHME.avantSaut);
+      if (!enCours()) return;
+      // 0:05 l'écran saute.
+      jouer('statique');
+      montrer((avant) => ({ ...avant, saut: true }));
+      await dormir(DUREE_STATIQUE * 1000);
+      if (!enCours()) return;
+      montrer((avant) => ({ ...avant, saut: false, boot: [], frappe: null }));
+      await dormir(RYTHME.apresSaut);
+      if (!enCours()) return;
 
       // 0:06 des stations défilent de plus en plus lentement, puis s'arrêtent sur la station tirée, voilée.
       jouer('relais');
       const mosaique = Array.from({ length: CASES }, (_, rang) => reserve.current[rang] ?? null);
       montrer((avant) => ({ ...avant, tirage: true, mosaique }));
       let pause: number = RYTHME.defile.premier;
-      for (let ecoule = 0; ecoule < RYTHME.defile[duree] && enCours(); ecoule += pause, pause *= RYTHME.defile.ralentir) {
+      for (let ecoule = 0; ecoule < RYTHME.defile.duree && enCours(); ecoule += pause, pause *= RYTHME.defile.ralentir) {
         const carte = unPlan();
         derniere.current = carte;
         const rang = Math.floor(intro.hasard() * CASES);
@@ -264,17 +258,17 @@ export function EcranIntro({
       actif = false;
       for (const fin of [...enAttente]) fin();
     };
-  }, [complet, intro, lignes, numero, son, unPlan]);
+  }, [intro, lignes, numero, son, unPlan]);
 
   // Pendant le démarrage, la réserve de plans se remplit pour la mosaïque, un plan à la fois.
   useEffect(() => {
-    if (!complet || passe.current) return;
+    if (passe.current) return;
     const minuteur = setInterval(() => {
       if (reserve.current.length >= CASES) clearInterval(minuteur);
       else unPlan();
     }, 120);
     return () => clearInterval(minuteur);
-  }, [complet, unPlan]);
+  }, [unPlan]);
 
   // Saut d'image : neige et distorsion redessinées toutes les 45 ms.
   useEffect(() => {

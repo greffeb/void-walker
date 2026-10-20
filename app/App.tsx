@@ -45,7 +45,7 @@ type Ecran =
   | { readonly type: 'chargement' }
   | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean }
   /** Intro de NOUVELLE PARTIE (12 §4.1 bis, D-305) : la partie est déjà créée et enregistrée, DÉMARRER mène au réveil. */
-  | { readonly type: 'intro'; readonly jeu: Jeu; readonly numero: number; readonly complet: boolean }
+  | { readonly type: 'intro'; readonly jeu: Jeu; readonly numero: number }
   | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
   | { readonly type: 'reprise_impossible' }
   /** `signaux` : ceux de la dernière action, annoncés une fois (15 §2.2) ; aucun à la reprise ni au retour des options. */
@@ -180,9 +180,7 @@ export function App({
           setEcran({ type: 'reveil', jeu, lus: [] });
           return;
         }
-        const complet = intro.complet();
-        intro.marquerVue();
-        setEcran({ type: 'intro', jeu, numero, complet });
+        setEcran({ type: 'intro', jeu, numero });
       } finally {
         setOccupe(false);
       }
@@ -429,7 +427,6 @@ export function App({
           <EcranIntro
             intro={intro}
             numero={ecran.numero}
-            complet={ecran.complet}
             instantane={!reglages.machineAEcrire || intro.mouvementReduit()}
             occupe={occupe}
             demarrer={() => setEcran({ type: 'reveil', jeu: ecran.jeu, lus: [] })}

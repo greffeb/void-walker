@@ -16,8 +16,6 @@ const intro: Intro = {
   numero: () => 372,
   plan: () => plan,
   hasard: () => 0.5,
-  complet: () => true,
-  marquerVue: () => undefined,
   mouvementReduit: () => false,
 };
 
@@ -29,7 +27,7 @@ const texte = (html: string): string =>
     .trim();
 
 function rendre(instantane: boolean): string {
-  return renderToStaticMarkup(<EcranIntro intro={intro} numero={372} complet instantane={instantane} occupe={false} demarrer={() => undefined} />);
+  return renderToStaticMarkup(<EcranIntro intro={intro} numero={372} instantane={instantane} occupe={false} demarrer={() => undefined} />);
 }
 
 describe('écran d’intro (12 §4.1 bis, D-305 à D-309)', () => {

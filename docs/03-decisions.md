@@ -2405,12 +2405,12 @@ Demande de l'issue : qu'un joueur que personne n'a briefé comprenne que chaque 
 - Décision : `> boot -a --v` tapé vite par la machine ; « Loading terminal system... » et « ready » d'un coup, curseur █ dessous ; `> campaign_mode; console_log(01);` tapé au clavier ; l'écran saute ; puis le défilé (D-305) et ces lignes, une par une, à un pas irrégulier (rafales de 25 à 60 ms, pas de 80 à 180 ms, quelques temps de traitement de 240 à 400 ms) : section de départ, sections de passage, section finale, trois textes d'ambiance tirés au hasard parmi treize, arrimage de la capsule, vérification de la sortie ; après une courte pause, « ▲ ERREUR : Menace détectée » en rouge `alerte` (D-233) ; enfin « Station 372 prête » et « La prochaine partie en tirera une autre. ».
 - Limite [détail de l'agent] : les noms des morceaux ne sont jamais écrits ; les lignes de démarrage restent en anglais, comme le porteur les a écrites.
 
-### D-307 — Démarrage complet la première fois, tirage seul ensuite
+### D-307 — Le démarrage complet à chaque intro
 
-- Date / statut : 2026-10-20 / **Proposé** par l'assistant, montré sur la maquette (onglets « Première partie · démarrage complet » et « Parties suivantes · tirage seul ») sans choix explicite du porteur : à confirmer sur la PR.
-- Origine : maquette v2 à v3 de #200, où le porteur a jugé les deux versions sans trancher le seuil.
-- Décision proposée : la première intro vue sur l'appareil joue le démarrage complet (environ 12 s jusqu'à DÉMARRER) ; les suivantes passent directement au défilé (environ 6 s).
-- Limite [détail de l'agent] : « première fois » se lit dans un drapeau gardé sur l'appareil, un par adresse comme la partie ; s'il ne peut pas être écrit (navigation privée), le démarrage complet revient. Effet machine à écrire coupé (12 §4.10) ou mouvement réduit demandé par le téléphone : l'intro s'affiche d'emblée finie, sans animation ni son.
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : proposition de l'assistant (démarrage complet la première fois sur l'appareil, tirage seul ensuite), refusée par le porteur sur la PR : « je veux l'intro complète tout le temps (de toute manière elle est skippable ».
+- Décision : chaque intro joue le démarrage complet, environ 12 s jusqu'à DÉMARRER ; un toucher l'amène à son état final (D-305).
+- Limite [détail de l'agent] : effet machine à écrire coupé (12 §4.10) ou mouvement réduit demandé par le téléphone : l'intro s'affiche d'emblée finie, sans animation ni son.
 
 ### D-308 — Écran CRT et sons lo-fi, réservés à l'intro ; la menace sonne comme une blessure
 

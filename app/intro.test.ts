@@ -11,16 +11,12 @@ function lcg(graine: number): () => number {
   };
 }
 
-function deps(stockage: Map<string, string>, autres: Partial<DependancesIntro> = {}): DependancesIntro {
+function deps(): DependancesIntro {
   return {
     compositions: COMPOSITIONS_PUBLIEES,
     construire: (composition, graine) => CATALOGUE.construire(composition, graine),
     hasard: lcg(1),
-    cle: 'void-walker:intro:/',
-    lire: (cle) => stockage.get(cle) ?? null,
-    ecrire: (cle, valeur) => void stockage.set(cle, valeur),
     mouvementReduit: () => false,
-    ...autres,
   };
 }
 
@@ -37,7 +33,7 @@ describe('intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309)', () => {
   });
 
   it('plan : les rectangles des pièces dessinées ; le défilé pioche de vraies stations publiées', () => {
-    const intro = creerIntro(deps(new Map()));
+    const intro = creerIntro(deps());
     expect(intro.total).toBe(COMPOSITIONS_PUBLIEES.length);
     const plans = Array.from({ length: 6 }, () => intro.plan()).filter((plan) => plan !== null);
     expect(plans.length).toBeGreaterThan(0);
@@ -47,28 +43,6 @@ describe('intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309)', () => {
     }
     const { monde } = MONDES['monde-test'] as EntreeMonde;
     expect(planDe(monde)).toHaveLength(monde.pieces.filter((piece) => piece.plan !== undefined).length);
-  });
-
-  it('démarrage complet tant que l’intro n’a jamais été vue sur l’appareil ; stockage refusé : complet, sans erreur (D-307)', () => {
-    const stockage = new Map<string, string>();
-    const intro = creerIntro(deps(stockage));
-    expect(intro.complet()).toBe(true);
-    intro.marquerVue();
-    expect(intro.complet()).toBe(false);
-    expect(stockage.get('void-walker:intro:/')).toBe('vue');
-
-    const refuse = creerIntro(
-      deps(stockage, {
-        lire: () => {
-          throw new Error('SecurityError');
-        },
-        ecrire: () => {
-          throw new Error('QuotaExceededError');
-        },
-      }),
-    );
-    expect(refuse.complet()).toBe(true);
-    expect(() => refuse.marquerVue()).not.toThrow();
   });
 
   it('lignes : départ, passage et final, trois textes d’ambiance distincts tirés au hasard, capsule et sortie (D-306)', () => {

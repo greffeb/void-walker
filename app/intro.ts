@@ -5,7 +5,7 @@
 import type { DefMonde, RectPlan } from '../engine';
 import type { EntreeMonde, Refus } from '../content';
 
-/** Ce que l'intro demande au lancement : le catalogue, le hasard de l'appareil et un drapeau gardé sur l'appareil. */
+/** Ce que l'intro demande au lancement : le catalogue et le hasard de l'appareil. */
 export interface Intro {
   /** Nombre de stations publiées : « Station 372 sur 600 ». */
   readonly total: number;
@@ -15,9 +15,6 @@ export interface Intro {
   plan(): readonly RectPlan[] | null;
   /** Hasard de l'intro, de 0 (compris) à 1 (exclu) ; sans lien avec celui de la partie (AP-02). */
   readonly hasard: () => number;
-  /** Démarrage complet du terminal (D-307) : seulement tant que l'intro n'a jamais été vue sur l'appareil. */
-  complet(): boolean;
-  marquerVue(): void;
   /** Le téléphone demande moins d'animations : l'intro s'affiche d'emblée finie. */
   mouvementReduit(): boolean;
 }
@@ -26,9 +23,6 @@ export interface DependancesIntro {
   readonly compositions: readonly string[];
   readonly construire: (composition: string, graine: number) => EntreeMonde | Refus;
   readonly hasard: () => number;
-  readonly cle: string;
-  readonly lire: (cle: string) => string | null;
-  readonly ecrire: (cle: string, valeur: string) => void;
   readonly mouvementReduit: () => boolean;
 }
 
@@ -61,26 +55,9 @@ export function creerIntro(deps: DependancesIntro): Intro {
       return 'refus' in entree ? null : planDe(entree.monde);
     },
     hasard,
-    complet: () => {
-      try {
-        return deps.lire(deps.cle) === null;
-      } catch {
-        return true;
-      }
-    },
-    marquerVue: () => {
-      try {
-        deps.ecrire(deps.cle, 'vue');
-      } catch {
-        // Stockage refusé (navigation privée) : le démarrage complet reviendra, sans gêner la partie.
-      }
-    },
     mouvementReduit: deps.mouvementReduit,
   };
 }
-
-/** Clé du drapeau « intro vue », une par adresse comme la partie. */
-export const CLE_INTRO = 'void-walker:intro';
 
 /* ---------- Texte (D-306, textes d'exemple validés sur maquette) ---------- */
 
@@ -148,13 +125,13 @@ export function lignesDuTirage(hasard: () => number): readonly (LigneIntro & { r
   return [...avant, ...ambiance, ...apres].map((ligne) => ({ ...ligne, pas: pasLigne(hasard) }));
 }
 
-/* ---------- Rythme (D-307), en millisecondes ---------- */
+/* ---------- Rythme (D-307) : démarrage complet à chaque intro, en millisecondes ---------- */
 
 export const RYTHME = {
   /** Écran noir avant la mise sous tension. */
-  noir: { complet: 700, court: 150 },
+  noir: 700,
   /** Ouverture du faisceau en écran. */
-  allumage: { complet: 650, court: 350 },
+  allumage: 650,
   frappeMachine: 38,
   apresBoot: 350,
   apresChargement: 1400,
@@ -162,7 +139,7 @@ export const RYTHME = {
   avantSaut: 300,
   apresSaut: 120,
   /** Défilé des stations : premier pas, ralentissement à chaque pas, durée totale. */
-  defile: { premier: 55, ralentir: 1.12, complet: 2400, court: 1400 },
+  defile: { premier: 55, ralentir: 1.12, duree: 2400 },
   apresArret: 500,
   avantMenace: 450,
   apresMenace: 700,

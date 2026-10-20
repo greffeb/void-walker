@@ -7,7 +7,7 @@ import { CATALOGUE } from './catalogue';
 import { BATTEMENT_MS, CLE_DUREE, creerChronometre } from './duree';
 import { cleStockage, demandeDe, preparerLancement, type Environnement } from './jeu';
 import { CLE_INSTALLATION, piloterInstallation } from './installation';
-import { CLE_INTRO, creerIntro } from './intro';
+import { creerIntro } from './intro';
 import { piloterMiseAJour } from './miseAJour';
 import { creerRapports } from './rapports';
 import { coffreIndexedDB, creerSignataire } from './validation';
@@ -132,14 +132,11 @@ const verification = import.meta.env.VITE_PR_NUMERO
   ? () => lireVerification((adresse, init) => window.fetch(adresse, init), import.meta.env.BASE_URL, commit)
   : undefined;
 
-// Intro de NOUVELLE PARTIE (D-305) : plans du défilé tirés au catalogue publié, démarrage complet tant qu'elle n'a pas été vue.
+// Intro de NOUVELLE PARTIE (D-305) : plans du défilé tirés au catalogue publié.
 const intro = creerIntro({
   compositions: COMPOSITIONS_PUBLIEES,
   construire: (composition, graine) => CATALOGUE.construire(composition, graine),
   hasard: hasardSon,
-  cle: `${CLE_INTRO}:${import.meta.env.BASE_URL}`,
-  lire: (cle) => window.localStorage.getItem(cle),
-  ecrire: (cle, valeur) => window.localStorage.setItem(cle, valeur),
   mouvementReduit: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
 });
 
