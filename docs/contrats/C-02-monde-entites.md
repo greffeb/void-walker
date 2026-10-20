@@ -2,7 +2,7 @@
 
 > **Statut :** CONTRAT ACCEPTÉ v1.1 — D-082 ; assemble D-015, D-043/D-044, D-047, D-051, D-061, D-067, D-072/D-073, D-078 à D-080, AR-01 et AR-02. Points MP-01 à MP-03 acceptés par D-080. v1.1 : qualités et propriétés des morceaux du lancement (D-175).
 > **Date :** 2026-10-10.
-> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; liaison non étanche, vitrage extérieur, combinaison, découpeuse et rustine (AR-02) proposés par #104 ; encombrant (MP-03, W-02), pont fragile, salle des machines, gravité commutable et chambre froide (§5) proposés par #105 ; plan de pont des pièces et des liaisons (14 §4) proposé par #97, livraison 1 ; cloison verrouillée et commande de déverrouillage (§5, D-259) proposées par #155 ; caisse portable des grandes stations, trousse de soin et burette de réserve en butin (§4.3, §5, D-296, D-297) proposées par #202 et #207.
+> **Implémentation et tests :** positions locales, qualités appui stable, soin, extinction adaptée et liquide glissant par dose, objets déplaçables non portables, dispositif fixe (avertisseur), liaison haute, foyer et sol glissant (§2, §4.3, §4.4, §5, W-01) dans le moteur depuis #102 ; sous-position « à bord », liaison sans signalétique ou cachée, manœuvre d'un seul côté, gabarit large, source d'énergie, capsule, console et pupitre (§2, §3, §4.3, §5, W-03) proposés par #103 ; liaison non étanche, vitrage extérieur, combinaison, découpeuse et rustine (AR-02) proposés par #104 ; encombrant (MP-03, W-02), pont fragile, salle des machines, gravité commutable et chambre froide (§5) proposés par #105 ; plan de pont des pièces et des liaisons (14 §4) proposé par #97, livraison 1 ; cloison verrouillée et commande de déverrouillage (§5, D-259) proposées par #155 ; caisse portable des grandes stations, trousse de soin et burette de réserve en butin (§4.3, §5, D-319, D-320) proposées par #202 et #207.
 
 ## 1. But et portée
 
@@ -56,15 +56,15 @@ Emplacement ; état actif, inerte ou expulsée (D-062) ; gabarit large ; réacti
 | Portable | Récipients d'eau et d'huile, soin, découpeuse, combinaison retirée | Identité, modèle, qualités, doses restantes, emplacement |
 | Portable encombrant | Bloc d'énergie | Idem ; un seul porté à la fois (D-079) |
 | Déplaçable non portable | Caisse des petites stations | Position au sol |
-| Portable encombrant déplaçable (grandes stations) | Caisse | Identité, emplacement ; un seul encombrant porté à la fois (D-079) ; position au sol une fois déplacée. Appui stable, non large (D-296) |
-| Butin (grandes stations) | Trousse de soin, burette de réserve | Identité, doses restantes, emplacement ; aucune qualité passive (D-297) |
+| Portable encombrant déplaçable (grandes stations) | Caisse | Identité, emplacement ; un seul encombrant porté à la fois (D-079) ; position au sol une fois déplacée. Appui stable, non large (D-319) |
+| Butin (grandes stations) | Trousse de soin, burette de réserve | Identité, doses restantes, emplacement ; aucune qualité passive (D-320) |
 | Dispositif fixe | Console, test d'avertisseur, casier, kit de rustine, capsule | États et cycles propres (alimentation, test en cours, contenu) |
 
 Un récipient vidé reste un objet vide persistant (D-051). Un objet a toujours un seul emplacement : position dans une pièce, porté par le passager, rangé dans un dispositif, ou installé (bloc dans la capsule).
 
-Dans une grande station (D-296), la caisse se porte : on la prend, on la dépose (sans position), puis on la déplace sous la grille. Elle est encombrante comme le bloc, mais pas large : elle passe la grille. Les petites stations gardent la caisse déplaçable non portable.
+Dans une grande station (D-319), la caisse se porte : on la prend, on la dépose (sans position), puis on la déplace sous la grille. Elle est encombrante comme le bloc, mais pas large : elle passe la grille. Les petites stations gardent la caisse déplaçable non portable.
 
-Le butin (D-297) est la trousse de soin (soin, une dose) et la burette de réserve (liquide glissant, une dose). Il n'a **aucune qualité passive** : ni encombrant, ni large, ni appui, pont, source, alimente, déverrouille, capsule, vitrage, machines, gravité, fermeture, avertisseur. Ses seuls effets sont ses actions (soigner, verser), ce qui rend vraie la preuve d'une station sans son butin.
+Le butin (D-320) est la trousse de soin (soin, une dose) et la burette de réserve (liquide glissant, une dose). Il n'a **aucune qualité passive** : ni encombrant, ni large, ni appui, pont, source, alimente, déverrouille, capsule, vitrage, machines, gravité, fermeture, avertisseur. Ses seuls effets sont ses actions (soigner, verser), ce qui rend vraie la preuve d'une station sans son butin.
 
 ### 4.4 Effets posés dans le monde
 

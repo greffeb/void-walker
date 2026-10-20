@@ -182,7 +182,7 @@ function facesDe(monde: DefMonde, station: DefStation, segments: ReadonlyMap<str
 }
 
 /**
- * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-295), si,
+ * Monde du chemin principal étendu ; `null` si les annexes ne tiennent pas, si aucune porte de boucle ne se pose (D-318), si,
  * avec des documents, une pièce du catalogue ne porte rien même à six annexes (§7.3), ou si le monde compte moins de
  * `piecesMin` pièces dessinées (§4.1), reprise de couverture comprise, pour cette graine.
  */

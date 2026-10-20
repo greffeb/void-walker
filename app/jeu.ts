@@ -342,7 +342,7 @@ function lancer(premiere: EntreeMonde | Refus, suivante: () => EntreeMonde | Ref
 
 /**
  * Monde du lancement et des NOUVELLES PARTIES. Adresse nue : la station de la partie enregistrée si elle se résout, sinon une
- * grande station publiée tirée (D-290), sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque
+ * grande station publiée tirée (D-313), sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque
  * nouvelle partie en tire une autre. `?station=<composition>`, petite ou grande : sa partie enregistrée, sinon un plan tiré ;
  * chaque nouvelle partie tire un autre plan de la même composition. `?station=<identifiant>` et `?monde=` : ce monde, toujours.
  */

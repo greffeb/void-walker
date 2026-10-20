@@ -735,7 +735,7 @@ button:disabled {
 }
 
 /*
- * Fiche d'un document (D-301, spec 2026-10-18 §9.1) : variante B de docs/maquette/documents.html. Le support se lit avant le texte, qui
+ * Fiche d'un document (D-324, spec 2026-10-18 §9.1) : variante B de docs/maquette/documents.html. Le support se lit avant le texte, qui
  * a la typographie de son support. Les capitales sont du style : le texte reste en casse normale pour le lecteur d'écran.
  */
 .fiche-document .support {

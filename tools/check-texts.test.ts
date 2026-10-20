@@ -484,7 +484,7 @@ describe('réserve de documents : longueur (spec §8.4)', () => {
   });
 });
 
-describe('réserve de documents : chiffres (C-04 §4.3, D-300)', () => {
+describe('réserve de documents : chiffres (C-04 §4.3, D-323)', () => {
   it('aucun chiffre dans la puce, la ligne « où » ni la signature', () => {
     expect(controlerReserve(avecCommun('doc_mot_odile', { puce: puce('mot n° 2') }))).toContain('document doc_mot_odile, puce : chiffre ou pourcentage dans « mot n° 2 » (C-04 §4.3).');
     expect(controlerReserve(avecCommun('doc_affiche_eau', { ou: 'collée au-dessus du robinet 3' }))).toContain('document doc_affiche_eau, ligne « où » : chiffre ou pourcentage dans « collée au-dessus du robinet 3 » (C-04 §4.3).');

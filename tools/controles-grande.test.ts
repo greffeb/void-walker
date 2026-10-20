@@ -98,17 +98,17 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     expect(controlerGrande(fautive.entree, fautive.station).some((ecart) => /coupe/i.test(ecart))).toBe(true);
   });
 
-  it('une station sans porte de boucle est signalée (D-295)', () => {
+  it('une station sans porte de boucle est signalée (D-318)', () => {
     const construite = premiere(() => true);
     const boucles = new Set(construite.entree.monde.boucles);
     const fautive = modifier(construite, (monde) => ({ ...monde, liaisons: monde.liaisons.filter((liaison) => !boucles.has(liaison.id)), boucles: [] }));
-    expect(controlerGrande(fautive.entree, fautive.station)).toContain('Aucune porte de boucle (D-295).');
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain('Aucune porte de boucle (D-318).');
   });
 
-  it('une station à plus de trois portes de boucle est signalée (D-295)', () => {
+  it('une station à plus de trois portes de boucle est signalée (D-318)', () => {
     const construite = premiere(() => true);
     const fautive = modifier(construite, (monde) => ({ ...monde, boucles: ['l-boucle-1', 'l-boucle-2', 'l-boucle-3', 'l-boucle-4'] }));
-    expect(controlerGrande(fautive.entree, fautive.station)).toContain('4 portes de boucle, plus de trois (D-295).');
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain('4 portes de boucle, plus de trois (D-318).');
   });
 
   it('ordre libre : l’entrée de chaque branche est dans la zone du couloir commun ; seules les cloisons et les obstacles coupent', () => {
@@ -661,7 +661,7 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
       controlees++;
       expect(controlerGrande(construite.entree, construite.station), construite.entree.monde.id).toEqual([]);
     }
-    // Une graine sur deux environ n'a pas de plan : aucune porte de boucle (D-295).
+    // Une graine sur deux environ n'a pas de plan : aucune porte de boucle (D-318).
     expect(controlees).toBeGreaterThanOrEqual(400);
   }, 300_000);
 });

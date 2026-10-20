@@ -1,6 +1,6 @@
 # C-07 — Textes du jeu
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-117 ; assemble D-004, D-046, D-081, D-085/D-086, D-109 à D-116, C-01, C-05 et C-06 ; NP-01 à NP-05 acceptés par D-115 ; §2 et §6 précisés par D-300 pour les documents des grandes stations.
+> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-117 ; assemble D-004, D-046, D-081, D-085/D-086, D-109 à D-116, C-01, C-05 et C-06 ; NP-01 à NP-05 acceptés par D-115 ; §2 et §6 précisés par D-323 pour les documents des grandes stations.
 > **Date :** 2026-10-10.
 > **Implémentation et tests :** absents.
 
@@ -15,7 +15,7 @@ Dire ce que le texte affiché a le droit d'affirmer et comment il est écrit. Le
 - Un refus n'est pas raconté comme une tentative ; une tentative ratée dit ce qu'elle a coûté (C-01 §6).
 - Le signal « plus aucune sortie » est exact et ne nomme jamais la sortie restante (D-085). Le récit de fin raconte les faits, sans score (D-086).
 - Aucun texte n'est produit par un LLM (D-004).
-- **Documents à lire des grandes stations (D-300).** Trois exceptions, pour un document seulement : il peut contenir des chiffres dans son corps (heures, codes, températures ; ailleurs, aucun chiffre à l'écran, 12 §1.5) ; il compte une à cinq phrases, ou cinq lignes de journal au plus, et non deux à quatre (D-111) ; il peut évoquer à mots couverts un passage caché, dans le morceau qui le porte (à ce jour, celui de M-05). Le reste du §2 s'applique : un document ne contredit jamais l'état réel (C-05), ne révèle ni la position d'une créature non perçue ni un effet secret, et un document de morceau raconte une tentative sans jamais donner de consigne.
+- **Documents à lire des grandes stations (D-323).** Trois exceptions, pour un document seulement : il peut contenir des chiffres dans son corps (heures, codes, températures ; ailleurs, aucun chiffre à l'écran, 12 §1.5) ; il compte une à cinq phrases, ou cinq lignes de journal au plus, et non deux à quatre (D-111) ; il peut évoquer à mots couverts un passage caché, dans le morceau qui le porte (à ce jour, celui de M-05). Le reste du §2 s'applique : un document ne contredit jamais l'état réel (C-05), ne révèle ni la position d'une créature non perçue ni un effet secret, et un document de morceau raconte une tentative sans jamais donner de consigne.
 
 ## 3. Forme
 
@@ -54,4 +54,4 @@ Dire ce que le texte affiché a le droit d'affirmer et comment il est écrit. Le
 
 Textes définitifs, nom de la station, titre public, typographie et accessibilité de lecture restent à écrire ou maqueter. Les brouillons d'AR-01 §15 et d'AR-02 §10 ne sont pas des textes finaux.
 
-Les documents à lire du lore léger (D-243) suivent le §2, aux exceptions de D-300 près : ils ne contredisent pas l'état réel (C-05) et ne révèlent rien que le passager ne sait pas (C-06 §5), ni position d'une créature non perçue, ni accès caché non découvert, ni effet secret. D-243 veut aussi qu'ils servent d'indices : un document qui mettrait sur la piste d'un accès caché, comme le panneau de M-05, se heurtait à cette règle. Ce qu'un document peut révéler, l'effet de sa lecture sur ce que sait le passager et sa longueur se sont décidés dans la conception du lore, avant d'écrire (D-299 à D-301) : les exceptions au §2 et à C-06 §5 sont celles de D-300, au §2 ci-dessus. Lire un document n'ajoute rien à ce que sait le passager : ni carte, ni connaissance, ni action enregistrée ; la note de rangement, qui nomme une pièce hors de vue, ne fait pas connaître cette pièce (C-06 §5).
+Les documents à lire du lore léger (D-243) suivent le §2, aux exceptions de D-323 près : ils ne contredisent pas l'état réel (C-05) et ne révèlent rien que le passager ne sait pas (C-06 §5), ni position d'une créature non perçue, ni accès caché non découvert, ni effet secret. D-243 veut aussi qu'ils servent d'indices : un document qui mettrait sur la piste d'un accès caché, comme le panneau de M-05, se heurtait à cette règle. Ce qu'un document peut révéler, l'effet de sa lecture sur ce que sait le passager et sa longueur se sont décidés dans la conception du lore, avant d'écrire (D-322 à D-324) : les exceptions au §2 et à C-06 §5 sont celles de D-323, au §2 ci-dessus. Lire un document n'ajoute rien à ce que sait le passager : ni carte, ni connaissance, ni action enregistrée ; la note de rangement, qui nomme une pièce hors de vue, ne fait pas connaître cette pièce (C-06 §5).

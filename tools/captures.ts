@@ -2109,7 +2109,7 @@ function documentsSurLeChemin(ids: readonly string[]): Map<string, Visee> {
 }
 
 /**
- * Documents des grandes stations (#209, D-301), à 390 puis 320 px : la fiche d'un document de chaque support, et d'une note de
+ * Documents des grandes stations (#209, D-324), à 390 puis 320 px : la fiche d'un document de chaque support, et d'une note de
  * rangement avec sa pièce soulignée, ouverte comme le joueur, par sa puce, dans la station de `documentsSurLeChemin`. Rien ne
  * déborde, cibles de 44 px, un chiffre n'est permis que dans le corps.
  */

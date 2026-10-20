@@ -19,7 +19,7 @@ import {
 import { trouverOption } from './rejouer-parcours';
 import { rangsDesSegments } from './verifier-station';
 
-// Preuve des grandes stations (spec 2026-10-18 §7, D-303) : contrôles, puis témoin du chemin principal rejoué dans la grande
+// Preuve des grandes stations (spec 2026-10-18 §7, D-326) : contrôles, puis témoin du chemin principal rejoué dans la grande
 // station privée de son butin, tel quel ou réparé, ou recherche directe ; en ordre libre, les deux ordres.
 
 // Les contrôles de grande station, neutralisés le temps d'un test qui sert au rejeu un monde qu'ils refuseraient.
@@ -29,7 +29,7 @@ vi.mock('./controles-grande', async (importOriginal) => {
   return { ...reels, controlerGrande: (...arguments_: Parameters<typeof reels.controlerGrande>) => (controles.neutres ? [] : reels.controlerGrande(...arguments_)) };
 });
 
-/** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-295). */
+/** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-318). */
 function avecPlan(composition: string): string {
   const graine = Array.from({ length: 50 }, (_, rang) => rang).find((rang) => !('refus' in CATALOGUE.construireGrande(composition, rang)));
   if (graine === undefined) throw new Error(`${composition} : aucun plan sur 50 graines.`);

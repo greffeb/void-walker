@@ -116,9 +116,9 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
     if (portes > PORTES_MAX) ecarts.push(`PL-06 : ${piece.id} a ${portes} portes.`);
   }
 
-  // Boucles (spec §6.4) : une à trois (D-295).
-  if (boucles.size === 0) ecarts.push('Aucune porte de boucle (D-295).');
-  if (boucles.size > 3) ecarts.push(`${boucles.size} portes de boucle, plus de trois (D-295).`);
+  // Boucles (spec §6.4) : une à trois (D-318).
+  if (boucles.size === 0) ecarts.push('Aucune porte de boucle (D-318).');
+  if (boucles.size > 3) ecarts.push(`${boucles.size} portes de boucle, plus de trois (D-318).`);
   for (const id of boucles) {
     const liaison = monde.liaisons.find((candidate) => candidate.id === id);
     if (liaison === undefined) {
@@ -324,7 +324,7 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
     }
   }
 
-  // Taille (D-290) et noms (NP-04), objets compris.
+  // Taille (D-313) et noms (NP-04), objets compris.
   const dessinees = monde.pieces.filter((piece) => piece.plan !== undefined).length;
   if (dessinees < PIECES_MIN || dessinees > PIECES_MAX) ecarts.push(`Taille : ${dessinees} pièces dessinées.`);
   // Deux objets d'une même clé de nom sont une même chose (les deux interrupteurs de gravité de M-09, D-238) : un seul nom.

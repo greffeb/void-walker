@@ -66,7 +66,7 @@ export const TEXTES_MORCEAU_M05: TextesMorceau = {
       'Des bacs de tri, des étiquettes partout, un tapis arrêté net. L’air sent le carton humide.',
     ],
   },
-  // Document des grandes stations (bible docs/17-univers.md §5) : le passage caché à mots couverts, permis dans ce morceau (D-300).
+  // Document des grandes stations (bible docs/17-univers.md §5) : le passage caché à mots couverts, permis dans ce morceau (D-323).
   documents: {
     doc_note_joel: {
       puce: { texte: 'note de Joël', genre: 'f', nombre: 's', elision: false },

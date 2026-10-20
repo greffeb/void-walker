@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript 6, Vitest 4, tsx pour les outils ; aucune dépendance ajoutée.
 
-**Spec :** `docs/superpowers/specs/2026-10-18-grandes-stations-design.md` (approuvée le 2026-10-19), §6.5, §6.6, §7.3 (clés, butin, noms), §7.4, §11 ; décisions D-296 (clés) et D-297 (butin), numérotées D-295 et D-296 dans la conception. La note de rangement (§6.5, « l'indice ensuite ») est un document : elle vient en livraison 3, avec le contrôle de couverture (§7.3). La refonte du cache des verdicts reste reportée (arbitrage de la livraison 1).
+**Spec :** `docs/superpowers/specs/2026-10-18-grandes-stations-design.md` (approuvée le 2026-10-19), §6.5, §6.6, §7.3 (clés, butin, noms), §7.4, §11 ; décisions D-319 (clés) et D-320 (butin), numérotées D-318 et D-319 dans la conception. La note de rangement (§6.5, « l'indice ensuite ») est un document : elle vient en livraison 3, avec le contrôle de couverture (§7.3). La refonte du cache des verdicts reste reportée (arbitrage de la livraison 1).
 
 ## Global Constraints
 
@@ -233,7 +233,7 @@
 - [ ] **Step 1 :** `npm run publier:grandes -- --par=2 --essais=8 --processus=14` en arrière-plan ; au moins 500 stations, environ un tiers en ordre libre.
 - [ ] **Step 2 :** `npx vitest run tools/verifier-grandes.test.ts tools/grandes.test.ts tools/controles-grande.test.ts` → PASS ; `npm run check:stations` vert.
 - [ ] **Step 3 :** `npm run mesurer:difficulte -- --grandes` puis `-- --grandes --sans-butin`, en arrière-plan. Montrer au porteur : évacuations de B2 avec et sans butin (cible 25 à 35 % avec butin), clés déplacées, salles vides, coups encaissés, mise hors jeu précoce, moment de la défaite. Hors de la cible : proposer un réglage des poids, jamais le fixer seul.
-- [ ] **Step 4 :** commit `content, tools: grandes stations republiées avec clés et butin (#202, #207, D-303)`.
+- [ ] **Step 4 :** commit `content, tools: grandes stations republiées avec clés et butin (#202, #207, D-326)`.
 
 ### Task 10 : appli, CLI, captures
 
@@ -248,7 +248,7 @@
 ### Task 11 : décisions et documents
 
 **Files:**
-- Modify: `docs/03-decisions.md` (limites de D-296 et D-297 : étiquettes, poids, part des clés déplacées, mesures), `docs/13-morceaux-lancement.md` (§7.11 livraison 2 : déclarations des clés, table, mesures), `docs/contrats/C-02-monde-entites.md` (tableau des objets : caisse des grandes stations, trousse de soin, burette de réserve), `docs/00-lire-en-premier.md`
+- Modify: `docs/03-decisions.md` (limites de D-319 et D-320 : étiquettes, poids, part des clés déplacées, mesures), `docs/13-morceaux-lancement.md` (§7.11 livraison 2 : déclarations des clés, table, mesures), `docs/contrats/C-02-monde-entites.md` (tableau des objets : caisse des grandes stations, trousse de soin, burette de réserve), `docs/00-lire-en-premier.md`
 
 - [ ] **Step 1 :** entrées au format du journal ; mesures de la tâche 9.
 - [ ] **Step 2 :** `npm run check:links` → vert.

@@ -171,7 +171,7 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(css).not.toMatch(/\.nav-ia[^{]*\{[^}]*animation/);
   });
 
-  it('fiche document (D-301) : support en capitales, chaque support dans sa typographie, pièce soulignée en pointillé', () => {
+  it('fiche document (D-324) : support en capitales, chaque support dans sa typographie, pièce soulignée en pointillé', () => {
     const regle = (selecteur: string): string => new RegExp(`^${selecteur.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`, 'm').exec(css)?.[1] ?? '';
     expect(regle('.fiche-document .support')).toContain('text-transform: uppercase');
     // La ligne « où » reprend la casse normale.

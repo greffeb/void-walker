@@ -9,7 +9,7 @@ import { REPO_ROOT } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
 import { capsuleCoupee, chercherJusqua, ordreImpose, verifierStation, type OptionsVerification, type RapportStation } from './verifier-station';
 
-// Preuve d'une grande station (spec 2026-10-18 §7, D-303) : les contrôles structurels d'abord, puis une évacuation sans dé ni
+// Preuve d'une grande station (spec 2026-10-18 §7, D-326) : les contrôles structurels d'abord, puis une évacuation sans dé ni
 // blessure par les vraies règles, sur la station privée de son butin (§7.4). Le chemin principal seul se prouve vite ; son
 // témoin, rejoué dans la grande station, en est une preuve s'il mène encore à l'évacuation, tel quel ou réparé d'un détour vers
 // chaque clé déplacée. Sinon, la recherche se fait dans la grande station elle-même. En ordre libre, les deux ordres de

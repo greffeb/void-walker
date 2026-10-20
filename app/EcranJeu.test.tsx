@@ -1190,9 +1190,9 @@ describe('brouillage d’un dégât (#166)', () => {
   });
 });
 
-// Fiche d'un document (#209, D-301, spec 2026-10-18 §9.1) : un monde de test avec un document de chaque support dans la cabine, et une
+// Fiche d'un document (#209, D-324, spec 2026-10-18 §9.1) : un monde de test avec un document de chaque support dans la cabine, et une
 // note de rangement qui désigne l'atelier. Aucune grande station : seule la mise en forme de la fiche est en jeu.
-describe('fiche d’un document (#209, D-301, spec 2026-10-18 §9.1)', () => {
+describe('fiche d’un document (#209, D-324, spec 2026-10-18 §9.1)', () => {
   const nom = (texte: string, genre: Nom['genre'] = 'm'): Nom => ({ texte, genre, nombre: 's', elision: false });
   const documents: Readonly<Record<string, TexteDocument>> = {
     note_malik: {

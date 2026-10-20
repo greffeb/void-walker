@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript 6, React 19 (appli), Vitest 4, Playwright (captures) ; aucune dépendance ajoutée.
 
-**Spec :** `docs/superpowers/specs/2026-10-18-grandes-stations-design.md` (approuvée le 2026-10-19) : §7.3 (couverture), §8 (lore), §9 (interface), §11 (textes, interface, bot averti) ; décisions D-299 (univers), D-300 (documents), D-301 (fiche dans la bulle), numérotées D-298 à D-300 dans la conception. Maquette retenue : variante B de `docs/maquette/documents.html`.
+**Spec :** `docs/superpowers/specs/2026-10-18-grandes-stations-design.md` (approuvée le 2026-10-19) : §7.3 (couverture), §8 (lore), §9 (interface), §11 (textes, interface, bot averti) ; décisions D-322 (univers), D-323 (documents), D-324 (fiche dans la bulle), numérotées D-321 à D-323 dans la conception. Maquette retenue : variante B de `docs/maquette/documents.html`.
 
 ## Global Constraints
 
@@ -142,7 +142,7 @@ Pièces : les pièces du catalogue d'abord, celles qui ne portent encore rien (c
 - [ ] **Step 1 :** la bible : cadre (§8.1), chronologie de l'incident en quatre étapes (§8.2), membres d'équipage (prénom, métier, voix), lieux hors du plan (jamais le nom d'une pièce de morceau ou du catalogue), règles d'écriture ; interdite au playtester comme 08 et 09.
 - [ ] **Step 2 :** la réserve : 8 univers, 12 menace (3 par étape, indices vrais de §8.2 : bruit, conduits étroits, froid, feu, porte forcée — D-279 validée), 8 morceaux (un témoignage pour huit des dix morceaux, au choix de l'agent principal, dont l'indice à mots couverts du passage caché de M-05), 8 notes de rangement ; chaque document a son auteur, ne dit d'aucun autre auteur qu'il est vivant ou mort, et respecte longueur, support et couche.
 - [ ] **Step 3 :** relecture indépendante (qualité, bible, honnêteté) ; corrections par l'agent principal.
-- [ ] **Step 4 :** commit `docs, content: bible et réserve de documents (#209, D-299, D-300)`.
+- [ ] **Step 4 :** commit `docs, content: bible et réserve de documents (#209, D-322, D-323)`.
 
 ### Task 5 : réserve branchée dans les grandes stations
 
@@ -188,7 +188,7 @@ Pièces : les pièces du catalogue d'abord, celles qui ne portent encore rien (c
 
 - [ ] **Step 1 : tests qui échouent** : la bulle d'un document montre, en haut, le support en capitales et la ligne « où », puis le corps dans la typographie de son support (note en italique avec filet et signature à droite ; journal dans un cadre, heures en colonne ; message avec didascalies en couleur secondaire ; inscription en grandes capitales ; affiche sous un double cadre) ; la pièce remplie est soulignée en pointillé ; le lecteur d'écran lit le support puis le texte ; « regarder » un document n'engage aucune action et n'écrit rien ; la CLI affiche le support, la ligne « où », puis le corps avec ses retours à la ligne.
 - [ ] **Step 2 :** → FAIL ; **Step 3 :** implémentation d'après `docs/maquette/documents.html`, variante B ; **Step 4 :** → PASS.
-- [ ] **Step 5 :** commit `app, cli: fiche document (#209, D-301)`.
+- [ ] **Step 5 :** commit `app, cli: fiche document (#209, D-324)`.
 
 ### Task 9 : bots, republication, mesures et captures
 
@@ -207,18 +207,18 @@ Pièces : les pièces du catalogue d'abord, celles qui ne portent encore rien (c
 ### Task 10 : décisions et documents
 
 **Files:**
-- Modify: `docs/03-decisions.md` (limites de D-299 à D-301 : règles de pose, mesures), `docs/12-interface-ecrans.md` (§3.5, §4.4 : fiche document ; §1 principe 5 : exception déjà notée), `docs/contrats/C-06-observation-connaissances.md` (§5 : notes de rangement), `docs/contrats/C-07-textes.md` (§2, §6 : exceptions de D-300), `docs/13-morceaux-lancement.md` (§7.12 livraison 3), `docs/00-lire-en-premier.md`, renvois vers §7.11 et §7.12 (13, 02, 14, C-08 §7, D-291, D-303)
+- Modify: `docs/03-decisions.md` (limites de D-322 à D-324 : règles de pose, mesures), `docs/12-interface-ecrans.md` (§3.5, §4.4 : fiche document ; §1 principe 5 : exception déjà notée), `docs/contrats/C-06-observation-connaissances.md` (§5 : notes de rangement), `docs/contrats/C-07-textes.md` (§2, §6 : exceptions de D-323), `docs/13-morceaux-lancement.md` (§7.12 livraison 3), `docs/00-lire-en-premier.md`, renvois vers §7.11 et §7.12 (13, 02, 14, C-08 §7, D-314, D-326)
 
 - [ ] **Step 1 :** entrées au format du journal ; mesures de la tâche 9 ; la bible reliée depuis 00 et 13.
 - [ ] **Step 2 :** `npm run check:links` → vert.
-- [ ] **Step 3 :** commit `docs: lore et documents, livraison 3 (#209, D-299 à D-301)`.
+- [ ] **Step 3 :** commit `docs: lore et documents, livraison 3 (#209, D-322 à D-324)`.
 
 ### Task 11 : vérification complète de la livraison 3
 
 - [ ] **Step 1 :** `npm run verify` → toutes les étapes vertes.
 - [ ] **Step 2 :** relecture des mesures et des captures par l'agent principal ; écarts aux critères du §11 listés pour le porteur.
 - [ ] **Step 3 :** relecture finale de toute la livraison, puis pousser la branche et mettre à jour la PR #230 (trois livraisons, mesures, « validation humaine requise »).
-- [ ] **Step 4 :** proposer au porteur l'essai sur téléphone (une note de rangement suivie jusqu'à sa clé, un journal, un message) ; la fusion attend son accord (D-304) et le passage de chaque morceau dans une grande station (D-302).
+- [ ] **Step 4 :** proposer au porteur l'essai sur téléphone (une note de rangement suivie jusqu'à sa clé, un journal, un message) ; la fusion attend son accord (D-327) et le passage de chaque morceau dans une grande station (D-325).
 
 ### Task 12 : poser la caisse sous la grille d'un seul geste (demande du porteur, 2026-10-20)
 

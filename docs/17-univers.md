@@ -1,6 +1,6 @@
 # 17 — Univers des grandes stations : la bible
 
-> **Statut :** document d'auteur, écrit pour la livraison 3 des grandes stations (#209, D-299, D-300). Texte final non validé.
+> **Statut :** document d'auteur, écrit pour la livraison 3 des grandes stations (#209, D-322, D-323). Texte final non validé.
 > **Date :** 2026-10-20.
 > **Portée :** le cadre commun à toutes les parties, l'incident de la créature, l'équipage, les lieux évoqués hors du plan et les règles d'écriture des documents. Il sert aussi de référence aux écrans de fin et à IA Station.
 > **Accès :** comme [08](08-aventure-reference.md) et [09](09-aventure-reference-vide.md), ce document contient les secrets du jeu. Il est **interdit au playtester** censé découvrir la partie.
@@ -192,13 +192,13 @@ Trente-six documents, posés à cinq à sept par grande station (spec §8.4). La
 - menace : jamais « station » ni ses dérivés (« stationner ») ; on dit « ici », « à bord » ;
 - morceaux et notes de rangement : aucun mot réservé, ni de l'univers ni de la menace ni des traces.
 
-**Chiffres.** Permis dans le corps d'un document seulement : heures, températures, codes, numéros (D-300). Jamais dans la puce, la ligne « où » ni la signature. Ailleurs, aucun chiffre à l'écran (12 §1.5).
+**Chiffres.** Permis dans le corps d'un document seulement : heures, températures, codes, numéros (D-323). Jamais dans la puce, la ligne « où » ni la signature. Ailleurs, aucun chiffre à l'écran (12 §1.5).
 
 **Honnêteté** (C-05) :
 - un document ne contredit jamais l'état réel ; il raconte le passé et ne dit rien de l'état présent d'une pièce du plan ;
 - il ne nomme aucune pièce du plan, sauf la note de rangement par son trou, rempli à l'assemblage avec la vraie pièce, lettre comprise ;
 - un indice est toujours vrai : une règle de la créature, une tentative sur un obstacle, la place d'une clé ;
-- **exception du passage caché** (D-300) : la note de M-05 en parle à mots couverts, dans le morceau qui le porte ;
+- **exception du passage caché** (D-323) : la note de M-05 en parle à mots couverts, dans le morceau qui le porte ;
 - les consignes de la compagnie peuvent mentir à l'équipage (la « fuite ») : c'est un mensonge de l'histoire, pas du jeu.
 
 **Témoignage, pas consigne.** Un document de morceau raconte ce que quelqu'un a fait et ce qui s'est passé. Il ne dit jamais au lecteur quoi faire.

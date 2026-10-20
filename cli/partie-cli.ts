@@ -115,7 +115,7 @@ function mondeEnregistre(contenu: string | null): string | null {
 
 /**
  * Monde de l'appel : la station de `--station` (composition au plan tiré, ou station exacte), sinon le monde fixe de
- * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une grande station tirée (D-290). Renvoie un message
+ * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une grande station tirée (D-313). Renvoie un message
  * si le monde est refusé ; une partie enregistrée sur une station inconnue n'est jamais remplacée par un tirage.
  */
 export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): EntreeMonde | string {

@@ -158,7 +158,7 @@ function classeDeLigne(rendu: DocumentRendu, rang: number): string | undefined {
 }
 
 /**
- * Fiche d'un document (D-301, spec 2026-10-18 §9.1, variante B de docs/maquette/documents.html) : le support en capitales et la ligne
+ * Fiche d'un document (D-324, spec 2026-10-18 §9.1, variante B de docs/maquette/documents.html) : le support en capitales et la ligne
  * « où », puis le corps dans la typographie du support. Les capitales sont du style, pas du texte : le lecteur d'écran lit le support,
  * la ligne « où », puis le corps, dans l'ordre. `puce` : le nom de la puce, que le journal grave sur sa barre de titre.
  */

@@ -36,7 +36,7 @@ export interface DefCle {
 
 /** Déclarations d'un morceau pour les grandes stations (spec §4.2, §6.3) ; jamais recopiées dans le monde. */
 export interface DefGrandeMorceau {
-  /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-292) ; absent pour départ, carrefour et final. */
+  /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-315) ; absent pour départ, carrefour et final. */
   readonly obstacle?: 'materiel' | 'creature';
   /** Pièces où une annexe peut s'accrocher, avec leur catégorie (GE-08, GE-09). */
   readonly accueillantes: Readonly<Record<string, CategoriePiece>>;
