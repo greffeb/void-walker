@@ -323,7 +323,12 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
         return note === undefined || trousse === undefined ? undefined : { note, trousse };
       },
     );
+  // Borne haute : max(7, notes de clés déplacées + 1). Une station compte trois chemins et un final, et M-06 est le seul morceau à deux
+  // clés : cinq notes au plus, `+ 1` reste sous 7 et la borne est celle de `parStation`. La partie `+ 1` ne joue que si la réserve ou les
+  // morceaux changent ; le test des notes qui dépassent `parStation` la prouve sur une réserve resserrée.
   const bornes = (construite: Construite): readonly [number, number] => [5, Math.max(7, notesDeCles(documentsDe(construite)).length + 1)];
+  const origineDe = (station: DefStation, place: EmplacementDocument): string =>
+    `${place.morceau ?? ''}/${station.morceaux.find((morceau) => morceau.id === place.morceau)?.objets.find((objet) => objet.id === place.cle)?.piece ?? ''}`;
 
   it('un document au vestibule est signalé (spec §8.4)', () => {
     const { construite, trouve } = chercher(() => true, (candidate) => documentsDe(candidate)[0]);
@@ -408,12 +413,61 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     );
   });
 
-  it('une note de rangement dans la pièce d’origine de la clé est permise (spec §8.4)', () => {
-    const { construite, trouve } = chercher(() => true, (candidate) => notesDeCles(documentsDe(candidate))[0]);
-    const origine = construite.station.morceaux.find((morceau) => morceau.id === trouve.place.morceau)?.objets.find((objet) => objet.id === trouve.place.cle)?.piece ?? '';
-    const ici = `${trouve.place.morceau}/${origine}`;
-    const fautive = modifier(construite, (monde) => deplacer(monde, trouve.objet.id, ici));
-    expect(controlerGrande(fautive.entree, fautive.station).filter((ecart) => ecart.startsWith(`Document ${trouve.objet.nom} dans ${ici} : ni la pièce face`))).toEqual([]);
+  it('une note de rangement dans la pièce d’origine de la clé, distincte de la pièce face, est permise (spec §8.4)', () => {
+    // Une note de la station construite, dans une pièce du chemin principal qui n'est pas l'origine de sa clé, est dans la pièce face
+    // (le contrôle passe) : l'origine, elle, est alors une autre pièce que la face.
+    const { construite, trouve } = chercher(
+      () => true,
+      (candidate) =>
+        notesDeCles(documentsDe(candidate)).find(
+          ({ objet, place }) => candidate.entree.monde.pieces.find((piece) => piece.id === objet.piece)?.forme === undefined && objet.piece !== origineDe(candidate.station, place),
+        ),
+    );
+    expect(controlerGrande(construite.entree, construite.station)).toEqual([]);
+    const origine = origineDe(construite.station, trouve.place);
+    const fautive = modifier(construite, (monde) => deplacer(monde, trouve.objet.id, origine));
+    expect(controlerGrande(fautive.entree, fautive.station).filter((ecart) => ecart.startsWith(`Document ${trouve.objet.nom} dans ${origine} : ni la pièce face`))).toEqual([]);
+  });
+
+  // Une annexe du catalogue pendue à la pièce face, par des couloirs au besoin : permise ; pendue à une autre pièce : signalée. La face
+  // vient de la station construite, que le contrôle accepte : la racine de la chaîne d'une annexe qui porte le document de morceau, la
+  // pièce du chemin principal, autre que l'origine de sa clé, qui porte la note.
+  const faceDuDocument = {
+    morceau: (candidate: Construite) => {
+      const { monde } = candidate.entree;
+      return documentsDe(candidate).flatMap((doc) => {
+        const face = doc.place.couche === 'morceau' ? accrochesDe(monde, doc.objet.piece).at(-1) : undefined;
+        return face === undefined ? [] : [{ doc, face }];
+      })[0];
+    },
+    note: (candidate: Construite) => {
+      const note = notesDeCles(documentsDe(candidate)).find(({ objet, place }) => accrochesDe(candidate.entree.monde, objet.piece).length === 0 && objet.piece !== origineDe(candidate.station, place));
+      return note === undefined ? undefined : { doc: note, face: note.objet.piece };
+    },
+  };
+  it.each([
+    ['document de morceau', faceDuDocument.morceau, ({ objet, place }: Doc, piece: string) => `Document ${objet.nom} dans ${piece} : ni la pièce face de ${place.morceau}, ni une annexe qui y pend.`],
+    [
+      'note de rangement',
+      faceDuDocument.note,
+      ({ objet, place }: Doc, piece: string) => `Document ${objet.nom} dans ${piece} : ni la pièce face de ${place.morceau}, ni l’origine de ${idCle(place)}, ni une annexe qui pend à la face.`,
+    ],
+  ])('%s : permis dans une annexe pendue à la face, signalé dans une annexe pendue ailleurs (spec §8.4)', (_cas, faceDe, message) => {
+    const { construite, trouve } = chercher(
+      () => true,
+      (candidate) => {
+        const { monde } = candidate.entree;
+        const sur = faceDe(candidate);
+        const pendue = annexes(monde).find((piece) => accrochesDe(monde, piece).at(-1) === sur?.face);
+        const ailleurs = annexes(monde).find((piece) => accrochesDe(monde, piece).at(-1) !== sur?.face && !monde.objets.some((objet) => objet.piece === piece));
+        return sur === undefined || pendue === undefined || ailleurs === undefined ? undefined : { ...sur, pendue, ailleurs };
+      },
+    );
+    expect(controlerGrande(construite.entree, construite.station)).toEqual([]);
+    const permise = modifier(construite, (monde) => deplacer(monde, trouve.doc.objet.id, trouve.pendue));
+    expect(controlerGrande(permise.entree, permise.station).filter((ecart) => ecart.startsWith(`Document ${trouve.doc.objet.nom} dans ${trouve.pendue} : ni la pièce face`))).toEqual([]);
+    const fautive = modifier(construite, (monde) => deplacer(monde, trouve.doc.objet.id, trouve.ailleurs));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain(message(trouve.doc, trouve.ailleurs));
   });
 
   it('une note de rangement qui ne désigne pas la pièce de la clé est signalée (spec §8.4)', () => {
@@ -537,6 +591,51 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     );
     const fautive = modifier(construite, (monde) => sans(monde, trouve.objet.id));
     expect(controlerGrande(fautive.entree, fautive.station)).toContain(`${trouve.objet.piece} : ne porte rien (couverture, spec §7.3).`);
+  });
+
+  it('un document absent de la réserve est signalé (spec §8.4)', () => {
+    const construite = premiere(() => true);
+    const { creature } = construite.station;
+    const fautive = modifier(construite, (monde) => ({ ...monde, objets: [...monde.objets, { id: 'o-doc-98', nom: 'doc_inconnu', piece: creature, portable: false, document: true }] }));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain(`Document doc_inconnu dans ${creature} : absent de la réserve.`);
+  });
+
+  it('un document dans une pièce en feu est signalé (spec §8.4)', () => {
+    const { construite, trouve } = chercher(() => true, (candidate) => documentsDe(candidate)[0]);
+    const fautive = modifier(construite, (monde) => ({ ...monde, pieces: monde.pieces.map((piece) => (piece.id === trouve.objet.piece ? { ...piece, feu: true } : piece)) }));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain(`Document ${trouve.objet.nom} dans ${trouve.objet.piece} : pièce en feu.`);
+  });
+
+  it('une station sans aucun document de la menace est signalée (spec §8.4)', () => {
+    const construite = premiere(() => true);
+    const menace = documentsDe(construite).filter(({ place }) => place.couche === 'menace').map(({ objet }) => objet.id);
+    const fautive = modifier(construite, (monde) => sans(monde, ...menace));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain('Documents : aucun document de la menace.');
+  });
+
+  it('une étape de la menace manquante est permise (spec §8.4)', () => {
+    const { construite, trouve } = chercher(
+      () => true,
+      (candidate) => {
+        const menace = documentsDe(candidate).filter(({ place }) => place.couche === 'menace');
+        return menace.length >= 2 ? menace : undefined;
+      },
+    );
+    // Chaque étape posée, retirée seule : les autres restent, aucun écart de menace.
+    for (const { objet } of trouve) {
+      const fautive = modifier(construite, (monde) => sans(monde, objet.id));
+      expect(controlerGrande(fautive.entree, fautive.station).filter((ecart) => /étape|menace/.test(ecart)), objet.nom).toEqual([]);
+    }
+  });
+
+  it('les notes des clés déplacées, plus une menace, dépassent la borne haute de la réserve (spec §8.4)', () => {
+    const { construite, trouve } = chercher(() => true, (candidate) => (notesDeCles(documentsDe(candidate)).length >= 2 ? documentsDe(candidate).length : undefined));
+    const { station } = construite;
+    const notes = notesDeCles(documentsDe(construite)).length;
+    // Réserve resserrée à un seul document par station : la borne haute est alors celle des notes, plus le document de la menace.
+    const reserve = { ...station.grande!.documents!, parStation: [1, 1] as const };
+    const resserree = { ...station, grande: { ...station.grande!, documents: reserve } };
+    expect(controlerGrande(construite.entree, resserree)).toContain(`Documents : ${trouve}, hors de 1 à ${notes + 1}.`);
   });
 
   it('propriété : sur 1 000 tirages, toute grande station construite passe tous les contrôles', () => {
