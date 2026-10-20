@@ -2,6 +2,7 @@ import type { DefAccroche, DefCommande, DefMorceau, DefStation } from '../../eng
 import { PIECES_CATALOGUE, TABLE_BUTIN } from '../catalogue';
 import { MORCEAUX, type EntreeMorceau } from '../morceaux';
 import { CLOISON_1, cloison2 } from '../morceaux/carrefour';
+import { RESERVE_DOCUMENTS } from '../textes/documents';
 import { court, premierRefus, type LignePaire } from './paires';
 import { sansConflit } from './textes-station';
 
@@ -110,7 +111,7 @@ export function definirGrande({ composition, morceaux }: GrandePrevue, graine: n
       { id: 'reveil', quand: { type: 'reveil' } },
       { id: 'depart', quand: { type: 'evacuation' } },
     ] as const,
-    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, butin: TABLE_BUTIN },
+    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS },
   };
   const vestibule = exiger(VESTIBULE, 'vestibule');
   if (composition.forme === 'chaine') {

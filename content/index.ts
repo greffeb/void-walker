@@ -39,6 +39,7 @@ export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
 
 export { FIN, fuitesDeCouches, fuitesDuCatalogue, reunir } from './textes/couches';
 export { rendreDocument, texteDocument, type DocumentRendu, type LigneDocument } from './textes/document';
+export { DOCUMENTS, EMPLACEMENTS_DOCUMENTS, RESERVE_DOCUMENTS } from './textes/documents';
 export { cleMort, MOMENTS_MAX, raconterFin, type FinDePartie, type RecitFin } from './textes/fin';
 export { MENACE, MOTS_MENACE, MOTS_TRACES } from './textes/menace';
 export { SOCLE } from './textes/socle';

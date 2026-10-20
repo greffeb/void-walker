@@ -1,4 +1,4 @@
-import type { EmplacementDocument } from '../../engine';
+import type { EmplacementDocument, ReserveDocuments } from '../../engine';
 import type { Nom, TexteDocument } from './types';
 
 // Réserve de documents des grandes stations (spec 2026-10-18 §8.4, §8.5, bible docs/17-univers.md) : la vie d'avant (univers),
@@ -291,3 +291,6 @@ export const EMPLACEMENTS_DOCUMENTS: readonly EmplacementDocument[] = [
   rangement('doc_mot_nadia', 'm-08', 'o-planche'),
   { id: 'doc_papier_plie', couche: 'rangement', cle: 'butin:soin' },
 ];
+
+/** Réserve des grandes stations : toutes les places, de cinq à sept documents posés par station (spec §8.4). */
+export const RESERVE_DOCUMENTS: ReserveDocuments = { emplacements: EMPLACEMENTS_DOCUMENTS, parStation: [5, 7] };

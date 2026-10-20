@@ -28,7 +28,7 @@ function mondes(nombre: number): DefMonde[] {
   return Array.from({ length: nombre }, (_, graine) => assemblerStation(station(graine))).flatMap((resultat) => (resultat.type === 'station' ? [resultat.monde] : []));
 }
 
-/** Vraie composition publiable pour cette graine, chaîne et ordre libre en alternance. */
+/** Vraie composition publiable pour cette graine, chaîne et ordre libre en alternance, sans documents. */
 function stationReelle(graine: number): DefStation {
   const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null);
   const liste = compositions.filter((composition) => composition.forme === (graine % 2 === 0 ? 'chaine' : 'libre'));
@@ -36,7 +36,8 @@ function stationReelle(graine: number): DefStation {
   if (composition === undefined) throw new Error('Aucune grande composition.');
   const station = CATALOGUE.definirGrande(composition.id, graine);
   if ('refus' in station) throw new Error(station.refus);
-  return station;
+  // Le contenu branche la vraie réserve de documents (#209) ; ces tests mesurent le butin, ou injectent leur propre réserve d'essai.
+  return station.grande === undefined ? station : { ...station, grande: { ...station.grande, documents: undefined } };
 }
 
 const MONDES = mondes(40);

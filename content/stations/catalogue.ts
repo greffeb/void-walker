@@ -25,6 +25,7 @@ import { MORCEAU_M07, TEXTES_MORCEAU_M07 } from '../morceaux/m-07';
 import { MORCEAU_M10, TEXTES_MORCEAU_M10 } from '../morceaux/m-10';
 import { MORCEAU_VESTIBULE, TEXTES_MORCEAU_VESTIBULE } from '../morceaux/vestibule';
 import { reunir } from '../textes/couches';
+import { DOCUMENTS } from '../textes/documents';
 import { ASSISTANCE_STATION } from '../textes/univers';
 import type { EntreeMonde } from '../types';
 import { court, PAIRES, premierRefus, type LignePaire } from './paires';
@@ -785,7 +786,8 @@ export function creerCatalogue(
     const resultat = assembler(station);
     let obtenu: EntreeMonde | Refus | null = null;
     if (resultat.type === 'station') {
-      const textes = reunir([...entrees.map((entree) => entree.textes), TEXTES_CATALOGUE], ASSISTANCE_STATION);
+      // Les documents de l'univers, de la menace et de la trousse rejoignent les textes de chaque grande station (spec §8.5).
+      const textes = reunir([...entrees.map((entree) => entree.textes), TEXTES_CATALOGUE, { noms: {}, descriptions: {}, assistance: {}, documents: DOCUMENTS }], ASSISTANCE_STATION);
       obtenu = numeroter({ monde: resultat.monde, textes, parcours: [] });
     } else if (resultat.type === 'invalide') obtenu = { refus: `Station ${id} invalide : ${resultat.erreurs.join(' ')}` };
     memoire.set(id, obtenu);
