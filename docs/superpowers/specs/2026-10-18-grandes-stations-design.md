@@ -1,6 +1,6 @@
 # Grandes stations habitées : catalogue, clés dispersées, butin et lore (#202, #205, #206, #207, #209) — conception
 
-> **Statut :** conception relue par quatre relecteurs indépendants (constructeur, code, game design, décisions) ; réponses du porteur du 2026-10-18 et du 2026-10-19 intégrées (§3, annexe A). Approuvée par le porteur : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » Décisions renumérotées D-290 à D-304 le 2026-10-19, D-289 étant prise par #225 : les deux choix de l'agent cités, D-302 et D-303, sont devenus D-303 et D-304. Renumérotées de nouveau D-313 à D-328 le 2026-10-20, à la reprise de `main` (M-11, M-12 et l'intro y ont pris D-290 à D-293 et D-304 à D-312) : D-303 et D-304 sont devenus D-326 et D-327.
+> **Statut :** conception relue par quatre relecteurs indépendants (constructeur, code, game design, décisions) ; réponses du porteur du 2026-10-18 et du 2026-10-19 intégrées (§3, annexe A). Approuvée par le porteur : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » Décisions renumérotées D-290 à D-304 le 2026-10-19, D-289 étant prise par #225 : les deux choix de l'agent cités, D-302 et D-303, sont devenus D-303 et D-304. Renumérotées de nouveau D-313 à D-328 le 2026-10-20, à la reprise de `main` (M-11, M-12 et l'intro y ont pris D-290 à D-293 et D-304 à D-312) : D-303 et D-304 sont devenus D-326 et D-327. Les questions Q-204 à Q-219 sont devenues Q-212 à Q-227, M-11 et M-12 ayant pris Q-204 à Q-211.
 > **Zones :** orange pour le moteur, l'assembleur, le format des morceaux, le vérifieur, l'appli et chaque seuil d'équilibrage (montré au porteur avec ses mesures) ; verte pour les textes, les documents et la bible. Le format de sauvegarde ne change pas, et un test le prouve ; sinon, zone rouge et essai manuel.
 > **Sources :** issues #202, #205, #206, #207, #209 ; D-008, D-014, D-016, D-031, D-046, D-048, D-051, D-068, D-078, D-079, D-083, D-084, D-098, D-100, D-111, D-119, D-161, D-162, D-169, D-172, D-205 à D-208, D-241 à D-245, D-249, D-252 à D-260, D-265, D-268 à D-270, D-275 à D-281 ; C-02, C-05, C-06, C-07, C-08, C-10 ; 12 §1, §3, §4 ; 13 §3, §7 ; 14 §5 ; maquette `docs/maquette/documents.html`.
 
@@ -64,7 +64,7 @@ La poursuite elle-même existe déjà dans le code. Après le premier contact, l
 
 ### 3.1 Décisions du porteur
 
-Questions posées une à une, en langage courant, avant de coder (Q-204 à Q-219, réponses mot pour mot en annexe A). À consigner dans `docs/03-decisions.md` sous le titre « Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209) », avec les lignes « Modifiée par » ou « Précisée par » sur chaque ancienne entrée.
+Questions posées une à une, en langage courant, avant de coder (Q-212 à Q-227, réponses mot pour mot en annexe A). À consigner dans `docs/03-decisions.md` sous le titre « Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209) », avec les lignes « Modifiée par » ou « Précisée par » sur chaque ancienne entrée.
 
 **D-313 Taille et forme.**
 - 22 à 28 pièces dessinées : les morceaux, plus **6 à 10 pièces du catalogue** selon leur poids (§4.1).
@@ -720,7 +720,7 @@ La PR est ouverte en brouillon dès la livraison 1. La version du générateur n
 
 **Docs à mettre à jour.**
 - 03 : D-313 à D-327, statut de D-276 et D-279, index, date ;
-- 06 : questions Q-204 à Q-219, et correction du « prochain numéro Q-197 », périmé ;
+- 06 : questions Q-212 à Q-227, et correction du « prochain numéro Q-197 », périmé ;
 - 13 : §3 (fiches de M-01, M-02, M-03, M-04, M-06, M-08), §7.1, §7.2, liste « hors #106 » ;
 - 14 : §5.3 à §5.6, liste GE-08, GE-13 ;
 - 12 : §1.5, §3.5, §4.4 ;

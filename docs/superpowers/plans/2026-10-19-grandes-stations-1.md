@@ -583,7 +583,7 @@ Les noms tiennent dans leur tuile (PL-04, `nomLisible`) ; si l'un ne tient pas, 
 **Files:**
 - Modify:
   - `docs/03-decisions.md` : D-313 à D-327, D-276 et D-279 validées, lignes « Modifiée par » et « Précisée par », index, date ;
-  - `docs/06-contrats.md` : Q-204 à Q-219, prochain numéro ;
+  - `docs/06-contrats.md` : Q-212 à Q-227, prochain numéro ;
   - `docs/13-morceaux-lancement.md` : §3 déclarations, §7 mesures de la livraison 1 ;
   - `docs/14-carte.md` : §5.3 à §5.6, GE-08, GE-13, libellé de D-208 ;
   - `docs/12-interface-ecrans.md` : §1.5, en vue de la livraison 3 ;

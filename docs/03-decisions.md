@@ -2395,12 +2395,12 @@ Questions posées le 2026-10-18, une par une, sur des maquettes au format télé
 
 ## Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209)
 
-Questions posées le 2026-10-18, une par une, en langage courant, avant de coder (Q-204 à Q-219, réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot)) ; maquette des documents au format téléphone ([documents](maquette/documents.html)). Accord du porteur sur la conception : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225 ; puis D-326 et D-327 à la reprise de `main` le 2026-10-20, M-11, M-12 et l'intro ayant pris D-290 à D-293 et D-304 à D-312 : les décisions des grandes stations portent désormais les numéros D-313 à D-328). Le travail se livre en trois temps sur une même branche (D-327) : la livraison 1 (#205, #206) applique D-313 à D-318, D-321, D-326 et D-327 ; les clés et le butin (livraison 2, #202, #207, D-319 et D-320) et le lore (livraison 3, #209, D-322 à D-324) sont sur la même branche. D-328 est une demande du porteur faite pendant la livraison 3.
+Questions posées le 2026-10-18, une par une, en langage courant, avant de coder (Q-212 à Q-227, réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot)) ; maquette des documents au format téléphone ([documents](maquette/documents.html)). Accord du porteur sur la conception : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225 ; puis D-326 et D-327 à la reprise de `main` le 2026-10-20, M-11, M-12 et l'intro ayant pris D-290 à D-293 et D-304 à D-312 : les décisions des grandes stations portent désormais les numéros D-313 à D-328). Le travail se livre en trois temps sur une même branche (D-327) : la livraison 1 (#205, #206) applique D-313 à D-318, D-321, D-326 et D-327 ; les clés et le butin (livraison 2, #202, #207, D-319 et D-320) et le lore (livraison 3, #209, D-322 à D-324) sont sur la même branche. D-328 est une demande du porteur faite pendant la livraison 3.
 
 ### D-313 — Grandes stations : trois chemins et un final, 22 à 28 pièces
 
 - Date / statut : 2026-10-18 / **Validé** ; essai sur téléphone à venir (zone orange).
-- Origine : la partie idéale du porteur, Q-204 : « une partie de 25min idéale » ; Q-208 : « rien ne me gène » ; Q-216, après relecture : « 22 à 28 pièces ».
+- Origine : la partie idéale du porteur, Q-212 : « une partie de 25min idéale » ; Q-216 : « rien ne me gène » ; Q-224, après relecture : « 22 à 28 pièces ».
 - Décision :
   - **Forme.** Le vestibule, trois morceaux de chemin, puis le final : 22 à 28 pièces dessinées, dont 6 à 10 pièces du catalogue (D-316), autant qu'il en faut pour approcher 24.
   - **Ordre libre.** Environ une station sur trois : deux chemins matériels s'ouvrent sur le couloir du carrefour, le troisième chemin et le final attendent derrière les cloisons.
@@ -2412,7 +2412,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-314 — Difficulté : deux ou trois morts sur les quatre premières parties
 
 - Date / statut : 2026-10-18 / **Validé**.
-- Origine : rôle demandé à l'agent : « équilibré en difficulté (un peu dur quand meme) » ; Q-207 : « je pense 2 ou 3 fois - la difficulté actuelle est bien pour le moment, mon ressenti. »
+- Origine : rôle demandé à l'agent : « équilibré en difficulté (un peu dur quand meme) » ; Q-215 : « je pense 2 ou 3 fois - la difficulté actuelle est bien pour le moment, mon ressenti. »
 - Décision : un joueur qui découvre le jeu meurt deux ou trois fois sur ses quatre premières parties. La difficulté actuelle convient. Le butin (D-320) compense l'exposition plus longue d'une grande station ; il ne rend pas la partie plus facile.
 - Précise : D-264.
 - Limite : mesurée par les bots ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-1-205-206), [§7.13](13-morceaux-lancement.md#713-grandes-stations-livraison-2-202-207), [§7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)), à juger sur téléphone. Le critère de la conception, 25 à 35 % d'évacuations pour le profil prudent, n'est atteint dans aucune des trois livraisons : 14,1 % en livraison 3.
@@ -2420,7 +2420,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-315 — Rythme : créature tardive, chemins utiles
 
 - Date / statut : 2026-10-18 / **Validé**.
-- Origine : Q-217 : « Tardive et utile ».
+- Origine : Q-225 : « Tardive et utile ».
 - Décision :
   - La place de la créature est tirée dans le **dernier chemin ou le final**.
   - Un chemin dont le seul obstacle est la créature (M-04, M-05, M-07, M-10) n'est tiré que s'il l'accueille : c'est alors le dernier chemin.
@@ -2430,7 +2430,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-316 — Catalogue des pièces sans obstacle : une station de transit et de fret
 
 - Date / statut : 2026-10-18 / **Validé**.
-- Origine : Q-213 : « ok ».
+- Origine : Q-221 : « ok ».
 - Décision :
   - Quinze pièces, chacune avec sa catégorie : couchettes, sanitaires, réfectoire, cambuse, infirmerie, buanderie (vie) ; salle d'outillage, consigne, dépôt, vestiaire, salle de ventilation (technique) ; couloir (circulation) ; plateforme de fret (fret) ; bureau du fret (commandement) ; laboratoire (science).
   - Pas d'objet de décor à toucher : on y passe, on y regarde.
@@ -2442,7 +2442,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-317 — Les traces suivent la piste de la créature
 
 - Date / statut : 2026-10-18 / **Validé**.
-- Origine : la partie idéale : « des traces (sang, désordre, odeurs) » ; Q-218 : « Une piste ».
+- Origine : la partie idéale : « des traces (sang, désordre, odeurs) » ; Q-226 : « Une piste ».
 - Décision : les pièces sur le trajet de la créature, depuis la zone de fret jusqu'à son repaire, portent des traces de plus en plus marquées vers lui. On les lit en regardant la pièce. Une pièce calme n'est pas forcément sûre.
 - Remplace la règle du rayon proposée le 2026-10-18.
 - Limite [détail de l'agent] : la piste suit le plus court chemin que la créature peut franchir, depuis une pièce marquée comme origine (la plateforme de fret quand elle est posée) à trois à six portes du repaire, jamais depuis la pièce de départ. La trace est forte à deux portes du repaire ou moins, légère au-delà ; sept phrases par intensité, dans la couche menace. `check:texts` refuse une trace hors de la piste ; un test refuse un mot réservé dans le catalogue. Ces seuils sont montrés au porteur avec les mesures.
@@ -2458,7 +2458,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-319 — Clés dispersées : chaque clé dans une pièce plausible avant son obstacle
 
 - Date / statut : 2026-10-18 / **Validé** ; livraison 2.
-- Origine : Q-210 : « la caisse peut bouger, sinon OK ».
+- Origine : Q-218 : « la caisse peut bouger, sinon OK ».
 - Décision :
   - Les objets portables qui résolvent un obstacle sont posés dans une pièce plausible, accessible avant leur obstacle, à distance bornée.
   - Leur pièce d'origine reste un tirage possible.
@@ -2470,7 +2470,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-320 — Butin : une trousse ou une burette dans quelques salles
 
 - Date / statut : 2026-10-18 / **Validé** ; livraison 2.
-- Origine : Q-209 : « c'est bon pour moi. d'autres objets imaginés dans le futur pourront venir s'y ajouter ».
+- Origine : Q-217 : « c'est bon pour moi. d'autres objets imaginés dans le futur pourront venir s'y ajouter ».
 - Décision :
   - Une trousse de soin ou une burette de réserve, dans deux ou trois salles de butin en impasse, zéro ou un objet chacune.
   - Rien dans l'interface ne les signale.
@@ -2483,7 +2483,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-321 — La créature reste immobile avant le contact ; une ronde se décidera chiffres en main
 
 - Date / statut : 2026-10-18 / **Validé**.
-- Origine : Q-214 : « oui ».
+- Origine : Q-222 : « oui ».
 - Décision : dans ce lot, la créature reste immobile avant le premier contact. On mesure le temps sans menace dans les grandes stations, puis le porteur décide d'une ronde, chiffres en main (#217).
 - Garde : D-048.
 - Limite [détail de l'agent] : avant le contact, une grande station fait entendre des bruits qui ne viennent pas de la créature (une action sur sept environ, sans rien changer à la partie), écrits dans le socle. Mesure de la livraison 1 : la rencontre arrive tard, au-delà des deux seuils d'alerte (13 §7.12). Les chiffres sont remis au porteur avant toute fusion.
@@ -2492,7 +2492,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-322 — Univers : un cadre commun, l'histoire de la créature, pas de grand mystère
 
 - Date / statut : 2026-10-18 / **Validé** ; livraison 3.
-- Origine : Q-205 : « le lore va changer selon la mission et la menace (issue 219). mon but étant d'avoir une forte rejouabilité et que chaque partie se ressente différente selon les combinaisons » et « franchement, tout pourrait changer, j'aime la variété » ; Q-206 : « trop ambitieux et casse gueule niveau faisabilité. » ; Q-211 : « c'est bien ».
+- Origine : Q-213 : « le lore va changer selon la mission et la menace (issue 219). mon but étant d'avoir une forte rejouabilité et que chaque partie se ressente différente selon les combinaisons » et « franchement, tout pourrait changer, j'aime la variété » ; Q-214 : « trop ambitieux et casse gueule niveau faisabilité. » ; Q-219 : « c'est bien ».
 - Décision :
   - Un cadre commun à toutes les parties (spec §8.1) et l'histoire de la créature (§8.2), consignés dans une bible.
   - Pas de grand mystère sur plusieurs parties.
@@ -2503,7 +2503,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-323 — Documents : courts, vrais, chiffres permis
 
 - Date / statut : 2026-10-18 / **Validé** ; livraison 3.
-- Origine : Q-212 : « ok pour des chiffres a l'écran (ça fait plus log technique). ok pour indice passage caché ».
+- Origine : Q-220 : « ok pour des chiffres a l'écran (ça fait plus log technique). ok pour indice passage caché ».
 - Décision :
   - Cinq supports, une à cinq phrases, environ un document toutes les trois ou quatre pièces, indices vrais.
   - **Chiffres permis dans les documents seulement.**
@@ -2527,7 +2527,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-324 — Un document se lit sur une fiche dans la bulle
 
 - Date / statut : 2026-10-18 / **Validé** sur maquette ; livraison 3.
-- Origine : Q-215 : « B, la fiche document dans la bulle. »
+- Origine : Q-223 : « B, la fiche document dans la bulle. »
 - Décision : fiche document dans la bulle, variante B de la [maquette](maquette/documents.html).
 - Précise : 12 §3.5, §4.4.
 - Limite [détail de l'agent] : la fiche montre le support en capitales, la ligne « où » en casse normale, puis le corps dans la typographie du support : note en italique avec un filet et sa signature à droite ; journal cadré, sous une barre, avec une colonne d'heures ; message dont les didascalies sont en couleur secondaire ; inscription en grandes capitales ; affiche sous un double cadre. La barre du journal porte le nom de la puce : la maquette lui donnait un titre propre qui portait un chiffre, et un texte de jeu ne s'invente pas (D-243) ; le curseur de la maquette n'est pas repris. L'inscription est écrite en casse normale dans le contenu : c'est le style qui la met en capitales, et le lecteur d'écran la lit en casse normale. La pièce nommée par une note de rangement est soulignée en pointillé, sans autre aide. Une fiche longue défile dans la bulle, sans indice visuel. Lire est gratuit et n'est pas enregistré (D-014) ; la puce d'un document est une puce ordinaire du dock, sans marque. La CLI dit le support, la ligne « où », le corps ligne à ligne, puis la signature. Détail : [12 §4.4](12-interface-ecrans.md#44-fiche-dobjet--poste-dappel) ; [13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209).
@@ -2535,7 +2535,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 ### D-325 — Les validations signées restent valables pour les petites stations
 
 - Date / statut : 2026-10-18 / **Validé**.
-- Origine : Q-219 : « Gardées ».
+- Origine : Q-227 : « Gardées ».
 - Décision :
   - Les 9 validations sur téléphone restent valables pour les petites stations.
   - Chaque morceau doit être joué au moins une fois dans une grande station, au fil des essais du porteur, avant que les grandes stations soient validées.
