@@ -4,7 +4,7 @@ import { SuiviPartie, type IndicateursPartie } from './indicateurs-partie';
 import type { EntreeMonde } from '../content';
 
 // Bots de mesure (#194 §2.3) : ils jouent par le menu public, avec ce que le joueur voit (observation, aperçu du risque, récit
-// de la dernière action), jamais l'état caché du moteur. Leur seule mémoire est la leur. Ils servent à mesurer, pas à prouver :
+// de la dernière action) et ce qu'il peut regarder gratuitement (une trace, un document), jamais l'état caché du moteur. Leur seule mémoire est la leur. Ils servent à mesurer, pas à prouver :
 // la preuve d'une station reste celle de `check:stations`.
 
 export const PROFILS = ['aleatoire', 'prudent', 'presse', 'averti'] as const;
@@ -84,6 +84,13 @@ const MALUS_TRACE = 200;
 /** Prix d'un geste sur la route d'une pièce que nomme une note de rangement : avant l'exploration (100) et le butin (150), après un geste jamais essayé (200). */
 const PRIX_NOTE = 180;
 
+/**
+ * Choix de l'averti, avant la rencontre, où une pièce nommée par une note joue sans qu'il s'en rapproche (distance minimale
+ * jamais battue) : au bout de cette patience, la pièce cesse d'être une destination. Sans elle, un passage jugé trop risqué
+ * vers la pièce le ferait tourner autour jusqu'au plafond.
+ */
+const PATIENCE_NOTE = 15;
+
 /** Actions après lesquelles le bot réessaie un passage qu'il n'a pas pu ouvrir. */
 const OUBLI = 20;
 
@@ -136,10 +143,13 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
   let but: string | null = null;
   let precedente: string | null = null;
   let franchi: string | null = null;
-  /** Pièces dont les documents sont déjà lus : un document se lit à la première visite, et pas deux fois. */
+  /** Pièces dont les documents sont déjà lus : un document se lit à la première visite, et pas deux fois ; un regard refusé n'est pas retenté. */
   const lues = new Set<string>();
-  /** Pièces que les notes de rangement lues nomment : des destinations tant qu'on ne les a pas atteintes. */
+  /** Pièces que les notes de rangement lues nomment : des destinations tant qu'on ne les a pas atteintes, ni usé la patience. */
   const designees = new Set<string>();
+  /** Pour chaque pièce nommée : la distance la plus courte où l'on s'en est trouvé, et les choix sans s'en être rapproché. */
+  const plusProches = new Map<string, number>();
+  const usures = new Map<string, number>();
 
   const inventaire = (observation: Observation): string => observation.inventaire.map((objet) => objet.id).sort().join(',');
 
@@ -189,17 +199,23 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
         if (route !== undefined && route.distance < proche) [but, proche] = [piece, route.distance];
       }
     }
-    let designee = false;
+    let visee: string | null = null;
     if (profil === 'averti' && !rencontre) {
       let proche = Infinity;
       for (const piece of designees) {
         const route = chemins.get(piece);
-        if (route === undefined || route.distance >= proche || observation.visitees.some((vue) => vue.id === piece)) continue;
-        [but, proche, designee] = [piece, route.distance, true];
+        if (route === undefined || route.distance >= proche || (usures.get(piece) ?? 0) >= PATIENCE_NOTE || observation.visitees.some((vue) => vue.id === piece)) continue;
+        [visee, proche] = [piece, route.distance];
+      }
+      if (visee !== null) {
+        but = visee;
+        // Un choix où la destination joue : il use la patience, sauf s'il rapproche de la pièce.
+        if (proche < (plusProches.get(visee) ?? Infinity)) plusProches.set(visee, proche);
+        else usures.set(visee, (usures.get(visee) ?? 0) + 1);
       }
     }
     const route = but === null ? undefined : chemins.get(but);
-    return route === undefined ? null : { passage: route.premier, distance: route.distance, designee };
+    return route === undefined ? null : { passage: route.premier, distance: route.distance, designee: visee !== null };
   };
 
   const score = (vue: VueBot, option: OptionMenu, ici: string, menace: boolean, vers: { passage: string; distance: number; designee: boolean } | null): number => {

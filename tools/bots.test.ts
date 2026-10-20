@@ -1,6 +1,6 @@
-import { idPublic, jouer, observer, type DefMonde, type Observation } from '../engine';
+import { idPublic, jouer, observer, type Commande, type DefMonde, type Evenement, type Observation, type Partie } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { aRevoirIci, botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, type Bot } from './bots';
+import { aRevoirIci, botAleatoire, creerBot, jouerAvecBot, optionsJouables, PLAFOND_ACTIONS, PROFILS, type Bot, type VueBot } from './bots';
 import { CATALOGUE } from './catalogue';
 
 // Bots de mesure (#194 §2.3) : ils jouent par le menu public, de façon reproductible.
@@ -77,39 +77,112 @@ describe('bots', () => {
   });
 
   describe('le profil averti lit les documents (#209, spec 2026-10-20 §11)', () => {
+    const textes = (MONDES['monde-test'] as EntreeMonde).textes;
+    const piecesDe = (noms: string[]): DefMonde['pieces'] => noms.map((nom) => ({ id: `p-${nom}`, nom }));
+    const portes = (paires: string[][]): DefMonde['liaisons'] => paires.map(([a, b]) => ({ id: `l-${a}-${b}`, nom: 'porte', entre: [`p-${a}`, `p-${b}`] as const, ouverte: true }));
+    const graines = [0, 1, 2, 3, 4, 5, 6, 7];
+    /** Partie de bot dont on relève les « regarder » demandés par le bot et les commandes enregistrées ; `apercu` remplace l'aperçu du bot. */
+    const jouerEspion = (entree: EntreeMonde, profil: 'prudent' | 'averti', graine: number, plafond = 40, apercu?: VueBot['apercu']): { vus: string[]; partie: Partie; actions: Commande[] } => {
+      const vus: string[] = [];
+      const bot = creerBot(profil, graine);
+      const espion: Bot = { choisir: (vue) => bot.choisir({ ...vue, apercu: apercu ?? vue.apercu, consulter: (cible) => (vus.push(cible), vue.consulter(cible)) }) };
+      const { partie } = jouerAvecBot(entree, espion, graine, plafond);
+      return { vus, partie, actions: partie.enregistrement.actions.map((action) => action.commande) };
+    };
+
     // A ouvre sur B, où une note de rangement désigne C ; B ouvre aussi sur D, qui porte un autre document, et sur E.
     const monde: DefMonde = {
       id: 'docs',
       depart: 'p-a',
-      pieces: ['a', 'b', 'c', 'd', 'e'].map((nom) => ({ id: `p-${nom}`, nom })),
-      liaisons: [['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e']].map(([a, b]) => ({ id: `l-${a}-${b}`, nom: 'porte', entre: [`p-${a}`, `p-${b}`] as const, ouverte: true })),
+      pieces: piecesDe(['a', 'b', 'c', 'd', 'e']),
+      liaisons: portes([['a', 'b'], ['b', 'c'], ['b', 'd'], ['b', 'e']]),
       objets: [
         { id: 'o-note', nom: 'note', piece: 'p-b', portable: false, document: true, designe: 'p-c' },
         { id: 'o-lettre', nom: 'lettre', piece: 'p-d', portable: false, document: true },
       ],
     };
-    const station: EntreeMonde = { monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] };
+    const station: EntreeMonde = { monde, textes, parcours: [] };
     const versC = (profil: 'prudent' | 'averti', graine: number): number =>
-      jouerAvecBot(station, creerBot(profil, graine), graine, 40).partie.enregistrement.actions.findIndex((action) => action.commande.action === 'aller' && action.commande.cible === idPublic('docs', 'l-b-c'));
+      jouerEspion(station, profil, graine).actions.findIndex((commande) => commande.action === 'aller' && commande.cible === idPublic('docs', 'l-b-c'));
 
-    it('il regarde chaque document à sa première visite de la pièce, et pas une seconde fois ; le prudent ne regarde rien', () => {
-      const regardes = (profil: 'prudent' | 'averti'): string[] => {
-        const vus: string[] = [];
-        const bot = creerBot(profil, 1);
-        const espion: Bot = { choisir: (vue) => bot.choisir({ ...vue, consulter: (cible) => (vus.push(cible), vue.consulter(cible)) }) };
-        jouerAvecBot(station, espion, 1, 40);
-        return vus;
-      };
-      const averti = regardes('averti');
-      for (const document of ['o-note', 'o-lettre']) expect(averti.filter((cible) => cible === idPublic('docs', document))).toHaveLength(1);
-      expect(regardes('prudent')).toEqual([]);
+    it('il regarde chaque document à sa première visite de la pièce, et pas une seconde fois ; le prudent ne regarde rien ; la partie n’en garde rien', () => {
+      const averti = jouerEspion(station, 'averti', 1);
+      for (const document of ['o-note', 'o-lettre']) expect(averti.vus.filter((cible) => cible === idPublic('docs', document))).toHaveLength(1);
+      expect(jouerEspion(station, 'prudent', 1).vus).toEqual([]);
+      // Une consultation est gratuite : aucun « regarder » dans le journal de la partie.
+      expect(averti.actions.some((commande) => commande.action === 'regarder')).toBe(false);
     });
 
     it('après une note de rangement, il va droit vers la pièce qu’elle nomme, plus tôt que le prudent', () => {
-      const graines = [0, 1, 2, 3, 4, 5, 6, 7];
       // L'action 0 mène à B, où il lit la note ; l'action 1 est le passage vers C.
       for (const graine of graines) expect(versC('averti', graine), `graine ${String(graine)}`).toBe(1);
       expect(graines.some((graine) => versC('prudent', graine) !== 1)).toBe(true);
+    });
+
+    it('après la rencontre, la note ne pèse plus : il choisit comme le prudent', () => {
+      // Au moment de choisir en B, où il vient de lire la note ; le récit y annonce, ou non, la créature.
+      const arrivee = jouer(monde, jouerAvecBot(station, { choisir: () => null }, 1).partie, { action: 'aller', cible: idPublic('docs', 'l-a-b') });
+      if (arrivee.type !== 'engagee') throw new Error('aller refusé.');
+      const { partie } = arrivee;
+      const choix = (profil: 'prudent' | 'averti', graine: number, evenements: Evenement[]): Commande | null =>
+        creerBot(profil, graine).choisir({
+          observation: observer(monde, partie.etat),
+          evenements,
+          apercu: () => null,
+          trace: null,
+          consulter: (cible) => {
+            const regard = jouer(monde, partie, { action: 'regarder', cible });
+            return regard.type === 'consultation' ? regard.consultation : null;
+          },
+        });
+      const contact: Evenement[] = [{ type: 'premier_contact' }];
+      for (const graine of graines) {
+        expect(choix('averti', graine, []), `graine ${String(graine)}`).toEqual({ action: 'aller', cible: idPublic('docs', 'l-b-c') });
+        expect(choix('averti', graine, contact), `graine ${String(graine)}`).toEqual(choix('prudent', graine, contact));
+      }
+      expect(graines.some((graine) => choix('prudent', graine, contact)?.cible !== idPublic('docs', 'l-b-c'))).toBe(true);
+    });
+
+    it('une pièce nommée sans chemin connu ne change rien : il explore comme le prudent', () => {
+      // La note de B nomme Z, que rien ne relie au reste : aucun chemin connu, jamais.
+      const isolee: EntreeMonde = {
+        monde: {
+          id: 'isolee',
+          depart: 'p-a',
+          pieces: piecesDe(['a', 'b', 'c', 'd', 'z']),
+          liaisons: portes([['a', 'b'], ['b', 'c'], ['b', 'd']]),
+          objets: [{ id: 'o-note', nom: 'note', piece: 'p-b', portable: false, document: true, designe: 'p-z' }],
+        },
+        textes,
+        parcours: [],
+      };
+      for (const graine of graines) {
+        const averti = jouerEspion(isolee, 'averti', graine);
+        expect(averti.vus, `graine ${String(graine)}`).toContain(idPublic('isolee', 'o-note'));
+        expect(averti.actions, `graine ${String(graine)}`).toEqual(jouerEspion(isolee, 'prudent', graine).actions);
+      }
+    });
+
+    it('la destination s’use : un passage vers la pièce nommée trop risqué ne fait pas tourner en rond (patience)', () => {
+      // T ouvre sur N, où la note nomme D ; le seul passage vers D est mortel, pour le bot. N ouvre aussi sur S, d'où partent deux
+      // voisins, A et B, avec des pièces encore inexplorées derrière. Sans patience, revenir vers N vaut plus qu'explorer.
+      const rond: EntreeMonde = {
+        monde: {
+          id: 'patience',
+          depart: 'p-t',
+          pieces: piecesDe(['t', 'n', 'd', 's', 'a', 'a2', 'b', 'b2']),
+          liaisons: portes([['t', 'n'], ['n', 'd'], ['n', 's'], ['s', 'a'], ['a', 'a2'], ['s', 'b'], ['b', 'b2']]),
+          objets: [{ id: 'o-note', nom: 'note', piece: 'p-n', portable: false, document: true, designe: 'p-d' }],
+        },
+        textes,
+        parcours: [],
+      };
+      const mortel: VueBot['apercu'] = (option) => ({ commande: option.commande, risque: option.commande.cible === idPublic('patience', 'l-n-d') ? 'mortel' : 'aucun', danger: null, cout: 'aucun', savoir: [] });
+      for (const graine of graines) {
+        const { partie } = jouerEspion(rond, 'averti', graine, 40, mortel);
+        expect(['p-a2', 'p-b2'].some((piece) => partie.etat.visitees.includes(piece)), `graine ${String(graine)}`).toBe(true);
+        expect(partie.etat.visitees, `graine ${String(graine)}`).not.toContain('p-d');
+      }
     });
   });
 
