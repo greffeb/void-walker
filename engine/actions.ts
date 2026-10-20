@@ -183,6 +183,11 @@ const regarder: ActionConsultation = {
       const trace = piece?.trace;
       return { type: 'regarder_piece', cible: refPiece(monde, cible), ...(trace === undefined ? {} : { trace }), ...(piece?.pillee === true ? { pillee: true } : {}) };
     }
+    const regarde = objet(monde, cible);
+    // Un document rend la pièce qu'il nomme, si c'est une note de rangement (spec 2026-10-18 §8.5).
+    if (regarde.document === true) {
+      return { type: 'regarder_document', cible: refObjet(monde, cible), ...(regarde.designe === undefined ? {} : { designe: refPiece(monde, regarde.designe) }) };
+    }
     return { type: 'regarder_objet', cible: refObjet(monde, cible) };
   },
 };

@@ -128,6 +128,32 @@ export interface DefStationGrande {
   readonly boucles: number;
   /** Butin des salles de butin (spec §6.6) ; absent : aucune salle de butin. */
   readonly butin?: TableButin;
+  /** Réserve de documents à lire (spec §8.4) ; absente : aucun document. */
+  readonly documents?: ReserveDocuments;
+}
+
+/** Les quatre couches d'écriture des documents (spec §8.4) : la vie d'avant, l'incident, une tentative sur un obstacle, une clé rangée. */
+export type CoucheDocument = 'univers' | 'menace' | 'morceau' | 'rangement';
+
+/** Un document de la réserve du contenu et sa place (spec §8.4, §8.5) ; le texte vit dans la section `documents` du contenu. */
+export interface EmplacementDocument {
+  /** Clé de texte du document. */
+  readonly id: string;
+  readonly couche: CoucheDocument;
+  /** Menace : l'étape de la piste où il se lit. */
+  readonly etape?: 1 | 2 | 3 | 4;
+  /** Univers : étiquettes de pièce du catalogue acceptées. */
+  readonly etiquettes?: readonly string[];
+  /** Morceau, rangement : le morceau du document. */
+  readonly morceau?: string;
+  /** Rangement : l'objet désigné (id d'objet du morceau, ou 'butin:soin' pour la trousse). */
+  readonly cle?: string;
+}
+
+/** Réserve de documents du contenu : leurs places, et le nombre posé par station (bornes comprises). */
+export interface ReserveDocuments {
+  readonly emplacements: readonly EmplacementDocument[];
+  readonly parStation: readonly [number, number];
 }
 
 /** Entrée de la table de butin (spec §6.6) : un objet sans qualité passive, son poids de tirage et sa condition de place. */

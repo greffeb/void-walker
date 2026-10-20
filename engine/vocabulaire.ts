@@ -103,7 +103,7 @@ export const TYPES_EVENEMENT = [
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
-export const TYPES_CONSULTATION = ['regarder_piece', 'regarder_objet', 'regarder_passage'] as const;
+export const TYPES_CONSULTATION = ['regarder_piece', 'regarder_objet', 'regarder_passage', 'regarder_document'] as const;
 export type TypeConsultation = (typeof TYPES_CONSULTATION)[number];
 
 export const RAISONS_REFUS = [
@@ -310,7 +310,9 @@ export type Issue = 'evacuation' | 'defaite';
 export type Consultation =
   | { readonly type: 'regarder_piece'; readonly cible: RefPiece; readonly trace?: IntensiteTrace; readonly pillee?: true }
   | { readonly type: 'regarder_objet'; readonly cible: RefObjet }
-  | { readonly type: 'regarder_passage'; readonly cible: RefPassage };
+  | { readonly type: 'regarder_passage'; readonly cible: RefPassage }
+  /** Un document ; `designe` : la pièce que nomme une note de rangement, pour remplir le trou (spec 2026-10-18 §8.5). */
+  | { readonly type: 'regarder_document'; readonly cible: RefObjet; readonly designe?: RefPiece };
 
 export interface OptionMenu {
   readonly action: IdAction;

@@ -46,6 +46,7 @@ export {
   type Apport,
   type Assembleur,
   type CategoriePiece,
+  type CoucheDocument,
   type DefAccroche,
   type DefAnnexe,
   type DefCle,
@@ -56,8 +57,10 @@ export {
   type DefPorteSortie,
   type DefStation,
   type DefStationGrande,
+  type EmplacementDocument,
   type EntreeButin,
   type FamilleMorceau,
+  type ReserveDocuments,
   type ResultatAssemblage,
   type TableButin,
 } from './station';

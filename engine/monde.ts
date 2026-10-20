@@ -152,7 +152,14 @@ export interface DefObjet {
   readonly deverrouille?: string;
   /** Grande station : objet de butin, sans aucune qualité passive (spec §6.6). */
   readonly butin?: true;
+  /** Grande station : document à lire, objet fixe sans aucune qualité, que l'on ne peut que regarder (spec §8.5). */
+  readonly document?: true;
+  /** Note de rangement : pièce qu'elle nomme, rendue en référence publique à la lecture pour remplir le trou (spec §8.5). */
+  readonly designe?: string;
 }
+
+/** Champs permis à un document : son identité, sa pièce, `portable: false`, et ce qui en fait un document (spec §8.5). */
+const CHAMPS_DOCUMENT: ReadonlySet<string> = new Set(['id', 'nom', 'piece', 'portable', 'document', 'designe']);
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
 export interface DefCreature {
@@ -306,6 +313,14 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.alimente !== undefined) {
       if (objets.get(objet.alimente)?.capsule === undefined) erreurs.push(`${objet.id} : alimente autre chose qu'une capsule.`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : console portable.`);
+    }
+    if (objet.document === true) {
+      if (objet.portable !== false) erreurs.push(`${objet.id} : document portable.`);
+      for (const [champ, valeur] of Object.entries(objet)) if (valeur !== undefined && !CHAMPS_DOCUMENT.has(champ)) erreurs.push(`${objet.id} : document porteur de ${champ}.`);
+    }
+    if (objet.designe !== undefined) {
+      if (objet.document !== true) erreurs.push(`${objet.id} : désigne une pièce sans être un document.`);
+      if (!pieces.has(objet.designe)) erreurs.push(`${objet.id} : pièce désignée inconnue ${objet.designe}.`);
     }
     if (objet.depart !== undefined) {
       const capsule = objets.get(objet.depart)?.capsule;
