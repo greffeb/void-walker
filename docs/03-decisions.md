@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-20 (grandes stations habitées, #202, #207, livraison 2 : clés dispersées et butin).
+> **Mise à jour :** 2026-10-20 (grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-308, demande du porteur sur « Poser »).
 
 ## Règles
 
@@ -26,7 +26,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
-| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application) |
+| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308](#d-308--poser-la-caisse-sous-la-grille-dun-seul-geste) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
@@ -1401,6 +1401,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
 - Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
 - Modification partielle : le bouton « Se déplacer vers » ouvre d'abord la bulle du passage ; c'est la ligne du déplacement qui se joue d'un seul toucher (D-229).
+- Précisée par D-308 : « Poser » un objet déplaçable dans une pièce qui a des positions demande d'abord où le poser ; il n'est plus d'un seul toucher.
 
 ### D-183 — Rester sous ses yeux se joue au même dé que la fuite
 
@@ -2394,7 +2395,7 @@ Questions posées le 2026-10-18, une par une, sur des maquettes au format télé
 
 ## Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209)
 
-Questions posées le 2026-10-18, une par une, en langage courant, avant de coder (Q-204 à Q-219, réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot)) ; maquette des documents au format téléphone ([documents](maquette/documents.html)). Accord du porteur sur la conception : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Le travail se livre en trois temps sur une même branche (D-304) : la livraison 1 (#205, #206) applique D-290 à D-295, D-298, D-303 et D-304 ; les clés et le butin (livraison 2, #202, #207), puis le lore (livraison 3, #209) suivent.
+Questions posées le 2026-10-18, une par une, en langage courant, avant de coder (Q-204 à Q-219, réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot)) ; maquette des documents au format téléphone ([documents](maquette/documents.html)). Accord du porteur sur la conception : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225). Le travail se livre en trois temps sur une même branche (D-304) : la livraison 1 (#205, #206) applique D-290 à D-295, D-298, D-303 et D-304 ; les clés et le butin (livraison 2, #202, #207, D-296 et D-297) et le lore (livraison 3, #209, D-299 à D-301) sont sur la même branche. D-308 est une demande du porteur faite pendant la livraison 3.
 
 ### D-290 — Grandes stations : trois chemins et un final, 22 à 28 pièces
 
@@ -2414,7 +2415,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : rôle demandé à l'agent : « équilibré en difficulté (un peu dur quand meme) » ; Q-207 : « je pense 2 ou 3 fois - la difficulté actuelle est bien pour le moment, mon ressenti. »
 - Décision : un joueur qui découvre le jeu meurt deux ou trois fois sur ses quatre premières parties. La difficulté actuelle convient. Le butin (D-297) compense l'exposition plus longue d'une grande station ; il ne rend pas la partie plus facile.
 - Précise : D-264.
-- Limite : mesurée par les bots ([13 §7.10](13-morceaux-lancement.md#710-grandes-stations-livraison-1-205-206)), à juger sur téléphone.
+- Limite : mesurée par les bots ([13 §7.10](13-morceaux-lancement.md#710-grandes-stations-livraison-1-205-206), [§7.11](13-morceaux-lancement.md#711-grandes-stations-livraison-2-202-207), [§7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)), à juger sur téléphone. Le critère de la conception, 25 à 35 % d'évacuations pour le profil prudent, n'est atteint dans aucune des trois livraisons : 14,1 % en livraison 3.
 
 ### D-292 — Rythme : créature tardive, chemins utiles
 
@@ -2464,6 +2465,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - Dans les grandes stations, la caisse devient portable et encombrante ; elle se pousse sous la grille.
 - Modifie : C-02 (tableau des objets), D-051, D-083, D-169, D-258, D-269. Tranche : D-244.
 - Limite [détail de l'agent] : chaque clé déclare ses étiquettes plausibles : bidon `eau` ; caisse `rangement` et `lourd` ; bloc `lourd` ; burette `outillage` ; combinaison et découpeuse `securite` ; planche `rangement` ; la consigne du catalogue gagne `lourd`. Le tirage est uniforme entre la pièce d'origine et les pièces permises du catalogue ; la zone permise se lit par segment : une annexe pendue au côté « après » du morceau précédent partage la zone avant l'obstacle et convient. Au plus une clé encombrante est déplacée par station. Une clé large ne se pose que là d'où elle rejoint la capsule sans passage étroit. En ordre libre, la clé d'une branche reste dans sa branche ou dans le tronc, et celle du troisième chemin peut aller dans la zone 0 (le tronc et le côté avant des branches), qui précède sa porte d'entrée. Dans une grande station, la caisse est portable, encombrante, déplaçable et appui. Mesure : 16,2 % des clés sont déplacées (559 sur 3 452). La note de rangement, qui dit où une clé est allée, vient avec le lore (livraison 3) : d'ici là, une clé déplacée n'a aucun indice.
+- Précisée par D-300 : chaque clé déplacée reçoit sa note de rangement (livraison 3, [13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)) ; par D-308 : la caisse portée se pose sous la grille d'un seul geste.
 
 ### D-297 — Butin : une trousse ou une burette dans quelques salles
 
@@ -2476,6 +2478,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - La table est ouverte aux objets futurs.
 - Précise : D-041, D-051, D-084, D-185.
 - Limite [détail de l'agent] : la table de butin pèse la salle vide 2, la trousse de soin 1 (soin, une dose) et la burette de réserve 2 (glissant, une dose, seulement après la coupe de M-04 quand M-04 est dans la station) ; elle compte deux ou trois salles. Un butin n'a aucune qualité passive, ce que vérifie un contrôle de la table. La première salle est sur la piste, pendue à une pièce de la piste directement ou par un couloir du catalogue ; à défaut, c'est l'impasse de butin la plus proche du repaire, car l'exigence stricte de la conception supprimait 64 % des plans d'une table d'essai. Une station garde moins de salles quand les impasses de butin lui manquent. La station se prouve sans son butin : témoin du chemin principal, témoin réparé, puis recherche directe. Mesures : 54,9 % des salles de butin sont vides (1 069 sur 1 947, sur les 1 000 stations tirées par la mesure de difficulté) ; 49 stations sur 539 ont moins de deux salles (14 sans salle, 35 avec une, sur la liste publiée). Le critère de la conception (spec §11), qui traduit D-291, soit 25 à 35 % d'évacuations pour le profil prudent (B2) avec le butin, n'est pas atteint : B2 évacue 13,0 % avec le butin et 13,8 % sans, B4 11,7 % et 10,7 % (1 000 parties sur les mêmes stations). Le butin change à peine le résultat des bots, qui ne le ramassent ni ne l'emploient forcément : les poids ne sont pas le levier mesuré. L'hypothèse principale, à vérifier, est la montée des abandons au plafond (38,5 % contre 24,0 % en livraison 1, sur une autre liste) quand des clés sont déplacées sans indice ; à mesurer de nouveau après la livraison 3 (notes de rangement), avant tout réglage des poids, qui exige l'accord du porteur. Détail et autres mesures : [13 §7.11](13-morceaux-lancement.md#711-grandes-stations-livraison-2-202-207).
+- Mesurée de nouveau en livraison 3 ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)) : B2 évacue 14,1 % avec le butin et 14,4 % sans, B4 11,9 % avec et sans ; l'écart reste dans le bruit de la mesure. Les poids n'ont pas été touchés : ils exigent l'accord du porteur. L'hypothèse de la livraison 2, des abandons qui montent quand des clés sont déplacées sans indice, n'est pas confirmée par les bots.
 
 ### D-298 — La créature reste immobile avant le contact ; une ronde se décidera chiffres en main
 
@@ -2484,6 +2487,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision : dans ce lot, la créature reste immobile avant le premier contact. On mesure le temps sans menace dans les grandes stations, puis le porteur décide d'une ronde, chiffres en main (#217).
 - Garde : D-048.
 - Limite [détail de l'agent] : avant le contact, une grande station fait entendre des bruits qui ne viennent pas de la créature (une action sur sept environ, sans rien changer à la partie), écrits dans le socle. Mesure de la livraison 1 : la rencontre arrive tard, au-delà des deux seuils d'alerte (13 §7.10). Les chiffres sont remis au porteur avant toute fusion.
+- Mesure de la livraison 3 : la rencontre arrive toujours tard, à 105 actions en médiane pour B2, à 92 % de la partie (seuil : environ 45 actions) ; 10,9 % des parties finies de B2 n'ont aucune rencontre (seuil : 10 %). La décision d'une ronde (#217) reste à prendre ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)).
 
 ### D-299 — Univers : un cadre commun, l'histoire de la créature, pas de grand mystère
 
@@ -2494,6 +2498,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - Pas de grand mystère sur plusieurs parties.
   - Le lore change avec la mission et la menace (#219).
 - Précise : D-016, D-030, D-031, D-032, D-046, D-243.
+- Limite [détail de l'agent] : la bible est [17 — univers](17-univers.md), un document d'auteur interdit au playtester comme [08](08-aventure-reference.md) et [09](09-aventure-reference-vide.md) ; l'assistant principal l'écrit (D-243), un relecteur indépendant la relit (D-116). Une seule histoire : chaque partie se passe dans une station différente, mais l'incident est toujours le même, et chaque station le dispose autrement ; un document ne nomme donc jamais la station où il se trouve. Le mystère reste entier : aucun document ne dit ce qu'est la créature, d'où vient le conteneur ni ce qu'elle veut. Les indices de l'équipage sont de vraies règles du jeu, dont celle-ci, corrigée à la relecture : le froid ralentit la créature toute la partie, même ressortie de la chambre froide (D-166, D-239). Texte final non validé par le porteur ; détail au [13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209).
 
 ### D-300 — Documents : courts, vrais, chiffres permis
 
@@ -2504,6 +2509,20 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Chiffres permis dans les documents seulement.**
   - **Indices à mots couverts sur un passage caché**, dans le même morceau.
 - Exception à C-07 §2, C-07 §6 et C-06 §5 (spec §8.4) ; exception à 12 §1.5. D-111 ne s'applique pas aux documents.
+- Limite [détail de l'agent] :
+  - **Réserve.** 36 documents, au lieu des « environ 40 » de la conception : 8 de l'univers, 12 de la menace (trois par étape), 8 témoignages pour les huit chemins (M-03 et M-06, les finals, n'en ont pas : leurs objets portent déjà leur mode d'emploi) et 8 notes de rangement (une par clé déplaçable, plus la trousse de soin). Une grande station en pose cinq à sept, plus les notes de rangement qui dépassent ce nombre. Les places sont dans une seule liste (`content/textes/documents.ts`) : un contrôle exige un texte pour chaque place et une place pour chaque texte.
+  - **Règles de pose retenues par l'agent**, à relire par le porteur :
+    - une pièce, un document ; jamais au vestibule (D-257), ni dans une salle pillée (sa phrase de pillage dit qu'il n'y reste rien, C-05), ni dans une pièce en feu ;
+    - la note d'une clé déplacée se pose toujours : dans la pièce qui fait face à l'obstacle, sinon (cette pièce étant déjà prise, cas de la combinaison et de la découpeuse de M-06) dans la pièce d'origine de la clé, restée vide, sinon dans une annexe pendue à la pièce face ; la note d'une clé qui n'a pas bougé n'est pas posée ; la note de la trousse se pose seulement avec une trousse, dans une autre pièce du catalogue ;
+    - le document d'un morceau va dans la pièce face si elle est libre, sinon dans une annexe pendue à elle, sinon il n'est pas posé ;
+    - ceux de la menace suivent l'ordre du trajet (étapes 1 et 2 au premier tiers, 3 au deuxième, 4 au dernier) ; une étape peut manquer, mais jamais toutes ;
+    - tant qu'une pièce du catalogue ne porte rien (ni objet, ni pillage, ni trace, ni porte de boucle), une place de document lui reste réservée, et les documents de morceau laissent une place à la menace ; les notes obligatoires et le premier document de la menace passent outre. Sans cette règle, 292 graines sur 300 n'avaient plus de plan d'assemblage (158 avant les documents), sur une réserve d'essai.
+  - **Un seul trou.** La pièce d'une note de rangement, dans son corps (formes `le`, `de` et `a`), remplie à l'assemblage avec la vraie pièce, lettre comprise. Ni la ligne « où », ni la signature, ni un document d'une autre couche n'en ont : `check:texts` le refuse.
+  - **Taille.** Une grande station compte au moins 21 pièces dessinées (`piecesMin`, spec §4.1 et §11) ; une extension qui tomberait sous ce seuil, reprise de couverture comprise, ne donne pas de plan pour cette graine, comme une graine sans boucle : −1,6 % des graines (1 366 plans avec les documents, 1 344 avec le minimum, sur 288 compositions et les graines 0 à 9), −5,5 % depuis la livraison 2.
+  - **Chiffres.** Dans le corps d'un document seulement : ni la puce, ni la ligne « où », ni la signature, ni le titre de la bulle. Les captures épargnent le corps et lui seul, et prouvent qu'un chiffre ailleurs est refusé.
+  - **Passage caché.** Un seul document en parle, à mots couverts : le témoignage de M-05, dans son morceau.
+  - **Reprise.** Une sauvegarde faite sur une grande station sans ses documents ne se reprend pas sur la station qui en a : reprise refusée, sauvegarde intacte (test de l'appli).
+  - Mesures d'assemblage et de difficulté : [13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209).
 
 ### D-301 — Un document se lit sur une fiche dans la bulle
 
@@ -2511,6 +2530,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : Q-215 : « B, la fiche document dans la bulle. »
 - Décision : fiche document dans la bulle, variante B de la [maquette](maquette/documents.html).
 - Précise : 12 §3.5, §4.4.
+- Limite [détail de l'agent] : la fiche montre le support en capitales, la ligne « où » en casse normale, puis le corps dans la typographie du support : note en italique avec un filet et sa signature à droite ; journal cadré, sous une barre, avec une colonne d'heures ; message dont les didascalies sont en couleur secondaire ; inscription en grandes capitales ; affiche sous un double cadre. La barre du journal porte le nom de la puce : la maquette lui donnait un titre propre qui portait un chiffre, et un texte de jeu ne s'invente pas (D-243) ; le curseur de la maquette n'est pas repris. L'inscription est écrite en casse normale dans le contenu : c'est le style qui la met en capitales, et le lecteur d'écran la lit en casse normale. La pièce nommée par une note de rangement est soulignée en pointillé, sans autre aide. Une fiche longue défile dans la bulle, sans indice visuel. Lire est gratuit et n'est pas enregistré (D-014) ; la puce d'un document est une puce ordinaire du dock, sans marque. La CLI dit le support, la ligne « où », le corps ligne à ligne, puis la signature. Détail : [12 §4.4](12-interface-ecrans.md#44-fiche-dobjet--poste-dappel) ; [13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209).
 
 ### D-302 — Les validations signées restent valables pour les petites stations
 
@@ -2528,6 +2548,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision : chaque grande station est assemblée, contrôlée (spec §7.3) et prouvée sans dé ni blessure, puis publiée dans une liste versionnée. Le jeu ne tire que dans cette liste.
 - Modifie : la limite de D-207 (un contrôle structurel de GE-13 s'ajoute à la preuve de jeu) et GE-13 (on ne pose pas une porte qui contournerait un obstacle, au lieu de la faire fermer par l'incident).
 - Limite [détail de l'agent] : la preuve d'une grande station rejoue le témoin de son chemin principal (la même station sans les pièces du catalogue, aux mêmes noms) ; en ordre libre, un témoin par ordre. `npm run publier:grandes` écrit la liste (`content/stations/grandes-publiees.ts`) et les témoins (`tools/grandes-temoins.json`), que `check:stations` rejoue. `check:sortie` ne couvre les grandes stations qu'à partir de la livraison 2.
+- Précisée par la livraison 3 : les documents changent les plans (couverture des pièces du catalogue, au moins 21 pièces dessinées) ; la liste est republiée, 538 stations dont 171 en ordre libre, et `check:stations` la rejoue ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)).
 
 ### D-304 — Une branche, trois livraisons, une PR
 
@@ -2535,4 +2556,18 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision :
   - Une seule suite de travaux sur le moteur, en trois livraisons sur une même branche, dans une même PR, comme pour la carte (#97). La PR est ouverte en brouillon dès la livraison 1, pour un essai sur téléphone si le porteur le souhaite.
   - La fusion n'a lieu qu'à la fin : `main` ne voit jamais une grande station qui changerait ensuite sous le même identifiant.
-- Limite : à la demande du porteur, la PR #230 s'est ouverte prête à relire et non en brouillon, pour l'essai sur téléphone ; la fusion attend toujours les livraisons 2 et 3 et son accord.
+- Limite : à la demande du porteur, la PR #230 s'est ouverte prête à relire et non en brouillon, pour l'essai sur téléphone ; les livraisons 2 et 3 sont sur la même branche, et la fusion attend la vérification de la livraison 3, l'essai sur téléphone et l'accord du porteur.
+
+### D-308 — Poser la caisse sous la grille d'un seul geste
+
+- Date / statut : 2026-10-20 / **Validé** (demande du porteur) ; la forme choisie par l'agent (l'étape « OÙ ? » dans l'appli) et les textes sont à relire, essai sur téléphone à venir (zone orange).
+- Origine : demande du porteur pendant la livraison 3, le 2026-10-20 : « Ça serait bien que on est directement l'option "poser sous la grille" pour la caisse quand on va dans son menu d'inventaire et qu'on est dans la bonne pièce plutôt que de te voir la poser et réouvrir un menu qui nous propose de la pousser sous la grille. »
+- Décision :
+  - Quand le passager porte un objet déplaçable et que la pièce a des positions, « Poser » propose ces positions : une seule action pose l'objet à la position choisie, sous la grille comprise. La grille devient atteignable aussitôt.
+  - Dans l'appli, « Poser » ouvre l'étape « OÙ ? » de la bulle, comme « Déplacer », puis l'aperçu et CONFIRMER. Dans la CLI, le menu liste une ligne par position.
+  - Une pièce sans positions, ou un objet qui n'est pas déplaçable : « Poser » ne change pas.
+- Précise : D-296 (la caisse est portable, encombrante et déplaçable dans une grande station : un geste suffit désormais pour la mettre sous la grille). Modifie en partie : D-182 (« Poser » à position n'est plus d'un seul toucher, il faut choisir où).
+- Limite [détail de l'agent] :
+  - **Où.** « Poser » reçoit les positions de la pièce seulement quand l'objet porté est déplaçable et que la pièce en a. Avec la caisse en main, seul l'atelier de M-02 propose des positions (sous la grille, au centre de la pièce), ce qu'un test vérifie dans toutes les pièces d'une station publiée ; ailleurs, la caisse se pose comme avant, d'un seul toucher. Dans une petite station, la caisse ne se porte pas : rien ne change, les empreintes figées non plus.
+  - **Textes**, écrits par l'assistant principal (D-243). Événement `objet_pose_position`, dit comme « Vous posez {le:objet} {nom:position}. Vos mains sont libres. », avec une variante. Le libellé du menu de la CLI et des outils est « Poser {le:cible} {nom:position} », de la même forme que « Déplacer » : sans lui, les deux lignes « Poser la caisse » étaient indiscernables. L'appli garde « Poser » sur sa ligne d'action ; le fil de la bulle et l'aperçu nomment la position.
+  - **Sauvegarde.** Format inchangé. Une partie de grande station enregistrée avec « poser la caisse » sans position dans l'atelier de M-02 ne se reprend plus : la commande est refusée au rejeu et la sauvegarde est écartée par le mécanisme existant (une sauvegarde incohérente avec son journal n'est pas reprise, [13 §7.11](13-morceaux-lancement.md#711-grandes-stations-livraison-2-202-207)), ce que la republication de la livraison 3 provoque de toute façon. Aucun test dédié n'épingle ce rejeu : le refus a été vérifié à la lecture. Les témoins publiés qui posaient la caisse sans position sont refaits par la republication ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)).
