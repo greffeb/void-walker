@@ -4,6 +4,7 @@ import type { Catalogue, EntreeMonde, EtapeParcours } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   ecartsDesGrandes,
+  empreinteComposition,
   lireTemoins,
   publierGrandes,
   rejouerTemoin,
@@ -15,6 +16,7 @@ import {
   verifierPublieesDuLot,
   type LigneGrande,
   type PasTemoin,
+  type Preuve,
 } from './verifier-grandes';
 import { trouverOption } from './rejouer-parcours';
 import { rangsDesSegments } from './verifier-station';
@@ -150,6 +152,23 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(journal[0]).toMatchObject({ station: STATION, methode: 'publie', verdict: 'non_prouvee' });
     expect(reprouvee.publiees).toHaveLength(1);
     expect(journal.slice(1).every((ligne) => ligne.methode !== 'publie')).toBe(true);
+  }, 120_000);
+
+  it('la preuve par le témoin du chemin principal est lue dans la mémoire de la première passe, sans être refaite (#237)', () => {
+    const memoire = new Map<string, Preuve>([[STATION, { verdict: 'non_prouvee', etats: 0, actions: null, methode: null, temoin: null }]]);
+    expect(verifierGrande(CATALOGUE, STATION, {}, false, memoire)).toMatchObject({ verdict: 'non_prouvee', methode: null, etats: 0 });
+  });
+
+  it('une composition sans station connue n’est pas recherchée tant que son empreinte ne change pas (#237)', () => {
+    const journal: LigneGrande[] = [];
+    const marque = { empreinte: empreinteComposition(CATALOGUE, CHAINE, 'moteur'), essais: 4 };
+    const passee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], {}, { [CHAINE]: marque }, 'moteur');
+    expect(passee).toMatchObject({ publiees: [], sansStation: { [CHAINE]: marque } });
+    expect(journal).toEqual([]);
+    expect(empreinteComposition(CATALOGUE, CHAINE, 'autre moteur')).not.toBe(marque.empreinte);
+    const recherchee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], {}, { [CHAINE]: { ...marque, essais: 3 } }, 'moteur');
+    expect(recherchee.publiees).toHaveLength(1);
+    expect(recherchee.sansStation).toEqual({});
   }, 120_000);
 
   it('une station qui échoue un contrôle est écartée, sans recherche', () => {
