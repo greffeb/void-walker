@@ -22,10 +22,12 @@ import {
   raconterFin,
   rendreApercu,
   rendreAssistance,
+  rendreDocument,
   rendreListeCarte,
   rendreObservation,
   rendreRefus,
   type Catalogue,
+  type DocumentRendu,
   type EntreeMonde,
   type TextesMonde,
 } from '../content';
@@ -224,8 +226,16 @@ function enregistrer(contexte: Contexte, chemin: string, partie: Partie): string
   }
 }
 
+/** Un document se lit ligne à ligne (spec 2026-10-18 §9.2) : le support, la ligne « où », le corps (journal : « hh:mm  texte »), la signature. */
+function lignesDocument({ libelleSupport, ou, corps, signature }: DocumentRendu): string[] {
+  return [libelleSupport, ou, ...corps.map(({ heure, texte }) => (heure === undefined ? texte : `${heure}  ${texte}`)), ...(signature === undefined ? [] : [signature])];
+}
+
 function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
-  const lignes = [...raconter(contexte.textes, resultat)];
+  const lignes =
+    resultat.type === 'consultation' && resultat.consultation.type === 'regarder_document'
+      ? lignesDocument(rendreDocument(contexte.textes, resultat.consultation))
+      : [...raconter(contexte.textes, resultat)];
   if (resultat.type === 'engagee') {
     lignes.push(...afficherAssistance(contexte.textes, resultat.evenements));
     lignes.push(enregistrer(contexte, chemin, resultat.partie));

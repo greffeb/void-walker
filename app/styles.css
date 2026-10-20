@@ -734,6 +734,135 @@ button:disabled {
   color: var(--texte-menu);
 }
 
+/*
+ * Fiche d'un document (D-301, spec 2026-10-18 §9.1) : variante B de docs/maquette/documents.html. Le support se lit avant le texte, qui
+ * a la typographie de son support. Les capitales sont du style : le texte reste en casse normale pour le lecteur d'écran.
+ */
+.fiche-document .support {
+  margin: 2px 0 10px;
+  font-size: calc(12px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondaire-menu);
+}
+
+/* La ligne « où » reprend la casse normale. */
+.fiche-document .support span {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.fiche-document .doc {
+  overflow-wrap: anywhere;
+}
+
+.fiche-document .doc-note {
+  padding-left: 12px;
+  font-style: italic;
+  border-left: 1px dashed var(--bordure);
+}
+
+.fiche-document .doc-note .signe {
+  text-align: right;
+  font-style: normal;
+  color: var(--secondaire-menu);
+}
+
+/* Journal : un cadre sous une barre de titre, une colonne d'heures alignées. */
+.fiche-document .doc-journal {
+  border: 1px solid var(--bordure);
+  font-size: calc(13px * var(--echelle));
+  line-height: 1.45;
+}
+
+.fiche-document .doc-journal .barre {
+  padding: 3px 8px;
+  font-size: calc(12px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fond);
+  background: var(--texte-menu);
+}
+
+.fiche-document .doc-journal ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 8px 8px;
+  list-style: none;
+}
+
+.fiche-document .doc-journal li {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  gap: 10px;
+}
+
+.fiche-document .doc-journal time {
+  font-variant-numeric: tabular-nums;
+  color: var(--couleur-menu);
+}
+
+.fiche-document .doc-message .didascalie {
+  font-size: calc(13px * var(--echelle));
+  color: var(--secondaire-menu);
+}
+
+/* Inscription : de grandes capitales, un peu de travers. */
+.fiche-document .doc-inscription {
+  padding: 14px 8px;
+  text-align: center;
+  transform: rotate(-1.5deg);
+}
+
+.fiche-document .doc-inscription p {
+  margin: 0;
+  font-size: calc(24px * var(--echelle));
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--couleur-menu);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fiche-document .doc-inscription {
+    transform: none;
+  }
+}
+
+/* Affiche : un double cadre, le titre en tête, la signature de la compagnie en pied. */
+.fiche-document .doc-affiche {
+  padding: 10px 12px;
+  border: 3px double var(--bordure);
+}
+
+.fiche-document .doc-affiche .titre {
+  margin: 0 0 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--couleur-menu);
+}
+
+.fiche-document .doc-affiche .pied {
+  margin: 10px 0 0;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondaire-menu);
+}
+
+/* La pièce que désigne une note de rangement : soulignée en pointillé, sans autre aide. */
+.fiche-document .lieu {
+  color: var(--couleur-menu);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
 .lignes {
   margin: 4px 0 0;
   padding: 0;

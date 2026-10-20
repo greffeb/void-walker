@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
-import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
+import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
@@ -162,6 +162,15 @@ export function consulter(env: Pick<Environnement, 'monde' | 'textes'>, partie: 
   const resultat = jouer(env.monde, partie, option.commande);
   if (resultat.type === 'engagee') throw new Error(`« ${option.action} » engage le personnage : ce n’est pas une fiche.`);
   return raconter(env.textes, resultat);
+}
+
+/**
+ * Structure de la fiche d'un document (spec 2026-10-18 §9.1) : la même consultation gratuite, rendue par `rendreDocument` pour que
+ * chaque support ait sa mise en forme ; `null` pour tout ce qui n'est pas un document, que `consulter` dit en phrases.
+ */
+export function consulterDocument(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie, option: OptionMenu): DocumentRendu | null {
+  const resultat = jouer(env.monde, partie, option.commande);
+  return resultat.type === 'consultation' && resultat.consultation.type === 'regarder_document' ? rendreDocument(env.textes, resultat.consultation) : null;
 }
 
 /** Aperçu affiché : RISQUE et COÛT seulement s'ils disent autre chose que « aucun » (D-187) ; SAVOIR toujours. */

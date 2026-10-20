@@ -1,5 +1,5 @@
 import { assemblerStation, empreinteEtat, idPublic, lireExport, nouvellePartie, observer, rejouer, reprendrePartie } from '../engine';
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, type Catalogue, type EntreeMonde } from '../content';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, type Catalogue, type EntreeMonde, type Nom, type TexteDocument } from '../content';
 import { AIDE, choisirEntree, executer, PARTIE_PAR_DEFAUT, type Contexte, type EntreesSorties, type Sortie } from './partie-cli';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
@@ -382,5 +382,132 @@ describe('CLI : station tirée (#152)', () => {
   it('aide : --station, et --monde sans partie donne une station tirée', () => {
     expect(AIDE.some((ligne) => ligne.startsWith('Option : --station <id>'))).toBe(true);
     expect(AIDE).toContain('Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon une station tirée)');
+  });
+});
+
+// Documents (#209, spec 2026-10-18 §9.2) : « regarder » dit le support, la ligne « où », puis le corps ligne à ligne et la signature.
+// Un monde de test avec une note, un journal, un message et une note de rangement dans la cabine.
+describe('regarder un document (#209, spec 2026-10-18 §9.2)', () => {
+  const nom = (texte: string, elision = false): Nom => ({ texte, genre: 'm', nombre: 's', elision });
+  const documents: Readonly<Record<string, TexteDocument>> = {
+    note_malik: {
+      puce: nom('mot de Malik'),
+      support: 'note',
+      ou: 'scotchée au montant d’une couchette',
+      corps: ['Je ne dors plus.', 'Si quelqu’un lit ceci, ne comptez pas sur la lumière.'],
+      signature: 'Malik',
+    },
+    journal_quart: {
+      puce: nom('terminal de quart'),
+      support: 'journal',
+      ou: 'resté allumé sur un pupitre',
+      corps: ['02:14  Sas arrière : pression nominale.', '03:05  Alimentation secondaire coupée.'],
+    },
+    message_enregistreur: {
+      puce: nom('enregistreur', true),
+      support: 'message',
+      ou: 'posé sur une tablette',
+      corps: ['Allô ? [souffle court] Vous m’entendez ?', '[long silence]'],
+    },
+    mot_lea: {
+      puce: nom('mot de Léa'),
+      support: 'note',
+      ou: 'glissée sous une patte de rangement',
+      corps: ['J’ai rangé la planche dans {le:piece}.', 'Rejoignez-moi {a:piece}.'],
+      signature: 'Léa',
+    },
+  };
+  const entree: EntreeMonde = {
+    ...ENTREE,
+    monde: {
+      ...ENTREE.monde,
+      objets: [
+        ...ENTREE.monde.objets,
+        ...Object.keys(documents).map((cle) => ({
+          id: `objet-${cle}`,
+          nom: cle,
+          piece: 'piece-cabine',
+          portable: false,
+          document: true as const,
+          ...(cle === 'mot_lea' ? { designe: 'piece-atelier' } : {}),
+        })),
+      ],
+    },
+    textes: {
+      ...ENTREE.textes,
+      noms: { ...ENTREE.textes.noms, ...Object.fromEntries(Object.entries(documents).map(([cle, { puce }]) => [cle, puce])) },
+      documents,
+    },
+  };
+
+  /** Ce que dit « regarder » ce document, sans la situation qui suit ; la partie enregistrée n'a pas bougé. */
+  function regarder(libelle: string): readonly string[] {
+    const ctx = contexte(new Map(), false, entree);
+    const debut = executer(['nouvelle'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    const sortie = executer(['jouer', numero(debut.lignes, libelle)], ctx);
+    expect(sortie.code).toBe(0);
+    expect(sortie.lignes).not.toContain('Partie enregistrée.');
+    expect(sortie.lignes).toContain('Actions engagées : 0');
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    const fin = sortie.lignes.indexOf('');
+    return sortie.lignes.slice(0, fin);
+  }
+
+  it('une note : le support, la ligne « où », un paragraphe par ligne, puis la signature', () => {
+    expect(regarder('Regarder le mot de Malik')).toEqual([
+      'Note manuscrite',
+      'scotchée au montant d’une couchette',
+      'Je ne dors plus.',
+      'Si quelqu’un lit ceci, ne comptez pas sur la lumière.',
+      'Malik',
+    ]);
+  });
+
+  it('un journal : « hh:mm  texte », une entrée par ligne', () => {
+    expect(regarder('Regarder le terminal de quart')).toEqual([
+      'Journal de terminal',
+      'resté allumé sur un pupitre',
+      '02:14  Sas arrière : pression nominale.',
+      '03:05  Alimentation secondaire coupée.',
+    ]);
+  });
+
+  it('un message : les didascalies, crochets compris, sont des lignes à part', () => {
+    expect(regarder('Regarder l’enregistreur')).toEqual([
+      'Message enregistré',
+      'posé sur une tablette',
+      'Allô ?',
+      '[souffle court]',
+      'Vous m’entendez ?',
+      '[long silence]',
+    ]);
+  });
+
+  it('une note de rangement : la pièce désignée est dite en clair, sans aucune marque', () => {
+    expect(regarder('Regarder le mot de Léa')).toEqual([
+      'Note manuscrite',
+      'glissée sous une patte de rangement',
+      'J’ai rangé la planche dans l’atelier.',
+      'Rejoignez-moi à l’atelier.',
+      'Léa',
+    ]);
+  });
+
+  it('« commande regarder » dit la même chose, et ne coûte rien non plus', () => {
+    const ctx = contexte(new Map(), false, entree);
+    executer(['nouvelle'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    const sortie = executer(['commande', 'regarder', idPublic(entree.monde.id, 'objet-journal_quart')], ctx);
+    expect(sortie.lignes.slice(0, 4)).toEqual(['Journal de terminal', 'resté allumé sur un pupitre', '02:14  Sas arrière : pression nominale.', '03:05  Alimentation secondaire coupée.']);
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+  });
+
+  it('regarder un objet ordinaire reste une phrase', () => {
+    const ctx = contexte(new Map(), false, entree);
+    const debut = executer(['nouvelle'], ctx);
+    const sortie = executer(['jouer', numero(debut.lignes, 'Regarder le carnet')], ctx);
+    expect(sortie.lignes[0]).toMatch(/carnet/);
+    expect(sortie.lignes[1]).toBe('');
   });
 });
