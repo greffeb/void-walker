@@ -4,12 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
 import { isMainModule, REPO_ROOT } from './repo-files';
-import { FICHIER_TEMOINS, publierGrandes, type PasTemoin } from './verifier-grandes';
+import { FICHIER_TEMOINS, lireTemoins, publierGrandes, type PasTemoin } from './verifier-grandes';
 
 // Publication des grandes stations (spec 2026-10-18 §7.2, D-326) : `npm run publier:grandes` prouve, pour chaque grande
 // composition, ses premières graines, puis écrit la liste publiée (contenu) et les témoins (outils), que `check:stations`
 // rejoue. Long : à lancer une fois, quand le générateur ou les règles changent. `--par=<n>` graines par composition (2),
 // `--essais=<n>` graines prouvées au plus (8), sans compter celles qui n’ont pas de plan, `--processus=<n>` en parallèle.
+// Une station déjà publiée dont les témoins se rejouent encore est gardée sans recherche ; `--tout` reprouve tout (#237).
 
 export const FICHIER_LISTE = 'content/stations/grandes-publiees.ts';
 
@@ -33,12 +34,13 @@ async function principal(): Promise<void> {
   };
   const par = valeur('--par=', 2);
   const essais = valeur('--essais=', 8);
+  const tout = argumentsCli.includes('--tout');
   const { lot, parts } = lireOptionsLots(argumentsCli);
   const debut = performance.now();
   const compositions = CATALOGUE.grandes.filter((composition) => composition.refus === null).map((composition) => composition.id);
 
   if (parts > 1) {
-    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, [`--par=${par}`, `--essais=${essais}`]);
+    const sorties = await lancerSousLots(fileURLToPath(import.meta.url), lot, parts, [`--par=${par}`, `--essais=${essais}`, ...(tout ? ['--tout'] : [])]);
     const temoins: Record<string, readonly (readonly PasTemoin[])[]> = {};
     for (const { sortie, erreurs, code } of sorties) {
       process.stderr.write(erreurs);
@@ -58,7 +60,7 @@ async function principal(): Promise<void> {
 
   const { temoins } = publierGrandes(CATALOGUE, par, essais, {}, (ligne) => {
     console.error(`${ligne.station} ${ligne.verdict} ${ligne.methode ?? ''} ${ligne.secondes.toFixed(1)} s`);
-  }, dansLeLot(compositions, lot));
+  }, dansLeLot(compositions, lot), tout ? {} : lireTemoins());
   for (const [station, preuve] of Object.entries(temoins)) console.log(JSON.stringify({ station, preuve }));
 }
 

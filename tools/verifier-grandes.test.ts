@@ -133,6 +133,25 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(ligne.verdict).toBe('prouvee');
   }, 120_000);
 
+  it('ordre libre : le témoin du chemin principal suffit, sans recherche directe ; le troisième chemin guide la recherche (#237)', () => {
+    const ligne = verifierGrande(CATALOGUE, LIBRE, { maxEtats: 40_000 }, false);
+    expect(ligne.verdict, JSON.stringify({ ...ligne, temoins: null })).toBe('prouvee');
+    expect(['temoin', 'repare']).toContain(ligne.methode);
+  }, 120_000);
+
+  it('publierGrandes garde une station publiée dont les témoins se rejouent, sans la reprouver ; un témoin cassé est reprouvé (#237)', () => {
+    const temoins = prouvee(STATION).temoins ?? [];
+    const journal: LigneGrande[] = [];
+    const gardee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], { [STATION]: temoins });
+    expect(gardee.publiees).toEqual([STATION]);
+    expect(journal.map((ligne) => ligne.methode)).toEqual(['publie']);
+    journal.length = 0;
+    const reprouvee = publierGrandes(CATALOGUE, 1, 4, {}, (ligne) => journal.push(ligne), [CHAINE], { [STATION]: temoins.map((pas) => pas.slice(0, -1)) });
+    expect(journal[0]).toMatchObject({ station: STATION, methode: 'publie', verdict: 'non_prouvee' });
+    expect(reprouvee.publiees).toHaveLength(1);
+    expect(journal.slice(1).every((ligne) => ligne.methode !== 'publie')).toBe(true);
+  }, 120_000);
+
   it('une station qui échoue un contrôle est écartée, sans recherche', () => {
     const fautif: Catalogue = {
       ...CATALOGUE,

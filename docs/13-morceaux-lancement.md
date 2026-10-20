@@ -964,6 +964,12 @@ Les cinq supports sont la note manuscrite, le journal de terminal, le message en
 - la liste est republiée sous les mêmes identifiants `g1-…` (la version du générateur reste 1 jusqu'à la fusion) : une station de la livraison 2 n'a plus forcément le même plan, et un témoin qui posait la caisse sans position n'est plus valable (D-328) ;
 - une sauvegarde faite sur une grande station sans ses documents ne se reprend pas sur la même station avec ses documents : reprise refusée, sauvegarde intacte (test de l'appli, `app/jeu.test.ts`) ; le format de sauvegarde et les empreintes figées des petites stations ne changent pas.
 
+**Publication accélérée** ([#237](https://github.com/greffeb/void-walker/issues/237), 2026-10-20). La garantie ne change pas : chaque station publiée l'est par un témoin rejoué avec les vraies règles, avec et sans butin.
+- En ordre libre, la recherche du chemin principal plafonnait à 150 000 états : sa priorité, faite pour les petites stations, ne guidait pas le passager dans le troisième chemin, entre le sas et le final. Ce chemin compte maintenant comme l'approche du final. L'ordre des petites stations ne change pas.
+- La recherche directe ne sert plus qu'en dernier recours : d'abord les témoins du chemin principal sur toutes les graines essayées, puis la recherche directe sur les graines restées sans preuve, s'il manque des stations. En ordre libre, un premier ordre non prouvé arrête la graine.
+- Une station déjà publiée dont les témoins se rejouent encore (le contrôle de `check:stations`, environ 30 ms) est gardée sans recherche ; `--tout` reprouve tout.
+- Mesure sur 12 compositions (6 en ordre libre, 8 avec M-11 ou M-12), `--par=1 --essais=2` : 9 stations et 3 compositions sans station avant comme après, mêmes graines ; 544 s cumulées avant, 353 s après. Une graine prouvée en ordre libre passe de 32 à 49 s à 2 ou 3 s. Les graines sans preuve gardent le coût de la recherche directe jusqu'au plafond (26 à 35 s chacune).
+
 **Difficulté**, 1 000 parties par profil sur 268 stations tirées dans la liste, plafond de 600 actions (`npm run mesurer:difficulte -- --grandes`, puis `-- --grandes --sans-butin`). La livraison 2 est mesurée sur une autre liste :
 
 | Mesure | Livraison 3 | Livraison 2 |
