@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { jouer, nouvellePartie, observer } from '../engine';
 import type { Catalogue, EntreeMonde, EtapeParcours } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
@@ -13,11 +14,20 @@ import {
   verifierPubliee,
   verifierPublieesDuLot,
   type LigneGrande,
+  type PasTemoin,
 } from './verifier-grandes';
+import { trouverOption } from './rejouer-parcours';
 import { rangsDesSegments } from './verifier-station';
 
 // Preuve des grandes stations (spec 2026-10-18 §7, D-303) : contrôles, puis témoin du chemin principal rejoué dans la grande
 // station privée de son butin, tel quel ou réparé, ou recherche directe ; en ordre libre, les deux ordres.
+
+// Les contrôles de grande station, neutralisés le temps d'un test qui sert au rejeu un monde qu'ils refuseraient.
+const controles = vi.hoisted(() => ({ neutres: false }));
+vi.mock('./controles-grande', async (importOriginal) => {
+  const reels = await importOriginal<typeof import('./controles-grande')>();
+  return { ...reels, controlerGrande: (...arguments_: Parameters<typeof reels.controlerGrande>) => (controles.neutres ? [] : reels.controlerGrande(...arguments_)) };
+});
 
 /** Première graine qui donne un plan : une graine sur deux environ n'en a pas (aucune porte de boucle, D-295). */
 function avecPlan(composition: string): string {
@@ -85,6 +95,19 @@ function petite(source: string, creature?: string): EntreeMonde {
   };
 }
 
+/** Le témoin comme une station publiée le garde : les identifiants publics des cibles et des paramètres, relevés dans le menu. */
+function enPublic(entree: EntreeMonde, etapes: readonly EtapeParcours[]): PasTemoin[] {
+  let partie = nouvellePartie(entree.monde, { version: 'verifier-grandes', graine: 20261010 });
+  return etapes.map((etape) => {
+    const option = trouverOption(observer(entree.monde, partie.etat), etape);
+    if (option === undefined) throw new Error(`Étape « ${etape.action} ${etape.cible} » absente du menu.`);
+    const resultat = jouer(entree.monde, partie, option.commande);
+    if (resultat.type !== 'engagee') throw new Error(`Étape « ${etape.action} ${etape.cible} » refusée.`);
+    partie = resultat.partie;
+    return option.parametre === undefined ? [option.action, option.cible.id] : [option.action, option.cible.id, option.parametre.id];
+  });
+}
+
 /** Témoin de la petite station quand la source attend au départ. */
 const TEMOIN_PETITE: readonly EtapeParcours[] = (
   [['prendre', 'source'], ['ouvrir', 'porte'], ['aller', 'porte'], ['installer', 'source'], ['ouvrir', 'ecoutille'], ['aller', 'ecoutille'], ['fermer', 'ecoutille'], ['lancer', 'pupitre']] as const
@@ -145,6 +168,29 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(verifierPubliee(CATALOGUE, STATION, temoins).verdict).toBe('prouvee');
     expect(verifierPubliee(CATALOGUE, STATION, temoins.map((pas) => pas.slice(0, -1))).verdict).toBe('non_prouvee');
     expect(verifierPubliee(CATALOGUE, STATION, undefined).verdict).toBe('non_prouvee');
+  });
+
+  it('un témoin publié est rejoué aussi sur la station complète : valable sans le butin, il échoue avec lui, la station n’est plus prouvée', () => {
+    // Petite station dont le « butin » est une seconde capsule (qualité interdite), listée avant la vraie : sans lui le témoin passe.
+    const sans = petite('a');
+    const complete: EntreeMonde = {
+      ...sans,
+      monde: { ...sans.monde, objets: [{ id: 'capsule-butin', nom: 'capsule', piece: 'quai', portable: false, capsule: { interieur: 'cabine' }, butin: true }, ...sans.monde.objets] },
+    };
+    const temoin = enPublic(sans, TEMOIN_PETITE);
+    const definition = CATALOGUE.definirGrande(CHAINE, graineDe(STATION));
+    const sur = (entree: EntreeMonde): Catalogue => ({ ...CATALOGUE, construireGrande: () => entree, definirGrande: () => definition });
+    expect(rejouerTemoin(sansButin(complete), temoin)).not.toBeNull();
+    expect(rejouerTemoin(complete, temoin)).toBeNull();
+    controles.neutres = true;
+    try {
+      expect(verifierPubliee(sur(sans), STATION, [temoin]).verdict).toBe('prouvee');
+      const ligne = verifierPubliee(sur(complete), STATION, [temoin]);
+      expect(ligne.verdict).toBe('non_prouvee');
+      expect(ligne.ecarts.join(' ')).toContain('avec ou sans le butin');
+    } finally {
+      controles.neutres = false;
+    }
   });
 
   it('sansButin : le même monde, même id, privé de ses seuls objets de butin', () => {

@@ -220,8 +220,8 @@ export function publierGrandes(
 
 /**
  * Une grande station publiée, vérifiée vite (spec §7.4) : contrôles structurels, puis rejeu de ses témoins publiés avec les vraies
- * règles, sur la station privée de son butin comme la preuve ; en ordre libre, un témoin par ordre de préparation, et chaque
- * cloison coupe la capsule (G-07, G-08).
+ * règles, sur la station privée de son butin comme la preuve, puis sur la station complète, butin compris, que le joueur
+ * parcourt ; en ordre libre, un témoin par ordre de préparation, et chaque cloison coupe la capsule (G-07, G-08).
  */
 export function verifierPubliee(catalogue: Catalogue, station: string, temoins: readonly (readonly PasTemoin[])[] | undefined): LigneGrande {
   const debut = performance.now();
@@ -238,14 +238,13 @@ export function verifierPubliee(catalogue: Catalogue, station: string, temoins: 
   const ecarts = controlerGrande(entree, definition);
   if (ecarts.length > 0) return conclure('ecartee', ecarts);
   if (temoins === undefined || temoins.length === 0) return conclure('non_prouvee', ['Témoin absent : relancer npm run publier:grandes.']);
-  const prive = sansButin(entree);
-  const levees = temoins.map((pas) => rejouerTemoin(prive, pas));
-  if (levees.some((ordre) => ordre === null)) return conclure('non_prouvee', ['Témoin publié qui ne mène plus à l’évacuation : relancer npm run publier:grandes.']);
+  const rejeux = [sansButin(entree), entree].map((monde) => temoins.map((pas) => rejouerTemoin(monde, pas)));
+  if (rejeux.some((levees) => levees.some((ordre) => ordre === null))) return conclure('non_prouvee', ['Témoin publié qui ne mène plus à l’évacuation, avec ou sans le butin : relancer npm run publier:grandes.']);
   const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
   if (cloisons.length === 0) return conclure('prouvee', []);
   if (!cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison))) return conclure('sans_sortie_sure', ['Une cloison verrouillée ne coupe pas l’accès à la capsule (G-08).']);
-  const premieres = new Set(levees.map((ordre) => ordre?.[0]));
-  return premieres.size === cloisons.length ? conclure('prouvee', []) : conclure('non_prouvee', ['Ordre libre : un témoin par ordre de préparation attendu (G-07).']);
+  const ordresDistincts = rejeux.every((levees) => new Set(levees.map((ordre) => ordre?.[0])).size === cloisons.length);
+  return ordresDistincts ? conclure('prouvee', []) : conclure('non_prouvee', ['Ordre libre : un témoin par ordre de préparation attendu (G-07).']);
 }
 
 /** Témoins des grandes stations publiées, écrits par `npm run publier:grandes` et rejoués par `check:stations`. */

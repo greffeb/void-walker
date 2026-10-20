@@ -237,7 +237,10 @@ export interface TextesMorceau {
   readonly noms: Readonly<Record<string, Nom>>;
   readonly descriptions: Readonly<Record<string, Variantes>>;
   readonly assistance: Readonly<Record<string, string>>;
-  /** Descriptions calmes, sans trace, qui remplacent les leurs dans une grande station (spec 2026-10-18 §5.4). */
+  /**
+   * Descriptions qui remplacent les leurs dans une grande station (spec 2026-10-18 §5.4, §6.5) : celles des pièces, calmes et sans
+   * trace, et les variantes d'une description d'objet que la grande station change (la caisse portable de M-02).
+   */
   readonly calmes?: Readonly<Record<string, Variantes>>;
 }
 
