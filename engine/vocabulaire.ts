@@ -133,6 +133,7 @@ export const RAISONS_REFUS = [
   'deja_fait',
   'verrouillee',
   'enfoncee',
+  'sans_carte',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -154,6 +155,7 @@ export const RAISONS_INDISPONIBILITE = [
   'sans_gravite',
   'verrouillee',
   'enfoncee',
+  'sans_carte',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 

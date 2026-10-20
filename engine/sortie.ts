@@ -84,7 +84,8 @@ export function sortiePossible(monde: DefMonde, etat: EtatPartie): boolean {
     for (const objet of monde.objets) {
       if (objet.deverrouille === undefined || deverrouillees.has(objet.deverrouille)) continue;
       const piece = pieceDe(etat, objet);
-      if (piece !== undefined && atteintes.has(piece)) {
+      const carte = objet.exige === undefined ? undefined : index.objets.get(objet.exige);
+      if (piece !== undefined && atteintes.has(piece) && (objet.exige === undefined || (carte !== undefined && aPortee(carte)))) {
         deverrouillees.add(objet.deverrouille);
         change = true;
       }

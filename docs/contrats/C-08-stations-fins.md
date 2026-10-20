@@ -28,9 +28,9 @@ Chaque partie combine et place différemment des morceaux écrits à la main et 
 - au départ, les portes entre deux morceaux sont fermées (D-252) ;
 - deux morceaux qui jouent sur la même chose ne se mélangent que si leur mélange a reçu ses règles ; sinon l'assemblage le refuse (D-167). Les autres se mélangent sans règle de plus (D-248).
 
-Les dix morceaux, leurs deux familles (final, chemin) et leurs fiches sont décrits dans la [conception des morceaux](../13-morceaux-lancement.md), acceptée par D-172 à D-175 ; leurs règles sont dans C-02 §5, C-03 §5.5 et C-04 §3.2.
+Les dix morceaux, leurs deux familles (final, chemin) et leurs fiches sont décrits dans la [conception des morceaux](../13-morceaux-lancement.md), acceptée par D-172 à D-175 ; leurs règles sont dans C-02 §5, C-03 §5.5 et C-04 §3.2. Un onzième morceau de chemin, le sas de sécurité M-11, s'y ajoute (#203, D-290 à D-293).
 
-**Compatibilité exhaustive :** [13 §4.1](../13-morceaux-lancement.md#41-table-exhaustive-des-paires-l0-150) énumère les 45 paires, chacune avec sa règle ; seule M-03/M-06 est interdite, les deux morceaux étant finals. Une paire permise ne dispense ni du respect des attaches ni du chemin sûr. Toute paire absente ou refusée est écartée par l'assembleur avant le plan ; le défaut de règle pour un futur mélange n'est pas une permission.
+**Compatibilité exhaustive :** [13 §4.1](../13-morceaux-lancement.md#41-table-exhaustive-des-paires-l0-150) énumère les 55 paires, chacune avec sa règle ; seule M-03/M-06 est interdite, les deux morceaux étant finals. Une paire permise ne dispense ni du respect des attaches ni du chemin sûr. Toute paire absente ou refusée est écartée par l'assembleur avant le plan ; le défaut de règle pour un futur mélange n'est pas une permission.
 
 **Place de M-01 (D-258) :** la créature peut attendre seulement sur son palier de sortie, jamais dans la galerie en feu ni dans la pièce d'entrée avec l'eau. Les trois pièces appartiennent à M-01 et leurs deux portes intérieures sont fermées au départ ; le palier n'est pas une annexe. Le parcours complet avec cette place reste à prouver en L4 ([13 §8.2](../13-morceaux-lancement.md#82-créature-autour-de-m-01--q-183-d-258)).
 

@@ -72,11 +72,11 @@ function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depu
 }
 
 /**
- * Porte qu'elle peut forcer depuis `depuis` (D-279) : fermée, assez large, sans vide, sans verrou, ni écoutille de capsule ou
- * manoeuvrée de l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
+ * Porte qu'elle peut forcer depuis `depuis` (D-279) : fermée, assez large, sans vide, sans verrou, ni porte blindée (#203),
+ * ni écoutille de capsule ou manoeuvrée de l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
  */
 function forcable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
-  if (etat.liaisons[liaison.id] === true || liaison.etroite === true || liaison.gouffre === true || verrouillee(etat, liaison.id)) return false;
+  if (etat.liaisons[liaison.id] === true || liaison.etroite === true || liaison.gouffre === true || liaison.blindee === true || verrouillee(etat, liaison.id)) return false;
   if (liaison.manoeuvre !== undefined || liaison.cachee !== undefined || liaison.haute !== undefined || enFeu(etat, autreCote(liaison, depuis))) return false;
   return !monde.objets.some((objet) => objet.capsule !== undefined && liaison.entre.includes(objet.capsule.interieur));
 }

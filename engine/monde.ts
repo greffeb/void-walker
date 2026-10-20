@@ -62,6 +62,8 @@ export interface DefLiaison {
    * ensuite, une porte ordinaire.
    */
   readonly verrouillee?: boolean;
+  /** Porte blindée (#203) : la créature ne la force jamais, même alertée (D-279 ne s'y applique pas). */
+  readonly blindee?: boolean;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -133,6 +135,8 @@ export interface DefObjet {
   readonly fermeture?: string;
   /** Commande fixe qui déverrouille cette cloison, d'où qu'on l'actionne, en une action discrète (D-259). */
   readonly deverrouille?: string;
+  /** Objet portable à tenir en main pour actionner cette commande (#203, lecteur de carte). */
+  readonly exige?: string;
 }
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
@@ -222,6 +226,9 @@ export function validerMonde(monde: DefMonde): string[] {
       if (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true) erreurs.push(`${liaison.id} : cloison verrouillée qui n'est pas une porte pleine.`);
       if (!monde.objets.some((objet) => objet.deverrouille === liaison.id)) erreurs.push(`${liaison.id} : verrouillée sans commande.`);
     }
+    if (liaison.blindee === true && (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true || liaison.etroite === true)) {
+      erreurs.push(`${liaison.id} : porte blindée qui n'est pas une porte pleine.`);
+    }
   }
   const voisines = (a: string, b: string): boolean => monde.liaisons.some((liaison) => liaison.entre.includes(a) && liaison.entre.includes(b));
   const defPieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
@@ -263,6 +270,10 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.deverrouille !== undefined) {
       if (liaisons.get(objet.deverrouille)?.verrouillee !== true) erreurs.push(`${objet.id} : déverrouille autre chose qu'une cloison verrouillée.`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : commande portable.`);
+    }
+    if (objet.exige !== undefined) {
+      if (objet.deverrouille === undefined) erreurs.push(`${objet.id} : exige sans être une commande.`);
+      if (objets.get(objet.exige) === undefined || objets.get(objet.exige)?.portable === false) erreurs.push(`${objet.id} : exige un objet inconnu ou non portable.`);
     }
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
     if (objet.position !== undefined && objet.deplacable !== true) erreurs.push(`${objet.id} : position sans être déplaçable.`);

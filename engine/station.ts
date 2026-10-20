@@ -128,6 +128,8 @@ function objetDe(morceau: string, objet: DefObjet): DefObjet {
     ...ref(morceau, 'machines', objet.machines),
     ...ref(morceau, 'gravite', objet.gravite),
     ...ref(morceau, 'fermeture', objet.fermeture),
+    ...ref(morceau, 'deverrouille', objet.deverrouille),
+    ...ref(morceau, 'exige', objet.exige),
     ...(capsule === undefined ? {} : { capsule: { ...capsule, interieur: prefixer(morceau, capsule.interieur) } }),
     ...(avertisseur === undefined ? {} : { avertisseur: { ...avertisseur, piece: prefixer(morceau, avertisseur.piece) } }),
   };

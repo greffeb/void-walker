@@ -22,7 +22,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule), [D-281 à D-286](#d-281--fin-de-partie--le-récit-de-la-partie-à-partir-de-ses-moments-marquants) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule), [D-281 à D-286](#d-281--fin-de-partie--le-récit-de-la-partie-à-partir-de-ses-moments-marquants), [D-290 à D-293](#d-290--m-11-entre-au-tirage-public) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
@@ -2354,3 +2354,35 @@ Questions posées le 2026-10-18, une par une, sur des maquettes au format télé
   - **15e :** le récit garde une phrase de silence ; IA Station envoie un vrai message, « Aucune activité détectée. Merci de rejoindre la capsule de secours. », daté « en attendant » dans sa fenêtre. Une fois par partie, comme tout message (D-081).
 - Précise : D-274 (textes d'ATTENDRE). Rien ne change au jeu : la créature, les dangers et le décompte jouent comme avant.
 - Limite [détail de l'agent] : le message n'existe que dans les stations tirées ; AR-01, AR-02, M-08, M-09 et le monde de test ne le déclarent pas. Une partie sauvegardée avant cette version après 15 attentes de suite ou plus ne se reprend plus (son état ne correspond plus à son journal rejoué) ; il en va de même pour le rejeu d'un tel export.
+
+## Décisions validées — sas de sécurité M-11 (#203)
+
+Premier morceau tiré du brainstorming de #203. Demande du porteur : une salle simple, « sas de sécurité », derrière une porte blindée qui ne s'ouvre qu'avec une carte de sécurité, et que « la porte ne peut pas être cassée par la menace ». Trois questions posées le 2026-10-20, en langage courant (Q-204 à Q-206, [13 §7.10](13-morceaux-lancement.md#710-sas-de-sécurité-m-11-203)) ; le porteur a choisi les réponses citées. Implémenté par la PR de #203 (zone orange) ; aucune partie sur téléphone avec M-11 n'est revendiquée.
+
+### D-290 — M-11 entre au tirage public
+
+- Date / statut : 2026-10-20 / **Validé** ; partie sur téléphone à venir (zone orange).
+- Origine : Q-204, « Aussi dans le tirage public ».
+- Décision : M-11, morceau de chemin, entre au tirage de NOUVELLE PARTIE comme les neuf autres, en chaîne comme en ordre libre, pas seulement dans une station d'essai.
+- Limite [détail de l'agent] : les dix paires avec M-11 sont permises sans règle de plus (D-248) : M-11 ne joue sur aucune famille du §4 de 13 (bruit, ralentissement, neutralisation, air). À confirmer par le porteur sur la PR.
+
+### D-291 — Le lecteur de carte lève le verrou une fois pour toutes
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : Q-205, « Lecteur, une fois pour toutes ».
+- Décision : un lecteur fixe, à côté de la porte blindée. Carte de sécurité en main, l'actionner est une action discrète, sans dé : le verrou est levé pour la partie, la porte s'ouvre et se ferme ensuite comme une autre, la carte reste dans l'inventaire. Sans la carte en main, le lecteur reste au menu, indisponible : « Il faut d'abord avoir en main la carte qu'attend le lecteur de carte. »
+- Précise : D-259 (commande de déverrouillage) ; C-02 §5.
+
+### D-292 — La créature ne force jamais une porte blindée
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : demande du porteur, « la porte ne peut pas être cassée par la menace ».
+- Décision : même alertée, la créature ne secoue ni n'enfonce une porte blindée fermée. Ouverte, la porte blindée se traverse comme une autre ; refermée derrière soi, elle protège.
+- Précise : D-279, qui ne s'applique pas à la porte blindée.
+
+### D-293 — Dans M-11, la créature attend dans la remise, fermée
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : Q-206, « Pièce à part, fermée ».
+- Décision : la seule place de la créature dans M-11 est la remise, porte fermée au départ, au-delà du vestiaire ; on n'a pas besoin de l'ouvrir pour passer.
+- Limite [détail de l'agent] : M-11 ne compte pas parmi les obstacles qui permettent de se débarrasser de la créature (D-268) : une station en chaîne où elle attend sur le palier ou dans l'atelier n'est toujours pas proposée si seul M-11 la précède.
