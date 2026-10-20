@@ -3,10 +3,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium, devices, type Browser, type BrowserContext, type Locator, type Page } from 'playwright';
 import { preview } from 'vite';
-import { apercu, jouer, nouvellePartie, observer, type Commande, type Observation, type OptionMenu, type Partie } from '../engine';
+import { apercu, idPublic, jouer, nouvellePartie, observer, type Commande, type DefMonde, type DefObjet, type EtatPartie, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { cleMort, COMPOSITIONS_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type CleMort, type EntreeMonde, type EtapeParcours } from '../content';
-import { composerDock, filBulle, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, texteRappel, unToucher } from '../app/ecran';
+import { composerDock, filBulle, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, REGARDER_AUTOUR, texteRappel, unToucher } from '../app/ecran';
 import { recitDeFin } from '../app/jeu';
 import { CLE_REGLAGES } from '../app/reglages';
 import { creerBot, jouerAvecBot, PROFILS } from './bots';
@@ -15,8 +15,9 @@ import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
-import { cheminPrincipal } from './verifier-grandes';
-import { cleEtatRegles, verifierLibre, verifierStation } from './verifier-station';
+import { cheminPrincipal, temoinValable } from './verifier-grandes';
+import { echantillonGrandes } from './verifier-sortie';
+import { chercherJusqua, cleEtatRegles, verifierLibre, verifierStation } from './verifier-station';
 import { versionDuJeu } from './version';
 
 // Captures (AP-09, D-135) : un navigateur joue le parcours témoin sur un téléphone simulé, 390 × 844 puis 320 px de large ;
@@ -1787,39 +1788,62 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   await autre.close();
 }
 
-/**
- * Grande station (spec 2026-10-18 §9.3, §11) : la moitié du chemin principal jouée par son témoin, puis la carte au zoom
- * normal et au zoom d'ensemble, et le dock, à 390 puis 320 px. Aucun chiffre, rien ne déborde, cibles de 44 px.
- */
-async function parcoursGrandeStation(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
-  const id = CATALOGUE.publiees.find((station) => !station.startsWith('g1-ol-'));
-  const entree = id === undefined ? undefined : CATALOGUE.resoudre(id);
-  const definition = id === undefined ? undefined : CATALOGUE.definirGrande(id.slice(0, id.lastIndexOf('-')), Number(id.slice(id.lastIndexOf('-') + 1)));
-  if (id === undefined || entree === undefined || definition === undefined || 'refus' in entree || 'refus' in definition) {
-    erreurs.push('Aucune grande station en chaîne publiée.');
-    return;
-  }
-  const base = cheminPrincipal(entree, definition);
-  const preuve = base === null ? null : verifierStation(base);
-  if (preuve?.parcours === null || preuve === null) {
-    erreurs.push(`${id} : chemin principal sans témoin.`);
-    return;
-  }
-  const tousLesGestes = gestesDuParcours(entree, preuve.parcours.etapes);
-  const gestes = tousLesGestes.slice(0, Math.ceil(preuve.parcours.etapes.length / 2));
+/** Témoin du chemin principal d'une grande station, et la pièce qu'il traverse aux portes les plus nombreuses : après quel pas du témoin, et combien. */
+interface TemoinDuChemin {
+  readonly entree: EntreeMonde;
+  readonly etapes: readonly EtapeParcours[];
+  readonly plusChargee: { readonly pas: number; readonly portes: number };
+}
 
-  // Review Focus 5 : la pièce du témoin qui a le plus de portes, au dock en 320 px ; la navigation reste visible.
+/**
+ * Témoin du chemin principal d'une grande station, s'il vaut encore dans la grande station : une clé posée hors de sa pièce
+ * (#202) le rend impossible (la caisse n'y est plus), et la station est alors passée.
+ */
+function temoinDuChemin(id: string): TemoinDuChemin | undefined {
+  const entree = CATALOGUE.resoudre(id);
+  const tiret = id.lastIndexOf('-');
+  const definition = CATALOGUE.definirGrande(id.slice(0, tiret), Number(id.slice(tiret + 1)));
+  if ('refus' in entree || 'refus' in definition) return undefined;
+  const base = cheminPrincipal(entree, definition);
+  const etapes = base === null ? undefined : verifierStation(base).parcours?.etapes;
+  if (etapes === undefined || !temoinValable(entree, etapes)) return undefined;
   const portes = (piece: string): number => entree.monde.liaisons.filter((liaison) => liaison.entre.includes(piece)).length;
   let partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
   let plusChargee = { pas: 0, portes: portes(partie.etat.piece) };
-  for (const [rang, etape] of preuve.parcours.etapes.entries()) {
+  for (const [rang, etape] of etapes.entries()) {
     const option = trouverOption(observer(entree.monde, partie.etat), etape);
     const resultat = option === undefined ? null : jouer(entree.monde, partie, option.commande);
     if (resultat?.type !== 'engagee') break;
     partie = resultat.partie;
     if (portes(partie.etat.piece) > plusChargee.portes) plusChargee = { pas: rang + 1, portes: portes(partie.etat.piece) };
   }
-  if (plusChargee.portes < 4) erreurs.push(`${id} : aucune pièce du témoin n’a quatre portes ou plus.`);
+  return { entree, etapes, plusChargee };
+}
+
+/**
+ * Grande station (spec 2026-10-18 §9.3, §11) : la moitié du chemin principal jouée par son témoin, puis la carte au zoom
+ * normal et au zoom d'ensemble, et le dock, à 390 puis 320 px. Aucun chiffre, rien ne déborde, cibles de 44 px.
+ */
+async function parcoursGrandeStation(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  // La première grande station en chaîne dont le témoin du chemin principal vaut encore dans la grande station et traverse une
+  // pièce à quatre portes ou plus (review Focus 5 : son dock, en 320 px).
+  let choisie: ({ readonly id: string } & TemoinDuChemin) | undefined;
+  for (const station of CATALOGUE.publiees.filter((candidate) => !candidate.startsWith('g1-ol-'))) {
+    const temoin = temoinDuChemin(station);
+    if (temoin !== undefined && temoin.plusChargee.portes >= 4) {
+      choisie = { id: station, ...temoin };
+      break;
+    }
+  }
+  if (choisie === undefined) {
+    erreurs.push('Aucune grande station en chaîne publiée dont le témoin du chemin principal vaille dans la grande station et traverse une pièce à quatre portes ou plus.');
+    return;
+  }
+  const { id, entree, etapes, plusChargee } = choisie;
+  const tousLesGestes = gestesDuParcours(entree, etapes);
+  const gestes = tousLesGestes.slice(0, Math.ceil(etapes.length / 2));
+
+  // Review Focus 5 : la pièce du témoin qui a le plus de portes, au dock en 320 px ; la navigation reste visible.
   const chargee = await navigateur.newContext({ ...devices[TELEPHONE], viewport: ETROIT, locale: 'fr-FR' });
   const pageChargee = await chargee.newPage();
   await pageChargee.goto(`${racine}?station=${id}`);
@@ -1851,6 +1875,142 @@ async function parcoursGrandeStation(navigateur: Browser, racine: string, captur
     await capturer(page, `Grande station ${largeur} px — carte au zoom d’ensemble`);
     await verifierCarte(page, `Grande station ${largeur} px, zoom d’ensemble`, erreurs);
     await contexte.close();
+  }
+}
+
+/** États explorés au plus pour joindre une salle de butin : elles sont loin du départ, la recherche y va par la distance en portes. */
+const PLAFOND_BUTIN = 100_000;
+
+/** Distance en portes de chaque pièce à `cible`, portes ouvertes ou non. */
+function distancesVers(monde: DefMonde, cible: string): Map<string, number> {
+  const distances = new Map([[cible, 0]]);
+  const file = [cible];
+  for (const piece of file) {
+    for (const liaison of monde.liaisons.filter((candidate) => candidate.entre.includes(piece))) {
+      for (const autre of liaison.entre) {
+        if (distances.has(autre)) continue;
+        distances.set(autre, (distances.get(piece) ?? 0) + 1);
+        file.push(autre);
+      }
+    }
+  }
+  return distances;
+}
+
+/** Ce qu'une capture du butin vise dans une station : l'objet s'il y en a un, et les gestes qui y mènent depuis le réveil. */
+interface Visee {
+  readonly id: string;
+  readonly entree: EntreeMonde;
+  readonly objet: DefObjet | undefined;
+  readonly gestes: Geste[];
+}
+
+/**
+ * Première station de `ids` où `cherche` désigne une salle (et son objet), avec les gestes sans dé ni blessure qui y mènent :
+ * ceux de `chercherJusqua`, qui explore d'abord les états les plus proches de la salle ; une station dont la salle n'est pas
+ * atteinte dans `PLAFOND_BUTIN` états est passée. `prendre` : jusqu'à tenir l'objet, au lieu d'entrer dans la salle.
+ */
+function viser(ids: readonly string[], cherche: (monde: DefMonde) => { readonly piece: string; readonly objet?: DefObjet } | undefined, prendre = false): Visee | undefined {
+  for (const id of ids) {
+    const entree = CATALOGUE.resoudre(id);
+    if ('refus' in entree) continue;
+    const cible = cherche(entree.monde);
+    if (cible === undefined) continue;
+    const distances = distancesVers(entree.monde, cible.piece);
+    const loin = Math.max(...distances.values());
+    const objet = cible.objet;
+    const but = (etat: EtatPartie): boolean => (prendre && objet !== undefined ? etat.objets[objet.id]?.type === 'passager' : etat.piece === cible.piece);
+    const depart = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+    const etapes = chercherJusqua(entree, depart, but, PLAFOND_BUTIN, { priorite: (etat) => loin - (distances.get(etat.piece) ?? loin) });
+    if (etapes !== null) return { id, entree, objet, gestes: gestesDuParcours(entree, etapes) };
+  }
+  return undefined;
+}
+
+/**
+ * Clés et butin des grandes stations (spec 2026-10-18 §6.5, §6.6), à 390 puis 320 px, dans la liste triée des stations publiées :
+ * la première où une clé attend hors de sa pièce d'origine (le dock de sa salle, puis la fiche de la clé), la première avec une
+ * salle pillée (le récit de « Regarder »), la première avec une trousse de soin (l'inventaire qui la porte). Chaque partie est
+ * jouée comme le joueur, par les gestes de `viser`.
+ */
+async function parcoursButin(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const ids = [...CATALOGUE.publiees].sort();
+  const deplacees = new Map(echantillonGrandes(CATALOGUE).map((echantillon) => [echantillon.station, echantillon.couvre[0]]));
+  const cle = viser([...deplacees.keys()], (monde) => {
+    const objet = monde.objets.find((candidat) => candidat.id === deplacees.get(monde.id));
+    return objet === undefined ? undefined : { piece: objet.piece, objet };
+  });
+  const pillee = viser(ids, (monde) => {
+    const piece = monde.pieces.find((candidate) => candidate.pillee === true);
+    return piece === undefined ? undefined : { piece: piece.id };
+  });
+  const trousse = viser(
+    ids,
+    (monde) => {
+      const objet = monde.objets.find((candidat) => candidat.butin === true && candidat.soin !== undefined);
+      return objet === undefined ? undefined : { piece: objet.piece, objet };
+    },
+    true,
+  );
+  if (cle === undefined) erreurs.push('Aucune grande station publiée ne garde une clé hors de sa pièce d’origine, à portée sans dé ni blessure.');
+  if (pillee === undefined) erreurs.push('Aucune grande station publiée n’a de salle pillée, à portée sans dé ni blessure.');
+  if (trousse === undefined) erreurs.push('Aucune grande station publiée n’a de trousse de soin, à portée sans dé ni blessure.');
+  const nomDeObjet = ({ entree, objet }: Visee): string => (objet === undefined ? '' : nomPuce(entree.textes, { sorte: 'objet', id: idPublic(entree.monde.id, objet.id), nom: objet.nom }));
+
+  for (const [largeur, viewport] of [['390', REFERENCE], ['320', ETROIT]] as const) {
+    /** Une partie neuve sur la station visée, jouée jusqu'au bout des gestes. */
+    const jouee = async (vise: Visee): Promise<{ readonly contexte: BrowserContext; readonly page: Page }> => {
+      const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport, locale: 'fr-FR' });
+      const page = await contexte.newPage();
+      await page.goto(`${racine}?station=${vise.id}`);
+      await nouvelleDepuisAccueil(page);
+      await rejouer(page, vise.gestes);
+      return { contexte, page };
+    };
+
+    if (cle !== undefined) {
+      const nom = nomDeObjet(cle);
+      const { contexte, page } = await jouee(cle);
+      const puce = page.locator('.dock .puces').getByRole('button', { name: exactement(nom) });
+      if ((await puce.count()) !== 1) erreurs.push(`${cle.id} : la clé « ${nom} » n’est pas une puce du dock.`);
+      else {
+        await capturer(page, `Grande station ${largeur} px — clé « ${nom} » hors de son morceau, dock de sa salle : ${cle.id}`);
+        await verifierEcran(page, `Clé de grande station ${largeur} px, dock`, erreurs);
+        await puce.click();
+        await page.getByRole('dialog', { name: exactement(nom) }).waitFor();
+        await capturer(page, `Grande station ${largeur} px — fiche de la clé « ${nom} »`);
+        await verifierEcran(page, `Clé de grande station ${largeur} px, fiche`, erreurs);
+      }
+      await contexte.close();
+    }
+
+    if (pillee !== undefined) {
+      const { contexte, page } = await jouee(pillee);
+      // Le rappel change avec le regard : on attend le nouveau récit, pas celui de l'arrivée, qui dit déjà le pillage.
+      await page.getByRole('button', { name: exactement(REGARDER_AUTOUR) }).click();
+      await page.getByTestId('rappel').filter({ hasText: REGARDER_AUTOUR }).waitFor();
+      const { recit } = await lire(page);
+      if (!pillee.entree.textes.pillages.some((phrase) => recit.includes(phrase))) erreurs.push(`${pillee.id} : aucune phrase de pillage dans le récit de « Regarder ».`);
+      // La phrase de pillage clôt le regard : le récit, long à 320 px, est amené à sa fin comme le fait le joueur en le lisant.
+      await page.getByTestId('recit').evaluate((zone) => {
+        zone.scrollTop = zone.scrollHeight;
+      });
+      await capturer(page, `Grande station ${largeur} px — salle pillée après « Regarder » : ${pillee.id}`);
+      await verifierEcran(page, `Salle pillée de grande station ${largeur} px`, erreurs);
+      await contexte.close();
+    }
+
+    if (trousse !== undefined) {
+      const nom = nomDeObjet(trousse);
+      const { contexte, page } = await jouee(trousse);
+      await page.getByRole('button', { name: exactement('Inventaire') }).click();
+      const inventaire = page.getByRole('dialog', { name: exactement('Inventaire') });
+      await inventaire.waitFor();
+      if ((await inventaire.getByRole('button', { name: exactement(nom) }).count()) !== 1) erreurs.push(`${trousse.id} : « ${nom} » n’est pas dans l’inventaire.`);
+      await capturer(page, `Grande station ${largeur} px — inventaire avec la trousse « ${nom} » : ${trousse.id}`);
+      await verifierEcran(page, `Inventaire de grande station ${largeur} px`, erreurs);
+      await contexte.close();
+    }
   }
 }
 
@@ -2408,7 +2568,7 @@ function commentaire(
       publiees.filter((etape) => etape.suite === 'station'),
       erreursStation,
       [
-        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. \`?station=${STATION_BAIE}\`, trois obstacles avec la baie (#153) : réveil, plan au départ. \`?station=${STATIONS_AR01[0]}\`, chemins d’AR-01 (#154) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif. \`?monde=m-08\`, planche perdue exprès (#156) : information « plus aucune sortie », puis le rappel, la partie continue.`,
+        `\`?station=${STATION_CAPTUREE}\` : réveil, plan au départ, NOUVELLE PARTIE garde la station. \`?station=${STATION_BAIE}\`, trois obstacles avec la baie (#153) : réveil, plan au départ. \`?station=${STATIONS_AR01[0]}\`, chemins d’AR-01 (#154) : réveil, plan au départ. Adresse nue : station tirée, REJOUER la garde, NOUVELLE PARTIE en tire une autre et mène au réveil, reprise sur sa station, \`?monde=ar-01\` à part. \`?station=m07-m03-inconnue-1\` : refusée avec son motif. \`?monde=m-08\`, planche perdue exprès (#156) : information « plus aucune sortie », puis le rappel, la partie continue. Grandes stations publiées (#202, #207), à 390 et 320 px : une clé hors de sa pièce d’origine (son dock, puis sa fiche), une salle pillée (le récit de « Regarder ») et une trousse de soin (l’inventaire), chacune dans la première station de la liste triée qui en a.`,
       ],
     ),
     ...partieCommentaire(
@@ -2953,6 +3113,12 @@ export async function capturer(): Promise<{ etapes: EtapeCapture[]; erreurs: str
     // Grandes stations (#205) : dock et carte à mi-chemin, à 390 et 320 px.
     try {
       await parcoursGrandeStation(navigateur, racine, capturerPage, erreursStation);
+    } catch (erreur) {
+      erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // Clés et butin des grandes stations (#202, #207) : une clé hors de sa pièce, une salle pillée, la trousse, à 390 et 320 px.
+    try {
+      await parcoursButin(navigateur, racine, capturerPage, erreursStation);
     } catch (erreur) {
       erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
     }

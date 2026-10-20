@@ -423,6 +423,35 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     expect(id((await preparerLancement({ type: 'tirage' }, CATALOGUE, illisible, hasardDepuis(2))).entree)).toBe(tiree(2));
   });
 
+  it('grande station : une sauvegarde dont l’état ne correspond plus au journal rejoué n’est pas reprise, rien n’est écrit, la sauvegarde reste intacte (#202, #207)', async () => {
+    const grande = resolue(CATALOGUE.publiees[0] ?? '');
+    const { stockage } = enMemoire();
+    const env = envSur(grande, stockage);
+    let jeu = await commencer(env);
+    for (let pas = 0; pas < 4; pas++) {
+      const option = observer(grande.monde, jeu.partie.etat).menu.find((choix) => choix.disponible && choix.action !== 'regarder');
+      if (option === undefined) throw new Error('Aucune option jouable.');
+      jeu = await jouerOption(env, jeu, option);
+    }
+    expect(jeu.partie.etat.actions).toBe(4);
+    const sauvegarde = (await stockage.lire()) as { readonly enregistrement: { readonly actions: readonly unknown[] }; readonly etat: { readonly piece: string } };
+    // Témoin : intacte, la sauvegarde se reprend.
+    expect((await charger(env)).type).toBe('pret');
+    const ailleurs = grande.monde.pieces.find((piece) => piece.id !== sauvegarde.etat.piece)?.id;
+    const alterees = {
+      'état sauvegardé déplacé': { ...sauvegarde, etat: { ...sauvegarde.etat, piece: ailleurs } },
+      'journal sans sa dernière action': { ...sauvegarde, enregistrement: { ...sauvegarde.enregistrement, actions: sauvegarde.enregistrement.actions.slice(0, -1) } },
+    };
+    for (const [cas, alteree] of Object.entries(alterees)) {
+      const { stockage: lu, ecritures } = enMemoire(alteree);
+      const env2 = envSur(grande, lu);
+      expect(await charger(env2), cas).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('incohérente') });
+      expect(await demarrer(env2), cas).toMatchObject({ type: 'reprise_impossible' });
+      expect(await lu.lire(), cas).toEqual(alteree);
+      expect(ecritures(), cas).toBe(0);
+    }
+  });
+
   it('« ?station= » refusé : son motif, aucune station, jamais d’exception ; rien n’est écrit', async () => {
     const { stockage, ecritures } = enMemoire();
     expect(await preparerLancement({ type: 'station', id: 'm07-m03-inconnue-1' }, CATALOGUE, stockage, hasardDepuis(3))).toEqual({
