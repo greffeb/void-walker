@@ -3,7 +3,7 @@ import { COMPOSITIONS_CONTROLEES, COMPOSITIONS_PUBLIEES, creerCatalogue } from '
 import { CATALOGUE } from './catalogue';
 import { entreeAControler, entreesAControler, verifierTextes } from './check-texts';
 import { executerParcours } from './rejouer-parcours';
-import { stationDeReference, verifierLibre, verifierStation } from './verifier-station';
+import { cloisonsDuCarrefour, stationDeReference, verifierLibre, verifierStation } from './verifier-station';
 
 // Stations tirées que check:texts contrôle (spec L3 §6.4, L5 §6), à part des autres tests des textes : vitest lance les
 // fichiers en parallèle (#180).
@@ -39,8 +39,10 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
       'm08-m01-m06-palier',
       'm09-m10-m06-cale',
       'm10-m04-m03-entrepot',
+      'm11-m03-remise',
       'ol-m02-m08-m06-magasin',
       'ol-m05-m10-m03-tri',
+      'ol-m07-m11-m06-soute',
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {
@@ -62,7 +64,7 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
       expect(entree.parcours, id).toHaveLength(1);
       const [parcours] = entree.parcours;
       if (parcours === undefined) throw new Error(`${id} sans parcours.`);
-      const libre = entree.monde.liaisons.some((liaison) => liaison.verrouillee === true);
+      const libre = cloisonsDuCarrefour(entree.monde).length > 0;
       expect(parcours, id).toEqual((libre ? verifierLibre : verifierStation)({ ...entree, parcours: [] }).parcours);
       expect(parcours.attendu.issue, id).toBe('evacuation');
       expect(executerParcours(entree, parcours, 'check-texts-test').erreurs, id).toEqual([]);

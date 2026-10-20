@@ -284,18 +284,24 @@ export interface RapportLibre extends RapportStation {
   readonly coupees: boolean;
 }
 
+/** Cloisons verrouillées du carrefour de l'ordre libre (D-259) ; la porte blindée de M-11 (#203), verrouillée elle aussi, n'en est pas. */
+export function cloisonsDuCarrefour(monde: DefMonde): string[] {
+  return monde.liaisons.filter((liaison) => liaison.verrouillee === true && liaison.entre.some((piece) => morceauDe(piece) === 'carrefour')).map((liaison) => liaison.id);
+}
+
 /**
  * Ordre libre (spec L5 §4) : prouvée seulement si les deux ordres de préparation mènent à l'évacuation sans dé ni blessure,
  * témoins rejoués, et si chaque cloison coupe à elle seule l'accès à la capsule. Les états et les temps s'additionnent ;
  * le témoin rendu est celui du premier ordre.
  */
 export function verifierLibre(entree: EntreeMonde, options: OptionsVerification = {}): RapportLibre {
-  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const cloisons = cloisonsDuCarrefour(entree.monde);
   const [premiere, seconde] = cloisons;
   if (premiere === undefined || seconde === undefined || cloisons.length !== 2) throw new Error(`${entree.monde.id} : deux cloisons verrouillées attendues.`);
   // Contrôles sans recherche d'abord : chaque cloison coupe la capsule, et les deux commandes sont dans deux morceaux différents.
   const coupees = cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison));
-  const morceauxCommandes = new Set(entree.monde.objets.filter((objet) => objet.deverrouille !== undefined).map((objet) => morceauDe(objet.piece)));
+  const commandes = entree.monde.objets.filter((objet) => objet.deverrouille !== undefined && cloisons.includes(objet.deverrouille));
+  const morceauxCommandes = new Set(commandes.map((objet) => morceauDe(objet.piece)));
   const refuser = (diagnostic: string): RapportLibre => ({
     verdict: 'sans_sortie_sure', etats: 0, secondes: 0, ecartes: { des: 0, blessures: 0 }, ordres: ['sans_sortie_sure', 'sans_sortie_sure'], coupees, parcours: null, diagnostic,
   });

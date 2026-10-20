@@ -45,8 +45,8 @@ export const EVENEMENTS_REGLES_MORCEAUX = {
     'Vous enfoncez la commande {de:objet}. Les verrous des portes {de:piece} s’enclenchent.',
   ],
   cloison_deverrouillee: [
-    'Vous abaissez {le:objet}. Un voyant passe au vert ; au loin, un verrou se lève avec un claquement sourd.',
-    'Vous tournez {le:objet} jusqu’en butée. Un voyant vert s’allume : le verrou de la cloison est levé.',
+    'Vous actionnez {le:objet}. Un voyant passe au vert ; un verrou se lève avec un claquement sourd.',
+    'Un déclic sous vos doigts : {le:objet} s’allume en vert. Le verrou est levé.',
   ],
   attente: ['Vous restez immobile, l’oreille tendue. Rien ne bouge.', 'Vous retenez votre souffle et attendez. Le silence vous répond.'],
 } as const satisfies Partial<TextesMonde['evenements']>;
@@ -93,6 +93,7 @@ export const REFUS_MORCEAUX = {
   deja_fait: 'C’est déjà fait : rien n’a été joué.',
   verrouillee: 'Ce passage est verrouillé : rien n’a été joué.',
   enfoncee: 'Cette porte a été enfoncée et ne ferme plus : rien n’a été joué.',
+  sans_carte: 'Il vous faut en main la carte qu’attend ce lecteur : rien n’a été joué.',
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
@@ -102,6 +103,7 @@ export const INDISPONIBILITES_MORCEAUX = {
   sans_gravite: 'Sans gravité, {le:cible} ne se verse pas.',
   verrouillee: '{Le:cible} est verrouillé{e:cible} : une commande doit d’abord lever le verrou.',
   enfoncee: '{Le:cible}, enfoncé{e:cible}, ne ferme plus.',
+  sans_carte: 'Il faut d’abord avoir en main la carte qu’attend {le:cible}.',
 } as const satisfies Partial<TextesMonde['indisponibilites']>;
 
 export const LIBELLES_MORCEAUX = {

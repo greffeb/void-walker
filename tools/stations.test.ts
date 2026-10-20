@@ -58,8 +58,8 @@ function porte(monde: DefMonde, id: string) {
 }
 
 describe('morceaux (13 §8)', () => {
-  it('vestibule, M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-03, M-06 et embarquement d’essai, dans cet ordre', () => {
-    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10', 'carrefour', 'm-03', 'm-06', 'essai']);
+  it('vestibule, M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-11, M-03, M-06 et embarquement d’essai, dans cet ordre', () => {
+    expect(Object.keys(MORCEAUX)).toEqual(['vestibule', 'm-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10', 'm-11', 'carrefour', 'm-03', 'm-06', 'essai']);
   });
 
   it.each(Object.entries(MORCEAUX))('%s : morceau valide, identifiant repris', (id, { morceau }) => {
@@ -679,10 +679,10 @@ function espion(repondre: Assembleur = assemblerStation): { readonly appels: Def
 }
 
 describe('table des paires (13 §4.1)', () => {
-  const NUMEROS = Array.from({ length: 10 }, (_, rang) => `M-${String(rang + 1).padStart(2, '0')}`);
+  const NUMEROS = Array.from({ length: 11 }, (_, rang) => `M-${String(rang + 1).padStart(2, '0')}`);
 
-  it('45 paires, chacune une seule fois, dans l’ordre de la table, a < b, chacune avec sa règle', () => {
-    expect(PAIRES).toHaveLength(45);
+  it('55 paires, chacune une seule fois, dans l’ordre de la table, a < b, chacune avec sa règle', () => {
+    expect(PAIRES).toHaveLength(55);
     expect(PAIRES.map((ligne) => `${ligne.a} + ${ligne.b}`)).toEqual(NUMEROS.flatMap((a, rang) => NUMEROS.slice(rang + 1).map((b) => `${a} + ${b}`)));
     for (const ligne of PAIRES) {
       expect(ligne.a < ligne.b).toBe(true);
@@ -694,22 +694,22 @@ describe('table des paires (13 §4.1)', () => {
     expect(PAIRES.filter((ligne) => ligne.verdict === 'jamais')).toEqual([
       { a: 'M-03', b: 'M-06', verdict: 'jamais', regle: 'Deux morceaux finals ; un seul final par station (D-159, D-172)' },
     ]);
-    expect(PAIRES.filter((ligne) => ligne.verdict === 'permise')).toHaveLength(44);
+    expect(PAIRES.filter((ligne) => ligne.verdict === 'permise')).toHaveLength(54);
   });
 });
 
 describe('compositions', () => {
-  it('536 compositions : 368 en chaîne (184 par final ; 32 à un chemin, 2 places chacune ; 336 à deux, 3 places chacune) et 168 en ordre libre (28 paires × 2 finals × 3 places) ; aucune ne réunit M-03 et M-06', () => {
+  it('684 compositions : 468 en chaîne (234 par final ; 36 à un chemin, 2 places chacune ; 432 à deux, 3 places chacune) et 216 en ordre libre (36 paires × 2 finals × 3 places) ; aucune ne réunit M-03 et M-06', () => {
     const { compositions } = CATALOGUE;
-    const CHEMINS = ['m-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10'];
-    expect(compositions).toHaveLength(536);
+    const CHEMINS = ['m-01', 'm-02', 'm-04', 'm-05', 'm-07', 'm-08', 'm-09', 'm-10', 'm-11'];
+    expect(compositions).toHaveLength(684);
     const chaine = compositions.filter((composition) => composition.forme === 'chaine');
     const libre = compositions.filter((composition) => composition.forme === 'libre');
-    expect(chaine).toHaveLength(368);
-    expect(libre).toHaveLength(168);
-    for (const final of ['m-03', 'm-06']) expect(chaine.filter((composition) => composition.final === final), final).toHaveLength(184);
-    expect(chaine.filter((composition) => composition.chemins.length === 1)).toHaveLength(32);
-    expect(chaine.filter((composition) => composition.chemins.length === 2)).toHaveLength(336);
+    expect(chaine).toHaveLength(468);
+    expect(libre).toHaveLength(216);
+    for (const final of ['m-03', 'm-06']) expect(chaine.filter((composition) => composition.final === final), final).toHaveLength(234);
+    expect(chaine.filter((composition) => composition.chemins.length === 1)).toHaveLength(36);
+    expect(chaine.filter((composition) => composition.chemins.length === 2)).toHaveLength(432);
     const parStation = new Map<string, number>();
     for (const composition of compositions) {
       const morceaux: string[] = [...composition.chemins, composition.final];
@@ -734,7 +734,7 @@ describe('compositions', () => {
   it('ordre libre (spec L5 §3.2) : créature sur le palier ou dans l’atelier écartée avant tout plan, avec son motif (D-268)', () => {
     const libre = CATALOGUE.compositions.filter((composition) => composition.forme === 'libre');
     const ecartees = libre.filter((composition) => composition.refus !== null);
-    expect(ecartees).toHaveLength(28);
+    expect(ecartees).toHaveLength(32);
     for (const composition of ecartees) {
       expect(['m-01/p-palier', 'm-02/p-atelier'], composition.id).toContain(composition.creature);
       expect(composition.refus).toContain('D-268');
@@ -759,7 +759,7 @@ describe('compositions', () => {
       const avant = chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/'))));
       return !avant.some((chemin) => AIDES.includes(chemin));
     });
-    expect(bouchees).toHaveLength(44);
+    expect(bouchees).toHaveLength(52);
     const bouchee = new Set(bouchees.map(({ id }) => id));
     expect(COMPOSITIONS_PUBLIEES).toEqual(CATALOGUE.compositions.filter(({ id, refus }) => refus === null && !bouchee.has(id)).map(({ id }) => id));
   });
@@ -781,7 +781,7 @@ describe('compositions', () => {
       const cle = `${composition.forme} ${[...composition.chemins, composition.final].join(' + ')}`;
       parStation.set(cle, [...(parStation.get(cle) ?? []), composition]);
     }
-    expect(parStation.size).toBe(128 + 56);
+    expect(parStation.size).toBe(162 + 72);
     for (const [cle, compositions] of parStation) {
       const morceaux = cle.slice(cle.indexOf(' ') + 1).split(' + ').map((id) => MORCEAUX[id]);
       const places = morceaux.flatMap((entree) => entree?.morceau.placesCreature.map((place) => `${entree.morceau.id}/${place}`) ?? []);
@@ -805,7 +805,7 @@ describe('compositions', () => {
     expect(catalogue.compositions.map((composition) => [composition.id, composition.refus])).toEqual(
       CATALOGUE.compositions.map(({ id, chemins, final, refus }) => [id, chemins.includes('m-07') && final === 'm-03' ? motif : refus]),
     );
-    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(44 + 21);
+    expect(catalogue.compositions.filter((composition) => composition.refus === motif)).toHaveLength(50 + 24);
     expect(refusDe(catalogue.tirer(hasardDepuis(1), 'm07-m03-soute'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.resoudre('m07-m03-soute-42'))).toContain('M-03 + M-07');
     expect(refusDe(catalogue.construire('m07-m03-soute', 42))).toContain('M-03 + M-07');
@@ -850,6 +850,8 @@ describe('compositions', () => {
       'ol-m01-m09-m06-palier',
       'ol-m01-m10-m03-palier',
       'ol-m01-m10-m06-palier',
+      'ol-m01-m11-m03-palier',
+      'ol-m01-m11-m06-palier',
       'ol-m02-m04-m03-atelier',
       'ol-m02-m04-m06-atelier',
       'ol-m02-m05-m03-atelier',
@@ -862,6 +864,8 @@ describe('compositions', () => {
       'ol-m02-m09-m06-atelier',
       'ol-m02-m10-m03-atelier',
       'ol-m02-m10-m06-atelier',
+      'ol-m02-m11-m03-atelier',
+      'ol-m02-m11-m06-atelier',
       'ol-m07-m10-m03-entrepot',
       'ol-m07-m10-m03-reserve',
       'ol-m07-m10-m03-soute',
@@ -1126,10 +1130,10 @@ describe('stations tirées', () => {
     }
   });
 
-  it('3 000 tirages : toujours une composition publiée, chacune au moins une fois, identifiant conforme et résoluble', () => {
+  it('5 000 tirages : toujours une composition publiée, chacune au moins une fois, identifiant conforme et résoluble', () => {
     const hasard = hasardDepuis(20261015);
     const vues = new Set<string>();
-    for (let rang = 0; rang < 3000; rang++) {
+    for (let rang = 0; rang < 5000; rang++) {
       const entree = entreeDe(CATALOGUE.tirer(hasard));
       const { id } = entree.monde;
       expect(id).toMatch(MONDE_ID);

@@ -31,6 +31,8 @@ Le [son](15-son.md) précise la section SON de 12 §4.10 : bruitages du terminal
 
 L'[installation de la PWA](16-installation-pwa.md) (#174, investigation) : le jeu est déjà éligible à l'invite d'installation de Chrome ; bouton seulement sur Chromium, simple explication sur iPhone et Firefox Android. Première livraison : section « INSTALLATION » des options, invite de Chromium et bulles d'aide d'iPhone et de Firefox, validation humaine requise sur téléphone ; le rappel à l'accueil attend le porteur ; aucune décision prise.
 
+[Ajouter un morceau de station](17-ajouter-un-morceau.md) : guide de travail des agents, écrit après M-11 (#203). Tout ce que touche un nouveau morceau (moteur, textes, tirage, tests épinglés, vérifications, documents, PR), dans l'ordre, avec les pièges déjà rencontrés. À lire avant de préparer un morceau.
+
 L'[aventure fixe AR-01 v1.0](08-aventure-reference.md) est **acceptée comme conception** (D-057). Ses trois témoins P-A/P-B/P-C restent à prouver par le moteur, et aucun n'a été joué sur téléphone. Elle contient des secrets et solutions d'auteur : ne pas la transmettre au playtester aveugle.
 
 L'[aventure AR-02](09-aventure-reference-vide.md), courte référence de la dépressurisation, est **acceptée comme conception** (D-074). Ses trois témoins P-V1/P-V2/P-V3 restent à prouver, aucun n'a été joué. Elle contient aussi des solutions d'auteur.
@@ -206,6 +208,11 @@ Ces choix sont détaillés et sourcés par leur origine utilisateur dans le jour
 - **Reste à faire.** L'aperçu et les textes d'esquive après V1 ; puis V2 à V4, une par une (#194 §4).
 
 **Écrans de fin ([#208](https://github.com/greffeb/void-walker/issues/208)), proposés par leur PR en zone orange :** à la défaite et à l'évacuation, CONTINUER sous le dernier texte, puis un écran de fin qui raconte la partie par ses moments marquants, relus dans la partie enregistrée : la cause et la pièce d'une défaite, ou le départ, la santé et le sort de la créature ; sans liste des pièces ni chiffre (D-281 à D-286, choisis sur maquettes et sur une démo faite de parties de bots). La CLI affiche le même récit. Essai sur téléphone de chaque fin à venir (**validation humaine requise**).
+
+**Sas de sécurité M-11 ([#203](https://github.com/greffeb/void-walker/issues/203)), proposé par sa PR en zone orange :**
+- **Contenu.** Un onzième morceau de chemin : le poste de sécurité donne sur le sas par une porte blindée, verrouillée ; le lecteur du poste la déverrouille une fois pour toutes, carte de sécurité en main, prise au vestiaire. La créature attend dans la remise, fermée ; elle ne force jamais la porte blindée (D-290 à D-293).
+- **Catalogue.** 684 compositions, dont 600 publiées (416 en chaîne, 184 en ordre libre) ; 136 publiées contiennent M-11. Détail dans [13 §7.10](13-morceaux-lancement.md#710-sas-de-sécurité-m-11-203).
+- **Reste à faire.** L'accord du porteur et une partie au bout sur téléphone avec M-11 (**validation humaine requise**, D-098).
 
 **Prochaine tâche recommandée :** la PR de [#156](https://github.com/greffeb/void-walker/issues/156) (L6 : « plus aucune sortie »), à valider sur téléphone par le porteur avant fusion (zone orange) : perdre la planche exprès dans la passerelle (`?monde=m-08`). La difficulté des stations (« trop faciles » en L2) se traite dans [#194](https://github.com/greffeb/void-walker/issues/194) : mesurer d'abord, puis une variable à la fois (D-264). La suite de #106 suit [13 §7](13-morceaux-lancement.md#7-découpage-de-106) (D-245) : les sept livraisons sont les sous-issues [#150](https://github.com/greffeb/void-walker/issues/150) à [#156](https://github.com/greffeb/void-walker/issues/156). L'interface peut avancer en parallèle si elle ne touche pas le moteur. La [conception des dix morceaux](13-morceaux-lancement.md) reste acceptée (D-175), précisée par D-257 à D-260, D-262, D-265 et D-268, modifiée pour M-07 par D-261. Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
