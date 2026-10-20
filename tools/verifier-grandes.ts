@@ -19,6 +19,11 @@ const VERSION = 'verifier-grandes';
 const GRAINE = 20261010;
 /** États d'une réparation, par étape du témoin devenue impossible. */
 const MAX_REPARATION = 20_000;
+/**
+ * Recherches directes par composition, au plus (#237) : une sur 35 réussit, vers 128 000 états, et chacune coûte environ 40 s ;
+ * les compositions mesurées qui ont une station la trouvent dans leurs trois premières.
+ */
+const RECHERCHES_DIRECTES = 3;
 
 export interface LigneGrande {
   readonly station: string;
@@ -233,8 +238,8 @@ export function empreinteComposition(catalogue: Catalogue, composition: string, 
  * Grandes stations à publier (spec §7.2) : pour chaque grande composition sans refus, les `parComposition` premières graines, à
  * partir de 0 et jusqu'à `essais`, assemblées, contrôlées et prouvées ; triées, avec leurs témoins. Accélérations (#237) : un
  * témoin de `publies` qui se rejoue encore (comme dans `check:stations`) garde sa station sans recherche ; les graines sont
- * d'abord prouvées par le témoin du chemin principal, et la recherche directe ne sert qu'aux graines restées sans preuve, s'il
- * manque des stations. Une composition de `connues` à la même empreinte (`moteur` : celle du code du moteur), essayée sur
+ * d'abord prouvées par le témoin du chemin principal, et la recherche directe ne sert qu'aux trois premières graines restées
+ * sans preuve, s'il manque des stations. Une composition de `connues` à la même empreinte (`moteur` : celle du code du moteur), essayée sur
  * autant de graines au moins, n'est pas recherchée.
  */
 export function publierGrandes(
@@ -281,7 +286,7 @@ export function publierGrandes(
       if (ligne.verdict === 'non_prouvee' && ligne.methode === null && ligne.ecarts.length === 0) differees.push(station);
       else garder(ligne);
     }
-    for (const station of differees) if (trouvees < parComposition) garder(verifierGrande(catalogue, station, options, true, memoire));
+    for (const station of differees.slice(0, RECHERCHES_DIRECTES)) if (trouvees < parComposition) garder(verifierGrande(catalogue, station, options, true, memoire));
     if (trouvees === 0) sansStation[composition] = marque;
   }
   return { publiees: Object.keys(temoins).sort(), temoins, sansStation };

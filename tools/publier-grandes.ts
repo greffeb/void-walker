@@ -64,7 +64,7 @@ async function principal(): Promise<void> {
   }
 
   const { temoins, sansStation } = publierGrandes(CATALOGUE, par, essais, {}, (ligne) => {
-    console.error(`${ligne.station} ${ligne.verdict} ${ligne.methode ?? ''} ${ligne.secondes.toFixed(1)} s`);
+    console.error(`${ligne.station} ${ligne.verdict} ${ligne.methode ?? ''} ${ligne.etats} états ${ligne.secondes.toFixed(1)} s`);
   }, dansLeLot(compositions, lot), tout ? {} : lireTemoins(), tout ? {} : lireSansStation(), empreinteCode(['engine/index.ts']));
   for (const [station, preuve] of Object.entries(temoins)) console.log(JSON.stringify({ station, preuve }));
   for (const [composition, marque] of Object.entries(sansStation)) console.log(JSON.stringify({ composition, marque }));
