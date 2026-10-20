@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COMPOSITIONS_PUBLIEES } from '../content';
+import { COMPOSITIONS_PUBLIEES, MORCEAUX } from '../content';
 import { nouvellePartie, observer, type DefMonde, type EtatPartie } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { chercherEvacuation, echantillonGrandes, GRANDES_SORTIE } from './verifier-sortie';
@@ -135,15 +135,22 @@ describe('plus aucune sortie : clés des grandes stations', { timeout: 120_000 }
     expect(signal(sansConsole, etat(sansConsole, { objets: { 'm-03/o-bloc': { type: 'piece', piece: 'm-03/p-reserve' } } }))).toBe(false);
   });
 
-  it(`échantillon de check:sortie : une station par clé déplacée et par forme, au plus ${GRANDES_SORTIE}`, () => {
+  it(`échantillon de check:sortie : une station par clé déplacée, au plus ${GRANDES_SORTIE}`, () => {
     const echantillon = echantillonGrandes(CATALOGUE);
     const couvertes = echantillon.flatMap((station) => station.couvre);
     expect(new Set(couvertes).size).toBe(couvertes.length);
-    expect([...couvertes].sort()).toEqual(['chaine', 'libre', 'm-01/o-bidon', 'm-02/o-caisse', 'm-03/o-bloc', 'm-04/o-burette', 'm-06/o-combinaison', 'm-06/o-decoupeuse', 'm-08/o-planche']);
+    expect([...couvertes].sort()).toEqual(['m-01/o-bidon', 'm-02/o-caisse', 'm-03/o-bloc', 'm-04/o-burette', 'm-06/o-combinaison', 'm-06/o-decoupeuse', 'm-08/o-planche']);
     expect(echantillon.length).toBeLessThanOrEqual(GRANDES_SORTIE);
-    // Clé posée loin de son obstacle, planche dans une pièce du catalogue comprise : pas de signal au départ, et une évacuation.
-    for (const { station } of echantillon) {
+    for (const { station, couvre } of echantillon) {
       const grande = monde(station);
+      // Chaque clé couverte est bien hors de la pièce d'origine que lui donne son morceau.
+      for (const cle of couvre) {
+        const [morceau = '', objet = ''] = cle.split('/');
+        const origine = MORCEAUX[morceau]?.morceau.objets.find((candidat) => candidat.id === objet)?.piece;
+        expect(origine, cle).toBeDefined();
+        expect(grande.objets.find((candidat) => candidat.id === cle)?.piece, `${station} ${cle}`).not.toBe(`${morceau}/${origine}`);
+      }
+      // Clé posée loin de son obstacle, planche dans une pièce du catalogue comprise : pas de signal au départ, et une évacuation.
       const depart = etat(grande);
       expect(observer(grande, depart).sansSortie, station).toBe(false);
       expect(chercherEvacuation(grande, depart, { elague: true }).verdict, station).toBe('evacuation');
