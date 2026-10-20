@@ -35,6 +35,8 @@ export const MORCEAU_M12: DefMorceau = {
   ],
   entree: 'p-atelier', sortie: { piece: 'p-quai', porte: { nom: 'porte' } },
   placesCreature: ['p-stockage'], demande: [], fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1) : déclaré, pas encore tiré (13 §7.14, reprise de main).
+  grande: { obstacle: 'materiel', accueillantes: { 'p-atelier': 'technique', 'p-galerie': 'circulation' }, avant: ['p-atelier', 'p-galerie', 'p-poste', 'p-palier', 'p-stockage'], coupe: ['l-palier-quai'] },
 };
 
 // Texte final non validé. Les descriptions restent vraies dans tous les états et toutes les compositions.

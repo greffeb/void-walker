@@ -44,6 +44,12 @@ export interface GrandePrevue {
   readonly morceaux: readonly EntreeMorceau[];
 }
 
+/**
+ * Chemins venus de main après la conception (M-11, M-12) : déclarés, mais pas encore tirés dans les grandes stations, dont la
+ * liste publiée ne les contient pas ; les y ajouter demande de republier la liste (13 §7.14).
+ */
+const PAS_ENCORE_TIRES: ReadonlySet<string> = new Set(['m-11', 'm-12']);
+
 const VESTIBULE = MORCEAUX.vestibule;
 const CARREFOUR = MORCEAUX.carrefour;
 
@@ -57,8 +63,7 @@ const dessinees = (morceaux: readonly DefMorceau[]): number => morceaux.reduce((
 /** Toutes les grandes compositions, triées par identifiant. */
 export function prevoirGrandes(table: readonly LignePaire[]): GrandePrevue[] {
   const entrees = Object.values(MORCEAUX);
-  // Un chemin sans déclarations de grande station (M-11, M-12, venus de main après la conception) n'y est pas tiré.
-  const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin' && morceau.grande !== undefined);
+  const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin' && !PAS_ENCORE_TIRES.has(morceau.id));
   const materiels = chemins.filter(({ morceau }) => morceau.grande?.obstacle === 'materiel');
   const finals = entrees.filter(({ morceau }) => morceau.famille === 'final' && morceau.grande !== undefined && morceau.id !== 'essai');
   const vestibule = exiger(VESTIBULE, 'vestibule');

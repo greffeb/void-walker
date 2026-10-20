@@ -16,7 +16,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_outillage: { texte: 'salle d’outillage', genre: 'f', nombre: 's', elision: false },
     cat_consigne: { texte: 'consigne', genre: 'f', nombre: 's', elision: false },
     cat_depot: { texte: 'dépôt', genre: 'm', nombre: 's', elision: false },
-    cat_vestiaire: { texte: 'vestiaire', genre: 'm', nombre: 's', elision: false },
+    cat_vestiaire: { texte: 'salle des casiers', genre: 'f', nombre: 's', elision: false },
     cat_ventilation: { texte: 'salle de ventilation', genre: 'f', nombre: 's', elision: false },
     cat_couloir: { texte: 'couloir', genre: 'm', nombre: 's', elision: false },
     cat_plateforme: { texte: 'plateforme de fret', genre: 'f', nombre: 's', elision: false },
