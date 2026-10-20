@@ -270,7 +270,7 @@ Mesures locales de L5 (#155), ordre libre, sans assertion de temps ([13 §7.8](1
 
 Les échecs de pose mesurés sur des chaînes sans plan ne se produisent pas avec les vraies tuiles.
 
-Grandes stations (#205, D-313) : critères de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#11-mesures-et-critères-dacceptation), mesures dans [13 §7.10](13-morceaux-lancement.md#710-grandes-stations-livraison-1-205-206). Une galerie de plans rendus est jointe à la PR par les captures. Livraison 3 : au zoom d'ensemble d'une grande station, les noms des pièces ne se lisent pas sur les captures à 390 et 320 px, et le plan ouvert centré sur le passager sort du cadre à gauche ; les bornes de zoom n'ont pas changé, la décision revient au porteur ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-3-209)).
+Grandes stations (#205, D-313) : critères de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#11-mesures-et-critères-dacceptation), mesures dans [13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-1-205-206). Une galerie de plans rendus est jointe à la PR par les captures. Livraison 3 : au zoom d'ensemble d'une grande station, les noms des pièces ne se lisent pas sur les captures à 390 et 320 px, et le plan ouvert centré sur le passager sort du cadre à gauche ; les bornes de zoom n'ont pas changé, la décision revient au porteur ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)).
 
 ## 6. Ce que le prototype a mesuré
 

@@ -248,7 +248,7 @@
 ### Task 11 : décisions et documents
 
 **Files:**
-- Modify: `docs/03-decisions.md` (limites de D-319 et D-320 : étiquettes, poids, part des clés déplacées, mesures), `docs/13-morceaux-lancement.md` (§7.11 livraison 2 : déclarations des clés, table, mesures), `docs/contrats/C-02-monde-entites.md` (tableau des objets : caisse des grandes stations, trousse de soin, burette de réserve), `docs/00-lire-en-premier.md`
+- Modify: `docs/03-decisions.md` (limites de D-319 et D-320 : étiquettes, poids, part des clés déplacées, mesures), `docs/13-morceaux-lancement.md` (§7.13 livraison 2 : déclarations des clés, table, mesures), `docs/contrats/C-02-monde-entites.md` (tableau des objets : caisse des grandes stations, trousse de soin, burette de réserve), `docs/00-lire-en-premier.md`
 
 - [ ] **Step 1 :** entrées au format du journal ; mesures de la tâche 9.
 - [ ] **Step 2 :** `npm run check:links` → vert.

@@ -207,7 +207,7 @@ Pièces : les pièces du catalogue d'abord, celles qui ne portent encore rien (c
 ### Task 10 : décisions et documents
 
 **Files:**
-- Modify: `docs/03-decisions.md` (limites de D-322 à D-324 : règles de pose, mesures), `docs/12-interface-ecrans.md` (§3.5, §4.4 : fiche document ; §1 principe 5 : exception déjà notée), `docs/contrats/C-06-observation-connaissances.md` (§5 : notes de rangement), `docs/contrats/C-07-textes.md` (§2, §6 : exceptions de D-323), `docs/13-morceaux-lancement.md` (§7.12 livraison 3), `docs/00-lire-en-premier.md`, renvois vers §7.11 et §7.12 (13, 02, 14, C-08 §7, D-314, D-326)
+- Modify: `docs/03-decisions.md` (limites de D-322 à D-324 : règles de pose, mesures), `docs/12-interface-ecrans.md` (§3.5, §4.4 : fiche document ; §1 principe 5 : exception déjà notée), `docs/contrats/C-06-observation-connaissances.md` (§5 : notes de rangement), `docs/contrats/C-07-textes.md` (§2, §6 : exceptions de D-323), `docs/13-morceaux-lancement.md` (§7.14 livraison 3), `docs/00-lire-en-premier.md`, renvois vers §7.13 et §7.14 (13, 02, 14, C-08 §7, D-314, D-326)
 
 - [ ] **Step 1 :** entrées au format du journal ; mesures de la tâche 9 ; la bible reliée depuis 00 et 13.
 - [ ] **Step 2 :** `npm run check:links` → vert.
