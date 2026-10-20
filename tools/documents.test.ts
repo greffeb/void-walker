@@ -74,6 +74,8 @@ describe('documents dans les grandes stations (#209)', () => {
       stations++;
       const { monde, textes } = entree;
       const docs = monde.objets.filter((objet) => objet.document === true);
+      const pillees = new Set(monde.pieces.filter((piece) => piece.pillee === true).map((piece) => piece.id));
+      for (const doc of docs) expect(pillees.has(doc.piece), `${monde.id} : ${doc.nom} dans la salle pillée ${doc.piece}`).toBe(false);
       const notes = docs.filter((doc) => EMPLACEMENTS_DOCUMENTS.find((emplacement) => emplacement.id === doc.nom)?.couche === 'rangement');
       expect(docs.length, entree.monde.id).toBeGreaterThanOrEqual(5);
       expect(docs.length, entree.monde.id).toBeLessThanOrEqual(7 + notes.length);

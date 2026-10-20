@@ -266,16 +266,19 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
   const faces = facesDe(monde, station, segments);
   const morceauDeFace = new Map([...faces].map(([morceau, face]) => [face, morceau]));
   const auDepart = distancesDepuis(monde.depart, toutes);
-  const piecesDocuments = parcourables.map(
-    (piece): PieceDocument => ({
-      id: piece.id,
-      etiquettes: etiquettes.get(piece.id) ?? [],
-      morceau: morceauDeFace.get(accroches(piece.id).at(-1) ?? piece.id) ?? null,
-      rang: auDepart.get(piece.id) ?? 0,
-      catalogue: catalogue.has(piece.id),
-      vide: !portent.has(piece.id),
-    }),
-  );
+  // Une salle pillée ne reçoit aucun document : sa phrase de pillage dit qu'il n'y reste rien (C-05).
+  const piecesDocuments = parcourables
+    .filter((piece) => !pillees.has(piece.id))
+    .map(
+      (piece): PieceDocument => ({
+        id: piece.id,
+        etiquettes: etiquettes.get(piece.id) ?? [],
+        morceau: morceauDeFace.get(accroches(piece.id).at(-1) ?? piece.id) ?? null,
+        rang: auDepart.get(piece.id) ?? 0,
+        catalogue: catalogue.has(piece.id),
+        vide: !portent.has(piece.id),
+      }),
+    );
   const origines = new Map(monde.objets.map((objet) => [objet.id, objet.piece]));
   const morceauDeCle = new Map(morceaux.flatMap((morceau) => Object.keys(morceau.grande?.cles ?? {}).map((id) => [prefixer(morceau.id, id), morceau.id] as const)));
   const clesDeplacees = new Map(

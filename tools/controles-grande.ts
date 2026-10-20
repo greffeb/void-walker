@@ -5,7 +5,8 @@ import { PIECES_CATALOGUE, type EntreeMonde } from '../content';
 // sur chaque station publiée. La preuve de jeu (vérifieur) vient ensuite.
 
 const ANNEXES = new Map(PIECES_CATALOGUE.map((morceau) => [morceau.id, morceau]));
-const PIECES_MIN = 21;
+// 6 à 10 annexes (spec §4.1) : avec les documents, une station peut garder 6 annexes et compter 20 pièces dessinées.
+const PIECES_MIN = 20;
 const PIECES_MAX = 28;
 const PORTES_MAX = 6;
 const SERVIES_MIN = 2;

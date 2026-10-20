@@ -391,6 +391,9 @@ describe('documents et couverture (spec 2026-10-18 §8.4, §7.3)', () => {
       expect(docs.length, station.id).toBeLessThanOrEqual(7);
       expect(docs.map((doc) => doc.piece), station.id).not.toContain(monde.depart);
       expect(new Set(docs.map((doc) => doc.piece)).size, station.id).toBe(docs.length);
+      // Une salle pillée n'a plus rien : sa phrase de pillage le dit (C-05), aucun document n'y est posé.
+      const pillees = new Set(monde.pieces.filter((piece) => piece.pillee === true).map((piece) => piece.id));
+      for (const doc of docs) expect(pillees.has(doc.piece), `${station.id} : ${doc.nom} dans la salle pillée ${doc.piece}`).toBe(false);
       const presents = new Set(station.morceaux.map((leMorceau) => leMorceau.id));
       for (const doc of docs) {
         const emplacement = emplacementDe.get(doc.nom);
