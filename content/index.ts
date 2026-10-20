@@ -37,7 +37,7 @@ export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
   'station m-10': { noms: {}, descriptions: {}, assistance: MESSAGES_M10 },
 };
 
-export { FIN, fuitesDeCouches, fuitesDesCouches, fuitesDuCatalogue, motsReserves, reunir, type Reserve } from './textes/couches';
+export { FIN, fuitesDeCouches, fuitesDesCouches, fuitesDuCatalogue, minuscules, motsReserves, reunir, type Reserve } from './textes/couches';
 export { rendreDocument, texteDocument, type DocumentRendu, type LigneDocument } from './textes/document';
 export { DOCUMENTS, EMPLACEMENTS_DOCUMENTS, RESERVE_DOCUMENTS } from './textes/documents';
 export { cleMort, MOMENTS_MAX, raconterFin, type FinDePartie, type RecitFin } from './textes/fin';

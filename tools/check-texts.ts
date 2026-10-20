@@ -33,6 +33,7 @@ import {
   fuitesDesCouches,
   fuitesDuCatalogue,
   MENACE,
+  minuscules,
   MORCEAUX,
   motsReserves,
   SOCLE,
@@ -753,12 +754,10 @@ const INTERDITS: Readonly<Record<CoucheDocument, readonly Reserve[]>> = {
   rangement: ['univers', 'menace', 'traces'],
 };
 
+/** Un trou qui nomme la pièce : « le », « de » ou « a », avec ou sans majuscule. */
+const TROU_PIECE = /\{(?:le|de|a):piece\}/i;
 const TROU_INTERDIT = 'trou interdit : le seul trou est la pièce, dans le corps d’une note de rangement.';
 const SANS_TEXTE = { noms: {}, descriptions: {}, assistance: {} };
-
-function minuscules(texte: string): string {
-  return texte.normalize('NFC').toLocaleLowerCase('fr');
-}
 
 /** Noms affichés des pièces et des objets des morceaux, du catalogue et de l'univers, en minuscules : une puce n'en reprend aucun (bible §6). */
 function nomsDesLieux(): Set<string> {
@@ -766,8 +765,14 @@ function nomsDesLieux(): Set<string> {
   return new Set(noms.flatMap((table) => Object.values(table).map((nom) => minuscules(nom.texte))));
 }
 
-/** Pièces du catalogue qui peuvent recevoir une clé de l'une de ces étiquettes (spec §5.2) : clé de leur nom et nom. */
-function piecesPour(etiquettes: readonly string[]): { readonly cle: string; readonly nom: Nom }[] {
+/** Une pièce du catalogue : la clé de son nom et son nom. */
+export interface PieceReserve {
+  readonly cle: string;
+  readonly nom: Nom;
+}
+
+/** Pièces du catalogue qui peuvent recevoir une clé de l'une de ces étiquettes (spec §5.2). */
+export function piecesPour(etiquettes: readonly string[]): PieceReserve[] {
   return Object.values(CATALOGUE_PIECES).flatMap(({ morceau }) => {
     const cle = morceau.pieces[0]?.nom ?? '';
     const nom = TEXTES_CATALOGUE.noms[cle];
@@ -787,7 +792,7 @@ function longueurDuDocument(rendu: DocumentRendu): string | null {
  * catalogue où sa clé peut aller, sous son nom puis numérotée (« consigne B »). Une erreur de rendu s'ajoute à `erreurs` et
  * arrête les rendus de ce document.
  */
-function rendreLaPlace(erreurs: string[], ou: string, textes: TextesMonde, cible: RefObjet, pieces: ReturnType<typeof piecesPour> | null): DocumentRendu[] {
+function rendreLaPlace(erreurs: string[], ou: string, textes: TextesMonde, cible: RefObjet, pieces: readonly PieceReserve[] | null): DocumentRendu[] {
   const regards: { libelle: string; textes: TextesMonde; designe?: RefPiece }[] =
     pieces === null
       ? [{ libelle: 'rendu', textes }]
@@ -810,15 +815,9 @@ function rendreLaPlace(erreurs: string[], ou: string, textes: TextesMonde, cible
   return rendus;
 }
 
-/**
- * Toute la réserve, sans station de référence : chaque place a un texte et chaque texte une place ; une note de rangement a
- * une clé et un morceau sauf la trousse ; le seul trou est la pièce, dans le corps d'une note de rangement ; aucun mot réservé
- * de la couche ; une à cinq phrases ; aucun chiffre dans la puce, la ligne « où » ni la signature (le corps en a le droit) ; des
- * noms de puce distincts entre eux et de tout nom de pièce ou d'objet. Chaque document est rendu par `rendreDocument` : une
- * note de rangement avec chaque pièce du catalogue où sa clé peut aller, et avec une pièce numérotée (« consigne B »).
- */
-export function controlerReserve({ emplacements, communs, morceaux }: SourcesReserve = SOURCES_RESERVE): string[] {
+function analyserReserve({ emplacements, communs, morceaux }: SourcesReserve): { readonly erreurs: string[]; readonly rendus: ReadonlyMap<string, readonly DocumentRendu[]> } {
   const erreurs: string[] = [];
+  const rendusParDocument = new Map<string, readonly DocumentRendu[]>();
   const lu = (table: Readonly<Record<string, TexteDocument>> | undefined, id: string): TexteDocument | undefined => (table !== undefined && Object.hasOwn(table, id) ? table[id] : undefined);
   const definitions = new Map<string, number>();
   for (const id of [...Object.keys(communs), ...Object.values(morceaux).flatMap(({ textes }) => Object.keys(textes.documents ?? {}))]) definitions.set(id, (definitions.get(id) ?? 0) + 1);
@@ -854,6 +853,7 @@ export function controlerReserve({ emplacements, communs, morceaux }: SourcesRes
       for (const fuite of motsReserves(valeur, INTERDITS[couche])) erreurs.push(`${ou}, ${champ} : ${fuite}.`);
       if (!corps && /[\d%]/.test(valeur)) erreurs.push(`${ou}, ${champ} : chiffre ou pourcentage dans « ${valeur} » (C-04 §4.3).`);
     }
+    if (couche === 'rangement' && !texte.corps.some((ligne) => TROU_PIECE.test(ligne))) erreurs.push(`${ou} : note de rangement qui ne nomme pas la pièce.`);
 
     const nom = minuscules(texte.puce.texte);
     const autre = puces.get(nom);
@@ -862,7 +862,7 @@ export function controlerReserve({ emplacements, communs, morceaux }: SourcesRes
     if (lieux.has(nom)) erreurs.push(`${ou} : nom de puce « ${texte.puce.texte} » déjà celui d’une pièce ou d’un objet.`);
 
     // Le rendu : une note de rangement désigne chaque pièce du catalogue où sa clé peut aller, sous son nom puis numérotée.
-    let pieces: ReturnType<typeof piecesPour> | null = null;
+    let pieces: readonly PieceReserve[] | null = null;
     if (couche === 'rangement' && cle !== undefined) {
       const etiquettes = cle === CLE_TROUSSE ? ['butin'] : entree?.morceau.grande?.cles?.[cle]?.etiquettes;
       if (etiquettes === undefined) {
@@ -872,16 +872,36 @@ export function controlerReserve({ emplacements, communs, morceaux }: SourcesRes
       pieces = piecesPour(etiquettes);
       if (pieces.length === 0) erreurs.push(`${ou} : aucune pièce du catalogue ne peut recevoir sa clé.`);
     }
-    const textes = reunir([entree?.textes ?? SANS_TEXTE, TEXTES_CATALOGUE, { ...SANS_TEXTE, documents: morceau === undefined ? { [id]: texte } : {} }]);
-    const rendus = rendreLaPlace(erreurs, ou, textes, { sorte: 'objet', id: `e${id}`, nom: id }, couche === 'rangement' ? (pieces ?? []) : null);
-    for (const rendu of rendus) {
-      const restes = [rendu.ou, rendu.signature ?? '', rendu.piece ?? '', ...rendu.corps.map((ligne) => ligne.texte)];
-      if (restes.some((reste) => /[{}]/.test(reste))) erreurs.push(`${ou} : trou restant après le rendu.`);
+    let textes: TextesMonde;
+    try {
+      textes = reunir([entree?.textes ?? SANS_TEXTE, TEXTES_CATALOGUE, { ...SANS_TEXTE, documents: morceau === undefined ? { [id]: texte } : {} }]);
+    } catch (erreur) {
+      erreurs.push(`${ou}, réunion des textes : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+      continue;
     }
+    const rendus = rendreLaPlace(erreurs, ou, textes, { sorte: 'objet', id: `e${id}`, nom: id }, couche === 'rangement' ? (pieces ?? []) : null);
+    rendusParDocument.set(id, rendus);
     const trop = rendus[0] === undefined ? null : longueurDuDocument(rendus[0]);
     if (trop !== null) erreurs.push(`${ou} : ${trop}`);
   }
-  return erreurs;
+  return { erreurs, rendus: rendusParDocument };
+}
+
+/**
+ * Toute la réserve, sans station de référence : chaque place a un texte et chaque texte une place ; une note de rangement a
+ * une clé et un morceau sauf la trousse ; le seul trou est la pièce, dans le corps d'une note de rangement ; aucun mot réservé
+ * de la couche ; une à cinq phrases ; aucun chiffre dans la puce, la ligne « où » ni la signature (le corps en a le droit) ; des
+ * noms de puce distincts entre eux et de tout nom de pièce ou d'objet. Chaque document est rendu par `rendreDocument` : une
+ * note de rangement avec chaque pièce du catalogue où sa clé peut aller, et avec une pièce numérotée (« consigne B »), et nomme
+ * cette pièce.
+ */
+export function controlerReserve(sources: SourcesReserve = SOURCES_RESERVE): string[] {
+  return analyserReserve(sources).erreurs;
+}
+
+/** Ce que le contrôle a rendu de chaque document, par identifiant : une fois, ou, pour une note de rangement, une fois par pièce nommée puis lettrée. */
+export function rendusDeLaReserve(sources: SourcesReserve = SOURCES_RESERVE): ReadonlyMap<string, readonly DocumentRendu[]> {
+  return analyserReserve(sources).rendus;
 }
 
 /** Phrases de pillage, de trace et de bruit de station, comme le contenu les écrit (spec 2026-10-18 §5.4, §5.5, §6.6). */

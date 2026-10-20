@@ -1,5 +1,5 @@
 import { prefixer, type EmplacementDocument } from '../engine';
-import { COMPOSITIONS_CONTROLEES, DOCUMENTS, EMPLACEMENTS_DOCUMENTS, MONDES, MORCEAUX, type EntreeMonde, type TexteDocument, type TextesMonde } from '../content';
+import { COMPOSITIONS_CONTROLEES, DOCUMENTS, EMPLACEMENTS_DOCUMENTS, GRAINE_GRANDE_MAX, MONDES, MORCEAUX, type EntreeMonde, type TexteDocument, type TextesMonde } from '../content';
 import { TEXTES_AR01 } from '../content/ar-01/textes';
 import { CATALOGUE } from './catalogue';
 import {
@@ -19,7 +19,9 @@ import {
   MAX_ETATS_GRANDE,
   MAX_ETATS_MONDE_TEST,
   PHRASES_REELLES,
+  piecesPour,
   regrouperAvertissements,
+  rendusDeLaReserve,
   SOURCES_RESERVE,
   tracesHorsPiste,
   verifierTextes,
@@ -58,6 +60,19 @@ describe('contrôle des textes (C-07)', () => {
     const second = controlerLot(lot, CATALOGUE, cache);
     expect(second).toMatchObject({ erreurs: 0, repris: 1 });
     expect(second.lignes.filter(({ texte }) => texte.endsWith('(repris du cache)'))).toHaveLength(1);
+  });
+
+  it('seul le lot 1 contrôle aussi les textes sans station : couches, traces, réserve de documents, pillages, traces et bruits (spec §11)', () => {
+    const ids = idsAControler(CATALOGUE);
+    // Un cache qui connaît toutes les entrées : le lot ne les explore pas, seul le contrôle des textes communs reste à voir.
+    const repris = { lire: <T,>() => ({ lignes: [], erreurs: 0 }) as T, ecrire: () => undefined };
+    const textes = (numero: number): string[] => controlerLot({ numero, total: ids.length }, CATALOGUE, repris).lignes.map(({ texte }) => texte);
+    const lot1 = textes(1);
+    expect(lot1).toEqual(controlerTextesCommuns().lignes.map(({ texte }) => texte));
+    for (const ligne of ['couches : l’univers sans mot de la menace ni des traces, la menace sans « station ».', 'documents : toute la réserve rendue sans station ; structure, trous, couches, longueur, chiffres et puces sûrs.', 'phrases : pillages, traces et bruits de station sûrs.']) {
+      expect(lot1).toContain(ligne);
+    }
+    expect(textes(2)).toEqual([]);
   });
 
   it('une entrée en erreur n’est pas gardée : elle sera contrôlée de nouveau (#180)', () => {
@@ -347,6 +362,66 @@ describe('réserve de documents : trous (spec §8.5)', () => {
   });
 });
 
+describe('réserve de documents : la note de rangement nomme sa pièce (spec §8.4)', () => {
+  const SANS_PIECE = 'note de rangement qui ne nomme pas la pièce.';
+
+  it('une note de rangement sans trou {le|de|a:piece} dans son corps ne dit pas où est la clé : erreur', () => {
+    expect(controlerReserve(avecCommun('doc_papier_plie', { corps: ['J’ai mis une trousse de soin de côté.', 'Prenez-la sans scrupule.'] }))).toContain(`document doc_papier_plie : ${SANS_PIECE}`);
+    expect(controlerReserve(avecDuMorceau('m-01', 'doc_note_scotchee', { corps: ['J’ai emporté le bidon d’eau pour le remplir.'] }))).toContain(`document doc_note_scotchee : ${SANS_PIECE}`);
+  });
+
+  it('une forme à majuscule ou « de » suffit ; un autre document n’a pas à nommer de pièce', () => {
+    expect(controlerReserve(avecCommun('doc_papier_plie', { corps: ['{Le:piece} garde une trousse.'] }))).toEqual([]);
+    expect(controlerReserve(avecCommun('doc_papier_plie', { corps: ['La porte {de:piece} est lourde.'] }))).toEqual([]);
+    expect(controlerReserve(avecCommun('doc_carte_postale', { corps: ['Rien à dire.'] }))).toEqual([]);
+  });
+});
+
+describe('réserve de documents : un conflit de clé est une ligne d’erreur', () => {
+  it('la puce d’un document qui reprend la clé d’un nom du catalogue avec un autre texte donne une erreur, pas une exception', () => {
+    const sources: SourcesReserve = {
+      ...SOURCES_RESERVE,
+      emplacements: [...EMPLACEMENTS_DOCUMENTS, { id: 'cat_consigne', couche: 'univers', etiquettes: ['eau'] }],
+      communs: { ...DOCUMENTS, cat_consigne: commun('doc_carte_postale') },
+    };
+    const erreurs = controlerReserve(sources);
+    expect(erreurs).toContainEqual(expect.stringMatching(/^document cat_consigne, réunion des textes : .*cat_consigne.* défini deux fois/));
+  });
+});
+
+describe('réserve de documents : couverture du rendu', () => {
+  const rendus = rendusDeLaReserve();
+  const etiquettesDe = ({ cle, morceau }: EmplacementDocument): readonly string[] | undefined =>
+    cle === 'butin:soin' ? ['butin'] : MORCEAUX[morceau ?? '']?.morceau.grande?.cles?.[cle ?? '']?.etiquettes;
+
+  it('piecesPour : les pièces du catalogue qui portent une des étiquettes', () => {
+    expect(piecesPour(['butin']).map(({ nom }) => nom.texte)).toEqual(expect.arrayContaining(['consigne', 'infirmerie', 'laboratoire']));
+    expect(piecesPour(['butin']).map(({ cle }) => cle)).toContain('cat_consigne');
+    expect(piecesPour(['étiquette inconnue'])).toEqual([]);
+  });
+
+  it('la note de la trousse se rend avec la consigne, nommée puis lettrée', () => {
+    const pieces = rendus.get('doc_papier_plie')?.map(({ piece }) => piece);
+    expect(pieces).toEqual(expect.arrayContaining(['consigne', 'consigne B']));
+  });
+
+  it('chaque document est rendu ; une note de rangement avec chaque pièce où sa clé peut aller, sous son nom puis lettrée', () => {
+    expect([...rendus.keys()].sort()).toEqual(EMPLACEMENTS_DOCUMENTS.map(({ id }) => id).sort());
+    for (const emplacement of EMPLACEMENTS_DOCUMENTS) {
+      const pieces = rendus.get(emplacement.id)?.map(({ piece }) => piece);
+      if (emplacement.couche !== 'rangement') {
+        expect(pieces, emplacement.id).toEqual([undefined]);
+        continue;
+      }
+      const etiquettes = etiquettesDe(emplacement);
+      expect(etiquettes, emplacement.id).toBeDefined();
+      const attendues = piecesPour(etiquettes ?? []).flatMap(({ nom }) => [nom.texte, `${nom.texte} B`]);
+      expect(attendues.length, emplacement.id).toBeGreaterThanOrEqual(2);
+      expect(pieces, emplacement.id).toEqual(attendues);
+    }
+  });
+});
+
 describe('réserve de documents : couches et mots réservés (spec §8.4)', () => {
   it('l’univers ne dit ni mot de la menace ni mot de trace, partout dans le document, puce comprise', () => {
     expect(controlerReserve(avecCommun('doc_carte_postale', { corps: ['La créature dort.'] }))).toContain('document doc_carte_postale, corps [0] : « créature », mot de la menace.');
@@ -491,11 +566,19 @@ describe('grandes stations explorées par check:texts (spec §11, #209)', () => 
     expect(grandesAControler(CATALOGUE)).toEqual(grandes);
   });
 
-  it('une station dont la publication est périmée est sautée : la suivante qui se construit est prise', () => {
-    const [premiere = ''] = CATALOGUE.publiees;
-    const sans = { ...CATALOGUE, publiees: ['g1-inconnue-0', ...CATALOGUE.publiees] };
-    expect(grandesAControler(sans)).not.toContain('g1-inconnue-0');
-    expect(grandesAControler(sans)[0]).toBe(premiere);
+  it('une station dont la publication est périmée est sautée, où qu’elle soit dans la liste : le choix est celui de la liste d’origine', () => {
+    // Une graine hors de la plage se construit en refus : la composition existe, la station non, comme après un changement de plan.
+    const perimee = (forme: 'chaine' | 'libre'): string => {
+      const composition = CATALOGUE.grandes.find((candidate) => candidate.refus === null && candidate.forme === forme);
+      if (composition === undefined) throw new Error(`Aucune grande composition en ${forme}.`);
+      return `${composition.id}-${GRAINE_GRANDE_MAX + 1}`;
+    };
+    const [chaine, libre] = [perimee('chaine'), perimee('libre')];
+    for (const id of [chaine, libre]) expect('refus' in entreeAControler(CATALOGUE, id)[1], id).toBe(true);
+    const choix = grandesAControler(CATALOGUE);
+    for (const publiees of [[chaine, libre, ...CATALOGUE.publiees], [...CATALOGUE.publiees, chaine, libre], [libre, ...CATALOGUE.publiees, chaine]]) {
+      expect(grandesAControler({ ...CATALOGUE, publiees })).toEqual(choix);
+    }
   });
 
   it('chaque grande station choisie se construit sous son identifiant, porte un document et passe l’exploration de check:texts, à sa borne', EXHAUSTIF, () => {

@@ -58,7 +58,8 @@ export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
 /** Étiquettes des supports de document du socle (spec 2026-10-18 §8.4), reprises par les mondes écrits en entier, qui n’en portent aucun. */
 export const SUPPORTS: TextesMonde['supports'] = reunir([]).supports;
 
-function minuscules(texte: string): string {
+/** Texte en minuscules (français) et en forme NFC : pour comparer sans la casse. */
+export function minuscules(texte: string): string {
   return texte.normalize('NFC').toLocaleLowerCase('fr');
 }
 
@@ -77,7 +78,8 @@ const RESERVES: Readonly<Record<Reserve, { readonly libelle: string; readonly ra
 };
 
 /**
- * Mots d'un texte qui commencent par un radical des listes interdites, casse ignorée, dits « « mot », liste » ; un radical qui
+ * Mots d'un texte qui portent un radical réservé de l'une des listes `interdits`, casse ignorée : chacun est dit « « mot »,
+ * mot de la menace » (ou de l'univers, ou réservé aux traces). Un mot porte un radical s'il commence par lui ; un radical qui
  * finit par « $ » ne vaut que pour le mot exact (« sang », pas « sangle »). Les trous ne sont pas des mots.
  */
 export function motsReserves(texte: string, interdits: readonly Reserve[]): string[] {
