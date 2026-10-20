@@ -39,21 +39,24 @@ export function numeroDe(compositions: readonly string[], idMonde: string): numb
 }
 
 /**
- * Intro sur les grandes stations publiées, que tire NOUVELLE PARTIE (D-313, D-326) : chacune est publiée avec sa graine. Le
- * numéro reste le rang de la composition, sans la graine (D-312) ; le défilé pioche, pour une composition, l'une de ses
- * stations publiées, puisqu'une graine quelconque n'a pas toujours de plan.
+ * Stations publiées que l'intro numérote : les petites compositions, puis les grandes, que NOUVELLE PARTIE tire (D-313, D-326).
+ * Une grande station est publiée avec sa graine : son numéro reste le rang de sa composition, sans la graine (D-312), et le
+ * défilé dessine l'une de ses stations publiées, puisqu'une graine quelconque n'a pas toujours de plan.
  */
-export function dependancesGrandes(
-  stations: readonly string[],
+export function dependancesPubliees(
+  petites: readonly string[],
+  grandes: readonly string[],
+  construirePetite: (composition: string, graine: number) => EntreeMonde | Refus,
   resoudre: (id: string) => EntreeMonde | Refus,
 ): Pick<DependancesIntro, 'compositions' | 'construire'> {
   const parComposition = new Map<string, string[]>();
-  for (const id of stations) parComposition.set(compositionDe(id), [...(parComposition.get(compositionDe(id)) ?? []), id]);
+  for (const id of grandes) parComposition.set(compositionDe(id), [...(parComposition.get(compositionDe(id)) ?? []), id]);
   return {
-    compositions: [...parComposition.keys()],
+    compositions: [...petites, ...parComposition.keys()],
     construire: (composition, graine) => {
-      const publiees = parComposition.get(composition) ?? [];
-      const id = publiees[graine % Math.max(publiees.length, 1)];
+      const publiees = parComposition.get(composition);
+      if (publiees === undefined) return construirePetite(composition, graine);
+      const id = publiees[graine % publiees.length];
       return id === undefined ? { refus: `Station ${composition} non publiée.` } : resoudre(id);
     },
   };

@@ -5,7 +5,7 @@ import { chromium, devices, type Browser, type BrowserContext, type Locator, typ
 import { preview } from 'vite';
 import { apercu, idPublic, jouer, nouvellePartie, observer, type Commande, type DefMonde, type DefObjet, type EtatPartie, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
-import { cleMort, COMPOSITIONS_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type CleMort, type EntreeMonde, type EtapeParcours, type SupportDocument, type TextesMonde } from '../content';
+import { cleMort, COMPOSITIONS_PUBLIEES, GRANDES_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type CleMort, type EntreeMonde, type EtapeParcours, type SupportDocument, type TextesMonde } from '../content';
 import { composerDock, filBulle, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, REGARDER_AUTOUR, texteRappel, unToucher } from '../app/ecran';
 import { recitDeFin } from '../app/jeu';
 import { CLE_REGLAGES } from '../app/reglages';
@@ -43,6 +43,8 @@ const FORME_STATION = /^((ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)|g1
 /** Sas de sécurité M-11 (#203) : porte blindée, lecteur de carte et remise ; plan de la station. */
 const STATION_SAS = 'm11-m03-remise-2718281828';
 const STATION_DRONE = 'm12-m03-stockage-2718281828';
+/** Stations que l'intro compte (D-312) : les petites compositions publiées, puis les compositions des grandes stations publiées. */
+const STATIONS_DE_L_INTRO = COMPOSITIONS_PUBLIEES.length + new Set(GRANDES_PUBLIEES.map((id) => id.slice(0, id.lastIndexOf('-')))).size;
 /** Galerie des plans (#153) : six stations tirées par groupe (un ou deux chemins, M-03 ou M-06), au hasard à graine fixe, les mêmes à chaque capture. */
 const STATIONS_PAR_GROUPE = 6;
 const GRAINE_GALERIE = 20261015;
@@ -2290,7 +2292,7 @@ async function parcoursStation(navigateur: Browser, racine: string, capturer: Ca
     await demarrer.waitFor();
     const lu = (await intro.innerText()).replace(/\s+/g, ' ');
     const numero = /Station (\d+) sur (\d+)/.exec(lu);
-    if (numero === null || Number(numero[2]) !== COMPOSITIONS_PUBLIEES.length) erreurs.push(`${ou}, intro : « Station N sur ${COMPOSITIONS_PUBLIEES.length} » absent.`);
+    if (numero === null || Number(numero[2]) !== STATIONS_DE_L_INTRO) erreurs.push(`${ou}, intro : « Station N sur ${STATIONS_DE_L_INTRO} » absent.`);
     if ((await intro.locator('.intro-menace', { hasText: 'ERREUR : Menace détectée' }).count()) !== 1) erreurs.push(`${ou}, intro : ligne de l’erreur absente.`);
     if (titre !== undefined) await capturer(page, titre);
     await demarrer.click();

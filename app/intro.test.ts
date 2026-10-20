@@ -1,6 +1,6 @@
 import { COMPOSITIONS_PUBLIEES, GRANDES_PUBLIEES, MONDES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
-import { AMBIANCE, compositionDe, creerIntro, dependancesGrandes, lignesDuTirage, numeroDe, pasLigne, planDe, type DependancesIntro } from './intro';
+import { AMBIANCE, compositionDe, creerIntro, dependancesPubliees, lignesDuTirage, numeroDe, pasLigne, planDe, type DependancesIntro } from './intro';
 
 /** Hasard rejouable : même graine, mêmes tirages. */
 function lcg(graine: number): () => number {
@@ -45,19 +45,21 @@ describe('intro de NOUVELLE PARTIE (12 §4.1 bis, D-308 à D-312)', () => {
     expect(planDe(monde)).toHaveLength(monde.pieces.filter((piece) => piece.plan !== undefined).length);
   });
 
-  it('grandes stations : NOUVELLE PARTIE les tire, l’intro les numérote par composition et en dessine de publiées (D-312, D-313)', () => {
-    const grandes = dependancesGrandes(GRANDES_PUBLIEES, (id) => CATALOGUE.resoudre(id));
-    const intro = creerIntro({ ...grandes, hasard: lcg(7), mouvementReduit: () => false });
-    expect(grandes.compositions.length).toBeGreaterThan(0);
-    expect(new Set(grandes.compositions).size).toBe(grandes.compositions.length);
-    expect(intro.total).toBe(grandes.compositions.length);
-    for (const id of GRANDES_PUBLIEES.slice(0, 20)) expect(intro.numero(id), id).toBe(grandes.compositions.indexOf(compositionDe(id)) + 1);
+  it('petites et grandes stations publiées : un numéro chacune, par composition, et de vrais plans au défilé (D-312, D-313)', () => {
+    const publiees = dependancesPubliees(COMPOSITIONS_PUBLIEES, GRANDES_PUBLIEES, (composition, graine) => CATALOGUE.construire(composition, graine), (id) => CATALOGUE.resoudre(id));
+    const intro = creerIntro({ ...publiees, hasard: lcg(7), mouvementReduit: () => false });
+    const grandes = new Set(GRANDES_PUBLIEES.map(compositionDe));
+    expect(new Set(publiees.compositions).size).toBe(publiees.compositions.length);
+    expect(intro.total).toBe(COMPOSITIONS_PUBLIEES.length + grandes.size);
+    expect(intro.numero(`${COMPOSITIONS_PUBLIEES[0]}-5`)).toBe(1);
+    for (const id of GRANDES_PUBLIEES.slice(0, 20)) expect(intro.numero(id), id).toBe(publiees.compositions.indexOf(compositionDe(id)) + 1);
+    expect(intro.numero(GRANDES_PUBLIEES[0]!)).toBeGreaterThan(COMPOSITIONS_PUBLIEES.length);
     const tiree = CATALOGUE.tirerGrande(() => 12345);
     expect('refus' in tiree).toBe(false);
     if (!('refus' in tiree)) expect(intro.numero(tiree.monde.id)).not.toBeNull();
-    const plans = Array.from({ length: 4 }, () => intro.plan());
-    for (const plan of plans) expect(plan?.length ?? 0).toBeGreaterThan(20);
-    expect('refus' in grandes.construire('g1-inconnue', 0)).toBe(true);
+    const grande = publiees.construire([...grandes][0]!, 3);
+    expect('refus' in grande ? 0 : planDe(grande.monde).length).toBeGreaterThan(20);
+    expect('refus' in publiees.construire('g1-inconnue', 0)).toBe(true);
   });
 
   it('lignes : départ, passage et final, trois textes d’ambiance distincts tirés au hasard, capsule et sortie (D-309)', () => {
