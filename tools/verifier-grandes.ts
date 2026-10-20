@@ -7,7 +7,7 @@ import { controlerGrande } from './controles-grande';
 import { dansLeLot, type Lot } from './lots';
 import { REPO_ROOT } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { capsuleCoupee, chercherJusqua, ordreImpose, verifierStation, type OptionsVerification, type RapportStation } from './verifier-station';
+import { capsuleCoupee, chercherJusqua, cloisonsDuCarrefour, ordreImpose, verifierStation, type OptionsVerification, type RapportStation } from './verifier-station';
 
 // Preuve d'une grande station (spec 2026-10-18 §7, D-326) : les contrôles structurels d'abord, puis une évacuation sans dé ni
 // blessure par les vraies règles, sur la station privée de son butin (§7.4). Le chemin principal seul se prouve vite ; son
@@ -164,7 +164,7 @@ export function verifierGrande(catalogue: Catalogue, station: string, options: O
   if (base === null) return conclure({ verdict: 'non_prouvee', ecarts: ['Chemin principal non assemblé.'], etats: 0, actions: null, methode: null, temoins: null });
   const prive = sansButin(entree);
 
-  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const cloisons = cloisonsDuCarrefour(entree.monde);
   if (cloisons.length === 0) {
     const preuve = prouver(prive, base, options, () => ({}));
     return conclure({ verdict: preuve.verdict, ecarts: [], etats: preuve.etats, actions: preuve.actions, methode: preuve.methode, temoins: preuve.temoin === null ? null : [preuve.temoin] });
@@ -240,10 +240,11 @@ export function verifierPubliee(catalogue: Catalogue, station: string, temoins: 
   if (temoins === undefined || temoins.length === 0) return conclure('non_prouvee', ['Témoin absent : relancer npm run publier:grandes.']);
   const rejeux = [sansButin(entree), entree].map((monde) => temoins.map((pas) => rejouerTemoin(monde, pas)));
   if (rejeux.some((levees) => levees.some((ordre) => ordre === null))) return conclure('non_prouvee', ['Témoin publié qui ne mène plus à l’évacuation, avec ou sans le butin : relancer npm run publier:grandes.']);
-  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const cloisons = cloisonsDuCarrefour(entree.monde);
   if (cloisons.length === 0) return conclure('prouvee', []);
   if (!cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison))) return conclure('sans_sortie_sure', ['Une cloison verrouillée ne coupe pas l’accès à la capsule (G-08).']);
-  const ordresDistincts = rejeux.every((levees) => new Set(levees.map((ordre) => ordre?.[0])).size === cloisons.length);
+  // Le premier verrou levé du carrefour dit l'ordre ; la porte blindée de M-11, levée en route, n'en dit rien.
+  const ordresDistincts = rejeux.every((levees) => new Set(levees.map((ordre) => ordre?.find((cloison) => cloisons.includes(cloison)))).size === cloisons.length);
   return ordresDistincts ? conclure('prouvee', []) : conclure('non_prouvee', ['Ordre libre : un témoin par ordre de préparation attendu (G-07).']);
 }
 

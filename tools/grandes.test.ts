@@ -16,9 +16,9 @@ const morceauxDe = (composition: CompositionGrande): string[] => ['vestibule', .
 describe('compositions des grandes stations (D-313, D-315)', () => {
   const { grandes } = CATALOGUE;
 
-  it('192 en chaîne et 96 en ordre libre, avant refus des paires', () => {
-    expect(grandes.filter((composition) => composition.forme === 'chaine')).toHaveLength(192);
-    expect(grandes.filter((composition) => composition.forme === 'libre')).toHaveLength(96);
+  it('720 en chaîne et 360 en ordre libre, avant refus des paires', () => {
+    expect(grandes.filter((composition) => composition.forme === 'chaine')).toHaveLength(720);
+    expect(grandes.filter((composition) => composition.forme === 'libre')).toHaveLength(360);
   });
 
   it('deux chemins matériels, puis un troisième ; la créature dans le troisième chemin ou le final', () => {
@@ -43,8 +43,13 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     expect(CATALOGUE.compositions.some((composition) => composition.id.startsWith('g'))).toBe(false);
   });
 
-  it('annexes : 24 moins les pièces dessinées des morceaux, de 6 à 10', () => {
-    for (const composition of grandes) expect(composition.annexes, composition.id).toBe(Math.min(10, Math.max(6, 24 - dessinees(morceauxDe(composition)))));
+  it('annexes : 24 moins les pièces dessinées des morceaux, de 6 à 10, sans dépasser 28 pièces dessinées', () => {
+    for (const composition of grandes) {
+      const base = dessinees(morceauxDe(composition));
+      expect(composition.annexes, composition.id).toBe(Math.min(10, 28 - base, Math.max(6, 24 - base)));
+    }
+    // Seul un ordre libre avec M-12 et deux chemins de cinq pièces descend à cinq annexes.
+    expect(new Set(grandes.map((composition) => composition.annexes))).toEqual(new Set([5, 6, 7, 8, 9, 10]));
   });
 
   it('ordre libre : le vestibule donne sur le couloir commun, le troisième chemin suit le sas, la seconde cloison mène à lui', () => {
@@ -67,7 +72,7 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
   });
 
   // Une graine sans porte de boucle n'a pas de plan (D-318) : une sur deux environ ; la publication les saute sans les prouver.
-  it('assemblage : chaque plan a une à trois portes de boucle et 21 à 28 pièces dessinées ; au moins 40 % de plans, moins de 50 ms par station en moyenne', () => {
+  it('assemblage : chaque plan a une à trois portes de boucle et 21 à 28 pièces dessinées ; au moins 35 % de plans, moins de 50 ms par station en moyenne', () => {
     const echantillon = grandes.filter((composition, rang) => composition.refus === null && rang % 4 === 0);
     let essais = 0;
     let plans = 0;
@@ -94,7 +99,8 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
         expect(resultat.monde.boucles?.length ?? 0, station.id).toBeLessThanOrEqual(3);
       }
     }
-    expect(plans / essais).toBeGreaterThanOrEqual(0.4);
+    // 45 % de plans sans M-11 ni M-12, 33 % avec eux (#236) ; la publication saute les graines sans plan.
+    expect(plans / essais).toBeGreaterThanOrEqual(0.35);
     expect(total / essais).toBeLessThan(50);
     console.log(`grandes stations : ${plans}/${essais} plans, ${(total / essais).toFixed(1)} ms en moyenne, ${pire.toFixed(1)} ms au pire`);
   }, 120_000);

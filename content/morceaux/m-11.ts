@@ -33,8 +33,7 @@ export const MORCEAU_M11: DefMorceau = {
   placesCreature: ['p-remise'],
   demande: [],
   fournit: ['acces'],
-  // Grandes stations (spec 2026-10-18 §6.1) : déclaré, pas encore tiré (13 §7.14, reprise de main).
-  grande: { obstacle: 'materiel', accueillantes: { 'p-poste': 'commandement' }, avant: ['p-poste', 'p-vestiaire', 'p-remise'], coupe: ['l-poste-sas'] },
+  grande: { obstacle: 'materiel', accueillantes: { 'p-poste': 'commandement' }, avant: ['p-poste', 'p-vestiaire', 'p-remise'], coupe: ['l-poste-sas'], cles: { 'o-carte': { etiquettes: ['securite'] } } },
 };
 
 // Textes du morceau (C-07). Texte final non validé.
@@ -88,6 +87,28 @@ export const TEXTES_MORCEAU_M11: TextesMorceau = {
       'Une remise sombre, des étagères chargées de cartons.',
       'Des étagères, des cartons empilés, des recoins où la lumière ne va pas.',
     ],
+  },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la carte déplacée.
+  documents: {
+    doc_journal_ines: {
+      puce: { texte: 'journal d’Inès', genre: 'm', nombre: 's', elision: false },
+      support: 'journal',
+      ou: 'sur une tablette de mesure, fixée à la paroi par une sangle',
+      corps: [
+        '03:12  Carte de sécurité en main. Verrou levé au lecteur.',
+        '03:13  Porte blindée franchie, refermée derrière nous. Blindage : 10 cm d’acier.',
+        '03:15  Des pas de l’autre côté. Ils s’arrêtent à moins de 1 m du blindage.',
+        '03:40  Pas un coup contre le blindage. Elle n’a même pas essayé.',
+        '04:05  Les pas s’éloignent.',
+      ],
+    },
+    doc_fiche_pret: {
+      puce: { texte: 'fiche de prêt', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'glissée dans une pochette plastique, sur la paroi',
+      corps: ['Pendant l’inventaire, la carte de sécurité est rangée dans {le:piece}.', 'Qui l’emprunte la rapporte et l’inscrit au cahier de prêt.'],
+      signature: 'Sami',
+    },
   },
   assistance: {},
 };

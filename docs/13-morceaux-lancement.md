@@ -31,7 +31,7 @@ Chaque fiche donne : les pièces apportées, les objets, les places possibles de
 
 La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit au §8.1 (D-257).
 
-Dans une grande station, chaque morceau déclare aussi les pièces où une pièce du catalogue peut s'accrocher et la liaison qui franchit son obstacle (§7.12) ; huit d'entre eux portent aussi un document de témoignage sur une tentative de franchir l'obstacle (§7.14).
+Dans une grande station, chaque morceau déclare aussi les pièces où une pièce du catalogue peut s'accrocher et la liaison qui franchit son obstacle (§7.12) ; les dix chemins portent aussi un document de témoignage sur une tentative de franchir l'obstacle (§7.14, §7.15).
 
 ### M-01 — Galerie en feu (AR-01 G)
 
@@ -780,6 +780,8 @@ La preuve de jeu de chaque composition publiée (`check:stations`), le signal «
 | M-08 | quartiers (vie), atelier, magasin (technique) | galerie nord – galerie sud |
 | M-09 | quartiers (vie), cale (fret) | sas bâbord – coursive de transfert |
 | M-10 | quartiers (vie), entrepôt (fret), coursive (circulation) | la porte vers le morceau suivant |
+| M-11 (§7.15) | poste de sécurité (commandement) | porte blindée, poste de sécurité – sas de sécurité |
+| M-12 (§7.15) | atelier de manutention (technique), galerie de service (circulation) | palier du chariot – quai de transfert |
 | Carrefour (ordre libre) | couloir commun (circulation) | cloison 1 (la cloison 2 est verrouillée) |
 | M-03 | local énergie, réserve (technique) | local énergie – embarquement |
 | M-06 | couloir de sécurité (circulation) | couloir de sécurité – salle panoramique |
@@ -851,6 +853,7 @@ Le profil averti (B4) évacue dans 14,0 % des grandes stations et 26,6 % des pet
 | combinaison | M-06 | local de sécurité | `securite` | — |
 | découpeuse | M-06 | local de sécurité | `securite` | — |
 | planche | M-08 | atelier | `rangement` | encombrante |
+| carte de sécurité | M-11 | vestiaire | `securite` | ajoutée au §7.15 ; le chariot de M-12 ne se porte pas |
 
 Une pièce du catalogue convient à une clé quand elle porte l'une de ses étiquettes. La consigne du catalogue gagne l'étiquette `lourd`.
 

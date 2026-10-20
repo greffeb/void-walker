@@ -46,12 +46,13 @@ Les jours sont comptés depuis l'arrivée du conteneur. Les documents en citent 
 
 | Règle | En jeu | Documents qui la portent |
 | --- | --- | --- |
-| Elle chasse surtout au bruit. | Un bruit la met en route. | message de Malik, mot de Malik, inscription, enregistreur, main courante |
+| Elle chasse surtout au bruit. | Un bruit la met en route. | message de Malik, mot de Malik, inscription, enregistreur, main courante, message de Clara |
 | Elle repère ce qui bouge devant elle. | Elle perçoit le passager qui se déplace devant elle. | enregistreur |
 | Elle ne passe pas par les conduits étroits. | Une liaison étroite lui est fermée (D-044). | terminal de quart, main courante |
 | Le froid la ralentit. | Enfermée dans la chambre froide, elle reste ralentie toute la partie, même ressortie (D-166, D-239). | journal sanitaire, relevés d'Inès |
 | Elle n'entre jamais dans le feu. | Une pièce en feu lui est fermée (M-01). | note de Bastien |
 | Une porte fermée ne l'arrête pas longtemps une fois qu'elle vous cherche. | Elle force les portes (D-279). | note de Bastien, main courante |
+| Une porte blindée, elle ne la touche même pas. | Elle ne force jamais une porte blindée fermée (D-292). | journal d'Inès |
 
 Ce que l'équipage **ne sait pas**, et qu'aucun document ne dit : ce qu'elle est, d'où vient le conteneur, ce qu'elle veut. Le mystère reste entier ; c'est voulu (le porteur a refusé le grand mystère sur plusieurs parties).
 
@@ -68,13 +69,13 @@ Chaque document a un auteur, avec un prénom et un métier, et une voix reconnai
 | Hélène | cheffe d'escale, elle dirige la station | posée, phrases entières, le « nous » de la responsable ; elle se fissure à peine | annonce d'Hélène, message d'Hélène, note d'Hélène |
 | Nadia | cheffe de quart au fret | sèche, abréviations, heures, initiales ; elle tutoie ses dockers | mot pour Rémi, terminal de quart, mot de Nadia |
 | Malik | docker | blagueur, phrases courtes, familier, tutoie tout le monde | message de Malik, mot de Malik, bout de carton |
-| Inès | technicienne du contrôle sanitaire | précise, mesures et unités ; l'inquiétude passe dans les chiffres | journal sanitaire, relevés d'Inès |
+| Inès | technicienne du contrôle sanitaire | précise, mesures et unités ; l'inquiétude passe dans les chiffres | journal sanitaire, relevés d'Inès, journal d'Inès |
 | Bastien | mécanicien de maintenance | bourru, pratique, impératif ; il tient à l'ordre | note punaisée, note de Bastien, mot de Bastien, pense-bête |
 | Yann | électricien | laconique, codes de circuits, constats | journal de maintenance, note de Yann, fiche volante |
 | Odile | infirmière | douce et ferme ; elle vouvoie | mot d'Odile, message d'Odile, papier plié |
 | Joël | cuisinier | chaleureux, parle de repas ; père de Lucie | note de Joël, enregistreur |
-| Clara | agente d'entretien | directe, humour sec, petits détails concrets | carte postale, note de Clara, note scotchée |
-| Sami | agent de sûreté | procédural, puis la peur contenue sous la procédure | message de Sami, main courante, bon de rangement |
+| Clara | agente d'entretien | directe, humour sec, petits détails concrets | carte postale, note de Clara, note scotchée, message de Clara |
+| Sami | agent de sûreté | procédural, puis la peur contenue sous la procédure | message de Sami, main courante, bon de rangement, fiche de prêt |
 | Wen | régulateur du trafic des navettes | calme de radio, tendre en privé | message de Wen, journal de Wen |
 
 **Personnes nommées, jamais auteurs.** Rémi Varga, le docker disparu (« R. Varga » dans les journaux). Marc, monteur, qui passe le premier là où c'est dangereux. Lucie, la fille de Joël. Mei, qui attend Wen ailleurs. Agathe, la sœur de Clara.
@@ -98,14 +99,14 @@ Un lieu hors du plan ne porte **jamais** le nom d'une pièce de morceau ou du ca
 
 ## 5. La réserve de documents
 
-Trente-six documents, posés à cinq à sept par grande station (spec §8.4). La clé de texte est aussi le nom de l'objet posé.
+Trente-neuf documents, posés à cinq à sept par grande station (spec §8.4). La clé de texte est aussi le nom de l'objet posé.
 
 | Couche | Nombre | Où ils se posent |
 | --- | ---: | --- |
 | Univers | 8 | pièces du catalogue, selon leurs étiquettes |
 | Menace | 12, trois par étape | dans l'ordre du trajet : étapes 1 et 2 au premier tiers, 3 au deuxième, 4 au dernier |
-| Morceaux | 8 | pièce qui fait face à l'obstacle, ou une annexe pendue à elle ; seulement si le morceau est là |
-| Notes de rangement | 8 | toujours quand leur clé a quitté son morceau ; la note de la trousse, quand une trousse est posée |
+| Morceaux | 10 | pièce qui fait face à l'obstacle, ou une annexe pendue à elle ; seulement si le morceau est là |
+| Notes de rangement | 9 | toujours quand leur clé a quitté son morceau ; la note de la trousse, quand une trousse est posée |
 
 **Univers** (la vie d'avant, sans un mot de la menace ni des traces) :
 
@@ -137,7 +138,7 @@ Trente-six documents, posés à cinq à sept par grande station (spec §8.4). La
 | 4 | enregistreur | message | Joël | le bruit, et ce qui bouge devant elle |
 | 4 | main courante | journal | Sami | la porte forcée, le conduit trop étroit pour elle |
 
-**Morceaux** (une tentative sur l'obstacle, racontée comme un témoignage, sans aucun mot réservé) : huit morceaux sur dix. Les deux finals n'en ont pas : leurs objets portent déjà leur mode d'emploi, et IA Station parle dans M-03.
+**Morceaux** (une tentative sur l'obstacle, racontée comme un témoignage, sans aucun mot réservé) : les dix chemins. Les deux finals n'en ont pas : leurs objets portent déjà leur mode d'emploi, et IA Station parle dans M-03.
 
 | Morceau | Puce | Support | Auteur | Témoignage |
 | --- | --- | --- | --- | --- |
@@ -149,6 +150,8 @@ Trente-six documents, posés à cinq à sept par grande station (spec §8.4). La
 | M-08 | message d'Odile | message | Odile | la planche a tenu pour Marc, retirée derrière eux |
 | M-09 | journal de Wen | journal | Wen | la gravité coupée : ça ne sait pas flotter |
 | M-10 | message d'Hélène | message | Hélène | le compresseur, les portes fermées depuis le pupitre, le froid qui mord |
+| M-11 | journal d'Inès | journal | Inès | la carte au lecteur, la porte blindée refermée : elle n'a même pas essayé |
+| M-12 | message de Clara | message | Clara | le drone tient la poignée à sa place, bruyant ; jeté hors du rail, remis et relancé, puis le chariot poussé |
 
 **Notes de rangement** (une par clé déplaçable, et la trousse) :
 
@@ -161,6 +164,7 @@ Trente-six documents, posés à cinq à sept par grande station (spec §8.4). La
 | combinaison (M-06) | bon de rangement | Sami | « rangée {a:piece} » |
 | découpeuse (M-06) | note d'Hélène | Hélène | « ranger {a:piece} » |
 | planche (M-08) | mot de Nadia | Nadia | « dans {le:piece} » |
+| carte de sécurité (M-11) | fiche de prêt | Sami | « rangée dans {le:piece} » |
 | trousse de soin | papier plié | Odile | « de côté, {a:piece} » |
 
 ## 6. Règles d'écriture

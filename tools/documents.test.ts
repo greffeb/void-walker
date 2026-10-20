@@ -37,10 +37,10 @@ describe('réserve de documents du contenu (#209)', () => {
     expect(textes.length).toBe(EMPLACEMENTS_DOCUMENTS.length);
   });
 
-  it('huit notes de rangement : une par clé déclarée (grande.cles) et la trousse', () => {
+  it('neuf notes de rangement : une par clé déclarée (grande.cles) et la trousse', () => {
     const notes = couche('rangement');
-    expect(notes).toHaveLength(8);
-    expect(CLES_DECLAREES).toHaveLength(7);
+    expect(notes).toHaveLength(9);
+    expect(CLES_DECLAREES).toHaveLength(8);
     for (const { morceau, cle } of CLES_DECLAREES) expect(notes.filter((note) => note.morceau === morceau && note.cle === cle), `${morceau} ${cle}`).toHaveLength(1);
     expect(notes.filter((note) => note.cle === CLE_TROUSSE && note.morceau === undefined)).toHaveLength(1);
   });
@@ -55,10 +55,10 @@ describe('réserve de documents du contenu (#209)', () => {
     for (const etape of [1, 2, 3, 4]) expect(menace.filter((emplacement) => emplacement.etape === etape), `étape ${etape}`).toHaveLength(3);
   });
 
-  it('huit documents de l’univers sur des étiquettes, huit témoignages de morceaux', () => {
+  it('huit documents de l’univers sur des étiquettes, dix témoignages de morceaux', () => {
     expect(couche('univers')).toHaveLength(8);
     for (const emplacement of couche('univers')) expect(emplacement.etiquettes?.length, emplacement.id).toBeGreaterThan(0);
-    expect(couche('morceau')).toHaveLength(8);
+    expect(couche('morceau')).toHaveLength(10);
   });
 });
 

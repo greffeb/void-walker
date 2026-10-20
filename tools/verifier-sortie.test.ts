@@ -135,16 +135,21 @@ describe('plus aucune sortie : clés des grandes stations', { timeout: 120_000 }
     expect(signal(sansConsole, etat(sansConsole, { objets: { 'm-03/o-bloc': { type: 'piece', piece: 'm-03/p-reserve' } } }))).toBe(false);
   });
 
-  it(`échantillon de check:sortie : une station par clé déplacée, au plus ${GRANDES_SORTIE}`, () => {
+  it(`échantillon de check:sortie : une station par clé déplacée, puis par chemin absent, au plus ${GRANDES_SORTIE}`, () => {
     const echantillon = echantillonGrandes(CATALOGUE);
     const couvertes = echantillon.flatMap((station) => station.couvre);
     expect(new Set(couvertes).size).toBe(couvertes.length);
-    expect([...couvertes].sort()).toEqual(['m-01/o-bidon', 'm-02/o-caisse', 'm-03/o-bloc', 'm-04/o-burette', 'm-06/o-combinaison', 'm-06/o-decoupeuse', 'm-08/o-planche']);
+    const cles = couvertes.filter((cle) => cle.includes('/'));
+    expect([...cles].sort()).toEqual(['m-01/o-bidon', 'm-02/o-caisse', 'm-03/o-bloc', 'm-04/o-burette', 'm-06/o-combinaison', 'm-06/o-decoupeuse', 'm-08/o-planche', 'm-11/o-carte']);
+    // Chaque chemin porté par au moins une station de l'échantillon, M-11 et M-12 compris (#236).
+    const chemins = Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'chemin').map(({ morceau }) => morceau.id);
+    const portes = new Set(echantillon.flatMap(({ station }) => CATALOGUE.grandes.find((composition) => station.startsWith(`${composition.id}-`))?.chemins ?? []));
+    for (const chemin of chemins) expect(portes.has(chemin), chemin).toBe(true);
     expect(echantillon.length).toBeLessThanOrEqual(GRANDES_SORTIE);
     for (const { station, couvre } of echantillon) {
       const grande = monde(station);
       // Chaque clé couverte est bien hors de la pièce d'origine que lui donne son morceau.
-      for (const cle of couvre) {
+      for (const cle of couvre.filter((entree) => entree.includes('/'))) {
         const [morceau = '', objet = ''] = cle.split('/');
         const origine = MORCEAUX[morceau]?.morceau.objets.find((candidat) => candidat.id === objet)?.piece;
         expect(origine, cle).toBeDefined();

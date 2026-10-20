@@ -35,7 +35,6 @@ export const MORCEAU_M12: DefMorceau = {
   ],
   entree: 'p-atelier', sortie: { piece: 'p-quai', porte: { nom: 'porte' } },
   placesCreature: ['p-stockage'], demande: [], fournit: ['acces'],
-  // Grandes stations (spec 2026-10-18 §6.1) : déclaré, pas encore tiré (13 §7.14, reprise de main).
   grande: { obstacle: 'materiel', accueillantes: { 'p-atelier': 'technique', 'p-galerie': 'circulation' }, avant: ['p-atelier', 'p-galerie', 'p-poste', 'p-palier', 'p-stockage'], coupe: ['l-palier-quai'] },
 };
 
@@ -64,6 +63,20 @@ export const TEXTES_MORCEAU_M12: TextesMorceau = {
     drone: ['Un drone de manutention à roues guidées. Un bras articulé, un bouton de départ et un arrêt de sécurité occupent son châssis.', 'Un petit châssis motorisé, guidé par un rail. Il porte un bras de maintien, sans plateau de transport.'],
     poignee_frein: ['Une poignée à ressort, reliée à une tringle de frein. Une plaque porte la mention « Maintien continu ».', 'Un levier de frein à rappel mécanique. Sa poignée est polie par les mains.'],
     chariot: ['Un chariot chargé de pièces métalliques, monté sur des roues épaisses avec un frein à tringle.', 'Des pièces de machine sont sanglées sur un chariot lourd. Un mécanisme de freinage longe son essieu.'],
+  },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle ; le chariot ne se porte pas.
+  documents: {
+    doc_message_clara: {
+      puce: { texte: 'message de Clara', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, accroché à la paroi par sa dragonne',
+      corps: [
+        '[essoufflée] Le chariot ne bouge pas tant que personne ne tient la poignée de frein, et dès que je la lâche pour aller pousser, il se rebloque.',
+        '[un moteur qui grince] J’ai envoyé le drone la tenir à ma place : il fait plus de bruit qu’une équipe de nuit.',
+        '[plus bas] Elle est venue et l’a jeté hors de son rail.',
+        '[un temps] Je l’ai remis en place, je l’ai relancé, puis j’ai poussé le chariot dans son logement, sur le côté.',
+      ],
+    },
   },
   assistance: {},
 };

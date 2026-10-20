@@ -251,7 +251,7 @@ const rangement = (id: string, de: string, cle: string): EmplacementDocument => 
 
 /**
  * Places de toute la réserve, documents des morceaux compris (bible §5) : huit de l'univers, sur les étiquettes de la réserve
- * d'essai qui a mesuré la couverture ; douze de la menace, trois par étape ; huit des morceaux ; huit notes de rangement.
+ * d'essai qui a mesuré la couverture ; douze de la menace, trois par étape ; dix des morceaux ; neuf notes de rangement.
  */
 export const EMPLACEMENTS_DOCUMENTS: readonly EmplacementDocument[] = [
   univers('doc_carte_postale', 'couchage'),
@@ -282,6 +282,8 @@ export const EMPLACEMENTS_DOCUMENTS: readonly EmplacementDocument[] = [
   morceau('doc_message_odile', 'm-08'),
   morceau('doc_journal_wen', 'm-09'),
   morceau('doc_message_helene', 'm-10'),
+  morceau('doc_journal_ines', 'm-11'),
+  morceau('doc_message_clara', 'm-12'),
   rangement('doc_note_scotchee', 'm-01', 'o-bidon'),
   rangement('doc_bout_carton', 'm-02', 'o-caisse'),
   rangement('doc_fiche_volante', 'm-03', 'o-bloc'),
@@ -289,6 +291,7 @@ export const EMPLACEMENTS_DOCUMENTS: readonly EmplacementDocument[] = [
   rangement('doc_bon_rangement', 'm-06', 'o-combinaison'),
   rangement('doc_note_helene', 'm-06', 'o-decoupeuse'),
   rangement('doc_mot_nadia', 'm-08', 'o-planche'),
+  rangement('doc_fiche_pret', 'm-11', 'o-carte'),
   // Valeur de `CLE_TROUSSE` (engine/station.ts) : le contenu n'importe que des types du moteur ; tools/documents.test.ts garde l'égalité.
   { id: 'doc_papier_plie', couche: 'rangement', cle: 'butin:soin' },
 ];

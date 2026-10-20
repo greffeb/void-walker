@@ -20,13 +20,14 @@ export const GRANDES_SORTIE = 12;
 
 export interface StationEchantillon {
   readonly station: string;
-  /** Clés déplacées que cette station est la première à couvrir. */
+  /** Clés déplacées que cette station est la première à couvrir, ou le chemin qu'elle est la première à porter. */
   readonly couvre: readonly string[];
 }
 
 /**
  * Échantillon fixe de grandes stations publiées, dans l'ordre de la liste triée : la première qui déplace chaque clé pas encore
- * couverte (clé déclarée par son morceau, hors de sa pièce d'origine). Pas de station pour l'ordre libre : elle ne couvre aucune
+ * couverte (clé déclarée par son morceau, hors de sa pièce d'origine), puis la première en chaîne de chaque chemin encore absent
+ * (M-12, qui n'a pas de clé, #236). Pas de station pour l'ordre libre : elle ne couvre aucune
  * clé, chaque état y coûte une recherche de 6 à 10 s, et les stations courtes en ordre libre couvrent déjà les cloisons.
  */
 export function echantillonGrandes(catalogue: Catalogue): StationEchantillon[] {
@@ -47,6 +48,15 @@ export function echantillonGrandes(catalogue: Catalogue): StationEchantillon[] {
     if (deplacees.length === 0) continue;
     echantillon.push({ station: id, couvre: deplacees });
     for (const cle of deplacees) restantes.delete(cle);
+  }
+  const cheminsDe = (station: string): readonly string[] => catalogue.grandes.find((composition) => station.startsWith(`${composition.id}-`))?.chemins ?? [];
+  const portes = new Set(echantillon.flatMap(({ station }) => cheminsDe(station)));
+  const chaines = [...catalogue.publiees].sort().filter((id) => !id.startsWith('g1-ol-'));
+  for (const { morceau } of Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'chemin' && !portes.has(morceau.id))) {
+    const station = chaines.find((id) => cheminsDe(id).includes(morceau.id));
+    if (station === undefined || portes.has(morceau.id)) continue;
+    echantillon.push({ station, couvre: [morceau.id] });
+    for (const chemin of cheminsDe(station)) portes.add(chemin);
   }
   return echantillon.slice(0, GRANDES_SORTIE);
 }
