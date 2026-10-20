@@ -150,9 +150,9 @@ svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-wid
   </div>
   <p class="etiquette">Son de la menace · toucher pour écouter</p>
   <div class="onglets trois" role="tablist" id="menaces">
-    <button class="onglet" role="tab" data-m="buzzer" aria-selected="true">1 · Buzzer d'erreur</button>
+    <button class="onglet" role="tab" data-m="buzzer" aria-selected="false">1 · Buzzer d'erreur</button>
     <button class="onglet" role="tab" data-m="bip" aria-selected="false">2 · Bip seul sourd</button>
-    <button class="onglet" role="tab" data-m="blessure" aria-selected="false">3 · Son de la blessure</button>
+    <button class="onglet" role="tab" data-m="blessure" aria-selected="true">3 · Son de la blessure</button>
   </div>
 
   <button class="relancer" id="relancer">Revenir à l'accueil</button>
@@ -190,7 +190,7 @@ svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-wid
       <li>« ▲ ERREUR : Menace détectée » en rouge reprend le triangle et le rouge des dangers (D-233).</li>
       <li>« STATION 372 » reste discrètement en haut à droite de l'écran de réveil.</li>
     </ul>
-    <b>Choix du porteur : C (v1) ; écran CRT réservé à l'intro (v2). v3 à juger.</b>
+    <b>Choix du porteur : C (v1) ; écran CRT réservé à l'intro (v2) ; menace : son de la blessure. Implémentée dans le jeu (D-305 à D-309).</b>
   </div>
 </div>
 
@@ -419,7 +419,7 @@ function fondBrun() {
 
 /** Sons pour « ERREUR : Menace détectée », à comparer ; tous passent par la chaîne des bruitages du jeu. */
 const parLeJeu = (recette) => recette.map((e) => ({ ...e, jeu: true }));
-let choixMenace = 'buzzer';
+let choixMenace = 'blessure';
 const MENACES = {
   /** 1. Buzzer d'erreur : un seul « bzzzt » grave et bourdonnant, de la famille du refus du jeu (120 Hz), plus long et plus bas. */
   buzzer: () => parLeJeu([

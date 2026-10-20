@@ -1,7 +1,7 @@
 # Void Walker V2 — interface : description des écrans
 
 > **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-155 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
-> **Mise à jour :** 2026-10-18 (§4.11, écrans de fin, #208, D-281 à D-286).
+> **Mise à jour :** 2026-10-20 (§4.1 bis, intro de NOUVELLE PARTIE, #200, D-305 à D-309).
 > **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
 > **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
 > **Maquette de référence :** [maquette-ui-v1.pdf](maquette/maquette-ui-v1.pdf), 13 écrans exportés du canevas « Void Walker — UI » sur claude.ai. Le PDF montre encore le panneau bas et la bordure `#6B5530` : ce document prime. Il se suffit à lui-même : un agent qui ne voit pas la maquette doit pouvoir reproduire chaque écran.
@@ -50,7 +50,7 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
 - **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale.
 - **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
-- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)). Exception (D-233) : la phrase d'un danger apparu s'écrit en rouge `alerte` `#FF5A4A` (6,5:1 sur `fond`), précédée d'un triangle d'attention (§3.3). Sur la carte, le même rouge dessine l'œil de la créature vue (D-273, [14 §2.5](14-carte.md)).
+- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)). Exception (D-233) : la phrase d'un danger apparu s'écrit en rouge `alerte` `#FF5A4A` (6,5:1 sur `fond`), précédée d'un triangle d'attention (§3.3). Sur la carte, le même rouge dessine l'œil de la créature vue (D-273, [14 §2.5](14-carte.md)). Exception (D-308) : l'écran CRT de l'intro (§4.1 bis) a sa trame et ses franges de couleur, à peine visibles, et son verre bombé arrondit les coins.
 
 | Jeton | Valeur | Usage | Contraste sur `cyan-surface` |
 | --- | --- | --- | --- |
@@ -287,15 +287,27 @@ Seulement le titre et trois boutons. Pas de sous-titre. [Validé]
 - **Haut :** « VOID » et « WALKER▮ » sur deux lignes (style « titre d'accueil »), à environ 120 px du haut. Nom provisoire du jeu.
 - **Bas**, dans la zone du pouce, empilés, à 16 px des côtés, 10 px d'écart, 32 px du bas :
   1. **REPRENDRE LA PARTIE**, principal. Reprend exactement l'état enregistré (C-09). Visible seulement s'il y a une partie en cours (D-089). [Proposé] Si la dernière partie s'est terminée par une défaite, on arrive sur son écran de fin (C-09 S-05).
-  2. **NOUVELLE PARTIE**, secondaire. Mène au réveil. S'il n'y a pas de partie en cours, ce bouton devient le principal. [Proposé] Si une partie est en cours, une confirmation s'ouvre dans la page : « Une partie est en cours. La nouvelle partie la remplacera. », ANNULER / COMMENCER. [Validé D-145 ; libellés Proposés]
+  2. **NOUVELLE PARTIE**, secondaire. Mène à l'intro (§4.1 bis), puis au réveil. S'il n'y a pas de partie en cours, ce bouton devient le principal. [Proposé] Si une partie est en cours, une confirmation s'ouvre dans la page : « Une partie est en cours. La nouvelle partie la remplacera. », ANNULER / COMMENCER. [Validé D-145 ; libellés Proposés]
   3. **OPTIONS**, discret.
 - Signaler un bug, envoyer et télécharger la partie sont dans les options. [Validé]
+
+### 4.1 bis Intro de NOUVELLE PARTIE
+
+Montre au joueur non briefé que chaque partie tire une autre station, sans rien dévoiler de la sienne. [Validé D-305 à D-309, sur la [maquette](maquette/intro-generation.html) ; essai sur téléphone à venir]
+
+- **Quand :** après NOUVELLE PARTIE (accueil, sa confirmation, écran de fin, reprise impossible), avant le réveil, pour une station tirée. REJOUER CETTE STATION et les mondes fixes n'en ont pas. La partie est déjà créée et enregistrée. [D-305]
+- **Écran CRT**, réservé à l'intro : lignes de balayage marquées, trame de couleurs, lueur du phosphore et couleurs légèrement décalées, verre bombé et vignetage, scintillement, bande claire qui remonte. Tout est décoratif et jamais lu. [D-308]
+- **Démarrage complet**, la première fois sur l'appareil [D-307, Proposé] : écran noir, mise sous tension en trait de faisceau ; `> boot -a --v` tapé vite ; « Loading terminal system... » et « ready » d'un coup, curseur █ ; `> campaign_mode; console_log(01);` tapé au clavier ; l'écran saute (neige, distorsion) et s'efface. Les fois suivantes, l'intro commence au tirage.
+- **Tirage** [D-305, D-306] : en fond, une mosaïque de plans de vraies stations publiées, très atténuée. Au centre, un cadre où des plans défilent de plus en plus lentement, un numéro au hasard dessous ; ils s'arrêtent sur une silhouette floutée marquée « ? » et « Station 372 sur 600 » (22/600 `accent`, « sur 600 » en 16 `texte-secondaire`). Dessous, en 14, « > Tirage parmi 600 stations… », puis huit lignes « > Libellé ........ valeur » une par une, à un pas irrégulier (trois textes d'ambiance tirés parmi treize) ; « ▲ ERREUR : Menace détectée » en `alerte` ; une ligne vide, « > Station 372 prête_ » en `accent`, « La prochaine partie en tirera une autre. » en `texte-secondaire`.
+- **Bas :** « TOUCHER POUR PASSER » en 12 `texte-secondaire` ; puis DÉMARRER, principal, pleine largeur, qui mène au réveil. Toucher l'écran, Entrée ou Espace amènent l'intro à son état final. [D-305]
+- **Accessibilité :** le démarrage et les plans sont cachés au lecteur d'écran ; le texte du tirage et DÉMARRER sont lus ; le focus va à DÉMARRER dès qu'il paraît. Effet machine à écrire coupé ou mouvement réduit : l'intro s'affiche d'emblée finie, sans son. [D-307]
+- **Son :** 15 §2.6.
 
 ### 4.2 Réveil
 
 Texte seul et un bouton. [Validé]
 
-- **Haut :** « > SALON DE TRANSIT_ » en 13 `texte-secondaire`.
+- **Haut :** « > SALON DE TRANSIT_ » en 13 `texte-secondaire`. À droite, pour une station tirée, son numéro, « STATION 372 », en 11 `texte-secondaire`. [D-309]
 - **Récit long** (autorisé au réveil, D-111), 17 px, interligne 1,65, qui défile si besoin. Le texte du terminal de transit (« CONFINEMENT EN COURS ») est en vidéo inverse.
 - **Parole d'IA Station** encadrée, en blanc froid comme la modale (D-198) : contour `blanc`, fond `blanc-surface`, étiquette « [ IA STATION ] » en 12/600 `blanc-secondaire`, citation en italique `blanc-texte`. Ce message entre dans l'historique de la modale.
 - **Bas :** REGARDER AUTOUR DE VOUS, principal, pleine largeur. Lire étant gratuit, ce bouton n'engage rien.

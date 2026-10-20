@@ -503,12 +503,15 @@ export function InformationSansSortie({
 export function EcranReveil({
   jeu,
   env,
+  numero = null,
   machineAEcrire,
   occupe,
   regarder,
 }: {
   readonly jeu: Jeu;
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
+  /** Rang de la station tirée, rappelé discrètement en haut à droite (D-309) ; `null` pour un monde fixe. */
+  readonly numero?: number | null;
   readonly machineAEcrire: boolean;
   readonly occupe: boolean;
   readonly regarder: () => void;
@@ -538,6 +541,7 @@ export function EcranReveil({
     <main className="jeu reveil" onPointerDownCapture={completer} onKeyDownCapture={completer}>
       <header className="entete-piece entete-reveil">
         <p className="lieu-reveil">&gt; {nomDe(env.textes, observation.piece).texte}_</p>
+        {numero !== null && <p className="numero-station">Station {numero}</p>}
       </header>
       <Sauvegarde jeu={jeu} />
       <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} terminee={false} />

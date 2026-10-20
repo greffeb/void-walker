@@ -210,6 +210,19 @@ button:disabled {
   text-transform: uppercase;
 }
 
+/* Rang de la station tirée (D-309) : discret, à droite du nom de la pièce. */
+.numero-station {
+  margin: 0 0 0 auto;
+  padding-left: 12px;
+  font-size: calc(11px * var(--echelle));
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--texte-secondaire);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
 .reveil .recit {
   min-height: 0;
   line-height: 1.65;
@@ -2333,5 +2346,413 @@ button:disabled {
 
   .brouillage {
     box-shadow: inset 0 0 0 3px var(--alerte);
+  }
+}
+
+/* Intro de NOUVELLE PARTIE (12 §4.1 bis, D-305 à D-309) : écran CRT réservé à l'intro (D-308) ; tout y est décoratif sauf le texte
+   du tirage et DÉMARRER. Lueur du phosphore, couleurs légèrement décalées, trame, verre bombé, scintillement, bande qui remonte. */
+.intro {
+  /* Écran CRT de l'intro (D-308) : seule exception à l'ambre hors des jetons de 12 §2.1, trame et franges de couleur du tube. */
+  --crt-trame-rouge: rgba(255, 0, 0, 0.035);
+  --crt-trame-verte: rgba(0, 255, 0, 0.025);
+  --crt-trame-bleue: rgba(0, 80, 255, 0.035);
+  --crt-frange-rouge: rgba(255, 70, 40, 0.35);
+  --crt-frange-bleue: rgba(80, 200, 255, 0.22);
+  --crt-lueur-alerte: rgba(255, 90, 74, 0.6);
+  background: #000;
+  cursor: pointer;
+  outline: none;
+}
+
+.intro-crt {
+  position: absolute;
+  inset: 6px;
+  overflow: hidden;
+  border-radius: 22px / 18px;
+  background: var(--fond);
+  opacity: 0;
+}
+
+.intro-crt.allume {
+  opacity: 1;
+  animation: intro-scintiller 3.2s steps(1) infinite;
+}
+
+.intro-crt::before,
+.intro-crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.intro-crt::before {
+  z-index: 3;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, var(--crt-trame-rouge) 0 1px, var(--crt-trame-verte) 1px 2px, var(--crt-trame-bleue) 2px 3px);
+}
+
+.intro-crt::after {
+  z-index: 4;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 85%, rgba(0, 0, 0, 0.9) 100%);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 4px rgba(255, 178, 63, 0.25);
+}
+
+.intro-crt.saut::before {
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0 2px, transparent 2px 4px);
+}
+
+.intro-contenu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: calc(28px + env(safe-area-inset-top)) 18px max(36px, env(safe-area-inset-bottom));
+  text-shadow:
+    0 0 6px rgba(255, 178, 63, 0.55),
+    -0.7px 0 var(--crt-frange-rouge),
+    0.7px 0 var(--crt-frange-bleue);
+}
+
+.intro-crt.saut .intro-contenu {
+  animation: intro-sauter 0.08s steps(2) infinite;
+}
+
+.intro-reflet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 30% 12%, rgba(255, 240, 220, 0.06), transparent 45%);
+}
+
+.intro-bande {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 90px;
+  pointer-events: none;
+  background: linear-gradient(transparent, rgba(255, 178, 63, 0.045), transparent);
+  animation: intro-remonter 7s linear infinite;
+}
+
+.intro-neige {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  image-rendering: pixelated;
+}
+
+.intro-crt.saut .intro-neige {
+  opacity: 0.55;
+}
+
+/* Mise sous tension : un trait de faisceau qui s'ouvre en écran. */
+.intro-faisceau {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  z-index: 6;
+  height: 2px;
+  margin-top: -1px;
+  background: #fff8ec;
+  box-shadow: 0 0 18px 6px rgba(255, 200, 120, 0.7);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-faisceau.va {
+  animation: intro-faisceau 0.55s ease-out forwards;
+}
+
+.intro-crt.ouverture {
+  animation: intro-ouvrir 0.5s ease-out;
+}
+
+.intro-filtres {
+  position: absolute;
+}
+
+.intro-terminal {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(14px * var(--echelle));
+  line-height: 1.7;
+}
+
+.intro-terminal li {
+  min-height: 1.7em;
+  overflow-wrap: anywhere;
+}
+
+.intro-terminal .faible {
+  color: var(--texte-secondaire);
+}
+
+.intro-terminal .ok {
+  color: var(--accent);
+}
+
+/* « Libellé ........ valeur » : les points remplissent la place qui reste ; en texte agrandi, le libellé passe à la ligne. */
+.intro-ligne {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6ch;
+}
+
+.intro-ligne > span:first-child {
+  min-width: 0;
+  overflow-wrap: normal;
+}
+
+.intro-ligne > span:last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.intro-points {
+  flex: 1 1 0;
+  min-width: 2ch;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.intro-points::before {
+  content: '................................................................................';
+}
+
+.intro-menace {
+  color: var(--alerte);
+  text-shadow:
+    0 0 6px var(--crt-lueur-alerte),
+    -0.7px 0 var(--crt-frange-rouge),
+    0.7px 0 var(--crt-frange-bleue);
+}
+
+.intro-curseur {
+  color: var(--accent);
+  animation: intro-clignoter 1s steps(1) infinite;
+}
+
+.intro-mosaique {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 10px;
+  padding: 10px;
+  opacity: 0.13;
+}
+
+.intro-plan {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.intro-plan rect {
+  fill: rgba(244, 194, 122, 0.06);
+  stroke: var(--texte);
+  stroke-width: 0.12;
+}
+
+.intro-tirage {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.intro-tirage .intro-terminal {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bordure) transparent;
+  background: var(--fond);
+}
+
+.intro-centre {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.intro-carte {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(220px, 26dvh);
+  height: min(220px, 26dvh);
+  padding: 12px;
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+}
+
+.intro-carte.intro-voilee .intro-plan {
+  filter: blur(6px);
+  opacity: 0.35;
+}
+
+.intro-inconnu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(60px * var(--echelle));
+  color: var(--accent);
+}
+
+.intro-compteur {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: calc(22px * var(--echelle));
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--accent);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-sur {
+  font-size: calc(16px * var(--echelle));
+  font-weight: 400;
+  color: var(--texte-secondaire);
+}
+
+.intro-bas {
+  flex: none;
+  margin-top: auto;
+  padding-top: 10px;
+  text-shadow: none;
+}
+
+.intro-bas .principal {
+  animation: intro-apparaitre 0.3s steps(3);
+}
+
+.intro-passer {
+  margin: 0;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.06em;
+  color: var(--texte-secondaire);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@keyframes intro-scintiller {
+  0% {
+    filter: brightness(1);
+  }
+  37% {
+    filter: brightness(0.94);
+  }
+  38% {
+    filter: brightness(1.02);
+  }
+  71% {
+    filter: brightness(0.97);
+  }
+  72% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes intro-remonter {
+  from {
+    top: 110%;
+  }
+  to {
+    top: -15%;
+  }
+}
+
+@keyframes intro-faisceau {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  35% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1, 300);
+  }
+}
+
+@keyframes intro-ouvrir {
+  0%,
+  45% {
+    transform: scaleY(0.004);
+    filter: brightness(5);
+  }
+  100% {
+    transform: scaleY(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes intro-sauter {
+  0% {
+    transform: translate(0, 0) skewX(0);
+  }
+  25% {
+    transform: translate(-7px, 14px) skewX(6deg);
+  }
+  50% {
+    transform: translate(5px, -22px) skewX(-4deg);
+  }
+  75% {
+    transform: translate(-3px, 40px) skewX(2deg);
+  }
+}
+
+@keyframes intro-clignoter {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-apparaitre {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-crt.allume,
+  .intro-bande,
+  .intro-curseur,
+  .intro-bas .principal {
+    animation: none;
   }
 }

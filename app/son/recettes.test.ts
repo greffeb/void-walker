@@ -10,7 +10,10 @@ import {
   ordonnerSignaux,
   RECETTES_GESTES,
   RECETTES_SIGNAUX,
+  recetteIntro,
   SIGNAUX,
+  SONS_INTRO,
+  DUREE_STATIQUE,
   VOLUME_MAX,
   type ElementSon,
 } from './recettes';
@@ -24,7 +27,11 @@ function lcg(graine: number): () => number {
   };
 }
 
-const toutes = (): [string, readonly ElementSon[]][] => [...Object.entries(RECETTES_GESTES), ...Object.entries(RECETTES_SIGNAUX)];
+const toutes = (): [string, readonly ElementSon[]][] => [
+  ...Object.entries(RECETTES_GESTES),
+  ...Object.entries(RECETTES_SIGNAUX),
+  ...SONS_INTRO.map((nom): [string, readonly ElementSon[]] => [`intro ${nom}`, recetteIntro(nom, lcg(3))]),
+];
 
 describe('recettes des sons (15 §3)', () => {
   it('chaque geste et chaque signal du catalogue a sa recette (15 §2.1, §2.2)', () => {
@@ -135,6 +142,18 @@ describe('recettes des sons (15 §3)', () => {
         }
       });
     }
+  });
+
+  it('intro (D-308) : la menace est la blessure du jeu ; statique de 0,85 s ; un pas de l’intro dure moins d’une seconde', () => {
+    expect(recetteIntro('menace', lcg(1))).toBe(RECETTES_SIGNAUX.blessure);
+    for (const nom of SONS_INTRO) expect(dureeRecette(recetteIntro(nom, lcg(9))), nom).toBeLessThan(1);
+    const statique = recetteIntro('statique', lcg(5));
+    expect(dureeRecette(statique)).toBeLessThanOrEqual(DUREE_STATIQUE + 0.05);
+    expect(statique.length).toBeGreaterThan(20);
+    // Deux touches de suite ne sonnent pas tout à fait pareil ; les mêmes tirages, si.
+    const hasard = lcg(11);
+    expect(recetteIntro('clac', hasard)[0]?.f).not.toBe(recetteIntro('clac', hasard)[0]?.f);
+    expect(recetteIntro('clac', lcg(4))).toEqual(recetteIntro('clac', lcg(4)));
   });
 
   it('ordre des signaux : alarme incendie, alarme vide, créature, blessure ou soin, IA Station ; sans doublon (15 §2.4)', () => {

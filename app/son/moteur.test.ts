@@ -1,4 +1,4 @@
-import { dureeRecette, RECETTES_GESTES, RECETTES_SIGNAUX, ESPACE_SIGNAUX, GESTES, NOTES_CREPITEMENT } from './recettes';
+import { dureeRecette, RECETTES_GESTES, RECETTES_SIGNAUX, ESPACE_SIGNAUX, GESTES, NOTES_CREPITEMENT, SONS_INTRO } from './recettes';
 import { creerMoteur, DEPART, gainDe, sessionAmbiante, type Niveaux } from './moteur';
 
 // Faux contexte audio : il journalise ce que le moteur lui demande, sans produire de son.
@@ -270,6 +270,24 @@ describe('moteur du son (15 §5, §6)', () => {
     const clic = ctx.oscillateurs().find((oscillateur) => frequence(oscillateur) === 2400);
     expect(clic?.debut).toBeCloseTo(DEPART);
     expect(clic?.fin).toBeCloseTo(DEPART + 0.004 + 0.02);
+  });
+
+  it('intro de NOUVELLE PARTIE : chaque son part maintenant, à travers le grain cassette ; rien avant le premier toucher ni effets à 0 (15 §2.6)', () => {
+    const { son, ctx } = monter();
+    son.intro('interrupteur');
+    expect(ctx.noeuds).toHaveLength(0);
+    son.debloquer();
+    for (const nom of SONS_INTRO) {
+      const sources = ctx.oscillateurs().length + ctx.lecteurs().length;
+      son.intro(nom);
+      expect(ctx.oscillateurs().length + ctx.lecteurs().length, nom).toBeGreaterThan(sources);
+    }
+    const blessure = ctx.oscillateurs().filter((oscillateur) => frequence(oscillateur) === 220);
+    expect(blessure.length).toBeGreaterThan(0);
+    son.regler({ ...PAR_DEFAUT, effets: 0 });
+    const sources = ctx.oscillateurs().length + ctx.lecteurs().length;
+    son.intro('menace');
+    expect(ctx.oscillateurs().length + ctx.lecteurs().length).toBe(sources);
   });
 
   it('téléphone : un bruitage court part assez loin devant l’horloge audio pour ne jamais tomber dans le passé', () => {
