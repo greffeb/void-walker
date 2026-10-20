@@ -34,6 +34,11 @@ Jouée sur la version de test de la variante V2b de #194 (D-279 : la créature f
 
 Jouées sur la version de test de la variante V2a de #194 à trois réactions (D-279 : la créature force une porte fermée, qui reste enfoncée). Commentaires du porteur joints à ces quatre parties : « Je sais pas si passer a 3 était une bonne idée, j'ai réussi a perdre la créature facilement et elle a pas essaye de forcer les portes suivantes. » ; « Je confirme, le temps supplémentaire ma permis de gagner malgré une erreur. Pas sûr de vouloir rester a 3 et de pas revenir a 2 (réglage de difficulté 3 moyen et 2 difficile ?) » ; « Partie finie qui doit compléter des modules pas encore validés. Mais pas représentatif des essais V2b » ; « On repasse a 2 réactions ».
 
+- G1-M08-M02-M01-M06-EMBARQUEMENT-5 · version 0.1.0 · commit 78e370d · évacuation en 50 actions · [partie](https://github.com/greffeb/void-walker/pull/230#issuecomment-6299244060)
+- G1-M02-M09-M04-M03-OBSERVATION-1 · version 0.1.0 · commit 78e370d · défaite en 34 actions · [partie](https://github.com/greffeb/void-walker/pull/230#issuecomment-6299362449)
+
+Jouées sur la version de test des grandes stations (PR #230, livraisons 1 à 3, après la reprise de `main`). Commentaires du porteur joints à ces deux parties : « Pas mal, a en tester d'autres. Les notes sont agréables a lire » ; « Bien ! Je me demande comment j'aurais pu gagner. Sympa ». Morceaux joués dans une grande station (D-325) : M-01, M-02, M-03, M-04, M-06, M-08, M-09 ; restent M-05, M-07, M-10 et l'ordre libre.
+
 ## Informations proposées pour chaque session
 
 - Identifiant de session, date et testeur.
