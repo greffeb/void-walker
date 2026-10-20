@@ -219,3 +219,21 @@ Pièces : les pièces du catalogue d'abord, celles qui ne portent encore rien (c
 - [ ] **Step 2 :** relecture des mesures et des captures par l'agent principal ; écarts aux critères du §11 listés pour le porteur.
 - [ ] **Step 3 :** relecture finale de toute la livraison, puis pousser la branche et mettre à jour la PR #230 (trois livraisons, mesures, « validation humaine requise »).
 - [ ] **Step 4 :** proposer au porteur l'essai sur téléphone (une note de rangement suivie jusqu'à sa clé, un journal, un message) ; la fusion attend son accord (D-304) et le passage de chaque morceau dans une grande station (D-302).
+
+### Task 12 : poser la caisse sous la grille d'un seul geste (demande du porteur, 2026-10-20)
+
+Exécutée après la tâche 8 et avant la tâche 9 (republication, mesures et captures).
+
+Demande, mot pour mot : « Ça serait bien que on est directement l'option "poser sous la grille" pour la caisse quand on va dans son menu d'inventaire et qu'on est dans la bonne pièce plutôt que de te voir la poser et réouvrir un menu qui nous propose de la pousser sous la grille. »
+
+**Files:**
+- Modify: `engine/actions.ts` (`poser` : paramètre de position), `engine/vocabulaire.ts` (événement `objet_pose_position`), `content/textes/socle.ts`, `content/textes/couches.ts` et les mondes écrits en entier (comme `BRUITS_STATION`), `cli/partie-cli.ts` si l'étape « où » y demande un ajout
+- Test: `engine/partie.test.ts` ou un test du moteur dédié, `content/textes/rendu.test.ts`, `app/EcranJeu.test.tsx`, `cli/partie-cli.test.ts`
+
+**Interfaces:**
+- `poser` : quand l'objet porté est `deplacable` et que la pièce a des positions, `parametres` rend ces positions et la pose se fait à la position choisie (`{ type: 'piece', piece, position }`), avec l'événement `{ type: 'objet_pose_position', objet: RefObjet, position: RefPosition }` ; sinon, `poser` ne change pas. L'aperçu dit `laissera` avec la position.
+- Textes (écrits par l'agent principal, D-243) : `objet_pose_position` : « Vous posez {le:objet} {nom:position}. Vos mains sont libres. » ; « Vous déposez {le:objet} {nom:position}, bien d’aplomb. Vous gardez les mains libres. »
+
+- [ ] **Step 1 : tests qui échouent** : dans une grande station, la caisse portée dans l'atelier de M-02 propose « Poser » avec les positions de la pièce (dont « sous la grille ») ; poser sous la grille la met à cette position en une action, et la grille devient atteignable ; ailleurs, « Poser » reste sans paramètre ; dans une petite station, la caisse ne se porte pas et rien ne change (empreintes figées) ; l'appli ouvre l'étape « OÙ ? » depuis la fiche d'inventaire ; la CLI accepte la position.
+- [ ] **Step 2 :** → FAIL ; **Step 3 :** implémentation ; **Step 4 :** → PASS ; `npm test` vert.
+- [ ] **Step 5 :** commit `engine, content, app, cli: poser la caisse sous la grille d'un seul geste (demande du porteur)`.
