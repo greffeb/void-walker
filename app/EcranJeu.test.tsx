@@ -1337,6 +1337,19 @@ describe('fiche d’un document (#209, D-301, spec 2026-10-18 §9.1)', () => {
     );
   });
 
+  it('un journal souligne aussi la pièce désignée, dans le texte de ses lignes et pas dans l’heure', () => {
+    const rendu: DocumentRendu = {
+      support: 'journal',
+      libelleSupport: 'Journal de terminal',
+      ou: 'resté allumé sur un pupitre',
+      corps: [{ heure: '02:14', texte: 'Clé laissée à la cale.' }, { heure: '02:31', texte: 'Rien à signaler.' }],
+      piece: 'cale',
+    };
+    const fiche = renderToStaticMarkup(<FicheDocument rendu={rendu} puce="Journal" />);
+    expect(fiche).toContain('<li><time>02:14</time> <span>Clé laissée à la <span class="lieu">cale</span>.</span></li>');
+    expect(fiche).toContain('<li><time>02:31</time> <span>Rien à signaler.</span></li>');
+  });
+
   it('lecteur d’écran : le support, la ligne « où », puis le texte, dans l’ordre du DOM ; le libellé n’est pas masqué', async () => {
     const lus: Readonly<Record<string, string>> = {
       note_malik: 'Note manuscrite scotchée au montant d’une couchette Je ne dors plus. Si quelqu’un lit ceci, ne comptez pas sur la lumière. Malik',

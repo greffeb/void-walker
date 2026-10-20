@@ -1,6 +1,6 @@
 import { poserDocuments, type DocumentPose, type PieceDocument } from './documents';
 import { idPublic, jouer, nouvellePartie, observer, type Consultation, type DefMonde, type DefObjet, type OptionMenu } from './index';
-import type { EmplacementDocument, ReserveDocuments } from './station';
+import { CLE_TROUSSE, type EmplacementDocument, type ReserveDocuments } from './station';
 
 // Regarder un document (spec 2026-10-18 §8.5) : la seule action possible, gratuite ; une note de rangement rend la pièce qu'elle
 // nomme en référence publique, pour remplir le trou à l'affichage.
@@ -89,7 +89,7 @@ const EMPLACEMENTS: readonly EmplacementDocument[] = [
   { id: 'rangement-bidon', couche: 'rangement', morceau: 'm1', cle: 'o-bidon' },
   { id: 'rangement-combinaison', couche: 'rangement', morceau: 'm1', cle: 'o-combinaison' },
   { id: 'rangement-caisse', couche: 'rangement', morceau: 'm2', cle: 'o-caisse' },
-  { id: 'rangement-trousse', couche: 'rangement', cle: 'butin:soin' },
+  { id: 'rangement-trousse', couche: 'rangement', cle: CLE_TROUSSE },
 ];
 const RESERVE: ReserveDocuments = { emplacements: EMPLACEMENTS, parStation: [5, 7] };
 const MORCEAUX: ReadonlySet<string> = new Set(['m1', 'm2']);
@@ -150,6 +150,22 @@ describe('pose des documents (spec 2026-10-18 §8.4)', () => {
       expect(couche(poser(graine, { cles: surLaFace }), 'rangement').map((pose) => [pose.piece, pose.designe])).toEqual([
         ['m1/poste', 'a3/p'],
         ['a2/p', 'a5/p'],
+      ]);
+    }
+  });
+
+  it('le repli sur une annexe pendue à la face n’est jamais la pièce de la clé : une autre annexe, sinon aucune note', () => {
+    // La face et l'origine sont prises par la première note ; la seconde clé est dans l'annexe pendue à la face, a2/p.
+    const dansLAnnexe: Deplacees = new Map([
+      ['m1/o-bidon', { piece: 'a3/p', face: 'm1/poste', origine: 'm1/poste' }],
+      ['m1/o-combinaison', { piece: 'a2/p', face: 'm1/poste', origine: 'm1/poste' }],
+    ]);
+    const autrePendue = [...PIECES, annexe('a9/p', 8, 'eau', { morceau: 'm1' })];
+    for (const graine of GRAINES) {
+      expect(couche(poser(graine, { cles: dansLAnnexe }), 'rangement').map((pose) => [pose.piece, pose.designe])).toEqual([['m1/poste', 'a3/p']]);
+      expect(couche(poser(graine, { cles: dansLAnnexe, pieces: autrePendue }), 'rangement').map((pose) => [pose.piece, pose.designe])).toEqual([
+        ['m1/poste', 'a3/p'],
+        ['a9/p', 'a2/p'],
       ]);
     }
   });
@@ -242,7 +258,7 @@ describe('pose des documents (spec 2026-10-18 §8.4)', () => {
     const notes: ReserveDocuments = { ...RESERVE, emplacements: EMPLACEMENTS.filter((emplacement) => emplacement.couche === 'rangement') };
     for (const graine of GRAINES) {
       const poses = poser(graine, { reserve: notes, trousse: 'a6/p' });
-      expect(poses.map((pose) => [pose.emplacement.cle, pose.designe])).toEqual([['butin:soin', 'a6/p']]);
+      expect(poses.map((pose) => [pose.emplacement.cle, pose.designe])).toEqual([[CLE_TROUSSE, 'a6/p']]);
       expect(poses[0]?.piece).not.toBe('a6/p');
       expect(PIECES.find((candidate) => candidate.id === poses[0]?.piece)?.catalogue).toBe(true);
       expect(poser(graine, { reserve: notes })).toEqual([]);

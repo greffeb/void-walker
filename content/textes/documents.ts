@@ -289,6 +289,7 @@ export const EMPLACEMENTS_DOCUMENTS: readonly EmplacementDocument[] = [
   rangement('doc_bon_rangement', 'm-06', 'o-combinaison'),
   rangement('doc_note_helene', 'm-06', 'o-decoupeuse'),
   rangement('doc_mot_nadia', 'm-08', 'o-planche'),
+  // Valeur de `CLE_TROUSSE` (engine/station.ts) : le contenu n'importe que des types du moteur ; tools/documents.test.ts garde l'égalité.
   { id: 'doc_papier_plie', couche: 'rangement', cle: 'butin:soin' },
 ];
 

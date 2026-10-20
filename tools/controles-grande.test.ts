@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DefMonde, DefObjet, DefStation, EmplacementDocument } from '../engine';
+import { CLE_TROUSSE, type DefMonde, type DefObjet, type DefStation, type EmplacementDocument } from '../engine';
 import { PIECES_CATALOGUE, type CompositionGrande, type EntreeMonde } from '../content';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { controlerGrande } from './controles-grande';
@@ -318,7 +318,7 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     chercher(
       () => true,
       (construite) => {
-        const note = documentsDe(construite).find(({ place }) => place.cle === 'butin:soin');
+        const note = documentsDe(construite).find(({ place }) => place.cle === CLE_TROUSSE);
         const trousse = construite.entree.monde.objets.find((objet) => objet.butin === true && objet.soin !== undefined);
         return note === undefined || trousse === undefined ? undefined : { note, trousse };
       },
@@ -468,6 +468,13 @@ describe('contrôles structurels des grandes stations (spec 2026-10-18 §7.3)', 
     expect(controlerGrande(permise.entree, permise.station).filter((ecart) => ecart.startsWith(`Document ${trouve.doc.objet.nom} dans ${trouve.pendue} : ni la pièce face`))).toEqual([]);
     const fautive = modifier(construite, (monde) => deplacer(monde, trouve.doc.objet.id, trouve.ailleurs));
     expect(controlerGrande(fautive.entree, fautive.station)).toContain(message(trouve.doc, trouve.ailleurs));
+  });
+
+  it('une note de rangement dans la pièce même de sa clé est signalée (spec §8.4)', () => {
+    const { construite, trouve } = chercher(() => true, (candidate) => notesDeCles(documentsDe(candidate))[0]);
+    const piece = construite.entree.monde.objets.find((objet) => objet.id === idCle(trouve.place))?.piece ?? '';
+    const fautive = modifier(construite, (monde) => deplacer(monde, trouve.objet.id, piece));
+    expect(controlerGrande(fautive.entree, fautive.station)).toContain(`Document ${trouve.objet.nom} dans ${piece} : note de rangement dans la pièce même de sa clé ${idCle(trouve.place)}.`);
   });
 
   it('une note de rangement qui ne désigne pas la pièce de la clé est signalée (spec §8.4)', () => {

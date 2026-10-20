@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { prefixer, type DefMonde, type DefObjet } from '../engine';
+import { CLE_TROUSSE, prefixer, type DefMonde, type DefObjet } from '../engine';
 import { DOCUMENTS, EMPLACEMENTS_DOCUMENTS, MORCEAUX, RESERVE_DOCUMENTS, rendreDocument, texteDocument } from '../content';
 import { CATALOGUE } from './catalogue';
 
@@ -42,7 +42,11 @@ describe('réserve de documents du contenu (#209)', () => {
     expect(notes).toHaveLength(8);
     expect(CLES_DECLAREES).toHaveLength(7);
     for (const { morceau, cle } of CLES_DECLAREES) expect(notes.filter((note) => note.morceau === morceau && note.cle === cle), `${morceau} ${cle}`).toHaveLength(1);
-    expect(notes.filter((note) => note.cle === 'butin:soin' && note.morceau === undefined)).toHaveLength(1);
+    expect(notes.filter((note) => note.cle === CLE_TROUSSE && note.morceau === undefined)).toHaveLength(1);
+  });
+
+  it('la note de la trousse porte la clé du moteur : le contenu en recopie la valeur, faute d’en pouvoir importer une', () => {
+    expect(EMPLACEMENTS_DOCUMENTS.find((emplacement) => emplacement.id === 'doc_papier_plie')?.cle).toBe(CLE_TROUSSE);
   });
 
   it('douze documents de la menace, trois par étape', () => {
@@ -85,7 +89,7 @@ describe('documents dans les grandes stations (#209)', () => {
         const designe = doc.designe === undefined ? undefined : monde.pieces.find((piece) => piece.id === doc.designe);
         if (emplacement.couche === 'rangement') {
           // La note désigne la pièce de sa clé, ou de la trousse.
-          const cle = emplacement.cle === 'butin:soin' ? monde.objets.find((objet) => objet.soin !== undefined) : objetDe(monde, prefixer(emplacement.morceau ?? '', emplacement.cle ?? ''));
+          const cle = emplacement.cle === CLE_TROUSSE ? monde.objets.find((objet) => objet.soin !== undefined) : objetDe(monde, prefixer(emplacement.morceau ?? '', emplacement.cle ?? ''));
           expect(cle?.piece, `${monde.id} : ${doc.nom}`).toBe(doc.designe);
           expect(designe, `${monde.id} : ${doc.nom} : pièce désignée`).toBeDefined();
         } else expect(doc.designe, `${monde.id} : ${doc.nom}`).toBeUndefined();

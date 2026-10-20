@@ -46,6 +46,7 @@ export {
   type Apport,
   type Assembleur,
   type CategoriePiece,
+  CLE_TROUSSE,
   type CoucheDocument,
   type DefAccroche,
   type DefAnnexe,

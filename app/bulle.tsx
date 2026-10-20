@@ -180,7 +180,7 @@ export function FicheDocument({ rendu, puce }: { readonly rendu: DocumentRendu; 
             <ol>
               {corps.map(({ heure, texte }, rang) => (
                 <li key={rang}>
-                  <time>{heure}</time> <span>{texte}</span>
+                  <time>{heure}</time> <span>{souligner(texte, piece)}</span>
                 </li>
               ))}
             </ol>

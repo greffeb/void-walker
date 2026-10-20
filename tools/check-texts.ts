@@ -1,6 +1,7 @@
 import {
   ACTIONS,
   apercu,
+  CLE_TROUSSE,
   COUTS,
   jouer,
   NIVEAUX_RISQUE,
@@ -115,9 +116,6 @@ export const MAX_ETATS_MONDE_TEST = 150000;
  * borne garde chaque grande station à une dizaine de secondes.
  */
 export const MAX_ETATS_GRANDE = 10000;
-
-/** Clé de la note de la trousse de soin du butin : la seule note de rangement sans morceau. */
-const CLE_TROUSSE = 'butin:soin';
 
 /** Identifiant d'une grande station publiée : `g<version>-<composition>-<graine>`, la composition d'un côté, la graine de l'autre. */
 const GRANDE = /^(g\d+-.+)-(\d+)$/;
@@ -856,6 +854,8 @@ function analyserReserve({ emplacements, communs, morceaux }: SourcesReserve): {
       if (!corps && /[\d%]/.test(valeur)) erreurs.push(`${ou}, ${champ} : chiffre ou pourcentage dans « ${valeur} » (C-04 §4.3).`);
     }
     if (couche === 'rangement' && !texte.corps.some((ligne) => TROU_PIECE.test(ligne))) erreurs.push(`${ou} : note de rangement qui ne nomme pas la pièce.`);
+    // Un papier glissé près de la clé : une note manuscrite, ni message, ni journal, ni affiche, ni inscription.
+    if (couche === 'rangement' && texte.support !== 'note') erreurs.push(`${ou} : note de rangement qui n’est pas une note manuscrite (support « ${texte.support} »).`);
 
     const nom = minuscules(texte.puce.texte);
     const autre = puces.get(nom);
@@ -890,8 +890,8 @@ function analyserReserve({ emplacements, communs, morceaux }: SourcesReserve): {
 }
 
 /**
- * Toute la réserve, sans station de référence : chaque place a un texte et chaque texte une place ; une note de rangement a
- * une clé et un morceau sauf la trousse ; le seul trou est la pièce, dans le corps d'une note de rangement ; aucun mot réservé
+ * Toute la réserve, sans station de référence : chaque place a un texte et chaque texte une place ; une note de rangement, note
+ * manuscrite, a une clé et un morceau sauf la trousse ; le seul trou est la pièce, dans le corps d'une note de rangement ; aucun mot réservé
  * de la couche ; une à cinq phrases ; aucun chiffre dans la puce, la ligne « où » ni la signature (le corps en a le droit) ; des
  * noms de puce distincts entre eux et de tout nom de pièce ou d'objet. Chaque document est rendu par `rendreDocument` : une
  * note de rangement avec chaque pièce du catalogue où sa clé peut aller, et avec une pièce numérotée (« consigne B »), et nomme

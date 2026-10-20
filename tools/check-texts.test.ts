@@ -1,4 +1,4 @@
-import { prefixer, type EmplacementDocument } from '../engine';
+import { CLE_TROUSSE, prefixer, type EmplacementDocument } from '../engine';
 import { COMPOSITIONS_CONTROLEES, DOCUMENTS, EMPLACEMENTS_DOCUMENTS, GRAINE_GRANDE_MAX, MONDES, MORCEAUX, type EntreeMonde, type TexteDocument, type TextesMonde } from '../content';
 import { TEXTES_AR01 } from '../content/ar-01/textes';
 import { CATALOGUE } from './catalogue';
@@ -328,6 +328,15 @@ describe('réserve de documents : structure (spec §8.4)', () => {
     expect(controlerReserve({ ...SOURCES_RESERVE, communs: { ...DOCUMENTS, doc_note_yann: commun('doc_carte_postale') } })).toContain('document doc_note_yann : texte défini deux fois.');
   });
 
+  it('une note de rangement est une note manuscrite : tout autre support est refusé', () => {
+    expect(controlerReserve(avecCommun('doc_papier_plie', { support: 'message' }))).toContain('document doc_papier_plie : note de rangement qui n’est pas une note manuscrite (support « message »).');
+    expect(controlerReserve(avecDuMorceau('m-01', 'doc_note_scotchee', { support: 'journal' }))).toContain(
+      'document doc_note_scotchee : note de rangement qui n’est pas une note manuscrite (support « journal »).',
+    );
+    // Les autres couches gardent leurs supports.
+    expect(controlerReserve(avecCommun('doc_carte_postale', { support: 'message' })).filter((erreur) => erreur.includes('note manuscrite'))).toEqual([]);
+  });
+
   it('une note de rangement a une clé, et un morceau sauf la trousse ; une clé inconnue du morceau est refusée', () => {
     expect(controlerReserve(avecEmplacement('doc_note_scotchee', { id: 'doc_note_scotchee', couche: 'rangement', morceau: 'm-01' }))).toContain('document doc_note_scotchee : note de rangement sans clé.');
     expect(controlerReserve(avecEmplacement('doc_papier_plie', { id: 'doc_papier_plie', couche: 'rangement' }))).toContain('document doc_papier_plie : note de rangement sans clé.');
@@ -398,7 +407,7 @@ describe('réserve de documents : un conflit de clé est une ligne d’erreur', 
 describe('réserve de documents : couverture du rendu', () => {
   const rendus = rendusDeLaReserve();
   const etiquettesDe = ({ cle, morceau }: EmplacementDocument): readonly string[] | undefined =>
-    cle === 'butin:soin' ? ['butin'] : MORCEAUX[morceau ?? '']?.morceau.grande?.cles?.[cle ?? '']?.etiquettes;
+    cle === CLE_TROUSSE ? ['butin'] : MORCEAUX[morceau ?? '']?.morceau.grande?.cles?.[cle ?? '']?.etiquettes;
 
   it('piecesPour : les pièces du catalogue qui portent une des étiquettes', () => {
     expect(piecesPour(['butin']).map(({ nom }) => nom.texte)).toEqual(expect.arrayContaining(['consigne', 'infirmerie', 'laboratoire']));
@@ -557,7 +566,7 @@ describe('grandes stations explorées par check:texts (spec §11, #209)', () => 
   const cleDeplacee = (id: string): boolean => {
     const entree = entreeAControler(CATALOGUE, id)[1];
     if ('refus' in entree) return false;
-    return entree.monde.objets.some((objet) => objet.document === true && objet.designe !== undefined && EMPLACEMENTS_DOCUMENTS.find((emplacement) => emplacement.id === objet.nom)?.cle !== 'butin:soin');
+    return entree.monde.objets.some((objet) => objet.document === true && objet.designe !== undefined && EMPLACEMENTS_DOCUMENTS.find((emplacement) => emplacement.id === objet.nom)?.cle !== CLE_TROUSSE);
   };
 
   it('trois grandes stations publiées : une chaîne, une en ordre libre, une avec une clé déplacée ; les mêmes à chaque appel', () => {

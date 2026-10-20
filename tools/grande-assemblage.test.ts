@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assemblerStation, exporter, nouvellePartie, prefixer, type DefMonde, type DefStation, type EmplacementDocument, type ReserveDocuments, type TableButin } from '../engine';
+import { assemblerStation, CLE_TROUSSE, exporter, nouvellePartie, prefixer, type DefMonde, type DefStation, type EmplacementDocument, type ReserveDocuments, type TableButin } from '../engine';
 import { MORCEAUX, PIECES_CATALOGUE } from '../content';
 import { CATALOGUE } from './catalogue';
 
@@ -349,7 +349,7 @@ describe('documents et couverture (spec 2026-10-18 §8.4, §7.3)', () => {
       ...([1, 2, 3, 4] as const).flatMap((etape) => [0, 1, 2].map((indice): EmplacementDocument => ({ id: `essai-menace-${etape}-${indice}`, couche: 'menace', etape }))),
       ...Object.keys(MORCEAUX).map((id): EmplacementDocument => ({ id: `essai-morceau-${id}`, couche: 'morceau', morceau: id })),
       ...declarees.map(({ morceau: id, cle }): EmplacementDocument => ({ id: `essai-rangement-${id}-${cle}`, couche: 'rangement', morceau: id, cle })),
-      { id: 'essai-rangement-trousse', couche: 'rangement', cle: 'butin:soin' },
+      { id: 'essai-rangement-trousse', couche: 'rangement', cle: CLE_TROUSSE },
     ],
   };
   const emplacementDe = new Map(RESERVE.emplacements.map((emplacement) => [emplacement.id, emplacement]));
@@ -398,7 +398,7 @@ describe('documents et couverture (spec 2026-10-18 §8.4, §7.3)', () => {
       for (const doc of docs) {
         const emplacement = emplacementDe.get(doc.nom);
         if (emplacement?.couche === 'morceau') expect(presents.has(emplacement.morceau ?? ''), `${station.id} : ${doc.nom}`).toBe(true);
-        if (emplacement?.cle === 'butin:soin') expect(monde.objets.find((objet) => objet.soin !== undefined)?.piece, station.id).toBe(doc.designe);
+        if (emplacement?.cle === CLE_TROUSSE) expect(monde.objets.find((objet) => objet.soin !== undefined)?.piece, station.id).toBe(doc.designe);
       }
       // Chaque clé déplacée a sa note, qui désigne la pièce où elle est.
       for (const leMorceau of station.morceaux) {

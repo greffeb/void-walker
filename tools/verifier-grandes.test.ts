@@ -250,4 +250,16 @@ describe('liste publiée des grandes stations (spec 2026-10-18 §7.2, D-270)', (
     const lignes = verifierPublieesDuLot({ numero: 1, total: 10 });
     expect(ecartsDesGrandes(lignes)).toEqual([]);
   }, 600_000);
+
+  it('aucune note de rangement d’une station publiée n’est dans la pièce de sa clé (#209)', () => {
+    let notes = 0;
+    for (const id of CATALOGUE.publiees) {
+      for (const doc of construite(id).monde.objets) {
+        if (doc.document !== true || doc.designe === undefined) continue;
+        notes++;
+        expect(doc.piece, `${id} : ${doc.nom}`).not.toBe(doc.designe);
+      }
+    }
+    expect(notes).toBeGreaterThan(100);
+  }, 600_000);
 });

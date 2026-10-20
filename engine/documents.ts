@@ -1,6 +1,6 @@
 import { generateurDepuisGraine, suivant } from './des';
 import { prefixer } from './pose';
-import type { EmplacementDocument, ReserveDocuments } from './station';
+import { CLE_TROUSSE, type EmplacementDocument, type ReserveDocuments } from './station';
 
 // Documents d'une grande station (spec 2026-10-18 §8.4) : après le butin, cinq à sept documents de la réserve, notes de
 // rangement comprises, un par pièce. Les règles lisent couches, étapes, étiquettes et rangs, jamais un nom (D-078).
@@ -30,12 +30,12 @@ type Couple = readonly [EmplacementDocument, PieceDocument];
 /**
  * Documents de la station, sur la sous-graine 'documents' ; `depart` n'en reçoit jamais. Dans l'ordre : le nombre tiré dans
  * `parStation`, que les notes des clés déplacées dépassent au besoin ; une note par clé déplacée, dans la pièce face, sinon
- * dans sa pièce d'origine, sinon dans une annexe pendue à la face ; un document par morceau présent, dans sa pièce face, sinon
- * dans une annexe pendue à elle ; la menace, une étape par tiers du trajet, au moins une ; l'univers, dans les pièces du
- * catalogue d'une étiquette acceptée ; la note de la trousse. Ailleurs que dans une pièce imposée, les pièces du catalogue
- * d'abord, celles qui ne portent encore rien en priorité. Couverture (§7.3) : hors notes et première menace, un document ne
- * prend la place réservée à une pièce du catalogue qui ne porte rien que s'il la couvre ; les morceaux laissent en plus une
- * place à la menace.
+ * dans sa pièce d'origine, sinon dans une annexe pendue à la face, jamais la pièce de la clé ; un document par morceau
+ * présent, dans sa pièce face, sinon dans une annexe pendue à elle ; la menace, une étape par tiers du trajet, au moins une ;
+ * l'univers, dans les pièces du catalogue d'une étiquette acceptée ; la note de la trousse. Ailleurs que dans une pièce
+ * imposée, les pièces du catalogue d'abord, celles qui ne portent encore rien en priorité. Couverture (§7.3) : hors notes et
+ * première menace, un document ne prend la place réservée à une pièce du catalogue qui ne porte rien que s'il la couvre ; les
+ * morceaux laissent en plus une place à la menace.
  */
 export function poserDocuments(
   reserve: ReserveDocuments,
@@ -86,7 +86,7 @@ export function poserDocuments(
   for (const [cle, { piece, face, origine }] of clesDeplacees) {
     const note = de('rangement').find((emplacement) => emplacement.morceau !== undefined && emplacement.cle !== undefined && prefixer(emplacement.morceau, emplacement.cle) === cle);
     if (note === undefined || tire(note)) continue;
-    const ici = [face, origine].find((id) => parId.has(id) && !prise(id)) ?? choisir(pendues(parId.get(face)?.morceau).map((annexe) => [note, annexe]), true)?.[1].id;
+    const ici = [face, origine].find((id) => parId.has(id) && !prise(id)) ?? choisir(pendues(parId.get(face)?.morceau).filter((annexe) => annexe.id !== piece).map((annexe) => [note, annexe]), true)?.[1].id;
     if (ici !== undefined) poser(note, ici, piece);
   }
 
@@ -123,7 +123,7 @@ export function poserDocuments(
     poser(couple[0], couple[1].id);
   }
 
-  const soin = emplacements.find((emplacement) => emplacement.couche === 'rangement' && emplacement.cle === 'butin:soin');
+  const soin = emplacements.find((emplacement) => emplacement.couche === 'rangement' && emplacement.cle === CLE_TROUSSE);
   if (trousse !== null && soin !== undefined && reste() > 0) {
     const couple = choisir(catalogue.filter((piece) => piece.id !== trousse).map((piece): Couple => [soin, piece]));
     if (couple !== undefined) poser(soin, couple[1].id, trousse);

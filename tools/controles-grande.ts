@@ -1,4 +1,4 @@
-import { franchissable, prefixer, type DefLiaison, type DefMorceau, type DefObjet, type DefPiece, type DefStation, type EmplacementDocument } from '../engine';
+import { CLE_TROUSSE, franchissable, prefixer, type DefLiaison, type DefMorceau, type DefObjet, type DefPiece, type DefStation, type EmplacementDocument } from '../engine';
 import { PIECES_CATALOGUE, type EntreeMonde } from '../content';
 
 // Contrôles structurels d'une grande station (spec 2026-10-18 §7.3) : des parcours de graphe, sans recherche d'états, rapides
@@ -19,8 +19,6 @@ const TRACE_FORTE = 2;
 const CHAMPS_BUTIN = new Set(['id', 'nom', 'piece', 'butin', 'soin', 'glissant']);
 /** La burette de réserve rendrait triviale la coupe de M-04 si on l'atteignait avant elle (spec §6.6). */
 const COUPE_DU_GLISSANT = 'm-04';
-/** Note de rangement de la trousse : son emplacement ne désigne aucune clé de morceau. */
-const CLE_TROUSSE = 'butin:soin';
 /** Le premier document de la menace est toujours posé, par-dessus les notes des clés déplacées que le nombre tiré ne retient pas. */
 const MENACE_EN_PLUS = 1;
 /** Tiers du trajet où se lit chaque étape de la menace : 1 et 2 au premier, 3 au deuxième, 4 au dernier (spec §8.4). */
@@ -263,12 +261,13 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
         if (autre !== undefined) ecarts.push(`${lieu} : le morceau ${morceau} a déjà ${autre.objet.nom}.`);
       }
 
-      // Note de rangement : d'une clé déplacée, dans la face, son origine ou une annexe de la face ; de la trousse, dans le catalogue.
+      // Note de rangement : d'une clé déplacée, dans la face, son origine ou une annexe de la face, jamais la pièce de la clé ; de la trousse, dans le catalogue.
       if (place.couche === 'rangement' && place.morceau !== undefined) {
         const cle = deplacees.find((candidate) => candidate.objet.id === idCle(place));
         if (cle === undefined) ecarts.push(`${lieu} : la clé ${idCle(place)} n’est pas déplacée.`);
         else {
           if (!auFace(objet.piece, cle.morceau) && objet.piece !== cle.origine) ecarts.push(`${lieu} : ni la pièce face de ${cle.morceau}, ni l’origine de ${idCle(place)}, ni une annexe qui pend à la face.`);
+          if (objet.piece === cle.objet.piece) ecarts.push(`${lieu} : note de rangement dans la pièce même de sa clé ${idCle(place)}.`);
           if (objet.designe !== cle.objet.piece) ecarts.push(`${lieu} : désigne ${objet.designe ?? 'rien'}, la clé ${idCle(place)} est dans ${cle.objet.piece}.`);
         }
       }

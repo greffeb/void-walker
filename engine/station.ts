@@ -137,6 +137,9 @@ export interface DefStationGrande {
 /** Les quatre couches d'écriture des documents (spec §8.4) : la vie d'avant, l'incident, une tentative sur un obstacle, une clé rangée. */
 export type CoucheDocument = 'univers' | 'menace' | 'morceau' | 'rangement';
 
+/** Clé de la note de la trousse de soin du butin : la seule note de rangement sans morceau, sa « clé » ne désignant aucun objet de morceau. */
+export const CLE_TROUSSE = 'butin:soin';
+
 /** Un document de la réserve du contenu et sa place (spec §8.4, §8.5) ; le texte vit dans la section `documents` du contenu. */
 export interface EmplacementDocument {
   /** Clé de texte du document. */
@@ -148,7 +151,7 @@ export interface EmplacementDocument {
   readonly etiquettes?: readonly string[];
   /** Morceau, rangement : le morceau du document. */
   readonly morceau?: string;
-  /** Rangement : l'objet désigné (id d'objet du morceau, ou 'butin:soin' pour la trousse). */
+  /** Rangement : l'objet désigné (id d'objet du morceau, ou `CLE_TROUSSE` pour la trousse). */
   readonly cle?: string;
 }
 
