@@ -176,6 +176,8 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(regle('.fiche-document .support')).toContain('text-transform: uppercase');
     // La ligne « où » reprend la casse normale.
     expect(regle('.fiche-document .support span')).toContain('text-transform: none');
+    // À 320 px, un mot long (code, nom lettré) se coupe plutôt que de déborder de la bulle.
+    expect(regle('.fiche-document .doc')).toContain('overflow-wrap: anywhere');
     expect(regle('.fiche-document .doc-note')).toContain('font-style: italic');
     expect(regle('.fiche-document .doc-note')).toContain('border-left: 1px dashed');
     expect(regle('.fiche-document .doc-note .signe')).toContain('text-align: right');

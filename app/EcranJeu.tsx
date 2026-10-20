@@ -718,15 +718,15 @@ function Composer({
   }
   const { fiche, actions } = composer(groupe);
   const lignes = lignesActions(actions);
-  const document = fiche === undefined ? null : lireDocument(fiche);
+  const rendu = fiche === undefined ? null : lireDocument(fiche);
   return (
     <>
       {fiche !== undefined && (
-        <div id={idDescription} className={document === null ? 'fiche' : 'fiche fiche-document'}>
-          {document === null ? (
+        <div id={idDescription} className={rendu === null ? 'fiche' : 'fiche fiche-document'}>
+          {rendu === null ? (
             lire(fiche).map((phrase, index) => <p key={index}>{phrase}</p>)
           ) : (
-            <FicheDocument rendu={document} puce={nomPuce(textes, groupe.cible)} />
+            <FicheDocument rendu={rendu} puce={nomPuce(textes, groupe.cible)} />
           )}
         </div>
       )}

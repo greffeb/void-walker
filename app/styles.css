@@ -773,6 +773,7 @@ button:disabled {
 /* Journal : un cadre sous une barre de titre, une colonne d'heures alignées. */
 .fiche-document .doc-journal {
   border: 1px solid var(--bordure);
+  color: var(--texte-menu);
   font-size: calc(13px * var(--echelle));
   line-height: 1.45;
 }
