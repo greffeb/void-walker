@@ -66,6 +66,20 @@ export const TEXTES_MORCEAU_M09: TextesMorceau = {
     ],
     interrupteur_gravite: repris(TEXTES_PROPRES_M09.descriptions, 'interrupteur'),
   },
+  // Document des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle.
+  documents: {
+    doc_journal_wen: {
+      puce: { texte: 'journal de Wen', genre: 'm', nombre: 's', elision: false },
+      support: 'journal',
+      ou: 'sur une tablette de service, fixée à la paroi par une bande adhésive',
+      corps: [
+        '02:30  Gravité coupée pour la traversée.',
+        '02:31  Passage à la poussée, d’une poignée à l’autre. Une minute par personne.',
+        '02:36  Quelque chose s’engage derrière nous. Gravité laissée coupée.',
+        '02:44  Toujours pas de l’autre côté. Ça ne sait pas flotter.',
+      ],
+    },
+  },
   assistance: {
     gravite: repris(TEXTES_PROPRES_M09.assistance, 'gravite'),
   },

@@ -76,5 +76,23 @@ export const TEXTES_MORCEAU_M06: TextesMorceau = {
     kit: repris(TEXTES_AR02.descriptions, 'kit'),
     capsule: repris(TEXTES_MORCEAU_ESSAI.descriptions, 'capsule'),
   },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : les notes de la combinaison et de la découpeuse déplacées ;
+  // un final n'a pas de témoignage.
+  documents: {
+    doc_bon_rangement: {
+      puce: { texte: 'bon de rangement', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'scotchée à la paroi, sous film plastique',
+      corps: ['Combinaison étanche récupérée et rangée {a:piece}, conformément à la procédure.', 'Ne pas l’emprunter sans signer le registre.'],
+      signature: 'Sami',
+    },
+    doc_note_helene: {
+      puce: { texte: 'note d’Hélène', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'sur papier à en-tête, scotchée à la paroi',
+      corps: ['La découpeuse n’a rien à faire en libre-service.', 'Je l’ai fait ranger {a:piece} ; adressez-vous à la sûreté pour l’emprunter.'],
+      signature: 'Hélène',
+    },
+  },
   assistance: {},
 };

@@ -72,6 +72,25 @@ export const TEXTES_MORCEAU_M08: TextesMorceau = {
       'Des casiers grillagés, des bacs de visserie, un comptoir de distribution. Le fond du magasin reste sombre.',
     ],
   },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la planche déplacée.
+  documents: {
+    doc_message_odile: {
+      puce: { texte: 'message d’Odile', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, calé contre la paroi',
+      corps: [
+        '[voix calme] Nous avions couché la planche en travers du vide, et j’ai regardé Marc traverser le premier. Elle a plié en son milieu, mais elle a tenu.',
+        '[un temps] Nous l’avons retirée derrière nous, pour que rien ne nous suive. Sous un poids plus lourd qu’un homme, de toute façon, elle aurait cédé.',
+      ],
+    },
+    doc_mot_nadia: {
+      puce: { texte: 'mot de Nadia', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'scotchée de travers, à hauteur des yeux',
+      corps: ['Planche du chantier rangée dans {le:piece}.', 'La reprendre sans prévenir, c’est la corvée de nettoyage pendant un mois.'],
+      signature: 'Nadia',
+    },
+  },
   assistance: {
     passerelle: repris(TEXTES_PROPRES_M08.assistance, 'passerelle'),
   },

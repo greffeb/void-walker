@@ -66,5 +66,19 @@ export const TEXTES_MORCEAU_M05: TextesMorceau = {
       'Des bacs de tri, des étiquettes partout, un tapis arrêté net. L’air sent le carton humide.',
     ],
   },
+  // Document des grandes stations (bible docs/17-univers.md §5) : le passage caché à mots couverts, permis dans ce morceau (D-300).
+  documents: {
+    doc_note_joel: {
+      puce: { texte: 'note de Joël', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'écrite sur une serviette en papier, scotchée à la paroi',
+      corps: [
+        'Ceux du tri sont toujours les premiers à table, même les jours de gros arrivage.',
+        'Ils ont leur raccourci, paraît-il, derrière un panneau.',
+        'Il faut rentrer le ventre ; moi, je n’y passerais pas.',
+      ],
+      signature: 'Joël',
+    },
+  },
   assistance: {},
 };

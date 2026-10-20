@@ -75,5 +75,18 @@ export const TEXTES_MORCEAU_M10: TextesMorceau = {
       'Le compresseur de la chambre froide, à l’arrêt. Lancé, il gronde un long moment.',
     ],
   },
+  // Document des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle.
+  documents: {
+    doc_message_helene: {
+      puce: { texte: 'message d’Hélène', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, posé dans un recoin',
+      corps: [
+        '[voix essoufflée] Nous avons lancé le compresseur, puis nous sommes ressortis aussitôt.',
+        '[un long silence] Quand le bruit l’a attirée à l’intérieur, j’ai fermé les deux portes depuis le pupitre.',
+        '[un temps] Marc était resté trop longtemps dans le froid à chercher le bouton ; il en est ressorti les doigts blancs.',
+      ],
+    },
+  },
   assistance: {},
 };

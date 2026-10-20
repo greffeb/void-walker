@@ -64,5 +64,19 @@ export const TEXTES_MORCEAU_M07: TextesMorceau = {
       'Des rayonnages, des sangles qui pendent. Une étiquette de pesée claque doucement dans un courant d’air.',
     ],
   },
+  // Document des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle.
+  documents: {
+    doc_mot_bastien: {
+      puce: { texte: 'mot de Bastien', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'écrite au crayon gras, scotchée à la paroi',
+      corps: [
+        'Les machines tournaient si fort qu’on ne s’entendait plus.',
+        'On en a profité pour forcer la porte grippée, dans un raffut de tous les diables, et personne n’est venu voir.',
+        'Mais de dedans, on n’aurait rien entendu venir non plus.',
+      ],
+      signature: 'Bastien',
+    },
+  },
   assistance: {},
 };

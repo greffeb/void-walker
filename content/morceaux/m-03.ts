@@ -75,6 +75,16 @@ export const TEXTES_MORCEAU_M03: TextesMorceau = {
       'Des étagères jusqu’au plafond, des cartons empilés. La lumière n’atteint pas le fond de la réserve.',
     ],
   },
+  // Document des grandes stations (bible docs/17-univers.md §5) : la note du bloc déplacé ; un final n'a pas de témoignage.
+  documents: {
+    doc_fiche_volante: {
+      puce: { texte: 'fiche volante', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'glissée sous une bande adhésive, sur la paroi',
+      corps: ['Le bloc d’énergie de secours est {a:piece}, chargé.', 'Je l’ai mis à l’écart pour que personne ne le branche sur n’importe quoi.'],
+      signature: 'Yann',
+    },
+  },
   assistance: {
     energie: 'Le circuit de départ se réarme depuis sa console ; son relais est bruyant. Une source locale compatible peut aussi alimenter la capsule.',
   },

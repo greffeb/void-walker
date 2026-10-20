@@ -58,5 +58,26 @@ export const TEXTES_MORCEAU_M01: TextesMorceau = {
     ],
     bidon: repris(TEXTES_AR01.descriptions, 'bidon'),
   },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note du bidon déplacé.
+  documents: {
+    doc_note_yann: {
+      puce: { texte: 'note de Yann', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'scotchée de travers sur la paroi',
+      corps: [
+        'Bastien a ouvert la cloison, puis il est reparti chercher de l’eau en la laissant ouverte.',
+        'À son retour, le feu avait passé le seuil.',
+        'Cloison fermée, le feu serait resté de son côté.',
+      ],
+      signature: 'Yann',
+    },
+    doc_note_scotchee: {
+      puce: { texte: 'note scotchée', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'scotchée à la paroi, près du sol',
+      corps: ['J’ai emporté le bidon d’eau pour le remplir.', 'Il attend {a:piece}, plein à ras bord.'],
+      signature: 'Clara',
+    },
+  },
   assistance: {},
 };

@@ -73,5 +73,26 @@ export const TEXTES_MORCEAU_M02: TextesMorceau = {
       'Une caisse renforcée, encombrante, qu’on soulève à deux bras. Son couvercle plat ferait un appui stable.',
     ],
   },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la caisse déplacée.
+  documents: {
+    doc_note_clara: {
+      puce: { texte: 'note de Clara', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'pliée en deux, coincée dans une fente de la paroi',
+      corps: [
+        'On a poussé la caisse sous la grille du conduit, et Malik est monté dessus pour atteindre la poignée.',
+        'Ensuite, on est passés à plat ventre, un par un.',
+        'Le conduit était si étroit que j’y ai laissé deux boutons de ma veste.',
+      ],
+      signature: 'Clara',
+    },
+    doc_bout_carton: {
+      puce: { texte: 'bout de carton', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'calée contre la paroi',
+      corps: ['La caisse bouchait le passage, alors je l’ai portée jusqu’{a:piece}.', 'Si tu la veux pour ta grille, tu sais où la trouver.'],
+      signature: 'Malik',
+    },
+  },
   assistance: {},
 };

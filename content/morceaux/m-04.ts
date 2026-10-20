@@ -57,5 +57,25 @@ export const TEXTES_MORCEAU_M04: TextesMorceau = {
       'Le test d’avertisseur commande un émetteur placé dans une alcôve de la salle d’observation. Le cycle de test est bref.',
     ],
   },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la burette déplacée.
+  documents: {
+    doc_message_sami: {
+      puce: { texte: 'message de Sami', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, coincé dans un recoin',
+      corps: [
+        '[chuchoté] Ici Sami, sûreté. Nous avons vidé une burette sur le seuil de la cloison.',
+        '[un choc sourd, puis un raclement] Ce qui nous suivait a glissé de tout son long sur l’huile.',
+        '[souffle court] Nous passons, maintenant.',
+      ],
+    },
+    doc_pense_bete: {
+      puce: { texte: 'pense-bête', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'collée à la paroi, à hauteur d’épaule',
+      corps: ['Burette d’huile rangée dans {le:piece}, avec les graisses.', 'Quand on emprunte, on rapporte.'],
+      signature: 'Bastien',
+    },
+  },
   assistance: {},
 };
