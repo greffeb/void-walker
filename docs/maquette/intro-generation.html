@@ -179,11 +179,11 @@ svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-wid
   <div class="verdict">À juger sur téléphone :
     <ul>
       <li>Le démarrage complet dure environ 10 s jusqu'au bouton : le garder pour les premières parties seulement ?</li>
-      <li>L'écran CRT reste-t-il réservé à l'intro, ou une version adoucie gagne-t-elle tout le jeu ?</li>
-      <li>« ▲ Placement menace » en rouge reprend le triangle et le rouge des dangers (D-233).</li>
+      <li>Fond sonore : le bruit brun sourd du jeu, à son niveau par défaut.</li>
+      <li>« ▲ ERREUR : Menace détectée » en rouge reprend le triangle et le rouge des dangers (D-233).</li>
       <li>« STATION 372 » reste discrètement en haut à droite de l'écran de réveil.</li>
     </ul>
-    <b>Choix du porteur : C (v1). v2 à juger.</b>
+    <b>Choix du porteur : C (v1) ; écran CRT réservé à l'intro (v2). v3 à juger.</b>
   </div>
 </div>
 
@@ -329,7 +329,7 @@ const SONS = {
   ],
   /** Statique : crépitements au hasard, porteuse radio qui saute de fréquence. */
   statique: (duree) => {
-    const recette = [souffle(0, duree, 3000, 0.22, { filtre: 'highpass', chute: 0.15 })];
+    const recette = [souffle(0, duree, 3000, 0.12, { filtre: 'highpass', chute: 0.15 })];
     for (let t = 0; t < duree; t += 0.02 + Math.random() * 0.04) {
       recette.push(souffle(t, 0.01 + Math.random() * 0.03, 400 + Math.random() * 5000, 0.2 + Math.random() * 0.6, { q: 1.5 }));
     }
@@ -338,16 +338,41 @@ const SONS = {
     }
     return recette;
   },
-  /** Ronron du tube, sifflement de la ligne et souffle de bande, tant que l'intro est à l'écran. */
-  ronron: () => [
-    ton(0, 60, 50, 0.05, { onde: 'sine', montee: 0.4 }),
-    ton(0, 60, 15734 / 2, 0.004, { onde: 'sine', montee: 0.4 }),
-    ton(0, 60, 100, 0.018, { onde: 'triangle', montee: 0.4 }),
-    souffle(0, 60, 2600, 0.035, { filtre: 'lowpass', montee: 0.4 }),
-  ],
+  /** Ronron léger du tube, sous le fond brun, tant que l'intro est à l'écran. */
+  ronron: () => [ton(0, 60, 50, 0.025, { onde: 'sine', montee: 0.8 })],
+  /** Ligne qui arrive : déclic de relais, plus léger qu'un bloc. */
+  ligne: () => [souffle(0, 0.018, varier(1400, 0.15), 0.22, { q: 2 }), souffle(0, 0.03, 220, 0.18, { filtre: 'lowpass' })],
   /** DÉMARRER : déclic validé. */
   demarrer: () => [souffle(0, 0.03, 1250, 0.45, { q: 2 }), ton(0.02, 0.07, 880, 0.06, { onde: 'square', passeBas: 2400 })],
 };
+
+/**
+ * Fond brun du jeu (app/son/recettes.ts FOND, moteur.ts demarrerAmbiance) : bruit blanc, deux passe-bas à 90 puis 260 Hz (Q 0,5),
+ * gain 5, fondu de 0,8 s. Ici ramené au niveau qu'il a par défaut dans le jeu : 5 × ambiance 60² × général 80², sur `maitre`.
+ */
+function fondBrun() {
+  if (!sonActif || passe || audio === null) return [];
+  const lecteur = audio.createBufferSource();
+  lecteur.buffer = bruitBlanc;
+  lecteur.loop = true;
+  let dernier = lecteur;
+  for (const frequence of [90, 260]) {
+    const passeBas = audio.createBiquadFilter();
+    passeBas.type = 'lowpass';
+    passeBas.frequency.value = frequence;
+    passeBas.Q.value = 0.5;
+    dernier.connect(passeBas);
+    dernier = passeBas;
+  }
+  const gain = audio.createGain();
+  const t = audio.currentTime;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime((5 * 0.6 ** 2 * 0.8 ** 2) / maitre.gain.value, t + 0.8);
+  dernier.connect(gain);
+  gain.connect(maitre);
+  lecteur.start(t, Math.random());
+  return [lecteur];
+}
 
 function couperRonron() {
   if (audio === null) return;
@@ -498,7 +523,7 @@ async function lancer() {
     crt.classList.add('ouverture');
   }
   crt.classList.add('allume');
-  ronron = jouer(SONS.ronron());
+  ronron = [...fondBrun(), ...jouer(SONS.ronron())];
   await dormir(complet ? 650 : 350);
   if (!vivant()) return;
   crt.classList.remove('ouverture');
@@ -573,20 +598,35 @@ async function lancer() {
   await dormir(500);
   if (!vivant()) return;
 
-  // Blocs de lignes d'un coup, comme une mémoire tampon qui se remplit
+  // Lignes une par une, à un pas irrégulier : rafales rapides, quelques temps de traitement plus longs
   const ambiance = melanger(AMBIANCE).slice(0, 3).map((f) => f());
-  const blocs = [
-    [[points('Section de départ', 'ok')], [points('Sections de passage', 'ok')], [points('Section finale', 'ok')]],
-    ambiance.map(([l, v]) => [points(l, v)]),
-    [[points('Arrimage de la capsule', 'ok')], [points('Vérification de la sortie', 'ok')], [points('Placement menace', 'ok', '▲ '), 'menace']],
+  const lignes = [
+    points('Section de départ', 'ok'),
+    points('Sections de passage', 'ok'),
+    points('Section finale', 'ok'),
+    ...ambiance.map(([l, v]) => points(l, v)),
+    points('Arrimage de la capsule', 'ok'),
+    points('Vérification de la sortie', 'ok'),
   ];
-  for (const [i, bloc] of blocs.entries()) {
-    jouer(SONS.relais());
-    if (bloc.some(([, c]) => c === 'menace')) jouer(SONS.menace());
-    for (const [texte, classe] of bloc) ligne(gen, '', classe).textContent = texte;
-    await dormir(i === blocs.length - 1 ? 700 : 550);
+  const pas = () => {
+    const r = Math.random();
+    if (r < 0.3) return 25 + hasard(35);
+    if (r < 0.8) return 80 + hasard(100);
+    return 240 + hasard(160);
+  };
+  for (const texte of lignes) {
+    jouer(SONS.ligne());
+    ligne(gen).textContent = texte;
+    await dormir(pas());
     if (!vivant()) return;
   }
+  await dormir(450);
+  if (!vivant()) return;
+  jouer(SONS.relais());
+  jouer(SONS.menace());
+  ligne(gen, '', 'menace').textContent = '▲ ERREUR : Menace détectée';
+  await dormir(700);
+  if (!vivant()) return;
   jouer(SONS.interrupteur().slice(0, 3));
   ligne(gen);
   ligne(gen, `&gt; Station ${numero} prête<span class="curseur">_</span>`, 'ok');
