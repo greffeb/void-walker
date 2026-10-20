@@ -19,6 +19,11 @@ const TRACE_FORTE = 2;
 const CHAMPS_BUTIN = new Set(['id', 'nom', 'piece', 'butin', 'soin', 'glissant']);
 /** La burette de réserve rendrait triviale la coupe de M-04 si on l'atteignait avant elle (spec §6.6). */
 const COUPE_DU_GLISSANT = 'm-04';
+/** Note de rangement de la trousse : son emplacement ne désigne aucune clé de morceau. */
+const CLE_TROUSSE = 'butin:soin';
+/** Tiers du trajet où se lit chaque étape de la menace : 1 et 2 au premier, 3 au deuxième, 4 au dernier (spec §8.4). */
+const TIERS = ['premier', 'deuxième', 'dernier'] as const;
+const TIER_DE_L_ETAPE = { 1: 0, 2: 0, 3: 1, 4: 2 } as const;
 
 const estPorteAnnexe = (liaison: DefLiaison): boolean => /^l-a\d+-/.test(liaison.id);
 /** Annexe du catalogue d'une pièce d'annexe : 'a3-couchettes/p-piece' → 'a-couchettes'. */
@@ -166,7 +171,7 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
         if (!zone(objet.piece).some((segment) => zones.includes(segment)) || !sousSaBranche) ecarts.push(`Clé ${objet.id} dans ${objet.piece}, hors de sa zone permise.`);
         if (objet.large === true && !apportables.has(objet.piece)) ecarts.push(`Clé large ${objet.id} dans ${objet.piece}, d’où on ne l’apporte pas à la capsule.`);
       }
-      return [{ objet, morceau: morceau.id, deplacee }];
+      return [{ objet, morceau: morceau.id, deplacee, origine: prefixer(morceau.id, origine) }];
     });
   });
   const encombrantes = cles.filter((cle) => cle.deplacee && cle.objet.encombrant === true).map((cle) => cle.objet.id);
@@ -195,6 +200,103 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
   const surLaPiste = (piece: string): boolean =>
     salleDeButin(piece) && !cles.some((cle) => cle.objet.piece === piece) && enChaine(piece).some((haut) => pieces.get(haut)?.trace !== undefined);
   if (station.grande?.butin !== undefined && monde.pieces.some((piece) => surLaPiste(piece.id)) && ![...salles].some(surLaPiste)) ecarts.push('Butin : aucune salle de butin accrochée à la piste.');
+
+  // Documents (spec §8.4, §7.3), relus dans le monde construit sans rien demander à la pose. Le vestibule, sans objet, n'en reçoit
+  // aucun (contrôle ci-dessous).
+  const reserve = station.grande?.documents;
+  if (reserve !== undefined) {
+    const docs = monde.objets.flatMap((objet) => {
+      if (objet.document !== true) return [];
+      const place = reserve.emplacements.find((emplacement) => emplacement.id === objet.nom);
+      if (place === undefined) ecarts.push(`Document ${objet.nom} dans ${objet.piece} : absent de la réserve.`);
+      return place === undefined ? [] : [{ objet, place }];
+    });
+    const deplacees = cles.filter((cle) => cle.deplacee);
+    const [min, max] = [reserve.parStation[0], Math.max(reserve.parStation[1], deplacees.length + 1)];
+    if (docs.length < min || docs.length > max) ecarts.push(`Documents : ${docs.length}, hors de ${min} à ${max}.`);
+
+    // Pièce face d'un morceau : le bout, côté avant, d'une de ses coupes ; l'annexe qui y pend, par des couloirs au besoin, y est rattachée.
+    const coupes = groupesDeCoupes(station, monde.liaisons);
+    const faces = new Map(
+      station.morceaux.flatMap((morceau) => {
+        const avant = new Set(zonesAvant(morceau));
+        const ids = coupes.find((groupe) => groupe.nom === morceau.id)?.ids;
+        const face = monde.liaisons.filter((liaison) => ids?.has(liaison.id) === true).flatMap((liaison) => liaison.entre).find((piece) => zone(piece).some((segment) => avant.has(segment)));
+        return face === undefined ? [] : [[morceau.id, face] as const];
+      }),
+    );
+    const auFace = (piece: string, morceau: string): boolean => {
+      const face = faces.get(morceau);
+      return face !== undefined && (piece === face || (pieces.get(piece)?.forme !== undefined && enChaine(piece).at(-1) === face));
+    };
+    // Rang d'une pièce : les portes depuis le départ, toutes liaisons ; les tiers se mesurent comme la pose (§8.4).
+    const rang = distances(monde.depart, monde.liaisons);
+    const rangDe = (piece: string): number => rang.get(piece) ?? 0;
+    const plusLoin = Math.max(0, ...monde.pieces.filter((piece) => piece.plan !== undefined && piece.feu !== true && piece.pillee !== true).map((piece) => rangDe(piece.id)));
+    const tiers = (piece: string): 0 | 1 | 2 => (rangDe(piece) * 3 <= plusLoin ? 0 : rangDe(piece) * 3 <= plusLoin * 2 ? 1 : 2);
+    const trousse = monde.objets.find((objet) => objet.butin === true && objet.soin !== undefined);
+    const puceDe = (nom: string): string => textes.documents[nom]?.puce.texte ?? nom;
+    const menace = docs.flatMap(({ objet, place }) => (place.couche === 'menace' && place.etape !== undefined ? [{ objet, etape: place.etape }] : []));
+
+    docs.forEach(({ objet, place }, indice) => {
+      const ici = `Document ${objet.nom} dans ${objet.piece}`;
+      const avant = docs.slice(0, indice);
+      if (pieces.get(objet.piece)?.pillee === true) ecarts.push(`${ici} : salle pillée.`);
+      const voisin = avant.find((autre) => autre.objet.piece === objet.piece);
+      if (voisin !== undefined) ecarts.push(`${ici} : la pièce porte déjà ${voisin.objet.nom}.`);
+      const memePuce = avant.find((autre) => puceDe(autre.objet.nom) === puceDe(objet.nom));
+      if (memePuce !== undefined) ecarts.push(`${ici} : nom de puce « ${puceDe(objet.nom)} » déjà pris par ${memePuce.objet.nom}.`);
+
+      if (place.couche === 'univers' && !etiquettesAnnexe(objet.piece).some((etiquette) => place.etiquettes?.includes(etiquette) === true)) ecarts.push(`${ici} : pas une pièce du catalogue portant l’une de ses étiquettes.`);
+
+      if (place.couche === 'morceau') {
+        const morceau = place.morceau ?? '';
+        if (!station.morceaux.some((candidat) => candidat.id === morceau)) ecarts.push(`${ici} : le morceau ${morceau} n’est pas dans la station.`);
+        else if (!auFace(objet.piece, morceau)) ecarts.push(`${ici} : ni la pièce face de ${morceau}, ni une annexe qui y pend.`);
+        const autre = avant.find((precedent) => precedent.place.couche === 'morceau' && precedent.place.morceau === morceau);
+        if (autre !== undefined) ecarts.push(`${ici} : le morceau ${morceau} a déjà ${autre.objet.nom}.`);
+      }
+
+      // Note de rangement : d'une clé déplacée, dans la face, son origine ou une annexe de la face ; de la trousse, dans le catalogue.
+      if (place.couche === 'rangement' && place.morceau !== undefined) {
+        const id = prefixer(place.morceau, place.cle ?? '');
+        const cle = deplacees.find((candidate) => candidate.objet.id === id);
+        if (cle === undefined) ecarts.push(`${ici} : la clé ${id} n’est pas déplacée.`);
+        else {
+          if (!auFace(objet.piece, cle.morceau) && objet.piece !== cle.origine) ecarts.push(`${ici} : ni la pièce face de ${cle.morceau}, ni l’origine de ${id}, ni une annexe qui pend à la face.`);
+          if (objet.designe !== cle.objet.piece) ecarts.push(`${ici} : désigne ${objet.designe ?? 'rien'}, la clé ${id} est dans ${cle.objet.piece}.`);
+        }
+      }
+      if (place.couche === 'rangement' && place.morceau === undefined && place.cle === CLE_TROUSSE) {
+        if (trousse === undefined) ecarts.push(`${ici} : aucune trousse dans la station.`);
+        else {
+          if (pieces.get(objet.piece)?.forme === undefined || objet.piece === trousse.piece) ecarts.push(`${ici} : hors du catalogue, ou dans la pièce de la trousse.`);
+          if (objet.designe !== trousse.piece) ecarts.push(`${ici} : désigne ${objet.designe ?? 'rien'}, la trousse est dans ${trousse.piece}.`);
+        }
+      }
+    });
+    for (const cle of deplacees) {
+      const note = docs.some(({ place }) => place.couche === 'rangement' && place.morceau !== undefined && prefixer(place.morceau, place.cle ?? '') === cle.objet.id);
+      if (!note) ecarts.push(`Clé ${cle.objet.id} déplacée : note de rangement absente.`);
+    }
+
+    // Menace : chaque étape au plus une fois, dans le tiers du trajet de son étape, jamais plus loin qu'une étape plus haute.
+    menace.forEach(({ objet, etape }, indice) => {
+      const ici = `Document ${objet.nom} dans ${objet.piece}`;
+      const deja = menace.slice(0, indice).find((autre) => autre.etape === etape);
+      if (deja !== undefined) ecarts.push(`${ici} : étape ${etape} déjà posée avec ${deja.objet.nom}.`);
+      if (tiers(objet.piece) !== TIER_DE_L_ETAPE[etape]) ecarts.push(`${ici} : étape ${etape} au ${TIERS[tiers(objet.piece)]} tiers du trajet, attendue au ${TIERS[TIER_DE_L_ETAPE[etape]]}.`);
+      for (const apres of menace) if (apres.etape > etape && rangDe(apres.objet.piece) < rangDe(objet.piece)) ecarts.push(`${ici} : étape ${etape} plus loin sur le trajet que l’étape ${apres.etape}.`);
+    });
+
+    // Couverture (§7.3) : une pièce du catalogue porte un objet, une salle de butin (pillée comprise), un bout de porte de boucle ou une trace.
+    const portent = new Set([
+      ...monde.objets.map((objet) => objet.piece),
+      ...monde.pieces.filter((piece) => piece.pillee === true || piece.trace !== undefined).map((piece) => piece.id),
+      ...monde.liaisons.filter((liaison) => boucles.has(liaison.id)).flatMap((liaison) => liaison.entre),
+    ]);
+    for (const piece of monde.pieces) if (piece.forme !== undefined && !portent.has(piece.id)) ecarts.push(`${piece.id} : ne porte rien (couverture, spec §7.3).`);
+  }
 
   // Vestibule (D-257) : une seule porte, aucun objet.
   if (monde.liaisons.filter((liaison) => liaison.entre.includes(monde.depart)).length !== 1) ecarts.push('Vestibule : plus d’une porte.');
