@@ -192,7 +192,7 @@ Trente-six documents, posés à cinq à sept par grande station (spec §8.4). La
 - menace : jamais « station » ni ses dérivés (« stationner ») ; on dit « ici », « à bord » ;
 - morceaux et notes de rangement : aucun mot réservé, ni de l'univers ni de la menace ni des traces.
 
-**Chiffres.** Permis dans le corps d'un document seulement : heures, températures, codes, numéros (D-300). Jamais dans la puce ni dans la ligne « où ». Ailleurs, aucun chiffre à l'écran (12 §1.5).
+**Chiffres.** Permis dans le corps d'un document seulement : heures, températures, codes, numéros (D-300). Jamais dans la puce, la ligne « où » ni la signature. Ailleurs, aucun chiffre à l'écran (12 §1.5).
 
 **Honnêteté** (C-05) :
 - un document ne contredit jamais l'état réel ; il raconte le passé et ne dit rien de l'état présent d'une pièce du plan ;

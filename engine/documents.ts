@@ -1,6 +1,9 @@
 import { generateurDepuisGraine, suivant } from './des';
 import { prefixer } from './pose';
-import { CLE_TROUSSE, type EmplacementDocument, type ReserveDocuments } from './station';
+import type { EmplacementDocument, ReserveDocuments } from './station';
+
+/** Clé de la note de la trousse de soin du butin : la seule note de rangement sans morceau, sa « clé » ne désignant aucun objet de morceau. */
+export const CLE_TROUSSE = 'butin:soin';
 
 // Documents d'une grande station (spec 2026-10-18 §8.4) : après le butin, cinq à sept documents de la réserve, notes de
 // rangement comprises, un par pièce. Les règles lisent couches, étapes, étiquettes et rangs, jamais un nom (D-078).
