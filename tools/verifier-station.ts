@@ -246,7 +246,7 @@ export function chercherJusqua(
 }
 
 /** Morceau d'une pièce préfixée (« m-07/p-soute » → « m-07 ») ; `null` sans préfixe. */
-function morceauDe(piece: string): string | null {
+export function morceauDe(piece: string): string | null {
   const barre = piece.indexOf('/');
   return barre < 0 ? null : piece.slice(0, barre);
 }

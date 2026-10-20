@@ -1,4 +1,4 @@
-import { empreinteEtat, exporter, idPublic, nouvellePartie, type DefMonde, type Enregistrement, type Evenement } from '../engine';
+import { empreinteEtat, exporter, idPublic, nouvellePartie, type DefMonde, type Enregistrement, type EtatPartie, type Evenement } from '../engine';
 import { ATTEINT_JUSQUA, FACES } from '../engine/sante';
 import { creerBot, jouerAvecBot } from './bots';
 import { CATALOGUE } from './catalogue';
@@ -116,6 +116,38 @@ describe('indicateurs des grandes stations (spec 2026-10-18 §11)', () => {
     apres.noter([{ type: 'premier_contact' }], [], depart.etat);
     apres.noter([{ type: 'deplacement', passage, piece }], [], depart.etat);
     expect(apres.resultat()).toMatchObject({ sansContact: false, boucleEnPoursuite: true });
+  });
+
+  describe('mise hors jeu avant le final (D-241)', () => {
+    // Le final est le morceau de la capsule ; la créature est expulsée à l'action où `expulsee` est vrai.
+    const decor: DefMonde = {
+      id: 'final',
+      depart: 'm-a/p-a',
+      pieces: [{ id: 'm-a/p-a', nom: 'a' }, { id: 'm-f/p-f', nom: 'f' }, { id: 'm-f/p-int', nom: 'int', sousPosition: true }],
+      liaisons: [{ id: 'l', nom: 'porte', entre: ['m-a/p-a', 'm-f/p-f'], ouverte: true }, { id: 'l-int', nom: 'sas', entre: ['m-f/p-f', 'm-f/p-int'], ouverte: true }],
+      objets: [{ id: 'm-f/o-capsule', nom: 'capsule', piece: 'm-f/p-f', portable: false, capsule: { interieur: 'm-f/p-int' } }],
+    };
+    const debut = nouvellePartie(decor, { version: 'final', graine: 1 });
+    const expulsee = { piece: null, neutralisee: 'expulsee' } as unknown as EtatPartie['creature'];
+    const suivre = (pas: readonly { piece: string; expulsee: boolean }[]): ReturnType<SuiviPartie['resultat']> => {
+      const suivi = new SuiviPartie(decor, debut);
+      for (const { piece, expulsee: horsJeu } of pas) suivi.noter([], [], { ...debut.etat, piece, creature: horsJeu ? expulsee : null });
+      return suivi.resultat();
+    };
+
+    it('avant l’entrée dans le final : oui', () => {
+      expect(suivre([{ piece: 'm-a/p-a', expulsee: true }, { piece: 'm-f/p-f', expulsee: true }])).toMatchObject({ horsJeu: 1, horsJeuAvantFinal: true });
+    });
+
+    it('à l’action même de l’entrée, ou après : non', () => {
+      expect(suivre([{ piece: 'm-f/p-f', expulsee: true }]).horsJeuAvantFinal).toBe(false);
+      expect(suivre([{ piece: 'm-f/p-f', expulsee: false }, { piece: 'm-f/p-f', expulsee: true }]).horsJeuAvantFinal).toBe(false);
+    });
+
+    it('jamais hors jeu : non ; hors jeu sans être entré dans le final : oui', () => {
+      expect(suivre([{ piece: 'm-a/p-a', expulsee: false }]).horsJeuAvantFinal).toBe(false);
+      expect(suivre([{ piece: 'm-a/p-a', expulsee: true }]).horsJeuAvantFinal).toBe(true);
+    });
   });
 
   it('l’avancement de la défaite : le segment de la pièce de la mort, rapporté au plus avancé', () => {
