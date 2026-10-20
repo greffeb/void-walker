@@ -36,15 +36,16 @@ describe('contrôle des textes des stations tirées (C-07)', () => {
       'm04-m09-m06-observation',
       'm05-m08-m03-magasin',
       'm07-m02-m03-atelier',
-      'm08-m01-m06-palier',
+      'm08-m01-m06-magasin',
       'm09-m10-m06-cale',
+      'm10-m01-m06-palier',
       'm10-m04-m03-entrepot',
       'm11-m03-remise',
       'm12-m03-stockage',
       'ol-m02-m08-m06-magasin',
       'ol-m05-m10-m03-tri',
+      'ol-m05-m12-m03-tri',
       'ol-m07-m11-m06-soute',
-      'ol-m11-m12-m06-stockage',
     ]);
     expect(COMPOSITIONS_PUBLIEES).toEqual(expect.arrayContaining([...COMPOSITIONS_CONTROLEES]));
     stations.forEach(([id, entree], rang) => {

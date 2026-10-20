@@ -1,7 +1,7 @@
 // Textes des qualités de maintien : communs à tout monde qui les déclare.
 export const EVENEMENTS_DRONE = {
   drone_envoye: ['Vous lancez le moteur {de:objet}. Il gronde sur son rail.'],
-  drone_maintient: ['{Le:objet} abaisse la poignée. Le moteur force pour la garder en position.'],
+  drone_maintient: ['{Le:objet} abaisse la poignée ; son moteur force pour la garder en position.'],
   drone_deraille: ['{Le:objet} bascule hors du rail. La poignée remonte et le moteur se coupe.'],
   drone_replace: ['Vous redressez {le:objet} et remettez ses roues sur le rail. Son arrêt de sécurité reste enclenché.'],
   drone_rearme: ['Vous réarmez {le:objet}. Le moteur repart et la poignée reste abaissée.'],
