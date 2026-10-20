@@ -172,10 +172,13 @@ describe('note de rangement : le trou {…:piece} prend la pièce désignée', (
     expect([a.piece, b.piece]).toEqual(['coursive A', 'coursive B']);
   });
 
-  it('le trou se remplit aussi dans la ligne « où » et dans la signature', () => {
-    const textes = avec('mot_lea', { ...RANGEMENT, ou: 'glissée dans {le:piece}', signature: 'Léa, {de:piece}' });
-    const rendu = rendreDocument(textes, regard('mot_lea', 'coursive_a'));
-    expect([rendu.ou, rendu.signature]).toEqual(['glissée dans la coursive A', 'Léa, de la coursive A']);
+  it.each([
+    ['la ligne « où »', { ou: 'glissée dans {le:piece}' }],
+    ['la signature', { signature: 'Léa, {de:piece}' }],
+  ])('un trou dans %s lève une erreur : le seul trou est dans le corps', (_ou, modification) => {
+    const textes = avec('mot_lea', { ...RANGEMENT, ...modification });
+    expect(() => rendreDocument(textes, regard('mot_lea', 'coursive_a'))).toThrow(ErreurTexte);
+    expect(() => rendreDocument(textes, regard('mot_lea'))).toThrow(ErreurTexte);
   });
 
   it('un trou sans pièce désignée lève une erreur', () => {

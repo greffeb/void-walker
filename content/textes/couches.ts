@@ -67,53 +67,57 @@ function mots(texte: string): string[] {
   return texte.replace(/\{[^}]*\}/g, ' ').match(/\p{L}+/gu) ?? [];
 }
 
-const RADICAUX = [
-  ...MOTS_UNIVERS.map((radical) => ({ radical: minuscules(radical), couche: 'l’univers' })),
-  ...MOTS_MENACE.map((radical) => ({ radical: minuscules(radical), couche: 'la menace' })),
-];
+/** Les trois listes de mots réservés : celles de l'univers, de la menace et des traces (spec 2026-10-18 §5.4, §8.4). */
+export type Reserve = 'univers' | 'menace' | 'traces';
+
+const RESERVES: Readonly<Record<Reserve, { readonly libelle: string; readonly radicaux: readonly string[] }>> = {
+  univers: { libelle: 'mot de l’univers', radicaux: MOTS_UNIVERS.map(minuscules) },
+  menace: { libelle: 'mot de la menace', radicaux: MOTS_MENACE.map(minuscules) },
+  traces: { libelle: 'mot réservé aux traces', radicaux: MOTS_TRACES.map(minuscules) },
+};
+
+/**
+ * Mots d'un texte qui commencent par un radical des listes interdites, casse ignorée, dits « « mot », liste » ; un radical qui
+ * finit par « $ » ne vaut que pour le mot exact (« sang », pas « sangle »). Les trous ne sont pas des mots.
+ */
+export function motsReserves(texte: string, interdits: readonly Reserve[]): string[] {
+  return mots(texte).flatMap((mot) => {
+    const bas = minuscules(mot);
+    const reserve = interdits.find((nom) => RESERVES[nom].radicaux.some((radical) => (radical.endsWith('$') ? bas === radical.slice(0, -1) : bas.startsWith(radical))));
+    return reserve === undefined ? [] : [`« ${mot} », ${RESERVES[reserve].libelle}`];
+  });
+}
+
+/** Fuites d'un arbre de textes (chaînes, variantes, sections), chacune dite avec son chemin : `ou, chemin : « mot », liste.` */
+function fuitesDe(ou: string, arbre: unknown, interdits: readonly Reserve[], chemin = ''): string[] {
+  if (typeof arbre === 'string') return motsReserves(arbre, interdits).map((fuite) => `${ou}, ${chemin} : ${fuite}.`);
+  if (Array.isArray(arbre)) return arbre.flatMap((variante: unknown, index) => fuitesDe(ou, variante, interdits, `${chemin} [${index}]`));
+  if (!estSection(arbre)) return [];
+  return (Object.entries(arbre) as [string, unknown][]).flatMap(([cle, sous]) => fuitesDe(ou, sous, interdits, chemin === '' ? cle : `${chemin}.${cle}`));
+}
 
 /** Fuites : un mot du socle ou d'un morceau qui commence par un radical de l'univers ou de la menace, casse ignorée. */
 export function fuitesDeCouches(morceaux: Readonly<Record<string, TextesMorceau>>, socle: Couche = SOCLE): string[] {
-  const fuites: string[] = [];
-  const lire = (ou: string, chemin: string, valeur: unknown): void => {
-    if (typeof valeur === 'string') {
-      for (const mot of mots(valeur)) {
-        const fuite = RADICAUX.find(({ radical }) => minuscules(mot).startsWith(radical));
-        if (fuite !== undefined) fuites.push(`${ou}, ${chemin} : « ${mot} », mot de ${fuite.couche}.`);
-      }
-    } else if (Array.isArray(valeur)) {
-      valeur.forEach((variante: unknown, index) => lire(ou, `${chemin} [${index}]`, variante));
-    } else if (estSection(valeur)) {
-      for (const [cle, sous] of Object.entries(valeur) as [string, unknown][]) lire(ou, chemin === '' ? cle : `${chemin}.${cle}`, sous);
-    }
-  };
-  lire('socle', '', socle);
-  for (const [id, textes] of Object.entries(morceaux)) lire(`morceau ${id}`, '', textes);
-  return fuites;
+  return [
+    ...fuitesDe('socle', socle, ['univers', 'menace']),
+    ...Object.entries(morceaux).flatMap(([id, textes]) => fuitesDe(`morceau ${id}`, textes, ['univers', 'menace'])),
+  ];
 }
 
-const RADICAUX_CALMES = [
-  ...MOTS_MENACE.map((radical) => ({ radical: minuscules(radical), couche: 'la menace' })),
-  ...MOTS_TRACES.map((radical) => ({ radical: minuscules(radical), couche: 'des traces' })),
-];
+/**
+ * Fuites des couches elles-mêmes (spec 2026-10-18 §8.4), dans les deux sens : l'univers sans mot de la menace ni des traces,
+ * la menace sans « station » (« à bord », « ici »).
+ */
+export function fuitesDesCouches(univers: Couche = UNIVERS, menace: Couche = MENACE): string[] {
+  return [...fuitesDe('univers', univers, ['menace', 'traces']), ...fuitesDe('menace', menace, ['univers'])];
+}
 
 /**
  * Fuites d’un texte du catalogue (spec 2026-10-18 §5.3) : couche univers, il peut dire « station », mais ni un mot de la menace
  * ni un mot réservé aux traces, qui viennent de la piste.
  */
 export function fuitesDuCatalogue(textes: TextesMorceau): string[] {
-  const fuites: string[] = [];
-  // Un radical qui finit par « $ » ne vaut que pour le mot exact (« sang », pas « sangle »).
-  const reserve = (mot: string, radical: string): boolean => (radical.endsWith('$') ? minuscules(mot) === radical.slice(0, -1) : minuscules(mot).startsWith(radical));
   // Noms et descriptions partagent leurs clés : on les lit l'un après l'autre, sans qu'une description écrase un nom.
   const textesParCle = [...Object.entries(textes.noms).map(([cle, nom]) => [cle, [nom.texte]] as const), ...Object.entries(textes.descriptions).map(([cle, variantes]) => [cle, variantes as readonly string[]] as const)];
-  for (const [cle, textesCle] of textesParCle) {
-    for (const texte of textesCle) {
-      for (const mot of mots(texte)) {
-        const fuite = RADICAUX_CALMES.find(({ radical }) => reserve(mot, radical));
-        if (fuite !== undefined) fuites.push(`catalogue, ${cle} : « ${mot} », mot ${fuite.couche === 'la menace' ? 'de la menace' : 'réservé aux traces'}.`);
-      }
-    }
-  }
-  return fuites;
+  return textesParCle.flatMap(([cle, textesCle]) => textesCle.flatMap((texte) => motsReserves(texte, ['menace', 'traces']).map((fuite) => `catalogue, ${cle} : ${fuite}.`)));
 }

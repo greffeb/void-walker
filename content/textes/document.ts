@@ -30,21 +30,25 @@ const FORME_DU_TROU = /\{([^{}:]*):/g;
 const ENTREE_JOURNAL = /^(\d{2}:\d{2}) {2}(\S.*)$/su;
 const DIDASCALIE = /(\[[^\]]*\])/u;
 
-/** Document que l'on regarde, avec la pièce que désigne une note de rangement ; un trou sans pièce ou autre que la pièce lève une erreur. */
+/**
+ * Document que l'on regarde, avec la pièce que désigne une note de rangement ; un trou sans pièce, autre que la pièce ou hors du
+ * corps lève une erreur.
+ */
 export function rendreDocument(textes: TextesMonde, consultation: Extract<Consultation, { type: 'regarder_document' }>): DocumentRendu {
   const { cible, designe } = consultation;
   const document = Object.hasOwn(textes.documents, cible.nom) ? textes.documents[cible.nom] : undefined;
   if (document === undefined) throw new ErreurTexte(`Document sans texte : ${cible.nom}.`);
   const piece = designe === undefined ? undefined : Object.hasOwn(textes.noms, designe.nom) ? textes.noms[designe.nom] : undefined;
   if (designe !== undefined && piece === undefined) throw new ErreurTexte(`Nom sans texte : ${designe.nom}.`);
-  const plein = (texte: string): string => {
-    const erreurs = analyserGabarit(texte, ['piece']);
+  // Le seul trou d'un document est la pièce, dans le corps : la ligne « où » et la signature n'en ont aucun.
+  const plein = (texte: string, roles: readonly string[] = []): string => {
+    const erreurs = analyserGabarit(texte, roles);
     for (const [, forme = ''] of texte.matchAll(FORME_DU_TROU)) if (!FORMES_PIECE.includes(forme.toLowerCase())) erreurs.push(`forme « ${forme} » interdite`);
     if (erreurs.length > 0) throw new ErreurTexte(`Document ${cible.nom} : ${erreurs.join(', ')}.`);
     return remplir(texte, piece === undefined ? {} : { piece });
   };
   const corps = document.corps.flatMap((ligne): LigneDocument[] => {
-    const texte = plein(ligne);
+    const texte = plein(ligne, ['piece']);
     if (document.support === 'journal') {
       const [, heure, entree] = ENTREE_JOURNAL.exec(texte) ?? [];
       if (heure === undefined || entree === undefined) throw new ErreurTexte(`Document ${cible.nom} : entrée de journal sans « hh:mm  texte » : « ${texte} ».`);
