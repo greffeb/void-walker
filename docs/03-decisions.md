@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-19 (grandes stations habitées, #205, #206, livraison 1).
+> **Mise à jour :** 2026-10-20 (grandes stations habitées, #202, #207, livraison 2 : clés dispersées et butin).
 
 ## Règles
 
@@ -2463,6 +2463,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - Leur pièce d'origine reste un tirage possible.
   - Dans les grandes stations, la caisse devient portable et encombrante ; elle se pousse sous la grille.
 - Modifie : C-02 (tableau des objets), D-051, D-083, D-169, D-258, D-269. Tranche : D-244.
+- Limite [détail de l'agent] : chaque clé déclare ses étiquettes plausibles : bidon `eau` ; caisse `rangement` et `lourd` ; bloc `lourd` ; burette `outillage` ; combinaison et découpeuse `securite` ; planche `rangement` ; la consigne du catalogue gagne `lourd`. Le tirage est uniforme entre la pièce d'origine et les pièces permises du catalogue ; la zone permise se lit par segment : une annexe pendue au côté « après » du morceau précédent partage la zone avant l'obstacle et convient. Au plus une clé encombrante est déplacée par station. Une clé large ne se pose que là d'où elle rejoint la capsule sans passage étroit. En ordre libre, la clé d'une branche reste dans sa branche ou dans le tronc, et celle du troisième chemin peut aller dans la zone 0 (le tronc et le côté avant des branches), qui précède sa porte d'entrée. Dans une grande station, la caisse est portable, encombrante, déplaçable et appui. Mesure : 16,2 % des clés sont déplacées (559 sur 3 452). La note de rangement, qui dit où une clé est allée, vient avec le lore (livraison 3) : d'ici là, une clé déplacée n'a aucun indice.
 
 ### D-297 — Butin : une trousse ou une burette dans quelques salles
 
@@ -2474,6 +2475,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - La station reste prouvée sans le butin.
   - La table est ouverte aux objets futurs.
 - Précise : D-041, D-051, D-084, D-185.
+- Limite [détail de l'agent] : la table de butin pèse la salle vide 2, la trousse de soin 1 (soin, une dose) et la burette de réserve 2 (glissant, une dose, seulement après la coupe de M-04 quand M-04 est dans la station) ; elle compte deux ou trois salles. Un butin n'a aucune qualité passive, ce que vérifie un contrôle de la table. La première salle est sur la piste, pendue à une pièce de la piste directement ou par un couloir du catalogue ; à défaut, c'est l'impasse de butin la plus proche du repaire, car l'exigence stricte de la conception supprimait 64 % des plans d'une table d'essai. Une station garde moins de salles quand les impasses de butin lui manquent. La station se prouve sans son butin : témoin du chemin principal, témoin réparé, puis recherche directe. Mesures : 54,9 % des salles de butin sont vides (1 069 sur 1 947) ; 49 stations sur 539 ont moins de deux salles (14 sans salle, 35 avec une). La cible de difficulté de D-291, 25 à 35 % d'évacuations pour le profil prudent (B2) avec le butin, n'est pas atteinte : B2 évacue 13,0 % avec le butin et 13,8 % sans, B4 11,7 % et 10,7 % (1 000 parties sur les mêmes stations). Le butin change à peine le résultat des bots, qui ne le ramassent ni ne l'emploient forcément. Un réglage des poids est à proposer au porteur : l'agent ne le fixe pas seul. Détail et autres mesures : [13 §7.11](13-morceaux-lancement.md#711-grandes-stations-livraison-2-202-207).
 
 ### D-298 — La créature reste immobile avant le contact ; une ronde se décidera chiffres en main
 
