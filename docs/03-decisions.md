@@ -2391,6 +2391,7 @@ Les numéros D-304 à D-307 évitent les entrées préparées dans les chantiers
 - Décision : fournir une station d'essai et des compositions publiques prouvées contenant M-12. Le moteur, la CLI, les textes, la sauvegarde et le vérificateur doivent décrire le même comportement.
 - Carte : petit pictogramme de drone vert et pixelisé, distinct du passager et de la créature. Il représente un objet observé ; hors de vue, il reste un souvenir, pas un suivi en direct. Ne pas annoncer un drone dans une pièce seulement connue par signalétique.
 - Détail de réalisation à vérifier sur téléphone : les trois symboles se répartissent sous le texte ; si trois présences doivent tenir dans une petite pièce au dézoom, leur dessin se réduit juste assez pour ne pas chevaucher les murs. L'affichage à une ou deux présences reste inchangé.
+- Limite [détail de l'agent, à confirmer par le porteur] : `check:stations` prouve que M-12 permet de se débarrasser de la créature qui bouche le seul passage de M-01 (palier) ou de M-02 (atelier) quand il les précède : le bruit du drone l'attire en arrière. M-12 rejoint donc M-04, M-07, M-08 et M-10 dans la règle de D-268 ; quatre compositions de plus entrent au tirage (`m12-m01-m03-palier`, `m12-m01-m06-palier`, `m12-m02-m03-atelier`, `m12-m02-m06-atelier`). Pour prouver les compositions avec M-12, le vérificateur leur accorde 600 000 états au lieu de 150 000 (`m10-m12-m03-stockage` en demande 405 000) ; les autres compositions gardent leur plafond, et donc leur verdict.
 
 ## Décisions validées — sas de sécurité M-11 (#203)
 

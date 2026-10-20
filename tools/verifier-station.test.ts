@@ -13,6 +13,7 @@ import {
   explorerDes,
   mesurerPlans,
   mesurerStation,
+  optionsDe,
   rangsDesMorceaux,
   stationDeReference,
   verifierCatalogue,
@@ -333,6 +334,18 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
     );
   });
 
+  it('plafond relevé à 600 000 états pour les seules compositions avec M-12, sauf plafond demandé (#232)', () => {
+    const trouver = (id: string): (typeof CATALOGUE.compositions)[number] => {
+      const composition = CATALOGUE.compositions.find((candidate) => candidate.id === id);
+      if (composition === undefined) throw new Error(`${id} absente.`);
+      return composition;
+    };
+    expect(optionsDe(trouver('m10-m12-m03-stockage'), {})).toEqual({ maxEtats: 600000 });
+    expect(optionsDe(trouver('ol-m05-m12-m03-tri'), { priorite: () => 0 }).maxEtats).toBe(600000);
+    expect(optionsDe(trouver('m09-m01-m03-palier'), {})).toEqual({});
+    expect(optionsDe(trouver('m10-m12-m03-stockage'), { maxEtats: 1 })).toEqual({ maxEtats: 1 });
+  });
+
   it('écarts : publiée non prouvée ou absente, prouvée non publiée, moins de 95 % de plans', () => {
     const ligne = (composition: string, verdict: LigneCatalogue['verdict']): LigneCatalogue => ({
       composition, verdict, graine: 0, etats: 1, secondes: 0, actions: null, diagnostic: '', empreintes: {},
@@ -346,8 +359,11 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
   });
 });
 
-/** Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08 ni M-10 avant. */
-const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
+/**
+ * Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08, M-10 ni M-12 avant ;
+ * M-12 permet de s'en débarrasser, prouvé par check:stations (#232).
+ */
+const AIDES = ['m-04', 'm-07', 'm-08', 'm-10', 'm-12'];
 function bouchee({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean {
   if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
   return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
@@ -371,11 +387,11 @@ function cacheMemoire(): CacheVerdicts & { readonly cles: string[] } {
 describe('publication : ce que check:stations doit prouver (#152, #180)', () => {
   // La preuve du catalogue entier est faite par check:stations seul (#180) : il échoue si une publiée n'est pas prouvée ou si
   // une prouvée n'est pas publiée. Ici, la règle de publication elle-même, sans recherche.
-  it('publiées : toutes les compositions permises sauf les bouchées ; 850 compositions, 520 publiées en chaîne et 234 en ordre libre', () => {
+  it('publiées : toutes les compositions permises sauf les bouchées ; 850 compositions, 524 publiées en chaîne et 234 en ordre libre', () => {
     expect(CATALOGUE.compositions).toHaveLength(850);
     const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition)).map((composition) => composition.id);
     expect(COMPOSITIONS_PUBLIEES).toEqual(attendues);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(520);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(524);
     expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(234);
   });
 

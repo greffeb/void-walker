@@ -540,6 +540,19 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
 }
 
 /** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
+/**
+ * Plafond relevé pour les compositions qui contiennent ces morceaux (#232) : M-12 multiplie les états (six portes, phases du
+ * drone) ; `m10-m12-m03-stockage` demande 405 000 états, `m12-m01-m03-palier` 253 000. Les autres gardent `MAX_ETATS`, pour
+ * que leur verdict, et donc la liste publiée, ne change pas. Un plafond demandé explicitement l'emporte.
+ */
+export const PLAFONDS_ELARGIS: Readonly<Record<string, number>> = { 'm-12': 600000 };
+
+export function optionsDe(composition: Composition, options: OptionsVerification): OptionsVerification {
+  if (options.maxEtats !== undefined) return options;
+  const plafond = Math.max(MAX_ETATS, ...[...composition.chemins, composition.final].map((morceau) => PLAFONDS_ELARGIS[morceau] ?? 0));
+  return plafond === MAX_ETATS ? options : { ...options, maxEtats: plafond };
+}
+
 /** `empreinte({ morceau, textes })` de chaque morceau de la composition, dans l'ordre de la station. */
 export function empreintesDe(composition: Composition): Record<string, string> {
   return Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
@@ -553,8 +566,9 @@ export function verifierComposition(catalogue: Catalogue, composition: Compositi
   if (composition.refus !== null) return sansVerification('refusee', composition.refus);
   const station = stationDeReference(catalogue, composition.id);
   if ('refus' in station) return sansVerification('non_prouvee', station.refus);
-  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, options) : null;
-  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, options);
+  const recherche = optionsDe(composition, options);
+  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, recherche) : null;
+  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, recherche);
   const actions = parcours === null ? null : parcours.etapes.length;
   const ordres = libre === null ? {} : { ordres: libre.ordres };
   return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes, ...ordres };
