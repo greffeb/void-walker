@@ -1,14 +1,52 @@
-import { validerMonde, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition } from './monde';
+import { etendreGrande } from './grande';
+import { validerMonde, type CategoriePiece, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition, type FormeAnnexe } from './monde';
 import { liensEnChaine, porteEntre, poserTuiles, prefixer, type Lien } from './pose';
 
 export { prefixer };
+export type { CategoriePiece, FormeAnnexe };
 
 // Morceaux écrits à la main et leur assemblage en station (docs/13-morceaux-lancement.md, GP-01). Aucune règle de jeu ici :
 // l'assembleur produit un monde ordinaire, revalidé par `validerMonde`.
 
-/** `carrefour` : couloir et sas de l'ordre libre, qui desservent deux morceaux de chemin puis le final (D-259). */
-export type FamilleMorceau = 'depart' | 'chemin' | 'carrefour' | 'final';
+/**
+ * `carrefour` : couloir et sas de l'ordre libre, qui desservent deux morceaux de chemin puis le final (D-259). `annexe` : pièce
+ * sans obstacle du catalogue, accrochée au chemin d'une grande station (spec 2026-10-18 §6.1).
+ */
+export type FamilleMorceau = 'depart' | 'chemin' | 'carrefour' | 'final' | 'annexe';
 export type Apport = 'acces' | 'evacuation';
+
+export interface DefAnnexe {
+  readonly categorie: CategoriePiece;
+  readonly forme: FormeAnnexe;
+  /** Étiquettes lues par la pose des clés, du butin et des documents (spec §5.2) ; jamais un nom (D-078). */
+  readonly etiquettes: readonly string[];
+  /** Porte vers la pièce d'accroche au départ ; 'tiree' : ouverte une fois sur deux, selon la graine (spec §6.1). */
+  readonly porte: 'ouverte' | 'fermee' | 'tiree';
+  /** Ne s'accroche qu'à un couloir du catalogue qui dessert déjà une pièce portant cette étiquette (GE-10). */
+  readonly surCouloirDe?: string;
+}
+
+/** Clé déplaçable d'un morceau (spec §6.5) : un objet portable qui résout un obstacle et peut attendre ailleurs que chez lui. */
+export interface DefCle {
+  /** Étiquettes de pièce du catalogue où la clé peut attendre (spec §5.2). */
+  readonly etiquettes: readonly string[];
+  /** Dans une grande station, un appui déplaçable devient portable et encombrant (la caisse, spec §6.5). */
+  readonly portableEnGrande?: true;
+}
+
+/** Déclarations d'un morceau pour les grandes stations (spec §4.2, §6.3) ; jamais recopiées dans le monde. */
+export interface DefGrandeMorceau {
+  /** Chemin dont le seul obstacle est la créature, ou obstacle matériel (D-315) ; absent pour départ, carrefour et final. */
+  readonly obstacle?: 'materiel' | 'creature';
+  /** Pièces où une annexe peut s'accrocher, avec leur catégorie (GE-08, GE-09). */
+  readonly accueillantes: Readonly<Record<string, CategoriePiece>>;
+  /** Pièces situées avant la coupe de l'obstacle. */
+  readonly avant: readonly string[];
+  /** Liaisons intérieures à franchir pour passer d'avant à après ; 'sortie' désigne la porte de sortie du morceau. */
+  readonly coupe: readonly string[];
+  /** Clés déplaçables du morceau, par identifiant d'objet non préfixé (spec §6.5). */
+  readonly cles?: Readonly<Record<string, DefCle>>;
+}
 /** Porte de sortie vers le morceau suivant, décrite par le morceau. */
 export type DefPorteSortie = Omit<DefLiaison, 'id' | 'entre' | 'ouverte' | 'plan'>;
 
@@ -29,6 +67,9 @@ export interface DefMorceau {
   readonly demande: readonly Apport[];
   readonly fournit: readonly Apport[];
   readonly assistance?: readonly DefAssistance[];
+  /** Pour la famille `annexe` seulement. */
+  readonly annexe?: DefAnnexe;
+  readonly grande?: DefGrandeMorceau;
 }
 
 /** Porte qui accroche un morceau, par son entrée, à une pièce d'un morceau placé avant lui (ordre libre, D-259). */
@@ -72,6 +113,67 @@ export interface DefStation {
    */
   readonly accroches?: readonly DefAccroche[];
   readonly commandes?: readonly DefCommande[];
+  /** Grande station (spec 2026-10-18 §6) : annexes, boucles, piste et bruits de station, autour du chemin principal. */
+  readonly grande?: DefStationGrande;
+}
+
+export interface DefStationGrande {
+  /** Version du générateur, 1 pour ce lot (spec §4.3). */
+  readonly version: number;
+  /** Pièces du catalogue, morceaux de famille annexe. */
+  readonly catalogue: readonly DefMorceau[];
+  /** Annexes à poser (spec §4.1 : 24 moins les pièces dessinées des morceaux, de 6 à 10). */
+  readonly annexes: number;
+  /** Portes de boucle voulues, de 1 à 3 (spec §6.4). */
+  readonly boucles: number;
+  /** Pièces dessinées au moins (spec §4.1) : un plan qui en compte moins, reprise de couverture comprise, n'existe pas pour cette graine. */
+  readonly piecesMin?: number;
+  /** Butin des salles de butin (spec §6.6) ; absent : aucune salle de butin. */
+  readonly butin?: TableButin;
+  /** Réserve de documents à lire (spec §8.4) ; absente : aucun document. */
+  readonly documents?: ReserveDocuments;
+}
+
+/** Les quatre couches d'écriture des documents (spec §8.4) : la vie d'avant, l'incident, une tentative sur un obstacle, une clé rangée. */
+export type CoucheDocument = 'univers' | 'menace' | 'morceau' | 'rangement';
+
+export { CLE_TROUSSE } from './documents';
+
+/** Un document de la réserve du contenu et sa place (spec §8.4, §8.5) ; le texte vit dans la section `documents` du contenu. */
+export interface EmplacementDocument {
+  /** Clé de texte du document. */
+  readonly id: string;
+  readonly couche: CoucheDocument;
+  /** Menace : l'étape de la piste où il se lit. */
+  readonly etape?: 1 | 2 | 3 | 4;
+  /** Univers : étiquettes de pièce du catalogue acceptées. */
+  readonly etiquettes?: readonly string[];
+  /** Morceau, rangement : le morceau du document. */
+  readonly morceau?: string;
+  /** Rangement : l'objet désigné (id d'objet du morceau, ou `CLE_TROUSSE` pour la trousse). */
+  readonly cle?: string;
+}
+
+/** Réserve de documents du contenu : leurs places, et le nombre posé par station (bornes comprises). */
+export interface ReserveDocuments {
+  readonly emplacements: readonly EmplacementDocument[];
+  readonly parStation: readonly [number, number];
+}
+
+/** Entrée de la table de butin (spec §6.6) : un objet sans qualité passive, son poids de tirage et sa condition de place. */
+export interface EntreeButin {
+  readonly objet: DefObjet;
+  readonly poids: number;
+  /** Ne se pose que dans un segment situé après la coupe de ce morceau, s'il est dans la station (la burette, après M-04). */
+  readonly apresCoupeDe?: string;
+}
+
+/** Table de butin du contenu : entrées pondérées, poids de la salle vide, nombre de salles de butin (bornes comprises). */
+export interface TableButin {
+  readonly entrees: readonly EntreeButin[];
+  /** Poids de la salle vide, dans le même tirage que les entrées. */
+  readonly vide: number;
+  readonly salles: readonly [number, number];
 }
 
 export type ResultatAssemblage =
@@ -92,11 +194,33 @@ export function validerMorceau(morceau: DefMorceau): string[] {
   for (const liaison of morceau.liaisons) if (liaison.plan !== undefined) erreurs.push(`${prefixer(morceau.id, liaison.id)} : liaison avec un plan.`);
   if (!pieces.has(morceau.entree)) erreurs.push(`${morceau.id} : entrée inconnue ${morceau.entree}.`);
   for (const place of morceau.placesCreature) if (!pieces.has(place)) erreurs.push(`${morceau.id} : place de la créature inconnue ${place}.`);
+  if (morceau.famille === 'annexe') {
+    if (morceau.annexe === undefined) erreurs.push(`${morceau.id} : famille annexe sans déclaration d’annexe.`);
+    if (morceau.sortie !== undefined) erreurs.push(`${morceau.id} : annexe avec une sortie.`);
+    if (morceau.pieces.length !== 1 || morceau.pieces[0]?.plan === undefined) erreurs.push(`${morceau.id} : une annexe a une seule pièce, dessinée.`);
+    if (morceau.placesCreature.length > 0) erreurs.push(`${morceau.id} : annexe avec une place de créature.`);
+  } else if (morceau.annexe !== undefined) erreurs.push(`${morceau.id} : déclaration d’annexe hors de la famille annexe.`);
+  if (morceau.grande !== undefined) {
+    const liaisons = new Set(morceau.liaisons.map((liaison) => liaison.id));
+    for (const piece of [...Object.keys(morceau.grande.accueillantes), ...morceau.grande.avant]) {
+      if (!pieces.has(piece)) erreurs.push(`${morceau.id} : pièce de grande station inconnue ${piece}.`);
+    }
+    for (const liaison of morceau.grande.coupe) if (liaison !== 'sortie' && !liaisons.has(liaison)) erreurs.push(`${morceau.id} : coupe inconnue ${liaison}.`);
+    for (const [id, cle] of Object.entries(morceau.grande.cles ?? {})) {
+      const objet = morceau.objets.find((candidat) => candidat.id === id);
+      if (objet === undefined) erreurs.push(`${morceau.id} : clé qui n'est pas un objet du morceau ${id}.`);
+      else if (objet.portable === false && cle.portableEnGrande !== true) erreurs.push(`${morceau.id} : clé qui ne se porte pas ${id}.`);
+      if (cle.etiquettes.includes('')) erreurs.push(`${morceau.id} : clé ${id} avec une étiquette vide.`);
+    }
+  }
   if (morceau.famille === 'final') {
     if (morceau.sortie !== undefined) erreurs.push(`${morceau.id} : final avec une sortie.`);
     if (!morceau.fournit.includes('evacuation')) erreurs.push(`${morceau.id} : final qui ne fournit pas l’évacuation.`);
-  } else if (morceau.sortie === undefined) erreurs.push(`${morceau.id} : morceau sans sortie.`);
-  else if (!pieces.has(morceau.sortie.piece)) erreurs.push(`${morceau.id} : sortie depuis une pièce inconnue ${morceau.sortie.piece}.`);
+  } else if (morceau.famille !== 'annexe') {
+    // Une annexe finit en cul-de-sac : son absence de sortie est contrôlée plus haut.
+    if (morceau.sortie === undefined) erreurs.push(`${morceau.id} : morceau sans sortie.`);
+    else if (!pieces.has(morceau.sortie.piece)) erreurs.push(`${morceau.id} : sortie depuis une pièce inconnue ${morceau.sortie.piece}.`);
+  }
   // Aucune position ne peut se trouver sous la porte de sortie, dont l'identifiant n'est pas préfixé : elle ne s'ouvrirait jamais.
   if (morceau.sortie?.porte.haute !== undefined) erreurs.push(`${morceau.id} : porte de sortie haute.`);
   return erreurs;
@@ -256,6 +380,8 @@ export const assemblerStation: Assembleur = (station) => {
     creature: { piece: station.creature },
     assistance: [...(station.assistance ?? []), ...morceaux.flatMap((morceau) => (morceau.assistance ?? []).map((message) => assistanceDe(morceau.id, message)))],
   };
-  const erreurs = validerMonde(monde);
-  return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde };
+  const final = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
+  if (final === null) return { type: 'sans_plan' };
+  const erreurs = validerMonde(final);
+  return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde: final };
 };

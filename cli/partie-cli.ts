@@ -22,10 +22,12 @@ import {
   raconterFin,
   rendreApercu,
   rendreAssistance,
+  rendreDocument,
   rendreListeCarte,
   rendreObservation,
   rendreRefus,
   type Catalogue,
+  type DocumentRendu,
   type EntreeMonde,
   type TextesMonde,
 } from '../content';
@@ -113,7 +115,7 @@ function mondeEnregistre(contenu: string | null): string | null {
 
 /**
  * Monde de l'appel : la station de `--station` (composition au plan tiré, ou station exacte), sinon le monde fixe de
- * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une station tirée. Renvoie un message
+ * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une grande station tirée (D-313). Renvoie un message
  * si le monde est refusé ; une partie enregistrée sur une station inconnue n'est jamais remplacée par un tirage.
  */
 export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): EntreeMonde | string {
@@ -122,8 +124,9 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
   const hasard = (): number => es.graineAleatoire();
   if (station === '') return 'Indiquez la station : --station <id>.';
   if (station !== undefined) {
-    const composition = catalogue.compositions.some(({ id }) => id === station);
-    const forcee = composition ? catalogue.tirer(hasard, station) : catalogue.resoudre(station);
+    const petite = catalogue.compositions.some(({ id }) => id === station);
+    const grande = catalogue.grandes.some(({ id }) => id === station);
+    const forcee = petite ? catalogue.tirer(hasard, station) : grande ? catalogue.tirerGrande(hasard, station) : catalogue.resoudre(station);
     return 'refus' in forcee ? `Station refusée : ${forcee.refus}` : forcee;
   }
   if (monde === '') return 'Indiquez le monde : --monde <id>.';
@@ -135,9 +138,11 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
   if (enregistre !== null) {
     const reprise = catalogue.resoudre(enregistre);
     if (!('refus' in reprise)) return reprise;
+    // Une grande station dit pourquoi elle ne se reprend pas : autre version des stations, ou station non publiée (spec §4.3).
+    if (/^g\d+-/.test(enregistre)) return `${reprise.refus} Commencez une nouvelle partie : nouvelle`;
     return `La partie enregistrée porte sur une station inconnue (${enregistre}). Commencez une nouvelle partie : nouvelle`;
   }
-  const tiree = catalogue.tirer(hasard);
+  const tiree = catalogue.tirerGrande(hasard);
   return 'refus' in tiree ? `Station refusée : ${tiree.refus}` : tiree;
 }
 
@@ -221,8 +226,16 @@ function enregistrer(contexte: Contexte, chemin: string, partie: Partie): string
   }
 }
 
+/** Un document se lit ligne à ligne (spec 2026-10-18 §9.2) : le support, la ligne « où », le corps (journal : « hh:mm  texte »), la signature. */
+function lignesDocument({ libelleSupport, ou, corps, signature }: DocumentRendu): string[] {
+  return [libelleSupport, ou, ...corps.map(({ heure, texte }) => (heure === undefined ? texte : `${heure}  ${texte}`)), ...(signature === undefined ? [] : [signature])];
+}
+
 function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
-  const lignes = [...raconter(contexte.textes, resultat)];
+  const lignes =
+    resultat.type === 'consultation' && resultat.consultation.type === 'regarder_document'
+      ? lignesDocument(rendreDocument(contexte.textes, resultat.consultation))
+      : [...raconter(contexte.textes, resultat)];
   if (resultat.type === 'engagee') {
     lignes.push(...afficherAssistance(contexte.textes, resultat.evenements));
     lignes.push(enregistrer(contexte, chemin, resultat.partie));

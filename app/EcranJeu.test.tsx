@@ -1,13 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { observer, type IdAction, type OptionMenu } from '../engine';
-import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
+import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
+import { libelleOption, MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
+import { FicheDocument } from './bulle';
+import { CATALOGUE } from './catalogue';
 import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
 import { EcranFin } from './EcranFin';
 import { APERCU_TAILLE, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
-import { composerDock, unToucher, type Groupe } from './ecran';
+import { composerDock, etapeBulle, libelleLigne, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
-import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
+import { commencer, consulter, consulterDocument, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
 import type { EtatInstallation, Installation } from './installation';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
@@ -100,6 +102,7 @@ function composition(jeu: Jeu, action: IdAction | null, parametre: string | null
     occupe: false,
     jouer: rienAJouer,
     lire: (option: OptionMenu) => consulter(entree, jeu.partie, option),
+    lireDocument: (option: OptionMenu) => consulterDocument(entree, jeu.partie, option),
     prevoir: (option: OptionMenu) => prevoir(entree, jeu.partie, option),
     direct: (option: OptionMenu) => unToucher(entree.monde, jeu.partie, option),
     fermer: rienAJouer,
@@ -1184,5 +1187,299 @@ describe('brouillage d’un dégât (#166)', () => {
     expect(degatSubi(['mort'])).toBe(true);
     expect(degatSubi(['soin', 'alarme-vide', 'creature', 'ia'])).toBe(false);
     expect(degatSubi([])).toBe(false);
+  });
+});
+
+// Fiche d'un document (#209, D-324, spec 2026-10-18 §9.1) : un monde de test avec un document de chaque support dans la cabine, et une
+// note de rangement qui désigne l'atelier. Aucune grande station : seule la mise en forme de la fiche est en jeu.
+describe('fiche d’un document (#209, D-324, spec 2026-10-18 §9.1)', () => {
+  const nom = (texte: string, genre: Nom['genre'] = 'm'): Nom => ({ texte, genre, nombre: 's', elision: false });
+  const documents: Readonly<Record<string, TexteDocument>> = {
+    note_malik: {
+      puce: nom('mot de Malik'),
+      support: 'note',
+      ou: 'scotchée au montant d’une couchette',
+      corps: ['Je ne dors plus.', 'Si quelqu’un lit ceci, ne comptez pas sur la lumière.'],
+      signature: 'Malik',
+    },
+    journal_quart: {
+      puce: nom('terminal de quart'),
+      support: 'journal',
+      ou: 'resté allumé sur un pupitre',
+      corps: ['02:14  Sas arrière : pression nominale.', '02:31  Sas arrière : porte forcée, côté intérieur.'],
+    },
+    message_enregistreur: {
+      puce: nom('enregistreur'),
+      support: 'message',
+      ou: 'posé sur une tablette',
+      corps: ['Allô ? [souffle court] Vous m’entendez ?', '[long silence]'],
+    },
+    inscription_cloison: { puce: nom('inscription', 'f'), support: 'inscription', ou: 'tracée à la main sur la cloison', corps: ['Ne restez pas là.'] },
+    affiche_sas: {
+      puce: nom('affiche', 'f'),
+      support: 'affiche',
+      ou: 'collée près du sas',
+      corps: ['Note de service no 12', 'En cas d’alerte, rejoignez votre capsule.', 'La Direction du transit'],
+    },
+    mot_lea: {
+      puce: nom('mot de Léa'),
+      support: 'note',
+      ou: 'glissée sous une patte de rangement',
+      corps: ['J’ai rangé la planche dans {le:piece}.', 'La porte {de:piece} est lourde : poussez fort.', 'Rejoignez-moi {a:piece}.'],
+      signature: 'Léa',
+    },
+  };
+  const monDocuments: DefMonde = {
+    ...monde,
+    objets: [
+      ...monde.objets,
+      ...Object.keys(documents).map((cle) => ({
+        id: `objet-${cle}`,
+        nom: cle,
+        piece: 'piece-cabine',
+        portable: false,
+        document: true as const,
+        ...(cle === 'mot_lea' ? { designe: 'piece-atelier' } : {}),
+      })),
+    ],
+  };
+  const textesDocuments: TextesMonde = {
+    ...textes,
+    noms: { ...textes.noms, ...Object.fromEntries(Object.entries(documents).map(([cle, { puce }]) => [cle, puce])) },
+    documents,
+  };
+  const ecritures: unknown[] = [];
+  const stockage: Stockage = { ...memoire(), ecrire: (donnees) => (ecritures.push(donnees), Promise.resolve()) };
+  const envDocuments: Environnement = { monde: monDocuments, textes: textesDocuments, version: 'v-test', stockage, graine: () => 5 };
+
+  async function groupeDe(cle: string): Promise<{ readonly jeu: Jeu; readonly groupe: Groupe }> {
+    const jeu = await commencer(envDocuments);
+    const groupe = composerDock(observer(monDocuments, jeu.partie.etat)).piece.find((candidat) => candidat.cible.nom === cle);
+    if (groupe === undefined) throw new Error(`Puce ${cle} absente.`);
+    return { jeu, groupe };
+  }
+
+  /** Bulle d'un document, rendue côté serveur : sa fiche seule, sans l'en-tête. */
+  async function bulle(cle: string): Promise<{ readonly html: string; readonly fiche: string }> {
+    const { jeu, groupe } = await groupeDe(cle);
+    const html = renderToStaticMarkup(<BulleObjet ancre={{} as HTMLElement} groupe={groupe} {...composition(jeu, null, null, envDocuments)} />);
+    return { html, fiche: entre(html, '<div class="bulle-corps">', '</section>') };
+  }
+
+  /** Ce que lit le lecteur d'écran : le texte de la fiche sans ce qui est masqué, la pièce soulignée se lisant dans sa phrase. */
+  const lecteur = (fiche: string): string =>
+    texte(fiche.replace(/<(\w+)[^>]*aria-hidden="true"[^>]*>[^<]*<\/\1>/g, '').replace(/<span class="lieu">([^<]*)<\/span>/g, '$1'));
+
+  it('note : le support puis la ligne « où » en haut, puis le corps en italique avec filet, la signature à droite', async () => {
+    const { fiche } = await bulle('note_malik');
+    expect(fiche).toContain(
+      '<p class="support">Note manuscrite <span aria-hidden="true">· </span><span>scotchée au montant d’une couchette</span></p>' +
+        '<div class="doc doc-note"><p>Je ne dors plus.</p><p>Si quelqu’un lit ceci, ne comptez pas sur la lumière.</p><p class="signe">Malik</p></div>',
+    );
+    // Les capitales sont du style : le texte reste en casse normale, le lecteur d'écran lit des mots.
+    expect(fiche).not.toContain('NOTE MANUSCRITE');
+  });
+
+  it('journal : un cadre sous une barre de titre au nom de la puce, les heures en colonne à part du texte', async () => {
+    const { fiche } = await bulle('journal_quart');
+    expect(fiche).toContain(
+      '<p class="support">Journal de terminal <span aria-hidden="true">· </span><span>resté allumé sur un pupitre</span></p>' +
+        '<div class="doc doc-journal"><div class="barre" aria-hidden="true">Terminal de quart</div><ol>' +
+        '<li><time>02:14</time> <span>Sas arrière : pression nominale.</span></li>' +
+        '<li><time>02:31</time> <span>Sas arrière : porte forcée, côté intérieur.</span></li></ol></div>',
+    );
+  });
+
+  it('message : chaque didascalie est un paragraphe à part, de la classe qui la met en couleur secondaire', async () => {
+    const { fiche } = await bulle('message_enregistreur');
+    expect(fiche).toContain(
+      '<div class="doc doc-message"><p>Allô ?</p><p class="didascalie">[souffle court]</p><p>Vous m’entendez ?</p><p class="didascalie">[long silence]</p></div>',
+    );
+  });
+
+  it('inscription : le texte en casse normale, en grandes capitales par le style', async () => {
+    const { fiche } = await bulle('inscription_cloison');
+    expect(fiche).toContain('<div class="doc doc-inscription"><p>Ne restez pas là.</p></div>');
+  });
+
+  it('affiche : un double cadre, le titre en tête et la signature de la compagnie en pied', async () => {
+    const { fiche } = await bulle('affiche_sas');
+    expect(fiche).toContain(
+      '<div class="doc doc-affiche"><p class="titre">Note de service no 12</p><p>En cas d’alerte, rejoignez votre capsule.</p><p class="pied">La Direction du transit</p></div>',
+    );
+  });
+
+  it('la pièce remplie par le trou est soulignée partout dans le corps, sans lien ni aide ; la ligne « où » et la signature ne le sont pas', async () => {
+    const { fiche } = await bulle('mot_lea');
+    expect(fiche).toContain(
+      '<div class="doc doc-note"><p>J’ai rangé la planche dans l’<span class="lieu">atelier</span>.</p>' +
+        '<p>La porte de l’<span class="lieu">atelier</span> est lourde : poussez fort.</p>' +
+        '<p>Rejoignez-moi à l’<span class="lieu">atelier</span>.</p><p class="signe">Léa</p></div>',
+    );
+    expect(fiche.match(/class="lieu"/g)).toHaveLength(3);
+    expect(fiche).not.toMatch(/<(a|abbr)\b|title=|aria-label=|tabindex/);
+  });
+
+  it('une note sans pièce désignée ne souligne rien', async () => {
+    expect((await bulle('note_malik')).fiche).not.toContain('lieu');
+  });
+
+  it('seul le mot entier est souligné : pas « cale » dans « calendrier »', () => {
+    const rendu: DocumentRendu = {
+      support: 'note',
+      libelleSupport: 'Note manuscrite',
+      ou: 'glissée dans un tiroir',
+      corps: [{ texte: 'La cale, puis le calendrier, puis la cale.' }],
+      piece: 'cale',
+    };
+    expect(renderToStaticMarkup(<FicheDocument rendu={rendu} puce="Mot" />)).toContain(
+      '<p>La <span class="lieu">cale</span>, puis le calendrier, puis la <span class="lieu">cale</span>.</p>',
+    );
+  });
+
+  it('un journal souligne aussi la pièce désignée, dans le texte de ses lignes et pas dans l’heure', () => {
+    const rendu: DocumentRendu = {
+      support: 'journal',
+      libelleSupport: 'Journal de terminal',
+      ou: 'resté allumé sur un pupitre',
+      corps: [{ heure: '02:14', texte: 'Clé laissée à la cale.' }, { heure: '02:31', texte: 'Rien à signaler.' }],
+      piece: 'cale',
+    };
+    const fiche = renderToStaticMarkup(<FicheDocument rendu={rendu} puce="Journal" />);
+    expect(fiche).toContain('<li><time>02:14</time> <span>Clé laissée à la <span class="lieu">cale</span>.</span></li>');
+    expect(fiche).toContain('<li><time>02:31</time> <span>Rien à signaler.</span></li>');
+  });
+
+  it('lecteur d’écran : le support, la ligne « où », puis le texte, dans l’ordre du DOM ; le libellé n’est pas masqué', async () => {
+    const lus: Readonly<Record<string, string>> = {
+      note_malik: 'Note manuscrite scotchée au montant d’une couchette Je ne dors plus. Si quelqu’un lit ceci, ne comptez pas sur la lumière. Malik',
+      journal_quart: 'Journal de terminal resté allumé sur un pupitre 02:14 Sas arrière : pression nominale. 02:31 Sas arrière : porte forcée, côté intérieur.',
+      message_enregistreur: 'Message enregistré posé sur une tablette Allô ? [souffle court] Vous m’entendez ? [long silence]',
+      inscription_cloison: 'Inscription tracée à la main sur la cloison Ne restez pas là.',
+      affiche_sas: 'Affiche de la compagnie collée près du sas Note de service no 12 En cas d’alerte, rejoignez votre capsule. La Direction du transit',
+      mot_lea: 'Note manuscrite glissée sous une patte de rangement J’ai rangé la planche dans l’atelier. La porte de l’atelier est lourde : poussez fort. Rejoignez-moi à l’atelier. Léa',
+    };
+    for (const [cle, attendu] of Object.entries(lus)) {
+      const { html, fiche } = await bulle(cle);
+      expect(lecteur(fiche), cle).toBe(attendu);
+      expect(fiche, cle).not.toMatch(/<p class="support"[^>]*aria-hidden/);
+      // C'est la fiche que la bulle donne en description, après son titre.
+      const description = html.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
+      expect(fiche, cle).toContain(`<div id="${description}" class="fiche fiche-document">`);
+    }
+  });
+
+  it('la bulle d’un document n’a que sa fiche : aucune action à choisir ni à confirmer', async () => {
+    const { groupe } = await groupeDe('journal_quart');
+    expect(groupe.options.map((option) => option.action)).toEqual(['regarder']);
+    const { fiche } = await bulle('journal_quart');
+    expect(fiche).not.toMatch(/class="ligne|Confirmer|<button/);
+  });
+
+  it('lire un document n’engage aucune action et n’écrit rien : ni partie, ni récit, ni sauvegarde (D-014)', async () => {
+    const jeu = await commencer(envDocuments);
+    const avant = { partie: JSON.stringify(jeu.partie), recit: [...jeu.recit], ecritures: ecritures.length };
+    const options = observer(monDocuments, jeu.partie.etat).menu.filter((option) => option.action === 'regarder' && Object.hasOwn(documents, option.cible.nom));
+    expect(options).toHaveLength(Object.keys(documents).length);
+    for (const option of options) {
+      const rendu = consulterDocument(envDocuments, jeu.partie, option);
+      if (rendu === null) throw new Error(`Document ${option.cible.nom} sans rendu.`);
+      // La chaîne du lecteur d'écran et de l'historique reste celle du rendu structuré.
+      expect(consulter(envDocuments, jeu.partie, option)).toEqual([texteDocument(rendu)]);
+    }
+    expect(JSON.stringify(jeu.partie)).toBe(avant.partie);
+    expect(jeu.partie.etat.actions).toBe(0);
+    expect(jeu.recit).toEqual(avant.recit);
+    expect(ecritures).toHaveLength(avant.ecritures);
+  });
+
+  it('seul un document a une fiche structurée : le carnet reste une phrase', async () => {
+    const jeu = await commencer(envDocuments);
+    const carnet = observer(monDocuments, jeu.partie.etat).menu.find((option) => option.action === 'regarder' && option.cible.nom === 'carnet');
+    if (carnet === undefined) throw new Error('Regard sur le carnet absent.');
+    expect(consulterDocument(envDocuments, jeu.partie, carnet)).toBeNull();
+    const { fiche } = await bulle('carnet');
+    expect(fiche).toMatch(/<div id="[^"]+" class="fiche"><p>/);
+    expect(fiche).not.toContain('support');
+  });
+
+  it('dock : la puce d’un document est une puce ordinaire, rien ne la signale (spec §9.4)', async () => {
+    const { jeu } = await groupeDe('journal_quart');
+    const dock = composerDock(observer(monDocuments, jeu.partie.etat));
+    const html = renderToStaticMarkup(
+      <DockPiece dock={dock} textes={textesDocuments} occupe={false} puceOuverte={null} ouvrir={rienAJouer} jouer={rienAJouer} />,
+    );
+    const puces = [...entre(html, '<ul class="puces">', '</ul>').matchAll(/<button type="button" class="puce"([^>]*)><span aria-hidden="true">▸ <\/span>([^<]*)<\/button>/g)];
+    expect(puces.map(([, , libelle]) => libelle).sort()).toEqual(['Affiche', 'Carnet', 'Enregistreur', 'Inscription', 'Mot de Léa', 'Mot de Malik', 'Terminal de quart']);
+    expect(new Set(puces.map(([, attributs]) => attributs)).size).toBe(1);
+  });
+});
+
+describe('grande station : poser la caisse portée sous la grille d’un seul geste (demande du porteur)', () => {
+  // La caisse de M-02 se porte en grande station (spec 2026-10-18 §6.5) ; état placé à la main, la route de l'atelier ne compte pas ici.
+  const COMPOSITION = 'g1-m01-m02-m09-m06-cale';
+  const grande = ((): EntreeMonde => {
+    for (let graine = 0; graine < 50; graine += 1) {
+      const entree = CATALOGUE.construireGrande(COMPOSITION, graine);
+      if (!('refus' in entree)) return entree;
+    }
+    throw new Error(`${COMPOSITION} : aucun plan sur 50 graines.`);
+  })();
+  const envGrande: Environnement = { monde: grande.monde, textes: grande.textes, version: 'v-test', stockage: memoire(), graine: () => 20261010 };
+
+  async function atelierCaisseEnMain(): Promise<Jeu> {
+    const jeu = await commencer(envGrande);
+    const etat = { ...jeu.partie.etat, piece: 'm-02/p-atelier', objets: { ...jeu.partie.etat.objets, 'm-02/o-caisse': { type: 'passager' as const } } };
+    return { ...jeu, partie: { ...jeu.partie, etat } };
+  }
+
+  const caisseDe = (jeu: Jeu): Groupe => {
+    const groupe = composerDock(observer(grande.monde, jeu.partie.etat)).inventaire.find((candidat) => candidat.cible.nom === 'caisse');
+    if (groupe === undefined) throw new Error('Caisse absente de l’inventaire.');
+    return groupe;
+  };
+
+  const inventaire = (jeu: Jeu, action: IdAction | null, parametre: string | null = null): string =>
+    renderToStaticMarkup(
+      <BulleInventaire
+        id="inventaire"
+        groupes={composerDock(observer(grande.monde, jeu.partie.etat)).inventaire}
+        cible={caisseDe(jeu).cible.id}
+        choisir={rienAJouer}
+        {...composition(jeu, action, parametre, envGrande)}
+      />,
+    );
+
+  it('de la fiche, « Poser » n’est pas d’un seul toucher : il ouvre « OÙ ? » avec les positions de l’atelier, puis l’aperçu', async () => {
+    const jeu = await atelierCaisseEnMain();
+    const caisse = caisseDe(jeu);
+    const poses = caisse.options.filter((option) => option.action === 'poser');
+    expect(poses.map((option) => option.parametre?.nom)).toEqual(['sous_grille', 'centre']);
+    expect(poses.map((option) => unToucher(grande.monde, jeu.partie, option))).toEqual([false, false]);
+    expect(etapeBulle(caisse, 'poser', null)).toMatchObject({ type: 'parametre', action: 'poser' });
+
+    const fiche = inventaire(jeu, null);
+    expect(texte(fiche)).toMatch(/^‹ Caisse ✕ .* ▸ Poser$/);
+    expect(fiche).not.toContain('sans confirmation');
+
+    expect(texte(inventaire(jeu, 'poser'))).toBe('‹ Caisse › Poser ✕ Où ? ▸ sous la grille ▸ au centre de la pièce');
+    const sous = poses.find((option) => option.parametre?.nom === 'sous_grille');
+    if (sous?.parametre === undefined) throw new Error('Position sous la grille absente.');
+    expect(texte(inventaire(jeu, 'poser', sous.parametre.id))).toBe('‹ Caisse › Poser › sous la grille ✕ Savoir La caisse sera sous la grille. Annuler Confirmer');
+    // La ligne de l'étape 1 reste le verbe seul ; le libellé du menu (CLI, captures) nomme la position de chaque option.
+    expect(libelleLigne(grande.textes, caisse, sous).libelle).toBe('Poser');
+    expect(poses.map((option) => libelleOption(grande.textes, option).libelle)).toEqual(['Poser la caisse sous la grille', 'Poser la caisse au centre de la pièce']);
+  });
+
+  it('confirmé sous la grille : la caisse y est, le récit et le rappel le disent, la grille se touche', async () => {
+    const jeu = await atelierCaisseEnMain();
+    const sous = caisseDe(jeu).options.find((option) => option.action === 'poser' && option.parametre?.nom === 'sous_grille');
+    if (sous === undefined) throw new Error('Poser sous la grille absent.');
+    const pose = await jouerOption(envGrande, jeu, sous);
+    expect(pose.recit.join(' ')).toMatch(/Vous (posez|déposez) la caisse sous la grille/);
+    expect(pose.rappel).toEqual({ texte: 'Caisse · Poser · sous la grille', capitales: false });
+    expect(pose.partie.etat.objets['m-02/o-caisse']).toMatchObject({ type: 'piece', piece: 'm-02/p-atelier' });
+    const grille = observer(grande.monde, pose.partie.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
+    expect(grille).toMatchObject({ disponible: true });
   });
 });

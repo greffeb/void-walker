@@ -33,6 +33,8 @@ export const MORCEAU_M11: DefMorceau = {
   placesCreature: ['p-remise'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1) : déclaré, pas encore tiré (13 §7.14, reprise de main).
+  grande: { obstacle: 'materiel', accueillantes: { 'p-poste': 'commandement' }, avant: ['p-poste', 'p-vestiaire', 'p-remise'], coupe: ['l-poste-sas'] },
 };
 
 // Textes du morceau (C-07). Texte final non validé.
@@ -74,6 +76,17 @@ export const TEXTES_MORCEAU_M11: TextesMorceau = {
     carte_securite: [
       'Une carte plastifiée, une puce dorée. Elle porte la mention « Accès contrôlé ».',
       'Une carte de sécurité, un peu usée. Imprimé au dos : « Accès contrôlé ».',
+    ],
+  },
+  // Grandes stations (spec 2026-10-18 §5.4) : sans mot de trace, les traces viennent de la piste de la créature.
+  calmes: {
+    poste_securite: [
+      'Un poste de sécurité, des écrans éteints sur un comptoir. Une porte blindée, un lecteur de carte à côté.',
+      'Un comptoir, une chaise poussée contre le mur, des écrans morts. Au mur, une porte blindée et son lecteur de carte.',
+    ],
+    remise: [
+      'Une remise sombre, des étagères chargées de cartons.',
+      'Des étagères, des cartons empilés, des recoins où la lumière ne va pas.',
     ],
   },
   assistance: {},

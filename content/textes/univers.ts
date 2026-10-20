@@ -84,6 +84,17 @@ export const UNIVERS = {
     momentEvacuation: 'au départ de la capsule',
     momentPatience: 'en attendant',
   },
+  // Pillage (spec 2026-10-18 §6.6) : une phrase entière, vraie dans toute salle de butin vidée avant le joueur. Elle dit que
+  // quelqu'un est passé, jamais qui ni où. Sans mot de trace ni de menace. Écrites par l'assistant principal (D-243).
+  pillages: [
+    'Quelqu’un est passé avant vous : les tiroirs pendent, ouverts, et il ne reste que des emballages déchirés.',
+    'Les étagères ont été vidées à la hâte ; quelques boîtes vides jonchent encore le sol.',
+    'Une armoire a été forcée à la pince ; sa serrure pend, tordue, et l’intérieur est vide.',
+    'Des emballages de pansements arrachés couvrent le sol, au pied d’un tiroir resté ouvert.',
+    'Les casiers ont été ouverts un à un et retournés ; on n’y a laissé que les étiquettes.',
+    'Sur une étagère, la poussière dessine encore la forme de ce qui y était rangé.',
+    'Quelqu’un a fouillé ici avant vous, méthodiquement : chaque boîte est ouverte, chaque sachet est vide.',
+  ],
   attentesLongues: ATTENTES_LONGUES,
 } satisfies Couche;
 

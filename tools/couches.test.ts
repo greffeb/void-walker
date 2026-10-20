@@ -1,5 +1,6 @@
 import {
   fuitesDeCouches,
+  fuitesDesCouches,
   MENACE,
   MONDES,
   MORCEAUX,
@@ -10,6 +11,7 @@ import {
   SOCLE,
   TEXTES_STATION_ESSAI,
   UNIVERS,
+  type Couche,
   type EntreeMonde,
   type TextesMorceau,
 } from '../content';
@@ -80,6 +82,20 @@ describe('textes par couches (13 §7.2)', () => {
       descriptions: { hall: ['Une prestation soignée, un mécanisme grippé.', 'Vous voyez {le:station} et {la:creature}.'] },
     };
     expect(fuitesDeCouches({ essai: morceau })).toEqual([]);
+  });
+
+  it('l’univers et la menace eux-mêmes ne se mêlent pas : rien de la menace ni des traces dans l’univers, pas de « station » dans la menace', () => {
+    expect(fuitesDesCouches()).toEqual([]);
+  });
+
+  it('un mot de la menace ou d’une trace dans l’univers est une fuite qui nomme la clé et le mot', () => {
+    const univers = { ...UNIVERS, pillages: ['Quelqu’un est passé avant vous.', 'La créature a tout pris.', 'Du sang sur les étagères, un meuble sangle.'] } as Couche;
+    expect(fuitesDesCouches(univers)).toEqual(['univers, pillages [1] : « créature », mot de la menace.', 'univers, pillages [2] : « sang », mot réservé aux traces.']);
+  });
+
+  it('le mot « station » dans la menace est une fuite qui nomme la clé et le mot, casse ignorée', () => {
+    const menace = { ...MENACE, traces: { legere: ['Une odeur de station.', 'Une trace sur la Station.'], forte: ['Une trace.'] } } as Couche;
+    expect(fuitesDesCouches(UNIVERS, menace)).toEqual(['menace, traces.legere [0] : « station », mot de l’univers.', 'menace, traces.legere [1] : « Station », mot de l’univers.']);
   });
 
   it('reunir accepte une clé définie deux fois avec le même texte', () => {

@@ -38,6 +38,30 @@ export function numeroDe(compositions: readonly string[], idMonde: string): numb
   return rang < 0 ? null : rang + 1;
 }
 
+/**
+ * Stations publiées que l'intro numérote : les petites compositions, puis les grandes, que NOUVELLE PARTIE tire (D-313, D-326).
+ * Une grande station est publiée avec sa graine : son numéro reste le rang de sa composition, sans la graine (D-312), et le
+ * défilé dessine l'une de ses stations publiées, puisqu'une graine quelconque n'a pas toujours de plan.
+ */
+export function dependancesPubliees(
+  petites: readonly string[],
+  grandes: readonly string[],
+  construirePetite: (composition: string, graine: number) => EntreeMonde | Refus,
+  resoudre: (id: string) => EntreeMonde | Refus,
+): Pick<DependancesIntro, 'compositions' | 'construire'> {
+  const parComposition = new Map<string, string[]>();
+  for (const id of grandes) parComposition.set(compositionDe(id), [...(parComposition.get(compositionDe(id)) ?? []), id]);
+  return {
+    compositions: [...petites, ...parComposition.keys()],
+    construire: (composition, graine) => {
+      const publiees = parComposition.get(composition);
+      if (publiees === undefined) return construirePetite(composition, graine);
+      const id = publiees[graine % publiees.length];
+      return id === undefined ? { refus: `Station ${composition} non publiée.` } : resoudre(id);
+    },
+  };
+}
+
 /** Rectangles des pièces dessinées d'un monde. */
 export function planDe(monde: DefMonde): RectPlan[] {
   return monde.pieces.flatMap((piece) => (piece.plan === undefined ? [] : [piece.plan]));

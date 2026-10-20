@@ -1,4 +1,4 @@
-import type { Assembleur, DefAccroche, DefAssistance, DefCommande, DefMonde, DefMorceau, DefStation } from '../../engine';
+import type { Assembleur, DefAccroche, DefAssistance, DefCommande, DefMonde, DefStation } from '../../engine';
 import { MONDE_AR01 } from '../ar-01/monde';
 import { PARCOURS_AR01 } from '../ar-01/parcours';
 import { TEXTES_AR01 } from '../ar-01/textes';
@@ -27,10 +27,18 @@ import { MORCEAU_M10, TEXTES_MORCEAU_M10 } from '../morceaux/m-10';
 import { MORCEAU_M12, TEXTES_MORCEAU_M12 } from '../morceaux/m-12';
 import { MORCEAU_VESTIBULE, TEXTES_MORCEAU_VESTIBULE } from '../morceaux/vestibule';
 import { reunir } from '../textes/couches';
-import type { Nom, Variantes } from '../textes/types';
+import { DOCUMENTS } from '../textes/documents';
 import { ASSISTANCE_STATION } from '../textes/univers';
 import type { EntreeMonde } from '../types';
-import { PAIRES, type LignePaire } from './paires';
+import { court, PAIRES, premierRefus, type LignePaire } from './paires';
+import { numeroter, sansConflit } from './textes-station';
+import { definirGrande, GRAINE_GRANDE_MAX, prevoirGrandes, VERSION_GENERATEUR, type CompositionGrande, type GrandePrevue } from './grandes';
+import { GRANDES_PUBLIEES } from './grandes-publiees';
+import { TEXTES_CATALOGUE } from '../catalogue';
+
+export { numeroter, sansConflit } from './textes-station';
+export { GRAINE_GRANDE_MAX, VERSION_GENERATEUR, type CompositionGrande } from './grandes';
+export { GRANDES_PUBLIEES } from './grandes-publiees';
 
 // Catalogue des mondes jouables (#152) : les mondes écrits en entier, et les stations assemblées depuis les morceaux. Le
 // contenu n'importe que les types du moteur (docs/10-architecture.md §3) : l'assembleur lui est donné.
@@ -881,6 +889,19 @@ export interface Catalogue {
   tirer(hasard: () => number, composition?: string): EntreeMonde | Refus;
   /** Définition de la station `<composition>-<graine>`, permise par la table, avant assemblage : pour mesurer les plans. */
   definir(composition: string, graine: number): DefStation | Refus;
+  /** Grandes stations possibles (spec 2026-10-18 §4.1), hors de `compositions`, triées. */
+  readonly grandes: readonly CompositionGrande[];
+  /** Grandes stations publiées et prouvées : identifiants complets `g1-…-<graine>` (spec §7.2). */
+  readonly publiees: readonly string[];
+  /**
+   * NOUVELLE PARTIE (D-313) : pile ou face sur le final (D-253), une station sur trois en ordre libre (D-270), puis une grande
+   * station publiée au hasard ; `composition` force une grande composition.
+   */
+  tirerGrande(hasard: () => number, composition?: string): EntreeMonde | Refus;
+  /** Grande station exacte, publiée ou non : pour la prouver avant de la publier. */
+  construireGrande(composition: string, graine: number): EntreeMonde | Refus;
+  /** Définition d’une grande station avant assemblage : pour mesurer les plans. */
+  definirGrande(composition: string, graine: number): DefStation | Refus;
 }
 
 const AU_REVEIL: readonly DefAssistance[] = [
@@ -910,16 +931,6 @@ const MAL_FORME = 'identifiant mal formé (minuscules, chiffres et tirets, 40 ca
 
 const graineValide = (graine: number): boolean => Number.isInteger(graine) && graine >= 0 && graine <= GRAINE_MAX;
 
-/** Numéro du morceau dans la table des paires : 'm-07' → 'M-07'. */
-const numero = (morceau: DefMorceau): string => morceau.id.toUpperCase();
-
-function motifDeTable(table: readonly LignePaire[], x: DefMorceau, y: DefMorceau): string | null {
-  const [a, b] = numero(x) < numero(y) ? [numero(x), numero(y)] : [numero(y), numero(x)];
-  const ligne = table.find((candidate) => candidate.a === a && candidate.b === b);
-  if (ligne === undefined) return `Paire ${a} + ${b} absente de la table : refusée par défaut.`;
-  return ligne.verdict === 'jamais' ? `Paire ${a} + ${b} jamais ensemble : ${ligne.regle}.` : null;
-}
-
 const VESTIBULE: EntreeMorceau = { morceau: MORCEAU_VESTIBULE, textes: TEXTES_MORCEAU_VESTIBULE };
 const CARREFOUR: EntreeMorceau = { morceau: MORCEAU_CARREFOUR, textes: TEXTES_MORCEAU_CARREFOUR };
 
@@ -928,21 +939,6 @@ interface Prevue {
   /** Chemins puis final, sans le vestibule ni le carrefour. */
   readonly morceaux: readonly EntreeMorceau[];
 }
-
-/** Première paire refusée : chemin–chemin, puis chaque chemin–final, dans l'ordre de la station. */
-function premierRefus(table: readonly LignePaire[], chemins: readonly DefMorceau[], final: DefMorceau): string | null {
-  const paires = [
-    ...chemins.flatMap((x, rang) => chemins.slice(rang + 1).map((y) => [x, y] as const)),
-    ...chemins.map((chemin) => [chemin, final] as const),
-  ];
-  for (const [x, y] of paires) {
-    const motif = motifDeTable(table, x, y);
-    if (motif !== null) return motif;
-  }
-  return null;
-}
-
-const court = (morceau: DefMorceau): string => morceau.id.replaceAll('-', '');
 
 /**
  * Places où la créature bouche le seul passage de son morceau : en chaîne, prouvées seulement derrière un obstacle qui permet
@@ -992,86 +988,6 @@ function prevoir(table: readonly LignePaire[]): Prevue[] {
   return prevues.sort((x, y) => (x.composition.id < y.composition.id ? -1 : 1));
 }
 
-const COUCHES = reunir([]);
-
-/**
- * Clé propre à deux morceaux de la station avec deux textes différents (spec L3 §4.2) : `<clé>_<morceau sans tiret>` dans
- * chacun (pièces, objets, liaisons, positions, porte de sortie, noms et descriptions). Une clé renommée garde son nom et sa
- * description, recopiés des couches s'ils en viennent. Un morceau sans telle clé est rendu tel quel ; aucun n'est modifié.
- */
-export function sansConflit(entrees: readonly EntreeMorceau[]): EntreeMorceau[] {
-  const propres = ({ textes }: EntreeMorceau): Set<string> => new Set([...Object.keys(textes.noms), ...Object.keys(textes.descriptions)]);
-  const lu = <T>(table: Readonly<Record<string, T>>, cle: string): T | undefined => (Object.hasOwn(table, cle) ? table[cle] : undefined);
-  const texteDe = ({ textes }: EntreeMorceau, cle: string) => ({
-    nom: lu(textes.noms, cle) ?? lu(COUCHES.noms, cle),
-    description: lu(textes.descriptions, cle) ?? lu(COUCHES.descriptions, cle),
-  });
-  const lus = new Map<string, Set<string>>();
-  for (const entree of entrees) {
-    for (const cle of propres(entree)) lus.set(cle, (lus.get(cle) ?? new Set<string>()).add(JSON.stringify(texteDe(entree, cle))));
-  }
-  const enConflit = new Set([...lus].filter(([, textes]) => textes.size > 1).map(([cle]) => cle));
-  return entrees.map((entree) => {
-    const { morceau, textes } = entree;
-    const renommees = [...propres(entree)].filter((cle) => enConflit.has(cle));
-    if (renommees.length === 0) return entree;
-    const suffixe = morceau.id.replaceAll('-', '');
-    const cle = (nom: string): string => (renommees.includes(nom) ? `${nom}_${suffixe}` : nom);
-    const renomme = <T extends { readonly nom: string }>(element: T): T => ({ ...element, nom: cle(element.nom) });
-    const noms: Record<string, Nom> = {};
-    const descriptions: Record<string, Variantes> = {};
-    for (const [nom, texte] of Object.entries(textes.noms)) noms[cle(nom)] = texte;
-    for (const [nom, texte] of Object.entries(textes.descriptions)) descriptions[cle(nom)] = texte;
-    for (const nom of renommees) {
-      const { nom: texte, description } = texteDe(entree, nom);
-      if (texte !== undefined) noms[cle(nom)] = texte;
-      if (description !== undefined) descriptions[cle(nom)] = description;
-    }
-    return {
-      morceau: {
-        ...morceau,
-        pieces: morceau.pieces.map(renomme),
-        liaisons: morceau.liaisons.map(renomme),
-        objets: morceau.objets.map(renomme),
-        ...(morceau.positions === undefined ? {} : { positions: morceau.positions.map(renomme) }),
-        ...(morceau.sortie === undefined ? {} : { sortie: { ...morceau.sortie, porte: renomme(morceau.sortie.porte) } }),
-      },
-      textes: { ...textes, noms, descriptions },
-    };
-  });
-}
-
-/**
- * Pièces du même nom affiché désignées par une lettre dans toute la station, dans l'ordre des pièces (D-208, spec L3 §4.2) :
- * `coursive` → `coursive_a`, « coursive A ». Pas de chiffre dans le nom affiché : la carte et l'écran de fin n'en montrent
- * aucun ; une clé interne renommée par `sansConflit` peut en avoir (`coursive_m07_a`).
- */
-export function numeroter(entree: EntreeMonde): EntreeMonde {
-  const { monde, textes } = entree;
-  const nomDe = (cle: string): Nom | undefined => (Object.hasOwn(textes.noms, cle) ? textes.noms[cle] : undefined);
-  const affiche = (cle: string): string => nomDe(cle)?.texte ?? cle;
-  const total = new Map<string, number>();
-  for (const { nom } of monde.pieces) total.set(affiche(nom), (total.get(affiche(nom)) ?? 0) + 1);
-  if (monde.pieces.every(({ nom }) => total.get(affiche(nom)) === 1)) return entree;
-  const noms: Record<string, Nom> = { ...textes.noms };
-  const descriptions: Record<string, Variantes> = { ...textes.descriptions };
-  const rangs = new Map<string, number>();
-  const pieces = monde.pieces.map((piece) => {
-    const texte = affiche(piece.nom);
-    if (total.get(texte) === 1) return piece;
-    const rang = rangs.get(texte) ?? 0;
-    rangs.set(texte, rang + 1);
-    const lettre = String.fromCharCode('A'.charCodeAt(0) + rang);
-    const cle = `${piece.nom}_${lettre.toLowerCase()}`;
-    const nom = nomDe(piece.nom);
-    if (nom !== undefined) noms[cle] = { ...nom, texte: `${nom.texte} ${lettre}` };
-    const description = Object.hasOwn(textes.descriptions, piece.nom) ? textes.descriptions[piece.nom] : undefined;
-    if (description !== undefined) descriptions[cle] = description;
-    return { ...piece, nom: cle };
-  });
-  return { ...entree, monde: { ...monde, pieces }, textes: { ...textes, noms, descriptions } };
-}
-
 /**
  * Station d'une composition pour une graine de plan, et les morceaux dont viennent ses textes. En chaîne : vestibule, chemins,
  * final. En ordre libre (D-259, spec L5 §3) : vestibule, carrefour, branches A et B, final ; les branches s'accrochent au
@@ -1108,6 +1024,7 @@ export function creerCatalogue(
   assembler: Assembleur,
   table: readonly LignePaire[] = PAIRES,
   publiees: readonly string[] = COMPOSITIONS_PUBLIEES,
+  grandesPubliees: readonly string[] = GRANDES_PUBLIEES,
 ): Catalogue {
   const assemblee = (station: DefStation): DefMonde => {
     const resultat = assembler(station);
@@ -1165,10 +1082,74 @@ export function creerCatalogue(
     return assemblerPrevue(prevue, graine) ?? { refus: `Station ${composition}-${graine} : aucun plan pour cette graine.` };
   };
 
+  const grandes = prevoirGrandes(table);
+  const grandeParId = new Map(grandes.map((prevue) => [prevue.composition.id, prevue]));
+  const grandesProposees = new Set(grandesPubliees);
+
+  const assemblerGrande = (prevue: GrandePrevue, graine: number): EntreeMonde | Refus | null => {
+    const id = `${prevue.composition.id}-${graine}`;
+    if (memoire.has(id)) return memoire.get(id) ?? null;
+    const { station, entrees } = definirGrande(prevue, graine);
+    const resultat = assembler(station);
+    let obtenu: EntreeMonde | Refus | null = null;
+    if (resultat.type === 'station') {
+      // Les documents de l'univers, de la menace et de la trousse rejoignent les textes de chaque grande station (spec §8.5).
+      const textes = reunir([...entrees.map((entree) => entree.textes), TEXTES_CATALOGUE, { noms: {}, descriptions: {}, assistance: {}, documents: DOCUMENTS }], ASSISTANCE_STATION);
+      obtenu = numeroter({ monde: resultat.monde, textes, parcours: [] });
+    } else if (resultat.type === 'invalide') obtenu = { refus: `Station ${id} invalide : ${resultat.erreurs.join(' ')}` };
+    memoire.set(id, obtenu);
+    return obtenu;
+  };
+
+  const grandeDe = (composition: string): GrandePrevue | Refus => {
+    if (!FORME_ID.test(composition)) return { refus: `Composition inconnue : ${MAL_FORME}.` };
+    const prevue = grandeParId.get(composition);
+    if (prevue === undefined) return { refus: `Composition inconnue : ${composition}.` };
+    return prevue.composition.refus === null ? prevue : { refus: prevue.composition.refus };
+  };
+
+  const construireGrande = (composition: string, graine: number): EntreeMonde | Refus => {
+    const prevue = grandeDe(composition);
+    if ('refus' in prevue) return prevue;
+    if (!Number.isInteger(graine) || graine < 0 || graine > GRAINE_GRANDE_MAX) return { refus: `Composition ${composition} : graine de plan invalide (${String(graine)}).` };
+    return assemblerGrande(prevue, graine) ?? { refus: `Station ${composition}-${graine} : aucun plan pour cette graine.` };
+  };
+
+  const definirGrandeId = (composition: string, graine: number): DefStation | Refus => {
+    const prevue = grandeDe(composition);
+    return 'refus' in prevue ? prevue : definirGrande(prevue, graine).station;
+  };
+
+  /** Grande station `g<version>-…-<graine>` : seulement de cette version du générateur, et publiée (spec §4.3). */
+  const resoudreGrande = (id: string, version: number): EntreeMonde | Refus => {
+    if (version !== VERSION_GENERATEUR) return { refus: 'Station d’une version précédente des stations : la partie ne peut pas être reprise.' };
+    if (!grandesProposees.has(id)) return { refus: `Station ${id} non publiée : non proposée.` };
+    const tiret = id.lastIndexOf('-');
+    return construireGrande(id.slice(0, tiret), Number(id.slice(tiret + 1)));
+  };
+
+  const tirerGrande = (hasard: () => number, composition?: string): EntreeMonde | Refus => {
+    const tirables = [...grandesProposees].map((id) => ({ id, prevue: grandeParId.get(id.slice(0, id.lastIndexOf('-'))) }));
+    let parmi = tirables.filter((tirable) => tirable.prevue !== undefined && (composition === undefined || tirable.prevue.composition.id === composition));
+    if (composition === undefined) {
+      const finals = [...new Set(parmi.map((tirable) => tirable.prevue?.composition.final))];
+      const final = finals[hasard() % Math.max(finals.length, 1)];
+      parmi = parmi.filter((tirable) => tirable.prevue?.composition.final === final);
+      const libres = parmi.filter((tirable) => tirable.prevue?.composition.forme === 'libre');
+      const chaines = parmi.filter((tirable) => tirable.prevue?.composition.forme === 'chaine');
+      // Une station sur trois en ordre libre (D-270), quand les deux formes sont publiées.
+      if (libres.length > 0 && chaines.length > 0) parmi = hasard() % 3 === 0 ? libres : chaines;
+    }
+    const tiree = parmi[hasard() % Math.max(parmi.length, 1)];
+    return tiree === undefined ? { refus: 'Aucune grande station publiée.' } : resoudre(tiree.id);
+  };
+
   const resoudre = (id: string): EntreeMonde | Refus => {
     const fixe = Object.hasOwn(mondes, id) ? mondes[id] : undefined;
     if (fixe !== undefined) return fixe;
     if (!FORME_ID.test(id)) return { refus: `Station inconnue : ${MAL_FORME}.` };
+    const version = /^g(\d+)-/.exec(id);
+    if (version !== null) return resoudreGrande(id, Number(version[1]));
     const tiret = id.lastIndexOf('-');
     const composition = id.slice(0, Math.max(tiret, 0));
     if (!parId.has(composition)) return { refus: `Station inconnue : ${id}.` };
@@ -1203,5 +1184,17 @@ export function creerCatalogue(
     return 'refus' in prevue ? prevue : definirStation(prevue, graine).station;
   };
 
-  return { mondes, compositions: prevues.map((prevue) => prevue.composition), construire, resoudre, tirer, definir };
+  return {
+    mondes,
+    compositions: prevues.map((prevue) => prevue.composition),
+    construire,
+    resoudre,
+    tirer,
+    definir,
+    grandes: grandes.map((prevue) => prevue.composition),
+    publiees: [...grandesPubliees],
+    tirerGrande,
+    construireGrande,
+    definirGrande: definirGrandeId,
+  };
 }

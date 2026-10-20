@@ -1,5 +1,5 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
-import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
+import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
@@ -162,6 +162,15 @@ export function consulter(env: Pick<Environnement, 'monde' | 'textes'>, partie: 
   const resultat = jouer(env.monde, partie, option.commande);
   if (resultat.type === 'engagee') throw new Error(`« ${option.action} » engage le personnage : ce n’est pas une fiche.`);
   return raconter(env.textes, resultat);
+}
+
+/**
+ * Structure de la fiche d'un document (spec 2026-10-18 §9.1) : la même consultation gratuite, rendue par `rendreDocument` pour que
+ * chaque support ait sa mise en forme ; `null` pour tout ce qui n'est pas un document, que `consulter` dit en phrases.
+ */
+export function consulterDocument(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie, option: OptionMenu): DocumentRendu | null {
+  const resultat = jouer(env.monde, partie, option.commande);
+  return resultat.type === 'consultation' && resultat.consultation.type === 'regarder_document' ? rendreDocument(env.textes, resultat.consultation) : null;
 }
 
 /** Aperçu affiché : RISQUE et COÛT seulement s'ils disent autre chose que « aucun » (D-187) ; SAVOIR toujours. */
@@ -333,22 +342,23 @@ function lancer(premiere: EntreeMonde | Refus, suivante: () => EntreeMonde | Ref
 
 /**
  * Monde du lancement et des NOUVELLES PARTIES. Adresse nue : la station de la partie enregistrée si elle se résout, sinon une
- * station tirée, sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque nouvelle partie en tire une
- * autre. `?station=<composition>` : sa partie enregistrée, sinon un plan tiré ; chaque nouvelle partie tire un autre plan de la
- * même composition. `?station=<identifiant>` et `?monde=` : ce monde, toujours.
+ * grande station publiée tirée (D-313), sans rien écrire (la partie illisible reste jusqu'à une nouvelle partie) ; chaque
+ * nouvelle partie en tire une autre. `?station=<composition>`, petite ou grande : sa partie enregistrée, sinon un plan tiré ;
+ * chaque nouvelle partie tire un autre plan de la même composition. `?station=<identifiant>` et `?monde=` : ce monde, toujours.
  */
 export async function preparerLancement(demande: Demande, catalogue: Catalogue, stockage: Stockage, hasard: () => number): Promise<Lancement> {
   if (demande.type === 'monde') {
     const fixe = catalogue.resoudre(demande.id);
     return lancer(fixe, () => fixe);
   }
-  if (demande.type === 'station' && !catalogue.compositions.some(({ id }) => id === demande.id)) {
+  const grande = (id: string): boolean => catalogue.grandes.some((composition) => composition.id === id);
+  if (demande.type === 'station' && !catalogue.compositions.some(({ id }) => id === demande.id) && !grande(demande.id)) {
     const exacte = catalogue.resoudre(demande.id);
     return lancer(exacte, () => exacte);
   }
   // Adresse nue : tout le catalogue ; `?station=<composition>` : cette composition, et seulement sa partie enregistrée.
   const composition = demande.type === 'station' ? demande.id : undefined;
-  const tirer = (): EntreeMonde | Refus => catalogue.tirer(hasard, composition);
+  const tirer = (): EntreeMonde | Refus => (composition === undefined || grande(composition) ? catalogue.tirerGrande(hasard, composition) : catalogue.tirer(hasard, composition));
   const enregistre = await mondeEnregistre(stockage);
   const reprise =
     enregistre !== null && (composition === undefined || enregistre.slice(0, enregistre.lastIndexOf('-')) === composition) ? catalogue.resoudre(enregistre) : null;

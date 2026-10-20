@@ -5,6 +5,12 @@ import type { Couche } from './types';
 /** Radicaux propres à la menace : un mot du socle ou d'un morceau qui commence par l'un d'eux est une fuite. */
 export const MOTS_MENACE: readonly string[] = ['créature', 'griff', 'gueule', 'masse'];
 
+/**
+ * Radicaux réservés aux traces de la créature (spec 2026-10-18 §5.4) : une description calme n’en porte aucun, pour qu’une trace
+ * dise toujours « elle est passée par ici » (grammaire des signes, §8.1). Un « $ » final : le mot exact (« sang », pas « sangle »).
+ */
+export const MOTS_TRACES: readonly string[] = ['sang$', 'sanglant', 'traînée', 'éventr', 'renvers', 'poiss', 'lacér', 'griff', 'douceâtre', 'éclabouss'];
+
 export const MENACE = {
   evenements: {
     bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],
@@ -39,6 +45,29 @@ export const MENACE = {
     pont_cede: [
       'Un craquement sec : {le:objet} cède sous un poids énorme, et quelque chose bascule dans le vide.',
       '{Le:objet} se brise avec un claquement de bois mort ; une masse lourde tombe dans le noir, sans un cri.',
+    ],
+  },
+  // Traces de la piste (spec 2026-10-18 §5.4) : une phrase entière, vraie dans toute pièce où elle est passée. Légères loin de
+  // son repaire, fortes à deux portes ou moins. Elles disent qu'elle est passée, jamais où elle est. Écrites par l'assistant
+  // principal (D-243).
+  traces: {
+    legere: [
+      'Des éraflures profondes zèbrent le bas de la porte, toutes dans le même sens.',
+      'Une odeur douceâtre flotte ici, que la ventilation ne chasse pas.',
+      'Une traînée sombre, déjà sèche, longe le mur jusqu’à la porte.',
+      'Au sol, quelque chose de lourd a été traîné ; la marque se perd sous la porte.',
+      'Des griffures marquent le chambranle, à hauteur d’homme et plus haut encore.',
+      'Un panneau du faux plafond pend, arraché ; des fils dénudés oscillent encore.',
+      'Par endroits, le sol colle sous vos semelles, d’un dépôt brunâtre.',
+    ],
+    forte: [
+      'Une traînée sombre, encore poisseuse, file vers la porte.',
+      'Du sang a éclaboussé la cloison à hauteur d’épaule, et il n’a pas fini de sécher.',
+      'L’odeur, ici, est épaisse, douceâtre, presque chaude.',
+      'Des griffures fraîches lacèrent la porte ; des éclats de peinture jonchent encore le sol.',
+      'Un casier gît renversé, éventré, son contenu piétiné.',
+      'Le sol est poisseux, et l’air sent la bête à vous lever le cœur.',
+      'Sur le mur, de longues entailles parallèles montent jusqu’au plafond.',
     ],
   },
   brulures: {

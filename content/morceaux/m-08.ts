@@ -32,6 +32,8 @@ export const MORCEAU_M08: DefMorceau = {
   placesCreature: ['p-magasin'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie', 'p-atelier': 'technique', 'p-magasin': 'technique' }, avant: ['p-atelier', 'p-quartiers', 'p-ouest'], coupe: ['l-ouest-est'], cles: { 'o-planche': { etiquettes: ['rangement'] } } },
   assistance: [{ id: 'passerelle', quand: { type: 'arrivee', piece: 'p-ouest' } }],
 };
 
@@ -58,6 +60,36 @@ export const TEXTES_MORCEAU_M08: TextesMorceau = {
       'Des casiers grillagés, des bacs de visserie, un comptoir de distribution. Le fond du magasin reste sombre.',
     ],
     planche: repris(TEXTES_PROPRES_M08.descriptions, 'planche'),
+  },
+  // Grande station (spec 2026-10-18 §5.4) : l'atelier et le magasin sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    atelier: [
+      'Un atelier de maintenance aux établis encombrés. Des outils traînent sur les plans de travail.',
+      'Des établis, des étaux, de la limaille sur le sol. Quelques outils pendent encore au tableau mural.',
+    ],
+    magasin: [
+      'Un magasin de pièces détachées. Des bacs étiquetés montent jusqu’au plafond, rangés par taille.',
+      'Des casiers grillagés, des bacs de visserie, un comptoir de distribution. Le fond du magasin reste sombre.',
+    ],
+  },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la planche déplacée.
+  documents: {
+    doc_message_odile: {
+      puce: { texte: 'message d’Odile', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, calé contre la paroi',
+      corps: [
+        '[voix calme] Nous avions couché la planche en travers du vide, et j’ai regardé Marc traverser le premier. Elle a plié en son milieu, mais elle a tenu.',
+        '[un temps] Nous l’avons retirée derrière nous, pour que rien ne nous suive. Sous un poids plus lourd qu’un homme, de toute façon, elle aurait cédé.',
+      ],
+    },
+    doc_mot_nadia: {
+      puce: { texte: 'mot de Nadia', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'scotchée de travers, à hauteur des yeux',
+      corps: ['Planche du chantier rangée dans {le:piece}.', 'La reprendre sans prévenir, c’est la corvée de nettoyage pendant un mois.'],
+      signature: 'Nadia',
+    },
   },
   assistance: {
     passerelle: repris(TEXTES_PROPRES_M08.assistance, 'passerelle'),

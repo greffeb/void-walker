@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import type { DocumentRendu } from '../content';
 import { placerBulle } from './ecran';
 import type { Geste } from './son/recettes';
 
@@ -125,4 +126,74 @@ export function BulleAncree({
     return () => window.removeEventListener('resize', placer);
   }, [ancre, etape]);
   return <Bulle zone={zone} classe={classe} etape={etape} {...props} />;
+}
+
+const LETTRE = /[\p{L}\p{N}]/u;
+
+/** Souligne la pièce que désigne une note de rangement, nom sans article, partout dans le corps ; un mot entier seulement (« cale » n'est pas dans « calendrier »). */
+function souligner(texte: string, piece: string | undefined): ReactNode {
+  if (piece === undefined || piece === '') return texte;
+  const morceaux: ReactNode[] = [];
+  let depuis = 0;
+  for (let rang = texte.indexOf(piece); rang !== -1; rang = texte.indexOf(piece, rang + piece.length)) {
+    const fin = rang + piece.length;
+    if (LETTRE.test(texte.charAt(rang - 1)) || LETTRE.test(texte.charAt(fin))) continue;
+    morceaux.push(
+      texte.slice(depuis, rang),
+      <span key={rang} className="lieu">
+        {piece}
+      </span>,
+    );
+    depuis = fin;
+  }
+  morceaux.push(texte.slice(depuis));
+  return morceaux;
+}
+
+/** Classe d'une ligne du corps : la didascalie d'un message ; le titre et la signature de la compagnie d'une affiche (première et dernière lignes). */
+function classeDeLigne(rendu: DocumentRendu, rang: number): string | undefined {
+  if (rendu.corps[rang]?.didascalie === true) return 'didascalie';
+  if (rendu.support !== 'affiche') return undefined;
+  return rang === 0 ? 'titre' : rang === rendu.corps.length - 1 ? 'pied' : undefined;
+}
+
+/**
+ * Fiche d'un document (D-324, spec 2026-10-18 §9.1, variante B de docs/maquette/documents.html) : le support en capitales et la ligne
+ * « où », puis le corps dans la typographie du support. Les capitales sont du style, pas du texte : le lecteur d'écran lit le support,
+ * la ligne « où », puis le corps, dans l'ordre. `puce` : le nom de la puce, que le journal grave sur sa barre de titre.
+ */
+export function FicheDocument({ rendu, puce }: { readonly rendu: DocumentRendu; readonly puce: string }) {
+  const { support, libelleSupport, ou, corps, signature, piece } = rendu;
+  return (
+    <>
+      <p className="support">
+        {libelleSupport} <span aria-hidden="true">· </span>
+        <span>{ou}</span>
+      </p>
+      <div className={`doc doc-${support}`}>
+        {support === 'journal' ? (
+          <>
+            {/* Le nom de la puce est déjà le titre de la bulle : la barre est un décor pour le lecteur d'écran. */}
+            <div className="barre" aria-hidden="true">
+              {puce}
+            </div>
+            <ol>
+              {corps.map(({ heure, texte }, rang) => (
+                <li key={rang}>
+                  <time>{heure}</time> <span>{souligner(texte, piece)}</span>
+                </li>
+              ))}
+            </ol>
+          </>
+        ) : (
+          corps.map(({ texte }, rang) => (
+            <p key={rang} className={classeDeLigne(rendu, rang)}>
+              {souligner(texte, piece)}
+            </p>
+          ))
+        )}
+        {signature !== undefined && <p className="signe">{signature}</p>}
+      </div>
+    </>
+  );
 }

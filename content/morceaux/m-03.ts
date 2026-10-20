@@ -32,6 +32,8 @@ export const MORCEAU_M03: DefMorceau = {
   placesCreature: ['p-reserve'],
   demande: ['acces'],
   fournit: ['evacuation'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { accueillantes: { 'p-energie': 'technique', 'p-reserve': 'technique' }, avant: ['p-energie', 'p-reserve'], coupe: ['l-energie-embarquement'], cles: { 'o-bloc': { etiquettes: ['lourd'] } } },
   assistance: [{ id: 'energie', quand: { type: 'arrivee', piece: 'p-energie' } }],
 };
 
@@ -65,6 +67,23 @@ export const TEXTES_MORCEAU_M03: TextesMorceau = {
       'Une capsule de secours arrimée au quai. Une plaque indique deux alimentations : le circuit de départ, ou une source branchée sous la trappe.',
       'La capsule de secours est arrimée au quai. Sous une trappe, un connecteur accepte une source compatible ; une plaque renvoie aussi au circuit de départ.',
     ],
+  },
+  // Grande station (spec 2026-10-18 §5.4) : la réserve sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    reserve: [
+      'Une réserve étroite, des étagères chargées de cartons et de pièces détachées. Le fond reste dans l’ombre.',
+      'Des étagères jusqu’au plafond, des cartons empilés. La lumière n’atteint pas le fond de la réserve.',
+    ],
+  },
+  // Document des grandes stations (bible docs/17-univers.md §5) : la note du bloc déplacé ; un final n'a pas de témoignage.
+  documents: {
+    doc_fiche_volante: {
+      puce: { texte: 'fiche volante', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'glissée sous une bande adhésive, sur la paroi',
+      corps: ['Le bloc d’énergie de secours est {a:piece}, chargé.', 'Je l’ai mis à l’écart pour que personne ne le branche sur n’importe quoi.'],
+      signature: 'Yann',
+    },
   },
   assistance: {
     energie: 'Le circuit de départ se réarme depuis sa console ; son relais est bruyant. Une source locale compatible peut aussi alimenter la capsule.',

@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
-import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
+import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
 import {
   composer,
   composerDock,
@@ -24,16 +24,18 @@ import {
   type Etape,
   type Groupe,
 } from './ecran';
-import { Bulle, BulleAncree, garderFocus } from './bulle';
+import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
+import { consulter, consulterDocument, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
 type Lire = (option: OptionMenu) => readonly string[];
+/** Structure de la fiche quand la cible est un document ; `null` sinon (spec 2026-10-18 §9.1). */
+type LireDocument = (option: OptionMenu) => DocumentRendu | null;
 type Prevoir = (option: OptionMenu) => ApercuAffiche;
 /** Vrai si l'option se joue d'un seul toucher, sans aperçu (D-182). */
 type Direct = (option: OptionMenu) => boolean;
@@ -273,6 +275,7 @@ export function EcranJeu({
     void choisir(jeu, option);
   };
   const lire: Lire = (option) => consulter(env, jeu.partie, option);
+  const lireDocument: LireDocument = (option) => consulterDocument(env, jeu.partie, option);
   const voir: Prevoir = (option) => prevoir(env, jeu.partie, option);
   const nonLus = jeu.partie.etat.messages.filter((message) => !lus.includes(message));
   // Gratuit (D-014) : la fenêtre montre les messages déjà reçus, sans question possible (C-06 K-06).
@@ -351,6 +354,7 @@ export function EcranJeu({
           occupe={occupe}
           jouer={jouer}
           lire={lire}
+          lireDocument={lireDocument}
           prevoir={voir}
           direct={direct}
           fermer={fermer}
@@ -374,6 +378,7 @@ export function EcranJeu({
             occupe={occupe}
             jouer={jouer}
             lire={lire}
+            lireDocument={lireDocument}
             prevoir={voir}
             direct={direct}
             fermer={fermer}
@@ -560,6 +565,7 @@ interface PropsComposition {
   /** Joue l'action : CONFIRMER, ou la ligne elle-même si elle se joue d'un seul toucher. */
   readonly jouer: Jouer;
   readonly lire: Lire;
+  readonly lireDocument: LireDocument;
   readonly prevoir: Prevoir;
   readonly direct: Direct;
   readonly fermer: () => void;
@@ -688,6 +694,7 @@ function Composer({
   occupe,
   jouer,
   lire,
+  lireDocument,
   prevoir: voir,
   direct,
   choisirAction,
@@ -715,13 +722,16 @@ function Composer({
   }
   const { fiche, actions } = composer(groupe);
   const lignes = lignesActions(actions);
+  const rendu = fiche === undefined ? null : lireDocument(fiche);
   return (
     <>
       {fiche !== undefined && (
-        <div id={idDescription} className="fiche">
-          {lire(fiche).map((phrase, index) => (
-            <p key={index}>{phrase}</p>
-          ))}
+        <div id={idDescription} className={rendu === null ? 'fiche' : 'fiche fiche-document'}>
+          {rendu === null ? (
+            lire(fiche).map((phrase, index) => <p key={index}>{phrase}</p>)
+          ) : (
+            <FicheDocument rendu={rendu} puce={nomPuce(textes, groupe.cible)} />
+          )}
         </div>
       )}
       {lignes.length > 0 && (

@@ -23,9 +23,11 @@ import {
   MONDES,
   MORCEAUX,
   MORCEAUX_TEXTES,
+  nomDe,
   nomLisible,
   numeroter,
   PAIRES,
+  rendreDocument,
   reunir,
   sansConflit,
   type Composition,
@@ -1245,6 +1247,19 @@ describe('pièces du même nom numérotées (D-208)', () => {
       ['coursive_y_b', 'coursive B', ['Un couloir de service.']],
     ]);
     expect(validerMonde(monde)).toEqual([]);
+  });
+
+  it('la puce d’un document passe par la numérotation, et sa note nomme la coursive désignée avec sa lettre (spec §8.5)', () => {
+    const puce = { texte: 'mot de Léa', genre: 'm', nombre: 's', elision: false } as const;
+    const note = { puce, support: 'note', ou: 'glissée sous une patte de rangement', corps: ['J’ai rangé la planche dans {le:piece}.'], signature: 'Léa' } as const;
+    const { monde, textes } = numeroter(deuxCoursives(['coursive', 'coursive'], { ...COURSIVE, documents: { mot_lea: note } }));
+    const coursiveB = monde.pieces.find((piece) => piece.id === 'c-b/p-coursive');
+    if (coursiveB === undefined) throw new Error('Coursive B absente.');
+    const cible = { sorte: 'objet', id: 'e00000001', nom: 'mot_lea' } as const;
+    expect(nomDe(textes, cible)).toEqual(puce);
+    const rendu = rendreDocument(textes, { type: 'regarder_document', cible, designe: { sorte: 'piece', id: coursiveB.id, nom: coursiveB.nom } });
+    expect(rendu.corps).toEqual([{ texte: 'J’ai rangé la planche dans la coursive B.' }]);
+    expect(rendu.piece).toBe('coursive B');
   });
 
   it('une station sans doublon reste identique', () => {

@@ -178,6 +178,27 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(css).not.toMatch(/\.nav-ia[^{]*\{[^}]*animation/);
   });
 
+  it('fiche document (D-324) : support en capitales, chaque support dans sa typographie, pièce soulignée en pointillé', () => {
+    const regle = (selecteur: string): string => new RegExp(`^${selecteur.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`, 'm').exec(css)?.[1] ?? '';
+    expect(regle('.fiche-document .support')).toContain('text-transform: uppercase');
+    // La ligne « où » reprend la casse normale.
+    expect(regle('.fiche-document .support span')).toContain('text-transform: none');
+    // À 320 px, un mot long (code, nom lettré) se coupe plutôt que de déborder de la bulle.
+    expect(regle('.fiche-document .doc')).toContain('overflow-wrap: anywhere');
+    expect(regle('.fiche-document .doc-note')).toContain('font-style: italic');
+    expect(regle('.fiche-document .doc-note')).toContain('border-left: 1px dashed');
+    expect(regle('.fiche-document .doc-note .signe')).toContain('text-align: right');
+    expect(regle('.fiche-document .doc-journal')).toContain('border: 1px solid');
+    expect(regle('.fiche-document .doc-journal .barre')).toContain('text-transform: uppercase');
+    expect(regle('.fiche-document .doc-journal li')).toContain('grid-template-columns: 5ch');
+    expect(regle('.fiche-document .doc-message .didascalie')).toContain('color: var(--secondaire-menu)');
+    expect(regle('.fiche-document .doc-inscription p')).toContain('text-transform: uppercase');
+    expect(regle('.fiche-document .doc-affiche')).toContain('border: 3px double');
+    expect(regle('.fiche-document .lieu')).toContain('text-decoration: underline dotted');
+    // Une inscription ne penche plus quand le téléphone demande moins de mouvement.
+    expect(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.fiche-document \.doc-inscription\s*\{\s*transform:\s*none;/.test(css)).toBe(true);
+  });
+
   it('document en français', () => {
     expect(readFileSync(new URL('index.html', APPLI), 'utf8')).toContain('<html lang="fr">');
   });

@@ -1,5 +1,6 @@
 import type {
   Cout,
+  IntensiteTrace,
   IdAction,
   Issue,
   NiveauRisque,
@@ -90,6 +91,25 @@ export interface PhraseFin {
   readonly ailleursReprise?: string;
 }
 
+/** Les cinq supports d'un document à lire (spec 2026-10-18 §8.4). */
+export type SupportDocument = 'note' | 'journal' | 'message' | 'inscription' | 'affiche';
+
+/**
+ * Textes d'un document des grandes stations (spec §8.5), dans la section `documents` à part : les descriptions refusent tout trou.
+ * Le seul trou permis est la pièce d'une note de rangement : `{le:piece}`, `{de:piece}` ou `{a:piece}`.
+ */
+export interface TexteDocument {
+  /** Nom de puce affiché, avec genre, nombre et élision ; sans chiffre. */
+  readonly puce: Nom;
+  readonly support: SupportDocument;
+  /** Ligne « où », vraie dans toute pièce que les étiquettes du document autorisent. */
+  readonly ou: string;
+  /** Paragraphes ; pour un journal, lignes « hh:mm  texte » (deux espaces). */
+  readonly corps: readonly string[];
+  /** Note : prénom de l'auteur. */
+  readonly signature?: string;
+}
+
 export interface TextesMonde {
   readonly noms: Readonly<Record<string, Nom>>;
   /** Description des pièces et objets, par clé de nom, pour « regarder ». */
@@ -107,12 +127,23 @@ export interface TextesMonde {
   readonly gelures: Readonly<Record<'froid' | 'griffes_froid', Readonly<Record<TypeAggravation, Variantes>>>>;
   /** Défaite par le vide, sans combinaison dans une pièce sans air (C-04 §3.1), à la place des autres textes de défaite. */
   readonly asphyxie: Variantes;
+  /** Phrase ajoutée au regard d’une pièce sur la piste de la créature (spec 2026-10-18 §5.4), couche menace. */
+  readonly traces: Readonly<Record<IntensiteTrace, Variantes>>;
+  /** Phrase ajoutée au regard d’une pièce pillée avant le joueur (spec 2026-10-18 §6.6), couche univers, après la trace s’il y en a une. */
+  readonly pillages: Variantes;
   /** Attente seule à raconter, 5e et 10e de suite (#225). */
   readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
   readonly assistance: Readonly<Record<string, string>>;
+  /**
+   * Documents des grandes stations, par clé de nom du document (spec §8.5) ; la réunion des textes ajoute chaque puce à `noms` sous
+   * la même clé, pour que `nomDe` traite un document comme tout objet.
+   */
+  readonly documents: Readonly<Record<string, TexteDocument>>;
+  /** Étiquette du support d'un document, que l'appli met en capitales (spec §8.4, §9.1). */
+  readonly supports: Readonly<Record<SupportDocument, string>>;
   readonly passages: {
     readonly ouvert: Variantes;
     readonly ferme: Variantes;
@@ -129,6 +160,8 @@ export interface TextesMonde {
   readonly libelles: Readonly<Record<IdAction, string>>;
   /** Libellé d'« aller » par un passage dont la destination n'est pas connue : nommé par le passage seul. */
   readonly allerSansDestination: string;
+  /** Libellé de « poser » à une position de la pièce (la caisse d'une grande station), nommée comme dans celui de « déplacer ». */
+  readonly poserAPosition: string;
   /** Verbe seul, sans trou : options d'une puce et rappel de la dernière action (« > Carnet · Prendre »). */
   readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
@@ -243,6 +276,13 @@ export interface TextesMorceau {
   readonly noms: Readonly<Record<string, Nom>>;
   readonly descriptions: Readonly<Record<string, Variantes>>;
   readonly assistance: Readonly<Record<string, string>>;
+  /**
+   * Descriptions qui remplacent les leurs dans une grande station (spec 2026-10-18 §5.4, §6.5) : celles des pièces, calmes et sans
+   * trace, et les variantes d'une description d'objet que la grande station change (la caisse portable de M-02).
+   */
+  readonly calmes?: Readonly<Record<string, Variantes>>;
+  /** Documents que porte la station (spec 2026-10-18 §8.5) : leurs puces rejoignent `noms` à la réunion des textes. */
+  readonly documents?: Readonly<Record<string, TexteDocument>>;
 }
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */
@@ -271,6 +311,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   pas_entendus: [],
   souffle_entendu: [],
   attente: [],
+  bruit_station: [],
   premier_contact: [],
   menace: [],
   aggravation_blesse: [],
@@ -279,6 +320,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   soin_indemne: ['objet'],
   soin_blesse: ['objet'],
   objet_deplace: ['objet', 'position'],
+  objet_pose_position: ['objet', 'position'],
   feu_derriere: ['passage'],
   feu_gagne: ['piece'],
   feu_eteint: ['piece'],
@@ -389,6 +431,7 @@ export const ROLES_MOMENT: Readonly<Record<CleMoment, readonly string[]>> = {
 };
 
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
+export const ROLES_POSER_A_POSITION = ['cible', 'position'] as const;
 export const ROLES_PASSAGE = ['passage', 'vers'] as const;
 export const ROLES_PASSAGE_SANS_DESTINATION = ['passage'] as const;
 export const ROLES_INDISPONIBILITE = ['cible'] as const;

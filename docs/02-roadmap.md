@@ -1,7 +1,7 @@
 # Void Walker V2 — roadmap proposée
 
 > **Statut :** PROPOSITION DE SÉQUENCEMENT — pas un planning accepté ni une autorisation d'exécution.
-> **Mise à jour :** 2026-10-14.
+> **Mise à jour :** 2026-10-20 (grandes stations habitées, livraison 3).
 
 ## Règles de lecture
 
@@ -73,6 +73,8 @@ Intentions déjà demandées :
 
 **Plan accepté le 2026-10-14 (D-245) :** #106 en livraisons L0 à L6 ([13 §7](13-morceaux-lancement.md#7-découpage-de-106)) : petites stations d'abord (D-242), objets dans leur morceau (D-244), mesure de la part des stations où la créature peut être mise hors jeu avant le problème final (D-241). Hors #106 : le catalogue des pièces sans obstacle, issue à part à créer avec l'accord du porteur (D-214) ; seulement si la durée des parties le demande (D-242), les grandes stations dans une issue à part (annexes, boucles, vérifieur par morceaux, D-245), puis les objets placés hors de leur morceau (D-244). Piste sans décision, proposée le 2026-10-14 : des salles de butin, c'est-à-dire des annexes facultatives où trouver des objets en plus de ceux que demandent les obstacles ; elles supposent les annexes et pourraient servir de premier réglage de la difficulté.
 
+**Grandes stations habitées, conception approuvée le 2026-10-18 (D-313 à D-327) :** #202, #205, #206, #207 et #209 en trois livraisons sur une même branche et une même PR (D-327). Livraison 1 : catalogue des pièces sans obstacle, annexes, portes de boucle, piste et traces, bruits de station, liste publiée et prouvée ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-1-205-206)). Livraison 2 : clés dispersées et butin (D-319, D-320, [13 §7.13](13-morceaux-lancement.md#713-grandes-stations-livraison-2-202-207)). Livraison 3 : bible, documents, notes de rangement et fiche document (D-322 à D-324), proposée par la même PR ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)) ; la demande du porteur de « Poser » la caisse sous la grille d'un seul geste y est consignée (D-328). Une ronde de la créature avant le contact se décidera chiffres en main, avec #217 (D-321).
+
 **Sortie proposée :** diversité utile mesurée, pas seulement diversité de noms ; pas de revendication « toujours gagnable » après toute action du joueur.
 
 ## Phase 4 — contenu de lancement et expérience mobile
@@ -82,7 +84,7 @@ Intentions déjà demandées :
 - Visuels et audio selon périmètre ; provenance et licences documentées.
 - Accessibilité, ergonomie des actions composées, installation et reprise sur appareils ciblés.
 - Équilibrage après correction des contrats, pas en compensation des bugs.
-- Lore léger (D-243) : une conception d'abord (nombre de documents, longueur, place, ce qu'un document peut révéler, effet éventuel de la lecture sur ce que sait le passager), puis des documents écrits par l'assistant principal. Lire reste gratuit (D-014). Lus par « regarder », qui ne coûte rien et montre déjà la description d'un objet, les documents ne touchent pas au moteur ; si la conception retient une action à part ou un effet de la lecture, ce travail touche au moteur et ne se mène pas en même temps qu'une autre issue moteur [détail de l'agent].
+- Lore léger (D-243) : conception faite avec les grandes stations (D-322 à D-324) ; 36 documents écrits par l'assistant principal, livrés par la livraison 3, proposée par sa PR ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)). Lire reste gratuit (D-014). Lus par « regarder », qui ne coûte rien et montre déjà la description d'un objet, ils n'ont demandé ni action à part ni effet de la lecture : le moteur n'a gagné qu'un objet fixe à lire, la consultation gratuite `regarder_document` et l'étape d'assemblage qui le pose [détail de l'agent].
 - Mesures : bots sur 1 000 stations et parties du porteur ; durée, difficulté, part des stations où la créature peut être mise hors jeu tôt (D-241).
 
 **Sortie proposée :** contenu fini, cohérence et expérience acceptées, critères de lancement satisfaits.

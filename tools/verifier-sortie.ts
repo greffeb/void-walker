@@ -1,5 +1,5 @@
-import { idPublic, jouer, nouvellePartie, observer, type DefMonde, type EtatPartie, type OptionMenu, type Partie } from '../engine';
-import { COMPOSITIONS_PUBLIEES } from '../content';
+import { idPublic, jouer, nouvellePartie, observer, prefixer, type DefMonde, type EtatPartie, type OptionMenu, type Partie } from '../engine';
+import { COMPOSITIONS_PUBLIEES, MORCEAUX, type Catalogue } from '../content';
 import { CATALOGUE } from './catalogue';
 import { fileURLToPath } from 'node:url';
 import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
@@ -8,12 +8,48 @@ import { cleEtatRegles, MONDES_DE_REFERENCE, rangsDesMorceaux, stationDeReferenc
 
 // Contrôle du signal « plus aucune sortie » (D-085, D-275) : parties au hasard, dés compris ; à chaque état atteint, le signal
 // est comparé à une recherche complète du moteur sur le même état, sans créature, feu, froid ni brèche, qui ne ferment aucun
-// passage. Un seul désaccord, ou une recherche qui n'aboutit pas, fait échouer le contrôle.
+// passage. Un seul désaccord, ou une recherche qui n'aboutit pas, fait échouer le contrôle. Mondes de référence, stations
+// courtes publiées, puis un échantillon de grandes stations publiées (spec 2026-10-18 §7.4), sans perte exprès des ponts.
 
 const VERSION = 'verifier-sortie';
 const MAX_ETATS = 400_000;
 export const PARTIES_PAR_STATION = 4;
 export const ACTIONS_PAR_PARTIE = 80;
+/** Grandes stations publiées vérifiées au plus (spec 2026-10-18 §7.4). */
+export const GRANDES_SORTIE = 12;
+
+export interface StationEchantillon {
+  readonly station: string;
+  /** Clés déplacées que cette station est la première à couvrir. */
+  readonly couvre: readonly string[];
+}
+
+/**
+ * Échantillon fixe de grandes stations publiées, dans l'ordre de la liste triée : la première qui déplace chaque clé pas encore
+ * couverte (clé déclarée par son morceau, hors de sa pièce d'origine). Pas de station pour l'ordre libre : elle ne couvre aucune
+ * clé, chaque état y coûte une recherche de 6 à 10 s, et les stations courtes en ordre libre couvrent déjà les cloisons.
+ */
+export function echantillonGrandes(catalogue: Catalogue): StationEchantillon[] {
+  // Pièce d'origine de chaque clé, préfixée comme dans le monde assemblé.
+  const origines = new Map(
+    Object.values(MORCEAUX).flatMap(({ morceau }) =>
+      Object.keys(morceau.grande?.cles ?? {}).map((id) => [prefixer(morceau.id, id), prefixer(morceau.id, morceau.objets.find((objet) => objet.id === id)?.piece ?? '')] as const),
+    ),
+  );
+  const restantes = new Set(origines.keys());
+  const echantillon: StationEchantillon[] = [];
+  // Chaque station s'assemble pour lire ses clés : on s'arrête dès qu'elles sont toutes couvertes.
+  for (const id of [...catalogue.publiees].sort()) {
+    if (restantes.size === 0) break;
+    const entree = catalogue.resoudre(id);
+    if ('refus' in entree) throw new Error(entree.refus);
+    const deplacees = entree.monde.objets.filter((objet) => restantes.has(objet.id) && objet.piece !== origines.get(objet.id)).map((objet) => objet.id);
+    if (deplacees.length === 0) continue;
+    echantillon.push({ station: id, couvre: deplacees });
+    for (const cle of deplacees) restantes.delete(cle);
+  }
+  return echantillon.slice(0, GRANDES_SORTIE);
+}
 
 /**
  * Le même état, sans créature, feu, froid, brèche ni blessure : ce que la recherche complète explore, remis ainsi à chaque pas.
@@ -117,13 +153,16 @@ function hasard(graine: number): () => number {
   };
 }
 
-/** `parties` parties au hasard de `actions` actions au plus ; chaque état distinct est comparé à la recherche complète. */
-export function verifierSortie(station: string, monde: DefMonde, parties = PARTIES_PAR_STATION, actions = ACTIONS_PAR_PARTIE): RapportSortie {
+/**
+ * `parties` parties au hasard de `actions` actions au plus ; chaque état distinct est comparé à la recherche complète. `pertes` :
+ * à chaque pas, chaque pont perdu exprès dans chaque vide.
+ */
+export function verifierSortie(station: string, monde: DefMonde, parties = PARTIES_PAR_STATION, actions = ACTIONS_PAR_PARTIE, pertes = true): RapportSortie {
   const debut = performance.now();
   const verdicts = new Map<string, boolean>();
   const ecarts: string[] = [];
   let signaux = 0;
-  const ponts = monde.objets.filter((objet) => objet.pont === true);
+  const ponts = pertes ? monde.objets.filter((objet) => objet.pont === true) : [];
   const gouffres = monde.liaisons.filter((liaison) => liaison.gouffre === true);
   const morts = new Set<string>();
   const comparer = (etat: EtatPartie, ou: string): void => {
@@ -196,14 +235,19 @@ async function principal(): Promise<void> {
     if (echecs > 0) process.exitCode = 1;
     return;
   }
-  const stations = dansLeLot(demandes.length > 0 ? demandes : [...MONDES_DE_REFERENCE, ...COMPOSITIONS_PUBLIEES], lot);
+  const echantillon = demandes.length > 0 ? [] : echantillonGrandes(CATALOGUE);
+  const couvre = new Map(echantillon.map((grande) => [grande.station, grande.couvre]));
+  const stations = dansLeLot(demandes.length > 0 ? demandes : [...MONDES_DE_REFERENCE, ...COMPOSITIONS_PUBLIEES, ...couvre.keys()], lot);
   let ecarts = 0;
   for (const id of stations) {
     const reference = CATALOGUE.mondes[id];
-    const station = reference ?? stationDeReference(CATALOGUE, id);
+    const grande = CATALOGUE.publiees.includes(id);
+    const station = reference ?? (grande ? CATALOGUE.resoudre(id) : stationDeReference(CATALOGUE, id));
     if ('refus' in station) throw new Error(station.refus);
-    const rapport = verifierSortie(id, 'entree' in station ? station.entree.monde : station.monde);
-    console.log(JSON.stringify({ station: id, etats: rapport.etats, signaux: rapport.signaux, secondes: Number(rapport.secondes.toFixed(2)) }));
+    // Sans perte exprès dans une grande station : un pont perdu avant le vide laisse tout le début de la station à épuiser,
+    // au-delà de 1,5 million d'états pour la recherche complète.
+    const rapport = verifierSortie(id, 'entree' in station ? station.entree.monde : station.monde, PARTIES_PAR_STATION, ACTIONS_PAR_PARTIE, !grande);
+    console.log(JSON.stringify({ station: id, couvre: couvre.get(id), etats: rapport.etats, signaux: rapport.signaux, secondes: Number(rapport.secondes.toFixed(2)) }));
     for (const ecart of rapport.ecarts) console.error(ecart);
     ecarts += rapport.ecarts.length;
   }

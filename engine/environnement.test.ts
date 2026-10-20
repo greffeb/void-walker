@@ -186,6 +186,68 @@ describe('appui stable sous la grille haute (C-02 §5, AR-01 P-A, W-01)', () => 
   });
 });
 
+describe('poser un appui porté à une position de la pièce (grandes stations, demande du porteur)', () => {
+  // Dans une grande station la caisse se porte : appui déplaçable, portable et encombrant (spec 2026-10-18 §6.5).
+  const GRANDE: DefMonde = { ...MONDE, objets: MONDE.objets.map((objet) => (objet.id === 'caisse' ? { ...objet, portable: true, encombrant: true } : objet)) };
+  const portee = (): Partie => suite(GRANDE, partie(GRANDE), [['aller', 'atelier'], ['prendre', 'caisse']]).partie;
+  const caisse = expect.objectContaining({ nom: 'caisse' });
+
+  it('dans l’atelier, la caisse portée se pose à chaque position de la pièce, « sous la grille » comprise', () => {
+    expect(validerMonde(GRANDE)).toEqual([]);
+    const poses = observer(GRANDE, portee().etat).menu.filter((choix) => choix.action === 'poser' && choix.cible.nom === 'caisse');
+    expect(poses.map((choix) => choix.parametre?.nom)).toEqual(['sous_grille', 'centre']);
+    expect(poses.every((choix) => choix.disponible)).toBe(true);
+  });
+
+  it('poser sous la grille : l’aperçu le dit, une seule action met la caisse à cette position et rend la grille atteignable', () => {
+    expect(apercuDe(GRANDE, portee(), 'poser', 'caisse', 'sous_grille').savoir).toEqual([{ type: 'deplacera', objet: caisse, position: expect.objectContaining({ nom: 'sous_grille' }) }]);
+    expect(option(GRANDE, portee(), 'ouvrir', 'grille_ap')).toMatchObject({ disponible: false, raison: 'hors_de_portee' });
+    const { partie: posee, evenements } = engager(GRANDE, portee(), 'poser', 'caisse', 'sous_grille');
+    expect(evenements).toEqual([{ type: 'objet_pose_position', objet: caisse, position: expect.objectContaining({ nom: 'sous_grille' }) }]);
+    expect(posee.etat.objets.caisse).toEqual({ type: 'piece', piece: 'atelier', position: 'sous-grille' });
+    expect(posee.etat.actions).toBe(3);
+    expect(observer(GRANDE, posee.etat).placements).toEqual([{ objet: caisse, position: expect.objectContaining({ nom: 'sous_grille' }) }]);
+    expect(option(GRANDE, posee, 'ouvrir', 'grille_ap')).toMatchObject({ disponible: true });
+    // Reprise puis nouvelle pose : au centre de la pièce, cette fois.
+    const centre = engager(GRANDE, engager(GRANDE, posee, 'prendre', 'caisse').partie, 'poser', 'caisse', 'centre');
+    expect(centre.partie.etat.objets.caisse).toEqual({ type: 'piece', piece: 'atelier', position: 'centre' });
+  });
+
+  it('ailleurs, ou pour un objet qui ne se déplace pas, « Poser » ne change pas : sans paramètre, le sol de la pièce', () => {
+    const salon = engager(GRANDE, portee(), 'aller', 'salon').partie;
+    expect(observer(GRANDE, salon.etat).menu.filter((choix) => choix.action === 'poser').map((choix) => choix.parametre)).toEqual([undefined]);
+    expect(apercuDe(GRANDE, salon, 'poser', 'caisse').savoir).toEqual([{ type: 'laissera', objet: caisse, piece: expect.objectContaining({ nom: 'salon' }) }]);
+    const sol = engager(GRANDE, salon, 'poser', 'caisse');
+    expect(types(sol.evenements)).toEqual(['objet_pose']);
+    expect(sol.partie.etat.objets.caisse).toEqual({ type: 'piece', piece: 'salon' });
+
+    // L'eau, déplaçable ni l'un ni l'autre, se pose dans l'atelier comme avant, malgré ses positions.
+    const eau = suite(GRANDE, partie(GRANDE), [['aller', 'atelier'], ['prendre', 'eau']]).partie;
+    expect(option(GRANDE, eau, 'poser', 'eau')?.parametre).toBeUndefined();
+    expect(types(engager(GRANDE, eau, 'poser', 'eau').evenements)).toEqual(['objet_pose']);
+  });
+
+  it('un paramètre absent, inconnu ou d’une autre pièce est refusé sans engagement ; superflu ailleurs aussi', () => {
+    const atelier = portee();
+    const cible = idPublic(GRANDE.id, 'caisse');
+    for (const parametre of [undefined, 'e00000000', idPublic(GRANDE.id, 'ap')]) {
+      const resultat = jouer(GRANDE, atelier, { action: 'poser', cible, ...(parametre === undefined ? {} : { parametre }) });
+      expect(resultat).toMatchObject({ type: 'refus', raison: 'parametre_absent' });
+      expect(resultat.partie).toBe(atelier);
+    }
+    const salon = engager(GRANDE, atelier, 'aller', 'salon').partie;
+    const resultat = jouer(GRANDE, salon, { action: 'poser', cible, parametre: idPublic(GRANDE.id, 'centre') });
+    expect(resultat).toMatchObject({ type: 'refus', raison: 'commande_invalide' });
+    expect(resultat.partie).toBe(salon);
+  });
+
+  it('une petite station ne change pas : la caisse ne se prend pas, rien à poser', () => {
+    const atelier = engager(MONDE, partie(), 'aller', 'atelier').partie;
+    expect(option(MONDE, atelier, 'prendre', 'caisse')).toBeUndefined();
+    expect(option(MONDE, atelier, 'poser', 'caisse')).toBeUndefined();
+  });
+});
+
 describe('feu confiné et propagation (C-03 §5.3, D-188)', () => {
   /** Eau en main, au salon, la cloison de la galerie encore fermée. */
   const avecEau = (): Partie => suite(MONDE, partie(), [['aller', 'atelier'], ['prendre', 'eau'], ['aller', 'salon']]).partie;

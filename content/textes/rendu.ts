@@ -15,6 +15,7 @@ import type {
   Savoir,
   SourceEvacuation,
 } from '../../engine';
+import { rendreDocument, texteDocument } from './document';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
 
@@ -83,6 +84,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'assistance':
     case 'creature_expulsee':
     case 'creature_inerte':
+    case 'bruit_station':
       return {};
     case 'combinaison_enfilee':
     case 'combinaison_retiree':
@@ -100,6 +102,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'objet_installe':
       return { objet: nomDe(textes, evenement.objet), capsule: nomDe(textes, evenement.capsule) };
     case 'objet_deplace':
+    case 'objet_pose_position':
       return { objet: nomDe(textes, evenement.objet), position: nomDe(textes, evenement.position) };
     case 'feu_gagne':
     case 'feu_eteint':
@@ -163,7 +166,8 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
-  const recit = evenements.filter((evenement) => evenement.type !== 'assistance');
+  // Un bruit de station ne retire pas à l'attente son texte de la 5e ou de la 10e : la station parle déjà (D-289, spec §5.5).
+  const recit = evenements.filter((evenement) => evenement.type !== 'assistance' && evenement.type !== 'bruit_station');
   const seule = recit.length === 1 && recit[0]?.type === 'attente';
   if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
@@ -238,6 +242,8 @@ export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string
 export function rendreConsultation(textes: TextesMonde, consultation: Consultation, cle: CleTexte): string {
   // Une même chose garde la même description pendant toute la partie.
   const repere = `${cle.graine}:${consultation.type}:${consultation.cible.id}`;
+  // Un document n'a qu'un texte, sans variante ; l'appli et la CLI lisent son rendu structuré (`rendreDocument`).
+  if (consultation.type === 'regarder_document') return texteDocument(rendreDocument(textes, consultation));
   if (consultation.type === 'regarder_passage') {
     const { cible } = consultation;
     if (cible.vers === null) {
@@ -251,7 +257,13 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
   }
   const description = textes.descriptions[consultation.cible.nom];
   if (description === undefined) throw new ErreurTexte(`Description absente : ${consultation.cible.nom}.`);
-  return remplir(choisirVariante(description, repere), {});
+  const regard = remplir(choisirVariante(description, repere), {});
+  if (consultation.type !== 'regarder_piece') return regard;
+  // Sur la piste de la créature, une phrase de trace suit la description (spec 2026-10-18 §5.4) ; dans une salle de butin
+  // pillée, une phrase de pillage vient ensuite (§6.6). Chacune reste la même toute la partie.
+  const trace = consultation.trace === undefined ? '' : ` ${remplir(choisirVariante(textes.traces[consultation.trace], `${cle.graine}:trace:${consultation.cible.id}`), {})}`;
+  const pillage = consultation.pillee === true ? ` ${remplir(choisirVariante(textes.pillages, `${cle.graine}:pillage:${consultation.cible.id}`), {})}` : '';
+  return `${regard}${trace}${pillage}`;
 }
 
 export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {
@@ -435,6 +447,13 @@ export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
   };
 }
 
+/** Gabarit du libellé : celui d'« aller » sans destination connue, celui de « poser » à une position, sinon celui de l'action. */
+function gabaritLibelle(textes: TextesMonde, { action, cible, parametre }: OptionMenu): string {
+  if (action === 'aller' && cible.sorte === 'passage' && cible.vers === null) return textes.allerSansDestination;
+  if (action === 'poser' && parametre?.sorte === 'position') return textes.poserAPosition;
+  return textes.libelles[action];
+}
+
 export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleOption {
   const { cible, parametre } = option;
   const valeurs: Record<string, Nom> = { cible: nomDe(textes, cible) };
@@ -446,8 +465,7 @@ export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleO
     valeurs.piece = nomDe(textes, parametre.vers ?? parametre);
   }
   if (parametre?.sorte === 'piece') valeurs.piece = nomDe(textes, parametre);
-  const gabarit = option.action === 'aller' && cible.sorte === 'passage' && cible.vers === null ? textes.allerSansDestination : textes.libelles[option.action];
-  const libelle = remplir(gabarit, valeurs);
+  const libelle = remplir(gabaritLibelle(textes, option), valeurs);
   if (option.disponible) return { libelle, raison: null };
   if (option.raison === undefined) throw new ErreurTexte(`Option indisponible sans raison : ${option.action}.`);
   return { libelle, raison: remplir(textes.indisponibilites[option.raison], { cible: valeurs.cible as Nom }) };

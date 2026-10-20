@@ -39,6 +39,8 @@ export const MORCEAU_M02: DefMorceau = {
   placesCreature: ['p-atelier'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'materiel', accueillantes: { 'p-atelier': 'technique', 'p-pompes': 'technique' }, avant: ['p-atelier'], coupe: ['l-atelier-pompes'], cles: { 'o-caisse': { etiquettes: ['rangement', 'lourd'], portableEnGrande: true } } },
 };
 
 // Textes du morceau (C-07) : le nom de l'atelier, la grille, la position sous la grille et la caisse repris d'AR-01 ; la
@@ -63,6 +65,34 @@ export const TEXTES_MORCEAU_M02: TextesMorceau = {
       'Des pompes alignées sur leurs socles, à l’arrêt. Des tuyaux épais montent vers le plafond et s’y perdent.',
     ],
     caisse: repris(TEXTES_AR01.descriptions, 'caisse'),
+  },
+  // Dans une grande station la caisse se porte (spec §6.5) : sa description ne dit plus qu'elle reste au sol.
+  calmes: {
+    caisse: [
+      'Une caisse de service au couvercle plat et stable. Lourde, elle se soulève à deux bras ou se pousse au sol ; montée dessus, on atteint bien plus haut.',
+      'Une caisse renforcée, encombrante, qu’on soulève à deux bras. Son couvercle plat ferait un appui stable.',
+    ],
+  },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la caisse déplacée.
+  documents: {
+    doc_note_clara: {
+      puce: { texte: 'note de Clara', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'pliée en deux, coincée dans une fente de la paroi',
+      corps: [
+        'On a poussé la caisse sous la grille du conduit, et Malik est monté dessus pour atteindre la poignée.',
+        'Ensuite, on est passés à plat ventre, un par un.',
+        'Le conduit était si étroit que j’y ai laissé deux boutons de ma veste.',
+      ],
+      signature: 'Clara',
+    },
+    doc_bout_carton: {
+      puce: { texte: 'bout de carton', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'calée contre la paroi',
+      corps: ['La caisse bouchait le passage, alors je l’ai portée jusqu’{a:piece}.', 'Si tu la veux pour ta grille, tu sais où la trouver.'],
+      signature: 'Malik',
+    },
   },
   assistance: {},
 };

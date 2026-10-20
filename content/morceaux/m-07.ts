@@ -27,6 +27,8 @@ export const MORCEAU_M07: DefMorceau = {
   placesCreature: ['p-soute'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'creature', accueillantes: { 'p-quartiers': 'vie', 'p-soute': 'fret', 'p-coursive': 'circulation' }, avant: ['p-quartiers', 'p-soute', 'p-machines'], coupe: ['l-machines-coursive'] },
 };
 
 // Textes du morceau (C-07). Texte final non validé.
@@ -54,6 +56,27 @@ export const TEXTES_MORCEAU_M07: TextesMorceau = {
       'Un interrupteur à levier, gros comme un bras. Une plaque : « Arrêt et relance des machines ».',
       'Un levier massif sous un capot jaune. On peut arrêter les machines, puis les relancer.',
     ],
+  },
+  // Grande station (spec 2026-10-18 §5.4) : la soute sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    soute: [
+      'Une soute basse, encombrée de caisses arrimées. L’air y sent l’humidité et le métal.',
+      'Des rayonnages, des sangles qui pendent. Une étiquette de pesée claque doucement dans un courant d’air.',
+    ],
+  },
+  // Document des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle.
+  documents: {
+    doc_mot_bastien: {
+      puce: { texte: 'mot de Bastien', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'écrite au crayon gras, scotchée à la paroi',
+      corps: [
+        'Les machines tournaient si fort qu’on ne s’entendait plus.',
+        'On en a profité pour forcer la porte grippée, dans un raffut de tous les diables, et personne n’est venu voir.',
+        'Mais de dedans, on n’aurait rien entendu venir non plus.',
+      ],
+      signature: 'Bastien',
+    },
   },
   assistance: {},
 };

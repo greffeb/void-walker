@@ -1,7 +1,7 @@
 # C-08 — Stations assemblées et fins de partie
 
 > **Statut :** CONTRAT ACCEPTÉ v1.0 — D-102 ; assemble D-013, D-017/D-018, D-050, D-054, D-058, D-083 à D-088 ; GP-01 à GP-05 acceptés par D-101.
-> **Mise à jour :** 2026-10-14 — cadrage L0, D-257 à D-260 ; conception acceptée, assemblage toujours à implémenter.
+> **Mise à jour :** 2026-10-20 — grandes stations habitées, D-313 à D-327 (livraisons 1 à 3 proposées).
 > **Implémentation, vérifieur et tests :** fin par évacuation (§4, conditions de D-054, défaite prioritaire) proposée par #103 pour AR-01 ; abandon et son écran de fin proposés par #96 (D-200, côté appli) ; assemblage et vérifieur par L1 à L5 de #106 ; « plus aucune sortie » proposé par L6 (#156, D-275), G-03, G-04 et G-06 testés ; écrans de fin de défaite et d'évacuation proposés par #208 (D-281 à D-286).
 
 ## 1. But
@@ -13,7 +13,7 @@ Dire ce qu'est une station jouable au lancement, comment elle est assemblée et 
 Chaque partie combine et place différemment des morceaux écrits à la main et vérifiés à l'avance (D-083). La génération libre de plans et d'objets est exclue du lancement.
 
 - **GP-01 — Contenu d'un morceau :** des pièces, liaisons, objets et effets décrits avec C-02 ; ce qu'il demande pour être franchi ; ce qu'il fournit (accès, objet, alimentation) ; ses points d'attache vers les autres morceaux.
-- **GP-02 — Composition d'une station :** une pièce de départ, des morceaux d'obstacle, un embarquement avec capsule, apporté par le morceau final (D-249), une seule créature placée (D-029).
+- **GP-02 — Composition d'une station :** une pièce de départ, des morceaux d'obstacle, un embarquement avec capsule, apporté par le morceau final (D-249), une seule créature placée (D-029). Une grande station (D-313) enchaîne trois morceaux de chemin et le final, et ajoute 6 à 10 pièces du catalogue, sans obstacle (D-316), et une à trois portes de boucle (D-318).
 - **GP-03 — Premiers morceaux :** découpés dans AR-01 et AR-02. Le vide cohabite avec le feu et l'huile selon MX-02/MX-03 (D-174), et avec les quatre nouveaux morceaux sans règle de plus (D-246) ; il ne rencontre jamais le bloc, M-03 et M-06 étant tous deux des morceaux finals (D-172).
 - **GP-04 — Départ sans danger immédiat :** la pièce de départ laisse lire et explorer avant tout contact (AR-01 §5). Pour les stations assemblées, c'est un vestibule sans danger, sans créature ni objet, avec une porte ordinaire fermée vers la suite, à ouvrir à la main (D-257). En ordre libre, elle donne sur le couloir des deux branches. La sécurité vaut avant la première ouverture, pas comme une immunité permanente ; les actions gardent leur coût ordinaire. Fiche : [13 §8.1](../13-morceaux-lancement.md#81-pièce-de-départ--q-182-d-257).
 
@@ -62,7 +62,9 @@ Neutraliser la créature n'est jamais une fin (D-018). Une défaite acquise dans
 
 Après une fin, une nouvelle partie peut reprendre la même station, même état de départ, avec de nouveaux tirages (D-087/D-088). La partie terminée reste terminée (D-013).
 
-À partir de L2, NOUVELLE PARTIE tire une station parmi les compositions vérifiées disponibles, dans la version publique comme dans celle de test (D-260). REJOUER CETTE STATION garde le même départ avec de nouveaux dés ; les aventures de référence restent accessibles par lien. En L2, seul M-03 est disponible : le tirage reste parmi ses compositions vérifiées. Dès que M-03 et M-06 sont disponibles et vérifiés, à partir de L3, pile ou face entre les deux finals puis pur hasard parmi les compositions du final retenu (D-253, exception transitoire D-260). REPRENDRE et les parties en cours restent inchangés. L0 ne modifie aucun de ces boutons dans le jeu.
+**Grandes stations (D-313, D-326).** NOUVELLE PARTIE et l'adresse nue tirent une grande station de la liste publiée : pile ou face sur le final, environ une sur trois en ordre libre. Chaque station de la liste est prouvée une à une avant d'être publiée. Les petites stations ne sortent plus au tirage, mais restent jouables par leur identifiant, avec leurs sauvegardes et leurs rapports. REJOUER CETTE STATION garde l'identifiant.
+
+Avant les grandes stations : à partir de L2, NOUVELLE PARTIE tire une station parmi les compositions vérifiées disponibles, dans la version publique comme dans celle de test (D-260). REJOUER CETTE STATION garde le même départ avec de nouveaux dés ; les aventures de référence restent accessibles par lien. En L2, seul M-03 est disponible : le tirage reste parmi ses compositions vérifiées. Dès que M-03 et M-06 sont disponibles et vérifiés, à partir de L3, pile ou face entre les deux finals puis pur hasard parmi les compositions du final retenu (D-253, exception transitoire D-260). REPRENDRE et les parties en cours restent inchangés. L0 ne modifie aucun de ces boutons dans le jeu.
 
 ## 6. Exemples à prouver
 
@@ -81,6 +83,7 @@ Après une fin, une nouvelle partie peut reprendre la même station, même état
 
 Volume du contenu de lancement, durée 15–30 minutes et diversité réelle seront mesurés, pas déduits du nombre de morceaux.
 
-- Le lancement commence par de petites stations, sans annexes ni boucles ; les grandes viennent seulement si la durée le demande, dans une issue à part (D-242, D-245).
+- Le lancement a commencé par de petites stations, sans annexes ni boucles (D-242, D-245) ; les grandes stations les remplacent au tirage (D-313), la condition de durée étant jugée remplie par le porteur. Leur durée réelle se mesure sur téléphone.
 - La part des stations où la créature peut être mise hors jeu ou enfermée (les deux portes de la chambre froide fermées) avant le problème final est mesurée avant toute décision ; la créature placée plus souvent près du final reste en réserve (D-241).
-- Dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche ; les objets placés hors de leur morceau, avec une règle de placement à décider, viendront avec les annexes (D-244). Ce que cette règle changera à GP-01 ou aux règles d'assemblage (§2) se décidera avec elle.
+- Dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche. Dans une grande station, ces objets seront posés dans une pièce plausible, accessible avant leur obstacle, à distance bornée (D-319, livraison 2) ; GP-01 et les règles d'assemblage (§2) seront précisés alors.
+- Les documents à lire des grandes stations (D-322 à D-324, livraison 3, [13 §7.14](../13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)) sont des objets fixes, sans qualité, lus gratuitement : ils ne changent aucune règle du jeu. Ils changent le plan des stations (une place de document réservée à chaque pièce vide du catalogue, au moins 21 pièces dessinées), donc la liste publiée, republiée par la livraison 3 ; la note de rangement dit où une clé déplacée a été posée.

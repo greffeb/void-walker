@@ -69,8 +69,8 @@ export interface ActionConsultation extends ActionCommune {
 
 export interface ActionEngagee extends ActionCommune {
   readonly engage: true;
-  /** Paramètres possibles pour cette cible (12 §3.5, étape « OÙ ? ») ; absent pour une action sans paramètre. */
-  parametres?(contexte: Contexte, cible: string): readonly string[];
+  /** Paramètres possibles pour cette cible (12 §3.5, étape « OÙ ? ») ; absents pour une action sans paramètre, ou sans paramètre possible ici. */
+  parametres?(contexte: Contexte, cible: string): readonly string[] | undefined;
   prevoir(contexte: Contexte, cible: string, parametre: string | undefined): Prevision;
   appliquer(contexte: Contexte, cible: string, des: Des, parametre: string | undefined): Effet;
 }
@@ -177,7 +177,18 @@ const regarder: ActionConsultation = {
     const { monde, etat } = contexte;
     const liaison = liaisonIci(contexte, cible);
     if (liaison !== undefined) return { type: 'regarder_passage', cible: refPassage(monde, etat, liaison, etat.piece) };
-    if (cible === etat.piece) return { type: 'regarder_piece', cible: refPiece(monde, cible) };
+    if (cible === etat.piece) {
+      // La trace de la piste et le pillage se voient en regardant la pièce (spec 2026-10-18 §5.4, §6.6) ; une pièce sans l'un
+      // ni l'autre est rendue comme avant.
+      const piece = indexer(monde).pieces.get(cible);
+      const trace = piece?.trace;
+      return { type: 'regarder_piece', cible: refPiece(monde, cible), ...(trace === undefined ? {} : { trace }), ...(piece?.pillee === true ? { pillee: true } : {}) };
+    }
+    const regarde = objet(monde, cible);
+    // Un document rend la pièce qu'il nomme, si c'est une note de rangement (spec 2026-10-18 §8.5).
+    if (regarde.document === true) {
+      return { type: 'regarder_document', cible: refObjet(monde, cible), ...(regarde.designe === undefined ? {} : { designe: refPiece(monde, regarde.designe) }) };
+    }
     return { type: 'regarder_objet', cible: refObjet(monde, cible) };
   },
 };
@@ -211,19 +222,38 @@ const prendre: ActionEngagee = {
   },
 };
 
+/** Positions de la pièce, où se pose ou se pousse un objet déplaçable (C-02 §2). */
+function positionsDe(monde: DefMonde, piece: string): string[] {
+  return (monde.positions ?? []).filter((position) => position.piece === piece).map((position) => position.id);
+}
+
 const poser: ActionEngagee = {
   id: 'poser',
   engage: true,
   // La combinaison enfilée se retire d'abord (détail de l'agent, #104 ; retirer : D-072).
   cibles: ({ monde, etat }) => objetsEnMain(monde, etat).map((porte) => porte.id),
+  // Un appui déplaçable porté (la caisse d'une grande station) se pose d'emblée à une position de la pièce, s'il y en a : sous la
+  // grille, sans passer par le sol. Tout autre objet se pose comme avant, sans paramètre.
+  parametres: ({ monde, etat }, cible) => {
+    const positions = objet(monde, cible).deplacable === true ? positionsDe(monde, etat.piece) : [];
+    return positions.length === 0 ? undefined : positions;
+  },
   verifier: ({ monde, etat }, cible) => (objetsEnMain(monde, etat).some((porte) => porte.id === cible) ? null : 'pas_en_main'),
-  prevoir: ({ monde, etat }, cible) => ({
+  prevoir: ({ monde, etat }, cible, parametre) => ({
     ...SANS_DANGER,
-    savoir: [{ type: 'laissera', objet: refObjet(monde, cible), piece: refPiece(monde, etat.piece) }],
+    savoir: [
+      parametre === undefined
+        ? { type: 'laissera', objet: refObjet(monde, cible), piece: refPiece(monde, etat.piece) }
+        : { type: 'deplacera', objet: refObjet(monde, cible), position: refPosition(monde, parametre) },
+    ],
   }),
-  appliquer: ({ monde, etat }, cible) => {
-    const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'piece', piece: etat.piece } } };
-    return { etat: suivant, evenements: [{ type: 'objet_pose', objet: refObjet(monde, cible), piece: refPiece(monde, etat.piece) }] };
+  appliquer: ({ monde, etat }, cible, _des, parametre) => {
+    const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'piece', piece: etat.piece, ...(parametre === undefined ? {} : { position: parametre }) } } };
+    const evenement: Evenement =
+      parametre === undefined
+        ? { type: 'objet_pose', objet: refObjet(monde, cible), piece: refPiece(monde, etat.piece) }
+        : { type: 'objet_pose_position', objet: refObjet(monde, cible), position: refPosition(monde, parametre) };
+    return { etat: suivant, evenements: [evenement] };
   },
 };
 
@@ -380,7 +410,7 @@ const deplacer: ActionEngagee = {
     if (obstacle !== undefined) return [obstacle.rangement];
     const emplacement = etat.objets[cible];
     const actuelle = emplacement?.type === 'piece' ? emplacement.position : undefined;
-    return (monde.positions ?? []).filter((position) => position.piece === etat.piece && position.id !== actuelle).map((position) => position.id);
+    return positionsDe(monde, etat.piece).filter((position) => position !== actuelle);
   },
   verifier: (contexte, cible) => {
     const candidat = deplacablesIci(contexte).find((objet) => objet.id === cible);

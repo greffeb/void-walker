@@ -26,7 +26,8 @@
     "test": "vitest run",
     "verify": "tsx tools/verify.ts",
     "verify:complet": "tsx tools/verify.ts --complet",
-    "check:sortie": "tsx tools/verifier-sortie.ts"
+    "check:sortie": "tsx tools/verifier-sortie.ts",
+    "publier:grandes": "tsx tools/publier-grandes.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -220,31 +220,33 @@ Chaque morceau (C-08 GP-01) porte son plan : ses pièces en cases, ses portes in
 | GE-05 | Le chemin principal se cherche avec retour en arrière ; une station sans plan est retirée et retirée au sort, comme une station sans chemin sûr. |
 | GE-06 | Même graine, même plan. |
 
-### 5.3 Grandes stations et petites pièces (D-205, D-206)
+### 5.3 Grandes stations et petites pièces (D-205, D-206, D-313)
 
-Une station peut compter 20 pièces et plus. Au lancement, on commence par de petites stations, sans annexes ni boucles (D-242) : seul le premier temps ci-dessous sert aux petites stations ; les deux autres attendent que la durée des parties demande de grandes stations. Ils iront dans une issue à part, créée avec l'accord du porteur si la durée le demande (D-245). Une grande station se construit en trois temps :
+Les grandes stations (#205, D-313) comptent 22 à 28 pièces dessinées (21 quand une pièce du catalogue ne trouve pas sa place), et seules elles sortent au tirage. Une petite station n'a que le premier temps ci-dessous. Une grande station se construit en trois temps, chacun sur sa propre sous-graine (même graine, même plan, GE-06) :
 
-1. le chemin principal (départ, obstacles, final, embarquement), par recherche ;
-2. les annexes, posées une à une sans défaire ce qui est posé ; une annexe sans place essaie une autre pièce d'accroche ;
-3. les portes de boucle, entre des pièces qui se touchent déjà (GE-13).
+1. le chemin principal (départ, trois morceaux de chemin, final, embarquement), par recherche ;
+2. les annexes, pièces du catalogue (D-316), posées une à une sans défaire ce qui est posé : les couloirs d'abord, chacun avec ses deux premières pièces ; puis deux passages posés exprès pour qu'une porte de boucle puisse fermer un cycle (les connecteurs) ; puis les autres. Une annexe sans place essaie une autre pièce d'accroche ;
+3. les portes de boucle, une à trois, entre des pièces qui se touchent déjà (GE-13, D-318). Une graine où aucune ne trouve sa place n'a pas de plan.
 
-Les **petites pièces** (placard à balai, WC, salle de bain, cabine d'équipage, local technique) n'ont qu'une porte : rien ne s'y accroche.
+Vient ensuite la piste de la créature (D-317). Une annexe s'accroche à une pièce qu'un morceau déclare accueillante, avec sa catégorie, ou à un couloir du catalogue.
+
+Les **pièces en impasse** (couchettes, sanitaires, cambuse, consigne…) n'ont qu'une porte : rien ne s'y accroche et aucune boucle n'y mène.
 
 ### 5.4 Cohérence (D-207)
 
 | ID | Règle |
 | --- | --- |
 | GE-07 | Coque dégagée (PL-05), réservée dès la pose de la pièce. |
-| GE-08 | Chaque pièce a une catégorie : vie, technique, circulation, science, commandement, évacuation. La liste se complète avec le catalogue des pièces. |
+| GE-08 | Chaque pièce a une catégorie : vie, technique, circulation, science, commandement, évacuation, fret (D-316). Une pièce de morceau qui accueille une annexe déclare la sienne ; chaque pièce du catalogue a la sienne. |
 | GE-09 | Architecture : toute pièce de couchage ou sanitaire s'atteint depuis le départ sans traverser de pièce technique, toutes portes supposées ouvertes. Cette règle ne vaut pas pour le chemin imposé par l'incident : l'histoire peut passer par des pièces de vie et imposer un détour par la technique. |
 | GE-10 | WC et salle de bain s'ouvrent sur un couchage, ou sur un couloir qui en dessert un. |
 | GE-11 | Un couloir posé attire deux à quatre pièces ; six portes au plus (PL-06). |
 | GE-12 | Une station peut compter plusieurs zones de vie, techniques, scientifiques ou de commandement, reliées en plusieurs points, sans sas obligatoire. C'est possible, jamais obligatoire. |
-| GE-13 | Une porte de boucle relie deux pièces d'une même zone de jeu, du même côté des obstacles. Le vérifieur de jeu (GP-05) prouve qu'aucune porte ne contourne un obstacle ; sinon, l'incident doit la fermer (porte bloquée, feu, vide, gravats). |
+| GE-13 | Une porte de boucle relie deux pièces d'une même zone de jeu : celle qu'on parcourt sans franchir une coupe (l'obstacle déclaré par un morceau, ou une cloison verrouillée). Elle ferme un cycle d'au moins quatre pièces et ne mène ni à une impasse ni au repaire. Un contrôle structurel vérifie qu'aucune porte ne contourne un obstacle, puis la preuve de jeu de chaque station publiée (D-326) : une porte qui contournerait un obstacle n'est pas posée. |
 
 ### 5.5 Noms des pièces répétées (D-208)
 
-Dans une station, les pièces du même type sont numérotées (CABINE 1, CABINE 2 ; COULOIR A, COULOIR B), avec le même nom partout : récit, dock, carte, fiche (NP-04).
+Dans une station, les pièces du même nom sont désignées par une lettre, dans l'ordre des pièces (COULOIR A, COULOIR B ; BUREAU DU FRET A), avec le même nom partout : récit, dock, carte, fiche (NP-04). D-208 parlait de numéros ; la lettre est celle des stations assemblées depuis L3.
 
 ### 5.6 Critères pour #106
 
@@ -271,7 +273,7 @@ Mesures locales de L5 (#155), ordre libre, sans assertion de temps ([13 §7.8](1
 
 Les échecs de pose mesurés sur des chaînes sans plan ne se produisent pas avec les vraies tuiles.
 
-Hors #106 : pour les grandes stations, dans l'issue à part prévue si la durée le demande (D-245), sur 1 000 tirages par taille (10 à 60 pièces), toute station proposée a un plan qui passe PL-01 à PL-07 et GE-07 à GE-11 ; au moins 95 % des tirages trouvent un plan ; moins de 50 ms par station sur PC ; une galerie de plans rendus est jointe à la PR.
+Grandes stations (#205, D-313) : critères de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#11-mesures-et-critères-dacceptation), mesures dans [13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-1-205-206). Une galerie de plans rendus est jointe à la PR par les captures. Livraison 3 : au zoom d'ensemble d'une grande station, les noms des pièces ne se lisent pas sur les captures à 390 et 320 px, et le plan ouvert centré sur le passager sort du cadre à gauche ; les bornes de zoom n'ont pas changé, la décision revient au porteur ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)).
 
 ## 6. Ce que le prototype a mesuré
 
@@ -310,9 +312,9 @@ Limites : les tuiles sont des approximations ; seule la géométrie est vérifi�
 | #97 — 2. Mémoire | Souvenirs, carte publique, sauvegarde, commande `carte` de la CLI (§3), exemples K | Orange (moteur) |
 | #97 — 3. Écran | Tout le §2, captures sur téléphone simulé ; **validation humaine requise** | Orange |
 | #106 | Assemblage géométrique des stations générées (§5), avec les morceaux ; petites stations d'abord (D-242) ; chemin principal seulement (GE-01 à GE-06 du §5.2 et GE-07 du §5.4, D-245) ; découpage dans [13 §7](13-morceaux-lancement.md#7-découpage-de-106) | Orange |
-| Nouvelle issue | Catalogue des pièces sans obstacle et des petites pièces : plans, catégories, textes, numérotation | À créer avec l'accord du porteur |
-| Nouvelle issue (D-245) | Grandes stations : annexes, boucles, GE-08 à GE-13 (§5.3, §5.4), vérifieur par morceaux ; seulement si la durée des parties le demande (D-242) | À créer avec l'accord du porteur |
-| Nouvelle issue, après les annexes | Objets nécessaires placés hors de leur morceau, avec une règle de placement à décider ; à ne pas oublier (D-244) | À créer avec l'accord du porteur |
+| #206 | Catalogue des pièces sans obstacle : plans, catégories, textes, numérotation (D-316) | Livraison 1 des grandes stations |
+| #205 (D-313) | Grandes stations : annexes, boucles, GE-08 à GE-13 (§5.3, §5.4), preuve par station publiée (D-326) | Livraison 1 des grandes stations |
+| #202 | Objets nécessaires placés hors de leur morceau (D-244, D-319) | Livraison 2 des grandes stations |
 
 Ordre : 1, puis 2, puis 3. Deux issues qui touchent le moteur ne se mènent pas en même temps.
 
@@ -326,5 +328,5 @@ Ordre : 1, puis 2, puis 3. Deux issues qui touchent le moteur ne se mènent pas 
 ## 9. Points ouverts
 
 - Bornes du zoom et seuil de disparition des noms : à juger sur téléphone.
-- Liste complète des catégories et des règles de cohérence : à écrire avec le catalogue des pièces (§5.4).
-- Taille des stations et durée de partie (15 à 30 minutes, D-008) : un réglage à mesurer, pas une limite technique. Petites stations d'abord, grandes seulement si la durée le demande (D-242).
+- Lisibilité de la carte à 28 pièces sur téléphone : à juger par le porteur (grandes stations, livraison 1).
+- Durée d'une grande station (15 à 20 minutes de découverte, D-313) : à mesurer sur téléphone (D-280).

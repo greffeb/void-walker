@@ -10,8 +10,8 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
-import { FIN } from '../textes/couches';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -97,6 +97,8 @@ export const TEXTES_AR02: TextesMonde = {
     ],
   },
   evenements: {
+    bruit_station: BRUITS_STATION,
+    objet_pose_position: POSE_POSITION,
     reveil: [
       'Vous vous réveillez dans {le:piece}, la nuque raide. Les lumières de service sont au rouge. Votre terminal personnel clignote.',
       'Une secousse vous tire du sommeil. Vous êtes dans {le:piece}, sous un éclairage rouge. Votre terminal personnel clignote.',
@@ -272,6 +274,7 @@ export const TEXTES_AR02: TextesMonde = {
     ...LIBELLES_MORCEAUX,
   },
   allerSansDestination: 'Passer par {le:cible}',
+  poserAPosition: POSER_A_POSITION,
   verbes: {
     regarder: 'Regarder',
     prendre: 'Prendre',
@@ -328,6 +331,10 @@ export const TEXTES_AR02: TextesMonde = {
     ...OBSERVATION_MORCEAUX,
   },
   fin: FIN,
+  traces: TRACES,
+  pillages: PILLAGES,
+  documents: {},
+  supports: SUPPORTS,
   apercu: {
     risques: {
       aucun: 'aucun risque connu',

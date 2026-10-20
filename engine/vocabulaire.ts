@@ -1,3 +1,4 @@
+import type { IntensiteTrace } from './monde';
 import type { EmplacementPassage, PanCoque, RectPlan } from './plan';
 
 // Vocabulaire public du moteur : commandes, événements, consultations, raisons. Aucun texte.
@@ -74,6 +75,7 @@ export const TYPES_EVENEMENT = [
   'soin_indemne',
   'soin_blesse',
   'objet_deplace',
+  'objet_pose_position',
   'feu_derriere',
   'feu_gagne',
   'feu_eteint',
@@ -106,6 +108,7 @@ export const TYPES_EVENEMENT = [
   'cloison_deverrouillee',
   'porte_secouee',
   'porte_enfoncee',
+  'bruit_station',
   'drone_envoye',
   'drone_maintient',
   'drone_deraille',
@@ -119,7 +122,7 @@ export const TYPES_EVENEMENT = [
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
-export const TYPES_CONSULTATION = ['regarder_piece', 'regarder_objet', 'regarder_passage'] as const;
+export const TYPES_CONSULTATION = ['regarder_piece', 'regarder_objet', 'regarder_passage', 'regarder_document'] as const;
 export type TypeConsultation = (typeof TYPES_CONSULTATION)[number];
 
 export const RAISONS_REFUS = [
@@ -264,6 +267,8 @@ export type Evenement =
   | { readonly type: 'soin_indemne'; readonly objet: RefObjet }
   | { readonly type: 'soin_blesse'; readonly objet: RefObjet }
   | { readonly type: 'objet_deplace'; readonly objet: RefObjet; readonly position: RefPosition }
+  /** Un appui déplaçable porté se pose directement à une position de la pièce : sous la grille, sans passer par le sol (grandes stations). */
+  | { readonly type: 'objet_pose_position'; readonly objet: RefObjet; readonly position: RefPosition }
   /** Le passager voit des flammes par le passage qu'il vient d'ouvrir, ou par un passage ouvert dont il ignore la destination. */
   | { readonly type: 'feu_derriere'; readonly passage: RefPassage }
   /** Le feu gagne une pièce que le passager voit et sait nommer : la sienne, ou une voisine par un passage ouvert (C-03 §5.3). */
@@ -312,7 +317,9 @@ export type Evenement =
    * Alertée, la créature force une porte fermée sur sa piste : le passager l'entend s'acharner, puis la porte cède et s'ouvre
    * (D-279) ; seulement s'il est dans l'une des deux pièces de la porte.
    */
-  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage };
+  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage }
+  /** Bruit de la station, avant la rencontre, dans une grande station (spec 2026-10-18 §5.5). */
+  | { readonly type: 'bruit_station' };
 
 /** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
 export type MomentMessage =
@@ -334,9 +341,11 @@ export type SourceEvacuation = 'circuit' | 'bloc' | 'reserve';
 export type Issue = 'evacuation' | 'defaite';
 
 export type Consultation =
-  | { readonly type: 'regarder_piece'; readonly cible: RefPiece }
+  | { readonly type: 'regarder_piece'; readonly cible: RefPiece; readonly trace?: IntensiteTrace; readonly pillee?: true }
   | { readonly type: 'regarder_objet'; readonly cible: RefObjet }
-  | { readonly type: 'regarder_passage'; readonly cible: RefPassage };
+  | { readonly type: 'regarder_passage'; readonly cible: RefPassage }
+  /** Un document ; `designe` : la pièce que nomme une note de rangement, pour remplir le trou (spec 2026-10-18 §8.5). */
+  | { readonly type: 'regarder_document'; readonly cible: RefObjet; readonly designe?: RefPiece };
 
 export interface OptionMenu {
   readonly action: IdAction;

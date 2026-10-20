@@ -1,3 +1,4 @@
+import type { DefMorceau } from '../../engine';
 // Table exhaustive des paires de morceaux (13 §4.1, L0 #150), recopiée telle quelle : chaque paire non ordonnée une seule fois,
 // avec la règle qui la permet ou le motif du refus. Une paire absente n'est jamais autorisée par ressemblance (D-167, D-248).
 
@@ -79,3 +80,29 @@ export const PAIRES: readonly LignePaire[] = [
   permise('M-10', 'M-12', 'Le froid ne met pas le drone en panne ; ralentissement ordinaire de la créature (D-306)'),
   permise('M-11', 'M-12', 'Sas et maintien indépendants ; une porte blindée fermée arrête le drone et ne peut pas être forcée (D-248, D-306)'),
 ];
+
+/** Numéro du morceau dans la table des paires : 'm-07' → 'M-07'. */
+const numero = (morceau: DefMorceau): string => morceau.id.toUpperCase();
+
+export function motifDeTable(table: readonly LignePaire[], x: DefMorceau, y: DefMorceau): string | null {
+  const [a, b] = numero(x) < numero(y) ? [numero(x), numero(y)] : [numero(y), numero(x)];
+  const ligne = table.find((candidate) => candidate.a === a && candidate.b === b);
+  if (ligne === undefined) return `Paire ${a} + ${b} absente de la table : refusée par défaut.`;
+  return ligne.verdict === 'jamais' ? `Paire ${a} + ${b} jamais ensemble : ${ligne.regle}.` : null;
+}
+
+/** Première paire refusée : chemin–chemin, puis chaque chemin–final, dans l'ordre de la station. */
+export function premierRefus(table: readonly LignePaire[], chemins: readonly DefMorceau[], final: DefMorceau): string | null {
+  const paires = [
+    ...chemins.flatMap((x, rang) => chemins.slice(rang + 1).map((y) => [x, y] as const)),
+    ...chemins.map((chemin) => [chemin, final] as const),
+  ];
+  for (const [x, y] of paires) {
+    const motif = motifDeTable(table, x, y);
+    if (motif !== null) return motif;
+  }
+  return null;
+}
+
+export const court = (morceau: DefMorceau): string => morceau.id.replaceAll('-', '');
+
