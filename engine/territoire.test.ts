@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { DefLiaison, DefObjet, DefPiece } from './monde';
 import { ouvrirTerritoire, type PlanTerritoire } from './territoire';
 
