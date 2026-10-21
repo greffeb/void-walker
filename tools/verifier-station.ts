@@ -267,13 +267,18 @@ export function ordreImpose(monde: DefMonde, premiere: string, seconde: string):
   // Grande station : après les deux cloisons, le troisième chemin puis le final, le segment le plus avancé d’abord (spec 2026-10-18 §7.4).
   const grande = monde.pieces.some((piece) => piece.segment !== undefined);
   const segmentDe = rangsDesSegments(monde);
+  // Chemin principal d'une grande station (sans segments) : le troisième chemin, entre le sas et le final, compte comme
+  // l'approche du final ; sans lui, la recherche n'y avance pas et s'arrête au plafond (#237). Les petites stations n'en ont pas.
+  const rangDe = rangsDesMorceaux(monde);
+  const rangCarrefour = rangDe('carrefour/');
+  const troisieme = (ici: string | null, piece: string): boolean => ici !== null && ici !== etapes[0] && ici !== etapes[1] && rangDe(piece) > rangCarrefour;
   return {
     admissible: (etat) => leve(etat, premiere) || !leve(etat, seconde),
     priorite: (etat) => {
       const etape = leve(etat, premiere) ? (leve(etat, seconde) ? 2 : 1) : 0;
       const ici = morceauDe(etat.piece);
-      const proche = ici === etapes[etape] ? 2 : ici === 'carrefour' ? 1 : 0;
-      if (!grande) return etape * 3 + proche;
+      const proche = ici === etapes[etape] ? 3 : etape === 2 && troisieme(ici, etat.piece) ? 2 : ici === 'carrefour' ? 1 : 0;
+      if (!grande) return etape * 4 + proche;
       return etape * 1000 + (etape === 2 ? 10 + segmentDe(etat.piece) : proche);
     },
   };

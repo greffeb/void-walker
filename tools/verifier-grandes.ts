@@ -1,4 +1,4 @@
-import { assemblerStation, jouer, nouvellePartie, observer, type DefStation, type Partie } from '../engine';
+import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefStation, type Partie } from '../engine';
 import { GRAINE_GRANDE_MAX, numeroter, type Catalogue, type EntreeMonde, type EtapeParcours } from '../content';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,7 +7,7 @@ import { controlerGrande } from './controles-grande';
 import { dansLeLot, type Lot } from './lots';
 import { REPO_ROOT } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { capsuleCoupee, chercherJusqua, ordreImpose, verifierStation, type OptionsVerification, type RapportStation } from './verifier-station';
+import { capsuleCoupee, chercherJusqua, cloisonsDuCarrefour, ordreImpose, verifierStation, type OptionsVerification, type RapportStation } from './verifier-station';
 
 // Preuve d'une grande station (spec 2026-10-18 §7, D-326) : les contrôles structurels d'abord, puis une évacuation sans dé ni
 // blessure par les vraies règles, sur la station privée de son butin (§7.4). Le chemin principal seul se prouve vite ; son
@@ -19,6 +19,11 @@ const VERSION = 'verifier-grandes';
 const GRAINE = 20261010;
 /** États d'une réparation, par étape du témoin devenue impossible. */
 const MAX_REPARATION = 20_000;
+/**
+ * Recherches directes par composition, au plus (#237) : une sur 35 réussit, vers 128 000 états, et chacune coûte environ 40 s ;
+ * les compositions mesurées qui ont une station la trouvent dans leurs trois premières.
+ */
+const RECHERCHES_DIRECTES = 3;
 
 export interface LigneGrande {
   readonly station: string;
@@ -28,7 +33,10 @@ export interface LigneGrande {
   readonly secondes: number;
   /** Longueur du témoin du premier ordre ; `null` sans preuve. */
   readonly actions: number | null;
-  /** Témoin du chemin principal rejoué tel quel ou réparé, ou recherche dans la grande station ; en ordre libre, la plus coûteuse des deux. */
+  /**
+   * Témoin publié rejoué, témoin du chemin principal rejoué tel quel ou réparé, ou recherche dans la grande station ; en ordre
+   * libre, la plus coûteuse des deux. `null` sans preuve tentée, ou quand la recherche directe a été remise à plus tard.
+   */
   readonly methode: Methode | null;
   /** Ordre libre : verdict de chaque ordre de préparation. */
   readonly ordres?: readonly [RapportStation['verdict'], RapportStation['verdict']];
@@ -36,7 +44,7 @@ export interface LigneGrande {
   readonly temoins: readonly (readonly PasTemoin[])[] | null;
 }
 
-type Methode = 'temoin' | 'repare' | 'recherche';
+type Methode = 'publie' | 'temoin' | 'repare' | 'recherche';
 
 /** Un pas de témoin, par identifiants publics : action, cible, paramètre éventuel. */
 export type PasTemoin = readonly [action: string, cible: string, parametre?: string];
@@ -113,19 +121,17 @@ export function reparerTemoin(entree: EntreeMonde, etapes: readonly EtapeParcour
   return partie.etat.fin === 'evacuation' ? repare : null;
 }
 
-interface Preuve {
+export interface Preuve {
   readonly verdict: RapportStation['verdict'];
   readonly etats: number;
   readonly actions: number | null;
-  readonly methode: Methode;
+  /** `null` : témoin inutilisable et recherche directe remise à plus tard. */
+  readonly methode: Methode | null;
   readonly temoin: readonly PasTemoin[] | null;
 }
 
-/**
- * Preuve d'un ordre, sur la station privée de son butin (`entree`) : le témoin du chemin principal rejoué tel quel, sinon
- * réparé, sinon la recherche dans la grande station.
- */
-function prouver(
+/** Preuve par le témoin du chemin principal, tel quel ou réparé ; `methode: null` si ce témoin ne sert pas. */
+function parTemoin(
   entree: EntreeMonde,
   base: EntreeMonde,
   options: OptionsVerification,
@@ -137,8 +143,28 @@ function prouver(
   if (etapes !== null && repare !== null) {
     return { verdict: 'prouvee', etats: principal.etats, actions: repare.length, methode: repare.length === etapes.length ? 'temoin' : 'repare', temoin: compacter(repare) };
   }
-  const directe = verifierStation(entree, { ...options, ...ordre(entree.monde) });
-  return { verdict: directe.verdict, etats: principal.etats + directe.etats, actions: directe.parcours?.etapes.length ?? null, methode: 'recherche', temoin: directe.parcours === null ? null : compacter(directe.parcours.etapes) };
+  return { verdict: 'non_prouvee', etats: principal.etats, actions: null, methode: null, temoin: null };
+}
+
+/**
+ * Preuve d'un ordre, sur la station privée de son butin (`entree`) : le témoin du chemin principal rejoué tel quel, sinon
+ * réparé, sinon, si `directe`, la recherche dans la grande station. La preuve par le témoin est gardée dans `memoire`, sous
+ * `cle` : la seconde passe de la publication ne la refait pas (#237).
+ */
+function prouver(
+  entree: EntreeMonde,
+  base: EntreeMonde,
+  options: OptionsVerification,
+  ordre: (monde: EntreeMonde['monde']) => Pick<OptionsVerification, 'admissible' | 'priorite'>,
+  directe: boolean,
+  memoire: Map<string, Preuve>,
+  cle: string,
+): Preuve {
+  const temoin = memoire.get(cle) ?? parTemoin(entree, base, options, ordre);
+  memoire.set(cle, temoin);
+  if (temoin.verdict === 'prouvee' || !directe) return temoin;
+  const recherche = verifierStation(entree, { ...options, ...ordre(entree.monde) });
+  return { verdict: recherche.verdict, etats: temoin.etats + recherche.etats, actions: recherche.parcours?.etapes.length ?? null, methode: 'recherche', temoin: recherche.parcours === null ? null : compacter(recherche.parcours.etapes) };
 }
 
 /** Le chemin principal seul d'une grande station : sans annexes ni boucles, aux mêmes identifiants et aux mêmes noms. */
@@ -147,8 +173,11 @@ export function cheminPrincipal(entree: EntreeMonde, definition: DefStation): En
   return assemblee.type === 'station' ? numeroter({ monde: assemblee.monde, textes: entree.textes, parcours: [] }) : null;
 }
 
-/** Une grande station `g1-…-<graine>`, contrôlée puis prouvée. */
-export function verifierGrande(catalogue: Catalogue, station: string, options: OptionsVerification = {}): LigneGrande {
+/**
+ * Une grande station `g1-…-<graine>`, contrôlée puis prouvée ; sans `directe`, par les témoins du chemin principal seulement.
+ * `memoire` garde ces témoins d'un appel à l'autre.
+ */
+export function verifierGrande(catalogue: Catalogue, station: string, options: OptionsVerification = {}, directe = true, memoire = new Map<string, Preuve>()): LigneGrande {
   const debut = performance.now();
   const tiret = station.lastIndexOf('-');
   const composition = station.slice(0, tiret);
@@ -164,9 +193,9 @@ export function verifierGrande(catalogue: Catalogue, station: string, options: O
   if (base === null) return conclure({ verdict: 'non_prouvee', ecarts: ['Chemin principal non assemblé.'], etats: 0, actions: null, methode: null, temoins: null });
   const prive = sansButin(entree);
 
-  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const cloisons = cloisonsDuCarrefour(entree.monde);
   if (cloisons.length === 0) {
-    const preuve = prouver(prive, base, options, () => ({}));
+    const preuve = prouver(prive, base, options, () => ({}), directe, memoire, station);
     return conclure({ verdict: preuve.verdict, ecarts: [], etats: preuve.etats, actions: preuve.actions, methode: preuve.methode, temoins: preuve.temoin === null ? null : [preuve.temoin] });
   }
   const [premiere, seconde] = cloisons;
@@ -174,10 +203,13 @@ export function verifierGrande(catalogue: Catalogue, station: string, options: O
   if (!cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison))) {
     return conclure({ verdict: 'sans_sortie_sure', ecarts: ['Une cloison verrouillée ne coupe pas l’accès à la capsule (G-08).'], etats: 0, actions: null, methode: null, temoins: null });
   }
-  const [ab, ba] = [prouver(prive, base, options, (monde) => ordreImpose(monde, premiere, seconde)), prouver(prive, base, options, (monde) => ordreImpose(monde, seconde, premiere))];
+  const ab = prouver(prive, base, options, (monde) => ordreImpose(monde, premiere, seconde), directe, memoire, `${station} ${premiere}`);
+  // Le premier ordre sans preuve condamne la graine : le second, jusqu'au plafond, ne changerait rien (#237).
+  if (ab.verdict !== 'prouvee') return conclure({ verdict: ab.verdict, ecarts: [], etats: ab.etats, actions: null, methode: ab.methode, temoins: null });
+  const ba = prouver(prive, base, options, (monde) => ordreImpose(monde, seconde, premiere), directe, memoire, `${station} ${seconde}`);
   const ordres = [ab.verdict, ba.verdict] as const;
   const verdict = ab.verdict === 'prouvee' && ba.verdict === 'prouvee' ? 'prouvee' : ab.verdict === 'prouvee' ? ba.verdict : ab.verdict;
-  const methode = (['recherche', 'repare'] as const).find((candidate) => ab.methode === candidate || ba.methode === candidate) ?? 'temoin';
+  const methode = ab.methode === null || ba.methode === null ? null : ((['recherche', 'repare'] as const).find((candidate) => ab.methode === candidate || ba.methode === candidate) ?? 'temoin');
   const temoins = ab.temoin === null || ba.temoin === null ? null : [ab.temoin, ba.temoin];
   return conclure({ verdict, ecarts: [], etats: ab.etats + ba.etats, actions: ab.actions, methode, ordres, temoins });
 }
@@ -186,11 +218,29 @@ export function verifierGrande(catalogue: Catalogue, station: string, options: O
 export interface Publication {
   readonly publiees: readonly string[];
   readonly temoins: Readonly<Record<string, readonly (readonly PasTemoin[])[]>>;
+  /** Compositions restées sans station, recherchées ou passées. */
+  readonly sansStation: SansStation;
+}
+
+/**
+ * Compositions sans station (#237) : l'empreinte de leur définition (morceaux, catalogue de pièces, butin, documents) et du
+ * moteur, et les graines essayées. Tant qu'elles ne changent pas, la publication ne les recherche plus.
+ */
+export type SansStation = Readonly<Record<string, { readonly empreinte: string; readonly essais: number }>>;
+
+/** Empreinte d'une grande composition : sa définition, graine et identifiant mis à part, et le code du moteur. */
+export function empreinteComposition(catalogue: Catalogue, composition: string, moteur: string): string {
+  const definition = catalogue.definirGrande(composition, 0);
+  return empreinte(['refus' in definition ? definition : { ...definition, id: '', graine: 0 }, moteur]);
 }
 
 /**
  * Grandes stations à publier (spec §7.2) : pour chaque grande composition sans refus, les `parComposition` premières graines, à
- * partir de 0 et jusqu'à `essais`, assemblées, contrôlées et prouvées ; triées, avec leurs témoins.
+ * partir de 0 et jusqu'à `essais`, assemblées, contrôlées et prouvées ; triées, avec leurs témoins. Accélérations (#237) : un
+ * témoin de `publies` qui se rejoue encore (comme dans `check:stations`) garde sa station sans recherche ; les graines sont
+ * d'abord prouvées par le témoin du chemin principal, et la recherche directe ne sert qu'aux trois premières graines restées
+ * sans preuve, s'il manque des stations. Une composition de `connues` à la même empreinte (`moteur` : celle du code du moteur), essayée sur
+ * autant de graines au moins, n'est pas recherchée.
  */
 export function publierGrandes(
   catalogue: Catalogue,
@@ -199,23 +249,47 @@ export function publierGrandes(
   options: OptionsVerification = {},
   journal: (ligne: LigneGrande) => void = () => undefined,
   compositions: readonly string[] = catalogue.grandes.filter((candidate) => candidate.refus === null).map((candidate) => candidate.id),
+  publies: Temoins = {},
+  connues: SansStation = {},
+  moteur = '',
 ): Publication {
   const temoins: Record<string, readonly (readonly PasTemoin[])[]> = {};
+  const sansStation: Record<string, SansStation[string]> = {};
   for (const composition of compositions) {
+    const marque = { empreinte: empreinteComposition(catalogue, composition, moteur), essais };
+    const connue = connues[composition];
+    if (connue !== undefined && connue.empreinte === marque.empreinte && connue.essais >= essais) {
+      sansStation[composition] = connue;
+      continue;
+    }
     let trouvees = 0;
-    // Une graine sans plan (annexes sans place, aucune boucle) ne coûte presque rien : elle ne compte pas parmi les essais.
-    for (let graine = 0, essayees = 0; graine <= GRAINE_GRANDE_MAX && essayees < essais && trouvees < parComposition; graine++) {
-      if ('refus' in catalogue.construireGrande(composition, graine)) continue;
-      essayees++;
-      const ligne = verifierGrande(catalogue, `${composition}-${graine}`, options);
+    const garder = (ligne: LigneGrande): void => {
       journal(ligne);
       if (ligne.verdict === 'prouvee' && ligne.temoins !== null) {
         temoins[ligne.station] = ligne.temoins;
         trouvees++;
       }
+    };
+    for (const [station, preuve] of Object.entries(publies)) {
+      if (trouvees < parComposition && station.slice(0, station.lastIndexOf('-')) === composition) garder({ ...verifierPubliee(catalogue, station, preuve), methode: 'publie' });
     }
+    const differees: string[] = [];
+    // Les témoins du chemin principal de la première passe, que la seconde ne refait pas.
+    const memoire = new Map<string, Preuve>();
+    // Une graine sans plan (annexes sans place, aucune boucle) ne coûte presque rien : elle ne compte pas parmi les essais.
+    for (let graine = 0, essayees = 0; graine <= GRAINE_GRANDE_MAX && essayees < essais && trouvees < parComposition; graine++) {
+      if ('refus' in catalogue.construireGrande(composition, graine)) continue;
+      essayees++;
+      const station = `${composition}-${graine}`;
+      if (station in temoins) continue;
+      const ligne = verifierGrande(catalogue, station, options, false, memoire);
+      if (ligne.verdict === 'non_prouvee' && ligne.methode === null && ligne.ecarts.length === 0) differees.push(station);
+      else garder(ligne);
+    }
+    for (const station of differees.slice(0, RECHERCHES_DIRECTES)) if (trouvees < parComposition) garder(verifierGrande(catalogue, station, options, true, memoire));
+    if (trouvees === 0) sansStation[composition] = marque;
   }
-  return { publiees: Object.keys(temoins).sort(), temoins };
+  return { publiees: Object.keys(temoins).sort(), temoins, sansStation };
 }
 
 /**
@@ -240,10 +314,11 @@ export function verifierPubliee(catalogue: Catalogue, station: string, temoins: 
   if (temoins === undefined || temoins.length === 0) return conclure('non_prouvee', ['Témoin absent : relancer npm run publier:grandes.']);
   const rejeux = [sansButin(entree), entree].map((monde) => temoins.map((pas) => rejouerTemoin(monde, pas)));
   if (rejeux.some((levees) => levees.some((ordre) => ordre === null))) return conclure('non_prouvee', ['Témoin publié qui ne mène plus à l’évacuation, avec ou sans le butin : relancer npm run publier:grandes.']);
-  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const cloisons = cloisonsDuCarrefour(entree.monde);
   if (cloisons.length === 0) return conclure('prouvee', []);
   if (!cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison))) return conclure('sans_sortie_sure', ['Une cloison verrouillée ne coupe pas l’accès à la capsule (G-08).']);
-  const ordresDistincts = rejeux.every((levees) => new Set(levees.map((ordre) => ordre?.[0])).size === cloisons.length);
+  // Le premier verrou levé du carrefour dit l'ordre ; la porte blindée de M-11, levée en route, n'en dit rien.
+  const ordresDistincts = rejeux.every((levees) => new Set(levees.map((ordre) => ordre?.find((cloison) => cloisons.includes(cloison)))).size === cloisons.length);
   return ordresDistincts ? conclure('prouvee', []) : conclure('non_prouvee', ['Ordre libre : un témoin par ordre de préparation attendu (G-07).']);
 }
 
@@ -256,6 +331,18 @@ export type Temoins = Readonly<Record<string, readonly (readonly PasTemoin[])[]>
 export function lireTemoins(racine = REPO_ROOT): Temoins {
   try {
     return JSON.parse(readFileSync(join(racine, FICHIER_TEMOINS), 'utf8')) as Temoins;
+  } catch {
+    return {};
+  }
+}
+
+/** Compositions sans station, écrites par `npm run publier:grandes` (#237). */
+export const FICHIER_SANS_STATION = 'tools/grandes-sans-station.json';
+
+/** Compositions sans station connues ; vide si le fichier manque. */
+export function lireSansStation(racine = REPO_ROOT): SansStation {
+  try {
+    return JSON.parse(readFileSync(join(racine, FICHIER_SANS_STATION), 'utf8')) as SansStation;
   } catch {
     return {};
   }

@@ -1927,6 +1927,50 @@ async function parcoursGrandeStation(navigateur: Browser, racine: string, captur
   }
 }
 
+/** Gestes du témoin publié d'une grande station, rejoué par le menu public jusqu'au premier pas qui ne s'engage plus. */
+function gestesDuTemoin(entree: EntreeMonde, pas: readonly (readonly [string, string, string?])[]): Geste[] {
+  let partie: Partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+  const gestes: Geste[] = [];
+  for (const [action, cible, parametre] of pas) {
+    const observation = observer(entree.monde, partie.etat);
+    const option = observation.menu.find((choix) => choix.action === action && choix.cible.id === cible && choix.parametre?.id === parametre);
+    if (option === undefined || !option.disponible) break;
+    const geste = gesteDe(entree, partie, observation, option);
+    const resultat = jouer(entree.monde, partie, option.commande);
+    if (resultat.type !== 'engagee') break;
+    partie = resultat.partie;
+    gestes.push(geste);
+  }
+  return gestes;
+}
+
+/**
+ * Plan d'une grande station avec M-11, puis avec M-12 (#236), à 390 px : la première en chaîne de la liste, son témoin publié
+ * joué jusqu'à son dernier geste exclu (l'évacuation), puis la carte. Rien ne déborde, cibles de 44 px.
+ */
+async function parcoursGrandesM11M12(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
+  const temoins = lireTemoins();
+  for (const morceau of ['m11', 'm12']) {
+    const id = [...CATALOGUE.publiees].sort().find((candidate) => !candidate.startsWith('g1-ol-') && candidate.split('-').slice(1, 4).includes(morceau));
+    const entree = id === undefined ? undefined : CATALOGUE.resoudre(id);
+    const pas = id === undefined ? undefined : temoins[id]?.[0];
+    if (id === undefined || entree === undefined || 'refus' in entree || pas === undefined) {
+      erreurs.push(`Aucune grande station en chaîne publiée, avec son témoin, ne contient ${morceau}.`);
+      continue;
+    }
+    const contexte = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
+    const page = await contexte.newPage();
+    await page.goto(`${racine}?station=${id}`);
+    await nouvelleDepuisAccueil(page);
+    await rejouer(page, gestesDuTemoin(entree, pas).slice(0, -1));
+    await page.locator('.nav-carte').click();
+    await page.getByRole('dialog', { name: MOTS_CARTE.titrePlan }).locator('.carte-piece').first().waitFor();
+    await capturer(page, `Grande station avec ${morceau.toUpperCase().replace('M', 'M-')} 390 px — carte, chemin presque entier`);
+    await verifierCarte(page, `Grande station avec ${morceau} 390 px, carte`, erreurs);
+    await contexte.close();
+  }
+}
+
 /** États explorés au plus pour joindre une salle de butin : elles sont loin du départ, la recherche y va par la distance en portes. */
 const PLAFOND_BUTIN = 100_000;
 
@@ -3356,6 +3400,12 @@ export async function capturer(options: { readonly droneSeul?: boolean } = {}): 
     // Grandes stations (#205) : dock et carte à mi-chemin, à 390 et 320 px.
     try {
       await parcoursGrandeStation(navigateur, racine, capturerPage, erreursStation);
+    } catch (erreur) {
+      erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
+    }
+    // Grandes stations avec M-11 et M-12 (#236) : leur plan, à 390 px.
+    try {
+      await parcoursGrandesM11M12(navigateur, racine, capturerPage, erreursStation);
     } catch (erreur) {
       erreursStation.push(erreur instanceof Error ? erreur.message : String(erreur));
     }

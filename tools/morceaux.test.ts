@@ -357,6 +357,7 @@ describe('clés déclarées par les morceaux (spec §6.5)', () => {
     'm-04': { 'o-burette': ['outillage'] },
     'm-06': { 'o-combinaison': ['securite'], 'o-decoupeuse': ['securite'] },
     'm-08': { 'o-planche': ['rangement'] },
+    'm-11': { 'o-carte': ['securite'] },
   };
   const morceaux = Object.values(MORCEAUX).map(({ morceau }) => morceau);
 

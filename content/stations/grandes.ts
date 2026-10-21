@@ -19,6 +19,8 @@ export const GRAINE_GRANDE_MAX = 9999;
 const PIECES_VISEES = 24;
 /** Pièces dessinées au moins (spec §4.1, §11) : une graine dont le plan en compterait moins n'a pas de plan. */
 const PIECES_MIN = 21;
+/** Pièces dessinées au plus (spec §11) : un ordre libre avec M-12 et deux chemins de cinq pièces n'y prend que cinq annexes. */
+const PIECES_MAX = 28;
 const ANNEXES_MIN = 6;
 const ANNEXES_MAX = 10;
 /** Portes de boucle voulues (spec §6.4). */
@@ -44,12 +46,6 @@ export interface GrandePrevue {
   readonly morceaux: readonly EntreeMorceau[];
 }
 
-/**
- * Chemins venus de main après la conception (M-11, M-12) : déclarés, mais pas encore tirés dans les grandes stations, dont la
- * liste publiée ne les contient pas ; les y ajouter demande de republier la liste (13 §7.14).
- */
-const PAS_ENCORE_TIRES: ReadonlySet<string> = new Set(['m-11', 'm-12']);
-
 const VESTIBULE = MORCEAUX.vestibule;
 const CARREFOUR = MORCEAUX.carrefour;
 
@@ -63,7 +59,7 @@ const dessinees = (morceaux: readonly DefMorceau[]): number => morceaux.reduce((
 /** Toutes les grandes compositions, triées par identifiant. */
 export function prevoirGrandes(table: readonly LignePaire[]): GrandePrevue[] {
   const entrees = Object.values(MORCEAUX);
-  const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin' && !PAS_ENCORE_TIRES.has(morceau.id));
+  const chemins = entrees.filter(({ morceau }) => morceau.famille === 'chemin');
   const materiels = chemins.filter(({ morceau }) => morceau.grande?.obstacle === 'materiel');
   const finals = entrees.filter(({ morceau }) => morceau.famille === 'final' && morceau.grande !== undefined && morceau.id !== 'essai');
   const vestibule = exiger(VESTIBULE, 'vestibule');
@@ -81,7 +77,8 @@ export function prevoirGrandes(table: readonly LignePaire[]): GrandePrevue[] {
             const suite = [a, b, c].filter((entree): entree is EntreeMorceau => entree !== undefined);
             const refus = premierRefus(table, suite.map((entree) => entree.morceau), final.morceau);
             const avant = forme === 'libre' ? [vestibule, carrefour] : [vestibule];
-            const annexes = Math.min(ANNEXES_MAX, Math.max(ANNEXES_MIN, PIECES_VISEES - dessinees([...avant, ...suite, final].map((entree) => entree.morceau))));
+            const base = dessinees([...avant, ...suite, final].map((entree) => entree.morceau));
+            const annexes = Math.min(ANNEXES_MAX, PIECES_MAX - base, Math.max(ANNEXES_MIN, PIECES_VISEES - base));
             return hotes.flatMap((hote) =>
               hote.morceau.placesCreature.map((place): GrandePrevue => {
                 const nom = hote.morceau.pieces.find((piece) => piece.id === place)?.nom ?? place;
