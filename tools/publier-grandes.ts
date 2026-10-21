@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { VERSION_GENERATEUR } from '../content';
 import { CATALOGUE } from './catalogue';
 import { empreinteCode } from './empreinte-code';
 import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
@@ -58,7 +59,7 @@ async function principal(): Promise<void> {
     writeFileSync(join(REPO_ROOT, FICHIER_LISTE), ecrireListe(publiees));
     writeFileSync(join(REPO_ROOT, FICHIER_TEMOINS), `${JSON.stringify(Object.fromEntries(publiees.map((id) => [id, temoins[id]])))}\n`);
     writeFileSync(join(REPO_ROOT, FICHIER_SANS_STATION), `${JSON.stringify(Object.fromEntries(Object.keys(sansStation).sort().map((id) => [id, sansStation[id]])), null, 1)}\n`);
-    const libres = publiees.filter((id) => id.startsWith('g1-ol-')).length;
+    const libres = publiees.filter((id) => id.startsWith(`g${VERSION_GENERATEUR}-ol-`)).length;
     console.error(`publier:grandes : ${publiees.length} stations publiées (${libres} en ordre libre) sur ${compositions.length} compositions (${Object.keys(sansStation).length} sans station), en ${((performance.now() - debut) / 1000).toFixed(0)} s.`);
     return;
   }

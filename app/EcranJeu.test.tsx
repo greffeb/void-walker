@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
-import { libelleOption, MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
+import { libelleOption, MONDES, texteDocument, VERSION_GENERATEUR, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
 import { FicheDocument } from './bulle';
 import { CATALOGUE } from './catalogue';
@@ -1417,7 +1417,7 @@ describe('fiche d’un document (#209, D-324, spec 2026-10-18 §9.1)', () => {
 
 describe('grande station : poser la caisse portée sous la grille d’un seul geste (demande du porteur)', () => {
   // La caisse de M-02 se porte en grande station (spec 2026-10-18 §6.5) ; état placé à la main, la route de l'atelier ne compte pas ici.
-  const COMPOSITION = 'g1-m01-m02-m09-m06-cale';
+  const COMPOSITION = `g${VERSION_GENERATEUR}-m01-m02-m09-m06-cale`;
   const grande = ((): EntreeMonde => {
     for (let graine = 0; graine < 50; graine += 1) {
       const entree = CATALOGUE.construireGrande(COMPOSITION, graine);

@@ -33,7 +33,7 @@ export function prefixer(morceau: string, id: string): string {
  * Sous-graine d’une étape de l’assemblage d’une grande station (spec 2026-10-18 §6.2) : un réglage d’une étape ne rebat pas
  * les tirages des autres.
  */
-export function sousGraine(graine: number, etape: 'annexes' | 'boucles' | 'piste' | 'cles' | 'butin' | 'documents'): number {
+export function sousGraine(graine: number, etape: 'annexes' | 'boucles' | 'piste' | 'cles' | 'butin' | 'documents' | 'territoire'): number {
   return Number.parseInt(hacher(`${graine}:${etape}`).slice(-8), 16) >>> 0;
 }
 

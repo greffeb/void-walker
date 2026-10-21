@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { assemblerStation, CLE_TROUSSE, exporter, nouvellePartie, prefixer, type DefMonde, type DefStation, type EmplacementDocument, type ReserveDocuments, type TableButin } from '../engine';
-import { MORCEAUX, PIECES_CATALOGUE } from '../content';
+import { MORCEAUX, PIECES_CATALOGUE, VERSION_GENERATEUR } from '../content';
 import { CATALOGUE } from './catalogue';
 
 // Assemblage d'une grande station (spec 2026-10-18 §6.2) avec les vrais morceaux et le vrai catalogue : vestibule, M-01, M-08,
@@ -430,7 +430,7 @@ describe('documents et couverture (spec 2026-10-18 §8.4, §7.3)', () => {
 describe('taille minimale d’une grande station (spec 2026-10-18 §4.1, §11)', () => {
   // Les morceaux de M-01, M-02, M-05 et M-03 dessinent 12 pièces : 10 annexes en tout, 22 pièces ; la couverture des documents en
   // retire jusqu'à trois, et la station passerait sous 21 pièces.
-  const COMPOSITION = 'g1-m01-m02-m05-m03-tri';
+  const COMPOSITION = `g${VERSION_GENERATEUR}-m01-m02-m05-m03-tri`;
   const dessinees = (monde: DefMonde): number => monde.pieces.filter((piece) => piece.plan !== undefined).length;
 
   it('une station qui tomberait sous piecesMin n’a pas de plan pour cette graine ; les autres sont inchangées', () => {
