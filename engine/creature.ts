@@ -358,8 +358,9 @@ function reaction(
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
   if (liaison !== undefined) return suite(deriver(etat, piste, liaison, indice) ?? franchir(monde, etat, piste, liaison, indice));
   // Alertée, une porte fermée sur sa piste ne l'arrête plus : elle la force (D-279). Avant le contact, dans un monde à rencontre,
-  // un bruit fort suffit, et elle continue une fois l'alarme tue ; jamais les pas, qui suivent le contact (spec créature mobile §3.1).
-  const alertee = piste.contact || (monde.rencontre !== undefined && (son?.intensite === 'fort' || piste.force !== undefined));
+  // un bruit fort suffit, et elle continue une fois l'alarme tue ; un bruit normal ne la fait ni forcer ni changer de porte, et
+  // jamais les pas, qui suivent le contact (spec créature mobile §3.1).
+  const alertee = piste.contact || (monde.rencontre !== undefined && (son === undefined ? piste.force !== undefined : son.intensite === 'fort'));
   const voie = alertee ? versLaPiste(monde, etat, piste as CreatureActive, indice) : undefined;
   if (voie === undefined) return suite({ creature: { ...piste, indice, engagee: null }, evenements: [] });
   const total = piste.contact ? REACTIONS_FORCER : REACTIONS_FORCER_LENT;
@@ -387,7 +388,8 @@ function versLaPiste(monde: DefMonde, etat: EtatPartie, creature: CreatureActive
  * passager l'entend s'il est dans l'une de ses deux pièces, hors du vacarme d'une salle des machines (D-163).
  */
 function forcer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, porte: DefLiaison, indice: Indice, total: number): Reponse {
-  const restant = (creature.force?.liaison === porte.id ? creature.force.restant : total) - 1;
+  // Le contact en plein forçage lent la ramène au compte de la poursuite (D-279).
+  const restant = (creature.force?.liaison === porte.id ? Math.min(creature.force.restant, total) : total) - 1;
   const cede = restant <= 0;
   const entendue = porte.entre.includes(etat.piece) && !assourdie(monde, etat, etat.piece);
   const vue = cede ? { ...etat, liaisons: { ...etat.liaisons, [porte.id]: true } } : etat;
@@ -419,9 +421,11 @@ function fouiller(monde: DefMonde, etat: EtatPartie, creature: CreatureActive): 
  */
 function errer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, errance: number): Reponse | undefined {
   if (creature.alcove || creature.ecoute !== undefined || creature.force !== undefined || (creature.contact && creature.fouille !== true)) return undefined;
-  const signe = etat.reperes.entendue?.piece === creature.piece;
+  // Chez lui seulement s'il l'a entendue là où elle est, par cette liaison même (spec créature mobile §3.2).
+  const entendue = etat.reperes.entendue;
+  const signe = (lien: DefLiaison): boolean => entendue?.piece === creature.piece && entendue.par === lien.id;
   const candidates = liaisonsDe(monde, creature.piece)
-    .filter((lien) => errable(monde, etat, lien, creature.piece) && (signe || autreCote(lien, creature.piece) !== etat.piece))
+    .filter((lien) => errable(monde, etat, lien, creature.piece) && (signe(lien) || autreCote(lien, creature.piece) !== etat.piece))
     .sort((a, b) => (a.id < b.id ? -1 : 1));
   const liaison = candidates[errance % candidates.length];
   if (liaison === undefined) return undefined;

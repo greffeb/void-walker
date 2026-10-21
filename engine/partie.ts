@@ -3,7 +3,7 @@ import { bruitDeStation } from './bruits';
 import { reagir, type SonEmis } from './creature';
 import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
-import { assourdie, creatureActive, etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
+import { assourdie, creatureActive, etatInitial, liaisonsDe, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
 import { actualiserFroid, type Froid } from './froid';
 import { empreinte } from './hachage';
@@ -370,7 +370,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     evenements.push({ type: 'bruit_station' });
   }
   // Face 2 du dé : un bruit lourd, très loin, si rien d'autre ne la perçoit déjà et si la pièce n'est pas assourdie (spec créature mobile §3.3).
-  if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.piece !== conclu.piece && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
+  // Ni pendant la traque, ni quand elle est dans une pièce voisine : un signe « loin » ne ment pas.
+  const ou = conclu.creature?.piece;
+  const loin = typeof ou === 'string' && ou !== conclu.piece && !liaisonsDe(monde, conclu.piece).some((lien) => lien.entre.includes(ou));
+  if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.contact !== true && loin && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
     evenements.push({ type: 'bruit_lointain' });
   }
   // Entré là où elle est passée il y a peu : une trace fraîche (spec créature mobile §3.4), même numéro d'action que `reagir`.

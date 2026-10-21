@@ -647,6 +647,38 @@ describe('forcer lentement vers un bruit fort, avant le contact (spec créature 
     expect(fin.etat.creature?.force).toBeUndefined();
   });
 
+  // Porte B–C fermée laissant passer le son, porte C–D bruyante : le passager, en C, fait un bruit normal en l'ouvrant.
+  const bruitNormal: DefMonde = { ...liaisons(avecRencontre, { bc: { ouverte: false, sonAuTravers: true }, cd: { ouverte: false, bruyante: true } }), depart: 'c' };
+  const auRepos = { indice: null, contact: false, repit: false, alcove: false, perdues: 0, connues: [], engagee: null };
+  const posee = (creature: Record<string, unknown>): Partie => {
+    const depart = partie(bruitNormal);
+    return { ...depart, etat: { ...depart.etat, creature: { ...auRepos, piece: 'b', ...creature } } } as Partie;
+  };
+
+  it('un bruit normal, avant le contact, ne la fait pas forcer', () => {
+    const { partie: fin, evenements } = suite(bruitNormal, posee({}), [['ouvrir', 'salle_d'], ['attendre', 'salle_c'], ['attendre', 'salle_c']]);
+    expect(evenements.flatMap(coupsDePorte)).toEqual([]);
+    expect(fin.etat.liaisons.bc).toBe(false);
+    expect(fin.etat.creature?.force).toBeUndefined();
+  });
+
+  it('un bruit normal pendant un forçage lent ne la fait pas changer de porte', () => {
+    const forcant = posee({ indice: { piece: 'a', par: null }, force: { liaison: 'ab', restant: REACTIONS_FORCER_LENT - 1 } });
+    const { partie: fin, evenements } = suite(bruitNormal, forcant, [['ouvrir', 'salle_d'], ['attendre', 'salle_c'], ['attendre', 'salle_c']]);
+    expect(evenements.flatMap(coupsDePorte)).toEqual([]);
+    expect(fin.etat.liaisons.bc).toBe(false);
+    expect(fin.etat.creature).toMatchObject({ piece: 'b' });
+    expect(fin.etat.creature?.force).toBeUndefined();
+  });
+
+  it(`le contact en plein forçage lent la ramène à ${REACTIONS_FORCER} réactions au plus`, () => {
+    const depart = partie(avecRencontre);
+    const creature = { ...auRepos, piece: 'b', indice: { piece: 'a', par: null }, contact: true, force: { liaison: 'ab', restant: REACTIONS_FORCER_LENT - 1 } };
+    const poursuivi = { ...depart, etat: { ...depart.etat, creature } };
+    const { evenements } = suite(avecRencontre, poursuivi, Array.from({ length: REACTIONS_FORCER }, () => ['attendre', 'salle_a'] as const));
+    expect(evenements.map(coupsDePorte)).toEqual([...Array.from({ length: REACTIONS_FORCER - 1 }, () => ['porte_secouee']), ['porte_enfoncee']]);
+  });
+
   it(`en poursuite, à rencontre, elle cède toujours en ${REACTIONS_FORCER} réactions`, () => {
     const depart = partie(avecRencontre);
     const creature = { piece: 'b', indice: { piece: 'a', par: null }, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null };
@@ -754,12 +786,43 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
     engager(monde, courante, 'attendre', monde.pieces.find((piece) => piece.id === courante.etat.piece)?.nom ?? '');
   const chezB: DefMonde = { ...errant, depart: 'b' };
 
-  it('bruit lointain : face 2 seulement, créature active hors de la pièce du joueur', () => {
-    const types = (monde: DefMonde, graine: number): string[] => attendre(monde, avecGraine(monde, graine)).evenements.map((e) => e.type);
-    expect(types(errant, graineAvecFace(2, 1))).toContain('bruit_lointain');
-    expect(types(errant, graineAvecFace(3, 1))).not.toContain('bruit_lointain');
-    const dansLaPiece = placee(errant, graineAvecFace(2, 1), { piece: errant.depart });
-    expect(attendre(errant, dansLaPiece).evenements.map((e) => e.type)).not.toContain('bruit_lointain');
+  describe('bruit lointain (spec créature mobile §3.3)', () => {
+    /** Ce qu'entend le passager en attendant sur place, la créature posée là. */
+    const entendu = (monde: DefMonde, graine: number, creature: Partial<NonNullable<Partie['etat']['creature']>> & { readonly piece: string }): string[] =>
+      types(attendre(monde, placee(monde, graine, creature)).evenements);
+
+    it('face 2 seulement, créature active loin du joueur (en A, D n’est voisine que de C)', () => {
+      expect(entendu(errant, graineAvecFace(2, 1), { piece: 'd' })).toContain('bruit_lointain');
+      expect(entendu(errant, graineAvecFace(3, 1), { piece: 'd' })).not.toContain('bruit_lointain');
+      expect(entendu(errant, graineAvecFace(2, 1), { piece: errant.depart })).not.toContain('bruit_lointain');
+    });
+
+    it('jamais dans une pièce voisine de la sienne, par une porte comme par une grille', () => {
+      expect(entendu(errant, graineAvecFace(2, 1), { piece: 'b' })).not.toContain('bruit_lointain');
+      expect(entendu(errant, graineAvecFace(2, 1), { piece: 'c' })).not.toContain('bruit_lointain');
+    });
+
+    it('jamais pendant la traque', () => {
+      expect(entendu(errant, graineAvecFace(2, 1), { piece: 'd', contact: true, fouille: true })).not.toContain('bruit_lointain');
+    });
+
+    it('jamais dans une pièce assourdie', () => {
+      const machines: DefMonde = { ...errant, pieces: errant.pieces.map((piece) => (piece.id === 'a' ? { ...piece, machines: true } : piece)) };
+      expect(entendu(machines, graineAvecFace(2, 1), { piece: 'd' })).not.toContain('bruit_lointain');
+    });
+
+    it('jamais en plus d’un autre signe d’elle au même pas', () => {
+      // En B, il l'entend quitter C pour D, qui n'est pas voisine de B.
+      const graine = graineAvecFace(2, 1);
+      expect(entendu(chezB, graine, { piece: 'd' })).toContain('bruit_lointain');
+      const partie = entendu(chezB, graine, { piece: 'c', indice: { piece: 'd', par: 'cd' } });
+      expect(partie).toContain('bruit_creature');
+      expect(partie).not.toContain('bruit_lointain');
+    });
+
+    it('jamais dans un monde sans rencontre', () => {
+      for (let graine = 0; graine < 50; graine++) expect(entendu(MONDE, graine, { piece: 'd' })).not.toContain('bruit_lointain');
+    });
   });
 
   describe('traces fraîches', () => {
@@ -822,6 +885,16 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
     const { partie: fin, evenements } = attendre(chezB, entendue);
     expect(types(evenements)).toEqual(['attente', 'creature_entre', 'premier_contact']);
     expect(fin.etat.creature).toMatchObject({ piece: 'b', contact: true, repit: true, garde: 'bc', venue: 'bc' });
+  });
+
+  it('entendue dans sa pièce par une autre liaison, elle n’entre pas chez lui par celle-ci', () => {
+    // Une grille B–C laisse passer le son : il l'a entendue par la grille, pas par la porte B–C.
+    const grille: DefMonde = { ...chezB, liaisons: [...chezB.liaisons, { id: 'bc2', nom: 'grille_bc', entre: ['b', 'c'], ouverte: false, etroite: true, sonAuTravers: true }] };
+    for (const graine of grainesAvecFace(1, 1, 20)) {
+      const depart = avecGraine(grille, graine);
+      const entendue = { ...depart, etat: { ...depart.etat, reperes: { vue: null, entendue: { piece: 'c', par: 'bc2' } } } };
+      expect(pieceCreature(attendre(grille, entendue).partie)).toBe('d');
+    }
   });
 
   it('le joueur dans une salle des machines en marche ne l’entend pas : elle n’entre pas chez lui', () => {
