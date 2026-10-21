@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
-import { libelleOption, nomDe, remplir, rendreObservation, type TextesMonde } from '../content';
+import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
 import {
   composer,
   composerDock,
@@ -24,18 +24,18 @@ import {
   type Etape,
   type Groupe,
 } from './ecran';
-import { Bulle, BulleAncree, garderFocus } from './bulle';
+import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { consulter, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
-import { EnvoyerMaPartie } from './PanneauRapport';
-import type { Retour } from './rapports';
+import { consulter, consulterDocument, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
 type Lire = (option: OptionMenu) => readonly string[];
+/** Structure de la fiche quand la cible est un document ; `null` sinon (spec 2026-10-18 §9.1). */
+type LireDocument = (option: OptionMenu) => DocumentRendu | null;
 type Prevoir = (option: OptionMenu) => ApercuAffiche;
 /** Vrai si l'option se joue d'un seul toucher, sans aperçu (D-182). */
 type Direct = (option: OptionMenu) => boolean;
@@ -130,11 +130,8 @@ export function EcranJeu({
   choisir,
   lireMessages,
   ouvrirOptions,
-  nouvellePartie,
+  continuer,
   signaux = AUCUN_SIGNAL,
-  envoyerPartie,
-  pr = '',
-  empreinteCle,
   terminerPartie,
 }: {
   readonly jeu: Jeu;
@@ -149,18 +146,12 @@ export function EcranJeu({
   readonly lireMessages: (jeu: Jeu) => void;
   /** Engrenage des options (12 §3.2) ; absent, ou partie terminée : pas d'engrenage. */
   readonly ouvrirOptions?: () => void;
-  /** Après la fin de la partie, seul geste possible en attendant l'écran de fin (12 §4.11). */
-  readonly nouvellePartie?: () => void;
+  /** Après la fin de la partie, seul geste possible : CONTINUER mène à l'écran de fin (12 §4.11, D-286). */
+  readonly continuer?: () => void;
   /** TERMINER LA PARTIE de l'information « plus aucune sortie » (12 §5.2) : un abandon ; `false` s'il n'a pas pu être enregistré. */
   readonly terminerPartie?: () => Promise<boolean>;
   /** Signaux de la dernière action (15 §2.2), annoncés après l'écriture du texte. */
   readonly signaux?: readonly Signal[];
-  /** ENVOYER MA PARTIE après la fin (12 §4.11) ; dans une version de test, la partie finie peut porter « je valide ». */
-  readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
-  /** Numéro de PR de la version de test, vide pour la version publique. */
-  readonly pr?: string;
-  /** Empreinte de la clé de validation, montrée sous « je valide » (D-232) : l'écran de fin n'a pas d'options. */
-  readonly empreinteCle?: () => Promise<string | null>;
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
@@ -284,6 +275,7 @@ export function EcranJeu({
     void choisir(jeu, option);
   };
   const lire: Lire = (option) => consulter(env, jeu.partie, option);
+  const lireDocument: LireDocument = (option) => consulterDocument(env, jeu.partie, option);
   const voir: Prevoir = (option) => prevoir(env, jeu.partie, option);
   const nonLus = jeu.partie.etat.messages.filter((message) => !lus.includes(message));
   // Gratuit (D-014) : la fenêtre montre les messages déjà reçus, sans question possible (C-06 K-06).
@@ -321,15 +313,13 @@ export function EcranJeu({
         ))}
       </section>
       {observation.terminee ? (
+        // Le dernier texte reste à lire ; la fin vient au toucher (D-286).
         <section className="dock fin-partie">
-          {/* Déjà lue dans la situation, en tête de page pour le lecteur d'écran. */}
-          <p aria-hidden="true">{remplir(observation.issue === 'evacuation' ? textes.observation.evacuee : textes.observation.terminee, {})}</p>
-          {nouvellePartie !== undefined && (
-            <button type="button" className="principal" disabled={occupe} onClick={nouvellePartie} data-son="clic">
-              Nouvelle partie
+          {continuer !== undefined && (
+            <button type="button" className="principal" disabled={occupe} onClick={continuer} data-son="clic">
+              Continuer
             </button>
           )}
-          {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={pr !== ''} empreinteCle={empreinteCle} occupe={occupe} />}
         </section>
       ) : (
         <DockPiece
@@ -364,6 +354,7 @@ export function EcranJeu({
           occupe={occupe}
           jouer={jouer}
           lire={lire}
+          lireDocument={lireDocument}
           prevoir={voir}
           direct={direct}
           fermer={fermer}
@@ -387,6 +378,7 @@ export function EcranJeu({
             occupe={occupe}
             jouer={jouer}
             lire={lire}
+            lireDocument={lireDocument}
             prevoir={voir}
             direct={direct}
             fermer={fermer}
@@ -516,12 +508,15 @@ export function InformationSansSortie({
 export function EcranReveil({
   jeu,
   env,
+  numero = null,
   machineAEcrire,
   occupe,
   regarder,
 }: {
   readonly jeu: Jeu;
   readonly env: Pick<Environnement, 'monde' | 'textes'>;
+  /** Rang de la station tirée, rappelé discrètement en haut à droite (D-312) ; `null` pour un monde fixe. */
+  readonly numero?: number | null;
   readonly machineAEcrire: boolean;
   readonly occupe: boolean;
   readonly regarder: () => void;
@@ -551,6 +546,7 @@ export function EcranReveil({
     <main className="jeu reveil" onPointerDownCapture={completer} onKeyDownCapture={completer}>
       <header className="entete-piece entete-reveil">
         <p className="lieu-reveil">&gt; {nomDe(env.textes, observation.piece).texte}_</p>
+        {numero !== null && <p className="numero-station">Station {numero}</p>}
       </header>
       <Sauvegarde jeu={jeu} />
       <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} terminee={false} />
@@ -569,6 +565,7 @@ interface PropsComposition {
   /** Joue l'action : CONFIRMER, ou la ligne elle-même si elle se joue d'un seul toucher. */
   readonly jouer: Jouer;
   readonly lire: Lire;
+  readonly lireDocument: LireDocument;
   readonly prevoir: Prevoir;
   readonly direct: Direct;
   readonly fermer: () => void;
@@ -697,6 +694,7 @@ function Composer({
   occupe,
   jouer,
   lire,
+  lireDocument,
   prevoir: voir,
   direct,
   choisirAction,
@@ -724,13 +722,16 @@ function Composer({
   }
   const { fiche, actions } = composer(groupe);
   const lignes = lignesActions(actions);
+  const rendu = fiche === undefined ? null : lireDocument(fiche);
   return (
     <>
       {fiche !== undefined && (
-        <div id={idDescription} className="fiche">
-          {lire(fiche).map((phrase, index) => (
-            <p key={index}>{phrase}</p>
-          ))}
+        <div id={idDescription} className={rendu === null ? 'fiche' : 'fiche fiche-document'}>
+          {rendu === null ? (
+            lire(fiche).map((phrase, index) => <p key={index}>{phrase}</p>)
+          ) : (
+            <FicheDocument rendu={rendu} puce={nomPuce(textes, groupe.cible)} />
+          )}
         </div>
       )}
       {lignes.length > 0 && (
@@ -920,13 +921,14 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
  * Au réveil et à la fin de la partie, la parole d'IA Station est encadrée en entier (12 §4.2) ; en cours de partie, rien dans le récit :
  * le repère du bouton IA STATION l'annonce (12 §3.3, D-263).
  */
-function Recit({
+export function Recit({
   jeu,
   zone,
   ecrire,
   fixe,
   terminee,
   sansAssistance = false,
+  accent = null,
 }: {
   readonly jeu: Jeu;
   readonly zone: RefObject<HTMLElement | null>;
@@ -936,6 +938,8 @@ function Recit({
   /** Partie finie : la navigation a disparu, le dernier message d'IA Station s'écrit alors dans le récit, comme au réveil. */
   readonly terminee: boolean;
   readonly sansAssistance?: boolean;
+  /** Rang de la phrase du récit écrite en `accent` : la mort, à l'écran de fin (D-282). */
+  readonly accent?: number | null;
 }) {
   const { rappel } = jeu;
   const reveil = jeu.partie.etat.actions === 0;
@@ -977,7 +981,7 @@ function Recit({
             {copie(index + decalage)}
           </p>
         ) : (
-          <p key={index}>
+          <p key={index} className={index === accent ? 'cause' : undefined}>
             <span className="lecteur-seul">{phrase}</span>
             {copie(index + decalage)}
           </p>

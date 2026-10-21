@@ -1,3 +1,4 @@
+import type { IntensiteTrace } from './monde';
 import type { EmplacementPassage, PanCoque, RectPlan } from './plan';
 
 // Vocabulaire public du moteur : commandes, événements, consultations, raisons. Aucun texte.
@@ -29,6 +30,13 @@ export const ACTIONS = [
   'retablir',
   'boucler',
   'actionner',
+  'envoyer',
+  'tenir',
+  'lacher',
+  'replacer',
+  'rearmer',
+  'arreter_drone',
+  'reprendre_drone',
   'attendre',
 ] as const;
 export type IdAction = (typeof ACTIONS)[number];
@@ -49,6 +57,7 @@ export const TYPES_EVENEMENT = [
   'objet_pris',
   'objet_pose',
   'passage_ouvert',
+  'passage_ouvert_encombre',
   'passage_ferme',
   'deplacement',
   'piece_decouverte',
@@ -66,6 +75,7 @@ export const TYPES_EVENEMENT = [
   'soin_indemne',
   'soin_blesse',
   'objet_deplace',
+  'objet_pose_position',
   'feu_derriere',
   'feu_gagne',
   'feu_eteint',
@@ -98,10 +108,21 @@ export const TYPES_EVENEMENT = [
   'cloison_deverrouillee',
   'porte_secouee',
   'porte_enfoncee',
+  'bruit_station',
+  'drone_envoye',
+  'drone_maintient',
+  'drone_deraille',
+  'drone_replace',
+  'drone_rearme',
+  'drone_arrete',
+  'drone_termine',
+  'drone_bruit_arrete',
+  'poignee_tenue',
+  'poignee_lachee',
 ] as const;
 export type TypeEvenement = (typeof TYPES_EVENEMENT)[number];
 
-export const TYPES_CONSULTATION = ['regarder_piece', 'regarder_objet', 'regarder_passage'] as const;
+export const TYPES_CONSULTATION = ['regarder_piece', 'regarder_objet', 'regarder_passage', 'regarder_document'] as const;
 export type TypeConsultation = (typeof TYPES_CONSULTATION)[number];
 
 export const RAISONS_REFUS = [
@@ -133,6 +154,10 @@ export const RAISONS_REFUS = [
   'deja_fait',
   'verrouillee',
   'enfoncee',
+  'sans_carte',
+  'lacher_poignee',
+  'frein_serre',
+  'encombre_par_obstacle',
 ] as const;
 export type RaisonRefus = (typeof RAISONS_REFUS)[number];
 
@@ -154,6 +179,10 @@ export const RAISONS_INDISPONIBILITE = [
   'sans_gravite',
   'verrouillee',
   'enfoncee',
+  'sans_carte',
+  'lacher_poignee',
+  'frein_serre',
+  'encombre_par_obstacle',
 ] as const satisfies readonly RaisonRefus[];
 export type RaisonIndisponibilite = (typeof RAISONS_INDISPONIBILITE)[number];
 
@@ -174,6 +203,7 @@ export interface RefObjet {
  * destination d'un passage sans signalétique n'est pas découverte (C-06 §3, K-05).
  */
 export interface RefPassage {
+  readonly encombre?: true;
   readonly sorte: 'passage';
   readonly id: string;
   readonly nom: string;
@@ -208,10 +238,13 @@ export interface Commande {
 }
 
 export type Evenement =
+  | { readonly type: 'drone_envoye' | 'drone_maintient' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine' | 'poignee_tenue' | 'poignee_lachee'; readonly objet: RefObjet }
+  | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'objet_pris'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'objet_pose'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'passage_ouvert'; readonly passage: RefPassage }
+  | { readonly type: 'passage_ouvert_encombre'; readonly passage: RefPassage }
   | { readonly type: 'passage_ferme'; readonly passage: RefPassage }
   | { readonly type: 'deplacement'; readonly passage: RefPassage; readonly piece: RefPiece }
   | { readonly type: 'piece_decouverte'; readonly piece: RefPiece }
@@ -234,6 +267,8 @@ export type Evenement =
   | { readonly type: 'soin_indemne'; readonly objet: RefObjet }
   | { readonly type: 'soin_blesse'; readonly objet: RefObjet }
   | { readonly type: 'objet_deplace'; readonly objet: RefObjet; readonly position: RefPosition }
+  /** Un appui déplaçable porté se pose directement à une position de la pièce : sous la grille, sans passer par le sol (grandes stations). */
+  | { readonly type: 'objet_pose_position'; readonly objet: RefObjet; readonly position: RefPosition }
   /** Le passager voit des flammes par le passage qu'il vient d'ouvrir, ou par un passage ouvert dont il ignore la destination. */
   | { readonly type: 'feu_derriere'; readonly passage: RefPassage }
   /** Le feu gagne une pièce que le passager voit et sait nommer : la sienne, ou une voisine par un passage ouvert (C-03 §5.3). */
@@ -282,13 +317,17 @@ export type Evenement =
    * Alertée, la créature force une porte fermée sur sa piste : le passager l'entend s'acharner, puis la porte cède et s'ouvre
    * (D-279) ; seulement s'il est dans l'une des deux pièces de la porte.
    */
-  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage };
+  | { readonly type: 'porte_secouee' | 'porte_enfoncee'; readonly passage: RefPassage }
+  /** Bruit de la station, avant la rencontre, dans une grande station (spec 2026-10-18 §5.5). */
+  | { readonly type: 'bruit_station' };
 
 /** Moment prévu où un message d'assistance a été reçu (12 §3.9) : un repère, jamais une heure. */
 export type MomentMessage =
   | { readonly type: 'reveil'; readonly piece: RefPiece }
   | { readonly type: 'arrivee'; readonly piece: RefPiece }
-  | { readonly type: 'evacuation' };
+  | { readonly type: 'evacuation' }
+  /** À la 15e attente de suite où rien ne se passe (#225). */
+  | { readonly type: 'patience' };
 
 export interface MessageRecu {
   readonly message: string;
@@ -302,9 +341,11 @@ export type SourceEvacuation = 'circuit' | 'bloc' | 'reserve';
 export type Issue = 'evacuation' | 'defaite';
 
 export type Consultation =
-  | { readonly type: 'regarder_piece'; readonly cible: RefPiece }
+  | { readonly type: 'regarder_piece'; readonly cible: RefPiece; readonly trace?: IntensiteTrace; readonly pillee?: true }
   | { readonly type: 'regarder_objet'; readonly cible: RefObjet }
-  | { readonly type: 'regarder_passage'; readonly cible: RefPassage };
+  | { readonly type: 'regarder_passage'; readonly cible: RefPassage }
+  /** Un document ; `designe` : la pièce que nomme une note de rangement, pour remplir le trou (spec 2026-10-18 §8.5). */
+  | { readonly type: 'regarder_document'; readonly cible: RefObjet; readonly designe?: RefPiece };
 
 export interface OptionMenu {
   readonly action: IdAction;
@@ -353,11 +394,18 @@ export const TYPES_SAVOIR = [
   'retablira',
   'bouclera',
   'deverrouillera',
+  'enverra_drone',
+  'tiendra',
+  'lachera',
+  'replacera_drone',
+  'rearmera_drone',
+  'arretera_drone',
 ] as const;
 export type TypeSavoir = (typeof TYPES_SAVOIR)[number];
 
 /** Conséquence connue du passager avant d'agir (C-06 §4) : jamais un secret ni un résultat de dé. */
 export type Savoir =
+  | { readonly type: 'enverra_drone' | 'tiendra' | 'lachera' | 'replacera_drone' | 'rearmera_drone' | 'arretera_drone'; readonly objet: RefObjet }
   | { readonly type: 'portera'; readonly objet: RefObjet }
   | { readonly type: 'laissera'; readonly objet: RefObjet; readonly piece: RefPiece }
   | { readonly type: 'ouvrira'; readonly passage: RefPassage }
@@ -448,7 +496,11 @@ export type DessinPassage = 'porte' | 'tirets';
 export interface ObjetCarte {
   readonly objet: RefObjet;
   readonly position: RefPosition | null;
+  /** Identité d'un objet déjà vu ; aucune position réelle ni phase hors de vue. */
+  readonly drone?: true;
 }
+
+export type PhaseDrone = 'veille' | 'trajet' | 'maintien' | 'deraille' | 'a_rearmer' | 'arrete' | 'termine';
 
 /** Une pièce que le passager connaît, telle qu'il l'a vue (14 §3.4). */
 export interface PieceCarte {
@@ -505,6 +557,10 @@ export interface CartePublique {
 
 /** Tout ce que le passager sait (C-06) ; seule sortie vers le joueur. */
 export interface Observation {
+  /** Seulement dans les mondes concernés ; seuls les drones de la pièce actuelle sont renseignés. */
+  readonly drones?: readonly { readonly objet: RefObjet; readonly phase: PhaseDrone }[];
+  readonly poigneeTenue?: RefObjet;
+  readonly freins?: readonly { readonly objet: RefObjet; readonly desserre: boolean }[];
   readonly piece: RefPiece;
   readonly objets: readonly RefObjet[];
   /** Objets déplaçables de la pièce posés à une position (C-02 §2), comme la caisse sous la grille. */

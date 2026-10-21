@@ -6,11 +6,16 @@ import { MESSAGES_M10 } from './m-10/textes';
 import { MORCEAUX } from './morceaux';
 import type { TextesMorceau } from './textes/types';
 
+export { CATALOGUE_PIECES, PIECES_CATALOGUE, TABLE_BUTIN, TEXTES_CATALOGUE } from './catalogue';
 export { MORCEAUX, type EntreeMorceau } from './morceaux';
 export {
   COMPOSITIONS_CONTROLEES,
   COMPOSITIONS_PUBLIEES,
   creerCatalogue,
+  GRAINE_GRANDE_MAX,
+  GRANDES_PUBLIEES,
+  VERSION_GENERATEUR,
+  type CompositionGrande,
   MONDES,
   numeroter,
   sansConflit,
@@ -32,8 +37,11 @@ export const MORCEAUX_TEXTES: Readonly<Record<string, TextesMorceau>> = {
   'station m-10': { noms: {}, descriptions: {}, assistance: MESSAGES_M10 },
 };
 
-export { fuitesDeCouches, reunir } from './textes/couches';
-export { MENACE, MOTS_MENACE } from './textes/menace';
+export { FIN, fuitesDeCouches, fuitesDesCouches, fuitesDuCatalogue, minuscules, motsReserves, reunir, type Reserve } from './textes/couches';
+export { rendreDocument, texteDocument, type DocumentRendu, type LigneDocument } from './textes/document';
+export { DOCUMENTS, EMPLACEMENTS_DOCUMENTS, RESERVE_DOCUMENTS } from './textes/documents';
+export { cleMort, MOMENTS_MAX, raconterFin, type FinDePartie, type RecitFin } from './textes/fin';
+export { MENACE, MOTS_MENACE, MOTS_TRACES } from './textes/menace';
 export { SOCLE } from './textes/socle';
 export { TEXTES_STATION_ESSAI } from './textes/station-essai';
 export { ASSISTANCE_STATION, MOTS_UNIVERS, UNIVERS } from './textes/univers';
@@ -66,19 +74,28 @@ export {
 } from './textes/rendu';
 export {
   CLES_EVACUATION,
+  CLES_MOMENT,
+  CLES_MORT,
   ROLES_ALLER_SANS_DESTINATION,
   ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
+  ROLES_MOMENT,
   ROLES_OBSERVATION,
+  ROLES_POSER_A_POSITION,
   ROLES_PASSAGE,
   ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
   type CleEvacuation,
+  type CleMoment,
+  type CleMort,
   type Couche,
   type Nom,
+  type PhraseFin,
+  type SupportDocument,
+  type TexteDocument,
   type TextesMonde,
   type TextesMorceau,
   type TypeAggravation,

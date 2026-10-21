@@ -27,6 +27,8 @@ export const MORCEAU_M04: DefMorceau = {
   placesCreature: ['p-observation'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'creature', accueillantes: { 'p-controle': 'commandement' }, avant: ['p-controle'], coupe: ['l-controle-observation'], cles: { 'o-burette': { etiquettes: ['outillage'] } } },
 };
 
 // Textes du morceau (C-07) : la cloison, la burette et le nom du test d'avertisseur repris d'AR-01 ; la description du test
@@ -54,6 +56,26 @@ export const TEXTES_MORCEAU_M04: TextesMorceau = {
       'Un bouton de test d’avertisseur. Un plan situe l’émetteur dans une alcôve de la salle d’observation ; le test sonne un court moment.',
       'Le test d’avertisseur commande un émetteur placé dans une alcôve de la salle d’observation. Le cycle de test est bref.',
     ],
+  },
+  // Documents des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle et la note de la burette déplacée.
+  documents: {
+    doc_message_sami: {
+      puce: { texte: 'message de Sami', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, coincé dans un recoin',
+      corps: [
+        '[chuchoté] Ici Sami, sûreté. Nous avons vidé une burette sur le seuil de la cloison.',
+        '[un choc sourd, puis un raclement] Ce qui nous suivait a glissé de tout son long sur l’huile.',
+        '[souffle court] Nous passons, maintenant.',
+      ],
+    },
+    doc_pense_bete: {
+      puce: { texte: 'pense-bête', genre: 'm', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'collée à la paroi, à hauteur d’épaule',
+      corps: ['Burette d’huile rangée dans {le:piece}.', 'Quand on emprunte, on rapporte.'],
+      signature: 'Bastien',
+    },
   },
   assistance: {},
 };

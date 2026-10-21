@@ -1,6 +1,6 @@
 # C-03 — Temps, dangers et réactions — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175, précisés par D-234 à D-239 ; air et feu par-dessus le vide de la passerelle D-246/D-247 ; poursuite et ouïe D-177/D-178.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175, précisés par D-234 à D-239 ; air et feu par-dessus le vide de la passerelle D-246/D-247 ; poursuite et ouïe D-177/D-178 ; créature alertée D-276 et D-279, validées le 2026-10-18.
 > **Date :** 2026-10-14.
 > **Implémentation et vérification exécutable :** créature, perception, réaction et premier contact (§2 à §4, T-01, T-07, T-09) dans le moteur depuis #100 ; avertisseur, glissade et feu (§5.1 à §5.3, T-02 à T-06, T-08, T-10) depuis #102 ; vide, brèche, rustine et retour de l'air (§5.4, T-11 à T-14, T-18) depuis #104 ; morceaux du lancement et mélanges (§5.5, T-15 à T-17) proposés par #105, dans quatre stations de test. Pas d'attestation de partie humaine.
 
@@ -51,11 +51,13 @@ Un son ne prend pas le pas sur un joueur visible. Un équipement dont le test a 
 
 Une réaction peut franchir au plus une liaison normale, effectuer un repositionnement local, inspecter une source ou produire un incident au contact. Mouvement vers une nouvelle pièce et attaque à l'arrivée ne constituent pas deux actions gratuites dans la même réaction.
 
-Le chemin sonore vers une origine peut être impraticable pour le gabarit de la créature. Elle tente une voie réellement praticable ou rejoint le côté accessible d'une séparation bloquante. Une cloison fermée d'AR-01 la retient ; aucun franchissement forcé, saut par conduit ou téléportation.
+Le chemin sonore vers une origine peut être impraticable pour le gabarit de la créature. Elle tente une voie réellement praticable ou rejoint le côté accessible d'une séparation bloquante. Une cloison fermée d'AR-01 la retient ; aucun saut par conduit ni téléportation. Seule exception : alertée, elle force une porte ordinaire fermée sur sa piste (D-279, ci-dessous).
 
 Après inspection d'une source silencieuse, sans nouvel indice, la créature reste là. Ni patrouille permanente ni retour artificiel à son emplacement initial. Réaction au stimulus n'implique pas suivi omniscient de la trajectoire réelle du joueur.
 
-**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice.
+**Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Avant l'alerte, un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice.
+
+**Créature alertée (D-276, D-279).** Après le premier contact, elle entend les pas du passager par toute suite de liaisons qui laisse passer le son et va vers lui par le plus court chemin praticable ; elle garde l'oreille ouverte trois actions ; arrivée au bout de sa piste sans le trouver, elle fouille une pièce voisine. Quand sa piste passe par une porte fermée, elle la force : deux réactions de suite sur la même porte, puis la porte cède, s'ouvre et ne ferme plus. Ne se forcent pas : passage étroit, vide, cloison encore verrouillée, écoutille manœuvrée de l'intérieur, panneau caché, passage hors de portée, porte vers une pièce en feu.
 
 ### 4.4 Premier contact
 
@@ -115,6 +117,14 @@ Règles des nouveaux morceaux de la [conception des morceaux](../13-morceaux-lan
 **Précisions du porteur (D-234 à D-240).** La relance des machines et le compresseur sonnent fort le temps de trois réactions, comme le test de l'avertisseur (§5.1). Machines en marche, la créature dans la salle n'entend rien du dehors et aucun bruit ne traverse la salle. Les deux bords de la passerelle s'entendent sans se voir. Gravité coupée, ressortir de la zone par une autre porte que celle d'entrée demande au passager de dériver jusqu'à elle (une action), à la créature deux réactions ; les interrupteurs de gravité sont dans les pièces qui touchent la zone. La créature est ralentie dès qu'une porte de la chambre froide se ferme pendant qu'elle est dedans ; le pupitre ferme les deux portes d'un coup.
 
 **Mélanges (D-174).** Les ralentissements s'additionnent : le froid saute une réaction sur deux ; réactions perdues (huile) et traversée sans gravité se comptent sur les réactions qui restent (MX-01). Le vide éteint un foyer qu'il atteint, et le feu ne gagne pas une pièce sans air (MX-02). Vide et huile s'ignorent (MX-03). L'huile ne se verse pas gravité coupée (MX-04) et reste glissante dans la chambre froide (MX-05). L'air et le feu passent par-dessus le vide de la passerelle, toujours ouvert, comme par un passage ouvert ; l'air quitte la salle des machines, la zone sans gravité et la chambre froide comme toute autre pièce (D-246, D-247).
+
+### 5.6 Coopération et drone réparable M-12
+
+D-304 à D-306 : le drone exécute un trajet local puis maintient une commande pendant les gestes suivants du passager. Lire, consulter, ouvrir un menu ou recevoir un refus ne font avancer ni son déplacement ni sa tâche. Le maintien permet au passager de pousser le chariot ailleurs ; le passage reste dégagé lorsque la tâche est terminée.
+
+Le bruit du déplacement et du maintien est un son fort soumis à §4.1 et §4.2 : ni localisation omnisciente de la créature, ni priorité artificielle aux pas. Les autres sources sonores gardent leurs règles ; les machines peuvent couvrir le bruit. Si la créature atteint le drone et réagit contre cette source, elle peut le faire dérailler en une réaction. Arriver puis attaquer ne constitue pas une double réaction gratuite. Un passager effectivement visible reste prioritaire.
+
+Le déraillement coupe le moteur et relâche la commande. La remise sur rail et le réarmement sont deux engagements distincts ; entre les deux, le frein n'est pas desserré. Les réactions, dés et blessures restent ceux de C-04. Réparer ne soigne pas et ne suspend pas la menace. Les règles de C-03/C-04 priment sur les simplifications de la maquette de conception.
 
 ## 6. Attentes de test, non exécutées
 

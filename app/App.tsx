@@ -3,7 +3,9 @@ import { observer, type Evenement, type OptionMenu, type Partie } from '../engin
 import type { EntreeMonde } from '../content';
 import type { Chronometre } from './duree';
 import { EcranJeu, EcranReveil } from './EcranJeu';
-import { EcranFin, EcranOptions, type Telechargement } from './EcranOptions';
+import { EcranFin } from './EcranFin';
+import { EcranIntro } from './EcranIntro';
+import { EcranOptions, type Telechargement } from './EcranOptions';
 import {
   abandonner,
   charger,
@@ -18,6 +20,7 @@ import {
   type Jeu,
 } from './jeu';
 import type { Installation } from './installation';
+import type { Intro } from './intro';
 import type { MiseAJour } from './miseAJour';
 import { composerRapport, signerRapport, type Rapports, type Retour, type TypeRapport } from './rapports';
 import type { Signataire } from './validation';
@@ -41,13 +44,15 @@ function evenementsDuPas(avant: Jeu, apres: Jeu): readonly Evenement[] {
 type Ecran =
   | { readonly type: 'chargement' }
   | { readonly type: 'accueil'; readonly partiePresente: boolean; readonly confirmation: boolean }
+  /** Intro de NOUVELLE PARTIE (12 §4.1 bis, D-308) : la partie est déjà créée et enregistrée, DÉMARRER mène au réveil. */
+  | { readonly type: 'intro'; readonly jeu: Jeu; readonly numero: number }
   | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
   | { readonly type: 'reprise_impossible' }
   /** `signaux` : ceux de la dernière action, annoncés une fois (15 §2.2) ; aucun à la reprise ni au retour des options. */
   | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[]; readonly signaux: readonly Signal[] }
   /** Options (12 §4.10) ouvertes depuis l'accueil ou le jeu ; `jeu` : la partie enregistrée, `null` s'il n'y en a pas. */
   | { readonly type: 'options'; readonly depuis: 'accueil' | 'jeu'; readonly jeu: Jeu | null; readonly lus: readonly string[] }
-  /** Fin après abandon (12 §4.11) : la partie n'est plus enregistrée. */
+  /** Fin (12 §4.11) : après un abandon, la partie n'est plus enregistrée ; après une défaite ou une évacuation, elle l'est encore. */
   | { readonly type: 'fin'; readonly jeu: Jeu };
 
 /** Télécharge l'export de la partie sur l'appareil (C-09 §5) ; le retour est visible, prêt ou échec. */
@@ -85,6 +90,7 @@ export function App({
   signataire,
   verification,
   chronometre,
+  intro,
 }: {
   readonly env: Environnement;
   /** Monde de chaque NOUVELLE PARTIE (#152) ; absent, toujours celui de `env`. REJOUER CETTE STATION garde le monde en cours. */
@@ -111,6 +117,8 @@ export function App({
   readonly verification?: () => Promise<EtatVerification>;
   /** Durée de la partie, écran allumé (#204) ; absent, les rapports la disent non mesurée. */
   readonly chronometre?: Chronometre;
+  /** Intro de NOUVELLE PARTIE (D-308) ; absente, NOUVELLE PARTIE mène droit au réveil. */
+  readonly intro?: Intro;
 }) {
   const [ecran, setEcran] = useState<Ecran>({ type: 'chargement' });
   // Le monde change à chaque NOUVELLE PARTIE ; le stockage, la version et la graine restent ceux du lancement.
@@ -157,21 +165,32 @@ export function App({
     [env],
   );
 
-  /** Partie neuve sur `cible`, qui devient le monde en cours avec l'écran de réveil. */
-  const commencerSur = useCallback(async (cible: Environnement) => {
-    setOccupe(true);
-    try {
-      const jeu = await commencer(cible);
-      setEnv(cible);
-      setEcran({ type: 'reveil', jeu, lus: [] });
-    } finally {
-      setOccupe(false);
-    }
-  }, []);
+  /**
+   * Partie neuve sur `cible`, qui devient le monde en cours avec l'écran de réveil ; avec `avecIntro`, l'intro passe d'abord
+   * pour une station tirée (D-308). REJOUER CETTE STATION n'en a pas.
+   */
+  const commencerSur = useCallback(
+    async (cible: Environnement, avecIntro = false) => {
+      setOccupe(true);
+      try {
+        const jeu = await commencer(cible);
+        setEnv(cible);
+        const numero = avecIntro ? (intro?.numero(cible.monde.id) ?? null) : null;
+        if (intro === undefined || numero === null) {
+          setEcran({ type: 'reveil', jeu, lus: [] });
+          return;
+        }
+        setEcran({ type: 'intro', jeu, numero });
+      } finally {
+        setOccupe(false);
+      }
+    },
+    [intro],
+  );
 
   const commencerNouvellePartie = useCallback(async () => {
     const station = nouvelleStation?.();
-    await commencerSur(station === undefined ? env : { ...env, monde: station.monde, textes: station.textes });
+    await commencerSur(station === undefined ? env : { ...env, monde: station.monde, textes: station.textes }, true);
   }, [env, nouvelleStation, commencerSur]);
 
   const reprendre = useCallback(async () => {
@@ -180,6 +199,11 @@ export function App({
       const demarrage = await demarrer(env);
       if (demarrage.type !== 'pret') {
         setEcran({ type: 'reprise_impossible' });
+        return;
+      }
+      // Une partie finie rouvre sur son écran de fin (C-09 S-05, D-286).
+      if (observer(env.monde, demarrage.jeu.partie.etat).terminee) {
+        setEcran({ type: 'fin', jeu: demarrage.jeu });
         return;
       }
       if (demarrage.jeu.partie.etat.actions === 0) {
@@ -390,17 +414,28 @@ export function App({
           <EcranFin
             jeu={ecran.jeu}
             env={env}
+            machineAEcrire={reglages.machineAEcrire}
             occupe={occupe}
             rejouer={() => void commencerSur(env)}
             nouvellePartie={() => void commencerNouvellePartie()}
             menuPrincipal={() => void allerAccueil()}
             envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
             pr={pr}
+            empreinteCle={empreinteCle}
+          />
+        ) : ecran.type === 'intro' && intro !== undefined ? (
+          <EcranIntro
+            intro={intro}
+            numero={ecran.numero}
+            instantane={!reglages.machineAEcrire || intro.mouvementReduit()}
+            occupe={occupe}
+            demarrer={() => setEcran({ type: 'reveil', jeu: ecran.jeu, lus: [] })}
           />
         ) : ecran.type === 'reveil' ? (
           <EcranReveil
             jeu={ecran.jeu}
             env={env}
+            numero={intro?.numero(env.monde.id) ?? null}
             machineAEcrire={reglages.machineAEcrire}
             occupe={occupe}
             regarder={() => void regarder(ecran.jeu, ecran.lus)}
@@ -416,11 +451,8 @@ export function App({
             lireMessages={lireMessages}
             ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
             terminerPartie={() => abandonnerPartie(ecran.jeu)}
-          signaux={ecran.signaux}
-            nouvellePartie={() => void commencerNouvellePartie()}
-            envoyerPartie={rapports === undefined ? undefined : (commentaire, valide) => envoyerRapport('partie', ecran.jeu, commentaire, valide)}
-            pr={pr}
-            empreinteCle={empreinteCle}
+            signaux={ecran.signaux}
+            continuer={() => setEcran({ type: 'fin', jeu: ecran.jeu })}
           />
         ) : (
           <main className="jeu">

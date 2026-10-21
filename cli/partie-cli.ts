@@ -4,6 +4,7 @@ import {
   jouer,
   nouvellePartie,
   observer,
+  rejouer,
   reprendrePartie,
   type DefMonde,
   type Evenement,
@@ -18,12 +19,15 @@ import {
   lignesListeCarte,
   raconter,
   raconterDerniers,
+  raconterFin,
   rendreApercu,
   rendreAssistance,
+  rendreDocument,
   rendreListeCarte,
   rendreObservation,
   rendreRefus,
   type Catalogue,
+  type DocumentRendu,
   type EntreeMonde,
   type TextesMonde,
 } from '../content';
@@ -111,7 +115,7 @@ function mondeEnregistre(contenu: string | null): string | null {
 
 /**
  * Monde de l'appel : la station de `--station` (composition au plan tiré, ou station exacte), sinon le monde fixe de
- * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une station tirée. Renvoie un message
+ * `--monde`, sinon celui de la partie enregistrée (sauf pour « nouvelle »), sinon une grande station tirée (D-313). Renvoie un message
  * si le monde est refusé ; une partie enregistrée sur une station inconnue n'est jamais remplacée par un tirage.
  */
 export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es: EntreesSorties): EntreeMonde | string {
@@ -120,8 +124,9 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
   const hasard = (): number => es.graineAleatoire();
   if (station === '') return 'Indiquez la station : --station <id>.';
   if (station !== undefined) {
-    const composition = catalogue.compositions.some(({ id }) => id === station);
-    const forcee = composition ? catalogue.tirer(hasard, station) : catalogue.resoudre(station);
+    const petite = catalogue.compositions.some(({ id }) => id === station);
+    const grande = catalogue.grandes.some(({ id }) => id === station);
+    const forcee = petite ? catalogue.tirer(hasard, station) : grande ? catalogue.tirerGrande(hasard, station) : catalogue.resoudre(station);
     return 'refus' in forcee ? `Station refusée : ${forcee.refus}` : forcee;
   }
   if (monde === '') return 'Indiquez le monde : --monde <id>.';
@@ -133,15 +138,36 @@ export function choisirEntree(argv: readonly string[], catalogue: Catalogue, es:
   if (enregistre !== null) {
     const reprise = catalogue.resoudre(enregistre);
     if (!('refus' in reprise)) return reprise;
+    // Une grande station dit pourquoi elle ne se reprend pas : autre version des stations, ou station non publiée (spec §4.3).
+    if (/^g\d+-/.test(enregistre)) return `${reprise.refus} Commencez une nouvelle partie : nouvelle`;
     return `La partie enregistrée porte sur une station inconnue (${enregistre}). Commencez une nouvelle partie : nouvelle`;
   }
-  const tiree = catalogue.tirer(hasard);
+  const tiree = catalogue.tirerGrande(hasard);
   return 'refus' in tiree ? `Station refusée : ${tiree.refus}` : tiree;
 }
 
 /** Messages de l'IA de la station reçus avec ces événements, après le récit. */
 function afficherAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
   return rendreAssistance(textes, evenements).map((message) => `[ IA STATION ] « ${message} »`);
+}
+
+/**
+ * Écran de fin d'une défaite ou d'une évacuation, mêmes mots que l'appli (12 §4.11, D-281, C-06 K-07) : la partie relue du
+ * réveil à sa dernière action. Rien pour une partie en cours ; « ne peut pas être reprise » est déjà dans la situation.
+ */
+export function afficherFin(monde: DefMonde, textes: TextesMonde, partie: Partie): string[] {
+  const { issue, sante } = observer(monde, partie.etat);
+  if (issue === null) return [];
+  const { version, graine } = partie.enregistrement;
+  const etapes = [nouvellePartie(monde, { version, graine }).derniers, ...rejouer(monde, partie.enregistrement, version).etapes];
+  const { titre, paragraphes, assistance } = raconterFin(textes, etapes, { issue, sante, graine, menace: monde.creature !== undefined });
+  return [
+    '',
+    '> FIN DE LA PARTIE',
+    titre,
+    ...paragraphes.flatMap((paragraphe) => ['', paragraphe]),
+    ...assistance.map((message) => `[ IA STATION ] « ${message} »`),
+  ];
 }
 
 export function afficherSituation(textes: TextesMonde, observation: Observation, avecIds = false): string[] {
@@ -200,13 +226,22 @@ function enregistrer(contexte: Contexte, chemin: string, partie: Partie): string
   }
 }
 
+/** Un document se lit ligne à ligne (spec 2026-10-18 §9.2) : le support, la ligne « où », le corps (journal : « hh:mm  texte »), la signature. */
+function lignesDocument({ libelleSupport, ou, corps, signature }: DocumentRendu): string[] {
+  return [libelleSupport, ou, ...corps.map(({ heure, texte }) => (heure === undefined ? texte : `${heure}  ${texte}`)), ...(signature === undefined ? [] : [signature])];
+}
+
 function suite(contexte: Contexte, chemin: string, resultat: Resultat): Sortie {
-  const lignes = [...raconter(contexte.textes, resultat)];
+  const lignes =
+    resultat.type === 'consultation' && resultat.consultation.type === 'regarder_document'
+      ? lignesDocument(rendreDocument(contexte.textes, resultat.consultation))
+      : [...raconter(contexte.textes, resultat)];
   if (resultat.type === 'engagee') {
     lignes.push(...afficherAssistance(contexte.textes, resultat.evenements));
     lignes.push(enregistrer(contexte, chemin, resultat.partie));
   }
   lignes.push(...afficherSituation(contexte.textes, observer(contexte.monde, resultat.partie.etat)));
+  lignes.push(...afficherFin(contexte.monde, contexte.textes, resultat.partie));
   return { lignes, code: 0 };
 }
 
@@ -235,7 +270,7 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
       const situation = afficherSituation(textes, observer(monde, partie.etat), options.ids === 'oui');
-      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation], code: 0 };
+      return { lignes: ['Dernière action :', ...raconterDerniers(textes, partie), ...afficherAssistance(textes, partie.derniers), ...situation, ...afficherFin(monde, textes, partie)], code: 0 };
     }
     case 'carte': {
       const partie = charger(contexte, chemin);

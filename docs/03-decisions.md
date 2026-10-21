@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-18.
+> **Mise à jour :** 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
 
 ## Règles
 
@@ -22,11 +22,12 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Aventure de référence AR-01 | [D-031 à D-057](#d-031--passager-réveillé-pendant-le-confinement) |
 | Aventure de référence AR-02 | [D-058 à D-074](#d-058--ar-02--courte-aventure-complète-de-la-même-famille), [D-193 à D-196](#d-193--le-passage-en-force-dar-02-se-joue-sans-dé) |
 | Monde, observation et connaissances | [D-075 à D-082](#d-075--la-carte-montre-seulement-ce-quon-a-visité) |
-| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule) |
+| Stations, génération et fins | [D-083 à D-087](#d-083--variation-par-assemblage-de-morceaux-écrits-à-la-main), [D-118 à D-121](#d-118--environ-huit-morceaux-au-lancement), [D-156 à D-175](#d-156--de-nouveaux-morceaux-peuvent-apporter-de-nouvelles-règles), [D-234 à D-240](#d-234--relance-des-machines-et-compresseur--un-bruit-comme-lavertisseur), [D-241 à D-244](#d-241--créature-mise-hors-jeu-tôt--on-mesure-avant-de-décider), [D-245 à D-256](#d-245--découpage-de-106-accepté--grandes-stations-dans-une-issue-à-part), [D-257 à D-260](#d-257--un-vestibule-de-réveil-sans-danger-immédiat), [D-261 à D-262](#d-261--m-07--la-créature-attend-seulement-dans-la-soute), [D-264 à D-265](#d-264--l3--réussie-si-chaque-station-mène-à-la-capsule-la-difficulté-plus-tard), [D-268 à D-269](#d-268--l4--créature-sur-le-palier-ou-dans-latelier-seulement-derrière-un-obstacle-qui-permet-de-sen-débarrasser), [D-270](#d-270--l5--conception-de-lordre-libre-et-des-mesures-approuvée), [D-275](#d-275--plus-aucune-sortie--une-question-de-chemin-vers-la-capsule), [D-281 à D-286](#d-281--fin-de-partie--le-récit-de-la-partie-à-partir-de-ses-moments-marquants), [D-290 à D-293](#d-290--m-11-entre-au-tirage-public), [D-313 à D-327](#d-313--grandes-stations--trois-chemins-et-un-final-22-à-28-pièces), [D-329](#d-329--m-11-et-m-12-tirés-dans-les-grandes-stations) |
 | Sauvegarde, export et rapports | [D-088 à D-103](#d-088--nouveaux-tirages-en-rejouant-une-station), [D-200](#d-200--abandonner-efface-la-partie-de-lappareil), [D-231 à D-232](#d-231--le-rapport-sécrit-dans-un-panneau-ouvert-sous-sa-ligne-des-options), [D-280](#d-280--durée-dune-partie--le-temps-décran-allumé-du-réveil-à-la-fin) |
 | Gouvernance, agents et architecture | [D-104 à D-108](#d-104--tests-et-documentation-restent-en-zone-verte), [D-122 à D-139](#d-122--la-v2-se-développe-dans-le-dépôt-existant), [D-199](#d-199--lorchestration-des-issues-reste-dans-la-conversation-principale), [D-227](#d-227--mise-à-jour-de-lappli-installée--numéro-de-construction), [D-271 à D-272](#d-271--vérification-au-plus-court-mêmes-preuves) |
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
-| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit) |
+| Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
+| Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308 à D-312](#d-308--après-nouvelle-partie-une-intro-montre-que-la-station-est-tirée-au-hasard), [D-328](#d-328--poser-la-caisse-sous-la-grille-dun-seul-geste) |
 | Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
@@ -92,6 +93,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : entretien, question « Durée d'une partie ».
 - Décision : durée cible du début à une conclusion, pas durée maximale d'ouverture de l'application.
 - Limite : politique de sauvegarde, interruptions et mesure sur joueur novice à préciser.
+- Précisée par D-313 : une grande station vise 15 à 20 minutes de découverte, 25 à 30 avec de nouveaux obstacles (#203).
 
 ### D-009 — Petit jeu complet publié en PWA
 
@@ -155,6 +157,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-09 « Un personnage fixe pour la première version ».
 - Décision : même personnage de départ, sans choix de classes ou répartition de statistiques dans le périmètre initial. La variété vient des scénarios et objets.
 - Limite : identité, capacités, équipement de départ et effets des conditions non décidés. « Fixe » ne signifie pas invulnérable ni incapable d'évoluer pendant une partie.
+- Précisée par D-322 : un cadre commun à toutes les parties et l'histoire de la créature, consignés dans une bible (livraison 3) ; pas de grand mystère sur plusieurs parties.
 
 ### D-017 — Une famille de scénarios procéduraux au lancement
 
@@ -266,6 +269,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Décision : concentrer le contenu du lancement sur une station, ses secteurs, sas, conduits et systèmes, avec géographie variable.
 - Écarté : deux habillages station/vaisseau à livrer immédiatement.
 - Limite : nom, ton visuel, incident, identité du personnage et rôle de la menace à concevoir. La mention historique « vaisseau ou station » de D-018 est restreinte à une station pour ce lancement.
+- Précisée par D-322 : un cadre commun à toutes les parties et l'histoire de la créature, consignés dans une bible (livraison 3) ; pas de grand mystère sur plusieurs parties.
 
 ## Décisions validées — aventure de référence, premier entretien
 
@@ -276,6 +280,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Portée : personnage fixe de l'aventure AR-01.
 - Décision : le joueur découvre la situation en tant que passager, pas spécialiste de maintenance. Les manipulations doivent être compréhensibles par les indices et outils montrés.
 - Limite : identité, équipement initial et histoire personnelle non choisis ; aucune compétence technique cachée n'est justifiée par cette décision.
+- Précisée par D-322 : un cadre commun à toutes les parties et l'histoire de la créature, consignés dans une bible (livraison 3) ; pas de grand mystère sur plusieurs parties.
 
 ### D-032 — Créature organique sensible au bruit pour la référence
 
@@ -284,6 +289,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Portée : menace principale d'AR-01, conformément à D-029.
 - Décision : présence physique persistante et sensible aux sons, permettant des indices et diversions. L'emplacement reste réel, pas un effet narratif arbitraire.
 - Limite : perception exacte, vulnérabilités, rythme de déplacement et aspect non choisis. « Organique » n'est pas une implémentation suffisante de toutes ces règles.
+- Précisée par D-322 : un cadre commun à toutes les parties et l'histoire de la créature, consignés dans une bible (livraison 3) ; pas de grand mystère sur plusieurs parties.
 
 ### D-033 — Alimentation du départ comme objectif matériel
 
@@ -354,6 +360,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-34 « Oui, ces trois états actifs et cette règle de soin ».
 - Décision : indemne → blessé → critique → défaite. Un incident ordinaire aggrave d'un état ; un soin consommable améliore d'un état et ne remet pas la menace à zéro. Pas de malus de mobilité en cascade dans AR-01.
 - Limite : quantité de soins, cumul éventuel d'incidents dans un pas et dangers exceptionnels restent à définir. Les règles du vide seront traitées dans la deuxième référence.
+- Précisée par D-320 : dans une grande station, une trousse de soin peut attendre dans une salle de butin, sans que rien ne la signale.
 
 ### D-042 — Une préparation complète peut supprimer le dé
 
@@ -390,6 +397,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-39 « Fiable sur les systèmes, limitée sur la menace ».
 - Décision : informations électriques et procédures exactes ; ton froid et décalé ; pas de connaissance totale de ce qui rôde. Le doute narratif ne repose pas sur des contradictions arbitraires de l'état du jeu.
 - Limite : messages et indices précis à écrire, sans révélation omnisciente des passages cachés.
+- Précisée par D-322 : un cadre commun à toutes les parties et l'histoire de la créature, consignés dans une bible (livraison 3) ; pas de grand mystère sur plusieurs parties.
 
 ## Décisions validées — aventure de référence, lisibilité de la menace
 
@@ -406,6 +414,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-41 « Traque réactive, sans patrouille permanente ».
 - Décision : déplacement en réaction à un son perçu ou à un joueur détecté ; pas de patrouille ni d'horloge qui fait apparaître la menace arbitrairement. L'absence de réaction ne réinitialise pas son emplacement.
 - Limite : priorités de perception, mémoire des sons et budget de déplacement par réaction à fixer dans la proposition de référence.
+- Gardée par D-321 : immobile avant le premier contact ; une ronde se décidera chiffres en main (#217).
 
 ### D-049 — Sol huilé préparé : glissade et deux réactions perdues
 
@@ -429,6 +438,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-44 « Oui, ce petit ensemble suffit pour AR-01 ».
 - Décision : une dose d'eau adaptée au foyer, une dose de lubrifiant glissant explicitement non inflammable dans cette fixture, un soin. Pas de gestion de poids ni cases d'inventaire dans AR-01 ; caisse au sol, gabarit du bloc toujours contraignant.
 - Limite : ne pas généraliser l'inflammabilité de ce lubrifiant à tous les liquides futurs. Consommations et contenants restent persistants, sans régénération automatique.
+- Modifiée par D-319 et précisée par D-320 : dans une grande station, les clés se dispersent et la caisse devient portable ; une trousse ou une burette de réserve peut s'ajouter en butin.
 
 ### D-052 — Fuite exposée : franchissement avec blessure en cas de jet défavorable
 
@@ -685,6 +695,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-76 « Assembler des morceaux écrits à la main ».
 - Décision : chaque partie du lancement combine et place différemment des morceaux conçus et vérifiés à l'avance — pièces, obstacles, solutions. La génération libre de plans et d'objets est écartée pour le lancement.
 - Limite : nombre de morceaux, règles d'assemblage et variations observables restent à fixer. Les morceaux n'utilisent que les lieux, liaisons, qualités et règles acceptés (C-02 à C-06).
+- Modifiée par D-319 : dans une grande station, un objet qui résout un obstacle peut être posé hors de son morceau, dans une pièce plausible avant son obstacle.
 
 ### D-084 — Toujours un chemin sûr au départ
 
@@ -692,6 +703,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-77 « Toujours un chemin sûr si l'on prépare bien ».
 - Décision : toute station assemblée est vérifiée avant d'être jouée ; elle offre au moins un chemin d'évacuation sans dé ni blessure si l'on prépare bien. Étend D-050 à tout le lancement.
 - Limite : aucune garantie après les choix du joueur ; découvrabilité à mesurer sur téléphone.
+- Précisée par D-320 : le chemin sûr se prouve sans le butin.
 
 ### D-085 — Plus aucune sortie possible : le jeu le signale, la partie continue
 
@@ -792,6 +804,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-92 « Chaque morceau, au moins une fois ».
 - Décision : en plus d'AR-01 et AR-02, chaque morceau du contenu de lancement doit avoir été joué et validé au moins une fois sur téléphone, dans une station assemblée.
 - Limite : une même partie peut valider plusieurs morceaux qu'elle traverse ; la liste des morceaux couverts est portée par l'issue de validation.
+- Précisée par D-325 : les validations signées restent valables pour les petites stations ; chaque morceau doit être joué au moins une fois dans une grande station avant que les grandes stations soient validées.
 
 ### D-099 — Valider : aller au bout, puis juger
 
@@ -806,6 +819,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-94 « Perdue si l'aventure change ».
 - Décision : modifier l'aventure ou le morceau lui-même (pièces, liaisons, objets, parcours) annule sa validation. Une correction du moteur qui ne change pas les résultats de ses parcours automatiques la conserve.
 - Limite : un changement de résultat d'un parcours automatique annule aussi la validation. La détection doit être automatique ; un agent ne décide pas seul qu'une modification est sans effet.
+- Précisée par D-325 : les validations signées restent valables pour les petites stations ; chaque morceau doit être joué au moins une fois dans une grande station avant que les grandes stations soient validées.
 
 ## Décisions validées — acceptation de C-08, C-09 et C-10
 
@@ -886,6 +900,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse Q-105 « Court : 2 à 4 phrases par action ».
 - Décision : deux à quatre phrases après une action, lisibles d'un coup d'œil sur téléphone ; plus long seulement aux moments forts (réveil, premier contact, fin).
+- Précisée par D-323 : la limite ne s'applique pas aux documents, qui comptent une à cinq phrases.
 
 ### D-112 — Phrases écrites à la main, avec des trous
 
@@ -945,6 +960,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-113 « 2 ou 3 obstacles ».
 - Décision : une station assemblée comporte deux ou trois obstacles, pour viser 15 à 30 minutes (D-008).
 - Limite : la durée réelle se mesure sur téléphone.
+- Modifiée par D-313 : une grande station compte trois morceaux de chemin, donc trois obstacles et plus.
 
 ### D-120 — Une seule espèce de créature au lancement
 
@@ -1234,6 +1250,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse Q-137 « Tirée parmi les places prévues par les morceaux ».
 - Décision : chaque morceau déclare les endroits où la créature peut attendre ; l'assemblage en tire un seul, jamais dans la pièce de départ (GP-04).
+- Précisée par D-315 : dans une grande station, la place de la créature est tirée dans le dernier chemin ou le final.
 
 ### D-162 — Les stations se tirent au pur hasard
 
@@ -1241,6 +1258,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse Q-138 « Pur hasard ».
 - Décision : une nouvelle partie peut retomber sur une station déjà jouée, même deux fois de suite. Le choix délibéré « rejouer cette station » reste disponible (D-087).
 - Modifiée par D-253 : le problème final se tire d'abord à pile ou face, puis la station au pur hasard parmi celles qui ont ce final ; une station déjà jouée peut toujours revenir.
+- Précisée par D-315 : un chemin dont le seul obstacle est la créature n'est tiré que s'il l'accueille.
 
 ### D-163 — Salle des machines bruyante
 
@@ -1288,6 +1306,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-10 / **Validé**.
 - Origine : réponse Q-152 « Dans une pièce voisine, encombrante ».
 - Décision : la planche de la passerelle se trouve dans une pièce voisine du vide et doit être rapportée ; elle est encombrante (D-079), donc impossible à porter en même temps que le bloc d'énergie.
+- Modifiée par D-319 : dans une grande station, la planche peut être posée hors de son morceau, dans une pièce plausible avant la passerelle.
 
 ### D-170 — Deux façons d'enfermer la créature dans la chambre froide
 
@@ -1309,6 +1328,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Date / statut : 2026-10-11 / **Validé**.
 - Origine : réponse Q-155 « Oui, c'est bien ».
 - Décision : les morceaux « final » (M-03 Énergie, M-06 Baie) portent le problème à régler juste avant de partir ; les huit autres sont des morceaux « chemin ». Une station enchaîne départ, un ou deux morceaux de chemin, un morceau final et l'embarquement.
+- Modifiée par D-313 : une grande station enchaîne départ, trois morceaux de chemin et le final, et ajoute les pièces du catalogue.
 
 ### D-173 — Un seul interrupteur dans la salle des machines
 
@@ -1347,6 +1367,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : question de la relecture de #100 ; réponse « Elle vous suit par la porte qu'elle vous a vu prendre, une pièce par action ».
 - Décision : quand le passager quitte la pièce où la créature le voit, sa réaction de cette action est de le voir partir. À l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large ; elle ne sait pas où il va ensuite. Une porte refermée ou un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice. Précise C-03 §4.3 et la limite de D-040.
 - Rappel (C-04 §4.2, pas une réponse du porteur) : la fuite exposée et son jet (#101) se résoudront pendant l'action de départ et consommeront cette réaction.
+- Modifiée par D-279 : alertée, la créature force une porte fermée sur sa piste ; une porte refermée ne l'arrête plus.
 
 ### D-178 — La créature entend aussi loin que le son passe
 
@@ -1381,6 +1402,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : retour du porteur (« pas la peine de demander confirmation pour ramasser ou poser un objet si aucun risque connu ou aucun coût, ça alourdit l'interface, pareil pour passer d'une pièce à une autre »), puis réponse « Garder la confirmation pour les portes ».
 - Décision : prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu annonce « aucun risque connu » et aucun coût. Dès qu'il y a un risque connu ou un coût, l'aperçu et CONFIRMER restent. Ouvrir et fermer une porte passent toujours par l'aperçu. Remplace sur ce point « toute action engageante passe par un aperçu » (12 §1.3, D-140).
 - Modification partielle : le bouton « Se déplacer vers » ouvre d'abord la bulle du passage ; c'est la ligne du déplacement qui se joue d'un seul toucher (D-229).
+- Modification partielle : « Poser » un objet déplaçable dans une pièce qui a des positions demande d'abord où le poser ; il n'est plus d'un seul toucher (D-328).
 
 ### D-183 — Rester sous ses yeux se joue au même dé que la fuite
 
@@ -1402,6 +1424,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 - Origine : réponse « En main ou posée dans la pièce ».
 - Décision : « Se soigner » vise une trousse portée ou posée dans la pièce du passager. Une dose améliore d'un état (C-04 §2) ; vide, la trousse reste un objet et l'action est indisponible (« La trousse de soin est vide. ») ; indemne, l'action est indisponible (« Vous n'êtes pas blessé. »).
 - Limite : le monde de test a une trousse à une dose dans l'atelier ; le nombre de soins d'AR-01 reste celui de son contenu (D-051).
+- Précisée par D-320 : une trousse trouvée en butin soigne de la même façon.
 
 ### D-186 — Le nouveau texte s'écrit à la machine, puis un curseur clignote
 
@@ -1554,12 +1577,14 @@ Choix faits le 2026-10-12 sur maquettes et sur les mesures d'un prototype jetabl
 - Origine : demande du porteur (« Pense qu'il faut aussi gérer des grosses station de 20 salles (voir plus) (quitte a faire défiler au doigt si le plan doit être zoomé) »), puis choix « Ouverte centrée sur moi » et « Pincer pour zoomer ».
 - Décision : une station peut compter 20 pièces et plus ; elle se construit en trois temps : chemin principal, annexes posées une à une, portes de boucle. La carte garde une échelle lisible et défile au doigt ; elle s'ouvre centrée sur la pièce actuelle et se pince pour zoomer, sans bouton recentrer ni vue d'ensemble.
 - Limite : taille des stations et durée de partie (D-008) restent à mesurer.
+- Précisée par D-318 : une à trois portes de boucle par station, jamais à travers un obstacle.
 
 ### D-206 — Petites pièces en cul-de-sac
 
 - Date / statut : 2026-10-12 / **Validé**.
 - Origine : demande du porteur (« pouvoir gérer des petites pièces Adjacentes en cul de sac a une seule porte (local technique, placard à balai, cabine d'équipage, salle de bain, wc) »).
 - Décision : ces pièces n'ont qu'une porte et rien ne s'y accroche ; elles sont assez grandes pour leur nom complet (14 §4.2, PL-04).
+- Précisée par D-316 : quinze pièces du catalogue, posées en impasse, en passage ou en couloir.
 
 ### D-207 — Règles de cohérence des stations
 
@@ -1567,6 +1592,7 @@ Choix faits le 2026-10-12 sur maquettes et sur les mesures d'un prototype jetabl
 - Origine : demandes du porteur (pièces vitrées, sas et capsules vers l'extérieur ; « sanitaires a couté des cabines et dortoirs, pas de passage par les salles des machines obligatoire pour aller aux WC » ; « des "couloirs" qui connectent jusqu'a 6 salles » ; plusieurs zones de vie et techniques « reliées ensembles en plusieurs points »), validation des règles du prototype, et précision : « il est possible de devoir passer par des pièces de vie pour avancer dans l'histoire ».
 - Décision : coque dégagée, avec quatre cases libres devant vitres, sas extérieurs et capsules ; pièces de vie atteintes depuis le départ sans traverser de pièce technique, pour l'architecture seulement, pas pour le chemin imposé par l'incident ; WC et salles de bain sur un couchage ou sur un couloir qui en dessert un ; couloirs en grappes, six portes au plus par pièce ; plusieurs zones reliées en plusieurs points, possibles mais jamais obligatoires (14 §5.4).
 - Limite : liste des catégories et règles complémentaires à écrire avec le catalogue des pièces ; c'est le vérifieur de jeu (GP-05) qui garantit qu'une porte de boucle ne contourne pas un obstacle.
+- Précisée par D-318 et modifiée par D-326 : un contrôle structurel de GE-13 s'ajoute à la preuve de jeu ; une porte qui contournerait un obstacle n'est pas posée.
 
 ### D-208 — Pièces du même type numérotées
 
@@ -1616,6 +1642,7 @@ Choix faits le 2026-10-12 sur maquettes et sur les mesures d'un prototype jetabl
 - Décision : #97 se livre en trois PR : plans, mémoire, écran (14 §7). L'assemblage géométrique des stations générées rejoint #106. Un catalogue de pièces sans obstacle fera l'objet d'une issue à part, créée avec l'accord du porteur.
 - Limite : chaque livraison est en zone orange ; l'écran demande un essai sur téléphone.
 - Modifiée par D-245 : #106 ne dessine que le chemin principal ; annexes, boucles et grandes stations iront dans une issue à part, si la durée le demande.
+- Précisée par D-316 : le catalogue des pièces sans obstacle existe, chaque pièce avec sa catégorie (GE-08).
 
 ### D-215 — La carte s'ouvre en bulle, comme l'inventaire
 
@@ -1817,6 +1844,7 @@ Questions posées après un point d'ensemble sur les morceaux, leurs outils et l
 - Origine : réponse Q-166 « (c), avec (b) en réserve » : (c) attendre les mesures, (b) une créature placée plus souvent près du problème final.
 - Décision : si la créature est neutralisée ou enfermée dès le premier obstacle (tombée de la passerelle, ou enfermée dans la chambre froide, les deux portes fermées), la suite de la station n'a plus de menace. Seulement ralentie, une porte fermée à la main et l'autre restée ouverte, elle peut encore sortir : elle reste une menace, plus lente (D-166, D-239). On ne change rien au tirage pour l'instant : #106 mesure, sur ses tirages, la part des stations où la créature peut être neutralisée ou enfermée avant le problème final, et celle où elle ne part pas du morceau final. Le porteur décide sur ces mesures et sur ses parties.
 - Limite : la réserve, une créature placée plus souvent près du problème final, modifierait D-161, D-162 et C-08 §2 ; elle demandera une décision explicite.
+- Précisée par D-315 : dans une grande station, la créature attend dans le dernier chemin ou le final ; la réserve est tranchée.
 
 ### D-242 — Petites stations d'abord, grandes si la durée le demande
 
@@ -1826,6 +1854,7 @@ Questions posées après un point d'ensemble sur les morceaux, leurs outils et l
 - Précise : D-205, qui reste possible.
 - Limite : #106 assemble d'abord ces petites stations. Que #106 s'arrête au plan du chemin principal (GE-01 à GE-07) et que les annexes, les boucles et GE-08 à GE-13 passent dans une issue à part n'est pas décidé : c'est une proposition du découpage de #106 ([13 §7](13-morceaux-lancement.md#7-découpage-de-106), question 1 du §7.4). D-214 reste inchangée tant que le porteur n'a pas répondu ; s'il accepte, une nouvelle entrée portera « Modifie : D-214 ».
 - Précisée par D-245 : le porteur a accepté ; #106 ne dessine que le chemin principal, et les grandes stations iront dans une issue à part.
+- Précisée par D-313 : la condition est jugée remplie par le porteur, sans durée mesurée sur téléphone ; les grandes stations remplacent les petites au tirage.
 
 ### D-243 — Un lore léger au lancement, écrit avec soin par l'assistant principal
 
@@ -1834,6 +1863,7 @@ Questions posées après un point d'ensemble sur les morceaux, leurs outils et l
 - Décision : le lancement accueille un lore léger : quelques documents à lire dans la station (journaux de bord, notes, messages, écrans), écrits à la main, qui donnent de la profondeur à l'histoire et servent aussi d'indices pour découvrir les solutions. L'assistant principal, celui qui tient la conversation avec le porteur, les écrit lui-même, avec une exigence de qualité d'écriture ; il ne les délègue pas à un exécutant. Lire reste gratuit (D-014).
 - Précise : D-116 ; ces textes restent en zone verte, fusionnés après relecture indépendante.
 - Limite : la forme (nombre de documents par station, longueur, place, ce qu'un document peut révéler, effet éventuel de la lecture sur ce que sait le passager) se décide avant d'écrire, dans une conception à part. C-07 s'applique, et aucun document ne contredit l'état réel (C-05). Brancher plus tard d'autres univers, menaces ou objectifs au moment du tirage n'est pas décidé : c'est une piste de l'après-lancement ([roadmap](02-roadmap.md)).
+- Précisée par D-322 : un cadre commun à toutes les parties et l'histoire de la créature, consignés dans une bible (livraison 3) ; pas de grand mystère sur plusieurs parties.
 
 ### D-244 — Objets nécessaires hors de leur morceau : après les annexes, sans les oublier
 
@@ -1841,6 +1871,7 @@ Questions posées après un point d'ensemble sur les morceaux, leurs outils et l
 - Origine : réponse Q-169 « ok, mais a bien garder en mémoire ».
 - Décision : dans #106, chaque objet nécessaire à un obstacle reste dans son morceau, à la place prévue par sa fiche. Les objets placés hors de leur morceau, comme l'eau du feu posée dans une pièce quelconque atteinte avant le feu, viendront avec les annexes (D-242).
 - Limite : à garder en mémoire ; le point est inscrit dans la [roadmap](02-roadmap.md), dans [13 §6](13-morceaux-lancement.md#6-suite), dans [14 §7](14-carte.md#7-découpage) et dans [C-08 §7](contrats/C-08-stations-fins.md#7-réserves). La règle de placement reste à décider ; proposition de l'agent, que le porteur n'a pas tranchée : un objet nécessaire se poserait toujours dans la partie de la station qu'on peut atteindre avant l'obstacle qui le demande, jamais derrière, et le vérifieur le confirmerait.
+- Précisée par D-319 : la règle de placement est tranchée : une pièce plausible, accessible avant l'obstacle, à distance bornée (livraison 2).
 
 ## Décisions validées — découpage et règles d'assemblage de #106
 
@@ -1883,6 +1914,7 @@ Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement
 - Origine : réponse Q-174 « Ok pour tes reco ».
 - Décision : le problème final et l'embarquement avec sa capsule vont toujours ensemble, dans le même morceau, comme la baie où la créature attend devant la capsule. Une station enchaîne donc la pièce de départ, un ou deux morceaux de chemin, puis le morceau final avec son embarquement.
 - Précise : D-172 et 13 §2.
+- Modifiée par D-313 : dans une grande station, le morceau final suit trois morceaux de chemin.
 
 ### D-250 — L'action libre du premier contact peut faire partie d'un chemin sûr
 
@@ -1930,6 +1962,7 @@ Douze questions du découpage proposé de #106 ([13 §7.4](13-morceaux-lancement
 - Décision : dans la version de test de #106, NOUVELLE PARTIE tire une station au hasard ; les aventures de référence restent jouables par un lien.
 - Limite : la question ne portait que sur la version de test ; ce que fait NOUVELLE PARTIE dans la version publique reste à décider. [Détail de l'agent] La question est à poser au porteur avant la fusion de L2, la première livraison où NOUVELLE PARTIE tire une station, puisqu'une fusion publie le jeu (AP-10).
 - Question publique réglée par D-260 : même fonctionnement à partir de L2, avec le démarrage progressif accepté.
+- Modifiée par D-313 : NOUVELLE PARTIE tire une grande station publiée.
 
 ### D-256 — Le panneau caché sert à contourner la créature
 
@@ -1957,6 +1990,7 @@ Les quatre propositions de [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-ac
 - Décision : M-01 apporte trois pièces sur le chemin principal : pièce d'entrée avec l'eau, galerie en feu, palier de sortie, avec les deux portes intérieures fermées au départ. Sa seule place déclarée pour la créature est le palier, jamais la galerie ni la pièce avec l'eau. Ce palier appartient à M-01, pas au morceau voisin ni à une annexe. La place participe au tirage ordinaire, sans poids particulier ; aucune deuxième créature n'est ajoutée.
 - Précise : D-161, D-171, D-256 et la fiche M-01 ; détails et preuves [13 §8.2](13-morceaux-lancement.md#82-créature-autour-de-m-01--q-183-d-258).
 - Limite : en L4, prouver une évacuation complète sans dé ni blessure avec cette place, pas seulement l'accès à l'eau et l'extinction. Une composition qui échoue est rejetée ; d'autres places exigeraient un autre accord.
+- Modifiée par D-319 : dans une grande station, l'eau peut être posée hors de M-01, dans une pièce plausible avant la galerie.
 
 ### D-259 — Ordre libre : deux commandes pour deux cloisons avant le final
 
@@ -1974,6 +2008,7 @@ Les quatre propositions de [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-ac
 - Précise : D-255 et C-08 §5 ; [13 §8.4](13-morceaux-lancement.md#84-nouvelle-partie-dans-la-version-publique--q-185-d-260).
 - Modifie temporairement D-253 : en L2, seul le final énergie M-03 est disponible ; on tire parmi ses compositions vérifiées, sans tirer une baie absente. Dès que les deux finals sont disponibles et vérifiés, à partir de L3, le tirage commence par le pile ou face énergie/baie, puis choisit au pur hasard parmi les compositions de ce final ; une station déjà jouée peut toujours revenir.
 - Limite : L0 reste documentaire ; aucune modification immédiate de la version publique et aucun équilibre entre deux finals revendiqué avant L3.
+- Modifiée par D-313 : NOUVELLE PARTIE tire une grande station publiée ; REJOUER CETTE STATION et les parties en cours ne changent pas.
 
 ## Décisions validées — L2 de #106 (#152)
 
@@ -2012,6 +2047,7 @@ Questions posées au porteur le 2026-10-15, pendant la conception de L3 ; ses r�
 - Origine : réponse Q-188 « pouvoir arriver a la capsule. (la difficulté on verra plus tard) », à la question de ce qui ferait dire que la livraison est réussie. La question rappelait son retour de L2 : les stations étaient trop faciles, il suffisait de claquer la porte au nez de la créature.
 - Décision : L3 est réussie si toute station tirée qui contient la baie, la passerelle ou la zone sans gravité peut se finir à la capsule, sans dé ni blessure pour qui prépare bien, prouvé avant d'être proposé. Le réglage de la difficulté se traite plus tard, hors de L3.
 - Limite : L3 n'ajoute aucune règle de difficulté ; la créature placée plus souvent près du final reste une réserve (D-241).
+- Précisée par D-314 : un joueur qui découvre meurt deux ou trois fois sur ses quatre premières parties ; la difficulté actuelle convient.
 
 ### D-265 — L3 : conception approuvée, recherche vers le fond de la station
 
@@ -2033,6 +2069,7 @@ Questions posées au porteur le 2026-10-15, pendant la conception de L3 ; ses r�
   - D-253 et D-260 (pile ou face dès L3) ;
   - les parades de l'issue #153 ([13 §7.3](13-morceaux-lancement.md#73-risques-et-écarts-relevés)).
 - Limite : la fusion reste soumise à l'accord du porteur (zone orange) et à une partie au bout sur téléphone pour M-06, M-08 et M-09 (D-098).
+- Modifiée par D-313 et D-326 : les grandes stations se comptent et se prouvent une à une, dans la liste publiée.
 
 ## Décisions validées — écoutille au pupitre (#159)
 
@@ -2089,6 +2126,7 @@ Questions posées au porteur le 2026-10-16, pendant la conception de L4 ; ses r�
   - **Textes** [détail de l'agent pour le nombre] : `check:texts` contrôle une série fixe, de dix stations.
   - **Preuves :** captures des nouvelles stations et liens de validation avec la créature dans le morceau.
 - Limite : la fusion reste soumise à l'accord du porteur (zone orange) et à une partie au bout sur téléphone pour M-01, M-02, M-04 et M-05 (D-098).
+- Modifiée par D-319 : dans une grande station, chaque morceau ne porte plus forcément ses objets.
 
 ## Décisions validées — L5 de #106 (#155)
 
@@ -2109,6 +2147,7 @@ Questions posées au porteur le 2026-10-16, pendant la conception de L5, avec la
   - **Mesures :** `npm run mesurer:tirages`, hors de `verify`.
 - Précise : D-160, D-254, D-259, D-241 (définition de la mesure).
 - Limite : la fusion reste soumise à l'accord du porteur (zone orange) et à une partie au bout sur téléphone dans une station en ordre libre (D-098). La réserve de D-241 reste à décider sur les mesures.
+- Précisée par D-313 : l'ordre libre garde environ une station sur trois parmi les grandes stations.
 
 ## Décisions validées — temps de test (#180)
 
@@ -2200,11 +2239,11 @@ Questions posées le 2026-10-16, en langage courant, après une mesure : la rech
 
 Détails de l'agent pour #156, proposés dans la PR et à revoir par le porteur ; aucun n'est une décision : la recherche complète de comparaison joue le vrai moteur sur l'état, la créature, le feu, le froid, les brèches et les blessures ôtés à chaque pas (aucun n'ouvre de passage) ; sans signal, un chemin trouvé parmi les seuls gestes utiles suffit, sinon tous les gestes sont explorés ; quatre parties au hasard de 80 actions par station, sans se blesser tant qu'un autre geste l'évite, et à chaque pas chaque planche encore là supposée tombée dans chaque vide ; `npm run check:sortie`, dans `verify` et en quatre lots dans la CI ; un monde sans capsule à lancer, comme le monde de test, n'a jamais le signal ; l'information « INFORMATION DU JEU » s'ouvre à la première action qui fait perdre la dernière sortie, et ne revient pas pour la même partie pendant la session après CONTINUER À JOUER ; après un rechargement, elle s'ouvre une fois de plus ; TERMINER LA PARTIE est un abandon, avec « la partie s'arrête ici » sous le bouton (12 §5.2) ; le rappel « [ plus aucune sortie possible ] » est une ligne discrète au-dessus du récit, hors de l'écriture à la machine ; le lecteur d'écran et la CLI lisent « Plus aucun chemin ne mène à une capsule de secours. » dans la situation.
 
-## Décisions proposées — poursuite de la créature alertée (#190)
+## Décisions validées — poursuite de la créature alertée (#190)
 
 ### D-276 — Alertée, la créature poursuit, écoute et fouille
 
-- Date / statut : 2026-10-16 / **Proposé** (pistes choisies par le porteur le 2026-10-16 : « poursuite » avec « un indice dans le récit », puis « option 1 avec 2, version courte » pour la traque ; nombres et textes à relire).
+- Date / statut : 2026-10-16 / **Validé** le 2026-10-19 avec la conception des grandes stations : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225 ; puis D-326 et D-327 à la reprise de `main` le 2026-10-20, M-11, M-12 et l'intro ayant pris D-290 à D-293 et D-304 à D-312 : les décisions des grandes stations portent désormais les numéros D-313 à D-328). Pistes choisies par le porteur le 2026-10-16 : « poursuite » avec « un indice dans le récit », puis « option 1 avec 2, version courte » pour la traque ; nombres et textes à relire.
 - Origine : partie du porteur sur la passerelle (M-08), « il faut regarder pourquoi la créature ne m'a pas suivi, alors que j'ai beaucoup cliqué sur le bouton attendre » ; question du porteur sur les boucles : « la créature peut-elle nous entendre via toutes ces ouvertures ? Et nous traquer ? Ça serait bien que oui ».
 - Décision (elle ne vaut qu'**après le premier contact** ; aucune patrouille sans alerte, D-048) :
   - **Les pas.** Chaque fois que le passager change de pièce, la créature entend ses pas par toute suite de liaisons qui laisse passer le son, y compris par-dessus un vide ou à travers une grille trop étroite pour elle (D-178, D-236). Elle va vers la pièce où il vient d'arriver par le plus court chemin praticable, donc par une boucle si la porte directe est fermée. Les pas sont un bruit normal : un bruit plus fort passe avant, une porte fermée ou une salle des machines en marche les étouffe (D-163).
@@ -2242,14 +2281,14 @@ Détails de l'agent pour #190, à relire par le porteur ; aucun n'est une décis
 
 ### D-279 — Alertée, la créature force une porte fermée sur sa piste (V2 de #194)
 
-- Date / statut : 2026-10-17 / **Proposé** (variante à l'essai, en deux réglages à comparer sur les mesures et sur téléphone ; elle ne se fusionne qu'avec l'accord du porteur).
+- Date / statut : 2026-10-17 / **Validé** le 2026-10-19 avec la conception des grandes stations : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225 ; puis D-326 et D-327 à la reprise de `main` le 2026-10-20, M-11, M-12 et l'intro ayant pris D-290 à D-293 et D-304 à D-312 : les décisions des grandes stations portent désormais les numéros D-313 à D-328). Réglage retenu : V2a, deux réactions, porte détruite (« je préfère la version où la porte reste arrachée je pense »).
 - Origine : porteur, dans #194 : « les portes sont une vraie solution mais à rendre moins gratuite (forçable…) » ; pour V2 : « 2 réactions, porte détruite & porte refermable après. mesure les deux pour avoir les chiffres. (son de porte en train d'être forcée à mettre dans les textes de narration) ». Après une partie sur V2a : « la créature casse trop vite les portes, ça ne laisse pas le temps d'actionner un bouton ou ramasser un objet […] Peut être ajouter +1 tour avant destruction », puis « passe à 3 réactions sur V2a que je teste ». Après deux parties à trois réactions : « j'ai réussi à perdre la créature facilement et elle n'a pas essayé de forcer les portes suivantes » ; « le temps supplémentaire m'a permis de gagner malgré une erreur. Pas sûr de vouloir rester à 3 et de pas revenir à 2 (réglage de difficulté 3 moyen et 2 difficile ?) », puis « on repasse à 2 réactions ». Après une partie sur V2b : « je préfère la version où la porte reste arrachée je pense ».
 - Décision : une seule variable par rapport à V0 + V1. Après le premier contact, quand sa piste passe par une porte fermée (celle qu'elle a vu le passager prendre, ou la première d'un plus court chemin vers les pas entendus), la créature la force au lieu de s'arrêter : deux réactions de suite sur la même porte (trois à l'essai, revenues à deux), et elle cède et s'ouvre ; elle passe à la réaction suivante. Une porte qu'elle cesse de forcer reprend à zéro.
   - **Ce qui ne se force pas :** passage étroit, vide, cloison encore verrouillée, écoutille manoeuvrée de l'intérieur, panneau caché, passage hors de portée, porte vers une pièce en feu.
   - **Récit :** le passager qui est dans l'une des deux pièces de la porte entend les coups, puis la porte céder ; ailleurs, rien, hors de ce que disent déjà ses pas (D-276). Aucun bruit dans une salle des machines en marche (D-163).
   - **V2a, porte détruite :** une porte enfoncée ne ferme plus (« enfoncée, elle ne ferme plus »).
   - **V2b, porte refermable :** on peut la refermer ; elle doit la forcer de nouveau.
-- Modifierait : D-177 et C-03 §4.3 (« une porte refermée l'arrête »), si le porteur la garde.
+- Modifie : D-177 et C-03 §4.3 (« une porte refermée l'arrête »).
 - Limite : une créature enfermée dans la chambre froide, ses deux portes fermées, peut en sortir en forçant une porte, ralentie (D-166) : le moyen d'enfermement de M-10 n'est plus définitif. Toutes les compositions publiées restent prouvées sans dé ni blessure, avec deux comme avec trois réactions.
 - Piste notée par le porteur, sans décision : un mode de difficulté pourra régler ce nombre de réactions (3 pour un mode moyen, 2 pour un mode difficile).
 - Limite connue, à décider à part : pendant qu'elle force, la créature peut perdre la trace du passager (l'écoute de D-276 expire, ses pas ne passent pas la porte fermée).
@@ -2269,3 +2308,384 @@ Questions posées le 2026-10-18, en langage courant, avant de coder ; le porteur
   - **Affichage.** Dans le rapport seulement : une ligne « Durée, écran allumé » au tableau de chaque rapport qui joint une partie. Rien à l'écran de fin, qui reste sans score (D-086).
 - Précise : D-008 (durée visée), D-242 (grandes stations si la durée le demande), C-10 RP-01 et RP-02.
 - Limite [détail de l'agent] : la durée est gardée dans `localStorage`, une clé par adresse (`void-walker:duree:<adresse>`), avec le monde et la graine de sa partie. Un minuteur la compte et l'écrit toutes les 5 s ; plus de 15 s sans compte est une absence (appareil endormi sans que la page l'ait dit), qui ne compte pas. Une partie déjà commencée sans durée gardée (en cours lors de la mise à jour, ou stockage effacé) n'est pas mesurée : le rapport dit « non mesurée », comme ceux d'un jeu plus ancien. Un écran laissé allumé sans geste compte, sans plafond. La durée part aussi avec un bug quand la partie est jointe ; elle est arrondie à la seconde, n'entre pas dans l'empreinte des doublons et n'est pas signée.
+
+## Décisions validées — écrans de fin (#208)
+
+Questions posées le 2026-10-18, une par une, en langage courant, après des maquettes au format téléphone (`docs/maquette/fins.html`) ; pour la première, le porteur a demandé une démo avant de choisir : un prototype jetable a composé le récit de 1 246 parties jouées par les bots du projet, sur 400 stations tirées et AR-02, montré en sept images. Accord sur la description complète : « Oui, vas-y ».
+
+### D-281 — Fin de partie : le récit de la partie, à partir de ses moments marquants
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Fais moi une démo de B. Et je jugerai de savoir si c'est bien ou pas et si c'est pas bien, on passera sur a » ; après la démo : « B me conviens, sans la liste des pièces visitées. et il y a des phrases de ta démo qui sont fausses grammaticalement : "le vide a emporté elle hors de la station" attention de faire du vrai français, pas de l'anglais traduit ».
+- Décision : à la défaite et à l'évacuation, l'écran de fin (12 §4.11) raconte la partie jouée : le réveil, puis les moments marquants dans l'ordre de la partie, puis la fin. Les moments viennent de la partie enregistrée, relue du début ; rien n'est ajouté à l'état du moteur. La liste « PIÈCES VISITÉES » est retirée. Chaque phrase est écrite à la main en entier, sous chaque forme dont le récit a besoin (pièce redite ou non, créature nommée ou reprise par « elle », « l' », « ses ») ; le jeu ne remplit que les noms, il ne remplace jamais un mot par un pronom.
+- Précise : D-086 (le récit seulement), D-111 (récit plus long à la fin), D-112 (phrases écrites à la main), C-05 (aucun fait non appliqué) et NP-05 (rien de non perçu).
+- Limite [détail de l'agent] : trois moments au plus, choisis par importance puis remis dans l'ordre : la créature vue pour la première fois et la créature mise hors jeu sous les yeux du passager, puis les blessures, puis les bruits et gestes de la créature, puis les obstacles franchis et les soins. Un geste défait plus tard (combinaison retirée, brèche rebouchée, machines relancées, gravité rétablie) n'est pas raconté. L'écran d'abandon perd aussi sa liste et garde son texte.
+
+### D-282 — La défaite nomme sa cause et sa pièce
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Oui, comme la démo (Recommandé) ».
+- Décision : la dernière phrase du récit d'une défaite dit où le passager est mort et ce qui l'a tué : la créature, le feu, le froid, le vide, ou la créature avec le feu ou le froid. Elle s'écrit en `accent`, comme les titres.
+- Précise : D-013 ; la mention « Cette partie est terminée. Elle ne peut pas être reprise. » reste sous un filet.
+- Limite : rien n'est dit de ce qui aurait sauvé le passager (le joueur apprend en rejouant).
+
+### D-283 — L'évacuation dit le départ, la santé et le sort de la créature
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « les trois (ps : en codant, penser au futur ou ça sera d'autres enemis et d'autres missions) ».
+- Décision : la fin d'une évacuation reprend le texte de départ selon ce qui alimentait la capsule (circuit, bloc, les deux ou la réserve), dit la santé du passager (indemne, blessé, grièvement blessé) et ce qu'il sait de la créature : rien de plus si un moment l'a déjà mise hors jeu, sinon laissée derrière lui, entendue sans être vue, ou jamais vue. Le message de départ d'IA Station est cité en entier dessous (D-263).
+- Limite : les phrases sur la créature sont dans la couche menace, celles du départ et de la capsule dans la couche univers ; un autre ennemi ou une autre mission apportera les siennes sans toucher au reste.
+
+### D-284 — Aucun bilan à l'écran de fin
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « sans la liste des pièces visitées » (D-281), puis l'accord sur la description complète.
+- Décision : ni liste de pièces, ni nombre d'actions, ni durée, ni autre repère : seulement le récit.
+- Précise : D-086 et D-280 (durée dans le rapport seulement).
+
+### D-285 — Les missions auront leur phrase de fin, plus tard
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Oui, plus tard (Recommandé) ».
+- Décision : quand d'autres missions existeront (#210), la fin dira si l'objectif de la mission est rempli, par une phrase écrite dans la couche de la mission. Rien à l'écran tant qu'il n'y a qu'une mission.
+
+### D-286 — CONTINUER avant l'écran de fin
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : « Après CONTINUER (Recommandé) ».
+- Décision : à l'action qui finit la partie, l'écran de jeu reste, avec son dernier texte (rouge, brouillage et sons compris) ; le dock laisse la place à un seul bouton CONTINUER, sans navigation ni engrenage. CONTINUER mène à l'écran de fin. Rouvrir le jeu après une défaite ou une évacuation mène directement à l'écran de fin (C-09 S-05).
+- Limite [détail de l'agent] : NOUVELLE PARTIE et ENVOYER MA PARTIE quittent le dock et ne sont plus que sur l'écran de fin ; ENVOYER MA PARTIE y garde « je valide » dans une version de test.
+
+## Décisions validées — options en sous-menus (#201)
+
+Questions posées le 2026-10-18, une par une, sur des maquettes au format téléphone ([options-menus](maquette/options-menus.html)). Le porteur a retenu l'option recommandée pour les regroupements et les libellés ; il a choisi de sortir aussi la version du premier niveau, et demandé les sous-menus en bulle.
+
+### D-287 — Les options en trois sous-menus : Son et texte, Rapports, Application
+
+- Date / statut : 2026-10-18 / **Validé** sur maquette ; essai sur téléphone à venir (zone orange).
+- Origine : #201, « Le menu d'options s'est beaucoup chargé au fil des ajouts. Il est devenu désordonné et peu intuitif » ; réponses du porteur : « B · Trois (recommandé) », « B · Abandon seul », « A · Son et texte, Application ».
+- Décision :
+  - **Sommaire.** L'écran OPTIONS montre trois lignes, chacune avec son détail : « ▸ Son et texte » (taille du texte, son, affichage), « ▸ Rapports » (signaler un bug, envoyer ou télécharger ma partie), « ▸ Application » (installation, mise à jour, version). En partie, « ⊘ Abandonner la partie en cours » suit, avec sa confirmation dans la page. MENU PRINCIPAL et REPRENDRE LA PARTIE restent en bas.
+  - **Son et texte :** la taille du texte et son aperçu, les trois rails du son, les deux bascules d'affichage.
+  - **Rapports :** Signaler un bug, Envoyer ma partie, Télécharger ma partie, dans cet ordre ; puis, dans une version de test, la clé VALIDATION du téléphone.
+  - **Application :** installation, mise à jour, puis la version et, dans une version de test, l'état de la vérification automatique.
+  - Aucune option n'est retirée ; seule leur place change.
+- Modifie : 12 §4.10 ; la place du pied de page de D-191 et D-227, et celle de la section VALIDATION de D-232.
+- Limite [détail de l'agent] : le détail d'une ligne dit ce que contient son sous-menu. « Rapports » dit « signaler un bug, envoyer ma partie » pour une partie finie, « signaler un bug » sans partie ; « Application » ne dit « installation » que si le navigateur permet d'installer le jeu. Sans partie ni service de rapports, la ligne « Rapports » n'est pas là.
+
+### D-288 — Un sous-menu s'ouvre dans une bulle, sous l'en-tête des options
+
+- Date / statut : 2026-10-18 / **Validé** sur maquette ; essai sur téléphone à venir (zone orange).
+- Origine : question de la navigation, réponse du porteur : « option A - mais je veux que les sous-menus ressemblent aux bulles comme l'inventaire, carte et ia station. une bulle qui survole l'écran. », puis « A · Sous l'en-tête ».
+- Décision : toucher une ligne du sommaire ouvre la bulle ambre des menus (12 §2.7), titrée du nom du sous-menu, avec ✕. Elle survole le sommaire voilé, sous l'en-tête, sans flèche ; sa hauteur suit son contenu jusqu'au bas de l'écran, au-delà le contenu défile. ✕, le voile, Échap et le retour du téléphone la referment, et le focus revient sur la ligne touchée. Le bas ne change pas : MENU PRINCIPAL et REPRENDRE LA PARTIE restent au-dessus du voile, utilisables bulle ouverte. Pas de bouton RETOUR.
+- Précise : D-228 (✕ plutôt que RETOUR) ; l'aide à l'installation (#174) s'ouvre par-dessus la bulle Application.
+- Limite [détail de l'agent] : la ligne sonne comme l'ouverture d'une bulle d'objet, ✕ et le voile comme sa fermeture. Le lecteur d'écran lit la ligne comme un bouton qui ouvre un dialogue, puis le dialogue par son titre ; au clavier, le focus reste dans la bulle tant qu'elle est ouverte (12 §7). Un réglage changé ou un rapport envoyé dans une bulle le reste quand elle se referme.
+
+## Décisions validées — attentes à la suite (#225)
+
+### D-289 — À force d'attendre, la station répond
+
+- Date / statut : 2026-10-19 / **Validé** ; textes à relire, essai sur téléphone à venir (zone orange).
+- Origine : #225, « J'ai attendu dans une salle plusieurs fois, ya que deux options de silence. Je m'attendais à un easter egg » ; réponses du porteur : « piste B et au 15eme c'est l'IA Station qui fait une remarque », « Dès qu'on fait autre chose », « garde juste le texte écrit directement dans la fenêtre dédiée à l'IA », « Vrai message de l'IA », variante « 1 ».
+- Décision : on compte les ATTENDRE à la suite ; toute autre action engagée remet le compte à zéro (« Regarder » ne compte pas : ce n'est pas une action). Quand l'attente est seule à raconter :
+  - **5e :** le récit dit « Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous. »
+  - **10e :** « Les lumières baissent d'un cran, puis reviennent. La station, elle aussi, attend. »
+  - **15e :** le récit garde une phrase de silence ; IA Station envoie un vrai message, « Aucune activité détectée. Merci de rejoindre la capsule de secours. », daté « en attendant » dans sa fenêtre. Une fois par partie, comme tout message (D-081).
+- Précise : D-274 (textes d'ATTENDRE). Rien ne change au jeu : la créature, les dangers et le décompte jouent comme avant.
+- Limite [détail de l'agent] : le message n'existe que dans les stations tirées ; AR-01, AR-02, M-08, M-09 et le monde de test ne le déclarent pas. Une partie sauvegardée avant cette version après 15 attentes de suite ou plus ne se reprend plus (son état ne correspond plus à son journal rejoué) ; il en va de même pour le rejeu d'un tel export.
+
+## Décisions validées — chariot et drone M-12 (#232, issu de #203)
+
+Les numéros D-304 à D-307 évitent les entrées préparées dans les chantiers parallèles M-11 et grandes stations. Les choix ci-dessous portent sur la conception et l'intégration demandée ; aucune validation sur téléphone n'est revendiquée.
+
+### D-304 — M-12 repose sur une coopération nécessaire
+
+- Date / statut : 2026-10-20 / **Validé comme conception à intégrer et tester**.
+- Origine : choix du porteur « Coopération nécessaire dans cette situation », puis « on va la tester comme ça, intègre ce morceau M-12 (un M-11) est en cours dans un worktree. travaille aussi dans un worktree. »
+- Décision : un chariot bloque le chemin vers la suite de la station. Le passager doit le pousser au palier pendant qu'une poignée reste maintenue au poste. Il peut tenir lui-même cette poignée, mais la relâche en quittant le poste ; il ne peut donc accomplir seul les deux gestes. Un drone de manutention effectue le maintien à sa place. Le déplacement du chariot est durable ; la tâche du drone est alors terminée.
+- Complète : D-156, D-157 et D-172. M-12 est un morceau de chemin, pas un deuxième problème final. Son intérêt recherché est la variété des situations, pas un nombre de minutes ajouté.
+- Limite : la maquette V3 est une référence de conception, pas le moteur. Ses blessures déterministes et sa poursuite simplifiée ne remplacent pas C-03 et C-04.
+
+### D-305 — Une panne du drone se récupère sur place en deux gestes
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : réponses du porteur « Explorer une panne réparable du drone » puis « Remise en route sur place en deux gestes ».
+- Décision : une attaque de la créature peut faire sortir le drone de son rail. Il lâche la poignée et son moteur s'arrête. Le passager peut le replacer sur le rail, puis le réarmer et le relancer : deux actions engageantes distinctes, sur place, sans nouvel objet ni consommable pour ce premier lot.
+- La panne ne termine pas automatiquement la partie et n'est pas une perte irréversible du passage. La réparation ne soigne pas, ne protège pas le passager et ne suspend pas les réactions. Ni remise en route automatique, ni retour gratuit à l'atelier.
+- Précise : C-01, C-03, C-04, C-05 et C-08. Après une réparation, la coopération reste nécessaire.
+
+### D-306 — Le drone reste un équipement mécanique local
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : choix du porteur « Seule la créature fait dérailler le drone pour ce premier lot ».
+- Décision : le drone suit son trajet local de manutention et maintient la commande prévue. Il ne combat pas, ne transporte rien et ne suit pas le passager dans les autres morceaux. Son déplacement et son maintien font du bruit, soumis aux règles ordinaires de perception et de réaction ; aucune priorité artificielle aux pas du passager ne le protège.
+- Le vide, le froid et le feu ne le font pas tomber en panne dans ce lot. Les dangers et les réactions du passager et de la créature restent inchangés. Un passage fermé ne se traverse pas gratuitement.
+- Mélanges : le bruit suit C-03 §4.2 et le masquage des machines ; les ralentissements existants portent sur les réactions de la créature, pas sur le nombre de gestes de réparation. Aucun effet supplémentaire n'est déduit du nom d'un morceau.
+
+### D-307 — M-12 entre au tirage et le drone a son pictogramme
+
+- Date / statut : 2026-10-20 / **Validé comme périmètre**, validation sur téléphone requise.
+- Origine : choix du porteur « Station d'essai et tirage aléatoire dès cette PR », puis « on va avoir besoin d'un petit icone pour le drone sur la map », avec une référence visuelle verte en pixels.
+- Décision : fournir une station d'essai et des compositions publiques prouvées contenant M-12. Le moteur, la CLI, les textes, la sauvegarde et le vérificateur doivent décrire le même comportement.
+- Carte : petit pictogramme de drone vert et pixelisé, distinct du passager et de la créature. Il représente un objet observé ; hors de vue, il reste un souvenir, pas un suivi en direct. Ne pas annoncer un drone dans une pièce seulement connue par signalétique.
+- Détail de réalisation à vérifier sur téléphone : les trois symboles se répartissent sous le texte ; si trois présences doivent tenir dans une petite pièce au dézoom, leur dessin se réduit juste assez pour ne pas chevaucher les murs. L'affichage à une ou deux présences reste inchangé.
+- Limite [détail de l'agent, à confirmer par le porteur] : `check:stations` prouve que M-12 permet de se débarrasser de la créature qui bouche le seul passage de M-01 (palier) ou de M-02 (atelier) quand il les précède : le bruit du drone l'attire en arrière. M-12 rejoint donc M-04, M-07, M-08 et M-10 dans la règle de D-268 ; quatre compositions de plus entrent au tirage (`m12-m01-m03-palier`, `m12-m01-m06-palier`, `m12-m02-m03-atelier`, `m12-m02-m06-atelier`). Pour prouver les compositions avec M-12, le vérificateur leur accorde 600 000 états au lieu de 150 000 (`m10-m12-m03-stockage` en demande 405 000) ; les autres compositions gardent leur plafond, et donc leur verdict.
+
+## Décisions validées — sas de sécurité M-11 (#203)
+
+Premier morceau tiré du brainstorming de #203. Demande du porteur : une salle simple, « sas de sécurité », derrière une porte blindée qui ne s'ouvre qu'avec une carte de sécurité, et que « la porte ne peut pas être cassée par la menace ». Trois questions posées le 2026-10-20, en langage courant (Q-204 à Q-206, [13 §7.10](13-morceaux-lancement.md#710-sas-de-sécurité-m-11-203)) ; le porteur a choisi les réponses citées. Implémenté par la PR de #203 (zone orange) ; aucune partie sur téléphone avec M-11 n'est revendiquée.
+
+### D-290 — M-11 entre au tirage public
+
+- Date / statut : 2026-10-20 / **Validé** ; partie sur téléphone à venir (zone orange).
+- Origine : Q-204, « Aussi dans le tirage public ».
+- Décision : M-11, morceau de chemin, entre au tirage de NOUVELLE PARTIE comme les neuf autres, en chaîne comme en ordre libre, pas seulement dans une station d'essai.
+- Limite [détail de l'agent] : les dix paires avec M-11 sont permises sans règle de plus (D-248) : M-11 ne joue sur aucune famille du §4 de 13 (bruit, ralentissement, neutralisation, air). À confirmer par le porteur sur la PR.
+
+### D-291 — Le lecteur de carte lève le verrou une fois pour toutes
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : Q-205, « Lecteur, une fois pour toutes ».
+- Décision : un lecteur fixe, à côté de la porte blindée. Carte de sécurité en main, l'actionner est une action discrète, sans dé : le verrou est levé pour la partie, la porte s'ouvre et se ferme ensuite comme une autre, la carte reste dans l'inventaire. Sans la carte en main, le lecteur reste au menu, indisponible : « Il faut d'abord avoir en main la carte qu'attend le lecteur de carte. »
+- Précise : D-259 (commande de déverrouillage) ; C-02 §5.
+
+### D-292 — La créature ne force jamais une porte blindée
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : demande du porteur, « la porte ne peut pas être cassée par la menace ».
+- Décision : même alertée, la créature ne secoue ni n'enfonce une porte blindée fermée. Ouverte, la porte blindée se traverse comme une autre ; refermée derrière soi, elle protège.
+- Précise : D-279, qui ne s'applique pas à la porte blindée.
+
+### D-293 — Dans M-11, la créature attend dans la remise, fermée
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : Q-206, « Pièce à part, fermée ».
+- Décision : la seule place de la créature dans M-11 est la remise, porte fermée au départ, au-delà du vestiaire ; on n'a pas besoin de l'ouvrir pour passer.
+- Limite [détail de l'agent] : M-11 ne compte pas parmi les obstacles qui permettent de se débarrasser de la créature (D-268) : une station en chaîne où elle attend sur le palier ou dans l'atelier n'est toujours pas proposée si seul M-11 la précède.
+
+## Décisions validées — intro de NOUVELLE PARTIE (#200)
+
+Demande de l'issue : qu'un joueur que personne n'a briefé comprenne que chaque partie tire une autre station et que le jeu se rejoue. Le porteur a choisi, sur la [maquette](maquette/intro-generation.html), une intro jouée après NOUVELLE PARTIE plutôt qu'un simple encart. L'encart « À propos » de l'issue reste à faire. D-294 à D-304 sont pris par la branche des grandes stations (#209) : cette série commence à D-308.
+
+### D-308 — Après NOUVELLE PARTIE, une intro montre que la station est tirée au hasard
+
+- Date / statut : 2026-10-20 / **Validé** sur maquette ; essai sur téléphone à venir (zone orange).
+- Origine : #200 ; propositions A (plan qui se construit), B (terminal), C (défilé de stations) ; réponse du porteur : « je préfère C car sans spoil », puis « il faudrait ajouter un bouton démarrer pour passer a la suite laisser le temps de lire le texte affiché » ; enfin « tu peux implémenter cette intro dans le jeu ».
+- Décision : après NOUVELLE PARTIE, depuis l'accueil, sa confirmation, l'écran de fin ou une reprise impossible, une intro passe avant le réveil. Des plans de vraies stations publiées défilent de plus en plus lentement et s'arrêtent sur une silhouette voilée marquée « ? », avec « Station 372 sur 600 » : rien de la station à explorer n'est dévoilé. Seul DÉMARRER mène au réveil ; toucher l'écran avant amène tout de suite l'intro à son état final, bouton compris. REJOUER CETTE STATION n'a pas d'intro.
+- Limite [détail de l'agent] : la partie est créée et enregistrée avant l'intro ; une appli fermée pendant l'intro rouvre sur le réveil. Le temps de partie (D-280) ne court qu'à partir du réveil. Un monde fixe (AR-01, AR-02, monde de test, `?monde=`) n'a pas d'intro.
+
+### D-309 — Le terminal démarre, puis les lignes du tirage arrivent une par une
+
+- Date / statut : 2026-10-20 / **Validé** sur maquette ; textes d'exemple.
+- Origine : déroulé écrit par le porteur (« boot -a --v », « Loading terminal system... » « ready », « campaign_mode; console_log(01); », saut d'image, lignes de génération), puis « on peut aussi mettre en rouge "placement menace" et mettre d'autres flavor textes », « change "placement menace" en rouge par "ERREUR : Menace détectée" », « les 3 blocs de 3 lignes, fait les un par un, avec un délai plus rapide entre chaque affichage et pas constant ».
+- Décision : `> boot -a --v` tapé vite par la machine ; « Loading terminal system... » et « ready » d'un coup, curseur █ dessous ; `> campaign_mode; console_log(01);` tapé au clavier ; l'écran saute ; puis le défilé (D-308) et ces lignes, une par une, à un pas irrégulier (rafales de 25 à 60 ms, pas de 80 à 180 ms, quelques temps de traitement de 240 à 400 ms) : section de départ, sections de passage, section finale, trois textes d'ambiance tirés au hasard parmi treize, arrimage de la capsule, vérification de la sortie ; après une courte pause, « ▲ ERREUR : Menace détectée » en rouge `alerte` (D-233) ; enfin « Station 372 prête » et « La prochaine partie en tirera une autre. ».
+- Limite [détail de l'agent] : les noms des morceaux ne sont jamais écrits ; les lignes de démarrage restent en anglais, comme le porteur les a écrites.
+
+### D-310 — Le démarrage complet à chaque intro
+
+- Date / statut : 2026-10-20 / **Validé**.
+- Origine : proposition de l'assistant (démarrage complet la première fois sur l'appareil, tirage seul ensuite), refusée par le porteur sur la PR : « je veux l'intro complète tout le temps (de toute manière elle est skippable ».
+- Décision : chaque intro joue le démarrage complet, environ 12 s jusqu'à DÉMARRER ; un toucher l'amène à son état final (D-308).
+- Limite [détail de l'agent] : effet machine à écrire coupé (12 §4.10) ou mouvement réduit demandé par le téléphone : l'intro s'affiche d'emblée finie, sans animation ni son.
+
+### D-311 — Écran CRT et sons lo-fi, réservés à l'intro ; la menace sonne comme une blessure
+
+- Date / statut : 2026-10-20 / **Validé** sur maquette, à l'oreille ; essai sur téléphone à venir.
+- Origine : « Le Shader CRT », « Le rythme "Haché" », « Le Design Sonore Lo-Fi : Chaque événement visuel doit avoir un équivalent audio […] des bruits de commutateurs lourds, de bandes magnétiques et de fréquences radio déréglées » ; « change le bruit blanc […] pour coller a celui du jeu existant (bruit blanc sourd), c'est trop fort et intense » ; « on laisse lefffet CRT poru l'intro » ; pour la menace, « le meme son de quand on prends un dégat dans le jeu », puis « son blessure ! ».
+- Décision : pendant l'intro seulement, l'écran imite un tube cathodique : lignes de balayage, trame, lueur du phosphore, couleurs légèrement décalées, verre bombé, scintillement, mise sous tension en trait de faisceau, saut d'image avec neige et distorsion. Chaque pas a son bruitage synthétisé (15 §2.6) : interrupteur lourd, cliquetis de saisie, touches à ressort, relais, statique, déclics de bande ; le fond reste le bruit brun du jeu (15 §2.5) ; la ligne de la menace sonne comme la blessure (15 §3.2).
+
+### D-312 — Le numéro de la station : son rang parmi les stations publiées
+
+- Date / statut : 2026-10-20 / **Validé** (« j'aime bien L'écran de réveil affiche discrètement « STATION 372 » en haut à droite »).
+- Origine : proposition de l'assistant (« Station 347 sur 600 » suffit à faire comprendre qu'il y en a d'autres), retenue sur maquette.
+- Décision : « Station N sur T » : T est le nombre de stations publiées, calculé, jamais écrit en dur ; N est le rang de la composition tirée parmi elles. Le réveil le rappelle discrètement, en haut à droite : « STATION 372 ».
+- Limite [détail de l'agent] : N ne dépend pas de la graine du plan : deux parties sur la même composition ont le même numéro, même si leur plan diffère. Une station déjà jouée peut revenir au tirage (D-162, D-253) : le texte ne promet jamais une station inédite.
+
+## Décisions validées — grandes stations habitées (#202, #205, #206, #207, #209)
+
+Questions posées le 2026-10-18, une par une, en langage courant, avant de coder (Q-212 à Q-227, réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot)) ; maquette des documents au format téléphone ([documents](maquette/documents.html)). Accord du porteur sur la conception : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225 ; puis D-326 et D-327 à la reprise de `main` le 2026-10-20, M-11, M-12 et l'intro ayant pris D-290 à D-293 et D-304 à D-312 : les décisions des grandes stations portent désormais les numéros D-313 à D-328). Le travail se livre en trois temps sur une même branche (D-327) : la livraison 1 (#205, #206) applique D-313 à D-318, D-321, D-326 et D-327 ; les clés et le butin (livraison 2, #202, #207, D-319 et D-320) et le lore (livraison 3, #209, D-322 à D-324) sont sur la même branche. D-328 est une demande du porteur faite pendant la livraison 3.
+
+### D-313 — Grandes stations : trois chemins et un final, 22 à 28 pièces
+
+- Date / statut : 2026-10-18 / **Validé** ; essai sur téléphone à venir (zone orange).
+- Origine : la partie idéale du porteur, Q-212 : « une partie de 25min idéale » ; Q-216 : « rien ne me gène » ; Q-224, après relecture : « 22 à 28 pièces ».
+- Décision :
+  - **Forme.** Le vestibule, trois morceaux de chemin, puis le final : 22 à 28 pièces dessinées, dont 6 à 10 pièces du catalogue (D-316), autant qu'il en faut pour approcher 24.
+  - **Ordre libre.** Environ une station sur trois : deux chemins matériels s'ouvrent sur le couloir du carrefour, le troisième chemin et le final attendent derrière les cloisons.
+  - **Une seule taille au tirage.** NOUVELLE PARTIE et l'adresse nue tirent une grande station ; les petites stations ne sortent plus au tirage.
+  - **Durée visée.** 15 à 20 minutes de découverte ; 25 à 30 quand de nouveaux obstacles viendront (#203).
+- Modifie : D-119, D-172, D-249, D-255, D-260, D-265 (compte des compositions), C-08 §5. Précise : D-008, D-242 (la condition est jugée remplie par le porteur, sans durée mesurée sur téléphone), D-270.
+- Limite [détail de l'agent] : quand toutes les pièces du catalogue voulues ne trouvent pas leur place, la station en garde au moins six ; elle peut alors compter 21 pièces (spec §11). Les petites stations restent jouables par leur identifiant, leurs sauvegardes et leurs rapports. Une partie enregistrée sur une autre version des grandes stations ne se reprend pas : « Station d’une version précédente des stations : la partie ne peut pas être reprise. »
+
+### D-314 — Difficulté : deux ou trois morts sur les quatre premières parties
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : rôle demandé à l'agent : « équilibré en difficulté (un peu dur quand meme) » ; Q-215 : « je pense 2 ou 3 fois - la difficulté actuelle est bien pour le moment, mon ressenti. »
+- Décision : un joueur qui découvre le jeu meurt deux ou trois fois sur ses quatre premières parties. La difficulté actuelle convient. Le butin (D-320) compense l'exposition plus longue d'une grande station ; il ne rend pas la partie plus facile.
+- Précise : D-264.
+- Limite : mesurée par les bots ([13 §7.12](13-morceaux-lancement.md#712-grandes-stations-livraison-1-205-206), [§7.13](13-morceaux-lancement.md#713-grandes-stations-livraison-2-202-207), [§7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)), à juger sur téléphone. Le critère de la conception, 25 à 35 % d'évacuations pour le profil prudent, n'est atteint dans aucune des trois livraisons : 14,1 % en livraison 3.
+
+### D-315 — Rythme : créature tardive, chemins utiles
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : Q-225 : « Tardive et utile ».
+- Décision :
+  - La place de la créature est tirée dans le **dernier chemin ou le final**.
+  - Un chemin dont le seul obstacle est la créature (M-04, M-05, M-07, M-10) n'est tiré que s'il l'accueille : c'est alors le dernier chemin.
+  - Les autres chemins sont des obstacles matériels (M-01 feu, M-02 grille, M-08 vide, M-09 gravité).
+- Précise : D-161, D-162. Tranche la réserve de D-241.
+
+### D-316 — Catalogue des pièces sans obstacle : une station de transit et de fret
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : Q-221 : « ok ».
+- Décision :
+  - Quinze pièces, chacune avec sa catégorie : couchettes, sanitaires, réfectoire, cambuse, infirmerie, buanderie (vie) ; salle d'outillage, consigne, dépôt, vestiaire, salle de ventilation (technique) ; couloir (circulation) ; plateforme de fret (fret) ; bureau du fret (commandement) ; laboratoire (science).
+  - Pas d'objet de décor à toucher : on y passe, on y regarde.
+  - La créature ne part jamais d'une pièce du catalogue.
+  - Leurs descriptions sont calmes : ni sang ni griffures, mots réservés aux traces (D-317). Rien n'y affirme que tout est intact, pour qu'une trace puisse suivre la description.
+- Précise : GE-08, D-206, D-214.
+- Limite [détail de l'agent] : une pièce se pose en impasse, en passage ou en couloir qui en dessert d'autres ; sa porte est ouverte, fermée ou tirée au sort. Les sanitaires ne s'ouvrent que sur un couloir qui dessert des couchettes (GE-10). Les descriptions sont écrites par l'assistant principal (D-243) ; cinq pièces de morceau ont reçu une variante calme pour les grandes stations (tri, soute, atelier, magasin, réserve).
+
+### D-317 — Les traces suivent la piste de la créature
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : la partie idéale : « des traces (sang, désordre, odeurs) » ; Q-226 : « Une piste ».
+- Décision : les pièces sur le trajet de la créature, depuis la zone de fret jusqu'à son repaire, portent des traces de plus en plus marquées vers lui. On les lit en regardant la pièce. Une pièce calme n'est pas forcément sûre.
+- Remplace la règle du rayon proposée le 2026-10-18.
+- Limite [détail de l'agent] : la piste suit le plus court chemin que la créature peut franchir, depuis une pièce marquée comme origine (la plateforme de fret quand elle est posée) à trois à six portes du repaire, jamais depuis la pièce de départ. La trace est forte à deux portes du repaire ou moins, légère au-delà ; sept phrases par intensité, dans la couche menace. `check:texts` refuse une trace hors de la piste ; un test refuse un mot réservé dans le catalogue. Ces seuils sont montrés au porteur avec les mesures.
+
+### D-318 — Une à trois portes de boucle par station
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : la partie idéale : « on ferme les portes derrière soi mais il les défonse, super terrifiant » ; conception approuvée (spec §6.4).
+- Décision : une à trois portes de boucle par station, dès la livraison 1. Elles ne passent jamais à travers un obstacle. Ce sont des portes ordinaires, fermées au départ, que la créature alertée enfonce (D-279).
+- Précise : GE-13, D-205, D-207.
+- Limite [détail de l'agent] : une boucle relie deux pièces d'une même zone entre deux coupes (cloisons et coupes déclarées par les morceaux) et ferme un cycle d'au moins quatre pièces ; jamais une impasse ni le repaire. Une graine où aucune boucle ne trouve sa place n'a pas de plan : la publication passe à la suivante, et un contrôle refuse toute station sans boucle. Une graine sur deux environ donne un plan, au lieu des 95 % visés par la conception ; le jeu ne tire que des stations publiées. Les bots se servent peu des boucles dans une poursuite (13 §7.12) : à juger sur téléphone.
+
+### D-319 — Clés dispersées : chaque clé dans une pièce plausible avant son obstacle
+
+- Date / statut : 2026-10-18 / **Validé** ; livraison 2.
+- Origine : Q-218 : « la caisse peut bouger, sinon OK ».
+- Décision :
+  - Les objets portables qui résolvent un obstacle sont posés dans une pièce plausible, accessible avant leur obstacle, à distance bornée.
+  - Leur pièce d'origine reste un tirage possible.
+  - Dans les grandes stations, la caisse devient portable et encombrante ; elle se pousse sous la grille.
+- Modifie : C-02 (tableau des objets), D-051, D-083, D-169, D-258, D-269. Tranche : D-244.
+- Limite [détail de l'agent] : chaque clé déclare ses étiquettes plausibles : bidon `eau` ; caisse `rangement` et `lourd` ; bloc `lourd` ; burette `outillage` ; combinaison et découpeuse `securite` ; planche `rangement` ; la consigne du catalogue gagne `lourd`. Le tirage est uniforme entre la pièce d'origine et les pièces permises du catalogue ; la zone permise se lit par segment : une annexe pendue au côté « après » du morceau précédent partage la zone avant l'obstacle et convient. Au plus une clé encombrante est déplacée par station. Une clé large ne se pose que là d'où elle rejoint la capsule sans passage étroit. En ordre libre, la clé d'une branche reste dans sa branche ou dans le tronc, et celle du troisième chemin peut aller dans la zone 0 (le tronc et le côté avant des branches), qui précède sa porte d'entrée. Dans une grande station, la caisse est portable, encombrante, déplaçable et appui. Mesure : 16,2 % des clés sont déplacées (559 sur 3 452). La note de rangement, qui dit où une clé est allée, vient avec le lore (livraison 3) : d'ici là, une clé déplacée n'a aucun indice.
+- Précisée par D-323 : chaque clé déplacée reçoit sa note de rangement (livraison 3, [13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)) ; par D-328 : la caisse portée se pose sous la grille d'un seul geste.
+
+### D-320 — Butin : une trousse ou une burette dans quelques salles
+
+- Date / statut : 2026-10-18 / **Validé** ; livraison 2.
+- Origine : Q-217 : « c'est bon pour moi. d'autres objets imaginés dans le futur pourront venir s'y ajouter ».
+- Décision :
+  - Une trousse de soin ou une burette de réserve, dans deux ou trois salles de butin en impasse, zéro ou un objet chacune.
+  - Rien dans l'interface ne les signale.
+  - La station reste prouvée sans le butin.
+  - La table est ouverte aux objets futurs.
+- Précise : D-041, D-051, D-084, D-185.
+- Limite [détail de l'agent] : la table de butin pèse la salle vide 2, la trousse de soin 1 (soin, une dose) et la burette de réserve 2 (glissant, une dose, seulement après la coupe de M-04 quand M-04 est dans la station) ; elle compte deux ou trois salles. Un butin n'a aucune qualité passive, ce que vérifie un contrôle de la table. La première salle est sur la piste, pendue à une pièce de la piste directement ou par un couloir du catalogue ; à défaut, c'est l'impasse de butin la plus proche du repaire, car l'exigence stricte de la conception supprimait 64 % des plans d'une table d'essai. Une station garde moins de salles quand les impasses de butin lui manquent. La station se prouve sans son butin : témoin du chemin principal, témoin réparé, puis recherche directe. Mesures : 54,9 % des salles de butin sont vides (1 069 sur 1 947, sur les 1 000 stations tirées par la mesure de difficulté) ; 49 stations sur 539 ont moins de deux salles (14 sans salle, 35 avec une, sur la liste publiée). Le critère de la conception (spec §11), qui traduit D-314, soit 25 à 35 % d'évacuations pour le profil prudent (B2) avec le butin, n'est pas atteint : B2 évacue 13,0 % avec le butin et 13,8 % sans, B4 11,7 % et 10,7 % (1 000 parties sur les mêmes stations). Le butin change à peine le résultat des bots, qui ne le ramassent ni ne l'emploient forcément : les poids ne sont pas le levier mesuré. L'hypothèse principale, à vérifier, est la montée des abandons au plafond (38,5 % contre 24,0 % en livraison 1, sur une autre liste) quand des clés sont déplacées sans indice ; à mesurer de nouveau après la livraison 3 (notes de rangement), avant tout réglage des poids, qui exige l'accord du porteur. Détail et autres mesures : [13 §7.13](13-morceaux-lancement.md#713-grandes-stations-livraison-2-202-207).
+- Mesurée de nouveau en livraison 3 ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)) : B2 évacue 14,1 % avec le butin et 14,4 % sans, B4 11,9 % avec et sans ; l'écart reste dans le bruit de la mesure. Les poids n'ont pas été touchés : ils exigent l'accord du porteur. L'hypothèse de la livraison 2, des abandons qui montent quand des clés sont déplacées sans indice, n'est pas confirmée par les bots.
+
+### D-321 — La créature reste immobile avant le contact ; une ronde se décidera chiffres en main
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : Q-222 : « oui ».
+- Décision : dans ce lot, la créature reste immobile avant le premier contact. On mesure le temps sans menace dans les grandes stations, puis le porteur décide d'une ronde, chiffres en main (#217).
+- Garde : D-048.
+- Limite [détail de l'agent] : avant le contact, une grande station fait entendre des bruits qui ne viennent pas de la créature (une action sur sept environ, sans rien changer à la partie), écrits dans le socle. Mesure de la livraison 1 : la rencontre arrive tard, au-delà des deux seuils d'alerte (13 §7.12). Les chiffres sont remis au porteur avant toute fusion.
+- Mesure de la livraison 3 : la rencontre arrive toujours tard, à 105 actions en médiane pour B2, à 92 % de la partie (seuil : environ 45 actions) ; 10,9 % des parties finies de B2 n'ont aucune rencontre (seuil : 10 %). La décision d'une ronde (#217) reste à prendre ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)).
+
+### D-322 — Univers : un cadre commun, l'histoire de la créature, pas de grand mystère
+
+- Date / statut : 2026-10-18 / **Validé** ; livraison 3.
+- Origine : Q-213 : « le lore va changer selon la mission et la menace (issue 219). mon but étant d'avoir une forte rejouabilité et que chaque partie se ressente différente selon les combinaisons » et « franchement, tout pourrait changer, j'aime la variété » ; Q-214 : « trop ambitieux et casse gueule niveau faisabilité. » ; Q-219 : « c'est bien ».
+- Décision :
+  - Un cadre commun à toutes les parties (spec §8.1) et l'histoire de la créature (§8.2), consignés dans une bible.
+  - Pas de grand mystère sur plusieurs parties.
+  - Le lore change avec la mission et la menace (#219).
+- Précise : D-016, D-030, D-031, D-032, D-046, D-243.
+- Limite [détail de l'agent] : la bible est [17 — univers](17-univers.md), un document d'auteur interdit au playtester comme [08](08-aventure-reference.md) et [09](09-aventure-reference-vide.md) ; l'assistant principal l'écrit (D-243), un relecteur indépendant la relit (D-116). Une seule histoire : chaque partie se passe dans une station différente, mais l'incident est toujours le même, et chaque station le dispose autrement ; un document ne nomme donc jamais la station où il se trouve. Le mystère reste entier : aucun document ne dit ce qu'est la créature, d'où vient le conteneur ni ce qu'elle veut. Les indices de l'équipage sont de vraies règles du jeu, dont celle-ci, corrigée à la relecture : le froid ralentit la créature toute la partie, même ressortie de la chambre froide (D-166, D-239). Texte final non validé par le porteur ; détail au [13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209).
+
+### D-323 — Documents : courts, vrais, chiffres permis
+
+- Date / statut : 2026-10-18 / **Validé** ; livraison 3.
+- Origine : Q-220 : « ok pour des chiffres a l'écran (ça fait plus log technique). ok pour indice passage caché ».
+- Décision :
+  - Cinq supports, une à cinq phrases, environ un document toutes les trois ou quatre pièces, indices vrais.
+  - **Chiffres permis dans les documents seulement.**
+  - **Indices à mots couverts sur un passage caché**, dans le même morceau.
+- Exception à C-07 §2, C-07 §6 et C-06 §5 (spec §8.4) ; exception à 12 §1.5. D-111 ne s'applique pas aux documents.
+- Limite [détail de l'agent] :
+  - **Réserve.** 36 documents, au lieu des « environ 40 » de la conception : 8 de l'univers, 12 de la menace (trois par étape), 8 témoignages pour les huit chemins (M-03 et M-06, les finals, n'en ont pas : leurs objets portent déjà leur mode d'emploi) et 8 notes de rangement (une par clé déplaçable, plus la trousse de soin). Une grande station en pose cinq à sept, plus les notes de rangement qui dépassent ce nombre. Les places sont dans une seule liste (`content/textes/documents.ts`) : un contrôle exige un texte pour chaque place et une place pour chaque texte.
+  - **Règles de pose retenues par l'agent**, à relire par le porteur :
+    - une pièce, un document ; jamais au vestibule (D-257), ni dans une salle pillée (sa phrase de pillage dit qu'il n'y reste rien, C-05), ni dans une pièce en feu ;
+    - la note d'une clé déplacée se pose toujours : dans la pièce qui fait face à l'obstacle (la « pièce face » : la pièce de la coupe du morceau, côté avant), sinon (cette pièce étant déjà prise, cas de la combinaison et de la découpeuse de M-06) dans la pièce d'origine de la clé, restée vide, sinon dans une annexe pendue à la pièce face, jamais celle de la clé ; la note d'une clé qui n'a pas bougé n'est pas posée ; la note de la trousse se pose seulement avec une trousse, dans une autre pièce du catalogue ;
+    - le document d'un morceau va dans la pièce face si elle est libre, sinon dans une annexe pendue à elle, sinon il n'est pas posé ;
+    - ceux de la menace suivent l'ordre du trajet (étapes 1 et 2 au premier tiers, 3 au deuxième, 4 au dernier) ; une étape peut manquer, mais jamais toutes ;
+    - tant qu'une pièce du catalogue ne porte rien (ni objet, ni pillage, ni trace, ni porte de boucle), une place de document lui reste réservée, et les documents de morceau laissent une place à la menace ; les notes obligatoires et le premier document de la menace passent outre. Sans cette règle, 292 graines sur 300 n'avaient plus de plan d'assemblage (158 avant les documents), sur une réserve d'essai.
+  - **Un seul trou.** La pièce d'une note de rangement, dans son corps (formes `le`, `de` et `a`), remplie à l'assemblage avec la vraie pièce, lettre comprise (la lettre qui distingue deux pièces de même nom : « consigne B »). Ni la ligne « où », ni la signature, ni un document d'une autre couche n'en ont : `check:texts` le refuse.
+  - **Taille.** Une grande station compte au moins 21 pièces dessinées (`piecesMin`, spec §4.1 et §11) ; une extension qui tomberait sous ce seuil, reprise de couverture comprise, ne donne pas de plan pour cette graine, comme une graine sans boucle : −1,6 % des plans (1 366 plans avec les documents, 1 344 avec le minimum, sur 288 compositions et les graines 0 à 9), −5,5 % depuis la livraison 2.
+  - **Chiffres.** Dans le corps d'un document seulement : ni la puce, ni la ligne « où », ni la signature, ni le titre de la bulle. Les captures épargnent le corps et lui seul, et prouvent qu'un chiffre ailleurs est refusé.
+  - **Passage caché.** Un seul document en parle, à mots couverts : le témoignage de M-05, dans son morceau.
+  - **Reprise.** Une sauvegarde faite sur une grande station sans ses documents ne se reprend pas sur la station qui en a : reprise refusée, sauvegarde intacte (test de l'appli).
+  - Mesures d'assemblage et de difficulté : [13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209).
+
+### D-324 — Un document se lit sur une fiche dans la bulle
+
+- Date / statut : 2026-10-18 / **Validé** sur maquette ; livraison 3.
+- Origine : Q-223 : « B, la fiche document dans la bulle. »
+- Décision : fiche document dans la bulle, variante B de la [maquette](maquette/documents.html).
+- Précise : 12 §3.5, §4.4.
+- Limite [détail de l'agent] : la fiche montre le support en capitales, la ligne « où » en casse normale, puis le corps dans la typographie du support : note en italique avec un filet et sa signature à droite ; journal cadré, sous une barre, avec une colonne d'heures ; message dont les didascalies sont en couleur secondaire ; inscription en grandes capitales ; affiche sous un double cadre. La barre du journal porte le nom de la puce : la maquette lui donnait un titre propre qui portait un chiffre, et un texte de jeu ne s'invente pas (D-243) ; le curseur de la maquette n'est pas repris. L'inscription est écrite en casse normale dans le contenu : c'est le style qui la met en capitales, et le lecteur d'écran la lit en casse normale. La pièce nommée par une note de rangement est soulignée en pointillé, sans autre aide. Une fiche longue défile dans la bulle, sans indice visuel. Lire est gratuit et n'est pas enregistré (D-014) ; la puce d'un document est une puce ordinaire du dock, sans marque. La CLI dit le support, la ligne « où », le corps ligne à ligne, puis la signature. Détail : [12 §4.4](12-interface-ecrans.md#44-fiche-dobjet--poste-dappel) ; [13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209).
+
+### D-325 — Les validations signées restent valables pour les petites stations
+
+- Date / statut : 2026-10-18 / **Validé**.
+- Origine : Q-227 : « Gardées ».
+- Décision :
+  - Les 9 validations sur téléphone restent valables pour les petites stations.
+  - Chaque morceau doit être joué au moins une fois dans une grande station, au fil des essais du porteur, avant que les grandes stations soient validées.
+- Précise : D-098, D-100.
+
+### D-326 — Les grandes stations sont prouvées une à une, puis publiées dans une liste
+
+- Date / statut : 2026-10-18 / **Validé** (choix de l'agent, accepté avec la conception).
+- Origine : la preuve par composition ne tient plus à 24 pièces (spec §7.1).
+- Décision : chaque grande station est assemblée, contrôlée (spec §7.3) et prouvée sans dé ni blessure, puis publiée dans une liste versionnée. Le jeu ne tire que dans cette liste.
+- Modifie : la limite de D-207 (un contrôle structurel de GE-13 s'ajoute à la preuve de jeu) et GE-13 (on ne pose pas une porte qui contournerait un obstacle, au lieu de la faire fermer par l'incident).
+- Limite [détail de l'agent] : la preuve d'une grande station rejoue le témoin de son chemin principal (la même station sans les pièces du catalogue, aux mêmes noms) ; en ordre libre, un témoin par ordre. `npm run publier:grandes` écrit la liste (`content/stations/grandes-publiees.ts`) et les témoins (`tools/grandes-temoins.json`), que `check:stations` rejoue. `check:sortie` ne couvre les grandes stations qu'à partir de la livraison 2.
+- Précisée par la livraison 3 : les documents changent les plans (couverture des pièces du catalogue, au moins 21 pièces dessinées) ; la liste est republiée, 538 stations dont 171 en ordre libre, et `check:stations` la rejoue ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)).
+
+### D-327 — Une branche, trois livraisons, une PR
+
+- Date / statut : 2026-10-18 / **Validé** (choix de l'agent, accepté avec la conception).
+- Décision :
+  - Une seule suite de travaux sur le moteur, en trois livraisons sur une même branche, dans une même PR, comme pour la carte (#97). La PR est ouverte en brouillon dès la livraison 1, pour un essai sur téléphone si le porteur le souhaite.
+  - La fusion n'a lieu qu'à la fin : `main` ne voit jamais une grande station qui changerait ensuite sous le même identifiant.
+- Limite : à la demande du porteur, la PR #230 s'est ouverte prête à relire et non en brouillon, pour l'essai sur téléphone ; les livraisons 2 et 3 sont sur la même branche, et la fusion attend la vérification de la livraison 3, l'essai sur téléphone et l'accord du porteur.
+
+### D-328 — Poser la caisse sous la grille d'un seul geste
+
+- Date / statut : 2026-10-20 / **Validé** (demande du porteur) ; la forme choisie par l'agent (l'étape « OÙ ? » dans l'appli) et les textes sont à relire, essai sur téléphone à venir (zone orange).
+- Origine : demande du porteur pendant la livraison 3, le 2026-10-20 : « Ça serait bien que on est directement l'option "poser sous la grille" pour la caisse quand on va dans son menu d'inventaire et qu'on est dans la bonne pièce plutôt que de te voir la poser et réouvrir un menu qui nous propose de la pousser sous la grille. »
+- Décision : quand le passager porte la caisse et qu'il est dans la bonne pièce, il la pose sous la grille d'un seul geste, depuis le menu de son inventaire. Il n'a plus à la poser d'abord, puis à rouvrir un menu qui propose de la pousser. La grille devient atteignable aussitôt.
+- Précise : D-319 (la caisse est portable, encombrante et déplaçable dans une grande station : un geste suffit désormais pour la mettre sous la grille). Modification partielle : D-182 (« Poser » à position n'est plus d'un seul toucher, il faut choisir où).
+- Limite [détail de l'agent] :
+  - **Choix d'interface.** Quand l'objet porté est déplaçable et que la pièce a des positions, « Poser » propose ces positions : une seule action pose l'objet à la position choisie, sous la grille comprise. Dans l'appli, « Poser » ouvre l'étape « OÙ ? » de la bulle, comme « Déplacer », puis l'aperçu et CONFIRMER. Dans la CLI, le menu liste une ligne par position. Une pièce sans positions, ou un objet qui n'est pas déplaçable : « Poser » ne change pas. L'autre lecture de la demande, une ligne « Poser sous la grille » directement dans le menu, n'a pas été retenue ; elle reste possible si le porteur la préfère.
+  - **Où.** Avec la caisse en main, seul l'atelier de M-02 propose des positions (sous la grille, au centre de la pièce), ce qu'un test vérifie dans toutes les pièces d'une station publiée ; ailleurs, la caisse se pose comme avant, d'un seul toucher. Dans une petite station, la caisse ne se porte pas : rien ne change, les empreintes figées non plus.
+  - **Textes**, écrits par l'assistant principal : un exécutant n'écrit pas de texte de jeu (D-243). Événement `objet_pose_position`, dit comme « Vous posez {le:objet} {nom:position}. Vos mains sont libres. », avec une variante. Le libellé du menu de la CLI et des outils est « Poser {le:cible} {nom:position} », de la même forme que « Déplacer » : sans lui, les deux lignes « Poser la caisse » étaient indiscernables. L'appli garde « Poser » sur sa ligne d'action ; le fil de la bulle et l'aperçu nomment la position.
+  - **Sauvegarde.** Format inchangé. Une partie de grande station enregistrée avec « poser la caisse » sans position dans l'atelier de M-02 ne se reprend plus : la commande est refusée au rejeu et la sauvegarde est écartée par le mécanisme existant (une sauvegarde incohérente avec son journal n'est pas reprise, [13 §7.13](13-morceaux-lancement.md#713-grandes-stations-livraison-2-202-207)), ce que la republication de la livraison 3 provoque de toute façon. Aucun test dédié n'épingle ce rejeu : le refus a été vérifié à la lecture. Les témoins publiés qui posaient la caisse sans position sont refaits par la republication ([13 §7.14](13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)).
+
+### D-329 — M-11 et M-12 tirés dans les grandes stations
+
+- Date / statut : 2026-10-21 / **Proposé** (choix de l'agent pour #236, à relire par le porteur) ; essai sur téléphone à venir (D-325, zone orange).
+- Origine : issue #236, demande du porteur « je les veux » : M-11 et M-12 doivent pouvoir être tirés dans les grandes stations.
+- Décision : M-11 et M-12 entrent au tirage des grandes stations comme les huit autres chemins, en branche A ou B comme en troisième chemin, et la liste est republiée ([13 §7.15](13-morceaux-lancement.md#715-m-11-et-m-12-dans-les-grandes-stations-236)). Le tirage reste uniforme dans la liste : 73,1 % des stations publiées contiennent M-11 ou M-12.
+- Précise : D-313 (taille des grandes stations), D-319 (clés dispersées), D-323 (documents).
+- Limite [détail de l'agent] :
+  - **Taille.** Une grande station compte de 6 à 10 annexes et de 22 à 28 pièces dessinées (spec §4.1, D-313). Un ordre libre avec M-12 et deux chemins de cinq pièces porte déjà 23 pièces de morceaux. Le nombre d'annexes est donc plafonné pour ne pas dépasser 28 pièces dessinées : ces compositions n'en prennent que cinq. L'autre lecture, garder six annexes et accepter 29 pièces, n'a pas été retenue : la carte au zoom d'ensemble est déjà difficile à lire à 28 pièces (spec §9.3).
+  - **Clé.** La carte de sécurité de M-11 se déplace vers une pièce d'étiquette `securite` (la salle des casiers), avec sa note de rangement, *fiche de prêt*, signée Sami. Le chariot de M-12 ne se porte pas.
+  - **Plans.** Avec M-11 et M-12, une graine sur trois seulement donne un plan (32,8 %, contre 45,0 % sans eux). Le seuil du test de l'assemblage passe de 40 % à 35 %. Aucun joueur ne le voit : la publication saute les graines sans plan.
+  - **`check:sortie`.** L'échantillon des grandes stations ajoute, après les clés, la première station en chaîne de chaque chemin encore absent, pour que M-12, qui n'a pas de clé, y figure.

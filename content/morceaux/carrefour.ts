@@ -25,6 +25,8 @@ export const MORCEAU_CARREFOUR: DefMorceau = {
   placesCreature: [],
   demande: [],
   fournit: [],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { accueillantes: { 'p-couloir': 'circulation' }, avant: ['p-couloir'], coupe: ['l-cloison-1'] },
   assistance: [{ id: 'carrefour', quand: { type: 'arrivee', piece: 'p-couloir' } }],
 };
 

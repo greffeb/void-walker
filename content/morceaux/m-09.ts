@@ -36,6 +36,8 @@ export const MORCEAU_M09: DefMorceau = {
   placesCreature: ['p-cale'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie', 'p-cale': 'fret' }, avant: ['p-quartiers', 'p-sas-ouest'], coupe: ['l-sas-ouest-transfert'] },
   assistance: [{ id: 'gravite', quand: { type: 'arrivee', piece: 'p-sas-ouest' } }],
 };
 
@@ -63,6 +65,20 @@ export const TEXTES_MORCEAU_M09: TextesMorceau = {
       'Des conteneurs arrimés par des sangles, des filets tendus sous le plafond. Dans un coin, un conteneur cabossé.',
     ],
     interrupteur_gravite: repris(TEXTES_PROPRES_M09.descriptions, 'interrupteur'),
+  },
+  // Document des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle.
+  documents: {
+    doc_journal_wen: {
+      puce: { texte: 'journal de Wen', genre: 'm', nombre: 's', elision: false },
+      support: 'journal',
+      ou: 'sur une tablette de service, fixée à la paroi par une bande adhésive',
+      corps: [
+        '02:30  Gravité coupée pour la traversée.',
+        '02:31  Passage à la poussée, d’une poignée à l’autre. Une minute par personne.',
+        '02:36  Quelque chose s’engage derrière nous. Gravité laissée coupée.',
+        '02:44  Toujours pas de l’autre côté. Ça ne sait pas flotter.',
+      ],
+    },
   },
   assistance: {
     gravite: repris(TEXTES_PROPRES_M09.assistance, 'gravite'),

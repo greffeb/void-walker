@@ -1,11 +1,12 @@
 import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, type EntreeMonde } from '../content';
-import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde } from '../engine';
+import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde, type Partie } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
-import { executerParcours } from './rejouer-parcours';
+import { executerParcours, trouverOption } from './rejouer-parcours';
 import {
   cheminsDesPlans,
   chercherEtat,
+  chercherJusqua,
   cleEtatRegles,
   ecartsDuCatalogue,
   ecartsDuLot,
@@ -13,6 +14,7 @@ import {
   explorerDes,
   mesurerPlans,
   mesurerStation,
+  optionsDe,
   rangsDesMorceaux,
   stationDeReference,
   verifierCatalogue,
@@ -198,6 +200,91 @@ describe('d’abord le morceau le plus avancé (L3 §6.2)', () => {
   }, 60000);
 });
 
+describe('recherche depuis un état donné (spec 2026-10-18 §7.4)', () => {
+  it('chercherJusqua, depuis un état du milieu de partie, trouve une clé posée dans une pièce du catalogue', () => {
+    const composition = 'g1-m01-m02-m09-m06-cale';
+    const caisse = 'm-02/o-caisse';
+    const grande = Array.from({ length: 200 }, (_, graine) => CATALOGUE.construireGrande(composition, graine)).find(
+      (candidate): candidate is EntreeMonde => !('refus' in candidate) && candidate.monde.objets.some((objet) => objet.id === caisse && !objet.piece.startsWith('m-02/')),
+    );
+    if (grande === undefined) throw new Error(`${composition} : caisse jamais déplacée sur 200 graines.`);
+    const piece = grande.monde.objets.find((objet) => objet.id === caisse)?.piece;
+    expect(grande.monde.pieces.find((candidate) => candidate.id === piece)?.forme).toBeDefined();
+    // Milieu de partie : le passager arrive à l'atelier d'où la caisse est partie.
+    const milieu = chercherEtat(grande, (etat) => etat.piece === 'm-02/p-atelier').partie;
+    if (milieu === null) throw new Error('Atelier de M-02 non atteint.');
+    const etapes = chercherJusqua(grande, milieu, (etat) => etat.objets[caisse]?.type === 'passager', 20_000);
+    if (etapes === null) throw new Error('Caisse non trouvée.');
+    expect(etapes.at(-1)?.action).toBe('prendre');
+    let partie = milieu;
+    for (const etape of etapes) {
+      const option = trouverOption(observer(grande.monde, partie.etat), etape);
+      if (option === undefined || !option.disponible) throw new Error(`Étape ${etape.action} ${etape.cible} indisponible.`);
+      const resultat = jouer(grande.monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`Étape ${etape.action} ${etape.cible} : ${resultat.type}.`);
+      expect(resultat.tirages).toEqual([]);
+      expect(resultat.partie.etat.sante).toBe('indemne');
+      partie = resultat.partie;
+    }
+    expect(partie.etat.objets[caisse]).toEqual({ type: 'passager' });
+  }, 120_000);
+
+  it('chercherJusqua rend un témoin vide quand le but est déjà atteint, null quand il ne l’est jamais', () => {
+    const depart = nouvellePartie(station().monde, { version: 'test', graine: 1 });
+    expect(chercherJusqua(station(), depart, () => true, 10)).toEqual([]);
+    expect(chercherJusqua(station(), depart, () => false, 10_000)).toBeNull();
+  });
+});
+
+describe('poser la caisse sous la grille d’un seul geste (demande du porteur, grandes stations)', () => {
+  const caisse = 'm-02/o-caisse';
+  /** Première station de la composition, sur 50 graines, dont la caisse de M-02 attend encore dans son atelier. */
+  const grande = ((): EntreeMonde => {
+    for (let graine = 0; graine < 50; graine += 1) {
+      const entree = CATALOGUE.construireGrande('g1-m01-m02-m04-m03-observation', graine);
+      if (!('refus' in entree) && entree.monde.objets.some((objet) => objet.id === caisse && objet.piece === 'm-02/p-atelier')) return entree;
+    }
+    throw new Error('Aucune station avec la caisse dans l’atelier sur 50 graines.');
+  })();
+
+  it('en main dans l’atelier de M-02, la caisse se pose sous la grille ou au centre ; ailleurs, « Poser » ne change pas', () => {
+    const depart = nouvellePartie(grande.monde, { version: 'test', graine: 1 });
+    const avecPositions = new Set((grande.monde.positions ?? []).map((position) => position.piece));
+    expect([...avecPositions]).toEqual(['m-02/p-atelier']);
+    for (const piece of grande.monde.pieces) {
+      const etat = { ...depart.etat, piece: piece.id, objets: { ...depart.etat.objets, [caisse]: { type: 'passager' as const } } };
+      const poses = observer(grande.monde, etat).menu.filter((option) => option.action === 'poser' && option.cible.nom === 'caisse');
+      expect(poses.map((option) => option.parametre?.nom), piece.id).toEqual(avecPositions.has(piece.id) ? ['sous_grille', 'centre'] : [undefined]);
+    }
+  });
+
+  it('depuis le départ : la caisse prise dans l’atelier, une seule action la pose sous la grille, que le passager peut alors ouvrir', () => {
+    const depart = nouvellePartie(grande.monde, { version: 'test', graine: 1 });
+    const etapes = chercherJusqua(grande, depart, (etat) => etat.piece === 'm-02/p-atelier' && etat.objets[caisse]?.type === 'passager', 20_000);
+    if (etapes === null) throw new Error('Caisse en main dans l’atelier non atteinte.');
+    let partie = depart;
+    for (const etape of etapes) {
+      const option = trouverOption(observer(grande.monde, partie.etat), etape);
+      if (option === undefined || !option.disponible) throw new Error(`Étape ${etape.action} ${etape.cible} indisponible.`);
+      const resultat = jouer(grande.monde, partie, option.commande);
+      if (resultat.type !== 'engagee') throw new Error(`Étape ${etape.action} ${etape.cible} : ${resultat.type}.`);
+      partie = resultat.partie;
+    }
+    const grille = (courante: Partie) => observer(grande.monde, courante.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
+    expect(grille(partie)).toMatchObject({ disponible: false, raison: 'hors_de_portee' });
+    const sous = observer(grande.monde, partie.etat).menu.find((option) => option.action === 'poser' && option.parametre?.nom === 'sous_grille');
+    if (sous === undefined) throw new Error('« Poser » sous la grille absent.');
+    const avant = partie.etat.actions;
+    const pose = jouer(grande.monde, partie, sous.commande);
+    if (pose.type !== 'engagee') throw new Error(`Poser sous la grille : ${pose.type}.`);
+    expect(pose.partie.etat.actions).toBe(avant + 1);
+    expect(pose.tirages).toEqual([]);
+    expect(pose.evenements.map((evenement) => evenement.type)).toEqual(['objet_pose_position']);
+    expect(pose.partie.etat.objets[caisse]).toMatchObject({ type: 'piece', piece: 'm-02/p-atelier', position: 'm-02/pos-sous-grille' });
+    expect(grille(pose.partie)).toMatchObject({ disponible: true });
+  }, 60_000);
+});
+
 describe('clé des données de règles', () => {
   const monde = station().monde;
   const etat = nouvellePartie(monde, { version: 'test', graine: 1 }).etat;
@@ -316,7 +403,7 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
     const attendu: [string, LigneCatalogue['verdict'], number][] = CATALOGUE.compositions.map(({ id, forme, chemins, final, refus }) =>
       (chemins.includes('m-07') && final === 'm-03') || refus !== null ? [id, 'refusee', 0] : [id, 'non_prouvee', forme === 'libre' ? 2 : 1],
     );
-    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(44 + 21 + 26);
+    expect(attendu.filter(([, verdict]) => verdict === 'refusee')).toHaveLength(56 + 27 + 34);
     expect(sans.map((ligne) => [ligne.composition, ligne.verdict, ligne.etats])).toEqual(attendu);
     for (const ligne of sans.filter(({ verdict }) => verdict === 'refusee')) {
       const composition = CATALOGUE.compositions.find(({ id }) => id === ligne.composition);
@@ -333,6 +420,18 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
     );
   });
 
+  it('plafond relevé à 600 000 états pour les seules compositions avec M-12, sauf plafond demandé (#232)', () => {
+    const trouver = (id: string): (typeof CATALOGUE.compositions)[number] => {
+      const composition = CATALOGUE.compositions.find((candidate) => candidate.id === id);
+      if (composition === undefined) throw new Error(`${id} absente.`);
+      return composition;
+    };
+    expect(optionsDe(trouver('m10-m12-m03-stockage'), {})).toEqual({ maxEtats: 600000 });
+    expect(optionsDe(trouver('ol-m05-m12-m03-tri'), { priorite: () => 0 }).maxEtats).toBe(600000);
+    expect(optionsDe(trouver('m09-m01-m03-palier'), {})).toEqual({});
+    expect(optionsDe(trouver('m10-m12-m03-stockage'), { maxEtats: 1 })).toEqual({ maxEtats: 1 });
+  });
+
   it('écarts : publiée non prouvée ou absente, prouvée non publiée, moins de 95 % de plans', () => {
     const ligne = (composition: string, verdict: LigneCatalogue['verdict']): LigneCatalogue => ({
       composition, verdict, graine: 0, etats: 1, secondes: 0, actions: null, diagnostic: '', empreintes: {},
@@ -346,8 +445,11 @@ describe('catalogue : la preuve de check:stations, outil et règles (#152, #180)
   });
 });
 
-/** Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08 ni M-10 avant. */
-const AIDES = ['m-04', 'm-07', 'm-08', 'm-10'];
+/**
+ * Compositions bouchées (spec L4 §4) : en chaîne, créature au palier ou à l'atelier sans M-04, M-07, M-08, M-10 ni M-12 avant ;
+ * M-12 permet de s'en débarrasser, prouvé par check:stations (#232).
+ */
+const AIDES = ['m-04', 'm-07', 'm-08', 'm-10', 'm-12'];
 function bouchee({ forme, chemins, creature }: (typeof CATALOGUE.compositions)[number]): boolean {
   if (forme !== 'chaine' || (creature !== 'm-01/p-palier' && creature !== 'm-02/p-atelier')) return false;
   return !chemins.slice(0, chemins.indexOf(creature.slice(0, creature.indexOf('/')))).some((chemin) => AIDES.includes(chemin));
@@ -371,12 +473,12 @@ function cacheMemoire(): CacheVerdicts & { readonly cles: string[] } {
 describe('publication : ce que check:stations doit prouver (#152, #180)', () => {
   // La preuve du catalogue entier est faite par check:stations seul (#180) : il échoue si une publiée n'est pas prouvée ou si
   // une prouvée n'est pas publiée. Ici, la règle de publication elle-même, sans recherche.
-  it('publiées : toutes les compositions permises, sauf les bouchées (palier ou atelier sans aide avant) ; 536 compositions, 324 publiées en chaîne et 140 en ordre libre', () => {
-    expect(CATALOGUE.compositions).toHaveLength(536);
+  it('publiées : toutes les compositions permises sauf les bouchées ; 850 compositions, 524 publiées en chaîne et 234 en ordre libre', () => {
+    expect(CATALOGUE.compositions).toHaveLength(850);
     const attendues = CATALOGUE.compositions.filter((composition) => composition.refus === null && !bouchee(composition)).map((composition) => composition.id);
     expect(COMPOSITIONS_PUBLIEES).toEqual(attendues);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(324);
-    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(140);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => !id.startsWith('ol-'))).toHaveLength(524);
+    expect(COMPOSITIONS_PUBLIEES.filter((id) => id.startsWith('ol-'))).toHaveLength(234);
   });
 
   // Quelques compositions choisies : une chaîne, une bouchée, un ordre libre, une refusée.
@@ -421,11 +523,11 @@ describe('publication : ce que check:stations doit prouver (#152, #180)', () => 
     else expect(ligne.ordres).toBeUndefined();
   }, 120000);
 
-  it('chemins de plans : 128 en chaîne, 56 en ordre libre, chacun mesuré (seuil de 95 % appliqué par check:stations)', () => {
+  it('chemins de plans : 200 en chaîne, 90 en ordre libre, chacun mesuré (seuil de 95 % appliqué par check:stations)', () => {
     const chaines = [
       ...new Set(CATALOGUE.compositions.map(({ forme, chemins, final }) => ['vestibule', ...(forme === 'libre' ? ['carrefour'] : []), ...chemins, final].join(' + '))),
     ];
-    expect(chaines).toHaveLength(128 + 56);
+    expect(chaines).toHaveLength(200 + 90);
     const mesures = mesurerPlans(2);
     expect(mesures.map((mesure) => mesure.chemin)).toEqual(chaines);
     expect(cheminsDesPlans().map(([chemin]) => chemin)).toEqual(chaines);

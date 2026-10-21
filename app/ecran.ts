@@ -188,12 +188,12 @@ const UN_TOUCHER_SANS_RISQUE: readonly IdAction[] = ['prendre', 'poser'];
 
 /**
  * Prendre ou poser se joue d'un seul toucher quand l'aperçu n'annonce ni risque, ni danger, ni coût (D-182) ; une porte ou un
- * déplacement, toujours (D-267).
+ * déplacement, toujours (D-267). Poser à une position (la caisse d'une grande station) demande d'abord « OÙ ? ».
  */
 export function unToucher(monde: DefMonde, partie: Partie, option: OptionMenu): boolean {
   if (!option.disponible) return false;
   if (TOUJOURS_UN_TOUCHER.includes(option.action)) return true;
-  if (!UN_TOUCHER_SANS_RISQUE.includes(option.action)) return false;
+  if (!UN_TOUCHER_SANS_RISQUE.includes(option.action) || option.parametre !== undefined) return false;
   const resultat = apercu(monde, partie, option.commande);
   if (resultat.type !== 'apercu') return false;
   const { risque, danger, cout } = resultat.apercu;

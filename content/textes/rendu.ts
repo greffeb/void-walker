@@ -15,13 +15,15 @@ import type {
   Savoir,
   SourceEvacuation,
 } from '../../engine';
+import { rendreDocument, texteDocument } from './document';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
 
-/** Repère pour choisir les variantes : la graine de la partie et le numéro de l'action. */
+/** Repère pour choisir les variantes : la graine de la partie et le numéro de l'action ; `attentes` : attentes de suite (#225). */
 export interface CleTexte {
   readonly graine: number;
   readonly action: number;
+  readonly attentes?: number;
 }
 
 /**
@@ -51,6 +53,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'objet_pose':
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
     case 'passage_ouvert':
+    case 'passage_ouvert_encombre':
     case 'passage_ferme':
       return { passage: nomDe(textes, evenement.passage) };
     case 'passage_decouvert': {
@@ -62,6 +65,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { passage: nomDe(textes, evenement.passage), piece: nomDe(textes, evenement.piece) };
     case 'bruit_mecanisme':
     case 'bruit_creature':
+    case 'drone_bruit_arrete':
     case 'creature_entre':
     case 'feu_derriere':
     case 'creature_glisse':
@@ -80,6 +84,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'assistance':
     case 'creature_expulsee':
     case 'creature_inerte':
+    case 'bruit_station':
       return {};
     case 'combinaison_enfilee':
     case 'combinaison_retiree':
@@ -97,6 +102,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'objet_installe':
       return { objet: nomDe(textes, evenement.objet), capsule: nomDe(textes, evenement.capsule) };
     case 'objet_deplace':
+    case 'objet_pose_position':
       return { objet: nomDe(textes, evenement.objet), position: nomDe(textes, evenement.position) };
     case 'feu_gagne':
     case 'feu_eteint':
@@ -112,6 +118,15 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'machines_arretees':
     case 'machines_relancees':
     case 'cloison_deverrouillee':
+    case 'drone_envoye':
+    case 'drone_maintient':
+    case 'drone_deraille':
+    case 'drone_replace':
+    case 'drone_rearme':
+    case 'drone_arrete':
+    case 'drone_termine':
+    case 'poignee_tenue':
+    case 'poignee_lachee':
       return { objet: nomDe(textes, evenement.objet) };
     case 'gravite_coupee':
     case 'gravite_retablie':
@@ -151,6 +166,10 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
+  // Un bruit de station ne retire pas à l'attente son texte de la 5e ou de la 10e : la station parle déjà (D-289, spec §5.5).
+  const recit = evenements.filter((evenement) => evenement.type !== 'assistance' && evenement.type !== 'bruit_station');
+  const seule = recit.length === 1 && recit[0]?.type === 'attente';
+  if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
     const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
@@ -214,14 +233,17 @@ export function texteAssistance(textes: TextesMonde, message: string): string {
 
 /** Repère du moment où un message a été reçu, sans heure : « au réveil · Salon de transit » (12 §3.9). */
 export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string {
-  const { momentReveil, momentArrivee, momentEvacuation } = textes.observation;
+  const { momentReveil, momentArrivee, momentEvacuation, momentPatience } = textes.observation;
   if (moment.type === 'evacuation') return remplir(momentEvacuation, {});
+  if (moment.type === 'patience') return remplir(momentPatience, {});
   return remplir(moment.type === 'reveil' ? momentReveil : momentArrivee, { piece: nomDe(textes, moment.piece) });
 }
 
 export function rendreConsultation(textes: TextesMonde, consultation: Consultation, cle: CleTexte): string {
   // Une même chose garde la même description pendant toute la partie.
   const repere = `${cle.graine}:${consultation.type}:${consultation.cible.id}`;
+  // Un document n'a qu'un texte, sans variante ; l'appli et la CLI lisent son rendu structuré (`rendreDocument`).
+  if (consultation.type === 'regarder_document') return texteDocument(rendreDocument(textes, consultation));
   if (consultation.type === 'regarder_passage') {
     const { cible } = consultation;
     if (cible.vers === null) {
@@ -235,7 +257,13 @@ export function rendreConsultation(textes: TextesMonde, consultation: Consultati
   }
   const description = textes.descriptions[consultation.cible.nom];
   if (description === undefined) throw new ErreurTexte(`Description absente : ${consultation.cible.nom}.`);
-  return remplir(choisirVariante(description, repere), {});
+  const regard = remplir(choisirVariante(description, repere), {});
+  if (consultation.type !== 'regarder_piece') return regard;
+  // Sur la piste de la créature, une phrase de trace suit la description (spec 2026-10-18 §5.4) ; dans une salle de butin
+  // pillée, une phrase de pillage vient ensuite (§6.6). Chacune reste la même toute la partie.
+  const trace = consultation.trace === undefined ? '' : ` ${remplir(choisirVariante(textes.traces[consultation.trace], `${cle.graine}:trace:${consultation.cible.id}`), {})}`;
+  const pillage = consultation.pillee === true ? ` ${remplir(choisirVariante(textes.pillages, `${cle.graine}:pillage:${consultation.cible.id}`), {})}` : '';
+  return `${regard}${trace}${pillage}`;
 }
 
 export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {
@@ -243,7 +271,10 @@ export function rendreRefus(textes: TextesMonde, raison: RaisonRefus): string {
 }
 
 function repere(partie: Partie): CleTexte {
-  return { graine: partie.enregistrement.graine, action: partie.etat.actions };
+  const { graine, actions } = partie.enregistrement;
+  let attentes = 0;
+  while (actions[actions.length - 1 - attentes]?.commande.action === 'attendre') attentes += 1;
+  return { graine, action: partie.etat.actions, attentes };
 }
 
 /** Récit de la dernière action engagée, identique après une reprise ou un rejeu. */
@@ -279,7 +310,7 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
       lignes.push(remplir(modele.gouffre, { passage: nomDe(textes, passage), vers: nomDe(textes, passage.vers ?? passage) }));
       continue;
     }
-    const modeleOuvert = passage.feu ? modele.passageEnFeu : modele.passageOuvert;
+    const modeleOuvert = passage.encombre === true ? modele.passageEncombre : passage.feu ? modele.passageEnFeu : modele.passageOuvert;
     lignes.push(remplir(passage.ouvert ? modeleOuvert : modele.passageFerme, { passage: nomDe(textes, passage) }));
     if (passage.huile) lignes.push(remplir(modele.huile, { passage: nomDe(textes, passage) }));
     if (passage.vide) lignes.push(remplir(modele.passageVide, { passage: nomDe(textes, passage) }));
@@ -291,6 +322,9 @@ export function rendreObservation(textes: TextesMonde, observation: Observation)
     lignes.push(remplir(modele.installe, { objet: nomDe(textes, objet), capsule: nomDe(textes, capsule) }));
   }
   for (const objet of observation.actives) lignes.push(remplir(modele.active, { objet: nomDe(textes, objet) }));
+  for (const { objet, phase } of observation.drones ?? []) lignes.push(remplir(modele[`drone_${phase}`], { objet: nomDe(textes, objet) }));
+  if (observation.poigneeTenue !== undefined) lignes.push(remplir(modele.poigneeTenue, { objet: nomDe(textes, observation.poigneeTenue) }));
+  for (const { objet, desserre } of observation.freins ?? []) lignes.push(remplir(desserre ? modele.freinDesserre : modele.freinSerre, { objet: nomDe(textes, objet) }));
   if (observation.feu) lignes.push(remplir(modele.feu, {}));
   if (observation.sansAir) lignes.push(remplir(modele.sansAir, {}));
   for (const objet of observation.percees) lignes.push(remplir(modele.percee, { objet: nomDe(textes, objet) }));
@@ -333,6 +367,12 @@ export interface ApercuTexte {
 function valeursSavoir(textes: TextesMonde, savoir: Savoir): Record<string, Nom | readonly Nom[]> {
   switch (savoir.type) {
     case 'portera':
+    case 'enverra_drone':
+    case 'tiendra':
+    case 'lachera':
+    case 'replacera_drone':
+    case 'rearmera_drone':
+    case 'arretera_drone':
     case 'protegera':
     case 'gardera':
     case 'percera':
@@ -407,6 +447,13 @@ export function rendreApercu(textes: TextesMonde, apercu: Apercu): ApercuTexte {
   };
 }
 
+/** Gabarit du libellé : celui d'« aller » sans destination connue, celui de « poser » à une position, sinon celui de l'action. */
+function gabaritLibelle(textes: TextesMonde, { action, cible, parametre }: OptionMenu): string {
+  if (action === 'aller' && cible.sorte === 'passage' && cible.vers === null) return textes.allerSansDestination;
+  if (action === 'poser' && parametre?.sorte === 'position') return textes.poserAPosition;
+  return textes.libelles[action];
+}
+
 export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleOption {
   const { cible, parametre } = option;
   const valeurs: Record<string, Nom> = { cible: nomDe(textes, cible) };
@@ -418,8 +465,7 @@ export function libelleOption(textes: TextesMonde, option: OptionMenu): LibelleO
     valeurs.piece = nomDe(textes, parametre.vers ?? parametre);
   }
   if (parametre?.sorte === 'piece') valeurs.piece = nomDe(textes, parametre);
-  const gabarit = option.action === 'aller' && cible.sorte === 'passage' && cible.vers === null ? textes.allerSansDestination : textes.libelles[option.action];
-  const libelle = remplir(gabarit, valeurs);
+  const libelle = remplir(gabaritLibelle(textes, option), valeurs);
   if (option.disponible) return { libelle, raison: null };
   if (option.raison === undefined) throw new ErreurTexte(`Option indisponible sans raison : ${option.action}.`);
   return { libelle, raison: remplir(textes.indisponibilites[option.raison], { cible: valeurs.cible as Nom }) };

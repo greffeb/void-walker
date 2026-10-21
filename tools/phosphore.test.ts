@@ -91,15 +91,22 @@ describe('direction « Phosphore » (12 §2)', () => {
       const vert = angle >= 85 && angle <= 140 && jetonDe(couleur).startsWith('vert');
       // Rouge du danger apparu dans le récit : seulement dans son jeton (D-233).
       const rouge = (angle <= 10 || angle >= 350) && jetonDe(couleur) === 'alerte';
-      expect(ambre || cyan || blanc || vert || rouge, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
+      // Trame et franges du tube cathodique de l'intro, à peine visibles : seulement dans leurs jetons (D-311).
+      const crt = jetonDe(couleur).startsWith('crt-');
+      expect(ambre || cyan || blanc || vert || rouge || crt, `${couleur} : teinte ${Math.round(angle)}°`).toBe(true);
     }
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('cyan'))).toBe(true);
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('blanc'))).toBe(true);
     expect(couleurs.some((couleur) => jetonDe(couleur).startsWith('vert'))).toBe(true);
   });
 
-  it('angles droits partout', () => {
-    for (const [, valeur] of css.matchAll(/border-radius:\s*([^;]+);/g)) expect(valeur).toBe('0');
+  it('angles droits partout, sauf le verre bombé du tube de l’intro (D-311)', () => {
+    for (const trouve of css.matchAll(/border-radius:\s*([^;]+);/g)) {
+      const debut = css.lastIndexOf('}', trouve.index) + 1;
+      const selecteur = css.slice(debut, css.indexOf('{', debut)).trim();
+      if (selecteur === '.intro-crt') continue;
+      expect(trouve[1], selecteur).toBe('0');
+    }
   });
 
   it('police IBM Plex Mono 400, 600 et 400 italique embarquée dans l’appli, licence OFL jointe', () => {
@@ -169,6 +176,27 @@ describe('direction « Phosphore » (12 §2)', () => {
     expect(cycle - derniereFin).toBeCloseTo(1, 2);
     expect(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.notification-ia\s*\{\s*animation:\s*none;/.test(css)).toBe(true);
     expect(css).not.toMatch(/\.nav-ia[^{]*\{[^}]*animation/);
+  });
+
+  it('fiche document (D-324) : support en capitales, chaque support dans sa typographie, pièce soulignée en pointillé', () => {
+    const regle = (selecteur: string): string => new RegExp(`^${selecteur.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`, 'm').exec(css)?.[1] ?? '';
+    expect(regle('.fiche-document .support')).toContain('text-transform: uppercase');
+    // La ligne « où » reprend la casse normale.
+    expect(regle('.fiche-document .support span')).toContain('text-transform: none');
+    // À 320 px, un mot long (code, nom lettré) se coupe plutôt que de déborder de la bulle.
+    expect(regle('.fiche-document .doc')).toContain('overflow-wrap: anywhere');
+    expect(regle('.fiche-document .doc-note')).toContain('font-style: italic');
+    expect(regle('.fiche-document .doc-note')).toContain('border-left: 1px dashed');
+    expect(regle('.fiche-document .doc-note .signe')).toContain('text-align: right');
+    expect(regle('.fiche-document .doc-journal')).toContain('border: 1px solid');
+    expect(regle('.fiche-document .doc-journal .barre')).toContain('text-transform: uppercase');
+    expect(regle('.fiche-document .doc-journal li')).toContain('grid-template-columns: 5ch');
+    expect(regle('.fiche-document .doc-message .didascalie')).toContain('color: var(--secondaire-menu)');
+    expect(regle('.fiche-document .doc-inscription p')).toContain('text-transform: uppercase');
+    expect(regle('.fiche-document .doc-affiche')).toContain('border: 3px double');
+    expect(regle('.fiche-document .lieu')).toContain('text-decoration: underline dotted');
+    // Une inscription ne penche plus quand le téléphone demande moins de mouvement.
+    expect(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.fiche-document \.doc-inscription\s*\{\s*transform:\s*none;/.test(css)).toBe(true);
   });
 
   it('document en français', () => {

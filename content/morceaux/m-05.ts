@@ -31,6 +31,8 @@ export const MORCEAU_M05: DefMorceau = {
   placesCreature: ['p-tri'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'creature', accueillantes: { 'p-service': 'technique', 'p-quai': 'fret' }, avant: ['p-service'], coupe: ['l-service-tri', 'l-service-quai'] },
 };
 
 // Textes du morceau (C-07) : le panneau repris d'AR-01 ; les trois pièces écrites pour ce morceau, sans « quai », réservé à
@@ -56,6 +58,27 @@ export const TEXTES_MORCEAU_M05: TextesMorceau = {
       'Un hall de chargement haut de plafond. Des marques au sol délimitent les aires de dépôt.',
       'Le hall de chargement est désert. Des sangles d’arrimage pendent aux anneaux du mur.',
     ],
+  },
+  // Grande station (spec 2026-10-18 §5.4) : la salle de tri sans trace ; la piste de la créature en ajoute, là où elle est passée.
+  calmes: {
+    tri: [
+      'Une salle de tri aux tapis roulants immobiles. Des colis attendent encore sur les bandes, l’adresse tournée vers le plafond.',
+      'Des bacs de tri, des étiquettes partout, un tapis arrêté net. L’air sent le carton humide.',
+    ],
+  },
+  // Document des grandes stations (bible docs/17-univers.md §5) : le passage caché à mots couverts, permis dans ce morceau (D-323).
+  documents: {
+    doc_note_joel: {
+      puce: { texte: 'note de Joël', genre: 'f', nombre: 's', elision: false },
+      support: 'note',
+      ou: 'écrite sur une serviette en papier, scotchée à la paroi',
+      corps: [
+        'Ceux du tri sont toujours les premiers à table, même les jours de gros arrivage.',
+        'Ils ont leur raccourci, paraît-il, derrière un panneau.',
+        'Il faut rentrer le ventre ; moi, je n’y passerais pas.',
+      ],
+      signature: 'Joël',
+    },
   },
   assistance: {},
 };

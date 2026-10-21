@@ -1,4 +1,4 @@
-import { MENACE, MOTS_MENACE } from './menace';
+import { MENACE, MOTS_MENACE, MOTS_TRACES } from './menace';
 import { SOCLE } from './socle';
 import type { Couche, TextesMonde, TextesMorceau } from './types';
 import { MOTS_UNIVERS, UNIVERS } from './univers';
@@ -36,12 +36,36 @@ export function repris<T>(table: Readonly<Record<string, T>>, cle: string): T {
 
 /** Socle + univers + menace + morceaux (+ messages propres à la station) ; une clé définie deux fois avec deux textes différents lève une erreur. */
 export function reunir(morceaux: readonly TextesMorceau[], assistance: Readonly<Record<string, string>> = {}): TextesMonde {
-  const textes: Record<string, unknown> = {};
-  for (const couche of [SOCLE, UNIVERS, MENACE, ...morceaux, { assistance }]) ajouter(textes, couche, '');
+  // Le nom de puce d'un document est son nom affiché : il rejoint `noms` sous la clé du document (spec 2026-10-18 §8.5).
+  const puces = morceaux.map(({ documents = {} }) => ({ noms: Object.fromEntries(Object.entries(documents).map(([cle, { puce }]) => [cle, puce])) }));
+  const textes: Record<string, unknown> = { documents: {} };
+  for (const couche of [SOCLE, UNIVERS, MENACE, ...morceaux, ...puces, { assistance }]) ajouter(textes, couche, '');
   return textes as unknown as TextesMonde;
 }
 
-function minuscules(texte: string): string {
+/** Textes de fin des trois couches (D-281), repris tels quels par les mondes écrits en entier (AR-01, AR-02, monde de test). */
+export const FIN: TextesMonde['fin'] = reunir([]).fin;
+
+/** Bruits de station du socle (spec 2026-10-18 §5.5), repris par les mondes écrits en entier, qui n’en font jamais entendre. */
+export const BRUITS_STATION: TextesMonde['evenements']['bruit_station'] = reunir([]).evenements.bruit_station;
+
+/** Pose d’un appui à une position (demande du porteur), reprise par les mondes écrits en entier, où la caisse ne se porte jamais. */
+export const POSE_POSITION: TextesMonde['evenements']['objet_pose_position'] = reunir([]).evenements.objet_pose_position;
+
+/** Libellé de « poser » à une position (demande du porteur), repris par les mondes écrits en entier, où la caisse ne se porte jamais. */
+export const POSER_A_POSITION: TextesMonde['poserAPosition'] = reunir([]).poserAPosition;
+
+/** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
+export const TRACES: TextesMonde['traces'] = reunir([]).traces;
+
+/** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
+export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
+
+/** Étiquettes des supports de document du socle (spec 2026-10-18 §8.4), reprises par les mondes écrits en entier, qui n’en portent aucun. */
+export const SUPPORTS: TextesMonde['supports'] = reunir([]).supports;
+
+/** Texte en minuscules (français) et en forme NFC : pour comparer sans la casse. */
+export function minuscules(texte: string): string {
   return texte.normalize('NFC').toLocaleLowerCase('fr');
 }
 
@@ -50,27 +74,58 @@ function mots(texte: string): string[] {
   return texte.replace(/\{[^}]*\}/g, ' ').match(/\p{L}+/gu) ?? [];
 }
 
-const RADICAUX = [
-  ...MOTS_UNIVERS.map((radical) => ({ radical: minuscules(radical), couche: 'l’univers' })),
-  ...MOTS_MENACE.map((radical) => ({ radical: minuscules(radical), couche: 'la menace' })),
-];
+/** Les trois listes de mots réservés : celles de l'univers, de la menace et des traces (spec 2026-10-18 §5.4, §8.4). */
+export type Reserve = 'univers' | 'menace' | 'traces';
+
+const RESERVES: Readonly<Record<Reserve, { readonly libelle: string; readonly radicaux: readonly string[] }>> = {
+  univers: { libelle: 'mot de l’univers', radicaux: MOTS_UNIVERS.map(minuscules) },
+  menace: { libelle: 'mot de la menace', radicaux: MOTS_MENACE.map(minuscules) },
+  traces: { libelle: 'mot réservé aux traces', radicaux: MOTS_TRACES.map(minuscules) },
+};
+
+/**
+ * Mots d'un texte qui portent un radical réservé de l'une des listes `interdits`, casse ignorée : chacun est dit « « mot »,
+ * mot de la menace » (ou de l'univers, ou réservé aux traces). Un mot porte un radical s'il commence par lui ; un radical qui
+ * finit par « $ » ne vaut que pour le mot exact (« sang », pas « sangle »). Les trous ne sont pas des mots.
+ */
+export function motsReserves(texte: string, interdits: readonly Reserve[]): string[] {
+  return mots(texte).flatMap((mot) => {
+    const bas = minuscules(mot);
+    const reserve = interdits.find((nom) => RESERVES[nom].radicaux.some((radical) => (radical.endsWith('$') ? bas === radical.slice(0, -1) : bas.startsWith(radical))));
+    return reserve === undefined ? [] : [`« ${mot} », ${RESERVES[reserve].libelle}`];
+  });
+}
+
+/** Fuites d'un arbre de textes (chaînes, variantes, sections), chacune dite avec son chemin : `ou, chemin : « mot », liste.` */
+function fuitesDe(ou: string, arbre: unknown, interdits: readonly Reserve[], chemin = ''): string[] {
+  if (typeof arbre === 'string') return motsReserves(arbre, interdits).map((fuite) => `${ou}, ${chemin} : ${fuite}.`);
+  if (Array.isArray(arbre)) return arbre.flatMap((variante: unknown, index) => fuitesDe(ou, variante, interdits, `${chemin} [${index}]`));
+  if (!estSection(arbre)) return [];
+  return (Object.entries(arbre) as [string, unknown][]).flatMap(([cle, sous]) => fuitesDe(ou, sous, interdits, chemin === '' ? cle : `${chemin}.${cle}`));
+}
 
 /** Fuites : un mot du socle ou d'un morceau qui commence par un radical de l'univers ou de la menace, casse ignorée. */
 export function fuitesDeCouches(morceaux: Readonly<Record<string, TextesMorceau>>, socle: Couche = SOCLE): string[] {
-  const fuites: string[] = [];
-  const lire = (ou: string, chemin: string, valeur: unknown): void => {
-    if (typeof valeur === 'string') {
-      for (const mot of mots(valeur)) {
-        const fuite = RADICAUX.find(({ radical }) => minuscules(mot).startsWith(radical));
-        if (fuite !== undefined) fuites.push(`${ou}, ${chemin} : « ${mot} », mot de ${fuite.couche}.`);
-      }
-    } else if (Array.isArray(valeur)) {
-      valeur.forEach((variante: unknown, index) => lire(ou, `${chemin} [${index}]`, variante));
-    } else if (estSection(valeur)) {
-      for (const [cle, sous] of Object.entries(valeur) as [string, unknown][]) lire(ou, chemin === '' ? cle : `${chemin}.${cle}`, sous);
-    }
-  };
-  lire('socle', '', socle);
-  for (const [id, textes] of Object.entries(morceaux)) lire(`morceau ${id}`, '', textes);
-  return fuites;
+  return [
+    ...fuitesDe('socle', socle, ['univers', 'menace']),
+    ...Object.entries(morceaux).flatMap(([id, textes]) => fuitesDe(`morceau ${id}`, textes, ['univers', 'menace'])),
+  ];
+}
+
+/**
+ * Fuites des couches elles-mêmes (spec 2026-10-18 §8.4), dans les deux sens : l'univers sans mot de la menace ni des traces,
+ * la menace sans « station » (« à bord », « ici »).
+ */
+export function fuitesDesCouches(univers: Couche = UNIVERS, menace: Couche = MENACE): string[] {
+  return [...fuitesDe('univers', univers, ['menace', 'traces']), ...fuitesDe('menace', menace, ['univers'])];
+}
+
+/**
+ * Fuites d’un texte du catalogue (spec 2026-10-18 §5.3) : couche univers, il peut dire « station », mais ni un mot de la menace
+ * ni un mot réservé aux traces, qui viennent de la piste.
+ */
+export function fuitesDuCatalogue(textes: TextesMorceau): string[] {
+  // Noms et descriptions partagent leurs clés : on les lit l'un après l'autre, sans qu'une description écrase un nom.
+  const textesParCle = [...Object.entries(textes.noms).map(([cle, nom]) => [cle, [nom.texte]] as const), ...Object.entries(textes.descriptions).map(([cle, variantes]) => [cle, variantes as readonly string[]] as const)];
+  return textesParCle.flatMap(([cle, textesCle]) => textesCle.flatMap((texte) => motsReserves(texte, ['menace', 'traces']).map((fuite) => `catalogue, ${cle} : ${fuite}.`)));
 }

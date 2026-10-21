@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { COMPOSITIONS_PUBLIEES } from '../content';
+import { COMPOSITIONS_PUBLIEES, MORCEAUX } from '../content';
 import { nouvellePartie, observer, type DefMonde, type EtatPartie } from '../engine';
 import { CATALOGUE } from './catalogue';
-import { chercherEvacuation } from './verifier-sortie';
+import { chercherEvacuation, echantillonGrandes, GRANDES_SORTIE } from './verifier-sortie';
 import { stationDeReference } from './verifier-station';
 
 // « Plus aucune sortie » (D-085, D-275) : un cas par obstacle qui peut couper le chemin, avec le signal et la recherche complète
-// du moteur, qui doivent dire la même chose ; puis les cas G-03, G-04 et G-06 de C-08.
+// du moteur, qui doivent dire la même chose ; puis les cas G-03, G-04 et G-06 de C-08 ; puis les clés des grandes stations.
 
 function monde(id: string): DefMonde {
   const reference = CATALOGUE.mondes[id];
   if (reference !== undefined) return reference.monde;
-  const station = stationDeReference(CATALOGUE, id);
+  const station = CATALOGUE.publiees.includes(id) ? CATALOGUE.resoudre(id) : stationDeReference(CATALOGUE, id);
   if ('refus' in station) throw new Error(station.refus);
-  return station.entree.monde;
+  return 'entree' in station ? station.entree.monde : station.monde;
 }
 
 function etat(choisi: DefMonde, changement: Partial<EtatPartie> = {}): EtatPartie {
@@ -114,5 +114,51 @@ describe('plus aucune sortie', { timeout: 60_000 }, () => {
     const m08 = monde('m-08');
     const perdue = etat(m08, { piece: 'p-ouest', objets: { 'o-planche': { type: 'perdu', liaison: 'l-ouest-est' } } });
     expect(observer(m08, { ...perdue, sante: 'vaincu' }).sansSortie).toBe(false);
+  });
+});
+
+// Grandes stations (spec 2026-10-18 §7.4) : la caisse et le bloc sur des stations courtes retouchées comme le fait
+// l'assembleur, recherche complète comprise ; puis le départ des grandes stations de l'échantillon de check:sortie.
+describe('plus aucune sortie : clés des grandes stations', { timeout: 120_000 }, () => {
+  it('caisse portable posée loin de la grille : pas de signal tant qu’on peut l’apporter ; signal quand la planche tombée la laisse derrière le vide', () => {
+    const base = monde('m08-m02-m03-reserve');
+    const grande: DefMonde = { ...base, objets: base.objets.map((objet) => (objet.id === 'm-02/o-caisse' ? { ...objet, portable: true, encombrant: true } : objet)) };
+    const loin = { 'm-02/o-caisse': { type: 'piece', piece: 'm-08/p-quartiers' } } as const;
+    expect(signal(grande, etat(grande, { objets: loin }))).toBe(false);
+    const perdue = { ...loin, 'm-08/o-planche': { type: 'perdu', liaison: 'm-08/l-ouest-est' } } as const;
+    expect(signal(grande, etat(grande, { piece: 'm-08/p-est', objets: perdue }))).toBe(true);
+  });
+
+  it('bloc dans une pièce d’où il rejoint la capsule sans passage étroit : pas de signal', () => {
+    const base = monde('m07-m03-soute');
+    const sansConsole: DefMonde = { ...base, objets: base.objets.filter((objet) => objet.id !== 'm-03/o-console') };
+    expect(signal(sansConsole, etat(sansConsole, { objets: { 'm-03/o-bloc': { type: 'piece', piece: 'm-03/p-reserve' } } }))).toBe(false);
+  });
+
+  it(`échantillon de check:sortie : une station par clé déplacée, puis par chemin absent, au plus ${GRANDES_SORTIE}`, () => {
+    const echantillon = echantillonGrandes(CATALOGUE);
+    const couvertes = echantillon.flatMap((station) => station.couvre);
+    expect(new Set(couvertes).size).toBe(couvertes.length);
+    const cles = couvertes.filter((cle) => cle.includes('/'));
+    expect([...cles].sort()).toEqual(['m-01/o-bidon', 'm-02/o-caisse', 'm-03/o-bloc', 'm-04/o-burette', 'm-06/o-combinaison', 'm-06/o-decoupeuse', 'm-08/o-planche', 'm-11/o-carte']);
+    // Chaque chemin porté par au moins une station de l'échantillon, M-11 et M-12 compris (#236).
+    const chemins = Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'chemin').map(({ morceau }) => morceau.id);
+    const portes = new Set(echantillon.flatMap(({ station }) => CATALOGUE.grandes.find((composition) => station.startsWith(`${composition.id}-`))?.chemins ?? []));
+    for (const chemin of chemins) expect(portes.has(chemin), chemin).toBe(true);
+    expect(echantillon.length).toBeLessThanOrEqual(GRANDES_SORTIE);
+    for (const { station, couvre } of echantillon) {
+      const grande = monde(station);
+      // Chaque clé couverte est bien hors de la pièce d'origine que lui donne son morceau.
+      for (const cle of couvre.filter((entree) => entree.includes('/'))) {
+        const [morceau = '', objet = ''] = cle.split('/');
+        const origine = MORCEAUX[morceau]?.morceau.objets.find((candidat) => candidat.id === objet)?.piece;
+        expect(origine, cle).toBeDefined();
+        expect(grande.objets.find((candidat) => candidat.id === cle)?.piece, `${station} ${cle}`).not.toBe(`${morceau}/${origine}`);
+      }
+      // Clé posée loin de son obstacle, planche dans une pièce du catalogue comprise : pas de signal au départ, et une évacuation.
+      const depart = etat(grande);
+      expect(observer(grande, depart).sansSortie, station).toBe(false);
+      expect(chercherEvacuation(grande, depart, { elague: true }).verdict, station).toBe('evacuation');
+    }
   });
 });

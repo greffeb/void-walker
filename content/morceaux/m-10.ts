@@ -35,6 +35,8 @@ export const MORCEAU_M10: DefMorceau = {
   placesCreature: ['p-entrepot'],
   demande: [],
   fournit: ['acces'],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { obstacle: 'creature', accueillantes: { 'p-quartiers': 'vie', 'p-entrepot': 'fret', 'p-coursive': 'circulation' }, avant: ['p-quartiers', 'p-antichambre', 'p-chambre', 'p-entrepot', 'p-coursive'], coupe: ['sortie'] },
 };
 
 // Textes du morceau (C-07). Texte final non validé.
@@ -72,6 +74,19 @@ export const TEXTES_MORCEAU_M10: TextesMorceau = {
       'Un compresseur massif, au fond de la chambre. Un bouton le relance pour un cycle de froid, dans un vacarme régulier.',
       'Le compresseur de la chambre froide, à l’arrêt. Lancé, il gronde un long moment.',
     ],
+  },
+  // Document des grandes stations (bible docs/17-univers.md §5) : un témoignage sur l'obstacle.
+  documents: {
+    doc_message_helene: {
+      puce: { texte: 'message d’Hélène', genre: 'm', nombre: 's', elision: false },
+      support: 'message',
+      ou: 'sur un enregistreur de poche, posé dans un recoin',
+      corps: [
+        '[voix essoufflée] Nous avons lancé le compresseur, puis nous sommes ressortis aussitôt.',
+        '[un long silence] Quand le bruit l’a attirée à l’intérieur, j’ai fermé les deux portes depuis le pupitre.',
+        '[un temps] Marc était resté trop longtemps dans le froid à chercher le bouton ; il en est ressorti les doigts blancs.',
+      ],
+    },
   },
   assistance: {},
 };

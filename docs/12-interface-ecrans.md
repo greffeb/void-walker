@@ -1,7 +1,7 @@
 # Void Walker V2 — interface : description des écrans
 
 > **Statut :** MAQUETTE v1 ACCEPTÉE — D-140 ; choix de revue et réponses aux questions consignés par D-140 à D-155 le 2026-10-10. Aucune implémentation, aucune partie jouée, aucune validation téléphone.
-> **Mise à jour :** 2026-10-10.
+> **Mise à jour :** 2026-10-20 (§4.1 bis, intro de NOUVELLE PARTIE, #200, D-308 à D-312 ; §3.5, §4.4 et §4.6 : fiche d'un document et « Poser » avec « OÙ ? », #209, D-324, D-328 ; §4.11, écrans de fin, #208, D-281 à D-286).
 > **Public :** orchestrateur, exécutant et relecteur pour toute issue d'interface (`app/`, zone orange : fusion après accord du porteur du projet, C-10 §6) ; profils `ui-ux-expert` et `asset-generator` (graphiste) de [04 §3](04-workflow-agentique.md) quand ils seront installés (D-137).
 > **Base de comparaison :** branche principale après le Bootstrap #89 (monde de test, interface minimale). Les écarts entre ce document et l'interface actuelle sont listés en §11.
 > **Maquette de référence :** [maquette-ui-v1.pdf](maquette/maquette-ui-v1.pdf), 13 écrans exportés du canevas « Void Walker — UI » sur claude.ai. Le PDF montre encore le panneau bas et la bordure `#6B5530` : ce document prime. Il se suffit à lui-même : un agent qui ne voit pas la maquette doit pouvoir reproduire chaque écran.
@@ -22,9 +22,9 @@ Les textes cités viennent de la maquette (salon de transit, atelier de service)
 
 1. **Téléphone en portrait, une main.** Référence 390 × 844 px CSS. Mise en page fluide en largeur (320 à 430 px) ; la zone de récit absorbe les variations de hauteur jusqu'à six lignes, puis le dock défile (D-191). Pas de fausse barre d'état. [Validé]
 2. **Le pouce agit en bas, l'œil lit en haut.** Tout ce qui agit (objets, déplacements, navigation, confirmation) est dans la moitié basse. En haut, un seul contrôle, rarement utilisé : l'engrenage des options. [Validé]
-3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Annuler est toujours possible, sans effet. Une action engageante passe par un aperçu puis CONFIRMER ; prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu n'annoncerait ni risque connu ni coût ; ouvrir et fermer une porte gardent toujours l'aperçu. [Validé D-182, remplaçant « toute action engageante, déplacement compris, passe par un aperçu »]
+3. **Gratuit ou engageant** (D-014, [C-01 §5](contrats/C-01-actions-observation.md)). Ouvrir une fiche, une bulle, la carte, IA Station ou les options n'a aucun effet sur le monde. Annuler est toujours possible, sans effet. Une action engageante passe par un aperçu puis CONFIRMER ; prendre, poser et changer de pièce se jouent d'un seul toucher quand l'aperçu n'annoncerait ni risque connu ni coût ; ouvrir et fermer une porte gardent toujours l'aperçu. [Validé D-182, remplaçant « toute action engageante, déplacement compris, passe par un aperçu »] Exception : « Poser » un objet déplaçable dans une pièce qui a des positions demande d'abord où le poser (§3.5, D-328).
 4. **Un nom par chose** (NP-04). Même libellé dans le récit, le dock, la bulle, la carte et le rappel d'action. Les puces d'objet affichent le nom avec une majuscule initiale (« Burette d'huile ») ; titres de pièce et boutons de déplacement passent en capitales par le style uniquement ; le nom enregistré (en minuscules, avec genre et élision, NP-02) reste identique.
-5. **Aucun chiffre de jeu.** Ni points de vie, ni pourcentage, ni dé, ni score, ni niveau, ni compteur d'actions. Le marqueur de créature de la carte est lui aussi écrit en mots (§4.8). [Validé]
+5. **Aucun chiffre de jeu.** Ni points de vie, ni pourcentage, ni dé, ni score, ni niveau, ni compteur d'actions. Le marqueur de créature de la carte est lui aussi écrit en mots (§4.8). [Validé] Exception : les chiffres écrits dans un document trouvé dans la station (journal, relevé, étiquette), qui font partie du décor et jamais du jeu (D-323, livraison 3 des grandes stations).
 6. **Jamais la couleur seule.** Chaque état est porté par un mot et une forme (§2.6).
 7. **Taille du texte réglable**, trois niveaux (§4.10). [Validé]
 8. **Textes** en français, au vouvoiement, deux à quatre phrases après une action (C-07). Le personnage est un homme : accords au masculin (« Vous êtes blessé »). [Validé]
@@ -50,7 +50,7 @@ Terminal CRT ambre, police à chasse fixe, sobre. La lecture prime : l'effet ré
 - **Vidéo inverse :** texte `#0A0907` sur fond `texte` ou `accent` (12,2:1 et 11,1:1). Réservée à l'action principale, à l'élément sélectionné et aux étiquettes d'état.
 - **Voiles :** `rgba(10, 9, 7, 0.35)` derrière une bulle, `rgba(10, 9, 7, 0.55)` derrière une modale.
 - **Bordure :** `#76603A` (3,3:1 sur `fond`, 3,2:1 sur `surface`) respecte le seuil de 3:1 des composants (WCAG 1.4.11). Elle remplace le `#6B5530` de la maquette (2,8:1), que le canevas utilise encore. [Validé]
-- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)). Exception (D-233) : la phrase d'un danger apparu s'écrit en rouge `alerte` `#FF5A4A` (6,5:1 sur `fond`), précédée d'un triangle d'attention (§3.3). Sur la carte, le même rouge dessine l'œil de la créature vue (D-273, [14 §2.5](14-carte.md)).
+- Pas de dégradé décoratif. Pas de rouge ni de vert : l'écran de jeu reste dans la gamme ambre. Exception (D-176) : chaque menu peut avoir sa couleur ; la bulle d'inventaire est cyan, la fenêtre d'IA Station blanche (D-192), la carte verte (D-211, jetons en [14 §2.2](14-carte.md)). Exception (D-233) : la phrase d'un danger apparu s'écrit en rouge `alerte` `#FF5A4A` (6,5:1 sur `fond`), précédée d'un triangle d'attention (§3.3). Sur la carte, le même rouge dessine l'œil de la créature vue (D-273, [14 §2.5](14-carte.md)). Exception (D-311) : l'écran CRT de l'intro (§4.1 bis) a sa trame et ses franges de couleur, à peine visibles, et son verre bombé arrondit les coins.
 
 | Jeton | Valeur | Usage | Contraste sur `cyan-surface` |
 | --- | --- | --- | --- |
@@ -180,10 +180,11 @@ Superposition légère, pas une grande modale. [Validé] Le porteur du projet en
   - à la première étape, les qualités de l'objet sous le nom : « [stable] [encombrant] » (c'est la fiche, gratuite) ;
   - « ✕ » annuler (44 × 44).
 - **Étape 1, action :** une ligne par manipulation plausible, « ▸ Déplacer », « ▸ Monter dessus », « ▸ Prendre », hauteur 44 px, filets entre les lignes. Les actions indisponibles restent visibles (§3.7).
-- **Étape 2, paramètre :** libellé « OÙ ? », puis une ligne par position ou cible. Selon l'action, le libellé peut devenir « SUR QUOI ? » ou « AVEC QUOI ? ». [Proposé] Une action sans paramètre saute cette étape.
+- **Étape 2, paramètre :** libellé « OÙ ? », puis une ligne par position ou cible. Selon l'action, le libellé peut devenir « SUR QUOI ? » ou « AVEC QUOI ? ». [Proposé] Une action sans paramètre saute cette étape. « Poser » un objet déplaçable dans une pièce qui a des positions (la caisse, dans l'atelier de M-02) passe aussi par « OÙ ? » : un seul geste pose la caisse « sous la grille », sans « Poser » puis « Déplacer ». [Proposé D-328, sur demande du porteur]
 - **Étape 3, aperçu** (§3.8), puis deux boutons : ANNULER (un tiers de la largeur, contour) et CONFIRMER (deux tiers, vidéo inverse).
-- **Un seul toucher :** prendre ou poser sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». Ouvrir ou fermer une porte n'en a jamais, même dans une bulle (l'écoutille au pupitre). [Validé D-182, D-267]
+- **Un seul toucher :** prendre ou poser sans risque connu ni coût n'a pas d'aperçu : toucher la ligne joue l'action et referme la bulle. Le lecteur d'écran lit « Prendre, sans confirmation ». Ouvrir ou fermer une porte n'en a jamais, même dans une bulle (l'écoutille au pupitre). [Validé D-182, D-267] Exception : « Poser » un objet déplaçable dans une pièce qui a des positions a un paramètre, donc l'étape « OÙ ? » ; les autres objets gardent leur toucher unique. [Proposé D-328, sur demande du porteur]
 - **Pupitre de départ :** sa bulle offre aussi « ▸ Fermer l'écoutille » ou « ▸ Ouvrir l'écoutille », au-dessus de « ▸ Lancer » ; mêmes options que le bouton du bas, seule exception à la place unique de §3.4. [Validé D-266]
+- **Fiche d'un document :** note, journal, message, inscription ou affiche, un document est un objet fixe dont la puce ouvre une bulle sans action ni confirmation. La fiche montre le support en capitales et la ligne « où » en tête, puis le corps dans la typographie du support ; la pièce nommée par une note de rangement est soulignée en pointillé. Lire est gratuit (D-014) et rien n'est enregistré. Détail au §4.4. [Validé D-324, variante B de la [maquette](maquette/documents.html)]
 - **Fermer sans effet :** « ✕ », ANNULER, toucher hors de la bulle, retour système. [Proposé]
 - La phrase « Rien ne se passe avant confirmation » est retirée. [Validé]
 
@@ -276,6 +277,7 @@ Tous sont de vrais boutons ou liens, accessibles au clavier et au lecteur d'écr
 | Options | MENU PRINCIPAL / REPRENDRE LA PARTIE | Accueil / écran de jeu |
 | Options | ABANDONNER (après confirmation) | Fin (abandon) |
 | Plus aucune sortie | TERMINER LA PARTIE | Fin (abandon), puis menu principal |
+| Écran de jeu, partie finie | CONTINUER | Fin (défaite ou évacuation) |
 | Fin | REJOUER CETTE STATION / NOUVELLE PARTIE | Réveil |
 | Fin | MENU PRINCIPAL | Accueil |
 
@@ -286,15 +288,27 @@ Seulement le titre et trois boutons. Pas de sous-titre. [Validé]
 - **Haut :** « VOID » et « WALKER▮ » sur deux lignes (style « titre d'accueil »), à environ 120 px du haut. Nom provisoire du jeu.
 - **Bas**, dans la zone du pouce, empilés, à 16 px des côtés, 10 px d'écart, 32 px du bas :
   1. **REPRENDRE LA PARTIE**, principal. Reprend exactement l'état enregistré (C-09). Visible seulement s'il y a une partie en cours (D-089). [Proposé] Si la dernière partie s'est terminée par une défaite, on arrive sur son écran de fin (C-09 S-05).
-  2. **NOUVELLE PARTIE**, secondaire. Mène au réveil. S'il n'y a pas de partie en cours, ce bouton devient le principal. [Proposé] Si une partie est en cours, une confirmation s'ouvre dans la page : « Une partie est en cours. La nouvelle partie la remplacera. », ANNULER / COMMENCER. [Validé D-145 ; libellés Proposés]
+  2. **NOUVELLE PARTIE**, secondaire. Mène à l'intro (§4.1 bis), puis au réveil. S'il n'y a pas de partie en cours, ce bouton devient le principal. [Proposé] Si une partie est en cours, une confirmation s'ouvre dans la page : « Une partie est en cours. La nouvelle partie la remplacera. », ANNULER / COMMENCER. [Validé D-145 ; libellés Proposés]
   3. **OPTIONS**, discret.
 - Signaler un bug, envoyer et télécharger la partie sont dans les options. [Validé]
+
+### 4.1 bis Intro de NOUVELLE PARTIE
+
+Montre au joueur non briefé que chaque partie tire une autre station, sans rien dévoiler de la sienne. [Validé D-308 à D-312, sur la [maquette](maquette/intro-generation.html) ; essai sur téléphone à venir]
+
+- **Quand :** après NOUVELLE PARTIE (accueil, sa confirmation, écran de fin, reprise impossible), avant le réveil, pour une station tirée. REJOUER CETTE STATION et les mondes fixes n'en ont pas. La partie est déjà créée et enregistrée. [D-308]
+- **Écran CRT**, réservé à l'intro : lignes de balayage marquées, trame de couleurs, lueur du phosphore et couleurs légèrement décalées, verre bombé et vignetage, scintillement, bande claire qui remonte. Tout est décoratif et jamais lu. [D-311]
+- **Démarrage complet**, à chaque intro [D-310] : écran noir, mise sous tension en trait de faisceau ; `> boot -a --v` tapé vite ; « Loading terminal system... » et « ready » d'un coup, curseur █ ; `> campaign_mode; console_log(01);` tapé au clavier ; l'écran saute (neige, distorsion) et s'efface.
+- **Tirage** [D-308, D-309] : en fond, une mosaïque de plans de vraies stations publiées, très atténuée. Au centre, un cadre où des plans défilent de plus en plus lentement, un numéro au hasard dessous ; ils s'arrêtent sur une silhouette floutée marquée « ? » et « Station 372 sur 600 » (22/600 `accent`, « sur 600 » en 16 `texte-secondaire`). Dessous, en 14, « > Tirage parmi 600 stations… », puis huit lignes « > Libellé ........ valeur » une par une, à un pas irrégulier (trois textes d'ambiance tirés parmi treize) ; « ▲ ERREUR : Menace détectée » en `alerte` ; une ligne vide, « > Station 372 prête_ » en `accent`, « La prochaine partie en tirera une autre. » en `texte-secondaire`.
+- **Bas :** « TOUCHER POUR PASSER » en 12 `texte-secondaire` ; puis DÉMARRER, principal, pleine largeur, qui mène au réveil. Toucher l'écran, Entrée ou Espace amènent l'intro à son état final. [D-308]
+- **Accessibilité :** le démarrage et les plans sont cachés au lecteur d'écran ; le texte du tirage et DÉMARRER sont lus ; le focus va à DÉMARRER dès qu'il paraît. Effet machine à écrire coupé ou mouvement réduit : l'intro s'affiche d'emblée finie, sans son. [D-310]
+- **Son :** 15 §2.6.
 
 ### 4.2 Réveil
 
 Texte seul et un bouton. [Validé]
 
-- **Haut :** « > SALON DE TRANSIT_ » en 13 `texte-secondaire`.
+- **Haut :** « > SALON DE TRANSIT_ » en 13 `texte-secondaire`. À droite, pour une station tirée, son numéro, « STATION 372 », en 11 `texte-secondaire`. [D-312]
 - **Récit long** (autorisé au réveil, D-111), 17 px, interligne 1,65, qui défile si besoin. Le texte du terminal de transit (« CONFINEMENT EN COURS ») est en vidéo inverse.
 - **Parole d'IA Station** encadrée, en blanc froid comme la modale (D-198) : contour `blanc`, fond `blanc-surface`, étiquette « [ IA STATION ] » en 12/600 `blanc-secondaire`, citation en italique `blanc-texte`. Ce message entre dans l'historique de la modale.
 - **Bas :** REGARDER AUTOUR DE VOUS, principal, pleine largeur. Lire étant gratuit, ce bouton n'engage rien.
@@ -339,6 +353,26 @@ Consultation gratuite (D-014). Elle s'ouvre en touchant la puce, dans une bulle 
 - **FERMER**, secondaire, pleine largeur.
 - Pas de mention « Consulter ne fait rien avancer ». [Validé]
 
+**Variante : fiche d'un document** (grandes stations, #209). [Validé D-324 pour la variante B de la [maquette](maquette/documents.html) ; la typographie en détail est [Proposé]] Un document est un objet fixe, sans qualité : on ne peut que le lire. Sa puce est une puce ordinaire du dock, sans marque. La bulle n'a ni qualités en étiquettes ni action, et lire est gratuit et n'est pas enregistré (D-014).
+
+- **Titre :** le nom de la puce, en `accent` 19/600.
+- **En tête, deux lignes :** le support en capitales par le style (note manuscrite, journal de terminal, message enregistré, inscription, affiche de la compagnie), puis la ligne « où » en casse normale, séparée du support par un point médian décoratif que le lecteur d'écran ne lit pas.
+- **Le corps, dans la typographie de son support :**
+
+  | Support | Typographie |
+  | --- | --- |
+  | Note | italique, filet pointillé à gauche, signature à droite |
+  | Journal | cadre sous une barre de titre qui reprend le nom de la puce ; colonne d'heures alignée, une ligne par entrée |
+  | Message | un paragraphe par segment de parole ; didascalies, entre crochets, en couleur secondaire |
+  | Inscription | grandes capitales espacées, légèrement penchées (à plat en mouvement réduit) ; le texte est écrit en casse normale, c'est le style qui le met en capitales |
+  | Affiche | double cadre ; la première ligne est le titre, la dernière le pied |
+
+- **Pièce soulignée :** dans une note de rangement, le nom de la pièce désignée est souligné en pointillé partout où il apparaît dans le corps, mot entier seulement. Ni la ligne « où » ni la signature ne sont soulignées, et aucune autre aide ne s'y ajoute : la lecture n'ajoute rien à la carte ni aux connaissances du passager (C-06 §5, exception de D-323).
+- **Chiffres :** heures, températures et codes sont permis dans le corps seulement (§1.5) ; jamais dans le titre, le support, la ligne « où » ni la signature.
+- **Défilement :** une fiche longue défile dans la bulle (§3.6) ; rien n'indique à l'œil qu'elle défile. [Ouvert, à juger sur téléphone]
+- **Lecteur d'écran :** la fiche est la description de la bulle ; il lit le support, la ligne « où », le corps, puis la signature, sans relire le titre de la barre du journal.
+- **CLI :** « Regarder » affiche le support, la ligne « où », le corps ligne à ligne (journal : heure, deux espaces, texte), puis la signature.
+
 ### 4.5 Écran de jeu : Atelier de service
 
 - **En-tête :** ATELIER DE SERVICE, « > devant la porte du Salon de transit ».
@@ -362,6 +396,8 @@ Parcours de référence du prototype (cas A-03 de C-01).
    - COÛT : [bruyant] (la maquette montre aussi [long], supprimé, D-150) ;
    - SAVOIR : La caisse restera sous la grille haute. La porte du Salon de transit est ouverte : le bruit peut porter.
 4. CONFIRMER envoie une commande structurée (objet, action, position publique), jamais une phrase. Le moteur résout l'action et enregistre la partie (C-09 SP-02). ANNULER, « ✕ » ou toucher le voile referment sans effet.
+
+Variante pour « Poser » (D-328), dans une grande station : la caisse portée dans l'atelier de M-02 se met sous la grille d'un seul geste. INVENTAIRE › Caisse › Poser ouvre « OÙ ? » (▸ sous la grille, ▸ au centre de la pièce) ; fil « CAISSE › POSER › sous la grille », aperçu « La caisse sera sous la grille. », CONFIRMER ; la grille propose aussitôt « Ouvrir ». Dans une autre pièce, « Poser » reste d'un seul toucher.
 
 ### 4.7 Écran de jeu après l'action
 
@@ -407,49 +443,62 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 
 ### 4.10 Options
 
-Écran accessible depuis l'accueil (OPTIONS) et depuis le jeu (engrenage). Il regroupe la taille du texte, le signalement de bug, la gestion de la sauvegarde, le son et l'abandon de la partie en cours. [Validé]
+Écran accessible depuis l'accueil (OPTIONS) et depuis le jeu (engrenage). Il regroupe la taille du texte, le signalement de bug, la gestion de la sauvegarde, le son et l'abandon de la partie en cours. [Validé] Rangé en trois sous-menus (#201) : maquette [options-menus](maquette/options-menus.html). [Validé D-287, D-288]
 
 - **En-tête :** « OPTIONS » en `accent` 17/600, puis « le jeu est en pause » en 12.
-- **Contenu qui défile**, par sections :
+- **Sommaire**, qui défile si besoin : trois lignes, chacune avec son détail en dessous, puis l'abandon. [Validé D-287]
+  - « ▸ Son et texte », « taille du texte, son, affichage » ;
+  - « ▸ Rapports », « signaler un bug, envoyer ou télécharger ma partie » (« signaler un bug, envoyer ma partie » pour une partie finie, « signaler un bug » sans partie) ;
+  - « ▸ Application », « installation, mise à jour, version » (« mise à jour, version » quand le navigateur ne permet pas d'installer le jeu) ;
+  - « ⊘ Abandonner la partie en cours », bouton danger. Il ouvre une confirmation dans la page : « Abandonner ? Cette partie ne pourra pas être reprise. », ANNULER / ABANDONNER. ABANDONNER mène à l'écran de fin, version abandon (C-08 §4).
+- **Sous-menu en bulle** : toucher une ligne ouvre la bulle ambre des menus (§2.7), titrée « SON ET TEXTE », « RAPPORTS » ou « APPLICATION », avec ✕. Elle survole le sommaire voilé, sous l'en-tête, sans flèche ; sa hauteur suit son contenu jusqu'au bas, au-delà il défile. ✕, le voile, Échap et le retour du téléphone la referment ; le focus revient sur la ligne touchée. [Validé D-288]
+- **Son et texte**, par sections :
   1. **── TAILLE DU TEXTE ──** : groupe segmenté STANDARD / GRANDE / TRÈS GRANDE, puis un aperçu d'une phrase de récit à la taille choisie (17, 19 ou 22 px). [Validé]
   2. **── SON ──** : trois rails de 0 à 100, « Général » 80, « Effets sonores » 80, « Ambiance » 60 par défaut (D-223) ; à 0, « COUPÉE » ou « COUPÉS ». [Validé D-220, remplaçant « Ambiance » COUPÉE / BASSE / NORMALE et « Effets sonores » COUPÉS / ACTIFS] Bruitages du terminal synthétisés pour le projet (D-216, D-217), signaux de blessure, de soin et d'alarme (D-218), ambiance de bruit brun et de carlingue (D-219), pas de bande-son pour le moment (D-221) : détail dans [15 — son](15-son.md). IA Station n'a pas de voix : un effet sonore signale l'arrivée d'un message (D-155). Tout reste lisible sans le son.
   3. **── AFFICHAGE ──** : « Lignes de balayage [OUI] / [NON] ». [Proposé] « Effet machine à écrire [OUI] / [NON] », [OUI] par défaut ; sur [NON], texte immédiat et curseur fixe. [Validé D-186]
-  4. **── PARTIE ──** :
-     - « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
-     - « ▸ Signaler un bug », avec « la partie en cours est jointe ». La partie est jointe automatiquement (RP-01). [Validé]
-     - « ▸ Envoyer ma partie », avec « partie et commentaire », dans toutes les versions (D-095, D-142). [Validé]
-     - Pas d'import de partie au lancement (D-149).
-     - « ⊘ Abandonner la partie en cours », bouton danger. Il ouvre une confirmation dans la page : « Abandonner ? Cette partie ne pourra pas être reprise. », ANNULER / ABANDONNER. ABANDONNER mène à l'écran de fin, version abandon (C-08 §4).
-  5. **── INSTALLATION ── [Proposé, #174, [16](16-installation-pwa.md)]** : « ▸ Installer le jeu », avec en dessous « s’ouvre en plein écran, sans la barre du navigateur ». Sur Chrome, Edge et les autres navigateurs qui le permettent, le bouton ouvre la boîte d’installation du navigateur ; retour « Jeu installé. Cherchez-le sur votre écran d’accueil. » ou « Installation refusée. Le menu du navigateur permet de la relancer. ». Sur Safari (iPhone, iPad) et Firefox (Android), qui ne laissent pas la page lancer l’installation, la ligne dit « marche à suivre pour iPhone et iPad » ou « pour Firefox » et ouvre une bulle « INSTALLER LE JEU » de quatre étapes (3.5, voile, ✕ et Échap). Absente ailleurs et dans l’appli déjà installée ; présente dans les versions de test, dont le nom d’appli porte le numéro de PR.
-  6. **── MISE À JOUR ──** : « ▸ Chercher une mise à jour », ou « ▸ Installer la nouvelle version » quand elle est prête, avec en dessous « le jeu redémarre, la partie est gardée » ; retour « Le jeu est à jour. », « Une nouvelle version est prête. » ou « Impossible de vérifier. Le téléphone est-il connecté ? ». Le jeu se met aussi à jour seul. Absente sans service worker. [Validé D-227]
-- **Pied de page :** « V0.1.0 (365) · e27d220 · test PR #121 » : version, numéro de construction, commit, PR des versions de test. [Validé D-191, D-227]
-- **Bas, fixe :** MENU PRINCIPAL (secondaire) et REPRENDRE LA PARTIE (principal).
+- **Rapports** :
+  1. « ▸ Signaler un bug », avec « la partie en cours est jointe ». La partie est jointe automatiquement (RP-01). [Validé]
+  2. « ▸ Envoyer ma partie », avec « partie et commentaire », dans toutes les versions (D-095, D-142). [Validé]
+  3. « ▸ Télécharger ma partie », avec en dessous « fichier enregistré sur le téléphone ». C'est l'export de C-09 §5 : le fichier qui rejoue la partie. [Validé]
+  4. **── VALIDATION ──**, dans les versions de test seulement : la clé du téléphone (D-232).
+  - Pas d'import de partie au lancement (D-149).
+- **Application**, par sections :
+  1. **── INSTALLATION ── [Proposé, #174, [16](16-installation-pwa.md)]** : « ▸ Installer le jeu », avec en dessous « s’ouvre en plein écran, sans la barre du navigateur ». Sur Chrome, Edge et les autres navigateurs qui le permettent, le bouton ouvre la boîte d’installation du navigateur ; retour « Jeu installé. Cherchez-le sur votre écran d’accueil. » ou « Installation refusée. Le menu du navigateur permet de la relancer. ». Sur Safari (iPhone, iPad) et Firefox (Android), qui ne laissent pas la page lancer l’installation, la ligne dit « marche à suivre pour iPhone et iPad » ou « pour Firefox » et ouvre une bulle « INSTALLER LE JEU » de quatre étapes (3.5, voile, ✕ et Échap). Absente ailleurs et dans l’appli déjà installée ; présente dans les versions de test, dont le nom d’appli porte le numéro de PR.
+  2. **── MISE À JOUR ──** : « ▸ Chercher une mise à jour », ou « ▸ Installer la nouvelle version » quand elle est prête, avec en dessous « le jeu redémarre, la partie est gardée » ; retour « Le jeu est à jour. », « Une nouvelle version est prête. » ou « Impossible de vérifier. Le téléphone est-il connecté ? ». Le jeu se met aussi à jour seul. Absente sans service worker. [Validé D-227]
+  3. **Pied de page :** « V0.1.0 (365) · e27d220 · test PR #121 » : version, numéro de construction, commit, PR des versions de test ; puis, dans une version de test, l'état de la vérification automatique (#180). [Validé D-191, D-227, D-287]
+- **Bas, fixe :** MENU PRINCIPAL (secondaire) et REPRENDRE LA PARTIE (principal), au-dessus du voile : utilisables bulle ouverte (D-288).
 - **Sans partie en cours :** masquer Télécharger, Abandonner et REPRENDRE LA PARTIE. [Proposé]
 - Les réglages sont conservés sur l'appareil, hors de la sauvegarde de partie. [Proposé]
 
 ### 4.11 Fin de partie
 
-Récit seulement, ni score ni étoiles (D-086). [Validé]
+Récit seulement, ni score ni étoiles (D-086). [Validé] Maquettes : [fins.html](maquette/fins.html).
 
+- **Arrivée** [Validé D-286] : à l'action qui finit la partie (défaite ou évacuation), l'écran de jeu reste avec son dernier texte, rouge, brouillage et sons compris ; le dock laisse la place à un seul bouton CONTINUER (principal), sans navigation ni engrenage. CONTINUER mène à l'écran de fin. L'abandon y mène directement (§4.10, §5.2). Rouvrir le jeu après une défaite ou une évacuation mène directement à l'écran de fin (C-09 S-05).
 - **Haut :** « > FIN DE LA PARTIE_ » en 13 `texte-secondaire`, à 56 px du haut.
-- **Titre** en `accent` 24/600 :
+- **Titre** en `accent` 24/600, qui reçoit le focus :
   - abandon : « Partie abandonnée. » ;
   - défaite : « Vous n'avez pas atteint la capsule. » ;
   - évacuation : « La capsule s'est détachée. »
-- **Récit de fin** (plus long, D-111), 17 px. Les paragraphes sont séparés.
-- **Sous un filet pointillé :** « PIÈCES VISITÉES : Salon de transit, Atelier de service » [Proposé ; liste en mots, sans chiffre]. Pour l'abandon et la défaite, ajouter « Cette partie est terminée. Elle ne peut pas être reprise. » (D-013).
+- **Récit de la partie** [Validé D-281], 17 px, écrit à la machine (D-186), en paragraphes séparés : le réveil et le premier moment marquant ; les autres moments, trois au plus en tout, dans l'ordre de la partie ; puis la fin.
+  - Défaite : la dernière phrase dit la pièce et la cause (créature, feu, froid, vide, ou la créature avec le feu ou le froid), en `accent` [Validé D-282] : « Vous êtes mort dans la salle des pompes, sous ses griffes. »
+  - Évacuation : le texte de départ selon ce qui alimentait la capsule, la santé, puis ce que le passager sait de la créature [Validé D-283] ; dessous, le message de départ d'IA Station en entier, dans l'encadré du réveil (D-263).
+  - Abandon : « Vous en restez là, dans {le:piece}. »
+  - Chaque phrase est écrite à la main en entier sous chacune de ses formes : pièce redite ou non, créature nommée ou reprise (« elle », « l' », « ses »). Aucun pronom n'est substitué par le jeu.
+- **Sous un filet pointillé**, pour l'abandon et la défaite : « Cette partie est terminée. Elle ne peut pas être reprise. » (D-013). Pas de liste des pièces visitées, aucun chiffre ni durée [Validé D-284].
 - **Boutons :**
   - REJOUER CETTE STATION, principal : même état de départ, nouveaux tirages (D-087, D-088). Pas de mention « même station, nouveaux dés ». [Validé]
   - NOUVELLE PARTIE, secondaire.
-  - En dessous, discrets : ENVOYER MA PARTIE et MENU PRINCIPAL. Pas d'« Exporter ». [Validé]
+  - En dessous, discrets : ENVOYER MA PARTIE (avec « je valide » dans une version de test, sauf après un abandon, D-099) et MENU PRINCIPAL. Pas d'« Exporter ». [Validé]
+- **Missions** : quand il y en aura d'autres (#210), une phrase de la mission dira si son objectif est rempli (D-285).
 
-Récit d'exemple, défaite :
+Récit d'exemple, défaite (partie de bot, station `m02-m06-embarquement`) :
 
-> Vous avez quitté votre siège quand personne d'autre ne bougeait. Vous avez lu le poste d'appel, rejoint l'atelier, traîné une caisse sous la grille haute.
+> Vous vous êtes réveillé dans le vestibule. Dans la salle panoramique, vous avez vu la créature pour la première fois.
 >
-> Le bruit a porté. Ce qui bougeait derrière la porte du Salon de transit est venu.
+> Dans le local de sécurité, elle vous a blessé. Dans le couloir de sécurité, elle vous a grièvement blessé.
 >
-> Dans l'écouteur, IA Station a annoncé la fin de l'embarquement.
+> Vous êtes mort dans la salle des pompes, sous ses griffes.
 
 ## 5. Autres états maquettés
 
@@ -602,8 +651,8 @@ Réponses du porteur du projet du 2026-10-10, consignées dans le journal.
 | Confirmation | Toucher une option l'exécute aussitôt | Aperçu (risque, coût, savoir) puis CONFIRMER, sauf prendre, poser et changer de pièce sans risque connu ni coût, joués d'un seul toucher (§3.8, D-182) | Le moteur ne fournit pas encore d'aperçu : il faudra une issue moteur + écran |
 | Indisponible | Bouton grisé, raison en dessous (« La porte est fermée. ») | « ⊘ », raison courte à droite, filet pointillé (§3.7) | Raison publique déjà fournie par le moteur |
 | Sauvegarde | Ligne permanente « Partie sauvegardée · 3 action(s) » | Pas de compteur d'actions affiché (§1) ; réussite discrète ou silencieuse, échec toujours visible et persistant (§6) | Garder les attributs `data-testid="sauvegarde"`, `data-actions`, `data-etat` utilisés par les captures (AP-09) |
-| Pied de page | Dans les options, en petit, en bas : « V0.1.0 (365) · e27d220 · test PR #121 » (#96, D-191, D-227) ; plus sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
+| Pied de page | Dans le sous-menu Application des options, en petit, en bas : « V0.1.0 (365) · e27d220 · test PR #121 » (#96, D-191, D-227, D-287) ; plus sur l'écran de jeu | Dans les options, en petit, en bas de l'écran [Proposé] | Le numéro de PR reste visible dans les versions de test |
 | Reprise impossible | Message d'erreur technique brut, puis « Commencer une nouvelle partie » | Carte d'information du jeu en langage courant (§3.11) ; le détail technique part dans le rapport de bug [Proposé] | C-09 §4 |
 | Noms d'objets | Enregistrés en minuscules, avec genre et élision | Puces avec une majuscule initiale à l'affichage (« Carnet ») ; le récit garde l'article et la minuscule | NP-02, NP-04 |
 | Accessibilité | Récit en `aria-live="polite"`, boutons natifs | Conforme ; ajouter la gestion du focus des bulles et modales (§7) | — |
-| Absents | Carte, son, rapports, fins de défaite et d'évacuation (options et fin d'abandon : #96, D-200) | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun. Santé : #101 ; IA Station : #98 |
+| Absents | Carte, son, rapports (options et fin d'abandon : #96, D-200 ; fins de défaite et d'évacuation : #208, D-281 à D-286) | Décrits ici | Hors périmètre du Bootstrap ; une issue chacun. Santé : #101 ; IA Station : #98 |

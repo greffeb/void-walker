@@ -5,6 +5,12 @@ import type { Couche } from './types';
 /** Radicaux propres à la menace : un mot du socle ou d'un morceau qui commence par l'un d'eux est une fuite. */
 export const MOTS_MENACE: readonly string[] = ['créature', 'griff', 'gueule', 'masse'];
 
+/**
+ * Radicaux réservés aux traces de la créature (spec 2026-10-18 §5.4) : une description calme n’en porte aucun, pour qu’une trace
+ * dise toujours « elle est passée par ici » (grammaire des signes, §8.1). Un « $ » final : le mot exact (« sang », pas « sangle »).
+ */
+export const MOTS_TRACES: readonly string[] = ['sang$', 'sanglant', 'traînée', 'éventr', 'renvers', 'poiss', 'lacér', 'griff', 'douceâtre', 'éclabouss'];
+
 export const MENACE = {
   evenements: {
     bruit_creature: ['Quelque chose bouge derrière {le:passage}.', 'Derrière {le:passage}, quelque chose de lourd se déplace.'],
@@ -41,6 +47,29 @@ export const MENACE = {
       '{Le:objet} se brise avec un claquement de bois mort ; une masse lourde tombe dans le noir, sans un cri.',
     ],
   },
+  // Traces de la piste (spec 2026-10-18 §5.4) : une phrase entière, vraie dans toute pièce où elle est passée. Légères loin de
+  // son repaire, fortes à deux portes ou moins. Elles disent qu'elle est passée, jamais où elle est. Écrites par l'assistant
+  // principal (D-243).
+  traces: {
+    legere: [
+      'Des éraflures profondes zèbrent le bas de la porte, toutes dans le même sens.',
+      'Une odeur douceâtre flotte ici, que la ventilation ne chasse pas.',
+      'Une traînée sombre, déjà sèche, longe le mur jusqu’à la porte.',
+      'Au sol, quelque chose de lourd a été traîné ; la marque se perd sous la porte.',
+      'Des griffures marquent le chambranle, à hauteur d’homme et plus haut encore.',
+      'Un panneau du faux plafond pend, arraché ; des fils dénudés oscillent encore.',
+      'Par endroits, le sol colle sous vos semelles, d’un dépôt brunâtre.',
+    ],
+    forte: [
+      'Une traînée sombre, encore poisseuse, file vers la porte.',
+      'Du sang a éclaboussé la cloison à hauteur d’épaule, et il n’a pas fini de sécher.',
+      'L’odeur, ici, est épaisse, douceâtre, presque chaude.',
+      'Des griffures fraîches lacèrent la porte ; des éclats de peinture jonchent encore le sol.',
+      'Un casier gît renversé, éventré, son contenu piétiné.',
+      'Le sol est poisseux, et l’air sent la bête à vous lever le cœur.',
+      'Sur le mur, de longues entailles parallèles montent jusqu’au plafond.',
+    ],
+  },
   brulures: {
     griffes_feu: {
       aggravation_blesse: ['Des griffes et des flammes à la fois : vous êtes blessé.'],
@@ -63,6 +92,95 @@ export const MENACE = {
     creatureATerre: 'La créature est à terre, tout près de vous ; elle peine à se relever.',
     creatureRalentie: 'Le givre la couvre ; elle bouge avec lenteur.',
     creatureEngourdie: 'Le givre la couvre ; engourdie, elle reste figée un instant.',
+  },
+  // Récit de fin (D-281 à D-283) : la créature nommée, ou reprise juste après une phrase qui l'a nommée. Ce que le passager
+  // n'a pas vu reste « quelque chose » (NP-05).
+  fin: {
+    moments: {
+      premier_contact: {
+        ailleurs: 'Dans {le:piece}, vous avez vu la créature pour la première fois.',
+        ici: 'Vous y avez vu la créature pour la première fois.',
+        ailleursReprise: 'Dans {le:piece}, vous l’avez vue pour la première fois.',
+        iciReprise: 'Vous l’y avez vue pour la première fois.',
+      },
+      creature_expulsee: {
+        ailleurs: 'Dans {le:piece}, le vide a emporté la créature sous vos yeux.',
+        ici: 'Le vide y a emporté la créature sous vos yeux.',
+        ailleursReprise: 'Dans {le:piece}, le vide l’a emportée sous vos yeux.',
+        iciReprise: 'Le vide l’a emportée sous vos yeux.',
+      },
+      creature_inerte: {
+        ailleurs: 'Dans {le:piece}, le vide a figé la créature pour de bon.',
+        ici: 'Le vide y a figé la créature pour de bon.',
+        ailleursReprise: 'Dans {le:piece}, le vide l’a figée pour de bon.',
+        iciReprise: 'Le vide l’a figée pour de bon.',
+      },
+      blesse_griffes: {
+        ailleurs: 'Dans {le:piece}, la créature vous a blessé.',
+        ici: 'La créature vous y a blessé.',
+        ailleursReprise: 'Dans {le:piece}, elle vous a blessé.',
+        iciReprise: 'Elle vous y a blessé.',
+      },
+      blesse_griffes_feu: {
+        ailleurs: 'Dans {le:piece}, au milieu des flammes, la créature vous a blessé.',
+        ici: 'Au milieu des flammes, la créature vous a blessé.',
+        ailleursReprise: 'Dans {le:piece}, au milieu des flammes, elle vous a blessé.',
+        iciReprise: 'Au milieu des flammes, elle vous a blessé.',
+      },
+      blesse_griffes_froid: {
+        ailleurs: 'Dans {le:piece}, la créature vous a blessé ; le froid vous mordait déjà.',
+        ici: 'La créature vous y a blessé ; le froid vous mordait déjà.',
+        ailleursReprise: 'Dans {le:piece}, elle vous a blessé ; le froid vous mordait déjà.',
+        iciReprise: 'Elle vous y a blessé ; le froid vous mordait déjà.',
+      },
+      critique_griffes: {
+        ailleurs: 'Dans {le:piece}, la créature vous a grièvement blessé.',
+        ici: 'Puis la créature vous a grièvement blessé.',
+        ailleursReprise: 'Dans {le:piece}, elle vous a grièvement blessé.',
+        iciReprise: 'Puis elle vous a grièvement blessé.',
+      },
+      critique_griffes_feu: {
+        ailleurs: 'Dans {le:piece}, au milieu des flammes, la créature vous a grièvement blessé.',
+        ici: 'Puis, au milieu des flammes, la créature vous a grièvement blessé.',
+        ailleursReprise: 'Dans {le:piece}, au milieu des flammes, elle vous a grièvement blessé.',
+        iciReprise: 'Puis, au milieu des flammes, elle vous a grièvement blessé.',
+      },
+      critique_griffes_froid: {
+        ailleurs: 'Dans {le:piece}, la créature vous a grièvement blessé ; le froid vous mordait déjà.',
+        ici: 'Puis la créature vous a grièvement blessé ; le froid vous mordait déjà.',
+        ailleursReprise: 'Dans {le:piece}, elle vous a grièvement blessé ; le froid vous mordait déjà.',
+        iciReprise: 'Puis elle vous a grièvement blessé ; le froid vous mordait déjà.',
+      },
+      pont_cede: { ici: '{Le:objet} a cédé sous un poids énorme ; quelque chose est tombé dans le vide.' },
+      chute_entendue: { ici: 'Derrière {le:passage}, vous avez entendu quelque chose tomber.' },
+      creature_glisse: { ici: 'Au pied {de:passage}, quelque chose a glissé sur l’huile.' },
+      porte_enfoncee: { ici: '{Le:passage} a cédé sous les coups.' },
+    },
+    morts: {
+      griffes: {
+        ailleurs: 'Vous êtes mort dans {le:piece}, sous les griffes de la créature.',
+        ici: 'Vous y êtes mort, sous les griffes de la créature.',
+        ailleursReprise: 'Vous êtes mort dans {le:piece}, sous ses griffes.',
+        iciReprise: 'Vous y êtes mort, sous ses griffes.',
+      },
+      griffes_feu: {
+        ailleurs: 'Vous êtes mort dans {le:piece}, entre les griffes de la créature et les flammes.',
+        ici: 'Vous y êtes mort, entre les griffes de la créature et les flammes.',
+        ailleursReprise: 'Vous êtes mort dans {le:piece}, entre ses griffes et les flammes.',
+        iciReprise: 'Vous y êtes mort, entre ses griffes et les flammes.',
+      },
+      griffes_froid: {
+        ailleurs: 'Vous êtes mort dans {le:piece}, sous les griffes de la créature, transi de froid.',
+        ici: 'Vous y êtes mort, sous les griffes de la créature, transi de froid.',
+        ailleursReprise: 'Vous êtes mort dans {le:piece}, sous ses griffes, transi de froid.',
+        iciReprise: 'Vous y êtes mort, sous ses griffes, transi de froid.',
+      },
+    },
+    creature: {
+      laissee: 'Vous laissez la créature derrière vous.',
+      entendue: 'Vous avez entendu quelque chose bouger à bord, sans jamais le voir.',
+      jamais: 'Vous n’avez jamais vu ce qui rôdait à bord.',
+    },
   },
   apercu: {
     dangers: {

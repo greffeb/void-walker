@@ -1,6 +1,8 @@
 import type {
   Cout,
+  IntensiteTrace,
   IdAction,
+  Issue,
   NiveauRisque,
   RaisonIndisponibilite,
   RaisonRefus,
@@ -33,6 +35,81 @@ export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance'>;
 export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc', 'reserve'] as const;
 export type CleEvacuation = (typeof CLES_EVACUATION)[number];
 
+/**
+ * Moments marquants que l'écran de fin peut raconter (12 §4.11, D-281), par clé : une blessure se dit selon sa gravité et ses
+ * causes, comme les textes d'aggravation (le feu l'emporte sur le froid) ; le feu éteint, selon qu'on sait nommer sa pièce.
+ */
+export const CLES_MOMENT = [
+  'premier_contact',
+  'creature_expulsee',
+  'creature_inerte',
+  'blesse_griffes',
+  'blesse_feu',
+  'blesse_froid',
+  'blesse_griffes_feu',
+  'blesse_griffes_froid',
+  'critique_griffes',
+  'critique_feu',
+  'critique_froid',
+  'critique_griffes_feu',
+  'critique_griffes_froid',
+  'pont_cede',
+  'chute_entendue',
+  'creature_glisse',
+  'porte_enfoncee',
+  'soin',
+  'feu_eteint',
+  'feu_eteint_derriere',
+  'breche_ouverte',
+  'passage_decouvert',
+  'combinaison_enfilee',
+  'alarme_declenchee',
+  'circuit_active',
+  'objet_installe',
+  'pont_place',
+  'chambre_bouclee',
+  'cloison_deverrouillee',
+  'machines_arretees',
+  'gravite_coupee',
+] as const;
+export type CleMoment = (typeof CLES_MOMENT)[number];
+
+/** Ce qui a tué, clé de la dernière phrase d'une défaite (D-282) : le vide l'emporte sur tout, puis le feu sur le froid. */
+export const CLES_MORT = ['griffes', 'feu', 'froid', 'vide', 'griffes_feu', 'griffes_froid'] as const;
+export type CleMort = (typeof CLES_MORT)[number];
+
+/**
+ * Une phrase du récit de fin, écrite à la main en entier sous chaque forme dont le récit a besoin (D-281) : `ailleurs` nomme la
+ * pièce ({le:piece}), `ici` suit une phrase qui l'a déjà nommée ; les formes `…Reprise` suivent une phrase qui a nommé la
+ * créature (« elle », « l' », « ses »). Sans `ailleurs`, le moment ne dit pas de pièce ; sans reprise, il ne nomme pas la
+ * créature. Le jeu choisit une forme, il ne remplace jamais un mot par un pronom.
+ */
+export interface PhraseFin {
+  readonly ici: string;
+  readonly ailleurs?: string;
+  readonly iciReprise?: string;
+  readonly ailleursReprise?: string;
+}
+
+/** Les cinq supports d'un document à lire (spec 2026-10-18 §8.4). */
+export type SupportDocument = 'note' | 'journal' | 'message' | 'inscription' | 'affiche';
+
+/**
+ * Textes d'un document des grandes stations (spec §8.5), dans la section `documents` à part : les descriptions refusent tout trou.
+ * Le seul trou permis est la pièce d'une note de rangement : `{le:piece}`, `{de:piece}` ou `{a:piece}`.
+ */
+export interface TexteDocument {
+  /** Nom de puce affiché, avec genre, nombre et élision ; sans chiffre. */
+  readonly puce: Nom;
+  readonly support: SupportDocument;
+  /** Ligne « où », vraie dans toute pièce que les étiquettes du document autorisent. */
+  readonly ou: string;
+  /** Paragraphes ; pour un journal, lignes « hh:mm  texte » (deux espaces). */
+  readonly corps: readonly string[];
+  /** Note : prénom de l'auteur. */
+  readonly signature?: string;
+}
+
 export interface TextesMonde {
   readonly noms: Readonly<Record<string, Nom>>;
   /** Description des pièces et objets, par clé de nom, pour « regarder ». */
@@ -50,10 +127,23 @@ export interface TextesMonde {
   readonly gelures: Readonly<Record<'froid' | 'griffes_froid', Readonly<Record<TypeAggravation, Variantes>>>>;
   /** Défaite par le vide, sans combinaison dans une pièce sans air (C-04 §3.1), à la place des autres textes de défaite. */
   readonly asphyxie: Variantes;
+  /** Phrase ajoutée au regard d’une pièce sur la piste de la créature (spec 2026-10-18 §5.4), couche menace. */
+  readonly traces: Readonly<Record<IntensiteTrace, Variantes>>;
+  /** Phrase ajoutée au regard d’une pièce pillée avant le joueur (spec 2026-10-18 §6.6), couche univers, après la trace s’il y en a une. */
+  readonly pillages: Variantes;
+  /** Attente seule à raconter, 5e et 10e de suite (#225). */
+  readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
   readonly evacuations: Readonly<Record<CleEvacuation, Variantes>>;
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
   readonly assistance: Readonly<Record<string, string>>;
+  /**
+   * Documents des grandes stations, par clé de nom du document (spec §8.5) ; la réunion des textes ajoute chaque puce à `noms` sous
+   * la même clé, pour que `nomDe` traite un document comme tout objet.
+   */
+  readonly documents: Readonly<Record<string, TexteDocument>>;
+  /** Étiquette du support d'un document, que l'appli met en capitales (spec §8.4, §9.1). */
+  readonly supports: Readonly<Record<SupportDocument, string>>;
   readonly passages: {
     readonly ouvert: Variantes;
     readonly ferme: Variantes;
@@ -70,9 +160,22 @@ export interface TextesMonde {
   readonly libelles: Readonly<Record<IdAction, string>>;
   /** Libellé d'« aller » par un passage dont la destination n'est pas connue : nommé par le passage seul. */
   readonly allerSansDestination: string;
+  /** Libellé de « poser » à une position de la pièce (la caisse d'une grande station), nommée comme dans celui de « déplacer ». */
+  readonly poserAPosition: string;
   /** Verbe seul, sans trou : options d'une puce et rappel de la dernière action (« > Carnet · Prendre »). */
   readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
+    readonly drone_veille: string;
+    readonly drone_trajet: string;
+    readonly drone_maintien: string;
+    readonly drone_deraille: string;
+    readonly drone_a_rearmer: string;
+    readonly drone_arrete: string;
+    readonly drone_termine: string;
+    readonly poigneeTenue: string;
+    readonly freinSerre: string;
+    readonly freinDesserre: string;
+    readonly passageEncombre: string;
     readonly lieu: string;
     readonly objets: string;
     readonly aucunObjet: string;
@@ -134,10 +237,24 @@ export interface TextesMonde {
     readonly sansSortie: string;
     /** Récit court de l'écran de fin après un abandon (12 §4.11), dans la pièce où le passager s'est arrêté. */
     readonly abandon: string;
-    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ. */
+    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ, après une longue attente. */
     readonly momentReveil: string;
     readonly momentArrivee: string;
     readonly momentEvacuation: string;
+    readonly momentPatience: string;
+  };
+  /** Écran de fin (12 §4.11, D-281 à D-283) : titres, puis le récit de la partie, phrase par phrase. */
+  readonly fin: {
+    readonly titres: Readonly<Record<'abandon' | Issue, string>>;
+    /** Première phrase du récit, dans la pièce du réveil. */
+    readonly reveil: string;
+    readonly moments: Readonly<Record<CleMoment, PhraseFin>>;
+    /** Dernière phrase d'une défaite : la pièce et ce qui a tué (D-282). */
+    readonly morts: Readonly<Record<CleMort, PhraseFin>>;
+    /** Santé au départ de la capsule (D-283). */
+    readonly sante: Readonly<Record<'indemne' | 'blesse' | 'critique', string>>;
+    /** Ce que le passager sait de la créature au départ, si aucun moment ne l'a mise hors jeu (D-283). */
+    readonly creature: Readonly<Record<'laissee' | 'entendue' | 'jamais', string>>;
   };
   /** Aperçu avant confirmation (12 §3.8) : mots du risque, du danger connu et du coût, sans chiffre ; une phrase par chose sue. */
   readonly apercu: {
@@ -159,10 +276,28 @@ export interface TextesMorceau {
   readonly noms: Readonly<Record<string, Nom>>;
   readonly descriptions: Readonly<Record<string, Variantes>>;
   readonly assistance: Readonly<Record<string, string>>;
+  /**
+   * Descriptions qui remplacent les leurs dans une grande station (spec 2026-10-18 §5.4, §6.5) : celles des pièces, calmes et sans
+   * trace, et les variantes d'une description d'objet que la grande station change (la caisse portable de M-02).
+   */
+  readonly calmes?: Readonly<Record<string, Variantes>>;
+  /** Documents que porte la station (spec 2026-10-18 §8.5) : leurs puces rejoignent `noms` à la réunion des textes. */
+  readonly documents?: Readonly<Record<string, TexteDocument>>;
 }
 
 /** Rôles que chaque gabarit peut remplir ; tout autre trou est une erreur (C-07 N-03). */
 export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
+  drone_envoye: ['objet'],
+  drone_maintient: ['objet'],
+  drone_deraille: ['objet'],
+  drone_replace: ['objet'],
+  drone_rearme: ['objet'],
+  drone_arrete: ['objet'],
+  drone_termine: ['objet'],
+  drone_bruit_arrete: ['passage'],
+  poignee_tenue: ['objet'],
+  poignee_lachee: ['objet'],
+  passage_ouvert_encombre: ['passage'],
   reveil: ['piece'],
   objet_pris: ['objet', 'piece'],
   objet_pose: ['objet', 'piece'],
@@ -176,6 +311,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   pas_entendus: [],
   souffle_entendu: [],
   attente: [],
+  bruit_station: [],
   premier_contact: [],
   menace: [],
   aggravation_blesse: [],
@@ -184,6 +320,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   soin_indemne: ['objet'],
   soin_blesse: ['objet'],
   objet_deplace: ['objet', 'position'],
+  objet_pose_position: ['objet', 'position'],
   feu_derriere: ['passage'],
   feu_gagne: ['piece'],
   feu_eteint: ['piece'],
@@ -219,6 +356,13 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
 };
 
 export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
+  envoyer: ['cible'],
+  tenir: ['cible'],
+  lacher: ['cible'],
+  replacer: ['cible'],
+  rearmer: ['cible'],
+  arreter_drone: ['cible'],
+  reprendre_drone: ['cible'],
   regarder: ['cible'],
   prendre: ['cible'],
   poser: ['cible'],
@@ -249,12 +393,56 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   attendre: [],
 };
 
+/** Rôles des phrases de fin, en plus de `piece` pour leur forme `ailleurs` (D-281). */
+export const ROLES_MOMENT: Readonly<Record<CleMoment, readonly string[]>> = {
+  premier_contact: [],
+  creature_expulsee: [],
+  creature_inerte: [],
+  blesse_griffes: [],
+  blesse_feu: [],
+  blesse_froid: [],
+  blesse_griffes_feu: [],
+  blesse_griffes_froid: [],
+  critique_griffes: [],
+  critique_feu: [],
+  critique_froid: [],
+  critique_griffes_feu: [],
+  critique_griffes_froid: [],
+  pont_cede: ['objet'],
+  chute_entendue: ['passage'],
+  creature_glisse: ['passage'],
+  porte_enfoncee: ['passage'],
+  soin: ['objet'],
+  // `lieu` : la pièce du foyer éteint, ou le passage derrière lequel il brûlait tant que sa destination est inconnue.
+  feu_eteint: ['lieu'],
+  feu_eteint_derriere: ['lieu'],
+  breche_ouverte: ['objet'],
+  passage_decouvert: [],
+  combinaison_enfilee: ['objet'],
+  alarme_declenchee: ['objet'],
+  circuit_active: ['objet'],
+  objet_installe: ['objet', 'capsule'],
+  pont_place: ['objet'],
+  // `lieu` : la chambre bouclée, la zone dont la gravité est coupée.
+  chambre_bouclee: ['lieu'],
+  cloison_deverrouillee: ['objet'],
+  machines_arretees: [],
+  gravite_coupee: ['lieu'],
+};
+
 export const ROLES_ALLER_SANS_DESTINATION = ['cible'] as const;
+export const ROLES_POSER_A_POSITION = ['cible', 'position'] as const;
 export const ROLES_PASSAGE = ['passage', 'vers'] as const;
 export const ROLES_PASSAGE_SANS_DESTINATION = ['passage'] as const;
 export const ROLES_INDISPONIBILITE = ['cible'] as const;
 
 export const ROLES_SAVOIR: Readonly<Record<TypeSavoir, readonly string[]>> = {
+  enverra_drone: ['objet'],
+  tiendra: ['objet'],
+  lachera: ['objet'],
+  replacera_drone: ['objet'],
+  rearmera_drone: ['objet'],
+  arretera_drone: ['objet'],
   portera: ['objet'],
   laissera: ['objet', 'piece'],
   ouvrira: ['passage'],
@@ -300,6 +488,17 @@ export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
 };
 
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
+  drone_veille: ['objet'],
+  drone_trajet: ['objet'],
+  drone_maintien: ['objet'],
+  drone_deraille: ['objet'],
+  drone_a_rearmer: ['objet'],
+  drone_arrete: ['objet'],
+  drone_termine: ['objet'],
+  poigneeTenue: ['objet'],
+  freinSerre: ['objet'],
+  freinDesserre: ['objet'],
+  passageEncombre: ['passage'],
   lieu: ['piece'],
   objets: ['liste'],
   aucunObjet: [],
@@ -339,4 +538,5 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   momentReveil: ['piece'],
   momentArrivee: ['piece'],
   momentEvacuation: [],
+  momentPatience: [],
 };

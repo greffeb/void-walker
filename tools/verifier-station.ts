@@ -37,6 +37,8 @@ export interface OptionsVerification {
   readonly admissible?: (etat: EtatPartie) => boolean;
   /** Priorité d'un état, la plus haute développée d'abord ; par défaut, le rang du morceau du passager (spec L3 §6.2). */
   readonly priorite?: (etat: EtatPartie) => number;
+  /** La recherche part de cet état au lieu du réveil ; pour `chercherEtat` et `chercherJusqua` seulement, le témoin de `verifierStation` se rejouant du réveil. */
+  readonly depart?: Partie;
 }
 
 export interface RapportStation {
@@ -80,7 +82,8 @@ interface Parent {
   readonly etape: EtapeParcours;
 }
 
-function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: number): Parcours {
+/** Étapes du nœud de départ jusqu'au nœud `fin`. */
+function etapesJusqua(parents: readonly (Parent | null)[], fin: number): EtapeParcours[] {
   const etapes: EtapeParcours[] = [];
   let indice = fin;
   while (indice > 0) {
@@ -89,7 +92,11 @@ function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: n
     etapes.push(parent.etape);
     indice = parent.precedent;
   }
-  etapes.reverse();
+  return etapes.reverse();
+}
+
+function temoin(entree: EntreeMonde, parents: readonly (Parent | null)[], fin: number): Parcours {
+  const etapes = etapesJusqua(parents, fin);
   let partie = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
   for (const etape of etapes) {
     const option = trouverOption(observer(entree.monde, partie.etat), etape);
@@ -135,6 +142,16 @@ export function rangsDesMorceaux(monde: DefMonde): (piece: string) => number {
   };
 }
 
+/**
+ * Priorité de recherche d’une grande station (spec 2026-10-18 §7.4) : le segment de la pièce du passager, le plus avancé d’abord ;
+ * sans segment (petites stations), le rang de son morceau, comme avant.
+ */
+export function rangsDesSegments(monde: DefMonde): (piece: string) => number {
+  if (!monde.pieces.some((piece) => piece.segment !== undefined)) return rangsDesMorceaux(monde);
+  const segments = new Map(monde.pieces.map((piece) => [piece.id, piece.segment ?? 0]));
+  return (piece) => segments.get(piece) ?? 0;
+}
+
 export interface Recherche {
   readonly issue: 'trouve' | 'epuise' | 'plafond';
   /** Premier état qui satisfait le but, journal vidé ; `null` sinon. */
@@ -159,10 +176,10 @@ interface Seau {
  * (spec L3 §6.2). Même graphe qu'en largeur ; sans préfixe, tout est au rang 0 et c'est la largeur.
  */
 function explorer(entree: EntreeMonde, but: (etat: EtatPartie) => boolean, maxEtats: number, options: OptionsVerification = {}): Exploration {
-  const rangDe = rangsDesMorceaux(entree.monde);
+  const rangDe = rangsDesSegments(entree.monde);
   const admissible = options.admissible ?? (() => true);
   const rang = options.priorite ?? ((etat: EtatPartie): number => rangDe(etat.piece));
-  const initiale = sansJournal(nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
+  const initiale = sansJournal(options.depart ?? nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE }));
   const vus = new Set([cleEtatRegles(initiale.etat)]);
   const parents: (Parent | null)[] = [null];
   // Parallèle à `parents` ; la partie est libérée une fois développée.
@@ -213,8 +230,23 @@ export function chercherEtat(entree: EntreeMonde, but: (etat: EtatPartie) => boo
   return { issue, partie, etats };
 }
 
+/**
+ * Gestes sans dé ni blessure qui mènent de `depart` à un état où `but` est vrai (spec 2026-10-18 §7.4) : mêmes transitions que
+ * `verifierStation` ; vide si `depart` le satisfait déjà, `null` si la recherche s'épuise ou atteint `maxEtats`.
+ */
+export function chercherJusqua(
+  entree: EntreeMonde,
+  depart: Partie,
+  but: (etat: EtatPartie) => boolean,
+  maxEtats: number,
+  options: Pick<OptionsVerification, 'admissible' | 'priorite'> = {},
+): readonly EtapeParcours[] | null {
+  const { issue, parents } = explorer(entree, but, plafond({ maxEtats }), { ...options, depart });
+  return issue === 'trouve' ? etapesJusqua(parents, parents.length - 1) : null;
+}
+
 /** Morceau d'une pièce préfixée (« m-07/p-soute » → « m-07 ») ; `null` sans préfixe. */
-function morceauDe(piece: string): string | null {
+export function morceauDe(piece: string): string | null {
   const barre = piece.indexOf('/');
   return barre < 0 ? null : piece.slice(0, barre);
 }
@@ -232,12 +264,22 @@ export function ordreImpose(monde: DefMonde, premiere: string, seconde: string):
   const capsule = monde.objets.find((objet) => objet.capsule !== undefined);
   const etapes = [brancheDe(premiere), brancheDe(seconde), capsule === undefined ? null : morceauDe(capsule.piece)];
   const leve = (etat: EtatPartie, cloison: string): boolean => etat.verrous?.includes(cloison) !== true;
+  // Grande station : après les deux cloisons, le troisième chemin puis le final, le segment le plus avancé d’abord (spec 2026-10-18 §7.4).
+  const grande = monde.pieces.some((piece) => piece.segment !== undefined);
+  const segmentDe = rangsDesSegments(monde);
+  // Chemin principal d'une grande station (sans segments) : le troisième chemin, entre le sas et le final, compte comme
+  // l'approche du final ; sans lui, la recherche n'y avance pas et s'arrête au plafond (#237). Les petites stations n'en ont pas.
+  const rangDe = rangsDesMorceaux(monde);
+  const rangCarrefour = rangDe('carrefour/');
+  const troisieme = (ici: string | null, piece: string): boolean => ici !== null && ici !== etapes[0] && ici !== etapes[1] && rangDe(piece) > rangCarrefour;
   return {
     admissible: (etat) => leve(etat, premiere) || !leve(etat, seconde),
     priorite: (etat) => {
       const etape = leve(etat, premiere) ? (leve(etat, seconde) ? 2 : 1) : 0;
       const ici = morceauDe(etat.piece);
-      return etape * 3 + (ici === etapes[etape] ? 2 : ici === 'carrefour' ? 1 : 0);
+      const proche = ici === etapes[etape] ? 3 : etape === 2 && troisieme(ici, etat.piece) ? 2 : ici === 'carrefour' ? 1 : 0;
+      if (!grande) return etape * 4 + proche;
+      return etape * 1000 + (etape === 2 ? 10 + segmentDe(etat.piece) : proche);
     },
   };
 }
@@ -284,18 +326,24 @@ export interface RapportLibre extends RapportStation {
   readonly coupees: boolean;
 }
 
+/** Cloisons verrouillées du carrefour de l'ordre libre (D-259) ; la porte blindée de M-11 (#203), verrouillée elle aussi, n'en est pas. */
+export function cloisonsDuCarrefour(monde: DefMonde): string[] {
+  return monde.liaisons.filter((liaison) => liaison.verrouillee === true && liaison.entre.some((piece) => morceauDe(piece) === 'carrefour')).map((liaison) => liaison.id);
+}
+
 /**
  * Ordre libre (spec L5 §4) : prouvée seulement si les deux ordres de préparation mènent à l'évacuation sans dé ni blessure,
  * témoins rejoués, et si chaque cloison coupe à elle seule l'accès à la capsule. Les états et les temps s'additionnent ;
  * le témoin rendu est celui du premier ordre.
  */
 export function verifierLibre(entree: EntreeMonde, options: OptionsVerification = {}): RapportLibre {
-  const cloisons = entree.monde.liaisons.filter((liaison) => liaison.verrouillee === true).map((liaison) => liaison.id);
+  const cloisons = cloisonsDuCarrefour(entree.monde);
   const [premiere, seconde] = cloisons;
   if (premiere === undefined || seconde === undefined || cloisons.length !== 2) throw new Error(`${entree.monde.id} : deux cloisons verrouillées attendues.`);
   // Contrôles sans recherche d'abord : chaque cloison coupe la capsule, et les deux commandes sont dans deux morceaux différents.
   const coupees = cloisons.every((cloison) => capsuleCoupee(entree.monde, cloison));
-  const morceauxCommandes = new Set(entree.monde.objets.filter((objet) => objet.deverrouille !== undefined).map((objet) => morceauDe(objet.piece)));
+  const commandes = entree.monde.objets.filter((objet) => objet.deverrouille !== undefined && cloisons.includes(objet.deverrouille));
+  const morceauxCommandes = new Set(commandes.map((objet) => morceauDe(objet.piece)));
   const refuser = (diagnostic: string): RapportLibre => ({
     verdict: 'sans_sortie_sure', etats: 0, secondes: 0, ecartes: { des: 0, blessures: 0 }, ordres: ['sans_sortie_sure', 'sans_sortie_sure'], coupees, parcours: null, diagnostic,
   });
@@ -534,6 +582,19 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
 }
 
 /** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
+/**
+ * Plafond relevé pour les compositions qui contiennent ces morceaux (#232) : M-12 multiplie les états (six portes, phases du
+ * drone) ; `m10-m12-m03-stockage` demande 405 000 états, `m12-m01-m03-palier` 253 000. Les autres gardent `MAX_ETATS`, pour
+ * que leur verdict, et donc la liste publiée, ne change pas. Un plafond demandé explicitement l'emporte.
+ */
+export const PLAFONDS_ELARGIS: Readonly<Record<string, number>> = { 'm-12': 600000 };
+
+export function optionsDe(composition: Composition, options: OptionsVerification): OptionsVerification {
+  if (options.maxEtats !== undefined) return options;
+  const plafond = Math.max(MAX_ETATS, ...[...composition.chemins, composition.final].map((morceau) => PLAFONDS_ELARGIS[morceau] ?? 0));
+  return plafond === MAX_ETATS ? options : { ...options, maxEtats: plafond };
+}
+
 /** `empreinte({ morceau, textes })` de chaque morceau de la composition, dans l'ordre de la station. */
 export function empreintesDe(composition: Composition): Record<string, string> {
   return Object.fromEntries(morceauxDe(composition).map(({ morceau, textes }) => [morceau.id, empreinte({ morceau, textes })]));
@@ -547,8 +608,9 @@ export function verifierComposition(catalogue: Catalogue, composition: Compositi
   if (composition.refus !== null) return sansVerification('refusee', composition.refus);
   const station = stationDeReference(catalogue, composition.id);
   if ('refus' in station) return sansVerification('non_prouvee', station.refus);
-  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, options) : null;
-  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, options);
+  const recherche = optionsDe(composition, options);
+  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, recherche) : null;
+  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, recherche);
   const actions = parcours === null ? null : parcours.etapes.length;
   const ordres = libre === null ? {} : { ordres: libre.ordres };
   return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes, ...ordres };
@@ -649,7 +711,7 @@ export function mesurerTirages(tirages: number): MesureTirages {
 
 
 /** Stations écrites en entier (et M-07, M-10 assemblées seules), vérifiées avant le catalogue. */
-export const MONDES_DE_REFERENCE: readonly string[] = ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10'];
+export const MONDES_DE_REFERENCE: readonly string[] = ['ar-01', 'ar-02', 'm-07', 'm-08', 'm-09', 'm-10', 'm-12'];
 
 /** Ce que vérifie `check:stations` (#180) : verdicts, puis plans de chaque chemin. */
 export interface ResultatLot {
@@ -776,9 +838,13 @@ async function principal(): Promise<void> {
   const resultat = verifierLot(lot, { tirages, options, cache });
   for (const ligne of [...resultat.mondes, ...resultat.lignes, ...resultat.plans]) console.log(JSON.stringify(ligne));
   if (complet) console.log(JSON.stringify({ tirer: 'catalogue.tirer', ...mesurerTirages(TIRAGES_PLANS_COMPLET) }));
-  const ecarts = ecartsDuLot(resultat, lot);
+  // Grandes stations publiées (spec 2026-10-18 §7.4) : rejeu de leurs témoins, rapide ; import dynamique, le module importe celui-ci.
+  const { ecartsDesGrandes, verifierPublieesDuLot } = await import('./verifier-grandes');
+  const grandes = verifierPublieesDuLot(lot);
+  for (const ligne of grandes) console.log(JSON.stringify({ ...ligne, temoins: undefined }));
+  const ecarts = [...ecartsDuLot(resultat, lot), ...ecartsDesGrandes(grandes)];
   for (const ecart of ecarts) console.error(ecart);
-  const total = resultat.mondes.length + resultat.lignes.length + resultat.plans.length;
+  const total = resultat.mondes.length + resultat.lignes.length + resultat.plans.length + grandes.length;
   console.error(`check:stations : lot ${lot.numero}/${lot.total}, ${total} verdicts (${tirages} plans par chemin) dont ${resultat.repris} repris du cache, ${duree()}.`);
   if (ecarts.length > 0) process.exitCode = 1;
 }

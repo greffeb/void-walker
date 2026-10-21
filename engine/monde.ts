@@ -1,8 +1,17 @@
 import { hacher } from './hachage';
+import { validerDrones } from './drone';
 import { validerPlan, type PlanLiaison, type RectPlan } from './plan';
 
 // Forme commune d'un monde (C-02). `nom` est une clé publique vers le texte ; `id` reste interne.
 // Les règles lisent des qualités déclarées, jamais un nom (D-078).
+
+/** Catégorie d’une pièce (GE-08), complétée de « fret » par le catalogue (spec 2026-10-18 §5.2). */
+export type CategoriePiece = 'vie' | 'technique' | 'circulation' | 'science' | 'commandement' | 'evacuation' | 'fret';
+/** Une impasse n’a qu’une porte ; un passage peut recevoir une porte de boucle ; un couloir dessert d’autres pièces (D-206, GE-11). */
+export type FormeAnnexe = 'impasse' | 'passage' | 'couloir';
+
+/** Intensité d’une trace de la piste (spec 2026-10-18 §5.4). */
+export type IntensiteTrace = 'legere' | 'forte';
 
 export interface DefPiece {
   readonly id: string;
@@ -24,6 +33,15 @@ export interface DefPiece {
   readonly gravite?: 'coupee' | 'retablie';
   /** Chambre froide (C-02 §5, D-166) : y rester blesse (D-240), la créature y est ralentie quand une porte se ferme sur elle (D-239). */
   readonly froide?: boolean;
+  /** Trace de la piste de la créature, dans une grande station (spec 2026-10-18 §5.4) : ce que l’on voit en regardant la pièce. */
+  readonly trace?: IntensiteTrace;
+  /** Grande station : zone entre deux coupes, numérotée dans l'ordre de découverte depuis le départ ; une annexe a celle de sa pièce d’accroche (spec §6.3). */
+  readonly segment?: number;
+  /** Grande station : salle de butin dont l'objet a été pris avant le joueur ; elle reçoit une phrase de pillage (spec §6.6). */
+  readonly pillee?: true;
+  /** Pièce du catalogue (spec §5.2) : sa catégorie et sa forme. */
+  readonly categorie?: CategoriePiece;
+  readonly forme?: FormeAnnexe;
 }
 
 export interface DefLiaison {
@@ -62,6 +80,8 @@ export interface DefLiaison {
    * ensuite, une porte ordinaire.
    */
   readonly verrouillee?: boolean;
+  /** Porte blindée (#203) : la créature ne la force jamais, même alertée (D-279 ne s'y applique pas). */
+  readonly blindee?: boolean;
 }
 
 /** Position locale d'une pièce (C-02 §2) ; `sous` : la liaison haute qu'un appui placé ici rend atteignable. */
@@ -133,17 +153,38 @@ export interface DefObjet {
   readonly fermeture?: string;
   /** Commande fixe qui déverrouille cette cloison, d'où qu'on l'actionne, en une action discrète (D-259). */
   readonly deverrouille?: string;
+  /** Grande station : objet de butin, sans aucune qualité passive (spec §6.6). */
+  readonly butin?: true;
+  /** Grande station : document à lire, objet fixe sans aucune qualité, que l'on ne peut que regarder (spec §8.5). */
+  readonly document?: true;
+  /** Note de rangement : pièce qu'elle nomme, rendue en référence publique à la lecture pour remplir le trou (spec §8.5). */
+  readonly designe?: string;
+  /** Objet portable à tenir en main pour actionner cette commande (#203, lecteur de carte). */
+  readonly exige?: string;
+  /** Poignée à maintenir sur place ; toute autre manipulation demande de lâcher. */
+  readonly poignee?: boolean;
+  /** Drone non portable, fixé à une liaison locale jusqu'à cette poignée. */
+  readonly drone?: { readonly rail: string; readonly poignee: string };
+  /** Obstacle matériel, sans effet sur l'air, le son ni le feu de son passage. */
+  readonly obstacle?: { readonly passage: string; readonly rangement: string; readonly maintien: string };
 }
+
+/** Champs permis à un document : son identité, sa pièce, `portable: false`, et ce qui en fait un document (spec §8.5). */
+const CHAMPS_DOCUMENT: ReadonlySet<string> = new Set(['id', 'nom', 'piece', 'portable', 'document', 'designe']);
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
 export interface DefCreature {
   readonly piece: string;
 }
 
-/** Message de l'IA de la station, délivré une fois : au réveil, à la première arrivée dans une pièce, ou au départ. */
+/** Message de l'IA de la station, délivré une fois : au réveil, à la première arrivée dans une pièce, au départ, ou à la 15e attente de suite (#225). */
 export interface DefAssistance {
   readonly id: string;
-  readonly quand: { readonly type: 'reveil' } | { readonly type: 'arrivee'; readonly piece: string } | { readonly type: 'evacuation' };
+  readonly quand:
+    | { readonly type: 'reveil' }
+    | { readonly type: 'arrivee'; readonly piece: string }
+    | { readonly type: 'evacuation' }
+    | { readonly type: 'patience' };
 }
 
 export interface DefMonde {
@@ -155,6 +196,10 @@ export interface DefMonde {
   readonly positions?: readonly DefPosition[];
   readonly creature?: DefCreature;
   readonly assistance?: readonly DefAssistance[];
+  /** Grande station : identifiants des portes de boucle (spec §6.4). */
+  readonly boucles?: readonly string[];
+  /** Grande station : des bruits de station ponctuent le récit avant la rencontre (spec §5.5). */
+  readonly bruitsStation?: true;
 }
 
 export interface IndexMonde {
@@ -218,11 +263,15 @@ export function validerMonde(monde: DefMonde): string[] {
       if (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true) erreurs.push(`${liaison.id} : cloison verrouillée qui n'est pas une porte pleine.`);
       if (!monde.objets.some((objet) => objet.deverrouille === liaison.id)) erreurs.push(`${liaison.id} : verrouillée sans commande.`);
     }
+    if (liaison.blindee === true && (liaison.gouffre === true || liaison.nonEtanche === true || liaison.sonAuTravers === true || liaison.etroite === true)) {
+      erreurs.push(`${liaison.id} : porte blindée qui n'est pas une porte pleine.`);
+    }
   }
   const voisines = (a: string, b: string): boolean => monde.liaisons.some((liaison) => liaison.entre.includes(a) && liaison.entre.includes(b));
   const defPieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
   const positionsConnues = new Map(positions.map((position) => [position.id, position]));
   const objets = new Map(monde.objets.map((objet) => [objet.id, objet]));
+  erreurs.push(...validerDrones(monde));
   for (const position of positions) {
     if (!pieces.has(position.piece)) erreurs.push(`${position.id} : pièce inconnue ${position.piece}.`);
     if (position.sous !== undefined && liaisons.get(position.sous)?.haute !== position.piece) {
@@ -238,7 +287,8 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.vitrageExterieur === true && objet.portable !== false) erreurs.push(`${objet.id} : vitrage portable.`);
     if (objet.rebouche !== undefined && objet.portable !== false) erreurs.push(`${objet.id} : kit de rustine portable.`);
     if (objet.protection === true && objet.portable === false) erreurs.push(`${objet.id} : protection qui ne se porte pas.`);
-    if (objet.deplacable === true && objet.portable !== false) erreurs.push(`${objet.id} : déplaçable mais portable.`);
+    // Seule la caisse d'une grande station est à la fois déplaçable et portable : un appui encombrant (spec 2026-10-18 §6.5).
+    if (objet.deplacable === true && objet.portable !== false && !(objet.appui === true && objet.encombrant === true)) erreurs.push(`${objet.id} : déplaçable mais portable.`);
     if (objet.pont === true && (objet.portable === false || objet.encombrant !== true)) erreurs.push(`${objet.id} : pont fragile non portable ou non encombrant (D-169).`);
     if (objet.encombrant === true && objet.portable === false) erreurs.push(`${objet.id} : encombrant qui ne se porte pas.`);
     if (objet.machines !== undefined) {
@@ -260,6 +310,10 @@ export function validerMonde(monde: DefMonde): string[] {
       if (liaisons.get(objet.deverrouille)?.verrouillee !== true) erreurs.push(`${objet.id} : déverrouille autre chose qu'une cloison verrouillée.`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : commande portable.`);
     }
+    if (objet.exige !== undefined) {
+      if (objet.deverrouille === undefined) erreurs.push(`${objet.id} : exige sans être une commande.`);
+      if (objets.get(objet.exige) === undefined || objets.get(objet.exige)?.portable === false) erreurs.push(`${objet.id} : exige un objet inconnu ou non portable.`);
+    }
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
     if (objet.position !== undefined && objet.deplacable !== true) erreurs.push(`${objet.id} : position sans être déplaçable.`);
     if (objet.avertisseur !== undefined) {
@@ -278,6 +332,14 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.alimente !== undefined) {
       if (objets.get(objet.alimente)?.capsule === undefined) erreurs.push(`${objet.id} : alimente autre chose qu'une capsule.`);
       if (objet.portable !== false) erreurs.push(`${objet.id} : console portable.`);
+    }
+    if (objet.document === true) {
+      if (objet.portable !== false) erreurs.push(`${objet.id} : document portable.`);
+      for (const [champ, valeur] of Object.entries(objet)) if (valeur !== undefined && !CHAMPS_DOCUMENT.has(champ)) erreurs.push(`${objet.id} : document porteur de ${champ}.`);
+    }
+    if (objet.designe !== undefined) {
+      if (objet.document !== true) erreurs.push(`${objet.id} : désigne une pièce sans être un document.`);
+      if (!pieces.has(objet.designe)) erreurs.push(`${objet.id} : pièce désignée inconnue ${objet.designe}.`);
     }
     if (objet.depart !== undefined) {
       const capsule = objets.get(objet.depart)?.capsule;

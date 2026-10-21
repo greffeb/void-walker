@@ -577,6 +577,18 @@ describe('porte forcée par la créature en poursuite (D-279)', () => {
     expect(types(evenements[1] ?? [])).toEqual(['passage_ferme']);
     expect(fermee.etat.creature?.force).toBeUndefined();
   });
+
+  it('une porte blindée ne se force jamais, même après de longs gestes derrière elle (#203)', () => {
+    const blindee = liaisons(monde, { bc: { blindee: true } });
+    const { partie: fermee, evenements } = suite(blindee, suite(blindee, partie(blindee), [['aller', 'salle_b'], ['aller', 'salle_c']]).partie, [['aller', 'salle_b'], ['fermer', 'porte_bc']]);
+    const gestes = suite(blindee, fermee, Array.from({ length: REACTIONS_FORCER + 2 }, (_, rang) => [rang % 2 === 0 ? 'prendre' : 'poser', 'cle'] as const));
+    const vus = [...evenements, ...gestes.evenements].flatMap(types);
+    expect(vus).not.toContain('porte_secouee');
+    expect(vus).not.toContain('porte_enfoncee');
+    expect(gestes.partie.etat.liaisons.bc).toBe(false);
+    expect(gestes.partie.etat.enfoncees).toBeUndefined();
+    expect(pieceCreature(gestes.partie)).not.toBe('b');
+  });
 });
 
 describe('poursuite des pas, écoute et fouille (D-276)', () => {

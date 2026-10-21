@@ -1,6 +1,6 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
-import { alertesMenace, COMPOSITIONS_PUBLIEES, creerCatalogue, dangersDuRecit, MONDES, PAIRES, type EntreeMonde } from '../content';
+import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
@@ -369,9 +369,9 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     if ('refus' in entree) throw new Error(entree.refus);
     return entree;
   };
-  /** Station que donne `tirer` pour un hasard parti de `depart`. */
+  /** Grande station que donne `tirerGrande` pour un hasard parti de `depart` (D-313 : NOUVELLE PARTIE tire une grande station). */
   const tiree = (depart: number): string => {
-    const entree = CATALOGUE.tirer(hasardDepuis(depart));
+    const entree = CATALOGUE.tirerGrande(hasardDepuis(depart));
     if ('refus' in entree) throw new Error(entree.refus);
     return entree.monde.id;
   };
@@ -381,22 +381,22 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
     expect(lancement.refus).toBeNull();
     expect(id(lancement.entree)).toBe(tiree(1));
-    expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(id(lancement.entree)));
+    expect(CATALOGUE.publiees).toContain(id(lancement.entree));
     const suivantes = [lancement.suivante(), lancement.suivante()].map((entree) => entree.monde.id);
-    for (const suivante of suivantes) expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(suivante));
+    for (const suivante of suivantes) expect(CATALOGUE.publiees).toContain(suivante);
     expect(new Set([id(lancement.entree), ...suivantes]).size).toBe(3);
     expect(ecritures()).toBe(0);
   });
 
-  it('adresse nue : une partie enregistrée se reprend sur son monde, AR-01 comme une station tirée ; NOUVELLE PARTIE tire une station', async () => {
-    for (const entree of [CATALOGUE.mondes['ar-01'] as EntreeMonde, resolue(STATION)]) {
+  it('adresse nue : une partie enregistrée se reprend sur son monde, AR-01, une petite ou une grande station ; NOUVELLE PARTIE tire une grande station', async () => {
+    for (const entree of [CATALOGUE.mondes['ar-01'] as EntreeMonde, resolue(STATION), resolue(CATALOGUE.publiees[0] ?? '')]) {
       const { stockage } = enMemoire();
       await commencer(envSur(entree, stockage));
       const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(1));
       expect(id(lancement.entree)).toBe(entree.monde.id);
       expect((await charger(envSur(lancement.entree ?? entree, stockage))).type).toBe('pret');
       const suivante = lancement.suivante().monde.id;
-      expect(COMPOSITIONS_PUBLIEES).toContain(compositionTiree(suivante));
+      expect(CATALOGUE.publiees).toContain(suivante);
       expect(suivante).not.toBe(entree.monde.id);
     }
   });
@@ -405,7 +405,8 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     const ancien = enMemoire();
     await commencer(envSur(resolue(STATION), ancien.stockage));
     const sauvegarde = (await ancien.stockage.lire()) as { readonly enregistrement: Record<string, unknown> };
-    for (const monde of ['m99-m03-x-1', 'texte quelconque', 'm07-m03-soute-01', 42]) {
+    // g0- : une grande station d'une version précédente du générateur (spec 2026-10-18 §4.3).
+    for (const monde of ['m99-m03-x-1', 'texte quelconque', 'm07-m03-soute-01', 42, `g0-${(CATALOGUE.publiees[0] ?? '').slice(3)}`]) {
       const ancienne = { ...sauvegarde, enregistrement: { ...sauvegarde.enregistrement, monde } };
       const { stockage, ecritures } = enMemoire(ancienne);
       const lancement = await preparerLancement({ type: 'tirage' }, CATALOGUE, stockage, hasardDepuis(2));
@@ -420,6 +421,87 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     // Sauvegarde illisible : une station tirée quand même, sans exception.
     const illisible: Stockage = { ...enMemoire().stockage, lire: () => Promise.reject(new Error('base verrouillée')) };
     expect(id((await preparerLancement({ type: 'tirage' }, CATALOGUE, illisible, hasardDepuis(2))).entree)).toBe(tiree(2));
+  });
+
+  it('grande station : une sauvegarde dont l’état ne correspond plus au journal rejoué n’est pas reprise, rien n’est écrit, la sauvegarde reste intacte (#202, #207)', async () => {
+    const grande = resolue(CATALOGUE.publiees[0] ?? '');
+    const { stockage } = enMemoire();
+    const env = envSur(grande, stockage);
+    let jeu = await commencer(env);
+    for (let pas = 0; pas < 4; pas++) {
+      const option = observer(grande.monde, jeu.partie.etat).menu.find((choix) => choix.disponible && choix.action !== 'regarder');
+      if (option === undefined) throw new Error('Aucune option jouable.');
+      jeu = await jouerOption(env, jeu, option);
+    }
+    expect(jeu.partie.etat.actions).toBe(4);
+    const sauvegarde = (await stockage.lire()) as { readonly enregistrement: { readonly actions: readonly unknown[] }; readonly etat: { readonly piece: string } };
+    // Témoin : intacte, la sauvegarde se reprend.
+    expect((await charger(env)).type).toBe('pret');
+    const ailleurs = grande.monde.pieces.find((piece) => piece.id !== sauvegarde.etat.piece)?.id;
+    const alterees = {
+      'état sauvegardé déplacé': { ...sauvegarde, etat: { ...sauvegarde.etat, piece: ailleurs } },
+      'journal sans sa dernière action': { ...sauvegarde, enregistrement: { ...sauvegarde.enregistrement, actions: sauvegarde.enregistrement.actions.slice(0, -1) } },
+    };
+    for (const [cas, alteree] of Object.entries(alterees)) {
+      const { stockage: lu, ecritures } = enMemoire(alteree);
+      const env2 = envSur(grande, lu);
+      expect(await charger(env2), cas).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('incohérente') });
+      expect(await demarrer(env2), cas).toMatchObject({ type: 'reprise_impossible' });
+      expect(await lu.lire(), cas).toEqual(alteree);
+      expect(ecritures(), cas).toBe(0);
+    }
+  });
+
+  it('grande station : la sauvegarde d’une partie de la livraison 1 (même station, sans son butin) n’est pas reprise, rien n’est écrit, la sauvegarde reste intacte (#207)', async () => {
+    const grande = resolue(CATALOGUE.publiees[0] ?? '');
+    // Le monde d'avant la livraison 2 : le même identifiant, sans ses objets de butin.
+    const ancienne: EntreeMonde = { ...grande, monde: { ...grande.monde, objets: grande.monde.objets.filter((objet) => objet.butin !== true) } };
+    expect(ancienne.monde.objets.length).toBeLessThan(grande.monde.objets.length);
+    const { stockage: ecrit } = enMemoire();
+    const envAncienne = envSur(ancienne, ecrit);
+    let jeu = await commencer(envAncienne);
+    for (let pas = 0; pas < 3; pas++) {
+      const option = observer(ancienne.monde, jeu.partie.etat).menu.find((choix) => choix.disponible && choix.action !== 'regarder');
+      if (option === undefined) throw new Error('Aucune option jouable.');
+      jeu = await jouerOption(envAncienne, jeu, option);
+    }
+    const sauvegarde = await ecrit.lire();
+    expect((await charger(envAncienne)).type).toBe('pret');
+    const { stockage, ecritures } = enMemoire(sauvegarde);
+    const env = envSur(grande, stockage);
+    expect(await charger(env)).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('incohérente') });
+    expect(await demarrer(env)).toMatchObject({ type: 'reprise_impossible' });
+    expect(await stockage.lire()).toEqual(sauvegarde);
+    expect(ecritures()).toBe(0);
+  });
+
+  it('grande station : la sauvegarde d’une partie faite sans les documents (même station, sans sa réserve) n’est pas reprise, rien n’est écrit, la sauvegarde reste intacte (#209)', async () => {
+    const grande = resolue(CATALOGUE.publiees[0] ?? '');
+    const tiret = grande.monde.id.lastIndexOf('-');
+    const definie = CATALOGUE.definirGrande(grande.monde.id.slice(0, tiret), Number(grande.monde.id.slice(tiret + 1)));
+    if ('refus' in definie) throw new Error(definie.refus);
+    // Le monde d'avant la livraison 3 : le même identifiant, assemblé sans la réserve de documents.
+    const sans = assemblerStation({ ...definie, grande: definie.grande === undefined ? undefined : { ...definie.grande, documents: undefined } });
+    if (sans.type !== 'station') throw new Error('Station sans documents non assemblée.');
+    const ancienne = numeroter({ ...grande, monde: sans.monde });
+    expect(grande.monde.objets.some((objet) => objet.document === true)).toBe(true);
+    expect(ancienne.monde.objets.some((objet) => objet.document === true)).toBe(false);
+    const { stockage: ecrit } = enMemoire();
+    const envAncienne = envSur(ancienne, ecrit);
+    let jeu = await commencer(envAncienne);
+    for (let pas = 0; pas < 3; pas++) {
+      const option = observer(ancienne.monde, jeu.partie.etat).menu.find((choix) => choix.disponible && choix.action !== 'regarder');
+      if (option === undefined) throw new Error('Aucune option jouable.');
+      jeu = await jouerOption(envAncienne, jeu, option);
+    }
+    const sauvegarde = await ecrit.lire();
+    expect((await charger(envAncienne)).type).toBe('pret');
+    const { stockage, ecritures } = enMemoire(sauvegarde);
+    const env = envSur(grande, stockage);
+    expect(await charger(env)).toMatchObject({ type: 'reprise_impossible', raison: expect.stringContaining('incohérente') });
+    expect(await demarrer(env)).toMatchObject({ type: 'reprise_impossible' });
+    expect(await stockage.lire()).toEqual(sauvegarde);
+    expect(ecritures()).toBe(0);
   });
 
   it('« ?station= » refusé : son motif, aucune station, jamais d’exception ; rien n’est écrit', async () => {
@@ -463,6 +545,17 @@ describe('appli : station tirée au lancement et à chaque nouvelle partie (#152
     await commencer(envSur(m10, autre.stockage));
     const tiree10 = await preparerLancement({ type: 'station', id: 'm07-m03-soute' }, CATALOGUE, autre.stockage, hasardDepuis(5));
     expect(id(tiree10.entree)).toMatch(/^m07-m03-soute-(0|[1-9][0-9]*)$/);
+  });
+
+  it('« ?station=<grande composition> » : une grande station publiée de cette composition, à chaque nouvelle partie', async () => {
+    const station = CATALOGUE.publiees[0] ?? '';
+    const composition = compositionTiree(station) ?? '';
+    const forcee = await preparerLancement({ type: 'station', id: composition }, CATALOGUE, enMemoire().stockage, hasardDepuis(4));
+    expect(forcee.refus).toBeNull();
+    for (const tiree of [id(forcee.entree), forcee.suivante().monde.id]) {
+      expect(CATALOGUE.publiees).toContain(tiree);
+      expect(compositionTiree(tiree)).toBe(composition);
+    }
   });
 
   it('« ?station=<identifiant> » : cette station exacte, à chaque nouvelle partie', async () => {

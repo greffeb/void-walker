@@ -1,5 +1,6 @@
 import { manoeuvrable, pontSur, verrouillee, type EtatPartie } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
+import { obstacleSur, range } from './drone';
 
 // « Plus aucune sortie » (D-085, D-275) : un calcul de chemin sur l'état réel. Les dangers (créature, feu, froid, vide) ne
 // ferment aucun passage : on peut y laisser la vie, pas le chemin. Seul compte ce que l'on ne peut plus franchir ou
@@ -20,6 +21,7 @@ export function sortiePossible(monde: DefMonde, etat: EtatPartie): boolean {
   const index = indexer(monde);
   const atteintes = new Set([etat.piece]);
   const deverrouillees = new Set<string>();
+  const deplaces = new Set<string>();
 
   // Objet que le passager peut prendre : porté, posé dans une pièce atteinte, ou pont sur un vide qui en touche une.
   const aPortee = (objet: DefObjet): boolean => {
@@ -68,6 +70,8 @@ export function sortiePossible(monde: DefMonde, etat: EtatPartie): boolean {
   const decouverte = (liaison: DefLiaison): boolean => etat.decouvertes.includes(liaison.id);
 
   function franchissable(liaison: DefLiaison, depuis: string): boolean {
+    const obstacle = obstacleSur(monde, etat, liaison.id);
+    if (obstacle !== undefined && !deplaces.has(obstacle.id)) return false;
     // Un passage caché n'existe pas de son côté caché tant qu'il n'est pas découvert ; de l'autre, l'ouvrir le découvre (K-05).
     if (liaison.cachee !== undefined && !decouverte(liaison) && (liaison.cachee === depuis || !manoeuvrable(liaison, depuis))) return false;
     if (liaison.gouffre === true) {
@@ -82,9 +86,22 @@ export function sortiePossible(monde: DefMonde, etat: EtatPartie): boolean {
   for (let change = true; change; ) {
     change = false;
     for (const objet of monde.objets) {
+      // Panne réparable sans consommable : le poste et l'obstacle doivent être accessibles, ainsi que le drone et son rail.
+      if (objet.obstacle !== undefined && !range(etat, objet) && !deplaces.has(objet.id)) {
+        const poignee = index.objets.get(objet.obstacle.maintien);
+        const drone = monde.objets.find((candidat) => candidat.drone?.poignee === poignee?.id);
+        const rail = drone?.drone === undefined ? undefined : index.liaisons.get(drone.drone.rail);
+        const ici = drone === undefined ? undefined : pieceDe(etat, drone);
+        if (atteintes.has(objet.piece) && poignee !== undefined && atteintes.has(poignee.piece) && ici !== undefined && atteintes.has(ici)
+          && rail !== undefined && (ici === poignee.piece || franchissable(rail, ici))) {
+          deplaces.add(objet.id);
+          change = true;
+        }
+      }
       if (objet.deverrouille === undefined || deverrouillees.has(objet.deverrouille)) continue;
       const piece = pieceDe(etat, objet);
-      if (piece !== undefined && atteintes.has(piece)) {
+      const carte = objet.exige === undefined ? undefined : index.objets.get(objet.exige);
+      if (piece !== undefined && atteintes.has(piece) && (objet.exige === undefined || (carte !== undefined && aPortee(carte)))) {
         deverrouillees.add(objet.deverrouille);
         change = true;
       }

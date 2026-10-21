@@ -1,8 +1,8 @@
 # C-06 — Observation, carte et connaissances
 
-> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots) ; §4 complété par D-180 et D-181 (aperçu d'un déplacement vers la créature) ; §3 amendé par D-201, D-202 et D-213 (carte en plan de pont, pièces connues dessinées, mémoire), détaillé dans [14 — carte](../14-carte.md).
+> **Statut :** CONTRAT ACCEPTÉ v1.0 — D-082 ; assemble D-026, D-040, D-046, D-071, D-075 à D-077, D-080/D-081, C-01, C-03, C-04. Points OP-01 et OP-03 à OP-05 acceptés par D-080 ; OP-02 remplacé par D-081 ; OP-05 amendé par D-141 (ancienneté en mots) ; §4 complété par D-180 et D-181 (aperçu d'un déplacement vers la créature) ; §3 amendé par D-201, D-202 et D-213 (carte en plan de pont, pièces connues dessinées, mémoire), détaillé dans [14 — carte](../14-carte.md) ; §5 précisé par D-323 pour les documents des grandes stations (note de rangement, passage caché à mots couverts).
 > **Date :** 2026-10-11.
-> **Implémentation et tests :** partiels — vue dans la même pièce, bruits (OP-01) et aperçus D-180/D-181 (PR #112) ; destination inconnue d'un accès sans signalétique, passage caché (OP-03, K-05) et messages prévus de l'assistance (D-081) fusionnés par #103 ; historique d'IA Station, avec le moment de chaque message, proposé par #98 ; voyants d'air des portes et aperçu de l'air perdu ou revenu (AR-02) proposés par #104 ; mémoire du passager et carte publique (K-01, K-02, K-05, K-07 en CLI, K-08 à K-13 de 14 §3.6) proposées par #97, livraison 2 ; écran de la carte proposé par #97, livraison 3, à valider sur téléphone.
+> **Implémentation et tests :** partiels — vue dans la même pièce, bruits (OP-01) et aperçus D-180/D-181 (PR #112) ; destination inconnue d'un accès sans signalétique, passage caché (OP-03, K-05) et messages prévus de l'assistance (D-081) fusionnés par #103 ; historique d'IA Station, avec le moment de chaque message, proposé par #98 ; voyants d'air des portes et aperçu de l'air perdu ou revenu (AR-02) proposés par #104 ; mémoire du passager et carte publique (K-01, K-02, K-05, K-07 en CLI, K-08 à K-13 de 14 §3.6) proposées par #97, livraison 2 ; écran de la carte proposé par #97, livraison 3, à valider sur téléphone ; documents des grandes stations, dont les notes de rangement, proposés par #209, livraison 3 ([13 §7.14](../13-morceaux-lancement.md#714-grandes-stations-livraison-3-209)).
 
 ## 1. But
 
@@ -53,6 +53,12 @@ Les menus proposent des manipulations plausibles des éléments connus (D-026, C
 ## 5. Ce qui n'est jamais montré
 
 Position d'une créature non perçue ; accès caché non découvert ; état actuel d'une pièce hors de vue, hors systèmes renseignés ; résultat futur d'un dé ; effet secret d'une manipulation ; identifiants internes ou drapeaux. Les identifiants publics restent opaques (C-01 §3).
+
+**Exceptions des documents des grandes stations (D-323).** Un document à lire raconte la parole d'un équipier, non l'état présent de la station :
+- **La note de rangement** nomme une pièce hors de vue et ce qu'elle contient, la clé qu'on y a rangée. La pièce est remplie à l'assemblage avec la vraie pièce, lettre comprise : la note est vraie au départ, par construction. Elle ne dit rien de l'état de cette pièce depuis, et sa lecture n'ajoute rien à la carte ni à ce que sait le passager : aucune pièce connue ou dessinée, aucune connaissance (C-07 §6).
+- **Un indice à mots couverts** sur un passage caché peut figurer dans le morceau qui le porte (à ce jour, le témoignage de M-05) ; le passage reste à découvrir par la manipulation.
+
+Aucun document ne dit où est une créature non perçue.
 
 ## 6. Mémoire et reprise
 

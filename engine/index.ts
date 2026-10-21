@@ -4,7 +4,7 @@ export { sonRetenu, type Intensite, type SonEmis } from './creature';
 export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, type EtatGenerateur } from './des';
 export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice, Reperes, VueCreature } from './etat';
 export { empreinte, hacher } from './hachage';
-export { idPublic, validerMonde, type DefAssistance, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece } from './monde';
+export { idPublic, validerMonde, type DefAssistance, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type IntensiteTrace } from './monde';
 export {
   COTES,
   emplacementDe,
@@ -18,6 +18,7 @@ export {
   type PlanLiaison,
   type RectPlan,
 } from './plan';
+export { coupesDe, franchissable, segmentsDe } from './grande';
 export { historique, menu, observer } from './observation';
 export {
   apercu,
@@ -44,12 +45,24 @@ export {
   validerMorceau,
   type Apport,
   type Assembleur,
+  type CategoriePiece,
+  CLE_TROUSSE,
+  type CoucheDocument,
   type DefAccroche,
+  type DefAnnexe,
+  type DefCle,
   type DefCommande,
+  type DefGrandeMorceau,
   type DefMorceau,
+  type FormeAnnexe,
   type DefPorteSortie,
   type DefStation,
+  type DefStationGrande,
+  type EmplacementDocument,
+  type EntreeButin,
   type FamilleMorceau,
+  type ReserveDocuments,
   type ResultatAssemblage,
+  type TableButin,
 } from './station';
 export * from './vocabulaire';

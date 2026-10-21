@@ -158,6 +158,72 @@ describe('format du morceau', () => {
   });
 });
 
+// Grandes stations (spec 2026-10-18 §6.1, §6.3) : une pièce du catalogue est un morceau `annexe` d'une seule pièce ; les
+// morceaux déclarent où une annexe peut s'accrocher et où passe la coupe de leur obstacle.
+const ANNEXE: DefMorceau = {
+  id: 'a-couchettes',
+  famille: 'annexe',
+  pieces: [{ id: 'p-piece', nom: 'cat_couchettes', plan: { x: 0, y: 0, largeur: 4, hauteur: 3 } }],
+  liaisons: [],
+  objets: [],
+  entree: 'p-piece',
+  placesCreature: [],
+  demande: [],
+  fournit: [],
+  annexe: { categorie: 'vie', forme: 'impasse', etiquettes: ['couchage'], porte: 'tiree' },
+};
+
+const GRAND: DefMorceau = {
+  ...CHEMIN,
+  grande: { obstacle: 'materiel', accueillantes: { 'p-quartiers': 'vie' }, avant: ['p-quartiers'], coupe: ['l-quartiers-machines'] },
+};
+
+/** Un morceau dont `o-seau` est portable : le seul objet que sa déclaration de clés désigne sans `portableEnGrande`. */
+const AVEC_CLES: DefMorceau = {
+  ...GRAND,
+  objets: [...GRAND.objets, { id: 'o-seau', nom: 'seau', piece: 'p-quartiers', extinction: 1 }],
+  grande: { ...GRAND.grande!, cles: { 'o-seau': { etiquettes: ['eau'] } } },
+};
+
+function cles(declarees: NonNullable<DefMorceau['grande']>['cles']): DefMorceau {
+  return { ...AVEC_CLES, grande: { ...AVEC_CLES.grande!, cles: declarees } };
+}
+
+describe('format du morceau : grandes stations', () => {
+  it('une annexe et un morceau qui déclare sa coupe sont valides', () => {
+    expect(validerMorceau(ANNEXE)).toEqual([]);
+    expect(validerMorceau(GRAND)).toEqual([]);
+  });
+
+  it('la coupe peut être la porte de sortie', () => {
+    expect(validerMorceau({ ...GRAND, grande: { ...GRAND.grande!, coupe: ['sortie'] } })).toEqual([]);
+  });
+
+  it('une clé est un objet portable du morceau, ou la caisse qui ne le devient qu’en grande station (spec §6.5)', () => {
+    expect(validerMorceau(AVEC_CLES)).toEqual([]);
+    expect(validerMorceau(cles({ 'o-caisse': { etiquettes: ['rangement', 'lourd'], portableEnGrande: true } }))).toEqual([]);
+  });
+
+  it.each<[string, DefMorceau, RegExp]>([
+    ['annexe avec une sortie', { ...ANNEXE, sortie: { piece: 'p-piece', porte: { nom: 'porte' } } }, /annexe avec une sortie/],
+    ['annexe à deux pièces', { ...ANNEXE, pieces: [...ANNEXE.pieces, { id: 'p-autre', nom: 'cat_autre', plan: { x: 4, y: 0, largeur: 2, hauteur: 2 } }] }, /une seule pièce/],
+    ['annexe avec une place de créature', { ...ANNEXE, placesCreature: ['p-piece'] }, /place de créature/],
+    ['famille annexe sans déclaration', { ...ANNEXE, annexe: undefined }, /sans déclaration d’annexe/],
+    ['déclaration d’annexe hors de la famille', { ...CHEMIN, annexe: ANNEXE.annexe }, /déclaration d’annexe/],
+    ['coupe inconnue', { ...GRAND, grande: { ...GRAND.grande!, coupe: ['l-nulle'] } }, /l-nulle/],
+    ['pièce accueillante inconnue', { ...GRAND, grande: { ...GRAND.grande!, accueillantes: { 'p-nulle': 'vie' } } }, /p-nulle/],
+    ['pièce d’avant inconnue', { ...GRAND, grande: { ...GRAND.grande!, avant: ['p-nulle'] } }, /p-nulle/],
+    ['clé qui n’est pas un objet du morceau', cles({ 'o-nul': { etiquettes: ['eau'] } }), /o-nul/],
+    ['clé qui ne se porte pas', cles({ 'o-caisse': { etiquettes: ['rangement'] } }), /o-caisse/],
+    ['clé à l’étiquette vide', cles({ 'o-seau': { etiquettes: ['eau', ''] } }), /étiquette vide/],
+  ])('refuse : %s, d’une seule erreur', (_cas, morceau, motif) => {
+    const trouvees = validerMorceau(morceau);
+    expect(trouvees).toHaveLength(1);
+    expect(trouvees[0]).toMatch(new RegExp(`^${morceau.id}`));
+    expect(trouvees[0]).toMatch(motif);
+  });
+});
+
 describe('assemblage d’une station', () => {
   it('préfixe chaque identifiant et chaque référence, relie les morceaux par des portes fermées, garde l’ordre des morceaux', () => {
     const attendu: DefMonde = {

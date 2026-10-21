@@ -210,6 +210,19 @@ button:disabled {
   text-transform: uppercase;
 }
 
+/* Rang de la station tirée (D-312) : discret, à droite du nom de la pièce. */
+.numero-station {
+  margin: 0 0 0 auto;
+  padding-left: 12px;
+  font-size: calc(11px * var(--echelle));
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  color: var(--texte-secondaire);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
 .reveil .recit {
   min-height: 0;
   line-height: 1.65;
@@ -276,20 +289,9 @@ button:disabled {
   margin-left: 0;
 }
 
-/* Partie terminée (D-013) : en attendant l'écran de fin (12 §4.11), la phrase de fin et NOUVELLE PARTIE. */
-.fin-partie p {
-  margin: 0 0 16px;
-}
-
-/* ENVOYER MA PARTIE sous NOUVELLE PARTIE (12 §4.11) ; son panneau s'ouvre à sa place. */
-.fin-partie .discret,
-.fin-partie .panneau-rapport {
+/* Partie terminée (D-286) : le dernier texte reste à lire, CONTINUER seul à la place du dock. */
+.fin-partie .principal {
   width: 100%;
-  margin-top: 10px;
-}
-
-.fin-partie .panneau-rapport p {
-  margin: 0;
 }
 
 .engrenage {
@@ -743,6 +745,136 @@ button:disabled {
   font-size: calc(15px * var(--echelle));
   line-height: 1.5;
   color: var(--texte-menu);
+}
+
+/*
+ * Fiche d'un document (D-324, spec 2026-10-18 §9.1) : variante B de docs/maquette/documents.html. Le support se lit avant le texte, qui
+ * a la typographie de son support. Les capitales sont du style : le texte reste en casse normale pour le lecteur d'écran.
+ */
+.fiche-document .support {
+  margin: 2px 0 10px;
+  font-size: calc(12px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondaire-menu);
+}
+
+/* La ligne « où » reprend la casse normale. */
+.fiche-document .support span {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.fiche-document .doc {
+  overflow-wrap: anywhere;
+}
+
+.fiche-document .doc-note {
+  padding-left: 12px;
+  font-style: italic;
+  border-left: 1px dashed var(--bordure);
+}
+
+.fiche-document .doc-note .signe {
+  text-align: right;
+  font-style: normal;
+  color: var(--secondaire-menu);
+}
+
+/* Journal : un cadre sous une barre de titre, une colonne d'heures alignées. */
+.fiche-document .doc-journal {
+  border: 1px solid var(--bordure);
+  color: var(--texte-menu);
+  font-size: calc(13px * var(--echelle));
+  line-height: 1.45;
+}
+
+.fiche-document .doc-journal .barre {
+  padding: 3px 8px;
+  font-size: calc(12px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fond);
+  background: var(--texte-menu);
+}
+
+.fiche-document .doc-journal ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 8px 8px;
+  list-style: none;
+}
+
+.fiche-document .doc-journal li {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  gap: 10px;
+}
+
+.fiche-document .doc-journal time {
+  font-variant-numeric: tabular-nums;
+  color: var(--couleur-menu);
+}
+
+.fiche-document .doc-message .didascalie {
+  font-size: calc(13px * var(--echelle));
+  color: var(--secondaire-menu);
+}
+
+/* Inscription : de grandes capitales, un peu de travers. */
+.fiche-document .doc-inscription {
+  padding: 14px 8px;
+  text-align: center;
+  transform: rotate(-1.5deg);
+}
+
+.fiche-document .doc-inscription p {
+  margin: 0;
+  font-size: calc(24px * var(--echelle));
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--couleur-menu);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fiche-document .doc-inscription {
+    transform: none;
+  }
+}
+
+/* Affiche : un double cadre, le titre en tête, la signature de la compagnie en pied. */
+.fiche-document .doc-affiche {
+  padding: 10px 12px;
+  border: 3px double var(--bordure);
+}
+
+.fiche-document .doc-affiche .titre {
+  margin: 0 0 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--couleur-menu);
+}
+
+.fiche-document .doc-affiche .pied {
+  margin: 10px 0 0;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondaire-menu);
+}
+
+/* La pièce que désigne une note de rangement : soulignée en pointillé, sans autre aide. */
+.fiche-document .lieu {
+  color: var(--couleur-menu);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
 }
 
 .lignes {
@@ -1259,7 +1391,7 @@ button:disabled {
   width: 12px;
   height: 20px;
   padding: 0 2px;
-  color: var(--accent);
+  color: var(--blanc);
   background: var(--fond);
   pointer-events: none;
   animation: notification-ia 1.5s linear infinite;
@@ -1376,6 +1508,54 @@ button:disabled {
 
 .options-corps > section + section {
   margin-top: 14px;
+}
+
+/* Sommaire (D-287) : les trois sous-menus en gras, l'abandon un peu à l'écart. */
+.nom-sous-menu {
+  font-weight: 600;
+}
+
+.options-corps > .danger,
+.options-corps > .confirmation-options {
+  margin-top: 14px;
+}
+
+/* Sous-menu (D-288) : la bulle ambre des menus, sans flèche, sous l'en-tête et jusqu'au bas ; sa hauteur suit son contenu. */
+.options-zone {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bulle-options {
+  position: absolute;
+  z-index: 7;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  max-height: calc(100% - 24px);
+}
+
+.bulle-options::after {
+  display: none;
+}
+
+.bulle-options .bulle-corps > section + section {
+  margin-top: 14px;
+}
+
+/* La bulle est plus étroite que l'écran : « TRÈS GRANDE » tient encore sur une ligne en taille standard. */
+.bulle-options .segment {
+  padding-inline: 4px;
+}
+
+/* Le bas reste au-dessus du voile : MENU PRINCIPAL et REPRENDRE LA PARTIE, utilisables bulle ouverte (D-288). */
+.options-bas {
+  position: relative;
+  z-index: 5;
+  background: var(--fond);
 }
 
 /* Groupe segmenté (12 §3.12) : de vrais boutons radio, la valeur active en vidéo inverse ; à la ligne si la place manque. */
@@ -1733,6 +1913,28 @@ button:disabled {
   border-top: 1px solid var(--separateur);
 }
 
+/* ENVOYER MA PARTIE et MENU PRINCIPAL côte à côte (maquette de #208) ; le panneau d'envoi garde sa place et toute la ligne,
+   son retour passe dessous. */
+.discrets-fin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.discrets-fin > .discret {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.discrets-fin > .panneau-rapport,
+.discrets-fin > .retour-option {
+  flex-basis: 100%;
+}
+
+.discrets-fin > .retour-option {
+  order: 1;
+}
+
 /* Fin de partie (12 §4.11) : le récit seulement, puis les pièces visitées en mots sous un filet pointillé. */
 .recit-fin {
   flex: 1 1 auto;
@@ -1751,6 +1953,19 @@ button:disabled {
 
 .recit-fin p {
   margin: 0 0 12px;
+}
+
+/* Le récit de fin défile avec son titre : il ne garde ni sa hauteur ni son défilement propres. */
+.recit-fin .recit {
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+/* La mort et sa cause (D-282). */
+.recit .cause {
+  color: var(--accent);
 }
 
 .bilan-fin {
@@ -2261,5 +2476,413 @@ button:disabled {
 
   .brouillage {
     box-shadow: inset 0 0 0 3px var(--alerte);
+  }
+}
+
+/* Intro de NOUVELLE PARTIE (12 §4.1 bis, D-308 à D-312) : écran CRT réservé à l'intro (D-311) ; tout y est décoratif sauf le texte
+   du tirage et DÉMARRER. Lueur du phosphore, couleurs légèrement décalées, trame, verre bombé, scintillement, bande qui remonte. */
+.intro {
+  /* Écran CRT de l'intro (D-311) : seule exception à l'ambre hors des jetons de 12 §2.1, trame et franges de couleur du tube. */
+  --crt-trame-rouge: rgba(255, 0, 0, 0.035);
+  --crt-trame-verte: rgba(0, 255, 0, 0.025);
+  --crt-trame-bleue: rgba(0, 80, 255, 0.035);
+  --crt-frange-rouge: rgba(255, 70, 40, 0.35);
+  --crt-frange-bleue: rgba(80, 200, 255, 0.22);
+  --crt-lueur-alerte: rgba(255, 90, 74, 0.6);
+  background: #000;
+  cursor: pointer;
+  outline: none;
+}
+
+.intro-crt {
+  position: absolute;
+  inset: 6px;
+  overflow: hidden;
+  border-radius: 22px / 18px;
+  background: var(--fond);
+  opacity: 0;
+}
+
+.intro-crt.allume {
+  opacity: 1;
+  animation: intro-scintiller 3.2s steps(1) infinite;
+}
+
+.intro-crt::before,
+.intro-crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.intro-crt::before {
+  z-index: 3;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, var(--crt-trame-rouge) 0 1px, var(--crt-trame-verte) 1px 2px, var(--crt-trame-bleue) 2px 3px);
+}
+
+.intro-crt::after {
+  z-index: 4;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 85%, rgba(0, 0, 0, 0.9) 100%);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 4px rgba(255, 178, 63, 0.25);
+}
+
+.intro-crt.saut::before {
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0 2px, transparent 2px 4px);
+}
+
+.intro-contenu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: calc(28px + env(safe-area-inset-top)) 18px max(36px, env(safe-area-inset-bottom));
+  text-shadow:
+    0 0 6px rgba(255, 178, 63, 0.55),
+    -0.7px 0 var(--crt-frange-rouge),
+    0.7px 0 var(--crt-frange-bleue);
+}
+
+.intro-crt.saut .intro-contenu {
+  animation: intro-sauter 0.08s steps(2) infinite;
+}
+
+.intro-reflet {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 30% 12%, rgba(255, 240, 220, 0.06), transparent 45%);
+}
+
+.intro-bande {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 90px;
+  pointer-events: none;
+  background: linear-gradient(transparent, rgba(255, 178, 63, 0.045), transparent);
+  animation: intro-remonter 7s linear infinite;
+}
+
+.intro-neige {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  image-rendering: pixelated;
+}
+
+.intro-crt.saut .intro-neige {
+  opacity: 0.55;
+}
+
+/* Mise sous tension : un trait de faisceau qui s'ouvre en écran. */
+.intro-faisceau {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  z-index: 6;
+  height: 2px;
+  margin-top: -1px;
+  background: #fff8ec;
+  box-shadow: 0 0 18px 6px rgba(255, 200, 120, 0.7);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-faisceau.va {
+  animation: intro-faisceau 0.55s ease-out forwards;
+}
+
+.intro-crt.ouverture {
+  animation: intro-ouvrir 0.5s ease-out;
+}
+
+.intro-filtres {
+  position: absolute;
+}
+
+.intro-terminal {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: calc(14px * var(--echelle));
+  line-height: 1.7;
+}
+
+.intro-terminal li {
+  min-height: 1.7em;
+  overflow-wrap: anywhere;
+}
+
+.intro-terminal .faible {
+  color: var(--texte-secondaire);
+}
+
+.intro-terminal .ok {
+  color: var(--accent);
+}
+
+/* « Libellé ........ valeur » : les points remplissent la place qui reste ; en texte agrandi, le libellé passe à la ligne. */
+.intro-ligne {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6ch;
+}
+
+.intro-ligne > span:first-child {
+  min-width: 0;
+  overflow-wrap: normal;
+}
+
+.intro-ligne > span:last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.intro-points {
+  flex: 1 1 0;
+  min-width: 2ch;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.intro-points::before {
+  content: '................................................................................';
+}
+
+.intro-menace {
+  color: var(--alerte);
+  text-shadow:
+    0 0 6px var(--crt-lueur-alerte),
+    -0.7px 0 var(--crt-frange-rouge),
+    0.7px 0 var(--crt-frange-bleue);
+}
+
+.intro-curseur {
+  color: var(--accent);
+  animation: intro-clignoter 1s steps(1) infinite;
+}
+
+.intro-mosaique {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 10px;
+  padding: 10px;
+  opacity: 0.13;
+}
+
+.intro-plan {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.intro-plan rect {
+  fill: rgba(244, 194, 122, 0.06);
+  stroke: var(--texte);
+  stroke-width: 0.12;
+}
+
+.intro-tirage {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.intro-tirage .intro-terminal {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bordure) transparent;
+  background: var(--fond);
+}
+
+.intro-centre {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.intro-carte {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(220px, 26dvh);
+  height: min(220px, 26dvh);
+  padding: 12px;
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+}
+
+.intro-carte.intro-voilee .intro-plan {
+  filter: blur(6px);
+  opacity: 0.35;
+}
+
+.intro-inconnu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(60px * var(--echelle));
+  color: var(--accent);
+}
+
+.intro-compteur {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: calc(22px * var(--echelle));
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--accent);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro-sur {
+  font-size: calc(16px * var(--echelle));
+  font-weight: 400;
+  color: var(--texte-secondaire);
+}
+
+.intro-bas {
+  flex: none;
+  margin-top: auto;
+  padding-top: 10px;
+  text-shadow: none;
+}
+
+.intro-bas .principal {
+  animation: intro-apparaitre 0.3s steps(3);
+}
+
+.intro-passer {
+  margin: 0;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.06em;
+  color: var(--texte-secondaire);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@keyframes intro-scintiller {
+  0% {
+    filter: brightness(1);
+  }
+  37% {
+    filter: brightness(0.94);
+  }
+  38% {
+    filter: brightness(1.02);
+  }
+  71% {
+    filter: brightness(0.97);
+  }
+  72% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes intro-remonter {
+  from {
+    top: 110%;
+  }
+  to {
+    top: -15%;
+  }
+}
+
+@keyframes intro-faisceau {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  35% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1, 300);
+  }
+}
+
+@keyframes intro-ouvrir {
+  0%,
+  45% {
+    transform: scaleY(0.004);
+    filter: brightness(5);
+  }
+  100% {
+    transform: scaleY(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes intro-sauter {
+  0% {
+    transform: translate(0, 0) skewX(0);
+  }
+  25% {
+    transform: translate(-7px, 14px) skewX(6deg);
+  }
+  50% {
+    transform: translate(5px, -22px) skewX(-4deg);
+  }
+  75% {
+    transform: translate(-3px, 40px) skewX(2deg);
+  }
+}
+
+@keyframes intro-clignoter {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-apparaitre {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-crt.allume,
+  .intro-bande,
+  .intro-curseur,
+  .intro-bas .principal {
+    animation: none;
   }
 }

@@ -1,12 +1,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
-import { observer } from '../engine';
-import { nomDe, remplir } from '../content';
-import { nomPuce } from './ecran';
 import { Bulle } from './bulle';
 import type { EtatInstallation, Installation } from './installation';
-import type { Environnement, Jeu } from './jeu';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
-import { EnvoyerMaPartie, PanneauRapport, RETOURS } from './PanneauRapport';
+import { PanneauRapport, RETOURS } from './PanneauRapport';
 import type { Retour, TypeRapport } from './rapports';
 import { empreinteLisible } from './validation';
 import { LIBELLES_VERIFICATION, type EtatVerification } from './verification';
@@ -21,9 +17,23 @@ export const APERCU_TAILLE = 'Un voyant clignote au-dessus de la porte. Rien d�
 /** Retour visible du téléchargement (12 §6, C-09 SP-05) ; `null` tant que rien n'a été demandé. */
 export type Telechargement = { readonly etat: 'pret'; readonly nom: string } | { readonly etat: 'echec' } | null;
 
+/** Sous-menus des options, dans l'ordre du sommaire (D-287). */
+type SousMenuOptions ='son_texte' | 'rapports' | 'application';
+
+const TITRES_SOUS_MENUS: Readonly<Record<SousMenuOptions, string>> = { son_texte: 'Son et texte', rapports: 'Rapports', application: 'Application' };
+
+/** Marque l'entrée d'historique posée à l'ouverture d'un sous-menu : le retour du téléphone le referme (D-288). */
+const ENTREE_SOUS_MENU = 'void-walker:sous-menu';
+
+function quitterEntreeSousMenu(): void {
+  const etat: unknown = window.history.state;
+  if (typeof etat === 'object' && etat !== null && ENTREE_SOUS_MENU in etat) window.history.back();
+}
+
 /**
- * Options (12 §4.10) : gratuites, elles ne changent pas la partie. Sans partie en cours, ni téléchargement, ni abandon,
- * ni REPRENDRE LA PARTIE.
+ * Options (12 §4.10) : gratuites, elles ne changent pas la partie. Un sommaire de trois lignes et l'abandon (D-287) ; chaque
+ * ligne ouvre son sous-menu dans une bulle, le bas restant utilisable (D-288). Sans partie en cours, ni téléchargement, ni
+ * abandon, ni REPRENDRE LA PARTIE.
  */
 export function EcranOptions({
   reglages,
@@ -47,6 +57,7 @@ export function EcranOptions({
   partieFinie = false,
   empreinteCle,
   verification,
+  sousMenuInitial = null,
 }: {
   readonly reglages: Reglages;
   readonly changerReglages: (reglages: Reglages) => void;
@@ -78,9 +89,19 @@ export function EcranOptions({
   readonly empreinteCle?: () => Promise<string | null>;
   /** État de la vérification automatique de ce commit (#180), lu dans les versions de test seulement. */
   readonly verification?: () => Promise<EtatVerification>;
+  /** Sous-menu déjà ouvert au premier rendu ; `null`, le sommaire seul. */
+  readonly sousMenuInitial?: SousMenuOptions | null;
 }) {
   const idTaille = useId();
+  const son = useSon();
   const titre = useRef<HTMLHeadingElement>(null);
+  const [sousMenu, setSousMenu] = useState(sousMenuInitial);
+  const bulle = useRef<HTMLElement>(null);
+  const lignes = useRef<Partial<Record<SousMenuOptions, HTMLButtonElement | null>>>({});
+  /** Sous-menu ouvert avec son entrée d'historique ; vidé à la fermeture, avant que le retour n'arrive. */
+  const origine = useRef<SousMenuOptions | null>(null);
+  const lireInstallation = installation?.etat ?? INSTALLATION_INDISPONIBLE;
+  const installable = useSyncExternalStore(installation?.abonner ?? SANS_ABONNEMENT, lireInstallation, lireInstallation) !== 'indisponible';
   const [telechargement, setTelechargement] = useState<Telechargement>(null);
   const [confirmation, setConfirmation] = useState(false);
   const [abandonRefuse, setAbandonRefuse] = useState(false);
@@ -101,10 +122,56 @@ export function EcranOptions({
     (confirmation ? question.current : danger.current)?.focus();
   }, [confirmation]);
 
+  useEffect(() => {
+    // Retour du téléphone (D-288) : même son que ✕ ; une fermeture par ✕ a déjà vidé `origine` et ne sonne pas deux fois.
+    const surRetour = (): void => {
+      const depuis = origine.current;
+      if (depuis === null) return;
+      origine.current = null;
+      setSousMenu(null);
+      son.geste('fermer');
+      lignes.current[depuis]?.focus();
+    };
+    window.addEventListener('popstate', surRetour);
+    return () => window.removeEventListener('popstate', surRetour);
+  }, [son]);
+
+  // Options quittées bulle ouverte (MENU PRINCIPAL, REPRENDRE LA PARTIE) : son entrée d'historique part avec elles.
+  useEffect(() => () => quitterEntreeSousMenu(), []);
+
   const confirmer = (ouverte: boolean): void => {
     focusApres.current = true;
     setAbandonRefuse(false);
     setConfirmation(ouverte);
+  };
+
+  const ouvrir = (menu: SousMenuOptions): void => {
+    if (origine.current === null) window.history.pushState({ [ENTREE_SOUS_MENU]: true }, '');
+    origine.current = menu;
+    setSousMenu(menu);
+  };
+  /** ✕, voile ou Échap : le focus revient sur la ligne touchée (12 §7). */
+  const fermer = (): void => {
+    if (sousMenu === null) return;
+    origine.current = null;
+    setSousMenu(null);
+    quitterEntreeSousMenu();
+    lignes.current[sousMenu]?.focus();
+  };
+
+  const sousMenus: readonly SousMenuOptions[] = partieEnCours || envoyerRapport !== undefined ? ['son_texte', 'rapports', 'application'] : ['son_texte', 'application'];
+  // Le détail dit ce que la bulle contient vraiment (D-287).
+  const details: Readonly<Record<SousMenuOptions, string>> = {
+    son_texte: 'taille du texte, son, affichage',
+    rapports:
+      envoyerRapport === undefined
+        ? 'télécharger ma partie'
+        : partieEnCours
+          ? 'signaler un bug, envoyer ou télécharger ma partie'
+          : partieEnregistree
+            ? 'signaler un bug, envoyer ma partie'
+            : 'signaler un bug',
+    application: installable ? 'installation, mise à jour, version' : 'mise à jour, version',
   };
 
   return (
@@ -115,135 +182,168 @@ export function EcranOptions({
         </h1>
         {partieEnCours && <p className="sous-titre-options">le jeu est en pause</p>}
       </header>
-      <div className="options-corps">
-        <section>
-          <h2 className="titre-section" id={idTaille}>
-            Taille du texte
-          </h2>
-          <div className="segments" role="radiogroup" aria-labelledby={idTaille}>
-            {TAILLES.map((taille) => (
-              <label key={taille} className={taille === reglages.taille ? 'segment actif' : 'segment'} data-son="clic">
-                <input
-                  type="radio"
-                  name="taille"
-                  className="lecteur-seul"
-                  checked={taille === reglages.taille}
-                  onChange={() => changerReglages({ ...reglages, taille })}
-                />
-                <span>{LIBELLES_TAILLE[taille]}</span>
-              </label>
-            ))}
-          </div>
-          <p className="apercu-taille" data-testid="apercu-taille">
-            {APERCU_TAILLE}
-          </p>
-        </section>
-        <section>
-          <h2 className="titre-section">Son</h2>
-          <Rail libelle="Général" coupe="COUPÉE" valeur={reglages.general} changer={(general) => changerReglages({ ...reglages, general })} />
-          <Rail
-            libelle="Effets sonores"
-            detail="bips et clics du terminal"
-            coupe="COUPÉS"
-            valeur={reglages.effets}
-            changer={(effets) => changerReglages({ ...reglages, effets })}
-          />
-          <Rail
-            libelle="Ambiance"
-            detail="bruit brun et carlingue"
-            coupe="COUPÉE"
-            valeur={reglages.ambiance}
-            changer={(ambiance) => changerReglages({ ...reglages, ambiance })}
-          />
-        </section>
-        <section>
-          <h2 className="titre-section">Affichage</h2>
-          <Bascule libelle="Lignes de balayage" actif={reglages.balayage} basculer={() => changerReglages({ ...reglages, balayage: !reglages.balayage })} />
-          <Bascule
-            libelle="Effet machine à écrire"
-            actif={reglages.machineAEcrire}
-            basculer={() => changerReglages({ ...reglages, machineAEcrire: !reglages.machineAEcrire })}
-          />
-          {!reglagesGardes && (
-            <p className="retour-option" role="status">
-              Cet appareil ne garde pas les réglages : ils valent jusqu’à la fermeture du jeu.
-            </p>
-          )}
-        </section>
-        {(partieEnCours || envoyerRapport !== undefined) && (
-          <section>
-            <h2 className="titre-section">Partie</h2>
-            {partieEnCours && (
-              <>
-                <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
-                  <span>
-                    <span aria-hidden="true">▸ </span>
-                    Télécharger ma partie
-                  </span>
-                  <span className="detail-option">fichier enregistré sur le téléphone</span>
+      <div className="options-zone">
+        <div className="options-corps">
+          {sousMenus.map((menu) => (
+            <button
+              key={menu}
+              ref={(bouton) => {
+                lignes.current[menu] = bouton;
+              }}
+              type="button"
+              className="ligne-option"
+              aria-haspopup="dialog"
+              onClick={() => ouvrir(menu)}
+              data-son="bulle"
+            >
+              <span className="nom-sous-menu">
+                <span aria-hidden="true">▸ </span>
+                {TITRES_SOUS_MENUS[menu]}
+              </span>
+              <span className="detail-option">{details[menu]}</span>
+            </button>
+          ))}
+          {!partieEnCours ? null : confirmation ? (
+            <section className="confirmation-options" aria-label="Confirmation d’abandon">
+              <p ref={question} tabIndex={-1}>
+                Abandonner ? Cette partie ne pourra pas être reprise.
+              </p>
+              {abandonRefuse && (
+                <p className="avis-option" role="alert">
+                  L’abandon n’a pas pu être enregistré. La partie est toujours en cours.
+                </p>
+              )}
+              <div>
+                <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)} data-son="clic">
+                  Annuler
                 </button>
-                <p className="retour-option" role="status" data-testid="telechargement">
-                  {telechargement?.etat === 'pret' && `Fichier prêt : ${telechargement.nom}`}
-                  {telechargement?.etat === 'echec' && 'Le téléchargement a échoué. Vous pouvez réessayer.'}
-                </p>
-              </>
-            )}
-            {envoyerRapport !== undefined && (
-              <LignesRapports
-                partieEnregistree={partieEnregistree}
-                partieEnCours={partieEnCours}
-                pr={pr}
-                occupe={occupe}
-                envoyer={envoyerRapport}
-                enAttente={rapportsEnAttente}
-                validable={pr !== '' && partieFinie}
-                apresEnvoi={() => setEnvois((nombre) => nombre + 1)}
-                empreinteCle={empreinteCle}
-              />
-            )}
-            {!partieEnCours ? null : confirmation ? (
-              <section className="confirmation-options" aria-label="Confirmation d’abandon">
-                <p ref={question} tabIndex={-1}>
-                  Abandonner ? Cette partie ne pourra pas être reprise.
-                </p>
-                {abandonRefuse && (
-                  <p className="avis-option" role="alert">
-                    L’abandon n’a pas pu être enregistré. La partie est toujours en cours.
+                <button
+                  type="button"
+                  className="principal"
+                  disabled={occupe}
+                  onClick={() => void abandonner().then((fait) => setAbandonRefuse(!fait))}
+                  data-son="confirmer"
+                >
+                  Abandonner
+                </button>
+              </div>
+            </section>
+          ) : (
+            <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)} data-son="clic">
+              <span aria-hidden="true">⊘ </span>
+              Abandonner la partie en cours
+            </button>
+          )}
+        </div>
+        {sousMenu !== null && (
+          <>
+            <div className="voile" data-testid="voile-options" data-son="fermer" onClick={fermer} />
+            <Bulle zone={bulle} classe="bulle-options" titre={TITRES_SOUS_MENUS[sousMenu]} etape={sousMenu} fermer={fermer}>
+              {sousMenu === 'son_texte' ? (
+                <>
+                  <section>
+                    <h2 className="titre-section" id={idTaille}>
+                      Taille du texte
+                    </h2>
+                    <div className="segments" role="radiogroup" aria-labelledby={idTaille}>
+                      {TAILLES.map((taille) => (
+                        <label key={taille} className={taille === reglages.taille ? 'segment actif' : 'segment'} data-son="clic">
+                          <input
+                            type="radio"
+                            name="taille"
+                            className="lecteur-seul"
+                            checked={taille === reglages.taille}
+                            onChange={() => changerReglages({ ...reglages, taille })}
+                          />
+                          <span>{LIBELLES_TAILLE[taille]}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="apercu-taille" data-testid="apercu-taille">
+                      {APERCU_TAILLE}
+                    </p>
+                  </section>
+                  <section>
+                    <h2 className="titre-section">Son</h2>
+                    <Rail libelle="Général" coupe="COUPÉE" valeur={reglages.general} changer={(general) => changerReglages({ ...reglages, general })} />
+                    <Rail
+                      libelle="Effets sonores"
+                      detail="bips et clics du terminal"
+                      coupe="COUPÉS"
+                      valeur={reglages.effets}
+                      changer={(effets) => changerReglages({ ...reglages, effets })}
+                    />
+                    <Rail
+                      libelle="Ambiance"
+                      detail="bruit brun et carlingue"
+                      coupe="COUPÉE"
+                      valeur={reglages.ambiance}
+                      changer={(ambiance) => changerReglages({ ...reglages, ambiance })}
+                    />
+                  </section>
+                  <section>
+                    <h2 className="titre-section">Affichage</h2>
+                    <Bascule libelle="Lignes de balayage" actif={reglages.balayage} basculer={() => changerReglages({ ...reglages, balayage: !reglages.balayage })} />
+                    <Bascule
+                      libelle="Effet machine à écrire"
+                      actif={reglages.machineAEcrire}
+                      basculer={() => changerReglages({ ...reglages, machineAEcrire: !reglages.machineAEcrire })}
+                    />
+                    {!reglagesGardes && (
+                      <p className="retour-option" role="status">
+                        Cet appareil ne garde pas les réglages : ils valent jusqu’à la fermeture du jeu.
+                      </p>
+                    )}
+                  </section>
+                </>
+              ) : sousMenu === 'rapports' ? (
+                <>
+                  {envoyerRapport !== undefined && (
+                    <LignesRapports
+                      partieEnregistree={partieEnregistree}
+                      partieEnCours={partieEnCours}
+                      pr={pr}
+                      occupe={occupe}
+                      envoyer={envoyerRapport}
+                      enAttente={rapportsEnAttente}
+                      validable={pr !== '' && partieFinie}
+                      apresEnvoi={() => setEnvois((nombre) => nombre + 1)}
+                      empreinteCle={empreinteCle}
+                    />
+                  )}
+                  {partieEnCours && (
+                    <>
+                      <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
+                        <span>
+                          <span aria-hidden="true">▸ </span>
+                          Télécharger ma partie
+                        </span>
+                        <span className="detail-option">fichier enregistré sur le téléphone</span>
+                      </button>
+                      <p className="retour-option" role="status" data-testid="telechargement">
+                        {telechargement?.etat === 'pret' && `Fichier prêt : ${telechargement.nom}`}
+                        {telechargement?.etat === 'echec' && 'Le téléchargement a échoué. Vous pouvez réessayer.'}
+                      </p>
+                    </>
+                  )}
+                  {pr !== '' && empreinteCle !== undefined && <SectionValidation key={envois} empreinteCle={empreinteCle} />}
+                </>
+              ) : (
+                <>
+                  <SectionInstallation installation={installation} occupe={occupe} />
+                  <SectionMiseAJour miseAJour={miseAJour} partieEnCours={partieEnCours} occupe={occupe} />
+                  <p className="pied">
+                    V{version}
+                    {build !== '' && ` (${build})`}
+                    {commit !== '' && ` · ${commit.slice(0, 7)}`}
+                    {pr !== '' && ` · test PR #${pr}`}
                   </p>
-                )}
-                <div>
-                  <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)} data-son="clic">
-                    Annuler
-                  </button>
-                  <button
-                    type="button"
-                    className="principal"
-                    disabled={occupe}
-                    onClick={() => void abandonner().then((fait) => setAbandonRefuse(!fait))}
-                    data-son="confirmer"
-                  >
-                    Abandonner
-                  </button>
-                </div>
-              </section>
-            ) : (
-              <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)} data-son="clic">
-                <span aria-hidden="true">⊘ </span>
-                Abandonner la partie en cours
-              </button>
-            )}
-          </section>
+                  {pr !== '' && verification !== undefined && <LigneVerification verification={verification} />}
+                </>
+              )}
+            </Bulle>
+          </>
         )}
-        {pr !== '' && empreinteCle !== undefined && <SectionValidation key={envois} empreinteCle={empreinteCle} />}
-        <SectionInstallation installation={installation} occupe={occupe} />
-        <SectionMiseAJour miseAJour={miseAJour} partieEnCours={partieEnCours} occupe={occupe} />
-        <p className="pied">
-          V{version}
-          {build !== '' && ` (${build})`}
-          {commit !== '' && ` · ${commit.slice(0, 7)}`}
-          {pr !== '' && ` · test PR #${pr}`}
-        </p>
-        {pr !== '' && verification !== undefined && <LigneVerification verification={verification} />}
       </div>
       <div className="options-bas">
         <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal} data-son="clic">
@@ -614,68 +714,5 @@ function Rail({
         }}
       />
     </div>
-  );
-}
-
-/** Écran de fin après un abandon (12 §4.11) : le récit seulement, sans score (D-086) ; la partie ne se reprend pas (D-013). */
-export function EcranFin({
-  jeu,
-  env,
-  occupe,
-  rejouer,
-  nouvellePartie,
-  menuPrincipal,
-  envoyerPartie,
-  pr = '',
-}: {
-  readonly jeu: Jeu;
-  readonly env: Pick<Environnement, 'monde' | 'textes'>;
-  readonly occupe: boolean;
-  /** Même état de départ, nouveaux tirages (D-087, D-088). */
-  readonly rejouer: () => void;
-  readonly nouvellePartie: () => void;
-  readonly menuPrincipal: () => void;
-  /** ENVOYER MA PARTIE (12 §4.11) ; absent, pas de bouton. */
-  readonly envoyerPartie?: (commentaire: string, valide: boolean) => Promise<Retour>;
-  readonly pr?: string;
-}) {
-  const { textes } = env;
-  const observation = observer(env.monde, jeu.partie.etat);
-  const visitees = observation.visitees.map((piece) => nomPuce(textes, piece)).join(', ');
-  const titre = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    titre.current?.focus();
-  }, []);
-  return (
-    <main className="jeu fin">
-      <header className="entete-piece entete-reveil">
-        <p className="lieu-reveil">&gt; Fin de la partie_</p>
-      </header>
-      <section className="recit-fin" data-testid="fin">
-        <h1 ref={titre} className="titre-fin" tabIndex={-1}>
-          Partie abandonnée.
-        </h1>
-        <p>{remplir(textes.observation.abandon, { piece: nomDe(textes, observation.piece) })}</p>
-        <div className="bilan-fin">
-          <p>
-            <span className="etiquette-fin">Pièces visitées :</span> {visitees}
-          </p>
-          <p>{remplir(textes.observation.terminee, {})}</p>
-        </div>
-      </section>
-      <div className="actions-fin">
-        <button type="button" className="principal" disabled={occupe} onClick={rejouer} data-son="clic">
-          Rejouer cette station
-        </button>
-        <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
-          Nouvelle partie
-        </button>
-        {/* Un abandon ne valide pas (D-099) : pas de « je valide » ici. */}
-        {envoyerPartie !== undefined && <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={false} occupe={occupe} />}
-        <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
-          Menu principal
-        </button>
-      </div>
-    </main>
   );
 }

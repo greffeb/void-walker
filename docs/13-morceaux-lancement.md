@@ -1,14 +1,14 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8).
-> **Mise à jour :** 2026-10-16.
-> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 proposée par sa PR (§7.8). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les huit autres morceaux.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; conception des grandes stations habitées approuvée par D-313 à D-327 (§7.12 à §7.14) ; demande du porteur sur « Poser » : D-328 (§7.14) ; M-11 et M-12 tirés dans les grandes stations, D-329, proposés par la PR de #236 (§7.15) ; M-11, sas de sécurité (#203), fixé par D-290 à D-293 et proposé par sa PR en zone orange (§7.10).
+> **Mise à jour :** 2026-10-21.
+> **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 fusionnée (PR #179) ; L6 fusionnée (PR #189) ; grandes stations, livraison 1 (§7.12), livraison 2, clés dispersées et butin (§7.13), et livraison 3, lore et documents (§7.14), proposées par leur PR ; M-11 proposé par la PR de #203 (§7.10). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les neuf autres morceaux.
 
-Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
+Document d'auteur : il contient les solutions. Interdit au playtester (C-01). Le lore des grandes stations a sa propre bible, [17 — univers](17-univers.md), au même accès : interdite au playtester.
 
 ## 1. Cadre accepté
 
-- Dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158).
+- Socle de dix morceaux : six tirés d'AR-01/AR-02, quatre nouveaux (D-157/D-158). M-11, sas de sécurité, a rejoint la branche principale par #231. M-12 ajoute le chariot et le drone réparable (D-304 à D-307, #232).
 - Une station : une pièce de départ, deux ou trois obstacles dont **un seul problème final**, l'embarquement avec sa capsule, une seule créature (D-119, D-159, GP-02).
 - Obstacles en chaîne ou en ordre libre (D-160) ; créature placée à un endroit prévu par un morceau, jamais au départ (D-161) ; tirage du problème final à pile ou face, puis de la station au pur hasard parmi celles qui ont ce final, une station déjà jouée pouvant revenir (D-162, D-253).
 - Deux morceaux qui jouent sur la même chose (bruit, ralentissement, neutralisation, air) ne se mélangent qu'une fois leurs règles décidées (D-167) ; les autres se mélangent sans règle de plus (D-248).
@@ -19,7 +19,7 @@ Document d'auteur : il contient les solutions. Interdit au playtester (C-01).
 | Famille | Rôle | Morceaux |
 | --- | --- | --- |
 | **Final** | Le problème à régler juste avant de partir | M-03 Énergie, M-06 Baie |
-| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10 |
+| **Chemin** | Obstacles entre le départ et l'embarquement | M-01, M-02, M-04, M-05, M-07, M-08, M-09, M-10, M-11, M-12 |
 
 Une station = départ → un ou deux morceaux « chemin » → un morceau « final » → embarquement. Le morceau final apporte l'embarquement et sa capsule (D-249) ; au départ, les portes entre deux morceaux sont fermées (D-252) ; le tirage choisit d'abord le final à pile ou face (D-253).
 
@@ -30,6 +30,8 @@ En ordre libre, les deux branches donnent chacune accès à une commande distinc
 Chaque fiche donne : les pièces apportées, les objets, les places possibles de la créature (D-161), le chemin sûr et une variante risquée.
 
 La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit au §8.1 (D-257).
+
+Dans une grande station, chaque morceau déclare aussi les pièces où une pièce du catalogue peut s'accrocher et la liaison qui franchit son obstacle (§7.12) ; les dix chemins portent aussi un document de témoignage sur une tentative de franchir l'obstacle (§7.14, §7.15).
 
 ### M-01 — Galerie en feu (AR-01 G)
 
@@ -98,6 +100,26 @@ La pièce de départ, hors des dix morceaux, est le vestibule de réveil décrit
 - **Sûr :** déclencher le compresseur, ressortir, fermer depuis le pupitre quand elle est entrée.
 - **Risqué :** se faire suivre à travers la chambre et refermer derrière soi ; au-delà de deux actions dedans, une blessure.
 
+### M-11 — Sas de sécurité (nouveau, #203)
+
+- **Pièces :** le poste de sécurité, en entrée, avec le lecteur de carte, fixe ; le vestiaire, porte ouverte, avec la carte de sécurité ; la remise, au-delà du vestiaire, porte fermée ; le sas de sécurité, derrière la porte blindée, verrouillée, d'où part la sortie (D-290 à D-293).
+- **Créature :** une seule place, la remise, porte fermée au départ ; on n'a pas besoin de l'ouvrir (D-293). Elle ne force jamais la porte blindée (D-292).
+- **Sûr :** prendre la carte au vestiaire, revenir au poste, actionner le lecteur carte en main (le verrou est levé pour la partie, D-291), ouvrir la porte blindée et passer.
+- **Risqué :** ouvrir la remise et réveiller la créature, puis se réfugier derrière la porte blindée refermée, qu'elle ne peut pas enfoncer.
+
+### M-12 — Le chariot bloqué et le drone réparable (#232)
+
+- **But :** dégager un chariot qui barre le chemin vers la suite. Il faut maintenir une poignée au poste pendant que le passager pousse au palier : deux lieux, deux rôles.
+- **Pièces :** atelier du drone, galerie de détour, poste, palier du chariot, réserve et quai de sortie. Le plan distingue le trajet du passager et le trajet local du drone ; aucune commande ne téléporte un objet à travers une porte fermée.
+- **Créature :** place prévue dans la réserve. Une fermeture peut gagner du temps après la rencontre ; elle ne garantit pas une protection permanente. L'ouverture de la porte de réserve et les autres passages sont décrits dans le contenu.
+- **Demande / fournit :** coopération avec le drone ; accès durable une fois le chariot rangé. Sans drone en maintien, le passager ne peut pas tenir la poignée et pousser ailleurs. Il n'y a pas la manivelle autonome de la première maquette.
+- **Drone :** activation locale, trajet de manutention puis maintien bruyant. Il ne combat pas, ne ramasse rien et ne devient pas un compagnon universel. La tâche se termine quand le chariot est déplacé.
+- **Panne récupérable :** une attaque le sort du rail, interrompt le maintien et coupe le moteur. Deux gestes sur place : replacer, puis réarmer/relancer. Aucun consommable ; les dangers continuent pendant ces gestes.
+- **Préparation sûre à prouver :** isoler le bruit de la réserve avant la mise en route, déléguer le maintien, rejoindre le palier, pousser et poursuivre la station.
+- **Variante risquée à prouver :** après une rencontre ou une panne, reprendre la coopération en utilisant le plan, les portes et le répit réel. Le coût en blessures dépend de C-04, pas des résultats déterministes de la maquette.
+- **Carte :** pictogramme vert du drone dans son dernier emplacement observé, sans déplacement omniscient hors de vue (D-307).
+- **État des preuves :** conception retenue pour intégration ; tests, parcours complets, vérification du catalogue, relecture et partie sur téléphone doivent être fournis par la PR. Les essais de maquette ne valident pas une partie du vrai jeu.
+
 ## 4. Mélanges
 
 Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur), ralentissement (M-04 huile, M-09, M-10), neutralisation (M-06, M-08), air (M-06).
@@ -116,11 +138,13 @@ Familles en jeu : bruit (M-03 relais, M-04 avertisseur, M-07, M-10 compresseur),
 | Feu et passerelle | Le feu gagne l'autre bord comme par une porte ouverte ; jamais une pièce sans air (D-247) |
 | Morceaux qui ne jouent pas sur la même chose | Aucune règle nouvelle (D-248) |
 
-Avec ces règles, toutes les paires des dix morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
+Avec ces règles, toutes les paires des onze morceaux sont permises, sauf M-03 et M-06, qui ne se rencontrent jamais (D-172). M-11 ne joue sur aucune de ces familles : ses dix paires sont permises sans règle de plus (D-248, D-290). Un futur morceau qui joue sur la même chose qu'un autre reste refusé avec lui tant que leur mélange n'a pas de règles (D-167, D-248).
+
+Pour M-12 (D-306), le bruit suit la même sélection et le même masquage que les équipements existants ; aucun changement des priorités générales de la créature. L'huile, le froid et la gravité gardent leurs effets sur ses réactions. Les équipements de M-12 ne sont pas détruits par le feu ou le vide ; le passager, lui, garde tous ses risques. Le chariot est une obstruction de déplacement, pas une cloison étanche : les autres canaux conservent les qualités déclarées de la liaison. La permission d'une paire ne remplace jamais la preuve d'une station complète. M-11/M-12 gardent leurs règles indépendantes (D-248), notamment le blindage de M-11 ; leurs compositions doivent être prouvées ensemble sur la branche principale actualisée.
 
 ### 4.1 Table exhaustive des paires (L0, #150)
 
-Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises et une jamais ensemble. Les règles citées sont celles du tableau ci-dessus et du [journal des décisions](03-decisions.md). Cette table autorise une cohabitation, pas une station : chaque composition doit encore respecter les attaches, le nombre d'obstacles et le chemin sûr vérifié (C-08 §2 et §3). L2 la transcrira en données ; aucun code ne change en L0.
+Chaque paire non ordonnée figure une seule fois : 55 paires, dont 54 permises et une jamais ensemble (les dix lignes de M-11 ajoutées par #203, D-290). Les règles citées sont celles du tableau ci-dessus et du [journal des décisions](03-decisions.md). Cette table autorise une cohabitation, pas une station : chaque composition doit encore respecter les attaches, le nombre d'obstacles et le chemin sûr vérifié (C-08 §2 et §3). L2 la transcrira en données ; aucun code ne change en L0.
 
 | Paire | Verdict | Règle qui la permet, ou motif du refus |
 | --- | --- | --- |
@@ -133,6 +157,7 @@ Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises e
 | M-01 + M-08 | Permise | Le feu peut gagner l'autre bord de la passerelle ; pas de feu sans air (D-247) |
 | M-01 + M-09 | Permise | Feu et gravité, sans règle de plus (D-248) |
 | M-01 + M-10 | Permise | Feu et froid, sans règle de plus (D-248) |
+| M-01 + M-11 | Permise | Feu et sas de sécurité, sans règle de plus (D-248) |
 | M-02 + M-03 | Permise | Grille/caisse et énergie, sans règle de plus (D-248) ; le bloc ne passe pas le conduit (D-043) |
 | M-02 + M-04 | Permise | Grille/caisse et observation, sans règle de plus (D-248) |
 | M-02 + M-05 | Permise | Grille/caisse et passage caché, sans règle de plus (D-248) |
@@ -141,6 +166,7 @@ Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises e
 | M-02 + M-08 | Permise | Grille/caisse et passerelle, sans règle de plus (D-248) |
 | M-02 + M-09 | Permise | Grille/caisse et gravité, sans règle de plus (D-248) |
 | M-02 + M-10 | Permise | Grille/caisse et froid, sans règle de plus (D-248) |
+| M-02 + M-11 | Permise | Grille/caisse et sas de sécurité, sans règle de plus (D-248) |
 | M-03 + M-04 | Permise | Bruits entre eux : relais et avertisseur suivent les règles existantes (§4, D-174) |
 | M-03 + M-05 | Permise | Énergie et passage caché, sans règle de plus (D-248) ; le bloc ne passe pas le passage étroit (D-043) |
 | M-03 + M-06 | Jamais ensemble | Deux morceaux finals ; un seul final par station (D-159, D-172) |
@@ -148,27 +174,35 @@ Chaque paire non ordonnée figure une seule fois : 45 paires, dont 44 permises e
 | M-03 + M-08 | Permise | Énergie et passerelle, sans règle de plus (D-248) ; planche et bloc encombrants, un seul porté à la fois (D-169) |
 | M-03 + M-09 | Permise | Énergie et gravité, sans règle de plus (D-248) ; interrupteurs autonomes (D-168) |
 | M-03 + M-10 | Permise | Bruits entre eux : relais et compresseur suivent les règles existantes (§4, D-174) |
+| M-03 + M-11 | Permise | Énergie et sas de sécurité, sans règle de plus (D-248) |
 | M-04 + M-05 | Permise | Observation et passage caché, sans règle de plus (D-248) |
 | M-04 + M-06 | Permise | MX-03 : vide et huile sans effet l'un sur l'autre (D-174) |
 | M-04 + M-07 | Permise | Bruits entre eux : avertisseur et machines suivent les règles existantes (§4, D-174) |
 | M-04 + M-08 | Permise | Observation/huile et passerelle, sans règle de plus (D-248) |
 | M-04 + M-09 | Permise | MX-01 : ralentissements additionnés ; MX-04 : huile impossible à verser sans gravité (D-174) |
 | M-04 + M-10 | Permise | Bruits entre eux ; MX-01 : ralentissements additionnés ; MX-05 : huile toujours glissante dans le froid (D-174) |
+| M-04 + M-11 | Permise | Observation/huile/avertisseur et sas de sécurité, sans règle de plus (D-248) |
 | M-05 + M-06 | Permise | Passage caché et baie, sans règle de plus (D-248) |
 | M-05 + M-07 | Permise | Passage caché et machines, sans règle de plus (D-248) |
 | M-05 + M-08 | Permise | Passage caché et passerelle, sans règle de plus (D-248) |
 | M-05 + M-09 | Permise | Passage caché et gravité, sans règle de plus (D-248) |
 | M-05 + M-10 | Permise | Passage caché et froid, sans règle de plus (D-248) |
+| M-05 + M-11 | Permise | Passage caché et sas de sécurité, sans règle de plus (D-248) |
 | M-06 + M-07 | Permise | L'air quitte aussi les machines ; aucune règle de plus (D-246) |
 | M-06 + M-08 | Permise | L'air passe par-dessus le vide de la passerelle (D-246) ; neutralisations définitives, sans règle de plus (§4, D-174) |
 | M-06 + M-09 | Permise | L'air quitte aussi la zone sans gravité ; aucune règle de plus (D-246) |
 | M-06 + M-10 | Permise | L'air quitte aussi la chambre froide ; aucune règle de plus (D-246) |
+| M-06 + M-11 | Permise | Baie et sas de sécurité, sans règle de plus (D-248) |
 | M-07 + M-08 | Permise | Machines et passerelle, sans règle de plus (D-248) |
 | M-07 + M-09 | Permise | Machines et gravité, sans règle de plus (D-248) |
 | M-07 + M-10 | Permise | Bruits entre eux : machines et compresseur suivent les règles existantes (§4, D-174) |
+| M-07 + M-11 | Permise | Machines et sas de sécurité, sans règle de plus (D-248) |
 | M-08 + M-09 | Permise | Passerelle et gravité, sans règle de plus (D-248) |
 | M-08 + M-10 | Permise | Passerelle et froid, sans règle de plus (D-248) |
+| M-08 + M-11 | Permise | Passerelle et sas de sécurité, sans règle de plus (D-248) |
 | M-09 + M-10 | Permise | MX-01 : traversée sans gravité et ralentissement par le froid additionnés (D-174) |
+| M-09 + M-11 | Permise | Gravité et sas de sécurité, sans règle de plus (D-248) |
+| M-10 + M-11 | Permise | Froid et sas de sécurité, sans règle de plus (D-248) |
 
 Une paire absente ou refusée n'est pas autorisée par ressemblance avec une ligne existante. Pour un futur morceau qui touche la même chose qu'un autre, une règle acceptée est nécessaire (D-167, D-248). Une ligne permise n'autorise pas à fusionner deux obstacles dans la même pièce ni à ajouter une interaction absente des fiches.
 
@@ -202,7 +236,7 @@ Règles retranscrites dans C-02 §5, C-03 §5.5 et C-04 §3.2. Les textes viendr
 
 **Ordre :** #105 est clos ; L0 et L1 peuvent commencer tout de suite ; L2 attend la table des paires (L0) et le vérifieur (L1) ; puis L3, L4, L5 et L6. L6 touche au moteur, et L2 aussi si l'identifiant de station ne tient pas dans le champ « monde » de la sauvegarde (changer le format de sauvegarde est en zone rouge, C-10 §6). Une livraison qui touche au moteur ne se mène pas en même temps qu'une autre issue moteur ; le travail du lore n'en fait partie que si sa conception demande au moteur plus que « regarder » (D-243, limite).
 
-**Hors #106 :** objets placés hors de leur morceau (D-244) ; annexes, boucles et grandes stations (D-242 ; issue à part si la durée le demande, D-245) ; salles de butin, c'est-à-dire des annexes facultatives où trouver des objets en plus de ceux que demandent les obstacles (piste proposée le 2026-10-14, sans décision) ; documents du lore (D-243) ; créature placée plus souvent près du final, en réserve (D-241) ; écrans de fin de défaite et d'évacuation ; retrait automatique d'une validation quand un morceau change (D-100).
+**Hors #106 :** annexes, boucles et grandes stations (D-313 à D-318, livraison 1 des grandes stations, §7.12) ; objets placés hors de leur morceau et salles de butin (D-319, D-320, livraison 2, §7.13) ; documents du lore (D-322 à D-324, livraison 3, §7.14) ; créature placée dans le dernier chemin ou le final des grandes stations (D-315, qui tranche la réserve de D-241) ; écrans de fin de défaite et d'évacuation (D-281 à D-286, #208) ; retrait automatique d'une validation quand un morceau change (D-100).
 
 ### 7.2 Textes par couches
 
@@ -671,6 +705,369 @@ Ces chiffres servent au porteur pour décider de la réserve de D-241 (créature
 | **Q-201, D-275.** « Pour l'annonce « plus aucune sortie », l'issue demande de vérifier que le jeu ne se trompe jamais. […] La vérification « sur tout » n'est donc pas faisable telle quelle. Comment voulez-vous qu'on prouve que l'annonce ne se trompe jamais ? » | Réponse libre, citée dans D-275 |
 | **Q-202, D-275.** « Oui, c'est possible et simple : un calcul de chemin […]. Arriver à la capsule ne suffit pas : elle doit aussi pouvoir partir […]. Et certains passages ne se ferment pas, mais tuent : le feu brûle à chaque action, le froid aussi. Que doit compter le calcul ? » | « chemin + capsule seulement. on laisse le joueur prendre des dégâts jusqu'a la mort, c'est plus intéressant que de lui couper l'herbe sous le pied » |
 | **Q-203, D-275.** « Comment vérifier que ce calcul ne se trompe pas ? » | « Tests par obstacle + parties au hasard » |
+
+### 7.10 Sas de sécurité M-11 (#203)
+
+> **Statut :** proposé par la PR de #203 (zone orange : moteur, format des morceaux), en attente de l'accord du porteur et d'une partie au bout sur téléphone avec M-11 (**validation humaine requise**, D-098). Règles fixées par D-290 à D-293 ; fiche au §3.
+
+**Moteur.** Deux qualités (C-02 §5) : `blindee` sur une liaison, que `forcable` (`engine/creature.ts`) écarte toujours ; `exige` sur une commande de déverrouillage, que `actionner` (`engine/actions.ts`) refuse sans l'objet en main (`sans_carte`), et que `sortiePossible` (`engine/sortie.ts`) ne compte que si l'objet est à portée. `validerMonde` refuse une porte blindée qui n'est pas une porte pleine, et un `exige` hors d'une commande ou vers un objet inconnu ou non portable.
+
+**Catalogue** (`check:stations` du 2026-10-20, 8 processus, 449 s). 684 compositions, dont 600 publiées : 416 en chaîne et 184 en ordre libre (avant : 536, dont 464). 148 contiennent M-11 : 136 publiées ; les 12 autres placent la créature sur le palier de M-01 ou dans l'atelier de M-02 sans obstacle d'avant pour s'en débarrasser (D-268, D-293) : 4 écartées sans recherche en ordre libre, 6 sans sortie sûre, 2 non prouvées. Plans : 100 tirages sur 100 posés pour chaque chemin mesuré avec M-11.
+
+**Plan.** Poste et vestiaire en haut, sas et remise dessous (tuile de 8 × 6) : seule forme essayée qui pose toutes les chaînes, y compris M-09 puis M-11 puis M-06.
+
+**Ordre libre.** La porte blindée est verrouillée, mais ce n'est pas une cloison du carrefour : la preuve des deux ordres (§7.8) ne lit que les cloisons du carrefour (`cloisonsDuCarrefour`, `tools/verifier-station.ts`).
+
+**Questions posées au porteur le 2026-10-20**, résumées ; les réponses sont citées mot pour mot :
+
+| Question | Réponse du porteur |
+| --- | --- |
+| **Q-204, D-290.** Le sas de sécurité reste-t-il dans une station d'essai, ou entre-t-il aussi dans le tirage de NOUVELLE PARTIE ? | « Aussi dans le tirage public » |
+| **Q-205, D-291.** Comment la carte ouvre-t-elle la porte blindée : un lecteur qui lève le verrou une fois pour toutes, ou autre chose ? | « Lecteur, une fois pour toutes » |
+| **Q-206, D-293.** Où attend la créature dans ce morceau ? | « Pièce à part, fermée » |
+
+### 7.11 Chariot et drone M-12 (#232)
+
+**Conception retenue pour intégration, validation sur téléphone à venir.** La maquette V3 a permis d'essayer la coopération puis une panne récupérable. Elle ne prouve ni les réactions du vrai moteur, ni le passage des stations générées. L'intégration reprend la branche principale contenant M-11 et suit [17 — Ajouter un morceau](17-ajouter-un-morceau.md).
+
+Questions consignées lors de l'intégration du 20 octobre, à partir des échanges des 19 et 20 octobre :
+
+| Question | Choix du porteur | Décision |
+| --- | --- | --- |
+| Q-207 — Coopération nécessaire ou alternative consommant un objet utile ? | « Coopération nécessaire dans cette situation » | D-304 |
+| Q-208 — Commander plus près ou explorer une panne réparable ? | « Explorer une panne réparable du drone » | D-305 |
+| Q-209 — Remise en route sur place ou retour à l'atelier ? | « Remise en route sur place en deux gestes » | D-305 |
+| Q-210 — Station d'essai seule ou aussi tirage public ? | « Station d'essai et tirage aléatoire dès cette PR » | D-307 |
+| Q-211 — Autres causes de panne ou seulement la créature pour le premier lot ? | « Seule la créature fait dérailler le drone pour ce premier lot » | D-306 |
+
+Le pictogramme de carte est une demande directe, accompagnée d'une référence visuelle, pas une question supplémentaire (D-307).
+
+**Points de preuve avant publication :**
+
+- états/empreintes et rejeux des anciens mondes préservés ; états du drone bornés dans la recherche ;
+- vraie coopération, remise sur rail puis réarmement, sans faux signal de sortie perdue ;
+- objets indispensables inclus dans l'élagage de `verifier-sortie`, commandes de carrefour seules comptées pour l'ordre libre ;
+- place de créature et clés de textes sans collision avec M-03 et M-11 ; aucun état changeant ni solution révélée par une description statique ;
+- liste publique régénérée et chaque composition publiée prouvée ; nombres dérivés des formules de [17 §4](17-ajouter-un-morceau.md#4-tests-qui-épinglent-des-nombres), pas d'une valeur reçue dans un test ;
+- plan et pictogramme, parcours CLI public, contrôle des textes et vérification complète.
+
+La preuve de jeu de chaque composition publiée (`check:stations`), le signal « plus aucune sortie » (`check:sortie`) et les mesures de plans sont attendus de la CI de la PR de #232, trop longs pour le PC du porteur : aucune preuve de catalogue M-12 n'est revendiquée avant ce résultat.
+
+**Catalogue après M-12 (calculé, tests verts sur le PC ; preuve de jeu par la CI).** Avec 10 chemins et 2 finals : 66 paires, 65 permises ; 850 compositions, 580 en chaîne (40 à un chemin, 540 à deux) et 270 en ordre libre. 758 publiées : 524 en chaîne, 234 en ordre libre ; 158 contiennent M-12 (108 en chaîne, 50 en ordre libre). Les non publiées le sont pour les raisons déjà en vigueur : paire M-03/M-06, créature qui bouche le seul passage sans obstacle qui permette de s'en débarrasser (D-268), places écartées en ordre libre. **M-12 compte parmi ces obstacles** (D-307, détail de l'agent à confirmer) : la première CI l'a montré en prouvant `m12-m02-m03-atelier` et `m12-m02-m06-atelier`, alors non publiées ; `m12-m01-m03-palier` est prouvée avec 253 000 états. La liste est régénérée depuis la règle de publication, puis vérifiée par le test qui la compare au catalogue.
+
+**Plafond de recherche.** La première CI a aussi arrêté `m10-m12-m03-stockage` et `m10-m12-m06-stockage` au plafond de 150 000 états : M-10 et M-12 ont chacun beaucoup de portes, et leurs états se multiplient. `m10-m12-m03-stockage` est prouvée avec 405 000 états, en 27 actions sans dé ni blessure. `check:stations` accorde donc 600 000 états aux seules compositions avec M-12 (`PLAFONDS_ELARGIS`, `tools/verifier-station.ts`) ; les autres gardent 150 000, et leur verdict ne change pas.
+
+**Coût mesuré sur le PC du porteur.** Prouver une station M-12 coûte plus cher qu'une autre : 2,3 à 4 s pour une chaîne qui commence par M-12, jusqu'à 20 s pour certains ordres libres (`ol-m11-m12-m06-embarquement`), contre moins d'une seconde pour la plupart des stations. Deux tests de `check-texts-stations` prouvent toute la liste contrôlée en 30 s : avec `ol-m11-m12-m06-stockage` (12,5 s) et `m08-m01-m06-palier` (20 à 35 s, déjà lourde sur `main`), le premier a pris 39 s en CI. La liste contrôlée garde la même couverture avec des compositions moins coûteuses : `ol-m05-m12-m03-tri` (1,1 s) pour M-12 en second, `m08-m01-m06-magasin` pour M-08 puis M-01, `m10-m01-m06-palier` pour la créature sur le palier de M-01. Sur le PC, les deux tests passent en 20 s. Les textes des stations M-12 contrôlées passent `check:texts` sans erreur. Le test du message chiffré prouve la première station contrôlée, la moins coûteuse, avec la même assertion.
+
+**Poursuite après la rencontre (station d'essai, recherche exhaustive du 20 octobre).** Après avoir réveillé la créature dans la réserve, le chariot peut encore être rangé indemne (16 gestes), mais aucune évacuation n'est possible sans blessure : la créature alertée suit le passager jusqu'à l'embarquement. En acceptant les coups, une évacuation existe en 16 gestes, santé critique : fermer la réserve, envoyer le drone, rejoindre le palier par le poste, pousser, puis fuir vers la capsule. La rencontre se paie donc, comme le voulait la maquette ; à confirmer par le porteur.
+
+### 7.12 Grandes stations, livraison 1 (#205, #206)
+
+> **Statut :** proposé par la PR #230, ouverte prête à relire à la demande du porteur, à ne pas fusionner avant les livraisons 2 et 3 (D-327, zone orange) ; **validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-325). Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md), décisions D-313 à D-327. Les clés et le butin (livraison 2), puis le lore (livraison 3) viennent sur la même branche.
+
+**Ce que la livraison 1 apporte.** Le catalogue de quinze pièces sans obstacle (D-316), leurs descriptions calmes, la pose en trois temps et les portes de boucle (14 §5.3), la piste de la créature et ses traces (D-317), les bruits de station avant la rencontre (D-321), les identifiants versionnés `g1-…` et la liste publiée (D-326). NOUVELLE PARTIE et l'adresse nue tirent une grande station publiée ; les petites stations restent jouables par leur identifiant.
+
+**Déclarations des morceaux** (spec §6.1). Chaque morceau déclare les pièces où une annexe peut s'accrocher, avec leur catégorie (GE-08), et ses coupes : la liaison qui franchit son obstacle. Une coupe sépare deux zones ; une porte de boucle ne relie jamais deux zones (GE-13). Toute cloison verrouillée est aussi une coupe.
+
+| Morceau | Pièces accueillantes | Coupe |
+| --- | --- | --- |
+| Vestibule | aucune (D-257 : une seule porte) | — |
+| M-01 | poste incendie (technique), palier (circulation) | poste incendie – tunnel technique |
+| M-02 | atelier maintenance, salle des pompes (technique) | atelier maintenance – salle des pompes |
+| M-04 | salle de contrôle (commandement) | salle de contrôle – salle d'observation |
+| M-05 | local de service (technique), hall de chargement (fret) | local de service – salle de tri ; local de service – hall de chargement |
+| M-07 | quartiers (vie), soute (fret), coursive (circulation) | salle des machines – coursive |
+| M-08 | quartiers (vie), atelier, magasin (technique) | galerie nord – galerie sud |
+| M-09 | quartiers (vie), cale (fret) | sas bâbord – coursive de transfert |
+| M-10 | quartiers (vie), entrepôt (fret), coursive (circulation) | la porte vers le morceau suivant |
+| M-11 (§7.15) | poste de sécurité (commandement) | porte blindée, poste de sécurité – sas de sécurité |
+| M-12 (§7.15) | atelier de manutention (technique), galerie de service (circulation) | palier du chariot – quai de transfert |
+| Carrefour (ordre libre) | couloir commun (circulation) | cloison 1 (la cloison 2 est verrouillée) |
+| M-03 | local énergie, réserve (technique) | local énergie – embarquement |
+| M-06 | couloir de sécurité (circulation) | couloir de sécurité – salle panoramique |
+
+**Règles de pose retenues par l'agent**, à relire par le porteur :
+- une pièce de vie ne s'ouvre jamais sur une pièce technique, ni sur un couloir du catalogue lui-même ouvert sur une pièce technique (GE-09) ;
+- les sanitaires attendent un couloir qui dessert des couchettes, puis se posent aussitôt (GE-10) ;
+- un couloir du catalogue se pose avec ses deux premières pièces, sinon ailleurs (24 essais au plus) ;
+- la porte d'une annexe est ouverte, fermée ou tirée au sort selon la pièce ;
+- une graine où aucune porte de boucle ne trouve sa place n'a pas de plan (D-318).
+
+**Assemblage**, mesure locale par un script jetable, sur 3 graines par grande composition (`tools/grandes.test.ts` vérifie, sur un quart des compositions, au moins 40 % de plans et moins de 50 ms en moyenne) :
+- sur 864 graines (3 par grande composition), 439 plans (50,8 %), chacun avec une à trois portes de boucle (1,3 en moyenne) ;
+- 13,3 ms en moyenne par plan trouvé, 11,6 ms en médiane, 88 ms au pire.
+
+Écart au critère de la conception (§11, « au moins 95 % trouvent un plan ») : une graine sur deux seulement donne un plan, parce qu'une station sans porte de boucle n'en a pas. Le jeu ne tire que des stations publiées, qui ont toutes un plan ; la publication saute les graines sans plan sans les compter. Seize nouvelles poses par graine donnaient 94 % de plans en chaîne et 81 % en ordre libre, mais jusqu'à 420 ms d'assemblage sur PC, donc une à deux secondes sur téléphone au lancement d'une partie.
+
+**Publication** (`npm run publier:grandes`, D-326) :
+- 542 stations publiées sur 288 compositions, dont 171 en ordre libre (32 %) : deux graines prouvées au plus par composition, huit essais de preuve au plus, les graines sans plan sautées sans être comptées ;
+- 182 graines essayées n'ont pas été prouvées dans le plafond de la recherche ;
+- 2 626 s sur 14 processus ; les témoins (`tools/grandes-temoins.json`) sont rejoués par `check:stations`.
+
+**Taille des stations publiées :**
+- 21 à 28 pièces dessinées, 24 en médiane (440 stations sur 542) ;
+- une porte de boucle dans 425 stations, deux dans 114, trois dans 3 ;
+- 3 à 7 pièces marquées d'une trace, 4 en médiane ; une station n'en a que 2, faute de pièce à trois portes au moins du repaire (la piste part alors de la plus éloignée) ;
+- plans de 21 à 54 cases de large (33 en médiane) et de 13 à 27 de haut (21 en médiane).
+
+**Difficulté et rythme**, 1 000 parties par profil, graine de mesure 20261017, plafond de 600 actions (`npm run mesurer:difficulte -- --grandes`, puis la même mesure sur les petites stations) :
+
+| Profil prudent (B2) | Grandes stations | Petites stations |
+| --- | ---: | ---: |
+| Évacuation | 16,5 % | 28,4 % |
+| Défaite | 59,5 % | 69,9 % |
+| Abandon au plafond (bot perdu) | 24,0 % | 1,7 % |
+| Actions d'une évacuation (médiane ; 9 sur 10 en dessous de) | 116 ; 213 | 52 ; 109 |
+| Chemin prouvé, B0 (médiane ; 9 sur 10 en dessous de) | 34 ; 46 | 24 ; 37 |
+| Actions avant la rencontre (médiane) | 96 | 29 |
+| Moment de la rencontre dans la partie (médiane) | 92 % | 73 % |
+| Jamais de contact, parties finies | 12,0 % | 9,8 % |
+| Évacuations sans rencontre | 55,2 % | 33,8 % |
+| Pièces visitées (médiane) | 19 | 10 |
+| Poursuites par une porte de boucle | 13,2 % | 0 % |
+| Défaites dans la seconde moitié de la station | 74,3 % | 73,0 % |
+| Créature hors jeu | 9,1 % | 19,4 % |
+
+Le profil averti (B4) évacue dans 14,0 % des grandes stations et 26,6 % des petites : lire les traces ne l'aide pas encore. Sur les petites stations, B2 évacuait dans 29,5 % des parties avant l'adaptation des bots (spec §15). La cible de la conception, 25 à 35 % pour B2 avec le butin (spec §11, qui traduit D-314), se mesure en livraison 2 : elle n'est pas atteinte (§7.13).
+
+**Bots adaptés** (spec §11) : une pièce visitée n'est revue que si un passage ou un geste y était impossible ; le plafond passe à 600 actions ; le profil B4, averti, regarde chaque pièce et hésite avant d'aller plus loin depuis une pièce marquée d'une trace forte, tant qu'il n'a pas rencontré la créature. Les parties abandonnées au plafond sont presque toutes des bots perdus dans les énigmes de l'ordre libre, sans rencontre : la station est prouvée, le bot ne trouve pas le geste. Le tableau du rythme les sépare des parties finies.
+
+**Alerte au porteur** (spec §10, D-321). Les deux seuils sont dépassés. Pour B2, la rencontre arrive à la 96ᵉ action en médiane (seuil : environ 45), à 92 % de la partie ; 12,0 % des parties finies n'ont aucune rencontre (seuil : 10 %) ; plus d'une évacuation sur deux se fait sans jamais croiser la créature. La cause est structurelle : la créature attend dans le dernier chemin ou le final (D-315) et ne bouge pas avant le contact (D-321), et la grande station allonge l'exploration qui la précède. La décision revient au porteur, avec #217 : une ronde, ou par exemple un bruit fort qui la met en route à mi-parcours.
+
+**Reporté :** la refonte du cache des verdicts (le rejeu des témoins rend les grandes stations presque gratuites à revérifier) ; avec l'accord de la conception, `check:sortie` sur les grandes stations (livraison 2, où la caisse portable et les clés déplacées touchent au signal ; fait au §7.13) ; clés dispersées et butin (livraison 2 ; fait au §7.13) ; bible, documents et fiche document (livraison 3 ; faits au §7.14).
+
+### 7.13 Grandes stations, livraison 2 (#202, #207)
+
+> **Statut :** proposé par la PR #230, sur la même branche que la livraison 1, à ne pas fusionner avant la livraison 3 (D-327, zone orange) ; **validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-325). La livraison 2 y ajoute ses clés dispersées et son butin. Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md) §6.5, §6.6 et §7.4, décisions D-319 et D-320. **Le critère de difficulté de la conception (spec §11), qui traduit D-314, n'est pas atteint** (voir « Difficulté »). La note de rangement vient avec le lore (livraison 3, §7.14).
+
+**Ce que la livraison 2 apporte.** Les clés dispersées dans les grandes stations (D-319), la caisse portable, la table de butin et le pillage des salles vides (D-320), la preuve sans butin, `check:sortie` sur un échantillon de grandes stations, les mesures avec et sans butin. La version du générateur reste 1 : elle ne change qu'à la fusion (spec §12). La liste est republiée sous les mêmes identifiants `g1-…` : une station de la livraison 1 n'a plus forcément les mêmes clés.
+
+**Déclarations des clés** (spec §6.5). Chaque morceau qui en a déclare comme clé déplaçable ses objets portables qui résolvent un obstacle, avec leurs étiquettes plausibles. La pièce d'origine reste écrite dans le morceau : c'est là que se trouve la clé dans une petite station, et un tirage possible dans une grande. Les commandes fixes ne bougent pas (interrupteurs, pupitres, console, avertisseur, kit de rustine).
+
+| Clé | Morceau | Pièce d'origine | Étiquettes | À savoir |
+| --- | --- | --- | --- | --- |
+| bidon | M-01 | poste incendie | `eau` | — |
+| caisse | M-02 | atelier maintenance | `rangement`, `lourd` | portable, encombrante, déplaçable et appui dans une grande station |
+| bloc | M-03 | local énergie | `lourd` | encombrant et large |
+| burette | M-04 | salle de contrôle | `outillage` | — |
+| combinaison | M-06 | local de sécurité | `securite` | — |
+| découpeuse | M-06 | local de sécurité | `securite` | — |
+| planche | M-08 | atelier | `rangement` | encombrante |
+| carte de sécurité | M-11 | vestiaire | `securite` | ajoutée au §7.15 ; le chariot de M-12 ne se porte pas |
+
+Une pièce du catalogue convient à une clé quand elle porte l'une de ses étiquettes. La consigne du catalogue gagne l'étiquette `lourd`.
+
+**Règles de pose des clés retenues par l'agent**, à relire par le porteur :
+- le tirage est uniforme entre la pièce d'origine et les pièces permises du catalogue : accrochées du côté avant du morceau de la clé, ou dans le segment qui le précède immédiatement ; la zone se lit par segment, si bien qu'une annexe pendue au côté « après » du morceau précédent partage la zone avant l'obstacle et convient ;
+- au plus une clé encombrante est déplacée par station ;
+- une clé large (le bloc) ne se pose que là d'où elle rejoint la capsule sans passage étroit ;
+- en ordre libre, la clé d'une branche reste dans sa branche ou dans le tronc ; celle du troisième chemin peut aller dans la zone 0 (le tronc et le côté avant des branches), qui précède sa porte d'entrée ;
+- dans une grande station, la caisse est portable, encombrante, déplaçable et appui, mais pas large : on la porte, on la pose, puis on la déplace sous la grille (depuis la livraison 3, « Poser » met la caisse sous la grille d'un seul geste, D-328) ;
+- rien dans l'interface ne dit où une clé est allée : sa note de rangement vient avec le lore (livraison 3, §7.14), et d'ici là une clé déplacée n'a aucun indice.
+
+Mesure : **16,2 % des clés sont déplacées** (559 sur 3 452 clés déclarées), sur les stations tirées par la mesure de difficulté.
+
+**Table de butin** (spec §6.6, `content/catalogue/butin.ts`). Deux ou trois salles de butin par station, chacune vide ou garnie d'un objet :
+
+| Entrée | Qualité | Poids | Condition |
+| --- | --- | ---: | --- |
+| salle vide | — | 2 | — |
+| trousse de soin | soin, 1 dose | 1 | aucune |
+| burette de réserve | glissant, 1 dose | 2 | après la coupe de M-04, quand M-04 est dans la station |
+
+Un butin n'a aucune qualité passive : seules ses actions comptent (soigner, verser). Un test de la table et un contrôle de chaque station le vérifient. Une salle vide reçoit une phrase de pillage. Les textes des deux objets, de la caisse et du pillage sont écrits par l'assistant principal (D-243) et recopiés mot pour mot.
+
+**Règles du butin retenues par l'agent**, à relire par le porteur :
+- la première salle est une impasse de butin pendue à une pièce de la piste, directement ou par un couloir du catalogue ; à défaut, c'est l'impasse de butin la plus proche du repaire, et la graine garde son plan. La conception (§6.6) demandait au moins une salle sur la piste : cette exigence stricte supprimait 64 % des plans d'une table d'essai, et des compositions entières ;
+- une station garde moins de salles quand les impasses de butin lui manquent ;
+- la condition de la burette de réserve est contrôlée à partir de M-04 et de la qualité « glissant », écrits dans le contrôle lui-même, sans lire la table : le contrôle reste indépendant de la pose, et une entrée conditionnée ajoutée plus tard devra y être reportée ;
+- le contrôle des noms compte les pièces une à une et les objets une fois par clé de nom : les deux interrupteurs de gravité de M-09 partagent leur nom par conception (D-238).
+
+Mesure d'essai, sur 300 graines de la table d'essai, après cette règle : la première salle est sur la piste dans 64 stations sur 142 (49 directement, 15 par un couloir), au plus près du repaire dans 70, et aucune candidate dans 8. Salles par station : 0 dans 8, 1 dans 33, 2 dans 72, 3 dans 29.
+
+Mesure de difficulté, sur les 1 000 stations qu'elle tire : **54,9 % des salles de butin sont vides** (1 069 sur 1 947). Mesure sur la liste publiée : **49 stations sur 539 ont moins de deux salles** (14 sans salle, 35 avec une).
+
+**Preuve et publication** (spec §7.4, D-326). La station se prouve sans son butin : le même monde, privé de ses objets de butin. Trois voies, dans cet ordre : le témoin du chemin principal rejoué, le témoin réparé (le chemin principal avec un détour vers chaque clé là où elle a été posée), puis la recherche directe. En ordre libre, la preuve se fait dans les deux ordres. Republication par `npm run publier:grandes` :
+- 539 stations publiées sur 272 des 288 grandes compositions, dont 171 en ordre libre (31,7 %) ;
+- 16 compositions n'ont aucune station (6 en chaîne, 10 en ordre libre) ; le nom de chacune se termine par `atelier` ou `palier` ;
+- 539 graines prouvées sur 798 essayées : 243 par le témoin du chemin principal, 146 par un témoin réparé, 150 par la recherche directe ; 259 n'ont pas été prouvées par la recherche ;
+- 3 587 s de publication ; `check:stations` vert en 61 s, `npm test` vert (1 912 tests).
+
+**`check:sortie` sur les grandes stations** (D-275, spec §7.4). Un échantillon fixe de 5 grandes stations de la liste triée : pour chaque clé déplacée, la première station qui la déplace, en chaîne seulement (4 parties de 80 actions). Résultat : 475 stations (les 470 d'avant et les 5 grandes), **0 écart** ; chaque grande station demande 3,8 à 17,0 s, 378 états comparés, aucun avec le signal ; `check:sortie` passe de 121,3 s à 128,4 s. Deux choix de l'agent :
+- pas de station en ordre libre dans l'échantillon : elle ne couvre aucune clé et coûte 6 à 10 s par état ; avec elle, `check:sortie` passait à 166,8 s (6 grandes stations, une partie de 10 actions chacune) ; les cloisons de l'ordre libre restent couvertes par les petites stations ;
+- pas de perte volontaire de la planche sur les grandes stations : la recherche de comparaison dépasse 1,5 million d'états ; les petites stations gardent ce cas.
+
+Sur les grandes stations, `check:sortie` ne prouve donc que l'absence de faux signal. Le cas G-03 (planche tombée du mauvais côté) n'y est pas couvert : un faux signal après une planche perdue dans une grande station ne se verrait que sur téléphone.
+
+**Difficulté**, 1 000 parties par profil sur les mêmes stations, plafond de 600 actions (`npm run mesurer:difficulte -- --grandes`, puis `-- --grandes --sans-butin`, qui retire le butin des mondes joués) :
+
+| Évacuation | Avec butin | Sans butin |
+| --- | ---: | ---: |
+| Profil prudent (B2) | 13,0 % | 13,8 % |
+| Profil averti (B4) | 11,7 % | 10,7 % |
+
+Autres mesures de B2, avec le butin :
+- défaites 48,5 %, abandons au plafond (bots perdus à 600 actions) 38,5 % ;
+- rencontre à 106,5 actions en médiane, à 92 % de la partie ;
+- 16,5 % des poursuites passent par une porte de boucle ;
+- 58,5 % des évacuations se font sans rencontre ;
+- créature mise hors jeu ou enfermée avant le final (D-241) : 0,8 % des parties ;
+- évacuation par morceau, les plus durs : M-07 1,5 %, M-03 3,0 %, M-02 7,6 %, M-10 8,7 %.
+
+Pour comparaison, la livraison 1 donnait à B2 16,5 % d'évacuation, 24,0 % d'abandons et une rencontre à la 96ᵉ action (§7.12), sur une autre liste. Le rapport de mesure écrit « 288 grandes compositions publiées » ; 272 ont une station publiée.
+
+**Alerte au porteur** (spec §6.6, §11, D-314). **La cible n'est pas atteinte** : B2 évacue 13,0 % des parties avec le butin, pour 25 à 35 % visés. Les poids de la table de butin ne sont pas le levier mesuré : le butin change à peine le résultat (13,8 % sans lui, un écart dans le bruit de la mesure, car les bots ne ramassent ni n'emploient forcément le butin ; B4 évacue 11,7 % avec le butin et 10,7 % sans), si bien que jouer sur les poids ne rapprocherait pas B2 de la cible. **L'hypothèse principale**, à vérifier : les abandons au plafond de 600 actions (des bots perdus) montent quand des clés sont déplacées sans le moindre indice, 38,5 % des parties contre 24,0 % en livraison 1, tandis que l'évacuation de B2 passe de 16,5 % à 13,0 %. Ce n'est qu'une hypothèse : la comparaison se fait avec la livraison 1, sur une autre liste publiée, et aucune mesure n'a isolé l'effet des clés déplacées. La note de rangement, qui dit où une clé est allée, arrive avec la livraison 3. À proposer au porteur : mesurer de nouveau après la livraison 3, avec les notes de rangement et un bot qui les lit, avant de toucher aux poids. La rencontre arrive toujours tard, après le seuil d'environ 45 actions (D-321, #217). Mesuré de nouveau en livraison 3, avec les notes de rangement et un bot qui les lit : voir §7.14.
+
+**Captures** (`npm run captures`). Huit captures (100 à 107), à 390 et 320 px, sur la station `g1-m01-m02-m04-m03-observation-19` : la caisse dans la consigne (dock, puis fiche), le laboratoire pillé après « Regarder », la trousse de soin trouvée dans la buanderie (inventaire). Les captures 93 à 99 changent de station : le témoin de l'ancienne ne vaut plus, la caisse ayant quitté l'atelier. Un test de l'appli épingle qu'une sauvegarde de grande station incohérente avec son journal n'est pas reprise ; le moteur le refusait déjà.
+
+**Reporté :** la note de rangement et les documents (livraison 3 ; faits au §7.14) ; `check:texts` ne contrôle pas encore directement les phrases de pillage et de trace (critère de la spec §11, couvert aujourd'hui par `content/textes/rendu.test.ts`), à faire en livraison 3 (fait au §7.14) ; une nouvelle mesure de la difficulté après la livraison 3 (faite au §7.14 : la cible reste non atteinte), avec les notes de rangement et un bot qui les lit, avant tout réglage des poids de la table de butin, qui exige l'accord du porteur ; sur les grandes stations, la forme en ordre libre et la perte de la planche dans `check:sortie` ; l'essai sur téléphone.
+
+### 7.14 Grandes stations, livraison 3 (#209)
+
+> **Statut :** proposé par la PR #230, sur la même branche que les livraisons 1 et 2 (D-327, zone orange) ; la fusion attend la vérification de la livraison, l'essai sur téléphone et l'accord du porteur. **Validation humaine requise** : chaque morceau joué au moins une fois dans une grande station (D-325), et l'avis du porteur sur l'écriture des documents (spec §11). Aucune partie n'a encore été jouée sur téléphone avec cette livraison. Conception : [grandes stations habitées](superpowers/specs/2026-10-18-grandes-stations-design.md) §7.3, §8, §9 et §11, décisions D-322 à D-324 ; D-328 vient d'une demande du porteur faite pendant la livraison. **Le critère de difficulté de la conception (spec §11), qui traduit D-314, n'est toujours pas atteint** (voir « Difficulté » et « Alerte au porteur »).
+
+**Ce que la livraison 3 apporte.** La bible de l'univers, [17 — univers](17-univers.md) (D-322). C'est un document d'auteur, interdit au playtester comme celui-ci. Elle apporte aussi 36 documents à lire, de cinq supports, cinq à sept par station (D-323). Parmi eux, la note de rangement dit où une clé est allée. Leur rendu structuré est commun à l'appli et à la CLI, et la fiche document s'ouvre dans la bulle (D-324, [12 §4.4](12-interface-ecrans.md#44-fiche-dobjet--poste-dappel)). La couverture réserve une place de document à chaque pièce vide du catalogue. `npm run check:texts` contrôle la réserve. Le profil averti des bots lit les documents. La liste est republiée. Enfin, à la demande du porteur, « Poser » la caisse sous la grille se fait d'un seul geste (D-328). Rien d'autre ne change au jeu. Un document est un objet fixe, sans qualité, que l'on lit gratuitement (D-014) et que la partie n'enregistre pas.
+
+**La réserve** (spec §8.4 ; les places sont dans `content/textes/documents.ts`, les textes de morceau dans la section `documents` de chaque morceau). 36 documents, au lieu des « environ 40 » de la conception :
+
+| Couche | Nombre | Où ils se posent |
+| --- | ---: | --- |
+| Univers | 8 | pièces du catalogue, selon leurs étiquettes |
+| Menace | 12, trois par étape | dans l'ordre du trajet : étapes 1 et 2 au premier tiers, 3 au deuxième, 4 au dernier |
+| Morceaux | 8 | pièce face du morceau (la pièce de sa coupe, côté avant), ou annexe pendue à elle ; seulement si le morceau est dans la station |
+| Notes de rangement | 8 | clé déplacée : sa note ; trousse de soin : sa note, si une trousse est posée |
+
+Les cinq supports sont la note manuscrite, le journal de terminal, le message enregistré, l'inscription et l'affiche de la compagnie. Un document compte une à cinq phrases, ou cinq lignes de journal au plus. Les huit témoignages couvrent les huit chemins. M-03 et M-06, les finals, n'en ont pas : leurs objets portent déjà leur mode d'emploi. Auteurs, noms de puce et textes sont dans la bible ; ils ne sont pas recopiés ici. L'assistant principal les a écrits : un exécutant n'écrit pas de texte de jeu (D-243). La relecture indépendante (D-116) a conclu « prêt après corrections ». Elle a demandé quatre corrections, toutes faites, dont une règle fausse sur le froid, qui ralentit la créature toute la partie (D-166 et D-239). Treize améliorations ont été reprises. Les textes ne sont pas validés par le porteur.
+
+**Déclarations** (spec §8.5). Un document est un objet `document: true`, fixe, non portable et sans qualité. `validerMonde` refuse tout autre champ que son identifiant, son nom, sa pièce, `portable`, `document` et `designe`. `designe`, réservé à la note de rangement, nomme la pièce de la clé. « Regarder » rend le document par une consultation `regarder_document`, gratuite ; rien d'autre ne change dans le menu. L'étape d'assemblage `poserDocuments` (`engine/documents.ts`) vient après le butin, sur sa propre sous-graine. Le rendu (`rendreDocument`, `content/textes/document.ts`) remplit le seul trou permis, la pièce d'une note de rangement (formes `le`, `de` et `a`). Il y met la vraie pièce, lettre comprise : la lettre qui distingue deux pièces de même nom (« consigne B »).
+
+**Règles de pose retenues par l'agent**, à relire par le porteur (D-323) :
+- une pièce, un document ; jamais au vestibule (D-257), ni dans une salle pillée (sa phrase de pillage dit qu'il n'y reste rien, C-05), ni dans une pièce en feu ; un document peut partager sa pièce avec une clé ou un butin ;
+- la note d'une clé déplacée est toujours posée : dans la pièce qui fait face à l'obstacle, sinon (cette pièce étant déjà prise, cas de la combinaison et de la découpeuse de M-06) dans la pièce d'origine de la clé, restée vide (spec §6.5), sinon dans une annexe pendue à la pièce face, jamais celle de la clé ; la note d'une clé qui n'a pas bougé est facultative et n'est pas posée ;
+- la note de la trousse se pose seulement avec une trousse, dans une pièce du catalogue autre que la sienne ;
+- le document d'un morceau va dans la pièce face si elle est libre, sinon dans une annexe pendue à elle, sinon il n'est pas posé ;
+- les documents de la menace suivent l'ordre du trajet ; une étape peut manquer, mais au moins un document de menace est toujours posé ;
+- tant qu'une pièce du catalogue ne porte rien (ni objet, ni pillage, ni trace, ni porte de boucle), une place de document lui reste réservée ; les documents de morceau laissent aussi une place à la menace ; les notes obligatoires et le premier document de la menace passent outre. Dans l'ordre de pose du plan d'implémentation, les pièces face prenaient les documents et les pièces du catalogue restaient vides : 292 graines sur 300 n'avaient plus de plan ;
+- une station dont la couverture manque est reconstruite avec une annexe de moins, tant qu'il en reste plus de six ; une extension qui tomberait sous 21 pièces dessinées n'a pas de plan (`piecesMin`, spec §4.1 et §11).
+
+**Assemblage.** Première mesure, d'essai, sur 300 graines et une réserve d'essai. Graines sans plan : 158 sans les documents, 170 avec. Sur les 130 stations avec plan, 27 sont reconstruites avec une annexe de moins (20,8 %). Les 130 portent 5,85 documents en moyenne. 81 clés sont déplacées, chacune avec sa note. L'assemblage prend 17,5 ms en moyenne et 104,6 ms au pire (`tools/grandes.test.ts` borne la moyenne à 50 ms). Deuxième mesure, sur toutes les compositions (288 compositions, graines 0 à 9) : 1 422 graines avec plan en livraison 2, 1 366 avec les documents, 1 344 avec le minimum de 21 pièces dessinées. Le minimum retire 22 plans (−1,6 % des plans) ; les documents et le minimum ensemble, 5,5 %. La famille `m01-m02-m05-m03-tri` (et `m02-m01-m05-m03-tri`) est la plus touchée. Troisième mesure, sur les 538 stations publiées : le critère « moins de 50 ms par station » (spec §11) se lit comme une moyenne. L'assemblage prend 20,3 ms en moyenne, 47,9 ms au 95ᵉ centile et 106 ms au pire. 22 stations sur 538 dépassent 50 ms avec les documents ; 12 les dépassent sans eux.
+
+**Contrôles.**
+- Structure de chaque station (spec §7.3, `tools/controles-grande.ts`). De cinq à sept documents, davantage si les notes de rangement l'exigent. Une pièce, un document. Aucun en salle pillée ni au vestibule. Chaque place existe dans la réserve. Une note pour chaque clé déplacée, dans une pièce permise : elle désigne la pièce de sa clé et n'est jamais dans cette pièce. Le document d'un morceau seulement si le morceau est là. Les étapes de la menace dans l'ordre du trajet. Les documents de l'univers dans une pièce du catalogue de leurs étiquettes. Des noms de puce distincts. Chaque pièce du catalogue porte un objet, un pillage, une trace ou un bout de porte de boucle. La propriété sur 1 000 stations construites reste verte.
+- Textes (`npm run check:texts`) : toute la réserve, sans station de référence. Structure : une place par texte et un texte par place. Trous : seulement dans le corps d'une note de rangement, qui doit en porter un. Support : une note de rangement est une note manuscrite. Couches et mots réservés : l'univers sans mot de la menace ni des traces, la menace sans « station », les morceaux et les notes sans aucun mot réservé. Longueur. Chiffres : aucun dans la puce, la ligne « où » ni la signature. Noms de puce distincts de tout nom de pièce ou d'objet. Rendu de chaque note de rangement avec chaque pièce du catalogue de sa clé. Il contrôle aussi, directement, les phrases de pillage, de trace et de bruit de station (reporté de la livraison 2). Il explore enfin trois grandes stations de la liste : la première en chaîne, la première en ordre libre, la première qui porte la note d'une clé déplacée, jusqu'à 10 000 états chacune.
+
+**Bots adaptés** (spec §11). Le profil averti (B4) regarde chaque objet d'une pièce à sa première visite, par un « regarder » gratuit que la partie n'enregistre pas. Il ne sait pas à l'avance quel objet est un document. Avant la rencontre, il prend pour but la plus proche des pièces qu'une note désigne, non visitée et joignable par les passages connus. Un geste sur la route d'une pièce désignée vaut `PRIX_NOTE` moins la distance, avec `PRIX_NOTE = 180`. Ce prix est au-dessus de l'exploration (100) et du ramassage (150), et sous un geste jamais essayé (200). Une destination qui ne rapproche pas s'use : après `PATIENCE_NOTE = 15` choix, la pièce n'est plus qu'un but d'exploration ordinaire. Après la rencontre, la note ne pèse plus. Les autres profils ne changent pas. Essai hors mesure, sur 150 parties de 80 stations publiées : 755 documents lus sans erreur, 81 notes de rangement lues. 71 des pièces désignées sont visitées en fin de partie, contre 68 pour le prudent aux mêmes graines.
+
+**Republication** (`npm run publier:grandes`, D-326) :
+- 538 stations publiées, sur 271 des 288 grandes compositions, dont 171 en ordre libre (31,8 %) ;
+- 3 398 s de publication ; `check:stations` vert (code 0) ; suite complète : 2 132 tests passés ;
+- la liste est republiée sous les mêmes identifiants `g1-…` (la version du générateur reste 1 jusqu'à la fusion) : une station de la livraison 2 n'a plus forcément le même plan, et un témoin qui posait la caisse sans position n'est plus valable (D-328) ;
+- une sauvegarde faite sur une grande station sans ses documents ne se reprend pas sur la même station avec ses documents : reprise refusée, sauvegarde intacte (test de l'appli, `app/jeu.test.ts`) ; le format de sauvegarde et les empreintes figées des petites stations ne changent pas.
+
+**Publication accélérée** ([#237](https://github.com/greffeb/void-walker/issues/237), 2026-10-20). La garantie ne change pas : chaque station publiée l'est par un témoin rejoué avec les vraies règles, avec et sans butin.
+- En ordre libre, la recherche du chemin principal plafonnait à 150 000 états : sa priorité, faite pour les petites stations, ne guidait pas le passager dans le troisième chemin, entre le sas et le final. Ce chemin compte maintenant comme l'approche du final. L'ordre des petites stations ne change pas.
+- La recherche directe ne sert plus qu'en dernier recours : d'abord les témoins du chemin principal sur toutes les graines essayées, puis la recherche directe sur les graines restées sans preuve, s'il manque des stations. En ordre libre, un premier ordre non prouvé arrête la graine.
+- Une station déjà publiée dont les témoins se rejouent encore (le contrôle de `check:stations`, environ 30 ms) est gardée sans recherche ; `--tout` reprouve tout.
+- Mesure sur 12 compositions (6 en ordre libre, 8 avec M-11 ou M-12), `--par=1 --essais=2` : 9 stations et 3 compositions sans station avant comme après, mêmes graines ; 544 s cumulées avant, 353 s après. Une graine prouvée en ordre libre passe de 32 à 49 s à 2 ou 3 s. Les graines sans preuve gardent le coût de la recherche directe jusqu'au plafond (26 à 35 s chacune).
+- Ces graines coûtent surtout aux compositions sans station (créature au palier ou à l'atelier, la moitié d'un échantillon de 14), environ 600 s chacune aux réglages de publication. La seconde passe ne refait plus la preuve du chemin principal de la première. Une composition restée sans station est notée dans `tools/grandes-sans-station.json`, avec l'empreinte de sa définition (morceaux, catalogue de pièces, butin, documents) et du moteur, et le nombre de graines essayées. Elle n'est plus recherchée tant que ces empreintes ne changent pas et que `--essais` ne grandit pas ; `--tout` la reprend. Un changement du vérifieur seul ne la reprend pas. Mesure sur 4 compositions sans station, `--par=2 --essais=2` : 462 s cumulées avant, 352 s après ; la publication suivante les passe en moins d'une seconde.
+- Une composition paie au plus trois recherches directes ; le plafond reste à 150 000 états. Sur 35 recherches directes (14 compositions à créature au palier ou à l'atelier, trois graines au plus chacune), une seule réussit, à 128 482 états : un plafond plus bas la perdrait. Dans les mesures précédentes, les compositions qui ont une station par la recherche directe la trouvent dans leurs trois premières ; certaines n'en gardent qu'une au lieu de deux. Une composition sans espoir coûte environ 120 s au lieu de 320 s. Le journal de publication donne les états de chaque graine.
+
+**Difficulté**, 1 000 parties par profil sur 268 stations tirées dans la liste, plafond de 600 actions (`npm run mesurer:difficulte -- --grandes`, puis `-- --grandes --sans-butin`). La livraison 2 est mesurée sur une autre liste :
+
+| Mesure | Livraison 3 | Livraison 2 |
+| --- | ---: | ---: |
+| B2, avec butin : évacuation | 14,1 % | 13,0 % |
+| B2, sans butin : évacuation | 14,4 % | 13,8 % |
+| B4 (averti), avec butin : évacuation | 11,9 % | 11,7 % |
+| B4, sans butin : évacuation | 11,9 % | 10,7 % |
+| B2 : défaites | 53,0 % | 48,5 % |
+| B2 : abandons au plafond (bots perdus) | 32,9 % | 38,5 % |
+| B4 : abandons au plafond | 32,6 % | non relevé |
+| B2 : actions avant la rencontre (médiane) | 105 | 106,5 |
+| B2 : moment de la rencontre dans la partie (médiane) | 92 % | 92 % |
+| B2 : évacuations sans rencontre | 51,8 % | 58,5 % |
+| B2 : jamais de contact, parties finies | 10,9 % | non relevé (12,0 % en livraison 1) |
+| B4 : jamais de contact, parties finies | 6,7 % | non relevé |
+| Clés déplacées | 15,3 % | 16,2 % |
+| Salles de butin vides | 56,8 % | 54,9 % |
+
+B2 évacue 14,1 % des parties avec le butin, pour 25 à 35 % visés ; la livraison 1 donnait 16,5 % (§7.12). L'écart entre avec et sans butin reste dans le bruit de la mesure (0,3 point pour B2, aucun pour B4). Les abandons de B2 passent de 38,5 % à 32,9 % et profitent aux défaites (+4,5 points) plus qu'aux évacuations (+1,1 point). B2 ne lit aucun document, et B4, qui lit chaque document et va vers la pièce qu'une note désigne, abandonne autant (32,6 %).
+
+**Alerte au porteur** (spec §6.6, §10, §11 ; D-314, D-320, D-321). Quatre points :
+- **La cible n'est toujours pas atteinte.** B2 évacue 14,1 % des parties avec le butin, pour 25 à 35 % visés. Ni le butin ni la lecture des notes par le bot averti ne rapprochent les bots de la cible ; aucun réglage n'a été touché, et les poids de la table de butin exigent l'accord du porteur.
+- **L'hypothèse de la livraison 2 n'est pas confirmée.** On supposait que les abandons montaient parce que des clés étaient déplacées sans indice, et que la note de rangement les ferait baisser. Les abandons de B2 baissent bien, mais B2, qui ne lit rien, en a autant que B4, qui lit les notes : la baisse ne vient pas de la lecture. La liste, les graines et la couverture des annexes ont changé en même temps ; aucune mesure ne les isole.
+- **La rencontre reste tardive.** 105 actions en médiane, à 92 % de la partie, pour un seuil d'environ 45 actions ; 10,9 % des parties finies de B2 sans aucune rencontre (seuil : 10 %), et plus d'une évacuation sur deux (51,8 %) sans croiser la créature. La décision d'une ronde (#217) reste à prendre.
+- **Deux réglages du bot averti ne sont pas mesurés.** `PRIX_NOTE` (180) et `PATIENCE_NOTE` (15) ont été choisis, pas mesurés. Ce que ces bots ne disent pas : si un joueur humain tire parti des notes ; seul l'essai sur téléphone le dira.
+
+**Captures** (`npm run build && npm run captures`, « réussis », code 0, 172 images, à 390 et 320 px). Six fiches sont prises : note de rangement avec sa pièce soulignée, note, journal horodaté, message, inscription, affiche. Chacune l'est à 390 et 320 px, soit douze captures, 110 à 121. Chaque fiche est prise dans la première station de la liste qui l'offre au plus court du témoin publié. Elle est ouverte comme le joueur, par la puce du dock. La capture vérifie les cibles de 44 px, l'absence de débordement, la tenue de la bulle dans l'écran, et que la dernière ligne s'atteint en faisant défiler. Pour les chiffres, le corps d'un document est seul épargné. La capture prouve aussi qu'un chiffre ajouté ailleurs (support, ligne « où », titre de la bulle) reste refusé. Les numéros d'image changent quand on relance : `captures/resultat.json` fait foi. La carte et le dock de couloir chargé sont toujours captés. Des contrôles dans un navigateur, à 390 et 320 px (une note de rangement, le journal, l'étape « OÙ ? » de « Poser »), ont précédé les captures. Aucun n'a eu lieu sur téléphone. Une fiche longue (journal, message, affiche) est coupée à 320 px et défile dans la bulle, sans indice visuel : à voir sur téléphone.
+
+**Carte au zoom d'ensemble** (spec §9.3, captures 96 et 97 à 390 px, 100 et 101 à 320 px). Les bornes de zoom n'ont pas changé. Les noms ne se lisent pas : à 390 px, 3 noms sur environ 9 pièces à mi-chemin, 2 sur environ 15 quand le témoin est presque entier ; à 320 px, aucun. Le plan, ouvert centré sur le passager, sort du cadre à gauche (des pièces et deux noms tronqués) avec un grand vide au-dessus ; `verifierCarte` passe, ce n'est pas un débordement de page. Les captures sont montrées au porteur, à qui revient la décision (bornes de zoom, centrage).
+
+**Reporté :** l'essai sur téléphone, et l'avis du porteur sur l'écriture des documents et sur la fiche (barre du journal, fiche longue à 320 px) ; la décision sur les noms de la carte au zoom d'ensemble ; la décision d'une ronde de la créature (#217) ; le critère de difficulté (25 à 35 %), qui demande une décision du porteur avant tout réglage ; les réglages non mesurés du bot averti ; sur les grandes stations, la forme en ordre libre et la perte de la planche dans `check:sortie` (livraison 2) ; la version du générateur, qui change à la fusion (spec §12).
+
+**Reprise de `main` (2026-10-20).** La branche a repris M-11 (§7.10), M-12 (§7.11) et l'intro de NOUVELLE PARTIE (D-308 à D-312). Ses décisions sont renumérotées D-313 à D-328, ses questions Q-212 à Q-227, et ses sections §7.12 à §7.14. M-11 et M-12 reçoivent leurs déclarations de grande station (obstacle matériel, pièces accueillantes, coupe), mais pas encore de document de témoignage. Ils ne sont pas tirés dans les grandes stations (`PAS_ENCORE_TIRES`, `content/stations/grandes.ts`), dont la liste publiée ne change pas, et restent jouables dans les petites stations. Les y tirer demande de republier la liste : un travail à part (fait au §7.15). La pièce `a-vestiaire` du catalogue s'appelle désormais « salle des casiers », M-11 ayant pris le nom « vestiaire ». L'intro numérote et dessine les grandes stations publiées, puisque NOUVELLE PARTIE les tire : « Station N sur T » compte leurs compositions (D-312), sans la graine.
+
+### 7.15 M-11 et M-12 dans les grandes stations (#236)
+
+> **Statut :** proposé par la PR de #236, en zone orange. **Validation humaine requise** : une partie au bout sur téléphone dans une grande station avec M-11, puis une avec M-12 (D-325). Choix de l'agent : D-329.
+
+**Ce qui change.** M-11 et M-12 sont tirés dans les grandes stations (`PAS_ENCORE_TIRES` est retiré). Comme les deux sont des obstacles matériels, ils se placent en branche A ou B comme en troisième chemin. On passe de 288 grandes compositions à **1 080** : 720 en chaîne et 360 en ordre libre. 792 d'entre elles contiennent M-11 ou M-12.
+
+**Déclarations.** Les déclarations de §7.12 et §7.13 sont complétées :
+- **Clé.** La carte de sécurité de M-11 devient une clé déplaçable, d'étiquette `securite`. La seule pièce du catalogue qui porte cette étiquette est la salle des casiers. Le chariot de M-12 ne se porte pas, et M-12 n'a pas de clé.
+- **Documents**, écrits par l'assistant principal (D-243), relus indépendamment (D-116) : « prêt après corrections », les quatre corrections obligatoires sont faites. Ces trois documents portent la réserve à 39 :
+  - M-11, *journal d'Inès* : la carte au lecteur, la porte blindée refermée ; elle s'arrête devant et n'essaie même pas.
+  - M-12, *message de Clara* : le drone tient la poignée, fait du bruit, est jeté hors du rail, remis en place et relancé, puis le chariot est poussé.
+  - M-11, *fiche de prêt* (Sami) : la note de rangement de la carte.
+- La bible ([17](17-univers.md)) est mise à jour.
+
+**Règles vérifiées dans de vraies grandes stations** (`tools/grandes-m11-m12.test.ts`, 60 stations avec M-11 et 30 avec M-12) :
+- La remise ne s'ouvre que sur le vestiaire, porte fermée au départ (D-293). Le sas de sécurité ne s'ouvre que par la porte blindée et la sortie. Aucune porte de boucle n'y donne.
+- Une créature alertée, venue par une porte de boucle donnant sur le poste de sécurité, puis mise sur la piste du sas, ne secoue ni n'enfonce la porte blindée refermée (D-292). Sans le blindage, le même test échoue.
+- Le rail, la poignée et le chariot restent dans M-12, et aucune porte de boucle ne donne sur la réserve. Un drone déraillé se replace puis se réarme sur place, tient la poignée, et le chariot rangé libère le passage (D-304, D-305).
+
+**Deux corrections du vérifieur et du générateur :**
+- **La porte blindée n'est pas une cloison du carrefour.** La preuve des grandes stations comptait comme cloisons de l'ordre libre toutes les liaisons verrouillées, porte blindée comprise. Toute station avec M-11 était donc écartée (« Deux cloisons verrouillées attendues »). La preuve et le rejeu des témoins ne comptent plus que les cloisons du carrefour (`cloisonsDuCarrefour`), comme les petites stations depuis #203.
+- **28 pièces dessinées au plus.** En ordre libre, M-12 (six pièces) avec deux chemins de cinq pièces et M-06 donnait 23 pièces de morceaux. Les six annexes minimales portaient la station à 29 pièces, et le contrôle l'écartait. Ces compositions prennent cinq annexes (D-329).
+
+**Plans.** Sur un quart des compositions, dix graines chacune, 36,0 % des graines ont un plan (2 700 graines). C'est 45,0 % sans M-11 ni M-12, et 32,8 % avec : 44,9 % en chaîne, 18,2 % en ordre libre. Le seuil du test passe de 40 % à 35 %. La publication saute les graines sans plan sans les compter. Les stations publiées comptent 21 à 28 pièces dessinées, 24 en médiane, avec une porte de boucle dans 1 707 stations, deux dans 290 et trois dans 15.
+
+**Republication** (`npm run publier:grandes -- --processus=14`, avec l'accélération de #237, 2026-10-21) :
+- **2 012 stations publiées**, sur 1 013 des 1 080 compositions, dont 660 en ordre libre, en 5 015 s.
+- **1 470 stations sur 2 012 (73,1 %) contiennent M-11 ou M-12**. Par morceau : M-11 dans 884 stations (43,9 %), M-12 dans 907 (45,1 %). Par composition : 740 sur 1 013 (73,0 %).
+- **Graines prouvées :**
+  - les 538 stations de la livraison 3 sont gardées, leurs témoins se rejouant encore ;
+  - 1 134 sont prouvées par le témoin du chemin principal, 318 par un témoin réparé, 22 par la recherche directe ;
+  - 239 graines essayées n'ont pas été prouvées.
+- **67 compositions sans station** (28 en ordre libre ; 36 avec M-11, 23 avec M-12, 15 sans l'un ni l'autre). Le nom de chacune se termine par `atelier` ou `palier` : la créature bouche le seul passage de M-01 ou de M-02 (D-268). Elles sont notées dans `tools/grandes-sans-station.json`.
+- `check:stations` est vert en 207,5 s. Toute partie de grande station en cours avant la republication ne se reprend pas.
+
+**`check:sortie`** : 0 écart, en 383,9 s (128,4 s en livraison 2). L'échantillon prend toujours la première station de chaque clé déplacée, carte de M-11 comprise (`g1-m01-m11-m10-m06-entrepot-46`). Il y ajoute la première station en chaîne de chaque chemin encore absent : M-05, M-07, M-09 et M-12 (`g1-m01-m02-m12-m03-reserve-12`). Il compte 11 grandes stations, et un test vérifie que chaque chemin y figure.
+
+**Difficulté**, 1 000 parties par profil sur 617 stations tirées dans la liste, plafond de 600 actions (`npm run mesurer:difficulte -- --grandes`, puis `-- --grandes --sans-butin`). La livraison 3 est mesurée sur une autre liste (538 stations, sans M-11 ni M-12) :
+
+| Mesure | Avec M-11 et M-12 | Livraison 3 |
+| --- | ---: | ---: |
+| B2, avec butin : évacuation | 15,7 % | 14,1 % |
+| B2, sans butin : évacuation | 17,2 % | 14,4 % |
+| B4 (averti), avec butin : évacuation | 14,1 % | 11,9 % |
+| B4, sans butin : évacuation | 17,4 % | 11,9 % |
+| B2 : défaites | 64,9 % | 53,0 % |
+| B2 : abandons au plafond (bots perdus) | 19,4 % | 32,9 % |
+| B4 : abandons au plafond | 20,0 % | 32,6 % |
+| B2 : actions avant la rencontre (médiane) | 91 | 105 |
+| B2 : moment de la rencontre dans la partie (médiane) | 90 % | 92 % |
+| B2 : évacuations sans rencontre | 54,8 % | 51,8 % |
+| B2 : jamais de contact, parties finies | 10,7 % | 10,9 % |
+| B4 : jamais de contact, parties finies | 7,0 % | 6,7 % |
+| Clés déplacées | 12,7 % | 15,3 % |
+| Salles de butin vides | 55,0 % | 56,8 % |
+
+Sans butin, les bots évacuent davantage : 1,5 point de plus pour B2, 3,3 points pour B4. En livraison 3, l'écart restait dans le bruit (0,3 point). La mesure ne dit pas pourquoi : les bots ne ramassent ni n'emploient forcément le butin, et la station sans butin est la même aux mêmes graines. Évacuation de B2 par morceau : M-11 15,0 % (413 parties), M-12 15,7 % (459). Les plus durs restent M-07 (1,3 %), M-03 (3,4 %) et M-10 (6,0 %). Le rapport de mesure écrit « 1080 grandes compositions publiées » ; 1 013 ont une station publiée.
+
+**Alerte au porteur.** La cible de 25 à 35 % pour B2 (D-314) n'est toujours pas atteinte : 15,7 %. Les abandons baissent nettement (19,4 % au lieu de 32,9 %), mais ils passent surtout aux défaites (+11,9 points). La rencontre reste tardive : 91 actions en médiane, pour un seuil d'environ 45 (#217). Aucun réglage n'a été touché.
+
+**Captures** : une carte de grande station avec M-11, puis avec M-12, à 390 px, le témoin publié joué jusqu'à son dernier geste exclu (`parcoursGrandesM11M12`, `tools/captures.ts`). `npm run build && npm run captures` : « réussis », code 0 ; captures 103 (`g1-m01-m02-m11-m03-remise-1`) et 104 (`g1-m01-m02-m12-m03-reserve-12`). Les numéros changent quand on relance : `captures/resultat.json` fait foi. Aucun essai sur téléphone.
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 

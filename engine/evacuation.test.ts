@@ -44,6 +44,7 @@ const MONDE: DefMonde = {
     { id: 'bienvenue', quand: { type: 'reveil' } },
     { id: 'local', quand: { type: 'arrivee', piece: 'local' } },
     { id: 'depart', quand: { type: 'evacuation' } },
+    { id: 'patience', quand: { type: 'patience' } },
   ],
 };
 const VERSION = 'evacuation-1';
@@ -309,5 +310,27 @@ describe('circuit, source et capsule (AR-01 §11.2)', () => {
     };
     const aBord: Partie = { ...depart, etat };
     expect(option(aBord, 'lancer', 'pupitre', avecCreature)).toMatchObject({ disponible: false, raison: 'creature_a_bord' });
+  });
+});
+
+describe('message de patience (#225)', () => {
+  const attendre = (courante: Partie, fois: number): { partie: Partie; messages: string[] } => {
+    let suivante = courante;
+    const messages: string[] = [];
+    for (let rang = 0; rang < fois; rang += 1) {
+      const pas = engager(suivante, 'attendre', 'quai');
+      suivante = pas.partie;
+      messages.push(...pas.evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [`${rang + 1}:${evenement.message}`] : [])));
+    }
+    return { partie: suivante, messages };
+  };
+
+  it('à la 15e attente de suite seulement, une fois par partie, daté « en attendant » ; une autre action remet la série à zéro', () => {
+    const coupee = attendre(engager(attendre(partie(), 14).partie, 'fermer', 'porte').partie, 14);
+    expect(coupee.messages).toEqual([]);
+    const longue = attendre(coupee.partie, 16);
+    expect(longue.messages).toEqual(['1:patience']);
+    expect(historique(MONDE, longue.partie.etat).at(-1)).toEqual({ message: 'patience', moment: { type: 'patience' } });
+    expect(attendre(engager(longue.partie, 'ouvrir', 'porte').partie, 15).messages).toEqual([]);
   });
 });

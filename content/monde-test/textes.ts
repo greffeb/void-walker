@@ -10,6 +10,8 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
+import { BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TRACES } from '../textes/couches';
+import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
 
@@ -47,6 +49,8 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ],
   },
   evenements: {
+    bruit_station: BRUITS_STATION,
+    objet_pose_position: POSE_POSITION,
     reveil: [
       'Vous ouvrez les yeux dans {le:piece}. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.',
       'Vous vous réveillez dans {le:piece}, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.',
@@ -183,6 +187,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   },
   gelures: GELURES,
   asphyxie: ['L’air vous quitte d’un coup. Votre vue se brouille, puis plus rien.'],
+  attentesLongues: ATTENTES_LONGUES,
   evacuations: {
     circuit: ['Le circuit tient. La capsule se détache et file dans le noir.'],
     bloc: ['Le bloc tient. La capsule se détache et file dans le noir.'],
@@ -260,6 +265,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     ...LIBELLES_MORCEAUX,
   },
   allerSansDestination: 'Passer par {le:cible}',
+  poserAPosition: POSER_A_POSITION,
   verbes: {
     regarder: 'Regarder',
     prendre: 'Prendre',
@@ -312,8 +318,14 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
     ...OBSERVATION_MORCEAUX,
   },
+  fin: FIN,
+  traces: TRACES,
+  pillages: PILLAGES,
+  documents: {},
+  supports: SUPPORTS,
   apercu: {
     risques: {
       aucun: 'aucun risque connu',

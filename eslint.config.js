@@ -12,6 +12,7 @@ export default defineConfig(
     'captures/',
     '.void-walker/',
     '.worktrees/',
+    '.claude/',
   ]),
   js.configs.recommended,
   tseslint.configs.recommended,

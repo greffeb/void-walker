@@ -1,5 +1,5 @@
-import { assemblerStation, empreinteEtat, idPublic, lireExport, rejouer } from '../engine';
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, type Catalogue, type EntreeMonde } from '../content';
+import { assemblerStation, empreinteEtat, idPublic, lireExport, nouvellePartie, observer, rejouer, reprendrePartie } from '../engine';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, type Catalogue, type EntreeMonde, type Nom, type TexteDocument } from '../content';
 import { AIDE, choisirEntree, executer, PARTIE_PAR_DEFAUT, type Contexte, type EntreesSorties, type Sortie } from './partie-cli';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
@@ -224,6 +224,19 @@ describe('CLI', () => {
     expect(fin).not.toContain('Cette partie est terminée. Elle ne peut pas être reprise.');
     expect(fin).toContain('Partie terminée : plus aucune action possible.');
     expect(fin).toContain('Actions engagées : 14');
+    // L'écran de fin, mêmes mots que l'appli (D-281, C-06 K-07) : titre, récit de la partie, message de départ.
+    const ecranFin = fin.slice(fin.indexOf('> FIN DE LA PARTIE'));
+    expect(ecranFin[1]).toBe('La capsule s’est détachée.');
+    expect(ecranFin[3]).toBe('Vous vous êtes réveillé dans le salon de transit. Dans le local énergie, vous avez découvert un passage caché.');
+    expect(ecranFin.at(-2)).toMatch(/Vous partez indemne\. Vous n’avez jamais vu ce qui rôdait à bord\.$/);
+    expect(ecranFin.at(-1)).toBe('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
+    expect(executer(['voir'], ctx).lignes.slice(-ecranFin.length)).toEqual(ecranFin);
+    // Même récit que l'appli : celui de la partie enregistrée, relue du réveil (D-281).
+    const partie = reprendrePartie(AR01.monde, JSON.parse(ctx.fichiers.get(PARTIE_PAR_DEFAUT) ?? 'null') as unknown, VERSION);
+    const { graine } = partie.enregistrement;
+    const pas = [nouvellePartie(AR01.monde, { version: VERSION, graine }).derniers, ...rejouer(AR01.monde, partie.enregistrement, VERSION).etapes];
+    const recit = raconterFin(AR01.textes, pas, { issue: 'evacuation', sante: observer(AR01.monde, partie.etat).sante, graine, menace: true });
+    expect(ecranFin).toEqual(['> FIN DE LA PARTIE', recit.titre, ...recit.paragraphes.flatMap((paragraphe) => ['', paragraphe]), `[ IA STATION ] « ${recit.assistance.join('')} »`]);
     expect(executer(['jouer', '1'], ctx)).toEqual({ lignes: ['Cette partie est terminée : rien n’a été joué.'], code: 1 });
     expect(executer(['voir'], ctx).lignes).toContain('[ IA STATION ] « Alimentation confirmée. Écoutille fermée. Départ engagé. »');
     expect(executer(['exporter', 'fin.json'], ctx)).toEqual({
@@ -234,11 +247,11 @@ describe('CLI', () => {
 
   it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon une station tirée', () => {
     const ctx = contexte();
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
     expect(choisirEntree(['nouvelle', '--monde', 'monde-test'], CATALOGUE, ctx.es)).toBe(ENTREE);
     executer(['nouvelle'], ctx);
     expect(choisirEntree(['voir'], CATALOGUE, ctx.es)).toBe(ENTREE);
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
     expect(choisirEntree(['voir', '--monde', 'ailleurs'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
     expect(choisirEntree(['voir', '--monde', 'constructor'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : constructor\./);
     expect(choisirEntree(['voir', '--monde'], CATALOGUE, ctx.es)).toMatch(/--monde <id>/);
@@ -270,16 +283,14 @@ function mondeEnregistre(fichiers: ReadonlyMap<string, string>): unknown {
 }
 
 describe('CLI : station tirée (#152)', () => {
-  it('nouvelle sans option tire une station publiée, réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
+  it('nouvelle sans option tire une grande station publiée (D-313), réveil dans le vestibule ; voir la reprend, même avec un autre catalogue', () => {
     const ctx = contexte();
     const debut = appeler(['nouvelle'], CATALOGUE, ctx.es);
     expect(debut.code).toBe(0);
     expect(debut.lignes).toContain('Partie enregistrée.');
     expect(debut.lignes).toContain('Vous êtes dans le vestibule.');
     const id = String(mondeEnregistre(ctx.fichiers));
-    const [, composition, graine] = /^([a-z0-9-]+)-(0|[1-9][0-9]*)$/.exec(id) ?? [];
-    expect(COMPOSITIONS_PUBLIEES).toContain(composition);
-    expect(Number(graine)).toBeLessThanOrEqual(0xffffffff);
+    expect(CATALOGUE.publiees).toContain(id);
 
     const ailleurs = creerCatalogue(assemblerStation);
     expect(idStation(choisirEntree(['voir'], ailleurs, ctx.es))).toBe(id);
@@ -297,6 +308,15 @@ describe('CLI : station tirée (#152)', () => {
     const sortie = appeler(['nouvelle', '--station', 'm10-m03-entrepot'], CATALOGUE, ctx.es);
     expect(sortie.code).toBe(0);
     expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^m10-m03-entrepot-/);
+  });
+
+  it('--station <grande composition> : une grande station publiée de cette composition', () => {
+    const ctx = contexte();
+    const station = CATALOGUE.publiees[0] ?? '';
+    const composition = station.slice(0, station.lastIndexOf('-'));
+    const forcee = idStation(choisirEntree(['nouvelle', '--station', composition], CATALOGUE, ctx.es));
+    expect(CATALOGUE.publiees).toContain(forcee);
+    expect(forcee.startsWith(`${composition}-`)).toBe(true);
   });
 
   it('--station <identifiant> force cette station exacte, et l’emporte sur --monde', () => {
@@ -349,11 +369,195 @@ describe('CLI : station tirée (#152)', () => {
     expect(appeler(['jouer', '1'], CATALOGUE, sansTirage)).toEqual(refus);
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
     expect(appeler(['nouvelle'], CATALOGUE, ctx.es).code).toBe(0);
-    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^(m\d\d-){2,3}[a-z]+-\d+$/);
+    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
+  });
+
+  it('partie enregistrée sur une grande station d’une autre version des stations : le dit, code 1, sans y toucher (spec 2026-10-18 §4.3)', () => {
+    const ancienne = JSON.stringify({ enregistrement: { monde: `g0-${(CATALOGUE.publiees[0] ?? '').slice(3)}` } });
+    const ctx = contexte(new Map([[PARTIE_PAR_DEFAUT, ancienne]]));
+    expect(appeler(['voir'], CATALOGUE, ctx.es)).toEqual({ lignes: ['Station d’une version précédente des stations : la partie ne peut pas être reprise. Commencez une nouvelle partie : nouvelle'], code: 1 });
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
   });
 
   it('aide : --station, et --monde sans partie donne une station tirée', () => {
     expect(AIDE.some((ligne) => ligne.startsWith('Option : --station <id>'))).toBe(true);
     expect(AIDE).toContain('Option : --monde <id>  (à la reprise, le monde de la partie enregistrée ; sinon une station tirée)');
+  });
+});
+
+// Documents (#209, spec 2026-10-18 §9.2) : « regarder » dit le support, la ligne « où », puis le corps ligne à ligne et la signature.
+// Un monde de test avec une note, un journal, un message et une note de rangement dans la cabine.
+describe('regarder un document (#209, spec 2026-10-18 §9.2)', () => {
+  const nom = (texte: string, elision = false): Nom => ({ texte, genre: 'm', nombre: 's', elision });
+  const documents: Readonly<Record<string, TexteDocument>> = {
+    note_malik: {
+      puce: nom('mot de Malik'),
+      support: 'note',
+      ou: 'scotchée au montant d’une couchette',
+      corps: ['Je ne dors plus.', 'Si quelqu’un lit ceci, ne comptez pas sur la lumière.'],
+      signature: 'Malik',
+    },
+    journal_quart: {
+      puce: nom('terminal de quart'),
+      support: 'journal',
+      ou: 'resté allumé sur un pupitre',
+      corps: ['02:14  Sas arrière : pression nominale.', '03:05  Alimentation secondaire coupée.'],
+    },
+    message_enregistreur: {
+      puce: nom('enregistreur', true),
+      support: 'message',
+      ou: 'posé sur une tablette',
+      corps: ['Allô ? [souffle court] Vous m’entendez ?', '[long silence]'],
+    },
+    mot_lea: {
+      puce: nom('mot de Léa'),
+      support: 'note',
+      ou: 'glissée sous une patte de rangement',
+      corps: ['J’ai rangé la planche dans {le:piece}.', 'Rejoignez-moi {a:piece}.'],
+      signature: 'Léa',
+    },
+  };
+  const entree: EntreeMonde = {
+    ...ENTREE,
+    monde: {
+      ...ENTREE.monde,
+      objets: [
+        ...ENTREE.monde.objets,
+        ...Object.keys(documents).map((cle) => ({
+          id: `objet-${cle}`,
+          nom: cle,
+          piece: 'piece-cabine',
+          portable: false,
+          document: true as const,
+          ...(cle === 'mot_lea' ? { designe: 'piece-atelier' } : {}),
+        })),
+      ],
+    },
+    textes: {
+      ...ENTREE.textes,
+      noms: { ...ENTREE.textes.noms, ...Object.fromEntries(Object.entries(documents).map(([cle, { puce }]) => [cle, puce])) },
+      documents,
+    },
+  };
+
+  /** Ce que dit « regarder » ce document, sans la situation qui suit ; la partie enregistrée n'a pas bougé. */
+  function regarder(libelle: string): readonly string[] {
+    const ctx = contexte(new Map(), false, entree);
+    const debut = executer(['nouvelle'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    const sortie = executer(['jouer', numero(debut.lignes, libelle)], ctx);
+    expect(sortie.code).toBe(0);
+    expect(sortie.lignes).not.toContain('Partie enregistrée.');
+    expect(sortie.lignes).toContain('Actions engagées : 0');
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    const fin = sortie.lignes.indexOf('');
+    return sortie.lignes.slice(0, fin);
+  }
+
+  it('une note : le support, la ligne « où », un paragraphe par ligne, puis la signature', () => {
+    expect(regarder('Regarder le mot de Malik')).toEqual([
+      'Note manuscrite',
+      'scotchée au montant d’une couchette',
+      'Je ne dors plus.',
+      'Si quelqu’un lit ceci, ne comptez pas sur la lumière.',
+      'Malik',
+    ]);
+  });
+
+  it('un journal : « hh:mm  texte », une entrée par ligne', () => {
+    expect(regarder('Regarder le terminal de quart')).toEqual([
+      'Journal de terminal',
+      'resté allumé sur un pupitre',
+      '02:14  Sas arrière : pression nominale.',
+      '03:05  Alimentation secondaire coupée.',
+    ]);
+  });
+
+  it('un message : les didascalies, crochets compris, sont des lignes à part', () => {
+    expect(regarder('Regarder l’enregistreur')).toEqual([
+      'Message enregistré',
+      'posé sur une tablette',
+      'Allô ?',
+      '[souffle court]',
+      'Vous m’entendez ?',
+      '[long silence]',
+    ]);
+  });
+
+  it('une note de rangement : la pièce désignée est dite en clair, sans aucune marque', () => {
+    expect(regarder('Regarder le mot de Léa')).toEqual([
+      'Note manuscrite',
+      'glissée sous une patte de rangement',
+      'J’ai rangé la planche dans l’atelier.',
+      'Rejoignez-moi à l’atelier.',
+      'Léa',
+    ]);
+  });
+
+  it('« commande regarder » dit la même chose, et ne coûte rien non plus', () => {
+    const ctx = contexte(new Map(), false, entree);
+    executer(['nouvelle'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    const sortie = executer(['commande', 'regarder', idPublic(entree.monde.id, 'objet-journal_quart')], ctx);
+    expect(sortie.lignes.slice(0, 4)).toEqual(['Journal de terminal', 'resté allumé sur un pupitre', '02:14  Sas arrière : pression nominale.', '03:05  Alimentation secondaire coupée.']);
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+  });
+
+  it('regarder un objet ordinaire reste une phrase', () => {
+    const ctx = contexte(new Map(), false, entree);
+    const debut = executer(['nouvelle'], ctx);
+    const sortie = executer(['jouer', numero(debut.lignes, 'Regarder le carnet')], ctx);
+    expect(sortie.lignes[0]).toMatch(/carnet/);
+    expect(sortie.lignes[1]).toBe('');
+  });
+});
+
+describe('CLI : poser un appui porté à une position (demande du porteur, grandes stations)', () => {
+  // La caisse se porte en grande station (spec 2026-10-18 §6.5) : AR-01, dont l'atelier a déjà ses positions, la rend portable.
+  const PORTABLE: EntreeMonde = {
+    ...AR01,
+    monde: { ...AR01.monde, objets: AR01.monde.objets.map((objet) => (objet.id === 'o-caisse' ? { ...objet, portable: true, encombrant: true } : objet)) },
+  };
+
+  /** Caisse en main dans l'atelier ; renvoie le contexte et les commandes brutes des lignes « Poser la caisse », sous la grille d'abord. */
+  function caisseEnMain() {
+    const ctx = contexte(new Map(), false, PORTABLE);
+    let sortie = executer(['nouvelle', '--graine', '5'], ctx);
+    for (const libelle of ['Aller dans l’atelier maintenance', 'Prendre la caisse']) sortie = executer(['jouer', numero(sortie.lignes, libelle)], ctx);
+    const brutes = executer(['voir', '--ids'], ctx).lignes.filter((ligne) => ligne.includes('Poser la caisse'));
+    const [sous, centre] = brutes.map((ligne) => ligne.match(/\[poser (e[0-9a-f]{8}) (e[0-9a-f]{8})\]/)?.slice(1) ?? []);
+    return { ctx, lignes: sortie.lignes, brutes, sous: sous ?? [], centre: centre ?? [] };
+  }
+
+  it('une ligne « Poser » par position, chacune nommant la sienne ; l’aperçu et « jouer » suivent la ligne choisie', () => {
+    const { ctx, lignes, brutes } = caisseEnMain();
+    expect(brutes).toHaveLength(2);
+    const poses = lignes.filter((ligne) => ligne.includes('Poser la caisse')).map((ligne) => ligne.trim().replace(/^\d+\. /, ''));
+    expect(poses).toEqual(['Poser la caisse sous la grille', 'Poser la caisse au centre de l’atelier']);
+    const sous = numero(lignes, 'Poser la caisse sous la grille');
+    const centre = numero(lignes, 'Poser la caisse au centre de l’atelier');
+    expect(sous).not.toBe(centre);
+    expect(executer(['apercu', sous], ctx).lignes).toContain('Aperçu : Poser la caisse sous la grille');
+    expect(executer(['apercu', sous], ctx).lignes).toContain('  La caisse sera sous la grille.');
+    expect(executer(['apercu', centre], ctx).lignes).toContain('Aperçu : Poser la caisse au centre de l’atelier');
+    expect(executer(['apercu', centre], ctx).lignes).toContain('  La caisse sera au centre de l’atelier.');
+    const sortie = executer(['jouer', sous], ctx);
+    expect(sortie.code).toBe(0);
+    expect(sortie.lignes[0]).toMatch(/^Vous (posez|déposez) la caisse sous la grille/);
+    expect(sortie.lignes).toContain('Actions engagées : 3');
+    expect(sortie.lignes.some((ligne) => ligne.includes('Ouvrir la grille') && !ligne.includes('indisponible'))).toBe(true);
+  });
+
+  it('« commande poser » accepte la position ; sans elle, ou d’ailleurs, rien n’est joué', () => {
+    const { ctx, sous, centre } = caisseEnMain();
+    const [caisse = '', position = ''] = sous;
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    expect(executer(['commande', 'poser', caisse], ctx).lignes[0]).toBe('Ce n’est pas possible ici : rien n’a été joué.');
+    expect(executer(['commande', 'poser', caisse, caisse], ctx).lignes[0]).toBe('Ce n’est pas possible ici : rien n’a été joué.');
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    expect(centre[0]).toBe(caisse);
+    const sortie = executer(['commande', 'poser', caisse, position], ctx);
+    expect(sortie.lignes[0]).toMatch(/^Vous (posez|déposez) la caisse sous la grille/);
+    expect(sortie.lignes).toContain('Actions engagées : 3');
   });
 });

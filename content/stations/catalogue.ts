@@ -1,4 +1,4 @@
-import type { Assembleur, DefAccroche, DefAssistance, DefCommande, DefMonde, DefMorceau, DefStation } from '../../engine';
+import type { Assembleur, DefAccroche, DefAssistance, DefCommande, DefMonde, DefStation } from '../../engine';
 import { MONDE_AR01 } from '../ar-01/monde';
 import { PARCOURS_AR01 } from '../ar-01/parcours';
 import { TEXTES_AR01 } from '../ar-01/textes';
@@ -14,6 +14,7 @@ import { MONDE_M09 } from '../m-09/monde';
 import { PARCOURS_M09 } from '../m-09/parcours';
 import { TEXTES_M09 } from '../m-09/textes';
 import { PARCOURS_M10 } from '../m-10/parcours';
+import { PARCOURS_M12 } from '../m-12/parcours';
 import { MESSAGES_M10 } from '../m-10/textes';
 import { MONDE_TEST } from '../monde-test/monde';
 import { PARCOURS_MONDE_TEST } from '../monde-test/parcours';
@@ -23,12 +24,21 @@ import { CLOISON_1, cloison2, MORCEAU_CARREFOUR, TEXTES_MORCEAU_CARREFOUR } from
 import { MORCEAU_ESSAI, TEXTES_MORCEAU_ESSAI } from '../morceaux/essai';
 import { MORCEAU_M07, TEXTES_MORCEAU_M07 } from '../morceaux/m-07';
 import { MORCEAU_M10, TEXTES_MORCEAU_M10 } from '../morceaux/m-10';
+import { MORCEAU_M12, TEXTES_MORCEAU_M12 } from '../morceaux/m-12';
 import { MORCEAU_VESTIBULE, TEXTES_MORCEAU_VESTIBULE } from '../morceaux/vestibule';
 import { reunir } from '../textes/couches';
-import type { Nom, Variantes } from '../textes/types';
+import { DOCUMENTS } from '../textes/documents';
 import { ASSISTANCE_STATION } from '../textes/univers';
 import type { EntreeMonde } from '../types';
-import { PAIRES, type LignePaire } from './paires';
+import { court, PAIRES, premierRefus, type LignePaire } from './paires';
+import { numeroter, sansConflit } from './textes-station';
+import { definirGrande, GRAINE_GRANDE_MAX, prevoirGrandes, VERSION_GENERATEUR, type CompositionGrande, type GrandePrevue } from './grandes';
+import { GRANDES_PUBLIEES } from './grandes-publiees';
+import { TEXTES_CATALOGUE } from '../catalogue';
+
+export { numeroter, sansConflit } from './textes-station';
+export { GRAINE_GRANDE_MAX, VERSION_GENERATEUR, type CompositionGrande } from './grandes';
+export { GRANDES_PUBLIEES } from './grandes-publiees';
 
 // Catalogue des mondes jouables (#152) : les mondes écrits en entier, et les stations assemblées depuis les morceaux. Le
 // contenu n'importe que les types du moteur (docs/10-architecture.md §3) : l'assembleur lui est donné.
@@ -106,6 +116,14 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm01-m10-m03-reserve',
   'm01-m10-m06-embarquement',
   'm01-m10-m06-entrepot',
+  'm01-m11-m03-remise',
+  'm01-m11-m03-reserve',
+  'm01-m11-m06-embarquement',
+  'm01-m11-m06-remise',
+  'm01-m12-m03-reserve',
+  'm01-m12-m03-stockage',
+  'm01-m12-m06-embarquement',
+  'm01-m12-m06-stockage',
   'm02-m01-m03-reserve',
   'm02-m01-m06-embarquement',
   'm02-m03-reserve',
@@ -134,6 +152,14 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm02-m10-m03-reserve',
   'm02-m10-m06-embarquement',
   'm02-m10-m06-entrepot',
+  'm02-m11-m03-remise',
+  'm02-m11-m03-reserve',
+  'm02-m11-m06-embarquement',
+  'm02-m11-m06-remise',
+  'm02-m12-m03-reserve',
+  'm02-m12-m03-stockage',
+  'm02-m12-m06-embarquement',
+  'm02-m12-m06-stockage',
   'm04-m01-m03-observation',
   'm04-m01-m03-palier',
   'm04-m01-m03-reserve',
@@ -180,6 +206,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm04-m10-m06-embarquement',
   'm04-m10-m06-entrepot',
   'm04-m10-m06-observation',
+  'm04-m11-m03-observation',
+  'm04-m11-m03-remise',
+  'm04-m11-m03-reserve',
+  'm04-m11-m06-embarquement',
+  'm04-m11-m06-observation',
+  'm04-m11-m06-remise',
+  'm04-m12-m03-observation',
+  'm04-m12-m03-reserve',
+  'm04-m12-m03-stockage',
+  'm04-m12-m06-embarquement',
+  'm04-m12-m06-observation',
+  'm04-m12-m06-stockage',
   'm05-m01-m03-reserve',
   'm05-m01-m03-tri',
   'm05-m01-m06-embarquement',
@@ -222,6 +260,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm05-m10-m06-embarquement',
   'm05-m10-m06-entrepot',
   'm05-m10-m06-tri',
+  'm05-m11-m03-remise',
+  'm05-m11-m03-reserve',
+  'm05-m11-m03-tri',
+  'm05-m11-m06-embarquement',
+  'm05-m11-m06-remise',
+  'm05-m11-m06-tri',
+  'm05-m12-m03-reserve',
+  'm05-m12-m03-stockage',
+  'm05-m12-m03-tri',
+  'm05-m12-m06-embarquement',
+  'm05-m12-m06-stockage',
+  'm05-m12-m06-tri',
   'm07-m01-m03-palier',
   'm07-m01-m03-reserve',
   'm07-m01-m03-soute',
@@ -268,6 +318,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm07-m10-m06-embarquement',
   'm07-m10-m06-entrepot',
   'm07-m10-m06-soute',
+  'm07-m11-m03-remise',
+  'm07-m11-m03-reserve',
+  'm07-m11-m03-soute',
+  'm07-m11-m06-embarquement',
+  'm07-m11-m06-remise',
+  'm07-m11-m06-soute',
+  'm07-m12-m03-reserve',
+  'm07-m12-m03-soute',
+  'm07-m12-m03-stockage',
+  'm07-m12-m06-embarquement',
+  'm07-m12-m06-soute',
+  'm07-m12-m06-stockage',
   'm08-m01-m03-magasin',
   'm08-m01-m03-palier',
   'm08-m01-m03-reserve',
@@ -314,6 +376,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm08-m10-m06-embarquement',
   'm08-m10-m06-entrepot',
   'm08-m10-m06-magasin',
+  'm08-m11-m03-magasin',
+  'm08-m11-m03-remise',
+  'm08-m11-m03-reserve',
+  'm08-m11-m06-embarquement',
+  'm08-m11-m06-magasin',
+  'm08-m11-m06-remise',
+  'm08-m12-m03-magasin',
+  'm08-m12-m03-reserve',
+  'm08-m12-m03-stockage',
+  'm08-m12-m06-embarquement',
+  'm08-m12-m06-magasin',
+  'm08-m12-m06-stockage',
   'm09-m01-m03-cale',
   'm09-m01-m03-reserve',
   'm09-m01-m06-cale',
@@ -356,6 +430,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm09-m10-m06-cale',
   'm09-m10-m06-embarquement',
   'm09-m10-m06-entrepot',
+  'm09-m11-m03-cale',
+  'm09-m11-m03-remise',
+  'm09-m11-m03-reserve',
+  'm09-m11-m06-cale',
+  'm09-m11-m06-embarquement',
+  'm09-m11-m06-remise',
+  'm09-m12-m03-cale',
+  'm09-m12-m03-reserve',
+  'm09-m12-m03-stockage',
+  'm09-m12-m06-cale',
+  'm09-m12-m06-embarquement',
+  'm09-m12-m06-stockage',
   'm10-m01-m03-entrepot',
   'm10-m01-m03-palier',
   'm10-m01-m03-reserve',
@@ -402,6 +488,130 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'm10-m09-m06-cale',
   'm10-m09-m06-embarquement',
   'm10-m09-m06-entrepot',
+  'm10-m11-m03-entrepot',
+  'm10-m11-m03-remise',
+  'm10-m11-m03-reserve',
+  'm10-m11-m06-embarquement',
+  'm10-m11-m06-entrepot',
+  'm10-m11-m06-remise',
+  'm10-m12-m03-entrepot',
+  'm10-m12-m03-reserve',
+  'm10-m12-m03-stockage',
+  'm10-m12-m06-embarquement',
+  'm10-m12-m06-entrepot',
+  'm10-m12-m06-stockage',
+  'm11-m01-m03-remise',
+  'm11-m01-m03-reserve',
+  'm11-m01-m06-embarquement',
+  'm11-m01-m06-remise',
+  'm11-m02-m03-remise',
+  'm11-m02-m03-reserve',
+  'm11-m02-m06-embarquement',
+  'm11-m02-m06-remise',
+  'm11-m03-remise',
+  'm11-m03-reserve',
+  'm11-m04-m03-observation',
+  'm11-m04-m03-remise',
+  'm11-m04-m03-reserve',
+  'm11-m04-m06-embarquement',
+  'm11-m04-m06-observation',
+  'm11-m04-m06-remise',
+  'm11-m05-m03-remise',
+  'm11-m05-m03-reserve',
+  'm11-m05-m03-tri',
+  'm11-m05-m06-embarquement',
+  'm11-m05-m06-remise',
+  'm11-m05-m06-tri',
+  'm11-m06-embarquement',
+  'm11-m06-remise',
+  'm11-m07-m03-remise',
+  'm11-m07-m03-reserve',
+  'm11-m07-m03-soute',
+  'm11-m07-m06-embarquement',
+  'm11-m07-m06-remise',
+  'm11-m07-m06-soute',
+  'm11-m08-m03-magasin',
+  'm11-m08-m03-remise',
+  'm11-m08-m03-reserve',
+  'm11-m08-m06-embarquement',
+  'm11-m08-m06-magasin',
+  'm11-m08-m06-remise',
+  'm11-m09-m03-cale',
+  'm11-m09-m03-remise',
+  'm11-m09-m03-reserve',
+  'm11-m09-m06-cale',
+  'm11-m09-m06-embarquement',
+  'm11-m09-m06-remise',
+  'm11-m10-m03-entrepot',
+  'm11-m10-m03-remise',
+  'm11-m10-m03-reserve',
+  'm11-m10-m06-embarquement',
+  'm11-m10-m06-entrepot',
+  'm11-m10-m06-remise',
+  'm11-m12-m03-remise',
+  'm11-m12-m03-reserve',
+  'm11-m12-m03-stockage',
+  'm11-m12-m06-embarquement',
+  'm11-m12-m06-remise',
+  'm11-m12-m06-stockage',
+  'm12-m01-m03-palier',
+  'm12-m01-m03-reserve',
+  'm12-m01-m03-stockage',
+  'm12-m01-m06-embarquement',
+  'm12-m01-m06-palier',
+  'm12-m01-m06-stockage',
+  'm12-m02-m03-atelier',
+  'm12-m02-m03-reserve',
+  'm12-m02-m03-stockage',
+  'm12-m02-m06-atelier',
+  'm12-m02-m06-embarquement',
+  'm12-m02-m06-stockage',
+  'm12-m03-reserve',
+  'm12-m03-stockage',
+  'm12-m04-m03-observation',
+  'm12-m04-m03-reserve',
+  'm12-m04-m03-stockage',
+  'm12-m04-m06-embarquement',
+  'm12-m04-m06-observation',
+  'm12-m04-m06-stockage',
+  'm12-m05-m03-reserve',
+  'm12-m05-m03-stockage',
+  'm12-m05-m03-tri',
+  'm12-m05-m06-embarquement',
+  'm12-m05-m06-stockage',
+  'm12-m05-m06-tri',
+  'm12-m06-embarquement',
+  'm12-m06-stockage',
+  'm12-m07-m03-reserve',
+  'm12-m07-m03-soute',
+  'm12-m07-m03-stockage',
+  'm12-m07-m06-embarquement',
+  'm12-m07-m06-soute',
+  'm12-m07-m06-stockage',
+  'm12-m08-m03-magasin',
+  'm12-m08-m03-reserve',
+  'm12-m08-m03-stockage',
+  'm12-m08-m06-embarquement',
+  'm12-m08-m06-magasin',
+  'm12-m08-m06-stockage',
+  'm12-m09-m03-cale',
+  'm12-m09-m03-reserve',
+  'm12-m09-m03-stockage',
+  'm12-m09-m06-cale',
+  'm12-m09-m06-embarquement',
+  'm12-m09-m06-stockage',
+  'm12-m10-m03-entrepot',
+  'm12-m10-m03-reserve',
+  'm12-m10-m03-stockage',
+  'm12-m10-m06-embarquement',
+  'm12-m10-m06-entrepot',
+  'm12-m10-m06-stockage',
+  'm12-m11-m03-remise',
+  'm12-m11-m03-reserve',
+  'm12-m11-m03-stockage',
+  'm12-m11-m06-embarquement',
+  'm12-m11-m06-remise',
+  'm12-m11-m06-stockage',
   'ol-m01-m02-m03-reserve',
   'ol-m01-m02-m06-embarquement',
   'ol-m01-m04-m03-observation',
@@ -428,6 +638,14 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m01-m10-m03-reserve',
   'ol-m01-m10-m06-embarquement',
   'ol-m01-m10-m06-entrepot',
+  'ol-m01-m11-m03-remise',
+  'ol-m01-m11-m03-reserve',
+  'ol-m01-m11-m06-embarquement',
+  'ol-m01-m11-m06-remise',
+  'ol-m01-m12-m03-reserve',
+  'ol-m01-m12-m03-stockage',
+  'ol-m01-m12-m06-embarquement',
+  'ol-m01-m12-m06-stockage',
   'ol-m02-m04-m03-observation',
   'ol-m02-m04-m03-reserve',
   'ol-m02-m04-m06-embarquement',
@@ -452,6 +670,14 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m02-m10-m03-reserve',
   'ol-m02-m10-m06-embarquement',
   'ol-m02-m10-m06-entrepot',
+  'ol-m02-m11-m03-remise',
+  'ol-m02-m11-m03-reserve',
+  'ol-m02-m11-m06-embarquement',
+  'ol-m02-m11-m06-remise',
+  'ol-m02-m12-m03-reserve',
+  'ol-m02-m12-m03-stockage',
+  'ol-m02-m12-m06-embarquement',
+  'ol-m02-m12-m06-stockage',
   'ol-m04-m05-m03-observation',
   'ol-m04-m05-m03-reserve',
   'ol-m04-m05-m03-tri',
@@ -482,6 +708,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m04-m10-m06-embarquement',
   'ol-m04-m10-m06-entrepot',
   'ol-m04-m10-m06-observation',
+  'ol-m04-m11-m03-observation',
+  'ol-m04-m11-m03-remise',
+  'ol-m04-m11-m03-reserve',
+  'ol-m04-m11-m06-embarquement',
+  'ol-m04-m11-m06-observation',
+  'ol-m04-m11-m06-remise',
+  'ol-m04-m12-m03-observation',
+  'ol-m04-m12-m03-reserve',
+  'ol-m04-m12-m03-stockage',
+  'ol-m04-m12-m06-embarquement',
+  'ol-m04-m12-m06-observation',
+  'ol-m04-m12-m06-stockage',
   'ol-m05-m07-m03-reserve',
   'ol-m05-m07-m03-soute',
   'ol-m05-m07-m03-tri',
@@ -506,6 +744,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m05-m10-m06-embarquement',
   'ol-m05-m10-m06-entrepot',
   'ol-m05-m10-m06-tri',
+  'ol-m05-m11-m03-remise',
+  'ol-m05-m11-m03-reserve',
+  'ol-m05-m11-m03-tri',
+  'ol-m05-m11-m06-embarquement',
+  'ol-m05-m11-m06-remise',
+  'ol-m05-m11-m06-tri',
+  'ol-m05-m12-m03-reserve',
+  'ol-m05-m12-m03-stockage',
+  'ol-m05-m12-m03-tri',
+  'ol-m05-m12-m06-embarquement',
+  'ol-m05-m12-m06-stockage',
+  'ol-m05-m12-m06-tri',
   'ol-m07-m08-m03-magasin',
   'ol-m07-m08-m03-reserve',
   'ol-m07-m08-m03-soute',
@@ -524,6 +774,18 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m07-m10-m06-embarquement',
   'ol-m07-m10-m06-entrepot',
   'ol-m07-m10-m06-soute',
+  'ol-m07-m11-m03-remise',
+  'ol-m07-m11-m03-reserve',
+  'ol-m07-m11-m03-soute',
+  'ol-m07-m11-m06-embarquement',
+  'ol-m07-m11-m06-remise',
+  'ol-m07-m11-m06-soute',
+  'ol-m07-m12-m03-reserve',
+  'ol-m07-m12-m03-soute',
+  'ol-m07-m12-m03-stockage',
+  'ol-m07-m12-m06-embarquement',
+  'ol-m07-m12-m06-soute',
+  'ol-m07-m12-m06-stockage',
   'ol-m08-m09-m03-cale',
   'ol-m08-m09-m03-magasin',
   'ol-m08-m09-m03-reserve',
@@ -536,15 +798,61 @@ export const COMPOSITIONS_PUBLIEES: readonly string[] = [
   'ol-m08-m10-m06-embarquement',
   'ol-m08-m10-m06-entrepot',
   'ol-m08-m10-m06-magasin',
+  'ol-m08-m11-m03-magasin',
+  'ol-m08-m11-m03-remise',
+  'ol-m08-m11-m03-reserve',
+  'ol-m08-m11-m06-embarquement',
+  'ol-m08-m11-m06-magasin',
+  'ol-m08-m11-m06-remise',
+  'ol-m08-m12-m03-magasin',
+  'ol-m08-m12-m03-reserve',
+  'ol-m08-m12-m03-stockage',
+  'ol-m08-m12-m06-embarquement',
+  'ol-m08-m12-m06-magasin',
+  'ol-m08-m12-m06-stockage',
   'ol-m09-m10-m03-cale',
   'ol-m09-m10-m03-entrepot',
   'ol-m09-m10-m03-reserve',
   'ol-m09-m10-m06-cale',
   'ol-m09-m10-m06-embarquement',
   'ol-m09-m10-m06-entrepot',
+  'ol-m09-m11-m03-cale',
+  'ol-m09-m11-m03-remise',
+  'ol-m09-m11-m03-reserve',
+  'ol-m09-m11-m06-cale',
+  'ol-m09-m11-m06-embarquement',
+  'ol-m09-m11-m06-remise',
+  'ol-m09-m12-m03-cale',
+  'ol-m09-m12-m03-reserve',
+  'ol-m09-m12-m03-stockage',
+  'ol-m09-m12-m06-cale',
+  'ol-m09-m12-m06-embarquement',
+  'ol-m09-m12-m06-stockage',
+  'ol-m10-m11-m03-entrepot',
+  'ol-m10-m11-m03-remise',
+  'ol-m10-m11-m03-reserve',
+  'ol-m10-m11-m06-embarquement',
+  'ol-m10-m11-m06-entrepot',
+  'ol-m10-m11-m06-remise',
+  'ol-m10-m12-m03-entrepot',
+  'ol-m10-m12-m03-reserve',
+  'ol-m10-m12-m03-stockage',
+  'ol-m10-m12-m06-embarquement',
+  'ol-m10-m12-m06-entrepot',
+  'ol-m10-m12-m06-stockage',
+  'ol-m11-m12-m03-remise',
+  'ol-m11-m12-m03-reserve',
+  'ol-m11-m12-m03-stockage',
+  'ol-m11-m12-m06-embarquement',
+  'ol-m11-m12-m06-remise',
+  'ol-m11-m12-m06-stockage',
 ];
 
-/** Compositions publiées que `check:texts` explore (spec L3 §6.4, spec L4 §7) ; les deux dernières en ordre libre (spec L5 §6). */
+/**
+ * Compositions publiées que `check:texts` explore (spec L3 §6.4, spec L4 §7) ; les quatre dernières en ordre libre (spec L5 §6).
+ * Choisies parmi les moins coûteuses à prouver qui gardent la couverture de `check-texts-stations.test.ts` : deux tests y
+ * prouvent toute la liste en 30 s (#232).
+ */
 export const COMPOSITIONS_CONTROLEES: readonly string[] = [
   'm01-m03-reserve',
   'm01-m05-m03-tri',
@@ -553,11 +861,16 @@ export const COMPOSITIONS_CONTROLEES: readonly string[] = [
   'm04-m09-m06-observation',
   'm05-m08-m03-magasin',
   'm07-m02-m03-atelier',
-  'm08-m01-m06-palier',
+  'm08-m01-m06-magasin',
   'm09-m10-m06-cale',
+  'm10-m01-m06-palier',
   'm10-m04-m03-entrepot',
+  'm11-m03-remise',
+  'm12-m03-stockage',
   'ol-m02-m08-m06-magasin',
   'ol-m05-m10-m03-tri',
+  'ol-m05-m12-m03-tri',
+  'ol-m07-m11-m06-soute',
 ];
 
 export interface Catalogue {
@@ -576,6 +889,19 @@ export interface Catalogue {
   tirer(hasard: () => number, composition?: string): EntreeMonde | Refus;
   /** Définition de la station `<composition>-<graine>`, permise par la table, avant assemblage : pour mesurer les plans. */
   definir(composition: string, graine: number): DefStation | Refus;
+  /** Grandes stations possibles (spec 2026-10-18 §4.1), hors de `compositions`, triées. */
+  readonly grandes: readonly CompositionGrande[];
+  /** Grandes stations publiées et prouvées : identifiants complets `g1-…-<graine>` (spec §7.2). */
+  readonly publiees: readonly string[];
+  /**
+   * NOUVELLE PARTIE (D-313) : pile ou face sur le final (D-253), une station sur trois en ordre libre (D-270), puis une grande
+   * station publiée au hasard ; `composition` force une grande composition.
+   */
+  tirerGrande(hasard: () => number, composition?: string): EntreeMonde | Refus;
+  /** Grande station exacte, publiée ou non : pour la prouver avant de la publier. */
+  construireGrande(composition: string, graine: number): EntreeMonde | Refus;
+  /** Définition d’une grande station avant assemblage : pour mesurer les plans. */
+  definirGrande(composition: string, graine: number): DefStation | Refus;
 }
 
 const AU_REVEIL: readonly DefAssistance[] = [
@@ -586,11 +912,13 @@ const AU_REVEIL: readonly DefAssistance[] = [
 // Stations de test M-07 et M-10 : le morceau, puis l'embarquement d'essai ; seule la sortie de M-07 est ouverte au départ.
 const STATION_M07: DefStation = { id: 'm-07', morceaux: [MORCEAU_M07, MORCEAU_ESSAI], creature: 'm-07/p-soute', graine: 1, sortiesOuvertes: ['m-07'], assistance: AU_REVEIL };
 const STATION_M10: DefStation = { id: 'm-10', morceaux: [MORCEAU_M10, MORCEAU_ESSAI], creature: 'm-10/p-entrepot', graine: 1, assistance: AU_REVEIL };
+const STATION_M12: DefStation = { id: 'm-12', morceaux: [MORCEAU_M12, MORCEAU_ESSAI], creature: 'm-12/p-stockage', graine: 1 };
 
-// Station tirée : le réveil et le départ ; pas de message de présence, qui nommerait la place tirée.
+// Station tirée : le réveil, le départ et la longue attente (#225) ; pas de message de présence, qui nommerait la place tirée.
 const ASSISTANCE_TIREE: readonly DefAssistance[] = [
   { id: 'reveil', quand: { type: 'reveil' } },
   { id: 'depart', quand: { type: 'evacuation' } },
+  { id: 'patience', quand: { type: 'patience' } },
 ];
 
 /** Celle du moteur (`engine/des.ts`), que le contenu ne peut pas importer. */
@@ -603,16 +931,6 @@ const MAL_FORME = 'identifiant mal formé (minuscules, chiffres et tirets, 40 ca
 
 const graineValide = (graine: number): boolean => Number.isInteger(graine) && graine >= 0 && graine <= GRAINE_MAX;
 
-/** Numéro du morceau dans la table des paires : 'm-07' → 'M-07'. */
-const numero = (morceau: DefMorceau): string => morceau.id.toUpperCase();
-
-function motifDeTable(table: readonly LignePaire[], x: DefMorceau, y: DefMorceau): string | null {
-  const [a, b] = numero(x) < numero(y) ? [numero(x), numero(y)] : [numero(y), numero(x)];
-  const ligne = table.find((candidate) => candidate.a === a && candidate.b === b);
-  if (ligne === undefined) return `Paire ${a} + ${b} absente de la table : refusée par défaut.`;
-  return ligne.verdict === 'jamais' ? `Paire ${a} + ${b} jamais ensemble : ${ligne.regle}.` : null;
-}
-
 const VESTIBULE: EntreeMorceau = { morceau: MORCEAU_VESTIBULE, textes: TEXTES_MORCEAU_VESTIBULE };
 const CARREFOUR: EntreeMorceau = { morceau: MORCEAU_CARREFOUR, textes: TEXTES_MORCEAU_CARREFOUR };
 
@@ -621,21 +939,6 @@ interface Prevue {
   /** Chemins puis final, sans le vestibule ni le carrefour. */
   readonly morceaux: readonly EntreeMorceau[];
 }
-
-/** Première paire refusée : chemin–chemin, puis chaque chemin–final, dans l'ordre de la station. */
-function premierRefus(table: readonly LignePaire[], chemins: readonly DefMorceau[], final: DefMorceau): string | null {
-  const paires = [
-    ...chemins.flatMap((x, rang) => chemins.slice(rang + 1).map((y) => [x, y] as const)),
-    ...chemins.map((chemin) => [chemin, final] as const),
-  ];
-  for (const [x, y] of paires) {
-    const motif = motifDeTable(table, x, y);
-    if (motif !== null) return motif;
-  }
-  return null;
-}
-
-const court = (morceau: DefMorceau): string => morceau.id.replaceAll('-', '');
 
 /**
  * Places où la créature bouche le seul passage de son morceau : en chaîne, prouvées seulement derrière un obstacle qui permet
@@ -685,86 +988,6 @@ function prevoir(table: readonly LignePaire[]): Prevue[] {
   return prevues.sort((x, y) => (x.composition.id < y.composition.id ? -1 : 1));
 }
 
-const COUCHES = reunir([]);
-
-/**
- * Clé propre à deux morceaux de la station avec deux textes différents (spec L3 §4.2) : `<clé>_<morceau sans tiret>` dans
- * chacun (pièces, objets, liaisons, positions, porte de sortie, noms et descriptions). Une clé renommée garde son nom et sa
- * description, recopiés des couches s'ils en viennent. Un morceau sans telle clé est rendu tel quel ; aucun n'est modifié.
- */
-export function sansConflit(entrees: readonly EntreeMorceau[]): EntreeMorceau[] {
-  const propres = ({ textes }: EntreeMorceau): Set<string> => new Set([...Object.keys(textes.noms), ...Object.keys(textes.descriptions)]);
-  const lu = <T>(table: Readonly<Record<string, T>>, cle: string): T | undefined => (Object.hasOwn(table, cle) ? table[cle] : undefined);
-  const texteDe = ({ textes }: EntreeMorceau, cle: string) => ({
-    nom: lu(textes.noms, cle) ?? lu(COUCHES.noms, cle),
-    description: lu(textes.descriptions, cle) ?? lu(COUCHES.descriptions, cle),
-  });
-  const lus = new Map<string, Set<string>>();
-  for (const entree of entrees) {
-    for (const cle of propres(entree)) lus.set(cle, (lus.get(cle) ?? new Set<string>()).add(JSON.stringify(texteDe(entree, cle))));
-  }
-  const enConflit = new Set([...lus].filter(([, textes]) => textes.size > 1).map(([cle]) => cle));
-  return entrees.map((entree) => {
-    const { morceau, textes } = entree;
-    const renommees = [...propres(entree)].filter((cle) => enConflit.has(cle));
-    if (renommees.length === 0) return entree;
-    const suffixe = morceau.id.replaceAll('-', '');
-    const cle = (nom: string): string => (renommees.includes(nom) ? `${nom}_${suffixe}` : nom);
-    const renomme = <T extends { readonly nom: string }>(element: T): T => ({ ...element, nom: cle(element.nom) });
-    const noms: Record<string, Nom> = {};
-    const descriptions: Record<string, Variantes> = {};
-    for (const [nom, texte] of Object.entries(textes.noms)) noms[cle(nom)] = texte;
-    for (const [nom, texte] of Object.entries(textes.descriptions)) descriptions[cle(nom)] = texte;
-    for (const nom of renommees) {
-      const { nom: texte, description } = texteDe(entree, nom);
-      if (texte !== undefined) noms[cle(nom)] = texte;
-      if (description !== undefined) descriptions[cle(nom)] = description;
-    }
-    return {
-      morceau: {
-        ...morceau,
-        pieces: morceau.pieces.map(renomme),
-        liaisons: morceau.liaisons.map(renomme),
-        objets: morceau.objets.map(renomme),
-        ...(morceau.positions === undefined ? {} : { positions: morceau.positions.map(renomme) }),
-        ...(morceau.sortie === undefined ? {} : { sortie: { ...morceau.sortie, porte: renomme(morceau.sortie.porte) } }),
-      },
-      textes: { ...textes, noms, descriptions },
-    };
-  });
-}
-
-/**
- * Pièces du même nom affiché désignées par une lettre dans toute la station, dans l'ordre des pièces (D-208, spec L3 §4.2) :
- * `coursive` → `coursive_a`, « coursive A ». Pas de chiffre dans le nom affiché : la carte et l'écran de fin n'en montrent
- * aucun ; une clé interne renommée par `sansConflit` peut en avoir (`coursive_m07_a`).
- */
-export function numeroter(entree: EntreeMonde): EntreeMonde {
-  const { monde, textes } = entree;
-  const nomDe = (cle: string): Nom | undefined => (Object.hasOwn(textes.noms, cle) ? textes.noms[cle] : undefined);
-  const affiche = (cle: string): string => nomDe(cle)?.texte ?? cle;
-  const total = new Map<string, number>();
-  for (const { nom } of monde.pieces) total.set(affiche(nom), (total.get(affiche(nom)) ?? 0) + 1);
-  if (monde.pieces.every(({ nom }) => total.get(affiche(nom)) === 1)) return entree;
-  const noms: Record<string, Nom> = { ...textes.noms };
-  const descriptions: Record<string, Variantes> = { ...textes.descriptions };
-  const rangs = new Map<string, number>();
-  const pieces = monde.pieces.map((piece) => {
-    const texte = affiche(piece.nom);
-    if (total.get(texte) === 1) return piece;
-    const rang = rangs.get(texte) ?? 0;
-    rangs.set(texte, rang + 1);
-    const lettre = String.fromCharCode('A'.charCodeAt(0) + rang);
-    const cle = `${piece.nom}_${lettre.toLowerCase()}`;
-    const nom = nomDe(piece.nom);
-    if (nom !== undefined) noms[cle] = { ...nom, texte: `${nom.texte} ${lettre}` };
-    const description = Object.hasOwn(textes.descriptions, piece.nom) ? textes.descriptions[piece.nom] : undefined;
-    if (description !== undefined) descriptions[cle] = description;
-    return { ...piece, nom: cle };
-  });
-  return { ...entree, monde: { ...monde, pieces }, textes: { ...textes, noms, descriptions } };
-}
-
 /**
  * Station d'une composition pour une graine de plan, et les morceaux dont viennent ses textes. En chaîne : vestibule, chemins,
  * final. En ordre libre (D-259, spec L5 §3) : vestibule, carrefour, branches A et B, final ; les branches s'accrochent au
@@ -801,6 +1024,7 @@ export function creerCatalogue(
   assembler: Assembleur,
   table: readonly LignePaire[] = PAIRES,
   publiees: readonly string[] = COMPOSITIONS_PUBLIEES,
+  grandesPubliees: readonly string[] = GRANDES_PUBLIEES,
 ): Catalogue {
   const assemblee = (station: DefStation): DefMonde => {
     const resultat = assembler(station);
@@ -813,6 +1037,7 @@ export function creerCatalogue(
     [STATION_M07.id]: { monde: assemblee(STATION_M07), textes: reunir([TEXTES_MORCEAU_M07, TEXTES_MORCEAU_ESSAI], MESSAGES_M07), parcours: PARCOURS_M07 },
     ...STATIONS_ECRITES,
     [STATION_M10.id]: { monde: assemblee(STATION_M10), textes: reunir([TEXTES_MORCEAU_M10, TEXTES_MORCEAU_ESSAI], MESSAGES_M10), parcours: PARCOURS_M10 },
+    [STATION_M12.id]: { monde: assemblee(STATION_M12), textes: reunir([TEXTES_MORCEAU_M12, TEXTES_MORCEAU_ESSAI]), parcours: PARCOURS_M12 },
   };
 
   const prevues = prevoir(table);
@@ -857,10 +1082,74 @@ export function creerCatalogue(
     return assemblerPrevue(prevue, graine) ?? { refus: `Station ${composition}-${graine} : aucun plan pour cette graine.` };
   };
 
+  const grandes = prevoirGrandes(table);
+  const grandeParId = new Map(grandes.map((prevue) => [prevue.composition.id, prevue]));
+  const grandesProposees = new Set(grandesPubliees);
+
+  const assemblerGrande = (prevue: GrandePrevue, graine: number): EntreeMonde | Refus | null => {
+    const id = `${prevue.composition.id}-${graine}`;
+    if (memoire.has(id)) return memoire.get(id) ?? null;
+    const { station, entrees } = definirGrande(prevue, graine);
+    const resultat = assembler(station);
+    let obtenu: EntreeMonde | Refus | null = null;
+    if (resultat.type === 'station') {
+      // Les documents de l'univers, de la menace et de la trousse rejoignent les textes de chaque grande station (spec §8.5).
+      const textes = reunir([...entrees.map((entree) => entree.textes), TEXTES_CATALOGUE, { noms: {}, descriptions: {}, assistance: {}, documents: DOCUMENTS }], ASSISTANCE_STATION);
+      obtenu = numeroter({ monde: resultat.monde, textes, parcours: [] });
+    } else if (resultat.type === 'invalide') obtenu = { refus: `Station ${id} invalide : ${resultat.erreurs.join(' ')}` };
+    memoire.set(id, obtenu);
+    return obtenu;
+  };
+
+  const grandeDe = (composition: string): GrandePrevue | Refus => {
+    if (!FORME_ID.test(composition)) return { refus: `Composition inconnue : ${MAL_FORME}.` };
+    const prevue = grandeParId.get(composition);
+    if (prevue === undefined) return { refus: `Composition inconnue : ${composition}.` };
+    return prevue.composition.refus === null ? prevue : { refus: prevue.composition.refus };
+  };
+
+  const construireGrande = (composition: string, graine: number): EntreeMonde | Refus => {
+    const prevue = grandeDe(composition);
+    if ('refus' in prevue) return prevue;
+    if (!Number.isInteger(graine) || graine < 0 || graine > GRAINE_GRANDE_MAX) return { refus: `Composition ${composition} : graine de plan invalide (${String(graine)}).` };
+    return assemblerGrande(prevue, graine) ?? { refus: `Station ${composition}-${graine} : aucun plan pour cette graine.` };
+  };
+
+  const definirGrandeId = (composition: string, graine: number): DefStation | Refus => {
+    const prevue = grandeDe(composition);
+    return 'refus' in prevue ? prevue : definirGrande(prevue, graine).station;
+  };
+
+  /** Grande station `g<version>-…-<graine>` : seulement de cette version du générateur, et publiée (spec §4.3). */
+  const resoudreGrande = (id: string, version: number): EntreeMonde | Refus => {
+    if (version !== VERSION_GENERATEUR) return { refus: 'Station d’une version précédente des stations : la partie ne peut pas être reprise.' };
+    if (!grandesProposees.has(id)) return { refus: `Station ${id} non publiée : non proposée.` };
+    const tiret = id.lastIndexOf('-');
+    return construireGrande(id.slice(0, tiret), Number(id.slice(tiret + 1)));
+  };
+
+  const tirerGrande = (hasard: () => number, composition?: string): EntreeMonde | Refus => {
+    const tirables = [...grandesProposees].map((id) => ({ id, prevue: grandeParId.get(id.slice(0, id.lastIndexOf('-'))) }));
+    let parmi = tirables.filter((tirable) => tirable.prevue !== undefined && (composition === undefined || tirable.prevue.composition.id === composition));
+    if (composition === undefined) {
+      const finals = [...new Set(parmi.map((tirable) => tirable.prevue?.composition.final))];
+      const final = finals[hasard() % Math.max(finals.length, 1)];
+      parmi = parmi.filter((tirable) => tirable.prevue?.composition.final === final);
+      const libres = parmi.filter((tirable) => tirable.prevue?.composition.forme === 'libre');
+      const chaines = parmi.filter((tirable) => tirable.prevue?.composition.forme === 'chaine');
+      // Une station sur trois en ordre libre (D-270), quand les deux formes sont publiées.
+      if (libres.length > 0 && chaines.length > 0) parmi = hasard() % 3 === 0 ? libres : chaines;
+    }
+    const tiree = parmi[hasard() % Math.max(parmi.length, 1)];
+    return tiree === undefined ? { refus: 'Aucune grande station publiée.' } : resoudre(tiree.id);
+  };
+
   const resoudre = (id: string): EntreeMonde | Refus => {
     const fixe = Object.hasOwn(mondes, id) ? mondes[id] : undefined;
     if (fixe !== undefined) return fixe;
     if (!FORME_ID.test(id)) return { refus: `Station inconnue : ${MAL_FORME}.` };
+    const version = /^g(\d+)-/.exec(id);
+    if (version !== null) return resoudreGrande(id, Number(version[1]));
     const tiret = id.lastIndexOf('-');
     const composition = id.slice(0, Math.max(tiret, 0));
     if (!parId.has(composition)) return { refus: `Station inconnue : ${id}.` };
@@ -895,5 +1184,17 @@ export function creerCatalogue(
     return 'refus' in prevue ? prevue : definirStation(prevue, graine).station;
   };
 
-  return { mondes, compositions: prevues.map((prevue) => prevue.composition), construire, resoudre, tirer, definir };
+  return {
+    mondes,
+    compositions: prevues.map((prevue) => prevue.composition),
+    construire,
+    resoudre,
+    tirer,
+    definir,
+    grandes: grandes.map((prevue) => prevue.composition),
+    publiees: [...grandesPubliees],
+    tirerGrande,
+    construireGrande,
+    definirGrande: definirGrandeId,
+  };
 }

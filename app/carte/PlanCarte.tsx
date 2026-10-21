@@ -63,6 +63,19 @@ function Oeil({ centre, echelle, palier }: { readonly centre: Point; readonly ec
   );
 }
 
+function Drone({ centre, echelle }: { readonly centre: Point; readonly echelle: number }) {
+  return (
+    <g className="icone-drone" transform={`translate(${centre.x} ${centre.y}) scale(${echelle})`} fill="var(--vert)" shapeRendering="crispEdges">
+      <g transform="scale(0.75)">
+        <path fillRule="evenodd" d="M-8-12H8V-10H10V4H8V6H-8V4H-10V-10H-8ZM-7-9V3H7V-9Z" />
+        <path d="M-16-9H-12V-6H-16ZM-16-3H-12V0H-16ZM12-9H16V-6H12ZM12-3H16V0H12Z" />
+        <rect x="-1.5" y="-7" width="3" height="3" />
+        <path d="M-2 6H2V9H5V12H7V16H3V12H1V10H-1V12H-3V16H-7V12H-5V9H-2Z" />
+      </g>
+    </g>
+  );
+}
+
 /** Ouverture d'un passage (14 §2.6) : dans son mur, ou tracé d'un conduit découvert. */
 function Ouverture({ passage, point }: { readonly passage: PassageCarte; readonly point: (x: number, y: number) => Point }) {
   const emplacement = passage.emplacement;
@@ -184,13 +197,17 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
           const icones = iconesDe(piece);
           if (piece.rect === null || icones.length === 0) return null;
           const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom);
-          const centres = centresIcones(enPixels(piece.rect, vue, casePx), textesPiece, icones, echelleTexte);
+          const boite = enPixels(piece.rect, vue, casePx);
+          const centres = centresIcones(boite, textesPiece, icones, echelleTexte);
+          // Trois présences doivent tenir dans la pièce, même quand le plan est réduit.
+          const echelleIcones = icones.length > 2 ? Math.min(ICONE_ECHELLE * echelleTexte, boite.largeur / (32 * icones.length)) : ICONE_ECHELLE * echelleTexte;
           return (
             <g key={piece.piece.id}>
-              {centres.joueur !== undefined && <Joueur centre={centres.joueur} echelle={ICONE_ECHELLE * echelleTexte} />}
+              {centres.joueur !== undefined && <Joueur centre={centres.joueur} echelle={echelleIcones} />}
               {centres.creature !== undefined && piece.creature !== null && (
-                <Oeil centre={centres.creature} echelle={ICONE_ECHELLE * echelleTexte} palier={piece.creature} />
+                <Oeil centre={centres.creature} echelle={echelleIcones} palier={piece.creature} />
               )}
+              {centres.drone !== undefined && <Drone centre={centres.drone} echelle={echelleIcones} />}
             </g>
           );
         })}

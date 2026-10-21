@@ -1,0 +1,720 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intro Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Maquette #200, v2 : intro de NOUVELLE PARTIE, variante C retenue (défilé de stations, sans rien dévoiler). 390 px, Phosphore.
+   Écran CRT en CSS et filtre SVG (le jeu est du texte HTML : c'est ce qui se porterait tel quel). Sons synthétisés, au format des
+   recettes de app/son/recettes.ts (ton, souffle). Plans : 40 vraies stations publiées. Textes d'exemple, non validés. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --alerte: #ff5a4a;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.onglets.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.onglet, .relancer { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.relancer { text-transform: uppercase; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; height: 844px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); position: relative; overflow: hidden; }
+.tel::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px); z-index: 20; }
+.ecran { position: absolute; inset: 0; display: none; flex-direction: column; }
+.ecran.visible { display: flex; }
+
+/* Accueil */
+.accueil { justify-content: space-between; padding: 0 16px 16px; }
+.titre { margin: 180px 0 0; font-size: 48px; font-weight: 600; line-height: 1.05; color: var(--accent); letter-spacing: .02em; }
+.titre span { display: block; }
+.boutons { display: grid; gap: 10px; }
+.bouton { font: inherit; display: flex; align-items: center; justify-content: center; min-height: 46px; font-size: 15px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--texte); background: transparent; color: var(--texte); cursor: pointer; width: 100%; }
+.bouton.principal { background: var(--texte); color: var(--fond); min-height: 50px; }
+.bouton.discret { border-color: var(--bordure); font-weight: 400; font-size: 13px; min-height: 44px; }
+
+/* ---------- Écran CRT de l'intro ---------- */
+.intro { background: #000; cursor: pointer; }
+.crt { position: absolute; inset: 6px; border-radius: 22px / 18px; overflow: hidden; background: var(--fond); opacity: 0; }
+.crt.allume { opacity: 1; animation: scintiller 3.2s infinite steps(1); }
+/* Lueur du phosphore et léger décalage des couleurs */
+.crt .contenu { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 28px 18px 36px; box-sizing: border-box;
+  text-shadow: 0 0 6px rgba(255, 178, 63, .55), -.7px 0 rgba(255, 70, 40, .35), .7px 0 rgba(80, 200, 255, .22); }
+/* Lignes de balayage marquées, masque de trame et vignettage du verre bombé */
+.crt::before { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255,0,0,.035) 0 1px, rgba(0,255,0,.025) 1px 2px, rgba(0,80,255,.035) 2px 3px); }
+.crt::after { content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.55) 85%, rgba(0,0,0,.9) 100%);
+  box-shadow: inset 0 0 40px rgba(0,0,0,.9), inset 0 0 4px rgba(255,178,63,.25); }
+.reflet { position: absolute; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(ellipse at 30% 12%, rgba(255,240,220,.06), transparent 45%); }
+/* Bande claire qui remonte lentement l'écran */
+.bande { position: absolute; left: 0; right: 0; height: 90px; z-index: 2; pointer-events: none; background: linear-gradient(transparent, rgba(255,178,63,.045), transparent); animation: remonter 7s linear infinite; }
+@keyframes remonter { from { top: 110%; } to { top: -15%; } }
+@keyframes scintiller { 0% { filter: brightness(1); } 37% { filter: brightness(.94); } 38% { filter: brightness(1.02); } 71% { filter: brightness(.97); } 72% { filter: brightness(1); } }
+
+/* Mise sous tension : un trait de faisceau qui s'ouvre en écran */
+.faisceau { position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; margin-top: -1px; z-index: 6; background: #fff8ec; box-shadow: 0 0 18px 6px rgba(255, 200, 120, .7); opacity: 0; pointer-events: none; }
+.faisceau.va { animation: faisceau .55s ease-out forwards; }
+@keyframes faisceau { 0% { opacity: 1; transform: scaleX(0); } 35% { opacity: 1; transform: scaleX(1); } 60% { opacity: 1; transform: scale(1, 1); } 100% { opacity: 0; transform: scale(1, 300); } }
+.crt.ouverture { animation: ouvrir .5s ease-out; }
+@keyframes ouvrir { 0% { transform: scaleY(.004); filter: brightness(5); } 45% { transform: scaleY(.004); filter: brightness(5); } 100% { transform: scaleY(1); filter: brightness(1); } }
+
+/* Saut d'image et distorsion analogique */
+.crt.saut .contenu { filter: url(#distorsion) contrast(1.4) brightness(1.3); animation: sauter .08s steps(2) infinite; }
+.crt.saut::before { background: repeating-linear-gradient(0deg, rgba(0,0,0,.6) 0 2px, transparent 2px 4px); }
+@keyframes sauter { 0% { transform: translate(0, 0) skewX(0); } 25% { transform: translate(-7px, 14px) skewX(6deg); } 50% { transform: translate(5px, -22px) skewX(-4deg); } 75% { transform: translate(-3px, 40px) skewX(2deg); } }
+.neige { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; opacity: 0; pointer-events: none; mix-blend-mode: screen; image-rendering: pixelated; }
+.crt.saut .neige { opacity: .55; }
+
+/* Lignes du terminal */
+.terminal { margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.7; }
+.terminal li { white-space: pre; min-height: 1.7em; }
+.terminal .faible { color: var(--secondaire); }
+.terminal .ok { color: var(--accent); }
+.terminal .menace { color: var(--alerte); text-shadow: 0 0 6px rgba(255, 90, 74, .6), -.7px 0 rgba(255, 70, 40, .35), .7px 0 rgba(80, 200, 255, .22); }
+.curseur { animation: clignoter 1s steps(1) infinite; color: var(--accent); }
+@keyframes clignoter { 50% { opacity: 0; } }
+
+/* Défilé de stations */
+svg.plan { display: block; overflow: visible; }
+svg.plan rect { fill: rgba(244, 194, 122, .06); stroke: var(--texte); stroke-width: .12; }
+.mosaique { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 10px; padding: 10px; opacity: .13; z-index: 0; }
+.mosaique svg { width: 100%; height: 100%; }
+.gen { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.c-centre { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 12px; }
+.c-carte { width: 220px; height: 220px; background: var(--fond); border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; position: relative; }
+.c-carte svg { width: 100%; height: 100%; transition: filter .4s, opacity .4s; }
+.c-carte.voile svg { filter: blur(6px); opacity: .35; }
+.inconnu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 60px; color: var(--accent); }
+.compteur { font-size: 22px; font-weight: 600; color: var(--accent); min-height: 34px; text-align: center; font-variant-numeric: tabular-nums; }
+.compteur .sur { color: var(--secondaire); font-weight: 400; font-size: 16px; }
+.gen .terminal { background: var(--fond); }
+.pied { margin-top: auto; padding-top: 10px; }
+.pied .bouton { visibility: hidden; text-shadow: none; }
+.pied .bouton.pret { visibility: visible; animation: apparaitre .3s steps(3); }
+@keyframes apparaitre { from { opacity: 0; } to { opacity: 1; } }
+.passer { margin: 8px 0 0; text-align: center; font-size: 12px; color: var(--secondaire); letter-spacing: .06em; text-transform: uppercase; text-shadow: none; }
+
+/* Réveil */
+.entete { flex: none; min-height: 48px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px 8px; box-sizing: border-box; }
+.entete p { margin: 0; font-size: 13px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; }
+.entete .num { font-size: 11px; color: var(--bordure); }
+.recit { flex: 1 1 auto; padding: 12px 16px; font-size: 17px; line-height: 1.65; }
+.recit p { margin: 0 0 12px; }
+.actions { flex: none; padding: 8px 16px 16px; }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+.verdict ul { margin: 6px 0; padding-left: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .crt.allume, .bande, .curseur { animation: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="distorsion">
+    <feTurbulence id="turbulence" type="fractalNoise" baseFrequency="0.002 0.09" numOctaves="1" seed="3" result="bruit"/>
+    <feDisplacementMap id="deplacement" in="SourceGraphic" in2="bruit" scale="40" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="page">
+  <p class="chapeau">Issue #200, v2. <b>Variante C retenue</b> : des stations défilent et s'arrêtent sur une silhouette voilée, sans rien dévoiler. Démarrage d'un vieux terminal, écran CRT, texte par blocs, sons lo-fi (<b>monter le son</b>). Toucher l'écran pendant l'intro amène tout de suite au bouton DÉMARRER. Les textes d'ambiance changent à chaque tirage. Textes d'exemple, à écrire à la main ensuite.</p>
+
+  <p class="etiquette">Partie</p>
+  <div class="onglets" role="tablist" id="durees">
+    <button class="onglet" role="tab" data-d="longue" aria-selected="true">Première partie · démarrage complet</button>
+    <button class="onglet" role="tab" data-d="courte" aria-selected="false">Parties suivantes · tirage seul</button>
+  </div>
+  <p class="etiquette">Son</p>
+  <div class="onglets" role="tablist" id="sons">
+    <button class="onglet" role="tab" data-s="oui" aria-selected="true">Activé</button>
+    <button class="onglet" role="tab" data-s="non" aria-selected="false">Coupé</button>
+  </div>
+  <p class="etiquette">Son de la menace · toucher pour écouter</p>
+  <div class="onglets trois" role="tablist" id="menaces">
+    <button class="onglet" role="tab" data-m="buzzer" aria-selected="false">1 · Buzzer d'erreur</button>
+    <button class="onglet" role="tab" data-m="bip" aria-selected="false">2 · Bip seul sourd</button>
+    <button class="onglet" role="tab" data-m="blessure" aria-selected="true">3 · Son de la blessure</button>
+  </div>
+
+  <button class="relancer" id="relancer">Revenir à l'accueil</button>
+
+  <div class="tel" id="tel">
+    <section class="ecran accueil visible" id="ecran-accueil" aria-label="Accueil">
+      <h1 class="titre"><span>VOID</span><span>WALKER▮</span></h1>
+      <div class="boutons">
+        <button class="bouton principal" id="nouvelle">Nouvelle partie</button>
+        <button class="bouton discret" disabled>Options</button>
+      </div>
+    </section>
+
+    <section class="ecran intro" id="ecran-intro" aria-label="Tirage de la station">
+      <div class="crt" id="crt">
+        <canvas class="neige" id="neige" width="96" height="200"></canvas>
+        <div class="bande"></div>
+        <div class="contenu" id="contenu"></div>
+        <div class="reflet"></div>
+      </div>
+      <div class="faisceau" id="faisceau"></div>
+    </section>
+
+    <section class="ecran" id="ecran-reveil" aria-label="Réveil">
+      <header class="entete"><p>&gt; Vestibule_</p><p class="num" id="num-reveil"></p></header>
+      <div class="recit"><p>Un vestibule étroit et nu, éclairé de veilleuses. Une seule porte, ordinaire, qui s’ouvre à la main.</p></div>
+      <div class="actions"><button class="bouton principal" id="regarder">Regarder autour de vous</button></div>
+    </section>
+  </div>
+
+  <div class="verdict">À juger sur téléphone :
+    <ul>
+      <li>Le démarrage complet dure environ 10 s jusqu'au bouton : le garder pour les premières parties seulement ?</li>
+      <li>Fond sonore : le bruit brun sourd du jeu, à son niveau par défaut.</li>
+      <li>« ▲ ERREUR : Menace détectée » en rouge reprend le triangle et le rouge des dangers (D-233).</li>
+      <li>« STATION 372 » reste discrètement en haut à droite de l'écran de réveil.</li>
+    </ul>
+    <b>Choix du porteur : C (v1) ; écran CRT réservé à l'intro (v2) ; menace : son de la blessure ; démarrage complet à chaque intro. Implémentée dans le jeu (D-308 à D-312).</b>
+  </div>
+</div>
+
+<script>
+const PLANS = [{"id":"m02-m09-m06-cale","p":[[0,0,4,3],[0,3,4,3],[-4,3,4,3],[-4,6,4,3],[0,6,4,3],[4,6,6,3],[10,6,4,3],[14,6,4,3],[11,9,4,3],[15,9,3,3],[7,9,4,3],[7,12,4,3]]},{"id":"m10-m05-m03-entrepot","p":[[0,-3,4,3],[2,-6,4,3],[2,-9,4,3],[-2,-9,4,3],[-6,-9,4,3],[-6,-6,8,3],[-8,-3,4,3],[-4,-3,4,3],[-8,0,8,3],[-3,3,4,3],[1,3,4,3],[-3,6,4,3]]},{"id":"m08-m01-m03-magasin","p":[[-4,0,4,3],[-5,-3,4,3],[-9,-3,4,3],[-1,-3,4,3],[-1,-6,4,3],[3,-6,4,3],[0,-9,4,3],[-4,-9,4,3],[-8,-9,4,3],[-6,-12,4,3],[-2,-12,4,3],[-6,-15,4,3]]},{"id":"ol-m01-m05-m06-embarquement","p":[[-4,0,4,3],[-12,3,16,3],[-16,3,4,3],[-9,0,4,3],[-13,0,4,3],[-17,0,4,3],[0,0,4,3],[4,0,4,3],[0,-3,8,3],[-15,6,4,3],[-18,6,3,3],[-11,6,4,3],[-11,9,4,3]]},{"id":"m01-m10-m03-entrepot","p":[[-4,0,4,3],[-4,3,4,3],[0,3,4,3],[4,3,4,3],[2,6,4,3],[2,9,4,3],[6,9,4,3],[10,9,4,3],[6,6,8,3],[10,3,4,3],[14,3,4,3],[10,0,4,3]]},{"id":"m04-m02-m03-reserve","p":[[-4,0,4,3],[-6,3,4,3],[-2,3,4,3],[-3,6,4,3],[-7,6,4,3],[-9,9,4,3],[-5,9,4,3],[-9,12,4,3]]},{"id":"m09-m10-m03-cale","p":[[0,0,4,3],[-1,-3,4,3],[3,-3,4,3],[7,-3,6,3],[13,-3,4,3],[17,-3,4,3],[12,-6,4,3],[12,-9,4,3],[16,-9,4,3],[20,-9,4,3],[16,-6,8,3],[24,-7,4,3],[28,-7,4,3],[24,-10,4,3]]},{"id":"m09-m02-m03-cale","p":[[-4,0,4,3],[-4,-3,4,3],[0,-3,4,3],[4,-3,6,3],[10,-3,4,3],[14,-3,4,3],[8,-6,4,3],[12,-6,4,3],[12,-9,4,3],[16,-9,4,3],[12,-12,4,3]]},{"id":"m02-m01-m03-reserve","p":[[-4,0,4,3],[-6,3,4,3],[-2,3,4,3],[0,6,4,3],[-4,6,4,3],[-8,6,4,3],[-9,9,4,3],[-5,9,4,3],[-9,12,4,3]]},{"id":"m09-m04-m03-reserve","p":[[0,0,4,3],[-1,3,4,3],[-5,3,4,3],[-11,3,6,3],[-15,3,4,3],[-19,3,4,3],[-14,6,4,3],[-10,6,4,3],[-11,9,4,3],[-7,9,4,3],[-11,12,4,3]]},{"id":"ol-m01-m02-m03-reserve","p":[[0,0,4,3],[-13,-3,16,3],[3,-3,4,3],[-12,0,4,3],[-8,0,4,3],[-4,0,4,3],[-9,-6,4,3],[-13,-6,4,3],[1,-6,4,3],[5,-6,4,3],[1,-9,4,3]]},{"id":"m08-m07-m06-magasin","p":[[-4,0,4,3],[-5,3,4,3],[-9,3,4,3],[-1,3,4,3],[-1,6,4,3],[3,6,4,3],[-1,9,4,3],[3,9,4,3],[-5,9,4,3],[-9,9,4,3],[-8,12,4,3],[-11,12,3,3],[-4,12,4,3],[-4,15,4,3]]},{"id":"m11-m03-remise","p":[[-4,0,4,3],[-6,3,4,3],[-2,3,4,3],[-6,6,4,3],[-2,6,4,3],[-8,9,4,3],[-4,9,4,3],[-8,12,4,3]]},{"id":"m11-m09-m06-embarquement","p":[[0,-3,4,3],[0,0,4,3],[4,0,4,3],[0,3,4,3],[4,3,4,3],[-1,6,4,3],[3,6,4,3],[7,6,6,3],[13,6,4,3],[17,6,4,3],[14,9,4,3],[11,9,3,3],[18,9,4,3],[18,12,4,3]]},{"id":"m05-m02-m03-reserve","p":[[-4,0,4,3],[-2,3,4,3],[-6,3,4,3],[-6,6,8,3],[-6,9,4,3],[-2,9,4,3],[-1,12,4,3],[3,12,4,3],[-1,15,4,3]]},{"id":"m10-m08-m03-reserve","p":[[0,-3,4,3],[2,-6,4,3],[2,-9,4,3],[-2,-9,4,3],[-6,-9,4,3],[-6,-6,8,3],[-8,-3,4,3],[-12,-3,4,3],[-4,-3,4,3],[-4,0,4,3],[0,0,4,3],[-6,3,4,3],[-2,3,4,3],[-6,6,4,3]]},{"id":"m01-m02-m03-reserve","p":[[0,0,4,3],[0,-3,4,3],[-4,-3,4,3],[-8,-3,4,3],[-8,-6,4,3],[-4,-6,4,3],[-3,-9,4,3],[1,-9,4,3],[-3,-12,4,3]]},{"id":"m04-m01-m03-observation","p":[[-4,0,4,3],[-4,-3,4,3],[-8,-3,4,3],[-10,-6,4,3],[-6,-6,4,3],[-2,-6,4,3],[-2,-9,4,3],[2,-9,4,3],[-2,-12,4,3]]},{"id":"m05-m08-m06-magasin","p":[[-4,0,4,3],[-2,3,4,3],[-6,3,4,3],[-6,6,8,3],[-6,9,4,3],[-10,9,4,3],[-2,9,4,3],[-2,12,4,3],[2,12,4,3],[-1,15,4,3],[-4,15,3,3],[3,15,4,3],[3,18,4,3]]},{"id":"m05-m04-m03-tri","p":[[0,-3,4,3],[2,0,4,3],[6,0,4,3],[2,3,8,3],[2,6,4,3],[6,6,4,3],[6,9,4,3],[10,9,4,3],[6,12,4,3]]},{"id":"m09-m11-m03-reserve","p":[[-4,0,4,3],[-4,3,4,3],[0,3,4,3],[4,3,6,3],[10,3,4,3],[14,3,4,3],[12,6,4,3],[8,6,4,3],[12,9,4,3],[8,9,4,3],[11,12,4,3],[7,12,4,3],[11,15,4,3]]},{"id":"m07-m05-m03-reserve","p":[[0,-3,4,3],[0,-6,4,3],[-4,-6,4,3],[4,-6,4,3],[8,-6,4,3],[6,-9,4,3],[10,-9,4,3],[6,-12,8,3],[4,-15,4,3],[8,-15,4,3],[4,-18,4,3]]},{"id":"m01-m05-m03-tri","p":[[0,-3,4,3],[1,-6,4,3],[-3,-6,4,3],[-7,-6,4,3],[-7,-9,4,3],[-3,-9,4,3],[-7,-12,8,3],[-7,-15,4,3],[-3,-15,4,3],[-7,-18,4,3]]},{"id":"m10-m09-m06-embarquement","p":[[0,0,4,3],[-2,-3,4,3],[-2,-6,4,3],[2,-6,4,3],[6,-6,4,3],[2,-3,8,3],[4,0,4,3],[8,0,4,3],[12,0,6,3],[18,0,4,3],[22,0,4,3],[16,3,4,3],[20,3,3,3],[12,3,4,3],[12,6,4,3]]},{"id":"ol-m02-m09-m06-cale","p":[[0,-3,4,3],[-7,0,16,3],[-11,0,4,3],[-8,-3,4,3],[-4,-3,4,3],[3,3,4,3],[7,3,4,3],[11,3,6,3],[17,3,4,3],[21,3,4,3],[-9,3,4,3],[-12,3,3,3],[-5,3,4,3],[-5,6,4,3]]},{"id":"m11-m07-m03-remise","p":[[0,-3,4,3],[-1,-6,4,3],[3,-6,4,3],[-1,-9,4,3],[3,-9,4,3],[-1,-12,4,3],[-5,-12,4,3],[3,-12,4,3],[7,-12,4,3],[6,-15,4,3],[10,-15,4,3],[6,-18,4,3]]},{"id":"m07-m10-m06-entrepot","p":[[0,0,4,3],[-2,3,4,3],[-6,3,4,3],[2,3,4,3],[6,3,4,3],[4,6,4,3],[4,9,4,3],[8,9,4,3],[12,9,4,3],[8,6,8,3],[13,3,4,3],[10,3,3,3],[17,3,4,3],[17,6,4,3]]},{"id":"ol-m07-m11-m03-soute","p":[[-4,0,4,3],[-15,-3,16,3],[1,-3,4,3],[-10,-6,4,3],[-6,-6,4,3],[-14,-6,4,3],[-18,-6,4,3],[-8,0,4,3],[-12,0,4,3],[-8,3,4,3],[-12,3,4,3],[-1,-6,4,3],[3,-6,4,3],[-1,-9,4,3]]},{"id":"ol-m05-m08-m06-magasin","p":[[-4,0,4,3],[-14,3,16,3],[2,3,4,3],[-15,0,4,3],[-11,0,4,3],[-15,-3,8,3],[-16,6,4,3],[-12,6,4,3],[-20,6,4,3],[-20,9,4,3],[-24,9,4,3],[0,6,4,3],[4,6,3,3],[-4,6,4,3],[-4,9,4,3]]},{"id":"ol-m09-m10-m03-reserve","p":[[0,0,4,3],[-4,3,16,3],[12,3,4,3],[4,0,4,3],[8,0,4,3],[12,0,6,3],[18,0,4,3],[22,0,4,3],[-5,0,4,3],[-5,-3,4,3],[-9,-3,4,3],[-13,-3,4,3],[-13,0,8,3],[10,6,4,3],[14,6,4,3],[10,9,4,3]]},{"id":"m07-m08-m03-magasin","p":[[-4,0,4,3],[-4,3,4,3],[-8,3,4,3],[0,3,4,3],[4,3,4,3],[3,6,4,3],[7,6,4,3],[-1,6,4,3],[-1,9,4,3],[-5,9,4,3],[-1,12,4,3],[-5,12,4,3],[-1,15,4,3]]},{"id":"m02-m05-m03-tri","p":[[0,0,4,3],[0,-3,4,3],[-4,-3,4,3],[-2,-6,4,3],[2,-6,4,3],[-2,-9,8,3],[0,-12,4,3],[4,-12,4,3],[0,-15,4,3]]},{"id":"m04-m08-m06-magasin","p":[[0,0,4,3],[0,3,4,3],[4,3,4,3],[4,6,4,3],[0,6,4,3],[8,6,4,3],[8,9,4,3],[12,9,4,3],[9,12,4,3],[13,12,3,3],[5,12,4,3],[5,15,4,3]]},{"id":"ol-m07-m08-m06-magasin","p":[[0,-3,4,3],[1,-6,16,3],[-3,-6,4,3],[12,-3,4,3],[16,-3,4,3],[8,-3,4,3],[4,-3,4,3],[14,-9,4,3],[10,-9,4,3],[18,-9,4,3],[18,-12,4,3],[22,-12,4,3],[-2,-9,4,3],[-5,-9,3,3],[2,-9,4,3],[2,-12,4,3]]},{"id":"m07-m01-m06-palier","p":[[-4,0,4,3],[-2,3,4,3],[2,3,4,3],[-6,3,4,3],[-10,3,4,3],[-8,6,4,3],[-4,6,4,3],[0,6,4,3],[-1,9,4,3],[3,9,3,3],[-5,9,4,3],[-5,12,4,3]]},{"id":"m11-m01-m03-remise","p":[[0,0,4,3],[0,3,4,3],[4,3,4,3],[0,6,4,3],[4,6,4,3],[-2,9,4,3],[2,9,4,3],[6,9,4,3],[7,12,4,3],[3,12,4,3],[7,15,4,3]]},{"id":"ol-m01-m08-m06-embarquement","p":[[0,0,4,3],[-4,-3,16,3],[12,-3,4,3],[6,0,4,3],[10,0,4,3],[14,0,4,3],[-1,-6,4,3],[-5,-6,4,3],[3,-6,4,3],[3,-9,4,3],[7,-9,4,3],[10,-6,4,3],[7,-6,3,3],[14,-6,4,3],[14,-9,4,3]]},{"id":"m08-m02-m03-reserve","p":[[0,0,4,3],[0,3,4,3],[-4,3,4,3],[4,3,4,3],[4,6,4,3],[8,6,4,3],[2,9,4,3],[6,9,4,3],[7,12,4,3],[3,12,4,3],[7,15,4,3]]},{"id":"m10-m07-m03-entrepot","p":[[-4,0,4,3],[-3,-3,4,3],[-3,-6,4,3],[-7,-6,4,3],[-11,-6,4,3],[-11,-3,8,3],[-12,0,4,3],[-8,0,4,3],[-16,0,4,3],[-20,0,4,3],[-20,3,4,3],[-16,3,4,3],[-20,6,4,3]]},{"id":"m10-m01-m06-entrepot","p":[[-4,0,4,3],[-4,-3,4,3],[-4,-6,4,3],[0,-6,4,3],[4,-6,4,3],[0,-3,8,3],[0,0,4,3],[4,0,4,3],[8,0,4,3],[6,3,4,3],[10,3,3,3],[2,3,4,3],[2,6,4,3]]}];
+const TOTAL = 600; // dans le jeu : COMPOSITIONS_PUBLIEES.length, jamais écrit en dur
+const LARGEUR = 38; // caractères d'une ligne sur 390 px
+
+const $ = (id) => document.getElementById(id);
+const hasard = (n) => Math.floor(Math.random() * n);
+const melanger = (liste) => liste.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+const reduit = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let duree = 'longue';
+let sonActif = true;
+let jeton = 0;
+let passe = false;
+let numero = 0;
+const attentes = new Set();
+
+/* ---------- Sons : recettes au format de app/son/recettes.ts, plus `vibrato` ---------- */
+let audio = null;
+let maitre = null;
+let grain = null;
+let ronron = [];
+let bruitBlanc = null;
+
+function ouvrirAudio() {
+  if (audio === null) monterBus(new AudioContext());
+  if (audio.state === 'suspended') audio.resume();
+}
+
+/** Bus de la maquette sur un contexte audio (un contexte hors ligne sert à mesurer les niveaux). */
+function monterBus(contexte) {
+  audio = contexte;
+  maitre = audio.createGain();
+  maitre.gain.value = 0.55;
+  maitre.connect(audio.destination);
+  // Chaîne des bruitages du jeu (moteur.ts monter) : saturation tanh k 2,2, passe-bas 5 200 Hz Q 0,5, effets 80² et général 80².
+  grain = audio.createGain();
+  const saturation = audio.createWaveShaper();
+  const courbe = new Float32Array(1024);
+  for (let i = 0; i < courbe.length; i++) courbe[i] = Math.tanh(2.2 * ((i * 2) / courbe.length - 1)) / Math.tanh(2.2);
+  saturation.curve = courbe;
+  saturation.oversample = '2x';
+  const cassette = audio.createBiquadFilter();
+  cassette.type = 'lowpass';
+  cassette.frequency.value = 5200;
+  cassette.Q.value = 0.5;
+  const effets = audio.createGain();
+  effets.gain.value = (0.8 ** 2 * 0.8 ** 2) / maitre.gain.value;
+  grain.connect(saturation);
+  saturation.connect(cassette);
+  cassette.connect(effets);
+  effets.connect(maitre);
+  bruitBlanc = audio.createBuffer(1, audio.sampleRate * 2, audio.sampleRate);
+  const d = bruitBlanc.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+}
+
+function enveloppe(gain, debut, e) {
+  const montee = e.montee ?? (e.sorte === 'ton' ? 0.002 : 0.001);
+  const chute = e.chute ?? Math.min(0.03, e.duree / 2);
+  // Comme le jeu (moteur.ts enveloppe) : montée et chute exponentielles depuis et vers le silence.
+  gain.gain.setValueAtTime(0.0001, debut);
+  gain.gain.exponentialRampToValueAtTime(e.vol, debut + montee);
+  gain.gain.setValueAtTime(e.vol, debut + Math.max(montee, e.duree - chute));
+  gain.gain.exponentialRampToValueAtTime(0.0001, debut + e.duree);
+}
+
+/** Joue une recette (liste de tons et de souffles) ; rend les sources, pour arrêter un son long. */
+function jouer(recette, apercu = false) {
+  if (!sonActif || (passe && !apercu) || audio === null) return [];
+  const t0 = audio.currentTime + 0.01;
+  const sources = [];
+  for (const e of recette) {
+    const debut = t0 + e.t;
+    const gain = audio.createGain();
+    enveloppe(gain, debut, e);
+    const vers = e.jeu ? grain : maitre;
+    if (e.trem === undefined) gain.connect(vers);
+    else {
+      // Bourdonnement du jeu : amplitude modulée en carré entre 0 et 1.
+      const lfo = audio.createOscillator();
+      lfo.type = 'square';
+      lfo.frequency.value = e.trem;
+      const profondeur = audio.createGain();
+      profondeur.gain.value = 0.5;
+      const porte = audio.createGain();
+      porte.gain.value = 0.5;
+      lfo.connect(profondeur);
+      profondeur.connect(porte.gain);
+      gain.connect(porte);
+      porte.connect(vers);
+      lfo.start(debut);
+      lfo.stop(debut + e.duree + 0.02);
+      sources.push(lfo);
+    }
+    let source;
+    if (e.sorte === 'ton') {
+      source = audio.createOscillator();
+      source.type = e.onde ?? 'square';
+      source.frequency.setValueAtTime(e.f, debut);
+      if (e.fin) source.frequency.exponentialRampToValueAtTime(e.fin, debut + e.duree);
+      if (e.passeBas) {
+        const filtre = audio.createBiquadFilter();
+        filtre.type = 'lowpass';
+        filtre.frequency.value = e.passeBas;
+        source.connect(filtre);
+        filtre.connect(gain);
+      } else source.connect(gain);
+      if (e.vibrato) {
+        const lfo = audio.createOscillator();
+        const ampleur = audio.createGain();
+        lfo.frequency.value = e.vibrato[0];
+        ampleur.gain.value = e.vibrato[1];
+        lfo.connect(ampleur);
+        ampleur.connect(source.frequency);
+        lfo.start(debut);
+        lfo.stop(debut + e.duree);
+        sources.push(lfo);
+      }
+      source.start(debut);
+    } else {
+      source = audio.createBufferSource();
+      source.buffer = bruitBlanc;
+      source.loop = true;
+      const filtre = audio.createBiquadFilter();
+      filtre.type = e.filtre ?? 'bandpass';
+      filtre.frequency.setValueAtTime(e.f, debut);
+      if (e.fin) filtre.frequency.exponentialRampToValueAtTime(e.fin, debut + e.duree);
+      filtre.Q.value = e.q ?? 1;
+      source.connect(filtre);
+      filtre.connect(gain);
+      source.start(debut, Math.random() * 1.5);
+    }
+    source.stop(debut + e.duree + 0.02);
+    sources.push(source);
+  }
+  return sources;
+}
+
+const ton = (t, duree, f, vol, autres = {}) => ({ sorte: 'ton', t, duree, f, vol, ...autres });
+const souffle = (t, duree, f, vol, autres = {}) => ({ sorte: 'souffle', t, duree, f, vol, ...autres });
+const varier = (v, ecart) => v * (1 + (Math.random() * 2 - 1) * ecart);
+
+const SONS = {
+  /** Gros interrupteur mécanique : coup sourd, ressort, rebond métallique, montée du tube. */
+  interrupteur: () => [
+    ton(0, 0.32, 75, 0.9, { onde: 'sine', fin: 32, chute: 0.25 }),
+    souffle(0, 0.14, 380, 0.9, { filtre: 'lowpass', chute: 0.1 }),
+    souffle(0, 0.025, 1900, 0.5, { q: 6 }),
+    souffle(0.055, 0.02, 2400, 0.25, { q: 8 }),
+    ton(0.02, 0.6, 50, 0.12, { onde: 'sawtooth', passeBas: 180, chute: 0.5 }),
+  ],
+  /** Saisie machine : petit cliquetis sec. */
+  cliquetis: () => [souffle(0, 0.012, varier(4200, 0.15), 0.28, { q: 3 })],
+  /** Touche à ressort flambant (IBM Model M) : tintement du ressort puis fond de course. */
+  clac: () => [
+    souffle(0, 0.022, varier(2600, 0.12), 0.55, { q: 9 }),
+    ton(0, 0.05, varier(1650, 0.05), 0.05, { onde: 'triangle', chute: 0.045 }),
+    souffle(0.014, 0.035, 520, 0.6, { filtre: 'lowpass', chute: 0.03 }),
+  ],
+  /** Relais : un bloc de lignes qui arrive en mémoire. */
+  relais: () => [
+    souffle(0, 0.03, 1250, 0.45, { q: 2 }),
+    souffle(0, 0.05, 220, 0.4, { filtre: 'lowpass' }),
+    souffle(0.035, 0.012, 3200, 0.12, { q: 4 }),
+  ],
+  /** Une station défile : déclic de bande. */
+  tic: () => [souffle(0, 0.012, varier(1700, 0.2), 0.18, { q: 4 })],
+  /** La bande ralentit et s'arrête sur la station tirée. */
+  arret: () => [
+    ton(0, 0.4, 420, 0.1, { onde: 'sawtooth', fin: 60, passeBas: 900, chute: 0.3 }),
+    souffle(0, 0.35, 2600, 0.12, { fin: 300, q: 2 }),
+    souffle(0.36, 0.05, 240, 0.5, { filtre: 'lowpass' }),
+  ],
+  /** Son de la ligne de la menace : celui choisi dans MENACES. */
+  menace: () => MENACES[choixMenace](),
+  /** Statique : crépitements au hasard, porteuse radio qui saute de fréquence. */
+  statique: (duree) => {
+    const recette = [souffle(0, duree, 3000, 0.12, { filtre: 'highpass', chute: 0.15 })];
+    for (let t = 0; t < duree; t += 0.02 + Math.random() * 0.04) {
+      recette.push(souffle(t, 0.01 + Math.random() * 0.03, 400 + Math.random() * 5000, 0.2 + Math.random() * 0.6, { q: 1.5 }));
+    }
+    for (let t = 0; t < duree - 0.05; t += 0.05) {
+      recette.push(ton(t, 0.05, 300 + Math.random() * 1800, 0.06, { onde: 'sawtooth', passeBas: 2500 }));
+    }
+    return recette;
+  },
+  /** Ronron léger du tube, sous le fond brun, tant que l'intro est à l'écran. */
+  ronron: () => [ton(0, 60, 50, 0.025, { onde: 'sine', montee: 0.8 })],
+  /** Ligne qui arrive : déclic de relais, plus léger qu'un bloc. */
+  ligne: () => [souffle(0, 0.018, varier(1400, 0.15), 0.22, { q: 2 }), souffle(0, 0.03, 220, 0.18, { filtre: 'lowpass' })],
+  /** DÉMARRER : déclic validé. */
+  demarrer: () => [souffle(0, 0.03, 1250, 0.45, { q: 2 }), ton(0.02, 0.07, 880, 0.06, { onde: 'square', passeBas: 2400 })],
+};
+
+/**
+ * Fond brun du jeu (app/son/recettes.ts FOND, moteur.ts demarrerAmbiance) : bruit blanc, deux passe-bas à 90 puis 260 Hz (Q 0,5),
+ * gain 5, fondu de 0,8 s. Ici ramené au niveau qu'il a par défaut dans le jeu : 5 × ambiance 60² × général 80², sur `maitre`.
+ */
+function fondBrun() {
+  if (!sonActif || passe || audio === null) return [];
+  const lecteur = audio.createBufferSource();
+  lecteur.buffer = bruitBlanc;
+  lecteur.loop = true;
+  let dernier = lecteur;
+  for (const frequence of [90, 260]) {
+    const passeBas = audio.createBiquadFilter();
+    passeBas.type = 'lowpass';
+    passeBas.frequency.value = frequence;
+    passeBas.Q.value = 0.5;
+    dernier.connect(passeBas);
+    dernier = passeBas;
+  }
+  const gain = audio.createGain();
+  const t = audio.currentTime;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime((5 * 0.6 ** 2 * 0.8 ** 2) / maitre.gain.value, t + 0.8);
+  dernier.connect(gain);
+  gain.connect(maitre);
+  lecteur.start(t, Math.random());
+  return [lecteur];
+}
+
+/** Sons pour « ERREUR : Menace détectée », à comparer ; tous passent par la chaîne des bruitages du jeu. */
+const parLeJeu = (recette) => recette.map((e) => ({ ...e, jeu: true }));
+let choixMenace = 'blessure';
+const MENACES = {
+  /** 1. Buzzer d'erreur : un seul « bzzzt » grave et bourdonnant, de la famille du refus du jeu (120 Hz), plus long et plus bas. */
+  buzzer: () => parLeJeu([
+    ton(0, 0.38, 98, 0.14, { passeBas: 1300, trem: 30, chute: 0.05 }),
+    ton(0, 0.38, 103, 0.07, { passeBas: 900, chute: 0.05 }),
+    souffle(0, 0.38, 900, 0.1, { q: 1.2, chute: 0.05 }),
+  ]),
+  /** 2. Bip seul sourd : un bip feutré, grave et étouffé, plus long que ceux des menus. */
+  bip: () => parLeJeu([ton(0, 0.32, 300, 0.2, { onde: 'triangle', passeBas: 650, montee: 0.012, chute: 0.2 })]),
+  /** 3. Blessure : le son du jeu quand on prend un dégât, recette exacte (app/son/recettes.ts, blessure(1)). */
+  blessure: () => parLeJeu([
+    souffle(0, 0.04, 700, 0.3, { filtre: 'lowpass', q: 1 }),
+    ton(0.02, 0.13, 220, 0.09, { passeBas: 1500, trem: 40 }),
+  ]),
+};
+
+function couperRonron() {
+  if (audio === null) return;
+  for (const s of ronron) {
+    try { s.stop(audio.currentTime + 0.05); } catch { /* déjà arrêtée */ }
+  }
+  ronron = [];
+}
+
+/* ---------- Déroulé ---------- */
+
+/** Attend, sauf si le joueur a passé l'intro : tout se joue alors d'un coup, sans son. */
+const dormir = (ms) => {
+  if (passe) return Promise.resolve();
+  return new Promise((r) => {
+    const fin = () => { clearTimeout(t); attentes.delete(fin); r(); };
+    const t = setTimeout(fin, ms);
+    attentes.add(fin);
+  });
+};
+
+function passer() {
+  if (passe) return;
+  passe = true;
+  $('crt').classList.remove('saut', 'ouverture');
+  for (const fin of [...attentes]) fin();
+}
+
+function afficher(ecran) {
+  for (const id of ['ecran-accueil', 'ecran-intro', 'ecran-reveil']) $(id).classList.toggle('visible', id === ecran);
+}
+
+function accueil() {
+  jeton++;
+  passer();
+  couperRonron();
+  afficher('ecran-accueil');
+}
+
+function reveil() {
+  jeton++;
+  passe = false;
+  jouer(SONS.demarrer());
+  couperRonron();
+  $('num-reveil').textContent = `Station ${numero}`;
+  afficher('ecran-reveil');
+}
+
+function ligne(liste, html = '', classe = '') {
+  const li = document.createElement('li');
+  li.innerHTML = html;
+  if (classe) li.className = classe;
+  liste.append(li);
+  return li;
+}
+
+/** « Libellé ........ valeur » sur la largeur d'une ligne. */
+function points(libelle, valeur, prefixe = '> ') {
+  const debut = prefixe + libelle;
+  return `${debut} ${'.'.repeat(Math.max(2, LARGEUR - debut.length - valeur.length - 2))} ${valeur}`;
+}
+
+/** Ligne d'invite « > █ » : le texte tapé s'écrit avant le curseur. */
+function invite(liste) {
+  return ligne(liste, '&gt; <span class="curseur">█</span>');
+}
+
+/** Tape un texte lettre à lettre, avec un son par lettre. */
+async function taper(li, texte, pas, son) {
+  for (const lettre of texte) {
+    li.firstChild.textContent += lettre;
+    if (lettre !== ' ') jouer(son());
+    await dormir(pas);
+  }
+}
+
+/** Textes d'ambiance : trois au hasard à chaque tirage. */
+const AMBIANCE = [
+  () => ['Pressurisation des coursives', 'ok'],
+  () => ['Éclairage de secours', `${12 + hasard(60)} %`],
+  () => ['Purge des conduits', 'ok'],
+  () => ['Recyclage de l’air', `${40 + hasard(45)} %`],
+  () => ['Calibrage des capteurs', 'ok'],
+  () => ['Contrôle des joints', 'ok'],
+  () => ['Horloge de bord', 'dérive'],
+  () => ['Réchauffage du vestibule', 'ok'],
+  () => ['Recherche de survivants', '1'],
+  () => ['Balise de détresse', 'muette'],
+  () => ['Gravité artificielle', 'ok'],
+  () => ['Journal de bord', 'illisible'],
+  () => ['Équipage à bord', '?'],
+];
+
+function svgPlan(plan, marge = 1) {
+  const xs = plan.p.flatMap(([x, , l]) => [x, x + l]);
+  const ys = plan.p.flatMap(([, y, , h]) => [y, y + h]);
+  const x0 = Math.min(...xs) - marge, y0 = Math.min(...ys) - marge;
+  const l = Math.max(...xs) - x0 + marge, h = Math.max(...ys) - y0 + marge;
+  const rects = plan.p.map(([x, y, w, hh]) => `<rect x="${x}" y="${y}" width="${w}" height="${hh}"/>`).join('');
+  return `<svg class="plan" viewBox="${x0} ${y0} ${l} ${h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${rects}</svg>`;
+}
+
+/** Neige de l'écran et filtre de distorsion, image par image, pendant le saut. */
+async function saut(ms) {
+  if (passe) return;
+  const crt = $('crt');
+  const neige = $('neige').getContext('2d');
+  const image = neige.createImageData(96, 200);
+  crt.classList.add('saut');
+  jouer(SONS.statique(ms / 1000));
+  const fin = performance.now() + ms;
+  while (performance.now() < fin && !passe) {
+    for (let i = 0; i < image.data.length; i += 4) {
+      const v = Math.random() * 255;
+      image.data[i] = v; image.data[i + 1] = v * 0.75; image.data[i + 2] = v * 0.45; image.data[i + 3] = 255;
+    }
+    neige.putImageData(image, 0, 0);
+    $('turbulence').setAttribute('seed', String(hasard(1000)));
+    $('turbulence').setAttribute('baseFrequency', `0.00${1 + hasard(4)} 0.0${3 + hasard(9)}`);
+    $('deplacement').setAttribute('scale', String(20 + hasard(70)));
+    await dormir(45);
+  }
+  crt.classList.remove('saut');
+}
+
+async function lancer() {
+  const moi = ++jeton;
+  const vivant = () => moi === jeton;
+  ouvrirAudio();
+  couperRonron();
+  passe = reduit;
+  numero = 1 + hasard(TOTAL);
+  const complet = duree === 'longue';
+  const crt = $('crt');
+  const contenu = $('contenu');
+  crt.className = 'crt';
+  contenu.innerHTML = '';
+  afficher('ecran-intro');
+
+  // 0:00 noir total, puis mise sous tension tardive
+  await dormir(complet ? 700 : 150);
+  if (!vivant()) return;
+  jouer(SONS.interrupteur());
+  if (!passe) {
+    $('faisceau').classList.remove('va');
+    void $('faisceau').offsetWidth;
+    $('faisceau').classList.add('va');
+    crt.classList.add('ouverture');
+  }
+  crt.classList.add('allume');
+  ronron = [...fondBrun(), ...jouer(SONS.ronron())];
+  await dormir(complet ? 650 : 350);
+  if (!vivant()) return;
+  crt.classList.remove('ouverture');
+
+  if (complet) {
+    const boot = document.createElement('ul');
+    boot.className = 'terminal';
+    contenu.append(boot);
+    // 0:01 saisie machine rapide
+    const commande = invite(boot);
+    await taper(commande, 'boot -a --v', 38, SONS.cliquetis);
+    commande.lastChild.remove();
+    await dormir(350);
+    if (!vivant()) return;
+    // 0:02 deux lignes d'un coup, curseur carré dessous
+    jouer(SONS.relais());
+    ligne(boot, 'Loading terminal system...', 'faible');
+    ligne(boot, 'ready', 'ok');
+    const saisie = invite(boot);
+    await dormir(1400);
+    if (!vivant()) return;
+    // 0:04 saisie au clavier mécanique
+    await taper(saisie, 'campaign_mode; console_log(01);', 42, SONS.clac);
+    await dormir(300);
+    if (!vivant()) return;
+    // 0:05 l'écran saute
+    await saut(850);
+    if (!vivant()) return;
+    contenu.innerHTML = '';
+    await dormir(120);
+    if (!vivant()) return;
+  }
+
+  // 0:06 génération de la station
+  contenu.insertAdjacentHTML('beforeend', `<div class="mosaique" id="mosaique"></div>
+    <div class="gen">
+      <div class="c-centre"><div class="c-carte" id="c-carte"></div><div class="compteur" id="compteur"></div></div>
+      <ul class="terminal" id="gen"></ul>
+      <div class="pied"><button class="bouton principal" id="demarrer">Démarrer</button><p class="passer" id="aide">Toucher pour passer</p></div>
+    </div>`);
+  $('demarrer').addEventListener('click', reveil);
+  const mosaique = $('mosaique');
+  const cases = Array.from({ length: 24 }, () => {
+    const d = document.createElement('div');
+    d.innerHTML = svgPlan(PLANS[hasard(PLANS.length)]);
+    mosaique.append(d);
+    return d;
+  });
+  const gen = $('gen');
+  jouer(SONS.relais());
+  ligne(gen, `&gt; Tirage parmi ${TOTAL} stations…`);
+
+  let pause = 55;
+  let ecoule = 0;
+  const limite = complet ? 2400 : 1400;
+  while (ecoule < limite && !passe) {
+    $('c-carte').innerHTML = svgPlan(PLANS[hasard(PLANS.length)]);
+    $('compteur').textContent = `Station ${1 + hasard(TOTAL)}`;
+    cases[hasard(cases.length)].innerHTML = svgPlan(PLANS[hasard(PLANS.length)]);
+    jouer(SONS.tic());
+    await dormir(pause);
+    if (!vivant()) return;
+    ecoule += pause;
+    pause *= 1.12;
+  }
+  if (!vivant()) return;
+  if ($('c-carte').innerHTML === '') $('c-carte').innerHTML = svgPlan(PLANS[hasard(PLANS.length)]);
+  jouer(SONS.arret());
+  $('compteur').innerHTML = `Station ${numero} <span class="sur">sur ${TOTAL}</span>`;
+  $('c-carte').classList.add('voile');
+  $('c-carte').insertAdjacentHTML('beforeend', '<div class="inconnu">?</div>');
+  await dormir(500);
+  if (!vivant()) return;
+
+  // Lignes une par une, à un pas irrégulier : rafales rapides, quelques temps de traitement plus longs
+  const ambiance = melanger(AMBIANCE).slice(0, 3).map((f) => f());
+  const lignes = [
+    points('Section de départ', 'ok'),
+    points('Sections de passage', 'ok'),
+    points('Section finale', 'ok'),
+    ...ambiance.map(([l, v]) => points(l, v)),
+    points('Arrimage de la capsule', 'ok'),
+    points('Vérification de la sortie', 'ok'),
+  ];
+  const pas = () => {
+    const r = Math.random();
+    if (r < 0.3) return 25 + hasard(35);
+    if (r < 0.8) return 80 + hasard(100);
+    return 240 + hasard(160);
+  };
+  for (const texte of lignes) {
+    jouer(SONS.ligne());
+    ligne(gen).textContent = texte;
+    await dormir(pas());
+    if (!vivant()) return;
+  }
+  await dormir(450);
+  if (!vivant()) return;
+  jouer(SONS.relais());
+  jouer(SONS.menace());
+  ligne(gen, '', 'menace').textContent = '▲ ERREUR : Menace détectée';
+  await dormir(700);
+  if (!vivant()) return;
+  jouer(SONS.interrupteur().slice(0, 3));
+  ligne(gen);
+  ligne(gen, `&gt; Station ${numero} prête<span class="curseur">_</span>`, 'ok');
+  ligne(gen, 'La prochaine partie en tirera une autre.', 'faible');
+  await dormir(400);
+  if (!vivant()) return;
+  $('demarrer').classList.add('pret');
+  $('aide').style.visibility = 'hidden';
+}
+
+function onglets(id, attribut, choisir, relancer) {
+  const boutons = [...$(id).querySelectorAll('.onglet')];
+  for (const b of boutons) {
+    b.addEventListener('click', () => {
+      for (const autre of boutons) autre.setAttribute('aria-selected', String(autre === b));
+      choisir(b.dataset[attribut]);
+      if (relancer) lancer();
+    });
+  }
+}
+
+onglets('durees', 'd', (d) => (duree = d), true);
+onglets('sons', 's', (s) => { sonActif = s === 'oui'; if (!sonActif) couperRonron(); }, false);
+onglets('menaces', 'm', (m) => { choixMenace = m; ouvrirAudio(); jouer(SONS.menace(), true); }, false);
+$('nouvelle').addEventListener('click', lancer);
+$('ecran-intro').addEventListener('pointerdown', (e) => { if (e.target.id !== 'demarrer') passer(); });
+$('regarder').addEventListener('click', accueil);
+$('relancer').addEventListener('click', accueil);
+</script>

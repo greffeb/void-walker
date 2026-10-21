@@ -90,10 +90,22 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
         feu: souvenir?.feu?.vu === true ? palier(etat.actions - souvenir.feu.actions) : null,
         vide: sansAir.includes(piece.id) && (piece.id === ici || luSurVoyant.has(piece.id)),
         creature: vue !== null && vue.piece === piece.id ? palier(vue.depuis) : null,
-        objets: (souvenir?.objets ?? []).map(({ objet, position }) => ({
-          objet: refObjet(monde, objet),
-          position: position === undefined ? null : refPosition(monde, position),
-        })),
+        objets: [
+          ...(souvenir?.objets ?? []).map(({ objet, position }) => ({
+            objet: refObjet(monde, objet),
+            position: position === undefined ? null : refPosition(monde, position),
+            ...(monde.objets.some((definition) => definition.id === objet && definition.drone !== undefined) ? { drone: true as const } : {}),
+          })),
+          // Un drone qu'on a envoyé, ou qui tient la poignée, est connu du passager même hors de sa vue : son pictogramme suit sa pièce.
+          ...monde.objets
+            .filter((definition) => {
+              const phase = etat.drones?.phases[definition.id];
+              const place = etat.objets[definition.id];
+              return (phase === 'trajet' || phase === 'maintien') && place?.type === 'piece' && place.piece === piece.id
+                && souvenir?.objets?.some(({ objet }) => objet === definition.id) !== true;
+            })
+            .map((definition) => ({ objet: refObjet(monde, definition.id), position: null, drone: true as const })),
+        ],
         distance: parcours.get(piece.id) ?? null,
       };
     });

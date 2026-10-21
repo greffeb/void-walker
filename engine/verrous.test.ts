@@ -34,16 +34,16 @@ function partie(monde: DefMonde = MONDE): Partie {
   return nouvellePartie(monde, { version: 'verrous-1', graine: 3 });
 }
 
-function option(courante: Partie, action: IdAction, nom: string): OptionMenu | undefined {
-  return observer(MONDE, courante.etat).menu.find(
+function option(courante: Partie, action: IdAction, nom: string, monde: DefMonde = MONDE): OptionMenu | undefined {
+  return observer(monde, courante.etat).menu.find(
     (choix) => choix.action === action && (choix.cible.nom === nom || (choix.cible.sorte === 'passage' && choix.cible.vers?.nom === nom)),
   );
 }
 
-function engager(courante: Partie, action: IdAction, nom: string): Partie {
-  const choix = option(courante, action, nom);
+function engager(courante: Partie, action: IdAction, nom: string, monde: DefMonde = MONDE): Partie {
+  const choix = option(courante, action, nom, monde);
   if (choix === undefined || !choix.disponible) throw new Error(`Option ${action} ${nom} absente ou indisponible.`);
-  const resultat = jouer(MONDE, courante, choix.commande);
+  const resultat = jouer(monde, courante, choix.commande);
   if (resultat.type !== 'engagee') throw new Error(`${action} ${nom} : ${resultat.type}.`);
   return resultat.partie;
 }
@@ -157,5 +157,81 @@ describe('cloison verrouillée (D-259)', () => {
   it('n’ajoute rien à l’état d’un monde sans cloison verrouillée', () => {
     const sans: DefMonde = { ...MONDE, liaisons: MONDE.liaisons.slice(0, 3), objets: MONDE.objets.slice(1) };
     expect(Object.hasOwn(etatInitial(sans, 1), 'verrous')).toBe(false);
+  });
+});
+
+// Porte blindée et lecteur de carte (#203), sur une fixture réduite :
+//
+//   remise (créature) ══porte══ couloir (départ, lecteur) ══porte══ vestiaire (carte)
+//                                  ╚══porte blindée verrouillée══ sas (capsule) ══écoutille══ cabine (pupitre)
+const SAS: DefMonde = {
+  id: 'sas-1',
+  depart: 'p-couloir',
+  pieces: [
+    { id: 'p-couloir', nom: 'couloir' },
+    { id: 'p-vestiaire', nom: 'vestiaire' },
+    { id: 'p-remise', nom: 'remise' },
+    { id: 'p-sas', nom: 'sas' },
+    { id: 'p-cabine', nom: 'cabine' },
+  ],
+  liaisons: [
+    { id: 'l-couloir-vestiaire', nom: 'porte_vestiaire', entre: ['p-couloir', 'p-vestiaire'], ouverte: true },
+    { id: 'l-couloir-remise', nom: 'porte_remise', entre: ['p-couloir', 'p-remise'], ouverte: false },
+    { id: 'l-blindee', nom: 'porte_blindee', entre: ['p-couloir', 'p-sas'], ouverte: false, verrouillee: true, blindee: true },
+    { id: 'l-sas-cabine', nom: 'ecoutille', entre: ['p-sas', 'p-cabine'], ouverte: false },
+  ],
+  objets: [
+    { id: 'o-lecteur', nom: 'lecteur', piece: 'p-couloir', portable: false, deverrouille: 'l-blindee', exige: 'o-carte' },
+    { id: 'o-carte', nom: 'carte', piece: 'p-vestiaire' },
+    { id: 'o-capsule', nom: 'capsule', piece: 'p-sas', portable: false, capsule: { interieur: 'p-cabine', alimentee: true } },
+    { id: 'o-pupitre', nom: 'pupitre', piece: 'p-cabine', portable: false, depart: 'o-capsule' },
+  ],
+  creature: { piece: 'p-remise' },
+};
+
+describe('porte blindée et lecteur de carte (#203)', () => {
+  const depart = (): Partie => nouvellePartie(SAS, { version: 'sas-1', graine: 3 });
+  const avecCarte = (): Partie => engager(engager(engager(depart(), 'aller', 'vestiaire', SAS), 'prendre', 'carte', SAS), 'aller', 'couloir', SAS);
+
+  it('sans la carte en main, le lecteur reste au menu, indisponible, et l’actionner est refusé sans coût', () => {
+    const debut = depart();
+    const lecteur = option(debut, 'actionner', 'lecteur', SAS);
+    expect(lecteur).toMatchObject({ disponible: false, raison: 'sans_carte' });
+    const resultat = jouer(SAS, debut, lecteur?.commande);
+    expect(resultat).toMatchObject({ type: 'refus', raison: 'sans_carte' });
+    expect(resultat.partie).toBe(debut);
+  });
+
+  it('carte en main, le lecteur lève le verrou pour de bon ; la porte reste fermée et la carte reste en main', () => {
+    const resultat = jouer(SAS, avecCarte(), option(avecCarte(), 'actionner', 'lecteur', SAS)?.commande);
+    if (resultat.type !== 'engagee') throw new Error(resultat.type);
+    expect(resultat.evenements.map((evenement) => evenement.type)).toContain('cloison_deverrouillee');
+    expect(resultat.partie.etat.verrous).toEqual([]);
+    expect(resultat.partie.etat.liaisons['l-blindee']).toBe(false);
+    expect(resultat.partie.etat.objets['o-carte']).toEqual({ type: 'passager' });
+    expect(option(resultat.partie, 'ouvrir', 'porte_blindee', SAS)?.disponible).toBe(true);
+  });
+
+  it('la sortie compte sur la carte : à portée, la capsule reste atteignable ; hors de portée, plus aucune sortie', () => {
+    expect(observer(SAS, depart().etat).sansSortie).toBe(false);
+    const objets = SAS.objets.map((objet) => (objet.id === 'o-carte' ? { ...objet, piece: 'p-sas' } : objet));
+    const enfermee: DefMonde = { ...SAS, objets };
+    expect(validerMonde(enfermee)).toEqual([]);
+    expect(observer(enfermee, etatInitial(enfermee, 1)).sansSortie).toBe(true);
+  });
+
+  it('est refusée par la validation hors de sa forme', () => {
+    const avec = (changement: Partial<DefMonde>): string[] => validerMonde({ ...SAS, ...changement });
+    expect(avec({})).toEqual([]);
+    const [vestiaire, remise, blindee, ecoutille] = SAS.liaisons;
+    const [lecteur, carte, ...autres] = SAS.objets;
+    if (vestiaire === undefined || remise === undefined || blindee === undefined || ecoutille === undefined || lecteur === undefined || carte === undefined) {
+      throw new Error('Fixture incomplète.');
+    }
+    expect(avec({ liaisons: [vestiaire, remise, { ...blindee, verrouillee: false, ouverte: true, gouffre: true }, ecoutille] })).toContain(
+      'l-blindee : porte blindée qui n\'est pas une porte pleine.',
+    );
+    expect(avec({ objets: [lecteur, { ...carte, portable: false }, ...autres] })).toContain('o-lecteur : exige un objet inconnu ou non portable.');
+    expect(avec({ objets: [lecteur, { ...carte, exige: 'o-carte' }, ...autres] })).toContain('o-carte : exige sans être une commande.');
   });
 });

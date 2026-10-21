@@ -14,6 +14,8 @@ export const MORCEAU_VESTIBULE: DefMorceau = {
   placesCreature: [],
   demande: [],
   fournit: [],
+  // Grandes stations (spec 2026-10-18 §6.1, §6.3) : pièces où une annexe peut s’accrocher, côté avant et coupe de l’obstacle.
+  grande: { accueillantes: {}, avant: ['p-vestibule'], coupe: [] },
 };
 
 export const TEXTES_MORCEAU_VESTIBULE: TextesMorceau = { noms: {}, descriptions: {}, assistance: {} };

@@ -48,6 +48,8 @@ jobs:
       - name: Publier dans /pr-${{ github.event.pull_request.number }}/, vérification en cours
         env:
           GH_TOKEN: ${{ github.token }}
+          # Sa ligne « Tester : id ; id » donne les liens cliquables du commentaire du robot.
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           printf '%s' "${COMMIT}" > dist/version.txt
           npx tsx tools/etat-verification.ts --etat=en_cours --json=dist/verification.json --commentaire="${RUNNER_TEMP}/commentaire.md"
@@ -144,6 +146,7 @@ jobs:
       - name: Déposer l'état de la vérification et les captures dans /pr-${{ github.event.pull_request.number }}/
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           etat=$([[ "${VERIFIEE}" == 'true' ]] && echo verte || echo echec)
           mkdir -p ajout

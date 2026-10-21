@@ -1,5 +1,7 @@
 import { CATALOGUE, type ActionEngagee, type DefAction, type Effet } from './actions';
+import { bruitDeStation } from './bruits';
 import { reagir, type SonEmis } from './creature';
+import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
 import { etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
@@ -90,6 +92,17 @@ function messagesArrivee(monde: DefMonde, etat: EtatPartie): string[] {
 
 function messagesEvacuation(monde: DefMonde, etat: EtatPartie): string[] {
   return (monde.assistance ?? []).filter((message) => message.quand.type === 'evacuation' && !etat.messages.includes(message.id)).map((message) => message.id);
+}
+
+/** Attentes de suite qui déclenchent le message de patience (#225). */
+const ATTENTES_PATIENCE = 15;
+
+/** Message de patience, une fois : à la 15e attente de suite dont l'attente est le seul événement (#225). */
+function messagesPatience(monde: DefMonde, partie: Partie, commande: Commande, evenements: readonly Evenement[]): string[] {
+  if (commande.action !== 'attendre' || evenements.length !== 1 || evenements[0]?.type !== 'attente') return [];
+  const precedentes = partie.enregistrement.actions.slice(-(ATTENTES_PATIENCE - 1));
+  if (precedentes.length < ATTENTES_PATIENCE - 1 || precedentes.some((entree) => entree.commande.action !== 'attendre')) return [];
+  return (monde.assistance ?? []).filter((message) => message.quand.type === 'patience' && !partie.etat.messages.includes(message.id)).map((message) => message.id);
 }
 
 function estCommande(valeur: unknown): valeur is Commande {
@@ -213,7 +226,7 @@ function airConnu(monde: DefMonde, { avant, vide }: Simulation): Savoir[] {
 }
 
 function simuler(monde: DefMonde, etat: EtatPartie, definition: ActionEngagee, cible: string, parametre: string | undefined): Simulation {
-  const effet = definition.appliquer({ monde, etat }, cible, SANS_DES, parametre);
+  const effet = avancerDrones(monde, etat, definition.appliquer({ monde, etat }, cible, SANS_DES, parametre));
   return { avant: etat, franchie: effet.franchie, ...mettreAJourDangers(monde, etat, effet) };
 }
 
@@ -243,7 +256,12 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   for (const autre of dangers) {
     if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
   }
-  const savoir = [...prevision.savoir, ...airConnu(monde, simulation)];
+  const tenue = partie.etat.drones?.tenue;
+  const savoir: Savoir[] = [...prevision.savoir, ...airConnu(monde, simulation)];
+  if (tenue != null && simulation.froid.etat.drones?.tenue === null && definition.id !== 'lacher') {
+    const lachee = lacherPoignee(monde, partie.etat).evenements[0];
+    if (lachee?.type === 'poignee_lachee') savoir.push({ type: 'lachera', objet: lachee.objet });
+  }
   return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...retenu, savoir } };
 }
 
@@ -279,7 +297,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   // l'atteint à ce pas, ce que l'effet simulé sans dé suffit à dire.
   const exposition = exposeCePas(simuler(monde, partie.etat, definition, cible, parametre));
   const atteint = exposition && intercepter(session.des);
-  const effet = definition.appliquer(contexte, cible, session.des, parametre);
+  const effet = avancerDrones(monde, partie.etat, definition.appliquer(contexte, cible, session.des, parametre));
   // Étape 3 : le vide, puis le feu, puis le froid ; la brûlure de qui finit l'action dans une pièce en feu (C-03 §5.3, §5.4, D-188),
   // la gelure de qui la finit dans la chambre froide au-delà de deux actions (D-240).
   const { vide, feu, froid } = mettreAJourDangers(monde, partie.etat, effet);
@@ -289,7 +307,15 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   const alertee = froid.etat.creature?.contact === true;
   const genre = effet.franchie !== undefined ? 'pas' : (froid.etat.creature?.ecoute ?? 0) > 0 ? 'souffle' : undefined;
   const pas: readonly SonEmis[] = alertee && genre !== undefined ? [{ piece: froid.etat.piece, intensite: 'normal', pas: genre }] : [];
-  const sons = [...froid.etat.alarmes.map((alarme) => sonAlarme(monde, alarme)), ...(effet.sons ?? []), ...pas];
+  const sources = [
+    ...froid.etat.alarmes.map((alarme) => ({ id: alarme.objet, son: sonAlarme(monde, alarme) })),
+    ...sonsDrones(monde, froid.etat).map((son) => ({ id: son.drone, son })),
+  ];
+  if (froid.etat.drones !== undefined) {
+    const ordre = froid.etat.drones.bruits;
+    sources.sort((a, b) => ordre.indexOf(a.id) - ordre.indexOf(b.id));
+  }
+  const sons = [...sources.map(({ son }) => son), ...(effet.sons ?? []), ...pas];
   const reponse = reagir(monde, froid.etat, sons, partie.etat.piece, effet.franchie, exposition);
   const causes: Cause[] = [
     ...(atteint ? (['griffes'] as const) : []),
@@ -297,7 +323,9 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     ...(froid.gelure ? (['froid'] as const) : []),
   ];
   // Sans combinaison dans une pièce sans air : vaincu, hors plafond (C-04 §3.1).
-  const blessure = vide.asphyxie ? asphyxier(decompter(reponse.etat), causes) : aggraver(decompter(reponse.etat), causes);
+  const lachee = atteint ? lacherPoignee(monde, reponse.etat) : { etat: reponse.etat, evenements: [] };
+  reponse.evenements.push(...lachee.evenements);
+  const blessure = vide.asphyxie ? asphyxier(decompter(lachee.etat), causes) : aggraver(decompter(lachee.etat), causes);
   const menace: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : [];
   const coups = blessure.evenements;
   // En fuite, elle frappe au seuil, avant le déplacement ; la brûlure se raconte avec le feu ; une défaite se raconte en dernier
@@ -320,7 +348,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   // Étape 5 : messages d'arrivée, puis conclusion ; une défaite l'emporte sur le départ de la capsule.
   let conclu: EtatPartie = blessure.etat;
   if (!vaincu) {
-    const arrivees = messagesArrivee(monde, conclu);
+    const arrivees = [...messagesArrivee(monde, conclu), ...messagesPatience(monde, partie, validation.commande, evenements)];
     conclu = { ...conclu, messages: [...conclu.messages, ...arrivees] };
     evenements.push(...arrivees.map((message) => ({ type: 'assistance', message }) as const));
     if (effet.evacuation !== undefined) {
@@ -328,6 +356,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
       conclu = { ...conclu, fin: 'evacuation', messages: [...conclu.messages, ...depart] };
       evenements.push({ type: 'evacuation', sources: effet.evacuation }, ...depart.map((message) => ({ type: 'assistance', message }) as const));
     }
+  }
+  // Grande station : avant la rencontre, un bruit de station de temps en temps (spec 2026-10-18 §5.5) ; rien dans l'état.
+  if (monde.bruitsStation === true && !vaincu && conclu.fin === null && conclu.creature?.contact !== true && bruitDeStation(partie.enregistrement.graine, partie.etat.actions + 1)) {
+    evenements.push({ type: 'bruit_station' });
   }
   const tirages = [...session.tirages];
   // Le regard de fin d'action met à jour la mémoire du passager, avec le compte d'actions confirmées (14 §3.1).

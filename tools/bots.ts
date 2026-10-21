@@ -1,17 +1,17 @@
-import { apercu, jouer, nouvellePartie, observer, type Apercu, type Commande, type Evenement, type NiveauRisque, type Observation, type OptionMenu, type Partie } from '../engine';
+import { apercu, jouer, nouvellePartie, observer, type Apercu, type Commande, type Consultation, type DefMonde, type Evenement, type IntensiteTrace, type NiveauRisque, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { SuiviPartie, type IndicateursPartie } from './indicateurs-partie';
 import type { EntreeMonde } from '../content';
 
 // Bots de mesure (#194 §2.3) : ils jouent par le menu public, avec ce que le joueur voit (observation, aperçu du risque, récit
-// de la dernière action), jamais l'état caché du moteur. Leur seule mémoire est la leur. Ils servent à mesurer, pas à prouver :
+// de la dernière action) et ce qu'il peut regarder gratuitement (une trace, un document), jamais l'état caché du moteur. Leur seule mémoire est la leur. Ils servent à mesurer, pas à prouver :
 // la preuve d'une station reste celle de `check:stations`.
 
-export const PROFILS = ['aleatoire', 'prudent', 'presse'] as const;
+export const PROFILS = ['aleatoire', 'prudent', 'presse', 'averti'] as const;
 export type Profil = (typeof PROFILS)[number];
 
-/** Plafond d'actions d'une partie de bot : au-delà, la partie est abandonnée (issue « en cours »). */
-export const PLAFOND_ACTIONS = 300;
+/** Plafond d'actions d'une partie de bot : au-delà, la partie est abandonnée (issue « en cours ») ; 600 pour les grandes stations (spec 2026-10-18 §11). */
+export const PLAFOND_ACTIONS = 600;
 
 /** Ce qu'un bot voit avant de choisir. */
 export interface VueBot {
@@ -20,6 +20,10 @@ export interface VueBot {
   readonly evenements: readonly Evenement[];
   /** Aperçu de chaque option engagée et disponible, par commande. */
   readonly apercu: (option: OptionMenu) => Apercu | null;
+  /** Trace de la pièce, telle que la montre « regarder » (spec 2026-10-18 §5.4) ; `null` sans trace. */
+  readonly trace: IntensiteTrace | null;
+  /** « Regarder » une cible de la pièce : consultation gratuite, que la partie n'enregistre pas ; `null` si elle est refusée. */
+  readonly consulter: (cible: string) => Consultation | null;
 }
 
 export interface Bot {
@@ -57,9 +61,35 @@ const MENACES: ReadonlySet<Evenement['type']> = new Set(['premier_contact', 'men
 
 const GESTES_DE_PASSAGE: ReadonlySet<OptionMenu['action']> = new Set(['aller', 'ouvrir', 'fermer', 'attendre', 'poser', 'retirer', 'regarder']);
 
+/** Gestes dont l'indisponibilité ne dit rien de la pièce : « aller » par une porte fermée, « fermer » une porte déjà fermée. */
+const SANS_BLOCAGE: ReadonlySet<OptionMenu['action']> = new Set(['aller', 'ouvrir', 'fermer', 'attendre', 'regarder']);
+
+/**
+ * Pièce à revoir quand on porte autre chose (spec 2026-10-18 §11) : un passage qu'on ne peut ni franchir ni ouvrir, ou un geste
+ * indisponible autre qu'un geste de passage. Une porte fermée qu'on peut ouvrir ne compte pas.
+ */
+export function aRevoirIci(observation: Observation): boolean {
+  const options = optionsJouables(observation);
+  const bloque = observation.passages.some((passage) => !options.some((option) => (option.action === 'aller' || option.action === 'ouvrir') && option.cible.id === passage.id));
+  return bloque || observation.menu.some((option) => !option.disponible && !SANS_BLOCAGE.has(option.action));
+}
+
 /** Malus d'un risque annoncé pour le bot prudent ; le bot pressé ne garde que les deux derniers. */
 const MALUS_PRUDENT: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 10, modere: 40, eleve: 150, certain: 5000, mortel: 10000 };
 const MALUS_PRESSE: Readonly<Record<NiveauRisque, number>> = { aucun: 0, faible: 0, modere: 0, eleve: 0, certain: 5000, mortel: 10000 };
+
+/** Malus d'aller plus loin depuis une pièce à trace forte, pour le bot averti, avant la rencontre ; il s'use de 50 par geste. */
+const MALUS_TRACE = 200;
+
+/** Prix d'un geste sur la route d'une pièce que nomme une note de rangement : avant l'exploration (100) et le butin (150), après un geste jamais essayé (200). */
+const PRIX_NOTE = 180;
+
+/**
+ * Choix de l'averti, avant la rencontre, où une pièce nommée par une note joue sans qu'il s'en rapproche (distance minimale
+ * jamais battue) : au bout de cette patience, la pièce cesse d'être une destination. Sans elle, un passage jugé trop risqué
+ * vers la pièce le ferait tourner autour jusqu'au plafond.
+ */
+const PATIENCE_NOTE = 15;
 
 /** Actions après lesquelles le bot réessaie un passage qu'il n'a pas pu ouvrir. */
 const OUBLI = 20;
@@ -78,6 +108,7 @@ function situation(observation: Observation): string {
     observation.enfilee?.id ?? null,
     observation.machines,
     observation.gravite,
+    ...(observation.drones === undefined ? [] : [observation.drones, observation.freins, observation.poigneeTenue ?? null]),
   ]);
 }
 
@@ -85,11 +116,17 @@ function situation(observation: Observation): string {
  * Explorateur qui cherche la capsule comme un joueur attentif : il essaie une fois chaque geste dans chaque situation, ramasse,
  * ouvre, va vers les pièces qu'il n'a pas vues ou pas revues depuis qu'il porte autre chose, et ferme la porte derrière lui
  * quand le récit annonce la créature. Prudent, il évite les risques annoncés quand il a le choix ; pressé, seulement le mortel
- * et le certain.
+ * et le certain. Averti, il est prudent et lit ce que le passager peut lire : avant la rencontre, une trace forte le fait hésiter
+ * à aller plus loin, et il regarde chaque document à sa première visite, puis va vers la pièce qu'une note de rangement nomme.
  */
-export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bot {
+export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'averti'): Bot {
   const hasard = hasardDe(graine);
-  const malus = profil === 'prudent' ? MALUS_PRUDENT : MALUS_PRESSE;
+  const malus = profil === 'presse' ? MALUS_PRESSE : MALUS_PRUDENT;
+  let rencontre = false;
+  /** Gestes déjà choisis dans chaque pièce à trace forte : l'hésitation s'use, pour ne pas tourner en rond. */
+  const hesitations = new Map<string, number>();
+  /** Pièces où un passage ou un geste n'était pas possible : les seules qui valent d'être revues avec autre chose en main. */
+  const aRevoir = new Set<string>();
   const essais = new Map<string, number>();
   const ouverts = new Set<string>();
   /**
@@ -107,6 +144,13 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
   let but: string | null = null;
   let precedente: string | null = null;
   let franchi: string | null = null;
+  /** Pièces dont les documents sont déjà lus : un document se lit à la première visite, et pas deux fois ; un regard refusé n'est pas retenté. */
+  const lues = new Set<string>();
+  /** Pièces que les notes de rangement lues nomment : des destinations tant qu'on ne les a pas atteintes, ni usé la patience. */
+  const designees = new Set<string>();
+  /** Pour chaque pièce nommée : la distance la plus courte où l'on s'en est trouvé, et les choix sans s'en être rapproché. */
+  const plusProches = new Map<string, number>();
+  const usures = new Map<string, number>();
 
   const inventaire = (observation: Observation): string => observation.inventaire.map((objet) => objet.id).sort().join(',');
 
@@ -115,7 +159,7 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
     const avecCe = inventaire(observation);
     return new Set(
       observation.carte.pieces
-        .filter((piece) => piece.statut === 'connue' || (piece.statut === 'visitee' && !vues.has(`${piece.piece.id}#${avecCe}`)))
+        .filter((piece) => piece.statut === 'connue' || (piece.statut === 'visitee' && aRevoir.has(piece.piece.id) && !vues.has(`${piece.piece.id}#${avecCe}`)))
         .map((piece) => piece.piece.id),
     );
   };
@@ -140,8 +184,12 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
     return trouvees;
   };
 
-  /** Passage à prendre ou à ouvrir vers le but, gardé ou choisi le plus proche parmi les pièces à voir ; `null` sans but joignable. */
-  const etape = (observation: Observation): { readonly passage: string; readonly distance: number } | null => {
+  /**
+   * Passage à prendre ou à ouvrir vers le but, gardé ou choisi le plus proche parmi les pièces à voir ; `null` sans but joignable.
+   * Averti, avant la rencontre : la pièce nommée par une note, pas encore atteinte et par un chemin connu, passe avant ; sans
+   * chemin connu, l'exploration continue comme avant.
+   */
+  const etape = (observation: Observation): { readonly passage: string; readonly distance: number; readonly designee: boolean } | null => {
     const chemins = routes(observation);
     const cibles = aVoir(observation);
     if (but === observation.piece.id || (but !== null && (!cibles.has(but) || !chemins.has(but)))) but = null;
@@ -152,15 +200,30 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
         if (route !== undefined && route.distance < proche) [but, proche] = [piece, route.distance];
       }
     }
+    let visee: string | null = null;
+    if (profil === 'averti' && !rencontre) {
+      let proche = Infinity;
+      for (const piece of designees) {
+        const route = chemins.get(piece);
+        if (route === undefined || route.distance >= proche || (usures.get(piece) ?? 0) >= PATIENCE_NOTE || observation.visitees.some((vue) => vue.id === piece)) continue;
+        [visee, proche] = [piece, route.distance];
+      }
+      if (visee !== null) {
+        but = visee;
+        // Un choix où la destination joue : il use la patience, sauf s'il rapproche de la pièce.
+        if (proche < (plusProches.get(visee) ?? Infinity)) plusProches.set(visee, proche);
+        else usures.set(visee, (usures.get(visee) ?? 0) + 1);
+      }
+    }
     const route = but === null ? undefined : chemins.get(but);
-    return route === undefined ? null : { passage: route.premier, distance: route.distance };
+    return route === undefined ? null : { passage: route.premier, distance: route.distance, designee: visee !== null };
   };
 
-  const score = (vue: VueBot, option: OptionMenu, ici: string, menace: boolean, vers: { passage: string; distance: number } | null): number => {
+  const score = (vue: VueBot, option: OptionMenu, ici: string, menace: boolean, vers: { passage: string; distance: number; designee: boolean } | null): number => {
     const { observation } = vue;
     const { action, cible } = option;
     const essai = essais.get(`${ici}|${cle(option.commande)}`) ?? 0;
-    const surLaRoute = vers !== null && cible.id === vers.passage ? 85 - vers.distance : 0;
+    const surLaRoute = vers !== null && cible.id === vers.passage ? (vers.designee ? PRIX_NOTE : 85) - vers.distance : 0;
     let points = 0;
     if (action === 'lancer') points = 1000;
     else if (action === 'fermer') points = menace && cible.id === franchi ? 400 : 2;
@@ -175,6 +238,10 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
     else if (action === 'prendre') points = essai === 0 ? 150 : 2;
     else if (!GESTES_DE_PASSAGE.has(action)) points = essai === 0 ? 200 : 5;
     if (essai > 0 && action !== 'aller' && surLaRoute === 0) points -= 10 * essai;
+    if (profil === 'averti' && !rencontre && vue.trace === 'forte') {
+      const versInconnue = action === 'aller' && cible.sorte === 'passage' && (cible.vers === null || !observation.visitees.some((piece) => piece.id === cible.vers?.id));
+      if (action === 'ouvrir' || versInconnue) points -= Math.max(0, MALUS_TRACE - 50 * (hesitations.get(observation.piece.id) ?? 0));
+    }
     const risque = vue.apercu(option)?.risque ?? 'aucun';
     return points - malus[risque] + hasard();
   };
@@ -186,6 +253,15 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
       if (options.length === 0) return null;
       const ici = situation(observation);
       vues.add(`${observation.piece.id}#${inventaire(observation)}`);
+      rencontre ||= observation.creatureVisible || evenements.some((evenement) => evenement.type === 'premier_contact');
+      if (profil === 'averti' && !lues.has(observation.piece.id)) {
+        lues.add(observation.piece.id);
+        for (const objet of observation.objets) {
+          const lu = vue.consulter(objet.id);
+          if (lu?.type === 'regarder_document' && lu.designe !== undefined) designees.add(lu.designe.id);
+        }
+      }
+      if (aRevoirIci(observation)) aRevoir.add(observation.piece.id);
       // Un passage d'ici qu'on ne peut ni franchir ni ouvrir est bloqué pour l'instant : porte verrouillée, vide sans pont…
       for (const passage of observation.passages) {
         const praticable = options.some((option) => (option.action === 'aller' || option.action === 'ouvrir') && option.cible.id === passage.id);
@@ -200,6 +276,7 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse'): Bo
         if (points > meilleurScore) [meilleure, meilleurScore] = [option, points];
       }
       if (meilleure === undefined) return null;
+      if (vue.trace === 'forte' && !rencontre) hesitations.set(observation.piece.id, (hesitations.get(observation.piece.id) ?? 0) + 1);
       const { action, commande } = meilleure;
       const nom = `${ici}|${cle(commande)}`;
       essais.set(nom, (essais.get(nom) ?? 0) + 1);
@@ -218,6 +295,12 @@ export function creerBot(profil: Profil, graine: number): Bot {
   return profil === 'aleatoire' ? botAleatoire(graine) : botExplorateur(graine, profil);
 }
 
+/** Trace de la pièce du passager, par la consultation gratuite « regarder » : ce que le joueur lit en regardant la pièce. */
+function traceIci(monde: DefMonde, partie: Partie, piece: string): IntensiteTrace | null {
+  const resultat = jouer(monde, partie, { action: 'regarder', cible: piece });
+  return resultat.type === 'consultation' && resultat.consultation.type === 'regarder_piece' ? (resultat.consultation.trace ?? null) : null;
+}
+
 /** Joue une partie complète avec un bot, depuis le réveil, et en rend les indicateurs. */
 export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plafond = PLAFOND_ACTIONS): { readonly indicateurs: IndicateursPartie; readonly partie: Partie } {
   const { monde } = entree;
@@ -234,6 +317,11 @@ export function jouerAvecBot(entree: EntreeMonde, bot: Bot, graine: number, plaf
       apercu: (option) => {
         const resultat = apercu(monde, enCours, option.commande);
         return resultat.type === 'apercu' ? resultat.apercu : null;
+      },
+      trace: traceIci(monde, partie, observation.piece.id),
+      consulter: (cible) => {
+        const resultat = jouer(monde, enCours, { action: 'regarder', cible });
+        return resultat.type === 'consultation' ? resultat.consultation : null;
       },
     });
     if (commande === null) break;

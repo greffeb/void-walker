@@ -1,12 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { observer, type IdAction, type OptionMenu } from '../engine';
-import { MONDES, type EntreeMonde, type EtapeParcours } from '../content';
+import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
+import { libelleOption, MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
+import { FicheDocument } from './bulle';
+import { CATALOGUE } from './catalogue';
 import { BulleInventaire, BulleObjet, degatSubi, DockPiece, EcranJeu, EcranReveil, ModaleIA } from './EcranJeu';
-import { APERCU_TAILLE, EcranFin, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
-import { composerDock, unToucher, type Groupe } from './ecran';
+import { EcranFin } from './EcranFin';
+import { APERCU_TAILLE, EcranOptions, GUIDES_INSTALLATION } from './EcranOptions';
+import { composerDock, etapeBulle, libelleLigne, unToucher, type Groupe } from './ecran';
 import { marquerEcrit } from './ecriture';
-import { commencer, consulter, historiqueAffiche, jouerOption, prevoir, type Environnement, type Jeu } from './jeu';
+import { commencer, consulter, consulterDocument, historiqueAffiche, jouerOption, prevoir, recitDeFin, type Environnement, type Jeu } from './jeu';
 import type { EtatInstallation, Installation } from './installation';
 import type { EtatMiseAJour, MiseAJour } from './miseAJour';
 import { PanneauRapport, RETOURS, rapportPris } from './PanneauRapport';
@@ -99,6 +102,7 @@ function composition(jeu: Jeu, action: IdAction | null, parametre: string | null
     occupe: false,
     jouer: rienAJouer,
     lire: (option: OptionMenu) => consulter(entree, jeu.partie, option),
+    lireDocument: (option: OptionMenu) => consulterDocument(entree, jeu.partie, option),
     prevoir: (option: OptionMenu) => prevoir(entree, jeu.partie, option),
     direct: (option: OptionMenu) => unToucher(entree.monde, jeu.partie, option),
     fermer: rienAJouer,
@@ -413,7 +417,7 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(texte(entre(rendre(avec('blesse')), 'data-testid="situation"', '</section>'))).toContain('Vous êtes blessé.');
   });
 
-  it('défaite : plus d’action ni d’inventaire, la phrase de fin et NOUVELLE PARTIE (D-013)', async () => {
+  it('défaite : plus d’action ni d’inventaire, le dernier texte reste et CONTINUER seul (D-013, D-286)', async () => {
     const jeu = await commencer(env);
     const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
     const html = renderToStaticMarkup(
@@ -426,40 +430,17 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
         choisir={rien}
         lireMessages={rienALire}
         ouvrirOptions={() => undefined}
-        nouvellePartie={() => undefined}
+        continuer={() => undefined}
       />,
     );
     expect(html).not.toContain('badge-sante');
     expect(html).not.toContain('class="puce"');
     // Partie terminée : rien à mettre en pause, l'engrenage disparaît comme la navigation.
     expect(html).not.toContain('aria-label="Options"');
-    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
-      'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie',
+    expect(entre(html, '<section class="dock fin-partie"', '</section>')).toBe(
+      '<section class="dock fin-partie"><button type="button" class="principal" data-son="clic">Continuer</button></section>',
     );
     expect(html).toContain('<nav class="navigation" aria-label="Navigation" hidden="">');
-  });
-
-  it('fin de partie : ENVOYER MA PARTIE, discret, sous NOUVELLE PARTIE quand le service est là (12 §4.11, #108)', async () => {
-    const jeu = await commencer(env);
-    const vaincu: Jeu = { ...jeu, partie: { ...jeu.partie, etat: { ...jeu.partie.etat, sante: 'vaincu' } } };
-    const html = renderToStaticMarkup(
-      <EcranJeu
-        jeu={vaincu}
-        lus={[]}
-        env={env}
-        machineAEcrire
-        occupe={false}
-        choisir={rien}
-        lireMessages={rienALire}
-        nouvellePartie={() => undefined}
-        envoyerPartie={() => Promise.resolve('envoye')}
-        pr="142"
-      />,
-    );
-    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe(
-      'Cette partie est terminée. Elle ne peut pas être reprise. Nouvelle partie Envoyer ma partie',
-    );
-    expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
   });
 
   it('situation en phrases : hors de l’écran, gardée pour le lecteur d’écran comme dans la CLI (C-06 K-07)', async () => {
@@ -479,9 +460,10 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
     expect(sans).toContain('<div class="ecran" data-taille="tres_grande">');
   });
 
-  it('pied de page court, déplacé dans les options : version, commit et numéro de PR sur une ligne (D-191)', async () => {
+  it('pied de page court, déplacé dans la bulle Application des options : version, commit et numéro de PR sur une ligne (D-191, D-287)', async () => {
     const pied = (commit: string, pr: string, build = ''): string =>
-      texte(entre(options({ commit, pr, build, version: '0.1.0' }), '<p class="pied">', '</p>'));
+      texte(entre(options({ commit, pr, build, version: '0.1.0', sousMenuInitial: 'application' }), '<p class="pied">', '</p>'));
+    expect(options({ commit: 'e27d2204f1c3', pr: '121' })).not.toContain('class="pied"');
     expect(pied('e27d2204f1c3', '121')).toBe('V0.1.0 · e27d220 · test PR #121');
     expect(pied('e27d2204f1c3', '')).toBe('V0.1.0 · e27d220');
     expect(pied('', '')).toBe('V0.1.0');
@@ -532,6 +514,7 @@ function options(
     rapportsEnAttente: number;
     empreinteCle: () => Promise<string | null>;
     verification: () => Promise<EtatVerification>;
+    sousMenuInitial: 'son_texte' | 'rapports' | 'application';
   }> = {},
 ): string {
   return renderToStaticMarkup(
@@ -555,46 +538,118 @@ function options(
       rapportsEnAttente={surcharge.rapportsEnAttente}
       empreinteCle={surcharge.empreinteCle}
       verification={surcharge.verification}
+      sousMenuInitial={surcharge.sousMenuInitial}
     />,
   );
 }
 
-describe('options (12 §4.10, #96)', () => {
-  it('en-tête, taille du texte en trois boutons radio avec aperçu, affichage en deux bascules, partie, puis MENU PRINCIPAL et REPRENDRE', () => {
+/** La bulle du sous-menu ouvert (D-288), jusqu'au bas des options. */
+function bulleOptions(html: string): string {
+  return entre(html, '<section class="bulle bulle-options"', '<div class="options-bas">');
+}
+
+describe('options (12 §4.10, #96, #201)', () => {
+  it('sommaire : trois lignes qui ouvrent chacune une bulle, l’abandon, puis MENU PRINCIPAL et REPRENDRE (D-287)', () => {
     const html = options();
     expect(texte(html)).toBe(
       [
         'Options le jeu est en pause',
+        '▸ Son et texte taille du texte, son, affichage',
+        '▸ Rapports télécharger ma partie',
+        '▸ Application mise à jour, version',
+        '⊘ Abandonner la partie en cours',
+        'Menu principal Reprendre la partie',
+      ].join(' '),
+    );
+    expect(html.match(/<button type="button" class="ligne-option" aria-haspopup="dialog" data-son="bulle">/g)).toHaveLength(3);
+    expect(html).not.toContain('role="dialog"');
+    expect(html).not.toContain('voile');
+  });
+
+  it('détail des lignes : ce que la bulle contient vraiment (D-287)', () => {
+    const envoyerRapport = (): Promise<Retour> => Promise.resolve('envoye');
+    const installation: Installation = { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined };
+    const detail = (html: string, ligne: string): string | undefined => new RegExp(`${ligne}</span><span class="detail-option">([^<]*)</span>`).exec(html)?.[1];
+    expect(detail(options({ envoyerRapport }), 'Rapports')).toBe('signaler un bug, envoyer ou télécharger ma partie');
+    expect(detail(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true }), 'Rapports')).toBe('signaler un bug, envoyer ma partie');
+    expect(detail(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false }), 'Rapports')).toBe('signaler un bug');
+    expect(detail(options({ installation }), 'Application')).toBe('installation, mise à jour, version');
+    expect(detail(options(), 'Son et texte')).toBe('taille du texte, son, affichage');
+  });
+
+  it('bulle Son et texte : dialogue ambre titré avec ✕ sur le sommaire voilé ; taille du texte en trois boutons radio avec aperçu, son, affichage (D-288)', () => {
+    const html = options({ sousMenuInitial: 'son_texte' });
+    const bulle = bulleOptions(html);
+    expect(bulle).toMatch(/^<section class="bulle bulle-options" role="dialog" aria-modal="true" aria-labelledby="[^"]+" tabindex="-1" data-son-fermer="fermer">/);
+    expect(texte(bulle)).toBe(
+      [
+        'Son et texte ✕',
         'Taille du texte Standard Grande Très grande',
         APERCU_TAILLE,
         'Son Général 80 Effets sonores bips et clics du terminal 80 Ambiance bruit brun et carlingue 60',
         'Affichage Lignes de balayage [OUI] Effet machine à écrire [OUI]',
-        'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone ⊘ Abandonner la partie en cours',
-        'Vv-test Menu principal Reprendre la partie',
       ].join(' '),
     );
+    expect(html).toContain('<div class="voile" data-testid="voile-options" data-son="fermer"></div>');
+    expect(html.indexOf('voile-options')).toBeGreaterThan(html.indexOf('Abandonner la partie en cours'));
     expect(html.match(/type="radio"/g)).toHaveLength(3);
     expect(html).toMatch(/<label class="segment actif" data-son="clic"><input type="radio"[^>]*name="taille" checked=""\/><span>Standard<\/span><\/label>/);
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Lignes de balayage"');
     expect(html).toContain('role="switch" aria-checked="true" aria-label="Effet machine à écrire"');
-    expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
+  });
+
+  it('chaque option a sa place : sommaire et trois bulles, rien de perdu (D-287)', () => {
+    const tout = {
+      envoyerRapport: (): Promise<Retour> => Promise.resolve('envoye'),
+      pr: '142',
+      empreinteCle: (): Promise<string | null> => Promise.resolve(null),
+      verification: (): Promise<EtatVerification> => Promise.resolve('verte'),
+      installation: { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined } satisfies Installation,
+      miseAJour: { etat: () => 'inconnu', abonner: () => () => undefined, chercher: () => Promise.resolve() } satisfies MiseAJour,
+    };
+    const places = {
+      sommaire: texte(options(tout)),
+      son_texte: texte(bulleOptions(options({ ...tout, sousMenuInitial: 'son_texte' }))),
+      rapports: texte(bulleOptions(options({ ...tout, sousMenuInitial: 'rapports' }))),
+      application: texte(bulleOptions(options({ ...tout, sousMenuInitial: 'application' }))),
+    };
+    const attendues: Readonly<Record<keyof typeof places, readonly string[]>> = {
+      sommaire: ['Son et texte', 'Rapports', 'Application', 'Abandonner la partie en cours', 'Menu principal', 'Reprendre la partie'],
+      son_texte: ['Taille du texte', 'Standard', 'Très grande', APERCU_TAILLE, 'Général', 'Effets sonores', 'Ambiance', 'Lignes de balayage', 'Effet machine à écrire'],
+      rapports: ['Signaler un bug', 'Envoyer ma partie', 'Télécharger ma partie', 'Clé de ce téléphone'],
+      application: ['Installer le jeu', 'Chercher une mise à jour', 'Vv-test · test PR #142', 'Vérification automatique'],
+    };
+    for (const [place, libelles] of Object.entries(attendues) as [keyof typeof places, readonly string[]][]) {
+      for (const libelle of libelles) {
+        expect(places[place], `${libelle} dans ${place}`).toContain(libelle);
+        if (place === 'sommaire') continue;
+        for (const autre of ['son_texte', 'rapports', 'application'] as const) {
+          if (autre !== place) expect(places[autre], `${libelle} seulement dans ${place}`).not.toContain(libelle);
+        }
+      }
+    }
+    // Le sommaire ne montre aucun réglage : seulement ses lignes, l'abandon et le bas.
+    for (const option of [...attendues.son_texte, ...attendues.rapports, ...attendues.application]) expect(places.sommaire).not.toContain(option);
+    expect(texte(bulleOptions(options({ ...tout, sousMenuInitial: 'rapports' })))).toMatch(/Signaler un bug.*Envoyer ma partie.*Télécharger ma partie.*Validation/);
   });
 
   it('version de test : état de la vérification automatique sous la version, lu à l’ouverture ; absent de la version publique (#180)', () => {
     const verification = (): Promise<EtatVerification> => Promise.resolve('en_cours');
-    expect(options({ pr: '42', verification })).toContain('<p class="etat-verification" data-testid="verification">Vérification automatique : lecture…</p>');
-    expect(options({ pr: '', verification })).not.toContain('Vérification automatique');
-    expect(options({ pr: '42' })).not.toContain('Vérification automatique');
+    const application = { sousMenuInitial: 'application' } as const;
+    expect(options({ pr: '42', verification, ...application })).toContain('<p class="etat-verification" data-testid="verification">Vérification automatique : lecture…</p>');
+    expect(options({ pr: '', verification, ...application })).not.toContain('Vérification automatique');
+    expect(options({ pr: '42', ...application })).not.toContain('Vérification automatique');
+    expect(options({ pr: '42', verification })).not.toContain('Vérification automatique');
   });
 
   it('mise à jour : bouton selon l’état, absent sans service worker (D-227)', () => {
     const section = (etat: EtatMiseAJour, partieEnCours = true): string => {
       const miseAJour: MiseAJour = { etat: () => etat, abonner: () => () => undefined, chercher: () => Promise.resolve() };
-      const html = options({ miseAJour, partieEnCours });
-      return html.includes('Mise à jour') ? texte(entre(html, '<h2 class="titre-section">Mise à jour</h2>', '</section>')) : '';
+      const html = options({ miseAJour, partieEnCours, sousMenuInitial: 'application' });
+      return html.includes('Mise à jour</h2>') ? texte(entre(html, '<h2 class="titre-section">Mise à jour</h2>', '</section>')) : '';
     };
     expect(section('indisponible')).toBe('');
-    expect(texte(options())).not.toContain('Mise à jour');
+    expect(texte(bulleOptions(options({ sousMenuInitial: 'application' })))).toBe('Application ✕ Vv-test');
     expect(section('inconnu')).toBe('Mise à jour ▸ Chercher une mise à jour le jeu redémarre, la partie est gardée');
     expect(section('a_jour', false)).toBe('Mise à jour ▸ Chercher une mise à jour le jeu redémarre s’il en trouve une Le jeu est à jour.');
     expect(section('echec')).toContain('Impossible de vérifier. Le téléphone est-il connecté ?');
@@ -605,14 +660,14 @@ describe('options (12 §4.10, #96)', () => {
   it('installation : bouton ou aide selon l’état, absente quand rien n’est possible (#174)', () => {
     const section = (etat: EtatInstallation): string => {
       const installation: Installation = { etat: () => etat, abonner: () => () => undefined, proposer: () => undefined };
-      const html = options({ installation });
-      return html.includes('Installation') ? texte(entre(html, '<h2 class="titre-section">Installation</h2>', '</section>')) : '';
+      const html = options({ installation, sousMenuInitial: 'application' });
+      return html.includes('Installation</h2>') ? texte(entre(html, '<h2 class="titre-section">Installation</h2>', '</section>')) : '';
     };
     expect(section('indisponible')).toBe('');
-    expect(texte(options())).not.toContain('Installation');
+    expect(texte(options({ sousMenuInitial: 'application' }))).not.toContain('Installation');
     expect(section('invite')).toBe('Installation ▸ Installer le jeu s’ouvre en plein écran, sans la barre du navigateur');
     expect(section('en_cours')).toContain('Installer le jeu');
-    expect(options({ installation: { etat: () => 'en_cours', abonner: () => () => undefined, proposer: () => undefined } })).toMatch(
+    expect(options({ installation: { etat: () => 'en_cours', abonner: () => () => undefined, proposer: () => undefined }, sousMenuInitial: 'application' })).toMatch(
       /<button type="button" class="ligne-option" disabled=""[^>]*>[^]*?Installer le jeu/,
     );
     expect(section('guide_ios')).toBe('Installation ▸ Installer le jeu marche à suivre pour iPhone et iPad');
@@ -623,12 +678,13 @@ describe('options (12 §4.10, #96)', () => {
     expect(section('guide_ios')).not.toContain('Jeu installé');
   });
 
-  it('installation : placée entre le reste et la mise à jour, avec le retour en zone de statut', () => {
+  it('bulle Application : installation, mise à jour, puis la version ; le retour de l’installation en zone de statut (D-287)', () => {
     const installation: Installation = { etat: () => 'invite', abonner: () => () => undefined, proposer: () => undefined };
     const miseAJour: MiseAJour = { etat: () => 'inconnu', abonner: () => () => undefined, chercher: () => Promise.resolve() };
-    const html = options({ installation, miseAJour });
-    expect(html.indexOf('Installation</h2>')).toBeGreaterThan(html.indexOf('Partie</h2>'));
+    const html = bulleOptions(options({ installation, miseAJour, sousMenuInitial: 'application' }));
+    expect(html.indexOf('Installation</h2>')).toBeGreaterThan(0);
     expect(html.indexOf('Installation</h2>')).toBeLessThan(html.indexOf('Mise à jour</h2>'));
+    expect(html.indexOf('Mise à jour</h2>')).toBeLessThan(html.indexOf('<p class="pied">'));
     expect(html).toContain('<p class="retour-option" role="status" data-testid="installation"></p>');
   });
 
@@ -642,7 +698,7 @@ describe('options (12 §4.10, #96)', () => {
   });
 
   it('réglages choisis : la taille active et les bascules sur [NON]', () => {
-    const html = options({ reglages: { ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false, machineAEcrire: false } });
+    const html = options({ reglages: { ...REGLAGES_PAR_DEFAUT, taille: 'tres_grande', balayage: false, machineAEcrire: false }, sousMenuInitial: 'son_texte' });
     expect(html).toMatch(/<label class="segment actif" data-son="clic"><input[^>]*checked=""\/><span>Très grande<\/span>/);
     expect(html.match(/class="segment actif"/g)).toHaveLength(1);
     expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
@@ -650,51 +706,54 @@ describe('options (12 §4.10, #96)', () => {
   });
 
   it('son : trois rails de 0 à 100, valeur écrite à droite, COUPÉE ou COUPÉS à 0 (15 §4, D-220)', () => {
-    const html = options();
+    const html = options({ sousMenuInitial: 'son_texte' });
     const rails = html.match(/<input[^>]*class="curseur-rail"[^>]*>/g) ?? [];
     expect(rails).toHaveLength(3);
     for (const rail of rails) expect(rail).toMatch(/type="range" min="0" max="100" step="1"/);
     expect(rails.map((rail) => /value="(\d+)"/.exec(rail)?.[1])).toEqual(['80', '80', '60']);
-    const coupe = texte(options({ reglages: { ...REGLAGES_PAR_DEFAUT, general: 0, effets: 0, ambiance: 0 } }));
+    const coupe = texte(options({ reglages: { ...REGLAGES_PAR_DEFAUT, general: 0, effets: 0, ambiance: 0 }, sousMenuInitial: 'son_texte' }));
     expect(coupe).toContain('Son Général COUPÉE Effets sonores bips et clics du terminal COUPÉS Ambiance bruit brun et carlingue COUPÉE');
-    expect(options()).toContain('aria-valuetext="60"');
+    expect(html).toContain('aria-valuetext="60"');
   });
 
   it('sans partie en cours : ni Télécharger, ni Abandonner, ni REPRENDRE LA PARTIE, ni « en pause »', () => {
     const html = texte(options({ partieEnCours: false }));
-    for (const absent of ['Télécharger', 'Abandonner', 'Reprendre', 'en pause', 'Partie ']) expect(html).not.toContain(absent);
-    expect(html).toContain('Menu principal');
+    for (const absent of ['Télécharger', 'Abandonner', 'Reprendre', 'en pause']) expect(html).not.toContain(absent);
+    // Sans partie ni service de rapports, la bulle Rapports n'aurait rien : pas de ligne.
+    expect(html).toBe('Options ▸ Son et texte taille du texte, son, affichage ▸ Application mise à jour, version Menu principal');
   });
 });
 
 describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
   const envoyerRapport = (): Promise<Retour> => Promise.resolve('envoye');
 
-  it('partie en cours : Télécharger, Signaler un bug, Envoyer ma partie, puis Abandonner', () => {
-    expect(texte(entre(options({ envoyerRapport }), '<h2 class="titre-section">Partie</h2>', '</section>'))).toBe(
+  it('partie en cours : Signaler un bug, Envoyer ma partie, puis Télécharger ma partie, dans la bulle Rapports (D-287)', () => {
+    const html = options({ envoyerRapport, sousMenuInitial: 'rapports' });
+    expect(texte(bulleOptions(html))).toBe(
       [
-        'Partie ▸ Télécharger ma partie fichier enregistré sur le téléphone',
+        'Rapports ✕',
         '▸ Signaler un bug la partie en cours est jointe',
         '▸ Envoyer ma partie partie et commentaire',
-        '⊘ Abandonner la partie en cours',
+        '▸ Télécharger ma partie fichier enregistré sur le téléphone',
       ].join(' '),
     );
-    expect(options({ envoyerRapport })).toContain('aria-expanded="false"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('<p class="retour-option" role="status" data-testid="telechargement"></p>');
   });
 
   it('sans partie : seulement Signaler un bug, sans partie jointe ; partie finie : on peut encore l’envoyer', () => {
-    const sans = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false }));
-    expect(sans).toContain('Partie ▸ Signaler un bug aucune partie à joindre');
+    const sans = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: false, sousMenuInitial: 'rapports' }));
+    expect(sans).toContain('Rapports ✕ ▸ Signaler un bug aucune partie à joindre');
     for (const absent of ['Envoyer ma partie', 'Télécharger', 'Abandonner']) expect(sans).not.toContain(absent);
-    const finie = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true }));
+    const finie = texte(options({ envoyerRapport, partieEnCours: false, partieEnregistree: true, sousMenuInitial: 'rapports' }));
     expect(finie).toContain('▸ Signaler un bug la partie est jointe ▸ Envoyer ma partie partie et commentaire');
     expect(finie).not.toContain('Abandonner');
   });
 
   it('rapports gardés sans réseau : le nombre en attente est dit en mots courants', () => {
-    expect(texte(options({ envoyerRapport, rapportsEnAttente: 1 }))).toContain('Un rapport attend le réseau pour partir.');
-    expect(texte(options({ envoyerRapport, rapportsEnAttente: 3 }))).toContain('3 rapports attendent le réseau pour partir.');
-    expect(options({ envoyerRapport })).not.toContain('rapports-en-attente');
+    expect(texte(options({ envoyerRapport, rapportsEnAttente: 1, sousMenuInitial: 'rapports' }))).toContain('Un rapport attend le réseau pour partir.');
+    expect(texte(options({ envoyerRapport, rapportsEnAttente: 3, sousMenuInitial: 'rapports' }))).toContain('3 rapports attendent le réseau pour partir.');
+    expect(options({ envoyerRapport, sousMenuInitial: 'rapports' })).not.toContain('rapports-en-attente');
   });
 
   it('panneau de bug : commentaire facultatif borné, ce qui est joint, ANNULER et ENVOYER ; pas de case « je valide »', () => {
@@ -716,10 +775,11 @@ describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
 
   it('section VALIDATION : seulement dans une version de test, avec la clé du téléphone (D-232)', () => {
     const empreinteCle = (): Promise<string | null> => Promise.resolve(null);
-    const test = options({ envoyerRapport, pr: '142', empreinteCle });
+    const rapports = { sousMenuInitial: 'rapports' } as const;
+    const test = options({ envoyerRapport, pr: '142', empreinteCle, ...rapports });
     expect(texte(entre(test, '<h2 class="titre-section">Validation</h2>', '</section>'))).toBe('Validation Clé de ce téléphone lecture…');
-    expect(texte(options({ envoyerRapport, pr: '', empreinteCle }))).not.toContain('Validation');
-    expect(texte(options({ envoyerRapport, pr: '142' }))).not.toContain('Validation');
+    expect(texte(options({ envoyerRapport, pr: '', empreinteCle, ...rapports }))).not.toContain('Validation');
+    expect(texte(options({ envoyerRapport, pr: '142', ...rapports }))).not.toContain('Validation');
   });
 
   it('retours : le panneau se ferme quand le rapport est parti ou gardé, reste ouvert sinon', () => {
@@ -729,31 +789,59 @@ describe('rapports dans les options (12 §4.10, D-142, #107)', () => {
   });
 });
 
-describe('fin après abandon (12 §4.11, #96)', () => {
-  it('titre, récit court, pièces visitées en mots, phrase de fin, puis REJOUER, NOUVELLE PARTIE et MENU PRINCIPAL ; aucun chiffre', async () => {
+describe('écran de fin (12 §4.11, #96, #208, D-281 à D-286)', () => {
+  /** Plus courte défaite du monde de test, sans dé : la créature vient à la cabine pendant qu'on fait du bruit. */
+  async function vaincu(): Promise<Jeu> {
+    let jeu = await commencer(env);
+    for (const [action, cible] of [['ouvrir', 'porte'], ['prendre', 'carnet'], ['poser', 'carnet'], ['prendre', 'carnet'], ['poser', 'carnet'], ['prendre', 'carnet']] as const) {
+      const option = observer(monde, jeu.partie.etat).menu.find((choix) => choix.action === action && choix.cible.nom === cible && choix.disponible);
+      if (option === undefined) throw new Error(`Option ${action} ${cible} absente.`);
+      jeu = await jouerOption(env, jeu, option);
+    }
+    expect(observer(monde, jeu.partie.etat).issue).toBe('defaite');
+    return jeu;
+  }
+
+  const fin = (jeu: Jeu, entree: Environnement = env, envoyer?: () => Promise<Retour>, pr = ''): string =>
+    renderToStaticMarkup(
+      <EcranFin jeu={jeu} env={entree} machineAEcrire occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} envoyerPartie={envoyer} pr={pr} />,
+    );
+
+  it('défaite : titre, récit de la partie, la mort en ambre, « ne peut pas être reprise », quatre boutons ; ni pièce ni chiffre', async () => {
+    const jeu = await vaincu();
+    const recit = recitDeFin(env, jeu.partie);
+    const html = fin(jeu, env, () => Promise.resolve('envoye'));
+    expect(entre(html, '<header', '</header>')).toContain('&gt; Fin de la partie_');
+    expect(html).toContain('<h1 class="titre-fin" tabindex="-1">Vous n’avez pas atteint la capsule.</h1>');
+    expect(lu(entre(html, '<section class="recit', '</section>'))).toBe(recit.paragraphes.join(' | '));
+    expect(recit.paragraphes).toEqual([
+      'Vous vous êtes réveillé dans la cabine. Vous y avez vu la créature pour la première fois.',
+      'Elle vous y a blessé. Puis elle vous a grièvement blessé.',
+      'Vous y êtes mort, sous ses griffes.',
+    ]);
+    // La mort et sa cause en `accent`, seule (D-282).
+    expect(html.match(/<p class="cause">/g)).toHaveLength(1);
+    expect(lu(entre(html, '<p class="cause">', '</p>'))).toBe('Vous y êtes mort, sous ses griffes.');
+    expect(texte(entre(html, '<div class="bilan-fin">', '</div>'))).toBe('Cette partie est terminée. Elle ne peut pas être reprise.');
+    expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Envoyer ma partie Menu principal');
+    expect(html).not.toContain('Pièces visitées');
+    expect(html).not.toContain('parole-ia');
+    expect(lu(html)).not.toMatch(/\d/);
+  });
+
+  it('abandon : titre, la pièce où l’on s’est arrêté, « ne peut pas être reprise » ; sans liste des pièces (D-284)', async () => {
     const jeu = await apres('prendre', 'ouvrir', 'aller');
-    const html = renderToStaticMarkup(
-      <EcranFin jeu={jeu} env={env} occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} />,
-    );
-    expect(texte(html)).toBe(
-      [
-        '&gt; Fin de la partie_',
-        'Partie abandonnée.',
-        'Vous en restez là, dans l’atelier.',
-        'Pièces visitées : Cabine, Atelier',
-        'Cette partie est terminée. Elle ne peut pas être reprise.',
-        'Rejouer cette station Nouvelle partie Menu principal',
-      ].join(' '),
-    );
-    expect(texte(html)).not.toMatch(/\d/);
+    const html = fin(jeu);
+    expect(html).toContain('<h1 class="titre-fin" tabindex="-1">Partie abandonnée.</h1>');
+    expect(lu(entre(html, '<section class="recit', '</section>'))).toBe('Vous en restez là, dans l’atelier.');
+    expect(texte(entre(html, '<div class="bilan-fin">', '</div>'))).toBe('Cette partie est terminée. Elle ne peut pas être reprise.');
+    expect(html).not.toContain('Pièces visitées');
+    expect(lu(html)).not.toMatch(/\d/);
     expect(html).toContain('<button type="button" class="principal" data-son="clic">Rejouer cette station</button>');
   });
 
   it('ENVOYER MA PARTIE, discret, entre NOUVELLE PARTIE et MENU PRINCIPAL quand le service est là (#107)', async () => {
-    const jeu = await apres('prendre');
-    const html = renderToStaticMarkup(
-      <EcranFin jeu={jeu} env={env} occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} envoyerPartie={() => Promise.resolve('envoye')} />,
-    );
+    const html = fin(await apres('prendre'), env, () => Promise.resolve('envoye'));
     expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Envoyer ma partie Menu principal');
     expect(html).toContain('<button type="button" class="discret" data-son="clic">Envoyer ma partie</button>');
   });
@@ -839,7 +927,7 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
 
   function rendreAr01(jeu: Jeu, lus: readonly string[] = []): string {
     return renderToStaticMarkup(
-      <EcranJeu jeu={jeu} lus={lus} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+      <EcranJeu jeu={jeu} lus={lus} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} continuer={() => undefined} />,
     );
   }
 
@@ -950,11 +1038,11 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(rendreAr01(await pc(6), ['reveil'])).not.toContain('lien-ia');
   });
 
-  it('évacuation : seize actions, la phrase de la capsule et NOUVELLE PARTIE à la place du dock ; en-tête inchangé', async () => {
+  it('évacuation : seize actions, le texte du départ et CONTINUER à la place du dock ; en-tête inchangé (D-286)', async () => {
     const fin = await pc(P_C.length);
     expect(fin.partie.etat.actions).toBe(16);
     const html = rendreAr01(fin);
-    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe('La capsule s’est détachée. Vous avez quitté la station. Nouvelle partie');
+    expect(texte(entre(html, '<section class="dock fin-partie"', '</section>'))).toBe('Continuer');
     expect(html).not.toContain('Cette partie est terminée');
     expect(html).not.toContain('class="puce"');
     expect(html).not.toContain('class="deplacements"');
@@ -965,6 +1053,22 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(lu(entre(html, '<section class="parole-ia"', '</section>'))).toBe(`«\u00a0${ar01.textes.assistance.depart ?? ''}\u00a0»`);
     expect(html).not.toContain('lien-ia');
     expect(html).not.toContain('parle dans l’écouteur');
+  });
+
+  it('écran de fin après l’évacuation : le récit de la partie, puis le message de départ d’IA Station ; ni « ne peut pas être reprise » ni pièces (D-283)', async () => {
+    const jeu = await pc(P_C.length);
+    const recit = recitDeFin(envAr01, jeu.partie);
+    const html = renderToStaticMarkup(
+      <EcranFin jeu={jeu} env={envAr01} machineAEcrire occupe={false} rejouer={rienALire} nouvellePartie={rienALire} menuPrincipal={rienALire} />,
+    );
+    expect(html).toContain('<h1 class="titre-fin" tabindex="-1">La capsule s’est détachée.</h1>');
+    expect(recit.assistance).toEqual([ar01.textes.assistance.depart]);
+    expect(lu(entre(html, '<section class="recit', '</section></section>'))).toBe([...recit.paragraphes, `«\u00a0${ar01.textes.assistance.depart ?? ''}\u00a0»`].join(' | '));
+    expect(recit.paragraphes.at(-1)).toMatch(/Vous partez (indemne|blessé|grièvement blessé, mais vivant)\./);
+    expect(html).not.toContain('class="cause"');
+    expect(html).not.toContain('bilan-fin');
+    expect(html).not.toContain('Pièces visitées');
+    expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Menu principal');
   });
 });
 
@@ -1049,7 +1153,7 @@ describe('danger apparu : triangle rouge devant la phrase du feu (#138, D-233)',
   const recitDe = (jeu: Jeu): string =>
     entre(
       renderToStaticMarkup(
-        <EcranJeu jeu={jeu} lus={[]} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} nouvellePartie={() => undefined} />,
+        <EcranJeu jeu={jeu} lus={[]} env={envAr01} machineAEcrire occupe={false} choisir={rien} lireMessages={rienALire} continuer={() => undefined} />,
       ),
       'data-testid="recit"',
       '<section class="dock"',
@@ -1083,5 +1187,299 @@ describe('brouillage d’un dégât (#166)', () => {
     expect(degatSubi(['mort'])).toBe(true);
     expect(degatSubi(['soin', 'alarme-vide', 'creature', 'ia'])).toBe(false);
     expect(degatSubi([])).toBe(false);
+  });
+});
+
+// Fiche d'un document (#209, D-324, spec 2026-10-18 §9.1) : un monde de test avec un document de chaque support dans la cabine, et une
+// note de rangement qui désigne l'atelier. Aucune grande station : seule la mise en forme de la fiche est en jeu.
+describe('fiche d’un document (#209, D-324, spec 2026-10-18 §9.1)', () => {
+  const nom = (texte: string, genre: Nom['genre'] = 'm'): Nom => ({ texte, genre, nombre: 's', elision: false });
+  const documents: Readonly<Record<string, TexteDocument>> = {
+    note_malik: {
+      puce: nom('mot de Malik'),
+      support: 'note',
+      ou: 'scotchée au montant d’une couchette',
+      corps: ['Je ne dors plus.', 'Si quelqu’un lit ceci, ne comptez pas sur la lumière.'],
+      signature: 'Malik',
+    },
+    journal_quart: {
+      puce: nom('terminal de quart'),
+      support: 'journal',
+      ou: 'resté allumé sur un pupitre',
+      corps: ['02:14  Sas arrière : pression nominale.', '02:31  Sas arrière : porte forcée, côté intérieur.'],
+    },
+    message_enregistreur: {
+      puce: nom('enregistreur'),
+      support: 'message',
+      ou: 'posé sur une tablette',
+      corps: ['Allô ? [souffle court] Vous m’entendez ?', '[long silence]'],
+    },
+    inscription_cloison: { puce: nom('inscription', 'f'), support: 'inscription', ou: 'tracée à la main sur la cloison', corps: ['Ne restez pas là.'] },
+    affiche_sas: {
+      puce: nom('affiche', 'f'),
+      support: 'affiche',
+      ou: 'collée près du sas',
+      corps: ['Note de service no 12', 'En cas d’alerte, rejoignez votre capsule.', 'La Direction du transit'],
+    },
+    mot_lea: {
+      puce: nom('mot de Léa'),
+      support: 'note',
+      ou: 'glissée sous une patte de rangement',
+      corps: ['J’ai rangé la planche dans {le:piece}.', 'La porte {de:piece} est lourde : poussez fort.', 'Rejoignez-moi {a:piece}.'],
+      signature: 'Léa',
+    },
+  };
+  const monDocuments: DefMonde = {
+    ...monde,
+    objets: [
+      ...monde.objets,
+      ...Object.keys(documents).map((cle) => ({
+        id: `objet-${cle}`,
+        nom: cle,
+        piece: 'piece-cabine',
+        portable: false,
+        document: true as const,
+        ...(cle === 'mot_lea' ? { designe: 'piece-atelier' } : {}),
+      })),
+    ],
+  };
+  const textesDocuments: TextesMonde = {
+    ...textes,
+    noms: { ...textes.noms, ...Object.fromEntries(Object.entries(documents).map(([cle, { puce }]) => [cle, puce])) },
+    documents,
+  };
+  const ecritures: unknown[] = [];
+  const stockage: Stockage = { ...memoire(), ecrire: (donnees) => (ecritures.push(donnees), Promise.resolve()) };
+  const envDocuments: Environnement = { monde: monDocuments, textes: textesDocuments, version: 'v-test', stockage, graine: () => 5 };
+
+  async function groupeDe(cle: string): Promise<{ readonly jeu: Jeu; readonly groupe: Groupe }> {
+    const jeu = await commencer(envDocuments);
+    const groupe = composerDock(observer(monDocuments, jeu.partie.etat)).piece.find((candidat) => candidat.cible.nom === cle);
+    if (groupe === undefined) throw new Error(`Puce ${cle} absente.`);
+    return { jeu, groupe };
+  }
+
+  /** Bulle d'un document, rendue côté serveur : sa fiche seule, sans l'en-tête. */
+  async function bulle(cle: string): Promise<{ readonly html: string; readonly fiche: string }> {
+    const { jeu, groupe } = await groupeDe(cle);
+    const html = renderToStaticMarkup(<BulleObjet ancre={{} as HTMLElement} groupe={groupe} {...composition(jeu, null, null, envDocuments)} />);
+    return { html, fiche: entre(html, '<div class="bulle-corps">', '</section>') };
+  }
+
+  /** Ce que lit le lecteur d'écran : le texte de la fiche sans ce qui est masqué, la pièce soulignée se lisant dans sa phrase. */
+  const lecteur = (fiche: string): string =>
+    texte(fiche.replace(/<(\w+)[^>]*aria-hidden="true"[^>]*>[^<]*<\/\1>/g, '').replace(/<span class="lieu">([^<]*)<\/span>/g, '$1'));
+
+  it('note : le support puis la ligne « où » en haut, puis le corps en italique avec filet, la signature à droite', async () => {
+    const { fiche } = await bulle('note_malik');
+    expect(fiche).toContain(
+      '<p class="support">Note manuscrite <span aria-hidden="true">· </span><span>scotchée au montant d’une couchette</span></p>' +
+        '<div class="doc doc-note"><p>Je ne dors plus.</p><p>Si quelqu’un lit ceci, ne comptez pas sur la lumière.</p><p class="signe">Malik</p></div>',
+    );
+    // Les capitales sont du style : le texte reste en casse normale, le lecteur d'écran lit des mots.
+    expect(fiche).not.toContain('NOTE MANUSCRITE');
+  });
+
+  it('journal : un cadre sous une barre de titre au nom de la puce, les heures en colonne à part du texte', async () => {
+    const { fiche } = await bulle('journal_quart');
+    expect(fiche).toContain(
+      '<p class="support">Journal de terminal <span aria-hidden="true">· </span><span>resté allumé sur un pupitre</span></p>' +
+        '<div class="doc doc-journal"><div class="barre" aria-hidden="true">Terminal de quart</div><ol>' +
+        '<li><time>02:14</time> <span>Sas arrière : pression nominale.</span></li>' +
+        '<li><time>02:31</time> <span>Sas arrière : porte forcée, côté intérieur.</span></li></ol></div>',
+    );
+  });
+
+  it('message : chaque didascalie est un paragraphe à part, de la classe qui la met en couleur secondaire', async () => {
+    const { fiche } = await bulle('message_enregistreur');
+    expect(fiche).toContain(
+      '<div class="doc doc-message"><p>Allô ?</p><p class="didascalie">[souffle court]</p><p>Vous m’entendez ?</p><p class="didascalie">[long silence]</p></div>',
+    );
+  });
+
+  it('inscription : le texte en casse normale, en grandes capitales par le style', async () => {
+    const { fiche } = await bulle('inscription_cloison');
+    expect(fiche).toContain('<div class="doc doc-inscription"><p>Ne restez pas là.</p></div>');
+  });
+
+  it('affiche : un double cadre, le titre en tête et la signature de la compagnie en pied', async () => {
+    const { fiche } = await bulle('affiche_sas');
+    expect(fiche).toContain(
+      '<div class="doc doc-affiche"><p class="titre">Note de service no 12</p><p>En cas d’alerte, rejoignez votre capsule.</p><p class="pied">La Direction du transit</p></div>',
+    );
+  });
+
+  it('la pièce remplie par le trou est soulignée partout dans le corps, sans lien ni aide ; la ligne « où » et la signature ne le sont pas', async () => {
+    const { fiche } = await bulle('mot_lea');
+    expect(fiche).toContain(
+      '<div class="doc doc-note"><p>J’ai rangé la planche dans l’<span class="lieu">atelier</span>.</p>' +
+        '<p>La porte de l’<span class="lieu">atelier</span> est lourde : poussez fort.</p>' +
+        '<p>Rejoignez-moi à l’<span class="lieu">atelier</span>.</p><p class="signe">Léa</p></div>',
+    );
+    expect(fiche.match(/class="lieu"/g)).toHaveLength(3);
+    expect(fiche).not.toMatch(/<(a|abbr)\b|title=|aria-label=|tabindex/);
+  });
+
+  it('une note sans pièce désignée ne souligne rien', async () => {
+    expect((await bulle('note_malik')).fiche).not.toContain('lieu');
+  });
+
+  it('seul le mot entier est souligné : pas « cale » dans « calendrier »', () => {
+    const rendu: DocumentRendu = {
+      support: 'note',
+      libelleSupport: 'Note manuscrite',
+      ou: 'glissée dans un tiroir',
+      corps: [{ texte: 'La cale, puis le calendrier, puis la cale.' }],
+      piece: 'cale',
+    };
+    expect(renderToStaticMarkup(<FicheDocument rendu={rendu} puce="Mot" />)).toContain(
+      '<p>La <span class="lieu">cale</span>, puis le calendrier, puis la <span class="lieu">cale</span>.</p>',
+    );
+  });
+
+  it('un journal souligne aussi la pièce désignée, dans le texte de ses lignes et pas dans l’heure', () => {
+    const rendu: DocumentRendu = {
+      support: 'journal',
+      libelleSupport: 'Journal de terminal',
+      ou: 'resté allumé sur un pupitre',
+      corps: [{ heure: '02:14', texte: 'Clé laissée à la cale.' }, { heure: '02:31', texte: 'Rien à signaler.' }],
+      piece: 'cale',
+    };
+    const fiche = renderToStaticMarkup(<FicheDocument rendu={rendu} puce="Journal" />);
+    expect(fiche).toContain('<li><time>02:14</time> <span>Clé laissée à la <span class="lieu">cale</span>.</span></li>');
+    expect(fiche).toContain('<li><time>02:31</time> <span>Rien à signaler.</span></li>');
+  });
+
+  it('lecteur d’écran : le support, la ligne « où », puis le texte, dans l’ordre du DOM ; le libellé n’est pas masqué', async () => {
+    const lus: Readonly<Record<string, string>> = {
+      note_malik: 'Note manuscrite scotchée au montant d’une couchette Je ne dors plus. Si quelqu’un lit ceci, ne comptez pas sur la lumière. Malik',
+      journal_quart: 'Journal de terminal resté allumé sur un pupitre 02:14 Sas arrière : pression nominale. 02:31 Sas arrière : porte forcée, côté intérieur.',
+      message_enregistreur: 'Message enregistré posé sur une tablette Allô ? [souffle court] Vous m’entendez ? [long silence]',
+      inscription_cloison: 'Inscription tracée à la main sur la cloison Ne restez pas là.',
+      affiche_sas: 'Affiche de la compagnie collée près du sas Note de service no 12 En cas d’alerte, rejoignez votre capsule. La Direction du transit',
+      mot_lea: 'Note manuscrite glissée sous une patte de rangement J’ai rangé la planche dans l’atelier. La porte de l’atelier est lourde : poussez fort. Rejoignez-moi à l’atelier. Léa',
+    };
+    for (const [cle, attendu] of Object.entries(lus)) {
+      const { html, fiche } = await bulle(cle);
+      expect(lecteur(fiche), cle).toBe(attendu);
+      expect(fiche, cle).not.toMatch(/<p class="support"[^>]*aria-hidden/);
+      // C'est la fiche que la bulle donne en description, après son titre.
+      const description = html.match(/aria-describedby="([^"]+)"/)?.[1] ?? '';
+      expect(fiche, cle).toContain(`<div id="${description}" class="fiche fiche-document">`);
+    }
+  });
+
+  it('la bulle d’un document n’a que sa fiche : aucune action à choisir ni à confirmer', async () => {
+    const { groupe } = await groupeDe('journal_quart');
+    expect(groupe.options.map((option) => option.action)).toEqual(['regarder']);
+    const { fiche } = await bulle('journal_quart');
+    expect(fiche).not.toMatch(/class="ligne|Confirmer|<button/);
+  });
+
+  it('lire un document n’engage aucune action et n’écrit rien : ni partie, ni récit, ni sauvegarde (D-014)', async () => {
+    const jeu = await commencer(envDocuments);
+    const avant = { partie: JSON.stringify(jeu.partie), recit: [...jeu.recit], ecritures: ecritures.length };
+    const options = observer(monDocuments, jeu.partie.etat).menu.filter((option) => option.action === 'regarder' && Object.hasOwn(documents, option.cible.nom));
+    expect(options).toHaveLength(Object.keys(documents).length);
+    for (const option of options) {
+      const rendu = consulterDocument(envDocuments, jeu.partie, option);
+      if (rendu === null) throw new Error(`Document ${option.cible.nom} sans rendu.`);
+      // La chaîne du lecteur d'écran et de l'historique reste celle du rendu structuré.
+      expect(consulter(envDocuments, jeu.partie, option)).toEqual([texteDocument(rendu)]);
+    }
+    expect(JSON.stringify(jeu.partie)).toBe(avant.partie);
+    expect(jeu.partie.etat.actions).toBe(0);
+    expect(jeu.recit).toEqual(avant.recit);
+    expect(ecritures).toHaveLength(avant.ecritures);
+  });
+
+  it('seul un document a une fiche structurée : le carnet reste une phrase', async () => {
+    const jeu = await commencer(envDocuments);
+    const carnet = observer(monDocuments, jeu.partie.etat).menu.find((option) => option.action === 'regarder' && option.cible.nom === 'carnet');
+    if (carnet === undefined) throw new Error('Regard sur le carnet absent.');
+    expect(consulterDocument(envDocuments, jeu.partie, carnet)).toBeNull();
+    const { fiche } = await bulle('carnet');
+    expect(fiche).toMatch(/<div id="[^"]+" class="fiche"><p>/);
+    expect(fiche).not.toContain('support');
+  });
+
+  it('dock : la puce d’un document est une puce ordinaire, rien ne la signale (spec §9.4)', async () => {
+    const { jeu } = await groupeDe('journal_quart');
+    const dock = composerDock(observer(monDocuments, jeu.partie.etat));
+    const html = renderToStaticMarkup(
+      <DockPiece dock={dock} textes={textesDocuments} occupe={false} puceOuverte={null} ouvrir={rienAJouer} jouer={rienAJouer} />,
+    );
+    const puces = [...entre(html, '<ul class="puces">', '</ul>').matchAll(/<button type="button" class="puce"([^>]*)><span aria-hidden="true">▸ <\/span>([^<]*)<\/button>/g)];
+    expect(puces.map(([, , libelle]) => libelle).sort()).toEqual(['Affiche', 'Carnet', 'Enregistreur', 'Inscription', 'Mot de Léa', 'Mot de Malik', 'Terminal de quart']);
+    expect(new Set(puces.map(([, attributs]) => attributs)).size).toBe(1);
+  });
+});
+
+describe('grande station : poser la caisse portée sous la grille d’un seul geste (demande du porteur)', () => {
+  // La caisse de M-02 se porte en grande station (spec 2026-10-18 §6.5) ; état placé à la main, la route de l'atelier ne compte pas ici.
+  const COMPOSITION = 'g1-m01-m02-m09-m06-cale';
+  const grande = ((): EntreeMonde => {
+    for (let graine = 0; graine < 50; graine += 1) {
+      const entree = CATALOGUE.construireGrande(COMPOSITION, graine);
+      if (!('refus' in entree)) return entree;
+    }
+    throw new Error(`${COMPOSITION} : aucun plan sur 50 graines.`);
+  })();
+  const envGrande: Environnement = { monde: grande.monde, textes: grande.textes, version: 'v-test', stockage: memoire(), graine: () => 20261010 };
+
+  async function atelierCaisseEnMain(): Promise<Jeu> {
+    const jeu = await commencer(envGrande);
+    const etat = { ...jeu.partie.etat, piece: 'm-02/p-atelier', objets: { ...jeu.partie.etat.objets, 'm-02/o-caisse': { type: 'passager' as const } } };
+    return { ...jeu, partie: { ...jeu.partie, etat } };
+  }
+
+  const caisseDe = (jeu: Jeu): Groupe => {
+    const groupe = composerDock(observer(grande.monde, jeu.partie.etat)).inventaire.find((candidat) => candidat.cible.nom === 'caisse');
+    if (groupe === undefined) throw new Error('Caisse absente de l’inventaire.');
+    return groupe;
+  };
+
+  const inventaire = (jeu: Jeu, action: IdAction | null, parametre: string | null = null): string =>
+    renderToStaticMarkup(
+      <BulleInventaire
+        id="inventaire"
+        groupes={composerDock(observer(grande.monde, jeu.partie.etat)).inventaire}
+        cible={caisseDe(jeu).cible.id}
+        choisir={rienAJouer}
+        {...composition(jeu, action, parametre, envGrande)}
+      />,
+    );
+
+  it('de la fiche, « Poser » n’est pas d’un seul toucher : il ouvre « OÙ ? » avec les positions de l’atelier, puis l’aperçu', async () => {
+    const jeu = await atelierCaisseEnMain();
+    const caisse = caisseDe(jeu);
+    const poses = caisse.options.filter((option) => option.action === 'poser');
+    expect(poses.map((option) => option.parametre?.nom)).toEqual(['sous_grille', 'centre']);
+    expect(poses.map((option) => unToucher(grande.monde, jeu.partie, option))).toEqual([false, false]);
+    expect(etapeBulle(caisse, 'poser', null)).toMatchObject({ type: 'parametre', action: 'poser' });
+
+    const fiche = inventaire(jeu, null);
+    expect(texte(fiche)).toMatch(/^‹ Caisse ✕ .* ▸ Poser$/);
+    expect(fiche).not.toContain('sans confirmation');
+
+    expect(texte(inventaire(jeu, 'poser'))).toBe('‹ Caisse › Poser ✕ Où ? ▸ sous la grille ▸ au centre de la pièce');
+    const sous = poses.find((option) => option.parametre?.nom === 'sous_grille');
+    if (sous?.parametre === undefined) throw new Error('Position sous la grille absente.');
+    expect(texte(inventaire(jeu, 'poser', sous.parametre.id))).toBe('‹ Caisse › Poser › sous la grille ✕ Savoir La caisse sera sous la grille. Annuler Confirmer');
+    // La ligne de l'étape 1 reste le verbe seul ; le libellé du menu (CLI, captures) nomme la position de chaque option.
+    expect(libelleLigne(grande.textes, caisse, sous).libelle).toBe('Poser');
+    expect(poses.map((option) => libelleOption(grande.textes, option).libelle)).toEqual(['Poser la caisse sous la grille', 'Poser la caisse au centre de la pièce']);
+  });
+
+  it('confirmé sous la grille : la caisse y est, le récit et le rappel le disent, la grille se touche', async () => {
+    const jeu = await atelierCaisseEnMain();
+    const sous = caisseDe(jeu).options.find((option) => option.action === 'poser' && option.parametre?.nom === 'sous_grille');
+    if (sous === undefined) throw new Error('Poser sous la grille absent.');
+    const pose = await jouerOption(envGrande, jeu, sous);
+    expect(pose.recit.join(' ')).toMatch(/Vous (posez|déposez) la caisse sous la grille/);
+    expect(pose.rappel).toEqual({ texte: 'Caisse · Poser · sous la grille', capitales: false });
+    expect(pose.partie.etat.objets['m-02/o-caisse']).toMatchObject({ type: 'piece', piece: 'm-02/p-atelier' });
+    const grille = observer(grande.monde, pose.partie.etat).menu.find((option) => option.action === 'ouvrir' && option.cible.nom === 'grille');
+    expect(grille).toMatchObject({ disponible: true });
   });
 });

@@ -1,4 +1,5 @@
 import { CATALOGUE } from './actions';
+import { maintienDrone, range } from './drone';
 import {
   assourdie,
   chambreFroide,
@@ -84,7 +85,7 @@ export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
   return etat.messages.map((message) => {
     const quand = (monde.assistance ?? []).find((def) => def.id === message)?.quand;
     if (quand === undefined) throw new Error(`Message d'assistance inconnu : ${message}.`);
-    if (quand.type === 'evacuation') return { message, moment: quand };
+    if (quand.type === 'evacuation' || quand.type === 'patience') return { message, moment: quand };
     return { message, moment: { type: quand.type, piece: refPiece(monde, quand.type === 'reveil' ? monde.depart : quand.piece) } };
   });
 }
@@ -97,6 +98,16 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
   const protection = protectionEnfilee(monde, etat);
   const piece = indexer(monde).pieces.get(etat.piece);
   return {
+    ...(etat.drones === undefined ? {} : {
+      drones: ici.flatMap((objet) => {
+        const phase = etat.drones?.phases[objet.id];
+        return phase === undefined ? [] : [{ objet: refObjet(monde, objet.id), phase }];
+      }),
+      freins: ici.flatMap((objet) => objet.obstacle === undefined || range(etat, objet) ? [] : [{
+        objet: refObjet(monde, objet.id), desserre: maintienDrone(monde, etat, objet.obstacle.maintien),
+      }]),
+      ...(etat.drones.tenue === null ? {} : { poigneeTenue: refObjet(monde, etat.drones.tenue) }),
+    }),
     piece: refPiece(monde, etat.piece),
     objets: visibles.map((objet) => refObjet(monde, objet.id)),
     placements: ici.flatMap((objet) => {

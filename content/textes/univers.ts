@@ -1,10 +1,16 @@
-import type { Couche } from './types';
+import type { Couche, TextesMonde } from './types';
 
 // Univers (13 §7.2) : réveil, départ de la capsule, repères de moment et pièces communes des stations, écrits à la main (C-07) :
 // vouvoiement, phrases courtes, un nom par chose (NP-04), rien de non perçu (NP-05). Texte final non validé.
 
 /** Radicaux propres à l'univers : un mot du socle ou d'un morceau qui commence par l'un d'eux est une fuite. */
 export const MOTS_UNIVERS: readonly string[] = ['station'];
+
+/** Attentes à la suite (#225) : la station finit par répondre. */
+export const ATTENTES_LONGUES = {
+  5: 'Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous.',
+  10: 'Les lumières baissent d’un cran, puis reviennent. La station, elle aussi, attend.',
+} as const satisfies TextesMonde['attentesLongues'];
 
 export const UNIVERS = {
   noms: {
@@ -57,19 +63,47 @@ export const UNIVERS = {
       'Le levier descend ; la réserve de la capsule répond. Un choc, puis plus rien ne vous retient à la station.',
     ],
   },
+  // Écran de fin (12 §4.11, D-281, D-283).
+  fin: {
+    titres: {
+      abandon: 'Partie abandonnée.',
+      defaite: 'Vous n’avez pas atteint la capsule.',
+      evacuation: 'La capsule s’est détachée.',
+    },
+    reveil: 'Vous vous êtes réveillé dans {le:piece}.',
+    sante: {
+      indemne: 'Vous partez indemne.',
+      blesse: 'Vous partez blessé.',
+      critique: 'Vous partez grièvement blessé, mais vivant.',
+    },
+  },
   observation: {
     evacuee: 'La capsule s’est détachée. Vous avez quitté la station.',
     momentReveil: 'au réveil · {Nom:piece}',
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
+    momentPatience: 'en attendant',
   },
+  // Pillage (spec 2026-10-18 §6.6) : une phrase entière, vraie dans toute salle de butin vidée avant le joueur. Elle dit que
+  // quelqu'un est passé, jamais qui ni où. Sans mot de trace ni de menace. Écrites par l'assistant principal (D-243).
+  pillages: [
+    'Quelqu’un est passé avant vous : les tiroirs pendent, ouverts, et il ne reste que des emballages déchirés.',
+    'Les étagères ont été vidées à la hâte ; quelques boîtes vides jonchent encore le sol.',
+    'Une armoire a été forcée à la pince ; sa serrure pend, tordue, et l’intérieur est vide.',
+    'Des emballages de pansements arrachés couvrent le sol, au pied d’un tiroir resté ouvert.',
+    'Les casiers ont été ouverts un à un et retournés ; on n’y a laissé que les étiquettes.',
+    'Sur une étagère, la poussière dessine encore la forme de ce qui y était rangé.',
+    'Quelqu’un a fouillé ici avant vous, méthodiquement : chaque boîte est ouverte, chaque sachet est vide.',
+  ],
+  attentesLongues: ATTENTES_LONGUES,
 } satisfies Couche;
 
 /**
- * Messages d'IA Station d'une station tirée, au réveil et au départ (#152) : sans pièce nommée ni présence signalée, l'une et
- * l'autre dépendant du tirage. Texte final non validé.
+ * Messages d'IA Station d'une station tirée, au réveil, au départ, et à la 15e attente de suite (#152, #225) : sans pièce
+ * nommée ni présence signalée, l'une et l'autre dépendant du tirage. Texte final non validé.
  */
 export const ASSISTANCE_STATION: Readonly<Record<string, string>> = {
   reveil: 'Évacuation conseillée. Une capsule de secours vous attend à bord ; merci de la rejoindre dans le calme.',
   depart: 'Écoutille fermée, alimentation confirmée. Départ engagé ; bon voyage.',
+  patience: 'Aucune activité détectée. Merci de rejoindre la capsule de secours.',
 };

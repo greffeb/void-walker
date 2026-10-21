@@ -382,6 +382,29 @@ Réponse unique du porteur aux douze questions : « Ok pour tes reco ».
 | Q-180 Version de test | NOUVELLE PARTIE tire une station | D-255 |
 | Q-181 Panneau caché | Contourner la créature par le passage étroit | D-256 |
 
+### Bloc AG — grandes stations habitées : répondu
+
+Questions posées le 2026-10-18, une par une, pour #202, #205, #206, #207 et #209 ; réponses mot pour mot dans l'annexe A de la [conception](superpowers/specs/2026-10-18-grandes-stations-design.md#annexe-a-réponses-du-porteur-mot-pour-mot). Conception approuvée : « J'approuve le document, avec D-302, D-303 et la validation de D-276 et D-279. » (numéros de la conception : D-302 et D-303 y sont devenues D-303 et D-304, D-289 étant prise par #225, puis D-326 et D-327 à la reprise de `main` le 2026-10-20).
+
+| Question | Réponse utilisateur | Décision |
+| --- | --- | --- |
+| Q-212 La partie idéale | 25 minutes : traces, bruits, documents, puis la rencontre, la poursuite, les portes défoncées, l'objectif | D-313, D-317, D-318 |
+| Q-213 Variété | « franchement, tout pourrait changer, j'aime la variété » | D-322 |
+| Q-214 Grand mystère sur plusieurs parties | « trop ambitieux et casse gueule niveau faisabilité. » | D-322 |
+| Q-215 Difficulté | Deux ou trois morts sur quatre parties ; la difficulté actuelle convient | D-314 |
+| Q-216 Taille et durée | « rien ne me gène » | D-313 |
+| Q-217 Butin | Oui, ouvert aux objets futurs | D-320 |
+| Q-218 Clés dispersées | « la caisse peut bouger, sinon OK » | D-319 |
+| Q-219 Cadre et histoire de la créature | « c'est bien » | D-322 |
+| Q-220 Forme des documents | Chiffres à l'écran et indice de passage caché | D-323 |
+| Q-221 Catalogue des pièces | « ok » | D-316 |
+| Q-222 Créature immobile avant le contact | « oui » | D-321 |
+| Q-223 Affichage d'un document | « B, la fiche document dans la bulle. » | D-324 |
+| Q-224 Taille, après relecture | 22 à 28 pièces | D-313 |
+| Q-225 Rythme de la créature | Tardive et utile | D-315 |
+| Q-226 Traces | Une piste | D-317 |
+| Q-227 Validations signées | Gardées | D-325 |
+
 ## 5. Socles formels acceptés
 
 - [C-01 — Actions et observation publique](contrats/C-01-actions-observation.md) : commandabilité, indisponibilité, secret et parité d'adaptateurs.
@@ -413,7 +436,7 @@ Exemple de traduction en contrat : déplacer une caisse doit changer son emplace
 1. Traiter les issues de développement #100 à #108, dans l'ordre de leurs dépendances, en parallèle des issues d'interface #92 à #99.
 2. Retirer automatiquement une validation quand l'aventure change (D-100) : issue à créer après #108.
 
-Q-01 à Q-196 sont répondus ; le prochain numéro d'entretien est Q-197. Les questions posées sur le découpage de #106 sont gardées dans [13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur), celles du cadrage L0 (Q-182 à Q-185) dans [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-accepté-par-le-porteur), celles de L2 (Q-186, Q-187) dans [13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152), celles de L3 (Q-188 à Q-192) dans [13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153) et celles de L4 (Q-193 à Q-196) dans [13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154). Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
+Q-01 à Q-227 sont répondus ; le prochain numéro d'entretien est Q-228. Les questions posées sur le découpage de #106 sont gardées dans [13 §7.4](13-morceaux-lancement.md#74-questions-posées-au-porteur), celles du cadrage L0 (Q-182 à Q-185) dans [13 §8](13-morceaux-lancement.md#8-cadrage-l0-150-accepté-par-le-porteur), celles de L2 (Q-186, Q-187) dans [13 §7.5](13-morceaux-lancement.md#75-première-station-tirée-l2-152), celles de L3 (Q-188 à Q-192) dans [13 §7.6](13-morceaux-lancement.md#76-baie-passerelle-sans-gravité-l3-153), celles de L4 (Q-193 à Q-196) dans [13 §7.7](13-morceaux-lancement.md#77-chemins-dar-01-l4-154), celles de L5 (Q-197 à Q-200) dans [13 §7.8](13-morceaux-lancement.md#78-ordre-libre-et-mesures-l5-155), celles de L6 (Q-201 à Q-203) dans [13 §7.9](13-morceaux-lancement.md#79--plus-aucune-sortie--l6-156), celles du sas de sécurité M-11 (Q-204 à Q-206) dans [13 §7.10](13-morceaux-lancement.md#710-sas-de-sécurité-m-11-203), celles du drone M-12 (Q-207 à Q-211) dans [13 §7.11](13-morceaux-lancement.md#711-chariot-et-drone-m-12-232) et celles des grandes stations (Q-212 à Q-227) dans le bloc AG. Les choix de référence et leurs paramètres sont déjà conservés : ne pas refaire l'entretien par défaut.
 
 ### Sujets encore ouverts, sans ordre imposé
 

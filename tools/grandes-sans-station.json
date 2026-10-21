@@ -1,0 +1,270 @@
+{
+ "g1-m01-m11-m02-m03-atelier": {
+  "empreinte": "1415c0c6d5ed7a",
+  "essais": 8
+ },
+ "g1-m01-m11-m02-m06-atelier": {
+  "empreinte": "17d0d7b5ac7deb",
+  "essais": 8
+ },
+ "g1-m02-m09-m01-m06-palier": {
+  "empreinte": "1bf648a8acd60f",
+  "essais": 8
+ },
+ "g1-m02-m11-m01-m03-palier": {
+  "empreinte": "14ae39b3dfed4e",
+  "essais": 8
+ },
+ "g1-m02-m11-m01-m06-palier": {
+  "empreinte": "00382bcf875dc6",
+  "essais": 8
+ },
+ "g1-m02-m12-m01-m03-palier": {
+  "empreinte": "11d8ded1fe7375",
+  "essais": 8
+ },
+ "g1-m02-m12-m01-m06-palier": {
+  "empreinte": "0ef2aa38d4522f",
+  "essais": 8
+ },
+ "g1-m08-m01-m02-m06-atelier": {
+  "empreinte": "0484375fbbe4d4",
+  "essais": 8
+ },
+ "g1-m08-m02-m01-m06-palier": {
+  "empreinte": "1e02f77fa80d9d",
+  "essais": 8
+ },
+ "g1-m08-m09-m01-m03-palier": {
+  "empreinte": "0ccddf6c2a220f",
+  "essais": 8
+ },
+ "g1-m08-m11-m01-m03-palier": {
+  "empreinte": "1033fa734c08d4",
+  "essais": 8
+ },
+ "g1-m08-m11-m01-m06-palier": {
+  "empreinte": "0a4c1ed77dc9f0",
+  "essais": 8
+ },
+ "g1-m08-m11-m02-m03-atelier": {
+  "empreinte": "0d7b1585c80d69",
+  "essais": 8
+ },
+ "g1-m08-m11-m02-m06-atelier": {
+  "empreinte": "0296d5c4b6e76b",
+  "essais": 8
+ },
+ "g1-m08-m12-m01-m06-palier": {
+  "empreinte": "0be3e17e57566e",
+  "essais": 8
+ },
+ "g1-m09-m01-m02-m03-atelier": {
+  "empreinte": "0a420c1eeba3f0",
+  "essais": 8
+ },
+ "g1-m09-m01-m02-m06-atelier": {
+  "empreinte": "079e755b27fda1",
+  "essais": 8
+ },
+ "g1-m09-m02-m01-m06-palier": {
+  "empreinte": "099e7b238191a7",
+  "essais": 8
+ },
+ "g1-m09-m11-m01-m06-palier": {
+  "empreinte": "156477fb490739",
+  "essais": 8
+ },
+ "g1-m09-m11-m02-m03-atelier": {
+  "empreinte": "0f927ecfac287d",
+  "essais": 8
+ },
+ "g1-m09-m11-m02-m06-atelier": {
+  "empreinte": "007deb2d8706b6",
+  "essais": 8
+ },
+ "g1-m09-m12-m01-m06-palier": {
+  "empreinte": "1f969679c3ff53",
+  "essais": 8
+ },
+ "g1-m11-m01-m02-m03-atelier": {
+  "empreinte": "0c6776cac664a4",
+  "essais": 8
+ },
+ "g1-m11-m01-m02-m06-atelier": {
+  "empreinte": "036e6eed6cbbfb",
+  "essais": 8
+ },
+ "g1-m11-m02-m01-m03-palier": {
+  "empreinte": "0926b66551f53f",
+  "essais": 8
+ },
+ "g1-m11-m02-m01-m06-palier": {
+  "empreinte": "1d257fcde2639f",
+  "essais": 8
+ },
+ "g1-m11-m08-m01-m06-palier": {
+  "empreinte": "096cd9d66ccbf1",
+  "essais": 8
+ },
+ "g1-m11-m09-m01-m03-palier": {
+  "empreinte": "10bd988807429c",
+  "essais": 8
+ },
+ "g1-m11-m09-m01-m06-palier": {
+  "empreinte": "097fc104e9b029",
+  "essais": 8
+ },
+ "g1-m11-m09-m02-m03-atelier": {
+  "empreinte": "16e2e0355e957a",
+  "essais": 8
+ },
+ "g1-m11-m09-m02-m06-atelier": {
+  "empreinte": "11bba0371e9d9c",
+  "essais": 8
+ },
+ "g1-m11-m12-m01-m06-palier": {
+  "empreinte": "0b9f8d23ef7801",
+  "essais": 8
+ },
+ "g1-m12-m01-m02-m03-atelier": {
+  "empreinte": "17d231a08fa7e6",
+  "essais": 8
+ },
+ "g1-m12-m01-m02-m06-atelier": {
+  "empreinte": "16abdfb3c20373",
+  "essais": 8
+ },
+ "g1-m12-m02-m01-m06-palier": {
+  "empreinte": "01bc1340341f1e",
+  "essais": 8
+ },
+ "g1-m12-m09-m01-m06-palier": {
+  "empreinte": "148d6674ccbd39",
+  "essais": 8
+ },
+ "g1-m12-m11-m01-m06-palier": {
+  "empreinte": "021154b2419ce7",
+  "essais": 8
+ },
+ "g1-m12-m11-m02-m03-atelier": {
+  "empreinte": "00e79b4320cb6a",
+  "essais": 8
+ },
+ "g1-m12-m11-m02-m06-atelier": {
+  "empreinte": "17652a0ef929f0",
+  "essais": 8
+ },
+ "g1-ol-m01-m08-m02-m03-atelier": {
+  "empreinte": "0f454ac0b9a784",
+  "essais": 8
+ },
+ "g1-ol-m01-m08-m02-m06-atelier": {
+  "empreinte": "028d9c44a98980",
+  "essais": 8
+ },
+ "g1-ol-m01-m09-m02-m03-atelier": {
+  "empreinte": "16b430a8c3d78a",
+  "essais": 8
+ },
+ "g1-ol-m01-m09-m02-m06-atelier": {
+  "empreinte": "1c2876cc8f5b32",
+  "essais": 8
+ },
+ "g1-ol-m01-m11-m02-m03-atelier": {
+  "empreinte": "1d80b05330d9b7",
+  "essais": 8
+ },
+ "g1-ol-m01-m11-m02-m06-atelier": {
+  "empreinte": "09f6ca0fcb560e",
+  "essais": 8
+ },
+ "g1-ol-m01-m12-m02-m03-atelier": {
+  "empreinte": "19fef7aaddde2e",
+  "essais": 8
+ },
+ "g1-ol-m01-m12-m02-m06-atelier": {
+  "empreinte": "10d47da591eefe",
+  "essais": 8
+ },
+ "g1-ol-m02-m08-m01-m06-palier": {
+  "empreinte": "00f8e70ea8e156",
+  "essais": 8
+ },
+ "g1-ol-m02-m09-m01-m03-palier": {
+  "empreinte": "0e27900b261668",
+  "essais": 8
+ },
+ "g1-ol-m02-m11-m01-m06-palier": {
+  "empreinte": "01aff6dc1e73fe",
+  "essais": 8
+ },
+ "g1-ol-m02-m12-m01-m06-palier": {
+  "empreinte": "1a8a10828b3c1c",
+  "essais": 8
+ },
+ "g1-ol-m08-m09-m01-m03-palier": {
+  "empreinte": "11d6953aa7a8ca",
+  "essais": 8
+ },
+ "g1-ol-m08-m09-m01-m06-palier": {
+  "empreinte": "04b296ac13072e",
+  "essais": 8
+ },
+ "g1-ol-m08-m11-m01-m06-palier": {
+  "empreinte": "1cdbb836838029",
+  "essais": 8
+ },
+ "g1-ol-m08-m11-m02-m03-atelier": {
+  "empreinte": "095adf22c35c2c",
+  "essais": 8
+ },
+ "g1-ol-m08-m11-m02-m06-atelier": {
+  "empreinte": "12e38cde8740ac",
+  "essais": 8
+ },
+ "g1-ol-m08-m12-m01-m03-palier": {
+  "empreinte": "08cf33aba0231c",
+  "essais": 8
+ },
+ "g1-ol-m08-m12-m01-m06-palier": {
+  "empreinte": "1dff5aee241f18",
+  "essais": 8
+ },
+ "g1-ol-m09-m11-m01-m06-palier": {
+  "empreinte": "0fc5b4c993ad72",
+  "essais": 8
+ },
+ "g1-ol-m09-m11-m02-m03-atelier": {
+  "empreinte": "19d1852d37be53",
+  "essais": 8
+ },
+ "g1-ol-m09-m11-m02-m06-atelier": {
+  "empreinte": "0f566c40127fe0",
+  "essais": 8
+ },
+ "g1-ol-m09-m12-m01-m06-palier": {
+  "empreinte": "007b4caa73e5cc",
+  "essais": 8
+ },
+ "g1-ol-m09-m12-m02-m03-atelier": {
+  "empreinte": "1a79300d34e1f7",
+  "essais": 8
+ },
+ "g1-ol-m09-m12-m02-m06-atelier": {
+  "empreinte": "0de09ace054625",
+  "essais": 8
+ },
+ "g1-ol-m11-m12-m01-m06-palier": {
+  "empreinte": "0a64eae8d440f0",
+  "essais": 8
+ },
+ "g1-ol-m11-m12-m02-m03-atelier": {
+  "empreinte": "185ce800071096",
+  "essais": 8
+ },
+ "g1-ol-m11-m12-m02-m06-atelier": {
+  "empreinte": "0c37bf9cd50a99",
+  "essais": 8
+ }
+}

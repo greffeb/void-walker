@@ -1,5 +1,6 @@
 import { MENACE } from './menace';
 import type { TextesMonde } from './types';
+import { EVENEMENTS_DRONE, LIBELLES_DRONE, OBSERVATION_DRONE, REFUS_DRONE, SAVOIR_DRONE, VERBES_DRONE } from './drone';
 
 // Textes des règles des nouveaux morceaux (#105) écrits à la main (C-07) : passerelle, salle des machines, zone sans gravité,
 // chambre froide, objet encombrant. Partagés par les mondes : ceux qui n'ont pas ces morceaux ne s'en servent que pour la
@@ -8,6 +9,7 @@ import type { TextesMonde } from './types';
 
 /** Règles des morceaux sans la créature : socle. */
 export const EVENEMENTS_REGLES_MORCEAUX = {
+  ...EVENEMENTS_DRONE,
   pont_place: [
     'Vous couchez {le:objet} en travers du vide. Ses deux bouts reposent sur les bords.',
     'Vous poussez {le:objet} au-dessus du vide jusqu’à l’autre bord. Le passage est à peine plus large qu’un pied.',
@@ -45,8 +47,8 @@ export const EVENEMENTS_REGLES_MORCEAUX = {
     'Vous enfoncez la commande {de:objet}. Les verrous des portes {de:piece} s’enclenchent.',
   ],
   cloison_deverrouillee: [
-    'Vous abaissez {le:objet}. Un voyant passe au vert ; au loin, un verrou se lève avec un claquement sourd.',
-    'Vous tournez {le:objet} jusqu’en butée. Un voyant vert s’allume : le verrou de la cloison est levé.',
+    'Vous actionnez {le:objet}. Un voyant passe au vert ; un verrou se lève avec un claquement sourd.',
+    'Un déclic sous vos doigts : {le:objet} s’allume en vert. Le verrou est levé.',
   ],
   attente: ['Vous restez immobile, l’oreille tendue. Rien ne bouge.', 'Vous retenez votre souffle et attendez. Le silence vous répond.'],
 } as const satisfies Partial<TextesMonde['evenements']>;
@@ -56,6 +58,24 @@ export const EVENEMENTS_MORCEAUX = {
   ...EVENEMENTS_REGLES_MORCEAUX,
   pont_cede: MENACE.evenements.pont_cede,
 } as const satisfies Partial<TextesMonde['evenements']>;
+
+/**
+ * Récit de fin (D-281) : moments et mort des règles des morceaux, écrits à la main sous chaque forme utile ; repris dans le
+ * socle. `ailleurs` dit la pièce, `ici` suit une phrase qui l'a déjà nommée.
+ */
+export const FIN_MOMENTS_MORCEAUX = {
+  blesse_froid: { ailleurs: 'Dans {le:piece}, le froid vous a blessé.', ici: 'Le froid vous y a blessé.' },
+  critique_froid: { ailleurs: 'Dans {le:piece}, le froid vous a grièvement blessé.', ici: 'Puis le froid vous a grièvement blessé.' },
+  pont_place: { ici: 'Vous avez couché {le:objet} en travers du vide.' },
+  chambre_bouclee: { ici: 'Vous avez bouclé {le:lieu}.' },
+  cloison_deverrouillee: { ici: 'Vous avez actionné {le:objet}.' },
+  machines_arretees: { ici: 'Vous avez arrêté les machines.' },
+  gravite_coupee: { ici: 'Vous avez coupé la gravité dans {le:lieu}.' },
+} as const satisfies Partial<TextesMonde['fin']['moments']>;
+
+export const FIN_MORTS_MORCEAUX = {
+  froid: { ailleurs: 'Vous êtes mort dans {le:piece}, gagné par le froid.', ici: 'Vous y êtes mort, gagné par le froid.' },
+} as const satisfies Partial<TextesMonde['fin']['morts']>;
 
 export const GELURE_FROID = {
   froid: {
@@ -68,6 +88,7 @@ export const GELURE_FROID = {
 export const GELURES: TextesMonde['gelures'] = { ...GELURE_FROID, griffes_froid: MENACE.gelures.griffes_froid };
 
 export const REFUS_MORCEAUX = {
+  ...REFUS_DRONE,
   encombre: 'Vous portez déjà un objet encombrant : rien n’a été joué.',
   sans_pont: 'Rien ne permet de franchir ce vide : rien n’a été joué.',
   trop_loin: 'Vous flottez trop loin de ce passage : rien n’a été joué.',
@@ -75,18 +96,22 @@ export const REFUS_MORCEAUX = {
   deja_fait: 'C’est déjà fait : rien n’a été joué.',
   verrouillee: 'Ce passage est verrouillé : rien n’a été joué.',
   enfoncee: 'Cette porte a été enfoncée et ne ferme plus : rien n’a été joué.',
+  sans_carte: 'Carte requise : rien n’a été joué.',
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
+  ...REFUS_DRONE,
   encombre: 'Vous avez déjà les bras pris par un objet encombrant.',
   sans_pont: 'Il faut de quoi franchir {le:cible}.',
   trop_loin: 'Sans gravité, il faut d’abord dériver jusqu’à {le:cible}.',
   sans_gravite: 'Sans gravité, {le:cible} ne se verse pas.',
   verrouillee: '{Le:cible} est verrouillé{e:cible} : une commande doit d’abord lever le verrou.',
   enfoncee: '{Le:cible}, enfoncé{e:cible}, ne ferme plus.',
+  sans_carte: '{le:cible} a besoin d’une carte.',
 } as const satisfies Partial<TextesMonde['indisponibilites']>;
 
 export const LIBELLES_MORCEAUX = {
+  ...LIBELLES_DRONE,
   placer: 'Poser {le:cible} en travers {de:passage}',
   deriver: 'Dériver jusqu’à {le:cible}',
   arreter: 'Arrêter les machines',
@@ -99,6 +124,7 @@ export const LIBELLES_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['libelles']>;
 
 export const VERBES_MORCEAUX = {
+  ...VERBES_DRONE,
   placer: 'Poser en travers',
   deriver: 'Dériver',
   arreter: 'Arrêter',
@@ -112,6 +138,7 @@ export const VERBES_MORCEAUX = {
 
 /** Règles des morceaux sans la créature : socle. */
 export const OBSERVATION_REGLES_MORCEAUX = {
+  ...OBSERVATION_DRONE,
   pont: '{Le:objet} est posé{e:objet} en travers {de:passage}.',
   pontBrise: '{Le:objet} n’est plus là : au bord {de:passage}, des éclats de bois pendent dans le noir.',
   machinesMarche: 'Les machines tournent dans un vacarme assourdissant : vous n’entendez rien d’autre.',
@@ -140,6 +167,7 @@ export const DANGERS_MORCEAUX = {
 } as const satisfies Partial<TextesMonde['apercu']['dangers']>;
 
 export const SAVOIR_MORCEAUX = {
+  ...SAVOIR_DRONE,
   placera: '{Le:objet} sera posé{e:objet} en travers {de:passage} : on pourra passer.',
   derivera: 'Vous dériverez jusqu’à {le:passage} ; le franchir demandera une action de plus.',
   arreteront: 'Les machines s’arrêteront ; le silence reviendra.',

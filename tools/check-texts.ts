@@ -1,6 +1,7 @@
 import {
   ACTIONS,
   apercu,
+  CLE_TROUSSE,
   COUTS,
   jouer,
   NIVEAUX_RISQUE,
@@ -11,41 +12,70 @@ import {
   TYPES_DANGER,
   TYPES_EVENEMENT,
   TYPES_SAVOIR,
+  type CoucheDocument,
+  type EmplacementDocument,
   type Evenement,
   type Commande,
   type Partie,
+  type RefObjet,
+  type RefPiece,
   type TypeEvenement,
 } from '../engine';
 import {
   analyserGabarit,
+  CATALOGUE_PIECES,
   CLES_EVACUATION,
+  CLES_MOMENT,
+  CLES_MORT,
   COMPOSITIONS_CONTROLEES,
+  DOCUMENTS,
+  EMPLACEMENTS_DOCUMENTS,
   fuitesDeCouches,
+  fuitesDesCouches,
+  fuitesDuCatalogue,
+  MENACE,
+  minuscules,
+  MORCEAUX,
+  motsReserves,
+  SOCLE,
+  TEXTES_CATALOGUE,
+  UNIVERS,
   libelleOption,
   lignesListeCarte,
   MORCEAUX_TEXTES,
+  nomDe,
   nomLisible,
   rendreApercu,
   rendreAssistance,
   rendreConsultation,
+  rendreDocument,
   rendreEvenements,
   rendreListeCarte,
   rendreObservation,
   rendreRefus,
+  reunir,
   variantesDe,
   ROLES_ALLER_SANS_DESTINATION,
+  ROLES_POSER_A_POSITION,
   ROLES_DANGER,
   ROLES_EVENEMENT,
   ROLES_INDISPONIBILITE,
   ROLES_LIBELLE,
+  ROLES_MOMENT,
   ROLES_OBSERVATION,
   ROLES_PASSAGE,
   ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
   TYPES_AGGRAVATION,
   type Catalogue,
+  type CompositionGrande,
+  type DocumentRendu,
   type EntreeMonde,
+  type EntreeMorceau,
+  type Nom,
   type Refus,
+  type Reserve,
+  type TexteDocument,
   type TextesMonde,
   type TypeRecit,
 } from '../content';
@@ -55,9 +85,10 @@ import { empreinteCode, ouvrirCache, purgerCache } from './empreinte-code';
 import { dansLeLot, lancerSousLots, lireOptionsLots, type Lot } from './lots';
 import { isMainModule } from './repo-files';
 import { trouverOption } from './rejouer-parcours';
-import { stationDeReference, verifierLibre, verifierStation, type CacheVerdicts } from './verifier-station';
+import { cloisonsDuCarrefour, stationDeReference, verifierLibre, verifierStation, type CacheVerdicts } from './verifier-station';
 
-// Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur.
+// Contrôles des textes (C-07 §4, AP-08) : NP-01 un événement un texte, NP-02 trous sûrs, D-111 longueur ; et, sans station,
+// la réserve de documents des grandes stations, leurs phrases de pillage, de trace et de bruit (spec 2026-10-18 §11).
 
 const ID_PUBLIC = /\be[0-9a-f]{8}\b/;
 
@@ -79,9 +110,20 @@ export const MAX_ETATS = 50000;
  */
 export const MAX_ETATS_MONDE_TEST = 150000;
 
-/** Borne d'exploration d'une entrée : le monde de test à part. */
+/**
+ * Borne d'une grande station : son espace d'états dépasse de loin ce qu'une exploration rend en quelques secondes. Les
+ * documents sont rendus dès les premières salles (trois à quatre sur cinq à sept dès 5 000 états, trois à cinq à 50 000) : la
+ * borne garde chaque grande station à une dizaine de secondes.
+ */
+export const MAX_ETATS_GRANDE = 10000;
+
+/** Identifiant d'une grande station publiée : `g<version>-<composition>-<graine>`, la composition d'un côté, la graine de l'autre. */
+const GRANDE = /^(g\d+-.+)-(\d+)$/;
+
+/** Borne d'exploration d'une entrée : le monde de test et les grandes stations à part. */
 export function borneDe(entree: EntreeMonde): number {
-  return entree.monde.id === 'monde-test' ? MAX_ETATS_MONDE_TEST : MAX_ETATS;
+  const { id } = entree.monde;
+  return id === 'monde-test' ? MAX_ETATS_MONDE_TEST : GRANDE.test(id) ? MAX_ETATS_GRANDE : MAX_ETATS;
 }
 /** Marches au hasard à graine fixe : nombre et longueur, pour atteindre des états profonds (feu propagé, blessures). */
 const MARCHES = 40;
@@ -115,6 +157,30 @@ function verifierGabarit(erreurs: string[], ou: string, gabarit: unknown, roles:
   for (const erreur of analyserGabarit(gabarit, roles)) erreurs.push(`${ou} : ${erreur}.`);
 }
 
+/**
+ * Phrase du récit de fin (D-281) : `ici` toujours, sans la pièce ; `ailleurs`, s'il existe, la nomme ; les formes reprises
+ * vont avec les formes qu'elles suivent.
+ */
+function verifierPhraseFin(erreurs: string[], ou: string, phrase: unknown, roles: readonly string[]): void {
+  if (typeof phrase !== 'object' || phrase === null) {
+    erreurs.push(`${ou} : aucun texte (NP-01).`);
+    return;
+  }
+  const { ici, ailleurs, iciReprise, ailleursReprise } = phrase as Record<string, unknown>;
+  const piece = /\{[^{}:]*:piece\}/;
+  verifierGabarit(erreurs, `${ou}, ici`, ici, roles);
+  if (typeof ici === 'string' && piece.test(ici)) erreurs.push(`${ou}, ici : redit la pièce.`);
+  if (iciReprise !== undefined) verifierGabarit(erreurs, `${ou}, ici après la créature`, iciReprise, roles);
+  if (ailleurs !== undefined) {
+    verifierGabarit(erreurs, `${ou}, ailleurs`, ailleurs, [...roles, 'piece']);
+    if (typeof ailleurs !== 'string' || !piece.test(ailleurs)) erreurs.push(`${ou}, ailleurs : ne nomme pas la pièce.`);
+  }
+  if (ailleursReprise !== undefined) verifierGabarit(erreurs, `${ou}, ailleurs après la créature`, ailleursReprise, [...roles, 'piece']);
+  // Une phrase qui nomme la créature l'a sous toutes ses formes : reprise ici, et ailleurs si elle dit la pièce.
+  const incomplete = iciReprise === undefined ? ailleursReprise !== undefined : ailleurs !== undefined && ailleursReprise === undefined;
+  if (incomplete) erreurs.push(`${ou} : formes après la créature incomplètes.`);
+}
+
 function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): void {
   for (const type of TYPES_RECIT) verifierVariantes(erreurs, `événement ${type}`, textes.evenements[type], ROLES_EVENEMENT[type]);
   for (const causes of ['feu', 'griffes_feu'] as const) {
@@ -144,6 +210,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const variante of textes.asphyxie as readonly unknown[]) {
     if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push('défaite par le vide : plus de quatre phrases (garde-fou du contrôle).');
   }
+  for (const [cle, phrase] of Object.entries(textes.attentesLongues)) verifierGabarit(erreurs, `attente longue ${cle}`, phrase, []);
   for (const { id } of monde.assistance ?? []) {
     const message = textes.assistance[id] as unknown;
     if (typeof message !== 'string' || message.trim() === '') {
@@ -153,6 +220,11 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     for (const erreur of analyserGabarit(message, [])) erreurs.push(`assistance « ${id} » : ${erreur}.`);
     if (/\d/.test(message)) erreurs.push(`assistance « ${id} » : chiffre dans « ${message} ».`);
   }
+  for (const cle of CLES_MOMENT) verifierPhraseFin(erreurs, `fin, moment ${cle}`, textes.fin.moments[cle], ROLES_MOMENT[cle]);
+  for (const cle of CLES_MORT) verifierPhraseFin(erreurs, `fin, mort ${cle}`, textes.fin.morts[cle], []);
+  for (const [cle, titre] of Object.entries(textes.fin.titres)) verifierGabarit(erreurs, `fin, titre ${cle}`, titre, []);
+  verifierGabarit(erreurs, 'fin, réveil', textes.fin.reveil, ['piece']);
+  for (const [cle, phrase] of [...Object.entries(textes.fin.sante), ...Object.entries(textes.fin.creature)]) verifierGabarit(erreurs, `fin, départ ${cle}`, phrase, []);
   for (const raison of RAISONS_REFUS) verifierGabarit(erreurs, `refus ${raison}`, textes.refus[raison], []);
   for (const raison of RAISONS_INDISPONIBILITE) {
     verifierGabarit(erreurs, `indisponibilité ${raison}`, textes.indisponibilites[raison], ROLES_INDISPONIBILITE);
@@ -164,6 +236,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   verifierVariantes(erreurs, 'regarder un passage ouvert sans destination connue', textes.passages.ouvertSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierVariantes(erreurs, 'regarder un passage fermé sans destination connue', textes.passages.fermeSansDestination, ROLES_PASSAGE_SANS_DESTINATION);
   verifierGabarit(erreurs, 'libellé aller sans destination connue', textes.allerSansDestination, ROLES_ALLER_SANS_DESTINATION);
+  verifierGabarit(erreurs, 'libellé poser à une position', textes.poserAPosition, ROLES_POSER_A_POSITION);
   verifierGabarit(erreurs, 'voyant d’une porte étanche sans air derrière', textes.passages.voyantVide, []);
   verifierVariantes(erreurs, 'regarder le vide d’une passerelle', textes.passages.gouffre, ROLES_PASSAGE);
   for (const [cle, roles] of Object.entries(ROLES_OBSERVATION)) {
@@ -187,8 +260,11 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
       erreurs.push(`nom « ${entite.nom} » : texte, genre, nombre ou élision manquant (NP-02).`);
     }
   }
-  for (const entite of [...monde.pieces, ...monde.objets]) {
-    verifierVariantes(erreurs, `description de « ${entite.nom} »`, textes.descriptions[entite.nom], []);
+  for (const piece of monde.pieces) verifierVariantes(erreurs, `description de « ${piece.nom} »`, textes.descriptions[piece.nom], []);
+  for (const objet of monde.objets) {
+    // Un document n'a pas de description : son texte est dans la section `documents` (spec 2026-10-18 §8.5).
+    if (objet.document !== true) verifierVariantes(erreurs, `description de « ${objet.nom} »`, textes.descriptions[objet.nom], []);
+    else if (!Object.hasOwn(textes.documents, objet.nom)) erreurs.push(`document « ${objet.nom} » : aucun texte (NP-01).`);
   }
   // PL-04 (14 §4.2) : chaque nom de pièce tient dans son rectangle, avec la place d'une ligne d'état.
   for (const piece of monde.pieces) {
@@ -339,7 +415,14 @@ function visiter({ monde, textes }: EntreeMonde, partie: Partie, exploration: Ex
     const resultat = jouer(monde, partie, option.commande);
     const repere = { graine, action: partie.etat.actions + 1 };
     if (resultat.type === 'consultation') {
-      rendre({ texte: rendreConsultation(textes, resultat.consultation, repere), ou: `consultation ${option.action}` });
+      const { consultation } = resultat;
+      rendre({ texte: rendreConsultation(textes, consultation, repere), ou: `consultation ${option.action}` });
+      // Un document : sa puce et sa ligne « où » sans chiffre ; son corps en a le droit (spec 2026-10-18 §8.4, C-04 §4.3).
+      if (consultation.type === 'regarder_document') {
+        const { nom } = consultation.cible;
+        rendre({ texte: nomDe(textes, consultation.cible).texte, ou: `document ${nom}, puce`, sansChiffre: true });
+        rendre({ texte: rendreDocument(textes, consultation).ou, ou: `document ${nom}, ligne « où »`, sansChiffre: true });
+      }
     } else if (resultat.type === 'engagee') {
       const suite = resultat.evenements.map((evenement) => evenement.type);
       for (const type of suite) types.add(type);
@@ -519,14 +602,17 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
 /**
  * La station d'une composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de plan vérifiée par
  * `check:stations`. Elle porte pour seul parcours le témoin d'évacuation de `verifierStation`, ou de `verifierLibre` en ordre
- * libre ; sans témoin, elle est refusée.
+ * libre ; sans témoin, elle est refusée. Une grande station publiée `g1-…-<graine>` se construit telle quelle, sans parcours :
+ * l'exploration seule la parcourt.
  * Prouver une station coûte environ une seconde : qui n'en veut qu'une n'appelle pas `entreesAControler`.
  */
 export function entreeAControler(catalogue: Catalogue, composition: string): readonly [string, EntreeMonde | Refus] {
+  const [, grande, graine] = GRANDE.exec(composition) ?? [];
+  if (grande !== undefined && graine !== undefined) return [composition, catalogue.construireGrande(grande, Number(graine))];
   const station = stationDeReference(catalogue, composition);
   if ('refus' in station) return [composition, station];
   // Ordre libre : le témoin de `check:stations`, première cloison d'abord (spec L5 §4.1).
-  const libre = station.entree.monde.liaisons.some((liaison) => liaison.verrouillee === true);
+  const libre = cloisonsDuCarrefour(station.entree.monde).length > 0;
   const rapport = libre ? verifierLibre(station.entree) : verifierStation(station.entree);
   const id = station.entree.monde.id;
   if (rapport.parcours === null) return [id, { refus: `Évacuation non prouvée (${rapport.verdict}) : ${rapport.diagnostic}` }];
@@ -580,14 +666,36 @@ export function controlerEntree(id: string, aControler: EntreeMonde | Refus): Co
   return { lignes, erreurs: erreurs.length };
 }
 
-/** Ce que contrôle `check:texts`, dans l'ordre : mondes du catalogue, puis compositions contrôlées. */
+/**
+ * Trois grandes stations publiées (spec 2026-10-18 §11), choisies dans l'ordre de la liste publiée : la première en chaîne, la
+ * première en ordre libre, la première, parmi les autres, qui porte la note d'une clé déplacée. Une station qui ne se construit
+ * plus (liste périmée) est sautée ; le choix suit la liste, qu'une republication renouvelle sans retouche d'ici.
+ */
+export function grandesAControler(catalogue: Catalogue): string[] {
+  const forme = (id: string): CompositionGrande['forme'] | undefined => catalogue.grandes.find((composition) => composition.id === GRANDE.exec(id)?.[1])?.forme;
+  const aUneCle = ({ monde }: EntreeMonde): boolean =>
+    monde.objets.some((objet) => objet.document === true && objet.designe !== undefined && EMPLACEMENTS_DOCUMENTS.find((emplacement) => emplacement.id === objet.nom)?.cle !== CLE_TROUSSE);
+  const premiere = (convient: (id: string) => boolean, cle = false): string[] => {
+    for (const id of catalogue.publiees) {
+      if (!convient(id)) continue;
+      const entree = entreeAControler(catalogue, id)[1];
+      if (!('refus' in entree) && (!cle || aUneCle(entree))) return [id];
+    }
+    return [];
+  };
+  const chaine = premiere((id) => forme(id) === 'chaine');
+  const libre = premiere((id) => forme(id) === 'libre');
+  return [...chaine, ...libre, ...premiere((id) => !chaine.includes(id) && !libre.includes(id), true)];
+}
+
+/** Ce que contrôle `check:texts`, dans l'ordre : mondes du catalogue, compositions contrôlées, puis trois grandes stations publiées. */
 export function idsAControler(catalogue: Catalogue): string[] {
-  return [...Object.keys(catalogue.mondes), ...COMPOSITIONS_CONTROLEES];
+  return [...Object.keys(catalogue.mondes), ...COMPOSITIONS_CONTROLEES, ...grandesAControler(catalogue)];
 }
 
 /**
  * Lot de `check:texts` (#180) : chaque entrée du lot est contrôlée, ou son compte rendu repris du cache quand le même code l'a
- * déjà rendue sans erreur ; le lot 1 contrôle aussi les couches des textes.
+ * déjà rendue sans erreur ; le lot 1 contrôle aussi les textes sans station (couches, traces, documents, phrases).
  */
 export function controlerLot(lot: Lot, catalogue: Catalogue = CATALOGUE, cache?: CacheVerdicts): CompteRendu & { readonly repris: number } {
   const lignes: LigneCompteRendu[] = [];
@@ -607,12 +715,242 @@ export function controlerLot(lot: Lot, catalogue: Catalogue = CATALOGUE, cache?:
     if (compte.erreurs === 0) cache?.ecrire(`entree ${id}`, compte);
   }
   if (lot.numero === 1) {
-    const fuites = fuitesDeCouches(MORCEAUX_TEXTES);
-    erreurs += fuites.length;
-    for (const fuite of fuites) lignes.push({ niveau: 'error', texte: `couches : ${fuite}` });
-    if (fuites.length === 0) lignes.push({ niveau: 'log', texte: 'couches : aucun mot de l’univers ni de la menace dans le socle et les morceaux.' });
+    const communs = controlerTextesCommuns();
+    lignes.push(...communs.lignes);
+    erreurs += communs.erreurs;
   }
   return { lignes, erreurs, repris };
+}
+
+/**
+ * Descriptions qu’une grande station montre (spec 2026-10-18 §5.4) : celles des morceaux, ou leur variante calme, et celles de
+ * l’univers. Aucune ne porte un mot réservé aux traces : dans une grande station, seule la piste en ajoute, et elle dit vrai.
+ */
+export function tracesHorsPiste(): string[] {
+  const morceaux = Object.values(MORCEAUX).filter(({ morceau }) => morceau.grande !== undefined);
+  return [
+    ...morceaux.flatMap(({ morceau, textes }) => fuitesDuCatalogue({ noms: {}, descriptions: { ...textes.descriptions, ...textes.calmes }, assistance: {} }).map((fuite) => `morceau ${morceau.id}, ${fuite}`)),
+    ...fuitesDuCatalogue({ noms: {}, descriptions: UNIVERS.descriptions, assistance: {} }).map((fuite) => `univers, ${fuite}`),
+  ];
+}
+
+// Réserve de documents des grandes stations (spec 2026-10-18 §8.4, §8.5, §11, #209) : chaque document est rendu par `rendreDocument`,
+// sans station de référence, puis contrôlé : structure, trous, couche et mots réservés, longueur, chiffres, noms de puce.
+
+/** Ce que contrôle `controlerReserve` : les places, les textes communs (univers, menace, trousse) et les morceaux, avec leurs clés. */
+export interface SourcesReserve {
+  readonly emplacements: readonly EmplacementDocument[];
+  readonly communs: Readonly<Record<string, TexteDocument>>;
+  readonly morceaux: Readonly<Record<string, EntreeMorceau>>;
+}
+
+export const SOURCES_RESERVE: SourcesReserve = { emplacements: EMPLACEMENTS_DOCUMENTS, communs: DOCUMENTS, morceaux: MORCEAUX };
+
+/** Mots que chaque couche d'un document ne dit jamais (spec §8.4). */
+const INTERDITS: Readonly<Record<CoucheDocument, readonly Reserve[]>> = {
+  univers: ['menace', 'traces'],
+  menace: ['univers'],
+  morceau: ['univers', 'menace', 'traces'],
+  rangement: ['univers', 'menace', 'traces'],
+};
+
+/** Un trou qui nomme la pièce : « le », « de » ou « a », avec ou sans majuscule. */
+const TROU_PIECE = /\{(?:le|de|a):piece\}/i;
+const TROU_INTERDIT = 'trou interdit : le seul trou est la pièce, dans le corps d’une note de rangement.';
+const SANS_TEXTE = { noms: {}, descriptions: {}, assistance: {} };
+
+/** Noms affichés des pièces et des objets des morceaux, du catalogue et de l'univers, en minuscules : une puce n'en reprend aucun (bible §6). */
+function nomsDesLieux(): Set<string> {
+  const noms = [UNIVERS.noms, TEXTES_CATALOGUE.noms, ...Object.values(MORCEAUX_TEXTES).map((textes) => textes.noms)];
+  return new Set(noms.flatMap((table) => Object.values(table).map((nom) => minuscules(nom.texte))));
+}
+
+/** Une pièce du catalogue : la clé de son nom et son nom. */
+export interface PieceReserve {
+  readonly cle: string;
+  readonly nom: Nom;
+}
+
+/** Pièces du catalogue qui peuvent recevoir une clé de l'une de ces étiquettes (spec §5.2). */
+export function piecesPour(etiquettes: readonly string[]): PieceReserve[] {
+  return Object.values(CATALOGUE_PIECES).flatMap(({ morceau }) => {
+    const cle = morceau.pieces[0]?.nom ?? '';
+    const nom = TEXTES_CATALOGUE.noms[cle];
+    return nom !== undefined && morceau.annexe?.etiquettes.some((etiquette) => etiquettes.includes(etiquette)) === true ? [{ cle, nom }] : [];
+  });
+}
+
+/** Une à cinq phrases hors didascalies, ou une à cinq lignes pour un journal (spec §8.4). */
+function longueurDuDocument(rendu: DocumentRendu): string | null {
+  const journal = rendu.support === 'journal';
+  const nombre = journal ? rendu.corps.length : rendu.corps.reduce((total, ligne) => total + (ligne.didascalie === true ? 0 : compterPhrases(ligne.texte)), 0);
+  return nombre >= 1 && nombre <= 5 ? null : `${nombre} ${journal ? 'ligne(s) de journal' : 'phrase(s)'}, une à cinq attendues.`;
+}
+
+/**
+ * Rend un document par `rendreDocument` : tel quel, ou, pour une note de rangement (`pieces` non nul), une fois par pièce du
+ * catalogue où sa clé peut aller, sous son nom puis numérotée (« consigne B »). Une erreur de rendu s'ajoute à `erreurs` et
+ * arrête les rendus de ce document.
+ */
+function rendreLaPlace(erreurs: string[], ou: string, textes: TextesMonde, cible: RefObjet, pieces: readonly PieceReserve[] | null): DocumentRendu[] {
+  const regards: { libelle: string; textes: TextesMonde; designe?: RefPiece }[] =
+    pieces === null
+      ? [{ libelle: 'rendu', textes }]
+      : pieces.flatMap(({ cle, nom }) =>
+          [[cle, nom.texte], [`${cle}_b`, `${nom.texte} B`]].map(([nomPiece = '', texte = '']) => ({
+            libelle: `rendu avec « ${texte} »`,
+            textes: { ...textes, noms: { ...textes.noms, [nomPiece]: { ...nom, texte } } },
+            designe: { sorte: 'piece', id: `e${nomPiece}`, nom: nomPiece },
+          })),
+        );
+  const rendus: DocumentRendu[] = [];
+  for (const { libelle, textes: lesTextes, designe } of regards) {
+    try {
+      rendus.push(rendreDocument(lesTextes, { type: 'regarder_document', cible, ...(designe === undefined ? {} : { designe }) }));
+    } catch (erreur) {
+      erreurs.push(`${ou}, ${libelle} : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+      break;
+    }
+  }
+  return rendus;
+}
+
+function analyserReserve({ emplacements, communs, morceaux }: SourcesReserve): { readonly erreurs: string[]; readonly rendus: ReadonlyMap<string, readonly DocumentRendu[]> } {
+  const erreurs: string[] = [];
+  const rendusParDocument = new Map<string, readonly DocumentRendu[]>();
+  const lu = (table: Readonly<Record<string, TexteDocument>> | undefined, id: string): TexteDocument | undefined => (table !== undefined && Object.hasOwn(table, id) ? table[id] : undefined);
+  const definitions = new Map<string, number>();
+  for (const id of [...Object.keys(communs), ...Object.values(morceaux).flatMap(({ textes }) => Object.keys(textes.documents ?? {}))]) definitions.set(id, (definitions.get(id) ?? 0) + 1);
+  const places = new Set(emplacements.map((emplacement) => emplacement.id));
+  for (const [id, nombre] of definitions) {
+    if (!places.has(id)) erreurs.push(`document ${id} : texte sans place.`);
+    if (nombre > 1) erreurs.push(`document ${id} : texte défini deux fois.`);
+  }
+
+  const lieux = nomsDesLieux();
+  const puces = new Map<string, string>();
+  for (const { id, couche, morceau, cle } of emplacements) {
+    const ou = `document ${id}`;
+    if (couche === 'morceau' && morceau === undefined) erreurs.push(`${ou} : document de morceau sans morceau.`);
+    if (couche === 'rangement') {
+      if (cle === undefined) erreurs.push(`${ou} : note de rangement sans clé.`);
+      if (morceau === undefined && cle !== CLE_TROUSSE) erreurs.push(`${ou} : note de rangement sans morceau.`);
+    }
+    const entree = morceau === undefined ? undefined : morceaux[morceau];
+    if (morceau !== undefined && entree === undefined) erreurs.push(`${ou} : morceau ${morceau} inconnu.`);
+    const texte = lu(morceau === undefined ? communs : entree?.textes.documents, id);
+    if (texte === undefined) {
+      erreurs.push(`${ou} : place sans texte.`);
+      continue;
+    }
+
+    const champs: [string, string][] = [['puce', texte.puce.texte], ['ligne « où »', texte.ou]];
+    if (texte.signature !== undefined) champs.push(['signature', texte.signature]);
+    texte.corps.forEach((ligne, rang) => champs.push([`corps [${rang}]`, ligne]));
+    for (const [champ, valeur] of champs) {
+      const corps = champ.startsWith('corps');
+      if (/[{}]/.test(valeur) && !(corps && couche === 'rangement')) erreurs.push(`${ou}, ${champ} : ${TROU_INTERDIT}`);
+      for (const fuite of motsReserves(valeur, INTERDITS[couche])) erreurs.push(`${ou}, ${champ} : ${fuite}.`);
+      if (!corps && /[\d%]/.test(valeur)) erreurs.push(`${ou}, ${champ} : chiffre ou pourcentage dans « ${valeur} » (C-04 §4.3).`);
+    }
+    if (couche === 'rangement' && !texte.corps.some((ligne) => TROU_PIECE.test(ligne))) erreurs.push(`${ou} : note de rangement qui ne nomme pas la pièce.`);
+    // Un papier glissé près de la clé : une note manuscrite, ni message, ni journal, ni affiche, ni inscription.
+    if (couche === 'rangement' && texte.support !== 'note') erreurs.push(`${ou} : note de rangement qui n’est pas une note manuscrite (support « ${texte.support} »).`);
+
+    const nom = minuscules(texte.puce.texte);
+    const autre = puces.get(nom);
+    if (autre !== undefined) erreurs.push(`${ou} : nom de puce « ${texte.puce.texte} » déjà celui du document ${autre}.`);
+    else puces.set(nom, id);
+    if (lieux.has(nom)) erreurs.push(`${ou} : nom de puce « ${texte.puce.texte} » déjà celui d’une pièce ou d’un objet.`);
+
+    // Le rendu : une note de rangement désigne chaque pièce du catalogue où sa clé peut aller, sous son nom puis numérotée.
+    let pieces: readonly PieceReserve[] | null = null;
+    if (couche === 'rangement' && cle !== undefined) {
+      const etiquettes = cle === CLE_TROUSSE ? ['butin'] : entree?.morceau.grande?.cles?.[cle]?.etiquettes;
+      if (etiquettes === undefined) {
+        erreurs.push(`${ou} : clé « ${cle} » inconnue du morceau ${morceau ?? ''}.`);
+        continue;
+      }
+      pieces = piecesPour(etiquettes);
+      if (pieces.length === 0) erreurs.push(`${ou} : aucune pièce du catalogue ne peut recevoir sa clé.`);
+    }
+    let textes: TextesMonde;
+    try {
+      textes = reunir([entree?.textes ?? SANS_TEXTE, TEXTES_CATALOGUE, { ...SANS_TEXTE, documents: morceau === undefined ? { [id]: texte } : {} }]);
+    } catch (erreur) {
+      erreurs.push(`${ou}, réunion des textes : ${erreur instanceof Error ? erreur.message : String(erreur)}`);
+      continue;
+    }
+    const rendus = rendreLaPlace(erreurs, ou, textes, { sorte: 'objet', id: `e${id}`, nom: id }, couche === 'rangement' ? (pieces ?? []) : null);
+    rendusParDocument.set(id, rendus);
+    const trop = rendus[0] === undefined ? null : longueurDuDocument(rendus[0]);
+    if (trop !== null) erreurs.push(`${ou} : ${trop}`);
+  }
+  return { erreurs, rendus: rendusParDocument };
+}
+
+/**
+ * Toute la réserve, sans station de référence : chaque place a un texte et chaque texte une place ; une note de rangement, note
+ * manuscrite, a une clé et un morceau sauf la trousse ; le seul trou est la pièce, dans le corps d'une note de rangement ; aucun mot réservé
+ * de la couche ; une à cinq phrases ; aucun chiffre dans la puce, la ligne « où » ni la signature (le corps en a le droit) ; des
+ * noms de puce distincts entre eux et de tout nom de pièce ou d'objet. Chaque document est rendu par `rendreDocument` : une
+ * note de rangement avec chaque pièce du catalogue où sa clé peut aller, et avec une pièce numérotée (« consigne B »), et nomme
+ * cette pièce.
+ */
+export function controlerReserve(sources: SourcesReserve = SOURCES_RESERVE): string[] {
+  return analyserReserve(sources).erreurs;
+}
+
+/** Ce que le contrôle a rendu de chaque document, par identifiant : une fois, ou, pour une note de rangement, une fois par pièce nommée puis lettrée. */
+export function rendusDeLaReserve(sources: SourcesReserve = SOURCES_RESERVE): ReadonlyMap<string, readonly DocumentRendu[]> {
+  return analyserReserve(sources).rendus;
+}
+
+/** Phrases de pillage, de trace et de bruit de station, comme le contenu les écrit (spec 2026-10-18 §5.4, §5.5, §6.6). */
+export interface PhrasesControlees {
+  readonly pillages: readonly string[];
+  readonly traces: Readonly<Record<string, readonly string[]>>;
+  readonly bruits: readonly string[];
+}
+
+export const PHRASES_REELLES: PhrasesControlees = { pillages: UNIVERS.pillages, traces: MENACE.traces, bruits: SOCLE.evenements.bruit_station };
+
+/** Chaque phrase : sans trou, non vide, de une à quatre phrases, sans mot des listes interdites. */
+function verifierPhrases(erreurs: string[], ou: string, phrases: unknown, interdits: readonly Reserve[]): void {
+  verifierVariantes(erreurs, ou, phrases, []);
+  if (!Array.isArray(phrases)) return;
+  phrases.forEach((phrase: unknown, rang) => {
+    if (typeof phrase !== 'string' || analyserGabarit(phrase, []).length > 0) return;
+    for (const fuite of motsReserves(phrase, interdits)) erreurs.push(`${ou} [${rang}] : ${fuite}.`);
+    const nombre = compterPhrases(phrase);
+    if (nombre < 1 || nombre > 4) erreurs.push(`${ou} [${rang}] : ${nombre} phrase(s), une à quatre attendues.`);
+  });
+}
+
+/** Pillages (univers : ni menace ni traces), traces (menace : jamais « station »), bruits de station (ni menace ni traces). */
+export function controlerPhrases({ pillages, traces, bruits }: PhrasesControlees = PHRASES_REELLES): string[] {
+  const erreurs: string[] = [];
+  verifierPhrases(erreurs, 'pillages', pillages, ['menace', 'traces']);
+  for (const [intensite, phrases] of Object.entries(traces)) verifierPhrases(erreurs, `traces.${intensite}`, phrases, ['univers']);
+  verifierPhrases(erreurs, 'bruits de station', bruits, ['menace', 'traces']);
+  return erreurs;
+}
+
+/** Les textes que `check:texts` contrôle sans station, dans le lot 1 : couches, traces, documents, phrases. */
+export function controlerTextesCommuns(): CompteRendu {
+  const lignes: LigneCompteRendu[] = [];
+  let erreurs = 0;
+  const dire = (prefixe: string, fautes: readonly string[], bon: string): void => {
+    erreurs += fautes.length;
+    for (const faute of fautes) lignes.push({ niveau: 'error', texte: `${prefixe} : ${faute}` });
+    if (fautes.length === 0) lignes.push({ niveau: 'log', texte: bon });
+  };
+  dire('couches', fuitesDeCouches(MORCEAUX_TEXTES), 'couches : aucun mot de l’univers ni de la menace dans le socle et les morceaux.');
+  dire('couches', fuitesDesCouches(), 'couches : l’univers sans mot de la menace ni des traces, la menace sans « station ».');
+  dire('grandes stations', tracesHorsPiste(), 'grandes stations : aucune trace hors de la piste dans les descriptions calmes.');
+  dire('documents', controlerReserve(), 'documents : toute la réserve rendue sans station ; structure, trous, couches, longueur, chiffres et puces sûrs.');
+  dire('phrases', controlerPhrases(), 'phrases : pillages, traces et bruits de station sûrs.');
+  return { lignes, erreurs };
 }
 
 async function principal(): Promise<void> {

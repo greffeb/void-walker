@@ -1,6 +1,8 @@
 import {
   DANGERS_MORCEAUX,
   EVENEMENTS_REGLES_MORCEAUX,
+  FIN_MOMENTS_MORCEAUX,
+  FIN_MORTS_MORCEAUX,
   GELURE_FROID,
   INDISPONIBILITES_MORCEAUX,
   LIBELLES_MORCEAUX,
@@ -16,8 +18,26 @@ import type { Couche } from './types';
 // morceaux, écrits à la main (C-07) sans rien de l'univers ni de la menace. Texte final non validé.
 export const SOCLE = {
   evenements: {
+    // Bruits de station (spec 2026-10-18 §5.5) : la coque, l'air, l'eau, le courant ; jamais les mots de la créature (bouger,
+    // lourd, pas, souffle, écouter). Écrits par l'assistant principal (D-243).
+    bruit_station: [
+      'Quelque part dans la coque, une tôle craque longuement, puis se tait.',
+      'La ventilation s’arrête, puis repart avec un hoquet.',
+      'Au loin, une canalisation cogne trois fois.',
+      'Un néon grésille au-dessus de vous, s’éteint une seconde, se rallume.',
+      'Derrière une cloison, de l’eau goutte dans un bac, à intervalles réguliers.',
+      'Les lumières de service baissent un instant, comme si le circuit avait failli.',
+      'Un long gémissement de métal parcourt la structure, puis le silence revient.',
+      'Quelque part, une pompe se met en route, tourne un moment, puis s’arrête.',
+      'Les haut-parleurs crachotent un instant, sans qu’aucune voix ne suive.',
+      'Un ventilateur, au loin, tourne à vide avec un cliquetis régulier.',
+      'Le sol vibre un instant sous vos semelles, puis s’apaise.',
+      'Un sifflement d’air court le long d’un conduit, puis s’éteint.',
+    ],
     objet_pris: ['Vous prenez {le:objet}. Vous l’avez en main.', 'Vous soulevez {le:objet}. Vous l’emportez avec vous.'],
     objet_pose: ['Vous posez {le:objet} au sol. Vos mains sont libres.', 'Vous déposez {le:objet} à vos pieds. Vous gardez les mains libres.'],
+    // Un appui porté se pose directement à une position de la pièce (demande du porteur). Écrits par l'assistant principal (D-243).
+    objet_pose_position: ['Vous posez {le:objet} {nom:position}. Vos mains sont libres.', 'Vous déposez {le:objet} {nom:position}, bien d’aplomb. Vous gardez les mains libres.'],
     passage_ouvert: ['Vous ouvrez {le:passage}. Le passage est dégagé.', 'Vous tirez sur la poignée {de:passage}. Le passage s’ouvre devant vous.'],
     passage_ferme: ['Vous fermez {le:passage}. Le joint se plaque contre le cadre.', 'Vous refermez {le:passage}. Le loquet s’enclenche.'],
     deplacement: ['Vous passez par {le:passage}. Vous voici dans {le:piece}.', 'Vous franchissez {le:passage}. Vous entrez dans {le:piece}.'],
@@ -66,6 +86,14 @@ export const SOCLE = {
   },
   gelures: GELURE_FROID,
   asphyxie: ['L’air vous quitte d’un coup. Vos poumons brûlent, votre vue se brouille. Puis plus rien.'],
+  // Étiquettes des cinq supports d'un document (spec 2026-10-18 §8.4), que l'appli met en capitales : neutres, pour tout monde.
+  supports: {
+    note: 'Note manuscrite',
+    journal: 'Journal de terminal',
+    message: 'Message enregistré',
+    inscription: 'Inscription',
+    affiche: 'Affiche de la compagnie',
+  },
   passages: {
     ouvert: ['{Le:passage} est ouvert{e:passage}. Le seuil donne sur {le:vers}.', '{Le:passage} est ouvert{e:passage}. Par là, on rejoint {le:vers}.'],
     ferme: ['{Le:passage} est fermé{e:passage}. De l’autre côté, il y a {le:vers}.', '{Le:passage} est fermé{e:passage}. Il faut l’ouvrir pour rejoindre {le:vers}.'],
@@ -131,6 +159,8 @@ export const SOCLE = {
     ...LIBELLES_MORCEAUX,
   },
   allerSansDestination: 'Passer par {le:cible}',
+  // Écrit par l'assistant principal (D-243) : même forme que « Déplacer {le:cible} {nom:position} ».
+  poserAPosition: 'Poser {le:cible} {nom:position}',
   verbes: {
     regarder: 'Regarder',
     prendre: 'Prendre',
@@ -177,6 +207,28 @@ export const SOCLE = {
     sansSortie: 'Plus aucun chemin ne mène à une capsule de secours.',
     abandon: 'Vous en restez là, dans {le:piece}.',
     ...OBSERVATION_REGLES_MORCEAUX,
+  },
+  // Récit de fin (D-281, D-282) : chaque phrase en entier, sous chacune de ses formes.
+  fin: {
+    moments: {
+      blesse_feu: { ailleurs: 'Dans {le:piece}, le feu vous a brûlé.', ici: 'Le feu vous y a brûlé.' },
+      critique_feu: { ailleurs: 'Dans {le:piece}, le feu vous a grièvement brûlé.', ici: 'Puis le feu vous a grièvement brûlé.' },
+      soin: { ici: 'Vous vous êtes soigné avec {le:objet}.' },
+      feu_eteint: { ici: 'Vous avez éteint le feu {de:lieu}.' },
+      feu_eteint_derriere: { ici: 'Vous avez éteint le feu derrière {le:lieu}.' },
+      breche_ouverte: { ici: 'Vous avez percé {le:objet} ; l’air a filé par la brèche.' },
+      passage_decouvert: { ailleurs: 'Dans {le:piece}, vous avez découvert un passage caché.', ici: 'Vous y avez découvert un passage caché.' },
+      combinaison_enfilee: { ici: 'Vous avez enfilé {le:objet}.' },
+      alarme_declenchee: { ici: 'Vous avez déclenché {le:objet}.' },
+      circuit_active: { ici: 'Vous avez réarmé {le:objet}.' },
+      objet_installe: { ici: 'Vous avez installé {le:objet} dans {le:capsule}.' },
+      ...FIN_MOMENTS_MORCEAUX,
+    },
+    morts: {
+      feu: { ailleurs: 'Vous êtes mort dans {le:piece}, pris par le feu.', ici: 'Vous y êtes mort, pris par le feu.' },
+      vide: { ailleurs: 'Vous êtes mort dans {le:piece}, sans air, exposé au vide.', ici: 'Vous y êtes mort, sans air, exposé au vide.' },
+      ...FIN_MORTS_MORCEAUX,
+    },
   },
   apercu: {
     risques: {
