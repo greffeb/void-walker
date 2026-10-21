@@ -2702,9 +2702,10 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; portes ouvertes au lot 1, portes forcées en signes au lot 4 (§3.1, §12 n° 2). L'**étendue** reste à fixer après l'essai sur téléphone (Q-1).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
-- Décision : au départ de l'incident, certaines portes sont déjà ouvertes ou forcées (sas bloqué ouvert, porte défoncée), dans la mesure de l'étendue du territoire. Une porte forcée au départ est un signe à lire, comme une trace. Chaque morceau déclare les portes qui peuvent être ouvertes au départ.
+- Décision : au départ de l'incident, certaines portes sont déjà ouvertes ou forcées (sas bloqué ouvert, porte défoncée), dans la mesure de l'étendue du territoire. Une porte forcée au départ est un signe à lire, comme une trace. 
 - Limite [détail de l'agent] :
-  - **Étendue.** `ETENDUE_TERRITOIRE` vaut **0,5** (la moitié des pièces), valeur à mesurer et non un choix : la conception cite 75 % ou toute la station comme pistes. Le porteur tranche après son essai.
+  - **Qui ouvre.** Chaque morceau déclare les portes qui peuvent être ouvertes au départ, ce qui garde le lore cohérent (choix de l'agent, spec §3.1).
+  - **Étendue.** `ETENDUE_TERRITOIRE` vaut **0,5** (la seconde moitié de la station), valeur à mesurer et non un choix : la conception cite 75 % ou toute la station comme pistes. Le porteur tranche après son essai.
   - **Ouvertes, pas forcées.** Les portes ouvertes au départ se referment comme les autres ; une porte « forcée au départ » viendra avec les signes du lot 4.
   - **Jamais une porte intérieure à un morceau** (D-293) : l'étendue n'ouvre que les portes entre morceaux, d'annexe et de boucle, pour que chaque morceau garde son énigme. Aucun morceau n'en déclare d'autres par défaut. Le territoire est donc plus petit dans certains finals ; la mesure du lot 1 le dit.
   - **Jamais** une porte qui touche une pièce en feu, froide, à gravité commutable ou de machines.
@@ -2713,9 +2714,10 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; lot 1 (§3.1, §12 n° 3).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
-- Décision : la créature n'ouvre jamais une porte. Elle en force une seulement : **vite** en poursuite (deux réactions, D-279, inchangé) ; **lentement** quand elle entend un bruit fort derrière, en un nombre de réactions plus grand. Seuls les bruits forts (relance des machines, avertisseur, drone, chute d'objet) y poussent avant le contact ; les pas du joueur n'y poussent pas, comme aujourd'hui (D-276).
+- Décision : la créature n'ouvre jamais une porte. Elle en force une seulement : **vite** en poursuite (deux réactions, D-279, inchangé) ; **lentement** quand elle entend un bruit fort derrière, en un nombre de réactions plus grand.
 - Précise : D-279.
 - Limite [détail de l'agent] :
+  - **Quels bruits.** Seuls les bruits forts (relance des machines, avertisseur, drone, chute d'objet) y poussent avant le contact ; les pas du joueur n'y poussent pas, comme aujourd'hui (D-276).
   - **Valeur.** `REACTIONS_FORCER_LENT` vaut **4** (la poursuite en demande 2), à mesurer.
   - **Seulement dans un monde à `rencontre`.** Les preuves des petites stations ne bougent pas.
   - **D-178 tenu.** Un son, même fort, ne passe pas une porte fermée (sauf `sonAuTravers`) : le forçage lent ne se déclenche que si le bruit lui parvient par un autre chemin ou par une porte qui laisse passer le son. La règle servira donc rarement. Si le porteur veut qu'un bruit fort traverse une porte fermée, c'est une décision à prendre, qui changerait D-178.
@@ -2733,9 +2735,10 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; lot 1 (§3.2, §12 n° 5). Valeurs à mesurer.
 - Origine : le porteur veut que la créature bouge d'elle-même ; conception du 2026-10-21, approuvée.
-- Décision : toutes les N actions du joueur, un d6 est lancé : **1**, elle passe dans une pièce voisine de son territoire ; **2**, un signe se produit (D-338) ; **3 à 6**, rien. Elle laisse des **traces fraîches** dans les pièces qu'elle traverse. Le bruit garde la priorité (D-177, D-178, D-276). Pendant la traque (oreille ouverte, indice, porte en cours de forçage, fouille à faire), le dé se tait et D-276 gouverne seul ; il reprend quand la piste est perdue. La pièce du joueur fait partie du tirage, mais elle n'y entre jamais sans signe : elle doit d'abord se tenir dans la pièce voisine, où le joueur l'entend par la porte ouverte (OP-01).
+- Décision : toutes les N actions du joueur, un d6 est lancé : **1**, elle passe dans une pièce voisine de son territoire ; **2**, un signe se produit (D-338) ; **3 à 6**, rien. Elle laisse des **traces fraîches** dans les pièces qu'elle traverse. Le bruit garde la priorité (D-177, D-178, D-276). La pièce du joueur fait partie du tirage, mais elle n'y entre jamais sans signe : elle doit d'abord se tenir dans la pièce voisine, où le joueur l'entend par la porte ouverte (OP-01).
 - Remplace : D-048 (pas de patrouille sans alerte), dans les mondes à `rencontre` ; D-048 reste valide pour AR-01, AR-02 et les petites stations. Précise D-321 (immobile avant le premier contact) : la ronde est désormais décidée chiffres en main (#217).
 - Limite [détail de l'agent] :
+  - **Le dé se tait pendant la traque** (oreille ouverte, indice, porte en cours de forçage, fouille à faire) : D-276 gouverne seul, et le dé reprend quand la piste est perdue (spec §3.2, deux régimes sans fusion).
   - **Valeurs à mesurer.** `RYTHME_RENCONTRE` **3** (un jet toutes les 3 actions), `FRAICHEUR` **6** (une trace reste lisible 6 actions). Le porteur voit les mesures avant de décider.
   - **Hasard hors journal.** Le jet est haché sur la graine et le numéro d'action (`hacher`), sans consommer de dé du journal : un rejeu redonne la même empreinte.
   - **Passages.** Chaque pièce occupée est notée à son départ (heure du départ), pas à l'arrivée : la pièce où elle se trouve se voit, celle qu'elle a quittée garde la trace.
@@ -2749,7 +2752,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 2, interface sur maquettes de téléphone (Q-2) (§4.1, §12 n° 6).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
 - Décision : une action nouvelle, silencieuse, coûte du temps. Le jet donne net, vague ou rien. Près de machines en marche, le résultat peut tromper : seul mensonge autorisé, à cause visible. Une pièce aveugle (D-338) n'a pas de jet. Le texte ne nomme jamais la créature.
-- Limite : un résultat « net » déclenche l'avertissement actuel (D-181) ; « vague », le bip d'un capteur ou un mouvement vu au poste ne changent pas l'aperçu de risque (conception §4.1).
+- Limite [détail de l'agent] : un résultat « net » déclenche l'avertissement actuel (D-181) ; « vague », le bip d'un capteur ou un mouvement vu au poste ne changent pas l'aperçu de risque (conception §4.1).
 
 ### D-336 — Capteurs et drone éclaireur, trouvés comme butin
 
@@ -2781,7 +2784,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 5 (§8, §12 n° 12, #217).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
 - Décision : en Difficile, une grande station abrite plusieurs créatures. L'état de partie les tient en liste dès ce lot.
-- Limite [détail de l'agent] : le lot 1 ne touche pas à cet état ; la liste viendra au lot 5, avec un champ absent tant qu'il ne sert pas.
+- Limite [détail de l'agent] : le lot 1 ne touche pas à cet état ; la liste viendra au lot 5, avec un champ absent tant qu'il ne sert pas, alors que la conception (§8) disait « dès ce lot ».
 
 ### D-341 — Les sauvegardes d'avant la mise à jour sont refusées
 
@@ -2792,7 +2795,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 ### D-342 — Choix de l'agent du lot 1 : grandes stations seulement, preuve sans errance
 
-- Date / statut : 2026-10-21 / **Validé** par l'approbation de la conception et du plan, sous réserve de l'écart de D-333 ; essai sur téléphone à venir.
+- Date / statut : 2026-10-21 / **Proposé** (choix de l'agent, à valider par le porteur après l'essai sur téléphone).
 - Origine : plan du lot 1 ([plan](superpowers/plans/2026-10-21-creature-mobile-1.md)), « Choix de l'agent dans ce plan ».
 - Décision [détail de l'agent] :
   - **Grandes stations seulement.** Les petites stations, AR-01, AR-02 et les mondes de test n'ont pas `rencontre` ; leur état, leurs événements et leurs empreintes ne changent pas. Un champ d'état nouveau reste absent tant qu'il ne sert pas.
