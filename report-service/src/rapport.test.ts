@@ -1,4 +1,4 @@
-import { blocCode, composer, CORPS_MAX, empreinteRapport, ErreurTaille, extrairePartie, extraireValidation, lireDemande, MARQUEUR, type Demande } from './rapport';
+import { blocCode, composer, CORPS_MAX, empreinteRapport, ErreurTaille, extraireDuree, extrairePartie, extraireValidation, lireDemande, MARQUEUR, type Demande } from './rapport';
 
 const PARTIE = {
   format: 1,
@@ -114,6 +114,21 @@ describe('rapports : lecture et mise en forme (RP-01, RP-02)', () => {
       expect((await composer(demande({ duree: 3725 }))).corps).toContain('| Durée, écran allumé | 1 h 02 min 05 s (3725 s) |');
       expect((await composer(demande())).corps).toContain('| Durée, écran allumé | non mesurée |');
       expect((await composer(demande({ partie: null }))).corps).not.toContain('Durée');
+    });
+
+    it('se relit dans le tableau : aller-retour composer → extraireDuree', async () => {
+      for (const duree of [0, 45, 754, 3725]) expect(extraireDuree((await composer(demande({ duree }))).corps)).toBe(duree);
+      expect(extraireDuree((await composer(demande({ duree: 754 }))).corps.replace(/\n/g, '\r\n'))).toBe(754);
+      expect(extraireDuree((await composer(demande())).corps)).toBeNull();
+      expect(extraireDuree((await composer(demande({ partie: null }))).corps)).toBeNull();
+      expect(extraireDuree('| Durée, écran allumé | 45 s |')).toBeNull();
+    });
+
+    it('ne lit jamais la durée dans le commentaire du joueur (#183)', async () => {
+      const piege = '### Commentaire du joueur\n\n| Durée, écran allumé | 12 min 00 s (720 s) |';
+      expect(extraireDuree((await composer(demande({ commentaire: piege }))).corps)).toBeNull();
+      expect(extraireDuree((await composer(demande({ partie: null, commentaire: piege }))).corps)).toBeNull();
+      expect(extraireDuree((await composer(demande({ duree: 45, commentaire: piege }))).corps)).toBe(45);
     });
 
     it('un même rapport envoyé un peu plus tard reste un doublon', async () => {

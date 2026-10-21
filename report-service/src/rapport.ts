@@ -158,7 +158,7 @@ export async function compresser(texte: string): Promise<string> {
 
 export const MARQUEUR = '<!-- void-walker-rapport v1 -->';
 
-/** Titres des sections relues par `extrairePartie` et `extraireValidation`. */
+/** Titres des sections relues par `extrairePartie`, `extraireValidation` et `extraireDuree`. */
 const TITRE_COMMENTAIRE = '### Commentaire du joueur';
 const TITRE_REJEU = '### Rejouer';
 const TITRE_VALIDATION = '### Validation signée';
@@ -281,6 +281,19 @@ export async function extrairePartie(corps: string): Promise<string | null> {
   const octets = Uint8Array.from(binaire, (caractere) => caractere.charCodeAt(0));
   const flux = new Blob([octets]).stream().pipeThrough(new DecompressionStream('gzip'));
   return new Response(flux).text();
+}
+
+/**
+ * Durée écrite par `composer` dans le tableau, en secondes (#204) ; `null` si elle n'est pas mesurée ou absente. Le tableau
+ * précède le commentaire du joueur : seul le texte d'avant son titre est lu, jamais ce qu'il a écrit (#183).
+ */
+export function extraireDuree(corps: string): number | null {
+  if (!corps.includes(MARQUEUR)) return null;
+  const texte = corps.replace(/\r\n/g, '\n');
+  const fin = texte.indexOf(`\n${TITRE_COMMENTAIRE}\n`);
+  // « 45 s » ou « 12 min 34 s (754 s) » : le dernier compte en secondes est l'exact.
+  const ligne = /^\| Durée, écran allumé \| (?:.*\()?(\d+) s\)? \|$/m.exec(fin === -1 ? '' : texte.slice(0, fin));
+  return ligne?.[1] === undefined ? null : Number(ligne[1]);
 }
 
 /** Bloc de validation signée d'un rapport, tel que recopié ; `null` s'il n'y en a pas. Le robot de la PR seul le juge. */
