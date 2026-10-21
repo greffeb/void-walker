@@ -16,7 +16,7 @@ import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
-import { cheminPrincipal, lireTemoins, temoinValable } from './verifier-grandes';
+import { cheminPrincipal, lireTemoins, sansErrance, temoinValable } from './verifier-grandes';
 import { echantillonGrandes } from './verifier-sortie';
 import { chercherJusqua, cleEtatRegles, verifierLibre, verifierStation } from './verifier-station';
 import { versionDuJeu } from './version';
@@ -1844,12 +1844,14 @@ function temoinDuChemin(id: string): TemoinDuChemin | undefined {
   const base = cheminPrincipal(entree, definition);
   const etapes = base === null ? undefined : verifierStation(base).parcours?.etapes;
   if (etapes === undefined || !temoinValable(entree, etapes)) return undefined;
-  const portes = (piece: string): number => entree.monde.liaisons.filter((liaison) => liaison.entre.includes(piece)).length;
-  let partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+  // Le témoin se rejoue sans errance, comme il a été prouvé (spec créature mobile §preuve) ; `entree` reste celle de la station.
+  const jouee = sansErrance(entree);
+  const portes = (piece: string): number => jouee.monde.liaisons.filter((liaison) => liaison.entre.includes(piece)).length;
+  let partie = nouvellePartie(jouee.monde, { version: 'gestes', graine: 0 });
   let plusChargee = { pas: 0, portes: portes(partie.etat.piece) };
   for (const [rang, etape] of etapes.entries()) {
-    const option = trouverOption(observer(entree.monde, partie.etat), etape);
-    const resultat = option === undefined ? null : jouer(entree.monde, partie, option.commande);
+    const option = trouverOption(observer(jouee.monde, partie.etat), etape);
+    const resultat = option === undefined ? null : jouer(jouee.monde, partie, option.commande);
     if (resultat?.type !== 'engagee') break;
     partie = resultat.partie;
     if (portes(partie.etat.piece) > plusChargee.portes) plusChargee = { pas: rang + 1, portes: portes(partie.etat.piece) };
@@ -2150,14 +2152,16 @@ function documentsSurLeChemin(ids: readonly string[]): Map<string, Visee> {
     if ('refus' in entree || pas === undefined) continue;
     const { monde, textes } = entree;
     const documents = monde.objets.filter((objet) => objet.document === true);
-    let partie: Partie = nouvellePartie(monde, { version: 'gestes', graine: 0 });
+    // Le témoin se rejoue sans errance, comme il a été prouvé (spec créature mobile §preuve).
+    const jouee = sansErrance(entree).monde;
+    let partie: Partie = nouvellePartie(jouee, { version: 'gestes', graine: 0 });
     const gestes: Geste[] = [];
     for (const [action, cible, parametre] of pas) {
-      const observation = observer(monde, partie.etat);
+      const observation = observer(jouee, partie.etat);
       const option = observation.menu.find((choix) => choix.action === action && choix.cible.id === cible && choix.parametre?.id === parametre);
       if (option === undefined || !option.disponible) break;
       const geste = gesteDe(entree, partie, observation, option);
-      const resultat = jouer(monde, partie, option.commande);
+      const resultat = jouer(jouee, partie, option.commande);
       if (resultat.type !== 'engagee') break;
       partie = resultat.partie;
       gestes.push(geste);

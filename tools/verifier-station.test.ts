@@ -60,6 +60,14 @@ function station(changements: Partial<DefMonde> = {}): EntreeMonde {
 }
 
 describe('recherche bornée par les commandes publiques', () => {
+  it('errance : un petit monde à dé de rencontre est prouvé une fois sansErrance a retiré ce dé', () => {
+    const avec = station({ rencontre: { rythme: 1 } });
+    expect(avec.monde.rencontre).toEqual({ rythme: 1 });
+    const sans = sansErrance(avec);
+    expect(sans.monde.rencontre).toBeUndefined();
+    expect(verifierStation(sans).verdict).toBe('prouvee');
+  });
+
   it('trouve un chemin minimal, converti en parcours et rejoué sans dé ni blessure', () => {
     const monde = station();
     const resultat = verifierStation(monde);
