@@ -66,6 +66,7 @@ export const TYPES_EVENEMENT = [
   'pas_entendus',
   'souffle_entendu',
   'bruit_lointain',
+  'traces_fraiches',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -260,6 +261,8 @@ export type Evenement =
   | { readonly type: 'souffle_entendu' }
   /** Face 2 du dé de rencontre : un bruit lourd, très loin, sans direction (spec créature mobile §3.3). */
   | { readonly type: 'bruit_lointain' }
+  /** Le passager entre là où elle est passée il y a peu : une trace fraîche, sans direction (spec créature mobile §3.4). */
+  | { readonly type: 'traces_fraiches' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

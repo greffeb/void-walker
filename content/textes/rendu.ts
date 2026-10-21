@@ -76,6 +76,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'pas_entendus':
     case 'souffle_entendu':
     case 'bruit_lointain':
+    case 'traces_fraiches':
     case 'premier_contact':
     case 'menace':
     case 'aggravation_blesse':

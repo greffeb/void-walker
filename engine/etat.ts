@@ -58,6 +58,8 @@ export interface EtatCreature {
   readonly venue?: string;
   /** Porte fermée qu'elle force pour suivre sa piste, et réactions qu'il lui faut encore pour la faire céder (D-279). */
   readonly force?: { readonly liaison: string; readonly restant: number };
+  /** Les trois dernières pièces qu'elle a quittées, la plus récente en dernier, avec l'action : des traces fraîches (spec créature mobile §3.4). Seulement dans un monde à `rencontre`. */
+  readonly passages?: readonly { readonly piece: string; readonly action: number }[];
 }
 
 /** Dernière vue de la créature (D-180) : actions confirmées depuis, plafonné à « il y a longtemps » (D-151) pour un état fini. */

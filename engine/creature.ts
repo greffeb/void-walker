@@ -470,7 +470,9 @@ export function reagir(
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
   const repit = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
   // Une porte qu'elle cesse de forcer reprend tout à zéro (D-279).
-  const reglee = reponse.secouee === undefined ? sans(repit, 'force') : repit;
+  const nette = reponse.secouee === undefined ? sans(repit, 'force') : repit;
+  // Elle quitte `piece` : on garde les trois derniers départs avec ce numéro d'action, le même que celui de `jouer` (spec créature mobile §3.4).
+  const reglee = reponse.franchie !== undefined && monde.rencontre !== undefined ? { ...nette, passages: [...(nette.passages ?? []), { piece, action: etat.actions + 1 }].slice(-3) } : nette;
   const objets = reponse.perdu === undefined ? etat.objets : { ...etat.objets, [reponse.perdu.objet]: { type: 'perdu', liaison: reponse.perdu.liaison } as const };
   const ouverte = reponse.enfoncee;
   const liaisons = ouverte === undefined ? etat.liaisons : { ...etat.liaisons, [ouverte]: true };

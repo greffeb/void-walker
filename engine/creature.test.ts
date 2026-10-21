@@ -18,6 +18,7 @@ import {
   type Partie,
 } from './index';
 import { dangerConnu, PORTE_DETRUITE, REACTIONS_FORCER, reagir, territoire } from './creature';
+import { FRAICHEUR } from './rencontre';
 import { ATTEINT_JUSQUA } from './sante';
 
 // Créature (C-03 §3, §4 ; C-02 §4.2 ; OP-01). Fixtures nommées par leur rôle ; aucune règle ne lit un nom.
@@ -720,6 +721,41 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
     expect(types(errant, graineAvecFace(3, 1))).not.toContain('bruit_lointain');
     const dansLaPiece = placee(errant, graineAvecFace(2, 1), { piece: errant.depart });
     expect(attendre(errant, dansLaPiece).evenements.map((e) => e.type)).not.toContain('bruit_lointain');
+  });
+
+  describe('traces fraîches', () => {
+    const calme: DefMonde = { ...chezB, rencontre: { rythme: 1000 } };
+    /** Elle est en D, passée par C à l'action `passee` ; le joueur, en B, a déjà joué `actions` actions. */
+    const apresPassage = (passee: number, actions: number): Partie => {
+      const p = placee(calme, 0, { piece: 'd', passages: [{ piece: 'c', action: passee }] });
+      return { ...p, etat: { ...p.etat, actions } };
+    };
+    const entrerEnC = (courante: Partie): string[] => types(engager(calme, courante, 'aller', 'salle_c').evenements);
+
+    it('elle erre de C à D, puis le joueur entre en C : traces fraîches', () => {
+      const graine = graineAvecFace(1, 1, (g) => choisit(1, 1)(g) && faceRencontre(g, 2, 1) !== 1);
+      const { partie: apres } = attendre(chezB, avecGraine(chezB, graine));
+      expect(apres.etat.creature?.passages).toEqual([{ piece: 'c', action: 1 }]);
+      expect(types(engager(chezB, apres, 'aller', 'salle_c').evenements)).toContain('traces_fraiches');
+    });
+
+    it('à FRAICHEUR actions exactement : trace ; une de plus : rien', () => {
+      // Le passage est noté à l'action 1 ; le joueur entre à l'action 1 + FRAICHEUR, puis 1 + FRAICHEUR + 1.
+      expect(entrerEnC(apresPassage(1, FRAICHEUR))).toContain('traces_fraiches');
+      expect(entrerEnC(apresPassage(1, FRAICHEUR + 1))).not.toContain('traces_fraiches');
+    });
+
+    it('là où elle se trouve, il la voit : pas de trace', () => {
+      const p = placee(calme, 0, { piece: 'c', passages: [{ piece: 'c', action: 1 }] });
+      expect(types(engager(calme, p, 'aller', 'salle_c').evenements)).not.toContain('traces_fraiches');
+    });
+
+    it('sans rencontre, passages est absent de l’état', () => {
+      for (const graine of [0, 1, 2]) {
+        const fin = attendre(MONDE, avecGraine(MONDE, graine)).partie;
+        expect(fin.etat.creature).not.toHaveProperty('passages');
+      }
+    });
   });
 
   it('face 1 : elle passe dans une pièce voisine de son territoire', () => {

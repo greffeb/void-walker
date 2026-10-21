@@ -10,7 +10,7 @@ import { empreinte } from './hachage';
 import { regarder } from './memoire';
 import { indexer, type DefMonde } from './monde';
 import { observer, terminee } from './observation';
-import { faceRencontre, tirageErrance } from './rencontre';
+import { FRAICHEUR, faceRencontre, tirageErrance } from './rencontre';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
 import { actualiserVide, piecesConnues, type Vide } from './vide';
 import {
@@ -372,6 +372,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   // Face 2 du dé : un bruit lourd, très loin, si rien d'autre ne la perçoit déjà et si la pièce n'est pas assourdie (spec créature mobile §3.3).
   if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.piece !== conclu.piece && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
     evenements.push({ type: 'bruit_lointain' });
+  }
+  // Entré là où elle est passée il y a peu : une trace fraîche (spec créature mobile §3.4), même numéro d'action que `reagir`.
+  if (auSeuil && conclu.fin === null && creatureActive(conclu) && conclu.creature?.piece !== conclu.piece && conclu.creature?.passages?.some((p) => p.piece === conclu.piece && action - p.action <= FRAICHEUR) === true) {
+    evenements.push({ type: 'traces_fraiches' });
   }
   const tirages = [...session.tirages];
   // Le regard de fin d'action met à jour la mémoire du passager, avec le compte d'actions confirmées (14 §3.1).
