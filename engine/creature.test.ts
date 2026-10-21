@@ -17,7 +17,7 @@ import {
   type IdAction,
   type Partie,
 } from './index';
-import { dangerConnu, PORTE_DETRUITE, REACTIONS_FORCER, reagir, territoire } from './creature';
+import { dangerConnu, PORTE_DETRUITE, REACTIONS_FORCER, REACTIONS_FORCER_LENT, reagir, territoire } from './creature';
 import { FRAICHEUR } from './rencontre';
 import { ATTEINT_JUSQUA } from './sante';
 
@@ -614,6 +614,45 @@ describe('porte forcée par la créature en poursuite (D-279)', () => {
     expect(gestes.partie.etat.liaisons.bc).toBe(false);
     expect(gestes.partie.etat.enfoncees).toBeUndefined();
     expect(pieceCreature(gestes.partie)).not.toBe('b');
+  });
+});
+
+describe('forcer lentement vers un bruit fort, avant le contact (spec créature mobile §3.1)', () => {
+  // Porte A–B fermée mais laissant passer le son, avertisseur sonnant en A, créature en B, passager en A.
+  const sansRencontre: DefMonde = {
+    ...liaisons(MONDE, { ab: { sonAuTravers: true } }),
+    objets: [...MONDE.objets, { id: 'test', nom: 'avertisseur', piece: 'a', portable: false, avertisseur: { piece: 'a' } }],
+    creature: { piece: 'b' },
+  };
+  const avecRencontre: DefMonde = { ...sansRencontre, rencontre: { rythme: 1000 } };
+  const coupsDePorte = (pas: readonly Evenement[]): string[] => types(pas).filter((type) => type === 'porte_secouee' || type === 'porte_enfoncee');
+  const alarmePuisAttente = (monde: DefMonde): { partie: Partie; evenements: (readonly Evenement[])[] } =>
+    suite(monde, partie(monde), [['declencher', 'avertisseur'], ...Array.from({ length: REACTIONS_FORCER_LENT - 1 }, () => ['attendre', 'salle_a'] as const)]);
+
+  it(`à rencontre, elle secoue la porte puis l’enfonce à la ${REACTIONS_FORCER_LENT}e réaction, même l’alarme tue`, () => {
+    expect(REACTIONS_FORCER_LENT).toBe(4);
+    const { partie: fin, evenements } = alarmePuisAttente(avecRencontre);
+    expect(evenements.map(coupsDePorte)).toEqual([['porte_secouee'], ['porte_secouee'], ['porte_secouee'], ['porte_enfoncee']]);
+    // L'alarme couvre trois réactions : la dernière se joue dans le silence.
+    expect(fin.etat.alarmes).toEqual([]);
+    expect(fin.etat.liaisons.ab).toBe(true);
+    expect(fin.etat.creature).toMatchObject({ piece: 'b', contact: false });
+    expect(fin.etat.creature?.force).toBeUndefined();
+  });
+
+  it('sans rencontre, elle ne force pas', () => {
+    const { partie: fin, evenements } = alarmePuisAttente(sansRencontre);
+    expect(evenements.flatMap(coupsDePorte)).toEqual([]);
+    expect(fin.etat.liaisons.ab).toBe(false);
+    expect(fin.etat.creature?.force).toBeUndefined();
+  });
+
+  it(`en poursuite, à rencontre, elle cède toujours en ${REACTIONS_FORCER} réactions`, () => {
+    const depart = partie(avecRencontre);
+    const creature = { piece: 'b', indice: { piece: 'a', par: null }, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null };
+    const poursuivi = { ...depart, etat: { ...depart.etat, creature } };
+    const { evenements } = suite(avecRencontre, poursuivi, Array.from({ length: REACTIONS_FORCER }, () => ['attendre', 'salle_a'] as const));
+    expect(evenements.map(coupsDePorte)).toEqual([...Array.from({ length: REACTIONS_FORCER - 1 }, () => ['porte_secouee']), ['porte_enfoncee']]);
   });
 });
 

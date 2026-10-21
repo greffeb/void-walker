@@ -58,6 +58,9 @@ export const REACTIONS_DERIVE = 2;
 /** Réactions pour forcer une porte fermée qui barre sa piste ; elle cède à la dernière (V2 de #194, D-279). */
 export const REACTIONS_FORCER = 2;
 
+/** Avant le contact, alertée par un bruit fort, elle force plus lentement (spec créature mobile §3.1) ; seuil à mesurer. */
+export const REACTIONS_FORCER_LENT = 4;
+
 /** Une porte enfoncée ne ferme plus (V2a de #194) ; sinon on peut la refermer, et elle doit la forcer de nouveau (V2b). */
 export const PORTE_DETRUITE = true;
 
@@ -354,10 +357,13 @@ function reaction(
   if (creature.alcove) return suite({ creature: { ...piste, indice, alcove: false }, evenements: [] });
   const liaison = indice.par === null ? pasVers(monde, etat, creature.piece, indice.piece) : passageSuivi(monde, etat, creature.piece, indice);
   if (liaison !== undefined) return suite(deriver(etat, piste, liaison, indice) ?? franchir(monde, etat, piste, liaison, indice));
-  // Alertée, une porte fermée sur sa piste ne l'arrête plus : elle la force (D-279).
-  const voie = piste.contact ? versLaPiste(monde, etat, piste as CreatureActive, indice) : undefined;
+  // Alertée, une porte fermée sur sa piste ne l'arrête plus : elle la force (D-279). Avant le contact, dans un monde à rencontre,
+  // un bruit fort suffit, et elle continue une fois l'alarme tue ; jamais les pas, qui suivent le contact (spec créature mobile §3.1).
+  const alertee = piste.contact || (monde.rencontre !== undefined && (son?.intensite === 'fort' || piste.force !== undefined));
+  const voie = alertee ? versLaPiste(monde, etat, piste as CreatureActive, indice) : undefined;
   if (voie === undefined) return suite({ creature: { ...piste, indice, engagee: null }, evenements: [] });
-  if ('forcer' in voie) return suite(forcer(monde, etat, piste as CreatureActive, voie.forcer, indice));
+  const total = piste.contact ? REACTIONS_FORCER : REACTIONS_FORCER_LENT;
+  if ('forcer' in voie) return suite(forcer(monde, etat, piste as CreatureActive, voie.forcer, indice, total));
   return suite(deriver(etat, piste as CreatureActive, voie.franchir, indice) ?? franchir(monde, etat, piste as CreatureActive, voie.franchir, indice));
 }
 
@@ -377,11 +383,11 @@ function versLaPiste(monde: DefMonde, etat: EtatPartie, creature: CreatureActive
 }
 
 /**
- * Une réaction à forcer `porte` (D-279) : elle cède à la `REACTIONS_FORCER`-ième de suite sur la même porte, et s'ouvre. Le
+ * Une réaction à forcer `porte` (D-279) : elle cède à la `total`-ième de suite sur la même porte, et s'ouvre. Le
  * passager l'entend s'il est dans l'une de ses deux pièces, hors du vacarme d'une salle des machines (D-163).
  */
-function forcer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, porte: DefLiaison, indice: Indice): Reponse {
-  const restant = (creature.force?.liaison === porte.id ? creature.force.restant : REACTIONS_FORCER) - 1;
+function forcer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, porte: DefLiaison, indice: Indice, total: number): Reponse {
+  const restant = (creature.force?.liaison === porte.id ? creature.force.restant : total) - 1;
   const cede = restant <= 0;
   const entendue = porte.entre.includes(etat.piece) && !assourdie(monde, etat, etat.piece);
   const vue = cede ? { ...etat, liaisons: { ...etat.liaisons, [porte.id]: true } } : etat;
