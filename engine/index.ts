@@ -1,6 +1,7 @@
 // Moteur sans écran ni texte : n'importe rien hors de engine/ (docs/10-architecture.md §3).
 export { CATALOGUE, type DefAction } from './actions';
 export { sonRetenu, type Intensite, type SonEmis } from './creature';
+export { FACES_RENCONTRE, RYTHME_RENCONTRE, faceRencontre, tirageErrance } from './rencontre';
 export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, type EtatGenerateur } from './des';
 export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice, Reperes, VueCreature } from './etat';
 export { empreinte, hacher } from './hachage';

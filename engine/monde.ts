@@ -195,6 +195,8 @@ export interface DefMonde {
   readonly objets: readonly DefObjet[];
   readonly positions?: readonly DefPosition[];
   readonly creature?: DefCreature;
+  /** Dé de rencontre de la créature mobile : une face tous les `rythme` actions. Absent, la créature n’erre pas (spec créature mobile). */
+  readonly rencontre?: { readonly rythme: number };
   readonly assistance?: readonly DefAssistance[];
   /** Grande station : identifiants des portes de boucle (spec §6.4). */
   readonly boucles?: readonly string[];
@@ -355,6 +357,7 @@ export function validerMonde(monde: DefMonde): string[] {
     messages.add(message.id);
     if (message.quand.type === 'arrivee' && !pieces.has(message.quand.piece)) erreurs.push(`${message.id} : pièce inconnue ${message.quand.piece}.`);
   }
+  if (monde.rencontre !== undefined && !(Number.isInteger(monde.rencontre.rythme) && monde.rencontre.rythme >= 1)) erreurs.push('Rencontre : rythme invalide.');
   if (monde.creature !== undefined) {
     if (!pieces.has(monde.creature.piece)) erreurs.push(`Créature : pièce inconnue ${monde.creature.piece}.`);
     if (monde.creature.piece === monde.depart) erreurs.push('Créature dans la pièce de départ (GP-04).');

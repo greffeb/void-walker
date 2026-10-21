@@ -83,3 +83,13 @@ describe('monde : documents (spec §8.5)', () => {
     expect(validerMonde(MONDE_DOCUMENTS({ ...DOCUMENT, designe: 'nulle-part' }))).toEqual(['note : pièce désignée inconnue nulle-part.']);
   });
 });
+
+describe('monde : rencontre (spec créature mobile)', () => {
+  const base = MONDE({ id: 'caisse', nom: 'caisse', piece: 'salle' });
+  it.each([0, 1.5])('refuse le rythme %s', (rythme) => {
+    expect(validerMonde({ ...base, rencontre: { rythme } })).toContain('Rencontre : rythme invalide.');
+  });
+  it('accepte un rythme entier positif', () => {
+    expect(validerMonde({ ...base, rencontre: { rythme: 3 } })).toEqual([]);
+  });
+});
