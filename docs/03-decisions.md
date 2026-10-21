@@ -2702,9 +2702,9 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; portes ouvertes au lot 1, portes forcées en signes au lot 4 (§3.1, §12 n° 2). L'**étendue** reste à fixer après l'essai sur téléphone (Q-1).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
-- Décision : au départ de l'incident, certaines portes sont déjà ouvertes ou forcées (sas bloqué ouvert, porte défoncée), dans la mesure de l'étendue du territoire. Une porte forcée au départ est un signe à lire, comme une trace. 
+- Décision : au départ de l'incident, certaines portes sont déjà ouvertes ou forcées (sas bloqué ouvert, porte défoncée), dans la mesure de l'étendue du territoire. Une porte forcée au départ est un signe à lire, comme une trace.
 - Limite [détail de l'agent] :
-  - **Qui ouvre.** Chaque morceau déclare les portes qui peuvent être ouvertes au départ, ce qui garde le lore cohérent (choix de l'agent, spec §3.1).
+  - **Qui ouvre.** Aucun morceau ne déclare encore ses portes : l'étendue ouvre, au tirage, les portes éligibles (entre morceaux, d'annexe et de boucle, jamais intérieures à un morceau, D-293). Une déclaration par morceau, pour garder le lore cohérent, viendra plus tard (choix de l'agent, spec §3.1).
   - **Étendue.** `ETENDUE_TERRITOIRE` vaut **0,5** (la seconde moitié de la station), valeur à mesurer et non un choix : la conception cite 75 % ou toute la station comme pistes. Le porteur tranche après son essai.
   - **Ouvertes, pas forcées.** Les portes ouvertes au départ se referment comme les autres ; une porte « forcée au départ » viendra avec les signes du lot 4.
   - **Jamais une porte intérieure à un morceau** (D-293) : l'étendue n'ouvre que les portes entre morceaux, d'annexe et de boucle, pour que chaque morceau garde son énigme. Aucun morceau n'en déclare d'autres par défaut. Le territoire est donc plus petit dans certains finals ; la mesure du lot 1 le dit.
@@ -2729,7 +2729,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision (conception) : le départ est tiré parmi les pièces du territoire, et non plus à la place fixe du morceau. D-161 tient : jamais dans la pièce de départ.
 - Limite [détail de l'agent] :
   - **Écart.** Dans le lot 1, la créature part de la place de sa composition (D-315 et D-316 tiennent), et l'errance la disperse avant que le joueur n'arrive. Un départ tiré en plus ferait varier le monde avec la graine de partie, et la preuve devrait couvrir chaque départ. On revoit ce choix après l'essai de l'étendue.
-  - **Garantie de la preuve (§10).** Chaque station est prouvée sans errance (`sansErrance`), forçage lent compris, comme aujourd'hui. Deux règles testées bornent l'errance : elle n'entre jamais dans la pièce du joueur sans qu'il l'ait entendue depuis sa pièce ; son entrée suit les règles actuelles (répit au premier contact D-184, avertissement C-03 §4.4). Des mesures par bots complètent.
+  - **Garantie de la preuve (§10).** Chaque station est prouvée sans errance **et sans forçage lent**, comme aujourd'hui : les deux tiennent à `rencontre`, que `sansErrance` retire. C'est acceptable parce que le forçage lent ne naît que d'un bruit fort que le joueur provoque (D-332, D-178) ; mais une station rendue difficile par un forçage lent n'est pas détectée par la preuve. Choix de l'agent, à valider par le porteur. Deux règles testées bornent l'errance : elle n'entre jamais dans la pièce du joueur sans qu'il l'ait entendue dans sa pièce, par la liaison même qu'elle prend (l'âge de ce signe n'est pas borné, question pour le porteur) ; son entrée suit les règles actuelles (répit au premier contact D-184, avertissement C-03 §4.4). Des mesures par bots complètent.
 
 ### D-334 — Dé de rencontre : 1 déplacement, 2 signe, sinon rien ; remplace D-048
 

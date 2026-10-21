@@ -27,8 +27,8 @@ Ce plan couvre le lot 1 de la conception (§13), sauf l'écoute. Les autres lots
 - **Grandes stations seulement.** Les petites stations, AR-01, AR-02 et les mondes de test n'ont pas `rencontre` et ne changent pas.
 - **Départ inchangé** (écart à la conception §3.2, à valider par le porteur). La créature part de la place de sa composition (D-315, D-316 tiennent, §3.1). L'errance la disperse dans le territoire avant que le joueur arrive. Un départ tiré en plus ferait varier le monde selon la graine de partie, et la preuve devrait alors couvrir chaque départ possible. On reverra ce choix après l'essai de l'étendue.
 - **Portes ouvertes, pas forcées.** L'étendue ouvre des portes au départ, et ces portes se referment. Une porte « forcée au départ » comme signe viendra avec les signes du lot 4.
-- **Garantie de la preuve (§10).** On prouve chaque station sans errance, comme aujourd'hui, avec le forçage lent compris. Deux règles, testées, bornent ensuite l'errance :
-  1. elle n'entre jamais dans la pièce du joueur sans qu'il l'ait entendue dans sa pièce actuelle ;
+- **Garantie de la preuve (§10).** On prouve chaque station sans errance **et sans forçage lent**, comme aujourd'hui : les deux tiennent à `rencontre`, que `sansErrance` retire. C'est acceptable parce que le forçage lent ne naît que d'un bruit fort que le joueur provoque ; une station rendue difficile par un forçage lent n'est pas détectée par la preuve. Choix de l'agent, à valider par le porteur. Deux règles, testées, bornent ensuite l'errance :
+  1. elle n'entre jamais dans la pièce du joueur sans qu'il l'ait entendue dans sa pièce actuelle, par la liaison qu'elle prend ;
   2. son entrée suit les règles actuelles : un répit au premier contact (D-184), un avertissement ensuite (C-03 §4.4).
 
   La conception le permettait (« le constructeur peut en proposer une meilleure »). Des mesures par bots complètent la garantie (tâche 8).
