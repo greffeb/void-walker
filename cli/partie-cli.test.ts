@@ -1,5 +1,5 @@
 import { assemblerStation, empreinteEtat, idPublic, lireExport, nouvellePartie, observer, rejouer, reprendrePartie } from '../engine';
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, type Catalogue, type EntreeMonde, type Nom, type TexteDocument } from '../content';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, VERSION_GENERATEUR, type Catalogue, type EntreeMonde, type Nom, type TexteDocument } from '../content';
 import { AIDE, choisirEntree, executer, PARTIE_PAR_DEFAUT, type Contexte, type EntreesSorties, type Sortie } from './partie-cli';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
@@ -7,6 +7,7 @@ const AR01 = MONDES['ar-01'] as EntreeMonde;
 const VERSION = 'test-cli';
 const CATALOGUE = creerCatalogue(assemblerStation);
 const STATION = 'm07-m03-soute-2718281828';
+const ID_GRANDE = new RegExp(`^g${VERSION_GENERATEUR}-(ol-)?(m\\d\\d-){4}[a-z]+-\\d+$`);
 
 function contexte(fichiers = new Map<string, string>(), ecritureEnPanne = false, entree = ENTREE): Contexte & { fichiers: Map<string, string> } {
   return {
@@ -247,11 +248,11 @@ describe('CLI', () => {
 
   it('choix du monde : --monde, sinon celui de la partie enregistrée, sinon une station tirée', () => {
     const ctx = contexte();
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(ID_GRANDE);
     expect(choisirEntree(['nouvelle', '--monde', 'monde-test'], CATALOGUE, ctx.es)).toBe(ENTREE);
     executer(['nouvelle'], ctx);
     expect(choisirEntree(['voir'], CATALOGUE, ctx.es)).toBe(ENTREE);
-    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
+    expect(idStation(choisirEntree(['nouvelle'], CATALOGUE, ctx.es))).toMatch(ID_GRANDE);
     expect(choisirEntree(['voir', '--monde', 'ailleurs'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : ailleurs\./);
     expect(choisirEntree(['voir', '--monde', 'constructor'], CATALOGUE, ctx.es)).toMatch(/^Monde inconnu : constructor\./);
     expect(choisirEntree(['voir', '--monde'], CATALOGUE, ctx.es)).toMatch(/--monde <id>/);
@@ -369,7 +370,7 @@ describe('CLI : station tirée (#152)', () => {
     expect(appeler(['jouer', '1'], CATALOGUE, sansTirage)).toEqual(refus);
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(ancienne);
     expect(appeler(['nouvelle'], CATALOGUE, ctx.es).code).toBe(0);
-    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(/^g1-(ol-)?(m\d\d-){4}[a-z]+-\d+$/);
+    expect(String(mondeEnregistre(ctx.fichiers))).toMatch(ID_GRANDE);
   });
 
   it('partie enregistrée sur une grande station d’une autre version des stations : le dit, code 1, sans y toucher (spec 2026-10-18 §4.3)', () => {
