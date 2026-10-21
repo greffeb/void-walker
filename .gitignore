@@ -10,3 +10,7 @@ captures/
 .claude/launch.json
 .claude/worktrees/
 .cache/
+
+# banc d'essai LLM (outillage local)
+tools/banc-*
+docs/vw-test-reference.md
