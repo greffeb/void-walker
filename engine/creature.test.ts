@@ -15,7 +15,7 @@ import {
   type IdAction,
   type Partie,
 } from './index';
-import { dangerConnu, PORTE_DETRUITE, REACTIONS_FORCER, reagir } from './creature';
+import { dangerConnu, PORTE_DETRUITE, REACTIONS_FORCER, reagir, territoire } from './creature';
 import { ATTEINT_JUSQUA } from './sante';
 
 // Créature (C-03 §3, §4 ; C-02 §4.2 ; OP-01). Fixtures nommées par leur rôle ; aucune règle ne lit un nom.
@@ -110,6 +110,29 @@ describe('créature : monde et état (C-02 §4.2)', () => {
   it('état de départ : emplacement réel, aucun indice, premier contact pas encore annoncé', () => {
     expect(partie().etat.creature).toMatchObject({ piece: 'c', indice: null, contact: false, repit: false, alcove: false, perdues: 0, connues: [], engagee: null });
     expect(nouvellePartie({ ...MONDE, creature: undefined }, { version: VERSION, graine: 7 }).etat.creature).toBeNull();
+  });
+});
+
+describe('territoire (spec créature mobile §3.1)', () => {
+  it('le territoire suit les passages ouverts et praticables', () => {
+    expect(territoire(MONDE, partie().etat, 'c')).toEqual(['b', 'c', 'd']);
+  });
+
+  it('une porte fermée, une grille étroite, une pièce en feu ou un vide le bornent', () => {
+    const ferme = liaisons(MONDE, { bc: { ouverte: false } });
+    expect(territoire(ferme, partie(ferme).etat, 'c')).toEqual(['c', 'd']);
+    const etroit = liaisons(MONDE, { cd: { etroite: true } });
+    expect(territoire(etroit, partie(etroit).etat, 'c')).toEqual(['b', 'c']);
+    const feu = avec({ pieces: MONDE.pieces.map((p) => (p.id === 'd' ? { ...p, feu: true } : p)) });
+    expect(territoire(feu, partie(feu).etat, 'c')).toEqual(['b', 'c']);
+    const vide = liaisons(MONDE, { cd: { gouffre: true } });
+    expect(territoire(vide, partie(vide).etat, 'c')).toEqual(['b', 'c']);
+  });
+
+  it('un vide avec un pont posé reste exclu : elle ne s’y aventure pas', () => {
+    const pont = { ...liaisons(MONDE, { cd: { gouffre: true } }), objets: [...MONDE.objets, { id: 'o-pont', nom: 'passerelle', piece: 'a' }] };
+    const etat = { ...partie(pont).etat, objets: { ...partie(pont).etat.objets, 'o-pont': { type: 'pont' as const, liaison: 'cd' } } };
+    expect(territoire(pont, etat, 'c')).toEqual(['b', 'c']);
   });
 });
 

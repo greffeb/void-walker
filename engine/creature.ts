@@ -75,6 +75,26 @@ function praticable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depu
   return etat.liaisons[liaison.id] === true && liaison.etroite !== true && !enFeu(etat, autreCote(liaison, depuis));
 }
 
+/** Ce qu'elle franchit de son plein gré : praticable, et jamais un vide, même pontée (spec créature mobile §3.1). */
+function errable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  return praticable(monde, etat, liaison, depuis) && liaison.gouffre !== true;
+}
+
+/** Les pièces où elle peut errer depuis `depuis`, comprise, dans l'ordre du monde (spec créature mobile §3.1). */
+export function territoire(monde: DefMonde, etat: EtatPartie, depuis: string): string[] {
+  const atteintes = new Set([depuis]);
+  const file = [depuis];
+  for (let piece = file.shift(); piece !== undefined; piece = file.shift()) {
+    for (const liaison of liaisonsDe(monde, piece)) {
+      const voisine = autreCote(liaison, piece);
+      if (atteintes.has(voisine) || !errable(monde, etat, liaison, piece)) continue;
+      atteintes.add(voisine);
+      file.push(voisine);
+    }
+  }
+  return monde.pieces.filter((piece) => atteintes.has(piece.id)).map((piece) => piece.id);
+}
+
 /**
  * Porte qu'elle peut forcer depuis `depuis` (D-279) : fermée, assez large, sans vide, sans verrou, ni porte blindée (#203),
  * ni écoutille de capsule ou manoeuvrée de l'intérieur, ni panneau caché, ni hors de portée ; jamais vers une pièce en feu (D-189).
