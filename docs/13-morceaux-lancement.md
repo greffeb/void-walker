@@ -1,7 +1,7 @@
 # Morceaux du lancement — conception
 
-> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; conception des grandes stations habitées approuvée par D-313 à D-327 (§7.12 à §7.14) ; demande du porteur sur « Poser » : D-328 (§7.14) ; M-11, sas de sécurité (#203), fixé par D-290 à D-293 et proposé par sa PR en zone orange (§7.10).
-> **Mise à jour :** 2026-10-20.
+> **Statut :** CONCEPTION ACCEPTÉE v1.0 — cadre D-156 à D-171 ; familles, fiches, règles de mélange MX-01 à MX-05 et parcours acceptés par D-172 à D-175 ; cadrage L0 accepté par D-257 à D-260 (§8) ; places de la créature dans M-07 et M-03 fixées par D-261, qui modifie la fiche M-07, et D-262 (§7.5) ; conception de L3 (M-06, M-08, M-09, stations à deux chemins) approuvée par D-264 et D-265 (§7.6) ; conception de L4 (M-01, M-02, M-04, M-05) approuvée par D-268 et D-269 (§7.7) ; conception de L5 (ordre libre, mesures) approuvée par D-270 (§7.8) ; conception des grandes stations habitées approuvée par D-313 à D-327 (§7.12 à §7.14) ; demande du porteur sur « Poser » : D-328 (§7.14) ; M-11 et M-12 tirés dans les grandes stations, D-329, proposés par la PR de #236 (§7.15) ; M-11, sas de sécurité (#203), fixé par D-290 à D-293 et proposé par sa PR en zone orange (§7.10).
+> **Mise à jour :** 2026-10-21.
 > **Implémentation :** règles des quatre nouveaux morceaux et des mélanges MX-01, MX-04, MX-05 proposées par #105, chacune prouvée dans une station de test (`?monde=m-07` à `m-10`) ; précisions du porteur D-234 à D-240. Assemblage des stations : #106, petites stations d'abord (D-242), objets dans leur morceau (D-244), découpage accepté au §7 (D-245), règles d'assemblage D-246 à D-256 ; L2 fusionnée (PR #160) ; L3 fusionnée (PR #168) ; L4 fusionnée (PR #172) ; L5 fusionnée (PR #179) ; L6 fusionnée (PR #189) ; grandes stations, livraison 1 (§7.12), livraison 2, clés dispersées et butin (§7.13), et livraison 3, lore et documents (§7.14), proposées par leur PR ; M-11 proposé par la PR de #203 (§7.10). **Parties sur téléphone :** deux parties signées en L2, avec M-07 et M-03 ([journal](journal-parties-humaines.md)) ; aucune consignée pour les neuf autres morceaux.
 
 Document d'auteur : il contient les solutions. Interdit au playtester (C-01). Le lore des grandes stations a sa propre bible, [17 — univers](17-univers.md), au même accès : interdite au playtester.
@@ -1005,7 +1005,69 @@ B2 évacue 14,1 % des parties avec le butin, pour 25 à 35 % visés ; la livrais
 
 **Reporté :** l'essai sur téléphone, et l'avis du porteur sur l'écriture des documents et sur la fiche (barre du journal, fiche longue à 320 px) ; la décision sur les noms de la carte au zoom d'ensemble ; la décision d'une ronde de la créature (#217) ; le critère de difficulté (25 à 35 %), qui demande une décision du porteur avant tout réglage ; les réglages non mesurés du bot averti ; sur les grandes stations, la forme en ordre libre et la perte de la planche dans `check:sortie` (livraison 2) ; la version du générateur, qui change à la fusion (spec §12).
 
-**Reprise de `main` (2026-10-20).** La branche a repris M-11 (§7.10), M-12 (§7.11) et l'intro de NOUVELLE PARTIE (D-308 à D-312). Ses décisions sont renumérotées D-313 à D-328, ses questions Q-212 à Q-227, et ses sections §7.12 à §7.14. M-11 et M-12 reçoivent leurs déclarations de grande station (obstacle matériel, pièces accueillantes, coupe), mais pas encore de document de témoignage. Ils ne sont pas tirés dans les grandes stations (`PAS_ENCORE_TIRES`, `content/stations/grandes.ts`), dont la liste publiée ne change pas, et restent jouables dans les petites stations. Les y tirer demande de republier la liste : un travail à part. La pièce `a-vestiaire` du catalogue s'appelle désormais « salle des casiers », M-11 ayant pris le nom « vestiaire ». L'intro numérote et dessine les grandes stations publiées, puisque NOUVELLE PARTIE les tire : « Station N sur T » compte leurs compositions (D-312), sans la graine.
+**Reprise de `main` (2026-10-20).** La branche a repris M-11 (§7.10), M-12 (§7.11) et l'intro de NOUVELLE PARTIE (D-308 à D-312). Ses décisions sont renumérotées D-313 à D-328, ses questions Q-212 à Q-227, et ses sections §7.12 à §7.14. M-11 et M-12 reçoivent leurs déclarations de grande station (obstacle matériel, pièces accueillantes, coupe), mais pas encore de document de témoignage. Ils ne sont pas tirés dans les grandes stations (`PAS_ENCORE_TIRES`, `content/stations/grandes.ts`), dont la liste publiée ne change pas, et restent jouables dans les petites stations. Les y tirer demande de republier la liste : un travail à part (fait au §7.15). La pièce `a-vestiaire` du catalogue s'appelle désormais « salle des casiers », M-11 ayant pris le nom « vestiaire ». L'intro numérote et dessine les grandes stations publiées, puisque NOUVELLE PARTIE les tire : « Station N sur T » compte leurs compositions (D-312), sans la graine.
+
+### 7.15 M-11 et M-12 dans les grandes stations (#236)
+
+> **Statut :** proposé par la PR de #236, en zone orange. **Validation humaine requise** : une partie au bout sur téléphone dans une grande station avec M-11, puis une avec M-12 (D-325). Choix de l'agent : D-329.
+
+**Ce qui change.** M-11 et M-12 sont tirés dans les grandes stations (`PAS_ENCORE_TIRES` est retiré). Comme les deux sont des obstacles matériels, ils se placent en branche A ou B comme en troisième chemin. On passe de 288 grandes compositions à **1 080** : 720 en chaîne et 360 en ordre libre. 792 d'entre elles contiennent M-11 ou M-12.
+
+**Déclarations.** Les déclarations de §7.12 et §7.13 sont complétées :
+- **Clé.** La carte de sécurité de M-11 devient une clé déplaçable, d'étiquette `securite`. La seule pièce du catalogue qui porte cette étiquette est la salle des casiers. Le chariot de M-12 ne se porte pas, et M-12 n'a pas de clé.
+- **Documents**, écrits par l'assistant principal (D-243), relus indépendamment (D-116) : « prêt après corrections », les quatre corrections obligatoires sont faites. Ces trois documents portent la réserve à 39 :
+  - M-11, *journal d'Inès* : la carte au lecteur, la porte blindée refermée ; elle s'arrête devant et n'essaie même pas.
+  - M-12, *message de Clara* : le drone tient la poignée, fait du bruit, est jeté hors du rail, remis en place et relancé, puis le chariot est poussé.
+  - M-11, *fiche de prêt* (Sami) : la note de rangement de la carte.
+- La bible ([17](17-univers.md)) est mise à jour.
+
+**Règles vérifiées dans de vraies grandes stations** (`tools/grandes-m11-m12.test.ts`, 60 stations avec M-11 et 30 avec M-12) :
+- La remise ne s'ouvre que sur le vestiaire, porte fermée au départ (D-293). Le sas de sécurité ne s'ouvre que par la porte blindée et la sortie. Aucune porte de boucle n'y donne.
+- Une créature alertée, venue par une porte de boucle donnant sur le poste de sécurité, puis mise sur la piste du sas, ne secoue ni n'enfonce la porte blindée refermée (D-292). Sans le blindage, le même test échoue.
+- Le rail, la poignée et le chariot restent dans M-12, et aucune porte de boucle ne donne sur la réserve. Un drone déraillé se replace puis se réarme sur place, tient la poignée, et le chariot rangé libère le passage (D-304, D-305).
+
+**Deux corrections du vérifieur et du générateur :**
+- **La porte blindée n'est pas une cloison du carrefour.** La preuve des grandes stations comptait comme cloisons de l'ordre libre toutes les liaisons verrouillées, porte blindée comprise. Toute station avec M-11 était donc écartée (« Deux cloisons verrouillées attendues »). La preuve et le rejeu des témoins ne comptent plus que les cloisons du carrefour (`cloisonsDuCarrefour`), comme les petites stations depuis #203.
+- **28 pièces dessinées au plus.** En ordre libre, M-12 (six pièces) avec deux chemins de cinq pièces et M-06 donnait 23 pièces de morceaux. Les six annexes minimales portaient la station à 29 pièces, et le contrôle l'écartait. Ces compositions prennent cinq annexes (D-329).
+
+**Plans.** Sur un quart des compositions, dix graines chacune, 36,0 % des graines ont un plan (2 700 graines). C'est 45,0 % sans M-11 ni M-12, et 32,8 % avec : 44,9 % en chaîne, 18,2 % en ordre libre. Le seuil du test passe de 40 % à 35 %. La publication saute les graines sans plan sans les compter. Les stations publiées comptent 21 à 28 pièces dessinées, 24 en médiane, avec une porte de boucle dans 1 707 stations, deux dans 290 et trois dans 15.
+
+**Republication** (`npm run publier:grandes -- --processus=14`, avec l'accélération de #237, 2026-10-21) :
+- **2 012 stations publiées**, sur 1 013 des 1 080 compositions, dont 660 en ordre libre, en 5 015 s.
+- **1 470 stations sur 2 012 (73,1 %) contiennent M-11 ou M-12**. Par morceau : M-11 dans 884 stations (43,9 %), M-12 dans 907 (45,1 %). Par composition : 740 sur 1 013 (73,0 %).
+- **Graines prouvées :**
+  - les 538 stations de la livraison 3 sont gardées, leurs témoins se rejouant encore ;
+  - 1 134 sont prouvées par le témoin du chemin principal, 318 par un témoin réparé, 22 par la recherche directe ;
+  - 239 graines essayées n'ont pas été prouvées.
+- **67 compositions sans station** (28 en ordre libre ; 36 avec M-11, 23 avec M-12, 15 sans l'un ni l'autre). Le nom de chacune se termine par `atelier` ou `palier` : la créature bouche le seul passage de M-01 ou de M-02 (D-268). Elles sont notées dans `tools/grandes-sans-station.json`.
+- `check:stations` est vert en 207,5 s. Toute partie de grande station en cours avant la republication ne se reprend pas.
+
+**`check:sortie`** : 0 écart, en 383,9 s (128,4 s en livraison 2). L'échantillon prend toujours la première station de chaque clé déplacée, carte de M-11 comprise (`g1-m01-m11-m10-m06-entrepot-46`). Il y ajoute la première station en chaîne de chaque chemin encore absent : M-05, M-07, M-09 et M-12 (`g1-m01-m02-m12-m03-reserve-12`). Il compte 11 grandes stations, et un test vérifie que chaque chemin y figure.
+
+**Difficulté**, 1 000 parties par profil sur 617 stations tirées dans la liste, plafond de 600 actions (`npm run mesurer:difficulte -- --grandes`, puis `-- --grandes --sans-butin`). La livraison 3 est mesurée sur une autre liste (538 stations, sans M-11 ni M-12) :
+
+| Mesure | Avec M-11 et M-12 | Livraison 3 |
+| --- | ---: | ---: |
+| B2, avec butin : évacuation | 15,7 % | 14,1 % |
+| B2, sans butin : évacuation | 17,2 % | 14,4 % |
+| B4 (averti), avec butin : évacuation | 14,1 % | 11,9 % |
+| B4, sans butin : évacuation | 17,4 % | 11,9 % |
+| B2 : défaites | 64,9 % | 53,0 % |
+| B2 : abandons au plafond (bots perdus) | 19,4 % | 32,9 % |
+| B4 : abandons au plafond | 20,0 % | 32,6 % |
+| B2 : actions avant la rencontre (médiane) | 91 | 105 |
+| B2 : moment de la rencontre dans la partie (médiane) | 90 % | 92 % |
+| B2 : évacuations sans rencontre | 54,8 % | 51,8 % |
+| B2 : jamais de contact, parties finies | 10,7 % | 10,9 % |
+| B4 : jamais de contact, parties finies | 7,0 % | 6,7 % |
+| Clés déplacées | 12,7 % | 15,3 % |
+| Salles de butin vides | 55,0 % | 56,8 % |
+
+Sans butin, les bots évacuent davantage : 1,5 point de plus pour B2, 3,3 points pour B4. En livraison 3, l'écart restait dans le bruit (0,3 point). La mesure ne dit pas pourquoi : les bots ne ramassent ni n'emploient forcément le butin, et la station sans butin est la même aux mêmes graines. Évacuation de B2 par morceau : M-11 15,0 % (413 parties), M-12 15,7 % (459). Les plus durs restent M-07 (1,3 %), M-03 (3,4 %) et M-10 (6,0 %). Le rapport de mesure écrit « 1080 grandes compositions publiées » ; 1 013 ont une station publiée.
+
+**Alerte au porteur.** La cible de 25 à 35 % pour B2 (D-314) n'est toujours pas atteinte : 15,7 %. Les abandons baissent nettement (19,4 % au lieu de 32,9 %), mais ils passent surtout aux défaites (+11,9 points). La rencontre reste tardive : 91 actions en médiane, pour un seuil d'environ 45 (#217). Aucun réglage n'a été touché.
+
+**Captures** : une carte de grande station avec M-11, puis avec M-12, à 390 px, le témoin publié joué jusqu'à son dernier geste exclu (`parcoursGrandesM11M12`, `tools/captures.ts`). `npm run build && npm run captures` : « réussis », code 0 ; captures 103 (`g1-m01-m02-m11-m03-remise-1`) et 104 (`g1-m01-m02-m12-m03-reserve-12`). Les numéros changent quand on relance : `captures/resultat.json` fait foi. Aucun essai sur téléphone.
 
 ## 8. Cadrage L0 (#150) accepté par le porteur
 
