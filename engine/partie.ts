@@ -10,6 +10,7 @@ import { empreinte } from './hachage';
 import { regarder } from './memoire';
 import { indexer, type DefMonde } from './monde';
 import { observer, terminee } from './observation';
+import { faceRencontre, tirageErrance } from './rencontre';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
 import { actualiserVide, piecesConnues, type Vide } from './vide';
 import {
@@ -316,7 +317,11 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     sources.sort((a, b) => ordre.indexOf(a.id) - ordre.indexOf(b.id));
   }
   const sons = [...sources.map(({ son }) => son), ...(effet.sons ?? []), ...pas];
-  const reponse = reagir(monde, froid.etat, sons, partie.etat.piece, effet.franchie, exposition);
+  // Dé de rencontre, haché sur la graine et le numéro de cette action, hors journal (spec créature mobile §3.2).
+  const action = partie.etat.actions + 1;
+  const face = monde.rencontre === undefined ? null : faceRencontre(partie.enregistrement.graine, action, monde.rencontre.rythme);
+  const errance = face === 1 ? tirageErrance(partie.enregistrement.graine, action) : null;
+  const reponse = reagir(monde, froid.etat, sons, partie.etat.piece, effet.franchie, exposition, errance);
   const causes: Cause[] = [
     ...(atteint ? (['griffes'] as const) : []),
     ...(brulure ? (['feu'] as const) : []),

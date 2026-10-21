@@ -308,6 +308,7 @@ function reaction(
   depuis: string,
   franchie: string | undefined,
   interceptee: boolean,
+  errance: number | null,
 ): Reponse {
   if (interceptee) {
     // Le jet consomme sa réaction (C-04 §4.2, D-055) ; s'il est parti, elle l'a vu prendre ce passage (D-177).
@@ -347,7 +348,7 @@ function reaction(
   // Une nouvelle piste lui rend le droit de fouiller autour de son bout.
   const piste = son === undefined ? creature : (sans(creature, 'fouille') as CreatureActive);
   const indice: Indice | null = son === undefined ? creature.indice : { piece: son.piece, par: null };
-  if (indice === null) return fouiller(monde, etat, creature);
+  if (indice === null) return (errance === null ? undefined : errer(monde, etat, creature, errance)) ?? fouiller(monde, etat, creature);
   if (indice.piece === creature.piece) return { creature: { ...creature, indice: null }, evenements: [] };
   // Sortir de l'alcôve est un repositionnement local : une réaction (C-03 §4.3).
   if (creature.alcove) return suite({ creature: { ...piste, indice, alcove: false }, evenements: [] });
@@ -391,7 +392,8 @@ function forcer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, por
 
 /**
  * Alertée et au bout de sa piste sans le trouver, elle passe une réaction dans une pièce voisine, par le premier passage ouvert
- * autre que celui par où elle est venue (D-276) ; une seule fois par piste, et aucune patrouille sans alerte (D-048).
+ * autre que celui par où elle est venue (D-276) ; une seule fois par piste. Sans alerte, elle ne bouge que dans un monde à
+ * `rencontre`, au dé (D-048, spec créature mobile §3.2).
  */
 function fouiller(monde: DefMonde, etat: EtatPartie, creature: CreatureActive): Reponse {
   if (!creature.contact || creature.fouille === true || creature.alcove) return { creature, evenements: [] };
@@ -402,6 +404,23 @@ function fouiller(monde: DefMonde, etat: EtatPartie, creature: CreatureActive): 
   if (liaison === undefined) return { creature: fouillee, evenements: [] };
   const indice: Indice = { piece: autreCote(liaison, creature.piece), par: liaison.id };
   return deriver(etat, fouillee, liaison, indice) ?? franchir(monde, etat, fouillee, liaison, indice);
+}
+
+/**
+ * Face 1 du dé de rencontre (spec créature mobile §3.2) : là où elle attendrait, elle passe dans une pièce voisine de son
+ * territoire, choisie par `errance` parmi les liaisons errables triées ; chez le passager seulement s'il l'a entendue là où elle
+ * est. Jamais pendant la traque : écoute, porte à forcer, alcôve, ni avant la fouille d'après contact. `undefined` : elle attend.
+ */
+function errer(monde: DefMonde, etat: EtatPartie, creature: CreatureActive, errance: number): Reponse | undefined {
+  if (creature.alcove || creature.ecoute !== undefined || creature.force !== undefined || (creature.contact && creature.fouille !== true)) return undefined;
+  const signe = etat.reperes.entendue?.piece === creature.piece;
+  const candidates = liaisonsDe(monde, creature.piece)
+    .filter((lien) => errable(monde, etat, lien, creature.piece) && (signe || autreCote(lien, creature.piece) !== etat.piece))
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+  const liaison = candidates[errance % candidates.length];
+  if (liaison === undefined) return undefined;
+  const indice: Indice = { piece: autreCote(liaison, creature.piece), par: liaison.id };
+  return deriver(etat, creature, liaison, indice) ?? franchir(monde, etat, creature, liaison, indice);
 }
 
 /** Le passage qu'elle l'a vu prendre, s'il lui est encore praticable : une porte refermée ou un passage étroit l'arrête (D-177). */
@@ -429,7 +448,8 @@ function retenir(etat: EtatPartie, entendue: BruitCreature | undefined): Reperes
 /**
  * Étapes 4 et 5 d'un pas (C-03 §3) : la réaction, puis l'annonce du premier contact si la créature et le passager se retrouvent.
  * `depuis` : pièce du passager avant l'action ; `franchie` : liaison qu'il vient de prendre, s'il a changé de pièce ;
- * `interceptee` : un jet d'interception a déjà consommé la réaction de ce pas.
+ * `interceptee` : un jet d'interception a déjà consommé la réaction de ce pas ; `errance` : le tirage d'errance quand le dé de
+ * rencontre montre 1 à ce pas (spec créature mobile §3.2).
  */
 export function reagir(
   monde: DefMonde,
@@ -438,6 +458,7 @@ export function reagir(
   depuis: string,
   franchie: string | undefined,
   interceptee: boolean,
+  errance: number | null = null,
 ): { etat: EtatPartie; evenements: Evenement[] } {
   if (etat.creature === null) return { etat, evenements: [] };
   const { piece } = etat.creature;
@@ -445,7 +466,7 @@ export function reagir(
   if (etat.creature.neutralisee !== undefined || piece === null) {
     return { etat: { ...etat, creature: { ...etat.creature, repit: false }, reperes: retenir(etat, undefined) }, evenements: [] };
   }
-  const reponse = reagirRalentie(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee);
+  const reponse = reagirRalentie(monde, etat, { ...etat.creature, piece }, sons, depuis, franchie, interceptee, errance);
   // Le répit ne vaut que pour l'action qui suit le premier contact (D-184).
   const repit = etat.creature.repit ? sansGarde({ ...reponse.creature, repit: false }) : reponse.creature;
   // Une porte qu'elle cesse de forcer reprend tout à zéro (D-279).
@@ -494,11 +515,12 @@ function reagirRalentie(
   depuis: string,
   franchie: string | undefined,
   interceptee: boolean,
+  errance: number | null,
 ): Reponse {
-  if (creature.ralentie === undefined) return reaction(monde, etat, creature, sons, depuis, franchie, interceptee);
+  if (creature.ralentie === undefined) return reaction(monde, etat, creature, sons, depuis, franchie, interceptee, errance);
   // Un jet d'interception a déjà pris la réaction de ce pas : la suivante est sautée.
   if (creature.ralentie.saute && !interceptee) return { creature: { ...creature, ralentie: { saute: false } }, evenements: [] };
-  const reponse = reaction(monde, etat, creature, sons, depuis, franchie, interceptee);
+  const reponse = reaction(monde, etat, creature, sons, depuis, franchie, interceptee, errance);
   return reponse.creature.neutralisee === undefined ? { ...reponse, creature: { ...reponse.creature, ralentie: { saute: true } } } : reponse;
 }
 
