@@ -1,6 +1,6 @@
 # Créature mobile, information et difficulté — conception
 
-> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. À approuver. Aucune décision n'est encore consignée dans 03 ; la liste à consigner est en §12.
+> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. Décisions consignées dans 03 : D-330 à D-342 (liste en §12).
 > **Zones :** orange pour le moteur, le vérifieur, le format des morceaux, l'appli et chaque seuil d'équilibrage ; rouge pour la sauvegarde, dont le format change (§9).
 > **Sources :** discussion du 2026-10-21 ; issues #216, #217, #241 ; D-161, D-177, D-178, D-180, D-181, D-241, D-275, D-276, D-279 ; C-03 ; 17 §1 et §7 (IA Station).
 

@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
+> **Mise à jour :** 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
 
 ## Règles
 
@@ -28,11 +28,11 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308 à D-312](#d-308--après-nouvelle-partie-une-intro-montre-que-la-station-est-tirée-au-hasard), [D-328](#d-328--poser-la-caisse-sous-la-grille-dun-seul-geste) |
-| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194) |
+| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
-Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D-012 n'a pas été retenue) ; D-097, D-152 et D-193 sont remplacées ; le volume de D-118 est remplacé par D-157. Les précisions partielles apportées à d'autres décisions sont indiquées dans leur entrée.
+Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D-012 n'a pas été retenue) ; D-097, D-152 et D-193 sont remplacées ; D-048 l'est par D-334 dans les mondes à `rencontre` seulement ; le volume de D-118 est remplacé par D-157. Les précisions partielles apportées à d'autres décisions sont indiquées dans leur entrée.
 
 ## Décisions validées
 
@@ -410,7 +410,7 @@ Statuts particuliers à ne pas manquer : D-011 et D-012 sont des propositions (D
 
 ### D-048 — Traque réactive, sans patrouille permanente
 
-- Date / statut : 2026-10-09 / **Validé pour AR-01**.
+- Date / statut : 2026-10-09 / **Validé pour AR-01** ; **remplacée par D-334** dans les mondes à `rencontre` (grandes stations), valide pour AR-01, AR-02 et les petites stations.
 - Origine : réponse Q-41 « Traque réactive, sans patrouille permanente ».
 - Décision : déplacement en réaction à un son perçu ou à un joueur détecté ; pas de patrouille ni d'horloge qui fait apparaître la menace arbitrairement. L'absence de réaction ne réinitialise pas son emplacement.
 - Limite : priorités de perception, mémoire des sons et budget de déplacement par réaction à fixer dans la proposition de référence.
@@ -2689,3 +2689,113 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Clé.** La carte de sécurité de M-11 se déplace vers une pièce d'étiquette `securite` (la salle des casiers), avec sa note de rangement, *fiche de prêt*, signée Sami. Le chariot de M-12 ne se porte pas.
   - **Plans.** Avec M-11 et M-12, une graine sur trois seulement donne un plan (32,8 %, contre 45,0 % sans eux). Le seuil du test de l'assemblage passe de 40 % à 35 %. Aucun joueur ne le voit : la publication saute les graines sans plan.
   - **`check:sortie`.** L'échantillon des grandes stations ajoute, après les clés, la première station en chaîne de chaque chemin encore absent, pour que M-12, qui n'a pas de clé, y figure.
+
+### D-330 — La créature a un territoire : les pièces reliées par des passages ouverts
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée par le porteur) ; livraison dans le lot 1 de [la conception](superpowers/specs/2026-10-21-creature-mobile-design.md) (§3.1, §12 n° 1). Essai sur téléphone à venir (zone orange).
+- Origine : discussion du 2026-10-21 ; le porteur approuve la conception : « J'approuve la conception, passe au plan. »
+- Décision : le territoire de la créature est l'ensemble des pièces qu'elle atteint par des passages ouverts et praticables pour son gabarit. Il est recalculé à chaque pas : une porte que le joueur ouvre l'agrandit, une porte qu'il ferme le réduit, une porte forcée reste ouverte (D-279).
+- Précise : D-177, D-178, D-276 (ces règles d'ouïe et de poursuite ne changent pas).
+- Limite [détail de l'agent] : dans le lot 1, le territoire sert à l'errance des grandes stations seulement ; les mondes sans `rencontre` ne changent pas, empreintes comprises. La créature n'y passe par aucun vide de passerelle, même avec un pont posé.
+
+### D-331 — Des portes ouvertes ou forcées au départ, jusqu'à l'étendue du territoire
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; portes ouvertes au lot 1, portes forcées en signes au lot 4 (§3.1, §12 n° 2). L'**étendue** reste à fixer après l'essai sur téléphone (Q-1).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : au départ de l'incident, certaines portes sont déjà ouvertes ou forcées (sas bloqué ouvert, porte défoncée), dans la mesure de l'étendue du territoire. Une porte forcée au départ est un signe à lire, comme une trace. Chaque morceau déclare les portes qui peuvent être ouvertes au départ.
+- Limite [détail de l'agent] :
+  - **Étendue.** `ETENDUE_TERRITOIRE` vaut **0,5** (la moitié des pièces), valeur à mesurer et non un choix : la conception cite 75 % ou toute la station comme pistes. Le porteur tranche après son essai.
+  - **Ouvertes, pas forcées.** Les portes ouvertes au départ se referment comme les autres ; une porte « forcée au départ » viendra avec les signes du lot 4.
+  - **Jamais une porte intérieure à un morceau** (D-293) : l'étendue n'ouvre que les portes entre morceaux, d'annexe et de boucle, pour que chaque morceau garde son énigme. Aucun morceau n'en déclare d'autres par défaut. Le territoire est donc plus petit dans certains finals ; la mesure du lot 1 le dit.
+  - **Jamais** une porte qui touche une pièce en feu, froide, à gravité commutable ou de machines.
+
+### D-332 — La créature n'ouvre jamais une porte ; elle en force une lentement vers un bruit fort
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; lot 1 (§3.1, §12 n° 3).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : la créature n'ouvre jamais une porte. Elle en force une seulement : **vite** en poursuite (deux réactions, D-279, inchangé) ; **lentement** quand elle entend un bruit fort derrière, en un nombre de réactions plus grand. Seuls les bruits forts (relance des machines, avertisseur, drone, chute d'objet) y poussent avant le contact ; les pas du joueur n'y poussent pas, comme aujourd'hui (D-276).
+- Précise : D-279.
+- Limite [détail de l'agent] :
+  - **Valeur.** `REACTIONS_FORCER_LENT` vaut **4** (la poursuite en demande 2), à mesurer.
+  - **Seulement dans un monde à `rencontre`.** Les preuves des petites stations ne bougent pas.
+  - **D-178 tenu.** Un son, même fort, ne passe pas une porte fermée (sauf `sonAuTravers`) : le forçage lent ne se déclenche que si le bruit lui parvient par un autre chemin ou par une porte qui laisse passer le son. La règle servira donc rarement. Si le porteur veut qu'un bruit fort traverse une porte fermée, c'est une décision à prendre, qui changerait D-178.
+
+### D-333 — Départ de la créature tiré dans son territoire ; le lot 1 garde la place de la composition
+
+- Date / statut : 2026-10-21 / **Validé** pour la conception (§3.2, §12 n° 4) ; **écart de l'agent à valider** : le lot 1 garde la place de la composition.
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision (conception) : le départ est tiré parmi les pièces du territoire, et non plus à la place fixe du morceau. D-161 tient : jamais dans la pièce de départ.
+- Limite [détail de l'agent] :
+  - **Écart.** Dans le lot 1, la créature part de la place de sa composition (D-315 et D-316 tiennent), et l'errance la disperse avant que le joueur n'arrive. Un départ tiré en plus ferait varier le monde avec la graine de partie, et la preuve devrait couvrir chaque départ. On revoit ce choix après l'essai de l'étendue.
+  - **Garantie de la preuve (§10).** Chaque station est prouvée sans errance (`sansErrance`), forçage lent compris, comme aujourd'hui. Deux règles testées bornent l'errance : elle n'entre jamais dans la pièce du joueur sans qu'il l'ait entendue depuis sa pièce ; son entrée suit les règles actuelles (répit au premier contact D-184, avertissement C-03 §4.4). Des mesures par bots complètent.
+
+### D-334 — Dé de rencontre : 1 déplacement, 2 signe, sinon rien ; remplace D-048
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; lot 1 (§3.2, §12 n° 5). Valeurs à mesurer.
+- Origine : le porteur veut que la créature bouge d'elle-même ; conception du 2026-10-21, approuvée.
+- Décision : toutes les N actions du joueur, un d6 est lancé : **1**, elle passe dans une pièce voisine de son territoire ; **2**, un signe se produit (D-338) ; **3 à 6**, rien. Elle laisse des **traces fraîches** dans les pièces qu'elle traverse. Le bruit garde la priorité (D-177, D-178, D-276). Pendant la traque (oreille ouverte, indice, porte en cours de forçage, fouille à faire), le dé se tait et D-276 gouverne seul ; il reprend quand la piste est perdue. La pièce du joueur fait partie du tirage, mais elle n'y entre jamais sans signe : elle doit d'abord se tenir dans la pièce voisine, où le joueur l'entend par la porte ouverte (OP-01).
+- Remplace : D-048 (pas de patrouille sans alerte), dans les mondes à `rencontre` ; D-048 reste valide pour AR-01, AR-02 et les petites stations. Précise D-321 (immobile avant le premier contact) : la ronde est désormais décidée chiffres en main (#217).
+- Limite [détail de l'agent] :
+  - **Valeurs à mesurer.** `RYTHME_RENCONTRE` **3** (un jet toutes les 3 actions), `FRAICHEUR` **6** (une trace reste lisible 6 actions). Le porteur voit les mesures avant de décider.
+  - **Hasard hors journal.** Le jet est haché sur la graine et le numéro d'action (`hacher`), sans consommer de dé du journal : un rejeu redonne la même empreinte.
+  - **Passages.** Chaque pièce occupée est notée à son départ (heure du départ), pas à l'arrivée : la pièce où elle se trouve se voit, celle qu'elle a quittée garde la trace.
+  - **`errer`** passe par `deriver ?? franchir` (et non `franchir` seul) pour garder la dérive sans gravité de D-237, comme `fouiller`.
+  - **`bruit_lointain` et `traces_fraiches`** sont comptés dans les événements perçus de la fin de partie (`PERCUE`) : le passager les a bien perçus, ils nourrissent le récit de fin (D-281).
+  - **Textes** écrits par l'assistant principal, non validés par le porteur ; le mot réservé « traînée » a été retiré du signe sans lieu, pour qu'il n'évoque aucune trace.
+  - **Version.** `VERSION_GENERATEUR` passe à **2** : les grandes stations sont republiées, et les anciennes sauvegardes ne sont pas reprises (D-341).
+
+### D-335 — Écouter à une porte, avec jet de perception et mensonge possible près des machines
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 2, interface sur maquettes de téléphone (Q-2) (§4.1, §12 n° 6).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : une action nouvelle, silencieuse, coûte du temps. Le jet donne net, vague ou rien. Près de machines en marche, le résultat peut tromper : seul mensonge autorisé, à cause visible. Une pièce aveugle (D-338) n'a pas de jet. Le texte ne nomme jamais la créature.
+- Limite : un résultat « net » déclenche l'avertissement actuel (D-181) ; « vague », le bip d'un capteur ou un mouvement vu au poste ne changent pas l'aperçu de risque (conception §4.1).
+
+### D-336 — Capteurs et drone éclaireur, trouvés comme butin
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 3 (§4.2, §4.6, §12 n° 7).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : un capteur posé dans une pièce y signale un mouvement (un bip qui donne le numéro, avant le poste) ; il peut tomber en panne (réglage de difficulté) et ne marche pas dans une pièce aveugle. Le drone éclaireur est un autre butin, qui permet de voir ce qu'il y a derrière une porte. Ni l'un ni l'autre ne dit où est la créature (D-180, D-181 inchangés).
+
+### D-337 — Poste de sécurité : plan, portes à la consultation, capteurs ; jamais la créature directement
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 4 (§4.3, §12 n° 8, #241).
+- Origine : conception du 2026-10-21, approuvée par le porteur ; issue #241.
+- Décision : le poste montre le plan, l'état des portes au moment de la consultation et les capteurs. Il ne montre jamais la créature directement.
+
+### D-338 — Pièces aveugles et signes de la face 2
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; le signe sans lieu (`bruit_lointain`) et les traces fraîches au lot 1, le reste aux lots 2 à 4 (§4.4, §4.5, §12 n° 9 et 10).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : certaines pièces sont aveugles (ni écoute, ni capteur, ni vue du poste). Le joueur reçoit les signes de la face 2 du dé de rencontre, dont des messages techniques d'IA Station. Un signe ne ment jamais, ne dit pas où est la créature et ne change pas l'aperçu de risque.
+- Limite [détail de l'agent] : IA Station ne parle pas dans le lot 1. Le premier signe est un bruit lourd, sans lieu. Texte final non validé par le porteur.
+
+### D-339 — Difficulté : un réglage à « Nouvelle partie », sans progression sauvegardée
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 5 (§7, §12 n° 11).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : la difficulté se choisit à « Nouvelle partie ». Aucune campagne ni progression n'est sauvegardée entre parties. Le réglage joue sur l'ouverture des portes au départ, la panne des capteurs et le nombre de créatures.
+
+### D-340 — Plusieurs créatures en Difficile sur les grandes stations ; état de partie en liste
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livraison au lot 5 (§8, §12 n° 12, #217).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : en Difficile, une grande station abrite plusieurs créatures. L'état de partie les tient en liste dès ce lot.
+- Limite [détail de l'agent] : le lot 1 ne touche pas à cet état ; la liste viendra au lot 5, avec un champ absent tant qu'il ne sert pas.
+
+### D-341 — Les sauvegardes d'avant la mise à jour sont refusées
+
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; **rien à coder** (§9, §12 n° 13).
+- Origine : conception du 2026-10-21, approuvée par le porteur.
+- Décision : une sauvegarde d'une autre version est refusée et supprimée.
+- Limite [détail de l'agent] : le mécanisme existe déjà. `reprendrePartie` compare `version`, et l'appli répond `reprise_impossible`. Le format ne change pas dans le lot 1.
+
+### D-342 — Choix de l'agent du lot 1 : grandes stations seulement, preuve sans errance
+
+- Date / statut : 2026-10-21 / **Validé** par l'approbation de la conception et du plan, sous réserve de l'écart de D-333 ; essai sur téléphone à venir.
+- Origine : plan du lot 1 ([plan](superpowers/plans/2026-10-21-creature-mobile-1.md)), « Choix de l'agent dans ce plan ».
+- Décision [détail de l'agent] :
+  - **Grandes stations seulement.** Les petites stations, AR-01, AR-02 et les mondes de test n'ont pas `rencontre` ; leur état, leurs événements et leurs empreintes ne changent pas. Un champ d'état nouveau reste absent tant qu'il ne sert pas.
+  - **Pas de son nouveau.** Les événements nouveaux passent par la narration (système de #99 inchangé).
+  - **Ce que le porteur doit essayer sur téléphone** : jouer une grande station jusqu'au bout, et dire si la créature se sent vivante, si l'étendue de 0,5 lui convient, si les signes et les traces aident sans tenir la main.
+- Précise : D-330 à D-334.
