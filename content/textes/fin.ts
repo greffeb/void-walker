@@ -58,6 +58,7 @@ const PERCUE: ReadonlySet<Evenement['type']> = new Set([
   'creature_entre',
   'pas_entendus',
   'souffle_entendu',
+  'bruit_lointain',
   'creature_glisse',
   'porte_secouee',
   'porte_enfoncee',

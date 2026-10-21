@@ -65,6 +65,7 @@ export const TYPES_EVENEMENT = [
   'bruit_creature',
   'pas_entendus',
   'souffle_entendu',
+  'bruit_lointain',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -257,6 +258,8 @@ export type Evenement =
   | { readonly type: 'pas_entendus' }
   /** Alertée, elle écoute encore : elle entend le passager immobile et vient (D-276). */
   | { readonly type: 'souffle_entendu' }
+  /** Face 2 du dé de rencontre : un bruit lourd, très loin, sans direction (spec créature mobile §3.3). */
+  | { readonly type: 'bruit_lointain' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

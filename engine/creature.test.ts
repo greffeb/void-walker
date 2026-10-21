@@ -714,6 +714,14 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
     engager(monde, courante, 'attendre', monde.pieces.find((piece) => piece.id === courante.etat.piece)?.nom ?? '');
   const chezB: DefMonde = { ...errant, depart: 'b' };
 
+  it('bruit lointain : face 2 seulement, créature active hors de la pièce du joueur', () => {
+    const types = (monde: DefMonde, graine: number): string[] => attendre(monde, avecGraine(monde, graine)).evenements.map((e) => e.type);
+    expect(types(errant, graineAvecFace(2, 1))).toContain('bruit_lointain');
+    expect(types(errant, graineAvecFace(3, 1))).not.toContain('bruit_lointain');
+    const dansLaPiece = placee(errant, graineAvecFace(2, 1), { piece: errant.depart });
+    expect(attendre(errant, dansLaPiece).evenements.map((e) => e.type)).not.toContain('bruit_lointain');
+  });
+
   it('face 1 : elle passe dans une pièce voisine de son territoire', () => {
     for (const graine of grainesAvecFace(1, 1, 20)) {
       const fin = attendre(errant, avecGraine(errant, graine)).partie;

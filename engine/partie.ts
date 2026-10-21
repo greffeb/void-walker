@@ -3,7 +3,7 @@ import { bruitDeStation } from './bruits';
 import { reagir, type SonEmis } from './creature';
 import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
-import { etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
+import { assourdie, creatureActive, etatInitial, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
 import { actualiserFroid, type Froid } from './froid';
 import { empreinte } from './hachage';
@@ -31,6 +31,9 @@ import {
 } from './vocabulaire';
 
 export const FORMAT_ENREGISTREMENT = 1;
+
+/** Les événements par lesquels le passager perçoit déjà la créature à ce pas (spec créature mobile §3.3). */
+const SIGNES_CREATURE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee', 'pas_entendus', 'souffle_entendu']);
 
 export interface EntreeJournal {
   readonly commande: Commande;
@@ -365,6 +368,10 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   // Grande station : avant la rencontre, un bruit de station de temps en temps (spec 2026-10-18 §5.5) ; rien dans l'état.
   if (monde.bruitsStation === true && !vaincu && conclu.fin === null && conclu.creature?.contact !== true && bruitDeStation(partie.enregistrement.graine, partie.etat.actions + 1)) {
     evenements.push({ type: 'bruit_station' });
+  }
+  // Face 2 du dé : un bruit lourd, très loin, si rien d'autre ne la perçoit déjà et si la pièce n'est pas assourdie (spec créature mobile §3.3).
+  if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.piece !== conclu.piece && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
+    evenements.push({ type: 'bruit_lointain' });
   }
   const tirages = [...session.tirages];
   // Le regard de fin d'action met à jour la mémoire du passager, avec le compte d'actions confirmées (14 §3.1).

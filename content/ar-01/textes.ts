@@ -137,6 +137,7 @@ export const TEXTES_AR01: TextesMonde = {
     creature_entre: ['Quelque chose surgit par {le:passage}.', 'Une masse sombre se coule par {le:passage}.'],
     pas_entendus: ['Vos pas ont dû porter : quelque chose se met en route.'],
     souffle_entendu: ['Même votre souffle semble porter : là-bas, quelque chose écoute.', 'Vous n’osez plus respirer : quelque chose, là-bas, tend l’oreille.'],
+    bruit_lointain: ['Très loin, quelque chose de lourd racle le sol, puis plus rien.', 'Au loin, un bruit mou et pesant, comme une chair traînée sur du métal. Puis le silence.', 'Très loin, un choc sourd et humide, deux fois. Rien ne suit.'],
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',
