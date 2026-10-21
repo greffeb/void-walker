@@ -29,7 +29,7 @@ const ANNEXES_MAX = 10;
 const BOUCLES = 3;
 
 export interface CompositionGrande {
-  /** 'g1-<chemins>-<final>-<place>', ou 'g1-ol-<A>-<B>-<C>-<final>-<place>' en ordre libre. */
+  /** 'g<version>-<chemins>-<final>-<place>', ou 'g<version>-ol-<A>-<B>-<C>-<final>-<place>' en ordre libre. */
   readonly id: string;
   readonly forme: 'chaine' | 'libre';
   /** Trois chemins dans l'ordre de la station ; en ordre libre, les branches A et B (matérielles), puis C. */

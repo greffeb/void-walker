@@ -174,7 +174,7 @@ export function cheminPrincipal(entree: EntreeMonde, definition: DefStation): En
 }
 
 /**
- * Une grande station `g1-…-<graine>`, contrôlée puis prouvée ; sans `directe`, par les témoins du chemin principal seulement.
+ * Une grande station `g<version>-…-<graine>`, contrôlée puis prouvée ; sans `directe`, par les témoins du chemin principal seulement.
  * `memoire` garde ces témoins d'un appel à l'autre.
  */
 export function verifierGrande(catalogue: Catalogue, station: string, options: OptionsVerification = {}, directe = true, memoire = new Map<string, Preuve>()): LigneGrande {

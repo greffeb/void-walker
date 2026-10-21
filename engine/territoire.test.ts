@@ -44,6 +44,22 @@ describe('ouvrirTerritoire (spec créature mobile §territoire)', () => {
     expect(ouvertes(rendues).sort()).toEqual(['l12', 'l23']);
   });
 
+  it('une porte intérieure d’un morceau reste fermée ; une porte de boucle entre deux de ses pièces s’ouvre (D-293)', () => {
+    const pieces = ['p0', 'm-11/p-vestiaire', 'm-11/p-remise', 'm-11/p-poste'].map((id): DefPiece => ({ id, nom: id }));
+    const base: PlanTerritoire = {
+      pieces,
+      objets: [],
+      liaisons: [
+        { id: 'm-11/l-vestiaire-remise', nom: 'porte', entre: ['m-11/p-vestiaire', 'm-11/p-remise'], ouverte: false },
+        { id: 'l-boucle-1', nom: 'porte', entre: ['m-11/p-remise', 'm-11/p-poste'], ouverte: false },
+      ],
+      depart: 'p0',
+      creature: 'm-11/p-remise',
+      segments: new Map(pieces.map((piece) => [piece.id, 1])),
+    };
+    expect(ouvertes(ouvrirTerritoire(base, 1, 7))).toEqual(['l-boucle-1']);
+  });
+
   it('inéligibles : marques de la porte, obstacle, écoutille, pièces sensibles', () => {
     const pieces = (champs: Partial<DefPiece>): DefPiece[] => [0, 1, 2, 3, 4, 5].map((rang): DefPiece => ({ id: `p${rang}`, nom: `p${rang}`, ...(rang === 4 ? champs : {}) }));
     const cas: { liaison?: Partial<DefLiaison>; piece?: Partial<DefPiece>; objet?: Omit<DefObjet, 'id' | 'nom'>; segment0?: true }[] = [

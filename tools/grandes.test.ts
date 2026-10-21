@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { assemblerStation, RYTHME_RENCONTRE, type DefMonde } from '../engine';
-import { MORCEAUX, VERSION_GENERATEUR, type CompositionGrande } from '../content';
-import { ETENDUE_TERRITOIRE } from '../content/stations/grandes';
+import { ETENDUE_TERRITOIRE, MORCEAUX, VERSION_GENERATEUR, type CompositionGrande } from '../content';
 import { CATALOGUE } from './catalogue';
 
 // Grandes stations (spec 2026-10-18 §4, D-313, D-315) : deux chemins matériels, un troisième chemin, un final ; la créature
@@ -33,7 +32,7 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     }
   });
 
-  it('identifiants g1-…, uniques, triés, de 40 caractères au plus avec la graine 9999', () => {
+  it('identifiants g<version>-…, uniques, triés, de 40 caractères au plus avec la graine 9999', () => {
     const ids = grandes.map((composition) => composition.id);
     for (const id of ids) {
       expect(id.startsWith(`g${VERSION_GENERATEUR}-`)).toBe(true);

@@ -37,7 +37,7 @@ import { GRANDES_PUBLIEES } from './grandes-publiees';
 import { TEXTES_CATALOGUE } from '../catalogue';
 
 export { numeroter, sansConflit } from './textes-station';
-export { GRAINE_GRANDE_MAX, VERSION_GENERATEUR, type CompositionGrande } from './grandes';
+export { ETENDUE_TERRITOIRE, GRAINE_GRANDE_MAX, VERSION_GENERATEUR, type CompositionGrande } from './grandes';
 export { GRANDES_PUBLIEES } from './grandes-publiees';
 
 // Catalogue des mondes jouables (#152) : les mondes écrits en entier, et les stations assemblées depuis les morceaux. Le
@@ -891,7 +891,7 @@ export interface Catalogue {
   definir(composition: string, graine: number): DefStation | Refus;
   /** Grandes stations possibles (spec 2026-10-18 §4.1), hors de `compositions`, triées. */
   readonly grandes: readonly CompositionGrande[];
-  /** Grandes stations publiées et prouvées : identifiants complets `g1-…-<graine>` (spec §7.2). */
+  /** Grandes stations publiées et prouvées : identifiants complets `g<version>-…-<graine>` (spec §7.2). */
   readonly publiees: readonly string[];
   /**
    * NOUVELLE PARTIE (D-313) : pile ou face sur le final (D-253), une station sur trois en ordre libre (D-270), puis une grande

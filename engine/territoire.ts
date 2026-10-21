@@ -31,6 +31,19 @@ function atteintes(creature: string, liaisons: readonly DefLiaison[]): Set<strin
   return vues;
 }
 
+/** Morceau d'une pièce ou d'une liaison préfixée (`prefixer`) ; vide sans préfixe. */
+const morceauDe = (id: string): string => id.slice(0, Math.max(id.indexOf('/'), 0));
+
+/**
+ * Porte intérieure d'un morceau : ses deux côtés et elle-même portent le même préfixe. Chaque morceau garde son énigme (D-293) ;
+ * seules les portes entre morceaux, d'annexe et de boucle s'ouvrent, aucun morceau ne déclarant encore de porte ouvrable (spec
+ * créature mobile §3.1).
+ */
+function interieureAuMorceau(liaison: DefLiaison): boolean {
+  const morceau = morceauDe(liaison.id);
+  return morceau !== '' && liaison.entre.every((piece) => morceauDe(piece) === morceau);
+}
+
 /** `plan.liaisons`, certaines passées à `ouverte: true` (jamais enfoncées : elles se referment) ; `etendue` de 0 à 1. */
 export function ouvrirTerritoire(plan: PlanTerritoire, etendue: number, graine: number): DefLiaison[] {
   const pieces = new Map(plan.pieces.map((piece) => [piece.id, piece]));
@@ -62,6 +75,7 @@ export function ouvrirTerritoire(plan: PlanTerritoire, etendue: number, graine: 
     liaison.haute === undefined &&
     !passages.has(liaison.id) &&
     !liaison.entre.some((piece) => interieurs.has(piece)) &&
+    !interieureAuMorceau(liaison) &&
     liaison.entre.every(coteSur);
 
   const liaisons = [...plan.liaisons];

@@ -602,7 +602,7 @@ export function verifierTextes(entree: EntreeMonde, version = 'controle-textes')
 /**
  * La station d'une composition contrôlée (`COMPOSITIONS_CONTROLEES`, spec L3 §6.4), à la graine de plan vérifiée par
  * `check:stations`. Elle porte pour seul parcours le témoin d'évacuation de `verifierStation`, ou de `verifierLibre` en ordre
- * libre ; sans témoin, elle est refusée. Une grande station publiée `g1-…-<graine>` se construit telle quelle, sans parcours :
+ * libre ; sans témoin, elle est refusée. Une grande station publiée `g<version>-…-<graine>` se construit telle quelle, sans parcours :
  * l'exploration seule la parcourt.
  * Prouver une station coûte environ une seconde : qui n'en veut qu'une n'appelle pas `entreesAControler`.
  */
