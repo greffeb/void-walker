@@ -1,4 +1,5 @@
 import { apercu, exporter, jouer, nouvellePartie, rejouer, type Partie } from './partie';
+import { carte } from './carte';
 import { observer } from './observation';
 import { idPublic, validerMonde, type DefMonde } from './monde';
 import { piecesSansAir } from './etat';
@@ -55,6 +56,11 @@ describe('rail local et coopération', () => {
     expect(envoyee.etat.drones?.phases.x).toBe('trajet');
     expect(envoyee.etat.creature?.piece).toBe('c');
     expect(panne().etat.drones?.phases.x).toBe('deraille');
+  });
+  it('garde le drone envoyé sur la carte, dans la pièce où il est parti', () => {
+    const drones = (partie: Partie) => carte(MONDE, partie.etat).pieces.filter((piece) => piece.objets.some((objet) => objet.drone === true)).map((piece) => piece.piece.id);
+    expect(drones(debut())).toEqual([idPublic(MONDE.id, 'a')]);
+    expect(drones(pas(debut(), 'envoyer', 'x'))).toEqual([idPublic(MONDE.id, 'c')]);
   });
   it('ne traverse pas une porte fermée et ne revient pas gratuitement', () => {
     const fermee = pas(debut(), 'fermer', 'ac');
