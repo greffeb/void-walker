@@ -3,6 +3,7 @@ import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefM
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
 import { executerParcours, trouverOption } from './rejouer-parcours';
+import { sansErrance } from './verifier-grandes';
 import {
   cheminsDesPlans,
   chercherEtat,
@@ -244,9 +245,7 @@ describe('poser la caisse sous la grille d’un seul geste (demande du porteur, 
       const entree = CATALOGUE.construireGrande(`g${VERSION_GENERATEUR}-m01-m02-m04-m03-observation`, graine);
       if ('refus' in entree || !entree.monde.objets.some((objet) => objet.id === caisse && objet.piece === 'm-02/p-atelier')) continue;
       // Le geste seul : sans dé de rencontre, aucun signe d'errance ne s'ajoute à ses événements (spec créature mobile).
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- le dé de rencontre est retiré du monde.
-      const { rencontre, ...monde } = entree.monde;
-      return { ...entree, monde };
+      return sansErrance(entree);
     }
     throw new Error('Aucune station avec la caisse dans l’atelier sur 50 graines.');
   })();

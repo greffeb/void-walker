@@ -10,6 +10,7 @@ import {
   rejouerTemoin,
   reparerTemoin,
   sansButin,
+  sansErrance,
   temoinValable,
   verifierGrande,
   verifierPubliee,
@@ -239,6 +240,18 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect(prive.monde.objets.length).toBeLessThan(entree.monde.objets.length);
     expect({ ...prive.monde, objets: [] }).toEqual({ ...entree.monde, objets: [] });
   });
+
+  it('sansErrance : le même monde sans son dé de rencontre, et le témoin de la station se rejoue sur l’un comme sur l’autre', () => {
+    const entree = construite(CAISSE);
+    expect(entree.monde.rencontre).toBeDefined();
+    const sans = sansErrance(entree);
+    expect(sans.monde.rencontre).toBeUndefined();
+    expect('rencontre' in sans.monde).toBe(false);
+    expect({ ...sans.monde, objets: [] }).toEqual({ ...entree.monde, rencontre: undefined, objets: [] });
+    const [temoin] = prouvee(CAISSE).temoins ?? [];
+    if (temoin === undefined) throw new Error('Témoin absent.');
+    expect(rejouerTemoin(entree, temoin)).not.toBeNull();
+  }, 120_000);
 
   it('une grande station dont la caisse a quitté son morceau est prouvée par témoin réparé, sans dé ni blessure', () => {
     const ligne = prouvee(CAISSE);

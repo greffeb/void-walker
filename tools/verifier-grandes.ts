@@ -56,7 +56,8 @@ const compacter = (etapes: readonly EtapeParcours[]): PasTemoin[] =>
  * Rejeu d’un témoin publié par le menu public, avec les vraies règles (spec §7.4) : il mène à l’évacuation sans dé ni blessure.
  * Rend l’ordre dans lequel les cloisons verrouillées ont été levées, ou `null` si ce n’est pas une preuve.
  */
-export function rejouerTemoin(entree: EntreeMonde, pas: readonly PasTemoin[]): string[] | null {
+export function rejouerTemoin(avecErrance: EntreeMonde, pas: readonly PasTemoin[]): string[] | null {
+  const entree = sansErrance(avecErrance);
   let partie = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
   const levees: string[] = [];
   for (const [action, cible, parametre] of pas) {
@@ -82,7 +83,8 @@ function jouerSurement(entree: EntreeMonde, partie: Partie, etape: EtapeParcours
 }
 
 /** Le témoin, rejoué par le menu public avec les vraies règles, mène à l'évacuation sans dé ni blessure. */
-export function temoinValable(entree: EntreeMonde, etapes: readonly EtapeParcours[]): boolean {
+export function temoinValable(avecErrance: EntreeMonde, etapes: readonly EtapeParcours[]): boolean {
+  const entree = sansErrance(avecErrance);
   let partie: Partie | null = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
   for (const etape of etapes) {
     partie = jouerSurement(entree, partie, etape);
@@ -96,12 +98,20 @@ export function sansButin(entree: EntreeMonde): EntreeMonde {
   return { ...entree, monde: { ...entree.monde, objets: entree.monde.objets.filter((objet) => objet.butin !== true) } };
 }
 
+/** Monde sans son dé de rencontre : la preuve se fait sans errance de la créature (spec créature mobile §preuve). */
+export function sansErrance(entree: EntreeMonde): EntreeMonde {
+  const monde = { ...entree.monde };
+  delete monde.rencontre;
+  return { ...entree, monde };
+}
+
 /**
  * Témoin du chemin principal rejoué ; chaque étape impossible est précédée des gestes trouvés par chercherJusqua (but : l'étape
  * devient jouable sans dé ni blessure), au plus 20 000 états par réparation. En ordre libre, `admissible` garde l'ordre imposé
  * (G-07). `null` si une réparation échoue ou si le témoin ne mène pas à l'évacuation.
  */
-export function reparerTemoin(entree: EntreeMonde, etapes: readonly EtapeParcours[], options: Pick<OptionsVerification, 'admissible'> = {}): readonly EtapeParcours[] | null {
+export function reparerTemoin(avecErrance: EntreeMonde, etapes: readonly EtapeParcours[], options: Pick<OptionsVerification, 'admissible'> = {}): readonly EtapeParcours[] | null {
+  const entree = sansErrance(avecErrance);
   const admissible = options.admissible ?? (() => true);
   let partie = nouvellePartie(entree.monde, { version: VERSION, graine: GRAINE });
   const repare: EtapeParcours[] = [];
@@ -191,7 +201,7 @@ export function verifierGrande(catalogue: Catalogue, station: string, options: O
   if (ecarts.length > 0) return conclure({ verdict: 'ecartee', ecarts, etats: 0, actions: null, methode: null, temoins: null });
   const base = cheminPrincipal(entree, definition);
   if (base === null) return conclure({ verdict: 'non_prouvee', ecarts: ['Chemin principal non assemblé.'], etats: 0, actions: null, methode: null, temoins: null });
-  const prive = sansButin(entree);
+  const prive = sansErrance(sansButin(entree));
 
   const cloisons = cloisonsDuCarrefour(entree.monde);
   if (cloisons.length === 0) {
