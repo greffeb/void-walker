@@ -51,6 +51,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { piece: nomDe(textes, evenement.piece) };
     case 'objet_pris':
     case 'objet_pose':
+    case 'capteur_pose':
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
     case 'passage_ouvert':
     case 'passage_ouvert_encombre':

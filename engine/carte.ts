@@ -8,7 +8,7 @@ import type { CapsuleCarte, CartePublique, DessinPassage, PassageCarte, PieceCar
 // n'y figure jamais (K-13) ; une pièce hors de vue garde l'état de son dernier regard (D-076), sauf l'air lu sur les voyants (OP-04).
 
 /** Pièce de la carte où se tient le passager : la sienne, ou celle qui ouvre sur sa sous-position, jamais dessinée (C-02 §2). */
-function pieceDeCarte(monde: DefMonde, piece: string): string {
+export function pieceDeCarte(monde: DefMonde, piece: string): string {
   if (monde.pieces.find((candidate) => candidate.id === piece)?.sousPosition !== true) return piece;
   const acces = monde.liaisons.find((liaison) => liaison.entre.includes(piece));
   return acces === undefined ? piece : autreCote(acces, piece);
