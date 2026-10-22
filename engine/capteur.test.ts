@@ -142,9 +142,20 @@ describe('dans le pas', () => {
   });
   it('en traque dans la pièce, même tirage : pas de destruction', () => {
     const depart = etatPose('m', 'r', creatureEn('r', { contact: true }));
-    for (const g of graines((graine) => tirageCapteur(graine, 1) < CHANCE_DESTRUCTION && tirageCapteur(graine, 1) >= CHANCE_PANNE, 30)) {
-      expect(estHs(cote(GRAND, depart, g).partie.etat)).toBe(false);
+    for (const g of graines((graine) => tirageCapteur(graine, 1) < CHANCE_DESTRUCTION && tirageCapteur(graine, 1) >= CHANCE_PANNE && cote(GRAND, depart, graine).partie.etat.creature?.piece === 'r', 30)) {
+      const apres = cote(GRAND, depart, g).partie.etat;
+      expect(apres.creature?.piece).toBe('r');
+      expect(estHs(apres)).toBe(false);
     }
+  });
+  it('au pas de la pose : ni panne ni destruction, capteur_pose seul', () => {
+    const base = nouvellePartie(GRAND, { version: 'test-capteur', graine: 5 }).etat;
+    const g = graines((graine) => tirageCapteur(graine, 1) < CHANCE_PANNE)[0]!;
+    const etat: EtatPartie = { ...base, piece: 'r', ...creatureEn('r'), objets: { ...base.objets, capteur: { type: 'passager' } } };
+    const r = jouer(GRAND, { ...nouvellePartie(GRAND, { version: 'test-capteur', graine: g }), etat }, commande('poser', 'capteur'));
+    if (r.type !== 'engagee') throw new Error(r.type);
+    expect(estHs(r.partie.etat)).toBe(false);
+    expect(r.evenements.filter((e) => e.type === 'capteur_pose' || e.type === 'capteur').map((e) => e.type)).toEqual(['capteur_pose']);
   });
   it('sans rencontre : jamais hs sur 600 actions', () => {
     let etat = etatPose('m', 'r', creatureEn('r'));

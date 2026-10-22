@@ -409,7 +409,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   }
   // Le capteur posé bipe quand ce qu'il lit change, tombe en panne ou est détruit ; pas au pas qui finit la partie (créature mobile lot 3).
   if (!vaincu && conclu.fin === null) {
-    if (monde.rencontre !== undefined) conclu = abimerCapteur(monde, partie.etat, conclu, partie.enregistrement.graine, action);
+    if (monde.rencontre !== undefined && capteurPose(monde, partie.etat) !== null) conclu = abimerCapteur(monde, partie.etat, conclu, partie.enregistrement.graine, action);
     const avant = capteurPose(monde, partie.etat);
     const apres = capteurPose(monde, conclu);
     if (avant !== null && apres !== null && avant.etat !== apres.etat) evenements.push({ type: 'capteur', etat: apres.etat });
