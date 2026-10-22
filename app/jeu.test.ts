@@ -651,7 +651,7 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
     expect(dangersDuRecit(evenements as Parameters<typeof dangersDuRecit>[0])).toEqual([null, 'feu', null, 'feu', 'vide']);
   });
 
-  it('phrases du récit en rouge pour la créature : arrivée, premier contact, attaque ratée (menace), dégâts subis (griffes, feu, froid)', () => {
+  it('phrases du récit en rouge pour la créature : arrivée, premier contact, attaque ratée (menace), dégâts subis (griffes, feu, froid), bruit de la créature', () => {
     const evenements = [
       { type: 'assistance' },
       { type: 'creature_entre' },
@@ -662,7 +662,7 @@ describe('appli : danger apparu signalé dans le récit (#138, D-233)', () => {
       { type: 'defaite', causes: ['froid', 'griffes'] },
       { type: 'bruit_creature' },
     ];
-    expect(alertesMenace(evenements as Parameters<typeof alertesMenace>[0])).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(alertesMenace(evenements as Parameters<typeof alertesMenace>[0])).toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
 
   it('aucune alerte avant la découverte du feu', async () => {

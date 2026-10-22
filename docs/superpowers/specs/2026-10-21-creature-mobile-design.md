@@ -77,7 +77,7 @@ Le porteur sait que ces outils rendront le jeu plus facile. Le réglage de diffi
 ### 4.1 Écouter à une porte
 
 - Action nouvelle. Elle coûte une action, donc du temps.
-- **Interface à décider sur maquettes** (porteur). Chaque porte garde une seule ligne, comme aujourd'hui (`[SALLE DES MACHINES][OUVRIR]`), et l'écoute ne doit pas prendre toute la place. Deux pistes :
+- **Interface tranchée sur maquette (Q-2, 2026-10-22, D-343) : ni bouton par porte, ni « Regarder ».** ATTENDRE écoute à toutes les portes, ouvertes comme fermées, dans les grandes stations. Les deux pistes ci-dessous sont gardées pour l'historique. Chaque porte garde une seule ligne, comme aujourd'hui (`[SALLE DES MACHINES][OUVRIR]`), et l'écoute ne doit pas prendre toute la place. Deux pistes :
   - **un bouton par porte** sur la même ligne : `[SALLE DES MACHINES][OUVRIR][ÉCOUTER]` ;
   - **réutiliser « Regarder »** : une seule action écoute toutes les portes fermées de la pièce, et le résultat est résumé dans la narration.
   La seconde piste coûte moins de place et une seule action pour toutes les portes. Le jet se fait alors porte par porte, dans la même action.
@@ -185,7 +185,7 @@ C'est le point le plus délicat du lot. Il doit être réglé avant toute public
 ## 11. Questions ouvertes pour le porteur
 
 - **Q-1** Étendue du territoire : à fixer après essai sur téléphone (§3.1).
-- **Q-2** Interface de l'écoute : un bouton par porte, ou « Regarder » qui écoute toutes les portes, à choisir sur maquettes (§4.1).
+- **Q-2** Interface de l'écoute : **tranchée le 2026-10-22 sur maquette** ([ecouter.html](../../maquette/ecouter.html)) : pas de bouton Écouter, ATTENDRE écoute à toutes les portes (D-343 à D-347, §4.1).
 
 ## 12. Décisions à consigner après approbation
 

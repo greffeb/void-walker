@@ -1,5 +1,6 @@
 import type {
   Cout,
+  EntenduRecit,
   IntensiteTrace,
   IdAction,
   Issue,
@@ -27,9 +28,9 @@ export type TypeAggravation = (typeof TYPES_AGGRAVATION)[number];
 
 /**
  * Événements racontés par `evenements` : l'évacuation a ses textes selon les sources (`evacuations`), l'assistance les siens
- * (`assistance`), hors du récit.
+ * (`assistance`), hors du récit ; l'écoute dit ce qu'elle entend selon `ecoute`.
  */
-export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance'>;
+export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance' | 'ecoute'>;
 
 /** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, les deux, ou la réserve d'une capsule déjà prête (AR-02). */
 export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc', 'reserve'] as const;
@@ -131,6 +132,10 @@ export interface TextesMonde {
   readonly traces: Readonly<Record<IntensiteTrace, Variantes>>;
   /** Phrase ajoutée au regard d’une pièce pillée avant le joueur (spec 2026-10-18 §6.6), couche univers, après la trace s’il y en a une. */
   readonly pillages: Variantes;
+  /** Ce que le passager entend derrière un passage en attendant (lot 2 de la créature mobile), par résultat ; couche menace. */
+  readonly ecoute: Readonly<Record<EntenduRecit, Variantes>>;
+  /** Phrase d'attente qui précède une écoute, à la place de celle de `evenements.attente`. */
+  readonly attenteEcoute: Variantes;
   /** Attente seule à raconter, 5e et 10e de suite (#225). */
   readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
@@ -313,6 +318,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   bruit_lointain: [],
   bruit_proche: ['passage'],
   traces_fraiches: [],
+  ecoute_couverte: [],
   attente: [],
   bruit_station: [],
   premier_contact: [],

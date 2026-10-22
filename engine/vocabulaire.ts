@@ -68,6 +68,8 @@ export const TYPES_EVENEMENT = [
   'bruit_lointain',
   'bruit_proche',
   'traces_fraiches',
+  'ecoute',
+  'ecoute_couverte',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -240,6 +242,11 @@ export interface Commande {
   readonly parametre?: string;
 }
 
+/** Ce qu'on perçoit derrière une porte en attendant (D-343) ; `machines` et `froid` sont des pièces aveugles. */
+export type Entendu = 'net' | 'vague' | 'rien' | 'machines' | 'froid';
+/** Ce que le récit en dit : `Entendu`, plus les redites d'un changement (« toujours », « plus rien »). */
+export type EntenduRecit = Entendu | 'toujours' | 'plus_rien';
+
 export type Evenement =
   | { readonly type: 'drone_envoye' | 'drone_maintient' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine' | 'poignee_tenue' | 'poignee_lachee'; readonly objet: RefObjet }
   | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
@@ -266,6 +273,10 @@ export type Evenement =
   | { readonly type: 'bruit_proche'; readonly passage: RefPassage }
   /** Le passager entre là où elle est passée il y a peu : une trace fraîche, sans direction (spec créature mobile §3.4). */
   | { readonly type: 'traces_fraiches' }
+  /** En grande station, en attendant : ce qu'on entend derrière ce passage, seulement si ça change (créature mobile lot 2, D-343). */
+  | { readonly type: 'ecoute'; readonly passage: RefPassage; readonly entendu: EntenduRecit }
+  /** En attendant dans une salle des machines en marche : le vacarme couvre tout, dit une fois (créature mobile lot 2, D-343). */
+  | { readonly type: 'ecoute_couverte' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

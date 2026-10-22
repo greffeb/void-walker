@@ -72,12 +72,14 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'porte_secouee':
     case 'porte_enfoncee':
     case 'bruit_proche':
+    case 'ecoute':
       return { passage: nomDe(textes, evenement.passage) };
     case 'attente':
     case 'pas_entendus':
     case 'souffle_entendu':
     case 'bruit_lointain':
     case 'traces_fraiches':
+    case 'ecoute_couverte':
     case 'premier_contact':
     case 'menace':
     case 'aggravation_blesse':
@@ -164,6 +166,7 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
   }
   if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
   if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
+  if (evenement.type === 'ecoute') return textes.ecoute[evenement.entendu];
   return textes.evenements[evenement.type];
 }
 
@@ -175,7 +178,9 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
-    const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
+    // Une attente qui précède une écoute ne dit pas « Rien ne bouge » : la suite le contredirait.
+    const ecoute = evenement.type === 'attente' && evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte');
+    const variante = choisirVariante(ecoute ? textes.attenteEcoute : variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return [remplir(variante, valeursEvenement(textes, evenement))];
   });
 }
@@ -202,6 +207,11 @@ export function alertesMenace(evenements: readonly Evenement[]): number[] {
 
 function estMenaceOuDegat(evenement: Evenement): boolean {
   switch (evenement.type) {
+    case 'bruit_creature':
+    case 'bruit_proche':
+      return true;
+    case 'ecoute':
+      return evenement.entendu === 'net' || evenement.entendu === 'toujours';
     case 'creature_entre':
     case 'premier_contact':
     case 'menace':

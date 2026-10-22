@@ -1,7 +1,7 @@
 import { generateurDepuisGraine, type EtatGenerateur } from './des';
 import { dronesInitiaux, obstacleSur } from './drone';
 import { dosesDe, indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { PhaseDrone, RefObjet, RefPassage, RefPiece, RefPosition, Sante, SourceEvacuation } from './vocabulaire';
+import type { Entendu, PhaseDrone, RefObjet, RefPassage, RefPiece, RefPosition, Sante, SourceEvacuation } from './vocabulaire';
 
 export type EmplacementObjet =
   | { readonly type: 'piece'; readonly piece: string; readonly position?: string }
@@ -172,6 +172,11 @@ export interface EtatPartie {
    * cédé, pour que l'état et son empreinte ne changent pas ailleurs.
    */
   readonly enfoncees?: readonly string[];
+  /**
+   * Dernier résultat d'écoute aux portes, par liaison (créature mobile lot 2, D-343) ; présent seulement juste après une attente qui
+   * a écouté, pour que l'état et son empreinte ne changent pas ailleurs.
+   */
+  readonly ecoutees?: Readonly<Record<string, Entendu>>;
   /** Présent uniquement avec des drones ; phases et ordre des sources sonores actifs, sans horloge non bornée. */
   readonly drones?: {
     readonly phases: Readonly<Record<string, PhaseDrone>>;

@@ -76,6 +76,71 @@ describe('bots', () => {
     expect(averti === -1 || averti > prudent).toBe(true);
   });
 
+  it('le profil averti écoute une fois à sa première arrivée devant une porte fermée vers l’inconnu ; le prudent, non', () => {
+    // Grande station (rencontre) : A a une porte fermée vers B, où attend la créature.
+    const monde: DefMonde = {
+      id: 'ecoute',
+      depart: 'p-a',
+      pieces: [{ id: 'p-a', nom: 'a' }, { id: 'p-b', nom: 'b' }],
+      liaisons: [{ id: 'l-a-b', nom: 'porte', entre: ['p-a', 'p-b'], ouverte: false }],
+      objets: [],
+      creature: { piece: 'p-b' },
+      rencontre: { rythme: 3 },
+    };
+    const station: EntreeMonde = { monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] };
+    for (let graine = 0; graine < 4; graine++) {
+      const actions = (profil: 'prudent' | 'averti'): string[] => jouerAvecBot(station, creerBot(profil, graine), graine, 3).partie.enregistrement.actions.map((action) => action.commande.action);
+      expect(actions('averti')[0], `graine ${String(graine)}`).toBe('attendre');
+      expect(actions('averti').filter((action) => action === 'attendre'), `graine ${String(graine)}`).toHaveLength(1);
+      expect(actions('prudent')[0], `graine ${String(graine)}`).not.toBe('attendre');
+    }
+  });
+
+  describe('le profil averti n’écoute pas', () => {
+    // A ouvre sur B, B sur C ; la porte de A vers C est fermée.
+    const monde: DefMonde = {
+      id: 'ecoute-non',
+      depart: 'p-a',
+      pieces: ['a', 'b', 'c'].map((nom) => ({ id: `p-${nom}`, nom })),
+      liaisons: [
+        { id: 'l-a-b', nom: 'porte', entre: ['p-a', 'p-b'], ouverte: true },
+        { id: 'l-b-c', nom: 'porte', entre: ['p-b', 'p-c'], ouverte: true },
+        { id: 'l-a-c', nom: 'porte', entre: ['p-a', 'p-c'], ouverte: false },
+      ],
+      objets: [],
+    };
+    const station: EntreeMonde = { monde, textes: (MONDES['monde-test'] as EntreeMonde).textes, parcours: [] };
+    /** Observations du passager après chaque passage imposé, la première au réveil. */
+    const observations = (passages: string[]): Observation[] => {
+      let partie = jouerAvecBot(station, { choisir: () => null }, 1).partie;
+      const vues = [observer(monde, partie.etat)];
+      for (const passage of passages) {
+        const resultat = jouer(monde, partie, { action: 'aller', cible: idPublic('ecoute-non', passage) });
+        if (resultat.type !== 'engagee') throw new Error(`aller ${passage} refusé.`);
+        partie = resultat.partie;
+        vues.push(observer(monde, partie.etat));
+      }
+      return vues;
+    };
+    const choix = (bot: Bot, observation: Observation): Commande | null => bot.choisir({ observation, evenements: [], apercu: () => null, trace: null, consulter: () => null });
+
+    it('quand la porte fermée mène à une pièce déjà visitée', () => {
+      // Revenu en A par B après avoir vu C : la seule porte fermée de A mène à C.
+      const retour = observations(['l-a-b', 'l-b-c', 'l-b-c', 'l-a-b']).at(-1)!;
+      for (let graine = 0; graine < 4; graine++) expect(choix(creerBot('averti', graine), retour)?.action, `graine ${String(graine)}`).not.toBe('attendre');
+    });
+
+    it('à sa deuxième arrivée dans la même pièce', () => {
+      const [depart, enB, retour] = observations(['l-a-b', 'l-a-b']);
+      for (let graine = 0; graine < 4; graine++) {
+        const bot = creerBot('averti', graine);
+        expect(choix(bot, depart!)?.action, `graine ${String(graine)}`).toBe('attendre');
+        choix(bot, enB!);
+        expect(choix(bot, retour!)?.action, `graine ${String(graine)}`).not.toBe('attendre');
+      }
+    });
+  });
+
   describe('le profil averti lit les documents (#209, spec 2026-10-20 §11)', () => {
     const textes = (MONDES['monde-test'] as EntreeMonde).textes;
     const piecesDe = (noms: string[]): DefMonde['pieces'] => noms.map((nom) => ({ id: `p-${nom}`, nom }));
