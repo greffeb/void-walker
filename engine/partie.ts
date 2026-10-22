@@ -3,7 +3,7 @@ import { bruitDeStation } from './bruits';
 import { reagir, type SonEmis } from './creature';
 import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
-import { assourdie, creatureActive, etatInitial, liaisonsDe, piecesSansAir, refPiece, type Alarme, type EtatPartie } from './etat';
+import { assourdie, creatureActive, etatInitial, liaisonsDe, liaisonsVisibles, piecesSansAir, refPassage, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
 import { actualiserFroid, type Froid } from './froid';
 import { empreinte } from './hachage';
@@ -369,12 +369,18 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   if (monde.bruitsStation === true && !vaincu && conclu.fin === null && conclu.creature?.contact !== true && bruitDeStation(partie.enregistrement.graine, partie.etat.actions + 1)) {
     evenements.push({ type: 'bruit_station' });
   }
-  // Face 2 du dé : un bruit lourd, très loin, si rien d'autre ne la perçoit déjà et si la pièce n'est pas assourdie (spec créature mobile §3.3).
-  // Ni pendant la traque, ni quand elle est dans une pièce voisine : un signe « loin » ne ment pas.
+  // Face 2 du dé : un signe, si rien d'autre ne la perçoit déjà, hors traque et hors salle des machines (spec créature mobile §3.3).
+  // Plus loin qu'une pièce voisine, un bruit lourd, très loin, sans direction. Dans une pièce voisine, un bruit proche par le passage
+  // qui l'en sépare, même fermé (choix du porteur après son essai sur la PR #249), retenu comme un bruit entendu (D-181).
   const ou = conclu.creature?.piece;
-  const loin = typeof ou === 'string' && ou !== conclu.piece && !liaisonsDe(monde, conclu.piece).some((lien) => lien.entre.includes(ou));
-  if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.contact !== true && loin && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
-    evenements.push({ type: 'bruit_lointain' });
+  if (face === 2 && !vaincu && conclu.fin === null && creatureActive(conclu) && conclu.creature?.contact !== true && typeof ou === 'string' && ou !== conclu.piece && !assourdie(monde, conclu, conclu.piece) && !evenements.some((e) => SIGNES_CREATURE.has(e.type))) {
+    const voisines = liaisonsDe(monde, conclu.piece).filter((lien) => lien.entre.includes(ou));
+    const lien = liaisonsVisibles(monde, conclu, conclu.piece).find((candidate) => voisines.includes(candidate));
+    if (voisines.length === 0) evenements.push({ type: 'bruit_lointain' });
+    else if (lien !== undefined && !assourdie(monde, conclu, ou)) {
+      evenements.push({ type: 'bruit_proche', passage: refPassage(monde, conclu, lien, conclu.piece) });
+      conclu = { ...conclu, reperes: { ...conclu.reperes, entendue: { piece: ou, par: lien.id } } };
+    }
   }
   // Entré là où elle est passée il y a peu : une trace fraîche (spec créature mobile §3.4), même numéro d'action que `reagir`.
   if (auSeuil && conclu.fin === null && creatureActive(conclu) && conclu.creature?.piece !== conclu.piece && conclu.creature?.passages?.some((p) => p.piece === conclu.piece && action - p.action <= FRAICHEUR) === true) {

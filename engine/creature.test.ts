@@ -825,6 +825,29 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
     });
   });
 
+  describe('bruit proche (choix du porteur après l’essai de la PR #249)', () => {
+    const apres = (monde: DefMonde, graine: number, creature: Partial<NonNullable<Partie['etat']['creature']>> & { readonly piece: string }) =>
+      attendre(monde, placee(monde, graine, creature));
+
+    it('face 2, elle dans une pièce voisine : un bruit proche situé par le passage, porte fermée comprise, retenu comme entendu', () => {
+      const fermee: DefMonde = { ...errant, liaisons: errant.liaisons.map((liaison) => (liaison.id === 'ab' ? { ...liaison, ouverte: false } : liaison)) };
+      const { partie, evenements } = apres(fermee, graineAvecFace(2, 1), { piece: 'b' });
+      const proche = evenements.find((evenement) => evenement.type === 'bruit_proche');
+      expect(proche?.type === 'bruit_proche' ? proche.passage.ouvert : null).toBe(false);
+      expect(types(evenements)).not.toContain('bruit_lointain');
+      expect(partie.etat.reperes.entendue).toEqual({ piece: 'b', par: 'ab' });
+      expect(dangerConnu(fermee, partie.etat, 'b')?.risque).toBe('modere');
+    });
+
+    it('par une grille aussi ; jamais sur une autre face, pendant la traque, ni depuis une salle des machines en marche', () => {
+      expect(types(apres(errant, graineAvecFace(2, 1), { piece: 'c' }).evenements)).toContain('bruit_proche');
+      expect(types(apres(errant, graineAvecFace(3, 1), { piece: 'b' }).evenements)).not.toContain('bruit_proche');
+      expect(types(apres(errant, graineAvecFace(2, 1), { piece: 'b', contact: true, fouille: true }).evenements)).not.toContain('bruit_proche');
+      const machines: DefMonde = { ...errant, pieces: errant.pieces.map((piece) => (piece.id === 'b' ? { ...piece, machines: true } : piece)) };
+      expect(types(apres(machines, graineAvecFace(2, 1), { piece: 'b' }).evenements)).not.toContain('bruit_proche');
+    });
+  });
+
   describe('traces fraîches', () => {
     const calme: DefMonde = { ...chezB, rencontre: { rythme: 1000 } };
     /** Elle est en D, passée par C à l'action `passee` ; le joueur, en B, a déjà joué `actions` actions. */

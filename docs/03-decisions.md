@@ -2743,7 +2743,8 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Hasard hors journal.** Le jet est haché sur la graine et le numéro d'action (`hacher`), sans consommer de dé du journal : un rejeu redonne la même empreinte.
   - **Passages.** Chaque pièce occupée est notée à son départ (heure du départ), pas à l'arrivée : la pièce où elle se trouve se voit, celle qu'elle a quittée garde la trace.
   - **`errer`** passe par `deriver ?? franchir` (et non `franchir` seul) pour garder la dérive sans gravité de D-237, comme `fouiller`.
-  - **`bruit_lointain` et `traces_fraiches`** sont comptés dans les événements perçus de la fin de partie (`PERCUE`) : le passager les a bien perçus, ils nourrissent le récit de fin (D-281).
+  - **Bruit proche (choix du porteur, 2026-10-22, après son essai dans la baie sur la PR #249).** Sur la face 2, si elle est dans une pièce voisine, le passager l'entend par le passage qui les sépare, même fermé (`bruit_proche`) ; ce bruit est retenu comme un bruit entendu (D-181) : la porte annonce un risque modéré, et l'errance peut alors l'amener chez lui par ce passage.
+  - **`bruit_lointain`, `bruit_proche` et `traces_fraiches`** sont comptés dans les événements perçus de la fin de partie (`PERCUE`) : le passager les a bien perçus, ils nourrissent le récit de fin (D-281).
   - **Textes** écrits par l'assistant principal, non validés par le porteur ; le mot réservé « traînée » a été retiré du signe sans lieu, pour qu'il n'évoque aucune trace.
   - **Version.** `VERSION_GENERATEUR` passe à **2** : les grandes stations sont republiées, et les anciennes sauvegardes ne sont pas reprises (D-341).
 
