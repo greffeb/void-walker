@@ -1,0 +1,191 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capteur sur la carte Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette capteur, variante E (lot 3) : un seul capteur, récit + carte ; « ! » sur CARTE à chaque changement, icône dans sa pièce. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --alerte: #ff5a4a;
+  --vert-fond: #050a06;
+  --vert-surface: #0b140d;
+  --vert: #5cff7a;
+  --vert-texte: #a6f5b0;
+  --vert-secondaire: #62b06d;
+  --vert-bordure: #3e7046;
+  --vert-separateur: #1f3a24;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+[hidden] { display: none !important; }
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 760px; position: relative; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.recit .net { color: var(--alerte); }
+.recit .term { font-size: 13px; letter-spacing: .04em; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.salles { display: grid; gap: 6px; }
+.salle { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.aller { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; min-height: 48px; padding: 6px 10px; background: var(--texte); color: var(--fond); border: 1px solid var(--texte); display: flex; align-items: center; min-width: 0; }
+.aller.ferme { background: transparent; color: var(--texte); border: 1px dashed var(--bordure); }
+.porte { min-height: 48px; width: 96px; border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.porte.ouverte { background: var(--surface); }
+.temoin { width: 8px; height: 8px; border: 1px solid currentColor; }
+.porte.ouverte .temoin { background: currentColor; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 14px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { position: relative; border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.nav span.bt-carte { opacity: 1; }
+.nav span.bt-carte.ouverte { color: var(--vert-texte); border-color: var(--vert); box-shadow: inset 0 0 0 1px var(--vert); }
+.notif { position: absolute; top: -12px; right: 3px; padding: 0 2px; font-size: 18px; font-weight: 600; line-height: 20px; color: var(--vert); background: var(--fond); animation: notif 1.5s linear infinite; }
+@keyframes notif { 0%, 13.333%, 20%, 33.333%, 100% { opacity: 1; } 6.667%, 26.667% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .notif { animation: none; } }
+
+.carte { position: absolute; left: 12px; right: 12px; top: 56px; bottom: 74px; background: var(--vert-fond); border: 1px solid var(--vert); color: var(--vert-texte); display: flex; flex-direction: column; }
+.carte header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--vert-separateur); }
+.carte h3 { margin: 0; font-size: 16px; color: var(--vert); letter-spacing: .04em; }
+.carte header span { font-size: 12px; border: 1px solid var(--vert-bordure); padding: 8px 10px; }
+.carte svg { flex: 1; width: 100%; }
+.sol { fill: var(--vert-surface); }
+.mur { fill: none; stroke: var(--vert-secondaire); stroke-width: 2; }
+.mur.actuelle { stroke: var(--vert); stroke-width: 3; }
+.ouv { stroke: var(--vert-fond); stroke-width: 5; }
+.ouv.fermee { stroke: var(--vert-texte); stroke-width: 1; }
+.nom { fill: var(--vert-secondaire); font-size: 10px; letter-spacing: .04em; }
+.joueur { fill: var(--vert); }
+
+/* Icône du capteur : un losange ; plein rouge et deux ondes au mouvement, en pointillés si brouillé, barré en panne. */
+.capteur .corps { fill: var(--vert-fond); stroke: var(--vert); stroke-width: 1.5; }
+.capteur .coeur { fill: var(--vert); }
+.capteur.mvt .corps { fill: var(--alerte); stroke: var(--alerte); }
+.capteur.mvt .coeur { fill: var(--vert-fond); }
+.capteur .onde { fill: none; stroke: var(--alerte); stroke-width: 1.5; display: none; }
+.capteur.mvt .onde { display: inline; }
+.capteur.brouille .corps { stroke: var(--vert-secondaire); stroke-dasharray: 2 2; }
+.capteur.brouille .coeur { display: none; }
+.capteur .croix { stroke: var(--vert-secondaire); stroke-width: 1.5; display: none; }
+.capteur.hs .croix { display: inline; }
+.capteur.hs .corps { stroke: var(--vert-secondaire); }
+.capteur.hs .coeur { display: none; }
+
+.legende { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: var(--vert-fond); border: 1px solid var(--vert-separateur); padding: 8px; }
+.legende figure { margin: 0; display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--vert-texte); }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Variante E. <b>Un seul capteur</b>, posé dans la <b>remise</b> (cul-de-sac, porte laissée ouverte). Pas de bandeau : le <b>récit</b> bipe à chaque changement, un <b>« ! »</b> apparaît sur CARTE, et la carte montre l’icône du capteur dans sa pièce. Le « ! » s’éteint quand on ouvre la carte.</p>
+
+  <p class="etiquette">Étape</p>
+  <div class="onglets" role="tablist" id="etapes"></div>
+
+  <div class="tel">
+    <header class="entete"><h1 id="titre"></h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <div class="carte" id="carte" hidden>
+      <header><h3>STATION</h3><span>PIÈCE</span></header>
+      <svg viewBox="0 0 340 300" aria-label="Plan" id="plan"></svg>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </div>
+
+  <p class="etiquette">Les quatre états de l’icône</p>
+  <div class="legende" id="legende"></div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const ICONE = (classe, x, y) => `<g class="capteur ${classe}" transform="translate(${x} ${y})">
+  <path class="onde" d="M-13 -7 a10 10 0 0 0 0 14 M13 -7 a10 10 0 0 1 0 14 M-17 -10 a15 15 0 0 0 0 20 M17 -10 a15 15 0 0 1 0 20"/>
+  <path class="corps" d="M0 -9 L9 0 L0 9 L-9 0 Z"/><circle class="coeur" r="2.5"/>
+  <path class="croix" d="M-11 -11 L11 11"/>
+</g>`;
+// Plan : coursive au centre, remise au nord, atelier à l'ouest, laverie à l'est, salle des machines au sud.
+const PIECES = {
+  'Coursive B': [120, 120, 100, 50], Remise: [130, 40, 80, 70], Atelier: [20, 110, 90, 70],
+  Laverie: [230, 110, 90, 70], 'Salle des machines': [100, 180, 140, 90],
+};
+const PORTES = [['Remise', 170, 110, 170, 120, 'h'], ['Atelier', 110, 145, 120, 145, 'v'], ['Laverie', 220, 145, 230, 145, 'v'], ['Machines', 170, 170, 170, 180, 'h']];
+
+const ETAPES = [
+  { nom: 'Posé', piece: 'Remise', cmd: 'poser capteur', recit: 'Vous fixez le capteur au montant d’une étagère. Un voyant vert clignote, puis s’éteint.', bip: '<span class="term">CAPTEUR : EN SERVICE.</span>',
+    etat: '', notif: false, carte: false, ouvertes: ['Remise'], portes: [['Coursive B', true]],
+    verdict: 'Le joueur pose lui-même : pas de « ! », il sait où est le capteur.' },
+  { nom: 'Bip', piece: 'Atelier', cmd: 'fouiller établi', recit: 'Des clés plates, un chiffon gras. Rien d’utile.', bip: 'Votre terminal bipe deux fois. <span class="net term">CAPTEUR : MOUVEMENT.</span>',
+    etat: 'mvt', notif: true, carte: false, ouvertes: ['Remise', 'Atelier'], portes: [['Coursive B', true], ['Réserve', false]],
+    verdict: 'Elle entre dans la remise : bip rouge dans le récit, « ! » vert qui clignote sur CARTE.' },
+  { nom: 'Carte', piece: 'Atelier', cmd: 'fouiller établi', recit: 'Des clés plates, un chiffon gras. Rien d’utile.', bip: 'Votre terminal bipe deux fois. <span class="net term">CAPTEUR : MOUVEMENT.</span>',
+    etat: 'mvt', notif: false, carte: true, ouvertes: ['Remise', 'Atelier'], portes: [['Coursive B', true], ['Réserve', false]],
+    verdict: 'Carte ouverte (gratuite) : le losange est rouge avec ses ondes dans la remise. Le « ! » s’est éteint.' },
+  { nom: 'Fermé', piece: 'Coursive B', cmd: 'fermer remise', recit: 'La porte de la remise glisse et se verrouille.', bip: '',
+    etat: 'mvt', notif: false, carte: true, ouvertes: ['Atelier'], portes: [['Remise', false], ['Atelier', true], ['Laverie', false]],
+    verdict: 'Rien n’a changé pour le capteur : pas de bip ni de « ! ». La carte le montre toujours rouge derrière la porte fermée.' },
+  { nom: 'Panne', piece: 'Coursive B', cmd: 'attendre', recit: 'Vous restez immobile, l’oreille tendue. Rien de nouveau derrière les portes.', bip: 'Votre terminal grésille. <span class="term">CAPTEUR : PLUS DE SIGNAL.</span>',
+    etat: 'hs', notif: true, carte: false, ouvertes: ['Atelier'], portes: [['Remise', false], ['Atelier', true], ['Laverie', false]],
+    verdict: 'Panne ou destruction, on ne sait pas : « ! » sur CARTE, et la carte montrera le losange barré jusqu’à la fin.' },
+];
+let etape = 0;
+
+function plan(e) {
+  const pieces = Object.entries(PIECES).map(([nom, [x, y, l, h]]) => `<rect class="sol" x="${x}" y="${y}" width="${l}" height="${h}"/>
+    <rect class="mur${nom === e.piece ? ' actuelle' : ''}" x="${x}" y="${y}" width="${l}" height="${h}"/>
+    <text class="nom" x="${x + 6}" y="${y + 14}">${nom.toUpperCase()}</text>`).join('');
+  const portes = PORTES.map(([nom, x1, y1, x2, y2, sens]) => {
+    const ouverte = nom === 'Remise' ? e.ouvertes.includes('Remise') : nom === 'Atelier';
+    const [a, b] = sens === 'h' ? [`x1="${x1 - 10}" y1="${y1}" x2="${x1 + 10}" y2="${y1}"`, `x1="${x1 - 10}" y1="${y2}" x2="${x1 + 10}" y2="${y2}"`] : [`x1="${x1}" y1="${y1 - 10}" x2="${x1}" y2="${y1 + 10}"`, `x1="${x2}" y1="${y1 - 10}" x2="${x2}" y2="${y1 + 10}"`];
+    return ouverte ? `<line class="ouv" ${a}/><line class="ouv" ${b}/>` : `<line class="ouv" ${a}/><line class="ouv" ${b}/><line class="ouv fermee" ${sens === 'h' ? `x1="${x1 - 10}" y1="${(y1 + y2) / 2}" x2="${x1 + 10}" y2="${(y1 + y2) / 2}"` : `x1="${(x1 + x2) / 2}" y1="${y1 - 10}" x2="${(x1 + x2) / 2}" y2="${y1 + 10}"`}/>`;
+  }).join('');
+  const [px, py, pl, ph] = PIECES[e.piece];
+  return pieces + portes + ICONE(e.etat, 170, 82) + `<circle class="joueur" cx="${px + pl / 2}" cy="${py + ph / 2 + 6}" r="5"/>`;
+}
+
+function ligne(nom, ouverte) {
+  return `<div class="salle"><span class="aller${ouverte ? '' : ' ferme'}">→ ${nom}</span>
+    <span class="porte${ouverte ? ' ouverte' : ''}"><span class="temoin"></span>${ouverte ? 'Ouverte' : 'Fermée'}</span></div>`;
+}
+
+function rendre() {
+  const e = ETAPES[etape];
+  document.getElementById('titre').textContent = e.piece;
+  document.getElementById('recit').innerHTML = `<p class="cmd">&gt; ${e.cmd}</p><p>${e.recit}</p>${e.bip ? `<p>${e.bip}</p>` : ''}`;
+  document.getElementById('dock').innerHTML = `<h2 class="titre-section">Se déplacer vers</h2><div class="salles">${e.portes.map(([n, o]) => ligne(n, o)).join('')}</div>`;
+  document.getElementById('carte').hidden = !e.carte;
+  document.getElementById('plan').innerHTML = plan(e);
+  document.getElementById('nav').innerHTML = `<span>INVENTAIRE</span><span class="bt-carte${e.carte ? ' ouverte' : ''}">CARTE${e.notif ? '<b class="notif" aria-label="Nouveau">!</b>' : ''}</span><span>IA STATION</span>`;
+  document.getElementById('verdict').innerHTML = `<b>${etape + 1}. ${e.nom}</b> : ${e.verdict}`;
+  document.getElementById('etapes').innerHTML = ETAPES.map((s, i) => `<button class="onglet" role="tab" data-e="${i}" aria-selected="${i === etape}">${i + 1}</button>`).join('');
+}
+document.getElementById('legende').innerHTML = [['', 'calme'], ['mvt', 'mouvement'], ['brouille', 'brouillé'], ['hs', 'panne']]
+  .map(([c, n]) => `<figure><svg viewBox="-20 -16 40 32" width="56" height="44">${ICONE(c, 0, 0)}</svg><figcaption>${n}</figcaption></figure>`).join('');
+document.getElementById('etapes').addEventListener('click', (ev) => { const s = ev.target.closest('[data-e]')?.dataset.e; if (s !== undefined) { etape = Number(s); rendre(); } });
+rendre();
+</script>
