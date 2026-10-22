@@ -2750,7 +2750,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 ### D-335 — Écouter à une porte, avec jet de perception et mensonge possible près des machines
 
-- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livré au lot 2, interface tranchée par D-343 (Q-2) (§4.1, §12 n° 6).
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; livré par le lot 2 (en PR), interface tranchée par D-343 (Q-2) (§4.1, §12 n° 6).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
 - Décision : une action nouvelle, silencieuse, coûte du temps. Le jet donne net, vague ou rien. Près de machines en marche, le résultat peut tromper : seul mensonge autorisé, à cause visible. Une pièce aveugle (D-338) n'a pas de jet. Le texte ne nomme jamais la créature.
 - Limite [détail de l'agent] : un résultat « net » déclenche l'avertissement actuel (D-181) ; « vague », le bip d'un capteur ou un mouvement vu au poste ne changent pas l'aperçu de risque (conception §4.1).
@@ -2792,13 +2792,13 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; **rien à coder** (§9, §12 n° 13).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
 - Décision : une sauvegarde d'une autre version est refusée et supprimée.
-- Limite [détail de l'agent] : le mécanisme existe déjà. `reprendrePartie` compare `version`, et l'appli répond `reprise_impossible`. Le format ne change pas dans le lot 1.
+- Limite [Détail de l'agent] : le mécanisme existe déjà. `reprendrePartie` compare `version`, et l'appli répond `reprise_impossible`. Le format ne change pas dans le lot 1.
 
 ### D-342 — Choix de l'agent du lot 1 : grandes stations seulement, preuve sans errance
 
 - Date / statut : 2026-10-21 / **Proposé** (choix de l'agent, à valider par le porteur après l'essai sur téléphone).
 - Origine : plan du lot 1 ([plan](superpowers/plans/2026-10-21-creature-mobile-1.md)), « Choix de l'agent dans ce plan ».
-- Décision [détail de l'agent] :
+- Décision [Détail de l'agent] :
   - **Grandes stations seulement.** Les petites stations, AR-01, AR-02 et les mondes de test n'ont pas `rencontre` ; leur état, leurs événements et leurs empreintes ne changent pas. Un champ d'état nouveau reste absent tant qu'il ne sert pas.
   - **Pas de son nouveau.** Les événements nouveaux passent par la narration (système de #99 inchangé).
   - **Ce que le porteur doit essayer sur téléphone** : jouer une grande station jusqu'au bout, et dire si la créature se sent vivante, si l'étendue de 0,5 lui convient, si les signes et les traces aident sans tenir la main.
@@ -2810,11 +2810,11 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : le porteur, sur la maquette du 2026-10-22 : « un joueur prudent écoutera systématiquement à toutes les portes ». Plan : [lot 2](superpowers/plans/2026-10-22-creature-mobile-2.md).
 - Décision : dans les grandes stations, ATTENDRE fait passer un tour et écoute à toutes les portes de la pièce, ouvertes comme fermées. Il n'y a ni bouton Écouter ni bouton par porte. Regarder reste gratuit et n'écoute pas. Le récit se fait porte par porte à la première attente.
 - Précise : D-335 (écouter à une porte).
-- Limite [détail de l'agent] :
+- Limite [Détail de l'agent] :
   - **Grandes stations seulement** (monde à `rencontre`), comme D-342. Ailleurs, ATTENDRE reste tel quel, empreintes comprises.
   - **Pas d'écoute quand le pas la perçoit déjà ni quand elle est en vue** : le récit dit déjà où elle est. Le dernier résultat gardé ne change pas.
   - **Quand rien n'a changé**, ATTENDRE ne rend que `attente`, pour que les messages de patience (D-289) continuent de venir.
-  - **Rendu.** L'attente prend son texte d'écoute même quand un bruit de station s'intercale (correction demandée par le relecteur).
+  - **Rendu.** Un bruit de station intercalé ne change pas le texte d'écoute de l'attente.
   - **Pas de son nouveau** : ATTENDRE garde son son. **Sauvegardes** : rien à coder (D-341).
   - **Bot averti.** Il écoute avant d'ouvrir vers l'inconnu, à sa première arrivée dans la pièce, et n'écoute pas quand la créature est en vue (voir la mesure en D-344).
 
@@ -2824,7 +2824,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : plan du lot 2 ; conception §4.1.
 - Décision : chaque porte donne un résultat, net, vague ou rien. Seule la pièce juste derrière la porte compte. Le jet est un d6 haché sur la graine, le numéro d'action et la liaison, hors journal : un rejeu redonne la même empreinte. La créature dans l'alcôve de la pièce voisine compte comme présente ; inerte, comme absente. Un net n'arrive jamais sans elle ; un vague peut arriver sans elle, sinon il serait une certitude.
 - Précise : D-334 (hasard hors journal), D-335.
-- Limite [détail de l'agent] :
+- Limite [Détail de l'agent] :
   - **Table** (`TABLE_ECOUTE`, seuils à mesurer) :
 
     | Derrière la porte | net | vague | rien |
@@ -2834,31 +2834,39 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
     | elle n'y est pas | — | 1 | 2–6 |
 
   - **La preuve ne bouge pas** : `sansErrance` retire `rencontre`, le jet n'entre pas au journal. Aucune republication des grandes stations ; `check:stations` passe avec 194 verdicts.
-  - **Mesure négative pour le bot averti** (grandes stations, 1 000 parties, mêmes graines et même tirage que `mesurer:difficulte --grandes`). Évacuations : 19,9 % avant, 16,1 % après ; écart apparié −3,8 points, IC 95 % [−5,7 ; −1,9] (115 parties changent d'issue : 67 évacuations perdues, 29 gagnées). L'averti fait 11,7 puis 21,3 attentes par partie, dont 9,5 dues à la règle (44 % des attentes) ; ses attentes génériques ne bougent presque pas (11,7 puis 11,9). Les nets tombent dans 37 % des attentes quand la créature est derrière une porte fermée, et jamais sans elle. Le prudent et le pressé, qui n'ont pas la règle, gardent exactement leurs chiffres. La table n'a pas été retouchée. **Question ouverte pour le porteur** : cette perte vient du coût de la règle (actions et jets de rencontre) plus que du jet, et un bot n'est pas un joueur ; faut-il changer la table, la règle du bot, ou garder tel quel ? Rien n'est conclu ici.
+  - **Mesure négative pour le bot averti** (grandes stations, 1 000 parties, mêmes graines et même tirage que `mesurer:difficulte --grandes`). Évacuations : 19,9 % avant, 16,1 % après ; écart apparié −3,8 points, IC 95 % [−5,7 ; −1,9] (115 parties sur 1 000 changent d'issue : 67 évacuations perdues, 29 gagnées, et 19 autres qui passent entre défaite et partie non finie sans toucher à l'évacuation). L'averti fait 11,7 puis 21,3 attentes par partie, dont 9,5 dues à la règle (44 % des attentes) ; ses attentes génériques ne bougent presque pas (11,7 puis 11,9). Les nets tombent dans 37 % des attentes quand la créature est derrière une porte fermée, et jamais sans elle. Le prudent et le pressé, qui n'ont pas la règle, gardent exactement leurs chiffres. La table n'a pas été retouchée. **Question ouverte pour le porteur** : cette perte peut venir du coût de la règle (actions et jets de rencontre) plus que du jet, et un bot n'est pas un joueur ; faut-il changer la table, la règle du bot, ou garder tel quel ? Rien n'est conclu ici.
 
 ### D-345 — Pièces aveugles, et le vacarme de la salle des machines du joueur
 
 - Date / statut : 2026-10-22 / **Validé** sur maquette ; validation sur téléphone à venir.
 - Origine : le porteur, sur la maquette ; conception §4.1 et D-338.
-- Décision : une pièce voisine aveugle ne donne pas de jet. Salle des machines en marche (`assourdie`) : on croit y entendre des coups, sans savoir lesquels. Chambre froide (`chambreFroide`) : le compresseur. Ce bruit est constant : dit une fois, jamais redit. Si le passager est lui-même dans une salle des machines en marche, une seule phrase, « le vacarme couvre tout », à la première attente, puis plus rien, et aucun jet.
+- Décision : une pièce aveugle ne donne pas de jet (conception approuvée, §4.4, D-338).
 - Précise : D-338, D-335 (mensonge permis près des machines, cause visible).
-- Limite [détail de l'agent] : le grondement est le seul mensonge, et sa cause se voit. Textes de l'assistant principal, non validés par le porteur.
+- Limite [Détail de l'agent] :
+  - **Salle des machines en marche** (`assourdie`) : le récit dit qu'on croit y entendre des coups, sans savoir lesquels ; **chambre froide** (`chambreFroide`) : le compresseur. Ce bruit est constant : dit une fois, jamais redit. Le grondement est le seul mensonge, et sa cause se voit.
+  - **Passager dans une salle des machines en marche** : une seule phrase, « le vacarme couvre tout », à la première attente, puis plus rien, et aucun jet.
+  - Textes de l'assistant principal, non validés par le porteur.
 
 ### D-346 — Ne redire que ce qui change, net redit, « plus rien »
 
 - Date / statut : 2026-10-22 / **Validé** sur maquette (onglets 1 à 6) ; validation sur téléphone à venir.
-- Origine : le porteur, sur la maquette.
-- Décision : aux attentes suivantes dans la même pièce, seul ce qui a changé est redit. Un net est redit à chaque attente sous une forme courte (« ça bouge toujours »). Un net ou un vague qui cesse se dit « plus rien ». Un changement de pièce, ou toute autre action, fait tout redire à l'attente suivante : on ne compare jamais avec les portes d'une autre pièce. Une porte ouverte ou enfoncée entre deux attentes applique la table « ouverte » dès l'attente suivante.
+- Origine : le porteur, sur la maquette, pour le principe ; les formes ci-dessous ont été proposées par l'agent et acceptées sur maquette (onglets 5 et 6 ; le porteur : « c'est pas mal »).
+- Décision : aux attentes suivantes dans la même pièce, seul ce qui a changé est redit (choix du porteur).
 - Précise : D-344.
-- Limite [détail de l'agent] : redire le net évite que le repère BRUIT tombe alors que le danger est là. Le texte doit rester court après plusieurs attentes, ce que le porteur doit juger sur téléphone.
+- Limite [Détail de l'agent] :
+  - **Proposé par l'agent, accepté sur maquette.** Un net est redit à chaque attente sous une forme courte (« ça bouge toujours »), pour que le repère BRUIT ne tombe pas alors que le danger est là. Un net ou un vague qui cesse se dit « plus rien ».
+  - **Changement de pièce** ou toute autre action : la première attente qui suit redit tout, sans jamais comparer avec les portes d'une autre pièce.
+  - **Porte ouverte ou enfoncée entre deux attentes** : la table « ouverte » s'applique dès l'attente suivante.
+  - Le texte doit rester court après plusieurs attentes, ce que le porteur doit juger sur téléphone.
 
 ### D-347 — En rouge et avec BRUIT : net, mouvement entendu par une porte ouverte, bruit proche
 
 - Date / statut : 2026-10-22 / **Validé** sur maquette pour le principe (un net en rouge, le mouvement par une porte ouverte aussi) ; **rouge sur la phrase entière : à valider par le porteur**.
 - Origine : le porteur, sur la maquette ; D-181, D-267.
-- Décision : un net (ou « toujours »), le mouvement entendu par une porte ouverte (`bruit_creature`) et le bruit proche (`bruit_proche`) s'affichent en rouge. Ils sont retenus comme un bruit entendu (`reperes.entendue`, D-181) : repère BRUIT jusqu'à l'action suivante (D-267). Un vague ne change pas l'aperçu de risque.
+- Décision (choix du porteur) : un net et le mouvement entendu par une porte ouverte (`bruit_creature`, OP-01) s'affichent en rouge.
 - Précise : D-181, D-267, D-335, D-334 (bruit proche).
-- Limite [détail de l'agent] :
+- Limite [Détail de l'agent] :
+  - **BRUIT et rouge du bruit proche.** Un net (ou « toujours ») et le bruit proche (`bruit_proche`) sont retenus comme un bruit entendu (`reperes.entendue`, D-181) : repère BRUIT jusqu'à l'action suivante (D-267). Le bruit proche passe aussi en rouge, par cohérence : c'est un net donné par le dé. Un vague ne change pas l'aperçu de risque.
   - **Écart avec la maquette.** Le rouge porte sur la phrase entière (« Derrière la porte de la cuisine, quelque chose bouge. »), non sur sa seconde moitié : c'est le mécanisme existant des phrases d'alerte (`alertesMenace`). À montrer au porteur.
   - **On ne nomme jamais la créature** hors de la couche menace, et on ne dit jamais « elle est derrière cette porte ».
   - **Textes** écrits par l'assistant principal, non validés par le porteur.
