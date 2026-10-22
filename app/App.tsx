@@ -453,6 +453,7 @@ export function App({
             terminerPartie={() => abandonnerPartie(ecran.jeu)}
             signaux={ecran.signaux}
             continuer={() => setEcran({ type: 'fin', jeu: ecran.jeu })}
+            carteRevelee={pr !== '' && reglages.carteRevelee}
           />
         ) : (
           <main className="jeu">

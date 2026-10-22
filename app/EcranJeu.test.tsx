@@ -705,6 +705,12 @@ describe('options (12 §4.10, #96, #201)', () => {
     expect(html).toContain('role="switch" aria-checked="false"');
   });
 
+  it('carte révélée : bascule seulement dans une version de test (PR), absente de la version publique', () => {
+    expect(texte(options({ sousMenuInitial: 'son_texte' }))).not.toContain('Carte révélée');
+    expect(texte(options({ sousMenuInitial: 'son_texte', pr: '249' }))).toContain('Carte révélée (test) [NON]');
+    expect(texte(options({ sousMenuInitial: 'son_texte', pr: '249', reglages: { ...REGLAGES_PAR_DEFAUT, carteRevelee: true } }))).toContain('Carte révélée (test) [OUI]');
+  });
+
   it('son : trois rails de 0 à 100, valeur écrite à droite, COUPÉE ou COUPÉS à 0 (15 §4, D-220)', () => {
     const html = options({ sousMenuInitial: 'son_texte' });
     const rails = html.match(/<input[^>]*class="curseur-rail"[^>]*>/g) ?? [];

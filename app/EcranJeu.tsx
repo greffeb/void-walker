@@ -26,6 +26,7 @@ import {
 } from './ecran';
 import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
+import { carteRevelee as revelee } from './carte/revelee';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
 import { consulter, consulterDocument, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
@@ -133,6 +134,7 @@ export function EcranJeu({
   continuer,
   signaux = AUCUN_SIGNAL,
   terminerPartie,
+  carteRevelee = false,
 }: {
   readonly jeu: Jeu;
   /** Messages d'IA Station déjà lus, par identifiant : les autres messages reçus sont nouveaux (12 §2.6). */
@@ -146,6 +148,8 @@ export function EcranJeu({
   readonly lireMessages: (jeu: Jeu) => void;
   /** Engrenage des options (12 §3.2) ; absent, ou partie terminée : pas d'engrenage. */
   readonly ouvrirOptions?: () => void;
+  /** Version de test, réglage « Carte révélée » : la carte montre toute la station et la créature. */
+  readonly carteRevelee?: boolean;
   /** Après la fin de la partie, seul geste possible : CONTINUER mène à l'écran de fin (12 §4.11, D-286). */
   readonly continuer?: () => void;
   /** TERMINER LA PARTIE de l'information « plus aucune sortie » (12 §5.2) : un abandon ; `false` s'il n'a pas pu être enregistré. */
@@ -363,7 +367,7 @@ export function EcranJeu({
       <div className="bas">
         {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
         {/* Carte (14 §2) : bulle au-dessus de la navigation comme l'inventaire (D-215), gratuite (D-014) ; elle ne lit que l'observation publique. */}
-        {ouverte?.zone === 'carte' && <EcranCarte carte={observation.carte} textes={textes} fermer={fermer} />}
+        {ouverte?.zone === 'carte' && <EcranCarte carte={carteRevelee ? revelee(env.monde, jeu.partie.etat) : observation.carte} textes={textes} fermer={fermer} />}
         {ouverte?.zone === 'inventaire' && (
           <BulleInventaire
             id={idInventaire}

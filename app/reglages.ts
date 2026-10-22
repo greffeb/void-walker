@@ -14,11 +14,13 @@ export interface Reglages {
   readonly general: number;
   readonly effets: number;
   readonly ambiance: number;
+  /** Carte révélée : toute la station et la créature ; lu seulement dans une version de test (PR). */
+  readonly carteRevelee: boolean;
 }
 
 export const CLE_REGLAGES = 'void-walker:reglages';
 
-export const REGLAGES_PAR_DEFAUT: Reglages = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60 };
+export const REGLAGES_PAR_DEFAUT: Reglages = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60, carteRevelee: false };
 
 /** Niveau de 0 à 100, arrondi ; illisible : sa valeur par défaut. */
 function niveau(valeur: unknown, defaut: number): number {
@@ -30,7 +32,7 @@ export function lireReglages(lire: (cle: string) => string | null): Reglages {
   try {
     const brut: unknown = JSON.parse(lire(CLE_REGLAGES) ?? 'null');
     if (typeof brut !== 'object' || brut === null) return REGLAGES_PAR_DEFAUT;
-    const { taille, balayage, machineAEcrire, general, effets, ambiance } = brut as Record<string, unknown>;
+    const { taille, balayage, machineAEcrire, general, effets, ambiance, carteRevelee } = brut as Record<string, unknown>;
     return {
       taille: TAILLES.find((connue) => connue === taille) ?? REGLAGES_PAR_DEFAUT.taille,
       balayage: balayage !== false,
@@ -38,6 +40,7 @@ export function lireReglages(lire: (cle: string) => string | null): Reglages {
       general: niveau(general, REGLAGES_PAR_DEFAUT.general),
       effets: niveau(effets, REGLAGES_PAR_DEFAUT.effets),
       ambiance: niveau(ambiance, REGLAGES_PAR_DEFAUT.ambiance),
+      carteRevelee: carteRevelee === true,
     };
   } catch {
     return REGLAGES_PAR_DEFAUT;

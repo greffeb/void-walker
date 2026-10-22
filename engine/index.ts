@@ -4,6 +4,8 @@ export { sonRetenu, type Intensite, type SonEmis } from './creature';
 export { FACES_RENCONTRE, RYTHME_RENCONTRE, faceRencontre, tirageErrance } from './rencontre';
 export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, type EtatGenerateur } from './des';
 export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice, Reperes, VueCreature } from './etat';
+export { creatureActive } from './etat';
+export { carte } from './carte';
 export { empreinte, hacher } from './hachage';
 export { idPublic, validerMonde, type DefAssistance, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type IntensiteTrace } from './monde';
 export {
