@@ -68,6 +68,8 @@ export const TYPES_EVENEMENT = [
   'bruit_lointain',
   'bruit_proche',
   'traces_fraiches',
+  'ecoute',
+  'ecoute_couverte',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -271,6 +273,10 @@ export type Evenement =
   | { readonly type: 'bruit_proche'; readonly passage: RefPassage }
   /** Le passager entre là où elle est passée il y a peu : une trace fraîche, sans direction (spec créature mobile §3.4). */
   | { readonly type: 'traces_fraiches' }
+  /** En grande station, en attendant : ce qu'on entend derrière ce passage, seulement si ça change (créature mobile lot 2, D-343). */
+  | { readonly type: 'ecoute'; readonly passage: RefPassage; readonly entendu: EntenduRecit }
+  /** En attendant dans une salle des machines en marche : le vacarme couvre tout, dit une fois (créature mobile lot 2, D-343). */
+  | { readonly type: 'ecoute_couverte' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

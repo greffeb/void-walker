@@ -3,7 +3,7 @@ import { bruitDeStation } from './bruits';
 import { reagir, type SonEmis } from './creature';
 import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
-import { assourdie, creatureActive, etatInitial, liaisonsDe, liaisonsVisibles, piecesSansAir, refPassage, refPiece, type Alarme, type EtatPartie } from './etat';
+import { assourdie, autreCote, creatureActive, creatureEnVue, etatInitial, liaisonsDe, liaisonsVisibles, piecesSansAir, refPassage, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
 import { actualiserFroid, type Froid } from './froid';
 import { empreinte } from './hachage';
@@ -11,6 +11,7 @@ import { regarder } from './memoire';
 import { indexer, type DefMonde } from './monde';
 import { observer, terminee } from './observation';
 import { FRAICHEUR, faceRencontre, tirageErrance } from './rencontre';
+import { aRaconter, ecouterPortes } from './ecoute';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
 import { actualiserVide, piecesConnues, type Vide } from './vide';
 import {
@@ -380,6 +381,29 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     else if (lien !== undefined && !assourdie(monde, conclu, ou)) {
       evenements.push({ type: 'bruit_proche', passage: refPassage(monde, conclu, lien, conclu.piece) });
       conclu = { ...conclu, reperes: { ...conclu.reperes, entendue: { piece: ou, par: lien.id } } };
+    }
+  }
+  // Grande station : en attendant, on écoute aux portes, et le récit ne redit que ce qui change (créature mobile lot 2, D-343). Pas
+  // d'écoute quand le pas la situe déjà ou qu'elle est en vue ; toute autre action oublie la dernière écoute.
+  if (monde.rencontre !== undefined) {
+    if (validation.commande.action !== 'attendre') {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- l'écoute ne vaut que pour l'attente qui la suit.
+      const { ecoutees, ...sansEcoute } = conclu;
+      conclu = sansEcoute;
+    } else if (!vaincu && conclu.fin === null && !creatureEnVue(conclu) && !evenements.some((e) => SIGNES_CREATURE.has(e.type) || e.type === 'bruit_proche')) {
+      const maintenant = ecouterPortes(monde, conclu, partie.enregistrement.graine, action);
+      if (Object.keys(maintenant).length === 0 && assourdie(monde, conclu, conclu.piece)) {
+        if (conclu.ecoutees === undefined) evenements.push({ type: 'ecoute_couverte' });
+      } else {
+        for (const { liaison, entendu } of aRaconter(conclu.ecoutees, maintenant)) {
+          const lien = liaisonsDe(monde, conclu.piece).find((candidate) => candidate.id === liaison);
+          if (lien === undefined) continue;
+          evenements.push({ type: 'ecoute', passage: refPassage(monde, conclu, lien, conclu.piece), entendu });
+          // Un net, comme le bruit proche de la face 2, est retenu comme un bruit entendu (D-181).
+          if (entendu === 'net' || entendu === 'toujours') conclu = { ...conclu, reperes: { ...conclu.reperes, entendue: { piece: autreCote(lien, conclu.piece), par: lien.id } } };
+        }
+      }
+      conclu = { ...conclu, ecoutees: maintenant };
     }
   }
   // Entré là où elle est passée il y a peu : une trace fraîche (spec créature mobile §3.4), même numéro d'action que `reagir`.

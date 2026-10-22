@@ -72,12 +72,14 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'porte_secouee':
     case 'porte_enfoncee':
     case 'bruit_proche':
+    case 'ecoute':
       return { passage: nomDe(textes, evenement.passage) };
     case 'attente':
     case 'pas_entendus':
     case 'souffle_entendu':
     case 'bruit_lointain':
     case 'traces_fraiches':
+    case 'ecoute_couverte':
     case 'premier_contact':
     case 'menace':
     case 'aggravation_blesse':
