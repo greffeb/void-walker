@@ -191,9 +191,16 @@ describe('écoute porte par porte (lot 2 de la créature mobile)', () => {
   });
 
   it('même chose devant une écoute couverte ; une attente seule garde ses textes', () => {
-    const [attente] = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute_couverte' }], { graine: 1, action: 0 });
+    const [attente, couverte] = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute_couverte' }], { graine: 1, action: 0 });
     expect(textes.attenteEcoute).toContain(attente);
+    expect(textes.evenements.ecoute_couverte).toContain(couverte);
     expect(rendreEvenements(textes, [{ type: 'attente' }], { graine: 1, action: 0, attentes: 5 })).toEqual([textes.attentesLongues[5]]);
+  });
+
+  it('un bruit de station entre l’attente et l’écoute ne rend pas à l’attente sa phrase ordinaire', () => {
+    const phrases = rendreEvenements(textes, [{ type: 'attente' }, { type: 'bruit_station' }, net], { graine: 1, action: 0 });
+    expect(textes.attenteEcoute).toContain(phrases[0]);
+    expect(phrases[phrases.length - 1]).toContain('la porte de la cuisine');
   });
 
   it('en rouge : un net ou un toujours, le bruit de la créature et le bruit proche ; pas un vague', () => {

@@ -179,8 +179,7 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
     // Une attente qui précède une écoute ne dit pas « Rien ne bouge » : la suite le contredirait.
-    const suivant = evenements[index + 1]?.type;
-    const ecoute = evenement.type === 'attente' && (suivant === 'ecoute' || suivant === 'ecoute_couverte');
+    const ecoute = evenement.type === 'attente' && evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte');
     const variante = choisirVariante(ecoute ? textes.attenteEcoute : variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return [remplir(variante, valeursEvenement(textes, evenement))];
   });
