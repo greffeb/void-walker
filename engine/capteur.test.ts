@@ -141,7 +141,7 @@ describe('dans le pas', () => {
     }
   });
   it('en traque dans la pièce, même tirage : pas de destruction', () => {
-    const depart = etatPose('m', 'r', creatureEn('r', { contact: true }));
+    const depart = etatPose('r', 'r', creatureEn('r', { contact: true }));
     for (const g of graines((graine) => tirageCapteur(graine, 1) < CHANCE_DESTRUCTION && tirageCapteur(graine, 1) >= CHANCE_PANNE && cote(GRAND, depart, graine).partie.etat.creature?.piece === 'r', 30)) {
       const apres = cote(GRAND, depart, g).partie.etat;
       expect(apres.creature?.piece).toBe('r');
