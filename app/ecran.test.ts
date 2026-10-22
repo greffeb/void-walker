@@ -131,6 +131,18 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     expect(ligne(suite.partie)?.reperes).toEqual([]);
   });
 
+  it('repère BRUIT : un net entendu en attendant, un toujours et le bruit proche le posent, un vague non', () => {
+    const depart0 = depart();
+    const passage = observer(monde, depart0.etat).passages[0];
+    if (passage === undefined) throw new Error('Un passage attendu.');
+    const avec = (...derniers: Partie['derniers']) => passagesEntendus({ ...depart0, derniers });
+    expect(avec({ type: 'ecoute', passage, entendu: 'net' })).toEqual([passage.id]);
+    expect(avec({ type: 'ecoute', passage, entendu: 'toujours' })).toEqual([passage.id]);
+    expect(avec({ type: 'bruit_proche', passage })).toEqual([passage.id]);
+    expect(avec({ type: 'ecoute', passage, entendu: 'vague' })).toEqual([]);
+    expect(avec({ type: 'ecoute', passage, entendu: 'plus_rien' })).toEqual([]);
+  });
+
   it('repères : voyant de vide et flammes vues par la porte ouverte, dans l’ordre VIDE, FEU, BRUIT (D-267)', () => {
     const observation = observer(monde, depart().etat);
     const [premier, second] = observation.passages;

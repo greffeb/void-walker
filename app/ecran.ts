@@ -118,9 +118,16 @@ export function passagesOuverts(partie: Partie): string[] {
   return partie.enregistrement.actions.flatMap(({ commande }) => (commande.action === 'ouvrir' ? [commande.cible] : []));
 }
 
-/** Passages derrière lesquels la créature a bougé au dernier pas : le repère BRUIT dure jusqu'à l'action suivante (D-267). */
+/**
+ * Passages derrière lesquels la créature a bougé au dernier pas, ou qu'une écoute a dits « net » ou « toujours » : le repère
+ * BRUIT dure jusqu'à l'action suivante (D-267).
+ */
 export function passagesEntendus(partie: Partie): string[] {
-  return partie.derniers.flatMap((evenement) => (evenement.type === 'bruit_creature' ? [evenement.passage.id] : []));
+  return partie.derniers.flatMap((evenement) => {
+    if (evenement.type === 'bruit_creature' || evenement.type === 'bruit_proche') return [evenement.passage.id];
+    if (evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours')) return [evenement.passage.id];
+    return [];
+  });
 }
 
 /** Première étape d'une bulle (12 §3.5) : la consultation est la fiche, gratuite (D-014) ; le reste, les actions. */
