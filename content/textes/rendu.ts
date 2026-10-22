@@ -51,7 +51,6 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
       return { piece: nomDe(textes, evenement.piece) };
     case 'objet_pris':
     case 'objet_pose':
-    case 'capteur_pose':
       return { objet: nomDe(textes, evenement.objet), piece: nomDe(textes, evenement.piece) };
     case 'passage_ouvert':
     case 'passage_ouvert_encombre':
@@ -82,6 +81,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'traces_fraiches':
     case 'ecoute_couverte':
     case 'capteur':
+    case 'capteur_pose':
     case 'premier_contact':
     case 'menace':
     case 'aggravation_blesse':
@@ -169,6 +169,8 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
   if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
   if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
   if (evenement.type === 'ecoute') return textes.ecoute[evenement.entendu];
+  if (evenement.type === 'capteur') return textes.capteur[evenement.etat];
+  if (evenement.type === 'capteur_pose') return textes.capteurPose[evenement.etat];
   return textes.evenements[evenement.type];
 }
 
@@ -214,6 +216,9 @@ function estMenaceOuDegat(evenement: Evenement): boolean {
       return true;
     case 'ecoute':
       return evenement.entendu === 'net' || evenement.entendu === 'toujours';
+    case 'capteur':
+    case 'capteur_pose':
+      return evenement.etat === 'mouvement';
     case 'creature_entre':
     case 'premier_contact':
     case 'menace':

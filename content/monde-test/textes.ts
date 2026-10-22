@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { ATTENTE_ECOUTE, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_ECOUTE, TRACES } from '../textes/couches';
+import { ATTENTE_ECOUTE, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -88,8 +88,6 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
     bruit_proche: ['Derrière {le:passage}, un souffle lourd, tout proche. Puis plus rien.', 'Contre {le:passage}, quelque chose de massif se déplace sans hâte. Le métal craque à peine.'],
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
     ecoute_couverte: MENACE.evenements.ecoute_couverte,
-    capteur_pose: MENACE.evenements.capteur_pose,
-    capteur: MENACE.evenements.capteur,
     premier_contact: [
       'Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.',
       'La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.',
@@ -331,6 +329,8 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   traces: TRACES,
   ecoute: TEXTES_ECOUTE,
   attenteEcoute: ATTENTE_ECOUTE,
+  capteur: TEXTES_CAPTEUR,
+  capteurPose: TEXTES_POSE_CAPTEUR,
   pillages: PILLAGES,
   documents: {},
   supports: SUPPORTS,

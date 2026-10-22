@@ -159,7 +159,7 @@ function relever(textes: TextesMonde, etapes: readonly (readonly Evenement[])[])
     for (const evenement of etape) {
       if (evenement.type === 'deplacement') piece = evenement.piece;
       if (evenement.type === 'premier_contact') vue = true;
-      if (PERCUE.has(evenement.type) || (evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours'))) percue = true;
+      if (PERCUE.has(evenement.type) || (evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours')) || (evenement.type === 'capteur' && evenement.etat === 'mouvement')) percue = true;
       const defait = DEFAIT[evenement.type];
       if (defait !== undefined) {
         const sujet = sujetDefait(evenement);

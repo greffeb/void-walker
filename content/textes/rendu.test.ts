@@ -211,3 +211,36 @@ describe('écoute porte par porte (lot 2 de la créature mobile)', () => {
     expect(alertesMenace([{ type: 'bruit_proche', passage }])).toEqual([0]);
   });
 });
+
+describe('capteur de mouvement (lot 3 de la créature mobile)', () => {
+  const textes = reunir([]);
+  const piece = { sorte: 'piece', id: 'e00000005', nom: 'cuisine' } as const;
+  const objet = { sorte: 'objet', id: 'e00000006', nom: 'cat_capteur' } as const;
+
+  it('la pose prend ses phrases selon l’état lu, sans alerte quand tout est calme', () => {
+    const evenement: Evenement = { type: 'capteur_pose', objet, piece, etat: 'calme' };
+    const [phrase] = rendreEvenements(textes, [evenement], { graine: 1, action: 0 });
+    expect(textes.capteurPose.calme).toContain(phrase);
+    expect(alertesMenace([evenement])).toEqual([]);
+  });
+
+  it('un bip prend ses phrases selon l’état ; le mouvement seul est en rouge', () => {
+    for (const etat of ['calme', 'mouvement', 'brouille', 'hs'] as const) {
+      const [phrase] = rendreEvenements(textes, [{ type: 'capteur', etat }], { graine: 1, action: 0 });
+      expect(textes.capteur[etat], etat).toContain(phrase);
+      expect(alertesMenace([{ type: 'capteur', etat }]), etat).toEqual(etat === 'mouvement' ? [0] : []);
+    }
+    expect(alertesMenace([{ type: 'attente' }, { type: 'capteur', etat: 'mouvement' }])).toEqual([1]);
+  });
+
+  it('une pose qui lit un mouvement est en rouge aussi', () => {
+    expect(alertesMenace([{ type: 'capteur_pose', objet, piece, etat: 'mouvement' }])).toEqual([0]);
+  });
+
+  it('les mondes écrits en entier reprennent ces textes', () => {
+    for (const id of ['ar-01', 'ar-02', 'monde-test']) {
+      expect(MONDES[id]?.textes.capteur, id).toEqual(textes.capteur);
+      expect(MONDES[id]?.textes.capteurPose, id).toEqual(textes.capteurPose);
+    }
+  });
+});

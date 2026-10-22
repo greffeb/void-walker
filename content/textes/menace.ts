@@ -21,9 +21,6 @@ export const MENACE = {
     bruit_proche: ['Derrière {le:passage}, un souffle lourd, tout proche. Puis plus rien.', 'Contre {le:passage}, quelque chose de massif se déplace sans hâte. Le métal craque à peine.'],
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
     ecoute_couverte: ['Le vacarme des machines couvre tout : impossible d’entendre ce qui se passe derrière les portes.', 'Les machines grondent trop fort : inutile de tendre l’oreille, tout est couvert.'],
-    // textes : tâche 4 (provisoire, pour le typage).
-    capteur_pose: ['Le capteur est posé.'],
-    capteur: ['Le capteur bipe.'],
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',
@@ -67,6 +64,28 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     plus_rien: ['Derrière {le:passage}, plus rien.', 'Derrière {le:passage}, le bruit s’est tu.'],
     machines: ['Derrière {le:passage}, le grondement des machines couvre tout ; on croit y entendre des coups, sans savoir lesquels.'],
     froid: ['Contre {le:passage}, le métal glacé ne laisse passer que le ronron du compresseur.'],
+  },
+  // Capteur de mouvement (lot 3 de la créature mobile) : seul « MOUVEMENT » est en rouge ; « calme » n'est dit que d'une pièce
+  // dont il lit l'air, et une panne ou une destruction se dit toujours.
+  capteurPose: {
+    calme: [
+      'Vous fixez le capteur au mur. Un voyant vert clignote, puis s’éteint. CAPTEUR : EN SERVICE.',
+      'Vous collez le capteur au mur. Son voyant vert bat une fois, puis s’éteint. CAPTEUR : EN SERVICE.',
+    ],
+    brouille: [
+      'Vous fixez le capteur au mur. Le voyant hésite, puis clignote sans fin. CAPTEUR : SIGNAL BROUILLÉ.',
+      'Vous collez le capteur au mur. Son voyant tremble, sans jamais se fixer. CAPTEUR : SIGNAL BROUILLÉ.',
+    ],
+    mouvement: [
+      'Vous fixez le capteur au mur. Le voyant passe aussitôt au rouge. CAPTEUR : MOUVEMENT.',
+      'Vous collez le capteur au mur. Son voyant vire au rouge sur-le-champ. CAPTEUR : MOUVEMENT.',
+    ],
+  },
+  capteur: {
+    mouvement: ['Votre terminal bipe deux fois. CAPTEUR : MOUVEMENT.', 'Votre terminal sonne, sec, deux fois. CAPTEUR : MOUVEMENT.'],
+    calme: ['Votre terminal bipe. CAPTEUR : PLUS DE MOUVEMENT.', 'Votre terminal bipe une fois, plus doucement. CAPTEUR : PLUS DE MOUVEMENT.'],
+    brouille: ['Votre terminal grésille. CAPTEUR : SIGNAL BROUILLÉ.', 'Votre terminal crachote un parasite. CAPTEUR : SIGNAL BROUILLÉ.'],
+    hs: ['Votre terminal grésille. CAPTEUR : PLUS DE SIGNAL.', 'Votre terminal crachote, puis se tait. CAPTEUR : PLUS DE SIGNAL.'],
   },
   attenteEcoute: ['Vous restez immobile, l’oreille tendue.', 'Vous retenez votre souffle et vous écoutez.'],
   // Traces de la piste (spec 2026-10-18 §5.4) : une phrase entière, vraie dans toute pièce où elle est passée. Légères loin de

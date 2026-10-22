@@ -24,6 +24,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_laboratoire: { texte: 'laboratoire', genre: 'm', nombre: 's', elision: false },
     // Objets du butin (spec §6.6) : leur nom n'est celui d'aucun morceau ni d'aucune pièce (NP-04).
     cat_trousse: { texte: 'trousse de soin', genre: 'f', nombre: 's', elision: false },
+    cat_capteur: { texte: 'capteur de mouvement', genre: 'm', nombre: 's', elision: false },
     cat_burette_reserve: { texte: 'burette de réserve', genre: 'f', nombre: 's', elision: false },
   },
   descriptions: {
@@ -93,6 +94,10 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     cat_trousse: [
       'Une trousse de soin en toile, une croix blanche sur le rabat. Quelqu’un l’a manquée en fouillant.',
       'Une trousse de soin d’urgence, les attaches encore scellées. Elle a échappé à ceux qui sont passés avant vous.',
+    ],
+    cat_capteur: [
+      'Un capteur de mouvement de maintenance, gros comme un poing, une bande adhésive au dos. Son voyant s’allume quand on l’agite.',
+      'Un petit capteur de mouvement de maintenance, une bande adhésive au dos. Son voyant s’allume au moindre choc.',
     ],
     cat_burette_reserve: [
       'Une burette de réserve, pleine, le bouchon encore plombé. L’étiquette précise : lubrifiant glissant, non inflammable.',

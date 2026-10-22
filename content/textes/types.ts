@@ -1,6 +1,7 @@
 import type {
   Cout,
   EntenduRecit,
+  EtatCapteur,
   IntensiteTrace,
   IdAction,
   Issue,
@@ -28,9 +29,9 @@ export type TypeAggravation = (typeof TYPES_AGGRAVATION)[number];
 
 /**
  * Événements racontés par `evenements` : l'évacuation a ses textes selon les sources (`evacuations`), l'assistance les siens
- * (`assistance`), hors du récit ; l'écoute dit ce qu'elle entend selon `ecoute`.
+ * (`assistance`), hors du récit ; l'écoute dit ce qu'elle entend selon `ecoute`, le capteur selon `capteur` et `capteurPose` (lot 3 de la créature mobile).
  */
-export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance' | 'ecoute'>;
+export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance' | 'ecoute' | 'capteur' | 'capteur_pose'>;
 
 /** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, les deux, ou la réserve d'une capsule déjà prête (AR-02). */
 export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc', 'reserve'] as const;
@@ -136,6 +137,10 @@ export interface TextesMonde {
   readonly ecoute: Readonly<Record<EntenduRecit, Variantes>>;
   /** Phrase d'attente qui précède une écoute, à la place de celle de `evenements.attente`. */
   readonly attenteEcoute: Variantes;
+  /** Bip du terminal selon l'état du capteur (lot 3 de la créature mobile) ; couche menace. « Mouvement » est en rouge. */
+  readonly capteur: Readonly<Record<EtatCapteur, Variantes>>;
+  /** Pose du capteur selon l'état qu'il lit aussitôt (jamais `hs` : un capteur détruit ne se pose pas) ; couche menace. */
+  readonly capteurPose: Readonly<Record<Exclude<EtatCapteur, 'hs'>, Variantes>>;
   /** Attente seule à raconter, 5e et 10e de suite (#225). */
   readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
@@ -319,9 +324,6 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   bruit_proche: ['passage'],
   traces_fraiches: [],
   ecoute_couverte: [],
-  // textes : tâche 4 (provisoire, pour le typage).
-  capteur_pose: [],
-  capteur: [],
   attente: [],
   bruit_station: [],
   premier_contact: [],
