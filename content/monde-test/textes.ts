@@ -89,6 +89,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
     ecoute_couverte: MENACE.evenements.ecoute_couverte,
     capteur_pose: MENACE.evenements.capteur_pose,
+    capteur: MENACE.evenements.capteur,
     premier_contact: [
       'Une silhouette se déplie devant vous, plus haute qu’un homme, la peau luisante. Une tête sans yeux se tourne vers vous et s’immobilise. Elle vous a repéré. Il vous reste un instant pour réagir.',
       'La chose se redresse lentement, à quelques pas de vous. Pas d’yeux, seulement une gueule entrouverte qui hume l’air. Elle s’est figée dans votre direction. Vous avez un instant, pas plus.',

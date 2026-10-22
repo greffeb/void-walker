@@ -321,6 +321,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   ecoute_couverte: [],
   // textes : tâche 4 (provisoire, pour le typage).
   capteur_pose: [],
+  capteur: [],
   attente: [],
   bruit_station: [],
   premier_contact: [],

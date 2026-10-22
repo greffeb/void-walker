@@ -74,6 +74,7 @@ export const TYPES_EVENEMENT = [
   'ecoute',
   'ecoute_couverte',
   'capteur_pose',
+  'capteur',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -283,6 +284,8 @@ export type Evenement =
   | { readonly type: 'ecoute_couverte' }
   /** Le capteur est posé pour de bon, et dit d'emblée ce qu'il lit (créature mobile lot 3). */
   | { readonly type: 'capteur_pose'; readonly objet: RefObjet; readonly piece: RefPiece; readonly etat: Exclude<EtatCapteur, 'hs'> }
+  /** Le capteur posé change d'état : il bipe, tombe en panne ou est détruit (créature mobile lot 3). */
+  | { readonly type: 'capteur'; readonly etat: EtatCapteur }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

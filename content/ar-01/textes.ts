@@ -142,6 +142,7 @@ export const TEXTES_AR01: TextesMonde = {
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
     ecoute_couverte: MENACE.evenements.ecoute_couverte,
     capteur_pose: MENACE.evenements.capteur_pose,
+    capteur: MENACE.evenements.capteur,
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',

@@ -7,7 +7,7 @@ export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, 
 export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice, Reperes, VueCreature } from './etat';
 export { creatureActive } from './etat';
 export { carte, pieceDeCarte } from './carte';
-export { capteurPose } from './capteur';
+export { abimerCapteur, capteurPose, CHANCE_DESTRUCTION, CHANCE_PANNE, tirageCapteur } from './capteur';
 export { empreinte, hacher } from './hachage';
 export { idPublic, validerMonde, type DefAssistance, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type IntensiteTrace } from './monde';
 export {

@@ -23,6 +23,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     ecoute_couverte: ['Le vacarme des machines couvre tout : impossible d’entendre ce qui se passe derrière les portes.', 'Les machines grondent trop fort : inutile de tendre l’oreille, tout est couvert.'],
     // textes : tâche 4 (provisoire, pour le typage).
     capteur_pose: ['Le capteur est posé.'],
+    capteur: ['Le capteur bipe.'],
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',
