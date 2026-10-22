@@ -2739,7 +2739,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Remplace : D-048 (pas de patrouille sans alerte), dans les mondes à `rencontre` ; D-048 reste valide pour AR-01, AR-02 et les petites stations. Précise D-321 (immobile avant le premier contact) : la ronde est désormais décidée chiffres en main (#217).
 - Limite [détail de l'agent] :
   - **Le dé se tait pendant la traque** (oreille ouverte, indice, porte en cours de forçage, fouille à faire) : D-276 gouverne seul, et le dé reprend quand la piste est perdue (spec §3.2, deux régimes sans fusion).
-  - **Valeurs à mesurer.** `RYTHME_RENCONTRE` **3** (un jet toutes les 3 actions), `FRAICHEUR` **6** (une trace reste lisible 6 actions). Le porteur voit les mesures avant de décider.
+  - **Valeurs à mesurer.** `RYTHME_RENCONTRE` **1** (un jet à chaque action ; 3 au départ, trop lent à l’essai du porteur sur la PR #249 le 2026-10-22, choix du porteur), `FRAICHEUR` **6** (une trace reste lisible 6 actions). Le porteur voit les mesures avant de décider.
   - **Hasard hors journal.** Le jet est haché sur la graine et le numéro d'action (`hacher`), sans consommer de dé du journal : un rejeu redonne la même empreinte.
   - **Passages.** Chaque pièce occupée est notée à son départ (heure du départ), pas à l'arrivée : la pièce où elle se trouve se voit, celle qu'elle a quittée garde la trace.
   - **`errer`** passe par `deriver ?? franchir` (et non `franchir` seul) pour garder la dérive sans gravité de D-237, comme `fouiller`.

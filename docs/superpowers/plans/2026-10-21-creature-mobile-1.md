@@ -117,7 +117,7 @@ git commit -m "engine: territoire de la créature, pièces atteintes par des pas
 **Interfaces:**
 - Produces, dans `engine/monde.ts` : `DefMonde.rencontre?: { readonly rythme: number }`. Absent, la créature n'erre pas.
 - Produces, dans `engine/rencontre.ts` :
-  - `export const RYTHME_RENCONTRE = 3;` (Normal, seuil à mesurer) ;
+  - `export const RYTHME_RENCONTRE = 3;` (Normal, seuil à mesurer ; porté à 1 après l’essai du porteur) ;
   - `export const FACES_RENCONTRE = 6;` ;
   - `export function faceRencontre(graine: number, action: number, rythme: number): number | null` : `null` si `action % rythme !== 0`, sinon `1 + (Number.parseInt(hacher(\`rencontre:${graine}:${action}\`).slice(-8), 16) % 6)` ;
   - `export function tirageErrance(graine: number, action: number): number` : entier 32 bits tiré de `hacher(\`errance:${graine}:${action}\`)`, pour choisir parmi les pièces voisines.

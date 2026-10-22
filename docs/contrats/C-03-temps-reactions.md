@@ -76,7 +76,7 @@ Cette section ne vaut que dans un monde qui déclare `rencontre` (les grandes st
 - **Forçage lent.** Alertée par un bruit fort qui lui parvient (D-178 inchangé : une porte fermée l'arrête sauf `sonAuTravers`), elle force une porte fermée sur sa piste en `REACTIONS_FORCER_LENT` réactions avant le contact, contre deux en poursuite (D-279). [Détail de l'agent] Seuls les bruits forts y suffisent : un bruit normal ne lance ni ne détourne un forçage lent, qui continue seulement dans le silence ; les pas du passager n'y suffisent pas avant le contact (D-276). Au contact en plein forçage lent, il reste au plus deux réactions. La porte cédée reste ouverte.
 - **Sans errance, la preuve** [détail de l'agent, écart à valider, D-333]. Le monde sans errance (`sansErrance`) retire `rencontre` : il garde les règles d'avant et sert de preuve, sans errance **ni forçage lent**. Le forçage lent ne naît que d'un bruit fort que le passager provoque ; une station qu'il rendrait difficile n'est pas détectée par la preuve. L'errance est bornée par les règles ci-dessus.
 
-Valeurs d'équilibrage à mesurer, non figées : `RYTHME_RENCONTRE` 3, `FRAICHEUR` 6, `REACTIONS_FORCER_LENT` 4, `ETENDUE_TERRITOIRE` 0,5.
+Valeurs d'équilibrage à mesurer, non figées : `RYTHME_RENCONTRE` 1 (3 au départ, porté à 1 par le porteur après son essai), `FRAICHEUR` 6, `REACTIONS_FORCER_LENT` 4, `ETENDUE_TERRITOIRE` 0,5.
 
 ## 5. Cycles particuliers acceptés pour AR-01
 

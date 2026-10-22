@@ -4,8 +4,8 @@ import { hacher } from './hachage';
 // fait la créature. Le tirage ne lit que la graine de partie et le numéro d'action : rien n'entre au journal, ni la preuve, ni le
 // rejeu, ni la sauvegarde ne changent.
 
-/** Normal ; seuil à mesurer. */
-export const RYTHME_RENCONTRE = 3;
+/** Un jet à chaque action : elle bouge en moyenne toutes les 6 actions (essai du porteur sur la PR #249, 2026-10-22). */
+export const RYTHME_RENCONTRE = 1;
 /** Actions pendant lesquelles un passage de la créature laisse une trace fraîche ; seuil à mesurer. */
 export const FRAICHEUR = 6;
 export const FACES_RENCONTRE = 6;
