@@ -240,6 +240,11 @@ export interface Commande {
   readonly parametre?: string;
 }
 
+/** Ce qu'on perçoit derrière une porte en attendant (D-343) ; `machines` et `froid` sont des pièces aveugles. */
+export type Entendu = 'net' | 'vague' | 'rien' | 'machines' | 'froid';
+/** Ce que le récit en dit : `Entendu`, plus les redites d'un changement (« toujours », « plus rien »). */
+export type EntenduRecit = Entendu | 'toujours' | 'plus_rien';
+
 export type Evenement =
   | { readonly type: 'drone_envoye' | 'drone_maintient' | 'drone_deraille' | 'drone_replace' | 'drone_rearme' | 'drone_arrete' | 'drone_termine' | 'poignee_tenue' | 'poignee_lachee'; readonly objet: RefObjet }
   | { readonly type: 'drone_bruit_arrete'; readonly passage: RefPassage }
