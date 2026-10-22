@@ -5,7 +5,7 @@ import { chromium, devices, type Browser, type BrowserContext, type Locator, typ
 import { preview } from 'vite';
 import { apercu, idPublic, jouer, nouvellePartie, observer, type Commande, type DefMonde, type DefObjet, type EtatPartie, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
-import { cleMort, COMPOSITIONS_PUBLIEES, GRANDES_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, type CleMort, type EntreeMonde, type EtapeParcours, type SupportDocument, type TextesMonde } from '../content';
+import { cleMort, COMPOSITIONS_PUBLIEES, GRANDES_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, VERSION_GENERATEUR, type CleMort, type EntreeMonde, type EtapeParcours, type SupportDocument, type TextesMonde } from '../content';
 import { composerDock, filBulle, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, REGARDER_AUTOUR, texteRappel, unToucher } from '../app/ecran';
 import { recitDeFin } from '../app/jeu';
 import { CLE_REGLAGES } from '../app/reglages';
@@ -16,7 +16,7 @@ import { rejouerExport } from './rejouer-export';
 import { dessinerPlan } from './plans-svg';
 import { trouverOption } from './rejouer-parcours';
 import { REPO_ROOT, isMainModule } from './repo-files';
-import { cheminPrincipal, lireTemoins, temoinValable } from './verifier-grandes';
+import { cheminPrincipal, lireTemoins, sansErrance, temoinValable } from './verifier-grandes';
 import { echantillonGrandes } from './verifier-sortie';
 import { chercherJusqua, cleEtatRegles, verifierLibre, verifierStation } from './verifier-station';
 import { versionDuJeu } from './version';
@@ -39,7 +39,7 @@ const STATIONS_AR01 = ['m08-m01-m06-palier-2718281828', 'm04-m02-m03-atelier-271
 /** Ordre libre (#155) : deux branches, M-07 et M-10, et le final M-03 ; réveil, plan, couloir commun et première commande. */
 const STATION_LIBRE = 'ol-m07-m10-m03-soute-2718281828';
 // Petite station (#152) ou grande station (spec 2026-10-18 §7.4) : l'adresse nue tire désormais les grandes.
-const FORME_STATION = /^((ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)|g1-(ol-)?(m[0-9]{2}-){4}[a-z]+-[0-9]+)$/;
+const FORME_STATION = /^((ol-)?(m[0-9]{2}-){1,2}m0[36]-[a-z]+-(0|[1-9][0-9]*)|g[1-9][0-9]*-(ol-)?(m[0-9]{2}-){4}[a-z]+-[0-9]+)$/;
 /** Sas de sécurité M-11 (#203) : porte blindée, lecteur de carte et remise ; plan de la station. */
 const STATION_SAS = 'm11-m03-remise-2718281828';
 const STATION_DRONE = 'm12-m03-stockage-2718281828';
@@ -1844,12 +1844,14 @@ function temoinDuChemin(id: string): TemoinDuChemin | undefined {
   const base = cheminPrincipal(entree, definition);
   const etapes = base === null ? undefined : verifierStation(base).parcours?.etapes;
   if (etapes === undefined || !temoinValable(entree, etapes)) return undefined;
-  const portes = (piece: string): number => entree.monde.liaisons.filter((liaison) => liaison.entre.includes(piece)).length;
-  let partie = nouvellePartie(entree.monde, { version: 'gestes', graine: 0 });
+  // Le témoin se rejoue sans errance, comme il a été prouvé (spec créature mobile §preuve) ; `entree` reste celle de la station.
+  const jouee = sansErrance(entree);
+  const portes = (piece: string): number => jouee.monde.liaisons.filter((liaison) => liaison.entre.includes(piece)).length;
+  let partie = nouvellePartie(jouee.monde, { version: 'gestes', graine: 0 });
   let plusChargee = { pas: 0, portes: portes(partie.etat.piece) };
   for (const [rang, etape] of etapes.entries()) {
-    const option = trouverOption(observer(entree.monde, partie.etat), etape);
-    const resultat = option === undefined ? null : jouer(entree.monde, partie, option.commande);
+    const option = trouverOption(observer(jouee.monde, partie.etat), etape);
+    const resultat = option === undefined ? null : jouer(jouee.monde, partie, option.commande);
     if (resultat?.type !== 'engagee') break;
     partie = resultat.partie;
     if (portes(partie.etat.piece) > plusChargee.portes) plusChargee = { pas: rang + 1, portes: portes(partie.etat.piece) };
@@ -1865,7 +1867,7 @@ async function parcoursGrandeStation(navigateur: Browser, racine: string, captur
   // La première grande station en chaîne dont le témoin du chemin principal vaut encore dans la grande station et traverse une
   // pièce à quatre portes ou plus (review Focus 5 : son dock, en 320 px).
   let choisie: ({ readonly id: string } & TemoinDuChemin) | undefined;
-  for (const station of CATALOGUE.publiees.filter((candidate) => !candidate.startsWith('g1-ol-'))) {
+  for (const station of CATALOGUE.publiees.filter((candidate) => !candidate.startsWith(`g${VERSION_GENERATEUR}-ol-`))) {
     const temoin = temoinDuChemin(station);
     if (temoin !== undefined && temoin.plusChargee.portes >= 4) {
       choisie = { id: station, ...temoin };
@@ -1951,7 +1953,7 @@ function gestesDuTemoin(entree: EntreeMonde, pas: readonly (readonly [string, st
 async function parcoursGrandesM11M12(navigateur: Browser, racine: string, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const temoins = lireTemoins();
   for (const morceau of ['m11', 'm12']) {
-    const id = [...CATALOGUE.publiees].sort().find((candidate) => !candidate.startsWith('g1-ol-') && candidate.split('-').slice(1, 4).includes(morceau));
+    const id = [...CATALOGUE.publiees].sort().find((candidate) => !candidate.startsWith(`g${VERSION_GENERATEUR}-ol-`) && candidate.split('-').slice(1, 4).includes(morceau));
     const entree = id === undefined ? undefined : CATALOGUE.resoudre(id);
     const pas = id === undefined ? undefined : temoins[id]?.[0];
     if (id === undefined || entree === undefined || 'refus' in entree || pas === undefined) {
@@ -2150,14 +2152,16 @@ function documentsSurLeChemin(ids: readonly string[]): Map<string, Visee> {
     if ('refus' in entree || pas === undefined) continue;
     const { monde, textes } = entree;
     const documents = monde.objets.filter((objet) => objet.document === true);
-    let partie: Partie = nouvellePartie(monde, { version: 'gestes', graine: 0 });
+    // Le témoin se rejoue sans errance, comme il a été prouvé (spec créature mobile §preuve).
+    const jouee = sansErrance(entree).monde;
+    let partie: Partie = nouvellePartie(jouee, { version: 'gestes', graine: 0 });
     const gestes: Geste[] = [];
     for (const [action, cible, parametre] of pas) {
-      const observation = observer(monde, partie.etat);
+      const observation = observer(jouee, partie.etat);
       const option = observation.menu.find((choix) => choix.action === action && choix.cible.id === cible && choix.parametre?.id === parametre);
       if (option === undefined || !option.disponible) break;
       const geste = gesteDe(entree, partie, observation, option);
-      const resultat = jouer(monde, partie, option.commande);
+      const resultat = jouer(jouee, partie, option.commande);
       if (resultat.type !== 'engagee') break;
       partie = resultat.partie;
       gestes.push(geste);
@@ -2570,7 +2574,7 @@ async function capturerPlans(navigateur: Browser, capturer: CapturerPage, erreur
   // Grandes stations (spec 2026-10-18 §11) : deux par final et par forme, prises dans la liste publiée.
   for (const final of ['m03', 'm06']) {
     for (const libreOuNon of [false, true]) {
-      const parmi = CATALOGUE.publiees.filter((id) => id.startsWith('g1-ol-') === libreOuNon && id.includes(`-${final}-`));
+      const parmi = CATALOGUE.publiees.filter((id) => id.startsWith(`g${VERSION_GENERATEUR}-ol-`) === libreOuNon && id.includes(`-${final}-`));
       for (const id of parmi.filter((_, rang) => rang % Math.max(1, Math.floor(parmi.length / 2)) === 0).slice(0, 2)) {
         const grande = CATALOGUE.resoudre(id);
         if ('refus' in grande) erreurs.push(`${id} : ${grande.refus}`);

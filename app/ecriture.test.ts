@@ -36,7 +36,7 @@ describe('effet machine à écrire (D-186)', () => {
 
 describe('réglages gardés sur l’appareil (D-186, D-220, 12 §4.10)', () => {
   const magasin = (valeur: string | null) => (cle: string) => (cle === CLE_REGLAGES ? valeur : null);
-  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60 };
+  const DEFAUT = { taille: 'standard', balayage: true, machineAEcrire: true, general: 80, effets: 80, ambiance: 60, carteRevelee: false };
 
   it('par défaut : taille standard, balayage et machine à écrire sur [OUI], son à 80, 80 et 60 ; réglages enregistrés relus', () => {
     expect(lireReglages(magasin(null))).toEqual(DEFAUT);
@@ -48,6 +48,7 @@ describe('réglages gardés sur l’appareil (D-186, D-220, 12 §4.10)', () => {
       general: 55,
       effets: 0,
       ambiance: 100,
+      carteRevelee: false,
     });
   });
 
@@ -69,7 +70,7 @@ describe('réglages gardés sur l’appareil (D-186, D-220, 12 §4.10)', () => {
 
   it('écrire puis relire redonne les mêmes réglages ; un refus du navigateur est signalé sans lever', () => {
     const memoire = new Map<string, string>();
-    const reglages = { taille: 'grande', balayage: false, machineAEcrire: false, general: 10, effets: 20, ambiance: 0 } as const;
+    const reglages = { taille: 'grande', balayage: false, machineAEcrire: false, general: 10, effets: 20, ambiance: 0, carteRevelee: true } as const;
     expect(ecrireReglages((cle, valeur) => memoire.set(cle, valeur), reglages)).toBe(true);
     expect(lireReglages((cle) => memoire.get(cle) ?? null)).toEqual(reglages);
     expect(

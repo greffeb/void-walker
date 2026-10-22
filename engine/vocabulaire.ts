@@ -65,6 +65,9 @@ export const TYPES_EVENEMENT = [
   'bruit_creature',
   'pas_entendus',
   'souffle_entendu',
+  'bruit_lointain',
+  'bruit_proche',
+  'traces_fraiches',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -257,6 +260,12 @@ export type Evenement =
   | { readonly type: 'pas_entendus' }
   /** Alertée, elle écoute encore : elle entend le passager immobile et vient (D-276). */
   | { readonly type: 'souffle_entendu' }
+  /** Face 2 du dé de rencontre : un bruit lourd, très loin, sans direction (spec créature mobile §3.3). */
+  | { readonly type: 'bruit_lointain' }
+  /** Face 2 du dé, elle dans une pièce voisine : un bruit proche, situé par le passage qui les sépare, même fermé (spec créature mobile §3.3). */
+  | { readonly type: 'bruit_proche'; readonly passage: RefPassage }
+  /** Le passager entre là où elle est passée il y a peu : une trace fraîche, sans direction (spec créature mobile §3.4). */
+  | { readonly type: 'traces_fraiches' }
   /** Une seule fois par partie (C-03 §4.4). */
   | { readonly type: 'attente' }
   | { readonly type: 'premier_contact' }

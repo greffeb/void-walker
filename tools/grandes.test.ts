@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { assemblerStation } from '../engine';
-import { MORCEAUX, VERSION_GENERATEUR, type CompositionGrande } from '../content';
+import { assemblerStation, RYTHME_RENCONTRE, type DefMonde } from '../engine';
+import { ETENDUE_TERRITOIRE, MORCEAUX, VERSION_GENERATEUR, type CompositionGrande } from '../content';
 import { CATALOGUE } from './catalogue';
 
 // Grandes stations (spec 2026-10-18 §4, D-313, D-315) : deux chemins matériels, un troisième chemin, un final ; la créature
@@ -32,7 +32,7 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     }
   });
 
-  it('identifiants g1-…, uniques, triés, de 40 caractères au plus avec la graine 9999', () => {
+  it('identifiants g<version>-…, uniques, triés, de 40 caractères au plus avec la graine 9999', () => {
     const ids = grandes.map((composition) => composition.id);
     for (const id of ids) {
       expect(id.startsWith(`g${VERSION_GENERATEUR}-`)).toBe(true);
@@ -104,6 +104,41 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     expect(total / essais).toBeLessThan(50);
     console.log(`grandes stations : ${plans}/${essais} plans, ${(total / essais).toFixed(1)} ms en moyenne, ${pire.toFixed(1)} ms au pire`);
   }, 120_000);
+
+  it('territoire de départ (spec créature mobile §territoire) : portes ouvertes loin des pièces sensibles et du segment 0, dé de rencontre posé', () => {
+    const echantillon = grandes.filter((composition) => composition.refus === null).filter((_, rang) => rang % 37 === 0);
+    let stations = 0;
+    let ouvertes = 0;
+    for (const composition of echantillon) {
+      for (let graine = 0; graine < 10 && stations < 20; graine++) {
+        const station = CATALOGUE.definirGrande(composition.id, graine);
+        if ('refus' in station) throw new Error(station.refus);
+        const resultat = assemblerStation(station);
+        if (resultat.type !== 'station') continue;
+        const sans = assemblerStation({ ...station, grande: { ...station.grande!, etendue: 0 } });
+        if (sans.type !== 'station') throw new Error(`${station.id} : plan perdu sans territoire.`);
+        stations++;
+        const monde: DefMonde = resultat.monde;
+        expect(station.grande?.etendue, station.id).toBe(ETENDUE_TERRITOIRE);
+        expect(monde.rencontre, station.id).toEqual({ rythme: RYTHME_RENCONTRE });
+        // Les portes que le territoire a ouvertes : fermées dans le même plan sans territoire.
+        const fermees = new Set(sans.monde.liaisons.filter((liaison) => !liaison.ouverte).map((liaison) => liaison.id));
+        const pieces = new Map(monde.pieces.map((piece) => [piece.id, piece]));
+        for (const liaison of monde.liaisons.filter((candidate) => candidate.ouverte && fermees.has(candidate.id))) {
+          ouvertes++;
+          for (const id of liaison.entre) {
+            const piece = pieces.get(id)!;
+            expect(id, `${station.id} ${liaison.id}`).not.toBe(monde.depart);
+            expect({ feu: piece.feu, froide: piece.froide, machines: piece.machines, gravite: piece.gravite }, `${station.id} ${liaison.id}`).toEqual({});
+            expect(piece.segment ?? 0, `${station.id} ${liaison.id}`).toBeGreaterThan(0);
+          }
+        }
+        break;
+      }
+    }
+    expect(stations).toBe(20);
+    expect(ouvertes).toBeGreaterThan(0);
+  }, 60_000);
 
   it('construireGrande rend une station complète, textes du catalogue compris, aux noms de pièces tous différents', () => {
     const composition = grandes.find((candidate) => candidate.refus === null);

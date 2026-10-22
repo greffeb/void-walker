@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { jouer, nouvellePartie, observer } from '../engine';
-import type { Catalogue, EntreeMonde, EtapeParcours } from '../content';
+import { VERSION_GENERATEUR, type Catalogue, type EntreeMonde, type EtapeParcours } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   ecartsDesGrandes,
@@ -10,6 +10,7 @@ import {
   rejouerTemoin,
   reparerTemoin,
   sansButin,
+  sansErrance,
   temoinValable,
   verifierGrande,
   verifierPubliee,
@@ -38,9 +39,9 @@ function avecPlan(composition: string): string {
   return `${composition}-${graine}`;
 }
 
-const CHAINE = 'g1-m01-m02-m09-m06-cale';
+const CHAINE = `g${VERSION_GENERATEUR}-m01-m02-m09-m06-cale`;
 const STATION = avecPlan(CHAINE);
-const LIBRE = avecPlan('g1-ol-m01-m02-m09-m06-cale');
+const LIBRE = avecPlan(`g${VERSION_GENERATEUR}-ol-m01-m02-m09-m06-cale`);
 const graineDe = (station: string): number => Number(station.slice(station.lastIndexOf('-') + 1));
 
 function construite(station: string): EntreeMonde {
@@ -192,7 +193,7 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
   });
 
   it('publierGrandes ne garde que des stations prouvées, triées, sans doublon', () => {
-    const trois: Catalogue = { ...CATALOGUE, grandes: CATALOGUE.grandes.filter((composition) => [CHAINE, 'g1-m02-m01-m09-m06-cale', 'g1-m01-m09-m04-m03-observation'].includes(composition.id)) };
+    const trois: Catalogue = { ...CATALOGUE, grandes: CATALOGUE.grandes.filter((composition) => [CHAINE, `g${VERSION_GENERATEUR}-m02-m01-m09-m06-cale`, `g${VERSION_GENERATEUR}-m01-m09-m04-m03-observation`].includes(composition.id)) };
     const { publiees, temoins } = publierGrandes(trois, 1, 4);
     expect(publiees.length).toBeGreaterThanOrEqual(2);
     expect(new Set(publiees).size).toBe(publiees.length);
@@ -240,6 +241,18 @@ describe('preuve des grandes stations (spec 2026-10-18 §7.4)', () => {
     expect({ ...prive.monde, objets: [] }).toEqual({ ...entree.monde, objets: [] });
   });
 
+  it('sansErrance : le même monde sans son dé de rencontre, et le témoin de la station se rejoue sur l’un comme sur l’autre', () => {
+    const entree = construite(CAISSE);
+    expect(entree.monde.rencontre).toBeDefined();
+    const sans = sansErrance(entree);
+    expect(sans.monde.rencontre).toBeUndefined();
+    expect('rencontre' in sans.monde).toBe(false);
+    expect({ ...sans.monde, objets: [] }).toEqual({ ...entree.monde, rencontre: undefined, objets: [] });
+    const [temoin] = prouvee(CAISSE).temoins ?? [];
+    if (temoin === undefined) throw new Error('Témoin absent.');
+    expect(rejouerTemoin(entree, temoin)).not.toBeNull();
+  }, 120_000);
+
   it('une grande station dont la caisse a quitté son morceau est prouvée par témoin réparé, sans dé ni blessure', () => {
     const ligne = prouvee(CAISSE);
     expect(ligne.verdict, JSON.stringify(ligne.ecarts)).toBe('prouvee');
@@ -281,7 +294,7 @@ describe('liste publiée des grandes stations (spec 2026-10-18 §7.2, D-270)', (
     const temoins = lireTemoins();
     const { publiees } = CATALOGUE;
     expect(publiees.length).toBeGreaterThanOrEqual(500);
-    const libres = publiees.filter((id) => id.startsWith('g1-ol-')).length / publiees.length;
+    const libres = publiees.filter((id) => id.startsWith(`g${VERSION_GENERATEUR}-ol-`)).length / publiees.length;
     expect(libres).toBeGreaterThan(0.25);
     expect(libres).toBeLessThan(0.4);
     expect(Object.keys(temoins).sort()).toEqual([...publiees]);

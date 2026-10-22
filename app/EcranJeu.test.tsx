@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
-import { libelleOption, MONDES, texteDocument, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
+import { libelleOption, MONDES, texteDocument, VERSION_GENERATEUR, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
 import { FicheDocument } from './bulle';
 import { CATALOGUE } from './catalogue';
@@ -703,6 +703,12 @@ describe('options (12 §4.10, #96, #201)', () => {
     expect(html.match(/class="segment actif"/g)).toHaveLength(1);
     expect(texte(html)).toContain('Lignes de balayage [NON] Effet machine à écrire [NON]');
     expect(html).toContain('role="switch" aria-checked="false"');
+  });
+
+  it('carte révélée : bascule seulement dans une version de test (PR), absente de la version publique', () => {
+    expect(texte(options({ sousMenuInitial: 'son_texte' }))).not.toContain('Carte révélée');
+    expect(texte(options({ sousMenuInitial: 'son_texte', pr: '249' }))).toContain('Carte révélée (test) [NON]');
+    expect(texte(options({ sousMenuInitial: 'son_texte', pr: '249', reglages: { ...REGLAGES_PAR_DEFAUT, carteRevelee: true } }))).toContain('Carte révélée (test) [OUI]');
   });
 
   it('son : trois rails de 0 à 100, valeur écrite à droite, COUPÉE ou COUPÉS à 0 (15 §4, D-220)', () => {
@@ -1417,7 +1423,7 @@ describe('fiche d’un document (#209, D-324, spec 2026-10-18 §9.1)', () => {
 
 describe('grande station : poser la caisse portée sous la grille d’un seul geste (demande du porteur)', () => {
   // La caisse de M-02 se porte en grande station (spec 2026-10-18 §6.5) ; état placé à la main, la route de l'atelier ne compte pas ici.
-  const COMPOSITION = 'g1-m01-m02-m09-m06-cale';
+  const COMPOSITION = `g${VERSION_GENERATEUR}-m01-m02-m09-m06-cale`;
   const grande = ((): EntreeMonde => {
     for (let graine = 0; graine < 50; graine += 1) {
       const entree = CATALOGUE.construireGrande(COMPOSITION, graine);

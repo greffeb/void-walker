@@ -132,6 +132,8 @@ export interface DefStationGrande {
   readonly butin?: TableButin;
   /** Réserve de documents à lire (spec §8.4) ; absente : aucun document. */
   readonly documents?: ReserveDocuments;
+  /** Part des pièces que le territoire de départ de la créature atteint, de 0 à 1 ; absente ou 0 : aucune porte ouverte (spec créature mobile §territoire). */
+  readonly etendue?: number;
 }
 
 /** Les quatre couches d'écriture des documents (spec §8.4) : la vie d'avant, l'incident, une tentative sur un obstacle, une clé rangée. */

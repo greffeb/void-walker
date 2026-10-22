@@ -7,7 +7,9 @@ import type { CategoriePiece, DefLiaison, DefMonde, DefObjet, DefPiece } from '.
 import { tracerPiste } from './piste';
 import { piecesDeCoque, type RectPlan } from './plan';
 import { prefixer, sousGraine } from './pose';
+import { RYTHME_RENCONTRE } from './rencontre';
 import type { DefMorceau, DefStation, DefStationGrande } from './station';
+import { ouvrirTerritoire } from './territoire';
 
 // Grande station (spec 2026-10-18 §6.2) : autour du chemin principal déjà posé, les annexes, puis les portes de boucle, puis la
 // piste de la créature, puis les clés, puis le butin, puis les documents, chacun sur sa sous-graine. Le monde reste un monde
@@ -247,7 +249,12 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
     creature,
     sousGraine(graine, 'piste'),
   );
-  const toutes = [...liaisons, ...liaisonsBoucles];
+  // Territoire de départ (spec créature mobile §territoire) : des portes ouvertes autour du repaire, avant clés, butin et documents.
+  const toutes = ouvrirTerritoire(
+    { pieces: [...monde.pieces, ...piecesAnnexes], objets: monde.objets, liaisons: [...liaisons, ...liaisonsBoucles], depart: monde.depart, creature, segments },
+    grande.etendue ?? 0,
+    sousGraine(graine, 'territoire'),
+  );
   const objets = disperserCles(monde, station, annexes, segments, toutes);
 
   // Butin (spec §6.6) : seulement si le contenu donne une table ; jamais dans une impasse qui garde déjà une clé.
@@ -314,6 +321,7 @@ function etendreUneFois(monde: DefMonde, station: DefStation, grande: DefStation
       liaisons: toutes,
       boucles: liaisonsBoucles.map((liaison) => liaison.id),
       bruitsStation: true,
+      rencontre: { rythme: RYTHME_RENCONTRE },
     },
     couvert: grande.documents === undefined || [...catalogue].every((piece) => portent.has(piece)),
   };

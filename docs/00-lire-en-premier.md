@@ -1,7 +1,7 @@
 # Void Walker V2 — point de départ et reprise de conversation
 
 > **Statut :** BOOTSTRAP EN COURS — issue #89 lancée par le porteur du projet le 2026-10-10, branche `bootstrap/89-socle`.
-> **Mise à jour :** 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, proposés par la PR de #236, [13 §7.15](13-morceaux-lancement.md#715-m-11-et-m-12-dans-les-grandes-stations-236) ; validation humaine requise).
+> **Mise à jour :** 2026-10-21 (créature mobile des grandes stations : conception approuvée par le porteur, D-330 à D-342, contrat [C-03](contrats/C-03-temps-reactions.md) §4.5, [conception](superpowers/specs/2026-10-21-creature-mobile-design.md) ; lot 1 prêt pour la PR, essai sur téléphone à venir) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, proposés par la PR de #236, [13 §7.15](13-morceaux-lancement.md#715-m-11-et-m-12-dans-les-grandes-stations-236) ; validation humaine requise).
 
 ## Mission de ce dossier
 

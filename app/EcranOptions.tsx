@@ -162,7 +162,7 @@ export function EcranOptions({
   const sousMenus: readonly SousMenuOptions[] = partieEnCours || envoyerRapport !== undefined ? ['son_texte', 'rapports', 'application'] : ['son_texte', 'application'];
   // Le détail dit ce que la bulle contient vraiment (D-287).
   const details: Readonly<Record<SousMenuOptions, string>> = {
-    son_texte: 'taille du texte, son, affichage',
+    son_texte: pr === '' ? 'taille du texte, son, affichage' : 'taille du texte, son, affichage, carte révélée',
     rapports:
       envoyerRapport === undefined
         ? 'télécharger ma partie'
@@ -289,6 +289,13 @@ export function EcranOptions({
                       actif={reglages.machineAEcrire}
                       basculer={() => changerReglages({ ...reglages, machineAEcrire: !reglages.machineAEcrire })}
                     />
+                    {pr !== '' && (
+                      <Bascule
+                        libelle="Carte révélée (test)"
+                        actif={reglages.carteRevelee}
+                        basculer={() => changerReglages({ ...reglages, carteRevelee: !reglages.carteRevelee })}
+                      />
+                    )}
                     {!reglagesGardes && (
                       <p className="retour-option" role="status">
                         Cet appareil ne garde pas les réglages : ils valent jusqu’à la fermeture du jeu.

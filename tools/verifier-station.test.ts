@@ -1,8 +1,9 @@
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, type EntreeMonde } from '../content';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MORCEAUX, PAIRES, VERSION_GENERATEUR, type EntreeMonde } from '../content';
 import { assemblerStation, empreinte, jouer, nouvellePartie, observer, type DefMonde, type Partie } from '../engine';
 import { CATALOGUE } from './catalogue';
 import { dansLeLot, LOT_UNIQUE, type Lot } from './lots';
 import { executerParcours, trouverOption } from './rejouer-parcours';
+import { sansErrance } from './verifier-grandes';
 import {
   cheminsDesPlans,
   chercherEtat,
@@ -59,6 +60,14 @@ function station(changements: Partial<DefMonde> = {}): EntreeMonde {
 }
 
 describe('recherche bornée par les commandes publiques', () => {
+  it('errance : un petit monde à dé de rencontre est prouvé une fois sansErrance a retiré ce dé', () => {
+    const avec = station({ rencontre: { rythme: 1 } });
+    expect(avec.monde.rencontre).toEqual({ rythme: 1 });
+    const sans = sansErrance(avec);
+    expect(sans.monde.rencontre).toBeUndefined();
+    expect(verifierStation(sans).verdict).toBe('prouvee');
+  });
+
   it('trouve un chemin minimal, converti en parcours et rejoué sans dé ni blessure', () => {
     const monde = station();
     const resultat = verifierStation(monde);
@@ -202,7 +211,7 @@ describe('d’abord le morceau le plus avancé (L3 §6.2)', () => {
 
 describe('recherche depuis un état donné (spec 2026-10-18 §7.4)', () => {
   it('chercherJusqua, depuis un état du milieu de partie, trouve une clé posée dans une pièce du catalogue', () => {
-    const composition = 'g1-m01-m02-m09-m06-cale';
+    const composition = `g${VERSION_GENERATEUR}-m01-m02-m09-m06-cale`;
     const caisse = 'm-02/o-caisse';
     const grande = Array.from({ length: 200 }, (_, graine) => CATALOGUE.construireGrande(composition, graine)).find(
       (candidate): candidate is EntreeMonde => !('refus' in candidate) && candidate.monde.objets.some((objet) => objet.id === caisse && !objet.piece.startsWith('m-02/')),
@@ -241,8 +250,10 @@ describe('poser la caisse sous la grille d’un seul geste (demande du porteur, 
   /** Première station de la composition, sur 50 graines, dont la caisse de M-02 attend encore dans son atelier. */
   const grande = ((): EntreeMonde => {
     for (let graine = 0; graine < 50; graine += 1) {
-      const entree = CATALOGUE.construireGrande('g1-m01-m02-m04-m03-observation', graine);
-      if (!('refus' in entree) && entree.monde.objets.some((objet) => objet.id === caisse && objet.piece === 'm-02/p-atelier')) return entree;
+      const entree = CATALOGUE.construireGrande(`g${VERSION_GENERATEUR}-m01-m02-m04-m03-observation`, graine);
+      if ('refus' in entree || !entree.monde.objets.some((objet) => objet.id === caisse && objet.piece === 'm-02/p-atelier')) continue;
+      // Le geste seul : sans dé de rencontre, aucun signe d'errance ne s'ajoute à ses événements (spec créature mobile).
+      return sansErrance(entree);
     }
     throw new Error('Aucune station avec la caisse dans l’atelier sur 50 graines.');
   })();

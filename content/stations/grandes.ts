@@ -12,7 +12,9 @@ import { sansConflit } from './textes-station';
 // suit le sas (D-257, D-270).
 
 /** Version du générateur des grandes stations : un identifiant d'une autre version ne se reconstruit pas (spec §4.3). */
-export const VERSION_GENERATEUR = 1;
+export const VERSION_GENERATEUR = 2;
+/** Territoire de départ de la créature : la seconde moitié de la station, valeur d'essai pour le porteur (spec créature mobile §territoire, Q-1). */
+export const ETENDUE_TERRITOIRE = 0.5;
 /** Graines des grandes stations : de 0 à 9 999, pour tenir dans 40 caractères (spec §4.3). */
 export const GRAINE_GRANDE_MAX = 9999;
 /** Une grande station compte environ 24 pièces dessinées : les annexes complètent les morceaux, de 6 à 10 (spec §4.1). */
@@ -27,7 +29,7 @@ const ANNEXES_MAX = 10;
 const BOUCLES = 3;
 
 export interface CompositionGrande {
-  /** 'g1-<chemins>-<final>-<place>', ou 'g1-ol-<A>-<B>-<C>-<final>-<place>' en ordre libre. */
+  /** 'g<version>-<chemins>-<final>-<place>', ou 'g<version>-ol-<A>-<B>-<C>-<final>-<place>' en ordre libre. */
   readonly id: string;
   readonly forme: 'chaine' | 'libre';
   /** Trois chemins dans l'ordre de la station ; en ordre libre, les branches A et B (matérielles), puis C. */
@@ -116,7 +118,7 @@ export function definirGrande({ composition, morceaux }: GrandePrevue, graine: n
       { id: 'reveil', quand: { type: 'reveil' } },
       { id: 'depart', quand: { type: 'evacuation' } },
     ] as const,
-    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, piecesMin: PIECES_MIN, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS },
+    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, piecesMin: PIECES_MIN, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS, etendue: ETENDUE_TERRITOIRE },
   };
   const vestibule = exiger(VESTIBULE, 'vestibule');
   if (composition.forme === 'chaine') {

@@ -1,5 +1,5 @@
 import { idPublic, jouer, nouvellePartie, observer, prefixer, type DefMonde, type EtatPartie, type OptionMenu, type Partie } from '../engine';
-import { COMPOSITIONS_PUBLIEES, MORCEAUX, type Catalogue } from '../content';
+import { COMPOSITIONS_PUBLIEES, MORCEAUX, VERSION_GENERATEUR, type Catalogue } from '../content';
 import { CATALOGUE } from './catalogue';
 import { fileURLToPath } from 'node:url';
 import { dansLeLot, lancerSousLots, lireOptionsLots } from './lots';
@@ -51,7 +51,7 @@ export function echantillonGrandes(catalogue: Catalogue): StationEchantillon[] {
   }
   const cheminsDe = (station: string): readonly string[] => catalogue.grandes.find((composition) => station.startsWith(`${composition.id}-`))?.chemins ?? [];
   const portes = new Set(echantillon.flatMap(({ station }) => cheminsDe(station)));
-  const chaines = [...catalogue.publiees].sort().filter((id) => !id.startsWith('g1-ol-'));
+  const chaines = [...catalogue.publiees].sort().filter((id) => !id.startsWith(`g${VERSION_GENERATEUR}-ol-`));
   for (const { morceau } of Object.values(MORCEAUX).filter(({ morceau }) => morceau.famille === 'chemin' && !portes.has(morceau.id))) {
     const station = chaines.find((id) => cheminsDe(id).includes(morceau.id));
     if (station === undefined || portes.has(morceau.id)) continue;

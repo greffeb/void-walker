@@ -1,6 +1,6 @@
 # C-03 — Temps, dangers et réactions — socle AR-01 et AR-02
 
-> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175, précisés par D-234 à D-239 ; air et feu par-dessus le vide de la passerelle D-246/D-247 ; poursuite et ouïe D-177/D-178 ; créature alertée D-276 et D-279, validées le 2026-10-18.
+> **Statut :** CONTRAT DE CONCEPTION VALIDÉ v0.4, PORTÉE AR-01, AR-02 ET MORCEAUX DU LANCEMENT — D-039/D-040/D-047 à D-050/D-056/D-057 ; vide D-058/D-061/D-062/D-065/D-067/D-071/D-074 ; morceaux D-163 à D-166, D-168, D-170, D-173 à D-175, précisés par D-234 à D-239 ; air et feu par-dessus le vide de la passerelle D-246/D-247 ; poursuite et ouïe D-177/D-178 ; créature alertée D-276 et D-279, validées le 2026-10-18 ; errance, signe, traces fraîches et forçage lent des grandes stations D-330 à D-334 (§4.5), conception approuvée le 2026-10-21 ; les choix de l'agent de §4.5 et l'écart de D-333 restent à valider.
 > **Date :** 2026-10-14.
 > **Implémentation et vérification exécutable :** créature, perception, réaction et premier contact (§2 à §4, T-01, T-07, T-09) dans le moteur depuis #100 ; avertisseur, glissade et feu (§5.1 à §5.3, T-02 à T-06, T-08, T-10) depuis #102 ; vide, brèche, rustine et retour de l'air (§5.4, T-11 à T-14, T-18) depuis #104 ; morceaux du lancement et mélanges (§5.5, T-15 à T-17) proposés par #105, dans quatre stations de test. Pas d'attestation de partie humaine.
 
@@ -53,7 +53,7 @@ Une réaction peut franchir au plus une liaison normale, effectuer un reposition
 
 Le chemin sonore vers une origine peut être impraticable pour le gabarit de la créature. Elle tente une voie réellement praticable ou rejoint le côté accessible d'une séparation bloquante. Une cloison fermée d'AR-01 la retient ; aucun saut par conduit ni téléportation. Seule exception : alertée, elle force une porte ordinaire fermée sur sa piste (D-279, ci-dessous).
 
-Après inspection d'une source silencieuse, sans nouvel indice, la créature reste là. Ni patrouille permanente ni retour artificiel à son emplacement initial. Réaction au stimulus n'implique pas suivi omniscient de la trajectoire réelle du joueur.
+Après inspection d'une source silencieuse, sans nouvel indice, la créature reste là. Ni patrouille permanente ni retour artificiel à son emplacement initial (D-048, remplacée par D-334 dans un monde à `rencontre` : voir §4.5). Réaction au stimulus n'implique pas suivi omniscient de la trajectoire réelle du joueur.
 
 **Départ vu (D-177).** Si le passager quitte la pièce où elle le voit, sa réaction est de le voir partir ; à l'action suivante, elle franchit ce même passage s'il est encore ouvert et assez large, sans savoir où il va ensuite. Avant l'alerte, un passage étroit l'arrête, même si un autre chemin existe ; elle garde alors cet indice.
 
@@ -64,6 +64,19 @@ Après inspection d'une source silencieuse, sans nouvel indice, la créature res
 Première détection directement menaçante dans la partie : signal public clair, sans sanction hostile immédiate ; le joueur dispose de son engagement suivant pour réagir. Lire ne consomme pas cette occasion. Entrée dans sa pièce, elle se tient devant le passage qu'elle vient de franchir : s'y faufiler pendant cet engagement se joue au dé (C-04 §4, D-195).
 
 L'avertissement est mémorisé, pas recréé à chaque changement de pièce. Une séparation qui retire effectivement le contact empêche ses conséquences ; elle ne réinitialise ni position ni souvenirs de la créature.
+
+### 4.5 Errance, signe, traces fraîches et forçage lent (mondes à `rencontre`)
+
+Cette section ne vaut que dans un monde qui déclare `rencontre` (les grandes stations, D-330 à D-334 ; [conception](../superpowers/specs/2026-10-21-creature-mobile-design.md) §3). AR-01, AR-02 et les petites stations ne l'ont pas : §4.3 et la phrase « Ni patrouille permanente » y restent telles quelles (D-048).
+
+- **Territoire.** Les pièces que la créature atteint par des passages ouverts et praticables pour son gabarit, recalculées à chaque pas. Elle n'ouvre jamais une porte. Ni vide de passerelle, même avec un pont posé, ni pièce en feu.
+- **Dé de rencontre** (D-334). Toutes les N actions du passager (`RYTHME_RENCONTRE`), un d6 haché sur la graine et le numéro d'action, hors journal : 1, elle passe dans une pièce voisine de son territoire (au plus un passage, comme §4.3) ; 2, un signe : plus loin qu'une pièce voisine, un bruit sans lieu ni nom (`bruit_lointain`) ; dans une pièce voisine, un bruit proche situé par le passage qui les sépare, même fermé (`bruit_proche`), retenu comme un bruit entendu (D-181) — choix du porteur après son essai sur la PR #249 ; jamais après le contact ni depuis ou vers une salle des machines en marche ; 3 à 6, rien. [Détail de l'agent] Il se tait pendant la traque (oreille ouverte, indice, forçage en cours, fouille à faire) ; D-276 gouverne seul, puis le dé reprend.
+- **Jamais sans signe.** Elle n'entre pas dans la pièce du passager sans s'être tenue d'abord dans la pièce voisine, où il l'a entendue par la porte même qu'elle prend. Son entrée suit ensuite les règles actuelles (répit au premier contact D-184, avertissement §4.4). Un signe ne ment jamais, ne dit pas où elle est et ne change pas l'aperçu de risque (D-180, D-181).
+- **Traces fraîches.** Chaque pièce qu'elle quitte garde l'heure de son départ ; la lecture d'une trace récente (`FRAICHEUR` actions) dit qu'elle est passée là, pas où elle est allée. La pièce où elle se trouve se voit.
+- **Forçage lent.** Alertée par un bruit fort qui lui parvient (D-178 inchangé : une porte fermée l'arrête sauf `sonAuTravers`), elle force une porte fermée sur sa piste en `REACTIONS_FORCER_LENT` réactions avant le contact, contre deux en poursuite (D-279). [Détail de l'agent] Seuls les bruits forts y suffisent : un bruit normal ne lance ni ne détourne un forçage lent, qui continue seulement dans le silence ; les pas du passager n'y suffisent pas avant le contact (D-276). Au contact en plein forçage lent, il reste au plus deux réactions. La porte cédée reste ouverte.
+- **Sans errance, la preuve** [détail de l'agent, écart à valider, D-333]. Le monde sans errance (`sansErrance`) retire `rencontre` : il garde les règles d'avant et sert de preuve, sans errance **ni forçage lent**. Le forçage lent ne naît que d'un bruit fort que le passager provoque ; une station qu'il rendrait difficile n'est pas détectée par la preuve. L'errance est bornée par les règles ci-dessus.
+
+Valeurs d'équilibrage à mesurer, non figées : `RYTHME_RENCONTRE` 1 (3 au départ, porté à 1 par le porteur après son essai), `FRAICHEUR` 6, `REACTIONS_FORCER_LENT` 4, `ETENDUE_TERRITOIRE` 0,5.
 
 ## 5. Cycles particuliers acceptés pour AR-01
 
