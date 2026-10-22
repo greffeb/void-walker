@@ -58,6 +58,12 @@ export const POSER_A_POSITION: TextesMonde['poserAPosition'] = reunir([]).poserA
 /** Phrases de trace de la couche menace (spec 2026-10-18 §5.4), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 
+/** Écoute porte par porte de la couche menace (lot 2 de la créature mobile), reprise par les mondes écrits en entier. */
+export const TEXTES_ECOUTE: TextesMonde['ecoute'] = reunir([]).ecoute;
+
+/** Phrases d'attente qui précèdent une écoute, de la couche menace, reprises par les mondes écrits en entier. */
+export const ATTENTE_ECOUTE: TextesMonde['attenteEcoute'] = reunir([]).attenteEcoute;
+
 /** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
 

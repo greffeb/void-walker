@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TRACES } from '../textes/couches';
+import { ATTENTE_ECOUTE, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_ECOUTE, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -117,9 +117,7 @@ export const TEXTES_AR02: TextesMonde = {
     bruit_lointain: ['Très loin, quelque chose de lourd racle le sol, puis plus rien.', 'Au loin, un bruit mou et pesant, comme une chair frottée contre du métal. Puis le silence.', 'Très loin, un choc sourd et humide, deux fois. Rien ne suit.'],
     bruit_proche: ['Derrière {le:passage}, un souffle lourd, tout proche. Puis plus rien.', 'Contre {le:passage}, quelque chose de massif se déplace sans hâte. Le métal craque à peine.'],
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
-    // textes : tâche 3 (provisoires, pour le typage).
-    ecoute: ['Vous tendez l’oreille vers {le:passage}.'],
-    ecoute_couverte: ['Le vacarme couvre tout.'],
+    ecoute_couverte: MENACE.evenements.ecoute_couverte,
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',
@@ -338,6 +336,8 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   },
   fin: FIN,
   traces: TRACES,
+  ecoute: TEXTES_ECOUTE,
+  attenteEcoute: ATTENTE_ECOUTE,
   pillages: PILLAGES,
   documents: {},
   supports: SUPPORTS,

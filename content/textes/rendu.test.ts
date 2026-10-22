@@ -1,7 +1,7 @@
-import type { Consultation, Evenement, OptionMenu } from '../../engine';
+import type { Consultation, Evenement, OptionMenu, RefPassage } from '../../engine';
 import { MONDES } from '../index';
 import { fuitesDuCatalogue, reunir } from './couches';
-import { libelleOption, rendreConsultation, rendreEvenements } from './rendu';
+import { alertesMenace, libelleOption, rendreConsultation, rendreEvenements } from './rendu';
 
 // Une pièce marquée par la piste de la créature (spec 2026-10-18 §5.4) : sa description, puis une phrase de trace de la couche
 // menace, la même pendant toute la partie.
@@ -155,5 +155,52 @@ describe('libellé de « Poser » à une position (demande du porteur, menu de l
     expect(NOMS_POSE.poserAPosition).toBe('Poser {le:cible} {nom:position}');
     expect(libelleOption(NOMS_POSE, { ...poser(sousLaGrille), action: 'deplacer' }).libelle).toBe('Déplacer la caisse sous la grille');
     for (const id of ['ar-01', 'ar-02', 'monde-test']) expect(MONDES[id]?.textes.poserAPosition, id).toBe(NOMS_POSE.poserAPosition);
+  });
+});
+
+describe('écoute porte par porte (lot 2 de la créature mobile)', () => {
+  const textes = reunir([
+    {
+      noms: {
+        porte: { texte: 'porte', genre: 'f', nombre: 's', elision: false },
+        cuisine: { texte: 'cuisine', genre: 'f', nombre: 's', elision: false },
+      },
+      descriptions: {},
+      assistance: {},
+    },
+  ]);
+  const passage: RefPassage = {
+    sorte: 'passage',
+    id: 'e00000004',
+    nom: 'porte',
+    ouvert: false,
+    vers: { sorte: 'piece', id: 'e00000005', nom: 'cuisine' },
+    signale: true,
+    feu: false,
+    huile: false,
+    vide: false,
+    gouffre: false,
+  };
+  const net: Evenement = { type: 'ecoute', passage, entendu: 'net' };
+
+  it('une attente suivie d’une écoute prend sa phrase d’attente, puis nomme le passage', () => {
+    const phrases = rendreEvenements(textes, [{ type: 'attente' }, net], { graine: 1, action: 0 });
+    expect(phrases).toHaveLength(2);
+    expect(textes.attenteEcoute).toContain(phrases[0]);
+    expect(phrases[1]).toContain('la porte de la cuisine');
+  });
+
+  it('même chose devant une écoute couverte ; une attente seule garde ses textes', () => {
+    const [attente] = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute_couverte' }], { graine: 1, action: 0 });
+    expect(textes.attenteEcoute).toContain(attente);
+    expect(rendreEvenements(textes, [{ type: 'attente' }], { graine: 1, action: 0, attentes: 5 })).toEqual([textes.attentesLongues[5]]);
+  });
+
+  it('en rouge : un net ou un toujours, le bruit de la créature et le bruit proche ; pas un vague', () => {
+    expect(alertesMenace([{ type: 'attente' }, net])).toEqual([1]);
+    expect(alertesMenace([{ type: 'ecoute', passage, entendu: 'toujours' }])).toEqual([0]);
+    expect(alertesMenace([{ type: 'ecoute', passage, entendu: 'vague' }])).toEqual([]);
+    expect(alertesMenace([{ type: 'bruit_creature', passage }])).toEqual([0]);
+    expect(alertesMenace([{ type: 'bruit_proche', passage }])).toEqual([0]);
   });
 });

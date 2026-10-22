@@ -20,9 +20,7 @@ export const MENACE = {
     bruit_lointain: ['Très loin, quelque chose de lourd racle le sol, puis plus rien.', 'Au loin, un bruit mou et pesant, comme une chair frottée contre du métal. Puis le silence.', 'Très loin, un choc sourd et humide, deux fois. Rien ne suit.'],
     bruit_proche: ['Derrière {le:passage}, un souffle lourd, tout proche. Puis plus rien.', 'Contre {le:passage}, quelque chose de massif se déplace sans hâte. Le métal craque à peine.'],
 traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est passé ici il y a peu.', 'L’air garde une odeur douceâtre, toute fraîche. Quelque chose vient de passer.'],
-    // textes : tâche 3 (provisoires, pour le typage).
-    ecoute: ['Vous tendez l’oreille vers {le:passage}.'],
-    ecoute_couverte: ['Le vacarme couvre tout.'],
+    ecoute_couverte: ['Le vacarme des machines couvre tout : impossible d’entendre ce qui se passe derrière les portes.', 'Les machines grondent trop fort : inutile de tendre l’oreille, tout est couvert.'],
     premier_contact: [
       'Vous la voyez enfin : plus haute qu’un homme, la peau luisante, une tête sans yeux. Sa gueule hume l’air ; ses griffes raclent le sol. Elle s’est tournée vers vous. Il vous reste un instant pour réagir.',
       'La chose est là, plus haute qu’un homme, la peau luisante. Pas d’yeux : une gueule qui hume l’air, des griffes au bout de longs bras. Elle vous a repéré. Vous avez un instant, pas plus.',
@@ -53,6 +51,21 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
       '{Le:objet} se brise avec un claquement de bois mort ; une masse lourde tombe dans le noir, sans un cri.',
     ],
   },
+  // Écoute porte par porte (lot 2 de la créature mobile) : ce que le passager entend derrière un passage en attendant. « Net » et
+  // « toujours » sont les seules phrases en rouge ; le grondement des machines est le seul indice qui ment, et sa cause se voit.
+  ecoute: {
+    net: [
+      'Derrière {le:passage}, quelque chose bouge. Un poids qui se déplace, lentement.',
+      'Derrière {le:passage}, quelque chose remue, pesant, sans se presser.',
+    ],
+    toujours: ['Derrière {le:passage}, ça bouge toujours.', 'Derrière {le:passage}, le poids se déplace toujours.'],
+    vague: ['Derrière {le:passage}, peut-être un frottement. Ou le métal qui travaille.', 'Derrière {le:passage}, un craquement, peut-être. Rien de sûr.'],
+    rien: ['Derrière {le:passage}, rien.', 'Derrière {le:passage}, le silence.'],
+    plus_rien: ['Derrière {le:passage}, plus rien.', 'Derrière {le:passage}, le bruit s’est tu.'],
+    machines: ['Derrière {le:passage}, le grondement des machines couvre tout ; on croit y entendre des coups, sans savoir lesquels.'],
+    froid: ['Contre {le:passage}, le métal glacé ne laisse passer que le ronron du compresseur.'],
+  },
+  attenteEcoute: ['Vous restez immobile, l’oreille tendue.', 'Vous retenez votre souffle et vous écoutez.'],
   // Traces de la piste (spec 2026-10-18 §5.4) : une phrase entière, vraie dans toute pièce où elle est passée. Légères loin de
   // son repaire, fortes à deux portes ou moins. Elles disent qu'elle est passée, jamais où elle est. Écrites par l'assistant
   // principal (D-243).

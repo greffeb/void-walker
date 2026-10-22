@@ -166,6 +166,7 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
   }
   if (evenement.type === 'evacuation') return textes.evacuations[cleEvacuation(evenement.sources)];
   if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
+  if (evenement.type === 'ecoute') return textes.ecoute[evenement.entendu];
   return textes.evenements[evenement.type];
 }
 
@@ -177,7 +178,10 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
-    const variante = choisirVariante(variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
+    // Une attente qui précède une écoute ne dit pas « Rien ne bouge » : la suite le contredirait.
+    const suivant = evenements[index + 1]?.type;
+    const ecoute = evenement.type === 'attente' && (suivant === 'ecoute' || suivant === 'ecoute_couverte');
+    const variante = choisirVariante(ecoute ? textes.attenteEcoute : variantesDe(textes, evenement), `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return [remplir(variante, valeursEvenement(textes, evenement))];
   });
 }
@@ -204,6 +208,11 @@ export function alertesMenace(evenements: readonly Evenement[]): number[] {
 
 function estMenaceOuDegat(evenement: Evenement): boolean {
   switch (evenement.type) {
+    case 'bruit_creature':
+    case 'bruit_proche':
+      return true;
+    case 'ecoute':
+      return evenement.entendu === 'net' || evenement.entendu === 'toujours';
     case 'creature_entre':
     case 'premier_contact':
     case 'menace':

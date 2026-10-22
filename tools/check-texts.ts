@@ -129,7 +129,7 @@ export function borneDe(entree: EntreeMonde): number {
 const MARCHES = 40;
 const LONGUEUR_MARCHE = 80;
 
-const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance');
+const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance' && type !== 'ecoute');
 
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;
@@ -210,6 +210,8 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   for (const variante of textes.asphyxie as readonly unknown[]) {
     if (typeof variante === 'string' && compterPhrases(variante) > 4) erreurs.push('défaite par le vide : plus de quatre phrases (garde-fou du contrôle).');
   }
+  for (const [cle, variantes] of Object.entries(textes.ecoute)) verifierVariantes(erreurs, `écoute ${cle}`, variantes, ['passage']);
+  verifierVariantes(erreurs, 'attente avant écoute', textes.attenteEcoute, []);
   for (const [cle, phrase] of Object.entries(textes.attentesLongues)) verifierGabarit(erreurs, `attente longue ${cle}`, phrase, []);
   for (const { id } of monde.assistance ?? []) {
     const message = textes.assistance[id] as unknown;
