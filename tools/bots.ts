@@ -118,6 +118,8 @@ function situation(observation: Observation): string {
  * quand le récit annonce la créature. Prudent, il évite les risques annoncés quand il a le choix ; pressé, seulement le mortel
  * et le certain. Averti, il est prudent et lit ce que le passager peut lire : avant la rencontre, une trace forte le fait hésiter
  * à aller plus loin, et il regarde chaque document à sa première visite, puis va vers la pièce qu'une note de rangement nomme.
+ * Il écoute aussi : à sa première arrivée dans une pièce qui a une porte fermée vers une pièce pas encore visitée, il attend une
+ * fois avant tout autre choix ; un « net » monte l'aperçu du passage, et son malus de risque fait le reste (D-181).
  */
 export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'averti'): Bot {
   const hasard = hasardDe(graine);
@@ -151,6 +153,8 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
   /** Pour chaque pièce nommée : la distance la plus courte où l'on s'en est trouvé, et les choix sans s'en être rapproché. */
   const plusProches = new Map<string, number>();
   const usures = new Map<string, number>();
+  /** Pièces où l'averti a déjà écouté, ou n'avait rien à écouter : une seule attente, à la première arrivée. */
+  const ecoutees = new Set<string>();
 
   const inventaire = (observation: Observation): string => observation.inventaire.map((objet) => objet.id).sort().join(',');
 
@@ -260,6 +264,12 @@ export function botExplorateur(graine: number, profil: 'prudent' | 'presse' | 'a
           const lu = vue.consulter(objet.id);
           if (lu?.type === 'regarder_document' && lu.designe !== undefined) designees.add(lu.designe.id);
         }
+      }
+      if (profil === 'averti' && !ecoutees.has(observation.piece.id)) {
+        ecoutees.add(observation.piece.id);
+        const attendre = options.find((option) => option.action === 'attendre');
+        const versInconnue = observation.passages.some((passage) => !passage.ouvert && (passage.vers === null || !observation.visitees.some((piece) => piece.id === passage.vers?.id)));
+        if (attendre !== undefined && versInconnue && !observation.creatureVisible) return attendre.commande;
       }
       if (aRevoirIci(observation)) aRevoir.add(observation.piece.id);
       // Un passage d'ici qu'on ne peut ni franchir ni ouvrir est bloqué pour l'instant : porte verrouillée, vide sans pont…
