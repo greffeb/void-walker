@@ -2211,6 +2211,52 @@ button:disabled {
   animation: none;
 }
 
+/* Capteur posé (créature mobile lot 3) : calme en vert ; au mouvement plein `alerte` avec deux ondes ; brouillé en tirets sans point ;
+   en panne barré, en vert secondaire. Aucune animation. */
+.carte-traits .icone-capteur .corps {
+  fill: var(--vert-fond);
+  stroke: var(--vert);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-capteur .coeur {
+  fill: var(--vert);
+}
+
+.carte-traits .icone-capteur[data-etat='mouvement'] .corps {
+  fill: var(--alerte);
+  stroke: var(--alerte);
+}
+
+.carte-traits .icone-capteur[data-etat='mouvement'] .coeur {
+  fill: var(--vert-fond);
+}
+
+.carte-traits .icone-capteur .onde {
+  fill: none;
+  stroke: var(--alerte);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-capteur[data-etat='brouille'] .corps {
+  stroke: var(--vert-secondaire);
+  stroke-dasharray: 2 2;
+}
+
+.carte-traits .icone-capteur[data-etat='hs'] .corps,
+.carte-traits .icone-capteur .barre {
+  stroke: var(--vert-secondaire);
+}
+
+.carte-traits .icone-capteur .barre {
+  fill: none;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .carte-traits .icone-joueur .onde {
     display: none;

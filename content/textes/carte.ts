@@ -1,4 +1,4 @@
-import type { CartePublique, Palier, PassageCarte, PieceCarte, RefPiece } from '../../engine';
+import type { CartePublique, EtatCapteur, Palier, PassageCarte, PieceCarte, RefPiece } from '../../engine';
 import { former, remplir } from './gabarit';
 import { nomSurPlan } from './lisibilite';
 import { nomDe, nomPassage } from './rendu';
@@ -27,6 +27,7 @@ export const MOTS_CARTE = {
   vide: 'VIDE ○',
   creature: 'CRÉATURE',
   droneRepere: 'drone repéré',
+  capteur: { calme: 'CAPTEUR : calme', mouvement: 'CAPTEUR : MOUVEMENT', brouille: 'CAPTEUR : brouillé', hs: 'CAPTEUR : plus de signal' } as const satisfies Readonly<Record<EtatCapteur, string>>,
   blocIci: 'ICI',
   blocVisitees: 'VISITÉES, DE LA PLUS PROCHE',
   blocConnues: 'CONNUES, PAS ENCORE VISITÉES',
@@ -65,6 +66,7 @@ export function etatsDe(piece: PieceCarte): string[] {
     ...(piece.feu === null ? [] : [`${MOTS_CARTE.feu}, vu ${ANCIENNETES[piece.feu]}`]),
     ...(piece.vide ? [MOTS_CARTE.vide] : []),
     ...(piece.creature === null ? [] : [`${MOTS_CARTE.creature}, vue ${ANCIENNETES[piece.creature]}`]),
+    ...(piece.capteur === undefined ? [] : [MOTS_CARTE.capteur[piece.capteur]]),
   ];
 }
 

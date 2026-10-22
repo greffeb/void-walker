@@ -545,6 +545,8 @@ export interface PieceCarte {
   readonly vide: boolean;
   /** La créature a été vue ici en dernier, et quand (D-180) ; `null` sinon. */
   readonly creature: Palier | null;
+  /** Ce que lit le capteur posé, à jour même hors de vue ; absent hors de sa pièce (créature mobile lot 3). */
+  readonly capteur?: EtatCapteur;
   /** Objets vus au dernier regard, avec leur position (14 §3.1). */
   readonly objets: readonly ObjetCarte[];
   /** Passages connus depuis la pièce actuelle ; `null` si aucun chemin connu ne l'y relie. Sert à trier, jamais affiché. */

@@ -1,3 +1,4 @@
+import { capteurPose } from './capteur';
 import { palier } from './anciennete';
 import { autreCote, destinationConnue, perceptible, piecesSansAir, refObjet, refPiece, refPosition, signalee, type EtatPartie } from './etat';
 import { idPublic, type DefLiaison, type DefMonde } from './monde';
@@ -77,6 +78,7 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   );
   const luSurVoyant = new Set(vus.filter(({ liaison, connue }) => avecVoyant(liaison, connue)).flatMap(({ liaison }) => liaison.entre));
   const vue = etat.reperes.vue;
+  const capteur = capteurPose(monde, etat);
   const pieces = monde.pieces
     .filter((piece) => connues.has(piece.id))
     .map((piece): PieceCarte => {
@@ -90,6 +92,8 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
         feu: souvenir?.feu?.vu === true ? palier(etat.actions - souvenir.feu.actions) : null,
         vide: sansAir.includes(piece.id) && (piece.id === ici || luSurVoyant.has(piece.id)),
         creature: vue !== null && vue.piece === piece.id ? palier(vue.depuis) : null,
+        // Le capteur posé est connu du passager, qui l'a fixé : son état réel, comme le pictogramme du drone envoyé (créature mobile lot 3).
+        ...(capteur?.piece === piece.id ? { capteur: capteur.etat } : {}),
         objets: [
           ...(souvenir?.objets ?? []).map(({ objet, position }) => ({
             objet: refObjet(monde, objet),
