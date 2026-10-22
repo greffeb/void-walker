@@ -45,8 +45,17 @@ const jets = (etat: EtatPartie, liaison: string): string[] => ACTIONS.map((i) =>
 
 describe('ecouterPortes', () => {
   it('jamais net sans elle ; vague parfois ; le reste est rien', () => {
-    const vus = new Set(jets(etatAvec({ piece: 'o' }), 'af'));
+    const etat = etatAvec({ piece: 'o' });
+    const vus = new Set(ACTIONS.map((graine) => ecouterPortes(MONDE, etat, graine, 1)['af']));
     expect([...vus].sort()).toEqual(['rien', 'vague']);
+  });
+  it('sans elle, la porte répond pareil à chaque action de la partie (D-344, revue finale)', () => {
+    const etat = etatAvec({ piece: 'o' });
+    for (const graine of [0, 1, 7, 42, 1234]) {
+      const face = faceEcoute(graine, undefined, 'af');
+      const attendu = face <= 1 ? 'vague' : 'rien';
+      expect(new Set(ACTIONS.map((i) => ecouterPortes(MONDE, etat, graine, i)['af']))).toEqual(new Set([attendu]));
+    }
   });
   it('porte fermée avec elle : net et vague, environ la moitié de net', () => {
     const r = jets(etatAvec({ piece: 'f' }), 'af');
@@ -101,14 +110,17 @@ describe('aRaconter (lot 2, maquette ecouter.html)', () => {
 describe('dans le pas', () => {
   const GRAND: DefMonde = { ...MONDE, rencontre: { rythme: 1 } };
   const VERSION = 'ecoute-1';
-  /** Première graine dont le dé de rencontre ne bouge ni ne signale rien (faces 3 à 6) sur `actions` actions, filtrée par `garde`. */
-  const graineCalme = (actions: number, garde: (graine: number) => boolean = () => true): number => {
-    for (let graine = 0; graine <= 20_000; graine++) {
+  /** Premières graines dont le dé de rencontre ne bouge ni ne signale rien (faces 3 à 6) sur `actions` actions, filtrées par `garde`. */
+  const grainesCalmes = (combien: number, actions: number, garde: (graine: number) => boolean = () => true): number[] => {
+    const trouvees: number[] = [];
+    for (let graine = 0; graine <= 20_000 && trouvees.length < combien; graine++) {
       const calme = Array.from({ length: actions }, (_, i) => faceRencontre(graine, i + 1, 1) ?? 0).every((face) => face >= 3);
-      if (calme && garde(graine)) return graine;
+      if (calme && garde(graine)) trouvees.push(graine);
     }
-    throw new Error('Aucune graine.');
+    if (trouvees.length < combien) throw new Error('Pas assez de graines.');
+    return trouvees;
   };
+  const graineCalme = (actions: number, garde?: (graine: number) => boolean): number => grainesCalmes(1, actions, garde)[0]!;
   /** Joue l'option du menu `action` sur la cible nommée `nom` (passage nommé par lui-même ou sa destination). */
   const pas = (monde: DefMonde, partie: Partie, action: string, nom: string): { partie: Partie; evenements: readonly Evenement[] } => {
     const option = observer(monde, partie.etat).menu.find(
@@ -123,6 +135,13 @@ describe('dans le pas', () => {
   // Porte fermée avec elle derrière : net 1-3, vague 4-5, rien 6 ; porte ouverte sans elle : vague 1, rien 2-6.
   const resultatAf = (face: number): string => (face <= 3 ? 'net' : face <= 5 ? 'vague' : 'rien');
   const resultatAo = (face: number): string => (face === 1 ? 'vague' : 'rien');
+  // Elle loin, dans 'l', derrière 'f' : aucune porte de 'a' ne l'a derrière elle.
+  const LOIN: DefMonde = {
+    ...GRAND,
+    pieces: [...GRAND.pieces, { id: 'l', nom: 'salle_l' }],
+    liaisons: [...GRAND.liaisons, { id: 'fl', nom: 'porte_fl', entre: ['f', 'l'], ouverte: false }],
+    creature: { piece: 'l' },
+  };
 
   it('première attente : une écoute par porte, l’attente en tête', () => {
     const graine = graineCalme(1);
@@ -132,22 +151,44 @@ describe('dans le pas', () => {
     expect(ecoutes.map((e) => e.type)).toEqual(['ecoute', 'ecoute', 'ecoute', 'ecoute']);
     expect(ecoutes.map((e) => (e.type === 'ecoute' ? [e.passage.nom, e.entendu] : null))).toEqual([
       ['porte_af', resultatAf(faceEcoute(graine, 1, 'af'))],
-      ['porte_ao', resultatAo(faceEcoute(graine, 1, 'ao'))],
+      ['porte_ao', resultatAo(faceEcoute(graine, undefined, 'ao'))],
       ['porte_am', 'machines'],
       ['porte_ac', 'froid'],
     ]);
   });
 
   it('deuxième attente sans changement : seulement l’attente', () => {
+    // Seule la porte qui l'a derrière elle tire à chaque action ; la porte ouverte sans elle ne change pas (D-344).
     const graine = graineCalme(2, (g) => {
       const af = [1, 2].map((a) => resultatAf(faceEcoute(g, a, 'af')));
-      const ao = [1, 2].map((a) => resultatAo(faceEcoute(g, a, 'ao')));
-      return af[0] !== 'net' && af[0] === af[1] && ao[0] === ao[1];
+      return af[0] !== 'net' && af[0] === af[1];
     });
     const premier = attendre(GRAND, nouvellePartie(GRAND, { version: VERSION, graine }));
     const second = attendre(GRAND, premier.partie);
     expect(second.evenements).toEqual([{ type: 'attente' }]);
     expect(second.partie.etat.ecoutees).toEqual(premier.partie.etat.ecoutees);
+  });
+
+  it('sans elle derrière aucune porte : après la première, chaque attente ne rend que l’attente (D-289 peut venir)', () => {
+    for (const graine of grainesCalmes(5, 12)) {
+      let partie = attendre(LOIN, nouvellePartie(LOIN, { version: VERSION, graine })).partie;
+      for (let i = 0; i < 11; i++) {
+        const suivant = attendre(LOIN, partie);
+        expect(suivant.evenements).toEqual([{ type: 'attente' }]);
+        partie = suivant.partie;
+      }
+    }
+  });
+
+  it('face 2 dans la pièce voisine : le bruit proche, pas d’écoute, la dernière écoute gardée ; le bruit lointain écoute', () => {
+    const proche = grainesCalmes(1, 1, (g) => faceRencontre(g, 2, 1) === 2)[0]!;
+    const premier = attendre(GRAND, nouvellePartie(GRAND, { version: VERSION, graine: proche }));
+    const second = attendre(GRAND, premier.partie);
+    expect(second.evenements.map((e) => e.type)).toEqual(['attente', 'bruit_proche']);
+    expect(second.partie.etat.ecoutees).toEqual(premier.partie.etat.ecoutees);
+    const lointain = grainesCalmes(1, 0, (g) => faceRencontre(g, 1, 1) === 2)[0]!;
+    const { evenements } = attendre(LOIN, nouvellePartie(LOIN, { version: VERSION, graine: lointain }));
+    expect(evenements.map((e) => e.type)).toEqual(['attente', 'bruit_lointain', 'ecoute', 'ecoute', 'ecoute', 'ecoute']);
   });
 
   it('un net pose le repère BRUIT sur sa porte, et se redit « toujours »', () => {

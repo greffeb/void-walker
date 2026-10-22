@@ -2833,6 +2833,8 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
     | elle est là, porte ouverte | 1–5 | 6 | — |
     | elle n'y est pas | — | 1 | 2–6 |
 
+  - **Sans elle, la réponse d'une porte ne dépend que de la partie, pas du moment** [Détail de l'agent, revue finale] : le d6 est alors haché sur la graine et la liaison seulement, sans le numéro d'action, pour qu'une porte vide ne fasse pas croire à un changement (« peut-être un frottement » puis « plus rien ») et que les messages de patience (D-289) puissent venir.
+
   - **La preuve ne bouge pas** : `sansErrance` retire `rencontre`, le jet n'entre pas au journal. Aucune republication des grandes stations ; `check:stations` passe avec 194 verdicts.
   - **Mesure négative pour le bot averti** (grandes stations, 1 000 parties, mêmes graines et même tirage que `mesurer:difficulte --grandes`). Évacuations : 19,9 % avant, 16,1 % après ; écart apparié −3,8 points, IC 95 % [−5,7 ; −1,9] (115 parties sur 1 000 changent d'issue : 67 évacuations perdues, 29 gagnées, et 19 autres qui passent entre défaite et partie non finie sans toucher à l'évacuation). L'averti fait 11,7 puis 21,3 attentes par partie, dont 9,5 dues à la règle (44 % des attentes) ; ses attentes génériques ne bougent presque pas (11,7 puis 11,9). Les nets tombent dans 37 % des attentes quand la créature est derrière une porte fermée, et jamais sans elle. Le prudent et le pressé, qui n'ont pas la règle, gardent exactement leurs chiffres. La table n'a pas été retouchée. **Question ouverte pour le porteur** : cette perte peut venir du coût de la règle (actions et jets de rencontre) plus que du jet, et un bot n'est pas un joueur ; faut-il changer la table, la règle du bot, ou garder tel quel ? Rien n'est conclu ici.
 

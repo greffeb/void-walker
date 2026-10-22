@@ -4,7 +4,8 @@ import type { DefMonde } from './monde';
 import type { Entendu, EntenduRecit } from './vocabulaire';
 
 // Jet d'écoute aux portes (créature mobile, lot 2, D-343 et suivantes) : en ATTENDANT, un d6 par porte dit ce qu'on perçoit
-// derrière. Comme le dé de rencontre, le tirage ne lit que la graine et le numéro d'action : rien n'entre au journal.
+// derrière. Comme le dé de rencontre, le tirage ne lit que la graine et le numéro d'action : rien n'entre au journal. Sans elle
+// derrière, la porte répond pareil toute la partie, sans le numéro d'action : pas de changement fantôme (D-344, revue finale).
 
 /** Faces du d6 donnant chaque résultat selon ce qu'il y a derrière la porte ; seuils à mesurer. */
 export const TABLE_ECOUTE = {
@@ -13,9 +14,10 @@ export const TABLE_ECOUTE = {
   absente: { net: 0, vague: 1 },
 } as const;
 
-/** Face du d6 (1 à 6) pour cette porte à cette action. */
-export function faceEcoute(graine: number, action: number, liaison: string): number {
-  return 1 + (Number.parseInt(hacher(`ecoute:${graine}:${action}:${liaison}`).slice(-8), 16) % 6);
+/** Face du d6 (1 à 6) pour cette porte à cette action ; `undefined` : la face de la porte pour toute la partie. */
+export function faceEcoute(graine: number, action: number | undefined, liaison: string): number {
+  const cle = action === undefined ? `ecoute:${graine}:${liaison}` : `ecoute:${graine}:${action}:${liaison}`;
+  return 1 + (Number.parseInt(hacher(cle).slice(-8), 16) % 6);
 }
 
 /** Ce qu'on entend derrière chaque porte de la pièce du joueur ; rien du tout si le vacarme des machines couvre tout. */
@@ -30,7 +32,7 @@ export function ecouterPortes(monde: DefMonde, etat: EtatPartie, graine: number,
     else {
       const elleEstLa = creatureActive(etat) && etat.creature?.piece === voisine;
       const table = !elleEstLa ? TABLE_ECOUTE.absente : etat.liaisons[liaison.id] === true ? TABLE_ECOUTE.ouverte : TABLE_ECOUTE.fermee;
-      const face = faceEcoute(graine, action, liaison.id);
+      const face = faceEcoute(graine, elleEstLa ? action : undefined, liaison.id);
       entendus[liaison.id] = face <= table.net ? 'net' : face <= table.vague ? 'vague' : 'rien';
     }
   }
