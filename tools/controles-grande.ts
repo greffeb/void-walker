@@ -1,10 +1,11 @@
 import { CLE_TROUSSE, franchissable, prefixer, type DefLiaison, type DefMorceau, type DefObjet, type DefPiece, type DefStation, type EmplacementDocument } from '../engine';
-import { PIECES_CATALOGUE, type EntreeMonde } from '../content';
+import { PIECES_CATALOGUE, SALLE_SURVEILLANCE, type EntreeMonde } from '../content';
 
 // Contrôles structurels d'une grande station (spec 2026-10-18 §7.3) : des parcours de graphe, sans recherche d'états, rapides
 // sur chaque station publiée. La preuve de jeu (vérifieur) vient ensuite.
 
-const ANNEXES = new Map(PIECES_CATALOGUE.map((morceau) => [morceau.id, morceau]));
+// La salle de surveillance (lot 4) n'est pas tirée par la pose des annexes, mais c'est une annexe du catalogue.
+const ANNEXES = new Map([...PIECES_CATALOGUE, SALLE_SURVEILLANCE].map((morceau) => [morceau.id, morceau]));
 // Spec §4.1 : de 21 à 28 pièces dessinées ; `piecesMin` du contenu écarte les graines dont le plan, reprise de couverture comprise, en compterait moins.
 const PIECES_MIN = 21;
 const PIECES_MAX = 28;
@@ -195,10 +196,14 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
   for (const piece of monde.pieces) {
     if (piece.pillee === true && (!salleDeButin(piece.id) || monde.objets.some((objet) => objet.piece === piece.id))) ecarts.push(`${piece.id} pillée : ni salle de butin du catalogue, ni vide.`);
   }
-  // La première salle pend à la piste, directement ou par des couloirs du catalogue, dès qu'une impasse de butin sans clé y pend.
+  // La première salle pend à la piste, directement ou par des couloirs du catalogue, dès qu'une impasse de butin sans clé ni post-it
+  // (lot 4) y pend.
   const salles = new Set([...monde.pieces.filter((piece) => piece.pillee === true).map((piece) => piece.id), ...butins.map((objet) => objet.piece)]);
   const surLaPiste = (piece: string): boolean =>
-    salleDeButin(piece) && !cles.some((cle) => cle.objet.piece === piece) && enChaine(piece).some((haut) => pieces.get(haut)?.trace !== undefined);
+    salleDeButin(piece) &&
+    !cles.some((cle) => cle.objet.piece === piece) &&
+    !monde.objets.some((objet) => objet.nom === 'cat_post_it' && objet.piece === piece) &&
+    enChaine(piece).some((haut) => pieces.get(haut)?.trace !== undefined);
   if (station.grande?.butin !== undefined && monde.pieces.some((piece) => surLaPiste(piece.id)) && ![...salles].some(surLaPiste)) ecarts.push('Butin : aucune salle de butin accrochée à la piste.');
 
   // Documents (spec §8.4, §7.3), relus dans le monde construit sans rien demander à la pose. Le vestibule, sans objet, n'en reçoit
@@ -301,6 +306,28 @@ export function controlerGrande(entree: EntreeMonde, station: DefStation): strin
       ...monde.liaisons.filter((liaison) => boucles.has(liaison.id)).flatMap((liaison) => liaison.entre),
     ]);
     for (const piece of monde.pieces) if (piece.forme !== undefined && !portent.has(piece.id)) ecarts.push(`${piece.id} : ne porte rien (couverture, spec §7.3).`);
+  }
+
+  // Salle de surveillance (lot 4, §4.3) : au plus un terminal, dans une impasse du catalogue hors d'un segment de capsule ; le
+  // post-it et les caméras seulement avec lui, le post-it ni dans la salle ni au repaire, des caméras sur un tiers des autres
+  // pièces dessinées, dont un tiers en panne (±1).
+  const terminaux = monde.objets.filter((objet) => objet.terminal === true);
+  const salle = terminaux[0]?.piece;
+  if (terminaux.length > 1) ecarts.push(`${terminaux.length} terminaux, plus d’un.`);
+  const capsules = new Set(monde.objets.flatMap((objet) => (objet.capsule === undefined ? [] : [pieces.get(objet.piece)?.segment])));
+  if (salle !== undefined && (pieces.get(salle)?.forme !== 'impasse' || annexeDe(salle) === undefined)) ecarts.push(`Terminal dans ${salle}, hors d’une impasse du catalogue.`);
+  if (salle !== undefined && capsules.has(pieces.get(salle)?.segment)) ecarts.push(`Terminal dans ${salle}, dans le segment d’une capsule.`);
+  for (const postIt of monde.objets.filter((objet) => objet.nom === 'cat_post_it')) {
+    if (salle === undefined) ecarts.push(`Post-it ${postIt.id} sans terminal.`);
+    if (postIt.piece === salle || postIt.piece === station.creature) ecarts.push(`Post-it ${postIt.id} dans ${postIt.piece}, la salle de surveillance ou le repaire.`);
+  }
+  const cameras = monde.cameras ?? [];
+  if (cameras.length > 0 && salle === undefined) ecarts.push(`${cameras.length} caméras sans terminal.`);
+  if (salle !== undefined) {
+    const autres = monde.pieces.filter((piece) => piece.plan !== undefined && piece.id !== salle).length;
+    const enPanne = cameras.filter((camera) => camera.hs === true).length;
+    if (Math.abs(cameras.length - autres / 3) > 1) ecarts.push(`${cameras.length} caméras pour ${autres} pièces, loin d’un tiers.`);
+    if (Math.abs(enPanne - cameras.length / 3) > 1) ecarts.push(`${enPanne} caméras en panne sur ${cameras.length}, loin d’un tiers.`);
   }
 
   // Vestibule (D-257) : une seule porte, aucun objet.

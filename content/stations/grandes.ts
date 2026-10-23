@@ -1,5 +1,5 @@
 import type { DefAccroche, DefCommande, DefMorceau, DefStation } from '../../engine';
-import { PIECES_CATALOGUE, TABLE_BUTIN } from '../catalogue';
+import { PIECES_CATALOGUE, SALLE_SURVEILLANCE, TABLE_BUTIN } from '../catalogue';
 import { MORCEAUX, type EntreeMorceau } from '../morceaux';
 import { CLOISON_1, cloison2 } from '../morceaux/carrefour';
 import { RESERVE_DOCUMENTS } from '../textes/documents';
@@ -12,9 +12,11 @@ import { sansConflit } from './textes-station';
 // suit le sas (D-257, D-270).
 
 /** Version du générateur des grandes stations : un identifiant d'une autre version ne se reconstruit pas (spec §4.3). */
-export const VERSION_GENERATEUR = 3;
+export const VERSION_GENERATEUR = 4;
 /** Territoire de départ de la créature : la seconde moitié de la station, valeur d'essai pour le porteur (spec créature mobile §territoire, Q-1). */
 export const ETENDUE_TERRITOIRE = 0.5;
+/** Part des stations tirées avec une salle de surveillance, réglée pour que 20 % des stations publiées en aient une (lot 4, porteur). */
+export const PART_SURVEILLANCE = 0.2;
 /** Graines des grandes stations : de 0 à 9 999, pour tenir dans 40 caractères (spec §4.3). */
 export const GRAINE_GRANDE_MAX = 9999;
 /** Une grande station compte environ 24 pièces dessinées : les annexes complètent les morceaux, de 6 à 10 (spec §4.1). */
@@ -118,7 +120,7 @@ export function definirGrande({ composition, morceaux }: GrandePrevue, graine: n
       { id: 'reveil', quand: { type: 'reveil' } },
       { id: 'depart', quand: { type: 'evacuation' } },
     ] as const,
-    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, piecesMin: PIECES_MIN, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS, etendue: ETENDUE_TERRITOIRE },
+    grande: { version: VERSION_GENERATEUR, catalogue: PIECES_CATALOGUE, annexes: composition.annexes, boucles: BOUCLES, piecesMin: PIECES_MIN, butin: TABLE_BUTIN, documents: RESERVE_DOCUMENTS, etendue: ETENDUE_TERRITOIRE, surveillance: { salle: SALLE_SURVEILLANCE, part: PART_SURVEILLANCE } },
   };
   const vestibule = exiger(VESTIBULE, 'vestibule');
   if (composition.forme === 'chaine') {

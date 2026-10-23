@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { assemblerStation, CLE_TROUSSE, exporter, nouvellePartie, prefixer, type DefMonde, type DefStation, type EmplacementDocument, type ReserveDocuments, type TableButin } from '../engine';
-import { MORCEAUX, PIECES_CATALOGUE, VERSION_GENERATEUR } from '../content';
+import { MORCEAUX, PIECES_CATALOGUE, SALLE_SURVEILLANCE, VERSION_GENERATEUR } from '../content';
 import { CATALOGUE } from './catalogue';
 
 // Assemblage d'une grande station (spec 2026-10-18 §6.2) avec les vrais morceaux et le vrai catalogue : vestibule, M-01, M-08,
@@ -324,7 +324,8 @@ describe('salles de butin (spec 2026-10-18 §6.6)', () => {
       if (composition === undefined) throw new Error('Aucune grande composition avec M-04.');
       const station = CATALOGUE.definirGrande(composition.id, graine);
       if ('refus' in station) throw new Error(station.refus);
-      const resultat = assemblerStation({ ...station, grande: station.grande === undefined ? undefined : { ...station.grande, butin: TABLE } });
+      // Sans salle de surveillance (lot 4) : la salle et le post-it prennent des impasses, et la burette s'y pose plus rarement.
+      const resultat = assemblerStation({ ...station, grande: station.grande === undefined ? undefined : { ...station.grande, butin: TABLE, surveillance: undefined } });
       if (resultat.type === 'invalide') throw new Error(`${station.id} : ${resultat.erreurs.join(' ')}`);
       if (resultat.type !== 'station') continue;
       stations++;
@@ -454,5 +455,70 @@ describe('taille minimale d’une grande station (spec 2026-10-18 §4.1, §11)',
     }
     expect(sous).toBeGreaterThan(0);
     expect(gardees).toBeGreaterThan(0);
+  });
+});
+
+describe('salle de surveillance (créature mobile lot 4)', () => {
+  /** Vraie station de cette graine, avec la salle sur une part donnée : 1, toujours sous la part ; 0, jamais. */
+  const avecPart = (graine: number, part: number): DefStation => {
+    const reelle = stationReelle(graine);
+    return { ...reelle, grande: { ...reelle.grande!, surveillance: { salle: SALLE_SURVEILLANCE, part } } };
+  };
+  const capsules = (monde: DefMonde): Set<number | undefined> =>
+    new Set(monde.objets.flatMap((objet) => (objet.capsule === undefined ? [] : [monde.pieces.find((piece) => piece.id === objet.piece)?.segment])));
+
+  it('sous la part : une salle de surveillance avec son terminal, un post-it ailleurs, des caméras sur un tiers des pièces dont un tiers en panne', () => {
+    let salles = 0;
+    let essais = 0;
+    for (let graine = 0; graine < 40; graine++) {
+      const station = avecPart(graine, 1);
+      const resultat = assemblerStation(station);
+      if (resultat.type === 'invalide') throw new Error(`${station.id} : ${resultat.erreurs.join(' ')}`);
+      if (resultat.type !== 'station') continue;
+      essais++;
+      const { monde } = resultat;
+      const terminal = monde.objets.find((objet) => objet.terminal === true);
+      if (terminal === undefined) {
+        // Sans impasse candidate, ni post-it ni caméras.
+        expect(monde.cameras, station.id).toBeUndefined();
+        expect(monde.objets.some((objet) => objet.id === 'o-post-it'), station.id).toBe(false);
+        continue;
+      }
+      salles++;
+      const salle = monde.pieces.find((piece) => piece.id === terminal.piece)!;
+      expect({ nom: salle.nom, forme: salle.forme, categorie: salle.categorie }, station.id).toEqual({ nom: 'cat_surveillance', forme: 'impasse', categorie: 'commandement' });
+      expect(terminal, station.id).toMatchObject({ id: 'o-terminal', portable: false, exige: 'o-post-it' });
+      expect(capsules(monde).has(salle.segment), station.id).toBe(false);
+      expect(monde.objets.filter((objet) => objet.piece === salle.id && objet.id !== 'o-terminal'), station.id).toEqual([]);
+      const postIt = monde.objets.find((objet) => objet.id === 'o-post-it');
+      expect(postIt, station.id).toEqual({ id: 'o-post-it', nom: 'cat_post_it', piece: postIt?.piece, portable: true });
+      expect([salle.id, station.creature], station.id).not.toContain(postIt?.piece);
+      expect(monde.pieces.find((piece) => piece.id === postIt?.piece)?.forme, station.id).toBeDefined();
+      const cameras = monde.cameras ?? [];
+      const candidates = monde.pieces.filter((piece) => piece.plan !== undefined && piece.id !== salle.id).length;
+      expect(cameras.length, station.id).toBe(Math.round(candidates / 3));
+      expect(cameras.filter((camera) => camera.hs === true).length, station.id).toBe(Math.round(cameras.length / 3));
+      expect(cameras.some((camera) => camera.piece === salle.id), station.id).toBe(false);
+      // Dans l'ordre du monde.
+      const rang = new Map(monde.pieces.map((piece, indice) => [piece.id, indice]));
+      expect(cameras.map((camera) => rang.get(camera.piece)), station.id).toEqual(cameras.map((camera) => rang.get(camera.piece)).sort((a, b) => a! - b!));
+    }
+    expect(salles).toBeGreaterThanOrEqual(essais * 0.8);
+  }, 60_000);
+
+  it('au-dessus de la part : ni terminal, ni post-it, ni caméras ; pièces, liaisons et objets de l’assemblage sans salle', () => {
+    let comparees = 0;
+    for (let graine = 0; graine < 20; graine++) {
+      const station = avecPart(graine, 0);
+      const resultat = assemblerStation(station);
+      const sansSalle = assemblerStation({ ...station, grande: { ...station.grande!, surveillance: undefined } });
+      expect(resultat.type, station.id).toBe(sansSalle.type);
+      if (resultat.type !== 'station' || sansSalle.type !== 'station') continue;
+      comparees++;
+      expect(resultat.monde.objets.some((objet) => objet.terminal === true || objet.id === 'o-post-it'), station.id).toBe(false);
+      expect('cameras' in resultat.monde, station.id).toBe(false);
+      expect(JSON.stringify(resultat.monde), station.id).toBe(JSON.stringify(sansSalle.monde));
+    }
+    expect(comparees).toBeGreaterThan(0);
   });
 });

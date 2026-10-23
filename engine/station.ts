@@ -134,6 +134,11 @@ export interface DefStationGrande {
   readonly documents?: ReserveDocuments;
   /** Part des pièces que le territoire de départ de la créature atteint, de 0 à 1 ; absente ou 0 : aucune porte ouverte (spec créature mobile §territoire). */
   readonly etendue?: number;
+  /**
+   * Salle de surveillance (créature mobile lot 4, §4.3) : sur la part `part` des stations, tirée par identifiant, une impasse posée devient `salle`, et le
+   * monde reçoit un post-it et des caméras ; absente : rien de tout cela.
+   */
+  readonly surveillance?: { readonly salle: DefMorceau; readonly part: number };
 }
 
 /** Les quatre couches d'écriture des documents (spec §8.4) : la vie d'avant, l'incident, une tentative sur un obstacle, une clé rangée. */

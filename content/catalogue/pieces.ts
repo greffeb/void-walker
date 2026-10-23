@@ -36,3 +36,13 @@ export const PIECES_CATALOGUE: readonly DefMorceau[] = [
   annexe('a-bureau-fret', 'cat_bureau_fret', 3, 3, { categorie: 'commandement', forme: 'impasse', etiquettes: ['document'], porte: 'tiree' }),
   annexe('a-laboratoire', 'cat_laboratoire', 4, 3, { categorie: 'science', forme: 'impasse', etiquettes: ['document', 'butin'], porte: 'fermee' }),
 ];
+
+/**
+ * Salle de surveillance (créature mobile lot 4, §4.3) : une impasse du catalogue déjà posée la devient, sur une part des grandes
+ * stations, sans changer ni son rectangle ni sa porte. Hors de `PIECES_CATALOGUE` : la pose des annexes ne la tire jamais. Sans
+ * étiquette, elle ne reçoit ni clé, ni butin, ni document de l'univers ; son terminal exige le post-it posé ailleurs.
+ */
+export const SALLE_SURVEILLANCE: DefMorceau = {
+  ...annexe('a-surveillance', 'cat_surveillance', 3, 3, { categorie: 'commandement', forme: 'impasse', etiquettes: [], porte: 'tiree' }),
+  objets: [{ id: 'o-terminal', nom: 'cat_terminal', piece: 'p-piece', portable: false, terminal: true, exige: 'o-post-it' }],
+};

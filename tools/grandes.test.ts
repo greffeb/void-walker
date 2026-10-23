@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { assemblerStation, RYTHME_RENCONTRE, type DefMonde } from '../engine';
 import { ETENDUE_TERRITOIRE, MORCEAUX, VERSION_GENERATEUR, type CompositionGrande } from '../content';
 import { CATALOGUE } from './catalogue';
+import { controlerGrande } from './controles-grande';
+import { lireTemoins, verifierPubliee } from './verifier-grandes';
 
 // Grandes stations (spec 2026-10-18 §4, D-313, D-315) : deux chemins matériels, un troisième chemin, un final ; la créature
 // dans le troisième chemin ou le final ; un chemin dont le seul obstacle est la créature seulement s'il l'accueille.
@@ -174,4 +176,24 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     expect(avecCapteur / premieres.length).toBeGreaterThanOrEqual(0.1);
     expect(avecCapteur / premieres.length).toBeLessThanOrEqual(0.9);
   }, 120_000);
+  it('la salle de surveillance sur 0,15 à 0,25 des 400 premières publiées, chacune contrôlée ; une station sans salle reste prouvée (créature mobile lot 4)', () => {
+    const premieres = CATALOGUE.publiees.slice(0, 400);
+    let avecSalle = 0;
+    let sansSalle: string | undefined;
+    for (const id of premieres) {
+      const tiret = id.lastIndexOf('-');
+      const entree = CATALOGUE.construireGrande(id.slice(0, tiret), Number(id.slice(tiret + 1)));
+      const station = CATALOGUE.definirGrande(id.slice(0, tiret), Number(id.slice(tiret + 1)));
+      if ('refus' in entree) throw new Error(entree.refus);
+      if ('refus' in station) throw new Error(station.refus);
+      expect(controlerGrande(entree, station), id).toEqual([]);
+      if (entree.monde.objets.some((objet) => objet.terminal === true)) avecSalle++;
+      else sansSalle ??= id;
+    }
+    expect(premieres).toHaveLength(400);
+    expect(avecSalle / premieres.length).toBeGreaterThanOrEqual(0.15);
+    expect(avecSalle / premieres.length).toBeLessThanOrEqual(0.25);
+    expect(sansSalle).toBeDefined();
+    expect(verifierPubliee(CATALOGUE, sansSalle!, lireTemoins()[sansSalle!]).verdict).toBe('prouvee');
+  }, 300_000);
 });
