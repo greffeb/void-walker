@@ -65,6 +65,28 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     machines: ['Derrière {le:passage}, le grondement des machines couvre tout ; on croit y entendre des coups, sans savoir lesquels.'],
     froid: ['Contre {le:passage}, le métal glacé ne laisse passer que le ronron du compresseur.'],
   },
+  // Capteur de mouvement (lot 3 de la créature mobile) : seul « MOUVEMENT » est en rouge ; « calme » n'est dit que d'une pièce
+  // dont il lit l'air, et une panne ou une destruction se dit toujours.
+  capteurPose: {
+    calme: [
+      'Vous fixez le capteur au mur. Un voyant vert clignote, puis s’éteint. CAPTEUR : EN SERVICE.',
+      'Vous collez le capteur au mur. Son voyant vert bat une fois, puis s’éteint. CAPTEUR : EN SERVICE.',
+    ],
+    brouille: [
+      'Vous fixez le capteur au mur. Le voyant hésite, puis clignote sans fin. CAPTEUR : SIGNAL BROUILLÉ.',
+      'Vous collez le capteur au mur. Son voyant tremble, sans jamais se fixer. CAPTEUR : SIGNAL BROUILLÉ.',
+    ],
+    mouvement: [
+      'Vous fixez le capteur au mur. Le voyant passe aussitôt au rouge. CAPTEUR : MOUVEMENT.',
+      'Vous collez le capteur au mur. Son voyant vire au rouge sur-le-champ. CAPTEUR : MOUVEMENT.',
+    ],
+  },
+  capteur: {
+    mouvement: ['Votre terminal bipe deux fois. CAPTEUR : MOUVEMENT.', 'Votre terminal sonne, sec, deux fois. CAPTEUR : MOUVEMENT.'],
+    calme: ['Votre terminal bipe. CAPTEUR : PLUS DE MOUVEMENT.', 'Votre terminal bipe une fois, plus doucement. CAPTEUR : PLUS DE MOUVEMENT.'],
+    brouille: ['Votre terminal grésille. CAPTEUR : SIGNAL BROUILLÉ.', 'Votre terminal crachote un parasite. CAPTEUR : SIGNAL BROUILLÉ.'],
+    hs: ['Votre terminal grésille. CAPTEUR : PLUS DE SIGNAL.', 'Votre terminal crachote, puis se tait. CAPTEUR : PLUS DE SIGNAL.'],
+  },
   attenteVacarme: [
     'Vous restez immobile. Le grondement des machines vous traverse la poitrine.',
     'Vous attendez, les mains sur les oreilles. Le fracas ne faiblit pas.',

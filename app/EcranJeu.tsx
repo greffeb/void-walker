@@ -129,6 +129,8 @@ export function EcranJeu({
   occupe,
   choisir,
   lireMessages,
+  carteANouveau = false,
+  voirCarte = () => undefined,
   ouvrirOptions,
   continuer,
   signaux = AUCUN_SIGNAL,
@@ -145,6 +147,10 @@ export function EcranJeu({
   readonly choisir: (jeu: Jeu, option: OptionMenu) => Promise<void>;
   /** À l'ouverture de la fenêtre d'IA Station : tous les messages reçus passent en lus, sans toucher à la partie. */
   readonly lireMessages: (jeu: Jeu) => void;
+  /** Le capteur a changé d'état depuis la dernière ouverture de la carte : « ! » sur CARTE (créature mobile lot 3). */
+  readonly carteANouveau?: boolean;
+  /** À l'ouverture de la carte : le « ! » s'éteint. */
+  readonly voirCarte?: () => void;
   /** Engrenage des options (12 §3.2) ; absent, ou partie terminée : pas d'engrenage. */
   readonly ouvrirOptions?: () => void;
   /** Version de test, réglage « Carte révélée » : la carte montre toute la station et la créature. */
@@ -408,12 +414,22 @@ export function EcranJeu({
             className="nav-carte"
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'carte'}
-            aria-label={LIBELLES.jeu.carte}
+            aria-label={carteANouveau ? LIBELLES.jeu.carteNouveauSignal : LIBELLES.jeu.carte}
             disabled={occupe}
-            onClick={(evenement) => (ouverte?.zone === 'carte' ? fermer() : ouvrir({ zone: 'carte' }, evenement.currentTarget))}
+            onClick={(evenement) => {
+              if (ouverte?.zone === 'carte') return fermer();
+              voirCarte();
+              ouvrir({ zone: 'carte' }, evenement.currentTarget);
+            }}
             data-son={ouverte?.zone === 'carte' ? 'fermer-carte' : 'panneau-carte'}
           >
             {NAV_CARTE}
+            {carteANouveau && (
+              <svg className="notification-ia notification-carte" viewBox="0 0 12 20" aria-hidden="true">
+                <rect x="3" y="0" width="6" height="12" fill="currentColor" />
+                <rect x="3" y="14" width="6" height="6" fill="currentColor" />
+              </svg>
+            )}
           </button>
           {/* Repère animé tant qu'un message n'a pas été lu (D-263) ; masqué au lecteur d'écran, qui lit « nouveau message » sans répétition (12 §2.6). */}
           <button

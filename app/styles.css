@@ -1403,7 +1403,8 @@ button:disabled {
    deux fois vite puis se repose une seconde (cycle de 1,5 s : deux éclats de 0,2 s dans les 0,5 premières secondes, sous le seuil de trois par
    seconde, WCAG 2.3.1). Hors du flux, il ne déplace ni ne redimensionne le bouton ; seul lui s'anime, jamais le bouton ni son libellé ;
    l'opacité ne descend pas à zéro. Fixe et plein en mouvement réduit. */
-.navigation .nav-ia {
+.navigation .nav-ia,
+.navigation .nav-carte {
   position: relative;
 }
 
@@ -1419,6 +1420,11 @@ button:disabled {
   background: var(--fond);
   pointer-events: none;
   animation: notification-ia 1.5s linear infinite;
+}
+
+/* Signal du capteur : le même « ! » que celui d'IA STATION, en vert. */
+.notification-carte {
+  color: var(--vert);
 }
 
 @keyframes notification-ia {
@@ -2233,6 +2239,52 @@ button:disabled {
 
 .carte-traits .icone-creature[data-palier='longtemps'] .interieur {
   animation: none;
+}
+
+/* Capteur posé (créature mobile lot 3) : calme en vert ; au mouvement plein `alerte` avec deux ondes ; brouillé en tirets sans point ;
+   en panne barré, en vert secondaire. Aucune animation. */
+.carte-traits .icone-capteur .corps {
+  fill: var(--vert-fond);
+  stroke: var(--vert);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-capteur .coeur {
+  fill: var(--vert);
+}
+
+.carte-traits .icone-capteur[data-etat='mouvement'] .corps {
+  fill: var(--alerte);
+  stroke: var(--alerte);
+}
+
+.carte-traits .icone-capteur[data-etat='mouvement'] .coeur {
+  fill: var(--vert-fond);
+}
+
+.carte-traits .icone-capteur .onde {
+  fill: none;
+  stroke: var(--alerte);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-capteur[data-etat='brouille'] .corps {
+  stroke: var(--vert-secondaire);
+  stroke-dasharray: 2 2;
+}
+
+.carte-traits .icone-capteur[data-etat='hs'] .corps,
+.carte-traits .icone-capteur .barre {
+  stroke: var(--vert-secondaire);
+}
+
+.carte-traits .icone-capteur .barre {
+  fill: none;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
 }
 
 @media (prefers-reduced-motion: reduce) {

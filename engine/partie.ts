@@ -12,6 +12,7 @@ import { indexer, type DefMonde } from './monde';
 import { observer, terminee } from './observation';
 import { FRAICHEUR, faceRencontre, tirageErrance } from './rencontre';
 import { aRaconter, ecouterPortes } from './ecoute';
+import { abimerCapteur, capteurPose } from './capteur';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
 import { actualiserVide, piecesConnues, type Vide } from './vide';
 import {
@@ -405,6 +406,15 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
       }
       conclu = { ...conclu, ecoutees: maintenant };
     }
+  }
+  // Le capteur posé bipe quand ce qu'il lit change, tombe en panne ou est détruit ; pas au pas qui finit la partie (créature mobile lot 3, D-352).
+  if (!vaincu && conclu.fin === null) {
+    if (monde.rencontre !== undefined && capteurPose(monde, partie.etat) !== null) conclu = abimerCapteur(monde, partie.etat, conclu, partie.enregistrement.graine, action);
+    const avant = capteurPose(monde, partie.etat);
+    const apres = capteurPose(monde, conclu);
+    // Au pas de la pose, la pose a dit l'état d'avant la réaction de la créature : le bip rattrape l'écart (M-1).
+    const etatAvant = avant?.etat ?? evenements.find((e) => e.type === 'capteur_pose')?.etat;
+    if (etatAvant !== undefined && apres !== null && etatAvant !== apres.etat) evenements.push({ type: 'capteur', etat: apres.etat });
   }
   // Entré là où elle est passée il y a peu : une trace fraîche (spec créature mobile §3.4), même numéro d'action que `reagir`.
   if (auSeuil && conclu.fin === null && creatureActive(conclu) && conclu.creature?.piece !== conclu.piece && conclu.creature?.passages?.some((p) => p.piece === conclu.piece && action - p.action <= FRAICHEUR) === true) {

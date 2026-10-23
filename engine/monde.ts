@@ -155,6 +155,8 @@ export interface DefObjet {
   readonly deverrouille?: string;
   /** Grande station : objet de butin, sans aucune qualité passive (spec §6.6). */
   readonly butin?: true;
+  /** Capteur de mouvement : se pose pour de bon dans une pièce, au plus un par monde (créature mobile lot 3). */
+  readonly capteur?: true;
   /** Grande station : document à lire, objet fixe sans aucune qualité, que l'on ne peut que regarder (spec §8.5). */
   readonly document?: true;
   /** Note de rangement : pièce qu'elle nomme, rendue en référence publique à la lecture pour remplir le trou (spec §8.5). */
@@ -280,11 +282,15 @@ export function validerMonde(monde: DefMonde): string[] {
       erreurs.push(`${position.id} : sous une liaison qui n'est pas haute de ce côté.`);
     }
   }
+  if (monde.objets.filter((objet) => objet.capteur === true).length > 1) erreurs.push('capteurs multiples.');
   for (const objet of monde.objets) {
     if (!pieces.has(objet.piece)) erreurs.push(`${objet.id} : pièce inconnue ${objet.piece}.`);
     for (const doses of [objet.soin, objet.extinction, objet.glissant, objet.rebouche]) if (!dosesValides(doses)) erreurs.push(`${objet.id} : doses invalides.`);
     if ([objet.soin, objet.extinction, objet.glissant, objet.rebouche].filter((doses) => doses !== undefined).length > 1) {
       erreurs.push(`${objet.id} : plus d'une qualité par dose.`);
+    }
+    if (objet.capteur === true && (objet.portable === false || objet.deplacable === true || objet.soin !== undefined || objet.extinction !== undefined || objet.glissant !== undefined || objet.rebouche !== undefined)) {
+      erreurs.push(`${objet.id} : capteur à qualités incompatibles.`);
     }
     if (objet.vitrageExterieur === true && objet.portable !== false) erreurs.push(`${objet.id} : vitrage portable.`);
     if (objet.rebouche !== undefined && objet.portable !== false) erreurs.push(`${objet.id} : kit de rustine portable.`);

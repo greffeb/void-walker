@@ -1,6 +1,6 @@
 # Créature mobile, information et difficulté — conception
 
-> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. Décisions consignées dans 03 : D-330 à D-342 (liste en §12).
+> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-350 à D-354.
 > **Zones :** orange pour le moteur, le vérifieur, le format des morceaux, l'appli et chaque seuil d'équilibrage ; rouge pour la sauvegarde, dont le format change (§9).
 > **Sources :** discussion du 2026-10-21 ; issues #216, #217, #241 ; D-161, D-177, D-178, D-180, D-181, D-241, D-275, D-276, D-279 ; C-03 ; 17 §1 et §7 (IA Station).
 
@@ -93,11 +93,18 @@ Le porteur sait que ces outils rendront le jeu plus facile. Le réglage de diffi
 
 ### 4.2 Capteurs (butin)
 
-- Objet trouvé dans les pièces à fouiller, en petite quantité.
-- **Posé** dans une pièce, le capteur signale un mouvement dans cette pièce.
-- **Avant le poste** (§4.3) : le signal est un simple bip sur le terminal du joueur, qui donne le numéro du capteur. C'est au joueur de se souvenir où il l'a posé.
-- Un capteur peut **tomber en panne**. La probabilité est un réglage de difficulté.
-- Un capteur ne marche pas dans une pièce aveugle.
+Consigné par D-350 à D-353. Précisé avec le porteur le 2026-10-22 sur maquettes ([capteur.html](../../maquette/capteur.html), puis [capteur-carte.html](../../maquette/capteur-carte.html), variante E retenue), lot 3.
+
+- Objet trouvé dans les pièces à fouiller : **au plus un par station** (porteur, « déjà pas mal comme bonus »), une ligne de la table de butin.
+- **Usage visé** (porteur) : manipuler la créature. On pose un capteur dans un cul-de-sac, on en laisse la porte ouverte, on s'éloigne ; quand le capteur dit qu'elle y est, on revient fermer pour l'enfermer.
+- **Pose** : dans la pièce où se trouve le joueur, pour une action. Le terminal l'annonce (« CAPTEUR : EN SERVICE. ») et la carte le montre. Un capteur posé l'est **pour de bon** : on ne le ramasse pas.
+- **Sur la carte** (porteur, variante E de [capteur-carte.html](../../maquette/capteur-carte.html), préférée au bandeau de la variante B) : une icône dans la pièce du capteur, un losange qui change selon l'état : **calme** (contour et point verts), **MOUVEMENT** (rouge plein, avec des ondes) tant que la créature est dans sa pièce, **brouillé** (contour en pointillés, sans point), **panne** (barré). En ouvrant la carte, le joueur sait donc si elle y est **encore**.
+- **« ! » sur le bouton CARTE** à chaque changement d'état, comme celui d'IA STATION (D-263), en vert ; il s'éteint quand on ouvre la carte. Pas de « ! » à la pose.
+- **Bip** : chaque changement d'état est dit une fois dans le récit (« Votre terminal bipe deux fois. CAPTEUR : MOUVEMENT. »), comme l'écoute ne redit que ce qui change (D-346).
+- Un capteur peut **tomber en panne**. La panne **s'annonce** (« CAPTEUR : PLUS DE SIGNAL. ») et reste barrée jusqu'à la fin. La probabilité est un réglage de difficulté.
+- **La créature peut détruire un capteur** de la pièce où elle se trouve. Il s'affiche comme une panne : le joueur ne sait pas lequel des deux.
+- **Pièce aveugle** (porteur) : on peut y poser le capteur, mais il est **brouillé** tant que la pièce l'est (machines en marche, chambre froide). C'est un quatrième état, temporaire : il redevient calme ou MOUVEMENT quand les machines s'arrêtent. « Calme » n'est jamais affiché dans une pièce aveugle.
+- **Choix de l'agent** : la destruction se tire sur un dé à part (haché `capteur:<graine>:<action>`, comme celui de rencontre), quand la créature reste dans la pièce du capteur (chance en paramètre de difficulté) ; le capteur ne capte que la créature, pas le joueur ; le bip ne s'entend pas, il n'attire rien.
 
 ### 4.3 Poste de sécurité (#241)
 
@@ -124,6 +131,8 @@ La face 2 du dé de rencontre produit un signe, tiré parmi :
 Le signe porte sur un événement réel, comme une porte forcée, un capteur détruit ou un passage récent. Il ne ment jamais.
 
 ### 4.6 Drone éclaireur (butin)
+
+> **Reporté** par le porteur le 2026-10-22 (D-354) : le lot 3 ne livre que les capteurs. Ses deux usages (explorer une zone ouverte, servir d'appât) tirent en sens contraire sur le bruit ; à reprendre plus tard.
 
 - Objet rare, distinct du drone de maintenance sur rail de M-12.
 - On l'envoie dans une pièce voisine par une porte ouverte ou entrouverte (règle de passage à préciser), puis on le pilote **pendant un nombre limité d'actions**, jusqu'à épuisement de la batterie.
@@ -195,7 +204,7 @@ C'est le point le plus délicat du lot. Il doit être réglé avant toute public
 4. Départ tiré dans le territoire, plus de place fixe par morceau (§3.2, remplace les places des morceaux).
 5. Dé de rencontre : 1 déplacement, 2 signe, sinon rien, toutes les N actions ; remplace D-048 (§3.2).
 6. Écouter à une porte, avec jet de perception et mensonge possible près des machines (§4.1).
-7. Capteurs et drone éclaireur trouvés comme butin (§4.2, §4.6).
+7. Capteurs et drone éclaireur trouvés comme butin (§4.2, §4.6). Capteur livré au lot 3 : D-350 à D-353 ; drone éclaireur reporté : D-354.
 8. Poste de sécurité : plan, portes au moment de la consultation, capteurs ; jamais la créature directement (§4.3, #241).
 9. Pièces aveugles (§4.4).
 10. Signes de la face 2, dont les messages techniques d'IA Station (§4.5).

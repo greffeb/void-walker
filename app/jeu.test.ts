@@ -4,6 +4,7 @@ import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRE
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
+  carteANouveau,
   charger,
   cleStockage,
   commencer,
@@ -767,5 +768,13 @@ describe('appli : vide apparu signalé avec son alarme (D-233)', () => {
     const repris = await pret(envAr02());
     expect(repris.recit).toEqual(jeu.recit);
     expect(repris.alertes).toEqual(jeu.alertes);
+  });
+});
+
+describe('« ! » sur CARTE (créature mobile lot 3)', () => {
+  it('un changement du capteur l’allume, le dépôt non, et il reste allumé jusqu’à l’ouverture', () => {
+    expect(carteANouveau(false, [{ type: 'capteur', etat: 'hs' }])).toBe(true);
+    expect(carteANouveau(false, [{ type: 'capteur_pose', objet: { sorte: 'objet', id: 'c', nom: 'capteur' }, piece: { sorte: 'piece', id: 'p', nom: 'pièce' }, etat: 'calme' }])).toBe(false);
+    expect(carteANouveau(true, [])).toBe(true);
   });
 });

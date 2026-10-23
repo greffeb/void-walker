@@ -158,4 +158,20 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
     const nonPubliee = CATALOGUE.resoudre(`${composition.id}-9998`);
     expect('refus' in nonPubliee).toBe(true);
   });
+
+  it('le capteur dans le butin : au plus un par station, et sur 0,1 à 0,9 des 200 premières publiées (créature mobile lot 3)', () => {
+    const premieres = CATALOGUE.publiees.slice(0, 200);
+    let avecCapteur = 0;
+    for (const id of premieres) {
+      const entree = CATALOGUE.resoudre(id);
+      if ('refus' in entree) throw new Error(entree.refus);
+      const capteurs = entree.monde.objets.filter((objet) => objet.capteur === true).length;
+      expect(capteurs, id).toBeLessThanOrEqual(1);
+      avecCapteur += capteurs;
+    }
+    // la part suit les graines publiées, pas seulement les poids (0,16 mesuré sur les 200 premières publiées, 0,19 sur 400, 2026-10-23)
+    expect(premieres).toHaveLength(200);
+    expect(avecCapteur / premieres.length).toBeGreaterThanOrEqual(0.1);
+    expect(avecCapteur / premieres.length).toBeLessThanOrEqual(0.9);
+  }, 120_000);
 });

@@ -107,6 +107,13 @@ describe('écran de la carte (14 §2)', () => {
     expect(x('icone-joueur')).toBeLessThan(x('icone-creature'));
   });
 
+  it('le capteur a son icône dans sa pièce, et la vue LISTE le dit en mots (créature mobile lot 3)', () => {
+    const carte: CartePublique = { ...CARTE, pieces: CARTE.pieces.map((piece) => (piece.piece.nom === 'galerie' ? { ...piece, statut: 'visitee' as const, capteur: 'mouvement' as const } : piece)) };
+    expect(plan(carte).match(/class="icone-capteur" data-etat="mouvement"/g)).toHaveLength(1);
+    expect(plan()).not.toContain('icone-capteur');
+    expect(texte(renderToStaticMarkup(<ListeCarte blocs={rendreListeCarte(textes, carte)} />))).toContain('CAPTEUR : MOUVEMENT');
+  });
+
   it('portes : ouverture, trait fin si fermée, tirets, voyants d’air, « ? » ; capsule arrimée dehors (14 §2.6)', () => {
     const html = plan();
     expect(html.match(/class="ouverture"/g)).toHaveLength(3);

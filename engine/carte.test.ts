@@ -359,4 +359,18 @@ describe('carte publique (14 §3.4)', () => {
     const reprise = reprendrePartie(MONDE, JSON.parse(JSON.stringify(fin)) as unknown, VERSION);
     expect(carteDe(reprise)).toEqual(carteDe(fin));
   });
+
+  it('créature mobile lot 3 : le capteur est sur la pièce qui le porte, à son état réel même hors de vue, et nulle part ailleurs', () => {
+    const monde: DefMonde = { ...MONDE, objets: [...MONDE.objets, { id: 'capteur', nom: 'capteur', piece: 'quai', capteur: true }], creature: { piece: 'local' } };
+    const depart = partie(monde);
+    const pose = (etat: Partie['etat']): Partie['etat'] => ({ ...etat, objets: { ...etat.objets, capteur: { type: 'capteur', piece: 'quai' } } });
+    const calme = carteDe({ ...depart, etat: pose(depart.etat) }, monde);
+    expect(pieceDe(calme, 'quai', monde)?.capteur).toBe('calme');
+    expect(calme.pieces.filter((piece) => 'capteur' in piece)).toHaveLength(1);
+    // La créature entre dans la remise du capteur pendant que le passager est dans la soute : hors de vue, la carte le sait.
+    const ailleurs = suite([['aller', 'soute']], monde, depart);
+    const entree = { ...ailleurs.etat, creature: { ...ailleurs.etat.creature!, piece: 'quai' } };
+    expect(pieceDe(carteDe({ ...ailleurs, etat: pose(entree) }, monde), 'quai', monde)?.capteur).toBe('mouvement');
+    expect(carteDe(depart, monde).pieces.some((piece) => 'capteur' in piece)).toBe(false);
+  });
 });

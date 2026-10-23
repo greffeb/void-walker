@@ -99,6 +99,16 @@ describe('bruit de station et attentes à la suite (spec 2026-10-18 §5.5, D-289
     }
   });
 
+  it('une attente suivie d’un bruit de la créature ou d’un bip du capteur ne dit pas « Rien ne bouge »', () => {
+    for (let action = 0; action < 20; action += 1) {
+      for (const suite of [{ type: 'bruit_creature', passage: { id: 'p', nom: 'porte' } }, { type: 'capteur', etat: 'mouvement' }] as unknown as Evenement[]) {
+        const [phrase] = rendreEvenements(TEXTES, [{ type: 'attente' }, suite], { graine: 1, action });
+        expect(TEXTES.attenteEcoute).toContain(phrase);
+        expect(phrase).not.toMatch(/rien ne bouge|silence/i);
+      }
+    }
+  });
+
   it('ailleurs, le bruit de station se raconte après l’attente', () => {
     const texte = rendreEvenements(TEXTES, [{ type: 'attente' }, { type: 'bruit_station' }], { graine: 3, action: 4, attentes: 4 });
     expect(texte).toHaveLength(2);
@@ -217,5 +227,38 @@ describe('écoute porte par porte (lot 2 de la créature mobile)', () => {
     expect(alertesMenace([{ type: 'ecoute', passage, entendu: 'vague' }])).toEqual([]);
     expect(alertesMenace([{ type: 'bruit_creature', passage }])).toEqual([0]);
     expect(alertesMenace([{ type: 'bruit_proche', passage }])).toEqual([0]);
+  });
+});
+
+describe('capteur de mouvement (lot 3 de la créature mobile)', () => {
+  const textes = reunir([]);
+  const piece = { sorte: 'piece', id: 'e00000005', nom: 'cuisine' } as const;
+  const objet = { sorte: 'objet', id: 'e00000006', nom: 'cat_capteur' } as const;
+
+  it('la pose prend ses phrases selon l’état lu, sans alerte quand tout est calme', () => {
+    const evenement: Evenement = { type: 'capteur_pose', objet, piece, etat: 'calme' };
+    const [phrase] = rendreEvenements(textes, [evenement], { graine: 1, action: 0 });
+    expect(textes.capteurPose.calme).toContain(phrase);
+    expect(alertesMenace([evenement])).toEqual([]);
+  });
+
+  it('un bip prend ses phrases selon l’état ; le mouvement seul est en rouge', () => {
+    for (const etat of ['calme', 'mouvement', 'brouille', 'hs'] as const) {
+      const [phrase] = rendreEvenements(textes, [{ type: 'capteur', etat }], { graine: 1, action: 0 });
+      expect(textes.capteur[etat], etat).toContain(phrase);
+      expect(alertesMenace([{ type: 'capteur', etat }]), etat).toEqual(etat === 'mouvement' ? [0] : []);
+    }
+    expect(alertesMenace([{ type: 'attente' }, { type: 'capteur', etat: 'mouvement' }])).toEqual([1]);
+  });
+
+  it('une pose qui lit un mouvement est en rouge aussi', () => {
+    expect(alertesMenace([{ type: 'capteur_pose', objet, piece, etat: 'mouvement' }])).toEqual([0]);
+  });
+
+  it('les mondes écrits en entier reprennent ces textes', () => {
+    for (const id of ['ar-01', 'ar-02', 'monde-test']) {
+      expect(MONDES[id]?.textes.capteur, id).toEqual(textes.capteur);
+      expect(MONDES[id]?.textes.capteurPose, id).toEqual(textes.capteurPose);
+    }
   });
 });

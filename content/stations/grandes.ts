@@ -12,7 +12,7 @@ import { sansConflit } from './textes-station';
 // suit le sas (D-257, D-270).
 
 /** Version du générateur des grandes stations : un identifiant d'une autre version ne se reconstruit pas (spec §4.3). */
-export const VERSION_GENERATEUR = 2;
+export const VERSION_GENERATEUR = 3;
 /** Territoire de départ de la créature : la seconde moitié de la station, valeur d'essai pour le porteur (spec créature mobile §territoire, Q-1). */
 export const ETENDUE_TERRITOIRE = 0.5;
 /** Graines des grandes stations : de 0 à 9 999, pour tenir dans 40 caractères (spec §4.3). */

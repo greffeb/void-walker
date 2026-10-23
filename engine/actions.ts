@@ -1,3 +1,5 @@
+import { capteurPose } from './capteur';
+import { pieceDeCarte } from './carte';
 import { dangerConnu, type SonEmis } from './creature';
 import { ACTIONS_DRONE, avecMaintien, frein, obstacleSur, range } from './drone';
 import type { Des } from './des';
@@ -33,7 +35,7 @@ import {
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { Apercu, Consultation, Cout, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
+import type { Apercu, Consultation, Cout, EtatCapteur, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
 
 export interface Contexte {
   readonly monde: DefMonde;
@@ -248,6 +250,12 @@ const poser: ActionEngagee = {
     ],
   }),
   appliquer: ({ monde, etat }, cible, _des, parametre) => {
+    if (objet(monde, cible).capteur === true) {
+      // Posé pour de bon : fixé à la pièce de la carte, jamais au sol ni en main (créature mobile lot 3).
+      const pose: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'capteur', piece: pieceDeCarte(monde, etat.piece) } } };
+      const lu = capteurPose(monde, pose)!;
+      return { etat: pose, evenements: [{ type: 'capteur_pose', objet: refObjet(monde, cible), piece: refPiece(monde, lu.piece), etat: lu.etat as Exclude<EtatCapteur, 'hs'> }] };
+    }
     const suivant: EtatPartie = { ...etat, objets: { ...etat.objets, [cible]: { type: 'piece', piece: etat.piece, ...(parametre === undefined ? {} : { position: parametre }) } } };
     const evenement: Evenement =
       parametre === undefined

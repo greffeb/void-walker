@@ -52,6 +52,9 @@ export type Sante = (typeof SANTES)[number];
 export const CAUSES = ['griffes', 'feu', 'froid', 'vide'] as const;
 export type Cause = (typeof CAUSES)[number];
 
+/** Ce que lit le capteur posé : brouillé en pièce aveugle, hors service en panne ou détruit (créature mobile lot 3, D-351). */
+export type EtatCapteur = 'calme' | 'mouvement' | 'brouille' | 'hs';
+
 export const TYPES_EVENEMENT = [
   'reveil',
   'objet_pris',
@@ -70,6 +73,8 @@ export const TYPES_EVENEMENT = [
   'traces_fraiches',
   'ecoute',
   'ecoute_couverte',
+  'capteur_pose',
+  'capteur',
   'creature_entre',
   'attente',
   'premier_contact',
@@ -277,6 +282,10 @@ export type Evenement =
   | { readonly type: 'ecoute'; readonly passage: RefPassage; readonly entendu: EntenduRecit }
   /** En attendant dans une salle des machines en marche : le vacarme couvre tout, dit une fois (créature mobile lot 2, D-343). */
   | { readonly type: 'ecoute_couverte' }
+  /** Le capteur est posé pour de bon, et dit d'emblée ce qu'il lit (créature mobile lot 3, D-350). */
+  | { readonly type: 'capteur_pose'; readonly objet: RefObjet; readonly piece: RefPiece; readonly etat: Exclude<EtatCapteur, 'hs'> }
+  /** Le capteur posé change d'état : il bipe, tombe en panne ou est détruit (créature mobile lot 3, D-352). */
+  | { readonly type: 'capteur'; readonly etat: EtatCapteur }
   /** `vacarme` : attente dans une salle des machines en marche, où le bruit ne se tait jamais (#251). */
   | { readonly type: 'attente'; readonly vacarme?: true }
   | { readonly type: 'premier_contact' }
@@ -536,6 +545,8 @@ export interface PieceCarte {
   readonly vide: boolean;
   /** La créature a été vue ici en dernier, et quand (D-180) ; `null` sinon. */
   readonly creature: Palier | null;
+  /** Ce que lit le capteur posé, à jour même hors de vue ; absent hors de sa pièce (créature mobile lot 3, D-352). */
+  readonly capteur?: EtatCapteur;
   /** Objets vus au dernier regard, avec leur position (14 §3.1). */
   readonly objets: readonly ObjetCarte[];
   /** Passages connus depuis la pièce actuelle ; `null` si aucun chemin connu ne l'y relie. Sert à trier, jamais affiché. */

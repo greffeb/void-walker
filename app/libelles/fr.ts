@@ -75,6 +75,7 @@ export const FR = {
     navigation: 'Navigation',
     inventaire: 'Inventaire',
     carte: 'Carte',
+    carteNouveauSignal: 'Carte, nouveau signal du capteur',
     iaStation: 'IA Station',
     iaNouveauMessage: 'IA Station, nouveau message',
     /** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */

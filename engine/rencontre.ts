@@ -10,7 +10,7 @@ export const RYTHME_RENCONTRE = 1;
 export const FRAICHEUR = 6;
 export const FACES_RENCONTRE = 6;
 
-function entier32(clef: string): number {
+export function entier32(clef: string): number {
   return Number.parseInt(hacher(clef).slice(-8), 16);
 }
 

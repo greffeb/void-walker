@@ -12,7 +12,9 @@ export type EmplacementObjet =
   /** Pont fragile posé en travers de ce vide, vu et repris depuis ses deux bords (D-164). */
   | { readonly type: 'pont'; readonly liaison: string }
   /** Tombé dans ce vide avec la créature : perdu pour la partie, sans emplacement dans la station ; des débris restent au bord (D-164). */
-  | { readonly type: 'perdu'; readonly liaison: string };
+  | { readonly type: 'perdu'; readonly liaison: string }
+  /** Capteur posé pour de bon : ni au sol ni porté ; `hs` en panne ou détruit (créature mobile lot 3, D-353). */
+  | { readonly type: 'capteur'; readonly piece: string; readonly hs?: true };
 
 /** Dernier indice perçu non encore inspecté (C-03 §4.2). */
 export interface Indice {

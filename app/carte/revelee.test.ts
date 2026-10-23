@@ -36,4 +36,11 @@ describe('carte révélée (outil des versions de test)', () => {
     carteRevelee(MONDE, etat);
     expect(JSON.stringify(etat)).toBe(avant);
   });
+
+  it('porte le capteur posé, à son état réel (créature mobile lot 3)', () => {
+    const monde: DefMonde = { ...MONDE, objets: [{ id: 'capteur', nom: 'capteur', piece: 'a', capteur: true }] };
+    const { etat } = nouvellePartie(monde, { version: 'test', graine: 1 });
+    const pose = { ...etat, objets: { ...etat.objets, capteur: { type: 'capteur' as const, piece: 'c' } } };
+    expect(carteRevelee(monde, pose).pieces.find((piece) => piece.piece.nom === 'salle_c')?.capteur).toBe('mouvement');
+  });
 });

@@ -129,7 +129,7 @@ export function borneDe(entree: EntreeMonde): number {
 const MARCHES = 40;
 const LONGUEUR_MARCHE = 80;
 
-const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance' && type !== 'ecoute');
+const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance' && type !== 'ecoute' && type !== 'capteur' && type !== 'capteur_pose');
 
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;
@@ -212,6 +212,8 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   }
   for (const [cle, variantes] of Object.entries(textes.ecoute)) verifierVariantes(erreurs, `écoute ${cle}`, variantes, ['passage']);
   verifierVariantes(erreurs, 'attente avant écoute', textes.attenteEcoute, []);
+  for (const [cle, variantes] of Object.entries(textes.capteur)) verifierVariantes(erreurs, `capteur ${cle}`, variantes, []);
+  for (const [cle, variantes] of Object.entries(textes.capteurPose)) verifierVariantes(erreurs, `pose du capteur ${cle}`, variantes, []);
   verifierVariantes(erreurs, 'attente dans le vacarme', textes.attenteVacarme, []);
   for (const [cle, phrase] of Object.entries(textes.attentesLongues)) verifierGabarit(erreurs, `attente longue ${cle}`, phrase, []);
   for (const { id } of monde.assistance ?? []) {

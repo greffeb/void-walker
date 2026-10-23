@@ -1,0 +1,168 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capteur Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette capteur (créature mobile, lot 3) : comment le capteur dit une présence, qu'elle dure, et une panne. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --danger: #ff6a3d;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; gap: 4px; }
+.onglets.variantes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onglets.etapes { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+[hidden] { display: none !important; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 760px; position: relative; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete { display: flex; align-items: center; gap: 6px; }
+.entete h1 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.carres { display: flex; gap: 4px; }
+.carre { min-height: 32px; min-width: 32px; padding: 0 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; letter-spacing: .04em; border: 1px solid var(--texte); color: var(--texte); }
+.carre.mvt { background: var(--danger); border-color: var(--danger); color: var(--fond); }
+.carre.hs { opacity: .5; text-decoration: line-through; border-style: dashed; }
+.badge { min-height: 32px; padding: 0 10px; display: flex; align-items: center; font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--fond); background: var(--accent); }
+.engrenage { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; opacity: .6; }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.bandeau { display: flex; gap: 6px; padding: 6px 16px; border-bottom: 1px solid var(--separateur); font-size: 12px; letter-spacing: .04em; flex-wrap: wrap; }
+.bandeau span { border: 1px solid var(--bordure); padding: 1px 6px; }
+.bandeau .mvt { color: var(--danger); border-color: var(--danger); }
+.bandeau .hs { opacity: .5; text-decoration: line-through; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.recit .ancien { opacity: .5; }
+.recit .net { color: var(--danger); }
+.recit .term { font-size: 13px; letter-spacing: .04em; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.puces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.puce { text-align: left; border: 1px solid var(--bordure); padding: 8px 10px; font-size: 14px; min-height: 46px; display: flex; align-items: center; opacity: .45; }
+.salles { display: grid; gap: 6px; }
+.salle { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.aller { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; min-height: 48px; padding: 6px 10px; background: var(--texte); color: var(--fond); border: 1px solid var(--texte); display: flex; align-items: center; gap: 8px; min-width: 0; }
+.aller.ferme { background: transparent; color: var(--texte); border: 1px dashed var(--bordure); }
+.aller .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.porte { min-height: 48px; width: 96px; border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.porte.ouverte { background: var(--surface); }
+.temoin { width: 8px; height: 8px; border: 1px solid currentColor; }
+.porte.ouverte .temoin { background: currentColor; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.nav span.vif { opacity: 1; }
+.nav .point { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+.bulle { position: absolute; left: 12px; right: 12px; bottom: 74px; background: var(--surface); border: 1px solid var(--bordure); padding: 10px 12px; display: grid; gap: 6px; font-size: 14px; }
+.bulle h3 { margin: 0; font-size: 13px; font-weight: 400; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; }
+.bulle .ligne { display: flex; justify-content: space-between; border-top: 1px solid var(--separateur); padding-top: 6px; }
+.bulle .mvt { color: var(--danger); }
+.bulle .hs { opacity: .55; }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Lot 3. Vous avez posé le <b>capteur 1</b> dans la <b>remise</b> (un cul-de-sac) en laissant sa porte ouverte, et le <b>capteur 2</b> dans la laverie. Trois façons de vous dire ce qu’ils captent. Suivez les cinq étapes dans chaque variante.</p>
+
+  <p class="etiquette">Variante</p>
+  <div class="onglets variantes" role="tablist" id="variantes"></div>
+  <p class="etiquette">Étape</p>
+  <div class="onglets etapes" role="tablist" id="etapes"></div>
+
+  <div class="tel">
+    <header class="entete"><h1 id="titre"></h1><span class="carres" id="carres"></span><span class="badge" id="badge" hidden>! BLESSÉ</span><span class="engrenage">⚙</span></header>
+    <div class="bandeau" id="bandeau" hidden></div>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <div class="bulle" id="bulle" hidden></div>
+    <nav class="nav" id="nav"></nav>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const VARIANTES = [
+  { nom: 'A · Récit', idee: '<b>A</b> : tout passe par le récit, comme l’écoute. Le terminal bipe quand l’état d’un capteur change, puis se tait. Pour savoir si elle est encore là, il faut se souvenir du dernier bip.' },
+  { nom: 'B · Bandeau', idee: '<b>B</b> : un bandeau sous le nom de la pièce montre en permanence chaque capteur posé. Le récit bipe aussi au changement.' },
+  { nom: 'D · Carrés', idee: '<b>D</b> : un petit carré par capteur, en haut à côté de l’état blessé. Clair = calme, rouge = mouvement, barré = panne. Le récit bipe au changement.' },
+  { nom: 'C · Sac', idee: '<b>C</b> : un point rouge sur SAC quand un capteur capte. L’état détaillé est dans le sac, consultable gratuitement. Le récit bipe au changement.' },
+];
+// Chaque étape : pièce du joueur, commande, récit, état des capteurs (calme, mvt, hs), portes du dock.
+const ETAPES = [
+  { nom: 'Posé', piece: 'Remise', cmd: 'poser capteur', recit: 'Vous fixez le capteur au montant d’une étagère. Un voyant vert clignote, puis s’éteint.', bip: '<span class="term">CAPTEUR 1 : EN SERVICE.</span>',
+    c1: 'calme', c2: 'calme', portes: [['Coursive B', true]] },
+  { nom: 'Calme', piece: 'Atelier', cmd: 'attendre', recit: 'Vous restez immobile, l’oreille tendue. Rien de nouveau derrière les portes.', bip: '',
+    c1: 'calme', c2: 'calme', portes: [['Coursive B', true], ['Réserve', false]] },
+  { nom: 'Bip', piece: 'Atelier', cmd: 'fouiller établi', recit: 'Des clés plates, un chiffon gras. Rien d’utile.', bip: 'Votre terminal bipe deux fois. <span class="net term">CAPTEUR 1 : MOUVEMENT.</span>',
+    c1: 'mvt', c2: 'calme', portes: [['Coursive B', true], ['Réserve', false]] },
+  { nom: 'Encore là ?', piece: 'Coursive B', cmd: 'aller coursive B', recit: 'Vous longez la coursive sans bruit. La porte de la remise est restée ouverte.', bip: '',
+    c1: 'mvt', c2: 'calme', portes: [['Remise', true], ['Atelier', true], ['Laverie', false]] },
+  { nom: 'Panne', piece: 'Coursive B', cmd: 'fermer remise', recit: 'La porte de la remise glisse et se verrouille.', bip: 'Votre terminal grésille. <span class="term">CAPTEUR 2 : PLUS DE SIGNAL.</span>',
+    c1: 'mvt', c2: 'hs', portes: [['Remise', false], ['Atelier', true], ['Laverie', false]] },
+];
+const MOT = { calme: 'calme', mvt: 'MOUVEMENT', hs: 'hors service' };
+const VERDICTS = [
+  ['À la pose, le capteur annonce son numéro : c’est tout ce qui vous aide à vous rappeler où il est.', 'Rien ne change : rien n’est dit.', 'Elle entre dans la remise : un bip, en rouge.', 'Elle est toujours là, mais rien ne le redit. Vous fermez sur la foi du dernier bip.', 'La panne est annoncée une fois. Le capteur 1 ne dit rien : toujours mouvement.'],
+  ['Le bandeau apparaît dès le premier capteur posé.', 'Le bandeau montre deux capteurs calmes, sans bruit.', 'Bip dans le récit, et C1 passe au rouge dans le bandeau.', 'Le bandeau dit encore C1 MOUVEMENT : vous savez qu’elle y est au moment de fermer.', 'C2 barré dans le bandeau ; la panne reste visible jusqu’à la fin : un capteur posé l’est pour de bon. Un capteur détruit par la créature s’affiche pareil.'],
+  ['Le carré C1 apparaît à la pose, à côté de BLESSÉ (ici le joueur est blessé, pour voir la place que ça prend).', 'Deux carrés clairs : rien ne capte.', 'Bip dans le récit, C1 passe au rouge.', 'C1 toujours rouge : elle est encore dans la remise au moment de fermer.', 'C2 barré jusqu’à la fin.'],
+  ['Rien sur l’écran de jeu : l’état est dans le sac.', 'Pas de point sur SAC.', 'Bip dans le récit et point rouge sur SAC.', 'Le point rouge reste. Le sac ouvert montre le détail ; l’ouvrir ne coûte pas d’action.', 'Le sac montre C2 hors service.'],
+];
+let variante = 0, etape = 0;
+
+function ligne(nom, ouverte) {
+  return `<div class="salle">
+    <span class="aller${ouverte ? '' : ' ferme'}"><span class="nom">→ ${nom}</span></span>
+    <span class="porte${ouverte ? ' ouverte' : ''}"><span class="temoin"></span>${ouverte ? 'Ouverte' : 'Fermée'}</span>
+  </div>`;
+}
+
+function rendre() {
+  const e = ETAPES[etape];
+  const capteurs = [['C1', e.c1, 'Remise'], ['C2', e.c2, 'Laverie']].slice(0, etape === 0 ? 1 : 2);
+  document.getElementById('titre').textContent = e.piece;
+  document.getElementById('recit').innerHTML = `<p class="cmd">&gt; ${e.cmd}</p><p>${e.recit}</p>${e.bip ? `<p>${e.bip}</p>` : ''}`;
+  document.getElementById('dock').innerHTML = `<h2 class="titre-section">Objets</h2>
+    <div class="puces"><span class="puce">▸ Regarder</span><span class="puce">▸ Attendre</span></div>
+    <h2 class="titre-section">Se déplacer vers</h2><div class="salles">${e.portes.map(([n, o]) => ligne(n, o)).join('')}</div>`;
+  document.getElementById('carres').innerHTML = variante === 2 ? capteurs.map(([n, s]) => `<span class="carre ${s}" aria-label="Capteur ${n.slice(1)} : ${MOT[s]}">${n}</span>`).join('') : '';
+  document.getElementById('badge').hidden = variante !== 2;
+  const bandeau = document.getElementById('bandeau');
+  bandeau.hidden = variante !== 1;
+  bandeau.innerHTML = capteurs.map(([n, s]) => `<span class="${s}">${n} ${MOT[s]}</span>`).join('');
+  const capte = capteurs.some(([, s]) => s === 'mvt');
+  const voirSac = variante === 3 && etape >= 3;
+  document.getElementById('nav').innerHTML = `<span>CARTE</span><span class="${variante === 3 && capte ? 'vif' : ''}">SAC${variante === 3 && capte ? '<i class="point"></i>' : ''}</span><span>MENU</span>`;
+  const bulle = document.getElementById('bulle');
+  bulle.hidden = !voirSac;
+  bulle.innerHTML = `<h3>Sac · capteurs posés</h3>${capteurs.map(([n, s, p]) => `<div class="ligne ${s}"><span>Capteur ${n.slice(1)}</span><span>${MOT[s]}</span></div>`).join('')}<div class="ligne"><span>Capteur 3</span><span>dans le sac</span></div>`;
+  document.getElementById('verdict').innerHTML = `${VARIANTES[variante].idee}<br><br><b>${etape + 1}. ${e.nom}</b> : ${VERDICTS[variante][etape]}`;
+  document.getElementById('variantes').innerHTML = VARIANTES.map((v, i) => `<button class="onglet" role="tab" data-v="${i}" aria-selected="${i === variante}">${v.nom}</button>`).join('');
+  document.getElementById('etapes').innerHTML = ETAPES.map((s, i) => `<button class="onglet" role="tab" data-e="${i}" aria-selected="${i === etape}">${i + 1}</button>`).join('');
+}
+document.getElementById('variantes').addEventListener('click', (ev) => { const v = ev.target.closest('[data-v]')?.dataset.v; if (v !== undefined) { variante = Number(v); rendre(); } });
+document.getElementById('etapes').addEventListener('click', (ev) => { const s = ev.target.closest('[data-e]')?.dataset.e; if (s !== undefined) { etape = Number(s); rendre(); } });
+rendre();
+</script>

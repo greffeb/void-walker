@@ -134,6 +134,11 @@ function evenementDeMenace(evenement: Evenement): boolean {
   return /creature|aggravation|defaite/.test(evenement.type) || ['menace', 'premier_contact', 'pas_entendus', 'souffle_entendu'].includes(evenement.type);
 }
 
+/** « ! » sur CARTE : le capteur a changé d'état (créature mobile lot 3) ; le dépôt (`capteur_pose`) n'allume rien. Reste allumé jusqu'à l'ouverture de la carte. */
+export function carteANouveau(avant: boolean, evenements: readonly Evenement[]): boolean {
+  return avant || evenements.some((evenement) => evenement.type === 'capteur');
+}
+
 /**
  * Entrer pour la première fois dans une pièce, c'est aussi la regarder : « Regarder autour de vous » se lit tout seul, sous le
  * récit du déplacement (#177). Pas dans une pièce déjà visitée, ni quand la créature est en vue ou se manifeste : peu de texte

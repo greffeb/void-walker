@@ -64,6 +64,9 @@ export const TEXTES_ECOUTE: TextesMonde['ecoute'] = reunir([]).ecoute;
 /** Phrases d'attente qui précèdent une écoute, de la couche menace, reprises par les mondes écrits en entier. */
 export const ATTENTE_ECOUTE: TextesMonde['attenteEcoute'] = reunir([]).attenteEcoute;
 
+/** Bips et pose du capteur de la couche menace (lot 3 de la créature mobile), repris par les mondes écrits en entier. */
+export const TEXTES_CAPTEUR: TextesMonde['capteur'] = reunir([]).capteur;
+export const TEXTES_POSE_CAPTEUR: TextesMonde['capteurPose'] = reunir([]).capteurPose;
 /** Phrases d'attente dans le vacarme des machines (#251), reprises par les mondes écrits en entier. */
 export const ATTENTE_VACARME: TextesMonde['attenteVacarme'] = reunir([]).attenteVacarme;
 

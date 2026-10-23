@@ -1,5 +1,5 @@
 import { useRef, type CSSProperties, type PointerEvent, type WheelEvent } from 'react';
-import type { CartePublique, Palier, PassageCarte, PieceCarte } from '../../engine';
+import type { CartePublique, EtatCapteur, Palier, PassageCarte, PieceCarte } from '../../engine';
 import { CASE_PX, libellePiece, nomDe, regardDe, type TextesMonde } from '../../content';
 import { pointsTrace, rectCapsule, segmentOuverture } from './dessin';
 import {
@@ -59,6 +59,21 @@ function Oeil({ centre, echelle, palier }: { readonly centre: Point; readonly ec
       <path className="interieur" d={contour} />
       <path className="contour" d={contour} />
       <circle className="pupille" r="2.6" />
+    </g>
+  );
+}
+
+/**
+ * Capteur posé (créature mobile lot 3) : un losange. Au mouvement il est plein rouge, avec deux ondes de chaque côté ; brouillé, ses
+ * tirets et l'absence de point ; en panne, une barre. La forme dit l'état sans la couleur.
+ */
+function Capteur({ centre, echelle, etat }: { readonly centre: Point; readonly echelle: number; readonly etat: EtatCapteur }) {
+  return (
+    <g className="icone-capteur" data-etat={etat} transform={`translate(${centre.x} ${centre.y}) scale(${echelle})`}>
+      {etat === 'mouvement' && <path className="onde" d="M-13 -7 a10 10 0 0 0 0 14 M13 -7 a10 10 0 0 1 0 14 M-17 -10 a15 15 0 0 0 0 20 M17 -10 a15 15 0 0 1 0 20" />}
+      <path className="corps" d="M0 -9 L9 0 L0 9 L-9 0 Z" />
+      {(etat === 'calme' || etat === 'mouvement') && <circle className="coeur" r="2.5" />}
+      {etat === 'hs' && <path className="barre" d="M-11 -11 L11 11" />}
     </g>
   );
 }
@@ -208,6 +223,7 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
                 <Oeil centre={centres.creature} echelle={echelleIcones} palier={piece.creature} />
               )}
               {centres.drone !== undefined && <Drone centre={centres.drone} echelle={echelleIcones} />}
+              {centres.capteur !== undefined && piece.capteur !== undefined && <Capteur centre={centres.capteur} echelle={echelleIcones} etat={piece.capteur} />}
             </g>
           );
         })}
