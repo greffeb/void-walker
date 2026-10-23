@@ -91,6 +91,14 @@ describe('bruit de station et attentes à la suite (spec 2026-10-18 §5.5, D-289
     }
   });
 
+  it('une attente dans le vacarme des machines ne parle jamais de silence (#251)', () => {
+    for (let action = 0; action < 20; action += 1) {
+      const [phrase] = rendreEvenements(TEXTES, [{ type: 'attente', vacarme: true }], { graine: 1, action });
+      expect(TEXTES.attenteVacarme).toContain(phrase);
+      expect(phrase).not.toMatch(/silenc|rien ne bouge/i);
+    }
+  });
+
   it('ailleurs, le bruit de station se raconte après l’attente', () => {
     const texte = rendreEvenements(TEXTES, [{ type: 'attente' }, { type: 'bruit_station' }], { graine: 3, action: 4, attentes: 4 });
     expect(texte).toHaveLength(2);

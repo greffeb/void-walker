@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { ATTENTE_ECOUTE, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_ECOUTE, TRACES } from '../textes/couches';
+import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_ECOUTE, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -338,6 +338,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   traces: TRACES,
   ecoute: TEXTES_ECOUTE,
   attenteEcoute: ATTENTE_ECOUTE,
+  attenteVacarme: ATTENTE_VACARME,
   pillages: PILLAGES,
   documents: {},
   supports: SUPPORTS,

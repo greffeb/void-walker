@@ -64,6 +64,9 @@ export const TEXTES_ECOUTE: TextesMonde['ecoute'] = reunir([]).ecoute;
 /** Phrases d'attente qui précèdent une écoute, de la couche menace, reprises par les mondes écrits en entier. */
 export const ATTENTE_ECOUTE: TextesMonde['attenteEcoute'] = reunir([]).attenteEcoute;
 
+/** Phrases d'attente dans le vacarme des machines (#251), reprises par les mondes écrits en entier. */
+export const ATTENTE_VACARME: TextesMonde['attenteVacarme'] = reunir([]).attenteVacarme;
+
 /** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;
 

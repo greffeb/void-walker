@@ -277,8 +277,8 @@ export type Evenement =
   | { readonly type: 'ecoute'; readonly passage: RefPassage; readonly entendu: EntenduRecit }
   /** En attendant dans une salle des machines en marche : le vacarme couvre tout, dit une fois (créature mobile lot 2, D-343). */
   | { readonly type: 'ecoute_couverte' }
-  /** Une seule fois par partie (C-03 §4.4). */
-  | { readonly type: 'attente' }
+  /** `vacarme` : attente dans une salle des machines en marche, où le bruit ne se tait jamais (#251). */
+  | { readonly type: 'attente'; readonly vacarme?: true }
   | { readonly type: 'premier_contact' }
   /** Elle le menace sans le blesser : action libre après le premier contact, arrivée sous ses yeux, ou dé favorable (C-04 §4). */
   | { readonly type: 'menace' }
