@@ -8,8 +8,9 @@ export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice,
 export { creatureActive } from './etat';
 export { carte, pieceDeCarte } from './carte';
 export { abimerCapteur, capteurPose, CHANCE_DESTRUCTION, CHANCE_PANNE, tirageCapteur } from './capteur';
+export { camerasLues, lireMouvement, reveler, salleDeSurveillance } from './surveillance';
 export { empreinte, hacher } from './hachage';
-export { idPublic, validerMonde, type DefAssistance, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type IntensiteTrace } from './monde';
+export { idPublic, validerMonde, type DefAssistance, type DefCamera, type DefCreature, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type IntensiteTrace } from './monde';
 export {
   COTES,
   emplacementDe,

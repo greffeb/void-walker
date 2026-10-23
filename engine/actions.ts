@@ -35,6 +35,7 @@ import {
   type EtatPartie,
 } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
+import { reveler } from './surveillance';
 import type { Apercu, Consultation, Cout, EtatCapteur, Evenement, IdAction, RaisonRefus, RefPassage, RefPiece, Sante, Savoir, SourceEvacuation } from './vocabulaire';
 
 export interface Contexte {
@@ -967,6 +968,27 @@ const actionner: ActionEngagee = {
   },
 };
 
+function terminauxIci({ monde, etat }: Contexte): DefObjet[] {
+  return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.terminal === true);
+}
+
+/**
+ * Surveiller : au terminal, le mot de passe en main, une action discrète connecte le passager pour la partie et révèle la station ;
+ * on peut y revenir pour remettre le plan à jour (lot 4).
+ */
+const surveiller: ActionEngagee = {
+  id: 'surveiller',
+  engage: true,
+  cibles: (contexte) => terminauxIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    if (!terminauxIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    const motDePasse = objet(contexte.monde, cible).exige;
+    return motDePasse !== undefined && contexte.etat.objets[motDePasse]?.type !== 'passager' ? 'sans_mot_de_passe' : null;
+  },
+  prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
+  appliquer: ({ monde, etat }) => ({ etat: reveler(monde, { ...etat, connecte: true }), evenements: [{ type: 'terminal_connecte' }] }),
+};
+
 /** Attendre : un tour sans rien faire, la créature réagit une fois et les dangers se propagent comme à toute action (D-274). */
 const attendre: ActionEngagee = {
   id: 'attendre',
@@ -1006,6 +1028,7 @@ const DEFINITIONS: Readonly<Record<IdAction, DefAction>> = {
   retablir,
   boucler,
   actionner,
+  surveiller,
   attendre,
 };
 

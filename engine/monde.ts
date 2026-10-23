@@ -157,6 +157,8 @@ export interface DefObjet {
   readonly butin?: true;
   /** Capteur de mouvement : se pose pour de bon dans une pièce, au plus un par monde (créature mobile lot 3). */
   readonly capteur?: true;
+  /** Terminal de surveillance : fixe, il `exige` le mot de passe porté, au plus un par monde (lot 4). */
+  readonly terminal?: true;
   /** Grande station : document à lire, objet fixe sans aucune qualité, que l'on ne peut que regarder (spec §8.5). */
   readonly document?: true;
   /** Note de rangement : pièce qu'elle nomme, rendue en référence publique à la lecture pour remplir le trou (spec §8.5). */
@@ -173,6 +175,8 @@ export interface DefObjet {
 
 /** Champs permis à un document : son identité, sa pièce, `portable: false`, et ce qui en fait un document (spec §8.5). */
 const CHAMPS_DOCUMENT: ReadonlySet<string> = new Set(['id', 'nom', 'piece', 'portable', 'document', 'designe']);
+/** Champs permis à un terminal : son identité, sa pièce, `portable: false` et le mot de passe qu'il exige (lot 4). */
+const CHAMPS_TERMINAL: ReadonlySet<string> = new Set(['id', 'nom', 'piece', 'portable', 'terminal', 'exige']);
 
 /** La créature du lancement (D-120) : une seule, de gabarit large, sensible au bruit (C-02 §4.2). */
 export interface DefCreature {
@@ -187,6 +191,12 @@ export interface DefAssistance {
     | { readonly type: 'arrivee'; readonly piece: string }
     | { readonly type: 'evacuation' }
     | { readonly type: 'patience' };
+}
+
+/** Caméra de surveillance : un emplacement du monde, pas un objet ; `hs` en panne dès le départ (lot 4). */
+export interface DefCamera {
+  readonly piece: string;
+  readonly hs?: true;
 }
 
 export interface DefMonde {
@@ -204,6 +214,8 @@ export interface DefMonde {
   readonly boucles?: readonly string[];
   /** Grande station : des bruits de station ponctuent le récit avant la rencontre (spec §5.5). */
   readonly bruitsStation?: true;
+  /** Caméras lues au terminal de surveillance, dans l'ordre du monde (lot 4). */
+  readonly cameras?: readonly DefCamera[];
 }
 
 export interface IndexMonde {
@@ -283,6 +295,17 @@ export function validerMonde(monde: DefMonde): string[] {
     }
   }
   if (monde.objets.filter((objet) => objet.capteur === true).length > 1) erreurs.push('capteurs multiples.');
+  const terminaux = monde.objets.filter((objet) => objet.terminal === true);
+  if (terminaux.length > 1) erreurs.push('terminaux multiples.');
+  const salle = terminaux[0]?.piece;
+  const cameras = new Set<string>();
+  for (const camera of monde.cameras ?? []) {
+    if (!pieces.has(camera.piece)) erreurs.push(`${camera.piece} : caméra dans une pièce inconnue.`);
+    if (cameras.has(camera.piece)) erreurs.push(`${camera.piece} : caméra en double.`);
+    if (camera.piece === salle) erreurs.push(`${camera.piece} : caméra dans la salle de surveillance.`);
+    cameras.add(camera.piece);
+  }
+  if (cameras.size > 0 && salle === undefined) erreurs.push('caméras sans terminal.');
   for (const objet of monde.objets) {
     if (!pieces.has(objet.piece)) erreurs.push(`${objet.id} : pièce inconnue ${objet.piece}.`);
     for (const doses of [objet.soin, objet.extinction, objet.glissant, objet.rebouche]) if (!dosesValides(doses)) erreurs.push(`${objet.id} : doses invalides.`);
@@ -319,7 +342,7 @@ export function validerMonde(monde: DefMonde): string[] {
       if (objet.portable !== false) erreurs.push(`${objet.id} : commande portable.`);
     }
     if (objet.exige !== undefined) {
-      if (objet.deverrouille === undefined) erreurs.push(`${objet.id} : exige sans être une commande.`);
+      if (objet.deverrouille === undefined && objet.terminal !== true) erreurs.push(`${objet.id} : exige sans être une commande.`);
       if (objets.get(objet.exige) === undefined || objets.get(objet.exige)?.portable === false) erreurs.push(`${objet.id} : exige un objet inconnu ou non portable.`);
     }
     if (objet.position !== undefined && positionsConnues.get(objet.position)?.piece !== objet.piece) erreurs.push(`${objet.id} : position hors de sa pièce.`);
@@ -344,6 +367,10 @@ export function validerMonde(monde: DefMonde): string[] {
     if (objet.document === true) {
       if (objet.portable !== false) erreurs.push(`${objet.id} : document portable.`);
       for (const [champ, valeur] of Object.entries(objet)) if (valeur !== undefined && !CHAMPS_DOCUMENT.has(champ)) erreurs.push(`${objet.id} : document porteur de ${champ}.`);
+    }
+    if (objet.terminal === true) {
+      const champs = Object.entries(objet).filter(([, valeur]) => valeur !== undefined).map(([champ]) => champ);
+      if (objet.portable !== false || objet.exige === undefined || champs.some((champ) => !CHAMPS_TERMINAL.has(champ))) erreurs.push(`${objet.id} : terminal à qualités incompatibles.`);
     }
     if (objet.designe !== undefined) {
       if (objet.document !== true) erreurs.push(`${objet.id} : désigne une pièce sans être un document.`);

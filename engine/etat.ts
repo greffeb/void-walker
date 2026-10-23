@@ -179,6 +179,10 @@ export interface EtatPartie {
    * a écouté, pour que l'état et son empreinte ne changent pas ailleurs.
    */
   readonly ecoutees?: Readonly<Record<string, Entendu>>;
+  /** Terminal de surveillance connecté pour la partie (lot 4). */
+  readonly connecte?: true;
+  /** Pièces dont la caméra est tombée en panne ou a été détruite en cours de partie, dans l'ordre où c'est arrivé (lot 4). */
+  readonly camerasHs?: readonly string[];
   /** Présent uniquement avec des drones ; phases et ordre des sources sonores actifs, sans horloge non bornée. */
   readonly drones?: {
     readonly phases: Readonly<Record<string, PhaseDrone>>;

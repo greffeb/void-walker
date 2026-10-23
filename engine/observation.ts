@@ -20,9 +20,10 @@ import {
   sansGravite,
   type EtatPartie,
 } from './etat';
-import { carte } from './carte';
+import { carte, pieceDeCarte } from './carte';
 import { indexer, type DefMonde } from './monde';
 import { sortiePossible } from './sortie';
+import { camerasLues, salleDeSurveillance } from './surveillance';
 import {
   ACTIONS,
   RAISONS_INDISPONIBILITE,
@@ -108,6 +109,10 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
       }]),
       ...(etat.drones.tenue === null ? {} : { poigneeTenue: refObjet(monde, etat.drones.tenue) }),
     }),
+    // Connecté, dans la salle ou une de ses sous-positions, le passager voit les caméras en direct (lot 4).
+    ...(etat.connecte === true && pieceDeCarte(monde, etat.piece) === salleDeSurveillance(monde)
+      ? { cameras: camerasLues(monde, etat).map((camera) => ({ piece: refPiece(monde, camera.piece), etat: camera.etat })) }
+      : {}),
     piece: refPiece(monde, etat.piece),
     objets: visibles.map((objet) => refObjet(monde, objet.id)),
     placements: ici.flatMap((objet) => {
