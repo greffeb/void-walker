@@ -3,7 +3,7 @@ import { historique } from './observation';
 import { faceRencontre } from './rencontre';
 import { SIGNES_ECART, choisirSigne, faitsNeufs, signePermis } from './signes';
 
-// Couloir A-B-C-D-E, rythme 1 : le passager en A, la créature en D, loin. Caméra en panne au départ en C, caméra saine en E ;
+// Couloir A-B-C-D-E, rythme 1 : le passager en A, la créature en D, loin. Caméra en panne au départ en C, caméras saines en D et E ;
 // le terminal en B ; la porte A-B est ouverte au départ (lot 4).
 const MONDE: DefMonde = {
   id: 'essai-signes',
@@ -19,7 +19,7 @@ const MONDE: DefMonde = {
     { id: 'terminal', nom: 'terminal', piece: 'b', portable: false, terminal: true, exige: 'post-it' },
     { id: 'post-it', nom: 'post-it', piece: 'a' },
   ],
-  cameras: [{ piece: 'c', hs: true }, { piece: 'e' }],
+  cameras: [{ piece: 'c', hs: true }, { piece: 'd' }, { piece: 'e' }],
   creature: { piece: 'd' },
   rencontre: { rythme: 1 },
 };
@@ -83,7 +83,10 @@ describe('messages d’IA Station sur la face 2 (lot 4)', () => {
     expect(faitsNeufs(MONDE, { ...depart.etat, enfoncees: ['cd'] })[0]).toEqual({ sorte: 'porte', liaison: 'cd' });
     const g = graine(2, 1, (x) => choisirSigne(faitsNeufs(MONDE, { ...depart.etat, enfoncees: ['cd'] }), x, 1).sorte === 'porte');
     const signe = pas(placee(g, 'd', { enfoncees: ['cd'] })).evenements.find((e) => e.type === 'assistance');
-    expect(signe?.type === 'assistance' ? signe.signe : null).toEqual({ sorte: 'porte', liaison: expect.objectContaining({ id: idPublic(MONDE.id, 'cd') }) });
+    expect(signe?.type === 'assistance' ? signe.signe : null).toEqual({
+      sorte: 'porte',
+      pieces: [{ sorte: 'piece', id: idPublic(MONDE.id, 'c'), nom: 'c' }, { sorte: 'piece', id: idPublic(MONDE.id, 'd'), nom: 'd' }],
+    });
   });
 
   it('une caméra en panne au départ n’est pas un fait, une caméra perdue en cours de partie en est un', () => {
@@ -112,15 +115,17 @@ describe('messages d’IA Station sur la face 2 (lot 4)', () => {
     expect(partie.etat.signes).toBeUndefined();
   });
 
-  it('le rejeu redonne la même empreinte, les mêmes signes et le même historique', () => {
+  it('le rejeu, après un message et une caméra détruite, redonne la même empreinte, les mêmes signes, historique et tirages', () => {
     let trouvee: Partie | null = null;
-    for (let g = 0; g < 50 && trouvee === null; g++) {
+    for (let g = 0; g < 200 && trouvee === null; g++) {
       let partie = nouvellePartie(MONDE, { version: VERSION, graine: g });
       for (let i = 0; i < 80 && partie.etat.fin === null && partie.etat.sante !== 'vaincu'; i++) partie = pas(partie).partie;
-      if ((partie.etat.signes?.length ?? 0) > 0) trouvee = partie;
+      if ((partie.etat.signes?.length ?? 0) > 0 && (partie.etat.camerasHs?.length ?? 0) > 0) trouvee = partie;
     }
-    if (trouvee === null) throw new Error('Aucune partie avec un message.');
+    if (trouvee === null) throw new Error('Aucune partie avec un message et une caméra perdue.');
     const { partie } = rejouer(MONDE, trouvee.enregistrement, VERSION);
+    expect(partie.etat.camerasHs).toEqual(trouvee.etat.camerasHs);
+    expect(partie.enregistrement.actions.map((entree) => entree.tirages)).toEqual(trouvee.enregistrement.actions.map((entree) => entree.tirages));
     expect(empreinteEtat(partie.etat)).toBe(empreinteEtat(trouvee.etat));
     expect(partie.etat.signes).toEqual(trouvee.etat.signes);
     expect(historique(MONDE, partie.etat)).toEqual(historique(MONDE, trouvee.etat));

@@ -1,5 +1,5 @@
 import { capteurPose } from './capteur';
-import { refPassage, refPiece, type EtatPartie, type SigneIA } from './etat';
+import { refPiece, type EtatPartie, type SigneIA } from './etat';
 import { indexer, type DefMonde } from './monde';
 import { FRAICHEUR, entier32 } from './rencontre';
 import type { SignePublic } from './vocabulaire';
@@ -54,11 +54,17 @@ export function choisirSigne(faits: readonly SigneIA[], graine: number, action: 
   return fait;
 }
 
-/** Le fait en références publiques ; la porte est vue depuis son premier côté, loin du passager. */
-export function signePublic(monde: DefMonde, etat: EtatPartie, signe: SigneIA): SignePublic {
+/** Rang dans `etat.signes` d'un message `signe-<n>`, à partir de 1 ; `null` pour un autre message. */
+export function rangSigne(message: string): number | null {
+  const rang = /^signe-(\d+)$/.exec(message)?.[1];
+  return rang === undefined ? null : Number(rang);
+}
+
+/** Le fait en références publiques ; une porte par ses deux pièces, que le passager les connaisse ou non, sans état qui vieillisse. */
+export function signePublic(monde: DefMonde, signe: SigneIA): SignePublic {
   if (signe.sorte === 'materiel') return { sorte: 'materiel', piece: refPiece(monde, signe.piece), appareil: signe.appareil };
   if (signe.sorte !== 'porte') return { sorte: signe.sorte, piece: refPiece(monde, signe.piece) };
   const liaison = indexer(monde).liaisons.get(signe.liaison);
   if (liaison === undefined) throw new Error(`Liaison inconnue : ${signe.liaison}.`);
-  return { sorte: 'porte', liaison: refPassage(monde, etat, liaison, liaison.entre[0]) };
+  return { sorte: 'porte', pieces: [refPiece(monde, liaison.entre[0]), refPiece(monde, liaison.entre[1])] };
 }

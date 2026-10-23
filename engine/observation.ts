@@ -24,7 +24,7 @@ import { carte, pieceDeCarte } from './carte';
 import { indexer, type DefMonde } from './monde';
 import { sortiePossible } from './sortie';
 import { camerasLues, salleDeSurveillance } from './surveillance';
-import { signePublic } from './signes';
+import { rangSigne, signePublic } from './signes';
 import {
   ACTIONS,
   RAISONS_INDISPONIBILITE,
@@ -86,8 +86,9 @@ export function menu(monde: DefMonde, etat: EtatPartie): OptionMenu[] {
 export function historique(monde: DefMonde, etat: EtatPartie): MessageRecu[] {
   return etat.messages.map((message) => {
     // Un message d'IA Station sur la face 2 rend le fait signalé, à son rang dans `etat.signes` (lot 4).
-    const signe = /^signe-\d+$/.test(message) ? etat.signes?.[Number(message.slice(6)) - 1] : undefined;
-    if (signe !== undefined) return { message, moment: { type: 'signe' }, signe: signePublic(monde, etat, signe) };
+    const rang = rangSigne(message);
+    const signe = rang === null ? undefined : etat.signes?.[rang - 1];
+    if (signe !== undefined) return { message, moment: { type: 'signe' }, signe: signePublic(monde, signe) };
     const quand = (monde.assistance ?? []).find((def) => def.id === message)?.quand;
     if (quand === undefined) throw new Error(`Message d'assistance inconnu : ${message}.`);
     if (quand.type === 'evacuation' || quand.type === 'patience') return { message, moment: quand };

@@ -368,7 +368,7 @@ export type MomentMessage =
 
 /** Fait vrai que signale IA Station, en références publiques : porte forcée, matériel perdu, passage récent, présence (lot 4). */
 export type SignePublic =
-  | { readonly sorte: 'porte'; readonly liaison: RefPassage }
+  | { readonly sorte: 'porte'; readonly pieces: readonly [RefPiece, RefPiece] }
   | { readonly sorte: 'materiel'; readonly piece: RefPiece; readonly appareil: 'camera' | 'capteur' }
   | { readonly sorte: 'passage' | 'presence'; readonly piece: RefPiece };
 

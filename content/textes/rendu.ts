@@ -15,6 +15,7 @@ import type {
   Savoir,
   SourceEvacuation,
 } from '../../engine';
+import { rangSigne } from '../../engine';
 import { rendreDocument, texteDocument } from './document';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
@@ -250,7 +251,7 @@ export function rendreAssistance(textes: TextesMonde, evenements: readonly Evene
 /** Texte d'un message d'assistance, par son identifiant. */
 export function texteAssistance(textes: TextesMonde, message: string): string {
   // shortcut: texte provisoire des messages d'IA Station sur la face 2 (lot 4), la tâche 4 les rend d'après leur signe.
-  if (/^signe-\d+$/.test(message)) return 'Message technique de la station.';
+  if (rangSigne(message) !== null) return 'Message technique de la station.';
   const texte = Object.hasOwn(textes.assistance, message) ? textes.assistance[message] : undefined;
   if (texte === undefined) throw new ErreurTexte(`Message d’assistance sans texte : ${message}.`);
   return texte;

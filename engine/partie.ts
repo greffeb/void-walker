@@ -387,7 +387,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
       const signes = [...(conclu.signes ?? []), { ...signe, action }];
       const message = `signe-${signes.length}`;
       conclu = { ...conclu, signes, messages: [...conclu.messages, message] };
-      evenements.push({ type: 'assistance', message, signe: signePublic(monde, conclu, signe) });
+      evenements.push({ type: 'assistance', message, signe: signePublic(monde, signe) });
     } else if (voisines.length === 0) evenements.push({ type: 'bruit_lointain' });
     else if (lien !== undefined && !assourdie(monde, conclu, ou)) {
       evenements.push({ type: 'bruit_proche', passage: refPassage(monde, conclu, lien, conclu.piece) });
