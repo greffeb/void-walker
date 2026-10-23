@@ -82,7 +82,7 @@ Une seule famille : **IBM Plex Mono** (licence OFL, Google Fonts), en 400, 600 e
 | Bruit perçu | 15 / 400 italique, interligne 1,5 | `signal` |
 | Titre de section | 13 / 400 | `texte-secondaire`, forme « ── DANS LA PIÈCE ──── » |
 | Puce d'objet | 15 / 400 | Préfixe « ▸ » |
-| Bouton de déplacement | 15 / 600 | Capitales, vidéo inverse, préfixe « → » |
+| Bouton de déplacement | 15 / 600 | Capitales, vidéo inverse, flèche orientée de 16 px (D-349) |
 | Navigation | 13 / 400 | Capitales, interlettrage 0,04 em |
 | Bouton principal | 15–16 / 600 | Capitales, interlettrage 0,06 em |
 | Petit texte | 12 / 400 | Étiquettes, qualités, horodatages ; jamais en dessous |
@@ -160,6 +160,7 @@ Dans cet ordre :
 - **Puces d'objet** sur deux colonnes : « ▸ Nom », hauteur 46 px minimum, contour `bordure`, retour à la ligne permis (« Bidon d'eau d'extinction »). Toucher une puce ouvre la bulle de composition (§3.5). Ordre : celui de la description de la pièce. [Proposé]
 - Titre « ── SE DÉPLACER VERS ── » (remplace « Sorties »). [Validé]
 - **Lignes de salle** : une par passage connu, sur une colonne, hauteur 48 px. À gauche, le nom en vidéo inverse, « → NOM DE LA DESTINATION » ; à droite, la commande de la porte (112 px), qui dit son état avec un témoin : « □ FERMÉE », « ■ OUVERTE ». Les portes n'ont pas de puce dans « Dans la pièce ». [Validé D-267, [maquette](maquette/portes.html)]
+- **Flèche orientée** : devant le nom, une flèche de 16 px (trait de 2) montre où s'ouvre le passage sur la carte, vu de la pièce actuelle : ↑ → ↓ ←, ou une diagonale quand la porte est dans le premier ou le dernier quart de son mur. Lue après le nom : « Atelier maintenance, à droite ». Sans emplacement connu, « → » et rien de lu. [Validé D-349, [maquette](maquette/fleches-direction.html)]
 - **Toucher le nom** : le déplacement se joue d'un seul toucher, sans aperçu, même avec un risque connu ou un coût. Sans gravité, loin du passage, il fait « Dériver jusqu'à… » ; au bord, il fait passer. [Validé D-267]
 - **Porte bruyante** : quand ouvrir ou fermer fera du bruit (coût « bruyant » du moteur), la commande porte « BRUYANTE » en petit, couleur secondaire, sous son état ; lue « Porte de l'atelier, fermée, bruyante ». Une porte grippée la perd une fois ouverte, et dans une salle des machines en marche. [Validé D-348, [maquette](maquette/portes-bruyantes.html)]
 - **Toucher l'état** : la porte s'ouvre ou se ferme d'un seul toucher, sans aperçu ; le récit dit ce qui se passe. Lue comme un bouton à bascule : « Porte de l'atelier, fermée ». Une porte qu'on ne peut pas manœuvrer montre sa commande grisée, pointillée, avec sa raison (§3.7). [Validé D-267]

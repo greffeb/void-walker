@@ -131,7 +131,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 <script>
 const VARIANTES = {
   A: { nom: 'Orientée', verdict: '<b>A — flèche orientée.</b> ↑ ↓ ← → à la place du « → ». Rien à apprendre, et pas plus de place qu’aujourd’hui. Dans la salle d’embarquement, les deux portes donnent ↑ : la flèche dit de quel mur part la porte, pas laquelle des deux est à gauche.' },
-  B: { nom: '+ diagonales', verdict: '<b>B — orientée, avec diagonales.</b> ↖ ↗ ↘ quand la porte est dans le quart du mur près d’un coin. Dans l’embarquement, les deux portes du mur haut se distinguent (↖ local énergie, ↗ baie). En contrepartie, ↘ vers l’embarquement depuis le local énergie se lit comme « en bas à droite », alors que la porte est sur le mur du bas.' },
+  B: { nom: '+ diagonales', verdict: '<b>B — orientée, avec diagonales (retenue, D-349).</b> ↖ ↗ ↘ ↙ quand la case de la porte tombe dans le premier ou le dernier quart du mur. Dans l’embarquement, la porte du local énergie est sur la première case du mur haut : ↖ ; celle de la baie, sur la troisième de quatre, reste ↑. Les deux lignes se distinguent quand même.' },
 };
 const SIGNES = {
   epaisse: { nom: '16 px', verdict: 'Flèche de la première maquette : 16 px, trait de 2. Se voit bien, mais pèse autant que le nom.' },
@@ -197,9 +197,9 @@ let scene = 'energie';
 let agrandi = false;
 let pointInconnu = false;
 
-/** Mur de `a` qui touche `b`, et place de la porte le long du mur (0 au début, 1 à la fin), au milieu du mur commun (14 §4.1). */
+/** Mur de `a` qui touche `b`, et place de la porte le long du mur (0 au début, 1 à la fin) : sa case, au milieu du mur commun, côté début s'il a un nombre pair de cases (rangParDefaut, engine/plan.ts). */
 function situer(a, b) {
-  const recouvre = (d1, f1, d2, f2) => (Math.max(d1, d2) + Math.min(f1, f2)) / 2;
+  const recouvre = (d1, f1, d2, f2) => Math.floor((Math.max(d1, d2) + Math.min(f1, f2) - 1) / 2) + 0.5;
   if (b.x === a.x + a.l) return { dir: 'droite', t: (recouvre(a.y, a.y + a.h, b.y, b.y + b.h) - a.y) / a.h };
   if (b.x + b.l === a.x) return { dir: 'gauche', t: (recouvre(a.y, a.y + a.h, b.y, b.y + b.h) - a.y) / a.h };
   if (b.y === a.y + a.h) return { dir: 'bas', t: (recouvre(a.x, a.x + a.l, b.x, b.x + b.l) - a.x) / a.l };

@@ -155,10 +155,10 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('dock : objets de la pièce, regard autour de soi ; une ligne par salle, nom et état de sa porte, sans bulle (D-267)', async () => {
     const dock = entre(rendre(await commencer(env)), '<section class="dock"', '</section>');
-    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder ▸ Attendre Se déplacer vers → atelier Fermée Bruyante → soute Fermée');
+    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder ▸ Attendre Se déplacer vers atelier Fermée Bruyante soute Fermée');
     // Porte fermée : nom en pointillé, toujours touchable ; le moteur refuse sans coût, le son dit le refus.
     const nom = entre(dock, '<button type="button" class="deplacement', '</button>');
-    expect(nom).toContain('class="deplacement bloque" aria-label="atelier, La porte de l’atelier est fermée." data-son="refus"');
+    expect(nom).toContain('class="deplacement bloque" aria-label="atelier, en haut à droite, La porte de l’atelier est fermée." data-son="refus"');
     expect(nom).not.toMatch(/disabled=""|aria-haspopup/);
     // La porte de l'atelier est grippée : « Bruyante » sous son état, lu avec lui (D-348)  ; la grille de la soute, non.
     const [porte, soute] = dock.match(/<button type="button" class="porte-etat.*?<\/button>/g) ?? [];
@@ -182,8 +182,8 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
   it('porte ouverte : nom plein qui fait passer, état « Ouverte » ; la créature entendue derrière se signale (D-267)', async () => {
     const dock = entre(rendre(await apres('ouvrir')), '<ul class="deplacements"', '</ul>');
     const ligne = entre(dock, '<li class="salle"', '</li>');
-    expect(texte(ligne)).toBe('→ atelier Bruit Ouverte');
-    expect(ligne).toContain('<button type="button" class="deplacement repere-danger" aria-label="atelier, bruit" data-son="confirmer">');
+    expect(texte(ligne)).toBe('atelier Bruit Ouverte');
+    expect(ligne).toContain('<button type="button" class="deplacement repere-danger" aria-label="atelier, en haut à droite, bruit" data-son="confirmer">');
     expect(ligne).toContain('<span class="repere" aria-hidden="true">Bruit</span>');
     expect(ligne).toContain('class="porte-etat ouverte" aria-label="Porte de l’atelier, ouverte"');
     // Un pas plus loin, le bruit est oublié.
@@ -1008,21 +1008,23 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
   it('grille sans signalétique : une puce tant qu’elle est fermée ; ouverte, « → GRILLE » ; franchie, sa destination (D-147)', async () => {
     const atelier = dockDe(rendreAr01(await pc(1)));
     expect(texte(atelier)).toContain('▸ Grille');
-    expect(texte(entre(atelier, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit Ouverte');
+    expect(texte(entre(atelier, '<ul class="deplacements"', '</ul>'))).toBe('salon de transit Ouverte');
     const ouverte = dockDe(rendreAr01(await pc(4)));
     expect(texte(ouverte)).not.toContain('▸ Grille');
-    expect(texte(entre(ouverte, '<ul class="deplacements"', '</ul>'))).toBe('→ salon de transit Ouverte → grille Ouverte');
+    expect(texte(entre(ouverte, '<ul class="deplacements"', '</ul>'))).toBe('salon de transit Ouverte grille Ouverte');
     const local = dockDe(rendreAr01(await pc(5)));
-    expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).toContain('→ atelier maintenance');
-    expect(local).not.toMatch(/→ grille/);
+    expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).toContain('atelier maintenance');
+    expect(texte(entre(local, '<ul class="deplacements"', '</ul>'))).not.toContain('grille');
   });
 
   it('bloc en main : « → atelier » par la grille reste visible, en pointillé, nommé avec sa raison (D-229, D-267)', async () => {
     const charge = dockDe(rendreAr01(await pc(7)));
     const grille = entre(charge, '<button type="button" class="deplacement bloque" aria-label="atelier maintenance', '</button>');
     const raison = 'Ce que vous portez est trop large pour la grille de l’atelier maintenance.';
-    expect(grille).toContain(`aria-label="atelier maintenance, ${raison}"`);
-    expect(texte(grille)).toBe('→ atelier maintenance');
+    expect(grille).toContain(`aria-label="atelier maintenance, en haut, ${raison}"`);
+    expect(texte(grille)).toBe('atelier maintenance');
+    // La grille s'ouvre en haut du local énergie, sur la carte (D-349).
+    expect(grille).toContain('<path transform="rotate(0 8 8)"');
   });
 
   it('IA Station : au réveil puis à l’arrivée au local énergie, encadrée après le récit, écrite comme lui ; rien à l’action suivante', async () => {

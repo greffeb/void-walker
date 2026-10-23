@@ -1234,6 +1234,15 @@ button:disabled {
   border: 1px solid var(--texte);
 }
 
+/* Flèche orientée vers la porte sur la carte (D-349) : 16 px, trait de 2, centrée sur un nom de deux lignes ; « → » sans emplacement. */
+.deplacement .fleche {
+  flex: none;
+  width: calc(16px * var(--echelle));
+  height: calc(16px * var(--echelle));
+  line-height: calc(16px * var(--echelle));
+  text-align: center;
+}
+
 /* Le nom peut rétrécir et se couper dans un mot trop long pour sa colonne (texte agrandi sur un écran étroit). */
 .deplacement .destination {
   min-width: 0;
