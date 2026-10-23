@@ -3,6 +3,7 @@ import {
   ACTIONS,
   apercu,
   CATALOGUE,
+  type CartePublique,
   type Cible,
   type DefMonde,
   type IdAction,
@@ -52,6 +53,64 @@ export interface Deplacement extends Groupe {
   /** La manœuvre fera du bruit : sa commande porte « Bruyante » sous son état (D-348). */
   readonly bruyante: boolean;
   readonly reperes: readonly Repere[];
+  /** Où la porte s'ouvre sur la carte, vue de la pièce actuelle ; `null` sans emplacement connu (D-349). */
+  readonly sens: Sens | null;
+}
+
+/** Sens de la flèche d'une ligne « Se déplacer vers », au sens de la carte, qui ne tourne jamais (D-349). */
+export type Sens = 'haut' | 'haut-droite' | 'droite' | 'bas-droite' | 'bas' | 'bas-gauche' | 'gauche' | 'haut-gauche';
+
+/** Angle de la flèche, en degrés depuis le haut, dans le sens des aiguilles d'une montre. */
+export const ANGLE_SENS: Readonly<Record<Sens, number>> = {
+  haut: 0,
+  'haut-droite': 45,
+  droite: 90,
+  'bas-droite': 135,
+  bas: 180,
+  'bas-gauche': 225,
+  gauche: 270,
+  'haut-gauche': 315,
+};
+
+/**
+ * Sens d'un passage depuis la pièce actuelle (D-349) : le mur où s'ouvre la porte, ou le bout d'un conduit contre la pièce ; une
+ * diagonale quand la case de la porte tombe dans le premier ou le dernier quart du mur. `null` sans plan, vers une sous-position,
+ * ou si le passage ne touche pas la pièce.
+ */
+export function sensDuPassage(carte: CartePublique, passage: string): Sens | null {
+  const ici = carte.pieces.find((piece) => piece.statut === 'actuelle')?.rect ?? null;
+  const emplacement = carte.passages.find((candidat) => candidat.id === passage)?.emplacement ?? null;
+  if (ici === null || emplacement === null) return null;
+  let axe: 'v' | 'h';
+  let ligne: number;
+  let rang: number;
+  if (emplacement.type === 'mur') {
+    ({ axe, ligne, rang } = emplacement);
+  } else {
+    // Conduit : son bout qui borde la pièce, juste au-dessus, au-dessous ou à côté d'elle.
+    const bout = [emplacement.cases[0], emplacement.cases[emplacement.cases.length - 1]].find((etape) => {
+      if (etape === undefined) return false;
+      const dansX = etape.x >= ici.x && etape.x < ici.x + ici.largeur;
+      const dansY = etape.y >= ici.y && etape.y < ici.y + ici.hauteur;
+      return (dansY && (etape.x === ici.x - 1 || etape.x === ici.x + ici.largeur)) || (dansX && (etape.y === ici.y - 1 || etape.y === ici.y + ici.hauteur));
+    });
+    if (bout === undefined) return null;
+    const lateral = bout.x === ici.x - 1 || bout.x === ici.x + ici.largeur;
+    axe = lateral ? 'v' : 'h';
+    ligne = lateral ? (bout.x < ici.x ? ici.x : ici.x + ici.largeur) : bout.y < ici.y ? ici.y : ici.y + ici.hauteur;
+    rang = lateral ? bout.y : bout.x;
+  }
+  const cote =
+    axe === 'v'
+      ? ligne === ici.x ? 'gauche' : ligne === ici.x + ici.largeur ? 'droite' : null
+      : ligne === ici.y ? 'haut' : ligne === ici.y + ici.hauteur ? 'bas' : null;
+  if (cote === null) return null;
+  const place = axe === 'v' ? (rang + 0.5 - ici.y) / ici.hauteur : (rang + 0.5 - ici.x) / ici.largeur;
+  const bord = place <= 0.25 ? 'debut' : place >= 0.75 ? 'fin' : null;
+  if (bord === null) return cote;
+  // Le début d'un mur vertical est en haut, celui d'un mur horizontal à gauche.
+  if (cote === 'haut' || cote === 'bas') return `${cote}-${bord === 'debut' ? 'gauche' : 'droite'}`;
+  return `${bord === 'debut' ? 'haut' : 'bas'}-${cote}`;
 }
 
 function grouper(cibles: readonly (RefObjet | RefPassage)[], options: readonly OptionMenu[]): Groupe[] {
@@ -91,6 +150,7 @@ export function composerDock(
         manoeuvre,
         bruyante: manoeuvre !== undefined && bruyants.includes(passage.id),
         reperes,
+        sens: sensDuPassage(observation.carte, passage.id),
       },
     ];
   });
@@ -284,11 +344,12 @@ export function libelleLigne(textes: TextesMonde, groupe: Groupe, option: Option
 /** Repères écrits sur la ligne d'une salle (D-267) ; le lecteur d'écran les lit en minuscules après le nom. */
 export const REPERES: Readonly<Record<Repere, string>> = LIBELLES.jeu.reperes;
 
-/** Nom accessible du nom d'une salle : destination, repères, puis la raison si l'on ne peut pas passer (D-230, D-267). */
+/** Nom accessible du nom d'une salle : destination, sens sur la carte, repères, puis la raison si l'on ne peut pas passer (D-230, D-267, D-349). */
 export function nomLigne(textes: TextesMonde, deplacement: Deplacement): string {
   const { raison } = libelleOption(textes, deplacement.passer);
   const reperes = deplacement.reperes.map((repere) => REPERES[repere].toLowerCase());
-  return [nomDestination(textes, deplacement.passer), ...reperes, ...(raison === null ? [] : [raison])].join(', ');
+  const sens = deplacement.sens === null ? [] : [LIBELLES.jeu.sens[deplacement.sens]];
+  return [nomDestination(textes, deplacement.passer), ...sens, ...reperes, ...(raison === null ? [] : [raison])].join(', ');
 }
 
 /** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée », « …, bruyante » (D-267, D-348). */

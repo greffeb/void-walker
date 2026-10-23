@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, ty
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
 import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
 import {
+  ANGLE_SENS,
   composer,
   composerDock,
   manoeuvresBruyantes,
@@ -1105,16 +1106,22 @@ function LigneSalle({
   readonly occupe: boolean;
   readonly jouer: Jouer;
 }) {
-  const { passer, manoeuvre, bruyante, reperes, cible } = deplacement;
+  const { passer, manoeuvre, bruyante, reperes, cible, sens } = deplacement;
   const destination = nomDestination(textes, passer);
   const classes = ['deplacement', ...(passer.disponible ? [] : ['bloque']), ...(reperes.length > 0 ? ['repere-danger'] : [])].join(' ');
   return (
     <li className={manoeuvre === undefined ? 'salle sans-porte' : 'salle'}>
       <button type="button" className={classes} aria-label={nomLigne(textes, deplacement)} disabled={occupe} onClick={() => jouer(passer)} data-son={passer.disponible ? 'confirmer' : 'refus'}>
-        <span className="destination">
-          <span aria-hidden="true">→ </span>
-          {destination}
-        </span>
+        {sens === null ? (
+          <span className="fleche" aria-hidden="true">
+            →
+          </span>
+        ) : (
+          <svg className="fleche" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true">
+            <path transform={`rotate(${ANGLE_SENS[sens]} 8 8)`} d="M8 14V3M3.5 7.5 8 3l4.5 4.5" />
+          </svg>
+        )}
+        <span className="destination">{destination}</span>
         {reperes.map((repere) => (
           <span key={repere} className="repere" aria-hidden="true">
             {REPERES[repere]}

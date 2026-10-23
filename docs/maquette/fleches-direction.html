@@ -1,0 +1,322 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flèches de direction Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette #259 : la flèche des lignes « Se déplacer vers » montre la direction sur la carte. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --alerte: #ff5a4a;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --echelle: 1;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.pieces { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.reglages { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true], .onglet[aria-pressed=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 640px; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: calc(15px * var(--echelle)); }
+.recit p { margin: 0 0 10px; opacity: .5; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.puces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.puce { text-align: left; border: 1px solid var(--bordure); padding: 8px 10px; font-size: calc(14px * var(--echelle)); min-height: 46px; display: flex; align-items: center; opacity: .45; }
+.salles { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.salle { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+
+/* Ligne et commande, reprises de app/styles.css (D-267, D-348). */
+.deplacement { display: flex; align-items: center; column-gap: 8px; min-height: 48px; padding: 8px 12px; font: inherit; font-size: calc(15px * var(--echelle)); font-weight: 600; line-height: 1.3; text-align: left; text-transform: uppercase; color: var(--fond); background: var(--texte); border: 1px solid var(--texte); min-width: 0; }
+.deplacement.bloque { color: var(--texte); background: transparent; border: 1px dashed var(--texte); }
+.destination { min-width: 0; overflow-wrap: anywhere; display: flex; flex-direction: column; }
+.porte-etat { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 112px; min-height: 48px; padding: 4px 10px; font: inherit; font-size: calc(13px * var(--echelle)); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texte); background: transparent; border: 1px solid var(--bordure); }
+.porte-etat.ouverte { background: var(--surface); }
+.temoin { flex: none; width: 9px; height: 9px; border: 1px solid currentColor; }
+.porte-etat.ouverte .temoin { background: var(--accent); border-color: var(--accent); }
+.mot { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.sous { font-size: calc(10px * var(--echelle)); font-weight: 400; letter-spacing: .08em; color: var(--secondaire); }
+.deplacement:not(.bloque) .sous { color: var(--surface); opacity: .75; }
+
+/* Signe : un trait SVG tourné, même graisse dans les huit sens. */
+.fleche { flex: none; width: calc(16px * var(--echelle)); height: calc(16px * var(--echelle)); }
+.inconnu { flex: none; width: calc(16px * var(--echelle)); text-align: center; }
+/* Moyenne (14 px) et fine (12 px) : plus petites, traits plus fins, un peu effacées. */
+.s-moyenne .fleche { width: calc(14px * var(--echelle)); height: calc(14px * var(--echelle)); opacity: .85; }
+.s-moyenne .inconnu { width: calc(14px * var(--echelle)); font-size: calc(13px * var(--echelle)); opacity: .85; }
+.s-fine .fleche { width: calc(12px * var(--echelle)); height: calc(12px * var(--echelle)); opacity: .7; }
+.s-fine .inconnu { width: calc(12px * var(--echelle)); font-size: calc(12px * var(--echelle)); font-weight: 400; opacity: .7; }
+.s-moyenne .deplacement, .s-fine .deplacement { column-gap: 6px; }
+
+/* Carte de contrôle sous le téléphone. */
+.carte { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); }
+.carte svg { display: block; width: 100%; height: auto; }
+
+.lecteur { font-size: 12px; color: var(--secondaire); margin: 0; padding-left: 18px; }
+.lecteur li { margin-bottom: 2px; }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.questions { font-size: 13px; color: var(--secondaire); margin: 0; padding-left: 18px; }
+.questions li { margin-bottom: 4px; }
+.questions b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Issue <b>#259</b>. Aujourd’hui, le « → » devant chaque destination est fixe. Ici, il montre où se trouve la porte sur la carte. Les deux premières pièces viennent du <b>plan réel d’AR-01</b>, et la carte en bas sert à vérifier. La troisième est <b>fictive</b> : elle montre les passages dont on ne connaît pas l’emplacement.</p>
+
+  <p class="etiquette">Variante</p>
+  <div class="onglets" role="tablist" id="variantes"></div>
+
+  <p class="etiquette">Signe</p>
+  <div class="pieces" id="signes"></div>
+
+  <p class="etiquette">Pièce</p>
+  <div class="pieces" id="pieces"></div>
+
+  <p class="etiquette">Réglages</p>
+  <div class="reglages">
+    <button class="onglet" id="agrandi" aria-pressed="false">Texte agrandi</button>
+    <button class="onglet" id="inconnu" aria-pressed="false">Sans place : « ? »</button>
+  </div>
+
+  <div class="tel">
+    <header class="entete"><h1 id="titre"></h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <nav class="nav"><span>CARTE</span><span>SAC</span><span>MENU</span></nav>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+
+  <p class="etiquette">Carte (contrôle)</p>
+  <div class="carte" id="carte"></div>
+
+  <p class="etiquette">Lecteur d’écran (proposé)</p>
+  <ol class="lecteur" id="lecteur"></ol>
+
+  <p class="etiquette">À trancher</p>
+  <ol class="questions">
+    <li><b>Quelle variante, quel signe ?</b> A ou B (quatre sens ou huit), et quelle épaisseur de flèche : 16, 14 ou 12 px.</li>
+    <li><b>Passage sans emplacement</b> (conduit inconnu, liaison de grande station sans <code>plan</code> complet) : garder « → » ou afficher « ? » ? Le « ? » dit franchement qu’on ne sait pas. Le « → » reprend l’ancien sens, « on peut y aller », ce qui peut tromper au milieu de flèches orientées. Réglage ci-dessus.</li>
+    <li><b>Passages hauts ou bas, et zone sans gravité</b> (D-237) : dans la maquette, la flèche suit toujours la carte, même pour la grille haute de l’atelier. Elle ne dit pas « monter ». Si la hauteur compte, il faudra l’écrire ailleurs (sous le nom, ou par le récit).</li>
+    <li><b>Mots pour le lecteur d’écran</b> : la flèche reste <code>aria-hidden</code>. On propose « en haut, à gauche… », comme sur la carte, plutôt que « au nord » : la station n’a pas de nord. Ou ne rien dire.</li>
+    <li><b>Orientation de la carte</b> : la maquette suppose qu’elle ne tourne jamais (14 §2). Si elle tournait un jour, les flèches devraient tourner avec elle.</li>
+  </ol>
+</div>
+
+<script>
+const VARIANTES = {
+  A: { nom: 'Orientée', verdict: '<b>A — flèche orientée.</b> ↑ ↓ ← → à la place du « → ». Rien à apprendre, et pas plus de place qu’aujourd’hui. Dans la salle d’embarquement, les deux portes donnent ↑ : la flèche dit de quel mur part la porte, pas laquelle des deux est à gauche.' },
+  B: { nom: '+ diagonales', verdict: '<b>B — orientée, avec diagonales (retenue, D-349).</b> ↖ ↗ ↘ ↙ quand la case de la porte tombe dans le premier ou le dernier quart du mur. Dans l’embarquement, la porte du local énergie est sur la première case du mur haut : ↖ ; celle de la baie, sur la troisième de quatre, reste ↑. Les deux lignes se distinguent quand même.' },
+};
+const SIGNES = {
+  epaisse: { nom: '16 px', verdict: 'Flèche de la première maquette : 16 px, trait de 2. Se voit bien, mais pèse autant que le nom.' },
+  moyenne: { nom: '14 px', verdict: 'Flèche de 14 px, trait de 1,5, à peine effacée. Entre les deux : se voit d’un coup d’œil sans rivaliser avec le nom.' },
+  fine: { nom: '12 px', verdict: 'Flèche de 12 px, trait de 1,25, un peu effacée. On la trouve quand on la cherche ; le nom reprend la première place. Les diagonales restent lisibles.' },
+};
+
+// Plan d'AR-01 (content/ar-01/monde.ts), en cases.
+const PLAN = {
+  salon: { nom: 'Salon de transit', court: 'Salon', x: 0, y: 0, l: 4, h: 3 },
+  atelier: { nom: 'Atelier maintenance', court: 'Atelier', x: 4, y: 0, l: 4, h: 3 },
+  galerie: { nom: 'Local technique', court: 'Technique', x: 0, y: 3, l: 4, h: 3 },
+  energie: { nom: 'Local énergie', court: 'Énergie', x: 4, y: 3, l: 4, h: 3 },
+  observation: { nom: 'Baie d’observation', court: 'Baie', x: 8, y: 3, l: 4, h: 3 },
+  embarquement: { nom: 'Salle d’embarquement', court: 'Embarq.', x: 6, y: 6, l: 4, h: 3 },
+};
+
+const SCENES = {
+  energie: {
+    titre: 'Local énergie',
+    recit: 'Un local bas de plafond, plein de bourdonnements. Une console, un bloc d’alimentation, un avertisseur au mur.',
+    puces: ['Console', 'Bloc'],
+    sorties: [
+      { vers: 'atelier', ouverte: false, sous: 'grille haute' },
+      { vers: 'galerie', ouverte: false },
+      { vers: 'observation', ouverte: false, bruyante: true },
+      { vers: 'embarquement', ouverte: false, sous: 'panneau' },
+    ],
+  },
+  embarquement: {
+    titre: 'Salle d’embarquement',
+    recit: 'Un quai d’embarquement sans passagers. Une capsule de secours y est arrimée. (Panneau caché déjà trouvé.)',
+    puces: ['Capsule', 'Quai'],
+    sorties: [
+      { vers: 'energie', ouverte: false, sous: 'panneau' },
+      { vers: 'observation', ouverte: true },
+    ],
+  },
+  fictive: {
+    titre: 'Coursive B',
+    recit: 'Pièce fictive d’une grande station : une liaison sans plan complet, un conduit qu’on n’a pas encore suivi.',
+    puces: ['Casier', 'Néons'],
+    sorties: [
+      { nom: 'Réfectoire', dir: 'gauche', t: 0.5, ouverte: true },
+      { nom: 'Hangar', dir: null, ouverte: true },
+      { nom: 'Conduit', dir: null, ouverte: false },
+    ],
+  },
+};
+
+const ANGLES = { haut: 0, droite: 90, bas: 180, gauche: 270 };
+const MOTS = { haut: 'en haut', bas: 'en bas', gauche: 'à gauche', droite: 'à droite' };
+const DIAG = {
+  'haut-debut': ['haut', 'gauche', -45], 'haut-fin': ['haut', 'droite', 45],
+  'bas-debut': ['bas', 'gauche', 225], 'bas-fin': ['bas', 'droite', 135],
+  'gauche-debut': ['haut', 'gauche', -45], 'gauche-fin': ['bas', 'gauche', 225],
+  'droite-debut': ['haut', 'droite', 45], 'droite-fin': ['bas', 'droite', 135],
+};
+
+let variante = 'A';
+let signe = 'fine';
+let scene = 'energie';
+let agrandi = false;
+let pointInconnu = false;
+
+/** Mur de `a` qui touche `b`, et place de la porte le long du mur (0 au début, 1 à la fin) : sa case, au milieu du mur commun, côté début s'il a un nombre pair de cases (rangParDefaut, engine/plan.ts). */
+function situer(a, b) {
+  const recouvre = (d1, f1, d2, f2) => Math.floor((Math.max(d1, d2) + Math.min(f1, f2) - 1) / 2) + 0.5;
+  if (b.x === a.x + a.l) return { dir: 'droite', t: (recouvre(a.y, a.y + a.h, b.y, b.y + b.h) - a.y) / a.h };
+  if (b.x + b.l === a.x) return { dir: 'gauche', t: (recouvre(a.y, a.y + a.h, b.y, b.y + b.h) - a.y) / a.h };
+  if (b.y === a.y + a.h) return { dir: 'bas', t: (recouvre(a.x, a.x + a.l, b.x, b.x + b.l) - a.x) / a.l };
+  return { dir: 'haut', t: (recouvre(a.x, a.x + a.l, b.x, b.x + b.l) - a.x) / a.l };
+}
+
+function sorties() {
+  const s = SCENES[scene];
+  return s.sorties.map((sortie) => {
+    if (sortie.vers === undefined) return sortie;
+    return { ...sortie, nom: PLAN[sortie.vers].nom, ...situer(PLAN[scene], PLAN[sortie.vers]) };
+  });
+}
+
+/** Angle et mots de la flèche ; les diagonales seulement en B, dans le quart du mur près d'un coin. */
+function orienter(sortie) {
+  if (variante === 'B' && (sortie.t <= 0.25 || sortie.t >= 0.75)) {
+    const [v, h, angle] = DIAG[`${sortie.dir}-${sortie.t <= 0.25 ? 'debut' : 'fin'}`];
+    return { angle, mots: `${MOTS[v]} à ${h}` };
+  }
+  return { angle: ANGLES[sortie.dir], mots: MOTS[sortie.dir] };
+}
+
+const TRACES = {
+  epaisse: { trait: 2, d: 'M8 14V3M3.5 7.5 8 3l4.5 4.5' },
+  moyenne: { trait: 1.5, d: 'M8 14V2.5M3.75 6.75 8 2.5l4.25 4.25' },
+  fine: { trait: 1.25, d: 'M8 14V2.5M4 6.5 8 2.5l4 4' },
+};
+
+function fleche(angle) {
+  const { trait, d } = TRACES[signe];
+  return `<svg class="fleche" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="${trait}" stroke-linecap="square" aria-hidden="true"><g transform="rotate(${angle} 8 8)"><path d="${d}"/></g></svg>`;
+}
+
+function prefixe(sortie) {
+  if (sortie.dir === null) return pointInconnu ? '<span class="inconnu" aria-hidden="true">?</span>' : fleche(90);
+  return fleche(orienter(sortie).angle);
+}
+
+function lu(sortie) {
+  const etat = sortie.ouverte ? '' : ', fermée';
+  const ou = sortie.dir === null ? (pointInconnu ? ', place inconnue' : '') : `, ${orienter(sortie).mots}`;
+  return `${sortie.nom}${ou}${etat}`;
+}
+
+function ligne(sortie) {
+  const etat = sortie.ouverte ? 'Ouverte' : 'Fermée';
+  const commande = `<span class="porte-etat${sortie.ouverte ? ' ouverte' : ''}"><span class="temoin" aria-hidden="true"></span>${sortie.bruyante ? `<span class="mot"><span>${etat}</span><span class="sous">Bruyante</span></span>` : etat}</span>`;
+  return `<li class="salle">
+    <button type="button" class="deplacement${sortie.ouverte ? '' : ' bloque'}" aria-label="${lu(sortie)}">${prefixe(sortie)}<span class="destination"><span>${sortie.nom}</span></span></button>
+    ${commande}
+  </li>`;
+}
+
+function carte() {
+  if (scene === 'fictive') {
+    return '<svg viewBox="0 0 390 60"><text x="16" y="34" fill="#b08850" font-family="IBM Plex Mono, monospace" font-size="12">Pièce fictive : pas de plan.</text></svg>';
+  }
+  const c = 28, m = 27;
+  const ici = PLAN[scene];
+  const voisins = SCENES[scene].sorties.map((s) => s.vers);
+  const pieces = Object.entries(PLAN).map(([id, p]) => {
+    const actuelle = id === scene;
+    const voisine = voisins.includes(id);
+    return `<rect x="${m + p.x * c}" y="${m + p.y * c}" width="${p.l * c}" height="${p.h * c}" fill="${actuelle ? '#14100a' : 'none'}" stroke="${actuelle ? '#ffb23f' : voisine ? '#f4c27a' : '#4a3a20'}" stroke-width="${actuelle ? 2 : 1}"/>
+      <text x="${m + p.x * c + 6}" y="${m + p.y * c + 16}" fill="${actuelle ? '#ffb23f' : voisine ? '#f4c27a' : '#76603a'}" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600">${p.court.toUpperCase()}</text>`;
+  }).join('');
+  const portes = sorties().map((s) => {
+    let px, py;
+    if (s.dir === 'haut' || s.dir === 'bas') { px = ici.x + s.t * ici.l; py = s.dir === 'haut' ? ici.y : ici.y + ici.h; }
+    else { py = ici.y + s.t * ici.h; px = s.dir === 'gauche' ? ici.x : ici.x + ici.l; }
+    const horiz = s.dir === 'haut' || s.dir === 'bas';
+    const x = m + px * c, y = m + py * c;
+    return `<line x1="${horiz ? x - 9 : x}" y1="${horiz ? y : y - 9}" x2="${horiz ? x + 9 : x}" y2="${horiz ? y : y + 9}" stroke="#ffb23f" stroke-width="5"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 390 306" role="img" aria-label="Plan d’AR-01, ${ici.nom} en surbrillance">${pieces}${portes}</svg>`;
+}
+
+function rendre() {
+  document.documentElement.style.setProperty('--echelle', agrandi ? 22 / 17 : 1);
+  const s = SCENES[scene];
+  document.getElementById('titre').textContent = s.titre;
+  document.getElementById('recit').innerHTML = `<p>${s.recit}</p>`;
+  const liste = sorties();
+  document.getElementById('dock').innerHTML = `<h2 class="titre-section">Dans la pièce</h2>
+    <div class="puces">${s.puces.map((p) => `<span class="puce">▸ ${p}</span>`).join('')}</div>
+    <h2 class="titre-section">Se déplacer vers</h2>
+    <ul class="salles s-${signe}">${liste.map(ligne).join('')}</ul>`;
+  document.getElementById('verdict').innerHTML = `${VARIANTES[variante].verdict}<br><b>${SIGNES[signe].nom}.</b> ${SIGNES[signe].verdict}`;
+  document.getElementById('signes').innerHTML = Object.entries(SIGNES)
+    .map(([id, sg]) => `<button class="onglet" data-g="${id}" aria-pressed="${id === signe}">${sg.nom}</button>`)
+    .join('');
+  document.getElementById('carte').innerHTML = carte();
+  document.getElementById('lecteur').innerHTML = liste.map((x) => `<li>« ${lu(x)} »</li>`).join('');
+  document.getElementById('variantes').innerHTML = Object.keys(VARIANTES)
+    .map((v) => `<button class="onglet" role="tab" data-v="${v}" aria-selected="${v === variante}">${v}<br><span style="font-size:10px">${VARIANTES[v].nom}</span></button>`)
+    .join('');
+  document.getElementById('pieces').innerHTML = Object.entries(SCENES)
+    .map(([id, sc]) => `<button class="onglet" data-s="${id}" aria-pressed="${id === scene}">${id === 'fictive' ? 'Sans place' : sc.titre.replace('Salle d’e', 'E')}</button>`)
+    .join('');
+  document.getElementById('agrandi').setAttribute('aria-pressed', agrandi);
+  document.getElementById('inconnu').setAttribute('aria-pressed', pointInconnu);
+}
+
+document.getElementById('variantes').addEventListener('click', (e) => {
+  const v = e.target.closest('[data-v]')?.dataset.v;
+  if (v !== undefined) { variante = v; rendre(); }
+});
+document.getElementById('signes').addEventListener('click', (e) => {
+  const id = e.target.closest('[data-g]')?.dataset.g;
+  if (id !== undefined) { signe = id; rendre(); }
+});
+document.getElementById('pieces').addEventListener('click', (e) => {
+  const id = e.target.closest('[data-s]')?.dataset.s;
+  if (id !== undefined) { scene = id; rendre(); }
+});
+document.getElementById('agrandi').addEventListener('click', () => { agrandi = !agrandi; rendre(); });
+document.getElementById('inconnu').addEventListener('click', () => { pointInconnu = !pointInconnu; rendre(); });
+rendre();
+</script>
