@@ -6,7 +6,7 @@ import { preview } from 'vite';
 import { apercu, idPublic, jouer, nouvellePartie, observer, type Commande, type DefMonde, type DefObjet, type EtatPartie, type Observation, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
 import { cleMort, COMPOSITIONS_PUBLIEES, GRANDES_PUBLIEES, libelleOption, MONDES, MOTS_CARTE, nomDe, VERSION_GENERATEUR, type CleMort, type EntreeMonde, type EtapeParcours, type SupportDocument, type TextesMonde } from '../content';
-import { composerDock, filBulle, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, REGARDER_AUTOUR, texteRappel, unToucher } from '../app/ecran';
+import { composerDock, filBulle, manoeuvresBruyantes, nomDestination, nomLigne, nomParametre, nomPorte, nomPuce, passagesEntendus, passagesOuverts, rappelDe, REGARDER_AUTOUR, texteRappel, unToucher } from '../app/ecran';
 import { recitDeFin } from '../app/jeu';
 import { CLE_REGLAGES } from '../app/reglages';
 import { creerBot, jouerAvecBot, PROFILS } from './bots';
@@ -90,7 +90,7 @@ const SANS_CONFIRMATION = ', sans confirmation';
 const PAUSE_JOUEUR_MS = 700;
 
 function gesteDe({ monde, textes }: EntreeMonde, partie: Partie, observation: Observation, option: OptionMenu): Geste {
-  const dock = composerDock(observation, passagesOuverts(partie), passagesEntendus(partie));
+  const dock = composerDock(observation, passagesOuverts(partie), passagesEntendus(partie), manoeuvresBruyantes(monde, partie, observation));
   const titre = libelleOption(textes, option).libelle;
   const rappel = texteRappel(textes, rappelDe(option)).texte;
   const fil = filBulle(textes, option.cible, option);

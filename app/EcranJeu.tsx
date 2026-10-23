@@ -4,6 +4,7 @@ import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, t
 import {
   composer,
   composerDock,
+  manoeuvresBruyantes,
   etapeBulle,
   filBulle,
   libelleLigne,
@@ -156,7 +157,7 @@ export function EcranJeu({
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
-  const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie));
+  const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie), manoeuvresBruyantes(env.monde, jeu.partie, observation));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
   /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
@@ -1104,7 +1105,7 @@ function LigneSalle({
   readonly occupe: boolean;
   readonly jouer: Jouer;
 }) {
-  const { passer, manoeuvre, reperes, cible } = deplacement;
+  const { passer, manoeuvre, bruyante, reperes, cible } = deplacement;
   const destination = nomDestination(textes, passer);
   const classes = ['deplacement', ...(passer.disponible ? [] : ['bloque']), ...(reperes.length > 0 ? ['repere-danger'] : [])].join(' ');
   return (
@@ -1120,7 +1121,7 @@ function LigneSalle({
           </span>
         ))}
       </button>
-      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} nom={nomPorte(textes, deplacement)} textes={textes} occupe={occupe} jouer={jouer} />}
+      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} bruyante={bruyante} nom={nomPorte(textes, deplacement)} textes={textes} occupe={occupe} jouer={jouer} />}
     </li>
   );
 }
@@ -1128,6 +1129,7 @@ function LigneSalle({
 function EtatPorte({
   manoeuvre,
   ouverte,
+  bruyante,
   nom,
   textes,
   occupe,
@@ -1135,15 +1137,25 @@ function EtatPorte({
 }: {
   readonly manoeuvre: OptionMenu;
   readonly ouverte: boolean;
+  readonly bruyante: boolean;
   readonly nom: string;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
   readonly jouer: Jouer;
 }) {
+  const etat = ouverte ? LIBELLES.jeu.porte.ouverte : LIBELLES.jeu.porte.fermee;
+  // Une manœuvre bruyante porte « Bruyante » sous son état (D-348).
   const contenu = (
     <>
       <span className="temoin" aria-hidden="true" />
-      {ouverte ? LIBELLES.jeu.porte.ouverte : LIBELLES.jeu.porte.fermee}
+      {bruyante ? (
+        <span className="porte-mots">
+          <span>{etat}</span>
+          <span className="porte-bruyante">{LIBELLES.jeu.porte.bruyante}</span>
+        </span>
+      ) : (
+        etat
+      )}
     </>
   );
   const classe = ouverte ? 'porte-etat ouverte' : 'porte-etat';

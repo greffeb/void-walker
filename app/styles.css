@@ -1297,6 +1297,21 @@ button:disabled {
   border-color: var(--accent);
 }
 
+/* Manœuvre bruyante : « BRUYANTE » en petit sous l'état, couleur inchangée (D-348). */
+.porte-mots {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+}
+
+.porte-bruyante {
+  font-size: calc(10px * var(--echelle));
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--texte-secondaire);
+}
+
 .porte-etat.indisponible {
   opacity: 0.45;
   border-style: dashed;
