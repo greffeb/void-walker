@@ -50,7 +50,7 @@
 - Un monde sans capteur donne exactement le même état, les mêmes événements et la même empreinte qu'avant. Le champ nouveau de `PieceCarte` est **absent** hors de la pièce du capteur, et un monde sans `rencontre` n'a ni panne ni destruction.
 - Un indice ne ment jamais : « calme » n'est jamais affiché dans une pièce aveugle, et une panne ou une destruction se voit toujours. Aucun texte ne nomme la créature hors de la couche menace (`MOTS_MENACE`). Le capteur dit « MOUVEMENT », jamais « la créature ».
 - Textes : vrai français, au ton du jeu, courts pour le téléphone, repris des maquettes. Texte final non validé par le porteur.
-- Commentaires et noms en français, dans le style du fichier touché, avec la référence de décision entre parenthèses (D-348 et suivantes, tâche 7).
+- Commentaires et noms en français, dans le style du fichier touché, avec la référence de décision entre parenthèses (D-349 et suivantes, tâche 7).
 - Vérification de chaque tâche : `npm run typecheck`, `npm run lint`, `npx vitest run <fichiers touchés>` ; avant la PR : `npm run verify`.
 
 ## Review Focus
@@ -403,18 +403,18 @@ git commit -m "appli : « ! » sur CARTE à chaque changement du capteur, et son
 ### Task 7: Décisions, docs et PR
 
 **Files:**
-- Modify: `docs/03-decisions.md` : D-348 et suivantes, statut « Validé » le 2026-10-22 sur maquette, avec renvoi aux maquettes et à ce plan :
-  - D-348 le capteur : au plus un par station, posé pour de bon par POSER (précise D-336) ;
-  - D-349 quatre états, et brouillé tant que la pièce est aveugle ;
-  - D-350 sur la carte : l'icône dans sa pièce, le « ! » sur CARTE, le bip et son son ;
-  - D-351 panne et destruction : un tirage hors journal, ses seuils, et pas de destruction en traque ;
-  - D-352 le drone éclaireur est reporté (précise D-336).
+- Modify: `docs/03-decisions.md` : D-349 et suivantes, statut « Validé » le 2026-10-22 sur maquette, avec renvoi aux maquettes et à ce plan :
+  - D-349 le capteur : au plus un par station, posé pour de bon par POSER (précise D-336) ;
+  - D-350 quatre états, et brouillé tant que la pièce est aveugle ;
+  - D-351 sur la carte : l'icône dans sa pièce, le « ! » sur CARTE, le bip et son son ;
+  - D-352 panne et destruction : un tirage hors journal, ses seuils, et pas de destruction en traque ;
+  - D-353 le drone éclaireur est reporté (précise D-336).
 
   Les choix de l'agent sont marqués « [Détail de l'agent] ». Mettre à jour l'index des thèmes et la ligne de mise à jour en tête.
 - Modify: `docs/14-carte.md` : l'icône du capteur et le « ! » de CARTE.
 - Modify: `docs/15-son.md` : le signal `capteur`.
 - Modify: `docs/contrats/C-03-temps-reactions.md` : le capteur dans le pas, après l'écoute.
-- Modify: `docs/superpowers/specs/2026-10-21-creature-mobile-design.md` : §12 n° 7 et en-tête, avec renvoi à D-348.
+- Modify: `docs/superpowers/specs/2026-10-21-creature-mobile-design.md` : §12 n° 7 et en-tête, avec renvoi à D-349.
 - Modify: `docs/00-lire-en-premier.md` : une ligne d'état.
 
 - [ ] **Step 1: Écrire les docs**
@@ -428,7 +428,7 @@ Expected: PASS, liens et textes compris.
 
 ```bash
 git add docs
-git commit -m "docs : le capteur, décisions D-348 à D-352"
+git commit -m "docs : le capteur, décisions D-349 à D-353"
 ```
 
 La PR cite la conception, les maquettes, le tableau des mesures, la part des stations avec un capteur, les captures de la tâche 6 et les choix de l'agent. Elle dit ce que le porteur doit essayer sur téléphone :

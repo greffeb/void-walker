@@ -48,6 +48,7 @@ Après chaque action jouée, l'interface compare l'observation d'avant et celle 
 | Le vide apparaît à la vue du passager de la même façon : dans sa pièce, ou par le voyant d'une porte étanche (D-224) | Alarme vide (Grave pulsé), une fois |
 | Première rencontre de la créature (événement `premier_contact` du moteur) (D-224) | Créature (Dissonance) |
 | Nombre de messages d'IA Station en hausse | IA Station (Télétype) |
+| Le capteur posé change d'état : mouvement, calme, brouillé, panne (événement `capteur` du moteur, D-351) ; pas à la pose | Capteur (Deux bips) |
 | Évacuation réussie (D-225) | Victoire (Bande qui ralentit) |
 
 Rester dans une pièce en feu, ou devant un passage ouvert sur le feu, ne fait pas resonner l'alarme ; en sortir puis y revenir la fait resonner (« à chaque entrée dans le danger », choix du porteur). Changer de pièce compte comme un passage de faux à vrai quand la nouvelle pièce brûle ou n'a plus d'air. Reprendre une partie enregistrée, ou revenir des options, ne joue aucun signal : il n'y a pas d'observation d'avant. Un refus, une consultation ou un aperçu ne change pas l'observation et ne joue aucun signal.
@@ -58,7 +59,7 @@ Pendant l'effet machine à écrire (D-186), le crépitement (Bips de caractères
 
 ### 2.4 Ordre
 
-Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis les signaux à la suite, espacés de 250 ms, dans cet ordre : alarme incendie, alarme vide, créature, blessure, mort ou soin, IA Station, victoire. Les signaux attendent la fin de l'écriture ; sans écriture, ou si on la saute, ils partent tout de suite.
+Le son du toucher part d'abord, puis le crépitement pendant l'écriture, puis les signaux à la suite, espacés de 250 ms, dans cet ordre : alarme incendie, alarme vide, créature, blessure, mort ou soin, IA Station, capteur, victoire. Les signaux attendent la fin de l'écriture ; sans écriture, ou si on la saute, ils partent tout de suite.
 
 ### 2.5 Ambiance (D-219)
 
@@ -105,6 +106,7 @@ Les recettes vivent dans `app/son/recettes.ts`, sous forme de données ; elles r
 | Confirmer | souffle 6 ms, f 3 600, Q 2,5, vol 0,35 ; à 25 ms, ton sinus 45 ms à 990, vol 0,08, montée 4 ms |
 | Indisponible | deux fois, à 0 et 110 ms : ton carré 70 ms à 120, passe-bas 1 400, vol 0,12, avec souffle 70 ms, f 900, Q 1,2, vol 0,12 |
 | IA Station | trois tons carrés 28 ms à 1 600, vol 0,07, à 0, 70 et 140 ms |
+| Capteur | deux tons carrés 50 ms à 1 100, vol 0,08, à 0 et 120 ms |
 | Crépitement | un tic tous les 36 ms × (0,75 à 1,25) tiré au hasard : ton sinus 7 ms à 1 200, 1 500 ou 1 800 au hasard, vol 0,07, chute 4 ms |
 | Blessure | souffle 40 ms passe-bas 700·h, Q 1, vol 0,3 ; à 20 ms, ton carré 130 ms à 220·h, passe-bas 1 500, trém. 40, vol 0,09 ; h = 1 (blessé) ou 0,75 (critique, §2.2) |
 | Soin | ton sinus 120 ms à 523, vol 0,16, montée 20 ms, chute 60 ms ; à 120 ms, ton sinus 160 ms à 784, vol 0,15, montée 20 ms, chute 100 ms |
