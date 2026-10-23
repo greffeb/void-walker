@@ -110,7 +110,7 @@ export const TEXTES_CATALOGUE: TextesMorceau = {
     // Salle de surveillance (lot 4) : le terminal y est toujours, on peut le nommer.
     cat_surveillance: [
       'Un comptoir, trois écrans, une chaise qui tourne encore. Un terminal attend qu’on le touche.',
-      'Un comptoir face à trois écrans éteints, une chaise repoussée en hâte. Un terminal veille, son curseur clignote.',
+      'Un comptoir face à trois écrans en veille, une chaise repoussée en hâte. Sur le terminal, un curseur clignote.',
     ],
     cat_terminal: [
       'Un terminal de sécurité. Écran de connexion : IDENTIFIANT AGENT DE GARDE, MOT DE PASSE ________.',

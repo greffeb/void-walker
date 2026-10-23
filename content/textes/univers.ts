@@ -72,19 +72,19 @@ export const UNIVERS = {
         'Caméra {de:piece} : signal vidéo interrompu. L’incident a été transmis au service technique.',
       ],
       capteur: [
-        'Capteur de maintenance {de:piece} : liaison perdue. Aucune action n’est requise de votre part.',
-        'Capteur de maintenance {de:piece} : plus aucun signal. Le service technique en a été informé.',
+        'Capteur de mouvement {de:piece} : liaison perdue. Aucune action n’est requise de votre part.',
+        'Capteur de mouvement {de:piece} : plus aucun signal. Le service technique en a été informé.',
       ],
     },
     passage: [
-      '{Nom:piece} : détecteur de présence déclenché, puis rétabli. Aucune action n’est requise.',
+      '{Nom:piece} : détecteur de présence déclenché, puis revenu au repos. Aucune action n’est requise.',
       '{Nom:piece} : éclairage allumé par le détecteur, puis éteint. Aucune action n’est requise.',
     ],
     presence: [
       '{Nom:piece} : obstruction de la ventilation signalée. Merci de ne pas encombrer les bouches d’aération.',
       '{Nom:piece} : éclairage instable. Une vérification du circuit est en cours.',
-      '{Nom:piece} : capteur de porte sollicité à plusieurs reprises. Merci de ne pas forcer les ouvertures.',
-      '{Nom:piece} : variation de pression détectée. Merci de garder les portes fermées.',
+      '{Nom:piece} : niveau sonore inhabituel enregistré. Merci de respecter le calme des espaces communs.',
+      '{Nom:piece} : courant d’air anormal signalé. Une vérification de la ventilation est programmée.',
     ],
   },
   evacuations: {
