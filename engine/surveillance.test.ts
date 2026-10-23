@@ -57,7 +57,9 @@ describe('terminal de surveillance', () => {
     expect(r.evenements).toContainEqual({ type: 'terminal_connecte' });
     expect(r.partie.etat.connecte).toBe(true);
     expect(r.partie.etat.actions).toBe(1);
-    expect(r.partie.etat.visitees).toEqual(MONDE.pieces.map((p) => p.id));
+    expect(r.partie.etat.visitees).toEqual(['surveillance']);
+    const dessinees = MONDE.pieces.filter((p) => p.sousPosition !== true).map((p) => pub(p.id));
+    expect(carte(MONDE, r.partie.etat).pieces.map((p) => p.piece.id)).toEqual(dessinees);
     expect(r.partie.etat.decouvertes).toEqual(['l-sc', 'l-cr', 'l-cm', 'l-cc', 'l-cab']);
     expect(r.partie.etat.decouvertes).not.toContain('l-cache');
     expect(observer(MONDE, r.partie.etat).cameras).toEqual([
@@ -72,6 +74,8 @@ describe('terminal de surveillance', () => {
     const r = jouer(MONDE, partie, commande('aller', 'l-sc'));
     if (r.type !== 'engagee') throw new Error(r.type);
     expect(r.partie.etat.piece).toBe('coursive');
+    expect(r.evenements).toContainEqual(expect.objectContaining({ type: 'piece_decouverte' }));
+    expect(r.partie.etat.visitees).toEqual(['surveillance', 'coursive']);
     expect(observer(MONDE, r.partie.etat).cameras).toBeUndefined();
     expect(observer(MONDE, porteur('surveillance', 'post-it').etat).cameras).toBeUndefined();
   });

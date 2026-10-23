@@ -22,8 +22,9 @@ export function salleDeSurveillance(monde: DefMonde): string | null {
 }
 
 /**
- * Révélation au terminal (lot 4) : toutes les pièces visitées, toutes les liaisons non cachées découvertes, leur état en mémoire,
- * et pour chaque pièce hors de celle du passager un souvenir du moment avec son feu, sans objet neuf : on garde ceux déjà vus.
+ * Révélation au terminal (lot 4) : toutes les liaisons non cachées découvertes, leur état en mémoire, et pour chaque pièce hors de
+ * celle du passager un souvenir du moment avec son feu, sans objet neuf : on garde ceux déjà vus. `visitees` ne bouge pas : le
+ * regard d'arrivée reste dû ; la carte dessine toute la station d'après `connecte`.
  */
 export function reveler(monde: DefMonde, etat: EtatPartie): EtatPartie {
   const liaisons = monde.liaisons.filter((liaison) => liaison.cachee === undefined || etat.decouvertes.includes(liaison.id));
@@ -35,7 +36,6 @@ export function reveler(monde: DefMonde, etat: EtatPartie): EtatPartie {
   }
   return {
     ...etat,
-    visitees: monde.pieces.map((piece) => piece.id),
     decouvertes: liaisons.map((liaison) => liaison.id),
     memoire: { pieces, liaisons: { ...etat.memoire.liaisons, ...Object.fromEntries(revelees.map((liaison) => [liaison.id, etat.liaisons[liaison.id] === true])) } },
   };
