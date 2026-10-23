@@ -249,6 +249,8 @@ export function rendreAssistance(textes: TextesMonde, evenements: readonly Evene
 
 /** Texte d'un message d'assistance, par son identifiant. */
 export function texteAssistance(textes: TextesMonde, message: string): string {
+  // shortcut: texte provisoire des messages d'IA Station sur la face 2 (lot 4), la tâche 4 les rend d'après leur signe.
+  if (/^signe-\d+$/.test(message)) return 'Message technique de la station.';
   const texte = Object.hasOwn(textes.assistance, message) ? textes.assistance[message] : undefined;
   if (texte === undefined) throw new ErreurTexte(`Message d’assistance sans texte : ${message}.`);
   return texte;
@@ -259,6 +261,8 @@ export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string
   const { momentReveil, momentArrivee, momentEvacuation, momentPatience } = textes.observation;
   if (moment.type === 'evacuation') return remplir(momentEvacuation, {});
   if (moment.type === 'patience') return remplir(momentPatience, {});
+  // shortcut: repère provisoire d'un message d'IA Station (lot 4), la tâche 4 lui donne son texte.
+  if (moment.type === 'signe') return remplir(momentPatience, {});
   return remplir(moment.type === 'reveil' ? momentReveil : momentArrivee, { piece: nomDe(textes, moment.piece) });
 }
 

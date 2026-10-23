@@ -327,7 +327,7 @@ export type Evenement =
   /** Conclusion de la partie : sources qui alimentaient la capsule, circuit puis bloc. */
   | { readonly type: 'evacuation'; readonly sources: readonly SourceEvacuation[] }
   /** Message de l'IA de la station reçu à ce pas : son texte est écrit à la main, hors du récit (C-07). */
-  | { readonly type: 'assistance'; readonly message: string }
+  | { readonly type: 'assistance'; readonly message: string; readonly signe?: SignePublic }
   /** Un pont fragile posé en travers d'un vide (D-164). */
   | { readonly type: 'pont_place'; readonly objet: RefObjet; readonly passage: RefPassage }
   /** La créature s'engage sur le pont fragile : il cède, elle tombe, il est perdu ; entendu depuis l'un des deux bords (D-164, D-236). */
@@ -362,11 +362,20 @@ export type MomentMessage =
   | { readonly type: 'arrivee'; readonly piece: RefPiece }
   | { readonly type: 'evacuation' }
   /** À la 15e attente de suite où rien ne se passe (#225). */
-  | { readonly type: 'patience' };
+  | { readonly type: 'patience' }
+  /** Sur la face 2 du dé de rencontre, à la place du bruit lointain (lot 4). */
+  | { readonly type: 'signe' };
+
+/** Fait vrai que signale IA Station, en références publiques : porte forcée, matériel perdu, passage récent, présence (lot 4). */
+export type SignePublic =
+  | { readonly sorte: 'porte'; readonly liaison: RefPassage }
+  | { readonly sorte: 'materiel'; readonly piece: RefPiece; readonly appareil: 'camera' | 'capteur' }
+  | { readonly sorte: 'passage' | 'presence'; readonly piece: RefPiece };
 
 export interface MessageRecu {
   readonly message: string;
   readonly moment: MomentMessage;
+  readonly signe?: SignePublic;
 }
 
 /** Ce qui alimentait la capsule au départ : le circuit réarmé, un bloc installé, ou les deux ; sinon sa propre réserve (AR-02 §5.2). */
