@@ -126,7 +126,6 @@ function Ouverture({ passage, point }: { readonly passage: PassageCarte; readonl
       {porte && <line className="taquet" {...taquet(a)} />}
       {porte && <line className="taquet" {...taquet(b)} />}
       {porte && !passage.ouvert && <line className="ouverture-fermee" {...segment} />}
-      {passage.voyant !== null && <circle className={`voyant voyant-${passage.voyant}`} cx={milieu.x} cy={milieu.y} r="4" />}
       {passage.entre === null && (
         <text className="ouverture-inconnue" x={milieu.x + 6} y={milieu.y - 6}>
           ?

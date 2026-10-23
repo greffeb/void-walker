@@ -2167,16 +2167,6 @@ button:disabled {
   fill: var(--vert-texte);
 }
 
-.carte-traits .voyant-air {
-  fill: var(--vert-signal);
-}
-
-.carte-traits .voyant-vide {
-  fill: var(--vert-fond);
-  stroke: var(--vert-signal);
-  stroke-width: 1.5;
-}
-
 .carte-traits .capsule {
   fill: none;
   stroke: var(--vert-secondaire);

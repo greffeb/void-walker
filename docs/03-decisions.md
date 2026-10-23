@@ -2959,7 +2959,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 - Date / statut : 2026-10-23 / **Validé** sur maquette (le porteur, option A de `docs/maquette/portes-carte.html`, taquets plus petits).
 - Origine : le porteur : les portes ne se voyaient pas assez sur le plan, ouvertes comme fermées.
-- Décision : une porte s'ouvre sur un peu plus d'une demi-case (0,64 case) ; deux taquets courts en travers du mur marquent ses bords. Fermée, une barre épaisse de la couleur la plus claire du plan bouche l'ouverture. Les tirets (grille, conduit, passage sans signalétique) et les voyants ne changent pas.
+- Décision : une porte s'ouvre sur un peu plus d'une demi-case (0,64 case) ; deux taquets courts en travers du mur marquent ses bords. Fermée, une barre épaisse de la couleur la plus claire du plan bouche l'ouverture. Les tirets (grille, conduit, passage sans signalétique) ne changent pas. Les voyants des portes étanches ne sont plus dessinés sur le plan : le vide qu'ils lisent reste sur la pièce (motif et étiquette VIDE), dans la fiche et dans la vue LISTE.
 - Précise : 14 §2.6.
 - Limite [Détail de l'agent] : taquets de 3 px de part et d'autre du mur, trait de 2 en vert ; barre de 4 en `--vert-signal`. Le rendu d'auteur des plans (`tools/plans-svg.ts`) garde l'ouverture d'une demi-case.
 - Ce que le porteur doit essayer sur téléphone : si ouverte et fermée se distinguent au dézoom.
