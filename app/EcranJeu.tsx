@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
-import { CATALOGUE, observer, type IdAction, type OptionMenu, type Sante } from '../engine';
-import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
+import { CATALOGUE, observer, type IdAction, type OptionMenu, type Partie, type Sante } from '../engine';
+import { dangersDuRecit, libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
 import {
   ANGLE_SENS,
   composer,
@@ -29,8 +29,9 @@ import {
 import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { carteRevelee as revelee } from './carte/revelee';
+import { FenetrePoste, lignePoste } from './FenetrePoste';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { consulter, consulterDocument, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
+import { camerasChangees, consulter, consulterDocument, fermerPoste, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 import { LIBELLES } from './libelles';
@@ -80,6 +81,21 @@ const ANTI_DOUBLE_TOUCHER_MS = 500;
 function quitterEntreeBulle(): void {
   const etat: unknown = window.history.state;
   if (typeof etat === 'object' && etat !== null && ENTREE_BULLE in etat) window.history.back();
+}
+
+/**
+ * Fenêtre du poste (lot 4) : la partie du dernier pas vu, celle d'avant, et si la fenêtre est ouverte. Elle s'ouvre après le pas qui
+ * connecte au terminal ; après chaque pas, elle se ferme si `fermerPoste` le dit. Un refus ou une consultation ne change pas la partie.
+ */
+interface SuiviPoste {
+  readonly partie: Partie;
+  readonly precedente: Partie | null;
+  readonly ouvert: boolean;
+}
+
+function suivrePoste(avant: SuiviPoste | null, jeu: Jeu, fermer: boolean): SuiviPoste {
+  const connecte = jeu.partie.derniers.some((evenement) => evenement.type === 'terminal_connecte');
+  return { partie: jeu.partie, precedente: avant?.partie ?? null, ouvert: (connecte || avant?.ouvert === true) && !fermer };
 }
 
 /** Parties dont l'information « plus aucune sortie » a été lue, le temps de la session : options et retour ne la rouvrent pas. */
@@ -167,6 +183,11 @@ export function EcranJeu({
   const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie), manoeuvresBruyantes(env.monde, jeu.partie, observation));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
+  const fermeLePoste = fermerPoste(observation, jeu.alertes, dangersDuRecit(jeu.partie.derniers).filter((nature) => nature !== null));
+  const [poste, setPoste] = useState(() => suivrePoste(null, jeu, fermeLePoste));
+  // Nouveau pas : la fenêtre se suit pendant le rendu, sans attendre un effet (état tiré du rendu précédent).
+  const suivi = poste.partie === jeu.partie ? poste : suivrePoste(poste, jeu, fermeLePoste);
+  if (suivi !== poste) setPoste(suivi);
   /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
   const zoneOuverte = useRef<Ouverte['zone'] | null>(null);
   useEffect(() => {
@@ -239,6 +260,13 @@ export function EcranJeu({
     if (information) return;
     (depuis.isConnected ? depuis : recit.current)?.focus();
   }, [jeu, information]);
+  // La fenêtre du poste fermée (QUITTER, ou d'elle-même) : le focus revient au récit, qui dit pourquoi (lot 4).
+  const posteAffiche = suivi.ouvert && ouverte === null && observation.cameras !== undefined && !observation.terminee;
+  const posteVu = useRef(posteAffiche);
+  useEffect(() => {
+    if (posteVu.current && !posteAffiche && ouverte === null) recit.current?.focus();
+    posteVu.current = posteAffiche;
+  }, [posteAffiche, ouverte]);
   /** Après CONTINUER À JOUER, le focus revient au récit, sous le rappel (12 §7). */
   const rendreAuRecit = useRef(false);
   useEffect(() => {
@@ -370,6 +398,22 @@ export function EcranJeu({
         />
       )}
       <div className="bas">
+        {posteAffiche && observation.cameras !== undefined && (
+          <FenetrePoste
+            carte={observation.carte}
+            cameras={observation.cameras}
+            ligne={lignePoste(
+              textes,
+              camerasChangees(suivi.precedente === null ? undefined : observer(env.monde, suivi.precedente.etat).cameras, observation.cameras),
+              observation.cameras,
+            )}
+            attendre={() => {
+              if (dock.attendre !== undefined) jouer(dock.attendre);
+            }}
+            quitter={() => setPoste({ ...suivi, ouvert: false })}
+            textes={textes}
+          />
+        )}
         {ouverte?.zone === 'ia' && <ModaleIA messages={historiqueAffiche(env, jeu.partie)} nouveaux={ouverte.nouveaux} fermer={fermer} />}
         {/* Carte (14 §2) : bulle au-dessus de la navigation comme l'inventaire (D-215), gratuite (D-014) ; elle ne lit que l'observation publique. */}
         {ouverte?.zone === 'carte' && <EcranCarte carte={carteRevelee ? revelee(env.monde, jeu.partie.etat) : observation.carte} textes={textes} fermer={fermer} />}

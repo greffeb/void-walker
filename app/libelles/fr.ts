@@ -124,6 +124,21 @@ export const FR = {
     citation: (texte: string): string => `«\u00a0${texte}\u00a0»`,
   },
 
+  /** Fenêtre du poste de surveillance, en direct (lot 4, maquette poste.html, variante A). */
+  poste: {
+    titre: 'SURVEILLANCE',
+    /** Nom de la fenêtre pour le lecteur d'écran. */
+    nom: 'Surveillance',
+    direct: '● DIRECT',
+    attendre: 'Attendre',
+    quitter: 'Quitter',
+    aucun: 'Aucun mouvement.',
+    /** État d'une caméra en mots ; la ligne du bas le dit après le nom de la pièce, MOUVEMENT en capitales. */
+    etats: { calme: 'calme', mouvement: 'mouvement', brouille: 'brouillée', hs: 'plus de signal' },
+    /** Nom accessible d'une caméra : « Caméra de la remise : mouvement ». */
+    camera: (dePiece: string, etat: string): string => `Caméra ${dePiece} : ${etat}`,
+  },
+
   bulle: { etapePrecedente: 'Étape précédente' },
 
   /** Écran de fin (12 §4.11). */

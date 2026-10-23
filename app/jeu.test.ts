@@ -1,15 +1,17 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { assemblerStation, empreinteEtat, lireExport, observer, rejouer, type DefMonde } from '../engine';
+import { assemblerStation, empreinteEtat, lireExport, nouvellePartie, observer, rejouer, type DefMonde } from '../engine';
 import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
   abandonner,
+  camerasChangees,
   carteANouveau,
   charger,
   cleStockage,
   commencer,
   demandeDe,
   demarrer,
+  fermerPoste,
   fichierPartie,
   historiqueAffiche,
   jouerOption,
@@ -776,5 +778,28 @@ describe('« ! » sur CARTE (créature mobile lot 3)', () => {
     expect(carteANouveau(false, [{ type: 'capteur', etat: 'hs' }])).toBe(true);
     expect(carteANouveau(false, [{ type: 'capteur_pose', objet: { sorte: 'objet', id: 'c', nom: 'capteur' }, piece: { sorte: 'piece', id: 'p', nom: 'pièce' }, etat: 'calme' }])).toBe(false);
     expect(carteANouveau(true, [])).toBe(true);
+  });
+});
+
+describe('fenêtre du poste : caméras changées et fermeture (lot 4)', () => {
+  const remise = { sorte: 'piece', id: 'e-remise', nom: 'remise' } as const;
+  const machines = { sorte: 'piece', id: 'e-machines', nom: 'machines' } as const;
+
+  it('camerasChangees : seule la remise, passée de calme à mouvement ; sans avant, ce qui n’est pas calme', () => {
+    const avant = [{ piece: remise, etat: 'calme' as const }, { piece: machines, etat: 'brouille' as const }];
+    const apres = [{ piece: remise, etat: 'mouvement' as const }, { piece: machines, etat: 'brouille' as const }];
+    expect(camerasChangees(avant, apres)).toEqual([{ piece: remise, etat: 'mouvement' }]);
+    expect(camerasChangees(apres, apres)).toEqual([]);
+    expect(camerasChangees(undefined, avant)).toEqual([{ piece: machines, etat: 'brouille' }]);
+    expect(camerasChangees(avant, undefined)).toEqual([]);
+  });
+
+  it('fermerPoste : vraie sans caméras ou avec une alerte, fausse pour une attente calme dans la salle', () => {
+    const observation = observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat);
+    const dansLaSalle = { ...observation, cameras: [{ piece: remise, etat: 'calme' as const }] };
+    expect(fermerPoste(observation, [], [])).toBe(true);
+    expect(fermerPoste(dansLaSalle, [1], [])).toBe(true);
+    expect(fermerPoste(dansLaSalle, [], ['feu'])).toBe(true);
+    expect(fermerPoste(dansLaSalle, [], [])).toBe(false);
   });
 });

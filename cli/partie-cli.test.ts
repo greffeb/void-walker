@@ -1,5 +1,5 @@
 import { assemblerStation, empreinteEtat, idPublic, lireExport, nouvellePartie, observer, rejouer, reprendrePartie } from '../engine';
-import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, VERSION_GENERATEUR, type Catalogue, type EntreeMonde, type Nom, type TexteDocument } from '../content';
+import { COMPOSITIONS_PUBLIEES, creerCatalogue, MONDES, PAIRES, raconterFin, TEXTES_CATALOGUE, VERSION_GENERATEUR, type Catalogue, type EntreeMonde, type Nom, type TexteDocument } from '../content';
 import { AIDE, choisirEntree, executer, PARTIE_PAR_DEFAUT, type Contexte, type EntreesSorties, type Sortie } from './partie-cli';
 
 const ENTREE = MONDES['monde-test'] as EntreeMonde;
@@ -560,5 +560,51 @@ describe('CLI : poser un appui porté à une position (demande du porteur, grand
     const sortie = executer(['commande', 'poser', caisse, position], ctx);
     expect(sortie.lignes[0]).toMatch(/^Vous (posez|déposez) la caisse sous la grille/);
     expect(sortie.lignes).toContain('Actions engagées : 3');
+  });
+});
+
+describe('CLI : poste de surveillance (lot 4)', () => {
+  // Le monde de test, avec un terminal et son post-it dans la cabine, des caméras dans l'atelier et la soute.
+  const catalogue = (cle: string) => ({ nom: TEXTES_CATALOGUE.noms[cle]!, descriptions: TEXTES_CATALOGUE.descriptions[cle]! });
+  const POSTE: EntreeMonde = {
+    ...ENTREE,
+    monde: {
+      ...ENTREE.monde,
+      id: 'monde-poste',
+      objets: [
+        ...ENTREE.monde.objets,
+        { id: 'objet-terminal', nom: 'cat_terminal', piece: 'piece-cabine', portable: false, terminal: true, exige: 'objet-post-it' },
+        { id: 'objet-post-it', nom: 'cat_post_it', piece: 'piece-cabine' },
+      ],
+      cameras: [{ piece: 'piece-atelier' }, { piece: 'piece-soute' }],
+    },
+    textes: {
+      ...ENTREE.textes,
+      noms: { ...ENTREE.textes.noms, cat_terminal: catalogue('cat_terminal').nom, cat_post_it: catalogue('cat_post_it').nom },
+      descriptions: { ...ENTREE.textes.descriptions, cat_terminal: catalogue('cat_terminal').descriptions, cat_post_it: catalogue('cat_post_it').descriptions },
+    },
+  };
+
+  it('« surveiller terminal » : refusé sans le post-it, puis connecte et liste les caméras en mots', () => {
+    const ctx = contexte(new Map(), false, POSTE);
+    executer(['nouvelle', '--graine', '5'], ctx);
+    const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
+    let sortie = executer(['surveiller', 'terminal'], ctx);
+    expect(sortie.lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
+    expect(sortie.lignes).not.toContain('Caméras en direct :');
+    expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    executer(['jouer', numero(sortie.lignes, 'Prendre le post-it')], ctx);
+    sortie = executer(['surveiller', 'terminal'], ctx);
+    expect(sortie.code).toBe(0);
+    expect(sortie.lignes).toContain('Partie enregistrée.');
+    expect(sortie.lignes).toEqual(expect.arrayContaining(['Caméras en direct :', '  Caméra de l’atelier : calme', '  Caméra de la soute : mouvement']));
+    expect(executer(['voir'], ctx).lignes).toContain('  Caméra de la soute : mouvement');
+    expect(executer(['aide'], ctx).lignes.some((ligne) => ligne.startsWith('  surveiller [terminal]'))).toBe(true);
+  });
+
+  it('« surveiller » sans terminal dans la pièce : le dit, code 1', () => {
+    const ctx = contexte();
+    executer(['nouvelle', '--graine', '5'], ctx);
+    expect(executer(['surveiller'], ctx)).toEqual({ lignes: ['Aucun terminal ici.'], code: 1 });
   });
 });

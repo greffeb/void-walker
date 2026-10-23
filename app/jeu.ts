@@ -1,4 +1,4 @@
-import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type Evenement, type Observation, type OptionMenu, type Partie } from '../engine';
+import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type EtatCapteur, type Evenement, type Observation, type OptionMenu, type Partie, type RefPiece } from '../engine';
 import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
 import type { Stockage } from './sauvegarde';
@@ -208,6 +208,25 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
     ...regardArrivee(env, avant, resultat.partie, resultat.evenements),
   ]);
   return { partie: resultat.partie, ...signale, rappel, assistance, sauvegarde: await enregistrer(env, resultat.partie) };
+}
+
+/** Caméra du poste de surveillance et son état (lot 4). */
+export type CameraLue = { readonly piece: RefPiece; readonly etat: EtatCapteur };
+
+/**
+ * Caméras qui ont changé d'état entre deux observations, pour la ligne du bas de la fenêtre du poste (lot 4). Sans observation
+ * d'avant (on vient de se connecter), chaque caméra est comparée à « calme » : une caméra déjà au mouvement se dit tout de suite.
+ */
+export function camerasChangees(avant: Observation['cameras'], apres: Observation['cameras']): readonly CameraLue[] {
+  return (apres ?? []).filter((camera) => camera.etat !== (avant?.find((autre) => autre.piece.id === camera.piece.id)?.etat ?? 'calme'));
+}
+
+/**
+ * La fenêtre du poste se ferme d'elle-même (lot 4, Review Focus 1) : le passager n'est plus connecté dans la salle, ou le pas a une
+ * alerte (menace, danger apparu) ou un danger dans son récit. Le récit montre alors tout, rien n'est caché sous la fenêtre.
+ */
+export function fermerPoste(observation: Observation, alertes: readonly number[], dangers: readonly unknown[]): boolean {
+  return observation.cameras === undefined || alertes.length > 0 || dangers.length > 0;
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */

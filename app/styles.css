@@ -2049,6 +2049,71 @@ button:disabled {
   outline-offset: 2px;
 }
 
+/* Fenêtre du poste de surveillance (lot 4, variante A) : la bulle de la carte, sans flèche vers CARTE, avec une ligne et deux
+   boutons en bas. */
+.fenetre-poste::after {
+  content: none;
+}
+
+.repere-direct {
+  padding-right: 12px;
+  font-size: calc(12px * var(--echelle));
+  letter-spacing: 0.08em;
+  color: var(--alerte);
+  animation: repere-direct 2s steps(1) infinite;
+}
+
+@keyframes repere-direct {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repere-direct {
+    animation: none;
+  }
+}
+
+.poste-bas {
+  flex: none;
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--vert-separateur);
+}
+
+.poste-ligne {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: calc(13px * var(--echelle));
+  letter-spacing: 0.04em;
+}
+
+.poste-ligne .alerte {
+  color: var(--alerte);
+}
+
+.poste-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.poste-actions button {
+  min-height: 48px;
+  padding: 6px;
+  font-size: calc(13px * var(--echelle));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.poste-actions .secondaire {
+  color: var(--vert-texte);
+  border-color: var(--vert-bordure);
+}
+
 .carte-entete {
   flex: none;
   display: flex;
@@ -2282,6 +2347,54 @@ button:disabled {
 }
 
 .carte-traits .icone-capteur .barre {
+  fill: none;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Caméra du poste (lot 4) : contour et objectif verts ; au mouvement plein `alerte`, objectif `vert-fond` et deux ondes ;
+   brouillée en tirets sans objectif ; en panne barrée, en vert secondaire. Aucune animation. */
+.carte-traits .icone-camera .corps {
+  fill: var(--vert-fond);
+  stroke: var(--vert);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-camera .objectif {
+  fill: none;
+  stroke: var(--vert);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-camera[data-etat='mouvement'] .corps {
+  fill: var(--alerte);
+  stroke: var(--alerte);
+}
+
+.carte-traits .icone-camera[data-etat='mouvement'] .objectif {
+  stroke: var(--vert-fond);
+}
+
+.carte-traits .icone-camera .onde {
+  fill: none;
+  stroke: var(--alerte);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.carte-traits .icone-camera[data-etat='brouille'] .corps {
+  stroke: var(--vert-secondaire);
+  stroke-dasharray: 2 2;
+}
+
+.carte-traits .icone-camera[data-etat='hs'] .corps,
+.carte-traits .icone-camera .barre {
+  stroke: var(--vert-secondaire);
+}
+
+.carte-traits .icone-camera .barre {
   fill: none;
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;

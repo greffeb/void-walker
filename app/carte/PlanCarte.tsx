@@ -29,6 +29,8 @@ export interface PropsPlan {
   readonly toucher: (piece: PieceCarte, bouton: HTMLButtonElement) => void;
   /** Pièce dont la fiche est ouverte, par identifiant public. */
   readonly ouverte: string | null;
+  /** Caméras en direct, par identifiant public de pièce : seulement dans la fenêtre du poste, où une pièce n'ouvre pas de fiche (lot 4). */
+  readonly cameras?: ReadonlyMap<string, EtatCapteur>;
 }
 
 /**
@@ -74,6 +76,21 @@ function Capteur({ centre, echelle, etat }: { readonly centre: Point; readonly e
       <path className="corps" d="M0 -9 L9 0 L0 9 L-9 0 Z" />
       {(etat === 'calme' || etat === 'mouvement') && <circle className="coeur" r="2.5" />}
       {etat === 'hs' && <path className="barre" d="M-11 -11 L11 11" />}
+    </g>
+  );
+}
+
+/**
+ * Caméra du poste (lot 4, maquette poste.html) : un carré et son objectif. Au mouvement il est plein rouge, avec deux ondes de chaque
+ * côté ; brouillée, ses tirets et pas d'objectif ; en panne, une barre. La forme dit l'état sans la couleur.
+ */
+function Camera({ centre, echelle, etat }: { readonly centre: Point; readonly echelle: number; readonly etat: EtatCapteur }) {
+  return (
+    <g className="icone-camera" data-etat={etat} transform={`translate(${centre.x} ${centre.y}) scale(${echelle})`}>
+      {etat === 'mouvement' && <path className="onde" d="M-13 -7 a10 10 0 0 0 0 14 M13 -7 a10 10 0 0 1 0 14 M-17 -10 a15 15 0 0 0 0 20 M17 -10 a15 15 0 0 1 0 20" />}
+      <rect className="corps" x="-7" y="-7" width="14" height="14" />
+      {(etat === 'calme' || etat === 'mouvement') && <circle className="objectif" r="3" />}
+      {etat === 'hs' && <path className="barre" d="M-10 -10 L10 10" />}
     </g>
   );
 }
@@ -125,7 +142,7 @@ function Ouverture({ passage, point }: { readonly passage: PassageCarte; readonl
  * Plan de pont (14 §2.4 à §2.6) : traits en SVG, pièces en boutons par-dessus. Glisser d'un doigt le parcourt, pincer le zoome
  * (14 §2.3) ; un toucher sans glissement ouvre la fiche d'une pièce. Seules les icônes s'animent, en CSS, sauf en mouvement réduit.
  */
-export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, toucher, ouverte }: PropsPlan) {
+export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, toucher, ouverte, cameras }: PropsPlan) {
   const doigts = useRef(new Map<number, Point>());
   const depart = useRef<Point | null>(null);
   const glisse = useRef(false);
@@ -209,9 +226,10 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
           <Ouverture key={passage.id} passage={passage} point={point} />
         ))}
         {carte.pieces.map((piece) => {
-          const icones = iconesDe(piece);
+          const camera = cameras?.get(piece.piece.id);
+          const icones = iconesDe(piece, camera);
           if (piece.rect === null || icones.length === 0) return null;
-          const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom);
+          const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom, camera);
           const boite = enPixels(piece.rect, vue, casePx);
           const centres = centresIcones(boite, textesPiece, icones, echelleTexte);
           // Trois présences doivent tenir dans la pièce, même quand le plan est réduit.
@@ -224,6 +242,7 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
               )}
               {centres.drone !== undefined && <Drone centre={centres.drone} echelle={echelleIcones} />}
               {centres.capteur !== undefined && piece.capteur !== undefined && <Capteur centre={centres.capteur} echelle={echelleIcones} etat={piece.capteur} />}
+              {centres.camera !== undefined && camera !== undefined && <Camera centre={centres.camera} echelle={echelleIcones} etat={camera} />}
             </g>
           );
         })}
@@ -231,7 +250,7 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
       {carte.pieces.map((piece) => {
         if (piece.rect === null) return null;
         const cible = zoneTouchable(enPixels(piece.rect, vue, casePx));
-        const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom);
+        const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom, cameras?.get(piece.piece.id));
         return (
           <button
             key={piece.piece.id}
@@ -239,8 +258,8 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
             className="carte-piece"
             data-statut={piece.statut}
             aria-label={libellePiece(textes, piece)}
-            aria-haspopup="dialog"
-            aria-expanded={ouverte === piece.piece.id}
+            aria-haspopup={cameras === undefined ? 'dialog' : undefined}
+            aria-expanded={cameras === undefined ? ouverte === piece.piece.id : undefined}
             // --texte-carte : le texte suit le plan quand on dézoome, jusqu'aux trois quarts (TEXTE_MIN).
             style={{ left: cible.gauche, top: cible.haut, width: cible.largeur, height: cible.hauteur, '--texte-carte': textesPiece.texte } as CSSProperties}
             // Un clic au clavier (detail 0) ouvre toujours ; le clic qui termine un glissement n'ouvre rien, et lui seul : une
@@ -261,7 +280,7 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
               if (rect === null || plan === undefined) return;
               changerVue((courante) => montrer(courante, enPixels(rect, courante, casePx), { largeur: plan.width, hauteur: plan.height }));
             }}
-            data-son="bulle"
+            data-son={cameras === undefined ? 'bulle' : undefined}
           >
             <span className="carte-textes" aria-hidden="true">
               {textesPiece.nom.map((ligne) => (

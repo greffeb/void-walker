@@ -1,4 +1,4 @@
-import type { CartePublique, PieceCarte, RectPlan } from '../../engine';
+import type { CartePublique, EtatCapteur, PieceCarte, RectPlan } from '../../engine';
 import { caracteresParLigne, CASE_PX, couperTexte, LIGNE_PX, MARGE_PX, MOTS_CARTE, placeDuNom } from '../../content';
 import { rectCapsule } from './dessin';
 
@@ -49,22 +49,24 @@ export const TEXTE_MARQUE: Readonly<Record<Marque, string>> = {
   creature: MOTS_CARTE.creature,
 };
 
-/** Présences du plan : position du passager, derniers emplacements observés des autres. */
-export type Icone = 'joueur' | 'creature' | 'drone' | 'capteur';
+/** Présences du plan : position du passager, derniers emplacements observés des autres ; la caméra, seulement au poste (lot 4). */
+export type Icone = 'joueur' | 'creature' | 'drone' | 'capteur' | 'camera';
 
 /** Taille des icônes à la taille de texte STANDARD, par rapport au dessin de base ; elles ne rétrécissent pas au dézoom. */
 export const ICONE_ECHELLE = 1.3;
 /** Hauteur gardée sous le texte pour chaque icône, en px à la taille STANDARD : sa partie fixe et une marge. */
-export const ICONE_HAUTEUR: Readonly<Record<Icone, number>> = { joueur: 30 * ICONE_ECHELLE, creature: 22 * ICONE_ECHELLE, drone: 24 * ICONE_ECHELLE, capteur: 24 * ICONE_ECHELLE };
+export const ICONE_HAUTEUR: Readonly<Record<Icone, number>> = { joueur: 30 * ICONE_ECHELLE, creature: 22 * ICONE_ECHELLE, drone: 24 * ICONE_ECHELLE, capteur: 24 * ICONE_ECHELLE, camera: 24 * ICONE_ECHELLE };
 /** Écart entre le centre de la pièce et chacune des deux icônes quand elles partagent une pièce. */
 export const ICONE_ECART = 16 * ICONE_ECHELLE;
 
-export function iconesDe(piece: PieceCarte): Icone[] {
+/** `camera` : état de la caméra de la pièce, donné seulement dans la fenêtre du poste (lot 4). */
+export function iconesDe(piece: PieceCarte, camera?: EtatCapteur): Icone[] {
   return [
     ...(piece.statut === 'actuelle' ? (['joueur'] as const) : []),
     ...(piece.creature === null ? [] : (['creature'] as const)),
     ...(piece.statut !== 'connue' && piece.objets.some((objet) => objet.drone === true) ? (['drone'] as const) : []),
     ...(piece.capteur === undefined ? [] : (['capteur'] as const)),
+    ...(camera === undefined ? [] : (['camera'] as const)),
   ];
 }
 
@@ -109,6 +111,13 @@ export function vueInitiale(carte: CartePublique, zone: Taille, casePx: number):
     x: zone.largeur / 2 - (centre.x + centre.largeur / 2) * casePx,
     y: zone.hauteur / 2 - (centre.y + centre.hauteur / 2) * casePx,
   };
+}
+
+/** Fenêtre du poste (lot 4) : toute la station tient dans la zone, centrée, pour voir chaque caméra d'un coup d'œil. */
+export function vueEntiere(cadre: RectPlan, zone: Taille, casePx: number): Vue {
+  const zoom = zoomMin(cadre, zone, casePx);
+  const echelle = casePx * zoom;
+  return { zoom, x: zone.largeur / 2 - (cadre.x + cadre.largeur / 2) * echelle, y: zone.hauteur / 2 - (cadre.y + cadre.hauteur / 2) * echelle };
 }
 
 export function glisser(vue: Vue, dx: number, dy: number): Vue {
@@ -163,7 +172,7 @@ export function zoneTouchable(boite: BoitePx): BoitePx {
  * taille du texte : les mesures de PL-04 valent à toutes les tailles. En dézoomant, le texte rétrécit avec le plan jusqu'à TEXTE_MIN :
  * on mesure alors la place dans des cases ramenées à la taille du texte.
  */
-export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | null, zoom: number): Etiquettes {
+export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | null, zoom: number, camera?: EtatCapteur): Etiquettes {
   const texte = Math.min(1, Math.max(TEXTE_MIN, zoom));
   const rien: Etiquettes = { nom: [], etats: [], anciennete: [], texte };
   if (piece.rect === null) return rien;
@@ -194,7 +203,7 @@ export function etiquettes(piece: PieceCarte, nom: string, anciennete: string | 
   if (lignes === null || lignes.length > libres) return { nom: place.lignes, etats, anciennete: [], texte };
   // L'icône passe avant l'ancienneté : une ancienneté qui lui prendrait sa place s'efface (elle reste dans la fiche et la LISTE).
   // Hauteurs ramenées à la taille du texte, comme casePx : l'icône, elle, ne rétrécit pas avec le plan.
-  const besoin = Math.max(0, ...iconesDe(piece).map((icone) => ICONE_HAUTEUR[icone])) / texte;
+  const besoin = Math.max(0, ...iconesDe(piece, camera).map((icone) => ICONE_HAUTEUR[icone])) / texte;
   const sous = piece.rect.hauteur * casePx - MARGE_PX - LIGNE_PX * (place.lignes.length + etats.length + lignes.length);
   return { nom: place.lignes, etats, anciennete: besoin > 0 && sous < besoin ? [] : lignes, texte };
 }
