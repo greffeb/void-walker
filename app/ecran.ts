@@ -13,11 +13,12 @@ import {
   type RefPassage,
   type RefPiece,
 } from '../engine';
+import { LIBELLES } from './libelles';
 
 // Organisation de l'écran de jeu (docs/12-interface-ecrans.md §3), sans React : partagée par l'appli et les captures.
 
 /** Regard sur la pièce elle-même : libellé du réveil et rappel de l'arrivée (12 §3.3, §4.2). */
-export const REGARDER_AUTOUR = 'Regarder autour de vous';
+export const REGARDER_AUTOUR = LIBELLES.jeu.regarderAutour;
 
 /** Une puce du dock et les options de sa cible. */
 export interface Groupe {
@@ -259,7 +260,7 @@ export function libelleLigne(textes: TextesMonde, groupe: Groupe, option: Option
 }
 
 /** Repères écrits sur la ligne d'une salle (D-267) ; le lecteur d'écran les lit en minuscules après le nom. */
-export const REPERES: Record<Repere, string> = { vide: 'Vide', feu: 'Feu', bruit: 'Bruit' };
+export const REPERES: Readonly<Record<Repere, string>> = LIBELLES.jeu.reperes;
 
 /** Nom accessible du nom d'une salle : destination, repères, puis la raison si l'on ne peut pas passer (D-230, D-267). */
 export function nomLigne(textes: TextesMonde, deplacement: Deplacement): string {
@@ -270,7 +271,7 @@ export function nomLigne(textes: TextesMonde, deplacement: Deplacement): string 
 
 /** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée » (D-267). */
 export function nomPorte(textes: TextesMonde, deplacement: Deplacement): string {
-  return `${nomPuce(textes, deplacement.cible)}, ${deplacement.cible.ouvert ? 'ouverte' : 'fermée'}`;
+  return LIBELLES.jeu.porteLue(nomPuce(textes, deplacement.cible), deplacement.cible.ouvert);
 }
 
 /** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Caisse › Déplacer › sous la grille », « Aller vers › atelier ». */

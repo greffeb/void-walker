@@ -39,7 +39,7 @@ L'[aventure AR-02](09-aventure-reference-vide.md), courte référence de la dép
 
 L'[univers des grandes stations](17-univers.md) (#209, D-322) est la bible du lore : le cadre commun, l'incident de la créature, l'équipage, les lieux hors du plan, la réserve de 39 documents et les règles d'écriture. **Document d'auteur, interdit au playtester**, comme 08 et 09 : il contient les secrets du jeu. Texte final non validé par le porteur.
 
-La [traduction du jeu](18-traduction.md) (#239, investigation) : ≈ 11 500 mots vus par le joueur, contenu déjà centralisé, interface en dur ; l'obstacle principal est la grammaire française des gabarits. Approche par modules typés par langue, 5 à 7 PR de refactor plus la relecture humaine par langue ; recommandé d'attendre un texte français validé. D-109 reste valable, aucune décision prise.
+La [traduction du jeu](18-traduction.md) (#239, investigation) : ≈ 11 500 mots vus par le joueur, contenu déjà centralisé, interface en dur ; l'obstacle principal est la grammaire française des gabarits. Approche par modules typés par langue, 5 à 7 PR de refactor plus la relecture humaine par langue ; recommandé d'attendre un texte français validé. D-109 reste valable, aucune décision prise. Première étape faite : les libellés de l'interface sont dans `app/libelles/fr.ts`, et un test refuse les phrases écrites en dur dans `app/`.
 
 Premiers socles contractuels acceptés (D-027) : [actions et observation](contrats/C-01-actions-observation.md), [cohérence du monde et des conséquences](contrats/C-05-monde-consequences.md). Leurs questions explicitement ouvertes ne sont pas des décisions implicites.
 

@@ -14,6 +14,7 @@ import {
 } from './intro';
 import { useSon } from './son/contexte';
 import { DUREE_STATIQUE, type SonIntro } from './son/recettes';
+import { LIBELLES } from './libelles';
 
 type Plan = readonly RectPlan[];
 
@@ -306,7 +307,7 @@ export function EcranIntro({
     <main
       ref={ecran}
       className="jeu intro"
-      aria-label="Tirage de la station"
+      aria-label={LIBELLES.intro.nomAccessible}
       tabIndex={-1}
       onPointerDown={passer}
       onKeyDown={(evenement) => {
@@ -350,8 +351,8 @@ export function EcranIntro({
                     {vue.voile && <span className="intro-inconnu">?</span>}
                   </div>
                   <p className="intro-compteur">
-                    {vue.compteur !== null && `Station ${vue.compteur}`}
-                    {vue.voile && <span className="intro-sur"> sur {intro.total}</span>}
+                    {vue.compteur !== null && LIBELLES.commun.station(vue.compteur)}
+                    {vue.voile && <span className="intro-sur">{LIBELLES.intro.surTotal(intro.total)}</span>}
                   </p>
                 </div>
                 <ul className="intro-terminal">
@@ -385,10 +386,10 @@ export function EcranIntro({
                 <div className="intro-bas">
                   {vue.bouton ? (
                     <button ref={bouton} type="button" className="principal" disabled={occupe} onClick={demarrer} data-son="confirmer">
-                      Démarrer
+                      {LIBELLES.intro.demarrer}
                     </button>
                   ) : (
-                    <p className="intro-passer">Toucher pour passer</p>
+                    <p className="intro-passer">{LIBELLES.intro.passer}</p>
                   )}
                 </div>
               </div>

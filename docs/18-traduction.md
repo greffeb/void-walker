@@ -14,6 +14,8 @@
 
 **Recommandation :** ne pas lancer la traduction avant que le texte français soit validé. Si le porteur veut préparer le terrain, la seule étape bon marché et sans regret est l'extraction des chaînes de l'interface (§5, étape 1).
 
+**Fait (#239, à la demande du porteur) :** l'étape 1 est livrée, sans le choix de la langue. Les libellés de l'interface vivent dans `app/libelles/fr.ts`, typés (`Libelles`, `app/libelles/index.ts`) ; les écrans les lisent par `LIBELLES`, sans changer un mot. Le test `tools/phrases-en-dur.test.ts` refuse toute phrase écrite en dur ailleurs dans `app/` (texte JSX, attributs lus, chaînes à accent ou à majuscule initiale ; une chaîne en minuscules sans accent lui échappe). Le contenu reste où il est.
+
 ## 2. Méthode de mesure
 
 Un script lit l'arbre syntaxique TypeScript de `content/`, `app/`, `engine/` et `cli/` (fichiers de test exclus), garde les chaînes et textes JSX qui ressemblent à de la prose (espace, accent ou mot capitalisé ; pas les identifiants, chemins, clés ou classes CSS), écarte les messages d'erreur destinés au développeur (`new Erreur…`, `console.…`) et compte les mots, un trou de gabarit comptant pour un mot. Les chiffres sont donc à ± 10 %.
@@ -66,7 +68,7 @@ Il faut y ajouter `index.html` (`lang="fr"`), le manifeste de la PWA (`vite.conf
 
 Pas de bibliothèque d'i18n générique (i18next, FormatJS) : le contenu est déjà structuré et typé, et ces bibliothèques ne savent pas faire les accords des gabarits. On garde le modèle actuel en ajoutant une dimension « langue ».
 
-1. **Interface.** Extraire les ≈ 330 chaînes de `app/` dans un module de libellés typé (`app/libelles/fr.ts`, puis `en.ts` avec le même type : TypeScript refuse une clé manquante). Pluriels avec `Intl.PluralRules`. Indépendant du reste ; ½ à 1 PR.
+1. **Interface.** *Fait.* Extraire les chaînes de `app/` dans un module de libellés typé (`app/libelles/fr.ts`, puis `en.ts` avec le même type : TypeScript refuse une clé manquante). Les pluriels sont des fonctions du libellé (`rapport.enAttente`), à écrire par langue. Indépendant du reste ; ½ à 1 PR.
 2. **Contenu.** Des modules TypeScript par langue, pas de JSON : `SOCLE`, `UNIVERS`, `MENACE`, `DOCUMENTS` et la section `textes` des morceaux existent en un exemplaire par langue, avec les types actuels. Le catalogue choisit le jeu de textes à l'assemblage ; le moteur ne change pas (il ne produit aucun texte joueur).
 3. **Grammaire.** `former` et `Nom` deviennent propres à la langue (`gabarit/fr.ts`, `gabarit/en.ts`) ; `analyserGabarit` vérifie les formes permises par langue.
 4. **Choix de la langue.** Détection par `navigator.languages` au premier lancement, puis réglage dans « Son et texte » des options, gardé avec les autres réglages (`reglages.ts`). `document.documentElement.lang` suit le réglage. Une partie en cours se poursuit dans la langue choisie (le journal ne garde que des commandes).

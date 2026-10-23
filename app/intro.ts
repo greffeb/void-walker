@@ -4,6 +4,7 @@
 
 import type { DefMonde, RectPlan } from '../engine';
 import type { EntreeMonde, Refus } from '../content';
+import { LIBELLES } from './libelles';
 
 /** Ce que l'intro demande au lancement : le catalogue et le hasard de l'appareil. */
 export interface Intro {
@@ -57,7 +58,7 @@ export function dependancesPubliees(
       const publiees = parComposition.get(composition);
       if (publiees === undefined) return construirePetite(composition, graine);
       const id = publiees[graine % publiees.length];
-      return id === undefined ? { refus: `Station ${composition} non publiée.` } : resoudre(id);
+      return id === undefined ? { refus: LIBELLES.intro.nonPubliee(composition) } : resoudre(id);
     },
   };
 }
@@ -86,49 +87,39 @@ export function creerIntro(deps: DependancesIntro): Intro {
 /* ---------- Texte (D-309, textes d'exemple validés sur maquette) ---------- */
 
 /** Démarrage du terminal, tel que le porteur l'a écrit (D-309). */
-export const COMMANDE_BOOT = 'boot -a --v';
-export const CHARGEMENT = ['Loading terminal system...', 'ready'] as const;
-export const COMMANDE_CAMPAGNE = 'campaign_mode; console_log(01);';
+export const { commandeBoot: COMMANDE_BOOT, chargement: CHARGEMENT, commandeCampagne: COMMANDE_CAMPAGNE } = LIBELLES.intro;
 
 export interface LigneIntro {
   readonly libelle: string;
   readonly valeur: string;
 }
 
-const avant: readonly LigneIntro[] = [
-  { libelle: 'Section de départ', valeur: 'ok' },
-  { libelle: 'Sections de passage', valeur: 'ok' },
-  { libelle: 'Section finale', valeur: 'ok' },
-];
+const { ambiance, valeurs } = LIBELLES.intro;
+const { pourcentage } = LIBELLES.commun;
 
-const apres: readonly LigneIntro[] = [
-  { libelle: 'Arrimage de la capsule', valeur: 'ok' },
-  { libelle: 'Vérification de la sortie', valeur: 'ok' },
-];
+const avant: readonly LigneIntro[] = LIBELLES.intro.avant.map((libelle) => ({ libelle, valeur: valeurs.ok }));
+
+const apres: readonly LigneIntro[] = LIBELLES.intro.apres.map((libelle) => ({ libelle, valeur: valeurs.ok }));
 
 /** Textes d'ambiance : trois au hasard à chaque tirage (D-309) ; certains portent une valeur tirée. */
 export const AMBIANCE: readonly ((hasard: () => number) => LigneIntro)[] = [
-  () => ({ libelle: 'Pressurisation des coursives', valeur: 'ok' }),
-  (hasard) => ({ libelle: 'Éclairage de secours', valeur: `${12 + Math.floor(hasard() * 60)} %` }),
-  () => ({ libelle: 'Purge des conduits', valeur: 'ok' }),
-  (hasard) => ({ libelle: 'Recyclage de l’air', valeur: `${40 + Math.floor(hasard() * 45)} %` }),
-  () => ({ libelle: 'Calibrage des capteurs', valeur: 'ok' }),
-  () => ({ libelle: 'Contrôle des joints', valeur: 'ok' }),
-  () => ({ libelle: 'Horloge de bord', valeur: 'dérive' }),
-  () => ({ libelle: 'Réchauffage du vestibule', valeur: 'ok' }),
-  () => ({ libelle: 'Recherche de survivants', valeur: '1' }),
-  () => ({ libelle: 'Balise de détresse', valeur: 'muette' }),
-  () => ({ libelle: 'Gravité artificielle', valeur: 'ok' }),
-  () => ({ libelle: 'Journal de bord', valeur: 'illisible' }),
-  () => ({ libelle: 'Équipage à bord', valeur: '?' }),
+  () => ({ libelle: ambiance.pressurisation, valeur: valeurs.ok }),
+  (hasard) => ({ libelle: ambiance.eclairage, valeur: pourcentage(12 + Math.floor(hasard() * 60)) }),
+  () => ({ libelle: ambiance.purge, valeur: valeurs.ok }),
+  (hasard) => ({ libelle: ambiance.recyclage, valeur: pourcentage(40 + Math.floor(hasard() * 45)) }),
+  () => ({ libelle: ambiance.calibrage, valeur: valeurs.ok }),
+  () => ({ libelle: ambiance.joints, valeur: valeurs.ok }),
+  () => ({ libelle: ambiance.horloge, valeur: valeurs.derive }),
+  () => ({ libelle: ambiance.rechauffage, valeur: valeurs.ok }),
+  () => ({ libelle: ambiance.survivants, valeur: '1' }),
+  () => ({ libelle: ambiance.balise, valeur: valeurs.muette }),
+  () => ({ libelle: ambiance.gravite, valeur: valeurs.ok }),
+  () => ({ libelle: ambiance.journal, valeur: valeurs.illisible }),
+  () => ({ libelle: ambiance.equipage, valeur: '?' }),
 ];
 
 /** Dernière ligne, en rouge, avec le triangle des dangers (D-233, D-309). */
-export const MENACE = 'ERREUR : Menace détectée';
-export const SUITE = 'La prochaine partie en tirera une autre.';
-
-export const tirage = (total: number): string => `Tirage parmi ${total} stations…`;
-export const prete = (numero: number): string => `Station ${numero} prête`;
+export const { menace: MENACE, suite: SUITE, tirage, prete } = LIBELLES.intro;
 
 /** Un pas irrégulier entre deux lignes (D-309) : rafales rapides, pas ordinaires, quelques temps de traitement plus longs. */
 export function pasLigne(hasard: () => number): number {

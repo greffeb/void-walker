@@ -2,6 +2,8 @@
 // avant la fin de la vérification ; la CI dépose à côté d'elle `verification.json` : « en cours » à la publication, puis
 // « verte » ou « en échec » quand tous ses jobs ont fini.
 
+import { LIBELLES } from './libelles';
+
 export type EtatVerification = 'en_cours' | 'verte' | 'echec' | 'inconnue';
 
 export const FICHIER_VERIFICATION = 'verification.json';
@@ -37,9 +39,4 @@ export async function lireVerification(
   }
 }
 
-export const LIBELLES_VERIFICATION: Readonly<Record<EtatVerification, string>> = {
-  en_cours: 'en cours',
-  verte: 'verte',
-  echec: 'en échec',
-  inconnue: 'inconnue',
-};
+export const LIBELLES_VERIFICATION: Readonly<Record<EtatVerification, string>> = LIBELLES.validation.etats;
