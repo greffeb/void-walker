@@ -8,6 +8,7 @@ import { EcranIntro } from './EcranIntro';
 import { EcranOptions, type Telechargement } from './EcranOptions';
 import {
   abandonner,
+  carteANouveau,
   charger,
   commencer,
   demarrer,
@@ -50,7 +51,7 @@ type Ecran =
   | { readonly type: 'reveil'; readonly jeu: Jeu; readonly lus: readonly string[] }
   | { readonly type: 'reprise_impossible' }
   /** `signaux` : ceux de la dernière action, annoncés une fois (15 §2.2) ; aucun à la reprise ni au retour des options. */
-  | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[]; readonly signaux: readonly Signal[] }
+  | { readonly type: 'jeu'; readonly jeu: Jeu; readonly lus: readonly string[]; readonly signaux: readonly Signal[]; readonly carteANouveau: boolean }
   /** Options (12 §4.10) ouvertes depuis l'accueil ou le jeu ; `jeu` : la partie enregistrée, `null` s'il n'y en a pas. */
   | { readonly type: 'options'; readonly depuis: 'accueil' | 'jeu'; readonly jeu: Jeu | null; readonly lus: readonly string[] }
   /** Fin (12 §4.11) : après un abandon, la partie n'est plus enregistrée ; après une défaite ou une évacuation, elle l'est encore. */
@@ -158,7 +159,13 @@ export function App({
       try {
         const suivant = await jouerOption(env, jeu, option);
         const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat), evenementsDuPas(jeu, suivant));
-        setEcran((avant) => ({ type: 'jeu', jeu: suivant, lus: avant.type === 'jeu' ? avant.lus : [], signaux }));
+        setEcran((avant) => ({
+          type: 'jeu',
+          jeu: suivant,
+          lus: avant.type === 'jeu' ? avant.lus : [],
+          signaux,
+          carteANouveau: carteANouveau(avant.type === 'jeu' && avant.carteANouveau, evenementsDuPas(jeu, suivant)),
+        }));
       } finally {
         setOccupe(false);
       }
@@ -213,7 +220,7 @@ export function App({
         return;
       }
       const lus = await lireLus(env, demarrage.jeu.partie);
-      setEcran({ type: 'jeu', jeu: demarrage.jeu, lus, signaux: AUCUN_SIGNAL });
+      setEcran({ type: 'jeu', jeu: demarrage.jeu, lus, signaux: AUCUN_SIGNAL, carteANouveau: false });
     } finally {
       setOccupe(false);
     }
@@ -227,7 +234,7 @@ export function App({
       try {
         const suivant = await jouerOption(env, jeu, option);
         const signaux = signauxApres(observer(env.monde, jeu.partie.etat), observer(env.monde, suivant.partie.etat), evenementsDuPas(jeu, suivant));
-        setEcran({ type: 'jeu', jeu: suivant, lus, signaux });
+        setEcran({ type: 'jeu', jeu: suivant, lus, signaux, carteANouveau: carteANouveau(false, evenementsDuPas(jeu, suivant)) });
       } finally {
         setOccupe(false);
       }
@@ -244,6 +251,11 @@ export function App({
     },
     [env],
   );
+
+  /** Ouvrir la carte : le « ! » du capteur s'éteint (créature mobile lot 3). */
+  const voirCarte = useCallback(() => {
+    setEcran((avant) => (avant.type === 'jeu' && avant.carteANouveau ? { ...avant, carteANouveau: false } : avant));
+  }, []);
 
   const changerReglages = useCallback(
     (nouveaux: Reglages) => {
@@ -396,7 +408,7 @@ export function App({
               if (enCours === null) return;
               // Depuis le jeu, retour au même écran, sans réécrire le récit ; depuis l'accueil, comme REPRENDRE LA PARTIE.
               const reveil = ecran.depuis === 'accueil' && enCours.partie.etat.actions === 0;
-              setEcran(reveil ? { type: 'reveil', jeu: enCours, lus: ecran.lus } : { type: 'jeu', jeu: enCours, lus: ecran.lus, signaux: AUCUN_SIGNAL });
+              setEcran(reveil ? { type: 'reveil', jeu: enCours, lus: ecran.lus } : { type: 'jeu', jeu: enCours, lus: ecran.lus, signaux: AUCUN_SIGNAL, carteANouveau: false });
             }}
             version={version}
             build={build}
@@ -450,6 +462,8 @@ export function App({
             occupe={occupe}
             choisir={choisir}
             lireMessages={lireMessages}
+            carteANouveau={ecran.carteANouveau}
+            voirCarte={voirCarte}
             ouvrirOptions={() => ouvrirOptions(ecran.jeu, ecran.lus)}
             terminerPartie={() => abandonnerPartie(ecran.jeu)}
             signaux={ecran.signaux}

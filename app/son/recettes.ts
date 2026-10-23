@@ -74,7 +74,7 @@ export const GESTES = [
 export type Geste = (typeof GESTES)[number];
 
 /** Signaux du terminal (15 §2.2, D-218, D-224, D-225), dans l'ordre où ils se jouent (15 §2.4). */
-export const SIGNAUX = ['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'blessure-critique', 'mort', 'soin', 'ia', 'victoire'] as const;
+export const SIGNAUX = ['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'blessure-critique', 'mort', 'soin', 'ia', 'capteur', 'victoire'] as const;
 export type Signal = (typeof SIGNAUX)[number];
 
 export function ordonnerSignaux(signaux: readonly Signal[]): Signal[] {
@@ -146,6 +146,8 @@ export const RECETTES_SIGNAUX: Readonly<Record<Signal, Recette>> = {
     ton(0.12, 0.16, 784, { onde: 'sine', vol: 0.15, montee: 0.02, chute: 0.1 }),
   ],
   ia: [0, 0.07, 0.14].map((de) => ton(de, 0.028, 1600, { vol: 0.07 })),
+  // Deux bips plus graves et plus espacés que ceux d'IA : le capteur a changé d'état (créature mobile lot 3).
+  capteur: [0, 0.12].map((de) => ton(de, 0.05, 1100, { vol: 0.08 })),
   // Bande qui ralentit (D-225) : un magnétoscope qu'on arrête, puis le clac du mécanisme.
   victoire: [
     ton(0, 1.2, 440, { onde: 'sine', fin: 60, vol: 0.16, montee: 0.01, chute: 0.25 }),

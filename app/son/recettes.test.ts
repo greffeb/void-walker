@@ -159,6 +159,7 @@ describe('recettes des sons (15 §3)', () => {
   it('ordre des signaux : alarme incendie, alarme vide, créature, blessure ou soin, IA Station ; sans doublon (15 §2.4)', () => {
     expect(ordonnerSignaux(['ia', 'soin', 'creature', 'alarme-vide', 'alarme-feu', 'ia'])).toEqual(['alarme-feu', 'alarme-vide', 'creature', 'soin', 'ia']);
     expect(ordonnerSignaux(['victoire', 'ia', 'mort'])).toEqual(['mort', 'ia', 'victoire']);
+    expect(ordonnerSignaux(['victoire', 'capteur', 'ia'])).toEqual(['ia', 'capteur', 'victoire']);
     expect(ordonnerSignaux([])).toEqual([]);
     expect(ESPACE_SIGNAUX).toBe(0.25);
   });

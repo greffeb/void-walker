@@ -46,7 +46,7 @@ const env: Environnement = { monde, textes, version: 'v-test', stockage: memoire
 const rien = (): Promise<void> => Promise.resolve();
 const rienALire = (): void => undefined;
 
-function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true, lus: readonly string[] = []): string {
+function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true, lus: readonly string[] = [], carteANouveau = false): string {
   return renderToStaticMarkup(
     <EcranJeu
       jeu={jeu}
@@ -56,6 +56,7 @@ function rendre(jeu: Jeu, ouvrirOptions?: () => void, machineAEcrire = true, lus
       occupe={false}
       choisir={rien}
       lireMessages={rienALire}
+      carteANouveau={carteANouveau}
       ouvrirOptions={ouvrirOptions}
     />,
   );
@@ -1080,6 +1081,18 @@ describe('AR-01 dans l’appli : « OÙ ? », passages sans signalétique, IA St
     expect(html).not.toContain('bilan-fin');
     expect(html).not.toContain('Pièces visitées');
     expect(texte(entre(html, '<div class="actions-fin">', '</div>'))).toBe('Rejouer cette station Nouvelle partie Menu principal');
+  });
+});
+
+describe('CARTE : « ! » du capteur (créature mobile lot 3)', () => {
+  const navCarte = (html: string): string => entre(html, '<button type="button" class="nav-carte"', '</button>');
+
+  it('le repère et le libellé n’y sont qu’avec un nouveau signal', async () => {
+    const jeu = await commencer(env);
+    expect(navCarte(rendre(jeu, undefined, true, [], true))).toContain('class="notification-ia notification-carte"');
+    expect(navCarte(rendre(jeu, undefined, true, [], true))).toContain('aria-label="Carte, nouveau signal du capteur"');
+    expect(navCarte(rendre(jeu))).not.toContain('notification-carte');
+    expect(navCarte(rendre(jeu))).toContain('aria-label="Carte"');
   });
 });
 

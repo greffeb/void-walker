@@ -99,6 +99,12 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
     expect(signauxApres({ ...base, messages: ['un'] }, { ...base, messages: ['un'] })).toEqual([]);
   });
 
+  it('capteur : tout changement d’état sonne, le dépôt non (créature mobile lot 3)', () => {
+    expect(signauxApres(base, base, [{ type: 'capteur', etat: 'mouvement' }])).toEqual(['capteur']);
+    expect(signauxApres(base, base, [{ type: 'capteur', etat: 'hs' }])).toEqual(['capteur']);
+    expect(signauxApres(base, base, [{ type: 'capteur_pose', objet: { sorte: 'objet', id: 'c', nom: 'capteur' }, piece: { sorte: 'piece', id: 'p', nom: 'pièce' }, etat: 'calme' }])).toEqual([]);
+  });
+
   it('plusieurs à la fois : alarme incendie, alarme vide, santé, IA Station (15 §2.4)', () => {
     const apres: Observation = { ...base, feu: true, sansAir: true, sante: 'blesse', messages: [...base.messages, 'nouveau'] };
     expect(signauxApres(ailleurs(base), apres, [{ type: 'premier_contact' }])).toEqual(['alarme-feu', 'alarme-vide', 'creature', 'blessure', 'ia']);
@@ -159,6 +165,7 @@ describe('signaux après une action (15 §2.2, D-218)', () => {
         }
       }
     }
-    expect([...vus].sort()).toEqual([...SIGNAUX].sort());
+    // Le capteur n'est dans aucun monde publié du hasard : son test dédié le couvre.
+    expect([...vus].sort()).toEqual(SIGNAUX.filter((signal) => signal !== 'capteur').sort());
   });
 });

@@ -57,6 +57,7 @@ export function signauxApres(avant: Observation, apres: Observation, evenements:
   else if (ecart > 0) signaux.push(GRAVITE[apres.sante] >= GRAVITE.critique ? 'blessure-critique' : 'blessure');
   else if (ecart < 0) signaux.push('soin');
   if (apres.messages.length > avant.messages.length) signaux.push('ia');
+  if (evenements.some((evenement) => evenement.type === 'capteur')) signaux.push('capteur');
   if (apres.issue === 'evacuation' && avant.issue !== 'evacuation') signaux.push('victoire');
   return signaux;
 }
