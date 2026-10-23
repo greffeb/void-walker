@@ -1,4 +1,5 @@
-import { camerasLues, capteurPose, carte, idPublic, jouer, lireMouvement, nouvellePartie, observer, salleDeSurveillance, validerMonde, type DefMonde, type EtatPartie, type Partie } from './index';
+import { CHANCE_DESTRUCTION, CHANCE_PANNE, abimerCameras, camerasLues, empreinteEtat, capteurPose, carte, idPublic, jouer, lireMouvement, nouvellePartie, observer, salleDeSurveillance, validerMonde, type DefMonde, type EtatPartie, type Partie } from './index';
+import { entier32 } from './rencontre';
 
 // Salle de surveillance (départ, avec le terminal et une cabine), coursive, remise (caméra, créature), salle des machines (caméra),
 // cambuse (post-it) ; un passage caché entre la coursive et la remise.
@@ -166,5 +167,83 @@ describe('terminal de surveillance', () => {
     expect(validerMonde({ ...MONDE, cameras: [{ piece: 'nulle-part' }] })).toContain('nulle-part : caméra dans une pièce inconnue.');
     expect(validerMonde({ ...MONDE, cameras: [{ piece: 'remise' }, { piece: 'remise' }] })).toContain('remise : caméra en double.');
     expect(validerMonde({ ...MONDE, objets: MONDE.objets.slice(1) })).toContain('caméras sans terminal.');
+  });
+});
+
+describe('dans le pas', () => {
+  const GRAND: DefMonde = { ...MONDE, rencontre: { rythme: 1 } };
+  const tirage = (graine: number, action: number, piece: string): number => entier32(`camera:${graine}:${action}:${piece}`) / 2 ** 32;
+  const creatureEn = (piece: string, plus: object = {}): Partial<EtatPartie> => ({ creature: { ...debut().etat.creature!, piece, ...plus } });
+  const etatAvec = (extra: Partial<EtatPartie>): EtatPartie => ({ ...debut().etat, piece: 'surveillance', ...extra });
+  const graine = (garde: (g: number) => boolean): number => {
+    for (let g = 0; g < 20_000; g++) if (garde(g)) return g;
+    throw new Error('Pas de graine.');
+  };
+
+  it('créature dans la remise hors traque, avant et après : destruction ; en traque, même tirage : rien', () => {
+    const g = graine((x) => tirage(x, 1, 'remise') < CHANCE_DESTRUCTION && tirage(x, 1, 'remise') >= CHANCE_PANNE && tirage(x, 1, 'machines') >= CHANCE_PANNE);
+    const libre = etatAvec(creatureEn('remise'));
+    expect(abimerCameras(GRAND, libre, libre, g, 1).camerasHs).toEqual(['remise']);
+    const traque = etatAvec(creatureEn('remise', { contact: true }));
+    expect(abimerCameras(GRAND, traque, traque, g, 1).camerasHs).toBeUndefined();
+    const entree = etatAvec(creatureEn('coursive'));
+    expect(abimerCameras(GRAND, entree, libre, g, 1).camerasHs).toBeUndefined();
+  });
+
+  it("une caméra déjà hors service ne tire pas ; les pièces touchées gardent l'ordre du monde", () => {
+    const g = graine((x) => tirage(x, 1, 'remise') < CHANCE_PANNE && tirage(x, 1, 'machines') < CHANCE_PANNE);
+    const etat = etatAvec(creatureEn('coursive'));
+    expect(abimerCameras(GRAND, etat, etat, g, 1).camerasHs).toEqual(['remise', 'machines']);
+    const deja = etatAvec({ ...creatureEn('coursive'), camerasHs: ['remise'] });
+    expect(abimerCameras(GRAND, deja, deja, g, 1).camerasHs).toEqual(['remise', 'machines']);
+  });
+
+  it('dans jouer : la panne tombe sans événement, et le pas qui finit la partie ne tire rien', () => {
+    const g = graine((x) => tirage(x, 1, 'remise') < CHANCE_PANNE);
+    const attendre = (etat: EtatPartie) => {
+      const partie: Partie = { ...nouvellePartie(GRAND, { version: 'test-surveillance', graine: g }), etat };
+      const r = jouer(GRAND, partie, observer(GRAND, etat).menu.find((c) => c.action === 'attendre' && c.disponible)!.commande);
+      if (r.type !== 'engagee') throw new Error(r.type);
+      return r;
+    };
+    const normal = attendre(etatAvec(creatureEn('coursive', { neutralisee: 'inerte' })));
+    expect(normal.partie.etat.camerasHs).toEqual(expect.arrayContaining(['remise']));
+    expect(normal.evenements.map((e) => e.type)).not.toContain('capteur');
+    const fin = attendre(etatAvec({ ...creatureEn('surveillance', { contact: true }), sante: 'critique' }));
+    expect(fin.partie.etat.sante).toBe('vaincu');
+    expect(fin.partie.etat.camerasHs).toBeUndefined();
+  });
+
+  it('sans rencontre : jamais de camerasHs sur 600 actions', () => {
+    let etat = debut().etat;
+    for (let i = 0; i < 600; i++) {
+      const r = jouer(MONDE, { ...nouvellePartie(MONDE, { version: 'test-surveillance', graine: 11 + i }), etat }, observer(MONDE, etat).menu.find((c) => c.action === 'attendre' && c.disponible)!.commande);
+      if (r.type !== 'engagee') throw new Error(r.type);
+      etat = r.partie.etat;
+      expect(etat.camerasHs).toBeUndefined();
+    }
+  });
+
+  it('sur 3 000 graines : une panne sur 300 environ en une action sans créature dans la pièce', () => {
+    const etat = etatAvec(creatureEn('coursive'));
+    let pannes = 0;
+    for (let g = 0; g < 3000; g++) pannes += abimerCameras(GRAND, etat, etat, g, 1).camerasHs?.length ?? 0;
+    // Deux caméras par graine : la part se compte par tirage.
+    expect(pannes / 6000).toBeGreaterThan(0.002);
+    expect(pannes / 6000).toBeLessThan(0.005);
+  });
+
+  it('un monde sans rencontre a la même empreinte avec ou sans caméra, sur 80 actions', () => {
+    const jouerTout = (monde: DefMonde): string => {
+      let partie = nouvellePartie(monde, { version: 'test-surveillance', graine: 7 });
+      for (let i = 0; i < 80; i++) {
+        const r = jouer(monde, partie, observer(monde, partie.etat).menu.find((c) => c.action === 'attendre' && c.disponible)!.commande);
+        if (r.type !== 'engagee') throw new Error(r.type);
+        partie = r.partie;
+      }
+      return empreinteEtat(partie.etat);
+    };
+    const sansCameras: DefMonde = { ...MONDE, cameras: [] };
+    expect(jouerTout(MONDE)).toBe(jouerTout(sansCameras));
   });
 });

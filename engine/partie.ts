@@ -13,6 +13,7 @@ import { observer, terminee } from './observation';
 import { FRAICHEUR, faceRencontre, tirageErrance } from './rencontre';
 import { aRaconter, ecouterPortes } from './ecoute';
 import { abimerCapteur, capteurPose } from './capteur';
+import { abimerCameras } from './surveillance';
 import { aggraver, asphyxier, expose, intercepter, risqueIci } from './sante';
 import { actualiserVide, piecesConnues, type Vide } from './vide';
 import {
@@ -409,6 +410,8 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
   }
   // Le capteur posé bipe quand ce qu'il lit change, tombe en panne ou est détruit ; pas au pas qui finit la partie (créature mobile lot 3, D-352).
   if (!vaincu && conclu.fin === null) {
+    // Les caméras du poste tombent de même, sans bip ni récit (lot 4).
+    if (monde.rencontre !== undefined && (monde.cameras?.length ?? 0) > 0) conclu = abimerCameras(monde, partie.etat, conclu, partie.enregistrement.graine, action);
     if (monde.rencontre !== undefined && capteurPose(monde, partie.etat) !== null) conclu = abimerCapteur(monde, partie.etat, conclu, partie.enregistrement.graine, action);
     const avant = capteurPose(monde, partie.etat);
     const apres = capteurPose(monde, conclu);
