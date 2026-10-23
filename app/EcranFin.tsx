@@ -8,6 +8,7 @@ import { EnvoyerMaPartie } from './PanneauRapport';
 import type { Retour } from './rapports';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Signal } from './son/recettes';
+import { LIBELLES } from './libelles';
 
 const AUCUN_SIGNAL: readonly Signal[] = [];
 
@@ -77,7 +78,7 @@ export function EcranFin({
   return (
     <main className="jeu fin" onPointerDownCapture={completer} onKeyDownCapture={completer}>
       <header className="entete-piece entete-reveil">
-        <p className="lieu-reveil">&gt; Fin de la partie_</p>
+        <p className="lieu-reveil">{LIBELLES.fin.entete}</p>
       </header>
       <section className="recit-fin" data-testid="fin">
         <h1 ref={titre} className="titre-fin" tabIndex={-1}>
@@ -92,10 +93,10 @@ export function EcranFin({
       </section>
       <div className="actions-fin">
         <button type="button" className="principal" disabled={occupe} onClick={rejouer} data-son="clic">
-          Rejouer cette station
+          {LIBELLES.fin.rejouer}
         </button>
         <button type="button" className="secondaire" disabled={occupe} onClick={nouvellePartie} data-son="clic">
-          Nouvelle partie
+          {LIBELLES.commun.nouvellePartie}
         </button>
         <div className="discrets-fin">
           {/* Un abandon ne valide pas (D-099) : pas de « je valide » après lui. */}
@@ -103,7 +104,7 @@ export function EcranFin({
             <EnvoyerMaPartie envoyer={envoyerPartie} pr={pr} validable={issue !== null && pr !== ''} empreinteCle={empreinteCle} occupe={occupe} />
           )}
           <button type="button" className="discret" disabled={occupe} onClick={menuPrincipal} data-son="clic">
-            Menu principal
+            {LIBELLES.commun.menuPrincipal}
           </button>
         </div>
       </div>

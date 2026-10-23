@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, type KeyboardEvent, type Rea
 import type { DocumentRendu } from '../content';
 import { placerBulle } from './ecran';
 import type { Geste } from './son/recettes';
+import { LIBELLES } from './libelles';
 
 // Bulles (12 §3.5, §3.6) : dialogue nommé, focus piégé, Échap qui referme ; partagées par l'écran de jeu et la carte.
 
@@ -78,14 +79,14 @@ export function Bulle({
     >
       <div className="bulle-entete">
         {retour !== undefined && (
-          <button type="button" className="bulle-icone" aria-label="Étape précédente" onClick={retour} data-son="clic">
+          <button type="button" className="bulle-icone" aria-label={LIBELLES.bulle.etapePrecedente} onClick={retour} data-son="clic">
             <span aria-hidden="true">‹</span>
           </button>
         )}
         <h2 id={idTitre} className="bulle-titre">
           {titre}
         </h2>
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son={sonFermer}>
+        <button type="button" className="bulle-icone" aria-label={LIBELLES.commun.fermer} onClick={fermer} data-son={sonFermer}>
           <span aria-hidden="true">✕</span>
         </button>
       </div>
