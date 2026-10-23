@@ -95,6 +95,7 @@ describe('table de butin (#207, spec §6.6)', () => {
     expect(TABLE_BUTIN.entrees.map(({ objet, poids, apresCoupeDe }) => [objet.nom, objet.soin, objet.glissant, poids, apresCoupeDe])).toEqual([
       ['cat_trousse', 1, undefined, 1, undefined],
       ['cat_burette_reserve', undefined, 1, 2, 'm-04'],
+      ['cat_capteur', undefined, undefined, 2, undefined],
     ]);
   });
 
@@ -104,7 +105,7 @@ describe('table de butin (#207, spec §6.6)', () => {
 
   it('« trousse de soin » et « burette de réserve » : un nom que ni un morceau, ni l’univers, ni le catalogue ne portent', () => {
     const noms = TABLE_BUTIN.entrees.map(({ objet }) => TEXTES_CATALOGUE.noms[objet.nom]?.texte.toLocaleLowerCase('fr'));
-    expect(noms).toEqual(['trousse de soin', 'burette de réserve']);
+    expect(noms).toEqual(['trousse de soin', 'burette de réserve', 'capteur de mouvement']);
     for (const nom of noms) expect(NOMS_PRIS.has(nom ?? '')).toBe(false);
     const ceuxDuCatalogue = ENTREES.map(([, { morceau, textes }]) => textes.noms[morceau.pieces[0]!.nom]!.texte.toLocaleLowerCase('fr'));
     for (const nom of noms) expect(ceuxDuCatalogue).not.toContain(nom);

@@ -16,7 +16,7 @@ const CHEMIN_MIN = 3;
 /** Une trace est forte à deux portes ou moins du repaire (spec §5.4). */
 const TRACE_FORTE = 2;
 /** Champs permis à un butin (spec §6.6) : ses seuls effets sont ses actions, aucune qualité passive. */
-const CHAMPS_BUTIN = new Set(['id', 'nom', 'piece', 'butin', 'soin', 'glissant']);
+const CHAMPS_BUTIN = new Set(['id', 'nom', 'piece', 'butin', 'soin', 'glissant', 'capteur']);
 /** La burette de réserve rendrait triviale la coupe de M-04 si on l'atteignait avant elle (spec §6.6). */
 const COUPE_DU_GLISSANT = 'm-04';
 /** Le premier document de la menace est toujours posé, par-dessus les notes des clés déplacées que le nombre tiré ne retient pas. */
