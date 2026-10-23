@@ -150,6 +150,16 @@ export interface TextesMonde {
   /** Messages de l'IA de la station, par identifiant de message du monde : une phrase écrite à la main, sans trou. */
   readonly assistance: Readonly<Record<string, string>>;
   /**
+   * Messages d'IA Station sur un fait vrai (lot 4), couche univers, sans menace ni chiffre : une porte forcée nomme ses deux pièces
+   * (`{le:piece}`, `{le:autre}`), les autres sortes nomment leur pièce (`{Nom:piece}`, `{de:piece}`).
+   */
+  readonly signesIA: {
+    readonly porte: Variantes;
+    readonly materiel: Readonly<Record<'camera' | 'capteur', Variantes>>;
+    readonly passage: Variantes;
+    readonly presence: Variantes;
+  };
+  /**
    * Documents des grandes stations, par clé de nom du document (spec §8.5) ; la réunion des textes ajoute chaque puce à `noms` sous
    * la même clé, pour que `nomDe` traite un document comme tout objet.
    */
@@ -249,11 +259,12 @@ export interface TextesMonde {
     readonly sansSortie: string;
     /** Récit court de l'écran de fin après un abandon (12 §4.11), dans la pièce où le passager s'est arrêté. */
     readonly abandon: string;
-    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ, après une longue attente. */
+    /** Repères de moment des messages d'IA Station, sans heure (12 §3.9) : au réveil, à l'arrivée dans une pièce, au départ, après une longue attente, d'un signe (lot 4). */
     readonly momentReveil: string;
     readonly momentArrivee: string;
     readonly momentEvacuation: string;
     readonly momentPatience: string;
+    readonly momentSigne: string;
   };
   /** Écran de fin (12 §4.11, D-281 à D-283) : titres, puis le récit de la partie, phrase par phrase. */
   readonly fin: {
@@ -557,4 +568,9 @@ export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation']
   momentArrivee: ['piece'],
   momentEvacuation: [],
   momentPatience: [],
+  momentSigne: [],
 };
+
+/** Rôles des messages d'IA Station sur un fait vrai (lot 4) : les deux pièces d'une porte, la pièce des autres sortes. */
+export const ROLES_SIGNE_PORTE = ['piece', 'autre'] as const;
+export const ROLES_SIGNE_PIECE = ['piece'] as const;

@@ -111,6 +111,8 @@ describe('récit de fin (12 §4.11, D-281)', () => {
     );
     expect(fin([[{ type: 'capteur', etat: 'mouvement' }]])).toBe(`${montre(2)} Vous partez indemne. Vous avez entendu quelque chose bouger à bord, sans jamais le voir.`);
     expect(fin([[{ type: 'capteur_pose', objet: objet('capteur'), piece: ATELIER, etat: 'mouvement' }]])).toBe(`${montre(2)} Vous partez indemne. Vous avez entendu quelque chose bouger à bord, sans jamais le voir.`);
+    // Un message d'IA Station (lot 4) compte comme un signe perçu, comme le bruit lointain.
+    expect(fin([[{ type: 'assistance', message: 'signe-1', signe: { sorte: 'presence', piece: ATELIER } }]])).toBe(`${montre(2)} Vous partez indemne. Vous avez entendu quelque chose bouger à bord, sans jamais le voir.`);
     expect(fin([[{ type: 'capteur', etat: 'calme' }]])).toBe(`${montre(2)} Vous partez indemne. Vous n’avez jamais vu ce qui rôdait à bord.`);
     expect(fin([])).toBe(`${montre(1)} Vous partez indemne. Vous n’avez jamais vu ce qui rôdait à bord.`);
     expect(fin([], 'indemne', false)).toBe(`${montre(1)} Vous partez indemne.`);

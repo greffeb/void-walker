@@ -219,10 +219,10 @@ export interface MessageAffiche {
 
 /** Messages reçus, du plus ancien au plus récent ; seulement ceux déjà reçus, aucune réponse d'état (C-06 K-06). */
 export function historiqueAffiche(env: Pick<Environnement, 'monde' | 'textes'>, partie: Partie): MessageAffiche[] {
-  return historique(env.monde, partie.etat).map(({ message, moment }) => ({
+  return historique(env.monde, partie.etat).map(({ message, moment, signe }) => ({
     message,
     repere: rendreMoment(env.textes, moment),
-    texte: texteAssistance(env.textes, message),
+    texte: texteAssistance(env.textes, message, signe),
   }));
 }
 

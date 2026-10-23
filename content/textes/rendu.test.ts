@@ -1,7 +1,8 @@
 import type { Consultation, Evenement, OptionMenu, RefPassage } from '../../engine';
 import { MONDES } from '../index';
 import { fuitesDuCatalogue, reunir } from './couches';
-import { alertesMenace, libelleOption, rendreConsultation, rendreEvenements } from './rendu';
+import { MOTS_MENACE } from './menace';
+import { alertesMenace, libelleOption, rendreConsultation, rendreEvenements, rendreMoment, texteAssistance } from './rendu';
 
 // Une pièce marquée par la piste de la créature (spec 2026-10-18 §5.4) : sa description, puis une phrase de trace de la couche
 // menace, la même pendant toute la partie.
@@ -259,6 +260,56 @@ describe('capteur de mouvement (lot 3 de la créature mobile)', () => {
     for (const id of ['ar-01', 'ar-02', 'monde-test']) {
       expect(MONDES[id]?.textes.capteur, id).toEqual(textes.capteur);
       expect(MONDES[id]?.textes.capteurPose, id).toEqual(textes.capteurPose);
+    }
+  });
+});
+
+describe('salle de surveillance et messages d’IA Station (lot 4)', () => {
+  const nom = (texte: string, genre: 'm' | 'f') => ({ texte, genre, nombre: 's', elision: false }) as const;
+  const textes = reunir([{ noms: { dortoir: nom('dortoir', 'm'), remise: nom('remise', 'f') }, descriptions: {}, assistance: {} }]);
+  const DORTOIR = { sorte: 'piece', id: 'e00000007', nom: 'dortoir' } as const;
+  const REMISE = { sorte: 'piece', id: 'e00000008', nom: 'remise' } as const;
+  const sansMenace = (texte: string): void => {
+    for (const mot of texte.toLocaleLowerCase('fr').match(/\p{L}+/gu) ?? []) expect(MOTS_MENACE.some((radical) => mot.startsWith(radical)), `${mot} dans « ${texte} »`).toBe(false);
+  };
+  const messages = Array.from({ length: 12 }, (_, rang) => `signe-${rang + 1}`);
+
+  it('une présence nomme la pièce en tête, sans mot de la menace ni chiffre dans le texte', () => {
+    for (const message of messages) {
+      const texte = texteAssistance(textes, message, { sorte: 'presence', piece: DORTOIR });
+      expect(texte).toContain('Dortoir');
+      expect(texte).not.toMatch(/\d/);
+      expect(textes.signesIA.presence).toContain(texte.replace('Dortoir', '{Nom:piece}'));
+      sansMenace(texte);
+    }
+  });
+
+  it('chaque sorte prend ses variantes ; une porte nomme ses deux pièces, le matériel suit l’appareil', () => {
+    const porte = new Set(messages.map((message) => texteAssistance(textes, message, { sorte: 'porte', pieces: [REMISE, DORTOIR] })));
+    expect(porte.size).toBeGreaterThan(1);
+    for (const texte of porte) expect(texte).toMatch(/la remise.*le dortoir/);
+    expect(texteAssistance(textes, 'signe-1', { sorte: 'materiel', piece: DORTOIR, appareil: 'camera' })).toMatch(/^Caméra du dortoir/);
+    expect(texteAssistance(textes, 'signe-1', { sorte: 'materiel', piece: DORTOIR, appareil: 'capteur' })).toMatch(/^Capteur .* du dortoir/);
+    expect(texteAssistance(textes, 'signe-2', { sorte: 'passage', piece: REMISE })).toContain('Remise');
+  });
+
+  it('un message de signe sans son fait lève une erreur, jamais un texte inventé', () => {
+    expect(() => texteAssistance(textes, 'signe-1')).toThrow();
+  });
+
+  it('le repère d’un signe : en cours de route', () => {
+    expect(rendreMoment(textes, { type: 'signe' })).toBe('en cours de route');
+  });
+
+  it('la connexion au terminal dit l’accès autorisé', () => {
+    const [phrase] = rendreEvenements(textes, [{ type: 'terminal_connecte' }], { graine: 1, action: 0 });
+    expect(phrase).toContain('ACCÈS AUTORISÉ');
+  });
+
+  it('les mondes écrits en entier reprennent ces textes', () => {
+    for (const id of ['ar-01', 'ar-02', 'monde-test']) {
+      expect(MONDES[id]?.textes.signesIA, id).toEqual(textes.signesIA);
+      expect(MONDES[id]?.textes.observation.momentSigne, id).toBe(textes.observation.momentSigne);
     }
   });
 });

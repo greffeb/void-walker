@@ -66,6 +66,8 @@ import {
   ROLES_PASSAGE,
   ROLES_PASSAGE_SANS_DESTINATION,
   ROLES_SAVOIR,
+  ROLES_SIGNE_PIECE,
+  ROLES_SIGNE_PORTE,
   TYPES_AGGRAVATION,
   type Catalogue,
   type CompositionGrande,
@@ -224,6 +226,15 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
     }
     for (const erreur of analyserGabarit(message, [])) erreurs.push(`assistance « ${id} » : ${erreur}.`);
     if (/\d/.test(message)) erreurs.push(`assistance « ${id} » : chiffre dans « ${message} ».`);
+  }
+  // Messages d'IA Station sur un fait vrai (lot 4) : les deux pièces d'une porte, la pièce des autres sortes, aucun chiffre.
+  const { porte, materiel, passage, presence } = textes.signesIA;
+  verifierVariantes(erreurs, 'IA Station, porte', porte, ROLES_SIGNE_PORTE);
+  for (const [ou, variantes] of [['matériel caméra', materiel.camera], ['matériel capteur', materiel.capteur], ['passage', passage], ['présence', presence]] as const) {
+    verifierVariantes(erreurs, `IA Station, ${ou}`, variantes, ROLES_SIGNE_PIECE);
+  }
+  for (const message of [porte, materiel.camera, materiel.capteur, passage, presence].flat()) {
+    if (/\d/.test(message)) erreurs.push(`IA Station : chiffre dans « ${message} ».`);
   }
   for (const cle of CLES_MOMENT) verifierPhraseFin(erreurs, `fin, moment ${cle}`, textes.fin.moments[cle], ROLES_MOMENT[cle]);
   for (const cle of CLES_MORT) verifierPhraseFin(erreurs, `fin, mort ${cle}`, textes.fin.morts[cle], []);

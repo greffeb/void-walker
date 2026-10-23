@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
+import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, CONNEXION_TERMINAL, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SIGNES_IA, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -51,6 +51,7 @@ export const TEXTES_MONDE_TEST: TextesMonde = {
   evenements: {
     bruit_station: BRUITS_STATION,
     objet_pose_position: POSE_POSITION,
+    terminal_connecte: CONNEXION_TERMINAL,
     reveil: [
       'Vous ouvrez les yeux dans {le:piece}. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.',
       'Vous vous réveillez dans {le:piece}, la bouche sèche. Le bourdonnement des ventilateurs remplit le silence. Aucune voix, aucun pas derrière les cloisons.',
@@ -323,6 +324,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     momentArrivee: 'en arrivant · {Nom:piece}',
     momentEvacuation: 'au départ de la capsule',
     momentPatience: 'en attendant',
+    momentSigne: 'en cours de route',
     ...OBSERVATION_MORCEAUX,
   },
   fin: FIN,
@@ -331,6 +333,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   attenteEcoute: ATTENTE_ECOUTE,
   capteur: TEXTES_CAPTEUR,
   capteurPose: TEXTES_POSE_CAPTEUR,
+  signesIA: SIGNES_IA,
   attenteVacarme: ATTENTE_VACARME,
   pillages: PILLAGES,
   documents: {},

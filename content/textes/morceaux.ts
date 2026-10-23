@@ -50,8 +50,6 @@ export const EVENEMENTS_REGLES_MORCEAUX = {
     'Vous actionnez {le:objet}. Un voyant passe au vert ; un verrou se lève avec un claquement sourd.',
     'Un déclic sous vos doigts : {le:objet} s’allume en vert. Le verrou est levé.',
   ],
-  // Texte provisoire (lot 4), réécrit avec les maquettes.
-  terminal_connecte: ['Le terminal accepte le code. Le plan s’affiche, avec les images des caméras.'],
   attente: ['Vous restez immobile, l’oreille tendue. Rien ne bouge.', 'Vous retenez votre souffle et attendez. Le silence vous répond.'],
 } as const satisfies Partial<TextesMonde['evenements']>;
 
@@ -99,7 +97,7 @@ export const REFUS_MORCEAUX = {
   verrouillee: 'Ce passage est verrouillé : rien n’a été joué.',
   enfoncee: 'Cette porte a été enfoncée et ne ferme plus : rien n’a été joué.',
   sans_carte: 'Carte requise : rien n’a été joué.',
-  sans_mot_de_passe: 'Mot de passe requis : rien n’a été joué.',
+  sans_mot_de_passe: 'Le terminal demande un mot de passe : rien n’a été joué.',
 } as const satisfies Partial<TextesMonde['refus']>;
 
 export const INDISPONIBILITES_MORCEAUX = {
@@ -124,7 +122,7 @@ export const LIBELLES_MORCEAUX = {
   retablir: 'Rétablir la gravité',
   boucler: 'Fermer la chambre depuis {le:cible}',
   actionner: 'Actionner {le:cible}',
-  surveiller: 'Consulter {le:cible}',
+  surveiller: 'Se connecter {a:cible}',
   attendre: 'Attendre',
 } as const satisfies Partial<TextesMonde['libelles']>;
 
@@ -138,7 +136,7 @@ export const VERBES_MORCEAUX = {
   retablir: 'Rétablir',
   boucler: 'Fermer la chambre',
   actionner: 'Actionner',
-  surveiller: 'Consulter',
+  surveiller: 'Se connecter',
   attendre: 'Attendre',
 } as const satisfies Partial<TextesMonde['verbes']>;
 

@@ -13,6 +13,7 @@ import type {
   RefPiece,
   Resultat,
   Savoir,
+  SignePublic,
   SourceEvacuation,
 } from '../../engine';
 import { rangSigne } from '../../engine';
@@ -245,25 +246,39 @@ export function rendreDangerVu(textes: TextesMonde, nature: NatureDanger, passag
 
 /** Messages d'assistance reçus à ce pas, dans l'ordre, écrits à la main (C-07). */
 export function rendreAssistance(textes: TextesMonde, evenements: readonly Evenement[]): string[] {
-  return evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [texteAssistance(textes, evenement.message)] : []));
+  return evenements.flatMap((evenement) => (evenement.type === 'assistance' ? [texteAssistance(textes, evenement.message, evenement.signe)] : []));
 }
 
-/** Texte d'un message d'assistance, par son identifiant. */
-export function texteAssistance(textes: TextesMonde, message: string): string {
-  // shortcut: texte provisoire des messages d'IA Station sur la face 2 (lot 4), la tâche 4 les rend d'après leur signe.
-  if (rangSigne(message) !== null) return 'Message technique de la station.';
+/**
+ * Texte d'un message d'assistance, par son identifiant ; un message `signe-<n>` se dit d'après le fait signalé (lot 4), la même
+ * variante pour le même message, en direct comme dans l'historique.
+ */
+export function texteAssistance(textes: TextesMonde, message: string, signe?: SignePublic): string {
+  if (rangSigne(message) !== null) {
+    if (signe === undefined) throw new ErreurTexte(`Message d’IA Station sans son fait : ${message}.`);
+    return texteSigne(textes, message, signe);
+  }
   const texte = Object.hasOwn(textes.assistance, message) ? textes.assistance[message] : undefined;
   if (texte === undefined) throw new ErreurTexte(`Message d’assistance sans texte : ${message}.`);
   return texte;
 }
 
+function texteSigne(textes: TextesMonde, message: string, signe: SignePublic): string {
+  const { signesIA } = textes;
+  if (signe.sorte === 'porte') {
+    const [piece, autre] = signe.pieces;
+    return remplir(choisirVariante(signesIA.porte, `${message}:${piece.id}`), { piece: nomDe(textes, piece), autre: nomDe(textes, autre) });
+  }
+  const variantes = signe.sorte === 'materiel' ? signesIA.materiel[signe.appareil] : signesIA[signe.sorte];
+  return remplir(choisirVariante(variantes, `${message}:${signe.piece.id}`), { piece: nomDe(textes, signe.piece) });
+}
+
 /** Repère du moment où un message a été reçu, sans heure : « au réveil · Salon de transit » (12 §3.9). */
 export function rendreMoment(textes: TextesMonde, moment: MomentMessage): string {
-  const { momentReveil, momentArrivee, momentEvacuation, momentPatience } = textes.observation;
+  const { momentReveil, momentArrivee, momentEvacuation, momentPatience, momentSigne } = textes.observation;
   if (moment.type === 'evacuation') return remplir(momentEvacuation, {});
   if (moment.type === 'patience') return remplir(momentPatience, {});
-  // shortcut: repère provisoire d'un message d'IA Station (lot 4), la tâche 4 lui donne son texte.
-  if (moment.type === 'signe') return remplir(momentPatience, {});
+  if (moment.type === 'signe') return remplir(momentSigne, {});
   return remplir(moment.type === 'reveil' ? momentReveil : momentArrivee, { piece: nomDe(textes, moment.piece) });
 }
 
