@@ -1,0 +1,246 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poste de surveillance Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette du poste de surveillance (lot 4) : mot de passe sur post-it, carte révélée, caméras en direct tant qu'on regarde. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --alerte: #ff5a4a;
+  --vert-fond: #050a06;
+  --vert-surface: #0b140d;
+  --vert: #5cff7a;
+  --vert-texte: #a6f5b0;
+  --vert-secondaire: #62b06d;
+  --vert-bordure: #3e7046;
+  --vert-separateur: #1f3a24;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+[hidden] { display: none !important; }
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.onglets.deux { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 760px; position: relative; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.recit .net { color: var(--alerte); }
+.recit .term { font-size: 13px; letter-spacing: .04em; }
+.recit .ecran { border: 1px solid var(--vert-bordure); background: var(--vert-fond); color: var(--vert-texte); padding: 8px 10px; font-size: 13px; letter-spacing: .04em; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.act { min-height: 48px; border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.act.plein { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.salles { display: grid; gap: 6px; }
+.salle { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.aller { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; min-height: 48px; padding: 6px 10px; background: var(--texte); color: var(--fond); border: 1px solid var(--texte); display: flex; align-items: center; min-width: 0; }
+.aller.ferme { background: transparent; color: var(--texte); border: 1px dashed var(--bordure); }
+.porte { min-height: 48px; width: 96px; border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.porte.ouverte { background: var(--surface); }
+.temoin { width: 8px; height: 8px; border: 1px solid currentColor; }
+.porte.ouverte .temoin { background: currentColor; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 14px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { position: relative; border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.nav span.vif { opacity: 1; }
+.nav span.ouverte { color: var(--vert-texte); border-color: var(--vert); box-shadow: inset 0 0 0 1px var(--vert); opacity: 1; }
+
+/* Fenêtre verte : la carte (variante A plein cadre, ou la carte ordinaire après le poste). */
+.carte { position: absolute; left: 12px; right: 12px; top: 56px; bottom: 74px; background: var(--vert-fond); border: 1px solid var(--vert); color: var(--vert-texte); display: flex; flex-direction: column; }
+.carte header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--vert-separateur); }
+.carte h3 { margin: 0; font-size: 16px; color: var(--vert); letter-spacing: .04em; }
+.carte header span { font-size: 12px; border: 1px solid var(--vert-bordure); padding: 8px 10px; }
+.direct { color: var(--alerte); font-size: 12px; letter-spacing: .08em; animation: direct 2s steps(1) infinite; }
+@keyframes direct { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .direct { animation: none; } }
+.carte svg { flex: 1; width: 100%; }
+.carte .bas { border-top: 1px solid var(--vert-separateur); padding: 8px 12px; display: grid; gap: 6px; }
+.carte .ligne { font-size: 13px; letter-spacing: .04em; min-height: 20px; }
+.carte .ligne .net { color: var(--alerte); }
+.carte .actions .act { border-color: var(--vert-bordure); color: var(--vert-texte); }
+.carte .actions .act.plein { background: var(--vert); color: var(--vert-fond); border-color: var(--vert); }
+/* Variante B : le plan dans le récit, à la place du texte. */
+.planb { border: 1px solid var(--vert); background: var(--vert-fond); color: var(--vert-texte); margin: 0 0 10px; }
+.planb header { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid var(--vert-separateur); font-size: 13px; color: var(--vert); }
+.planb svg { width: 100%; display: block; }
+
+.sol { fill: var(--vert-surface); }
+.mur { fill: none; stroke: var(--vert-secondaire); stroke-width: 2; }
+.mur.actuelle { stroke: var(--vert); stroke-width: 3; }
+.brouillard { fill: var(--vert-fond); stroke: var(--vert-separateur); stroke-dasharray: 3 3; }
+.ouv { stroke: var(--vert-fond); stroke-width: 5; }
+.ouv.fermee { stroke: var(--vert-texte); stroke-width: 1; }
+.nom { fill: var(--vert-secondaire); font-size: 9px; letter-spacing: .03em; }
+.joueur { fill: var(--vert); }
+
+/* Caméra : un carré avec son objectif ; plein rouge et ondes au mouvement, pointillés si brouillée, barrée en panne. */
+.cam .corps { fill: var(--vert-fond); stroke: var(--vert); stroke-width: 1.5; }
+.cam .coeur { fill: none; stroke: var(--vert); stroke-width: 1.5; }
+.cam.mvt .corps { fill: var(--alerte); stroke: var(--alerte); }
+.cam.mvt .coeur { stroke: var(--vert-fond); }
+.cam .onde { fill: none; stroke: var(--alerte); stroke-width: 1.5; display: none; }
+.cam.mvt .onde { display: inline; }
+.cam.brouille .corps { stroke: var(--vert-secondaire); stroke-dasharray: 2 2; }
+.cam.brouille .coeur { display: none; }
+.cam .croix { stroke: var(--vert-secondaire); stroke-width: 1.5; display: none; }
+.cam.hs .croix { display: inline; }
+.cam.hs .corps { stroke: var(--vert-secondaire); }
+.cam.hs .coeur { display: none; }
+/* Capteur du joueur (lot 3) : le losange. */
+.capteur .corps { fill: var(--vert-fond); stroke: var(--vert); stroke-width: 1.5; }
+.capteur .coeur { fill: var(--vert); }
+
+.legende { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: var(--vert-fond); border: 1px solid var(--vert-separateur); padding: 8px; }
+.legende figure { margin: 0; display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--vert-texte); }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Poste de surveillance, <b>salle à part</b> (pas celle de M-11). Le terminal demande un <b>mot de passe</b>, écrit sur un <b>post-it</b> posé ailleurs. Connecté : <b>toute la carte</b> se révèle pour de bon, et les <b>caméras</b> de certaines pièces montrent le mouvement <b>en direct</b>, tant qu’on reste au terminal.</p>
+
+  <p class="etiquette">Où vit le direct (étapes 3 et 4)</p>
+  <div class="onglets deux" role="tablist" id="variantes"></div>
+
+  <p class="etiquette">Étape</p>
+  <div class="onglets" role="tablist" id="etapes"></div>
+
+  <div class="tel">
+    <header class="entete"><h1 id="titre"></h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <div class="carte" id="carte" hidden></div>
+    <nav class="nav" id="nav"></nav>
+  </div>
+
+  <p class="etiquette">Les quatre états d’une caméra</p>
+  <div class="legende" id="legende"></div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const CAM = (classe, x, y) => `<g class="cam ${classe}" transform="translate(${x} ${y})">
+  <path class="onde" d="M-13 -7 a10 10 0 0 0 0 14 M13 -7 a10 10 0 0 1 0 14 M-17 -10 a15 15 0 0 0 0 20 M17 -10 a15 15 0 0 1 0 20"/>
+  <rect class="corps" x="-7" y="-7" width="14" height="14"/><circle class="coeur" r="3"/>
+  <path class="croix" d="M-10 -10 L10 10"/>
+</g>`;
+const LOSANGE = (x, y) => `<g class="capteur" transform="translate(${x} ${y})"><path class="corps" d="M0 -8 L8 0 L0 8 L-8 0 Z"/><circle class="coeur" r="2.2"/></g>`;
+
+// Plan de démonstration : neuf pièces. Seules les trois du haut sont explorées avant le poste.
+const PIECES = {
+  'Surveillance': [10, 10, 100, 60], 'Coursive A': [120, 20, 100, 40], 'Cambuse': [230, 10, 100, 60],
+  'Dortoir': [10, 90, 100, 70], 'Coursive B': [120, 100, 100, 50], 'Remise': [230, 90, 100, 70],
+  'Machines': [10, 180, 100, 80], 'Embarquement': [120, 170, 100, 90], 'Capsule': [230, 180, 100, 80],
+};
+const CONNUES = ['Surveillance', 'Coursive A', 'Cambuse'];
+// [x, y, sens, ouverte] : portes entre pièces voisines.
+const PORTES = [[115, 40, 'v', true], [225, 40, 'v', false], [170, 60, 'h', true], [115, 125, 'v', false], [225, 125, 'v', true],
+  [170, 150, 'h', true], [115, 215, 'v', false], [225, 215, 'v', false]];
+// Caméras de la station : pas dans toutes les pièces.
+const CAMERAS = { 'Dortoir': [90, 105], 'Remise': [310, 105], 'Embarquement': [200, 243], 'Machines': [90, 195] };
+
+const ETAPES = [
+  { nom: 'Refus', piece: 'Surveillance', cmd: 'utiliser terminal', recit: 'Un comptoir, trois écrans. Un seul s’allume quand vous touchez le clavier.',
+    ecran: 'SURVEILLANCE — SÉCURITÉ<br>IDENTIFIANT : AGENT DE GARDE<br>MOT DE PASSE : ________', recit2: 'Le curseur clignote. Vous n’avez rien à taper.',
+    portes: [['Coursive A', true]], vue: 'jeu', inv: false,
+    verdict: 'Sans le post-it, le terminal se refuse. Le message dit seulement qu’un mot de passe manque, pas où le chercher.' },
+  { nom: 'Post-it', piece: 'Cambuse', cmd: 'fouiller placard', recit: 'Derrière les boîtes de café, un post-it jaune collé à la paroi. Une écriture pressée : « garde — K7-ORION ».', recit2: 'Vous le décollez et le gardez.',
+    portes: [['Coursive A', false]], vue: 'jeu', inv: true,
+    verdict: 'Le post-it est un objet qu’on garde, comme une clé. Il est posé au hasard dans une autre pièce de la station.' },
+  { nom: 'Connexion', piece: 'Surveillance', cmd: 'utiliser terminal', recit: 'Vous tapez le code du post-it.', ecran: 'ACCÈS AUTORISÉ.<br>PLAN DE LA STATION CHARGÉ.<br>CAMÉRAS : 4 SUR 9 PIÈCES.',
+    portes: [['Coursive A', true]], vue: 'poste', etats: { 'Dortoir': '', 'Remise': '', 'Embarquement': '', 'Machines': 'brouille' }, ligne: 'Aucun mouvement.',
+    verdict: 'Le plan entier apparaît d’un coup, portes comprises. Les caméras disent l’état de leur pièce maintenant ; celle des machines est brouillée par le vacarme.' },
+  { nom: 'Attendre', piece: 'Surveillance', cmd: 'attendre', recit: '', ecran: '',
+    portes: [['Coursive A', true]], vue: 'poste', etats: { 'Dortoir': '', 'Remise': 'mvt', 'Embarquement': '', 'Machines': 'brouille' }, ligne: '<span class="net">REMISE : MOUVEMENT.</span>',
+    verdict: 'On reste au terminal et on attend : chaque attente fait tourner le dé, et une caméra peut passer au rouge. Le poste ne montre jamais la créature, seulement le mouvement.' },
+  { nom: 'Après', piece: 'Coursive A', cmd: 'quitter terminal · aller coursive a', recit: 'Les écrans restent allumés derrière vous.',
+    portes: [['Surveillance', true], ['Cambuse', false], ['Coursive B', true]], vue: 'carte',
+    verdict: 'Hors du poste, la carte reste révélée en entier. Les caméras n’y figurent plus : le direct ne se voit qu’au terminal. Le capteur du joueur garde son losange.' },
+];
+let etape = 0;
+let variante = 'A';
+
+function plan(e, toutes, cameras) {
+  const pieces = Object.entries(PIECES).map(([nom, [x, y, l, h]]) => {
+    if (!toutes && !CONNUES.includes(nom)) return `<rect class="brouillard" x="${x}" y="${y}" width="${l}" height="${h}"/>`;
+    return `<rect class="sol" x="${x}" y="${y}" width="${l}" height="${h}"/>
+    <rect class="mur${nom === e.piece ? ' actuelle' : ''}" x="${x}" y="${y}" width="${l}" height="${h}"/>
+    <text class="nom" x="${x + 5}" y="${y + 13}">${nom.toUpperCase()}</text>`;
+  }).join('');
+  const portes = PORTES.map(([x, y, sens, ouverte]) => {
+    const l = sens === 'v' ? `x1="${x}" y1="${y - 9}" x2="${x}" y2="${y + 9}"` : `x1="${x - 9}" y1="${y}" x2="${x + 9}" y2="${y}"`;
+    return `<line class="ouv" ${l} style="stroke-width:11"/>${ouverte ? '' : `<line class="ouv fermee" ${l}/>`}`;
+  }).join('');
+  const cams = cameras ? Object.entries(CAMERAS).map(([n, [x, y]]) => CAM(cameras[n], x, y)).join('') : '';
+  const [px, py, pl, ph] = PIECES[e.piece];
+  return pieces + portes + cams + LOSANGE(290, 145) + `<circle class="joueur" cx="${px + pl / 2}" cy="${py + ph / 2 + 6}" r="5"/>`;
+}
+
+function ligne(nom, ouverte) {
+  return `<div class="salle"><span class="aller${ouverte ? '' : ' ferme'}">→ ${nom}</span>
+    <span class="porte${ouverte ? ' ouverte' : ''}"><span class="temoin"></span>${ouverte ? 'Ouverte' : 'Fermée'}</span></div>`;
+}
+
+function rendre() {
+  const e = ETAPES[etape];
+  const carte = document.getElementById('carte');
+  document.getElementById('titre').textContent = e.piece;
+  let recit = `<p class="cmd">&gt; ${e.cmd}</p>${e.recit ? `<p>${e.recit}</p>` : ''}${e.ecran ? `<p class="ecran">${e.ecran}</p>` : ''}${e.recit2 ? `<p>${e.recit2}</p>` : ''}`;
+  let dock = `<h2 class="titre-section">Se déplacer vers</h2><div class="salles">${e.portes.map(([n, o]) => ligne(n, o)).join('')}</div>`;
+  carte.hidden = true;
+  let navCarte = 'vif';
+  if (e.vue === 'poste' && variante === 'A') {
+    carte.hidden = false;
+    carte.innerHTML = `<header><h3>SURVEILLANCE</h3><span class="direct">● DIRECT</span></header>
+      <svg viewBox="0 0 340 270" aria-label="Plan de la station, caméras en direct">${plan(e, true, e.etats)}</svg>
+      <div class="bas"><div class="ligne">${e.ligne}</div><div class="actions"><span class="act plein">Attendre</span><span class="act">Quitter</span></div></div>`;
+    navCarte = '';
+  } else if (e.vue === 'poste') {
+    recit = `<p class="cmd">&gt; ${e.cmd}</p><div class="planb"><header><span>SURVEILLANCE</span><span class="direct">● DIRECT</span></header>
+      <svg viewBox="0 0 340 270" aria-label="Plan de la station, caméras en direct">${plan(e, true, e.etats)}</svg></div><p class="term">${e.ligne}</p>`;
+    dock = `<h2 class="titre-section">Terminal</h2><div class="actions"><span class="act plein">Attendre</span><span class="act">Quitter</span></div>`;
+  } else if (e.vue === 'carte') {
+    carte.hidden = false;
+    carte.innerHTML = `<header><h3>STATION</h3><span>PIÈCE</span></header><svg viewBox="0 0 340 270" aria-label="Plan">${plan(e, true, null)}</svg>`;
+    navCarte = 'ouverte';
+  }
+  document.getElementById('recit').innerHTML = recit;
+  document.getElementById('dock').innerHTML = dock;
+  document.getElementById('nav').innerHTML = `<span class="${e.inv ? 'vif' : ''}">INVENTAIRE</span><span class="${navCarte}">CARTE</span><span>IA STATION</span>`;
+  const varianteVue = e.vue === 'poste' ? ` <i>(variante ${variante})</i>` : '';
+  document.getElementById('verdict').innerHTML = `<b>${etape + 1}. ${e.nom}</b>${varianteVue} : ${e.verdict}`;
+  document.getElementById('etapes').innerHTML = ETAPES.map((s, i) => `<button class="onglet" role="tab" data-e="${i}" aria-selected="${i === etape}">${i + 1}</button>`).join('');
+  document.getElementById('variantes').innerHTML = [['A', 'A · fenêtre plein cadre'], ['B', 'B · plan dans le récit']]
+    .map(([v, n]) => `<button class="onglet" role="tab" data-v="${v}" aria-selected="${v === variante}">${n}</button>`).join('');
+}
+document.getElementById('legende').innerHTML = [['', 'calme'], ['mvt', 'mouvement'], ['brouille', 'brouillée'], ['hs', 'panne']]
+  .map(([c, n]) => `<figure><svg viewBox="-20 -16 40 32" width="56" height="44">${CAM(c, 0, 0)}</svg><figcaption>${n}</figcaption></figure>`).join('');
+document.getElementById('etapes').addEventListener('click', (ev) => { const s = ev.target.closest('[data-e]')?.dataset.e; if (s !== undefined) { etape = Number(s); rendre(); } });
+document.getElementById('variantes').addEventListener('click', (ev) => { const v = ev.target.closest('[data-v]')?.dataset.v; if (v) { variante = v; rendre(); } });
+rendre();
+</script>

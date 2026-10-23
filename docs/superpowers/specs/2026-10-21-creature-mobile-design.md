@@ -1,6 +1,6 @@
 # Créature mobile, information et difficulté — conception
 
-> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-350 à D-354.
+> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. **Lot 4** (poste de surveillance §4.3, messages d’IA Station §4.5) : réécrit après les maquettes du 2026-10-23, relu par un constructeur, à approuver. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-350 à D-354.
 > **Zones :** orange pour le moteur, le vérifieur, le format des morceaux, l'appli et chaque seuil d'équilibrage ; rouge pour la sauvegarde, dont le format change (§9).
 > **Sources :** discussion du 2026-10-21 ; issues #216, #217, #241 ; D-161, D-177, D-178, D-180, D-181, D-241, D-275, D-276, D-279 ; C-03 ; 17 §1 et §7 (IA Station).
 
@@ -106,15 +106,48 @@ Consigné par D-350 à D-353. Précisé avec le porteur le 2026-10-22 sur maquet
 - **Pièce aveugle** (porteur) : on peut y poser le capteur, mais il est **brouillé** tant que la pièce l'est (machines en marche, chambre froide). C'est un quatrième état, temporaire : il redevient calme ou MOUVEMENT quand les machines s'arrêtent. « Calme » n'est jamais affiché dans une pièce aveugle.
 - **Choix de l'agent** : la destruction se tire sur un dé à part (haché `capteur:<graine>:<action>`, comme celui de rencontre), quand la créature reste dans la pièce du capteur (chance en paramètre de difficulté) ; le capteur ne capte que la créature, pas le joueur ; le bip ne s'entend pas, il n'attire rien.
 
-### 4.3 Poste de sécurité (#241)
+### 4.3 Poste de surveillance (#241)
 
-- Salle **présente au hasard** dans une station (porteur), derrière une petite énigme ou une clé (moyen d'accès laissé au constructeur, voir #241). Les capteurs d'origine de la station ne servent que là où il y a un poste. Elle donne la seconde moitié de la partie : on découvre d'abord le lore et les ressources, puis on prépare la sortie.
-- Le terminal montre :
-  - le **plan** de la station, qui lève le brouillard ;
-  - l'**état des portes** (ouverte, fermée, forcée) **au moment de la consultation**. Une porte forcée plus tard n'apparaît pas tant qu'on ne revient pas ;
-  - **les capteurs de la station** (réseau d'origine) et ceux du joueur, avec leur état (actif, en panne, détruit) et ceux qui détectent un mouvement en ce moment.
-- Le poste **ne montre jamais la créature directement**. On ne la voit que si un capteur actif est dans sa pièce.
-- Les capteurs de la station en panne laissent des **zones grises** sur le plan. Leur part dépend du réglage de difficulté.
+> **Lot 4, tranché par le porteur sur maquette le 2026-10-23** ([poste.html](../../maquette/poste.html), variante A). Remplace la première version de ce paragraphe (énigme ou clé laissée au constructeur, « capteurs de la station » à zones grises).
+
+**À quoi il sert (porteur).** « Juste un moyen de révéler toute la carte d'un coup », avec des caméras qui disent, tant qu'on regarde, si certaines pièces ont la menace dedans. On peut y attendre plusieurs tours pour voir si quelque chose bouge. Il donne la seconde moitié de la partie : on découvre d'abord le lore et les ressources, puis on prépare la sortie.
+
+**La salle.**
+- Une **salle à part**, qui n'est pas le poste de sécurité de M-11 (porteur). Dans **20 % des grandes stations publiées** (porteur), une seule par station.
+- **Choix de l'agent : son nom à l'écran est « salle de surveillance »**, pour ne pas la confondre avec le « poste de sécurité » de M-11. C'est une pièce du catalogue (`content/catalogue/pieces.ts`, catégorie `commandement`, en impasse), avec un **terminal** fixe.
+- Elle n'est jamais sur le chemin obligé : la preuve des stations (§10) ne la compte pas.
+
+**Le mot de passe.**
+- Utiliser le terminal sans le mot de passe : l'écran de connexion s'allume et demande un mot de passe. Le récit dit seulement qu'il manque, jamais où le chercher (mémoire porteur « ne pas tenir la main »).
+- Le mot de passe est écrit sur un **post-it**, posé **au hasard dans une autre pièce** de la station (porteur), comme les clés dispersées des grandes stations (`grande.cles`, `poserCles`). Le joueur le **garde** dans son inventaire.
+- Post-it en main, utiliser le terminal connecte le joueur : il ne tape rien, le code du post-it suffit (« Vous tapez le code du post-it. »). La connexion vaut pour toute la partie.
+- **Choix de l'agent :** le code est une suite de lettres et de chiffres sur le post-it (« garde — K7-ORION »). Ces chiffres sont permis : le post-it est un support écrit, comme un document (17-univers §6). Le post-it n'est pas un document de la réserve : c'est un objet, comme une clé.
+
+**Ce que montre le terminal (variante A).**
+- Une **fenêtre plein cadre**, comme la carte, titrée « SURVEILLANCE » avec un repère « ● DIRECT ». En bas : une ligne pour le dernier changement, puis deux commandes, **ATTENDRE** et **QUITTER**.
+- **Le plan entier** de la station, portes, feu et vide d'air compris, tel qu'il est au moment de la connexion. Le brouillard est levé **pour de bon** : après QUITTER, la carte ordinaire reste révélée toute la partie.
+- **Les caméras de la station**, en direct, tant que la fenêtre est ouverte. Une caméra est un **carré avec un objectif**, distinct du losange du capteur du joueur, avec les mêmes quatre états (D-351, D-352) : calme (contour vert et objectif), mouvement (plein rouge et ondes), brouillée (pointillés, pièce aveugle), panne (barrée).
+- **Le capteur du joueur** (lot 3) garde son losange, sur le plan du poste comme sur la carte.
+- **ATTENDRE** est l'attente ordinaire : une action, le dé de rencontre tourne, la créature peut bouger. Les caméras qui changent le disent sur la ligne du bas (« REMISE : MOUVEMENT. » en rouge, comme le bip du capteur). Tout autre événement du pas (bruit proche, écoute aux portes, entrée de la créature) s'écrit sur la même ligne ou ferme la fenêtre ; le choix revient au constructeur, mais aucun avertissement ne doit être masqué par la fenêtre.
+- **QUITTER** ferme la fenêtre, sans coûter d'action. Utiliser le terminal de nouveau la rouvre, et remet le plan à jour.
+
+**Les portes restent figées (porteur).** La carte révélée montre les portes **telles que le poste les a vues**, jusqu'à ce que le joueur repasse devant ou revienne au terminal. Une porte forcée plus tard, loin du joueur, reste dessinée fermée : la carte peut être dépassée, mais elle ne ment pas. **Choix de l'agent :** la connexion écrit toute la station dans la mémoire du passager (`engine/memoire.ts`, 14 §3.1), pièces et liaisons, à l'heure de la consultation. La carte ordinaire n'a rien d'autre à apprendre : ce que le passager voit ensuite remplace ce souvenir, comme aujourd'hui.
+
+**Précisions de l'agent, après la relecture du constructeur :**
+- **Comme la carte révélée des versions de test** (`app/carte/revelee.ts`) : toutes les pièces deviennent connues et toutes les liaisons découvertes, donc les boutons « Se déplacer vers » nomment aussi leur destination. Mais ce n'est pas une option de test : c'est une règle, écrite dans l'état de partie (`visitees`, `decouvertes`, mémoire des liaisons).
+- **Un passage caché reste caché** (M-05, `cachee`) : le plan de la compagnie ne le connaît pas, et l'énigme de M-05 tient. Une porte sans signalétique apparaît comme une porte.
+- **Contenu des pièces (porteur) : rien, sauf le feu et le vide d'air.** Ni clés, ni butin, ni post-it, ni documents : il faut aller voir sur place. Le feu apparaît sur le plan tel qu'il est à la consultation, puis reste figé comme les portes (souvenir de la pièce, D-213). Le vide suit la règle actuelle : le voyant d'une porte étanche est tenu à jour dès que sa destination est connue (14, OP-04), ce qui est le cas de toutes après le poste. Le constructeur reprend les repères de la carte actuelle (14).
+- **Le post-it et la salle** : posés comme une clé, par `poserCles`, jamais dans la pièce de départ de la créature ni dans le dernier segment avant la capsule (le poste doit servir à la seconde moitié de la partie). La part de 20 % est un tirage par graine ; le test de la liste publiée l'accepte entre 15 et 25 %, comme pour le capteur.
+- **Les homonymes** sont déjà numérotés à l'assemblage (`numeroter`, « Coursive A / B ») : IA Station et la fenêtre du poste reprennent ces noms.
+
+**Les caméras (porteur).**
+- Une caméra dans **environ une pièce sur trois**, jamais dans la salle de surveillance elle-même. **Un tiers** d'entre elles sont **en panne au départ**. Ces deux parts sont des paramètres, que le réglage de difficulté du lot 5 fera varier.
+- **La créature peut détruire une caméra**, comme le capteur (D-353, même tirage hors journal). Une caméra détruite s'affiche comme une caméra en panne. **Choix de l'agent :** une caméra peut aussi tomber en panne en cours de partie, au même seuil que le capteur. Sans cela, une caméra perdue voudrait toujours dire « elle est passée là », et le message « Matériel » tiendrait la main.
+- Une caméra ne voit que la créature, jamais le passager. Elle dit « MOUVEMENT », jamais « la créature ». Dans une pièce aveugle, elle est brouillée.
+- Hors de la fenêtre du poste, les caméras ne se voient nulle part : ni sur la carte, ni dans le récit, ni par un « ! ». Seul IA Station peut signaler une caméra perdue (§4.5).
+- Les caméras n'existent que dans les stations qui ont une salle de surveillance.
+
+**Ce que le poste ne fait jamais.** Il ne montre jamais la créature directement. On ne la voit que si une caméra ou le capteur, en état de marche, est dans sa pièce. Un mouvement vu au poste ne change pas l'aperçu de risque (§4.1).
 
 ### 4.4 Pièces aveugles
 
@@ -129,6 +162,21 @@ La face 2 du dé de rencontre produit un signe, tiré parmi :
 - **un message d'IA Station**, exact sur les systèmes et muet sur la menace (17 §1 et §7). Par exemple : *« Porte 4-B, secteur fret : anomalie d'intégrité détectée. Une intervention de maintenance a été planifiée. Merci de votre patience. »* Ces messages sont fiables et toujours indirects.
 
 Le signe porte sur un événement réel, comme une porte forcée, un capteur détruit ou un passage récent. Il ne ment jamais.
+
+**Les messages d'IA Station, lot 4 (porteur, sur maquette le 2026-10-23, [ia-signes.html](../../maquette/ia-signes.html)).**
+- IA Station **peut nommer des pièces** (porteur). Elle ne nomme jamais la menace et ne donne aucun chiffre (12 §1.5). L'exemple « Porte 4-B » devient donc « Porte entre la remise et la coursive B ».
+- Quatre sortes de messages, toutes gardées par le porteur. Chacune porte sur un fait vrai au moment où elle parle :
+  - **Porte** : une porte que la créature a vraiment forcée plus tôt. « Porte entre la remise et la coursive B : intégrité compromise. Une intervention de maintenance a été planifiée. Merci de votre patience. »
+  - **Matériel** : une caméra ou le capteur du joueur qui ne répond plus, sans dire si c'est une panne ou une destruction (D-353). « Caméra de la remise : liaison perdue. Un technicien sera dépêché dès que possible. »
+  - **Passage** : une pièce où la créature est passée il y a peu (dans la fraîcheur des traces, `FRAICHEUR`). « Cambuse : détecteur de présence déclenché, puis rétabli. Aucune action n'est requise. »
+  - **Présence** : une gêne dans la pièce où elle se trouve en ce moment. « Dortoir : obstruction de la ventilation signalée. Merci de ne pas encombrer les bouches d'aération. » C'est au joueur de faire le lien.
+- **Rareté (porteur) :** « pas plus de 1 toutes les 5 min », soit **un ou deux messages par partie en grande station**. **Choix de l'agent :** au moins **30 actions** entre deux messages, et **au plus deux** par partie. Les deux sont des paramètres.
+- **Quand elle parle (choix de l'agent).** Sur la face 2, aux mêmes conditions que le signe actuel (hors traque, créature active, pas dans la pièce du joueur, joueur hors d'une salle des machines en marche). Si la créature est dans une pièce voisine, le bruit proche garde la priorité, comme aujourd'hui. Sinon, quand un message est permis (écart et plafond), IA Station parle **à la place** du bruit lourd ; sinon, le bruit lourd reste. La sorte est tirée au hasard, hors journal (D-334), parmi celles qui ont un fait vrai à dire ; « Présence » et « Passage » en ont toujours un, « Porte » et « Matériel » seulement après l'événement. Un même fait n'est pas annoncé deux fois. Les portes forcées et les caméras en panne **dès le départ** ne sont pas des faits à annoncer : IA Station ne signale que ce qui change pendant la partie.
+- **Pièces pas encore découvertes (choix de l'agent).** IA Station peut les nommer : elle connaît la station (le porteur : « l'IA peut citer des pièces »). Le nom ne s'ajoute pas à la carte : le joueur doit trouver la pièce lui-même.
+- **Partout où il y a une créature mobile**, avec ou sans salle de surveillance. Sans caméra ni capteur posé, il n'y a pas de message « Matériel ».
+- **Affichage :** le système d'aujourd'hui (D-263) : un « ! » sur IA STATION, le son d'arrivée, et le message en tête de la fenêtre, marqué « nouveau ». Rien dans le récit.
+- Le message compte comme un signe perçu à l'écran de fin, comme le bruit lointain (D-334). Il ne change pas l'aperçu de risque.
+- **Choix de l'agent :** pour « Présence », une petite liste de gênes au ton de la compagnie (ventilation, éclairage, capteur de porte, pression), tirée au hasard, toutes vraies quelle que soit la pièce. Les textes sont écrits par l'assistant principal et restent à valider par le porteur.
 
 ### 4.6 Drone éclaireur (butin)
 
@@ -149,7 +197,7 @@ Rien ne change (§3.3, D-276, D-279). La seule nouveauté est la vitesse lente p
 1. On explore et on lit le lore. Des traces, de plus en plus fraîches, montrent qu'une chose circule. Une porte défoncée au départ fait comprendre qu'il existe une zone ouverte.
 2. On ramasse deux capteurs. On en pose un à l'entrée de la zone ouverte. Un bip, plus tard : quelque chose est passé.
 3. On écoute à une porte : vague. Le joueur passe ailleurs.
-4. On trouve le poste de sécurité. Le plan montre l'embarquement dans le territoire et un capteur de la station qui détecte un mouvement dans la cuisine voisine.
+4. On trouve la salle de surveillance ; le terminal demande un mot de passe. Plus tard, un post-it dans la cambuse donne le code. Connecté, le plan entier apparaît, et une caméra détecte un mouvement dans la cuisine voisine de l'embarquement.
 5. On fait du bruit dans la cuisine par le drone. Elle y va. On ferme la porte de la cuisine derrière elle et on traverse l'embarquement.
 6. En cas d'échec : poursuite, portes, huile, comme aujourd'hui.
 
@@ -160,7 +208,7 @@ Un **réglage à « Nouvelle partie »** : Facile, Normal, Difficile. Il ne chan
 | Paramètre | Facile | Normal | Difficile |
 | --- | --- | --- | --- |
 | Capteurs et drones à trouver | nombreux | quelques-uns | rares |
-| Capteurs de la station en panne | peu | un tiers | la plupart |
+| Caméras de la station en panne au départ | peu | un tiers | la plupart |
 | Panne des capteurs du joueur | rare | occasionnelle | fréquente |
 | Actions entre deux jets du dé (N) | grand | moyen | petit |
 | Taille du territoire de départ | petite | moyenne | grande |
@@ -181,7 +229,7 @@ La taille de la station **n'est pas** un levier de difficulté. Avec une créatu
 
 ## 9. Sauvegarde
 
-L'état de partie change : liste de créatures, dé de rencontre, capteurs posés, batterie du drone, portes vues au poste, réglage de difficulté. Le format de sauvegarde change donc. Une partie en cours sauvegardée avant la mise à jour est **refusée et supprimée**, sans migration (porteur : le jeu est en développement, pas en production). C'est la zone rouge : essai manuel sur téléphone.
+L'état de partie change : liste de créatures, dé de rencontre, capteurs posés, batterie du drone, portes vues au poste, réglage de difficulté. Au lot 4 : terminal connecté, caméras détruites, messages d'IA Station déjà dits (heure du dernier, faits annoncés) ; les caméras et leurs pannes de départ viennent de la station publiée, donc de `VERSION_GENERATEUR`. Le format de sauvegarde change donc. Une partie en cours sauvegardée avant la mise à jour est **refusée et supprimée**, sans migration (porteur : le jeu est en développement, pas en production). C'est la zone rouge : essai manuel sur téléphone.
 
 ## 10. Preuve des stations
 
@@ -194,6 +242,7 @@ C'est le point le plus délicat du lot. Il doit être réglé avant toute public
 ## 11. Questions ouvertes pour le porteur
 
 - **Q-1** Étendue du territoire : à fixer après essai sur téléphone (§3.1).
+- **Q-3** Poste de surveillance et messages d'IA Station : **tranchés le 2026-10-23 sur maquettes** ([poste.html](../../maquette/poste.html), [ia-signes.html](../../maquette/ia-signes.html)) : §4.3 et §4.5.
 - **Q-2** Interface de l'écoute : **tranchée le 2026-10-22 sur maquette** ([ecouter.html](../../maquette/ecouter.html)) : pas de bouton Écouter, ATTENDRE écoute à toutes les portes (D-343 à D-347, §4.1).
 
 ## 12. Décisions à consigner après approbation
