@@ -110,6 +110,7 @@ describe('récit de fin (12 §4.11, D-281)', () => {
       `${montre(2)} Vous partez grièvement blessé, mais vivant. Vous avez entendu quelque chose bouger à bord, sans jamais le voir.`,
     );
     expect(fin([[{ type: 'capteur', etat: 'mouvement' }]])).toBe(`${montre(2)} Vous partez indemne. Vous avez entendu quelque chose bouger à bord, sans jamais le voir.`);
+    expect(fin([[{ type: 'capteur_pose', objet: objet('capteur'), piece: ATELIER, etat: 'mouvement' }]])).toBe(`${montre(2)} Vous partez indemne. Vous avez entendu quelque chose bouger à bord, sans jamais le voir.`);
     expect(fin([[{ type: 'capteur', etat: 'calme' }]])).toBe(`${montre(2)} Vous partez indemne. Vous n’avez jamais vu ce qui rôdait à bord.`);
     expect(fin([])).toBe(`${montre(1)} Vous partez indemne. Vous n’avez jamais vu ce qui rôdait à bord.`);
     expect(fin([], 'indemne', false)).toBe(`${montre(1)} Vous partez indemne.`);

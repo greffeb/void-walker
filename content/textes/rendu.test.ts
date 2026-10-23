@@ -99,6 +99,16 @@ describe('bruit de station et attentes à la suite (spec 2026-10-18 §5.5, D-289
     }
   });
 
+  it('une attente suivie d’un bruit de la créature ou d’un bip du capteur ne dit pas « Rien ne bouge »', () => {
+    for (let action = 0; action < 20; action += 1) {
+      for (const suite of [{ type: 'bruit_creature', passage: { id: 'p', nom: 'porte' } }, { type: 'capteur', etat: 'mouvement' }] as unknown as Evenement[]) {
+        const [phrase] = rendreEvenements(TEXTES, [{ type: 'attente' }, suite], { graine: 1, action });
+        expect(TEXTES.attenteEcoute).toContain(phrase);
+        expect(phrase).not.toMatch(/rien ne bouge|silence/i);
+      }
+    }
+  });
+
   it('ailleurs, le bruit de station se raconte après l’attente', () => {
     const texte = rendreEvenements(TEXTES, [{ type: 'attente' }, { type: 'bruit_station' }], { graine: 3, action: 4, attentes: 4 });
     expect(texte).toHaveLength(2);

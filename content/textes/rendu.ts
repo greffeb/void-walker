@@ -182,10 +182,10 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   if (seule && (cle.attentes === 5 || cle.attentes === 10)) return [textes.attentesLongues[cle.attentes]];
   return evenements.flatMap((evenement, index) => {
     if (evenement.type === 'assistance') return [];
-    // Une attente qui précède une écoute ne dit pas « Rien ne bouge » : la suite le contredirait.
-    const ecoute = evenement.type === 'attente' && evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte');
+    // Une attente qui n'est pas seule à raconter (écoute, bruit, bip du capteur…) ne dit pas « Rien ne bouge » : la suite le contredirait.
+    const ecoute = evenement.type === 'attente' && (!seule || evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte'));
     const vacarme = evenement.type === 'attente' && evenement.vacarme === true;
-    const variantes = ecoute ? textes.attenteEcoute : vacarme ? textes.attenteVacarme : variantesDe(textes, evenement);
+    const variantes = vacarme && !evenements.some(({ type }) => type === 'ecoute' || type === 'ecoute_couverte') ? textes.attenteVacarme : ecoute ? textes.attenteEcoute : variantesDe(textes, evenement);
     const variante = choisirVariante(variantes, `${cle.graine}:${cle.action}:${index}:${evenement.type}`);
     return [remplir(variante, valeursEvenement(textes, evenement))];
   });
