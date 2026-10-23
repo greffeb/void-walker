@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-23 (créature mobile, lot 3 : le capteur, D-349 à D-353) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
+> **Mise à jour :** 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
 
 ## Règles
 
@@ -28,7 +28,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308 à D-312](#d-308--après-nouvelle-partie-une-intro-montre-que-la-station-est-tirée-au-hasard), [D-328](#d-328--poser-la-caisse-sous-la-grille-dun-seul-geste) |
-| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-349 à D-353](#d-349--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser) |
+| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-350 à D-354](#d-349--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
@@ -2757,7 +2757,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 ### D-336 — Capteurs et drone éclaireur, trouvés comme butin
 
-- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; capteur livré au lot 3, tranché par D-349 à D-352, drone reporté par D-353 (§4.2, §4.6, §12 n° 7).
+- Date / statut : 2026-10-21 / **Validé** (conception approuvée) ; capteur livré au lot 3, tranché par D-350 à D-353, drone reporté par D-354 (§4.2, §4.6, §12 n° 7).
 - Origine : conception du 2026-10-21, approuvée par le porteur.
 - Décision : un capteur posé dans une pièce y signale un mouvement (un bip qui donne le numéro, avant le poste) ; il peut tomber en panne (réglage de difficulté) et ne marche pas dans une pièce aveugle. Le drone éclaireur est un autre butin, qui permet de voir ce qu'il y a derrière une porte. Ni l'un ni l'autre ne dit où est la créature (D-180, D-181 inchangés).
 
@@ -2883,7 +2883,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Précise : D-267 (lève sa limite « le coût d'une manœuvre n'est plus annoncé avant » pour les portes), 12 §3.4.
 - Limite [détail de l'agent] : pas de rouge, réservé aux repères de danger derrière la porte (VIDE, FEU, BRUIT). Une commande indisponible ne porte pas la marque. L'écoutille au pupitre (D-266) garde son libellé.
 
-### D-349 — Le capteur : au plus un par station, posé pour de bon par POSER
+### D-350 — Le capteur : au plus un par station, posé pour de bon par POSER
 
 - Date / statut : 2026-10-22 / **Validé** sur maquettes ([capteur.html](maquette/capteur.html), variantes A à D écartées, puis [capteur-carte.html](maquette/capteur-carte.html), variante E retenue) ; validation sur téléphone à venir. Textes de l'assistant principal, non validés par le porteur.
 - Origine : le porteur, sur les maquettes du 2026-10-22. Plan : [lot 3](superpowers/plans/2026-10-22-creature-mobile-3.md) ; conception §4.2.
@@ -2900,7 +2900,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **La preuve des stations ne bouge pas** : elle se fait sans butin et sans dé, le capteur n'y joue pas. `check:stations` passe avec 194 verdicts.
 - Ce que le porteur doit essayer sur téléphone : si le piège du cul-de-sac marche en vraie partie, et si un capteur dans une station sur cinq suffit.
 
-### D-350 — Quatre états : calme, mouvement, brouillé, panne ; brouillé tant que la pièce est aveugle
+### D-351 — Quatre états : calme, mouvement, brouillé, panne ; brouillé tant que la pièce est aveugle
 
 - Date / statut : 2026-10-22 / **Validé** sur maquette ([capteur-carte.html](maquette/capteur-carte.html), variante E) ; validation sur téléphone à venir.
 - Origine : le porteur, sur la maquette ; conception §4.2 et §4.4.
@@ -2911,7 +2911,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **La pose qui lit un mouvement est aussi en rouge**, même mot « MOUVEMENT » que le bip : un indice cohérent. Elle compte, comme le bip, comme une perception de la créature à l'écran de fin ; ni l'un ni l'autre ne change l'aperçu de risque (conception §4.1) ni ne pose de repère BRUIT.
   - **Textes** : vrai français, au ton du jeu, courts ; seul « MOUVEMENT » est en rouge, dans la couche menace.
 
-### D-351 — Sur la carte, l'icône dans sa pièce ; un « ! » sur CARTE ; le bip et son son
+### D-352 — Sur la carte, l'icône dans sa pièce ; un « ! » sur CARTE ; le bip et son son
 
 - Date / statut : 2026-10-22 / **Validé** sur maquette ([capteur-carte.html](maquette/capteur-carte.html), variante E, préférée au bandeau de la B et aux carrés près de BLESSÉ de la D, écartés) ; **le son et la discrétion du « ! » : à valider sur téléphone**.
 - Origine : le porteur, sur la maquette.
@@ -2926,7 +2926,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Le signal `capteur`** est un ton de 1 100 Hz joué deux fois, à 0 et 120 ms, plus grave et plus espacé que le signal d'IA Station ; il passe après lui dans l'ordre des signaux.
 - Ce que le porteur doit essayer sur téléphone : si le « ! » et le bip se remarquent sans gêner ; si l'icône se lit sur le plan, à toutes les échelles.
 
-### D-352 — Panne et destruction : un tirage hors journal, ses seuils, pas de destruction en traque
+### D-353 — Panne et destruction : un tirage hors journal, ses seuils, pas de destruction en traque
 
 - Date / statut : 2026-10-22 / **Validé** sur maquette pour le principe (une panne s'annonce et reste ; la créature peut détruire le capteur, qui s'affiche comme une panne) ; **seuils de l'agent à valider**, après l'essai sur téléphone.
 - Origine : le porteur, sur la maquette ; conception §4.2.
@@ -2940,7 +2940,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Pas de destruction en traque** : le contact et la poursuite se jouent déjà ailleurs.
 - Ce que le porteur doit essayer sur téléphone : si les chances de panne et de destruction sont justes.
 
-### D-353 — Le drone éclaireur est reporté
+### D-354 — Le drone éclaireur est reporté
 
 - Date / statut : 2026-10-22 / **Validé** (le porteur).
 - Origine : le porteur, sur les maquettes du capteur : les deux usages du drone (explorer une zone ouverte, servir d'appât) tirent en sens contraire sur le bruit.

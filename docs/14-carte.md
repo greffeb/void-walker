@@ -79,17 +79,17 @@ Icônes (D-273) :
 | Créature, à l'instant ou il y a un moment | Œil `alerte` : contour et pupille pleins | L'intérieur clignote, un cycle toutes les 2 s | Intérieur plein, fixe |
 | Créature, il y a longtemps | Œil `vert-secondaire`, intérieur vide | Aucune | Aucune |
 | Drone observé (D-307, #232) | Petite tête mécanique verte en pixels, œil central et pince ; dernier emplacement observé | Aucune | Aucune |
-| Capteur posé, calme (D-351) | Losange : contour et point `vert` | Aucune | Aucune |
-| Capteur posé, mouvement (D-351) | Losange plein `alerte`, point, deux ondes de chaque côté | Aucune | Aucune |
-| Capteur posé, brouillé (D-351) | Losange en pointillés `vert-secondaire`, sans point ni onde | Aucune | Aucune |
-| Capteur posé, panne ou détruit (D-351) | Losange barré d'une diagonale | Aucune | Aucune |
+| Capteur posé, calme (D-352) | Losange : contour et point `vert` | Aucune | Aucune |
+| Capteur posé, mouvement (D-352) | Losange plein `alerte`, point, deux ondes de chaque côté | Aucune | Aucune |
+| Capteur posé, brouillé (D-352) | Losange en pointillés `vert-secondaire`, sans point ni onde | Aucune | Aucune |
+| Capteur posé, panne ou détruit (D-352) | Losange barré d'une diagonale | Aucune | Aucune |
 
 - Place : au centre de la place laissée sous le texte de la pièce ; au centre de la pièce quand aucun texte n'y tient ; côte à côte, le passager à gauche, si les deux partagent une pièce. Une ancienneté qui prendrait la place de l'icône s'efface du plan.
 - Taille : fixe au dézoom, elle suit la taille du texte. L'icône marque la pièce, pas une position : les positions restent en mots dans la vue LISTE (§2.8).
 - Jamais la couleur seule : l'œil garde sa forme et l'étiquette CRÉATURE ; le clignotement ne porte aucune information que le texte ne donne pas.
 - Le drone se déduit des objets mémorisés, jamais de sa position actuelle cachée. Une pièce seulement connue ne reçoit pas son pictogramme. Sa présence reste accessible par le libellé de la pièce et sa fiche.
-- Le capteur (D-349 à D-351) marque la pièce où il est posé, qu'elle soit visitée ou non : le passager l'a fixé lui-même, la carte en donne l'état réel à chaque lecture, y compris pièce hors de vue, comme la carte révélée des versions de test. La forme dit l'état sans la couleur (ondes, pointillés, barre). La vue LISTE, la fiche de la pièce et la commande `carte` de la CLI le disent en mots : « CAPTEUR : calme », « CAPTEUR : MOUVEMENT », « CAPTEUR : brouillé », « CAPTEUR : plus de signal ». « Calme » n'est jamais affiché dans une pièce aveugle.
-- **« ! » sur CARTE** (D-351) : à chaque changement d'état du capteur, un « ! » vert à cheval sur le bord de CARTE, comme celui d'IA STATION (D-263) ; il s'éteint à l'ouverture de la carte et ne se rallume pas à la pose. Il ne survit ni aux options ni au rechargement.
+- Le capteur (D-350 à D-352) marque la pièce où il est posé, qu'elle soit visitée ou non : le passager l'a fixé lui-même, la carte en donne l'état réel à chaque lecture, y compris pièce hors de vue, comme la carte révélée des versions de test. La forme dit l'état sans la couleur (ondes, pointillés, barre). La vue LISTE, la fiche de la pièce et la commande `carte` de la CLI le disent en mots : « CAPTEUR : calme », « CAPTEUR : MOUVEMENT », « CAPTEUR : brouillé », « CAPTEUR : plus de signal ». « Calme » n'est jamais affiché dans une pièce aveugle.
+- **« ! » sur CARTE** (D-352) : à chaque changement d'état du capteur, un « ! » vert à cheval sur le bord de CARTE, comme celui d'IA STATION (D-263) ; il s'éteint à l'ouverture de la carte et ne se rallume pas à la pose. Il ne survit ni aux options ni au rechargement.
 - Avec trois présences, chaque symbole conserve son propre centre. Dans les petites pièces au dézoom, les trois dessins sont réduits ensemble pour tenir dans la pièce ; les cas à une ou deux présences restent inchangés (détail de réalisation de D-307, à vérifier sur téléphone).
 
 ### 2.6 Portes et passages

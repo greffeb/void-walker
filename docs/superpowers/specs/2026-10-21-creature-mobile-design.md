@@ -1,6 +1,6 @@
 # Créature mobile, information et difficulté — conception
 
-> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-349 à D-353.
+> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-350 à D-354.
 > **Zones :** orange pour le moteur, le vérifieur, le format des morceaux, l'appli et chaque seuil d'équilibrage ; rouge pour la sauvegarde, dont le format change (§9).
 > **Sources :** discussion du 2026-10-21 ; issues #216, #217, #241 ; D-161, D-177, D-178, D-180, D-181, D-241, D-275, D-276, D-279 ; C-03 ; 17 §1 et §7 (IA Station).
 
@@ -93,7 +93,7 @@ Le porteur sait que ces outils rendront le jeu plus facile. Le réglage de diffi
 
 ### 4.2 Capteurs (butin)
 
-Consigné par D-349 à D-352. Précisé avec le porteur le 2026-10-22 sur maquettes ([capteur.html](../../maquette/capteur.html), puis [capteur-carte.html](../../maquette/capteur-carte.html), variante E retenue), lot 3.
+Consigné par D-350 à D-353. Précisé avec le porteur le 2026-10-22 sur maquettes ([capteur.html](../../maquette/capteur.html), puis [capteur-carte.html](../../maquette/capteur-carte.html), variante E retenue), lot 3.
 
 - Objet trouvé dans les pièces à fouiller : **au plus un par station** (porteur, « déjà pas mal comme bonus »), une ligne de la table de butin.
 - **Usage visé** (porteur) : manipuler la créature. On pose un capteur dans un cul-de-sac, on en laisse la porte ouverte, on s'éloigne ; quand le capteur dit qu'elle y est, on revient fermer pour l'enfermer.
@@ -132,7 +132,7 @@ Le signe porte sur un événement réel, comme une porte forcée, un capteur dé
 
 ### 4.6 Drone éclaireur (butin)
 
-> **Reporté** par le porteur le 2026-10-22 (D-353) : le lot 3 ne livre que les capteurs. Ses deux usages (explorer une zone ouverte, servir d'appât) tirent en sens contraire sur le bruit ; à reprendre plus tard.
+> **Reporté** par le porteur le 2026-10-22 (D-354) : le lot 3 ne livre que les capteurs. Ses deux usages (explorer une zone ouverte, servir d'appât) tirent en sens contraire sur le bruit ; à reprendre plus tard.
 
 - Objet rare, distinct du drone de maintenance sur rail de M-12.
 - On l'envoie dans une pièce voisine par une porte ouverte ou entrouverte (règle de passage à préciser), puis on le pilote **pendant un nombre limité d'actions**, jusqu'à épuisement de la batterie.
@@ -204,7 +204,7 @@ C'est le point le plus délicat du lot. Il doit être réglé avant toute public
 4. Départ tiré dans le territoire, plus de place fixe par morceau (§3.2, remplace les places des morceaux).
 5. Dé de rencontre : 1 déplacement, 2 signe, sinon rien, toutes les N actions ; remplace D-048 (§3.2).
 6. Écouter à une porte, avec jet de perception et mensonge possible près des machines (§4.1).
-7. Capteurs et drone éclaireur trouvés comme butin (§4.2, §4.6). Capteur livré au lot 3 : D-349 à D-352 ; drone éclaireur reporté : D-353.
+7. Capteurs et drone éclaireur trouvés comme butin (§4.2, §4.6). Capteur livré au lot 3 : D-350 à D-353 ; drone éclaireur reporté : D-354.
 8. Poste de sécurité : plan, portes au moment de la consultation, capteurs ; jamais la créature directement (§4.3, #241).
 9. Pièces aveugles (§4.4).
 10. Signes de la face 2, dont les messages techniques d'IA Station (§4.5).

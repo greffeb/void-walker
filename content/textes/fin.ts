@@ -159,7 +159,7 @@ function relever(textes: TextesMonde, etapes: readonly (readonly Evenement[])[])
     for (const evenement of etape) {
       if (evenement.type === 'deplacement') piece = evenement.piece;
       if (evenement.type === 'premier_contact') vue = true;
-      // Un bip ou une pose qui lit un mouvement compte comme une créature perçue (créature mobile lot 3, D-350).
+      // Un bip ou une pose qui lit un mouvement compte comme une créature perçue (créature mobile lot 3, D-351).
       const ecouteNette = evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours');
       const capteurEnMouvement = (evenement.type === 'capteur' || evenement.type === 'capteur_pose') && evenement.etat === 'mouvement';
       if (PERCUE.has(evenement.type) || ecouteNette || capteurEnMouvement) percue = true;

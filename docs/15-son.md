@@ -48,7 +48,7 @@ Après chaque action jouée, l'interface compare l'observation d'avant et celle 
 | Le vide apparaît à la vue du passager de la même façon : dans sa pièce, ou par le voyant d'une porte étanche (D-224) | Alarme vide (Grave pulsé), une fois |
 | Première rencontre de la créature (événement `premier_contact` du moteur) (D-224) | Créature (Dissonance) |
 | Nombre de messages d'IA Station en hausse | IA Station (Télétype) |
-| Le capteur posé change d'état : mouvement, calme, brouillé, panne (événement `capteur` du moteur, D-351) ; pas à la pose | Capteur (Deux bips) |
+| Le capteur posé change d'état : mouvement, calme, brouillé, panne (événement `capteur` du moteur, D-352) ; pas à la pose | Capteur (Deux bips) |
 | Évacuation réussie (D-225) | Victoire (Bande qui ralentit) |
 
 Rester dans une pièce en feu, ou devant un passage ouvert sur le feu, ne fait pas resonner l'alarme ; en sortir puis y revenir la fait resonner (« à chaque entrée dans le danger », choix du porteur). Changer de pièce compte comme un passage de faux à vrai quand la nouvelle pièce brûle ou n'a plus d'air. Reprendre une partie enregistrée, ou revenir des options, ne joue aucun signal : il n'y a pas d'observation d'avant. Un refus, une consultation ou un aperçu ne change pas l'observation et ne joue aucun signal.
