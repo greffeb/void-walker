@@ -26,7 +26,7 @@ body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-heig
 .chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
 .chapeau b { color: var(--texte); font-weight: 600; }
 .etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
-.onglets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.onglets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
 .pieces { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .reglages { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
@@ -60,9 +60,13 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .sous { font-size: calc(10px * var(--echelle)); font-weight: 400; letter-spacing: .08em; color: var(--secondaire); }
 .deplacement:not(.bloque) .sous { color: var(--surface); opacity: .75; }
 
-/* Flèche : un trait SVG tourné, même graisse dans les huit sens. */
+/* Signe : un trait SVG tourné, même graisse dans les huit sens. */
 .fleche { flex: none; width: calc(16px * var(--echelle)); height: calc(16px * var(--echelle)); }
 .inconnu { flex: none; width: calc(16px * var(--echelle)); text-align: center; }
+/* Fine et chevron : plus petits, traits fins, un peu effacés, alignés sur la même colonne de 12 px. */
+.s-fine .fleche, .s-chevron .fleche { width: calc(12px * var(--echelle)); height: calc(12px * var(--echelle)); opacity: .7; }
+.s-fine .inconnu, .s-chevron .inconnu { width: calc(12px * var(--echelle)); font-size: calc(12px * var(--echelle)); font-weight: 400; opacity: .7; }
+.s-fine .deplacement, .s-chevron .deplacement { column-gap: 6px; }
 
 /* Carte de contrôle sous le téléphone. */
 .carte { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); }
@@ -84,6 +88,9 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   <p class="etiquette">Variante</p>
   <div class="onglets" role="tablist" id="variantes"></div>
+
+  <p class="etiquette">Signe</p>
+  <div class="pieces" id="signes"></div>
 
   <p class="etiquette">Pièce</p>
   <div class="pieces" id="pieces"></div>
@@ -111,9 +118,9 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   <p class="etiquette">À trancher</p>
   <ol class="questions">
-    <li><b>Quelle variante ?</b> A à D, ou un mélange (par exemple A, plus le texte de C seulement pour les passages hauts ou bas).</li>
+    <li><b>Quelle variante, quel signe ?</b> A ou B (quatre sens ou huit), et flèche épaisse, flèche fine ou chevron.</li>
     <li><b>Passage sans emplacement</b> (conduit inconnu, liaison de grande station sans <code>plan</code> complet) : garder « → » ou afficher « ? » ? Le « ? » dit franchement qu’on ne sait pas. Le « → » reprend l’ancien sens, « on peut y aller », ce qui peut tromper au milieu de flèches orientées. Réglage ci-dessus.</li>
-    <li><b>Passages hauts ou bas, et zone sans gravité</b> (D-237) : dans la maquette, la flèche suit toujours la carte, même pour la grille haute de l’atelier. Elle ne dit pas « monter ». Si la hauteur compte, C peut l’écrire en dessous (« en haut · grille haute »).</li>
+    <li><b>Passages hauts ou bas, et zone sans gravité</b> (D-237) : dans la maquette, la flèche suit toujours la carte, même pour la grille haute de l’atelier. Elle ne dit pas « monter ». Si la hauteur compte, il faudra l’écrire ailleurs (sous le nom, ou par le récit).</li>
     <li><b>Mots pour le lecteur d’écran</b> : la flèche reste <code>aria-hidden</code>. On propose « en haut, à gauche… », comme sur la carte, plutôt que « au nord » : la station n’a pas de nord. Ou ne rien dire.</li>
     <li><b>Orientation de la carte</b> : la maquette suppose qu’elle ne tourne jamais (14 §2). Si elle tournait un jour, les flèches devraient tourner avec elle.</li>
   </ol>
@@ -123,8 +130,11 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 const VARIANTES = {
   A: { nom: 'Orientée', verdict: '<b>A — flèche orientée.</b> ↑ ↓ ← → à la place du « → ». Rien à apprendre, et pas plus de place qu’aujourd’hui. Dans la salle d’embarquement, les deux portes donnent ↑ : la flèche dit de quel mur part la porte, pas laquelle des deux est à gauche.' },
   B: { nom: '+ diagonales', verdict: '<b>B — orientée, avec diagonales.</b> ↖ ↗ ↘ quand la porte est dans le quart du mur près d’un coin. Dans l’embarquement, les deux portes du mur haut se distinguent (↖ local énergie, ↗ baie). En contrepartie, ↘ vers l’embarquement depuis le local énergie se lit comme « en bas à droite », alors que la porte est sur le mur du bas.' },
-  C: { nom: 'Texte dessous', verdict: '<b>C — flèche fixe, direction écrite.</b> « → » gardé, « en haut », « à gauche »… en petit sous le nom. Se lit sans ambiguïté et se prête aux précisions (« grille haute »), mais chaque ligne prend une seconde ligne : au texte agrandi, la liste s’allonge nettement.' },
-  D: { nom: 'Statu quo', verdict: '<b>D — statu quo.</b> « → » partout, comme aujourd’hui (12 §1). Pour savoir où mène une porte, il faut ouvrir la carte.' },
+};
+const SIGNES = {
+  epaisse: { nom: 'Épaisse', verdict: 'Flèche de la première maquette : 16 px, trait de 2. Se voit bien, mais pèse autant que le nom.' },
+  fine: { nom: 'Fine', verdict: 'Flèche de 12 px, trait de 1,25, un peu effacée. On la trouve quand on la cherche ; le nom reprend la première place. Les diagonales restent lisibles.' },
+  chevron: { nom: 'Chevron', verdict: 'Chevron seul (›, ⌃…) de 12 px, sans hampe. Le plus discret, proche d’un signe d’interface ; en diagonale il devient un coin (⌐) et se lit moins bien qu’une flèche ; il va mieux avec A qu’avec B.' },
 };
 
 // Plan d'AR-01 (content/ar-01/monde.ts), en cases.
@@ -180,6 +190,7 @@ const DIAG = {
 };
 
 let variante = 'A';
+let signe = 'fine';
 let scene = 'energie';
 let agrandi = false;
 let pointInconnu = false;
@@ -210,25 +221,24 @@ function orienter(sortie) {
   return { angle: ANGLES[sortie.dir], mots: MOTS[sortie.dir] };
 }
 
+const TRACES = {
+  epaisse: { trait: 2, d: 'M8 14V3M3.5 7.5 8 3l4.5 4.5' },
+  fine: { trait: 1.25, d: 'M8 14V2.5M4 6.5 8 2.5l4 4' },
+  chevron: { trait: 1.5, d: 'M3 10.5 8 5.5l5 5' },
+};
+
 function fleche(angle) {
-  return `<svg class="fleche" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><g transform="rotate(${angle} 8 8)"><path d="M8 14V3M3.5 7.5 8 3l4.5 4.5"/></g></svg>`;
+  const { trait, d } = TRACES[signe];
+  return `<svg class="fleche" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="${trait}" stroke-linecap="square" aria-hidden="true"><g transform="rotate(${angle} 8 8)"><path d="${d}"/></g></svg>`;
 }
 
 function prefixe(sortie) {
-  if (variante === 'D' || variante === 'C') return '<span class="inconnu" aria-hidden="true">→</span>';
-  if (sortie.dir === null) return `<span class="inconnu" aria-hidden="true">${pointInconnu ? '?' : '→'}</span>`;
+  if (sortie.dir === null) return pointInconnu ? '<span class="inconnu" aria-hidden="true">?</span>' : fleche(90);
   return fleche(orienter(sortie).angle);
-}
-
-function sousTexte(sortie) {
-  if (variante !== 'C') return '';
-  const morceaux = [sortie.dir === null ? 'place inconnue' : MOTS[sortie.dir], sortie.sous].filter(Boolean);
-  return `<span class="sous">${morceaux.join(' · ')}</span>`;
 }
 
 function lu(sortie) {
   const etat = sortie.ouverte ? '' : ', fermée';
-  if (variante === 'D') return `${sortie.nom}${etat}`;
   const ou = sortie.dir === null ? (pointInconnu ? ', place inconnue' : '') : `, ${orienter(sortie).mots}`;
   return `${sortie.nom}${ou}${etat}`;
 }
@@ -237,7 +247,7 @@ function ligne(sortie) {
   const etat = sortie.ouverte ? 'Ouverte' : 'Fermée';
   const commande = `<span class="porte-etat${sortie.ouverte ? ' ouverte' : ''}"><span class="temoin" aria-hidden="true"></span>${sortie.bruyante ? `<span class="mot"><span>${etat}</span><span class="sous">Bruyante</span></span>` : etat}</span>`;
   return `<li class="salle">
-    <button type="button" class="deplacement${sortie.ouverte ? '' : ' bloque'}" aria-label="${lu(sortie)}">${prefixe(sortie)}<span class="destination"><span>${sortie.nom}</span>${sousTexte(sortie)}</span></button>
+    <button type="button" class="deplacement${sortie.ouverte ? '' : ' bloque'}" aria-label="${lu(sortie)}">${prefixe(sortie)}<span class="destination"><span>${sortie.nom}</span></span></button>
     ${commande}
   </li>`;
 }
@@ -275,8 +285,11 @@ function rendre() {
   document.getElementById('dock').innerHTML = `<h2 class="titre-section">Dans la pièce</h2>
     <div class="puces">${s.puces.map((p) => `<span class="puce">▸ ${p}</span>`).join('')}</div>
     <h2 class="titre-section">Se déplacer vers</h2>
-    <ul class="salles">${liste.map(ligne).join('')}</ul>`;
-  document.getElementById('verdict').innerHTML = VARIANTES[variante].verdict;
+    <ul class="salles s-${signe}">${liste.map(ligne).join('')}</ul>`;
+  document.getElementById('verdict').innerHTML = `${VARIANTES[variante].verdict}<br><b>${SIGNES[signe].nom}.</b> ${SIGNES[signe].verdict}`;
+  document.getElementById('signes').innerHTML = Object.entries(SIGNES)
+    .map(([id, sg]) => `<button class="onglet" data-g="${id}" aria-pressed="${id === signe}">${sg.nom}</button>`)
+    .join('');
   document.getElementById('carte').innerHTML = carte();
   document.getElementById('lecteur').innerHTML = liste.map((x) => `<li>« ${lu(x)} »</li>`).join('');
   document.getElementById('variantes').innerHTML = Object.keys(VARIANTES)
@@ -292,6 +305,10 @@ function rendre() {
 document.getElementById('variantes').addEventListener('click', (e) => {
   const v = e.target.closest('[data-v]')?.dataset.v;
   if (v !== undefined) { variante = v; rendre(); }
+});
+document.getElementById('signes').addEventListener('click', (e) => {
+  const id = e.target.closest('[data-g]')?.dataset.g;
+  if (id !== undefined) { signe = id; rendre(); }
 });
 document.getElementById('pieces').addEventListener('click', (e) => {
   const id = e.target.closest('[data-s]')?.dataset.s;
