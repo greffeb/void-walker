@@ -1,4 +1,4 @@
-import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type DefMonde, type OptionMenu, type Partie } from '../engine';
+import { apercu, CATALOGUE, empreinteEtat, jouer, nouvellePartie, observer, type CartePublique, type DefMonde, type OptionMenu, type Partie, type RefPiece } from '../engine';
 import { MONDES, nomDe, raconter, type EntreeMonde } from '../content';
 import {
   composer,
@@ -11,6 +11,7 @@ import {
   manoeuvresBruyantes,
   MARGE_BULLE,
   nomDestination,
+  nomLigne,
   nomParametre,
   nomPorte,
   nomPuce,
@@ -20,6 +21,7 @@ import {
   precedente,
   rappelDe,
   rappelRepris,
+  sensDuPassage,
   texteRappel,
   unToucher,
   type Dock,
@@ -553,5 +555,50 @@ describe('placement d’une bulle ancrée (12 §3.5)', () => {
   it('la flèche reste sur la bulle, même pour une puce collée au bord', () => {
     expect(placerBulle({ haut: 600, bas: 650, centre: 0 }, bulle, ecran).fleche).toBe(ECART_BULLE);
     expect(placerBulle({ haut: 600, bas: 650, centre: 400 }, bulle, ecran).fleche).toBe(bulle.largeur - ECART_BULLE);
+  });
+});
+
+describe('flèche orientée des lignes « Se déplacer vers » (D-349)', () => {
+  const piece: RefPiece = { sorte: 'piece', id: 'ici', nom: 'ici' } as RefPiece;
+  /** Carte réduite : la pièce actuelle, de 4 × 3 cases en (4, 3), et un seul passage. */
+  const carte = (emplacement: CartePublique['passages'][number]['emplacement']): CartePublique =>
+    ({
+      pieces: [{ piece, statut: 'actuelle', rect: { x: 4, y: 3, largeur: 4, hauteur: 3 } }],
+      passages: [{ id: 'p', emplacement }],
+      capsules: [],
+      aBord: null,
+    }) as unknown as CartePublique;
+
+  it('donne le mur de la porte, et une diagonale dans le premier ou le dernier quart du mur', () => {
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 5 }), 'p')).toBe('haut');
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 4 }), 'p')).toBe('haut-gauche');
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 6, rang: 7 }), 'p')).toBe('bas-droite');
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'v', ligne: 4, rang: 4 }), 'p')).toBe('gauche');
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'v', ligne: 8, rang: 4 }), 'p')).toBe('droite');
+  });
+
+  it('suit le bout d’un conduit qui borde la pièce', () => {
+    const trace = [
+      { x: 9, y: 0 },
+      { x: 8, y: 0 },
+      { x: 7, y: 0 },
+      { x: 7, y: 1 },
+      { x: 7, y: 2 },
+    ];
+    expect(sensDuPassage(carte({ type: 'trace', cases: trace }), 'p')).toBe('haut-droite');
+  });
+
+  it('se tait sans emplacement, sans plan, ou si le passage ne touche pas la pièce', () => {
+    expect(sensDuPassage(carte(null), 'p')).toBeNull();
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 5 }), 'autre')).toBeNull();
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'v', ligne: 12, rang: 4 }), 'p')).toBeNull();
+  });
+
+  it('oriente les lignes du salon d’AR-01 et dit le sens au lecteur d’écran', () => {
+    const ar01 = MONDES['ar-01'] as EntreeMonde;
+    const partie = nouvellePartie(ar01.monde, { version: 'ecran', graine: 20261010 });
+    const lignes = composerDock(observer(ar01.monde, partie.etat)).deplacements.map((deplacement) => [deplacement.cible.nom, deplacement.sens, nomLigne(ar01.textes, deplacement)]);
+    expect(lignes).toContainEqual(['porte', 'droite', expect.stringMatching(/^atelier maintenance, à droite/)]);
+    expect(lignes).toContainEqual(['cloison', 'bas', expect.stringContaining(', en bas')]);
   });
 });

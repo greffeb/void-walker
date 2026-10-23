@@ -98,6 +98,17 @@ export const FR = {
     porteLue: (nom: string, ouverte: boolean, bruyante: boolean): string => `${nom}, ${ouverte ? 'ouverte' : 'fermée'}${bruyante ? ', bruyante' : ''}`,
     /** Repères écrits sur la ligne d'une salle (D-267) ; le lecteur d'écran les lit en minuscules après le nom. */
     reperes: { vide: 'Vide', feu: 'Feu', bruit: 'Bruit' },
+    /** Sens de la flèche d'une ligne de salle, lu après le nom : où s'ouvre la porte sur la carte (D-349). */
+    sens: {
+      haut: 'en haut',
+      'haut-droite': 'en haut à droite',
+      droite: 'à droite',
+      'bas-droite': 'en bas à droite',
+      bas: 'en bas',
+      'bas-gauche': 'en bas à gauche',
+      gauche: 'à gauche',
+      'haut-gauche': 'en haut à gauche',
+    },
     attention: 'Attention',
     sante: { blesse: '! BLESSÉ', critique: '!! CRITIQUE', blesseLu: 'État : blessé', critiqueLu: 'État : critique' },
     sauvegardeEchouee: 'La sauvegarde a échoué. Vous pouvez continuer : elle sera retentée à la prochaine action.',

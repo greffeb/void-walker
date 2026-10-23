@@ -3174,7 +3174,8 @@ export async function capturer(options: { readonly droneSeul?: boolean } = {}): 
         if (piece !== essai.aller.nom.toLowerCase()) erreurs.push(`Double toucher sur « → ${essai.aller.bouton} » : arrivée en « ${piece} ».`);
         await capturerEtape(`« → ${essai.aller.nom} » touché deux fois : un seul déplacement`);
         // Au clavier, retour par le même passage : le focus va au récit ; un second Entrée ne rejoue pas le bouton réutilisé.
-        const retour = page.locator('.dock .deplacements .deplacement').filter({ hasText: new RegExp(`^→\\s*${echapper(essai.depart)}`, 'i') });
+        // La flèche orientée est un dessin sans texte ; seule une ligne sans emplacement garde « → » (D-349).
+        const retour = page.locator('.dock .deplacements .deplacement').filter({ hasText: new RegExp(`^(→\\s*)?${echapper(essai.depart)}`, 'i') });
         if ((await retour.count()) === 0) {
           erreurs.push('Aucun déplacement d’un seul toucher pour l’essai au clavier.');
         } else {
