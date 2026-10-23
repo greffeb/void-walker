@@ -1,0 +1,86 @@
+{
+  "telephone": "Pixel 7",
+  "ecrans": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 568
+    },
+    {
+      "width": 412,
+      "height": 915
+    }
+  ],
+  "installable": "non vérifiée",
+  "horsLigne": "non vérifié",
+  "erreurs": [
+    "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.dock .deplacements').getByRole('button', { name: /^Porte de l’atelier, fermée$/i })\n"
+  ],
+  "erreursAr01": [],
+  "erreursAr02": [],
+  "erreursPlans": [],
+  "erreursCarte": [],
+  "erreursStation": [],
+  "erreursFins": [],
+  "etapes": [
+    {
+      "suite": "monde-test",
+      "titre": "Accueil sans partie active",
+      "image": "",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Réveil — monde-test",
+      "image": "",
+      "recit": "Vous ouvrez les yeux dans la cabine. La lumière de veille grésille au plafond, d’un blanc sale. L’air recyclé a un goût de métal. Aucune voix ne vous parvient.\n« Merci de rester dans votre cabine jusqu’à nouvel ordre. »",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Accueil avec partie en cours",
+      "image": "",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Confirmation du remplacement",
+      "image": "",
+      "recit": "",
+      "situation": "",
+      "partage": ""
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Départ",
+      "image": "",
+      "recit": "Regarder autour de vous\nUne cabine étroite, aux parois capitonnées de mousse grise. La couchette est vide, ses sangles pendent. Une lumière de veille, d’un blanc sale, éclaire le tout.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Bulle « Carnet » ouverte",
+      "image": "",
+      "recit": "Aller vers · atelier\nCe passage est fermé : vous ne pouvez pas le franchir.",
+      "situation": "Vous êtes dans la cabine.\nVous voyez ici un carnet.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous ne portez rien.",
+      "partage": "Récit : 15,6 lignes visibles ; boutons du dock tous visibles."
+    },
+    {
+      "suite": "monde-test",
+      "titre": "Prendre le carnet",
+      "image": "",
+      "recit": "Carnet · Prendre\nVous prenez le carnet. Le contact est froid sous vos doigts.",
+      "situation": "Vous êtes dans la cabine.\nRien ne traîne ici.\nLa porte de l’atelier est fermée.\nLa grille de la soute est fermée.\nVous portez le carnet.",
+      "partage": "Récit : 17,3 lignes visibles ; boutons du dock tous visibles."
+    }
+  ]
+}
