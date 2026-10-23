@@ -63,10 +63,12 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Signe : un trait SVG tourné, même graisse dans les huit sens. */
 .fleche { flex: none; width: calc(16px * var(--echelle)); height: calc(16px * var(--echelle)); }
 .inconnu { flex: none; width: calc(16px * var(--echelle)); text-align: center; }
-/* Fine et chevron : plus petits, traits fins, un peu effacés, alignés sur la même colonne de 12 px. */
-.s-fine .fleche, .s-chevron .fleche { width: calc(12px * var(--echelle)); height: calc(12px * var(--echelle)); opacity: .7; }
-.s-fine .inconnu, .s-chevron .inconnu { width: calc(12px * var(--echelle)); font-size: calc(12px * var(--echelle)); font-weight: 400; opacity: .7; }
-.s-fine .deplacement, .s-chevron .deplacement { column-gap: 6px; }
+/* Moyenne (14 px) et fine (12 px) : plus petites, traits plus fins, un peu effacées. */
+.s-moyenne .fleche { width: calc(14px * var(--echelle)); height: calc(14px * var(--echelle)); opacity: .85; }
+.s-moyenne .inconnu { width: calc(14px * var(--echelle)); font-size: calc(13px * var(--echelle)); opacity: .85; }
+.s-fine .fleche { width: calc(12px * var(--echelle)); height: calc(12px * var(--echelle)); opacity: .7; }
+.s-fine .inconnu { width: calc(12px * var(--echelle)); font-size: calc(12px * var(--echelle)); font-weight: 400; opacity: .7; }
+.s-moyenne .deplacement, .s-fine .deplacement { column-gap: 6px; }
 
 /* Carte de contrôle sous le téléphone. */
 .carte { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); }
@@ -118,7 +120,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   <p class="etiquette">À trancher</p>
   <ol class="questions">
-    <li><b>Quelle variante, quel signe ?</b> A ou B (quatre sens ou huit), et flèche épaisse, flèche fine ou chevron.</li>
+    <li><b>Quelle variante, quel signe ?</b> A ou B (quatre sens ou huit), et quelle épaisseur de flèche : 16, 14 ou 12 px.</li>
     <li><b>Passage sans emplacement</b> (conduit inconnu, liaison de grande station sans <code>plan</code> complet) : garder « → » ou afficher « ? » ? Le « ? » dit franchement qu’on ne sait pas. Le « → » reprend l’ancien sens, « on peut y aller », ce qui peut tromper au milieu de flèches orientées. Réglage ci-dessus.</li>
     <li><b>Passages hauts ou bas, et zone sans gravité</b> (D-237) : dans la maquette, la flèche suit toujours la carte, même pour la grille haute de l’atelier. Elle ne dit pas « monter ». Si la hauteur compte, il faudra l’écrire ailleurs (sous le nom, ou par le récit).</li>
     <li><b>Mots pour le lecteur d’écran</b> : la flèche reste <code>aria-hidden</code>. On propose « en haut, à gauche… », comme sur la carte, plutôt que « au nord » : la station n’a pas de nord. Ou ne rien dire.</li>
@@ -132,9 +134,9 @@ const VARIANTES = {
   B: { nom: '+ diagonales', verdict: '<b>B — orientée, avec diagonales.</b> ↖ ↗ ↘ quand la porte est dans le quart du mur près d’un coin. Dans l’embarquement, les deux portes du mur haut se distinguent (↖ local énergie, ↗ baie). En contrepartie, ↘ vers l’embarquement depuis le local énergie se lit comme « en bas à droite », alors que la porte est sur le mur du bas.' },
 };
 const SIGNES = {
-  epaisse: { nom: 'Épaisse', verdict: 'Flèche de la première maquette : 16 px, trait de 2. Se voit bien, mais pèse autant que le nom.' },
-  fine: { nom: 'Fine', verdict: 'Flèche de 12 px, trait de 1,25, un peu effacée. On la trouve quand on la cherche ; le nom reprend la première place. Les diagonales restent lisibles.' },
-  chevron: { nom: 'Chevron', verdict: 'Chevron seul (›, ⌃…) de 12 px, sans hampe. Le plus discret, proche d’un signe d’interface ; en diagonale il devient un coin (⌐) et se lit moins bien qu’une flèche ; il va mieux avec A qu’avec B.' },
+  epaisse: { nom: '16 px', verdict: 'Flèche de la première maquette : 16 px, trait de 2. Se voit bien, mais pèse autant que le nom.' },
+  moyenne: { nom: '14 px', verdict: 'Flèche de 14 px, trait de 1,5, à peine effacée. Entre les deux : se voit d’un coup d’œil sans rivaliser avec le nom.' },
+  fine: { nom: '12 px', verdict: 'Flèche de 12 px, trait de 1,25, un peu effacée. On la trouve quand on la cherche ; le nom reprend la première place. Les diagonales restent lisibles.' },
 };
 
 // Plan d'AR-01 (content/ar-01/monde.ts), en cases.
@@ -223,8 +225,8 @@ function orienter(sortie) {
 
 const TRACES = {
   epaisse: { trait: 2, d: 'M8 14V3M3.5 7.5 8 3l4.5 4.5' },
+  moyenne: { trait: 1.5, d: 'M8 14V2.5M3.75 6.75 8 2.5l4.25 4.25' },
   fine: { trait: 1.25, d: 'M8 14V2.5M4 6.5 8 2.5l4 4' },
-  chevron: { trait: 1.5, d: 'M3 10.5 8 5.5l5 5' },
 };
 
 function fleche(angle) {
