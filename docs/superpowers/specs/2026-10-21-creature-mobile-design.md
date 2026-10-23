@@ -104,7 +104,7 @@ Consigné par D-349 à D-352. Précisé avec le porteur le 2026-10-22 sur maquet
 - Un capteur peut **tomber en panne**. La panne **s'annonce** (« CAPTEUR : PLUS DE SIGNAL. ») et reste barrée jusqu'à la fin. La probabilité est un réglage de difficulté.
 - **La créature peut détruire un capteur** de la pièce où elle se trouve. Il s'affiche comme une panne : le joueur ne sait pas lequel des deux.
 - **Pièce aveugle** (porteur) : on peut y poser le capteur, mais il est **brouillé** tant que la pièce l'est (machines en marche, chambre froide). C'est un quatrième état, temporaire : il redevient calme ou MOUVEMENT quand les machines s'arrêtent. « Calme » n'est jamais affiché dans une pièce aveugle.
-- **Choix de l'agent** : la destruction se tire avec le dé de rencontre, quand la créature reste dans la pièce du capteur (chance en paramètre de difficulté) ; le capteur ne capte que la créature, pas le joueur ; le bip ne s'entend pas, il n'attire rien.
+- **Choix de l'agent** : la destruction se tire sur un dé à part (haché `capteur:<graine>:<action>`, comme celui de rencontre), quand la créature reste dans la pièce du capteur (chance en paramètre de difficulté) ; le capteur ne capte que la créature, pas le joueur ; le bip ne s'entend pas, il n'attire rien.
 
 ### 4.3 Poste de sécurité (#241)
 

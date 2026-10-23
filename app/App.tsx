@@ -220,6 +220,7 @@ export function App({
         return;
       }
       const lus = await lireLus(env, demarrage.jeu.partie);
+      // shortcut: le « ! » de CARTE se perd hors de l'écran de jeu ; à garder avec les messages lus si le porteur le regrette.
       setEcran({ type: 'jeu', jeu: demarrage.jeu, lus, signaux: AUCUN_SIGNAL, carteANouveau: false });
     } finally {
       setOccupe(false);
@@ -408,6 +409,7 @@ export function App({
               if (enCours === null) return;
               // Depuis le jeu, retour au même écran, sans réécrire le récit ; depuis l'accueil, comme REPRENDRE LA PARTIE.
               const reveil = ecran.depuis === 'accueil' && enCours.partie.etat.actions === 0;
+              // shortcut: le « ! » de CARTE se perd hors de l'écran de jeu ; à garder avec les messages lus si le porteur le regrette.
               setEcran(reveil ? { type: 'reveil', jeu: enCours, lus: ecran.lus } : { type: 'jeu', jeu: enCours, lus: ecran.lus, signaux: AUCUN_SIGNAL, carteANouveau: false });
             }}
             version={version}

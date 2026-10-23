@@ -169,7 +169,7 @@ describe('compositions des grandes stations (D-313, D-315)', () => {
       expect(capteurs, id).toBeLessThanOrEqual(1);
       avecCapteur += capteurs;
     }
-    // la part suit les graines publiées, pas seulement les poids (0,16 mesuré, 2026-10-23)
+    // la part suit les graines publiées, pas seulement les poids (0,16 mesuré sur les 200 premières publiées, 0,19 sur 400, 2026-10-23)
     expect(premieres).toHaveLength(200);
     expect(avecCapteur / premieres.length).toBeGreaterThanOrEqual(0.1);
     expect(avecCapteur / premieres.length).toBeLessThanOrEqual(0.9);
