@@ -49,6 +49,8 @@ export interface Deplacement extends Groupe {
   readonly passer: OptionMenu;
   /** Ouvrir ou fermer la porte ; absent pour un passage sans porte à manœuvrer. */
   readonly manoeuvre: OptionMenu | undefined;
+  /** La manœuvre fera du bruit : sa commande porte « Bruyante » sous son état (D-348). */
+  readonly bruyante: boolean;
   readonly reperes: readonly Repere[];
 }
 
@@ -61,14 +63,21 @@ function grouper(cibles: readonly (RefObjet | RefPassage)[], options: readonly O
 /**
  * Range chaque option du menu moteur à une seule place de l'écran (12 §3.4). `ouverts` : passages que le passager a déjà
  * ouverts, retrouvés dans l'enregistrement (`passagesOuverts`) ; refermés, ils restent des passages (D-229). `entendus` : passages
- * derrière lesquels la créature vient de bouger (`passagesEntendus`).
+ * derrière lesquels la créature vient de bouger (`passagesEntendus`). `bruyants` : passages dont la manœuvre fera du bruit
+ * (`manoeuvresBruyantes`).
  */
-export function composerDock(observation: Observation, ouverts: readonly string[] = [], entendus: readonly string[] = []): Dock {
+export function composerDock(
+  observation: Observation,
+  ouverts: readonly string[] = [],
+  entendus: readonly string[] = [],
+  bruyants: readonly string[] = [],
+): Dock {
   const deplacements = observation.passages.flatMap((passage): Deplacement[] => {
     const options = observation.menu.filter((option) => option.cible.id === passage.id);
     const aller = options.find((option) => option.action === 'aller');
     if (aller === undefined || !connuCommePassage(passage, ouverts)) return [];
     const deriver = options.find((option) => option.action === 'deriver' && option.disponible);
+    const manoeuvre = options.find((option) => option.action === 'ouvrir' || option.action === 'fermer');
     const reperes: Repere[] = [];
     if (passage.vide) reperes.push('vide');
     if (passage.feu) reperes.push('feu');
@@ -79,7 +88,8 @@ export function composerDock(observation: Observation, ouverts: readonly string[
         aller,
         options: [aller, ...options.filter((option) => option !== aller)],
         passer: aller.disponible || deriver === undefined ? aller : deriver,
-        manoeuvre: options.find((option) => option.action === 'ouvrir' || option.action === 'fermer'),
+        manoeuvre,
+        bruyante: manoeuvre !== undefined && bruyants.includes(passage.id),
         reperes,
       },
     ];
@@ -128,6 +138,18 @@ export function passagesEntendus(partie: Partie): string[] {
     if (evenement.type === 'bruit_creature' || evenement.type === 'bruit_proche') return [evenement.passage.id];
     if (evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours')) return [evenement.passage.id];
     return [];
+  });
+}
+
+/**
+ * Passages dont ouvrir ou fermer fera du bruit, selon le coût de l'aperçu moteur : une porte grippée à ouvrir, mais pas à
+ * fermer, ni dans une salle des machines en marche qui couvre le geste (D-163, D-348). Une manœuvre indisponible n'en a pas.
+ */
+export function manoeuvresBruyantes(monde: DefMonde, partie: Partie, observation: Observation): string[] {
+  return observation.menu.flatMap((option) => {
+    if (option.cible.sorte !== 'passage' || (option.action !== 'ouvrir' && option.action !== 'fermer')) return [];
+    const resultat = apercu(monde, partie, option.commande);
+    return resultat.type === 'apercu' && resultat.apercu.cout === 'bruyant' ? [option.cible.id] : [];
   });
 }
 
@@ -269,9 +291,9 @@ export function nomLigne(textes: TextesMonde, deplacement: Deplacement): string 
   return [nomDestination(textes, deplacement.passer), ...reperes, ...(raison === null ? [] : [raison])].join(', ');
 }
 
-/** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée » (D-267). */
+/** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée », « …, bruyante » (D-267, D-348). */
 export function nomPorte(textes: TextesMonde, deplacement: Deplacement): string {
-  return LIBELLES.jeu.porteLue(nomPuce(textes, deplacement.cible), deplacement.cible.ouvert);
+  return LIBELLES.jeu.porteLue(nomPuce(textes, deplacement.cible), deplacement.cible.ouvert, deplacement.bruyante);
 }
 
 /** Fil d'une bulle (12 §3.5, §4.3) : « Carnet », « Carnet › Prendre », « Caisse › Déplacer › sous la grille », « Aller vers › atelier ». */

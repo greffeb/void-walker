@@ -2873,3 +2873,12 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **On ne nomme jamais la créature** hors de la couche menace, et on ne dit jamais « elle est derrière cette porte ».
   - **Textes** écrits par l'assistant principal, non validés par le porteur.
 - Ce que le porteur doit essayer sur téléphone : si attendre devant une porte devient un réflexe utile ; si net, vague et rien se lisent bien ; si le rouge aide sans tenir la main ; si le texte reste court quand on attend plusieurs fois.
+
+### D-348 — Porte bruyante : « BRUYANTE » sous l'état de sa commande
+
+- Date / statut : 2026-10-23 / **Validé** sur [maquette](maquette/portes-bruyantes.html) ; validation sur téléphone à venir.
+- Origine : #250, « le joueur ne sait pas qu'ouvrir la porte fera du bruit » : depuis D-267, ouvrir se joue d'un toucher, sans aperçu, et le coût n'était plus annoncé. Choix du porteur sur la maquette comparée (couleur, icône, sous-texte, et deux mélanges) : **sous-texte** (C) ; « la marque reste si l'action va refaire du bruit ».
+- Décision : quand ouvrir ou fermer une porte fera du bruit, sa commande porte « BRUYANTE » en petit, couleur secondaire, sous son état : « □ FERMÉE / BRUYANTE ». Les portes silencieuses gardent leur commande. Le lecteur d'écran lit « Porte de l'atelier, fermée, bruyante ».
+- Règle : la marque suit le coût que le moteur annonce pour la manœuvre (`cout: 'bruyant'` de l'aperçu, D-150). Une porte grippée l'a fermée, plus une fois ouverte (la refermer ne fait pas de bruit) ; dans une salle des machines en marche, dont le vacarme couvre le geste (D-163), elle ne l'a pas.
+- Précise : D-267 (lève sa limite « le coût d'une manœuvre n'est plus annoncé avant » pour les portes), 12 §3.4.
+- Limite [détail de l'agent] : pas de rouge, réservé aux repères de danger derrière la porte (VIDE, FEU, BRUIT). Une commande indisponible ne porte pas la marque. L'écoutille au pupitre (D-266) garde son libellé.

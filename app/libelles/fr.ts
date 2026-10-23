@@ -92,9 +92,9 @@ export const FR = {
     question: 'Où ?',
     apercu: { risque: 'Risque', cout: 'Coût', savoir: 'Savoir' },
     confirmer: 'Confirmer',
-    porte: { ouverte: 'Ouverte', fermee: 'Fermée' },
-    /** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée » (D-267). */
-    porteLue: (nom: string, ouverte: boolean): string => `${nom}, ${ouverte ? 'ouverte' : 'fermée'}`,
+    porte: { ouverte: 'Ouverte', fermee: 'Fermée', bruyante: 'Bruyante' },
+    /** Nom accessible de la commande d'une porte : « Porte de l'atelier, fermée », « …, bruyante » (D-267, D-348). */
+    porteLue: (nom: string, ouverte: boolean, bruyante: boolean): string => `${nom}, ${ouverte ? 'ouverte' : 'fermée'}${bruyante ? ', bruyante' : ''}`,
     /** Repères écrits sur la ligne d'une salle (D-267) ; le lecteur d'écran les lit en minuscules après le nom. */
     reperes: { vide: 'Vide', feu: 'Feu', bruit: 'Bruit' },
     attention: 'Attention',

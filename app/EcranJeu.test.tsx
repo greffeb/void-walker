@@ -155,14 +155,19 @@ describe('écran de jeu « Phosphore » (12 §3.1 à §3.4, §7, §11)', () => {
 
   it('dock : objets de la pièce, regard autour de soi ; une ligne par salle, nom et état de sa porte, sans bulle (D-267)', async () => {
     const dock = entre(rendre(await commencer(env)), '<section class="dock"', '</section>');
-    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder ▸ Attendre Se déplacer vers → atelier Fermée → soute Fermée');
+    expect(texte(dock)).toBe('Dans la pièce ▸ Carnet ▸ Regarder ▸ Attendre Se déplacer vers → atelier Fermée Bruyante → soute Fermée');
     // Porte fermée : nom en pointillé, toujours touchable ; le moteur refuse sans coût, le son dit le refus.
     const nom = entre(dock, '<button type="button" class="deplacement', '</button>');
     expect(nom).toContain('class="deplacement bloque" aria-label="atelier, La porte de l’atelier est fermée." data-son="refus"');
     expect(nom).not.toMatch(/disabled=""|aria-haspopup/);
-    const porte = entre(dock, '<button type="button" class="porte-etat', '</button>');
+    // La porte de l'atelier est grippée : « Bruyante » sous son état, lu avec lui (D-348)  ; la grille de la soute, non.
+    const [porte, soute] = dock.match(/<button type="button" class="porte-etat.*?<\/button>/g) ?? [];
     expect(porte).toBe(
-      '<button type="button" class="porte-etat" aria-label="Porte de l’atelier, fermée" data-son="confirmer"><span class="temoin" aria-hidden="true"></span>Fermée</button>',
+      '<button type="button" class="porte-etat" aria-label="Porte de l’atelier, fermée, bruyante" data-son="confirmer"><span class="temoin" aria-hidden="true"></span>' +
+        '<span class="porte-mots"><span>Fermée</span><span class="porte-bruyante">Bruyante</span></span></button>',
+    );
+    expect(soute).toBe(
+      '<button type="button" class="porte-etat" aria-label="Grille de la soute, fermée" data-son="confirmer"><span class="temoin" aria-hidden="true"></span>Fermée</button>',
     );
     // « Regarder » et « Attendre » sur une ligne, d'un toucher ; le lecteur d'écran garde « Regarder autour de vous » (D-274).
     expect(entre(dock, '<div class="autour">', '</div>')).toBe(
