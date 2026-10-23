@@ -136,6 +136,8 @@ export interface TextesMonde {
   readonly ecoute: Readonly<Record<EntenduRecit, Variantes>>;
   /** Phrase d'attente qui précède une écoute, à la place de celle de `evenements.attente`. */
   readonly attenteEcoute: Variantes;
+  /** Phrase d'attente dans une salle des machines en marche : le vacarme, jamais le silence (#251). */
+  readonly attenteVacarme: Variantes;
   /** Attente seule à raconter, 5e et 10e de suite (#225). */
   readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */

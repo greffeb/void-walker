@@ -212,6 +212,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   }
   for (const [cle, variantes] of Object.entries(textes.ecoute)) verifierVariantes(erreurs, `écoute ${cle}`, variantes, ['passage']);
   verifierVariantes(erreurs, 'attente avant écoute', textes.attenteEcoute, []);
+  verifierVariantes(erreurs, 'attente dans le vacarme', textes.attenteVacarme, []);
   for (const [cle, phrase] of Object.entries(textes.attentesLongues)) verifierGabarit(erreurs, `attente longue ${cle}`, phrase, []);
   for (const { id } of monde.assistance ?? []) {
     const message = textes.assistance[id] as unknown;

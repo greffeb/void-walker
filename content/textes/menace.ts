@@ -65,6 +65,11 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
     machines: ['Derrière {le:passage}, le grondement des machines couvre tout ; on croit y entendre des coups, sans savoir lesquels.'],
     froid: ['Contre {le:passage}, le métal glacé ne laisse passer que le ronron du compresseur.'],
   },
+  attenteVacarme: [
+    'Vous restez immobile. Le grondement des machines vous traverse la poitrine.',
+    'Vous attendez, les mains sur les oreilles. Le fracas ne faiblit pas.',
+    'Vous ne bougez pas. Le martèlement des machines fait vibrer le plancher sous vos pieds.',
+  ],
   attenteEcoute: ['Vous restez immobile, l’oreille tendue.', 'Vous retenez votre souffle et vous écoutez.'],
   // Traces de la piste (spec 2026-10-18 §5.4) : une phrase entière, vraie dans toute pièce où elle est passée. Légères loin de
   // son repaire, fortes à deux portes ou moins. Elles disent qu'elle est passée, jamais où elle est. Écrites par l'assistant

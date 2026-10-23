@@ -966,7 +966,7 @@ const attendre: ActionEngagee = {
   cibles: ({ etat }) => [etat.piece],
   verifier: ({ etat }, cible) => (cible === etat.piece ? null : 'cible_absente'),
   prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
-  appliquer: ({ etat }) => ({ etat, evenements: [{ type: 'attente' }] }),
+  appliquer: ({ monde, etat }) => ({ etat, evenements: [assourdie(monde, etat, etat.piece) ? { type: 'attente', vacarme: true } : { type: 'attente' }] }),
 };
 
 /** Catalogue unique (C-01 §2) : construit le menu et valide les commandes. */
