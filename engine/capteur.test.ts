@@ -112,6 +112,16 @@ describe('dans le pas', () => {
     const sort = graines((g) => sansPanne(g) && capteurs(cote(GRAND, depuis, g).evenements).length > 0)[0]!;
     expect(capteurs(cote(GRAND, depuis, sort).evenements)).toEqual([{ type: 'capteur', etat: 'calme' }]);
   });
+  it('au pas de la pose, un bip rattrape l’état que la créature change dans le même pas (M-1)', () => {
+    // Posé depuis le cagibi, le capteur tient à la coursive : la créature peut y entrer sans être en vue.
+    const depart = etatPose('s', 'k', creatureEn('r'), { objets: { capteur: { type: 'passager' } } });
+    const g = graines((graine) => sansPanne(graine) && capteurs(cote(GRAND, depart, graine, 'poser').evenements).length > 0)[0]!;
+    const r = cote(GRAND, depart, g, 'poser');
+    const pose = r.evenements.find((e) => e.type === 'capteur_pose');
+    expect(pose).toEqual(expect.objectContaining({ etat: 'calme' }));
+    expect(capteurs(r.evenements)).toEqual([{ type: 'capteur', etat: capteurPose(GRAND, r.partie.etat)!.etat }]);
+    expect(capteurs(r.evenements)).not.toEqual([{ type: 'capteur', etat: 'calme' }]);
+  });
   it('rien ne change : aucun événement capteur', () => {
     for (const g of graines((graine) => sansPanne(graine) && faceRencontre(graine, 1, 1) !== 1, 50)) {
       expect(capteurs(cote(GRAND, etatPose('m', 'r', creatureEn('k')), g).evenements)).toEqual([]);
