@@ -6,6 +6,7 @@ import { FicheCarte } from './FicheCarte';
 import { ListeCarte } from './ListeCarte';
 import { PlanCarte } from './PlanCarte';
 import { borner, cadreConnu, vueInitiale, zoomMin, type Taille, type Vue } from './vue';
+import { LIBELLES } from '../libelles';
 
 /** Fiche ouverte : la pièce, par identifiant public, et son bouton, qui reprend le focus à la fermeture (12 §7). */
 interface FicheOuverte {
@@ -123,7 +124,7 @@ export function EcranCarte({ carte, textes, fermer }: { readonly carte: CartePub
             {mode === 'plan' ? MOTS_CARTE.liste : MOTS_CARTE.plan}
           </button>
         )}
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer-carte">
+        <button type="button" className="bulle-icone" aria-label={LIBELLES.commun.fermer} onClick={fermer} data-son="fermer-carte">
           <span aria-hidden="true">✕</span>
         </button>
       </header>

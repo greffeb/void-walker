@@ -214,6 +214,7 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
   verifierVariantes(erreurs, 'attente avant écoute', textes.attenteEcoute, []);
   for (const [cle, variantes] of Object.entries(textes.capteur)) verifierVariantes(erreurs, `capteur ${cle}`, variantes, []);
   for (const [cle, variantes] of Object.entries(textes.capteurPose)) verifierVariantes(erreurs, `pose du capteur ${cle}`, variantes, []);
+  verifierVariantes(erreurs, 'attente dans le vacarme', textes.attenteVacarme, []);
   for (const [cle, phrase] of Object.entries(textes.attentesLongues)) verifierGabarit(erreurs, `attente longue ${cle}`, phrase, []);
   for (const { id } of monde.assistance ?? []) {
     const message = textes.assistance[id] as unknown;

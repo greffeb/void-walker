@@ -1,0 +1,200 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portes bruyantes Void Walker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette #250 : distinguer une porte bruyante sur sa commande d'état (D-267) avant de l'ouvrir. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --alerte: #ff5a4a;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --echelle: 1;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.reglages { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true], .onglet[aria-pressed=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 700px; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: calc(15px * var(--echelle)); }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.recit .ancien { opacity: .5; }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.puces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.puce { text-align: left; border: 1px solid var(--bordure); padding: 8px 10px; font-size: calc(14px * var(--echelle)); min-height: 46px; display: flex; align-items: center; opacity: .45; }
+.salles { display: grid; gap: 6px; }
+.salle { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+
+/* Ligne et commande, reprises de app/styles.css (D-267). */
+.deplacement { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; min-height: 48px; padding: 8px 12px; font: inherit; font-size: calc(15px * var(--echelle)); font-weight: 600; line-height: 1.3; text-align: left; text-transform: uppercase; color: var(--fond); background: var(--texte); border: 1px solid var(--texte); min-width: 0; }
+.deplacement.bloque { color: var(--texte); background: transparent; border: 1px dashed var(--texte); }
+.deplacement .destination { min-width: 0; overflow-wrap: anywhere; }
+.deplacement.repere-danger { box-shadow: inset 4px 0 0 var(--alerte); }
+.repere { margin-left: auto; padding: 0 5px; font-size: calc(12px * var(--echelle)); letter-spacing: .06em; color: var(--alerte); background: var(--fond); border: 1px solid var(--alerte); }
+
+.porte-etat { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 112px; min-height: 48px; padding: 4px 10px; font: inherit; font-size: calc(13px * var(--echelle)); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texte); background: transparent; border: 1px solid var(--bordure); cursor: pointer; }
+.porte-etat.ouverte { background: var(--surface); }
+.temoin { flex: none; width: 9px; height: 9px; border: 1px solid currentColor; }
+.porte-etat.ouverte .temoin { background: var(--accent); border-color: var(--accent); }
+.porte-etat:active { background: var(--texte); color: var(--fond); }
+
+/* ---- Variantes de la porte bruyante ---- */
+.mot { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.sous { font-size: calc(10px * var(--echelle)); font-weight: 400; letter-spacing: .08em; color: var(--secondaire); }
+.son { flex: none; width: calc(15px * var(--echelle)); height: calc(15px * var(--echelle)); }
+
+/* A — couleur : la commande prend le rouge d'alerte. */
+.v-a .porte-etat.bruyante { color: var(--alerte); border-color: var(--alerte); }
+/* B — icône : un haut-parleur après le mot, couleur inchangée. */
+/* C — sous-texte « bruyante » sous le mot. */
+/* D — icône + sous-texte. */
+.v-d .porte-etat.bruyante .son { color: var(--accent); }
+/* E — couleur + sous-texte : bordure pleine rouge, sous-texte rouge, mot inchangé. */
+.v-e .porte-etat.bruyante { border-color: var(--alerte); }
+.v-e .porte-etat.bruyante .sous { color: var(--alerte); font-weight: 600; }
+
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+.questions { font-size: 13px; color: var(--secondaire); margin: 0; padding-left: 18px; }
+.questions li { margin-bottom: 4px; }
+.questions b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Issue <b>#250</b>. Dans la coursive : la porte de l’<b>embarquement</b> est <b>grippée</b> : l’ouvrir fait du bruit (D-063). Les autres portes sont silencieuses et gardent la commande actuelle. Touchez une commande pour l’ouvrir ou la fermer ; le récit dit ce qui se passe.</p>
+
+  <p class="etiquette">Variante</p>
+  <div class="onglets" role="tablist" id="variantes"></div>
+
+  <p class="etiquette">Réglages</p>
+  <div class="reglages">
+    <button class="onglet" id="agrandi" aria-pressed="false">Texte agrandi</button>
+    <button class="onglet" id="bruit" aria-pressed="false">Repère BRUIT</button>
+  </div>
+
+  <div class="tel">
+    <header class="entete"><h1>Coursive</h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <nav class="nav"><span>CARTE</span><span>SAC</span><span>MENU</span></nav>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+
+  <p class="etiquette">À trancher</p>
+  <ol class="questions">
+    <li><b>Quelle variante ?</b> A à E, ou un mélange.</li>
+    <li><b>Ouverte, la marque reste-t-elle ?</b> Si refermer la porte grippée fait aussi du bruit, oui ; sinon elle disparaît une fois la porte ouverte. Dans la maquette, elle reste.</li>
+    <li><b>Lecteur d’écran</b> : proposer « Porte de l’embarquement, fermée, bruyante ».</li>
+  </ol>
+</div>
+
+<script>
+const VARIANTES = {
+  A: { nom: 'Couleur', verdict: '<b>A — couleur.</b> Le mot et le cadre passent au rouge d’alerte. Très visible, mais le rouge veut déjà dire « danger derrière » (VIDE, FEU, BRUIT) : ici il dirait « danger de mon fait ». Repère BRUIT activé, les deux rouges se confondent.' },
+  B: { nom: 'Icône', verdict: '<b>B — icône.</b> Un haut-parleur après le mot, sans changer de couleur. Discret et cohérent avec le reste ; il faut apprendre une fois ce que veut dire le symbole. Tient dans 112 px, même agrandi.' },
+  C: { nom: 'Sous-texte', verdict: '<b>C — sous-texte.</b> « BRUYANTE » en petit sous l’état. Se lit sans rien apprendre ; la commande garde sa hauteur de 48 px. Agrandi, le mot du dessous s’élargit un peu la colonne.' },
+  D: { nom: 'Icône + texte', verdict: '<b>D — icône + sous-texte.</b> Le haut-parleur en ambre attire l’œil, le mot l’explique. Le plus clair sans rouge ; le plus chargé des cinq.' },
+  E: { nom: 'Rouge + texte', verdict: '<b>E — rouge + sous-texte.</b> Cadre et « BRUYANTE » en rouge, l’état reste ambre. Plus calme que A, mais garde la confusion avec les repères de danger.' },
+};
+const ICONE = '<svg class="son" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h3l4-3v10l-4-3H2z"/><path d="M11 5.5c.9.7 1.4 1.6 1.4 2.5s-.5 1.8-1.4 2.5M12.8 3.5c1.4 1.1 2.2 2.8 2.2 4.5s-.8 3.4-2.2 4.5"/></svg>';
+const PORTES = [
+  { id: 'local', nom: 'Local de sécurité', ouverte: true, bruyante: false },
+  { id: 'embarquement', nom: 'Embarquement', ouverte: false, bruyante: true },
+  { id: 'panoramique', nom: 'Salle panoramique', ouverte: false, bruyante: false },
+];
+const RECITS = {
+  'ouvrir-embarquement': 'Vous pesez sur la porte grippée. Elle cède d’un coup, dans un hurlement de métal qui roule le long de la coursive.',
+  'fermer-embarquement': 'Vous tirez la porte grippée. Elle racle, grince, puis claque dans son cadre.',
+  'ouvrir-panoramique': 'La porte de la salle panoramique coulisse sans bruit.',
+  'fermer-panoramique': 'La porte de la salle panoramique se referme sans bruit.',
+  'ouvrir-local': 'La porte du local de sécurité coulisse sans bruit.',
+  'fermer-local': 'La porte du local de sécurité se referme sans bruit.',
+};
+let variante = 'D';
+let agrandi = false;
+let bruit = false;
+let dernier = null;
+
+function commande(porte) {
+  const etat = porte.ouverte ? 'Ouverte' : 'Fermée';
+  const classes = ['porte-etat', porte.ouverte ? 'ouverte' : '', porte.bruyante ? 'bruyante' : ''].join(' ');
+  const lu = `Porte de ${porte.nom.toLowerCase()}, ${etat.toLowerCase()}${porte.bruyante ? ', bruyante' : ''}`;
+  let contenu = `<span class="temoin" aria-hidden="true"></span>${etat}`;
+  if (porte.bruyante) {
+    const sous = `<span class="mot"><span>${etat}</span><span class="sous">Bruyante</span></span>`;
+    if (variante === 'B') contenu += ICONE;
+    if (variante === 'C' || variante === 'E') contenu = `<span class="temoin" aria-hidden="true"></span>${sous}`;
+    if (variante === 'D') contenu = `<span class="temoin" aria-hidden="true"></span>${sous}${ICONE}`;
+  }
+  return `<button type="button" class="${classes}" data-porte="${porte.id}" aria-label="${lu}">${contenu}</button>`;
+}
+
+function ligne(porte) {
+  const danger = bruit && porte.id === 'embarquement';
+  return `<li class="salle">
+    <button type="button" class="deplacement${porte.ouverte ? '' : ' bloque'}${danger ? ' repere-danger' : ''}"><span class="destination">→ ${porte.nom}</span>${danger ? '<span class="repere">BRUIT</span>' : ''}</button>
+    ${commande(porte)}
+  </li>`;
+}
+
+function rendre() {
+  document.documentElement.style.setProperty('--echelle', agrandi ? 22 / 17 : 1);
+  const intro = '<p class="ancien">Une coursive étroite, des néons qui grésillent. Au fond, la porte de l’embarquement : son mécanisme est visiblement dur.</p>';
+  document.getElementById('recit').innerHTML = dernier === null ? intro : `${intro}<p class="cmd">&gt; ${dernier.cmd}</p><p>${dernier.texte}</p>`;
+  document.getElementById('dock').innerHTML = `<h2 class="titre-section">Dans la pièce</h2>
+    <div class="puces"><span class="puce">▸ Néons</span><span class="puce">▸ Casier</span></div>
+    <div class="puces"><span class="puce">▸ Regarder</span><span class="puce">▸ Attendre</span></div>
+    <h2 class="titre-section">Se déplacer vers</h2>
+    <ul class="salles v-${variante.toLowerCase()}" style="margin:0;padding:0;list-style:none">${PORTES.map(ligne).join('')}</ul>`;
+  document.getElementById('verdict').innerHTML = VARIANTES[variante].verdict;
+  document.getElementById('variantes').innerHTML = Object.keys(VARIANTES)
+    .map((v) => `<button class="onglet" role="tab" data-v="${v}" aria-selected="${v === variante}" title="${VARIANTES[v].nom}">${v}<br><span style="font-size:10px">${VARIANTES[v].nom}</span></button>`)
+    .join('');
+  document.getElementById('agrandi').setAttribute('aria-pressed', agrandi);
+  document.getElementById('bruit').setAttribute('aria-pressed', bruit);
+}
+
+document.getElementById('variantes').addEventListener('click', (e) => {
+  const v = e.target.closest('[data-v]')?.dataset.v;
+  if (v !== undefined) { variante = v; rendre(); }
+});
+document.getElementById('agrandi').addEventListener('click', () => { agrandi = !agrandi; rendre(); });
+document.getElementById('bruit').addEventListener('click', () => { bruit = !bruit; rendre(); });
+document.getElementById('dock').addEventListener('click', (e) => {
+  const id = e.target.closest('[data-porte]')?.dataset.porte;
+  if (id === undefined) return;
+  const porte = PORTES.find((p) => p.id === id);
+  const verbe = porte.ouverte ? 'fermer' : 'ouvrir';
+  porte.ouverte = !porte.ouverte;
+  dernier = { cmd: `${verbe} ${porte.nom.toLowerCase()}`, texte: RECITS[`${verbe}-${id}`] };
+  rendre();
+});
+rendre();
+</script>

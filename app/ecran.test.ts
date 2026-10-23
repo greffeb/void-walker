@@ -8,9 +8,11 @@ import {
   filBulle,
   libelleLigne,
   lignesActions,
+  manoeuvresBruyantes,
   MARGE_BULLE,
   nomDestination,
   nomParametre,
+  nomPorte,
   nomPuce,
   passagesEntendus,
   passagesOuverts,
@@ -129,6 +131,23 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     if (suite.type !== 'engagee') throw new Error('Carnet non pris.');
     expect(suite.partie.derniers.some((evenement) => evenement.type === 'bruit_creature')).toBe(false);
     expect(ligne(suite.partie)?.reperes).toEqual([]);
+  });
+
+  it('porte bruyante : « Bruyante » tant que la manœuvre fera du bruit, ouvrir la porte grippée mais pas la refermer (D-348)', () => {
+    const ligne = (partie: Partie, nom: string) => {
+      const observation = observer(monde, partie.etat);
+      const dock = composerDock(observation, passagesOuverts(partie), [], manoeuvresBruyantes(monde, partie, observation));
+      const deplacement = dock.deplacements.find((candidat) => nomDestination(textes, candidat.passer) === nom);
+      if (deplacement === undefined) throw new Error(`Ligne ${nom} absente.`);
+      return deplacement;
+    };
+    expect(ligne(depart(), 'atelier')).toMatchObject({ manoeuvre: { action: 'ouvrir' }, bruyante: true });
+    expect(ligne(depart(), 'soute')).toMatchObject({ manoeuvre: { action: 'ouvrir' }, bruyante: false });
+    expect(nomPorte(textes, ligne(depart(), 'atelier'))).toBe('Porte de l’atelier, fermée, bruyante');
+    const ouverte = jouer(monde, depart(), optionDe(depart(), 'ouvrir', 'porte').commande);
+    if (ouverte.type !== 'engagee') throw new Error('Porte non ouverte.');
+    expect(ligne(ouverte.partie, 'atelier')).toMatchObject({ manoeuvre: { action: 'fermer' }, bruyante: false });
+    expect(nomPorte(textes, ligne(ouverte.partie, 'atelier'))).toBe('Porte de l’atelier, ouverte');
   });
 
   it('repère BRUIT : un net entendu en attendant, un toujours et le bruit proche le posent, un vague non', () => {

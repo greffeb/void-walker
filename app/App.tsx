@@ -30,6 +30,7 @@ import { signauxApres } from './son/declencheurs';
 import { SILENCE, type Son } from './son/moteur';
 import type { Signal } from './son/recettes';
 import type { EtatVerification } from './verification';
+import { LIBELLES } from './libelles';
 
 const AUCUN_SIGNAL: readonly Signal[] = [];
 const SANS_ABONNEMENT = (): (() => void) => () => undefined;
@@ -343,14 +344,14 @@ export function App({
             </h1>
             <div className="actions-accueil">
               {ecran.confirmation ? (
-                <section className="confirmation-accueil" aria-label="Confirmation de nouvelle partie">
-                  <p>Une partie est en cours. La nouvelle partie la remplacera.</p>
+                <section className="confirmation-accueil" aria-label={LIBELLES.accueil.confirmation}>
+                  <p>{LIBELLES.accueil.remplacement}</p>
                   <div>
                     <button type="button" className="secondaire" disabled={occupe} onClick={() => setEcran({ ...ecran, confirmation: false })} data-son="clic">
-                      Annuler
+                      {LIBELLES.commun.annuler}
                     </button>
                     <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()} data-son="confirmer">
-                      Commencer
+                      {LIBELLES.accueil.commencer}
                     </button>
                   </div>
                 </section>
@@ -358,7 +359,7 @@ export function App({
                 <>
                   {ecran.partiePresente && (
                     <button type="button" className="principal" disabled={occupe} onClick={() => void reprendre()} data-son="clic">
-                      Reprendre la partie
+                      {LIBELLES.commun.reprendrePartie}
                     </button>
                   )}
                   <button
@@ -372,10 +373,10 @@ export function App({
                     }
                     data-son="clic"
                   >
-                    Nouvelle partie
+                    {LIBELLES.commun.nouvellePartie}
                   </button>
                   <button type="button" className="discret" disabled={occupe} onClick={() => void optionsDepuisAccueil()} data-son="clic">
-                    Options
+                    {LIBELLES.commun.options}
                   </button>
                 </>
               )}
@@ -461,12 +462,12 @@ export function App({
               <h1 className="titre-piece">Void Walker</h1>
             </header>
             <section className="recit">
-              {ecran.type === 'chargement' && <p className="attente">Chargement…</p>}
+              {ecran.type === 'chargement' && <p className="attente">{LIBELLES.commun.chargement}</p>}
               {ecran.type === 'reprise_impossible' && (
                 <div className="avis" role="alert">
-                  <p>La partie enregistrée ne peut pas être reprise. Vous pouvez commencer une nouvelle partie.</p>
+                  <p>{LIBELLES.accueil.repriseImpossible}</p>
                   <button type="button" className="principal" disabled={occupe} onClick={() => void commencerNouvellePartie()} data-son="clic">
-                    Nouvelle partie
+                    {LIBELLES.commun.nouvellePartie}
                   </button>
                 </div>
               )}
@@ -491,10 +492,10 @@ export function EcranRefus({ motif, reglages }: { readonly motif: string; readon
         </h1>
         <div className="actions-accueil">
           <section className="confirmation-accueil" role="alert">
-            <p>Station refusée : {motif}</p>
+            <p>{LIBELLES.accueil.stationRefusee(motif)}</p>
           </section>
           <button type="button" className="principal" disabled data-son="clic">
-            Nouvelle partie
+            {LIBELLES.commun.nouvellePartie}
           </button>
         </div>
       </main>

@@ -67,6 +67,8 @@ export const ATTENTE_ECOUTE: TextesMonde['attenteEcoute'] = reunir([]).attenteEc
 /** Bips et pose du capteur de la couche menace (lot 3 de la créature mobile), repris par les mondes écrits en entier. */
 export const TEXTES_CAPTEUR: TextesMonde['capteur'] = reunir([]).capteur;
 export const TEXTES_POSE_CAPTEUR: TextesMonde['capteurPose'] = reunir([]).capteurPose;
+/** Phrases d'attente dans le vacarme des machines (#251), reprises par les mondes écrits en entier. */
+export const ATTENTE_VACARME: TextesMonde['attenteVacarme'] = reunir([]).attenteVacarme;
 
 /** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */
 export const PILLAGES: TextesMonde['pillages'] = reunir([]).pillages;

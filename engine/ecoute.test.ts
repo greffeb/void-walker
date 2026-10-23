@@ -232,7 +232,7 @@ describe('dans le pas', () => {
   it('dans une salle des machines en marche : « le vacarme couvre tout » une fois, puis plus rien', () => {
     const machines: DefMonde = { ...GRAND, depart: 'm' };
     const premier = attendre(machines, nouvellePartie(machines, { version: VERSION, graine: graineCalme(2) }));
-    expect(premier.evenements).toEqual([{ type: 'attente' }, { type: 'ecoute_couverte' }]);
-    expect(attendre(machines, premier.partie).evenements).toEqual([{ type: 'attente' }]);
+    expect(premier.evenements).toEqual([{ type: 'attente', vacarme: true }, { type: 'ecoute_couverte' }]);
+    expect(attendre(machines, premier.partie).evenements).toEqual([{ type: 'attente', vacarme: true }]);
   });
 });

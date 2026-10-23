@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des parties humaines
 
 > **Statut :** un retour humain sur l'interface #92 est rapporté ci-dessous ; neuf validations signées C-10 sont recopiées telles quelles : deux reconnues par le robot de la PR #160 (L2 de #106, morceaux M-07 et M-03), deux par celui de la PR #196 (variante V1 de #194), une par celui de la PR #199 (variante V2b de #194), quatre par celui de la PR #198 (variante V2a de #194).
-> **Mise à jour :** 2026-10-19 (deux parties envoyées non signées, #226 et #227, consignées dans les sessions).
+> **Mise à jour :** 2026-10-23 (validation signée de la PR #254) ; 2026-10-19 (deux parties envoyées non signées, #226 et #227, consignées dans les sessions).
 
 ## Règle validée
 
@@ -38,6 +38,10 @@ Jouées sur la version de test de la variante V2a de #194 à trois réactions (D
 - G1-M02-M09-M04-M03-OBSERVATION-1 · version 0.1.0 · commit 78e370d · défaite en 34 actions · [partie](https://github.com/greffeb/void-walker/pull/230#issuecomment-6299362449)
 
 Jouées sur la version de test des grandes stations (PR #230, livraisons 1 à 3, après la reprise de `main`). Commentaires du porteur joints à ces deux parties : « Pas mal, a en tester d'autres. Les notes sont agréables a lire » ; « Bien ! Je me demande comment j'aurais pu gagner. Sympa ». Morceaux joués dans une grande station (D-325) : M-01, M-02, M-03, M-04, M-06, M-08, M-09 ; restent M-05, M-07, M-10 et l'ordre libre.
+
+- G2-M09-M08-M01-M03-RESERVE-1 · version 0.2.0 · commit 0f1b30b · évacuation en 72 actions · [partie](https://github.com/greffeb/void-walker/pull/254#issuecomment-6360055547)
+
+Jouée sur la version de test de la PR #254 (libellés de l'interface sortis dans `app/libelles/fr.ts`, #239). Commentaire du porteur joint : « interface ok sans bug d'affichage (plus partie jouée avec les nouveau mécanismes de bruit et créature qui rôde) ».
 
 ## Informations proposées pour chaque session
 

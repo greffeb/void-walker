@@ -33,7 +33,7 @@
 | --- | --- | --- |
 | `engine/` | Règles C-01 à C-10 : état, actions, temps, dangers, risques, observation, sauvegarde, replay. Sans DOM, sans texte | Rien d'autre |
 | `content/` | AR-01, AR-02, morceaux, qualités, textes français | Types du moteur |
-| `app/` | PWA React : écran, carte, menus, sauvegarde, rapports, signature | `engine`, `content` |
+| `app/` | PWA React : écran, carte, menus, sauvegarde, rapports, signature. Ses libellés (boutons, titres, messages, noms lus par le lecteur d'écran) vivent tous dans `app/libelles/`, un fichier par langue ; un test refuse une phrase écrite en dur ailleurs (#239) | `engine`, `content` |
 | `cli/` | Même partie en ligne de commande, pour les agents et le playtester | `engine`, `content` |
 | `tools/` | Vérificateur de stations, bots, rejoueur d'export, contrôles des textes, captures | `engine`, `content`, `app` pour les captures, `report-service` pour rejouer un rapport |
 | `report-service/` | Worker Cloudflare : reçoit les rapports, crée issues et commentaires ; [déploiement](../report-service/README.md) | Rien d'autre : il ne connaît l'export que par sa forme |

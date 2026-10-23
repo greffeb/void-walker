@@ -286,8 +286,8 @@ export type Evenement =
   | { readonly type: 'capteur_pose'; readonly objet: RefObjet; readonly piece: RefPiece; readonly etat: Exclude<EtatCapteur, 'hs'> }
   /** Le capteur posé change d'état : il bipe, tombe en panne ou est détruit (créature mobile lot 3). */
   | { readonly type: 'capteur'; readonly etat: EtatCapteur }
-  /** Une seule fois par partie (C-03 §4.4). */
-  | { readonly type: 'attente' }
+  /** `vacarme` : attente dans une salle des machines en marche, où le bruit ne se tait jamais (#251). */
+  | { readonly type: 'attente'; readonly vacarme?: true }
   | { readonly type: 'premier_contact' }
   /** Elle le menace sans le blesser : action libre après le premier contact, arrivée sous ses yeux, ou dé favorable (C-04 §4). */
   | { readonly type: 'menace' }

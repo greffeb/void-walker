@@ -1,26 +1,17 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { COMMENTAIRE_MAX, type Retour, type TypeRapport } from './rapports';
 import { empreinteLisible } from './validation';
+import { LIBELLES } from './libelles';
 
 /** Texte montré après ENVOYER ; `null` pour la saisie en cours. */
-export const RETOURS: Readonly<Record<Retour, string>> = {
-  envoye: 'Merci, le rapport est envoyé.',
-  garde: 'Pas de réseau. Le rapport est gardé sur le téléphone et partira tout seul à la prochaine connexion.',
-  trop: 'Trop d’envois rapprochés. Le rapport est gardé sur le téléphone et partira plus tard.',
-  refuse: 'Le service n’a pas accepté ce rapport. Vous pouvez télécharger la partie à la place.',
-  perdu: 'Pas de réseau, et ce téléphone ne peut pas garder le rapport. Réessayez plus tard.',
-  patience: 'Un rapport vient de partir. Réessayez dans un instant.',
-};
+export const RETOURS: Readonly<Record<Retour, string>> = LIBELLES.rapport.retours;
 
 /** Le rapport est arrivé ou gardé sur l'appareil : le panneau se referme. Sinon il reste ouvert, commentaire compris. */
 export function rapportPris(retour: Retour): boolean {
   return retour === 'envoye' || retour === 'garde' || retour === 'trop';
 }
 
-const INVITES: Readonly<Record<TypeRapport, string>> = {
-  bug: 'Ce qui s’est passé, ce que vous attendiez…',
-  partie: 'Votre avis sur la partie…',
-};
+const INVITES: Readonly<Record<TypeRapport, string>> = LIBELLES.rapport.invites;
 
 /**
  * Panneau d'un rapport, ouvert sous la ligne touchée (D-231) : commentaire facultatif (D-142), case « je valide » pour
@@ -72,14 +63,14 @@ export function PanneauRapport({
   const joint =
     type === 'bug'
       ? partieJointe
-        ? 'Joint : la partie jusqu’ici et l’écran affiché.'
-        : 'Aucune partie en cours : seul le commentaire part.'
-      : 'Joint : la partie complète et où elle en est.';
+        ? LIBELLES.rapport.joint.partieEnCours
+        : LIBELLES.rapport.joint.sansPartie
+      : LIBELLES.rapport.joint.partieFinie;
 
   return (
-    <section className="panneau-rapport" aria-label={type === 'bug' ? 'Signaler un bug' : 'Envoyer ma partie'} data-testid={`panneau-${type}`}>
+    <section className="panneau-rapport" aria-label={type === 'bug' ? LIBELLES.commun.signalerBug : LIBELLES.commun.envoyerPartie} data-testid={`panneau-${type}`}>
       <label className="champ-rapport" htmlFor={id}>
-        Votre commentaire, facultatif
+        {LIBELLES.rapport.commentaire}
       </label>
       <textarea
         id={id}
@@ -101,15 +92,15 @@ export function PanneauRapport({
             {valide ? '[X]' : '[ ]'}
           </span>
           <span>
-            Je valide cette aventure
-            <span className="detail-option">signé par ce téléphone · version de test PR #{pr}</span>
+            {LIBELLES.rapport.jeValide}
+            <span className="detail-option">{LIBELLES.rapport.signature(pr)}</span>
           </span>
         </label>
       )}
       {avecCase && empreinte !== undefined && (
         <p className="cle-rapport" data-testid="cle-rapport">
-          Clé de ce téléphone :{' '}
-          {empreinte === null ? <span>créée à cet envoi</span> : <span className="empreinte-cle">{empreinteLisible(empreinte)}</span>}
+          {LIBELLES.rapport.cleTelephone}{' '}
+          {empreinte === null ? <span>{LIBELLES.rapport.cleCreeeAEnvoi}</span> : <span className="empreinte-cle">{empreinteLisible(empreinte)}</span>}
         </p>
       )}
       <p className="joint-rapport">{joint}</p>
@@ -120,10 +111,10 @@ export function PanneauRapport({
       )}
       <div>
         <button type="button" className="secondaire" disabled={envoi} onClick={() => fermer(null)} data-son="clic">
-          Annuler
+          {LIBELLES.commun.annuler}
         </button>
         <button type="button" className="principal" disabled={envoi} onClick={() => void partir()} data-son="confirmer">
-          {envoi ? 'Envoi…' : 'Envoyer'}
+          {envoi ? LIBELLES.rapport.envoi : LIBELLES.rapport.envoyer}
         </button>
       </div>
     </section>
@@ -188,7 +179,7 @@ export function EnvoyerMaPartie({
   return (
     <>
       <button ref={bouton} type="button" className="discret" disabled={occupe} onClick={() => setEnvoi('ouvert')} data-son="clic">
-        Envoyer ma partie
+        {LIBELLES.commun.envoyerPartie}
       </button>
       {envoi !== 'ferme' && (
         <p className="retour-option" role="status" data-testid="retour-partie">

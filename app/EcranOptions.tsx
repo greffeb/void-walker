@@ -8,19 +8,22 @@ import { empreinteLisible } from './validation';
 import { LIBELLES_VERIFICATION, type EtatVerification } from './verification';
 import { TAILLES, type Reglages, type Taille } from './reglages';
 import { useSon } from './son/contexte';
+import { LIBELLES } from './libelles';
 
-const LIBELLES_TAILLE: Readonly<Record<Taille, string>> = { standard: 'Standard', grande: 'Grande', tres_grande: 'Très grande' };
+const LIBELLES_TAILLE: Readonly<Record<Taille, string>> = LIBELLES.options.tailles;
 
 /** Phrase de récit montrée à la taille choisie (12 §4.10). */
-export const APERCU_TAILLE = 'Un voyant clignote au-dessus de la porte. Rien d’autre ne bouge.';
+export const APERCU_TAILLE = LIBELLES.options.apercuTaille;
 
 /** Retour visible du téléchargement (12 §6, C-09 SP-05) ; `null` tant que rien n'a été demandé. */
 export type Telechargement = { readonly etat: 'pret'; readonly nom: string } | { readonly etat: 'echec' } | null;
 
+const DETAILS = LIBELLES.options.details;
+
 /** Sous-menus des options, dans l'ordre du sommaire (D-287). */
 type SousMenuOptions ='son_texte' | 'rapports' | 'application';
 
-const TITRES_SOUS_MENUS: Readonly<Record<SousMenuOptions, string>> = { son_texte: 'Son et texte', rapports: 'Rapports', application: 'Application' };
+const TITRES_SOUS_MENUS: Readonly<Record<SousMenuOptions, string>> = LIBELLES.options.sousMenus;
 
 /** Marque l'entrée d'historique posée à l'ouverture d'un sous-menu : le retour du téléphone le referme (D-288). */
 const ENTREE_SOUS_MENU = 'void-walker:sous-menu';
@@ -162,25 +165,25 @@ export function EcranOptions({
   const sousMenus: readonly SousMenuOptions[] = partieEnCours || envoyerRapport !== undefined ? ['son_texte', 'rapports', 'application'] : ['son_texte', 'application'];
   // Le détail dit ce que la bulle contient vraiment (D-287).
   const details: Readonly<Record<SousMenuOptions, string>> = {
-    son_texte: pr === '' ? 'taille du texte, son, affichage' : 'taille du texte, son, affichage, carte révélée',
+    son_texte: pr === '' ? DETAILS.sonTexte : DETAILS.sonTexteTest,
     rapports:
       envoyerRapport === undefined
-        ? 'télécharger ma partie'
+        ? DETAILS.telecharger
         : partieEnCours
-          ? 'signaler un bug, envoyer ou télécharger ma partie'
+          ? DETAILS.rapportsEnCours
           : partieEnregistree
-            ? 'signaler un bug, envoyer ma partie'
-            : 'signaler un bug',
-    application: installable ? 'installation, mise à jour, version' : 'mise à jour, version',
+            ? DETAILS.rapportsEnregistree
+            : DETAILS.rapportsSansPartie,
+    application: installable ? DETAILS.applicationInstallable : DETAILS.application,
   };
 
   return (
     <main className="jeu options">
       <header className="entete-options">
         <h1 ref={titre} className="titre-piece" tabIndex={-1}>
-          Options
+          {LIBELLES.commun.options}
         </h1>
-        {partieEnCours && <p className="sous-titre-options">le jeu est en pause</p>}
+        {partieEnCours && <p className="sous-titre-options">{LIBELLES.options.enPause}</p>}
       </header>
       <div className="options-zone">
         <div className="options-corps">
@@ -204,18 +207,18 @@ export function EcranOptions({
             </button>
           ))}
           {!partieEnCours ? null : confirmation ? (
-            <section className="confirmation-options" aria-label="Confirmation d’abandon">
+            <section className="confirmation-options" aria-label={LIBELLES.options.abandon.confirmation}>
               <p ref={question} tabIndex={-1}>
-                Abandonner ? Cette partie ne pourra pas être reprise.
+                {LIBELLES.options.abandon.question}
               </p>
               {abandonRefuse && (
                 <p className="avis-option" role="alert">
-                  L’abandon n’a pas pu être enregistré. La partie est toujours en cours.
+                  {LIBELLES.commun.abandonRefuse}
                 </p>
               )}
               <div>
                 <button type="button" className="secondaire" disabled={occupe} onClick={() => confirmer(false)} data-son="clic">
-                  Annuler
+                  {LIBELLES.commun.annuler}
                 </button>
                 <button
                   type="button"
@@ -224,14 +227,14 @@ export function EcranOptions({
                   onClick={() => void abandonner().then((fait) => setAbandonRefuse(!fait))}
                   data-son="confirmer"
                 >
-                  Abandonner
+                  {LIBELLES.options.abandon.abandonner}
                 </button>
               </div>
             </section>
           ) : (
             <button ref={danger} type="button" className="danger" disabled={occupe} onClick={() => confirmer(true)} data-son="clic">
               <span aria-hidden="true">⊘ </span>
-              Abandonner la partie en cours
+              {LIBELLES.options.abandon.bouton}
             </button>
           )}
         </div>
@@ -243,7 +246,7 @@ export function EcranOptions({
                 <>
                   <section>
                     <h2 className="titre-section" id={idTaille}>
-                      Taille du texte
+                      {LIBELLES.options.tailleTexte}
                     </h2>
                     <div className="segments" role="radiogroup" aria-labelledby={idTaille}>
                       {TAILLES.map((taille) => (
@@ -264,41 +267,41 @@ export function EcranOptions({
                     </p>
                   </section>
                   <section>
-                    <h2 className="titre-section">Son</h2>
-                    <Rail libelle="Général" coupe="COUPÉE" valeur={reglages.general} changer={(general) => changerReglages({ ...reglages, general })} />
+                    <h2 className="titre-section">{LIBELLES.options.son}</h2>
+                    <Rail libelle={LIBELLES.options.general} coupe={LIBELLES.options.coupee} valeur={reglages.general} changer={(general) => changerReglages({ ...reglages, general })} />
                     <Rail
-                      libelle="Effets sonores"
-                      detail="bips et clics du terminal"
-                      coupe="COUPÉS"
+                      libelle={LIBELLES.options.effets}
+                      detail={LIBELLES.options.effetsDetail}
+                      coupe={LIBELLES.options.coupes}
                       valeur={reglages.effets}
                       changer={(effets) => changerReglages({ ...reglages, effets })}
                     />
                     <Rail
-                      libelle="Ambiance"
-                      detail="bruit brun et carlingue"
-                      coupe="COUPÉE"
+                      libelle={LIBELLES.options.ambiance}
+                      detail={LIBELLES.options.ambianceDetail}
+                      coupe={LIBELLES.options.coupee}
                       valeur={reglages.ambiance}
                       changer={(ambiance) => changerReglages({ ...reglages, ambiance })}
                     />
                   </section>
                   <section>
-                    <h2 className="titre-section">Affichage</h2>
-                    <Bascule libelle="Lignes de balayage" actif={reglages.balayage} basculer={() => changerReglages({ ...reglages, balayage: !reglages.balayage })} />
+                    <h2 className="titre-section">{LIBELLES.options.affichage}</h2>
+                    <Bascule libelle={LIBELLES.options.balayage} actif={reglages.balayage} basculer={() => changerReglages({ ...reglages, balayage: !reglages.balayage })} />
                     <Bascule
-                      libelle="Effet machine à écrire"
+                      libelle={LIBELLES.options.machineAEcrire}
                       actif={reglages.machineAEcrire}
                       basculer={() => changerReglages({ ...reglages, machineAEcrire: !reglages.machineAEcrire })}
                     />
                     {pr !== '' && (
                       <Bascule
-                        libelle="Carte révélée (test)"
+                        libelle={LIBELLES.options.carteRevelee}
                         actif={reglages.carteRevelee}
                         basculer={() => changerReglages({ ...reglages, carteRevelee: !reglages.carteRevelee })}
                       />
                     )}
                     {!reglagesGardes && (
                       <p className="retour-option" role="status">
-                        Cet appareil ne garde pas les réglages : ils valent jusqu’à la fermeture du jeu.
+                        {LIBELLES.options.reglagesNonGardes}
                       </p>
                     )}
                   </section>
@@ -323,13 +326,13 @@ export function EcranOptions({
                       <button type="button" className="ligne-option" disabled={occupe} onClick={() => setTelechargement(telecharger())} data-son="clic">
                         <span>
                           <span aria-hidden="true">▸ </span>
-                          Télécharger ma partie
+                          {LIBELLES.options.telecharger}
                         </span>
-                        <span className="detail-option">fichier enregistré sur le téléphone</span>
+                        <span className="detail-option">{LIBELLES.options.telechargerDetail}</span>
                       </button>
                       <p className="retour-option" role="status" data-testid="telechargement">
-                        {telechargement?.etat === 'pret' && `Fichier prêt : ${telechargement.nom}`}
-                        {telechargement?.etat === 'echec' && 'Le téléchargement a échoué. Vous pouvez réessayer.'}
+                        {telechargement?.etat === 'pret' && LIBELLES.options.fichierPret(telechargement.nom)}
+                        {telechargement?.etat === 'echec' && LIBELLES.options.telechargementEchoue}
                       </p>
                     </>
                   )}
@@ -343,7 +346,7 @@ export function EcranOptions({
                     V{version}
                     {build !== '' && ` (${build})`}
                     {commit !== '' && ` · ${commit.slice(0, 7)}`}
-                    {pr !== '' && ` · test PR #${pr}`}
+                    {pr !== '' && LIBELLES.options.versionTest(pr)}
                   </p>
                   {pr !== '' && verification !== undefined && <LigneVerification verification={verification} />}
                 </>
@@ -354,11 +357,11 @@ export function EcranOptions({
       </div>
       <div className="options-bas">
         <button type="button" className="secondaire" disabled={occupe} onClick={menuPrincipal} data-son="clic">
-          Menu principal
+          {LIBELLES.commun.menuPrincipal}
         </button>
         {partieEnCours && (
           <button type="button" className="principal" disabled={occupe} onClick={reprendre} data-son="clic">
-            Reprendre la partie
+            {LIBELLES.commun.reprendrePartie}
           </button>
         )}
       </div>
@@ -366,7 +369,7 @@ export function EcranOptions({
   );
 }
 
-const LIBELLES_RAPPORT: Readonly<Record<TypeRapport, string>> = { bug: 'Signaler un bug', partie: 'Envoyer ma partie' };
+const LIBELLES_RAPPORT: Readonly<Record<TypeRapport, string>> = { bug: LIBELLES.commun.signalerBug, partie: LIBELLES.commun.envoyerPartie };
 
 /**
  * « Signaler un bug » et « Envoyer ma partie » (12 §4.10, D-142) : le panneau s'ouvre sous la ligne touchée, un seul à la
@@ -398,8 +401,8 @@ function LignesRapports({
   const lignes = useRef<Partial<Record<TypeRapport, HTMLButtonElement | null>>>({});
   const types: readonly TypeRapport[] = partieEnregistree ? ['bug', 'partie'] : ['bug'];
   const details: Readonly<Record<TypeRapport, string>> = {
-    bug: partieEnCours ? 'la partie en cours est jointe' : partieEnregistree ? 'la partie est jointe' : 'aucune partie à joindre',
-    partie: 'partie et commentaire',
+    bug: partieEnCours ? LIBELLES.rapport.details.partieEnCoursJointe : partieEnregistree ? LIBELLES.rapport.details.partieJointe : LIBELLES.rapport.details.aucunePartie,
+    partie: LIBELLES.rapport.details.partie,
   };
   return (
     <>
@@ -451,7 +454,7 @@ function LignesRapports({
       ))}
       {enAttente > 0 && (
         <p className="retour-option" data-testid="rapports-en-attente">
-          {enAttente === 1 ? 'Un rapport attend le réseau pour partir.' : `${enAttente} rapports attendent le réseau pour partir.`}
+          {LIBELLES.rapport.enAttente(enAttente)}
         </p>
       )}
     </>
@@ -480,19 +483,19 @@ export function SectionValidation({ empreinteCle }: { readonly empreinteCle: () 
   }, [empreinteCle]);
   return (
     <section>
-      <h2 className="titre-section">Validation</h2>
+      <h2 className="titre-section">{LIBELLES.validation.titre}</h2>
       <div className="ligne-cle" data-testid="cle-validation">
-        <span>Clé de ce téléphone</span>
+        <span>{LIBELLES.validation.cle}</span>
         {empreinte === 'lecture' ? (
-          <span className="detail-option">lecture…</span>
+          <span className="detail-option">{LIBELLES.commun.lecture}</span>
         ) : empreinte === 'illisible' ? (
-          <span className="detail-option">illisible sur ce téléphone : « je valide » partira sans signature</span>
+          <span className="detail-option">{LIBELLES.validation.cleIllisible}</span>
         ) : empreinte === null ? (
-          <span className="detail-option">pas encore créée : elle le sera au premier « je valide » envoyé</span>
+          <span className="detail-option">{LIBELLES.validation.cleAbsente}</span>
         ) : (
           <>
             <span className="empreinte-cle">{empreinteLisible(empreinte)}</span>
-            <span className="detail-option">à comparer avec celle citée dans la PR</span>
+            <span className="detail-option">{LIBELLES.validation.cleAComparer}</span>
           </>
         )}
       </div>
@@ -522,9 +525,9 @@ export function LigneVerification({ verification }: { readonly verification: () 
   }, [verification]);
   return (
     <p className="etat-verification" data-testid="verification">
-      Vérification automatique : {etat === 'lecture' ? 'lecture…' : LIBELLES_VERIFICATION[etat]}
-      {etat === 'en_cours' && ' — une validation envoyée maintenant ne comptera que si elle finit verte'}
-      {etat === 'echec' && ' — une validation de cette version ne comptera pas'}
+      {LIBELLES.validation.verification} {etat === 'lecture' ? LIBELLES.commun.lecture : LIBELLES_VERIFICATION[etat]}
+      {etat === 'en_cours' && LIBELLES.validation.enCours}
+      {etat === 'echec' && LIBELLES.validation.echec}
     </p>
   );
 }
@@ -534,33 +537,9 @@ const INDISPONIBLE = (): EtatMiseAJour => 'indisponible';
 const INSTALLATION_INDISPONIBLE = (): EtatInstallation => 'indisponible';
 
 /** Aide pas à pas là où le navigateur ne laisse pas la page lancer l'installation (#174) ; noms des boutons : docs/16 §3.1. */
-export const GUIDES_INSTALLATION = {
-  guide_ios: {
-    detail: 'marche à suivre pour iPhone et iPad',
-    etapes: [
-      'Touchez ••• (le bouton « Plus »), puis « Partager ».',
-      'Faites défiler la liste, puis touchez « Sur l’écran d’accueil ».',
-      'Activez « Ouvrir comme app web ».',
-      'Touchez « Ajouter ».',
-    ],
-    note: 'Onglets en bas ou en haut ? Touchez directement « Partager ». Pas de « Sur l’écran d’accueil » dans la liste ? Touchez « Modifier les actions », en bas, puis « Sur l’écran d’accueil ».',
-  },
-  guide_firefox: {
-    detail: 'marche à suivre pour Firefox',
-    etapes: [
-      'Touchez ⋮, le menu de Firefox.',
-      'Touchez « Plus ».',
-      'Touchez « Ajouter l’application à l’écran d’accueil ».',
-      'Touchez « Ajouter », puis encore une fois si Android le demande.',
-    ],
-    note: 'Le jeu s’ouvrira ensuite en plein écran, comme une appli.',
-  },
-} as const;
+export const GUIDES_INSTALLATION = LIBELLES.installation.guides;
 
-const RETOURS_INSTALLATION: Readonly<Partial<Record<EtatInstallation, string>>> = {
-  installee: 'Jeu installé. Cherchez-le sur votre écran d’accueil.',
-  refusee: 'Installation refusée. Le menu du navigateur permet de la relancer.',
-};
+const RETOURS_INSTALLATION: Readonly<Partial<Record<EtatInstallation, string>>> = LIBELLES.installation.retours;
 
 /**
  * Installation (#174) : « Installer le jeu » ouvre la boîte du navigateur (Chromium) ou une bulle d'aide (Safari sur iPhone,
@@ -585,7 +564,7 @@ function SectionInstallation({ installation, occupe }: { readonly installation: 
   const proposable = etat === 'invite' || etat === 'en_cours' || guide !== null;
   return (
     <section>
-      <h2 className="titre-section">Installation</h2>
+      <h2 className="titre-section">{LIBELLES.installation.titre}</h2>
       {proposable && (
         <button
           ref={bouton}
@@ -598,9 +577,9 @@ function SectionInstallation({ installation, occupe }: { readonly installation: 
         >
           <span>
             <span aria-hidden="true">▸ </span>
-            Installer le jeu
+            {LIBELLES.installation.installer}
           </span>
-          <span className="detail-option">{guide?.detail ?? 's’ouvre en plein écran, sans la barre du navigateur'}</span>
+          <span className="detail-option">{guide?.detail ?? LIBELLES.installation.detail}</span>
         </button>
       )}
       <p className="retour-option" role="status" data-testid="installation">
@@ -609,7 +588,7 @@ function SectionInstallation({ installation, occupe }: { readonly installation: 
       {aide && guide !== null && (
         <>
           <div className="voile voile-haut" data-testid="voile-installation" data-son="fermer" onClick={() => setAide(false)} />
-          <Bulle zone={bulle} classe="bulle-installation" titre="Installer le jeu" etape="installation" fermer={() => setAide(false)}>
+          <Bulle zone={bulle} classe="bulle-installation" titre={LIBELLES.installation.installer} etape="installation" fermer={() => setAide(false)}>
             <ol className="etapes-installation">
               {guide.etapes.map((etape) => (
                 <li key={etape}>{etape}</li>
@@ -642,20 +621,20 @@ function SectionMiseAJour({
   const enCours = etat === 'recherche' || etat === 'installation';
   return (
     <section>
-      <h2 className="titre-section">Mise à jour</h2>
+      <h2 className="titre-section">{LIBELLES.miseAJour.titre}</h2>
       <button type="button" className="ligne-option" disabled={occupe || enCours} onClick={() => void miseAJour.chercher()} data-son="clic">
         <span>
           <span aria-hidden="true">▸ </span>
-          {prete ? 'Installer la nouvelle version' : 'Chercher une mise à jour'}
+          {prete ? LIBELLES.miseAJour.installer : LIBELLES.miseAJour.chercher}
         </span>
-        <span className="detail-option">{partieEnCours ? 'le jeu redémarre, la partie est gardée' : 'le jeu redémarre s’il en trouve une'}</span>
+        <span className="detail-option">{partieEnCours ? LIBELLES.miseAJour.detailEnCours : LIBELLES.miseAJour.detail}</span>
       </button>
       <p className="retour-option" role="status" data-testid="mise-a-jour">
-        {etat === 'recherche' && 'Recherche en cours…'}
-        {etat === 'a_jour' && 'Le jeu est à jour.'}
-        {etat === 'prete' && 'Une nouvelle version est prête.'}
-        {etat === 'installation' && 'Installation de la nouvelle version…'}
-        {etat === 'echec' && 'Impossible de vérifier. Le téléphone est-il connecté ?'}
+        {etat === 'recherche' && LIBELLES.miseAJour.recherche}
+        {etat === 'a_jour' && LIBELLES.miseAJour.aJour}
+        {etat === 'prete' && LIBELLES.miseAJour.prete}
+        {etat === 'installation' && LIBELLES.miseAJour.installation}
+        {etat === 'echec' && LIBELLES.miseAJour.echec}
       </p>
     </section>
   );
@@ -666,7 +645,7 @@ function Bascule({ libelle, actif, basculer }: { readonly libelle: string; reado
   return (
     <button type="button" className="bascule" role="switch" aria-checked={actif} aria-label={libelle} onClick={basculer} data-son="clic">
       <span>{libelle}</span>
-      <span className="valeur-bascule">{actif ? '[OUI]' : '[NON]'}</span>
+      <span className="valeur-bascule">{actif ? LIBELLES.options.oui : LIBELLES.options.non}</span>
     </button>
   );
 }

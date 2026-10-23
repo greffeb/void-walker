@@ -4,6 +4,7 @@ import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, t
 import {
   composer,
   composerDock,
+  manoeuvresBruyantes,
   etapeBulle,
   filBulle,
   libelleLigne,
@@ -31,6 +32,7 @@ import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } 
 import { consulter, consulterDocument, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
+import { LIBELLES } from './libelles';
 
 type Jouer = (option: OptionMenu) => void;
 /** Texte de la fiche d'une cible : sa consultation, gratuite (D-014). */
@@ -41,19 +43,15 @@ type Prevoir = (option: OptionMenu) => ApercuAffiche;
 /** Vrai si l'option se joue d'un seul toucher, sans aperçu (D-182). */
 type Direct = (option: OptionMenu) => boolean;
 
-/** Suffixe du nom accessible d'un bouton qui joue l'action sans aperçu. */
-const SANS_CONFIRMATION = ', sans confirmation';
+const SANS_CONFIRMATION = LIBELLES.jeu.sansConfirmation;
 
 /** Historique vide, pour un monde sans message d'IA Station. */
-const AUCUN_MESSAGE = 'Aucun message reçu.';
+const AUCUN_MESSAGE = LIBELLES.ia.aucunMessage;
 
 /** Aucun signal : réveil, reprise, retour des options (15 §2.2). */
 const AUCUN_SIGNAL: readonly Signal[] = [];
 
-/** Libellés de la navigation : en texte agrandi sur un écran étroit, ils se coupent à la syllabe, avec un trait d'union (12 §7). */
-const NAV_INVENTAIRE = 'Inven\u00adtaire';
-const NAV_IA = 'IA Sta\u00adtion';
-const NAV_CARTE = 'Carte';
+const { inventaire: NAV_INVENTAIRE, ia: NAV_IA, carte: NAV_CARTE } = LIBELLES.jeu.boutonsNavigation;
 
 /**
  * Bulle ouverte : une puce de la pièce ou un bouton « Se déplacer vers » (D-229), l'inventaire (liste, puis fiche d'un objet porté), la fenêtre
@@ -159,7 +157,7 @@ export function EcranJeu({
 }) {
   const { textes } = env;
   const observation = observer(env.monde, jeu.partie.etat);
-  const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie));
+  const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie), manoeuvresBruyantes(env.monde, jeu.partie, observation));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
   /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
@@ -297,7 +295,7 @@ export function EcranJeu({
         <h1 className="titre-piece">{nomDe(textes, observation.piece).texte}</h1>
         <BadgeSante sante={observation.sante} />
         {ouvrirOptions !== undefined && !observation.terminee && (
-          <button type="button" className="engrenage" aria-label="Options" disabled={occupe} onClick={ouvrirOptions} data-son="clic">
+          <button type="button" className="engrenage" aria-label={LIBELLES.commun.options} disabled={occupe} onClick={ouvrirOptions} data-son="clic">
             <Engrenage />
           </button>
         )}
@@ -306,7 +304,7 @@ export function EcranJeu({
       {/* Rappel discret jusqu'à la fin de la partie (D-144) ; il ne nomme aucune sortie (D-085). */}
       {sansSortie && (
         <p className="rappel-sans-sortie" data-testid="sans-sortie">
-          [ plus aucune sortie possible ]
+          {LIBELLES.jeu.sansSortie}
         </p>
       )}
       <Recit jeu={jeu} zone={recit} ecrire={ecrire} fixe={!machineAEcrire} terminee={observation.terminee} />
@@ -321,7 +319,7 @@ export function EcranJeu({
         <section className="dock fin-partie">
           {continuer !== undefined && (
             <button type="button" className="principal" disabled={occupe} onClick={continuer} data-son="clic">
-              Continuer
+              {LIBELLES.jeu.continuer}
             </button>
           )}
         </section>
@@ -388,14 +386,14 @@ export function EcranJeu({
             fermer={fermer}
           />
         )}
-        <nav className="navigation" aria-label="Navigation" hidden={observation.terminee}>
+        <nav className="navigation" aria-label={LIBELLES.jeu.navigation} hidden={observation.terminee}>
           <button
             type="button"
             className="nav-inventaire"
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'inventaire'}
             aria-controls={ouverte?.zone === 'inventaire' ? idInventaire : undefined}
-            aria-label="Inventaire"
+            aria-label={LIBELLES.jeu.inventaire}
             disabled={occupe}
             onClick={(evenement) =>
               ouverte?.zone === 'inventaire' ? fermer() : ouvrir({ zone: 'inventaire', cible: null, action: null, parametre: null }, evenement.currentTarget)
@@ -409,7 +407,7 @@ export function EcranJeu({
             className="nav-carte"
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'carte'}
-            aria-label="Carte"
+            aria-label={LIBELLES.jeu.carte}
             disabled={occupe}
             onClick={(evenement) => (ouverte?.zone === 'carte' ? fermer() : ouvrir({ zone: 'carte' }, evenement.currentTarget))}
             data-son={ouverte?.zone === 'carte' ? 'fermer-carte' : 'panneau-carte'}
@@ -422,7 +420,7 @@ export function EcranJeu({
             className="nav-ia"
             aria-haspopup="dialog"
             aria-expanded={ouverte?.zone === 'ia'}
-            aria-label={nonLus.length > 0 ? 'IA Station, nouveau message' : 'IA Station'}
+            aria-label={nonLus.length > 0 ? LIBELLES.jeu.iaNouveauMessage : LIBELLES.jeu.iaStation}
             disabled={occupe}
             onClick={(evenement) => (ouverte?.zone === 'ia' ? fermer() : ouvrirIA(evenement.currentTarget))}
             data-son={ouverte?.zone === 'ia' ? 'fermer-ia' : 'panneau-ia'}
@@ -485,21 +483,21 @@ export function InformationSansSortie({
         tabIndex={-1}
         onKeyDown={(evenement) => garderFocus(evenement, () => undefined)}
       >
-        <p className="etiquette-information">Information du jeu</p>
-        <h2 id={idTitre}>Plus aucune sortie possible.</h2>
-        <p id={idTexte}>Plus aucun chemin ne mène à une capsule de secours. Vous pouvez continuer à jouer et explorer la station.</p>
+        <p className="etiquette-information">{LIBELLES.jeu.informationSansSortie.etiquette}</p>
+        <h2 id={idTitre}>{LIBELLES.jeu.informationSansSortie.titre}</h2>
+        <p id={idTexte}>{LIBELLES.jeu.informationSansSortie.texte}</p>
         <button type="button" className="continuer" disabled={occupe} onClick={continuer} data-son="clic">
-          Continuer à jouer
+          {LIBELLES.jeu.informationSansSortie.continuer}
         </button>
         {terminer !== undefined && (
           <>
             <button type="button" className="terminer" disabled={occupe} onClick={() => void terminer().then((fait) => setRefus(!fait))} data-son="confirmer">
-              Terminer la partie
+              {LIBELLES.jeu.informationSansSortie.terminer}
             </button>
-            <p className="note-information">la partie s’arrête ici</p>
+            <p className="note-information">{LIBELLES.jeu.informationSansSortie.note}</p>
             {refus && (
               <p className="note-information" role="alert">
-                L’abandon n’a pas pu être enregistré. La partie est toujours en cours.
+                {LIBELLES.commun.abandonRefuse}
               </p>
             )}
           </>
@@ -550,13 +548,13 @@ export function EcranReveil({
     <main className="jeu reveil" onPointerDownCapture={completer} onKeyDownCapture={completer}>
       <header className="entete-piece entete-reveil">
         <p className="lieu-reveil">&gt; {nomDe(env.textes, observation.piece).texte}_</p>
-        {numero !== null && <p className="numero-station">Station {numero}</p>}
+        {numero !== null && <p className="numero-station">{LIBELLES.commun.station(numero)}</p>}
       </header>
       <Sauvegarde jeu={jeu} />
       <Recit jeu={jeu} zone={zone} ecrire={ecrire} fixe={!machineAEcrire} terminee={false} />
       <div className="actions-reveil">
         <button type="button" className="principal" disabled={occupe} onClick={regarder} data-son="confirmer">
-          Regarder autour de vous
+          {LIBELLES.jeu.regarderAutour}
         </button>
       </div>
     </main>
@@ -667,7 +665,7 @@ export function BulleInventaire({
     );
   }
   return (
-    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre="Inventaire" etape="" fermer={props.fermer} sonFermer="fermer-inventaire">
+    <Bulle id={id} zone={zone} classe="bulle-inventaire" titre={LIBELLES.jeu.inventaire} etape="" fermer={props.fermer} sonFermer="fermer-inventaire">
       {groupes.length === 0 ? (
         <p className="vide">{remplir(props.textes.observation.inventaireVide, {})}</p>
       ) : (
@@ -708,7 +706,7 @@ function Composer({
   if (etape.type === 'parametre') {
     return (
       <>
-        <h3 className="question">Où ?</h3>
+        <h3 className="question">{LIBELLES.jeu.question}</h3>
         <ul className="lignes">
           {etape.options.map(({ parametre }) =>
             parametre === undefined ? null : (
@@ -772,7 +770,7 @@ function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuAffich
     <dl id={idDescription} className="apercu">
       {apercu.risque !== null && (
         <>
-          <dt>Risque</dt>
+          <dt>{LIBELLES.jeu.apercu.risque}</dt>
           <dd>
             <strong>{apercu.risque}</strong>
             {apercu.danger === null ? null : ` — ${apercu.danger}`}
@@ -781,11 +779,11 @@ function ApercuAction({ apercu, idDescription }: { readonly apercu: ApercuAffich
       )}
       {apercu.cout !== null && (
         <>
-          <dt>Coût</dt>
+          <dt>{LIBELLES.jeu.apercu.cout}</dt>
           <dd>{apercu.cout}</dd>
         </>
       )}
-      <dt>Savoir</dt>
+      <dt>{LIBELLES.jeu.apercu.savoir}</dt>
       <dd>
         {apercu.savoir.map((phrase, index) => (
           <p key={index}>{phrase}</p>
@@ -800,10 +798,10 @@ function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean
   return (
     <div className="confirmation">
       <button type="button" className="secondaire" onClick={annuler} data-son="fermer">
-        Annuler
+        {LIBELLES.commun.annuler}
       </button>
       <button type="button" className="principal" disabled={occupe} onClick={confirmer} data-son="confirmer">
-        Confirmer
+        {LIBELLES.jeu.confirmer}
       </button>
     </div>
   );
@@ -812,7 +810,7 @@ function Confirmation({ occupe, confirmer, annuler }: { readonly occupe: boolean
 /** Action indisponible (12 §3.7) : visible, « ⊘ », raison publique à droite, lue « Ouvrir, indisponible : … », jamais activable. */
 function Indisponible({ classe, libelle, raison }: { readonly classe: string; readonly libelle: string; readonly raison: string }) {
   return (
-    <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${libelle}, indisponible : ${raison}`} data-son="refus">
+    <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={LIBELLES.commun.indisponible(libelle, raison)} data-son="refus">
       <span className="libelle">
         <span aria-hidden="true">⊘ </span>
         {libelle}
@@ -848,7 +846,7 @@ export function ModaleIA({
       className="bulle modale-ia"
       role="dialog"
       aria-modal="true"
-      aria-label="IA Station"
+      aria-label={LIBELLES.jeu.iaStation}
       aria-describedby={idSousTitre}
       tabIndex={-1}
       data-son-fermer="fermer-ia"
@@ -856,12 +854,12 @@ export function ModaleIA({
     >
       <div className="modale-entete">
         <div className="modale-identite">
-          <h2 className="modale-titre">[ IA STATION ]</h2>
+          <h2 className="modale-titre">{LIBELLES.ia.entete}</h2>
           <p id={idSousTitre} className="modale-sous-titre">
-            messages reçus dans l’écouteur
+            {LIBELLES.ia.sousTitre}
           </p>
         </div>
-        <button type="button" className="bulle-icone" aria-label="Fermer" onClick={fermer} data-son="fermer-ia">
+        <button type="button" className="bulle-icone" aria-label={LIBELLES.commun.fermer} onClick={fermer} data-son="fermer-ia">
           <span aria-hidden="true">✕</span>
         </button>
       </div>
@@ -877,11 +875,11 @@ export function ModaleIA({
                 {nouveaux.includes(message.message) && (
                   <>
                     {' '}
-                    <span className="nouveau">nouveau</span>
+                    <span className="nouveau">{LIBELLES.ia.nouveau}</span>
                   </>
                 )}
               </p>
-              <p className="citation-ia">{`«\u00a0${message.texte}\u00a0»`}</p>
+              <p className="citation-ia">{LIBELLES.ia.citation(message.texte)}</p>
             </li>
           ))}
         </ol>
@@ -895,8 +893,8 @@ function BadgeSante({ sante }: { readonly sante: Sante }) {
   if (sante !== 'blesse' && sante !== 'critique') return null;
   const blesse = sante === 'blesse';
   return (
-    <p className={`badge-sante ${sante}`} role="status" aria-label={blesse ? 'État : blessé' : 'État : critique'}>
-      {blesse ? '! BLESSÉ' : '!! CRITIQUE'}
+    <p className={`badge-sante ${sante}`} role="status" aria-label={blesse ? LIBELLES.jeu.sante.blesseLu : LIBELLES.jeu.sante.critiqueLu}>
+      {blesse ? LIBELLES.jeu.sante.blesse : LIBELLES.jeu.sante.critique}
     </p>
   );
 }
@@ -913,7 +911,7 @@ function Sauvegarde({ jeu }: { readonly jeu: Jeu }) {
       role={echec ? 'alert' : undefined}
       hidden={!echec}
     >
-      {echec && 'La sauvegarde a échoué. Vous pouvez continuer : elle sera retentée à la prochaine action.'}
+      {echec && LIBELLES.jeu.sauvegardeEchouee}
     </p>
   );
 }
@@ -948,7 +946,7 @@ export function Recit({
   const { rappel } = jeu;
   const reveil = jeu.partie.etat.actions === 0;
   // Paroles d'IA Station entre guillemets, après le récit, écrites comme lui (D-186).
-  const paroles = (reveil || terminee) && !sansAssistance ? jeu.assistance.map((message) => `«\u00a0${message}\u00a0»`) : [];
+  const paroles = (reveil || terminee) && !sansAssistance ? jeu.assistance.map(LIBELLES.ia.citation) : [];
   const blocs = [...(rappel === null ? [] : [`> ${rappel.texte}`]), ...jeu.recit, ...paroles];
   const delais = delaisEcriture(blocs);
   // Nouvelle clé à chaque nouveau texte : la copie écrite est recréée et son écriture repart de zéro.
@@ -992,8 +990,8 @@ export function Recit({
         ),
       )}
       {paroles.length > 0 && (
-        <section className="parole-ia" aria-label="Parole d’IA Station" data-testid="ia-station">
-          <p className="etiquette-ia">[ IA STATION ]</p>
+        <section className="parole-ia" aria-label={LIBELLES.ia.parole} data-testid="ia-station">
+          <p className="etiquette-ia">{LIBELLES.ia.entete}</p>
           {paroles.map((parole, index) => (
             <p key={index} className="citation-ia">
               <span className="lecteur-seul">{parole}</span>
@@ -1012,7 +1010,7 @@ export function Recit({
  */
 function IconeAlerte() {
   return (
-    <svg className="icone-alerte" viewBox="0 0 16 16" role="img" aria-label="Attention">
+    <svg className="icone-alerte" viewBox="0 0 16 16" role="img" aria-label={LIBELLES.jeu.attention}>
       <path d="M8 1.5 15 14.5H1Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="miter" />
       <path d="M8 6v4.2" stroke="currentColor" strokeWidth="1.8" />
       <rect x="7.1" y="11.4" width="1.8" height="1.8" fill="currentColor" />
@@ -1042,7 +1040,7 @@ export function DockPiece({
   const { autour, attendre } = dock;
   return (
     <section className="dock">
-      <h2 className="titre-section">Dans la pièce</h2>
+      <h2 className="titre-section">{LIBELLES.jeu.dansLaPiece}</h2>
       <ul className="puces">
         {dock.piece.map((groupe) => (
           <li key={groupe.cible.id}>
@@ -1079,7 +1077,7 @@ export function DockPiece({
       )}
       {dock.deplacements.length > 0 && (
         <>
-          <h2 className="titre-section">Se déplacer vers</h2>
+          <h2 className="titre-section">{LIBELLES.jeu.seDeplacerVers}</h2>
           <ul className="deplacements">
             {dock.deplacements.map((deplacement) => (
               <LigneSalle key={deplacement.cible.id} deplacement={deplacement} textes={textes} occupe={occupe} jouer={jouer} />
@@ -1107,7 +1105,7 @@ function LigneSalle({
   readonly occupe: boolean;
   readonly jouer: Jouer;
 }) {
-  const { passer, manoeuvre, reperes, cible } = deplacement;
+  const { passer, manoeuvre, bruyante, reperes, cible } = deplacement;
   const destination = nomDestination(textes, passer);
   const classes = ['deplacement', ...(passer.disponible ? [] : ['bloque']), ...(reperes.length > 0 ? ['repere-danger'] : [])].join(' ');
   return (
@@ -1123,7 +1121,7 @@ function LigneSalle({
           </span>
         ))}
       </button>
-      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} nom={nomPorte(textes, deplacement)} textes={textes} occupe={occupe} jouer={jouer} />}
+      {manoeuvre !== undefined && <EtatPorte manoeuvre={manoeuvre} ouverte={cible.ouvert} bruyante={bruyante} nom={nomPorte(textes, deplacement)} textes={textes} occupe={occupe} jouer={jouer} />}
     </li>
   );
 }
@@ -1131,6 +1129,7 @@ function LigneSalle({
 function EtatPorte({
   manoeuvre,
   ouverte,
+  bruyante,
   nom,
   textes,
   occupe,
@@ -1138,22 +1137,32 @@ function EtatPorte({
 }: {
   readonly manoeuvre: OptionMenu;
   readonly ouverte: boolean;
+  readonly bruyante: boolean;
   readonly nom: string;
   readonly textes: TextesMonde;
   readonly occupe: boolean;
   readonly jouer: Jouer;
 }) {
+  const etat = ouverte ? LIBELLES.jeu.porte.ouverte : LIBELLES.jeu.porte.fermee;
+  // Une manœuvre bruyante porte « Bruyante » sous son état (D-348).
   const contenu = (
     <>
       <span className="temoin" aria-hidden="true" />
-      {ouverte ? 'Ouverte' : 'Fermée'}
+      {bruyante ? (
+        <span className="porte-mots">
+          <span>{etat}</span>
+          <span className="porte-bruyante">{LIBELLES.jeu.porte.bruyante}</span>
+        </span>
+      ) : (
+        etat
+      )}
     </>
   );
   const classe = ouverte ? 'porte-etat ouverte' : 'porte-etat';
   if (!manoeuvre.disponible) {
     const { raison } = libelleOption(textes, manoeuvre);
     return (
-      <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={`${nom}, indisponible : ${raison ?? ''}`} data-son="refus">
+      <button type="button" className={`${classe} indisponible`} aria-disabled="true" aria-label={LIBELLES.commun.indisponible(nom, raison ?? '')} data-son="refus">
         {contenu}
       </button>
     );

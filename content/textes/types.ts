@@ -141,6 +141,8 @@ export interface TextesMonde {
   readonly capteur: Readonly<Record<EtatCapteur, Variantes>>;
   /** Pose du capteur selon l'état qu'il lit aussitôt (jamais `hs` : un capteur détruit ne se pose pas) ; couche menace. */
   readonly capteurPose: Readonly<Record<Exclude<EtatCapteur, 'hs'>, Variantes>>;
+  /** Phrase d'attente dans une salle des machines en marche : le vacarme, jamais le silence (#251). */
+  readonly attenteVacarme: Variantes;
   /** Attente seule à raconter, 5e et 10e de suite (#225). */
   readonly attentesLongues: Readonly<Record<5 | 10, string>>;
   /** Départ de la capsule, selon ce qui l'alimentait. */
