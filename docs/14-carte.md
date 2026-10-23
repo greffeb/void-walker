@@ -94,7 +94,7 @@ Icônes (D-273) :
 
 ### 2.6 Portes et passages
 
-- Une porte est une **ouverture** dans le mur commun. Fermée au dernier regard, elle est barrée d'un trait fin.
+- Une porte est une **ouverture** dans le mur commun, bordée de deux petits taquets. Fermée au dernier regard, une **barre** claire et épaisse la bouche (D-355).
 - Porte étanche : un **voyant** dans l'ouverture, plein ● pour l'air, vide ○ pour le vide, tenu à jour dès que la destination est connue (OP-04, détails de #104).
 - Grille, conduit étroit, panneau : ouverture en tirets.
 - Passage sans signalétique à destination inconnue : ouverture en tirets et « **?** ». Ce passage ne fait pas connaître la pièce d'en face (OP-03). Si cette pièce est connue par ailleurs, la géométrie peut laisser deviner la destination ; aucun texte ne la nomme.

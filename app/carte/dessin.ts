@@ -21,10 +21,13 @@ export function rectCapsule(piece: RectPlan, pan: PanCoque): RectPlan {
   }
 }
 
-/** Segment d'une ouverture dans son mur, en cases : la moitié centrale de sa case. */
-export function segmentOuverture(ouverture: Extract<EmplacementPassage, { type: 'mur' }>): { x1: number; y1: number; x2: number; y2: number } {
-  const debut = ouverture.rang + 0.25;
-  const fin = ouverture.rang + 0.75;
+/** Demi-largeur d'une porte sur l'écran de la carte, en cases : plus large que les tirets, pour se voir au dézoom. */
+export const DEMI_PORTE = 0.32;
+
+/** Segment d'une ouverture dans son mur, en cases : par défaut la moitié centrale de sa case. */
+export function segmentOuverture(ouverture: Extract<EmplacementPassage, { type: 'mur' }>, demi = 0.25): { x1: number; y1: number; x2: number; y2: number } {
+  const debut = ouverture.rang + 0.5 - demi;
+  const fin = ouverture.rang + 0.5 + demi;
   return ouverture.axe === 'v'
     ? { x1: ouverture.ligne, y1: debut, x2: ouverture.ligne, y2: fin }
     : { x1: debut, y1: ouverture.ligne, x2: fin, y2: ouverture.ligne };

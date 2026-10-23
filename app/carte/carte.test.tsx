@@ -114,10 +114,11 @@ describe('écran de la carte (14 §2)', () => {
     expect(texte(renderToStaticMarkup(<ListeCarte blocs={rendreListeCarte(textes, carte)} />))).toContain('CAPTEUR : MOUVEMENT');
   });
 
-  it('portes : ouverture, trait fin si fermée, tirets, voyants d’air, « ? » ; capsule arrimée dehors (14 §2.6)', () => {
+  it('portes : ouverture bordée de taquets, barre si fermée (D-355), tirets, voyants d’air, « ? » ; capsule arrimée dehors (14 §2.6)', () => {
     const html = plan();
     expect(html.match(/class="ouverture"/g)).toHaveLength(3);
     expect(html.match(/class="ouverture-fermee"/g)).toHaveLength(1);
+    expect(html.match(/class="taquet"/g)).toHaveLength(4);
     expect(html.match(/class="ouverture-tirets"/g)).toHaveLength(1);
     expect(html).toContain('class="voyant voyant-vide"');
     expect(html).toContain('class="voyant voyant-air"');

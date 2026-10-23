@@ -1,7 +1,7 @@
 import { useRef, type CSSProperties, type PointerEvent, type WheelEvent } from 'react';
 import type { CartePublique, EtatCapteur, Palier, PassageCarte, PieceCarte } from '../../engine';
 import { CASE_PX, libellePiece, nomDe, regardDe, type TextesMonde } from '../../content';
-import { pointsTrace, rectCapsule, segmentOuverture } from './dessin';
+import { DEMI_PORTE, pointsTrace, rectCapsule, segmentOuverture } from './dessin';
 import {
   centresIcones,
   enPixels,
@@ -91,7 +91,13 @@ function Drone({ centre, echelle }: { readonly centre: Point; readonly echelle: 
   );
 }
 
-/** Ouverture d'un passage (14 §2.6) : dans son mur, ou tracé d'un conduit découvert. */
+/** Demi-longueur des taquets qui bordent une porte, en px, de part et d'autre du mur. */
+const TAQUET_PX = 3;
+
+/**
+ * Ouverture d'un passage (14 §2.6) : dans son mur, ou tracé d'un conduit découvert. Une porte est bordée de deux taquets ; fermée,
+ * une barre claire et épaisse la bouche (D-355).
+ */
 function Ouverture({ passage, point }: { readonly passage: PassageCarte; readonly point: (x: number, y: number) => Point }) {
   const emplacement = passage.emplacement;
   if (emplacement === null) return null;
@@ -102,15 +108,24 @@ function Ouverture({ passage, point }: { readonly passage: PassageCarte; readonl
     });
     return <polyline className="conduit" points={points.join(' ')} />;
   }
-  const { x1, y1, x2, y2 } = segmentOuverture(emplacement);
+  const porte = passage.dessin !== 'tirets';
+  const { x1, y1, x2, y2 } = segmentOuverture(emplacement, porte ? DEMI_PORTE : undefined);
   const a = point(x1, y1);
   const b = point(x2, y2);
   const segment = { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
   const milieu = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  // Taquet : petit trait en travers du mur, à chaque bord de la porte.
+  const taquet = (bord: Point) =>
+    emplacement.axe === 'v'
+      ? { x1: bord.x - TAQUET_PX, y1: bord.y, x2: bord.x + TAQUET_PX, y2: bord.y }
+      : { x1: bord.x, y1: bord.y - TAQUET_PX, x2: bord.x, y2: bord.y + TAQUET_PX };
   return (
     <g>
       <line className="ouverture" {...segment} />
-      {passage.dessin === 'tirets' ? <line className="ouverture-tirets" {...segment} /> : !passage.ouvert && <line className="ouverture-fermee" {...segment} />}
+      {!porte && <line className="ouverture-tirets" {...segment} />}
+      {porte && <line className="taquet" {...taquet(a)} />}
+      {porte && <line className="taquet" {...taquet(b)} />}
+      {porte && !passage.ouvert && <line className="ouverture-fermee" {...segment} />}
       {passage.voyant !== null && <circle className={`voyant voyant-${passage.voyant}`} cx={milieu.x} cy={milieu.y} r="4" />}
       {passage.entre === null && (
         <text className="ouverture-inconnue" x={milieu.x + 6} y={milieu.y - 6}>

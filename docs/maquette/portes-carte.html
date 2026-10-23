@@ -62,7 +62,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Actuel : trait fin si fermée. */
 .trait-fin { stroke: var(--vert-texte); stroke-width: 1; }
 /* Taquets : les deux bords de l'ouverture. */
-.taquet { stroke: var(--vert); stroke-width: 2.5; }
+.taquet { stroke: var(--vert); stroke-width: 2; }
 .taquet.doux { stroke: var(--vert-secondaire); stroke-width: 2; }
 /* Barre ou vantail : la porte elle-même, la couleur la plus claire de la carte. */
 .barre { stroke: var(--vert-signal); stroke-width: 4; }
@@ -151,7 +151,7 @@ const OPTIONS = [
     nom: 'A. Barre', court: 'A',
     porte: (p, s, ouvert) => {
       const h = 0.32 * s;
-      return ligne(p, -h, 0, h, 0, 'trou', 6) + ligne(p, -h, -5, -h, 5, 'taquet') + ligne(p, h, -5, h, 5, 'taquet') + (ouvert ? '' : ligne(p, -h, 0, h, 0, 'barre'));
+      return ligne(p, -h, 0, h, 0, 'trou', 6) + ligne(p, -h, -3, -h, 3, 'taquet') + ligne(p, h, -3, h, 3, 'taquet') + (ouvert ? '' : ligne(p, -h, 0, h, 0, 'barre'));
     },
     verdict: 'Fermée : une barre épaisse et très claire bouche l\'ouverture. Ouverte : un trou net, plus large qu\'aujourd\'hui, entre deux taquets. Le plus proche du dessin actuel, en plus franc.',
   },

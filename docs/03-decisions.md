@@ -2954,3 +2954,12 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Origine : le porteur, sur les maquettes du capteur : les deux usages du drone (explorer une zone ouverte, servir d'appât) tirent en sens contraire sur le bruit.
 - Décision : le lot 3 ne livre que le capteur. Le drone éclaireur de la conception (§4.6) est repris plus tard, dans une session à part, maquettes d'abord.
 - Précise : D-336.
+
+### D-355 — Sur la carte, la porte fermée est une barre claire, l'ouverture est bordée de taquets
+
+- Date / statut : 2026-10-23 / **Validé** sur maquette (le porteur, option A de `docs/maquette/portes-carte.html`, taquets plus petits).
+- Origine : le porteur : les portes ne se voyaient pas assez sur le plan, ouvertes comme fermées.
+- Décision : une porte s'ouvre sur un peu plus d'une demi-case (0,64 case) ; deux taquets courts en travers du mur marquent ses bords. Fermée, une barre épaisse de la couleur la plus claire du plan bouche l'ouverture. Les tirets (grille, conduit, passage sans signalétique) et les voyants ne changent pas.
+- Précise : 14 §2.6.
+- Limite [Détail de l'agent] : taquets de 3 px de part et d'autre du mur, trait de 2 en vert ; barre de 4 en `--vert-signal`. Le rendu d'auteur des plans (`tools/plans-svg.ts`) garde l'ouverture d'une demi-case.
+- Ce que le porteur doit essayer sur téléphone : si ouverte et fermée se distinguent au dézoom.

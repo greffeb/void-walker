@@ -2142,9 +2142,15 @@ button:disabled {
   stroke-width: 5;
 }
 
+/* Porte (D-355) : deux taquets courts à ses bords ; fermée, une barre épaisse de la couleur la plus claire du plan. */
+.carte-traits .taquet {
+  stroke: var(--vert);
+  stroke-width: 2;
+}
+
 .carte-traits .ouverture-fermee {
-  stroke: var(--vert-texte);
-  stroke-width: 1;
+  stroke: var(--vert-signal);
+  stroke-width: 4;
 }
 
 .carte-traits .ouverture-tirets,
