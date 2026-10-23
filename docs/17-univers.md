@@ -212,5 +212,7 @@ Trente-neuf documents, posés à cinq à sept par grande station (spec §8.4). L
 ## 7. Pour les écrans de fin et IA Station
 
 - IA Station ne parle jamais de la menace ; pour elle, l'incident est technique, et le passager est un voyageur à évacuer.
+- IA Station peut nommer des pièces dans les messages de la face 2 (D-359), même non découvertes, mais jamais la menace, ni la créature, ni les traces, et sans aucun chiffre. Quatre sortes : une porte forcée, du matériel qui ne répond plus (caméra ou capteur), un passage récent, une gêne dans la pièce où elle est. Ton de la compagnie : indirect, administratif, toujours vrai. Une gêne de présence reste vraie quelle que soit la pièce et n'évoque ni le vide ni une porte forcée.
+- Le code du post-it de la salle de surveillance (D-355) est la seule suite de chiffres permise hors des documents : c'est un support écrit, comme eux (§6).
 - Les écrans de fin racontent la partie du passager, pas l'incident : ils ne citent ni l'équipage, ni le conteneur.
 - Un texte qui voudrait un jour évoquer l'incident hors d'un document s'appuie sur la chronologie du §2, sans rien y ajouter qui contredise un document.

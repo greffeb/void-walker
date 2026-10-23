@@ -443,6 +443,18 @@ Modale décrite en §3.9. Historique d'exemple :
 
 Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où est la créature (D-046, D-081).
 
+### 4.9 bis Fenêtre du poste de surveillance
+
+> D-355 à D-359, lot 4 de la créature mobile. [Validé sur maquette](maquette/poste.html), variante A ; textes de l'assistant principal, validation sur téléphone à venir.
+
+- **Ouverture** : « Se connecter au terminal » dans la salle de surveillance, avec le post-it. Sans lui, le refus du moteur s'écrit dans le récit, comme tout refus (« Le terminal demande un mot de passe : rien n'a été joué. »).
+- **Fenêtre plein cadre**, comme la carte (§3.6), sans flèche vers CARTE. Dialogue nommé « Surveillance » pour le lecteur d'écran. En-tête : « SURVEILLANCE » et « ● DIRECT », qui clignote en 2 s (fixe en mouvement réduit).
+- **Plan** : la station entière, centrée, avec les caméras (14 §2.5). Les pièces n'ouvrent ni fiche ni son. Une liste réservée aux lecteurs d'écran dit « Caméra de la remise : mouvement ».
+- **Ligne du bas**, en `aria-live="polite"` : les caméras qui ont changé depuis la dernière observation, « SOUTE : MOUVEMENT. » en `alerte`, « ATELIER : calme. », « brouillée. », « plus de signal. ». Sans changement, elle redit les caméras encore au mouvement ; « Aucun mouvement. » seulement si aucune n'est rouge. À la connexion, elle dit les caméras brouillées ou en panne.
+- **ATTENDRE** (bouton principal, plein) joue l'attente ordinaire : une action. **QUITTER** (secondaire) ferme sans coût ; Échap fait de même, et le focus revient au récit.
+- **Fermeture d'elle-même** : si le pas a une alerte de menace ou un danger, ou si le passager n'est plus connecté dans la salle, la fenêtre se ferme et le récit montre tout. Aucun avertissement n'est masqué.
+- Pas de son propre à la fenêtre.
+
 ### 4.10 Options
 
 Écran accessible depuis l'accueil (OPTIONS) et depuis le jeu (engrenage). Il regroupe la taille du texte, le signalement de bug, la gestion de la sauvegarde, le son et l'abandon de la partie en cours. [Validé] Rangé en trois sous-menus (#201) : maquette [options-menus](maquette/options-menus.html). [Validé D-287, D-288]

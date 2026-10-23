@@ -1,6 +1,6 @@
 # Créature mobile, information et difficulté — conception
 
-> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. **Lot 4** (poste de surveillance §4.3, messages d’IA Station §4.5) : réécrit après les maquettes du 2026-10-23, relu par un constructeur, à approuver. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-350 à D-354.
+> **Statut :** conception issue de la discussion avec le porteur du 2026-10-21, relue par un constructeur ; réponses du porteur intégrées le même jour. Approuvée par le porteur le 2026-10-21. **Lot 4** (poste de surveillance §4.3, messages d’IA Station §4.5) : réécrit après les maquettes du 2026-10-23, relu par un constructeur, tranché par le porteur sur maquette ; livré au lot 4. Décisions consignées dans 03 : D-330 à D-342 (liste en §12) ; lot 2 (écoute) : D-343 à D-347 ; lot 3 (capteur) : D-350 à D-354 ; lot 4 (salle de surveillance, carte révélée, caméras, fenêtre, messages d'IA Station) : D-355 à D-359.
 > **Zones :** orange pour le moteur, le vérifieur, le format des morceaux, l'appli et chaque seuil d'équilibrage ; rouge pour la sauvegarde, dont le format change (§9).
 > **Sources :** discussion du 2026-10-21 ; issues #216, #217, #241 ; D-161, D-177, D-178, D-180, D-181, D-241, D-275, D-276, D-279 ; C-03 ; 17 §1 et §7 (IA Station).
 
@@ -137,7 +137,7 @@ Consigné par D-350 à D-353. Précisé avec le porteur le 2026-10-22 sur maquet
 - **Comme la carte révélée des versions de test** (`app/carte/revelee.ts`) : toutes les pièces deviennent connues et toutes les liaisons découvertes, donc les boutons « Se déplacer vers » nomment aussi leur destination. Mais ce n'est pas une option de test : c'est une règle, écrite dans l'état de partie (`visitees`, `decouvertes`, mémoire des liaisons).
 - **Un passage caché reste caché** (M-05, `cachee`) : le plan de la compagnie ne le connaît pas, et l'énigme de M-05 tient. Une porte sans signalétique apparaît comme une porte.
 - **Contenu des pièces (porteur) : rien, sauf le feu et le vide d'air.** Ni clés, ni butin, ni post-it, ni documents : il faut aller voir sur place. Le feu apparaît sur le plan tel qu'il est à la consultation, puis reste figé comme les portes (souvenir de la pièce, D-213). Le vide suit la règle actuelle : le voyant d'une porte étanche est tenu à jour dès que sa destination est connue (14, OP-04), ce qui est le cas de toutes après le poste. Le constructeur reprend les repères de la carte actuelle (14).
-- **Le post-it et la salle** : posés comme une clé, par `poserCles`, jamais dans la pièce de départ de la créature ni dans le dernier segment avant la capsule (le poste doit servir à la seconde moitié de la partie). La part de 20 % est un tirage par graine ; le test de la liste publiée l'accepte entre 15 et 25 %, comme pour le capteur.
+- **Le post-it et la salle** : posés comme une clé, par `poserCles`, jamais dans la pièce de départ de la créature ni dans le dernier segment avant la capsule (le poste doit servir à la seconde moitié de la partie). La part de 20 % est un tirage par identifiant de station, pas par graine (D-355) ; le test de la liste publiée l'accepte entre 15 et 25 %, comme pour le capteur.
 - **Les homonymes** sont déjà numérotés à l'assemblage (`numeroter`, « Coursive A / B ») : IA Station et la fenêtre du poste reprennent ces noms.
 
 **Les caméras (porteur).**
@@ -254,9 +254,9 @@ C'est le point le plus délicat du lot. Il doit être réglé avant toute public
 5. Dé de rencontre : 1 déplacement, 2 signe, sinon rien, toutes les N actions ; remplace D-048 (§3.2).
 6. Écouter à une porte, avec jet de perception et mensonge possible près des machines (§4.1).
 7. Capteurs et drone éclaireur trouvés comme butin (§4.2, §4.6). Capteur livré au lot 3 : D-350 à D-353 ; drone éclaireur reporté : D-354.
-8. Poste de sécurité : plan, portes au moment de la consultation, capteurs ; jamais la créature directement (§4.3, #241).
+8. Poste de sécurité : plan, portes au moment de la consultation, capteurs ; jamais la créature directement (§4.3, #241). Livré au lot 4 comme « salle de surveillance » : D-355 à D-358.
 9. Pièces aveugles (§4.4).
-10. Signes de la face 2, dont les messages techniques d'IA Station (§4.5).
+10. Signes de la face 2, dont les messages techniques d'IA Station (§4.5). Messages livrés au lot 4 : D-359.
 11. Difficulté par un réglage à « Nouvelle partie », sans progression sauvegardée (§7).
 12. Plusieurs créatures en Difficile sur les grandes stations ; état de partie en liste dès ce lot (§8).
 13. Les sauvegardes d'avant la mise à jour sont refusées et supprimées (§9).
