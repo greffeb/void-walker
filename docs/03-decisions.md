@@ -3049,7 +3049,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 
 - Date / statut : 2026-10-24 / **Validé** sur maquette ([ecouter-rappel.html](maquette/ecouter-rappel.html), onglets 2 et 3) ; validation sur téléphone à venir.
 - Origine : retours d'un autre joueur, [#261](https://github.com/greffeb/void-walker/issues/261) (« je ne trouve pas comment écouter de nouveau ») ; le porteur : « il faut quand même faire un rappel que rien ne se passe et qu'on écoute quand même aux portes ». La maquette du lot 2 (ecouter.html, onglet 2) le prévoyait déjà ; l'implémentation l'avait retiré.
-- Décision : en grande station, une attente qui ne redit pas toutes les portes finit par un rappel : « Derrière les portes, rien de nouveau. » si aucune n'a changé, « Aux autres portes, rien de nouveau. » après celles qui ont changé. Dans une salle des machines en marche, « le vacarme couvre tout » est dit à chaque attente.
+- Décision : en grande station, une attente qui ne redit pas toutes les portes finit par un rappel : « Derrière les portes, rien de nouveau. » si aucune n'a changé, « Aux autres portes, rien de nouveau. » après celles qui ont changé. Dans une pièce à une seule porte, le rappel la nomme : « Derrière la porte du poste incendie, rien de nouveau. » (le porteur, après l'essai). Dans une salle des machines en marche, « le vacarme couvre tout » est dit à chaque attente.
 - Remplace : la limite « ne rend que `attente` » de D-343 ; précise D-345 et D-346.
 - Limite [Détail de l'agent] :
   - **Pas de rappel** à la première attente dans une pièce (tout est dit), ni quand toutes les portes viennent d'être dites (un « toujours » seul, par exemple).

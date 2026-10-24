@@ -137,8 +137,8 @@ export interface TextesMonde {
   readonly ecoute: Readonly<Record<EntenduRecit, Variantes>>;
   /** Portes silencieuses dites ensemble (D-363) ; `toutes` : « les {nombre} portes », toutes celles de la pièce. Couche menace. */
   readonly ecouteGroupee: Readonly<Record<'rien' | 'plus_rien' | 'toutes', Variantes>>;
-  /** Rappel des portes inchangées (D-362) : toutes (`portes`) ou les autres que celles qu'on vient de dire (`autres`). Couche menace. */
-  readonly ecouteRappel: Readonly<Record<'portes' | 'autres', Variantes>>;
+  /** Rappel des portes inchangées (D-362) : toutes (`portes`), la seule de la pièce (`porte`) ou les autres que celles qu'on vient de dire (`autres`). Couche menace. */
+  readonly ecouteRappel: Readonly<Record<'portes' | 'autres' | 'porte', Variantes>>;
   /** Phrase d'attente qui précède une écoute, à la place de celle de `evenements.attente`. */
   readonly attenteEcoute: Variantes;
   /** Bip du terminal selon l'état du capteur (lot 3 de la créature mobile) ; couche menace. « Mouvement » est en rouge. */

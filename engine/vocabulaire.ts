@@ -292,8 +292,8 @@ export type Evenement =
   | { readonly type: 'ecoute_couverte' }
   /** Plusieurs portes silencieuses dites ensemble ; `toutes` : toutes celles de la pièce, de quatre à douze (D-363). */
   | { readonly type: 'ecoute_groupee'; readonly passages: readonly RefPassage[]; readonly entendu: 'rien' | 'plus_rien'; readonly toutes: boolean }
-  /** Les portes non redites n'ont pas changé ; `autres` : une porte au moins vient d'être dite (D-362). */
-  | { readonly type: 'ecoute_rappel'; readonly autres: boolean }
+  /** Les portes non redites n'ont pas changé ; `autres` : une porte au moins vient d'être dite ; `passage` : la seule porte de la pièce (D-362). */
+  | { readonly type: 'ecoute_rappel'; readonly autres: boolean; readonly passage?: RefPassage }
   /** Le capteur est posé pour de bon, et dit d'emblée ce qu'il lit (créature mobile lot 3, D-350). */
   | { readonly type: 'capteur_pose'; readonly objet: RefObjet; readonly piece: RefPiece; readonly etat: Exclude<EtatCapteur, 'hs'> }
   /** Le capteur posé change d'état : il bipe, tombe en panne ou est détruit (créature mobile lot 3, D-352). */

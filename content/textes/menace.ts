@@ -74,6 +74,7 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   ecouteRappel: {
     portes: ['Derrière les portes, rien de nouveau.', 'Rien de nouveau derrière les portes.'],
     autres: ['Aux autres portes, rien de nouveau.'],
+    porte: ['Derrière {le:passage}, rien de nouveau.'],
   },
   // Capteur de mouvement (lot 3 de la créature mobile) : seul « MOUVEMENT » est en rouge ; « calme » n'est dit que d'une pièce
   // dont il lit l'air, et une panne ou une destruction se dit toujours.

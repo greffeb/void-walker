@@ -276,6 +276,7 @@ describe('rappel d’écoute et silences groupés (#261, #266)', () => {
     expect(textes.ecouteRappel.portes).toContain(phrase);
     const phrases = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute', passage: cuisine, entendu: 'net' }, { type: 'ecoute_rappel', autres: true }], { graine: 1, action: 0 });
     expect(phrases[2]).toBe('Aux autres portes, rien de nouveau.');
+    expect(rendreEvenements(textes, [{ type: 'ecoute_rappel', autres: false, passage: cuisine }], { graine: 1, action: 0 })).toEqual(['Derrière la porte de la cuisine, rien de nouveau.']);
   });
 
   it('5e et 10e attente : la patience, puis le rappel ou le vacarme ; un bruit de station se tait', () => {

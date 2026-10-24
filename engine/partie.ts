@@ -410,7 +410,8 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
         const liaisons = liaisonsDe(monde, conclu.piece);
         for (const dit of recitEcoute(conclu.ecoutees, maintenant)) {
           if (dit.sorte === 'rappel') {
-            evenements.push({ type: 'ecoute_rappel', autres: dit.autres });
+            const lien = liaisons.find((candidate) => candidate.id === dit.liaison);
+            evenements.push(lien === undefined ? { type: 'ecoute_rappel', autres: dit.autres } : { type: 'ecoute_rappel', autres: false, passage: refPassage(monde, conclu, lien, conclu.piece) });
             continue;
           }
           if (dit.sorte === 'groupe') {

@@ -75,6 +75,8 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'bruit_proche':
     case 'ecoute':
       return { passage: nomDe(textes, evenement.passage) };
+    case 'ecoute_rappel':
+      return evenement.passage === undefined ? {} : { passage: nomDe(textes, evenement.passage) };
     case 'ecoute_groupee':
       return { passages: evenement.passages.map((passage) => nomDe(textes, passage)), nombre: { texte: NOMBRES[evenement.passages.length] ?? String(evenement.passages.length), genre: 'f', nombre: 'p', elision: false } };
     case 'attente':
@@ -83,7 +85,6 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'bruit_lointain':
     case 'traces_fraiches':
     case 'ecoute_couverte':
-    case 'ecoute_rappel':
     case 'capteur':
     case 'capteur_pose':
     case 'premier_contact':
@@ -176,7 +177,7 @@ export function variantesDe(textes: TextesMonde, evenement: Evenement): Variante
   if (evenement.type === 'assistance') throw new ErreurTexte('Un message d’assistance ne se raconte pas.');
   if (evenement.type === 'ecoute') return textes.ecoute[evenement.entendu];
   if (evenement.type === 'ecoute_groupee') return textes.ecouteGroupee[evenement.toutes ? 'toutes' : evenement.entendu];
-  if (evenement.type === 'ecoute_rappel') return textes.ecouteRappel[evenement.autres ? 'autres' : 'portes'];
+  if (evenement.type === 'ecoute_rappel') return textes.ecouteRappel[evenement.passage !== undefined ? 'porte' : evenement.autres ? 'autres' : 'portes'];
   if (evenement.type === 'capteur') return textes.capteur[evenement.etat];
   if (evenement.type === 'capteur_pose') return textes.capteurPose[evenement.etat];
   return textes.evenements[evenement.type];

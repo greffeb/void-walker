@@ -129,6 +129,9 @@ describe('recitEcoute (#261, #266)', () => {
     expect(recitEcoute({ a: 'rien', b: 'vague' }, { a: 'rien', b: 'vague' })).toEqual([{ sorte: 'rappel', autres: false }]);
     expect(recitEcoute({ a: 'rien', b: 'rien' }, { a: 'net', b: 'rien' })).toEqual([{ sorte: 'une', liaison: 'a', entendu: 'net' }, { sorte: 'rappel', autres: true }]);
   });
+  it('une seule porte inchangée : le rappel la nomme', () => {
+    expect(recitEcoute({ a: 'vague' }, { a: 'vague' })).toEqual([{ sorte: 'rappel', autres: false, liaison: 'a' }]);
+  });
   it('toutes les portes dites : pas de rappel', () => {
     expect(recitEcoute({ a: 'net' }, { a: 'net' })).toEqual([{ sorte: 'une', liaison: 'a', entendu: 'toujours' }]);
   });
