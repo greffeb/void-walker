@@ -1,5 +1,6 @@
 import {
   aRaconter,
+  recitEcoute,
   ecouterPortes,
   empreinteEtat,
   faceEcoute,
@@ -107,6 +108,38 @@ describe('aRaconter (lot 2, maquette ecouter.html)', () => {
   });
 });
 
+describe('recitEcoute (#261, #266)', () => {
+  it('première attente : les silences ensemble, les autres à part', () => {
+    expect(recitEcoute(undefined, { a: 'rien', b: 'rien', c: 'vague' })).toEqual([
+      { sorte: 'groupe', liaisons: ['a', 'b'], entendu: 'rien', toutes: false },
+      { sorte: 'une', liaison: 'c', entendu: 'vague' },
+    ]);
+    expect(recitEcoute(undefined, { a: 'rien', m: 'machines' })).toEqual([
+      { sorte: 'une', liaison: 'a', entendu: 'rien' },
+      { sorte: 'une', liaison: 'm', entendu: 'machines' },
+    ]);
+  });
+  it('toutes à partir de quatre, de quatre à douze', () => {
+    expect(recitEcoute(undefined, { a: 'rien', b: 'rien', c: 'rien', d: 'rien' })).toEqual([{ sorte: 'groupe', liaisons: ['a', 'b', 'c', 'd'], entendu: 'rien', toutes: true }]);
+    expect(recitEcoute(undefined, { a: 'rien', b: 'rien', c: 'rien' })).toEqual([{ sorte: 'groupe', liaisons: ['a', 'b', 'c'], entendu: 'rien', toutes: false }]);
+    const treize = Object.fromEntries(Array.from({ length: 13 }, (_, i) => [`l${i}`, 'rien' as const]));
+    expect(recitEcoute(undefined, treize)).toEqual([expect.objectContaining({ sorte: 'groupe', toutes: false })]);
+  });
+  it('rien de changé : le rappel ; une porte change : elle, puis les autres', () => {
+    expect(recitEcoute({ a: 'rien', b: 'vague' }, { a: 'rien', b: 'vague' })).toEqual([{ sorte: 'rappel', autres: false }]);
+    expect(recitEcoute({ a: 'rien', b: 'rien' }, { a: 'net', b: 'rien' })).toEqual([{ sorte: 'une', liaison: 'a', entendu: 'net' }, { sorte: 'rappel', autres: true }]);
+  });
+  it('toutes les portes dites : pas de rappel', () => {
+    expect(recitEcoute({ a: 'net' }, { a: 'net' })).toEqual([{ sorte: 'une', liaison: 'a', entendu: 'toujours' }]);
+  });
+  it('plusieurs « plus rien » ensemble, jamais toutes', () => {
+    expect(recitEcoute({ a: 'net', b: 'vague', c: 'rien' }, { a: 'rien', b: 'rien', c: 'rien' })).toEqual([
+      { sorte: 'groupe', liaisons: ['a', 'b'], entendu: 'plus_rien', toutes: false },
+      { sorte: 'rappel', autres: true },
+    ]);
+  });
+});
+
 describe('dans le pas', () => {
   const GRAND: DefMonde = { ...MONDE, rencontre: { rythme: 1 } };
   const VERSION = 'ecoute-1';
@@ -157,7 +190,7 @@ describe('dans le pas', () => {
     ]);
   });
 
-  it('deuxième attente sans changement : seulement l’attente', () => {
+  it('deuxième attente sans changement : l’attente et le rappel', () => {
     // Seule la porte qui l'a derrière elle tire à chaque action ; la porte ouverte sans elle ne change pas (D-344).
     const graine = graineCalme(2, (g) => {
       const af = [1, 2].map((a) => resultatAf(faceEcoute(g, a, 'af')));
@@ -165,16 +198,16 @@ describe('dans le pas', () => {
     });
     const premier = attendre(GRAND, nouvellePartie(GRAND, { version: VERSION, graine }));
     const second = attendre(GRAND, premier.partie);
-    expect(second.evenements).toEqual([{ type: 'attente' }]);
+    expect(second.evenements).toEqual([{ type: 'attente' }, { type: 'ecoute_rappel', autres: false }]);
     expect(second.partie.etat.ecoutees).toEqual(premier.partie.etat.ecoutees);
   });
 
-  it('sans elle derrière aucune porte : après la première, chaque attente ne rend que l’attente (D-289 peut venir)', () => {
+  it('sans elle derrière aucune porte : après la première, chaque attente rend l’attente et le rappel (#261)', () => {
     for (const graine of grainesCalmes(5, 12)) {
       let partie = attendre(LOIN, nouvellePartie(LOIN, { version: VERSION, graine })).partie;
       for (let i = 0; i < 11; i++) {
         const suivant = attendre(LOIN, partie);
-        expect(suivant.evenements).toEqual([{ type: 'attente' }]);
+        expect(suivant.evenements).toEqual([{ type: 'attente' }, { type: 'ecoute_rappel', autres: false }]);
         partie = suivant.partie;
       }
     }
@@ -191,9 +224,14 @@ describe('dans le pas', () => {
     const loin = nouvellePartie(LOIN, { version: VERSION, graine: lointain });
     const muette = { ...loin, etat: { ...loin.etat, signes: [{ sorte: 'presence', piece: 'a', action: 0 }, { sorte: 'presence', piece: 'b', action: 0 }] as const } };
     const { evenements } = attendre(LOIN, muette);
-    expect(evenements.map((e) => e.type)).toEqual(['attente', 'bruit_lointain', 'ecoute', 'ecoute', 'ecoute', 'ecoute']);
+    // Les portes silencieuses se disent ensemble (D-363) : une écoute ou un groupe par phrase.
+    const types = (liste: readonly Evenement[]): string[] => liste.map((e) => (e.type === 'ecoute_groupee' ? 'ecoute' : e.type));
+    expect(types(evenements).slice(0, 3)).toEqual(['attente', 'bruit_lointain', 'ecoute']);
+    expect(new Set(types(evenements).slice(2))).toEqual(new Set(['ecoute']));
     // Sinon, il parle à la place du bruit lointain, et l'écoute suit de même.
-    expect(attendre(LOIN, loin).evenements.map((e) => e.type)).toEqual(['attente', 'assistance', 'ecoute', 'ecoute', 'ecoute', 'ecoute']);
+    const dits = types(attendre(LOIN, loin).evenements);
+    expect(dits.slice(0, 3)).toEqual(['attente', 'assistance', 'ecoute']);
+    expect(new Set(dits.slice(2))).toEqual(new Set(['ecoute']));
   });
 
   it('un net pose le repère BRUIT sur sa porte, et se redit « toujours »', () => {
@@ -213,6 +251,7 @@ describe('dans le pas', () => {
     expect(parti.partie.etat).not.toHaveProperty('ecoutees');
     const ailleurs = attendre(GRAND, parti.partie);
     expect(ailleurs.evenements.map((e) => e.type)).toEqual(['attente', 'ecoute']);
+    expect(ailleurs.evenements.some((e) => e.type === 'ecoute_rappel')).toBe(false);
   });
 
   it('sans rencontre : rien ne change', () => {
@@ -234,10 +273,21 @@ describe('dans le pas', () => {
     expect(grande.enregistrement.actions.map((e) => e.tirages)).toEqual(dix(MONDE).enregistrement.actions.map((e) => e.tirages));
   });
 
-  it('dans une salle des machines en marche : « le vacarme couvre tout » une fois, puis plus rien', () => {
+  it('attendre, regarder, attendre : Regarder ne coûte rien, l’écoute est gardée, le rappel vient (#261)', () => {
+    const graine = graineCalme(2, (g) => resultatAf(faceEcoute(g, 1, 'af')) === resultatAf(faceEcoute(g, 2, 'af')) && resultatAf(faceEcoute(g, 1, 'af')) !== 'net');
+    const premier = attendre(GRAND, nouvellePartie(GRAND, { version: VERSION, graine }));
+    const regard = observer(GRAND, premier.partie.etat).menu.find((choix) => choix.action === 'regarder' && choix.disponible);
+    if (regard === undefined) throw new Error('Regarder absent.');
+    const vu = jouer(GRAND, premier.partie, regard.commande);
+    expect(vu.type).toBe('consultation');
+    const second = attendre(GRAND, vu.partie);
+    expect(second.evenements).toEqual([{ type: 'attente' }, { type: 'ecoute_rappel', autres: false }]);
+  });
+
+  it('dans une salle des machines en marche : « le vacarme couvre tout » à chaque attente', () => {
     const machines: DefMonde = { ...GRAND, depart: 'm' };
     const premier = attendre(machines, nouvellePartie(machines, { version: VERSION, graine: graineCalme(2) }));
     expect(premier.evenements).toEqual([{ type: 'attente', vacarme: true }, { type: 'ecoute_couverte' }]);
-    expect(attendre(machines, premier.partie).evenements).toEqual([{ type: 'attente', vacarme: true }]);
+    expect(attendre(machines, premier.partie).evenements).toEqual([{ type: 'attente', vacarme: true }, { type: 'ecoute_couverte' }]);
   });
 });

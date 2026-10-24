@@ -2,7 +2,7 @@
 export { CATALOGUE, type DefAction } from './actions';
 export { sonRetenu, type Intensite, type SonEmis } from './creature';
 export { FACES_RENCONTRE, RYTHME_RENCONTRE, faceRencontre, tirageErrance } from './rencontre';
-export { aRaconter, ecouterPortes, faceEcoute, TABLE_ECOUTE } from './ecoute';
+export { aRaconter, ecouterPortes, recitEcoute, type DitEcoute, faceEcoute, TABLE_ECOUTE } from './ecoute';
 export { graineValide, GRAINE_MAX, generateurDepuisGraine, ouvrirDes, type Des, type EtatGenerateur } from './des';
 export type { BruitCreature, EmplacementObjet, EtatCreature, EtatPartie, Indice, Reperes, VueCreature } from './etat';
 export { creatureActive } from './etat';

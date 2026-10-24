@@ -75,6 +75,8 @@ export const TYPES_EVENEMENT = [
   'traces_fraiches',
   'ecoute',
   'ecoute_couverte',
+  'ecoute_groupee',
+  'ecoute_rappel',
   'capteur_pose',
   'capteur',
   'creature_entre',
@@ -286,8 +288,12 @@ export type Evenement =
   | { readonly type: 'traces_fraiches' }
   /** En grande station, en attendant : ce qu'on entend derrière ce passage, seulement si ça change (créature mobile lot 2, D-343). */
   | { readonly type: 'ecoute'; readonly passage: RefPassage; readonly entendu: EntenduRecit }
-  /** En attendant dans une salle des machines en marche : le vacarme couvre tout, dit une fois (créature mobile lot 2, D-343). */
+  /** En attendant dans une salle des machines en marche : le vacarme couvre tout, dit à chaque attente (D-362). */
   | { readonly type: 'ecoute_couverte' }
+  /** Plusieurs portes silencieuses dites ensemble ; `toutes` : toutes celles de la pièce, de quatre à douze (D-363). */
+  | { readonly type: 'ecoute_groupee'; readonly passages: readonly RefPassage[]; readonly entendu: 'rien' | 'plus_rien'; readonly toutes: boolean }
+  /** Les portes non redites n'ont pas changé ; `autres` : une porte au moins vient d'être dite (D-362). */
+  | { readonly type: 'ecoute_rappel'; readonly autres: boolean }
   /** Le capteur est posé pour de bon, et dit d'emblée ce qu'il lit (créature mobile lot 3, D-350). */
   | { readonly type: 'capteur_pose'; readonly objet: RefObjet; readonly piece: RefPiece; readonly etat: Exclude<EtatCapteur, 'hs'> }
   /** Le capteur posé change d'état : il bipe, tombe en panne ou est détruit (créature mobile lot 3, D-352). */

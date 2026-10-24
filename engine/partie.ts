@@ -11,7 +11,7 @@ import { regarder } from './memoire';
 import { indexer, type DefMonde } from './monde';
 import { observer, terminee } from './observation';
 import { FRAICHEUR, faceRencontre, tirageErrance } from './rencontre';
-import { aRaconter, ecouterPortes } from './ecoute';
+import { ecouterPortes, recitEcoute } from './ecoute';
 import { abimerCapteur, capteurPose } from './capteur';
 import { abimerCameras } from './surveillance';
 import { choisirSigne, faitsNeufs, signePermis, signePublic } from './signes';
@@ -395,7 +395,8 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     }
   }
   // Grande station : en attendant, on écoute aux portes, et le récit ne redit que ce qui change (créature mobile lot 2, D-343). Pas
-  // d'écoute quand le pas la situe déjà ou qu'elle est en vue ; toute autre action oublie la dernière écoute.
+  // d'écoute quand le pas la situe déjà ou qu'elle est en vue ; toute autre action oublie la dernière écoute. Chaque attente dit
+  // quelque chose des portes : les silences ensemble, le rappel des inchangées, le vacarme à chaque fois (D-362, D-363).
   if (monde.rencontre !== undefined) {
     if (validation.commande.action !== 'attendre') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars -- l'écoute ne vaut que pour l'attente qui la suit.
@@ -404,10 +405,22 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     } else if (!vaincu && conclu.fin === null && !creatureEnVue(conclu) && !evenements.some((e) => SIGNES_CREATURE.has(e.type) || e.type === 'bruit_proche')) {
       const maintenant = ecouterPortes(monde, conclu, partie.enregistrement.graine, action);
       if (Object.keys(maintenant).length === 0 && assourdie(monde, conclu, conclu.piece)) {
-        if (conclu.ecoutees === undefined) evenements.push({ type: 'ecoute_couverte' });
+        evenements.push({ type: 'ecoute_couverte' });
       } else {
-        for (const { liaison, entendu } of aRaconter(conclu.ecoutees, maintenant)) {
-          const lien = liaisonsDe(monde, conclu.piece).find((candidate) => candidate.id === liaison);
+        const liaisons = liaisonsDe(monde, conclu.piece);
+        for (const dit of recitEcoute(conclu.ecoutees, maintenant)) {
+          if (dit.sorte === 'rappel') {
+            evenements.push({ type: 'ecoute_rappel', autres: dit.autres });
+            continue;
+          }
+          if (dit.sorte === 'groupe') {
+            const etat = conclu;
+            const passages = liaisons.filter((lien) => dit.liaisons.includes(lien.id)).map((lien) => refPassage(monde, etat, lien, etat.piece));
+            if (passages.length > 0) evenements.push({ type: 'ecoute_groupee', passages, entendu: dit.entendu, toutes: dit.toutes });
+            continue;
+          }
+          const { liaison, entendu } = dit;
+          const lien = liaisons.find((candidate) => candidate.id === liaison);
           if (lien === undefined) continue;
           evenements.push({ type: 'ecoute', passage: refPassage(monde, conclu, lien, conclu.piece), entendu });
           // Un net, comme le bruit proche de la face 2, est retenu comme un bruit entendu (D-181).
