@@ -1,6 +1,7 @@
 import { apercu, exporter, jouer, nouvellePartie, rejouer, type Partie } from './partie';
 import { carte } from './carte';
 import { observer } from './observation';
+import { sortiePossible } from './sortie';
 import { idPublic, validerMonde, type DefMonde } from './monde';
 import { avecDroneEn, cheminDrone, placesDuDrone, renverserDrone, sonsDrones } from './drone';
 
@@ -171,6 +172,25 @@ describe('le drone roule seul et tire l’obstacle', () => {
     partie = pas(partie, 'attendre', 'c');
     expect(ou(partie)).toEqual(['termine', 'd']);
     expect(surCarte(partie)).toEqual([idPublic(MONDE.id, 'd')]);
+  });
+  it('plus aucune sortie : un drone renversé derrière une porte qu’on peut ouvrir laisse la sortie, pas un chemin condamné', () => {
+    const avecCapsule = (base: DefMonde): DefMonde => ({ ...base,
+      pieces: [...base.pieces, { id: 'i', nom: 'i', sousPosition: true }],
+      liaisons: [...base.liaisons, { id: 'fi', nom: 'porte', entre: ['f', 'i'], ouverte: false }],
+      objets: [...base.objets,
+        { id: 'capsule', nom: 'capsule', piece: 'f', portable: false, capsule: { interieur: 'i', alimentee: true } },
+        { id: 'pupitre', nom: 'pupitre', piece: 'i', portable: false, depart: 'capsule' },
+      ],
+    });
+    const renverse = (monde: DefMonde) => {
+      const initiale = debut(monde);
+      return { ...initiale.etat, objets: { ...initiale.etat.objets, x: { type: 'piece' as const, piece: 'b' } }, drones: { phases: { x: 'deraille' as const }, bruits: [] } };
+    };
+    const monde = avecCapsule(MONDE);
+    expect(sortiePossible(monde, renverse(monde))).toBe(true);
+    // Sans c ─ d, le seul chemin du drone est b ┄ d, qui ne se manœuvre que depuis d : on n'y arrive plus.
+    const condamne = avecCapsule({ ...MONDE, liaisons: MONDE.liaisons.filter((liaison) => liaison.id !== 'cd').map((liaison) => (liaison.id === 'bd' ? { ...liaison, manoeuvre: 'd' } : liaison)) });
+    expect(sortiePossible(condamne, renverse(condamne))).toBe(false);
   });
   it('le feu n’arrête pas le drone (D-306)', () => {
     const monde: DefMonde = { ...MONDE, pieces: MONDE.pieces.map((piece) => (piece.id === 'b' ? { ...piece, feu: true } : piece)) };
