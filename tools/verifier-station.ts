@@ -1,5 +1,6 @@
 import { assemblerStation, empreinte, nouvellePartie, observer, jouer, type DefMonde, type Des, type EtatPartie, type OptionMenu, type Partie } from '../engine';
 import { generateurDepuisGraine, suivant } from '../engine/des';
+import { avecDroneEn, placesDuDrone } from '../engine/drone';
 import {
   COMPOSITIONS_PUBLIEES,
   creerCatalogue,
@@ -581,6 +582,23 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
   return catalogue.compositions.map((composition) => verifierComposition(catalogue, composition, options));
 }
 
+/**
+ * Une station à drone vaut pour toutes ses graines, donc pour chaque place où l'assemblage peut tirer le drone (#270) : chacune
+ * est prouvée, jusqu'à la première qui échoue ; états et durées s'additionnent, et le diagnostic nomme la place en échec.
+ */
+export function verifierChaquePlace<Rapport extends RapportStation>(entree: EntreeMonde, verifier: (entree: EntreeMonde) => Rapport): Rapport {
+  const drone = entree.monde.objets.find((objet) => objet.drone !== undefined);
+  const places = drone === undefined ? [] : placesDuDrone(entree.monde, drone.id);
+  if (drone === undefined || places.length === 0) return verifier(entree);
+  let total: Rapport | null = null;
+  for (const place of places) {
+    const rapport = verifier({ ...entree, monde: avecDroneEn(entree.monde, drone.id, place) });
+    total = total === null ? rapport : { ...rapport, etats: total.etats + rapport.etats, secondes: total.secondes + rapport.secondes };
+    if (rapport.verdict !== 'prouvee') return { ...total, diagnostic: `Drone en ${place} : ${rapport.diagnostic}` };
+  }
+  return total ?? verifier(entree);
+}
+
 /** Une composition, vérifiée sur sa station de référence ; refusée par la table ou par sa place, sans assemblage ni recherche. */
 /**
  * Plafond relevé pour les compositions qui contiennent ces morceaux (#232) : M-12 multiplie les états (six portes, phases du
@@ -609,8 +627,8 @@ export function verifierComposition(catalogue: Catalogue, composition: Compositi
   const station = stationDeReference(catalogue, composition.id);
   if ('refus' in station) return sansVerification('non_prouvee', station.refus);
   const recherche = optionsDe(composition, options);
-  const libre = composition.forme === 'libre' ? verifierLibre(station.entree, recherche) : null;
-  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierStation(station.entree, recherche);
+  const libre = composition.forme === 'libre' ? verifierChaquePlace(station.entree, (entree) => verifierLibre(entree, recherche)) : null;
+  const { verdict, etats, secondes, diagnostic, parcours } = libre ?? verifierChaquePlace(station.entree, (entree) => verifierStation(entree, recherche));
   const actions = parcours === null ? null : parcours.etapes.length;
   const ordres = libre === null ? {} : { ordres: libre.ordres };
   return { composition: composition.id, verdict, graine: station.graine, etats, secondes, actions, diagnostic, empreintes, ...ordres };

@@ -73,7 +73,7 @@ export type Verdict = 'evacuation' | 'aucune' | 'plafond';
 
 /** Gestes qu'un chemin vers la capsule peut demander quand rien ne menace (mode `elague`) : le reste ne fait qu'ajouter des états. */
 const GESTES_UTILES: ReadonlySet<string> = new Set(['aller', 'ouvrir', 'prendre', 'poser', 'deplacer', 'placer', 'actionner', 'activer', 'installer', 'lancer', 'deriver', 'fermer',
-  'envoyer', 'replacer', 'rearmer', 'reprendre_drone', 'lacher', 'attendre']);
+  'envoyer', 'replacer', 'rearmer', 'reprendre_drone', 'attendre']);
 
 /**
  * Recherche complète depuis `etat` ; épuisée sans évacuation : `aucune`. L'ordre ne change que la vitesse : d'abord les états
@@ -88,13 +88,14 @@ export function chercherEvacuation(
 ): { verdict: Verdict; etats: number } {
   const exiges = new Set(monde.objets.flatMap((objet) => (objet.exige === undefined ? [] : [objet.exige])));
   const utiles = new Set(monde.objets.filter((objet) => objet.pont === true || objet.appui === true || objet.source === true || exiges.has(objet.id)
-    || objet.drone !== undefined || objet.obstacle !== undefined || objet.poignee === true).map((objet) => idPublic(monde.id, objet.id)));
+    || objet.drone !== undefined || objet.obstacle !== undefined).map((objet) => idPublic(monde.id, objet.id)));
   const cabines = new Set(monde.objets.flatMap((objet) => (objet.depart === undefined ? [] : [objet.piece])));
   const garder = (option: OptionMenu, etatCourant: EtatPartie): boolean => {
     if (!elague) return true;
     if (!GESTES_UTILES.has(option.action)) return false;
-    if (option.action === 'attendre') return Object.values(etatCourant.drones?.phases ?? {}).includes('trajet');
-    if (['envoyer', 'replacer', 'rearmer', 'reprendre_drone', 'lacher'].includes(option.action)) return utiles.has(option.commande.cible);
+    // Attendre ne sert qu'à laisser rouler ou tirer un drone en route (#270).
+    if (option.action === 'attendre') return Object.values(etatCourant.drones?.phases ?? {}).some((phase) => ['trajet', 'roule', 'traction'].includes(phase));
+    if (['envoyer', 'replacer', 'rearmer', 'reprendre_drone'].includes(option.action)) return utiles.has(option.commande.cible);
     if (option.action === 'fermer') return cabines.has(etatCourant.piece);
     if (option.action === 'prendre' || option.action === 'poser') return utiles.has(option.commande.cible);
     return true;

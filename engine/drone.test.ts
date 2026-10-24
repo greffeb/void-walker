@@ -44,16 +44,17 @@ describe('chemin et places du drone', () => {
     expect(cheminDrone(MONDE, 'x', 'd')).toEqual([]);
     expect(cheminDrone(MONDE, 'x', 'g')).toBeNull();
   });
-  it('places : avant l’obstacle, sans vide ni cloison qu’on n’ouvre qu’au-delà', () => {
-    expect(placesDuDrone(MONDE, 'x')).toEqual(['a', 'b', 'c', 'e']);
+  it('places : avant l’obstacle, hors du repaire, sans vide ni cloison qu’on n’ouvre qu’au-delà', () => {
+    expect(placesDuDrone(MONDE, 'x')).toEqual(['a', 'b', 'c']);
+    expect(placesDuDrone({ ...MONDE, creature: { piece: 'f' } }, 'x')).toEqual(['a', 'b', 'c', 'e']);
   });
   it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
     const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
-    expect(placesDuDrone(monde, 'x')).toEqual(['a', 'b', 'c', 'e', 'h']);
+    expect(placesDuDrone(monde, 'x')).toEqual(['a', 'b', 'c', 'h']);
   });
   it('placerDrones tire parmi les places, de façon stable', () => {
     const tirees = Array.from({ length: 200 }, (_, graine) => placerDrones(MONDE, graine).objets.find((objet) => objet.id === 'x')?.piece);
-    expect(new Set(tirees)).toEqual(new Set(['a', 'b', 'c', 'e']));
+    expect(new Set(tirees)).toEqual(new Set(['a', 'b', 'c']));
     expect(placerDrones(MONDE, 17)).toEqual(placerDrones(MONDE, 17));
     expect(placerDrones({ ...MONDE, objets: MONDE.objets.filter((objet) => objet.drone === undefined && objet.obstacle === undefined) }, 3).objets).toHaveLength(1);
   });

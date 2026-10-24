@@ -51,7 +51,7 @@ export function cheminDrone(monde: DefMonde, drone: string, depuis: string): rea
 
 /**
  * Pièces où un drone peut attendre (#270) : atteintes depuis le départ sans franchir un obstacle, une cloison verrouillée
- * seulement si un objet qui la déverrouille est lui-même atteint ; hors de la pièce de son obstacle ; d'où son chemin existe et
+ * seulement si un objet qui la déverrouille est lui-même atteint ; hors de la pièce de son obstacle et du repaire ; d'où son chemin existe et
  * ne passe que par ces pièces. Dans l'ordre du monde.
  */
 export function placesDuDrone(monde: DefMonde, drone: string): readonly string[] {
@@ -73,7 +73,8 @@ export function placesDuDrone(monde: DefMonde, drone: string): readonly string[]
     }
   }
   return monde.pieces.map((piece) => piece.id).filter((piece) => {
-    if (!atteintes.has(piece) || piece === obstacle.piece) return false;
+    // Jamais dans le repaire de la créature : on ne l'y lancerait pas sans risque, et la station doit garder un chemin sûr (D-084).
+    if (!atteintes.has(piece) || piece === obstacle.piece || piece === monde.creature?.piece) return false;
     const chemin = cheminDrone(monde, drone, piece);
     if (chemin === null) return false;
     let ici = piece;

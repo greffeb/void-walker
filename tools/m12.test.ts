@@ -8,7 +8,7 @@ import { PARCOURS_REPARATION_M12 } from '../content/m-12/parcours';
 import { CATALOGUE } from './catalogue';
 import { executerParcours, trouverOption } from './rejouer-parcours';
 import { chercherEvacuation } from './verifier-sortie';
-import { cleEtatRegles, cloisonsDuCarrefour, verifierStation } from './verifier-station';
+import { cleEtatRegles, cloisonsDuCarrefour, verifierChaquePlace, verifierStation } from './verifier-station';
 
 const entree = CATALOGUE.mondes['m-12'];
 if (entree === undefined) throw new Error('Station d’essai M12 absente.');
@@ -104,6 +104,17 @@ describe('M12 assemblé et joué par les surfaces réelles', () => {
     const evenements = jouerEtape({ action: 'attendre', cible: 'atelier_drone' });
     expect(evenements).not.toContain('drone_termine');
     expect(partie.etat.drones?.phases['m-12/o-drone']).toBe('termine');
+  });
+
+  it('une station avec drone est prouvée à chacune de ses places, et nomme celle qui échoue', () => {
+    const rapport = verifierChaquePlace(entree, verifierStation);
+    expect(rapport.verdict).toBe('prouvee');
+    expect(rapport.etats).toBeGreaterThan(verifierStation(entree).etats);
+    // Atelier muré de l'intérieur : un drone tiré là n'en sortirait jamais.
+    const mure = { ...entree, monde: { ...monde, liaisons: monde.liaisons.map((liaison) => (liaison.id === 'm-12/l-galerie-atelier' ? { ...liaison, ouverte: false, manoeuvre: 'm-12/p-atelier' } : liaison)) } };
+    const echec = verifierChaquePlace(mure, verifierStation);
+    expect(echec.verdict).not.toBe('prouvee');
+    expect(echec.diagnostic).toContain('m-12/p-atelier');
   });
 
   it('la place du drone change avec la graine et ne tombe jamais au palier', () => {
