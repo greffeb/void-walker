@@ -43,9 +43,10 @@ export const PAS_POSTE_MS = 2000;
  * Horloge du poste : arme un seul pas différé si `actif`, et rend de quoi l'annuler. Appelée par un effet qui se rejoue à chaque
  * pas : jamais deux minuteurs, rien pendant qu'un pas s'applique (`actif` faux), rien après la fermeture ou le démontage.
  */
-export function armerPoste(actif: boolean, jouer: () => void): () => void {
+export function armerPoste(actif: boolean, jouer: () => void, tenir = false): () => void {
   if (!actif) return () => undefined;
-  const minuteur = setTimeout(jouer, PAS_POSTE_MS);
+  // `tenir` : une alerte rouge sur la ligne, un battement de plus pour la lire (D-359).
+  const minuteur = setTimeout(jouer, tenir ? PAS_POSTE_MS * 2 : PAS_POSTE_MS);
   return () => clearTimeout(minuteur);
 }
 

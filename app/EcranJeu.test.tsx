@@ -1148,6 +1148,8 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
     const html = rendrePoste(refus);
     expect(texte(html)).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
     expect(html).not.toContain('aria-label="Surveillance"');
+    // Rien ne souffle qu'un post-it existe avant de l'avoir trouvé (D-356).
+    expect(observer(POSTE, debut.partie.etat).menu.some((option) => option.action === 'deverrouiller')).toBe(false);
   });
 
   it('« Se connecter » : un seul toucher, sans CONFIRMER (D-359)', async () => {

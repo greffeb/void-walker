@@ -972,23 +972,25 @@ function terminauxIci({ monde, etat }: Contexte): DefObjet[] {
   return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.terminal === true);
 }
 
-/** Terminaux de la pièce dont le mot de passe n'a pas encore été tapé (lot 4, D-356). */
+/**
+ * Terminaux de la pièce dont le mot de passe n'a pas encore été tapé, le post-it en main (lot 4, D-356) : sans lui, l'option n'existe
+ * pas, pour ne pas souffler qu'un post-it existe ; seul « Se connecter » se refuse.
+ */
 function verrouillesIci(contexte: Contexte): DefObjet[] {
-  return contexte.etat.terminalDeverrouille === true ? [] : terminauxIci(contexte).filter((candidat) => candidat.exige !== undefined);
+  if (contexte.etat.terminalDeverrouille === true) return [];
+  return terminauxIci(contexte).filter((candidat) => candidat.exige !== undefined && contexte.etat.objets[candidat.exige]?.type === 'passager');
 }
 
 /**
  * Déverrouiller : utiliser le post-it sur le terminal, une action discrète ; le mot de passe est tapé pour la partie, le post-it
- * peut ensuite quitter les mains (lot 4, D-356). Sans le post-it en main : `sans_mot_de_passe`, comme à la connexion.
+ * peut ensuite quitter les mains (lot 4, D-356). Sans le post-it en main, l'action n'est pas proposée.
  */
 const deverrouiller: ActionEngagee = {
   id: 'deverrouiller',
   engage: true,
   cibles: (contexte) => verrouillesIci(contexte).map((candidat) => candidat.id),
   verifier: (contexte, cible) => {
-    if (!verrouillesIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
-    const motDePasse = objet(contexte.monde, cible).exige;
-    return motDePasse !== undefined && contexte.etat.objets[motDePasse]?.type !== 'passager' ? 'sans_mot_de_passe' : null;
+    return verrouillesIci(contexte).some((candidat) => candidat.id === cible) ? null : 'cible_absente';
   },
   prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
   appliquer: ({ etat }) => ({ etat: { ...etat, terminalDeverrouille: true }, evenements: [{ type: 'terminal_deverrouille' }] }),

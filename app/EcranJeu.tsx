@@ -267,13 +267,25 @@ export function EcranJeu({
     if (posteVu.current && !posteAffiche && ouverte === null) recit.current?.focus();
     posteVu.current = posteAffiche;
   }, [posteAffiche, ouverte]);
-  // Horloge du poste (D-359) : un pas d'attente deux secondes après le précédent, jamais pendant qu'un pas s'applique (`occupe`).
+  // Horloge du poste (D-359) : un pas d'attente deux secondes après le précédent, jamais pendant qu'un pas s'applique (`occupe`) ;
+  // quatre secondes sous une alerte rouge. Un pas qui échoue arrête l'horloge pour ce pas-là : l'erreur suit le chemin d'un pas joué à la main.
+  const ligneDuPoste = recitPoste(jeu);
+  const tenirPoste = ligneDuPoste.some(({ alerte }) => alerte);
+  const pasEchoue = useRef<Jeu | null>(null);
   useEffect(() => {
     const attente = observer(env.monde, jeu.partie.etat).menu.find((option) => option.action === 'attendre' && option.disponible);
-    return armerPoste(posteAffiche && !occupe && attente !== undefined, () => {
-      if (attente !== undefined) void choisir(jeu, attente);
-    });
-  }, [posteAffiche, occupe, jeu, env.monde, choisir]);
+    return armerPoste(
+      posteAffiche && !occupe && attente !== undefined && pasEchoue.current !== jeu,
+      () => {
+        if (attente === undefined) return;
+        choisir(jeu, attente).catch((erreur: unknown) => {
+          pasEchoue.current = jeu;
+          throw erreur;
+        });
+      },
+      tenirPoste,
+    );
+  }, [posteAffiche, occupe, jeu, env.monde, choisir, tenirPoste]);
   /** Après CONTINUER À JOUER, le focus revient au récit, sous le rappel (12 §7). */
   const rendreAuRecit = useRef(false);
   useEffect(() => {
@@ -413,7 +425,7 @@ export function EcranJeu({
               textes,
               camerasChangees(suivi.precedente === null ? undefined : observer(env.monde, suivi.precedente.etat).cameras, observation.cameras),
               observation.cameras,
-              recitPoste(jeu),
+              ligneDuPoste,
             )}
             quitter={() => setPoste({ ...suivi, ouvert: false })}
             textes={textes}

@@ -593,7 +593,7 @@ describe('CLI : poste de surveillance (lot 4)', () => {
     expect(sortie.lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
     expect(sortie.lignes).not.toContain('Caméras en direct :');
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
-    expect(executer(['deverrouiller', 'terminal'], ctx).lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
+    expect(executer(['deverrouiller', 'terminal'], ctx)).toEqual({ lignes: ['Aucun terminal à déverrouiller ici.'], code: 1 });
     executer(['jouer', numero(sortie.lignes, 'Prendre le post-it')], ctx);
     // Le post-it en main ne suffit pas : il faut l'utiliser sur le terminal.
     expect(executer(['surveiller', 'terminal'], ctx).lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');

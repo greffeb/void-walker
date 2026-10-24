@@ -240,10 +240,13 @@ export function fermerPoste(observation: Observation, evenements: readonly Evene
 /** Événements qui ne disent rien de plus que l'horloge du poste : leur pas n'écrit pas son récit sur la ligne du bas (D-359). */
 const MUETS_AU_POSTE: ReadonlySet<Evenement['type']> = new Set(['attente', 'terminal_connecte', 'assistance']);
 
-/** Récit du pas pour la ligne du bas de la fenêtre du poste, les alertes en rouge ; rien pour une attente ou une connexion seules. */
-export function recitPoste(jeu: Pick<Jeu, 'recit' | 'alertes' | 'partie'>): readonly { readonly texte: string; readonly alerte: boolean }[] {
-  if (jeu.partie.derniers.every(({ type }) => MUETS_AU_POSTE.has(type))) return [];
-  return jeu.recit.map((texte, rang) => ({ texte, alerte: jeu.alertes.includes(rang) }));
+/**
+ * Récit du pas pour la ligne du bas de la fenêtre du poste, les alertes en rouge ; rien pour une attente ou une connexion seules.
+ * Un message d'IA Station reçu pendant la veille s'y cite aussi, entre guillemets : la fenêtre cache le bouton qui le signale.
+ */
+export function recitPoste(jeu: Pick<Jeu, 'recit' | 'alertes' | 'partie' | 'assistance'>): readonly { readonly texte: string; readonly alerte: boolean }[] {
+  const recit = jeu.partie.derniers.every(({ type }) => MUETS_AU_POSTE.has(type)) ? [] : jeu.recit.map((texte, rang) => ({ texte, alerte: jeu.alertes.includes(rang) }));
+  return [...recit, ...jeu.assistance.map((message) => ({ texte: `«\u00a0${message}\u00a0»`, alerte: false }))];
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */

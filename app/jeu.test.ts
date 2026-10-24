@@ -820,8 +820,10 @@ describe('fenêtre du poste : caméras changées et fermeture (lot 4)', () => {
 
   it('recitPoste : rien pour une attente ou une connexion seules ; sinon tout le récit, alertes en rouge', () => {
     const partie = nouvellePartie(monde, { version: 'v-test', graine: 1 });
-    const pas = (derniers: Partie['derniers']) => ({ partie: { ...partie, derniers }, recit: ['Vous attendez.', 'Un raclement.'], alertes: [1] });
-    expect(recitPoste(pas([{ type: 'attente' }, { type: 'assistance', message: 'm-x' }]))).toEqual([]);
+    const pas = (derniers: Partie['derniers'], assistance: string[] = []) => ({ partie: { ...partie, derniers }, recit: ['Vous attendez.', 'Un raclement.'], alertes: [1], assistance });
+    expect(recitPoste(pas([{ type: 'attente' }]))).toEqual([]);
+    // Un message d'IA Station pendant la veille se cite sur la ligne, sans le récit de l'attente.
+    expect(recitPoste(pas([{ type: 'attente' }, { type: 'assistance', message: 'm-x' }], ['Porte bloquée.']))).toEqual([{ texte: '«\u00a0Porte bloquée.\u00a0»', alerte: false }]);
     expect(recitPoste(pas([{ type: 'terminal_connecte' }]))).toEqual([]);
     expect(recitPoste(pas([{ type: 'attente' }, { type: 'porte_secouee', passage: porte }]))).toEqual([
       { texte: 'Vous attendez.', alerte: false },

@@ -67,6 +67,15 @@ describe('horloge du poste (D-359)', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('une alerte rouge sur la ligne retient l’horloge un battement de plus', () => {
+    const jouer = vi.fn();
+    armerPoste(true, jouer, true);
+    vi.advanceTimersByTime(PAS_POSTE_MS * 2 - 1);
+    expect(jouer).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(jouer).toHaveBeenCalledTimes(1);
+  });
+
   it('pas appliqué en cours, fenêtre fermée ou démontée : aucun pas', () => {
     const jouer = vi.fn();
     armerPoste(false, jouer);

@@ -54,9 +54,11 @@ describe('terminal de surveillance', () => {
     expect(observer(MONDE, debut().etat).menu).toContainEqual(expect.objectContaining({ action: 'surveiller', disponible: false, raison: 'sans_mot_de_passe' }));
   });
 
-  it('déverrouiller sans le post-it en main : refusé, le temps ne passe pas', () => {
-    const r = jouer(MONDE, avec(debut(), { piece: 'surveillance' }), commande('deverrouiller', 'terminal'));
-    expect(r).toEqual(expect.objectContaining({ type: 'refus', raison: 'sans_mot_de_passe' }));
+  it('déverrouiller sans le post-it en main : ni proposé au menu, ni joué (D-356)', () => {
+    const sans = avec(debut(), { piece: 'surveillance' });
+    expect(observer(MONDE, sans.etat).menu.some((option) => option.action === 'deverrouiller')).toBe(false);
+    const r = jouer(MONDE, sans, commande('deverrouiller', 'terminal'));
+    expect(r).toEqual(expect.objectContaining({ type: 'refus', raison: 'cible_absente' }));
     expect(r.partie.etat.actions).toBe(0);
     expect(r.partie.etat.terminalDeverrouille).toBeUndefined();
   });
