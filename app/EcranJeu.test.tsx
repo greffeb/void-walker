@@ -1152,6 +1152,13 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
     expect(observer(POSTE, debut.partie.etat).menu.some((option) => option.action === 'deverrouiller')).toBe(false);
   });
 
+  it('le post-it sur le terminal : un seul toucher, sans CONFIRMER (D-356)', async () => {
+    const debut = await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it');
+    const option = observer(POSTE, debut.partie.etat).menu.find((choix) => choix.action === 'deverrouiller');
+    expect(option?.disponible).toBe(true);
+    expect(unToucher(POSTE, debut.partie, option!)).toBe(true);
+  });
+
   it('« Se connecter » : un seul toucher, sans CONFIRMER (D-359)', async () => {
     const debut = await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'deverrouiller');
     const option = observer(POSTE, debut.partie.etat).menu.find((choix) => choix.action === 'surveiller');
@@ -1177,7 +1184,9 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
     expect(html).toContain('aria-label="Surveillance"');
     expect(html).toContain('<li>Caméra de l’atelier : calme</li>');
     expect(html).toContain('<li>Caméra de la soute : mouvement</li>');
-    expect(html).toContain('<span class="alerte">SOUTE : MOUVEMENT. </span>');
+    // Le journal ne dit que les caméras : ni le récit du pas, ni IA Station (D-359).
+    expect(entre(html, '<ol class="poste-journal"', '</ol>')).toContain('<li class="alerte">Mouvement détecté dans la soute.</li>');
+    for (const phrase of [...jeu.recit, ...jeu.assistance]) expect(entre(html, '<ol class="poste-journal"', '</ol>')).not.toContain(phrase);
   });
 
   it('après la connexion, une pièce jamais visitée est connue : ni « vu à l’instant », ni « aucun objet », ni rangée parmi les visitées', async () => {

@@ -1,7 +1,6 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type EtatCapteur, type Evenement, type Observation, type OptionMenu, type Partie, type RefPiece } from '../engine';
 import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
-import { LIBELLES } from './libelles';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
 
@@ -215,7 +214,7 @@ export async function jouerOption(env: Environnement, jeu: Jeu, option: OptionMe
 export type CameraLue = { readonly piece: RefPiece; readonly etat: EtatCapteur };
 
 /**
- * Caméras qui ont changé d'état entre deux observations, pour la ligne du bas de la fenêtre du poste (lot 4). Sans observation
+ * Caméras qui ont changé d'état entre deux observations, pour le journal de la fenêtre du poste (lot 4). Sans observation
  * d'avant (on vient de se connecter), chaque caméra est comparée à « calme » : une caméra déjà au mouvement se dit tout de suite.
  */
 export function camerasChangees(avant: Observation['cameras'], apres: Observation['cameras']): readonly CameraLue[] {
@@ -224,8 +223,8 @@ export function camerasChangees(avant: Observation['cameras'], apres: Observatio
 
 /**
  * La fenêtre du poste se ferme d'elle-même (lot 4, D-359) seulement quand le récit doit se lire en grand : la créature entre dans la
- * salle ou s'y montre, un danger (feu, vide) y est, la partie finit, ou le passager n'est plus connecté dans la salle. Tout le reste
- * (écoute, signe, message) s'écrit sur la ligne du bas, avec les caméras : `recitPoste`.
+ * salle ou s'y montre, un danger (feu, vide) y est, la partie finit, ou le passager n'est plus connecté dans la salle. Le reste
+ * (écoute, signe, message) ne s'écrit que dans le récit et l'historique : le journal de la fenêtre ne dit que les caméras.
  */
 export function fermerPoste(observation: Observation, evenements: readonly Evenement[]): boolean {
   return (
@@ -236,18 +235,6 @@ export function fermerPoste(observation: Observation, evenements: readonly Evene
     observation.creatureVisible ||
     evenements.some(({ type }) => type === 'creature_entre')
   );
-}
-
-/** Événements qui ne disent rien de plus que l'horloge du poste : leur pas n'écrit pas son récit sur la ligne du bas (D-359). */
-const MUETS_AU_POSTE: ReadonlySet<Evenement['type']> = new Set(['attente', 'terminal_connecte', 'assistance']);
-
-/**
- * Récit du pas pour la ligne du bas de la fenêtre du poste, les alertes en rouge ; rien pour une attente ou une connexion seules.
- * Un message d'IA Station reçu pendant la veille s'y cite aussi, entre guillemets : la fenêtre cache le bouton qui le signale.
- */
-export function recitPoste(jeu: Pick<Jeu, 'recit' | 'alertes' | 'partie' | 'assistance'>): readonly { readonly texte: string; readonly alerte: boolean }[] {
-  const recit = jeu.partie.derniers.every(({ type }) => MUETS_AU_POSTE.has(type)) ? [] : jeu.recit.map((texte, rang) => ({ texte, alerte: jeu.alertes.includes(rang) }));
-  return [...recit, ...jeu.assistance.map((message) => ({ texte: LIBELLES.ia.citation(message), alerte: false }))];
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */

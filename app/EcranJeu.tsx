@@ -29,9 +29,9 @@ import {
 import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { carteRevelee as revelee } from './carte/revelee';
-import { armerPoste, FenetrePoste, lignePoste } from './FenetrePoste';
+import { armerPoste, FenetrePoste, journalPoste, type PhrasePoste } from './FenetrePoste';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { camerasChangees, consulter, consulterDocument, fermerPoste, historiqueAffiche, prevoir, recitPoste, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
+import { consulter, consulterDocument, fermerPoste, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 import { LIBELLES } from './libelles';
@@ -84,18 +84,26 @@ function quitterEntreeBulle(): void {
 }
 
 /**
- * Fenêtre du poste (lot 4) : la partie du dernier pas vu, celle d'avant, et si la fenêtre est ouverte. Elle s'ouvre après le pas qui
- * connecte au terminal ; après chaque pas, elle se ferme si `fermerPoste` le dit. Un refus ou une consultation ne change pas la partie.
+ * Fenêtre du poste (lot 4) : la partie du dernier pas vu, si la fenêtre est ouverte, et son journal des caméras. Elle s'ouvre après
+ * le pas qui connecte au terminal ; après chaque pas, elle se ferme si `fermerPoste` le dit. Un refus ou une consultation ne change
+ * pas la partie. Le journal vit le temps d'une ouverture : `ecrire` le prolonge (D-359), une connexion le recommence.
  */
 interface SuiviPoste {
   readonly partie: Partie;
-  readonly precedente: Partie | null;
   readonly ouvert: boolean;
+  readonly journal: readonly PhrasePoste[];
 }
 
-function suivrePoste(avant: SuiviPoste | null, jeu: Jeu, fermer: boolean): SuiviPoste {
+function suivrePoste(
+  avant: SuiviPoste | null,
+  jeu: Jeu,
+  fermer: boolean,
+  ecrire: (journal: readonly PhrasePoste[], precedente: Partie | undefined) => readonly PhrasePoste[],
+): SuiviPoste {
   const connecte = jeu.partie.derniers.some((evenement) => evenement.type === 'terminal_connecte');
-  return { partie: jeu.partie, precedente: avant?.partie ?? null, ouvert: (connecte || avant?.ouvert === true) && !fermer };
+  const ouvert = (connecte || avant?.ouvert === true) && !fermer;
+  const suite = !connecte && avant !== null && avant.ouvert;
+  return { partie: jeu.partie, ouvert, journal: ouvert ? ecrire(suite ? avant.journal : [], suite ? avant.partie : undefined) : [] };
 }
 
 /** Parties dont l'information « plus aucune sortie » a été lue, le temps de la session : options et retour ne la rouvrent pas. */
@@ -184,9 +192,11 @@ export function EcranJeu({
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
   const fermeLePoste = fermerPoste(observation, jeu.partie.derniers);
-  const [poste, setPoste] = useState(() => suivrePoste(null, jeu, fermeLePoste));
+  const ecrireJournal = (journal: readonly PhrasePoste[], precedente: Partie | undefined): readonly PhrasePoste[] =>
+    journalPoste(textes, journal, precedente === undefined ? undefined : (observer(env.monde, precedente.etat).cameras ?? []), observation.cameras ?? []);
+  const [poste, setPoste] = useState(() => suivrePoste(null, jeu, fermeLePoste, ecrireJournal));
   // Nouveau pas : la fenêtre se suit pendant le rendu, sans attendre un effet (état tiré du rendu précédent).
-  const suivi = poste.partie === jeu.partie ? poste : suivrePoste(poste, jeu, fermeLePoste);
+  const suivi = poste.partie === jeu.partie ? poste : suivrePoste(poste, jeu, fermeLePoste, ecrireJournal);
   if (suivi !== poste) setPoste(suivi);
   /** Bulle ouverte, lue par le retour système pour sonner comme elle (D-226). */
   const zoneOuverte = useRef<Ouverte['zone'] | null>(null);
@@ -269,8 +279,6 @@ export function EcranJeu({
   }, [posteAffiche, ouverte]);
   // Horloge du poste (D-359) : un pas d'attente deux secondes après le précédent, jamais pendant qu'un pas s'applique (`occupe`) ;
   // quatre secondes sous une alerte rouge. Un pas qui échoue arrête l'horloge pour ce pas-là : l'erreur suit le chemin d'un pas joué à la main.
-  const ligneDuPoste = recitPoste(jeu);
-  const tenirPoste = ligneDuPoste.some(({ alerte }) => alerte);
   const pasEchoue = useRef<Jeu | null>(null);
   useEffect(() => {
     const attente = observer(env.monde, jeu.partie.etat).menu.find((option) => option.action === 'attendre' && option.disponible);
@@ -283,9 +291,8 @@ export function EcranJeu({
           throw erreur;
         });
       },
-      tenirPoste,
     );
-  }, [posteAffiche, occupe, jeu, env.monde, choisir, tenirPoste]);
+  }, [posteAffiche, occupe, jeu, env.monde, choisir]);
   /** Après CONTINUER À JOUER, le focus revient au récit, sous le rappel (12 §7). */
   const rendreAuRecit = useRef(false);
   useEffect(() => {
@@ -421,12 +428,7 @@ export function EcranJeu({
           <FenetrePoste
             carte={observation.carte}
             cameras={observation.cameras}
-            ligne={lignePoste(
-              textes,
-              camerasChangees(suivi.precedente === null ? undefined : observer(env.monde, suivi.precedente.etat).cameras, observation.cameras),
-              observation.cameras,
-              ligneDuPoste,
-            )}
+            journal={suivi.journal}
             quitter={() => setPoste({ ...suivi, ouvert: false })}
             textes={textes}
           />

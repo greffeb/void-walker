@@ -2083,14 +2083,26 @@ button:disabled {
   border-top: 1px solid var(--vert-separateur);
 }
 
-.poste-ligne {
-  min-height: 1.5em;
+/* Mini-terminal (D-359) : quatre lignes au plus, la plus récente en bas, hauteur fixe pour que le plan ne saute pas. */
+.poste-journal {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 5.6em;
   margin: 0;
-  font-size: calc(13px * var(--echelle));
+  padding: 0;
+  list-style: none;
+  font-size: calc(12px * var(--echelle));
+  line-height: 1.4;
   letter-spacing: 0.04em;
 }
 
-.poste-ligne .alerte {
+.poste-journal li::before {
+  content: '> ';
+  opacity: 0.6;
+}
+
+.poste-journal .alerte {
   color: var(--alerte);
 }
 

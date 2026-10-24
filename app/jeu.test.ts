@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { assemblerStation, empreinteEtat, lireExport, nouvellePartie, observer, rejouer, type DefMonde, type Partie } from '../engine';
+import { assemblerStation, empreinteEtat, lireExport, nouvellePartie, observer, rejouer, type DefMonde } from '../engine';
 import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
@@ -12,7 +12,6 @@ import {
   demandeDe,
   demarrer,
   fermerPoste,
-  recitPoste,
   fichierPartie,
   historiqueAffiche,
   jouerOption,
@@ -816,18 +815,5 @@ describe('fenêtre du poste : caméras changées et fermeture (lot 4)', () => {
     expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'porte_secouee', passage: porte }])).toBe(false);
     expect(fermerPoste(dansLaSalle(), [{ type: 'assistance', message: 'm-x' }])).toBe(false);
     expect(fermerPoste(dansLaSalle(), [{ type: 'terminal_connecte' }, { type: 'ecoute', passage: porte, entendu: 'vague' }])).toBe(false);
-  });
-
-  it('recitPoste : rien pour une attente ou une connexion seules ; sinon tout le récit, alertes en rouge', () => {
-    const partie = nouvellePartie(monde, { version: 'v-test', graine: 1 });
-    const pas = (derniers: Partie['derniers'], assistance: string[] = []) => ({ partie: { ...partie, derniers }, recit: ['Vous attendez.', 'Un raclement.'], alertes: [1], assistance });
-    expect(recitPoste(pas([{ type: 'attente' }]))).toEqual([]);
-    // Un message d'IA Station pendant la veille se cite sur la ligne, sans le récit de l'attente.
-    expect(recitPoste(pas([{ type: 'attente' }, { type: 'assistance', message: 'm-x' }], ['Porte bloquée.']))).toEqual([{ texte: '«\u00a0Porte bloquée.\u00a0»', alerte: false }]);
-    expect(recitPoste(pas([{ type: 'terminal_connecte' }]))).toEqual([]);
-    expect(recitPoste(pas([{ type: 'attente' }, { type: 'porte_secouee', passage: porte }]))).toEqual([
-      { texte: 'Vous attendez.', alerte: false },
-      { texte: 'Un raclement.', alerte: true },
-    ]);
   });
 });

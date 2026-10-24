@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { CartePublique, RefPiece } from '../engine';
 import { MONDES, type EntreeMonde } from '../content';
-import { armerPoste, FenetrePoste, lignePoste, PAS_POSTE_MS } from './FenetrePoste';
+import { armerPoste, FenetrePoste, journalPoste, PAS_POSTE_MS } from './FenetrePoste';
 
 const { textes } = MONDES['monde-test'] as EntreeMonde;
 const rien = (): void => undefined;
@@ -11,13 +11,13 @@ const SOUTE = piece('soute');
 const CARTE: CartePublique = { pieces: [], passages: [], capsules: [], aBord: null };
 
 describe('fenêtre du poste (lot 4, variante A)', () => {
-  it('dialogue « Surveillance » : en-tête, caméras lues en mots, ligne rouge en région polie, QUITTER seul (D-359)', () => {
+  it('dialogue « Surveillance » : en-tête, caméras lues en mots, journal en région log polie, QUITTER seul (D-359)', () => {
     const cameras = [
       { piece: ATELIER, etat: 'calme' as const },
       { piece: SOUTE, etat: 'mouvement' as const },
     ];
     const html = renderToStaticMarkup(
-      <FenetrePoste carte={CARTE} cameras={cameras} ligne={lignePoste(textes, [cameras[1]!], cameras)} quitter={rien} textes={textes} />,
+      <FenetrePoste carte={CARTE} cameras={cameras} journal={journalPoste(textes, [], undefined, cameras)} quitter={rien} textes={textes} />,
     );
     expect(html).toContain('role="dialog"');
     expect(html).toContain('aria-label="Surveillance"');
@@ -25,27 +25,40 @@ describe('fenêtre du poste (lot 4, variante A)', () => {
     expect(html).toContain('class="repere-direct" aria-hidden="true">● DIRECT');
     expect(html).toContain('<li>Caméra de l’atelier : calme</li>');
     expect(html).toContain('<li>Caméra de la soute : mouvement</li>');
-    expect(html).toContain('aria-live="polite"');
-    expect(html).toContain('<span class="alerte">SOUTE : MOUVEMENT. </span>');
+    expect(html).toContain('<ol class="poste-journal" role="log" aria-live="polite"><li class="alerte">Mouvement détecté dans la soute.</li></ol>');
     expect(html).not.toContain('Attendre');
     expect(html.match(/<button/g)).toHaveLength(1);
     expect(html).toMatch(/<button[^>]*class="secondaire"[^>]*>Quitter<\/button>/);
   });
 
-  it('ligne : un changement par phrase, « Aucun mouvement. » seulement sans caméra rouge', () => {
+  it('journal : mouvement en rouge, panne ; brouillée ou retour au calme muets ; « Aucun mouvement. » une fois, jamais sous du rouge', () => {
     const calme = { piece: ATELIER, etat: 'calme' as const };
     const rouge = { piece: SOUTE, etat: 'mouvement' as const };
-    expect(lignePoste(textes, [calme], [calme])).toEqual([{ texte: 'ATELIER : calme.', alerte: false }]);
-    expect(lignePoste(textes, [{ piece: ATELIER, etat: 'brouille' }, { piece: SOUTE, etat: 'hs' }], [])).toEqual([
-      { texte: 'ATELIER : brouillée.', alerte: false },
-      { texte: 'SOUTE : plus de signal.', alerte: false },
+    const soute = { piece: SOUTE, etat: 'calme' as const };
+    const mouvement = { texte: 'Mouvement détecté dans la soute.', alerte: true };
+    const aucun = { texte: 'Aucun mouvement.', alerte: false };
+    // Connexion : l'état présent ; une caméra déjà en panne ne s'écrit pas.
+    expect(journalPoste(textes, [], undefined, [calme, rouge])).toEqual([mouvement]);
+    expect(journalPoste(textes, [], undefined, [calme, { piece: SOUTE, etat: 'hs' }])).toEqual([aucun]);
+    // Rien de neuf : « Aucun mouvement. » ne s'empile pas, et ne se dit pas sous une caméra rouge.
+    expect(journalPoste(textes, [aucun], [calme, soute], [calme, soute])).toEqual([aucun]);
+    expect(journalPoste(textes, [mouvement], [calme, rouge], [calme, rouge])).toEqual([mouvement]);
+    expect(journalPoste(textes, [aucun], [calme, soute], [calme, rouge])).toEqual([aucun, mouvement]);
+    // Retour au calme : pas de ligne à lui, « Aucun mouvement. » reprend.
+    expect(journalPoste(textes, [mouvement], [calme, rouge], [calme, soute])).toEqual([mouvement, aucun]);
+    expect(journalPoste(textes, [aucun], [calme, soute], [{ piece: ATELIER, etat: 'brouille' }, { piece: SOUTE, etat: 'hs' }])).toEqual([
+      aucun,
+      { texte: 'Caméra de la soute : en panne.', alerte: false },
     ]);
-    expect(lignePoste(textes, [], [calme])).toEqual([{ texte: 'Aucun mouvement.', alerte: false }]);
-    expect(lignePoste(textes, [], [calme, rouge])).toEqual([{ texte: 'SOUTE : MOUVEMENT.', alerte: true }]);
-    // Le récit du pas passe devant les caméras, ses alertes en rouge ; il remplace « Aucun mouvement. ».
-    const recit = [{ texte: 'Un raclement derrière la porte.', alerte: true }];
-    expect(lignePoste(textes, [], [calme], recit)).toEqual(recit);
-    expect(lignePoste(textes, [], [calme, rouge], recit)).toEqual([...recit, { texte: 'SOUTE : MOUVEMENT.', alerte: true }]);
+  });
+
+  it('journal : les quatre dernières lignes seulement, la plus récente en bas', () => {
+    const calme = [{ piece: SOUTE, etat: 'calme' as const }];
+    const rouge = [{ piece: SOUTE, etat: 'mouvement' as const }];
+    let journal = journalPoste(textes, [], undefined, calme);
+    for (let pas = 0; pas < 3; pas++) journal = journalPoste(textes, journalPoste(textes, journal, calme, rouge), rouge, calme);
+    expect(journal).toHaveLength(4);
+    expect(journal.map(({ texte }) => texte)).toEqual(['Mouvement détecté dans la soute.', 'Aucun mouvement.', 'Mouvement détecté dans la soute.', 'Aucun mouvement.']);
   });
 });
 
@@ -65,15 +78,6 @@ describe('horloge du poste (D-359)', () => {
     expect(jouer).toHaveBeenCalledTimes(1);
     annuler();
     expect(vi.getTimerCount()).toBe(0);
-  });
-
-  it('une alerte rouge sur la ligne retient l’horloge un battement de plus', () => {
-    const jouer = vi.fn();
-    armerPoste(true, jouer, true);
-    vi.advanceTimersByTime(PAS_POSTE_MS * 2 - 1);
-    expect(jouer).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(1);
-    expect(jouer).toHaveBeenCalledTimes(1);
   });
 
   it('pas appliqué en cours, fenêtre fermée ou démontée : aucun pas', () => {

@@ -1,39 +1,42 @@
 import { useLayoutEffect, useRef } from 'react';
 import type { CartePublique, Observation } from '../engine';
-import { former, nomCarte, nomDe, type TextesMonde } from '../content';
+import { former, nomDe, type TextesMonde } from '../content';
 import { garderFocus } from './bulle';
 import { ZonePlan } from './carte/EcranCarte';
-import type { CameraLue } from './jeu';
+import { camerasChangees, type CameraLue } from './jeu';
 import { LIBELLES } from './libelles';
 
 const MOTS = LIBELLES.poste;
 
-/** Une phrase de la ligne du bas ; `alerte` : une caméra passée au mouvement, en rouge. */
+/** Une ligne du journal du poste ; `alerte` : une caméra passée au mouvement, en rouge. */
 export interface PhrasePoste {
   readonly texte: string;
   readonly alerte: boolean;
 }
 
+/** Lignes que garde le mini-terminal du bas de la fenêtre, la plus récente en bas (D-359). */
+export const LIGNES_JOURNAL = 4;
+
 /**
- * Ligne du bas de la fenêtre (lot 4) : le récit du pas s'il dit autre chose que l'attente (D-359), puis « REMISE : MOUVEMENT. » en
- * rouge, « REMISE : calme. » pour un autre changement. Sans changement, les caméras restées au mouvement se redisent : la ligne ne
- * dit jamais « Aucun mouvement. » sous une caméra rouge.
+ * Journal du poste (D-359) : seulement les caméras, jamais le récit. Une caméra passée au mouvement l'écrit en rouge, une caméra
+ * en panne (`hs`) l'écrit aussi ; brouillée ou revenue au calme, rien. Un pas sans rien de neuf écrit « Aucun mouvement. », une fois
+ * jusqu'au prochain changement, et jamais sous une caméra au mouvement. Sans `avant` (connexion), le journal part de l'état présent :
+ * les caméras déjà au mouvement, sinon « Aucun mouvement. » ; une caméra déjà en panne reste barrée sur le plan, sans ligne.
  */
-export function lignePoste(
+export function journalPoste(
   textes: TextesMonde,
-  changees: readonly CameraLue[],
-  cameras: readonly CameraLue[],
-  recit: readonly PhrasePoste[] = [],
+  journal: readonly PhrasePoste[],
+  avant: readonly CameraLue[] | undefined,
+  apres: readonly CameraLue[],
 ): PhrasePoste[] {
-  const dites = changees.length > 0 ? changees : cameras.filter((camera) => camera.etat === 'mouvement');
-  if (dites.length === 0 && recit.length === 0) return [{ texte: MOTS.aucun, alerte: false }];
-  return [
-    ...recit,
-    ...dites.map(({ piece, etat }) => {
-      const mot = MOTS.etats[etat];
-      return { texte: `${nomCarte(textes, piece)} : ${etat === 'mouvement' ? mot.toUpperCase() : mot}.`, alerte: etat === 'mouvement' };
-    }),
-  ];
+  const changees = avant === undefined ? apres.filter(({ etat }) => etat === 'mouvement') : camerasChangees(avant, apres);
+  const lignes = changees.flatMap(({ piece, etat }): PhrasePoste[] => {
+    if (etat === 'mouvement') return [{ texte: MOTS.mouvement(`dans ${former('le', nomDe(textes, piece))}`), alerte: true }];
+    if (etat === 'hs') return [{ texte: MOTS.panne(former('de', nomDe(textes, piece))), alerte: false }];
+    return [];
+  });
+  const calme = lignes.length === 0 && !apres.some(({ etat }) => etat === 'mouvement') && journal.at(-1)?.texte !== MOTS.aucun;
+  return [...journal, ...lignes, ...(calme ? [{ texte: MOTS.aucun, alerte: false }] : [])].slice(-LIGNES_JOURNAL);
 }
 
 /** Un pas d'attente toutes les deux secondes, au rythme du « ● DIRECT », tant que la fenêtre est ouverte (D-359). */
@@ -43,10 +46,9 @@ export const PAS_POSTE_MS = 2000;
  * Horloge du poste : arme un seul pas différé si `actif`, et rend de quoi l'annuler. Appelée par un effet qui se rejoue à chaque
  * pas : jamais deux minuteurs, rien pendant qu'un pas s'applique (`actif` faux), rien après la fermeture ou le démontage.
  */
-export function armerPoste(actif: boolean, jouer: () => void, tenir = false): () => void {
+export function armerPoste(actif: boolean, jouer: () => void): () => void {
   if (!actif) return () => undefined;
-  // `tenir` : une alerte rouge sur la ligne, un battement de plus pour la lire (D-359).
-  const minuteur = setTimeout(jouer, tenir ? PAS_POSTE_MS * 2 : PAS_POSTE_MS);
+  const minuteur = setTimeout(jouer, PAS_POSTE_MS);
   return () => clearTimeout(minuteur);
 }
 
@@ -54,19 +56,19 @@ const rien = (): void => undefined;
 
 /**
  * Fenêtre du poste de surveillance en direct (lot 4, variante A) : plein cadre et verte comme la carte. En-tête SURVEILLANCE et
- * ● DIRECT, le plan de la station avec ses caméras, la ligne des changements, puis QUITTER, qui la ferme
+ * ● DIRECT, le plan de la station avec ses caméras, le journal des caméras, puis QUITTER, qui la ferme
  * et arrête l'horloge (D-359). Échap la ferme aussi. Une pièce n'y ouvre pas de fiche : la carte reste là pour ça.
  */
 export function FenetrePoste({
   carte,
   cameras,
-  ligne,
+  journal,
   quitter,
   textes,
 }: {
   readonly carte: CartePublique;
   readonly cameras: NonNullable<Observation['cameras']>;
-  readonly ligne: readonly PhrasePoste[];
+  readonly journal: readonly PhrasePoste[];
   readonly quitter: () => void;
   readonly textes: TextesMonde;
 }) {
@@ -100,13 +102,13 @@ export function FenetrePoste({
         ))}
       </ul>
       <div className="poste-bas">
-        <p className="poste-ligne" aria-live="polite">
-          {ligne.map(({ texte, alerte }, index) => (
-            <span key={index} className={alerte ? 'alerte' : undefined}>
-              {texte}{' '}
-            </span>
+        <ol className="poste-journal" role="log" aria-live="polite">
+          {journal.map(({ texte, alerte }, index) => (
+            <li key={index} className={alerte ? 'alerte' : undefined}>
+              {texte}
+            </li>
           ))}
-        </p>
+        </ol>
         <div className="poste-actions">
           <button type="button" className="secondaire" onClick={quitter} data-son="clic">
             {MOTS.quitter}

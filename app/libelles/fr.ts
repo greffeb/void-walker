@@ -131,8 +131,11 @@ export const FR = {
     nom: 'Surveillance',
     direct: '● DIRECT',
     quitter: 'Quitter',
+    /** Lignes du journal du poste (D-359) : « Mouvement détecté dans la remise. », « Caméra de la remise : en panne. ». */
     aucun: 'Aucun mouvement.',
-    /** État d'une caméra en mots ; la ligne du bas le dit après le nom de la pièce, MOUVEMENT en capitales. */
+    mouvement: (dansPiece: string): string => `Mouvement détecté ${dansPiece}.`,
+    panne: (dePiece: string): string => `Caméra ${dePiece} : en panne.`,
+    /** État d'une caméra en mots, pour le lecteur d'écran. */
     etats: { calme: 'calme', mouvement: 'mouvement', brouille: 'brouillée', hs: 'plus de signal' },
     /** Nom accessible d'une caméra : « Caméra de la remise : mouvement ». */
     camera: (dePiece: string, etat: string): string => `Caméra ${dePiece} : ${etat}`,
