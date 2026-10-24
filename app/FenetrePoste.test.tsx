@@ -63,12 +63,51 @@ describe('fenêtre du poste (lot 4, variante A)', () => {
 });
 
 describe('horloge du poste (D-359)', () => {
+  // Page simulée : `cacher` change sa visibilité et prévient ses écouteurs, comme `document`.
+  const page = Object.assign(new EventTarget(), { hidden: false });
+  const cacher = (hidden: boolean): void => {
+    page.hidden = hidden;
+    page.dispatchEvent(new Event('visibilitychange'));
+  };
   beforeEach(() => vi.useFakeTimers());
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    page.hidden = false;
+    vi.useRealTimers();
+  });
+
+  it('page cachée (écran verrouillé, autre appli) : aucun pas ; revenue, le pas repart de deux secondes', () => {
+    const jouer = vi.fn();
+    const annuler = armerPoste(true, jouer, page);
+    vi.advanceTimersByTime(PAS_POSTE_MS - 1);
+    cacher(true);
+    vi.advanceTimersByTime(PAS_POSTE_MS * 10);
+    expect(jouer).not.toHaveBeenCalled();
+    cacher(false);
+    vi.advanceTimersByTime(PAS_POSTE_MS - 1);
+    expect(jouer).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(jouer).toHaveBeenCalledTimes(1);
+    annuler();
+    // Annulée, elle n'écoute plus la page.
+    cacher(true);
+    cacher(false);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('armée page déjà cachée : rien avant le retour', () => {
+    const jouer = vi.fn();
+    page.hidden = true;
+    const annuler = armerPoste(true, jouer, page);
+    expect(vi.getTimerCount()).toBe(0);
+    cacher(false);
+    vi.advanceTimersByTime(PAS_POSTE_MS);
+    expect(jouer).toHaveBeenCalledTimes(1);
+    annuler();
+  });
 
   it('un pas toutes les deux secondes, un seul minuteur, rien quand inactive ou annulée', () => {
     const jouer = vi.fn();
-    const annuler = armerPoste(true, jouer);
+    const annuler = armerPoste(true, jouer, page);
     vi.advanceTimersByTime(PAS_POSTE_MS - 1);
     expect(jouer).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
@@ -82,9 +121,9 @@ describe('horloge du poste (D-359)', () => {
 
   it('pas appliqué en cours, fenêtre fermée ou démontée : aucun pas', () => {
     const jouer = vi.fn();
-    armerPoste(false, jouer);
+    armerPoste(false, jouer, page);
     expect(vi.getTimerCount()).toBe(0);
-    const annuler = armerPoste(true, jouer);
+    const annuler = armerPoste(true, jouer, page);
     vi.advanceTimersByTime(PAS_POSTE_MS / 2);
     annuler();
     vi.advanceTimersByTime(PAS_POSTE_MS * 3);
@@ -93,11 +132,11 @@ describe('horloge du poste (D-359)', () => {
 
   it('réarmée à chaque pas comme l’effet de l’écran : jamais deux minuteurs à la fois', () => {
     const jouer = vi.fn();
-    let annuler = armerPoste(true, jouer);
+    let annuler = armerPoste(true, jouer, page);
     for (let pas = 0; pas < 4; pas++) {
       vi.advanceTimersByTime(PAS_POSTE_MS);
       annuler();
-      annuler = armerPoste(true, jouer);
+      annuler = armerPoste(true, jouer, page);
       expect(vi.getTimerCount()).toBe(1);
     }
     annuler();
