@@ -1,0 +1,132 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rappel d’écoute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Maquette pour 261, 262 et 266 : rappel quand rien ne change, silences groupés. 390 px, Phosphore. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --surface: #14100a;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --danger: #ff6a3d;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tel { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--separateur); background: var(--fond); display: flex; flex-direction: column; min-height: 760px; }
+.entete { padding: 14px 16px 10px; border-bottom: 1px solid var(--separateur); }
+.entete h1 { margin: 0; font-size: 17px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.recit { flex: 1; padding: 10px 16px; font-size: 15px; }
+.recit .cmd { font-size: 12px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 4px; }
+.recit p { margin: 0 0 10px; }
+.recit .ancien { opacity: .5; }
+.recit .net { color: var(--danger); }
+.dock { border-top: 1px dashed var(--separateur); padding: 6px 16px 10px; display: grid; gap: 6px; }
+.titre-section { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; font-weight: 400; text-transform: uppercase; color: var(--secondaire); }
+.titre-section::before, .titre-section::after { content: ''; border-top: 1px solid currentColor; }
+.titre-section::before { flex: 0 0 16px; }
+.titre-section::after { flex: 0 1 96px; }
+.puces { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.puce { text-align: left; border: 1px solid var(--bordure); padding: 8px 10px; font-size: 14px; min-height: 46px; display: flex; align-items: center; opacity: .45; }
+.puce.vise { box-shadow: 0 0 0 2px var(--accent); opacity: 1; }
+.salles { display: grid; gap: 6px; }
+.salle { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.aller { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; min-height: 48px; padding: 6px 10px; background: var(--texte); color: var(--fond); border: 1px solid var(--texte); display: flex; align-items: center; gap: 8px; min-width: 0; }
+.aller.ferme { background: transparent; color: var(--texte); border: 1px dashed var(--bordure); }
+.aller .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aller .rep { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 5px; border: 1px solid currentColor; letter-spacing: .06em; flex: none; }
+.aller.danger { box-shadow: inset 3px 0 0 var(--danger); }
+.aller.danger .rep { color: var(--danger); }
+.porte { min-height: 48px; width: 96px; border: 1px solid var(--bordure); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.porte.ouverte { background: var(--surface); }
+.temoin { width: 8px; height: 8px; border: 1px solid currentColor; }
+.porte.ouverte .temoin { background: currentColor; }
+.nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 16px 14px; border-top: 1px solid var(--separateur); }
+.nav span { border: 1px solid var(--bordure); min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: .06em; opacity: .5; }
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+.onglet.avant { border-style: dashed; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Retours de #261, #262 et #266. Dans la coursive de jonction : <b>dortoir</b>, <b>infirmerie</b>, <b>réfectoire</b> et <b>cloison blindée</b>. Proposition : <b>chaque attente rappelle qu’on écoute</b>, même si rien ne change, et <b>les portes silencieuses sont dites ensemble</b> ; les portes bruyantes restent à part.</p>
+
+  <p class="etiquette">Onglet A : aujourd’hui · 1 à 6 : proposé</p>
+  <div class="onglets" role="tablist" id="tours" style="grid-template-columns: repeat(7, minmax(0, 1fr));"></div>
+
+  <div class="tel">
+    <header class="entete"><h1>Coursive de jonction</h1></header>
+    <div class="recit" id="recit"></div>
+    <div class="dock" id="dock"></div>
+    <nav class="nav"><span>CARTE</span><span>SAC</span><span>MENU</span></nav>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<script>
+const OUVERTURE = 'Vous restez immobile, l’oreille tendue.';
+const ATTENTE5 = 'Un cliquetis court dans les parois, régulier. Comme si la station comptait avec vous.';
+const PREMIERE_AUJOURDHUI = `${OUVERTURE} Derrière la porte du dortoir, rien. Derrière la porte de l’infirmerie, le silence. Derrière la porte du réfectoire, rien. Derrière la cloison blindée, peut-être un frottement. Ou le métal qui travaille.`;
+const PREMIERE = `${OUVERTURE} Derrière les portes du dortoir, de l’infirmerie et du réfectoire, le silence. Derrière la cloison blindée, peut-être un frottement. Ou le métal qui travaille.`;
+const RAPPEL = `${OUVERTURE} Derrière les portes, rien de nouveau.`;
+// Chaque tour : récit d'avant (grisé, null : la description de la pièce), récit du tour, repère BRUIT sur l'infirmerie, explication.
+const TOURS = [
+  { nom: 'A', avant: PREMIERE_AUJOURDHUI, recit: 'Vous restez immobile, l’oreille tendue. Rien ne bouge.',
+    verdict: '<b>Aujourd’hui, 2e attente</b> : rien n’a changé, donc rien n’est dit des portes. Le joueur croit que l’écoute a disparu (#261). Et la 1re attente, au-dessus, aligne quatre phrases presque pareilles (#266).' },
+  { avant: null, recit: PREMIERE,
+    verdict: '<b>1re attente</b> : les portes silencieuses en une phrase ; le « vague » de la cloison reste à part. Même chose pour « plus rien » quand plusieurs se taisent ensemble.' },
+  { avant: PREMIERE, recit: RAPPEL,
+    verdict: '<b>2e attente, rien n’a changé</b> : une phrase de rappel au lieu de « Rien ne bouge ». C’est ce que prévoyait déjà la maquette du lot 2 (ecouter.html, onglet 2), retiré à l’implémentation.' },
+  { avant: RAPPEL, bruit: true, recit: `${OUVERTURE} Derrière la porte de l’infirmerie, <span class="net">quelque chose bouge. Un poids qui se déplace, lentement.</span> Aux autres portes, rien de nouveau.`,
+    verdict: '<b>Une porte change</b> : on la dit, puis le rappel pour les autres (« aux autres portes »), pour qu’on sache qu’elles ont été écoutées aussi.' },
+  { avant: RAPPEL, recit: `${ATTENTE5} Derrière les portes, rien de nouveau.`,
+    verdict: '<b>5e et 10e attente</b> : le message de patience (#225) prend la place de « Vous restez immobile », et le rappel suit.' },
+  { avant: null, recit: `${OUVERTURE} Derrière les quatre portes, le silence.`,
+    verdict: '<b>Toutes silencieuses</b> : « les quatre portes » plutôt que les quatre noms. Avec deux ou trois, on les nomme.' },
+  { avant: null, recit: 'Le vacarme des machines couvre tout : impossible d’entendre ce qui se passe derrière les portes.',
+    verdict: '<b>Dans une salle des machines en marche</b> : la phrase du vacarme est redite à chaque attente (aujourd’hui, une seule fois). Une porte vers les machines ou la chambre froide, dite à la 1re attente, compte ensuite dans « rien de nouveau ».' },
+];
+let tour = 1;
+
+function ligne(nom, bruit) {
+  return `<div class="salle">
+    <span class="aller ferme${bruit ? ' danger' : ''}"><span class="nom">→ ${nom}</span>${bruit ? '<span class="rep">BRUIT</span>' : ''}</span>
+    <span class="porte"><span class="temoin"></span>Fermée</span>
+  </div>`;
+}
+
+function rendre() {
+  const t = TOURS[tour];
+  const avant = t.avant === null
+    ? '<p class="ancien">Un long couloir de jonction. Des portes s’ouvrent de part et d’autre ; au bout, une cloison blindée sous un voyant rouge.</p>'
+    : `<p class="cmd ancien">&gt; attendre</p><p class="ancien">${t.avant}</p>`;
+  document.getElementById('recit').innerHTML = `${avant}<p class="cmd">&gt; attendre</p><p>${t.recit}</p>`;
+  document.getElementById('dock').innerHTML = `<h2 class="titre-section">Objets</h2>
+    <div class="puces"><span class="puce">▸ Regarder</span><span class="puce vise">▸ Attendre</span></div>
+    <h2 class="titre-section">Se déplacer vers</h2><div class="salles">
+      ${ligne('Dortoir')}${ligne('Infirmerie', t.bruit)}${ligne('Réfectoire')}${ligne('Cloison blindée')}
+    </div>`;
+  document.getElementById('verdict').innerHTML = t.verdict;
+  document.getElementById('tours').innerHTML = TOURS.map((x, i) => `<button class="onglet${i === 0 ? ' avant' : ''}" role="tab" data-t="${i}" aria-selected="${i === tour}">${x.nom ?? i}</button>`).join('');
+}
+document.getElementById('tours').addEventListener('click', (e) => { const t = e.target.closest('[data-t]')?.dataset.t; if (t !== undefined) { tour = Number(t); rendre(); } });
+rendre();
+</script>
