@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { assemblerStation, empreinteEtat, lireExport, nouvellePartie, observer, rejouer, type DefMonde } from '../engine';
+import { assemblerStation, empreinteEtat, lireExport, nouvellePartie, observer, rejouer, type DefMonde, type Partie } from '../engine';
 import { alertesMenace, creerCatalogue, dangersDuRecit, MONDES, numeroter, PAIRES, type EntreeMonde } from '../content';
 import { CATALOGUE } from './catalogue';
 import {
@@ -12,6 +12,7 @@ import {
   demandeDe,
   demarrer,
   fermerPoste,
+  recitPoste,
   fichierPartie,
   historiqueAffiche,
   jouerOption,
@@ -796,24 +797,35 @@ describe('fenêtre du poste : caméras changées et fermeture (lot 4)', () => {
 
   const porte = { sorte: 'passage', id: 'p-x', nom: 'porte', ouvert: false, vers: null, signale: true, feu: false, huile: false, vide: false, gouffre: false } as const;
 
-  it('fermerPoste : vraie sans caméras, avec une alerte ou un récit qui dit autre chose que l’attente', () => {
+  const dansLaSalle = () => ({ ...observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat), cameras: [{ piece: remise, etat: 'calme' as const }] });
+
+  it('fermerPoste : vraie sans caméras, à la fin, sur un danger dans la salle, quand la créature y entre ou s’y montre (D-359)', () => {
     const observation = observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat);
-    const dansLaSalle = { ...observation, cameras: [{ piece: remise, etat: 'calme' as const }] };
-    expect(fermerPoste(observation, [], [{ type: 'attente' }])).toBe(true);
-    expect(fermerPoste(dansLaSalle, [1], [{ type: 'attente' }])).toBe(true);
-    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente' }, { type: 'ecoute', passage: porte, entendu: 'vague' }])).toBe(true);
-    expect(fermerPoste(dansLaSalle, [], [{ type: 'assistance', message: 'm-x' }])).toBe(true);
+    expect(fermerPoste(observation, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), terminee: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), feu: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), sansAir: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste({ ...dansLaSalle(), creatureVisible: true }, [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'creature_entre', passage: porte }])).toBe(true);
   });
 
-  it('fermerPoste : porte secouée pendant la veille → la fenêtre se ferme', () => {
-    const dansLaSalle = { ...observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat), cameras: [{ piece: remise, etat: 'calme' as const }] };
-    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente' }, { type: 'porte_secouee', passage: porte }])).toBe(true);
+  it('fermerPoste : écoute, porte secouée, message ou connexion bruyante → reste ouverte, le récit va sur la ligne du bas (D-359)', () => {
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente', vacarme: true }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'ecoute', passage: porte, entendu: 'net' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'attente' }, { type: 'porte_secouee', passage: porte }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'assistance', message: 'm-x' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle(), [{ type: 'terminal_connecte' }, { type: 'ecoute', passage: porte, entendu: 'vague' }])).toBe(false);
   });
 
-  it('fermerPoste : attente calme → reste ouverte, connexion seule aussi', () => {
-    const dansLaSalle = { ...observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat), cameras: [{ piece: remise, etat: 'calme' as const }] };
-    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente' }])).toBe(false);
-    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente', vacarme: true }])).toBe(false);
-    expect(fermerPoste(dansLaSalle, [], [{ type: 'terminal_connecte' }])).toBe(false);
+  it('recitPoste : rien pour une attente ou une connexion seules ; sinon tout le récit, alertes en rouge', () => {
+    const partie = nouvellePartie(monde, { version: 'v-test', graine: 1 });
+    const pas = (derniers: Partie['derniers']) => ({ partie: { ...partie, derniers }, recit: ['Vous attendez.', 'Un raclement.'], alertes: [1] });
+    expect(recitPoste(pas([{ type: 'attente' }, { type: 'assistance', message: 'm-x' }]))).toEqual([]);
+    expect(recitPoste(pas([{ type: 'terminal_connecte' }]))).toEqual([]);
+    expect(recitPoste(pas([{ type: 'attente' }, { type: 'porte_secouee', passage: porte }]))).toEqual([
+      { texte: 'Vous attendez.', alerte: false },
+      { texte: 'Un raclement.', alerte: true },
+    ]);
   });
 });

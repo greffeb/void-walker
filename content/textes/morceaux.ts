@@ -122,6 +122,7 @@ export const LIBELLES_MORCEAUX = {
   retablir: 'Rétablir la gravité',
   boucler: 'Fermer la chambre depuis {le:cible}',
   actionner: 'Actionner {le:cible}',
+  deverrouiller: 'Utiliser le post-it sur {le:cible}',
   surveiller: 'Se connecter {a:cible}',
   attendre: 'Attendre',
 } as const satisfies Partial<TextesMonde['libelles']>;
@@ -136,6 +137,7 @@ export const VERBES_MORCEAUX = {
   retablir: 'Rétablir',
   boucler: 'Fermer la chambre',
   actionner: 'Actionner',
+  deverrouiller: 'Utiliser le post-it',
   surveiller: 'Se connecter',
   attendre: 'Attendre',
 } as const satisfies Partial<TextesMonde['verbes']>;

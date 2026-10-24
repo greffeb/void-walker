@@ -585,7 +585,7 @@ describe('CLI : poste de surveillance (lot 4)', () => {
     },
   };
 
-  it('« surveiller terminal » : refusé sans le post-it, puis connecte et liste les caméras en mots', () => {
+  it('« surveiller terminal » : refusé tant que le post-it n’a pas servi, puis connecte et liste les caméras en mots', () => {
     const ctx = contexte(new Map(), false, POSTE);
     executer(['nouvelle', '--graine', '5'], ctx);
     const avant = ctx.fichiers.get(PARTIE_PAR_DEFAUT);
@@ -593,13 +593,19 @@ describe('CLI : poste de surveillance (lot 4)', () => {
     expect(sortie.lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
     expect(sortie.lignes).not.toContain('Caméras en direct :');
     expect(ctx.fichiers.get(PARTIE_PAR_DEFAUT)).toBe(avant);
+    expect(executer(['deverrouiller', 'terminal'], ctx).lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
     executer(['jouer', numero(sortie.lignes, 'Prendre le post-it')], ctx);
+    // Le post-it en main ne suffit pas : il faut l'utiliser sur le terminal.
+    expect(executer(['surveiller', 'terminal'], ctx).lignes).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
+    expect(executer(['deverrouiller', 'terminal'], ctx).code).toBe(0);
+    expect(executer(['deverrouiller'], ctx)).toEqual({ lignes: ['Aucun terminal à déverrouiller ici.'], code: 1 });
     sortie = executer(['surveiller', 'terminal'], ctx);
     expect(sortie.code).toBe(0);
     expect(sortie.lignes).toContain('Partie enregistrée.');
     expect(sortie.lignes).toEqual(expect.arrayContaining(['Caméras en direct :', '  Caméra de l’atelier : calme', '  Caméra de la soute : mouvement']));
     expect(executer(['voir'], ctx).lignes).toContain('  Caméra de la soute : mouvement');
     expect(executer(['aide'], ctx).lignes.some((ligne) => ligne.startsWith('  surveiller [terminal]'))).toBe(true);
+    expect(executer(['aide'], ctx).lignes.some((ligne) => ligne.startsWith('  deverrouiller [terminal]'))).toBe(true);
   });
 
   it('« surveiller » sans terminal dans la pièce : le dit, code 1', () => {

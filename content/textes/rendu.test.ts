@@ -301,9 +301,11 @@ describe('salle de surveillance et messages d’IA Station (lot 4)', () => {
     expect(rendreMoment(textes, { type: 'signe' })).toBe('en cours de route');
   });
 
-  it('la connexion au terminal dit l’accès autorisé', () => {
+  it('le code du post-it dit l’accès autorisé, la connexion charge le plan (D-356)', () => {
+    const [code] = rendreEvenements(textes, [{ type: 'terminal_deverrouille' }], { graine: 1, action: 0 });
+    expect(code).toContain('ACCÈS AUTORISÉ');
     const [phrase] = rendreEvenements(textes, [{ type: 'terminal_connecte' }], { graine: 1, action: 0 });
-    expect(phrase).toContain('ACCÈS AUTORISÉ');
+    expect(phrase).toContain('PLAN DE LA STATION CHARGÉ');
   });
 
   it('les mondes écrits en entier reprennent ces textes', () => {

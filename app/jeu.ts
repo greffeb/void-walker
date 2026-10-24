@@ -222,12 +222,28 @@ export function camerasChangees(avant: Observation['cameras'], apres: Observatio
 }
 
 /**
- * La fenêtre du poste se ferme d'elle-même (lot 4, D-359) : le passager n'est plus connecté dans la salle, ou le récit du pas dit autre
- * chose que l'attente seule (ou la connexion qui ouvre la fenêtre) : signe de la créature, écoute, message, ou une alerte. Le récit
- * montre alors tout, rien n'est caché sous la fenêtre ; les caméras, elles, changent sur la ligne de la fenêtre sans la fermer.
+ * La fenêtre du poste se ferme d'elle-même (lot 4, D-359) seulement quand le récit doit se lire en grand : la créature entre dans la
+ * salle ou s'y montre, un danger (feu, vide) y est, la partie finit, ou le passager n'est plus connecté dans la salle. Tout le reste
+ * (écoute, signe, message) s'écrit sur la ligne du bas, avec les caméras : `recitPoste`.
  */
-export function fermerPoste(observation: Observation, alertes: readonly number[], evenements: readonly Evenement[]): boolean {
-  return observation.cameras === undefined || alertes.length > 0 || evenements.some(({ type }) => type !== 'attente' && type !== 'terminal_connecte');
+export function fermerPoste(observation: Observation, evenements: readonly Evenement[]): boolean {
+  return (
+    observation.cameras === undefined ||
+    observation.terminee ||
+    observation.feu ||
+    observation.sansAir ||
+    observation.creatureVisible ||
+    evenements.some(({ type }) => type === 'creature_entre')
+  );
+}
+
+/** Événements qui ne disent rien de plus que l'horloge du poste : leur pas n'écrit pas son récit sur la ligne du bas (D-359). */
+const MUETS_AU_POSTE: ReadonlySet<Evenement['type']> = new Set(['attente', 'terminal_connecte', 'assistance']);
+
+/** Récit du pas pour la ligne du bas de la fenêtre du poste, les alertes en rouge ; rien pour une attente ou une connexion seules. */
+export function recitPoste(jeu: Pick<Jeu, 'recit' | 'alertes' | 'partie'>): readonly { readonly texte: string; readonly alerte: boolean }[] {
+  if (jeu.partie.derniers.every(({ type }) => MUETS_AU_POSTE.has(type))) return [];
+  return jeu.recit.map((texte, rang) => ({ texte, alerte: jeu.alertes.includes(rang) }));
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */

@@ -29,9 +29,9 @@ import {
 import { Bulle, BulleAncree, FicheDocument, garderFocus } from './bulle';
 import { EcranCarte } from './carte/EcranCarte';
 import { carteRevelee as revelee } from './carte/revelee';
-import { FenetrePoste, lignePoste } from './FenetrePoste';
+import { armerPoste, FenetrePoste, lignePoste } from './FenetrePoste';
 import { dejaEcrit, delaisEcriture, DUREE_ECRITURE_MS, marquerEcrit, numeroDe } from './ecriture';
-import { camerasChangees, consulter, consulterDocument, fermerPoste, historiqueAffiche, prevoir, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
+import { camerasChangees, consulter, consulterDocument, fermerPoste, historiqueAffiche, prevoir, recitPoste, type ApercuAffiche, type Environnement, type Jeu, type MessageAffiche } from './jeu';
 import { annoncerTexte, useSon } from './son/contexte';
 import type { Geste, Signal } from './son/recettes';
 import { LIBELLES } from './libelles';
@@ -183,7 +183,7 @@ export function EcranJeu({
   const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie), manoeuvresBruyantes(env.monde, jeu.partie, observation));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
-  const fermeLePoste = fermerPoste(observation, jeu.alertes, jeu.partie.derniers);
+  const fermeLePoste = fermerPoste(observation, jeu.partie.derniers);
   const [poste, setPoste] = useState(() => suivrePoste(null, jeu, fermeLePoste));
   // Nouveau pas : la fenêtre se suit pendant le rendu, sans attendre un effet (état tiré du rendu précédent).
   const suivi = poste.partie === jeu.partie ? poste : suivrePoste(poste, jeu, fermeLePoste);
@@ -267,6 +267,13 @@ export function EcranJeu({
     if (posteVu.current && !posteAffiche && ouverte === null) recit.current?.focus();
     posteVu.current = posteAffiche;
   }, [posteAffiche, ouverte]);
+  // Horloge du poste (D-359) : un pas d'attente deux secondes après le précédent, jamais pendant qu'un pas s'applique (`occupe`).
+  useEffect(() => {
+    const attente = observer(env.monde, jeu.partie.etat).menu.find((option) => option.action === 'attendre' && option.disponible);
+    return armerPoste(posteAffiche && !occupe && attente !== undefined, () => {
+      if (attente !== undefined) void choisir(jeu, attente);
+    });
+  }, [posteAffiche, occupe, jeu, env.monde, choisir]);
   /** Après CONTINUER À JOUER, le focus revient au récit, sous le rappel (12 §7). */
   const rendreAuRecit = useRef(false);
   useEffect(() => {
@@ -406,10 +413,8 @@ export function EcranJeu({
               textes,
               camerasChangees(suivi.precedente === null ? undefined : observer(env.monde, suivi.precedente.etat).cameras, observation.cameras),
               observation.cameras,
+              recitPoste(jeu),
             )}
-            attendre={() => {
-              if (dock.attendre !== undefined) jouer(dock.attendre);
-            }}
             quitter={() => setPoste({ ...suivi, ouvert: false })}
             textes={textes}
           />

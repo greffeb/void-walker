@@ -72,6 +72,7 @@ export const ATTENTE_VACARME: TextesMonde['attenteVacarme'] = reunir([]).attente
 
 /** Connexion au terminal et messages d'IA Station de la couche univers (lot 4), repris par les mondes écrits en entier, sans salle de surveillance. */
 export const CONNEXION_TERMINAL: TextesMonde['evenements']['terminal_connecte'] = reunir([]).evenements.terminal_connecte;
+export const DEVERROUILLAGE_TERMINAL: TextesMonde['evenements']['terminal_deverrouille'] = reunir([]).evenements.terminal_deverrouille;
 export const SIGNES_IA: TextesMonde['signesIA'] = reunir([]).signesIA;
 
 /** Phrases de pillage de la couche univers (spec 2026-10-18 §6.6), reprises par les mondes écrits en entier, qui n’en montrent jamais. */

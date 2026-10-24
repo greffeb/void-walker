@@ -179,6 +179,8 @@ export interface EtatPartie {
    * a écouté, pour que l'état et son empreinte ne changent pas ailleurs.
    */
   readonly ecoutees?: Readonly<Record<string, Entendu>>;
+  /** Code du post-it tapé au terminal : il n'est plus demandé à la connexion (lot 4, D-356). */
+  readonly terminalDeverrouille?: true;
   /** Terminal de surveillance connecté pour la partie (lot 4). */
   readonly connecte?: true;
   /** Pièces dont la caméra est tombée en panne ou a été détruite en cours de partie, dans l'ordre où c'est arrivé (lot 4). */

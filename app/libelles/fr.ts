@@ -130,7 +130,6 @@ export const FR = {
     /** Nom de la fenêtre pour le lecteur d'écran. */
     nom: 'Surveillance',
     direct: '● DIRECT',
-    attendre: 'Attendre',
     quitter: 'Quitter',
     aucun: 'Aucun mouvement.',
     /** État d'une caméra en mots ; la ligne du bas le dit après le nom de la pièce, MOUVEMENT en capitales. */

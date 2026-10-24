@@ -1,4 +1,4 @@
-import { CHANCE_DESTRUCTION, CHANCE_PANNE, abimerCameras, camerasLues, empreinteEtat, capteurPose, carte, idPublic, jouer, lireMouvement, nouvellePartie, observer, salleDeSurveillance, validerMonde, type DefMonde, type EtatPartie, type Partie } from './index';
+import { CHANCE_DESTRUCTION, CHANCE_PANNE, abimerCameras, camerasLues, empreinteEtat, capteurPose, carte, idPublic, jouer, lireMouvement, nouvellePartie, observer, rejouer, salleDeSurveillance, validerMonde, type DefMonde, type EtatPartie, type Partie } from './index';
 import { entier32 } from './rencontre';
 
 // Salle de surveillance (départ, avec le terminal et une cabine), coursive, remise (caméra, créature), salle des machines (caméra),
@@ -38,8 +38,10 @@ const porteur = (piece: string, objet: string): Partie => {
   const partie = debut();
   return avec(partie, { piece, objets: { ...partie.etat.objets, [objet]: { type: 'passager' } } });
 };
+/** Dans la salle, le code du post-it déjà tapé (D-356) : le post-it n'est plus en main. */
+const deverrouille = (): Partie => avec(debut(), { piece: 'surveillance', terminalDeverrouille: true });
 const connecte = (): Partie => {
-  const r = jouer(MONDE, porteur('surveillance', 'post-it'), commande('surveiller', 'terminal'));
+  const r = jouer(MONDE, deverrouille(), commande('surveiller', 'terminal'));
   if (r.type !== 'engagee') throw new Error(r.type);
   return r.partie;
 };
@@ -52,8 +54,47 @@ describe('terminal de surveillance', () => {
     expect(observer(MONDE, debut().etat).menu).toContainEqual(expect.objectContaining({ action: 'surveiller', disponible: false, raison: 'sans_mot_de_passe' }));
   });
 
-  it('post-it en main, la connexion révèle toute la station sauf le passage caché', () => {
-    const r = jouer(MONDE, porteur('surveillance', 'post-it'), commande('surveiller', 'terminal'));
+  it('déverrouiller sans le post-it en main : refusé, le temps ne passe pas', () => {
+    const r = jouer(MONDE, avec(debut(), { piece: 'surveillance' }), commande('deverrouiller', 'terminal'));
+    expect(r).toEqual(expect.objectContaining({ type: 'refus', raison: 'sans_mot_de_passe' }));
+    expect(r.partie.etat.actions).toBe(0);
+    expect(r.partie.etat.terminalDeverrouille).toBeUndefined();
+  });
+
+  it('le post-it en main ne connecte pas ; utilisé sur le terminal, il le déverrouille pour la partie, puis il peut être posé', () => {
+    const tenu = porteur('surveillance', 'post-it');
+    expect(jouer(MONDE, tenu, commande('surveiller', 'terminal'))).toEqual(expect.objectContaining({ type: 'refus', raison: 'sans_mot_de_passe' }));
+    expect(tenu.etat.terminalDeverrouille).toBeUndefined();
+    const r = jouer(MONDE, tenu, commande('deverrouiller', 'terminal'));
+    if (r.type !== 'engagee') throw new Error(r.type);
+    expect(r.evenements).toContainEqual({ type: 'terminal_deverrouille' });
+    expect(r.partie.etat.terminalDeverrouille).toBe(true);
+    expect(r.partie.etat.connecte).toBeUndefined();
+    expect(r.partie.etat.actions).toBe(1);
+    // Une seule fois : l'option disparaît.
+    expect(observer(MONDE, r.partie.etat).menu.some((option) => option.action === 'deverrouiller')).toBe(false);
+    const pose = jouer(MONDE, r.partie, commande('poser', 'post-it'));
+    if (pose.type !== 'engagee') throw new Error(pose.type);
+    const c = jouer(MONDE, pose.partie, commande('surveiller', 'terminal'));
+    if (c.type !== 'engagee') throw new Error(c.type);
+    expect(c.partie.etat.connecte).toBe(true);
+  });
+
+  it('prendre, déverrouiller, poser puis se connecter se rejoue à l’identique (C-09 §5)', () => {
+    const ici: DefMonde = { ...MONDE, objets: MONDE.objets.map((o) => (o.id === 'post-it' ? { ...o, piece: 'surveillance' } : o)) };
+    let partie = debut(ici);
+    for (const [action, cible] of [['prendre', 'post-it'], ['deverrouiller', 'terminal'], ['poser', 'post-it'], ['surveiller', 'terminal'], ['attendre', 'surveillance']] as const) {
+      const r = jouer(ici, partie, commande(action, cible));
+      if (r.type !== 'engagee') throw new Error(`${action} : ${r.type}`);
+      partie = r.partie;
+    }
+    const rejeu = rejouer(ici, partie.enregistrement, 'test-surveillance');
+    expect(empreinteEtat(rejeu.partie.etat)).toBe(empreinteEtat(partie.etat));
+    expect(rejeu.partie.etat.terminalDeverrouille).toBe(true);
+  });
+
+  it('la connexion au terminal déverrouillé révèle toute la station sauf le passage caché', () => {
+    const r = jouer(MONDE, deverrouille(), commande('surveiller', 'terminal'));
     if (r.type !== 'engagee') throw new Error(r.type);
     expect(r.evenements).toContainEqual({ type: 'terminal_connecte' });
     expect(r.partie.etat.connecte).toBe(true);
@@ -118,7 +159,7 @@ describe('terminal de surveillance', () => {
   });
 
   it('une pièce jamais regardée reste connue : ni regard ni objet, mais le feu d’une pièce en feu', () => {
-    const r = jouer(MONDE, avec(porteur('surveillance', 'post-it'), { feu: ['cambuse'] }), commande('surveiller', 'terminal'));
+    const r = jouer(MONDE, avec(deverrouille(), { feu: ['cambuse'] }), commande('surveiller', 'terminal'));
     if (r.type !== 'engagee') throw new Error(r.type);
     const pieces = carte(MONDE, r.partie.etat).pieces;
     const piece = (id: string) => pieces.find((p) => p.piece.id === pub(id));
@@ -131,7 +172,7 @@ describe('terminal de surveillance', () => {
   });
 
   it('un souvenir plus riche garde ses objets', () => {
-    const partie = porteur('surveillance', 'post-it');
+    const partie = deverrouille();
     const vu = avec(partie, { memoire: { ...partie.etat.memoire, pieces: { ...partie.etat.memoire.pieces, machines: { regard: 0, objets: [{ objet: 'inter' }] } } } });
     const r = jouer(MONDE, vu, commande('surveiller', 'terminal'));
     if (r.type !== 'engagee') throw new Error(r.type);

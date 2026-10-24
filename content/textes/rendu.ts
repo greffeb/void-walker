@@ -93,6 +93,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'creature_expulsee':
     case 'creature_inerte':
     case 'bruit_station':
+    case 'terminal_deverrouille':
     case 'terminal_connecte':
       return {};
     case 'combinaison_enfilee':

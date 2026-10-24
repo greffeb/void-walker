@@ -380,6 +380,7 @@ export const ROLES_EVENEMENT: Readonly<Record<TypeRecit, readonly string[]>> = {
   cloison_deverrouillee: ['objet'],
   porte_secouee: ['passage'],
   porte_enfoncee: ['passage'],
+  terminal_deverrouille: [],
   terminal_connecte: [],
 };
 
@@ -418,6 +419,7 @@ export const ROLES_LIBELLE: Readonly<Record<IdAction, readonly string[]>> = {
   retablir: ['cible'],
   boucler: ['cible'],
   actionner: ['cible'],
+  deverrouiller: ['cible'],
   surveiller: ['cible'],
   attendre: [],
 };

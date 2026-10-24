@@ -447,12 +447,13 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 
 > D-356 à D-360, lot 4 de la créature mobile. [Validé sur maquette](maquette/poste.html), variante A ; textes de l'assistant principal, validation sur téléphone à venir.
 
-- **Ouverture** : « Se connecter au terminal » dans la salle de surveillance, avec le post-it. Sans lui, le refus du moteur s'écrit dans le récit, comme tout refus (« Le terminal demande un mot de passe : rien n'a été joué. »).
+- **Déverrouillage** : « Utiliser le post-it sur le terminal », le post-it en main, une action (D-356). Avant, « Se connecter » est refusé et le refus du moteur s'écrit dans le récit, comme tout refus (« Le terminal demande un mot de passe : rien n'a été joué. »).
+- **Ouverture** : « Se connecter au terminal », d'un seul toucher, sans CONFIRMER (D-359) ; le post-it n'a plus besoin d'être en main.
 - **Fenêtre plein cadre**, comme la carte (§3.6), sans flèche vers CARTE. Dialogue nommé « Surveillance » pour le lecteur d'écran. En-tête : « SURVEILLANCE » et « ● DIRECT », qui clignote en 2 s (fixe en mouvement réduit).
 - **Plan** : la station entière, centrée, avec les caméras (14 §2.5). Les pièces n'ouvrent ni fiche ni son. Une liste réservée aux lecteurs d'écran dit « Caméra de la remise : mouvement ».
-- **Ligne du bas**, en `aria-live="polite"` : les caméras qui ont changé depuis la dernière observation, « SOUTE : MOUVEMENT. » en `alerte`, « ATELIER : calme. », « brouillée. », « plus de signal. ». Sans changement, elle redit les caméras encore au mouvement ; « Aucun mouvement. » seulement si aucune n'est rouge. À la connexion, elle dit les caméras brouillées ou en panne.
-- **ATTENDRE** (bouton principal, plein) joue l'attente ordinaire : une action. **QUITTER** (secondaire) ferme sans coût ; Échap fait de même, et le focus revient au récit.
-- **Fermeture d'elle-même** : si le pas a une alerte de menace ou un danger, ou si le passager n'est plus connecté dans la salle, la fenêtre se ferme et le récit montre tout. Aucun avertissement n'est masqué.
+- **Ligne du bas**, en `aria-live="polite"` : d'abord le récit du pas s'il dit autre chose que l'attente (écoute, porte secouée, message), ses alertes en `alerte` ; puis les caméras qui ont changé depuis la dernière observation, « SOUTE : MOUVEMENT. » en `alerte`, « ATELIER : calme. », « brouillée. », « plus de signal. ». Sans changement, elle redit les caméras encore au mouvement ; « Aucun mouvement. » seulement si aucune n'est rouge. À la connexion, elle dit les caméras brouillées ou en panne.
+- **Le temps passe tout seul** : une attente ordinaire toutes les 2 secondes, au rythme du repère, tant que la fenêtre est ouverte ; même en mouvement réduit. Pas de bouton ATTENDRE. **QUITTER** (secondaire) ferme sans coût et arrête l'horloge ; Échap fait de même, et le focus revient au récit.
+- **Fermeture d'elle-même** : seulement si la créature entre dans la salle ou s'y montre, si un danger (feu, vide) y est, si la partie finit, ou si le passager n'est plus connecté dans la salle ; le récit montre alors tout. Aucun avertissement n'est masqué : les autres s'écrivent sur la ligne du bas.
 - Pas de son propre à la fenêtre.
 
 ### 4.10 Options

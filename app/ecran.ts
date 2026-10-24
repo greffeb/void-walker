@@ -273,12 +273,12 @@ export function nomParametre(textes: TextesMonde, parametre: NonNullable<OptionM
 }
 
 /** Portes, déplacements et attente : toujours d'un seul toucher, même bruyants ou risqués (D-267, D-274). */
-const TOUJOURS_UN_TOUCHER: readonly IdAction[] = ['aller', 'deriver', 'ouvrir', 'fermer', 'attendre'];
+const TOUJOURS_UN_TOUCHER: readonly IdAction[] = ['aller', 'deriver', 'ouvrir', 'fermer', 'attendre', 'surveiller'];
 const UN_TOUCHER_SANS_RISQUE: readonly IdAction[] = ['prendre', 'poser'];
 
 /**
  * Prendre ou poser se joue d'un seul toucher quand l'aperçu n'annonce ni risque, ni danger, ni coût (D-182) ; une porte ou un
- * déplacement, toujours (D-267). Poser à une position (la caisse d'une grande station) demande d'abord « OÙ ? ».
+ * déplacement, toujours (D-267), comme « Se connecter » au terminal (D-359). Poser à une position (la caisse d'une grande station) demande d'abord « OÙ ? ».
  */
 export function unToucher(monde: DefMonde, partie: Partie, option: OptionMenu): boolean {
   if (!option.disponible) return false;

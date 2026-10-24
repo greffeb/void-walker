@@ -1128,12 +1128,14 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
   };
   const rendrePoste = (jeu: Jeu): string =>
     renderToStaticMarkup(<EcranJeu jeu={jeu} lus={[]} env={envPoste} machineAEcrire={false} occupe={false} choisir={rien} lireMessages={rienALire} />);
-  const ferme = (jeu: Jeu): boolean =>
-    fermerPoste(observer(POSTE, jeu.partie.etat), jeu.alertes, jeu.partie.derniers);
-  /** Connecté au terminal, sur la première graine où la connexion n'a rien d'autre dans son récit (souffle derrière la grille). */
+  const ferme = (jeu: Jeu): boolean => fermerPoste(observer(POSTE, jeu.partie.etat), jeu.partie.derniers);
+  /** Le post-it pris et utilisé sur le terminal (D-356), puis la connexion, sur la graine en cours. */
+  const connecterSur = async (): Promise<Jeu> =>
+    jouerAction(await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'deverrouiller'), 'surveiller');
+  /** Connecté au terminal, sur la première graine où la créature n'est pas déjà dans la salle. */
   const connecte = async (): Promise<Jeu> => {
     for (graine = 0; graine < 50; graine++) {
-      const jeu = await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'surveiller');
+      const jeu = await connecterSur();
       if (!ferme(jeu)) return jeu;
     }
     throw new Error('Aucune connexion calme.');
@@ -1146,6 +1148,25 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
     const html = rendrePoste(refus);
     expect(texte(html)).toContain('Le terminal demande un mot de passe : rien n’a été joué.');
     expect(html).not.toContain('aria-label="Surveillance"');
+  });
+
+  it('« Se connecter » : un seul toucher, sans CONFIRMER (D-359)', async () => {
+    const debut = await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'deverrouiller');
+    const option = observer(POSTE, debut.partie.etat).menu.find((choix) => choix.action === 'surveiller');
+    expect(option?.disponible).toBe(true);
+    expect(unToucher(POSTE, debut.partie, option!)).toBe(true);
+  });
+
+  it('régression : la fenêtre s’ouvre dès la connexion, même quand le pas raconte aussi une écoute ou un signe (D-359)', async () => {
+    let bruyantes = 0;
+    for (graine = 0; graine < 30; graine++) {
+      const jeu = await connecterSur();
+      if (jeu.partie.etat.creature?.piece === 'piece-cabine') continue;
+      if (jeu.partie.derniers.some(({ type }) => type !== 'terminal_connecte')) bruyantes++;
+      expect(rendrePoste(jeu)).toContain('aria-label="Surveillance"');
+    }
+    // L'ancienne règle fermait la fenêtre sur ces connexions-là : il fallait se reconnecter.
+    expect(bruyantes).toBeGreaterThan(0);
   });
 
   it('après la connexion, la fenêtre est ouverte, avec ses deux caméras en mots', async () => {

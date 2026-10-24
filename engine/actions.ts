@@ -972,9 +972,31 @@ function terminauxIci({ monde, etat }: Contexte): DefObjet[] {
   return objetsDans(monde, etat, etat.piece).filter((candidat) => candidat.terminal === true);
 }
 
+/** Terminaux de la pièce dont le mot de passe n'a pas encore été tapé (lot 4, D-356). */
+function verrouillesIci(contexte: Contexte): DefObjet[] {
+  return contexte.etat.terminalDeverrouille === true ? [] : terminauxIci(contexte).filter((candidat) => candidat.exige !== undefined);
+}
+
 /**
- * Surveiller : au terminal, le mot de passe en main, une action discrète connecte le passager pour la partie et révèle la station ;
- * on peut y revenir pour remettre le plan à jour (lot 4).
+ * Déverrouiller : utiliser le post-it sur le terminal, une action discrète ; le mot de passe est tapé pour la partie, le post-it
+ * peut ensuite quitter les mains (lot 4, D-356). Sans le post-it en main : `sans_mot_de_passe`, comme à la connexion.
+ */
+const deverrouiller: ActionEngagee = {
+  id: 'deverrouiller',
+  engage: true,
+  cibles: (contexte) => verrouillesIci(contexte).map((candidat) => candidat.id),
+  verifier: (contexte, cible) => {
+    if (!verrouillesIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
+    const motDePasse = objet(contexte.monde, cible).exige;
+    return motDePasse !== undefined && contexte.etat.objets[motDePasse]?.type !== 'passager' ? 'sans_mot_de_passe' : null;
+  },
+  prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
+  appliquer: ({ etat }) => ({ etat: { ...etat, terminalDeverrouille: true }, evenements: [{ type: 'terminal_deverrouille' }] }),
+};
+
+/**
+ * Surveiller : au terminal déverrouillé (ou sans mot de passe), une action discrète connecte le passager pour la partie et révèle
+ * la station ; on peut y revenir pour remettre le plan à jour (lot 4).
  */
 const surveiller: ActionEngagee = {
   id: 'surveiller',
@@ -982,8 +1004,7 @@ const surveiller: ActionEngagee = {
   cibles: (contexte) => terminauxIci(contexte).map((candidat) => candidat.id),
   verifier: (contexte, cible) => {
     if (!terminauxIci(contexte).some((candidat) => candidat.id === cible)) return 'cible_absente';
-    const motDePasse = objet(contexte.monde, cible).exige;
-    return motDePasse !== undefined && contexte.etat.objets[motDePasse]?.type !== 'passager' ? 'sans_mot_de_passe' : null;
+    return objet(contexte.monde, cible).exige !== undefined && contexte.etat.terminalDeverrouille !== true ? 'sans_mot_de_passe' : null;
   },
   prevoir: () => ({ ...SANS_DANGER, savoir: [] }),
   appliquer: ({ monde, etat }) => ({ etat: reveler(monde, { ...etat, connecte: true }), evenements: [{ type: 'terminal_connecte' }] }),
@@ -1028,6 +1049,7 @@ const DEFINITIONS: Readonly<Record<IdAction, DefAction>> = {
   retablir,
   boucler,
   actionner,
+  deverrouiller,
   surveiller,
   attendre,
 };

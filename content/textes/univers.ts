@@ -53,10 +53,15 @@ export const UNIVERS = {
       'Vous vous réveillez dans {le:piece}, la nuque raide. Les lumières de service sont au rouge.',
       'Une secousse vous tire du sommeil. Vous êtes dans {le:piece}, sous un éclairage rouge.',
     ],
-    // Connexion au terminal de la salle de surveillance avec le code du post-it (lot 4).
+    // Le code du post-it tapé au terminal de la salle de surveillance (lot 4, D-356).
+    terminal_deverrouille: [
+      'Vous tapez le code du post-it. Le terminal accepte : ACCÈS AUTORISÉ.',
+      'Vous recopiez le code du post-it, touche après touche. Le terminal accepte : ACCÈS AUTORISÉ.',
+    ],
+    // Connexion au terminal déverrouillé (lot 4).
     terminal_connecte: [
-      'Vous tapez le code du post-it. ACCÈS AUTORISÉ. PLAN DE LA STATION CHARGÉ.',
-      'Vous recopiez le code du post-it, touche après touche. ACCÈS AUTORISÉ. PLAN DE LA STATION CHARGÉ.',
+      'Vous vous connectez au terminal. PLAN DE LA STATION CHARGÉ.',
+      'L’écran du terminal s’éclaire. PLAN DE LA STATION CHARGÉ.',
     ],
   },
   // Messages d'IA Station sur un fait vrai (lot 4) : pour elle, une panne ou une anomalie technique, jamais la menace, sans chiffre.

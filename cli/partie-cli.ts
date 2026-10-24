@@ -65,6 +65,7 @@ export const AIDE = [
   '  carte                        Relire la carte : ici, pièces visitées et connues (gratuit).',
   '  apercu <numéro>              Voir le risque, le coût et ce que vous savez avant d’agir (gratuit).',
   '  jouer <numéro>               Choisir une action du menu par son numéro.',
+  '  deverrouiller [terminal]     Utiliser le post-it sur le terminal de la pièce, comme l’action du menu.',
   '  surveiller [terminal]        Se connecter au terminal de la pièce, comme l’action du menu.',
   '  commande <action> <cible> [paramètre]   Envoyer une commande brute ; identifiants visibles avec « voir --ids ».',
   '  exporter <fichier> [--commentaire "texte"]   Exporter la partie pour la rejouer.',
@@ -308,12 +309,13 @@ export function executer(argv: readonly string[], contexte: Contexte): Sortie {
       const [action = '', cible = '', parametre] = reste;
       return suite(contexte, chemin, jouer(monde, partie, { action, cible, ...(parametre === undefined ? {} : { parametre }) }));
     }
+    case 'deverrouiller':
     case 'surveiller': {
-      // Raccourci de l'action du menu (lot 4), refusée sans le post-it comme par son numéro ; « terminal » est facultatif : un seul par station.
+      // Raccourcis des actions du menu (lot 4), refusées sans le post-it comme par leur numéro ; « terminal » est facultatif : un seul par station.
       const partie = charger(contexte, chemin);
       if (typeof partie === 'string') return { lignes: [partie], code: 1 };
-      const option = observer(monde, partie.etat).menu.find((choix) => choix.action === 'surveiller');
-      if (option === undefined) return { lignes: ['Aucun terminal ici.'], code: 1 };
+      const option = observer(monde, partie.etat).menu.find((choix) => choix.action === commande);
+      if (option === undefined) return { lignes: [commande === 'surveiller' ? 'Aucun terminal ici.' : 'Aucun terminal à déverrouiller ici.'], code: 1 };
       return suite(contexte, chemin, jouer(monde, partie, option.commande));
     }
     case 'exporter': {

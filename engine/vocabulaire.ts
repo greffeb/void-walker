@@ -30,6 +30,7 @@ export const ACTIONS = [
   'retablir',
   'boucler',
   'actionner',
+  'deverrouiller',
   'surveiller',
   'envoyer',
   'tenir',
@@ -117,6 +118,7 @@ export const TYPES_EVENEMENT = [
   'bruit_couvert',
   'chute_entendue',
   'cloison_deverrouillee',
+  'terminal_deverrouille',
   'terminal_connecte',
   'porte_secouee',
   'porte_enfoncee',
@@ -346,6 +348,8 @@ export type Evenement =
   | { readonly type: 'chambre_bouclee'; readonly objet: RefObjet; readonly piece: RefPiece }
   /** Une commande de déverrouillage actionnée : sa cloison n'est plus verrouillée (D-259). */
   | { readonly type: 'cloison_deverrouillee'; readonly objet: RefObjet }
+  /** Le code du post-it tapé au terminal : il reste déverrouillé pour la partie (lot 4). */
+  | { readonly type: 'terminal_deverrouille' }
   /** Le mot de passe accepté, le terminal révèle la station et montre ses caméras (lot 4). */
   | { readonly type: 'terminal_connecte' }
   /**
