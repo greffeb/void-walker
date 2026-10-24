@@ -32,7 +32,7 @@ La carte a sa propre couleur, comme le cyan de l'inventaire (D-176) et le blanc 
 | `vert` | `#5CFF7A` | Titre, pièce actuelle, icône du passager, étiquettes FEU et CRÉATURE | 15,2:1 |
 | `vert-texte` | `#A6F5B0` | Noms des pièces, texte courant, boutons | 15,5:1 |
 | `vert-secondaire` | `#62B06D` | Murs des pièces visitées, ancienneté, titres de section, œil de la créature vue il y a longtemps | 7,6:1 |
-| `vert-signal` | `#DDFFB8` | Vide : points, étiquette, voyant | 18,1:1 |
+| `vert-signal` | `#DDFFB8` | Vide : points, étiquette | 18,1:1 |
 | `vert-bordure` | `#3E7046` | Murs en pointillé des pièces connues, contour du bouton LISTE | 3,4:1 |
 | `vert-separateur` | `#1F3A24` | Filets décoratifs seulement | 1,6:1 |
 | `alerte` | `#FF5A4A` | Œil de la créature seulement (D-273), le rouge du danger apparu (12 §2.6) | 6,5:1 (6,1:1 sur `vert-surface`) |
@@ -83,25 +83,25 @@ Icônes (D-273) :
 | Capteur posé, mouvement (D-352) | Losange plein `alerte`, point, deux ondes de chaque côté | Aucune | Aucune |
 | Capteur posé, brouillé (D-352) | Losange en pointillés `vert-secondaire`, sans point ni onde | Aucune | Aucune |
 | Capteur posé, panne ou détruit (D-352) | Losange barré d'une diagonale | Aucune | Aucune |
-| Caméra, calme (D-357, fenêtre du poste seulement) | Carré de 14 px avec un objectif rond : contour et objectif `vert` | Aucune | Aucune |
-| Caméra, mouvement (D-357) | Carré plein `alerte`, objectif, ondes | Aucune | Aucune |
-| Caméra, brouillée (D-357) | Carré en pointillés `vert-secondaire`, sans objectif | Aucune | Aucune |
-| Caméra, panne ou détruite (D-357) | Carré barré d'une diagonale | Aucune | Aucune |
+| Caméra, calme (D-358, fenêtre du poste seulement) | Carré de 14 px avec un objectif rond : contour et objectif `vert` | Aucune | Aucune |
+| Caméra, mouvement (D-358) | Carré plein `alerte`, objectif, ondes | Aucune | Aucune |
+| Caméra, brouillée (D-358) | Carré en pointillés `vert-secondaire`, sans objectif | Aucune | Aucune |
+| Caméra, panne ou détruite (D-358) | Carré barré d'une diagonale | Aucune | Aucune |
 
 - Place : au centre de la place laissée sous le texte de la pièce ; au centre de la pièce quand aucun texte n'y tient ; côte à côte, le passager à gauche, si les deux partagent une pièce. Une ancienneté qui prendrait la place de l'icône s'efface du plan.
 - Taille : fixe au dézoom, elle suit la taille du texte. L'icône marque la pièce, pas une position : les positions restent en mots dans la vue LISTE (§2.8).
 - Jamais la couleur seule : l'œil garde sa forme et l'étiquette CRÉATURE ; le clignotement ne porte aucune information que le texte ne donne pas.
 - Le drone se déduit des objets mémorisés, jamais de sa position actuelle cachée. Une pièce seulement connue ne reçoit pas son pictogramme. Sa présence reste accessible par le libellé de la pièce et sa fiche.
 - Le capteur (D-350 à D-352) marque la pièce où il est posé, qu'elle soit visitée ou non : le passager l'a fixé lui-même, la carte en donne l'état réel à chaque lecture, y compris pièce hors de vue, comme la carte révélée des versions de test. La forme dit l'état sans la couleur (ondes, pointillés, barre). La vue LISTE, la fiche de la pièce et la commande `carte` de la CLI le disent en mots : « CAPTEUR : calme », « CAPTEUR : MOUVEMENT », « CAPTEUR : brouillé », « CAPTEUR : plus de signal ». « Calme » n'est jamais affiché dans une pièce aveugle.
-- **Carte révélée par le poste** (D-356). Une fois connecté au terminal de la salle de surveillance (D-355), toutes les pièces sont dessinées, hors sous-positions ; une pièce jamais visitée garde le statut « connue » (fiche « pas encore visitée », sans liste d'objets, rangée parmi les connues de la vue LISTE) ; toutes les liaisons le sont aussi, sauf les passages cachés (M-05). Les portes et le feu sont **figés** à la consultation : une porte forcée plus tard reste dessinée fermée, jusqu'à ce que le joueur repasse devant ou se reconnecte. Aucun objet n'est montré dans une pièce jamais regardée ; le voyant d'une porte étanche suit la règle ordinaire (OP-04). La capsule d'une pièce jamais vue est visible (élément de coque).
-- **Les caméras** (D-357) ne figurent **que dans la fenêtre du poste** (12 §4.9 bis) : jamais sur la carte ordinaire, ni dans la vue LISTE, ni par un « ! ». Le capteur du joueur garde son losange dans la fenêtre. Le plan de la fenêtre est centré sur la station entière, et ses pièces n'ouvrent pas de fiche : ce ne sont pas des boutons, ni des arrêts de tabulation.
+- **Carte révélée par le poste** (D-357). Une fois connecté au terminal de la salle de surveillance (D-356), toutes les pièces sont dessinées, hors sous-positions ; une pièce jamais visitée garde le statut « connue » (fiche « pas encore visitée », sans liste d'objets, rangée parmi les connues de la vue LISTE) ; toutes les liaisons le sont aussi, sauf les passages cachés (M-05). Les portes et le feu sont **figés** à la consultation : une porte forcée plus tard reste dessinée fermée, jusqu'à ce que le joueur repasse devant ou se reconnecte. Aucun objet n'est montré dans une pièce jamais regardée ; le voyant d'une porte étanche suit la règle ordinaire (OP-04). La capsule d'une pièce jamais vue est visible (élément de coque).
+- **Les caméras** (D-358) ne figurent **que dans la fenêtre du poste** (12 §4.9 bis) : jamais sur la carte ordinaire, ni dans la vue LISTE, ni par un « ! ». Le capteur du joueur garde son losange dans la fenêtre. Le plan de la fenêtre est centré sur la station entière, et ses pièces n'ouvrent pas de fiche : ce ne sont pas des boutons, ni des arrêts de tabulation.
 - **« ! » sur CARTE** (D-352) : à chaque changement d'état du capteur, un « ! » vert à cheval sur le bord de CARTE, comme celui d'IA STATION (D-263) ; il s'éteint à l'ouverture de la carte et ne se rallume pas à la pose. Il ne survit ni aux options ni au rechargement.
 - Avec trois présences, chaque symbole conserve son propre centre. Dans les petites pièces au dézoom, les trois dessins sont réduits ensemble pour tenir dans la pièce ; les cas à une ou deux présences restent inchangés (détail de réalisation de D-307, à vérifier sur téléphone).
 
 ### 2.6 Portes et passages
 
-- Une porte est une **ouverture** dans le mur commun. Fermée au dernier regard, elle est barrée d'un trait fin.
-- Porte étanche : un **voyant** dans l'ouverture, plein ● pour l'air, vide ○ pour le vide, tenu à jour dès que la destination est connue (OP-04, détails de #104).
+- Une porte est une **ouverture** dans le mur commun, bordée de deux petits taquets. Fermée au dernier regard, une **barre** claire et épaisse la bouche (D-355).
+- Porte étanche : son **voyant** n'est pas dessiné sur le plan (D-355). L'air qu'il donne, tenu à jour dès que la destination est connue (OP-04, détails de #104), se lit par le motif et l'étiquette VIDE de la pièce, dans sa fiche et dans la vue LISTE.
 - Grille, conduit étroit, panneau : ouverture en tirets.
 - Passage sans signalétique à destination inconnue : ouverture en tirets et « **?** ». Ce passage ne fait pas connaître la pièce d'en face (OP-03). Si cette pièce est connue par ailleurs, la géométrie peut laisser deviner la destination ; aucun texte ne la nomme.
 - Passage caché non découvert : rien, de chaque côté, même de celui où le panneau se voit, puisqu'il ne se distingue pas d'un panneau ordinaire (K-05, AR-01 §11.1). Découvert, il se dessine comme les autres.

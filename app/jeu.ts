@@ -222,7 +222,7 @@ export function camerasChangees(avant: Observation['cameras'], apres: Observatio
 }
 
 /**
- * La fenêtre du poste se ferme d'elle-même (lot 4, D-358) : le passager n'est plus connecté dans la salle, ou le récit du pas dit autre
+ * La fenêtre du poste se ferme d'elle-même (lot 4, D-359) : le passager n'est plus connecté dans la salle, ou le récit du pas dit autre
  * chose que l'attente seule (ou la connexion qui ouvre la fenêtre) : signe de la créature, écoute, message, ou une alerte. Le récit
  * montre alors tout, rien n'est caché sous la fenêtre ; les caméras, elles, changent sur la ligne de la fenêtre sans la fermer.
  */

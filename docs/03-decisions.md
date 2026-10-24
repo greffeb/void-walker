@@ -1,7 +1,7 @@
 # Void Walker V2 — journal des décisions
 
 > **Statut :** JOURNAL ACTIF — seules les entrées « Validé » font autorité.
-> **Mise à jour :** 2026-10-23 (créature mobile, lot 4 : salle de surveillance, carte révélée, caméras et messages d'IA Station, D-355 à D-359) ; 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
+> **Mise à jour :** 2026-10-23 (créature mobile, lot 4 : salle de surveillance, carte révélée, caméras et messages d'IA Station, D-356 à D-360) ; 2026-10-23 (carte : portes en barre et taquets, D-355) ; 2026-10-23 (créature mobile, lot 3 : le capteur, D-350 à D-354) ; 2026-10-22 (créature mobile, lot 2 : écoute en attendant, D-343 à D-347) ; 2026-10-21 (créature mobile : conception approuvée, D-330 à D-342, D-048 remplacée dans les grandes stations) ; 2026-10-21 (M-11 et M-12 tirés dans les grandes stations, D-329, #236) ; 2026-10-20 (intro de NOUVELLE PARTIE, #200 ; grandes stations habitées, livraisons 2 et 3 : clés dispersées et butin, lore et documents ; D-328, demande du porteur sur « Poser » ; décisions des grandes stations renumérotées D-313 à D-328 à la reprise de `main`).
 
 ## Règles
 
@@ -28,7 +28,7 @@ Cet index sert à trouver les décisions liées à une tâche ; il ne remplace p
 | Textes du jeu | [D-109 à D-117](#d-109--français-seulement-au-lancement), [D-243](#d-243--un-lore-léger-au-lancement-écrit-avec-soin-par-lassistant-principal) |
 | Chariot et drone M-12 | [D-304 à D-307](#d-304--m-12-repose-sur-une-coopération-nécessaire) |
 | Interface et interactions d'écran | [D-140 à D-155](#d-140--maquette-dinterface-v1-et-direction--phosphore-), [D-176](#d-176--une-couleur-par-menu--cyan-pour-linventaire), [D-182](#d-182--une-seule-touche-quand-rien-nest-à-craindre-sauf-pour-les-portes), [D-277](#d-277--entrer-dans-une-pièce-jamais-vue-la-regarde-aussitôt), [D-186 à D-187](#d-186--le-nouveau-texte-sécrit-à-la-machine-puis-un-curseur-clignote), [D-191 à D-192](#d-191--écran-plus-compact-boutons-toujours-visibles-six-lignes-de-récit-au-moins), [D-197 à D-198](#d-197--nouveaux-noms-de-pièces-dans-ar-01-et-ar-02), [D-229 à D-230](#d-229--les-portes-se-manœuvrent-depuis--se-déplacer-vers-), [D-233](#d-233--le-danger-apparu-sannonce-en-rouge-triangle-clignotant-avec-son-alarme), [D-263](#d-263--ia-station-sannonce-sur-son-bouton-plus-dans-le-récit), [D-287 à D-288](#d-287--les-options-en-trois-sous-menus--son-et-texte-rapports-application), [D-308 à D-312](#d-308--après-nouvelle-partie-une-intro-montre-que-la-station-est-tirée-au-hasard), [D-328](#d-328--poser-la-caisse-sous-la-grille-dun-seul-geste), [D-349](#d-349--flèche-orientée-devant-chaque-destination) |
-| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-350 à D-354](#d-350--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser), [D-355 à D-359](#d-355--la-salle-de-surveillance--à-part-dans-un-cinquième-des-grandes-stations-un-terminal-à-mot-de-passe-sur-post-it) |
+| Créature, blessures et dangers | [D-177 à D-181](#d-177--la-créature-suit-le-passage-quelle-vous-a-vu-prendre), [D-183 à D-190](#d-183--rester-sous-ses-yeux-se-joue-au-même-dé-que-la-fuite), [D-276](#d-276--alertée-la-créature-poursuit-écoute-et-fouille), [D-278](#d-278--le-jet-dinterception-touche-toujours-v1-de-194), [D-279](#d-279--alertée-la-créature-force-une-porte-fermée-sur-sa-piste-v2-de-194), [D-330 à D-342](#d-330--la-créature-a-un-territoire--les-pièces-reliées-par-des-passages-ouverts), [D-343 à D-347](#d-343--attendre-écoute-à-toutes-les-portes-pas-de-bouton-écouter), [D-350 à D-354](#d-350--le-capteur--au-plus-un-par-station-posé-pour-de-bon-par-poser), [D-356 à D-360](#d-356--la-salle-de-surveillance--à-part-dans-un-cinquième-des-grandes-stations-un-terminal-à-mot-de-passe-sur-post-it) |
 | Carte et géométrie des stations | [D-201 à D-215](#d-201--la-carte-est-un-plan-de-pont), [D-273](#d-273--sur-le-plan-le-passager-est-un-point-à-ondes-radar-la-créature-un-œil-rouge) |
 | Son | [D-216 à D-226](#d-216--bruitages-synthétisés-pour-le-projet) |
 
@@ -2955,11 +2955,20 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
 - Décision : le lot 3 ne livre que le capteur. Le drone éclaireur de la conception (§4.6) est repris plus tard, dans une session à part, maquettes d'abord.
 - Précise : D-336.
 
-### D-355 — La salle de surveillance : à part, dans un cinquième des grandes stations, un terminal à mot de passe sur post-it
+### D-355 — Sur la carte, la porte fermée est une barre claire, l'ouverture est bordée de taquets
+
+- Date / statut : 2026-10-23 / **Validé** sur maquette (le porteur, option A de `docs/maquette/portes-carte.html`, taquets plus petits).
+- Origine : le porteur : les portes ne se voyaient pas assez sur le plan, ouvertes comme fermées.
+- Décision : une porte s'ouvre sur un peu plus d'une demi-case (0,64 case) ; deux taquets courts en travers du mur marquent ses bords. Fermée, une barre épaisse de la couleur la plus claire du plan bouche l'ouverture. Les tirets (grille, conduit, passage sans signalétique) ne changent pas. Les voyants des portes étanches ne sont plus dessinés sur le plan : le vide qu'ils lisent reste sur la pièce (motif et étiquette VIDE), dans la fiche et dans la vue LISTE.
+- Précise : 14 §2.6.
+- Limite [Détail de l'agent] : taquets de 3 px de part et d'autre du mur, trait de 2 en vert ; barre de 4 en `--vert-signal`. Le rendu d'auteur des plans (`tools/plans-svg.ts`) garde l'ouverture d'une demi-case.
+- Ce que le porteur doit essayer sur téléphone : si ouverte et fermée se distinguent au dézoom.
+
+### D-356 — La salle de surveillance : à part, dans un cinquième des grandes stations, un terminal à mot de passe sur post-it
 
 - Date / statut : 2026-10-23 / **Validé** sur maquette ([poste.html](maquette/poste.html), variante A) ; validation sur téléphone à venir. Textes de l'assistant principal, non validés par le porteur.
 - Origine : le porteur, sur la maquette du 2026-10-23 ; #241. Plan : [lot 4](superpowers/plans/2026-10-23-creature-mobile-4.md) ; conception §4.3.
-- Décision : une salle à part, qui n'est pas le poste de sécurité de M-11, dans **20 % des grandes stations publiées**, une seule par station. Elle contient un terminal fixe qui demande un mot de passe. Le mot de passe est écrit sur un **post-it** posé au hasard dans une autre pièce, que le joueur garde. Le terminal sans le post-it donne un refus (« Le terminal demande un mot de passe : rien n'a été joué. ») ; le récit ne dit jamais où chercher (mémoire « ne pas tenir la main »). Avec le post-it, « Se connecter au terminal » ouvre la fenêtre du poste (D-358).
+- Décision : une salle à part, qui n'est pas le poste de sécurité de M-11, dans **20 % des grandes stations publiées**, une seule par station. Elle contient un terminal fixe qui demande un mot de passe. Le mot de passe est écrit sur un **post-it** posé au hasard dans une autre pièce, que le joueur garde. Le terminal sans le post-it donne un refus (« Le terminal demande un mot de passe : rien n'a été joué. ») ; le récit ne dit jamais où chercher (mémoire « ne pas tenir la main »). Avec le post-it, « Se connecter au terminal » ouvre la fenêtre du poste (D-359).
 - Précise : D-337 (poste de sécurité, #241).
 - Limite [Détail de l'agent] :
   - **Nom : « salle de surveillance »**, pour ne pas la confondre avec le poste de sécurité de M-11. C'est une impasse du catalogue déjà posée, changée en salle de surveillance après la pose des annexes (`a3-couchettes` devient `a3-surveillance`). Elle n'est jamais dans un segment de capsule ni dans le repaire de la créature, et le plan de la station ne bouge pas. Une impasse dont une voisine a besoin pour son `surCouloirDe` est écartée (contrôle GE-10).
@@ -2973,7 +2982,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **La preuve des stations** ne compte pas la salle : elle se fait sans butin, et la salle est une impasse.
 - Ce que le porteur doit essayer sur téléphone : si chercher le post-it est un bon moment, et si une salle dans une station sur cinq suffit.
 
-### D-356 — La connexion révèle la carte pour de bon ; portes et feu figés à la consultation
+### D-357 — La connexion révèle la carte pour de bon ; portes et feu figés à la consultation
 
 - Date / statut : 2026-10-23 / **Validé** sur maquette ([poste.html](maquette/poste.html), variante A) ; validation sur téléphone à venir.
 - Origine : le porteur : « juste un moyen de révéler toute la carte d'un coup » ; conception §4.3.
@@ -2988,11 +2997,11 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **La CLI** a la commande `surveiller [terminal]`.
 - Ce que le porteur doit essayer sur téléphone : si la carte révélée se lit avec les portes figées.
 
-### D-357 — Les caméras : en direct dans la fenêtre seulement, une pièce sur trois, un tiers en panne au départ
+### D-358 — Les caméras : en direct dans la fenêtre seulement, une pièce sur trois, un tiers en panne au départ
 
 - Date / statut : 2026-10-23 / **Validé** sur maquette pour le principe ; parts du porteur (une pièce sur trois, un tiers en panne) ; **seuils de panne et de destruction et arrondis de l'agent, à valider** après l'essai sur téléphone.
 - Origine : le porteur, sur la maquette ; conception §4.3.
-- Décision : une caméra dans **environ une pièce sur trois**, jamais dans la salle de surveillance. Un tiers d'entre elles sont **en panne au départ**. La créature peut les détruire, comme le capteur (D-353). Une caméra ne voit que la créature, jamais le passager ; elle dit « MOUVEMENT », jamais « la créature » ; dans une pièce aveugle elle est brouillée. Une caméra détruite s'affiche comme une panne. **Hors de la fenêtre du poste, les caméras ne se voient nulle part** : ni sur la carte, ni dans le récit, ni par un « ! ». Seule IA Station peut signaler une caméra perdue (D-359).
+- Décision : une caméra dans **environ une pièce sur trois**, jamais dans la salle de surveillance. Un tiers d'entre elles sont **en panne au départ**. La créature peut les détruire, comme le capteur (D-353). Une caméra ne voit que la créature, jamais le passager ; elle dit « MOUVEMENT », jamais « la créature » ; dans une pièce aveugle elle est brouillée. Une caméra détruite s'affiche comme une panne. **Hors de la fenêtre du poste, les caméras ne se voient nulle part** : ni sur la carte, ni dans le récit, ni par un « ! ». Seule IA Station peut signaler une caméra perdue (D-360).
 - Précise : D-351 (quatre états), D-353 (panne et destruction).
 - Limite [Détail de l'agent] :
   - **Une caméra est un emplacement du monde** (`DefMonde.cameras`), pas un objet : on ne la prend pas et on ne la voit pas dans la pièce. Pas de caméras sans terminal, vérifié à la validation du monde.
@@ -3000,10 +3009,10 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Lecture** : en panne ou détruite, `hs` ; sinon pièce aveugle, `brouille` ; sinon créature active dans la pièce (alcôve comprise), `mouvement` ; sinon `calme`. Une caméra en panne au départ le reste toute la partie. Des machines relancées dans une pièce à caméra la mettent à `brouille`, jamais à `calme`.
   - **Panne et destruction en cours de partie** : mêmes seuils que le capteur, destruction 1/8 quand la créature, hors traque, était dans la pièce de la caméra avant le pas et y est encore, sinon panne 1/300 par action. Le tirage est haché par caméra (`camera:<graine>:<action>:<pièce>`), hors journal, et les caméras abîmées vont dans `etat.camerasHs` (absent tant qu'aucune ne l'est). Seulement dans un monde à `rencontre`. Pas de tirage au pas qui finit la partie. Un rejeu redonne la même empreinte et les mêmes pannes.
   - **Seuils non mesurés** : la mesure des bots ne peut pas les juger, les bots ne se connectent pas. Valeurs à juger sur téléphone ; le réglage de difficulté du lot 5 peut les faire varier.
-  - **Un monde sans terminal ni caméras** donne le même état, les mêmes événements et la même empreinte qu'avant, sauf la face 2 des mondes à `rencontre` (D-359).
+  - **Un monde sans terminal ni caméras** donne le même état, les mêmes événements et la même empreinte qu'avant, sauf la face 2 des mondes à `rencontre` (D-360).
 - Ce que le porteur doit essayer sur téléphone : si les chances de panne et de destruction des caméras sont justes.
 
-### D-358 — La fenêtre du poste : plein cadre, ATTENDRE et QUITTER, qui se ferme d'elle-même
+### D-359 — La fenêtre du poste : plein cadre, ATTENDRE et QUITTER, qui se ferme d'elle-même
 
 - Date / statut : 2026-10-23 / **Validé** sur maquette ([poste.html](maquette/poste.html), variante A) ; validation sur téléphone à venir. Textes de l'assistant principal, non validés par le porteur.
 - Origine : le porteur, sur la maquette.
@@ -3018,7 +3027,7 @@ Questions posées le 2026-10-18, une par une, en langage courant, avant de coder
   - **Limites connues** : l'état de la fenêtre se perd en passant par les options ; ATTENDRE n'a pas d'effet si le dock ne le propose pas ; les mots des états de caméra sont écrits deux fois (`app/libelles/fr.ts` et `cli/partie-cli.ts`), à ramener dans `content/textes/carte.ts`.
 - Ce que le porteur doit essayer sur téléphone : si la fenêtre se lit à 390 px, et si attendre devant les caméras est tendu.
 
-### D-359 — Les messages d'IA Station de la face 2 : quatre sortes, des pièces nommées, un ou deux par partie
+### D-360 — Les messages d'IA Station de la face 2 : quatre sortes, des pièces nommées, un ou deux par partie
 
 - Date / statut : 2026-10-23 / **Validé** sur maquette ([ia-signes.html](maquette/ia-signes.html)) ; validation sur téléphone à venir. Textes de l'assistant principal, non validés par le porteur.
 - Origine : le porteur, sur la maquette ; conception §4.5.

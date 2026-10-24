@@ -445,7 +445,7 @@ Ton froid, calme, un peu décalé ; exact sur les systèmes ; ne dit jamais où 
 
 ### 4.9 bis Fenêtre du poste de surveillance
 
-> D-355 à D-359, lot 4 de la créature mobile. [Validé sur maquette](maquette/poste.html), variante A ; textes de l'assistant principal, validation sur téléphone à venir.
+> D-356 à D-360, lot 4 de la créature mobile. [Validé sur maquette](maquette/poste.html), variante A ; textes de l'assistant principal, validation sur téléphone à venir.
 
 - **Ouverture** : « Se connecter au terminal » dans la salle de surveillance, avec le post-it. Sans lui, le refus du moteur s'écrit dans le récit, comme tout refus (« Le terminal demande un mot de passe : rien n'a été joué. »).
 - **Fenêtre plein cadre**, comme la carte (§3.6), sans flèche vers CARTE. Dialogue nommé « Surveillance » pour le lecteur d'écran. En-tête : « SURVEILLANCE » et « ● DIRECT », qui clignote en 2 s (fixe en mouvement réduit).

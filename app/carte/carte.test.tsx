@@ -142,13 +142,13 @@ describe('écran de la carte (14 §2)', () => {
     expect(plan()).not.toContain('icone-camera');
   });
 
-  it('portes : ouverture, trait fin si fermée, tirets, voyants d’air, « ? » ; capsule arrimée dehors (14 §2.6)', () => {
+  it('portes : ouverture bordée de taquets, barre si fermée (D-355), tirets, « ? », sans voyant (D-355) ; capsule arrimée dehors (14 §2.6)', () => {
     const html = plan();
     expect(html.match(/class="ouverture"/g)).toHaveLength(3);
     expect(html.match(/class="ouverture-fermee"/g)).toHaveLength(1);
+    expect(html.match(/class="taquet"/g)).toHaveLength(4);
     expect(html.match(/class="ouverture-tirets"/g)).toHaveLength(1);
-    expect(html).toContain('class="voyant voyant-vide"');
-    expect(html).toContain('class="voyant voyant-air"');
+    expect(html).not.toContain('voyant');
     expect(html).toContain('>?</text>');
     expect(html.match(/class="capsule"/g)).toHaveLength(1);
   });
