@@ -31,7 +31,7 @@ export type TypeAggravation = (typeof TYPES_AGGRAVATION)[number];
  * Événements racontés par `evenements` : l'évacuation a ses textes selon les sources (`evacuations`), l'assistance les siens
  * (`assistance`), hors du récit ; l'écoute dit ce qu'elle entend selon `ecoute`, le capteur selon `capteur` et `capteurPose` (lot 3 de la créature mobile).
  */
-export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance' | 'ecoute' | 'capteur' | 'capteur_pose'>;
+export type TypeRecit = Exclude<TypeEvenement, 'evacuation' | 'assistance' | 'ecoute' | 'ecoute_groupee' | 'ecoute_rappel' | 'capteur' | 'capteur_pose'>;
 
 /** Sources d'une évacuation, clé de ses textes : circuit seul, bloc seul, les deux, ou la réserve d'une capsule déjà prête (AR-02). */
 export const CLES_EVACUATION = ['circuit', 'bloc', 'circuit_bloc', 'reserve'] as const;
@@ -135,6 +135,10 @@ export interface TextesMonde {
   readonly pillages: Variantes;
   /** Ce que le passager entend derrière un passage en attendant (lot 2 de la créature mobile), par résultat ; couche menace. */
   readonly ecoute: Readonly<Record<EntenduRecit, Variantes>>;
+  /** Portes silencieuses dites ensemble (D-363) ; `toutes` : « les {nombre} portes », toutes celles de la pièce. Couche menace. */
+  readonly ecouteGroupee: Readonly<Record<'rien' | 'plus_rien' | 'toutes', Variantes>>;
+  /** Rappel des portes inchangées (D-362) : toutes (`portes`) ou les autres que celles qu'on vient de dire (`autres`). Couche menace. */
+  readonly ecouteRappel: Readonly<Record<'portes' | 'autres', Variantes>>;
   /** Phrase d'attente qui précède une écoute, à la place de celle de `evenements.attente`. */
   readonly attenteEcoute: Variantes;
   /** Bip du terminal selon l'état du capteur (lot 3 de la créature mobile) ; couche menace. « Mouvement » est en rouge. */

@@ -231,6 +231,73 @@ describe('écoute porte par porte (lot 2 de la créature mobile)', () => {
   });
 });
 
+describe('rappel d’écoute et silences groupés (#261, #266)', () => {
+  const textes = reunir([
+    {
+      noms: {
+        porte: { texte: 'porte', genre: 'f', nombre: 's', elision: false },
+        cuisine: { texte: 'cuisine', genre: 'f', nombre: 's', elision: false },
+        atelier: { texte: 'atelier', genre: 'm', nombre: 's', elision: true },
+        infirmerie: { texte: 'infirmerie', genre: 'f', nombre: 's', elision: true },
+      },
+      descriptions: {},
+      assistance: {},
+    },
+  ]);
+  const porte = (id: string, nom: string): RefPassage => ({
+    sorte: 'passage',
+    id,
+    nom: 'porte',
+    ouvert: false,
+    vers: { sorte: 'piece', id: `p${id}`, nom },
+    signale: true,
+    feu: false,
+    huile: false,
+    vide: false,
+    gouffre: false,
+  });
+  const cuisine = porte('e1', 'cuisine');
+  const quatre = [cuisine, porte('e2', 'atelier'), porte('e3', 'infirmerie'), porte('e4', 'cuisine')];
+  const rappel: Evenement = { type: 'ecoute_rappel', autres: false };
+
+  it('les silences ensemble, nommés en liste', () => {
+    const [attente, groupe] = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute_groupee', passages: quatre.slice(0, 2), entendu: 'rien', toutes: false }], { graine: 1, action: 0 });
+    expect(textes.attenteEcoute).toContain(attente);
+    expect(groupe).toContain('la porte de la cuisine et la porte de l’atelier');
+  });
+
+  it('toutes : « les quatre portes »', () => {
+    expect(rendreEvenements(textes, [{ type: 'ecoute_groupee', passages: quatre, entendu: 'rien', toutes: true }], { graine: 1, action: 0 })).toEqual(['Derrière les quatre portes, le silence.']);
+  });
+
+  it('le rappel, et « aux autres portes » après une porte dite', () => {
+    const [attente, phrase] = rendreEvenements(textes, [{ type: 'attente' }, rappel], { graine: 1, action: 0 });
+    expect(textes.attenteEcoute).toContain(attente);
+    expect(textes.ecouteRappel.portes).toContain(phrase);
+    const phrases = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute', passage: cuisine, entendu: 'net' }, { type: 'ecoute_rappel', autres: true }], { graine: 1, action: 0 });
+    expect(phrases[2]).toBe('Aux autres portes, rien de nouveau.');
+  });
+
+  it('5e et 10e attente : la patience, puis le rappel ou le vacarme ; un bruit de station se tait', () => {
+    const [patience, phrase] = rendreEvenements(textes, [{ type: 'attente' }, { type: 'bruit_station' }, rappel], { graine: 1, action: 0, attentes: 5 });
+    expect(patience).toBe(textes.attentesLongues[5]);
+    expect(textes.ecouteRappel.portes).toContain(phrase);
+    const vacarme = rendreEvenements(textes, [{ type: 'attente', vacarme: true }, { type: 'ecoute_couverte' }], { graine: 1, action: 0, attentes: 10 });
+    expect(vacarme[0]).toBe(textes.attentesLongues[10]);
+    expect(textes.evenements.ecoute_couverte).toContain(vacarme[1]);
+  });
+
+  it('une porte qui change n’est pas un calme : pas de patience', () => {
+    const phrases = rendreEvenements(textes, [{ type: 'attente' }, { type: 'ecoute', passage: cuisine, entendu: 'vague' }, { type: 'ecoute_rappel', autres: true }], { graine: 1, action: 0, attentes: 5 });
+    expect(textes.attenteEcoute).toContain(phrases[0]);
+  });
+
+  it('en rouge : le net seulement, pas le groupe ni le rappel', () => {
+    expect(alertesMenace([{ type: 'attente' }, { type: 'ecoute', passage: cuisine, entendu: 'net' }, { type: 'ecoute_rappel', autres: true }])).toEqual([1]);
+    expect(alertesMenace([{ type: 'ecoute_groupee', passages: quatre, entendu: 'rien', toutes: true }, rappel])).toEqual([]);
+  });
+});
+
 describe('capteur de mouvement (lot 3 de la créature mobile)', () => {
   const textes = reunir([]);
   const piece = { sorte: 'piece', id: 'e00000005', nom: 'cuisine' } as const;

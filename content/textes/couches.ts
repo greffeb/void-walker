@@ -62,6 +62,8 @@ export const TRACES: TextesMonde['traces'] = reunir([]).traces;
 export const TEXTES_ECOUTE: TextesMonde['ecoute'] = reunir([]).ecoute;
 
 /** Phrases d'attente qui précèdent une écoute, de la couche menace, reprises par les mondes écrits en entier. */
+export const TEXTES_ECOUTE_GROUPEE: TextesMonde['ecouteGroupee'] = reunir([]).ecouteGroupee;
+export const TEXTES_ECOUTE_RAPPEL: TextesMonde['ecouteRappel'] = reunir([]).ecouteRappel;
 export const ATTENTE_ECOUTE: TextesMonde['attenteEcoute'] = reunir([]).attenteEcoute;
 
 /** Bips et pose du capteur de la couche menace (lot 3 de la créature mobile), repris par les mondes écrits en entier. */

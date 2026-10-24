@@ -131,7 +131,7 @@ export function borneDe(entree: EntreeMonde): number {
 const MARCHES = 40;
 const LONGUEUR_MARCHE = 80;
 
-const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance' && type !== 'ecoute' && type !== 'capteur' && type !== 'capteur_pose');
+const TYPES_RECIT = TYPES_EVENEMENT.filter((type): type is TypeRecit => type !== 'evacuation' && type !== 'assistance' && type !== 'ecoute' && type !== 'ecoute_groupee' && type !== 'ecoute_rappel' && type !== 'capteur' && type !== 'capteur_pose');
 
 export function compterPhrases(texte: string): number {
   return texte.split(/[.!?…]+(?:\s|$)/).filter((morceau) => morceau.trim() !== '').length;

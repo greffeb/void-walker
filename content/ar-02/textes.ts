@@ -10,7 +10,7 @@ import {
   SAVOIR_MORCEAUX,
   VERBES_MORCEAUX,
 } from '../textes/morceaux';
-import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, CONNEXION_TERMINAL, DEVERROUILLAGE_TERMINAL, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SIGNES_IA, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
+import { ATTENTE_ECOUTE, ATTENTE_VACARME, BRUITS_STATION, CONNEXION_TERMINAL, DEVERROUILLAGE_TERMINAL, FIN, PILLAGES, POSE_POSITION, POSER_A_POSITION, SIGNES_IA, SUPPORTS, TEXTES_CAPTEUR, TEXTES_ECOUTE, TEXTES_ECOUTE_GROUPEE, TEXTES_ECOUTE_RAPPEL, TEXTES_POSE_CAPTEUR, TRACES } from '../textes/couches';
 import { ATTENTES_LONGUES } from '../textes/univers';
 import { MENACE } from '../textes/menace';
 import type { TextesMonde } from '../textes/types';
@@ -340,6 +340,8 @@ traces_fraiches: ['Au sol, une traînée encore humide : quelque chose est pass�
   fin: FIN,
   traces: TRACES,
   ecoute: TEXTES_ECOUTE,
+  ecouteGroupee: TEXTES_ECOUTE_GROUPEE,
+  ecouteRappel: TEXTES_ECOUTE_RAPPEL,
   attenteEcoute: ATTENTE_ECOUTE,
   capteur: TEXTES_CAPTEUR,
   capteurPose: TEXTES_POSE_CAPTEUR,
