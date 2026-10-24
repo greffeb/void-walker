@@ -16,7 +16,6 @@ import type {
   SignePublic,
   SourceEvacuation,
 } from '../../engine';
-import { rangSigne } from '../../engine';
 import { rendreDocument, texteDocument } from './document';
 import { choisirVariante, ErreurTexte, former, remplir } from './gabarit';
 import type { CleEvacuation, Nom, TextesMonde, Variantes } from './types';
@@ -254,10 +253,8 @@ export function rendreAssistance(textes: TextesMonde, evenements: readonly Evene
  * variante pour le même message, en direct comme dans l'historique.
  */
 export function texteAssistance(textes: TextesMonde, message: string, signe?: SignePublic): string {
-  if (rangSigne(message) !== null) {
-    if (signe === undefined) throw new ErreurTexte(`Message d’IA Station sans son fait : ${message}.`);
-    return texteSigne(textes, message, signe);
-  }
+  // content/ n'importe que des types du moteur (AP-01) : le fait porté suffit ; un `signe-<n>` sans fait n'a pas de texte et lève l'erreur ci-dessous.
+  if (signe !== undefined) return texteSigne(textes, message, signe);
   const texte = Object.hasOwn(textes.assistance, message) ? textes.assistance[message] : undefined;
   if (texte === undefined) throw new ErreurTexte(`Message d’assistance sans texte : ${message}.`);
   return texte;
