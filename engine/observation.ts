@@ -109,6 +109,11 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
         const phase = etat.drones?.phases[objet.id];
         return phase === undefined ? [] : [{ objet: refObjet(monde, objet.id), phase }];
       }),
+      // Le passage que barre un obstacle, puis qu'il libère une fois rangé (#271).
+      obstacles: ici.flatMap((objet) => {
+        const liaison = objet.obstacle === undefined ? undefined : indexer(monde).liaisons.get(objet.obstacle.passage);
+        return liaison === undefined ? [] : [{ objet: refObjet(monde, objet.id), passage: refPassage(monde, etat, liaison, etat.piece), range: range(etat, objet) }];
+      }),
     }),
     // Connecté, dans la salle ou une de ses sous-positions, le passager voit les caméras en direct (lot 4).
     ...(etat.connecte === true && pieceDeCarte(monde, etat.piece) === salleDeSurveillance(monde)

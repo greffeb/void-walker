@@ -1,4 +1,5 @@
 import { apercu, exporter, jouer, nouvellePartie, rejouer, type Partie } from './partie';
+import { carte } from './carte';
 import { observer } from './observation';
 import { idPublic, validerMonde, type DefMonde } from './monde';
 import { avecDroneEn, cheminDrone, placesDuDrone, renverserDrone, sonsDrones } from './drone';
@@ -147,6 +148,29 @@ describe('le drone roule seul et tire l’obstacle', () => {
   it('rejoue exactement au milieu d’un trajet', () => {
     const partie = suite(prete(true), [['envoyer', 'x'], ['attendre', 'a']]);
     expect(rejouer(MONDE, exporter(MONDE, partie), 'test-drone').partie).toEqual(partie);
+  });
+  it('le palier dit que l’obstacle barre le passage, puis qu’il est dégagé', () => {
+    let partie = suite(prete(true), [['envoyer', 'x'], ['aller', 'ab'], ['aller', 'bd']]);
+    const obstacles = () => observer(MONDE, partie.etat).obstacles?.map(({ objet, passage, range }) => [objet.id, passage.id, range]);
+    expect(obstacles()).toEqual([[idPublic(MONDE.id, 'z'), idPublic(MONDE.id, 'df'), false]]);
+    partie = suite(partie, [['attendre', 'd'], ['attendre', 'd']]);
+    expect(ou(partie)).toEqual(['termine', 'd']);
+    expect(obstacles()).toEqual([[idPublic(MONDE.id, 'z'), idPublic(MONDE.id, 'df'), true]]);
+    expect(observer(MONDE, debut().etat).obstacles).toEqual([]);
+  });
+  it('la carte suit le drone envoyé hors de vue, sans double ni souvenir périmé', () => {
+    const surCarte = (partie: Partie) => carte(MONDE, partie.etat).pieces.filter((piece) => piece.objets.some((objet) => objet.drone === true)).map((piece) => piece.piece.id);
+    expect(surCarte(debut())).toEqual([idPublic(MONDE.id, 'a')]);
+    let partie = suite(prete(true), [['envoyer', 'x'], ['aller', 'ab'], ['aller', 'bc']]);
+    expect(ou(partie)).toEqual(['roule', 'b']);
+    partie = pas(partie, 'attendre', 'c');
+    expect(ou(partie)).toEqual(['traction', 'd']);
+    expect(surCarte(partie)).toEqual([idPublic(MONDE.id, 'd')]);
+    const renverse: Partie = { ...partie, etat: renverserDrone(MONDE, partie.etat, 'x').etat };
+    expect(surCarte(renverse)).toEqual([idPublic(MONDE.id, 'd')]);
+    partie = pas(partie, 'attendre', 'c');
+    expect(ou(partie)).toEqual(['termine', 'd']);
+    expect(surCarte(partie)).toEqual([idPublic(MONDE.id, 'd')]);
   });
   it('le feu n’arrête pas le drone (D-306)', () => {
     const monde: DefMonde = { ...MONDE, pieces: MONDE.pieces.map((piece) => (piece.id === 'b' ? { ...piece, feu: true } : piece)) };
