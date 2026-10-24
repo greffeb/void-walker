@@ -1,6 +1,7 @@
 import { apercu, exporter, historique, jouer, nouvellePartie, observer, rejouer, reprendrePartie, type DefMonde, type EtatCapteur, type Evenement, type Observation, type OptionMenu, type Partie, type RefPiece } from '../engine';
 import { alertesMenace, dangersDuRecit, raconter, raconterDerniers, raconterFin, rendreDangerVu, rendreApercu, rendreAssistance, rendreDocument, rendreMoment, texteAssistance, type ApercuTexte, type Catalogue, type DocumentRendu, type EntreeMonde, type RecitFin, type Refus, type TextesMonde } from '../content';
 import { rappelDe, rappelRepris, texteRappel, type TexteRappel } from './ecran';
+import { LIBELLES } from './libelles';
 import type { Stockage } from './sauvegarde';
 import { dangersApparus, enVue } from './son/declencheurs';
 
@@ -246,7 +247,7 @@ const MUETS_AU_POSTE: ReadonlySet<Evenement['type']> = new Set(['attente', 'term
  */
 export function recitPoste(jeu: Pick<Jeu, 'recit' | 'alertes' | 'partie' | 'assistance'>): readonly { readonly texte: string; readonly alerte: boolean }[] {
   const recit = jeu.partie.derniers.every(({ type }) => MUETS_AU_POSTE.has(type)) ? [] : jeu.recit.map((texte, rang) => ({ texte, alerte: jeu.alertes.includes(rang) }));
-  return [...recit, ...jeu.assistance.map((message) => ({ texte: `«\u00a0${message}\u00a0»`, alerte: false }))];
+  return [...recit, ...jeu.assistance.map((message) => ({ texte: LIBELLES.ia.citation(message), alerte: false }))];
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */
