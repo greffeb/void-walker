@@ -74,7 +74,7 @@ export const ANGLE_SENS: Readonly<Record<Sens, number>> = {
 
 /**
  * Sens d'un passage depuis la pièce actuelle (D-349) : le mur où s'ouvre la porte, ou le bout d'un conduit contre la pièce ; une
- * diagonale quand la case de la porte tombe dans le premier ou le dernier quart du mur. `null` sans plan, vers une sous-position,
+ * diagonale quand la case de la porte tombe dans le premier ou le dernier tiers du mur. `null` sans plan, vers une sous-position,
  * ou si le passage ne touche pas la pièce.
  */
 export function sensDuPassage(carte: CartePublique, passage: string): Sens | null {
@@ -106,7 +106,7 @@ export function sensDuPassage(carte: CartePublique, passage: string): Sens | nul
       : ligne === ici.y ? 'haut' : ligne === ici.y + ici.hauteur ? 'bas' : null;
   if (cote === null) return null;
   const place = axe === 'v' ? (rang + 0.5 - ici.y) / ici.hauteur : (rang + 0.5 - ici.x) / ici.largeur;
-  const bord = place <= 0.25 ? 'debut' : place >= 0.75 ? 'fin' : null;
+  const bord = place <= 1 / 3 ? 'debut' : place >= 2 / 3 ? 'fin' : null;
   if (bord === null) return cote;
   // Le début d'un mur vertical est en haut, celui d'un mur horizontal à gauche.
   if (cote === 'haut' || cote === 'bas') return `${cote}-${bord === 'debut' ? 'gauche' : 'droite'}`;
