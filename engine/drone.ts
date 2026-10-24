@@ -1,8 +1,8 @@
-import type { ActionEngagee, DefAction, Effet } from './actions';
+import type { ActionEngagee, Effet } from './actions';
 import type { SonEmis } from './creature';
 import { assourdie, autreCote, objetsDans, refObjet, refPassage, type EtatPartie } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
-import type { Evenement, PhaseDrone, RaisonRefus, Savoir } from './vocabulaire';
+import type { Evenement, PhaseDrone, Savoir } from './vocabulaire';
 
 /** Liaisons qu'un drone ne franchit jamais : vide, gabarit étroit, passage haut ou caché, passage d'un obstacle (#270). */
 export function franchissableParDrone(liaison: DefLiaison, monde: DefMonde): boolean {
@@ -132,7 +132,7 @@ export function validerDrones(monde: DefMonde): string[] {
 
 export function dronesInitiaux(monde: DefMonde): Pick<EtatPartie, 'drones'> {
   const drones = monde.objets.filter((objet) => objet.drone !== undefined);
-  return drones.length === 0 ? {} : { drones: { phases: Object.fromEntries(drones.map((objet) => [objet.id, 'veille'])), tenue: null, bruits: [] } };
+  return drones.length === 0 ? {} : { drones: { phases: Object.fromEntries(drones.map((objet) => [objet.id, 'veille'])), bruits: [] } };
 }
 
 export function range(etat: EtatPartie, objet: DefObjet): boolean {
@@ -145,49 +145,21 @@ export function obstacleSur(monde: DefMonde, etat: EtatPartie, passage: string):
   return monde.objets.find((objet) => objet.obstacle?.passage === passage && !range(etat, objet));
 }
 
-export function maintienDrone(monde: DefMonde, etat: EtatPartie, poignee: string): boolean {
-  return monde.objets.some((objet) => objet.drone?.poignee === poignee && etat.drones?.phases[objet.id] === 'maintien');
-}
-
 function changerPhase(etat: EtatPartie, id: string, phase: PhaseDrone): EtatPartie {
   if (etat.drones === undefined) return etat;
   return { ...etat, drones: { ...etat.drones, phases: { ...etat.drones.phases, [id]: phase } } };
-}
-
-export function lacherPoignee(monde: DefMonde, etat: EtatPartie): Effet {
-  const tenue = etat.drones?.tenue;
-  if (tenue === undefined || tenue === null || etat.drones === undefined) return { etat, evenements: [] };
-  return { etat: { ...etat, drones: { ...etat.drones, tenue: null } }, evenements: [{ type: 'poignee_lachee', objet: refObjet(monde, tenue) }] };
-}
-
-function fini(monde: DefMonde, etat: EtatPartie, poignee: string): boolean {
-  return monde.objets.some((objet) => objet.obstacle?.maintien === poignee && range(etat, objet));
-}
-
-/** Un seul filtre partagé par validation et menu, sans mutation pour un refus. */
-export function avecMaintien(action: DefAction): DefAction {
-  if (!action.engage || ['aller', 'deriver', 'attendre', 'lacher'].includes(action.id)) return action;
-  return {
-    ...action,
-    verifier: (contexte, cible) => {
-      const raison = action.verifier(contexte, cible);
-      return raison ?? (contexte.etat.drones?.tenue != null ? 'lacher_poignee' : null);
-    },
-  };
 }
 
 type GesteDrone = 'envoyer' | 'replacer' | 'rearmer' | 'arreter_drone' | 'reprendre_drone';
 function geste(id: GesteDrone, phases: readonly PhaseDrone[], phase: PhaseDrone, type: Evenement['type'], savoir: Savoir['type'], bruyant: boolean): ActionEngagee {
   const cibles: ActionEngagee['cibles'] = ({ monde, etat }) => etat.drones === undefined ? [] : objetsDans(monde, etat, etat.piece)
     .filter((objet) => objet.drone !== undefined && phases.includes(etat.drones?.phases[objet.id] ?? 'veille'))
+    // On n'envoie le drone qu'une fois vu l'obstacle qu'il dégage (#270) : avant, rien au menu ne parle de lui.
+    .filter((objet) => id !== 'envoyer' || etat.visitees.includes(indexer(monde).objets.get(objet.drone?.obstacle ?? '')?.piece ?? ''))
     .map((objet) => objet.id);
   return {
     id, engage: true, cibles,
-    verifier: (contexte, cible) => {
-      if (!cibles(contexte).includes(cible)) return 'cible_absente';
-      const rail = indexer(contexte.monde).objets.get(cible)?.drone?.rail;
-      return id === 'envoyer' && rail !== undefined && contexte.etat.liaisons[rail] !== true ? 'ferme' : null;
-    },
+    verifier: (contexte, cible) => cibles(contexte).includes(cible) ? null : 'cible_absente',
     prevoir: ({ monde, etat }, cible) => ({
       risque: 'aucun', danger: null, cout: bruyant && !assourdie(monde, etat, etat.piece) ? 'bruyant' : 'aucun',
       savoir: [{ type: savoir, objet: refObjet(monde, cible) } as Savoir],
@@ -199,46 +171,21 @@ function geste(id: GesteDrone, phases: readonly PhaseDrone[], phase: PhaseDrone,
   };
 }
 
-const tenir: ActionEngagee = {
-  id: 'tenir', engage: true,
-  cibles: ({ monde, etat }) => etat.drones === undefined ? [] : objetsDans(monde, etat, etat.piece)
-    .filter((objet) => objet.poignee === true && etat.drones?.tenue !== objet.id && !maintienDrone(monde, etat, objet.id) && !fini(monde, etat, objet.id))
-    .map((objet) => objet.id),
-  verifier: (contexte, cible) => tenir.cibles(contexte).includes(cible) ? null : 'cible_absente',
-  prevoir: ({ monde }, cible) => ({ risque: 'aucun', danger: null, cout: 'aucun', savoir: [{ type: 'tiendra', objet: refObjet(monde, cible) }] }),
-  appliquer: ({ monde, etat }, cible) => ({
-    etat: etat.drones === undefined ? etat : { ...etat, drones: { ...etat.drones, tenue: cible } },
-    evenements: [{ type: 'poignee_tenue', objet: refObjet(monde, cible) }],
-  }),
-};
-const lacher: ActionEngagee = {
-  id: 'lacher', engage: true,
-  cibles: ({ etat }) => etat.drones?.tenue == null ? [] : [etat.drones.tenue],
-  verifier: ({ etat }, cible) => etat.drones?.tenue === cible ? null : 'cible_absente',
-  prevoir: ({ monde }, cible) => ({ risque: 'aucun', danger: null, cout: 'aucun', savoir: [{ type: 'lachera', objet: refObjet(monde, cible) }] }),
-  appliquer: ({ monde, etat }) => lacherPoignee(monde, etat),
-};
-
 export const ACTIONS_DRONE = {
   envoyer: geste('envoyer', ['veille'], 'trajet', 'drone_envoye', 'enverra_drone', true),
   replacer: geste('replacer', ['deraille'], 'a_rearmer', 'drone_replace', 'replacera_drone', false),
-  rearmer: geste('rearmer', ['a_rearmer'], 'maintien', 'drone_rearme', 'rearmera_drone', true),
-  arreter_drone: geste('arreter_drone', ['maintien'], 'arrete', 'drone_arrete', 'arretera_drone', false),
-  reprendre_drone: geste('reprendre_drone', ['arrete'], 'maintien', 'drone_rearme', 'rearmera_drone', true),
-  tenir, lacher,
+  rearmer: geste('rearmer', ['a_rearmer'], 'trajet', 'drone_rearme', 'rearmera_drone', true),
+  arreter_drone: geste('arreter_drone', ['trajet', 'roule', 'traction'], 'arrete', 'drone_arrete', 'arretera_drone', false),
+  reprendre_drone: geste('reprendre_drone', ['arrete'], 'trajet', 'drone_rearme', 'rearmera_drone', true),
 } as const;
 
-export function frein(monde: DefMonde, etat: EtatPartie, objet: DefObjet): RaisonRefus | null {
-  return objet.obstacle !== undefined && !maintienDrone(monde, etat, objet.obstacle.maintien) ? 'frein_serre' : null;
-}
-
-/** Actifs sans horloge ; le son porte l'identité physique inspectable de sa source. */
+/** Actifs sans horloge : un drone fait du bruit en roulant et en tirant l'obstacle, jamais à l'arrêt (#270). */
 export function sonsDrones(monde: DefMonde, etat: EtatPartie): (SonEmis & { readonly drone: string })[] {
   if (etat.drones === undefined) return [];
   return monde.objets.flatMap((objet) => {
     const phase = etat.drones?.phases[objet.id];
     const place = etat.objets[objet.id];
-    return (phase === 'trajet' || phase === 'maintien') && place?.type === 'piece'
+    return (phase === 'roule' || phase === 'traction') && place?.type === 'piece'
       ? [{ piece: place.piece, intensite: 'fort', drone: objet.id }]
       : [];
   });
@@ -248,33 +195,44 @@ function sources(monde: DefMonde, etat: EtatPartie): string[] {
   return [...sonsDrones(monde, etat).map((son) => son.drone), ...etat.alarmes.map((alarme) => alarme.objet)];
 }
 
-/** Progression mécanique avant les dangers et la réaction ; aucun effet du vide, froid, feu ou gravité. */
+/**
+ * Progression mécanique avant les dangers et la réaction ; aucun effet du vide, froid, feu ou gravité. Deux actions par pièce
+ * (#270) : `trajet` part à mi-chemin (`roule`) si la porte suivante de son chemin est ouverte, `roule` passe si elle l'est encore ;
+ * arrivé, il tire l'obstacle à l'action suivante.
+ */
 export function avancerDrones(monde: DefMonde, avant: EtatPartie, effet: Effet): Effet {
   if (effet.etat.drones === undefined) return effet;
   let etat = effet.etat;
   const evenements = [...effet.evenements];
-  if (avant.piece !== etat.piece) {
-    const lachee = lacherPoignee(monde, etat);
-    etat = lachee.etat;
-    evenements.push(...lachee.evenements);
-  }
+  const index = indexer(monde);
   for (const objet of monde.objets) {
     if (objet.drone === undefined) continue;
     const phase = etat.drones?.phases[objet.id];
-    const poignee = indexer(monde).objets.get(objet.drone.poignee);
+    const obstacle = index.objets.get(objet.drone.obstacle);
     const place = etat.objets[objet.id];
-    if (poignee === undefined || place?.type !== 'piece') continue;
-    if (phase !== 'termine' && fini(monde, etat, poignee.id)) {
-      etat = changerPhase(etat, objet.id, 'termine');
-      // Seul un passager dans sa pièce le voit lâcher la poignée : hors de vue, rien n'est raconté (C-06 §5).
+    if (obstacle?.obstacle === undefined || place?.type !== 'piece') continue;
+    if (phase === 'traction') {
+      const rangee = { ...etat, objets: { ...etat.objets, [obstacle.id]: { type: 'piece' as const, piece: obstacle.piece, position: obstacle.obstacle.rangement } } };
+      etat = changerPhase(rangee, objet.id, 'termine');
+      // Seul un passager dans sa pièce le voit ranger l'obstacle : hors de vue, rien n'est raconté (C-06 §5).
       if (etat.piece === place.piece) evenements.push({ type: 'drone_termine', objet: refObjet(monde, objet.id) });
-    } else if (phase === 'trajet') {
-      if (place.piece === poignee.piece) {
-        etat = changerPhase(etat, objet.id, 'maintien');
-        if (etat.piece === place.piece) evenements.push({ type: 'drone_maintient', objet: refObjet(monde, objet.id) });
-      } else if (etat.liaisons[objet.drone.rail] === true && obstacleSur(monde, etat, objet.drone.rail) === undefined) {
-        etat = { ...etat, objets: { ...etat.objets, [objet.id]: { type: 'piece', piece: poignee.piece } } };
-      }
+      continue;
+    }
+    if (phase !== 'trajet' && phase !== 'roule') continue;
+    if (place.piece === obstacle.piece) {
+      etat = changerPhase(etat, objet.id, 'traction');
+      continue;
+    }
+    const suivante = index.liaisons.get(cheminDrone(monde, objet.id, place.piece)?.[0] ?? '');
+    const ouverte = suivante !== undefined && etat.liaisons[suivante.id] === true;
+    if (phase === 'trajet') {
+      if (ouverte) etat = changerPhase(etat, objet.id, 'roule');
+    } else if (!ouverte || suivante === undefined) {
+      etat = changerPhase(etat, objet.id, 'trajet');
+    } else {
+      const arrivee = autreCote(suivante, place.piece);
+      const deplace = { ...etat, objets: { ...etat.objets, [objet.id]: { type: 'piece' as const, piece: arrivee } } };
+      etat = changerPhase(deplace, objet.id, arrivee === obstacle.piece ? 'traction' : 'trajet');
     }
   }
   // Ordre relatif de démarrage des sources actives : plus récent en dernier, taille bornée par les objets.

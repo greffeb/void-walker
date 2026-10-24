@@ -1,5 +1,5 @@
 import { CATALOGUE } from './actions';
-import { maintienDrone, range } from './drone';
+import { range } from './drone';
 import {
   assourdie,
   chambreFroide,
@@ -109,10 +109,6 @@ export function observer(monde: DefMonde, etat: EtatPartie): Observation {
         const phase = etat.drones?.phases[objet.id];
         return phase === undefined ? [] : [{ objet: refObjet(monde, objet.id), phase }];
       }),
-      freins: ici.flatMap((objet) => objet.obstacle === undefined || range(etat, objet) ? [] : [{
-        objet: refObjet(monde, objet.id), desserre: maintienDrone(monde, etat, objet.obstacle.maintien),
-      }]),
-      ...(etat.drones.tenue === null ? {} : { poigneeTenue: refObjet(monde, etat.drones.tenue) }),
     }),
     // Connecté, dans la salle ou une de ses sous-positions, le passager voit les caméras en direct (lot 4).
     ...(etat.connecte === true && pieceDeCarte(monde, etat.piece) === salleDeSurveillance(monde)

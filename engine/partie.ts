@@ -1,7 +1,7 @@
 import { CATALOGUE, type ActionEngagee, type DefAction, type Effet } from './actions';
 import { bruitDeStation } from './bruits';
 import { peutSuivre, reagir, type SonEmis } from './creature';
-import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
+import { avancerDrones, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
 import { assourdie, autreCote, creatureActive, creatureEnVue, etatInitial, liaisonsDe, liaisonsVisibles, piecesSansAir, refPassage, refPiece, type Alarme, type EtatPartie } from './etat';
 import { actualiserFeu, brule, voitLaPiece, type Embrasement } from './feu';
@@ -266,12 +266,7 @@ export function apercu(monde: DefMonde, partie: Partie, commande: unknown): Resu
   for (const autre of dangers) {
     if (autre !== null && NIVEAUX_RISQUE.indexOf(autre.risque) >= NIVEAUX_RISQUE.indexOf(retenu.risque)) retenu = autre;
   }
-  const tenue = partie.etat.drones?.tenue;
   const savoir: Savoir[] = [...prevision.savoir, ...airConnu(monde, simulation)];
-  if (tenue != null && simulation.froid.etat.drones?.tenue === null && definition.id !== 'lacher') {
-    const lachee = lacherPoignee(monde, partie.etat).evenements[0];
-    if (lachee?.type === 'poignee_lachee') savoir.push({ type: 'lachera', objet: lachee.objet });
-  }
   return { type: 'apercu', apercu: { commande: validation.commande, ...prevision, ...retenu, savoir } };
 }
 
@@ -337,9 +332,7 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     ...(froid.gelure ? (['froid'] as const) : []),
   ];
   // Sans combinaison dans une pièce sans air : vaincu, hors plafond (C-04 §3.1).
-  const lachee = atteint ? lacherPoignee(monde, reponse.etat) : { etat: reponse.etat, evenements: [] };
-  reponse.evenements.push(...lachee.evenements);
-  const blessure = vide.asphyxie ? asphyxier(decompter(lachee.etat), causes) : aggraver(decompter(lachee.etat), causes);
+  const blessure = vide.asphyxie ? asphyxier(decompter(reponse.etat), causes) : aggraver(decompter(reponse.etat), causes);
   const menace: readonly Evenement[] = exposition && !atteint ? [{ type: 'menace' }] : [];
   const coups = blessure.evenements;
   // En fuite, elle frappe au seuil, avant le déplacement ; la brûlure se raconte avec le feu ; une défaite se raconte en dernier
