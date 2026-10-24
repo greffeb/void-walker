@@ -213,8 +213,9 @@ describe('M-10 — chambre froide (D-166, D-170, D-239, D-240)', () => {
     const pas = suite(monde, depart(monde), parcours('m-10', debut).etapes);
     expect(Math.max(...pas.map((un) => un.partie.etat.froid))).toBeLessThanOrEqual(2);
     expect(pas.at(-1)?.partie.etat.creature?.ralentie).toBeDefined();
-    // Le compresseur la garde dans la chambre ; dans le parcours risqué, un autre chemin lui reste ouvert et elle suit les pas (D-276).
-    if (debut === 'M-10 — Compresseur') expect(pas.at(-1)?.partie.etat.creature?.piece).toBe('m-10/p-chambre');
+    // Bouclée par le compresseur, ralentie, elle enfonce quand même la porte de l'antichambre et suit les pas, trop tard (D-279) ;
+    // dans le parcours risqué, un autre chemin lui reste ouvert (D-276).
+    if (debut === 'M-10 — Compresseur') expect(pas.at(-1)?.partie.etat.enfoncees).toEqual(['m-10/l-antichambre-chambre']);
   });
 
   it('le compresseur l’attire dans la chambre, sous les yeux du passager ; ressortir par l’autre porte est libre (D-184)', () => {

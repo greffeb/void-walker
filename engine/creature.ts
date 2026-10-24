@@ -535,8 +535,10 @@ function reagirRalentie(
   errance: number | null,
 ): Reponse {
   if (creature.ralentie === undefined) return reaction(monde, etat, creature, sons, depuis, franchie, interceptee, errance);
-  // Un jet d'interception a déjà pris la réaction de ce pas : la suivante est sautée.
-  if (creature.ralentie.saute && !interceptee) return { creature: { ...creature, ralentie: { saute: false } }, evenements: [] };
+  // Un jet d'interception a déjà pris la réaction de ce pas : la suivante est sautée. Une porte qu'elle force le reste (D-279).
+  if (creature.ralentie.saute && !interceptee) {
+    return { creature: { ...creature, ralentie: { saute: false } }, evenements: [], ...(creature.force === undefined ? {} : { secouee: creature.force.liaison }) };
+  }
   const reponse = reaction(monde, etat, creature, sons, depuis, franchie, interceptee, errance);
   return reponse.creature.neutralisee === undefined ? { ...reponse, creature: { ...reponse.creature, ralentie: { saute: true } } } : reponse;
 }

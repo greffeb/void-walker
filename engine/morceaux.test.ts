@@ -641,6 +641,16 @@ describe('chambre froide : la créature ralentie (D-166, D-170, D-239, MX-01, MX
     expect(glisse.partie.etat.creature?.ralentie).toBeUndefined();
   });
 
+  it('D-279 : enfermée et ralentie, elle enfonce quand même une porte ; le pupitre ne la referme plus', () => {
+    // En chasse du passager au sas, les deux portes fermées : deux réactions pour forcer, une sur deux sautée.
+    const enfermee = dedans({ contact: true, indice: { piece: 'sas', par: 'sc' }, ralentie: { saute: false } }, { piece: 'sas', liaisons: { sc: false, ce: false } });
+    const pas = suite(FROID, enfermee, [['attendre', 'sas'], ['attendre', 'sas'], ['attendre', 'sas']]);
+    expect(pas.map((un) => types(un.evenements).filter((type) => type.startsWith('porte_')))).toEqual([['porte_secouee'], [], ['porte_enfoncee']]);
+    expect(fin(pas).etat).toMatchObject({ liaisons: { sc: true }, enfoncees: ['sc'] });
+    const bouclee = engager(FROID, { ...fin(pas), etat: { ...fin(pas).etat, creature: { ...CALME, piece: 'entrepot' } } }, 'boucler', 'fermeture');
+    expect(bouclee.partie.etat.liaisons).toEqual({ sc: true, ce: false });
+  });
+
   it('T-10 : ralentie, la reprise d’une sauvegarde redonne le même état', () => {
     const pas = suite(FROID, partie(FROID), [['aller', 'chambre'], ['declencher', 'compresseur'], ['aller', 'sas'], ['boucler', 'fermeture']]);
     const sauvee = fin(pas);
