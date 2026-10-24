@@ -51,6 +51,9 @@ describe('chemin et places du drone', () => {
   it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
     const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
     expect(placesDuDrone(monde, 'x')).toEqual(['a', 'b', 'c', 'h']);
+    // Cloison de l'ordre libre : jamais franchie pour poser le drone, sinon l'ordre ne serait plus libre.
+    expect(placesDuDrone(monde, 'x', new Set(['bh']))).toEqual(['a', 'b', 'c']);
+    expect(new Set(Array.from({ length: 60 }, (_, graine) => placerDrones(monde, graine, new Set(['bh'])).objets.find((objet) => objet.id === 'x')?.piece))).toEqual(new Set(['a', 'b', 'c']));
   });
   it('placerDrones tire parmi les places, de façon stable', () => {
     const tirees = Array.from({ length: 200 }, (_, graine) => placerDrones(MONDE, graine).objets.find((objet) => objet.id === 'x')?.piece);
@@ -93,6 +96,12 @@ const ou = (partie: Partie) => [partie.etat.drones?.phases.x, partie.etat.objets
 const proposeEnvoyer = (partie: Partie) => observer(MONDE, partie.etat).menu.some((option) => option.action === 'envoyer');
 
 describe('le drone roule seul et tire l’obstacle', () => {
+  it('voir le palier rend le drone prêt : un fait des règles, que la clé du solveur voit (#270)', () => {
+    expect(debut().etat.drones?.phases.x).toBe('veille');
+    expect(pas(debut(), 'aller', 'ab').etat.drones?.phases.x).toBe('veille');
+    expect(suite(debut(), [['aller', 'ab'], ['aller', 'bc'], ['aller', 'cd']]).etat.drones?.phases.x).toBe('pret');
+    expect(prete(false).etat.drones?.phases.x).toBe('pret');
+  });
   it('envoyer absent tant que le palier n’a pas été vu', () => {
     expect(proposeEnvoyer(debut())).toBe(false);
     expect(jouer(MONDE, debut(), commande('envoyer', 'x')).type).toBe('refus');
@@ -226,7 +235,7 @@ describe('le drone roule seul et tire l’obstacle', () => {
       creature: { piece: 'r' },
     };
     const initiale = debut(monde);
-    let partie: Partie = { ...initiale, etat: { ...initiale.etat, visitees: ['a', 'd'], liaisons: { ...initiale.etat.liaisons, bd: true } } };
+    let partie: Partie = { ...initiale, etat: { ...initiale.etat, visitees: ['a', 'd'], drones: { phases: { x: 'pret' }, bruits: [] }, liaisons: { ...initiale.etat.liaisons, bd: true } } };
     partie = suite(partie, [['envoyer', 'x'], ['attendre', 'a'], ['fermer', 'ab']], monde);
     for (let n = 0; n < 6 && partie.etat.drones?.phases.x !== 'deraille'; n++) partie = pas(partie, 'attendre', 'a', undefined, monde);
     expect(partie.etat.drones?.phases.x).toBe('deraille');

@@ -40,7 +40,7 @@ export function carte(monde: DefMonde, etat: EtatPartie): CartePublique {
   const sousPositions = new Set(monde.pieces.filter((piece) => piece.sousPosition === true).map((piece) => piece.id));
   const ici = pieceDeCarte(monde, etat.piece);
   // Drone envoyé, même renversé ou sa tâche finie : sa place réelle remplace tout souvenir (#270).
-  const suivi = (objet: string): boolean => (etat.drones?.phases[objet] ?? 'veille') !== 'veille';
+  const suivi = (objet: string): boolean => !['veille', 'pret'].includes(etat.drones?.phases[objet] ?? 'veille');
   // Connecté au terminal, le passager a vu le plan de toute la station (lot 4) : tout se dessine, mais une pièce jamais visitée reste connue.
   const visitees = monde.pieces
     .filter((piece) => !sousPositions.has(piece.id) && (piece.id === ici || etat.connecte === true || etat.visitees.includes(piece.id)))

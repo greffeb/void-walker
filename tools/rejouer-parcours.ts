@@ -113,7 +113,10 @@ export function executerParcours(entree: EntreeMonde, parcours: Parcours, versio
     lignes.push(phrases.join(' '));
     if (resultat.tirages.length > 0) lignes.push(`  [dés tirés : ${resultat.tirages.length}]`);
     lignes.push(...rendreAssistance(textes, resultat.evenements).map((message) => `  [IA STATION] « ${message} »`));
-    for (const ancienne of commandesPassees) verifierRefus(ancienne, `rejouer « ${ancienne.action} » déjà joué`);
+    // Un objet pris puis reposé aussitôt (pour laisser rouler un drone, #270) se reprend : le contrôle ne vaut que s'il est encore porté.
+    for (const ancienne of commandesPassees) {
+      if (!(etape.action === 'poser' && option.commande.cible === ancienne.cible)) verifierRefus(ancienne, `rejouer « ${ancienne.action} » déjà joué`);
+    }
     commandesPassees = etape.action === 'prendre' ? [option.commande] : [];
   }
   if (!refusPassageVerifie) erreurs.push('Aucun déplacement indisponible vérifié pendant le parcours.');

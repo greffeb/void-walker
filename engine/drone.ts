@@ -52,9 +52,10 @@ export function cheminDrone(monde: DefMonde, drone: string, depuis: string): rea
 /**
  * Pièces où un drone peut attendre (#270) : atteintes depuis le départ sans franchir un obstacle, une cloison verrouillée
  * seulement si un objet qui la déverrouille est lui-même atteint ; hors de la pièce de son obstacle et du repaire ; d'où son chemin existe et
- * ne passe que par ces pièces. Dans l'ordre du monde.
+ * ne passe que par ces pièces. Dans l'ordre du monde. `fermees` : cloisons de l'ordre libre, jamais franchies, pour que le drone
+ * n'impose pas l'ordre des branches.
  */
-export function placesDuDrone(monde: DefMonde, drone: string): readonly string[] {
+export function placesDuDrone(monde: DefMonde, drone: string, fermees: ReadonlySet<string> = new Set()): readonly string[] {
   const obstacle = obstacleDuDrone(monde, drone);
   if (obstacle === undefined) return [];
   const liaisons = new Map(monde.liaisons.map((liaison) => [liaison.id, liaison]));
@@ -63,7 +64,7 @@ export function placesDuDrone(monde: DefMonde, drone: string): readonly string[]
   for (let change = true; change; ) {
     change = false;
     for (const liaison of monde.liaisons) {
-      if (passages.has(liaison.id)) continue;
+      if (passages.has(liaison.id) || fermees.has(liaison.id)) continue;
       if (liaison.verrouillee === true && !monde.objets.some((objet) => objet.deverrouille === liaison.id && atteintes.has(objet.piece))) continue;
       const [a, b] = liaison.entre;
       if (atteintes.has(a) !== atteintes.has(b)) {
@@ -89,12 +90,12 @@ export function placesDuDrone(monde: DefMonde, drone: string): readonly string[]
 }
 
 /** Chaque drone posé dans une de ses places, tirée uniformément sur cette graine ; sans place, il reste où il est (#270). */
-export function placerDrones(monde: DefMonde, graine: number): DefMonde {
+export function placerDrones(monde: DefMonde, graine: number, fermees: ReadonlySet<string> = new Set()): DefMonde {
   let alea = generateurDepuisGraine(graine);
   let resultat = monde;
   for (const objet of monde.objets) {
     if (objet.drone === undefined) continue;
-    const places = placesDuDrone(resultat, objet.id);
+    const places = placesDuDrone(resultat, objet.id, fermees);
     if (places.length === 0) continue;
     const tirage = suivant(alea);
     alea = tirage.etat;
@@ -171,8 +172,6 @@ type GesteDrone = 'envoyer' | 'replacer' | 'rearmer' | 'arreter_drone' | 'repren
 function geste(id: GesteDrone, phases: readonly PhaseDrone[], phase: PhaseDrone, type: Evenement['type'], savoir: Savoir['type'], bruyant: boolean): ActionEngagee {
   const cibles: ActionEngagee['cibles'] = ({ monde, etat }) => etat.drones === undefined ? [] : objetsDans(monde, etat, etat.piece)
     .filter((objet) => objet.drone !== undefined && phases.includes(etat.drones?.phases[objet.id] ?? 'veille'))
-    // On n'envoie le drone qu'une fois vu l'obstacle qu'il dégage (#270) : avant, rien au menu ne parle de lui.
-    .filter((objet) => id !== 'envoyer' || etat.visitees.includes(indexer(monde).objets.get(objet.drone?.obstacle ?? '')?.piece ?? ''))
     .map((objet) => objet.id);
   return {
     id, engage: true, cibles,
@@ -189,7 +188,8 @@ function geste(id: GesteDrone, phases: readonly PhaseDrone[], phase: PhaseDrone,
 }
 
 export const ACTIONS_DRONE = {
-  envoyer: geste('envoyer', ['veille'], 'trajet', 'drone_envoye', 'enverra_drone', true),
+  // On n'envoie le drone qu'une fois vu l'obstacle qu'il dégage (#270) : avant, rien au menu ne parle de lui.
+  envoyer: geste('envoyer', ['pret'], 'trajet', 'drone_envoye', 'enverra_drone', true),
   replacer: geste('replacer', ['deraille'], 'a_rearmer', 'drone_replace', 'replacera_drone', false),
   rearmer: geste('rearmer', ['a_rearmer'], 'trajet', 'drone_rearme', 'rearmera_drone', true),
   arreter_drone: geste('arreter_drone', ['trajet', 'roule', 'traction'], 'arrete', 'drone_arrete', 'arretera_drone', false),
@@ -228,6 +228,8 @@ export function avancerDrones(monde: DefMonde, avant: EtatPartie, effet: Effet):
     const obstacle = index.objets.get(objet.drone.obstacle);
     const place = etat.objets[objet.id];
     if (obstacle?.obstacle === undefined || place?.type !== 'piece') continue;
+    // Le fait « obstacle vu » vit dans la phase, que la clé du solveur voit, et non dans les pièces visitées, qu'elle ignore.
+    if (phase === 'veille' && etat.visitees.includes(obstacle.piece)) etat = changerPhase(etat, objet.id, 'pret');
     if (phase === 'traction') {
       const rangee = { ...etat, objets: { ...etat.objets, [obstacle.id]: { type: 'piece' as const, piece: obstacle.piece, position: obstacle.obstacle.rangement } } };
       etat = changerPhase(rangee, objet.id, 'termine');

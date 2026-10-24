@@ -37,6 +37,7 @@ export const SAVOIR_DRONE = {
 } as const;
 export const OBSERVATION_DRONE = {
   drone_veille: '{Le:objet} attend, moteur coupé.',
+  drone_pret: '{Le:objet} attend, moteur coupé.',
   drone_trajet: '{Le:objet} est immobile, moteur en veille : il attend de pouvoir poursuivre sa route.',
   drone_roule: '{Le:objet} roule vers la pièce suivante ; son moteur gronde.',
   drone_traction: '{Le:objet} tire l’obstacle de toute la force de son moteur.',

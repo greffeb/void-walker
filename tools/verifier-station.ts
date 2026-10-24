@@ -588,7 +588,7 @@ export function verifierCatalogue(catalogue: Catalogue, options: OptionsVerifica
  */
 export function verifierChaquePlace<Rapport extends RapportStation>(entree: EntreeMonde, verifier: (entree: EntreeMonde) => Rapport): Rapport {
   const drone = entree.monde.objets.find((objet) => objet.drone !== undefined);
-  const places = drone === undefined ? [] : placesDuDrone(entree.monde, drone.id);
+  const places = drone === undefined ? [] : placesDuDrone(entree.monde, drone.id, new Set(cloisonsDuCarrefour(entree.monde)));
   if (drone === undefined || places.length === 0) return verifier(entree);
   let total: Rapport | null = null;
   for (const place of places) {

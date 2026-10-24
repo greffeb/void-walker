@@ -390,7 +390,7 @@ export const assemblerStation: Assembleur = (station) => {
   const etendu = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
   if (etendu === null) return { type: 'sans_plan' };
   // Place du drone tirée à chaque station, petites comprises (#270) : jamais deux fois la même configuration.
-  const final = placerDrones(etendu, sousGraine(station.graine, 'drone'));
+  const final = placerDrones(etendu, sousGraine(station.graine, 'drone'), new Set((station.commandes ?? []).map((commande) => commande.cloison)));
   const erreurs = validerMonde(final);
   return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde: final };
 };

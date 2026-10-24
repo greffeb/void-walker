@@ -548,8 +548,11 @@ export interface ObjetCarte {
   readonly drone?: true;
 }
 
-/** `trajet` : à l'arrêt dans une pièce, prêt à repartir ou devant une porte fermée ; `roule` : à mi-chemin de la suivante (#270). */
-export type PhaseDrone = 'veille' | 'trajet' | 'roule' | 'traction' | 'deraille' | 'a_rearmer' | 'arrete' | 'termine';
+/**
+ * `pret` : au repos, son obstacle vu par le passager ; `trajet` : à l'arrêt dans une pièce, prêt à repartir ou devant une porte
+ * fermée ; `roule` : à mi-chemin de la suivante (#270).
+ */
+export type PhaseDrone = 'veille' | 'pret' | 'trajet' | 'roule' | 'traction' | 'deraille' | 'a_rearmer' | 'arrete' | 'termine';
 
 /** Une pièce que le passager connaît, telle qu'il l'a vue (14 §3.4). */
 export interface PieceCarte {

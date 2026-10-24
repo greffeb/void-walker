@@ -117,7 +117,7 @@ describe('M-12 dans les grandes stations (#236)', () => {
       const monde = avecDroneEn(base, DRONE, 'm-12/p-galerie');
       const depart = nouvellePartie(monde, { version: 'm12-grande', graine: 236 });
       const ouvertes = Object.fromEntries(monde.liaisons.filter((liaison) => liaison.entre.some((piece) => piece.startsWith('m-12/'))).map((liaison) => [liaison.id, true]));
-      let partie: Partie = { ...depart, etat: { ...depart.etat, piece: 'm-12/p-galerie', creature: null, visitees: [...depart.etat.visitees, 'm-12/p-palier'], liaisons: { ...depart.etat.liaisons, ...ouvertes } } };
+      let partie: Partie = { ...depart, etat: { ...depart.etat, piece: 'm-12/p-galerie', creature: null, visitees: [...depart.etat.visitees, 'm-12/p-palier'], drones: { phases: { [DRONE]: 'pret' }, bruits: [] }, liaisons: { ...depart.etat.liaisons, ...ouvertes } } };
       partie = engager(monde, partie, 'envoyer', DRONE);
       expect(partie.etat.drones?.phases[DRONE], monde.id).toBe('roule');
       // Une attaque l'a renversé (D-305) : il n'avance plus.

@@ -192,6 +192,7 @@ export interface TextesMonde {
   readonly verbes: Readonly<Record<IdAction, string>>;
   readonly observation: {
     readonly drone_veille: string;
+    readonly drone_pret: string;
     readonly drone_trajet: string;
     readonly drone_roule: string;
     readonly drone_traction: string;
@@ -518,6 +519,7 @@ export const ROLES_DANGER: Readonly<Record<TypeDanger, readonly string[]>> = {
 
 export const ROLES_OBSERVATION: Readonly<Record<keyof TextesMonde['observation'], readonly string[]>> = {
   drone_veille: ['objet'],
+  drone_pret: ['objet'],
   drone_trajet: ['objet'],
   drone_roule: ['objet'],
   drone_traction: ['objet'],
