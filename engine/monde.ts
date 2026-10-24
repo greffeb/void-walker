@@ -165,12 +165,10 @@ export interface DefObjet {
   readonly designe?: string;
   /** Objet portable à tenir en main pour actionner cette commande (#203, lecteur de carte). */
   readonly exige?: string;
-  /** Poignée à maintenir sur place ; toute autre manipulation demande de lâcher. */
-  readonly poignee?: boolean;
-  /** Drone non portable, fixé à une liaison locale jusqu'à cette poignée. */
-  readonly drone?: { readonly rail: string; readonly poignee: string };
-  /** Obstacle matériel, sans effet sur l'air, le son ni le feu de son passage. */
-  readonly obstacle?: { readonly passage: string; readonly rangement: string; readonly maintien: string };
+  /** Drone non portable qui roule seul jusqu'à cet obstacle et le tire dans son rangement (#270). */
+  readonly drone?: { readonly obstacle: string };
+  /** Obstacle matériel trop lourd pour la main, sans effet sur l'air, le son ni le feu de son passage ; seul son drone le range (#270). */
+  readonly obstacle?: { readonly passage: string; readonly rangement: string };
 }
 
 /** Champs permis à un document : son identité, sa pièce, `portable: false`, et ce qui en fait un document (spec §8.5). */

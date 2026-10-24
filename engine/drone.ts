@@ -1,43 +1,130 @@
 import type { ActionEngagee, DefAction, Effet } from './actions';
 import type { SonEmis } from './creature';
 import { assourdie, autreCote, objetsDans, refObjet, refPassage, type EtatPartie } from './etat';
-import { indexer, type DefMonde, type DefObjet } from './monde';
+import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
 import type { Evenement, PhaseDrone, RaisonRefus, Savoir } from './vocabulaire';
 
-/** Qualités bornées : un rail relie le départ du drone à sa poignée ; l'obstacle est manipulé ailleurs. */
+/** Liaisons qu'un drone ne franchit jamais : vide, gabarit étroit, passage haut ou caché, passage d'un obstacle (#270). */
+export function franchissableParDrone(liaison: DefLiaison, monde: DefMonde): boolean {
+  return liaison.gouffre !== true && liaison.etroite !== true && liaison.haute === undefined && liaison.cachee === undefined
+    && !monde.objets.some((objet) => objet.obstacle?.passage === liaison.id);
+}
+
+function obstacleDuDrone(monde: DefMonde, drone: string): DefObjet | undefined {
+  const cible = monde.objets.find((objet) => objet.id === drone)?.drone?.obstacle;
+  return monde.objets.find((objet) => objet.id === cible && objet.obstacle !== undefined);
+}
+
+const chemins = new WeakMap<DefMonde, Map<string, readonly string[] | null>>();
+
+/**
+ * Liaisons, dans l'ordre, du plus court chemin du drone de `depuis` à la pièce de son obstacle, portes ouvertes ou fermées ;
+ * `[]` s'il y est, `null` sans chemin. Voisins visités dans l'ordre du monde : les égalités ne dépendent que de lui.
+ */
+export function cheminDrone(monde: DefMonde, drone: string, depuis: string): readonly string[] | null {
+  let memo = chemins.get(monde);
+  if (memo === undefined) chemins.set(monde, (memo = new Map()));
+  const cle = `${drone}|${depuis}`;
+  if (memo.has(cle)) return memo.get(cle) ?? null;
+  // Sans `indexer`, qui valide le monde : la validation appelle cette fonction.
+  const obstacle = obstacleDuDrone(monde, drone);
+  let resultat: readonly string[] | null = null;
+  if (obstacle !== undefined) {
+    const liaisons = monde.liaisons.filter((liaison) => franchissableParDrone(liaison, monde));
+    const venues = new Map<string, readonly string[]>([[depuis, []]]);
+    for (const file = [depuis]; file.length > 0 && !venues.has(obstacle.piece); ) {
+      const piece = file.shift() as string;
+      for (const liaison of liaisons) {
+        if (!liaison.entre.includes(piece)) continue;
+        const autre = autreCote(liaison, piece);
+        if (venues.has(autre)) continue;
+        venues.set(autre, [...(venues.get(piece) ?? []), liaison.id]);
+        file.push(autre);
+      }
+    }
+    resultat = venues.get(obstacle.piece) ?? null;
+  }
+  memo.set(cle, resultat);
+  return resultat;
+}
+
+/**
+ * Pièces où un drone peut attendre (#270) : atteintes depuis le départ sans franchir un obstacle, une cloison verrouillée
+ * seulement si un objet qui la déverrouille est lui-même atteint ; hors de la pièce de son obstacle ; d'où son chemin existe et
+ * ne passe que par ces pièces. Dans l'ordre du monde.
+ */
+export function placesDuDrone(monde: DefMonde, drone: string): readonly string[] {
+  const obstacle = obstacleDuDrone(monde, drone);
+  if (obstacle === undefined) return [];
+  const liaisons = new Map(monde.liaisons.map((liaison) => [liaison.id, liaison]));
+  const passages = new Set(monde.objets.flatMap((objet) => (objet.obstacle === undefined ? [] : [objet.obstacle.passage])));
+  const atteintes = new Set([monde.depart]);
+  for (let change = true; change; ) {
+    change = false;
+    for (const liaison of monde.liaisons) {
+      if (passages.has(liaison.id)) continue;
+      if (liaison.verrouillee === true && !monde.objets.some((objet) => objet.deverrouille === liaison.id && atteintes.has(objet.piece))) continue;
+      const [a, b] = liaison.entre;
+      if (atteintes.has(a) !== atteintes.has(b)) {
+        atteintes.add(atteintes.has(a) ? b : a);
+        change = true;
+      }
+    }
+  }
+  return monde.pieces.map((piece) => piece.id).filter((piece) => {
+    if (!atteintes.has(piece) || piece === obstacle.piece) return false;
+    const chemin = cheminDrone(monde, drone, piece);
+    if (chemin === null) return false;
+    let ici = piece;
+    for (const id of chemin) {
+      const liaison = liaisons.get(id);
+      if (liaison === undefined) return false;
+      ici = autreCote(liaison, ici);
+      if (ici !== obstacle.piece && !atteintes.has(ici)) return false;
+    }
+    return true;
+  });
+}
+
+/** Le monde, drone posé dans cette pièce, hors de toute position. */
+export function avecDroneEn(monde: DefMonde, drone: string, piece: string): DefMonde {
+  return {
+    ...monde,
+    objets: monde.objets.map((objet) => {
+      if (objet.id !== drone) return objet;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- la position appartient à la pièce d'origine.
+      const { position, ...ailleurs } = objet;
+      return { ...ailleurs, piece };
+    }),
+  };
+}
+
+/** Qualités bornées : un drone fixe, relié par un chemin franchissable à l'obstacle qu'il est seul à ranger (#270). */
 export function validerDrones(monde: DefMonde): string[] {
   const erreurs: string[] = [];
   const objets = new Map(monde.objets.map((objet) => [objet.id, objet]));
   for (const objet of monde.objets) {
-    if (objet.drone === undefined && objet.poignee !== true && objet.obstacle === undefined) continue;
+    if (objet.drone === undefined && objet.obstacle === undefined) continue;
     const erreur = (detail: string): void => { erreurs.push(`${objet.id} : ${detail}.`); };
     if (objet.portable !== false) erreur('dispositif de maintien portable');
     if (['appui', 'soin', 'extinction', 'glissant', 'avertisseur', 'source', 'capsule', 'alimente', 'depart',
       'vitrageExterieur', 'perce', 'protection', 'rebouche', 'pont', 'machines', 'gravite', 'fermeture', 'deverrouille', 'exige']
       .some((cle) => objet[cle as keyof DefObjet] !== undefined && objet[cle as keyof DefObjet] !== false)) erreur('qualité étrangère au dispositif de maintien');
-    if ([objet.drone !== undefined, objet.poignee === true, objet.obstacle !== undefined].filter(Boolean).length !== 1) erreur('qualités de maintien incompatibles');
-    if (objet.drone !== undefined || objet.poignee === true) {
-      if (objet.deplacable === true) erreur('dispositif fixe déplaçable');
-    }
+    if (objet.drone !== undefined && objet.obstacle !== undefined) erreur('qualités de maintien incompatibles');
     if (objet.drone !== undefined) {
-      const rail = monde.liaisons.find((liaison) => liaison.id === objet.drone?.rail);
-      const poignee = objets.get(objet.drone.poignee);
-      if (poignee?.poignee !== true) erreur('poignée du drone inconnue ou sans qualité');
-      if (rail === undefined || !rail.entre.includes(objet.piece) || poignee === undefined || !rail.entre.includes(poignee.piece) || objet.piece === poignee.piece) erreur('rail hors du trajet local');
-      if (rail?.gouffre === true || rail?.etroite === true || rail?.haute !== undefined || rail?.cachee !== undefined) erreur('rail incompatible avec le passage');
-      if (monde.objets.filter((autre) => autre.drone?.poignee === objet.drone?.poignee).length !== 1) erreur('plusieurs drones pour la même poignée');
+      if (objet.deplacable === true) erreur('dispositif fixe déplaçable');
+      const cible = objets.get(objet.drone.obstacle);
+      if (cible?.obstacle === undefined) erreur('obstacle du drone inconnu ou sans qualité');
+      else if (monde.objets.filter((autre) => autre.drone?.obstacle === cible.id).length !== 1) erreur('plusieurs drones pour le même obstacle');
+      else if (cheminDrone(monde, objet.id, objet.piece) === null) erreur('aucun chemin de drone vers son obstacle');
     }
-    if (objet.poignee === true && !monde.objets.some((autre) => autre.drone?.poignee === objet.id)) erreur('poignée sans drone');
     if (objet.obstacle !== undefined) {
-      const { passage, rangement, maintien } = objet.obstacle;
+      const { passage, rangement } = objet.obstacle;
       const liaison = monde.liaisons.find((candidate) => candidate.id === passage);
-      const poignee = objets.get(maintien);
       if (objet.deplacable !== true || objet.position === undefined) erreur('obstacle sans position déplaçable');
       if (liaison === undefined || !liaison.entre.includes(objet.piece) || liaison.gouffre === true) erreur('passage de l’obstacle invalide');
       if (monde.positions?.find((position) => position.id === rangement)?.piece !== objet.piece || objet.position === rangement) erreur('rangement de l’obstacle invalide');
-      if (poignee?.poignee !== true || poignee.piece === objet.piece) erreur('maintien de l’obstacle invalide');
-      if (monde.objets.filter((autre) => autre.obstacle?.maintien === maintien).length !== 1) erreur('plusieurs obstacles pour la même poignée');
-      if (monde.objets.some((autre) => autre.drone?.rail === passage)) erreur('obstacle sur le rail');
+      if (!monde.objets.some((autre) => autre.drone?.obstacle === objet.id)) erreur('obstacle sans drone');
     }
   }
   return erreurs;
