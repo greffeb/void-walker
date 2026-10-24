@@ -53,6 +53,7 @@ export {
   alertesMenace,
   cleEvacuation,
   dangersDuRecit,
+  horsRecit,
   libelleOption,
   nomDe,
   nomPassage,

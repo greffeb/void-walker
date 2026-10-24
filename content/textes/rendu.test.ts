@@ -228,6 +228,9 @@ describe('écoute porte par porte (lot 2 de la créature mobile)', () => {
     expect(alertesMenace([{ type: 'ecoute', passage, entendu: 'vague' }])).toEqual([]);
     expect(alertesMenace([{ type: 'bruit_creature', passage }])).toEqual([0]);
     expect(alertesMenace([{ type: 'bruit_proche', passage }])).toEqual([0]);
+    expect(alertesMenace([{ type: 'poursuite_proche', passage }])).toEqual([0]);
+    // Au pas où elle frappe, le bruit de poursuite n'a pas de phrase : les rangs suivent le récit (#258).
+    expect(alertesMenace([{ type: 'aggravation_blesse', causes: ['griffes'] }, { type: 'poursuite_proche', passage }])).toEqual([0]);
   });
 });
 

@@ -1,6 +1,6 @@
 import { CATALOGUE, type ActionEngagee, type DefAction, type Effet } from './actions';
 import { bruitDeStation } from './bruits';
-import { reagir, type SonEmis } from './creature';
+import { peutSuivre, reagir, type SonEmis } from './creature';
 import { avancerDrones, lacherPoignee, sonsDrones } from './drone';
 import { graineValide, ouvrirDes, type Des } from './des';
 import { assourdie, autreCote, creatureActive, creatureEnVue, etatInitial, liaisonsDe, liaisonsVisibles, piecesSansAir, refPassage, refPiece, type Alarme, type EtatPartie } from './etat';
@@ -37,7 +37,9 @@ import {
 export const FORMAT_ENREGISTREMENT = 1;
 
 /** Les événements par lesquels le passager perçoit déjà la créature à ce pas (spec créature mobile §3.3). */
-const SIGNES_CREATURE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee', 'pas_entendus', 'souffle_entendu']);
+const SIGNES_CREATURE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee', 'pas_entendus', 'souffle_entendu', 'poursuite_proche']);
+/** Signes qui la situent déjà par un passage : le bruit de poursuite n'y ajoute rien (#258). */
+const SITUEE_PAR_PASSAGE: ReadonlySet<Evenement['type']> = new Set(['bruit_creature', 'creature_entre', 'creature_glisse', 'porte_secouee', 'porte_enfoncee']);
 
 export interface EntreeJournal {
   readonly commande: Commande;
@@ -392,6 +394,17 @@ export function jouer(monde: DefMonde, partie: Partie, commande: unknown, des?: 
     else if (lien !== undefined && !assourdie(monde, conclu, ou)) {
       evenements.push({ type: 'bruit_proche', passage: refPassage(monde, conclu, lien, conclu.piece) });
       conclu = { ...conclu, reperes: { ...conclu.reperes, entendue: { piece: ou, par: lien.id } } };
+    }
+  }
+  // En poursuite, sur ses talons dans la pièce voisine, elle fait toujours du bruit par le passage de sa piste, même fermé, même
+  // immobile à ce pas, s'il ne l'arrête pas (#258, D-361) ; retenu comme un bruit entendu (D-181). Rien de plus si le pas la situe déjà par un passage.
+  const talons = conclu.creature;
+  if (!vaincu && conclu.fin === null && creatureActive(conclu) && talons?.contact === true && talons.indice?.piece === conclu.piece && typeof talons.piece === 'string' && talons.piece !== conclu.piece && !assourdie(monde, conclu, conclu.piece) && !assourdie(monde, conclu, talons.piece) && !evenements.some((e) => SITUEE_PAR_PASSAGE.has(e.type))) {
+    const { piece: derriere, indice } = talons;
+    const lien = liaisonsVisibles(monde, conclu, conclu.piece).find((candidate) => candidate.id === indice.par && autreCote(candidate, conclu.piece) === derriere && peutSuivre(monde, conclu, candidate, derriere));
+    if (lien !== undefined) {
+      evenements.push({ type: 'poursuite_proche', passage: refPassage(monde, conclu, lien, conclu.piece) });
+      conclu = { ...conclu, reperes: { ...conclu.reperes, entendue: { piece: derriere, par: lien.id } } };
     }
   }
   // Grande station : en attendant, on écoute aux portes, et le récit ne redit que ce qui change (créature mobile lot 2, D-343). Pas

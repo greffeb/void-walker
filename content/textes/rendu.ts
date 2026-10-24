@@ -73,6 +73,7 @@ function valeursEvenement(textes: TextesMonde, evenement: Evenement): Record<str
     case 'porte_secouee':
     case 'porte_enfoncee':
     case 'bruit_proche':
+    case 'poursuite_proche':
     case 'ecoute':
       return { passage: nomDe(textes, evenement.passage) };
     case 'ecoute_rappel':
@@ -189,6 +190,16 @@ const ECOUTES: ReadonlySet<Evenement['type']> = new Set(['ecoute', 'ecoute_couve
 const NOMBRES: Readonly<Record<number, string>> = { 4: 'quatre', 5: 'cinq', 6: 'six', 7: 'sept', 8: 'huit', 9: 'neuf', 10: 'dix', 11: 'onze', 12: 'douze' };
 
 /** Une phrase par événement appliqué (C-07 NP-01) ; les messages d'assistance se lisent à part (`rendreAssistance`). */
+const COUPS: ReadonlySet<Evenement['type']> = new Set(['menace', 'aggravation_blesse', 'aggravation_critique', 'defaite']);
+
+/**
+ * L'événement n'a pas de phrase dans le récit : l'assistance, et le bruit de poursuite au pas où elle vient de frapper, que le récit
+ * dit déjà ; il garde son repère BRUIT (#258, D-111).
+ */
+export function horsRecit(evenement: Evenement, evenements: readonly Evenement[]): boolean {
+  return evenement.type === 'assistance' || (evenement.type === 'poursuite_proche' && evenements.some(({ type }) => COUPS.has(type)));
+}
+
 export function rendreEvenements(textes: TextesMonde, evenements: readonly Evenement[], cle: CleTexte): string[] {
   // Un bruit de station ne retire pas à l'attente son texte de la 5e ou de la 10e : la station parle déjà (D-289, spec §5.5).
   const recit = evenements.filter((evenement) => evenement.type !== 'assistance' && evenement.type !== 'bruit_station');
@@ -198,7 +209,7 @@ export function rendreEvenements(textes: TextesMonde, evenements: readonly Evene
   const calme = recit[0]?.type === 'attente' && recit.slice(1).every(({ type }) => type === 'ecoute_rappel' || type === 'ecoute_couverte');
   const ecouteDite = evenements.some(({ type }) => ECOUTES.has(type));
   return evenements.flatMap((evenement, index) => {
-    if (evenement.type === 'assistance') return [];
+    if (horsRecit(evenement, evenements)) return [];
     if (calme && (cle.attentes === 5 || cle.attentes === 10)) {
       if (evenement.type === 'bruit_station') return [];
       if (evenement.type === 'attente') return [textes.attentesLongues[cle.attentes]];
@@ -219,7 +230,7 @@ const DANGERS: Partial<Record<Evenement['type'], NatureDanger>> = { feu_derriere
 
 /** Pour chaque phrase du récit de `rendreEvenements`, le danger qu'elle annonce, ou `null` (D-233). */
 export function dangersDuRecit(evenements: readonly Evenement[]): (NatureDanger | null)[] {
-  return evenements.filter((evenement) => evenement.type !== 'assistance').map((evenement) => DANGERS[evenement.type] ?? null);
+  return evenements.filter((evenement) => !horsRecit(evenement, evenements)).map((evenement) => DANGERS[evenement.type] ?? null);
 }
 
 /**
@@ -228,7 +239,7 @@ export function dangersDuRecit(evenements: readonly Evenement[]): (NatureDanger 
  */
 export function alertesMenace(evenements: readonly Evenement[]): number[] {
   return evenements
-    .filter((evenement) => evenement.type !== 'assistance')
+    .filter((evenement) => !horsRecit(evenement, evenements))
     .flatMap((evenement, rang) => (estMenaceOuDegat(evenement) ? [rang] : []));
 }
 
@@ -236,6 +247,7 @@ function estMenaceOuDegat(evenement: Evenement): boolean {
   switch (evenement.type) {
     case 'bruit_creature':
     case 'bruit_proche':
+    case 'poursuite_proche':
       return true;
     case 'ecoute':
       return evenement.entendu === 'net' || evenement.entendu === 'toujours';

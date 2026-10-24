@@ -160,6 +160,8 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     expect(avec({ type: 'ecoute', passage, entendu: 'net' })).toEqual([passage.id]);
     expect(avec({ type: 'ecoute', passage, entendu: 'toujours' })).toEqual([passage.id]);
     expect(avec({ type: 'bruit_proche', passage })).toEqual([passage.id]);
+    expect(avec({ type: 'poursuite_proche', passage })).toEqual([passage.id]);
+    expect(avec({ type: 'porte_secouee', passage })).toEqual([passage.id]);
     expect(avec({ type: 'ecoute', passage, entendu: 'vague' })).toEqual([]);
     expect(avec({ type: 'ecoute', passage, entendu: 'plus_rien' })).toEqual([]);
   });
@@ -561,20 +563,23 @@ describe('placement d’une bulle ancrée (12 §3.5)', () => {
 describe('flèche orientée des lignes « Se déplacer vers » (D-349)', () => {
   const piece: RefPiece = { sorte: 'piece', id: 'ici', nom: 'ici' } as RefPiece;
   /** Carte réduite : la pièce actuelle, de 4 × 3 cases en (4, 3), et un seul passage. */
-  const carte = (emplacement: CartePublique['passages'][number]['emplacement']): CartePublique =>
+  const carte = (emplacement: CartePublique['passages'][number]['emplacement'], largeur = 4): CartePublique =>
     ({
-      pieces: [{ piece, statut: 'actuelle', rect: { x: 4, y: 3, largeur: 4, hauteur: 3 } }],
+      pieces: [{ piece, statut: 'actuelle', rect: { x: 4, y: 3, largeur, hauteur: 3 } }],
       passages: [{ id: 'p', emplacement }],
       capsules: [],
       aBord: null,
     }) as unknown as CartePublique;
 
-  it('donne le mur de la porte, et une diagonale dans le premier ou le dernier quart du mur', () => {
+  it('donne le mur de la porte, et une diagonale dans le premier ou le dernier tiers du mur', () => {
     expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 5 }), 'p')).toBe('haut');
     expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 4 }), 'p')).toBe('haut-gauche');
     expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 6, rang: 7 }), 'p')).toBe('bas-droite');
     expect(sensDuPassage(carte({ type: 'mur', axe: 'v', ligne: 4, rang: 4 }), 'p')).toBe('gauche');
     expect(sensDuPassage(carte({ type: 'mur', axe: 'v', ligne: 8, rang: 4 }), 'p')).toBe('droite');
+    // #267 : sur un mur de 8 cases, la case 5 (place 0,69) penche déjà, la case 3 (0,44) reste droite.
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 9 }, 8), 'p')).toBe('haut-droite');
+    expect(sensDuPassage(carte({ type: 'mur', axe: 'h', ligne: 3, rang: 7 }, 8), 'p')).toBe('haut');
   });
 
   it('suit le bout d’un conduit qui borde la pièce', () => {

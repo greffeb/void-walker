@@ -72,6 +72,7 @@ export const TYPES_EVENEMENT = [
   'souffle_entendu',
   'bruit_lointain',
   'bruit_proche',
+  'poursuite_proche',
   'traces_fraiches',
   'ecoute',
   'ecoute_couverte',
@@ -284,6 +285,8 @@ export type Evenement =
   | { readonly type: 'bruit_lointain' }
   /** Face 2 du dé, elle dans une pièce voisine : un bruit proche, situé par le passage qui les sépare, même fermé (spec créature mobile §3.3). */
   | { readonly type: 'bruit_proche'; readonly passage: RefPassage }
+  /** En poursuite, sur les talons du passager dans la pièce voisine : situé par le passage de sa piste, même fermé (#258, D-361). */
+  | { readonly type: 'poursuite_proche'; readonly passage: RefPassage }
   /** Le passager entre là où elle est passée il y a peu : une trace fraîche, sans direction (spec créature mobile §3.4). */
   | { readonly type: 'traces_fraiches' }
   /** En grande station, en attendant : ce qu'on entend derrière ce passage, seulement si ça change (créature mobile lot 2, D-343). */
