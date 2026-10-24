@@ -912,7 +912,8 @@ const AU_REVEIL: readonly DefAssistance[] = [
 // Stations de test M-07 et M-10 : le morceau, puis l'embarquement d'essai ; seule la sortie de M-07 est ouverte au départ.
 const STATION_M07: DefStation = { id: 'm-07', morceaux: [MORCEAU_M07, MORCEAU_ESSAI], creature: 'm-07/p-soute', graine: 1, sortiesOuvertes: ['m-07'], assistance: AU_REVEIL };
 const STATION_M10: DefStation = { id: 'm-10', morceaux: [MORCEAU_M10, MORCEAU_ESSAI], creature: 'm-10/p-entrepot', graine: 1, assistance: AU_REVEIL };
-const STATION_M12: DefStation = { id: 'm-12', morceaux: [MORCEAU_M12, MORCEAU_ESSAI], creature: 'm-12/p-stockage', graine: 1 };
+// Graine 4 : le drone tombe dans l'atelier, à l'écart du palier et de la réserve (#270).
+const STATION_M12: DefStation = { id: 'm-12', morceaux: [MORCEAU_M12, MORCEAU_ESSAI], creature: 'm-12/p-stockage', graine: 4 };
 
 // Station tirée : le réveil, le départ et la longue attente (#225) ; pas de message de présence, qui nommerait la place tirée.
 const ASSISTANCE_TIREE: readonly DefAssistance[] = [

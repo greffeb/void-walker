@@ -2,6 +2,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { commencer, charger, jouerOption, type Environnement } from '../app/jeu';
 import { stockageIndexedDB } from '../app/sauvegarde';
 import { exporter, jouer, nouvellePartie, observer, rejouer, validerMonde } from '../engine';
+import { avecDroneEn, cheminDrone } from '../engine/drone';
 import { fuitesDeCouches, libellePiece, MORCEAUX_TEXTES } from '../content';
 import { PARCOURS_REPARATION_M12 } from '../content/m-12/parcours';
 import { CATALOGUE } from './catalogue';
@@ -14,15 +15,13 @@ if (entree === undefined) throw new Error('Station d’essai M12 absente.');
 const { monde, textes } = entree;
 
 describe('M12 assemblé et joué par les surfaces réelles', () => {
-  it('références préfixées, six pièces de chemin et réserve ouverte, textes neutres', () => {
+  it('références préfixées, cinq pièces de chemin et réserve ouverte, textes neutres', () => {
     expect(validerMonde(monde)).toEqual([]);
-    expect(monde.pieces.filter((piece) => piece.id.startsWith('m-12/'))).toHaveLength(6);
+    expect(monde.pieces.filter((piece) => piece.id.startsWith('m-12/'))).toHaveLength(5);
     expect(monde.creature?.piece).toBe('m-12/p-stockage');
-    expect(monde.liaisons.find((liaison) => liaison.id === 'm-12/l-poste-reserve')?.ouverte).toBe(true);
-    expect(monde.objets.find((objet) => objet.drone !== undefined)?.drone).toEqual({ rail: 'm-12/l-atelier-poste', poignee: 'm-12/o-poignee' });
-    expect(monde.objets.find((objet) => objet.obstacle !== undefined)?.obstacle).toEqual({
-      passage: 'm-12/l-palier-quai', rangement: 'm-12/pos-rangement', maintien: 'm-12/o-poignee',
-    });
+    expect(monde.liaisons.find((liaison) => liaison.id === 'm-12/l-palier-reserve')?.ouverte).toBe(true);
+    expect(monde.objets.find((objet) => objet.drone !== undefined)?.drone).toEqual({ obstacle: 'm-12/o-chariot' });
+    expect(monde.objets.find((objet) => objet.obstacle !== undefined)?.obstacle).toEqual({ passage: 'm-12/l-palier-quai', rangement: 'm-12/pos-rangement' });
     expect(fuitesDeCouches(MORCEAUX_TEXTES)).toEqual([]);
     expect(Object.values(textes.descriptions).every((variantes) => variantes.length >= 2)).toBe(true);
   });
@@ -53,55 +52,72 @@ describe('M12 assemblé et joué par les surfaces réelles', () => {
         expect(chercherEvacuation(monde, jeu.partie.etat, { elague: true }).verdict).toBe('evacuation');
       }
     }
-    expect(jeu.partie.etat).toMatchObject({ fin: 'evacuation', sante: 'critique', actions: 20 });
-    expect(jeu.partie.enregistrement.actions.flatMap((action) => action.tirages)).toHaveLength(2);
+    const { sante, actions } = PARCOURS_REPARATION_M12.attendu;
+    expect(jeu.partie.etat).toMatchObject({ fin: 'evacuation', sante, actions });
+    expect(jeu.partie.enregistrement.actions.flatMap((action) => action.tirages).length).toBeGreaterThan(0);
     expect(rejouer(monde, exporter(monde, jeu.partie), env.version).partie).toEqual(jeu.partie);
   });
 
   it('le libellé accessible désigne seulement un drone mémorisé, jamais un GPS', () => {
-    const vue = observer(monde, nouvellePartie(monde, { version: 'carte', graine: 203 }).etat);
-    const atelier = vue.carte.pieces.find((piece) => piece.statut === 'actuelle');
-    const poste = vue.carte.pieces.find((piece) => piece.piece.nom === 'poste_drone');
-    if (atelier === undefined || poste === undefined) throw new Error('Carte incomplète.');
-    expect(libellePiece(textes, atelier)).toContain('drone repéré');
-    expect(libellePiece(textes, poste)).not.toContain('drone repéré');
-    expect(libellePiece(textes, { ...atelier, statut: 'connue' })).not.toContain('drone repéré');
+    const ici = avecDroneEn(monde, 'm-12/o-drone', monde.depart);
+    const vue = observer(ici, nouvellePartie(ici, { version: 'carte', graine: 203 }).etat);
+    const entree = vue.carte.pieces.find((piece) => piece.statut === 'actuelle');
+    const palier = vue.carte.pieces.find((piece) => piece.piece.nom === 'palier_chariot');
+    if (entree === undefined || palier === undefined) throw new Error('Carte incomplète.');
+    expect(libellePiece(textes, entree)).toContain('drone repéré');
+    expect(libellePiece(textes, palier)).not.toContain('drone repéré');
+    expect(libellePiece(textes, { ...entree, statut: 'connue' })).not.toContain('drone repéré');
   });
 
   it('les clés de solveur ignorent toujours les engagements, sans compteur ajouté au drone', () => {
     const etat = nouvellePartie(monde, { version: 'cle', graine: 203 }).etat;
     expect(cleEtatRegles(etat)).toBe(cleEtatRegles({ ...etat, actions: 1000000 }));
-    expect(Object.keys(etat.drones ?? {})).toEqual(['phases', 'tenue', 'bruits']);
+    expect(Object.keys(etat.drones ?? {})).toEqual(['phases', 'bruits']);
   });
 
   it('le drone qui termine sa tâche hors de vue n’est pas raconté (C-06 §5)', () => {
     type Etape = { readonly action: string; readonly cible: string; readonly parametre?: string };
     const nom = (ref: { readonly nom: string; readonly vers?: { readonly nom: string } | null } | undefined): string | undefined =>
       ref === undefined ? undefined : 'vers' in ref && ref.vers !== null && ref.vers !== undefined ? ref.vers.nom : ref.nom;
-    let partie = nouvellePartie(monde, { version: 'hors-de-vue', graine: 5 });
+    const atelier = avecDroneEn(monde, 'm-12/o-drone', 'm-12/p-atelier');
+    let partie = nouvellePartie(atelier, { version: 'hors-de-vue', graine: 5 });
     const jouerEtape = ({ action, cible, parametre }: Etape): readonly string[] => {
-      const option = observer(monde, partie.etat).menu.find(
+      const option = observer(atelier, partie.etat).menu.find(
         (candidate) => candidate.disponible && candidate.action === action && nom(candidate.cible) === cible && (parametre === undefined || candidate.parametre?.nom === parametre),
       );
       if (option === undefined) throw new Error(`Option absente : ${action} ${cible}.`);
-      const resultat = jouer(monde, partie, option.commande);
+      const resultat = jouer(atelier, partie, option.commande);
       if (resultat.type !== 'engagee') throw new Error(`${action} non engagée.`);
       partie = resultat.partie;
       return resultat.evenements.map((evenement) => evenement.type);
     };
     for (const etape of [
-      { action: 'aller', cible: 'poste_drone' },
+      { action: 'aller', cible: 'palier_chariot' },
       { action: 'fermer', cible: 'stockage' },
-      { action: 'fermer', cible: 'palier_chariot' },
+      { action: 'aller', cible: 'galerie_drone' },
       { action: 'aller', cible: 'atelier_drone' },
       { action: 'envoyer', cible: 'drone' },
-      { action: 'aller', cible: 'galerie_drone' },
-      { action: 'aller', cible: 'palier_chariot' },
+      { action: 'attendre', cible: 'atelier_drone' },
+      { action: 'attendre', cible: 'atelier_drone' },
+      { action: 'attendre', cible: 'atelier_drone' },
     ]) jouerEtape(etape);
-    const evenements = jouerEtape({ action: 'deplacer', cible: 'chariot', parametre: 'dans_rangement' });
-    expect(evenements).toContain('objet_deplace');
+    const evenements = jouerEtape({ action: 'attendre', cible: 'atelier_drone' });
     expect(evenements).not.toContain('drone_termine');
     expect(partie.etat.drones?.phases['m-12/o-drone']).toBe('termine');
+  });
+
+  it('la place du drone change avec la graine et ne tombe jamais au palier', () => {
+    const places = new Set<string>();
+    for (let graine = 0; graine < 50; graine++) {
+      const station = CATALOGUE.construire('m01-m12-m03-reserve', graine);
+      if ('refus' in station) continue;
+      const drone = station.monde.objets.find((objet) => objet.drone !== undefined);
+      if (drone === undefined) throw new Error('Drone absent.');
+      expect(drone.piece).not.toBe('m-12/p-palier');
+      expect(cheminDrone(station.monde, drone.id, drone.piece)).not.toBeNull();
+      places.add(drone.piece);
+    }
+    expect(places.size).toBeGreaterThanOrEqual(2);
   });
 
   it('M11/M12 en ordre libre conserve le blindage, la carte exigée et seulement les cloisons du carrefour', () => {

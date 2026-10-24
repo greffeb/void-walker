@@ -151,7 +151,7 @@ Trente-neuf documents, posés à cinq à sept par grande station (spec §8.4). L
 | M-09 | journal de Wen | journal | Wen | la gravité coupée : ça ne sait pas flotter |
 | M-10 | message d'Hélène | message | Hélène | le compresseur, les portes fermées depuis le pupitre, le froid qui mord |
 | M-11 | journal d'Inès | journal | Inès | la carte au lecteur, la porte blindée refermée : elle n'a même pas essayé |
-| M-12 | message de Clara | message | Clara | le drone tient la poignée à sa place, bruyant ; jeté hors du rail, remis et relancé, puis le chariot poussé |
+| M-12 | message de Clara | message | Clara | le chariot trop lourd pour la main ; un drone de manutention retrouvé et lancé, bruyant ; jeté sur le flanc, redressé et relancé, puis le chariot tiré sur le côté (#270) |
 
 **Notes de rangement** (une par clé déplaçable, et la trousse) :
 
