@@ -1,6 +1,6 @@
 import type { Cause, Evenement, Issue, RefPiece, Sante } from '../../engine';
 import { ErreurTexte, remplir } from './gabarit';
-import { nomDe, rendreAssistance, rendreEvenements } from './rendu';
+import { horsRecit, nomDe, rendreAssistance, rendreEvenements } from './rendu';
 import type { CleMoment, CleMort, Nom, PhraseFin, TextesMonde } from './types';
 
 // Récit de l'écran de fin (12 §4.11, D-281 à D-283) : la partie relue du réveil à la fin, ses moments marquants dits par des
@@ -60,6 +60,7 @@ const PERCUE: ReadonlySet<Evenement['type']> = new Set([
   'souffle_entendu',
   'bruit_lointain',
   'bruit_proche',
+  'poursuite_proche',
   'traces_fraiches',
   'creature_glisse',
   'porte_secouee',
@@ -241,7 +242,7 @@ export function raconterFin(textes: TextesMonde, etapes: readonly (readonly Even
     // Le texte de départ que l'écran a montré : même variante, même rang dans le récit de la dernière action.
     const rang = derniere.findIndex((evenement) => evenement.type === 'evacuation');
     if (rang < 0) throw new ErreurTexte('Évacuation sans événement de départ.');
-    const depart = rendreEvenements(textes, derniere, { graine: fin.graine, action: etapes.length - 1 })[derniere.slice(0, rang).filter((evenement) => evenement.type !== 'assistance').length];
+    const depart = rendreEvenements(textes, derniere, { graine: fin.graine, action: etapes.length - 1 })[derniere.slice(0, rang).filter((evenement) => !horsRecit(evenement, derniere)).length];
     if (depart === undefined) throw new ErreurTexte('Évacuation sans texte de départ.');
     const horsJeu = releve.moments.some((moment) => moment.cle === 'creature_expulsee' || moment.cle === 'creature_inerte');
     const creature = horsJeu ? null : releve.vue ? textes.fin.creature.laissee : releve.percue ? textes.fin.creature.entendue : fin.menace ? textes.fin.creature.jamais : null;

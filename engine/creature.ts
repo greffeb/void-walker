@@ -109,6 +109,11 @@ function forcable(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis
   return !monde.objets.some((objet) => objet.capsule !== undefined && liaison.entre.includes(objet.capsule.interieur));
 }
 
+/** Elle peut le suivre par `liaison` depuis `depuis` : la franchir, ou la forcer (D-279) ; sinon elle n'est pas sur ses talons (#258). */
+export function peutSuivre(monde: DefMonde, etat: EtatPartie, liaison: DefLiaison, depuis: string): boolean {
+  return praticable(monde, etat, liaison, depuis) || forcable(monde, etat, liaison, depuis);
+}
+
 /** Plus court chemin de liaisons acceptées, dans l'ordre stable du monde ; `null` si aucun. */
 function chemin(
   monde: DefMonde,

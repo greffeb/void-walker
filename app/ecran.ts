@@ -190,12 +190,12 @@ export function passagesOuverts(partie: Partie): string[] {
 }
 
 /**
- * Passages derrière lesquels la créature a bougé au dernier pas, ou qu'une écoute a dits « net » ou « toujours » : le repère
- * BRUIT dure jusqu'à l'action suivante (D-267).
+ * Passages derrière lesquels la créature a bougé au dernier pas, se tient sur les talons du passager ou force la porte (#258), ou
+ * qu'une écoute a dits « net » ou « toujours » : le repère BRUIT dure jusqu'à l'action suivante (D-267).
  */
 export function passagesEntendus(partie: Partie): string[] {
   return partie.derniers.flatMap((evenement) => {
-    if (evenement.type === 'bruit_creature' || evenement.type === 'bruit_proche') return [evenement.passage.id];
+    if (evenement.type === 'bruit_creature' || evenement.type === 'bruit_proche' || evenement.type === 'poursuite_proche' || evenement.type === 'porte_secouee') return [evenement.passage.id];
     if (evenement.type === 'ecoute' && (evenement.entendu === 'net' || evenement.entendu === 'toujours')) return [evenement.passage.id];
     return [];
   });

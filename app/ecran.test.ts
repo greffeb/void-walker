@@ -160,6 +160,8 @@ describe('écran de jeu : dock et rappel (12 §3.3, §3.4)', () => {
     expect(avec({ type: 'ecoute', passage, entendu: 'net' })).toEqual([passage.id]);
     expect(avec({ type: 'ecoute', passage, entendu: 'toujours' })).toEqual([passage.id]);
     expect(avec({ type: 'bruit_proche', passage })).toEqual([passage.id]);
+    expect(avec({ type: 'poursuite_proche', passage })).toEqual([passage.id]);
+    expect(avec({ type: 'porte_secouee', passage })).toEqual([passage.id]);
     expect(avec({ type: 'ecoute', passage, entendu: 'vague' })).toEqual([]);
     expect(avec({ type: 'ecoute', passage, entendu: 'plus_rien' })).toEqual([]);
   });

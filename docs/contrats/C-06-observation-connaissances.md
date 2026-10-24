@@ -22,7 +22,7 @@ La même observation sert la PWA, la CLI, les bots et le joueur LLM externe. Seu
 | Découverte | Contenu révélé par une manipulation (panneau, passage) | C-05 §6 |
 | Contact | Premier contact annoncé, puis créature vue | C-03 §4.4 |
 
-**OP-01 — Bruits.** Le passager entend ce qui se produit dans sa pièce, et dans une pièce voisine reliée par une liaison qui laisse passer le son : porte ouverte, ou grille même fermée. Le message nomme le passage (« derrière la porte de l'observation »), jamais une position. Rien au-delà de la pièce voisine. Une créature immobile ou neutralisée ne fait pas de bruit.
+**OP-01 — Bruits.** Le passager entend ce qui se produit dans sa pièce, et dans une pièce voisine reliée par une liaison qui laisse passer le son : porte ouverte, ou grille même fermée. Le message nomme le passage (« derrière la porte de l'observation »), jamais une position. Rien au-delà de la pièce voisine. Une créature immobile ou neutralisée ne fait pas de bruit, sauf en poursuite sur les talons du passager, dans la pièce voisine (D-361).
 
 **Assistance (D-081).** Elle parle seulement aux moments prévus, avec d'éventuels choix prédéfinis ; ses messages restent relisibles. Elle ne répond à aucune demande d'état, ne suit pas la créature après ses alertes et ne révèle pas les accès cachés.
 

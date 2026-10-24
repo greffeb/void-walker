@@ -42,6 +42,7 @@ import {
   UNIVERS,
   libelleOption,
   lignesListeCarte,
+  horsRecit,
   MORCEAUX_TEXTES,
   nomDe,
   nomLisible,
@@ -293,8 +294,8 @@ function verifierStructure(erreurs: string[], { monde, textes }: EntreeMonde): v
 }
 
 /** Textes possibles du récit d'un événement, comme le rendu les choisit ; l'assistance n'est pas racontée. */
-function variantesRecit(textes: TextesMonde, evenement: Evenement): readonly string[] {
-  return evenement.type === 'assistance' ? [] : variantesDe(textes, evenement);
+function variantesRecit(textes: TextesMonde, evenement: Evenement, evenements: readonly Evenement[]): readonly string[] {
+  return horsRecit(evenement, evenements) ? [] : variantesDe(textes, evenement);
 }
 
 /** Phrases qu'une suite d'événements peut produire, toutes variantes confondues ; le maximum ne compte pas les moments forts. */
@@ -309,7 +310,7 @@ function bornesPhrases(textes: TextesMonde, evenements: readonly Evenement[]): B
   let maximum = 0;
   let momentFort = false;
   for (const evenement of evenements) {
-    const comptes = variantesRecit(textes, evenement).map(compterPhrases);
+    const comptes = variantesRecit(textes, evenement, evenements).map(compterPhrases);
     if (comptes.length === 0) continue;
     minimum += Math.min(...comptes);
     if (MOMENTS_FORTS.includes(evenement.type)) momentFort = true;

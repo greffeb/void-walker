@@ -221,7 +221,8 @@ describe('M-10 — chambre froide (D-166, D-170, D-239, D-240)', () => {
     const pas = suite(monde, depart(monde), parcours('m-10', 'M-10 — Compresseur').etapes.slice(0, 6));
     expect(types(pas[3]?.evenements ?? [])).toEqual(['alarme_declenchee', 'creature_entre', 'premier_contact']);
     expect(pas[4]?.tirages).toEqual([]);
-    expect(types(pas[5]?.evenements ?? [])).toEqual(['chambre_bouclee']);
+    // Bouclée dans la chambre, elle peut forcer la porte : elle reste sur ses talons (#258).
+    expect(types(pas[5]?.evenements ?? [])).toEqual(['chambre_bouclee', 'poursuite_proche']);
   });
 
   it('rester dans la chambre une troisième action blesse : l’aperçu le dit avant', () => {

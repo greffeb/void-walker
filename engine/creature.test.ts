@@ -232,7 +232,7 @@ describe('perception et réaction (C-03 §4)', () => {
     if (fuite.type !== 'engagee') throw new Error('Fuite non engagée.');
     expect(fuite.tirages).toHaveLength(1);
     const interception = (fuite.tirages[0] ?? 0) <= ATTEINT_JUSQUA ? 'aggravation_blesse' : 'menace';
-    expect(types(fuite.evenements)).toEqual([interception, 'deplacement', 'piece_decouverte']);
+    expect(types(fuite.evenements)).toEqual([interception, 'deplacement', 'piece_decouverte', 'poursuite_proche']);
   });
 
   it('arriver dans la pièce du passager et l’attaquer ne tiennent pas dans la même réaction (C-03 §4.3)', () => {
@@ -246,7 +246,7 @@ describe('perception et réaction (C-03 §4)', () => {
       ['ouvrir', 'porte_ab'],
       ['prendre', 'cle'],
     ]);
-    expect(types(evenements[2] ?? [])).toEqual([apresJet(fin, 2), 'deplacement', 'piece_decouverte']);
+    expect(types(evenements[2] ?? [])).toEqual([apresJet(fin, 2), 'deplacement', 'piece_decouverte', 'poursuite_proche']);
     expect(types(evenements[4] ?? [])).toEqual(['passage_ouvert', 'bruit_mecanisme', 'creature_entre']);
     // Action suivante sous ses yeux : le dé de D-183, quel qu'en soit le résultat.
     expect(types(evenements[5] ?? [])).toEqual(['objet_pris', expect.stringMatching(/^(menace|aggravation_blesse|aggravation_critique)$/)]);
@@ -268,8 +268,8 @@ describe('perception et réaction (C-03 §4)', () => {
     // Il sort par B puis continue vers A, ou reste en B : elle fait le même pas, vers B, puis, alertée, suit ses pas (D-276).
     const loin = suite(monde, vue, [['aller', 'salle_b'], ['aller', 'salle_a'], ['prendre', 'boite']]);
     const pres = suite(monde, vue, [['aller', 'salle_b'], ['prendre', 'cle']]);
-    expect(loin.evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'bruit_creature'], ['objet_pris', 'creature_entre']]);
-    expect(pres.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre']]);
+    expect(loin.evenements.map(types)).toEqual([['deplacement', 'poursuite_proche'], ['deplacement', 'bruit_creature'], ['objet_pris', 'creature_entre']]);
+    expect(pres.evenements.map(types)).toEqual([['deplacement', 'poursuite_proche'], ['objet_pris', 'creature_entre']]);
     expect(loin.partie.etat.creature).toMatchObject({ piece: 'a', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null });
     expect(pres.partie.etat.creature).toMatchObject({ piece: 'b', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null });
   });
@@ -285,7 +285,7 @@ describe('poursuite par le passage vu (D-177)', () => {
       ['prendre', 'cle'],
       ['poser', 'cle'],
     ]);
-    expect(evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre'], ['objet_pose', apresJet(fin, fin.enregistrement.actions.length - 1)]]);
+    expect(evenements.map(types)).toEqual([['deplacement', 'poursuite_proche'], ['objet_pris', 'creature_entre'], ['objet_pose', apresJet(fin, fin.enregistrement.actions.length - 1)]]);
     expect(pieceCreature(fin)).toBe('b');
   });
 
@@ -318,7 +318,7 @@ describe('poursuite par le passage vu (D-177)', () => {
       const double: DefMonde = { ...monde, liaisons: avant ? [grille, ...monde.liaisons] : [...monde.liaisons, grille] };
       const vue = suite(double, partie(double), [['aller', 'salle_b'], ['aller', 'porte_bc']]).partie;
       const parPorte = suite(double, vue, [['aller', 'porte_bc'], ['prendre', 'cle']]);
-      expect(parPorte.evenements.map(types)).toEqual([['deplacement'], ['objet_pris', 'creature_entre']]);
+      expect(parPorte.evenements.map(types)).toEqual([['deplacement', 'poursuite_proche'], ['objet_pris', 'creature_entre']]);
       const parGrille = suite(double, vue, [['aller', 'grille_bc'], ['prendre', 'cle'], ['poser', 'cle']]);
       // Elle ne passe pas par la grille, trop étroite, mais entend ses pas et rejoint B par la porte (D-276).
       const dernier = parGrille.partie.enregistrement.actions.length - 1;
@@ -348,7 +348,7 @@ describe('poursuite par le passage vu (D-177)', () => {
 
   it('revenir dans sa pièce efface l’indice de départ : elle le voit, menace', () => {
     const { partie: fin, evenements } = suite(monde, contact(), [['aller', 'salle_b'], ['aller', 'salle_c']]);
-    expect(evenements.map(types)).toEqual([['deplacement'], ['deplacement', 'menace']]);
+    expect(evenements.map(types)).toEqual([['deplacement', 'poursuite_proche'], ['deplacement', 'menace']]);
     expect(fin.etat.creature).toMatchObject({ piece: 'c', indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null });
   });
 });
@@ -989,5 +989,40 @@ describe('errance au dé de rencontre (spec créature mobile §3.2)', () => {
     expect(empreinteEtat(rejeu.partie.etat)).toBe(empreinteEtat(courante.etat));
     expect(rejeu.partie.etat.creature).toEqual(courante.etat.creature);
     expect(rejeu.etapes).toEqual(etapes);
+  });
+});
+
+describe('sur les talons dans la pièce voisine : toujours du bruit (#258, D-361)', () => {
+  const contact = { indice: null, contact: true, repit: false, alcove: false, perdues: 0, connues: [], engagee: null };
+  /** Le passager là, elle en C, en poursuite. */
+  const placee = (monde: DefMonde, piece: string): Partie => {
+    const p = partie(monde);
+    return { ...p, etat: { ...p.etat, piece, creature: { ...contact, piece: 'c' } } };
+  };
+
+  it('il fuit sous ses yeux : bruit par le passage de sa piste, retenu comme entendu ; rien quand elle entre', () => {
+    const fuite = engager(MONDE, placee(MONDE, 'c'), 'aller', 'salle_b');
+    expect(pieceCreature(fuite.partie)).toBe('c');
+    const bruit = fuite.evenements.find((evenement) => evenement.type === 'poursuite_proche');
+    expect(bruit?.type === 'poursuite_proche' ? bruit.passage.nom : null).toBe('porte_bc');
+    expect(fuite.partie.etat.reperes.entendue).toEqual({ piece: 'c', par: 'bc' });
+    const entree = engager(MONDE, fuite.partie, 'attendre', 'salle_b');
+    expect(types(entree.evenements)).toContain('creature_entre');
+    expect(types(entree.evenements)).not.toContain('poursuite_proche');
+  });
+
+  it('porte refermée derrière lui : elle la force, la porte secouée la situe, sans bruit de poursuite en plus', () => {
+    const fuite = engager(MONDE, placee(MONDE, 'c'), 'aller', 'salle_b');
+    const close = engager(MONDE, fuite.partie, 'fermer', 'porte_bc');
+    expect(types(close.evenements)).toContain('porte_secouee');
+    expect(types(close.evenements)).not.toContain('poursuite_proche');
+  });
+
+  it('jamais sans piste sur lui, par un passage qui l’arrête, ni depuis une salle des machines en marche', () => {
+    expect(types(engager(MONDE, placee(MONDE, 'b'), 'attendre', 'salle_b').evenements)).not.toContain('poursuite_proche');
+    const grille = liaisons(MONDE, { ac: { ouverte: true } });
+    expect(types(engager(grille, placee(grille, 'c'), 'aller', 'grille_ac').evenements)).not.toContain('poursuite_proche');
+    const machines: DefMonde = { ...MONDE, pieces: MONDE.pieces.map((piece) => (piece.id === 'c' ? { ...piece, machines: true } : piece)) };
+    expect(types(engager(machines, placee(machines, 'c'), 'aller', 'salle_b').evenements)).not.toContain('poursuite_proche');
   });
 });
