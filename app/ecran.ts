@@ -266,9 +266,10 @@ export function precedente(etape: Etape): { readonly action: IdAction | null; re
 /**
  * Nom d'un paramètre, dans la ligne « OÙ ? », le fil et le rappel : la position telle qu'on la dit (« sous la grille »),
  * le passage par son nom de puce (« Cloison de la salle d'observation », « Grille » tant que sa destination est inconnue),
- * la pièce par son nom, comme la destination d'un déplacement.
+ * la pièce par son nom, comme la destination d'un déplacement. Arroser vise la pièce derrière le passage : elle se nomme (#272).
  */
-export function nomParametre(textes: TextesMonde, parametre: NonNullable<OptionMenu['parametre']>): string {
+export function nomParametre(textes: TextesMonde, action: IdAction, parametre: NonNullable<OptionMenu['parametre']>): string {
+  if (action === 'arroser' && parametre.sorte === 'passage' && parametre.vers !== null) return nomDe(textes, parametre.vers).texte;
   return parametre.sorte === 'passage' ? nomPuce(textes, parametre) : nomDe(textes, parametre).texte;
 }
 
@@ -362,7 +363,7 @@ export function filBulle(textes: TextesMonde, cible: Cible, option?: OptionMenu)
   if (option?.action === 'aller') return `${textes.verbes.aller} › ${nomDestination(textes, option)}`;
   const nom = nomPuce(textes, cible);
   if (option === undefined) return nom;
-  const parametre = option.parametre === undefined ? '' : ` › ${nomParametre(textes, option.parametre)}`;
+  const parametre = option.parametre === undefined ? '' : ` › ${nomParametre(textes, option.action, option.parametre)}`;
   return `${nom} › ${textes.verbes[option.action]}${parametre}`;
 }
 
@@ -415,7 +416,7 @@ export function texteRappel(textes: TextesMonde, rappel: Rappel): TexteRappel {
     case 'deplacement':
       return { texte: `${textes.verbes.aller} · ${nomDe(textes, rappel.vers).texte}`, capitales: true };
     case 'cible': {
-      const parametre = rappel.parametre === undefined ? '' : ` · ${nomParametre(textes, rappel.parametre)}`;
+      const parametre = rappel.parametre === undefined ? '' : ` · ${nomParametre(textes, rappel.action, rappel.parametre)}`;
       return { texte: `${nomPuce(textes, rappel.cible)} · ${textes.verbes[rappel.action]}${parametre}`, capitales: false };
     }
   }

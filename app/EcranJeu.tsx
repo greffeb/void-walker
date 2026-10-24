@@ -670,7 +670,7 @@ function Fil({ textes, groupe, etape }: { readonly textes: TextesMonde; readonly
   return (
     <>
       {`${nomPuce(textes, cible)} › ${textes.verbes[action]}`}
-      {parametre !== undefined && <span className="fil-parametre">{` › ${nomParametre(textes, parametre)}`}</span>}
+      {parametre !== undefined && <span className="fil-parametre">{` › ${nomParametre(textes, action, parametre)}`}</span>}
     </>
   );
 }
@@ -788,12 +788,12 @@ function Composer({
       <>
         <h3 className="question">{LIBELLES.jeu.question}</h3>
         <ul className="lignes">
-          {etape.options.map(({ parametre }) =>
+          {etape.options.map(({ action, parametre }) =>
             parametre === undefined ? null : (
               <li key={parametre.id}>
                 <button type="button" className="ligne" onClick={() => choisirParametre(parametre.id)} data-son="clic">
                   <span aria-hidden="true">▸ </span>
-                  {nomParametre(textes, parametre)}
+                  {nomParametre(textes, action, parametre)}
                 </button>
               </li>
             ),
