@@ -117,14 +117,16 @@ describe('terminal de surveillance', () => {
     expect(carte(MONDE, r.partie.etat).passages.map((p) => p.id)).not.toContain(pub('l-cache'));
   });
 
-  it('la carte ne montre aucun objet d\'une pièce jamais regardée, mais le feu d\'une pièce en feu', () => {
+  it('une pièce jamais regardée reste connue : ni regard ni objet, mais le feu d’une pièce en feu', () => {
     const r = jouer(MONDE, avec(porteur('surveillance', 'post-it'), { feu: ['cambuse'] }), commande('surveiller', 'terminal'));
     if (r.type !== 'engagee') throw new Error(r.type);
     const pieces = carte(MONDE, r.partie.etat).pieces;
     const piece = (id: string) => pieces.find((p) => p.piece.id === pub(id));
-    expect(piece('machines')?.objets).toEqual([]);
-    expect(piece('machines')?.feu).toBeNull();
+    // Jamais visitées : connues, sans regard ni objet ; seul le feu se lit (lot 4).
+    expect(piece('machines')).toMatchObject({ statut: 'connue', regard: null, objets: [], feu: null });
+    expect(piece('cambuse')).toMatchObject({ statut: 'connue', regard: null });
     expect(piece('cambuse')?.feu).not.toBeNull();
+    expect(r.partie.etat.memoire.pieces.machines).toEqual({ feu: { vu: false, actions: 0 } });
     expect(piece('surveillance')?.objets).toEqual([{ objet: expect.objectContaining({ id: pub('terminal') }), position: null }]);
   });
 

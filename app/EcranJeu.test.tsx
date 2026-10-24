@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
-import { dangersDuRecit, libelleOption, MONDES, TEXTES_CATALOGUE, texteDocument, VERSION_GENERATEUR, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
+import { carte, observer, type DefMonde, type IdAction, type OptionMenu } from '../engine';
+import { ficheDe, libelleOption, MONDES, rendreListeCarte, TEXTES_CATALOGUE, texteDocument, VERSION_GENERATEUR, type DocumentRendu, type EntreeMonde, type EtapeParcours, type Nom, type TexteDocument, type TextesMonde } from '../content';
 import { App, EcranRefus } from './App';
 import { FicheDocument } from './bulle';
 import { CATALOGUE } from './catalogue';
@@ -1129,12 +1129,12 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
   const rendrePoste = (jeu: Jeu): string =>
     renderToStaticMarkup(<EcranJeu jeu={jeu} lus={[]} env={envPoste} machineAEcrire={false} occupe={false} choisir={rien} lireMessages={rienALire} />);
   const ferme = (jeu: Jeu): boolean =>
-    fermerPoste(observer(POSTE, jeu.partie.etat), jeu.alertes, dangersDuRecit(jeu.partie.derniers).filter((nature) => nature !== null));
-  /** Connecté au terminal, sur la première graine où la connexion ne s'accompagne d'aucune alerte (souffle derrière la grille). */
+    fermerPoste(observer(POSTE, jeu.partie.etat), jeu.alertes, jeu.partie.derniers);
+  /** Connecté au terminal, sur la première graine où la connexion n'a rien d'autre dans son récit (souffle derrière la grille). */
   const connecte = async (): Promise<Jeu> => {
     for (graine = 0; graine < 50; graine++) {
       const jeu = await jouerAction(await jouerAction(await commencer(envPoste), 'prendre', true, 'cat_post_it'), 'surveiller');
-      if (jeu.alertes.length === 0) return jeu;
+      if (!ferme(jeu)) return jeu;
     }
     throw new Error('Aucune connexion calme.');
   };
@@ -1155,6 +1155,21 @@ describe('poste de surveillance : fenêtre en direct, refus et messages d’IA S
     expect(html).toContain('<li>Caméra de l’atelier : calme</li>');
     expect(html).toContain('<li>Caméra de la soute : mouvement</li>');
     expect(html).toContain('<span class="alerte">SOUTE : MOUVEMENT. </span>');
+  });
+
+  it('après la connexion, une pièce jamais visitée est connue : ni « vu à l’instant », ni « aucun objet », ni rangée parmi les visitées', async () => {
+    const jeu = await connecte();
+    const plan = carte(POSTE, jeu.partie.etat);
+    // L'atelier, jamais visité, contient la trousse : la carte n'en dit rien.
+    const atelier = plan.pieces.find((piece) => piece.piece.nom === 'atelier');
+    expect(atelier?.statut).toBe('connue');
+    expect(atelier?.regard).toBeNull();
+    const fiche = ficheDe(TEXTES_POSTE, atelier!);
+    expect(fiche.objets).toBeNull();
+    expect(fiche.sousTitre).toBe('pas encore visitée');
+    const blocs = rendreListeCarte(TEXTES_POSTE, plan);
+    expect(blocs[1]!.entrees.map((entree) => entree.titre)).not.toContain('ATELIER');
+    expect(blocs[2]!.entrees.map((entree) => entree.titre)).toContain('ATELIER');
   });
 
   it('la créature entre dans la salle : la fenêtre se ferme, le récit montre l’entrée en rouge (Review Focus 1)', async () => {

@@ -80,8 +80,8 @@ export function FenetrePoste({
       </ul>
       <div className="poste-bas">
         <p className="poste-ligne" aria-live="polite">
-          {ligne.map(({ texte, alerte }) => (
-            <span key={texte} className={alerte ? 'alerte' : undefined}>
+          {ligne.map(({ texte, alerte }, index) => (
+            <span key={index} className={alerte ? 'alerte' : undefined}>
               {texte}{' '}
             </span>
           ))}

@@ -114,7 +114,7 @@ describe('écran de la carte (14 §2)', () => {
     expect(texte(renderToStaticMarkup(<ListeCarte blocs={rendreListeCarte(textes, carte)} />))).toContain('CAPTEUR : MOUVEMENT');
   });
 
-  it('caméras du poste : un carré par caméra, sa forme dit son état ; une pièce n’y ouvre pas de fiche (lot 4)', () => {
+  it('caméras du poste : un carré par caméra, sa forme dit son état ; une pièce n’y est pas un bouton (lot 4)', () => {
     const avec = (cameras: ReadonlyMap<string, EtatCapteur>): string =>
       renderToStaticMarkup(
         <PlanCarte carte={CARTE} textes={textes} vue={{ zoom: 1, x: 0, y: 0 }} casePx={34} zoomMin={0.5} changerVue={rien} toucher={rien} ouverte={null} cameras={cameras} />,
@@ -135,6 +135,10 @@ describe('écran de la carte (14 §2)', () => {
     expect(brouille).not.toContain('barre');
     expect(icone(avec(new Map<string, EtatCapteur>([['e-salon', 'hs']])), 'hs')).toContain('class="barre"');
     expect(html).not.toContain('aria-haspopup');
+    // Ni bouton ni arrêt de tabulation : la pièce n'y fait rien ; ses étiquettes restent affichées.
+    expect(html).not.toContain('<button');
+    expect(html).toMatch(/<div class="carte-piece" data-statut="[a-z]+"/);
+    expect(plan()).toContain('<button');
     expect(plan()).not.toContain('icone-camera');
   });
 

@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { CATALOGUE, observer, type IdAction, type OptionMenu, type Partie, type Sante } from '../engine';
-import { dangersDuRecit, libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
+import { libelleOption, nomDe, remplir, rendreObservation, type DocumentRendu, type TextesMonde } from '../content';
 import {
   ANGLE_SENS,
   composer,
@@ -183,7 +183,7 @@ export function EcranJeu({
   const dock = composerDock(observation, passagesOuverts(jeu.partie), passagesEntendus(jeu.partie), manoeuvresBruyantes(env.monde, jeu.partie, observation));
   const son = useSon();
   const [ouverte, setOuverte] = useState<Ouverte | null>(null);
-  const fermeLePoste = fermerPoste(observation, jeu.alertes, dangersDuRecit(jeu.partie.derniers).filter((nature) => nature !== null));
+  const fermeLePoste = fermerPoste(observation, jeu.alertes, jeu.partie.derniers);
   const [poste, setPoste] = useState(() => suivrePoste(null, jeu, fermeLePoste));
   // Nouveau pas : la fenêtre se suit pendant le rendu, sans attendre un effet (état tiré du rendu précédent).
   const suivi = poste.partie === jeu.partie ? poste : suivrePoste(poste, jeu, fermeLePoste);

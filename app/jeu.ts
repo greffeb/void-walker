@@ -222,11 +222,12 @@ export function camerasChangees(avant: Observation['cameras'], apres: Observatio
 }
 
 /**
- * La fenêtre du poste se ferme d'elle-même (lot 4, Review Focus 1) : le passager n'est plus connecté dans la salle, ou le pas a une
- * alerte (menace, danger apparu) ou un danger dans son récit. Le récit montre alors tout, rien n'est caché sous la fenêtre.
+ * La fenêtre du poste se ferme d'elle-même (lot 4, D-358) : le passager n'est plus connecté dans la salle, ou le récit du pas dit autre
+ * chose que l'attente seule (ou la connexion qui ouvre la fenêtre) : signe de la créature, écoute, message, ou une alerte. Le récit
+ * montre alors tout, rien n'est caché sous la fenêtre ; les caméras, elles, changent sur la ligne de la fenêtre sans la fermer.
  */
-export function fermerPoste(observation: Observation, alertes: readonly number[], dangers: readonly unknown[]): boolean {
-  return observation.cameras === undefined || alertes.length > 0 || dangers.length > 0;
+export function fermerPoste(observation: Observation, alertes: readonly number[], evenements: readonly Evenement[]): boolean {
+  return observation.cameras === undefined || alertes.length > 0 || evenements.some(({ type }) => type !== 'attente' && type !== 'terminal_connecte');
 }
 
 /** Message de l'historique d'IA Station (12 §3.9) : son identifiant, son repère de moment sans heure, puis le texte. */

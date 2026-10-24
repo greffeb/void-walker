@@ -251,6 +251,37 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
         if (piece.rect === null) return null;
         const cible = zoneTouchable(enPixels(piece.rect, vue, casePx));
         const textesPiece = etiquettes(piece, nomDe(textes, piece.piece).texte, regardDe(piece), vue.zoom, cameras?.get(piece.piece.id));
+        const style = { left: cible.gauche, top: cible.haut, width: cible.largeur, height: cible.hauteur, '--texte-carte': textesPiece.texte } as CSSProperties;
+        const contenu = (
+          <span className="carte-textes" aria-hidden="true">
+            {textesPiece.nom.map((ligne) => (
+              <span key={ligne} className="carte-nom">
+                {ligne}
+              </span>
+            ))}
+            {textesPiece.etats.map((ligne) => (
+              <span key={ligne.join(' ')} className="carte-etats">
+                {ligne.map((marque) => (
+                  <span key={marque} className="carte-etiquette" data-marque={marque}>
+                    {TEXTE_MARQUE[marque]}
+                  </span>
+                ))}
+              </span>
+            ))}
+            {textesPiece.anciennete.map((ligne) => (
+              <span key={ligne} className="carte-anciennete">
+                {ligne}
+              </span>
+            ))}
+          </span>
+        );
+        // Fenêtre du poste : une pièce n'y ouvre rien, ni bouton ni arrêt de tabulation ; la liste des caméras la dit au lecteur d'écran.
+        if (cameras !== undefined)
+          return (
+            <div key={piece.piece.id} className="carte-piece" data-statut={piece.statut} style={style}>
+              {contenu}
+            </div>
+          );
         return (
           <button
             key={piece.piece.id}
@@ -258,10 +289,10 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
             className="carte-piece"
             data-statut={piece.statut}
             aria-label={libellePiece(textes, piece)}
-            aria-haspopup={cameras === undefined ? 'dialog' : undefined}
-            aria-expanded={cameras === undefined ? ouverte === piece.piece.id : undefined}
+            aria-haspopup="dialog"
+            aria-expanded={ouverte === piece.piece.id}
             // --texte-carte : le texte suit le plan quand on dézoome, jusqu'aux trois quarts (TEXTE_MIN).
-            style={{ left: cible.gauche, top: cible.haut, width: cible.largeur, height: cible.hauteur, '--texte-carte': textesPiece.texte } as CSSProperties}
+            style={style}
             // Un clic au clavier (detail 0) ouvre toujours ; le clic qui termine un glissement n'ouvre rien, et lui seul : une
             // activation suivante sans nouvel appui, comme celle d'un lecteur d'écran, ouvre la fiche.
             onClick={(evenement) => {
@@ -280,29 +311,9 @@ export function PlanCarte({ carte, textes, vue, casePx, zoomMin, changerVue, tou
               if (rect === null || plan === undefined) return;
               changerVue((courante) => montrer(courante, enPixels(rect, courante, casePx), { largeur: plan.width, hauteur: plan.height }));
             }}
-            data-son={cameras === undefined ? 'bulle' : undefined}
+            data-son="bulle"
           >
-            <span className="carte-textes" aria-hidden="true">
-              {textesPiece.nom.map((ligne) => (
-                <span key={ligne} className="carte-nom">
-                  {ligne}
-                </span>
-              ))}
-              {textesPiece.etats.map((ligne) => (
-                <span key={ligne.join(' ')} className="carte-etats">
-                  {ligne.map((marque) => (
-                    <span key={marque} className="carte-etiquette" data-marque={marque}>
-                      {TEXTE_MARQUE[marque]}
-                    </span>
-                  ))}
-                </span>
-              ))}
-              {textesPiece.anciennete.map((ligne) => (
-                <span key={ligne} className="carte-anciennete">
-                  {ligne}
-                </span>
-              ))}
-            </span>
+            {contenu}
           </button>
         );
       })}

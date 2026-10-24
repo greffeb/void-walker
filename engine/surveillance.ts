@@ -25,8 +25,8 @@ export function salleDeSurveillance(monde: DefMonde): string | null {
 
 /**
  * Révélation au terminal (lot 4) : toutes les liaisons non cachées découvertes, leur état en mémoire, et pour chaque pièce hors de
- * celle du passager un souvenir du moment avec son feu, sans objet neuf : on garde ceux déjà vus. `visitees` ne bouge pas : le
- * regard d'arrivée reste dû ; la carte dessine toute la station d'après `connecte`.
+ * celle du passager son feu du moment, rien d'autre : ni regard ni objet neuf, on garde ceux d'une visite. `visitees` ne bouge pas :
+ * le regard d'arrivée reste dû ; la carte dessine toute la station d'après `connecte`, une pièce jamais visitée y reste connue.
  */
 export function reveler(monde: DefMonde, etat: EtatPartie): EtatPartie {
   const liaisons = monde.liaisons.filter((liaison) => liaison.cachee === undefined || etat.decouvertes.includes(liaison.id));
@@ -34,7 +34,7 @@ export function reveler(monde: DefMonde, etat: EtatPartie): EtatPartie {
   const pieces: Record<string, SouvenirPiece> = { ...etat.memoire.pieces };
   for (const { id } of monde.pieces) {
     if (id === etat.piece) continue;
-    pieces[id] = { regard: etat.actions, feu: { vu: enFeu(etat, id), actions: etat.actions }, objets: pieces[id]?.objets ?? [] };
+    pieces[id] = { ...pieces[id], feu: { vu: enFeu(etat, id), actions: etat.actions } };
   }
   return {
     ...etat,

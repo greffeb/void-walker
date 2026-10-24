@@ -794,12 +794,26 @@ describe('fenêtre du poste : caméras changées et fermeture (lot 4)', () => {
     expect(camerasChangees(avant, undefined)).toEqual([]);
   });
 
-  it('fermerPoste : vraie sans caméras ou avec une alerte, fausse pour une attente calme dans la salle', () => {
+  const porte = { sorte: 'passage', id: 'p-x', nom: 'porte', ouvert: false, vers: null, signale: true, feu: false, huile: false, vide: false, gouffre: false } as const;
+
+  it('fermerPoste : vraie sans caméras, avec une alerte ou un récit qui dit autre chose que l’attente', () => {
     const observation = observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat);
     const dansLaSalle = { ...observation, cameras: [{ piece: remise, etat: 'calme' as const }] };
-    expect(fermerPoste(observation, [], [])).toBe(true);
-    expect(fermerPoste(dansLaSalle, [1], [])).toBe(true);
-    expect(fermerPoste(dansLaSalle, [], ['feu'])).toBe(true);
-    expect(fermerPoste(dansLaSalle, [], [])).toBe(false);
+    expect(fermerPoste(observation, [], [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste(dansLaSalle, [1], [{ type: 'attente' }])).toBe(true);
+    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente' }, { type: 'ecoute', passage: porte, entendu: 'vague' }])).toBe(true);
+    expect(fermerPoste(dansLaSalle, [], [{ type: 'assistance', message: 'm-x' }])).toBe(true);
+  });
+
+  it('fermerPoste : porte secouée pendant la veille → la fenêtre se ferme', () => {
+    const dansLaSalle = { ...observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat), cameras: [{ piece: remise, etat: 'calme' as const }] };
+    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente' }, { type: 'porte_secouee', passage: porte }])).toBe(true);
+  });
+
+  it('fermerPoste : attente calme → reste ouverte, connexion seule aussi', () => {
+    const dansLaSalle = { ...observer(monde, nouvellePartie(monde, { version: 'v-test', graine: 1 }).etat), cameras: [{ piece: remise, etat: 'calme' as const }] };
+    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente' }])).toBe(false);
+    expect(fermerPoste(dansLaSalle, [], [{ type: 'attente', vacarme: true }])).toBe(false);
+    expect(fermerPoste(dansLaSalle, [], [{ type: 'terminal_connecte' }])).toBe(false);
   });
 });
