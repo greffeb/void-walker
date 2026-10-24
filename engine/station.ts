@@ -1,6 +1,7 @@
+import { placerDrones } from './drone';
 import { etendreGrande } from './grande';
 import { validerMonde, type CategoriePiece, type DefAssistance, type DefLiaison, type DefMonde, type DefObjet, type DefPiece, type DefPosition, type FormeAnnexe } from './monde';
-import { liensEnChaine, porteEntre, poserTuiles, prefixer, type Lien } from './pose';
+import { liensEnChaine, porteEntre, poserTuiles, prefixer, sousGraine, type Lien } from './pose';
 
 export { prefixer };
 export type { CategoriePiece, FormeAnnexe };
@@ -386,8 +387,10 @@ export const assemblerStation: Assembleur = (station) => {
     creature: { piece: station.creature },
     assistance: [...(station.assistance ?? []), ...morceaux.flatMap((morceau) => (morceau.assistance ?? []).map((message) => assistanceDe(morceau.id, message)))],
   };
-  const final = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
-  if (final === null) return { type: 'sans_plan' };
+  const etendu = station.grande === undefined ? monde : etendreGrande(monde, station, station.grande);
+  if (etendu === null) return { type: 'sans_plan' };
+  // Place du drone tirée à chaque station, petites comprises (#270) : jamais deux fois la même configuration.
+  const final = placerDrones(etendu, sousGraine(station.graine, 'drone'));
   const erreurs = validerMonde(final);
   return erreurs.length > 0 ? { type: 'invalide', erreurs } : { type: 'station', monde: final };
 };

@@ -1,5 +1,6 @@
 import type { ActionEngagee, Effet } from './actions';
 import type { SonEmis } from './creature';
+import { generateurDepuisGraine, suivant } from './des';
 import { assourdie, autreCote, objetsDans, refObjet, refPassage, type EtatPartie } from './etat';
 import { indexer, type DefLiaison, type DefMonde, type DefObjet } from './monde';
 import type { Evenement, PhaseDrone, Savoir } from './vocabulaire';
@@ -84,6 +85,21 @@ export function placesDuDrone(monde: DefMonde, drone: string): readonly string[]
     }
     return true;
   });
+}
+
+/** Chaque drone posé dans une de ses places, tirée uniformément sur cette graine ; sans place, il reste où il est (#270). */
+export function placerDrones(monde: DefMonde, graine: number): DefMonde {
+  let alea = generateurDepuisGraine(graine);
+  let resultat = monde;
+  for (const objet of monde.objets) {
+    if (objet.drone === undefined) continue;
+    const places = placesDuDrone(resultat, objet.id);
+    if (places.length === 0) continue;
+    const tirage = suivant(alea);
+    alea = tirage.etat;
+    resultat = avecDroneEn(resultat, objet.id, places[Math.floor((tirage.valeur / 4294967296) * places.length)] ?? objet.piece);
+  }
+  return resultat;
 }
 
 /** Le monde, drone posé dans cette pièce, hors de toute position. */

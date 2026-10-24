@@ -3,7 +3,7 @@ import { carte } from './carte';
 import { observer } from './observation';
 import { sortiePossible } from './sortie';
 import { idPublic, validerMonde, type DefMonde } from './monde';
-import { avecDroneEn, cheminDrone, placesDuDrone, renverserDrone, sonsDrones } from './drone';
+import { avecDroneEn, cheminDrone, placerDrones, placesDuDrone, renverserDrone, sonsDrones } from './drone';
 
 // Noms et identifiants sans rapport avec le morceau : seules les qualités font règle.
 // a (départ, drone) ─ b ─ c ─ d (obstacle z en travers de df) ─ f ; c ─ e (créature) ; b ┄ d fermée ; a ≈ g (vide) ; b ▣ h (cloison
@@ -50,6 +50,12 @@ describe('chemin et places du drone', () => {
   it('une cloison qu’on déverrouille avant l’obstacle ouvre une place', () => {
     const monde = avecObjets(MONDE.objets.map((objet) => (objet.id === 'k' ? { ...objet, piece: 'c' } : objet)));
     expect(placesDuDrone(monde, 'x')).toEqual(['a', 'b', 'c', 'e', 'h']);
+  });
+  it('placerDrones tire parmi les places, de façon stable', () => {
+    const tirees = Array.from({ length: 200 }, (_, graine) => placerDrones(MONDE, graine).objets.find((objet) => objet.id === 'x')?.piece);
+    expect(new Set(tirees)).toEqual(new Set(['a', 'b', 'c', 'e']));
+    expect(placerDrones(MONDE, 17)).toEqual(placerDrones(MONDE, 17));
+    expect(placerDrones({ ...MONDE, objets: MONDE.objets.filter((objet) => objet.drone === undefined && objet.obstacle === undefined) }, 3).objets).toHaveLength(1);
   });
   it('avecDroneEn déplace le drone sans position', () => {
     expect(avecDroneEn(MONDE, 'x', 'e').objets.find((objet) => objet.id === 'x')?.piece).toBe('e');
