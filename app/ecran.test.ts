@@ -338,12 +338,12 @@ describe('bulles de composition (12 §3.5 à §3.7)', () => {
 
 describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
   const ar01 = MONDES['ar-01'] as EntreeMonde;
-  const P_C = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes ?? [];
+  const etapes = (nom: string) => ar01.parcours.find((parcours) => parcours.nom.startsWith(nom))?.etapes ?? [];
 
-  /** Partie AR-01 après les `nombre` premières étapes de P-C, jouées par les commandes du menu. */
-  function pc(nombre: number): Partie {
+  /** Partie AR-01 après les `nombre` premières étapes du parcours (P-C par défaut), jouées par les commandes du menu. */
+  function pc(nombre: number, parcours = 'P-C'): Partie {
     let partie = nouvellePartie(ar01.monde, { version: 'ecran', graine: 20261010 });
-    for (const etape of P_C.slice(0, nombre)) {
+    for (const etape of etapes(parcours).slice(0, nombre)) {
       const option = observer(ar01.monde, partie.etat).menu.find(
         (choix) =>
           choix.action === etape.action &&
@@ -364,6 +364,12 @@ describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
     if (trouve === undefined) throw new Error(`Puce ${nom} absente.`);
     return trouve;
   }
+
+  it('arroser vise la pièce derrière la cloison : « OÙ ? » la nomme, pas la cloison (#272)', () => {
+    const ou = etapeBulle(groupe(pc(4, 'P-B'), 'bidon', 'inventaire'), 'arroser', null);
+    if (ou.type !== 'parametre') throw new Error(`Étape ${ou.type}.`);
+    expect(ou.options.map((option) => option.parametre === undefined ? '' : nomParametre(ar01.textes, option.action, option.parametre))).toEqual(['local technique']);
+  });
 
   it('grille sans signalétique : puce tant qu’on ne l’a pas ouverte ; ouverte puis refermée, elle reste dans « Se déplacer vers » (D-147, D-229)', () => {
     const ou = (partie: Partie): string => {
@@ -392,7 +398,7 @@ describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
       composerDock(observer(ar01.monde, partie.etat), passagesOuverts(partie)).deplacements.find((candidat) => candidat.cible.nom === 'ecoutille')?.options ?? [];
     const manoeuvre = (partie: Partie): OptionMenu | undefined => groupe(partie, 'pupitre').options.find((option) => option.cible.nom === 'ecoutille');
 
-    const ouverte = pc(P_C.length - 2);
+    const ouverte = pc(etapes('P-C').length - 2);
     expect(lignes(ouverte)).toEqual(['fermer', 'lancer']);
     expect(ecoutille(ouverte)).toContainEqual(manoeuvre(ouverte));
     const fermer = manoeuvre(ouverte);
@@ -430,7 +436,7 @@ describe('étape « OÙ ? » de la bulle, sur AR-01 (12 §3.5, §4.6)', () => {
     const ou = etapeBulle(caisse, 'deplacer', null);
     if (ou.type !== 'parametre') throw new Error(`Étape ${ou.type}.`);
     expect(ou.options.every((option) => option.disponible && option.action === 'deplacer')).toBe(true);
-    expect(ou.options.map((option) => option.parametre === undefined ? '' : nomParametre(ar01.textes, option.parametre))).toEqual(['sous la grille']);
+    expect(ou.options.map((option) => option.parametre === undefined ? '' : nomParametre(ar01.textes, option.action, option.parametre))).toEqual(['sous la grille']);
     expect(precedente(ou)).toEqual({ action: null, parametre: null });
 
     const [sous] = ou.options;
