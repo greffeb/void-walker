@@ -86,10 +86,10 @@ La partie voulue :
    - seule condition : un chemin vers le palier que le drone peut franchir (§3.2) ;
    - le tirage est uniforme, sur une sous-graine propre ;
    - aucune borne de distance a priori, puisque le porteur accepte « même loin du morceau ». Le constructeur mesure la durée des parties et la montre au porteur. Une borne n'est ajoutée que si le porteur la demande.
-9. **Placement dans une petite station.** M-12 est aussi tiré dans les petites stations (`m01-m12-m03-reserve`, etc.). Le même tirage s'applique, sur la graine de la station, à ses pièces placées avant le chariot. Faute de candidate, le drone reste dans sa pièce d'origine.
+9. **Placement dans une petite station.** M-12 est aussi tiré dans les petites stations (`m01-m12-m03-reserve`, etc.). Le même tirage s'applique, sur la graine de la station : le drone change de pièce à chaque partie, petites stations comprises (choix du porteur, annexe A). Faute de candidate, le drone reste dans sa pièce d'origine.
 10. **Le morceau rétrécit.** Il reste une pièce d'entrée, le palier du chariot, la réserve où la créature peut attendre (place inchangée), la pièce d'origine du drone et le quai, derrière le chariot. Le poste de commande et la galerie de détour disparaissent. Le quai reste, parce qu'en ordre libre c'est là qu'est posée la commande de cloison de la branche (`PIECES_COMMANDE … ?? sortie.piece`, `content/stations/catalogue.ts`) : le chariot bloque donc l'avancée en chaîne comme en ordre libre, ce que demande le porteur. Contrainte : l'entrée n'est pas la pièce du drone, pour qu'on ne le découvre pas forcément avant le palier.
 11. **Carte.** Le code suit déjà en direct, hors de vue, un drone envoyé (`engine/carte.ts`, phases « trajet » et « maintien »). Ce suivi reste valable pour toute la tâche : en route, devant une porte fermée, en train de tirer le chariot et renversé, jusqu'à ce que la tâche soit finie. Le joueur voit ainsi sur la carte l'endroit où son drone s'est arrêté ou est tombé, comme décrit au porteur, sans qu'aucun message l'en prévienne. D-307 est précisée dans ce sens.
-12. **Preuve.** Chaque station publiée est prouvée avec la place de drone que sa graine tire, comme pour les clés. On n'énumère pas toutes les places possibles.
+12. **Preuve.** Une grande station publiée est prouvée avec la place de drone que sa graine tire, comme pour les clés. Une petite station vaut pour toutes ses graines : elle est prouvée avec **chacune** de ses places de drone possibles, et n'est publiée que si toutes se prouvent. Le porteur accepte que `check:stations` dure plus longtemps ; la durée mesurée est donnée dans la PR.
 13. **Textes.** Le drone est un drone de manutention à roues. Les gestes de panne deviennent « redresser » et « relancer », et ne parlent plus de rail. Le message de Clara et la bible (`docs/17-univers.md`) sont réécrits pour le chariot trop lourd. Tous ces textes restent à faire valider par le porteur (C-07).
 
 ## 5. Décisions touchées
@@ -103,7 +103,7 @@ La partie voulue :
 
 ## 6. Preuves et conséquences
 
-- `check:stations` prouve chaque station publiée avec M-12, avec la place de drone tirée par sa graine (§4.12).
+- `check:stations` prouve chaque station publiée avec M-12 : chaque place possible pour une petite station, la place tirée pour une grande (§4.12).
 - Le tirage du drone change les grandes stations publiées : `VERSION_GENERATEUR` augmente et `publier:grandes` est relancé (plus d'une heure, en arrière-plan).
 - Les petites stations avec M-12 sont prouvées à nouveau, et la liste de D-268 et D-307 réexaminée.
 - Il faut un parcours de référence (`content/m-12/parcours.ts`), réécrit avec l'ordre « chariot vu, puis drone, portes ouvertes, chariot dégagé ».
@@ -133,3 +133,4 @@ La partie voulue :
 - « rien n'empêche ce drone de se trouver derrière d'autres portes, telles que le sas de sécurité. […] Peut-être pas la passerelle qui a la planche fragile, et pas la grille »
 - Sur la description résumée : « ça paraît bien ».
 - « On peut mettre un bouton d'arrêt, mais par contre, il faut s'assurer de pouvoir le suivre ou bien le rattraper. Peut-être que le drone peut mettre deux actions à bouger pendant que nous, on n'en met qu'une seule. »
+- Sur les petites stations, entre une pièce fixe, une place fixe par combinaison et une place qui change à chaque partie (vérification plus longue) : « Change à chaque partie ».
