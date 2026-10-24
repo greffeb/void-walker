@@ -14,6 +14,8 @@ Void Walker : jeu narratif d'horreur spatiale, PWA mobile (TypeScript, React, Vi
 
 ## Commandes
 
+Node ≥ 22.13 (`engines` du `package.json`).
+
 ```bash
 npm run verify              # vérification complète (lint, typecheck, check:imports, check:links, check:texts, check:stations, check:sortie, test, parcours, build), s'arrête au premier échec
 npm run verify:complet      # facultatif, hors CI : sans cache, catalogue prouvé deux fois, 1 000 plans par chemin
@@ -23,6 +25,7 @@ npx vitest run engine/creature.test.ts -t "fragment du nom"
 npx vite                    # serveur de dev (racine app/) ; ?monde=<id> ou ?station=<id> choisit le monde
 npm run cli -- aide         # la même partie en ligne de commande (nouvelle, voir, jouer <n>, apercu <n>, carte…)
 npm run cli -- --station m07-m03-soute nouvelle --graine 1
+npm run captures            # captures Playwright des étapes (celles désignées par `Captures :` en PR)
 ```
 
 - `check:stations` et `check:texts` gardent leurs verdicts dans `.cache/verifs/` tant que l'empreinte du code importé ne change pas ; `--sans-cache` les ignore. Ils acceptent `--processus=<n>` et `--lot=k/n`.
@@ -49,7 +52,7 @@ Principes qui traversent plusieurs fichiers :
 - **L'observation publique** (`engine/observation.ts`) est la seule sortie vers le joueur ; seul le vérificateur lit l'état complet.
 - **Les règles lisent des qualités déclarées**, jamais le nom d'un objet ou d'une pièce.
 - **Textes = données** écrites à la main dans `content/`, séparées du moteur (`docs/contrats/C-07-textes.md`) : français, vouvoiement, courts, aucun chiffre de dé affiché. Libellés de l'interface dans `app/libelles/fr.ts` uniquement : `tools/phrases-en-dur.test.ts` refuse une phrase écrite en dur ailleurs dans `app/`.
-- **Stations** : assemblées depuis des morceaux écrits à la main ; chaque composition est prouvée par `check:stations` (toujours un chemin sûr au départ, 100 plans par chemin). Les grandes stations publiées sont figées (`publier:grandes`, `VERSION_GENERATEUR`) ; un changement du générateur change le catalogue.
+- **Stations** : assemblées depuis des morceaux écrits à la main ; chaque composition est prouvée par `check:stations` (toujours un chemin sûr au départ, 100 plans par chemin). Les grandes stations publiées sont figées (`publier:grandes`, `VERSION_GENERATEUR`) ; un changement du générateur change le catalogue. `publier:grandes` dure plus d'une heure : le lancer en arrière-plan.
 
 ## Règles de travail
 
