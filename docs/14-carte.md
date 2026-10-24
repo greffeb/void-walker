@@ -32,7 +32,7 @@ La carte a sa propre couleur, comme le cyan de l'inventaire (D-176) et le blanc 
 | `vert` | `#5CFF7A` | Titre, pièce actuelle, icône du passager, étiquettes FEU et CRÉATURE | 15,2:1 |
 | `vert-texte` | `#A6F5B0` | Noms des pièces, texte courant, boutons | 15,5:1 |
 | `vert-secondaire` | `#62B06D` | Murs des pièces visitées, ancienneté, titres de section, œil de la créature vue il y a longtemps | 7,6:1 |
-| `vert-signal` | `#DDFFB8` | Vide : points, étiquette, voyant | 18,1:1 |
+| `vert-signal` | `#DDFFB8` | Vide : points, étiquette | 18,1:1 |
 | `vert-bordure` | `#3E7046` | Murs en pointillé des pièces connues, contour du bouton LISTE | 3,4:1 |
 | `vert-separateur` | `#1F3A24` | Filets décoratifs seulement | 1,6:1 |
 | `alerte` | `#FF5A4A` | Œil de la créature seulement (D-273), le rouge du danger apparu (12 §2.6) | 6,5:1 (6,1:1 sur `vert-surface`) |
@@ -94,8 +94,8 @@ Icônes (D-273) :
 
 ### 2.6 Portes et passages
 
-- Une porte est une **ouverture** dans le mur commun. Fermée au dernier regard, elle est barrée d'un trait fin.
-- Porte étanche : un **voyant** dans l'ouverture, plein ● pour l'air, vide ○ pour le vide, tenu à jour dès que la destination est connue (OP-04, détails de #104).
+- Une porte est une **ouverture** dans le mur commun, bordée de deux petits taquets. Fermée au dernier regard, une **barre** claire et épaisse la bouche (D-355).
+- Porte étanche : son **voyant** n'est pas dessiné sur le plan (D-355). L'air qu'il donne, tenu à jour dès que la destination est connue (OP-04, détails de #104), se lit par le motif et l'étiquette VIDE de la pièce, dans sa fiche et dans la vue LISTE.
 - Grille, conduit étroit, panneau : ouverture en tirets.
 - Passage sans signalétique à destination inconnue : ouverture en tirets et « **?** ». Ce passage ne fait pas connaître la pièce d'en face (OP-03). Si cette pièce est connue par ailleurs, la géométrie peut laisser deviner la destination ; aucun texte ne la nomme.
 - Passage caché non découvert : rien, de chaque côté, même de celui où le panneau se voit, puisqu'il ne se distingue pas d'un panneau ordinaire (K-05, AR-01 §11.1). Découvert, il se dessine comme les autres.

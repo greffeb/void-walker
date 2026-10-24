@@ -1,0 +1,267 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Portes sur la carte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Comparateur : le plan de la carte à l'échelle de l'écran (34 px par case), une option de dessin des portes par onglet, zoom 1 ou dézoom. Phosphore vert. */
+:root {
+  color-scheme: dark;
+  --fond: #0a0907;
+  --texte: #f4c27a;
+  --accent: #ffb23f;
+  --secondaire: #b08850;
+  --bordure: #76603a;
+  --separateur: #4a3a20;
+  --vert-fond: #050a06;
+  --vert-surface: #0b140d;
+  --vert: #5cff7a;
+  --vert-texte: #a6f5b0;
+  --vert-secondaire: #62b06d;
+  --vert-signal: #ddffb8;
+  --vert-bordure: #3e7046;
+  --vert-separateur: #1f3a24;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+html, body { background: #050403; margin: 0; }
+body { color: var(--texte); font-family: var(--mono); font-size: 15px; line-height: 1.5; }
+.page { max-width: 440px; margin: 0 auto; padding-block: 16px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 12px; }
+.chapeau { font-size: 13px; color: var(--secondaire); margin: 0; }
+.chapeau b { color: var(--texte); font-weight: 600; }
+.etiquette { font-size: 11px; color: var(--secondaire); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 -6px; }
+.onglets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.zooms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.onglet { font: inherit; font-size: 12px; letter-spacing: .04em; min-height: 44px; background: transparent; color: var(--texte); border: 1px solid var(--bordure); cursor: pointer; padding: 2px; }
+.onglet[aria-selected=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.carte { background: var(--vert-fond); border: 1px solid var(--vert); color: var(--vert-texte); }
+.carte header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--vert-separateur); }
+.carte h3 { margin: 0; font-size: 16px; color: var(--vert); letter-spacing: .04em; }
+.carte header span { font-size: 12px; border: 1px solid var(--vert-bordure); padding: 8px 10px; }
+.carte svg { display: block; width: 100%; height: auto; }
+
+.sol { fill: var(--vert-surface); }
+.mur { fill: none; stroke: var(--vert-secondaire); stroke-width: 2; }
+.mur.actuelle { stroke: var(--vert); stroke-width: 3; }
+.mur.connue { stroke: var(--vert-bordure); stroke-dasharray: 6 4; }
+.nom { fill: var(--vert-texte); font-family: var(--mono); font-weight: 600; letter-spacing: .04em; }
+.nom.actuelle { fill: var(--vert); }
+.nom.connue { fill: var(--vert-secondaire); }
+.joueur .point { fill: var(--vert); }
+.joueur .anneau { fill: none; stroke: var(--vert); stroke-width: 1.5; opacity: .6; }
+.inconnue { fill: var(--vert-texte); font-family: var(--mono); font-weight: 600; }
+.cible { fill: transparent; cursor: pointer; }
+
+/* Communs à toutes les options : le trou dans le mur, et les tirets d'une grille ou d'un passage sans signalétique (inchangés). */
+.trou { stroke: var(--vert-fond); }
+.tirets { stroke: var(--vert-secondaire); stroke-width: 2; stroke-dasharray: 3 3; }
+/* Actuel : trait fin si fermée. */
+.trait-fin { stroke: var(--vert-texte); stroke-width: 1; }
+/* Taquets : les deux bords de l'ouverture. */
+.taquet { stroke: var(--vert); stroke-width: 2; }
+.taquet.doux { stroke: var(--vert-secondaire); stroke-width: 2; }
+/* Barre ou vantail : la porte elle-même, la couleur la plus claire de la carte. */
+.barre { stroke: var(--vert-signal); stroke-width: 4; }
+.vantail { stroke: var(--vert-signal); stroke-width: 4; }
+.bloc-plein { fill: var(--vert-signal); }
+.bloc-creux { fill: var(--vert-fond); stroke: var(--vert); stroke-width: 1.5; }
+.seuil { fill: var(--vert); opacity: .3; }
+
+.legende { display: grid; gap: 8px; }
+.ligne-legende { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.legende h4 { grid-column: 1 / -1; margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--texte); letter-spacing: .03em; }
+.ligne-legende.choisie h4 { color: var(--accent); }
+.legende figure { margin: 0; background: var(--vert-fond); border: 1px solid var(--vert-separateur); padding: 4px 4px 2px; display: grid; gap: 0; }
+.ligne-legende.choisie figure { border-color: var(--vert-bordure); }
+.legende figure svg { width: 100%; height: auto; display: block; }
+.legende figcaption { font-size: 11px; color: var(--vert-texte); text-align: center; text-transform: uppercase; letter-spacing: .06em; }
+.echelle { fill: var(--vert-secondaire); font-family: var(--mono); font-size: 9px; }
+
+.verdict { font-size: 13px; color: var(--secondaire); border-left: 2px solid var(--bordure); padding-left: 10px; margin: 0; }
+.verdict b { color: var(--texte); font-weight: 600; }
+</style>
+
+<div class="page">
+  <p class="chapeau">Les portes sur le plan, à la taille réelle d'un téléphone (une case = 34 px). <b>Touche une porte</b> du plan pour l'ouvrir ou la fermer. Les tirets (grille, conduit) et le « ? » restent comme aujourd'hui ; les voyants d'air et de vide sont laissés de côté.</p>
+
+  <p class="etiquette">Option</p>
+  <div class="onglets" role="tablist" id="options"></div>
+  <p class="etiquette">Échelle</p>
+  <div class="zooms" role="tablist" id="zooms"></div>
+
+  <div class="carte">
+    <header><h3>STATION</h3><span>LISTE</span></header>
+    <svg id="plan" aria-label="Plan de la station"></svg>
+  </div>
+
+  <p class="verdict" id="verdict"></p>
+
+  <p class="etiquette">Toutes les options, ouverte et fermée</p>
+  <div class="legende" id="legende"></div>
+</div>
+
+<script>
+const CASE = 34;
+const MARGE = 13;
+// Plan en cases, comme les rects du moteur : [x, y, largeur, hauteur, statut].
+const PIECES = [
+  ['Remise', 3, 1, 4, 4, 'visitee'],
+  ['Atelier', 0, 4, 3, 4, 'visitee'],
+  ['Coursive B', 3, 5, 4, 2, 'actuelle'],
+  ['Laverie', 7, 4, 3, 3, 'visitee'],
+  ['Salle des machines', 2, 7, 6, 4, 'visitee'],
+  ['Réserve', 0, 8, 2, 3, 'connue'],
+];
+// Emplacements « mur » du moteur : axe, ligne, rang ; dessin porte ou tirets.
+const PORTES = [
+  { id: 'remise', axe: 'h', ligne: 5, rang: 4, dessin: 'porte', ouvert: true },
+  { id: 'atelier', axe: 'v', ligne: 3, rang: 5, dessin: 'porte', ouvert: false },
+  { id: 'laverie', axe: 'v', ligne: 7, rang: 5, dessin: 'porte', ouvert: true },
+  { id: 'machines', axe: 'h', ligne: 7, rang: 4, dessin: 'porte', ouvert: false },
+  { id: 'laverie-machines', axe: 'h', ligne: 7, rang: 7, dessin: 'porte', ouvert: true },
+  { id: 'reserve', axe: 'h', ligne: 8, rang: 0, dessin: 'porte', ouvert: false },
+  { id: 'grille', axe: 'v', ligne: 2, rang: 9, dessin: 'tirets' },
+  { id: 'inconnu', axe: 'v', ligne: 10, rang: 5, dessin: 'tirets', inconnue: true },
+];
+
+const ligne = (p, a1, b1, a2, b2, classe, largeur) => {
+  const [x1, y1] = p(a1, b1);
+  const [x2, y2] = p(a2, b2);
+  return `<line class="${classe}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"${largeur ? ` stroke-width="${largeur}"` : ''}/>`;
+};
+// Rectangle centré sur la porte : `long` le long du mur, `epais` à travers.
+const pave = (p, long, epais, classe, axe) => {
+  const [cx, cy] = p(0, 0);
+  const [l, h] = axe === 'h' ? [long, epais] : [epais, long];
+  return `<rect class="${classe}" x="${cx - l / 2}" y="${cy - h / 2}" width="${l}" height="${h}"/>`;
+};
+
+/* Chaque option dessine une porte autour de son centre, avec `a` le long du mur et `b` à travers, en px ; `s` = px par case. */
+const OPTIONS = [
+  {
+    nom: 'Actuel', court: 'Actuel',
+    porte: (p, s, ouvert) => ligne(p, -s / 4, 0, s / 4, 0, 'trou', 5) + (ouvert ? '' : ligne(p, -s / 4, 0, s / 4, 0, 'trait-fin')),
+    verdict: 'Le dessin du jeu aujourd\'hui : un trou d\'une demi-case (17 px) et, fermée, un trait de 1 px. Au dézoom le trou fait 8 px et le trait disparaît presque.',
+  },
+  {
+    nom: 'A. Barre', court: 'A',
+    porte: (p, s, ouvert) => {
+      const h = 0.32 * s;
+      return ligne(p, -h, 0, h, 0, 'trou', 6) + ligne(p, -h, -3, -h, 3, 'taquet') + ligne(p, h, -3, h, 3, 'taquet') + (ouvert ? '' : ligne(p, -h, 0, h, 0, 'barre'));
+    },
+    verdict: 'Fermée : une barre épaisse et très claire bouche l\'ouverture. Ouverte : un trou net, plus large qu\'aujourd\'hui, entre deux taquets. Le plus proche du dessin actuel, en plus franc.',
+  },
+  {
+    nom: 'B. Coulissante', court: 'B',
+    porte: (p, s, ouvert) => {
+      const h = 0.3 * s;
+      const cadre = ligne(p, -h, 0, h, 0, 'trou', 6) + ligne(p, -h, -4, -h, 4, 'taquet doux') + ligne(p, h, -4, h, 4, 'taquet doux');
+      return cadre + (ouvert ? ligne(p, h + 2, 0, 3 * h, 0, 'vantail') : ligne(p, -h, 0, h, 0, 'vantail'));
+    },
+    verdict: 'Le vantail clair est dans l\'ouverture quand la porte est fermée, et rangé dans le mur à côté quand elle est ouverte. Ça colle aux portes de la station, qui glissent dans le récit. Il faut une case de mur libre à côté de la porte.',
+  },
+  {
+    nom: 'C. Plein / creux', court: 'C',
+    porte: (p, s, ouvert, axe) => ligne(p, -0.28 * s, 0, 0.28 * s, 0, 'trou', 6) + pave(p, 0.56 * s, Math.max(6, 0.27 * s), ouvert ? 'bloc-creux' : 'bloc-plein', axe),
+    verdict: 'Un petit bloc posé sur le mur : plein quand la porte est fermée, creux quand elle est ouverte. Le plus visible au dézoom. Attention, c\'est l\'inverse du témoin du dock, où le carré plein veut dire « ouverte ».',
+  },
+  {
+    nom: 'D. Seuil éclairé', court: 'D',
+    porte: (p, s, ouvert, axe) => {
+      const h = 0.3 * s;
+      const prof = Math.max(8, 0.24 * s);
+      return ouvert
+        ? ligne(p, -h, 0, h, 0, 'trou', 6) + pave(p, 2 * h, 2 * prof, 'seuil', axe) + ligne(p, -h, -prof, -h, prof, 'taquet') + ligne(p, h, -prof, h, prof, 'taquet')
+        : ligne(p, -h, 0, h, 0, 'trou', 6) + ligne(p, -h, -4, -h, 4, 'taquet doux') + ligne(p, h, -4, h, 4, 'taquet doux') + ligne(p, -h, 0, h, 0, 'barre');
+    },
+    verdict: 'Ouverte : le passage traverse le mur, une bande claire relie les deux sols, comme un petit couloir. Fermée : la même barre claire que A. On voit d\'un coup d\'œil par où on peut passer.',
+  },
+];
+
+let option = 1;
+let zoom = 1;
+
+// Repère d'une porte : centre de sa case dans le mur, `u` le long du mur, `n` à travers.
+function repere(porte, s, ox, oy) {
+  const [cx, cy] = porte.axe === 'h' ? [porte.rang + 0.5, porte.ligne] : [porte.ligne, porte.rang + 0.5];
+  const [ux, uy, nx, ny] = porte.axe === 'h' ? [1, 0, 0, 1] : [0, 1, 1, 0];
+  return (a, b) => [ox + cx * s + a * ux + b * nx, oy + cy * s + a * uy + b * ny];
+}
+
+function dessinPorte(opt, porte, p, s) {
+  if (porte.dessin === 'tirets') {
+    const [mx, my] = p(0, 0);
+    return ligne(p, -s / 4, 0, s / 4, 0, 'trou', 5) + ligne(p, -s / 4, 0, s / 4, 0, 'tirets')
+      + (porte.inconnue ? `<text class="inconnue" x="${mx + 6}" y="${my - 6}" font-size="${12 * Math.max(0.75, Math.min(1, zoom))}">?</text>` : '');
+  }
+  return opt.porte(p, s, porte.ouvert, porte.axe);
+}
+
+function plan() {
+  const s = CASE * zoom;
+  const largeur = 10 * CASE + 2 * MARGE;
+  const hauteur = 11 * CASE + 2 * MARGE;
+  // Au dézoom, le plan rétrécit au centre de la même zone, comme dans le jeu.
+  const ox = (largeur - 10 * s) / 2;
+  const oy = (hauteur - 11 * s) / 2;
+  const svg = document.getElementById('plan');
+  svg.setAttribute('viewBox', `0 0 ${largeur} ${hauteur}`);
+  const texte = 12 * Math.max(0.75, Math.min(1, zoom));
+  const pieces = PIECES.map(([nom, x, y, l, h, statut]) => {
+    const r = `x="${ox + x * s}" y="${oy + y * s}" width="${l * s}" height="${h * s}"`;
+    // Au dézoom, le nom ne tient plus que dans les grandes pièces.
+    const tient = zoom === 1 || nom.length * texte * 0.62 < l * s - 8;
+    return (statut === 'connue' ? '' : `<rect class="sol" ${r}/>`) + `<rect class="mur ${statut}" ${r}/>`
+      + (tient ? `<text class="nom ${statut}" x="${ox + x * s + 6}" y="${oy + y * s + 6 + texte}" font-size="${texte}">${nom.toUpperCase()}</text>` : '');
+  }).join('');
+  const opt = OPTIONS[option];
+  const portes = PORTES.map((porte) => {
+    const p = repere(porte, s, ox, oy);
+    const cible = porte.dessin === 'porte' ? pave(p, Math.max(28, 0.9 * s), 28, 'cible', porte.axe).replace('<rect', `<rect data-porte="${porte.id}"`) : '';
+    return dessinPorte(opt, porte, p, s) + cible;
+  }).join('');
+  const [jx, jy] = [ox + 5 * s, oy + 6.35 * s];
+  const echelle = 1.3 * Math.max(0.75, zoom);
+  const joueur = `<g class="joueur" transform="translate(${jx} ${jy}) scale(${echelle})"><circle class="anneau" r="13"/><circle class="anneau" r="8"/><circle class="point" r="3.5"/></g>`;
+  svg.innerHTML = pieces + joueur + portes;
+}
+
+// Vignette : deux sols séparés par un mur, la porte au milieu, à zoom 1 puis au dézoom.
+function vignette(opt, ouvert) {
+  const morceau = (x0, l, s) => {
+    const porte = { axe: 'h', ligne: 0, rang: 0, dessin: 'porte', ouvert };
+    const cx = x0 + l / 2;
+    const p = (a, b) => [cx + a, 30 + b];
+    return `<rect class="sol" x="${x0}" y="6" width="${l}" height="22"/><rect class="sol" x="${x0}" y="32" width="${l}" height="22"/>`
+      + `<line class="mur" x1="${x0}" y1="30" x2="${x0 + l}" y2="30"/>` + opt.porte(p, s, ouvert, porte.axe);
+  };
+  return `<svg viewBox="0 0 160 66" aria-hidden="true">${morceau(4, 88, 34)}${morceau(104, 52, 17)}`
+    + `<text class="echelle" x="48" y="65" text-anchor="middle">×1</text><text class="echelle" x="130" y="65" text-anchor="middle">dézoom</text></svg>`;
+}
+
+function rendre() {
+  document.getElementById('options').innerHTML = OPTIONS.map((o, i) => `<button class="onglet" role="tab" data-option="${i}" aria-selected="${i === option}">${o.court}</button>`).join('');
+  document.getElementById('zooms').innerHTML = [[1, 'Zoom 1'], [0.5, 'Dézoom']].map(([z, n]) => `<button class="onglet" role="tab" data-zoom="${z}" aria-selected="${z === zoom}">${n}</button>`).join('');
+  plan();
+  document.getElementById('verdict').innerHTML = `<b>${OPTIONS[option].nom}</b> : ${OPTIONS[option].verdict}`;
+  document.getElementById('legende').innerHTML = OPTIONS.map((o, i) => `<div class="ligne-legende${i === option ? ' choisie' : ''}"><h4>${o.nom}</h4>`
+    + `<figure>${vignette(o, true)}<figcaption>ouverte</figcaption></figure><figure>${vignette(o, false)}<figcaption>fermée</figcaption></figure></div>`).join('');
+}
+
+document.addEventListener('click', (ev) => {
+  const cible = ev.target.closest('[data-option], [data-zoom], [data-porte]');
+  if (cible === null) return;
+  if (cible.dataset.option !== undefined) option = Number(cible.dataset.option);
+  if (cible.dataset.zoom !== undefined) zoom = Number(cible.dataset.zoom);
+  if (cible.dataset.porte !== undefined) {
+    const porte = PORTES.find((p) => p.id === cible.dataset.porte);
+    porte.ouvert = !porte.ouvert;
+  }
+  rendre();
+});
+rendre();
+</script>

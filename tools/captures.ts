@@ -1681,7 +1681,7 @@ async function verifierCarte(page: Page, ou: string, erreurs: string[]): Promise
 
 /**
  * Carte (#97, 14 §2) : au départ d'AR-01 puis après les cinq premiers pas de P-C (le passager est au local énergie) ; glisser,
- * fiche au clavier, liste, retour système, texte très grand ; AR-02 pour les voyants d'air. Gratuite (D-014).
+ * fiche au clavier, liste, retour système, texte très grand ; AR-02 pour les portes étanches. Gratuite (D-014).
  */
 async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMonde, capturer: CapturerPage, erreurs: string[]): Promise<void> {
   const etapes = ar01.parcours.find((parcours) => parcours.nom.startsWith('P-C'))?.etapes;
@@ -1812,15 +1812,14 @@ async function parcoursCarte(navigateur: Browser, racine: string, ar01: EntreeMo
   await carte.getByRole('button', { name: exactement('Fermer') }).click();
   await contexte.close();
 
-  // AR-02 au départ : voyants d'air sur les portes étanches (OP-04).
+  // AR-02 au départ : portes étanches, sans voyant sur le plan (D-355) ; l'air reste dans la fiche et la LISTE (OP-04).
   const autre = await navigateur.newContext({ ...devices[TELEPHONE], viewport: REFERENCE, locale: 'fr-FR' });
   const page02 = await autre.newPage();
   await page02.goto(`${racine}?monde=ar-02`);
   await nouvelleDepuisAccueil(page02);
   await page02.locator('.nav-carte').click();
   await page02.getByRole('dialog', { name: MOTS_CARTE.titrePlan }).locator('.carte-piece').first().waitFor();
-  if ((await page02.locator('.carte .voyant').count()) === 0) erreurs.push('AR-02 : aucun voyant d’air sur la carte.');
-  await capturer(page02, 'Carte — départ d’AR-02 : voyants d’air');
+  await capturer(page02, 'Carte — départ d’AR-02');
   await verifierCarte(page02, 'Carte, AR-02', erreurs);
   await autre.close();
 }
